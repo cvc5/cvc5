@@ -1,0 +1,71 @@
+/*********************                                           -*- C++ -*-  */
+/** theory.h
+ ** This file is part of the CVC4 prototype.
+ **
+ ** The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ **/
+
+#ifndef __CVC4_THEORY_H
+#define __CVC4_THEORY_H
+
+namespace CVC4 {
+
+/**
+ * Base class for T-solvers.  Abstract DPLL(T).
+ */
+class Theory {
+public:
+  /**
+   * Subclasses of Theory may add additional efforts.  DO NOT CHECK
+   * equality with one of these values (e.g. if STANDARD xxx) but
+   * rather use range checks (or use the helper functions below).
+   * Normally we call QUICK_CHECK or STANDARD; at the leaves we call
+   * with MAX_EFFORT.
+   */
+  enum Effort {
+    MIN_EFFORT = 0,
+    QUICK_CHECK = 10,
+    STANDARD = 50,
+    FULL_EFFORT = 100
+  };/* enum Effort */
+
+  // TODO add compiler annotation "constant function" here
+  static bool minEffortOnly(Effort e)        { return e == MIN_EFFORT; }
+  static bool quickCheckOrMore(Effort e)     { return e >= QUICK_CHECK; }
+  static bool quickCheckOnly(Effort e)       { return e >= QUICK_CHECK && e < STANDARD; }
+  static bool standardEffortOrMore(Effort e) { return e >= STANDARD; }
+  static bool standardEffortOnly(Effort e)   { return e >= STANDARD && e < FULL_EFFORT; }
+  static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
+
+  /**
+   * Prepare for an Expr.
+   */
+  virtual void setup(Expr) = 0;
+
+  /**
+   * Assert a literal in the current context.
+   */
+  virtual void assert(Literal) = 0;
+
+  /**
+   * Check the current assignment's consistency.  Return false iff inconsistent.
+   */
+  virtual bool check(Effort level = FULL_EFFORT) = 0;
+
+  /**
+   * T-propagate new literal assignments in the current context.
+   */
+  virtual LiteralSet propagate();
+
+  /**
+   * Return an explanation for the literal (which was previously propagated by this theory)..
+   */
+  virtual Expr explain(Literal) = 0;
+
+};/* class Theory */
+
+}/* CVC4 namespace */
+
+#endif /* __CVC4_THEORY_H */

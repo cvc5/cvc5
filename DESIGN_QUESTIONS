@@ -1,0 +1,49 @@
+vc.h
+
+/* TODO provide way of querying whether you fall into a fragment /
+ * returning what fragment you're in */
+
+decision_engine.h
+
+  // TODO: design decision: decision engine should be notified of
+  // propagated lits, and also why(?) (so that it can make decisions
+  // based on the utility of various theories and various theory
+  // literals).  How?  Maybe TheoryEngine has a backdoor into
+  // DecisionEngine "behind the back" of the PropEngine?
+
+result.h
+
+// TODO: perhaps best to templatize Result on its Kind (SAT/Validity),
+// but this requires doing the same for Prover and needs discussion.
+
+// TODO: subclass to provide models, etc.  This is really just
+// intended as a three-valued response code.
+
+expr_builder.h
+
+  // TODO: store some flags here and install into attribute map when
+  // the expr is created?  (we'd have to do that since we don't know
+  // it's hash code yet)
+
+prover.h
+
+// TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
+// hood): use a type parameter and have check() delegate, or subclass
+// Prover and override check()?
+//
+// Probably better than that is to have a configuration object that
+// indicates which passes are desired.  The configuration occurs
+// elsewhere (and can even occur at runtime).  A simple "pass manager"
+// of sorts determines check()'s behavior.
+//
+// The CNF conversion can go on in PropEngine.
+
+prover.h
+
+  /** (preprocessing)
+   * Pre-process an Expr.  This is expected to be highly-variable,
+   * with a lot of "source-level configurability" to add multiple
+   * passes over the Expr.  TODO: may need to specify a LEVEL of
+   * preprocessing (certain contexts need more/less ?).
+   */
+

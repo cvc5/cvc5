@@ -13,11 +13,23 @@
 /* TODO provide way of querying whether you fall into a fragment /
  * returning what fragment you're in */
 
+// In terms of abstraction, this is below (and provides services to)
+// users using the library interface, and also the parser for the main
+// CVC4 binary.  It is above (and requires the services of) the Prover
+// class.
+
 namespace CVC4 {
 
+/**
+ * User-visible (library) interface to CVC4.
+ */
 class ValidityChecker {
+  // on entry to the validity checker interface, need to set up
+  // current state (ExprManager::d_current etc.)
 public:
   void doCommand(Command);
+
+  void query(Expr);
 };
 
 } /* CVC4 namespace */

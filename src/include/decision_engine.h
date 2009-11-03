@@ -1,0 +1,38 @@
+/*********************                                           -*- C++ -*-  */
+/** decision_engine.h
+ ** This file is part of the CVC4 prototype.
+ **
+ ** The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ **/
+
+#ifndef __CVC4_DECISION_ENGINE_H
+#define __CVC4_DECISION_ENGINE_H
+
+namespace CVC4 {
+
+// In terms of abstraction, this is below (and provides services to)
+// PropEngine.
+
+/**
+ * A decision mechanism for the next decision.
+ */
+class DecisionEngine {
+public:
+  /**
+   * Get the next decision.
+   */
+  virtual Literal nextDecision() = 0;
+
+  // TODO: design decision: decision engine should be notified of
+  // propagated lits, and also why(?) (so that it can make decisions
+  // based on the utility of various theories and various theory
+  // literals).  How?  Maybe TheoryEngine has a backdoor into
+  // DecisionEngine "behind the back" of the PropEngine?
+
+};/* class DecisionEngine */
+
+}/* CVC4 namespace */
+
+#endif /* __CVC4_DECISION_ENGINE_H */
