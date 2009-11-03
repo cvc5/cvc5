@@ -1,0 +1,1 @@
+INCLUDES = -I@srcdir@/include

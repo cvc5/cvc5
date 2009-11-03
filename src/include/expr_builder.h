@@ -1,0 +1,131 @@
+/*********************                                           -*- C++ -*-  */
+/** expr_builder.h
+ ** This file is part of the CVC4 prototype.
+ **
+ ** The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ **/
+
+#ifndef __CVC4_EXPR_BUILDER_H
+#define __CVC4_EXPR_BUILDER_H
+
+namespace CVC4 {
+
+class AndExprBuilder;
+class OrExprBuilder;
+class PlusExprBuilder;
+class MinusExprBuilder;
+class MultExprBuilder;
+
+class ExprBuilder {
+  ExprManager* d_em;
+
+  Kind d_kind;
+
+  // TODO: store some flags here and install into attribute map when
+  // the expr is created?  (we'd have to do that since we don't know
+  // it's hash code yet)
+
+  // initially false, when you extract the Expr this is set and you can't
+  // extract another
+  bool d_used;
+
+  unsigned d_nchildren;
+  union {
+    Expr         u_arr[10];
+    vector<Expr> u_vec;
+  } d_children;
+
+public:
+
+  // Compound expression constructors
+  ExprBuilder& eqExpr(const Expr& right);
+  ExprBuilder& notExpr();
+  ExprBuilder& negate(); // avoid double-negatives
+  ExprBuilder& andExpr(const Expr& right);
+  ExprBuilder& orExpr(const Expr& right);
+  ExprBuilder& iteExpr(const Expr& thenpart, const Expr& elsepart);
+  ExprBuilder& iffExpr(const Expr& right);
+  ExprBuilder& impExpr(const Expr& right);
+  ExprBuilder& xorExpr(const Expr& right);
+  ExprBuilder& skolemExpr(int i);
+  ExprBuilder& substExpr(const std::vector<Expr>& oldTerms,
+                         const std::vector<Expr>& newTerms);
+  ExprBuilder& substExpr(const ExprHashMap<Expr>& oldToNew);
+
+  ExprBuilder& operator!() const { return notExpr(); }
+  ExprBuilder& operator&&(const Expr& right) const { return andExpr(right); }
+  ExprBuilder& operator||(const Expr& right) const { return orExpr(right);  }
+
+  // "Stream" expression constructor syntax
+  ExprBuilder& operator<<(const Op& op);
+  ExprBuilder& operator<<(const Expr& child);
+
+  // For pushing sequences of children
+  ExprBuilder& append(const vector<Expr>& children) { return append(children.begin(), children.end()); }
+  template <class Iterator> ExprBuilder& append(const Iterator& begin, const Iterator& end);
+
+  operator Expr();// not const
+
+  AndExprBuilder   operator&&(Expr);
+  OrExprBuilder    operator||(Expr);
+  PlusExprBuilder  operator+ (Expr);
+  PlusExprBuilder  operator- (Expr);
+  MultExprBuilder  operator* (Expr);
+
+};/* class ExprBuilder */
+
+class AndExprBuilder {
+  ExprManager* d_em;
+
+public:
+
+  AndExprBuilder&   operator&&(Expr);
+  OrExprBuilder     operator||(Expr);
+
+  operator ExprBuilder();
+
+};/* class AndExprBuilder */
+
+class OrExprBuilder {
+  ExprManager* d_em;
+
+public:
+
+  AndExprBuilder    operator&&(Expr);
+  OrExprBuilder&    operator||(Expr);
+
+  operator ExprBuilder();
+
+};/* class OrExprBuilder */
+
+class PlusExprBuilder {
+  ExprManager* d_em;
+
+public:
+
+  PlusExprBuilder&  operator+(Expr);
+  PlusExprBuilder&  operator-(Expr);
+  MultExprBuilder   operator*(Expr);
+
+  operator ExprBuilder();
+
+};/* class PlusExprBuilder */
+
+class MultExprBuilder {
+  ExprManager* d_em;
+
+public:
+
+  PlusExprBuilder   operator+(Expr);
+  PlusExprBuilder   operator-(Expr);
+  MultExprBuilder&  operator*(Expr);
+
+  operator ExprBuilder();
+
+};/* class MultExprBuilder */
+
+} /* CVC4 namespace */
+
+#endif /* __CVC4_EXPR_BUILDER_H */

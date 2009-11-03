@@ -1,0 +1,9 @@
+To build, use the top-level script "autogen.sh" to invoke various
+autotools.  You'll need reasonably new automake, autoconf, and libtool
+installed.  Then ./configure && make as usual.
+
+To build a source release, use "make dist"; this will include the
+configure script and all the bits of automake/autoconf/libtool that
+are necessary for an independent install.
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 02 Nov 2009 17:54:27 -0500
