@@ -12,6 +12,8 @@
 
 namespace CVC4 {
 
+class Context;
+
 class ContextManager {
 public:
   void switchContext(Context);
@@ -23,6 +25,18 @@ public:
   void snapshot();
   void restore();
 };/* class ContextObject */
+
+template <class T>
+class CDO;
+
+template <class T>
+class CDMap;
+
+template <class T>
+class CDList;
+
+template <class T>
+class CDSet;
 
 }/* CVC4 namespace */
 

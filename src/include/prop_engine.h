@@ -10,6 +10,10 @@
 #ifndef __CVC4_PROP_ENGINE_H
 #define __CVC4_PROP_ENGINE_H
 
+#include "expr.h"
+#include "decision_engine.h"
+#include "theory_engine.h"
+
 namespace CVC4 {
 
 // In terms of abstraction, this is below (and provides services to)

@@ -7,6 +7,8 @@
  ** New York University
  **/
 
+#include "literal.h"
+
 #ifndef __CVC4_DECISION_ENGINE_H
 #define __CVC4_DECISION_ENGINE_H
 

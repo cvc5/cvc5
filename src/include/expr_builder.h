@@ -10,6 +10,10 @@
 #ifndef __CVC4_EXPR_BUILDER_H
 #define __CVC4_EXPR_BUILDER_H
 
+#include <vector>
+#include "expr_manager.h"
+#include "kind.h"
+
 namespace CVC4 {
 
 class AndExprBuilder;
@@ -33,8 +37,8 @@ class ExprBuilder {
 
   unsigned d_nchildren;
   union {
-    Expr         u_arr[10];
-    vector<Expr> u_vec;
+    ExprValue*         u_arr[10];
+    std::vector<Expr>* u_vec;
   } d_children;
 
 public:
@@ -52,18 +56,21 @@ public:
   ExprBuilder& skolemExpr(int i);
   ExprBuilder& substExpr(const std::vector<Expr>& oldTerms,
                          const std::vector<Expr>& newTerms);
+  /*
   ExprBuilder& substExpr(const ExprHashMap<Expr>& oldToNew);
+  */
 
-  ExprBuilder& operator!() const { return notExpr(); }
-  ExprBuilder& operator&&(const Expr& right) const { return andExpr(right); }
-  ExprBuilder& operator||(const Expr& right) const { return orExpr(right);  }
+  /* TODO design: these modify ExprBuilder */
+  ExprBuilder& operator!() { return notExpr(); }
+  ExprBuilder& operator&&(const Expr& right) { return andExpr(right); }
+  ExprBuilder& operator||(const Expr& right) { return orExpr(right);  }
 
   // "Stream" expression constructor syntax
-  ExprBuilder& operator<<(const Op& op);
+  ExprBuilder& operator<<(const Kind& op);
   ExprBuilder& operator<<(const Expr& child);
 
   // For pushing sequences of children
-  ExprBuilder& append(const vector<Expr>& children) { return append(children.begin(), children.end()); }
+  ExprBuilder& append(const std::vector<Expr>& children) { return append(children.begin(), children.end()); }
   template <class Iterator> ExprBuilder& append(const Iterator& begin, const Iterator& end);
 
   operator Expr();// not const

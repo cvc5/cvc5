@@ -10,6 +10,9 @@
 #ifndef __CVC4_THEORY_H
 #define __CVC4_THEORY_H
 
+#include "expr.h"
+#include "literal.h"
+
 namespace CVC4 {
 
 /**
@@ -57,7 +60,14 @@ public:
   /**
    * T-propagate new literal assignments in the current context.
    */
-  virtual LiteralSet propagate();
+  // TODO design decisoin: instead of returning a set of literals
+  // here, perhaps we have an interface back into the prop engine
+  // where we assert directly.  we might sometimes unknowingly assert
+  // something clearly inconsistent (esp. in a parallel context).
+  // This would allow the PropEngine to cancel our further work since
+  // we're already inconsistent---also could strategize dynamically on
+  // whether enough theory prop work has occurred.
+  virtual void propagate(Effort level = FULL_EFFORT) = 0;
 
   /**
    * Return an explanation for the literal (which was previously propagated by this theory)..

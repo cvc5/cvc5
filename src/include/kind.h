@@ -26,3 +26,5 @@ enum Kind {
 };/* enum Kind */
 
 }/* CVC4 namespace */
+
+#endif /* __CVC4_KIND_H */

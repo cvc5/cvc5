@@ -10,6 +10,11 @@
 #ifndef __CVC4_PROVER_H
 #define __CVC4_PROVER_H
 
+#include <vector>
+#include "expr.h"
+#include "result.h"
+#include "model.h"
+
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
 // PropEngine.

@@ -23,39 +23,41 @@ namespace CVC4 {
  */
 class Result {
 public:
-  enum {
+  enum SAT {
     UNSAT = 0,
     SAT = 1,
-    UNKNOWN = 2
-  } SAT;
+    SAT_UNKNOWN = 2
+  };
 
-  enum {
+  enum Validity {
     INVALID = 0,
     VALID = 1,
-    UNKNOWN = 2
-  } Validity;
+    VALIDITY_UNKNOWN = 2
+  };
 
-  enum {
+  enum UnknownExplanation {
     REQUIRES_FULL_CHECK,
     INCOMPLETE,
     TIMEOUT,
     BAIL,
     OTHER
-  } UnknownExplanation;
+  };
 
 private:
-  SAT      d_sat;
-  Validity d_validity;
-  enum { SAT, VALIDITY } d_which;
+  enum SAT      d_sat;
+  enum Validity d_validity;
+  enum { TYPE_SAT, TYPE_VALIDITY } d_which;
 
 public:
-  Result(SAT);
-  Result(Validity);
+  Result(enum SAT);
+  Result(enum Validity);
 
-  SAT isSAT();
-  Validity isValid();
-  UnknownExplanation whyUnknown();
+  enum SAT isSAT();
+  enum Validity isValid();
+  enum UnknownExplanation whyUnknown();
 
 };/* class Result */
 
 }/* CVC4 namespace */
+
+#endif /* __CVC4_RESULT_H */

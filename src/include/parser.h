@@ -10,6 +10,10 @@
 #ifndef __CVC4_PARSER_H
 #define __CVC4_PARSER_H
 
+#include <iostream>
+#include "vc.h"
+#include "expr.h"
+
 namespace CVC4 {
 
 // In terms of abstraction, this is below (and provides services to)
