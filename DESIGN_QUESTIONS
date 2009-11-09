@@ -58,7 +58,7 @@ theory.h
 
   // TODO: these use the current EM (but must be renamed)
 
-  // TODO design decisoin: instead of returning a set of literals
+  // TODO design decision: instead of returning a set of literals
   // here, perhaps we have an interface back into the prop engine
   // where we assert directly.  we might sometimes unknowingly assert
   // something clearly inconsistent (esp. in a parallel context).
@@ -66,3 +66,17 @@ theory.h
   // we're already inconsistent---also could strategize dynamically on
   // whether enough theory prop work has occurred.
   virtual void propagate(Effort level = FULL_EFFORT) = 0;
+
+  could provide a continuation (essentially) to propagate literals.
+  argument Propagator prop
+  class Propagator {
+    PropEngine d_pe;
+  public:
+    // may not return due to a longjmp (?) or perhaps an exception
+    // returns next continuation
+    Propagator operator()(Literal l);
+  };
+
+
+==========================
+TODO:  add throw() specifications

@@ -28,6 +28,7 @@ AC_TYPE_UINT64_T
 
 AC_CONFIG_FILES([
   Makefile
+  contrib/Makefile
   doc/Makefile
   src/Makefile
   src/include/Makefile

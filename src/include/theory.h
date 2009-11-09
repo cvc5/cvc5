@@ -60,7 +60,7 @@ public:
   /**
    * T-propagate new literal assignments in the current context.
    */
-  // TODO design decisoin: instead of returning a set of literals
+  // TODO design decision: instead of returning a set of literals
   // here, perhaps we have an interface back into the prop engine
   // where we assert directly.  we might sometimes unknowingly assert
   // something clearly inconsistent (esp. in a parallel context).
