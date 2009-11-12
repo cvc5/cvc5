@@ -5,7 +5,7 @@ SUBDIRS = parser sat
 lib_LTLIBRARIES = libcvc4.la
 
 libcvc4_la_LIBADD = \
-	sat/parser/libparser.a
+	parser/libparser.a
 	sat/minisat/libminisat.a
 
 EXTRA_DIST = \
