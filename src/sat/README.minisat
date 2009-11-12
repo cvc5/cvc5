@@ -1,0 +1,10 @@
+This is MiniSAT 2-070721, downloaded from here:
+
+  http://minisat.se/MiniSat.html
+
+on 10 November 2009.
+
+The code has been modified slightly to put everything in the CVC4::MiniSat namespace.
+The build process has been modified.
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Tue, 10 Nov 2009 07:16:14 -0500

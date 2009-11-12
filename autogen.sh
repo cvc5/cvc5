@@ -1,11 +1,11 @@
 #!/bin/sh -ex
 
 cd "$(dirname "$0")"
-mkdir -p m4
+mkdir -p config
 libtoolize --copy
-autoheader -I m4
+autoheader -I config
 touch NEWS README AUTHORS ChangeLog
 touch stamp-h
-aclocal -I m4
-autoconf -I m4
+aclocal -I config
+autoconf -I config
 automake -ac --foreign

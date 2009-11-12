@@ -2,6 +2,8 @@
 /** parser.h
  ** This file is part of the CVC4 prototype.
  **
+ ** Parser abstraction.
+ **
  ** The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
@@ -10,37 +12,52 @@
 #ifndef __CVC4_PARSER_H
 #define __CVC4_PARSER_H
 
-#include <iostream>
-#include "vc.h"
-#include "expr.h"
+#include "exception.h"
+#include "lang.h"
 
 namespace CVC4 {
 
-// In terms of abstraction, this is below (and provides services to)
-// the main CVC4 binary and above (and requires the services of)
-// ValidityChecker.
+  class ValidityChecker;
+  class Expr;
+  
+  // Internal parser state and other data
+  class ParserData;
 
-class Parser {
-private:// maybe protected is better ?
-  ValidityChecker *d_vc;
+  class Parser {
+  private:
+    ParserData* d_data;
+    // Internal methods for constructing and destroying the actual parser
+    void initParser();
+    void deleteParser();
+  public:
+    // Constructors
+    Parser(ValidityChecker* vc, InputLanguage lang,
+	   // The 'interactive' flag is ignored when fileName != ""
+	   bool interactive = true,
+	   const std::string& fileName = "");
+    Parser(ValidityChecker* vc, InputLanguage lang, std::istream& is,
+	   bool interactive = false);
+    // Destructor
+    ~Parser();
+    // Read the next command.  
+    Expr next();
+    // Check if we are done (end of input has been reached)
+    bool done() const;
+    // The same check can be done by using the class Parser's value as
+    // a Boolean
+    operator bool() const { return done(); }
+    void printLocation(std::ostream & out) const;
+    // Reset any local data that depends on validity checker
+    void reset();
+  }; // end of class Parser
 
-public:
-  Parser(ValidityChecker* vc);
+  // The global pointer to ParserTemp.  Each instance of class Parser
+  // sets this pointer before any calls to the lexer.  We do it this
+  // way because flex and bison use global vars, and we want each
+  // Parser object to appear independent.
+  class ParserTemp;
+  extern ParserTemp* parserTemp;
 
-  /**
-   * Process a file.  Overridden in subclasses to support SMT-LIB
-   * format, CVC4 presentation language, etc.  In subclasses, this
-   * function should parse terms, build Command objects, and pass them
-   * to dispatch().
-   */
-  virtual Expr process(std::istream&) = 0;
-
-  /**
-   * Dispatch a command.
-   */
-  void dispatch(const Command&);
-};/* class Parser */
-
-} /* CVC4 namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4_PARSER_H */

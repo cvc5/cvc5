@@ -1,8 +1,37 @@
 The core authors and designers of CVC4 are:
 
-Clark Barrett <barrett@cs.nyu.edu>, New York University
-Christopher Conway <cconway@cs.nyu.edu>, New York University
-Morgan Deters <mdeters@cs.nyu.edu>, New York University
-Tim King <taking@cs.nyu.edu>, New York University
-Dejan Jovanovic <dejan@cs.nyu.edu>, New York University
+  Clark Barrett <barrett@cs.nyu.edu>, New York University
+  Christopher Conway <cconway@cs.nyu.edu>, New York University
+  Morgan Deters <mdeters@cs.nyu.edu>, New York University
+  Yeting Ge <yeting@cs.nyu.edu>, New York University
+  Tim King <taking@cs.nyu.edu>, New York University
+  Mina Jeong <mjeong@cs.nyu.edu>, New York University
+  Dejan Jovanovic <dejan@cs.nyu.edu>, New York University
 
+The following individuals contributed code to CVC3 that may have been incorporated into CVC4:
+
+  Clark Barrett, New York University
+  Christopher Conway <cconway@cs.nyu.edu>, New York University
+  Alexander Fuchs, University of Iowa
+  Yeting Ge, New York Univeristy
+  George Hagen, University of Iowa
+  Dejan Jovanovic <dejan@cs.nyu.edu>, New York University
+
+The following individuals contributed code to CVC Lite that may have been incorporated in CVC4:
+
+  Clark Barrett, New York University
+  Sergey Berezin, Stanford University
+  Cristian Cadar, Stanford University
+  Jake Donham, New York University
+  Yeting Ge, New York Univeristy
+  Vijay Ganesh, Stanford University
+  Deepak Goyal, Calypto
+  Ying Hu, New York University
+  Sean McLaughlin, New York University
+  Mehul Trivedi, Stanford University
+  Michael Veksler, Technion, Israel
+  Daniel Wichs, Stanford University
+  Mark Zavislak, Stanford University
+  Jim Zhuang, Stanford University
+
+CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson
