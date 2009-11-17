@@ -1,12 +1,13 @@
 /*********************                                           -*- C++ -*-  */
 /** smtlib_scanner.lpp
  ** This file is part of the CVC4 prototype.
- **
- ** Reference-counted encapsulation of a pointer to an expression.
- **
- ** The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** Lexer for smtlib format.
  **/
 
 %option interactive
@@ -19,7 +20,7 @@
 
 %{
 #include <iostream>
-#include "smtlib.h"
+#include "smtlib.hpp"
 #include "debug.h"
 
 namespace CVC4 {

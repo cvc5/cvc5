@@ -12,10 +12,10 @@ libparser_a_SOURCES = \
 BUILT_SOURCES = \
 	pl_scanner.cpp \
 	pl.cpp \
-	pl.h \
+	pl.hpp \
 	smtlib_scanner.cpp \
 	smtlib.cpp \
-	smtlib.h
+	smtlib.hpp
 
 # produce headers too
 AM_YFLAGS = -d
@@ -25,11 +25,11 @@ pl_scanner.cpp: pl_scanner.lpp
 smtlib_scanner.cpp: smtlib_scanner.lpp
 	$(LEX) $(AM_LFLAGS) $(LFLAGS) -P smtlib -o $@ $<
 
-pl_scanner.o: pl.h
+pl_scanner.o: pl.hpp
 pl.cpp: pl.ypp
 	$(YACC) $(AM_YFLAGS) $(YFLAGS) -p PL -o $@ $<
 
 
-smtlib_scanner.o: smtlib.h
+smtlib_scanner.o: smtlib.hpp
 smtlib.cpp: smtlib.ypp
 	$(YACC) $(AM_YFLAGS) $(YFLAGS) -p smtlib -o $@ $<

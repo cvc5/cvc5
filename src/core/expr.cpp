@@ -1,12 +1,13 @@
 /*********************                                           -*- C++ -*-  */
 /** expr.cpp
  ** This file is part of the CVC4 prototype.
- **
- ** Reference-counted encapsulation of a pointer to an expression.
- **
- ** The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** Reference-counted encapsulation of a pointer to an expression.
  **/
 
 #include "expr.h"

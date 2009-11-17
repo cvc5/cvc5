@@ -1,12 +1,11 @@
-%{/*******************                                           -*- C++ -*-  */
+%{/*********************                                         -*- C++ -*-  */
 /** smtlib.ypp
  ** This file is part of the CVC4 prototype.
- **
- ** Reference-counted encapsulation of a pointer to an expression.
- **
- ** The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
  **
  ** This file contains the bison code for the parser that reads in CVC
  ** commands in SMT-LIB language.
@@ -17,18 +16,18 @@
 #include "parser_state.h"
 
 // Exported shared data
-namespace CVC3 {
-  extern ParserTemp* parserTemp;
+namespace CVC4 {
+  extern ParserState* parserState;
 }
 // Define shortcuts for various things
-#define TMP CVC3::parserTemp
-#define EXPR CVC3::parserTemp->expr
-#define VC (CVC3::parserTemp->vc)
-#define ARRAYSENABLED (CVC3::parserTemp->arrFlag)
-#define BVENABLED (CVC3::parserTemp->bvFlag)
-#define BVSIZE (CVC3::parserTemp->bvSize)
-#define RAT(args) CVC3::newRational args
-#define QUERYPARSED CVC3::parserTemp->queryParsed
+#define TMP CVC4::parserState
+#define EXPR CVC4::parserState->expr
+#define VC (CVC4::parserState->vc)
+#define ARRAYSENABLED (CVC4::parserState->arrFlag)
+#define BVENABLED (CVC4::parserState->bvFlag)
+#define BVSIZE (CVC4::parserState->bvSize)
+#define RAT(args) CVC4::newRational args
+#define QUERYPARSED CVC4::parserState->queryParsed
 
 // Suppress the bogus warning suppression in bison (it generates
 // compile error)
@@ -40,9 +39,9 @@ extern int smtliblex(void);
 int smtliberror(const char *s)
 {
   std::ostringstream ss;
-  ss << CVC3::parserTemp->fileName << ":" << CVC3::parserTemp->lineNum
+  ss << CVC4::parserState->fileName << ":" << CVC4::parserState->lineNum
      << ": " << s;
-  return CVC3::parserTemp->error(ss.str());
+  return CVC4::parserState->error(ss.str());
 }
 
 
@@ -55,9 +54,9 @@ int smtliberror(const char *s)
 %union {
   std::string *str;
   std::vector<std::string> *strvec;
-  CVC3::Expr *node;
-  std::vector<CVC3::Expr> *vec;
-  std::pair<std::vector<CVC3::Expr>, std::vector<std::string> > *pat_ann;
+  CVC4::Expr *node;
+  std::vector<CVC4::Expr> *vec;
+  std::pair<std::vector<CVC4::Expr>, std::vector<std::string> > *pat_ann;
 };
 
 
