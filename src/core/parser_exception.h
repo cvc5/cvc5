@@ -13,7 +13,7 @@
 #ifndef __CVC4_PARSER_EXCEPTION_H
 #define __CVC4_PARSER_EXCEPTION_H
 
-#include "exception.h"
+#include "core/exception.h"
 #include <string>
 #include <iostream>
 

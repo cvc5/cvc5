@@ -71,6 +71,8 @@ public:
                  const std::vector<Expr>& newTerms) const;
 
   static Expr null() { return s_null; }
+
+  friend class ExprBuilder;
 };/* class Expr */
 
 } /* CVC4 namespace */

@@ -13,8 +13,8 @@
 #define __CVC4_EXPR_BUILDER_H
 
 #include <vector>
-#include "expr_manager.h"
-#include "kind.h"
+#include "core/expr_manager.h"
+#include "core/kind.h"
 
 namespace CVC4 {
 
@@ -29,25 +29,34 @@ class ExprBuilder {
 
   Kind d_kind;
 
-  // TODO: store some flags here and install into attribute map when
-  // the expr is created?  (we'd have to do that since we don't know
-  // it's hash code yet)
-
   // initially false, when you extract the Expr this is set and you can't
   // extract another
   bool d_used;
 
+  static const unsigned nchild_thresh = 10;
+
   unsigned d_nchildren;
   union {
-    ExprValue*         u_arr[10];
+    ExprValue*         u_arr[nchild_thresh];
     std::vector<Expr>* u_vec;
   } d_children;
+
+  void addChild();
+  void collapse();
 
 public:
 
   ExprBuilder();
+  ExprBuilder(Kind k);
   ExprBuilder(const Expr&);
   ExprBuilder(const ExprBuilder&);
+
+  ExprBuilder(ExprManager*);
+  ExprBuilder(ExprManager*, Kind k);
+  ExprBuilder(ExprManager*, const Expr&);
+  ExprBuilder(ExprManager*, const ExprBuilder&);
+
+  ~ExprBuilder();
 
   // Compound expression constructors
   ExprBuilder& eqExpr(const Expr& right);

@@ -13,9 +13,9 @@
 #define __CVC4_PROVER_H
 
 #include <vector>
-#include "expr.h"
-#include "result.h"
-#include "model.h"
+#include "core/cvc4_expr.h"
+#include "core/result.h"
+#include "core/model.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)

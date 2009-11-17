@@ -10,43 +10,43 @@
  ** Expression manager implementation.
  **/
 
-#include <vector>
-#include "expr.h"
-#include "kind.h"
+#include "core/expr_builder.h"
+#include "core/expr_manager.h"
+#include "core/cvc4_expr.h"
 
 namespace CVC4 {
 
-class ExprManager {
-  static __thread ExprManager* s_current;
+__thread ExprManager* ExprManager::s_current = 0;
 
-public:
-  static ExprManager* currentEM() { return s_current; }
+// general expression-builders
 
-  // general expression-builders
-  Expr mkExpr(Kind kind);
-  Expr mkExpr(Kind kind, Expr child1);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5);
-  // N-ary version
-  Expr mkExpr(Kind kind, std::vector<Expr> children);
+Expr ExprManager::mkExpr(Kind kind) {
+  return ExprBuilder(this, kind);
+}
 
-  // TODO: these use the current EM (but must be renamed)
-  /*
-  static Expr mkExpr(Kind kind)
-  { currentEM()->mkExpr(kind); }
-  static Expr mkExpr(Kind kind, Expr child1);
-  { currentEM()->mkExpr(kind, child1); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2);
-  { currentEM()->mkExpr(kind, child1, child2); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3);
-  { currentEM()->mkExpr(kind, child1, child2, child3); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4);
-  { currentEM()->mkExpr(kind, child1, child2, child3, child4); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5);
-  { currentEM()->mkExpr(kind, child1, child2, child3, child4, child5); }
-  */
-};
+Expr ExprManager::mkExpr(Kind kind, Expr child1) {
+  return ExprBuilder(this, kind) << child1;
+}
+
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
+  return ExprBuilder(this, kind) << child1 << child2;
+}
+
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3) {
+  return ExprBuilder(this, kind) << child1 << child2 << child3;
+}
+
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4) {
+  return ExprBuilder(this, kind) << child1 << child2 << child3 << child4;
+}
+
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5) {
+  return ExprBuilder(this, kind) << child1 << child2 << child3 << child4 << child5;
+}
+
+// N-ary version
+Expr ExprManager::mkExpr(Kind kind, std::vector<Expr> children) {
+  return ExprBuilder(this, kind).append(children);
+}
 
 } /* CVC4 namespace */

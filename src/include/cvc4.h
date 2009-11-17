@@ -13,7 +13,7 @@
 #define __CVC4_VC_H
 
 #include "command.h"
-#include "expr.h"
+#include "cvc4_expr.h"
 
 /* TODO provide way of querying whether you fall into a fragment /
  * returning what fragment you're in */

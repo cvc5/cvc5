@@ -18,7 +18,7 @@
 #define __CVC4_EXPR_VALUE_H
 
 #include <stdint.h>
-#include "expr.h"
+#include "cvc4_expr.h"
 
 namespace CVC4 {
 
@@ -26,6 +26,10 @@ namespace CVC4 {
  * This is an ExprValue.
  */
 class ExprValue {
+  /** Maximum reference count possible.  Used for sticky
+   *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
+  static const unsigned MAX_RC = 255;
+
   // this header fits into one 64-bit word
 
   /** The ID */

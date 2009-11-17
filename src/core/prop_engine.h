@@ -12,9 +12,9 @@
 #ifndef __CVC4_PROP_ENGINE_H
 #define __CVC4_PROP_ENGINE_H
 
-#include "expr.h"
-#include "decision_engine.h"
-#include "theory_engine.h"
+#include "core/cvc4_expr.h"
+#include "core/decision_engine.h"
+#include "core/theory_engine.h"
 
 namespace CVC4 {
 

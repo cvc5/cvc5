@@ -19,7 +19,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "expr.h"
+#include "cvc4_expr.h"
 #include "exception.h"
 
 namespace CVC4 {

@@ -1,4 +1,4 @@
-INCLUDES = -I@srcdir@/include
+INCLUDES = -I@srcdir@/include -I@srcdir@
 
 SUBDIRS = core parser sat
 
@@ -10,17 +10,5 @@ libcvc4_la_LIBADD = \
 	sat/minisat/libminisat.a
 
 EXTRA_DIST = \
-	include/assert.h \
-	include/attr_type.h \
-	include/command.h
-	include/expr_attribute.h \
-	include/expr_builder.h \
-	include/expr.h \
-	include/expr_manager.h \
-	include/expr_value.h \
-	include/kind.h \
-	include/parser.h \
-	include/sat.h \
-	include/unique_id.h \
-	include/vc.h
-
+	include/cvc4.h \
+	include/cvc4_expr.h

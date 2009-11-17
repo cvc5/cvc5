@@ -14,7 +14,7 @@
  ** reference count on ExprValue instances and
  **/
 
-#include "expr_value.h"
+#include "core/expr_value.h"
 
 namespace CVC4 {
 
@@ -25,6 +25,23 @@ uint64_t ExprValue::hash() const {
     hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ i->hash();
 
   return hash;
+}
+
+ExprValue* ExprValue::inc() {
+  // FIXME multithreading
+  if(d_rc < MAX_RC)
+    ++d_rc;
+  return this;
+}
+
+ExprValue* ExprValue::dec() {
+  // FIXME multithreading
+  if(d_rc < MAX_RC)
+    if(--d_rc == 0) {
+      // FIXME gc
+      return 0;
+    }
+  return this;
 }
 
 ExprValue::iterator ExprValue::begin() {

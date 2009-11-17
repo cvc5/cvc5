@@ -15,9 +15,9 @@
 // TODO WARNING this file needs work !
 
 #include <stdint.h>
-#include "config.h"
-#include "context.h"
-#include "expr.h"
+#include "core/config.h"
+#include "core/context.h"
+#include "core/cvc4_expr.h"
 
 namespace CVC4 {
 

@@ -19,6 +19,8 @@ namespace CVC4 {
 // placeholder for design & development work.
 
 enum Kind {
+  UNDEFINED_KIND = -1,
+  EQUAL,
   AND,
   OR,
   XOR,

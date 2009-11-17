@@ -13,8 +13,8 @@
 #ifndef __CVC4_PARSER_H
 #define __CVC4_PARSER_H
 
-#include "exception.h"
-#include "lang.h"
+#include "core/exception.h"
+#include "core/lang.h"
 
 namespace CVC4 {
 
