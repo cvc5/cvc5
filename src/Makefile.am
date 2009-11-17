@@ -1,10 +1,11 @@
 INCLUDES = -I@srcdir@/include
 
-SUBDIRS = parser sat
+SUBDIRS = core parser sat
 
 lib_LTLIBRARIES = libcvc4.la
 
 libcvc4_la_LIBADD = \
+	core/libcore.a
 	parser/libparser.a
 	sat/minisat/libminisat.a
 

@@ -43,6 +43,10 @@ class ExprBuilder {
 
 public:
 
+  ExprBuilder();
+  ExprBuilder(const Expr&);
+  ExprBuilder(const ExprBuilder&);
+
   // Compound expression constructors
   ExprBuilder& eqExpr(const Expr& right);
   ExprBuilder& notExpr();

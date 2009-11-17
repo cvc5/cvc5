@@ -10,7 +10,7 @@
  **/
 
 #ifndef __CVC4_EXCEPTION_H
-#ifndef __CVC4_EXCEPTION_H
+#define __CVC4_EXCEPTION_H
 
 #include <string>
 #include <iostream>

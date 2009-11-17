@@ -22,7 +22,11 @@ enum Kind {
   XOR,
   NOT,
   PLUS,
-  MINUS
+  MINUS,
+  ITE,
+  IFF,
+  SKOLEM,
+  SUBST
 };/* enum Kind */
 
 }/* CVC4 namespace */

@@ -1,75 +1,33 @@
+/*********************                                           -*- C++ -*-  */
+/** pl_scanner.lpp
+ ** This file is part of the CVC4 prototype.
+ **
+ ** Reference-counted encapsulation of a pointer to an expression.
+ **
+ ** The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ **/
+
+%option interactive
+%option noyywrap
+%option nounput
+%option noreject
+%option noyymore
+%option yylineno
+%option prefix="PL"
+
 %{
-/*****************************************************************************/
-/*!
- * \file PL.lex
- * 
- * Author: Sergey Berezin
- * 
- * Created: Feb 06 03:00:43 GMT 2003
- *
- * <hr>
- *
- * License to use, copy, modify, sell and/or distribute this software
- * and its documentation for any purpose is hereby granted without
- * royalty, subject to the terms and conditions defined in the \ref
- * LICENSE file provided with this distribution.
- * 
- * <hr>
- * 
- */
-/*****************************************************************************/
 
 #include <iostream>
-#include "parser_temp.h"
 #include "expr_manager.h" /* for the benefit of parsePL_defs.h */
-#include "parsePL_defs.h"
+#include "parser_state.h"
+#include "pl.h"
 #include "debug.h"
 
 namespace CVC4 {
-  extern ParserTemp* parserTemp;
+  extern ParserState* parserState;
 }
-
-/* prefixing hack from gdb (via automake docs) */
-#define	yymaxdepth PL_maxdepth
-#define	yyparse	PL_parse
-#define	yylex	PL_lex
-#define	yyerror	PL_error
-#define	yylval	PL_lval
-#define	yychar	PL_char
-#define	yydebug	PL_debug
-#define	yypact	PL_pact	
-#define	yyr1	PL_r1			
-#define	yyr2	PL_r2			
-#define	yydef	PL_def		
-#define	yychk	PL_chk		
-#define	yypgo	PL_pgo		
-#define	yyact	PL_act		
-#define	yyexca	PL_exca
-#define yyerrflag PL_errflag
-#define yynerrs	PL_nerrs
-#define	yyps	PL_ps
-#define	yypv	PL_pv
-#define	yys	PL_s
-#define	yy_yys	PL_yys
-#define	yystate	PL_state
-#define	yytmp	PL_tmp
-#define	yyv	PL_v
-#define	yy_yyv	PL_yyv
-#define	yyval	PL_val
-#define	yylloc	PL_lloc
-#define yyreds	PL_reds
-#define yytoks	PL_toks
-#define yylhs	PL_yylhs
-#define yylen	PL_yylen
-#define yydefred PL_yydefred
-#define yydgoto	PL_yydgoto
-#define yysindex PL_yysindex
-#define yyrindex PL_yyrindex
-#define yygindex PL_yygindex
-#define yytable	 PL_yytable
-#define yycheck	 PL_yycheck
-#define yyname   PL_yyname
-#define yyrule   PL_yyrule
 
 extern int PL_inputLine;
 extern char *PLtext;
@@ -81,11 +39,11 @@ static int PLinput(std::istream& is, char* buf, int size) {
   if(is) {
     // If interactive, read line by line; otherwise read as much as we
     // can gobble
-    if(CVC4::parserTemp->interactive) {
+    if(CVC4::parserState->interactive) {
       // Print the current prompt
-      std::cout << CVC4::parserTemp->getPrompt() << std::flush;
+      std::cout << CVC4::parserState->getPrompt() << std::flush;
       // Set the prompt to "middle of the command" one
-      CVC4::parserTemp->setPrompt2();
+      CVC4::parserState->setPrompt2();
       // Read the line
       is.getline(buf, size-1);
     } else // Set the terminator char to 0
@@ -110,7 +68,7 @@ static int PLinput(std::istream& is, char* buf, int size) {
 
 // Redefine the input buffer function to read from an istream
 #define YY_INPUT(buf,result,max_size) \
-  result = PLinput(*CVC4::parserTemp->is, buf, max_size);
+  result = PLinput(*CVC4::parserState->is, buf, max_size);
 
 int PL_bufSize() { return YY_BUF_SIZE; }
 YY_BUFFER_STATE PL_buf_state() { return YY_CURRENT_BUFFER; }
@@ -152,13 +110,6 @@ static std::string _string_lit;
 
 %}
 
-%option interactive
-%option noyywrap
-%option nounput
-%option noreject
-%option noyymore
-%option yylineno
-
 %x	COMMENT
 %x	STRING_LITERAL
 
@@ -171,7 +122,7 @@ ANYTHING ({LETTER}|{DIGIT}|{OPCHAR})
 
 %%
 
-[\n]            { CVC4::parserTemp->lineNum++; }
+[\n]            { CVC4::parserState->lineNum++; }
 
 [ \t\r\f]	{ /* skip whitespace */ }
 
@@ -184,7 +135,7 @@ ANYTHING ({LETTER}|{DIGIT}|{OPCHAR})
 
 "%"		{ BEGIN COMMENT; }
 <COMMENT>"\n"	{ BEGIN INITIAL; /* return to normal mode */ 
-                  CVC4::parserTemp->lineNum++; }
+                  CVC4::parserState->lineNum++; }
 <COMMENT>.	{ /* stay in comment mode */ }
 
 <INITIAL>"\""		{ BEGIN STRING_LITERAL; 

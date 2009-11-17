@@ -1,75 +1,30 @@
-%{
-/*****************************************************************************/
-/*!
- * \file smtlib.lex
- * 
- * Author: Clark Barrett
- * 
- * Created: 2005
- *
- * <hr>
- *
- * License to use, copy, modify, sell and/or distribute this software
- * and its documentation for any purpose is hereby granted without
- * royalty, subject to the terms and conditions defined in the \ref
- * LICENSE file provided with this distribution.
- * 
- * <hr>
- * 
- */
-/*****************************************************************************/
+/*********************                                           -*- C++ -*-  */
+/** smtlib_scanner.lpp
+ ** This file is part of the CVC4 prototype.
+ **
+ ** Reference-counted encapsulation of a pointer to an expression.
+ **
+ ** The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ **/
 
+%option interactive
+%option noyywrap
+%option nounput
+%option noreject
+%option noyymore
+%option yylineno
+%option prefix="smtlib"
+
+%{
 #include <iostream>
-#include "parser_temp.h"
-#include "expr_manager.h" /* for the benefit of parsesmtlib_defs.h */
-#include "parsesmtlib_defs.h"
+#include "smtlib.h"
 #include "debug.h"
 
 namespace CVC4 {
   extern ParserTemp* parserTemp;
 }
-
-/* prefixing hack from gdb (via automake docs) */
-#define	yymaxdepth smtlib_maxdepth
-#define	yyparse	smtlib_parse
-#define	yylex	smtlib_lex
-#define	yyerror	smtlib_error
-#define	yylval	smtlib_lval
-#define	yychar	smtlib_char
-#define	yydebug	smtlib_debug
-#define	yypact	smtlib_pact	
-#define	yyr1	smtlib_r1			
-#define	yyr2	smtlib_r2			
-#define	yydef	smtlib_def		
-#define	yychk	smtlib_chk		
-#define	yypgo	smtlib_pgo		
-#define	yyact	smtlib_act		
-#define	yyexca	smtlib_exca
-#define yyerrflag smtlib_errflag
-#define yynerrs	smtlib_nerrs
-#define	yyps	smtlib_ps
-#define	yypv	smtlib_pv
-#define	yys	smtlib_s
-#define	yy_yys	smtlib_yys
-#define	yystate	smtlib_state
-#define	yytmp	smtlib_tmp
-#define	yyv	smtlib_v
-#define	yy_yyv	smtlib_yyv
-#define	yyval	smtlib_val
-#define	yylloc	smtlib_lloc
-#define yyreds	smtlib_reds
-#define yytoks	smtlib_toks
-#define yylhs	smtlib_yylhs
-#define yylen	smtlib_yylen
-#define yydefred smtlib_yydefred
-#define yydgoto	smtlib_yydgoto
-#define yysindex smtlib_yysindex
-#define yyrindex smtlib_yyrindex
-#define yygindex smtlib_yygindex
-#define yytable	 smtlib_yytable
-#define yycheck	 smtlib_yycheck
-#define yyname   smtlib_yyname
-#define yyrule   smtlib_yyrule
 
 extern int smtlib_inputLine;
 extern char *smtlibtext;
@@ -151,13 +106,6 @@ static std::string _string_lit;
 /*OPCHAR	(['!#?\_$&\|\\@])*/
 
 %}
-
-%option interactive
-%option noyywrap
-%option nounput
-%option noreject
-%option noyymore
-%option yylineno
 
 %x	COMMENT
 %x	STRING_LITERAL
@@ -257,4 +205,3 @@ IDCHAR  ({LETTER}|{DIGIT}|{OPCHAR})
 
 . { smtliberror("Illegal input character."); }
 %%
-

@@ -1,14 +1,11 @@
 /*********************                                           -*- C++ -*-  */
-/** expr_manager.h
+/** expr_manager.cpp
  ** This file is part of the CVC4 prototype.
  **
  ** The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  **/
-
-#ifndef __CVC4_EXPR_MANAGER_H
-#define __CVC4_EXPR_MANAGER_H
 
 #include <vector>
 #include "expr.h"
@@ -47,10 +44,6 @@ public:
   static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5);
   { currentEM()->mkExpr(kind, child1, child2, child3, child4, child5); }
   */
-
-  // do we want a varargs one?  perhaps not..
 };
 
 } /* CVC4 namespace */
-
-#endif /* __CVC4_EXPR_MANAGER_H */

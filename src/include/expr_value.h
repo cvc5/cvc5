@@ -16,6 +16,7 @@
 #ifndef __CVC4_EXPR_VALUE_H
 #define __CVC4_EXPR_VALUE_H
 
+#include <stdint.h>
 #include "expr.h"
 
 namespace CVC4 {
@@ -41,14 +42,12 @@ class ExprValue {
   /** Variable number of child nodes */
   Expr     d_children[0];
 
+  friend class Expr;
+
 public:
   /** Hash this expression.
    *  @return the hash value of this expression. */
-  unsigned hash() const;
-
-  /** Convert to (wrap in) an Expr.
-   *  @return an Expr pointing to this expression. */
-  operator Expr();
+  uint64_t hash() const;
 
   // Iterator support
 

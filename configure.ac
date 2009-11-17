@@ -8,7 +8,6 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 AM_INIT_AUTOMAKE(cvc4, prerelease)
 AC_CONFIG_HEADERS([config.h])
-AM_MAINTAINER_MODE
 LT_INIT
 
 AC_LIBTOOL_WIN32_DLL
@@ -22,7 +21,7 @@ AM_PROG_LEX
 AC_PROG_YACC
 
 AC_CHECK_PROG(DOXYGEN, doxygen, doxygen,)
-if [ "$DOXYGEN" = '' ]; then
+if test "$DOXYGEN" = ''; then
   echo 'WARNING: documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary.'
 fi
 
@@ -45,6 +44,7 @@ AC_CONFIG_FILES([
   contrib/Makefile
   doc/Makefile
   src/Makefile
+  src/core/Makefile
   src/parser/Makefile
   src/sat/Makefile
   src/sat/minisat/Makefile

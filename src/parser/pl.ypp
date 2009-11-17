@@ -1,43 +1,32 @@
-%{
-/*****************************************************************************/
-/*!
- * \file PL.y
- * 
- * Author: Sergey Berezin
- * 
- * Created: Feb 06 03:00:43 GMT 2003
- *
- * <hr>
- *
- * License to use, copy, modify, sell and/or distribute this software
- * and its documentation for any purpose is hereby granted without
- * royalty, subject to the terms and conditions defined in the \ref
- * LICENSE file provided with this distribution.
- * 
- * <hr>
- * 
- */
-/*****************************************************************************/
-/* PL.y
-   Aaron Stump, 4/14/01
+/*********************                                           -*- C++ -*-  */
+/** smtlib.ypp
+ ** This file is part of the CVC4 prototype.
+ **
+ ** Reference-counted encapsulation of a pointer to an expression.
+ **
+ ** The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ **
+ ** This file contains the bison code for the parser that reads in CVC
+ ** commands in the presentation language (hence "PL").
+ **/
 
-   This file contains the bison code for the parser that reads in CVC
-   commands in the presentation language (hence "PL").
-*/
+%{
 
 #include "vc.h"
 #include "parser_exception.h"
-#include "parser_temp.h"
-#include "rational.h"
+#include "parser_state.h"
+//#include "rational.h"
 
 // Exported shared data
 namespace CVC4 {
-  extern ParserTemp* parserTemp;
+  extern ParserState* parserState;
 }
 // Define shortcuts for various things
-#define TMP CVC4::parserTemp
-#define EXPR CVC4::parserTemp->expr
-#define VC (CVC4::parserTemp->vc)
+#define TMP CVC4::parserState
+#define EXPR CVC4::parserState->expr
+#define VC (CVC4::parserState->vc)
 #define RAT(args) CVC4::newRational args
 
 // Suppress the bogus warning suppression in bison (it generates
@@ -50,9 +39,9 @@ extern int PLlex(void);
 int PLerror(const char *s)
 {
   std::ostringstream ss;
-  ss << CVC4::parserTemp->fileName << ":" << CVC4::parserTemp->lineNum
+  ss << CVC4::parserState->fileName << ":" << CVC4::parserState->lineNum
      << ": " << s;
-  return CVC4::parserTemp->error(ss.str());
+  return CVC4::parserState->error(ss.str());
 }
 
 
