@@ -25,7 +25,7 @@ namespace CVC4 {
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
-// Prover and override check()?
+// SmtEngine and override check()?
 //
 // Probably better than that is to have a configuration object that
 // indicates which passes are desired.  The configuration occurs
@@ -34,7 +34,7 @@ namespace CVC4 {
 //
 // The CNF conversion can go on in PropEngine.
 
-class Prover {
+class SmtEngine {
   /** Current set of assertions. */
   // TODO: make context-aware to handle user-level push/pop.
   std::vector<Expr> d_assertList;
@@ -107,7 +107,7 @@ public:
    * Pop a user-level context.  Throws an exception if nothing to pop.
    */
   void pop();
-};/* class Prover */
+};/* class SmtEngine */
 
 } /* CVC4 namespace */
 
