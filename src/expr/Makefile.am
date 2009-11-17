@@ -1,9 +1,9 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall
 
-noinst_LIBRARIES = libcore.a
+noinst_LIBRARIES = libexpr.a
 
-libcore_a_SOURCES = \
+libexpr_a_SOURCES = \
 	expr.cpp \
 	expr_builder.cpp \
 	expr_manager.cpp \

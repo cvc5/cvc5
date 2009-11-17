@@ -1,13 +1,17 @@
 INCLUDES = -I@srcdir@/include -I@srcdir@
 
-SUBDIRS = core parser sat
+SUBDIRS = util expr context prop smt theory parser main
 
 lib_LTLIBRARIES = libcvc4.la
 
 libcvc4_la_LIBADD = \
-	core/libcore.a
+	util/libutil.a \
+	expr/libexpr.a \
+	context/libcontext.a \
+	prop/minisat/libminisat.a \
+	smt/libsmt.a \
+	theory/libtheory.a \
 	parser/libparser.a
-	sat/minisat/libminisat.a
 
 EXTRA_DIST = \
 	include/cvc4.h \

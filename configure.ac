@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([src/include/vc.h])
+AC_INIT([src/include/cvc4.h])
 AC_CONFIG_AUX_DIR([config])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([config])
@@ -44,9 +44,14 @@ AC_CONFIG_FILES([
   contrib/Makefile
   doc/Makefile
   src/Makefile
-  src/core/Makefile
+  src/expr/Makefile
+  src/smt/Makefile
+  src/main/Makefile
+  src/prop/minisat/Makefile
+  src/prop/Makefile
+  src/util/Makefile
+  src/context/Makefile
   src/parser/Makefile
-  src/sat/Makefile
-  src/sat/minisat/Makefile
+  src/theory/Makefile
 ])
 AC_OUTPUT
