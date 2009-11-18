@@ -4,6 +4,11 @@
 # source files to match a template (inline, below).  For files with no
 # top comment, it adds a fresh one.
 #
+# usage: contrib/update-copyright.pl [dirs...]
+# if dirs... are unspecified, the script scans its own parent directory's
+# "src" directory.  Since it lives in contrib/ in the CVC4 source tree,
+# that means src/ in the CVC4 source tree.
+#
 # It ignores any file/directory not starting with [a-zA-Z]
 # (so, this includes . and .., vi swaps, .svn meta-info,
 # .deps, etc.)
@@ -27,13 +32,15 @@ my $years = '2009';
 use strict;
 use Fcntl ':mode';
 
-my $dir = $0;
-$dir =~ s,/[^/]+/*$,,;
+my @searchdirs = ();
+if($#ARGV == -1) {
+  my $dir = $0;
+  $dir =~ s,/[^/]+/*$,,;
 
-(chdir($dir."/..") && -f "src/include/expr.h") || die "can't find top-level source directory for CVC4";
-my $pwd = `pwd`; chomp $pwd;
+  (chdir($dir."/..") && -f "src/include/cvc4_expr.h") || die "can't find top-level source directory for CVC4";
+  my $pwd = `pwd`; chomp $pwd;
 
-print <<EOF;
+  print <<EOF;
 Warning: this script is dangerous.  It will overwrite the header comments in your
 source files to match the template in the script, attempting to retain file-specific
 comments, but this isn't guaranteed.  You should run this in an svn working directory
@@ -45,15 +52,21 @@ The directory to search for and change sources is:
 Continue? y or n:
 EOF
 
-$_ = <STDIN>; chomp;
-die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
+  $_ = <STDIN>; chomp;
+  die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
+
+  $searchdirs[0] = 'src';
+} else {
+  @searchdirs = @ARGV;
+}
 
 print "Updating sources...\n";
 
-recurse('src');
+recurse(shift @searchdirs) while $#searchdirs >= 0;
 
 sub recurse {
   my ($srcdir) = @_;
+  print "in dir $srcdir\n";
   opendir(my $DIR, $srcdir);
   while(my $file = readdir $DIR) {
     next if !($file =~ /^[a-zA-Z]/);

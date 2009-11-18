@@ -14,7 +14,7 @@
  ** reference count on ExprValue instances and
  **/
 
-#include "core/expr_value.h"
+#include "expr_value.h"
 
 namespace CVC4 {
 

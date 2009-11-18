@@ -48,6 +48,10 @@ class ExprValue {
   Expr     d_children[0];
 
   friend class Expr;
+  friend class ExprBuilder;
+
+  ExprValue* inc() { /* FIXME thread safety */ ++d_rc; return this; }
+  ExprValue* dec() { /* FIXME thread safety */ --d_rc; return this; }
 
 public:
   /** Hash this expression.

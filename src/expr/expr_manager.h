@@ -14,7 +14,7 @@
 
 #include <vector>
 #include "cvc4_expr.h"
-#include "core/kind.h"
+#include "kind.h"
 
 namespace CVC4 {
 

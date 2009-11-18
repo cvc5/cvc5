@@ -10,9 +10,9 @@
  ** Expression manager implementation.
  **/
 
-#include "core/expr_builder.h"
-#include "core/expr_manager.h"
-#include "core/cvc4_expr.h"
+#include "expr_builder.h"
+#include "expr_manager.h"
+#include "cvc4_expr.h"
 
 namespace CVC4 {
 

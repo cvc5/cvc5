@@ -38,6 +38,9 @@ class Expr {
    *  Increments the reference count. */
   explicit Expr(ExprValue*);
 
+  typedef Expr* iterator;
+  typedef Expr const* const_iterator;
+
 public:
   Expr(const Expr&);
 
@@ -49,11 +52,7 @@ public:
 
   /** Access to the encapsulated expression.
    *  @return the encapsulated expression. */
-  ExprValue* operator->();
-
-  /** Const access to the encapsulated expression.
-   *  @return the encapsulated expression [const]. */
-  const ExprValue* operator->() const;
+  ExprValue* operator->() const;
 
   uint64_t hash() const;
 

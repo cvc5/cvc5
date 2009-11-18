@@ -12,7 +12,7 @@
 #ifndef __CVC4_ATTR_TYPE_H
 #define __CVC4_ATTR_TYPE_H
 
-#include "core/expr_attribute.h"
+#include "expr_attribute.h"
 
 namespace CVC4 {
 

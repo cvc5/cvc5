@@ -13,8 +13,8 @@
 #define __CVC4_EXPR_BUILDER_H
 
 #include <vector>
-#include "core/expr_manager.h"
-#include "core/kind.h"
+#include "expr_manager.h"
+#include "kind.h"
 
 namespace CVC4 {
 
@@ -41,8 +41,14 @@ class ExprBuilder {
     std::vector<Expr>* u_vec;
   } d_children;
 
-  void addChild();
+  void addChild(const Expr&);
+  void addChild(const ExprValue*);
   void collapse();
+
+  typedef ExprValue** ev_iterator;
+  typedef ExprValue const** const_ev_iterator;
+
+  void reset(const ExprValue*);
 
 public:
 

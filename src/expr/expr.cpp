@@ -11,8 +11,8 @@
  **/
 
 #include "cvc4_expr.h"
-#include "core/expr_value.h"
-#include "core/expr_builder.h"
+#include "expr_value.h"
+#include "expr_builder.h"
 
 namespace CVC4 {
 
@@ -44,11 +44,7 @@ Expr& Expr::operator=(const Expr& e) {
   return *this;
 }
 
-ExprValue* Expr::operator->() {
-  return d_ev;
-}
-
-const ExprValue* Expr::operator->() const {
+ExprValue* Expr::operator->() const {
   return d_ev;
 }
 
