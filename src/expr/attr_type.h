@@ -9,12 +9,13 @@
  **
  **/
 
-#ifndef __CVC4_ATTR_TYPE_H
-#define __CVC4_ATTR_TYPE_H
+#ifndef __CVC4__EXPR__ATTR_TYPE_H
+#define __CVC4__EXPR__ATTR_TYPE_H
 
 #include "expr_attribute.h"
 
 namespace CVC4 {
+namespace expr {
 
 class Type;
 
@@ -29,6 +30,7 @@ public:
 
 extern AttrTable<Type_attr> type_table;
 
-} /* CVC4 namespace */
+}/* CVC4::expr namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_ATTR_TYPE_H */
+#endif /* __CVC4__EXPR__ATTR_TYPE_H */

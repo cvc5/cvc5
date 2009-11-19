@@ -8,4 +8,4 @@ touch NEWS README AUTHORS ChangeLog
 touch stamp-h
 aclocal -I config
 autoconf -I config
-automake -ac --foreign
+automake -ac --foreign -Woverride

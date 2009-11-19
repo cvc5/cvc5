@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_EXPR_BUILDER_H
-#define __CVC4_EXPR_BUILDER_H
+#ifndef __CVC4__EXPR_BUILDER_H
+#define __CVC4__EXPR_BUILDER_H
 
 #include <vector>
 #include "expr_manager.h"
@@ -42,13 +42,13 @@ class ExprBuilder {
   } d_children;
 
   void addChild(const Expr&);
-  void addChild(const ExprValue*);
+  void addChild(ExprValue*);
   void collapse();
 
   typedef ExprValue** ev_iterator;
   typedef ExprValue const** const_ev_iterator;
 
-  void reset(const ExprValue*);
+  ExprBuilder& reset(const ExprValue*);
 
 public:
 
@@ -154,6 +154,6 @@ public:
 
 };/* class MultExprBuilder */
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_EXPR_BUILDER_H */
+#endif /* __CVC4__EXPR_BUILDER_H */

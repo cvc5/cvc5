@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_RESULT_H
-#define __CVC4_RESULT_H
+#ifndef __CVC4__RESULT_H
+#define __CVC4__RESULT_H
 
 namespace CVC4 {
 
@@ -62,4 +62,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_RESULT_H */
+#endif /* __CVC4__RESULT_H */

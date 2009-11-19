@@ -15,10 +15,15 @@
 
 #include <vector>
 #include <stdint.h>
+#include "expr/kind.h"
 
 namespace CVC4 {
 
-class ExprValue;
+namespace expr {
+  class ExprValue;
+}/* CVC4::expr namespace */
+
+using CVC4::expr::ExprValue;
 
 /**
  * Encapsulation of an ExprValue pointer.  The reference count is
@@ -40,6 +45,8 @@ class Expr {
 
   typedef Expr* iterator;
   typedef Expr const* const_iterator;
+
+  friend class ExprBuilder;
 
 public:
   Expr(const Expr&);
@@ -69,11 +76,22 @@ public:
   Expr substExpr(const std::vector<Expr>& oldTerms,
                  const std::vector<Expr>& newTerms) const;
 
+  inline Kind getKind() const;
+
   static Expr null() { return s_null; }
 
-  friend class ExprBuilder;
 };/* class Expr */
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */
+
+#include "expr/expr_value.h"
+
+namespace CVC4 {
+
+inline Kind Expr::getKind() const {
+  return Kind(d_ev->d_kind);
+}
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4_EXPR_H */

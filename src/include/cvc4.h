@@ -9,10 +9,10 @@
  **
  **/
 
-#ifndef __CVC4_VC_H
-#define __CVC4_VC_H
+#ifndef __CVC4_H
+#define __CVC4_H
 
-#include "command.h"
+#include "util/command.h"
 #include "cvc4_expr.h"
 
 /* TODO provide way of querying whether you fall into a fragment /
@@ -37,6 +37,6 @@ public:
   void query(Expr);
 };
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_VC_H */
+#endif /* __CVC4_H */

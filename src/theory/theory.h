@@ -9,13 +9,14 @@
  **
  **/
 
-#ifndef __CVC4_THEORY_H
-#define __CVC4_THEORY_H
+#ifndef __CVC4__THEORY__THEORY_H
+#define __CVC4__THEORY__THEORY_H
 
 #include "core/cvc4_expr.h"
 #include "core/literal.h"
 
 namespace CVC4 {
+namespace theory {
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -78,6 +79,7 @@ public:
 
 };/* class Theory */
 
+}/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4_THEORY_H */
+#endif /* __CVC4__THEORY__THEORY_H */

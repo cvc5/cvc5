@@ -1,8 +1,8 @@
-#ifndef __CVC4_USAGE_H
-#define __CVC4_USAGE_H
+#ifndef __CVC4__MAIN__USAGE_H
+#define __CVC4__MAIN__USAGE_H
 
 namespace CVC4 {
-namespace Main {
+namespace main {
 
 // no more % chars in here without being escaped; it's used as a
 // printf() format string
@@ -23,7 +23,7 @@ CVC4 options:\n\
    --stats         give statistics on exit\n\
 ";
 
-}/* CVC4::Main namespace */
+}/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4_USAGE_H */
+#endif /* __CVC4__MAIN__USAGE_H */

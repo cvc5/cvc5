@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_EXPR_ATTRIBUTE_H
-#define __CVC4_EXPR_ATTRIBUTE_H
+#ifndef __CVC4__EXPR__EXPR_ATTRIBUTE_H
+#define __CVC4__EXPR__EXPR_ATTRIBUTE_H
 
 // TODO WARNING this file needs work !
 
@@ -20,6 +20,7 @@
 #include "cvc4_expr.h"
 
 namespace CVC4 {
+namespace expr {
 
 template <class value_type>
 class AttrTables;
@@ -93,6 +94,7 @@ class AttributeTable {
   
 };
 
-} /* CVC4 namespace */
+}/* CVC4::expr namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_EXPR_ATTRIBUTE_H */
+#endif /* __CVC4__EXPR__EXPR_ATTRIBUTE_H */

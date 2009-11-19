@@ -9,14 +9,14 @@
  **
  **/
 
-#ifndef __CVC4_COMMAND_H
-#define __CVC4_COMMAND_H
+#ifndef __CVC4__COMMAND_H
+#define __CVC4__COMMAND_H
 
 namespace CVC4 {
 
 class Command { // distinct from Exprs
 };
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_COMMAND_H */
+#endif /* __CVC4__COMMAND_H */

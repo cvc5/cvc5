@@ -76,4 +76,4 @@ ExprValue::const_iterator ExprValue::rend() const {
   return d_children - 1;
 }
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */

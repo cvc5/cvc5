@@ -1,5 +1,5 @@
-#ifndef __CVC4_OPTIONS_H
-#define __CVC4_OPTIONS_H
+#ifndef __CVC4__OPTIONS_H
+#define __CVC4__OPTIONS_H
 
 namespace CVC4 {
 
@@ -28,4 +28,4 @@ struct Options {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_OPTIONS_H */
+#endif /* __CVC4__OPTIONS_H */

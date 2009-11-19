@@ -14,33 +14,31 @@
 #include "expr_value.h"
 #include "expr_builder.h"
 
+using namespace CVC4::expr;
+
 namespace CVC4 {
 
 Expr Expr::s_null(0);
 
 Expr::Expr(ExprValue* ev)
   : d_ev(ev) {
-  // FIXME: thread-safety
-  ++d_ev->d_rc;
+  d_ev->inc();
 }
 
 Expr::Expr(const Expr& e) {
-  // FIXME: thread-safety
   if((d_ev = e.d_ev))
-    ++d_ev->d_rc;
+    d_ev->inc();
 }
 
 Expr::~Expr() {
-  // FIXME: thread-safety
-  --d_ev->d_rc;
+  d_ev->dec();
 }
 
 Expr& Expr::operator=(const Expr& e) {
-  // FIXME: thread-safety
   if(d_ev)
-    --d_ev->d_rc;
+    d_ev->dec();
   if((d_ev = e.d_ev))
-    ++d_ev->d_rc;
+    d_ev->inc();
   return *this;
 }
 
@@ -97,4 +95,4 @@ Expr Expr::substExpr(const std::vector<Expr>& oldTerms,
   return ExprBuilder(*this).substExpr(oldTerms, newTerms);
 }
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */

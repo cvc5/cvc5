@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_EXPR_MANAGER_H
-#define __CVC4_EXPR_MANAGER_H
+#ifndef __CVC4__EXPR_MANAGER_H
+#define __CVC4__EXPR_MANAGER_H
 
 #include <vector>
 #include "cvc4_expr.h"
@@ -53,6 +53,6 @@ public:
   // do we want a varargs one?  perhaps not..
 };
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_EXPR_MANAGER_H */
+#endif /* __CVC4__EXPR_MANAGER_H */

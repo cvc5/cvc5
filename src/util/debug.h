@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_DEBUG_H
-#define __CVC4_DEBUG_H
+#ifndef __CVC4__DEBUG_H
+#define __CVC4__DEBUG_H
 
 #include <cassert>
 
@@ -23,4 +23,4 @@
 # define cvc4assert(x)
 #endif /* DEBUG */
 
-#endif /* __CVC4_DEBUG_H */
+#endif /* __CVC4__DEBUG_H */

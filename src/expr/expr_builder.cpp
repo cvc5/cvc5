@@ -139,43 +139,41 @@ void ExprBuilder::addChild(const Expr& e) {
     v->reserve(nchild_thresh + 5);
     for(ExprValue** i = d_children.u_arr; i != d_children.u_arr + nchild_thresh; ++i) {
       v->push_back(Expr(*i));
-      i->dec();
+      (*i)->dec();
     }
-    v.push_back(e);
+    v->push_back(e);
     d_children.u_vec = v;
     ++d_nchildren;
   } else if(d_nchildren > nchild_thresh) {
-    d_children.u_vec.push_back(e);
+    d_children.u_vec->push_back(e);
     ++d_nchildren;
   } else {
-    ExprValue *ev = e->d_ev;
+    ExprValue *ev = e.d_ev;
     d_children.u_arr[d_nchildren] = ev;
     ev->inc();
     ++d_nchildren;
   }
-  return *this;
 }
 
-void ExprBuilder::addChild(const ExprValue* ev) {
+void ExprBuilder::addChild(ExprValue* ev) {
   if(d_nchildren == nchild_thresh) {
     vector<Expr>* v = new vector<Expr>();
     v->reserve(nchild_thresh + 5);
     for(ExprValue** i = d_children.u_arr; i != d_children.u_arr + nchild_thresh; ++i) {
       v->push_back(Expr(*i));
-      i->dec();
+      (*i)->dec();
     }
-    v.push_back(Expr(ev));
+    v->push_back(Expr(ev));
     d_children.u_vec = v;
     ++d_nchildren;
   } else if(d_nchildren > nchild_thresh) {
-    d_children.u_vec.push_back(Expr(ev));
+    d_children.u_vec->push_back(Expr(ev));
     ++d_nchildren;
   } else {
     d_children.u_arr[d_nchildren] = ev;
     ev->inc();
     ++d_nchildren;
   }
-  return *this;
 }
 
 void ExprBuilder::collapse() {
@@ -184,7 +182,6 @@ void ExprBuilder::collapse() {
     v->reserve(nchild_thresh + 5);
     
   }
-  return *this;
 }
 
 // not const
@@ -206,4 +203,4 @@ PlusExprBuilder  ExprBuilder::operator- (Expr) {
 MultExprBuilder  ExprBuilder::operator* (Expr) {
 }
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */

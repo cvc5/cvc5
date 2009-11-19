@@ -1,5 +1,5 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/..
-AM_CXXFLAGS = -Wall
+AM_CXXFLAGS = -Wall -fvisibility=hidden
 
 bin_PROGRAMS = cvc4
 

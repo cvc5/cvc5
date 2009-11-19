@@ -10,14 +10,15 @@
  ** Exception class.
  **/
 
-#ifndef __CVC4_PARSER_EXCEPTION_H
-#define __CVC4_PARSER_EXCEPTION_H
+#ifndef __CVC4__PARSER__PARSER_EXCEPTION_H
+#define __CVC4__PARSER__PARSER_EXCEPTION_H
 
-#include "core/exception.h"
+#include "util/exception.h"
 #include <string>
 #include <iostream>
 
 namespace CVC4 {
+namespace parser {
 
   class ParserException: public Exception {
   public:
@@ -32,6 +33,7 @@ namespace CVC4 {
     }
   }; // end of class ParserException
 
+}/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4_PARSER_EXCEPTION_H */
+#endif /* __CVC4__PARSER__PARSER_EXCEPTION_H */

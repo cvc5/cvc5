@@ -20,8 +20,8 @@
 
 %{
 #include <iostream>
-#include "smtlib.hpp"
-#include "debug.h"
+#include "parser/smtlib.hpp"
+#include "util/debug.h"
 
 namespace CVC4 {
   extern ParserTemp* parserTemp;

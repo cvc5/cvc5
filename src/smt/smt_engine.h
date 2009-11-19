@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_PROVER_H
-#define __CVC4_PROVER_H
+#ifndef __CVC4__SMT__SMT_ENGINE_H
+#define __CVC4__SMT__SMT_ENGINE_H
 
 #include <vector>
 #include "core/cvc4_expr.h"
@@ -22,6 +22,7 @@
 // PropEngine.
 
 namespace CVC4 {
+namespace smt {
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -109,6 +110,7 @@ public:
   void pop();
 };/* class SmtEngine */
 
-} /* CVC4 namespace */
+}/* CVC4::smt namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_PROVER_H */
+#endif /* __CVC4__SMT__SMT_ENGINE_H */

@@ -14,17 +14,19 @@
  ** New York University
  **/
 
-#ifndef __CVC4_PARSER_STATE_H
-#define __CVC4_PARSER_STATE_H
+#ifndef __CVC4__PARSER__PARSER_STATE_H
+#define __CVC4__PARSER__PARSER_STATE_H
 
 #include <iostream>
 #include <sstream>
 #include "cvc4_expr.h"
-#include "exception.h"
+#include "util/exception.h"
 
 namespace CVC4 {
 
-class ValidityChecker;
+class SmtEngine;
+
+namespace parser {
 
 class ParserState {
 private:
@@ -37,7 +39,7 @@ private:
   // The currently used prompt
   std::string prompt;
 public:
-  ValidityChecker* vc;
+  SmtEngine* vc;
   std::istream* is;
   // The current input line
   int lineNum;
@@ -89,6 +91,7 @@ public:
   void setPrompt2() { prompt = prompt2; }
 };
 
-} /* CVC4 namespace */
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_PARSER_STATE_H */
+#endif /* __CVC4__PARSER__PARSER_STATE_H */

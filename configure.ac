@@ -43,6 +43,30 @@ AC_CHECK_PROG(DOXYGEN, doxygen, doxygen, [])
 if test -z "$DOXYGEN"; then
   AC_MSG_WARN([documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary.])
 fi
+AC_ARG_VAR(DOXYGEN, [location of doxygen binary])
+
+CXXTESTGEN=
+AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
+if test -z "$CXXTESTGEN"; then
+  AC_MSG_NOTICE([unit tests disabled, cxxtestgen.pl not found.])
+elif test -z "$CXXTEST"; then
+  CXXTEST=$(dirname "$CXXTESTGEN")
+  AC_MSG_CHECKING([for location of CxxTest headers])
+  if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
+    AC_MSG_RESULT([$CXXTEST])
+  else
+    AC_MSG_RESULT([not found])
+    AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
+    CXXTESTGEN=
+    CXXTEST=
+  fi
+fi
+AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
+AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
+
+AC_ARG_VAR(TEST_CPPFLAGS, [CXXFLAGS to use when testing (default=$CPPFLAGS)])
+AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
+AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
 
 # Checks for libraries.
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
@@ -84,6 +108,7 @@ AC_CONFIG_FILES([
   src/context/Makefile
   src/parser/Makefile
   src/theory/Makefile
+  test/Makefile
 ])
 
 AC_OUTPUT

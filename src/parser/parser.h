@@ -10,13 +10,14 @@
  ** Parser abstraction.
  **/
 
-#ifndef __CVC4_PARSER_H
-#define __CVC4_PARSER_H
+#ifndef __CVC4__PARSER__PARSER_H
+#define __CVC4__PARSER__PARSER_H
 
 #include "core/exception.h"
 #include "core/lang.h"
 
 namespace CVC4 {
+namespace parser {
 
   class ValidityChecker;
   class Expr;
@@ -59,6 +60,7 @@ namespace CVC4 {
   class ParserTemp;
   extern ParserTemp* parserTemp;
 
+}/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4_PARSER_H */
+#endif /* __CVC4__PARSER__PARSER_H */

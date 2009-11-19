@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_DECISION_ENGINE_H
-#define __CVC4_DECISION_ENGINE_H
+#ifndef __CVC4__DECISION_ENGINE_H
+#define __CVC4__DECISION_ENGINE_H
 
 #include "core/literal.h"
 
@@ -39,4 +39,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_DECISION_ENGINE_H */
+#endif /* __CVC4__DECISION_ENGINE_H */

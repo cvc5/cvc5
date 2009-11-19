@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_UNIQUE_ID_H
-#define __CVC4_UNIQUE_ID_H
+#ifndef __CVC4__UNIQUE_ID_H
+#define __CVC4__UNIQUE_ID_H
 
 namespace CVC4 {
 
@@ -30,6 +30,6 @@ public:
 template <class T>
 unsigned UniqueID<T>::s_topID = 0;
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_UNIQUE_ID_H */
+#endif /* __CVC4__UNIQUE_ID_H */

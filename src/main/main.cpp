@@ -36,6 +36,15 @@ int main(int argc, char *argv[]) {
         throw new Exception(string("Could not open input file `") + argv[firstArgIndex] + "' for reading: " + strerror(errno));
         exit(1);
       }
+
+      // ExprManager *exprMgr = ...;
+      // SmtEngine smt(exprMgr, &opts);
+      // Parser parser(infile, exprMgr, &opts);
+      // while(!parser.done) {
+      //   Command *cmd = parser.get();
+      //   cmd->invoke(smt);
+      //   delete cmd;
+      // }
     }
   } catch(CVC4::Main::OptionException* e) {
     if(opts.smtcomp_mode) {

@@ -9,11 +9,13 @@
  **
  **/
 
-#ifndef __CVC4_SAT_H
-#define __CVC4_SAT_H
+#ifndef __CVC4__PROP__SAT_H
+#define __CVC4__PROP__SAT_H
 
 namespace CVC4 {
+namespace prop {
 
-} /* CVC4 namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_SAT_H */
+#endif /* __CVC4__PROP__SAT_H */

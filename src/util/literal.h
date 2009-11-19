@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_LITERAL_H
-#define __CVC4_LITERAL_H
+#ifndef __CVC4__LITERAL_H
+#define __CVC4__LITERAL_H
 
 namespace CVC4 {
 
@@ -18,4 +18,4 @@ class Literal;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_LITERAL_H */
+#endif /* __CVC4__LITERAL_H */

@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_MODEL_H
-#define __CVC4_MODEL_H
+#ifndef __CVC4__MODEL_H
+#define __CVC4__MODEL_H
 
 namespace CVC4 {
 
@@ -19,4 +19,4 @@ class Model {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_MODEL_H */
+#endif /* __CVC4__MODEL_H */

@@ -21,30 +21,32 @@
 %{
 
 #include <iostream>
-#include "expr_manager.h" /* for the benefit of parsePL_defs.h */
-#include "parser_state.h"
-#include "pl.hpp"
-#include "debug.h"
+#include "expr/expr_manager.h" /* for the benefit of parsePL_defs.h */
+#include "parser/parser_state.h"
+#include "parser/pl.hpp"
+#include "util/debug.h"
 
 namespace CVC4 {
-  extern ParserState* parserState;
-}
+  namespace parser {
+    extern ParserState* parserState;
+  }/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
 extern int PL_inputLine;
 extern char *PLtext;
 
-extern int PLerror (const char *msg);
+extern int PLerror(const char *msg);
 
 static int PLinput(std::istream& is, char* buf, int size) {
   int res;
   if(is) {
     // If interactive, read line by line; otherwise read as much as we
     // can gobble
-    if(CVC4::parserState->interactive) {
+    if(CVC4::parser::parserState->interactive) {
       // Print the current prompt
-      std::cout << CVC4::parserState->getPrompt() << std::flush;
+      std::cout << CVC4::parser::parserState->getPrompt() << std::flush;
       // Set the prompt to "middle of the command" one
-      CVC4::parserState->setPrompt2();
+      CVC4::parser::parserState->setPrompt2();
       // Read the line
       is.getline(buf, size-1);
     } else // Set the terminator char to 0
@@ -69,7 +71,7 @@ static int PLinput(std::istream& is, char* buf, int size) {
 
 // Redefine the input buffer function to read from an istream
 #define YY_INPUT(buf,result,max_size) \
-  result = PLinput(*CVC4::parserState->is, buf, max_size);
+  result = PLinput(*CVC4::parser::parserState->is, buf, max_size);
 
 int PL_bufSize() { return YY_BUF_SIZE; }
 YY_BUFFER_STATE PL_buf_state() { return YY_CURRENT_BUFFER; }
@@ -123,7 +125,7 @@ ANYTHING ({LETTER}|{DIGIT}|{OPCHAR})
 
 %%
 
-[\n]            { CVC4::parserState->lineNum++; }
+[\n]            { CVC4::parser::parserState->lineNum++; }
 
 [ \t\r\f]	{ /* skip whitespace */ }
 
@@ -136,7 +138,7 @@ ANYTHING ({LETTER}|{DIGIT}|{OPCHAR})
 
 "%"		{ BEGIN COMMENT; }
 <COMMENT>"\n"	{ BEGIN INITIAL; /* return to normal mode */ 
-                  CVC4::parserState->lineNum++; }
+                  CVC4::parser::parserState->lineNum++; }
 <COMMENT>.	{ /* stay in comment mode */ }
 
 <INITIAL>"\""		{ BEGIN STRING_LITERAL; 

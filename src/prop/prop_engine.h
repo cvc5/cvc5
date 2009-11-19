@@ -9,14 +9,15 @@
  **
  **/
 
-#ifndef __CVC4_PROP_ENGINE_H
-#define __CVC4_PROP_ENGINE_H
+#ifndef __CVC4__PROP__PROP_ENGINE_H
+#define __CVC4__PROP__PROP_ENGINE_H
 
 #include "core/cvc4_expr.h"
 #include "core/decision_engine.h"
 #include "core/theory_engine.h"
 
 namespace CVC4 {
+namespace prop {
 
 // In terms of abstraction, this is below (and provides services to)
 // Prover and above (and requires the services of) a specific
@@ -38,6 +39,7 @@ public:
 
 };/* class PropEngine */
 
-}
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_PROP_ENGINE_H */
+#endif /* __CVC4__PROP__PROP_ENGINE_H */

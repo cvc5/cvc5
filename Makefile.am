@@ -3,4 +3,7 @@ AM_CXXFLAGS = -Wall
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I config
 
-SUBDIRS = src doc contrib
+SUBDIRS = src test doc contrib
+
+.PHONY: test
+test: check

@@ -1,5 +1,5 @@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/..
-AM_CXXFLAGS = -Wall
+INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@
+AM_CXXFLAGS = -Wall -fvisibility=hidden
 
 noinst_LIBRARIES = libparser.a
 

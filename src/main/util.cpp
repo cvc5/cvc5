@@ -16,12 +16,12 @@ namespace Main {
 
 void sigint_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 interrupted by user.\n");
-  exit(info->si_signo + 128);
+  abort();
 }
 
 void segv_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 suffered a segfault.\n");
-  exit(info->si_signo + 128);
+  abort();
 }
 
 void cvc4_init() throw() {

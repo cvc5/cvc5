@@ -14,13 +14,18 @@
  ** reference count on ExprValue instances and
  **/
 
-#ifndef __CVC4_EXPR_VALUE_H
-#define __CVC4_EXPR_VALUE_H
+#ifndef __CVC4__EXPR__EXPR_VALUE_H
+#define __CVC4__EXPR__EXPR_VALUE_H
 
 #include <stdint.h>
 #include "cvc4_expr.h"
 
 namespace CVC4 {
+
+class Expr;
+class ExprBuilder;
+
+namespace expr {
 
 /**
  * This is an ExprValue.
@@ -47,11 +52,13 @@ class ExprValue {
   /** Variable number of child nodes */
   Expr     d_children[0];
 
-  friend class Expr;
-  friend class ExprBuilder;
+  // todo add exprMgr ref in debug case
 
-  ExprValue* inc() { /* FIXME thread safety */ ++d_rc; return this; }
-  ExprValue* dec() { /* FIXME thread safety */ --d_rc; return this; }
+  friend class CVC4::Expr;
+  friend class CVC4::ExprBuilder;
+
+  ExprValue* inc();
+  ExprValue* dec();
 
 public:
   /** Hash this expression.
@@ -74,6 +81,7 @@ public:
   const_iterator rend() const;
 };
 
-} /* CVC4 namespace */
+}/* CVC4::expr namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4_EXPR_VALUE_H */
+#endif /* __CVC4__EXPR__EXPR_VALUE_H */

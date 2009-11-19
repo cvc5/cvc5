@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4_KIND_H
-#define __CVC4_KIND_H
+#ifndef __CVC4__KIND_H
+#define __CVC4__KIND_H
 
 namespace CVC4 {
 
@@ -19,20 +19,32 @@ namespace CVC4 {
 // placeholder for design & development work.
 
 enum Kind {
+  /* undefined */
   UNDEFINED_KIND = -1,
+
+  /* built-ins */
   EQUAL,
+  ITE,
+  SKOLEM,
+  VARIABLE,
+
+  /* propositional connectives */
+  FALSE,
+  TRUE,
+
+  NOT,
+
   AND,
+  IFF,
   OR,
   XOR,
-  NOT,
+
+  /* from arith */
   PLUS,
-  MINUS,
-  ITE,
-  IFF,
-  SKOLEM,
-  SUBST
+  MINUS
+
 };/* enum Kind */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_KIND_H */
+#endif /* __CVC4__KIND_H */

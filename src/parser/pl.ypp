@@ -13,19 +13,22 @@
 
 %{
 
-#include "vc.h"
-#include "parser_exception.h"
-#include "parser_state.h"
+#include "cvc4.h"
+#include "parser/parser_exception.h"
+#include "parser/parser_state.h"
 //#include "rational.h"
 
 // Exported shared data
 namespace CVC4 {
-  extern ParserState* parserState;
-}
+  namespace parser {
+    extern ParserState* parserState;
+  }/* CVC4::parser namespace */
+}/* CVC4 hnamespace */
+
 // Define shortcuts for various things
-#define TMP CVC4::parserState
-#define EXPR CVC4::parserState->expr
-#define VC (CVC4::parserState->vc)
+#define TMP CVC4::parser::parserState
+#define EXPR CVC4::parser::parserState->expr
+#define VC (CVC4::parser::parserState->vc)
 #define RAT(args) CVC4::newRational args
 
 // Suppress the bogus warning suppression in bison (it generates
@@ -38,9 +41,9 @@ extern int PLlex(void);
 int PLerror(const char *s)
 {
   std::ostringstream ss;
-  ss << CVC4::parserState->fileName << ":" << CVC4::parserState->lineNum
+  ss << CVC4::parser::parserState->fileName << ":" << CVC4::parser::parserState->lineNum
      << ": " << s;
-  return CVC4::parserState->error(ss.str());
+  return CVC4::parser::parserState->error(ss.str());
 }
 
 

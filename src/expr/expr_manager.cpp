@@ -49,4 +49,4 @@ Expr ExprManager::mkExpr(Kind kind, std::vector<Expr> children) {
   return ExprBuilder(this, kind).append(children);
 }
 
-} /* CVC4 namespace */
+}/* CVC4 namespace */

@@ -1,4 +1,5 @@
 INCLUDES = -I@srcdir@/include -I@srcdir@
+AM_CXXFLAGS = -Wall -fvisibility=hidden
 
 SUBDIRS = util expr context prop smt theory parser main
 

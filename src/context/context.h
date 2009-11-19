@@ -9,10 +9,11 @@
  **
  **/
 
-#ifndef __CVC4_CONTEXT_H
-#define __CVC4_CONTEXT_H
+#ifndef __CVC4__CONTEXT__CONTEXT_H
+#define __CVC4__CONTEXT__CONTEXT_H
 
 namespace CVC4 {
+namespace context {
 
 class Context;
 
@@ -40,6 +41,7 @@ class CDList;
 template <class T>
 class CDSet;
 
+}/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4_CONTEXT_H */
+#endif /* __CVC4__CONTEXT__CONTEXT_H */

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo
+echo '***************************************************************************'
+echo '*                                                                         *'
+echo '*  ERROR:  CxxTest was not found at configure-time; tests cannot be run.  *'
+echo '*                                                                         *'
+echo '***************************************************************************'
+echo
+
+exit 1
+
