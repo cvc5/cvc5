@@ -118,6 +118,8 @@ AC_CONFIG_FILES([
   src/parser/Makefile
   src/theory/Makefile
   test/Makefile
+  test/regress/Makefile
+  test/unit/Makefile
 ])
 
 AC_OUTPUT

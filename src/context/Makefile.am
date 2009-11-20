@@ -1,6 +1,6 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 
-noinst_LIBRARIES = libcontext.a
+noinst_LTLIBRARIES = libcontext.la
 
-libcontext_a_SOURCES =
+libcontext_la_SOURCES =

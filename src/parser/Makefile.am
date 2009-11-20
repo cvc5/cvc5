@@ -1,9 +1,9 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 
-noinst_LIBRARIES = libparser.a
+noinst_LTLIBRARIES = libparser.la
 
-libparser_a_SOURCES = \
+libparser_la_SOURCES = \
 	pl_scanner.lpp \
 	pl.ypp \
 	smtlib_scanner.lpp \

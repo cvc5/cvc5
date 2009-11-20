@@ -1,6 +1,6 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 
-noinst_LIBRARIES = libutil.a
+noinst_LTLIBRARIES = libutil.la
 
-libutil_a_SOURCES =
+libutil_la_SOURCES =

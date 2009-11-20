@@ -5,5 +5,3 @@ ACLOCAL_AMFLAGS = -I config
 
 SUBDIRS = src test doc contrib
 
-.PHONY: test
-test: check

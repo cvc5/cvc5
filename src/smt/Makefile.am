@@ -1,6 +1,6 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 
-noinst_LIBRARIES = libsmt.a
+noinst_LTLIBRARIES = libsmt.la
 
-libsmt_a_SOURCES =
+libsmt_la_SOURCES =

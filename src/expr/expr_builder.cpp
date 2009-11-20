@@ -129,10 +129,6 @@ ExprBuilder& ExprBuilder::operator<<(const Kind& op) {
 ExprBuilder& ExprBuilder::operator<<(const Expr& child) {
 }
 
-template <class Iterator>
-ExprBuilder& ExprBuilder::append(const Iterator& begin, const Iterator& end) {
-}
-
 void ExprBuilder::addChild(const Expr& e) {
   if(d_nchildren == nchild_thresh) {
     vector<Expr>* v = new vector<Expr>();

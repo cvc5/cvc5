@@ -154,6 +154,11 @@ public:
 
 };/* class MultExprBuilder */
 
+template <class Iterator>
+ExprBuilder& ExprBuilder::append(const Iterator& begin, const Iterator& end) {
+  return *this;
+}
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR_BUILDER_H */

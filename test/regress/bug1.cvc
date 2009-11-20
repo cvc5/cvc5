@@ -1,0 +1,11 @@
+%% Regression level = 0
+%% Result = Valid
+%% Runtime = 1
+%% Language = presentation
+x : REAL;
+y : REAL;
+f : REAL -> REAL;
+ASSERT ((x > y) => f(x) > f (y));
+ASSERT (x = 3);
+ASSERT (y = 2);
+QUERY(f(x) > f (y));
