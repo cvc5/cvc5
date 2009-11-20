@@ -68,6 +68,15 @@ AC_ARG_VAR(TEST_CPPFLAGS, [CXXFLAGS to use when testing (default=$CPPFLAGS)])
 AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
 AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
 
+if test -n "$CXXTEST"; then
+  AC_CHECK_PROG(PERL, perl, perl, [])
+  if test -z "$PERL"; then
+    AC_MSG_WARN([unit tests disabled, perl not found.])
+    CXXTESTGEN=
+    CXXTEST=
+  fi
+fi
+
 # Checks for libraries.
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
 

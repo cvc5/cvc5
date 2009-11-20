@@ -14,11 +14,14 @@
  ** reference count on ExprValue instances and
  **/
 
+/* this must be above the check for __CVC4__EXPR__EXPR_VALUE_H */
+/* to resolve a circular dependency */
+#include "cvc4_expr.h"
+
 #ifndef __CVC4__EXPR__EXPR_VALUE_H
 #define __CVC4__EXPR__EXPR_VALUE_H
 
 #include <stdint.h>
-#include "cvc4_expr.h"
 
 namespace CVC4 {
 
