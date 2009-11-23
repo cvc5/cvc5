@@ -1,4 +1,15 @@
-#include <string>
+/*********************                                           -*- C++ -*-  */
+/** util.cpp
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** [[ Add file-specific comments here ]]
+ **/
+
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>

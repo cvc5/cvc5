@@ -12,8 +12,8 @@
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
-#include "core/cvc4_expr.h"
-#include "core/literal.h"
+#include "cvc4_expr.h"
+#include "util/literal.h"
 
 namespace CVC4 {
 namespace theory {

@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** expr.h
+/** cvc4_expr.h
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -15,6 +15,8 @@
 
 #include <vector>
 #include <stdint.h>
+
+#include "cvc4_config.h"
 #include "expr/kind.h"
 
 namespace CVC4 {
@@ -29,7 +31,7 @@ using CVC4::expr::ExprValue;
  * Encapsulation of an ExprValue pointer.  The reference count is
  * maintained in the ExprValue.
  */
-class Expr {
+class CVC4_PUBLIC Expr {
   /** A convenient null-valued encapsulated pointer */
   static Expr s_null;
 
@@ -49,17 +51,17 @@ class Expr {
   friend class ExprBuilder;
 
 public:
-  Expr(const Expr&);
+  CVC4_PUBLIC Expr(const Expr&);
 
   /** Destructor.  Decrements the reference count and, if zero,
    *  collects the ExprValue. */
-  ~Expr();
+  CVC4_PUBLIC ~Expr();
 
-  Expr& operator=(const Expr&);
+  Expr& operator=(const Expr&) CVC4_PUBLIC;
 
   /** Access to the encapsulated expression.
    *  @return the encapsulated expression. */
-  ExprValue* operator->() const;
+  ExprValue* operator->() const CVC4_PUBLIC;
 
   uint64_t hash() const;
 

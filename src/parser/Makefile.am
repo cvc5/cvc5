@@ -1,5 +1,6 @@
 INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@
 AM_CXXFLAGS = -Wall -fvisibility=hidden
+AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 
 noinst_LTLIBRARIES = libparser.la
 

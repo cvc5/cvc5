@@ -12,7 +12,7 @@
 #ifndef __CVC4__DECISION_ENGINE_H
 #define __CVC4__DECISION_ENGINE_H
 
-#include "core/literal.h"
+#include "util/literal.h"
 
 namespace CVC4 {
 
