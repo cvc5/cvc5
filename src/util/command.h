@@ -19,15 +19,18 @@ class Command {
 };
 
 class AssertCommand : public Command {
+public:
   AssertCommand(const Expr&);
 };
 
 class CheckSatCommand : public Command {
+public:
   CheckSatCommand(void);
   CheckSatCommand(const Expr&);
 };
 
 class QueryCommand : public Command {
+public:
   QueryCommand(const Expr&);
 };
 
