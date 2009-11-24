@@ -14,9 +14,9 @@
 %{
 
 #include "cvc4.h"
+#include "cvc4_expr.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_state.h"
-#include "cvc4_expr.h"
 #include "expr/expr_builder.h"
 #include "expr/expr_manager.h"
 #include "util/command.h"
@@ -30,11 +30,11 @@ namespace CVC4 {
 }/* CVC4 hnamespace */
 
 // Define shortcuts for various things
-#define TMP CVC4::parser::parserState
-#define EXPR CVC4::parser::parserState->expr
-#define VC (CVC4::parser::parserState->vc)
+// #define TMP CVC4::parser::parserState
+// #define EXPR CVC4::parser::parserState->expr
+// #define VC (CVC4::parser::parserState->vc)
 #define EM (CVC4::parser::parserState->exprManager)
-#define RAT(args) CVC4::newRational args
+// #define RAT(args) CVC4::newRational args
 
 // Suppress the bogus warning suppression in bison (it generates
 // compile error)
@@ -69,8 +69,8 @@ using namespace CVC4;
 };
 
 
-// %start cmd
-%start Query
+%start cmd
+ // %start Query
 
 /* strings are for better error messages.  
    "_TOK" is so macros don't conflict with kind names */
@@ -274,8 +274,7 @@ using namespace CVC4;
 // %type <node> ConstDecl TypeDecl 
  // %type <expr> Identifier // StringLiteral Numeral Binary Hex
 
- // %type <cmd> cmd Assert Query // Help Dbg Trace Option  
-%type <cmd> Query // Help Dbg Trace Option  
+%type <cmd> cmd /// Assert Query Help Dbg Trace Option  
 // %type <node> Transform Print Call Echo DumpCommand
 // %type <node> Include Where Push Pop PopTo
 // %type <node> Context Forget Get_Child Get_Op Get_Type Check_Type Substitute
@@ -286,27 +285,21 @@ using namespace CVC4;
 
 %%
 
-// cmd:       
-//     Assert { $$ = $1; }
-//  |  Query { $$ = $1; }
-
-// Assert:
-//     ASSERT_TOK Expr { 
-//         $$ = NULL; // new CVC3::Expr(VC->listExpr("_ASSERT", *$2));
-//         // delete $2;
-//     } ;
-
-Query:
-    QUERY_TOK Expr { 
-        $$ = NULL; // exprManager->mkExpr(Kind.TRUE);
+cmd:       
+    ASSERT_TOK Expr { 
+      $$ = new AssertCommand(*$2);
+      delete $2;
+    } 
+  | QUERY_TOK Expr { 
+      $$ = new QueryCommand(*$2);
+      delete $2;
     }
   | CHECKSAT_TOK Expr {
-      $$ = NULL; //new CVC3::Expr(VC->listExpr("_CHECKSAT", *$2));
-      //      delete $2;
+      $$ = new CheckSatCommand(*$2);
+      delete $2;
     }
   | CHECKSAT_TOK {
-      $$ = NULL;
-      // new CVC3::Expr(VC->listExpr(VC->idExpr("_CHECKSAT")));
+      $$ = new CheckSatCommand();
     } ;
 
 Expr:	

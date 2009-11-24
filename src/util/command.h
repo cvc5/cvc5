@@ -18,6 +18,20 @@ class Command {
    // distinct from Exprs
 };
 
+class AssertCommand : public Command {
+  AssertCommand(const Expr&);
+};
+
+class CheckSatCommand : public Command {
+  CheckSatCommand(void);
+  CheckSatCommand(const Expr&);
+};
+
+class QueryCommand : public Command {
+  QueryCommand(const Expr&);
+};
+
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__COMMAND_H */
