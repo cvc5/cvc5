@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include "expr/expr_manager.h" /* for the benefit of parsePL_defs.h */
+#include "util/command.h"
 #include "parser/parser_state.h"
 #include "parser/pl.hpp"
 #include "util/debug.h"

@@ -6,18 +6,18 @@ noinst_LTLIBRARIES = libparser.la
 
 libparser_la_SOURCES = \
 	pl_scanner.lpp \
-	pl.ypp \
-	smtlib_scanner.lpp \
-	smtlib.ypp \
-	parser.cpp
+	pl.ypp # \
+	# smtlib_scanner.lpp \
+	# smtlib.ypp \
+	# parser.cpp
 
 BUILT_SOURCES = \
 	pl_scanner.cpp \
 	pl.cpp \
-	pl.hpp \
-	smtlib_scanner.cpp \
-	smtlib.cpp \
-	smtlib.hpp
+	pl.hpp # \
+	# smtlib_scanner.cpp \
+	# smtlib.cpp \
+	# smtlib.hpp
 
 # produce headers too
 AM_YFLAGS = -d

@@ -14,7 +14,8 @@
 
 namespace CVC4 {
 
-class Command { // distinct from Exprs
+class Command { 
+   // distinct from Exprs
 };
 
 }/* CVC4 namespace */

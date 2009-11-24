@@ -2,9 +2,12 @@ This is a prerelease version of CVC4; distribution is restricted.
 
 For a suggestion of editing CVC4 code with emacs, see README.emacs.
 
-To build, use the top-level script "autogen.sh" to invoke various
-autotools.  You'll need reasonably new automake, autoconf, and libtool
-installed.  Then ./configure && make as usual.
+To build, you'll need reasonably new automake, autoconf, and libtool
+installed. Execute,
+
+    ./autogen.sh 
+    ./configure
+    make
 
 To build a source release, use "make dist"; this will include the
 configure script and all the bits of automake/autoconf/libtool that

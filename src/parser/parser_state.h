@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include "cvc4_expr.h"
+#include "expr/expr_manager.h"
 #include "util/exception.h"
 
 namespace CVC4 {
@@ -40,6 +41,7 @@ private:
   std::string prompt;
 public:
   SmtEngine* vc;
+  ExprManager* exprManager;
   std::istream* is;
   // The current input line
   int lineNum;
