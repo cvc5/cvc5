@@ -18,29 +18,19 @@
 #include "util/result.h"
 #include "util/model.h"
 
-// In terms of abstraction, this is below (and provides services to)
-// ValidityChecker and above (and requires the services of)
-// PropEngine.
-
 namespace CVC4 {
-
-// TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
-// hood): use a type parameter and have check() delegate, or subclass
-// SmtEngine and override check()?
-//
-// Probably better than that is to have a configuration object that
-// indicates which passes are desired.  The configuration occurs
-// elsewhere (and can even occur at runtime).  A simple "pass manager"
-// of sorts determines check()'s behavior.
-//
-// The CNF conversion can go on in PropEngine.
 
 class SmtEngine {
   /** Current set of assertions. */
   // TODO: make context-aware to handle user-level push/pop.
   std::vector<Expr> d_assertList;
 
-private:
+  /** Our expression manager */
+  ExprManager *d_em;
+
+  /** User-level options */
+  Options *opts;
+
   /**
    * Pre-process an Expr.  This is expected to be highly-variable,
    * with a lot of "source-level configurability" to add multiple
@@ -74,10 +64,15 @@ private:
   void processAssertionList();
 
 public:
-  /**
-   * Execute a command
+  /*
+   * Construct an SmtEngine with the given expression manager and user options.
    */
-  void doCommand(Command c);
+  SmtEngine(ExprManager*, Options*);
+
+  /**
+   * Execute a command.
+   */
+  void doCommand(Command*);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory

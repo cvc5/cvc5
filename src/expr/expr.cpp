@@ -86,13 +86,4 @@ Expr Expr::xorExpr(const Expr& right) const {
   return ExprBuilder(*this).xorExpr(right);
 }
 
-Expr Expr::skolemExpr(int i) const {
-  return ExprBuilder(*this).skolemExpr(i);
-}
-
-Expr Expr::substExpr(const std::vector<Expr>& oldTerms,
-                     const std::vector<Expr>& newTerms) const {
-  return ExprBuilder(*this).substExpr(oldTerms, newTerms);
-}
-
 }/* CVC4 namespace */

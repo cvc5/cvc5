@@ -13,10 +13,10 @@
 
 %{
 
-#include "cvc4.h"
-#include "cvc4_expr.h"
+#include "smt/smt_engine.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_state.h"
+#include "expr/expr.h"
 #include "expr/expr_builder.h"
 #include "expr/expr_manager.h"
 #include "util/command.h"

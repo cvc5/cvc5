@@ -10,8 +10,8 @@
  ** Reference-counted encapsulation of a pointer to an expression.
  **/
 
-#ifndef __CVC4_EXPR_H
-#define __CVC4_EXPR_H
+#ifndef __CVC4__EXPR_H
+#define __CVC4__EXPR_H
 
 #include <vector>
 #include <stdint.h>
@@ -74,9 +74,6 @@ public:
   Expr iffExpr(const Expr& right) const;
   Expr impExpr(const Expr& right) const;
   Expr xorExpr(const Expr& right) const;
-  Expr skolemExpr(int i) const;
-  Expr substExpr(const std::vector<Expr>& oldTerms,
-                 const std::vector<Expr>& newTerms) const;
 
   Expr plusExpr(const Expr& right) const;
   Expr uMinusExpr() const;
@@ -100,4 +97,4 @@ inline Kind Expr::getKind() const {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4_EXPR_H */
+#endif /* __CVC4__EXPR_H */

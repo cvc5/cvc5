@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** prover.h
+/** cvc4.h
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -9,20 +9,22 @@
  **
  **/
 
-#ifndef __CVC4__SMT__SMT_ENGINE_H
-#define __CVC4__SMT__SMT_ENGINE_H
+#ifndef __CVC4__SMT_ENGINE_H
+#define __CVC4__SMT_ENGINE_H
 
 #include <vector>
-#include "core/cvc4_expr.h"
-#include "core/result.h"
-#include "core/model.h"
+#include "expr/expr.h"
+#include "expr/expr_manager.h"
+#include "util/command.h"
+#include "util/result.h"
+#include "util/model.h"
+#include "util/options.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
 // PropEngine.
 
 namespace CVC4 {
-namespace smt {
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -40,7 +42,12 @@ class SmtEngine {
   // TODO: make context-aware to handle user-level push/pop.
   std::vector<Expr> d_assertList;
 
-private:
+  /** Our expression manager */
+  ExprManager *d_em;
+
+  /** User-level options */
+  Options *d_opts;
+
   /**
    * Pre-process an Expr.  This is expected to be highly-variable,
    * with a lot of "source-level configurability" to add multiple
@@ -74,6 +81,16 @@ private:
   void processAssertionList();
 
 public:
+  /*
+   * Construct an SmtEngine with the given expression manager and user options.
+   */
+  SmtEngine(ExprManager* em, Options* opts) : d_em(em), d_opts(opts) {}
+
+  /**
+   * Execute a command.
+   */
+  void doCommand(Command*);
+
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -110,7 +127,6 @@ public:
   void pop();
 };/* class SmtEngine */
 
-}/* CVC4::smt namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__SMT_ENGINE_H */
+#endif /* __CVC4__SMT_ENGINE_H */

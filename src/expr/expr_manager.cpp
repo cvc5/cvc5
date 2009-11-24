@@ -12,7 +12,7 @@
 
 #include "expr_builder.h"
 #include "expr_manager.h"
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 
 namespace CVC4 {
 

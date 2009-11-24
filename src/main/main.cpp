@@ -10,6 +10,8 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+#include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
@@ -23,9 +25,14 @@
 #include "config.h"
 #include "main.h"
 #include "usage.h"
+#include "parser/parser.h"
+#include "expr/expr_manager.h"
+#include "smt/smt_engine.h"
+#include "parser/language.h"
 
 using namespace std;
 using namespace CVC4;
+using namespace CVC4::parser;
 using namespace CVC4::main;
 
 int main(int argc, char *argv[]) {
@@ -36,28 +43,37 @@ int main(int argc, char *argv[]) {
 
     int firstArgIndex = parseOptions(argc, argv, &opts);
 
-    FILE *infile;
+    istream *in;
+    ifstream infile;
+    Language lang = PL;
 
     if(firstArgIndex >= argc) {
-      infile = stdin;
+      in = &cin;
     } else if(argc > firstArgIndex + 1) {
       throw new Exception("Too many input files specified.");
     } else {
-      infile = fopen(argv[firstArgIndex], "r");
+      in = &infile;
+      if(strlen(argv[firstArgIndex]) >= 4 && !strcmp(argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4, ".smt"))
+        lang = SMTLIB;
+      infile.open(argv[firstArgIndex], ifstream::in);
+
       if(!infile) {
         throw new Exception(string("Could not open input file `") + argv[firstArgIndex] + "' for reading: " + strerror(errno));
         exit(1);
       }
-
-      // ExprManager *exprMgr = ...;
-      // SmtEngine smt(exprMgr, &opts);
-      // Parser parser(infile, exprMgr, &opts);
-      // while(!parser.done) {
-      //   Command *cmd = parser.get();
-      //   cmd->invoke(smt);
-      //   delete cmd;
-      // }
     }
+
+    ExprManager *exprMgr = new ExprManager();
+    SmtEngine smt(exprMgr, &opts);
+    Parser parser(&smt, lang, *in, &opts);
+    while(!parser.done()) {
+      Command *cmd = parser.next();
+      cmd->invoke();
+      delete cmd;
+    }
+
+    if(infile)
+      infile.close();
   } catch(CVC4::main::OptionException* e) {
     if(opts.smtcomp_mode) {
       printf("unknown");

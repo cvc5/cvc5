@@ -25,9 +25,11 @@
 #include "util/exception.h"
 #include "usage.h"
 #include "about.h"
+#include "parser/language.h"
 
 using namespace std;
 using namespace CVC4;
+using namespace CVC4::parser;
 
 namespace CVC4 {
 namespace main {
@@ -38,12 +40,6 @@ Languages currently supported to the -L / --lang option:\n\
   pl | cvc4     CVC4 presentation language\n\
   smt | smtlib  SMT-LIB format\n\
 ";
-
-enum Language {
-  AUTO = 0,
-  PL,
-  SMTLIB,
-};/* enum Language */
 
 enum OptionValue {
   SMTCOMP = 256, /* no clash with char options */

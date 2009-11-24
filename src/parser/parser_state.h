@@ -19,7 +19,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/exception.h"
 

@@ -27,6 +27,24 @@ my $excluded_directories = '^(minisat|CVS)$';
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
 my $years = '2009';
 
+my $standard_template = <<EOF;
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) $years The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+EOF
+
+my $public_template = <<EOF;
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) $years The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+EOF
+
 ## end config ##
 
 use strict;
@@ -92,12 +110,7 @@ sub recurse {
           print $OUT "/*********************                                           -*- C++ -*-  */\n";
         }
         print $OUT "/** $file\n";
-        print $OUT " ** This file is part of the CVC4 prototype.\n";
-        print $OUT " ** Copyright (c) $years The Analysis of Computer Systems Group (ACSys)\n";
-        print $OUT " ** Courant Institute of Mathematical Sciences\n";
-        print $OUT " ** New York University\n";
-        print $OUT " ** See the file COPYING in the top-level source directory for licensing\n";
-        print $OUT " ** information.\n";
+        print $OUT $standard_template;
         print $OUT " **\n";
         while(my $line = <$IN>) {
           last if $line =~ /^ \*\*\s*$/;
@@ -111,12 +124,7 @@ sub recurse {
           print $OUT "/*********************                                           -*- C++ -*-  */\n";
         }
         print $OUT "/** $file\n";
-        print $OUT " ** This file is part of the CVC4 prototype.\n";
-        print $OUT " ** Copyright (c) $years The Analysis of Computer Systems Group (ACSys)\n";
-        print $OUT " ** Courant Institute of Mathematical Sciences\n";
-        print $OUT " ** New York University\n";
-        print $OUT " ** See the file COPYING in the top-level source directory for licensing\n";
-        print $OUT " ** information.\n";
+        print $OUT $standard_template;
         print $OUT " **\n";
         print $OUT " ** [[ Add file-specific comments here ]]\n";
         print $OUT " **/\n\n";

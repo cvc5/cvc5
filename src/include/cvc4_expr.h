@@ -74,9 +74,6 @@ public:
   Expr iffExpr(const Expr& right) const;
   Expr impExpr(const Expr& right) const;
   Expr xorExpr(const Expr& right) const;
-  Expr skolemExpr(int i) const;
-  Expr substExpr(const std::vector<Expr>& oldTerms,
-                 const std::vector<Expr>& newTerms) const;
 
   Expr plusExpr(const Expr& right) const;
   Expr uMinusExpr() const;

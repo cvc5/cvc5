@@ -11,9 +11,11 @@
  ** commands in SMT-LIB language.
  **/
 
-#include "cvc4.h"
+#include "smt/smt_engine.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_state.h"
+
+#include <vector>
 
 // Exported shared data
 namespace CVC4 {

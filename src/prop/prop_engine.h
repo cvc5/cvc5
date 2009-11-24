@@ -12,7 +12,7 @@
 #ifndef __CVC4__PROP__PROP_ENGINE_H
 #define __CVC4__PROP__PROP_ENGINE_H
 
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 #include "util/decision_engine.h"
 #include "theory/theory_engine.h"
 

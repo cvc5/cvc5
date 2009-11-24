@@ -43,7 +43,7 @@ class ExprBuilder {
 
   void addChild(const Expr&);
   void addChild(ExprValue*);
-  void collapse();
+  ExprBuilder& collapse();
 
   typedef ExprValue** ev_iterator;
   typedef ExprValue const** const_ev_iterator;
@@ -74,12 +74,6 @@ public:
   ExprBuilder& iffExpr(const Expr& right);
   ExprBuilder& impExpr(const Expr& right);
   ExprBuilder& xorExpr(const Expr& right);
-  ExprBuilder& skolemExpr(int i);
-  ExprBuilder& substExpr(const std::vector<Expr>& oldTerms,
-                         const std::vector<Expr>& newTerms);
-  /*
-  ExprBuilder& substExpr(const ExprHashMap<Expr>& oldToNew);
-  */
 
   /* TODO design: these modify ExprBuilder */
   ExprBuilder& operator!() { return notExpr(); }
@@ -92,6 +86,7 @@ public:
 
   // For pushing sequences of children
   ExprBuilder& append(const std::vector<Expr>& children) { return append(children.begin(), children.end()); }
+  ExprBuilder& append(Expr child) { return append(&child, &(child)+1); }
   template <class Iterator> ExprBuilder& append(const Iterator& begin, const Iterator& end);
 
   operator Expr();// not const
@@ -102,70 +97,166 @@ public:
   PlusExprBuilder  operator- (Expr);
   MultExprBuilder  operator* (Expr);
 
+  friend class AndExprBuilder;
+  friend class OrExprBuilder;
+  friend class PlusExprBuilder;
+  friend class MultExprBuilder;
 };/* class ExprBuilder */
 
 class AndExprBuilder {
-  ExprManager* d_em;
+  ExprBuilder d_eb;
 
 public:
 
-  AndExprBuilder(const ExprBuilder&);
+  AndExprBuilder(const ExprBuilder& eb) : d_eb(eb) {
+    if(d_eb.d_kind != AND) {
+      d_eb.collapse();
+      d_eb.d_kind = AND;
+    }
+  }
 
   AndExprBuilder&   operator&&(Expr);
   OrExprBuilder     operator||(Expr);
 
-  operator ExprBuilder();
+  operator ExprBuilder() { return d_eb; }
 
 };/* class AndExprBuilder */
 
 class OrExprBuilder {
-  ExprManager* d_em;
+  ExprBuilder d_eb;
 
 public:
 
-  OrExprBuilder(const ExprBuilder&);
+  OrExprBuilder(const ExprBuilder& eb) : d_eb(eb) {
+    if(d_eb.d_kind != OR) {
+      d_eb.collapse();
+      d_eb.d_kind = OR;
+    }
+  }
 
   AndExprBuilder    operator&&(Expr);
   OrExprBuilder&    operator||(Expr);
 
-  operator ExprBuilder();
+  operator ExprBuilder() { return d_eb; }
 
 };/* class OrExprBuilder */
 
 class PlusExprBuilder {
-  ExprManager* d_em;
+  ExprBuilder d_eb;
 
 public:
 
-  PlusExprBuilder(const ExprBuilder&);
+  PlusExprBuilder(const ExprBuilder& eb) : d_eb(eb) {
+    if(d_eb.d_kind != PLUS) {
+      d_eb.collapse();
+      d_eb.d_kind = PLUS;
+    }
+  }
 
   PlusExprBuilder&  operator+(Expr);
   PlusExprBuilder&  operator-(Expr);
   MultExprBuilder   operator*(Expr);
 
-  operator ExprBuilder();
+  operator ExprBuilder() { return d_eb; }
 
 };/* class PlusExprBuilder */
 
 class MultExprBuilder {
-  ExprManager* d_em;
+  ExprBuilder d_eb;
 
 public:
 
-  MultExprBuilder(const ExprBuilder&);
+  MultExprBuilder(const ExprBuilder& eb) : d_eb(eb) {
+    if(d_eb.d_kind != MULT) {
+      d_eb.collapse();
+      d_eb.d_kind = MULT;
+    }
+  }
 
   PlusExprBuilder   operator+(Expr);
   PlusExprBuilder   operator-(Expr);
   MultExprBuilder&  operator*(Expr);
 
-  operator ExprBuilder();
+  operator ExprBuilder() { return d_eb; }
 
 };/* class MultExprBuilder */
 
 template <class Iterator>
-ExprBuilder& ExprBuilder::append(const Iterator& begin, const Iterator& end) {
+inline ExprBuilder& ExprBuilder::append(const Iterator& begin, const Iterator& end) {
   return *this;
 }
+
+// not const
+inline ExprBuilder::operator Expr() {
+  // FIXME
+  return Expr::s_null;
+}
+
+inline AndExprBuilder   ExprBuilder::operator&&(Expr e) {
+  return AndExprBuilder(*this) && e;
+}
+
+inline OrExprBuilder    ExprBuilder::operator||(Expr e) {
+  return OrExprBuilder(*this) || e;
+}
+
+inline PlusExprBuilder  ExprBuilder::operator+ (Expr e) {
+  return PlusExprBuilder(*this) + e;
+}
+
+inline PlusExprBuilder  ExprBuilder::operator- (Expr e) {
+  return PlusExprBuilder(*this) - e;
+}
+
+inline MultExprBuilder  ExprBuilder::operator* (Expr e) {
+  return MultExprBuilder(*this) * e;
+}
+
+inline AndExprBuilder&  AndExprBuilder::operator&&(Expr e) {
+  d_eb.append(e);
+  return *this;
+}
+
+inline OrExprBuilder    AndExprBuilder::operator||(Expr e) {
+  return OrExprBuilder(d_eb.collapse()) || e;
+}
+
+inline AndExprBuilder   OrExprBuilder::operator&&(Expr e) {
+  return AndExprBuilder(d_eb.collapse()) && e;
+}
+
+inline OrExprBuilder&   OrExprBuilder::operator||(Expr e) {
+  d_eb.append(e);
+  return *this;
+}
+
+inline PlusExprBuilder& PlusExprBuilder::operator+(Expr e) {
+  d_eb.append(e);
+  return *this;
+}
+
+inline PlusExprBuilder& PlusExprBuilder::operator-(Expr e) {
+  d_eb.append(e.negate());
+  return *this;
+}
+
+inline MultExprBuilder  PlusExprBuilder::operator*(Expr e) {
+  return MultExprBuilder(d_eb.collapse()) * e;
+}
+
+inline PlusExprBuilder  MultExprBuilder::operator+(Expr e) {
+  return MultExprBuilder(d_eb.collapse()) + e;
+}
+
+inline PlusExprBuilder  MultExprBuilder::operator-(Expr e) {
+  return MultExprBuilder(d_eb.collapse()) - e;
+}
+
+inline MultExprBuilder& MultExprBuilder::operator*(Expr e) {
+  d_eb.append(e);
+  return *this;
+}
+
 
 }/* CVC4 namespace */
 

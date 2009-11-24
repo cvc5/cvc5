@@ -157,14 +157,6 @@ ExprBuilder& ExprBuilder::xorExpr(const Expr& right) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::skolemExpr(int i) {
-  Assert( d_kind != UNDEFINED_KIND );
-  collapse();
-  d_kind = SKOLEM;
-  //addChild(i);//FIXME: int constant
-  return *this;
-}
-
 // "Stream" expression constructor syntax
 ExprBuilder& ExprBuilder::operator<<(const Kind& op) {
   return *this;
@@ -217,37 +209,13 @@ void ExprBuilder::addChild(ExprValue* ev) {
   }
 }
 
-void ExprBuilder::collapse() {
+ExprBuilder& ExprBuilder::collapse() {
   if(d_nchildren == nchild_thresh) {
     vector<Expr>* v = new vector<Expr>();
     v->reserve(nchild_thresh + 5);
-    
+    //
   }
-}
-
-// not const
-ExprBuilder::operator Expr() {
-  // FIXME
-}
-
-AndExprBuilder   ExprBuilder::operator&&(Expr e) {
-  return AndExprBuilder(*this) && e;
-}
-
-OrExprBuilder    ExprBuilder::operator||(Expr e) {
-  return OrExprBuilder(*this) || e;
-}
-
-PlusExprBuilder  ExprBuilder::operator+ (Expr e) {
-  return PlusExprBuilder(*this) + e;
-}
-
-PlusExprBuilder  ExprBuilder::operator- (Expr e) {
-  return PlusExprBuilder(*this) - e;
-}
-
-MultExprBuilder  ExprBuilder::operator* (Expr e) {
-  return MultExprBuilder(*this) * e;
+  return *this;
 }
 
 }/* CVC4 namespace */

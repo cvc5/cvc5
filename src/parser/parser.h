@@ -13,13 +13,13 @@
 #ifndef __CVC4__PARSER__PARSER_H
 #define __CVC4__PARSER__PARSER_H
 
-#include "core/exception.h"
-#include "core/lang.h"
+#include "util/exception.h"
+#include "parser/language.h"
+#include "util/command.h"
 
 namespace CVC4 {
 namespace parser {
 
-  class ValidityChecker;
   class Expr;
   
   // Internal parser state and other data
@@ -33,16 +33,11 @@ namespace parser {
     void deleteParser();
   public:
     // Constructors
-    Parser(ValidityChecker* vc, InputLanguage lang,
-	   // The 'interactive' flag is ignored when fileName != ""
-	   bool interactive = true,
-	   const std::string& fileName = "");
-    Parser(ValidityChecker* vc, InputLanguage lang, std::istream& is,
-	   bool interactive = false);
+    Parser(CVC4::SmtEngine* smt, Language lang, std::istream& is, Options* opts, bool interactive = false);
     // Destructor
     ~Parser();
     // Read the next command.  
-    Expr next();
+    CVC4::Command* next();
     // Check if we are done (end of input has been reached)
     bool done() const;
     // The same check can be done by using the class Parser's value as
