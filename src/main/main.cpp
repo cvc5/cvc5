@@ -10,6 +10,7 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+#include <cstdio>
 #include <cstdlib>
 #include <cerrno>
 #include <new>
@@ -25,7 +26,7 @@
 
 using namespace std;
 using namespace CVC4;
-using namespace CVC4::Main;
+using namespace CVC4::main;
 
 int main(int argc, char *argv[]) {
   struct Options opts;
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
       //   delete cmd;
       // }
     }
-  } catch(CVC4::Main::OptionException* e) {
+  } catch(CVC4::main::OptionException* e) {
     if(opts.smtcomp_mode) {
       printf("unknown");
       fflush(stdout);

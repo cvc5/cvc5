@@ -10,7 +10,7 @@
  ** Reference-counted encapsulation of a pointer to an expression.
  **/
 
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 #include "expr_value.h"
 #include "expr_builder.h"
 

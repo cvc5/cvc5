@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include "config.h"
 #include "context/context.h"
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 
 namespace CVC4 {
 namespace expr {

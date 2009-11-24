@@ -36,12 +36,14 @@ enum Kind {
 
   AND,
   IFF,
+  IMPLIES,
   OR,
   XOR,
 
   /* from arith */
   PLUS,
-  MINUS
+  MINUS,
+  MULT
 
 };/* enum Kind */
 

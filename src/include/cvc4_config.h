@@ -39,3 +39,6 @@
 #  define CVC4_PUBLIC
 
 #endif /* __BUILDING_CVC4LIB */
+
+#define EXPECT_TRUE(x) __builtin_expect( (x), true)
+#define EXPECT_FALSE(x) __builtin_expect( (x), false)

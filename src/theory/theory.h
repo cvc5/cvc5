@@ -12,7 +12,7 @@
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 #include "util/literal.h"
 
 namespace CVC4 {

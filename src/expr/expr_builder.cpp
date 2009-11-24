@@ -38,7 +38,7 @@ ExprBuilder& ExprBuilder::reset(const ExprValue* ev) {
 }
 
 ExprBuilder::ExprBuilder(const ExprBuilder& eb) : d_em(eb.d_em), d_kind(eb.d_kind), d_used(eb.d_used), d_nchildren(eb.d_nchildren) {
-  cvc4assert(!d_used);
+  Assert( !d_used );
 
   if(d_nchildren > nchild_thresh) {
     d_children.u_vec = new vector<Expr>();
@@ -74,59 +74,104 @@ ExprBuilder::~ExprBuilder() {
 
 // Compound expression constructors
 ExprBuilder& ExprBuilder::eqExpr(const Expr& right) {
-  if(d_kind != UNDEFINED_KIND && d_kind != EQUAL)
+  Assert( d_kind != UNDEFINED_KIND );
+  if(EXPECT_TRUE( d_kind != EQUAL )) {
     collapse();
-  d_kind = EQUAL;
+    d_kind = EQUAL;
+  }
+  addChild(right);
   return *this;
 }
 
 ExprBuilder& ExprBuilder::notExpr() {
-  if(d_kind != UNDEFINED_KIND)
-    collapse();
+  Assert( d_kind != UNDEFINED_KIND );
+  collapse();
   d_kind = NOT;
   return *this;
 }
 
 // avoid double-negatives
 ExprBuilder& ExprBuilder::negate() {
-  if(d_kind == NOT)
+  if(EXPECT_FALSE( d_kind == NOT ))
     return reset(d_children.u_arr[0]);
-  if(d_kind != UNDEFINED_KIND)
-    collapse();
+  Assert( d_kind != UNDEFINED_KIND );
+  collapse();
   d_kind = NOT;
   return *this;
 }
 
 ExprBuilder& ExprBuilder::andExpr(const Expr& right) {
+  Assert( d_kind != UNDEFINED_KIND );
+  if(d_kind != AND) {
+    collapse();
+    d_kind = AND;
+  }
+  addChild(right);
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::orExpr(const Expr& right) {
+  Assert( d_kind != UNDEFINED_KIND );
+  if(EXPECT_TRUE( d_kind != OR )) {
+    collapse();
+    d_kind = OR;
+  }
+  addChild(right);
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::iteExpr(const Expr& thenpart, const Expr& elsepart) {
+  Assert( d_kind != UNDEFINED_KIND );
+  collapse();
+  d_kind = ITE;
+  addChild(thenpart);
+  addChild(elsepart);
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::iffExpr(const Expr& right) {
+  Assert( d_kind != UNDEFINED_KIND );
+  if(EXPECT_TRUE( d_kind != IFF )) {
+    collapse();
+    d_kind = IFF;
+  }
+  addChild(right);
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::impExpr(const Expr& right) {
+  Assert( d_kind != UNDEFINED_KIND );
+  collapse();
+  d_kind = IMPLIES;
+  addChild(right);
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::xorExpr(const Expr& right) {
+  Assert( d_kind != UNDEFINED_KIND );
+  if(EXPECT_TRUE( d_kind != XOR )) {
+    collapse();
+    d_kind = XOR;
+  }
+  addChild(right);
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::skolemExpr(int i) {
-}
-
-ExprBuilder& ExprBuilder::substExpr(const std::vector<Expr>& oldTerms,
-                                    const std::vector<Expr>& newTerms) {
+  Assert( d_kind != UNDEFINED_KIND );
+  collapse();
+  d_kind = SKOLEM;
+  //addChild(i);//FIXME: int constant
+  return *this;
 }
 
 // "Stream" expression constructor syntax
 ExprBuilder& ExprBuilder::operator<<(const Kind& op) {
+  return *this;
 }
 
 ExprBuilder& ExprBuilder::operator<<(const Expr& child) {
+  return *this;
 }
 
 void ExprBuilder::addChild(const Expr& e) {
@@ -182,21 +227,27 @@ void ExprBuilder::collapse() {
 
 // not const
 ExprBuilder::operator Expr() {
+  // FIXME
 }
 
-AndExprBuilder   ExprBuilder::operator&&(Expr) {
+AndExprBuilder   ExprBuilder::operator&&(Expr e) {
+  return AndExprBuilder(*this) && e;
 }
 
-OrExprBuilder    ExprBuilder::operator||(Expr) {
+OrExprBuilder    ExprBuilder::operator||(Expr e) {
+  return OrExprBuilder(*this) || e;
 }
 
-PlusExprBuilder  ExprBuilder::operator+ (Expr) {
+PlusExprBuilder  ExprBuilder::operator+ (Expr e) {
+  return PlusExprBuilder(*this) + e;
 }
 
-PlusExprBuilder  ExprBuilder::operator- (Expr) {
+PlusExprBuilder  ExprBuilder::operator- (Expr e) {
+  return PlusExprBuilder(*this) - e;
 }
 
-MultExprBuilder  ExprBuilder::operator* (Expr) {
+MultExprBuilder  ExprBuilder::operator* (Expr e) {
+  return MultExprBuilder(*this) * e;
 }
 
 }/* CVC4 namespace */

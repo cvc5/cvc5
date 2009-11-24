@@ -16,7 +16,7 @@
 
 /* this must be above the check for __CVC4__EXPR__EXPR_VALUE_H */
 /* to resolve a circular dependency */
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 
 #ifndef __CVC4__EXPR__EXPR_VALUE_H
 #define __CVC4__EXPR__EXPR_VALUE_H

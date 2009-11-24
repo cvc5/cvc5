@@ -13,7 +13,7 @@
 #define __CVC4__EXPR_MANAGER_H
 
 #include <vector>
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 #include "kind.h"
 
 namespace CVC4 {

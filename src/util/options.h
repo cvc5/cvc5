@@ -10,6 +10,9 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+#include <iostream>
+
+#ifndef __CVC4__OPTIONS_H
 #define __CVC4__OPTIONS_H
 
 namespace CVC4 {
@@ -19,6 +22,9 @@ struct Options {
 
   bool smtcomp_mode;
   bool statistics;
+
+  std::ostream *out;
+  std::ostream *err;
 
   /* -1 means no output */
   /* 0 is normal (and default) -- warnings only */
@@ -32,6 +38,8 @@ struct Options {
   Options() : binary_name(),
               smtcomp_mode(false),
               statistics(false),
+              out(0),
+              err(0),
               verbosity(0),
               lang()
   {}

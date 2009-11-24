@@ -103,6 +103,7 @@ sub recurse {
           last if $line =~ /^ \*\*\s*$/;
         }
       } else {
+        my $line = $_;
         print "adding\n";
         if($file =~ /\.(y|yy|ypp|Y)$/) {
           print $OUT "%{/*******************                                           -*- C++ -*-  */\n";
@@ -119,6 +120,7 @@ sub recurse {
         print $OUT " **\n";
         print $OUT " ** [[ Add file-specific comments here ]]\n";
         print $OUT " **/\n\n";
+        print $OUT $line;
         if($file =~ /\.(y|yy|ypp|Y)$/) {
           while(my $line = <$IN>) {
             chomp $line;

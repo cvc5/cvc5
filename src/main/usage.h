@@ -10,6 +10,7 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+#ifndef __CVC4__MAIN__USAGE_H
 #define __CVC4__MAIN__USAGE_H
 
 namespace CVC4 {

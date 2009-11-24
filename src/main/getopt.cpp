@@ -10,6 +10,7 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+#include <cstdio>
 #include <cstdlib>
 #include <new>
 #include <unistd.h>
@@ -29,7 +30,7 @@ using namespace std;
 using namespace CVC4;
 
 namespace CVC4 {
-namespace Main {
+namespace main {
 
 static const char lang_help[] = "\
 Languages currently supported to the -L / --lang option:\n\
@@ -135,5 +136,5 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(Exception*) {
   return optind;
 }
 
-}/* CVC4::Main namespace */
+}/* CVC4::main namespace */
 }/* CVC4 namespace */

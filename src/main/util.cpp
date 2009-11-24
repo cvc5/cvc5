@@ -23,7 +23,7 @@ using CVC4::Exception;
 using namespace std;
 
 namespace CVC4 {
-namespace Main {
+namespace main {
 
 void sigint_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 interrupted by user.\n");
@@ -51,5 +51,5 @@ void cvc4_init() throw() {
     throw new Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
 }
 
-}/* CVC4::Main namespace */
+}/* CVC4::main namespace */
 }/* CVC4 namespace */

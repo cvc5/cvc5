@@ -109,6 +109,8 @@ class AndExprBuilder {
 
 public:
 
+  AndExprBuilder(const ExprBuilder&);
+
   AndExprBuilder&   operator&&(Expr);
   OrExprBuilder     operator||(Expr);
 
@@ -120,6 +122,8 @@ class OrExprBuilder {
   ExprManager* d_em;
 
 public:
+
+  OrExprBuilder(const ExprBuilder&);
 
   AndExprBuilder    operator&&(Expr);
   OrExprBuilder&    operator||(Expr);
@@ -133,6 +137,8 @@ class PlusExprBuilder {
 
 public:
 
+  PlusExprBuilder(const ExprBuilder&);
+
   PlusExprBuilder&  operator+(Expr);
   PlusExprBuilder&  operator-(Expr);
   MultExprBuilder   operator*(Expr);
@@ -145,6 +151,8 @@ class MultExprBuilder {
   ExprManager* d_em;
 
 public:
+
+  MultExprBuilder(const ExprBuilder&);
 
   PlusExprBuilder   operator+(Expr);
   PlusExprBuilder   operator-(Expr);
