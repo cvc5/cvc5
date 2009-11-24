@@ -21,6 +21,7 @@
 #include <sstream>
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "parser/symbol_table.h"
 #include "util/exception.h"
 
 namespace CVC4 {
@@ -40,8 +41,9 @@ private:
   // The currently used prompt
   std::string prompt;
 public:
-  SmtEngine* vc;
+  SmtEngine* smtEngine;
   ExprManager* exprManager;
+  SymbolTable* symbolTable;
   std::istream* is;
   // The current input line
   int lineNum;
@@ -66,7 +68,9 @@ public:
                   prompt1("CVC> "),
                   prompt2("- "),
                   prompt("CVC> "),
-                  vc(0),
+                  smtEngine(0),
+                  exprManager(0),
+                  symbolTable(0),
                   is(0),
                   lineNum(1),
                   fileName(),
