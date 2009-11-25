@@ -11,9 +11,15 @@ AC_CONFIG_HEADERS([config.h])
 
 # keep track of whether the user set these (check here, because
 # autoconf might set a default later)
+AC_MSG_CHECKING([for user CPPFLAGS])
 if test -z "${CPPFLAGS+set}"; then user_cppflags=no; else user_cppflags=yes; fi
+AC_MSG_RESULT([${CPPFLAGS-none}])
+AC_MSG_CHECKING([for user CXXFLAGS])
 if test -z "${CXXFLAGS+set}"; then user_cxxflags=no; else user_cxxflags=yes; fi
+AC_MSG_RESULT([${CXXFLAGS-none}])
+AC_MSG_CHECKING([for user LDFLAGS])
 if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
+AC_MSG_RESULT([${LDFLAGS-none}])
 
 LT_INIT
 
@@ -209,6 +215,16 @@ AC_TYPE_SIZE_T
 
 # Prepare configure output
 
+if test "$user_cppflags" = no; then
+  CPPFLAGS="$CVC4CPPFLAGS"
+fi
+if test "$user_cxxflags" = no; then
+  CXXFLAGS="$CVC4CXXFLAGS"
+fi
+if test "$user_ldflags" = no; then
+  LDFLAGS="$CVC4LDFLAGS"
+fi
+
 AC_CONFIG_FILES([
   Makefile
   contrib/Makefile
@@ -251,7 +267,7 @@ LDFLAGS      : $LDFLAGS
 
 Now just type make, followed by make check or make install, as you like.
 
-You can also use 'make build_profile' to reconfigure for a different profile.
+You can use 'make <build_profile>' to reconfig/build a different profile.
 Build profiles: production optimized default competition
 
 EOF
@@ -262,8 +278,6 @@ if test "$user_cppflags" = yes; then
   AC_MSG_WARN([To support your options to configure, I would like to set CPPFLAGS to:])
   AC_MSG_WARN([    $CVC4CPPFLAGS])
   AC_MSG_WARN([])
-else
-  CPPFLAGS="$CVC4CPPFLAGS"
 fi
 if test "$user_cxxflags" = yes; then
   AC_MSG_WARN([])
@@ -271,8 +285,6 @@ if test "$user_cxxflags" = yes; then
   AC_MSG_WARN([To support your options to configure, I would like to set CXXFLAGS to:])
   AC_MSG_WARN([    $CVC4CXXFLAGS])
   AC_MSG_WARN([])
-else
-  CXXFLAGS="$CVC4CXXFLAGS"
 fi
 if test "$user_ldflags" = yes; then
   AC_MSG_WARN([])
@@ -280,8 +292,6 @@ if test "$user_ldflags" = yes; then
   AC_MSG_WARN([To support your options to configure, I would like to set LDFLAGS to:])
   AC_MSG_WARN([    $CVC4LDFLAGS])
   AC_MSG_WARN([])
-else
-  LDFLAGS="$CVC4LDFLAGS"
 fi
 
 non_standard=

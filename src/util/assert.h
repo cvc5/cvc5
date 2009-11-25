@@ -20,19 +20,26 @@
 
 namespace CVC4 {
 
-class AssertionException : public Exception {
+class CVC4_PUBLIC AssertionException : public Exception {
 public:
   AssertionException() : Exception() {}
   AssertionException(std::string msg) : Exception(msg) {}
   AssertionException(const char* msg) : Exception(msg) {}
 };/* class AssertionException */
 
-class UnreachableCodeException : public AssertionException {
+class CVC4_PUBLIC UnreachableCodeException : public AssertionException {
 public:
   UnreachableCodeException() : AssertionException() {}
   UnreachableCodeException(std::string msg) : AssertionException(msg) {}
   UnreachableCodeException(const char* msg) : AssertionException(msg) {}
 };/* class UnreachableCodeException */
+
+class CVC4_PUBLIC UnhandledCaseException : public UnreachableCodeException {
+public:
+  UnhandledCaseException() : UnreachableCodeException() {}
+  UnhandledCaseException(std::string msg) : UnreachableCodeException(msg) {}
+  UnhandledCaseException(const char* msg) : UnreachableCodeException(msg) {}
+};/* class UnhandledCaseException */
 
 #ifdef CVC4_ASSERTIONS
 #  define Assert(cond, msg...) __CVC4_ASSERTGLUE("Assertion failure at " __FILE__ ":", __LINE__, ":  " #cond, __builtin_expect((cond), 1), ## msg)
@@ -41,10 +48,12 @@ public:
 #endif /* CVC4_ASSERTIONS */
 
 #define AlwaysAssert(cond, msg...) __CVC4_ASSERTGLUE("Assertion failure at " __FILE__ ":", __LINE__, ":  " #cond, __builtin_expect((cond), 1), ## msg)
-#define Unreachable(cond, msg...) __CVC4_UNREACHABLEGLUE("Hit a section of unreachable code at " __FILE__ ":", __LINE__, __builtin_expect((cond), 1), ## msg)
+#define Unreachable(msg...) __CVC4_UNREACHABLEGLUE("Hit a section of unreachable code at " __FILE__ ":", __LINE__, ## msg)
+#define Unhandled(msg...) __CVC4_UNHANDLEDGLUE("Hit an unhandled case at " __FILE__ ":", __LINE__, ## msg)
 
 #define __CVC4_ASSERTGLUE(str1, line, str2, cond, msg...) AssertImpl(str1 #line str2, cond, ## msg)
-#define __CVC4_UNREACHABLEGLUE(str, line, cond, msg...) AssertImpl(str #line, cond, ## msg)
+#define __CVC4_UNREACHABLEGLUE(str, line, msg...) UnreachableImpl(str #line, ## msg)
+#define __CVC4_UNHANDLEDGLUE(str, line, msg...) UnhandledImpl(str #line, ## msg)
 
 inline void AssertImpl(const char* info, bool cond, std::string msg) {
   if(EXPECT_FALSE( ! cond ))
@@ -77,6 +86,24 @@ inline void UnreachableImpl(const char* info, const char* msg) {
 
 inline void UnreachableImpl(const char* info) {
   throw new UnreachableCodeException(info);
+}
+
+#ifdef __GNUC__
+inline void UnhandledImpl(const char* info, std::string msg) __attribute__ ((noreturn));
+inline void UnhandledImpl(const char* info, const char* msg) __attribute__ ((noreturn));
+inline void UnhandledImpl(const char* info) __attribute__ ((noreturn));
+#endif /* __GNUC__ */
+
+inline void UnhandledImpl(const char* info, std::string msg) {
+  throw new UnhandledCaseException(std::string(info) + "\n" + msg);
+}
+
+inline void UnhandledImpl(const char* info, const char* msg) {
+  throw new UnhandledCaseException(std::string(info) + "\n" + msg);
+}
+
+inline void UnhandledImpl(const char* info) {
+  throw new UnhandledCaseException(info);
 }
 
 }/* CVC4 namespace */

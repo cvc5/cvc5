@@ -22,6 +22,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "parser/symbol_table.h"
+#include "parser/parser_exception.h"
 #include "util/exception.h"
 
 namespace CVC4 {
@@ -41,8 +42,8 @@ private:
   // The currently used prompt
   std::string prompt;
 public:
-  SmtEngine* smtEngine;
-  ExprManager* exprManager;
+  CVC4::SmtEngine* smtEngine;
+  CVC4::ExprManager* exprManager;
   SymbolTable* symbolTable;
   std::istream* is;
   // The current input line
@@ -50,7 +51,7 @@ public:
   // File name
   std::string fileName;
   // The last parsed Expr
-  Expr expr;
+  CVC4::Expr expr;
   // Whether we are done or not
   bool done;
   // Whether we are running interactive
@@ -64,37 +65,38 @@ public:
   // Did we encounter a formula query (smtlib)
   bool queryParsed;
   // Default constructor
-  ParserState() : d_uid(0),
-                  prompt1("CVC> "),
-                  prompt2("- "),
-                  prompt("CVC> "),
-                  smtEngine(0),
-                  exprManager(0),
-                  symbolTable(0),
-                  is(0),
-                  lineNum(1),
-                  fileName(),
-                  expr(Expr::null()),
-                  done(false),
-                  interactive(false),
-                  arrFlag(false),
-                  bvFlag(false),
-                  bvSize(0),
-                  queryParsed(false) { }
+  ParserState() throw()
+    : d_uid(0),
+      prompt1("CVC> "),
+      prompt2("- "),
+      prompt("CVC> "),
+      smtEngine(0),
+      exprManager(0),
+      symbolTable(0),
+      is(0),
+      lineNum(1),
+      fileName(),
+      expr(CVC4::Expr::null()),
+      done(false),
+      interactive(false),
+      arrFlag(false),
+      bvFlag(false),
+      bvSize(0),
+      queryParsed(false) { }
   // Parser error handling (implemented in parser.cpp)
-  int error(const std::string& s);
+  void error(const std::string& s) throw(ParserException*) __attribute__((noreturn));
   // Get the next uniqueID as a string
-  std::string uniqueID() {
+  std::string uniqueID() throw() {
     std::ostringstream ss;
     ss << d_uid++;
     return ss.str();
   }
   // Get the current prompt
-  std::string getPrompt() { return prompt; }
+  std::string getPrompt() throw() { return prompt; }
   // Set the prompt to the main one
-  void setPrompt1() { prompt = prompt1; }
+  void setPrompt1() throw() { prompt = prompt1; }
   // Set the prompt to the secondary one
-  void setPrompt2() { prompt = prompt2; }
+  void setPrompt2() throw() { prompt = prompt2; }
 };
 
 }/* CVC4::parser namespace */

@@ -13,47 +13,45 @@
 #ifndef __CVC4__PARSER__PARSER_H
 #define __CVC4__PARSER__PARSER_H
 
+#include <iostream>
+
 #include "util/exception.h"
 #include "parser/language.h"
+#include "parser/parser_state.h"
 #include "util/command.h"
+#include "util/options.h"
+#include "expr/expr.h"
+#include "smt/smt_engine.h"
+#include "util/assert.h"
 
 namespace CVC4 {
 namespace parser {
 
-  class Expr;
-  
-  // Internal parser state and other data
-  class ParserData;
+class Parser {
 
-  class Parser {
-  private:
-    ParserData* d_data;
-    // Internal methods for constructing and destroying the actual parser
-    void initParser();
-    void deleteParser();
-  public:
-    // Constructors
-    Parser(CVC4::SmtEngine* smt, Language lang, std::istream& is, Options* opts, bool interactive = false);
-    // Destructor
-    ~Parser();
-    // Read the next command.  
-    CVC4::Command* next();
-    // Check if we are done (end of input has been reached)
-    bool done() const;
-    // The same check can be done by using the class Parser's value as
-    // a Boolean
-    operator bool() const { return done(); }
-    void printLocation(std::ostream & out) const;
-    // Reset any local data that depends on validity checker
-    void reset();
-  }; // end of class Parser
+  CVC4::SmtEngine *d_smt;
+  std::istream &d_is;
+  CVC4::Options *d_opts;
+  Language d_lang;
+  bool d_interactive;
+  void *d_buffer;
 
-  // The global pointer to ParserTemp.  Each instance of class Parser
-  // sets this pointer before any calls to the lexer.  We do it this
-  // way because flex and bison use global vars, and we want each
-  // Parser object to appear independent.
-  class ParserTemp;
-  extern ParserTemp* parserTemp;
+public:
+  // Constructors
+  Parser(CVC4::SmtEngine* smt, Language lang, std::istream& is, CVC4::Options* opts, bool interactive = false) throw();
+  // Destructor
+  ~Parser() throw();
+  // Read the next command.
+  CVC4::Command* next() throw();
+  // Check if we are done (end of input has been reached)
+  bool done() const throw();
+  // The same check can be done by using the class Parser's value as
+  // a Boolean
+  operator bool() const throw() { return done(); }
+  void printLocation(std::ostream & out) const throw();
+  // Reset any local data that depends on SmtEngine
+  void reset() throw();
+}; // end of class Parser
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

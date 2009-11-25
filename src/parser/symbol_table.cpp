@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** symbol_table.h
+/** symbol_table.cpp
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -14,21 +14,24 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "parser/symbol_table.h"
 
 namespace CVC4 {
 namespace parser {
 
-class SymbolTable {
-public:
-  // FIXME: No definitions for Type yet
-  // void defineType(const std::string&, const Type&);
-  void defineVar(const std::string, const void*) throw();
-  void defineVarList(const std::list<std::string>*, const void*) throw();
-  void defineVarList(const std::vector<std::string>*, const void*) throw();
+void SymbolTable::defineVar(const std::string, const void*) throw() {
+  
+}
 
-  // Type& lookupType(const std::string&);
-  Expr& lookupVar(const std::string*) throw();
-};
+void SymbolTable::defineVarList(const std::list<std::string>*, const void*) throw() {
+}
+
+void SymbolTable::defineVarList(const std::vector<std::string>*, const void*) throw() {
+}
+
+// Type& SymbolTable::lookupType(const std::string&);
+Expr& SymbolTable::lookupVar(const std::string*) throw() {
+}
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

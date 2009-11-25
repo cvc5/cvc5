@@ -5,19 +5,21 @@ AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libparser.la
 
 libparser_la_SOURCES = \
+	parser.cpp \
+	parser_state.cpp \
+	symbol_table.cpp \
 	pl_scanner.lpp \
-	pl.ypp # \
-	# smtlib_scanner.lpp \
-	# smtlib.ypp \
-	# parser.cpp
+	pl.ypp
+#	smtlib_scanner.lpp \
+#	smtlib.ypp
 
 BUILT_SOURCES = \
 	pl_scanner.cpp \
 	pl.cpp \
-	pl.hpp # \
-	# smtlib_scanner.cpp \
-	# smtlib.cpp \
-	# smtlib.hpp
+	pl.hpp \
+	smtlib_scanner.cpp \
+	smtlib.cpp \
+	smtlib.hpp
 
 # produce headers too
 AM_YFLAGS = -d

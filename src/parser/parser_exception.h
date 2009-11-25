@@ -14,24 +14,25 @@
 #define __CVC4__PARSER__PARSER_EXCEPTION_H
 
 #include "util/exception.h"
+#include "cvc4_config.h"
 #include <string>
 #include <iostream>
 
 namespace CVC4 {
 namespace parser {
 
-  class ParserException: public Exception {
-  public:
-    // Constructors
-    ParserException() { }
-    ParserException(const std::string& msg): Exception(msg) { }
-    ParserException(const char* msg): Exception(msg) { }
-    // Destructor
-    virtual ~ParserException() { }
-    virtual std::string toString() const {
-      return "Parse Error: " + d_msg;
-    }
-  }; // end of class ParserException
+class CVC4_PUBLIC ParserException: public Exception {
+public:
+  // Constructors
+  ParserException() { }
+  ParserException(const std::string& msg): Exception(msg) { }
+  ParserException(const char* msg): Exception(msg) { }
+  // Destructor
+  virtual ~ParserException() { }
+  virtual std::string toString() const {
+    return "Parse Error: " + d_msg;
+  }
+}; // end of class ParserException
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

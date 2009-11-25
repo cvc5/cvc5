@@ -71,9 +71,6 @@ int main(int argc, char *argv[]) {
       cmd->invoke();
       delete cmd;
     }
-
-    if(infile)
-      infile.close();
   } catch(CVC4::main::OptionException* e) {
     if(opts.smtcomp_mode) {
       printf("unknown");

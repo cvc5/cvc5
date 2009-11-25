@@ -54,7 +54,8 @@ int PLerror(const char *s)
   std::ostringstream ss;
   ss << CVC4::parser::parserState->fileName << ":" << CVC4::parser::parserState->lineNum
      << ": " << s;
-  return CVC4::parser::parserState->error(ss.str());
+  CVC4::parser::parserState->error(ss.str());
+  return 0;// dead code; error() above throws an exception
 }
 
 #define YYLTYPE_IS_TRIVIAL 1

@@ -15,7 +15,6 @@
 #include <vector>
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "util/command.h"
 #include "util/result.h"
 #include "util/model.h"
 #include "util/options.h"
@@ -25,6 +24,8 @@
 // PropEngine.
 
 namespace CVC4 {
+
+class Command;
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -84,7 +85,7 @@ public:
   /*
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager* em, Options* opts) : d_em(em), d_opts(opts) {}
+  SmtEngine(ExprManager* em, Options* opts) throw() : d_em(em), d_opts(opts) {}
 
   /**
    * Execute a command.
@@ -104,6 +105,12 @@ public:
    * true iff consistent.
    */
   Result query(Expr);
+
+  /**
+   * Add a formula to the current context and call check().  Returns
+   * true iff consistent.
+   */
+  Result checkSat(Expr);
 
   /**
    * Simplify a formula without doing "much" work.  Requires assist

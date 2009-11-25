@@ -67,7 +67,7 @@ public:
   /*
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager*, Options*);
+  SmtEngine(ExprManager*, Options*) throw();
 
   /**
    * Execute a command.

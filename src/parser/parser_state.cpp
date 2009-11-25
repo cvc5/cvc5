@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** smt_engine.cpp
+/** parser_state.cpp
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,20 +7,19 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** Parser state implementation.
  **/
 
-#include "smt/smt_engine.h"
-#include "util/exception.h"
-#include "util/command.h"
+#include <string>
+#include "parser/parser_state.h"
+#include "parser/parser_exception.h"
 
 namespace CVC4 {
+namespace parser {
 
-void doCommand(Command* c) {
-  if(c->getSmtEngine() != this)
-    throw new IllegalArgumentException("SmtEngine does not match Command");
-
-  c->invoke();
+void ParserState::error(const std::string& s) throw(ParserException*) {
+  throw new ParserException(s);
 }
 
-
+}/* CVC4::parser namespace */
 }/* CVC4 namespace */
