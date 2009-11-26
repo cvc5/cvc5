@@ -8,10 +8,8 @@ libparser_la_SOURCES = \
 	parser.cpp \
 	parser_state.cpp \
 	symbol_table.cpp \
-	pl_scanner.lpp \
-	pl.ypp
-#	smtlib_scanner.lpp \
-#	smtlib.ypp
+	smtlib_scanner.lpp \
+	smtlib.ypp
 
 BUILT_SOURCES = \
 	pl_scanner.cpp \

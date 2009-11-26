@@ -17,86 +17,182 @@
 #ifndef __CVC4__PARSER__PARSER_STATE_H
 #define __CVC4__PARSER__PARSER_STATE_H
 
+#include <vector>
 #include <iostream>
-#include <sstream>
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
-#include "parser/symbol_table.h"
-#include "parser/parser_exception.h"
-#include "util/exception.h"
+#include <util/command.h>
 
-namespace CVC4 {
+namespace CVC4
+{
 
-class SmtEngine;
+class Expr;
+class ExprManager;
 
-namespace parser {
+namespace parser
+{
 
-class ParserState {
-private:
-  // Counter for uniqueID of bound variables
-  int d_uid;
-  // The main prompt when running interactive
-  std::string prompt1;
-  // The interactive prompt in the middle of a multi-line command
-  std::string prompt2;
-  // The currently used prompt
-  std::string prompt;
-public:
-  CVC4::SmtEngine* smtEngine;
-  CVC4::ExprManager* exprManager;
-  SymbolTable* symbolTable;
-  std::istream* is;
-  // The current input line
-  int lineNum;
-  // File name
-  std::string fileName;
-  // The last parsed Expr
-  CVC4::Expr expr;
-  // Whether we are done or not
-  bool done;
-  // Whether we are running interactive
-  bool interactive;
-  // Whether arrays are enabled for smt-lib format
-  bool arrFlag;
-  // Whether bit-vectors are enabled for smt-lib format
-  bool bvFlag;
-  // Size of bit-vectors for smt-lib format
-  int bvSize;
-  // Did we encounter a formula query (smtlib)
-  bool queryParsed;
-  // Default constructor
-  ParserState() throw()
-    : d_uid(0),
-      prompt1("CVC> "),
-      prompt2("- "),
-      prompt("CVC> "),
-      smtEngine(0),
-      exprManager(0),
-      symbolTable(0),
-      is(0),
-      lineNum(1),
-      fileName(),
-      expr(CVC4::Expr::null()),
-      done(false),
-      interactive(false),
-      arrFlag(false),
-      bvFlag(false),
-      bvSize(0),
-      queryParsed(false) { }
-  // Parser error handling (implemented in parser.cpp)
-  void error(const std::string& s) throw(ParserException*) __attribute__((noreturn));
-  // Get the next uniqueID as a string
-  std::string uniqueID() throw() {
-    std::ostringstream ss;
-    ss << d_uid++;
-    return ss.str();
-  }
-  // Get the current prompt
-  std::string getPrompt() throw() { return prompt; }
-  // Set the prompt to the main one
-  void setPrompt1() throw() { prompt = prompt1; }
-  // Set the prompt to the secondary one
-  void setPrompt2() throw() { prompt = prompt2; }
+/**
+ * The state of the parser.
+ */
+class ParserState
+{
+  public:
+
+    /** Possible status values of a benchmark */
+    enum BenchmarkStatus {
+      SATISFIABLE,
+      UNSATISFIABLE,
+      UNKNOWN
+    };
+
+    /** The default constructor. */
+    ParserState();
+
+    /** Parser error handling */
+    int parseError(const std::string& s);
+
+    /** Get the next uniqueID as a string */
+    std::string getNextUniqueID();
+
+    /** Get the current prompt */
+    std::string getCurrentPrompt() const;
+
+    /** Set the prompt to the main one */
+    void setPromptMain();
+
+    /** Set the prompt to the secondary one */
+    void setPromptNextLine();
+
+    /** Increases the current line number */
+    void increaseLineNumber();
+
+    /** Gets the line number */
+    int getLineNumber() const;
+
+    /** Gets the file we are parsing, if any */
+    std::string getFileName() const;
+
+    /**
+     * Parses the next chunk of input from the stream. Reads at most size characters
+     * from the input stream and copies them into the buffer.
+     * @param the buffer to put the read characters into
+     * @param size the max numer of character
+     */
+    int read(char* buffer, int size);
+
+    /**
+     * Returns the vector of parsed commands in the given vector (and forgets
+     * about them in the local state.
+     */
+    void getParsedCommands(std::vector<CVC4::Command*>& commands_vector);
+
+    /**
+     * Adds the commands in the given vector.
+     */
+    void addCommands(std::vector<CVC4::Command*>& commands_vector);
+
+    /**
+     * Makes room for a new string literal (empties the buffer).
+     */
+    void newStringLiteral();
+
+    /**
+     * Returns the current string literal.
+     */
+    std::string getStringLiteral() const;
+
+    /**
+     * Appends the first character of str to the string literal buffer. If
+     * is_escape is true, the first character should be '\' and second character
+     * is examined to determine the escaped character.
+     */
+    void appendCharToStringLiteral(const char* str, bool is_escape = false);
+
+    /**
+     * Sets the name of the benchmark.
+     */
+    void setBenchmarkName(const std::string bench_name);
+
+    /**
+     * Returns the benchmark name.
+     */
+    std::string getBenchmarkName() const;
+
+    /**
+     * Add the command to the list of commands.
+     */
+    void addCommand(const Command* cmd);
+
+    /**
+     * Set the status of the parsed benchmark.
+     */
+    void setBenchmarkStatus(BenchmarkStatus status);
+
+    /**
+     * Get the status of the parsed benchmark.
+     */
+    BenchmarkStatus getBenchmarkStatus() const;
+
+    /**
+     * Set the logic of the benchmark.
+     */
+    void setBenchmarkLogic(const std::string logic);
+
+    /**
+     * Declare a unary predicate (Boolean variable).
+     */
+    void declareNewPredicate(const std::string pred_name);
+
+    /**
+     * Creates a new expression, given the kind and the children
+     */
+    CVC4::Expr* newExpression(CVC4::Kind kind, std::vector<CVC4::Expr*>& children);
+
+    /**
+     * Returns a new TRUE Boolean constant.
+     */
+    CVC4::Expr* getNewTrue() const;
+
+    /**
+     * Returns a new TRUE Boolean constant.
+     */
+    CVC4::Expr* getNewFalse() const;
+
+    /**
+     * Retruns a variable, given the name.
+     */
+    CVC4::Expr* getNewVariableByName(const std::string var_name) const;
+
+  private:
+
+    /** Counter for uniqueID of bound variables */
+    int d_uid;
+    /** The main prompt when running interactive */
+    std::string d_prompt_main;
+    /** The interactive prompt in the middle of a multiline command */
+    std::string d_prompt_continue;
+    /** The currently used prompt */
+    std::string d_prompt;
+    /** The expression manager we will be using */
+    ExprManager* d_expression_manager;
+    /** The stream we are reading off */
+    std::istream* d_input_stream;
+    /** The current input line */
+    unsigned d_input_line;
+    /** File we are parsing */
+    std::string d_file_name;
+    /** Whether we are done or not */
+    bool d_done;
+    /** Whether we are running in interactive mode */
+    bool d_interactive;
+
+    /** String to buffer the string literals */
+    std::string d_string_buffer;
+
+    /** The name of the benchmark if any */
+    std::string d_benchmark_name;
+
+    /** The vector of parsed commands if parsed as a whole */
+    std::vector<CVC4::Command*> d_commands;
 };
 
 }/* CVC4::parser namespace */

@@ -1,25 +1,86 @@
-/*********************                                           -*- C++ -*-  */
-/** parser_state.cpp
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
- ** See the file COPYING in the top-level source directory for licensing
- ** information.
- **
- ** Parser state implementation.
- **/
+/*
+ * parser_state.cpp
+ *
+ *  Created on: Nov 20, 2009
+ *      Author: dejan
+ */
 
-#include <string>
-#include "parser/parser_state.h"
-#include "parser/parser_exception.h"
+#include "parser_state.h"
+#include "parser_exception.h"
+#include <sstream>
 
-namespace CVC4 {
-namespace parser {
+using namespace std;
 
-void ParserState::error(const std::string& s) throw(ParserException*) {
+namespace CVC4
+{
+
+namespace parser
+{
+
+int ParserState::read(char* buffer, int size)
+{
+  if (d_input_stream) {
+    // Read the characters and count them in result
+    d_input_stream->read(buffer, size);
+    return d_input_stream->gcount();
+  } else return 0;
+}
+
+ParserState::ParserState() :
+  d_uid(0), d_prompt_main("CVC>"), d_prompt_continue("- "), d_prompt("CVC"), d_input_line(0), d_done(false)
+{
+
+}
+
+int ParserState::parseError(const std::string& s)
+{
   throw new ParserException(s);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+string ParserState::getNextUniqueID()
+{
+  ostringstream ss;
+  ss << d_uid++;
+  return ss.str();
+}
+
+string ParserState::getCurrentPrompt() const
+{
+  return d_prompt;
+}
+
+void ParserState::setPromptMain()
+{
+  d_prompt = d_prompt_main;
+}
+
+void ParserState::setPromptNextLine()
+{
+  d_prompt = d_prompt_continue;
+}
+
+void ParserState::increaseLineNumber()
+{
+  ++d_input_line;
+}
+
+int ParserState::getLineNumber() const
+{
+  return d_input_line;
+}
+
+std::string ParserState::getFileName() const
+{
+  return d_file_name;
+}
+
+void ParserState::getParsedCommands(vector<Command*>& commands_vector)
+{
+  d_commands.swap(commands_vector);
+  d_commands.clear();
+}
+
+} // End namespace parser
+
+} // End namespace CVC3
+

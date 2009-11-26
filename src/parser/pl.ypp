@@ -14,8 +14,8 @@
 %{
 
 
-#include <vector>
 #include <list>
+#include <vector>
 #include <string>
 
 #include "smt/smt_engine.h"
