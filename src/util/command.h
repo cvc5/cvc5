@@ -13,46 +13,45 @@
 #define __CVC4__COMMAND_H
 
 #include "expr/expr.h"
-#include "smt/smt_engine.h"
 
-namespace CVC4 {
+namespace CVC4
+{
 
-class Command {
-protected:
-  SmtEngine* d_smt;
+class SmtEngine;
 
-public:
-  Command(CVC4::SmtEngine* smt) : d_smt(smt) {}
-  SmtEngine* getSmtEngine() { return d_smt; }
-  virtual void invoke() = 0;
+class Command
+{
+  public:
+    virtual void invoke(CVC4::SmtEngine* smt_engine) = 0;
+    virtual ~Command() {}
 };
 
-class AssertCommand : public Command {
-protected:
-  Expr d_expr;
-
-public:
-  AssertCommand(CVC4::SmtEngine* smt, const Expr& e) : Command(smt), d_expr(e) {}
-  void invoke() { d_smt->assert(d_expr); }
+class AssertCommand: public Command
+{
+  public:
+    AssertCommand(const Expr& e);
+    void invoke(CVC4::SmtEngine* smt_engine);
+  protected:
+    Expr d_expr;
 };
 
-class CheckSatCommand : public Command {
-protected:
-  Expr d_expr;
-
-public:
-  CheckSatCommand(CVC4::SmtEngine* smt) : Command(smt), d_expr(Expr::null()) {}
-  CheckSatCommand(CVC4::SmtEngine* smt, const Expr& e) : Command(smt), d_expr(e) {}
-  void invoke() { d_smt->checkSat(d_expr); }
+class CheckSatCommand: public Command
+{
+  public:
+    CheckSatCommand();
+    CheckSatCommand(const Expr& e);
+    void invoke(CVC4::SmtEngine* smt);
+  protected:
+    Expr d_expr;
 };
 
-class QueryCommand : public Command {
-protected:
-  Expr d_expr;
-
-public:
-  QueryCommand(CVC4::SmtEngine* smt, const Expr& e) : Command(smt), d_expr(e) {}
-  void invoke() { d_smt->query(d_expr); }
+class QueryCommand: public Command
+{
+  public:
+    QueryCommand(const Expr& e);
+    void invoke(CVC4::SmtEngine* smt);
+  protected:
+    Expr d_expr;
 };
 
 }/* CVC4 namespace */

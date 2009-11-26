@@ -1,18 +1,45 @@
-/*********************                                           -*- C++ -*-  */
-/** command.cpp
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
- ** See the file COPYING in the top-level source directory for licensing
- ** information.
- **
- **/
+/*
+ * command.cpp
+ *
+ *  Created on: Nov 25, 2009
+ *      Author: dejan
+ */
 
-#include "util/command.h"
-#include "smt/smt_engine.h"
+#include "command.h"
 
-namespace CVC4 {
+using namespace CVC4;
 
+AssertCommand::AssertCommand(const Expr& e) :
+  d_expr(e)
+{
+}
 
-}/* CVC4 namespace */
+void AssertCommand::invoke(CVC4::SmtEngine* smt_engine)
+{
+  smt_engine->assert(d_expr);
+}
+
+CheckSatCommand::CheckSatCommand()
+{
+}
+
+CheckSatCommand::CheckSatCommand(const Expr& e):
+    d_expr(e)
+{
+}
+
+void CheckSatCommand::invoke(CVC4::SmtEngine* smt_engine)
+{
+  smt_engine->checkSat(d_expr);
+}
+
+QueryCommand::QueryCommand(const Expr& e):
+    d_expr(e)
+{
+}
+
+void QueryCommand::invoke(CVC4::SmtEngine* smt_engine)
+{
+  smt_engine->query(d_expr);
+}
+
