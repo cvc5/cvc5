@@ -17,8 +17,8 @@
 %option noyymore
 %option yylineno
 %option prefix="smtlib"
-
-%{
+  
+%{ 
 
 #include <iostream>
 #include "parser_state.h"

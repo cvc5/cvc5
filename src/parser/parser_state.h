@@ -19,13 +19,10 @@
 
 #include <vector>
 #include <iostream>
-#include <util/command.h>
+#include "cvc4.h"
 
 namespace CVC4
 {
-
-class Expr;
-class ExprManager;
 
 namespace parser
 {
@@ -80,17 +77,6 @@ class ParserState
     int read(char* buffer, int size);
 
     /**
-     * Returns the vector of parsed commands in the given vector (and forgets
-     * about them in the local state.
-     */
-    void getParsedCommands(std::vector<CVC4::Command*>& commands_vector);
-
-    /**
-     * Adds the commands in the given vector.
-     */
-    void addCommands(std::vector<CVC4::Command*>& commands_vector);
-
-    /**
      * Makes room for a new string literal (empties the buffer).
      */
     void newStringLiteral();
@@ -118,11 +104,6 @@ class ParserState
     std::string getBenchmarkName() const;
 
     /**
-     * Add the command to the list of commands.
-     */
-    void addCommand(const Command* cmd);
-
-    /**
      * Set the status of the parsed benchmark.
      */
     void setBenchmarkStatus(BenchmarkStatus status);
@@ -145,7 +126,7 @@ class ParserState
     /**
      * Creates a new expression, given the kind and the children
      */
-    CVC4::Expr* newExpression(CVC4::Kind kind, std::vector<CVC4::Expr*>& children);
+    CVC4::Expr* newExpression(CVC4::Kind kind, std::vector<CVC4::Expr>& children);
 
     /**
      * Returns a new TRUE Boolean constant.
@@ -161,6 +142,17 @@ class ParserState
      * Retruns a variable, given the name.
      */
     CVC4::Expr* getNewVariableByName(const std::string var_name) const;
+
+    /**
+     * Sets the command that is the result of the parser.
+     */
+    void setCommand(CVC4::Command* cmd);
+
+    /**
+     * Sets the interactive flag on/off. If on, every time we go to a new line
+     * (via increaseLineNumber()) the prompt will be printed to stdout.
+     */
+    void setInteractive(bool interactive = true);
 
   private:
 
@@ -190,9 +182,6 @@ class ParserState
 
     /** The name of the benchmark if any */
     std::string d_benchmark_name;
-
-    /** The vector of parsed commands if parsed as a whole */
-    std::vector<CVC4::Command*> d_commands;
 };
 
 }/* CVC4::parser namespace */

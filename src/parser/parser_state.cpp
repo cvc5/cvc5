@@ -62,6 +62,10 @@ void ParserState::setPromptNextLine()
 void ParserState::increaseLineNumber()
 {
   ++d_input_line;
+  if (d_interactive) {
+    std::cout << getCurrentPrompt();
+    setPromptNextLine();
+  }
 }
 
 int ParserState::getLineNumber() const
@@ -72,12 +76,6 @@ int ParserState::getLineNumber() const
 std::string ParserState::getFileName() const
 {
   return d_file_name;
-}
-
-void ParserState::getParsedCommands(vector<Command*>& commands_vector)
-{
-  d_commands.swap(commands_vector);
-  d_commands.clear();
 }
 
 } // End namespace parser

@@ -12,7 +12,7 @@
 #ifndef __CVC4__COMMAND_H
 #define __CVC4__COMMAND_H
 
-#include "expr/expr.h"
+#include "cvc4.h"
 
 namespace CVC4
 {
@@ -23,7 +23,13 @@ class Command
 {
   public:
     virtual void invoke(CVC4::SmtEngine* smt_engine) = 0;
-    virtual ~Command() {}
+    virtual ~Command() {};
+};
+
+class EmptyCommand : public Command
+{
+  public:
+    virtual void invoke(CVC4::SmtEngine* smt_engine);
 };
 
 class AssertCommand: public Command
@@ -52,6 +58,21 @@ class QueryCommand: public Command
     void invoke(CVC4::SmtEngine* smt);
   protected:
     Expr d_expr;
+};
+
+class CommandSequence: public Command
+{
+  public:
+    CommandSequence();
+    CommandSequence(Command* cmd);
+    ~CommandSequence();
+    void invoke(CVC4::SmtEngine* smt);
+    void addCommand(Command* cmd);
+  private:
+    /** All the commands to be executed (in sequence) */
+    std::vector<Command*> d_command_sequence;
+    /** Next command to be executed */
+    unsigned int d_last_index;
 };
 
 }/* CVC4 namespace */

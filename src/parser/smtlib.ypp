@@ -11,9 +11,8 @@
  ** commands in SMT-LIB language.
  **/
 
-#include "cvc4_expr.h"
-#include "parser/parser_state.h"
-#include "util/command.h"
+#include "cvc4.h"
+#include "parser_state.h"
 
 // Exported shared data
 namespace CVC4 {
@@ -43,21 +42,19 @@ int smtliberror(const char *s) { return _global_parser_state->parseError(s); }
 %union {
 
   std::string *p_string;
-  std::vector<std::string*> *p_string_vector;
+  std::vector<std::string> *p_string_vector;
 
   CVC4::Expr *p_expression;
-  std::vector<CVC4::Expr*> *p_expression_vector;
+  std::vector<CVC4::Expr> *p_expression_vector;
 
   CVC4::Command *p_command;
-  std::vector<CVC4::Command*> *p_command_vector;
+  CVC4::CommandSequence *p_command_sequence;
 
   CVC4::parser::ParserState::BenchmarkStatus d_bench_status;
   
   CVC4::Kind d_kind;
   
 };
-
-%start benchmark
 
 %token <p_string> NUMERAL_TOK
 %token <p_string> SYM_TOK
@@ -104,29 +101,34 @@ int smtliberror(const char *s) { return _global_parser_state->parseError(s); }
 %type <p_expression> an_formula an_atom prop_atom
 %type <p_expression_vector> an_formulas;
 %type <d_kind> connective;
+%type <p_command> bench_attribute
+%type <p_command_sequence> bench_attributes  
 
+%start benchmark
+ 
 %%
 
 benchmark:
     LPAREN_TOK BENCHMARK_TOK bench_name bench_attributes RPAREN_TOK {
       _global_parser_state->setBenchmarkName(*$3);
+      _global_parser_state->setCommand($4);
     }    
-  | EOF_TOK
+  | EOF_TOK { _global_parser_state->setCommand(new EmptyCommand()); }
 ; 
 
 bench_name: SYM_TOK;
 
 bench_attributes:
-    bench_attribute
-  | bench_attributes bench_attribute
+    bench_attribute                   { $$ = new CommandSequence($1); }
+  | bench_attributes bench_attribute  { $$ = $1; $$->addCommand($2);  }
 ;
-
+ 
 bench_attribute:
-  | COLON_TOK FORMULA_TOK an_formula  { _global_parser_state->addCommand(new CheckSatCommand(*$3)); delete $3; }  
-  | COLON_TOK STATUS_TOK status       { _global_parser_state->setBenchmarkStatus($3); } 
-  | COLON_TOK LOGIC_TOK logic_name    { _global_parser_state->setBenchmarkLogic(*$3); delete $3; } 
-  | COLON_TOK EXTRAPREDS_TOK LPAREN_TOK pred_symb_decls RPAREN_TOK
-  | annotation
+    COLON_TOK FORMULA_TOK an_formula  { $$ = new CheckSatCommand(*$3); delete $3; }  
+  | COLON_TOK STATUS_TOK status       { $$ = new EmptyCommand(); _global_parser_state->setBenchmarkStatus($3); } 
+  | COLON_TOK LOGIC_TOK logic_name    { $$ = new EmptyCommand(); _global_parser_state->setBenchmarkLogic(*$3); delete $3; } 
+  | COLON_TOK EXTRAPREDS_TOK LPAREN_TOK pred_symb_decls RPAREN_TOK { $$ = new EmptyCommand(); }
+  | annotation { $$ = new EmptyCommand(); }
 ;  
  
 logic_name: SYM_TOK;
@@ -152,8 +154,8 @@ pred_sig:
 ;
 
 an_formulas:
-    an_formula             { $$ = new vector<Expr*>; $$->push_back($1); delete $1; }
-  | an_formulas an_formula { $$ = $1;                $$->push_back($2); delete $2; }
+    an_formula             { $$ = new vector<Expr>; $$->push_back(*$1); delete $1; }
+  | an_formulas an_formula { $$ = $1;               $$->push_back(*$2); delete $2; }
 ;
 
 an_formula:
