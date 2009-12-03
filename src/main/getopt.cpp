@@ -68,7 +68,7 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(Exception*) {
     progName = x + 1;
   opts->binary_name = string(progName);
 
-  while((c = getopt_long(argc, argv, "+:hVvL:", cmdlineOptions, NULL)) != -1) {
+  while((c = getopt_long(argc, argv, "+:hVvqL:", cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
     case 'h':

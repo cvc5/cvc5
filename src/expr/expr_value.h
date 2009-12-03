@@ -63,6 +63,8 @@ class ExprValue {
   ExprValue* inc();
   ExprValue* dec();
 
+  static size_t next_id;
+
 public:
   /** Hash this expression.
    *  @return the hash value of this expression. */
@@ -82,6 +84,10 @@ public:
   const_iterator end() const;
   const_iterator rbegin() const;
   const_iterator rend() const;
+
+  void toString(std::ostream& out) {
+    out << Kind(d_kind);
+  }
 };
 
 }/* CVC4::expr namespace */

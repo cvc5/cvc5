@@ -11,15 +11,23 @@
  ** commands in SMT-LIB language.
  **/
 
-#include "cvc4.h"
+#define YYDEBUG 1
+
+#include <string>
+#include <ostream>
+#include <sstream>
+
 #include "parser_state.h"
+#include "smt/smt_engine.h"
+#include "util/command.h"
+#include "smtlib.hpp"
 
 // Exported shared data
 namespace CVC4 {
 namespace parser {
   extern ParserState* _global_parser_state;
-}
-}
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
 using namespace std;
 using namespace CVC4;
@@ -32,7 +40,16 @@ using namespace CVC4::parser;
 extern int smtliblex(void);
 
 /** Error call */ 
-int smtliberror(const char *s) { return _global_parser_state->parseError(s); }
+int smtliberror(const char *s) {
+  std::ostringstream ss;
+  ss << CVC4::parser::_global_parser_state->getFileName() << ":"
+     << CVC4::parser::_global_parser_state->getLineNumber() << ": " << s;
+  CVC4::parser::_global_parser_state->parseError(ss.str());
+  return 0;// dead code; error() above throws an exception
+}
+
+// make the entry point public
+int CVC4_PUBLIC smtlibparse(void *YYPARSE_PARAM);
 
 #define YYLTYPE_IS_TRIVIAL 1
 #define YYMAXDEPTH 10485760
@@ -112,8 +129,14 @@ benchmark:
     LPAREN_TOK BENCHMARK_TOK bench_name bench_attributes RPAREN_TOK {
       _global_parser_state->setBenchmarkName(*$3);
       _global_parser_state->setCommand($4);
-    }    
-  | EOF_TOK { _global_parser_state->setCommand(new EmptyCommand()); }
+      _global_parser_state->setDone();
+      YYACCEPT;
+    }
+  | EOF_TOK {
+      _global_parser_state->setCommand(new EmptyCommand());
+      _global_parser_state->setDone();
+      YYACCEPT;
+    }
 ; 
 
 bench_name: SYM_TOK;
@@ -160,7 +183,7 @@ an_formulas:
 
 an_formula:
     an_atom
-  | LPAREN_TOK connective an_formulas RPAREN_TOK { $$ = _global_parser_state->newExpression($2, *$3); delete $3; } 
+    | LPAREN_TOK connective an_formulas RPAREN_TOK { $$ = _global_parser_state->newExpression($2, *$3); std::cout << "we have an expr: " << *$$ << std::endl; delete $3; } 
 ;
 
 connective:

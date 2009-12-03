@@ -13,6 +13,8 @@
 #define __CVC4__SMT_ENGINE_H
 
 #include <vector>
+
+#include "cvc4_config.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/result.h"
@@ -41,7 +43,7 @@ class Command;
 class SmtEngine {
   /** Current set of assertions. */
   // TODO: make context-aware to handle user-level push/pop.
-  std::vector<Expr> d_assertList;
+  std::vector<Expr> d_assertions;
 
   /** Our expression manager */
   ExprManager *d_em;
@@ -49,13 +51,16 @@ class SmtEngine {
   /** User-level options */
   Options *d_opts;
 
+  /** Expression built-up for handing off to the propagation engine */
+  Expr d_expr;
+
   /**
    * Pre-process an Expr.  This is expected to be highly-variable,
    * with a lot of "source-level configurability" to add multiple
    * passes over the Expr.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  void preprocess(Expr);
+  Expr preprocess(Expr);
 
   /**
    * Adds a formula to the current context.
@@ -85,7 +90,7 @@ public:
   /*
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager* em, Options* opts) throw() : d_em(em), d_opts(opts) {}
+  SmtEngine(ExprManager* em, Options* opts) throw() : d_em(em), d_opts(opts), d_expr(Expr::null()) {}
 
   /**
    * Execute a command.

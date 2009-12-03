@@ -22,12 +22,14 @@
 
 #include <iostream>
 #include "parser_state.h"
+#include "smt/smt_engine.h"
+#include "util/command.h"
 #include "smtlib.hpp"
 
 namespace CVC4 {
-namespace parser {
-  extern ParserState* _global_parser_state;
-}
+  namespace parser {
+    extern ParserState* _global_parser_state;
+  }
 }
 
 using CVC4::parser::_global_parser_state;
@@ -42,7 +44,7 @@ extern char *smtlibtext;
 
 %x COMMENT
 %x STRING_LITERAL
-%x SYM_TOK
+ //%x SYM_TOK
 %x USER_VALUE
 
 LETTER	([a-zA-Z])

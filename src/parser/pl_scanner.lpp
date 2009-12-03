@@ -32,7 +32,7 @@
 
 namespace CVC4 {
   namespace parser {
-    extern ParserState* parserState;
+    extern ParserState* _global_parser_state;
   }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
@@ -46,23 +46,27 @@ static int PLinput(std::istream& is, char* buf, int size) {
   if(is) {
     // If interactive, read line by line; otherwise read as much as we
     // can gobble
-    if(CVC4::parser::parserState->interactive) {
+    if(CVC4::parser::_global_parser_state->interactive()) {
       // Print the current prompt
-      std::cout << CVC4::parser::parserState->getPrompt() << std::flush;
+      std::cout << CVC4::parser::_global_parser_state->getCurrentPrompt() << std::flush;
       // Set the prompt to "middle of the command" one
-      CVC4::parser::parserState->setPrompt2();
+      CVC4::parser::_global_parser_state->setPromptNextLine();
       // Read the line
-      is.getline(buf, size-1);
+      is.getline(buf, size - 1);
     } else // Set the terminator char to 0
-      is.getline(buf, size-1, 0);
+      is.getline(buf, size - 1, 0);
     // If failbit is set, but eof is not, it means the line simply
     // didn't fit; so we clear the state and keep on reading.
     bool partialStr = is.fail() && !is.eof();
     if(partialStr)
       is.clear();
 
-    for(res = 0; res<size && buf[res] != 0; res++);
-    if(res == size) PLerror("Lexer bug: overfilled the buffer");
+    for(res = 0; res < size && buf[res] != 0; ++res)
+      ;
+
+    if(res == size)
+      PLerror("Lexer bug: overfilled the buffer");
+
     if(!partialStr) { // Insert \n into the buffer
       buf[res++] = '\n';
       buf[res] = '\0';
@@ -74,8 +78,7 @@ static int PLinput(std::istream& is, char* buf, int size) {
 }
 
 // Redefine the input buffer function to read from an istream
-#define YY_INPUT(buf,result,max_size) \
-  result = PLinput(*CVC4::parser::parserState->is, buf, max_size);
+#define YY_INPUT(buffer, result, max_size) result = CVC4::parser::_global_parser_state->read(buffer, max_size);
 
 int PL_bufSize() { return YY_BUF_SIZE; }
 YY_BUFFER_STATE PL_buf_state() { return YY_CURRENT_BUFFER; }
@@ -129,7 +132,7 @@ ANYTHING ({LETTER}|{DIGIT}|{OPCHAR})
 
 %%
 
-[\n]            { CVC4::parser::parserState->lineNum++; }
+[\n]            { CVC4::parser::_global_parser_state->increaseLineNumber(); }
 
 [ \t\r\f]	{ /* skip whitespace */ }
 
@@ -142,7 +145,7 @@ ANYTHING ({LETTER}|{DIGIT}|{OPCHAR})
 
 "%"		{ BEGIN COMMENT; }
 <COMMENT>"\n"	{ BEGIN INITIAL; /* return to normal mode */ 
-                  CVC4::parser::parserState->lineNum++; }
+                  CVC4::parser::_global_parser_state->increaseLineNumber(); }
 <COMMENT>.	{ /* stay in comment mode */ }
 
 <INITIAL>"\""		{ BEGIN STRING_LITERAL; 

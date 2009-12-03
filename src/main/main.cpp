@@ -27,8 +27,11 @@
 #include "usage.h"
 #include "parser/parser.h"
 #include "expr/expr_manager.h"
+#include "expr/expr.h"
+#include "expr/kind.h"
 #include "smt/smt_engine.h"
 #include "parser/language.h"
+#include "util/command.h"
 
 using namespace std;
 using namespace CVC4;
@@ -53,23 +56,32 @@ int main(int argc, char *argv[]) {
       throw new Exception("Too many input files specified.");
     } else {
       in = &infile;
-      if(strlen(argv[firstArgIndex]) >= 4 && !strcmp(argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4, ".smt"))
+      if(strlen(argv[firstArgIndex]) >= 4 &&
+         !strcmp(argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4, ".smt"))
         lang = SMTLIB;
       infile.open(argv[firstArgIndex], ifstream::in);
 
       if(!infile) {
-        throw new Exception(string("Could not open input file `") + argv[firstArgIndex] + "' for reading: " + strerror(errno));
-        exit(1);
+        throw new Exception(string("Could not open input file `") +
+                            argv[firstArgIndex] + "' for reading: " +
+                            strerror(errno));
       }
     }
 
-    ExprManager *exprMgr = new ExprManager();
+    ExprManager *exprMgr = new ExprManager;
     SmtEngine smt(exprMgr, &opts);
-    Parser parser(&smt, lang, *in, &opts);
+    Parser parser(&smt, exprMgr, lang, *in, &opts);
     while(!parser.done()) {
-      Command *cmd = parser.next();
-      cmd->invoke();
-      delete cmd;
+      Command *cmd = parser.parseNextCommand(opts.verbosity > 1);
+      if(opts.verbosity > 0) {
+        cout << "invoking cmd: ";
+        cout << cmd << endl;
+      }
+      if(cmd) {
+        if(opts.verbosity >= 0)
+          cout << cmd->invoke(&smt) << endl;
+        delete cmd;
+      }
     }
   } catch(CVC4::main::OptionException* e) {
     if(opts.smtcomp_mode) {
@@ -78,24 +90,24 @@ int main(int argc, char *argv[]) {
     }
     fprintf(stderr, "CVC4 Error:\n%s\n\n", e->toString().c_str());
     printf(usage, opts.binary_name.c_str());
-    exit(1);
+    abort();
   } catch(CVC4::Exception* e) {
     if(opts.smtcomp_mode) {
       printf("unknown");
       fflush(stdout);
     }
     fprintf(stderr, "CVC4 Error:\n%s\n", e->toString().c_str());
-    exit(1);
+    abort();
   } catch(bad_alloc) {
     if(opts.smtcomp_mode) {
       printf("unknown");
       fflush(stdout);
     }
     fprintf(stderr, "CVC4 ran out of memory.\n");
-    exit(1);
+    abort();
   } catch(...) {
     fprintf(stderr, "CVC4 threw an exception of unknown type.\n");
-    exit(1);
+    abort();
   }
 
   return 0;

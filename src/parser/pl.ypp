@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+%{/*******************                                           -*- C++ -*-  */
 /** pl.ypp
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
@@ -11,12 +11,13 @@
  ** commands in the presentation language (hence "PL").
  **/
 
-%{
-
+#define YYDEBUG 1
 
 #include <list>
 #include <vector>
 #include <string>
+#include <ostream>
+#include <sstream>
 
 #include "smt/smt_engine.h"
 #include "parser/parser_exception.h"
@@ -30,16 +31,15 @@
 // Exported shared data
 namespace CVC4 {
   namespace parser {
-    extern ParserState* parserState;
+    extern ParserState* _global_parser_state;;
   }/* CVC4::parser namespace */
-}/* CVC4 hnamespace */
+}/* CVC4 namespace */
 
 // Define shortcuts for various things
-// #define TMP CVC4::parser::parserState
-// #define EXPR CVC4::parser::parserState->expr
-#define SMT_ENGINE (CVC4::parser::parserState->smtEngine)
-#define EXPR_MANAGER (CVC4::parser::parserState->exprManager)
-#define SYMBOL_TABLE (CVC4::parser::parserState->symbolTable)
+// #define TMP CVC4::parser::_global_parser_state
+// #define EXPR CVC4::parser::_global_parser_state->expr
+#define SMT_ENGINE (CVC4::parser::_global_parser_state->getSmtEngine())
+#define EXPR_MANAGER (CVC4::parser::_global_parser_state->getExpressionManager())
 // #define RAT(args) CVC4::newRational args
 
 // Suppress the bogus warning suppression in bison (it generates
@@ -49,14 +49,16 @@ namespace CVC4 {
 /* stuff that lives in PL.lex */
 extern int PLlex(void);
 
-int PLerror(const char *s)
-{
+int PLerror(const char *s) {
   std::ostringstream ss;
-  ss << CVC4::parser::parserState->fileName << ":" << CVC4::parser::parserState->lineNum
-     << ": " << s;
-  CVC4::parser::parserState->error(ss.str());
+  ss << CVC4::parser::_global_parser_state->getFileName() << ":"
+     << CVC4::parser::_global_parser_state->getLineNumber() << ": " << s;
+  CVC4::parser::_global_parser_state->parseError(ss.str());
   return 0;// dead code; error() above throws an exception
 }
+
+// make the entry point public
+int CVC4_PUBLIC PLparse(void *YYPARSE_PARAM);
 
 #define YYLTYPE_IS_TRIVIAL 1
 #define YYMAXDEPTH 10485760
@@ -297,27 +299,40 @@ using namespace CVC4;
 cmd:       
     ASSERT_TOK Expr { 
       $$ = new AssertCommand(*$2);
+      CVC4::parser::_global_parser_state->setCommand($$);
       delete $2;
     } 
   | QUERY_TOK Expr { 
       $$ = new QueryCommand(*$2);
+      CVC4::parser::_global_parser_state->setCommand($$);
       delete $2;
     }
   | CHECKSAT_TOK Expr {
       $$ = new CheckSatCommand(*$2);
+      CVC4::parser::_global_parser_state->setCommand($$);
       delete $2;
     }
   | CHECKSAT_TOK {
       $$ = new CheckSatCommand();
+      CVC4::parser::_global_parser_state->setCommand($$);
     } 
   | IdentifierList ':' Type { // variable/constant declaration
       // FIXME: assuming Type is BOOLEAN
-      SYMBOL_TABLE->defineVarList($1, (const void *)0);
+      for(std::list<std::string>::iterator i = $1->begin(); i != $1->end(); ++i)
+        CVC4::parser::_global_parser_state->declareNewPredicate(*i);
+      delete $1;
+      CVC4::parser::_global_parser_state->setCommand(new EmptyCommand());
+    }
+  | DONE_TOK {
+      CVC4::parser::_global_parser_state->setCommand(new EmptyCommand());
+      CVC4::parser::_global_parser_state->setDone();
+      YYACCEPT;
     }
 
 Expr:	
     Identifier { 
-      $$ = new Expr(SYMBOL_TABLE->lookupVar($1)); 
+      $$ = CVC4::parser::_global_parser_state->getNewVariableByName(*$1);
+      delete $1;
     }
   | TRUELIT_TOK {
       $$ = new Expr(EXPR_MANAGER->mkExpr(TRUE));

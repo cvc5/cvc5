@@ -21,9 +21,13 @@ publicheaders = \
 	include/cvc4_config.h \
 	include/cvc4_expr.h
 
-install-data-local:
+install-data-local: $(publicheaders)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)/cvc4; \
 	@for f in $(publicheaders); do
 		echo $(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"
 		$(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"
 	done
+
+include/cvc4.h: smt/smt_engine.h
+	@srcdir@/headergen.pl $< $@
+include/cvc4_expr.h: expr/expr.h

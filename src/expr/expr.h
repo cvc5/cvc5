@@ -14,12 +14,23 @@
 #define __CVC4__EXPR_H
 
 #include <vector>
+#include <iostream>
 #include <stdint.h>
 
 #include "cvc4_config.h"
 #include "expr/kind.h"
 
 namespace CVC4 {
+  class Expr;
+}/* CVC4 namespace */
+
+namespace std {
+inline std::ostream& operator<<(std::ostream&, CVC4::Expr) CVC4_PUBLIC;
+}
+
+namespace CVC4 {
+
+class ExprManager;
 
 namespace expr {
   class ExprValue;
@@ -45,10 +56,8 @@ class CVC4_PUBLIC Expr {
    *  Increments the reference count. */
   explicit Expr(ExprValue*);
 
-  typedef Expr* iterator;
-  typedef Expr const* const_iterator;
-
   friend class ExprBuilder;
+  friend class ExprManager;
 
 public:
   CVC4_PUBLIC Expr(const Expr&);
@@ -81,18 +90,60 @@ public:
 
   inline Kind getKind() const;
 
+  inline size_t numChildren() const;
+
   static Expr null() { return s_null; }
 
+  typedef Expr* iterator;
+  typedef Expr const* const_iterator;
+
+  inline iterator begin();
+  inline iterator end();
+  inline iterator begin() const;
+  inline iterator end() const;
+
+  void toString(std::ostream&) const;
 };/* class Expr */
 
 }/* CVC4 namespace */
 
 #include "expr/expr_value.h"
 
+inline std::ostream& std::operator<<(std::ostream& out, CVC4::Expr e) {
+  e.toString(out);
+  return out;
+}
+
 namespace CVC4 {
 
 inline Kind Expr::getKind() const {
   return Kind(d_ev->d_kind);
+}
+
+inline void Expr::toString(std::ostream& out) const {
+  if(d_ev)
+    d_ev->toString(out);
+  else out << "null";
+}
+
+inline Expr::iterator Expr::begin() {
+  return d_ev->begin();
+}
+
+inline Expr::iterator Expr::end() {
+  return d_ev->end();
+}
+
+inline Expr::iterator Expr::begin() const {
+  return d_ev->begin();
+}
+
+inline Expr::iterator Expr::end() const {
+  return d_ev->end();
+}
+
+inline size_t Expr::numChildren() const {
+  return d_ev->d_nchildren;
 }
 
 }/* CVC4 namespace */

@@ -13,13 +13,60 @@
 #define __CVC4__EXPR_MANAGER_H
 
 #include <vector>
+#include <map>
+
 #include "expr/expr.h"
 #include "kind.h"
 
 namespace CVC4 {
 
-class ExprManager {
+namespace expr {
+  class ExprBuilder;
+}/* CVC4::expr namespace */
+
+class CVC4_PUBLIC ExprManager {
   static __thread ExprManager* s_current;
+
+  friend class CVC4::ExprBuilder;
+
+  typedef std::map<uint64_t, std::vector<Expr> > hash_t;
+  hash_t d_hash;
+
+  Expr lookup(uint64_t hash, const Expr& e) {
+    hash_t::iterator i = d_hash.find(hash);
+    if(i == d_hash.end()) {
+      // insert
+      std::vector<Expr> v;
+      v.push_back(e);
+      d_hash.insert(std::make_pair(hash, v));
+      return e;
+    } else {
+      for(std::vector<Expr>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+        if(e.getKind() != j->getKind())
+          continue;
+
+        if(e.numChildren() != j->numChildren())
+          continue;
+
+        Expr::iterator c1 = e.begin();
+        Expr::iterator c2 = j->begin();
+        while(c1 != e.end() && c2 != j->end()) {
+          if(c1->d_ev != c2->d_ev)
+            break;
+        }
+
+        if(c1 != e.end() || c2 != j->end())
+          continue;
+
+        return *j;
+      }
+      // didn't find it, insert
+      std::vector<Expr> v;
+      v.push_back(e);
+      d_hash.insert(std::make_pair(hash, v));
+      return e;
+    }
+  }
 
 public:
   static ExprManager* currentEM() { return s_current; }

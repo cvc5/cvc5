@@ -12,6 +12,8 @@
 #ifndef __CVC4__KIND_H
 #define __CVC4__KIND_H
 
+#include <iostream>
+
 namespace CVC4 {
 
 // TODO: create this file (?) from theory solver headers so that we
@@ -48,5 +50,39 @@ enum Kind {
 };/* enum Kind */
 
 }/* CVC4 namespace */
+
+inline std::ostream& operator<<(std::ostream&, const CVC4::Kind&) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, const CVC4::Kind& k) {
+  using namespace CVC4;
+
+  switch(k) {
+  case UNDEFINED_KIND: out << "UNDEFINED_KIND"; break;
+  case EQUAL:          out << "EQUAL";          break;
+  case ITE:            out << "ITE";            break;
+  case SKOLEM:         out << "SKOLEM";         break;
+  case VARIABLE:       out << "VARIABLE";       break;
+
+  /* propositional connectives */
+  case FALSE:          out << "FALSE";          break;
+  case TRUE:           out << "TRUE";           break;
+
+  case NOT:            out << "NOT";            break;
+
+  case AND:            out << "AND";            break;
+  case IFF:            out << "IFF";            break;
+  case IMPLIES:        out << "IMPLIES";        break;
+  case OR:             out << "OR";             break;
+  case XOR:            out << "XOR";            break;
+
+  /* from arith */
+  case PLUS:           out << "PLUS";           break;
+  case MINUS:          out << "MINUS";          break;
+  case MULT:           out << "MULT";           break;
+
+  default:             out << "UNKNOWNKIND!";   break;
+  }
+
+  return out;
+}
 
 #endif /* __CVC4__KIND_H */

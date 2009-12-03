@@ -22,16 +22,18 @@ Expr Expr::s_null(0);
 
 Expr::Expr(ExprValue* ev)
   : d_ev(ev) {
-  d_ev->inc();
+  if(d_ev != 0)
+    d_ev->inc();
 }
 
 Expr::Expr(const Expr& e) {
-  if((d_ev = e.d_ev))
+  if((d_ev = e.d_ev) && d_ev != 0)
     d_ev->inc();
 }
 
 Expr::~Expr() {
-  d_ev->dec();
+  if(d_ev)
+    d_ev->dec();
 }
 
 Expr& Expr::operator=(const Expr& e) {

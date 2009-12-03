@@ -2,12 +2,14 @@ INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 
-noinst_LTLIBRARIES = libparser.la
+nobase_lib_LTLIBRARIES = libcvc4parser.la
 
-libparser_la_SOURCES = \
+libcvc4parser_la_SOURCES = \
 	parser.cpp \
 	parser_state.cpp \
 	symbol_table.cpp \
+	pl_scanner.lpp \
+	pl.ypp \
 	smtlib_scanner.lpp \
 	smtlib.ypp
 

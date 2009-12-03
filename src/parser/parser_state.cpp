@@ -11,14 +11,10 @@
 
 using namespace std;
 
-namespace CVC4
-{
+namespace CVC4 {
+namespace parser {
 
-namespace parser
-{
-
-int ParserState::read(char* buffer, int size)
-{
+int ParserState::read(char* buffer, int size) {
   if (d_input_stream) {
     // Read the characters and count them in result
     d_input_stream->read(buffer, size);
@@ -26,41 +22,29 @@ int ParserState::read(char* buffer, int size)
   } else return 0;
 }
 
-ParserState::ParserState() :
-  d_uid(0), d_prompt_main("CVC>"), d_prompt_continue("- "), d_prompt("CVC"), d_input_line(0), d_done(false)
-{
-
-}
-
-int ParserState::parseError(const std::string& s)
-{
+int ParserState::parseError(const std::string& s) {
   throw new ParserException(s);
 }
 
-string ParserState::getNextUniqueID()
-{
+string ParserState::getNextUniqueID() {
   ostringstream ss;
   ss << d_uid++;
   return ss.str();
 }
 
-string ParserState::getCurrentPrompt() const
-{
+string ParserState::getCurrentPrompt() const {
   return d_prompt;
 }
 
-void ParserState::setPromptMain()
-{
+void ParserState::setPromptMain() {
   d_prompt = d_prompt_main;
 }
 
-void ParserState::setPromptNextLine()
-{
+void ParserState::setPromptNextLine() {
   d_prompt = d_prompt_continue;
 }
 
-void ParserState::increaseLineNumber()
-{
+void ParserState::increaseLineNumber() {
   ++d_input_line;
   if (d_interactive) {
     std::cout << getCurrentPrompt();
@@ -68,17 +52,13 @@ void ParserState::increaseLineNumber()
   }
 }
 
-int ParserState::getLineNumber() const
-{
+int ParserState::getLineNumber() const {
   return d_input_line;
 }
 
-std::string ParserState::getFileName() const
-{
+std::string ParserState::getFileName() const {
   return d_file_name;
 }
 
-} // End namespace parser
-
-} // End namespace CVC3
-
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */

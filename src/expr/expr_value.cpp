@@ -18,6 +18,8 @@
 
 namespace CVC4 {
 
+size_t ExprValue::next_id = 0;
+
 uint64_t ExprValue::hash() const {
   uint64_t hash = d_kind;
 

@@ -10,5 +10,5 @@ cvc4_SOURCES = \
 	util.cpp
 
 cvc4_LDADD = \
-	../parser/libparser.la \
+	../parser/libcvc4parser.la \
 	../libcvc4.la

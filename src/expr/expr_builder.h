@@ -13,6 +13,8 @@
 #define __CVC4__EXPR_BUILDER_H
 
 #include <vector>
+#include <cstdlib>
+
 #include "expr_manager.h"
 #include "kind.h"
 
@@ -47,6 +49,14 @@ class ExprBuilder {
 
   typedef ExprValue** ev_iterator;
   typedef ExprValue const** const_ev_iterator;
+
+  ev_iterator ev_begin() {
+    return d_children.u_arr;
+  }
+
+  ev_iterator ev_end() {
+    return d_children.u_arr + d_nchildren;
+  }
 
   ExprBuilder& reset(const ExprValue*);
 
@@ -188,8 +198,23 @@ inline ExprBuilder& ExprBuilder::append(const Iterator& begin, const Iterator& e
 
 // not const
 inline ExprBuilder::operator Expr() {
-  // FIXME
-  return Expr::s_null;
+  uint64_t hash = d_kind;
+
+  for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
+    hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->hash();
+
+  void *space = std::malloc(sizeof(ExprValue) + d_nchildren * sizeof(Expr));
+  ExprValue *ev = new (space) ExprValue;
+  size_t nc = 0;
+  for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
+    ev->d_children[nc++] = Expr(*i);
+  ev->d_nchildren = d_nchildren;
+  ev->d_kind = d_kind;
+  ev->d_id = ExprValue::next_id++;
+  ev->d_rc = 0;
+  Expr e(ev);
+
+  return d_em->lookup(hash, e);
 }
 
 inline AndExprBuilder   ExprBuilder::operator&&(Expr e) {
