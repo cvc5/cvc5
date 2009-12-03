@@ -1,0 +1,4 @@
+include current
+
+.PHONY: default
+default:; cd "$(CURRENT_BUILD)" && $(MAKE)

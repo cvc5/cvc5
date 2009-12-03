@@ -64,8 +64,9 @@ source files to match the template in the script, attempting to retain file-spec
 comments, but this isn't guaranteed.  You should run this in an svn working directory
 and run "svn diff" after to ensure everything was correctly rewritten.
 
-The directory to search for and change sources is:
+The directories in which to search for and change sources is:
   $pwd/src
+  $pwd/test
 
 Continue? y or n:
 EOF
@@ -74,6 +75,7 @@ EOF
   die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
 
   $searchdirs[0] = 'src';
+  $searchdirs[1] = 'test';
 } else {
   @searchdirs = @ARGV;
 }

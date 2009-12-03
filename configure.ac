@@ -1,29 +1,15 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.63])
+AC_PREREQ([2.59])
 AC_INIT([src/include/cvc4.h])
 AC_CONFIG_AUX_DIR([config])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([config])
-AM_INIT_AUTOMAKE(cvc4, prerelease)
-AC_CONFIG_HEADERS([config.h])
 
-# keep track of whether the user set these (check here, because
-# autoconf might set a default later)
-AC_MSG_CHECKING([for user CPPFLAGS])
-if test -z "${CPPFLAGS+set}"; then user_cppflags=no; else user_cppflags=yes; fi
-AC_MSG_RESULT([${CPPFLAGS-none}])
-AC_MSG_CHECKING([for user CXXFLAGS])
-if test -z "${CXXFLAGS+set}"; then user_cxxflags=no; else user_cxxflags=yes; fi
-AC_MSG_RESULT([${CXXFLAGS-none}])
-AC_MSG_CHECKING([for user LDFLAGS])
-if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
-AC_MSG_RESULT([${LDFLAGS-none}])
-
-LT_INIT
-
-AC_LIBTOOL_WIN32_DLL
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
 
 # Features requested by the user
 AC_MSG_CHECKING([for requested build profile])
@@ -36,6 +22,38 @@ if test "$user_cppflags" = no -a "$user_cxxflags" = no -a "$user_ldflags" = no -
 else
   non_standard_build_profile=yes
 fi
+build=
+if test -n "${enable_optimized+set}"; then build=$build-opt; fi
+if test -n "${enable_debug_symbols+set}"; then build=$build-dsy; fi
+if test -n "${enable_assertions+set}"; then build=$build-ass; fi
+if test -n "${enable_tracing+set}"; then build=$build-trc; fi
+if test -n "${enable_muzzle+set}"; then build=$build-mzl; fi
+if test -n "${enable_coverage+set}"; then build=$build-cvg; fi
+if test -n "${enable_profiling+set}"; then build=$build-prf; fi
+AC_MSG_RESULT([$with_build])
+
+AC_MSG_CHECKING([for appropriate build string])
+build_type=$with_build$build_type_suffix
+AC_MSG_RESULT($build_type)
+
+# require building in target and build-specific build directory
+if test -e src/include/cvc4.h; then
+  if test "$non_standard_build_profile" = yes; then
+    if test "$with_build" = default; then
+      build_type=custom$build_type_suffix
+    fi
+  fi
+  rm -f config.log config.status confdefs.h
+  mkdir -p "builds/$target/$build_type"
+  test -e builds/Makefile || cp  Makefile.builds builds/Makefile
+  echo "CURRENT_BUILD = $target/$build_type" > builds/current
+  echo
+  echo cd "builds/$target/$build_type"
+  cd "builds/$target/$build_type"
+  echo ../../../configure "$@"
+  exec ../../../configure "$@"
+fi
+
 case "$with_build" in
   production)
     CVC4CPPFLAGS=
@@ -73,7 +91,6 @@ case "$with_build" in
     AC_MSG_FAILURE([unknown build profile: $with_build])
     ;;
 esac
-AC_MSG_RESULT([$with_build])
 
 AC_MSG_CHECKING([whether to optimize libcvc4])
 AC_ARG_ENABLE([optimized],       [AS_HELP_STRING([--enable-optimized],       [optimize the build])])
@@ -147,12 +164,33 @@ if test "$enable_profiling" = yes; then
   CVC4LDFLAGS="$CVC4LDFLAGS -pg"
 fi
 
+AM_INIT_AUTOMAKE(cvc4, prerelease)
+AC_CONFIG_HEADERS([config.h])
+
+# keep track of whether the user set these (check here, because
+# autoconf might set a default later)
+AC_MSG_CHECKING([for user CPPFLAGS])
+if test -z "${CPPFLAGS+set}"; then user_cppflags=no; else user_cppflags=yes; fi
+AC_MSG_RESULT([${CPPFLAGS-none}])
+AC_MSG_CHECKING([for user CXXFLAGS])
+if test -z "${CXXFLAGS+set}"; then user_cxxflags=no; else user_cxxflags=yes; fi
+AC_MSG_RESULT([${CXXFLAGS-none}])
+AC_MSG_CHECKING([for user LDFLAGS])
+if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
+AC_MSG_RESULT([${LDFLAGS-none}])
+
+LT_INIT
+
+AC_LIBTOOL_WIN32_DLL
+
+
 
 
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
+
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AM_PROG_LEX
