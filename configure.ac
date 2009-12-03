@@ -7,6 +7,9 @@ AC_CONFIG_AUX_DIR([config])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([config])
 
+# really irritating: AC_CANONICAL_* bash $@
+config_cmdline="$@"
+
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
@@ -17,32 +20,78 @@ AC_ARG_WITH([build],             [AS_HELP_STRING([--with-build=profile],     [fo
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
 fi
-if test "$user_cppflags" = no -a "$user_cxxflags" = no -a "$user_ldflags" = no -a -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}"; then
+if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}"; then
   non_standard_build_profile=no
 else
   non_standard_build_profile=yes
 fi
-build=
-if test -n "${enable_optimized+set}"; then build=$build-opt; fi
-if test -n "${enable_debug_symbols+set}"; then build=$build-dsy; fi
-if test -n "${enable_assertions+set}"; then build=$build-ass; fi
-if test -n "${enable_tracing+set}"; then build=$build-trc; fi
-if test -n "${enable_muzzle+set}"; then build=$build-mzl; fi
-if test -n "${enable_coverage+set}"; then build=$build-cvg; fi
-if test -n "${enable_profiling+set}"; then build=$build-prf; fi
+build_type_suffix=
+if test -n "${enable_optimized+set}"; then
+  if test "$enable_optimized" = no; then
+    build_type_suffix=$build_type_suffix-noopt
+  else
+    build_type_suffix=$build_type_suffix-opt
+  fi
+fi
+if test -n "${enable_debug_symbols+set}"; then
+  if test "$enable_debug_symbols" = no; then
+    build_type_suffix=$build_type_suffix-nodsy
+  else
+    build_type_suffix=$build_type_suffix-dsy
+  fi
+fi
+if test -n "${enable_assertions+set}"; then
+  if test "$enable_assertions" = no; then
+    build_type_suffix=$build_type_suffix-noass
+  else
+    build_type_suffix=$build_type_suffix-ass
+  fi
+fi
+if test -n "${enable_tracing+set}"; then
+  if test "$enable_tracing" = no; then
+    build_type_suffix=$build_type_suffix-notrc
+  else
+    build_type_suffix=$build_type_suffix-trc
+  fi
+fi
+if test -n "${enable_muzzle+set}"; then
+  if test "$enable_muzzle" = no; then
+    build_type_suffix=$build_type_suffix-nomzl
+  else
+    build_type_suffix=$build_type_suffix-mzl
+  fi
+fi
+if test -n "${enable_coverage+set}"; then
+  if test "$enable_coverage" = no; then
+    build_type_suffix=$build_type_suffix-nocvg
+  else
+    build_type_suffix=$build_type_suffix-cvg
+  fi
+fi
+if test -n "${enable_profiling+set}"; then
+  if test "$enable_profiling" = no; then
+    build_type_suffix=$build_type_suffix-noprf
+  else
+    build_type_suffix=$build_type_suffix-prf
+  fi
+fi
 AC_MSG_RESULT([$with_build])
 
 AC_MSG_CHECKING([for appropriate build string])
 build_type=$with_build$build_type_suffix
+if test "$non_standard_build_profile" = yes; then
+  if test "$with_build" = default; then
+    build_type=custom$build_type_suffix
+  fi
+fi
 AC_MSG_RESULT($build_type)
 
 # require building in target and build-specific build directory
-if test -e src/include/cvc4.h; then
-  if test "$non_standard_build_profile" = yes; then
-    if test "$with_build" = default; then
-      build_type=custom$build_type_suffix
-    fi
-  fi
+AC_MSG_CHECKING([what dir to configure])
+if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
+  AC_MSG_RESULT([this one (in builds/)])
+elif test -e src/include/cvc4.h; then
+  AC_MSG_RESULT([builds/$target/$build_type])
   rm -f config.log config.status confdefs.h
   mkdir -p "builds/$target/$build_type"
   test -e builds/Makefile || cp  Makefile.builds builds/Makefile
@@ -50,8 +99,11 @@ if test -e src/include/cvc4.h; then
   echo
   echo cd "builds/$target/$build_type"
   cd "builds/$target/$build_type"
-  echo ../../../configure "$@"
-  exec ../../../configure "$@"
+  CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
+  echo ../../../configure $config_cmdline
+  exec ../../../configure $config_cmdline
+else
+  AC_MSG_RESULT([this one (user-specified)])
 fi
 
 case "$with_build" in
@@ -286,11 +338,24 @@ AC_OUTPUT
 
 # Final information to the user
 
+non_standard=
+if test "$non_standard_build_profile" = yes; then
+  if test "$with_build" = default; then
+    with_build=custom
+  else
+    AC_MSG_WARN([])
+    AC_MSG_WARN([This is a non-standard $with_build build profile.])
+    AC_MSG_WARN([])
+    non_standard=-custom
+  fi
+fi
+
 cat <<EOF
 
 CVC4 $VERSION
 
 Build profile: $with_build$non_standard
+Build ID     : $build_type
 Optimized    : $enable_optimized
 Debug symbols: $enable_debug_symbols
 Assertions   : $enable_assertions
@@ -332,14 +397,10 @@ if test "$user_ldflags" = yes; then
   AC_MSG_WARN([])
 fi
 
-non_standard=
 if test "$non_standard_build_profile" = yes; then
-  if test "$with_build" = default; then
-    with_build=custom
-  else
+  if test "$with_build" = default; then :; else
     AC_MSG_WARN([])
     AC_MSG_WARN([This is a non-standard $with_build build profile.])
     AC_MSG_WARN([])
-    non_standard=-custom
   fi
 fi
