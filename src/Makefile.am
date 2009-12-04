@@ -8,13 +8,13 @@ lib_LTLIBRARIES = libcvc4.la
 
 libcvc4_la_SOURCES =
 libcvc4_la_LIBADD = \
-	util/libutil.la \
-	expr/libexpr.la \
-	context/libcontext.la \
-	prop/libprop.la \
-	prop/minisat/libminisat.la \
-	smt/libsmt.la \
-	theory/libtheory.la
+	@builddir@/util/libutil.la \
+	@builddir@/expr/libexpr.la \
+	@builddir@/context/libcontext.la \
+	@builddir@/prop/libprop.la \
+	@builddir@/prop/minisat/libminisat.la \
+	@builddir@/smt/libsmt.la \
+	@builddir@/theory/libtheory.la
 
 publicheaders = \
 	include/cvc4.h \

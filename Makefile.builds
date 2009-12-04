@@ -1,4 +1,23 @@
 include current
 
 .PHONY: default
-default:; cd "$(CURRENT_BUILD)" && $(MAKE)
+default: all
+all:
+	@if (cd $(CURRENT_BUILD) && $(MAKE) $@); then \
+		mkdir -pv bin lib; \
+		echo $(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la `pwd`/lib; \
+		$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la `pwd`/lib; \
+		echo $(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la `pwd`/lib; \
+		$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la `pwd`/lib; \
+		echo "libdir=`pwd`/lib; progdir=`pwd`/bin; file=cvc4"; \
+		libdir=`pwd`/lib; progdir=`pwd`/bin; file=cvc4; \
+		echo `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$libdir -Wl,-rpath:'`; \
+		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$libdir -Wl,-rpath:'`; \
+		echo "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
+		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
+	else \
+		echo Build failure.; \
+	fi
+
+%:
+	(cd $(CURRENT_BUILD) && $(MAKE) $@)

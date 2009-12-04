@@ -1,7 +1,6 @@
 #!/bin/sh -ex
 
 cd "$(dirname "$0")"
-mkdir -p config
 libtoolize --copy
 autoheader -I config
 touch NEWS README AUTHORS ChangeLog

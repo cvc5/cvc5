@@ -94,7 +94,7 @@ elif test -e src/include/cvc4.h; then
   AC_MSG_RESULT([builds/$target/$build_type])
   rm -f config.log config.status confdefs.h
   mkdir -p "builds/$target/$build_type"
-  test -e builds/Makefile || cp  Makefile.builds builds/Makefile
+  test -e builds/Makefile || ln -sf ../Makefile.builds builds/Makefile
   echo "CURRENT_BUILD = $target/$build_type" > builds/current
   echo
   echo cd "builds/$target/$build_type"
@@ -242,14 +242,23 @@ AC_LIBTOOL_WIN32_DLL
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
-
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AM_PROG_LEX
 AC_PROG_YACC
 
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
-AC_PROG_ANTLR
+AC_ARG_ENABLE(antlr, AS_HELP_STRING([--enable-antlr],[use Dejan's ANTLR parsers]))
+AC_MSG_CHECKING([whether you want to use the ANTLR parsers])
+if test -z "${enable_antlr+set}"; then
+  enable_antlr=no
+fi
+AC_MSG_RESULT([$enable_antlr])
+AM_CONDITIONAL(USE_ANTLR, test "$enable_antlr" = yes)
+if test "$enable_antlr" = yes; then
+  AC_PROG_ANTLR
+  AC_DEFINE(ANTLR_PARSERS, [], [whether we're using ANTLR parsers])
+fi
 
 AC_CHECK_PROG(DOXYGEN, doxygen, doxygen, [])
 if test -z "$DOXYGEN"; then
@@ -291,7 +300,7 @@ fi
 
 # Checks for libraries.
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
-# Chcek for antlr C++ runtime (defined in config/antlr.m4)
+# Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
 
 
@@ -374,6 +383,8 @@ gprof support: $enable_profiling
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
+
+Using ANTLR parsers: $enable_antlr
 
 Now just type make, followed by make check or make install, as you like.
 

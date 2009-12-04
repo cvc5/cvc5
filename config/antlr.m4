@@ -75,7 +75,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
       [
         AC_MSG_RESULT(found in $antlr_prefix)
         ANTLR_INCLUDES="-I$antlr_prefix/include"
-        ANTLR_LDFLAGS="-L$antlr_prefix/lib -lantlr"
+        ANTLR_LDFLAGS="-L$antlr_prefix/lib -lantlr-pic"
         break
       ], 
       [
