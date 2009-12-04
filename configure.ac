@@ -248,6 +248,9 @@ AC_PROG_LIBTOOL
 AM_PROG_LEX
 AC_PROG_YACC
 
+# Check for ANTLR runantlr script (defined in config/antlr.m4)
+AC_PROG_ANTLR
+
 AC_CHECK_PROG(DOXYGEN, doxygen, doxygen, [])
 if test -z "$DOXYGEN"; then
   AC_MSG_WARN([documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary.])
@@ -288,6 +291,9 @@ fi
 
 # Checks for libraries.
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
+# Chcek for antlr C++ runtime (defined in config/antlr.m4)
+AC_LIB_ANTLR
+
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h unistd.h])
