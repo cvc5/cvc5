@@ -1,8 +1,12 @@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@
+INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@ $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 
+SUBDIRS = smt .
+
 nobase_lib_LTLIBRARIES = libcvc4parser.la
+
+libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
 
 libcvc4parser_la_SOURCES = \
 	parser.cpp \
@@ -11,7 +15,9 @@ libcvc4parser_la_SOURCES = \
 	pl_scanner.lpp \
 	pl.ypp \
 	smtlib_scanner.lpp \
-	smtlib.ypp
+	smtlib.ypp \
+	antlr_parser.cpp \
+	antlr_parser.h
 
 BUILT_SOURCES = \
 	pl_scanner.cpp \

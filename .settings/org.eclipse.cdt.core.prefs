@@ -1,4 +1,4 @@
-#Thu Dec 03 15:21:51 EST 2009
+#Thu Dec 03 16:22:24 EST 2009
 eclipse.preferences.version=1
 org.eclipse.cdt.core.formatter.alignment_for_arguments_in_method_invocation=16
 org.eclipse.cdt.core.formatter.alignment_for_base_clause_in_type_declaration=80
@@ -66,15 +66,15 @@ org.eclipse.cdt.core.formatter.insert_space_after_opening_angle_bracket_in_templ
 org.eclipse.cdt.core.formatter.insert_space_after_opening_brace_in_array_initializer=insert
 org.eclipse.cdt.core.formatter.insert_space_after_opening_bracket=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_cast=do not insert
-org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_catch=insert
+org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_catch=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_exception_specification=do not insert
-org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_for=insert
-org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_if=insert
+org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_for=do not insert
+org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_if=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_method_declaration=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_method_invocation=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_parenthesized_expression=do not insert
-org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_switch=insert
-org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_while=insert
+org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_switch=do not insert
+org.eclipse.cdt.core.formatter.insert_space_after_opening_paren_in_while=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_postfix_operator=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_prefix_operator=do not insert
 org.eclipse.cdt.core.formatter.insert_space_after_question_in_conditional=insert
@@ -87,15 +87,15 @@ org.eclipse.cdt.core.formatter.insert_space_before_closing_angle_bracket_in_temp
 org.eclipse.cdt.core.formatter.insert_space_before_closing_brace_in_array_initializer=insert
 org.eclipse.cdt.core.formatter.insert_space_before_closing_bracket=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_cast=do not insert
-org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_catch=insert
+org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_catch=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_exception_specification=do not insert
-org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_for=insert
-org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_if=insert
+org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_for=do not insert
+org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_if=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_method_declaration=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_method_invocation=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_parenthesized_expression=do not insert
-org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_switch=insert
-org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_while=insert
+org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_switch=do not insert
+org.eclipse.cdt.core.formatter.insert_space_before_closing_paren_in_while=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_colon_in_base_clause=insert
 org.eclipse.cdt.core.formatter.insert_space_before_colon_in_case=do not insert
 org.eclipse.cdt.core.formatter.insert_space_before_colon_in_conditional=insert
