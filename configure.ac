@@ -334,6 +334,7 @@ AC_CONFIG_FILES([
   src/util/Makefile
   src/context/Makefile
   src/parser/Makefile
+  src/parser/smt/Makefile
   src/theory/Makefile
   test/Makefile
   test/regress/Makefile
