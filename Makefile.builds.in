@@ -1,0 +1,39 @@
+# -*- makefile -*-
+
+include current
+
+@SET_MAKE@
+
+install_sh = @install_sh@
+mkinstalldirs = $(install_sh) -d
+exec_prefix = @exec_prefix@
+prefix = @prefix@
+bindir = @bindir@
+libdir = @libdir@
+abs_builddir = @abs_builddir@
+
+.PHONY: _default_build_
+_default_build_: all
+all:
+	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	# populate builds/$(CURRENT_BUILD)/bin and builds/$(CURRENT_BUILD)/lib
+	$(mkinstalldirs) "$(CURRENT_BUILD)$(bindir)" "$(CURRENT_BUILD)$(libdir)"
+	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la "$(abs_builddir)$(libdir)"
+	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la "$(abs_builddir)$(libdir)"
+	thelibdir="$(abs_builddir)$(libdir)"; progdir="$(abs_builddir)$(bindir)"; file=cvc4; \
+		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
+		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"
+	ln -sfv "$(abs_builddir)$(libdir)" $(CURRENT_BUILD)/lib
+	ln -sfv "$(abs_builddir)$(bindir)" $(CURRENT_BUILD)/bin
+	# populate builds/bin and builds/lib
+	mkdir -pv ".$(bindir)" ".$(libdir)"
+	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la "`pwd`$(libdir)"
+	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
+	thelibdir="`pwd`$(libdir)"; progdir="`pwd`$(bindir)"; file=cvc4; \
+		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
+		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"
+	ln -sfv ".$(libdir)" lib
+	ln -sfv ".$(bindir)" bin
+
+%:
+	(cd $(CURRENT_BUILD) && $(MAKE) $@)

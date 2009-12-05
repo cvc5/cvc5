@@ -7,6 +7,11 @@ AC_CONFIG_AUX_DIR([config])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([config])
 
+CVC4_RELEASE=prerelease
+CVC4_LIBRARY_RELEASE_CODE=0:0:0
+CVC4_LIBRARY_VERSION=0:0:0
+CVC4_PARSER_LIBRARY_VERSION=0:0:0
+
 # really irritating: AC_CANONICAL_* bash $@
 config_cmdline="$@"
 
@@ -92,11 +97,15 @@ if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
   AC_MSG_RESULT([this one (in builds/)])
 elif test -e src/include/cvc4.h; then
   AC_MSG_RESULT([builds/$target/$build_type])
-  rm -f config.log config.status confdefs.h
-  mkdir -p "builds/$target/$build_type"
-  test -e builds/Makefile || ln -sf ../Makefile.builds builds/Makefile
-  echo "CURRENT_BUILD = $target/$build_type" > builds/current
   echo
+  echo Setting up "builds/$target/$build_type"...
+  rm -fv config.log config.status confdefs.h
+  mkdir -pv "builds/$target/$build_type"
+  test -e builds/Makefile || ln -sfv "$target/$build_type/Makefile.builds" builds/Makefile
+  echo Creating builds/current...
+  (echo "# This is the most-recently-configured CVC4 build"; \
+   echo "# 'make' in the top-level source directory applies to this build"; \
+   echo "CURRENT_BUILD = $target/$build_type") > builds/current
   echo cd "builds/$target/$build_type"
   cd "builds/$target/$build_type"
   CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
@@ -216,7 +225,7 @@ if test "$enable_profiling" = yes; then
   CVC4LDFLAGS="$CVC4LDFLAGS -pg"
 fi
 
-AM_INIT_AUTOMAKE(cvc4, prerelease)
+AM_INIT_AUTOMAKE(cvc4, $CVC4_RELEASE)
 AC_CONFIG_HEADERS([config.h])
 
 # keep track of whether the user set these (check here, because
@@ -301,8 +310,9 @@ fi
 # Checks for libraries.
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
 # Check for antlr C++ runtime (defined in config/antlr.m4)
-AC_LIB_ANTLR
-
+if test "$enable_antlr" = yes; then
+  AC_LIB_ANTLR
+fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h unistd.h])
@@ -320,6 +330,9 @@ AC_TYPE_SIZE_T
 
 # Prepare configure output
 
+AC_SUBST(CVC4_LIBRARY_RELEASE_CODE)
+AC_SUBST(CVC4_LIBRARY_VERSION)
+AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)
 if test "$user_cppflags" = no; then
   CPPFLAGS="$CVC4CPPFLAGS"
 fi
@@ -331,6 +344,7 @@ if test "$user_ldflags" = no; then
 fi
 
 AC_CONFIG_FILES([
+  Makefile.builds
   Makefile
   contrib/Makefile
   doc/Makefile
@@ -384,7 +398,10 @@ CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
 
-Using ANTLR parsers: $enable_antlr
+Using ANTLR parsers  : $enable_antlr
+Library releases     : $CVC4_LIBRARY_RELEASE_CODE
+libcvc4 version      : $CVC4_LIBRARY_VERSION
+libcvc4parser version: $CVC4_PARSER_LIBRARY_VERSION
 
 Now just type make, followed by make check or make install, as you like.
 

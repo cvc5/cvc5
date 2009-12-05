@@ -1,14 +1,37 @@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
+# LIBCVC4PARSER_VERSION (-version-info) is in the form current:revision:age
+#
+# current -
+#   increment if interfaces have been added, removed or changed
+# revision -
+#   increment if source code has changed
+#   set to zero if current is incremented
+# age -
+#   increment if interfaces have been added
+#   set to zero if interfaces have been removed
+#   or changed
+#
+# LIBCVC4PARSER_RELEASE (-release) should match the CVC4 release version
+#
+LIBCVC4PARSER_RELEASE = @CVC4_LIBRARY_RELEASE_CODE@
+LIBCVC4PARSER_VERSION = @CVC4_PARSER_LIBRARY_VERSION@
+
+INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS = -D__BUILDING_CVC4LIB
+AM_CPPFLAGS = -D__BUILDING_CVC4PARSERLIB
 
 if USE_ANTLR
   SUBDIRS = smt
+  INCLUDES += $(ANTLR_INCLUDES)
 endif
 
-nobase_lib_LTLIBRARIES = libcvc4parser.la
+lib_LTLIBRARIES = libcvc4parser.la
 
-libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
+libcvc4parser_la_LDFLAGS = -version-info $(LIBCVC4PARSER_VERSION) -release $(LIBCVC4PARSER_RELEASE)
+
+if USE_ANTLR
+  libcvc4parser_la_LDFLAGS += $(ANTLR_LDFLAGS)
+endif
+
 libcvc4parser_la_LIBADD = \
 	../libcvc4.la
 
@@ -22,7 +45,7 @@ libcvc4parser_la_SOURCES = \
 	smtlib.ypp
 
 if USE_ANTLR
-libcvc4parser_la_SOURCES += \
+  libcvc4parser_la_SOURCES += \
 	antlr_parser.cpp \
 	antlr_parser.h
 endif USE_ANTLR

@@ -1,5 +1,5 @@
-.PHONY: default
-default: all
+.PHONY: _default_build_
+_default_build_: all
 %:
 	@if test -e builds; then \
 		echo cd builds; \

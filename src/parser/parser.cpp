@@ -12,6 +12,7 @@
 
 #include <iostream>
 
+#include "cvc4_config.h"
 #include "parser/parser.h"
 #include "util/command.h"
 #include "util/assert.h"
