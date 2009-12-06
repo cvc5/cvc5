@@ -34,13 +34,17 @@ namespace expr {
  * This is an ExprValue.
  */
 class ExprValue {
+
+  /** A convenient null-valued expression value */
+  static ExprValue s_null;
+
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
   static const unsigned MAX_RC = 255;
 
   // this header fits into one 64-bit word
 
-  /** The ID */
+  /** The ID (0 is reserved for the null value) */
   unsigned d_id        : 32;
 
   /** The expression's reference count.  @see cvc4::Expr. */
@@ -64,6 +68,9 @@ class ExprValue {
   ExprValue* dec();
 
   static size_t next_id;
+
+  /** Private default constructor for the null value. */
+  ExprValue();
 
 public:
   /** Hash this expression.

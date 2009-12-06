@@ -25,11 +25,9 @@
 #include "util/exception.h"
 #include "usage.h"
 #include "about.h"
-#include "parser/language.h"
 
 using namespace std;
 using namespace CVC4;
-using namespace CVC4::parser;
 
 namespace CVC4 {
 namespace main {
@@ -58,7 +56,7 @@ static struct option cmdlineOptions[] = {
   { "stats"  , no_argument      , NULL, STATS   }
 };
 
-int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(Exception*) {
+int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionException) {
   const char *progName = argv[0];
   int c;
 
@@ -89,19 +87,19 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(Exception*) {
       break;
 
     case 'L':
-      if(!strcmp(argv[optind], "cvc4") || !strcmp(argv[optind], "pl")) {
-        opts->lang = PL;
+      if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
+        opts->lang = Options::LANG_CVC4;
         break;
-      } else if(!strcmp(argv[optind], "smtlib") || !strcmp(argv[optind], "smt")) {
-        opts->lang = SMTLIB;
+      } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
+        opts->lang = Options::LANG_SMTLIB;
         break;
-      } else if(!strcmp(argv[optind], "auto")) {
-        opts->lang = AUTO;
+      } else if(!strcmp(optarg, "auto")) {
+        opts->lang = Options::LANG_AUTO;
         break;
       }
 
-      if(strcmp(argv[optind], "help"))
-        throw new OptionException(string("unknown language for --lang: `") + argv[optind] + "'.  Try --lang help.");
+      if(strcmp(optarg, "help"))
+        throw OptionException(string("unknown language for --lang: `") + argv[optind] + "'.  Try --lang help.");
 
       fputs(lang_help, stdout);
       exit(1);
@@ -114,17 +112,17 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(Exception*) {
       // silences CVC4 (except "sat" or "unsat" or "unknown", forces smtlib input)
       opts->smtcomp_mode = true;
       opts->verbosity = -1;
-      opts->lang = SMTLIB;
+      opts->lang = Options::LANG_SMTLIB;
       break;
 
     case '?':
-      throw new OptionException(string("can't understand option: `") + argv[optind] + "'");
+      throw OptionException(string("can't understand option: `") + argv[optind] + "'");
 
     case ':':
-      throw new OptionException(string("option `") + argv[optind] + "' missing its required argument");
+      throw OptionException(string("option `") + argv[optind] + "' missing its required argument");
 
     default:
-      throw new OptionException(string("can't understand option: `") + argv[optind] + "'");
+      throw OptionException(string("can't understand option: `") + argv[optind] + "'");
     }
 
   }

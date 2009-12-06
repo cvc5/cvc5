@@ -23,6 +23,8 @@ namespace CVC4 {
 enum Kind {
   /* undefined */
   UNDEFINED_KIND = -1,
+  /** Null Kind */
+  NULL_EXPR,
 
   /* built-ins */
   EQUAL,
@@ -57,6 +59,7 @@ inline std::ostream& operator<<(std::ostream& out, const CVC4::Kind& k) {
 
   switch(k) {
   case UNDEFINED_KIND: out << "UNDEFINED_KIND"; break;
+  case NULL_EXPR:      out << "NULL";           break;
   case EQUAL:          out << "EQUAL";          break;
   case ITE:            out << "ITE";            break;
   case SKOLEM:         out << "SKOLEM";         break;

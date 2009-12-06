@@ -1,15 +1,15 @@
 options {
   language = "Cpp";            // C++ output for antlr
-  namespace = "CVC4::parser";  // Wrap everything in the smtparser namespace
   namespaceStd  = "std";       // Cosmetic option to get rid of long defines in generated code
   namespaceAntlr = "antlr";    // Cosmetic option to get rid of long defines in generated code
+  namespace = "CVC4::parser";  // Wrap everything in the smtparser namespace
 }
    
 /**
- * SmtLexer class is a stream tokenizer (lexer) for the SMT-LIB benchmark 
+ * AntlrSmtLexer class is a stream tokenizer (lexer) for the SMT-LIB benchmark 
  * language. 
  */
-class SmtLexer extends Lexer;
+class AntlrSmtLexer extends Lexer;
 
 options {
   exportVocab = SmtVocabulary;  // Name of the shared token vocabulary
@@ -144,7 +144,7 @@ NUMERAL options { paraphrase = "a numeral"; }
   ;
       
 /**
- * Matches an double quoted string literal. No quote-escaping is supported inside.
+ * Matches a double quoted string literal. No quote-escaping is supported inside.
  */
 STRING_LITERAL options { paraphrase = "a string literal"; } 
   :  '\"' (~('\"'))* '\"'

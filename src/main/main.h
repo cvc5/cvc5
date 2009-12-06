@@ -28,7 +28,7 @@ public:
   OptionException(const std::string& s) throw() : CVC4::Exception("Error in option parsing: " + s) {}
 };/* class OptionException */
 
-int parseOptions(int argc, char** argv, CVC4::Options*) throw(CVC4::Exception*);
+int parseOptions(int argc, char** argv, CVC4::Options*) throw(OptionException);
 void cvc4_init() throw();
 
 }/* CVC4::main namespace */

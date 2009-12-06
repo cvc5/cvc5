@@ -7,71 +7,99 @@
 
 #include "util/command.h"
 #include "smt/smt_engine.h"
+#include "expr/expr.h"
 #include "util/result.h"
+
+namespace std {
+ostream& operator<<(ostream& out, const CVC4::Command& c) {
+  c.toString(out);
+  return out;
+}
+}
 
 namespace CVC4 {
 
 EmptyCommand::EmptyCommand() {
 }
 
-Result EmptyCommand::invoke(SmtEngine* smt_engine) {
-  return Result::VALIDITY_UNKNOWN;
+void EmptyCommand::invoke(SmtEngine* smt_engine) {
 }
 
 AssertCommand::AssertCommand(const Expr& e) :
   d_expr(e) {
 }
 
-Result AssertCommand::invoke(SmtEngine* smt_engine) {
-  return smt_engine->assert(d_expr);
+void AssertCommand::invoke(SmtEngine* smt_engine) {
+  smt_engine->assert(d_expr);
 }
 
-CheckSatCommand::CheckSatCommand() :
-  d_expr(Expr::null()) {
+CheckSatCommand::CheckSatCommand() {
 }
 
 CheckSatCommand::CheckSatCommand(const Expr& e) :
   d_expr(e) {
 }
 
-Result CheckSatCommand::invoke(SmtEngine* smt_engine) {
-  return smt_engine->checkSat(d_expr);
+void CheckSatCommand::invoke(SmtEngine* smt_engine) {
+  smt_engine->checkSat(d_expr);
 }
 
 QueryCommand::QueryCommand(const Expr& e) :
   d_expr(e) {
 }
 
-Result QueryCommand::invoke(CVC4::SmtEngine* smt_engine) {
-  return smt_engine->query(d_expr);
+void QueryCommand::invoke(CVC4::SmtEngine* smt_engine) {
+  smt_engine->query(d_expr);
 }
 
 CommandSequence::CommandSequence() :
   d_last_index(0) {
 }
 
-CommandSequence::CommandSequence(Command* cmd) :
-  d_last_index(0) {
-  addCommand(cmd);
-}
-
-
 CommandSequence::~CommandSequence() {
   for(unsigned i = d_last_index; i < d_command_sequence.size(); ++i)
     delete d_command_sequence[i];
 }
 
-Result CommandSequence::invoke(SmtEngine* smt_engine) {
-  Result r = Result::VALIDITY_UNKNOWN;
+void CommandSequence::invoke(SmtEngine* smt_engine) {
   for(; d_last_index < d_command_sequence.size(); ++d_last_index) {
-    r = d_command_sequence[d_last_index]->invoke(smt_engine);
+    d_command_sequence[d_last_index]->invoke(smt_engine);
     delete d_command_sequence[d_last_index];
   }
-  return r;
 }
 
 void CommandSequence::addCommand(Command* cmd) {
   d_command_sequence.push_back(cmd);
+}
+
+// Printout methods
+
+using namespace std;
+
+void EmptyCommand::toString(ostream& out) const {
+  out << "EmptyCommand";
+}
+
+void AssertCommand::toString(ostream& out) const {
+  out << "Assert(" << d_expr << ")";
+}
+
+void CheckSatCommand::toString(ostream& out) const {
+  if(d_expr.isNull())
+    out << "CheckSat()";
+  else
+    out << "CheckSat(" << d_expr << ")";
+}
+
+void QueryCommand::toString(ostream& out) const {
+  out << "Query(" << d_expr << ")";
+}
+
+void CommandSequence::toString(ostream& out) const {
+  out << "CommandSequence[" << endl;
+  for(unsigned i = d_last_index; i < d_command_sequence.size(); ++i)
+    out << *d_command_sequence[i] << endl;
+  out << "]";
 }
 
 }/* CVC4 namespace */

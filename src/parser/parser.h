@@ -15,9 +15,9 @@
 
 #include <string>
 #include <iostream>
-
-#include "parser/language.h"
-#include "parser/parser_state.h"
+#include <fstream>
+#include "cvc4_config.h"
+#include "parser_exception.h"
 
 namespace CVC4 {
 
@@ -25,74 +25,113 @@ namespace CVC4 {
 class Expr;
 class Command;
 class ExprManager;
-class SmtEngine;
-class Options;
 
 namespace parser {
 
-/**
- * The global pointer to ParserTemp.  Each instance of class Parser sets this pointer
- * before any calls to the lexer.  We do it this way because flex and bison use global
- * vars, and we want each Parser object to appear independent.
- */
-extern ParserState CVC4_PUBLIC *_global_parser_state;
+class AntlrSmtLexer;
+class AntlrSmtParser;
 
 /**
  * The parser.
  */
 class CVC4_PUBLIC Parser {
- private:
 
-  /** Internal parser state we are keeping */
-  //ParserState* d_data;
-
-  /** Initialize the parser */
-  void initParser();
-
-  /** Remove the parser components */
-  void deleteParser();
-
-  Language d_lang;
-  std::istream &d_in;
-  Options *d_opts;
-
- public:
+public:
 
   /**
-   * Constructor for parsing out of a file.
-   * @param em the expression manager to use
-   * @param lang the language syntax to use
-   * @param file_name the file to parse
+   * Construct the parser that uses the given expression manager.
+   * @param em the expression manager.
    */
-  Parser(SmtEngine* smt, ExprManager* em, Language lang, std::istream& in, Options* opts) :
-    d_lang(lang), d_in(in), d_opts(opts) {
-    _global_parser_state = new ParserState(smt, em);
-    _global_parser_state->setInputStream(in);
-  }
+  Parser(ExprManager* em);
 
   /**
    * Destructor.
    */
-  ~Parser();
+  virtual ~Parser() {
+  }
+  ;
 
-  /** Parse a command */
-  Command* parseNextCommand(bool verbose = false);
+  /**
+   * Parse the next command of the input
+   */
+  virtual Command* parseNextCommand() throw (ParserException) = 0;
 
-  /** Parse an expression of the stream */
-  Expr parseNextExpression();
+  /**
+   * Parse the next expression of the stream
+   */
+  virtual Expr parseNextExpression() throw (ParserException) = 0;
 
-  // Check if we are done (end of input has been reached)
+  /**
+   * Check if we are done -- either the end of input has been reached.
+   */
+  virtual bool done() const = 0;
+
+protected:
+
+  /** Expression manager the parser will be using */
+  ExprManager* d_expr_manager;
+
+}; // end of class Parser
+
+class CVC4_PUBLIC SmtParser : public Parser {
+
+public:
+
+  /**
+   * Construct the parser that uses the given expression manager and parses
+   * from the given input stream.
+   * @param em the expression manager to use
+   * @param input the input stream to parse
+   */
+  SmtParser(ExprManager* em, std::istream& input);
+
+  /**
+   * Construct the parser that uses the given expression manager and parses
+   * from the file.
+   * @param em the expression manager to use
+   * @param file_name the file to parse
+   */
+  SmtParser(ExprManager* em, const char* file_name);
+
+  /**
+   * Destructor.
+   */
+  ~SmtParser();
+
+  /**
+   * Parses the next command. By default, the SMTLIB parser produces one
+   * CommandSequence command. If parsing is successful, we should be done
+   * after the first call to this command.
+   * @return the CommandSequence command that includes the whole benchmark
+   */
+  Command* parseNextCommand() throw (ParserException);
+
+  /**
+   * Parses the next complete expression of the stream.
+   * @return the expression parsed
+   */
+  Expr parseNextExpression() throw (ParserException);
+
+  /**
+   * Check if we are done with the stream, i.e. EOF has been reached, or the
+   * whole SMT benchmark has been parsed.
+   */
   bool done() const;
 
-  // The same check can be done by using the class Parser's value as a Boolean
-  operator bool() const { return done(); }
+protected:
 
-  /** Prints the location to the output stream */
-  void printLocation(std::ostream& out) const;
+  /** The ANTLR smt lexer */
+  AntlrSmtLexer* d_antlr_lexer;
 
-  /** Reset any local data */
-  void reset();
-}; // end of class Parser
+  /** The ANTLR smt parser */
+  AntlrSmtParser* d_antlr_parser;
+
+  /** Are we done */
+  bool d_done;
+
+  /** The file stream we might be using */
+  std::ifstream d_input;
+};
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

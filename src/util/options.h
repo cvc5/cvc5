@@ -18,6 +18,7 @@
 namespace CVC4 {
 
 struct Options {
+
   std::string binary_name;
 
   bool smtcomp_mode;
@@ -33,7 +34,18 @@ struct Options {
   /* with 3, the solver is slowed down by all the scrolling */
   int verbosity;
 
-  std::string lang;
+  /** The input language option */
+  enum InputLanguage {
+    /** The SMTLIB input language */
+    LANG_SMTLIB,
+    /** The CVC4 input language */
+    LANG_CVC4,
+    /** Auto-detect the language */
+    LANG_AUTO
+  };
+
+  /** The input language */
+  InputLanguage lang;
 
   Options() : binary_name(),
               smtcomp_mode(false),
@@ -41,7 +53,7 @@ struct Options {
               out(0),
               err(0),
               verbosity(0),
-              lang()
+              lang(LANG_AUTO)
   {}
 };/* struct Options */
 

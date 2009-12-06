@@ -12,18 +12,18 @@ using namespace CVC4::parser;
     
 options {
   language = "Cpp";                  // C++ output for antlr
-  namespace = "CVC4::parser";        // Wrap everything in the smtparser namespace
   namespaceStd = "std";              // Cosmetic option to get rid of long defines in generated code
   namespaceAntlr = "antlr";          // Cosmetic option to get rid of long defines in generated code
+  namespace = "CVC4::parser";        // Wrap everything in the smtparser namespace
 }
  
 /**
- * SmtParser class is the parser for the SMT-LIB files. 
+ * AntlrSmtParser class is the parser for the SMT-LIB files. 
  */
-class SmtParser extends Parser("AntlrParser");
+class AntlrSmtParser extends Parser("AntlrParser");
 options {
   genHashLines = true;              // Include line number information
-  importVocab = SmtVocabulary;      // Export the common vocabulary
+  importVocab = SmtVocabulary;      // Import the common vocabulary
   defaultErrorHandler = false;      // Skip the defaul error handling, just break with exceptions
   k = 2;
 }
@@ -64,7 +64,10 @@ prop_atom returns [CVC4::Expr atom]
 {
   std::string p;
 } 
-   : p = pred_symb { atom = getVariable(p, boolType()); }
+   : p = pred_symb {isDeclared(p, SYM_VARIABLE)}? { atom = getVariable(p); }
+      exception catch [antlr::SemanticException ex] {
+        rethrow(ex, "Undeclared variable " + p);
+      }   
    | TRUE          { atom = getTrueExpr(); }
    | FALSE         { atom = getFalseExpr(); }
    ;
@@ -134,7 +137,7 @@ sort_symbs[std::vector<std::string>& sorts]
 /**
  * Matches the status of the benchmark, one of 'sat', 'unsat' or 'unknown'.
  */
-status returns [ SmtParser::BenchmarkStatus status ]
+status returns [ AntlrParser::BenchmarkStatus status ]
   : SAT       { status = SMT_SATISFIABLE;    }
   | UNSAT     { status = SMT_UNSATISFIABLE;  }
   | UNKNOWN   { status = SMT_UNKNOWN;        }
@@ -143,9 +146,8 @@ status returns [ SmtParser::BenchmarkStatus status ]
 /**
  * Matches a benchmark attribute, sucha as ':logic', ':formula', etc.
  */
-bench_attribute returns [ Command* smt_command ]
+bench_attribute returns [ Command* smt_command = 0]
 {
-  smt_command = 0;
   BenchmarkStatus b_status = SMT_UNKNOWN;
   Expr formula;  
   vector<string> sorts;
@@ -167,15 +169,12 @@ bench_attributes returns [CVC4::CommandSequence* cmd_seq = new CommandSequence()
 {
   Command* cmd;
 }
-  : (cmd = bench_attribute { cmd_seq->addCommand(cmd); } )+ 
+  : (cmd = bench_attribute { if (cmd) cmd_seq->addCommand(cmd); } )+ 
   ;
   
 /**
  * Matches the whole SMT-LIB benchmark.
  */  
-benchmark 
-{
-  Command* cmd_seq;
-}
-  : LPAREN BENCHMARK IDENTIFIER cmd_seq = bench_attributes RPAREN { addCommand(cmd_seq); }
+benchmark returns [Command* cmd]
+  : LPAREN BENCHMARK IDENTIFIER cmd = bench_attributes RPAREN 
   ;

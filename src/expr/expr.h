@@ -60,6 +60,10 @@ class CVC4_PUBLIC Expr {
   friend class ExprManager;
 
 public:
+
+  /** Default constructor, makes a null expression. */
+  CVC4_PUBLIC Expr();
+
   CVC4_PUBLIC Expr(const Expr&);
 
   /** Destructor.  Decrements the reference count and, if zero,
@@ -103,6 +107,9 @@ public:
   inline iterator end() const;
 
   void toString(std::ostream&) const;
+
+  bool isNull() const;
+
 };/* class Expr */
 
 }/* CVC4 namespace */

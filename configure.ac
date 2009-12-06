@@ -257,17 +257,7 @@ AM_PROG_LEX
 AC_PROG_YACC
 
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
-AC_ARG_ENABLE(antlr, AS_HELP_STRING([--enable-antlr],[use Dejan's ANTLR parsers]))
-AC_MSG_CHECKING([whether you want to use the ANTLR parsers])
-if test -z "${enable_antlr+set}"; then
-  enable_antlr=no
-fi
-AC_MSG_RESULT([$enable_antlr])
-AM_CONDITIONAL(USE_ANTLR, test "$enable_antlr" = yes)
-if test "$enable_antlr" = yes; then
-  AC_PROG_ANTLR
-  AC_DEFINE(ANTLR_PARSERS, [], [whether we're using ANTLR parsers])
-fi
+AC_PROG_ANTLR
 
 AC_CHECK_PROG(DOXYGEN, doxygen, doxygen, [])
 if test -z "$DOXYGEN"; then
@@ -310,9 +300,8 @@ fi
 # Checks for libraries.
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://gmplib.org/])])
 # Check for antlr C++ runtime (defined in config/antlr.m4)
-if test "$enable_antlr" = yes; then
-  AC_LIB_ANTLR
-fi
+AC_LIB_ANTLR
+
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h unistd.h])
@@ -398,7 +387,7 @@ CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
 
-Using ANTLR parsers  : $enable_antlr
+
 Library releases     : $CVC4_LIBRARY_RELEASE_CODE
 libcvc4 version      : $CVC4_LIBRARY_VERSION
 libcvc4parser version: $CVC4_PARSER_LIBRARY_VERSION

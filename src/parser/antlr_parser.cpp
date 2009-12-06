@@ -5,6 +5,8 @@
  *      Author: dejan
  */
 
+#include <iostream>
+
 #include "antlr_parser.h"
 #include "expr/expr_manager.h"
 
@@ -24,7 +26,8 @@ ostream& operator <<(ostream& out, AntlrParser::BenchmarkStatus status) {
     out << "unknown";
     break;
   default:
-    CVC4::UnhandledImpl("Unhandled ostream case for AntlrParser::BenchmarkStatus");
+    CVC4::UnhandledImpl(
+        "Unhandled ostream case for AntlrParser::BenchmarkStatus");
   }
   return out;
 }
@@ -42,8 +45,7 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
 }
 
 Expr AntlrParser::getVariable(std::string var_name) {
-  cout << "getVariable(" << var_name << ")" << endl;
-  return d_expr_manager->mkExpr(VARIABLE);
+  return d_var_symbol_table.getObject(var_name);
 }
 
 Expr AntlrParser::getTrueExpr() const {
@@ -55,21 +57,37 @@ Expr AntlrParser::getFalseExpr() const {
 }
 
 Expr AntlrParser::newExpression(Kind kind, const std::vector<Expr>& children) {
-  cout << "newExpression(" << kind << ", " << children.size()
-      << ")" << endl;
   return d_expr_manager->mkExpr(kind, children);
 }
 
 void AntlrParser::newPredicate(std::string p_name,
     std::vector<std::string>& p_sorts) {
-  cout << "newPredicate(" << p_name << ", " << p_sorts.size() << ")" << endl;
+  if(p_sorts.size() == 0)
+    d_var_symbol_table.bindName(p_name, d_expr_manager->mkExpr(VARIABLE));
+  else
+    Unhandled("Non unary predicate not supported yet!");
 }
 
 void AntlrParser::setBenchmarkStatus(BenchmarkStatus status) {
-  cout << "setBenchmarkStatus()" << endl;
   d_benchmark_status = status;
 }
 
 void AntlrParser::addExtraSorts(std::vector<std::string>& extra_sorts) {
-  cout << "addExtraSorts()" << endl;
+}
+
+void AntlrParser::setExpressionManager(ExprManager* em) {
+  d_expr_manager = em;
+}
+
+bool AntlrParser::isDeclared(string name, SymbolType type) {
+  switch(type) {
+  case SYM_VARIABLE:
+    return d_var_symbol_table.isBound(name);
+  default:
+    Unhandled("Unhandled symbol type!");
+  }
+}
+
+void AntlrParser::rethrow(antlr::SemanticException& e, string new_message) throw(antlr::SemanticException) {
+  throw antlr::SemanticException(new_message, getFilename(), LT(0).get()->getLine(), LT(0).get()->getColumn());
 }

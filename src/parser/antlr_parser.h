@@ -13,10 +13,13 @@
 #include <iostream>
 
 #include <antlr/LLkParser.hpp>
+#include <antlr/SemanticException.hpp>
+
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/command.h"
 #include "util/assert.h"
+#include "parser/symbol_table.h"
 
 namespace CVC4 {
 
@@ -41,6 +44,12 @@ public:
     /** The status of the benchmark is unknown */
     SMT_UNKNOWN
   };
+
+  /**
+   * Set's the expression manager to use when creating/managing expression.
+   * @param expr_manager the expression manager
+   */
+  void setExpressionManager(ExprManager* expr_manager);
 
 protected:
 
@@ -72,11 +81,34 @@ protected:
   AntlrParser(antlr::TokenStream& lexer, int k);
 
   /**
+   * Renames the antlr semantic expression to a given message.
+   */
+  void rethrow(antlr::SemanticException& e, std::string msg) throw (antlr::SemanticException);
+
+  /**
    * Returns a variable, given a name and a type.
    * @param var_name the name of the variable
    * @return the variable expression
    */
   Expr getVariable(std::string var_name);
+
+  /**
+   * Types of symbols.
+   */
+  enum SymbolType {
+    /** Variables */
+    SYM_VARIABLE,
+    /** Predicates */
+    SYM_PREDICATE,
+    /** Functions */
+    SYM_FUNCTION
+  };
+
+  /**
+   * Checks if the variable has been declared.
+   * @param the variable name
+   */
+  bool isDeclared(std::string var_name, SymbolType type = SYM_VARIABLE);
 
   /**
    * Returns the true expression.
@@ -122,17 +154,6 @@ protected:
    */
   void addExtraSorts(std::vector<std::string>& extra_sorts);
 
-  /**
-   *
-   */
-  void addCommand(Command* cmd);
-
-  /**
-   * Set's the expression manager to use when creating/managing expression.
-   * @param expr_manager the expression manager
-   */
-  void setExpressionManager(ExprManager* expr_manager);
-
 private:
 
   /** The status of the benchmark */
@@ -140,12 +161,17 @@ private:
 
   /** The expression manager */
   ExprManager* d_expr_manager;
-};
 
-std::ostream& operator << (std::ostream& out, AntlrParser::BenchmarkStatus status);
+  /** The symbol table lookup */
+  SymbolTable<Expr> d_var_symbol_table;
+};
 
 }
 
+}
+
+namespace std {
+ostream& operator<<(ostream& out, CVC4::parser::AntlrParser::BenchmarkStatus status);
 }
 
 #endif /* CVC4_PARSER_H_ */

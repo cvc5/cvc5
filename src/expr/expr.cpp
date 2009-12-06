@@ -18,7 +18,18 @@ using namespace CVC4::expr;
 
 namespace CVC4 {
 
-Expr Expr::s_null(0);
+ExprValue ExprValue::s_null;
+
+Expr Expr::s_null(&ExprValue::s_null);
+
+bool Expr::isNull() const {
+  return d_ev == &ExprValue::s_null;
+}
+
+Expr::Expr() :
+  d_ev(&ExprValue::s_null) {
+  // No refcount needed
+}
 
 Expr::Expr(ExprValue* ev)
   : d_ev(ev) {
