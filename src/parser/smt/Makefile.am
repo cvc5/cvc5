@@ -4,23 +4,21 @@ AM_CPPFLAGS = -D__BUILDING_CVC4PARSERLIB
 
 noinst_LTLIBRARIES = libparsersmt.la
 
+ANTLR_STUFF = \
+	AntlrSmtLexer.hpp \
+	AntlrSmtLexer.cpp \
+	AntlrSmtParser.hpp \
+	AntlrSmtParser.cpp 
+
 libparsersmt_la_SOURCES = \
 	SmtLexer.g \
 	SmtParser.g \
-	AntlrSmtLexer.hpp \
-	AntlrSmtLexer.cpp \
-	AntlrSmtParser.hpp \
-	AntlrSmtParser.cpp 
+	$(ANTLR_STUFF)
 
-BUILT_SOURCES = \
-	AntlrSmtLexer.hpp \
-	AntlrSmtLexer.cpp \
-	AntlrSmtParser.hpp \
-	AntlrSmtParser.cpp 
-CLEAN_FILES = $(BUILT_SOURCES)
+BUILT_SOURCES = $(ANTLR_STUFF)
+CLEAN_FILES = $(ANTLR_STUFF)
 
 AntlrSmtLexer.cpp AntlrSmtLexer.hpp: SmtLexer.g
-	$(ANTLR) -o "@builddir@" "@srcdir@/SmtLexer.g"
-
+	$(ANTLR) -o "@builddir@" "$<"
 AntlrSmtParser.cpp AntlrSmtParser.hpp: SmtParser.g
-	$(ANTLR) -o "@builddir@" "@srcdir@/SmtParser.g"
+	$(ANTLR) -o "@builddir@" "$<"

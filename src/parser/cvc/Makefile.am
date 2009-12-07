@@ -18,6 +18,7 @@ libparsercvc_la_SOURCES = \
 BUILT_SOURCES = $(ANTLR_STUFF)
 CLEAN_FILES = $(ANTLR_STUFF)
 
-Antlr%.cpp Antlr%.hpp: %.g
-	$(ANTLR) -o "@builddir@" "@srcdir@/$<"
-
+AntlrCvcLexer.cpp AntlrCvcLexer.hpp: CvcLexer.g
+	$(ANTLR) -o "@builddir@" "$<"
+AntlrCvcParser.cpp AntlrCvcParser.hpp: CvcParser.g
+	$(ANTLR) -o "@builddir@" "$<"
