@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.59])
-AC_INIT([src/include/cvc4.h])
+AC_INIT([src/include/cvc4_config.h])
 AC_CONFIG_AUX_DIR([config])
 #AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([config])
@@ -95,7 +95,7 @@ AC_MSG_RESULT($build_type)
 AC_MSG_CHECKING([what dir to configure])
 if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
   AC_MSG_RESULT([this one (in builds/)])
-elif test -e src/include/cvc4.h; then
+elif test -e src/include/cvc4_config.h; then
   AC_MSG_RESULT([builds/$target/$build_type])
   echo
   echo Setting up "builds/$target/$build_type"...
@@ -253,8 +253,8 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
-AM_PROG_LEX
-AC_PROG_YACC
+#AM_PROG_LEX
+#AC_PROG_YACC
 
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR

@@ -2,7 +2,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "cvc4_expr.h"
+#include "expr/expr.h"
 
 using namespace CVC4;
 

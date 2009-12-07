@@ -8,6 +8,8 @@
  ** information.
  **
  ** Exception class.
+ **
+ ** As many paragraphs as you like.
  **/
 
 #ifndef __CVC4__EXCEPTION_H

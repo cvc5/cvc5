@@ -24,11 +24,9 @@ namespace CVC4 {
   class Expr;
 }/* CVC4 namespace */
 
-namespace std {
-inline std::ostream& operator<<(std::ostream&, CVC4::Expr) CVC4_PUBLIC;
-}
-
 namespace CVC4 {
+
+inline std::ostream& operator<<(std::ostream&, CVC4::Expr) CVC4_PUBLIC;
 
 class ExprManager;
 
@@ -116,12 +114,12 @@ public:
 
 #include "expr/expr_value.h"
 
-inline std::ostream& std::operator<<(std::ostream& out, CVC4::Expr e) {
+namespace CVC4 {
+
+inline std::ostream& operator<<(std::ostream& out, CVC4::Expr e) {
   e.toString(out);
   return out;
 }
-
-namespace CVC4 {
 
 inline Kind Expr::getKind() const {
   return Kind(d_ev->d_kind);

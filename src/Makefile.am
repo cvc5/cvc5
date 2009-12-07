@@ -36,9 +36,7 @@ libcvc4_la_LIBADD = \
 	@builddir@/theory/libtheory.la
 
 publicheaders = \
-	include/cvc4.h \
-	include/cvc4_config.h \
-	include/cvc4_expr.h
+	include/cvc4_config.h
 
 install-data-local: $(publicheaders)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)/cvc4

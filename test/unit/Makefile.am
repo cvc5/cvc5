@@ -12,7 +12,8 @@ libdummy_la_SOURCES = expr/expr_black.cpp
 libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 
 $(TESTS:%=%.cpp): %.cpp: %.h
-	$(CXXTESTGEN) --have-eh --have-std --error-printer -o $@ $<
+	mkdir -p `dirname "$@"`
+	$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
 $(TESTS): %: %.cpp
 #	get these in here somehow
 #	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)

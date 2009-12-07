@@ -10,19 +10,17 @@ libparsersmt_la_SOURCES = \
 	AntlrSmtLexer.hpp \
 	AntlrSmtLexer.cpp \
 	AntlrSmtParser.hpp \
-	AntlrSmtParser.cpp   
+	AntlrSmtParser.cpp 
 
 BUILT_SOURCES = \
 	AntlrSmtLexer.hpp \
 	AntlrSmtLexer.cpp \
 	AntlrSmtParser.hpp \
 	AntlrSmtParser.cpp 
+CLEAN_FILES = $(BUILT_SOURCES)
 
+AntlrSmtLexer.cpp AntlrSmtLexer.hpp: SmtLexer.g
+	$(ANTLR) -o "@builddir@" "@srcdir@/SmtLexer.g"
 
-AntlrSmtLexer.hpp: SmtLexer.g
-AntlrSmtLexer.cpp: SmtLexer.g
-	$(ANTLR) @srcdir@/SmtLexer.g
-
-AntlrSmtParser.hpp: SmtParser.g AntlrSmtLexer.cpp
-AntlrSmtParser.cpp: SmtParser.g AntlrSmtLexer.cpp
-	$(ANTLR) @srcdir@/SmtParser.g
+AntlrSmtParser.cpp AntlrSmtParser.hpp: SmtParser.g
+	$(ANTLR) -o "@builddir@" "@srcdir@/SmtParser.g"

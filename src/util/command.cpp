@@ -10,16 +10,16 @@
 #include "expr/expr.h"
 #include "util/result.h"
 
-namespace std {
+using namespace std;
+
+namespace CVC4 {
+
 ostream& operator<<(ostream& out, const CVC4::Command& c) {
   c.toString(out);
   return out;
 }
-}
 
-namespace CVC4 {
-
-EmptyCommand::EmptyCommand(std::string name) :
+EmptyCommand::EmptyCommand(string name) :
   d_name(name) {
 }
 

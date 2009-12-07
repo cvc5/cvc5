@@ -11,3 +11,6 @@ _default_build_: all
 		echo 'Run configure first, or type "make" in a configured build directory.'; \
 		echo; \
 	fi
+
+distclean:
+	rm -rf builds

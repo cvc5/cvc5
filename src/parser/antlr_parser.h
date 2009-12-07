@@ -22,7 +22,6 @@
 #include "parser/symbol_table.h"
 
 namespace CVC4 {
-
 namespace parser {
 
 /**
@@ -206,12 +205,9 @@ private:
   SymbolTable<Expr> d_var_symbol_table;
 };
 
-}
+std::ostream& operator<<(std::ostream& out, AntlrParser::BenchmarkStatus status);
 
-}
-
-namespace std {
-ostream& operator<<(ostream& out, CVC4::parser::AntlrParser::BenchmarkStatus status);
-}
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
 #endif /* CVC4_PARSER_H_ */

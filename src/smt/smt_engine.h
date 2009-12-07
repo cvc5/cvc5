@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** cvc4.h
+/** smt_engine.h
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
