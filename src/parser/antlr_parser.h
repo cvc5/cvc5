@@ -123,6 +123,20 @@ protected:
   Expr getFalseExpr() const;
 
   /**
+   * Creates a new unary CVC4 expression using the expression manager.
+   * @param kind the kind of the expression
+   * @param child the child
+   */
+  Expr newExpression(Kind kind, const Expr& child);
+
+  /**
+   * Creates a new binary CVC4 expression using the expression manager.
+   * @param kind the kind of the expression
+   * @param children the children of the expression
+   */
+  Expr newExpression(Kind kind, const Expr& child_1, const Expr& child_2);
+
+  /**
    * Creates a new CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param children the children of the expression
@@ -130,11 +144,23 @@ protected:
   Expr newExpression(Kind kind, const std::vector<Expr>& children);
 
   /**
+   * Creates a new expression based on the given string of expressions and kinds.
+   * The expression is created so that it respects the kinds precedence table.
+   */
+  Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds);
+
+  /**
    * Creates a new predicated over the given sorts.
    * @param p_name the name of the predicate
    * @param p_sorts the arity sorts
    */
-  void newPredicate(std::string p_name, std::vector<std::string>& p_sorts);
+  void newPredicate(std::string p_name, const std::vector<std::string>& p_sorts);
+
+  /**
+   * Creates new predicates of given types.
+   * @param p_names the names of the predicates
+   */
+  void newPredicates(const std::vector<std::string>& p_names);
 
   /**
    * Sets the status of the benchmark.
@@ -152,9 +178,23 @@ protected:
    * Adds the extra sorts to the signature of the benchmark.
    * @param extra_sorts the sorts to add
    */
-  void addExtraSorts(std::vector<std::string>& extra_sorts);
+  void addExtraSorts(const std::vector<std::string>& extra_sorts);
+
+  /**
+   * Returns the precedence rank of the kind.
+   */
+  static unsigned getPrecedence(Kind kind);
 
 private:
+
+
+  unsigned findPivot(const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index) const;
+
+  /**
+   * Creates a new expression based on the given string of expressions and kinds.
+   * The expression is created so that it respects the kinds precedence table.
+   */
+  Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index);
 
   /** The status of the benchmark */
   BenchmarkStatus d_benchmark_status;

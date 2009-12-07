@@ -38,9 +38,11 @@ public:
 
 class CVC4_PUBLIC EmptyCommand : public Command {
 public:
-  EmptyCommand();
+  EmptyCommand(std::string name = "");
   void invoke(CVC4::SmtEngine* smt_engine);
   void toString(std::ostream& out) const;
+private:
+  std::string d_name;
 };/* class EmptyCommand */
 
 

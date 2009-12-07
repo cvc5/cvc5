@@ -26,10 +26,28 @@ ostream& operator <<(ostream& out, AntlrParser::BenchmarkStatus status) {
     out << "unknown";
     break;
   default:
-    CVC4::UnhandledImpl(
-        "Unhandled ostream case for AntlrParser::BenchmarkStatus");
+    Unhandled("Unhandled ostream case for AntlrParser::BenchmarkStatus");
   }
   return out;
+}
+
+unsigned AntlrParser::getPrecedence(Kind kind) {
+  switch(kind) {
+  // Boolean operators
+  case OR:
+    return 5;
+  case AND:
+    return 4;
+  case IFF:
+    return 3;
+  case IMPLIES:
+    return 2;
+  case XOR:
+    return 1;
+  default:
+    Unhandled ("Undefined precedence - necessary for proper parsing of CVC files!");
+  }
+  return 0;
 }
 
 AntlrParser::AntlrParser(const antlr::ParserSharedInputState& state, int k) :
@@ -56,23 +74,37 @@ Expr AntlrParser::getFalseExpr() const {
   return d_expr_manager->mkExpr(FALSE);
 }
 
+Expr AntlrParser::newExpression(Kind kind, const Expr& child) {
+  return d_expr_manager->mkExpr(kind, child);
+}
+
+Expr AntlrParser::newExpression(Kind kind, const Expr& child_1, const Expr& child_2) {
+  return d_expr_manager->mkExpr(kind, child_1, child_2);
+}
+
 Expr AntlrParser::newExpression(Kind kind, const std::vector<Expr>& children) {
   return d_expr_manager->mkExpr(kind, children);
 }
 
-void AntlrParser::newPredicate(std::string p_name,
-    std::vector<std::string>& p_sorts) {
+void AntlrParser::newPredicate(std::string p_name, const std::vector<
+    std::string>& p_sorts) {
   if(p_sorts.size() == 0)
     d_var_symbol_table.bindName(p_name, d_expr_manager->mkExpr(VARIABLE));
   else
     Unhandled("Non unary predicate not supported yet!");
 }
 
+void AntlrParser::newPredicates(const std::vector<std::string>& p_names) {
+  vector<string> sorts;
+  for(unsigned i = 0; i < p_names.size(); ++i)
+    newPredicate(p_names[i], sorts);
+}
+
 void AntlrParser::setBenchmarkStatus(BenchmarkStatus status) {
   d_benchmark_status = status;
 }
 
-void AntlrParser::addExtraSorts(std::vector<std::string>& extra_sorts) {
+void AntlrParser::addExtraSorts(const std::vector<std::string>& extra_sorts) {
 }
 
 void AntlrParser::setExpressionManager(ExprManager* em) {
@@ -88,6 +120,44 @@ bool AntlrParser::isDeclared(string name, SymbolType type) {
   }
 }
 
-void AntlrParser::rethrow(antlr::SemanticException& e, string new_message) throw(antlr::SemanticException) {
-  throw antlr::SemanticException(new_message, getFilename(), LT(0).get()->getLine(), LT(0).get()->getColumn());
+void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
+    throw (antlr::SemanticException) {
+  throw antlr::SemanticException(new_message, getFilename(),
+                                 LT(0).get()->getLine(),
+                                 LT(0).get()->getColumn());
+}
+
+Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs, const vector<
+    Kind>& kinds) {
+  return createPrecedenceExpr(exprs, kinds, 0, exprs.size() - 1);
+}
+
+unsigned AntlrParser::findPivot(const std::vector<Kind>& kinds,
+                                unsigned start_index, unsigned end_index) const {
+
+  int pivot = start_index;
+  unsigned pivot_precedence = getPrecedence(kinds[pivot]);
+
+  for(unsigned i = start_index + 1; i <= end_index; ++i) {
+    unsigned current_precedence = getPrecedence(kinds[i]);
+    if(current_precedence > pivot_precedence) {
+      pivot = i;
+      pivot_precedence = current_precedence;
+    }
+  }
+
+  return pivot;
+}
+
+Expr AntlrParser::createPrecedenceExpr(const std::vector<Expr>& exprs,
+                                       const std::vector<Kind>& kinds,
+                                       unsigned start_index, unsigned end_index) {
+  if(start_index == end_index)
+    return exprs[start_index];
+
+  unsigned pivot = findPivot(kinds, start_index, end_index - 1);
+
+  Expr child_1 = createPrecedenceExpr(exprs, kinds, start_index, pivot);
+  Expr child_2 = createPrecedenceExpr(exprs, kinds, pivot + 1, end_index);
+  return d_expr_manager->mkExpr(kinds[pivot], child_1, child_2);
 }

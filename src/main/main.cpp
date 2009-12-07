@@ -65,8 +65,17 @@ int main(int argc, char *argv[]) {
       else
         parser = new SmtParser(&exprMgr, argv[firstArgIndex]);
       break;
+    case Options::LANG_CVC4:
+      if(inputFromStdin)
+        parser = new CvcParser(&exprMgr, cin);
+      else
+        parser = new CvcParser(&exprMgr, argv[firstArgIndex]);
+      break;
+    case Options::LANG_AUTO:
+      cerr << "Auto language detection not supported yet." << endl;
+      abort();
     default:
-      cerr << "Language" << options.lang << "not supported yet." << endl;
+      cerr << "Unknown language" << endl;
       abort();
     }
 

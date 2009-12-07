@@ -30,6 +30,8 @@ namespace parser {
 
 class AntlrSmtLexer;
 class AntlrSmtParser;
+class AntlrCvcLexer;
+class AntlrCvcParser;
 
 /**
  * The parser.
@@ -49,7 +51,6 @@ public:
    */
   virtual ~Parser() {
   }
-  ;
 
   /**
    * Parse the next command of the input
@@ -64,12 +65,18 @@ public:
   /**
    * Check if we are done -- either the end of input has been reached.
    */
-  virtual bool done() const = 0;
+  bool done() const;
 
 protected:
 
+  /** Sets the done flag */
+  void setDone(bool done = true);
+
   /** Expression manager the parser will be using */
   ExprManager* d_expr_manager;
+
+  /** Are we done */
+  bool d_done;
 
 }; // end of class Parser
 
@@ -112,12 +119,6 @@ public:
    */
   Expr parseNextExpression() throw (ParserException);
 
-  /**
-   * Check if we are done with the stream, i.e. EOF has been reached, or the
-   * whole SMT benchmark has been parsed.
-   */
-  bool done() const;
-
 protected:
 
   /** The ANTLR smt lexer */
@@ -126,12 +127,61 @@ protected:
   /** The ANTLR smt parser */
   AntlrSmtParser* d_antlr_parser;
 
-  /** Are we done */
-  bool d_done;
+  /** The file stream we might be using */
+  std::ifstream d_input;
+};
+
+class CVC4_PUBLIC CvcParser : public Parser {
+
+public:
+
+  /**
+   * Construct the parser that uses the given expression manager and parses
+   * from the given input stream.
+   * @param em the expression manager to use
+   * @param input the input stream to parse
+   */
+  CvcParser(ExprManager* em, std::istream& input);
+
+  /**
+   * Construct the parser that uses the given expression manager and parses
+   * from the file.
+   * @param em the expression manager to use
+   * @param file_name the file to parse
+   */
+  CvcParser(ExprManager* em, const char* file_name);
+
+  /**
+   * Destructor.
+   */
+  ~CvcParser();
+
+  /**
+   * Parses the next command. By default, the SMTLIB parser produces one
+   * CommandSequence command. If parsing is successful, we should be done
+   * after the first call to this command.
+   * @return the CommandSequence command that includes the whole benchmark
+   */
+  Command* parseNextCommand() throw (ParserException);
+
+  /**
+   * Parses the next complete expression of the stream.
+   * @return the expression parsed
+   */
+  Expr parseNextExpression() throw (ParserException);
+
+protected:
+
+  /** The ANTLR smt lexer */
+  AntlrCvcLexer* d_antlr_lexer;
+
+  /** The ANTLR smt parser */
+  AntlrCvcParser* d_antlr_parser;
 
   /** The file stream we might be using */
   std::ifstream d_input;
 };
+
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

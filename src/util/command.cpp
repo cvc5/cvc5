@@ -19,7 +19,8 @@ ostream& operator<<(ostream& out, const CVC4::Command& c) {
 
 namespace CVC4 {
 
-EmptyCommand::EmptyCommand() {
+EmptyCommand::EmptyCommand(std::string name) :
+  d_name(name) {
 }
 
 void EmptyCommand::invoke(SmtEngine* smt_engine) {
@@ -77,7 +78,7 @@ void CommandSequence::addCommand(Command* cmd) {
 using namespace std;
 
 void EmptyCommand::toString(ostream& out) const {
-  out << "EmptyCommand";
+  out << "EmptyCommand(" << d_name << ")";
 }
 
 void AssertCommand::toString(ostream& out) const {

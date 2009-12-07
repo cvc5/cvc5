@@ -57,17 +57,17 @@ public:
 
 inline void AssertImpl(const char* info, bool cond, std::string msg) {
   if(EXPECT_FALSE( ! cond ))
-    throw new AssertionException(std::string(info) + "\n" + msg);
+    throw AssertionException(std::string(info) + "\n" + msg);
 }
 
 inline void AssertImpl(const char* info, bool cond, const char* msg) {
   if(EXPECT_FALSE( ! cond ))
-    throw new AssertionException(std::string(info) + "\n" + msg);
+    throw AssertionException(std::string(info) + "\n" + msg);
 }
 
 inline void AssertImpl(const char* info, bool cond) {
   if(EXPECT_FALSE( ! cond ))
-    throw new AssertionException(info);
+    throw AssertionException(info);
 }
 
 #ifdef __GNUC__
@@ -77,15 +77,15 @@ inline void UnreachableImpl(const char* info) __attribute__ ((noreturn));
 #endif /* __GNUC__ */
 
 inline void UnreachableImpl(const char* info, std::string msg) {
-  throw new UnreachableCodeException(std::string(info) + "\n" + msg);
+  throw UnreachableCodeException(std::string(info) + "\n" + msg);
 }
 
 inline void UnreachableImpl(const char* info, const char* msg) {
-  throw new UnreachableCodeException(std::string(info) + "\n" + msg);
+  throw UnreachableCodeException(std::string(info) + "\n" + msg);
 }
 
 inline void UnreachableImpl(const char* info) {
-  throw new UnreachableCodeException(info);
+  throw UnreachableCodeException(info);
 }
 
 #ifdef __GNUC__
@@ -95,15 +95,15 @@ inline void UnhandledImpl(const char* info) __attribute__ ((noreturn));
 #endif /* __GNUC__ */
 
 inline void UnhandledImpl(const char* info, std::string msg) {
-  throw new UnhandledCaseException(std::string(info) + "\n" + msg);
+  throw UnhandledCaseException(std::string(info) + "\n" + msg);
 }
 
 inline void UnhandledImpl(const char* info, const char* msg) {
-  throw new UnhandledCaseException(std::string(info) + "\n" + msg);
+  throw UnhandledCaseException(std::string(info) + "\n" + msg);
 }
 
 inline void UnhandledImpl(const char* info) {
-  throw new UnhandledCaseException(info);
+  throw UnhandledCaseException(info);
 }
 
 }/* CVC4 namespace */
