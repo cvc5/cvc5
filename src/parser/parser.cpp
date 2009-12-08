@@ -81,6 +81,9 @@ SmtParser::SmtParser(ExprManager* em, istream& input) :
 
 SmtParser::SmtParser(ExprManager*em, const char* file_name) :
   Parser(em), d_input(file_name) {
+  if(!d_input) {
+    throw ParserException(string("File not found or inaccessible: ") + file_name);
+  }
   d_antlr_lexer = new AntlrSmtLexer(d_input);
   d_antlr_lexer->setFilename(file_name);
   d_antlr_parser = new AntlrSmtParser(*d_antlr_lexer);
@@ -132,6 +135,9 @@ CvcParser::CvcParser(ExprManager* em, istream& input) :
 
 CvcParser::CvcParser(ExprManager*em, const char* file_name) :
   Parser(em), d_input(file_name) {
+  if(!d_input) {
+    throw ParserException(string("File not found or inaccessible: ") + file_name);
+  }
   d_antlr_lexer = new AntlrCvcLexer(d_input);
   d_antlr_lexer->setFilename(file_name);
   d_antlr_parser = new AntlrCvcParser(*d_antlr_lexer);

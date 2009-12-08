@@ -32,8 +32,8 @@ libcvc4_la_LIBADD = \
 	@builddir@/context/libcontext.la \
 	@builddir@/prop/libprop.la \
 	@builddir@/prop/minisat/libminisat.la \
-	@builddir@/smt/libsmt.la \
-	@builddir@/theory/libtheory.la
+	@builddir@/smt/libsmt.la
+#	@builddir@/theory/libtheory.la
 
 publicheaders = \
 	include/cvc4_config.h

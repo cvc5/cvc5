@@ -1,6 +1,6 @@
 (benchmark b
 :status unknown
-:logic QF_IDL
+:logic QF_UF
 :extrapreds ((x0))
 :extrapreds ((x1))
 :extrapreds ((x2))

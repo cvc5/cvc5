@@ -15,6 +15,10 @@ CVC4_PARSER_LIBRARY_VERSION=0:0:0
 # really irritating: AC_CANONICAL_* bash $@
 config_cmdline="$@"
 
+# turn off static lib building by default
+AC_ENABLE_SHARED
+AC_DISABLE_STATIC
+
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
@@ -246,16 +250,11 @@ AC_LIBTOOL_WIN32_DLL
 
 
 
-
-
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
-#AM_PROG_LEX
-#AC_PROG_YACC
-
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 
@@ -281,7 +280,7 @@ elif test -z "$CXXTEST"; then
     CXXTEST=
   fi
 fi
-AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
+AC_ARG_WITH([cxxtest], [AS_HELP_STRING([--with-cxxtest=dir], [path to CxxTest installation])])
 AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
 AC_ARG_VAR(TEST_CPPFLAGS, [CXXFLAGS to use when testing (default=$CPPFLAGS)])

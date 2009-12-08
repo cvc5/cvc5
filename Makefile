@@ -13,4 +13,10 @@ _default_build_: all
 	fi
 
 distclean:
+	@if test -e builds; then \
+		echo cd builds; \
+		cd builds; \
+		echo $(MAKE) $@; \
+		$(MAKE) $@; \
+	fi
 	rm -rf builds
