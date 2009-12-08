@@ -11,7 +11,7 @@ ANTLR_TOKEN_STUFF = \
 	@srcdir@/generated/AntlrSmtParserTokenTypes.txt
 ANTLR_LEXER_STUFF = \
 	@srcdir@/generated/AntlrSmtLexer.hpp \
-	@srcdir@/generated/AntlrSmtLexer.cpp
+	@srcdir@/generated/AntlrSmtLexer.cpp \
 	$(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
 	@srcdir@/generated/AntlrSmtParser.hpp \
@@ -28,7 +28,7 @@ libparsersmt_la_SOURCES = \
 BUILT_SOURCES = $(ANTLR_STUFF)
 dist-hook: $(ANTLR_STUFF)
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
-maintainerclean-local:
+maintainer-clean-local:
 	-rmdir @srcdir@/generated
 	-rm -f @srcdir@/stamp-generated
 
