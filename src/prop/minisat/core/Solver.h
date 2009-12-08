@@ -17,14 +17,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef CVC4_MiniSat_Solver_h
-#define CVC4_MiniSat_Solver_h
+#ifndef __CVC4__PROP__MINISAT__SOLVER_H
+#define __CVC4__PROP__MINISAT__SOLVER_H
 
 #include <cstdio>
+#include <cassert>
 
-#include "Vec.h"
-#include "Heap.h"
-#include "Alg.h"
+#include "cvc4_config.h"
+#include "../mtl/Vec.h"
+#include "../mtl/Heap.h"
+#include "../mtl/Alg.h"
 
 #include "SolverTypes.h"
 
@@ -33,7 +35,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 // Solver -- the main class:
 
 namespace CVC4 {
-namespace MiniSat {
+namespace prop {
+namespace minisat {
 
 class Solver {
 public:
@@ -41,7 +44,7 @@ public:
     // Constructor/Destructor:
     //
     Solver();
-    ~Solver();
+    CVC4_PUBLIC ~Solver();
 
     // Problem specification:
     //
@@ -56,7 +59,7 @@ public:
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
 
     // Variable mode:
-    // 
+    //
     void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
     void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
 
@@ -258,6 +261,7 @@ inline bool     Solver::okay          ()      const   { return ok; }
 
 
 #define reportf(format, args...) ( fflush(stdout), fprintf(stderr, format, ## args), fflush(stderr) )
+//#define reportf(format, args...) do {} while(0)
 
 static inline void logLit(FILE* f, Lit l)
 {
@@ -299,8 +303,9 @@ inline void Solver::printClause(const C& c)
     }
 }
 
-}/* CVC4::MiniSat namespace */
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 //=================================================================================================
-#endif /* CVC4_MiniSat_Solver_h */
+#endif /* __CVC4__PROP__MINISAT__SOLVER_H */

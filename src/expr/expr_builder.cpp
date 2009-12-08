@@ -12,7 +12,8 @@
 #include "expr_builder.h"
 #include "expr_manager.h"
 #include "expr_value.h"
-#include "util/assert.h"
+#include "util/Assert.h"
+#include "util/output.h"
 
 using namespace std;
 
@@ -159,15 +160,19 @@ ExprBuilder& ExprBuilder::xorExpr(const Expr& right) {
 
 // "Stream" expression constructor syntax
 ExprBuilder& ExprBuilder::operator<<(const Kind& op) {
+  d_kind = op;
   return *this;
 }
 
 ExprBuilder& ExprBuilder::operator<<(const Expr& child) {
+  addChild(child);
   return *this;
 }
 
 void ExprBuilder::addChild(const Expr& e) {
+  Debug("expr") << "adding child E " << e << endl;
   if(d_nchildren == nchild_thresh) {
+    Debug("expr") << "reached thresh " << nchild_thresh << ", copying" << endl;
     vector<Expr>* v = new vector<Expr>();
     v->reserve(nchild_thresh + 5);
     for(ExprValue** i = d_children.u_arr; i != d_children.u_arr + nchild_thresh; ++i) {
@@ -178,9 +183,11 @@ void ExprBuilder::addChild(const Expr& e) {
     d_children.u_vec = v;
     ++d_nchildren;
   } else if(d_nchildren > nchild_thresh) {
+    Debug("expr") << "over thresh " << d_nchildren << " > " << nchild_thresh << endl;
     d_children.u_vec->push_back(e);
     ++d_nchildren;
   } else {
+    Debug("expr") << "under thresh " << d_nchildren << " < " << nchild_thresh << endl;
     ExprValue *ev = e.d_ev;
     d_children.u_arr[d_nchildren] = ev;
     ev->inc();
@@ -189,7 +196,9 @@ void ExprBuilder::addChild(const Expr& e) {
 }
 
 void ExprBuilder::addChild(ExprValue* ev) {
+  Debug("expr") << "adding child ev " << ev << endl;
   if(d_nchildren == nchild_thresh) {
+    Debug("expr") << "reached thresh " << nchild_thresh << ", copying" << endl;
     vector<Expr>* v = new vector<Expr>();
     v->reserve(nchild_thresh + 5);
     for(ExprValue** i = d_children.u_arr; i != d_children.u_arr + nchild_thresh; ++i) {
@@ -200,9 +209,11 @@ void ExprBuilder::addChild(ExprValue* ev) {
     d_children.u_vec = v;
     ++d_nchildren;
   } else if(d_nchildren > nchild_thresh) {
+    Debug("expr") << "over thresh " << d_nchildren << " > " << nchild_thresh << endl;
     d_children.u_vec->push_back(Expr(ev));
     ++d_nchildren;
   } else {
+    Debug("expr") << "under thresh " << d_nchildren << " < " << nchild_thresh << endl;
     d_children.u_arr[d_nchildren] = ev;
     ev->inc();
     ++d_nchildren;
@@ -214,6 +225,7 @@ ExprBuilder& ExprBuilder::collapse() {
     vector<Expr>* v = new vector<Expr>();
     v->reserve(nchild_thresh + 5);
     //
+    Unreachable();// unimplemented
   }
   return *this;
 }

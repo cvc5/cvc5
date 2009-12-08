@@ -101,7 +101,7 @@ elif test -e src/include/cvc4_config.h; then
   echo Setting up "builds/$target/$build_type"...
   rm -fv config.log config.status confdefs.h
   mkdir -pv "builds/$target/$build_type"
-  test -e builds/Makefile || ln -sfv "$target/$build_type/Makefile.builds" builds/Makefile
+  ln -sfv "$target/$build_type/Makefile.builds" builds/Makefile
   echo Creating builds/current...
   (echo "# This is the most-recently-configured CVC4 build"; \
    echo "# 'make' in the top-level source directory applies to this build"; \

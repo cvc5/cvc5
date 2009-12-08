@@ -23,7 +23,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "Vec.h"
 
 namespace CVC4 {
-namespace MiniSat {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // A heap implementation with support for decrease/increase key.
@@ -99,7 +100,8 @@ class BasicHeap {
 
 //=================================================================================================
 
-}/* CVC4::MiniSat namespace */
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* CVC4_MiniSat_BasicHeap_h */

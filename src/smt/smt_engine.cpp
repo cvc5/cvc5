@@ -27,11 +27,12 @@ void SmtEngine::processAssertionList() {
   for(std::vector<Expr>::iterator i = d_assertions.begin();
       i != d_assertions.end();
       ++i)
-    ;//d_expr = d_expr.isNull() ? *i : d_expr.andExpr(*i);
+    d_expr = d_expr.isNull() ? *i : d_expr.andExpr(*i);
 }
 
 Result SmtEngine::check() {
   processAssertionList();
+  d_prop.solve(d_expr);
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
@@ -56,7 +57,7 @@ Result SmtEngine::query(Expr e) {
   return check();
 }
 
-Result SmtEngine::assert(Expr e) {
+Result SmtEngine::assertFormula(Expr e) {
   e = preprocess(e);
   addFormula(e);
   return quickCheck();

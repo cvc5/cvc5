@@ -32,41 +32,7 @@ class CVC4_PUBLIC ExprManager {
   typedef std::map<uint64_t, std::vector<Expr> > hash_t;
   hash_t d_hash;
 
-  Expr lookup(uint64_t hash, const Expr& e) {
-    hash_t::iterator i = d_hash.find(hash);
-    if(i == d_hash.end()) {
-      // insert
-      std::vector<Expr> v;
-      v.push_back(e);
-      d_hash.insert(std::make_pair(hash, v));
-      return e;
-    } else {
-      for(std::vector<Expr>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-        if(e.getKind() != j->getKind())
-          continue;
-
-        if(e.numChildren() != j->numChildren())
-          continue;
-
-        Expr::iterator c1 = e.begin();
-        Expr::iterator c2 = j->begin();
-        while(c1 != e.end() && c2 != j->end()) {
-          if(c1->d_ev != c2->d_ev)
-            break;
-        }
-
-        if(c1 != e.end() || c2 != j->end())
-          continue;
-
-        return *j;
-      }
-      // didn't find it, insert
-      std::vector<Expr> v;
-      v.push_back(e);
-      d_hash.insert(std::make_pair(hash, v));
-      return e;
-    }
-  }
+  Expr lookup(uint64_t hash, const Expr& e);
 
 public:
   static ExprManager* currentEM() { return s_current; }
@@ -80,6 +46,9 @@ public:
   Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5);
   // N-ary version
   Expr mkExpr(Kind kind, std::vector<Expr> children);
+
+  // variables are special, because duplicates are permitted
+  Expr mkVar();
 
   // TODO: these use the current EM (but must be renamed)
   /*

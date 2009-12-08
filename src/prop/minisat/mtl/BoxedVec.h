@@ -25,7 +25,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <new>
 
 namespace CVC4 {
-namespace MiniSat {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Automatically resizable arrays
@@ -53,7 +54,7 @@ class bvec {
             x->cap = size;
             return x;
         }
-        
+
     };
 
     Vec_t* ref;
@@ -79,16 +80,16 @@ class bvec {
     altvec (altvec<T>& other)                  { assert(0); }
 
 public:
-    void     clear  (bool dealloc = false) { 
+    void     clear  (bool dealloc = false) {
         if (ref != NULL){
-            for (int i = 0; i < ref->sz; i++) 
+            for (int i = 0; i < ref->sz; i++)
                 (*ref).data[i].~T();
 
-            if (dealloc) { 
-                free(ref); ref = NULL; 
-            }else 
+            if (dealloc) {
+                free(ref); ref = NULL;
+            }else
                 ref->sz = 0;
-        } 
+        }
     }
 
     // Constructors:
@@ -110,11 +111,11 @@ public:
         int cap  = ref != NULL ? ref->cap : 0;
         if (size == cap){
             cap = cap != 0 ? nextSize(cap) : init_size;
-            ref = Vec_t::alloc(ref, cap); 
+            ref = Vec_t::alloc(ref, cap);
         }
-        //new (&ref->data[size]) T(elem); 
-        ref->data[size] = elem; 
-        ref->sz = size+1; 
+        //new (&ref->data[size]) T(elem);
+        ref->data[size] = elem;
+        ref->sz = size+1;
     }
 
     void     push   () {
@@ -122,10 +123,10 @@ public:
         int cap  = ref != NULL ? ref->cap : 0;
         if (size == cap){
             cap = cap != 0 ? nextSize(cap) : init_size;
-            ref = Vec_t::alloc(ref, cap); 
+            ref = Vec_t::alloc(ref, cap);
         }
-        new (&ref->data[size]) T(); 
-        ref->sz = size+1; 
+        new (&ref->data[size]) T();
+        ref->sz = size+1;
     }
 
     void     shrink (int nelems)             { for (int i = 0; i < nelems; i++) pop(); }
@@ -146,7 +147,8 @@ public:
 
 };
 
-}/* CVC4::MiniSat namespace */
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* CVC4_MiniSat_BoxedVec_h */

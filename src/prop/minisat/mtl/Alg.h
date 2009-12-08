@@ -20,8 +20,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef CVC4_MiniSat_Alg_h
 #define CVC4_MiniSat_Alg_h
 
+#include <cassert>
+
 namespace CVC4 {
-namespace MiniSat {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Useful functions on vectors
@@ -57,7 +60,8 @@ static inline bool find(V& ts, const T& t)
     return j < ts.size();
 }
 
-}/* CVC4::MiniSat namespace */
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* CVC4_MiniSat_Alg_h */

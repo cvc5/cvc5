@@ -23,7 +23,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "Vec.h"
 
 namespace CVC4 {
-namespace MiniSat {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Some sorting algorithms for vec's
@@ -94,7 +95,8 @@ template <class T> void sort(vec<T>& v) {
 
 //=================================================================================================
 
-}/* CVC4::MiniSat namespace */
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* CVC4_MiniSat_Sort_h */

@@ -25,7 +25,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "Vec.h"
 
 namespace CVC4 {
-namespace MiniSat {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Default hash/equals functions
@@ -83,7 +84,7 @@ class Map {
         cap = newsize;
     }
 
-    
+
     public:
 
      Map () : table(NULL), cap(0), size(0) {}
@@ -97,7 +98,7 @@ class Map {
         for (int i = 0; i < ps.size(); i++)
             if (equals(ps[i].key, k)){
                 d = ps[i].data;
-                return true; } 
+                return true; }
         return false;
     }
 
@@ -118,7 +119,8 @@ class Map {
     }
 };
 
-}/* CVC4::MiniSat namespace */
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* CVC4_MiniSat_Map_h */

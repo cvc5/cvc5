@@ -9,11 +9,10 @@
  **
  **/
 
-#ifndef __CVC4__THEORY__THEORY_ENGINE_H
-#define __CVC4__THEORY__THEORY_ENGINE_H
+#ifndef __CVC4__THEORY_ENGINE_H
+#define __CVC4__THEORY_ENGINE_H
 
 namespace CVC4 {
-namespace theory {
 
 // In terms of abstraction, this is below (and provides services to)
 // PropEngine.
@@ -28,7 +27,6 @@ class TheoryEngine {
 public:
 };/* class TheoryEngine */
 
-}/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_ENGINE_H */
+#endif /* __CVC4__THEORY_ENGINE_H */

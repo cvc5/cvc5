@@ -9,28 +9,38 @@
  **
  **/
 
-#ifndef __CVC4__PROP__PROP_ENGINE_H
-#define __CVC4__PROP__PROP_ENGINE_H
+#ifndef __CVC4__PROP_ENGINE_H
+#define __CVC4__PROP_ENGINE_H
 
+#include "cvc4_config.h"
 #include "expr/expr.h"
 #include "util/decision_engine.h"
 #include "theory/theory_engine.h"
+#include "prop/minisat/simp/SimpSolver.h"
+#include "prop/minisat/core/SolverTypes.h"
+
+#include <map>
 
 namespace CVC4 {
-namespace prop {
 
 // In terms of abstraction, this is below (and provides services to)
 // Prover and above (and requires the services of) a specific
 // propositional solver, DPLL or otherwise.
 
 class PropEngine {
-  DecisionEngine* d_de;
+  DecisionEngine &d_de;
+  TheoryEngine &d_te;
+  CVC4::prop::minisat::SimpSolver d_sat;
+  std::map<Expr, CVC4::prop::minisat::Var> d_vars;
+  std::map<CVC4::prop::minisat::Var, Expr> d_varsReverse;
+
+  void addVars(Expr);
 
 public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(DecisionEngine*, TheoryEngine*);
+  CVC4_PUBLIC PropEngine(CVC4::DecisionEngine&, CVC4::TheoryEngine&);
 
   /**
    * Converts to CNF if necessary.
@@ -39,7 +49,6 @@ public:
 
 };/* class PropEngine */
 
-}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP__PROP_ENGINE_H */
+#endif /* __CVC4__PROP_ENGINE_H */

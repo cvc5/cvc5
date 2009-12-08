@@ -20,6 +20,8 @@
 #include "util/result.h"
 #include "util/model.h"
 #include "util/options.h"
+#include "prop/prop_engine.h"
+#include "util/decision_engine.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -53,6 +55,15 @@ class SmtEngine {
 
   /** Expression built-up for handing off to the propagation engine */
   Expr d_expr;
+
+  /** The decision engine */
+  DecisionEngine d_de;
+
+  /** The decision engine */
+  TheoryEngine d_te;
+
+  /** The propositional engine */
+  PropEngine d_prop;
 
   /**
    * Pre-process an Expr.  This is expected to be highly-variable,
@@ -90,7 +101,14 @@ public:
   /*
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager* em, Options* opts) throw() : d_em(em), d_opts(opts), d_expr(Expr::null()) {}
+  SmtEngine(ExprManager* em, Options* opts) throw() :
+    d_em(em),
+    d_opts(opts),
+    d_expr(Expr::null()),
+    d_de(),
+    d_te(),
+    d_prop(d_de, d_te) {
+  }
 
   /**
    * Execute a command.
@@ -103,7 +121,7 @@ public:
    * literals and conjunction of literals.  Returns false iff
    * inconsistent.
    */
-  Result assert(Expr);
+  Result assertFormula(Expr);
 
   /**
    * Add a formula to the current context and call check().  Returns

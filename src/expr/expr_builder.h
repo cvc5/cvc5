@@ -96,7 +96,7 @@ public:
 
   // For pushing sequences of children
   ExprBuilder& append(const std::vector<Expr>& children) { return append(children.begin(), children.end()); }
-  ExprBuilder& append(Expr child) { return append(&child, &(child)+1); }
+  ExprBuilder& append(Expr child) { return append(&child, (&child) + 1); }
   template <class Iterator> ExprBuilder& append(const Iterator& begin, const Iterator& end);
 
   operator Expr();// not const
@@ -193,24 +193,47 @@ public:
 
 template <class Iterator>
 inline ExprBuilder& ExprBuilder::append(const Iterator& begin, const Iterator& end) {
+  for(Iterator i = begin; i != end; ++i)
+    addChild(*i);
   return *this;
 }
 
 // not const
 inline ExprBuilder::operator Expr() {
-  uint64_t hash = d_kind;
+  ExprValue *ev;
+  uint64_t hash;
 
-  for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
-    hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->hash();
+  // variables are permitted to be duplicates (from POV of the expression manager)
+  if(d_kind == VARIABLE) {
+    ev = new ExprValue;
+    hash = reinterpret_cast<uint64_t>(ev);
+  } else {
+    hash = d_kind;
 
-  void *space = std::malloc(sizeof(ExprValue) + d_nchildren * sizeof(Expr));
-  ExprValue *ev = new (space) ExprValue;
-  size_t nc = 0;
-  for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
-    ev->d_children[nc++] = Expr(*i);
+    if(d_nchildren <= nchild_thresh) {
+      for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
+        hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->hash();
+
+      void *space = std::calloc(1, sizeof(ExprValue) + d_nchildren * sizeof(Expr));
+      ev = new (space) ExprValue;
+      size_t nc = 0;
+      for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
+        ev->d_children[nc++] = Expr(*i);
+    } else {
+      for(std::vector<Expr>::iterator i = d_children.u_vec->begin(); i != d_children.u_vec->end(); ++i)
+        hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->hash();
+
+      void *space = std::calloc(1, sizeof(ExprValue) + d_nchildren * sizeof(Expr));
+      ev = new (space) ExprValue;
+      size_t nc = 0;
+      for(std::vector<Expr>::iterator i = d_children.u_vec->begin(); i != d_children.u_vec->end(); ++i)
+        ev->d_children[nc++] = Expr(*i);
+    }
+  }
+
   ev->d_nchildren = d_nchildren;
   ev->d_kind = d_kind;
-  ev->d_id = ExprValue::next_id++;
+  ev->d_id = ExprValue::next_id++;// FIXME multithreading
   ev->d_rc = 0;
   Expr e(ev);
 

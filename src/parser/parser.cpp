@@ -15,7 +15,7 @@
 
 #include "parser.h"
 #include "util/command.h"
-#include "util/assert.h"
+#include "util/Assert.h"
 #include "parser_exception.h"
 #include "parser/antlr_parser.h"
 #include "parser/smt/AntlrSmtParser.hpp"

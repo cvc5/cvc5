@@ -9,12 +9,16 @@
 
 #include "antlr_parser.h"
 #include "expr/expr_manager.h"
+#include "util/output.h"
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
 
-ostream& operator <<(ostream& out, AntlrParser::BenchmarkStatus status) {
+namespace CVC4 {
+namespace parser {
+
+ostream& operator<<(ostream& out, AntlrParser::BenchmarkStatus status) {
   switch(status) {
   case AntlrParser::SMT_SATISFIABLE:
     out << "sat";
@@ -63,7 +67,9 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
 }
 
 Expr AntlrParser::getVariable(std::string var_name) {
-  return d_var_symbol_table.getObject(var_name);
+  Expr e = d_var_symbol_table.getObject(var_name);
+  Debug("parser") << "getvar " << var_name << " gives " << e << endl;
+  return e;
 }
 
 Expr AntlrParser::getTrueExpr() const {
@@ -89,7 +95,7 @@ Expr AntlrParser::newExpression(Kind kind, const std::vector<Expr>& children) {
 void AntlrParser::newPredicate(std::string p_name, const std::vector<
     std::string>& p_sorts) {
   if(p_sorts.size() == 0)
-    d_var_symbol_table.bindName(p_name, d_expr_manager->mkExpr(VARIABLE));
+    d_var_symbol_table.bindName(p_name, d_expr_manager->mkVar());
   else
     Unhandled("Non unary predicate not supported yet!");
 }
@@ -161,3 +167,6 @@ Expr AntlrParser::createPrecedenceExpr(const std::vector<Expr>& exprs,
   Expr child_2 = createPrecedenceExpr(exprs, kinds, pivot + 1, end_index);
   return d_expr_manager->mkExpr(kinds[pivot], child_1, child_2);
 }
+
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */

@@ -5,4 +5,6 @@ AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libutil.la
 
 libutil_la_SOURCES = \
-	command.cpp
+	command.cpp \
+	decision_engine.cpp \
+	output.cpp

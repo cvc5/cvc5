@@ -21,7 +21,9 @@
 #ifndef __CVC4__EXPR__EXPR_VALUE_H
 #define __CVC4__EXPR__EXPR_VALUE_H
 
+#include "cvc4_config.h"
 #include <stdint.h>
+#include "kind.h"
 
 namespace CVC4 {
 
@@ -92,9 +94,7 @@ public:
   const_iterator rbegin() const;
   const_iterator rend() const;
 
-  void toString(std::ostream& out) {
-    out << Kind(d_kind);
-  }
+  void CVC4_PUBLIC toString(std::ostream& out) const;
 };
 
 }/* CVC4::expr namespace */

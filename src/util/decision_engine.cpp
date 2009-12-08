@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** literal.h
+/** decision_engine.cpp
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -9,14 +9,21 @@
  **
  **/
 
-#ifndef __CVC4__LITERAL_H
-#define __CVC4__LITERAL_H
+#include "util/decision_engine.h"
+#include "util/Assert.h"
+#include "util/literal.h"
 
 namespace CVC4 {
 
-class Literal {
-};
+DecisionEngine::~DecisionEngine() {
+}
+
+/**
+ * Only here to permit compilation and linkage.  This may be pure
+ * virtual in the final design (?)
+ */
+Literal DecisionEngine::nextDecision() {
+  Unreachable();
+}
 
 }/* CVC4 namespace */
-
-#endif /* __CVC4__LITERAL_H */

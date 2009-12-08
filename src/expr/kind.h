@@ -51,15 +51,16 @@ enum Kind {
 
 };/* enum Kind */
 
-}/* CVC4 namespace */
-
-inline std::ostream& operator<<(std::ostream&, const CVC4::Kind&) CVC4_PUBLIC;
-inline std::ostream& operator<<(std::ostream& out, const CVC4::Kind& k) {
+inline std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, CVC4::Kind k) {
   using namespace CVC4;
 
   switch(k) {
+
+  /* special cases */
   case UNDEFINED_KIND: out << "UNDEFINED_KIND"; break;
   case NULL_EXPR:      out << "NULL";           break;
+
   case EQUAL:          out << "EQUAL";          break;
   case ITE:            out << "ITE";            break;
   case SKOLEM:         out << "SKOLEM";         break;
@@ -87,5 +88,7 @@ inline std::ostream& operator<<(std::ostream& out, const CVC4::Kind& k) {
 
   return out;
 }
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4__KIND_H */

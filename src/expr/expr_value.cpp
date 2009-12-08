@@ -18,11 +18,11 @@
 
 namespace CVC4 {
 
+size_t ExprValue::next_id = 1;
+
 ExprValue::ExprValue() :
   d_id(0), d_rc(MAX_RC), d_kind(NULL_EXPR), d_nchildren(0) {
 }
-
-size_t ExprValue::next_id = 1;
 
 uint64_t ExprValue::hash() const {
   uint64_t hash = d_kind;
@@ -80,6 +80,20 @@ ExprValue::const_iterator ExprValue::rbegin() const {
 
 ExprValue::const_iterator ExprValue::rend() const {
   return d_children - 1;
+}
+
+void ExprValue::toString(std::ostream& out) const {
+  out << "(" << Kind(d_kind);
+  if(d_kind == VARIABLE) {
+    out << ":" << this;
+  } else {
+    for(const_iterator i = begin(); i != end(); ++i) {
+      if(i != end())
+        out << " ";
+      out << *i;
+    }
+  }
+  out << ")";
 }
 
 }/* CVC4 namespace */

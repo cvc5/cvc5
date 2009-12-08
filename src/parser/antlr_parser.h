@@ -18,7 +18,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/command.h"
-#include "util/assert.h"
+#include "util/Assert.h"
 #include "parser/symbol_table.h"
 
 namespace CVC4 {

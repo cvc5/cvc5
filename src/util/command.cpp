@@ -31,7 +31,7 @@ AssertCommand::AssertCommand(const Expr& e) :
 }
 
 void AssertCommand::invoke(SmtEngine* smt_engine) {
-  smt_engine->assert(d_expr);
+  smt_engine->assertFormula(d_expr);
 }
 
 CheckSatCommand::CheckSatCommand() {

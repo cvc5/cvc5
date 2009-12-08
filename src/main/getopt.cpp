@@ -25,6 +25,7 @@
 #include "util/exception.h"
 #include "usage.h"
 #include "about.h"
+#include "util/output.h"
 
 using namespace std;
 using namespace CVC4;
@@ -66,7 +67,7 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
     progName = x + 1;
   opts->binary_name = string(progName);
 
-  while((c = getopt_long(argc, argv, "+:hVvqL:", cmdlineOptions, NULL)) != -1) {
+  while((c = getopt_long(argc, argv, "+:hVvqL:d:", cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
     case 'h':
@@ -103,6 +104,9 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
 
       fputs(lang_help, stdout);
       exit(1);
+
+    case 'd':
+      Debug.on(optarg);
 
     case STATS:
       opts->statistics = true;

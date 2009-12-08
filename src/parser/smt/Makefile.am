@@ -18,7 +18,9 @@ libparsersmt_la_SOURCES = \
 BUILT_SOURCES = $(ANTLR_STUFF)
 CLEAN_FILES = $(ANTLR_STUFF)
 
-AntlrSmtLexer.cpp AntlrSmtLexer.hpp: SmtLexer.g
+AntlrSmtLexer.cpp: SmtLexer.g
 	$(ANTLR) -o "@builddir@" "$<"
-AntlrSmtParser.cpp AntlrSmtParser.hpp: SmtParser.g
+AntlrSmtParser.cpp: SmtParser.g SmtVocabularyTokenTypes.hpp SmtVocabularyTokenTypes.txt
 	$(ANTLR) -o "@builddir@" "$<"
+AntlrSmtLexer.hpp SmtVocabularyTokenTypes.hpp SmtVocabularyTokenTypes.txt: AntlrSmtLexer.cpp
+AntlrSmtParser.hpp: AntlrSmtParser.cpp

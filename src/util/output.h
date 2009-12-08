@@ -13,125 +13,164 @@
 #ifndef __CVC4__OUTPUT_H
 #define __CVC4__OUTPUT_H
 
+#include "cvc4_config.h"
+
 #include <iostream>
 #include <string>
+#include <cstdio>
+#include <cstdarg>
 #include <set>
+
 #include "util/exception.h"
 
 namespace CVC4 {
 
-class Debug {
+class null_streambuf : public std::streambuf {
+public:
+  int overflow(int c) { return c; }
+};/* class null_streambuf */
+
+extern null_streambuf null_sb;
+extern std::ostream null_os CVC4_PUBLIC;
+
+class CVC4_PUBLIC DebugC {
   std::set<std::string> d_tags;
-  std::ostream &d_out;
+  std::ostream *d_os;
 
 public:
-  static void operator()(const char* tag, const char*);
-  static void operator()(const char* tag, std::string);
-  static void operator()(string tag, const char*);
-  static void operator()(string tag, std::string);
-  static void operator()(const char*);// Yeting option
-  static void operator()(std::string);// Yeting option
+  DebugC(std::ostream* os) : d_os(os) {}
+
+  void operator()(const char* tag, const char*);
+  void operator()(const char* tag, std::string);
+  void operator()(std::string tag, const char*);
+  void operator()(std::string tag, std::string);
+  //void operator()(const char*);// Yeting option
+  //void operator()(std::string);// Yeting option
 
   static void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  static void printf(const char* tag, std::string fmt, ...) __attribute__ ((format(printf, 2, 3)));
   static void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  static void printf(std::string tag, std::string fmt, ...) __attribute__ ((format(printf, 2, 3)));
   // Yeting option not possible here
 
-  static std::ostream& operator()(const char* tag);
-  static std::ostream& operator()(std::string tag);
-  static std::ostream& operator()();// Yeting option
+  std::ostream& operator()(const char* tag) {
+    if(d_tags.find(tag) != d_tags.end())
+      return *d_os;
+    else return null_os;
+  }
+  std::ostream& operator()(std::string tag) {
+    if(d_tags.find(tag) != d_tags.end())
+      return *d_os;
+    else return null_os;
+  }
+  std::ostream& operator()();// Yeting option
 
-  static void on (const char* tag) { d_tags.insert(std::string(tag)); }
-  static void on (std::string tag) { d_tags.insert(tag);              }
-  static void off(const char* tag) { d_tags.erase (std::string(tag)); }
-  static void off(std::string tag) { d_tags.erase (tag);              }
+  void on (const char* tag) { d_tags.insert(std::string(tag)); }
+  void on (std::string tag) { d_tags.insert(tag);              }
+  void off(const char* tag) { d_tags.erase (std::string(tag)); }
+  void off(std::string tag) { d_tags.erase (tag);              }
 
-  static void setStream(std::ostream& os) { d_out = os; }
+  void setStream(std::ostream& os) { d_os = &os; }
 };/* class Debug */
 
+extern DebugC Debug CVC4_PUBLIC;
 
-class Warning {
-  std::ostream &d_out;
+class CVC4_PUBLIC WarningC {
+  std::ostream *d_os;
 
 public:
-  static void operator()(const char*);
-  static void operator()(std::string);
+  WarningC(std::ostream* os) : d_os(os) {}
 
-  static void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  static void printf(std::string fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  void operator()(const char* s) { *d_os << s; }
+  void operator()(std::string s) { *d_os << s; }
 
-  static std::ostream& operator()();
+  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
-  static void setStream(std::ostream& os) { d_out = os; }
+  std::ostream& operator()() { return *d_os; }
+
+  void setStream(std::ostream& os) { d_os = &os; }
 };/* class Warning */
 
+extern WarningC Warning CVC4_PUBLIC;
 
-class Notice {
-  std::ostream &d_os;
+class CVC4_PUBLIC NoticeC {
+  std::ostream *d_os;
 
 public:
-  static void operator()(const char*);
-  static void operator()(std::string);
+  NoticeC(std::ostream* os) : d_os(os) {}
 
-  static void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  static void printf(std::string fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  void operator()(const char*);
+  void operator()(std::string);
 
-  static std::ostream& operator()();
+  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
-  static void setStream(std::ostream& os) { d_out = os; }
+  std::ostream& operator()() { return *d_os; }
+
+  void setStream(std::ostream& os) { d_os = &os; }
 };/* class Notice */
 
+extern NoticeC Notice CVC4_PUBLIC;
 
-class Chat {
-  std::ostream &d_os;
+class CVC4_PUBLIC ChatC {
+  std::ostream *d_os;
 
 public:
-  static void operator()(const char*);
-  static void operator()(std::string);
+  ChatC(std::ostream* os) : d_os(os) {}
 
-  static void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  static void printf(std::string fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  void operator()(const char*);
+  void operator()(std::string);
 
-  static std::ostream& operator()();
+  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
-  static void setStream(std::ostream& os) { d_out = os; }
+  std::ostream& operator()() { return *d_os; }
+
+  void setStream(std::ostream& os) { d_os = &os; }
 };/* class Chat */
 
+extern ChatC Chat CVC4_PUBLIC;
 
-class Trace {
-  std::ostream &d_os;
+class CVC4_PUBLIC TraceC {
+  std::ostream *d_os;
+  std::set<std::string> d_tags;
 
 public:
-  static void operator()(const char* tag, const char*);
-  static void operator()(const char* tag, std::string);
-  static void operator()(string tag, const char*);
-  static void operator()(string tag, std::string);
+  TraceC(std::ostream* os) : d_os(os) {}
 
-  static void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3))) {
+  void operator()(const char* tag, const char*);
+  void operator()(const char* tag, std::string);
+  void operator()(std::string tag, const char*);
+  void operator()(std::string tag, std::string);
+
+  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {
+    char buf[1024];
     va_list vl;
     va_start(vl, fmt);
-    vfprintf(buf, 1024, fmt, vl);
+    vsnprintf(buf, sizeof(buf), fmt, vl);
     va_end(vl);
+    *d_os << buf;
   }
-  static void printf(const char* tag, std::string fmt, ...) __attribute__ ((format(printf, 2, 3))) {
-  }
-  static void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3))) {
-  }
-  static void printf(std::string tag, std::string fmt, ...) __attribute__ ((format(printf, 2, 3))) {
+  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {
   }
 
-  static std::ostream& operator()(const char* tag);
-  static std::ostream& operator()(std::string tag);
+  std::ostream& operator()(const char* tag) {
+    if(d_tags.find(tag) != d_tags.end())
+      return *d_os;
+    else return null_os;
+  }
 
-  static void on (const char* tag) { d_tags.insert(std::string(tag)); };
-  static void on (std::string tag) { d_tags.insert(tag);              };
-  static void off(const char* tag) { d_tags.erase (std::string(tag)); };
-  static void off(std::string tag) { d_tags.erase (tag);              };
+  std::ostream& operator()(std::string tag) {
+    if(d_tags.find(tag) != d_tags.end())
+      return *d_os;
+    else return null_os;
+  }
 
-  static void setStream(std::ostream& os) { d_out = os; }
+  void on (const char* tag) { d_tags.insert(std::string(tag)); };
+  void on (std::string tag) { d_tags.insert(tag);              };
+  void off(const char* tag) { d_tags.erase (std::string(tag)); };
+  void off(std::string tag) { d_tags.erase (tag);              };
+
+  void setStream(std::ostream& os) { d_os = &os; }
 };/* class Trace */
 
+extern TraceC Trace CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

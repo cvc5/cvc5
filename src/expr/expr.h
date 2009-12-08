@@ -60,19 +60,23 @@ class CVC4_PUBLIC Expr {
 public:
 
   /** Default constructor, makes a null expression. */
-  CVC4_PUBLIC Expr();
+  Expr();
 
-  CVC4_PUBLIC Expr(const Expr&);
+  Expr(const Expr&);
 
   /** Destructor.  Decrements the reference count and, if zero,
    *  collects the ExprValue. */
-  CVC4_PUBLIC ~Expr();
+  ~Expr();
 
-  Expr& operator=(const Expr&) CVC4_PUBLIC;
+  bool operator==(const Expr& e) const { return d_ev == e.d_ev; }
+  bool operator!=(const Expr& e) const { return d_ev != e.d_ev; }
+  bool operator<(const Expr& e) const { return d_ev < e.d_ev; }// for map key
+
+  Expr& operator=(const Expr&);
 
   /** Access to the encapsulated expression.
    *  @return the encapsulated expression. */
-  ExprValue* operator->() const CVC4_PUBLIC;
+  ExprValue* operator->() const;
 
   uint64_t hash() const;
 

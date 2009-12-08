@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cstring>
 #include <new>
 
 #include "config.h"
@@ -22,6 +23,7 @@
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "util/command.h"
+#include "util/output.h"
 
 using namespace std;
 using namespace CVC4;
@@ -44,17 +46,41 @@ int main(int argc, char *argv[]) {
     if(options.smtcomp_mode)
       cout << unitbuf;
 
-        // We only accept one input file
+    // We only accept one input file
     if(argc > firstArgIndex + 1)
       throw new Exception("Too many input files specified.");
 
     // Create the expression manager
     ExprManager exprMgr;
+
     // Create the SmtEngine
     SmtEngine smt(&exprMgr, &options);
 
     // If no file supplied we read from standard input
     bool inputFromStdin = firstArgIndex >= argc;
+
+    if(!inputFromStdin && options.lang == Options::LANG_AUTO) {
+      if(!strcmp(".smt", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4))
+        options.lang = Options::LANG_SMTLIB;
+      else if(!strcmp(".cvc", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4) ||
+              !strcmp(".cvc4", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 5))
+        options.lang = Options::LANG_CVC4;
+    }
+
+    if(options.smtcomp_mode) {
+      Debug.setStream(CVC4::null_os);
+      Trace.setStream(CVC4::null_os);
+      Notice.setStream(CVC4::null_os);
+      Chat.setStream(CVC4::null_os);
+      Warning.setStream(CVC4::null_os);
+    } else {
+      if(options.verbosity < 2)
+        Chat.setStream(CVC4::null_os);
+      if(options.verbosity < 1)
+        Notice.setStream(CVC4::null_os);
+      if(options.verbosity < 0)
+        Warning.setStream(CVC4::null_os);
+    }
 
     // Create the parser
     Parser* parser;
@@ -79,7 +105,7 @@ int main(int argc, char *argv[]) {
       abort();
     }
 
-    // Parse the and execute commands until we are done
+    // Parse and execute commands until we are done
     while(!parser->done()) {
       // Parse the next command
       Command *cmd = parser->parseNextCommand();
