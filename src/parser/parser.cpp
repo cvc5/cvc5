@@ -18,10 +18,10 @@
 #include "util/Assert.h"
 #include "parser_exception.h"
 #include "parser/antlr_parser.h"
-#include "parser/smt/AntlrSmtParser.hpp"
-#include "parser/smt/AntlrSmtLexer.hpp"
-#include "parser/cvc/AntlrCvcParser.hpp"
-#include "parser/cvc/AntlrCvcLexer.hpp"
+#include "parser/smt/generated/AntlrSmtParser.hpp"
+#include "parser/smt/generated/AntlrSmtLexer.hpp"
+#include "parser/cvc/generated/AntlrCvcParser.hpp"
+#include "parser/cvc/generated/AntlrCvcLexer.hpp"
 
 using namespace std;
 

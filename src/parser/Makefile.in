@@ -296,7 +296,7 @@ top_srcdir = @top_srcdir@
 #
 LIBCVC4PARSER_RELEASE = @CVC4_LIBRARY_RELEASE_CODE@
 LIBCVC4PARSER_VERSION = @CVC4_PARSER_LIBRARY_VERSION@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
+INCLUDES = -I@srcdir@/../include -I@srcdir@/.. $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4PARSERLIB
 SUBDIRS = smt cvc

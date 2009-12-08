@@ -52,8 +52,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libparsercvc_la_LIBADD =
-am__objects_1 = AntlrCvcLexer.lo AntlrCvcParser.lo
-am_libparsercvc_la_OBJECTS = $(am__objects_1)
+am__objects_1 =
+am__objects_2 = AntlrCvcLexer.lo $(am__objects_1)
+am__objects_3 = AntlrCvcParser.lo
+am__objects_4 = $(am__objects_2) $(am__objects_3)
+am_libparsercvc_la_OBJECTS = $(am__objects_4)
 libparsercvc_la_OBJECTS = $(am_libparsercvc_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -220,11 +223,24 @@ INCLUDES = -I@srcdir@/../../include -I@srcdir@/../.. -I@builddir@/../..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4PARSERLIB
 noinst_LTLIBRARIES = libparsercvc.la
+ANTLR_TOKEN_STUFF = \
+	@srcdir@/generated/CvcVocabularyTokenTypes.hpp \
+	@srcdir@/generated/CvcVocabularyTokenTypes.txt \
+	@srcdir@/generated/AntlrCvcParserTokenTypes.hpp \
+	@srcdir@/generated/AntlrCvcParserTokenTypes.txt
+
+ANTLR_LEXER_STUFF = \
+	@srcdir@/generated/AntlrCvcLexer.hpp \
+	@srcdir@/generated/AntlrCvcLexer.cpp \
+	$(ANTLR_TOKEN_STUFF)
+
+ANTLR_PARSER_STUFF = \
+	@srcdir@/generated/AntlrCvcParser.hpp \
+	@srcdir@/generated/AntlrCvcParser.cpp
+
 ANTLR_STUFF = \
-	AntlrCvcLexer.hpp \
-	AntlrCvcLexer.cpp \
-	AntlrCvcParser.hpp \
-	AntlrCvcParser.cpp 
+	$(ANTLR_LEXER_STUFF) \
+	$(ANTLR_PARSER_STUFF)
 
 libparsercvc_la_SOURCES = \
 	CvcLexer.g \
@@ -232,7 +248,7 @@ libparsercvc_la_SOURCES = \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)
-CLEAN_FILES = $(ANTLR_STUFF)
+MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -309,6 +325,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+AntlrCvcLexer.lo: @srcdir@/generated/AntlrCvcLexer.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AntlrCvcLexer.lo -MD -MP -MF $(DEPDIR)/AntlrCvcLexer.Tpo -c -o AntlrCvcLexer.lo `test -f '@srcdir@/generated/AntlrCvcLexer.cpp' || echo '$(srcdir)/'`@srcdir@/generated/AntlrCvcLexer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AntlrCvcLexer.Tpo $(DEPDIR)/AntlrCvcLexer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='@srcdir@/generated/AntlrCvcLexer.cpp' object='AntlrCvcLexer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AntlrCvcLexer.lo `test -f '@srcdir@/generated/AntlrCvcLexer.cpp' || echo '$(srcdir)/'`@srcdir@/generated/AntlrCvcLexer.cpp
+
+AntlrCvcParser.lo: @srcdir@/generated/AntlrCvcParser.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AntlrCvcParser.lo -MD -MP -MF $(DEPDIR)/AntlrCvcParser.Tpo -c -o AntlrCvcParser.lo `test -f '@srcdir@/generated/AntlrCvcParser.cpp' || echo '$(srcdir)/'`@srcdir@/generated/AntlrCvcParser.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AntlrCvcParser.Tpo $(DEPDIR)/AntlrCvcParser.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='@srcdir@/generated/AntlrCvcParser.cpp' object='AntlrCvcParser.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AntlrCvcParser.lo `test -f '@srcdir@/generated/AntlrCvcParser.cpp' || echo '$(srcdir)/'`@srcdir@/generated/AntlrCvcParser.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -398,6 +428,9 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
@@ -430,6 +463,7 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
@@ -504,25 +538,38 @@ uninstall-am:
 .MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES ctags distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags uninstall uninstall-am
+	clean-libtool clean-noinstLTLIBRARIES ctags dist-hook \
+	distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am
 
+dist-hook: $(ANTLR_STUFF)
+maintainerclean-local:
+	-rmdir @srcdir@/generated
+	-rm -f @srcdir@/stamp-generated
 
-AntlrCvcLexer.cpp: CvcLexer.g
-	$(ANTLR) -o "@builddir@" "$<"
-AntlrCvcParser.cpp: CvcParser.g CvcVocabularyTokenTypes.hpp CvcVocabularyTokenTypes.txt
-	$(ANTLR) -o "@builddir@" "$<"
-AntlrCvcLexer.hpp CvcVocabularyTokenTypes.hpp CvcVocabularyTokenTypes.txt: AntlrCvcLexer.cpp
-AntlrCvcParser.hpp: AntlrCvcParser.cpp
+@srcdir@/stamp-generated:
+	mkdir -p @srcdir@/generated
+	touch @srcdir@/stamp-generated
+# antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
+$(ANTLR_LEXER_STUFF): CvcLexer.g @srcdir@/generated
+	-rm -f $(ANTLR_LEXER_STUFF)
+	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/CvcLexer.g"
+# doesn't actually depend on the lexer, but if we're doing parallel
+# make and the lexer needs to be rebuilt, we have to keep the rules
+# from running in parallel (since the token files will be deleted &
+# recreated)
+$(ANTLR_PARSER_STUFF): CvcParser.g CvcLexer.g $(ANTLR_TOKEN_STUFF) @srcdir@/generated
+	-rm -f $(ANTLR_PARSER_STUFF)
+	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/CvcParser.g"
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
