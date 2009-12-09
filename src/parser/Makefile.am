@@ -31,7 +31,7 @@ libcvc4parser_la_LIBADD = \
 libcvc4parser_la_SOURCES = \
 	parser.h \
 	parser.cpp \
+	parser_exception.h \
 	symbol_table.h \
 	antlr_parser.h \
 	antlr_parser.cpp
-

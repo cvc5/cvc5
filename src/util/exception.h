@@ -31,7 +31,7 @@ public:
   Exception(const char* msg) : d_msg(msg) {}
   // Destructor
   virtual ~Exception() {}
-  // NON-VIRTUAL METHODs for setting and printing the error message
+  // NON-VIRTUAL METHOD for setting and printing the error message
   void setMessage(const std::string& msg) { d_msg = msg; }
   // Printing: feel free to redefine toString().  When inherited,
   // it's recommended that this method print the type of exception
@@ -41,19 +41,9 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const Exception& e);
 };/* class Exception */
 
-
-class CVC4_PUBLIC IllegalArgumentException : public Exception {
-public:
-  IllegalArgumentException() : Exception("Illegal argument to method or function") {}
-  IllegalArgumentException(const std::string& msg) : Exception(msg) {}
-  IllegalArgumentException(const char* msg) : Exception(msg) {}
-};/* class IllegalArgumentException */
-
-
 inline std::ostream& operator<<(std::ostream& os, const Exception& e) {
   return os << e.toString();
 }
-
 
 }/* CVC4 namespace */
 

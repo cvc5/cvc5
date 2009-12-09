@@ -52,7 +52,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libutil_la_LIBADD =
-am_libutil_la_OBJECTS = command.lo decision_engine.lo output.lo
+am_libutil_la_OBJECTS = Assert.lo command.lo decision_engine.lo \
+	output.lo
 libutil_la_OBJECTS = $(am_libutil_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -66,6 +67,15 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libutil_la_SOURCES)
 DIST_SOURCES = $(libutil_la_SOURCES)
@@ -211,9 +221,23 @@ AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libutil.la
 libutil_la_SOURCES = \
+	Assert.h \
+	Assert.cpp \
+	Makefile.am \
+	Makefile.in \
 	command.cpp \
+	command.h \
+	debug.h \
 	decision_engine.cpp \
-	output.cpp
+	decision_engine.h \
+	exception.h \
+	literal.h \
+	model.h \
+	options.h \
+	output.cpp \
+	output.h \
+	result.h \
+	unique_id.h
 
 all: all-am
 
@@ -267,6 +291,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Assert.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/command.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/decision_engine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/output.Plo@am__quote@

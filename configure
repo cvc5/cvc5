@@ -15750,14 +15750,55 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # Check whether --with-antlr was given.
 if test "${with_antlr+set}" = set; then :
   withval=$with_antlr; ANTLR="$withval"
-else
-  ANTLR="runantlr"
-
 fi
 
 
   # Check the existance of the runantlr script
-  # Extract the first word of ""$ANTLR"", so it can be a program name with args.
+  if test -z "$ANTLR"; then
+    for ac_prog in runantlr antlr
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_ANTLR+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ANTLR"; then
+  ac_cv_prog_ANTLR="$ANTLR" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_ANTLR="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ANTLR=$ac_cv_prog_ANTLR
+if test -n "$ANTLR"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ANTLR" >&5
+$as_echo "$ANTLR" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$ANTLR" && break
+done
+
+  else
+    # Extract the first word of ""$ANTLR"", so it can be a program name with args.
 set dummy "$ANTLR"; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -15794,6 +15835,7 @@ $as_echo "no" >&6; }
 fi
 
 
+  fi
   if test no$ANTLR = "no";
   then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Couldn't find the runantlr script, make sure that the parser code has
@@ -16058,7 +16100,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   for antlr_prefix in $ANTLR_PREFIXES
   do
     CPPFLAGS="$OLD_CPPFLAGS -I$antlr_prefix/include"
-    LIBS="$OLD_LIBS -L$antlr_prefix/lib -lantlr"
+    LIBS="$OLD_LIBS -L$antlr_prefix/lib -lantlr-pic"
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -16080,9 +16122,37 @@ $as_echo "found in $antlr_prefix" >&6; }
 
 else
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        CPPFLAGS="$OLD_CPPFLAGS -I$antlr_prefix/include"
+        LIBS="$OLD_LIBS -L$antlr_prefix/lib -lantlr"
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+            #include <antlr/CommonAST.hpp>
+            class MyAST : public ANTLR_USE_NAMESPACE(antlr)CommonAST {
+            };
+            int main() {
+              MyAST ast;
+            }
+
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: found in $antlr_prefix" >&5
+$as_echo "found in $antlr_prefix" >&6; }
+            ANTLR_INCLUDES="-I$antlr_prefix/include"
+            ANTLR_LDFLAGS="-L$antlr_prefix/lib -lantlr"
+            break
+
+else
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-        as_fn_error "ANTLR C++ runtime not found, see <http://www.antlr.org/>" "$LINENO" 5
+            as_fn_error "ANTLR C++ runtime not found, see <http://www.antlr.org/>" "$LINENO" 5
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 
 
 fi

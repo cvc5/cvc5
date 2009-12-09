@@ -67,6 +67,15 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 SOURCES = $(libminisat_la_SOURCES)
 DIST_SOURCES = $(libminisat_la_SOURCES)
 ETAGS = etags
@@ -212,7 +221,26 @@ AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libminisat.la
 libminisat_la_SOURCES = \
 	core/Solver.C \
-	simp/SimpSolver.C
+	core/Solver.h \
+	core/SolverTypes.h \
+	simp/SimpSolver.C \
+	simp/SimpSolver.h
+
+EXTRA_DIST = \
+	core/Main.C \
+	core/Makefile \
+	simp/Main.C \
+	simp/Makefile \
+	README \
+	LICENSE \
+	mtl/Heap.h \
+	mtl/Map.h \
+	mtl/Queue.h \
+	mtl/Alg.h \
+	mtl/Sort.h \
+	mtl/BasicHeap.h \
+	mtl/BoxedVec.h \
+	mtl/template.mk
 
 all: all-am
 

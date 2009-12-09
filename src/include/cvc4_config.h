@@ -34,3 +34,4 @@
 
 #define EXPECT_TRUE(x) __builtin_expect( (x), true)
 #define EXPECT_FALSE(x) __builtin_expect( (x), false)
+#define NORETURN __attribute__ ((noreturn))

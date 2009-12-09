@@ -1,4 +1,4 @@
-INCLUDES = -I@srcdir@/../../include -I@srcdir@/../.. -I@builddir@/../..
+INCLUDES = -I@srcdir@/../../include -I@srcdir@/../..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4PARSERLIB
 
@@ -21,8 +21,10 @@ ANTLR_STUFF = \
 	$(ANTLR_PARSER_STUFF)
 
 libparsercvc_la_SOURCES = \
-	CvcLexer.g \
-	CvcParser.g \
+	cvc_lexer.g \
+	cvc_parser.g \
+	cvc_parser.h \
+	cvc_parser.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)
@@ -36,13 +38,15 @@ maintainer-clean-local:
 	mkdir -p @srcdir@/generated
 	touch @srcdir@/stamp-generated
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-$(ANTLR_LEXER_STUFF): CvcLexer.g @srcdir@/stamp-generated
+@srcdir@/generated/AntlrCvcLexer.hpp: cvc_lexer.g @srcdir@/stamp-generated
 	-rm -f $(ANTLR_LEXER_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/CvcLexer.g"
+	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/cvc_lexer.g"
+@srcdir@/generated/AntlrCvcLexer.cpp $(ANTLR_TOKEN_STUFF): @srcdir@/generated/AntlrCvcLexer.hpp
 # doesn't actually depend on the lexer, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-$(ANTLR_PARSER_STUFF): CvcParser.g CvcLexer.g $(ANTLR_TOKEN_STUFF) @srcdir@/stamp-generated
+@srcdir@/generated/AntlrCvcParser.hpp: cvc_parser.g cvc_lexer.g $(ANTLR_TOKEN_STUFF) @srcdir@/stamp-generated
 	-rm -f $(ANTLR_PARSER_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/CvcParser.g"
+	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/cvc_parser.g"
+@srcdir@/generated/AntlrCvcParser.cpp: @srcdir@/generated/AntlrCvcParser.hpp

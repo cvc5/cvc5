@@ -5,4 +5,23 @@ AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libminisat.la
 libminisat_la_SOURCES = \
 	core/Solver.C \
-	simp/SimpSolver.C
+	core/Solver.h \
+	core/SolverTypes.h \
+	simp/SimpSolver.C \
+	simp/SimpSolver.h
+
+EXTRA_DIST = \
+	core/Main.C \
+	core/Makefile \
+	simp/Main.C \
+	simp/Makefile \
+	README \
+	LICENSE \
+	mtl/Heap.h \
+	mtl/Map.h \
+	mtl/Queue.h \
+	mtl/Alg.h \
+	mtl/Sort.h \
+	mtl/BasicHeap.h \
+	mtl/BoxedVec.h \
+	mtl/template.mk

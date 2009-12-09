@@ -67,6 +67,15 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 SOURCES = $(libprop_la_SOURCES)
 DIST_SOURCES = $(libprop_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -249,7 +258,9 @@ AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libprop.la
 libprop_la_SOURCES = \
-	prop_engine.cpp
+	prop_engine.cpp \
+	prop_engine.h \
+	sat.h
 
 SUBDIRS = minisat
 all: all-recursive

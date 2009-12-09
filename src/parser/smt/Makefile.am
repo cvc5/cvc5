@@ -1,4 +1,4 @@
-INCLUDES = -I@srcdir@/../../include -I@srcdir@/../.. -I@builddir@/../..
+INCLUDES = -I@srcdir@/../../include -I@srcdir@/../..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 AM_CPPFLAGS = -D__BUILDING_CVC4PARSERLIB
 
@@ -21,8 +21,10 @@ ANTLR_STUFF = \
 	$(ANTLR_PARSER_STUFF)
 
 libparsersmt_la_SOURCES = \
-	SmtLexer.g \
-	SmtParser.g \
+	smt_lexer.g \
+	smt_parser.g \
+	smt_parser.h \
+	smt_parser.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)
@@ -36,13 +38,15 @@ maintainer-clean-local:
 	mkdir -p @srcdir@/generated
 	touch @srcdir@/stamp-generated
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-$(ANTLR_LEXER_STUFF): SmtLexer.g @srcdir@/stamp-generated
+@srcdir@/generated/AntlrSmtLexer.hpp: smt_lexer.g @srcdir@/stamp-generated
 	-rm -f $(ANTLR_LEXER_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/SmtLexer.g"
+	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/smt_lexer.g"
+@srcdir@/generated/AntlrSmtLexer.cpp $(ANTLR_TOKEN_STUFF): @srcdir@/generated/AntlrSmtLexer.hpp
 # doesn't actually depend on the lexer, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-$(ANTLR_PARSER_STUFF): SmtParser.g SmtLexer.g $(ANTLR_TOKEN_STUFF) @srcdir@/stamp-generated
+@srcdir@/generated/AntlrSmtParser.hpp: smt_parser.g smt_lexer.g $(ANTLR_TOKEN_STUFF) @srcdir@/stamp-generated
 	-rm -f $(ANTLR_PARSER_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/SmtParser.g"
+	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/smt_parser.g"
+@srcdir@/generated/AntlrSmtParser.cpp: @srcdir@/generated/AntlrSmtParser.hpp

@@ -20,6 +20,8 @@
 #include "main.h"
 #include "usage.h"
 #include "parser/parser.h"
+#include "parser/smt/smt_parser.h"
+#include "parser/cvc/cvc_parser.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "util/command.h"
@@ -82,20 +84,16 @@ int main(int argc, char *argv[]) {
         Warning.setStream(CVC4::null_os);
     }
 
+    const char* fname = inputFromStdin ? argv[firstArgIndex] : "stdin";
+
     // Create the parser
     Parser* parser;
     switch(options.lang) {
     case Options::LANG_SMTLIB:
-      if(inputFromStdin)
-        parser = new SmtParser(&exprMgr, cin);
-      else
-        parser = new SmtParser(&exprMgr, argv[firstArgIndex]);
+      parser = new SmtParser(&exprMgr, cin, fname);
       break;
     case Options::LANG_CVC4:
-      if(inputFromStdin)
-        parser = new CvcParser(&exprMgr, cin);
-      else
-        parser = new CvcParser(&exprMgr, argv[firstArgIndex]);
+      parser = new CvcParser(&exprMgr, cin, fname);
       break;
     case Options::LANG_AUTO:
       cerr << "Auto language detection not supported yet." << endl;

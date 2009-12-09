@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** assert.h
+/** Assert.h
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,13 +7,15 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Assertion utility classes, functions, and exceptions.
+ ** Assertion utility classes, functions, exceptions, and macros.
  **/
 
 #ifndef __CVC4__ASSERT_H
 #define __CVC4__ASSERT_H
 
 #include <string>
+#include <cstdio>
+#include <cstdarg>
 #include "util/exception.h"
 #include "cvc4_config.h"
 #include "config.h"
@@ -21,90 +23,135 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC AssertionException : public Exception {
-public:
+protected:
+  void construct(const char* header, const char* extra,
+                 const char* function, const char* file,
+                 unsigned line, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    construct(header, extra, function, file, line, fmt, args);
+    va_end(args);
+  }
+  void construct(const char* header, const char* extra,
+                 const char* function, const char* file,
+                 unsigned line, const char* fmt, va_list args);
+  void construct(const char* header, const char* extra,
+                 const char* function, const char* file,
+                 unsigned line);
+
   AssertionException() : Exception() {}
-  AssertionException(std::string msg) : Exception(msg) {}
-  AssertionException(const char* msg) : Exception(msg) {}
+
+public:
+  AssertionException(const char* extra, const char* function,
+                     const char* file, unsigned line,
+                     const char* fmt, ...) :
+    Exception() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Assertion failure", extra, function, file, line, fmt, args);
+    va_end(args);
+  }
+
+  AssertionException(const char* extra, const char* function,
+                     const char* file, unsigned line) :
+    Exception() {
+    construct("Assertion failure", extra, function, file, line);
+  }
 };/* class AssertionException */
 
 class CVC4_PUBLIC UnreachableCodeException : public AssertionException {
-public:
+protected:
   UnreachableCodeException() : AssertionException() {}
-  UnreachableCodeException(std::string msg) : AssertionException(msg) {}
-  UnreachableCodeException(const char* msg) : AssertionException(msg) {}
+
+public:
+  UnreachableCodeException(const char* function, const char* file,
+                           unsigned line, const char* fmt, ...) :
+    AssertionException() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Unreachable code reached",
+              NULL, function, file, line, fmt, args);
+    va_end(args);
+  }
+
+  UnreachableCodeException(const char* function, const char* file,
+                           unsigned line) :
+    AssertionException() {
+    construct("Unreachable code reached", NULL, function, file, line);
+  }
 };/* class UnreachableCodeException */
 
 class CVC4_PUBLIC UnhandledCaseException : public UnreachableCodeException {
-public:
+protected:
   UnhandledCaseException() : UnreachableCodeException() {}
-  UnhandledCaseException(std::string msg) : UnreachableCodeException(msg) {}
-  UnhandledCaseException(const char* msg) : UnreachableCodeException(msg) {}
+
+public:
+  UnhandledCaseException(const char* function, const char* file,
+                         unsigned line, const char* fmt, ...) :
+    UnreachableCodeException() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Unhandled case encountered",
+              NULL, function, file, line, fmt, args);
+    va_end(args);
+  }
+
+  UnhandledCaseException(const char* function, const char* file,
+                         unsigned line, int theCase) :
+    UnreachableCodeException() {
+    construct("Unhandled case encountered",
+              NULL, function, file, line, "The case was: %d", theCase);
+  }
+
+  UnhandledCaseException(const char* function, const char* file,
+                         unsigned line) :
+    UnreachableCodeException() {
+    construct("Unhandled case encountered", NULL, function, file, line);
+  }
 };/* class UnhandledCaseException */
 
+class CVC4_PUBLIC IllegalArgumentException : public AssertionException {
+protected:
+  IllegalArgumentException() : AssertionException() {}
+
+public:
+  IllegalArgumentException(const char* argDesc, const char* function,
+                           const char* file, unsigned line,
+                           const char* fmt, ...) :
+    AssertionException() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Illegal argument detected",
+              argDesc, function, file, line, fmt, args);
+    va_end(args);
+  }
+
+  IllegalArgumentException(const char* argDesc, const char* function,
+                           const char* file, unsigned line) :
+    AssertionException() {
+    construct("Illegal argument detected",
+              argDesc, function, file, line);
+  }
+};/* class IllegalArgumentException */
+
+#define AlwaysAssert(cond, msg...) \
+  do { \
+    if(EXPECT_FALSE( ! (cond) )) { \
+      throw AssertionException(#cond, __FUNCTION__, __FILE__, __LINE__, ## msg); \
+    } \
+  } while(0)
+#define Unreachable(msg...) \
+  throw UnreachableCodeException(__FUNCTION__, __FILE__, __LINE__, ## msg)
+#define Unhandled(msg...) \
+  throw UnhandledCaseException(__FUNCTION__, __FILE__, __LINE__, ## msg)
+#define IllegalArgument(arg, msg...) \
+  throw IllegalArgumentException(#arg, __FUNCTION__, __FILE__, __LINE__, ## msg)
+
 #ifdef CVC4_ASSERTIONS
-#  define Assert(cond, msg...) __CVC4_ASSERTGLUE("Assertion failure at " __FILE__ ":", __LINE__, ":  " #cond, __builtin_expect((cond), 1), ## msg)
+#  define Assert(cond, msg...) AlwaysAssert(cond, ## msg)
 #else /* ! CVC4_ASSERTIONS */
 #  define Assert(cond, msg...) /*EXPECT_TRUE( cond )*/
 #endif /* CVC4_ASSERTIONS */
-
-#define AlwaysAssert(cond, msg...) __CVC4_ASSERTGLUE("Assertion failure at " __FILE__ ":", __LINE__, ":  " #cond, __builtin_expect((cond), 1), ## msg)
-#define Unreachable(msg...) __CVC4_UNREACHABLEGLUE("Hit a section of unreachable code at " __FILE__ ":", __LINE__, ## msg)
-#define Unhandled(msg...) __CVC4_UNHANDLEDGLUE("Hit an unhandled case at " __FILE__ ":", __LINE__, ## msg)
-
-#define __CVC4_ASSERTGLUE(str1, line, str2, cond, msg...) AssertImpl(str1 #line str2, cond, ## msg)
-#define __CVC4_UNREACHABLEGLUE(str, line, msg...) UnreachableImpl(str #line, ## msg)
-#define __CVC4_UNHANDLEDGLUE(str, line, msg...) UnhandledImpl(str #line, ## msg)
-
-inline void AssertImpl(const char* info, bool cond, std::string msg) {
-  if(EXPECT_FALSE( ! cond ))
-    throw AssertionException(std::string(info) + "\n" + msg);
-}
-
-inline void AssertImpl(const char* info, bool cond, const char* msg) {
-  if(EXPECT_FALSE( ! cond ))
-    throw AssertionException(std::string(info) + "\n" + msg);
-}
-
-inline void AssertImpl(const char* info, bool cond) {
-  if(EXPECT_FALSE( ! cond ))
-    throw AssertionException(info);
-}
-
-#ifdef __GNUC__
-inline void UnreachableImpl(const char* info, std::string msg) __attribute__ ((noreturn));
-inline void UnreachableImpl(const char* info, const char* msg) __attribute__ ((noreturn));
-inline void UnreachableImpl(const char* info) __attribute__ ((noreturn));
-#endif /* __GNUC__ */
-
-inline void UnreachableImpl(const char* info, std::string msg) {
-  throw UnreachableCodeException(std::string(info) + "\n" + msg);
-}
-
-inline void UnreachableImpl(const char* info, const char* msg) {
-  throw UnreachableCodeException(std::string(info) + "\n" + msg);
-}
-
-inline void UnreachableImpl(const char* info) {
-  throw UnreachableCodeException(info);
-}
-
-#ifdef __GNUC__
-inline void UnhandledImpl(const char* info, std::string msg) __attribute__ ((noreturn));
-inline void UnhandledImpl(const char* info, const char* msg) __attribute__ ((noreturn));
-inline void UnhandledImpl(const char* info) __attribute__ ((noreturn));
-#endif /* __GNUC__ */
-
-inline void UnhandledImpl(const char* info, std::string msg) {
-  throw UnhandledCaseException(std::string(info) + "\n" + msg);
-}
-
-inline void UnhandledImpl(const char* info, const char* msg) {
-  throw UnhandledCaseException(std::string(info) + "\n" + msg);
-}
-
-inline void UnhandledImpl(const char* info) {
-  throw UnhandledCaseException(info);
-}
 
 }/* CVC4 namespace */
 

@@ -34,4 +34,3 @@ else
 TESTS = no_cxxtest
 
 endif
-
