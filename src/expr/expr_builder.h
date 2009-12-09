@@ -17,6 +17,7 @@
 
 #include "expr_manager.h"
 #include "kind.h"
+#include "util/Assert.h"
 
 namespace CVC4 {
 
@@ -43,7 +44,7 @@ class ExprBuilder {
     std::vector<Expr>* u_vec;
   } d_children;
 
-  void addChild(const Expr&);
+  void addChild(const Expr& e) { addChild(e.d_ev); }
   void addChild(ExprValue*);
   ExprBuilder& collapse();
 
@@ -203,26 +204,27 @@ inline ExprBuilder::operator Expr() {
   ExprValue *ev;
   uint64_t hash;
 
+  Assert(d_kind != UNDEFINED_KIND, "Can't make an expression of an undefined kind!");
+
   // variables are permitted to be duplicates (from POV of the expression manager)
   if(d_kind == VARIABLE) {
     ev = new ExprValue;
     hash = reinterpret_cast<uint64_t>(ev);
   } else {
-    hash = d_kind;
-
     if(d_nchildren <= nchild_thresh) {
-      for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
-        hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->hash();
-
+      hash = ExprValue::computeHash<ev_iterator>(d_kind, ev_begin(), ev_end());
       void *space = std::calloc(1, sizeof(ExprValue) + d_nchildren * sizeof(Expr));
       ev = new (space) ExprValue;
       size_t nc = 0;
-      for(ev_iterator i = ev_begin(); i != ev_end(); ++i)
-        ev->d_children[nc++] = Expr(*i);
+      ev_iterator i = ev_begin();
+      ev_iterator i_end = ev_end();
+      for(; i != i_end; ++i) {
+        // The expressions in the allocated children are all 0, so we must
+        // construct it withouth using an assignment operator
+        ev->d_children[nc++].assignExprValue(*i);
+      }
     } else {
-      for(std::vector<Expr>::iterator i = d_children.u_vec->begin(); i != d_children.u_vec->end(); ++i)
-        hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->hash();
-
+      hash = ExprValue::computeHash<std::vector<Expr>::const_iterator>(d_kind, d_children.u_vec->begin(), d_children.u_vec->end());
       void *space = std::calloc(1, sizeof(ExprValue) + d_nchildren * sizeof(Expr));
       ev = new (space) ExprValue;
       size_t nc = 0;

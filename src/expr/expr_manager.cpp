@@ -19,6 +19,7 @@ namespace CVC4 {
 __thread ExprManager* ExprManager::s_current = 0;
 
 Expr ExprManager::lookup(uint64_t hash, const Expr& e) {
+  Assert(this != NULL, "Woops, we have a bad expression manager!");
   hash_t::iterator i = d_hash.find(hash);
   if(i == d_hash.end()) {
     // insert
@@ -34,7 +35,7 @@ Expr ExprManager::lookup(uint64_t hash, const Expr& e) {
       if(e.numChildren() != j->numChildren())
         continue;
 
-      Expr::iterator c1 = e.begin();
+      Expr::const_iterator c1 = e.begin();
       Expr::iterator c2 = j->begin();
       for(; c1 != e.end() && c2 != j->end(); ++c1, ++c2) {
         if(c1->d_ev != c2->d_ev)
@@ -60,23 +61,23 @@ Expr ExprManager::mkExpr(Kind kind) {
   return ExprBuilder(this, kind);
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1) {
+Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
   return ExprBuilder(this, kind) << child1;
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
+Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
   return ExprBuilder(this, kind) << child1 << child2;
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3) {
+Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3) {
   return ExprBuilder(this, kind) << child1 << child2 << child3;
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4) {
+Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3, const Expr& child4) {
   return ExprBuilder(this, kind) << child1 << child2 << child3 << child4;
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5) {
+Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3, const Expr& child4, const Expr& child5) {
   return ExprBuilder(this, kind) << child1 << child2 << child3 << child4 << child5;
 }
 

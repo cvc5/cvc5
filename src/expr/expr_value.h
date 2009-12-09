@@ -74,6 +74,22 @@ class ExprValue {
   /** Private default constructor for the null value. */
   ExprValue();
 
+  /**
+   * Computes the hash over the given iterator span of children, and the
+   * root hash. The iterator should be either over a range of Expr or pointers
+   * to ExprValue.
+   * @param hash the initial value for the hash
+   * @param begin the begining of the range
+   * @param end the end of the range
+   * @return the hash value
+   */
+  template<typename const_iterator_type>
+  static uint64_t computeHash(uint64_t hash, const_iterator_type begin, const_iterator_type end) {
+    for(const_iterator_type i = begin; i != end; ++i)
+      hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->getId();
+    return hash;
+  }
+
 public:
   /** Hash this expression.
    *  @return the hash value of this expression. */
@@ -94,6 +110,8 @@ public:
   const_iterator rbegin() const;
   const_iterator rend() const;
 
+  unsigned getId() const { return d_id; }
+  unsigned getKind() const { return (Kind) d_kind; }
   void CVC4_PUBLIC toString(std::ostream& out) const;
 };
 

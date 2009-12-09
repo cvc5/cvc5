@@ -25,7 +25,7 @@ namespace CVC4 {
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream&, const CVC4::Command&) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
 
 class CVC4_PUBLIC Command {
 public:

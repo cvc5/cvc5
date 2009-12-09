@@ -39,11 +39,11 @@ public:
 
   // general expression-builders
   Expr mkExpr(Kind kind);
-  Expr mkExpr(Kind kind, Expr child1);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4);
-  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5);
+  Expr mkExpr(Kind kind, const Expr& child1);
+  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2);
+  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3);
+  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3, const Expr& child4);
+  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3, const Expr& child4, const Expr& child5);
   // N-ary version
   Expr mkExpr(Kind kind, std::vector<Expr> children);
 

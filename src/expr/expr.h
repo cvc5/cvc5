@@ -26,7 +26,7 @@ namespace CVC4 {
 
 namespace CVC4 {
 
-inline std::ostream& operator<<(std::ostream&, CVC4::Expr) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream&, const Expr&) CVC4_PUBLIC;
 
 class ExprManager;
 
@@ -41,6 +41,9 @@ using CVC4::expr::ExprValue;
  * maintained in the ExprValue.
  */
 class CVC4_PUBLIC Expr {
+
+  friend class ExprValue;
+
   /** A convenient null-valued encapsulated pointer */
   static Expr s_null;
 
@@ -57,6 +60,19 @@ class CVC4_PUBLIC Expr {
   friend class ExprBuilder;
   friend class ExprManager;
 
+  /** Access to the encapsulated expression.
+   *  @return the encapsulated expression. */
+  ExprValue const* operator->() const;
+
+  /**
+   * Assigns the expression value and does reference counting. No assumptions are
+   * made on the expression, and should only be used if we know what we are
+   * doing.
+   *
+   * @param ev the expression value to assign
+   */
+  void assignExprValue(ExprValue* ev);
+
 public:
 
   /** Default constructor, makes a null expression. */
@@ -70,13 +86,14 @@ public:
 
   bool operator==(const Expr& e) const { return d_ev == e.d_ev; }
   bool operator!=(const Expr& e) const { return d_ev != e.d_ev; }
-  bool operator<(const Expr& e) const { return d_ev < e.d_ev; }// for map key
+
+  /**
+   * We compare by expression ids so, keeping things deterministic and having
+   * that subexpressions have to be smaller than the enclosing expressions.
+   */
+  inline bool operator<(const Expr& e) const;
 
   Expr& operator=(const Expr&);
-
-  /** Access to the encapsulated expression.
-   *  @return the encapsulated expression. */
-  ExprValue* operator->() const;
 
   uint64_t hash() const;
 
@@ -105,8 +122,8 @@ public:
 
   inline iterator begin();
   inline iterator end();
-  inline iterator begin() const;
-  inline iterator end() const;
+  inline const_iterator begin() const;
+  inline const_iterator end() const;
 
   void toString(std::ostream&) const;
 
@@ -120,7 +137,11 @@ public:
 
 namespace CVC4 {
 
-inline std::ostream& operator<<(std::ostream& out, CVC4::Expr e) {
+inline bool Expr::operator<(const Expr& e) const {
+  return d_ev->d_id < e.d_ev->d_id;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const Expr& e) {
   e.toString(out);
   return out;
 }
@@ -143,11 +164,11 @@ inline Expr::iterator Expr::end() {
   return d_ev->end();
 }
 
-inline Expr::iterator Expr::begin() const {
+inline Expr::const_iterator Expr::begin() const {
   return d_ev->begin();
 }
 
-inline Expr::iterator Expr::end() const {
+inline Expr::const_iterator Expr::end() const {
   return d_ev->end();
 }
 

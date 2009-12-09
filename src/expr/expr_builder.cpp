@@ -12,20 +12,24 @@
 #include "expr_builder.h"
 #include "expr_manager.h"
 #include "expr_value.h"
-#include "util/Assert.h"
 #include "util/output.h"
 
 using namespace std;
 
 namespace CVC4 {
 
-ExprBuilder::ExprBuilder() : d_em(ExprManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(0) {}
+ExprBuilder::ExprBuilder() :
+  d_em(ExprManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false),
+      d_nchildren(0) {
+}
 
-ExprBuilder::ExprBuilder(Kind k) : d_em(ExprManager::currentEM()), d_kind(k), d_used(false), d_nchildren(0) {}
+ExprBuilder::ExprBuilder(Kind k) :
+  d_em(ExprManager::currentEM()), d_kind(k), d_used(false), d_nchildren(0) {
+}
 
-ExprBuilder::ExprBuilder(const Expr& e) : d_em(ExprManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
-  ExprValue *v = e->inc();
-  d_children.u_arr[0] = v;
+ExprBuilder::ExprBuilder(const Expr& e) :
+  d_em(ExprManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
+  d_children.u_arr[0] = e.d_ev->inc();;
 }
 
 ExprBuilder& ExprBuilder::reset(const ExprValue* ev) {
@@ -38,36 +42,45 @@ ExprBuilder& ExprBuilder::reset(const ExprValue* ev) {
   return *this;
 }
 
-ExprBuilder::ExprBuilder(const ExprBuilder& eb) : d_em(eb.d_em), d_kind(eb.d_kind), d_used(eb.d_used), d_nchildren(eb.d_nchildren) {
+ExprBuilder::ExprBuilder(const ExprBuilder& eb) :
+  d_em(eb.d_em), d_kind(eb.d_kind), d_used(eb.d_used),
+      d_nchildren(eb.d_nchildren) {
   Assert( !d_used );
 
   if(d_nchildren > nchild_thresh) {
-    d_children.u_vec = new vector<Expr>();
+    d_children.u_vec = new vector<Expr> ();
     d_children.u_vec->reserve(d_nchildren + 5);
-    copy(eb.d_children.u_vec->begin(), eb.d_children.u_vec->end(), back_inserter(*d_children.u_vec));
+    copy(eb.d_children.u_vec->begin(), eb.d_children.u_vec->end(),
+         back_inserter(*d_children.u_vec));
   } else {
     ev_iterator j = d_children.u_arr;
-    for(ExprValue* const* i = eb.d_children.u_arr; i != eb.d_children.u_arr + eb.d_nchildren; ++i, ++j)
+    ExprValue* const * i = eb.d_children.u_arr;
+    ExprValue* const * i_end = i + eb.d_nchildren;
+    for(; i != i_end; ++i, ++j)
       *j = (*i)->inc();
   }
 }
 
-ExprBuilder::ExprBuilder(ExprManager* em) : d_em(em), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(0) {
+ExprBuilder::ExprBuilder(ExprManager* em) :
+  d_em(em), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(0) {
 }
 
-ExprBuilder::ExprBuilder(ExprManager* em, Kind k) : d_em(em), d_kind(k), d_used(false), d_nchildren(0) {
+ExprBuilder::ExprBuilder(ExprManager* em, Kind k) :
+  d_em(em), d_kind(k), d_used(false), d_nchildren(0) {
 }
 
-ExprBuilder::ExprBuilder(ExprManager* em, const Expr& e) : d_em(em), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
-  ExprValue *v = e->inc();
-  d_children.u_arr[0] = v;
+ExprBuilder::ExprBuilder(ExprManager* em, const Expr& e) :
+  d_em(em), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
+  d_children.u_arr[0] = e.d_ev->inc();
 }
 
 ExprBuilder::~ExprBuilder() {
   if(d_nchildren > nchild_thresh) {
     delete d_children.u_vec;
   } else {
-    for(ev_iterator i = d_children.u_arr; i != d_children.u_arr + d_nchildren; ++i) {
+    ev_iterator i = d_children.u_arr;
+    ev_iterator i_end = d_children.u_arr + d_nchildren;
+    for(; i != i_end ; ++i) {
       (*i)->dec();
     }
   }
@@ -94,8 +107,7 @@ ExprBuilder& ExprBuilder::notExpr() {
 // avoid double-negatives
 ExprBuilder& ExprBuilder::negate() {
   if(EXPECT_FALSE( d_kind == NOT ))
-    return reset(d_children.u_arr[0]);
-  Assert( d_kind != UNDEFINED_KIND );
+    return reset(d_children.u_arr[0]); Assert( d_kind != UNDEFINED_KIND );
   collapse();
   d_kind = NOT;
   return *this;
@@ -169,39 +181,27 @@ ExprBuilder& ExprBuilder::operator<<(const Expr& child) {
   return *this;
 }
 
-void ExprBuilder::addChild(const Expr& e) {
-  Debug("expr") << "adding child E " << e << endl;
-  if(d_nchildren == nchild_thresh) {
-    Debug("expr") << "reached thresh " << nchild_thresh << ", copying" << endl;
-    vector<Expr>* v = new vector<Expr>();
-    v->reserve(nchild_thresh + 5);
-    for(ExprValue** i = d_children.u_arr; i != d_children.u_arr + nchild_thresh; ++i) {
-      v->push_back(Expr(*i));
-      (*i)->dec();
-    }
-    v->push_back(e);
-    d_children.u_vec = v;
-    ++d_nchildren;
-  } else if(d_nchildren > nchild_thresh) {
-    Debug("expr") << "over thresh " << d_nchildren << " > " << nchild_thresh << endl;
-    d_children.u_vec->push_back(e);
-    ++d_nchildren;
-  } else {
-    Debug("expr") << "under thresh " << d_nchildren << " < " << nchild_thresh << endl;
-    ExprValue *ev = e.d_ev;
-    d_children.u_arr[d_nchildren] = ev;
-    ev->inc();
-    ++d_nchildren;
-  }
-}
-
+/**
+ * We keep the children either:
+ * (a) In the array of expression values if the number of children is less than
+ *     nchild_thresh. Hence (last else) we increase the reference count.
+ * (b) If the number of children reaches the nchild_thresh, we allocate a vector
+ *     for the children. Children are now expressions, so we also decrement the
+ *     reference count for each child.
+ * (c) Otherwise we just add to the end of the vector.
+ */
 void ExprBuilder::addChild(ExprValue* ev) {
+  Assert(d_nchildren <= nchild_thresh ||
+         d_nchildren == d_children.u_vec->size(),
+         "children count doesn't reflect the size of the vector!");
   Debug("expr") << "adding child ev " << ev << endl;
   if(d_nchildren == nchild_thresh) {
     Debug("expr") << "reached thresh " << nchild_thresh << ", copying" << endl;
-    vector<Expr>* v = new vector<Expr>();
+    vector<Expr>* v = new vector<Expr> ();
     v->reserve(nchild_thresh + 5);
-    for(ExprValue** i = d_children.u_arr; i != d_children.u_arr + nchild_thresh; ++i) {
+    ExprValue** i = d_children.u_arr;
+    ExprValue** i_end = i + nchild_thresh;
+    for(;i != i_end; ++ i) {
       v->push_back(Expr(*i));
       (*i)->dec();
     }
@@ -209,20 +209,20 @@ void ExprBuilder::addChild(ExprValue* ev) {
     d_children.u_vec = v;
     ++d_nchildren;
   } else if(d_nchildren > nchild_thresh) {
-    Debug("expr") << "over thresh " << d_nchildren << " > " << nchild_thresh << endl;
+    Debug("expr") << "over thresh " << d_nchildren
+                  << " > " << nchild_thresh << endl;
     d_children.u_vec->push_back(Expr(ev));
-    ++d_nchildren;
+    // ++d_nchildren; no need for this
   } else {
-    Debug("expr") << "under thresh " << d_nchildren << " < " << nchild_thresh << endl;
-    d_children.u_arr[d_nchildren] = ev;
-    ev->inc();
-    ++d_nchildren;
+    Debug("expr") << "under thresh " << d_nchildren
+                  << " < " << nchild_thresh << endl;
+    d_children.u_arr[d_nchildren ++] = ev->inc();
   }
 }
 
 ExprBuilder& ExprBuilder::collapse() {
   if(d_nchildren == nchild_thresh) {
-    vector<Expr>* v = new vector<Expr>();
+    vector<Expr>* v = new vector<Expr> ();
     v->reserve(nchild_thresh + 5);
     //
     Unreachable();// unimplemented

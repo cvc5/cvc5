@@ -14,7 +14,7 @@ using namespace std;
 
 namespace CVC4 {
 
-ostream& operator<<(ostream& out, const CVC4::Command& c) {
+ostream& operator<<(ostream& out, const Command& c) {
   c.toString(out);
   return out;
 }

@@ -27,7 +27,7 @@ void SmtEngine::processAssertionList() {
   for(std::vector<Expr>::iterator i = d_assertions.begin();
       i != d_assertions.end();
       ++i)
-    d_expr = d_expr.isNull() ? *i : d_expr.andExpr(*i);
+    d_expr = d_expr.isNull() ? *i : d_em->mkExpr(AND, d_expr, *i);
 }
 
 Result SmtEngine::check() {

@@ -25,12 +25,7 @@ ExprValue::ExprValue() :
 }
 
 uint64_t ExprValue::hash() const {
-  uint64_t hash = d_kind;
-
-  for(const_iterator i = begin(); i != end(); ++i)
-    hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ i->hash();
-
-  return hash;
+  return computeHash<const_iterator>(d_kind, begin(), end());
 }
 
 ExprValue* ExprValue::inc() {
