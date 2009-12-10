@@ -84,16 +84,26 @@ int main(int argc, char *argv[]) {
         Warning.setStream(CVC4::null_os);
     }
 
-    const char* fname = inputFromStdin ? argv[firstArgIndex] : "stdin";
+    const char* fname;
+    istream* in;
+    ifstream* file;
+    if(inputFromStdin) {
+      fname = "stdin";
+      in = &cin;
+    } else {
+      fname = argv[firstArgIndex];
+      file = new ifstream(fname);
+      in = file;
+    }
 
     // Create the parser
     Parser* parser;
     switch(options.lang) {
     case Options::LANG_SMTLIB:
-      parser = new SmtParser(&exprMgr, cin, fname);
+      parser = new SmtParser(&exprMgr, *in, fname);
       break;
     case Options::LANG_CVC4:
-      parser = new CvcParser(&exprMgr, cin, fname);
+      parser = new CvcParser(&exprMgr, *in, fname);
       break;
     case Options::LANG_AUTO:
       cerr << "Auto language detection not supported yet." << endl;
@@ -117,6 +127,8 @@ int main(int argc, char *argv[]) {
 
     // Remove the parser
     delete parser;
+
+    delete file;
   } catch(OptionException& e) {
     if(options.smtcomp_mode)
       cout << "unknown" << endl;

@@ -5,4 +5,5 @@ AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libcontext.la
 
 libcontext_la_SOURCES = \
-	context.cpp
+	context.cpp \
+	context.h

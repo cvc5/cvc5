@@ -12,8 +12,6 @@
 #ifndef __CVC4__EXPR__EXPR_ATTRIBUTE_H
 #define __CVC4__EXPR__EXPR_ATTRIBUTE_H
 
-// TODO WARNING this file needs work !
-
 #include <stdint.h>
 #include "config.h"
 #include "context/context.h"

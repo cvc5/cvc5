@@ -28,7 +28,7 @@ void AssertionException::construct(const char* header, const char* extra,
                                    va_list args) {
   // try building the exception msg with a smallish buffer first,
   // then with a larger one if sprintf tells us to.
-  int n = 256;
+  int n = 512;
   char* buf;
 
   for(;;) {

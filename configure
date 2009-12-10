@@ -16374,7 +16374,7 @@ if test "$user_ldflags" = no; then
   LDFLAGS="$CVC4LDFLAGS"
 fi
 
-ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/Makefile src/expr/Makefile src/smt/Makefile src/main/Makefile src/prop/minisat/Makefile src/prop/Makefile src/util/Makefile src/context/Makefile src/parser/Makefile src/parser/cvc/Makefile src/parser/smt/Makefile src/theory/Makefile test/Makefile test/regress/Makefile test/unit/Makefile"
+ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/Makefile src/expr/Makefile src/smt/Makefile src/main/Makefile src/prop/minisat/Makefile src/prop/Makefile src/util/Makefile src/context/Makefile src/parser/Makefile src/parser/cvc/Makefile src/parser/smt/Makefile src/theory/Makefile src/theory/uf/Makefile test/Makefile test/regress/Makefile test/unit/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -17471,6 +17471,7 @@ do
     "src/parser/cvc/Makefile") CONFIG_FILES="$CONFIG_FILES src/parser/cvc/Makefile" ;;
     "src/parser/smt/Makefile") CONFIG_FILES="$CONFIG_FILES src/parser/smt/Makefile" ;;
     "src/theory/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/Makefile" ;;
+    "src/theory/uf/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/uf/Makefile" ;;
     "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
     "test/regress/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/Makefile" ;;
     "test/unit/Makefile") CONFIG_FILES="$CONFIG_FILES test/unit/Makefile" ;;
@@ -19034,7 +19035,6 @@ gprof support: $enable_profiling
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
-
 
 Library releases     : $CVC4_LIBRARY_RELEASE_CODE
 libcvc4 version      : $CVC4_LIBRARY_VERSION

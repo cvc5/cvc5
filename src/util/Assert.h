@@ -137,15 +137,15 @@ public:
 #define AlwaysAssert(cond, msg...) \
   do { \
     if(EXPECT_FALSE( ! (cond) )) { \
-      throw AssertionException(#cond, __FUNCTION__, __FILE__, __LINE__, ## msg); \
+      throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
     } \
   } while(0)
 #define Unreachable(msg...) \
-  throw UnreachableCodeException(__FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define Unhandled(msg...) \
-  throw UnhandledCaseException(__FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw UnhandledCaseException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define IllegalArgument(arg, msg...) \
-  throw IllegalArgumentException(#arg, __FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw IllegalArgumentException(#arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 
 #ifdef CVC4_ASSERTIONS
 #  define Assert(cond, msg...) AlwaysAssert(cond, ## msg)

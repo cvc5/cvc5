@@ -348,6 +348,7 @@ AC_CONFIG_FILES([
   src/parser/cvc/Makefile
   src/parser/smt/Makefile
   src/theory/Makefile
+  src/theory/uf/Makefile
   test/Makefile
   test/regress/Makefile
   test/unit/Makefile
@@ -386,7 +387,6 @@ gprof support: $enable_profiling
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
-
 
 Library releases     : $CVC4_LIBRARY_RELEASE_CODE
 libcvc4 version      : $CVC4_LIBRARY_VERSION

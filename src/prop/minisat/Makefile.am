@@ -8,7 +8,15 @@ libminisat_la_SOURCES = \
 	core/Solver.h \
 	core/SolverTypes.h \
 	simp/SimpSolver.C \
-	simp/SimpSolver.h
+	simp/SimpSolver.h \
+	mtl/Alg.h \
+	mtl/BasicHeap.h \
+	mtl/BoxedVec.h \
+	mtl/Heap.h \
+	mtl/Map.h \
+	mtl/Queue.h \
+	mtl/Sort.h \
+	mtl/Vec.h
 
 EXTRA_DIST = \
 	core/Main.C \
@@ -17,11 +25,4 @@ EXTRA_DIST = \
 	simp/Makefile \
 	README \
 	LICENSE \
-	mtl/Heap.h \
-	mtl/Map.h \
-	mtl/Queue.h \
-	mtl/Alg.h \
-	mtl/Sort.h \
-	mtl/BasicHeap.h \
-	mtl/BoxedVec.h \
 	mtl/template.mk

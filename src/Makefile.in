@@ -76,7 +76,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libcvc4_la_DEPENDENCIES = @builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la @builddir@/context/libcontext.la \
 	@builddir@/prop/libprop.la \
-	@builddir@/prop/minisat/libminisat.la @builddir@/smt/libsmt.la
+	@builddir@/prop/minisat/libminisat.la @builddir@/smt/libsmt.la \
+	@builddir@/theory/libtheory.la
 am_libcvc4_la_OBJECTS =
 libcvc4_la_OBJECTS = $(am_libcvc4_la_OBJECTS)
 libcvc4_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -299,9 +300,9 @@ libcvc4_la_LIBADD = \
 	@builddir@/context/libcontext.la \
 	@builddir@/prop/libprop.la \
 	@builddir@/prop/minisat/libminisat.la \
-	@builddir@/smt/libsmt.la
+	@builddir@/smt/libsmt.la \
+	@builddir@/theory/libtheory.la
 
-#	@builddir@/theory/libtheory.la
 publicheaders = \
 	include/cvc4_config.h
 
