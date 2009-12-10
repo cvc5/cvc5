@@ -10,13 +10,13 @@
  ** An expression node.
  **
  ** Instances of this class are generally referenced through
- ** cvc4::Expr rather than by pointer; cvc4::Expr maintains the
+ ** cvc4::Node rather than by pointer; cvc4::Node maintains the
  ** reference count on ExprValue instances and
  **/
 
 /* this must be above the check for __CVC4__EXPR__EXPR_VALUE_H */
 /* to resolve a circular dependency */
-#include "expr/expr.h"
+#include "expr/node.h"
 
 #ifndef __CVC4__EXPR__EXPR_VALUE_H
 #define __CVC4__EXPR__EXPR_VALUE_H
@@ -27,8 +27,8 @@
 
 namespace CVC4 {
 
-class Expr;
-class ExprBuilder;
+class Node;
+class NodeBuilder;
 
 namespace expr {
 
@@ -49,7 +49,7 @@ class ExprValue {
   /** The ID (0 is reserved for the null value) */
   unsigned d_id        : 32;
 
-  /** The expression's reference count.  @see cvc4::Expr. */
+  /** The expression's reference count.  @see cvc4::Node. */
   unsigned d_rc        :  8;
 
   /** Kind of the expression */
@@ -59,12 +59,12 @@ class ExprValue {
   unsigned d_nchildren : 16;
 
   /** Variable number of child nodes */
-  Expr     d_children[0];
+  Node     d_children[0];
 
   // todo add exprMgr ref in debug case
 
-  friend class CVC4::Expr;
-  friend class CVC4::ExprBuilder;
+  friend class CVC4::Node;
+  friend class CVC4::NodeBuilder;
 
   ExprValue* inc();
   ExprValue* dec();
@@ -76,7 +76,7 @@ class ExprValue {
 
   /**
    * Computes the hash over the given iterator span of children, and the
-   * root hash. The iterator should be either over a range of Expr or pointers
+   * root hash. The iterator should be either over a range of Node or pointers
    * to ExprValue.
    * @param hash the initial value for the hash
    * @param begin the begining of the range
@@ -97,8 +97,8 @@ public:
 
   // Iterator support
 
-  typedef Expr* iterator;
-  typedef Expr const* const_iterator;
+  typedef Node* iterator;
+  typedef Node const* const_iterator;
 
   iterator begin();
   iterator end();

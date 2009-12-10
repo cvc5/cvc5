@@ -9,46 +9,46 @@
  **
  **/
 
-#include "expr_builder.h"
-#include "expr_manager.h"
-#include "expr_value.h"
+#include "expr/node_builder.h"
+#include "expr/node_manager.h"
+#include "expr/expr_value.h"
 #include "util/output.h"
 
 using namespace std;
 
 namespace CVC4 {
 
-ExprBuilder::ExprBuilder() :
-  d_em(ExprManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false),
+NodeBuilder::NodeBuilder() :
+  d_em(NodeManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false),
       d_nchildren(0) {
 }
 
-ExprBuilder::ExprBuilder(Kind k) :
-  d_em(ExprManager::currentEM()), d_kind(k), d_used(false), d_nchildren(0) {
+NodeBuilder::NodeBuilder(Kind k) :
+  d_em(NodeManager::currentEM()), d_kind(k), d_used(false), d_nchildren(0) {
 }
 
-ExprBuilder::ExprBuilder(const Expr& e) :
-  d_em(ExprManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
+NodeBuilder::NodeBuilder(const Node& e) :
+  d_em(NodeManager::currentEM()), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
   d_children.u_arr[0] = e.d_ev->inc();;
 }
 
-ExprBuilder& ExprBuilder::reset(const ExprValue* ev) {
-  this->~ExprBuilder();
+NodeBuilder& NodeBuilder::reset(const ExprValue* ev) {
+  this->~NodeBuilder();
   d_kind = Kind(ev->d_kind);
   d_used = false;
   d_nchildren = ev->d_nchildren;
-  for(Expr::const_iterator i = ev->begin(); i != ev->end(); ++i)
+  for(Node::const_iterator i = ev->begin(); i != ev->end(); ++i)
     addChild(i->d_ev);
   return *this;
 }
 
-ExprBuilder::ExprBuilder(const ExprBuilder& eb) :
+NodeBuilder::NodeBuilder(const NodeBuilder& eb) :
   d_em(eb.d_em), d_kind(eb.d_kind), d_used(eb.d_used),
       d_nchildren(eb.d_nchildren) {
   Assert( !d_used );
 
   if(d_nchildren > nchild_thresh) {
-    d_children.u_vec = new vector<Expr> ();
+    d_children.u_vec = new vector<Node> ();
     d_children.u_vec->reserve(d_nchildren + 5);
     copy(eb.d_children.u_vec->begin(), eb.d_children.u_vec->end(),
          back_inserter(*d_children.u_vec));
@@ -61,20 +61,20 @@ ExprBuilder::ExprBuilder(const ExprBuilder& eb) :
   }
 }
 
-ExprBuilder::ExprBuilder(ExprManager* em) :
+NodeBuilder::NodeBuilder(NodeManager* em) :
   d_em(em), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(0) {
 }
 
-ExprBuilder::ExprBuilder(ExprManager* em, Kind k) :
+NodeBuilder::NodeBuilder(NodeManager* em, Kind k) :
   d_em(em), d_kind(k), d_used(false), d_nchildren(0) {
 }
 
-ExprBuilder::ExprBuilder(ExprManager* em, const Expr& e) :
+NodeBuilder::NodeBuilder(NodeManager* em, const Node& e) :
   d_em(em), d_kind(UNDEFINED_KIND), d_used(false), d_nchildren(1) {
   d_children.u_arr[0] = e.d_ev->inc();
 }
 
-ExprBuilder::~ExprBuilder() {
+NodeBuilder::~NodeBuilder() {
   if(d_nchildren > nchild_thresh) {
     delete d_children.u_vec;
   } else {
@@ -87,7 +87,7 @@ ExprBuilder::~ExprBuilder() {
 }
 
 // Compound expression constructors
-ExprBuilder& ExprBuilder::eqExpr(const Expr& right) {
+NodeBuilder& NodeBuilder::eqExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   if(EXPECT_TRUE( d_kind != EQUAL )) {
     collapse();
@@ -97,7 +97,7 @@ ExprBuilder& ExprBuilder::eqExpr(const Expr& right) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::notExpr() {
+NodeBuilder& NodeBuilder::notExpr() {
   Assert( d_kind != UNDEFINED_KIND );
   collapse();
   d_kind = NOT;
@@ -105,7 +105,7 @@ ExprBuilder& ExprBuilder::notExpr() {
 }
 
 // avoid double-negatives
-ExprBuilder& ExprBuilder::negate() {
+NodeBuilder& NodeBuilder::negate() {
   if(EXPECT_FALSE( d_kind == NOT ))
     return reset(d_children.u_arr[0]); Assert( d_kind != UNDEFINED_KIND );
   collapse();
@@ -113,7 +113,7 @@ ExprBuilder& ExprBuilder::negate() {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::andExpr(const Expr& right) {
+NodeBuilder& NodeBuilder::andExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   if(d_kind != AND) {
     collapse();
@@ -123,7 +123,7 @@ ExprBuilder& ExprBuilder::andExpr(const Expr& right) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::orExpr(const Expr& right) {
+NodeBuilder& NodeBuilder::orExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   if(EXPECT_TRUE( d_kind != OR )) {
     collapse();
@@ -133,7 +133,7 @@ ExprBuilder& ExprBuilder::orExpr(const Expr& right) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::iteExpr(const Expr& thenpart, const Expr& elsepart) {
+NodeBuilder& NodeBuilder::iteExpr(const Node& thenpart, const Node& elsepart) {
   Assert( d_kind != UNDEFINED_KIND );
   collapse();
   d_kind = ITE;
@@ -142,7 +142,7 @@ ExprBuilder& ExprBuilder::iteExpr(const Expr& thenpart, const Expr& elsepart) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::iffExpr(const Expr& right) {
+NodeBuilder& NodeBuilder::iffExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   if(EXPECT_TRUE( d_kind != IFF )) {
     collapse();
@@ -152,7 +152,7 @@ ExprBuilder& ExprBuilder::iffExpr(const Expr& right) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::impExpr(const Expr& right) {
+NodeBuilder& NodeBuilder::impExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   collapse();
   d_kind = IMPLIES;
@@ -160,7 +160,7 @@ ExprBuilder& ExprBuilder::impExpr(const Expr& right) {
   return *this;
 }
 
-ExprBuilder& ExprBuilder::xorExpr(const Expr& right) {
+NodeBuilder& NodeBuilder::xorExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   if(EXPECT_TRUE( d_kind != XOR )) {
     collapse();
@@ -171,12 +171,12 @@ ExprBuilder& ExprBuilder::xorExpr(const Expr& right) {
 }
 
 // "Stream" expression constructor syntax
-ExprBuilder& ExprBuilder::operator<<(const Kind& op) {
+NodeBuilder& NodeBuilder::operator<<(const Kind& op) {
   d_kind = op;
   return *this;
 }
 
-ExprBuilder& ExprBuilder::operator<<(const Expr& child) {
+NodeBuilder& NodeBuilder::operator<<(const Node& child) {
   addChild(child);
   return *this;
 }
@@ -190,28 +190,28 @@ ExprBuilder& ExprBuilder::operator<<(const Expr& child) {
  *     reference count for each child.
  * (c) Otherwise we just add to the end of the vector.
  */
-void ExprBuilder::addChild(ExprValue* ev) {
+void NodeBuilder::addChild(ExprValue* ev) {
   Assert(d_nchildren <= nchild_thresh ||
          d_nchildren == d_children.u_vec->size(),
          "children count doesn't reflect the size of the vector!");
   Debug("expr") << "adding child ev " << ev << endl;
   if(d_nchildren == nchild_thresh) {
     Debug("expr") << "reached thresh " << nchild_thresh << ", copying" << endl;
-    vector<Expr>* v = new vector<Expr> ();
+    vector<Node>* v = new vector<Node> ();
     v->reserve(nchild_thresh + 5);
     ExprValue** i = d_children.u_arr;
     ExprValue** i_end = i + nchild_thresh;
     for(;i != i_end; ++ i) {
-      v->push_back(Expr(*i));
+      v->push_back(Node(*i));
       (*i)->dec();
     }
-    v->push_back(Expr(ev));
+    v->push_back(Node(ev));
     d_children.u_vec = v;
     ++d_nchildren;
   } else if(d_nchildren > nchild_thresh) {
     Debug("expr") << "over thresh " << d_nchildren
                   << " > " << nchild_thresh << endl;
-    d_children.u_vec->push_back(Expr(ev));
+    d_children.u_vec->push_back(Node(ev));
     // ++d_nchildren; no need for this
   } else {
     Debug("expr") << "under thresh " << d_nchildren
@@ -220,9 +220,9 @@ void ExprBuilder::addChild(ExprValue* ev) {
   }
 }
 
-ExprBuilder& ExprBuilder::collapse() {
+NodeBuilder& NodeBuilder::collapse() {
   if(d_nchildren == nchild_thresh) {
-    vector<Expr>* v = new vector<Expr> ();
+    vector<Node>* v = new vector<Node> ();
     v->reserve(nchild_thresh + 5);
     //
     Unreachable();// unimplemented

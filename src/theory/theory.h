@@ -12,7 +12,7 @@
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "util/literal.h"
 
 namespace CVC4 {
@@ -46,9 +46,9 @@ public:
   static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
 
   /**
-   * Prepare for an Expr.
+   * Prepare for an Node.
    */
-  virtual void setup(Expr) = 0;
+  virtual void setup(Node) = 0;
 
   /**
    * Assert a literal in the current context.
@@ -75,7 +75,7 @@ public:
   /**
    * Return an explanation for the literal (which was previously propagated by this theory)..
    */
-  virtual Expr explain(Literal) = 0;
+  virtual Node explain(Literal) = 0;
 
 };/* class Theory */
 

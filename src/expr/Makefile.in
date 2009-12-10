@@ -52,7 +52,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libexpr_la_LIBADD =
-am_libexpr_la_OBJECTS = expr.lo expr_builder.lo expr_manager.lo \
+am_libexpr_la_OBJECTS = node.lo node_builder.lo node_manager.lo \
 	expr_value.lo
 libexpr_la_OBJECTS = $(am_libexpr_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -223,15 +223,15 @@ noinst_LTLIBRARIES = libexpr.la
 libexpr_la_SOURCES = \
 	attr_type.h \
 	attr_var_name.h \
-	expr.h \
-	expr_builder.h \
+	node.h \
+	node_builder.h \
 	expr_value.h \
-	expr_manager.h \
-	expr_attribute.h \
+	node_manager.h \
+	node_attribute.h \
 	kind.h \
-	expr.cpp \
-	expr_builder.cpp \
-	expr_manager.cpp \
+	node.cpp \
+	node_builder.cpp \
+	node_manager.cpp \
 	expr_value.cpp
 
 all: all-am
@@ -286,10 +286,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_builder.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_manager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_value.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_builder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_manager.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

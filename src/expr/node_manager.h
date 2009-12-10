@@ -15,7 +15,7 @@
 #include <vector>
 #include <map>
 
-#include "expr/expr.h"
+#include "node.h"
 #include "kind.h"
 
 namespace CVC4 {
@@ -24,45 +24,45 @@ namespace expr {
   class ExprBuilder;
 }/* CVC4::expr namespace */
 
-class CVC4_PUBLIC ExprManager {
-  static __thread ExprManager* s_current;
+class CVC4_PUBLIC NodeManager {
+  static __thread NodeManager* s_current;
 
-  friend class CVC4::ExprBuilder;
+  friend class CVC4::NodeBuilder;
 
-  typedef std::map<uint64_t, std::vector<Expr> > hash_t;
+  typedef std::map<uint64_t, std::vector<Node> > hash_t;
   hash_t d_hash;
 
-  Expr lookup(uint64_t hash, const Expr& e);
+  Node lookup(uint64_t hash, const Node& e);
 
 public:
-  static ExprManager* currentEM() { return s_current; }
+  static NodeManager* currentEM() { return s_current; }
 
   // general expression-builders
-  Expr mkExpr(Kind kind);
-  Expr mkExpr(Kind kind, const Expr& child1);
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2);
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3);
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3, const Expr& child4);
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2, const Expr& child3, const Expr& child4, const Expr& child5);
+  Node mkExpr(Kind kind);
+  Node mkExpr(Kind kind, const Node& child1);
+  Node mkExpr(Kind kind, const Node& child1, const Node& child2);
+  Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3);
+  Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4);
+  Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5);
   // N-ary version
-  Expr mkExpr(Kind kind, std::vector<Expr> children);
+  Node mkExpr(Kind kind, std::vector<Node> children);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar();
+  Node mkVar();
 
   // TODO: these use the current EM (but must be renamed)
   /*
-  static Expr mkExpr(Kind kind)
+  static Node mkExpr(Kind kind)
   { currentEM()->mkExpr(kind); }
-  static Expr mkExpr(Kind kind, Expr child1);
+  static Node mkExpr(Kind kind, Node child1);
   { currentEM()->mkExpr(kind, child1); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2);
+  static Node mkExpr(Kind kind, Node child1, Node child2);
   { currentEM()->mkExpr(kind, child1, child2); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3);
+  static Node mkExpr(Kind kind, Node child1, Node child2, Node child3);
   { currentEM()->mkExpr(kind, child1, child2, child3); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4);
+  static Node mkExpr(Kind kind, Node child1, Node child2, Node child3, Node child4);
   { currentEM()->mkExpr(kind, child1, child2, child3, child4); }
-  static Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4, Expr child5);
+  static Node mkExpr(Kind kind, Node child1, Node child2, Node child3, Node child4, Node child5);
   { currentEM()->mkExpr(kind, child1, child2, child3, child4, child5); }
   */
 

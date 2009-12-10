@@ -24,7 +24,7 @@ class VarName;
 class VarName_attr {
 public:
   enum { hash_value = 11 }; // could use typeid but then different on different machines/compiles
-  typedef Type value_type;//Expr?
+  typedef Type value_type;//Node?
   static const Type_attr marker;
 };
 

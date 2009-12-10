@@ -15,12 +15,12 @@
 #include <iostream>
 
 #include "cvc4_config.h"
-#include "expr/expr.h"
+#include "expr/node.h"
 
 namespace CVC4 {
   class SmtEngine;
   class Command;
-  class Expr;
+  class Node;
 }/* CVC4 namespace */
 
 namespace CVC4 {
@@ -46,9 +46,9 @@ private:
 
 class CVC4_PUBLIC AssertCommand : public Command {
 protected:
-  Expr d_expr;
+  Node d_expr;
 public:
-  AssertCommand(const Expr& e);
+  AssertCommand(const Node& e);
   void invoke(CVC4::SmtEngine* smt_engine);
   void toString(std::ostream& out) const;
 };/* class AssertCommand */
@@ -57,21 +57,21 @@ public:
 class CVC4_PUBLIC CheckSatCommand : public Command {
 public:
   CheckSatCommand();
-  CheckSatCommand(const Expr& e);
+  CheckSatCommand(const Node& e);
   void invoke(SmtEngine* smt);
   void toString(std::ostream& out) const;
 protected:
-  Expr d_expr;
+  Node d_expr;
 };/* class CheckSatCommand */
 
 
 class CVC4_PUBLIC QueryCommand : public Command {
 public:
-  QueryCommand(const Expr& e);
+  QueryCommand(const Node& e);
   void invoke(SmtEngine* smt);
   void toString(std::ostream& out) const;
 protected:
-  Expr d_expr;
+  Node d_expr;
 };/* class QueryCommand */
 
 

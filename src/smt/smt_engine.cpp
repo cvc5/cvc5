@@ -19,12 +19,12 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
-Expr SmtEngine::preprocess(Expr e) {
+Node SmtEngine::preprocess(Node e) {
   return e;
 }
 
 void SmtEngine::processAssertionList() {
-  for(std::vector<Expr>::iterator i = d_assertions.begin();
+  for(std::vector<Node>::iterator i = d_assertions.begin();
       i != d_assertions.end();
       ++i)
     d_expr = d_expr.isNull() ? *i : d_em->mkExpr(AND, d_expr, *i);
@@ -41,23 +41,23 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
-void SmtEngine::addFormula(Expr e) {
+void SmtEngine::addFormula(Node e) {
   d_assertions.push_back(e);
 }
 
-Result SmtEngine::checkSat(Expr e) {
+Result SmtEngine::checkSat(Node e) {
   e = preprocess(e);
   addFormula(e);
   return check();
 }
 
-Result SmtEngine::query(Expr e) {
+Result SmtEngine::query(Node e) {
   e = preprocess(e);
   addFormula(e);
   return check();
 }
 
-Result SmtEngine::assertFormula(Expr e) {
+Result SmtEngine::assertFormula(Node e) {
   e = preprocess(e);
   addFormula(e);
   return quickCheck();

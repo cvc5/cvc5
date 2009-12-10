@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include "config.h"
 #include "context/context.h"
-#include "expr/expr.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace expr {
@@ -26,7 +26,7 @@ class AttrTables;
 // global (or TSS)
 extern CDMap<uint64_t> g_hash_bool;
 extern CDMap<uint64_t> g_hash_int;
-extern CDMap<Expr>     g_hash_expr;
+extern CDMap<Node>     g_hash_expr;
 extern CDMap<void*>    g_hash_ptr;
 
 template <class T>
@@ -47,10 +47,10 @@ public:
   static CDMap<uint64_t> *s_hash;
 
   template <class Attr>
-  BitAccessor& find(Expr e, const Attr&);
+  BitAccessor& find(Node e, const Attr&);
 
   template <class Attr>
-  bool find(Expr e, const Attr&) const;
+  bool find(Node e, const Attr&) const;
 };
 
 template <>
@@ -58,8 +58,8 @@ class AttrTable<uint64_t> {
 public:  
   // int(egral) specialization
   static CDMap<uint64_t> *s_hash;
-  uint64_t& find(Expr);
-  uint64_t& find(Expr) const;
+  uint64_t& find(Node);
+  uint64_t& find(Node) const;
 };
 
 template <class T>
@@ -70,16 +70,16 @@ public:
 };
 
 template <>
-class AttrTable<Expr> {
+class AttrTable<Node> {
 public:
-  // Expr specialization
-  static CDMap<Expr> *s_hash;
-  Expr find(Expr);
+  // Node specialization
+  static CDMap<Node> *s_hash;
+  Node find(Node);
 };
 
 CDMap<uint64_t>* AttrTable<bool>::s_hash     = &g_hash_bool;
 CDMap<uint64_t>* AttrTable<uint64_t>::s_hash = &g_hash_int;
-CDMap<Expr>*     AttrTable<Expr>::s_hash     = &g_hash_expr;
+CDMap<Node>*     AttrTable<Node>::s_hash     = &g_hash_expr;
 
 template <class T>
 CDMap<void*>*    AttrTable<T*>::s_hash       = &g_hash_ptr;

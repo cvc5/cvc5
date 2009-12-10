@@ -37,7 +37,7 @@ public:
    * @param input the input stream to parse
    * @param file_name the name of the file (for diagnostic output)
    */
-  SmtParser(ExprManager* em, std::istream& input, const char* file_name = "");
+  SmtParser(NodeManager* em, std::istream& input, const char* file_name = "");
 
   /**
    * Destructor.
@@ -57,7 +57,7 @@ public:
    * Parses the next complete expression of the stream.
    * @return the expression parsed
    */
-  Expr parseNextExpression() throw(ParserException);
+  Node parseNextExpression() throw(ParserException);
 
 protected:
 

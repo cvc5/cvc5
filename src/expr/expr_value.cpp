@@ -10,7 +10,7 @@
  ** An expression node.
  **
  ** Instances of this class are generally referenced through
- ** cvc4::Expr rather than by pointer; cvc4::Expr maintains the
+ ** cvc4::Node rather than by pointer; cvc4::Node maintains the
  ** reference count on ExprValue instances and
  **/
 

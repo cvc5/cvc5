@@ -30,9 +30,9 @@ PropEngine::PropEngine(DecisionEngine& de, TheoryEngine& te) :
   d_de(de), d_te(te), d_sat() {
 }
 
-void PropEngine::addVars(Expr e) {
+void PropEngine::addVars(Node e) {
   Debug("prop") << "adding vars to " << e << endl;
-  for(Expr::iterator i = e.begin(); i != e.end(); ++i) {
+  for(Node::iterator i = e.begin(); i != e.end(); ++i) {
     Debug("prop") << "expr " << *i << endl;
     if(i->getKind() == VARIABLE) {
       if(d_vars.find(*i) == d_vars.end()) {
@@ -45,18 +45,18 @@ void PropEngine::addVars(Expr e) {
   }
 }
 
-static void doAtom(SimpSolver* minisat, map<Expr, Var>* vars, Expr e, vec<Lit>* c) {
+static void doAtom(SimpSolver* minisat, map<Node, Var>* vars, Node e, vec<Lit>* c) {
   if(e.getKind() == VARIABLE) {
-    map<Expr, Var>::iterator v = vars->find(e);
+    map<Node, Var>::iterator v = vars->find(e);
     Assert(v != vars->end());
     c->push(Lit(v->second, false));
     return;
   }
   if(e.getKind() == NOT) {
     Assert(e.numChildren() == 1);
-    Expr child = *e.begin();
+    Node child = *e.begin();
     Assert(child.getKind() == VARIABLE);
-    map<Expr, Var>::iterator v = vars->find(child);
+    map<Node, Var>::iterator v = vars->find(child);
     Assert(v != vars->end());
     c->push(Lit(v->second, true));
     return;
@@ -64,14 +64,14 @@ static void doAtom(SimpSolver* minisat, map<Expr, Var>* vars, Expr e, vec<Lit>* 
   Unhandled();
 }
 
-static void doClause(SimpSolver* minisat, map<Expr, Var>* vars, map<Var, Expr>* varsReverse, Expr e) {
+static void doClause(SimpSolver* minisat, map<Node, Var>* vars, map<Var, Node>* varsReverse, Node e) {
   vec<Lit> c;
   Debug("prop") << "  " << e << endl;
   if(e.getKind() == VARIABLE || e.getKind() == NOT) {
     doAtom(minisat, vars, e, &c);
   } else {
     Assert(e.getKind() == OR);
-    for(Expr::iterator i = e.begin(); i != e.end(); ++i) {
+    for(Node::iterator i = e.begin(); i != e.end(); ++i) {
       Debug("prop") << "    " << *i << endl;
       doAtom(minisat, vars, *i, &c);
     }
@@ -86,12 +86,12 @@ static void doClause(SimpSolver* minisat, map<Expr, Var>* vars, map<Var, Expr>* 
   minisat->addClause(c);
 }
 
-void PropEngine::solve(Expr e) {
+void PropEngine::solve(Node e) {
   Debug("prop") << "SOLVING " << e << endl;
   addVars(e);
   if(e.getKind() == AND) {
     Debug("prop") << "AND" << endl;
-    for(Expr::iterator i = e.begin(); i != e.end(); ++i)
+    for(Node::iterator i = e.begin(); i != e.end(); ++i)
       doClause(&d_sat, &d_vars, &d_varsReverse, *i);
   } else doClause(&d_sat, &d_vars, &d_varsReverse, e);
 

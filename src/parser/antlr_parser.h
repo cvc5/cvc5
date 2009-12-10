@@ -15,8 +15,8 @@
 #include <antlr/LLkParser.hpp>
 #include <antlr/SemanticException.hpp>
 
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
+#include "expr/node.h"
+#include "expr/node_manager.h"
 #include "util/command.h"
 #include "util/Assert.h"
 #include "parser/symbol_table.h"
@@ -48,7 +48,7 @@ public:
    * Set's the expression manager to use when creating/managing expression.
    * @param expr_manager the expression manager
    */
-  void setExpressionManager(ExprManager* expr_manager);
+  void setExpressionManager(NodeManager* expr_manager);
 
 protected:
 
@@ -89,7 +89,7 @@ protected:
    * @param var_name the name of the variable
    * @return the variable expression
    */
-  Expr getVariable(std::string var_name);
+  Node getVariable(std::string var_name);
 
   /**
    * Types of symbols.
@@ -113,40 +113,40 @@ protected:
    * Returns the true expression.
    * @return the true expression
    */
-  Expr getTrueExpr() const;
+  Node getTrueExpr() const;
 
   /**
    * Returns the false expression.
    * @return the false expression
    */
-  Expr getFalseExpr() const;
+  Node getFalseExpr() const;
 
   /**
    * Creates a new unary CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param child the child
    */
-  Expr newExpression(Kind kind, const Expr& child);
+  Node newExpression(Kind kind, const Node& child);
 
   /**
    * Creates a new binary CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param children the children of the expression
    */
-  Expr newExpression(Kind kind, const Expr& child_1, const Expr& child_2);
+  Node newExpression(Kind kind, const Node& child_1, const Node& child_2);
 
   /**
    * Creates a new CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param children the children of the expression
    */
-  Expr newExpression(Kind kind, const std::vector<Expr>& children);
+  Node newExpression(Kind kind, const std::vector<Node>& children);
 
   /**
    * Creates a new expression based on the given string of expressions and kinds.
    * The expression is created so that it respects the kinds precedence table.
    */
-  Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds);
+  Node createPrecedenceExpr(const std::vector<Node>& exprs, const std::vector<Kind>& kinds);
 
   /**
    * Creates a new predicated over the given sorts.
@@ -193,16 +193,16 @@ private:
    * Creates a new expression based on the given string of expressions and kinds.
    * The expression is created so that it respects the kinds precedence table.
    */
-  Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index);
+  Node createPrecedenceExpr(const std::vector<Node>& exprs, const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index);
 
   /** The status of the benchmark */
   BenchmarkStatus d_benchmark_status;
 
   /** The expression manager */
-  ExprManager* d_expr_manager;
+  NodeManager* d_expr_manager;
 
   /** The symbol table lookup */
-  SymbolTable<Expr> d_var_symbol_table;
+  SymbolTable<Node> d_var_symbol_table;
 };
 
 std::ostream& operator<<(std::ostream& out, AntlrParser::BenchmarkStatus status);

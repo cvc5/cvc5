@@ -44,8 +44,8 @@ Command* CvcParser::parseNextCommand() throw(ParserException) {
   return cmd;
 }
 
-Expr CvcParser::parseNextExpression() throw(ParserException) {
-  Expr result;
+Node CvcParser::parseNextExpression() throw(ParserException) {
+  Node result;
   if(!done()) {
     try {
       result = d_antlr_parser->formula();
@@ -62,7 +62,7 @@ CvcParser::~CvcParser() {
   delete d_antlr_lexer;
 }
 
-CvcParser::CvcParser(ExprManager*em, istream& input, const char* file_name) :
+CvcParser::CvcParser(NodeManager*em, istream& input, const char* file_name) :
   Parser(em), d_input(input) {
   if(!d_input) {
     throw ParserException(string("Read error") +

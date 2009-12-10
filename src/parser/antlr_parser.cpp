@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "antlr_parser.h"
-#include "expr/expr_manager.h"
 #include "util/output.h"
 
 using namespace std;
@@ -66,29 +65,29 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
   antlr::LLkParser(lexer, k) {
 }
 
-Expr AntlrParser::getVariable(std::string var_name) {
-  Expr e = d_var_symbol_table.getObject(var_name);
+Node AntlrParser::getVariable(std::string var_name) {
+  Node e = d_var_symbol_table.getObject(var_name);
   Debug("parser") << "getvar " << var_name << " gives " << e << endl;
   return e;
 }
 
-Expr AntlrParser::getTrueExpr() const {
+Node AntlrParser::getTrueExpr() const {
   return d_expr_manager->mkExpr(TRUE);
 }
 
-Expr AntlrParser::getFalseExpr() const {
+Node AntlrParser::getFalseExpr() const {
   return d_expr_manager->mkExpr(FALSE);
 }
 
-Expr AntlrParser::newExpression(Kind kind, const Expr& child) {
+Node AntlrParser::newExpression(Kind kind, const Node& child) {
   return d_expr_manager->mkExpr(kind, child);
 }
 
-Expr AntlrParser::newExpression(Kind kind, const Expr& child_1, const Expr& child_2) {
+Node AntlrParser::newExpression(Kind kind, const Node& child_1, const Node& child_2) {
   return d_expr_manager->mkExpr(kind, child_1, child_2);
 }
 
-Expr AntlrParser::newExpression(Kind kind, const std::vector<Expr>& children) {
+Node AntlrParser::newExpression(Kind kind, const std::vector<Node>& children) {
   return d_expr_manager->mkExpr(kind, children);
 }
 
@@ -113,7 +112,7 @@ void AntlrParser::setBenchmarkStatus(BenchmarkStatus status) {
 void AntlrParser::addExtraSorts(const std::vector<std::string>& extra_sorts) {
 }
 
-void AntlrParser::setExpressionManager(ExprManager* em) {
+void AntlrParser::setExpressionManager(NodeManager* em) {
   d_expr_manager = em;
 }
 
@@ -133,7 +132,7 @@ void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
                                  LT(0).get()->getColumn());
 }
 
-Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs, const vector<
+Node AntlrParser::createPrecedenceExpr(const vector<Node>& exprs, const vector<
     Kind>& kinds) {
   return createPrecedenceExpr(exprs, kinds, 0, exprs.size() - 1);
 }
@@ -155,7 +154,7 @@ unsigned AntlrParser::findPivot(const std::vector<Kind>& kinds,
   return pivot;
 }
 
-Expr AntlrParser::createPrecedenceExpr(const std::vector<Expr>& exprs,
+Node AntlrParser::createPrecedenceExpr(const std::vector<Node>& exprs,
                                        const std::vector<Kind>& kinds,
                                        unsigned start_index, unsigned end_index) {
   if(start_index == end_index)
@@ -163,8 +162,8 @@ Expr AntlrParser::createPrecedenceExpr(const std::vector<Expr>& exprs,
 
   unsigned pivot = findPivot(kinds, start_index, end_index - 1);
 
-  Expr child_1 = createPrecedenceExpr(exprs, kinds, start_index, pivot);
-  Expr child_2 = createPrecedenceExpr(exprs, kinds, pivot + 1, end_index);
+  Node child_1 = createPrecedenceExpr(exprs, kinds, start_index, pivot);
+  Node child_2 = createPrecedenceExpr(exprs, kinds, pivot + 1, end_index);
   return d_expr_manager->mkExpr(kinds[pivot], child_1, child_2);
 }
 

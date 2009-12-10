@@ -16,8 +16,6 @@
 #include <stack>
 #include <ext/hash_map>
 
-#include "expr/expr.h"
-
 namespace __gnu_cxx {
 template<>
   struct hash<std::string> {

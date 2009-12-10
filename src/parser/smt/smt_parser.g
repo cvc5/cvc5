@@ -60,7 +60,7 @@ pred_symb returns [std::string p]
 /**
  * Matches a propositional atom from the input. 
  */
-prop_atom returns [CVC4::Expr atom]
+prop_atom returns [CVC4::Node atom]
 {
   std::string p;
 } 
@@ -78,7 +78,7 @@ prop_atom returns [CVC4::Expr atom]
  * enclosed in brackets. The prop_atom rule from the original SMT grammar is inlined
  * here in order to get rid of the ugly antlr non-determinism warrnings. 
  */
-an_atom returns [CVC4::Expr atom] 
+an_atom returns [CVC4::Node atom] 
   : atom = prop_atom  
   ;
   
@@ -97,18 +97,18 @@ connective returns [CVC4::Kind kind]
 /** 
  * Matches an annotated formula. 
  */
-an_formula returns [CVC4::Expr formula] 
+an_formula returns [CVC4::Node formula] 
 { 
   Kind kind; 
-  vector<Expr> children;
+  vector<Node> children;
 }
   :  formula = an_atom 
   |  LPAREN kind = connective an_formulas[children] RPAREN { formula = newExpression(kind, children);  }    
   ;
   
-an_formulas[std::vector<Expr>& formulas]
+an_formulas[std::vector<Node>& formulas]
 {
-  Expr f;
+  Node f;
 }
   : ( f = an_formula { formulas.push_back(f); } )+
   ;
@@ -149,7 +149,7 @@ status returns [ AntlrParser::BenchmarkStatus status ]
 bench_attribute returns [ Command* smt_command = 0]
 {
   BenchmarkStatus b_status = SMT_UNKNOWN;
-  Expr formula;  
+  Node formula;  
   vector<string> sorts;
 }
   : C_LOGIC       IDENTIFIER      

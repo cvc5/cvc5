@@ -28,7 +28,7 @@ using namespace std;
 namespace CVC4 {
 namespace parser {
 
-Parser::Parser(ExprManager* em) :
+Parser::Parser(NodeManager* em) :
   d_expr_manager(em), d_done(false) {
 }
 

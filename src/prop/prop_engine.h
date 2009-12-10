@@ -13,7 +13,7 @@
 #define __CVC4__PROP_ENGINE_H
 
 #include "cvc4_config.h"
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "util/decision_engine.h"
 #include "theory/theory_engine.h"
 #include "prop/minisat/simp/SimpSolver.h"
@@ -31,10 +31,10 @@ class PropEngine {
   DecisionEngine &d_de;
   TheoryEngine &d_te;
   CVC4::prop::minisat::SimpSolver d_sat;
-  std::map<Expr, CVC4::prop::minisat::Var> d_vars;
-  std::map<CVC4::prop::minisat::Var, Expr> d_varsReverse;
+  std::map<Node, CVC4::prop::minisat::Var> d_vars;
+  std::map<CVC4::prop::minisat::Var, Node> d_varsReverse;
 
-  void addVars(Expr);
+  void addVars(Node);
 
 public:
   /**
@@ -45,7 +45,7 @@ public:
   /**
    * Converts to CNF if necessary.
    */
-  void solve(Expr);
+  void solve(Node);
 
 };/* class PropEngine */
 

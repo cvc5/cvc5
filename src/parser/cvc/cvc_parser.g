@@ -34,7 +34,7 @@ options {
  */
 command returns [CVC4::Command* cmd = 0]
 {
-  Expr f;
+  Node f;
   vector<string> ids;
 }
   : ASSERT   f = formula  { cmd = new AssertCommand(f);   }
@@ -60,15 +60,15 @@ type
   : BOOLEAN
   ;
 
-formula returns [CVC4::Expr formula]
+formula returns [CVC4::Node formula]
   :  formula = bool_formula
   ;
 
-bool_formula returns [CVC4::Expr formula] 
+bool_formula returns [CVC4::Node formula] 
 {
-  vector<Expr> formulas;
+  vector<Node> formulas;
   vector<Kind> kinds;
-  Expr f1, f2;
+  Node f1, f2;
   Kind k;
 }
   : f1 = primary_bool_formula { formulas.push_back(f1); } 
@@ -79,7 +79,7 @@ bool_formula returns [CVC4::Expr formula]
     }
   ;
   
-primary_bool_formula returns [CVC4::Expr formula]
+primary_bool_formula returns [CVC4::Node formula]
   : formula = bool_atom
   | NOT formula = primary_bool_formula { formula = newExpression(CVC4::NOT, formula); }
   | LPAREN formula = bool_formula RPAREN
@@ -93,7 +93,7 @@ bool_operator returns [CVC4::Kind kind]
   | IFF      { kind = CVC4::IFF;     }
   ;
     
-bool_atom returns [CVC4::Expr atom]
+bool_atom returns [CVC4::Node atom]
 {
   string p;
 }

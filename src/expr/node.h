@@ -21,14 +21,14 @@
 #include "expr/kind.h"
 
 namespace CVC4 {
-  class Expr;
+  class Node;
 }/* CVC4 namespace */
 
 namespace CVC4 {
 
-inline std::ostream& operator<<(std::ostream&, const Expr&) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream&, const Node&) CVC4_PUBLIC;
 
-class ExprManager;
+class NodeManager;
 
 namespace expr {
   class ExprValue;
@@ -40,25 +40,25 @@ using CVC4::expr::ExprValue;
  * Encapsulation of an ExprValue pointer.  The reference count is
  * maintained in the ExprValue.
  */
-class CVC4_PUBLIC Expr {
+class CVC4_PUBLIC Node {
 
   friend class ExprValue;
 
   /** A convenient null-valued encapsulated pointer */
-  static Expr s_null;
+  static Node s_null;
 
   /** The referenced ExprValue */
   ExprValue* d_ev;
 
-  /** This constructor is reserved for use by the Expr package; one
-   *  must construct an Expr using one of the build mechanisms of the
-   *  Expr package.
+  /** This constructor is reserved for use by the Node package; one
+   *  must construct an Node using one of the build mechanisms of the
+   *  Node package.
    *
    *  Increments the reference count. */
-  explicit Expr(ExprValue*);
+  explicit Node(ExprValue*);
 
-  friend class ExprBuilder;
-  friend class ExprManager;
+  friend class NodeBuilder;
+  friend class NodeManager;
 
   /** Access to the encapsulated expression.
    *  @return the encapsulated expression. */
@@ -76,49 +76,49 @@ class CVC4_PUBLIC Expr {
 public:
 
   /** Default constructor, makes a null expression. */
-  Expr();
+  Node();
 
-  Expr(const Expr&);
+  Node(const Node&);
 
   /** Destructor.  Decrements the reference count and, if zero,
    *  collects the ExprValue. */
-  ~Expr();
+  ~Node();
 
-  bool operator==(const Expr& e) const { return d_ev == e.d_ev; }
-  bool operator!=(const Expr& e) const { return d_ev != e.d_ev; }
+  bool operator==(const Node& e) const { return d_ev == e.d_ev; }
+  bool operator!=(const Node& e) const { return d_ev != e.d_ev; }
 
   /**
    * We compare by expression ids so, keeping things deterministic and having
    * that subexpressions have to be smaller than the enclosing expressions.
    */
-  inline bool operator<(const Expr& e) const;
+  inline bool operator<(const Node& e) const;
 
-  Expr& operator=(const Expr&);
+  Node& operator=(const Node&);
 
   uint64_t hash() const;
 
-  Expr eqExpr(const Expr& right) const;
-  Expr notExpr() const;
-  Expr negate() const; // avoid double-negatives
-  Expr andExpr(const Expr& right) const;
-  Expr orExpr(const Expr& right) const;
-  Expr iteExpr(const Expr& thenpart, const Expr& elsepart) const;
-  Expr iffExpr(const Expr& right) const;
-  Expr impExpr(const Expr& right) const;
-  Expr xorExpr(const Expr& right) const;
+  Node eqExpr(const Node& right) const;
+  Node notExpr() const;
+  Node negate() const; // avoid double-negatives
+  Node andExpr(const Node& right) const;
+  Node orExpr(const Node& right) const;
+  Node iteExpr(const Node& thenpart, const Node& elsepart) const;
+  Node iffExpr(const Node& right) const;
+  Node impExpr(const Node& right) const;
+  Node xorExpr(const Node& right) const;
 
-  Expr plusExpr(const Expr& right) const;
-  Expr uMinusExpr() const;
-  Expr multExpr(const Expr& right) const;
+  Node plusExpr(const Node& right) const;
+  Node uMinusExpr() const;
+  Node multExpr(const Node& right) const;
 
   inline Kind getKind() const;
 
   inline size_t numChildren() const;
 
-  static Expr null() { return s_null; }
+  static Node null() { return s_null; }
 
-  typedef Expr* iterator;
-  typedef Expr const* const_iterator;
+  typedef Node* iterator;
+  typedef Node const* const_iterator;
 
   inline iterator begin();
   inline iterator end();
@@ -129,7 +129,7 @@ public:
 
   bool isNull() const;
 
-};/* class Expr */
+};/* class Node */
 
 }/* CVC4 namespace */
 
@@ -137,42 +137,42 @@ public:
 
 namespace CVC4 {
 
-inline bool Expr::operator<(const Expr& e) const {
+inline bool Node::operator<(const Node& e) const {
   return d_ev->d_id < e.d_ev->d_id;
 }
 
-inline std::ostream& operator<<(std::ostream& out, const Expr& e) {
+inline std::ostream& operator<<(std::ostream& out, const Node& e) {
   e.toString(out);
   return out;
 }
 
-inline Kind Expr::getKind() const {
+inline Kind Node::getKind() const {
   return Kind(d_ev->d_kind);
 }
 
-inline void Expr::toString(std::ostream& out) const {
+inline void Node::toString(std::ostream& out) const {
   if(d_ev)
     d_ev->toString(out);
   else out << "null";
 }
 
-inline Expr::iterator Expr::begin() {
+inline Node::iterator Node::begin() {
   return d_ev->begin();
 }
 
-inline Expr::iterator Expr::end() {
+inline Node::iterator Node::end() {
   return d_ev->end();
 }
 
-inline Expr::const_iterator Expr::begin() const {
+inline Node::const_iterator Node::begin() const {
   return d_ev->begin();
 }
 
-inline Expr::const_iterator Expr::end() const {
+inline Node::const_iterator Node::end() const {
   return d_ev->end();
 }
 
-inline size_t Expr::numChildren() const {
+inline size_t Node::numChildren() const {
   return d_ev->d_nchildren;
 }
 

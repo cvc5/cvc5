@@ -7,7 +7,7 @@
 
 #include "util/command.h"
 #include "smt/smt_engine.h"
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "util/result.h"
 
 using namespace std;
@@ -26,7 +26,7 @@ EmptyCommand::EmptyCommand(string name) :
 void EmptyCommand::invoke(SmtEngine* smt_engine) {
 }
 
-AssertCommand::AssertCommand(const Expr& e) :
+AssertCommand::AssertCommand(const Node& e) :
   d_expr(e) {
 }
 
@@ -37,7 +37,7 @@ void AssertCommand::invoke(SmtEngine* smt_engine) {
 CheckSatCommand::CheckSatCommand() {
 }
 
-CheckSatCommand::CheckSatCommand(const Expr& e) :
+CheckSatCommand::CheckSatCommand(const Node& e) :
   d_expr(e) {
 }
 
@@ -45,7 +45,7 @@ void CheckSatCommand::invoke(SmtEngine* smt_engine) {
   smt_engine->checkSat(d_expr);
 }
 
-QueryCommand::QueryCommand(const Expr& e) :
+QueryCommand::QueryCommand(const Node& e) :
   d_expr(e) {
 }
 

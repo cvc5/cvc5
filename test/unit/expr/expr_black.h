@@ -1,4 +1,4 @@
-/* Black box testing of CVC4::Expr. */
+/* Black box testing of CVC4::Node. */
 
 #include <cxxtest/TestSuite.h>
 
@@ -10,10 +10,10 @@ class ExprBlack : public CxxTest::TestSuite {
 public:
 
   void testNull() {
-    Expr::s_null;
+    Node::s_null;
   }
 
   void testCopyCtor() {
-    Expr e(Expr::s_null);
+    Node e(Node::s_null);
   }
 };

@@ -15,8 +15,8 @@
 #include <vector>
 
 #include "cvc4_config.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
+#include "expr/node.h"
+#include "expr/node_manager.h"
 #include "util/result.h"
 #include "util/model.h"
 #include "util/options.h"
@@ -45,16 +45,16 @@ class Command;
 class SmtEngine {
   /** Current set of assertions. */
   // TODO: make context-aware to handle user-level push/pop.
-  std::vector<Expr> d_assertions;
+  std::vector<Node> d_assertions;
 
   /** Our expression manager */
-  ExprManager *d_em;
+  NodeManager *d_em;
 
   /** User-level options */
   Options *d_opts;
 
   /** Expression built-up for handing off to the propagation engine */
-  Expr d_expr;
+  Node d_expr;
 
   /** The decision engine */
   DecisionEngine d_de;
@@ -66,17 +66,17 @@ class SmtEngine {
   PropEngine d_prop;
 
   /**
-   * Pre-process an Expr.  This is expected to be highly-variable,
+   * Pre-process an Node.  This is expected to be highly-variable,
    * with a lot of "source-level configurability" to add multiple
-   * passes over the Expr.  TODO: may need to specify a LEVEL of
+   * passes over the Node.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  Expr preprocess(Expr);
+  Node preprocess(Node);
 
   /**
    * Adds a formula to the current context.
    */
-  void addFormula(Expr);
+  void addFormula(Node);
 
   /**
    * Full check of consistency in current context.  Returns true iff
@@ -101,10 +101,10 @@ public:
   /*
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager* em, Options* opts) throw() :
+  SmtEngine(NodeManager* em, Options* opts) throw() :
     d_em(em),
     d_opts(opts),
-    d_expr(Expr::null()),
+    d_expr(Node::null()),
     d_de(),
     d_te(),
     d_prop(d_de, d_te) {
@@ -121,25 +121,25 @@ public:
    * literals and conjunction of literals.  Returns false iff
    * inconsistent.
    */
-  Result assertFormula(Expr);
+  Result assertFormula(Node);
 
   /**
    * Add a formula to the current context and call check().  Returns
    * true iff consistent.
    */
-  Result query(Expr);
+  Result query(Node);
 
   /**
    * Add a formula to the current context and call check().  Returns
    * true iff consistent.
    */
-  Result checkSat(Expr);
+  Result checkSat(Node);
 
   /**
    * Simplify a formula without doing "much" work.  Requires assist
    * from the SAT Engine.
    */
-  Expr simplify(Expr);
+  Node simplify(Node);
 
   /**
    * Get a (counter)model (only if preceded by a SAT or INVALID query.
