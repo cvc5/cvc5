@@ -22,9 +22,9 @@
 namespace CVC4 {
 
 // Forward declarations
-class Node;
+class Expr;
 class Command;
-class NodeManager;
+class ExprManager;
 
 namespace parser {
 
@@ -44,7 +44,7 @@ public:
    * Construct the parser that uses the given expression manager.
    * @param em the expression manager.
    */
-  Parser(NodeManager* em);
+  Parser(ExprManager* em);
 
   /**
    * Destructor.
@@ -60,7 +60,7 @@ public:
   /**
    * Parse the next expression of the stream
    */
-  virtual Node parseNextExpression() throw (ParserException) = 0;
+  virtual Expr parseNextExpression() throw (ParserException) = 0;
 
   /**
    * Check if we are done -- either the end of input has been reached.
@@ -73,7 +73,7 @@ protected:
   void setDone(bool done = true);
 
   /** Expression manager the parser will be using */
-  NodeManager* d_expr_manager;
+  ExprManager* d_expr_manager;
 
   /** Are we done */
   bool d_done;

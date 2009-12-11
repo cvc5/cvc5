@@ -41,8 +41,8 @@ Command* SmtParser::parseNextCommand() throw(ParserException) {
   return cmd;
 }
 
-Node SmtParser::parseNextExpression() throw(ParserException) {
-  Node result;
+Expr SmtParser::parseNextExpression() throw(ParserException) {
+  Expr result;
   if(!done()) {
     try {
       result = d_antlr_parser->an_formula();
@@ -59,7 +59,7 @@ SmtParser::~SmtParser() {
   delete d_antlr_lexer;
 }
 
-SmtParser::SmtParser(NodeManager* em, istream& input, const char* file_name) :
+SmtParser::SmtParser(ExprManager* em, istream& input, const char* file_name) :
   Parser(em), d_input(input) {
   if(!d_input) {
     throw ParserException(string("Read error") +

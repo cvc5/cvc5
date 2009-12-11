@@ -10,10 +10,11 @@
  ** Reference-counted encapsulation of a pointer to an expression.
  **/
 
-#ifndef __CVC4__EXPR_H
-#define __CVC4__EXPR_H
+#ifndef __CVC4__NODE_H
+#define __CVC4__NODE_H
 
 #include <vector>
+#include <string>
 #include <iostream>
 #include <stdint.h>
 
@@ -26,7 +27,7 @@ namespace CVC4 {
 
 namespace CVC4 {
 
-inline std::ostream& operator<<(std::ostream&, const Node&) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream&, const Node&);
 
 class NodeManager;
 
@@ -40,7 +41,7 @@ using CVC4::expr::ExprValue;
  * Encapsulation of an ExprValue pointer.  The reference count is
  * maintained in the ExprValue.
  */
-class CVC4_PUBLIC Node {
+class Node {
 
   friend class ExprValue;
 
@@ -99,7 +100,6 @@ public:
 
   Node eqExpr(const Node& right) const;
   Node notExpr() const;
-  Node negate() const; // avoid double-negatives
   Node andExpr(const Node& right) const;
   Node orExpr(const Node& right) const;
   Node iteExpr(const Node& thenpart, const Node& elsepart) const;
@@ -115,7 +115,7 @@ public:
 
   inline size_t numChildren() const;
 
-  static Node null() { return s_null; }
+  static Node null();
 
   typedef Node* iterator;
   typedef Node const* const_iterator;
@@ -125,7 +125,8 @@ public:
   inline const_iterator begin() const;
   inline const_iterator end() const;
 
-  void toString(std::ostream&) const;
+  inline std::string toString() const;
+  inline void toStream(std::ostream&) const;
 
   bool isNull() const;
 
@@ -142,7 +143,7 @@ inline bool Node::operator<(const Node& e) const {
 }
 
 inline std::ostream& operator<<(std::ostream& out, const Node& e) {
-  e.toString(out);
+  e.toStream(out);
   return out;
 }
 
@@ -150,10 +151,12 @@ inline Kind Node::getKind() const {
   return Kind(d_ev->d_kind);
 }
 
-inline void Node::toString(std::ostream& out) const {
-  if(d_ev)
-    d_ev->toString(out);
-  else out << "null";
+inline std::string Node::toString() const {
+  return d_ev->toString();
+}
+
+inline void Node::toStream(std::ostream& out) const {
+  d_ev->toStream(out);
 }
 
 inline Node::iterator Node::begin() {
@@ -178,4 +181,4 @@ inline size_t Node::numChildren() const {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_H */
+#endif /* __CVC4__NODE_H */

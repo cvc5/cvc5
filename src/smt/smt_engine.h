@@ -16,7 +16,9 @@
 
 #include "cvc4_config.h"
 #include "expr/node.h"
+#include "expr/expr.h"
 #include "expr/node_manager.h"
+#include "expr/expr_manager.h"
 #include "util/result.h"
 #include "util/model.h"
 #include "util/options.h"
@@ -42,19 +44,80 @@ class Command;
 //
 // The CNF conversion can go on in PropEngine.
 
-class SmtEngine {
+class CVC4_PUBLIC SmtEngine {
+
+public:
+
+  /**
+   * Construct an SmtEngine with the given expression manager and user options.
+   */
+  SmtEngine(ExprManager* em, Options* opts) throw();
+
+  /**
+   * Destruct the smt engine.
+   */
+  ~SmtEngine();
+
+  /**
+   * Execute a command.
+   */
+  void doCommand(Command*);
+
+  /**
+   * Add a formula to the current context: preprocess, do per-theory
+   * setup, use processAssertionList(), asserting to T-solver for
+   * literals and conjunction of literals.  Returns false iff
+   * inconsistent.
+   */
+  Result assertFormula(const BoolExpr& e);
+
+  /**
+   * Add a formula to the current context and call check().  Returns
+   * true iff consistent.
+   */
+  Result query(const BoolExpr& e);
+
+  /**
+   * Add a formula to the current context and call check().  Returns
+   * true iff consistent.
+   */
+  Result checkSat(const BoolExpr& e);
+
+  /**
+   * Simplify a formula without doing "much" work.  Requires assist
+   * from the SAT Engine.
+   */
+  Expr simplify(const Expr& e);
+
+  /**
+   * Get a (counter)model (only if preceded by a SAT or INVALID query.
+   */
+  Model getModel();
+
+  /**
+   * Push a user-level context.
+   */
+  void push();
+
+  /**
+   * Pop a user-level context.  Throws an exception if nothing to pop.
+   */
+  void pop();
+
+private:
+
   /** Current set of assertions. */
   // TODO: make context-aware to handle user-level push/pop.
   std::vector<Node> d_assertions;
 
   /** Our expression manager */
+  ExprManager *d_public_em;
+
+  /** Out internal expression/node manager */
   NodeManager *d_em;
 
   /** User-level options */
   Options *d_opts;
-
-  /** Expression built-up for handing off to the propagation engine */
-  Node d_expr;
 
   /** The decision engine */
   DecisionEngine d_de;
@@ -71,12 +134,12 @@ class SmtEngine {
    * passes over the Node.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  Node preprocess(Node);
+  Node preprocess(const Node& e);
 
   /**
    * Adds a formula to the current context.
    */
-  void addFormula(Node);
+  void addFormula(const Node& e);
 
   /**
    * Full check of consistency in current context.  Returns true iff
@@ -95,66 +158,9 @@ class SmtEngine {
    * Process the assertion list: for literals and conjunctions of
    * literals, assert to T-solver.
    */
-  void processAssertionList();
+  Node processAssertionList();
 
-public:
-  /*
-   * Construct an SmtEngine with the given expression manager and user options.
-   */
-  SmtEngine(NodeManager* em, Options* opts) throw() :
-    d_em(em),
-    d_opts(opts),
-    d_expr(Node::null()),
-    d_de(),
-    d_te(),
-    d_prop(d_de, d_te) {
-  }
 
-  /**
-   * Execute a command.
-   */
-  void doCommand(Command*);
-
-  /**
-   * Add a formula to the current context: preprocess, do per-theory
-   * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false iff
-   * inconsistent.
-   */
-  Result assertFormula(Node);
-
-  /**
-   * Add a formula to the current context and call check().  Returns
-   * true iff consistent.
-   */
-  Result query(Node);
-
-  /**
-   * Add a formula to the current context and call check().  Returns
-   * true iff consistent.
-   */
-  Result checkSat(Node);
-
-  /**
-   * Simplify a formula without doing "much" work.  Requires assist
-   * from the SAT Engine.
-   */
-  Node simplify(Node);
-
-  /**
-   * Get a (counter)model (only if preceded by a SAT or INVALID query.
-   */
-  Model getModel();
-
-  /**
-   * Push a user-level context.
-   */
-  void push();
-
-  /**
-   * Pop a user-level context.  Throws an exception if nothing to pop.
-   */
-  void pop();
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

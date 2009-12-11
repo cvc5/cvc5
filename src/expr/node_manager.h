@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4__EXPR_MANAGER_H
-#define __CVC4__EXPR_MANAGER_H
+#ifndef __CVC4__NODE_MANAGER_H
+#define __CVC4__NODE_MANAGER_H
 
 #include <vector>
 #include <map>
@@ -24,7 +24,7 @@ namespace expr {
   class ExprBuilder;
 }/* CVC4::expr namespace */
 
-class CVC4_PUBLIC NodeManager {
+class NodeManager {
   static __thread NodeManager* s_current;
 
   friend class CVC4::NodeBuilder;
@@ -45,7 +45,7 @@ public:
   Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4);
   Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5);
   // N-ary version
-  Node mkExpr(Kind kind, std::vector<Node> children);
+  Node mkExpr(Kind kind, const std::vector<Node>& children);
 
   // variables are special, because duplicates are permitted
   Node mkVar();

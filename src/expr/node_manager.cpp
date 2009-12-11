@@ -82,7 +82,7 @@ Node NodeManager::mkExpr(Kind kind, const Node& child1, const Node& child2, cons
 }
 
 // N-ary version
-Node NodeManager::mkExpr(Kind kind, std::vector<Node> children) {
+Node NodeManager::mkExpr(Kind kind, const std::vector<Node>& children) {
   return NodeBuilder(this, kind).append(children);
 }
 

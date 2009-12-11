@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4__EXPR_BUILDER_H
-#define __CVC4__EXPR_BUILDER_H
+#ifndef __CVC4__NODE_BUILDER_H
+#define __CVC4__NODE_BUILDER_H
 
 #include <vector>
 #include <cstdlib>
@@ -78,7 +78,6 @@ public:
   // Compound expression constructors
   NodeBuilder& eqExpr(const Node& right);
   NodeBuilder& notExpr();
-  NodeBuilder& negate(); // avoid double-negatives
   NodeBuilder& andExpr(const Node& right);
   NodeBuilder& orExpr(const Node& right);
   NodeBuilder& iteExpr(const Node& thenpart, const Node& elsepart);
@@ -209,7 +208,9 @@ inline NodeBuilder::operator Node() {
   // variables are permitted to be duplicates (from POV of the expression manager)
   if(d_kind == VARIABLE) {
     ev = new ExprValue;
-    hash = reinterpret_cast<uint64_t>(ev);
+    ev->d_kind = d_kind;
+    ev->d_id = ExprValue::next_id++;// FIXME multithreading
+    return Node(ev);
   } else {
     if(d_nchildren <= nchild_thresh) {
       hash = ExprValue::computeHash<ev_iterator>(d_kind, ev_begin(), ev_end());
@@ -220,7 +221,7 @@ inline NodeBuilder::operator Node() {
       ev_iterator i_end = ev_end();
       for(; i != i_end; ++i) {
         // The expressions in the allocated children are all 0, so we must
-        // construct it withouth using an assignment operator
+        // construct it without using an assignment operator
         ev->d_children[nc++].assignExprValue(*i);
       }
     } else {
@@ -286,7 +287,7 @@ inline PlusExprBuilder& PlusExprBuilder::operator+(Node e) {
 }
 
 inline PlusExprBuilder& PlusExprBuilder::operator-(Node e) {
-  d_eb.append(e.negate());
+  d_eb.append(e.uMinusExpr());
   return *this;
 }
 
@@ -310,4 +311,4 @@ inline MultExprBuilder& MultExprBuilder::operator*(Node e) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_BUILDER_H */
+#endif /* __CVC4__NODE_BUILDER_H */

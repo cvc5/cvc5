@@ -22,7 +22,7 @@
 #include "parser/parser.h"
 #include "parser/smt/smt_parser.h"
 #include "parser/cvc/cvc_parser.h"
-#include "expr/node_manager.h"
+#include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "util/command.h"
 #include "util/output.h"
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
       throw new Exception("Too many input files specified.");
 
     // Create the expression manager
-    NodeManager exprMgr;
+    ExprManager exprMgr;
 
     // Create the SmtEngine
     SmtEngine smt(&exprMgr, &options);

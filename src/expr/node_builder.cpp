@@ -104,15 +104,6 @@ NodeBuilder& NodeBuilder::notExpr() {
   return *this;
 }
 
-// avoid double-negatives
-NodeBuilder& NodeBuilder::negate() {
-  if(EXPECT_FALSE( d_kind == NOT ))
-    return reset(d_children.u_arr[0]); Assert( d_kind != UNDEFINED_KIND );
-  collapse();
-  d_kind = NOT;
-  return *this;
-}
-
 NodeBuilder& NodeBuilder::andExpr(const Node& right) {
   Assert( d_kind != UNDEFINED_KIND );
   if(d_kind != AND) {

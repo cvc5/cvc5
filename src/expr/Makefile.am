@@ -9,11 +9,16 @@ libexpr_la_SOURCES = \
 	attr_var_name.h \
 	node.h \
 	node_builder.h \
+	expr.h \
 	expr_value.h \
 	node_manager.h \
+	expr_manager.h \
 	node_attribute.h \
 	kind.h \
 	node.cpp \
 	node_builder.cpp \
 	node_manager.cpp \
-	expr_value.cpp
+	expr_manager.cpp \
+	expr_value.cpp \
+	expr.cpp
+

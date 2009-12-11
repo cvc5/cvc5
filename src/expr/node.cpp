@@ -15,13 +15,21 @@
 #include "expr/node_builder.h"
 #include "util/Assert.h"
 
+#include <sstream>
+
 using namespace CVC4::expr;
+using namespace std;
 
 namespace CVC4 {
 
 ExprValue ExprValue::s_null;
 
 Node Node::s_null(&ExprValue::s_null);
+
+Node Node::null() {
+  return s_null;
+}
+
 
 bool Node::isNull() const {
   return d_ev == &ExprValue::s_null;
@@ -81,12 +89,6 @@ Node Node::eqExpr(const Node& right) const {
 Node Node::notExpr() const {
   return NodeManager::currentEM()->mkExpr(NOT, *this);
 }
-
-// FIXME: What does this do and why?
-Node Node::negate() const { // avoid double-negatives
-  return NodeBuilder(*this).negate();
-}
-
 
 Node Node::andExpr(const Node& right) const {
   return NodeManager::currentEM()->mkExpr(AND, *this, right);

@@ -5,10 +5,9 @@
  *      Author: dejan
  */
 
+#include <map>
 #include "util/command.h"
 #include "smt/smt_engine.h"
-#include "expr/node.h"
-#include "util/result.h"
 
 using namespace std;
 
@@ -26,7 +25,7 @@ EmptyCommand::EmptyCommand(string name) :
 void EmptyCommand::invoke(SmtEngine* smt_engine) {
 }
 
-AssertCommand::AssertCommand(const Node& e) :
+AssertCommand::AssertCommand(const BoolExpr& e) :
   d_expr(e) {
 }
 
@@ -37,7 +36,7 @@ void AssertCommand::invoke(SmtEngine* smt_engine) {
 CheckSatCommand::CheckSatCommand() {
 }
 
-CheckSatCommand::CheckSatCommand(const Node& e) :
+CheckSatCommand::CheckSatCommand(const BoolExpr& e) :
   d_expr(e) {
 }
 
@@ -45,7 +44,7 @@ void CheckSatCommand::invoke(SmtEngine* smt_engine) {
   smt_engine->checkSat(d_expr);
 }
 
-QueryCommand::QueryCommand(const Node& e) :
+QueryCommand::QueryCommand(const BoolExpr& e) :
   d_expr(e) {
 }
 
@@ -73,10 +72,6 @@ void CommandSequence::addCommand(Command* cmd) {
   d_command_sequence.push_back(cmd);
 }
 
-// Printout methods
-
-using namespace std;
-
 void EmptyCommand::toString(ostream& out) const {
   out << "EmptyCommand(" << d_name << ")";
 }
@@ -98,8 +93,9 @@ void QueryCommand::toString(ostream& out) const {
 
 void CommandSequence::toString(ostream& out) const {
   out << "CommandSequence[" << endl;
-  for(unsigned i = d_last_index; i < d_command_sequence.size(); ++i)
+  for(unsigned i = d_last_index; i < d_command_sequence.size(); ++i) {
     out << *d_command_sequence[i] << endl;
+  }
   out << "]";
 }
 

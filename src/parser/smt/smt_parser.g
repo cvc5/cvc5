@@ -60,7 +60,7 @@ pred_symb returns [std::string p]
 /**
  * Matches a propositional atom from the input. 
  */
-prop_atom returns [CVC4::Node atom]
+prop_atom returns [CVC4::Expr atom]
 {
   std::string p;
 } 
@@ -78,14 +78,14 @@ prop_atom returns [CVC4::Node atom]
  * enclosed in brackets. The prop_atom rule from the original SMT grammar is inlined
  * here in order to get rid of the ugly antlr non-determinism warrnings. 
  */
-an_atom returns [CVC4::Node atom] 
+an_atom returns [CVC4::Expr atom] 
   : atom = prop_atom  
   ;
   
 /**
  * Matches on of the unary Boolean conectives.  
  */
-connective returns [CVC4::Kind kind]
+bool_connective returns [CVC4::Kind kind]
   : NOT      { kind = CVC4::NOT;     } 
   | IMPLIES  { kind = CVC4::IMPLIES; }
   | AND      { kind = CVC4::AND;     }
@@ -97,18 +97,18 @@ connective returns [CVC4::Kind kind]
 /** 
  * Matches an annotated formula. 
  */
-an_formula returns [CVC4::Node formula] 
+an_formula returns [CVC4::Expr formula] 
 { 
   Kind kind; 
-  vector<Node> children;
+  vector<Expr> children;
 }
   :  formula = an_atom 
-  |  LPAREN kind = connective an_formulas[children] RPAREN { formula = newExpression(kind, children);  }    
+  |  LPAREN kind = bool_connective an_formulas[children] RPAREN { formula = newExpression(kind, children);  }    
   ;
   
-an_formulas[std::vector<Node>& formulas]
+an_formulas[std::vector<Expr>& formulas]
 {
-  Node f;
+  Expr f;
 }
   : ( f = an_formula { formulas.push_back(f); } )+
   ;
@@ -149,7 +149,7 @@ status returns [ AntlrParser::BenchmarkStatus status ]
 bench_attribute returns [ Command* smt_command = 0]
 {
   BenchmarkStatus b_status = SMT_UNKNOWN;
-  Node formula;  
+  Expr formula;  
   vector<string> sorts;
 }
   : C_LOGIC       IDENTIFIER      

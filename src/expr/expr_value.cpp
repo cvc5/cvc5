@@ -15,6 +15,9 @@
  **/
 
 #include "expr_value.h"
+#include <sstream>
+
+using namespace std;
 
 namespace CVC4 {
 
@@ -77,7 +80,13 @@ ExprValue::const_iterator ExprValue::rend() const {
   return d_children - 1;
 }
 
-void ExprValue::toString(std::ostream& out) const {
+string ExprValue::toString() const {
+  stringstream ss;
+  toStream(ss);
+  return ss.str();
+}
+
+void ExprValue::toStream(std::ostream& out) const {
   out << "(" << Kind(d_kind);
   if(d_kind == VARIABLE) {
     out << ":" << this;

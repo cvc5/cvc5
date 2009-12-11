@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include "kind.h"
 
+#include <string>
+
 namespace CVC4 {
 
 class Node;
@@ -112,7 +114,8 @@ public:
 
   unsigned getId() const { return d_id; }
   unsigned getKind() const { return (Kind) d_kind; }
-  void CVC4_PUBLIC toString(std::ostream& out) const;
+  std::string toString() const;
+  void toStream(std::ostream& out) const;
 };
 
 }/* CVC4::expr namespace */

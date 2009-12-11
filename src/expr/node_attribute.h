@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef __CVC4__EXPR__EXPR_ATTRIBUTE_H
-#define __CVC4__EXPR__EXPR_ATTRIBUTE_H
+#ifndef __CVC4__EXPR__NODE_ATTRIBUTE_H
+#define __CVC4__EXPR__NODE_ATTRIBUTE_H
 
 #include <stdint.h>
 #include "config.h"
