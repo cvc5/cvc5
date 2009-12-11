@@ -5,8 +5,8 @@
 # If the installed autotools aren't these versions, issue a warning
 # about checking results into subversion.
 libtoolize_version='libtoolize (GNU libtool) 2.2.6'
-autoheader_version='autoheader (GNU Autoconf) 2.64'
 aclocal_version='aclocal (GNU automake) 1.11'
+autoheader_version='autoheader (GNU Autoconf) 2.64'
 autoconf_version='autoconf (GNU Autoconf) 2.64'
 automake_version='automake (GNU automake) 1.11'
 
@@ -34,9 +34,9 @@ set -ex
 
 cd "$(dirname "$0")"
 libtoolize --copy
+aclocal -I config
 autoheader -I config
 touch NEWS README AUTHORS ChangeLog
 touch stamp-h
-aclocal -I config
 autoconf -I config
 automake -ac --foreign -Woverride

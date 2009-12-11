@@ -1,10 +1,11 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
+CVC4_AC_INIT
+
 AC_PREREQ([2.59])
 AC_INIT([src/include/cvc4_config.h])
 AC_CONFIG_AUX_DIR([config])
-#AC_CONFIG_LIBOBJ_DIR([lib])
 AC_CONFIG_MACRO_DIR([config])
 
 CVC4_RELEASE=prerelease
