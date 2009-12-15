@@ -66,7 +66,7 @@ DIGIT options{ paraphrase = "a digit"; }
 /**
  * Matches the ':'
  */
-COLON options{ paraphrase = "a comma"; } 
+COLON options{ paraphrase = "a colon"; } 
   : ':'
   ;
 
@@ -115,7 +115,7 @@ NEWLINE options { paraphrase = "a newline"; }
  * Mathces the comments and ignores them
  */
 COMMENT options { paraphrase = "comment"; }
-  : ';' (~('\n' | '\r'))*                    { $setType(antlr::Token::SKIP); }
+  : '%' (~('\n' | '\r'))*                    { $setType(antlr::Token::SKIP); }
   ;
       
 /**

@@ -31,8 +31,7 @@ class CVC4_PUBLIC SmtParser : public Parser {
 public:
 
   /**
-   * Construct the parser that uses the given expression manager and parses
-   * from the given input stream.
+   * Construct the parser that uses the given expression manager and input stream.
    * @param em the expression manager to use
    * @param input the input stream to parse
    * @param file_name the name of the file (for diagnostic output)

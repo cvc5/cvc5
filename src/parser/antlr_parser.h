@@ -27,7 +27,7 @@ namespace parser {
 /**
  * Wrapper of the ANTLR parser that includes convenience methods that interacts
  * with the expression manager. The grammars should have as little C++ code as
- * possible and all the state and actuall functionality (besides parsing) should
+ * possible and all the state and actual functionality (besides parsing) should
  * go into this class.
  */
 class AntlrParser : public antlr::LLkParser {
@@ -45,7 +45,7 @@ public:
   };
 
   /**
-   * Set's the expression manager to use when creating/managing expression.
+   * Sets the expression manager to use when creating/managing expression.
    * @param expr_manager the expression manager
    */
   void setExpressionManager(ExprManager* expr_manager);
@@ -53,8 +53,7 @@ public:
 protected:
 
   /**
-   * Class constructor, just tunnels the construction to the antlr
-   * LLkParser class.
+   * Create a parser with the given input state and token lookahead.
    *
    * @param state the shared input state
    * @param k lookahead
@@ -62,8 +61,7 @@ protected:
   AntlrParser(const antlr::ParserSharedInputState& state, int k);
 
   /**
-   * Class constructor, just tunnels the construction to the antlr
-   * LLkParser class.
+   * Create a parser with the given token buffer and lookahead.
    *
    * @param tokenBuf the token buffer to use in parsing
    * @param k lookahead
@@ -71,8 +69,7 @@ protected:
   AntlrParser(antlr::TokenBuffer& tokenBuf, int k);
 
   /**
-   * Class constructor, just tunnels the construction to the antlr
-   * LLkParser class.
+   * Create a parser with the given token stream and lookahead.
    *
    * @param lexer the lexer to use in parsing
    * @param k lookahead
@@ -143,8 +140,11 @@ protected:
   Expr newExpression(Kind kind, const std::vector<Expr>& children);
 
   /**
-   * Creates a new expression based on the given string of expressions and kinds.
+   * Creates a new expression based on the given string of expressions and kinds,
+   * where kinds[i] is the operator to place between exprs[i] and exprs[i+1].
    * The expression is created so that it respects the kinds precedence table.
+   * The exprs vector should be non-empty. If the length of exprs is N, then the
+   * length of kinds should be N-1 (kinds may be empty).
    */
   Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds);
 
@@ -190,8 +190,11 @@ private:
   unsigned findPivot(const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index) const;
 
   /**
-   * Creates a new expression based on the given string of expressions and kinds.
+   * Creates a new expression based on the given string of expressions and kinds
    * The expression is created so that it respects the kinds precedence table.
+   * The exprs vector should be non-empty. The kinds vector should have one less
+   * element than the exprs vector. start_index and end_index should be valid
+   * indices into exprs.
    */
   Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index);
 

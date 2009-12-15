@@ -9,6 +9,7 @@
 
 #include "antlr_parser.h"
 #include "util/output.h"
+#include "util/Assert.h"
 
 using namespace std;
 using namespace CVC4;
@@ -134,11 +135,16 @@ void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
 
 Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs, const vector<
     Kind>& kinds) {
+  Assert( exprs.size() > 0, "Expected non-empty vector expr");
+  Assert( vectors.size() + 1 == exprs.size(), "Expected kinds to match exprs");
   return createPrecedenceExpr(exprs, kinds, 0, exprs.size() - 1);
 }
 
 unsigned AntlrParser::findPivot(const std::vector<Kind>& kinds,
                                 unsigned start_index, unsigned end_index) const {
+  Assert( start_index >= 0, "Expected start_index >= 0. ");
+  Assert( end_index < kinds.size(), "Expected end_index < kinds.size(). ");
+  Assert( start_index <= end_index, "Expected start_index <= end_index. ");
 
   int pivot = start_index;
   unsigned pivot_precedence = getPrecedence(kinds[pivot]);
@@ -157,6 +163,12 @@ unsigned AntlrParser::findPivot(const std::vector<Kind>& kinds,
 Expr AntlrParser::createPrecedenceExpr(const std::vector<Expr>& exprs,
                                        const std::vector<Kind>& kinds,
                                        unsigned start_index, unsigned end_index) {
+  Assert( exprs.size() > 0, "Expected non-empty vector expr");
+  Assert( kinds.size() + 1 == exprs.size(), "Expected kinds to match exprs.");
+  Assert( start_index >= 0, "Expected start_index >= 0. ");
+  Assert( end_index < exprs.size(), "Expected end_index < exprs.size. ");
+  Assert( start_index <= end_index, "Expected start_index <= end_index. ");
+
   if(start_index == end_index)
     return exprs[start_index];
 

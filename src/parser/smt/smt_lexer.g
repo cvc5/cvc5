@@ -14,7 +14,7 @@ class AntlrSmtLexer extends Lexer;
 options {
   exportVocab = SmtVocabulary;  // Name of the shared token vocabulary
   testLiterals = false;         // Do not check for literals by default
-  defaultErrorHandler = false;  // Skip the defaul error handling, just break with exceptions
+  defaultErrorHandler = false;  // Skip the default error handling, just break with exceptions
   k = 2;  
 }
  
@@ -130,7 +130,7 @@ WHITESPACE options { paraphrase = "whitespace"; }
   ;
 
 /**
- * Mathces and skips the newline symbols in the input.
+ * Matches and skips the newline symbols in the input.
  */
 NEWLINE options { paraphrase = "a newline"; }  
   :   ('\r' '\n' | '\r' | '\n')       { $setType(antlr::Token::SKIP); newline(); }

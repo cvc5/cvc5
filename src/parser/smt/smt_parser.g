@@ -50,7 +50,7 @@ annotation
   ;
   
 /**
- * Matches a predicate symbol from the input. 
+ * Matches a predicate symbol. 
  */
 pred_symb returns [std::string p]
   :  id:IDENTIFIER { p = id->getText(); }
@@ -58,7 +58,7 @@ pred_symb returns [std::string p]
   
 
 /**
- * Matches a propositional atom from the input. 
+ * Matches a propositional atom. 
  */
 prop_atom returns [CVC4::Expr atom]
 {
@@ -73,17 +73,18 @@ prop_atom returns [CVC4::Expr atom]
    ;
     
 /**
- * Matches an annotated proposition atom which is either a propositional atom, 
+ * Matches an annotated proposition atom, which is either a propositional atom 
  * or built of other atoms using a predicate symbol. Annotation can be added if
  * enclosed in brackets. The prop_atom rule from the original SMT grammar is inlined
- * here in order to get rid of the ugly antlr non-determinism warrnings. 
+ * here in order to get rid of the ugly antlr non-determinism warnings. 
  */
+ // [chris 12/15/2009] FIXME: Where is the annotation? 
 an_atom returns [CVC4::Expr atom] 
   : atom = prop_atom  
   ;
   
 /**
- * Matches on of the unary Boolean conectives.  
+ * Matches on of the unary Boolean connectives.  
  */
 bool_connective returns [CVC4::Kind kind]
   : NOT      { kind = CVC4::NOT;     } 

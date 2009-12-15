@@ -42,6 +42,7 @@ command returns [CVC4::Command* cmd = 0]
   | CHECKSAT f = formula  { cmd = new CheckSatCommand(f); }
   | CHECKSAT              { cmd = new CheckSatCommand();  }
   | identifierList[ids] COLON type { 
+      // [chris 12/15/2009] FIXME: decls may not be BOOLEAN
       newPredicates(ids); 
       cmd = new EmptyCommand("Declaration"); 
     }
