@@ -6,4 +6,7 @@ noinst_LTLIBRARIES = libcontext.la
 
 libcontext_la_SOURCES = \
 	context.cpp \
-	context.h
+	context.h \
+	context_mm.cpp \
+	context_mm.h
+
