@@ -120,7 +120,7 @@ protected:
   /**
    * Constructor for internal purposes.
    * @param em the expression manager that handles this expression
-   * @param node the actuall expression node pointer
+   * @param node the actual expression node pointer
    */
   Expr(ExprManager* em, Node* node);
 
@@ -136,7 +136,7 @@ protected:
    */
   Node getNode() const;
 
-  // Friend to access the actual internal node information and private methods*/
+  // Friend to access the actual internal node information and private methods
   friend class SmtEngine;
   friend class ExprManager;
 };
