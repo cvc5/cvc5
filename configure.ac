@@ -269,7 +269,12 @@ if test -z "$DOXYGEN"; then
 fi
 AC_ARG_VAR(DOXYGEN, [location of doxygen binary])
 
-AC_ARG_VAR(CXXTEST, [path to cxxtest installation])
+AC_SUBST([CXXTEST])
+AC_ARG_WITH([cxxtest-dir], 
+  [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
+  [CXXTEST="$withval"])
+
+dnl AC_ARG_VAR(CXXTEST, [path to cxxtest installation])
 CXXTESTGEN=
 AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
 if test -z "$CXXTESTGEN"; then
@@ -286,7 +291,6 @@ elif test -z "$CXXTEST"; then
     CXXTEST=
   fi
 fi
-AC_ARG_WITH([cxxtest], [AS_HELP_STRING([--with-cxxtest=dir], [path to CxxTest installation])])
 AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
 AC_ARG_VAR(TEST_CPPFLAGS, [CXXFLAGS to use when testing (default=$CPPFLAGS)])

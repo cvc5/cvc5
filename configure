@@ -860,9 +860,8 @@ enable_fast_install
 enable_dependency_tracking
 with_gnu_ld
 enable_libtool_lock
-with_antlr
-with_cxxtest
-with_antlr_prefix
+with_cxxtest_dir
+with_antlr_dir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -877,8 +876,8 @@ CXX
 CXXFLAGS
 CCC
 CXXCPP
+ANTLR
 DOXYGEN
-CXXTEST
 TEST_CPPFLAGS
 TEST_CXXFLAGS
 TEST_LDFLAGS'
@@ -1539,12 +1538,8 @@ Optional Packages:
   --with-pic              try to use only PIC/non-PIC objects [default=use
                           both]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
-  --with-antlr=RUNANTLR   location of the ANTLR's `runantlr` script
-  --with-cxxtest=dir      path to CxxTest installation
-  --with-antlr-prefix=PATH
-                          set the search path for ANTLR headers and libraries
-                          to `PATH/include` and `PATH/lib`. By default we look
-                          in /usr, /usr/local, /opt and /opt/local.
+  --with-cxxtest-dir=DIR  path to CxxTest installation
+  --with-antlr-dir=PATH   path to ANTLR C++ headers and libraries
 
 Some influential environment variables:
   CC          C compiler command
@@ -1558,8 +1553,8 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CXXCPP      C++ preprocessor
+  ANTLR       location of the runantlr script
   DOXYGEN     location of doxygen binary
-  CXXTEST     path to cxxtest installation
   TEST_CPPFLAGS
               CXXFLAGS to use when testing (default=$CPPFLAGS)
   TEST_CXXFLAGS
@@ -5416,13 +5411,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5419: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5414: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5422: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5417: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5425: output\"" >&5)
+  (eval echo "\"\$as_me:5420: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6625,7 +6620,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6628 "configure"' > conftest.$ac_ext
+  echo '#line 6623 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8093,11 +8088,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8096: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8091: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8100: \$? = $ac_status" >&5
+   echo "$as_me:8095: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8432,11 +8427,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8435: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8430: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8439: \$? = $ac_status" >&5
+   echo "$as_me:8434: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8537,11 +8532,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8540: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8535: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8544: \$? = $ac_status" >&5
+   echo "$as_me:8539: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8592,11 +8587,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8595: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8590: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8599: \$? = $ac_status" >&5
+   echo "$as_me:8594: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10975,7 +10970,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10978 "configure"
+#line 10973 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11071,7 +11066,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11074 "configure"
+#line 11069 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14627,11 +14622,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14630: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14625: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14634: \$? = $ac_status" >&5
+   echo "$as_me:14629: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14726,11 +14721,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14729: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14724: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14733: \$? = $ac_status" >&5
+   echo "$as_me:14728: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14778,11 +14773,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14781: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14776: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14785: \$? = $ac_status" >&5
+   echo "$as_me:14780: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15730,13 +15725,16 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 
 
+
   # Get the location of the runantlr script
-
-# Check whether --with-antlr was given.
-if test "${with_antlr+set}" = set; then :
-  withval=$with_antlr; ANTLR="$withval"
-fi
-
+  # AC_ARG_WITH(
+  #   [antlr],
+  #   AS_HELP_STRING(
+  #     [--with-antlr=RUNANTLR],
+  #     [location of the ANTLR's `runantlr` script]
+  #   ),
+  #   ANTLR="$withval",
+  # )
 
   # Check the existance of the runantlr script
   if test -z "$ANTLR"; then
@@ -15834,7 +15832,7 @@ $as_echo "no" >&6; }
   fi
 
   # Define the ANTL related variables
-
+  # AC_SUBST(ANTLR)
 
 
 # Extract the first word of "doxygen", so it can be a program name with args.
@@ -15879,6 +15877,13 @@ if test -z "$DOXYGEN"; then
 $as_echo "$as_me: WARNING: documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary." >&2;}
 fi
 
+
+
+
+# Check whether --with-cxxtest-dir was given.
+if test "${with_cxxtest_dir+set}" = set; then :
+  withval=$with_cxxtest_dir; CXXTEST="$withval"
+fi
 
 
 CXXTESTGEN=
@@ -15942,12 +15947,6 @@ $as_echo "$as_me: WARNING: unit tests disabled, CxxTest headers not found." >&2;
     CXXTEST=
   fi
 fi
-
-# Check whether --with-cxxtest was given.
-if test "${with_cxxtest+set}" = set; then :
-  withval=$with_cxxtest;
-fi
-
  if test -n "$CXXTESTGEN"; then
   HAVE_CXXTESTGEN_TRUE=
   HAVE_CXXTESTGEN_FALSE='#'
@@ -16060,9 +16059,9 @@ fi
 
   # Get the location of the  ANTLR c++ includes and libraries
 
-# Check whether --with-antlr-prefix was given.
-if test "${with_antlr_prefix+set}" = set; then :
-  withval=$with_antlr_prefix; ANTLR_PREFIXES="$withval"
+# Check whether --with-antlr-dir was given.
+if test "${with_antlr_dir+set}" = set; then :
+  withval=$with_antlr_dir; ANTLR_PREFIXES="$withval"
 else
   ANTLR_PREFIXES="/usr/local /usr /opt/local /opt"
 

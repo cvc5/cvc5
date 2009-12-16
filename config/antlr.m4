@@ -3,16 +3,17 @@
 # runantlr script
 ##
 AC_DEFUN([AC_PROG_ANTLR], [
+  AC_ARG_VAR([ANTLR],[location of the runantlr script])
 
   # Get the location of the runantlr script
-  AC_ARG_WITH(
-    [antlr],
-    AS_HELP_STRING(
-      [--with-antlr=RUNANTLR],
-      [location of the ANTLR's `runantlr` script]
-    ),
-    ANTLR="$withval",
-  )
+  # AC_ARG_WITH(
+  #   [antlr],
+  #   AS_HELP_STRING(
+  #     [--with-antlr=RUNANTLR],
+  #     [location of the ANTLR's `runantlr` script]
+  #   ),
+  #   ANTLR="$withval",
+  # )
 
   # Check the existance of the runantlr script
   if test -z "$ANTLR"; then
@@ -30,7 +31,7 @@ AC_DEFUN([AC_PROG_ANTLR], [
   fi
 
   # Define the ANTL related variables
-  AC_SUBST(ANTLR)
+  # AC_SUBST(ANTLR)
 ])
 
 ##
@@ -42,13 +43,10 @@ AC_DEFUN([AC_LIB_ANTLR],[
 
   # Get the location of the  ANTLR c++ includes and libraries
   AC_ARG_WITH(
-    [antlr-prefix],
+    [antlr-dir],
     AS_HELP_STRING(
-      [--with-antlr-prefix=PATH],
-      [set the search path for ANTLR headers and libraries to `PATH/include`
-       and `PATH/lib`. By default we look in /usr, /usr/local, /opt and
-       /opt/local.
-      ]
+      [--with-antlr-dir=PATH],
+      [path to ANTLR C++ headers and libraries]
     ),
     ANTLR_PREFIXES="$withval",
     ANTLR_PREFIXES="/usr/local /usr /opt/local /opt"
