@@ -23,7 +23,7 @@ class CVC4_PUBLIC ExprManager {
 public:
 
   /**
-   * Creates an expressio manager.
+   * Creates an expression manager.
    */
   ExprManager();
 
@@ -49,8 +49,10 @@ public:
   Expr mkExpr(Kind kind, const Expr& child1);
 
   /**
-   * Make a ternary expression of a given kind (AND, PLUS, ...).
+   * Make a binary expression of a given kind (AND, PLUS, ...).
    * @param kind the kind of expression
+   * @param child1 the first child of the new expression
+   * @param child2 the second child of the new expression
    * @return the expression
    */
   Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2);

@@ -46,8 +46,11 @@ Expr& Expr::operator=(const Expr& e) {
 }
 
 bool Expr::operator==(const Expr& e) const {
-  if(d_em != e.d_em)
-    return false;Assert(d_node != NULL, "Unexpected NULL expression pointer!");Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  if(d_em != e.d_em){
+    return false;
+  }
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
   return *d_node == *e.d_node;
 }
 
@@ -56,9 +59,11 @@ bool Expr::operator!=(const Expr& e) const {
 }
 
 bool Expr::operator<(const Expr& e) const {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
-  if(d_em != e.d_em)
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  if(d_em != e.d_em){
     return false;
+  }
   return *d_node < *e.d_node;
 }
 

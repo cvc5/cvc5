@@ -95,6 +95,7 @@ public:
 
   /**
    * Returns the string representation of the expression.
+   * @return a string representation of the expression
    */
   std::string toString() const;
 

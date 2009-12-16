@@ -23,7 +23,10 @@ class Type;
 // this is essentially a traits structure
 class Type_attr {
 public:
-  enum { hash_value = 11 }; // could use typeid but then different on different machines/compiles
+  
+  // could use typeid but then different on different machines/compiles
+  enum { hash_value = 11 };
+  
   typedef Type value_type;//Node?
   static const Type_attr marker;
 };
