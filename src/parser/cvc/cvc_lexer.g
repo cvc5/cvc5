@@ -105,14 +105,14 @@ WHITESPACE options { paraphrase = "whitespace"; }
   ;
 
 /**
- * Mathces and skips the newline symbols in the input.
+ * Matches and skips the newline symbols in the input.
  */
 NEWLINE options { paraphrase = "a newline"; }  
   : ('\r' '\n' | '\r' | '\n')       { $setType(antlr::Token::SKIP); newline(); }
   ;
 
 /**
- * Mathces the comments and ignores them
+ * Matches the comments and ignores them
  */
 COMMENT options { paraphrase = "comment"; }
   : '%' (~('\n' | '\r'))*                    { $setType(antlr::Token::SKIP); }
