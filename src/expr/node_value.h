@@ -70,8 +70,8 @@ class NodeValue {
   template <unsigned> friend class CVC4::NodeBuilder;
   friend class CVC4::NodeManager;
 
-  NodeValue* inc();
-  NodeValue* dec();
+  void inc();
+  void dec();
 
   static size_t next_id;
 
@@ -110,13 +110,9 @@ class NodeValue {
 
   ev_iterator ev_begin();
   ev_iterator ev_end();
-  ev_iterator ev_rbegin();
-  ev_iterator ev_rend();
 
   const_ev_iterator ev_begin() const;
   const_ev_iterator ev_end() const;
-  const_ev_iterator ev_rbegin() const;
-  const_ev_iterator ev_rend() const;
 
   class node_iterator {
     const_ev_iterator d_i;
@@ -156,13 +152,9 @@ public:
 
   iterator begin();
   iterator end();
-  iterator rbegin();
-  iterator rend();
 
   const_iterator begin() const;
   const_iterator end() const;
-  const_iterator rbegin() const;
-  const_iterator rend() const;
 
   unsigned getId() const { return d_id; }
   Kind getKind() const { return (Kind) d_kind; }

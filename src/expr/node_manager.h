@@ -47,24 +47,6 @@ public:
 
   // variables are special, because duplicates are permitted
   Node mkVar();
-
-  // TODO: these use the current NM (but must be renamed)
-  /*
-  static Node mkExpr(Kind kind)
-  { currentNM()->mkExpr(kind); }
-  static Node mkExpr(Kind kind, Node child1);
-  { currentNM()->mkExpr(kind, child1); }
-  static Node mkExpr(Kind kind, Node child1, Node child2);
-  { currentNM()->mkExpr(kind, child1, child2); }
-  static Node mkExpr(Kind kind, Node child1, Node child2, Node child3);
-  { currentNM()->mkExpr(kind, child1, child2, child3); }
-  static Node mkExpr(Kind kind, Node child1, Node child2, Node child3, Node child4);
-  { currentNM()->mkExpr(kind, child1, child2, child3, child4); }
-  static Node mkExpr(Kind kind, Node child1, Node child2, Node child3, Node child4, Node child5);
-  { currentNM()->mkExpr(kind, child1, child2, child3, child4, child5); }
-  */
-
-  // do we want a varargs one?  perhaps not..
 };
 
 }/* CVC4 namespace */

@@ -25,6 +25,6 @@ do
 done
 eval set x $ac_cvc4_rewritten_args
 shift
-echo "args are now:" "${@}"
+dnl echo "args are now:" "${@}"
 m4_divert_pop([PARSE_ARGS])dnl
 ])# CVC4_REWRITE_ARGS_FOR_BUILD_PROFILE

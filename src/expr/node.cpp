@@ -67,7 +67,8 @@ void Node::assignNodeValue(NodeValue* ev) {
 
 Node& Node::operator=(const Node& e) {
   Assert(d_ev != NULL, "Expecting a non-NULL expression value!");
-  if((this != &e) && (d_ev != e.d_ev)) {
+  Assert(e.d_ev != NULL, "Expecting a non-NULL expression value on RHS!");
+  if(EXPECT_TRUE( d_ev != e.d_ev )) {
     d_ev->dec();
     d_ev = e.d_ev;
     d_ev->inc();

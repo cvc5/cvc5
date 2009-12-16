@@ -33,8 +33,8 @@ fi
 set -ex
 
 cd "$(dirname "$0")"
-libtoolize -cf || glibtoolize -cf
-aclocal -I config --force --install -Wall
+libtoolize -c -f || glibtoolize -c -f
+aclocal -I config --force --install -Wall || aclocal -I config --force
 autoheader -I config -f -Wall
 touch NEWS README AUTHORS ChangeLog
 touch stamp-h

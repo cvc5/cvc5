@@ -41,22 +41,21 @@ uint64_t NodeValue::hash() const {
   return computeHash(d_kind, ev_begin(), ev_end());
 }
 
-NodeValue* NodeValue::inc() {
+void NodeValue::inc() {
   // FIXME multithreading
-  if(d_rc < MAX_RC)
+  if(EXPECT_TRUE( d_rc < MAX_RC )) {
     ++d_rc;
-  return this;
+  }
 }
 
-NodeValue* NodeValue::dec() {
+void NodeValue::dec() {
   // FIXME multithreading
-  if(d_rc < MAX_RC) {
-    if(--d_rc == 0) {
+  if(EXPECT_TRUE( d_rc < MAX_RC )) {
+    --d_rc;
+    if(EXPECT_FALSE( d_rc == 0 )) {
       // FIXME gc
-      return 0;
     }
   }
-  return this;
 }
 
 NodeValue::iterator NodeValue::begin() {
@@ -67,28 +66,12 @@ NodeValue::iterator NodeValue::end() {
   return node_iterator(d_children + d_nchildren);
 }
 
-NodeValue::iterator NodeValue::rbegin() {
-  return node_iterator(d_children + d_nchildren - 1);
-}
-
-NodeValue::iterator NodeValue::rend() {
-  return node_iterator(d_children - 1);
-}
-
 NodeValue::const_iterator NodeValue::begin() const {
   return const_node_iterator(d_children);
 }
 
 NodeValue::const_iterator NodeValue::end() const {
   return const_node_iterator(d_children + d_nchildren);
-}
-
-NodeValue::const_iterator NodeValue::rbegin() const {
-  return const_node_iterator(d_children + d_nchildren - 1);
-}
-
-NodeValue::const_iterator NodeValue::rend() const {
-  return const_node_iterator(d_children - 1);
 }
 
 NodeValue::ev_iterator NodeValue::ev_begin() {
@@ -99,28 +82,12 @@ NodeValue::ev_iterator NodeValue::ev_end() {
   return d_children + d_nchildren;
 }
 
-NodeValue::ev_iterator NodeValue::ev_rbegin() {
-  return d_children + d_nchildren - 1;
-}
-
-NodeValue::ev_iterator NodeValue::ev_rend() {
-  return d_children - 1;
-}
-
 NodeValue::const_ev_iterator NodeValue::ev_begin() const {
   return d_children;
 }
 
 NodeValue::const_ev_iterator NodeValue::ev_end() const {
   return d_children + d_nchildren;
-}
-
-NodeValue::const_ev_iterator NodeValue::ev_rbegin() const {
-  return d_children + d_nchildren - 1;
-}
-
-NodeValue::const_ev_iterator NodeValue::ev_rend() const {
-  return d_children - 1;
 }
 
 string NodeValue::toString() const {

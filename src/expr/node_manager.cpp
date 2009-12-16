@@ -20,6 +20,8 @@ __thread NodeManager* NodeManager::s_current = 0;
 
 Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
   Assert(this != NULL, "Whoops, we have a bad expression manager!");
+  Assert(ev != NULL, "lookup() expects a non-NULL NodeValue!");
+
   hash_t::iterator i = d_hash.find(hash);
   if(i == d_hash.end()) {
     // insert
@@ -63,6 +65,8 @@ Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
 
 NodeValue* NodeManager::lookupNoInsert(uint64_t hash, NodeValue* ev) {
   Assert(this != NULL, "Whoops, we have a bad expression manager!");
+  Assert(ev != NULL, "lookupNoInsert() expects a non-NULL NodeValue!");
+
   hash_t::iterator i = d_hash.find(hash);
   if(i == d_hash.end()) {
     return NULL;
