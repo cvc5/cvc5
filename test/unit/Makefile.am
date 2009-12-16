@@ -1,19 +1,27 @@
 if HAVE_CXXTESTGEN
 
-AM_CPPFLAGS = -I. "-I$(CXXTEST)" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
+AM_CPPFLAGS = \
+	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
 AM_CXXFLAGS = -fno-access-control
 #AM_LDFLAGS = -L@top_builddir@/src/libcvc4.la
+
+TESTS_WHITE = \
+	expr/node_white
+
+TESTS_BLACK = \
+	expr/node_black
+
 TESTS = \
-	expr/expr_black \
-	expr/expr_white
+	$(TESTS_WHITE) \
+	$(TESTS_BLACK)
 
 lib_LTLIBRARIES = libdummy.la
-libdummy_la_SOURCES = expr/expr_black.cpp
+libdummy_la_SOURCES = expr/node_black.cpp
 libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 
 $(TESTS:%=%.cpp): %.cpp: %.h
 	mkdir -p `dirname "$@"`
-	$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
+	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
 $(TESTS): %: %.cpp
 #	get these in here somehow
 #	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)

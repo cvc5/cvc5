@@ -34,7 +34,7 @@ void PropEngine::addVars(Node e) {
   Debug("prop") << "adding vars to " << e << endl;
   for(Node::iterator i = e.begin(); i != e.end(); ++i) {
     Debug("prop") << "expr " << *i << endl;
-    if(i->getKind() == VARIABLE) {
+    if((*i).getKind() == VARIABLE) {
       if(d_vars.find(*i) == d_vars.end()) {
         Var v = d_sat.newVar();
         Debug("prop") << "adding var " << *i << " <--> " << v << endl;

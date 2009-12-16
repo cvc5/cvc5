@@ -53,7 +53,7 @@ CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libexpr_la_LIBADD =
 am_libexpr_la_OBJECTS = node.lo node_builder.lo node_manager.lo \
-	expr_manager.lo expr_value.lo expr.lo
+	expr_manager.lo node_value.lo expr.lo
 libexpr_la_OBJECTS = $(am_libexpr_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -105,6 +105,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
+CXXTEST = @CXXTEST@
 CXXTESTGEN = @CXXTESTGEN@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -216,9 +217,11 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/..
+AM_CPPFLAGS = \
+	-D__BUILDING_CVC4LIB \
+	-I@srcdir@/../include -I@srcdir@/..
+
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libexpr.la
 libexpr_la_SOURCES = \
 	attr_type.h \
@@ -226,7 +229,7 @@ libexpr_la_SOURCES = \
 	node.h \
 	node_builder.h \
 	expr.h \
-	expr_value.h \
+	node_value.h \
 	node_manager.h \
 	expr_manager.h \
 	node_attribute.h \
@@ -235,7 +238,7 @@ libexpr_la_SOURCES = \
 	node_builder.cpp \
 	node_manager.cpp \
 	expr_manager.cpp \
-	expr_value.cpp \
+	node_value.cpp \
 	expr.cpp
 
 all: all-am
@@ -292,10 +295,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_manager.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_value.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_builder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_manager.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_value.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

@@ -20,22 +20,20 @@
 
 namespace CVC4 {
 
-namespace expr {
-  class ExprBuilder;
-}/* CVC4::expr namespace */
-
 class NodeManager {
   static __thread NodeManager* s_current;
 
-  friend class CVC4::NodeBuilder;
+  template <unsigned> friend class CVC4::NodeBuilder;
 
   typedef std::map<uint64_t, std::vector<Node> > hash_t;
   hash_t d_hash;
 
-  Node lookup(uint64_t hash, const Node& e);
+  Node lookup(uint64_t hash, const Node& e) { return lookup(hash, e.d_ev); }
+  Node lookup(uint64_t hash, NodeValue* e);
+  NodeValue* lookupNoInsert(uint64_t hash, NodeValue* e);
 
 public:
-  static NodeManager* currentEM() { return s_current; }
+  static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders
   Node mkExpr(Kind kind);
@@ -50,20 +48,20 @@ public:
   // variables are special, because duplicates are permitted
   Node mkVar();
 
-  // TODO: these use the current EM (but must be renamed)
+  // TODO: these use the current NM (but must be renamed)
   /*
   static Node mkExpr(Kind kind)
-  { currentEM()->mkExpr(kind); }
+  { currentNM()->mkExpr(kind); }
   static Node mkExpr(Kind kind, Node child1);
-  { currentEM()->mkExpr(kind, child1); }
+  { currentNM()->mkExpr(kind, child1); }
   static Node mkExpr(Kind kind, Node child1, Node child2);
-  { currentEM()->mkExpr(kind, child1, child2); }
+  { currentNM()->mkExpr(kind, child1, child2); }
   static Node mkExpr(Kind kind, Node child1, Node child2, Node child3);
-  { currentEM()->mkExpr(kind, child1, child2, child3); }
+  { currentNM()->mkExpr(kind, child1, child2, child3); }
   static Node mkExpr(Kind kind, Node child1, Node child2, Node child3, Node child4);
-  { currentEM()->mkExpr(kind, child1, child2, child3, child4); }
+  { currentNM()->mkExpr(kind, child1, child2, child3, child4); }
   static Node mkExpr(Kind kind, Node child1, Node child2, Node child3, Node child4, Node child5);
-  { currentEM()->mkExpr(kind, child1, child2, child3, child4, child5); }
+  { currentNM()->mkExpr(kind, child1, child2, child3, child4, child5); }
   */
 
   // do we want a varargs one?  perhaps not..

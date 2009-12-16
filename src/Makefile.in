@@ -159,6 +159,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
+CXXTEST = @CXXTEST@
 CXXTESTGEN = @CXXTESTGEN@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -287,9 +288,8 @@ top_srcdir = @top_srcdir@
 #
 LIBCVC4_RELEASE = @CVC4_LIBRARY_RELEASE_CODE@
 LIBCVC4_VERSION = @CVC4_LIBRARY_VERSION@
-INCLUDES = -I@srcdir@/include -I@srcdir@
+AM_CPPFLAGS = 
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 SUBDIRS = util expr context prop smt theory . parser main
 lib_LTLIBRARIES = libcvc4.la
 libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION) -release $(LIBCVC4_RELEASE)
@@ -700,6 +700,8 @@ uninstall-am: uninstall-libLTLIBRARIES
 	tags tags-recursive uninstall uninstall-am \
 	uninstall-libLTLIBRARIES
 
+	-D__BUILDING_CVC4LIB \
+	-I@srcdir@/include -I@srcdir@
 
 install-data-local: $(publicheaders)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)/cvc4

@@ -1,6 +1,6 @@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/..
+AM_CPPFLAGS = \
+	-I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS =
 
 bin_PROGRAMS = cvc4
 

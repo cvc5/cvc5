@@ -14,13 +14,12 @@
 #include <cstdlib>
 #include <vector>
 #include <deque>
+#include <new>
 #include "context/context_mm.h"
 #include "util/Assert.h"
 
-
 namespace CVC4 {
 namespace context {
-
 
 void ContextMemoryManager::newChunk() {
 
@@ -30,16 +29,16 @@ void ContextMemoryManager::newChunk() {
          "Index should be at the end of the list");
 
   // Create new chunk if no free chunk available
-  if (d_freePages.empty()) {
+  if (d_freeChunks.empty()) {
     d_chunkList.push_back((char*)malloc(chunkSizeBytes));
     if (d_chunkList.back() == NULL) {
-      throw bad_alloc();
+      throw std::bad_alloc();
     }
   }
   // If there is a free chunk, use that
   else {
-    d_chunkList.push_back(d_freePages.back());
-    d_freePages.pop_back();
+    d_chunkList.push_back(d_freeChunks.back());
+    d_freeChunks.pop_back();
   }
   // Set up the current chunk pointers
   d_nextFree = d_chunkList.back();
@@ -47,30 +46,30 @@ void ContextMemoryManager::newChunk() {
 }
 
 
-ContextMemoryManager() : d_indexChunkList(0) {
+ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
   // Create initial chunk
   d_chunkList.push_back((char*)malloc(chunkSizeBytes));
   d_nextFree = d_chunkList.back();
   if (d_nextFree == NULL) {
-    throw bad_alloc;
+    throw std::bad_alloc();
   }
   d_endChunk = d_nextFree + chunkSizeBytes;
 }
 
 
-~ContextMemoryManager() {
+ContextMemoryManager::~ContextMemoryManager() {
   // Delete all chunks
   while (!d_chunkList.empty()) {
     free(d_chunkList.back());
     d_chunkList.pop_back();
   }
-  while (!d_freePages.empty()) {
-    free(d_freePages.back());
-    d_freePages.pop_back();
+  while (!d_freeChunks.empty()) {
+    free(d_freeChunks.back());
+    d_freeChunks.pop_back();
   }
 }
 
-void* newData(size_t size) {
+void* ContextMemoryManager::newData(size_t size) {
   // Use next available free location in current chunk
   void* res = (void*)d_nextFree;
   d_nextFree += size;
@@ -86,7 +85,7 @@ void* newData(size_t size) {
 }
 
 
-void push() {
+void ContextMemoryManager::push() {
   // Store current state on the stack
   d_nextFreeStack.push_back(d_nextFree);
   d_endChunkStack.push_back(d_endChunk);
@@ -94,7 +93,7 @@ void push() {
 }
 
 
-void pop() {
+void ContextMemoryManager::pop() {
   // Restore state from stack
   d_nextFree = d_nextFreeStack.back();
   d_nextFreeStack.pop_back();
@@ -103,7 +102,7 @@ void pop() {
 
   // Free all the new chunks since the last push
   while (d_indexChunkList > d_indexChunkListStack.back()) {
-    d_freePages.push_back(d_chunkList.back());
+    d_freeChunks.push_back(d_chunkList.back());
     d_chunkList.pop_back();
     --d_indexChunkList;
   }
@@ -111,12 +110,11 @@ void pop() {
 
   // Delete excess free chunks
   while (d_freeChunks.size() > maxFreeChunks) {
-    free(d_freePages.front());
-    d_freePages.pop_front();
+    free(d_freeChunks.front());
+    d_freeChunks.pop_front();
   }
 }
 
 
 }/* CVC4::context namespace */
-
 }/* CVC4 namespace */

@@ -75,8 +75,8 @@ am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 @HAVE_CXXTESTGEN_TRUE@libdummy_la_DEPENDENCIES =  \
 @HAVE_CXXTESTGEN_TRUE@	@abs_top_builddir@/src/libcvc4.la
-am__libdummy_la_SOURCES_DIST = expr/expr_black.cpp
-@HAVE_CXXTESTGEN_TRUE@am_libdummy_la_OBJECTS = expr_black.lo
+am__libdummy_la_SOURCES_DIST = expr/node_black.cpp
+@HAVE_CXXTESTGEN_TRUE@am_libdummy_la_OBJECTS = node_black.lo
 libdummy_la_OBJECTS = $(am_libdummy_la_OBJECTS)
 @HAVE_CXXTESTGEN_TRUE@am_libdummy_la_rpath = -rpath $(libdir)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -122,6 +122,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
+CXXTEST = @CXXTEST@
 CXXTESTGEN = @CXXTESTGEN@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -233,18 +234,26 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = -I. "-I$(CXXTEST)" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
+@HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = \
+@HAVE_CXXTESTGEN_TRUE@	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
+
 @HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS = -fno-access-control
+#AM_LDFLAGS = -L@top_builddir@/src/libcvc4.la
+@HAVE_CXXTESTGEN_TRUE@TESTS_WHITE = \
+@HAVE_CXXTESTGEN_TRUE@	expr/node_white
+
+@HAVE_CXXTESTGEN_TRUE@TESTS_BLACK = \
+@HAVE_CXXTESTGEN_TRUE@	expr/node_black
+
 
 # force a user-visible failure for "make check"
 @HAVE_CXXTESTGEN_FALSE@TESTS = no_cxxtest
-#AM_LDFLAGS = -L@top_builddir@/src/libcvc4.la
 @HAVE_CXXTESTGEN_TRUE@TESTS = \
-@HAVE_CXXTESTGEN_TRUE@	expr/expr_black \
-@HAVE_CXXTESTGEN_TRUE@	expr/expr_white
+@HAVE_CXXTESTGEN_TRUE@	$(TESTS_WHITE) \
+@HAVE_CXXTESTGEN_TRUE@	$(TESTS_BLACK)
 
 @HAVE_CXXTESTGEN_TRUE@lib_LTLIBRARIES = libdummy.la
-@HAVE_CXXTESTGEN_TRUE@libdummy_la_SOURCES = expr/expr_black.cpp
+@HAVE_CXXTESTGEN_TRUE@libdummy_la_SOURCES = expr/node_black.cpp
 @HAVE_CXXTESTGEN_TRUE@libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 @HAVE_CXXTESTGEN_TRUE@MOSTLYCLEANFILES = $(TESTS) $(TESTS:%=%.cpp)
 all: all-am
@@ -321,7 +330,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr_black.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_black.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -344,12 +353,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
-expr_black.lo: expr/expr_black.cpp
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT expr_black.lo -MD -MP -MF $(DEPDIR)/expr_black.Tpo -c -o expr_black.lo `test -f 'expr/expr_black.cpp' || echo '$(srcdir)/'`expr/expr_black.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/expr_black.Tpo $(DEPDIR)/expr_black.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='expr/expr_black.cpp' object='expr_black.lo' libtool=yes @AMDEPBACKSLASH@
+node_black.lo: expr/node_black.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT node_black.lo -MD -MP -MF $(DEPDIR)/node_black.Tpo -c -o node_black.lo `test -f 'expr/node_black.cpp' || echo '$(srcdir)/'`expr/node_black.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/node_black.Tpo $(DEPDIR)/node_black.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='expr/node_black.cpp' object='node_black.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o expr_black.lo `test -f 'expr/expr_black.cpp' || echo '$(srcdir)/'`expr/expr_black.cpp
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o node_black.lo `test -f 'expr/node_black.cpp' || echo '$(srcdir)/'`expr/node_black.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -655,7 +664,7 @@ uninstall-am: uninstall-libLTLIBRARIES
 
 @HAVE_CXXTESTGEN_TRUE@$(TESTS:%=%.cpp): %.cpp: %.h
 @HAVE_CXXTESTGEN_TRUE@	mkdir -p `dirname "$@"`
-@HAVE_CXXTESTGEN_TRUE@	$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
+@HAVE_CXXTESTGEN_TRUE@	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
 @HAVE_CXXTESTGEN_TRUE@$(TESTS): %: %.cpp
 #	get these in here somehow
 #	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)

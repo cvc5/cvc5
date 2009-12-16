@@ -133,10 +133,10 @@ void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
                                  LT(0).get()->getColumn());
 }
 
-Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs, const vector<
-    Kind>& kinds) {
+Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs,
+                                       const vector<Kind>& kinds) {
   Assert( exprs.size() > 0, "Expected non-empty vector expr");
-  Assert( vectors.size() + 1 == exprs.size(), "Expected kinds to match exprs");
+  Assert( kinds.size() + 1 == exprs.size(), "Expected kinds to match exprs");
   return createPrecedenceExpr(exprs, kinds, 0, exprs.size() - 1);
 }
 

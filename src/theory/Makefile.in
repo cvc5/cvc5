@@ -142,6 +142,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
+CXXTEST = @CXXTEST@
 CXXTESTGEN = @CXXTESTGEN@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -253,9 +254,11 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/..
+AM_CPPFLAGS = \
+	-D__BUILDING_CVC4LIB \
+	-I@srcdir@/../include -I@srcdir@/..
+
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libtheory.la
 libtheory_la_SOURCES = \
 	theory_engine.h \

@@ -52,7 +52,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libcontext_la_LIBADD =
-am_libcontext_la_OBJECTS = context.lo
+am_libcontext_la_OBJECTS = context.lo context_mm.lo
 libcontext_la_OBJECTS = $(am_libcontext_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -104,6 +104,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
+CXXTEST = @CXXTEST@
 CXXTESTGEN = @CXXTESTGEN@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -215,13 +216,17 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-INCLUDES = -I@srcdir@/../include -I@srcdir@/..
+AM_CPPFLAGS = \
+	-D__BUILDING_CVC4LIB \
+	-I@srcdir@/../include -I@srcdir@/..
+
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 noinst_LTLIBRARIES = libcontext.la
 libcontext_la_SOURCES = \
 	context.cpp \
-	context.h
+	context.h \
+	context_mm.cpp \
+	context_mm.h
 
 all: all-am
 
@@ -276,6 +281,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/context.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/context_mm.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

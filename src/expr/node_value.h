@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** expr_value.h
+/** node_value.h
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -11,15 +11,15 @@
  **
  ** Instances of this class are generally referenced through
  ** cvc4::Node rather than by pointer; cvc4::Node maintains the
- ** reference count on ExprValue instances and
+ ** reference count on NodeValue instances and
  **/
 
-/* this must be above the check for __CVC4__EXPR__EXPR_VALUE_H */
+/* this must be above the check for __CVC4__EXPR__NODE_VALUE_H */
 /* to resolve a circular dependency */
-#include "expr/node.h"
+//#include "expr/node.h"
 
-#ifndef __CVC4__EXPR__EXPR_VALUE_H
-#define __CVC4__EXPR__EXPR_VALUE_H
+#ifndef __CVC4__EXPR__NODE_VALUE_H
+#define __CVC4__EXPR__NODE_VALUE_H
 
 #include "cvc4_config.h"
 #include <stdint.h>
@@ -30,17 +30,18 @@
 namespace CVC4 {
 
 class Node;
-class NodeBuilder;
+template <unsigned> class NodeBuilder;
+class NodeManager;
 
 namespace expr {
 
 /**
- * This is an ExprValue.
+ * This is an NodeValue.
  */
-class ExprValue {
+class NodeValue {
 
   /** A convenient null-valued expression value */
-  static ExprValue s_null;
+  static NodeValue s_null;
 
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
@@ -61,25 +62,32 @@ class ExprValue {
   unsigned d_nchildren : 16;
 
   /** Variable number of child nodes */
-  Node     d_children[0];
+  NodeValue *d_children[0];
 
   // todo add exprMgr ref in debug case
 
   friend class CVC4::Node;
-  friend class CVC4::NodeBuilder;
+  template <unsigned> friend class CVC4::NodeBuilder;
+  friend class CVC4::NodeManager;
 
-  ExprValue* inc();
-  ExprValue* dec();
+  NodeValue* inc();
+  NodeValue* dec();
 
   static size_t next_id;
 
   /** Private default constructor for the null value. */
-  ExprValue();
+  NodeValue();
+
+  /** Private default constructor for the NodeBuilder. */
+  NodeValue(int);
+
+  /** Destructor decrements the ref counts of its children */
+  ~NodeValue();
 
   /**
    * Computes the hash over the given iterator span of children, and the
    * root hash. The iterator should be either over a range of Node or pointers
-   * to ExprValue.
+   * to NodeValue.
    * @param hash the initial value for the hash
    * @param begin the begining of the range
    * @param end the end of the range
@@ -87,10 +95,54 @@ class ExprValue {
    */
   template<typename const_iterator_type>
   static uint64_t computeHash(uint64_t hash, const_iterator_type begin, const_iterator_type end) {
-    for(const_iterator_type i = begin; i != end; ++i)
-      hash = ((hash << 3) | ((hash & 0xE000000000000000ull) >> 61)) ^ (*i)->getId();
+    for(const_iterator_type i = begin; i != end; ++i) {
+      hash = computeHash(hash, *i);
+    }
     return hash;
   }
+
+  static uint64_t computeHash(uint64_t hash, const NodeValue* ev) {
+    return ( (hash << 3) | ((hash & 0xE000000000000000ull) >> 61) ) ^ ev->getId();
+  }
+
+  typedef NodeValue** ev_iterator;
+  typedef NodeValue const* const* const_ev_iterator;
+
+  ev_iterator ev_begin();
+  ev_iterator ev_end();
+  ev_iterator ev_rbegin();
+  ev_iterator ev_rend();
+
+  const_ev_iterator ev_begin() const;
+  const_ev_iterator ev_end() const;
+  const_ev_iterator ev_rbegin() const;
+  const_ev_iterator ev_rend() const;
+
+  class node_iterator {
+    const_ev_iterator d_i;
+  public:
+    node_iterator(const_ev_iterator i) : d_i(i) {}
+
+    inline Node operator*();
+
+    bool operator==(const node_iterator& i) {
+      return d_i == i.d_i;
+    }
+
+    bool operator!=(const node_iterator& i) {
+      return d_i != i.d_i;
+    }
+
+    node_iterator& operator++() {
+      ++d_i;
+      return *this;
+    }
+
+    node_iterator operator++(int) {
+      return node_iterator(d_i++);
+    }
+  };
+  typedef node_iterator const_node_iterator;
 
 public:
   /** Hash this expression.
@@ -99,8 +151,8 @@ public:
 
   // Iterator support
 
-  typedef Node* iterator;
-  typedef Node const* const_iterator;
+  typedef node_iterator iterator;
+  typedef node_iterator const_iterator;
 
   iterator begin();
   iterator end();
@@ -113,7 +165,8 @@ public:
   const_iterator rend() const;
 
   unsigned getId() const { return d_id; }
-  unsigned getKind() const { return (Kind) d_kind; }
+  Kind getKind() const { return (Kind) d_kind; }
+  unsigned numChildren() const { return d_nchildren; }
   std::string toString() const;
   void toStream(std::ostream& out) const;
 };
@@ -121,4 +174,16 @@ public:
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__EXPR_VALUE_H */
+#include "expr/node.h"
+
+namespace CVC4 {
+namespace expr {
+
+inline Node NodeValue::node_iterator::operator*() {
+  return Node(*d_i);
+}
+
+}/* CVC4::expr namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__EXPR__NODE_VALUE_H */

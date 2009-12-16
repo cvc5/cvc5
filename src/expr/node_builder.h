@@ -1,5 +1,5 @@
 /*********************                                           -*- C++ -*-  */
-/** expr_builder.h
+/** node_builder.h
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -14,68 +14,90 @@
 
 #include <vector>
 #include <cstdlib>
+#include <stdint.h>
 
-#include "expr/node_manager.h"
+namespace CVC4 {
+  static const unsigned default_nchild_thresh = 10;
+
+  template <unsigned nchild_thresh = default_nchild_thresh>
+  class NodeBuilder;
+
+  class NodeManager;
+}/* CVC4 namespace */
+
 #include "expr/kind.h"
 #include "util/Assert.h"
+#include "expr/node_value.h"
 
 namespace CVC4 {
 
-class AndExprBuilder;
-class OrExprBuilder;
-class PlusExprBuilder;
-class MinusExprBuilder;
-class MultExprBuilder;
+class AndNodeBuilder;
+class OrNodeBuilder;
+class PlusNodeBuilder;
+class MinusNodeBuilder;
+class MultNodeBuilder;
 
+template <unsigned nchild_thresh>
 class NodeBuilder {
-  NodeManager* d_em;
+  unsigned d_size;
 
-  Kind d_kind;
+  uint64_t d_hash;
+
+  NodeManager* d_nm;
 
   // initially false, when you extract the Node this is set and you can't
   // extract another
   bool d_used;
 
-  static const unsigned nchild_thresh = 10;
+  NodeValue *d_ev;
+  NodeValue d_inlineEv;
+  NodeValue *d_childrenStorage[nchild_thresh];
 
-  unsigned d_nchildren;
-  union {
-    ExprValue*         u_arr[nchild_thresh];
-    std::vector<Node>* u_vec;
-  } d_children;
-
-  void addChild(const Node& e) { addChild(e.d_ev); }
-  void addChild(ExprValue*);
-  NodeBuilder& collapse();
-
-  typedef ExprValue** ev_iterator;
-  typedef ExprValue const** const_ev_iterator;
-
-  ev_iterator ev_begin() {
-    return d_children.u_arr;
+  bool evIsAllocated() {
+    return d_ev->d_nchildren > nchild_thresh;
   }
 
-  ev_iterator ev_end() {
-    return d_children.u_arr + d_nchildren;
+  template <unsigned N>
+  bool evIsAllocated(const NodeBuilder<N>& nb) {
+    return nb.d_ev->d_nchildren > N;
   }
 
-  NodeBuilder& reset(const ExprValue*);
+  bool evNeedsToBeAllocated() {
+    return d_ev->d_nchildren == d_size;
+  }
+
+  // realloc in the default way
+  void realloc();
+
+  // realloc to a specific size
+  void realloc(size_t toSize, bool copy = true);
+
+  void allocateEvIfNecessaryForAppend() {
+    if(EXPECT_FALSE( evNeedsToBeAllocated() )) {
+      realloc();
+    }
+  }
 
 public:
 
-  NodeBuilder();
-  NodeBuilder(Kind k);
-  NodeBuilder(const Node&);
-  NodeBuilder(const NodeBuilder&);
+  inline NodeBuilder();
+  inline NodeBuilder(Kind k);
+  inline NodeBuilder(const NodeBuilder<nchild_thresh>& nb);
+  template <unsigned N> inline NodeBuilder(const NodeBuilder<N>& nb);
+  inline NodeBuilder(NodeManager* nm);
+  inline NodeBuilder(NodeManager* nm, Kind k);
+  inline ~NodeBuilder();
 
-  NodeBuilder(NodeManager*);
-  NodeBuilder(NodeManager*, Kind k);
-  NodeBuilder(NodeManager*, const Node&);
-  NodeBuilder(NodeManager*, const NodeBuilder&);
+  typedef NodeValue::ev_iterator iterator;
+  typedef NodeValue::const_ev_iterator const_iterator;
 
-  ~NodeBuilder();
+  iterator begin() { return d_ev->ev_begin(); }
+  iterator end() { return d_ev->ev_end(); }
+  const_iterator begin() const { return d_ev->ev_begin(); }
+  const_iterator end() const { return d_ev->ev_end(); }
 
   // Compound expression constructors
+  /*
   NodeBuilder& eqExpr(const Node& right);
   NodeBuilder& notExpr();
   NodeBuilder& andExpr(const Node& right);
@@ -84,230 +106,413 @@ public:
   NodeBuilder& iffExpr(const Node& right);
   NodeBuilder& impExpr(const Node& right);
   NodeBuilder& xorExpr(const Node& right);
+  */
 
-  /* TODO design: these modify NodeBuilder */
+  /* TODO design: these modify NodeBuilder ?? */
+  /*
   NodeBuilder& operator!() { return notExpr(); }
   NodeBuilder& operator&&(const Node& right) { return andExpr(right); }
   NodeBuilder& operator||(const Node& right) { return orExpr(right);  }
+  */
+
+  /*
+  NodeBuilder& operator&&=(const Node& right) { return andExpr(right); }
+  NodeBuilder& operator||=(const Node& right) { return orExpr(right);  }
+  */
 
   // "Stream" expression constructor syntax
-  NodeBuilder& operator<<(const Kind& op);
-  NodeBuilder& operator<<(const Node& child);
+
+  NodeBuilder& operator<<(const Kind& k) {
+    Assert(d_ev->d_kind == UNDEFINED_KIND);
+    d_ev->d_kind = k;
+    return *this;
+  }
+
+  NodeBuilder& operator<<(const Node& n) {
+    return append(n);
+  }
 
   // For pushing sequences of children
-  NodeBuilder& append(const std::vector<Node>& children) { return append(children.begin(), children.end()); }
-  NodeBuilder& append(Node child) { return append(&child, (&child) + 1); }
-  template <class Iterator> NodeBuilder& append(const Iterator& begin, const Iterator& end);
+  NodeBuilder& append(const std::vector<Node>& children) {
+    return append(children.begin(), children.end());
+  }
 
-  operator Node();// not const
+  NodeBuilder& append(const Node& n) {
+    allocateEvIfNecessaryForAppend();
+    NodeValue* ev = n.d_ev;
+    d_hash = NodeValue::computeHash(d_hash, ev);
+    ev->inc();
+    d_ev->d_children[d_ev->d_nchildren++] = ev;
+    return *this;
+  }
 
-  AndExprBuilder   operator&&(Node);
-  OrExprBuilder    operator||(Node);
-  PlusExprBuilder  operator+ (Node);
-  PlusExprBuilder  operator- (Node);
-  MultExprBuilder  operator* (Node);
+  template <class Iterator>
+  NodeBuilder& append(const Iterator& begin, const Iterator& end) {
+    for(Iterator i = begin; i != end; ++i) {
+      append(*i);
+    }
+    return *this;
+  }
 
-  friend class AndExprBuilder;
-  friend class OrExprBuilder;
-  friend class PlusExprBuilder;
-  friend class MultExprBuilder;
+  void crop() {
+    if(EXPECT_FALSE( evIsAllocated() ) && d_size > d_ev->d_nchildren) {
+      d_ev = (NodeValue*)
+        std::realloc(d_ev, sizeof(NodeValue) +
+                     ( sizeof(NodeValue*) * (d_size = d_ev->d_nchildren) ));
+    }
+  }
+
+  // not const
+  operator Node();
+
+  /*
+  AndNodeBuilder   operator&&(Node);
+  OrNodeBuilder    operator||(Node);
+  PlusNodeBuilder  operator+ (Node);
+  PlusNodeBuilder  operator- (Node);
+  MultNodeBuilder  operator* (Node);
+
+  friend class AndNodeBuilder;
+  friend class OrNodeBuilder;
+  friend class PlusNodeBuilder;
+  friend class MultNodeBuilder;
+  */
 };/* class NodeBuilder */
 
-class AndExprBuilder {
+#if 0
+class AndNodeBuilder {
   NodeBuilder d_eb;
 
 public:
 
-  AndExprBuilder(const NodeBuilder& eb) : d_eb(eb) {
+  AndNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
     if(d_eb.d_kind != AND) {
       d_eb.collapse();
       d_eb.d_kind = AND;
     }
   }
 
-  AndExprBuilder&   operator&&(Node);
-  OrExprBuilder     operator||(Node);
+  AndNodeBuilder&   operator&&(Node);
+  OrNodeBuilder     operator||(Node);
 
   operator NodeBuilder() { return d_eb; }
 
-};/* class AndExprBuilder */
+};/* class AndNodeBuilder */
 
-class OrExprBuilder {
+class OrNodeBuilder {
   NodeBuilder d_eb;
 
 public:
 
-  OrExprBuilder(const NodeBuilder& eb) : d_eb(eb) {
+  OrNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
     if(d_eb.d_kind != OR) {
       d_eb.collapse();
       d_eb.d_kind = OR;
     }
   }
 
-  AndExprBuilder    operator&&(Node);
-  OrExprBuilder&    operator||(Node);
+  AndNodeBuilder    operator&&(Node);
+  OrNodeBuilder&    operator||(Node);
 
   operator NodeBuilder() { return d_eb; }
 
-};/* class OrExprBuilder */
+};/* class OrNodeBuilder */
 
-class PlusExprBuilder {
+class PlusNodeBuilder {
   NodeBuilder d_eb;
 
 public:
 
-  PlusExprBuilder(const NodeBuilder& eb) : d_eb(eb) {
+  PlusNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
     if(d_eb.d_kind != PLUS) {
       d_eb.collapse();
       d_eb.d_kind = PLUS;
     }
   }
 
-  PlusExprBuilder&  operator+(Node);
-  PlusExprBuilder&  operator-(Node);
-  MultExprBuilder   operator*(Node);
+  PlusNodeBuilder&  operator+(Node);
+  PlusNodeBuilder&  operator-(Node);
+  MultNodeBuilder   operator*(Node);
 
   operator NodeBuilder() { return d_eb; }
 
-};/* class PlusExprBuilder */
+};/* class PlusNodeBuilder */
 
-class MultExprBuilder {
+class MultNodeBuilder {
   NodeBuilder d_eb;
 
 public:
 
-  MultExprBuilder(const NodeBuilder& eb) : d_eb(eb) {
+  MultNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
     if(d_eb.d_kind != MULT) {
       d_eb.collapse();
       d_eb.d_kind = MULT;
     }
   }
 
-  PlusExprBuilder   operator+(Node);
-  PlusExprBuilder   operator-(Node);
-  MultExprBuilder&  operator*(Node);
+  PlusNodeBuilder   operator+(Node);
+  PlusNodeBuilder   operator-(Node);
+  MultNodeBuilder&  operator*(Node);
 
   operator NodeBuilder() { return d_eb; }
 
-};/* class MultExprBuilder */
+};/* class MultNodeBuilder */
 
-template <class Iterator>
-inline NodeBuilder& NodeBuilder::append(const Iterator& begin, const Iterator& end) {
-  for(Iterator i = begin; i != end; ++i)
-    addChild(*i);
-  return *this;
+inline AndNodeBuilder   NodeBuilder::operator&&(Node e) {
+  return AndNodeBuilder(*this) && e;
 }
 
-// not const
-inline NodeBuilder::operator Node() {
-  ExprValue *ev;
-  uint64_t hash;
-
-  Assert(d_kind != UNDEFINED_KIND, "Can't make an expression of an undefined kind!");
-
-  // variables are permitted to be duplicates (from POV of the expression manager)
-  if(d_kind == VARIABLE) {
-    ev = new ExprValue;
-    ev->d_kind = d_kind;
-    ev->d_id = ExprValue::next_id++;// FIXME multithreading
-    return Node(ev);
-  } else {
-    if(d_nchildren <= nchild_thresh) {
-      hash = ExprValue::computeHash<ev_iterator>(d_kind, ev_begin(), ev_end());
-      void *space = std::calloc(1, sizeof(ExprValue) + d_nchildren * sizeof(Node));
-      ev = new (space) ExprValue;
-      size_t nc = 0;
-      ev_iterator i = ev_begin();
-      ev_iterator i_end = ev_end();
-      for(; i != i_end; ++i) {
-        // The expressions in the allocated children are all 0, so we must
-        // construct it without using an assignment operator
-        ev->d_children[nc++].assignExprValue(*i);
-      }
-    } else {
-      hash = ExprValue::computeHash<std::vector<Node>::const_iterator>(d_kind, d_children.u_vec->begin(), d_children.u_vec->end());
-      void *space = std::calloc(1, sizeof(ExprValue) + d_nchildren * sizeof(Node));
-      ev = new (space) ExprValue;
-      size_t nc = 0;
-      for(std::vector<Node>::iterator i = d_children.u_vec->begin(); i != d_children.u_vec->end(); ++i)
-        ev->d_children[nc++] = Node(*i);
-    }
-  }
-
-  ev->d_nchildren = d_nchildren;
-  ev->d_kind = d_kind;
-  ev->d_id = ExprValue::next_id++;// FIXME multithreading
-  ev->d_rc = 0;
-  Node e(ev);
-
-  return d_em->lookup(hash, e);
+inline OrNodeBuilder    NodeBuilder::operator||(Node e) {
+  return OrNodeBuilder(*this) || e;
 }
 
-inline AndExprBuilder   NodeBuilder::operator&&(Node e) {
-  return AndExprBuilder(*this) && e;
+inline PlusNodeBuilder  NodeBuilder::operator+ (Node e) {
+  return PlusNodeBuilder(*this) + e;
 }
 
-inline OrExprBuilder    NodeBuilder::operator||(Node e) {
-  return OrExprBuilder(*this) || e;
+inline PlusNodeBuilder  NodeBuilder::operator- (Node e) {
+  return PlusNodeBuilder(*this) - e;
 }
 
-inline PlusExprBuilder  NodeBuilder::operator+ (Node e) {
-  return PlusExprBuilder(*this) + e;
+inline MultNodeBuilder  NodeBuilder::operator* (Node e) {
+  return MultNodeBuilder(*this) * e;
 }
 
-inline PlusExprBuilder  NodeBuilder::operator- (Node e) {
-  return PlusExprBuilder(*this) - e;
-}
-
-inline MultExprBuilder  NodeBuilder::operator* (Node e) {
-  return MultExprBuilder(*this) * e;
-}
-
-inline AndExprBuilder&  AndExprBuilder::operator&&(Node e) {
+inline AndNodeBuilder&  AndNodeBuilder::operator&&(Node e) {
   d_eb.append(e);
   return *this;
 }
 
-inline OrExprBuilder    AndExprBuilder::operator||(Node e) {
-  return OrExprBuilder(d_eb.collapse()) || e;
+inline OrNodeBuilder    AndNodeBuilder::operator||(Node e) {
+  return OrNodeBuilder(d_eb.collapse()) || e;
 }
 
-inline AndExprBuilder   OrExprBuilder::operator&&(Node e) {
-  return AndExprBuilder(d_eb.collapse()) && e;
+inline AndNodeBuilder   OrNodeBuilder::operator&&(Node e) {
+  return AndNodeBuilder(d_eb.collapse()) && e;
 }
 
-inline OrExprBuilder&   OrExprBuilder::operator||(Node e) {
+inline OrNodeBuilder&   OrNodeBuilder::operator||(Node e) {
   d_eb.append(e);
   return *this;
 }
 
-inline PlusExprBuilder& PlusExprBuilder::operator+(Node e) {
+inline PlusNodeBuilder& PlusNodeBuilder::operator+(Node e) {
   d_eb.append(e);
   return *this;
 }
 
-inline PlusExprBuilder& PlusExprBuilder::operator-(Node e) {
+inline PlusNodeBuilder& PlusNodeBuilder::operator-(Node e) {
   d_eb.append(e.uMinusExpr());
   return *this;
 }
 
-inline MultExprBuilder  PlusExprBuilder::operator*(Node e) {
-  return MultExprBuilder(d_eb.collapse()) * e;
+inline MultNodeBuilder  PlusNodeBuilder::operator*(Node e) {
+  return MultNodeBuilder(d_eb.collapse()) * e;
 }
 
-inline PlusExprBuilder  MultExprBuilder::operator+(Node e) {
-  return MultExprBuilder(d_eb.collapse()) + e;
+inline PlusNodeBuilder  MultNodeBuilder::operator+(Node e) {
+  return MultNodeBuilder(d_eb.collapse()) + e;
 }
 
-inline PlusExprBuilder  MultExprBuilder::operator-(Node e) {
-  return MultExprBuilder(d_eb.collapse()) - e;
+inline PlusNodeBuilder  MultNodeBuilder::operator-(Node e) {
+  return MultNodeBuilder(d_eb.collapse()) - e;
 }
 
-inline MultExprBuilder& MultExprBuilder::operator*(Node e) {
+inline MultNodeBuilder& MultNodeBuilder::operator*(Node e) {
   d_eb.append(e);
   return *this;
 }
 
+#endif /* 0 */
+
+}/* CVC4 namespace */
+
+#include "expr/node.h"
+#include "expr/node_manager.h"
+
+// template implementations
+
+namespace CVC4 {
+
+template <unsigned nchild_thresh>
+inline NodeBuilder<nchild_thresh>::NodeBuilder() :
+  d_size(nchild_thresh),
+  d_nm(NodeManager::currentNM()),
+  d_used(false),
+  d_ev(&d_inlineEv),
+  d_inlineEv(0),
+  d_childrenStorage(0) {}
+
+template <unsigned nchild_thresh>
+inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
+  d_size(nchild_thresh),
+  d_nm(NodeManager::currentNM()),
+  d_used(false),
+  d_ev(&d_inlineEv),
+  d_inlineEv(0),
+  d_childrenStorage(0) {
+
+  d_inlineEv.d_kind = k;
+}
+
+template <unsigned nchild_thresh>
+inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<nchild_thresh>& nb) :
+  d_size(nchild_thresh),
+  d_nm(nb.d_nm),
+  d_used(nb.d_used),
+  d_ev(&d_inlineEv),
+  d_inlineEv(0),
+  d_childrenStorage(0) {
+
+  if(evIsAllocated(nb)) {
+    realloc(nb->d_size, false);
+    std::copy(d_ev->begin(), nb.d_ev->begin(), nb.d_ev->end());
+  } else {
+    std::copy(d_inlineEv.begin(), nb.d_ev->begin(), nb.d_ev->end());
+  }
+}
+
+template <unsigned nchild_thresh>
+template <unsigned N>
+inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
+  d_size(nchild_thresh),
+  d_nm(NodeManager::currentNM()),
+  d_used(nb.d_used),
+  d_ev(&d_inlineEv),
+  d_inlineEv(0),
+  d_childrenStorage(0) {
+
+  if(nb.d_ev->d_nchildren > nchild_thresh) {
+    realloc(nb.d_size, false);
+    std::copy(d_ev->begin(), nb.d_ev->begin(), nb.d_ev->end());
+  } else {
+    std::copy(d_inlineEv.begin(), nb.d_ev->begin(), nb.d_ev->end());
+  }
+}
+
+template <unsigned nchild_thresh>
+inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
+  d_size(nchild_thresh),
+  d_nm(nm),
+  d_used(false),
+  d_ev(&d_inlineEv),
+  d_inlineEv(0),
+  d_childrenStorage(0) {}
+
+template <unsigned nchild_thresh>
+inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
+  d_size(nchild_thresh),
+  d_nm(nm),
+  d_used(false),
+  d_ev(&d_inlineEv),
+  d_inlineEv(0),
+  d_childrenStorage() {
+
+  d_inlineEv.d_kind = k;
+}
+
+template <unsigned nchild_thresh>
+inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
+  for(iterator i = begin();
+      i != end();
+      ++i) {
+    (*i)->dec();
+  }
+  if(evIsAllocated()) {
+    free(d_ev);
+  }
+}
+
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::realloc() {
+  if(EXPECT_FALSE( evIsAllocated() )) {
+    d_ev = (NodeValue*)
+      std::realloc(d_ev,
+                   sizeof(NodeValue) + ( sizeof(NodeValue*) * (d_size *= 2) ));
+  } else {
+    d_ev = (NodeValue*)
+      std::malloc(sizeof(NodeValue) + ( sizeof(NodeValue*) * (d_size *= 2) ));
+    d_ev->d_id = 0;
+    d_ev->d_rc = 0;
+    d_ev->d_kind = d_inlineEv.d_kind;
+    d_ev->d_nchildren = nchild_thresh;
+    std::copy(d_ev->d_children,
+              d_inlineEv.d_children,
+              d_inlineEv.d_children + nchild_thresh);
+  }
+}
+
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
+  Assert( d_size < toSize );
+
+  if(EXPECT_FALSE( evIsAllocated() )) {
+    d_ev = (NodeValue*)
+      std::realloc(d_ev, sizeof(NodeValue) +
+                   ( sizeof(NodeValue*) * (d_size = toSize) ));
+  } else {
+    d_ev = (NodeValue*)
+      std::malloc(sizeof(NodeValue) +
+                  ( sizeof(NodeValue*) * (d_size = toSize) ));
+    d_ev->d_id = 0;
+    d_ev->d_rc = 0;
+    d_ev->d_kind = d_inlineEv.d_kind;
+    d_ev->d_nchildren = nchild_thresh;
+    if(copy) {
+      std::copy(d_ev->d_children,
+                d_inlineEv.d_children,
+                d_inlineEv.d_children + nchild_thresh);
+    }
+  }
+}
+
+template <unsigned nchild_thresh>
+NodeBuilder<nchild_thresh>::operator Node() {// not const
+  Assert(d_ev->d_kind != UNDEFINED_KIND,
+         "Can't make an expression of an undefined kind!");
+  Assert(! d_used, "This NodeBuilder has already been used!");
+
+  // implementation differs depending on whether the expression value
+  // was malloc'ed or not
+
+  if(EXPECT_FALSE( evIsAllocated() )) {
+    NodeValue *ev = d_nm->lookupNoInsert(d_hash, d_ev);
+    if(ev != d_ev) {
+      // expression already exists in node manager
+      return Node(ev);
+    }
+
+    // otherwise create the canonical expression value for this node
+    crop();
+    d_used = true;
+    ev = d_ev;
+    d_ev = NULL;
+    // this inserts into the NodeManager;
+    // return the result of lookup() in case another thread beat us to it
+    return d_nm->lookup(d_hash, ev);
+  }
+
+  NodeValue *ev = d_nm->lookupNoInsert(d_hash, &d_inlineEv);
+  if(ev != &d_inlineEv) {
+    // expression already exists in node manager
+    return Node(ev);
+  }
+
+  // otherwise create the canonical expression value for this node
+  ev = (NodeValue*)
+    std::malloc(sizeof(NodeValue) +
+                ( sizeof(NodeValue*) * d_inlineEv.d_nchildren) );
+  ev->d_nchildren = d_ev->d_nchildren;
+  ev->d_kind = d_ev->d_kind;
+  ev->d_id = NodeValue::next_id++;// FIXME multithreading
+  ev->d_rc = 0;
+  d_used = true;
+  d_ev = NULL;
+
+  // this inserts into the NodeManager;
+  // return the result of lookup() in case another thread beat us to it
+  return d_nm->lookup(d_hash, ev);
+}
 
 }/* CVC4 namespace */
 

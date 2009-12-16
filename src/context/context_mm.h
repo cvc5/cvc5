@@ -33,13 +33,13 @@ class ContextMemoryManager {
   /**
    * Memory in regions is allocated in chunks.  This is the minimum chunk size
    */
-  const unsigned chunkSizeBytes = 16384; // #bytes in each chunk
+  static const unsigned chunkSizeBytes = 16384; // #bytes in each chunk
 
   /**
    * A list of free chunks is maintained.  This is the maximum number of
    * free chunks.
    */
-  const unsigned maxFreeChunks = 100;
+  static const unsigned maxFreeChunks = 100;
 
   /**
    * List of all chunks that are currently active

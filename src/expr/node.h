@@ -10,6 +10,8 @@
  ** Reference-counted encapsulation of a pointer to an expression.
  **/
 
+#include "expr/node_value.h"
+
 #ifndef __CVC4__NODE_H
 #define __CVC4__NODE_H
 
@@ -32,38 +34,44 @@ inline std::ostream& operator<<(std::ostream&, const Node&);
 class NodeManager;
 
 namespace expr {
-  class ExprValue;
+  class NodeValue;
 }/* CVC4::expr namespace */
 
-using CVC4::expr::ExprValue;
+using CVC4::expr::NodeValue;
 
 /**
- * Encapsulation of an ExprValue pointer.  The reference count is
- * maintained in the ExprValue.
+ * Encapsulation of an NodeValue pointer.  The reference count is
+ * maintained in the NodeValue.
  */
 class Node {
 
-  friend class ExprValue;
+  friend class NodeValue;
 
   /** A convenient null-valued encapsulated pointer */
   static Node s_null;
 
-  /** The referenced ExprValue */
-  ExprValue* d_ev;
+  /** The referenced NodeValue */
+  NodeValue* d_ev;
 
   /** This constructor is reserved for use by the Node package; one
    *  must construct an Node using one of the build mechanisms of the
    *  Node package.
    *
-   *  Increments the reference count. */
-  explicit Node(ExprValue*);
+   *  Increments the reference count.
+   *
+   *  FIXME: there's a type-system escape here to cast away the const,
+   *  since the refcount needs to be updated.  But conceptually Nodes
+   *  don't change their arguments, and it's nice to have
+   *  const_iterators over them.  See notes in .cpp file for
+   *  details. */
+  explicit Node(const NodeValue*);
 
-  friend class NodeBuilder;
+  template <unsigned> friend class NodeBuilder;
   friend class NodeManager;
 
   /** Access to the encapsulated expression.
    *  @return the encapsulated expression. */
-  ExprValue const* operator->() const;
+  NodeValue const* operator->() const;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions are
@@ -72,7 +80,15 @@ class Node {
    *
    * @param ev the expression value to assign
    */
-  void assignExprValue(ExprValue* ev);
+  void assignNodeValue(NodeValue* ev);
+
+  typedef NodeValue::iterator ev_iterator;
+  typedef NodeValue::const_iterator const_ev_iterator;
+
+  inline ev_iterator ev_begin();
+  inline ev_iterator ev_end();
+  inline const_ev_iterator ev_begin() const;
+  inline const_ev_iterator ev_end() const;
 
 public:
 
@@ -82,7 +98,7 @@ public:
   Node(const Node&);
 
   /** Destructor.  Decrements the reference count and, if zero,
-   *  collects the ExprValue. */
+   *  collects the NodeValue. */
   ~Node();
 
   bool operator==(const Node& e) const { return d_ev == e.d_ev; }
@@ -117,8 +133,8 @@ public:
 
   static Node null();
 
-  typedef Node* iterator;
-  typedef Node const* const_iterator;
+  typedef NodeValue::node_iterator iterator;
+  typedef NodeValue::node_iterator const_iterator;
 
   inline iterator begin();
   inline iterator end();
@@ -134,7 +150,7 @@ public:
 
 }/* CVC4 namespace */
 
-#include "expr/expr_value.h"
+#include "expr/node_value.h"
 
 namespace CVC4 {
 
@@ -157,6 +173,22 @@ inline std::string Node::toString() const {
 
 inline void Node::toStream(std::ostream& out) const {
   d_ev->toStream(out);
+}
+
+inline Node::ev_iterator Node::ev_begin() {
+  return d_ev->ev_begin();
+}
+
+inline Node::ev_iterator Node::ev_end() {
+  return d_ev->ev_end();
+}
+
+inline Node::const_ev_iterator Node::ev_begin() const {
+  return d_ev->ev_begin();
+}
+
+inline Node::const_ev_iterator Node::ev_end() const {
+  return d_ev->ev_end();
 }
 
 inline Node::iterator Node::begin() {

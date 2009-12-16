@@ -1,12 +1,12 @@
-/* White box testing of CVC4::Node. */
+/* Black box testing of CVC4::Node. */
 
 #include <cxxtest/TestSuite.h>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 
 using namespace CVC4;
 
-class ExprWhite : public CxxTest::TestSuite {
+class NodeBlack : public CxxTest::TestSuite {
 public:
 
   void testNull() {

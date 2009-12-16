@@ -10,6 +10,9 @@
  ** [[ Add file-specific comments here ]]
  **/
 
+#ifndef __CVC4_CONFIG_H
+#define __CVC4_CONFIG_H
+
 #if defined _WIN32 || defined __CYGWIN__
 #  ifdef BUILDING_DLL
 #    ifdef __GNUC__
@@ -35,3 +38,9 @@
 #define EXPECT_TRUE(x) __builtin_expect( (x), true)
 #define EXPECT_FALSE(x) __builtin_expect( (x), false)
 #define NORETURN __attribute__ ((noreturn))
+
+#ifndef NULL
+#  define NULL ((void*) 0)
+#endif
+
+#endif /* __CVC4_CONFIG_H */

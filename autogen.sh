@@ -33,10 +33,10 @@ fi
 set -ex
 
 cd "$(dirname "$0")"
-libtoolize --copy
-aclocal -I config
-autoheader -I config
+libtoolize -cf || glibtoolize -cf
+aclocal -I config --force --install -Wall
+autoheader -I config -f -Wall
 touch NEWS README AUTHORS ChangeLog
 touch stamp-h
-autoconf -I config
-automake -ac --foreign -Woverride
+autoconf -I config --force -Wall
+automake -acf --foreign -Woverride -Wall

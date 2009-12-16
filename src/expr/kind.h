@@ -12,6 +12,7 @@
 #ifndef __CVC4__KIND_H
 #define __CVC4__KIND_H
 
+#include "cvc4_config.h"
 #include <iostream>
 
 namespace CVC4 {

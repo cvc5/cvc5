@@ -3,8 +3,9 @@
 
 CVC4_AC_INIT
 
-AC_PREREQ([2.59])
-AC_INIT([src/include/cvc4_config.h])
+AC_PREREQ(2.64)
+AC_INIT
+AC_CONFIG_SRCDIR([src/include/cvc4_config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
@@ -111,6 +112,12 @@ elif test -e src/include/cvc4_config.h; then
   (echo "# This is the most-recently-configured CVC4 build"; \
    echo "# 'make' in the top-level source directory applies to this build"; \
    echo "CURRENT_BUILD = $target/$build_type") > builds/current
+  echo Linking builds/src...
+  rm -f builds/src
+  ln -sfv "$target/$build_type/src" builds/src
+  echo Linking builds/test...
+  rm -f builds/test
+  ln -sfv "$target/$build_type/test" builds/test
   echo cd "builds/$target/$build_type"
   cd "builds/$target/$build_type"
   CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
@@ -245,17 +252,14 @@ AC_MSG_CHECKING([for user LDFLAGS])
 if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
 AC_MSG_RESULT([${LDFLAGS-none}])
 
+_LT_SET_OPTION([LT_INIT],[win32-dll])
 LT_INIT
-
-AC_LIBTOOL_WIN32_DLL
-
 
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 
@@ -265,6 +269,7 @@ if test -z "$DOXYGEN"; then
 fi
 AC_ARG_VAR(DOXYGEN, [location of doxygen binary])
 
+AC_ARG_VAR(CXXTEST, [path to cxxtest installation])
 CXXTESTGEN=
 AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
 if test -z "$CXXTESTGEN"; then
@@ -371,6 +376,11 @@ if test "$non_standard_build_profile" = yes; then
   fi
 fi
 
+support_unit_tests='cxxtest not found; unit tests not supported'
+if test -n "$CXXTEST"; then
+  support_unit_tests='unit testing infrastructure enabled in build directory'
+fi
+
 cat <<EOF
 
 CVC4 $VERSION
@@ -384,6 +394,7 @@ Tracing      : $enable_tracing
 Muzzle       : $enable_muzzle
 gcov support : $enable_coverage
 gprof support: $enable_profiling
+unit tests   : $support_unit_tests
 
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS

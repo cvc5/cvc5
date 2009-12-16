@@ -15,9 +15,10 @@
 LIBCVC4_RELEASE = @CVC4_LIBRARY_RELEASE_CODE@
 LIBCVC4_VERSION = @CVC4_LIBRARY_VERSION@
 
-INCLUDES = -I@srcdir@/include -I@srcdir@
+AM_CPPFLAGS =
+	-D__BUILDING_CVC4LIB \
+	-I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -fvisibility=hidden
-AM_CPPFLAGS = -D__BUILDING_CVC4LIB
 
 SUBDIRS = util expr context prop smt theory . parser main
 
