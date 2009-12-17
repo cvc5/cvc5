@@ -1,9 +1,17 @@
-/*
- * antlr_parser.h
- *
- *  Created on: Nov 30, 2009
- *      Author: dejan
- */
+/*********************                                           -*- C++ -*-  */
+/** antlr_parser.h
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters, cconway
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** Base for ANTLR parser classes.
+ **/
 
 #ifndef CVC4_PARSER_H_
 #define CVC4_PARSER_H_

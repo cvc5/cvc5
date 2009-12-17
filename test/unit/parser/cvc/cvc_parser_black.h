@@ -1,4 +1,17 @@
-/* Black box testing of CVC4::parser::CvcParser. */
+/*********************                                           -*- C++ -*-  */
+/** cvc_parser_black.h
+ ** Original author: cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** Black box testing of CVC4::parser::CvcParser.
+ **/
 
 #include <cxxtest/TestSuite.h>
 //#include <string>

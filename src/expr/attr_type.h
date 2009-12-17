@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
 /** attr_type.h
+ ** Original author: mdeters
+ ** Major contributors: none
+ ** Minor contributors (to current version): dejan, taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,6 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** Node attribute describing the type of a node.
  **/
 
 #ifndef __CVC4__EXPR__ATTR_TYPE_H

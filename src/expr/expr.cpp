@@ -1,9 +1,17 @@
-/*
- * expr.cpp
- *
- *  Created on: Dec 10, 2009
- *      Author: dejan
- */
+/*********************                                           -*- C++ -*-  */
+/** expr.cpp
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): taking
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** [[ Add file-specific comments here ]]
+ **/
 
 #include "expr/expr.h"
 #include "expr/node.h"

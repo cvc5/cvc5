@@ -213,30 +213,49 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = \
-@HAVE_CXXTESTGEN_TRUE@	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
 
+# all unit tests
+UNIT_TESTS = \
+	expr/node_white \
+	expr/node_black \
+	parser/cvc/cvc_parser_black \
+	parser/smt/smt_parser_black
+
+
+# things that aren't tests but that tests rely on and need to
+# go into the distribution
+TEST_DEPENDENCIES = 
+@HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = \
+@HAVE_CXXTESTGEN_TRUE@	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
+@HAVE_CXXTESTGEN_TRUE@	$(TEST_CPPFLAGS)
+
+@HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS = $(TEST_CXXFLAGS)
+@HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS = $(TEST_LDFLAGS)
 @HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS_WHITE = -fno-access-control
 @HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS_BLACK = 
 @HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS_PUBLIC = 
 @HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_WHITE = \
-@HAVE_CXXTESTGEN_TRUE@	    @abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-@HAVE_CXXTESTGEN_TRUE@	    @abs_top_builddir@/src/libcvc4_noinst.la
+@HAVE_CXXTESTGEN_TRUE@	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
+@HAVE_CXXTESTGEN_TRUE@	@abs_top_builddir@/src/libcvc4_noinst.la
 
 @HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_BLACK = \
-@HAVE_CXXTESTGEN_TRUE@		$(AM_LDFLAGS_WHITE)
+@HAVE_CXXTESTGEN_TRUE@	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
+@HAVE_CXXTESTGEN_TRUE@	@abs_top_builddir@/src/libcvc4_noinst.la
 
 @HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_PUBLIC = \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/libcvc4.la
+@HAVE_CXXTESTGEN_TRUE@	@abs_top_builddir@/src/libcvc4.la
 
 
 # force a user-visible failure for "make check"
 @HAVE_CXXTESTGEN_FALSE@TESTS = no_cxxtest
-@HAVE_CXXTESTGEN_TRUE@TESTS = \
-@HAVE_CXXTESTGEN_TRUE@	expr/node_white \
-@HAVE_CXXTESTGEN_TRUE@	expr/node_black \
-@HAVE_CXXTESTGEN_TRUE@	parser/cvc/cvc_parser_black \
-@HAVE_CXXTESTGEN_TRUE@	parser/smt/smt_parser_black
+@HAVE_CXXTESTGEN_TRUE@TESTS = $(UNIT_TESTS)
+@HAVE_CXXTESTGEN_FALSE@EXTRA_DIST = \
+@HAVE_CXXTESTGEN_FALSE@	$(UNIT_TESTS) \
+@HAVE_CXXTESTGEN_FALSE@	$(TEST_DEPENDENCIES)
+
+@HAVE_CXXTESTGEN_TRUE@EXTRA_DIST = \
+@HAVE_CXXTESTGEN_TRUE@	no_cxxtest \
+@HAVE_CXXTESTGEN_TRUE@	$(TEST_DEPENDENCIES)
 
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
@@ -629,18 +648,12 @@ uninstall-am:
 @HAVE_CXXTESTGEN_TRUE@	mkdir -p `dirname "$@"`
 @HAVE_CXXTESTGEN_TRUE@	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
 @HAVE_CXXTESTGEN_TRUE@$(filter %_white,$(TESTS)): %_white: %_white.cpp
-#	get these in here somehow
-#	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_WHITE) $@.lo
 @HAVE_CXXTESTGEN_TRUE@$(filter %_black,$(TESTS)): %_black: %_black.cpp
-#	get these in here somehow
-#	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_BLACK) $@.lo
 @HAVE_CXXTESTGEN_TRUE@$(filter %_public,$(TESTS)): %_public: %_public.cpp
-#	get these in here somehow
-#	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 

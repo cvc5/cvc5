@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
 /** node.h
+ ** Original author: mdeters
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Reference-counted encapsulation of a pointer to an expression.
+ ** Reference-counted encapsulation of a pointer to node information.
  **/
 
 #include "expr/node_value.h"

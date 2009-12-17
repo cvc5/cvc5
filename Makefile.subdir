@@ -4,7 +4,7 @@ builddir = $(topdir)/builds/$(CURRENT_BUILD)/$(srcdir)
 
 .PHONY: _default_build_ all
 _default_build_: all
-%:
+all %:
 	@if test -e $(builddir); then \
 		echo cd $(builddir); \
 		cd $(builddir); \

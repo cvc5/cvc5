@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
 /** cvc_parser.cpp
+ ** Original author: mdeters
+ ** Major contributors: none
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

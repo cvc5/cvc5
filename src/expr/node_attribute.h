@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
-/** expr_attribute.h
+/** node_attribute.h
+ ** Original author: mdeters
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,6 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** Node attributes.
  **/
 
 #ifndef __CVC4__EXPR__NODE_ATTRIBUTE_H

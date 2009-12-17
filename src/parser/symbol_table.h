@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
 /** symbol_table.h
+ ** Original author: cconway
+ ** Major contributors: dejan, mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,6 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** A symbol table for the parsers' use.
  **/
 
 #ifndef __CVC4__PARSER__SYMBOL_TABLE_H

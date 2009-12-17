@@ -1,5 +1,10 @@
 #!/usr/bin/perl -w
 #
+# update-copyright.pl
+# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
+#
+# usage: update-copyright [ files/directories... ]
+#
 # This script goes through a source directory rewriting the top bits of
 # source files to match a template (inline, below).  For files with no
 # top comment, it adds a fresh one.
@@ -50,12 +55,12 @@ EOF
 use strict;
 use Fcntl ':mode';
 
+my $dir = $0;
+$dir =~ s,/[^/]+/*$,,;
+
 my @searchdirs = ();
 if($#ARGV == -1) {
-  my $dir = $0;
-  $dir =~ s,/[^/]+/*$,,;
-
-  (chdir($dir."/..") && -f "src/include/cvc4_expr.h") || die "can't find top-level source directory for CVC4";
+  (chdir($dir."/..") && -f "src/include/cvc4_config.h") || die "can't find top-level source directory for CVC4";
   my $pwd = `pwd`; chomp $pwd;
 
   print <<EOF;
@@ -103,6 +108,11 @@ sub recurse {
       my $outfile = $srcdir.'/#'.$file.'.tmp';
       open(my $IN, $infile) || die "error opening $infile for reading";
       open(my $OUT, '>', $outfile) || die "error opening $outfile for writing";
+      open(my $AUTHOR, "$dir/get-authors " . $infile . '|');
+      my $author = <$AUTHOR>; chomp $author;
+      my $major_contributors = <$AUTHOR>; chomp $major_contributors;
+      my $minor_contributors = <$AUTHOR>; chomp $minor_contributors;
+      close $AUTHOR;
       $_ = <$IN>;
       if(m,^(%{)?/\*\*\*\*\*,) {
         print "updating\n";
@@ -112,6 +122,9 @@ sub recurse {
           print $OUT "/*********************                                           -*- C++ -*-  */\n";
         }
         print $OUT "/** $file\n";
+        print $OUT " ** Original author: $author\n";
+        print $OUT " ** Major contributors: $major_contributors\n";
+        print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
         print $OUT $standard_template;
         print $OUT " **\n";
         while(my $line = <$IN>) {
@@ -126,6 +139,9 @@ sub recurse {
           print $OUT "/*********************                                           -*- C++ -*-  */\n";
         }
         print $OUT "/** $file\n";
+        print $OUT " ** Original author: $author\n";
+        print $OUT " ** Major contributors: $major_contributors\n";
+        print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
         print $OUT $standard_template;
         print $OUT " **\n";
         print $OUT " ** [[ Add file-specific comments here ]]\n";

@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
-/** attr_type.h
+/** attr_var_name.h
+ ** Original author: mdeters
+ ** Major contributors: none
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,6 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** The node attribute describing variable names.
  **/
 
 #ifndef __CVC4__EXPR__ATTR_VAR_NAME_H

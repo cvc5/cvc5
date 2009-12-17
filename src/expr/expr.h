@@ -1,9 +1,17 @@
-/*
- * expr.h
- *
- *  Created on: Dec 10, 2009
- *      Author: dejan
- */
+/*********************                                           -*- C++ -*-  */
+/** expr.h
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): taking, mdeters
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** Public-facing expression interface.
+ **/
 
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H

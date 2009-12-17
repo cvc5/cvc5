@@ -1,5 +1,8 @@
 /*********************                                           -*- C++ -*-  */
 /** node_manager.h
+ ** Original author: mdeters
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -7,6 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** A manager for Nodes.
  **/
 
 #ifndef __CVC4__NODE_MANAGER_H

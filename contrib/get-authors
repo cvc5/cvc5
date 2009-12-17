@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# get-authors
+# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
+#
+# usage: get-authors [ files... ]
+#
+# This script uses svn to get the original author
+#
+
+while [ $# -gt 0 ]; do
+  f=$1
+  shift
+  original_author=
+  major_contributors=
+  minor_contributors=
+  total_lines=`wc -l "$f" | awk '{print$1}'`
+  original_author=`svn log -q --incremental "$f" | tail -1 | awk '{print$3}'`
+  svn blame "$f" | awk '{print$2}' | sort | uniq -c | sort -n |
+    ( while read lines author; do
+        pct=$((100*$lines/$total_lines))
+        if [ "$author" != "$original_author" ]; then
+          if [ $pct -gt 10 ]; then
+            major_contributors="${major_contributors:+$major_contributors, }$author"
+          else
+            minor_contributors="${minor_contributors:+$minor_contributors, }$author"
+          fi
+        fi
+      done; \
+      echo "$original_author"
+      echo "${major_contributors:-none}"
+      echo "${minor_contributors:-none}" )
+done
