@@ -27,6 +27,7 @@ noinst_LTLIBRARIES = libcvc4parser_noinst.la
 
 libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
 libcvc4parser_la_LIBADD = libcvc4parser_noinst.la
+libcvc4parser_la_LINK = $(CXXLINK)
 
 libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
 libcvc4parser_noinst_la_LIBADD = \

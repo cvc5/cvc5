@@ -28,6 +28,7 @@
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "util/command.h"
+#include "util/Assert.h"
 #include "util/output.h"
 #include "util/options.h"
 
@@ -55,7 +56,7 @@ int main(int argc, char *argv[]) {
 
     // We only accept one input file
     if(argc > firstArgIndex + 1) {
-      throw new Exception("Too many input files specified.");
+      throw Exception("Too many input files specified.");
     }
 
     // Create the expression manager
@@ -144,8 +145,10 @@ int main(int argc, char *argv[]) {
     // Remove the parser
     delete parser;
 
-    // Delete handle to input file
-    delete file;
+    if(! inputFromStdin) {
+      // Delete handle to input file
+      delete file;
+    }
   } catch(OptionException& e) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;
@@ -153,7 +156,7 @@ int main(int argc, char *argv[]) {
     cerr << "CVC4 Error:" << endl << e << endl;
     printf(usage, options.binary_name.c_str());
     abort();
-  } catch(CVC4::Exception& e) {
+  } catch(Exception& e) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;
     }

@@ -222,7 +222,7 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = \
 	-I@srcdir@/../include -I@srcdir@/..
 
-AM_CXXFLAGS = -Wall -fvisibility=hidden
+AM_CXXFLAGS = -Wall
 cvc4_SOURCES = \
 	main.cpp \
 	getopt.cpp \
@@ -235,6 +235,7 @@ cvc4_LDADD = \
 	../parser/libcvc4parser.la \
 	../libcvc4.la
 
+cvc4_LINK = $(CXXLINK)
 all: all-am
 
 .SUFFIXES:
@@ -314,7 +315,7 @@ clean-binPROGRAMS:
 	rm -f $$list
 cvc4$(EXEEXT): $(cvc4_OBJECTS) $(cvc4_DEPENDENCIES) 
 	@rm -f cvc4$(EXEEXT)
-	$(CXXLINK) $(cvc4_OBJECTS) $(cvc4_LDADD) $(LIBS)
+	$(cvc4_LINK) $(cvc4_OBJECTS) $(cvc4_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

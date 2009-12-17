@@ -7,7 +7,7 @@ UNIT_TESTS = \
 
 # things that aren't tests but that tests rely on and need to
 # go into the distribution
-TEST_DEPENDENCIES =
+TEST_DEPS =
 
 if HAVE_CXXTESTGEN
 
@@ -21,10 +21,10 @@ AM_CXXFLAGS_WHITE = -fno-access-control
 AM_CXXFLAGS_BLACK =
 AM_CXXFLAGS_PUBLIC =
 AM_LDFLAGS_WHITE = \
-	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \ 
+	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
 	@abs_top_builddir@/src/libcvc4_noinst.la
 AM_LDFLAGS_BLACK = \
-	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \ 
+	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
 	@abs_top_builddir@/src/libcvc4_noinst.la
 AM_LDFLAGS_PUBLIC = \
 	@abs_top_builddir@/src/libcvc4.la
@@ -33,7 +33,7 @@ TESTS = $(UNIT_TESTS)
 
 EXTRA_DIST = \
 	no_cxxtest \
-	$(TEST_DEPENDENCIES)
+	$(TEST_DEPS)
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
 noinst_LTLIBRARIES = libdummy.la
@@ -62,6 +62,6 @@ TESTS = no_cxxtest
 
 EXTRA_DIST = \
 	$(UNIT_TESTS) \
-	$(TEST_DEPENDENCIES)
+	$(TEST_DEPS)
 
 endif

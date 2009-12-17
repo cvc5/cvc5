@@ -76,17 +76,26 @@ LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 libcvc4_la_DEPENDENCIES = libcvc4_noinst.la
 am_libcvc4_la_OBJECTS =
 libcvc4_la_OBJECTS = $(am_libcvc4_la_OBJECTS)
-libcvc4_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libcvc4_la_LDFLAGS) $(LDFLAGS) -o $@
 libcvc4_noinst_la_DEPENDENCIES = @builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la @builddir@/context/libcontext.la \
 	@builddir@/prop/libprop.la \
 	@builddir@/prop/minisat/libminisat.la @builddir@/smt/libsmt.la \
 	@builddir@/theory/libtheory.la
-am_libcvc4_noinst_la_OBJECTS =
+am_libcvc4_noinst_la_OBJECTS = empty.lo
 libcvc4_noinst_la_OBJECTS = $(am_libcvc4_noinst_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
+depcomp = $(SHELL) $(top_srcdir)/config/depcomp
+am__depfiles_maybe = depfiles
+am__mv = mv -f
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -298,9 +307,14 @@ SUBDIRS = util expr context prop smt theory . parser main
 lib_LTLIBRARIES = libcvc4.la
 noinst_LTLIBRARIES = libcvc4_noinst.la
 libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION) -release $(LIBCVC4_RELEASE)
+libcvc4_la_LINK = $(CXXLINK)
 libcvc4_la_SOURCES = 
 libcvc4_la_LIBADD = libcvc4_noinst.la
-libcvc4_noinst_la_SOURCES = 
+
+# empty.cpp is a fake file added to "trick" automake into linking us as a
+# C++ library (rather than as a C library, which messes up exception
+# handling support)
+libcvc4_noinst_la_SOURCES = empty.cpp
 libcvc4_noinst_la_LIBADD = \
 	@builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la \
@@ -316,6 +330,7 @@ publicheaders = \
 all: all-recursive
 
 .SUFFIXES:
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -389,13 +404,36 @@ clean-noinstLTLIBRARIES:
 libcvc4.la: $(libcvc4_la_OBJECTS) $(libcvc4_la_DEPENDENCIES) 
 	$(libcvc4_la_LINK) -rpath $(libdir) $(libcvc4_la_OBJECTS) $(libcvc4_la_LIBADD) $(LIBS)
 libcvc4_noinst.la: $(libcvc4_noinst_la_OBJECTS) $(libcvc4_noinst_la_DEPENDENCIES) 
-	$(LINK)  $(libcvc4_noinst_la_OBJECTS) $(libcvc4_noinst_la_LIBADD) $(LIBS)
+	$(CXXLINK)  $(libcvc4_noinst_la_OBJECTS) $(libcvc4_noinst_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/empty.Plo@am__quote@
+
+.cpp.o:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -635,6 +673,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -680,6 +719,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -720,6 +760,9 @@ uninstall-am: uninstall-libLTLIBRARIES
 
 	-D__BUILDING_CVC4LIB \
 	-I@srcdir@/include -I@srcdir@
+
+# empty.cpp hack; see above
+empty.cpp:; touch empty.cpp
 
 install-data-local: $(publicheaders)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)/cvc4

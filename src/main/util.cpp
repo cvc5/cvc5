@@ -46,14 +46,14 @@ void cvc4_init() throw() {
   act1.sa_flags = SA_SIGINFO;
   sigemptyset(&act1.sa_mask);
   if(sigaction(SIGINT, &act1, NULL))
-    throw new Exception(string("sigaction(SIGINT) failure: ") + strerror(errno));
+    throw Exception(string("sigaction(SIGINT) failure: ") + strerror(errno));
 
   struct sigaction act2;
   act2.sa_sigaction = segv_handler;
   act2.sa_flags = SA_SIGINFO;
   sigemptyset(&act2.sa_mask);
   if(sigaction(SIGSEGV, &act2, NULL))
-    throw new Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
+    throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
 }
 
 }/* CVC4::main namespace */

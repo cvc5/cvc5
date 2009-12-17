@@ -76,9 +76,6 @@ LTLIBRARIES = $(nobase_lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
 libcvc4parser_la_DEPENDENCIES = libcvc4parser_noinst.la
 am_libcvc4parser_la_OBJECTS =
 libcvc4parser_la_OBJECTS = $(am_libcvc4parser_la_OBJECTS)
-libcvc4parser_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libcvc4parser_la_LDFLAGS) $(LDFLAGS) -o $@
 libcvc4parser_noinst_la_DEPENDENCIES = @builddir@/smt/libparsersmt.la \
 	@builddir@/cvc/libparsercvc.la
 am_libcvc4parser_noinst_la_OBJECTS = parser.lo antlr_parser.lo
@@ -318,6 +315,7 @@ nobase_lib_LTLIBRARIES = libcvc4parser.la
 noinst_LTLIBRARIES = libcvc4parser_noinst.la
 libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
 libcvc4parser_la_LIBADD = libcvc4parser_noinst.la
+libcvc4parser_la_LINK = $(CXXLINK)
 libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
 libcvc4parser_noinst_la_LIBADD = \
 	@builddir@/smt/libparsersmt.la \
