@@ -7,7 +7,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** Main driver for CVC4 executable.
  **/
 
 #include <iostream>
@@ -26,6 +26,7 @@
 #include "smt/smt_engine.h"
 #include "util/command.h"
 #include "util/output.h"
+#include "util/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -44,13 +45,15 @@ int main(int argc, char *argv[]) {
     // Parse the options
     int firstArgIndex = parseOptions(argc, argv, &options);
 
-    // If in competition mode, we flush the stdout immediately
-    if(options.smtcomp_mode)
+    // If in competition mode, set output stream option to flush immediately
+    if(options.smtcomp_mode) {
       cout << unitbuf;
+    }
 
     // We only accept one input file
-    if(argc > firstArgIndex + 1)
+    if(argc > firstArgIndex + 1) {
       throw new Exception("Too many input files specified.");
+    }
 
     // Create the expression manager
     ExprManager exprMgr;
@@ -61,14 +64,18 @@ int main(int argc, char *argv[]) {
     // If no file supplied we read from standard input
     bool inputFromStdin = firstArgIndex >= argc;
 
+    // Auto-detect input language by filename extension
     if(!inputFromStdin && options.lang == Options::LANG_AUTO) {
-      if(!strcmp(".smt", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4))
+      if(!strcmp(".smt", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4)) {
         options.lang = Options::LANG_SMTLIB;
+      }
       else if(!strcmp(".cvc", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4) ||
-              !strcmp(".cvc4", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 5))
+              !strcmp(".cvc4", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 5)) {
         options.lang = Options::LANG_CVC4;
+      }
     }
 
+    // Determine which messages to show based on smtcomp_mode and verbosity
     if(options.smtcomp_mode) {
       Debug.setStream(CVC4::null_os);
       Trace.setStream(CVC4::null_os);
@@ -76,14 +83,18 @@ int main(int argc, char *argv[]) {
       Chat.setStream(CVC4::null_os);
       Warning.setStream(CVC4::null_os);
     } else {
-      if(options.verbosity < 2)
+      if(options.verbosity < 2) {
         Chat.setStream(CVC4::null_os);
-      if(options.verbosity < 1)
+      }
+      if(options.verbosity < 1) {
         Notice.setStream(CVC4::null_os);
-      if(options.verbosity < 0)
+      }
+      if(options.verbosity < 0) {
         Warning.setStream(CVC4::null_os);
+      }
     }
 
+    // Set up the input stream, either cin or a file
     const char* fname;
     istream* in;
     ifstream* file;
@@ -128,24 +139,31 @@ int main(int argc, char *argv[]) {
     // Remove the parser
     delete parser;
 
+    // Delete handle to input file
     delete file;
   } catch(OptionException& e) {
-    if(options.smtcomp_mode)
+    if(options.smtcomp_mode) {
       cout << "unknown" << endl;
+    }
     cerr << "CVC4 Error:" << endl << e << endl;
     printf(usage, options.binary_name.c_str());
     abort();
   } catch(CVC4::Exception& e) {
-    if(options.smtcomp_mode)
+    if(options.smtcomp_mode) {
       cout << "unknown" << endl;
+    }
     cerr << "CVC4 Error:" << endl << e << endl;
     abort();
   } catch(bad_alloc) {
-    if(options.smtcomp_mode)
+    if(options.smtcomp_mode) {
       cout << "unknown" << endl;
+    }
     cerr << "CVC4 ran out of memory." << endl;
     abort();
   } catch(...) {
+    if(options.smtcomp_mode) {
+      cout << "unknown" << endl;
+    }
     cerr << "CVC4 threw an exception of unknown type." << endl;
     abort();
   }

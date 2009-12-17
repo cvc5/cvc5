@@ -7,7 +7,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** Contains code for handling command-line options
  **/
 
 #include <cstdio>
@@ -26,6 +26,7 @@
 #include "usage.h"
 #include "about.h"
 #include "util/output.h"
+#include "util/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -34,7 +35,7 @@ namespace CVC4 {
 namespace main {
 
 static const char lang_help[] = "\
-Languages currently supported to the -L / --lang option:\n\
+Languages currently supported as arguments to the -L / --lang option:\n\
   auto          attempt to automatically determine the input language\n\
   pl | cvc4     CVC4 presentation language\n\
   smt | smtlib  SMT-LIB format\n\
@@ -63,8 +64,9 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
 
   // find the base name of the program
   const char *x = strrchr(progName, '/');
-  if(x != NULL)
+  if(x != NULL) {
     progName = x + 1;
+  }
   opts->binary_name = string(progName);
 
   while((c = getopt_long(argc, argv, "+:hVvqL:d:", cmdlineOptions, NULL)) != -1) {
@@ -99,8 +101,9 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
         break;
       }
 
-      if(strcmp(optarg, "help"))
+      if(strcmp(optarg, "help")) {
         throw OptionException(string("unknown language for --lang: `") + argv[optind] + "'.  Try --lang help.");
+      }
 
       fputs(lang_help, stdout);
       exit(1);

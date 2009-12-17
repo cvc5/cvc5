@@ -15,12 +15,14 @@
 
 #include "config.h"
 #include "util/exception.h"
-#include "util/options.h"
 
 #ifndef __CVC4__MAIN__MAIN_H
 #define __CVC4__MAIN__MAIN_H
 
 namespace CVC4 {
+
+struct Options;
+
 namespace main {
 
 class OptionException : public CVC4::Exception {
