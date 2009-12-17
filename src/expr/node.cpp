@@ -87,35 +87,35 @@ uint64_t Node::hash() const {
 }
 
 Node Node::eqExpr(const Node& right) const {
-  return NodeManager::currentNM()->mkExpr(EQUAL, *this, right);
+  return NodeManager::currentNM()->mkNode(EQUAL, *this, right);
 }
 
 Node Node::notExpr() const {
-  return NodeManager::currentNM()->mkExpr(NOT, *this);
+  return NodeManager::currentNM()->mkNode(NOT, *this);
 }
 
 Node Node::andExpr(const Node& right) const {
-  return NodeManager::currentNM()->mkExpr(AND, *this, right);
+  return NodeManager::currentNM()->mkNode(AND, *this, right);
 }
 
 Node Node::orExpr(const Node& right) const {
-  return NodeManager::currentNM()->mkExpr(OR, *this, right);
+  return NodeManager::currentNM()->mkNode(OR, *this, right);
 }
 
 Node Node::iteExpr(const Node& thenpart, const Node& elsepart) const {
-  return NodeManager::currentNM()->mkExpr(ITE, *this, thenpart, elsepart);
+  return NodeManager::currentNM()->mkNode(ITE, *this, thenpart, elsepart);
 }
 
 Node Node::iffExpr(const Node& right) const {
-  return NodeManager::currentNM()->mkExpr(IFF, *this, right);
+  return NodeManager::currentNM()->mkNode(IFF, *this, right);
 }
 
 Node Node::impExpr(const Node& right) const {
-  return NodeManager::currentNM()->mkExpr(IMPLIES, *this, right);
+  return NodeManager::currentNM()->mkNode(IMPLIES, *this, right);
 }
 
 Node Node::xorExpr(const Node& right) const {
-  return NodeManager::currentNM()->mkExpr(XOR, *this, right);
+  return NodeManager::currentNM()->mkNode(XOR, *this, right);
 }
 
 }/* CVC4 namespace */

@@ -23,27 +23,27 @@ ExprManager::~ExprManager() {
 }
 
 Expr ExprManager::mkExpr(Kind kind) {
-  return Expr(this, new Node(d_nm->mkExpr(kind)));
+  return Expr(this, new Node(d_nm->mkNode(kind)));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
-  return Expr(this, new Node(d_nm->mkExpr(kind, child1.getNode())));
+  return Expr(this, new Node(d_nm->mkNode(kind, child1.getNode())));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
-  return Expr(this, new Node(d_nm->mkExpr(kind, child1.getNode(),
+  return Expr(this, new Node(d_nm->mkNode(kind, child1.getNode(),
                                           child2.getNode())));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                          const Expr& child3) {
-  return Expr(this, new Node(d_nm->mkExpr(kind, child1.getNode(),
+  return Expr(this, new Node(d_nm->mkNode(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode())));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                          const Expr& child3, const Expr& child4) {
-  return Expr(this, new Node(d_nm->mkExpr(kind, child1.getNode(),
+  return Expr(this, new Node(d_nm->mkNode(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode(),
                                           child4.getNode())));
 }
@@ -51,7 +51,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                          const Expr& child3, const Expr& child4,
                          const Expr& child5) {
-  return Expr(this, new Node(d_nm->mkExpr(kind, child1.getNode(),
+  return Expr(this, new Node(d_nm->mkNode(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode(),
                                           child5.getNode())));
 }
@@ -64,7 +64,7 @@ Expr ExprManager::mkExpr(Kind kind, const vector<Expr>& children) {
     nodes.push_back(it->getNode());
     ++it;
   }
-  return Expr(this, new Node(d_nm->mkExpr(kind, nodes)));
+  return Expr(this, new Node(d_nm->mkNode(kind, nodes)));
 }
 
 Expr ExprManager::mkVar() {

@@ -91,6 +91,24 @@ public:
 
 extern WarningC Warning CVC4_PUBLIC;
 
+class CVC4_PUBLIC MessageC {
+  std::ostream *d_os;
+
+public:
+  MessageC(std::ostream* os) : d_os(os) {}
+
+  void operator()(const char* s) { *d_os << s; }
+  void operator()(std::string s) { *d_os << s; }
+
+  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
+
+  std::ostream& operator()() { return *d_os; }
+
+  void setStream(std::ostream& os) { d_os = &os; }
+};/* class Message */
+
+extern MessageC Message CVC4_PUBLIC;
+
 class CVC4_PUBLIC NoticeC {
   std::ostream *d_os;
 

@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
       Trace.setStream(CVC4::null_os);
       Notice.setStream(CVC4::null_os);
       Chat.setStream(CVC4::null_os);
+      Message.setStream(CVC4::null_os);
       Warning.setStream(CVC4::null_os);
     } else {
       if(options.verbosity < 2) {
@@ -90,6 +91,7 @@ int main(int argc, char *argv[]) {
         Notice.setStream(CVC4::null_os);
       }
       if(options.verbosity < 0) {
+        Message.setStream(CVC4::null_os);
         Warning.setStream(CVC4::null_os);
       }
     }

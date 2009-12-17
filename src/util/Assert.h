@@ -122,7 +122,8 @@ public:
     va_list args;
     va_start(args, fmt);
     construct("Illegal argument detected",
-              argDesc, function, file, line, fmt, args);
+              ( std::string(argDesc) + " invalid" ).c_str(),
+              function, file, line, fmt, args);
     va_end(args);
   }
 
@@ -130,7 +131,31 @@ public:
                            const char* file, unsigned line) :
     AssertionException() {
     construct("Illegal argument detected",
-              argDesc, function, file, line);
+              ( std::string(argDesc) + " invalid" ).c_str(),
+              function, file, line);
+  }
+
+  IllegalArgumentException(const char* condStr, const char* argDesc,
+                           const char* function, const char* file,
+                           unsigned line, const char* fmt, ...) :
+    AssertionException() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Illegal argument detected",
+              ( std::string(argDesc) + " invalid; expected " +
+                condStr + " to hold" ).c_str(),
+              function, file, line, fmt, args);
+    va_end(args);
+  }
+
+  IllegalArgumentException(const char* condStr, const char* argDesc,
+                           const char* function, const char* file,
+                           unsigned line) :
+    AssertionException() {
+    construct("Illegal argument detected",
+              ( std::string(argDesc) + " invalid; expected " +
+                condStr + " to hold" ).c_str(),
+              function, file, line);
   }
 };/* class IllegalArgumentException */
 
@@ -146,11 +171,21 @@ public:
   throw UnhandledCaseException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define IllegalArgument(arg, msg...) \
   throw IllegalArgumentException(#arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+#define CheckArgument(cond, arg, msg...)         \
+  AlwaysAssertArgument(cond, arg, ## msg)
+#define AlwaysAssertArgument(cond, arg, msg...)  \
+  do { \
+    if(EXPECT_FALSE( ! (cond) )) { \
+      throw IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+    } \
+  } while(0)
 
 #ifdef CVC4_ASSERTIONS
 #  define Assert(cond, msg...) AlwaysAssert(cond, ## msg)
+#  define AssertArgument(cond, arg, msg...) AlwaysAssertArgument(cond, arg, ## msg)
 #else /* ! CVC4_ASSERTIONS */
 #  define Assert(cond, msg...) /*EXPECT_TRUE( cond )*/
+#  define AssertArgument(cond, arg, msg...) /*EXPECT_TRUE( cond )*/
 #endif /* CVC4_ASSERTIONS */
 
 }/* CVC4 namespace */

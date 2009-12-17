@@ -36,14 +36,14 @@ public:
   static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders
-  Node mkExpr(Kind kind);
-  Node mkExpr(Kind kind, const Node& child1);
-  Node mkExpr(Kind kind, const Node& child1, const Node& child2);
-  Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3);
-  Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4);
-  Node mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5);
+  Node mkNode(Kind kind);
+  Node mkNode(Kind kind, const Node& child1);
+  Node mkNode(Kind kind, const Node& child1, const Node& child2);
+  Node mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3);
+  Node mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4);
+  Node mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5);
   // N-ary version
-  Node mkExpr(Kind kind, const std::vector<Node>& children);
+  Node mkNode(Kind kind, const std::vector<Node>& children);
 
   // variables are special, because duplicates are permitted
   Node mkVar();

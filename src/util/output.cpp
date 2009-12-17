@@ -22,6 +22,7 @@ std::ostream null_os(&null_sb);
 
 DebugC   Debug  (&std::cout);
 WarningC Warning(&std::cerr);
+MessageC Message(&std::cout);
 NoticeC  Notice (&std::cout);
 ChatC    Chat   (&std::cout);
 TraceC   Trace  (&std::cout);

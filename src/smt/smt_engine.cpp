@@ -41,7 +41,7 @@ Node SmtEngine::processAssertionList() {
   for(std::vector<Node>::iterator i = d_assertions.begin();
       i != d_assertions.end();
       ++i)
-    asserts = asserts.isNull() ? *i : d_em->mkExpr(AND, asserts, *i);
+    asserts = asserts.isNull() ? *i : d_em->mkNode(AND, asserts, *i);
   return asserts;
 }
 

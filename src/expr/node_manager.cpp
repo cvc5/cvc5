@@ -101,32 +101,32 @@ NodeValue* NodeManager::lookupNoInsert(uint64_t hash, NodeValue* ev) {
 
 // general expression-builders
 
-Node NodeManager::mkExpr(Kind kind) {
+Node NodeManager::mkNode(Kind kind) {
   return NodeBuilder<>(this, kind);
 }
 
-Node NodeManager::mkExpr(Kind kind, const Node& child1) {
+Node NodeManager::mkNode(Kind kind, const Node& child1) {
   return NodeBuilder<>(this, kind) << child1;
 }
 
-Node NodeManager::mkExpr(Kind kind, const Node& child1, const Node& child2) {
+Node NodeManager::mkNode(Kind kind, const Node& child1, const Node& child2) {
   return NodeBuilder<>(this, kind) << child1 << child2;
 }
 
-Node NodeManager::mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3) {
+Node NodeManager::mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3) {
   return NodeBuilder<>(this, kind) << child1 << child2 << child3;
 }
 
-Node NodeManager::mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4) {
+Node NodeManager::mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4) {
   return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4;
 }
 
-Node NodeManager::mkExpr(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5) {
+Node NodeManager::mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5) {
   return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4 << child5;
 }
 
 // N-ary version
-Node NodeManager::mkExpr(Kind kind, const std::vector<Node>& children) {
+Node NodeManager::mkNode(Kind kind, const std::vector<Node>& children) {
   return NodeBuilder<>(this, kind).append(children);
 }
 
