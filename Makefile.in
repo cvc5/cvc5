@@ -226,6 +226,7 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 lt_ECHO = @lt_ECHO@
 mandir = @mandir@
+mk_include = @mk_include@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
@@ -744,11 +745,17 @@ uninstall-am:
 	ps ps-am tags tags-recursive uninstall uninstall-am
 
 
+@mk_include@ @top_srcdir@/Makefile.reconf_args
+
 .PHONY: production debug default competition
-production: ; (cd @top_srcdir@ && ./configure --with-build=production && $(MAKE))
-debug:      ; (cd @top_srcdir@ && ./configure --with-build=debug && $(MAKE))
-default:    ; (cd @top_srcdir@ && ./configure --with-build=default && $(MAKE))
-competition:; (cd @top_srcdir@ && ./configure --with-build=competition && $(MAKE))
+production debug default competition:
+	cd @top_srcdir@; \
+	dir="builds/`config/config.guess`/`config/build-type $@ $(BTARGS)`"; \
+	if test -e "$$dir"; then \
+		cd "$$dir" && $(MAKE); \
+	else \
+		./configure --with-build=$@ $(CONFARGS) && $(MAKE); \
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

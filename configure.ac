@@ -36,63 +36,63 @@ if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "
 else
   non_standard_build_profile=yes
 fi
-build_type_suffix=
+btargs=
 if test -n "${enable_optimized+set}"; then
-  if test "$enable_optimized" = no; then
-    build_type_suffix=$build_type_suffix-noopt
+  if test "$enable_optimized" = yes; then
+    btargs="$btargs opt"
   else
-    build_type_suffix=$build_type_suffix-opt
+    btargs="$btargs noopt"
   fi
 fi
 if test -n "${enable_debug_symbols+set}"; then
-  if test "$enable_debug_symbols" = no; then
-    build_type_suffix=$build_type_suffix-nodsy
+  if test "$enable_debug_symbols" = yes; then
+    btargs="$btargs dsy"
   else
-    build_type_suffix=$build_type_suffix-dsy
+    btargs="$btargs nodsy"
   fi
 fi
 if test -n "${enable_assertions+set}"; then
-  if test "$enable_assertions" = no; then
-    build_type_suffix=$build_type_suffix-noass
+  if test "$enable_assertions" = yes; then
+    btargs="$btargs ass"
   else
-    build_type_suffix=$build_type_suffix-ass
+    btargs="$btargs noass"
   fi
 fi
 if test -n "${enable_tracing+set}"; then
-  if test "$enable_tracing" = no; then
-    build_type_suffix=$build_type_suffix-notrc
+  if test "$enable_tracing" = yes; then
+    btargs="$btargs trc"
   else
-    build_type_suffix=$build_type_suffix-trc
+    btargs="$btargs notrc"
   fi
 fi
 if test -n "${enable_muzzle+set}"; then
-  if test "$enable_muzzle" = no; then
-    build_type_suffix=$build_type_suffix-nomzl
+  if test "$enable_muzzle" = yes; then
+    btargs="$btargs mzl"
   else
-    build_type_suffix=$build_type_suffix-mzl
+    btargs="$btargs nomzl"
   fi
 fi
 if test -n "${enable_coverage+set}"; then
-  if test "$enable_coverage" = no; then
-    build_type_suffix=$build_type_suffix-nocvg
+  if test "$enable_coverage" = yes; then
+    btargs="$btargs cvg"
   else
-    build_type_suffix=$build_type_suffix-cvg
+    btargs="$btargs nocvg"
   fi
 fi
 if test -n "${enable_profiling+set}"; then
-  if test "$enable_profiling" = no; then
-    build_type_suffix=$build_type_suffix-noprf
+  if test "$enable_profiling" = yes; then
+    btargs="$btargs prf"
   else
-    build_type_suffix=$build_type_suffix-prf
+    btargs="$btargs noprf"
   fi
 fi
 AC_MSG_RESULT([$with_build])
 
 AC_MSG_CHECKING([for appropriate build string])
-build_type=$with_build$build_type_suffix
+build_type=`$ac_confdir/config/build-type $with_build $btargs`
 if test "$non_standard_build_profile" = yes; then
   if test "$with_build" = default; then
-    build_type=custom$build_type_suffix
+    build_type=`$ac_confdir/config/build-type custom $btargs`
   fi
 fi
 AC_MSG_RESULT($build_type)
@@ -104,20 +104,13 @@ if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
 elif test -e src/include/cvc4_config.h; then
   AC_MSG_RESULT([builds/$target/$build_type])
   echo
-  echo Setting up "builds/$target/$build_type"...
-  rm -fv config.log config.status confdefs.h
-  mkdir -pv "builds/$target/$build_type"
-  ln -sfv "$target/$build_type/Makefile.builds" builds/Makefile
-  echo Creating builds/current...
-  (echo "# This is the most-recently-configured CVC4 build"; \
-   echo "# 'make' in the top-level source directory applies to this build"; \
-   echo "CURRENT_BUILD = $target/$build_type") > builds/current
-  echo Linking builds/src...
-  rm -f builds/src
-  ln -sfv "$target/$build_type/src" builds/src
-  echo Linking builds/test...
-  rm -f builds/test
-  ln -sfv "$target/$build_type/test" builds/test
+  if test -z "$ac_srcdir"; then
+    mkbuilddir=./config/mkbuilddir
+  else
+    mkbuilddir=$ac_srcdir/config/mkbuilddir
+  fi
+  echo $mkbuilddir "$target" "$build_type"
+  $mkbuilddir "$target" "$build_type"
   echo cd "builds/$target/$build_type"
   cd "builds/$target/$build_type"
   CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
@@ -340,6 +333,9 @@ fi
 if test "$user_ldflags" = no; then
   LDFLAGS="$CVC4LDFLAGS"
 fi
+
+mk_include=include
+AC_SUBST(mk_include)
 
 AC_CONFIG_FILES([
   Makefile.builds

@@ -1,0 +1,77 @@
+# This makefile snippet maps make-time arguments to configure and
+# build-type arguments
+#
+# Morgan Deters <mdeters@cs.nyu.edu> 2009 for CVC4
+BTARGS =
+CONFARGS =
+
+ifeq ($(OPTIMIZE),0)
+  BTARGS += noopt
+  CONFARGS += --disable-optimized
+else
+ifeq ($(OPTIMIZE),1)
+  BTARGS += opt
+  CONFARGS += --enable-optimized
+endif
+endif
+
+ifeq ($(DEBUG_SYMBOLS),0)
+  BTARGS += nodsy
+  CONFARGS += --disable-debug-symbols
+else
+ifeq ($(DEBUG_SYMBOLS),1)
+  BTARGS += dsy
+  CONFARGS += --enable-debug-symbols
+endif
+endif
+
+ifeq ($(ASSERTIONS),0)
+  BTARGS += noass
+  CONFARGS += --disable-assertions
+else
+ifeq ($(ASSERTIONS),1)
+  BTARGS += ass
+  CONFARGS += --enable-assertions
+endif
+endif
+
+ifeq ($(TRACING),0)
+  BTARGS += notrc
+  CONFARGS += --disable-tracing
+else
+ifeq ($(TRACING),1)
+  BTARGS += trc
+  CONFARGS += --enable-tracing
+endif
+endif
+
+ifeq ($(MUZZLE),0)
+  BTARGS += nomzl
+  CONFARGS += --disable-muzzle
+else
+ifeq ($(MUZZLE),1)
+  BTARGS += mzl
+  CONFARGS += --enable-muzzle
+endif
+endif
+
+ifeq ($(COVERAGE),0)
+  BTARGS += nocvg
+  CONFARGS += --disable-coverage
+else
+ifeq ($(COVERAGE),1)
+  BTARGS += cvg
+  CONFARGS += --enable-coverage
+endif
+endif
+
+ifeq ($(PROFILING),0)
+  BTARGS += noprf
+  CONFARGS += --disable-profiling
+else
+ifeq ($(PROFILING),1)
+  BTARGS += prf
+  CONFARGS += --enable-profiling
+endif
+endif
+

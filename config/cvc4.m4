@@ -18,7 +18,7 @@ do
   case $ac_option in
     -*|*=*) ;;
     *) ac_cvc4_build_profile_set=yes
-       AC_MSG_WARN([building profile $ac_option])
+       AC_MSG_NOTICE([CVC4: building profile $ac_option])
        ac_option="--with-build=$ac_option" ;;
   esac
   eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"$ac_option\""'

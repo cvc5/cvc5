@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# build-type
+# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
+#
+# usage: build-type profile [ overrides... ]
+#
+# Returns a build string for the given profile and overrides.
+# For example, "build-type debug noass" returns the canonical build
+# string for a debug build with assertions turned off.
+#
+# The default build directory for CVC4 is then (assuming a standard
+# debug build):
+#
+#   builds/`config/config.guess`/`config/build-type debug`
+#
+# This script is used both in CVC4's configure script and in the
+# top-level Makefile when you build another profile than the
+# "current" build (to see if there already was a build of that type).
+#
+# The codes for overrides are as follows:
+#
+#   opt - optimizing
+#   dsy - debug symbols
+#   ass - assertions
+#   trc - tracing
+#   mzl - muzzle
+#   cvg - coverage
+#   prf - profiling
+#
+
+if [ $# -eq 0 ]; then
+  echo "usage: build-type profile [ overrides... ]" >&2
+  exit
+fi
+
+build_type=$1
+shift
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    no*) eval `expr "$1" : 'no\(.*\)'`=0 ;;
+    *)   eval $1=1 ;;
+  esac
+  shift
+done
+
+build_type_suffix=
+for arg in opt dsy ass trc mzl cvg prf; do
+  if eval [ -n '"${'$arg'+set}"' ]; then
+    if eval [ '"${'$arg'}"' -eq 0 ]; then
+      build_type_suffix=$build_type_suffix-no$arg
+    else
+      build_type_suffix=$build_type_suffix-$arg
+    fi
+  fi
+done
+
+echo $build_type$build_type_suffix

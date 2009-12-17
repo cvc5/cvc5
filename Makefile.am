@@ -5,8 +5,15 @@ ACLOCAL_AMFLAGS = -I config
 
 SUBDIRS = src test doc contrib
 
+@mk_include@ @top_srcdir@/Makefile.reconf_args
+
 .PHONY: production debug default competition
-production: ; (cd @top_srcdir@ && ./configure --with-build=production && $(MAKE))
-debug:      ; (cd @top_srcdir@ && ./configure --with-build=debug && $(MAKE))
-default:    ; (cd @top_srcdir@ && ./configure --with-build=default && $(MAKE))
-competition:; (cd @top_srcdir@ && ./configure --with-build=competition && $(MAKE))
+production debug default competition:
+	cd @top_srcdir@; \
+	dir="builds/`config/config.guess`/`config/build-type $@ $(BTARGS)`"; \
+	if test -e "$$dir"; then \
+		cd "$$dir" && $(MAKE); \
+	else \
+		./configure --with-build=$@ $(CONFARGS) && $(MAKE); \
+	fi
+

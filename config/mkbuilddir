@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# mkbuilddir
+# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
+#
+# usage: mkbuilddir target build-type
+#
+# Sets up the builds/ directory for building build-type for target:
+# - removes configure detritus from top-level source directory
+# - makes builds/$target/$build_type directory if it's not already there
+# - links builds/Makefile to (possibly nonexistent) build Makefile
+# - creates the builds/current Makefile include snippet
+# - links builds/src and builds/test into build directory
+#
+
+if [ $# -ne 2 ]; then
+  echo 'usage: mkbuilddir target build_type' >&2
+  exit 1
+fi
+
+target=$1
+build_type=$2
+
+echo Setting up "builds/$target/$build_type"...
+rm -fv config.log config.status confdefs.h
+mkdir -pv "builds/$target/$build_type"
+ln -sfv "$target/$build_type/Makefile.builds" builds/Makefile
+
+echo Creating builds/current...
+(echo "# This is the most-recently-configured CVC4 build"; \
+ echo "# 'make' in the top-level source directory applies to this build"; \
+ echo "CURRENT_BUILD = $target/$build_type") > builds/current
+
+for dir in src test; do
+  echo Linking builds/$dir...
+  rm -f "builds/$dir"
+  ln -sfv "$target/$build_type/$dir" "builds/$dir"
+done
+
