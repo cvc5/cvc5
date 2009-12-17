@@ -235,7 +235,8 @@ top_srcdir = @top_srcdir@
 @HAVE_CXXTESTGEN_TRUE@TESTS = \
 @HAVE_CXXTESTGEN_TRUE@	expr/node_white \
 @HAVE_CXXTESTGEN_TRUE@	expr/node_black \
-@HAVE_CXXTESTGEN_TRUE@	parser/cvc/cvc_parser_black
+@HAVE_CXXTESTGEN_TRUE@	parser/cvc/cvc_parser_black \
+@HAVE_CXXTESTGEN_TRUE@	parser/smt/smt_parser_black
 
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(

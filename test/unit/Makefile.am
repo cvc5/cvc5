@@ -16,7 +16,8 @@ AM_LDFLAGS_PUBLIC = \
 TESTS = \
 	expr/node_white \
 	expr/node_black \
-	parser/cvc/cvc_parser_black
+	parser/cvc/cvc_parser_black \
+	parser/smt/smt_parser_black
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
 noinst_LTLIBRARIES = libdummy.la

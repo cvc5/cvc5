@@ -150,3 +150,9 @@ STRING_LITERAL options { paraphrase = "a string literal"; }
   :  '\"' (~('\"'))* '\"'
   ;
   
+/**
+ * Matches the comments and ignores them
+ */
+COMMENT options { paraphrase = "comment"; }
+  : ';' (~('\n' | '\r'))*                    { $setType(antlr::Token::SKIP); }
+  ;
