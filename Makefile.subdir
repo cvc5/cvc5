@@ -1,3 +1,6 @@
+include $(topdir)/builds/current
+builddir = $(topdir)/builds/$(CURRENT_BUILD)/$(srcdir)
+
 .PHONY: _default_build_
 _default_build_: all
 %:

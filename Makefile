@@ -1,3 +1,4 @@
-builddir = builds
+topdir = .
+srcdir = .
 
 include Makefile.subdir

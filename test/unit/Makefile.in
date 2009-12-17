@@ -35,6 +35,9 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@HAVE_CXXTESTGEN_FALSE@TESTS = no_cxxtest
+@HAVE_CXXTESTGEN_TRUE@TESTS = $(TESTS_WHITE) $(TESTS_BLACK) \
+@HAVE_CXXTESTGEN_TRUE@	$(am__EXEEXT_1)
 subdir = test/unit
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -98,6 +101,7 @@ ETAGS = etags
 CTAGS = ctags
 am__tty_colors = \
 red=; grn=; lgn=; blu=; std=
+am__EXEEXT_1 =
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -238,7 +242,10 @@ top_srcdir = @top_srcdir@
 @HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = \
 @HAVE_CXXTESTGEN_TRUE@	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
 
-@HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS = \
+@HAVE_CXXTESTGEN_TRUE@AM_CXXFLGAS_WHITE = -fno-access-control
+@HAVE_CXXTESTGEN_TRUE@AM_CXXFLGAS_BLACK = 
+@HAVE_CXXTESTGEN_TRUE@AM_CXXFLGAS_PUBLIC = 
+@HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_WHITE = \
 @HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/context/libcontext.la \
 @HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/expr/libexpr.la \
 @HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/smt/libsmt.la \
@@ -246,19 +253,19 @@ top_srcdir = @top_srcdir@
 @HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/util/libutil.la \
 @HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/prop/minisat/libminisat.la
 
+@HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_BLACK = \
+@HAVE_CXXTESTGEN_TRUE@		$(AM_LDFLAGS_WHITE)
+
+@HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_PUBLIC = \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/libcvc4.la
+
 @HAVE_CXXTESTGEN_TRUE@TESTS_WHITE = \
 @HAVE_CXXTESTGEN_TRUE@	expr/node_white
 
 @HAVE_CXXTESTGEN_TRUE@TESTS_BLACK = \
 @HAVE_CXXTESTGEN_TRUE@	expr/node_black
 
-
-# force a user-visible failure for "make check"
-@HAVE_CXXTESTGEN_FALSE@TESTS = no_cxxtest
-@HAVE_CXXTESTGEN_TRUE@TESTS = \
-@HAVE_CXXTESTGEN_TRUE@	$(TESTS_WHITE) \
-@HAVE_CXXTESTGEN_TRUE@	$(TESTS_BLACK)
-
+@HAVE_CXXTESTGEN_TRUE@TESTS_PUBLIC = 
 @HAVE_CXXTESTGEN_TRUE@lib_LTLIBRARIES = libdummy.la
 @HAVE_CXXTESTGEN_TRUE@libdummy_la_SOURCES = expr/node_black.cpp
 @HAVE_CXXTESTGEN_TRUE@libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
@@ -675,13 +682,18 @@ uninstall-am: uninstall-libLTLIBRARIES
 @HAVE_CXXTESTGEN_TRUE@$(TESTS_WHITE): %: %.cpp
 #	get these in here somehow
 #	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
-@HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) -c -fno-access-control -o $@.lo $<
-@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $@.lo
+@HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
+@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_WHITE) $@.lo
 @HAVE_CXXTESTGEN_TRUE@$(TESTS_BLACK): %: %.cpp
 #	get these in here somehow
 #	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
-@HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) -c -o $@.lo $<
-@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $@.lo
+@HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
+@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_BLACK) $@.lo
+@HAVE_CXXTESTGEN_TRUE@$(TESTS_PUBLIC): %: %.cpp
+#	get these in here somehow
+#	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
+@HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
+@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
