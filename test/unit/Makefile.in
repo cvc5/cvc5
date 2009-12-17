@@ -238,8 +238,14 @@ top_srcdir = @top_srcdir@
 @HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = \
 @HAVE_CXXTESTGEN_TRUE@	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
 
-@HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS = -fno-access-control
-#AM_LDFLAGS = -L@top_builddir@/src/libcvc4.la
+@HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS = \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/context/libcontext.la \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/expr/libexpr.la \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/smt/libsmt.la \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/theory/libtheory.la \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/util/libutil.la \
+@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/prop/minisat/libminisat.la
+
 @HAVE_CXXTESTGEN_TRUE@TESTS_WHITE = \
 @HAVE_CXXTESTGEN_TRUE@	expr/node_white
 
@@ -666,17 +672,16 @@ uninstall-am: uninstall-libLTLIBRARIES
 @HAVE_CXXTESTGEN_TRUE@$(TESTS:%=%.cpp): %.cpp: %.h
 @HAVE_CXXTESTGEN_TRUE@	mkdir -p `dirname "$@"`
 @HAVE_CXXTESTGEN_TRUE@	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
-@HAVE_CXXTESTGEN_TRUE@$(TESTS): %: %.cpp
+@HAVE_CXXTESTGEN_TRUE@$(TESTS_WHITE): %: %.cpp
+#	get these in here somehow
+#	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
+@HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) -c -fno-access-control -o $@.lo $<
+@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $@.lo
+@HAVE_CXXTESTGEN_TRUE@$(TESTS_BLACK): %: %.cpp
 #	get these in here somehow
 #	$(TEST_CPPFLAGS) $(TEST_CXXFLAGS) $(TEST_LDFLAGS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) -c -o $@.lo $<
-@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $@.lo \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/context/libcontext.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/expr/libexpr.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/smt/libsmt.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/theory/libtheory.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/util/libutil.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/prop/minisat/libminisat.la
+@HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $@.lo
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

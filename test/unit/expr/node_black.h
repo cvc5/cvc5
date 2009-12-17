@@ -10,10 +10,10 @@ class NodeBlack : public CxxTest::TestSuite {
 public:
 
   void testNull() {
-    Node::s_null;
+    Node::null();
   }
 
   void testCopyCtor() {
-    Node e(Node::s_null);
+    Node e(Node::null());
   }
 };
