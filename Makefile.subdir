@@ -1,7 +1,8 @@
+# -*-makefile-*-
 include $(topdir)/builds/current
 builddir = $(topdir)/builds/$(CURRENT_BUILD)/$(srcdir)
 
-.PHONY: _default_build_
+.PHONY: _default_build_ all
 _default_build_: all
 %:
 	@if test -e $(builddir); then \

@@ -40,8 +40,9 @@ Node SmtEngine::processAssertionList() {
   Node asserts;
   for(std::vector<Node>::iterator i = d_assertions.begin();
       i != d_assertions.end();
-      ++i)
+      ++i) {
     asserts = asserts.isNull() ? *i : d_em->mkNode(AND, asserts, *i);
+  }
   return asserts;
 }
 

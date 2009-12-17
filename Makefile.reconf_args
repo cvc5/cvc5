@@ -1,3 +1,4 @@
+# -*-makefile-*-
 # This makefile snippet maps make-time arguments to configure and
 # build-type arguments
 #

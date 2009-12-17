@@ -16,4 +16,3 @@ production debug default competition:
 	else \
 		./configure --with-build=$@ $(CONFARGS) && $(MAKE); \
 	fi
-
