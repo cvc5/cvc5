@@ -357,6 +357,7 @@ AC_CONFIG_FILES([
   src/theory/uf/Makefile
   test/Makefile
   test/regress/Makefile
+  test/system/Makefile
   test/unit/Makefile
 ])
 
