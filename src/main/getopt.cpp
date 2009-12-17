@@ -41,11 +41,13 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt | smtlib  SMT-LIB format\n\
 ";
 
+// FIXME add a comment here describing the purpose of this
 enum OptionValue {
   SMTCOMP = 256, /* no clash with char options */
   STATS
 };/* enum OptionValue */
 
+// FIXME add a comment here describing the option array
 static struct option cmdlineOptions[] = {
   // name, has_arg, *flag, val
   { "help"   , no_argument      , NULL, 'h'     },
@@ -56,7 +58,7 @@ static struct option cmdlineOptions[] = {
   { "debug"  , required_argument, NULL, 'd'     },
   { "smtcomp", no_argument      , NULL, SMTCOMP },
   { "stats"  , no_argument      , NULL, STATS   }
-};
+};/* if you add things to the above, please remember to update usage.h! */
 
 int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionException) {
   const char *progName = argv[0];
@@ -69,6 +71,7 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
   }
   opts->binary_name = string(progName);
 
+  // FIXME add a comment here describing the option string
   while((c = getopt_long(argc, argv, "+:hVvqL:d:", cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
@@ -110,6 +113,7 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
 
     case 'd':
       Debug.on(optarg);
+      /* fall-through */
 
     case STATS:
       opts->statistics = true;

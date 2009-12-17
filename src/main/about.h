@@ -7,7 +7,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** The "about" string for the CVC4 driver binary.
  **/
 
 #ifndef __CVC4__MAIN__ABOUT_H
@@ -26,4 +26,4 @@ Copyright (C) 2009 The ACSys Group\n\
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4_MAIN_H */
+#endif /* __CVC4__MAIN__ABOUT_H */

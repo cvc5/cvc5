@@ -7,7 +7,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** The "usage" string for the CVC4 driver binary.
  **/
 
 #ifndef __CVC4__MAIN__USAGE_H

@@ -25,6 +25,8 @@ using namespace std;
 namespace CVC4 {
 namespace main {
 
+// FIXME add comments to functions
+
 void sigint_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 interrupted by user.\n");
   abort();

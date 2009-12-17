@@ -7,7 +7,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** Header for main CVC4 driver.
  **/
 
 #include <exception>
