@@ -72,14 +72,22 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)"
-LTLIBRARIES = $(nobase_lib_LTLIBRARIES)
-libcvc4parser_la_DEPENDENCIES = @builddir@/smt/libparsersmt.la \
-	@builddir@/cvc/libparsercvc.la
-am_libcvc4parser_la_OBJECTS = parser.lo antlr_parser.lo
+LTLIBRARIES = $(nobase_lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
+libcvc4parser_la_DEPENDENCIES = libcvc4parser_noinst.la
+am_libcvc4parser_la_OBJECTS =
 libcvc4parser_la_OBJECTS = $(am_libcvc4parser_la_OBJECTS)
-libcvc4parser_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
+libcvc4parser_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(libcvc4parser_la_LDFLAGS) $(LDFLAGS) -o $@
+libcvc4parser_noinst_la_DEPENDENCIES = @builddir@/smt/libparsersmt.la \
+	@builddir@/cvc/libparsercvc.la
+am_libcvc4parser_noinst_la_OBJECTS = parser.lo antlr_parser.lo
+libcvc4parser_noinst_la_OBJECTS =  \
+	$(am_libcvc4parser_noinst_la_OBJECTS)
+libcvc4parser_noinst_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(libcvc4parser_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(CXXFLAGS) $(libcvc4parser_noinst_la_LDFLAGS) $(LDFLAGS) -o \
+	$@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -102,8 +110,10 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libcvc4parser_la_SOURCES)
-DIST_SOURCES = $(libcvc4parser_la_SOURCES)
+SOURCES = $(libcvc4parser_la_SOURCES) \
+	$(libcvc4parser_noinst_la_SOURCES)
+DIST_SOURCES = $(libcvc4parser_la_SOURCES) \
+	$(libcvc4parser_noinst_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -305,12 +315,16 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 SUBDIRS = smt cvc
 nobase_lib_LTLIBRARIES = libcvc4parser.la
+noinst_LTLIBRARIES = libcvc4parser_noinst.la
 libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
-libcvc4parser_la_LIBADD = \
+libcvc4parser_la_LIBADD = libcvc4parser_noinst.la
+libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
+libcvc4parser_noinst_la_LIBADD = \
 	@builddir@/smt/libparsersmt.la \
 	@builddir@/cvc/libparsercvc.la
 
-libcvc4parser_la_SOURCES = \
+libcvc4parser_la_SOURCES = 
+libcvc4parser_noinst_la_SOURCES = \
 	parser.h \
 	parser.cpp \
 	parser_exception.h \
@@ -389,8 +403,19 @@ clean-nobase_libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
 libcvc4parser.la: $(libcvc4parser_la_OBJECTS) $(libcvc4parser_la_DEPENDENCIES) 
 	$(libcvc4parser_la_LINK) -rpath $(libdir)/. $(libcvc4parser_la_OBJECTS) $(libcvc4parser_la_LIBADD) $(LIBS)
+libcvc4parser_noinst.la: $(libcvc4parser_noinst_la_OBJECTS) $(libcvc4parser_noinst_la_DEPENDENCIES) 
+	$(libcvc4parser_noinst_la_LINK)  $(libcvc4parser_noinst_la_OBJECTS) $(libcvc4parser_noinst_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -657,7 +682,7 @@ maintainer-clean-generic:
 clean: clean-recursive
 
 clean-am: clean-generic clean-libtool clean-nobase_libLTLIBRARIES \
-	mostlyclean-am
+	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -rf ./$(DEPDIR)
@@ -730,19 +755,19 @@ uninstall-am: uninstall-nobase_libLTLIBRARIES
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am check check-am clean clean-generic clean-libtool \
-	clean-nobase_libLTLIBRARIES ctags ctags-recursive distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-nobase_libLTLIBRARIES install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-recursive uninstall uninstall-am \
-	uninstall-nobase_libLTLIBRARIES
+	clean-nobase_libLTLIBRARIES clean-noinstLTLIBRARIES ctags \
+	ctags-recursive distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-nobase_libLTLIBRARIES \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-nobase_libLTLIBRARIES
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

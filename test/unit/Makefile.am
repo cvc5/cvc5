@@ -6,13 +6,8 @@ AM_CXXFLAGS_WHITE = -fno-access-control
 AM_CXXFLAGS_BLACK =
 AM_CXXFLAGS_PUBLIC =
 AM_LDFLAGS_WHITE = \
-		@abs_top_builddir@/src/context/libcontext.la \
-		@abs_top_builddir@/src/expr/libexpr.la \
-		@abs_top_builddir@/src/smt/libsmt.la \
-		@abs_top_builddir@/src/theory/libtheory.la \
-		@abs_top_builddir@/src/util/libutil.la \
-		@abs_top_builddir@/src/prop/libprop.la \
-		@abs_top_builddir@/src/prop/minisat/libminisat.la
+	    @abs_top_builddir@/src/parser/libcvc4parser_noinst.la \ 
+	    @abs_top_builddir@/src/libcvc4_noinst.la
 AM_LDFLAGS_BLACK = \
 		$(AM_LDFLAGS_WHITE)
 AM_LDFLAGS_PUBLIC = \
@@ -20,7 +15,8 @@ AM_LDFLAGS_PUBLIC = \
 
 TESTS = \
 	expr/node_white \
-	expr/node_black
+	expr/node_black \
+	parser/cvc/cvc_parser_black
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
 noinst_LTLIBRARIES = libdummy.la

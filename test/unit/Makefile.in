@@ -220,13 +220,8 @@ top_srcdir = @top_srcdir@
 @HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS_BLACK = 
 @HAVE_CXXTESTGEN_TRUE@AM_CXXFLAGS_PUBLIC = 
 @HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_WHITE = \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/context/libcontext.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/expr/libexpr.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/smt/libsmt.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/theory/libtheory.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/util/libutil.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/prop/libprop.la \
-@HAVE_CXXTESTGEN_TRUE@		@abs_top_builddir@/src/prop/minisat/libminisat.la
+@HAVE_CXXTESTGEN_TRUE@	    @abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
+@HAVE_CXXTESTGEN_TRUE@	    @abs_top_builddir@/src/libcvc4_noinst.la
 
 @HAVE_CXXTESTGEN_TRUE@AM_LDFLAGS_BLACK = \
 @HAVE_CXXTESTGEN_TRUE@		$(AM_LDFLAGS_WHITE)
@@ -239,7 +234,8 @@ top_srcdir = @top_srcdir@
 @HAVE_CXXTESTGEN_FALSE@TESTS = no_cxxtest
 @HAVE_CXXTESTGEN_TRUE@TESTS = \
 @HAVE_CXXTESTGEN_TRUE@	expr/node_white \
-@HAVE_CXXTESTGEN_TRUE@	expr/node_black
+@HAVE_CXXTESTGEN_TRUE@	expr/node_black \
+@HAVE_CXXTESTGEN_TRUE@	parser/cvc/cvc_parser_black
 
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(

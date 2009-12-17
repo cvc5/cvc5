@@ -72,17 +72,20 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
-libcvc4_la_DEPENDENCIES = @builddir@/util/libutil.la \
-	@builddir@/expr/libexpr.la @builddir@/context/libcontext.la \
-	@builddir@/prop/libprop.la \
-	@builddir@/prop/minisat/libminisat.la @builddir@/smt/libsmt.la \
-	@builddir@/theory/libtheory.la
+LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
+libcvc4_la_DEPENDENCIES = libcvc4_noinst.la
 am_libcvc4_la_OBJECTS =
 libcvc4_la_OBJECTS = $(am_libcvc4_la_OBJECTS)
 libcvc4_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libcvc4_la_LDFLAGS) $(LDFLAGS) -o $@
+libcvc4_noinst_la_DEPENDENCIES = @builddir@/util/libutil.la \
+	@builddir@/expr/libexpr.la @builddir@/context/libcontext.la \
+	@builddir@/prop/libprop.la \
+	@builddir@/prop/minisat/libminisat.la @builddir@/smt/libsmt.la \
+	@builddir@/theory/libtheory.la
+am_libcvc4_noinst_la_OBJECTS =
+libcvc4_noinst_la_OBJECTS = $(am_libcvc4_noinst_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -93,8 +96,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libcvc4_la_SOURCES)
-DIST_SOURCES = $(libcvc4_la_SOURCES)
+SOURCES = $(libcvc4_la_SOURCES) $(libcvc4_noinst_la_SOURCES)
+DIST_SOURCES = $(libcvc4_la_SOURCES) $(libcvc4_noinst_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -293,9 +296,12 @@ AM_CPPFLAGS =
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 SUBDIRS = util expr context prop smt theory . parser main
 lib_LTLIBRARIES = libcvc4.la
+noinst_LTLIBRARIES = libcvc4_noinst.la
 libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION) -release $(LIBCVC4_RELEASE)
 libcvc4_la_SOURCES = 
-libcvc4_la_LIBADD = \
+libcvc4_la_LIBADD = libcvc4_noinst.la
+libcvc4_noinst_la_SOURCES = 
+libcvc4_noinst_la_LIBADD = \
 	@builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la \
 	@builddir@/context/libcontext.la \
@@ -371,8 +377,19 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
 libcvc4.la: $(libcvc4_la_OBJECTS) $(libcvc4_la_DEPENDENCIES) 
 	$(libcvc4_la_LINK) -rpath $(libdir) $(libcvc4_la_OBJECTS) $(libcvc4_la_LIBADD) $(LIBS)
+libcvc4_noinst.la: $(libcvc4_noinst_la_OBJECTS) $(libcvc4_noinst_la_DEPENDENCIES) 
+	$(LINK)  $(libcvc4_noinst_la_OBJECTS) $(libcvc4_noinst_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -615,7 +632,7 @@ maintainer-clean-generic:
 clean: clean-recursive
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 	-rm -f Makefile
@@ -686,16 +703,16 @@ uninstall-am: uninstall-libLTLIBRARIES
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am check check-am clean clean-generic \
-	clean-libLTLIBRARIES clean-libtool ctags ctags-recursive \
-	distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-data-local install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
+	clean-libLTLIBRARIES clean-libtool clean-noinstLTLIBRARIES \
+	ctags ctags-recursive distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-data-local install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am \

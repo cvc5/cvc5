@@ -23,13 +23,18 @@ AM_CXXFLAGS = -Wall -fvisibility=hidden
 SUBDIRS = smt cvc
 
 nobase_lib_LTLIBRARIES = libcvc4parser.la
+noinst_LTLIBRARIES = libcvc4parser_noinst.la
 
 libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
-libcvc4parser_la_LIBADD = \
+libcvc4parser_la_LIBADD = libcvc4parser_noinst.la
+
+libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
+libcvc4parser_noinst_la_LIBADD = \
 	@builddir@/smt/libparsersmt.la \
 	@builddir@/cvc/libparsercvc.la
 
-libcvc4parser_la_SOURCES = \
+libcvc4parser_la_SOURCES =
+libcvc4parser_noinst_la_SOURCES = \
 	parser.h \
 	parser.cpp \
 	parser_exception.h \
