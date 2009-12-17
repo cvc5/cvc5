@@ -2,9 +2,9 @@ if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
 	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src"
-AM_CXXFLGAS_WHITE = -fno-access-control
-AM_CXXFLGAS_BLACK =
-AM_CXXFLGAS_PUBLIC =
+AM_CXXFLAGS_WHITE = -fno-access-control
+AM_CXXFLAGS_BLACK =
+AM_CXXFLAGS_PUBLIC =
 AM_LDFLAGS_WHITE = \
 		@abs_top_builddir@/src/context/libcontext.la \
 		@abs_top_builddir@/src/expr/libexpr.la \
