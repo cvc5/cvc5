@@ -218,8 +218,7 @@ top_srcdir = @top_srcdir@
 UNIT_TESTS = \
 	expr/node_white \
 	expr/node_black \
-	parser/cvc/cvc_parser_black \
-	parser/smt/smt_parser_black
+	parser/parser_black
 
 
 # things that aren't tests but that tests rely on and need to
