@@ -129,11 +129,11 @@ void DeclarationCommand::toStream(std::ostream& out) const {
   out << "Declare(";
   bool first = true;
   for(unsigned i = 0; i < d_declaredSymbols.size(); ++i) {
-    if(first) {
+    if(!first) {
       out << ", ";
-      first = false;
     }
     out << d_declaredSymbols[i];
+    first = false;
   }
   out << ")";
 }

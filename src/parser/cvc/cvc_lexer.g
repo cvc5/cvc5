@@ -17,6 +17,10 @@ options {
   k = 2;  
 }
  
+/*
+ * The tokens that might match with the identifiers go here. Otherwise define
+ * them below.
+ */
 tokens {
   // Types 
   BOOLEAN       = "BOOLEAN";
@@ -32,25 +36,28 @@ tokens {
   TRUE          = "TRUE";
   FALSE         = "FALSE";
   XOR           = "XOR";
-  IMPLIES       = "=>";
-  IFF           = "<=>";
   // Commands
   ASSERT        = "ASSERT";
   QUERY         = "QUERY";
   CHECKSAT      = "CHECKSAT";
   PRINT         = "PRINT";
-  EXHO          = "ECHO";
+  ECHO          = "ECHO";
   
   PUSH          = "PUSH";
   POP           = "POP";
   POPTO         = "POPTO";
 }
 
+// Operators
+COMMA   : ',';
+IMPLIES : "=>";
+IFF     : "<=>";
+
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').
  */
 protected 
-ALPHA options{ paraphrase = "a letter"; } 
+ALPHA options { paraphrase = "a letter"; } 
   : 'a'..'z' 
   | 'A'..'Z'
   ;
@@ -59,29 +66,22 @@ ALPHA options{ paraphrase = "a letter"; }
  * Matches the digits (0-9)
  */
 protected 
-DIGIT options{ paraphrase = "a digit"; } 
+DIGIT options { paraphrase = "a digit"; } 
   : '0'..'9'
   ;
 
 /**
  * Matches the ':'
  */
-COLON options{ paraphrase = "a colon"; } 
+COLON options { paraphrase = "a colon"; } 
   : ':'
   ;
 
 /**
  * Matches the 'l'
  */
-SEMICOLON options{ paraphrase = "a semicolon"; } 
+SEMICOLON options { paraphrase = "a semicolon"; } 
   : ';'
-  ;
-
-/**
- * Matches the ','
- */
-COMMA options{ paraphrase = "a comma"; } 
-  : ','
   ;
 
 /**

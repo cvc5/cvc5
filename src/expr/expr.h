@@ -84,6 +84,11 @@ public:
   bool operator<(const Expr& e) const;
 
   /**
+   * Returns true if the expression is not the null expression.
+   */
+  operator bool() const;
+
+  /**
    * Returns the hash value of the expression. Equal expression will have the
    * same hash value.
    */

@@ -59,6 +59,7 @@ public:
    */
   void bindName(const std::string name, const ObjectType& obj) throw () {
     d_nameBindings[name].push(obj);
+    Assert(isBound(name), "Expected name to be bound!");
   }
 
   /**

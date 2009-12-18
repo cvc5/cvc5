@@ -46,6 +46,7 @@ Command* Parser::parseNextCommand() throw(ParserException, AssertionException) {
   if(!done()) {
     try {
       cmd = d_antlrParser->parseCommand();
+      if (cmd == NULL) setDone();
     } catch(antlr::ANTLRException& e) {
       setDone();
       throw ParserException(e.toString());

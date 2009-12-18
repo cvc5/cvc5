@@ -77,8 +77,8 @@ identifierList[std::vector<std::string>& idList, DeclarationCheck check = CHECK_
 {
   string id;
 }
-  : id = identifier { idList.push_back(id); } 
-      (COMMA id = identifier { idList.push_back(id); })*
+  : id = identifier[check] { idList.push_back(id); } 
+      (COMMA id = identifier[check] { idList.push_back(id); })*
   ;
  
 
@@ -126,11 +126,11 @@ boolFormula returns [CVC4::Expr formula]
 {
   vector<Expr> formulas;
   vector<Kind> kinds;
-  Expr f1, f2;
+  Expr f;
   Kind k;
 }
-  : f1 = primaryBoolFormula { formulas.push_back(f1); } 
-      ( k = boolOperator { kinds.push_back(k); } f2 = primaryBoolFormula { formulas.push_back(f2); } )* 
+  : f = primaryBoolFormula { formulas.push_back(f); } 
+      ( k = boolOperator { kinds.push_back(k); } f = primaryBoolFormula { formulas.push_back(f); } )* 
     { 
       // Create the expression based on precedences
       formula = createPrecedenceExpr(formulas, kinds);

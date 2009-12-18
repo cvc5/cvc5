@@ -100,6 +100,10 @@ bool Expr::isNull() const {
   return d_node->isNull();
 }
 
+Expr::operator bool() const {
+  return !isNull();
+}
+
 void Expr::toStream(std::ostream& out) const {
   d_node->toStream(out);
 }

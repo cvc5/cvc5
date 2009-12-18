@@ -35,10 +35,12 @@ const string goodCvc4Inputs[] = {
       "a, b : BOOLEAN;",
       "a, b : BOOLEAN; QUERY (a => b) AND a => b;",
       "%% nothing but a comment",
-      "% a comment\nASSERT TRUE %a command\n% another comment",
+      "% a comment\nASSERT TRUE; %a command\n% another comment",
   };
 
 const int numGoodCvc4Inputs = sizeof(goodCvc4Inputs) / sizeof(string);
+
+const string cvc4ExprContext = "a,b,c:BOOLEAN;";
 
 /* The following expressions are good in a context where a, b, and c have been declared as BOOLEAN. */
 const string goodCvc4Exprs[] = {
@@ -55,7 +57,7 @@ const string badCvc4Inputs[] = {
       ";", // no command
       "ASSERT;", // no args
       "QUERY",
-      "CHECKSAT;",
+      "CHECKSAT",
       "a, b : boolean;", // lowercase boolean isn't a type
       "0x : INT;", // 0x isn't an identifier
       "a, b : BOOLEAN\nQUERY (a => b) AND a => b;", // no semicolon after decl
@@ -66,7 +68,6 @@ const int numBadCvc4Inputs = sizeof(badCvc4Inputs) / sizeof(string);
 
 /* The following expressions are bad even in a context where a, b, and c have been declared as BOOLEAN. */
 const string badCvc4Exprs[] = {
-    "",
     "a AND", // wrong arity
     "AND(a,b)", // not infix
     "(OR (AND a b) c)", // not infix
@@ -92,6 +93,8 @@ const string goodSmtInputs[] = {
 
 const int numGoodSmtInputs = sizeof(goodSmtInputs) / sizeof(string);
 
+const string smtExprContext = "(benchmark foo :extrapreds ((a) (b) (c)) )";
+
 /* The following expressions are good in a context where a, b, and c have been declared as BOOLEAN. */
 const string goodSmtExprs[] = {
     "(and a b)",
@@ -105,7 +108,7 @@ const int numGoodSmtExprs = sizeof(goodSmtExprs) / sizeof(string);
 
 const string badSmtInputs[] = {
     "(benchmark foo)", // empty benchmark is not OK
-    "(benchmark bar :assume)", // no args
+    "(benchmark bar :assumption)", // no args
     "(benchmark bar :formula)",
     "(benchmark baz :extrapreds ( (a) (a) ) )" // double decl
   };
@@ -114,7 +117,6 @@ const int numBadSmtInputs = sizeof(badSmtInputs) / sizeof(string);
 
 /* The following expressions are bad even in a context where a, b, and c have been declared as BOOLEAN. */
 const string badSmtExprs[] = {
-    "",
     "(and a)", // wrong arity
     "(and a b", // no closing paren
     "(a and b)", // infix
@@ -135,9 +137,12 @@ class SmtParserBlack : public CxxTest::TestSuite {
       istringstream stream(goodInputs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
       TS_ASSERT( !smtParser->done() );
-      while(!smtParser->done()) {
-        TS_ASSERT( smtParser->parseNextCommand() != NULL );
+      Command* cmd;
+      while((cmd = smtParser->parseNextCommand())) {
+        cout << "Parsed command: " << *cmd << endl;
       }
+      TS_ASSERT( smtParser->parseNextCommand() == NULL );
+      TS_ASSERT( smtParser->done() );
       delete smtParser;
     }
   }
@@ -147,21 +152,33 @@ class SmtParserBlack : public CxxTest::TestSuite {
       cout << "Testing input: '" << badInputs[i] << "'\n";
       istringstream stream(badInputs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
-      TS_ASSERT_THROWS( smtParser->parseNextCommand(), ParserException );
+      TS_ASSERT_THROWS( while(smtParser->parseNextCommand()); , ParserException );
       delete smtParser;
     }
   }
 
-  void tryGoodExprs(Parser::InputLanguage d_lang,const string goodBooleanExprs[], int numExprs) {
+  void tryGoodExprs(Parser::InputLanguage d_lang,const string& context, const string goodBooleanExprs[], int numExprs) {
+    cout << "Using context: " << context << endl;
     for(int i = 0; i < numExprs; ++i) {
-      cout << "Testing expr: '" << goodBooleanExprs[i] << "'\n";
-      istringstream stream(goodBooleanExprs[i]);
-      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
-      TS_ASSERT( !smtParser->done() );
-      while(!smtParser->done()) {
-        TS_ASSERT( !smtParser->parseNextExpression().isNull() );
+      try {
+        cout << "Testing expr: '" << goodBooleanExprs[i] << "'\n";
+        istringstream stream(context + goodBooleanExprs[i]);
+        Parser* parser = Parser::getNewParser(d_exprManager, d_lang, stream);
+        TS_ASSERT( !parser->done() );
+        Command* cmd = parser->parseNextCommand();
+        TS_ASSERT( !parser->done() );
+        Expr e;
+        while(e = parser->parseNextExpression()) {
+          cout << "Parsed expr: " << e << endl;
+        }
+        TS_ASSERT( parser->done() );
+        TS_ASSERT( e.isNull() );
+        delete cmd;
+        delete parser;
+      } catch (ParserException& e) {
+        cout << "Caught: " << e << endl;
+        TS_ASSERT( false );
       }
-      delete smtParser;
     }
   }
 
@@ -188,7 +205,7 @@ public:
   }
 
   void testGoodCvc4Exprs() {
-    tryGoodExprs(Parser::LANG_CVC4,goodCvc4Exprs,numGoodCvc4Exprs);
+    tryGoodExprs(Parser::LANG_CVC4,cvc4ExprContext,goodCvc4Exprs,numGoodCvc4Exprs);
   }
 
   void testBadCvc4Exprs() {
@@ -204,7 +221,7 @@ public:
   }
 
   void testGoodSmtExprs() {
-    tryGoodExprs(Parser::LANG_SMTLIB,goodSmtExprs,numGoodSmtExprs);
+    tryGoodExprs(Parser::LANG_SMTLIB,smtExprContext,goodSmtExprs,numGoodSmtExprs);
   }
 
   void testBadSmtExprs() {
