@@ -32,6 +32,7 @@ namespace CVC4 {
 #include "expr/kind.h"
 #include "util/Assert.h"
 #include "expr/node_value.h"
+#include "util/output.h"
 
 namespace CVC4 {
 
@@ -82,6 +83,15 @@ class NodeBuilder {
     }
   }
 
+  void crop() {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
+    if(EXPECT_FALSE( evIsAllocated() ) && EXPECT_TRUE( d_size > d_ev->d_nchildren )) {
+      d_ev = (NodeValue*)
+        std::realloc(d_ev, sizeof(NodeValue) +
+                     ( sizeof(NodeValue*) * (d_size = d_ev->d_nchildren) ));
+    }
+  }
+
 public:
 
   inline NodeBuilder();
@@ -95,10 +105,22 @@ public:
   typedef NodeValue::ev_iterator iterator;
   typedef NodeValue::const_ev_iterator const_iterator;
 
-  iterator begin() { return d_ev->ev_begin(); }
-  iterator end() { return d_ev->ev_end(); }
-  const_iterator begin() const { return d_ev->ev_begin(); }
-  const_iterator end() const { return d_ev->ev_end(); }
+  iterator begin() {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
+    return d_ev->ev_begin();
+  }
+  iterator end() {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
+    return d_ev->ev_end();
+  }
+  const_iterator begin() const {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
+    return d_ev->ev_begin();
+  }
+  const_iterator end() const {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
+    return d_ev->ev_end();
+  }
 
   // Compound expression constructors
   /*
@@ -127,21 +149,25 @@ public:
   // "Stream" expression constructor syntax
 
   NodeBuilder& operator<<(const Kind& k) {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     Assert(d_ev->d_kind == UNDEFINED_KIND);
     d_ev->d_kind = k;
     return *this;
   }
 
   NodeBuilder& operator<<(const Node& n) {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     return append(n);
   }
 
   // For pushing sequences of children
   NodeBuilder& append(const std::vector<Node>& children) {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     return append(children.begin(), children.end());
   }
 
   NodeBuilder& append(const Node& n) {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     allocateEvIfNecessaryForAppend();
     NodeValue* ev = n.d_ev;
     d_hash = NodeValue::computeHash(d_hash, ev);
@@ -152,18 +178,11 @@ public:
 
   template <class Iterator>
   NodeBuilder& append(const Iterator& begin, const Iterator& end) {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     for(Iterator i = begin; i != end; ++i) {
       append(*i);
     }
     return *this;
-  }
-
-  void crop() {
-    if(EXPECT_FALSE( evIsAllocated() ) && d_size > d_ev->d_nchildren) {
-      d_ev = (NodeValue*)
-        std::realloc(d_ev, sizeof(NodeValue) +
-                     ( sizeof(NodeValue*) * (d_size = d_ev->d_nchildren) ));
-    }
   }
 
   // not const
@@ -356,6 +375,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
   d_inlineEv(0),
   d_childrenStorage(0) {
 
+  Message() << "kind " << k << std::endl;
   d_inlineEv.d_kind = k;
 }
 
@@ -412,19 +432,25 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
   d_inlineEv(0),
   d_childrenStorage() {
 
+  Message() << "kind " << k << std::endl;
   d_inlineEv.d_kind = k;
 }
 
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
-  for(iterator i = begin();
-      i != end();
+  Assert(d_used, "NodeBuilder unused at destruction");
+  
+  return;
+  /*
+  for(iterator i = d_ev->ev_begin();
+      i != d_ev->ev_end();
       ++i) {
     (*i)->dec();
   }
   if(evIsAllocated()) {
     free(d_ev);
   }
+  */
 }
 
 template <unsigned nchild_thresh>
@@ -472,33 +498,35 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
 
 template <unsigned nchild_thresh>
 NodeBuilder<nchild_thresh>::operator Node() {// not const
+  Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
   Assert(d_ev->d_kind != UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
-  Assert(! d_used, "This NodeBuilder has already been used!");
 
   // implementation differs depending on whether the expression value
   // was malloc'ed or not
 
   if(EXPECT_FALSE( evIsAllocated() )) {
     NodeValue *ev = d_nm->lookupNoInsert(d_hash, d_ev);
-    if(ev != d_ev) {
+    if(ev != NULL) {
       // expression already exists in node manager
+      d_used = true;
       return Node(ev);
     }
 
     // otherwise create the canonical expression value for this node
     crop();
-    d_used = true;
     ev = d_ev;
     d_ev = NULL;
     // this inserts into the NodeManager;
     // return the result of lookup() in case another thread beat us to it
+    d_used = true;
     return d_nm->lookup(d_hash, ev);
   }
 
   NodeValue *ev = d_nm->lookupNoInsert(d_hash, &d_inlineEv);
-  if(ev != &d_inlineEv) {
+  if(ev != NULL) {
     // expression already exists in node manager
+    d_used = true;
     return Node(ev);
   }
 

@@ -104,8 +104,8 @@ void NodeValue::toStream(std::ostream& out) const {
   if(d_kind == VARIABLE) {
     out << ":" << this;
   } else {
-    for(const_iterator i = begin(); i != end(); ++i) {
-      if(i != end()) {
+    for(const_ev_iterator i = ev_begin(); i != ev_end(); ++i) {
+      if(i != ev_end()) {
         out << " ";
       }
       out << *i;

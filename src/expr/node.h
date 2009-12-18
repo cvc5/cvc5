@@ -67,14 +67,12 @@ class Node {
    *  don't change their arguments, and it's nice to have
    *  const_iterators over them.  See notes in .cpp file for
    *  details. */
+  // this really does needs to be explicit to avoid hard to track
+  // errors with Nodes implicitly wrapping NodeValues
   explicit Node(const NodeValue*);
 
   template <unsigned> friend class NodeBuilder;
   friend class NodeManager;
-
-  /** Access to the encapsulated expression.
-   *  @return the encapsulated expression. */
-  NodeValue const* operator->() const;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -85,8 +83,8 @@ class Node {
    */
   void assignNodeValue(NodeValue* ev);
 
-  typedef NodeValue::iterator ev_iterator;
-  typedef NodeValue::const_iterator const_ev_iterator;
+  typedef NodeValue::ev_iterator ev_iterator;
+  typedef NodeValue::const_ev_iterator const_ev_iterator;
 
   inline ev_iterator ev_begin();
   inline ev_iterator ev_end();
@@ -161,7 +159,9 @@ inline bool Node::operator<(const Node& e) const {
   return d_ev->d_id < e.d_ev->d_id;
 }
 
-inline std::ostream& operator<<(std::ostream& out, const Node& e) {
+inline std::ostream& 
+
+operator<<(std::ostream& out, const Node& e) {
   e.toStream(out);
   return out;
 }

@@ -97,7 +97,8 @@ class NodeValue {
    * @return the hash value
    */
   template<typename const_iterator_type>
-  static uint64_t computeHash(uint64_t hash, const_iterator_type begin, const_iterator_type end) {
+  static uint64_t computeHash(uint64_t hash, const_iterator_type begin,
+                              const_iterator_type end) {
     for(const_iterator_type i = begin; i != end; ++i) {
       hash = computeHash(hash, *i);
     }
@@ -105,7 +106,8 @@ class NodeValue {
   }
 
   static uint64_t computeHash(uint64_t hash, const NodeValue* ev) {
-    return ( (hash << 3) | ((hash & 0xE000000000000000ull) >> 61) ) ^ ev->getId();
+    return
+      ( (hash << 3) | ((hash & 0xE000000000000000ull) >> 61) ) ^ ev->getId();
   }
 
   typedef NodeValue** ev_iterator;
@@ -120,7 +122,7 @@ class NodeValue {
   class node_iterator {
     const_ev_iterator d_i;
   public:
-    node_iterator(const_ev_iterator i) : d_i(i) {}
+    explicit node_iterator(const_ev_iterator i) : d_i(i) {}
 
     inline Node operator*();
 
@@ -132,7 +134,7 @@ class NodeValue {
       return d_i != i.d_i;
     }
 
-    node_iterator& operator++() {
+    node_iterator operator++() {
       ++d_i;
       return *this;
     }
@@ -175,7 +177,7 @@ namespace CVC4 {
 namespace expr {
 
 inline Node NodeValue::node_iterator::operator*() {
-  return Node(*d_i);
+  return Node((NodeValue*) d_i);
 }
 
 }/* CVC4::expr namespace */

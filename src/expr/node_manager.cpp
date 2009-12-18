@@ -16,6 +16,7 @@
 #include "node_builder.h"
 #include "node_manager.h"
 #include "expr/node.h"
+#include "util/output.h"
 
 namespace CVC4 {
 
@@ -43,15 +44,15 @@ Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
         continue;
       }
 
-      NodeValue::const_iterator c1 = ev->ev_begin();
-      NodeValue::iterator c2 = j->d_ev->ev_begin();
+      NodeValue::const_ev_iterator c1 = ev->ev_begin();
+      NodeValue::ev_iterator c2 = j->d_ev->ev_begin();
       for(; c1 != ev->ev_end() && c2 != j->d_ev->ev_end(); ++c1, ++c2) {
-        if((*c1).d_ev != (*c2).d_ev) {
+        if(*c1 != *c2) {
           break;
         }
       }
 
-      if(c1 != ev->ev_end() || c2 != j->end()) {
+      if(c1 != ev->ev_end() || c2 != j->d_ev->ev_end()) {
         continue;
       }
 
@@ -83,21 +84,22 @@ NodeValue* NodeManager::lookupNoInsert(uint64_t hash, NodeValue* ev) {
         continue;
       }
 
-      NodeValue::const_iterator c1 = ev->ev_begin();
-      NodeValue::iterator c2 = j->d_ev->ev_begin();
+      NodeValue::const_ev_iterator c1 = ev->ev_begin();
+      NodeValue::ev_iterator c2 = j->d_ev->ev_begin();
       for(; c1 != ev->ev_end() && c2 != j->d_ev->ev_end(); ++c1, ++c2) {
-        if((*c1).d_ev != (*c2).d_ev) {
+        Debug("expr") << "comparing " << c1 << " and " << c2 << std::endl;
+        if(*c1 != *c2) {
           break;
         }
       }
 
-      if(c1 != ev->ev_end() || c2 != j->end()) {
+      if(c1 != ev->ev_end() || c2 != j->d_ev->ev_end()) {
         continue;
       }
 
       return j->d_ev;
     }
-    // didn't find it
+    // didn't find it, don't insert
     return 0;
   }
 }
