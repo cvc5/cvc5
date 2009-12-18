@@ -19,7 +19,7 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "parser/smt/smt_parser.h"
+#include "parser/parser.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -66,21 +66,23 @@ const string badBooleanExprs[] = {
 class SmtParserBlack : public CxxTest::TestSuite {
 private:
   ExprManager *d_exprManager;
-
+  Parser::InputLanguage d_lang;
 public:
   void setUp() {
     d_exprManager = new ExprManager();
+    d_lang = Parser::LANG_SMTLIB;
   }
 
   void testGoodInputs() {
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(goodInputs); ++i) {
       istringstream stream(goodInputs[i]);
-      SmtParser smtParser(d_exprManager, stream);
-      TS_ASSERT( !smtParser.done() );
-      while(!smtParser.done()) {
-        TS_ASSERT( smtParser.parseNextCommand() != NULL );
+      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT( !smtParser->done() );
+      while(!smtParser->done()) {
+        TS_ASSERT( smtParser->parseNextCommand() != NULL );
       }
+      delete smtParser;
     }
   }
 
@@ -88,8 +90,9 @@ public:
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(badInputs); ++i) {
       istringstream stream(badInputs[i]);
-      SmtParser smtParser(d_exprManager, stream);
-      TS_ASSERT_THROWS( smtParser.parseNextCommand(), ParserException );
+      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT_THROWS( smtParser->parseNextCommand(), ParserException );
+      delete smtParser;
     }
   }
 
@@ -97,11 +100,12 @@ public:
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(goodBooleanExprs); ++i) {
       istringstream stream(goodBooleanExprs[i]);
-      SmtParser smtParser(d_exprManager, stream);
-      TS_ASSERT( !smtParser.done() );
-      while(!smtParser.done()) {
-        TS_ASSERT( !smtParser.parseNextExpression().isNull() );
+      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT( !smtParser->done() );
+      while(!smtParser->done()) {
+        TS_ASSERT( !smtParser->parseNextExpression().isNull() );
       }
+      delete smtParser;
     }
   }
 

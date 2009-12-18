@@ -19,7 +19,7 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "parser/cvc/cvc_parser.h"
+#include "parser/parser.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -70,21 +70,24 @@ const string badBooleanExprs[] = {
 class CvcParserBlack : public CxxTest::TestSuite {
 private:
   ExprManager *d_exprManager;
+  Parser::InputLanguage d_lang;
 
 public:
   void setUp() {
     d_exprManager = new ExprManager();
+    d_lang = Parser::LANG_CVC4;
   }
 
   void testGoodInputs() {
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(goodInputs); ++i) {
       istringstream stream(goodInputs[i]);
-      CvcParser cvcParser(d_exprManager, stream);
-      TS_ASSERT( !cvcParser.done() );
-      while(!cvcParser.done()) {
-        TS_ASSERT( cvcParser.parseNextCommand() != NULL );
+      Parser* cvcParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT( !cvcParser->done() );
+      while(!cvcParser->done()) {
+        TS_ASSERT( cvcParser->parseNextCommand() != NULL );
       }
+      delete cvcParser;
     }
   }
 
@@ -92,8 +95,9 @@ public:
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(badInputs); ++i) {
       istringstream stream(badInputs[i]);
-      CvcParser cvcParser(d_exprManager, stream);
-      TS_ASSERT_THROWS( cvcParser.parseNextCommand(), ParserException );
+      Parser* cvcParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT_THROWS( cvcParser->parseNextCommand(), ParserException );
+      delete cvcParser;
     }
   }
 
@@ -101,11 +105,12 @@ public:
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(goodBooleanExprs); ++i) {
       istringstream stream(goodBooleanExprs[i]);
-      CvcParser cvcParser(d_exprManager, stream);
-      TS_ASSERT( !cvcParser.done() );
-      while(!cvcParser.done()) {
-        TS_ASSERT( !cvcParser.parseNextExpression().isNull() );
+      Parser* cvcParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT( !cvcParser->done() );
+      while(!cvcParser->done()) {
+        TS_ASSERT( !cvcParser->parseNextExpression().isNull() );
       }
+      delete cvcParser;
     }
   }
 
@@ -113,8 +118,9 @@ public:
     //    cout << "In testGoodInputs()\n";
     for(int i = 0; i < sizeof(badBooleanExprs); ++i) {
       istringstream stream(badBooleanExprs[i]);
-      CvcParser cvcParser(d_exprManager, stream);
-      TS_ASSERT_THROWS( cvcParser.parseNextExpression(), ParserException );
+      Parser* cvcParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      TS_ASSERT_THROWS( cvcParser->parseNextExpression(), ParserException );
+      delete cvcParser;
     }
   }
 
