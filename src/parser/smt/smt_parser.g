@@ -70,7 +70,7 @@ benchAttributes returns [CVC4::CommandSequence* cmd_seq = new CommandSequence()]
  * a corresponding command
  * @retrurn a command corresponding to the attribute
  */
-benchAttribute returns [ Command* smt_command = 0]
+benchAttribute returns [Command* smt_command = 0]
 {
   Expr formula;  
   string logic; 
@@ -80,7 +80,7 @@ benchAttribute returns [ Command* smt_command = 0]
   | C_ASSUMPTION  formula = annotatedFormula          { smt_command = new AssertCommand(formula);   }       
   | C_FORMULA     formula = annotatedFormula          { smt_command = new CheckSatCommand(formula); }
   | C_STATUS      b_status = status                   { smt_command = new SetBenchmarkStatusCommand(b_status); }        
-  | C_EXTRAPREDS  LPAREN (pred_symb_decl)+ RPAREN  
+  | C_EXTRAPREDS  LPAREN (predicateDeclaration)+ RPAREN  
   | C_NOTES       STRING_LITERAL        
   | annotation
   ;
@@ -120,63 +120,16 @@ annotatedFormula returns [CVC4::Expr formula]
 /**
  * Matches an annotated proposition atom, which is either a propositional atom 
  * or built of other atoms using a predicate symbol.  
+ * @return expression representing the atom
  */
 annotatedAtom returns [CVC4::Expr atom] 
   : atom = propositionalAtom  
   ;
 
-
-
-
-
- 
 /**
- * Matches an attribute name from the input (:attribute_name).
- */ 
-attribute 
-  :  C_IDENTIFIER
-  ;
-   
-/**
- * Matches the sort symbol, which can be an arbitrary identifier.
- */
-sort_symb returns [std::string s] 
-  : id:IDENTIFIER { s = id->getText(); }
-  ;
-  
-/**
- * Matches an annotation, which is an attribute name, with an optional user value. 
- */
-annotation 
-  : attribute (USER_VALUE)?
-  ;
-  
-/**
- * Matches a predicate symbol. 
- */
-pred_symb returns [std::string p]
-  :  id:IDENTIFIER { p = id->getText(); }
-  ;
-  
-
-/**
- * Matches a propositional atom. 
- */
-propositionalAtom returns [CVC4::Expr atom]
-{
-  std::string p;
-} 
-   : p = pred_symb {isDeclared(p, SYM_VARIABLE)}? { atom = getVariable(p); }
-      exception catch [antlr::SemanticException ex] {
-        rethrow(ex, "Undeclared variable " + p);
-      }   
-   | TRUE          { atom = getTrueExpr(); }
-   | FALSE         { atom = getFalseExpr(); }
-   ;
-      
-/**
- * Matches on of the unary Boolean connectives.  
- */
+* Matches on of the unary Boolean connectives.
+* @return the kind of the Bollean connective
+*/
 boolConnective returns [CVC4::Kind kind]
   : NOT      { kind = CVC4::NOT;     } 
   | IMPLIES  { kind = CVC4::IMPLIES; }
@@ -185,35 +138,76 @@ boolConnective returns [CVC4::Kind kind]
   | XOR      { kind = CVC4::XOR;     }
   | IFF      { kind = CVC4::IFF;     }
   ;
-    
+
+/**
+ * Mathces a sequence of annotaed formulas and puts them into the formulas
+ * vector.
+ * @param formulas the vector to fill with formulas
+ */   
 annotatedFormulas[std::vector<Expr>& formulas]
 {
   Expr f;
 }
   : ( f = annotatedFormula { formulas.push_back(f); } )+
   ;
-   
+
 /**
- * Matches the declaration of a predicate symbol.
+ * Matches a propositional atom and returns the expression of the atom.
+ * @return atom the expression of the atom 
  */
-pred_symb_decl
+propositionalAtom returns [CVC4::Expr atom]
+{
+  std::string p;
+} 
+   : p = predicateName[CHECK_DECLARED] { atom = getVariable(p); }
+   | TRUE          { atom = getTrueExpr(); }
+   | FALSE         { atom = getFalseExpr(); }
+   ;
+
+/**
+ * Matches a predicate symbol. 
+ * @param check what kind of check to do with the symbol
+ */
+predicateName[DeclarationCheck check = CHECK_NONE] returns [std::string p]
+  :  p = identifier[check]
+  ;
+  
+/**
+ * Matches an attribute name from the input (:attribute_name).
+ */ 
+attribute 
+  :  C_IDENTIFIER
+  ;
+      
+/**
+ * Matches the sort symbol, which can be an arbitrary identifier.
+ * @param check the check to perform on the name
+ */
+sortName[DeclarationCheck check = CHECK_NONE] returns [std::string s] 
+  : s = identifier[check]
+  ;
+              
+/**
+ * Matches the declaration of a predicate and declares it
+ */
+predicateDeclaration
 {
   string p_name;
   vector<string> p_sorts;
 }
-  :  LPAREN p_name = pred_symb sort_symbs[p_sorts] RPAREN { newPredicate(p_name, p_sorts); } 
+  :  LPAREN p_name = predicateName[CHECK_UNDECLARED] sortNames[p_sorts] RPAREN { newPredicate(p_name, p_sorts); } 
   ;
   
 /**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
-sort_symbs[std::vector<std::string>& sorts]
+sortNames[std::vector<std::string>& sorts]
 {
-  std::string type;
+  std::string sort;
 }
-  : ( type = sort_symb { sorts.push_back(type); })* 
+  : ( sort = sortName[CHECK_UNDECLARED] { sorts.push_back(sort); })* 
   ;
-    
+
 /**
  * Matches the status of the benchmark, one of 'sat', 'unsat' or 'unknown'.
  */
@@ -222,3 +216,11 @@ status returns [ SetBenchmarkStatusCommand::BenchmarkStatus status ]
   | UNSAT     { status = SetBenchmarkStatusCommand::SMT_UNSATISFIABLE;  }
   | UNKNOWN   { status = SetBenchmarkStatusCommand::SMT_UNKNOWN;        }
   ;
+
+/**
+ * Matches an annotation, which is an attribute name, with an optional user 
+ */
+annotation 
+  : attribute (USER_VALUE)?
+  ;
+    

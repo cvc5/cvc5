@@ -54,15 +54,16 @@ command returns [CVC4::Command* cmd = 0]
   Expr f;
   vector<string> ids;
 }
-  : ASSERT   f = formula  { cmd = new AssertCommand(f);   }
-  | QUERY    f = formula  { cmd = new QueryCommand(f);    }
-  | CHECKSAT f = formula  { cmd = new CheckSatCommand(f); }
-  | CHECKSAT              { cmd = new CheckSatCommand();  }
+  : ASSERT   f = formula  SEMICOLON { cmd = new AssertCommand(f);   }
+  | QUERY    f = formula  SEMICOLON { cmd = new QueryCommand(f);    }
+  | CHECKSAT f = formula  SEMICOLON { cmd = new CheckSatCommand(f); }
+  | CHECKSAT              SEMICOLON { cmd = new CheckSatCommand();  }
   | identifierList[ids, CHECK_UNDECLARED] COLON type { 
       // [chris 12/15/2009] FIXME: decls may not be BOOLEAN
       newPredicates(ids); 
       cmd = new DeclarationCommand(ids); 
     }
+    SEMICOLON
   | EOF 
   ;
 

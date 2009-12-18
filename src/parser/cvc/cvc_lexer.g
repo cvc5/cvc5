@@ -71,6 +71,13 @@ COLON options{ paraphrase = "a colon"; }
   ;
 
 /**
+ * Matches the 'l'
+ */
+SEMICOLON options{ paraphrase = "a semicolon"; } 
+  : ';'
+  ;
+
+/**
  * Matches the ','
  */
 COMMA options{ paraphrase = "a comma"; } 
