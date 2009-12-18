@@ -41,7 +41,7 @@ bool Parser::done() const {
   return d_done;
 }
 
-Command* Parser::parseNextCommand() throw (ParserException) {
+Command* Parser::parseNextCommand() throw(ParserException, AssertionException) {
   Command* cmd = 0;
   if(!done()) {
     try {
@@ -58,7 +58,7 @@ Command* Parser::parseNextCommand() throw (ParserException) {
   return cmd;
 }
 
-Expr Parser::parseNextExpression() throw (ParserException) {
+Expr Parser::parseNextExpression() throw(ParserException, AssertionException) {
   Expr result;
   if(!done()) {
     try {
@@ -76,7 +76,9 @@ Expr Parser::parseNextExpression() throw (ParserException) {
 Parser::~Parser() {
   delete d_antlrParser;
   delete d_antlrLexer;
-  if (d_deleteInput) delete d_input;
+  if(d_deleteInput) {
+    delete d_input;
+  }
 }
 
 Parser::Parser(istream* input, AntlrParser* antlrParser, CharScanner* antlrLexer, bool deleteInput) :

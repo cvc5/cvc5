@@ -19,7 +19,8 @@
 #include <string>
 #include <iostream>
 #include "cvc4_config.h"
-#include "parser_exception.h"
+#include "parser/parser_exception.h"
+#include "util/Assert.h"
 #include "antlr_parser.h"
 
 namespace antlr {
@@ -65,14 +66,14 @@ public:
    * Parse the next command of the input. If EOF is encountered a EmptyCommand
    * is returned and done flag is set.
    */
-  Command* parseNextCommand() throw (ParserException);
+  Command* parseNextCommand() throw(ParserException, AssertionException);
 
   /**
    * Parse the next expression of the stream. If EOF is encountered a null
    * expression is returned and done flag is set.
    * @return the parsed expression
    */
-  Expr parseNextExpression() throw (ParserException);
+  Expr parseNextExpression() throw(ParserException, AssertionException);
 
   /**
    * Check if we are done -- either the end of input has been reached, or some
