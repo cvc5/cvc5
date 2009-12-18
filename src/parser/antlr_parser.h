@@ -42,14 +42,14 @@ class AntlrParser : public antlr::LLkParser {
 
 public:
 
-  /** The status an SMT benchmark can have */
-  enum BenchmarkStatus {
-    /** Benchmark is satisfiable */
-    SMT_SATISFIABLE,
-    /** Benchmark is unsatisfiable */
-    SMT_UNSATISFIABLE,
-    /** The status of the benchmark is unknown */
-    SMT_UNKNOWN
+  /** Types of check for the symols */
+  enum DeclarationCheck {
+    /** Enforce that the symbol has been declared */
+    CHECK_DECLARED,
+    /** Enforce that the symbol has not been declared */
+    CHECK_UNDECLARED,
+    /** Don't check anything */
+    CHECK_NONE
   };
 
   /**
@@ -57,6 +57,18 @@ public:
    * @param expr_manager the expression manager
    */
   void setExpressionManager(ExprManager* expr_manager);
+
+  /**
+   * Parse a command.
+   * @return a command
+   */
+  virtual Command* parseCommand() = 0;
+
+  /**
+   * Parse an expression.
+   * @return the expression
+   */
+  virtual Expr parseExpr() = 0;
 
 protected:
 
@@ -97,6 +109,14 @@ protected:
   Expr getVariable(std::string var_name);
 
   /**
+   * Return true if the the declaration policy we want to enforce is true.
+   * @param varName the symbol to check
+   * @oaram check the kind of check to perform
+   * @return true if the check holds
+   */
+  bool checkDeclation(std::string varName, DeclarationCheck check);
+
+  /**
    * Types of symbols.
    */
   enum SymbolType {
@@ -131,21 +151,21 @@ protected:
    * @param kind the kind of the expression
    * @param child the child
    */
-  Expr newExpression(Kind kind, const Expr& child);
+  Expr mkExpr(Kind kind, const Expr& child);
 
   /**
    * Creates a new binary CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param children the children of the expression
    */
-  Expr newExpression(Kind kind, const Expr& child_1, const Expr& child_2);
+  Expr mkExpr(Kind kind, const Expr& child_1, const Expr& child_2);
 
   /**
    * Creates a new CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param children the children of the expression
    */
-  Expr newExpression(Kind kind, const std::vector<Expr>& children);
+  Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /**
    * Creates a new expression based on the given string of expressions and kinds,
@@ -170,24 +190,6 @@ protected:
   void newPredicates(const std::vector<std::string>& p_names);
 
   /**
-   * Sets the status of the benchmark.
-   * @param status the status of the benchmark
-   */
-  void setBenchmarkStatus(BenchmarkStatus status);
-
-  /**
-   * Returns the status of the parsed benchmark.
-   * @return the status of the parsed banchmark
-   */
-  BenchmarkStatus getBenchmarkStatus() const;
-
-  /**
-   * Adds the extra sorts to the signature of the benchmark.
-   * @param extra_sorts the sorts to add
-   */
-  void addExtraSorts(const std::vector<std::string>& extra_sorts);
-
-  /**
    * Returns the precedence rank of the kind.
    */
   static unsigned getPrecedence(Kind kind);
@@ -206,17 +208,12 @@ private:
    */
   Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index);
 
-  /** The status of the benchmark */
-  BenchmarkStatus d_benchmark_status;
-
   /** The expression manager */
-  ExprManager* d_expr_manager;
+  ExprManager* d_exprManager;
 
   /** The symbol table lookup */
-  SymbolTable<Expr> d_var_symbol_table;
+  SymbolTable<Expr> d_varSymbolTable;
 };
-
-std::ostream& operator<<(std::ostream& out, AntlrParser::BenchmarkStatus status);
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

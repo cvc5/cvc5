@@ -18,9 +18,13 @@
 
 #include <string>
 #include <iostream>
-#include <fstream>
 #include "cvc4_config.h"
 #include "parser_exception.h"
+#include "antlr_parser.h"
+
+namespace antlr {
+  class CharScanner;
+}
 
 namespace CVC4 {
 
@@ -31,57 +35,88 @@ class ExprManager;
 
 namespace parser {
 
-class AntlrSmtLexer;
-class AntlrSmtParser;
-class AntlrCvcLexer;
-class AntlrCvcParser;
-
 /**
- * The parser.
+ * The parser. The parser should be obtained by calling the static methods
+ * getNewParser, and should be deleted when done.
  */
 class CVC4_PUBLIC Parser {
 
 public:
 
-  /**
-   * Construct the parser that uses the given expression manager.
-   * @param em the expression manager.
-   */
-  Parser(ExprManager* em);
+  /** The input language option */
+  enum InputLanguage {
+    /** The SMTLIB input language */
+    LANG_SMTLIB,
+    /** The CVC4 input language */
+    LANG_CVC4,
+    /** Auto-detect the language */
+    LANG_AUTO
+  };
+
+  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::string filename);
+  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::istream& input);
 
   /**
    * Destructor.
    */
-  virtual ~Parser() {
-  }
+  ~Parser();
 
   /**
-   * Parse the next command of the input
+   * Parse the next command of the input. If EOF is encountered a EmptyCommand
+   * is returned and done flag is set.
    */
-  virtual Command* parseNextCommand() throw (ParserException) = 0;
+  Command* parseNextCommand() throw (ParserException);
 
   /**
-   * Parse the next expression of the stream
+   * Parse the next expression of the stream. If EOF is encountered a null
+   * expression is returned and done flag is set.
+   * @return the parsed expression
    */
-  virtual Expr parseNextExpression() throw (ParserException) = 0;
+  Expr parseNextExpression() throw (ParserException);
 
   /**
-   * Check if we are done -- either the end of input has been reached.
+   * Check if we are done -- either the end of input has been reached, or some
+   * error has been encountered.
+   * @return true if parser is done
    */
   bool done() const;
 
-protected:
+private:
+
+  /**
+   * Create a new parser.
+   * @param em the expression manager to usee
+   * @param lang the language to parse
+   * @param input the input stream to parse
+   * @param filename the filename to attach to the stream
+   * @param deleteInput wheather to delete the input
+   * @return the parser
+   */
+  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::istream* input, std::string filename, bool deleteInput);
+
+  /**
+   * Create a new parser given the actual antlr parser.
+   * @param antlrParser the antlr parser to user
+   */
+  Parser(std::istream* input, AntlrParser* antlrParser, antlr::CharScanner* antlrLexer, bool deleteInput);
 
   /** Sets the done flag */
   void setDone(bool done = true);
 
-  /** Expression manager the parser will be using */
-  ExprManager* d_expr_manager;
-
   /** Are we done */
   bool d_done;
 
-}; // end of class Parser
+  /** The antlr parser */
+  AntlrParser* d_antlrParser;
+
+  /** The entlr lexer */
+  antlr::CharScanner* d_antlrLexer;
+
+  /** The input stream we are using */
+  std::istream* d_input;
+
+  /** Wherther to de-allocate the input */
+  bool d_deleteInput;}; // end of class Parser
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

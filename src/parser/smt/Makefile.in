@@ -56,7 +56,7 @@ am__objects_1 =
 am__objects_2 = AntlrSmtLexer.lo $(am__objects_1)
 am__objects_3 = AntlrSmtParser.lo
 am__objects_4 = $(am__objects_2) $(am__objects_3)
-am_libparsersmt_la_OBJECTS = smt_parser.lo $(am__objects_4)
+am_libparsersmt_la_OBJECTS = $(am__objects_4)
 libparsersmt_la_OBJECTS = $(am_libparsersmt_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -249,8 +249,6 @@ ANTLR_STUFF = \
 libparsersmt_la_SOURCES = \
 	smt_lexer.g \
 	smt_parser.g \
-	smt_parser.h \
-	smt_parser.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)
@@ -310,7 +308,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AntlrSmtLexer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AntlrSmtParser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/smt_parser.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

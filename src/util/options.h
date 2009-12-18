@@ -13,10 +13,11 @@
  ** Global (command-line or equivalent) tuning parameters.
  **/
 
-#include <iostream>
-
 #ifndef __CVC4__OPTIONS_H
 #define __CVC4__OPTIONS_H
+
+#include <iostream>
+#include "parser/parser.h"
 
 namespace CVC4 {
 
@@ -48,7 +49,7 @@ struct Options {
   };
 
   /** The input language */
-  InputLanguage lang;
+  parser::Parser::InputLanguage lang;
 
   Options() : binary_name(),
               smtcomp_mode(false),
@@ -56,7 +57,7 @@ struct Options {
               out(0),
               err(0),
               verbosity(0),
-              lang(LANG_AUTO)
+              lang(parser::Parser::LANG_AUTO)
   {}
 };/* struct Options */
 

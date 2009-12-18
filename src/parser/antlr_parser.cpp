@@ -33,23 +33,6 @@ using namespace CVC4::parser;
 namespace CVC4 {
 namespace parser {
 
-ostream& operator<<(ostream& out, AntlrParser::BenchmarkStatus status) {
-  switch(status) {
-  case AntlrParser::SMT_SATISFIABLE:
-    out << "sat";
-    break;
-  case AntlrParser::SMT_UNSATISFIABLE:
-    out << "unsat";
-    break;
-  case AntlrParser::SMT_UNKNOWN:
-    out << "unknown";
-    break;
-  default:
-    Unhandled("Unhandled ostream case for AntlrParser::BenchmarkStatus");
-  }
-  return out;
-}
-
 unsigned AntlrParser::getPrecedence(Kind kind) {
   switch(kind) {
   // Boolean operators
@@ -82,60 +65,56 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
 }
 
 Expr AntlrParser::getVariable(std::string var_name) {
-  Expr e = d_var_symbol_table.getObject(var_name);
+  Expr e = d_varSymbolTable.getObject(var_name);
   Debug("parser") << "getvar " << var_name << " gives " << e << endl;
   return e;
 }
 
 Expr AntlrParser::getTrueExpr() const {
-  return d_expr_manager->mkExpr(TRUE);
+  return d_exprManager->mkExpr(TRUE);
 }
 
 Expr AntlrParser::getFalseExpr() const {
-  return d_expr_manager->mkExpr(FALSE);
+  return d_exprManager->mkExpr(FALSE);
 }
 
-Expr AntlrParser::newExpression(Kind kind, const Expr& child) {
-  return d_expr_manager->mkExpr(kind, child);
+Expr AntlrParser::mkExpr(Kind kind, const Expr& child) {
+  return d_exprManager->mkExpr(kind, child);
 }
 
-Expr AntlrParser::newExpression(Kind kind, const Expr& child_1, const Expr& child_2) {
-  return d_expr_manager->mkExpr(kind, child_1, child_2);
+Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1,
+                                const Expr& child_2) {
+  return d_exprManager->mkExpr(kind, child_1, child_2);
 }
 
-Expr AntlrParser::newExpression(Kind kind, const std::vector<Expr>& children) {
-  return d_expr_manager->mkExpr(kind, children);
+Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
+  return d_exprManager->mkExpr(kind, children);
 }
 
 void AntlrParser::newPredicate(std::string p_name, const std::vector<
     std::string>& p_sorts) {
-  if(p_sorts.size() == 0)
-    d_var_symbol_table.bindName(p_name, d_expr_manager->mkVar());
-  else
+  if(p_sorts.size() == 0) {
+    d_varSymbolTable.bindName(p_name, d_exprManager->mkVar());
+  } else {
     Unhandled("Non unary predicate not supported yet!");
+  }
 }
 
 void AntlrParser::newPredicates(const std::vector<std::string>& p_names) {
   vector<string> sorts;
-  for(unsigned i = 0; i < p_names.size(); ++i)
+  for(unsigned i = 0; i < p_names.size(); ++i) {
     newPredicate(p_names[i], sorts);
-}
-
-void AntlrParser::setBenchmarkStatus(BenchmarkStatus status) {
-  d_benchmark_status = status;
-}
-
-void AntlrParser::addExtraSorts(const std::vector<std::string>& extra_sorts) {
+  }
 }
 
 void AntlrParser::setExpressionManager(ExprManager* em) {
-  d_expr_manager = em;
+  d_exprManager = em;
 }
 
 bool AntlrParser::isDeclared(string name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
-    return d_var_symbol_table.isBound(name);
+    return d_varSymbolTable.isBound(name);
   default:
     Unhandled("Unhandled symbol type!");
   }
@@ -148,8 +127,8 @@ void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
                                  LT(0).get()->getColumn());
 }
 
-Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs,
-                                       const vector<Kind>& kinds) {
+Expr AntlrParser::createPrecedenceExpr(const vector<Expr>& exprs, const vector<
+    Kind>& kinds) {
   Assert( exprs.size() > 0, "Expected non-empty vector expr");
   Assert( kinds.size() + 1 == exprs.size(), "Expected kinds to match exprs");
   return createPrecedenceExpr(exprs, kinds, 0, exprs.size() - 1);
@@ -184,14 +163,28 @@ Expr AntlrParser::createPrecedenceExpr(const std::vector<Expr>& exprs,
   Assert( end_index < exprs.size(), "Expected end_index < exprs.size. ");
   Assert( start_index <= end_index, "Expected start_index <= end_index. ");
 
-  if(start_index == end_index)
+  if(start_index == end_index) {
     return exprs[start_index];
+  }
 
   unsigned pivot = findPivot(kinds, start_index, end_index - 1);
 
   Expr child_1 = createPrecedenceExpr(exprs, kinds, start_index, pivot);
   Expr child_2 = createPrecedenceExpr(exprs, kinds, pivot + 1, end_index);
-  return d_expr_manager->mkExpr(kinds[pivot], child_1, child_2);
+  return d_exprManager->mkExpr(kinds[pivot], child_1, child_2);
+}
+
+bool AntlrParser::checkDeclation(string varName, DeclarationCheck check) {
+  switch(check) {
+  case CHECK_DECLARED:
+    return isDeclared(varName, SYM_VARIABLE);
+  case CHECK_UNDECLARED:
+    return !isDeclared(varName, SYM_VARIABLE);
+  case CHECK_NONE:
+    return true;
+  default:
+    Unhandled("Unknown check type!");
+  }
 }
 
 }/* CVC4::parser namespace */

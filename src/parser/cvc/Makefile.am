@@ -24,8 +24,6 @@ ANTLR_STUFF = \
 libparsercvc_la_SOURCES = \
 	cvc_lexer.g \
 	cvc_parser.g \
-	cvc_parser.h \
-	cvc_parser.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)

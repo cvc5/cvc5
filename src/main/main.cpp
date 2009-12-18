@@ -23,8 +23,6 @@
 #include "main.h"
 #include "usage.h"
 #include "parser/parser.h"
-#include "parser/smt/smt_parser.h"
-#include "parser/cvc/cvc_parser.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "util/command.h"
@@ -69,13 +67,14 @@ int main(int argc, char *argv[]) {
     bool inputFromStdin = firstArgIndex >= argc;
 
     // Auto-detect input language by filename extension
-    if(!inputFromStdin && options.lang == Options::LANG_AUTO) {
+    if(!inputFromStdin && options.lang == Parser::LANG_AUTO) {
       if(!strcmp(".smt", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4)) {
-        options.lang = Options::LANG_SMTLIB;
-      }
-      else if(!strcmp(".cvc", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4) ||
-              !strcmp(".cvc4", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 5)) {
-        options.lang = Options::LANG_CVC4;
+        options.lang = Parser::LANG_SMTLIB;
+      } else if(!strcmp(".cvc", argv[firstArgIndex]
+          + strlen(argv[firstArgIndex]) - 4)
+          || !strcmp(".cvc4", argv[firstArgIndex] + strlen(argv[firstArgIndex])
+              - 5)) {
+        options.lang = Parser::LANG_CVC4;
       }
     }
 
@@ -100,34 +99,12 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // Set up the input stream, either cin or a file
-    const char* fname;
-    istream* in;
-    ifstream* file;
-    if(inputFromStdin) {
-      fname = "stdin";
-      in = &cin;
-    } else {
-      fname = argv[firstArgIndex];
-      file = new ifstream(fname);
-      in = file;
-    }
-
     // Create the parser
     Parser* parser;
-    switch(options.lang) {
-    case Options::LANG_SMTLIB:
-      parser = new SmtParser(&exprMgr, *in, fname);
-      break;
-    case Options::LANG_CVC4:
-      parser = new CvcParser(&exprMgr, *in, fname);
-      break;
-    case Options::LANG_AUTO:
-      cerr << "Auto language detection not supported yet." << endl;
-      abort();
-    default:
-      cerr << "Unknown language" << endl;
-      abort();
+    if(inputFromStdin) {
+      parser = Parser::getNewParser(&exprMgr, options.lang, cin);
+    } else {
+      parser = Parser::getNewParser(&exprMgr, options.lang, argv[firstArgIndex]);
     }
 
     // Parse and execute commands until we are done
@@ -145,10 +122,6 @@ int main(int argc, char *argv[]) {
     // Remove the parser
     delete parser;
 
-    if(! inputFromStdin) {
-      // Delete handle to input file
-      delete file;
-    }
   } catch(OptionException& e) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;

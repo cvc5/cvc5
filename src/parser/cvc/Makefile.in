@@ -56,7 +56,7 @@ am__objects_1 =
 am__objects_2 = AntlrCvcLexer.lo $(am__objects_1)
 am__objects_3 = AntlrCvcParser.lo
 am__objects_4 = $(am__objects_2) $(am__objects_3)
-am_libparsercvc_la_OBJECTS = cvc_parser.lo $(am__objects_4)
+am_libparsercvc_la_OBJECTS = $(am__objects_4)
 libparsercvc_la_OBJECTS = $(am_libparsercvc_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -249,8 +249,6 @@ ANTLR_STUFF = \
 libparsercvc_la_SOURCES = \
 	cvc_lexer.g \
 	cvc_parser.g \
-	cvc_parser.h \
-	cvc_parser.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)
@@ -310,7 +308,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AntlrCvcLexer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AntlrCvcParser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cvc_parser.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

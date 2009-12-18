@@ -29,6 +29,23 @@ options {
 }
  
 /**
+ * Parses the next command.
+ * @return command or 0 if EOF
+ */
+parseCommand returns [CVC4::Command* cmd]
+  : cmd = command
+  ;
+
+/**
+ * Parses the next expression.
+ * @return the parsed expression (null expression if EOF)
+ */
+parseExpr returns [CVC4::Expr expr]
+  : expr = formula
+  | EOF
+  ;
+  
+/**
  * Matches a command of the input. If a declaration, it will return an empty 
  * command.
  */
@@ -41,64 +58,118 @@ command returns [CVC4::Command* cmd = 0]
   | QUERY    f = formula  { cmd = new QueryCommand(f);    }
   | CHECKSAT f = formula  { cmd = new CheckSatCommand(f); }
   | CHECKSAT              { cmd = new CheckSatCommand();  }
-  | identifierList[ids] COLON type { 
+  | identifierList[ids, CHECK_UNDECLARED] COLON type { 
       // [chris 12/15/2009] FIXME: decls may not be BOOLEAN
       newPredicates(ids); 
-      cmd = new EmptyCommand("Declaration"); 
+      cmd = new DeclarationCommand(ids); 
     }
   | EOF 
   ;
 
-identifierList[std::vector<std::string>& id_list]
-  : id1:IDENTIFIER { id_list.push_back(id1->getText()); } 
-    (
-      COMMA 
-      id2:IDENTIFIER { id_list.push_back(id2->getText()); }
-    )*
+/**
+ * Mathches a list of identifiers separated by a comma and puts them in the 
+ * given list.
+ * @param idList the list to fill with identifiers.
+ * @param check what kinds of check to perform on the symbols 
+ */
+identifierList[std::vector<std::string>& idList, DeclarationCheck check = CHECK_NONE]
+{
+  string id;
+}
+  : id = identifier { idList.push_back(id); } 
+      (COMMA id = identifier { idList.push_back(id); })*
   ;
  
+
+/**
+ * Matches an identifier and returns a string.
+ */
+identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
+  : x:IDENTIFIER { checkDeclation(x->getText(), check) }?
+    { 
+      id = x->getText(); 
+    } 
+    exception catch [antlr::SemanticException& ex] {
+      switch (check) {
+        case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
+        case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
+        default: throw ex;
+      }          
+    }    
+  ;
+  
+/** 
+ * Matches a type.
+ * TODO: parse more types
+ */
 type
   : BOOLEAN
   ;
 
+/** 
+ * Matches a CVC4 formula.
+ * @return the expression representing the formula
+ */ 
 formula returns [CVC4::Expr formula]
-  :  formula = bool_formula
+  :  formula = boolFormula
   ;
 
-bool_formula returns [CVC4::Expr formula] 
+/**
+ * Matches a CVC4 basic Boolean formula (AND, OR, NOT...). It parses the list of
+ * operands (primaryBoolFormulas) and operators (Kinds) and then calls the
+ * createPrecedenceExpr method to build the expression using the precedence
+ * and associativity of the operators.
+ * @return the expression representing the formula
+ */ 
+boolFormula returns [CVC4::Expr formula] 
 {
   vector<Expr> formulas;
   vector<Kind> kinds;
   Expr f1, f2;
   Kind k;
 }
-  : f1 = primary_bool_formula { formulas.push_back(f1); } 
-      ( k = bool_operator { kinds.push_back(k); } f2 = primary_bool_formula { formulas.push_back(f2); } )* 
+  : f1 = primaryBoolFormula { formulas.push_back(f1); } 
+      ( k = boolOperator { kinds.push_back(k); } f2 = primaryBoolFormula { formulas.push_back(f2); } )* 
     { 
       // Create the expression based on precedences
       formula = createPrecedenceExpr(formulas, kinds);
     }
   ;
   
-primary_bool_formula returns [CVC4::Expr formula]
-  : formula = bool_atom
-  | NOT formula = primary_bool_formula { formula = newExpression(CVC4::NOT, formula); }
-  | LPAREN formula = bool_formula RPAREN
+/**
+ * Parses a primary Boolean formula. A primary Boolean formula is either a 
+ * Boolean atom (variables and predicates) a negation of a primary Boolean 
+ * formula or a formula enclosed in parenthesis.
+ * @return the expression representing the formula
+ */
+primaryBoolFormula returns [CVC4::Expr formula]
+  : formula = boolAtom
+  | NOT formula = primaryBoolFormula { formula = mkExpr(CVC4::NOT, formula); }
+  | LPAREN formula = boolFormula RPAREN
   ;
 
-bool_operator returns [CVC4::Kind kind]
+/**
+ * Parses the Boolean operators and returns the corresponding CVC4 expression 
+ * kind. 
+ * @param the kind of the Boolean operator
+ */
+boolOperator returns [CVC4::Kind kind]
   : IMPLIES  { kind = CVC4::IMPLIES; }
   | AND      { kind = CVC4::AND;     }
   | OR       { kind = CVC4::OR;      }
   | XOR      { kind = CVC4::XOR;     }
   | IFF      { kind = CVC4::IFF;     }
   ;
-    
-bool_atom returns [CVC4::Expr atom]
+
+/**
+ * Parses the Boolean atoms (variables and predicates).
+ * @return the expression representing the atom.
+ */    
+boolAtom returns [CVC4::Expr atom]
 {
   string p;
 }
-  : p = predicate_sym {isDeclared(p, SYM_VARIABLE)}? { atom = getVariable(p); }
+  : p = predicateSymbol[CHECK_DECLARED] { atom = getVariable(p); }
       exception catch [antlr::SemanticException ex] {
         rethrow(ex, "Undeclared variable " + p);
       }
@@ -106,7 +177,12 @@ bool_atom returns [CVC4::Expr atom]
   | FALSE { atom = getFalseExpr(); }
   ;
  
-predicate_sym returns [std::string p]
-  : id:IDENTIFIER { p = id->getText(); }
+/**
+ * Parses a predicate symbol (an identifier).
+ * @param what kind of check to perform on the id 
+ * @return the predicate symol
+ */
+predicateSymbol[DeclarationCheck check = CHECK_NONE] returns [std::string pSymbol]
+  : pSymbol = identifier[check]
   ;
  

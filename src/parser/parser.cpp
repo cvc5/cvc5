@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <antlr/CharScanner.hpp>
 
 #include "parser.h"
 #include "util/command.h"
@@ -27,13 +28,10 @@
 #include "parser/cvc/generated/AntlrCvcLexer.hpp"
 
 using namespace std;
+using namespace antlr;
 
 namespace CVC4 {
 namespace parser {
-
-Parser::Parser(ExprManager* em) :
-  d_expr_manager(em), d_done(false) {
-}
 
 void Parser::setDone(bool done) {
   d_done = done;
@@ -41,6 +39,89 @@ void Parser::setDone(bool done) {
 
 bool Parser::done() const {
   return d_done;
+}
+
+Command* Parser::parseNextCommand() throw (ParserException) {
+  Command* cmd = 0;
+  if(!done()) {
+    try {
+      cmd = d_antlrParser->parseCommand();
+      if(cmd == 0) {
+        setDone();
+        cmd = new EmptyCommand("EOF");
+      }
+    } catch(antlr::ANTLRException& e) {
+      setDone();
+      throw ParserException(e.toString());
+    }
+  }
+  return cmd;
+}
+
+Expr Parser::parseNextExpression() throw (ParserException) {
+  Expr result;
+  if(!done()) {
+    try {
+      result = d_antlrParser->parseExpr();
+      if(result.isNull())
+        setDone();
+    } catch(antlr::ANTLRException& e) {
+      setDone();
+      throw ParserException(e.toString());
+    }
+  }
+  return result;
+}
+
+Parser::~Parser() {
+  delete d_antlrParser;
+  delete d_antlrLexer;
+  if (d_deleteInput) delete d_input;
+}
+
+Parser::Parser(istream* input, AntlrParser* antlrParser, CharScanner* antlrLexer, bool deleteInput) :
+  d_done(false), d_input(input), d_antlrParser(antlrParser), d_antlrLexer(antlrLexer), d_deleteInput(deleteInput) {
+}
+
+Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
+                             istream* input, string filename, bool deleteInput) {
+
+  AntlrParser* antlrParser = 0;
+  antlr::CharScanner* antlrLexer = 0;
+
+  switch(lang) {
+  case LANG_CVC4: {
+    antlrLexer = new AntlrCvcLexer(*input);
+    antlrLexer->setFilename(filename);
+    antlrParser = new AntlrCvcParser(*antlrLexer);
+    antlrParser->setFilename(filename);
+    antlrParser->setExpressionManager(em);
+    break;
+  }
+  case LANG_SMTLIB: {
+    antlrLexer = new AntlrSmtLexer(*input);
+    antlrLexer->setFilename(filename);
+    antlrParser = new AntlrSmtParser(*antlrLexer);
+    antlrParser->setFilename(filename);
+    antlrParser->setExpressionManager(em);
+    break;
+  }
+  default:
+    Unhandled("Unknown Input language!");
+  }
+
+  return new Parser(input, antlrParser, antlrLexer, deleteInput);
+}
+
+Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
+                             string filename) {
+  istream* input = new ifstream(filename.c_str());
+  return getNewParser(em, lang, input, filename, true);
+}
+
+Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
+                             istream& input) {
+  return getNewParser(em, lang, &input, "", false);
 }
 
 }/* CVC4::parser namespace */

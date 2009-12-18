@@ -35,14 +35,15 @@ class CVC4_PUBLIC Command {
 public:
   virtual void invoke(CVC4::SmtEngine* smt_engine) = 0;
   virtual ~Command() {};
-  virtual void toString(std::ostream&) const = 0;
+  virtual void toStream(std::ostream&) const = 0;
+  std::string toString() const;
 };/* class Command */
 
 class CVC4_PUBLIC EmptyCommand : public Command {
 public:
   EmptyCommand(std::string name = "");
   void invoke(CVC4::SmtEngine* smt_engine);
-  void toString(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 private:
   std::string d_name;
 };/* class EmptyCommand */
@@ -52,18 +53,26 @@ class CVC4_PUBLIC AssertCommand : public Command {
 public:
   AssertCommand(const BoolExpr& e);
   void invoke(CVC4::SmtEngine* smt_engine);
-  void toString(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
 };/* class AssertCommand */
 
+
+class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
+public:
+  DeclarationCommand(const std::vector<std::string>& ids);
+  void toStream(std::ostream& out) const;
+protected:
+  std::vector<std::string> d_declaredSymbols;
+};
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 public:
   CheckSatCommand();
   CheckSatCommand(const BoolExpr& e);
   void invoke(SmtEngine* smt);
-  void toString(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
 };/* class CheckSatCommand */
@@ -73,10 +82,39 @@ class CVC4_PUBLIC QueryCommand : public Command {
 public:
   QueryCommand(const BoolExpr& e);
   void invoke(SmtEngine* smt);
-  void toString(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
 };/* class QueryCommand */
+
+
+class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
+public:
+  /** The status an SMT benchmark can have */
+  enum BenchmarkStatus {
+    /** Benchmark is satisfiable */
+    SMT_SATISFIABLE,
+    /** Benchmark is unsatisfiable */
+    SMT_UNSATISFIABLE,
+    /** The status of the benchmark is unknown */
+    SMT_UNKNOWN
+  };
+  SetBenchmarkStatusCommand(BenchmarkStatus status);
+  void invoke(SmtEngine* smt);
+  void toStream(std::ostream& out) const;
+protected:
+  BenchmarkStatus d_status;
+};/* class QueryCommand */
+
+class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
+public:
+  SetBenchmarkLogicCommand(std::string logic);
+  void invoke(SmtEngine* smt);
+  void toStream(std::ostream& out) const;
+protected:
+  std::string d_logic;
+};/* class QueryCommand */
+
 
 
 class CVC4_PUBLIC CommandSequence : public Command {
@@ -85,7 +123,7 @@ public:
   ~CommandSequence();
   void invoke(SmtEngine* smt);
   void addCommand(Command* cmd);
-  void toString(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 private:
   /** All the commands to be executed (in sequence) */
   std::vector<Command*> d_command_sequence;

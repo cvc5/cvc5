@@ -20,8 +20,9 @@
  *      Author: dejan
  */
 
-#include <map>
+#include <sstream>
 #include "util/command.h"
+#include "util/Assert.h"
 #include "smt/smt_engine.h"
 
 using namespace std;
@@ -29,8 +30,14 @@ using namespace std;
 namespace CVC4 {
 
 ostream& operator<<(ostream& out, const Command& c) {
-  c.toString(out);
+  c.toStream(out);
   return out;
+}
+
+std::string Command::toString() const {
+  stringstream ss;
+  toStream(ss);
+  return ss.str();
 }
 
 EmptyCommand::EmptyCommand(string name) :
@@ -87,31 +94,85 @@ void CommandSequence::addCommand(Command* cmd) {
   d_command_sequence.push_back(cmd);
 }
 
-void EmptyCommand::toString(ostream& out) const {
+void EmptyCommand::toStream(ostream& out) const {
   out << "EmptyCommand(" << d_name << ")";
 }
 
-void AssertCommand::toString(ostream& out) const {
+void AssertCommand::toStream(ostream& out) const {
   out << "Assert(" << d_expr << ")";
 }
 
-void CheckSatCommand::toString(ostream& out) const {
+void CheckSatCommand::toStream(ostream& out) const {
   if(d_expr.isNull())
     out << "CheckSat()";
   else
     out << "CheckSat(" << d_expr << ")";
 }
 
-void QueryCommand::toString(ostream& out) const {
+void QueryCommand::toStream(ostream& out) const {
   out << "Query(" << d_expr << ")";
 }
 
-void CommandSequence::toString(ostream& out) const {
+void CommandSequence::toStream(ostream& out) const {
   out << "CommandSequence[" << endl;
   for(unsigned i = d_last_index; i < d_command_sequence.size(); ++i) {
     out << *d_command_sequence[i] << endl;
   }
   out << "]";
+}
+
+DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids) :
+  d_declaredSymbols(ids) {
+}
+
+void DeclarationCommand::toStream(std::ostream& out) const {
+  out << "Declare(";
+  bool first = true;
+  for(unsigned i = 0; i < d_declaredSymbols.size(); ++i) {
+    if(first) {
+      out << ", ";
+      first = false;
+    }
+    out << d_declaredSymbols[i];
+  }
+  out << ")";
+}
+
+SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status) :
+  d_status(status) {
+}
+
+void SetBenchmarkStatusCommand::invoke(SmtEngine* smt) {
+  // TODO: something to be done with the status
+}
+
+void SetBenchmarkStatusCommand::toStream(std::ostream& out) const {
+  out << "SetBenchmarkStatus(";
+  switch(d_status) {
+  case SMT_SATISFIABLE:
+    out << "sat";
+    break;
+  case SMT_UNSATISFIABLE:
+    out << "unsat";
+    break;
+  case SMT_UNKNOWN:
+    out << "unknown";
+    break;
+  default:
+    Unhandled("Unknown benchmark status");
+  }
+  out << ")";
+}
+
+SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(string logic) : d_logic(logic)
+    {}
+
+void SetBenchmarkLogicCommand::invoke(SmtEngine* smt) {
+  // TODO: something to be done with the logic
+}
+
+void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
+  out << "SetBenchmarkLogic(" << d_logic << ")";
 }
 
 }/* CVC4 namespace */

@@ -24,8 +24,6 @@ ANTLR_STUFF = \
 libparsersmt_la_SOURCES = \
 	smt_lexer.g \
 	smt_parser.g \
-	smt_parser.h \
-	smt_parser.cpp \
 	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF)

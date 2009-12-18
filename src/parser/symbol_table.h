@@ -49,7 +49,7 @@ private:
   typedef typename LookupTable::const_iterator const_table_iterator;
 
   /** Bindings for the names */
-  LookupTable d_name_bindings;
+  LookupTable d_nameBindings;
 
 public:
 
@@ -58,18 +58,18 @@ public:
    * has been bind before, this will redefine it until its undefined.
    */
   void bindName(const std::string name, const ObjectType& obj) throw () {
-    d_name_bindings[name].push(obj);
+    d_nameBindings[name].push(obj);
   }
 
   /**
    * Unbinds the last binding of the name to the expression.
    */
   void unbindName(const std::string name) throw () {
-    table_iterator find = d_name_bindings.find(name);
-    if(find != d_name_bindings.end()) {
+    table_iterator find = d_nameBindings.find(name);
+    if(find != d_nameBindings.end()) {
       find->second.pop();
       if(find->second.empty()) {
-        d_name_bindings.erase(find);
+        d_nameBindings.erase(find);
       }
     }
   }
@@ -79,9 +79,10 @@ public:
    */
   ObjectType getObject(const std::string name) throw () {
     ObjectType result;
-    table_iterator find = d_name_bindings.find(name);
-    if(find != d_name_bindings.end())
+    table_iterator find = d_nameBindings.find(name);
+    if(find != d_nameBindings.end()) {
       result = find->second.top();
+    }
     return result;
   }
 
@@ -89,8 +90,8 @@ public:
    * Returns true is name is bound to an expression.
    */
   bool isBound(const std::string name) const throw () {
-    const_table_iterator find = d_name_bindings.find(name);
-    return (find != d_name_bindings.end());
+    const_table_iterator find = d_nameBindings.find(name);
+    return (find != d_nameBindings.end());
   }
 };
 

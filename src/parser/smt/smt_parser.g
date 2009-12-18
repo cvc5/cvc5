@@ -27,6 +27,108 @@ options {
   defaultErrorHandler = false;      // Skip the defaul error handling, just break with exceptions
   k = 2;
 }
+
+/**
+ * Parses an expression.
+ * @return the parsed expression
+ */
+parseExpr returns [CVC4::Expr expr]
+  : expr = annotatedFormula
+  ;
+
+/**
+ * Parses a command (the whole benchmark)
+ * @return the command of the benchmark
+ */
+parseCommand returns [CVC4::Command* cmd]
+  : cmd = benchmark
+  ; 
+ 
+/**
+ * Matches the whole SMT-LIB benchmark.
+ * @return the sequence command containing the whole problem
+ */  
+benchmark returns [Command* cmd]
+  : LPAREN BENCHMARK IDENTIFIER cmd = benchAttributes RPAREN
+  | EOF { cmd = 0; } 
+  ;
+
+/**
+ * Matchecs sequence of benchmark attributes and returns a pointer to a command 
+ * sequence command.
+ * @return the command sequence 
+ */
+benchAttributes returns [CVC4::CommandSequence* cmd_seq = new CommandSequence()]
+{
+  Command* cmd;
+}
+  : (cmd = benchAttribute { if (cmd) cmd_seq->addCommand(cmd); } )+ 
+  ;
+  
+/**
+ * Matches a benchmark attribute, sucha as ':logic', ':formula', and returns 
+ * a corresponding command
+ * @retrurn a command corresponding to the attribute
+ */
+benchAttribute returns [ Command* smt_command = 0]
+{
+  Expr formula;  
+  string logic; 
+  SetBenchmarkStatusCommand::BenchmarkStatus b_status = SetBenchmarkStatusCommand::SMT_UNKNOWN;
+}
+  : C_LOGIC       logic = identifier                  { smt_command = new SetBenchmarkLogicCommand(logic);   }      
+  | C_ASSUMPTION  formula = annotatedFormula          { smt_command = new AssertCommand(formula);   }       
+  | C_FORMULA     formula = annotatedFormula          { smt_command = new CheckSatCommand(formula); }
+  | C_STATUS      b_status = status                   { smt_command = new SetBenchmarkStatusCommand(b_status); }        
+  | C_EXTRAPREDS  LPAREN (pred_symb_decl)+ RPAREN  
+  | C_NOTES       STRING_LITERAL        
+  | annotation
+  ;
+
+/**
+ * Matches an identifier and returns a string.
+ * @param check what kinds of check to do on the symbol
+ * @return the id string
+ */
+identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
+  : x:IDENTIFIER { checkDeclation(x->getText(), check) }?
+    { 
+      id = x->getText(); 
+    } 
+    exception catch [antlr::SemanticException& ex] {
+      switch (check) {
+        case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
+        case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
+        default: throw ex;
+      }          
+    }    
+  ;
+
+/** 
+ * Matches an annotated formula.
+ * @return the expression representing the formula 
+ */
+annotatedFormula returns [CVC4::Expr formula] 
+{ 
+  Kind kind; 
+  vector<Expr> children;
+}
+  :  formula = annotatedAtom 
+  |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN { formula = mkExpr(kind, children);  }    
+  ;
+
+/**
+ * Matches an annotated proposition atom, which is either a propositional atom 
+ * or built of other atoms using a predicate symbol.  
+ */
+annotatedAtom returns [CVC4::Expr atom] 
+  : atom = propositionalAtom  
+  ;
+
+
+
+
+
  
 /**
  * Matches an attribute name from the input (:attribute_name).
@@ -34,7 +136,7 @@ options {
 attribute 
   :  C_IDENTIFIER
   ;
-  
+   
 /**
  * Matches the sort symbol, which can be an arbitrary identifier.
  */
@@ -60,7 +162,7 @@ pred_symb returns [std::string p]
 /**
  * Matches a propositional atom. 
  */
-prop_atom returns [CVC4::Expr atom]
+propositionalAtom returns [CVC4::Expr atom]
 {
   std::string p;
 } 
@@ -71,22 +173,11 @@ prop_atom returns [CVC4::Expr atom]
    | TRUE          { atom = getTrueExpr(); }
    | FALSE         { atom = getFalseExpr(); }
    ;
-    
-/**
- * Matches an annotated proposition atom, which is either a propositional atom 
- * or built of other atoms using a predicate symbol. Annotation can be added if
- * enclosed in brackets. The prop_atom rule from the original SMT grammar is inlined
- * here in order to get rid of the ugly antlr non-determinism warnings. 
- */
- // [chris 12/15/2009] FIXME: Where is the annotation? 
-an_atom returns [CVC4::Expr atom] 
-  : atom = prop_atom  
-  ;
-  
+      
 /**
  * Matches on of the unary Boolean connectives.  
  */
-bool_connective returns [CVC4::Kind kind]
+boolConnective returns [CVC4::Kind kind]
   : NOT      { kind = CVC4::NOT;     } 
   | IMPLIES  { kind = CVC4::IMPLIES; }
   | AND      { kind = CVC4::AND;     }
@@ -94,24 +185,12 @@ bool_connective returns [CVC4::Kind kind]
   | XOR      { kind = CVC4::XOR;     }
   | IFF      { kind = CVC4::IFF;     }
   ;
-  
-/** 
- * Matches an annotated formula. 
- */
-an_formula returns [CVC4::Expr formula] 
-{ 
-  Kind kind; 
-  vector<Expr> children;
-}
-  :  formula = an_atom 
-  |  LPAREN kind = bool_connective an_formulas[children] RPAREN { formula = newExpression(kind, children);  }    
-  ;
-  
-an_formulas[std::vector<Expr>& formulas]
+    
+annotatedFormulas[std::vector<Expr>& formulas]
 {
   Expr f;
 }
-  : ( f = an_formula { formulas.push_back(f); } )+
+  : ( f = annotatedFormula { formulas.push_back(f); } )+
   ;
    
 /**
@@ -138,44 +217,8 @@ sort_symbs[std::vector<std::string>& sorts]
 /**
  * Matches the status of the benchmark, one of 'sat', 'unsat' or 'unknown'.
  */
-status returns [ AntlrParser::BenchmarkStatus status ]
-  : SAT       { status = SMT_SATISFIABLE;    }
-  | UNSAT     { status = SMT_UNSATISFIABLE;  }
-  | UNKNOWN   { status = SMT_UNKNOWN;        }
-  ;
-  
-/**
- * Matches a benchmark attribute, sucha as ':logic', ':formula', etc.
- */
-bench_attribute returns [ Command* smt_command = 0]
-{
-  BenchmarkStatus b_status = SMT_UNKNOWN;
-  Expr formula;  
-  vector<string> sorts;
-}
-  : C_LOGIC       IDENTIFIER      
-  | C_ASSUMPTION  formula = an_formula                { smt_command = new AssertCommand(formula);   }       
-  | C_FORMULA     formula = an_formula                { smt_command = new CheckSatCommand(formula); }
-  | C_STATUS      b_status = status                   { setBenchmarkStatus(b_status);               }        
-  | C_EXTRASORTS  LPAREN sort_symbs[sorts] RPAREN     { addExtraSorts(sorts);                       }     
-  | C_EXTRAPREDS  LPAREN (pred_symb_decl)+ RPAREN  
-  | C_NOTES       STRING_LITERAL        
-  | annotation
-  ;
-
-/**
- * Returns a pointer to a command sequence command.
- */
-bench_attributes returns [CVC4::CommandSequence* cmd_seq = new CommandSequence()]
-{
-  Command* cmd;
-}
-  : (cmd = bench_attribute { if (cmd) cmd_seq->addCommand(cmd); } )+ 
-  ;
-  
-/**
- * Matches the whole SMT-LIB benchmark.
- */  
-benchmark returns [Command* cmd]
-  : LPAREN BENCHMARK IDENTIFIER cmd = bench_attributes RPAREN 
+status returns [ SetBenchmarkStatusCommand::BenchmarkStatus status ]
+  : SAT       { status = SetBenchmarkStatusCommand::SMT_SATISFIABLE;    }
+  | UNSAT     { status = SetBenchmarkStatusCommand::SMT_UNSATISFIABLE;  }
+  | UNKNOWN   { status = SetBenchmarkStatusCommand::SMT_UNKNOWN;        }
   ;
