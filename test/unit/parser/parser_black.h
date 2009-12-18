@@ -81,13 +81,13 @@ const int numBadCvc4Exprs = sizeof(badCvc4Exprs) / sizeof(string);
 
 const string goodSmtInputs[] = {
     "", // empty string is OK
-    "(benchmark foo :assume true)",
+    "(benchmark foo :assumption true)",
     "(benchmark bar :formula true)",
     "(benchmark qux :formula false)",
     "(benchmark baz :extrapreds ( (a) (b) ) )",
     "(benchmark zab :extrapreds ( (a) (b) ) :formula (implies (and (implies a b) a) b))",
     ";; nothing but a comment",
-    "; a comment\n)(benchmark foo ; hello\n  :formula true; goodbye\n)"
+    "; a comment\n(benchmark foo ; hello\n  :formula true; goodbye\n)"
   };
 
 const int numGoodSmtInputs = sizeof(goodSmtInputs) / sizeof(string);

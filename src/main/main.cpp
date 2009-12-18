@@ -108,15 +108,13 @@ int main(int argc, char *argv[]) {
     }
 
     // Parse and execute commands until we are done
-    while(!parser->done()) {
-      // Parse the next command
-      Command *cmd = parser->parseNextCommand();
-      if(cmd) {
-        if(options.verbosity > 0)
-          cout << "Invoking: " << *cmd << endl;
-        cmd->invoke(&smt);
-        delete cmd;
+    Command* cmd;
+    while((cmd = parser->parseNextCommand())) {
+      if(options.verbosity > 0) {
+        cout << "Invoking: " << *cmd << endl;
       }
+      cmd->invoke(&smt);
+      delete cmd;
     }
 
     // Remove the parser

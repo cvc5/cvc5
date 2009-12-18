@@ -42,14 +42,10 @@ bool Parser::done() const {
 }
 
 Command* Parser::parseNextCommand() throw(ParserException, AssertionException) {
-  Command* cmd = 0;
+  Command* cmd = NULL;
   if(!done()) {
     try {
       cmd = d_antlrParser->parseCommand();
-      if(cmd == 0) {
-        setDone();
-        cmd = new EmptyCommand("EOF");
-      }
     } catch(antlr::ANTLRException& e) {
       setDone();
       throw ParserException(e.toString());
