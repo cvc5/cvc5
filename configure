@@ -881,7 +881,8 @@ ANTLR
 DOXYGEN
 TEST_CPPFLAGS
 TEST_CXXFLAGS
-TEST_LDFLAGS'
+TEST_LDFLAGS
+PERL'
 
 
 unset ac_cvc4_rewritten_args
@@ -1561,6 +1562,7 @@ Some influential environment variables:
               CXXFLAGS to use when testing (default=$CXXFLAGS)
   TEST_LDFLAGS
               LDFLAGS to use when testing (default=$LDFLAGS)
+  PERL        PERL interpreter (used when testing)
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2594,6 +2596,25 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
 CVC4_RELEASE=prerelease
+
+# Libtool version numbers for libraries
+# Version numbers are in the form current:revision:age
+#
+# current -
+#   increment if interfaces have been added, removed or changed
+# revision -
+#   increment if source code has changed
+#   set to zero if current is incremented
+# age -
+#   increment if interfaces have been added
+#   set to zero if interfaces have been removed
+#   or changed
+#
+# For more information, see:
+# http://www.gnu.org/software/libtool/manual/libtool.html#Versioning
+# For guidance on when to change the version number, refer to the
+# developer's guide.
+
 CVC4_LIBRARY_RELEASE_CODE=0:0:0
 CVC4_LIBRARY_VERSION=0:0:0
 CVC4_PARSER_LIBRARY_VERSION=0:0:0
@@ -2785,13 +2806,14 @@ if test "${with_build+set}" = set; then :
   withval=$with_build;
 fi
 
+
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
 fi
 if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}"; then
-  non_standard_build_profile=no
+  custom_build_profile=no
 else
-  non_standard_build_profile=yes
+  custom_build_profile=yes
 fi
 btargs=
 if test -n "${enable_optimized+set}"; then
@@ -2849,7 +2871,7 @@ $as_echo "$with_build" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for appropriate build string" >&5
 $as_echo_n "checking for appropriate build string... " >&6; }
 build_type=`$ac_confdir/config/build-type $with_build $btargs`
-if test "$non_standard_build_profile" = yes; then
+if test "$custom_build_profile" = yes; then
   if test "$with_build" = default; then
     build_type=`$ac_confdir/config/build-type custom $btargs`
   fi
@@ -2884,8 +2906,10 @@ else
 $as_echo "this one (user-specified)" >&6; }
 fi
 
+# Unpack standard build types. Any particular options can be overriden with
+# --enable/disable-X options
 case "$with_build" in
-  production)
+  production) # highly optimized, no assertions, no tracing
     CVC4CPPFLAGS=
     CVC4CXXFLAGS=-O3
     CVC4LDFLAGS=
@@ -2893,7 +2917,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"   ; then enable_tracing=no                ; fi
     if test -z "${enable_muzzle+set}"    ; then enable_muzzle=no                 ; fi
     ;;
-  debug)
+  debug) # Unoptimized, debug symbols, assertions, tracing
     CVC4CPPFLAGS=-DCVC4_DEBUG
     CVC4CXXFLAGS='-O0 -fno-inline -ggdb3'
     CVC4LDFLAGS=
@@ -2901,7 +2925,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"   ; then enable_tracing=yes               ; fi
     if test -z "${enable_muzzle+set}"    ; then enable_muzzle=no                 ; fi
     ;;
-  default)
+  default) # moderately optimized, assertions, tracing
     CVC4CPPFLAGS=
     CVC4CXXFLAGS=-O2
     CVC4LDFLAGS=
@@ -2909,7 +2933,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"   ; then enable_tracing=yes               ; fi
     if test -z "${enable_muzzle+set}"    ; then enable_muzzle=no                 ; fi
     ;;
-  competition)
+  competition) # maximally optimized, no assertions, no tracing, muzzled
     CVC4CPPFLAGS=
     CVC4CXXFLAGS='-O9 -funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
     CVC4LDFLAGS=
@@ -2927,48 +2951,60 @@ esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to optimize libcvc4" >&5
 $as_echo_n "checking whether to optimize libcvc4... " >&6; }
+
 # Check whether --enable-optimized was given.
 if test "${enable_optimized+set}" = set; then :
   enableval=$enable_optimized;
 fi
 
+
 if test -z "${enable_optimized+set}"; then
   enable_optimized=no
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_optimized" >&5
 $as_echo "$enable_optimized" >&6; }
+
 if test "$enable_optimized" = yes; then
   CVC4CXXFLAGS="$CVC4CXXFLAGS -O3"
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to include debugging symbols in libcvc4" >&5
 $as_echo_n "checking whether to include debugging symbols in libcvc4... " >&6; }
+
 # Check whether --enable-debug-symbols was given.
 if test "${enable_debug_symbols+set}" = set; then :
   enableval=$enable_debug_symbols;
 fi
 
+
 if test -z "${enable_debug_symbols+set}"; then
   enable_debug_symbols=yes
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_debug_symbols" >&5
 $as_echo "$enable_debug_symbols" >&6; }
+
 if test "$enable_debug_symbols" = yes; then
   CVC4CXXFLAGS="$CVC4CXXFLAGS -ggdb3"
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to include assertions in build" >&5
 $as_echo_n "checking whether to include assertions in build... " >&6; }
+
 # Check whether --enable-assertions was given.
 if test "${enable_assertions+set}" = set; then :
   enableval=$enable_assertions;
 fi
 
+
 if test -z "${enable_assertions+set}"; then
   enable_assertions=yes
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_assertions" >&5
 $as_echo "$enable_assertions" >&6; }
+
 if test "$enable_assertions" = yes; then
   CVC4CPPFLAGS="$CVC4CPPFLAGS -DCVC4_ASSERTIONS"
 fi
@@ -2980,11 +3016,14 @@ if test "${enable_tracing+set}" = set; then :
   enableval=$enable_tracing;
 fi
 
+
 if test -z "${enable_tracing+set}"; then
   enable_tracing=yes
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_tracing" >&5
 $as_echo "$enable_tracing" >&6; }
+
 if test "$enable_tracing" = yes; then
   CVC4CPPFLAGS="$CVC4CPPFLAGS -DCVC4_TRACING"
 fi
@@ -2996,11 +3035,14 @@ if test "${enable_muzzle+set}" = set; then :
   enableval=$enable_muzzle;
 fi
 
+
 if test -z "${enable_muzzle+set}"; then
   enable_muzzle=no
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_muzzle" >&5
 $as_echo "$enable_muzzle" >&6; }
+
 if test "$enable_muzzle" = yes; then
   CVC4CPPFLAGS="$CVC4CPPFLAGS -DCVC4_MUZZLE"
 fi
@@ -3012,11 +3054,14 @@ if test "${enable_coverage+set}" = set; then :
   enableval=$enable_coverage;
 fi
 
+
 if test -z "${enable_coverage+set}"; then
   enable_coverage=no
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_coverage" >&5
 $as_echo "$enable_coverage" >&6; }
+
 if test "$enable_coverage" = yes; then
   CVC4CXXFLAGS="$CVC4CXXFLAGS --coverage"
   CVC4LDFLAGS="$CVC4LDFLAGS --coverage"
@@ -3024,16 +3069,20 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to do a profiling-enabled build of CVC4" >&5
 $as_echo_n "checking whether to do a profiling-enabled build of CVC4... " >&6; }
+
 # Check whether --enable-profiling was given.
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling;
 fi
 
+
 if test -z "${enable_profiling+set}"; then
   enable_profiling=no
 fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_profiling" >&5
 $as_echo "$enable_profiling" >&6; }
+
 if test "$enable_profiling" = yes; then
   CVC4CXXFLAGS="$CVC4CXXFLAGS -pg"
   CVC4LDFLAGS="$CVC4LDFLAGS -pg"
@@ -3538,6 +3587,8 @@ if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LDFLAGS-none}" >&5
 $as_echo "${LDFLAGS-none}" >&6; }
 
+# Initialize libtools configuration options.
+
 enable_win32_dll=yes
 
 case $host in
@@ -3834,6 +3885,7 @@ test -z "$DLLTOOL" && DLLTOOL=dlltool
 
 
 test -z "$OBJDUMP" && OBJDUMP=objdump
+
 
 
 
@@ -5404,13 +5456,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5407: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5459: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5410: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5462: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5413: output\"" >&5)
+  (eval echo "\"\$as_me:5465: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6613,7 +6665,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6616 "configure"' > conftest.$ac_ext
+  echo '#line 6668 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8081,11 +8133,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8084: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8136: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8088: \$? = $ac_status" >&5
+   echo "$as_me:8140: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8420,11 +8472,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8423: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8475: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8427: \$? = $ac_status" >&5
+   echo "$as_me:8479: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8525,11 +8577,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8528: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8580: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8532: \$? = $ac_status" >&5
+   echo "$as_me:8584: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8580,11 +8632,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8583: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8635: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8587: \$? = $ac_status" >&5
+   echo "$as_me:8639: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10963,7 +11015,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 10966 "configure"
+#line 11018 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11059,7 +11111,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11062 "configure"
+#line 11114 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11284,7 +11336,6 @@ CC="$lt_save_CC"
 
 
 # Only expand once:
-
 
 
 
@@ -14615,11 +14666,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14618: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14669: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14622: \$? = $ac_status" >&5
+   echo "$as_me:14673: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14714,11 +14765,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14717: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14768: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14721: \$? = $ac_status" >&5
+   echo "$as_me:14772: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14766,11 +14817,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14769: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14820: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14773: \$? = $ac_status" >&5
+   echo "$as_me:14824: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15865,10 +15916,13 @@ $as_echo "no" >&6; }
 fi
 
 
+
 if test -z "$DOXYGEN"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary." >&5
 $as_echo "$as_me: WARNING: documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary." >&2;}
 fi
+
+
 
 
 
@@ -15940,6 +15994,7 @@ $as_echo "$as_me: WARNING: unit tests disabled, CxxTest headers not found." >&2;
     CXXTEST=
   fi
 fi
+
  if test -n "$CXXTESTGEN"; then
   HAVE_CXXTESTGEN_TRUE=
   HAVE_CXXTESTGEN_FALSE='#'
@@ -15953,9 +16008,14 @@ fi
 
 
 
+
+
 if test -n "$CXXTEST"; then
-  # Extract the first word of "perl", so it can be a program name with args.
-set dummy perl; ac_word=$2
+  if test -z "$PERL"; then
+    for ac_prog in perl
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if test "${ac_cv_prog_PERL+set}" = set; then :
@@ -15971,7 +16031,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_PERL="perl"
+    ac_cv_prog_PERL="$ac_prog"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -15990,6 +16050,50 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$PERL" && break
+done
+test -n "$PERL" || PERL="perl"
+
+  else
+    # Extract the first word of ""$PERL"", so it can be a program name with args.
+set dummy "$PERL"; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_PERL+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$PERL"; then
+  ac_cv_prog_PERL="$PERL" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_PERL=""$PERL""
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+PERL=$ac_cv_prog_PERL
+if test -n "$PERL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PERL" >&5
+$as_echo "$PERL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  fi
 
   if test -z "$PERL"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unit tests disabled, perl not found." >&5
@@ -16149,7 +16253,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
   # Define the ANTLR include/libs variables
-
 
 
 
@@ -16334,10 +16437,13 @@ fi
 
 
 # Checks for library functions.
+# (empty)
 
 # Some definitions for config.h
+# (empty)
 
 # Prepare configure output
+
 
 
 
@@ -18984,18 +19090,17 @@ fi
 
 # Final information to the user
 
-non_standard=
-if test "$non_standard_build_profile" = yes; then
+if test "$custom_build_profile" = yes; then
   if test "$with_build" = default; then
     with_build=custom
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This is a non-standard $with_build build profile." >&5
-$as_echo "$as_me: WARNING: This is a non-standard $with_build build profile." >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This is a customized $with_build build profile." >&5
+$as_echo "$as_me: WARNING: This is a customized $with_build build profile." >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-    non_standard=-custom
+    with_build="$with_build-custom"
   fi
 fi
 
@@ -19008,7 +19113,7 @@ cat <<EOF
 
 CVC4 $VERSION
 
-Build profile: $with_build$non_standard
+Build profile: $with_build
 Build ID     : $build_type
 Optimized    : $enable_optimized
 Debug symbols: $enable_debug_symbols
@@ -19069,15 +19174,4 @@ $as_echo "$as_me: WARNING: To support your options to configure, I would like to
 $as_echo "$as_me: WARNING:     $CVC4LDFLAGS" >&2;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
 $as_echo "$as_me: WARNING: " >&2;}
-fi
-
-if test "$non_standard_build_profile" = yes; then
-  if test "$with_build" = default; then :; else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This is a non-standard $with_build build profile." >&5
-$as_echo "$as_me: WARNING: This is a non-standard $with_build build profile." >&2;}
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-  fi
 fi
