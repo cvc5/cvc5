@@ -26,6 +26,11 @@ namespace theory {
  * Base class for T-solvers.  Abstract DPLL(T).
  */
 class Theory {
+  /**
+   * Return whether a node is shared or not.  Used by setup().
+   */
+  bool isShared(Node);
+
 public:
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
@@ -50,7 +55,7 @@ public:
   static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
 
   /**
-   * Prepare for an Node.
+   * Prepare for a Node.
    */
   virtual void setup(Node) = 0;
 
@@ -77,7 +82,8 @@ public:
   virtual void propagate(Effort level = FULL_EFFORT) = 0;
 
   /**
-   * Return an explanation for the literal (which was previously propagated by this theory)..
+   * Return an explanation for the literal (which was previously
+   * propagated by this theory)..
    */
   virtual Node explain(Literal) = 0;
 
