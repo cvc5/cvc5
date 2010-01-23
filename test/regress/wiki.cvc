@@ -1,0 +1,38 @@
+
+
+a, b, c : BOOLEAN;
+
+QUERY a OR (b OR c) <=> (a OR b) OR c;
+QUERY a AND (b AND c) <=> (a AND b) AND c;
+
+QUERY a OR b <=> b OR a;
+QUERY a AND b <=> b AND a;
+
+QUERY a OR (a AND b) <=> a;
+QUERY a AND (a OR b) <=> a;
+
+QUERY a OR (b AND c) <=> (a OR b) AND (a OR c);
+QUERY a AND (b OR c) <=> (a AND b) OR (a AND c);
+
+QUERY a OR NOT a;
+QUERY a AND NOT a <=> FALSE;
+
+QUERY a OR a <=> a;
+QUERY a AND a <=> a;
+
+
+QUERY a OR FALSE <=> a;
+QUERY a AND TRUE <=> a;
+
+QUERY a OR TRUE <=> TRUE;
+QUERY a AND FALSE <=> FALSE;
+
+QUERY NOT FALSE <=> TRUE;
+QUERY NOT TRUE <=> FALSE;
+
+QUERY NOT (a OR b) <=> NOT a AND NOT b;
+QUERY NOT (a AND b) <=> NOT a OR NOT b;
+
+QUERY NOT NOT a <=> a;
+
+

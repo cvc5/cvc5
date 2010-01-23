@@ -1,0 +1,12 @@
+
+
+a, b, c: BOOLEAN;
+
+QUERY (a XOR b) <=> (NOT a AND b) OR (NOT b AND a);
+
+QUERY (IF c THEN a ELSE b ENDIF) <=> (c AND a) OR (NOT c AND b);
+
+QUERY (a => b) <=> (NOT a OR b);
+
+QUERY TRUE XOR FALSE;
+ 
