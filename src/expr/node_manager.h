@@ -36,6 +36,8 @@ class NodeManager {
   Node lookup(uint64_t hash, NodeValue* e);
   NodeValue* lookupNoInsert(uint64_t hash, NodeValue* e);
 
+  friend class NodeManagerScope;
+
 public:
   static NodeManager* currentNM() { return s_current; }
 
@@ -58,7 +60,7 @@ class NodeManagerScope {
   NodeManager *d_oldNodeManager;
 
 public:
-  NodeManagerScope(const NodeManager* nm) : d_oldNodeManager(NodeManager::s_current) {
+  NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current) {
     NodeManager::s_current = nm;
   }
   ~NodeManagerScope() {
