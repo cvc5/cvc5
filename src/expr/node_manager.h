@@ -53,6 +53,19 @@ public:
   Node mkVar();
 };
 
+
+class NodeManagerScope {
+  NodeManager *d_oldNodeManager;
+
+public:
+  NodeManagerScope(const NodeManager* nm) : d_oldNodeManager(NodeManager::s_current) {
+    NodeManager::s_current = nm;
+  }
+  ~NodeManagerScope() {
+    NodeManager::s_current = d_oldNodeManager;
+  }
+};
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR_MANAGER_H */
