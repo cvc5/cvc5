@@ -118,7 +118,7 @@ private:
   ExprManager *d_public_em;
 
   /** Out internal expression/node manager */
-  NodeManager *d_em;
+  NodeManager *d_nm;
 
   /** User-level options */
   Options *d_opts;

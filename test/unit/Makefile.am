@@ -4,6 +4,8 @@ UNIT_TESTS = \
 	expr/node_black \
 	parser/parser_black
 
+TESTS_DEPENDENCIES = $(abs_top_builddir)/src/libcvc4.la $(abs_top_builddir)/src/parser/libcvc4parser.la
+
 # things that aren't tests but that tests rely on and need to
 # go into the distribution
 TEST_DEPS =

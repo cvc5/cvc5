@@ -25,6 +25,7 @@
 
 #include "cvc4_config.h"
 #include "expr/kind.h"
+#include "util/Assert.h"
 
 namespace CVC4 {
   class Node;
@@ -104,6 +105,11 @@ public:
 
   bool operator==(const Node& e) const { return d_ev == e.d_ev; }
   bool operator!=(const Node& e) const { return d_ev != e.d_ev; }
+
+  Node operator[](int i) const {
+    Assert(i >= 0 && i < d_ev->d_nchildren);
+    return Node(d_ev->d_children[i]);
+  }
 
   /**
    * We compare by expression ids so, keeping things deterministic and having

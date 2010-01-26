@@ -177,7 +177,7 @@ namespace CVC4 {
 namespace expr {
 
 inline Node NodeValue::node_iterator::operator*() {
-  return Node((NodeValue*) d_i);
+  return Node(*d_i);
 }
 
 }/* CVC4::expr namespace */

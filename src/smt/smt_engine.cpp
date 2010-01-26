@@ -15,37 +15,55 @@
 #include "smt/smt_engine.h"
 #include "util/exception.h"
 #include "util/command.h"
+#include "util/output.h"
+#include "expr/node_builder.h"
 
 namespace CVC4 {
 
 SmtEngine::SmtEngine(ExprManager* em, Options* opts) throw() :
-    d_public_em(em),
-    d_em(em->getNodeManager()),
-    d_opts(opts),
-    d_de(),
-    d_te(),
-    d_prop(d_de, d_te) {
-  }
+  d_assertions(),
+  d_public_em(em),
+  d_nm(em->getNodeManager()),
+  d_opts(opts),
+  d_de(),
+  d_te(),
+  d_prop(d_de, d_te) {
+}
 
 SmtEngine::~SmtEngine() {
 
 }
 
 void SmtEngine::doCommand(Command* c) {
+  NodeManagerScope nms(d_nm);
   c->invoke(this);
 }
 
 Node SmtEngine::preprocess(const Node& e) {
+  if(e.getKind() == NOT) {
+    if(e[0].getKind() == TRUE) {
+      return d_nm->mkNode(FALSE);
+    } else if(e[0].getKind() == FALSE) {
+      return d_nm->mkNode(TRUE);
+    } else if(e[0].getKind() == NOT) {
+      return preprocess(e[0][0]);
+    }
+  }
   return e;
 }
 
 Node SmtEngine::processAssertionList() {
-  Node asserts;
+  if(d_assertions.size() == 1) {
+    return d_assertions[0];
+  }
+
+  NodeBuilder<> asserts(AND);
   for(std::vector<Node>::iterator i = d_assertions.begin();
       i != d_assertions.end();
       ++i) {
-    asserts = asserts.isNull() ? *i : d_em->mkNode(AND, asserts, *i);
+    asserts << *i;
   }
+
   return asserts;
 }
 
@@ -61,25 +79,34 @@ Result SmtEngine::quickCheck() {
 }
 
 void SmtEngine::addFormula(const Node& e) {
+  Debug("smt") << "push_back assertion " << e << std::endl;
   d_assertions.push_back(e);
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
+  NodeManagerScope nms(d_nm);
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
   return check();
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
-  Node node_e = preprocess(e.getNode());
+  NodeManagerScope nms(d_nm);
+  Node node_e = preprocess(d_nm->mkNode(NOT, e.getNode()));
   addFormula(node_e);
   return check();
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
+  NodeManagerScope nms(d_nm);
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
   return quickCheck();
+}
+
+Expr SmtEngine::simplify(const Expr& e) {
+  Expr simplify(const Expr& e);
+  Unimplemented();
 }
 
 }/* CVC4 namespace */

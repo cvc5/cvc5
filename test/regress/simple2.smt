@@ -5,9 +5,9 @@
 :extrapreds ((x1))
 :extrapreds ((x2))
 :extrapreds ((x3))
-:assumption (or x1 (not x0))
 :formula
-(and (or x0 (not x3))
+(and (or x1 (not x0))
+     (or x0 (not x3))
      (or x3 x2)
      (not x1))
 )

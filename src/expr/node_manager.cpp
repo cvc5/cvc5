@@ -58,6 +58,7 @@ Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
 
       return *j;
     }
+
     // didn't find it, insert
     std::vector<Node> v;
     Node e(ev);
@@ -99,6 +100,7 @@ NodeValue* NodeManager::lookupNoInsert(uint64_t hash, NodeValue* ev) {
 
       return j->d_ev;
     }
+
     // didn't find it, don't insert
     return 0;
   }

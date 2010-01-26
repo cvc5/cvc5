@@ -55,7 +55,7 @@ public:
   // Yeting option not possible here
 
   std::ostream& operator()(const char* tag) {
-    if(d_tags.find(tag) != d_tags.end())
+    if(d_tags.find(std::string(tag)) != d_tags.end())
       return *d_os;
     else return null_os;
   }

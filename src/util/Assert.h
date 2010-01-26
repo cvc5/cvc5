@@ -113,6 +113,28 @@ public:
   }
 };/* class UnhandledCaseException */
 
+class CVC4_PUBLIC UnimplementedOperationException : public AssertionException {
+protected:
+  UnimplementedOperationException() : AssertionException() {}
+
+public:
+  UnimplementedOperationException(const char* function, const char* file,
+                                  unsigned line, const char* fmt, ...) :
+    AssertionException() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Unimplemented code encountered",
+              NULL, function, file, line, fmt, args);
+    va_end(args);
+  }
+
+  UnimplementedOperationException(const char* function, const char* file,
+                                  unsigned line) :
+    AssertionException() {
+    construct("Unimplemented code encountered", NULL, function, file, line);
+  }
+};/* class UnimplementedOperationException */
+
 class CVC4_PUBLIC IllegalArgumentException : public AssertionException {
 protected:
   IllegalArgumentException() : AssertionException() {}
@@ -172,6 +194,8 @@ public:
   throw UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define Unhandled(msg...) \
   throw UnhandledCaseException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+#define Unimplemented(msg...) \
+  throw UnimplementedOperationException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define IllegalArgument(arg, msg...) \
   throw IllegalArgumentException(#arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define CheckArgument(cond, arg, msg...)         \

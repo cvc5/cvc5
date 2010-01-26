@@ -168,6 +168,7 @@ public:
 
   NodeBuilder& append(const Node& n) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
+    Debug("prop") << "append: " << this << " " << n << "[" << n.d_ev << "]" << std::endl;
     allocateEvIfNecessaryForAppend();
     NodeValue* ev = n.d_ev;
     d_hash = NodeValue::computeHash(d_hash, ev);
@@ -364,7 +365,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder() :
   d_used(false),
   d_ev(&d_inlineEv),
   d_inlineEv(0),
-  d_childrenStorage(0) {}
+  d_childrenStorage() {}
 
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
@@ -373,9 +374,9 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
   d_used(false),
   d_ev(&d_inlineEv),
   d_inlineEv(0),
-  d_childrenStorage(0) {
+  d_childrenStorage() {
 
-  Message() << "kind " << k << std::endl;
+  //Message() << "kind " << k << std::endl;
   d_inlineEv.d_kind = k;
 }
 
@@ -386,13 +387,13 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<nchild_thresh>&
   d_used(nb.d_used),
   d_ev(&d_inlineEv),
   d_inlineEv(0),
-  d_childrenStorage(0) {
+  d_childrenStorage() {
 
   if(evIsAllocated(nb)) {
     realloc(nb->d_size, false);
-    std::copy(d_ev->begin(), nb.d_ev->begin(), nb.d_ev->end());
+    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_ev->begin());
   } else {
-    std::copy(d_inlineEv.begin(), nb.d_ev->begin(), nb.d_ev->end());
+    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_inlineEv.begin());
   }
 }
 
@@ -404,13 +405,13 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
   d_used(nb.d_used),
   d_ev(&d_inlineEv),
   d_inlineEv(0),
-  d_childrenStorage(0) {
+  d_childrenStorage() {
 
   if(nb.d_ev->d_nchildren > nchild_thresh) {
     realloc(nb.d_size, false);
-    std::copy(d_ev->begin(), nb.d_ev->begin(), nb.d_ev->end());
+    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_ev->begin());
   } else {
-    std::copy(d_inlineEv.begin(), nb.d_ev->begin(), nb.d_ev->end());
+    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_inlineEv.begin());
   }
 }
 
@@ -421,7 +422,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
   d_used(false),
   d_ev(&d_inlineEv),
   d_inlineEv(0),
-  d_childrenStorage(0) {}
+  d_childrenStorage() {}
 
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
@@ -432,7 +433,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
   d_inlineEv(0),
   d_childrenStorage() {
 
-  Message() << "kind " << k << std::endl;
+  //Message() << "kind " << k << std::endl;
   d_inlineEv.d_kind = k;
 }
 
@@ -466,9 +467,9 @@ void NodeBuilder<nchild_thresh>::realloc() {
     d_ev->d_rc = 0;
     d_ev->d_kind = d_inlineEv.d_kind;
     d_ev->d_nchildren = nchild_thresh;
-    std::copy(d_ev->d_children,
-              d_inlineEv.d_children,
-              d_inlineEv.d_children + nchild_thresh);
+    std::copy(d_inlineEv.d_children,
+              d_inlineEv.d_children + nchild_thresh,
+              d_ev->d_children);
   }
 }
 
@@ -489,9 +490,9 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
     d_ev->d_kind = d_inlineEv.d_kind;
     d_ev->d_nchildren = nchild_thresh;
     if(copy) {
-      std::copy(d_ev->d_children,
-                d_inlineEv.d_children,
-                d_inlineEv.d_children + nchild_thresh);
+      std::copy(d_inlineEv.d_children,
+                d_inlineEv.d_children + nchild_thresh,
+                d_ev->d_children);
     }
   }
 }
@@ -502,6 +503,21 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
   Assert(d_ev->d_kind != UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
 
+  if(d_ev->d_kind == VARIABLE) {
+    Assert(d_ev->d_nchildren == 0);
+    NodeValue *ev = (NodeValue*)
+      std::malloc(sizeof(NodeValue) +
+                  ( sizeof(NodeValue*) * d_inlineEv.d_nchildren ));
+    ev->d_nchildren = 0;
+    ev->d_kind = VARIABLE;
+    ev->d_id = NodeValue::next_id++;// FIXME multithreading
+    ev->d_rc = 0;
+    d_used = true;
+    d_ev = NULL;
+    Debug("prop") << "result: " << Node(ev) << std::endl;
+    return Node(ev);
+  }
+
   // implementation differs depending on whether the expression value
   // was malloc'ed or not
 
@@ -510,6 +526,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
     if(ev != NULL) {
       // expression already exists in node manager
       d_used = true;
+      Debug("prop") << "result: " << Node(ev) << std::endl;
       return Node(ev);
     }
 
@@ -520,30 +537,41 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
     // this inserts into the NodeManager;
     // return the result of lookup() in case another thread beat us to it
     d_used = true;
-    return d_nm->lookup(d_hash, ev);
+    Node n = d_nm->lookup(d_hash, ev);
+    Debug("prop") << "result: " << n << std::endl;
+    return n;
   }
 
   NodeValue *ev = d_nm->lookupNoInsert(d_hash, &d_inlineEv);
   if(ev != NULL) {
     // expression already exists in node manager
     d_used = true;
+    Debug("prop") << "result: " << Node(ev) << std::endl;
     return Node(ev);
   }
 
   // otherwise create the canonical expression value for this node
   ev = (NodeValue*)
     std::malloc(sizeof(NodeValue) +
-                ( sizeof(NodeValue*) * d_inlineEv.d_nchildren) );
-  ev->d_nchildren = d_ev->d_nchildren;
-  ev->d_kind = d_ev->d_kind;
+                ( sizeof(NodeValue*) * d_inlineEv.d_nchildren ));
+  ev->d_nchildren = d_inlineEv.d_nchildren;
+  ev->d_kind = d_inlineEv.d_kind;
   ev->d_id = NodeValue::next_id++;// FIXME multithreading
   ev->d_rc = 0;
+  std::copy(d_inlineEv.d_children,
+            d_inlineEv.d_children + d_inlineEv.d_nchildren,
+            ev->d_children);
   d_used = true;
   d_ev = NULL;
 
   // this inserts into the NodeManager;
   // return the result of lookup() in case another thread beat us to it
-  return d_nm->lookup(d_hash, ev);
+  if(ev->numChildren()) {
+    Debug("prop") << "ev first child: " << *ev->ev_begin() << std::endl;
+  }
+  Node n = d_nm->lookup(d_hash, ev);
+  Debug("prop") << "result: " << n << std::endl;
+  return n;
 }
 
 }/* CVC4 namespace */

@@ -110,7 +110,8 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
       }
 
       if(strcmp(optarg, "help")) {
-        throw OptionException(string("unknown language for --lang: `") + argv[optind] + "'.  Try --lang help.");
+        throw OptionException(string("unknown language for --lang: `") +
+                              optarg + "'.  Try --lang help.");
       }
 
       fputs(lang_help, stdout);
@@ -132,13 +133,13 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
       break;
 
     case '?':
-      throw OptionException(string("can't understand option: `") + argv[optind] + "'");
+      throw OptionException(string("can't understand option"));// + argv[optind - 1] + "'");
 
     case ':':
-      throw OptionException(string("option `") + argv[optind] + "' missing its required argument");
+      throw OptionException(string("option missing its required argument"));// + argv[optind - 1] + "' missing its required argument");
 
     default:
-      throw OptionException(string("can't understand option: `") + argv[optind] + "'");
+      throw OptionException(string("can't understand option"));//: `") + argv[optind - 1] + "'");
     }
 
   }

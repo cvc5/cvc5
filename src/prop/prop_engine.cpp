@@ -64,7 +64,13 @@ static void doAtom(SimpSolver* minisat, map<Node, Var>* vars, Node e, vec<Lit>* 
     c->push(Lit(v->second, true));
     return;
   }
-  Unhandled();
+  if(e.getKind() == OR) {
+    for(Node::iterator i = e.begin(); i != e.end(); ++i) {
+      doAtom(minisat, vars, *i, c);
+    }
+    return;
+  }
+  Unhandled(e.getKind());
 }
 
 static void doClause(SimpSolver* minisat, map<Node, Var>* vars, map<Var, Node>* varsReverse, Node e) {
@@ -72,6 +78,20 @@ static void doClause(SimpSolver* minisat, map<Node, Var>* vars, map<Var, Node>* 
   Debug("prop") << "  " << e << endl;
   if(e.getKind() == VARIABLE || e.getKind() == NOT) {
     doAtom(minisat, vars, e, &c);
+  } else if(e.getKind() == FALSE) {
+    // inconsistency
+    Notice() << "adding FALSE clause" << endl;
+    Var v = minisat->newVar();
+    c.push(Lit(v, true));
+    minisat->addClause(c);
+    Notice() << "added unit clause " << v << " [[ " << (*varsReverse)[v] << " ]]" << endl;
+    c.clear();
+    c.push(Lit(v, false));
+    minisat->addClause(c);
+    Notice() << "added unit clause -" << v << " [[ -" << (*varsReverse)[v] << " ]]" << endl;
+  } else if(e.getKind() == TRUE) {
+    Notice() << "adding TRUE clause (do nothing)" << endl;
+    // do nothing
   } else {
     Assert(e.getKind() == OR);
     for(Node::iterator i = e.begin(); i != e.end(); ++i) {
@@ -101,7 +121,7 @@ void PropEngine::solve(Node e) {
   d_sat.verbosity = 1;
   bool result = d_sat.solve();
 
-  Notice() << "result is " << (result ? "sat" : "unsat") << endl;
+  Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
   if(result) {
     Notice() << "model:" << endl;
     for(int i = 0; i < d_sat.model.size(); ++i)
