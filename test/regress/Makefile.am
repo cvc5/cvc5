@@ -33,5 +33,6 @@ TESTS = \
 	bmc-ibm-12.smt \
 	bmc-ibm-13.smt \
 	wiki.cvc \
-	logops.cvc
+	logops.cvc \
+	comb2.shuffled-as.sat03-420.smt
 
