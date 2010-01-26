@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "expr/expr.h"
 #include "expr/node_manager.h"
+#include "expr/node_builder.h"
 #include "expr/expr_manager.h"
 #include "util/result.h"
 #include "util/model.h"
@@ -164,6 +165,10 @@ private:
    */
   Node processAssertionList();
 
+  /**
+   * Helper method for CNF preprocessing.  CNF-converts an OR.
+   */
+  void orHelper(Node::iterator p, Node::iterator end, NodeBuilder<>& result);
 
 };/* class SmtEngine */
 

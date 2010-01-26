@@ -29,6 +29,7 @@
 #include "kind.h"
 
 #include <string>
+#include <iterator>
 
 namespace CVC4 {
 
@@ -142,6 +143,12 @@ class NodeValue {
     node_iterator operator++(int) {
       return node_iterator(d_i++);
     }
+
+    typedef std::input_iterator_tag iterator_category;
+    typedef Node value_type;
+    typedef ptrdiff_t difference_type;
+    typedef Node* pointer;
+    typedef Node& reference;
   };
   typedef node_iterator const_node_iterator;
 

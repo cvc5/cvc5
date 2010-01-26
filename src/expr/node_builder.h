@@ -390,7 +390,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<nchild_thresh>&
   d_childrenStorage() {
 
   if(evIsAllocated(nb)) {
-    realloc(nb->d_size, false);
+    realloc(nb.d_size, false);
     std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_ev->begin());
   } else {
     std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_inlineEv.begin());

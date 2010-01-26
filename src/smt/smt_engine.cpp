@@ -31,7 +31,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* opts) throw() :
 }
 
 SmtEngine::~SmtEngine() {
-
 }
 
 void SmtEngine::doCommand(Command* c) {
@@ -39,16 +38,95 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
+void SmtEngine::orHelper(Node::iterator p, Node::iterator end, NodeBuilder<>& result) {
+  if(p == end) {
+    return;
+  } else if((*p).getKind() == AND) {
+    NodeBuilder<> resultPrefix = result;
+    result = NodeBuilder<>(AND);
+
+    for(Node::iterator i = (*p).begin(); i != (*p).end(); ++i) {
+      NodeBuilder<> r = resultPrefix;
+
+      r << preprocess(*i);
+      Node::iterator p2 = p;
+      orHelper(++p2, end, r);
+
+      result << r;
+    }
+  } else {
+    result << preprocess(*p);
+  }
+}
+
 Node SmtEngine::preprocess(const Node& e) {
   if(e.getKind() == NOT) {
+    // short-circuit trivial NOTs
     if(e[0].getKind() == TRUE) {
       return d_nm->mkNode(FALSE);
     } else if(e[0].getKind() == FALSE) {
       return d_nm->mkNode(TRUE);
     } else if(e[0].getKind() == NOT) {
       return preprocess(e[0][0]);
+    } else {
+      Node f = preprocess(e[0]);
+      // push NOTs inside of ANDs and ORs
+      if(f.getKind() == AND) {
+        NodeBuilder<> n(OR);
+        for(Node::iterator i = f.begin(); i != f.end(); ++i) {
+          if((*i).getKind() == NOT) {
+            n << (*i)[0];
+          } else {
+            n << d_nm->mkNode(NOT, *i);
+          }
+        }
+        return n;
+      }
+      if(f.getKind() == OR) {
+        NodeBuilder<> n(AND);
+        for(Node::iterator i = f.begin(); i != f.end(); ++i) {
+          if((*i).getKind() == NOT) {
+            n << (*i)[0];
+          } else {
+            n << d_nm->mkNode(NOT, *i);
+          }
+        }
+        return n;
+      }
     }
+  } else if(e.getKind() == AND) {
+    NodeBuilder<> n(AND);
+    // flatten ANDs
+    for(Node::iterator i = e.begin(); i != e.end(); ++i) {
+      Node f = preprocess(*i);
+      if((*i).getKind() == AND) {
+        for(Node::iterator j = f.begin(); j != f.end(); ++j) {
+          n << *j;
+        }
+      } else {
+        n << *i;        
+      }
+    }
+    return n;
+  } else if(e.getKind() == OR) {
+    NodeBuilder<> n(OR);
+    // flatten ORs
+    for(Node::iterator i = e.begin(); i != e.end(); ++i) {
+      if((*i).getKind() == OR) {
+        Node f = preprocess(*i);
+        for(Node::iterator j = f.begin(); j != f.end(); ++j) {
+          n << *j;
+        }
+      }
+    }
+
+    Node nod = n;
+    NodeBuilder<> m(OR);
+    orHelper(nod.begin(), nod.end(), m);
+
+    return m;
   }
+
   return e;
 }
 
