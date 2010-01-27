@@ -34,6 +34,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+TESTS =
 subdir = test/system
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -192,11 +193,28 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-TESTS_ENVIRONMENT = @top_builddir@/bin/cvc4
-TESTS = \
-	simple.cvc \
-	simple.smt \
-	bug1.cvc
+TESTS_ENVIRONMENT = 
+
+# Things that aren't tests but that tests rely on and need to
+# go into the distribution
+TEST_DEPS_DIST = 
+
+# Make-level dependencies; these don't go in the source distribution
+# but should trigger a re-compile of all unit tests.  Libraries are
+# included here because (1) if static-linking, the tests must be
+# relinked, and (2) if they've changed that means the sources changed,
+# and that means we should ensure the tests compile against any
+# changes made in the header files.
+TEST_DEPS_NODIST = \
+	$(abs_top_builddir)/src/libcvc4.la \
+	$(abs_top_builddir)/src/parser/libcvc4parser.la
+
+TEST_DEPS = \
+	$(TEST_DEPS_DIST) \
+	$(TEST_DEPS_NODIST)
+
+EXTRA_DIST = \
+	$(TEST_DEPS_DIST)
 
 all: all-am
 
@@ -476,6 +494,9 @@ uninstall-am:
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	uninstall uninstall-am
 
+
+# rebuild tests if a library changes
+$(TESTS):: $(TEST_DEPS)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

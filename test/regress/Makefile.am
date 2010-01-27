@@ -35,4 +35,3 @@ TESTS = \
 	wiki.cvc \
 	logops.cvc \
 	comb2.shuffled-as.sat03-420.smt
-

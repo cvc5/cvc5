@@ -1,14 +1,28 @@
-# all unit tests
+# All unit tests
 UNIT_TESTS = \
 	expr/node_white \
 	expr/node_black \
 	parser/parser_black
 
-TESTS_DEPENDENCIES = $(abs_top_builddir)/src/libcvc4.la $(abs_top_builddir)/src/parser/libcvc4parser.la
-
-# things that aren't tests but that tests rely on and need to
+# Things that aren't tests but that tests rely on and need to
 # go into the distribution
-TEST_DEPS =
+TEST_DEPS_DIST =
+
+# Make-level dependencies; these don't go in the source distribution
+# but should trigger a re-compile of all unit tests.  Libraries are
+# included here because (1) if static-linking, the tests must be
+# relinked, and (2) if they've changed that means the sources changed,
+# and that means we should ensure the tests compile against any
+# changes made in the header files.
+TEST_DEPS_NODIST = \
+	$(abs_top_builddir)/src/libcvc4.la \
+	$(abs_top_builddir)/src/parser/libcvc4parser.la
+
+TEST_DEPS = \
+	$(TEST_DEPS_DIST) \
+	$(TEST_DEPS_NODIST)
+
+@mk_include@ @srcdir@/Makefile.tests
 
 if HAVE_CXXTESTGEN
 
@@ -34,7 +48,7 @@ TESTS = $(UNIT_TESTS)
 
 EXTRA_DIST = \
 	no_cxxtest \
-	$(TEST_DEPS)
+	$(TEST_DEPS_DIST)
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
 noinst_LTLIBRARIES = libdummy.la
@@ -44,13 +58,13 @@ libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 $(TESTS:%=%.cpp): %.cpp: %.h
 	mkdir -p `dirname "$@"`
 	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
-$(filter %_white,$(TESTS)): %_white: %_white.cpp
+$(WHITE_TESTS): %_white: %_white.cpp $(TEST_DEPS)
 	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
 	$(CXXLINK) $(AM_LDFLAGS_WHITE) $@.lo
-$(filter %_black,$(TESTS)): %_black: %_black.cpp
+$(BLACK_TESTS): %_black: %_black.cpp $(TEST_DEPS)
 	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
 	$(CXXLINK) $(AM_LDFLAGS_BLACK) $@.lo
-$(filter %_public,$(TESTS)): %_public: %_public.cpp
+$(PUBLIC_TESTS): %_public: %_public.cpp $(TEST_DEPS)
 	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
 	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
@@ -63,6 +77,6 @@ TESTS = no_cxxtest
 
 EXTRA_DIST = \
 	$(UNIT_TESTS) \
-	$(TEST_DEPS)
+	$(TEST_DEPS_DIST)
 
 endif

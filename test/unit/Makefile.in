@@ -216,17 +216,31 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
-# all unit tests
+# All unit tests
 UNIT_TESTS = \
 	expr/node_white \
 	expr/node_black \
 	parser/parser_black
 
-TESTS_DEPENDENCIES = $(abs_top_builddir)/src/libcvc4.la $(abs_top_builddir)/src/parser/libcvc4parser.la
 
-# things that aren't tests but that tests rely on and need to
+# Things that aren't tests but that tests rely on and need to
 # go into the distribution
-TEST_DEPS = 
+TEST_DEPS_DIST = 
+
+# Make-level dependencies; these don't go in the source distribution
+# but should trigger a re-compile of all unit tests.  Libraries are
+# included here because (1) if static-linking, the tests must be
+# relinked, and (2) if they've changed that means the sources changed,
+# and that means we should ensure the tests compile against any
+# changes made in the header files.
+TEST_DEPS_NODIST = \
+	$(abs_top_builddir)/src/libcvc4.la \
+	$(abs_top_builddir)/src/parser/libcvc4parser.la
+
+TEST_DEPS = \
+	$(TEST_DEPS_DIST) \
+	$(TEST_DEPS_NODIST)
+
 @HAVE_CXXTESTGEN_TRUE@AM_CPPFLAGS = \
 @HAVE_CXXTESTGEN_TRUE@	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
 @HAVE_CXXTESTGEN_TRUE@	$(TEST_CPPFLAGS)
@@ -253,11 +267,11 @@ TEST_DEPS =
 @HAVE_CXXTESTGEN_TRUE@TESTS = $(UNIT_TESTS)
 @HAVE_CXXTESTGEN_FALSE@EXTRA_DIST = \
 @HAVE_CXXTESTGEN_FALSE@	$(UNIT_TESTS) \
-@HAVE_CXXTESTGEN_FALSE@	$(TEST_DEPS)
+@HAVE_CXXTESTGEN_FALSE@	$(TEST_DEPS_DIST)
 
 @HAVE_CXXTESTGEN_TRUE@EXTRA_DIST = \
 @HAVE_CXXTESTGEN_TRUE@	no_cxxtest \
-@HAVE_CXXTESTGEN_TRUE@	$(TEST_DEPS)
+@HAVE_CXXTESTGEN_TRUE@	$(TEST_DEPS_DIST)
 
 
 # without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
@@ -646,16 +660,18 @@ uninstall-am:
 	tags uninstall uninstall-am
 
 
+@mk_include@ @srcdir@/Makefile.tests
+
 @HAVE_CXXTESTGEN_TRUE@$(TESTS:%=%.cpp): %.cpp: %.h
 @HAVE_CXXTESTGEN_TRUE@	mkdir -p `dirname "$@"`
 @HAVE_CXXTESTGEN_TRUE@	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
-@HAVE_CXXTESTGEN_TRUE@$(filter %_white,$(TESTS)): %_white: %_white.cpp
+@HAVE_CXXTESTGEN_TRUE@$(WHITE_TESTS): %_white: %_white.cpp $(TEST_DEPS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_WHITE) $@.lo
-@HAVE_CXXTESTGEN_TRUE@$(filter %_black,$(TESTS)): %_black: %_black.cpp
+@HAVE_CXXTESTGEN_TRUE@$(BLACK_TESTS): %_black: %_black.cpp $(TEST_DEPS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_BLACK) $@.lo
-@HAVE_CXXTESTGEN_TRUE@$(filter %_public,$(TESTS)): %_public: %_public.cpp
+@HAVE_CXXTESTGEN_TRUE@$(PUBLIC_TESTS): %_public: %_public.cpp $(TEST_DEPS)
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
