@@ -1,3 +1,5 @@
+TESTS := $(filter $(TEST_PREFIX)%,$(TESTS))
+
 WHITE_TESTS = $(filter %_white,$(TESTS))
 BLACK_TESTS = $(filter %_black,$(TESTS))
 PUBLIC_TESTS = $(filter %_public,$(TESTS))

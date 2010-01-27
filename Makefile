@@ -13,3 +13,7 @@ all %:
 		echo 'Run configure first, or type "make" in a configured build directory.'; \
 		echo; \
 	fi
+
+# synonyms for "check"
+.PHONY: regress regress0 regress1 regress2 regress3 test
+regress regress0 regress1 regress2 regress3 test: check

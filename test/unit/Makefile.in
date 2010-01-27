@@ -675,6 +675,10 @@ uninstall-am:
 @HAVE_CXXTESTGEN_TRUE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
 @HAVE_CXXTESTGEN_TRUE@	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
+# synonyms for "check"
+.PHONY: regress regress0 regress1 regress2 regress3 test
+regress regress0 regress1 regress2 regress3 test: check
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

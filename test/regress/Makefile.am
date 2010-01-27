@@ -35,3 +35,7 @@ TESTS = \
 	wiki.cvc \
 	logops.cvc \
 	comb2.shuffled-as.sat03-420.smt
+
+# synonyms for "check"
+.PHONY: regress regress0 regress1 regress2 regress3 test
+regress regress0 regress1 regress2 regress3 test: check

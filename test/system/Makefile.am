@@ -24,3 +24,7 @@ EXTRA_DIST = \
 
 # rebuild tests if a library changes
 $(TESTS):: $(TEST_DEPS)
+
+# synonyms for "check"
+.PHONY: regress regress0 regress1 regress2 regress3 test
+regress regress0 regress1 regress2 regress3 test: check

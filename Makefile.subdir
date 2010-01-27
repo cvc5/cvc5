@@ -1,6 +1,8 @@
 # -*-makefile-*-
 include $(topdir)/builds/current
 builddir = $(topdir)/builds/$(CURRENT_BUILD)/$(srcdir)
+unittestdir = $(topdir)/builds/$(CURRENT_BUILD)/test/unit
+unittestprefix = $(srcdir:src/%=%)
 
 .PHONY: _default_build_ all
 _default_build_: all
@@ -15,3 +17,21 @@ all %:
 		echo 'Run configure first, or type "make" in a configured build directory.'; \
 		echo; \
 	fi
+
+.PHONY: check
+check:
+	@if test -e $(unittestdir); then \
+		echo cd $(unittestdir); \
+		cd $(unittestdir); \
+		echo $(MAKE) TEST_PREFIX=$(unittestprefix)/ $@; \
+		$(MAKE) TEST_PREFIX=$(unittestprefix)/ $@; \
+	else \
+		echo; \
+		echo "** ERROR: could not find unit testing dir \`$(unittestdir)'"; \
+		echo; \
+		exit 1; \
+	fi
+
+# synonyms for "check"
+.PHONY: regress regress0 regress1 regress2 regress3 test
+regress regress0 regress1 regress2 regress3 test: check
