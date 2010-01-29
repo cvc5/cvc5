@@ -129,9 +129,9 @@ void ContextObj::update() {
 
   // Check that base class data was saved
   Assert(pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
-         pContextObjSaved.d_ppContextObjPrev == d_ppContextObjPrev &&
-         pContextObjSaved.d_pContextObjRestore == d_pContextObjRestore &&
-         pContextObjSaved.d_pScope == d_pScope,
+         pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev &&
+         pContextObjSaved->d_pContextObjRestore == d_pContextObjRestore &&
+         pContextObjSaved->d_pScope == d_pScope,
          "save() did not properly copy information in base class");
 
   // Update Scope pointer to current top Scope
