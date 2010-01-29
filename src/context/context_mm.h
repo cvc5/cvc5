@@ -34,9 +34,9 @@ namespace context {
 class ContextMemoryManager {
 
   /**
-   * Memory in regions is allocated in chunks.  This is the minimum chunk size
+   * Memory in regions is allocated in chunks.  This is the chunk size
    */
-  static const unsigned chunkSizeBytes = 16384; // #bytes in each chunk
+  static const unsigned chunkSizeBytes = 16384;
 
   /**
    * A list of free chunks is maintained.  This is the maximum number of

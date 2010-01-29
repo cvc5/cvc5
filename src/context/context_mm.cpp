@@ -119,5 +119,7 @@ void ContextMemoryManager::pop() {
 }
 
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+} /* CVC4::context namespace */
+
+
+} /* CVC4 namespace */
