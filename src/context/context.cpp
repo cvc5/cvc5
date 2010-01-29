@@ -128,10 +128,10 @@ void ContextObj::update() {
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
 
   // Check that base class data was saved
-  Assert(saved.d_pContextObjNext == d_pContextObjNext &&
-         saved.d_ppContextObjPrev == d_ppContextObjPrev &&
-         saved.d_pContextObjRestore == d_pContextObjRestore &&
-         saved.d_pScope == d_pScope,
+  Assert(pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
+         pContextObjSaved.d_ppContextObjPrev == d_ppContextObjPrev &&
+         pContextObjSaved.d_pContextObjRestore == d_pContextObjRestore &&
+         pContextObjSaved.d_pScope == d_pScope,
          "save() did not properly copy information in base class");
 
   // Update Scope pointer to current top Scope
