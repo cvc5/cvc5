@@ -17,6 +17,9 @@
 #ifndef __CVC4__CONTEXT__CONTEXT_MM_H
 #define __CVC4__CONTEXT__CONTEXT_MM_H
 
+#include <vector>
+#include <deque>
+
 namespace CVC4 {
 namespace context {
 

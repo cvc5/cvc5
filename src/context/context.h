@@ -16,6 +16,8 @@
 #ifndef __CVC4__CONTEXT__CONTEXT_H
 #define __CVC4__CONTEXT__CONTEXT_H
 
+#include "context/context_mm.h"
+
 namespace CVC4 {
 namespace context {
 
@@ -182,7 +184,7 @@ public:
    */
   Scope(Context* pContext, ContextMemoryManager* pCMM,
         Scope* pScopePrev = NULL)
-    : d_pContext(context), d_pCMM(pCMM), d_pScopePrev(pScopePrev),
+    : d_pContext(pContext), d_pCMM(pCMM), d_pScopePrev(pScopePrev),
       d_level(0), d_pContextObjList(NULL)
     { if (pScopePrev != NULL) d_level = pScopePrev->getLevel() + 1; }
 
@@ -237,7 +239,7 @@ public:
    * ContextMemoryManager.  No need to do anything because memory is freed
    * automatically when the ContextMemoryManager pop() method is called.
    */
-  void operator delete(void* pMem, ContextMemoryManager* pCMM) {}
+  void operator delete(void* pMem) {}
 
   //FIXME:  //! Check for memory leaks
   //  void check(void);
@@ -374,7 +376,7 @@ class ContextNotifyObj {
    * Context is our friend so that when the Context is deleted, any remaining
    * ContextNotifyObj can be removed from the Context list.
    */
-  friend Context;
+  friend class Context;
 
   /**
    * Pointer to next ContextNotifyObject in this List
@@ -385,6 +387,18 @@ class ContextNotifyObj {
    * Pointer to previous ContextNotifyObject in this list
    */
   ContextNotifyObj** d_ppCNOprev;
+
+  /**
+   * Return reference to next link in ContextNotifyObj list.  Used by
+   * Context::addNotifyObj methods.
+   */
+  ContextNotifyObj*& next() { return d_pCNOnext; }
+
+  /**
+   * Return reference to prev link in ContextNotifyObj list.  Used by
+   * Context::addNotifyObj methods.
+   */
+  ContextNotifyObj**& prev() { return d_ppCNOprev; }
 
 public:
   /**
@@ -412,7 +426,7 @@ public:
 
 inline int Context::getLevel() const { return getTopScope()->getLevel(); }
 
-inline void Scope::~Scope() {
+inline Scope::~Scope() {
   // Call restore() method on each ContextObj object in the list.
   // Note that it is the responsibility of restore() to return the next item in
   // the list.
@@ -421,7 +435,7 @@ inline void Scope::~Scope() {
   }
 }
 
-inline void Scope::addToChain(ContextObjChain* pContextObj) {
+inline void Scope::addToChain(ContextObj* pContextObj) {
   if(d_pContextObjList != NULL)
     d_pContextObjList->prev() = &(pContextObj->next());
   pContextObj->next() = d_pContextObjList;

@@ -21,12 +21,12 @@ namespace CVC4 {
 namespace context {
 
 
-Context::Context() : d_pContextNotifyObj(NULL) {
+Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
   // Create new memory manager
   d_pCMM = new ContextMemoryManager();
 
   // Create initial Scope
-  d_pScopeTop = new(cmm) Scope(this, cmm);
+  d_pScopeTop = new(d_pCMM) Scope(this, d_pCMM);
   d_pScopeBottom = d_pScopeTop;
 }
 
@@ -43,13 +43,13 @@ Context::~Context() {
   while (d_pCNOpre != NULL) {
     pCNO = d_pCNOpre;
     pCNO->d_ppCNOprev = NULL;
-    d_pContextNotifyObj = pCNO->d_pCNOnext;
+    d_pCNOpre = pCNO->d_pCNOnext;
     pCNO->d_pCNOnext = NULL;
   }
   while (d_pCNOpost != NULL) {
     pCNO = d_pCNOpost;
     pCNO->d_ppCNOprev = NULL;
-    d_pContextNotifyObj = pCNO->d_pCNOnext;
+    d_pCNOpost = pCNO->d_pCNOnext;
     pCNO->d_pCNOnext = NULL;
   }
 }
@@ -68,7 +68,7 @@ void Context::push() {
 
 void Context::pop() {
   // Notify the (pre-pop) ContextNotifyObj objects
-  ContextNotifyObj* pCNO = d_pCNOPre;
+  ContextNotifyObj* pCNO = d_pCNOpre;
   while (pCNO != NULL) {
     pCNO->notify();
     pCNO = pCNO->d_pCNOnext;
@@ -81,13 +81,13 @@ void Context::pop() {
   d_pScopeTop = pScope->getScopePrev();
 
   // Restore all objects in the top Scope
-  delete(d_pCMM) pScope;
+  delete pScope;
 
   // Pop the memory region
   d_pCMM->pop();
 
   // Notify the (post-pop) ContextNotifyObj objects
-  ContextNotifyObj* pCNO = d_pCNOPost;
+  pCNO = d_pCNOpost;
   while (pCNO != NULL) {
     pCNO->notify();
     pCNO = pCNO->d_pCNOnext;
@@ -99,7 +99,7 @@ void Context::pop() {
 
 void Context::popto(int toLevel) {
   // Pop scopes until there are none left or toLevel is reached
-  while (d_pScopeTop != NULL && toLevel < d_pScopeTop()->getLevel()) pop();
+  while (d_pScopeTop != NULL && toLevel < d_pScopeTop->getLevel()) pop();
 }
 
 
@@ -168,7 +168,7 @@ ContextObj* ContextObj::restoreAndContinue()
     // Restore the base class data
     d_pScope = d_pContextObjRestore->d_pScope;
     next() = d_pContextObjRestore->d_pContextObjNext;
-    prev() = d_pContextObjRestore->d_pContextObjPrev;
+    prev() = d_pContextObjRestore->d_ppContextObjPrev;
     d_pContextObjRestore = d_pContextObjRestore->d_pContextObjRestore;
   }
   // Return the next object in the list
@@ -198,7 +198,7 @@ ContextObj::~ContextObj()
 }
 
 
-ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify = false) {
+ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify) {
   if (preNotify) {
     pContext->addNotifyObjPre(this);
   }
@@ -211,10 +211,10 @@ ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify = false) {
 ContextNotifyObj::~ContextNotifyObj()
 {
   if (d_pCNOnext != NULL) {
-    d_pCNOnext->d_pCNOprev = d_pCNOprev;
+    d_pCNOnext->d_ppCNOprev = d_ppCNOprev;
   }
-  if (d_pCNOprev != NULL) {
-    *(d_pCNOprev) = d_pCNOnext;
+  if (d_ppCNOprev != NULL) {
+    *(d_ppCNOprev) = d_pCNOnext;
   }
 }
 
