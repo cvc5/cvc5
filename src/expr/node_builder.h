@@ -36,6 +36,9 @@ namespace CVC4 {
 
 namespace CVC4 {
 
+template <unsigned nchild_thresh>
+inline std::ostream& operator<<(std::ostream&, const NodeBuilder<nchild_thresh>&);
+
 class AndNodeBuilder;
 class OrNodeBuilder;
 class PlusNodeBuilder;
@@ -122,6 +125,10 @@ public:
     return d_ev->ev_end();
   }
 
+  unsigned getNumChildren() const {
+    return d_ev->getNumChildren();
+  }
+
   // Compound expression constructors
   /*
   NodeBuilder& eqExpr(const Node& right);
@@ -188,6 +195,10 @@ public:
 
   // not const
   operator Node();
+
+  inline void toStream(std::ostream& out) const {
+    d_ev->toStream(out);
+  }
 
   /*
   AndNodeBuilder   operator&&(Node);
@@ -440,7 +451,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
   Assert(d_used, "NodeBuilder unused at destruction");
-  
+
   return;
   /*
   for(iterator i = d_ev->ev_begin();
@@ -566,12 +577,19 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
 
   // this inserts into the NodeManager;
   // return the result of lookup() in case another thread beat us to it
-  if(ev->numChildren()) {
+  if(ev->getNumChildren()) {
     Debug("prop") << "ev first child: " << *ev->ev_begin() << std::endl;
   }
   Node n = d_nm->lookup(d_hash, ev);
   Debug("prop") << "result: " << n << std::endl;
   return n;
+}
+
+template <unsigned nchild_thresh>
+inline std::ostream& operator<<(std::ostream& out,
+                                const NodeBuilder<nchild_thresh>& b) {
+  b.toStream(out);
+  return out;
 }
 
 }/* CVC4 namespace */

@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include "parser/parser.h"
+#include "smt/cnf_conversion.h"
 
 namespace CVC4 {
 
@@ -38,18 +39,11 @@ struct Options {
   /* with 3, the solver is slowed down by all the scrolling */
   int verbosity;
 
-  /** The input language option */
-  enum InputLanguage {
-    /** The SMTLIB input language */
-    LANG_SMTLIB,
-    /** The CVC4 input language */
-    LANG_CVC4,
-    /** Auto-detect the language */
-    LANG_AUTO
-  };
-
   /** The input language */
   parser::Parser::InputLanguage lang;
+
+  /** The CNF conversion */
+  CVC4::CnfConversion d_cnfConversion;
 
   Options() : binary_name(),
               smtcomp_mode(false),
@@ -57,7 +51,8 @@ struct Options {
               out(0),
               err(0),
               verbosity(0),
-              lang(parser::Parser::LANG_AUTO)
+              lang(parser::Parser::LANG_AUTO),
+              d_cnfConversion(CVC4::CNF_DIRECT_EXPONENTIAL)
   {}
 };/* struct Options */
 

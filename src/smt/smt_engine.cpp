@@ -22,12 +22,13 @@ namespace CVC4 {
 
 SmtEngine::SmtEngine(ExprManager* em, Options* opts) throw() :
   d_assertions(),
-  d_public_em(em),
+  d_publicEm(em),
   d_nm(em->getNodeManager()),
   d_opts(opts),
   d_de(),
   d_te(),
-  d_prop(d_de, d_te) {
+  d_prop(d_de, d_te),
+  d_cnfConverter(d_nm, opts->d_cnfConversion) {
 }
 
 SmtEngine::~SmtEngine() {
@@ -38,95 +39,7 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
-void SmtEngine::orHelper(Node::iterator p, Node::iterator end, NodeBuilder<>& result) {
-  if(p == end) {
-    return;
-  } else if((*p).getKind() == AND) {
-    NodeBuilder<> resultPrefix = result;
-    result = NodeBuilder<>(AND);
-
-    for(Node::iterator i = (*p).begin(); i != (*p).end(); ++i) {
-      NodeBuilder<> r = resultPrefix;
-
-      r << preprocess(*i);
-      Node::iterator p2 = p;
-      orHelper(++p2, end, r);
-
-      result << r;
-    }
-  } else {
-    result << preprocess(*p);
-  }
-}
-
 Node SmtEngine::preprocess(const Node& e) {
-  if(e.getKind() == NOT) {
-    // short-circuit trivial NOTs
-    if(e[0].getKind() == TRUE) {
-      return d_nm->mkNode(FALSE);
-    } else if(e[0].getKind() == FALSE) {
-      return d_nm->mkNode(TRUE);
-    } else if(e[0].getKind() == NOT) {
-      return preprocess(e[0][0]);
-    } else {
-      Node f = preprocess(e[0]);
-      // push NOTs inside of ANDs and ORs
-      if(f.getKind() == AND) {
-        NodeBuilder<> n(OR);
-        for(Node::iterator i = f.begin(); i != f.end(); ++i) {
-          if((*i).getKind() == NOT) {
-            n << (*i)[0];
-          } else {
-            n << d_nm->mkNode(NOT, *i);
-          }
-        }
-        return n;
-      }
-      if(f.getKind() == OR) {
-        NodeBuilder<> n(AND);
-        for(Node::iterator i = f.begin(); i != f.end(); ++i) {
-          if((*i).getKind() == NOT) {
-            n << (*i)[0];
-          } else {
-            n << d_nm->mkNode(NOT, *i);
-          }
-        }
-        return n;
-      }
-    }
-  } else if(e.getKind() == AND) {
-    NodeBuilder<> n(AND);
-    // flatten ANDs
-    for(Node::iterator i = e.begin(); i != e.end(); ++i) {
-      Node f = preprocess(*i);
-      if((*i).getKind() == AND) {
-        for(Node::iterator j = f.begin(); j != f.end(); ++j) {
-          n << *j;
-        }
-      } else {
-        n << *i;        
-      }
-    }
-    return n;
-  } else if(e.getKind() == OR) {
-    NodeBuilder<> n(OR);
-    // flatten ORs
-    for(Node::iterator i = e.begin(); i != e.end(); ++i) {
-      if((*i).getKind() == OR) {
-        Node f = preprocess(*i);
-        for(Node::iterator j = f.begin(); j != f.end(); ++j) {
-          n << *j;
-        }
-      }
-    }
-
-    Node nod = n;
-    NodeBuilder<> m(OR);
-    orHelper(nod.begin(), nod.end(), m);
-
-    return m;
-  }
-
   return e;
 }
 
@@ -142,16 +55,55 @@ Node SmtEngine::processAssertionList() {
     asserts << *i;
   }
 
-  return asserts;
+  d_assertions.clear();
+  d_assertions.push_back(asserts);
+  return d_assertions[0];
+}
+
+static void printAST(std::ostream& out, const Node& n, int indent = 0) {
+  for(int i = 0; i < indent; ++i) {
+    out << "  ";
+  }
+  if(n.getKind() == VARIABLE) {
+    out << "(VARIABLE " << n.getId();
+  } else {
+    out << "(" << n.getKind();
+    if(n.getNumChildren() > 0) {
+      out << std::endl;
+    }
+    for(Node::iterator i = n.begin(); i != n.end(); ++i) {
+      printAST(out, *i, indent + 1);
+    }
+    if(n.getNumChildren() > 0) {
+      for(int i = 0; i < indent; ++i) {
+        out << "  ";
+      }
+    }
+  }
+  out << ")" << std::endl;
 }
 
 Result SmtEngine::check() {
+  Debug("smt") << "SMT check()" << std::endl;
   Node asserts = processAssertionList();
-  d_prop.solve(asserts);
+
+  // CNF conversion
+  Debug("cnf") << "preprocessing " << asserts << std::endl;
+  Node assertsOut = d_cnfConverter.convert(asserts);
+  Debug("cnf") << "      and got " << assertsOut << std::endl;
+
+  Debug("smt") << "BEFORE CONVERSION ==" << std::endl;
+  printAST(Debug("smt"), asserts);
+  Debug("smt") << "AFTER CONVERSION ==" << std::endl;
+  printAST(Debug("smt"), assertsOut);
+  Debug("smt") << "===================" << std::endl;
+
+  d_prop.solve(assertsOut);
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
 Result SmtEngine::quickCheck() {
+  Debug("smt") << "SMT quickCheck()" << std::endl;
   processAssertionList();
   return Result(Result::VALIDITY_UNKNOWN);
 }
@@ -162,6 +114,7 @@ void SmtEngine::addFormula(const Node& e) {
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
+  Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
   NodeManagerScope nms(d_nm);
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
@@ -169,6 +122,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
+  Debug("smt") << "SMT query(" << e << ")" << std::endl;
   NodeManagerScope nms(d_nm);
   Node node_e = preprocess(d_nm->mkNode(NOT, e.getNode()));
   addFormula(node_e);
@@ -176,6 +130,7 @@ Result SmtEngine::query(const BoolExpr& e) {
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
+  Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
   NodeManagerScope nms(d_nm);
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
@@ -183,6 +138,7 @@ Result SmtEngine::assertFormula(const BoolExpr& e) {
 }
 
 Expr SmtEngine::simplify(const Expr& e) {
+  Debug("smt") << "SMT simplify(" << e << ")" << std::endl;
   Expr simplify(const Expr& e);
   Unimplemented();
 }

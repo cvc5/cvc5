@@ -104,7 +104,7 @@ public:
    * Returns the number of children of this expression.
    * @return the number of children
    */
-  size_t numChildren() const;
+  size_t getNumChildren() const;
 
   /**
    * Returns the string representation of the expression.

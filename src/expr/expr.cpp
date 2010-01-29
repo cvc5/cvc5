@@ -85,9 +85,9 @@ Kind Expr::getKind() const {
   return d_node->getKind();
 }
 
-size_t Expr::numChildren() const {
+size_t Expr::getNumChildren() const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->numChildren();
+  return d_node->getNumChildren();
 }
 
 std::string Expr::toString() const {

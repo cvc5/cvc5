@@ -234,7 +234,7 @@ public:
     
 
     TS_ASSERT(EQUAL == eq.getKind());
-    TS_ASSERT(2     == eq.numChildren());
+    TS_ASSERT(2     == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -247,7 +247,7 @@ public:
     Node parent = child.notExpr();
 
     TS_ASSERT(NOT == parent.getKind());
-    TS_ASSERT(1   == parent.numChildren());
+    TS_ASSERT(1   == parent.getNumChildren());
 
     TS_ASSERT(*(parent.begin()) == child);
     
@@ -261,7 +261,7 @@ public:
     
 
     TS_ASSERT(AND == eq.getKind());
-    TS_ASSERT(2   == eq.numChildren());
+    TS_ASSERT(2   == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -277,7 +277,7 @@ public:
     
 
     TS_ASSERT(OR  == eq.getKind());
-    TS_ASSERT(2   == eq.numChildren());
+    TS_ASSERT(2   == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -294,7 +294,7 @@ public:
     
 
     TS_ASSERT(ITE  == ite.getKind());
-    TS_ASSERT(3    == ite.numChildren());
+    TS_ASSERT(3    == ite.getNumChildren());
 
     TS_ASSERT(*(ite.begin()) == cnd);
     TS_ASSERT(*(++ite.begin()) == thenBranch);
@@ -310,7 +310,7 @@ public:
     
 
     TS_ASSERT(IFF == eq.getKind());
-    TS_ASSERT(2   == eq.numChildren());
+    TS_ASSERT(2   == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -325,7 +325,7 @@ public:
     
 
     TS_ASSERT(IMPLIES == eq.getKind());
-    TS_ASSERT(2 == eq.numChildren());
+    TS_ASSERT(2 == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -339,7 +339,7 @@ public:
     
 
     TS_ASSERT(XOR == eq.getKind());
-    TS_ASSERT(2   == eq.numChildren());
+    TS_ASSERT(2   == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
@@ -381,22 +381,22 @@ public:
       nbz << Node::null();
     }
     Node result = nbz;
-    TS_ASSERT( N == result.numChildren());
+    TS_ASSERT( N == result.getNumChildren());
   }
 
   void testNumChildren(){
-    /*inline size_t numChildren() const;*/
+    /*inline size_t getNumChildren() const;*/
 
     //test 0
-    TS_ASSERT(0 == (Node::null()).numChildren());
+    TS_ASSERT(0 == (Node::null()).getNumChildren());
 
     //test 1
 
-    TS_ASSERT(1 == (Node::null().notExpr()).numChildren());
+    TS_ASSERT(1 == (Node::null().notExpr()).getNumChildren());
 
     //test 2
 
-    TS_ASSERT(2 == (Node::null().andExpr(Node::null())).numChildren() );
+    TS_ASSERT(2 == (Node::null().andExpr(Node::null())).getNumChildren() );
 
     //Bigger tests
 

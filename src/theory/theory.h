@@ -62,12 +62,12 @@ public:
   /**
    * Assert a literal in the current context.
    */
-  virtual void assert(Literal) = 0;
+  void assert(Literal);
 
   /**
-   * Check the current assignment's consistency.  Return false iff inconsistent.
+   * Check the current assignment's consistency.
    */
-  virtual bool check(Effort level = FULL_EFFORT) = 0;
+  virtual void check(Effort level = FULL_EFFORT) = 0;
 
   /**
    * T-propagate new literal assignments in the current context.

@@ -88,7 +88,7 @@ inline std::ostream& operator<<(std::ostream& out, CVC4::Kind k) {
   case MINUS:          out << "MINUS";          break;
   case MULT:           out << "MULT";           break;
 
-  default:             out << "UNKNOWNKIND!";   break;
+  default:             out << "UNKNOWNKIND!" << int(k); break;
   }
 
   return out;

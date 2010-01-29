@@ -170,7 +170,8 @@ public:
 
   unsigned getId() const { return d_id; }
   Kind getKind() const { return (Kind) d_kind; }
-  unsigned numChildren() const { return d_nchildren; }
+  unsigned getNumChildren() const { return d_nchildren; }
+
   std::string toString() const;
   void toStream(std::ostream& out) const;
 };

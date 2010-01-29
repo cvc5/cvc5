@@ -40,7 +40,7 @@ Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
         continue;
       }
 
-      if(ev->numChildren() != j->numChildren()) {
+      if(ev->getNumChildren() != j->getNumChildren()) {
         continue;
       }
 
@@ -81,7 +81,7 @@ NodeValue* NodeManager::lookupNoInsert(uint64_t hash, NodeValue* ev) {
         continue;
       }
 
-      if(ev->numChildren() != j->numChildren()) {
+      if(ev->getNumChildren() != j->getNumChildren()) {
         continue;
       }
 

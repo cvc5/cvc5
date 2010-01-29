@@ -29,6 +29,7 @@
 #include "util/options.h"
 #include "prop/prop_engine.h"
 #include "util/decision_engine.h"
+#include "smt/cnf_converter.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -116,7 +117,7 @@ private:
   std::vector<Node> d_assertions;
 
   /** Our expression manager */
-  ExprManager *d_public_em;
+  ExprManager *d_publicEm;
 
   /** Out internal expression/node manager */
   NodeManager *d_nm;
@@ -132,6 +133,9 @@ private:
 
   /** The propositional engine */
   PropEngine d_prop;
+
+  /** The CNF converter in use */
+  CVC4::smt::CnfConverter d_cnfConverter;
 
   /**
    * Pre-process an Node.  This is expected to be highly-variable,
@@ -164,11 +168,6 @@ private:
    * literals, assert to T-solver.
    */
   Node processAssertionList();
-
-  /**
-   * Helper method for CNF preprocessing.  CNF-converts an OR.
-   */
-  void orHelper(Node::iterator p, Node::iterator end, NodeBuilder<>& result);
 
 };/* class SmtEngine */
 

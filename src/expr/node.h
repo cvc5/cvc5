@@ -120,6 +120,7 @@ public:
   Node& operator=(const Node&);
 
   uint64_t hash() const;
+  uint64_t getId() const { return d_ev->getId(); }
 
   Node eqExpr(const Node& right) const;
   Node notExpr() const;
@@ -136,7 +137,7 @@ public:
 
   inline Kind getKind() const;
 
-  inline size_t numChildren() const;
+  inline size_t getNumChildren() const;
 
   static Node null();
 
@@ -165,9 +166,7 @@ inline bool Node::operator<(const Node& e) const {
   return d_ev->d_id < e.d_ev->d_id;
 }
 
-inline std::ostream& 
-
-operator<<(std::ostream& out, const Node& e) {
+inline std::ostream& operator<<(std::ostream& out, const Node& e) {
   e.toStream(out);
   return out;
 }
@@ -216,7 +215,7 @@ inline Node::const_iterator Node::end() const {
   return d_ev->end();
 }
 
-inline size_t Node::numChildren() const {
+inline size_t Node::getNumChildren() const {
   return d_ev->d_nchildren;
 }
 

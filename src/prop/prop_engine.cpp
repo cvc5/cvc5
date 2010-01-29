@@ -56,7 +56,7 @@ static void doAtom(SimpSolver* minisat, map<Node, Var>* vars, Node e, vec<Lit>* 
     return;
   }
   if(e.getKind() == NOT) {
-    Assert(e.numChildren() == 1);
+    Assert(e.getNumChildren() == 1);
     Node child = *e.begin();
     Assert(child.getKind() == VARIABLE);
     map<Node, Var>::iterator v = vars->find(child);
