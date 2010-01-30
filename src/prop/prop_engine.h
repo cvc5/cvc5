@@ -35,11 +35,11 @@ namespace CVC4 {
 class PropEngine {
   DecisionEngine &d_de;
   TheoryEngine &d_te;
-  CVC4::prop::minisat::SimpSolver d_sat;
-  std::map<Node, CVC4::prop::minisat::Var> d_vars;
-  std::map<CVC4::prop::minisat::Var, Node> d_varsReverse;
+  //CVC4::prop::minisat::SimpSolver d_sat;
+  //std::map<Node, CVC4::prop::minisat::Var> d_vars;
+  //std::map<CVC4::prop::minisat::Var, Node> d_varsReverse;
 
-  void addVars(Node);
+  void addVars(CVC4::prop::minisat::SimpSolver*, std::map<Node, CVC4::prop::minisat::Var>*, std::map<CVC4::prop::minisat::Var, Node>*, Node);
 
 public:
   /**

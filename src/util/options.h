@@ -52,7 +52,7 @@ struct Options {
               err(0),
               verbosity(0),
               lang(parser::Parser::LANG_AUTO),
-              d_cnfConversion(CVC4::CNF_DIRECT_EXPONENTIAL)
+              d_cnfConversion(CVC4::CNF_VAR_INTRODUCTION)
   {}
 };/* struct Options */
 

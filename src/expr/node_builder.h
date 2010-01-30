@@ -125,9 +125,20 @@ public:
     return d_ev->ev_end();
   }
 
+  Kind getKind() const {
+    return d_ev->getKind();
+  }
+
   unsigned getNumChildren() const {
     return d_ev->getNumChildren();
   }
+
+  Node operator[](int i) const {
+    Assert(i >= 0 && i < d_ev->getNumChildren());
+    return Node(d_ev->d_children[i]);
+  }
+
+  void clear(Kind k = UNDEFINED_KIND);
 
   // Compound expression constructors
   /*
@@ -372,6 +383,7 @@ namespace CVC4 {
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder() :
   d_size(nchild_thresh),
+  d_hash(0),
   d_nm(NodeManager::currentNM()),
   d_used(false),
   d_ev(&d_inlineEv),
@@ -381,6 +393,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder() :
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
   d_size(nchild_thresh),
+  d_hash(0),
   d_nm(NodeManager::currentNM()),
   d_used(false),
   d_ev(&d_inlineEv),
@@ -394,6 +407,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<nchild_thresh>& nb) :
   d_size(nchild_thresh),
+  d_hash(0),
   d_nm(nb.d_nm),
   d_used(nb.d_used),
   d_ev(&d_inlineEv),
@@ -402,16 +416,19 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<nchild_thresh>&
 
   if(evIsAllocated(nb)) {
     realloc(nb.d_size, false);
-    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_ev->begin());
+    std::copy(nb.d_ev->ev_begin(), nb.d_ev->ev_end(), d_ev->ev_begin());
   } else {
-    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_inlineEv.begin());
+    std::copy(nb.d_ev->ev_begin(), nb.d_ev->ev_end(), d_inlineEv.ev_begin());
   }
+  d_ev->d_kind = nb.d_ev->d_kind;
+  d_ev->d_nchildren = nb.d_ev->d_nchildren;
 }
 
 template <unsigned nchild_thresh>
 template <unsigned N>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
   d_size(nchild_thresh),
+  d_hash(0),
   d_nm(NodeManager::currentNM()),
   d_used(nb.d_used),
   d_ev(&d_inlineEv),
@@ -420,15 +437,18 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
 
   if(nb.d_ev->d_nchildren > nchild_thresh) {
     realloc(nb.d_size, false);
-    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_ev->begin());
+    std::copy(nb.d_ev->ev_begin(), nb.d_ev->end(), d_ev->ev_begin());
   } else {
-    std::copy(nb.d_ev->begin(), nb.d_ev->end(), d_inlineEv.begin());
+    std::copy(nb.d_ev->ev_begin(), nb.d_ev->end(), d_inlineEv.ev_begin());
   }
+  d_ev->d_kind = nb.d_ev->d_kind;
+  d_ev->d_nchildren = nb.d_ev->d_nchildren;
 }
 
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
   d_size(nchild_thresh),
+  d_hash(0),
   d_nm(nm),
   d_used(false),
   d_ev(&d_inlineEv),
@@ -438,6 +458,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
   d_size(nchild_thresh),
+  d_hash(0),
   d_nm(nm),
   d_used(false),
   d_ev(&d_inlineEv),
@@ -450,19 +471,42 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
 
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
-  Assert(d_used, "NodeBuilder unused at destruction");
+  if(!d_used) {
+    Warning("NodeBuilder unused at destruction\n");
 
-  return;
-  /*
-  for(iterator i = d_ev->ev_begin();
-      i != d_ev->ev_end();
-      ++i) {
-    (*i)->dec();
+    for(iterator i = d_ev->ev_begin();
+        i != d_ev->ev_end();
+        ++i) {
+      (*i)->dec();
+    }
+    if(evIsAllocated()) {
+      free(d_ev);
+    }
   }
-  if(evIsAllocated()) {
-    free(d_ev);
+}
+
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::clear(Kind k) {
+  if(!d_used) {
+    Warning("NodeBuilder unused at clear\n");
+
+    for(iterator i = d_ev->ev_begin();
+        i != d_ev->ev_end();
+        ++i) {
+      (*i)->dec();
+    }
+    if(evIsAllocated()) {
+      free(d_ev);
+    }
   }
-  */
+
+  d_size = nchild_thresh;
+  d_hash = 0;
+  d_nm = NodeManager::currentNM();
+  d_used = false;
+  d_ev = &d_inlineEv;
+  d_inlineEv.d_kind = k;
+  d_inlineEv.d_nchildren = 0;
 }
 
 template <unsigned nchild_thresh>

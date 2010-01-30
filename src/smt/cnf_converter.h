@@ -64,9 +64,9 @@ private:
   /**
    * Compress a NOT: do NNF transformation plus a bit.  Does DNE,
    * NOT FALSE ==> TRUE, NOT TRUE ==> FALSE, and pushes NOT inside
-   * of ANDs and ORs.  Calls convert() on subnodes.
+   * of ANDs and ORs.  Calls doConvert() on subnodes.
    */
-  Node compressNOT(const Node& e);
+  Node compressNOT(const Node& e, NodeBuilder<>* sideConditions);
 
   /**
    * Flatten a Node of kind K.  K here is going to be AND or OR.
@@ -75,21 +75,22 @@ private:
    * (AND (AND x y) (AND (AND z)) w)  ==>  (AND x y z w).
    */
   template <CVC4::Kind K>
-  Node flatten(const Node& e);
+  Node flatten(const Node& e, NodeBuilder<>* sideConditions);
 
   /**
    * Do a direct CNF conversion (with possible exponential blow-up in
    * the number of clauses).  No new variables are introduced.  The
    * output is equivalent to the input.
    */
-  Node directConvert(const Node& e);
+  Node directConvert(const Node& e, NodeBuilder<>* sideConditions);
 
   /**
    * Helper method for "direct" CNF preprocessing.  CNF-converts an OR.
    */
   void directOrHelper(Node::iterator p,
                       Node::iterator end,
-                      NodeBuilder<>& result);
+                      NodeBuilder<>& result,
+                      NodeBuilder<>* sideConditions);
 
   /**
    * Do a satisfiability-preserving CNF conversion with variable
@@ -97,16 +98,14 @@ private:
    * number of clauses, but new variables are introduced and the
    * output is equisatisfiable (but not equivalent) to the input.
    */
-  Node varIntroductionConvert(const Node& e);
+  Node varIntroductionConvert(const Node& e, NodeBuilder<>* sideConditions);
 
   /**
-   * Helper method for "variable introduction" CNF preprocessing.
-   * CNF-converts an OR.
+   * Convert an expression into CNF.  If a conversion already exists
+   * for the Node, it is returned.  If a conversion doesn't exist, it
+   * is computed and returned (caching the result).
    */
-  void varIntroductionOrHelper(Node::iterator p,
-                               Node::iterator end,
-                               NodeBuilder<>& result,
-                               NodeBuilder<>& extras);
+  Node doConvert(const Node& e, NodeBuilder<>* sideconditions);
 
 public:
 
@@ -127,17 +126,36 @@ public:
 };/* class CnfConverter */
 
 template <CVC4::Kind K>
-Node CnfConverter::flatten(const Node& e) {
+struct flatten_traits;
+
+template <>
+struct flatten_traits<AND> {
+  static const CVC4::Kind ignore   = TRUE;  // TRUE  AND x == x
+  static const CVC4::Kind shortout = FALSE; // FALSE AND x == FALSE
+};
+
+template <>
+struct flatten_traits<OR> {
+  static const CVC4::Kind ignore   = FALSE; // FALSE OR x == x
+  static const CVC4::Kind shortout = TRUE;  // TRUE  OR x == TRUE
+};
+
+template <CVC4::Kind K>
+Node CnfConverter::flatten(const Node& e, NodeBuilder<>* sideConditions) {
   Assert(e.getKind() == K);
 
   NodeBuilder<> n(K);
 
   for(Node::iterator i = e.begin(); i != e.end(); ++i) {
-    Node f = convert(*i);
+    Node f = doConvert(*i, sideConditions);
     if(f.getKind() == K) {
       for(Node::iterator j = f.begin(); j != f.end(); ++j) {
         n << *j;
       }
+    } else if(f.getKind() == flatten_traits<K>::ignore) {
+      /* do nothing */
+    } else if(f.getKind() == flatten_traits<K>::shortout) {
+      return f;
     } else {
       n << f;
     }

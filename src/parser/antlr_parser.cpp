@@ -47,7 +47,7 @@ unsigned AntlrParser::getPrecedence(Kind kind) {
   case AND:
     return 5;
   default:
-    Unhandled ("Undefined precedence - necessary for proper parsing of CVC files!");
+    Unhandled("Undefined precedence - necessary for proper parsing of CVC files!");
   }
   return 0;
 }

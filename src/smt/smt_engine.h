@@ -96,7 +96,7 @@ public:
   Expr simplify(const Expr& e);
 
   /**
-   * Get a (counter)model (only if preceded by a SAT or INVALID query.
+   * Get a (counter)model (only if preceded by a SAT or INVALID query).
    */
   Model getModel();
 

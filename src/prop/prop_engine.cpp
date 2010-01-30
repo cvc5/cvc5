@@ -30,21 +30,21 @@ using namespace std;
 namespace CVC4 {
 
 PropEngine::PropEngine(DecisionEngine& de, TheoryEngine& te) :
-  d_de(de), d_te(te), d_sat() {
+  d_de(de), d_te(te) {
 }
 
-void PropEngine::addVars(Node e) {
+void PropEngine::addVars(SimpSolver* minisat, map<Node, Var>* vars, map<Var, Node>* varsReverse, Node e) {
   Debug("prop") << "adding vars to " << e << endl;
   for(Node::iterator i = e.begin(); i != e.end(); ++i) {
     Debug("prop") << "expr " << *i << endl;
     if((*i).getKind() == VARIABLE) {
-      if(d_vars.find(*i) == d_vars.end()) {
-        Var v = d_sat.newVar();
+      if(vars->find(*i) == vars->end()) {
+        Var v = minisat->newVar();
         Debug("prop") << "adding var " << *i << " <--> " << v << endl;
-        d_vars.insert(make_pair(*i, v));
-        d_varsReverse.insert(make_pair(v, *i));
-      } else Debug("prop") << "using var " << *i << " <--> " << d_vars[*i] << endl;
-    } else addVars(*i);
+        (*vars).insert(make_pair(*i, v));
+        (*varsReverse).insert(make_pair(v, *i));
+      } else Debug("prop") << "using var " << *i << " <--> " << (*vars)[*i] << endl;
+    } else addVars(minisat, vars, varsReverse, *i);
   }
 }
 
@@ -110,35 +110,41 @@ static void doClause(SimpSolver* minisat, map<Node, Var>* vars, map<Var, Node>* 
 }
 
 void PropEngine::solve(Node e) {
+  // FIXME: when context mgr comes online, keep the solver around
+  // between solve() calls if we can
+  CVC4::prop::minisat::SimpSolver sat;
+  std::map<Node, CVC4::prop::minisat::Var> vars;
+  std::map<CVC4::prop::minisat::Var, Node> varsReverse;
+
   Debug("prop") << "SOLVING " << e << endl;
-  addVars(e);
+  addVars(&sat, &vars, &varsReverse, e);
   if(e.getKind() == AND) {
     Debug("prop") << "AND" << endl;
     for(Node::iterator i = e.begin(); i != e.end(); ++i)
-      doClause(&d_sat, &d_vars, &d_varsReverse, *i);
-  } else doClause(&d_sat, &d_vars, &d_varsReverse, e);
+      doClause(&sat, &vars, &varsReverse, *i);
+  } else doClause(&sat, &vars, &varsReverse, e);
 
-  d_sat.verbosity = 1;
-  bool result = d_sat.solve();
+  sat.verbosity = 1;
+  bool result = sat.solve();
 
   Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
   if(result) {
     Notice() << "model:" << endl;
-    for(int i = 0; i < d_sat.model.size(); ++i)
-      Notice() << " " << toInt(d_sat.model[i]);
+    for(int i = 0; i < sat.model.size(); ++i)
+      Notice() << " " << toInt(sat.model[i]);
     Notice() << endl;
-    for(int i = 0; i < d_sat.model.size(); ++i)
-      Notice() << " " << d_varsReverse[i] << " is "
-               << (d_sat.model[i] == l_False ? "FALSE" :
-                   (d_sat.model[i] == l_Undef ? "UNDEF" :
+    for(int i = 0; i < sat.model.size(); ++i)
+      Notice() << " " << varsReverse[i] << " is "
+               << (sat.model[i] == l_False ? "FALSE" :
+                   (sat.model[i] == l_Undef ? "UNDEF" :
                     "TRUE")) << endl;
   } else {
     Notice() << "conflict:" << endl;
-    for(int i = 0; i < d_sat.conflict.size(); ++i)
-      Notice() << " " << (sign(d_sat.conflict[i]) ? "-" : "") << var(d_sat.conflict[i]);
+    for(int i = 0; i < sat.conflict.size(); ++i)
+      Notice() << " " << (sign(sat.conflict[i]) ? "-" : "") << var(sat.conflict[i]);
     Notice() << " [[";
-    for(int i = 0; i < d_sat.conflict.size(); ++i)
-      Notice() << " " << (sign(d_sat.conflict[i]) ? "-" : "") << d_varsReverse[var(d_sat.conflict[i])];
+    for(int i = 0; i < sat.conflict.size(); ++i)
+      Notice() << " " << (sign(sat.conflict[i]) ? "-" : "") << varsReverse[var(sat.conflict[i])];
     Notice() << " ]] " << endl;
   }
 }
