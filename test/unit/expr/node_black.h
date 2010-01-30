@@ -64,6 +64,9 @@ public:
     Node b = Node();
     TS_ASSERT(b.isNull());
 
+    Node c = b;
+    
+    TS_ASSERT(c.isNull());
   }
 
   void testCopyCtor() {
@@ -154,15 +157,43 @@ public:
 
   }
 
+  void testOperatorSquare(){  
+    /*Node operator[](int i) const */
+
+    //Basic bounds check on a node w/out children
+    TS_ASSERT_THROWS(Node::null()[-1], AssertionException);
+    TS_ASSERT_THROWS(Node::null()[0], AssertionException);
+
+    //Basic access check
+    Node tb = d_nm->mkNode(TRUE);
+    Node eb = d_nm->mkNode(FALSE);
+    Node cnd = d_nm->mkNode(XOR, tb, eb);
+    Node ite = cnd.iteExpr(tb,eb);
+
+    TS_ASSERT(tb == cnd[0]);
+    TS_ASSERT(eb == cnd[1]);
+
+    TS_ASSERT(cnd == ite[0]);
+    TS_ASSERT(tb == ite[1]);
+    TS_ASSERT(eb == ite[2]);
+
+    //Bounds check on a node with children
+    TS_ASSERT_THROWS(ite == ite[-1],AssertionException);
+    TS_ASSERT_THROWS(ite == ite[4],AssertionException);    
+  }
+
   /*tests:   Node& operator=(const Node&); */
   void testOperatorAssign(){
     Node a, b;
-    Node c = d_nm->mkNode(UNDEFINED_KIND);
+    Node c = d_nm->mkNode(NOT);
+    
+    b = c;
+    TS_ASSERT(b==c);
+
     
     a = b = c;
 
     TS_ASSERT(a==b);
-    TS_ASSERT(b==c);
     TS_ASSERT(a==c);
   }
   
@@ -178,8 +209,8 @@ public:
     TS_ASSERT(a<b || b<a);
     TS_ASSERT(!(a<b && b<a));
 
-    Node c = d_nm->mkNode(UNDEFINED_KIND);
-    Node d = d_nm->mkNode(UNDEFINED_KIND);
+    Node c = d_nm->mkNode(NULL_EXPR);
+    Node d = d_nm->mkNode(NULL_EXPR);
 
     TS_ASSERT(!(c<d));
     TS_ASSERT(!(d<c));
@@ -200,7 +231,7 @@ public:
     //Slightly less simple test of DD property.
     std::vector<Node> chain;
     int N = 500;
-    Node curr = d_nm->mkNode(UNDEFINED_KIND);
+    Node curr = d_nm->mkNode(NULL_EXPR);
     for(int i=0;i<N;i++){
       chain.push_back(curr);
       curr = d_nm->mkNode(AND,curr);
@@ -218,9 +249,10 @@ public:
 
   void testHash(){
     /* Not sure how to test this except survial... */
-    Node a;
-    a.hash();
-    cout << "testing hash" << endl;
+    Node a = d_nm->mkNode(ITE);
+    Node b = d_nm->mkNode(ITE);
+    
+    TS_ASSERT(b.hash() == a.hash());
   }
 
   
@@ -236,8 +268,8 @@ public:
     TS_ASSERT(EQUAL == eq.getKind());
     TS_ASSERT(2     == eq.getNumChildren());
 
-    TS_ASSERT(*(eq.begin()) == left);
-    TS_ASSERT(*(++eq.begin()) == right);
+    TS_ASSERT(eq[0] == left);
+    TS_ASSERT(eq[1] == right);
   }
 
   void testNotExpr(){
@@ -249,7 +281,7 @@ public:
     TS_ASSERT(NOT == parent.getKind());
     TS_ASSERT(1   == parent.getNumChildren());
 
-    TS_ASSERT(*(parent.begin()) == child);
+    TS_ASSERT(parent[0] == child);
     
   }
   void testAndExpr(){
@@ -371,8 +403,6 @@ public:
     testKindSingleton(NULL_EXPR);
     testKindSingleton(ITE);
     testKindSingleton(SKOLEM);
-    testKindSingleton(UNDEFINED_KIND);
-    /* undefined kind does not work? */
   }
   
   void testNaryExpForSize(Kind k, int N){
@@ -391,11 +421,9 @@ public:
     TS_ASSERT(0 == (Node::null()).getNumChildren());
 
     //test 1
-
     TS_ASSERT(1 == (Node::null().notExpr()).getNumChildren());
 
     //test 2
-
     TS_ASSERT(2 == (Node::null().andExpr(Node::null())).getNumChildren() );
 
     //Bigger tests
