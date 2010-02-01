@@ -122,19 +122,85 @@ formula returns [CVC4::Expr formula]
  * and associativity of the operators.
  * @return the expression representing the formula
  */ 
-boolFormula returns [CVC4::Expr formula] 
+boolFormula returns [CVC4::Expr formula]
+  : formula = boolAndFormula 
+  ;
+
+/**
+ * Matches a Boolean AND formula of a given kind by doing a recursive descent. 
+ */
+boolAndFormula returns [CVC4::Expr andFormula]
 {
-  vector<Expr> formulas;
-  vector<Kind> kinds;
-  Expr f;
-  Kind k;
+  Expr e;
+  vector<Expr> exprs;
 }
-  : f = primaryBoolFormula { formulas.push_back(f); } 
-      ( k = boolOperator { kinds.push_back(k); } f = primaryBoolFormula { formulas.push_back(f); } )* 
+  : e = boolXorFormula { exprs.push_back(e); } 
+      ( AND e = boolXorFormula { exprs.push_back(e); } )*
     { 
-      // Create the expression based on precedences
-      formula = createPrecedenceExpr(formulas, kinds);
+      andFormula = (exprs.size() > 1 ? mkExpr(CVC4::AND, exprs) : exprs[0]); 
+    }  
+  ;
+
+/**
+ * Matches a Boolean XOR formula of a given kind by doing a recursive descent. 
+ */
+boolXorFormula returns [CVC4::Expr xorFormula]
+{
+  Expr e;
+  vector<Expr> exprs;
+}
+  : e = boolOrFormula { exprs.push_back(e); } 
+      ( XOR e = boolOrFormula { exprs.push_back(e); } )*
+    { 
+      xorFormula = (exprs.size() > 1 ? mkExpr(CVC4::XOR, exprs) : exprs[0]); 
+    }  
+  ;
+
+/**
+ * Matches a Boolean OR formula of a given kind by doing a recursive descent. 
+ */
+boolOrFormula returns [CVC4::Expr orFormula]
+{
+  Expr e;
+  vector<Expr> exprs;
+}
+  : e = boolImpliesFormula { exprs.push_back(e); } 
+      ( OR e = boolImpliesFormula { exprs.push_back(e); } )*
+    { 
+      orFormula = (exprs.size() > 1 ? mkExpr(CVC4::OR, exprs) : exprs[0]); 
+    }  
+  ;
+
+/**
+ * Matches a Boolean IMPLIES formula of a given kind by doing a recursive descent. 
+ */
+boolImpliesFormula returns [CVC4::Expr impliesFormula]
+{
+  vector<Expr> exprs;
+  Expr e;
+}
+  : e = boolIffFormula { exprs.push_back(e); } 
+    ( IMPLIES e = boolIffFormula { exprs.push_back(e); } 
+    )*
+    {
+      impliesFormula = exprs.back(); 
+      for (int i = exprs.size() - 2; i >= 0; -- i) {
+        impliesFormula = mkExpr(CVC4::IMPLIES, exprs[i], impliesFormula);
+      }
     }
+  ;
+
+/**
+ * Matches a Boolean IFF formula of a given kind by doing a recursive descent. 
+ */
+boolIffFormula returns [CVC4::Expr iffFormula]
+{
+  Expr e;
+}
+  : iffFormula = primaryBoolFormula  
+    ( IFF e = primaryBoolFormula 
+        { iffFormula = mkExpr(CVC4::IFF, iffFormula, e); } 
+    )*
   ;
   
 /**
@@ -147,19 +213,6 @@ primaryBoolFormula returns [CVC4::Expr formula]
   : formula = boolAtom
   | NOT formula = primaryBoolFormula { formula = mkExpr(CVC4::NOT, formula); }
   | LPAREN formula = boolFormula RPAREN
-  ;
-
-/**
- * Parses the Boolean operators and returns the corresponding CVC4 expression 
- * kind. 
- * @param the kind of the Boolean operator
- */
-boolOperator returns [CVC4::Kind kind]
-  : IMPLIES  { kind = CVC4::IMPLIES; }
-  | AND      { kind = CVC4::AND;     }
-  | OR       { kind = CVC4::OR;      }
-  | XOR      { kind = CVC4::XOR;     }
-  | IFF      { kind = CVC4::IFF;     }
   ;
 
 /**

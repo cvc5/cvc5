@@ -79,7 +79,7 @@ Parser::~Parser() {
 }
 
 Parser::Parser(istream* input, AntlrParser* antlrParser, CharScanner* antlrLexer, bool deleteInput) :
-  d_done(false), d_input(input), d_antlrParser(antlrParser), d_antlrLexer(antlrLexer), d_deleteInput(deleteInput) {
+  d_done(false), d_antlrParser(antlrParser), d_antlrLexer(antlrLexer), d_input(input), d_deleteInput(deleteInput) {
 }
 
 Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,

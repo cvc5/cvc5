@@ -117,7 +117,8 @@ private:
   std::istream* d_input;
 
   /** Wherther to de-allocate the input */
-  bool d_deleteInput;}; // end of class Parser
+  bool d_deleteInput;
+}; // end of class Parser
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

@@ -168,15 +168,6 @@ protected:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /**
-   * Creates a new expression based on the given string of expressions and kinds,
-   * where kinds[i] is the operator to place between exprs[i] and exprs[i+1].
-   * The expression is created so that it respects the kinds precedence table.
-   * The exprs vector should be non-empty. If the length of exprs is N, then the
-   * length of kinds should be N-1 (kinds may be empty).
-   */
-  Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds);
-
-  /**
    * Creates a new predicated over the given sorts.
    * @param p_name the name of the predicate
    * @param p_sorts the arity sorts
@@ -195,18 +186,6 @@ protected:
   static unsigned getPrecedence(Kind kind);
 
 private:
-
-
-  unsigned findPivot(const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index) const;
-
-  /**
-   * Creates a new expression based on the given string of expressions and kinds
-   * The expression is created so that it respects the kinds precedence table.
-   * The exprs vector should be non-empty. The kinds vector should have one less
-   * element than the exprs vector. start_index and end_index should be valid
-   * indices into exprs.
-   */
-  Expr createPrecedenceExpr(const std::vector<Expr>& exprs, const std::vector<Kind>& kinds, unsigned start_index, unsigned end_index);
 
   /** The expression manager */
   ExprManager* d_exprManager;

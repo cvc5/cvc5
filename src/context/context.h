@@ -51,7 +51,7 @@ class ContextNotifyObj;
 class Context {
 
   /**
-   * Pointer to the ContextMemoryManager fot this Context.
+   * Pointer to the ContextMemoryManager for this Context.
    */
   ContextMemoryManager* d_pCMM;
 
@@ -67,13 +67,13 @@ class Context {
 
   /**
    * Doubly-linked list of objects to notify before every pop.  See
-   * ContextNotifyObj for sturcture of linked list.
+   * ContextNotifyObj for structure of linked list.
    */
   ContextNotifyObj* d_pCNOpre;
 
   /**
    * Doubly-linked list of objects to notify after every pop.  See
-   * ContextNotifyObj for sturcture of linked list.
+   * ContextNotifyObj for structure of linked list.
    */
   ContextNotifyObj* d_pCNOpost;
 
@@ -189,7 +189,7 @@ public:
     { if (pScopePrev != NULL) d_level = pScopePrev->getLevel() + 1; }
 
   /**
-   * Destructor: Restore all of the objects in CotextObjList.  Defined inline
+   * Destructor: Restore all of the objects in ContextObjList.  Defined inline
    * below.
    */
   ~Scope();

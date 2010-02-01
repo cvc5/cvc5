@@ -34,6 +34,7 @@ options {
  */
 parseExpr returns [CVC4::Expr expr]
   : expr = annotatedFormula
+  | EOF
   ;
 
 /**

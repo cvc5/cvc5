@@ -99,7 +99,7 @@ const string smtExprContext = "(benchmark foo :extrapreds ((a) (b) (c)) )";
 const string goodSmtExprs[] = {
     "(and a b)",
     "(or (and a b) c)",
-    "(implies (and (implies a b) a) b))",
+    "(implies (and (implies a b) a) b)",
     "(and (iff a b) (not a))",
     "(iff (xor a b) (and (or a b) (not (and a b))))"
 };
