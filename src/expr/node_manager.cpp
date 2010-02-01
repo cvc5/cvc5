@@ -60,10 +60,8 @@ Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
     }
 
     // didn't find it, insert
-    std::vector<Node> v;
     Node e(ev);
-    v.push_back(e);
-    d_hash.insert(std::make_pair(hash, v));
+    i->second.push_back(e);
     return e;
   }
 }
