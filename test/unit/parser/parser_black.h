@@ -133,7 +133,7 @@ class SmtParserBlack : public CxxTest::TestSuite {
 
   void tryGoodInputs(Parser::InputLanguage d_lang, const string goodInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
-      cout << "Testing input: '" << goodInputs[i] << "'\n";
+      cout << "Testing good input: '" << goodInputs[i] << "'\n";
       istringstream stream(goodInputs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
       TS_ASSERT( !smtParser->done() );
@@ -149,7 +149,7 @@ class SmtParserBlack : public CxxTest::TestSuite {
 
   void tryBadInputs(Parser::InputLanguage d_lang, const string badInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
-      cout << "Testing input: '" << badInputs[i] << "'\n";
+      cout << "Testing bad input: '" << badInputs[i] << "'\n";
       istringstream stream(badInputs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
       TS_ASSERT_THROWS( while(smtParser->parseNextCommand()); , ParserException );
@@ -161,7 +161,7 @@ class SmtParserBlack : public CxxTest::TestSuite {
     cout << "Using context: " << context << endl;
     for(int i = 0; i < numExprs; ++i) {
       try {
-        cout << "Testing expr: '" << goodBooleanExprs[i] << "'\n";
+        cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
         istringstream stream(context + goodBooleanExprs[i]);
         Parser* parser = Parser::getNewParser(d_exprManager, d_lang, stream);
         TS_ASSERT( !parser->done() );
@@ -184,7 +184,7 @@ class SmtParserBlack : public CxxTest::TestSuite {
 
   void tryBadExprs(Parser::InputLanguage d_lang,const string badBooleanExprs[], int numExprs) {
     for(int i = 0; i < numExprs; ++i) {
-      cout << "Testing expr: '" << badBooleanExprs[i] << "'\n";
+      cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
       istringstream stream(badBooleanExprs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
       TS_ASSERT_THROWS( smtParser->parseNextExpression(), ParserException );

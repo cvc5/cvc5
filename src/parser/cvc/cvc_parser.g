@@ -59,8 +59,9 @@ command returns [CVC4::Command* cmd = 0]
   | CHECKSAT f = formula  SEMICOLON { cmd = new CheckSatCommand(f); }
   | CHECKSAT              SEMICOLON { cmd = new CheckSatCommand();  }
   | identifierList[ids, CHECK_UNDECLARED] COLON type { 
-      // [chris 12/15/2009] FIXME: decls may not be BOOLEAN
-      newPredicates(ids); 
+      // FIXME: switch on type (may not be predicates)
+      vector<string> sorts;
+      newPredicates(ids,sorts); 
       cmd = new DeclarationCommand(ids); 
     }
     SEMICOLON

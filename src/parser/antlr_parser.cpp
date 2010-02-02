@@ -72,19 +72,19 @@ Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
   return d_exprManager->mkExpr(kind, children);
 }
 
-void AntlrParser::newPredicate(std::string p_name, const std::vector<
-    std::string>& p_sorts) {
-  if(p_sorts.size() == 0) {
-    d_varSymbolTable.bindName(p_name, d_exprManager->mkVar());
+void AntlrParser::newPredicate(std::string name, 
+                               const std::vector< std::string>& sorts) {
+  if(sorts.size() == 0) {
+    d_varSymbolTable.bindName(name, d_exprManager->mkVar());
   } else {
     Unhandled("Non unary predicate not supported yet!");
   }
 }
 
-void AntlrParser::newPredicates(const std::vector<std::string>& p_names) {
-  vector<string> sorts;
-  for(unsigned i = 0; i < p_names.size(); ++i) {
-    newPredicate(p_names[i], sorts);
+void AntlrParser::newPredicates(const std::vector<std::string>& names, 
+                                const std::vector< std::string>& sorts) {
+  for(unsigned i = 0; i < names.size(); ++i) {
+    newPredicate(names[i], sorts);
   }
 }
 

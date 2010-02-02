@@ -168,17 +168,21 @@ protected:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /**
-   * Creates a new predicated over the given sorts.
-   * @param p_name the name of the predicate
-   * @param p_sorts the arity sorts
+   * Creates a new predicate over the given sorts. The predicate
+   * has arity sorts.size().
+   * @param name the name of the predicate
+   * @param sorts the sorts
    */
-  void newPredicate(std::string p_name, const std::vector<std::string>& p_sorts);
+  void newPredicate(std::string name, 
+                    const std::vector<std::string>& sorts);
 
   /**
-   * Creates new predicates of given types.
+   * Creates new predicates over the given sorts. Each predicate
+   * will have arity sorts.size().
    * @param p_names the names of the predicates
    */
-  void newPredicates(const std::vector<std::string>& p_names);
+  void newPredicates(const std::vector<std::string>& names,
+                     const std::vector<std::string>& sorts);
 
   /**
    * Returns the precedence rank of the kind.

@@ -55,8 +55,8 @@ benchmark returns [Command* cmd]
   ;
 
 /**
- * Matchecs sequence of benchmark attributes and returns a pointer to a command 
- * sequence command.
+ * Matches a sequence of benchmark attributes and returns a pointer to a 
+ * command sequence.
  * @return the command sequence 
  */
 benchAttributes returns [CVC4::CommandSequence* cmd_seq = new CommandSequence()]
@@ -77,12 +77,16 @@ benchAttribute returns [Command* smt_command = 0]
   string logic; 
   SetBenchmarkStatusCommand::BenchmarkStatus b_status = SetBenchmarkStatusCommand::SMT_UNKNOWN;
 }
-  : C_LOGIC       logic = identifier                  { smt_command = new SetBenchmarkLogicCommand(logic);   }      
-  | C_ASSUMPTION  formula = annotatedFormula          { smt_command = new AssertCommand(formula);   }       
-  | C_FORMULA     formula = annotatedFormula          { smt_command = new CheckSatCommand(formula); }
-  | C_STATUS      b_status = status                   { smt_command = new SetBenchmarkStatusCommand(b_status); }        
-  | C_EXTRAPREDS  LPAREN (predicateDeclaration)+ RPAREN  
-  | C_NOTES       STRING_LITERAL        
+  : LOGIC_ATTR logic = identifier 
+    { smt_command = new SetBenchmarkLogicCommand(logic);   }      
+  | ASSUMPTION_ATTR formula = annotatedFormula          
+    { smt_command = new AssertCommand(formula);   }       
+  | FORMULA_ATTR formula = annotatedFormula          
+    { smt_command = new CheckSatCommand(formula); }
+  | STATUS_ATTR b_status = status                   
+    { smt_command = new SetBenchmarkStatusCommand(b_status); }        
+  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN  
+  | NOTES_ATTR STRING_LITERAL        
   | annotation
   ;
 

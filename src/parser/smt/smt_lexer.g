@@ -42,13 +42,13 @@ tokens {
   UNKNOWN       = "unknown";
   BENCHMARK     = "benchmark";
   // The SMT attribute tokens
-  C_LOGIC       = ":logic";
-  C_ASSUMPTION  = ":assumption";
-  C_FORMULA     = ":formula";
-  C_STATUS      = ":status";
-  C_EXTRASORTS  = ":extrasorts";
-  C_EXTRAFUNS   = ":extrafuns";
-  C_EXTRAPREDS  = ":extrapreds";
+  LOGIC_ATTR       = ":logic";
+  ASSUMPTION_ATTR  = ":assumption";
+  FORMULA_ATTR     = ":formula";
+  STATUS_ATTR      = ":status";
+  EXTRASORTS_ATTR  = ":extrasorts";
+  EXTRAFUNS_ATTR   = ":extrafuns";
+  EXTRAPREDS_ATTR  = ":extrapreds";
   C_NOTES       = ":notes";
 }
 
