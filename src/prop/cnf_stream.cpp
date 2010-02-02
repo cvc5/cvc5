@@ -364,55 +364,8 @@ Lit TseitinCnfStream::recTransform(const Node & n) {
 }
 
 void TseitinCnfStream::convertAndAssert(const Node & n) {
-  //n has already been mapped so use the previous result
-  if(isCached(n)) {
-    Lit l = lookupInCache(n);
-    insertClauseIntoStream(l);
-    return;
-  }
-
   Lit e = recTransform(n);
   insertClauseIntoStream(e);
-
-  //I've commented the following section out because it uses a bit too much intelligence.
-
-  /*
-   if(n.getKind() == AND){
-   // this code is required to efficiently flatten and
-   // assert each part of the node.
-   // This would be rendered unnessecary if the input was given differently
-   queue<Node> and_queue;
-   and_queue.push(n);
-
-   //This was changed to use a queue due to pressure on the C stack.
-
-   //TODO: this does no cacheing of what has been asserted.
-   //Low hanging fruit
-   while(!and_queue.empty()){
-   Node curr = and_queue.front();
-   and_queue.pop();
-   if(curr.getKind() == AND){
-   for(Node::iterator i = curr.begin(); i != curr.end(); ++i){
-   and_queue.push(*i);
-   }
-   }else{
-   convertAndAssert(curr);
-   }
-   }
-   }else if(n.getKind() == OR){
-   //This is special cased so minimal translation is done for things that
-   //are already in CNF so minimal work is done on clauses.
-   vec<Lit> c;
-   for(Node::iterator i = n.begin(); i != n.end(); ++i){
-   Lit cl = recTransform(*i);
-   c.push(cl);
-   }
-   insertClauseIntoStream(c);
-   }else{
-   Lit e = recTransform(n);
-   insertClauseIntoStream( e );
-   }
-   */
 }
 
 }/* CVC4::prop namespace */
