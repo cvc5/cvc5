@@ -87,10 +87,9 @@ identifierList[std::vector<std::string>& idList, DeclarationCheck check = CHECK_
  * Matches an identifier and returns a string.
  */
 identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
-  : x:IDENTIFIER { checkDeclation(x->getText(), check) }?
-    { 
-      id = x->getText(); 
-    } 
+  : x:IDENTIFIER 
+    { id = x->getText(); }
+    { checkDeclaration(id, check) }?
     exception catch [antlr::SemanticException& ex] {
       switch (check) {
         case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");

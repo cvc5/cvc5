@@ -96,10 +96,9 @@ benchAttribute returns [Command* smt_command = 0]
  * @return the id string
  */
 identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
-  : x:IDENTIFIER { checkDeclation(x->getText(), check) }?
-    { 
-      id = x->getText(); 
-    } 
+  : x:IDENTIFIER 
+    { id = x->getText(); }
+    { checkDeclaration(id, check) }? 
     exception catch [antlr::SemanticException& ex] {
       switch (check) {
         case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");

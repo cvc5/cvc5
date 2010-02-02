@@ -104,11 +104,11 @@ bool AntlrParser::isDeclared(string name, SymbolType type) {
 void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
     throw (antlr::SemanticException) {
   throw antlr::SemanticException(new_message, getFilename(),
-                                 LT(0).get()->getLine(),
-                                 LT(0).get()->getColumn());
+                                 LT(1).get()->getLine(),
+                                 LT(1).get()->getColumn());
 }
 
-bool AntlrParser::checkDeclation(string varName, DeclarationCheck check) {
+bool AntlrParser::checkDeclaration(string varName, DeclarationCheck check) {
   switch(check) {
   case CHECK_DECLARED:
     return isDeclared(varName, SYM_VARIABLE);

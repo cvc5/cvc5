@@ -114,7 +114,7 @@ protected:
    * @oaram check the kind of check to perform
    * @return true if the check holds
    */
-  bool checkDeclation(std::string varName, DeclarationCheck check);
+  bool checkDeclaration(std::string varName, DeclarationCheck check);
 
   /**
    * Types of symbols.
