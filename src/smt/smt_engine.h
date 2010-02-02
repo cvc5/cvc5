@@ -29,7 +29,6 @@
 #include "util/options.h"
 #include "prop/prop_engine.h"
 #include "util/decision_engine.h"
-#include "smt/cnf_converter.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -134,8 +133,6 @@ private:
   /** The propositional engine */
   PropEngine d_prop;
 
-  /** The CNF converter in use */
-  CVC4::smt::CnfConverter d_cnfConverter;
 
   /**
    * Pre-process an Node.  This is expected to be highly-variable,
@@ -167,7 +164,7 @@ private:
    * Process the assertion list: for literals and conjunctions of
    * literals, assert to T-solver.
    */
-  Node processAssertionList();
+  void processAssertionList();
 
 };/* class SmtEngine */
 

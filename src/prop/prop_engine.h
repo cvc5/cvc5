@@ -25,6 +25,13 @@
 #include "prop/minisat/core/SolverTypes.h"
 
 #include <map>
+#include "prop/cnf_stream.h"
+
+namespace CVC4 {
+  namespace prop {
+    class CnfStream;
+  }
+}
 
 namespace CVC4 {
 
@@ -35,24 +42,79 @@ namespace CVC4 {
 class PropEngine {
   DecisionEngine &d_de;
   TheoryEngine &d_te;
-  //CVC4::prop::minisat::SimpSolver d_sat;
-  //std::map<Node, CVC4::prop::minisat::Var> d_vars;
-  //std::map<CVC4::prop::minisat::Var, Node> d_varsReverse;
 
-  void addVars(CVC4::prop::minisat::SimpSolver*, std::map<Node, CVC4::prop::minisat::Var>*, std::map<CVC4::prop::minisat::Var, Node>*, Node);
+  friend class CVC4::prop::CnfStream;
+  
+  /* Morgan: I added these back.
+   * Why did you push these into solve()?
+   * I am guessing this is for either a technical reason I'm not seeing,
+   * or that you wanted to have a clean restart everytime solve() was called
+   * and to start from scratch everytime. (Avoid push/pop problems?)
+   * Is this right?
+   */
+  CVC4::prop::minisat::SimpSolver d_sat;
 
+
+  std::map<Node, CVC4::prop::minisat::Lit> d_atom2lit;
+  std::map<CVC4::prop::minisat::Lit, Node> d_lit2atom;
+
+  /** 
+   * Adds mapping of n -> l to d_node2lit, and
+   * a mapping of l -> n to d_lit2node.
+   */
+  void registerAtom(const Node & n, CVC4::prop::minisat::Lit l);
+
+
+
+  CVC4::prop::minisat::Lit requestFreshLit();
+  bool isNodeMapped(const Node & n) const;
+  CVC4::prop::minisat::Lit lookupLit(const Node & n) const;
+  
+
+  /**
+   * Asserts an internally constructed clause. 
+   * Each literal is assumed to be in the 1:1 mapping contained in d_node2lit & d_lit2node.
+   * @param c the clause to be asserted.
+   */
+  void assertClause(CVC4::prop::minisat::vec<CVC4::prop::minisat::Lit> & c);
+
+  
+  /** The CNF converter in use */
+  //CVC4::prop::CnfConverter d_cnfConverter;
+  CVC4::prop::CnfStream *d_cnfStream;
 public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
   CVC4_PUBLIC PropEngine(CVC4::DecisionEngine&, CVC4::TheoryEngine&);
+  CVC4_PUBLIC ~PropEngine();
 
   /**
-   * Converts to CNF if necessary.
+   * Converts the given formula to CNF and assert the CNF to the sat solver.
    */
-  void solve(Node);
+  void assertFormula(const Node& node);
+
+  /**
+   * Currently this takes a well-formed* Node,
+   * converts it to a propositionally equisatisifiable formula for a sat solver,
+   * and invokes the sat solver for a satisfying assignment.
+   * TODO: what does well-formed mean here?
+   */
+  void solve();
 
 };/* class PropEngine */
+
+
+inline bool PropEngine::isNodeMapped(const Node & n) const{
+  return d_atom2lit.find(n) != d_atom2lit.end();
+}
+
+inline CVC4::prop::minisat::Lit PropEngine::lookupLit(const Node & n) const{
+  Assert(isNodeMapped(n));
+  return d_atom2lit.find(n)->second;
+}
+
+
 
 }/* CVC4 namespace */
 

@@ -27,8 +27,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* opts) throw() :
   d_opts(opts),
   d_de(),
   d_te(),
-  d_prop(d_de, d_te),
-  d_cnfConverter(d_nm, opts->d_cnfConversion) {
+  d_prop(d_de, d_te){
 }
 
 SmtEngine::~SmtEngine() {
@@ -43,62 +42,18 @@ Node SmtEngine::preprocess(const Node& e) {
   return e;
 }
 
-Node SmtEngine::processAssertionList() {
-  if(d_assertions.size() == 1) {
-    return d_assertions[0];
+void SmtEngine::processAssertionList() {
+  for(unsigned i = 0; i < d_assertions.size(); ++i) {
+    d_prop.assertFormula(d_assertions[i]);
   }
-
-  NodeBuilder<> asserts(AND);
-  for(std::vector<Node>::iterator i = d_assertions.begin();
-      i != d_assertions.end();
-      ++i) {
-    asserts << *i;
-  }
-
   d_assertions.clear();
-  d_assertions.push_back(asserts);
-  return d_assertions[0];
 }
 
-static void printAST(std::ostream& out, const Node& n, int indent = 0) {
-  for(int i = 0; i < indent; ++i) {
-    out << "  ";
-  }
-  if(n.getKind() == VARIABLE) {
-    out << "(VARIABLE " << n.getId();
-  } else {
-    out << "(" << n.getKind();
-    if(n.getNumChildren() > 0) {
-      out << std::endl;
-    }
-    for(Node::iterator i = n.begin(); i != n.end(); ++i) {
-      printAST(out, *i, indent + 1);
-    }
-    if(n.getNumChildren() > 0) {
-      for(int i = 0; i < indent; ++i) {
-        out << "  ";
-      }
-    }
-  }
-  out << ")" << std::endl;
-}
 
 Result SmtEngine::check() {
   Debug("smt") << "SMT check()" << std::endl;
-  Node asserts = processAssertionList();
-
-  // CNF conversion
-  Debug("cnf") << "preprocessing " << asserts << std::endl;
-  Node assertsOut = d_cnfConverter.convert(asserts);
-  Debug("cnf") << "      and got " << assertsOut << std::endl;
-
-  Debug("smt") << "BEFORE CONVERSION ==" << std::endl;
-  printAST(Debug("smt"), asserts);
-  Debug("smt") << "AFTER CONVERSION ==" << std::endl;
-  printAST(Debug("smt"), assertsOut);
-  Debug("smt") << "===================" << std::endl;
-
-  d_prop.solve(assertsOut);
+  processAssertionList();
+  d_prop.solve();
   return Result(Result::VALIDITY_UNKNOWN);
 }
 

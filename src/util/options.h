@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include "parser/parser.h"
-#include "smt/cnf_conversion.h"
+#include "prop/cnf_conversion.h"
 
 namespace CVC4 {
 

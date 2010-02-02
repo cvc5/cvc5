@@ -7,7 +7,4 @@ noinst_LTLIBRARIES = libsmt.la
 
 libsmt_la_SOURCES = \
 	smt_engine.cpp \
-	smt_engine.h \
-	cnf_converter.h \
-	cnf_converter.cpp \
-	cnf_conversion.h
+	smt_engine.h 
