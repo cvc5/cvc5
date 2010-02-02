@@ -314,13 +314,6 @@ class ContextObj {
    */
   ContextObj* restoreAndContinue();
 
-  /**
-   * Disable delete: objects allocated with new(ContextMemorymanager) should
-   * never be deleted.  Objects allocated with new(bool) should be deleted by
-   * calling deleteSelf().
-   */
-  static void operator delete(void* pMem) { }
-
 protected:
   /**
    * This is a method that must be implemented by all classes inheriting from
@@ -397,6 +390,15 @@ public:
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() { ::operator delete(this); }
+
+  /**
+   * Disable delete: objects allocated with new(ContextMemorymanager) should
+   * never be deleted.  Objects allocated with new(bool) should be deleted by
+   * calling deleteSelf().
+   */
+  static void operator delete(void* pMem) {
+    AlwaysAssert(false, "Not Allowed!");
+  }
 
 }; /* class ContextObj */
 

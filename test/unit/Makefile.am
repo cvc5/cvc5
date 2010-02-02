@@ -2,7 +2,8 @@
 UNIT_TESTS = \
 	expr/node_white \
 	expr/node_black \
-	parser/parser_black
+	parser/parser_black \
+	context/context_black
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
