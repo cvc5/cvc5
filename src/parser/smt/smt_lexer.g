@@ -49,13 +49,14 @@ tokens {
   C_EXTRASORTS  = ":extrasorts";
   C_EXTRAFUNS   = ":extrafuns";
   C_EXTRAPREDS  = ":extrapreds";
+  C_NOTES       = ":notes";
 }
 
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').
  */
 protected 
-ALPHA options{ paraphrase = "a letter"; } 
+ALPHA options { paraphrase = "a letter"; } 
   :  'a'..'z' 
   |  'A'..'Z'
   ;
@@ -64,7 +65,7 @@ ALPHA options{ paraphrase = "a letter"; }
  * Matches the digits (0-9)
  */
 protected 
-DIGIT options{ paraphrase = "a digit"; } 
+DIGIT options { paraphrase = "a digit"; } 
   :   '0'..'9'
   ;
 
@@ -142,12 +143,20 @@ NEWLINE options { paraphrase = "a newline"; }
 NUMERAL options { paraphrase = "a numeral"; }
   :  (DIGIT)+
   ;
+   
+/**
+ * Matches an allowed escaped character.
+ */   
+protected ESCAPE
+  : '\\' ('"' | '\\' | 'n' | 't' | 'r')
+  ;      
       
 /**
- * Matches a double quoted string literal. No quote-escaping is supported inside.
+ * Matches a double quoted string literal. Escaping is supported, and escape
+ * character '\' has to be escaped. 
  */
 STRING_LITERAL options { paraphrase = "a string literal"; } 
-  :  '\"' (~('\"'))* '\"'
+  :  '"' (ESCAPE | ~('"'|'\\'))* '"'
   ;
   
 /**
