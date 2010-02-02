@@ -15,6 +15,7 @@
 
 #include "context/context.h"
 #include "util/Assert.h"
+#include <cstdlib>
 
 
 namespace CVC4 {

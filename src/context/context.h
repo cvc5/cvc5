@@ -381,7 +381,7 @@ public:
    * new operator.  To free this memory, instead of "delete p", use
    * "p->deleteSelf()".
    */
-  static void* operator new(size_t size, bool) { ::operator new(size); }
+  static void* operator new(size_t size, bool) { return ::operator new(size); }
 
   /**
    * Corresponding placement delete.  Note that this is provided for the
