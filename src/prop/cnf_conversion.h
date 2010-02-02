@@ -19,11 +19,14 @@
 namespace CVC4 {
 
 enum CnfConversion {
+  /** TODO: explanation of DIRECT_EXPONENTIAL (is this implemented?) */
   CNF_DIRECT_EXPONENTIAL = 0,
+  /** Explanation of CNF_VAR_INTRODUCTION */
   CNF_VAR_INTRODUCTION = 1
 };
 
 inline std::ostream& operator<<(std::ostream&, CVC4::CnfConversion) CVC4_PUBLIC;
+
 inline std::ostream& operator<<(std::ostream& out, CVC4::CnfConversion c) {
   using namespace CVC4;
 

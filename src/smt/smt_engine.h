@@ -59,7 +59,7 @@ public:
   SmtEngine(ExprManager* em, Options* opts) throw();
 
   /**
-   * Destruct the smt engine.
+   * Destruct the SMT engine.
    */
   ~SmtEngine();
 
