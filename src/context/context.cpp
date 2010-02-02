@@ -33,7 +33,7 @@ Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
 
 Context::~Context() {
   // Delete all Scopes
-  popto(-1);
+  popto(0);
 
   // Delete the memory manager
   delete d_pCMM;
@@ -99,7 +99,7 @@ void Context::pop() {
 
 void Context::popto(int toLevel) {
   // Pop scopes until there are none left or toLevel is reached
-  if (toLevel < -1) toLevel = -1;
+  if (toLevel < 0) toLevel = 0;
   while (toLevel < getLevel()) pop();
 }
 
