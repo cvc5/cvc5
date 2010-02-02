@@ -17,6 +17,7 @@
 #define __CVC4__CONTEXT__CONTEXT_H
 
 #include "context/context_mm.h"
+#include "util/Assert.h"
 
 namespace CVC4 {
 namespace context {
@@ -56,14 +57,9 @@ class Context {
   ContextMemoryManager* d_pCMM;
 
   /**
-   * Pointer to the current (top) Scope for this Context.
+   * List of all scopes for this context.
    */
-  Scope* d_pScopeTop;
-
-  /**
-   * Pointer to the initial (bottom) Scope for this Context.
-   */
-  Scope* d_pScopeBottom;
+  std::vector<Scope*> d_scopeList;
 
   /**
    * Doubly-linked list of objects to notify before every pop.  See
@@ -91,18 +87,17 @@ public:
   /**
    * Return the current (top) scope
    */
-  Scope* getTopScope() const { return d_pScopeTop; }
+  Scope* getTopScope() const { return d_scopeList.back(); }
 
   /**
    * Return the initial (bottom) scope
    */
-  Scope* getBottomScope() const { return d_pScopeBottom; }
+  Scope* getBottomScope() const { return d_scopeList[0]; }
 
   /**
-   * Return the current Scope level.  Implemented as inline function following
-   * declaration of Scope class.
+   * Return the current Scope level.
    */
-  int getLevel() const;
+  int getLevel() const { return ((int)d_scopeList.size()) - 1; }
 
   /**
    * Save the current state, create a new Scope
@@ -160,11 +155,6 @@ class Scope {
   ContextMemoryManager* d_pCMM;
 
   /**
-   * Previous Scope in this context
-   */
-  Scope* d_pScopePrev;
-
-  /**
    * Scope level (total number of outstanding push() calls when this Scope was
    * created).
    */
@@ -182,11 +172,9 @@ public:
    * Constructor: Create a new Scope; set the level and the previous Scope
    * if any.
    */
-  Scope(Context* pContext, ContextMemoryManager* pCMM,
-        Scope* pScopePrev = NULL)
-    : d_pContext(pContext), d_pCMM(pCMM), d_pScopePrev(pScopePrev),
-      d_level(0), d_pContextObjList(NULL)
-    { if (pScopePrev != NULL) d_level = pScopePrev->getLevel() + 1; }
+  Scope(Context* pContext, ContextMemoryManager* pCMM, int level)
+    : d_pContext(pContext), d_pCMM(pCMM), d_level(level),
+      d_pContextObjList(NULL) { }
 
   /**
    * Destructor: Restore all of the objects in ContextObjList.  Defined inline
@@ -203,12 +191,6 @@ public:
    * Get the ContextMemoryManager for this Scope
    */
   ContextMemoryManager* getCMM() const { return d_pCMM; }
-
-  /**
-   * Get the pointer to the previous Scope (should be NULL if no previous
-   * scope).
-   */
-  Scope* getScopePrev() const { return d_pScopePrev; }
 
   /**
    * Get the level of the current Scope
@@ -231,15 +213,17 @@ public:
    * Overload operator new for use with ContextMemoryManager to allow creation
    * of new Scope objects in the current memory region.
    */
-  void* operator new(size_t size, ContextMemoryManager* pCMM)
+  static void* operator new(size_t size, ContextMemoryManager* pCMM)
     { return pCMM->newData(size); }
 
   /**
    * Overload operator delete for Scope objects allocated using
    * ContextMemoryManager.  No need to do anything because memory is freed
    * automatically when the ContextMemoryManager pop() method is called.
+   * Include both placement and standard delete for completeness.
    */
-  void operator delete(void* pMem) {}
+  static void operator delete(void* pMem, ContextMemoryManager* pCMM) { }
+  static void operator delete(void* pMem) { }
 
   //FIXME:  //! Check for memory leaks
   //  void check(void);
@@ -261,17 +245,20 @@ public:
    *    explicitly freed when restore is called.  However, it is only required
    *    that the ContextObj itself be allocated using the
    *    ContextMemoryManager.  If other memory is allocated not using the
-   *    ContextMemoryManager, it should be freed when restore() is called.
+   *    ContextMemoryManager, it should be freed when restore() is called.  In
+   *    fact, any clean-up work on a saved object must be done by restore().
+   *    This is because the destructor is never called explicitly on saved
+   *    objects.
    * 3. Implement restore()
    *    The role of restore() is, given the ContextObj returned by a previous
    *    call to save(), to restore the current object to the state it was in
    *    when save() was called.  Note that the implementation of restore does
    *    *not* need to worry about restoring the base class data.  This is done
-   *    automatically.  restore() should not have to free any memory as any
-   *    memory allocated by save() should have been done using the
+   *    automatically.  Ideally, restore() should not have to free any memory
+   *    as any memory allocated by save() should have been done using the
    *    ContextMemoryManager (see item 2 above).
    * 4. In the subclass implementation, any time the state is about to be
-   *    changed, first call to makeCurrent().
+   *    changed, first call makeCurrent().
    */
 class ContextObj {
   /**
@@ -327,6 +314,13 @@ class ContextObj {
    */
   ContextObj* restoreAndContinue();
 
+  /**
+   * Disable delete: objects allocated with new(ContextMemorymanager) should
+   * never be deleted.  Objects allocated with new(bool) should be deleted by
+   * calling deleteSelf().
+   */
+  static void operator delete(void* pMem) { }
+
 protected:
   /**
    * This is a method that must be implemented by all classes inheriting from
@@ -346,10 +340,31 @@ protected:
    */
   void makeCurrent() { if (!(d_pScope->isCurrent())) update(); }
 
+  /**
+   * operator new using ContextMemoryManager (common case used by subclasses
+   * during save() ).  No delete is required for memory allocated this way,
+   * since it is automatically released when the context is popped.  Also note
+   * that allocations using this operator never have their destructor called,
+   * so any clean-up has to be done using the restore method.
+   */
+  static void* operator new(size_t size, ContextMemoryManager* pCMM) {
+    return pCMM->newData(size);
+  }
+
+  /**
+   * Corresponding placement delete.  Note that this is provided just to
+   * satisfy the requirement that a placement delete should be provided for
+   * every placement new.  It would only be called if a ContextObj Constructor
+   * throws an exception after a successful call to the above new operator.
+   */
+  static void operator delete(void* pMem, ContextMemoryManager* pCMM) { }
+
 public:
   /**
    * Create a new ContextObj.  The initial scope is set to the bottom
-   * scope of the Context.
+   * scope of the Context.  Note that in the common case, the copy constructor
+   * is called to create new ContextObj objects.  The default copy constructor
+   * does the right thing, so we do not explicitly define it.
    */
   ContextObj(Context* context);
 
@@ -360,6 +375,28 @@ public:
    * done until the corresponding Scope is popped.
    */
   virtual ~ContextObj();
+
+  /**
+   * If you want to allocate a ContextObj object on the heap, use this special
+   * new operator.  To free this memory, instead of "delete p", use
+   * "p->deleteSelf()".
+   */
+  static void* operator new(size_t size, bool) { ::operator new(size); }
+
+  /**
+   * Corresponding placement delete.  Note that this is provided for the
+   * compiler in case the ContextObj constructor throws an exception.  The
+   * client can't call it.
+   */
+  static void operator delete(void* pMem, bool) { ::operator delete(pMem); }
+
+  /**
+   * Use this instead of delete to delete memory allocated using the special
+   * new function provided above that takes a bool argument.  Do not call this
+   * function on memory allocated using the new that takes a
+   * ContextMemoryManager as an argument.
+   */
+  void deleteSelf() { ::operator delete(this); }
 
 }; /* class ContextObj */
 
@@ -424,8 +461,6 @@ public:
 
 // Inline functions whose definitions had to be delayed:
 
-inline int Context::getLevel() const { return getTopScope()->getLevel(); }
-
 inline Scope::~Scope() {
   // Call restore() method on each ContextObj object in the list.
   // Note that it is the responsibility of restore() to return the next item in
@@ -443,20 +478,245 @@ inline void Scope::addToChain(ContextObj* pContextObj) {
   d_pContextObjList = pContextObj;
 }
 
+  /**
+   * Most basic template for context-dependent objects.  Simply makes a copy
+   * (using the copy constructor) of class T when saving, and copies it back
+   * (using operator=) during restore.
+   */
 template <class T>
-class CDO;
+class CDO :public ContextObj {
+
+  /**
+   * The data of type T being stored in this context-dependent object.
+   */
+  T d_data;
+
+  /**
+   * Implementation of mandatory ContextObj method save: simply copies the
+   * current data to a copy using the copy constructor.  Memory is allocated
+   * using the ContextMemoryManager.
+   */
+  virtual ContextObj* save(ContextMemoryManager* pCMM) {
+    return new(pCMM) CDO<T>(*this);
+  }
+
+  /**
+   * Implementation of mandatory ContextObj method restore: simply copies the
+   * saved data back from the saved copy using operator= for T.
+   */
+  virtual void restore(ContextObj* pContextObj) {
+    d_data = ((CDO<T>*)pContextObj)->d_data;
+  }
+
+  /**
+   * Copy constructor - it's private to ensure it is only used by save().
+   * Basic CDO objects, cannot be copied-they have to be unique.
+   */
+  CDO(const CDO<T>& cdo): ContextObj(cdo), d_data(cdo.d_data) { }
+
+  /**
+   * operator= for CDO is private to ensure CDO object is not copied.
+   */
+  CDO<T>& operator=(const CDO<T>& cdo) {}
+
+public:
+  /**
+   * Main constructor - uses default constructor for T to create the initial
+   * value of d_data.
+   */
+  CDO(Context* context) : ContextObj(context) {}
+
+  /**
+   * Constructor from object of type T.  Creates a ContextObj and sets the data
+   * to the given data value.  Note that this value is only valid in the
+   * current Scope.  If the Scope is popped, the value will revert to whatever
+   * is assigned by the default constructor for T
+   */
+  CDO(Context* context, const T& data) : ContextObj(context) {
+    makeCurrent(); d_data = data;
+  }
+
+  /**
+   * Destructor - no need to do anything.
+   */
+  ~CDO() {}
+
+  /**
+   * Set the data in the CDO.  First call makeCurrent.
+   */
+  void set(const T& data) { makeCurrent(); d_data = data; }
+
+  /**
+   * Get the current data from the CDO.  Read-only.
+   */
+  const T& get() const { return d_data; }
+
+  /**
+   * For convenience, define operator T to be the same as get().
+   */
+  operator T() { return get(); }
+
+  /**
+   * For convenience, define operator= that takes an object of type T.
+   */
+  CDO<T>& operator=(const T& data) { set(data); return *this; }
+  
+}; /* class CDO */
+
+  /**
+   * Generic context-dependent dynamic array.  Note that for efficiency, this
+   * implementation makes the following assumptions:
+   * 1. Over time, objects are only added to the list.  Objects are only
+   *    removed when a pop restores the list to a previous state.
+   * 2. T objects can safely be copied using memcpy.
+   * 3. T objects do not need to be destroyed when the list is reallocated
+   *    or when they are removed as a result of a pop.
+   */
+template <class T>
+class CDList :public ContextObj {
+  /**
+   * d_list is a dynamic array of objects of type T.
+   */
+  T* d_list;
+
+  /**
+   * Number of objects in d_list
+   */
+  unsigned d_size;
+
+  /**
+   * Allocated size of d_list.
+   */
+  unsigned d_sizeAlloc;
+
+  /**
+   * Implementation of mandatory ContextObj method save: simply copies the
+   * current size to a copy using the copy constructor (the pointer and the
+   * allocated size are *not* copied as they are not restored on a pop).
+   * The saved information is allocated using the ContextMemoryManager.
+   */
+  ContextObj* save(ContextMemoryManager* pCMM) {
+    return new(pCMM) CDList<T>(*this);
+  }
+
+  /**
+   * Implementation of mandatory ContextObj method restore: simply restores the
+   * previous size.  Note that the list pointer and the allocated size are not
+   * changed.  Also, for efficiency, the T objects that are no longer valid do
+   * not have their destructor called - if this is needed, we can add it later.
+   */
+  void restore(ContextObj* data) {
+    d_size = ((CDList<T>*)data)->d_size;
+  }
+
+  /**
+   * Privae copy constructor used only by save above.  d_list and d_sizeAlloc
+   * are not copied: only the base class information and d_size are needed in
+   * restore.
+   */
+  CDList(const CDList<T>& l): ContextObj(l), d_list(NULL),
+                              d_size(l.d_size), d_sizeAlloc(0) { }
+
+  /**
+   * Reallocate the array with more space.
+   */
+  void grow();
+
+public:
+  /**
+   * Main constructor: d_list starts as NULL, size is 0
+   */
+  CDList(Context* context) : ContextObj(context), d_list(NULL),
+                             d_size(0), d_sizeAlloc(0) { }
+
+  /**
+   * Destructor: delete the list
+   */
+  ~CDList() { if(d_list != NULL) delete d_list; }
+
+  /**
+   * Return the current size of (i.e. valid number of objects in) the list
+   */
+  unsigned size() const { return d_size; }
+
+
+  /**
+   * Return true iff there are no valid objects in the list.
+   */
+  bool empty() const { return d_size == 0; }
+
+  /**
+   * Add an item to the end of the list.
+   */
+  void push_back(const T& data) {
+    makeCurrent();
+    if (d_size == d_sizeAlloc) grow();
+    d_list[d_size++] = data;
+  }
+
+  /**
+   * operator[]: return the ith item in the list
+   */
+  const T& operator[](unsigned i) const {
+    Assert(i < d_size, "index out of bounds in CDList::operator[]");
+    return d_list[i];
+  }
+
+  /**
+   * return the most recent item added to the list
+   */
+  const T& back() const {
+    Assert(d_size > 0, "CDList::back() called on empty list");
+    return d_list[d_size-1];
+  }
+
+  /**
+   * Iterator for CDList class.  It has to be const because we don't allow
+   * items in the list to be changed.  It's a straightforward wrapper around a
+   * pointer.  Note that for efficiency, we implement only prefix increment and
+   * decrement.  Also note that it's OK to create an iterator from an empty,
+   * uninitialized list, as begin() and end() will have the same value (NULL).
+   */
+  class const_iterator {
+    friend class CDList<T>;
+    T* d_it;
+    const_iterator(T* it) : d_it(it) {};
+  public:
+    const_iterator() : d_it(NULL) {}
+    bool operator==(const const_iterator& i) const { return d_it == i.d_it; }
+    bool operator!=(const const_iterator& i) const { return d_it != i.d_it; }
+    const T& operator*() const { return *d_it; }
+    /** Prefix increment */
+    const_iterator& operator++() { ++d_it; return *this; }
+    /** Prefix decrement */
+    const_iterator& operator--() { --d_it; return *this; }
+  }; /* class const_iterator */
+
+  /**
+   * Returns an iterator pointing to the first item in the list.
+   */
+  const_iterator begin() const {
+    return const_iterator(d_list);
+  }
+
+  /**
+   * Returns an iterator pointing one past the last item in the list.
+   */
+  const_iterator end() const {
+    return const_iterator(d_list + d_size);
+  }
+
+}; /* class CDList */
 
 template <class T>
 class CDMap;
 
 template <class T>
-class CDList;
-
-template <class T>
 class CDSet;
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+} /* CVC4::context namespace */
+
+} /* CVC4 namespace */
 
 #endif /* __CVC4__CONTEXT__CONTEXT_H */
 

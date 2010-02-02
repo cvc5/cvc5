@@ -26,8 +26,7 @@ Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
   d_pCMM = new ContextMemoryManager();
 
   // Create initial Scope
-  d_pScopeTop = new(d_pCMM) Scope(this, d_pCMM);
-  d_pScopeBottom = d_pScopeTop;
+  d_scopeList.push_back(new(d_pCMM) Scope(this, d_pCMM, 0));
 }
 
 
@@ -62,7 +61,7 @@ void Context::push() {
   d_pCMM->push();
 
   // Create a new top Scope
-  d_pScopeTop = new(d_pCMM) Scope(this, d_pCMM, d_pScopeTop);
+  d_scopeList.push_back(new(d_pCMM) Scope(this, d_pCMM, getLevel()+1));
 }
 
 
@@ -75,10 +74,10 @@ void Context::pop() {
   }
 
   // Grab the top Scope
-  Scope* pScope = d_pScopeTop;
+  Scope* pScope = d_scopeList.back();
 
   // Restore the previous Scope
-  d_pScopeTop = pScope->getScopePrev();
+  d_scopeList.pop_back();
 
   // Restore all objects in the top Scope
   delete pScope;
@@ -99,7 +98,8 @@ void Context::pop() {
 
 void Context::popto(int toLevel) {
   // Pop scopes until there are none left or toLevel is reached
-  while (d_pScopeTop != NULL && toLevel < d_pScopeTop->getLevel()) pop();
+  if (toLevel < -1) toLevel = -1;
+  while (toLevel < getLevel()) pop();
 }
 
 
@@ -215,6 +215,27 @@ ContextNotifyObj::~ContextNotifyObj()
   }
   if (d_ppCNOprev != NULL) {
     *(d_ppCNOprev) = d_pCNOnext;
+  }
+}
+
+
+template<class T>
+void CDList<T>::grow() {
+  if (d_list == NULL) {
+    // Allocate an initial list if one does not yet exist
+    d_sizeAlloc = 10;
+    d_list = malloc(sizeof(T)*d_sizeAlloc);
+  }
+  else {
+    // Allocate a new array with double the size
+    d_sizeAlloc *= 2;
+    T* newList = malloc(sizeof(T)*d_sizeAlloc);
+
+    // Copy the old data
+    memcpy(d_list, newList, sizeof(T)*d_size);
+
+    // Free the old list
+    free(d_list);
   }
 }
 
