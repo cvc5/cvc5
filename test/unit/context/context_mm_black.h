@@ -36,24 +36,40 @@ public:
   void testPushPop() {
 
     // Push, then allocate, then pop
+    // We make sure that we don't allocate too much so that all the regions
+    // should be reclaimed
+    int chunkSizeBytes = 16384;
+    int maxFreeChunks = 100;
+    int piecesPerChunk = 13;
+    int len = chunkSizeBytes / piecesPerChunk; // Length of the individual block
+    int N = maxFreeChunks*piecesPerChunk;
     for (int p = 0; p < 5; ++ p) {
       d_cmm->push();
-      for (int i = 1; i < 16384/3; ++i) {
-        int len = i*3;
+      for (int i = 0; i < N; ++i) {
         char* newMem = (char*)d_cmm->newData(len);
-        for(int k = 0; k < len - 1; k ++)
-          newMem[k] = 'a';
-        newMem[len-1] = 0;
+        // We only setup the memory in the first run, the others should
+        // reclaim the same memory
+        if (p == 0) {
+          for(int k = 0; k < len - 1; k ++)
+            newMem[k] = 'a';
+          newMem[len-1] = 0;
+        }
+        if (strlen(newMem) != len - 1) {
+          cout << strlen(newMem) << " : " << len - 1 << endl;
+        }
         TS_ASSERT(strlen(newMem) == len - 1);
       }
       d_cmm->pop();
     }
 
+    int factor = 3;
+    N = 16384/factor;
+
     // Push, then allocate, then pop all at once
     for (int p = 0; p < 5; ++ p) {
       d_cmm->push();
-      for (int i = 1; i < 16384/3; ++i) {
-        int len = i*3;
+      for (int i = 1; i < N; ++i) {
+        int len = i*factor;
         char* newMem = (char*)d_cmm->newData(len);
         for(int k = 0; k < len - 1; k ++)
           newMem[k] = 'a';
