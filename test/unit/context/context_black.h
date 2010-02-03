@@ -1,8 +1,6 @@
 /*********************                                           -*- C++ -*-  */
-/** node_black.h
- ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): dejan
+/** context_black.h
+ ** Original author: dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -17,6 +15,7 @@
 
 //Used in some of the tests
 #include <vector>
+#include <iostream>
 #include "context/context.h"
 
 using namespace std;
@@ -34,10 +33,29 @@ public:
   }
 
   void testIntCDO() {
+    // Test that push/pop maintains the original value
     CDO<int> a1(d_context);
+    a1 = 5;
+    TS_ASSERT(d_context->getLevel() == 0);
+    d_context->push();
+    a1 = 10;
+    TS_ASSERT(d_context->getLevel() == 1);
+    TS_ASSERT(a1 == 10);
+    d_context->pop();
+    TS_ASSERT(d_context->getLevel() == 0);
+    TS_ASSERT(a1 == 5);
   }
 
-  void tearDown(){
+  void testContextPushPop() {
+    // Test what happens when the context is popped below 0
+    // the interface doesn't declare any exceptions
+    d_context->push();
+    d_context->pop();
+    d_context->pop();
+    d_context->pop();
+  }
+
+  void tearDown() {
     delete d_context;
   }
 };
