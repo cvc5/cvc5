@@ -129,6 +129,24 @@ public:
    */
   ExprManager* getExprManager() const;
 
+  /**
+   * Very basic pretty printer for Expr.
+   * This is equivalent to calling e.getNode().printAst(...)
+   * @param o output stream to print to.
+   * @param indent number of spaces to indent the formula by.
+   */
+  void printAst(std::ostream & o, int indent = 0) const;
+  
+private:
+  
+  /**
+   * Pretty printer for use within gdb
+   * This is not intended to be used outside of gdb.
+   * This writes to the ostream Warning() and immediately flushes
+   * the ostream.
+   */
+  void debugPrint();
+
 protected:
 
   /**

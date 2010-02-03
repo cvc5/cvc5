@@ -17,6 +17,8 @@
 #include "expr/node.h"
 #include "util/Assert.h"
 
+#include "util/output.h"
+
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, const Expr& e) {
@@ -167,5 +169,15 @@ Expr BoolExpr::iteExpr(const Expr& then_e, const Expr& else_e) const {
   Assert(d_em == else_e.getExprManager(), "Different expression managers!");
   return d_em->mkExpr(ITE, *this, then_e, else_e);
 }
+
+void Expr::printAst(std::ostream & o, int indent) const{
+  getNode().printAst(o,indent);
+}
+
+void Expr::debugPrint(){
+  printAst(Warning());
+  Warning().flush();
+}
+
 
 } // End namespace CVC4
