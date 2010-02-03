@@ -128,7 +128,7 @@ void Node::printAst(ostream & o, int ind) const{
   if(getKind() == VARIABLE){
     o << ' ' << getId();
 
-  }else if(getNumChildren() > 1){
+  }else if(getNumChildren() >= 1){
     for(Node::iterator child = begin(); child != end(); ++child){
       (*child).printAst(o, ind+1);
     }

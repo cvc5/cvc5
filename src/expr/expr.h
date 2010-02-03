@@ -132,10 +132,10 @@ public:
   /**
    * Very basic pretty printer for Expr.
    * This is equivalent to calling e.getNode().printAst(...)
-   * @param o output stream to print to.
+   * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
-  void printAst(std::ostream & o, int indent = 0) const;
+  void printAst(std::ostream & out, int indent = 0) const;
   
 private:
   

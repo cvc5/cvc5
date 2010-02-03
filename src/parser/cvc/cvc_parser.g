@@ -211,8 +211,23 @@ boolIffFormula returns [CVC4::Expr iffFormula]
  */
 primaryBoolFormula returns [CVC4::Expr formula]
   : formula = boolAtom
+  | formula = iteFormula
   | NOT formula = primaryBoolFormula { formula = mkExpr(CVC4::NOT, formula); }
   | LPAREN formula = boolFormula RPAREN
+  ;
+
+/**
+ * Parses an ITE boolean formula.
+ */
+iteFormula returns [CVC4::Expr formula] 
+{
+  Expr iteCondition, iteThen, iteElse;
+}
+  : IF     iteCondition = boolFormula 
+    THEN   iteThen      = boolFormula
+    ELSE   iteElse      = boolFormula 
+    ENDIF
+    { formula = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }
   ;
 
 /**

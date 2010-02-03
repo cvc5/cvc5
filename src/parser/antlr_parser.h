@@ -99,7 +99,8 @@ protected:
   /**
    * Renames the antlr semantic expression to a given message.
    */
-  void rethrow(antlr::SemanticException& e, std::string msg) throw (antlr::SemanticException);
+  void rethrow(antlr::SemanticException& e, std::string msg)
+      throw (antlr::SemanticException);
 
   /**
    * Returns a variable, given a name and a type.
@@ -150,15 +151,29 @@ protected:
    * Creates a new unary CVC4 expression using the expression manager.
    * @param kind the kind of the expression
    * @param child the child
+   * @return the new unary expression
    */
   Expr mkExpr(Kind kind, const Expr& child);
 
   /**
    * Creates a new binary CVC4 expression using the expression manager.
    * @param kind the kind of the expression
-   * @param children the children of the expression
+   * @param child1 the first child
+   * @param child2 the second child
+   * @return the new binary expression
    */
   Expr mkExpr(Kind kind, const Expr& child_1, const Expr& child_2);
+
+  /**
+   * Creates a new ternary CVC4 expression using the expression manager.
+   * @param kind the kind of the expression
+   * @param child_1 the first child
+   * @param child_2 the second child
+   * @param child_3
+   * @return the new ternary expression
+   */
+  Expr mkExpr(Kind kind, const Expr& child_1, const Expr& child_2,
+              const Expr& child_3);
 
   /**
    * Creates a new CVC4 expression using the expression manager.
@@ -173,16 +188,15 @@ protected:
    * @param name the name of the predicate
    * @param sorts the sorts
    */
-  void newPredicate(std::string name, 
-                    const std::vector<std::string>& sorts);
+  void newPredicate(std::string name, const std::vector<std::string>& sorts);
 
   /**
    * Creates new predicates over the given sorts. Each predicate
    * will have arity sorts.size().
    * @param p_names the names of the predicates
    */
-  void newPredicates(const std::vector<std::string>& names,
-                     const std::vector<std::string>& sorts);
+  void newPredicates(const std::vector<std::string>& names, const std::vector<
+      std::string>& sorts);
 
   /**
    * Returns the precedence rank of the kind.

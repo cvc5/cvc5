@@ -110,7 +110,9 @@ void CheckSatCommand::toStream(ostream& out) const {
 }
 
 void QueryCommand::toStream(ostream& out) const {
-  out << "Query(" << d_expr << ")";
+  out << "Query(";
+  d_expr.printAst(out, 2);
+  out << ")";
 }
 
 void CommandSequence::toStream(ostream& out) const {

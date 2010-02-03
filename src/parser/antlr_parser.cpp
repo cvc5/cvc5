@@ -63,17 +63,21 @@ Expr AntlrParser::mkExpr(Kind kind, const Expr& child) {
   return d_exprManager->mkExpr(kind, child);
 }
 
-Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1,
-                                const Expr& child_2) {
+Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2) {
   return d_exprManager->mkExpr(kind, child_1, child_2);
+}
+
+Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2,
+                         const Expr& child_3) {
+  return d_exprManager->mkExpr(kind, child_1, child_2, child_3);
 }
 
 Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
   return d_exprManager->mkExpr(kind, children);
 }
 
-void AntlrParser::newPredicate(std::string name, 
-                               const std::vector< std::string>& sorts) {
+void AntlrParser::newPredicate(std::string name,
+                               const std::vector<std::string>& sorts) {
   if(sorts.size() == 0) {
     d_varSymbolTable.bindName(name, d_exprManager->mkVar());
   } else {
@@ -81,8 +85,8 @@ void AntlrParser::newPredicate(std::string name,
   }
 }
 
-void AntlrParser::newPredicates(const std::vector<std::string>& names, 
-                                const std::vector< std::string>& sorts) {
+void AntlrParser::newPredicates(const std::vector<std::string>& names,
+                                const std::vector<std::string>& sorts) {
   for(unsigned i = 0; i < names.size(); ++i) {
     newPredicate(names[i], sorts);
   }
