@@ -223,10 +223,24 @@ iteFormula returns [CVC4::Expr formula]
 {
   Expr iteCondition, iteThen, iteElse;
 }
-  : IF     iteCondition = boolFormula 
-    THEN   iteThen      = boolFormula
-    ELSE   iteElse      = boolFormula 
-    ENDIF
+  : IF iteCondition = boolFormula 
+    THEN iteThen = boolFormula
+    iteElse = iteElseFormula
+    ENDIF     
+    { formula = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }  
+  ;
+
+/**
+ * Parses the else part of the ITE, i.e. ELSE f, or ELSIF b THEN f1 ...
+ */
+iteElseFormula returns [CVC4::Expr formula]
+{
+  Expr iteCondition, iteThen, iteElse;
+}
+  : ELSE formula = boolFormula
+  | ELSEIF iteCondition = boolFormula
+    THEN iteThen = boolFormula
+    iteElse = iteElseFormula
     { formula = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }
   ;
 

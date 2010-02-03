@@ -47,7 +47,6 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
 
 Expr AntlrParser::getVariable(std::string var_name) {
   Expr e = d_varSymbolTable.getObject(var_name);
-  Debug("parser") << "getvar " << var_name << " gives " << e << endl;
   return e;
 }
 
@@ -64,20 +63,27 @@ Expr AntlrParser::mkExpr(Kind kind, const Expr& child) {
 }
 
 Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2) {
-  return d_exprManager->mkExpr(kind, child_1, child_2);
+  Expr result = d_exprManager->mkExpr(kind, child_1, child_2);
+  Debug("parser") << "mkExpr() => " << result << std::endl;
+  return result;
 }
 
 Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2,
                          const Expr& child_3) {
-  return d_exprManager->mkExpr(kind, child_1, child_2, child_3);
+  Expr result = d_exprManager->mkExpr(kind, child_1, child_2, child_3);
+  Debug("parser") << "mkExpr() => " << result << std::endl;
+  return result;
 }
 
 Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
-  return d_exprManager->mkExpr(kind, children);
+  Expr result = d_exprManager->mkExpr(kind, children);
+  Debug("parser") << "mkExpr() => " << result << std::endl;
+  return result;
 }
 
 void AntlrParser::newPredicate(std::string name,
                                const std::vector<std::string>& sorts) {
+  Debug("parser") << "newPredicate(" << name << ")" << std::endl;
   if(sorts.size() == 0) {
     d_varSymbolTable.bindName(name, d_exprManager->mkVar());
   } else {

@@ -34,6 +34,15 @@ ostream& operator<<(ostream& out, const Command& c) {
   return out;
 }
 
+ostream& operator<<(ostream& out, const Command* c) {
+  if (c == NULL) {
+    out << "null";
+  } else {
+    c->toStream(out);
+  }
+  return out;
+}
+
 std::string Command::toString() const {
   stringstream ss;
   toStream(ss);
@@ -111,7 +120,7 @@ void CheckSatCommand::toStream(ostream& out) const {
 
 void QueryCommand::toStream(ostream& out) const {
   out << "Query(";
-  d_expr.printAst(out, 2);
+  d_expr.printAst(out, 0);
   out << ")";
 }
 

@@ -19,6 +19,7 @@
 
 #include "parser.h"
 #include "util/command.h"
+#include "util/output.h"
 #include "util/Assert.h"
 #include "parser_exception.h"
 #include "parser/antlr_parser.h"
@@ -41,21 +42,26 @@ bool Parser::done() const {
   return d_done;
 }
 
-Command* Parser::parseNextCommand() throw(ParserException, AssertionException) {
+Command* Parser::parseNextCommand() throw (ParserException, AssertionException) {
+  Debug("parser") << "parseNextCommand()" << std::endl;
   Command* cmd = NULL;
   if(!done()) {
     try {
       cmd = d_antlrParser->parseCommand();
-      if (cmd == NULL) setDone();
+      if(cmd == NULL) {
+        setDone();
+      }
     } catch(antlr::ANTLRException& e) {
       setDone();
       throw ParserException(e.toString());
     }
   }
+  Debug("parser") << "parseNextCommand() => " << cmd << std::endl;
   return cmd;
 }
 
-Expr Parser::parseNextExpression() throw(ParserException, AssertionException) {
+Expr Parser::parseNextExpression() throw (ParserException, AssertionException) {
+  Debug("parser") << "parseNextExpression()" << std::endl;
   Expr result;
   if(!done()) {
     try {
@@ -67,6 +73,7 @@ Expr Parser::parseNextExpression() throw(ParserException, AssertionException) {
       throw ParserException(e.toString());
     }
   }
+  Debug("parser") << "parseNextExpression() => " << result << std::endl;
   return result;
 }
 
@@ -78,8 +85,10 @@ Parser::~Parser() {
   }
 }
 
-Parser::Parser(istream* input, AntlrParser* antlrParser, CharScanner* antlrLexer, bool deleteInput) :
-  d_done(false), d_antlrParser(antlrParser), d_antlrLexer(antlrLexer), d_input(input), d_deleteInput(deleteInput) {
+Parser::Parser(istream* input, AntlrParser* antlrParser,
+               CharScanner* antlrLexer, bool deleteInput) :
+  d_done(false), d_antlrParser(antlrParser), d_antlrLexer(antlrLexer),
+      d_input(input), d_deleteInput(deleteInput) {
 }
 
 Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
