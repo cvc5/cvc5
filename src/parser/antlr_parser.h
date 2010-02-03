@@ -120,6 +120,15 @@ protected:
   bool checkDeclaration(std::string varName, DeclarationCheck check);
 
   /**
+   * Return true if the the declaration policy we want to enforce is true
+   * on the given sort name.
+   * @param name the sort symbol to check
+   * @oaram check the kind of check to perform
+   * @return true if the check holds
+   */
+  bool checkSort(std::string name, DeclarationCheck check);
+
+  /**
    * Types of symbols.
    */
   enum SymbolType {
@@ -136,6 +145,12 @@ protected:
    * @param the variable name
    */
   bool isDeclared(std::string var_name, SymbolType type = SYM_VARIABLE);
+
+  /**
+   * Checks if the sort has been declared.
+   * @param the sort name
+   */
+  bool isSort(std::string name);
 
   /**
    * Returns the true expression.
@@ -185,8 +200,26 @@ protected:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /**
-   * Creates a new predicate over the given sorts. The predicate
-   * has arity sorts.size().
+   * Creates a new function over the given sorts. The function
+   * has arity sorts.size() - 1 and range type sorts[sorts.size() - 1].
+   * @param name the name of the function
+   * @param sorts the sorts
+   */
+  void newFunction(std::string name, 
+                   const std::vector<std::string>& sorts);
+
+  /**
+   * Creates new functions over the given sorts. Each function has
+   * arity sorts.size() - 1 and range type sorts[sorts.size() - 1].
+   * @param name the name of the function
+   * @param sorts the sorts
+   */
+  void newFunctions(const std::vector<std::string>& names, 
+                    const std::vector<std::string>& sorts);
+
+  /**
+   * Creates a new predicate over the given sorts. The predicate has
+   * arity sorts.size().
    * @param name the name of the predicate
    * @param sorts the sorts
    */
@@ -201,6 +234,16 @@ protected:
       std::string>& sorts);
 
   /**
+   * Creates a new sort with the given name.
+   */
+  void newSort(std::string name);
+
+  /**
+   * Creates a new sorts with the given names.
+   */
+  void newSorts(const std::vector<std::string>& names);
+
+  /**
    * Returns the precedence rank of the kind.
    */
   static unsigned getPrecedence(Kind kind);
@@ -212,6 +255,9 @@ private:
 
   /** The symbol table lookup */
   SymbolTable<Expr> d_varSymbolTable;
+
+  /** The sort table */
+  SymbolTable<std::string> d_sortTable;
 };
 
 }/* CVC4::parser namespace */

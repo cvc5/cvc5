@@ -82,6 +82,19 @@ Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
   return result;
 }
 
+void AntlrParser::newFunction(std::string name, 
+                               const std::vector< std::string>& sorts) {
+  // FIXME: Need to actually create a function type
+  d_varSymbolTable.bindName(name, d_exprManager->mkVar());
+}
+
+void AntlrParser::newFunctions(const std::vector<std::string>& names, 
+                               const std::vector< std::string>& sorts) {
+  for(unsigned i = 0; i < names.size(); ++i) {
+    newFunction(names[i], sorts);
+  }
+}
+
 void AntlrParser::newPredicate(std::string name,
                                const std::vector<std::string>& sorts) {
   Debug("parser") << "newPredicate(" << name << ")" << std::endl;
@@ -96,6 +109,23 @@ void AntlrParser::newPredicates(const std::vector<std::string>& names,
                                 const std::vector<std::string>& sorts) {
   for(unsigned i = 0; i < names.size(); ++i) {
     newPredicate(names[i], sorts);
+  }
+}
+
+bool AntlrParser::isSort(std::string name) {
+  return d_sortTable.isBound(name);
+}
+
+void AntlrParser::newSort(std::string name) {
+  Assert( !isSort(name) ) ;
+  // Trivial binding
+  d_sortTable.bindName(name,name);
+  Assert( isSort(name) ) ;
+}
+
+void AntlrParser::newSorts(const std::vector<std::string>& names) {
+  for(unsigned i = 0; i < names.size(); ++i) {
+    newSort(names[i]);
   }
 }
 
@@ -125,6 +155,19 @@ bool AntlrParser::checkDeclaration(string varName, DeclarationCheck check) {
     return isDeclared(varName, SYM_VARIABLE);
   case CHECK_UNDECLARED:
     return !isDeclared(varName, SYM_VARIABLE);
+  case CHECK_NONE:
+    return true;
+  default:
+    Unhandled("Unknown check type!");
+  }
+}
+
+bool AntlrParser::checkSort(std::string name, DeclarationCheck check) {
+  switch(check) {
+  case CHECK_DECLARED:
+    return isSort(name);
+  case CHECK_UNDECLARED:
+    return !isSort(name);
   case CHECK_NONE:
     return true;
   default:

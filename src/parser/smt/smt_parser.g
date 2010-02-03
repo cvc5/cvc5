@@ -98,10 +98,12 @@ benchAttribute returns [Command* smt_command = 0]
     { smt_command = new AssertCommand(formula);   }
   | FORMULA_ATTR formula = annotatedFormula
     { smt_command = new CheckSatCommand(formula); }
-  | STATUS_ATTR b_status = status
-    { smt_command = new SetBenchmarkStatusCommand(b_status); }
-  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN
-  | NOTES_ATTR STRING_LITERAL
+  | STATUS_ATTR b_status = status                   
+    { smt_command = new SetBenchmarkStatusCommand(b_status); }        
+  | EXTRAFUNS_ATTR LPAREN (functionDeclaration)+ RPAREN  
+  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN  
+  | EXTRASORTS_ATTR LPAREN (sortDeclaration)+ RPAREN  
+  | NOTES_ATTR STRING_LITERAL        
   | annotation
   ;
 
@@ -132,17 +134,102 @@ annotatedFormula returns [CVC4::Expr formula]
   Kind kind;
   vector<Expr> children;
 }
+<<<<<<< .mine
+  :  formula = annotatedAtom 
+  |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN 
+    { formula = mkExpr(kind, children);  }    
+    /* TODO: let, flet, quantifiers */
+=======
   :  formula = annotatedAtom
   |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN { formula = mkExpr(kind, children);  }
+>>>>>>> .r150
   ;
 
 /**
+<<<<<<< .mine
+ * Matches a sequence of annotaed formulas and puts them into the formulas
+ * vector.
+ * @param formulas the vector to fill with formulas
+ */   
+annotatedFormulas[std::vector<Expr>& formulas]
+{
+  Expr f;
+}
+  : ( f = annotatedFormula { formulas.push_back(f); } )+
+  ;
+
+/**
+ * Matches an annotated proposition atom, which is either a propositional atom 
+ * or built of other atoms using a predicate symbol.  
+=======
  * Matches an annotated proposition atom, which is either a propositional atom
  * or built of other atoms using a predicate symbol.
+>>>>>>> .r150
  * @return expression representing the atom
  */
+<<<<<<< .mine
+annotatedAtom returns [CVC4::Expr atom] 
+{ 
+  Kind kind;
+  string predName;
+  Expr pred;
+  vector<Expr> children;
+}
+  : atom = propositionalAtom  
+=======
 annotatedAtom returns [CVC4::Expr atom]
   : atom = propositionalAtom
+>>>>>>> .r150
+  | LPAREN kind = arithPredicate annotatedTerms[children] RPAREN
+    { atom = mkExpr(kind,children); }
+  | LPAREN pred = predicateSymbol
+    { children.push_back(pred); }
+    annotatedTerms[children] RPAREN
+    { atom = mkExpr(CVC4::APPLY,children); }
+  ;
+
+/** 
+ * Matches an annotated term.
+ * @return the expression representing the term 
+ */
+annotatedTerm returns [CVC4::Expr term] 
+{ 
+  Kind kind;
+  Expr f, t1, t2;
+  vector<Expr> children;
+}
+  : term = baseTerm
+  | LPAREN f = functionSymbol
+    { children.push_back(f); }
+    annotatedTerms[children] RPAREN 
+    { term = mkExpr(CVC4::APPLY, children);  }
+  // | LPAREN kind = arithFunction annotatedTerms[children] RPAREN
+  //   { term = mkExpr(kind,children); }
+  | LPAREN ITE 
+    f = annotatedFormula 
+    t1 = annotatedTerm 
+    t2 = annotatedTerm RPAREN
+    { term = mkExpr(CVC4::ITE, f, t1, t2); }
+  ;
+
+/**
+ * Matches a sequence of annotaed formulas and puts them into the formulas
+ * vector.
+ * @param formulas the vector to fill with formulas
+ */   
+annotatedTerms[std::vector<Expr>& terms]
+{
+  Expr t;
+}
+  : ( t = annotatedFormula { terms.push_back(t); } )+
+  ;
+
+baseTerm returns [CVC4::Expr term]
+{
+  string name;
+}
+  : name = identifier[CHECK_DECLARED] { term = getVariable(name); }
+    /* TODO: constants */
   ;
 
 /**
@@ -159,6 +246,8 @@ boolConnective returns [CVC4::Kind kind]
   ;
 
 /**
+<<<<<<< .mine
+=======
  * Mathces a sequence of annotaed formulas and puts them into the formulas
  * vector.
  * @param formulas the vector to fill with formulas
@@ -171,6 +260,7 @@ annotatedFormulas[std::vector<Expr>& formulas]
   ;
 
 /**
+>>>>>>> .r150
  * Matches a propositional atom and returns the expression of the atom.
  * @return atom the expression of the atom
  */
@@ -178,19 +268,62 @@ propositionalAtom returns [CVC4::Expr atom]
 {
   std::string p;
 }
-   : p = predicateName[CHECK_DECLARED] { atom = getVariable(p); }
+   : atom = predicateSymbol
    | TRUE          { atom = getTrueExpr(); }
    | FALSE         { atom = getFalseExpr(); }
    ;
 
+arithPredicate returns [CVC4::Kind kind]
+  : EQUAL { kind = CVC4::EQUAL; }
+    /* TODO: lt, gt */
+  ;
+
 /**
+<<<<<<< .mine
+ * Matches a (possibly undeclared) predicate identifier (returning the string). 
+=======
  * Matches a predicate symbol.
+>>>>>>> .r150
  * @param check what kind of check to do with the symbol
  */
 predicateName[DeclarationCheck check = CHECK_NONE] returns [std::string p]
   :  p = identifier[check]
   ;
+<<<<<<< .mine
 
+/**
+ * Matches an previously declared predicate symbol (returning an Expr)
+ */
+predicateSymbol returns [CVC4::Expr pred]
+{ 
+  string name;
+}
+  : name = predicateName[CHECK_DECLARED]
+    { pred = getVariable(name); }
+  ;
+
+/**
+ * Matches a (possibly undeclared) function identifier (returning the string)
+ * @param check what kind of check to do with the symbol
+ */
+functionName[DeclarationCheck check = CHECK_NONE] returns [std::string name]
+  :  name = identifier[check]
+  ;
+
+/**
+ * Matches an previously declared function symbol (returning an Expr)
+ */
+functionSymbol returns [CVC4::Expr fun]
+{ 
+  string name;
+}
+  : name = functionName[CHECK_DECLARED]
+    { fun = getVariable(name); }
+  ;
+  
+=======
+
+>>>>>>> .r150
 /**
  * Matches an attribute name from the input (:attribute_name).
  */
@@ -202,10 +335,32 @@ attribute
  * Matches the sort symbol, which can be an arbitrary identifier.
  * @param check the check to perform on the name
  */
+<<<<<<< .mine
+sortName[DeclarationCheck check = CHECK_NONE] returns [std::string name] 
+  : name = identifier[CHECK_NONE] 
+    /* We pass CHECK_NONE to identifier, because identifier checks
+       in the variable namespace, not the sorts namespace. */
+    { checkSort(name,check) }?
+=======
 sortName[DeclarationCheck check = CHECK_NONE] returns [std::string s]
   : s = identifier[check]
+>>>>>>> .r150
   ;
+<<<<<<< .mine
 
+functionDeclaration
+{
+  string name;
+  vector<string> sorts;
+}
+  : LPAREN name = functionName[CHECK_UNDECLARED]
+        sortNames[sorts, CHECK_DECLARED] RPAREN
+    { newFunction(name, sorts); } 
+  ;
+              
+=======
+
+>>>>>>> .r150
 /**
  * Matches the declaration of a predicate and declares it
  */
@@ -214,17 +369,40 @@ predicateDeclaration
   string p_name;
   vector<string> p_sorts;
 }
+<<<<<<< .mine
+  : LPAREN p_name = predicateName[CHECK_UNDECLARED] 
+        sortNames[p_sorts, CHECK_DECLARED] RPAREN
+    { newPredicate(p_name, p_sorts); } 
+=======
   :  LPAREN p_name = predicateName[CHECK_UNDECLARED] sortNames[p_sorts] RPAREN { newPredicate(p_name, p_sorts); }
+>>>>>>> .r150
   ;
+<<<<<<< .mine
 
+sortDeclaration 
+{
+  string name;
+}
+  : name = sortName[CHECK_UNDECLARED]
+    { newSort(name); }
+  ;
+  
+=======
+
+>>>>>>> .r150
 /**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
-sortNames[std::vector<std::string>& sorts]
+sortNames[std::vector<std::string>& sorts,DeclarationCheck check = CHECK_NONE]
 {
-  std::string sort;
+  std::string name;
 }
+<<<<<<< .mine
+  : ( name = sortName[check] 
+      { sorts.push_back(name); })* 
+=======
   : ( sort = sortName[CHECK_UNDECLARED] { sorts.push_back(sort); })*
+>>>>>>> .r150
   ;
 
 /**

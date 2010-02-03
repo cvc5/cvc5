@@ -64,6 +64,20 @@ tokens {
   EXTRAFUNS_ATTR   = ":extrafuns";
   EXTRAPREDS_ATTR  = ":extrapreds";
   C_NOTES       = ":notes";
+  // arithmetic symbols
+  EQUAL         = "=";
+  LESS_THAN     = "<";
+  GREATER_THAN  = ">";
+  AMPERSAND     = "&";
+  AT            = "@";
+  POUND         = "#";
+  PLUS          = "+";
+  MINUS         = "-";
+  STAR          = "*";
+  DIV           = "/";
+  PERCENT       = "%";
+  PIPE          = "|";
+  TILDE         = "~";
 }
 
 /**
@@ -179,3 +193,18 @@ STRING_LITERAL options { paraphrase = "a string literal"; }
 COMMENT options { paraphrase = "comment"; }
   : ';' (~('\n' | '\r'))*                    { $setType(antlr::Token::SKIP); }
   ;
+
+/* Arithmetic symbol tokens */
+EQUAL :   "=";
+LESS_THAN : "<";
+GREATER_THAN : ">";
+AMPERSAND :  "&";
+AT :  "@";
+POUND :  "#";
+PLUS :  "+";
+MINUS :  "-";
+STAR :  "*";
+DIV :  "/";
+PERCENT :  "%";
+PIPE :  "|";
+TILDE : "~";

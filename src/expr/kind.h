@@ -36,6 +36,7 @@ enum Kind {
   ITE,
   SKOLEM,
   VARIABLE,
+  APPLY,
 
   /* propositional connectives */
   FALSE,
@@ -53,7 +54,6 @@ enum Kind {
   PLUS,
   MINUS,
   MULT
-
 };/* enum Kind */
 
 inline std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
@@ -70,6 +70,7 @@ inline std::ostream& operator<<(std::ostream& out, CVC4::Kind k) {
   case ITE:            out << "ITE";            break;
   case SKOLEM:         out << "SKOLEM";         break;
   case VARIABLE:       out << "VARIABLE";       break;
+  case APPLY:          out << "APPLY";          break;
 
   /* propositional connectives */
   case FALSE:          out << "FALSE";          break;
