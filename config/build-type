@@ -6,8 +6,8 @@
 # usage: build-type profile [ overrides... ]
 #
 # Returns a build string for the given profile and overrides.
-# For example, "build-type debug noass" returns the canonical build
-# string for a debug build with assertions turned off.
+# For example, "build-type debug noassertions" returns the canonical
+# build string for a debug build with assertions turned off.
 #
 # The default build directory for CVC4 is then (assuming a standard
 # debug build):
@@ -18,15 +18,15 @@
 # top-level Makefile when you build another profile than the
 # "current" build (to see if there already was a build of that type).
 #
-# The codes for overrides are as follows:
+# The overrides are as follows:
 #
-#   opt - optimizing
-#   dsy - debug symbols
-#   ass - assertions
-#   trc - tracing
-#   mzl - muzzle
-#   cvg - coverage
-#   prf - profiling
+#   optimized
+#   debugsymbols
+#   assertions
+#   tracing
+#   muzzle
+#   coverage
+#   profiling
 #
 
 if [ $# -eq 0 ]; then
@@ -46,7 +46,7 @@ while [ $# -gt 0 ]; do
 done
 
 build_type_suffix=
-for arg in opt dsy ass trc mzl cvg prf; do
+for arg in optimized debugsymbols assertions tracing muzzle coverage profiling; do
   if eval [ -n '"${'$arg'+set}"' ]; then
     if eval [ '"${'$arg'}"' -eq 0 ]; then
       build_type_suffix=$build_type_suffix-no$arg

@@ -18,10 +18,10 @@
 
 #include <string>
 #include <iostream>
+
 #include "cvc4_config.h"
 #include "parser/parser_exception.h"
 #include "util/Assert.h"
-#include "antlr_parser.h"
 
 namespace antlr {
   class CharScanner;
@@ -35,6 +35,8 @@ class Command;
 class ExprManager;
 
 namespace parser {
+
+class AntlrParser;
 
 /**
  * The parser. The parser should be obtained by calling the static methods

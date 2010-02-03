@@ -22,6 +22,8 @@
 #include "prop/minisat/core/SolverTypes.h"
 #include "util/Assert.h"
 #include "util/output.h"
+#include "util/options.h"
+#include "util/result.h"
 
 #include <utility>
 #include <map>
@@ -31,7 +33,10 @@ using namespace std;
 
 namespace CVC4 {
 
-PropEngine::PropEngine(DecisionEngine& de, TheoryEngine& te) :
+PropEngine::PropEngine(const Options* opts,
+                       DecisionEngine& de,
+                       TheoryEngine& te) :
+  d_opts(opts),
   d_de(de), 
   d_te(te), 
   d_restartMayBeNeeded(false){
@@ -82,11 +87,11 @@ void PropEngine::restart(){
   }
 }
 
-void PropEngine::solve() {
+Result PropEngine::solve() {
   if(d_restartMayBeNeeded)
     restart();
 
-  d_sat->verbosity = 1;
+  d_sat->verbosity = (d_opts->verbosity > 0) ? 1 : -1;
   bool result = d_sat->solve();
 
   if(!result){
@@ -94,6 +99,8 @@ void PropEngine::solve() {
   }
 
   Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
+
+  return Result(result ? Result::SAT : Result::UNSAT);
 }
 
 }/* CVC4 namespace */

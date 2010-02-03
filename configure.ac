@@ -30,11 +30,14 @@ CVC4_RELEASE=prerelease
 # For guidance on when to change the version number, refer to the 
 # developer's guide.
 
-CVC4_LIBRARY_RELEASE_CODE=0:0:0
 CVC4_LIBRARY_VERSION=0:0:0
 CVC4_PARSER_LIBRARY_VERSION=0:0:0
 
-# really irritating: AC_CANONICAL_* bash $@
+# Using the AC_CANONICAL_* macros destroy the command line you get
+# from $@, which we want later for determining the build profile.  So
+# we save it.  (We can't do our build profile stuff here, or it's not
+# included in the output... autoconf overrides us on the orderings of
+# some things.)
 config_cmdline="$@"
 
 # turn off static lib building by default
@@ -62,51 +65,51 @@ fi
 btargs=
 if test -n "${enable_optimized+set}"; then
   if test "$enable_optimized" = yes; then
-    btargs="$btargs opt"
+    btargs="$btargs optimized"
   else
-    btargs="$btargs noopt"
+    btargs="$btargs nooptimized"
   fi
 fi
 if test -n "${enable_debug_symbols+set}"; then
   if test "$enable_debug_symbols" = yes; then
-    btargs="$btargs dsy"
+    btargs="$btargs debugsymbols"
   else
-    btargs="$btargs nodsy"
+    btargs="$btargs nodebugsymbols"
   fi
 fi
 if test -n "${enable_assertions+set}"; then
   if test "$enable_assertions" = yes; then
-    btargs="$btargs ass"
+    btargs="$btargs assertions"
   else
-    btargs="$btargs noass"
+    btargs="$btargs noassertions"
   fi
 fi
 if test -n "${enable_tracing+set}"; then
   if test "$enable_tracing" = yes; then
-    btargs="$btargs trc"
+    btargs="$btargs tracing"
   else
-    btargs="$btargs notrc"
+    btargs="$btargs notracing"
   fi
 fi
 if test -n "${enable_muzzle+set}"; then
   if test "$enable_muzzle" = yes; then
-    btargs="$btargs mzl"
+    btargs="$btargs muzzle"
   else
-    btargs="$btargs nomzl"
+    btargs="$btargs nomuzzle"
   fi
 fi
 if test -n "${enable_coverage+set}"; then
   if test "$enable_coverage" = yes; then
-    btargs="$btargs cvg"
+    btargs="$btargs coverage"
   else
-    btargs="$btargs nocvg"
+    btargs="$btargs nocoverage"
   fi
 fi
 if test -n "${enable_profiling+set}"; then
   if test "$enable_profiling" = yes; then
-    btargs="$btargs prf"
+    btargs="$btargs profiling"
   else
-    btargs="$btargs noprf"
+    btargs="$btargs noprofiling"
   fi
 fi
 AC_MSG_RESULT([$with_build])
@@ -120,7 +123,13 @@ if test "$custom_build_profile" = yes; then
 fi
 AC_MSG_RESULT($build_type)
 
-# require building in target and build-specific build directory
+# Require building in target and build-specific build directory:
+#
+# If the configure script is invoked from the top-level source
+# directory, it creates a suitable build directory (based on the build
+# architecture and build profile from $build_type), changes into it,
+# and reinvokes itself.  CVC4_CONFIGURE_IN_BUILDS is an envariable
+# that breaks any possibility of infinite recursion in this process.
 AC_MSG_CHECKING([what dir to configure])
 if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
   AC_MSG_RESULT([this one (in builds/)])
@@ -297,23 +306,8 @@ fi
 AM_INIT_AUTOMAKE(cvc4, $CVC4_RELEASE)
 AC_CONFIG_HEADERS([config.h])
 
-# keep track of whether the user set these (check here, because
-# autoconf might set a default later)
-AC_MSG_CHECKING([for user CPPFLAGS])
-if test -z "${CPPFLAGS+set}"; then user_cppflags=no; else user_cppflags=yes; fi
-AC_MSG_RESULT([${CPPFLAGS-none}])
-AC_MSG_CHECKING([for user CXXFLAGS])
-if test -z "${CXXFLAGS+set}"; then user_cxxflags=no; else user_cxxflags=yes; fi
-AC_MSG_RESULT([${CXXFLAGS-none}])
-AC_MSG_CHECKING([for user LDFLAGS])
-if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
-AC_MSG_RESULT([${LDFLAGS-none}])
-
-# Initialize libtools configuration options.
-
+# Initialize libtool's configuration options.
 _LT_SET_OPTION([LT_INIT],[win32-dll])
-
-dnl defined in config/libtools.m4
 LT_INIT
 
 # Checks for programs.
@@ -404,22 +398,30 @@ if test "$enable_static" = yes; then BUILDING_STATIC=1; fi
 AC_SUBST(BUILDING_SHARED)
 AC_SUBST(BUILDING_STATIC)
 
-AC_SUBST(CVC4_LIBRARY_RELEASE_CODE)
 AC_SUBST(CVC4_LIBRARY_VERSION)
 AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)
 
-if test "$user_cppflags" = no; then
-  CPPFLAGS="$CVC4CPPFLAGS"
-fi
-if test "$user_cxxflags" = no; then
-  CXXFLAGS="$CVC4CXXFLAGS"
-fi
-if test "$user_ldflags" = no; then
-  LDFLAGS="$CVC4LDFLAGS"
-fi
+CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
+CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS"
+LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
+# mk_include
+#
+# When automake scans Makefiles, it complains about non-standard make
+# features (including GNU extensions), and breaks GNU Make's
+# "if/endif" construct, replacing the "if" with AM_CONDITIONAL if
+# constructs.  automake even follows "include" and messes with
+# included Makefiles.
+#
+# CVC4 assumes GNU Make and we want to use GNU Make if/endifs, so we
+# have to hide some included Makefiles with GNU extensions.  We do
+# this by defining mk_include as an autoconf substitution and then
+# using "@mk_include@ other_makefile" in Makefile.am to include
+# makefiles with GNU extensions; this hides them from automake.
 mk_include=include
 AC_SUBST(mk_include)
+
+othermakefiles="`find src -name Makefile.am | sed 's,\.am$,,'` `find test -name Makefile.am | sed 's,\.am$,,'`"
 
 AC_CONFIG_FILES([
   Makefile.builds
@@ -484,35 +486,9 @@ CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
 
-Library releases     : $CVC4_LIBRARY_RELEASE_CODE
 libcvc4 version      : $CVC4_LIBRARY_VERSION
 libcvc4parser version: $CVC4_PARSER_LIBRARY_VERSION
 
 Now just type make, followed by make check or make install, as you like.
 
-You can use 'make <build_profile>' to reconfig/build a different profile.
-Build profiles: production optimized default competition
-
 EOF
-
-if test "$user_cppflags" = yes; then
-  AC_MSG_WARN([])
-  AC_MSG_WARN([I won't override your CPPFLAGS setting.  But some of your build options to configure may not be honored.])
-  AC_MSG_WARN([To support your options to configure, I would like to set CPPFLAGS to:])
-  AC_MSG_WARN([    $CVC4CPPFLAGS])
-  AC_MSG_WARN([])
-fi
-if test "$user_cxxflags" = yes; then
-  AC_MSG_WARN([])
-  AC_MSG_WARN([I won't override your CXXFLAGS setting.  But some of your build options to configure may not be honored.])
-  AC_MSG_WARN([To support your options to configure, I would like to set CXXFLAGS to:])
-  AC_MSG_WARN([    $CVC4CXXFLAGS])
-  AC_MSG_WARN([])
-fi
-if test "$user_ldflags" = yes; then
-  AC_MSG_WARN([])
-  AC_MSG_WARN([I won't override your LDFLAGS setting.  But some of your build options to configure may not be honored.])
-  AC_MSG_WARN([To support your options to configure, I would like to set LDFLAGS to:])
-  AC_MSG_WARN([    $CVC4LDFLAGS])
-  AC_MSG_WARN([])
-fi

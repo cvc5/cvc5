@@ -712,7 +712,6 @@ LIBOBJS
 mk_include
 CVC4_PARSER_LIBRARY_VERSION
 CVC4_LIBRARY_VERSION
-CVC4_LIBRARY_RELEASE_CODE
 BUILDING_STATIC
 BUILDING_SHARED
 ANTLR_LDFLAGS
@@ -2617,11 +2616,14 @@ CVC4_RELEASE=prerelease
 # For guidance on when to change the version number, refer to the
 # developer's guide.
 
-CVC4_LIBRARY_RELEASE_CODE=0:0:0
 CVC4_LIBRARY_VERSION=0:0:0
 CVC4_PARSER_LIBRARY_VERSION=0:0:0
 
-# really irritating: AC_CANONICAL_* bash $@
+# Using the AC_CANONICAL_* macros destroy the command line you get
+# from $@, which we want later for determining the build profile.  So
+# we save it.  (We can't do our build profile stuff here, or it's not
+# included in the output... autoconf overrides us on the orderings of
+# some things.)
 config_cmdline="$@"
 
 # turn off static lib building by default
@@ -2820,51 +2822,51 @@ fi
 btargs=
 if test -n "${enable_optimized+set}"; then
   if test "$enable_optimized" = yes; then
-    btargs="$btargs opt"
+    btargs="$btargs optimized"
   else
-    btargs="$btargs noopt"
+    btargs="$btargs nooptimized"
   fi
 fi
 if test -n "${enable_debug_symbols+set}"; then
   if test "$enable_debug_symbols" = yes; then
-    btargs="$btargs dsy"
+    btargs="$btargs debugsymbols"
   else
-    btargs="$btargs nodsy"
+    btargs="$btargs nodebugsymbols"
   fi
 fi
 if test -n "${enable_assertions+set}"; then
   if test "$enable_assertions" = yes; then
-    btargs="$btargs ass"
+    btargs="$btargs assertions"
   else
-    btargs="$btargs noass"
+    btargs="$btargs noassertions"
   fi
 fi
 if test -n "${enable_tracing+set}"; then
   if test "$enable_tracing" = yes; then
-    btargs="$btargs trc"
+    btargs="$btargs tracing"
   else
-    btargs="$btargs notrc"
+    btargs="$btargs notracing"
   fi
 fi
 if test -n "${enable_muzzle+set}"; then
   if test "$enable_muzzle" = yes; then
-    btargs="$btargs mzl"
+    btargs="$btargs muzzle"
   else
-    btargs="$btargs nomzl"
+    btargs="$btargs nomuzzle"
   fi
 fi
 if test -n "${enable_coverage+set}"; then
   if test "$enable_coverage" = yes; then
-    btargs="$btargs cvg"
+    btargs="$btargs coverage"
   else
-    btargs="$btargs nocvg"
+    btargs="$btargs nocoverage"
   fi
 fi
 if test -n "${enable_profiling+set}"; then
   if test "$enable_profiling" = yes; then
-    btargs="$btargs prf"
+    btargs="$btargs profiling"
   else
-    btargs="$btargs noprf"
+    btargs="$btargs noprofiling"
   fi
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $with_build" >&5
@@ -2881,7 +2883,13 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $build_type" >&5
 $as_echo "$build_type" >&6; }
 
-# require building in target and build-specific build directory
+# Require building in target and build-specific build directory:
+#
+# If the configure script is invoked from the top-level source
+# directory, it creates a suitable build directory (based on the build
+# architecture and build profile from $build_type), changes into it,
+# and reinvokes itself.  CVC4_CONFIGURE_IN_BUILDS is an envariable
+# that breaks any possibility of infinite recursion in this process.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking what dir to configure" >&5
 $as_echo_n "checking what dir to configure... " >&6; }
 if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
@@ -3571,26 +3579,7 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 ac_config_headers="$ac_config_headers config.h"
 
 
-# keep track of whether the user set these (check here, because
-# autoconf might set a default later)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for user CPPFLAGS" >&5
-$as_echo_n "checking for user CPPFLAGS... " >&6; }
-if test -z "${CPPFLAGS+set}"; then user_cppflags=no; else user_cppflags=yes; fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${CPPFLAGS-none}" >&5
-$as_echo "${CPPFLAGS-none}" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for user CXXFLAGS" >&5
-$as_echo_n "checking for user CXXFLAGS... " >&6; }
-if test -z "${CXXFLAGS+set}"; then user_cxxflags=no; else user_cxxflags=yes; fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${CXXFLAGS-none}" >&5
-$as_echo "${CXXFLAGS-none}" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for user LDFLAGS" >&5
-$as_echo_n "checking for user LDFLAGS... " >&6; }
-if test -z "${LDFLAGS+set}" ; then user_ldflags=no ; else user_ldflags=yes ; fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LDFLAGS-none}" >&5
-$as_echo "${LDFLAGS-none}" >&6; }
-
-# Initialize libtools configuration options.
-
+# Initialize libtool's configuration options.
 enable_win32_dll=yes
 
 case $host in
@@ -3887,7 +3876,6 @@ test -z "$DLLTOOL" && DLLTOOL=dlltool
 
 
 test -z "$OBJDUMP" && OBJDUMP=objdump
-
 
 
 
@@ -5458,13 +5446,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5461: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5449: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5464: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5452: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5467: output\"" >&5)
+  (eval echo "\"\$as_me:5455: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -6667,7 +6655,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6670 "configure"' > conftest.$ac_ext
+  echo '#line 6658 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8135,11 +8123,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8138: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8126: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8142: \$? = $ac_status" >&5
+   echo "$as_me:8130: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8474,11 +8462,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8477: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8465: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8481: \$? = $ac_status" >&5
+   echo "$as_me:8469: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8579,11 +8567,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8582: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8570: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8586: \$? = $ac_status" >&5
+   echo "$as_me:8574: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8634,11 +8622,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8637: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8625: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8641: \$? = $ac_status" >&5
+   echo "$as_me:8629: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11017,7 +11005,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11020 "configure"
+#line 11008 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11113,7 +11101,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11116 "configure"
+#line 11104 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14668,11 +14656,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14671: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14659: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14675: \$? = $ac_status" >&5
+   echo "$as_me:14663: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14767,11 +14755,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14770: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14758: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14774: \$? = $ac_status" >&5
+   echo "$as_me:14762: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14819,11 +14807,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14822: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14810: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14826: \$? = $ac_status" >&5
+   echo "$as_me:14814: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16454,19 +16442,27 @@ if test "$enable_static" = yes; then BUILDING_STATIC=1; fi
 
 
 
+CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
+CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS"
+LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
-if test "$user_cppflags" = no; then
-  CPPFLAGS="$CVC4CPPFLAGS"
-fi
-if test "$user_cxxflags" = no; then
-  CXXFLAGS="$CVC4CXXFLAGS"
-fi
-if test "$user_ldflags" = no; then
-  LDFLAGS="$CVC4LDFLAGS"
-fi
-
+# mk_include
+#
+# When automake scans Makefiles, it complains about non-standard make
+# features (including GNU extensions), and breaks GNU Make's
+# "if/endif" construct, replacing the "if" with AM_CONDITIONAL if
+# constructs.  automake even follows "include" and messes with
+# included Makefiles.
+#
+# CVC4 assumes GNU Make and we want to use GNU Make if/endifs, so we
+# have to hide some included Makefiles with GNU extensions.  We do
+# this by defining mk_include as an autoconf substitution and then
+# using "@mk_include@ other_makefile" in Makefile.am to include
+# makefiles with GNU extensions; this hides them from automake.
 mk_include=include
 
+
+othermakefiles="`find src -name Makefile.am | sed 's,\.am$,,'` `find test -name Makefile.am | sed 's,\.am$,,'`"
 
 ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/Makefile src/expr/Makefile src/smt/Makefile src/main/Makefile src/prop/minisat/Makefile src/prop/Makefile src/util/Makefile src/context/Makefile src/parser/Makefile src/parser/cvc/Makefile src/parser/smt/Makefile src/theory/Makefile src/theory/uf/Makefile test/Makefile test/regress/Makefile test/system/Makefile test/unit/Makefile"
 
@@ -19135,50 +19131,9 @@ CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 LDFLAGS      : $LDFLAGS
 
-Library releases     : $CVC4_LIBRARY_RELEASE_CODE
 libcvc4 version      : $CVC4_LIBRARY_VERSION
 libcvc4parser version: $CVC4_PARSER_LIBRARY_VERSION
 
 Now just type make, followed by make check or make install, as you like.
 
-You can use 'make <build_profile>' to reconfig/build a different profile.
-Build profiles: production optimized default competition
-
 EOF
-
-if test "$user_cppflags" = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I won't override your CPPFLAGS setting.  But some of your build options to configure may not be honored." >&5
-$as_echo "$as_me: WARNING: I won't override your CPPFLAGS setting.  But some of your build options to configure may not be honored." >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: To support your options to configure, I would like to set CPPFLAGS to:" >&5
-$as_echo "$as_me: WARNING: To support your options to configure, I would like to set CPPFLAGS to:" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:     $CVC4CPPFLAGS" >&5
-$as_echo "$as_me: WARNING:     $CVC4CPPFLAGS" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-fi
-if test "$user_cxxflags" = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I won't override your CXXFLAGS setting.  But some of your build options to configure may not be honored." >&5
-$as_echo "$as_me: WARNING: I won't override your CXXFLAGS setting.  But some of your build options to configure may not be honored." >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: To support your options to configure, I would like to set CXXFLAGS to:" >&5
-$as_echo "$as_me: WARNING: To support your options to configure, I would like to set CXXFLAGS to:" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:     $CVC4CXXFLAGS" >&5
-$as_echo "$as_me: WARNING:     $CVC4CXXFLAGS" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-fi
-if test "$user_ldflags" = yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: I won't override your LDFLAGS setting.  But some of your build options to configure may not be honored." >&5
-$as_echo "$as_me: WARNING: I won't override your LDFLAGS setting.  But some of your build options to configure may not be honored." >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: To support your options to configure, I would like to set LDFLAGS to:" >&5
-$as_echo "$as_me: WARNING: To support your options to configure, I would like to set LDFLAGS to:" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:     $CVC4LDFLAGS" >&5
-$as_echo "$as_me: WARNING:     $CVC4LDFLAGS" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: " >&5
-$as_echo "$as_me: WARNING: " >&2;}
-fi

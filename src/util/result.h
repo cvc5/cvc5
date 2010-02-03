@@ -16,6 +16,8 @@
 #ifndef __CVC4__RESULT_H
 #define __CVC4__RESULT_H
 
+#include "util/Assert.h"
+
 namespace CVC4 {
 
 // TODO: perhaps best to templatize Result on its Kind (SAT/Validity),
@@ -52,19 +54,77 @@ public:
 private:
   enum SAT      d_sat;
   enum Validity d_validity;
-  enum { TYPE_SAT, TYPE_VALIDITY } d_which;
+  enum { TYPE_SAT, TYPE_VALIDITY, TYPE_NONE } d_which;
 
   friend std::ostream& CVC4::operator<<(std::ostream& out, Result r);
 
 public:
-  Result(enum SAT s) : d_sat(s), d_validity(VALIDITY_UNKNOWN), d_which(TYPE_SAT) {}
-  Result(enum Validity v) : d_sat(SAT_UNKNOWN), d_validity(v), d_which(TYPE_VALIDITY) {}
+  Result() :
+    d_sat(SAT_UNKNOWN),
+    d_validity(VALIDITY_UNKNOWN),
+    d_which(TYPE_NONE) {
+  }
+  Result(enum SAT s) :
+    d_sat(s),
+    d_validity(VALIDITY_UNKNOWN),
+    d_which(TYPE_SAT) {
+  }
+  Result(enum Validity v) :
+    d_sat(SAT_UNKNOWN),
+    d_validity(v),
+    d_which(TYPE_VALIDITY) {
+  }
 
   enum SAT isSAT();
   enum Validity isValid();
   enum UnknownExplanation whyUnknown();
 
+  inline Result asSatisfiabilityResult() const;
+  inline Result asValidityResult() const;
+
 };/* class Result */
+
+inline Result Result::asSatisfiabilityResult() const {
+  if(d_which == TYPE_SAT) {
+    return *this;
+  }
+
+  switch(d_validity) {
+
+  case INVALID:
+    return Result(SAT);
+
+  case VALID:
+    return Result(UNSAT);
+
+  case VALIDITY_UNKNOWN:
+    return Result(SAT_UNKNOWN);
+
+  default:
+    Unhandled(d_validity);
+  }
+}
+
+inline Result Result::asValidityResult() const {
+  if(d_which == TYPE_VALIDITY) {
+    return *this;
+  }
+
+  switch(d_sat) {
+
+  case SAT:
+    return Result(INVALID);
+
+  case UNSAT:
+    return Result(VALID);
+
+  case SAT_UNKNOWN:
+    return Result(VALIDITY_UNKNOWN);
+
+  default:
+    Unhandled(d_sat);
+  }
+}
 
 inline std::ostream& operator<<(std::ostream& out, Result r) {
   if(r.d_which == Result::TYPE_SAT) {

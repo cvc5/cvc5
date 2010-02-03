@@ -10,9 +10,6 @@
 #   set to zero if interfaces have been removed
 #   or changed
 #
-# LIBCVC4PARSER_RELEASE (-release) should match the CVC4 release version
-#
-LIBCVC4PARSER_RELEASE = @CVC4_LIBRARY_RELEASE_CODE@
 LIBCVC4PARSER_VERSION = @CVC4_PARSER_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
@@ -25,7 +22,8 @@ SUBDIRS = smt cvc
 nobase_lib_LTLIBRARIES = libcvc4parser.la
 noinst_LTLIBRARIES = libcvc4parser_noinst.la
 
-libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS)
+libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS) \
+	-version-info $(LIBCVC4PARSER_VERSION)
 libcvc4parser_la_LIBADD = libcvc4parser_noinst.la
 libcvc4parser_la_LINK = $(CXXLINK)
 

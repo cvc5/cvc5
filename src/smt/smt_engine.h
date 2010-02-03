@@ -26,7 +26,6 @@
 #include "expr/expr_manager.h"
 #include "util/result.h"
 #include "util/model.h"
-#include "util/options.h"
 #include "prop/prop_engine.h"
 #include "util/decision_engine.h"
 
@@ -37,6 +36,7 @@
 namespace CVC4 {
 
 class Command;
+class Options;
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -56,7 +56,7 @@ public:
   /**
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager* em, Options* opts) throw();
+  SmtEngine(ExprManager* em, const Options* opts) throw();
 
   /**
    * Destruct the SMT engine.
@@ -116,13 +116,13 @@ private:
   std::vector<Node> d_assertions;
 
   /** Our expression manager */
-  ExprManager *d_publicEm;
+  ExprManager* d_publicEm;
 
   /** Out internal expression/node manager */
-  NodeManager *d_nm;
+  NodeManager* d_nm;
 
   /** User-level options */
-  Options *d_opts;
+  const Options* d_opts;
 
   /** The decision engine */
   DecisionEngine d_de;

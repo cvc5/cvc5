@@ -28,14 +28,28 @@
 
 namespace CVC4 {
 
+/**
+ * A utility class to provide (essentially) a "/dev/null" streambuf.
+ * If debugging support is compiled in, but debugging for
+ * e.g. "parser" is off, then Debug("parser") returns a stream
+ * attached to a null_streambuf instance so that output is directed to
+ * the bit bucket.
+ */
 class null_streambuf : public std::streambuf {
 public:
+  /* Overriding overflow() just ensures that EOF isn't returned on the
+   * stream.  Perhaps this is not so critical, but recommended; this
+   * way the output stream looks like it's functioning, in a non-error
+   * state. */
   int overflow(int c) { return c; }
 };/* class null_streambuf */
 
+/** A null stream-buffer singleton */
 extern null_streambuf null_sb;
+/** A null output stream singleton */
 extern std::ostream null_os CVC4_PUBLIC;
 
+/** The debug output class */
 class CVC4_PUBLIC DebugC {
   std::set<std::string> d_tags;
   std::ostream *d_os;
@@ -47,12 +61,9 @@ public:
   void operator()(const char* tag, std::string);
   void operator()(std::string tag, const char*);
   void operator()(std::string tag, std::string);
-  //void operator()(const char*);// Yeting option
-  //void operator()(std::string);// Yeting option
 
   static void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
   static void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  // Yeting option not possible here
 
   std::ostream& operator()(const char* tag) {
     if(d_tags.find(std::string(tag)) != d_tags.end())
@@ -64,7 +75,11 @@ public:
       return *d_os;
     else return null_os;
   }
-  std::ostream& operator()();// Yeting option
+  /**
+   * The "Yeting option" - this allows use of Debug() without a tag
+   * for temporary (file-only) debugging.
+   */
+  std::ostream& operator()();
 
   void on (const char* tag) { d_tags.insert(std::string(tag)); }
   void on (std::string tag) { d_tags.insert(tag);              }
@@ -74,8 +89,10 @@ public:
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Debug */
 
+/** The debug output singleton */
 extern DebugC Debug CVC4_PUBLIC;
 
+/** The warning output class */
 class CVC4_PUBLIC WarningC {
   std::ostream *d_os;
 
@@ -92,8 +109,10 @@ public:
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Warning */
 
+/** The warning output singleton */
 extern WarningC Warning CVC4_PUBLIC;
 
+/** The message output class */
 class CVC4_PUBLIC MessageC {
   std::ostream *d_os;
 
@@ -110,8 +129,10 @@ public:
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Message */
 
+/** The message output singleton */
 extern MessageC Message CVC4_PUBLIC;
 
+/** The notice output class */
 class CVC4_PUBLIC NoticeC {
   std::ostream *d_os;
 
@@ -128,8 +149,10 @@ public:
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Notice */
 
+/** The notice output singleton */
 extern NoticeC Notice CVC4_PUBLIC;
 
+/** The chat output class */
 class CVC4_PUBLIC ChatC {
   std::ostream *d_os;
 
@@ -146,8 +169,10 @@ public:
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Chat */
 
+/** The chat output singleton */
 extern ChatC Chat CVC4_PUBLIC;
 
+/** The trace output class */
 class CVC4_PUBLIC TraceC {
   std::ostream *d_os;
   std::set<std::string> d_tags;
@@ -161,6 +186,7 @@ public:
   void operator()(std::string tag, std::string);
 
   void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {
+    // chop off output after 1024 bytes
     char buf[1024];
     va_list vl;
     va_start(vl, fmt);
@@ -191,6 +217,7 @@ public:
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Trace */
 
+/** The trace output singleton */
 extern TraceC Trace CVC4_PUBLIC;
 
 }/* CVC4 namespace */

@@ -20,6 +20,8 @@
 
 namespace CVC4 {
 
+/* Definitions of the declared globals from output.h... */
+
 null_streambuf null_sb;
 std::ostream null_os(&null_sb);
 

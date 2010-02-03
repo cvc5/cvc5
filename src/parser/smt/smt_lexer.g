@@ -1,13 +1,27 @@
+/* smt_lexer.g
+ * Original author: dejan
+ * Major contributors:
+ * Minor contributors (to current version): none
+ * This file is part of the CVC4 prototype.
+ * Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ * Courant Institute of Mathematical Sciences
+ * New York University
+ * See the file COPYING in the top-level source directory for licensing
+ * information.
+ *
+ * Lexer for SMT-LIB input language.
+ */
+
 options {
   language = "Cpp";            // C++ output for antlr
   namespaceStd  = "std";       // Cosmetic option to get rid of long defines in generated code
   namespaceAntlr = "antlr";    // Cosmetic option to get rid of long defines in generated code
   namespace = "CVC4::parser";  // Wrap everything in the smtparser namespace
 }
-   
+
 /**
- * AntlrSmtLexer class is a stream tokenizer (lexer) for the SMT-LIB benchmark 
- * language. 
+ * AntlrSmtLexer class is a stream tokenizer (lexer) for the SMT-LIB benchmark
+ * language.
  */
 class AntlrSmtLexer extends Lexer;
 
@@ -15,9 +29,9 @@ options {
   exportVocab = SmtVocabulary;  // Name of the shared token vocabulary
   testLiterals = false;         // Do not check for literals by default
   defaultErrorHandler = false;  // Skip the default error handling, just break with exceptions
-  k = 2;  
+  k = 2;
 }
- 
+
 tokens {
   // Base SMT-LIB tokens
   DISTINCT      = "distinct";
@@ -55,28 +69,28 @@ tokens {
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').
  */
-protected 
-ALPHA options { paraphrase = "a letter"; } 
-  :  'a'..'z' 
+protected
+ALPHA options { paraphrase = "a letter"; }
+  :  'a'..'z'
   |  'A'..'Z'
   ;
-  
+
 /**
  * Matches the digits (0-9)
  */
-protected 
-DIGIT options { paraphrase = "a digit"; } 
+protected
+DIGIT options { paraphrase = "a digit"; }
   :   '0'..'9'
   ;
 
 /**
  * Matches an identifier from the input. An identifier is a sequence of letters,
- * digits and "_", "'", "." symbols, starting with a letter. 
+ * digits and "_", "'", "." symbols, starting with a letter.
  */
 IDENTIFIER options { paraphrase = "an identifier"; testLiterals = true; }
   :  ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*
   ;
-  
+
 /**
  * Matches an identifier starting with a colon. An identifier is a sequence of letters,
  * digits and "_", "'", "." symbols, starting with a colon.
@@ -84,47 +98,47 @@ IDENTIFIER options { paraphrase = "an identifier"; testLiterals = true; }
 C_IDENTIFIER options { paraphrase = "an identifier starting with a colon"; testLiterals = true; }
   :  ':' ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*
   ;
-  
+
 /**
  * Matches the value of user-defined annotations or attributes. The only constraint imposed on a user-defined value is that it start with
  * an open brace and end with closed brace.
  */
 USER_VALUE
-  :   '{' 
+  :   '{'
       ( '\n' { newline(); }
-      | ~('{' | '}' | '\n') 
-        )* 
+      | ~('{' | '}' | '\n')
+        )*
     '}'
   ;
-  
+
 /**
- * Matches the question mark symbol ('?'). 
+ * Matches the question mark symbol ('?').
  */
-QUESTION_MARK options { paraphrase = "a question mark '?'"; } 
+QUESTION_MARK options { paraphrase = "a question mark '?'"; }
   :  '?'
   ;
-  
+
 /**
  * Matches the dollar sign ('$').
  */
-DOLLAR_SIGN options { paraphrase = "a dollar sign '$'"; }   
+DOLLAR_SIGN options { paraphrase = "a dollar sign '$'"; }
   :  '$'
   ;
-    
+
 /**
  * Matches the left bracket ('(').
  */
-LPAREN options { paraphrase = "a left parenthesis '('"; }      
+LPAREN options { paraphrase = "a left parenthesis '('"; }
   :   '(';
-  
+
 /**
  * Matches the right bracket ('(').
  */
-RPAREN options { paraphrase = "a right parenthesis ')'"; }  
+RPAREN options { paraphrase = "a right parenthesis ')'"; }
   :   ')';
 
 /**
- * Matches and skips whitespace in the input. 
+ * Matches and skips whitespace in the input.
  */
 WHITESPACE options { paraphrase = "whitespace"; }
   :  (' ' | '\t' | '\f')              { $setType(antlr::Token::SKIP); }
@@ -133,32 +147,32 @@ WHITESPACE options { paraphrase = "whitespace"; }
 /**
  * Matches and skips the newline symbols in the input.
  */
-NEWLINE options { paraphrase = "a newline"; }  
+NEWLINE options { paraphrase = "a newline"; }
   :   ('\r' '\n' | '\r' | '\n')       { $setType(antlr::Token::SKIP); newline(); }
   ;
-      
+
 /**
  * Matches a numeral from the input (non-empty sequence of digits).
  */
 NUMERAL options { paraphrase = "a numeral"; }
   :  (DIGIT)+
   ;
-   
+
 /**
  * Matches an allowed escaped character.
- */   
+ */
 protected ESCAPE
   : '\\' ('"' | '\\' | 'n' | 't' | 'r')
-  ;      
-      
+  ;
+
 /**
  * Matches a double quoted string literal. Escaping is supported, and escape
- * character '\' has to be escaped. 
+ * character '\' has to be escaped.
  */
-STRING_LITERAL options { paraphrase = "a string literal"; } 
+STRING_LITERAL options { paraphrase = "a string literal"; }
   :  '"' (ESCAPE | ~('"'|'\\'))* '"'
   ;
-  
+
 /**
  * Matches the comments and ignores them
  */

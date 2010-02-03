@@ -17,6 +17,7 @@
 #define __CVC4__ASSERT_H
 
 #include <string>
+#include <sstream>
 #include <cstdio>
 #include <cstdarg>
 #include "util/exception.h"
@@ -35,9 +36,11 @@ protected:
     construct(header, extra, function, file, line, fmt, args);
     va_end(args);
   }
+
   void construct(const char* header, const char* extra,
                  const char* function, const char* file,
                  unsigned line, const char* fmt, va_list args);
+
   void construct(const char* header, const char* extra,
                  const char* function, const char* file,
                  unsigned line);
@@ -99,11 +102,14 @@ public:
     va_end(args);
   }
 
+  template <class T>
   UnhandledCaseException(const char* function, const char* file,
-                         unsigned line, int theCase) :
+                         unsigned line, T theCase) :
     UnreachableCodeException() {
+    std::stringstream sb;
+    sb << theCase;
     construct("Unhandled case encountered",
-              NULL, function, file, line, "The case was: %d", theCase);
+              NULL, function, file, line, "The case was: %s", sb.str().c_str());
   }
 
   UnhandledCaseException(const char* function, const char* file,

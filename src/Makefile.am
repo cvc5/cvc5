@@ -10,9 +10,6 @@
 #   set to zero if interfaces have been removed
 #   or changed
 #
-# LIBCVC4_RELEASE (-release) should match the CVC4 release version
-#
-LIBCVC4_RELEASE = @CVC4_LIBRARY_RELEASE_CODE@
 LIBCVC4_VERSION = @CVC4_LIBRARY_VERSION@
 
 AM_CPPFLAGS =
@@ -26,7 +23,7 @@ lib_LTLIBRARIES = libcvc4.la
 
 noinst_LTLIBRARIES = libcvc4_noinst.la
 
-libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION) -release $(LIBCVC4_RELEASE)
+libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
 libcvc4_la_LINK = $(CXXLINK)
 
 libcvc4_la_SOURCES =

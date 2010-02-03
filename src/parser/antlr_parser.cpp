@@ -25,6 +25,7 @@
 #include "antlr_parser.h"
 #include "util/output.h"
 #include "util/Assert.h"
+#include "util/command.h"
 
 using namespace std;
 using namespace CVC4;

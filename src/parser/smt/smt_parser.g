@@ -1,24 +1,39 @@
+/* smt_parser.g
+ * Original author: dejan
+ * Major contributors:
+ * Minor contributors (to current version): none
+ * This file is part of the CVC4 prototype.
+ * Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ * Courant Institute of Mathematical Sciences
+ * New York University
+ * See the file COPYING in the top-level source directory for licensing
+ * information.
+ *
+ * Parser for SMT-LIB input language.
+ */
+
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
+#include "util/command.h"
 }
 
 header "post_include_cpp" {
-#include <vector> 
+#include <vector>
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
 }
-    
+
 options {
   language = "Cpp";                  // C++ output for antlr
   namespaceStd = "std";              // Cosmetic option to get rid of long defines in generated code
   namespaceAntlr = "antlr";          // Cosmetic option to get rid of long defines in generated code
   namespace = "CVC4::parser";        // Wrap everything in the smtparser namespace
 }
- 
+
 /**
- * AntlrSmtParser class is the parser for the SMT-LIB files. 
+ * AntlrSmtParser class is the parser for the SMT-LIB files.
  */
 class AntlrSmtParser extends Parser("AntlrParser");
 options {
@@ -43,50 +58,50 @@ parseExpr returns [CVC4::Expr expr]
  */
 parseCommand returns [CVC4::Command* cmd]
   : cmd = benchmark
-  ; 
- 
-/**
- * Matches the whole SMT-LIB benchmark.
- * @return the sequence command containing the whole problem
- */  
-benchmark returns [Command* cmd]
-  : LPAREN BENCHMARK IDENTIFIER cmd = benchAttributes RPAREN
-  | EOF { cmd = 0; } 
   ;
 
 /**
- * Matches a sequence of benchmark attributes and returns a pointer to a 
+ * Matches the whole SMT-LIB benchmark.
+ * @return the sequence command containing the whole problem
+ */
+benchmark returns [Command* cmd]
+  : LPAREN BENCHMARK IDENTIFIER cmd = benchAttributes RPAREN
+  | EOF { cmd = 0; }
+  ;
+
+/**
+ * Matches a sequence of benchmark attributes and returns a pointer to a
  * command sequence.
- * @return the command sequence 
+ * @return the command sequence
  */
 benchAttributes returns [CVC4::CommandSequence* cmd_seq = new CommandSequence()]
 {
   Command* cmd;
 }
-  : (cmd = benchAttribute { if (cmd) cmd_seq->addCommand(cmd); } )+ 
+  : (cmd = benchAttribute { if (cmd) cmd_seq->addCommand(cmd); } )+
   ;
-  
+
 /**
- * Matches a benchmark attribute, sucha as ':logic', ':formula', and returns 
+ * Matches a benchmark attribute, sucha as ':logic', ':formula', and returns
  * a corresponding command
  * @retrurn a command corresponding to the attribute
  */
 benchAttribute returns [Command* smt_command = 0]
 {
-  Expr formula;  
-  string logic; 
+  Expr formula;
+  string logic;
   SetBenchmarkStatusCommand::BenchmarkStatus b_status = SetBenchmarkStatusCommand::SMT_UNKNOWN;
 }
-  : LOGIC_ATTR logic = identifier 
-    { smt_command = new SetBenchmarkLogicCommand(logic);   }      
-  | ASSUMPTION_ATTR formula = annotatedFormula          
-    { smt_command = new AssertCommand(formula);   }       
-  | FORMULA_ATTR formula = annotatedFormula          
+  : LOGIC_ATTR logic = identifier
+    { smt_command = new SetBenchmarkLogicCommand(logic);   }
+  | ASSUMPTION_ATTR formula = annotatedFormula
+    { smt_command = new AssertCommand(formula);   }
+  | FORMULA_ATTR formula = annotatedFormula
     { smt_command = new CheckSatCommand(formula); }
-  | STATUS_ATTR b_status = status                   
-    { smt_command = new SetBenchmarkStatusCommand(b_status); }        
-  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN  
-  | NOTES_ATTR STRING_LITERAL        
+  | STATUS_ATTR b_status = status
+    { smt_command = new SetBenchmarkStatusCommand(b_status); }
+  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN
+  | NOTES_ATTR STRING_LITERAL
   | annotation
   ;
 
@@ -96,38 +111,38 @@ benchAttribute returns [Command* smt_command = 0]
  * @return the id string
  */
 identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
-  : x:IDENTIFIER 
+  : x:IDENTIFIER
     { id = x->getText(); }
-    { checkDeclaration(id, check) }? 
+    { checkDeclaration(id, check) }?
     exception catch [antlr::SemanticException& ex] {
       switch (check) {
         case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
         case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
         default: throw ex;
-      }          
-    }    
-  ;
-
-/** 
- * Matches an annotated formula.
- * @return the expression representing the formula 
- */
-annotatedFormula returns [CVC4::Expr formula] 
-{ 
-  Kind kind; 
-  vector<Expr> children;
-}
-  :  formula = annotatedAtom 
-  |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN { formula = mkExpr(kind, children);  }    
+      }
+    }
   ;
 
 /**
- * Matches an annotated proposition atom, which is either a propositional atom 
- * or built of other atoms using a predicate symbol.  
+ * Matches an annotated formula.
+ * @return the expression representing the formula
+ */
+annotatedFormula returns [CVC4::Expr formula]
+{
+  Kind kind;
+  vector<Expr> children;
+}
+  :  formula = annotatedAtom
+  |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN { formula = mkExpr(kind, children);  }
+  ;
+
+/**
+ * Matches an annotated proposition atom, which is either a propositional atom
+ * or built of other atoms using a predicate symbol.
  * @return expression representing the atom
  */
-annotatedAtom returns [CVC4::Expr atom] 
-  : atom = propositionalAtom  
+annotatedAtom returns [CVC4::Expr atom]
+  : atom = propositionalAtom
   ;
 
 /**
@@ -135,7 +150,7 @@ annotatedAtom returns [CVC4::Expr atom]
 * @return the kind of the Bollean connective
 */
 boolConnective returns [CVC4::Kind kind]
-  : NOT      { kind = CVC4::NOT;     } 
+  : NOT      { kind = CVC4::NOT;     }
   | IMPLIES  { kind = CVC4::IMPLIES; }
   | AND      { kind = CVC4::AND;     }
   | OR       { kind = CVC4::OR;      }
@@ -147,7 +162,7 @@ boolConnective returns [CVC4::Kind kind]
  * Mathces a sequence of annotaed formulas and puts them into the formulas
  * vector.
  * @param formulas the vector to fill with formulas
- */   
+ */
 annotatedFormulas[std::vector<Expr>& formulas]
 {
   Expr f;
@@ -157,40 +172,40 @@ annotatedFormulas[std::vector<Expr>& formulas]
 
 /**
  * Matches a propositional atom and returns the expression of the atom.
- * @return atom the expression of the atom 
+ * @return atom the expression of the atom
  */
 propositionalAtom returns [CVC4::Expr atom]
 {
   std::string p;
-} 
+}
    : p = predicateName[CHECK_DECLARED] { atom = getVariable(p); }
    | TRUE          { atom = getTrueExpr(); }
    | FALSE         { atom = getFalseExpr(); }
    ;
 
 /**
- * Matches a predicate symbol. 
+ * Matches a predicate symbol.
  * @param check what kind of check to do with the symbol
  */
 predicateName[DeclarationCheck check = CHECK_NONE] returns [std::string p]
   :  p = identifier[check]
   ;
-  
+
 /**
  * Matches an attribute name from the input (:attribute_name).
- */ 
-attribute 
+ */
+attribute
   :  C_IDENTIFIER
   ;
-      
+
 /**
  * Matches the sort symbol, which can be an arbitrary identifier.
  * @param check the check to perform on the name
  */
-sortName[DeclarationCheck check = CHECK_NONE] returns [std::string s] 
+sortName[DeclarationCheck check = CHECK_NONE] returns [std::string s]
   : s = identifier[check]
   ;
-              
+
 /**
  * Matches the declaration of a predicate and declares it
  */
@@ -199,9 +214,9 @@ predicateDeclaration
   string p_name;
   vector<string> p_sorts;
 }
-  :  LPAREN p_name = predicateName[CHECK_UNDECLARED] sortNames[p_sorts] RPAREN { newPredicate(p_name, p_sorts); } 
+  :  LPAREN p_name = predicateName[CHECK_UNDECLARED] sortNames[p_sorts] RPAREN { newPredicate(p_name, p_sorts); }
   ;
-  
+
 /**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
@@ -209,7 +224,7 @@ sortNames[std::vector<std::string>& sorts]
 {
   std::string sort;
 }
-  : ( sort = sortName[CHECK_UNDECLARED] { sorts.push_back(sort); })* 
+  : ( sort = sortName[CHECK_UNDECLARED] { sorts.push_back(sort); })*
   ;
 
 /**
@@ -222,9 +237,9 @@ status returns [ SetBenchmarkStatusCommand::BenchmarkStatus status ]
   ;
 
 /**
- * Matches an annotation, which is an attribute name, with an optional user 
+ * Matches an annotation, which is an attribute name, with an optional user
  */
-annotation 
+annotation
   : attribute (USER_VALUE)?
   ;
-    
+

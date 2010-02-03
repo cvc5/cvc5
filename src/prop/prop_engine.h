@@ -23,6 +23,7 @@
 #include "theory/theory_engine.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "prop/minisat/core/SolverTypes.h"
+#include "util/result.h"
 
 #include <map>
 #include "prop/cnf_stream.h"
@@ -31,6 +32,8 @@ namespace CVC4 {
   namespace prop {
     class CnfStream;
   }
+
+  class Options;
 }
 
 namespace CVC4 {
@@ -40,20 +43,16 @@ namespace CVC4 {
 // propositional solver, DPLL or otherwise.
 
 class PropEngine {
+  const Options *d_opts;
   DecisionEngine &d_de;
   TheoryEngine &d_te;
 
   friend class CVC4::prop::CnfStream;
   
-  /* Morgan: I added these back.
-   * Why did you push these into solve()?
-   * I am guessing this is for either a technical reason I'm not seeing,
-   * or that you wanted to have a clean restart everytime solve() was called
-   * and to start from scratch everytime. (Avoid push/pop problems?)
-   * Is this right?
+  /**
+   * The SAT solver.
    */
-  CVC4::prop::minisat::Solver * d_sat;
-
+  CVC4::prop::minisat::Solver* d_sat;
 
   std::map<Node, CVC4::prop::minisat::Lit> d_atom2lit;
   std::map<CVC4::prop::minisat::Lit, Node> d_lit2atom;
@@ -101,7 +100,9 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  CVC4_PUBLIC PropEngine(CVC4::DecisionEngine&, CVC4::TheoryEngine&);
+  CVC4_PUBLIC PropEngine(const CVC4::Options* opts,
+                         CVC4::DecisionEngine&,
+                         CVC4::TheoryEngine&);
   CVC4_PUBLIC ~PropEngine();
 
   /**
@@ -115,7 +116,7 @@ public:
    * and invokes the sat solver for a satisfying assignment.
    * TODO: what does well-formed mean here?
    */
-  void solve();
+  Result solve();
 
 };/* class PropEngine */
 

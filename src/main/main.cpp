@@ -26,6 +26,7 @@
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "util/command.h"
+#include "util/result.h"
 #include "util/Assert.h"
 #include "util/output.h"
 #include "util/options.h"
@@ -35,9 +36,12 @@ using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::main;
 
-int main(int argc, char *argv[]) {
+static Result lastResult;
+static struct Options options;
 
-  struct Options options;
+void doCommand(SmtEngine&, Command*);
+
+int main(int argc, char *argv[]) {
 
   try {
 
@@ -110,10 +114,7 @@ int main(int argc, char *argv[]) {
     // Parse and execute commands until we are done
     Command* cmd;
     while((cmd = parser->parseNextCommand())) {
-      if(options.verbosity > 0) {
-        cout << "Invoking: " << *cmd << endl;
-      }
-      cmd->invoke(&smt);
+      doCommand(smt, cmd);
       delete cmd;
     }
 
@@ -147,5 +148,39 @@ int main(int argc, char *argv[]) {
     abort();
   }
 
+  // TODO: adjust return value based on lastResult
   return 0;
+}
+
+void doCommand(SmtEngine& smt, Command* cmd) {
+  CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
+  if(seq != NULL) {
+    for(CommandSequence::iterator subcmd = seq->begin();
+        subcmd != seq->end();
+        ++subcmd) {
+      doCommand(smt, *subcmd);
+    }
+  } else {
+    if(options.verbosity > 0) {
+      cout << "Invoking: " << *cmd << endl;
+    }
+
+    cmd->invoke(&smt);
+
+    QueryCommand *qc = dynamic_cast<QueryCommand*>(cmd);
+    if(qc != NULL) {
+      lastResult = qc->getResult();
+      if(options.verbosity >= 0) {
+        cout << lastResult << endl;
+      }
+    } else {
+      CheckSatCommand *csc = dynamic_cast<CheckSatCommand*>(cmd);
+      if(csc != NULL) {
+        lastResult = csc->getResult();
+        if(options.verbosity >= 0) {
+          cout << lastResult << endl;
+        }
+      }
+    }
+  }
 }
