@@ -52,7 +52,7 @@ class PropEngine {
    * and to start from scratch everytime. (Avoid push/pop problems?)
    * Is this right?
    */
-  CVC4::prop::minisat::SimpSolver d_sat;
+  CVC4::prop::minisat::Solver * d_sat;
 
 
   std::map<Node, CVC4::prop::minisat::Lit> d_atom2lit;
@@ -64,6 +64,21 @@ class PropEngine {
    */
   void registerAtom(const Node & n, CVC4::prop::minisat::Lit l);
 
+  /**
+   * Flags whether the solver may need to have its state reset before
+   * solving occurs
+   */
+  bool d_restartMayBeNeeded;
+  
+  /**
+   * Cleans existing state in the PropEngine and reinitializes the state.
+   */
+  void restart();
+
+  /**
+   * Keeps track of all of the assertions that need to be made.
+   */
+  std::vector<Node> d_assertionList;
 
 
   CVC4::prop::minisat::Lit requestFreshLit();

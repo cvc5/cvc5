@@ -33,12 +33,15 @@ namespace CVC4 {
 
 PropEngine::PropEngine(DecisionEngine& de, TheoryEngine& te) :
   d_de(de), 
-  d_te(te){
+  d_te(te), 
+  d_restartMayBeNeeded(false){
+  d_sat = new Solver();
   d_cnfStream = new CVC4::prop::TseitinCnfStream(this);
 }
 
 PropEngine::~PropEngine(){
   delete d_cnfStream;
+  delete d_sat;
 }
 
 
@@ -47,7 +50,7 @@ void PropEngine::assertClause(vec<Lit> & c){
    *for restarting the sat solver
    */
   //TODO assert that each lit has been mapped to an atom or requested
-  d_sat.addClause(c);
+  d_sat->addClause(c);
 }
 
 void PropEngine::registerAtom(const Node & n, Lit l){
@@ -56,21 +59,39 @@ void PropEngine::registerAtom(const Node & n, Lit l){
 }
 
 Lit PropEngine::requestFreshLit(){
-  Var v = d_sat.newVar();
+  Var v = d_sat->newVar();
   Lit l(v,false);
   return l;
 }
 
 void PropEngine::assertFormula(const Node& node) {
   d_cnfStream->convertAndAssert(node);
+  d_assertionList.push_back(node);
+}
+
+void PropEngine::restart(){
+  delete d_sat;
+  d_sat = new Solver();
+  d_cnfStream->flushCache();
+  d_atom2lit.clear();
+  d_lit2atom.clear();
+
+  for(vector<Node>::iterator iter = d_assertionList.begin();
+      iter != d_assertionList.end(); ++iter){
+    d_cnfStream->convertAndAssert(*iter);
+  }
 }
 
 void PropEngine::solve() {
+  if(d_restartMayBeNeeded)
+    restart();
 
-  //TODO: may need to restart if a previous query returned false
+  d_sat->verbosity = 1;
+  bool result = d_sat->solve();
 
-  d_sat.verbosity = 1;
-  bool result = d_sat.solve();
+  if(!result){
+    d_restartMayBeNeeded = true;
+  }
 
   Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
 }

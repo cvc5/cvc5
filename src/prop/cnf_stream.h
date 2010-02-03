@@ -81,10 +81,6 @@ protected:
    */
   minisat::Lit lookupInCache(const Node & n) const;
 
-  /**
-   * Empties the internal translation cache.
-   */
-  void flushCache();
 
   //negotiates the mapping of atoms to literals with PropEngine
   void registerMapping(const Node & node, minisat::Lit lit, bool atom = false);
@@ -98,6 +94,12 @@ public:
    * @param pe
    */
   CnfStream(CVC4::PropEngine *pe);
+
+
+  /**
+   * Empties the internal translation cache.
+   */
+  void flushCache();
 
   /**
    * Converts and asserts a formula.
