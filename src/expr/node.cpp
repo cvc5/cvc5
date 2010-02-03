@@ -116,4 +116,30 @@ Node Node::xorExpr(const Node& right) const {
   return NodeManager::currentNM()->mkNode(XOR, *this, right);
 }
 
+void indent(ostream & o, int indent){
+  for(int i=0; i < indent; i++)
+    o << ' ';
+}
+
+void Node::printAst(ostream & o, int ind) const{
+  indent(o, ind);
+  o << '(';
+  o << getKind();
+  if(getKind() == VARIABLE){
+    o << ' ' << getId();
+
+  }else if(getNumChildren() > 1){
+    for(Node::iterator child = begin(); child != end(); ++child){
+      (*child).printAst(o, ind+1);
+    }
+    indent(o, ind);
+  }
+  o << ')';
+}
+  
+void Node::debugPrint(){
+  printAst(Warning(), 0);
+  Warning().flush();
+}
+
 }/* CVC4 namespace */

@@ -154,6 +154,11 @@ public:
 
   bool isNull() const;
 
+  void printAst(std::ostream & o, int indent = 0) const;
+  
+private:
+  void debugPrint();
+
 };/* class Node */
 
 }/* CVC4 namespace */
