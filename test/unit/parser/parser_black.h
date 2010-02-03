@@ -20,6 +20,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "parser/parser.h"
+#include "util/command.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -87,6 +88,7 @@ const string goodSmtInputs[] = {
     "(benchmark qux :formula false)",
     "(benchmark baz :extrapreds ( (a) (b) ) )",
     "(benchmark zab :extrapreds ( (a) (b) ) :formula (implies (and (implies a b) a) b))",
+    "(benchmark zub :extrasorts (a) :extrafuns ( (f a a) (x a) )  :formula (= (f x) x))",
     ";; nothing but a comment",
     "; a comment\n(benchmark foo ; hello\n  :formula true; goodbye\n)"
   };
@@ -110,7 +112,8 @@ const string badSmtInputs[] = {
     "(benchmark foo)", // empty benchmark is not OK
     "(benchmark bar :assumption)", // no args
     "(benchmark bar :formula)",
-    "(benchmark baz :extrapreds ( (a) (a) ) )" // double decl
+    "(benchmark baz :extrapreds ( (a) (a) ) )", // double decl
+    "(benchmark zub :extrasorts (a) :extrapreds (p a))" // (p a) needs parens
   };
 
 const int numBadSmtInputs = sizeof(badSmtInputs) / sizeof(string);
@@ -133,35 +136,44 @@ class SmtParserBlack : public CxxTest::TestSuite {
 
   void tryGoodInputs(Parser::InputLanguage d_lang, const string goodInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
-      cout << "Testing good input: '" << goodInputs[i] << "'\n";
-      istringstream stream(goodInputs[i]);
-      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
-      TS_ASSERT( !smtParser->done() );
-      Command* cmd;
-      while((cmd = smtParser->parseNextCommand())) {
-        cout << "Parsed command: " << *cmd << endl;
+      try {
+        // cout << "Testing good input: '" << goodInputs[i] << "'\n";
+        istringstream stream(goodInputs[i]);
+        Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+        TS_ASSERT( !smtParser->done() );
+        Command* cmd;
+        while((cmd = smtParser->parseNextCommand())) {
+          // cout << "Parsed command: " << (*cmd) << endl;
+        }
+        TS_ASSERT( smtParser->parseNextCommand() == NULL );
+        TS_ASSERT( smtParser->done() );
+        delete smtParser;
+      } catch (Exception& e) {
+        cout << "\nGood input failed:\n" << goodInputs[i] << endl;
+        throw e;
       }
-      TS_ASSERT( smtParser->parseNextCommand() == NULL );
-      TS_ASSERT( smtParser->done() );
-      delete smtParser;
+
     }
   }
 
   void tryBadInputs(Parser::InputLanguage d_lang, const string badInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
-      cout << "Testing bad input: '" << badInputs[i] << "'\n";
+      // cout << "Testing bad input: '" << badInputs[i] << "'\n";
       istringstream stream(badInputs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
-      TS_ASSERT_THROWS( while(smtParser->parseNextCommand()); , ParserException );
+      TS_ASSERT_THROWS
+        ( while(smtParser->parseNextCommand());
+          cout << "\nBad input succeeded:\n" << badInputs[i] << endl;, 
+          ParserException );
       delete smtParser;
     }
   }
 
   void tryGoodExprs(Parser::InputLanguage d_lang,const string& context, const string goodBooleanExprs[], int numExprs) {
-    cout << "Using context: " << context << endl;
+    // cout << "Using context: " << context << endl;
     for(int i = 0; i < numExprs; ++i) {
       try {
-        cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
+        // cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
         istringstream stream(context + goodBooleanExprs[i]);
         Parser* parser = Parser::getNewParser(d_exprManager, d_lang, stream);
         TS_ASSERT( !parser->done() );
@@ -169,25 +181,28 @@ class SmtParserBlack : public CxxTest::TestSuite {
         TS_ASSERT( !parser->done() );
         Expr e;
         while(e = parser->parseNextExpression()) {
-          cout << "Parsed expr: " << e << endl;
+          // cout << "Parsed expr: " << e << endl;
         }
         TS_ASSERT( parser->done() );
         TS_ASSERT( e.isNull() );
         delete cmd;
         delete parser;
-      } catch (ParserException& e) {
-        cout << "Caught: " << e << endl;
-        TS_ASSERT( false );
+      } catch (Exception& e) {
+        cout << "\nGood expr failed:\n" << goodBooleanExprs[i] << endl;
+        throw e;
       }
     }
   }
 
   void tryBadExprs(Parser::InputLanguage d_lang,const string badBooleanExprs[], int numExprs) {
     for(int i = 0; i < numExprs; ++i) {
-      cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
+      // cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
       istringstream stream(badBooleanExprs[i]);
       Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
-      TS_ASSERT_THROWS( smtParser->parseNextExpression(), ParserException );
+      TS_ASSERT_THROWS
+        ( smtParser->parseNextExpression();
+          cout << "\nBad expr succeeded: " << badBooleanExprs[i] << endl;, 
+          ParserException );
     }
   }
 
