@@ -134,19 +134,13 @@ annotatedFormula returns [CVC4::Expr formula]
   Kind kind;
   vector<Expr> children;
 }
-<<<<<<< .mine
   :  formula = annotatedAtom 
   |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN 
     { formula = mkExpr(kind, children);  }    
     /* TODO: let, flet, quantifiers */
-=======
-  :  formula = annotatedAtom
-  |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN { formula = mkExpr(kind, children);  }
->>>>>>> .r150
   ;
 
 /**
-<<<<<<< .mine
  * Matches a sequence of annotaed formulas and puts them into the formulas
  * vector.
  * @param formulas the vector to fill with formulas
@@ -161,13 +155,8 @@ annotatedFormulas[std::vector<Expr>& formulas]
 /**
  * Matches an annotated proposition atom, which is either a propositional atom 
  * or built of other atoms using a predicate symbol.  
-=======
- * Matches an annotated proposition atom, which is either a propositional atom
- * or built of other atoms using a predicate symbol.
->>>>>>> .r150
  * @return expression representing the atom
  */
-<<<<<<< .mine
 annotatedAtom returns [CVC4::Expr atom] 
 { 
   Kind kind;
@@ -176,10 +165,6 @@ annotatedAtom returns [CVC4::Expr atom]
   vector<Expr> children;
 }
   : atom = propositionalAtom  
-=======
-annotatedAtom returns [CVC4::Expr atom]
-  : atom = propositionalAtom
->>>>>>> .r150
   | LPAREN kind = arithPredicate annotatedTerms[children] RPAREN
     { atom = mkExpr(kind,children); }
   | LPAREN pred = predicateSymbol
@@ -246,21 +231,6 @@ boolConnective returns [CVC4::Kind kind]
   ;
 
 /**
-<<<<<<< .mine
-=======
- * Mathces a sequence of annotaed formulas and puts them into the formulas
- * vector.
- * @param formulas the vector to fill with formulas
- */
-annotatedFormulas[std::vector<Expr>& formulas]
-{
-  Expr f;
-}
-  : ( f = annotatedFormula { formulas.push_back(f); } )+
-  ;
-
-/**
->>>>>>> .r150
  * Matches a propositional atom and returns the expression of the atom.
  * @return atom the expression of the atom
  */
@@ -279,17 +249,12 @@ arithPredicate returns [CVC4::Kind kind]
   ;
 
 /**
-<<<<<<< .mine
  * Matches a (possibly undeclared) predicate identifier (returning the string). 
-=======
- * Matches a predicate symbol.
->>>>>>> .r150
  * @param check what kind of check to do with the symbol
  */
 predicateName[DeclarationCheck check = CHECK_NONE] returns [std::string p]
   :  p = identifier[check]
   ;
-<<<<<<< .mine
 
 /**
  * Matches an previously declared predicate symbol (returning an Expr)
@@ -321,9 +286,6 @@ functionSymbol returns [CVC4::Expr fun]
     { fun = getVariable(name); }
   ;
   
-=======
-
->>>>>>> .r150
 /**
  * Matches an attribute name from the input (:attribute_name).
  */
@@ -335,18 +297,12 @@ attribute
  * Matches the sort symbol, which can be an arbitrary identifier.
  * @param check the check to perform on the name
  */
-<<<<<<< .mine
 sortName[DeclarationCheck check = CHECK_NONE] returns [std::string name] 
   : name = identifier[CHECK_NONE] 
     /* We pass CHECK_NONE to identifier, because identifier checks
        in the variable namespace, not the sorts namespace. */
     { checkSort(name,check) }?
-=======
-sortName[DeclarationCheck check = CHECK_NONE] returns [std::string s]
-  : s = identifier[check]
->>>>>>> .r150
   ;
-<<<<<<< .mine
 
 functionDeclaration
 {
@@ -358,9 +314,6 @@ functionDeclaration
     { newFunction(name, sorts); } 
   ;
               
-=======
-
->>>>>>> .r150
 /**
  * Matches the declaration of a predicate and declares it
  */
@@ -369,15 +322,10 @@ predicateDeclaration
   string p_name;
   vector<string> p_sorts;
 }
-<<<<<<< .mine
   : LPAREN p_name = predicateName[CHECK_UNDECLARED] 
         sortNames[p_sorts, CHECK_DECLARED] RPAREN
     { newPredicate(p_name, p_sorts); } 
-=======
-  :  LPAREN p_name = predicateName[CHECK_UNDECLARED] sortNames[p_sorts] RPAREN { newPredicate(p_name, p_sorts); }
->>>>>>> .r150
   ;
-<<<<<<< .mine
 
 sortDeclaration 
 {
@@ -387,9 +335,6 @@ sortDeclaration
     { newSort(name); }
   ;
   
-=======
-
->>>>>>> .r150
 /**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
@@ -397,12 +342,8 @@ sortNames[std::vector<std::string>& sorts,DeclarationCheck check = CHECK_NONE]
 {
   std::string name;
 }
-<<<<<<< .mine
   : ( name = sortName[check] 
       { sorts.push_back(name); })* 
-=======
-  : ( sort = sortName[CHECK_UNDECLARED] { sorts.push_back(sort); })*
->>>>>>> .r150
   ;
 
 /**
