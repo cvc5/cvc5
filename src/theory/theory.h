@@ -4,7 +4,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -18,6 +18,7 @@
 
 #include "expr/node.h"
 #include "util/literal.h"
+#include "theory/output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,12 +27,14 @@ namespace theory {
  * Base class for T-solvers.  Abstract DPLL(T).
  */
 class Theory {
+
   /**
    * Return whether a node is shared or not.  Used by setup().
    */
   bool isShared(Node);
 
 public:
+
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
    * equality with one of these values (e.g. if STANDARD xxx) but
@@ -55,6 +58,12 @@ public:
   static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
 
   /**
+   * Construct a theory.
+   */
+  Theory() {
+  }
+
+  /**
    * Prepare for a Node.
    */
   virtual void setup(Node) = 0;
@@ -62,30 +71,24 @@ public:
   /**
    * Assert a literal in the current context.
    */
-  void assert(Literal);
+  void assertLiteral(Literal);
 
   /**
    * Check the current assignment's consistency.
    */
-  virtual void check(Effort level = FULL_EFFORT) = 0;
+  virtual void check(OutputChannel& out, Effort level = FULL_EFFORT) = 0;
 
   /**
    * T-propagate new literal assignments in the current context.
    */
-  // TODO design decision: instead of returning a set of literals
-  // here, perhaps we have an interface back into the prop engine
-  // where we assert directly.  we might sometimes unknowingly assert
-  // something clearly inconsistent (esp. in a parallel context).
-  // This would allow the PropEngine to cancel our further work since
-  // we're already inconsistent---also could strategize dynamically on
-  // whether enough theory prop work has occurred.
-  virtual void propagate(Effort level = FULL_EFFORT) = 0;
+  virtual void propagate(OutputChannel& out, Effort level = FULL_EFFORT) = 0;
 
   /**
-   * Return an explanation for the literal (which was previously
-   * propagated by this theory)..
+   * Return an explanation for the literal represented by parameter n
+   * (which was previously propagated by this theory).  Report
+   * explanations to an output channel.
    */
-  virtual Node explain(Literal) = 0;
+  virtual void explain(OutputChannel& out, Node n, Effort level = FULL_EFFORT) = 0;
 
 };/* class Theory */
 

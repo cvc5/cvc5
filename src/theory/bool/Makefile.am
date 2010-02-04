@@ -3,8 +3,8 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../../include -I@srcdir@/../..
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 
-noinst_LTLIBRARIES = libuf.la
+noinst_LTLIBRARIES = libbool.la
 
-libuf_la_SOURCES =
+libbool_la_SOURCES =
 
 EXTRA_DIST = kinds

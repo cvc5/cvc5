@@ -19,22 +19,22 @@
 # .deps, etc.)
 #
 # It ignores any file not ending with one of:
-#   .c .cc .cpp .C .h .hh .hpp .H .y .yy .ypp .Y .l .ll .lpp .L
+#   .c .cc .cpp .C .h .hh .hpp .H .y .yy .ypp .Y .l .ll .lpp .L .g
 # (so, this includes emacs ~-backups, CVS detritus, etc.)
 #
 # It ignores any directory matching $excluded_directories
 # (so, you should add here any sources imported but not covered under
 # the license.)
 
-my $excluded_directories = '^(minisat|CVS)$';
+my $excluded_directories = '^(minisat|CVS|generated)$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009';
+my $years = '2009, 2010';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) $years The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) $years  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -43,7 +43,7 @@ EOF
 
 my $public_template = <<EOF;
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) $years The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) $years  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -102,7 +102,7 @@ sub recurse {
       next if $file =~ /$excluded_directories/;
       recurse($srcdir.'/'.$file);
     } else {
-      next if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L)$/);
+      next if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g)$/);
       print "$srcdir/$file...";
       my $infile = $srcdir.'/'.$file;
       my $outfile = $srcdir.'/#'.$file.'.tmp';
@@ -114,14 +114,19 @@ sub recurse {
       my $minor_contributors = <$AUTHOR>; chomp $minor_contributors;
       close $AUTHOR;
       $_ = <$IN>;
-      if(m,^(%{)?/\*\*\*\*\*,) {
+      if(m,^(%{)?/\*(\*| )\*\*\*,) {
         print "updating\n";
         if($file =~ /\.(y|yy|ypp|Y)$/) {
           print $OUT "%{/*******************                                           -*- C++ -*-  */\n";
+          print $OUT "/** $file\n";
+        } elsif($file =~ /\.g$/) {
+          # avoid javadoc-style comment here; antlr complains
+          print $OUT "/* *******************                                           -*- C++ -*-  */\n";
+          print $OUT "/*  $file\n";
         } else {
           print $OUT "/*********************                                           -*- C++ -*-  */\n";
+          print $OUT "/** $file\n";
         }
-        print $OUT "/** $file\n";
         print $OUT " ** Original author: $author\n";
         print $OUT " ** Major contributors: $major_contributors\n";
         print $OUT " ** Minor contributors (to current version): $minor_contributors\n";

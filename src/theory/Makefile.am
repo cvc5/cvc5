@@ -12,6 +12,8 @@ libtheory_la_SOURCES = \
 	theory.cpp
 
 libtheory_la_LIBADD = \
+	@builddir@/bool/libbool.la
 	@builddir@/uf/libuf.la
+	@builddir@/uf/libarith.la
 
-SUBDIRS = uf
+SUBDIRS = bool uf arith
