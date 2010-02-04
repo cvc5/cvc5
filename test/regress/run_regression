@@ -33,11 +33,11 @@ if ! [ -r "$benchmark" ]; then
 fi
 
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
-  if grep '^ *:status  *sat' &>/dev/null; then
-    expected_output=sat
+  if grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
+    expected_output=SAT
     expected_exit_status=10
-  elif grep '^ *:status  *unsat' &>/dev/null; then
-    expected_output=unsat
+  elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
+    expected_output=UNSAT
     expected_exit_status=20
   else
     error "cannot determine status of \`$benchmark'"
@@ -52,26 +52,27 @@ else
   error "benchmark \`$benchmark' must be *.cvc or *.smt"
 fi
 
-expfile=`mktemp -t cvc4test.exp.XXXXXXXXXX`
-outfile=`mktemp -t cvc4test.out.XXXXXXXXXX`
+expfile=`mktemp -t cvc4_expected.XXXXXXXXXX`
+outfile=`mktemp -t cvc4_output.XXXXXXXXXX`
 echo "$expected_output" >"$expfile"
 
 echo "$cvc4" --segv-nospin "$benchmark"
 "$cvc4" --segv-nospin "$benchmark" | tee "$outfile"
-exit_status=$?
 
 diffs=`diff -u "$expfile" "$outfile"`
+diffexit=$?
 rm -f "$expfile"
 rm -f "$outfile"
-if [ $? -ne 0 ]; then
+if [ $diffexit -ne 0 ]; then
   echo "$prog: error: differences between expected and actual output"
   echo "$diffs"
   exit 1
 fi
 
 if [ -n "$expected_exit_status" ]; then
-  if [ $exit_status != "$expected_exit_status" ]; then
-    error "expected exit status \`$expected_exit_status' but got \`$exit_status'"
-  fi
+  :
+  #if [ $exit_status != "$expected_exit_status" ]; then
+  #  error "expected exit status \`$expected_exit_status' but got \`$exit_status'"
+  #fi
 fi
 
