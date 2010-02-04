@@ -10,7 +10,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Kinds of Nodes.
+ ** Epilogue for the Node kind header.  This file finishes off the
+ ** pretty-printing function for the Kind enum.
  **/
 
   case LAST_KIND: out << "LAST_KIND"; break;

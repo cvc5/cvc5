@@ -24,7 +24,6 @@ cat <<EOF
  **     $0 $@
  **
  ** for the CVC4 project.
- **
  **/
 
 EOF

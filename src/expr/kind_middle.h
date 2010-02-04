@@ -10,7 +10,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Kinds of Nodes.
+ ** Middle section of the Node kind header.  This file finishes off the
+ ** Kind enum and starts the pretty-printing function definition.
  **/
 
   LAST_KIND

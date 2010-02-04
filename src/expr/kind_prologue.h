@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Kinds of Nodes.
+ ** Prologue of the Node kind header.  This file starts the Kind enumeration.
  **/
 
 #ifndef __CVC4__KIND_H

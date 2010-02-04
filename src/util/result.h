@@ -75,8 +75,12 @@ public:
     d_which(TYPE_VALIDITY) {
   }
 
-  enum SAT isSAT();
-  enum Validity isValid();
+  enum SAT isSAT() {
+    return d_which == TYPE_SAT ? d_sat : SAT_UNKNOWN;
+  }
+  enum Validity isValid() {
+    return d_which == TYPE_VALIDITY ? d_validity : VALIDITY_UNKNOWN;
+  }
   enum UnknownExplanation whyUnknown();
 
   inline Result asSatisfiabilityResult() const;

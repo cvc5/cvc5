@@ -148,8 +148,18 @@ int main(int argc, char *argv[]) {
     abort();
   }
 
-  // TODO: adjust return value based on lastResult
-  return 0;
+  switch(lastResult.asSatisfiabilityResult().isSAT()) {
+
+  case Result::SAT:
+    return 10;
+
+  case Result::UNSAT:
+    return 20;
+
+  default:
+    return 0;
+
+  }
 }
 
 void doCommand(SmtEngine& smt, Command* cmd) {
