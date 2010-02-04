@@ -1,0 +1,11 @@
+
+% Tests the invariants for multiple queries.
+
+a, b: BOOLEAN;
+
+%Valid query
+QUERY (a AND b) OR NOT (a AND b);
+
+%Invalid query
+QUERY (a OR b);
+
