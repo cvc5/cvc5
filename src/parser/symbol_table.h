@@ -18,16 +18,17 @@
 
 #include <string>
 #include <stack>
+
 #include <ext/hash_map>
 
 namespace __gnu_cxx {
 template<>
   struct hash<std::string> {
     size_t operator()(const std::string& str) const {
-      return hash<const char*> ()(str.c_str());
+      return hash<const char*>()(str.c_str());
     }
   };
-}
+}/* __gnu_cxx namespace */
 
 namespace CVC4 {
 namespace parser {
@@ -41,7 +42,7 @@ class SymbolTable {
 private:
 
   /** The name to expression bindings */
-  typedef __gnu_cxx ::hash_map<std::string, std::stack<ObjectType> >
+  typedef __gnu_cxx::hash_map<std::string, std::stack<ObjectType> >
   LookupTable;
   /** The table iterator */
   typedef typename LookupTable::iterator table_iterator;
