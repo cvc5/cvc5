@@ -1,6 +1,6 @@
 /*********************                                           -*- C++ -*-  */
-/** about.h
- ** Original author: mdeters
+/** kind_epilogue.h
+ ** Original author: 
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
@@ -10,25 +10,16 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The "about" string for the CVC4 driver binary.
+ ** Kinds of Nodes.
  **/
 
-#ifndef __CVC4__MAIN__ABOUT_H
-#define __CVC4__MAIN__ABOUT_H
+  case LAST_KIND: out << "LAST_KIND"; break;
+  default: out << "UNKNOWNKIND!" << int(k); break;
+  }
 
-namespace CVC4 {
-namespace main {
+  return out;
+}
 
-const char about[] = "\
-This is a pre-release of CVC4.\n\
-Copyright (C) 2009, 2010\n\
-  The ACSys Group\n\
-  Courant Institute of Mathematical Sciences,\n\
-  New York University\n\
-  New York, NY  10012  USA\n\
-";
-
-}/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__MAIN__ABOUT_H */
+#endif /* __CVC4__KIND_H */

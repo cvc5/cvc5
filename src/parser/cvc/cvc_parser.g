@@ -10,13 +10,12 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- **
  ** Parser for CVC presentation language.
  **/
 
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
-#include "util/command.h"
+#include "expr/command.h"
 }
 
 header "post_include_cpp" {
@@ -74,7 +73,7 @@ command returns [CVC4::Command* cmd = 0]
   : ASSERT   f = formula  SEMICOLON { cmd = new AssertCommand(f);   }
   | QUERY    f = formula  SEMICOLON { cmd = new QueryCommand(f);    }
   | CHECKSAT f = formula  SEMICOLON { cmd = new CheckSatCommand(f); }
-  | CHECKSAT              SEMICOLON { cmd = new CheckSatCommand();  }
+  | CHECKSAT              SEMICOLON { cmd = new CheckSatCommand(getTrueExpr()); }
   | identifierList[ids, CHECK_UNDECLARED] COLON type {
       // FIXME: switch on type (may not be predicates)
       vector<string> sorts;

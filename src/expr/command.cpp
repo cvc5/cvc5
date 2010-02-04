@@ -13,7 +13,7 @@
  ** Implementation of command objects.
  **/
 
-#include "util/command.h"
+#include "expr/command.h"
 #include "smt/smt_engine.h"
 
 using namespace std;

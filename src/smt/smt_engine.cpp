@@ -14,7 +14,7 @@
 
 #include "smt/smt_engine.h"
 #include "util/exception.h"
-#include "util/command.h"
+#include "expr/command.h"
 #include "util/output.h"
 #include "expr/node_builder.h"
 #include "util/options.h"

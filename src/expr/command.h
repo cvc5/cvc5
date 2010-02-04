@@ -72,7 +72,6 @@ protected:
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 public:
-  CheckSatCommand();
   CheckSatCommand(const BoolExpr& e);
   void invoke(SmtEngine* smt);
   Result getResult();
@@ -197,9 +196,6 @@ inline void AssertCommand::toStream(std::ostream& out) const {
 }
 
 /* class CheckSatCommand */
-
-inline CheckSatCommand::CheckSatCommand() {
-}
 
 inline CheckSatCommand::CheckSatCommand(const BoolExpr& e) :
   d_expr(e) {

@@ -15,7 +15,7 @@
 
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
-#include "util/command.h"
+#include "expr/command.h"
 }
 
 header "post_include_cpp" {

@@ -56,25 +56,35 @@ CNF conversions currently supported as arguments to the --cnf option:\n\
 enum OptionValue {
   CNF = 256, /* no clash with char options */
   SMTCOMP,
-  STATS
+  STATS,
+  SEGV_NOSPIN
 };/* enum OptionValue */
 
 // FIXME add a comment here describing the option array
 static struct option cmdlineOptions[] = {
   // name, has_arg, *flag, val
-  { "help"   , no_argument      , NULL, 'h'     },
-  { "version", no_argument      , NULL, 'V'     },
-  { "verbose", no_argument      , NULL, 'v'     },
-  { "quiet"  , no_argument      , NULL, 'q'     },
-  { "lang"   , required_argument, NULL, 'L'     },
-  { "debug"  , required_argument, NULL, 'd'     },
-  { "cnf"    , required_argument, NULL, CNF     },
-  { "smtcomp", no_argument      , NULL, SMTCOMP },
-  { "stats"  , no_argument      , NULL, STATS   }
+  { "help"       , no_argument      , NULL, 'h'         },
+  { "version"    , no_argument      , NULL, 'V'         },
+  { "verbose"    , no_argument      , NULL, 'v'         },
+  { "quiet"      , no_argument      , NULL, 'q'         },
+  { "lang"       , required_argument, NULL, 'L'         },
+  { "debug"      , required_argument, NULL, 'd'         },
+  { "cnf"        , required_argument, NULL, CNF         },
+  { "smtcomp"    , no_argument      , NULL, SMTCOMP     },
+  { "stats"      , no_argument      , NULL, STATS       },
+  { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN }
 };/* if you add things to the above, please remember to update usage.h! */
 
-int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionException) {
-  const char *progName = argv[0];
+/** Full argv[0] */
+const char *progPath;
+
+/** Just the basename component of argv[0] */
+const char *progName;
+
+/** Parse argc/argv and put the result into a CVC4::Options struct. */
+int parseOptions(int argc, char** argv, CVC4::Options* opts)
+throw(OptionException) {
+  progPath = progName = argv[0];
   int c;
 
   // find the base name of the program
@@ -85,17 +95,18 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
   opts->binary_name = string(progName);
 
   // FIXME add a comment here describing the option string
-  while((c = getopt_long(argc, argv, "+:hVvqL:d:", cmdlineOptions, NULL)) != -1) {
+  while((c = getopt_long(argc, argv,
+                         "+:hVvqL:d:",
+                         cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
     case 'h':
       printf(usage, opts->binary_name.c_str());
       exit(1);
-      break;
 
     case 'V':
       fputs(about, stdout);
-      break;
+      exit(0);
 
     case 'v':
       ++opts->verbosity;
@@ -146,6 +157,10 @@ int parseOptions(int argc, char** argv, CVC4::Options* opts) throw(OptionExcepti
 
     case STATS:
       opts->statistics = true;
+      break;
+
+    case SEGV_NOSPIN:
+      segvNoSpin = true;
       break;
 
     case SMTCOMP:

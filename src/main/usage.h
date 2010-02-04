@@ -27,8 +27,7 @@ usage: %s [options] [input-file]\n\
 Without an input file, or with `-', CVC4 reads from standard input.\n\
 \n\
 CVC4 options:\n\
-   --lang | -L     set input language (--lang help gives a list;\n\
-                                       `auto' is default)\n\
+   --lang | -L     force input language (default is `auto'; see --lang help)\n\
    --version | -V  identify this CVC4 binary\n\
    --help | -h     this command line reference\n\
    --verbose | -v  increase verbosity (repeatable)\n\
@@ -36,6 +35,7 @@ CVC4 options:\n\
    --debug | -d    debugging for something (e.g. --debug arith)\n\
    --smtcomp       competition mode (very quiet)\n\
    --stats         give statistics on exit\n\
+   --segv-nospin   (debug builds only) don't spin on segfault waiting for gdb\n\
 ";
 
 }/* CVC4::main namespace */

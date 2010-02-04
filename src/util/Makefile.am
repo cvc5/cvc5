@@ -10,8 +10,6 @@ libutil_la_SOURCES = \
 	Assert.cpp \
 	Makefile.am \
 	Makefile.in \
-	command.cpp \
-	command.h \
 	debug.h \
 	decision_engine.cpp \
 	decision_engine.h \

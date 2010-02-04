@@ -18,7 +18,7 @@
 #include <antlr/CharScanner.hpp>
 
 #include "parser.h"
-#include "util/command.h"
+#include "expr/command.h"
 #include "util/output.h"
 #include "util/Assert.h"
 #include "parser_exception.h"

@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** Utilities for the main driver.
  **/
 
 #include <cstdio>
@@ -22,24 +22,48 @@
 #include "util/exception.h"
 #include "config.h"
 
+#include "main.h"
+
 using CVC4::Exception;
 using namespace std;
 
 namespace CVC4 {
 namespace main {
 
-// FIXME add comments to functions
+/**
+ * If true, will not spin on segfault even when CVC4_DEBUG is on.
+ * Useful for nightly regressions, noninteractive performance runs
+ * etc.
+ */
+bool segvNoSpin = false;
 
+/** Handler for SIGINT, i.e., when the user hits control C. */
 void sigint_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 interrupted by user.\n");
   abort();
 }
 
+/** Handler for SIGSEGV (segfault). */
 void segv_handler(int sig, siginfo_t* info, void*) {
+#ifdef CVC4_DEBUG
+  fprintf(stderr, "CVC4 suffered a segfault in DEBUG mode.\n");
+  if(segvNoSpin) {
+    fprintf(stderr, "No-spin requested, aborting...\n");
+    abort();
+  } else {
+    fprintf(stderr, "Spinning so that a debugger can be connected.\n");
+    fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    for(;;) {
+      sleep(60);
+    }
+  }
+#else /* CVC4_DEBUG */
   fprintf(stderr, "CVC4 suffered a segfault.\n");
   abort();
+#endif /* CVC4_DEBUG */
 }
 
+/** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw() {
   struct sigaction act1;
   act1.sa_sigaction = sigint_handler;

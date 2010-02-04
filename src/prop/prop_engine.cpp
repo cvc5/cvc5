@@ -109,7 +109,7 @@ Result PropEngine::solve() {
     d_restartMayBeNeeded = true;
   }
 
-  Message() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
+  Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
   
   if(result){
     for(map<Node,Lit>::iterator atomIter = d_atom2lit.begin();

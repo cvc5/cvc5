@@ -25,7 +25,7 @@
 #include "parser/parser.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
-#include "util/command.h"
+#include "expr/command.h"
 #include "util/result.h"
 #include "util/Assert.h"
 #include "util/output.h"
