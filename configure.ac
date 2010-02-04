@@ -421,8 +421,6 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 mk_include=include
 AC_SUBST(mk_include)
 
-othermakefiles="`find src -name Makefile.am | sed 's,\.am$,,'` `find test -name Makefile.am | sed 's,\.am$,,'`"
-
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile
@@ -440,7 +438,9 @@ AC_CONFIG_FILES([
   src/parser/cvc/Makefile
   src/parser/smt/Makefile
   src/theory/Makefile
+  src/theory/bool/Makefile
   src/theory/uf/Makefile
+  src/theory/arith/Makefile
   test/Makefile
   test/regress/Makefile
   test/system/Makefile
