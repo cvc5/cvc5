@@ -18,6 +18,7 @@
 #include "prop/prop_engine.h"
 #include "expr/node.h"
 #include "util/Assert.h"
+#include "util/output.h"
 
 #include <queue>
 
@@ -27,6 +28,8 @@ using namespace std;
 namespace CVC4 {
 namespace prop {
 
+bool atomic(const Node & n);
+
 CnfStream::CnfStream(PropEngine *pe) :
   d_propEngine(pe) {
 }
@@ -35,7 +38,25 @@ TseitinCnfStream::TseitinCnfStream(PropEngine *pe) :
   CnfStream(pe) {
 }
 
+static void printLit(ostream & out, Lit l) {
+  const char * s = (sign(l))?"~":" ";
+  out << s << var(l);
+
+}
+
+static void printClause(ostream & out, vec<Lit> & c) {
+  out << "clause :";  
+  for(int i=0;i<c.size();i++){
+    out << " ";
+    printLit(out, c[i]) ;
+  }
+  out << ";" << endl;
+}
+
 void CnfStream::insertClauseIntoStream(vec<Lit> & c) {
+  Debug("cnf") << "Inserting into stream ";
+  printClause(Debug("cnf"),c);
+
   d_propEngine->assertClause(c);
 }
 
@@ -64,15 +85,22 @@ bool CnfStream::isCached(const Node & n) const {
 }
 
 Lit CnfStream::lookupInCache(const Node & n) const {
-  Assert(isCached(n));
+  Assert(isCached(n),
+	 "Node is not in cnf translation cache");
   return d_translationCache.find(n)->second;
 }
 
 void CnfStream::flushCache() {
+  Debug("cnf") << "flushing the translation cache" << endl;
   d_translationCache.clear();
 }
 
 void CnfStream::registerMapping(const Node & node, Lit lit, bool atom) {
+  
+  Debug("cnf") << "Mapping Node "<< node << " to ";
+  printLit(Debug("cnf"),lit);
+  Debug("cnf") << endl;
+  
   //Prop engine does not need to know this mapping
   d_translationCache.insert(make_pair(node, lit));
   if(atom)
@@ -96,6 +124,10 @@ Lit CnfStream::aquireAndRegister(const Node & node, bool atom) {
 /***********************************************/
 
 Lit TseitinCnfStream::handleAtom(const Node & n) {
+  Assert(atomic(n), "handleAtom(n) expects n to be an atom");
+
+  Debug("cnf") << "handling atom" << endl;
+
   Lit l = aquireAndRegister(n, true);
   switch(n.getKind()) { /* TRUE and FALSE are handled specially. */
   case TRUE:
@@ -131,7 +163,8 @@ Lit TseitinCnfStream::handleXor(const Node & n) {
  */
 void TseitinCnfStream::mapRecTransformOverChildren(const Node& n,
                                                    vec<Lit> & target) {
-  Assert(target.size() == n.getNumChildren());
+  Assert(target.size() == n.getNumChildren(),
+	 "Size of the children must be the same the constructed clause");
 
   int i = 0;
   Node::iterator subExprIter = n.begin();
@@ -162,14 +195,15 @@ Lit TseitinCnfStream::handleOr(const Node& n) {
    * : (e | ~a1) & (e |~a2) & (e & ~a3) & ...
    */
 
-  vec<Lit> c;
-  c.push(~e);
+  vec<Lit> c(1 + lits.size());
+
 
   for(int index = 0; index < lits.size(); ++index) {
     Lit a = lits[index];
-    c.push(a);
+    c[index] = a;
     insertClauseIntoStream(e, ~a);
   }
+  c[lits.size()] = ~e;
   insertClauseIntoStream(c);
 
   return e;
@@ -226,13 +260,14 @@ Lit TseitinCnfStream::handleAnd(const Node& n) {
    * : e | ~a1 | ~a2 | ~a3 | ...
    */
 
-  vec<Lit> c;
-  c.push(e);
+  vec<Lit> c(lits.size()+1);
   for(int index = 0; index < lits.size(); ++index) {
     Lit a = lits[index];
-    c.push(~a);
+    c[index] = (~a);
     insertClauseIntoStream(~e, a);
   }
+  c[lits.size()] = e;
+
   insertClauseIntoStream(c);
 
   return e;
@@ -274,9 +309,11 @@ Lit TseitinCnfStream::handleNot(const Node & n) {
   Node m = n[0];
   Lit equivM = recTransform(m);
 
-  registerMapping(n, ~equivM, false);
+  Lit equivN = ~equivM;
 
-  return equivM;
+  registerMapping(n, equivN, false);
+
+  return equivN;
 }
 
 //FIXME: This function is a major hack! Should be changed ASAP
@@ -325,6 +362,7 @@ bool atomic(const Node & n) {
   case XOR:
   case ITE:
   case IFF:
+  case IMPLIES:
   case OR:
   case AND:
     return false;
@@ -353,6 +391,8 @@ Lit TseitinCnfStream::recTransform(const Node & n) {
       return handleIte(n);
     case IFF:
       return handleIff(n);
+    case IMPLIES:
+      return handleImplies(n);
     case OR:
       return handleOr(n);
     case AND:

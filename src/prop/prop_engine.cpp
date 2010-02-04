@@ -70,6 +70,11 @@ Lit PropEngine::requestFreshLit(){
 }
 
 void PropEngine::assertFormula(const Node& node) {
+
+  Debug("prop") << "Asserting ";
+  node.printAst(Debug("prop"));
+  Debug("prop") << endl;
+
   d_cnfStream->convertAndAssert(node);
   d_assertionList.push_back(node);
 }
@@ -87,6 +92,12 @@ void PropEngine::restart(){
   }
 }
 
+static void printLit(ostream & out, Lit l) {
+  const char * s = (sign(l))?"~":" ";
+  out << s << var(l);
+
+}
+
 Result PropEngine::solve() {
   if(d_restartMayBeNeeded)
     restart();
@@ -98,7 +109,28 @@ Result PropEngine::solve() {
     d_restartMayBeNeeded = true;
   }
 
-  Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
+  Message() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
+  
+  if(result){
+    for(map<Node,Lit>::iterator atomIter = d_atom2lit.begin();
+	atomIter != d_atom2lit.end(); 
+	++atomIter){
+      Node n = (*atomIter).first;
+      Lit l = (*atomIter).second;
+
+      lbool lb = d_sat->modelValue(l);
+      
+      Notice() << n << "->" << lb.toInt() << endl;
+    }
+  }else{
+    // unsat case
+    Notice() << "Conflict {";
+    for(int i=0; i< d_sat->conflict.size(); i++){
+      Notice() << endl << " ";
+      printLit(Notice(), d_sat->conflict[i]); 
+    }
+    Notice() << endl << "}" << endl;
+  }
 
   return Result(result ? Result::SAT : Result::UNSAT);
 }

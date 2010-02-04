@@ -116,7 +116,7 @@ Node Node::xorExpr(const Node& right) const {
   return NodeManager::currentNM()->mkNode(XOR, *this, right);
 }
 
-void indent(ostream & o, int indent){
+static void indent(ostream & o, int indent){
   for(int i=0; i < indent; i++)
     o << ' ';
 }
@@ -130,8 +130,10 @@ void Node::printAst(ostream & o, int ind) const{
 
   }else if(getNumChildren() >= 1){
     for(Node::iterator child = begin(); child != end(); ++child){
+      o << endl;
       (*child).printAst(o, ind+1);
     }
+    o << endl;
     indent(o, ind);
   }
   o << ')';
