@@ -1,7 +1,4 @@
-%% Regression level = 2
-%% Result = Valid
-%% Runtime = 2
-%% Language = presentation
+% EXPECT: VALID
 x_1 : BOOLEAN;
 x_2 : BOOLEAN;
 x_3 : BOOLEAN;

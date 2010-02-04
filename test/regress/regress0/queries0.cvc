@@ -1,11 +1,10 @@
-
 % Tests the invariants for multiple queries.
 
 a, b: BOOLEAN;
 
-%Valid query
+% EXPECT: VALID
 QUERY (a AND b) OR NOT (a AND b);
 
-%Invalid query
+% EXPECT: INVALID
 QUERY (a OR b);
 

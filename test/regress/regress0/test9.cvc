@@ -1,7 +1,4 @@
-%% Regression level = 0
-%% Result = Valid
-%% Runtime = 1
-%% Language = presentation
+% EXPECT: VALID
 P,Q:BOOLEAN;
 ASSERT (P OR Q);
 QUERY (P OR Q);

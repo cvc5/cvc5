@@ -1,8 +1,4 @@
-%% Regression level = 1
-%% Result = Valid
-%% Runtime = 1
-%% Up from 2 (actual 2.1sec), Down from 4
-%% Language = presentation
+% EXPECT: VALID
 x_1 : BOOLEAN;
 x_2 : BOOLEAN;
 x_3 : BOOLEAN;

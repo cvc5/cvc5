@@ -1,7 +1,4 @@
-%% Regression level = 0
-%% Result = Invalid
-%% Runtime = 1
-%% Language = presentation
+% EXPECT: INVALID
 x_1 : BOOLEAN;
 x_2 : BOOLEAN;
 x_3 : BOOLEAN;

@@ -1,5 +1,5 @@
 (benchmark b
-:status unknown
+:status unsat
 :logic QF_UF
 :extrapreds ((x0))
 :extrapreds ((x1))
