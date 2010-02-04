@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** parser_black.h
  ** Original author: cconway
  ** Major contributors: dejan

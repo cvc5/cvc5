@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_black.h
  ** Original author: mdeters
  ** Major contributors: taking

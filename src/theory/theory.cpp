@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** theory.cpp
  ** Original author: mdeters
  ** Major contributors: none

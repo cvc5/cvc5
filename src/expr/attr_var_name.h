@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** attr_var_name.h
  ** Original author: mdeters
  ** Major contributors: none

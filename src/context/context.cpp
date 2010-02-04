@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** context.cpp
  ** Original author: mdeters
  ** Major contributors: barrett

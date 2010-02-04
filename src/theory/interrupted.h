@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** interrupted.h
  ** Original author: mdeters
  ** Major contributors: none

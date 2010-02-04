@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** main.h
  ** Original author: mdeters
  ** Major contributors: none

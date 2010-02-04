@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** getopt.cpp
  ** Original author: mdeters
  ** Major contributors: none

@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** prop_engine.cpp
  ** Original author: mdeters
  ** Major contributors: taking

@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** usage.h
  ** Original author: mdeters
  ** Major contributors: none

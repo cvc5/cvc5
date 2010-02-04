@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** expr.h
  ** Original author: dejan
  ** Major contributors: none

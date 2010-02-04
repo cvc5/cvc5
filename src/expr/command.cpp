@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** command.cpp
  ** Original author: mdeters
  ** Major contributors: dejan

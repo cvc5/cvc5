@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** literal.h
  ** Original author: mdeters
  ** Major contributors: none

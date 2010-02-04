@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** antlr_parser.h
  ** Original author: dejan
  ** Major contributors: cconway

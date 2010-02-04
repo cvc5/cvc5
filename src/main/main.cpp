@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** main.cpp
  ** Original author: mdeters
  ** Major contributors: barrett, dejan

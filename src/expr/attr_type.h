@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** attr_type.h
  ** Original author: mdeters
  ** Major contributors: none

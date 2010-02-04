@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_attribute.h
  ** Original author: mdeters
  ** Major contributors: dejan

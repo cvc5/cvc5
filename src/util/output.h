@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** output.h
  ** Original author: mdeters
  ** Major contributors: none

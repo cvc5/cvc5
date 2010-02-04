@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** options.h
  ** Original author: mdeters
  ** Major contributors: dejan

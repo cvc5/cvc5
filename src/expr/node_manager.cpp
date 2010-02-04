@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_manager.cpp
  ** Original author: mdeters
  ** Major contributors: none

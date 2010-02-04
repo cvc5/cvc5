@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** theory_engine.h
  ** Original author: mdeters
  ** Major contributors: none

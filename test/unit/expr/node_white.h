@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_white.h
  ** Original author: mdeters
  ** Major contributors: none

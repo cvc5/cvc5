@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** parser.cpp
  ** Original author: mdeters
  ** Major contributors: dejan

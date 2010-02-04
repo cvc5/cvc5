@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** Assert.h
  ** Original author: mdeters
  ** Major contributors: none

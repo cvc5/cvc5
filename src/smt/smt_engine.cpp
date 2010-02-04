@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** smt_engine.cpp
  ** Original author: mdeters
  ** Major contributors: dejan

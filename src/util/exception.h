@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** exception.h
  ** Original author: mdeters
  ** Major contributors: none

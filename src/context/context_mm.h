@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** context_mm.h
  ** Original author: barrett
  ** Major contributors: none

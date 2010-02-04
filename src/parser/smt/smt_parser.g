@@ -1,4 +1,4 @@
-/* *******************                                           -*- C++ -*-  */
+/* *******************                                                        */
 /*  smt_parser.g
  ** Original author: dejan
  ** Major contributors: mdeters, cconway

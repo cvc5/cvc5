@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** model.h
  ** Original author: mdeters
  ** Major contributors: none

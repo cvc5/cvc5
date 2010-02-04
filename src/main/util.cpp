@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** util.cpp
  ** Original author: mdeters
  ** Major contributors: none

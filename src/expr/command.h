@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** command.h
  ** Original author: mdeters
  ** Major contributors: dejan

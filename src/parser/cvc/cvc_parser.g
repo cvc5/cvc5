@@ -1,4 +1,4 @@
-/* *******************                                           -*- C++ -*-  */
+/* *******************                                                        */
 /*  cvc_parser.g
  ** Original author: dejan
  ** Major contributors: mdeters

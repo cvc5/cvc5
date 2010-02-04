@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_value.cpp
  ** Original author: mdeters
  ** Major contributors: none

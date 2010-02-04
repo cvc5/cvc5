@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_value.h
  ** Original author: mdeters
  ** Major contributors: dejan

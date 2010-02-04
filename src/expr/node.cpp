@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node.cpp
  ** Original author: mdeters
  ** Major contributors: taking, dejan

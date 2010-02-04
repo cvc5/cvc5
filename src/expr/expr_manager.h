@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** expr_manager.h
  ** Original author: dejan
  ** Major contributors: mdeters

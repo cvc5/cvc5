@@ -1,4 +1,4 @@
-/* *******************                                           -*- C++ -*-  */
+/* *******************                                                        */
 /*  smt_lexer.g
  ** Original author: dejan
  ** Major contributors: cconway, mdeters

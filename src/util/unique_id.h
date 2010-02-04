@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** unique_id.h
  ** Original author: mdeters
  ** Major contributors: none

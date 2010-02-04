@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** node_builder.cpp
  ** Original author: mdeters
  ** Major contributors: none

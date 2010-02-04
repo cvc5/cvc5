@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** output_channel.h
  ** Original author: mdeters
  ** Major contributors: none

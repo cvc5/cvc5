@@ -1,4 +1,4 @@
-/* *******************                                           -*- C++ -*-  */
+/* *******************                                                        */
 /*  cvc_lexer.g
  ** Original author: dejan
  ** Major contributors: mdeters

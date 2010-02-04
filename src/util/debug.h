@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** debug.h
  ** Original author: mdeters
  ** Major contributors: none

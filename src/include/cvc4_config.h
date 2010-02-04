@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** cvc4_config.h
  ** Original author: mdeters
  ** Major contributors: none
