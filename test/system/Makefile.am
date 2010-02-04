@@ -28,3 +28,7 @@ $(TESTS):: $(TEST_DEPS)
 # synonyms for "check"
 .PHONY: regress test
 regress test: check
+
+# in system test dir, regressN are also synonyms for check
+.PHONY: regress0 regress1 regress2 regress3
+regress0 regress1 regress2 regress3: check

@@ -1,5 +1,8 @@
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/../../bin/cvc4
-TESTS =
+TESTS =	C880mul.miter.shuffled-as.sat03-348.smt \
+	comb2.shuffled-as.sat03-420.smt \
+	hole10.cvc \
+	instance_1151.smt
 
 # synonyms for "check"
 .PHONY: regress regress3 test

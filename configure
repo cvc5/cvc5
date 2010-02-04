@@ -16462,7 +16462,7 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 mk_include=include
 
 
-ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/Makefile src/expr/Makefile src/smt/Makefile src/main/Makefile src/prop/minisat/Makefile src/prop/Makefile src/util/Makefile src/context/Makefile src/parser/Makefile src/parser/cvc/Makefile src/parser/smt/Makefile src/theory/Makefile src/theory/bool/Makefile src/theory/uf/Makefile src/theory/arith/Makefile test/Makefile test/regress/Makefile test/system/Makefile test/unit/Makefile"
+ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/Makefile src/expr/Makefile src/smt/Makefile src/main/Makefile src/prop/minisat/Makefile src/prop/Makefile src/util/Makefile src/context/Makefile src/parser/Makefile src/parser/cvc/Makefile src/parser/smt/Makefile src/theory/Makefile src/theory/bool/Makefile src/theory/uf/Makefile src/theory/arith/Makefile test/Makefile test/regress/Makefile test/regress/regress0/Makefile test/regress/regress1/Makefile test/regress/regress2/Makefile test/regress/regress3/Makefile test/system/Makefile test/unit/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -17563,6 +17563,10 @@ do
     "src/theory/arith/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/arith/Makefile" ;;
     "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
     "test/regress/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/Makefile" ;;
+    "test/regress/regress0/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress0/Makefile" ;;
+    "test/regress/regress1/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress1/Makefile" ;;
+    "test/regress/regress2/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress2/Makefile" ;;
+    "test/regress/regress3/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress3/Makefile" ;;
     "test/system/Makefile") CONFIG_FILES="$CONFIG_FILES test/system/Makefile" ;;
     "test/unit/Makefile") CONFIG_FILES="$CONFIG_FILES test/unit/Makefile" ;;
 

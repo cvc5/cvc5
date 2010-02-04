@@ -16,3 +16,7 @@ production debug default competition:
 	else \
 		./configure --with-build=$@ $(CONFARGS) && $(MAKE); \
 	fi
+
+.PHONY: regress0 regress1 regress2 regress3
+regress0 regress1 regress2 regress3:
+	(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
