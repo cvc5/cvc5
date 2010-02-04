@@ -37,6 +37,23 @@ bool Node::isNull() const {
   return d_ev == &NodeValue::s_null;
 }
 
+////FIXME: This function is a major hack! Should be changed ASAP
+////TODO: Should use positive definition, i.e. what kinds are atomic.
+bool Node::isAtomic() const {
+  switch(getKind()) {
+  case NOT:
+  case XOR:
+  case ITE:
+  case IFF:
+  case IMPLIES:
+  case OR:
+  case AND:
+    return false;
+  default:
+    return true;
+  }
+}
+
 Node::Node() :
   d_ev(&NodeValue::s_null) {
   // No refcount needed

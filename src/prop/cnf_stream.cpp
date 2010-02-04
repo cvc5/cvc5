@@ -22,35 +22,10 @@
 
 #include <queue>
 
-using namespace CVC4::prop::minisat;
 using namespace std;
 
 namespace CVC4 {
 namespace prop {
-
-bool atomic(const Node & n);
-
-
-static void printVar(ostream & out, Var v){
-  out << v;
-}
-
-static void printLit(ostream & out, Lit l) {
-  const char * s = (sign(l))?"~":" ";
-  out << s << var(l);
-}
-
-
-static void printClause(ostream & out, vec<Lit> & c) {
-  out << "clause:";  
-  for(int i=0;i<c.size();i++){
-    out << " ";
-    printLit(out, c[i]) ;
-  }
-  out << ";" << endl;
-}
-
-
 
 CnfStream::CnfStream(PropEngine *pe) :
   d_propEngine(pe) {
@@ -60,42 +35,37 @@ TseitinCnfStream::TseitinCnfStream(PropEngine *pe) :
   CnfStream(pe) {
 }
 
-
-
-void CnfStream::insertClauseIntoStream(vec<Lit> & c) {
-  Debug("cnf") << "Inserting into stream ";
-  printClause(Debug("cnf"),c);
-
+void CnfStream::insertClauseIntoStream(SatClause& c) {
+  Debug("cnf") << "Inserting into stream " << c << endl;
   d_propEngine->assertClause(c);
 }
 
-void CnfStream::insertClauseIntoStream(minisat::Lit a) {
-  vec<Lit> clause(1);
+void CnfStream::insertClauseIntoStream(SatLiteral a) {
+  SatClause clause(1);
   clause[0] = a;
   insertClauseIntoStream(clause);
 }
-void CnfStream::insertClauseIntoStream(minisat::Lit a, minisat::Lit b) {
-  vec<Lit> clause(2);
+void CnfStream::insertClauseIntoStream(SatLiteral a, SatLiteral b) {
+  SatClause clause(2);
   clause[0] = a;
   clause[1] = b;
   insertClauseIntoStream(clause);
 }
-void CnfStream::insertClauseIntoStream(minisat::Lit a, minisat::Lit b,
-                                       minisat::Lit c) {
-  vec<Lit> clause(3);
+void CnfStream::insertClauseIntoStream(SatLiteral a, SatLiteral b, SatLiteral c) {
+  SatClause clause(3);
   clause[0] = a;
   clause[1] = b;
   clause[2] = c;
   insertClauseIntoStream(clause);
 }
 
-bool CnfStream::isCached(const Node & n) const {
+bool CnfStream::isCached(const Node& n) const {
   return d_translationCache.find(n) != d_translationCache.end();
 }
 
-Lit CnfStream::lookupInCache(const Node & n) const {
+SatLiteral CnfStream::lookupInCache(const Node& n) const {
   Assert(isCached(n),
-	 "Node is not in cnf translation cache");
+      "Node is not in cnf translation cache");
   return d_translationCache.find(n)->second;
 }
 
@@ -104,28 +74,24 @@ void CnfStream::flushCache() {
   d_translationCache.clear();
 }
 
-void CnfStream::cacheTranslation(const Node & node, Lit lit) {
-  Debug("cnf") << "cacheing translation "<< node << " to ";
-  printLit(Debug("cnf"),lit);
-  Debug("cnf") << endl;
-  
+void CnfStream::cacheTranslation(const Node& node, SatLiteral lit) {
+  Debug("cnf") << "caching translation " << node << " to " << lit << endl;
   d_translationCache.insert(make_pair(node, lit));
 }
 
-Lit CnfStream::aquireAndRegister(const Node & node, bool atom) {
-  Var v = atom ?
-      d_propEngine->registerAtom(node)
-    : d_propEngine->requestFreshVar();
-  Lit l(v);
-  cacheTranslation(node, l);
-  return l;
+SatLiteral CnfStream::aquireAndRegister(const Node& node, bool atom) {
+  SatVariable var = atom ? d_propEngine->registerAtom(node)
+      : d_propEngine->requestFreshVar();
+  SatLiteral lit(var);
+  cacheTranslation(node, lit);
+  return lit;
 }
 
-bool CnfStream::isAtomMapped(const Node & n) const{
+bool CnfStream::isAtomMapped(const Node& n) const {
   return d_propEngine->isAtomMapped(n);
 }
-  
-Var CnfStream::lookupAtom(const Node & n) const{
+
+SatVariable CnfStream::lookupAtom(const Node& n) const {
   return d_propEngine->lookupAtom(n);
 }
 
@@ -135,12 +101,12 @@ Var CnfStream::lookupAtom(const Node & n) const{
 /***********************************************/
 /***********************************************/
 
-Lit TseitinCnfStream::handleAtom(const Node & n) {
-  Assert(atomic(n), "handleAtom(n) expects n to be an atom");
+SatLiteral TseitinCnfStream::handleAtom(const Node& n) {
+  Assert(n.isAtomic(), "handleAtom(n) expects n to be an atom");
 
   Debug("cnf") << "handling atom" << endl;
 
-  Lit l = aquireAndRegister(n, true);
+  SatLiteral l = aquireAndRegister(n, true);
   switch(n.getKind()) { /* TRUE and FALSE are handled specially. */
   case TRUE:
     insertClauseIntoStream(l);
@@ -154,13 +120,13 @@ Lit TseitinCnfStream::handleAtom(const Node & n) {
   return l;
 }
 
-Lit TseitinCnfStream::handleXor(const Node & n) {
+SatLiteral TseitinCnfStream::handleXor(const Node& n) {
   // n: a XOR b
 
-  Lit a = recTransform(n[0]);
-  Lit b = recTransform(n[1]);
+  SatLiteral a = recTransform(n[0]);
+  SatLiteral b = recTransform(n[1]);
 
-  Lit l = aquireAndRegister(n);
+  SatLiteral l = aquireAndRegister(n);
 
   insertClauseIntoStream(a, b, ~l);
   insertClauseIntoStream(a, ~b, l);
@@ -174,27 +140,27 @@ Lit TseitinCnfStream::handleXor(const Node & n) {
  size of the number of children of n.
  */
 void TseitinCnfStream::mapRecTransformOverChildren(const Node& n,
-                                                   vec<Lit> & target) {
-  Assert(target.size() == n.getNumChildren(),
-	 "Size of the children must be the same the constructed clause");
+                                                   SatClause& target) {
+  Assert((unsigned)target.size() == n.getNumChildren(),
+      "Size of the children must be the same the constructed clause");
 
   int i = 0;
   Node::iterator subExprIter = n.begin();
 
   while(subExprIter != n.end()) {
-    Lit equivalentLit = recTransform(*subExprIter);
+    SatLiteral equivalentLit = recTransform(*subExprIter);
     target[i] = equivalentLit;
     ++subExprIter;
     ++i;
   }
 }
 
-Lit TseitinCnfStream::handleOr(const Node& n) {
+SatLiteral TseitinCnfStream::handleOr(const Node& n) {
   //child_literals
-  vec<Lit> lits(n.getNumChildren());
+  SatClause lits(n.getNumChildren());
   mapRecTransformOverChildren(n, lits);
 
-  Lit e = aquireAndRegister(n);
+  SatLiteral e = aquireAndRegister(n);
 
   /* e <-> (a1 | a2 | a3 | ...)
    *: e -> (a1 | a2 | a3 | ...)
@@ -207,11 +173,10 @@ Lit TseitinCnfStream::handleOr(const Node& n) {
    * : (e | ~a1) & (e |~a2) & (e & ~a3) & ...
    */
 
-  vec<Lit> c(1 + lits.size());
-
+  SatClause c(1 + lits.size());
 
   for(int index = 0; index < lits.size(); ++index) {
-    Lit a = lits[index];
+    SatLiteral a = lits[index];
     c[index] = a;
     insertClauseIntoStream(e, ~a);
   }
@@ -224,15 +189,15 @@ Lit TseitinCnfStream::handleOr(const Node& n) {
 /* TODO: this only supports 2-ary <=> nodes atm.
  * Should this be changed?
  */
-Lit TseitinCnfStream::handleIff(const Node& n) {
-  Assert(n.getKind() == IFF); 
+SatLiteral TseitinCnfStream::handleIff(const Node& n) {
+  Assert(n.getKind() == IFF);
   Assert(n.getNumChildren() == 2);
   // n: a <=> b;
 
-  Lit a = recTransform(n[0]);
-  Lit b = recTransform(n[1]);
+  SatLiteral a = recTransform(n[0]);
+  SatLiteral b = recTransform(n[1]);
 
-  Lit l = aquireAndRegister(n);
+  SatLiteral l = aquireAndRegister(n);
 
   /* l <-> (a<->b)
    * : l -> ((a-> b) & (b->a))
@@ -254,16 +219,16 @@ Lit TseitinCnfStream::handleIff(const Node& n) {
   return l;
 }
 
-Lit TseitinCnfStream::handleAnd(const Node& n) {  
-  Assert(n.getKind() == AND); 
+SatLiteral TseitinCnfStream::handleAnd(const Node& n) {
+  Assert(n.getKind() == AND);
   Assert(n.getNumChildren() >= 1);
 
   //TODO: we know the exact size of the this.
   //Dynamically allocated array would have less overhead no?
-  vec<Lit> lits(n.getNumChildren());
+  SatClause lits(n.getNumChildren());
   mapRecTransformOverChildren(n, lits);
 
-  Lit e = aquireAndRegister(n);
+  SatLiteral e = aquireAndRegister(n);
 
   /* e <-> (a1 & a2 & a3 & ...)
    * : e -> (a1 & a2 & a3 & ...)
@@ -276,9 +241,9 @@ Lit TseitinCnfStream::handleAnd(const Node& n) {
    * : e | ~a1 | ~a2 | ~a3 | ...
    */
 
-  vec<Lit> c(lits.size()+1);
+  SatClause c(lits.size() + 1);
   for(int index = 0; index < lits.size(); ++index) {
-    Lit a = lits[index];
+    SatLiteral a = lits[index];
     c[index] = (~a);
     insertClauseIntoStream(~e, a);
   }
@@ -289,15 +254,15 @@ Lit TseitinCnfStream::handleAnd(const Node& n) {
   return e;
 }
 
-Lit TseitinCnfStream::handleImplies(const Node & n) {
+SatLiteral TseitinCnfStream::handleImplies(const Node& n) {
   Assert(n.getKind() == IMPLIES);
   Assert(n.getNumChildren() == 2);
   // n: a => b;
 
-  Lit a = recTransform(n[0]);
-  Lit b = recTransform(n[1]);
+  SatLiteral a = recTransform(n[0]);
+  SatLiteral b = recTransform(n[1]);
 
-  Lit l = aquireAndRegister(n);
+  SatLiteral l = aquireAndRegister(n);
 
   /* l <-> (a->b)
    * (l -> (a->b)) & (l <- (a->b))
@@ -319,31 +284,29 @@ Lit TseitinCnfStream::handleImplies(const Node & n) {
   return l;
 }
 
-Lit TseitinCnfStream::handleNot(const Node & n) {
+SatLiteral TseitinCnfStream::handleNot(const Node& n) {
   Assert(n.getKind() == NOT);
   Assert(n.getNumChildren() == 1);
 
   // n : NOT m
   Node m = n[0];
-  Lit equivM = recTransform(m);
+  SatLiteral equivM = recTransform(m);
 
-  Lit equivN = ~equivM;
+  SatLiteral equivN = ~equivM;
 
   cacheTranslation(n, equivN);
 
   return equivN;
 }
 
-//FIXME: This function is a major hack! Should be changed ASAP
-//Assumes binary no else if branchs, and that ITEs 
-Lit TseitinCnfStream::handleIte(const Node & n) {
+SatLiteral TseitinCnfStream::handleIte(const Node& n) {
   Assert(n.getKind() == ITE);
   Assert(n.getNumChildren() == 3);
 
   // n : IF c THEN t ELSE f ENDIF;
-  Lit c = recTransform(n[0]);
-  Lit t = recTransform(n[1]);
-  Lit f = recTransform(n[2]);
+  SatLiteral c = recTransform(n[0]);
+  SatLiteral t = recTransform(n[1]);
+  SatLiteral f = recTransform(n[2]);
 
   // d <-> IF c THEN tB ELSE fb
   // : d -> (c & tB) | (~c & fB)
@@ -361,7 +324,7 @@ Lit TseitinCnfStream::handleIte(const Node & n) {
   // : ((~c | ~t)& ( c |~fb)) | d
   // : (~c | ~ t | d) & (c | ~f | d)
 
-  Lit d = aquireAndRegister(n);
+  SatLiteral d = aquireAndRegister(n);
 
   insertClauseIntoStream(~d, ~c, t);
   insertClauseIntoStream(~d, c, f);
@@ -372,45 +335,27 @@ Lit TseitinCnfStream::handleIte(const Node & n) {
   return d;
 }
 
-//FIXME: This function is a major hack! Should be changed ASAP
-//TODO: Should be moved. Not sure where...
-//TODO: Should use positive definition, i.e. what kinds are atomic.
-bool atomic(const Node & n) {
-  switch(n.getKind()) {
-  case NOT:
-  case XOR:
-  case ITE:
-  case IFF:
-  case IMPLIES:
-  case OR:
-  case AND:
-    return false;
-  default:
-    return true;
-  }
-}
-
-//TODO: The following code assumes everthing is either
+//TODO: The following code assumes everything is either
 // an atom or is a logical connective. This ignores quantifiers and lambdas.
-Lit TseitinCnfStream::recTransform(const Node & n) {
+SatLiteral TseitinCnfStream::recTransform(const Node& n) {
   if(isCached(n)) {
     return lookupInCache(n);
   }
 
-  if(atomic(n)) {
-    
-    /* Unforunately we need to potentially allow
+  if(n.isAtomic()) {
+
+    /* Unfortunately we need to potentially allow
      * for n to be to the Atom <-> Var map but not the
      * translation cache.
      * This is because the translation cache can be flushed.
      * It is really not clear where this check should go, but
      * it needs to be done.
      */
-    if(isAtomMapped(n)){
+    if(isAtomMapped(n)) {
       /* Puts the atom in the translation cache after looking it up.
        * Avoids doing 2 map lookups for this atom in the future.
        */
-      Lit l(lookupAtom(n));
+      SatLiteral l(lookupAtom(n));
       cacheTranslation(n, l);
       return l;
     }
@@ -438,8 +383,8 @@ Lit TseitinCnfStream::recTransform(const Node & n) {
   }
 }
 
-void TseitinCnfStream::convertAndAssert(const Node & n) {
-  Lit e = recTransform(n);
+void TseitinCnfStream::convertAndAssert(const Node& n) {
+  SatLiteral e = recTransform(n);
   insertClauseIntoStream(e);
 }
 

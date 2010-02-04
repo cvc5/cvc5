@@ -153,6 +153,7 @@ public:
   inline void toStream(std::ostream&) const;
 
   bool isNull() const;
+  bool isAtomic() const;
 
    /**
    * Very basic pretty printer for Node.

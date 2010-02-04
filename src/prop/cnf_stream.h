@@ -23,18 +23,14 @@
 #define __CVC4__CNF_STREAM_H
 
 #include "expr/node.h"
-#include "prop/minisat/simp/SimpSolver.h"
-#include "prop/minisat/core/SolverTypes.h"
-#include "prop/prop_engine.h"
+#include "prop/sat.h"
 
 #include <map>
 
 namespace CVC4 {
-class PropEngine;
-}
-
-namespace CVC4 {
 namespace prop {
+
+class PropEngine;
 
 /**
  * Comments for the behavior of the whole class...
@@ -58,44 +54,46 @@ private:
    * for correctness. This can be flushed when memory is under pressure.
    * TODO: Use attributes when they arrive
    */
-  std::map<Node, minisat::Lit> d_translationCache;
+  std::map<Node, SatLiteral> d_translationCache;
 
 protected:
-  bool isAtomMapped(const Node & n) const;
-  minisat::Var lookupAtom(const Node & n) const;
+
+  bool isAtomMapped(const Node& n) const;
+
+  SatVariable lookupAtom(const Node& node) const;
 
   /**
    * Uniform interface for sending a clause back to d_propEngine.
    * May want to have internal data-structures later on
    */
-  void insertClauseIntoStream(minisat::vec<minisat::Lit> & c);
-  void insertClauseIntoStream(minisat::Lit a);
-  void insertClauseIntoStream(minisat::Lit a, minisat::Lit b);
-  void insertClauseIntoStream(minisat::Lit a, minisat::Lit b, minisat::Lit c);
+  void insertClauseIntoStream(SatClause& clause);
+  void insertClauseIntoStream(SatLiteral a);
+  void insertClauseIntoStream(SatLiteral a, SatLiteral b);
+  void insertClauseIntoStream(SatLiteral a, SatLiteral b, SatLiteral c);
 
   //utilities for the translation cache;
-  bool isCached(const Node & n) const;
+  bool isCached(const Node& node) const;
 
   /**
    * Method comments...
    * @param n
    * @return returns ...
    */
-  minisat::Lit lookupInCache(const Node & n) const;
-
+  SatLiteral lookupInCache(const Node& n) const;
 
   //negotiates the mapping of atoms to literals with PropEngine
-  void cacheTranslation(const Node & node, minisat::Lit lit);
-  minisat::Lit aquireAndRegister(const Node & n, bool atom = false);
+  void cacheTranslation(const Node& node, SatLiteral lit);
+
+  SatLiteral aquireAndRegister(const Node& node, bool atom = false);
 
 public:
+
   /**
    * Constructs a CnfStream that sends constructs an equisatisfiable set of clauses
    * and sends them to the given PropEngine.
-   * @param pe
+   * @param propEngine
    */
-  CnfStream(CVC4::PropEngine *pe);
-
+  CnfStream(PropEngine* propEngine);
 
   /**
    * Empties the internal translation cache.
@@ -104,9 +102,9 @@ public:
 
   /**
    * Converts and asserts a formula.
-   * @param n node to convert and assert
+   * @param node node to convert and assert
    */
-  virtual void convertAndAssert(const Node & n) = 0;
+  virtual void convertAndAssert(const Node& node) = 0;
 
 }; /* class CnfStream */
 
@@ -123,8 +121,10 @@ public:
 class TseitinCnfStream : public CnfStream {
 
 public:
-  void convertAndAssert(const Node & n);
-  TseitinCnfStream(CVC4::PropEngine *pe);
+
+  void convertAndAssert(const Node& node);
+
+  TseitinCnfStream(PropEngine* propEngine);
 
 private:
 
@@ -139,15 +139,15 @@ private:
    *
    * handleX( n ) can assume that n is not in d_translationCache
    */
-  minisat::Lit handleAtom(const Node & n);
-  minisat::Lit handleNot(const Node & n);
-  minisat::Lit handleXor(const Node & n);
-  minisat::Lit handleImplies(const Node & n);
-  minisat::Lit handleIff(const Node & n);
-  minisat::Lit handleIte(const Node & n);
+  SatLiteral handleAtom(const Node& node);
+  SatLiteral handleNot(const Node& node);
+  SatLiteral handleXor(const Node& node);
+  SatLiteral handleImplies(const Node& node);
+  SatLiteral handleIff(const Node& node);
+  SatLiteral handleIte(const Node& node);
 
-  minisat::Lit handleAnd(const Node& n);
-  minisat::Lit handleOr(const Node& n);
+  SatLiteral handleAnd(const Node& node);
+  SatLiteral handleOr(const Node& node);
 
   /**
    * Maps recTransform over the children of a node. This is very useful for
@@ -159,11 +159,10 @@ private:
    * @param n ...
    * @param target ...
    */
-  void mapRecTransformOverChildren(const Node& n,
-                                   minisat::vec<minisat::Lit> & target);
+  void mapRecTransformOverChildren(const Node& node, SatClause& target);
 
   //Recursively dispatches the various Kinds to the appropriate handler.
-  minisat::Lit recTransform(const Node & n);
+  SatLiteral recTransform(const Node& node);
 
 }; /* class TseitinCnfStream */
 

@@ -21,76 +21,72 @@
 #include "expr/node.h"
 #include "util/decision_engine.h"
 #include "theory/theory_engine.h"
-#include "prop/minisat/simp/SimpSolver.h"
-#include "prop/minisat/core/SolverTypes.h"
+#include "sat.h"
 #include "util/result.h"
+#include "util/options.h"
 
 #include <map>
-#include "prop/cnf_stream.h"
 
 namespace CVC4 {
-  namespace prop {
-    class CnfStream;
-  }
+namespace prop {
 
-  class Options;
-}
-
-namespace CVC4 {
+class CnfStream;
 
 // In terms of abstraction, this is below (and provides services to)
 // Prover and above (and requires the services of) a specific
 // propositional solver, DPLL or otherwise.
 
 class PropEngine {
-  const Options *d_opts;
-  DecisionEngine &d_de;
-  TheoryEngine &d_te;
 
-  friend class CVC4::prop::CnfStream;
-  
+  friend class CnfStream;
+
+  /** The global options */
+  const Options *d_opts;
+  /** The decision engine we will be using */
+  DecisionEngine *d_de;
+  /** The theory engine we will be using */
+  TheoryEngine *d_te;
+
   /**
    * The SAT solver.
    */
-  CVC4::prop::minisat::Solver* d_sat;
+  SatSolver* d_sat;
 
-  std::map<Node, CVC4::prop::minisat::Var> d_atom2var;
-  std::map<CVC4::prop::minisat::Var, Node> d_var2atom;
-
+  std::map<Node, SatVariable> d_atom2var;
+  std::map<SatVariable, Node> d_var2atom;
 
   /** 
    * Requests a fresh variable from d_sat, v.
    * Adds mapping of n -> v to d_node2var, and
    * a mapping of v -> n to d_var2node.
    */
-  CVC4::prop::minisat::Var registerAtom(const Node & n);
+  SatVariable registerAtom(const Node& node);
 
   /**
    * Requests a fresh variable from d_sat.
    */
-  CVC4::prop::minisat::Var requestFreshVar();
-
+  SatVariable requestFreshVar();
 
   /**
    * Returns true iff this Node is in the atom to variable mapping.
    * @param n the Node to lookup
    * @return true iff this Node is in the atom to variable mapping.
    */
-  bool isAtomMapped(const Node & n) const;
+  bool isAtomMapped(const Node& node) const;
 
   /**
    * Returns the variable mapped by the atom Node.
    * @param n the atom to do the lookup by
    * @return the corresponding variable
    */
-  CVC4::prop::minisat::Var lookupAtom(const Node & n) const;
+  SatVariable lookupAtom(const Node& node) const;
 
   /**
    * Flags whether the solver may need to have its state reset before
    * solving occurs
    */
   bool d_restartMayBeNeeded;
-  
+
   /**
    * Cleans existing state in the PropEngine and reinitializes the state.
    */
@@ -101,47 +97,44 @@ class PropEngine {
    */
   std::vector<Node> d_assertionList;
 
-  
   /**
-   * Returns true iff the minisat var has been mapped to an atom.
-   * @param v variable to check if it is mapped
+   * Returns true iff the variable from the sat solver has been mapped to
+   * an atom.
+   * @param var variable to check if it is mapped
    * @return returns true iff the minisat var has been mapped.
    */
-  bool isVarMapped(CVC4::prop::minisat::Var v) const;
+  bool isVarMapped(SatVariable var) const;
 
   /**
    * Returns the atom mapped by the variable v.
-   * @param v the variable to do the lookup by
+   * @param var the variable to do the lookup by
    * @return an atom
    */
-  Node lookupVar(CVC4::prop::minisat::Var v) const;
-
-
+  Node lookupVar(SatVariable var) const;
 
   /**
-   * Asserts an internally constructed clause. 
-   * Each literal is assumed to be in the 1:1 mapping contained in d_node2lit & d_lit2node.
-   * @param c the clause to be asserted.
+   * Asserts an internally constructed clause. Each literal is assumed to be in
+   * the 1-1 mapping contained in d_node2lit and d_lit2node.
+   * @param clause the clause to be asserted.
    */
-  void assertClause(CVC4::prop::minisat::vec<CVC4::prop::minisat::Lit> & c);
+  void assertClause(SatClause& clause);
 
-  
   /** The CNF converter in use */
-  CVC4::prop::CnfStream *d_cnfStream;
+  CnfStream* d_cnfStream;
 
-
-  void assertLit(CVC4::prop::minisat::Lit l);
+  void assertLit(SatLiteral lit);
   void signalBooleanPropHasEnded();
 
 public:
 
-
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  CVC4_PUBLIC PropEngine(const CVC4::Options* opts,
-                         CVC4::DecisionEngine&,
-                         CVC4::TheoryEngine&);
+  PropEngine(const Options* opts, DecisionEngine*, TheoryEngine*);
+
+  /**
+   * Destructor.
+   */
   CVC4_PUBLIC ~PropEngine();
 
   /**
@@ -157,28 +150,27 @@ public:
    */
   Result solve();
 
-
 };/* class PropEngine */
 
-
-inline bool PropEngine::isAtomMapped(const Node & n) const{
+inline bool PropEngine::isAtomMapped(const Node & n) const {
   return d_atom2var.find(n) != d_atom2var.end();
 }
 
-inline CVC4::prop::minisat::Var PropEngine::lookupAtom(const Node & n) const{
+inline SatVariable PropEngine::lookupAtom(const Node & n) const {
   Assert(isAtomMapped(n));
   return d_atom2var.find(n)->second;
 }
 
-inline bool PropEngine::isVarMapped(CVC4::prop::minisat::Var v) const {
+inline bool PropEngine::isVarMapped(SatVariable v) const {
   return d_var2atom.find(v) != d_var2atom.end();
 }
 
-inline Node PropEngine::lookupVar(CVC4::prop::minisat::Var v) const {
+inline Node PropEngine::lookupVar(SatVariable v) const {
   Assert(isVarMapped(v));
   return d_var2atom.find(v)->second;
 }
 
+}/* prop namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PROP_ENGINE_H */

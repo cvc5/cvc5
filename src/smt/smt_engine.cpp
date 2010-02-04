@@ -13,11 +13,14 @@
  **/
 
 #include "smt/smt_engine.h"
-#include "util/exception.h"
 #include "expr/command.h"
-#include "util/output.h"
 #include "expr/node_builder.h"
+#include "util/output.h"
+#include "util/exception.h"
 #include "util/options.h"
+#include "prop/prop_engine.h"
+
+using namespace CVC4::prop;
 
 namespace CVC4 {
 
@@ -25,13 +28,17 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   d_assertions(),
   d_publicEm(em),
   d_nm(em->getNodeManager()),
-  d_opts(opts),
-  d_de(),
-  d_te(),
-  d_prop(opts, d_de, d_te) {
+  d_opts(opts)
+{
+  d_de = new DecisionEngine();
+  d_te = new TheoryEngine();
+  d_prop = new PropEngine(opts, d_de, d_te);
 }
 
 SmtEngine::~SmtEngine() {
+   delete d_prop;
+   delete d_te;
+   delete d_de;
 }
 
 void SmtEngine::doCommand(Command* c) {
@@ -45,7 +52,7 @@ Node SmtEngine::preprocess(const Node& e) {
 
 void SmtEngine::processAssertionList() {
   for(unsigned i = 0; i < d_assertions.size(); ++i) {
-    d_prop.assertFormula(d_assertions[i]);
+    d_prop->assertFormula(d_assertions[i]);
   }
   d_assertions.clear();
 }
@@ -54,7 +61,7 @@ void SmtEngine::processAssertionList() {
 Result SmtEngine::check() {
   Debug("smt") << "SMT check()" << std::endl;
   processAssertionList();
-  return d_prop.solve();
+  return d_prop->solve();
 }
 
 Result SmtEngine::quickCheck() {

@@ -19,14 +19,10 @@
 #include <vector>
 
 #include "cvc4_config.h"
-#include "expr/node.h"
 #include "expr/expr.h"
-#include "expr/node_manager.h"
-#include "expr/node_builder.h"
 #include "expr/expr_manager.h"
 #include "util/result.h"
 #include "util/model.h"
-#include "prop/prop_engine.h"
 #include "util/decision_engine.h"
 
 // In terms of abstraction, this is below (and provides services to)
@@ -37,6 +33,11 @@ namespace CVC4 {
 
 class Command;
 class Options;
+class TheoryEngine;
+
+namespace prop {
+  class PropEngine;
+}
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -125,13 +126,13 @@ private:
   const Options* d_opts;
 
   /** The decision engine */
-  DecisionEngine d_de;
+  DecisionEngine* d_de;
 
   /** The decision engine */
-  TheoryEngine d_te;
+  TheoryEngine* d_te;
 
   /** The propositional engine */
-  PropEngine d_prop;
+  prop::PropEngine* d_prop;
 
 
   /**
