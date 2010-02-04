@@ -14,7 +14,7 @@
 
 #include "util/decision_engine.h"
 #include "util/Assert.h"
-#include "util/literal.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 
@@ -25,7 +25,7 @@ DecisionEngine::~DecisionEngine() {
  * Only here to permit compilation and linkage.  This may be pure
  * virtual in the final design (?)
  */
-Literal DecisionEngine::nextDecision() {
+Node DecisionEngine::nextDecision() {
   Unreachable();
 }
 

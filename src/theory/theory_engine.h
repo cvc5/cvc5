@@ -16,7 +16,12 @@
 #ifndef __CVC4__THEORY_ENGINE_H
 #define __CVC4__THEORY_ENGINE_H
 
+#include "expr/node.h"
+#include "theory/theory.h"
+
 namespace CVC4 {
+
+class SmtEngine;
 
 // In terms of abstraction, this is below (and provides services to)
 // PropEngine.
@@ -28,7 +33,22 @@ namespace CVC4 {
  * CVC4.
  */
 class TheoryEngine {
+
+  SmtEngine* d_smt;
+
 public:
+
+  /**
+   * Construct a theory engine.
+   */
+  TheoryEngine(SmtEngine* smt) : d_smt(smt) {
+  }
+
+  /**
+   * Get the theory associated to a given Node.
+   */
+  CVC4::theory::Theory* theoryOf(const Node& n);
+
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

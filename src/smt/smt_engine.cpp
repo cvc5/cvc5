@@ -31,7 +31,7 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   d_opts(opts)
 {
   d_de = new DecisionEngine();
-  d_te = new TheoryEngine();
+  d_te = new TheoryEngine(this);
   d_prop = new PropEngine(opts, d_de, d_te);
 }
 

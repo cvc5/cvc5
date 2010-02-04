@@ -17,7 +17,7 @@
 #define __CVC4__DECISION_ENGINE_H
 
 #include "cvc4_config.h"
-#include "util/literal.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 
@@ -37,7 +37,7 @@ public:
   /**
    * Get the next decision.
    */
-  virtual Literal nextDecision();// = 0
+  virtual Node nextDecision();// = 0
 
   // TODO: design decision: decision engine should be notified of
   // propagated lits, and also why(?) (so that it can make decisions

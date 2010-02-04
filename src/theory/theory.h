@@ -17,7 +17,6 @@
 #define __CVC4__THEORY__THEORY_H
 
 #include "expr/node.h"
-#include "util/literal.h"
 #include "theory/output_channel.h"
 
 namespace CVC4 {
@@ -31,7 +30,7 @@ class Theory {
   /**
    * Return whether a node is shared or not.  Used by setup().
    */
-  bool isShared(Node);
+  bool isShared(const Node& n);
 
 public:
 
@@ -66,29 +65,33 @@ public:
   /**
    * Prepare for a Node.
    */
-  virtual void setup(Node) = 0;
+  virtual void setup(const Node& n) = 0;
 
   /**
-   * Assert a literal in the current context.
+   * Assert a fact in the current context.
    */
-  void assertLiteral(Literal);
+  void assertFact(const Node& n);
 
   /**
    * Check the current assignment's consistency.
    */
-  virtual void check(OutputChannel& out, Effort level = FULL_EFFORT) = 0;
+  virtual void check(OutputChannel& out,
+                     Effort level = FULL_EFFORT) = 0;
 
   /**
    * T-propagate new literal assignments in the current context.
    */
-  virtual void propagate(OutputChannel& out, Effort level = FULL_EFFORT) = 0;
+  virtual void propagate(OutputChannel& out,
+                         Effort level = FULL_EFFORT) = 0;
 
   /**
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).  Report
    * explanations to an output channel.
    */
-  virtual void explain(OutputChannel& out, Node n, Effort level = FULL_EFFORT) = 0;
+  virtual void explain(OutputChannel& out,
+                       const Node& n,
+                       Effort level = FULL_EFFORT) = 0;
 
 };/* class Theory */
 
