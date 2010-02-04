@@ -140,10 +140,15 @@ sub recurse {
         print "adding\n";
         if($file =~ /\.(y|yy|ypp|Y)$/) {
           print $OUT "%{/*******************                                           -*- C++ -*-  */\n";
+          print $OUT "/** $file\n";
+        } elsif($file =~ /\.g$/) {
+          # avoid javadoc-style comment here; antlr complains
+          print $OUT "/* *******************                                           -*- C++ -*-  */\n";
+          print $OUT "/*  $file\n";
         } else {
           print $OUT "/*********************                                           -*- C++ -*-  */\n";
+          print $OUT "/** $file\n";
         }
-        print $OUT "/** $file\n";
         print $OUT " ** Original author: $author\n";
         print $OUT " ** Major contributors: $major_contributors\n";
         print $OUT " ** Minor contributors (to current version): $minor_contributors\n";

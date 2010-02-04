@@ -1,16 +1,17 @@
-/* smt_lexer.g
- * Original author: dejan
- * Major contributors:
- * Minor contributors (to current version): none
- * This file is part of the CVC4 prototype.
- * Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
- * Courant Institute of Mathematical Sciences
- * New York University
- * See the file COPYING in the top-level source directory for licensing
- * information.
- *
- * Lexer for SMT-LIB input language.
- */
+/* *******************                                           -*- C++ -*-  */
+/*  smt_lexer.g
+ ** Original author: dejan
+ ** Major contributors: cconway, mdeters
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** Lexer for SMT-LIB input language.
+ **/
 
 options {
   language = "Cpp";            // C++ output for antlr

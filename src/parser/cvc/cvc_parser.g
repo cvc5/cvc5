@@ -1,16 +1,18 @@
-/* cvc_parser.g
- * Original author: dejan
- * Major contributors:
- * Minor contributors (to current version): none
- * This file is part of the CVC4 prototype.
- * Copyright (c) 2009 The Analysis of Computer Systems Group (ACSys)
- * Courant Institute of Mathematical Sciences
- * New York University
- * See the file COPYING in the top-level source directory for licensing
- * information.
- *
- * Parser for CVC presentation language.
- */
+/* *******************                                           -*- C++ -*-  */
+/*  cvc_parser.g
+ ** Original author: dejan
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): cconway
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ **
+ ** Parser for CVC presentation language.
+ **/
 
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
