@@ -54,14 +54,36 @@ class PropEngine {
    */
   CVC4::prop::minisat::Solver* d_sat;
 
-  std::map<Node, CVC4::prop::minisat::Lit> d_atom2lit;
-  std::map<CVC4::prop::minisat::Lit, Node> d_lit2atom;
+  std::map<Node, CVC4::prop::minisat::Var> d_atom2var;
+  std::map<CVC4::prop::minisat::Var, Node> d_var2atom;
+
 
   /** 
-   * Adds mapping of n -> l to d_node2lit, and
-   * a mapping of l -> n to d_lit2node.
+   * Requests a fresh variable from d_sat, v.
+   * Adds mapping of n -> v to d_node2var, and
+   * a mapping of v -> n to d_var2node.
    */
-  void registerAtom(const Node & n, CVC4::prop::minisat::Lit l);
+  CVC4::prop::minisat::Var registerAtom(const Node & n);
+
+  /**
+   * Requests a fresh variable from d_sat.
+   */
+  CVC4::prop::minisat::Var requestFreshVar();
+
+
+  /**
+   * Returns true iff this Node is in the atom to variable mapping.
+   * @param n the Node to lookup
+   * @return true iff this Node is in the atom to variable mapping.
+   */
+  bool isAtomMapped(const Node & n) const;
+
+  /**
+   * Returns the variable mapped by the atom Node.
+   * @param n the atom to do the lookup by
+   * @return the corresponding variable
+   */
+  CVC4::prop::minisat::Var lookupAtom(const Node & n) const;
 
   /**
    * Flags whether the solver may need to have its state reset before
@@ -79,11 +101,22 @@ class PropEngine {
    */
   std::vector<Node> d_assertionList;
 
-
-  CVC4::prop::minisat::Lit requestFreshLit();
-  bool isNodeMapped(const Node & n) const;
-  CVC4::prop::minisat::Lit lookupLit(const Node & n) const;
   
+  /**
+   * Returns true iff the minisat var has been mapped to an atom.
+   * @param v variable to check if it is mapped
+   * @return returns true iff the minisat var has been mapped.
+   */
+  bool isVarMapped(CVC4::prop::minisat::Var v) const;
+
+  /**
+   * Returns the atom mapped by the variable v.
+   * @param v the variable to do the lookup by
+   * @return an atom
+   */
+  Node lookupVar(CVC4::prop::minisat::Var v) const;
+
+
 
   /**
    * Asserts an internally constructed clause. 
@@ -94,9 +127,15 @@ class PropEngine {
 
   
   /** The CNF converter in use */
-  //CVC4::prop::CnfConverter d_cnfConverter;
   CVC4::prop::CnfStream *d_cnfStream;
+
+
+  void assertLit(CVC4::prop::minisat::Lit l);
+  void signalBooleanPropHasEnded();
+
 public:
+
+
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
@@ -118,19 +157,27 @@ public:
    */
   Result solve();
 
+
 };/* class PropEngine */
 
 
-inline bool PropEngine::isNodeMapped(const Node & n) const{
-  return d_atom2lit.find(n) != d_atom2lit.end();
+inline bool PropEngine::isAtomMapped(const Node & n) const{
+  return d_atom2var.find(n) != d_atom2var.end();
 }
 
-inline CVC4::prop::minisat::Lit PropEngine::lookupLit(const Node & n) const{
-  Assert(isNodeMapped(n));
-  return d_atom2lit.find(n)->second;
+inline CVC4::prop::minisat::Var PropEngine::lookupAtom(const Node & n) const{
+  Assert(isAtomMapped(n));
+  return d_atom2var.find(n)->second;
 }
 
+inline bool PropEngine::isVarMapped(CVC4::prop::minisat::Var v) const {
+  return d_var2atom.find(v) != d_var2atom.end();
+}
 
+inline Node PropEngine::lookupVar(CVC4::prop::minisat::Var v) const {
+  Assert(isVarMapped(v));
+  return d_var2atom.find(v)->second;
+}
 
 }/* CVC4 namespace */
 

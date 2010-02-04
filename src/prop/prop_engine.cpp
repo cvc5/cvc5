@@ -58,15 +58,15 @@ void PropEngine::assertClause(vec<Lit> & c){
   d_sat->addClause(c);
 }
 
-void PropEngine::registerAtom(const Node & n, Lit l){
-  d_atom2lit.insert(make_pair(n,l));
-  d_lit2atom.insert(make_pair(l,n));
+Var PropEngine::registerAtom(const Node & n){
+  Var v = requestFreshVar();
+  d_atom2var.insert(make_pair(n,v));
+  d_var2atom.insert(make_pair(v,n));
+  return v;
 }
 
-Lit PropEngine::requestFreshLit(){
-  Var v = d_sat->newVar();
-  Lit l(v,false);
-  return l;
+Var PropEngine::requestFreshVar(){
+  return d_sat->newVar();
 }
 
 void PropEngine::assertFormula(const Node& node) {
@@ -83,8 +83,8 @@ void PropEngine::restart(){
   delete d_sat;
   d_sat = new Solver();
   d_cnfStream->flushCache();
-  d_atom2lit.clear();
-  d_lit2atom.clear();
+  d_atom2var.clear();
+  d_var2atom.clear();
 
   for(vector<Node>::iterator iter = d_assertionList.begin();
       iter != d_assertionList.end(); ++iter){
@@ -92,11 +92,6 @@ void PropEngine::restart(){
   }
 }
 
-static void printLit(ostream & out, Lit l) {
-  const char * s = (sign(l))?"~":" ";
-  out << s << var(l);
-
-}
 
 Result PropEngine::solve() {
   if(d_restartMayBeNeeded)
@@ -110,29 +105,26 @@ Result PropEngine::solve() {
   }
 
   Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
-  
-  if(result){
-    for(map<Node,Lit>::iterator atomIter = d_atom2lit.begin();
-	atomIter != d_atom2lit.end(); 
-	++atomIter){
-      Node n = (*atomIter).first;
-      Lit l = (*atomIter).second;
-
-      lbool lb = d_sat->modelValue(l);
-      
-      Notice() << n << "->" << lb.toInt() << endl;
-    }
-  }else{
-    // unsat case
-    Notice() << "Conflict {";
-    for(int i=0; i< d_sat->conflict.size(); i++){
-      Notice() << endl << " ";
-      printLit(Notice(), d_sat->conflict[i]); 
-    }
-    Notice() << endl << "}" << endl;
-  }
 
   return Result(result ? Result::SAT : Result::UNSAT);
 }
+
+
+  void PropEngine::assertLit(Lit l){
+    Var v = var(l);
+    if(isVarMapped(v)){
+      Node atom = lookupVar(v);
+      //Theory* t = ...;
+      //t must be the corresponding theory for the atom
+      
+      //Literal l(atom, sign(l));
+      //t->assertLiteral(l );
+    }
+  } 
+  
+  void PropEngine::signalBooleanPropHasEnded(){}
+  //TODO decisionEngine should be told
+  //TODO theoryEngine to call lightweight theory propogation
+  
 
 }/* CVC4 namespace */

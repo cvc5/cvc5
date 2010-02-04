@@ -30,6 +30,28 @@ namespace prop {
 
 bool atomic(const Node & n);
 
+
+static void printVar(ostream & out, Var v){
+  out << v;
+}
+
+static void printLit(ostream & out, Lit l) {
+  const char * s = (sign(l))?"~":" ";
+  out << s << var(l);
+}
+
+
+static void printClause(ostream & out, vec<Lit> & c) {
+  out << "clause:";  
+  for(int i=0;i<c.size();i++){
+    out << " ";
+    printLit(out, c[i]) ;
+  }
+  out << ";" << endl;
+}
+
+
+
 CnfStream::CnfStream(PropEngine *pe) :
   d_propEngine(pe) {
 }
@@ -38,20 +60,7 @@ TseitinCnfStream::TseitinCnfStream(PropEngine *pe) :
   CnfStream(pe) {
 }
 
-static void printLit(ostream & out, Lit l) {
-  const char * s = (sign(l))?"~":" ";
-  out << s << var(l);
 
-}
-
-static void printClause(ostream & out, vec<Lit> & c) {
-  out << "clause :";  
-  for(int i=0;i<c.size();i++){
-    out << " ";
-    printLit(out, c[i]) ;
-  }
-  out << ";" << endl;
-}
 
 void CnfStream::insertClauseIntoStream(vec<Lit> & c) {
   Debug("cnf") << "Inserting into stream ";
@@ -95,26 +104,29 @@ void CnfStream::flushCache() {
   d_translationCache.clear();
 }
 
-void CnfStream::registerMapping(const Node & node, Lit lit, bool atom) {
-  
-  Debug("cnf") << "Mapping Node "<< node << " to ";
+void CnfStream::cacheTranslation(const Node & node, Lit lit) {
+  Debug("cnf") << "cacheing translation "<< node << " to ";
   printLit(Debug("cnf"),lit);
   Debug("cnf") << endl;
   
-  //Prop engine does not need to know this mapping
   d_translationCache.insert(make_pair(node, lit));
-  if(atom)
-    d_propEngine->registerAtom(node, lit);
-}
-
-Lit CnfStream::acquireFreshLit(const Node & n) {
-  return d_propEngine->requestFreshLit();
 }
 
 Lit CnfStream::aquireAndRegister(const Node & node, bool atom) {
-  Lit l = acquireFreshLit(node);
-  registerMapping(node, l, atom);
+  Var v = atom ?
+      d_propEngine->registerAtom(node)
+    : d_propEngine->requestFreshVar();
+  Lit l(v);
+  cacheTranslation(node, l);
   return l;
+}
+
+bool CnfStream::isAtomMapped(const Node & n) const{
+  return d_propEngine->isAtomMapped(n);
+}
+  
+Var CnfStream::lookupAtom(const Node & n) const{
+  return d_propEngine->lookupAtom(n);
 }
 
 /***********************************************/
@@ -213,7 +225,8 @@ Lit TseitinCnfStream::handleOr(const Node& n) {
  * Should this be changed?
  */
 Lit TseitinCnfStream::handleIff(const Node& n) {
-  Assert(n.getKind() == IFF); Assert(n.getNumChildren() == 2);
+  Assert(n.getKind() == IFF); 
+  Assert(n.getNumChildren() == 2);
   // n: a <=> b;
 
   Lit a = recTransform(n[0]);
@@ -241,7 +254,10 @@ Lit TseitinCnfStream::handleIff(const Node& n) {
   return l;
 }
 
-Lit TseitinCnfStream::handleAnd(const Node& n) {
+Lit TseitinCnfStream::handleAnd(const Node& n) {  
+  Assert(n.getKind() == AND); 
+  Assert(n.getNumChildren() >= 1);
+
   //TODO: we know the exact size of the this.
   //Dynamically allocated array would have less overhead no?
   vec<Lit> lits(n.getNumChildren());
@@ -275,6 +291,7 @@ Lit TseitinCnfStream::handleAnd(const Node& n) {
 
 Lit TseitinCnfStream::handleImplies(const Node & n) {
   Assert(n.getKind() == IMPLIES);
+  Assert(n.getNumChildren() == 2);
   // n: a => b;
 
   Lit a = recTransform(n[0]);
@@ -304,6 +321,7 @@ Lit TseitinCnfStream::handleImplies(const Node & n) {
 
 Lit TseitinCnfStream::handleNot(const Node & n) {
   Assert(n.getKind() == NOT);
+  Assert(n.getNumChildren() == 1);
 
   // n : NOT m
   Node m = n[0];
@@ -311,7 +329,7 @@ Lit TseitinCnfStream::handleNot(const Node & n) {
 
   Lit equivN = ~equivM;
 
-  registerMapping(n, equivN, false);
+  cacheTranslation(n, equivN);
 
   return equivN;
 }
@@ -320,6 +338,7 @@ Lit TseitinCnfStream::handleNot(const Node & n) {
 //Assumes binary no else if branchs, and that ITEs 
 Lit TseitinCnfStream::handleIte(const Node & n) {
   Assert(n.getKind() == ITE);
+  Assert(n.getNumChildren() == 3);
 
   // n : IF c THEN t ELSE f ENDIF;
   Lit c = recTransform(n[0]);
@@ -379,6 +398,22 @@ Lit TseitinCnfStream::recTransform(const Node & n) {
   }
 
   if(atomic(n)) {
+    
+    /* Unforunately we need to potentially allow
+     * for n to be to the Atom <-> Var map but not the
+     * translation cache.
+     * This is because the translation cache can be flushed.
+     * It is really not clear where this check should go, but
+     * it needs to be done.
+     */
+    if(isAtomMapped(n)){
+      /* Puts the atom in the translation cache after looking it up.
+       * Avoids doing 2 map lookups for this atom in the future.
+       */
+      Lit l(lookupAtom(n));
+      cacheTranslation(n, l);
+      return l;
+    }
     return handleAtom(n);
   } else {
     //Assume n is a logical connective

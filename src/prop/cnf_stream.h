@@ -61,6 +61,8 @@ private:
   std::map<Node, minisat::Lit> d_translationCache;
 
 protected:
+  bool isAtomMapped(const Node & n) const;
+  minisat::Var lookupAtom(const Node & n) const;
 
   /**
    * Uniform interface for sending a clause back to d_propEngine.
@@ -83,8 +85,7 @@ protected:
 
 
   //negotiates the mapping of atoms to literals with PropEngine
-  void registerMapping(const Node & node, minisat::Lit lit, bool atom = false);
-  minisat::Lit acquireFreshLit(const Node & n);
+  void cacheTranslation(const Node & node, minisat::Lit lit);
   minisat::Lit aquireAndRegister(const Node & n, bool atom = false);
 
 public:
