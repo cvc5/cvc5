@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# Morgan Deters <mdeters@cs.nyu.edu>
+# for the CVC4 project
+#
+# usage:
+#
+#     run_regression cvc4-binary [ benchmark.cvc | benchmark.smt ]
+#
+# Runs benchmark and checks for correct exit status and output.
+#
+
+prog=`basename "$0"`
+
+if [ $# != 2 ]; then
+  echo "usage: $prog cvc4-binary [ benchmark.cvc | benchmark.smt ]" >&2
+  exit 1
+fi
+
+cvc4=$1
+benchmark=$2
+
+function error {
+  echo "$prog: error: $*"
+  exit 1
+}
+
+if ! [ -x "$cvc4" ]; then
+  error "\`$cvc4' doesn't exist or isn't executable" >&2
+fi
+if ! [ -r "$benchmark" ]; then
+  error "\`$benchmark' doesn't exist or isn't readable" >&2
+fi
+
+if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
+  if grep '^ *:status  *sat' &>/dev/null; then
+    expected_output=sat
+    expected_exit_status=10
+  elif grep '^ *:status  *unsat' &>/dev/null; then
+    expected_output=unsat
+    expected_exit_status=20
+  else
+    error "cannot determine status of \`$benchmark'"
+  fi
+elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
+  expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
+  if [ -z "$expected_output" ]; then
+    error "cannot determine status of \`$benchmark'"
+  fi
+  expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
+else
+  error "benchmark \`$benchmark' must be *.cvc or *.smt"
+fi
+
+expfile=`mktemp -t cvc4test.exp.XXXXXXXXXX`
+outfile=`mktemp -t cvc4test.out.XXXXXXXXXX`
+echo "$expected_output" >"$expfile"
+
+echo "$cvc4" --segv-nospin "$benchmark"
+"$cvc4" --segv-nospin "$benchmark" | tee "$outfile"
+exit_status=$?
+
+diffs=`diff -u "$expfile" "$outfile"`
+rm -f "$expfile"
+rm -f "$outfile"
+if [ $? -ne 0 ]; then
+  echo "$prog: error: differences between expected and actual output"
+  echo "$diffs"
+  exit 1
+fi
+
+if [ -n "$expected_exit_status" ]; then
+  if [ $exit_status != "$expected_exit_status" ]; then
+    error "expected exit status \`$expected_exit_status' but got \`$exit_status'"
+  fi
+fi
+

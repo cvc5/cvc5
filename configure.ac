@@ -443,6 +443,10 @@ AC_CONFIG_FILES([
   src/theory/arith/Makefile
   test/Makefile
   test/regress/Makefile
+  test/regress/regress0/Makefile
+  test/regress/regress1/Makefile
+  test/regress/regress2/Makefile
+  test/regress/regress3/Makefile
   test/system/Makefile
   test/unit/Makefile
 ])
