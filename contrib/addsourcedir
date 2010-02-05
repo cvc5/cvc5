@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# addsourcedir
+# Morgan Deters <mdeters@cs.nyu.edu> for the CVC4 project
+#
+# usage: addsourcedir paths...
+#
+
+progname=`basename "$0"`
+cd `dirname "$0"`/..
+
+if [ $# -lt 1 ]; then
+  echo >&2
+  echo "usage: $progname paths..." >&2
+  echo >&2
+  echo "Each path should be relative to the top-level source directory, e.g.:" >&2
+  echo >&2
+  echo "  $progname src/expr" >&2
+  echo >&2
+  exit 1
+fi
+
+while [ $# -gt 0 ]; do
+  srcdir="$1"; shift
+
+  # remove trailing slashes, if any
+  srcdir=`expr "$srcdir" : '\(.*[^/]\)/*$'`
+  # remove redundant slashes, if any
+  srcdir=`echo "$srcdir" | sed 's,//*,/,g'`
+
+  if expr "$srcdir" : src/ &>/dev/null; then :; else
+    echo "$progname: error: Directories must be under src/" >&2
+    echo "$progname: error: and \`$srcdir' isn't!" >&2
+    echo "$progname: error: Make sure you provide source paths" >&2
+    echo "$progname: error: relative to the top level, e.g. \`src/expr'." >&2
+    exit 1
+  fi
+
+  if [ -d "$srcdir" ]; then :; else
+    echo "creating directory \`$srcdir'..."
+    mkdir -p "$srcdir"
+  fi
+
+  if [ -e "$srcdir/Makefile" ]; then
+    echo "$progname: warning: not replacing extant \`$srcdir/Makefile'." >&2
+  else
+    echo "generating \`$srcdir/Makefile'..."
+    topdir=`echo "$srcdir" | sed 's,[^/]\+,..,g'`
+    cat >"$srcdir/Makefile" <<EOF
+topdir = $topdir
+srcdir = $srcdir
+
+include \$(topdir)/Makefile.subdir
+EOF
+  fi
+
+  if [ -e "$srcdir/Makefile.am" ]; then
+    echo "$progname: warning: not replacing extant \`$srcdir/Makefile.am'." >&2
+  else
+    echo "generating \`$srcdir/Makefile.am'..."
+    clibbase=`expr "$srcdir" : '.*/\([^/]\+\)$'`
+    if expr "$srcdir" : src/parser &>/dev/null; then
+      definitions="	-D__BUILDING_CVC4PARSERLIB \\"
+    elif expr "$srcdir" : src/main &>/dev/null; then
+      definitions=
+    else
+      definitions="	-D__BUILDING_CVC4LIB \\"
+    fi
+    clibname="lib${clibbase}.la"
+    clibtarget="lib${clibbase}_la"
+    cat >"$srcdir/Makefile.am" <<EOF
+AM_CPPFLAGS = \\
+$definitions
+	-I@srcdir@/../include -I@srcdir@/..
+AM_CXXFLAGS = -Wall -fvisibility=hidden
+
+noinst_LTLIBRARIES = $clibname
+
+${clibtarget}_SOURCES = \\
+	SOURCEFILE.cpp
+EOF
+  fi
+done
+
