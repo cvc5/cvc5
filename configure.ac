@@ -423,33 +423,9 @@ AC_SUBST(mk_include)
 
 AC_CONFIG_FILES([
   Makefile.builds
-  Makefile
-  contrib/Makefile
-  doc/Makefile
-  src/Makefile
-  src/expr/Makefile
-  src/smt/Makefile
-  src/main/Makefile
-  src/prop/minisat/Makefile
-  src/prop/Makefile
-  src/util/Makefile
-  src/context/Makefile
-  src/parser/Makefile
-  src/parser/cvc/Makefile
-  src/parser/smt/Makefile
-  src/theory/Makefile
-  src/theory/bool/Makefile
-  src/theory/uf/Makefile
-  src/theory/arith/Makefile
-  test/Makefile
-  test/regress/Makefile
-  test/regress/regress0/Makefile
-  test/regress/regress1/Makefile
-  test/regress/regress2/Makefile
-  test/regress/regress3/Makefile
-  test/system/Makefile
-  test/unit/Makefile
-])
+  Makefile]
+  m4_esyscmd([find contrib/ doc/ src/ test/ -name Makefile.am | sed 's,\.am$,,'])
+)
 
 AC_OUTPUT
 
