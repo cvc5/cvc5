@@ -16462,7 +16462,7 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 mk_include=include
 
 
-ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/util/Makefile src/expr/Makefile src/theory/bool/Makefile src/theory/uf/Makefile src/theory/arith/Makefile src/theory/Makefile src/context/Makefile src/parser/cvc/Makefile src/parser/Makefile src/parser/smt/Makefile src/prop/Makefile src/prop/minisat/Makefile src/main/Makefile src/Makefile src/smt/Makefile test/unit/Makefile test/system/Makefile test/Makefile test/regress/regress3/Makefile test/regress/Makefile test/regress/regress0/Makefile test/regress/regress2/Makefile test/regress/regress1/Makefile"
+ac_config_files="$ac_config_files Makefile.builds Makefile contrib/Makefile doc/Makefile src/Makefile src/context/Makefile src/expr/Makefile src/main/Makefile src/parser/Makefile src/parser/cvc/Makefile src/parser/smt/Makefile src/prop/Makefile src/prop/minisat/Makefile src/smt/Makefile src/theory/Makefile src/theory/arith/Makefile src/theory/bool/Makefile src/theory/uf/Makefile src/util/Makefile test/Makefile test/regress/Makefile test/regress/regress0/Makefile test/regress/regress1/Makefile test/regress/regress2/Makefile test/regress/regress3/Makefile test/system/Makefile test/unit/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -17546,29 +17546,29 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "contrib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
-    "src/util/Makefile") CONFIG_FILES="$CONFIG_FILES src/util/Makefile" ;;
-    "src/expr/Makefile") CONFIG_FILES="$CONFIG_FILES src/expr/Makefile" ;;
-    "src/theory/bool/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/bool/Makefile" ;;
-    "src/theory/uf/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/uf/Makefile" ;;
-    "src/theory/arith/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/arith/Makefile" ;;
-    "src/theory/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/Makefile" ;;
+    "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/context/Makefile") CONFIG_FILES="$CONFIG_FILES src/context/Makefile" ;;
-    "src/parser/cvc/Makefile") CONFIG_FILES="$CONFIG_FILES src/parser/cvc/Makefile" ;;
+    "src/expr/Makefile") CONFIG_FILES="$CONFIG_FILES src/expr/Makefile" ;;
+    "src/main/Makefile") CONFIG_FILES="$CONFIG_FILES src/main/Makefile" ;;
     "src/parser/Makefile") CONFIG_FILES="$CONFIG_FILES src/parser/Makefile" ;;
+    "src/parser/cvc/Makefile") CONFIG_FILES="$CONFIG_FILES src/parser/cvc/Makefile" ;;
     "src/parser/smt/Makefile") CONFIG_FILES="$CONFIG_FILES src/parser/smt/Makefile" ;;
     "src/prop/Makefile") CONFIG_FILES="$CONFIG_FILES src/prop/Makefile" ;;
     "src/prop/minisat/Makefile") CONFIG_FILES="$CONFIG_FILES src/prop/minisat/Makefile" ;;
-    "src/main/Makefile") CONFIG_FILES="$CONFIG_FILES src/main/Makefile" ;;
-    "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/smt/Makefile") CONFIG_FILES="$CONFIG_FILES src/smt/Makefile" ;;
-    "test/unit/Makefile") CONFIG_FILES="$CONFIG_FILES test/unit/Makefile" ;;
-    "test/system/Makefile") CONFIG_FILES="$CONFIG_FILES test/system/Makefile" ;;
+    "src/theory/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/Makefile" ;;
+    "src/theory/arith/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/arith/Makefile" ;;
+    "src/theory/bool/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/bool/Makefile" ;;
+    "src/theory/uf/Makefile") CONFIG_FILES="$CONFIG_FILES src/theory/uf/Makefile" ;;
+    "src/util/Makefile") CONFIG_FILES="$CONFIG_FILES src/util/Makefile" ;;
     "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
-    "test/regress/regress3/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress3/Makefile" ;;
     "test/regress/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/Makefile" ;;
     "test/regress/regress0/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress0/Makefile" ;;
-    "test/regress/regress2/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress2/Makefile" ;;
     "test/regress/regress1/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress1/Makefile" ;;
+    "test/regress/regress2/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress2/Makefile" ;;
+    "test/regress/regress3/Makefile") CONFIG_FILES="$CONFIG_FILES test/regress/regress3/Makefile" ;;
+    "test/system/Makefile") CONFIG_FILES="$CONFIG_FILES test/system/Makefile" ;;
+    "test/unit/Makefile") CONFIG_FILES="$CONFIG_FILES test/unit/Makefile" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

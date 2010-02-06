@@ -86,6 +86,9 @@ class NodeBuilder {
     }
   }
 
+  // dealloc: only call this with d_used == false and evIsAllocated()
+  inline void dealloc();
+
   void crop() {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     if(EXPECT_FALSE( evIsAllocated() ) && EXPECT_TRUE( d_size > d_ev->d_nchildren )) {
@@ -474,14 +477,7 @@ inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
   if(!d_used) {
     Warning("NodeBuilder unused at destruction\n");
 
-    for(iterator i = d_ev->ev_begin();
-        i != d_ev->ev_end();
-        ++i) {
-      (*i)->dec();
-    }
-    if(evIsAllocated()) {
-      free(d_ev);
-    }
+    dealloc();
   }
 }
 
@@ -490,14 +486,7 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
   if(!d_used) {
     Warning("NodeBuilder unused at clear\n");
 
-    for(iterator i = d_ev->ev_begin();
-        i != d_ev->ev_end();
-        ++i) {
-      (*i)->dec();
-    }
-    if(evIsAllocated()) {
-      free(d_ev);
-    }
+    dealloc();
   }
 
   d_size = nchild_thresh;
@@ -553,6 +542,27 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
 }
 
 template <unsigned nchild_thresh>
+inline void NodeBuilder<nchild_thresh>::dealloc() {
+  /* Prefer asserts to if() because usually these conditions have been
+   * checked already, so we don't want to do a double-check in
+   * production; these are just sanity checks for debug builds */
+  Assert(!d_used,
+         "Internal error: NodeBuilder: dealloc() called with d_used");
+  Assert(evIsAllocated(),
+         "Internal error: NodeBuilder: "
+         "dealloc() called with stack-allocated NodeBuilder");
+
+  for(iterator i = d_ev->ev_begin();
+      i != d_ev->ev_end();
+      ++i) {
+    (*i)->dec();
+  }
+  if(evIsAllocated()) {
+    free(d_ev);
+  }
+}
+
+template <unsigned nchild_thresh>
 NodeBuilder<nchild_thresh>::operator Node() {// not const
   Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
   Assert(d_ev->d_kind != UNDEFINED_KIND,
@@ -580,6 +590,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
     NodeValue *ev = d_nm->lookupNoInsert(d_hash, d_ev);
     if(ev != NULL) {
       // expression already exists in node manager
+      dealloc();
       d_used = true;
       Debug("prop") << "result: " << Node(ev) << std::endl;
       return Node(ev);

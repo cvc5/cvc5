@@ -424,7 +424,7 @@ AC_SUBST(mk_include)
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib/ doc/ src/ test/ -name Makefile.am | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib/ doc/ src/ test/ -name Makefile.am | sort | sed 's,\.am$,,'])
 )
 
 AC_OUTPUT
