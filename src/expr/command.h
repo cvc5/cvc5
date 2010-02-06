@@ -64,7 +64,7 @@ protected:
 
 class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
 public:
-  DeclarationCommand(const std::vector<std::string>& ids);
+  DeclarationCommand(const std::vector<std::string>& ids, const Type* t);
   void toStream(std::ostream& out) const;
 protected:
   std::vector<std::string> d_declaredSymbols;
@@ -241,7 +241,9 @@ inline void CommandSequence::addCommand(Command* cmd) {
 
 /* class DeclarationCommand */
 
-inline DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids) :
+inline 
+DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, 
+                                       const Type* t) :
   d_declaredSymbols(ids) {
 }
 

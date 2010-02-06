@@ -39,6 +39,7 @@ options {
 tokens {
   // Types
   BOOLEAN       = "BOOLEAN";
+  TYPE          = "TYPE";
   // Boolean oparators
   AND           = "AND";
   IF            = "IF";
@@ -67,6 +68,8 @@ tokens {
 COMMA   : ',';
 IMPLIES : "=>";
 IFF     : "<=>";
+RIGHT_ARROW : "->";
+EQUAL   : "=";
 
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').

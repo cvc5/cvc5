@@ -78,14 +78,12 @@ public:
 
   /**
    * Returns the last binding expression of the name.
+   * Requires the name to have a binding in the table.
    */
   ObjectType getObject(const std::string name) throw () {
-    ObjectType result;
     table_iterator find = d_nameBindings.find(name);
-    if(find != d_nameBindings.end()) {
-      result = find->second.top();
-    }
-    return result;
+    Assert(find != d_nameBindings.end());
+    return find->second.top();
   }
 
   /**

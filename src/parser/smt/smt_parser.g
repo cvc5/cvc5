@@ -19,6 +19,8 @@ header "post_include_hpp" {
 }
 
 header "post_include_cpp" {
+#include "expr/type.h"
+#include "util/output.h"
 #include <vector>
 
 using namespace std;
@@ -109,36 +111,63 @@ benchAttribute returns [Command* smt_command = 0]
   ;
 
 /**
- * Matches an identifier and returns a string.
- * @param check what kinds of check to do on the symbol
- * @return the id string
- */
-identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
-  : x:IDENTIFIER
-    { id = x->getText(); }
-    { checkDeclaration(id, check) }?
-    exception catch [antlr::SemanticException& ex] {
-      switch (check) {
-        case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
-        case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
-        default: throw ex;
-      }
-    }
-  ;
-
-/**
  * Matches an annotated formula.
  * @return the expression representing the formula
  */
 annotatedFormula returns [CVC4::Expr formula]
 {
+  Debug("parser") << "annotated formula: " << LT(1)->getText() << endl;
   Kind kind;
-  vector<Expr> children;
+  vector<Expr> args; 
 }
-  :  formula = annotatedAtom 
-  |  LPAREN kind = boolConnective annotatedFormulas[children] RPAREN 
-    { formula = mkExpr(kind, children);  }    
-    /* TODO: let, flet, quantifiers */
+  : /* a built-in operator application */
+    LPAREN kind = builtinOp annotatedFormulas[args] RPAREN 
+    { args.size() >= minArity(kind) 
+      && args.size() <= maxArity(kind) }?
+    { formula = mkExpr(kind,args); }
+      exception catch [antlr::SemanticException& ex] {
+        stringstream ss;
+        ss << "Expected ";
+        if( args.size() < minArity(kind) ) {
+          ss << "at least " << minArity(kind) << " ";
+        } else {
+          ss << "at most " << maxArity(kind) << " ";
+        }
+        ss << "arguments for operator '" << kind << "'. ";
+        ss << "Found: " << args.size();
+        rethrow(ex, ss.str());
+      }
+
+  | /* A non-built-in function application */
+    { isFunction(LT(2)->getText()) }? 
+    { Expr f; }
+    LPAREN f = functionSymbol
+    { args.push_back(f); }
+    annotatedFormulas[args] RPAREN
+    // TODO: check arity
+    { formula = mkExpr(CVC4::APPLY,args); }
+
+  | /* An ite expression */
+    LPAREN (ITE | IF_THEN_ELSE) 
+    { Expr test, trueExpr, falseExpr; }
+    test = annotatedFormula 
+    trueExpr = annotatedFormula
+    falseExpr = annotatedFormula
+    RPAREN
+    { formula = mkExpr(CVC4::ITE, test, trueExpr, falseExpr); }
+
+  | /* a parenthesized sub-formula */
+    LPAREN formula = annotatedFormula RPAREN
+
+  | /* a variable */
+    { std::string name; }
+    name = identifier[CHECK_DECLARED]
+    { formula = getVariable(name); }
+
+    /* constants */
+  | TRUE          { formula = getTrueExpr(); }
+  | FALSE         { formula = getFalseExpr(); }
+    /* TODO: let, flet, quantifiers, arithmetic constants */
   ;
 
 /**
@@ -154,99 +183,21 @@ annotatedFormulas[std::vector<Expr>& formulas]
   ;
 
 /**
- * Matches an annotated proposition atom, which is either a propositional atom 
- * or built of other atoms using a predicate symbol.  
- * @return expression representing the atom
- */
-annotatedAtom returns [CVC4::Expr atom] 
-{ 
-  Kind kind;
-  string predName;
-  Expr pred;
-  vector<Expr> children;
-}
-  : atom = propositionalAtom  
-  | LPAREN kind = arithPredicate annotatedTerms[children] RPAREN
-    { atom = mkExpr(kind,children); }
-  | LPAREN pred = predicateSymbol
-    { children.push_back(pred); }
-    annotatedTerms[children] RPAREN
-    { atom = mkExpr(CVC4::APPLY,children); }
-  ;
-
-/** 
- * Matches an annotated term.
- * @return the expression representing the term 
- */
-annotatedTerm returns [CVC4::Expr term] 
-{ 
-  Kind kind;
-  Expr f, t1, t2;
-  vector<Expr> children;
-}
-  : term = baseTerm
-  | LPAREN f = functionSymbol
-    { children.push_back(f); }
-    annotatedTerms[children] RPAREN 
-    { term = mkExpr(CVC4::APPLY, children);  }
-  // | LPAREN kind = arithFunction annotatedTerms[children] RPAREN
-  //   { term = mkExpr(kind,children); }
-  | LPAREN ITE 
-    f = annotatedFormula 
-    t1 = annotatedTerm 
-    t2 = annotatedTerm RPAREN
-    { term = mkExpr(CVC4::ITE, f, t1, t2); }
-  ;
-
-/**
- * Matches a sequence of annotaed formulas and puts them into the formulas
- * vector.
- * @param formulas the vector to fill with formulas
- */   
-annotatedTerms[std::vector<Expr>& terms]
-{
-  Expr t;
-}
-  : ( t = annotatedFormula { terms.push_back(t); } )+
-  ;
-
-baseTerm returns [CVC4::Expr term]
-{
-  string name;
-}
-  : name = identifier[CHECK_DECLARED] { term = getVariable(name); }
-    /* TODO: constants */
-  ;
-
-/**
 * Matches on of the unary Boolean connectives.
 * @return the kind of the Bollean connective
 */
-boolConnective returns [CVC4::Kind kind]
+builtinOp returns [CVC4::Kind kind]
+{
+  Debug("parser") << "builtin: " << LT(1)->getText() << endl;
+}
   : NOT      { kind = CVC4::NOT;     }
   | IMPLIES  { kind = CVC4::IMPLIES; }
   | AND      { kind = CVC4::AND;     }
   | OR       { kind = CVC4::OR;      }
   | XOR      { kind = CVC4::XOR;     }
   | IFF      { kind = CVC4::IFF;     }
-  ;
-
-/**
- * Matches a propositional atom and returns the expression of the atom.
- * @return atom the expression of the atom
- */
-propositionalAtom returns [CVC4::Expr atom]
-{
-  std::string p;
-}
-   : atom = predicateSymbol
-   | TRUE          { atom = getTrueExpr(); }
-   | FALSE         { atom = getFalseExpr(); }
-   ;
-
-arithPredicate returns [CVC4::Kind kind]
-  : EQUAL { kind = CVC4::EQUAL; }
-    /* TODO: lt, gt */
+  | EQUAL    { kind = CVC4::EQUAL;   }
+    /* TODO: lt, gt, plus, minus, etc. */
   ;
 
 /**
@@ -258,22 +209,11 @@ predicateName[DeclarationCheck check = CHECK_NONE] returns [std::string p]
   ;
 
 /**
- * Matches an previously declared predicate symbol (returning an Expr)
- */
-predicateSymbol returns [CVC4::Expr pred]
-{ 
-  string name;
-}
-  : name = predicateName[CHECK_DECLARED]
-    { pred = getVariable(name); }
-  ;
-
-/**
  * Matches a (possibly undeclared) function identifier (returning the string)
  * @param check what kind of check to do with the symbol
  */
 functionName[DeclarationCheck check = CHECK_NONE] returns [std::string name]
-  :  name = identifier[check]
+  :  name = identifier[check,SYM_FUNCTION]
   ;
 
 /**
@@ -284,7 +224,7 @@ functionSymbol returns [CVC4::Expr fun]
   string name;
 }
   : name = functionName[CHECK_DECLARED]
-    { fun = getVariable(name); }
+    { fun = getFunction(name); }
   ;
   
 /**
@@ -299,19 +239,26 @@ attribute
  * @param check the check to perform on the name
  */
 sortName[DeclarationCheck check = CHECK_NONE] returns [std::string name] 
-  : name = identifier[CHECK_NONE] 
-    /* We pass CHECK_NONE to identifier, because identifier checks
-       in the variable namespace, not the sorts namespace. */
-    { checkSort(name,check) }?
+  : name = identifier[check,SYM_SORT] 
+  ;
+
+sortSymbol returns [const CVC4::Type* t]
+{ 
+  std::string name;
+}
+  : name = sortName { t = getSort(name); }
   ;
 
 functionDeclaration
 {
   string name;
-  vector<string> sorts;
+  const Type* t;
+  std::vector<const Type*> sorts;
 }
-  : LPAREN name = functionName[CHECK_UNDECLARED]
-        sortNames[sorts, CHECK_DECLARED] RPAREN
+  : LPAREN name = functionName[CHECK_UNDECLARED] 
+      t = sortSymbol // require at least one sort
+    { sorts.push_back(t); }
+      sortList[sorts] RPAREN
     { newFunction(name, sorts); } 
   ;
               
@@ -321,10 +268,9 @@ functionDeclaration
 predicateDeclaration
 {
   string p_name;
-  vector<string> p_sorts;
+  std::vector<const Type*> p_sorts;
 }
-  : LPAREN p_name = predicateName[CHECK_UNDECLARED] 
-        sortNames[p_sorts, CHECK_DECLARED] RPAREN
+  : LPAREN p_name = predicateName[CHECK_UNDECLARED] sortList[p_sorts] RPAREN
     { newPredicate(p_name, p_sorts); } 
   ;
 
@@ -339,12 +285,11 @@ sortDeclaration
 /**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
-sortNames[std::vector<std::string>& sorts,DeclarationCheck check = CHECK_NONE]
+sortList[std::vector<const Type*>& sorts]
 {
-  std::string name;
+  const Type* t;
 }
-  : ( name = sortName[check] 
-      { sorts.push_back(name); })* 
+  : ( t = sortSymbol { sorts.push_back(t); })* 
   ;
 
 /**
@@ -361,5 +306,30 @@ status returns [ SetBenchmarkStatusCommand::BenchmarkStatus status ]
  */
 annotation
   : attribute (USER_VALUE)?
+  ;
+
+/**
+ * Matches an identifier and returns a string.
+ * @param check what kinds of check to do on the symbol
+ * @return the id string
+ */
+identifier[DeclarationCheck check = CHECK_NONE, 
+           SymbolType type = SYM_VARIABLE] 
+returns [std::string id]
+{
+  Debug("parser") << "identifier: " << LT(1)->getText() 
+                  << " check? " << toString(check)
+                  << " type? " << toString(type) << endl;
+}
+  : x:IDENTIFIER
+    { id = x->getText(); }
+    { checkDeclaration(id, check,type) }?
+    exception catch [antlr::SemanticException& ex] {
+      switch (check) {
+        case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
+        case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
+        default: throw ex;
+      }
+    }
   ;
 

@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/expr.h"
+#include "expr/type.h"
 #include "expr/node_manager.h"
 #include "expr/expr_manager.h"
 
@@ -30,11 +31,21 @@ using namespace std;
 namespace CVC4 {
 
 ExprManager::ExprManager()
-: d_nm(new NodeManager()) {
+  : d_nm(new NodeManager()), 
+    d_booleanType(new BooleanType(this)),
+    d_kindType(new KindType(this)) {
 }
 
 ExprManager::~ExprManager() {
   delete d_nm;
+}
+
+const BooleanType* ExprManager::booleanType() {
+  return d_booleanType;
+}
+
+const KindType* ExprManager::kindType() {
+  return d_kindType;
 }
 
 Expr ExprManager::mkExpr(Kind kind) {
@@ -82,7 +93,27 @@ Expr ExprManager::mkExpr(Kind kind, const vector<Expr>& children) {
   return Expr(this, new Node(d_nm->mkNode(kind, nodes)));
 }
 
-Expr ExprManager::mkVar() {
+/** Make a function type from domain to range. */
+const FunctionType* 
+ExprManager::mkFunctionType(const Type* domain, 
+                            const Type* range) {
+  return new FunctionType(this,domain,range);
+}
+
+/** Make a function type with input types from argTypes. */
+const FunctionType* 
+ExprManager::mkFunctionType(const std::vector<const Type*>& argTypes, 
+                            const Type* range) {
+  return new FunctionType(this,argTypes,range);
+}
+
+const Type* ExprManager::mkSort(std::string name) {
+  // FIXME: Sorts should be unique per-ExprManager
+  return new SortType(this,name);
+}
+
+Expr ExprManager::mkVar(const Type* type) {
+  // FIXME: put the type into an attribute table
   return Expr(this, new Node(d_nm->mkVar()));
 }
 

@@ -11,6 +11,7 @@ libexpr_la_SOURCES = \
 	node.h \
 	node_builder.h \
 	expr.h \
+	type.h \
 	node_value.h \
 	node_manager.h \
 	expr_manager.h \
@@ -22,6 +23,7 @@ libexpr_la_SOURCES = \
 	expr_manager.cpp \
 	node_value.cpp \
 	expr.cpp \
+	type.cpp \
 	command.h \
 	command.cpp
 

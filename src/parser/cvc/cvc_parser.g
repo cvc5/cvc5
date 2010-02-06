@@ -16,6 +16,8 @@
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
 #include "expr/command.h"
+#include "expr/type.h"
+#include "util/output.h"
 }
 
 header "post_include_cpp" {
@@ -68,29 +70,72 @@ parseExpr returns [CVC4::Expr expr]
 command returns [CVC4::Command* cmd = 0]
 {
   Expr f;
-  vector<string> ids;
+  Debug("parser") << "command: " << LT(1)->getText() << endl;
 }
   : ASSERT   f = formula  SEMICOLON { cmd = new AssertCommand(f);   }
   | QUERY    f = formula  SEMICOLON { cmd = new QueryCommand(f);    }
   | CHECKSAT f = formula  SEMICOLON { cmd = new CheckSatCommand(f); }
   | CHECKSAT              SEMICOLON { cmd = new CheckSatCommand(getTrueExpr()); }
-  | identifierList[ids, CHECK_UNDECLARED] COLON type {
-      // FIXME: switch on type (may not be predicates)
-      vector<string> sorts;
-      newPredicates(ids,sorts);
-      cmd = new DeclarationCommand(ids);
-    }
-    SEMICOLON
+  | cmd = declaration
   | EOF
   ;
 
 /**
- * Mathches a list of identifiers separated by a comma and puts them in the
+ * Match a declaration
+ */
+
+declaration returns [CVC4::DeclarationCommand* cmd]
+{
+  vector<string> ids;
+  const Type* t;
+  Debug("parser") << "declaration: " << LT(1)->getText() << endl;
+} 
+  : identifierList[ids, CHECK_UNDECLARED] COLON t = declType[ids] SEMICOLON
+    { cmd = new DeclarationCommand(ids,t); }
+  ;
+
+/** Match the right-hand side of a declaration. Returns the type. */
+declType[std::vector<std::string>& idList] returns [const CVC4::Type* t]
+{
+  Debug("parser") << "declType: " << LT(1)->getText() << endl;
+}
+  : /* A sort declaration (e.g., "T : TYPE") */
+    TYPE { newSorts(idList); t = kindType(); }
+  | /* A variable declaration */
+    t = type { mkVars(idList,t); }
+  ;
+
+/**
+ * Match the type in a declaration and do the declaration binding.
+ * TODO: Actually parse sorts into Type objects.
+ */
+type returns  [const CVC4::Type* t]
+{
+  const Type *t1, *t2;
+  Debug("parser") << "type: " << LT(1)->getText() << endl;
+}
+  : /* Simple type */
+    t = baseType
+  | /* Single-parameter function type */
+    t1 = baseType RIGHT_ARROW t2 = baseType
+    { t = functionType(t1,t2); }
+  | /* Multi-parameter function type */
+    LPAREN t1 = baseType 
+    { std::vector<const Type*> argTypes;
+      argTypes.push_back(t1); }
+    (COMMA t1 = baseType { argTypes.push_back(t1); } )+ 
+    RPAREN RIGHT_ARROW t2 = baseType
+    { t = functionType(argTypes,t2); }
+  ;
+
+/**
+ * Matches a list of identifiers separated by a comma and puts them in the
  * given list.
  * @param idList the list to fill with identifiers.
  * @param check what kinds of check to perform on the symbols
  */
-identifierList[std::vector<std::string>& idList, DeclarationCheck check = CHECK_NONE]
+identifierList[std::vector<std::string>& idList, 
+               DeclarationCheck check = CHECK_NONE]
 {
   string id;
 }
@@ -102,10 +147,12 @@ identifierList[std::vector<std::string>& idList, DeclarationCheck check = CHECK_
 /**
  * Matches an identifier and returns a string.
  */
-identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
+identifier[DeclarationCheck check = CHECK_NONE,
+           SymbolType type = SYM_VARIABLE] 
+returns [std::string id]
   : x:IDENTIFIER
     { id = x->getText(); }
-    { checkDeclaration(id, check) }?
+    { checkDeclaration(id, check, type) }?
     exception catch [antlr::SemanticException& ex] {
       switch (check) {
         case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
@@ -119,8 +166,25 @@ identifier[DeclarationCheck check = CHECK_NONE] returns [std::string id]
  * Matches a type.
  * TODO: parse more types
  */
-type
-  : BOOLEAN
+baseType returns [const CVC4::Type* t]
+{
+  std::string id;
+  Debug("parser") << "base type: " << LT(1)->getText() << endl;
+}
+  : BOOLEAN { t = booleanType(); }
+  | t = typeSymbol
+  ;
+
+/**
+ * Matches a type identifier
+ */
+typeSymbol returns [const CVC4::Type* t]
+{
+  std::string id;
+  Debug("parser") << "type symbol: " << LT(1)->getText() << endl;
+}
+  : id = identifier[CHECK_DECLARED,SYM_SORT]
+    { t = getSort(id); }
   ;
 
 /**
@@ -128,159 +192,197 @@ type
  * @return the expression representing the formula
  */
 formula returns [CVC4::Expr formula]
-  :  formula = boolFormula
-  ;
-
-/**
- * Matches a CVC4 basic Boolean formula (AND, OR, NOT...). It parses the list of
- * operands (primaryBoolFormulas) and operators (Kinds) and then calls the
- * createPrecedenceExpr method to build the expression using the precedence
- * and associativity of the operators.
- * @return the expression representing the formula
- */
-boolFormula returns [CVC4::Expr formula]
-  : formula = boolAndFormula
-  ;
-
-/**
- * Matches a Boolean AND formula of a given kind by doing a recursive descent.
- */
-boolAndFormula returns [CVC4::Expr andFormula]
 {
-  Expr e;
-  vector<Expr> exprs;
+  Debug("parser") << "formula: " << LT(1)->getText() << endl;
 }
-  : e = boolXorFormula { exprs.push_back(e); }
-      ( AND e = boolXorFormula { exprs.push_back(e); } )*
-    {
-      andFormula = (exprs.size() > 1 ? mkExpr(CVC4::AND, exprs) : exprs[0]);
-    }
+  :  formula = iffFormula
   ;
 
 /**
- * Matches a Boolean XOR formula of a given kind by doing a recursive descent.
+ * Matches a comma-separated list of formulas
  */
-boolXorFormula returns [CVC4::Expr xorFormula]
+formulaList[std::vector<CVC4::Expr>& formulas]
 {
-  Expr e;
-  vector<Expr> exprs;
+  Expr f;
 }
-  : e = boolOrFormula { exprs.push_back(e); }
-      ( XOR e = boolOrFormula { exprs.push_back(e); } )*
-    {
-      xorFormula = (exprs.size() > 1 ? mkExpr(CVC4::XOR, exprs) : exprs[0]);
-    }
-  ;
-
-/**
- * Matches a Boolean OR formula of a given kind by doing a recursive descent.
- */
-boolOrFormula returns [CVC4::Expr orFormula]
-{
-  Expr e;
-  vector<Expr> exprs;
-}
-  : e = boolImpliesFormula { exprs.push_back(e); }
-      ( OR e = boolImpliesFormula { exprs.push_back(e); } )*
-    {
-      orFormula = (exprs.size() > 1 ? mkExpr(CVC4::OR, exprs) : exprs[0]);
-    }
-  ;
-
-/**
- * Matches a Boolean IMPLIES formula of a given kind by doing a recursive descent.
- */
-boolImpliesFormula returns [CVC4::Expr impliesFormula]
-{
-  vector<Expr> exprs;
-  Expr e;
-}
-  : e = boolIffFormula { exprs.push_back(e); }
-    ( IMPLIES e = boolIffFormula { exprs.push_back(e); }
-    )*
-    {
-      impliesFormula = exprs.back();
-      for (int i = exprs.size() - 2; i >= 0; -- i) {
-        impliesFormula = mkExpr(CVC4::IMPLIES, exprs[i], impliesFormula);
-      }
-    }
-  ;
-
-/**
- * Matches a Boolean IFF formula of a given kind by doing a recursive descent.
- */
-boolIffFormula returns [CVC4::Expr iffFormula]
-{
-  Expr e;
-}
-  : iffFormula = primaryBoolFormula
-    ( IFF e = primaryBoolFormula
-        { iffFormula = mkExpr(CVC4::IFF, iffFormula, e); }
+  : f = formula { formulas.push_back(f); }
+    ( COMMA f = formula
+      { formulas.push_back(f); }
     )*
   ;
 
 /**
- * Parses a primary Boolean formula. A primary Boolean formula is either a
- * Boolean atom (variables and predicates) a negation of a primary Boolean
- * formula or a formula enclosed in parenthesis.
- * @return the expression representing the formula
+ * Matches a Boolean IFF formula (right-associative)
  */
-primaryBoolFormula returns [CVC4::Expr formula]
-  : formula = boolAtom
-  | formula = iteFormula
-  | NOT formula = primaryBoolFormula { formula = mkExpr(CVC4::NOT, formula); }
-  | LPAREN formula = boolFormula RPAREN
+iffFormula returns [CVC4::Expr f]
+{
+  Expr e;
+  Debug("parser") << "<=> formula: " << LT(1)->getText() << endl;
+}
+  : f = impliesFormula
+    ( IFF e = iffFormula
+        { f = mkExpr(CVC4::IFF, f, e); }
+    )?
   ;
 
 /**
- * Parses an ITE boolean formula.
+ * Matches a Boolean IMPLIES formula (right-associative)
  */
-iteFormula returns [CVC4::Expr formula] 
+impliesFormula returns [CVC4::Expr f]
+{
+  Expr e;
+  Debug("parser") << "=> Formula: " << LT(1)->getText() << endl;
+}
+  : f = orFormula 
+    ( IMPLIES e = impliesFormula
+        { f = mkExpr(CVC4::IFF, f, e); }
+    )?
+  ;
+
+/**
+ * Matches a Boolean OR formula (left-associative)
+ */
+orFormula returns [CVC4::Expr f]
+{
+  Expr e;
+  vector<Expr> exprs;
+  Debug("parser") << "OR Formula: " << LT(1)->getText() << endl;
+}
+  : e = xorFormula { exprs.push_back(e); }
+      ( OR e = xorFormula { exprs.push_back(e); } )*
+    {
+      f = (exprs.size() > 1 ? mkExpr(CVC4::OR, exprs) : exprs[0]);
+    }
+  ;
+
+/**
+ * Matches a Boolean XOR formula (left-associative)
+ */
+xorFormula returns [CVC4::Expr f]
+{
+  Expr e;
+  Debug("parser") << "XOR formula: " << LT(1)->getText() << endl;
+}
+  : f = andFormula
+    ( XOR e = andFormula 
+      { f = mkExpr(CVC4::XOR,f, e); }
+    )*
+  ;
+
+/**
+ * Matches a Boolean AND formula (left-associative)
+ */
+andFormula returns [CVC4::Expr f]
+{
+  Expr e;
+  vector<Expr> exprs;
+  Debug("parser") << "AND Formula: " << LT(1)->getText() << endl;
+}
+  : e = notFormula { exprs.push_back(e); }
+    ( AND e = notFormula { exprs.push_back(e); } )*
+    {
+      f = (exprs.size() > 1 ? mkExpr(CVC4::AND, exprs) : exprs[0]);
+    }
+  ;
+
+/**
+ * Parses a NOT formula.
+ * @return the expression representing the formula
+ */
+notFormula returns [CVC4::Expr f]
+{
+  Debug("parser") << "NOT formula: " << LT(1)->getText() << endl;
+}
+  : /* negation */
+    NOT f = notFormula 
+    { f = mkExpr(CVC4::NOT, f); }
+  | /* a boolean atom */
+    f = predFormula
+  ;
+
+predFormula returns [CVC4::Expr f]
+{
+  Debug("parser") << "predicate formula: " << LT(1)->getText() << endl;
+}
+  : { Expr e; }
+    f = term 
+    (EQUAL e = term
+      { f = mkExpr(CVC4::EQUAL, f, e); }
+    )?
+  ; // TODO: lt, gt, etc.
+
+/**
+ * Parses a term.
+ */
+term returns [CVC4::Expr t]
+{
+  std::string name;
+  Debug("parser") << "term: " << LT(1)->getText() << endl;
+}
+  : /* function application */
+    { isFunction(LT(1)->getText()) }? 
+    name = functionSymbol[CHECK_DECLARED]
+    {
+      std::vector<CVC4::Expr> args;
+      args.push_back( getFunction(name) ); 
+    }
+    LPAREN formulaList[args] RPAREN
+    // TODO: check arity
+    { t = mkExpr(CVC4::APPLY, args); }
+
+  | /* if-then-else */
+    t = iteTerm
+
+  | /* parenthesized sub-formula */
+    LPAREN t = formula RPAREN
+
+    /* constants */
+  | TRUE  { t = getTrueExpr(); }
+  | FALSE { t = getFalseExpr(); }
+
+  | /* variable */
+    name = identifier[CHECK_DECLARED]
+    { t = getVariable(name); }
+  ;
+
+/**
+ * Parses an ITE term.
+ */
+iteTerm returns [CVC4::Expr t] 
 {
   Expr iteCondition, iteThen, iteElse;
+  Debug("parser") << "ite: " << LT(1)->getText() << endl;
 }
-  : IF iteCondition = boolFormula 
-    THEN iteThen = boolFormula
-    iteElse = iteElseFormula
+  : IF iteCondition = formula 
+    THEN iteThen = formula
+    iteElse = iteElseTerm
     ENDIF     
-    { formula = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }  
+    { t = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }  
   ;
 
 /**
  * Parses the else part of the ITE, i.e. ELSE f, or ELSIF b THEN f1 ...
  */
-iteElseFormula returns [CVC4::Expr formula]
+iteElseTerm returns [CVC4::Expr t]
 {
   Expr iteCondition, iteThen, iteElse;
+  Debug("parser") << "else: " << LT(1)->getText() << endl;
 }
-  : ELSE formula = boolFormula
-  | ELSEIF iteCondition = boolFormula
-    THEN iteThen = boolFormula
-    iteElse = iteElseFormula
-    { formula = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }
+  : ELSE t = formula
+  | ELSEIF iteCondition = formula
+    THEN iteThen = formula
+    iteElse = iteElseTerm
+    { t = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }
   ;
 
 /**
- * Parses the Boolean atoms (variables and predicates).
- * @return the expression representing the atom.
- */
-boolAtom returns [CVC4::Expr atom]
-{
-  string p;
-}
-  : p = predicateSymbol[CHECK_DECLARED] { atom = getVariable(p); }
-      exception catch [antlr::SemanticException ex] {
-        rethrow(ex, "Undeclared variable " + p);
-      }
-  | TRUE  { atom = getTrueExpr(); }
-  | FALSE { atom = getFalseExpr(); }
-  ;
-
-/**
- * Parses a predicate symbol (an identifier).
+ * Parses a function symbol (an identifier).
  * @param what kind of check to perform on the id
  * @return the predicate symol
  */
-predicateSymbol[DeclarationCheck check = CHECK_NONE] returns [std::string pSymbol]
-  : pSymbol = identifier[check]
+functionSymbol[DeclarationCheck check = CHECK_NONE] returns [std::string symbol]
+{
+  Debug("parser") << "function symbol: " << LT(1)->getText() << endl;
+
+}  : symbol = identifier[check,SYM_FUNCTION]
   ;

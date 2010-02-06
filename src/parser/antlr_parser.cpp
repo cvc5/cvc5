@@ -21,11 +21,13 @@
  */
 
 #include <iostream>
+#include <limits.h>
 
 #include "antlr_parser.h"
 #include "util/output.h"
 #include "util/Assert.h"
 #include "expr/command.h"
+#include "expr/type.h"
 
 using namespace std;
 using namespace CVC4;
@@ -46,9 +48,58 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
   antlr::LLkParser(lexer, k) {
 }
 
-Expr AntlrParser::getVariable(std::string var_name) {
-  Expr e = d_varSymbolTable.getObject(var_name);
-  return e;
+Expr AntlrParser::getSymbol(std::string name, SymbolType type) {
+  Assert( isDeclared(name,type) );
+  switch( type ) {
+  case SYM_VARIABLE: // Predicates and functions share var namespace
+  // case SYM_PREDICATE:
+  case SYM_FUNCTION:
+    return d_varSymbolTable.getObject(name);
+  default:
+    Unhandled("Unhandled symbol type!");
+  }
+}
+
+Expr AntlrParser::getVariable(std::string name) {
+  return getSymbol(name,SYM_VARIABLE);
+}
+
+Expr AntlrParser::getFunction(std::string name) {
+  return getSymbol(name,SYM_FUNCTION);
+}
+
+// Expr AntlrParser::getPredicate(std::string name) {
+//   return getSymbol(name,SYM_PREDICATE);
+// }
+
+const Type* 
+AntlrParser::getType(std::string var_name, 
+                     SymbolType type) {
+  Assert( isDeclared(var_name, type) );
+  const Type* t = d_varTypeTable.getObject(var_name);
+  return t;
+}
+
+const Type* AntlrParser::getSort(std::string name) {
+  Assert( isDeclared(name,SYM_SORT) );
+  const Type* t = d_sortTable.getObject(name);
+  return t;
+}
+
+/* Returns true if name is bound to a boolean variable. */
+bool AntlrParser::isBoolean(std::string name) {
+  return isDeclared(name,SYM_VARIABLE) && getType(name)->isBoolean();
+}
+
+/* Returns true if name is bound to a function. */
+bool AntlrParser::isFunction(std::string name) {
+  return isDeclared(name,SYM_FUNCTION) && getType(name)->isFunction();
+}
+
+/* Returns true if name is either a boolean variable OR a function
+   returning boolean. */
+bool AntlrParser::isPredicate(std::string name) {
+  return isDeclared(name,SYM_FUNCTION) && getType(name)->isPredicate();
 }
 
 Expr AntlrParser::getTrueExpr() const {
@@ -60,7 +111,9 @@ Expr AntlrParser::getFalseExpr() const {
 }
 
 Expr AntlrParser::mkExpr(Kind kind, const Expr& child) {
-  return d_exprManager->mkExpr(kind, child);
+  Expr result = d_exprManager->mkExpr(kind, child);
+  Debug("parser") << "mkExpr() => " << result << std::endl;
+  return result;
 }
 
 Expr AntlrParser::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2) {
@@ -82,50 +135,173 @@ Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
   return result;
 }
 
-void AntlrParser::newFunction(std::string name, 
-                               const std::vector< std::string>& sorts) {
-  // FIXME: Need to actually create a function type
-  d_varSymbolTable.bindName(name, d_exprManager->mkVar());
+const FunctionType* 
+AntlrParser::functionType(const Type* domainType, 
+                          const Type* rangeType) {
+  return d_exprManager->mkFunctionType(domainType,rangeType);
 }
 
-void AntlrParser::newFunctions(const std::vector<std::string>& names, 
-                               const std::vector< std::string>& sorts) {
-  for(unsigned i = 0; i < names.size(); ++i) {
-    newFunction(names[i], sorts);
-  }
+const FunctionType* 
+AntlrParser::functionType(const std::vector<const Type*>& argTypes, 
+                          const Type* rangeType) {
+  Assert( argTypes.size() > 0 );
+  return d_exprManager->mkFunctionType(argTypes,rangeType);
 }
 
-void AntlrParser::newPredicate(std::string name,
-                               const std::vector<std::string>& sorts) {
-  Debug("parser") << "newPredicate(" << name << ")" << std::endl;
-  if(sorts.size() == 0) {
-    d_varSymbolTable.bindName(name, d_exprManager->mkVar());
+const FunctionType* 
+AntlrParser::functionType(const std::vector<const Type*>& sorts) {
+  Assert( sorts.size() > 1 );
+  std::vector<const Type*> argTypes(sorts);
+  const Type* rangeType = argTypes.back();
+  argTypes.pop_back();
+  return functionType(argTypes,rangeType);
+}
+
+Expr AntlrParser::newFunction(std::string name, 
+                              const std::vector<const Type*>& sorts) {
+  Assert( sorts.size() > 0 );
+  if( sorts.size() == 1 ) {
+    return mkVar(name, sorts[0]);
   } else {
-    Unhandled("Non unary predicate not supported yet!");
+    return mkVar(name, functionType(sorts));
   }
 }
 
-void AntlrParser::newPredicates(const std::vector<std::string>& names,
-                                const std::vector<std::string>& sorts) {
-  for(unsigned i = 0; i < names.size(); ++i) {
-    newPredicate(names[i], sorts);
+const std::vector<Expr>
+AntlrParser::newFunctions(const std::vector<std::string>& names, 
+                          const std::vector<const Type*>& sorts) {
+  const FunctionType* t = functionType(sorts);
+  return mkVars(names, t);
+}
+
+const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
+  if(sorts.size() == 0) {
+    return d_exprManager->booleanType();
+  } else {
+    return d_exprManager->mkFunctionType(sorts,d_exprManager->booleanType());
   }
 }
 
-bool AntlrParser::isSort(std::string name) {
-  return d_sortTable.isBound(name);
+Expr
+AntlrParser::newPredicate(std::string name,
+                          const std::vector<const Type*>& sorts) {
+  const Type* t = predicateType(sorts);
+  return mkVar(name, t);
 }
 
-void AntlrParser::newSort(std::string name) {
-  Assert( !isSort(name) ) ;
-  // Trivial binding
-  d_sortTable.bindName(name,name);
-  Assert( isSort(name) ) ;
+const std::vector<Expr>
+AntlrParser::newPredicates(const std::vector<std::string>& names,
+                                const std::vector<const Type*>& sorts) {
+  const Type* t = predicateType(sorts);
+  return mkVars(names, t);
 }
 
-void AntlrParser::newSorts(const std::vector<std::string>& names) {
+Expr 
+AntlrParser::mkVar(const std::string name, const Type* type) {
+  Debug("parser") << "mkVar(" << name << "," << *type << ")" << std::endl;
+  Assert( !isDeclared(name) ) ;
+  Expr expr = d_exprManager->mkVar(type);
+  d_varSymbolTable.bindName(name, expr);
+  d_varTypeTable.bindName(name,type);
+  Assert( isDeclared(name) ) ;
+  return expr;
+}
+
+const std::vector<Expr> 
+AntlrParser::mkVars(const std::vector<std::string> names, 
+                    const Type* type) {
+  std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
-    newSort(names[i]);
+    vars.push_back(mkVar(names[i], type));
+  }
+  return vars;
+}
+
+
+const Type* 
+AntlrParser::newSort(std::string name) {
+  Debug("parser") << "newSort(" << name << ")" << std::endl;
+  Assert( !isDeclared(name,SYM_SORT) ) ;
+  const Type* type = d_exprManager->mkSort(name);
+  d_sortTable.bindName(name,type);
+  Assert( isDeclared(name,SYM_SORT) ) ;
+  return type;
+}
+
+const std::vector<const Type*>
+AntlrParser::newSorts(const std::vector<std::string>& names) {
+  std::vector<const Type*> types;
+  for(unsigned i = 0; i < names.size(); ++i) {
+    types.push_back(newSort(names[i]));
+  }
+  return types;
+}
+
+const BooleanType* AntlrParser::booleanType() {
+  return d_exprManager->booleanType(); 
+}
+
+const KindType* AntlrParser::kindType() {
+  return d_exprManager->kindType(); 
+}
+
+unsigned int AntlrParser::minArity(Kind kind) {
+  switch(kind) {
+  case FALSE:
+  case SKOLEM:
+  case TRUE:
+  case VARIABLE:
+    return 0;
+
+  case NOT:
+    return 1;
+
+  case AND:
+  case APPLY:
+  case EQUAL: 
+  case IFF:
+  case IMPLIES:
+  case PLUS:
+  case OR:
+  case XOR:
+    return 2;
+
+  case ITE:
+    return 3;
+
+  default:
+    Unhandled("kind in minArity");
+  }
+}
+
+unsigned int AntlrParser::maxArity(Kind kind) {
+  switch(kind) {
+  case FALSE:
+  case SKOLEM:
+  case TRUE:
+  case VARIABLE:
+    return 0;
+
+  case NOT:
+    return 1;
+
+  case EQUAL: 
+  case IFF:
+  case IMPLIES:
+  case XOR:
+    return 2;
+
+  case ITE:
+    return 3;
+
+  case AND:
+  case APPLY:
+  case PLUS:
+  case OR:
+    return UINT_MAX;
+
+  default:
+    Unhandled("kind in minArity");
   }
 }
 
@@ -135,8 +311,12 @@ void AntlrParser::setExpressionManager(ExprManager* em) {
 
 bool AntlrParser::isDeclared(string name, SymbolType type) {
   switch(type) {
-  case SYM_VARIABLE:
+  case SYM_VARIABLE: // Predicates and functions share var namespace
+  // case SYM_PREDICATE:
+  case SYM_FUNCTION:
     return d_varSymbolTable.isBound(name);
+  case SYM_SORT:
+    return d_sortTable.isBound(name);
   default:
     Unhandled("Unhandled symbol type!");
   }
@@ -149,25 +329,14 @@ void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
                                  LT(1).get()->getColumn());
 }
 
-bool AntlrParser::checkDeclaration(string varName, DeclarationCheck check) {
+bool AntlrParser::checkDeclaration(string varName, 
+                                   DeclarationCheck check,
+                                   SymbolType type) {
   switch(check) {
   case CHECK_DECLARED:
-    return isDeclared(varName, SYM_VARIABLE);
+    return isDeclared(varName, type);
   case CHECK_UNDECLARED:
-    return !isDeclared(varName, SYM_VARIABLE);
-  case CHECK_NONE:
-    return true;
-  default:
-    Unhandled("Unknown check type!");
-  }
-}
-
-bool AntlrParser::checkSort(std::string name, DeclarationCheck check) {
-  switch(check) {
-  case CHECK_DECLARED:
-    return isSort(name);
-  case CHECK_UNDECLARED:
-    return !isSort(name);
+    return !isDeclared(varName, type);
   case CHECK_NONE:
     return true;
   default:

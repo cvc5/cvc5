@@ -37,11 +37,11 @@ tokens {
   // Base SMT-LIB tokens
   DISTINCT      = "distinct";
   ITE           = "ite";
+  IF_THEN_ELSE  = "if_then_else";
   TRUE          = "true";
   FALSE         = "false";
   NOT           = "not";
   IMPLIES       = "implies";
-  IF_THEN_ELSE  = "if_then_else";
   AND           = "and";
   OR            = "or";
   XOR           = "xor";

@@ -23,6 +23,10 @@
 namespace CVC4 {
 
 class Expr;
+class Type;
+class BooleanType; 
+class FunctionType; 
+class KindType;
 class NodeManager;
 class SmtEngine;
 
@@ -41,6 +45,11 @@ public:
    * manager and are left-over are bad.
    */
   ~ExprManager();
+
+  /** Get the type for booleans. */
+  const BooleanType* booleanType();
+  /** Get the type for sorts. */
+  const KindType* kindType();
 
   /**
    * Make a unary expression of a given kind (TRUE, FALSE,...).
@@ -80,14 +89,28 @@ public:
    */
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
+  /** Make a function type from domain to range. */
+  const FunctionType* 
+    mkFunctionType(const Type* domain, 
+                   const Type* range);
+
+  /** Make a function type with input types from argTypes. */
+  const FunctionType* 
+    mkFunctionType(const std::vector<const Type*>& argTypes, 
+                   const Type* range);
+
+  /** Make a new sort with the given name. */
+  const Type* mkSort(std::string name);
+
   // variables are special, because duplicates are permitted
-  Expr mkVar();
+  Expr mkVar(const Type* type);
 
 private:
-
   /** The internal node manager */
   NodeManager* d_nm;
-
+  BooleanType* d_booleanType;
+  KindType* d_kindType;
+  
   /**
    * Returns the internal node manager. This should only be used by internal
    * users, i.e. the friend classes.
