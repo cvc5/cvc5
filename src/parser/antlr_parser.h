@@ -112,8 +112,13 @@ protected:
    * @return the variable expression
    */
   Expr getVariable(std::string var_name);
-  Expr getFunction(std::string var_name);
-  /* Expr getPredicate(std::string var_name); */
+
+  /**
+   * Returns a function, given a name and a type.
+   * @param name the name of the function
+   * @return the function expression
+   */
+  Expr getFunction(std::string name);
 
   /**
    * Returns a sort, given a name
@@ -121,13 +126,11 @@ protected:
   const Type* getSort(std::string sort_name);
 
   /**
-   * Types of symbols.
+   * Types of symbols. Used to define namespaces.
    */
   enum SymbolType {
     /** Variables */
     SYM_VARIABLE,
-    /** Predicates */
-    /* SYM_PREDICATE, */
     /** Functions */
     SYM_FUNCTION,
     /** Sorts */
@@ -135,23 +138,30 @@ protected:
   };
 
   /**
-   * Checks if the variable has been declared.
-   * @param the variable name
+   * Checks if a symbol has been declared.
+   * @param name the symbol name
+   * @param type the symbol type
    */
-  bool isDeclared(std::string var_name, SymbolType type = SYM_VARIABLE);
+  bool isDeclared(std::string name, SymbolType type = SYM_VARIABLE);
 
   /**
-   * Return true if the the declaration policy we want to enforce is true.
-   * @param varName the symbol to check
+   * Return true if the the declaration policy we want to enforce holds
+   * for the given symbol.
+   * @param name the symbol to check
    * @oaram check the kind of check to perform
+   * @param type the type of the symbol
    * @return true if the check holds
    */
-  bool checkDeclaration(std::string varName, 
+  bool checkDeclaration(std::string name, 
                         DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE);
 
 
-  /** Returns the type for the variable with the given name. */
+  /** 
+   * Returns the type for the variable with the given name. 
+   * @param name the symbol to lookup 
+   * @param type the (namespace) type of the symbol
+   */
   const Type* getType(std::string var_name,
                       SymbolType type = SYM_VARIABLE);
 
@@ -202,63 +212,39 @@ protected:
    */
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
-  /* Create a new CVC4 variable expression . */
+  /** Create a new CVC4 variable expression of the given type. */
   Expr mkVar(const std::string name, const Type* type);
 
+  /** Create a set of new CVC4 variable expressions of the given
+      type. */
   const std::vector<Expr> 
   mkVars(const std::vector<std::string> names, 
          const Type* type);
 
 
   /** Returns a function type over the given domain and range types. */
-  const FunctionType* functionType(const Type* domain, const Type* range);
-  /** Returns a function type over the given types. argTypes must have
-      at least 1 element. */
-  const FunctionType* functionType(const std::vector<const Type*>& argTypes,
-                             const Type* rangeType);
-  /** Returns a function type over the given types. types must have
-      at least 2 elements (i.e., a domain and range). */
-  const FunctionType* functionType(const std::vector<const Type*>& types);
+  const Type* functionType(const Type* domain, const Type* range);
 
-  /**
-   * Creates a new function over the given sorts. The function
-   * has arity sorts.size() - 1 and range type sorts[sorts.size() - 1].
-   * @param name the name of the function
-   * @param sorts the sorts
+  /** Returns a function type over the given types. argTypes must be
+      non-empty. */
+  const Type* functionType(const std::vector<const Type*>& argTypes,
+                           const Type* rangeType);
+
+  /** 
+   * Returns a function type over the given types. If types has only
+   * one element, then the type is just types[0].
+   *
+   * @param types a non-empty list of input and output types. 
    */
-  Expr newFunction(std::string name, 
-                   const std::vector<const Type*>& sorts);
+  const Type* functionType(const std::vector<const Type*>& types);
 
-  /**
-   * Creates new functions over the given sorts. Each function has
-   * arity sorts.size() - 1 and range type sorts[sorts.size() - 1].
-   * @param name the name of the function
-   * @param sorts the sorts
+  /** 
+   * Returns a predicate type over the given sorts. If sorts is empty,
+   * then the type is just BOOLEAN.
+
+   * @param sorts a list of input types
    */
-  const std::vector<Expr> 
-  newFunctions(const std::vector<std::string>& names, 
-               const std::vector<const Type*>& sorts);
-
-  /** Returns a predicate type over the given sorts. sorts must be 
-      non-empty. If sorts has size 1, then the type is just BOOLEAN. */
   const Type* predicateType(const std::vector<const Type*>& sorts);
-
-  /**
-   * Creates a new predicate (a function with range boolean) over the 
-   * given sorts. The predicate has sorts.size().
-   * @param name the name of the predicate
-   * @param sorts the sorts
-   */
-  Expr newPredicate(std::string name, const std::vector<const Type*>& sorts);
-
-  /**
-   * Creates new predicates (a function with range boolean) over the 
-   * given sorts. Each predicate will have arity sorts.size().
-   * @param p_names the names of the predicates
-   */
-  const std::vector<Expr>
-  newPredicates(const std::vector<std::string>& names,
-                const std::vector<const Type*>& sorts);
 
   /**
    * Creates a new sort with the given name.
@@ -271,21 +257,29 @@ protected:
   const std::vector<const Type*>
   newSorts(const std::vector<std::string>& names);
 
+  /** Is the symbol bound to a boolean variable? */
   bool isBoolean(std::string name);
+
+  /** Is the symbol bound to a function? */
   bool isFunction(std::string name);
+
+  /** Is the symbol bound to a predicate? */
   bool isPredicate(std::string name);
 
+  /** Returns the boolean type. */
   const BooleanType* booleanType();
+
+  /** Returns the kind type (i.e., the type of types). */
   const KindType* kindType();
 
-  unsigned int minArity(Kind kind);
-  unsigned int maxArity(Kind kind);
+  /** Returns the minimum arity of the given kind. */
+  static unsigned int minArity(Kind kind);
 
-  /**
-   * Returns the precedence rank of the kind.
-   */
-  static unsigned getPrecedence(Kind kind);
+  /** Returns the maximum arity of the given kind. */
+  static unsigned int maxArity(Kind kind);
 
+  /** Returns a string representation of the given object (for
+      debugging). */
   inline std::string toString(DeclarationCheck check) {
     switch(check) {
     case CHECK_NONE: return "CHECK_NONE";
@@ -295,6 +289,8 @@ protected:
     }
   }
 
+  /** Returns a string representation of the given object (for
+      debugging). */
   inline std::string toString(SymbolType type) {
     switch(type) {
     case SYM_VARIABLE: return "SYM_VARIABLE";
@@ -319,8 +315,8 @@ private:
   /** The sort table */
   SymbolTable<const Type*> d_sortTable;
 
+  /** Lookup a symbol in the given namespace. */
   Expr getSymbol(std::string var_name, SymbolType type);
-
 };
 
 

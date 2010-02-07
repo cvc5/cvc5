@@ -259,7 +259,8 @@ functionDeclaration
       t = sortSymbol // require at least one sort
     { sorts.push_back(t); }
       sortList[sorts] RPAREN
-    { newFunction(name, sorts); } 
+    { t = functionType(sorts);
+      mkVar(name, t); } 
   ;
               
 /**
@@ -269,9 +270,11 @@ predicateDeclaration
 {
   string p_name;
   std::vector<const Type*> p_sorts;
+  const Type *t;
 }
   : LPAREN p_name = predicateName[CHECK_UNDECLARED] sortList[p_sorts] RPAREN
-    { newPredicate(p_name, p_sorts); } 
+    { t = predicateType(p_sorts);
+      mkVar(p_name, t); } 
   ;
 
 sortDeclaration 

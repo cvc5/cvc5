@@ -33,13 +33,12 @@ Type::Type(ExprManager* exprManager, std::string name) :
   d_exprManager(exprManager), d_name(name) { 
 }
 
-// Type Type::operator=(const Type& t) {
-//   if( this != &t ) {
-//     d_name == t.d_name;
-// }
+Type::Type(std::string name) : 
+  d_name(name) { 
+}
 
 bool Type::operator==(const Type& t) const {
-  return d_name == t.d_name;
+  return d_exprManager == t.d_exprManager && d_name == t.d_name;
 }
 
 bool Type::operator!=(const Type& t) const {
@@ -54,30 +53,21 @@ std::string Type::getName() const {
   return d_name;
 }
 
-// void Type::toStream(std::ostream& out) const {
-//   out << getName();
-// }
+BooleanType BooleanType::s_instance;
 
-BooleanType::BooleanType(ExprManager* exprManager) 
-  : Type(exprManager,std::string("BOOLEAN")) {
+BooleanType::BooleanType() : Type(std::string("BOOLEAN")) {
 }
 
 BooleanType::~BooleanType() {
 }
 
+BooleanType*
+BooleanType::getInstance() {
+  return &s_instance;
+}
+
 bool BooleanType::isBoolean() const {
   return true;
-}
-
-FunctionType::FunctionType(ExprManager* exprManager, 
-                           const Type* domain, 
-                           const Type* range) 
-  : Type(exprManager), d_argTypes(), d_rangeType(range) {
-  d_argTypes.push_back(domain);
-}
-
-  // FIXME: What becomes of argument types?
-FunctionType::~FunctionType() {
 }
 
 FunctionType::FunctionType(ExprManager* exprManager, 
@@ -86,6 +76,29 @@ FunctionType::FunctionType(ExprManager* exprManager,
   : Type(exprManager), d_argTypes(argTypes), d_rangeType(range) {
   Assert( argTypes.size() > 0 );
 }
+
+  // FIXME: What becomes of argument types?
+FunctionType::~FunctionType() {
+}
+
+FunctionType* 
+FunctionType::getInstance(ExprManager* exprManager, 
+                          const Type* domain, 
+                          const Type* range) {
+  std::vector<const Type*> argTypes;
+  argTypes.push_back(domain);
+  return getInstance(exprManager,argTypes,range);
+}
+
+  //FIXME: should be singleton
+FunctionType* 
+FunctionType::getInstance(ExprManager* exprManager, 
+            const std::vector<const Type*>& argTypes, 
+            const Type* range) {
+  Assert( argTypes.size() > 0 );
+  return new FunctionType(exprManager,argTypes,range);
+}
+
 
 const std::vector<const Type*> FunctionType::getArgTypes() const {
   return d_argTypes;
@@ -120,8 +133,9 @@ void FunctionType::toStream(std::ostream& out) const {
   d_rangeType->toStream(out);
 }
 
-KindType::KindType(ExprManager* exprManager) 
-  : Type(exprManager,std::string("KIND")) {
+KindType KindType::s_instance;
+
+KindType::KindType() : Type(std::string("KIND")) {
 }
 
 KindType::~KindType() {
@@ -129,6 +143,11 @@ KindType::~KindType() {
 
 bool KindType::isKind() const {
   return true;
+}
+
+KindType*
+KindType::getInstance() {
+  return &s_instance;
 }
 
 SortType::SortType(ExprManager* exprManager,std::string name) 

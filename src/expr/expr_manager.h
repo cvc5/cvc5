@@ -108,8 +108,6 @@ public:
 private:
   /** The internal node manager */
   NodeManager* d_nm;
-  BooleanType* d_booleanType;
-  KindType* d_kindType;
   
   /**
    * Returns the internal node manager. This should only be used by internal

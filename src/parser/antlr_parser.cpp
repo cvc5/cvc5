@@ -51,8 +51,7 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
 Expr AntlrParser::getSymbol(std::string name, SymbolType type) {
   Assert( isDeclared(name,type) );
   switch( type ) {
-  case SYM_VARIABLE: // Predicates and functions share var namespace
-  // case SYM_PREDICATE:
+  case SYM_VARIABLE: // Functions share var namespace
   case SYM_FUNCTION:
     return d_varSymbolTable.getObject(name);
   default:
@@ -67,10 +66,6 @@ Expr AntlrParser::getVariable(std::string name) {
 Expr AntlrParser::getFunction(std::string name) {
   return getSymbol(name,SYM_FUNCTION);
 }
-
-// Expr AntlrParser::getPredicate(std::string name) {
-//   return getSymbol(name,SYM_PREDICATE);
-// }
 
 const Type* 
 AntlrParser::getType(std::string var_name, 
@@ -96,8 +91,7 @@ bool AntlrParser::isFunction(std::string name) {
   return isDeclared(name,SYM_FUNCTION) && getType(name)->isFunction();
 }
 
-/* Returns true if name is either a boolean variable OR a function
-   returning boolean. */
+/* Returns true if name is bound to a function returning boolean. */
 bool AntlrParser::isPredicate(std::string name) {
   return isDeclared(name,SYM_FUNCTION) && getType(name)->isPredicate();
 }
@@ -135,43 +129,30 @@ Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
   return result;
 }
 
-const FunctionType* 
+const Type* 
 AntlrParser::functionType(const Type* domainType, 
                           const Type* rangeType) {
   return d_exprManager->mkFunctionType(domainType,rangeType);
 }
 
-const FunctionType* 
+const Type* 
 AntlrParser::functionType(const std::vector<const Type*>& argTypes, 
                           const Type* rangeType) {
   Assert( argTypes.size() > 0 );
   return d_exprManager->mkFunctionType(argTypes,rangeType);
 }
 
-const FunctionType* 
+const Type* 
 AntlrParser::functionType(const std::vector<const Type*>& sorts) {
-  Assert( sorts.size() > 1 );
-  std::vector<const Type*> argTypes(sorts);
-  const Type* rangeType = argTypes.back();
-  argTypes.pop_back();
-  return functionType(argTypes,rangeType);
-}
-
-Expr AntlrParser::newFunction(std::string name, 
-                              const std::vector<const Type*>& sorts) {
   Assert( sorts.size() > 0 );
   if( sorts.size() == 1 ) {
-    return mkVar(name, sorts[0]);
+    return sorts[0];
   } else {
-    return mkVar(name, functionType(sorts));
+    std::vector<const Type*> argTypes(sorts);
+    const Type* rangeType = argTypes.back();
+    argTypes.pop_back();
+    return functionType(argTypes,rangeType);
   }
-}
-
-const std::vector<Expr>
-AntlrParser::newFunctions(const std::vector<std::string>& names, 
-                          const std::vector<const Type*>& sorts) {
-  const FunctionType* t = functionType(sorts);
-  return mkVars(names, t);
 }
 
 const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
@@ -180,20 +161,6 @@ const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
   } else {
     return d_exprManager->mkFunctionType(sorts,d_exprManager->booleanType());
   }
-}
-
-Expr
-AntlrParser::newPredicate(std::string name,
-                          const std::vector<const Type*>& sorts) {
-  const Type* t = predicateType(sorts);
-  return mkVar(name, t);
-}
-
-const std::vector<Expr>
-AntlrParser::newPredicates(const std::vector<std::string>& names,
-                                const std::vector<const Type*>& sorts) {
-  const Type* t = predicateType(sorts);
-  return mkVars(names, t);
 }
 
 Expr 
@@ -301,7 +268,7 @@ unsigned int AntlrParser::maxArity(Kind kind) {
     return UINT_MAX;
 
   default:
-    Unhandled("kind in minArity");
+    Unhandled("kind in maxArity");
   }
 }
 
@@ -311,8 +278,7 @@ void AntlrParser::setExpressionManager(ExprManager* em) {
 
 bool AntlrParser::isDeclared(string name, SymbolType type) {
   switch(type) {
-  case SYM_VARIABLE: // Predicates and functions share var namespace
-  // case SYM_PREDICATE:
+  case SYM_VARIABLE: // Functions share var namespace
   case SYM_FUNCTION:
     return d_varSymbolTable.isBound(name);
   case SYM_SORT:

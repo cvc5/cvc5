@@ -31,9 +31,7 @@ using namespace std;
 namespace CVC4 {
 
 ExprManager::ExprManager()
-  : d_nm(new NodeManager()), 
-    d_booleanType(new BooleanType(this)),
-    d_kindType(new KindType(this)) {
+  : d_nm(new NodeManager()) {
 }
 
 ExprManager::~ExprManager() {
@@ -41,11 +39,11 @@ ExprManager::~ExprManager() {
 }
 
 const BooleanType* ExprManager::booleanType() {
-  return d_booleanType;
+  return BooleanType::getInstance();
 }
 
 const KindType* ExprManager::kindType() {
-  return d_kindType;
+  return KindType::getInstance();
 }
 
 Expr ExprManager::mkExpr(Kind kind) {
@@ -97,14 +95,14 @@ Expr ExprManager::mkExpr(Kind kind, const vector<Expr>& children) {
 const FunctionType* 
 ExprManager::mkFunctionType(const Type* domain, 
                             const Type* range) {
-  return new FunctionType(this,domain,range);
+  return FunctionType::getInstance(this,domain,range);
 }
 
 /** Make a function type with input types from argTypes. */
 const FunctionType* 
 ExprManager::mkFunctionType(const std::vector<const Type*>& argTypes, 
                             const Type* range) {
-  return new FunctionType(this,argTypes,range);
+  return FunctionType::getInstance(this,argTypes,range);
 }
 
 const Type* ExprManager::mkSort(std::string name) {
