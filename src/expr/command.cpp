@@ -20,11 +20,11 @@ using namespace std;
 
 namespace CVC4 {
 
-ostream& operator<<(ostream& out, const Command* c) {
-  if (c == NULL) {
+ostream& operator<<(ostream& out, const Command* command) {
+  if (command == NULL) {
     out << "null";
   } else {
-    c->toStream(out);
+    command->toStream(out);
   }
   return out;
 }
@@ -69,6 +69,22 @@ void DeclarationCommand::toStream(std::ostream& out) const {
     first = false;
   }
   out << ")";
+}
+
+void PushCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->push();
+}
+
+void PushCommand::toStream(ostream& out) const {
+  out << "Push()";
+}
+
+void PopCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->pop();
+}
+
+void PopCommand::toStream(ostream& out) const {
+  out << "Pop()";
 }
 
 }/* CVC4 namespace */

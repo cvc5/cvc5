@@ -76,6 +76,8 @@ command returns [CVC4::Command* cmd = 0]
   | QUERY    f = formula  SEMICOLON { cmd = new QueryCommand(f);    }
   | CHECKSAT f = formula  SEMICOLON { cmd = new CheckSatCommand(f); }
   | CHECKSAT              SEMICOLON { cmd = new CheckSatCommand(getTrueExpr()); }
+  | PUSH                  SEMICOLON { cmd = new PushCommand(); }
+  | POP                   SEMICOLON { cmd = new PopCommand(); }
   | cmd = declaration
   | EOF
   ;

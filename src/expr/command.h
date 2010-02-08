@@ -47,7 +47,7 @@ public:
 class CVC4_PUBLIC EmptyCommand : public Command {
 public:
   EmptyCommand(std::string name = "");
-  void invoke(CVC4::SmtEngine* smt_engine);
+  void invoke(CVC4::SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
 private:
   std::string d_name;
@@ -56,11 +56,24 @@ private:
 class CVC4_PUBLIC AssertCommand : public Command {
 public:
   AssertCommand(const BoolExpr& e);
-  void invoke(CVC4::SmtEngine* smt_engine);
+  void invoke(CVC4::SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
 };/* class AssertCommand */
+
+class CVC4_PUBLIC PushCommand : public Command {
+public:
+  void invoke(CVC4::SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+};/* class PushCommand */
+
+class CVC4_PUBLIC PopCommand : public Command {
+public:
+  void invoke(CVC4::SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+};/* class PopCommand */
+
 
 class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
 public:
@@ -72,7 +85,7 @@ protected:
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 public:
-  CheckSatCommand(const BoolExpr& e);
+  CheckSatCommand(const BoolExpr& expr);
   void invoke(SmtEngine* smt);
   Result getResult();
   void toStream(std::ostream& out) const;
@@ -111,7 +124,7 @@ protected:
 };/* class SetBenchmarkStatusCommand */
 
 inline std::ostream& operator<<(std::ostream& out,
-                                SetBenchmarkStatusCommand::BenchmarkStatus bs)
+                                SetBenchmarkStatusCommand::BenchmarkStatus status)
   CVC4_PUBLIC;
 
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
@@ -174,7 +187,7 @@ inline EmptyCommand::EmptyCommand(std::string name) :
   d_name(name) {
 }
 
-inline void EmptyCommand::invoke(SmtEngine* smt_engine) {
+inline void EmptyCommand::invoke(SmtEngine* smtEngine) {
 }
 
 inline void EmptyCommand::toStream(std::ostream& out) const {
@@ -187,8 +200,8 @@ inline AssertCommand::AssertCommand(const BoolExpr& e) :
   d_expr(e) {
 }
 
-inline void AssertCommand::invoke(SmtEngine* smt_engine) {
-  smt_engine->assertFormula(d_expr);
+inline void AssertCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->assertFormula(d_expr);
 }
 
 inline void AssertCommand::toStream(std::ostream& out) const {
@@ -197,12 +210,12 @@ inline void AssertCommand::toStream(std::ostream& out) const {
 
 /* class CheckSatCommand */
 
-inline CheckSatCommand::CheckSatCommand(const BoolExpr& e) :
-  d_expr(e) {
+inline CheckSatCommand::CheckSatCommand(const BoolExpr& expr) :
+  d_expr(expr) {
 }
 
-inline void CheckSatCommand::invoke(SmtEngine* smt_engine) {
-  d_result = smt_engine->checkSat(d_expr);
+inline void CheckSatCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->checkSat(d_expr);
 }
 
 inline Result CheckSatCommand::getResult() {
@@ -215,8 +228,8 @@ inline QueryCommand::QueryCommand(const BoolExpr& e) :
   d_expr(e) {
 }
 
-inline void QueryCommand::invoke(CVC4::SmtEngine* smt_engine) {
-  d_result = smt_engine->query(d_expr);
+inline void QueryCommand::invoke(CVC4::SmtEngine* smtEngine) {
+  d_result = smtEngine->query(d_expr);
 }
 
 inline Result QueryCommand::getResult() {
@@ -241,16 +254,14 @@ inline void CommandSequence::addCommand(Command* cmd) {
 
 /* class DeclarationCommand */
 
-inline 
-DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, 
-                                       const Type* t) :
+inline DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, const Type* t) :
   d_declaredSymbols(ids) {
 }
 
 /* class SetBenchmarkStatusCommand */
 
-inline SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus s) :
-  d_status(s) {
+inline SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status) :
+  d_status(status) {
 }
 
 inline void SetBenchmarkStatusCommand::invoke(SmtEngine* smt) {
@@ -263,8 +274,8 @@ inline void SetBenchmarkStatusCommand::toStream(std::ostream& out) const {
 
 /* class SetBenchmarkLogicCommand */
 
-inline SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string l) :
-  d_logic(l) {
+inline SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic) :
+  d_logic(logic) {
 }
 
 inline void SetBenchmarkLogicCommand::invoke(SmtEngine* smt) {
@@ -277,8 +288,8 @@ inline void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
 
 /* output stream insertion operator for benchmark statuses */
 inline std::ostream& operator<<(std::ostream& out,
-                                SetBenchmarkStatusCommand::BenchmarkStatus bs) {
-  switch(bs) {
+                                SetBenchmarkStatusCommand::BenchmarkStatus status) {
+  switch(status) {
 
   case SetBenchmarkStatusCommand::SMT_SATISFIABLE:
     return out << "sat";
