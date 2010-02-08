@@ -15,8 +15,6 @@
 
 #include "context/context.h"
 #include "util/Assert.h"
-#include <cstdlib>
-
 
 namespace CVC4 {
 namespace context {
@@ -208,7 +206,6 @@ ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify) {
   }
 }
 
-
 ContextNotifyObj::~ContextNotifyObj()
 {
   if (d_pCNOnext != NULL) {
@@ -218,28 +215,6 @@ ContextNotifyObj::~ContextNotifyObj()
     *(d_ppCNOprev) = d_pCNOnext;
   }
 }
-
-
-template<class T>
-void CDList<T>::grow() {
-  if (d_list == NULL) {
-    // Allocate an initial list if one does not yet exist
-    d_sizeAlloc = 10;
-    d_list = malloc(sizeof(T)*d_sizeAlloc);
-  }
-  else {
-    // Allocate a new array with double the size
-    d_sizeAlloc *= 2;
-    T* newList = malloc(sizeof(T)*d_sizeAlloc);
-
-    // Copy the old data
-    memcpy(d_list, newList, sizeof(T)*d_size);
-
-    // Free the old list
-    free(d_list);
-  }
-}
-
 
 } /* CVC4::context namespace */
 

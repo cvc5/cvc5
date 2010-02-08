@@ -18,6 +18,8 @@
 
 #include "context/context_mm.h"
 #include "util/Assert.h"
+#include <cstdlib>
+#include <cstring>
 
 namespace CVC4 {
 namespace context {
@@ -622,7 +624,24 @@ class CDList :public ContextObj {
   /**
    * Reallocate the array with more space.
    */
-  void grow();
+  void grow() {
+    if (d_list == NULL) {
+      // Allocate an initial list if one does not yet exist
+      d_sizeAlloc = 10;
+      d_list = (T*)malloc(sizeof(T)*d_sizeAlloc);
+    }
+    else {
+      // Allocate a new array with double the size
+      d_sizeAlloc *= 2;
+      T* newList = (T*)malloc(sizeof(T)*d_sizeAlloc);
+
+      // Copy the old data
+      memcpy(d_list, newList, sizeof(T)*d_size);
+
+      // Free the old list
+      free(d_list);
+    }
+  }
 
 public:
   /**
