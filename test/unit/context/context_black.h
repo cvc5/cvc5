@@ -53,8 +53,8 @@ public:
     // the interface doesn't declare any exceptions
     d_context->push();
     d_context->pop();
-    d_context->pop();
-    d_context->pop();
+//    d_context->pop();
+//    d_context->pop();
   }
 
   void tearDown() {
