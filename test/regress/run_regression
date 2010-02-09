@@ -56,8 +56,8 @@ expfile=`mktemp -t cvc4_expected.XXXXXXXXXX`
 outfile=`mktemp -t cvc4_output.XXXXXXXXXX`
 echo "$expected_output" >"$expfile"
 
-echo "$cvc4" --segv-nospin "$benchmark"
-"$cvc4" --segv-nospin "$benchmark" | tee "$outfile"
+# echo "$cvc4" --segv-nospin "$benchmark"
+"$cvc4" --segv-nospin "$benchmark" > "$outfile"
 
 diffs=`diff -u "$expfile" "$outfile"`
 diffexit=$?

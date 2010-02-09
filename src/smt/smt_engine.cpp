@@ -24,25 +24,25 @@ using namespace CVC4::prop;
 
 namespace CVC4 {
 
-SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
+SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
   d_assertions(),
-  d_publicEm(em),
-  d_nm(em->getNodeManager()),
-  d_opts(opts)
+  d_exprManager(em),
+  d_nodeManager(em->getNodeManager()),
+  d_options(opts)
 {
-  d_de = new DecisionEngine();
-  d_te = new TheoryEngine(this);
-  d_prop = new PropEngine(opts, d_de, d_te);
+  d_decisionEngine = new DecisionEngine();
+  d_theoryEngine = new TheoryEngine(this);
+  d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine);
 }
 
 SmtEngine::~SmtEngine() {
-   delete d_prop;
-   delete d_te;
-   delete d_de;
+  delete d_propEngine;
+  delete d_theoryEngine;
+  delete d_decisionEngine;
 }
 
 void SmtEngine::doCommand(Command* c) {
-  NodeManagerScope nms(d_nm);
+  NodeManagerScope nms(d_nodeManager);
   c->invoke(this);
 }
 
@@ -52,16 +52,15 @@ Node SmtEngine::preprocess(const Node& e) {
 
 void SmtEngine::processAssertionList() {
   for(unsigned i = 0; i < d_assertions.size(); ++i) {
-    d_prop->assertFormula(d_assertions[i]);
+    d_propEngine->assertFormula(d_assertions[i]);
   }
   d_assertions.clear();
 }
 
-
 Result SmtEngine::check() {
   Debug("smt") << "SMT check()" << std::endl;
   processAssertionList();
-  return d_prop->solve();
+  return d_propEngine->checkSat();
 }
 
 Result SmtEngine::quickCheck() {
@@ -77,7 +76,7 @@ void SmtEngine::addFormula(const Node& e) {
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
   Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
-  NodeManagerScope nms(d_nm);
+  NodeManagerScope nms(d_nodeManager);
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
   Result r = check().asSatisfiabilityResult();
@@ -87,8 +86,8 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 
 Result SmtEngine::query(const BoolExpr& e) {
   Debug("smt") << "SMT query(" << e << ")" << std::endl;
-  NodeManagerScope nms(d_nm);
-  Node node_e = preprocess(d_nm->mkNode(NOT, e.getNode()));
+  NodeManagerScope nms(d_nodeManager);
+  Node node_e = preprocess(d_nodeManager->mkNode(NOT, e.getNode()));
   addFormula(node_e);
   Result r = check().asValidityResult();
   Debug("smt") << "SMT query(" << e << ") ==> " << r << std::endl;
@@ -97,7 +96,7 @@ Result SmtEngine::query(const BoolExpr& e) {
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
-  NodeManagerScope nms(d_nm);
+  NodeManagerScope nms(d_nodeManager);
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
   return quickCheck().asValidityResult();
@@ -110,9 +109,11 @@ Expr SmtEngine::simplify(const Expr& e) {
 }
 
 void SmtEngine::push() {
+  Debug("smt") << "SMT push()" << std::endl;
 }
 
 void SmtEngine::pop() {
+  Debug("smt") << "SMT pop()" << std::endl;
 }
 
 }/* CVC4 namespace */

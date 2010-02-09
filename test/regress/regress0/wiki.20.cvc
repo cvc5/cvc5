@@ -1,0 +1,4 @@
+a, b, c : BOOLEAN;
+
+% EXPECT: VALID
+QUERY NOT (a AND b) <=> NOT a OR NOT b;

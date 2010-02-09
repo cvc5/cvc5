@@ -20,6 +20,7 @@
 
 #ifdef __CVC4_USE_MINISAT
 
+#include "util/options.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/core/SolverTypes.h"
 
@@ -64,6 +65,33 @@ inline std::ostream& operator << (std::ostream& out, const SatClause& clause) {
   out << ";";
   return out;
 }
+
+/**
+ * The proxy class that allows us to modify the internals of the SAT solver.
+ * It's only accessible from the PropEngine, and should be treated with major
+ * care.
+ */
+class SatSolverProxy {
+
+  /** Only the prop engine can modify the internals of the SAT solver */
+  friend class PropEngine;
+
+  private:
+
+    /**
+     * Initializes the given sat solver with the given options.
+     * @param satSolver the SAT solver
+     * @param options the options
+     */
+    inline static void initSatSolver(SatSolver* satSolver,
+                                     const Options* options) {
+      // Setup the verbosity
+      satSolver->verbosity = (options->verbosity > 0) ? 1 : -1;
+      // Do not delete the satisfied clauses, just the learnt ones
+      satSolver->remove_satisfied = false;
+    }
+};
+
 
 
 }/* CVC4::prop namespace */

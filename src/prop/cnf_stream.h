@@ -25,7 +25,16 @@
 #include "expr/node.h"
 #include "prop/sat.h"
 
-#include <map>
+#include <ext/hash_map>
+
+namespace __gnu_cxx {
+template<>
+  struct hash<CVC4::Node> {
+    size_t operator()(const CVC4::Node& node) const {
+      return (size_t)node.hash();
+    }
+  };
+} /* __gnu_cxx namespace */
 
 namespace CVC4 {
 namespace prop {
@@ -40,69 +49,84 @@ class CnfStream {
 
 private:
 
-  /**
-   * d_propEngine is the PropEngine that the CnfStream interacts with directly
-   * through the following functions:
-   *    - insertClauseIntoStream
-   *    - acquireFreshLit
-   *    - registerMapping
-   */
-  PropEngine *d_propEngine;
+  /** The SAT solver we will be using */
+  SatSolver *d_satSolver;
 
-  /**
-   * Cache of what literal have been registered to a node. Not strictly needed
-   * for correctness. This can be flushed when memory is under pressure.
-   * TODO: Use attributes when they arrive
-   */
-  std::map<Node, SatLiteral> d_translationCache;
+  /** Cache of what literal have been registered to a node. */
+  __gnu_cxx::hash_map<Node, SatLiteral> d_translationCache;
 
 protected:
 
-  bool isAtomMapped(const Node& n) const;
-
-  SatVariable lookupAtom(const Node& node) const;
+  /**
+   * Asserts the given clause to the sat solver.
+   * @param clause the clasue to assert
+   */
+  void assertClause(SatClause& clause);
 
   /**
-   * Uniform interface for sending a clause back to d_propEngine.
-   * May want to have internal data-structures later on
+   * Asserts the unit clause to the sat solver.
+   * @param a the unit literal of the clause
    */
-  void insertClauseIntoStream(SatClause& clause);
-  void insertClauseIntoStream(SatLiteral a);
-  void insertClauseIntoStream(SatLiteral a, SatLiteral b);
-  void insertClauseIntoStream(SatLiteral a, SatLiteral b, SatLiteral c);
+  void assertClause(SatLiteral a);
 
-  //utilities for the translation cache;
+  /**
+   * Asserts the binary clause to the sat solver.
+   * @param a the first literal in the clause
+   * @param b the second literal in the clause
+   */
+  void assertClause(SatLiteral a, SatLiteral b);
+
+  /**
+   * Asserts the ternary clause to the sat solver.
+   * @param a the first literal in the clause
+   * @param b the second literal in the clause
+   * @param c the thirs literal in the clause
+   */
+  void assertClause(SatLiteral a, SatLiteral b, SatLiteral c);
+
+  /**
+   * Returns true if the node has been cashed in the translation cache.
+   * @param node the node
+   * @return true if the node has been cached
+   */
   bool isCached(const Node& node) const;
 
   /**
-   * Method comments...
-   * @param n
-   * @return returns ...
+   * Returns the cashed literal corresponding to the given node.
+   * @param node the node to lookup
+   * @return returns the corresponding literal
    */
   SatLiteral lookupInCache(const Node& n) const;
 
-  //negotiates the mapping of atoms to literals with PropEngine
+  /**
+   * Caches the pair of the node and the literal corresponding to the
+   * translation.
+   * @param node node
+   * @param lit
+   */
   void cacheTranslation(const Node& node, SatLiteral lit);
 
-  SatLiteral aquireAndRegister(const Node& node, bool atom = false);
+  /**
+   * Acquires a new variable from the SAT solver to represent the node and
+   * inserts the necessary data it into the mapping tables.
+   * @param node a formula
+   * @return the literal corresponding to the formula
+   */
+  SatLiteral newLiteral(const Node& node);
 
 public:
 
   /**
-   * Constructs a CnfStream that sends constructs an equisatisfiable set of clauses
-   * and sends them to the given PropEngine.
-   * @param propEngine
+   * Constructs a CnfStream that sends constructs an equi-satisfiable set of clauses
+   * and sends them to the given sat solver.
+   * @param satSolver the sat solver to use
    */
-  CnfStream(PropEngine* propEngine);
-
-  /**
-   * Empties the internal translation cache.
-   */
-  void flushCache();
+  CnfStream(SatSolver* satSolver);
 
   /**
    * Converts and asserts a formula.
    * @param node node to convert and assert
+   * @param whether the sat solver can choose to remove this clause
    */
   virtual void convertAndAssert(const Node& node) = 0;
 
@@ -122,47 +146,45 @@ class TseitinCnfStream : public CnfStream {
 
 public:
 
+  /**
+   * Convert a given formula to CNF and assert it to the SAT solver.
+   * @param node the formula to assert
+   */
   void convertAndAssert(const Node& node);
 
-  TseitinCnfStream(PropEngine* propEngine);
+  /**
+   * Constructs the stream to use the given sat solver.
+   * @param satSolver the sat solver to use
+   */
+  TseitinCnfStream(SatSolver* satSolver);
 
 private:
 
-  /* Each of these formulas handles takes care of a Node of each Kind.
-   *
-   * Each handleX(Node &n) is responsible for:
-   *   - constructing a new literal, l (if necessary)
-   *   - calling registerNode(n,l)
-   *   - adding clauses assure that l is equivalent to the Node
-   *   - calling recTransform on its children (if necessary)
-   *   - returning l
-   *
-   * handleX( n ) can assume that n is not in d_translationCache
-   */
+  // Each of these formulas handles takes care of a Node of each Kind.
+  //
+  // Each handleX(Node &n) is responsible for:
+  //   - constructing a new literal, l (if necessary)
+  //   - calling registerNode(n,l)
+  //   - adding clauses assure that l is equivalent to the Node
+  //   - calling toCNF on its children (if necessary)
+  //   - returning l
+  //
+  // handleX( n ) can assume that n is not in d_translationCache
   SatLiteral handleAtom(const Node& node);
   SatLiteral handleNot(const Node& node);
   SatLiteral handleXor(const Node& node);
   SatLiteral handleImplies(const Node& node);
   SatLiteral handleIff(const Node& node);
   SatLiteral handleIte(const Node& node);
-
   SatLiteral handleAnd(const Node& node);
   SatLiteral handleOr(const Node& node);
 
   /**
-   * Maps recTransform over the children of a node. This is very useful for
-   * n-ary Kinds (OR, AND). Non n-ary kinds (IMPLIES) should avoid using this
-   * as it requires a tiny bit of extra overhead, and it leads to less readable
-   * code.
-   *
-   * precondition: target.size() == n.getNumChildren()
-   * @param n ...
-   * @param target ...
+   * Transforms the node into CNF recursively.
+   * @param node the formula to transform
+   * @return the literal representing the root of the formula
    */
-  void mapRecTransformOverChildren(const Node& node, SatClause& target);
-
-  //Recursively dispatches the various Kinds to the appropriate handler.
-  SatLiteral recTransform(const Node& node);
+  SatLiteral toCNF(const Node& node);
 
 }; /* class TseitinCnfStream */
 

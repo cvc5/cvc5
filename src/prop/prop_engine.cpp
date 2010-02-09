@@ -31,94 +31,59 @@ namespace CVC4 {
 namespace prop {
 
 PropEngine::PropEngine(const Options* opts, DecisionEngine* de,
-                       TheoryEngine* te) :
-  d_opts(opts),
-  d_de(de),
-  d_te(te),
-  d_restartMayBeNeeded(false) {
-  d_sat = new SatSolver();
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(this);
+                       TheoryEngine* te)
+: d_inCheckSat(false),
+  d_options(opts),
+  d_decisionEngine(de),
+  d_theoryEngine(te) 
+{
+  Debug("prop") << "Constructing the PropEngine" << endl;
+  d_satSolver = new SatSolver();
+  SatSolverProxy::initSatSolver(d_satSolver, d_options);
+  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
 }
 
 PropEngine::~PropEngine() {
+  Debug("prop") << "Destructing the PropEngine" << endl;
   delete d_cnfStream;
-  delete d_sat;
-}
-
-void PropEngine::assertClause(SatClause& clause) {
-  /*we can also here add a context dependent queue of assertions
-   *for restarting the sat solver
-   */
-  //TODO assert that each lit has been mapped to an atom or requested
-  d_sat->addClause(clause);
-}
-
-SatVariable PropEngine::registerAtom(const Node & n) {
-  SatVariable v = requestFreshVar();
-  d_atom2var.insert(make_pair(n, v));
-  d_var2atom.insert(make_pair(v, n));
-  return v;
-}
-
-SatVariable PropEngine::requestFreshVar() {
-  return d_sat->newVar();
+  delete d_satSolver;
 }
 
 void PropEngine::assertFormula(const Node& node) {
-
-  Debug("prop") << "Asserting ";
-  node.printAst(Debug("prop"));
-  Debug("prop") << endl;
-
+  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Debug("prop") << "assertFormula(" << node << ")" << endl;
+  // Assert as non-removable
   d_cnfStream->convertAndAssert(node);
-  d_assertionList.push_back(node);
 }
 
-void PropEngine::restart() {
-  delete d_sat;
-  d_sat = new SatSolver();
-  d_cnfStream->flushCache();
-  d_atom2var.clear();
-  d_var2atom.clear();
-
-  for(vector<Node>::iterator iter = d_assertionList.begin(); iter
-      != d_assertionList.end(); ++iter) {
-    d_cnfStream->convertAndAssert(*iter);
-  }
+void PropEngine::assertLemma(const Node& node) {
+  Debug("prop") << "assertFormula(" << node << ")" << endl;
+  // Assert as removable
+  d_cnfStream->convertAndAssert(node);
 }
 
-Result PropEngine::solve() {
-  if(d_restartMayBeNeeded)
-    restart();
-
-  d_sat->verbosity = (d_opts->verbosity > 0) ? 1 : -1;
-  bool result = d_sat->solve();
-
-  if(!result) {
-    d_restartMayBeNeeded = true;
-  }
-
-  Notice() << "result is " << (result ? "sat/invalid" : "unsat/valid") << endl;
-
+Result PropEngine::checkSat() {
+  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Debug("prop") << "solve()" << endl;
+  // Mark that we are in the checkSat
+  d_inCheckSat = true;
+  // Check the problem
+  bool result = d_satSolver->solve();
+  // Not in checkSat any more
+  d_inCheckSat = false;
+  Debug("prop") << "solve() => " << (result ? "true" : "false") << endl;
   return Result(result ? Result::SAT : Result::UNSAT);
 }
 
-void PropEngine::assertLit(SatLiteral lit) {
-  SatVariable var = literalToVariable(lit);
-  if(isVarMapped(var)) {
-    Node atom = lookupVar(var);
-    //Theory* t = ...;
-    //t must be the corresponding theory for the atom
-
-    //Literal l(atom, sign(l));
-    //t->assertLiteral(l );
-  }
+void PropEngine::push() {
+  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Debug("prop") << "push()" << endl;
 }
 
-void PropEngine::signalBooleanPropHasEnded() {
+void PropEngine::pop() {
+  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Debug("prop") << "pop()" << endl;
 }
-//TODO decisionEngine should be told
-//TODO theoryEngine to call lightweight theory propogation
 
 }/* prop namespace */
 }/* CVC4 namespace */

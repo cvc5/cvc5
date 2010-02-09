@@ -1,0 +1,4 @@
+a, b, c : BOOLEAN;
+
+% EXPECT: VALID
+QUERY NOT NOT a <=> a;

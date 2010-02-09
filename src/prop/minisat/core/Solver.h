@@ -36,9 +36,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace CVC4 {
 namespace prop {
+
+class SatSolverProxy;
+
 namespace minisat {
 
 class Solver {
+
+  /** The only CVC4 entry point to the private solver data */
+  friend class CVC4::prop::SatSolverProxy;
+
 public:
 
     // Constructor/Destructor:

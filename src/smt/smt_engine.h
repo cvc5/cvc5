@@ -117,23 +117,22 @@ private:
   std::vector<Node> d_assertions;
 
   /** Our expression manager */
-  ExprManager* d_publicEm;
+  ExprManager* d_exprManager;
 
   /** Out internal expression/node manager */
-  NodeManager* d_nm;
+  NodeManager* d_nodeManager;
 
   /** User-level options */
-  const Options* d_opts;
+  const Options* d_options;
 
   /** The decision engine */
-  DecisionEngine* d_de;
+  DecisionEngine* d_decisionEngine;
 
   /** The decision engine */
-  TheoryEngine* d_te;
+  TheoryEngine* d_theoryEngine;
 
   /** The propositional engine */
-  prop::PropEngine* d_prop;
-
+  prop::PropEngine* d_propEngine;
 
   /**
    * Pre-process an Node.  This is expected to be highly-variable,
@@ -141,12 +140,12 @@ private:
    * passes over the Node.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  Node preprocess(const Node& e);
+  Node preprocess(const Node& node);
 
   /**
    * Adds a formula to the current context.
    */
-  void addFormula(const Node& e);
+  void addFormula(const Node& node);
 
   /**
    * Full check of consistency in current context.  Returns true iff

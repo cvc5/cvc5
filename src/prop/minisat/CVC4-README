@@ -1,0 +1,68 @@
+* Accessing the internals of the SAT solver
+
+The non-public parts of the SAT solver are accessed via the static methods in 
+the SatSolverProxy class. SatSolverProxy is declared as a friend of the 
+SatSolver and has all-privileges access to the internals -- use with care!!!
+
+* Clause Database and CNF
+
+The clause database consists of two parts:
+
+    vec<Clause*>        clauses;          // List of problem clauses.
+    vec<Clause*>        learnts;          // List of learnt clauses.
+
+Clauses is the original problem clauses, and learnts are the clauses learned 
+during the search. I have disabled removal of satisfied problem clauses by 
+setting the remove_satisfied flag to false.
+
+The learnt clauses get removed every once in a while by removing the half of
+clauses with the low activity (reduceDB())
+
+Since the clause database backtracks with the SMT solver, the CNF cache should
+be context dependent and everything will be in sync. 
+
+* Adding a Clause
+
+The only method in the interface that allows addition of clauses in MiniSAT is
+
+    bool Solver::addClause(vec<Lit>& ps),
+
+but it only adds the problem clauses. 
+
+In order to add the clauses to the removable database the interface is now 
+
+    bool Solver::addClause(vec<Lit>& ps, bool removable).      
+
+Clauses added with removable=true might get removed by the SAT solver when 
+compacting the database.
+
+The question is whether to add the propagation/conflict lemmas as removable or 
+not?
+
+* Making it Backtrackable
+
+First, whenever we push a context, we have to know which clauses to remove from
+the clauses vector (the problem clauses). For this we keep a CDO<int> that tells
+us how many clauses are in the database. 
+
+We do the same for the learnt (removable) clauses, but this involves a little 
+bit more work. When removing clauses, minisat will sort the learnt clauses and 
+then remove the first half on non-locked clauses. We remember a CDO<int> for 
+the current context and sort/remove from that index on in the vector. 
+
+Also, each time we push a context, we need to remember the SAT solvers decision 
+level in order to make it the "0" decision level. We also keep this in a 
+CDO<int>, but the actual level has to be kept in the SAT solver and hard-coded 
+in the routines.
+
+* Literal Activities
+
+We do not backtrack literal activities. This does not semantically change the 
+equivalence of the context, but does change solve times if the same problem is
+run several times.
+
+* Conflict Analysis
+
+TODO
+
+* Do we need to assign literals that only appear in satisfied clauses?

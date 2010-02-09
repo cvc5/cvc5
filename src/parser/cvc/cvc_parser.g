@@ -237,7 +237,7 @@ impliesFormula returns [CVC4::Expr f]
 }
   : f = orFormula 
     ( IMPLIES e = impliesFormula
-        { f = mkExpr(CVC4::IFF, f, e); }
+        { f = mkExpr(CVC4::IMPLIES, f, e); }
     )?
   ;
 
