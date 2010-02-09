@@ -26,9 +26,3 @@ enum Kind {
   UNDEFINED_KIND = -1,
   /** Null Kind */
   NULL_EXPR,
-
-  /* built-ins */
-  EQUAL,
-  ITE,
-  SKOLEM,
-  VARIABLE,

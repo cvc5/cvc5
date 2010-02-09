@@ -35,6 +35,7 @@ EXTRA_DIST = @srcdir@/kind.h kind_prologue.h kind_middle.h kind_epilogue.h
 		@srcdir@/kind_prologue.h \
 		@srcdir@/kind_middle.h \
 		@srcdir@/kind_epilogue.h \
+		@srcdir@/builtin_kinds \
 		`grep '^SUBDIRS = ' @top_srcdir@/src/theory/Makefile.in | cut -d' ' -f3- | tr ' ' "\n" | xargs -i__D__ echo @top_srcdir@/src/theory/__D__/kinds` \
 	> @srcdir@/kind.h) || (rm -f @srcdir@/kind.h && exit 1)
 

@@ -27,8 +27,3 @@ inline std::ostream& operator<<(std::ostream& out, CVC4::Kind k) {
   /* special cases */
   case UNDEFINED_KIND: out << "UNDEFINED_KIND"; break;
   case NULL_EXPR: out << "NULL"; break;
-
-  case EQUAL: out << "EQUAL"; break;
-  case ITE: out << "ITE"; break;
-  case SKOLEM: out << "SKOLEM"; break;
-  case VARIABLE: out << "VARIABLE"; break;
