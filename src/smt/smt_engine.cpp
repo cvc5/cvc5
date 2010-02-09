@@ -109,4 +109,10 @@ Expr SmtEngine::simplify(const Expr& e) {
   Unimplemented();
 }
 
+void SmtEngine::push() {
+}
+
+void SmtEngine::pop() {
+}
+
 }/* CVC4 namespace */
