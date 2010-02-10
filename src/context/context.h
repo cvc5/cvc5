@@ -572,9 +572,8 @@ public:
    * implementation makes the following assumptions:
    * 1. Over time, objects are only added to the list.  Objects are only
    *    removed when a pop restores the list to a previous state.
-   * 2. T objects can safely be copied using memcpy.
-   * 3. T objects do not need to be destroyed when the list is reallocated
-   *    or when they are removed as a result of a pop.
+   * 2. T objects can safely be copied using their copy constructor,
+   *    operator=, and memcpy.
    */
 template <class T>
 class CDList :public ContextObj {
@@ -582,6 +581,13 @@ class CDList :public ContextObj {
    * d_list is a dynamic array of objects of type T.
    */
   T* d_list;
+
+  /**
+   * Whether to call the destructor when items are popped from the
+   * list.  True by default, but can be set to false by setting the
+   * second argument in the constructor to false.
+   */
+  bool d_callDestructor;
 
   /**
    * Number of objects in d_list
@@ -606,11 +612,19 @@ class CDList :public ContextObj {
   /**
    * Implementation of mandatory ContextObj method restore: simply restores the
    * previous size.  Note that the list pointer and the allocated size are not
-   * changed.  Also, for efficiency, the T objects that are no longer valid do
-   * not have their destructor called - if this is needed, we can add it later.
+   * changed.
    */
   void restore(ContextObj* data) {
-    d_size = ((CDList<T>*)data)->d_size;
+    if (d_callDestructor) {
+      unsigned size = ((CDList<T>*)data)->d_size;
+      while (d_size != size) {
+	--d_size;
+	d_list[d_size].~T();
+      }
+    }
+    else {
+      d_size = ((CDList<T>*)data)->d_size;
+    }      
   }
 
   /**
@@ -647,13 +661,24 @@ public:
   /**
    * Main constructor: d_list starts as NULL, size is 0
    */
-  CDList(Context* context) : ContextObj(context), d_list(NULL),
-                             d_size(0), d_sizeAlloc(0) { }
+ CDList(Context* context, bool callDestructor = true)
+   : ContextObj(context), d_list(NULL), d_callDestructor(callDestructor), 
+    d_size(0), d_sizeAlloc(0) { }
 
   /**
    * Destructor: delete the list
    */
-  ~CDList() { if(d_list != NULL) delete d_list; }
+  ~CDList() {
+    if(d_list != NULL) {
+      if (d_callDestructor) {
+	while (d_size != 0) {
+	  --d_size;
+	  d_list[d_size].~T();
+	}
+      }
+      delete d_list;
+    }
+  }
 
   /**
    * Return the current size of (i.e. valid number of objects in) the list

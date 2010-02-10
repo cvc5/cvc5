@@ -65,6 +65,8 @@ void Context::push() {
 
 
 void Context::pop() {
+  Assert(getLevel() > 0, "Cannot pop below level 0");
+
   // Notify the (pre-pop) ContextNotifyObj objects
   ContextNotifyObj* pCNO = d_pCNOpre;
   while (pCNO != NULL) {
