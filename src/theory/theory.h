@@ -64,6 +64,14 @@ public:
 
   /**
    * Prepare for a Node.
+   *
+   * When get() is called to get the next thing off the theory queue,
+   * setup() is called on its subterms (in TheoryEngine).  Then setup()
+   * is called on this node.
+   *
+   * This is done in a "context escape" -- that is, at context level 0.
+   * setup() MUST NOT MODIFY context-dependent objects that it hasn't
+   * itself just created.
    */
   virtual void setup(const Node& n) = 0;
 
