@@ -1,0 +1,6 @@
+% EXPECT: VALID
+% Simple test for right precedence of => and OR.
+
+A, B, C: BOOLEAN;
+
+QUERY (A OR B => C) <=> ((A OR B) => C);

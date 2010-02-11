@@ -1,0 +1,6 @@
+% EXPECT: VALID
+% Simple test for right precedence of OR and XOR.
+
+A, B, C: BOOLEAN;
+
+QUERY (A XOR B OR C) <=> ((A XOR B) OR C);

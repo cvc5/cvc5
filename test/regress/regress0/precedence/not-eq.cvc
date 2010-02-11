@@ -1,0 +1,6 @@
+% EXPECT: VALID
+% Simple test for right precedence of = and NOT.
+
+A, B: BOOLEAN;
+
+QUERY (NOT A = B) <=> (NOT (A = B));
