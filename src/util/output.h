@@ -90,7 +90,12 @@ public:
 };/* class Debug */
 
 /** The debug output singleton */
-extern DebugC Debug CVC4_PUBLIC;
+extern DebugC DebugOut CVC4_PUBLIC;
+#ifdef CVC4_DEBUG
+  #define Debug DebugOut
+#else
+  #define Debug if(0) DebugOut
+#endif
 
 /** The warning output class */
 class CVC4_PUBLIC WarningC {
