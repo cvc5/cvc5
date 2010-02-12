@@ -92,7 +92,7 @@ public:
    * Returns the hash value of the expression. Equal expression will have the
    * same hash value.
    */
-  uint64_t hash() const;
+  size_t hash() const;
 
   /**
    * Returns the kind of the expression (AND, PLUS ...).

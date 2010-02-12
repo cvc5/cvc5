@@ -88,29 +88,6 @@ class NodeValue {
   /** Destructor decrements the ref counts of its children */
   ~NodeValue();
 
-  /**
-   * Computes the hash over the given iterator span of children, and the
-   * root hash. The iterator should be either over a range of Node or pointers
-   * to NodeValue.
-   * @param hash the initial value for the hash
-   * @param begin the begining of the range
-   * @param end the end of the range
-   * @return the hash value
-   */
-  template<typename const_iterator_type>
-  static uint64_t computeHash(uint64_t hash, const_iterator_type begin,
-                              const_iterator_type end) {
-    for(const_iterator_type i = begin; i != end; ++i) {
-      hash = computeHash(hash, *i);
-    }
-    return hash;
-  }
-
-  static uint64_t computeHash(uint64_t hash, const NodeValue* ev) {
-    return
-      ( (hash << 3) | ((hash & 0xE000000000000000ull) >> 61) ) ^ ev->getId();
-  }
-
   typedef NodeValue** ev_iterator;
   typedef NodeValue const* const* const_ev_iterator;
 
@@ -153,12 +130,8 @@ class NodeValue {
   typedef node_iterator const_node_iterator;
 
 public:
-  /** Hash this expression.
-   *  @return the hash value of this expression. */
-  uint64_t hash() const;
 
   // Iterator support
-
   typedef node_iterator iterator;
   typedef node_iterator const_iterator;
 
@@ -167,6 +140,44 @@ public:
 
   const_iterator begin() const;
   const_iterator end() const;
+
+  /**
+   * Hash this expression.
+   * @return the hash value of this expression.
+   */
+  size_t hash() const {
+    size_t hash = d_kind;
+    const_ev_iterator i = ev_begin();
+    const_ev_iterator i_end = ev_end();
+    while (i != i_end) {
+      hash ^= (*i)->d_id + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+      ++ i;
+    }
+    return hash;
+  }
+
+  inline bool compareTo(const NodeValue* nv) const {
+    if(d_kind != nv->d_kind)
+      return false;
+    if(d_nchildren != nv->d_nchildren)
+      return false;
+    const_ev_iterator i = ev_begin();
+    const_ev_iterator j = nv->ev_begin();
+    const_ev_iterator i_end = ev_end();
+    while(i != i_end) {
+      if ((*i) != (*j)) return false;
+      ++i; ++j;
+    }
+    return true;
+  }
+
+  // Comparison predicate
+  struct NodeValueEq {
+    bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
+      return nv1->compareTo(nv2);
+    }
+  };
+
 
   unsigned getId() const { return d_id; }
   Kind getKind() const { return (Kind) d_kind; }

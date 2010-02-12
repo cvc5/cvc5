@@ -40,10 +40,6 @@ NodeValue::~NodeValue() {
   }
 }
 
-uint64_t NodeValue::hash() const {
-  return computeHash(d_kind, ev_begin(), ev_end());
-}
-
 void NodeValue::inc() {
   // FIXME multithreading
   if(EXPECT_TRUE( d_rc < MAX_RC )) {

@@ -192,7 +192,6 @@ public:
     Debug("prop") << "append: " << this << " " << n << "[" << n.d_ev << "]" << std::endl;
     allocateEvIfNecessaryForAppend();
     NodeValue* ev = n.d_ev;
-    d_hash = NodeValue::computeHash(d_hash, ev);
     ev->inc();
     d_ev->d_children[d_ev->d_nchildren++] = ev;
     return *this;
@@ -587,7 +586,9 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
   // was malloc'ed or not
 
   if(EXPECT_FALSE( evIsAllocated() )) {
-    NodeValue *ev = d_nm->lookupNoInsert(d_hash, d_ev);
+    // Lookup the expression value in the pool we already have (with insert)
+    NodeValue* ev = d_nm->poolLookup(d_ev);
+    // If something else is there, we reuse it
     if(ev != NULL) {
       // expression already exists in node manager
       dealloc();
@@ -595,20 +596,19 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
       Debug("prop") << "result: " << Node(ev) << std::endl;
       return Node(ev);
     }
-
-    // otherwise create the canonical expression value for this node
+    // Otherwise crop and set the expression value to the allocate one
     crop();
     ev = d_ev;
     d_ev = NULL;
-    // this inserts into the NodeManager;
-    // return the result of lookup() in case another thread beat us to it
     d_used = true;
-    Node n = d_nm->lookup(d_hash, ev);
+    d_nm->poolInsert(ev);
+    Node n(ev);
     Debug("prop") << "result: " << n << std::endl;
     return n;
   }
 
-  NodeValue *ev = d_nm->lookupNoInsert(d_hash, &d_inlineEv);
+  // Lookup the expression value in the pool we already have
+  NodeValue* ev = d_nm->poolLookup(&d_inlineEv);
   if(ev != NULL) {
     // expression already exists in node manager
     d_used = true;
@@ -630,12 +630,9 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
   d_used = true;
   d_ev = NULL;
 
-  // this inserts into the NodeManager;
-  // return the result of lookup() in case another thread beat us to it
-  if(ev->getNumChildren()) {
-    Debug("prop") << "ev first child: " << *ev->ev_begin() << std::endl;
-  }
-  Node n = d_nm->lookup(d_hash, ev);
+  // Make the new expression
+  d_nm->poolInsert(ev);
+  Node n(ev);
   Debug("prop") << "result: " << n << std::endl;
   return n;
 }

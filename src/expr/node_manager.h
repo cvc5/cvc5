@@ -17,10 +17,20 @@
 #define __CVC4__NODE_MANAGER_H
 
 #include <vector>
-#include <map>
+#include <ext/hash_set>
 
 #include "node.h"
 #include "kind.h"
+
+namespace __gnu_cxx {
+template<>
+  struct hash<CVC4::NodeValue*> {
+    size_t operator()(const CVC4::NodeValue* nv) const {
+      return (size_t)nv->hash();
+    }
+  };
+} /* __gnu_cxx namespace */
+
 
 namespace CVC4 {
 
@@ -29,16 +39,18 @@ class NodeManager {
 
   template <unsigned> friend class CVC4::NodeBuilder;
 
-  typedef std::map<uint64_t, std::vector<Node> > hash_t;
-  hash_t d_hash;
+  typedef __gnu_cxx::hash_set<NodeValue*, __gnu_cxx::hash<NodeValue*>, NodeValue::NodeValueEq> NodeValueSet;
+  NodeValueSet d_nodeValueSet;
 
-  Node lookup(uint64_t hash, const Node& e) { return lookup(hash, e.d_ev); }
-  Node lookup(uint64_t hash, NodeValue* e);
-  NodeValue* lookupNoInsert(uint64_t hash, NodeValue* e);
+  NodeValue* poolLookup(NodeValue* nv) const;
+  void poolInsert(NodeValue* nv);
 
   friend class NodeManagerScope;
 
 public:
+
+  NodeManager();
+
   static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders

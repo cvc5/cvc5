@@ -117,7 +117,7 @@ benchAttribute returns [Command* smt_command = 0]
 annotatedFormula returns [CVC4::Expr formula]
 {
   Debug("parser") << "annotated formula: " << LT(1)->getText() << endl;
-  Kind kind;
+  Kind kind = UNDEFINED_KIND;
   vector<Expr> args; 
 }
   : /* a built-in operator application */

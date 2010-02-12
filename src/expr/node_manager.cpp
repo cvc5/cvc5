@@ -22,86 +22,23 @@ namespace CVC4 {
 
 __thread NodeManager* NodeManager::s_current = 0;
 
-Node NodeManager::lookup(uint64_t hash, NodeValue* ev) {
-  Assert(this != NULL, "Whoops, we have a bad expression manager!");
-  Assert(ev != NULL, "lookup() expects a non-NULL NodeValue!");
+NodeManager::NodeManager() {
+  poolInsert(&NodeValue::s_null);
+}
 
-  hash_t::iterator i = d_hash.find(hash);
-  if(i == d_hash.end()) {
-    // insert
-    std::vector<Node> v;
-    Node e(ev);
-    v.push_back(e);
-    d_hash.insert(std::make_pair(hash, v));
-    return e;
+NodeValue* NodeManager::poolLookup(NodeValue* nv) const {
+  NodeValueSet::const_iterator find = d_nodeValueSet.find(nv);
+  if (find == d_nodeValueSet.end()) {
+    return NULL;
   } else {
-    for(std::vector<Node>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-      if(ev->getKind() != j->getKind()) {
-        continue;
-      }
-
-      if(ev->getNumChildren() != j->getNumChildren()) {
-        continue;
-      }
-
-      NodeValue::const_ev_iterator c1 = ev->ev_begin();
-      NodeValue::ev_iterator c2 = j->d_ev->ev_begin();
-      for(; c1 != ev->ev_end() && c2 != j->d_ev->ev_end(); ++c1, ++c2) {
-        if(*c1 != *c2) {
-          break;
-        }
-      }
-
-      if(c1 != ev->ev_end() || c2 != j->d_ev->ev_end()) {
-        continue;
-      }
-
-      return *j;
-    }
-
-    // didn't find it, insert
-    Node e(ev);
-    i->second.push_back(e);
-    return e;
+    return *find;
   }
 }
 
-NodeValue* NodeManager::lookupNoInsert(uint64_t hash, NodeValue* ev) {
-  Assert(this != NULL, "Whoops, we have a bad expression manager!");
-  Assert(ev != NULL, "lookupNoInsert() expects a non-NULL NodeValue!");
-
-  hash_t::iterator i = d_hash.find(hash);
-  if(i == d_hash.end()) {
-    return NULL;
-  } else {
-    for(std::vector<Node>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-      if(ev->getKind() != j->getKind()) {
-        continue;
-      }
-
-      if(ev->getNumChildren() != j->getNumChildren()) {
-        continue;
-      }
-
-      NodeValue::const_ev_iterator c1 = ev->ev_begin();
-      NodeValue::ev_iterator c2 = j->d_ev->ev_begin();
-      for(; c1 != ev->ev_end() && c2 != j->d_ev->ev_end(); ++c1, ++c2) {
-        Debug("expr") << "comparing " << c1 << " and " << c2 << std::endl;
-        if(*c1 != *c2) {
-          break;
-        }
-      }
-
-      if(c1 != ev->ev_end() || c2 != j->d_ev->ev_end()) {
-        continue;
-      }
-
-      return j->d_ev;
-    }
-
-    // didn't find it, don't insert
-    return 0;
-  }
+void NodeManager::poolInsert(NodeValue* nv) {
+  Assert(d_nodeValueSet.find(nv) == d_nodeValueSet.end(), "NodeValue already in"
+         "the pool!");
+  d_nodeValueSet.insert(nv);
 }
 
 // general expression-builders

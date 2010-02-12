@@ -96,11 +96,6 @@ Node& Node::operator=(const Node& e) {
   return *this;
 }
 
-uint64_t Node::hash() const {
-  Assert(d_ev != NULL, "Expecting a non-NULL expression value!");
-  return d_ev->hash();
-}
-
 Node Node::eqExpr(const Node& right) const {
   return NodeManager::currentNM()->mkNode(EQUAL, *this, right);
 }

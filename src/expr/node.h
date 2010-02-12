@@ -119,7 +119,7 @@ public:
 
   Node& operator=(const Node&);
 
-  uint64_t hash() const;
+  size_t hash() const { return d_ev->getId(); }
   uint64_t getId() const { return d_ev->getId(); }
 
   Node eqExpr(const Node& right) const;

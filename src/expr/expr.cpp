@@ -77,7 +77,7 @@ bool Expr::operator<(const Expr& e) const {
   return *d_node < *e.d_node;
 }
 
-uint64_t Expr::hash() const {
+size_t Expr::hash() const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return (d_node->isNull());
 }
