@@ -25,7 +25,7 @@ namespace CVC4 {
 null_streambuf null_sb;
 std::ostream null_os(&null_sb);
 
-DebugC   Debug  (&std::cout);
+DebugC   DebugOut  (&std::cout);
 WarningC Warning(&std::cerr);
 MessageC Message(&std::cout);
 NoticeC  Notice (&std::cout);
