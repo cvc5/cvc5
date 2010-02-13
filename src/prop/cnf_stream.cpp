@@ -318,6 +318,28 @@ SatLiteral TseitinCnfStream::toCNF(const Node& node) {
 
 void TseitinCnfStream::convertAndAssert(const Node& node) {
   Debug("cnf") << "convertAndAssert(" << node << ")" << endl;
+  // If the node is a conjuntion, we handle each conjunct separatelu
+  if (node.getKind() == AND) {
+    Node::iterator conjunct = node.begin();
+    Node::iterator node_end = node.end();
+    while (conjunct != node_end) {
+      convertAndAssert(*conjunct);
+      ++ conjunct;
+    }
+    return;
+  }
+  // If the node is a disjunction, we construct a clause and assert it
+  if (node.getKind() == OR) {
+    int nChildren = node.getNumChildren();
+    SatClause clause(nChildren);
+    Node::iterator disjunct = node.begin();
+    for (int i = 0; i < nChildren; ++ disjunct, ++ i) {
+      clause[i] = toCNF(*disjunct);
+    }
+    assertClause(clause);
+    return;
+  }
+  // Otherwise, we just convert using the definitional transformation
   assertClause(toCNF(node));
 }
 
