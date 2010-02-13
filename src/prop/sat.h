@@ -23,12 +23,13 @@
 #include "util/options.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/core/SolverTypes.h"
+#include "prop/minisat/simp/SimpSolver.h"
 
 namespace CVC4 {
 namespace prop {
 
 /** The solver we are using */
-typedef minisat::Solver SatSolver;
+typedef minisat::SimpSolver SatSolver;
 
 /** Type of the SAT variables */
 typedef minisat::Var SatVariable;
