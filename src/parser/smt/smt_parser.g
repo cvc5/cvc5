@@ -123,21 +123,8 @@ annotatedFormula returns [CVC4::Expr formula]
 }
   : /* a built-in operator application */
     LPAREN kind = builtinOp annotatedFormulas[args] RPAREN 
-    { AlwaysAssert( args.size() >= minArity(kind) 
-                    && args.size() <= maxArity(kind) );
+    { AlwaysAssert( checkArity(kind, args.size()) );
       formula = mkExpr(kind,args); }
-      exception catch [CVC4::AssertionException& ex] {
-        stringstream ss;
-        ss << "Expected ";
-        if( args.size() < minArity(kind) ) {
-          ss << "at least " << minArity(kind) << " ";
-        } else {
-          ss << "at most " << maxArity(kind) << " ";
-        }
-        ss << "arguments for operator '" << kind << "'. ";
-        ss << "Found: " << args.size();
-        parseError(ss.str());
-      }
 
   | /* A non-built-in function application */
 
@@ -226,12 +213,8 @@ functionSymbol returns [CVC4::Expr fun]
   string name;
 }
   : name = functionName[CHECK_DECLARED]
-    { AlwaysAssert( isFunction(name) );
+    { AlwaysAssert( checkFunction(name) );
       fun = getFunction(name); }
-    exception catch [CVC4::AssertionException& ex] {
-      parseError("Expected function symbol, found: " + name);
-    }
-
   ;
   
 /**
@@ -334,12 +317,5 @@ returns [std::string id]
   : x:IDENTIFIER
     { id = x->getText();
       AlwaysAssert( checkDeclaration(id, check,type) ); }
-    exception catch [CVC4::AssertionException& ex] {
-      switch (check) {
-        case CHECK_DECLARED: parseError("Symbol " + id + " not declared");
-        case CHECK_UNDECLARED: parseError("Symbol " + id + " already declared");
-        default: throw ex;
-      }
-    }
   ;
 

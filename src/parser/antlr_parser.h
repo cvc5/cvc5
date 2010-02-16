@@ -147,14 +147,32 @@ protected:
    * Return true if the the declaration policy we want to enforce holds
    * for the given symbol.
    * @param name the symbol to check
-   * @oaram check the kind of check to perform
+   * @param check the kind of check to perform
    * @param type the type of the symbol
    * @return true if the check holds
+   * @throws SemanticException if the check fails
    */
   bool checkDeclaration(std::string name, 
                         DeclarationCheck check,
-                        SymbolType type = SYM_VARIABLE);
+                        SymbolType type = SYM_VARIABLE)
+    throw (antlr::SemanticException);
 
+  /**
+   * Returns true if the given name is bound to a function.
+   * @param name the name to check
+   * @return true if name is bound to a function
+   * @throws SemanticException if name is not bound to a function
+   */
+  bool checkFunction(std::string name) throw (antlr::SemanticException);
+
+  /**
+   * Check that <code>kind</code> can accept <code>numArgs</codes> arguments.
+   * @param kind the built-in operator to check
+   * @param numArgs the number of actual arguments
+   * @throws SemanticException if the operator <code>kind</code> cannot be
+   * applied to <code>numArgs</code> arguments.
+   */
+  bool checkArity(Kind kind, unsigned int numArgs) throw (antlr::SemanticException);
 
   /** 
    * Returns the type for the variable with the given name. 

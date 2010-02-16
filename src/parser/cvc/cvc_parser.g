@@ -153,15 +153,8 @@ identifier[DeclarationCheck check = CHECK_NONE,
            SymbolType type = SYM_VARIABLE] 
 returns [std::string id]
   : x:IDENTIFIER
-    { id = x->getText(); }
-    { checkDeclaration(id, check, type) }?
-    exception catch [antlr::SemanticException& ex] {
-      switch (check) {
-        case CHECK_DECLARED: parseError("Symbol " + id + " not declared");
-        case CHECK_UNDECLARED: parseError("Symbol " + id + " already declared");
-        default: throw ex;
-      }
-    }
+    { id = x->getText(); 
+      AlwaysAssert( checkDeclaration(id, check, type) ); }
   ;
 
 /**
@@ -388,9 +381,6 @@ functionSymbol[DeclarationCheck check = CHECK_NONE] returns [CVC4::Expr f]
   std::string name;
 }  
   : name = identifier[check,SYM_FUNCTION]
-    { AlwaysAssert( isFunction(name) );  
+    { AlwaysAssert( checkFunction(name) );  
       f = getFunction(name); }
-    exception catch [CVC4::AssertionException& ex] {
-      parseError("Expected function symbol, found: " + name);
-    }
   ;

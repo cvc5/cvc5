@@ -297,17 +297,55 @@ void AntlrParser::parseError(string message)
 
 bool AntlrParser::checkDeclaration(string varName, 
                                    DeclarationCheck check,
-                                   SymbolType type) {
+                                   SymbolType type)
+    throw (antlr::SemanticException) {
   switch(check) {
   case CHECK_DECLARED:
-    return isDeclared(varName, type);
+    if( !isDeclared(varName, type) ) {
+      parseError("Symbol " + varName + " not declared");
+    } else {
+      return true;
+    }
   case CHECK_UNDECLARED:
-    return !isDeclared(varName, type);
+    if( isDeclared(varName, type) ) {
+      parseError("Symbol " + varName + " previously declared");
+    } else {
+      return true;
+    }
   case CHECK_NONE:
     return true;
   default:
     Unhandled("Unknown check type!");
   }
+}
+
+bool AntlrParser::checkFunction(string name)   
+  throw (antlr::SemanticException) {
+  if( !isFunction(name) ) {
+    parseError("Expecting function symbol, found '" + name + "'");
+  } 
+
+  return true;
+}
+
+bool AntlrParser::checkArity(Kind kind, unsigned int numArgs)
+  throw (antlr::SemanticException) {
+  unsigned int min = minArity(kind);
+  unsigned int max = maxArity(kind);
+
+  if( numArgs < min || numArgs > max ) {
+    stringstream ss;
+    ss << "Expecting ";
+    if( numArgs < min ) {
+      ss << "at least " << min << " ";
+    } else {
+      ss << "at most " << max << " ";
+    }
+    ss << "arguments for operator '" << kind << "', ";
+    ss << "found " << numArgs;
+    parseError(ss.str());
+  }
+  return true;
 }
 
 }/* CVC4::parser namespace */
