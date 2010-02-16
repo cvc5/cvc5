@@ -57,7 +57,8 @@ enum OptionValue {
   CNF = 256, /* no clash with char options */
   SMTCOMP,
   STATS,
-  SEGV_NOSPIN
+  SEGV_NOSPIN,
+  PARSE_ONLY
 };/* enum OptionValue */
 
 // FIXME add a comment here describing the option array
@@ -72,7 +73,8 @@ static struct option cmdlineOptions[] = {
   { "cnf"        , required_argument, NULL, CNF         },
   { "smtcomp"    , no_argument      , NULL, SMTCOMP     },
   { "stats"      , no_argument      , NULL, STATS       },
-  { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN }
+  { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
+  { "parse-only" , no_argument      , NULL, PARSE_ONLY  }
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -168,6 +170,10 @@ throw(OptionException) {
       opts->smtcomp_mode = true;
       opts->verbosity = -1;
       opts->lang = Parser::LANG_SMTLIB;
+      break;
+
+    case PARSE_ONLY:
+      opts->parseOnly = true;
       break;
 
     case '?':

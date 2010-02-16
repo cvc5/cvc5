@@ -36,6 +36,7 @@ CVC4 options:\n\
    --smtcomp       competition mode (very quiet)\n\
    --stats         give statistics on exit\n\
    --segv-nospin   (debug builds only) don't spin on segfault waiting for gdb\n\
+   --parse-only    exit after parsing input\n\
 ";
 
 }/* CVC4::main namespace */

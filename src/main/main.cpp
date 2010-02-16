@@ -114,7 +114,9 @@ int main(int argc, char *argv[]) {
     // Parse and execute commands until we are done
     Command* cmd;
     while((cmd = parser->parseNextCommand())) {
-      doCommand(smt, cmd);
+      if( !options.parseOnly ) {
+        doCommand(smt, cmd);
+      }
       delete cmd;
     }
 

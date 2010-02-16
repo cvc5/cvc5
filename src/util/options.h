@@ -45,6 +45,8 @@ struct Options {
   /** The CNF conversion */
   CVC4::CnfConversion d_cnfConversion;
 
+  bool parseOnly;
+
   Options() : binary_name(),
               smtcomp_mode(false),
               statistics(false),
@@ -52,7 +54,8 @@ struct Options {
               err(0),
               verbosity(0),
               lang(parser::Parser::LANG_AUTO),
-              d_cnfConversion(CVC4::CNF_VAR_INTRODUCTION)
+              d_cnfConversion(CVC4::CNF_VAR_INTRODUCTION),
+              parseOnly(false)
   {}
 };/* struct Options */
 
