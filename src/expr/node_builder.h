@@ -455,7 +455,9 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
   d_used(false),
   d_ev(&d_inlineEv),
   d_inlineEv(0),
-  d_childrenStorage() {}
+  d_childrenStorage() {
+  d_inlineEv.d_kind = UNDEFINED_KIND;
+}
 
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
@@ -474,8 +476,8 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
 template <unsigned nchild_thresh>
 inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
   if(!d_used) {
-    Warning("NodeBuilder unused at destruction\n");
-
+    // Warning("NodeBuilder unused at destruction\n");
+    // Commented above, as it happens a lot, for example with exceptions
     dealloc();
   }
 }
@@ -547,9 +549,6 @@ inline void NodeBuilder<nchild_thresh>::dealloc() {
    * production; these are just sanity checks for debug builds */
   Assert(!d_used,
          "Internal error: NodeBuilder: dealloc() called with d_used");
-  Assert(evIsAllocated(),
-         "Internal error: NodeBuilder: "
-         "dealloc() called with stack-allocated NodeBuilder");
 
   for(iterator i = d_ev->ev_begin();
       i != d_ev->ev_end();
