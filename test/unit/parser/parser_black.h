@@ -66,6 +66,7 @@ const string badCvc4Inputs[] = {
       "0x : INT;", // 0x isn't an identifier
       "a, b : BOOLEAN\nQUERY (a => b) AND a => b;", // no semicolon after decl
       "a : BOOLEAN; a: BOOLEAN;" // double decl
+      "a, b: BOOLEAN; QUERY a(b);" // non-function used as function
   };
 
 const int numBadCvc4Inputs = sizeof(badCvc4Inputs) / sizeof(string);
@@ -142,7 +143,8 @@ const string badSmtExprs[] = {
     "(a IMPLIES b)", // infix AND wrong case
     "(not a b)", // wrong arity
     "not a", // needs parens
-    "(ite a x)" // wrong arity
+    "(ite a x)", // wrong arity
+    "(a b)" // using non-function as function
 };
 
 const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);

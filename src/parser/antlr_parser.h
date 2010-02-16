@@ -101,10 +101,9 @@ protected:
   AntlrParser(antlr::TokenStream& lexer, int k);
 
   /**
-   * Renames the antlr semantic expression to a given message.
+   * Throws an ANTLR semantic exception with the given message.
    */
-  void rethrow(antlr::SemanticException& e, std::string msg)
-      throw (antlr::SemanticException);
+  void parseError(std::string msg) throw (antlr::SemanticException);
 
   /**
    * Returns a variable, given a name and a type.

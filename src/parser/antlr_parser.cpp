@@ -288,9 +288,9 @@ bool AntlrParser::isDeclared(string name, SymbolType type) {
   }
 }
 
-void AntlrParser::rethrow(antlr::SemanticException& e, string new_message)
+void AntlrParser::parseError(string message)
     throw (antlr::SemanticException) {
-  throw antlr::SemanticException(new_message, getFilename(),
+  throw antlr::SemanticException(message, getFilename(),
                                  LT(1).get()->getLine(),
                                  LT(1).get()->getColumn());
 }

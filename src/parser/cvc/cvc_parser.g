@@ -157,8 +157,8 @@ returns [std::string id]
     { checkDeclaration(id, check, type) }?
     exception catch [antlr::SemanticException& ex] {
       switch (check) {
-        case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
-        case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
+        case CHECK_DECLARED: parseError("Symbol " + id + " not declared");
+        case CHECK_UNDECLARED: parseError("Symbol " + id + " already declared");
         default: throw ex;
       }
     }
@@ -322,12 +322,12 @@ term returns [CVC4::Expr t]
   Debug("parser") << "term: " << LT(1)->getText() << endl;
 }
   : /* function application */
-    { isFunction(LT(1)->getText()) }? 
-    name = functionSymbol[CHECK_DECLARED]
-    {
-      std::vector<CVC4::Expr> args;
-      args.push_back( getFunction(name) ); 
-    }
+    // { isFunction(LT(1)->getText()) }? 
+    { Expr f; 
+      std::vector<CVC4::Expr> args; }
+    f = functionSymbol[CHECK_DECLARED]
+    { args.push_back( f ); }
+
     LPAREN formulaList[args] RPAREN
     // TODO: check arity
     { t = mkExpr(CVC4::APPLY, args); }
@@ -382,9 +382,15 @@ iteElseTerm returns [CVC4::Expr t]
  * @param what kind of check to perform on the id
  * @return the predicate symol
  */
-functionSymbol[DeclarationCheck check = CHECK_NONE] returns [std::string symbol]
+functionSymbol[DeclarationCheck check = CHECK_NONE] returns [CVC4::Expr f]
 {
   Debug("parser") << "function symbol: " << LT(1)->getText() << endl;
-
-}  : symbol = identifier[check,SYM_FUNCTION]
+  std::string name;
+}  
+  : name = identifier[check,SYM_FUNCTION]
+    { AlwaysAssert( isFunction(name) );  
+      f = getFunction(name); }
+    exception catch [CVC4::AssertionException& ex] {
+      parseError("Expected function symbol, found: " + name);
+    }
   ;

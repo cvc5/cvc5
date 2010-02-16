@@ -16,6 +16,7 @@
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
 #include "expr/command.h"
+#include "util/Assert.h"
 }
 
 header "post_include_cpp" {
@@ -42,7 +43,7 @@ class AntlrSmtParser extends Parser("AntlrParser");
 options {
   genHashLines = true;              // Include line number information
   importVocab = SmtVocabulary;      // Import the common vocabulary
-  defaultErrorHandler = false;      // Skip the defaul error handling, just break with exceptions
+  defaultErrorHandler = false;      // Skip the default error handling, just break with exceptions
   k = 2;
 }
 
@@ -122,10 +123,10 @@ annotatedFormula returns [CVC4::Expr formula]
 }
   : /* a built-in operator application */
     LPAREN kind = builtinOp annotatedFormulas[args] RPAREN 
-    { args.size() >= minArity(kind) 
-      && args.size() <= maxArity(kind) }?
-    { formula = mkExpr(kind,args); }
-      exception catch [antlr::SemanticException& ex] {
+    { AlwaysAssert( args.size() >= minArity(kind) 
+                    && args.size() <= maxArity(kind) );
+      formula = mkExpr(kind,args); }
+      exception catch [CVC4::AssertionException& ex] {
         stringstream ss;
         ss << "Expected ";
         if( args.size() < minArity(kind) ) {
@@ -135,11 +136,15 @@ annotatedFormula returns [CVC4::Expr formula]
         }
         ss << "arguments for operator '" << kind << "'. ";
         ss << "Found: " << args.size();
-        rethrow(ex, ss.str());
+        parseError(ss.str());
       }
 
   | /* A non-built-in function application */
-    { isFunction(LT(2)->getText()) }? 
+
+    // Semantic predicate not necessary if parenthesized subexpressions
+    // are disallowed
+    // { isFunction(LT(2)->getText()) }? 
+
     { Expr f; }
     LPAREN f = functionSymbol
     { args.push_back(f); }
@@ -155,9 +160,6 @@ annotatedFormula returns [CVC4::Expr formula]
     falseExpr = annotatedFormula
     RPAREN
     { formula = mkExpr(CVC4::ITE, test, trueExpr, falseExpr); }
-
-  | /* a parenthesized sub-formula */
-    LPAREN formula = annotatedFormula RPAREN
 
   | /* a variable */
     { std::string name; }
@@ -224,7 +226,12 @@ functionSymbol returns [CVC4::Expr fun]
   string name;
 }
   : name = functionName[CHECK_DECLARED]
-    { fun = getFunction(name); }
+    { AlwaysAssert( isFunction(name) );
+      fun = getFunction(name); }
+    exception catch [CVC4::AssertionException& ex] {
+      parseError("Expected function symbol, found: " + name);
+    }
+
   ;
   
 /**
@@ -325,12 +332,12 @@ returns [std::string id]
                   << " type? " << toString(type) << endl;
 }
   : x:IDENTIFIER
-    { id = x->getText(); }
-    { checkDeclaration(id, check,type) }?
-    exception catch [antlr::SemanticException& ex] {
+    { id = x->getText();
+      AlwaysAssert( checkDeclaration(id, check,type) ); }
+    exception catch [CVC4::AssertionException& ex] {
       switch (check) {
-        case CHECK_DECLARED: rethrow(ex, "Symbol " + id + " not declared");
-        case CHECK_UNDECLARED: rethrow(ex, "Symbol " + id + " already declared");
+        case CHECK_DECLARED: parseError("Symbol " + id + " not declared");
+        case CHECK_UNDECLARED: parseError("Symbol " + id + " already declared");
         default: throw ex;
       }
     }
