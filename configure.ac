@@ -331,6 +331,16 @@ AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
   [CXXTEST="$withval"])
 
+# In the case of "./configure --with-cxxtest-dir=../cxxtest" (or other
+# relative path) and having switched the configure directory (see above),
+# search with respect to the top source dir, not the build dir
+if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
+  case "$CXXTEST" in
+    /*) ;;
+    *)  CXXTEST="$srcdir/$CXXTEST" ;;
+  esac
+fi
+
 CXXTESTGEN=
 AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
 if test -z "$CXXTESTGEN"; then
