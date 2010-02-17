@@ -102,6 +102,11 @@ public:
   int getLevel() const { return ((int)d_scopeList.size()) - 1; }
 
   /**
+   * Return the ContextMemoryManager associated with the context.
+   */
+  ContextMemoryManager* getCMM(){ return d_pCMM; }
+
+  /**
    * Save the current state, create a new Scope
    */
   void push();
