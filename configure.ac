@@ -317,13 +317,10 @@ AC_PROG_INSTALL
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 
-AC_CHECK_PROG(DOXYGEN, doxygen, doxygen, [])
-
-if test -z "$DOXYGEN"; then
-  AC_MSG_WARN([documentation targets require doxygen.  Set your PATH appropriately or set DOXYGEN to point to a valid doxygen binary.])
-fi
-
-AC_ARG_VAR(DOXYGEN, [location of doxygen binary])
+DX_PDF_FEATURE(OFF)
+DX_PS_FEATURE(OFF)
+DX_DOT_FEATURE(OFF)
+DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc)
 
 AC_SUBST([CXXTEST])
 
