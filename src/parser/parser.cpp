@@ -132,5 +132,14 @@ Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
   return getNewParser(em, lang, &input, "", false);
 }
 
+void Parser::disableChecks() {
+  d_antlrParser->disableChecks();
+}
+
+void Parser::enableChecks() {
+  d_antlrParser->enableChecks();
+}
+
+
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

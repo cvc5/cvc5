@@ -111,6 +111,10 @@ int main(int argc, char *argv[]) {
       parser = Parser::getNewParser(&exprMgr, options.lang, argv[firstArgIndex]);
     }
 
+    if(!options.semanticChecks) {
+      parser->disableChecks();
+    }
+
     // Parse and execute commands until we are done
     Command* cmd;
     while((cmd = parser->parseNextCommand())) {

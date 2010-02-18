@@ -154,7 +154,7 @@ identifier[DeclarationCheck check = CHECK_NONE,
 returns [std::string id]
   : x:IDENTIFIER
     { id = x->getText(); 
-      AlwaysAssert( checkDeclaration(id, check, type) ); }
+      checkDeclaration(id, check, type); }
   ;
 
 /**
@@ -381,6 +381,6 @@ functionSymbol[DeclarationCheck check = CHECK_NONE] returns [CVC4::Expr f]
   std::string name;
 }  
   : name = identifier[check,SYM_FUNCTION]
-    { AlwaysAssert( checkFunction(name) );  
+    { checkFunction(name);  
       f = getFunction(name); }
   ;

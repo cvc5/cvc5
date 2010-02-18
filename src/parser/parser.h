@@ -84,6 +84,12 @@ public:
    */
   bool done() const;
 
+  /** Enable semantic checks during parsing. */
+  void enableChecks();
+
+  /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
+  void disableChecks();
+
 private:
 
   /**

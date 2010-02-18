@@ -37,19 +37,20 @@ namespace CVC4 {
 namespace parser {
 
 AntlrParser::AntlrParser(const antlr::ParserSharedInputState& state, int k) :
-  antlr::LLkParser(state, k) {
+  antlr::LLkParser(state, k), d_checksEnabled(true) {
 }
 
 AntlrParser::AntlrParser(antlr::TokenBuffer& tokenBuf, int k) :
-  antlr::LLkParser(tokenBuf, k) {
+  antlr::LLkParser(tokenBuf, k), d_checksEnabled(true) {
 }
 
 AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
-  antlr::LLkParser(lexer, k) {
+  antlr::LLkParser(lexer, k), d_checksEnabled(true) {
 }
 
 Expr AntlrParser::getSymbol(std::string name, SymbolType type) {
   Assert( isDeclared(name,type) );
+
   switch( type ) {
   case SYM_VARIABLE: // Functions share var namespace
   case SYM_FUNCTION:
@@ -295,41 +296,48 @@ void AntlrParser::parseError(string message)
                                  LT(1).get()->getColumn());
 }
 
-bool AntlrParser::checkDeclaration(string varName, 
+void AntlrParser::checkDeclaration(string varName,
                                    DeclarationCheck check,
                                    SymbolType type)
     throw (antlr::SemanticException) {
+  if(!d_checksEnabled) {
+    return;
+  }
+
   switch(check) {
   case CHECK_DECLARED:
     if( !isDeclared(varName, type) ) {
       parseError("Symbol " + varName + " not declared");
-    } else {
-      return true;
     }
+    break;
+
   case CHECK_UNDECLARED:
     if( isDeclared(varName, type) ) {
       parseError("Symbol " + varName + " previously declared");
-    } else {
-      return true;
     }
+    break;
+
   case CHECK_NONE:
-    return true;
+    break;
+
   default:
     Unhandled("Unknown check type!");
   }
 }
 
-bool AntlrParser::checkFunction(string name)   
+void AntlrParser::checkFunction(string name)
   throw (antlr::SemanticException) {
-  if( !isFunction(name) ) {
+  if( d_checksEnabled && !isFunction(name) ) {
     parseError("Expecting function symbol, found '" + name + "'");
   } 
-
-  return true;
 }
 
-bool AntlrParser::checkArity(Kind kind, unsigned int numArgs)
+void AntlrParser::checkArity(Kind kind, unsigned int numArgs)
   throw (antlr::SemanticException) {
+  if(!d_checksEnabled) {
+    return;
+  }
+
   unsigned int min = minArity(kind);
   unsigned int max = maxArity(kind);
 
@@ -345,8 +353,16 @@ bool AntlrParser::checkArity(Kind kind, unsigned int numArgs)
     ss << "found " << numArgs;
     parseError(ss.str());
   }
-  return true;
 }
+
+void AntlrParser::enableChecks() {
+  d_checksEnabled = true;
+}
+
+void AntlrParser::disableChecks() {
+  d_checksEnabled = false;
+}
+
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

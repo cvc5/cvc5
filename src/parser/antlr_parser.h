@@ -74,6 +74,12 @@ public:
    */
   virtual Expr parseExpr() = 0;
 
+  /** Enable semantic checks during parsing. */
+  void enableChecks();
+
+  /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
+  void disableChecks();
+
 protected:
 
   /**
@@ -140,39 +146,38 @@ protected:
    * Checks if a symbol has been declared.
    * @param name the symbol name
    * @param type the symbol type
+   * @return true iff the symbol has been declared with the given type
    */
   bool isDeclared(std::string name, SymbolType type = SYM_VARIABLE);
 
   /**
-   * Return true if the the declaration policy we want to enforce holds
+   * Checks if the declaration policy we want to enforce holds
    * for the given symbol.
    * @param name the symbol to check
    * @param check the kind of check to perform
    * @param type the type of the symbol
-   * @return true if the check holds
-   * @throws SemanticException if the check fails
+   * @throws SemanticException if checks are enabled and the check fails
    */
-  bool checkDeclaration(std::string name, 
+  void checkDeclaration(std::string name,
                         DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE)
     throw (antlr::SemanticException);
 
   /**
-   * Returns true if the given name is bound to a function.
+   * Checks whether the given name is bound to a function.
    * @param name the name to check
-   * @return true if name is bound to a function
-   * @throws SemanticException if name is not bound to a function
+   * @throws SemanticException if checks are enabled and name is not bound to a function
    */
-  bool checkFunction(std::string name) throw (antlr::SemanticException);
+  void checkFunction(std::string name) throw (antlr::SemanticException);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</codes> arguments.
    * @param kind the built-in operator to check
    * @param numArgs the number of actual arguments
-   * @throws SemanticException if the operator <code>kind</code> cannot be
+   * @throws SemanticException if checks are enabled and the operator <code>kind</code> cannot be
    * applied to <code>numArgs</code> arguments.
    */
-  bool checkArity(Kind kind, unsigned int numArgs) throw (antlr::SemanticException);
+  void checkArity(Kind kind, unsigned int numArgs) throw (antlr::SemanticException);
 
   /** 
    * Returns the type for the variable with the given name. 
@@ -317,6 +322,8 @@ protected:
     }
   }
 
+//  bool checksEnabled();
+
 private:
 
   /** The expression manager */
@@ -331,6 +338,9 @@ private:
 
   /** The sort table */
   SymbolTable<const Type*> d_sortTable;
+
+  /** Are semantic checks enabled during parsing? */
+  bool d_checksEnabled;
 
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(std::string var_name, SymbolType type);

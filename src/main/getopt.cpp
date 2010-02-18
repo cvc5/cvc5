@@ -58,7 +58,8 @@ enum OptionValue {
   SMTCOMP,
   STATS,
   SEGV_NOSPIN,
-  PARSE_ONLY
+  PARSE_ONLY,
+  NO_CHECKING
 };/* enum OptionValue */
 
 // FIXME add a comment here describing the option array
@@ -74,7 +75,8 @@ static struct option cmdlineOptions[] = {
   { "smtcomp"    , no_argument      , NULL, SMTCOMP     },
   { "stats"      , no_argument      , NULL, STATS       },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
-  { "parse-only" , no_argument      , NULL, PARSE_ONLY  }
+  { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
+  { "no-checking", no_argument      , NULL, NO_CHECKING }
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -174,6 +176,10 @@ throw(OptionException) {
 
     case PARSE_ONLY:
       opts->parseOnly = true;
+      break;
+
+    case NO_CHECKING:
+      opts->semanticChecks = false;
       break;
 
     case '?':

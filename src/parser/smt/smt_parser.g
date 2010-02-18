@@ -16,7 +16,6 @@
 header "post_include_hpp" {
 #include "parser/antlr_parser.h"
 #include "expr/command.h"
-#include "util/Assert.h"
 }
 
 header "post_include_cpp" {
@@ -123,7 +122,7 @@ annotatedFormula returns [CVC4::Expr formula]
 }
   : /* a built-in operator application */
     LPAREN kind = builtinOp annotatedFormulas[args] RPAREN 
-    { AlwaysAssert( checkArity(kind, args.size()) );
+    { checkArity(kind, args.size());
       formula = mkExpr(kind,args); }
 
   | /* A non-built-in function application */
@@ -213,7 +212,7 @@ functionSymbol returns [CVC4::Expr fun]
   string name;
 }
   : name = functionName[CHECK_DECLARED]
-    { AlwaysAssert( checkFunction(name) );
+    { checkFunction(name);
       fun = getFunction(name); }
   ;
   
@@ -316,6 +315,6 @@ returns [std::string id]
 }
   : x:IDENTIFIER
     { id = x->getText();
-      AlwaysAssert( checkDeclaration(id, check,type) ); }
+      checkDeclaration(id, check,type); }
   ;
 

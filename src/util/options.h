@@ -45,7 +45,11 @@ struct Options {
   /** The CNF conversion */
   CVC4::CnfConversion d_cnfConversion;
 
+  /** Should we exit after parsing? */
   bool parseOnly;
+
+  /** Should the parser do semantic checks? */
+  bool semanticChecks;
 
   Options() : binary_name(),
               smtcomp_mode(false),
@@ -55,7 +59,8 @@ struct Options {
               verbosity(0),
               lang(parser::Parser::LANG_AUTO),
               d_cnfConversion(CVC4::CNF_VAR_INTRODUCTION),
-              parseOnly(false)
+              parseOnly(false),
+              semanticChecks(true)
   {}
 };/* struct Options */
 
