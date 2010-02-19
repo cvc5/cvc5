@@ -221,16 +221,16 @@ unsigned int AntlrParser::minArity(Kind kind) {
   case VARIABLE:
     return 0;
 
+  case AND:
   case NOT:
+  case OR:
     return 1;
 
-  case AND:
   case APPLY:
   case EQUAL: 
   case IFF:
   case IMPLIES:
   case PLUS:
-  case OR:
   case XOR:
     return 2;
 
