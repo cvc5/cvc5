@@ -2,6 +2,7 @@
 # ------------
 # Do early initialization/diversion of autoconf things for CVC4 build process.
 AC_DEFUN([CVC4_AC_INIT],
+dnl _AS_ME_PREPARE
 [CVC4_REWRITE_ARGS_FOR_BUILD_PROFILE
 ])# CVC4_AC_INIT
 

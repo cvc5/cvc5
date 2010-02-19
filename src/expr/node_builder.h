@@ -171,7 +171,7 @@ public:
 
   NodeBuilder& operator<<(const Kind& k) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    Assert(d_ev->d_kind == UNDEFINED_KIND);
+    Assert(d_ev->getKind() == UNDEFINED_KIND);
     d_ev->d_kind = k;
     return *this;
   }
@@ -563,7 +563,7 @@ inline void NodeBuilder<nchild_thresh>::dealloc() {
 template <unsigned nchild_thresh>
 NodeBuilder<nchild_thresh>::operator Node() {// not const
   Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-  Assert(d_ev->d_kind != UNDEFINED_KIND,
+  Assert(d_ev->getKind() != UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
 
   if(d_ev->d_kind == VARIABLE) {

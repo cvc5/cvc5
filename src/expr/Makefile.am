@@ -6,8 +6,6 @@ AM_CXXFLAGS = -Wall -fvisibility=hidden
 noinst_LTLIBRARIES = libexpr.la
 
 libexpr_la_SOURCES = \
-	attr_type.h \
-	attr_var_name.h \
 	node.h \
 	node_builder.h \
 	expr.h \
@@ -15,7 +13,8 @@ libexpr_la_SOURCES = \
 	node_value.h \
 	node_manager.h \
 	expr_manager.h \
-	node_attribute.h \
+	attribute.h \
+	attribute.cpp \
 	@srcdir@/kind.h \
 	node.cpp \
 	node_builder.cpp \

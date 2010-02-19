@@ -39,7 +39,7 @@ public:
     d_scope = new NodeManagerScope(d_nm);
   }
 
-  void tearDown(){
+  void tearDown() {
     delete d_nm;
     delete d_scope;
   }
@@ -55,7 +55,7 @@ public:
     Node::null();
   }
 
-  void testIsNull(){
+  void testIsNull() {
     /* bool isNull() const; */
 
     Node a = Node::null();
@@ -73,7 +73,7 @@ public:
     Node e(Node::null());
   }
 
-  void testDestructor(){
+  void testDestructor() {
     /* No access to internals ?
      * Makes sense to only test that this is crash free.
      */
@@ -84,7 +84,7 @@ public:
   }
 
   /*tests:  bool operator==(const Node& e) const  */
-  void testOperatorEquals(){
+  void testOperatorEquals() {
     Node a, b, c;
     
     b = d_nm->mkVar();
@@ -122,7 +122,7 @@ public:
   }
 
   /* operator!= */
-  void testOperatorNotEquals(){
+  void testOperatorNotEquals() {
 
 
     Node a, b, c;
@@ -157,7 +157,7 @@ public:
 
   }
 
-  void testOperatorSquare(){  
+  void testOperatorSquare() {  
     /*Node operator[](int i) const */
 
     //Basic bounds check on a node w/out children
@@ -183,7 +183,7 @@ public:
   }
 
   /*tests:   Node& operator=(const Node&); */
-  void testOperatorAssign(){
+  void testOperatorAssign() {
     Node a, b;
     Node c = d_nm->mkNode(NOT);
     
@@ -197,7 +197,7 @@ public:
     TS_ASSERT(a==c);
   }
   
-  void testOperatorLessThan(){
+  void testOperatorLessThan() {
     /* We don't have access to the ids so we can't test the implementation
      * in the black box tests. 
      */
@@ -232,13 +232,13 @@ public:
     std::vector<Node> chain;
     int N = 500;
     Node curr = d_nm->mkNode(NULL_EXPR);
-    for(int i=0;i<N;i++){
+    for(int i=0;i<N;i++) {
       chain.push_back(curr);
       curr = d_nm->mkNode(AND,curr);
     }
     
-    for(int i=0;i<N;i++){
-      for(int j=i+1;j<N;j++){
+    for(int i=0;i<N;i++) {
+      for(int j=i+1;j<N;j++) {
 	Node chain_i = chain[i];
 	Node chain_j = chain[j];
 	TS_ASSERT(chain_i<chain_j);
@@ -247,7 +247,7 @@ public:
     
   }
 
-  void testHash(){
+  void testHash() {
     /* Not sure how to test this except survial... */
     Node a = d_nm->mkNode(ITE);
     Node b = d_nm->mkNode(ITE);
@@ -257,7 +257,7 @@ public:
 
   
 
-  void testEqExpr(){
+  void testEqExpr() {
     /*Node eqExpr(const Node& right) const;*/
 
     Node left = d_nm->mkNode(TRUE);
@@ -272,7 +272,7 @@ public:
     TS_ASSERT(eq[1] == right);
   }
 
-  void testNotExpr(){
+  void testNotExpr() {
     /*  Node notExpr() const;*/
 
     Node child = d_nm->mkNode(TRUE);
@@ -284,7 +284,7 @@ public:
     TS_ASSERT(parent[0] == child);
     
   }
-  void testAndExpr(){
+  void testAndExpr() {
     /*Node andExpr(const Node& right) const;*/
     
     Node left = d_nm->mkNode(TRUE);
@@ -300,7 +300,7 @@ public:
     
   }
 
-  void testOrExpr(){
+  void testOrExpr() {
     /*Node orExpr(const Node& right) const;*/
      
     Node left = d_nm->mkNode(TRUE);
@@ -316,7 +316,7 @@ public:
 
   }
 
-  void testIteExpr(){
+  void testIteExpr() {
     /*Node iteExpr(const Node& thenpart, const Node& elsepart) const;*/
 
     Node cnd = d_nm->mkNode(PLUS);
@@ -333,7 +333,7 @@ public:
     TS_ASSERT(*(++(++ite.begin())) == elseBranch);
   }
 
-  void testIffExpr(){
+  void testIffExpr() {
     /*  Node iffExpr(const Node& right) const; */
      
     Node left = d_nm->mkNode(TRUE);
@@ -349,7 +349,7 @@ public:
   }
 
   
-  void testImpExpr(){
+  void testImpExpr() {
     /* Node impExpr(const Node& right) const; */
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
@@ -363,7 +363,7 @@ public:
     TS_ASSERT(*(++eq.begin()) == right);
   }
 
-  void testXorExpr(){
+  void testXorExpr() {
     /*Node xorExpr(const Node& right) const;*/
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
@@ -377,26 +377,26 @@ public:
     TS_ASSERT(*(++eq.begin()) == right);
   }
 
-  void testPlusExpr(){
+  void testPlusExpr() {
     /*Node plusExpr(const Node& right) const;*/
     TS_WARN( "TODO: No implementation to test." );
   }
 
-  void testUMinusExpr(){
+  void testUMinusExpr() {
     /*Node uMinusExpr() const;*/
     TS_WARN( "TODO: No implementation to test." );
   }
-  void testMultExpr(){
+  void testMultExpr() {
     /*  Node multExpr(const Node& right) const;*/
     TS_WARN( "TODO: No implementation to test." );    
   }
 
-  void testKindSingleton(Kind k){
+  void testKindSingleton(Kind k) {
     Node n = d_nm->mkNode(k);
     TS_ASSERT(k == n.getKind());
   }
 
-  void testGetKind(){
+  void testGetKind() {
     /*inline Kind getKind() const; */
 
     testKindSingleton(NOT);

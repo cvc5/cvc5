@@ -28,10 +28,8 @@
 #include "util/Assert.h"
 
 namespace CVC4 {
-  class Node;
-}/* CVC4 namespace */
 
-namespace CVC4 {
+class Node;
 
 inline std::ostream& operator<<(std::ostream&, const Node&);
 
@@ -50,6 +48,7 @@ using CVC4::expr::NodeValue;
 class Node {
 
   friend class NodeValue;
+  friend class SoftNode;
 
   /** A convenient null-valued encapsulated pointer */
   static Node s_null;
@@ -155,7 +154,18 @@ public:
   bool isNull() const;
   bool isAtomic() const;
 
-   /**
+  template <class AttrKind>
+  inline typename AttrKind::value_type getAttribute(const AttrKind&);
+
+  template <class AttrKind>
+  inline bool hasAttribute(const AttrKind&,
+                           typename AttrKind::value_type* = NULL);
+
+  template <class AttrKind>
+  inline void setAttribute(const AttrKind&,
+                           const typename AttrKind::value_type& value);
+
+  /**
    * Very basic pretty printer for Node.
    * @param o output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -176,7 +186,20 @@ private:
 
 }/* CVC4 namespace */
 
-#include "expr/node_value.h"
+#include <ext/hash_map>
+
+// for hashtables
+namespace __gnu_cxx {
+  template <>
+  struct hash<CVC4::Node> {
+    size_t operator()(const CVC4::Node& node) const {
+      return (size_t)node.hash();
+    }
+  };
+}/* __gnu_cxx namespace */
+
+#include "expr/attribute.h"
+#include "expr/node_manager.h"
 
 namespace CVC4 {
 
@@ -235,6 +258,23 @@ inline Node::const_iterator Node::end() const {
 
 inline size_t Node::getNumChildren() const {
   return d_ev->d_nchildren;
+}
+
+template <class AttrKind>
+inline typename AttrKind::value_type Node::getAttribute(const AttrKind&) {
+  return NodeManager::currentNM()->getAttribute(*this, AttrKind());
+}
+
+template <class AttrKind>
+inline bool Node::hasAttribute(const AttrKind&,
+                               typename AttrKind::value_type* ret) {
+  return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
+}
+
+template <class AttrKind>
+inline void Node::setAttribute(const AttrKind&,
+                               const typename AttrKind::value_type& value) {
+  NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
 }
 
 }/* CVC4 namespace */

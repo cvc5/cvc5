@@ -29,7 +29,7 @@ class ExprManager;
  * Class encapsulating CVC4 expression types.
  */
 class Type {
- public:
+public:
   /** Comparision for equality */
   bool operator==(const Type& t) const;
 
@@ -229,7 +229,8 @@ public:
  * @param e the type to output
  * @return the stream
  */
-std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC ;
+std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
+
 }
 
-#endif // __CVC4__TYPE_H
+#endif /* __CVC4__TYPE_H */

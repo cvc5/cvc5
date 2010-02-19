@@ -75,8 +75,8 @@ void SmtEngine::addFormula(const Node& e) {
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
-  Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
   NodeManagerScope nms(d_nodeManager);
+  Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
   Result r = check().asSatisfiabilityResult();
@@ -85,8 +85,8 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
-  Debug("smt") << "SMT query(" << e << ")" << std::endl;
   NodeManagerScope nms(d_nodeManager);
+  Debug("smt") << "SMT query(" << e << ")" << std::endl;
   Node node_e = preprocess(d_nodeManager->mkNode(NOT, e.getNode()));
   addFormula(node_e);
   Result r = check().asValidityResult();
@@ -95,25 +95,34 @@ Result SmtEngine::query(const BoolExpr& e) {
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
-  Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
   NodeManagerScope nms(d_nodeManager);
+  Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
   Node node_e = preprocess(e.getNode());
   addFormula(node_e);
   return quickCheck().asValidityResult();
 }
 
 Expr SmtEngine::simplify(const Expr& e) {
+  NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT simplify(" << e << ")" << std::endl;
-  Expr simplify(const Expr& e);
+  Unimplemented();
+}
+
+Model SmtEngine::getModel() {
+  NodeManagerScope nms(d_nodeManager);
   Unimplemented();
 }
 
 void SmtEngine::push() {
+  NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT push()" << std::endl;
+  Unimplemented();
 }
 
 void SmtEngine::pop() {
+  NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT pop()" << std::endl;
+  Unimplemented();
 }
 
 }/* CVC4 namespace */

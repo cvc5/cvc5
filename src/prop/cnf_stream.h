@@ -22,19 +22,11 @@
 #ifndef __CVC4__CNF_STREAM_H
 #define __CVC4__CNF_STREAM_H
 
+
 #include "expr/node.h"
 #include "prop/sat.h"
 
 #include <ext/hash_map>
-
-namespace __gnu_cxx {
-template<>
-  struct hash<CVC4::Node> {
-    size_t operator()(const CVC4::Node& node) const {
-      return (size_t)node.hash();
-    }
-  };
-} /* __gnu_cxx namespace */
 
 namespace CVC4 {
 namespace prop {

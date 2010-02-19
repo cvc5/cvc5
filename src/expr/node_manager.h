@@ -17,22 +17,25 @@
 #define __CVC4__NODE_MANAGER_H
 
 #include <vector>
+#include <string>
 #include <ext/hash_set>
 
-#include "node.h"
-#include "kind.h"
+#include "expr/node.h"
+#include "expr/kind.h"
 
 namespace __gnu_cxx {
-template<>
+  template<>
   struct hash<CVC4::NodeValue*> {
     size_t operator()(const CVC4::NodeValue* nv) const {
       return (size_t)nv->hash();
     }
   };
-} /* __gnu_cxx namespace */
+}/* __gnu_cxx namespace */
 
 
 namespace CVC4 {
+
+class Type;
 
 class NodeManager {
   static __thread NodeManager* s_current;
@@ -42,6 +45,8 @@ class NodeManager {
   typedef __gnu_cxx::hash_set<NodeValue*, __gnu_cxx::hash<NodeValue*>, NodeValue::NodeValueEq> NodeValueSet;
   NodeValueSet d_nodeValueSet;
 
+  expr::AttributeManager d_am;
+
   NodeValue* poolLookup(NodeValue* nv) const;
   void poolInsert(NodeValue* nv);
 
@@ -49,7 +54,9 @@ class NodeManager {
 
 public:
 
-  NodeManager();
+  NodeManager() : d_am(this) {
+    poolInsert( &NodeValue::s_null );
+  }
 
   static NodeManager* currentNM() { return s_current; }
 
@@ -64,21 +71,60 @@ public:
   Node mkNode(Kind kind, const std::vector<Node>& children);
 
   // variables are special, because duplicates are permitted
+  Node mkVar(const Type* type, std::string name);
+  Node mkVar(const Type* type);
   Node mkVar();
-};
 
+  template <class AttrKind>
+  inline typename AttrKind::value_type getAttribute(const Node& n,
+                                                    const AttrKind&);
+
+  template <class AttrKind>
+  inline bool hasAttribute(const Node& n,
+                           const AttrKind&,
+                           typename AttrKind::value_type* = NULL);
+
+  template <class AttrKind>
+  inline void setAttribute(const Node& n,
+                           const AttrKind&,
+                           const typename AttrKind::value_type& value);
+};
 
 class NodeManagerScope {
   NodeManager *d_oldNodeManager;
 
 public:
+
   NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current) {
     NodeManager::s_current = nm;
+    Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
+
   ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
+    Debug("current") << "node manager scope: returning to " << NodeManager::s_current << "\n";
   }
 };
+
+template <class AttrKind>
+inline typename AttrKind::value_type NodeManager::getAttribute(const Node& n,
+                                                               const AttrKind&) {
+  return d_am.getAttribute(n, AttrKind());
+}
+
+template <class AttrKind>
+inline bool NodeManager::hasAttribute(const Node& n,
+                                      const AttrKind&,
+                                      typename AttrKind::value_type* ret) {
+  return d_am.hasAttribute(n, AttrKind(), ret);
+}
+
+template <class AttrKind>
+inline void NodeManager::setAttribute(const Node& n,
+                                      const AttrKind&,
+                                      const typename AttrKind::value_type& value) {
+  d_am.setAttribute(n, AttrKind(), value);
+}
 
 }/* CVC4 namespace */
 

@@ -17,7 +17,8 @@
  ** reference count on NodeValue instances and
  **/
 
-#include "node_value.h"
+#include "expr/node_value.h"
+#include "expr/node.h"
 #include <sstream>
 
 using namespace std;
@@ -27,11 +28,17 @@ namespace CVC4 {
 size_t NodeValue::next_id = 1;
 
 NodeValue::NodeValue() :
-  d_id(0), d_rc(MAX_RC), d_kind(NULL_EXPR), d_nchildren(0) {
+  d_id(0),
+  d_rc(MAX_RC),
+  d_kind(NULL_EXPR),
+  d_nchildren(0) {
 }
 
 NodeValue::NodeValue(int) :
-  d_id(0), d_rc(0), d_kind(unsigned(UNDEFINED_KIND)), d_nchildren(0) {
+  d_id(0),
+  d_rc(0),
+  d_kind(kindToDKind(UNDEFINED_KIND)),
+  d_nchildren(0) {
 }
 
 NodeValue::~NodeValue() {
@@ -98,7 +105,13 @@ string NodeValue::toString() const {
 void NodeValue::toStream(std::ostream& out) const {
   out << "(" << Kind(d_kind);
   if(d_kind == VARIABLE) {
-    out << ":" << this;
+    Node n(this);
+    string s;
+    if(n.hasAttribute(VarNameAttr(), &s)) {
+      out << ":" << s;
+    } else {
+      out << ":" << this;
+    }
   } else {
     for(const_ev_iterator i = ev_begin(); i != ev_end(); ++i) {
       if(i != ev_end()) {

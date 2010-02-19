@@ -51,6 +51,12 @@ class NodeValue {
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
   static const unsigned MAX_RC = 255;
 
+  /** Number of bits assigned to the kind in the NodeValue header */
+  static const unsigned KINDBITS = 8;
+
+  /** A mask for d_kind */
+  static const unsigned kindMask = (1u << KINDBITS) - 1;
+
   // this header fits into one 64-bit word
 
   /** The ID (0 is reserved for the null value) */
@@ -60,7 +66,7 @@ class NodeValue {
   unsigned d_rc        :  8;
 
   /** Kind of the expression */
-  unsigned d_kind      :  8;
+  unsigned d_kind      : KINDBITS;
 
   /** Number of children */
   unsigned d_nchildren : 16;
@@ -178,13 +184,19 @@ public:
     }
   };
 
-
   unsigned getId() const { return d_id; }
-  Kind getKind() const { return (Kind) d_kind; }
+  Kind getKind() const { return dKindToKind(d_kind); }
   unsigned getNumChildren() const { return d_nchildren; }
 
   std::string toString() const;
   void toStream(std::ostream& out) const;
+
+  static inline unsigned kindToDKind(Kind k) {
+    return ((unsigned) k) & kindMask;
+  }
+  static inline Kind dKindToKind(unsigned d) {
+    return (d == kindMask) ? UNDEFINED_KIND : Kind(d);
+  }
 };
 
 }/* CVC4::expr namespace */

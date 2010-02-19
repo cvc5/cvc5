@@ -24,8 +24,6 @@ TEST_DEPS = \
 	$(TEST_DEPS_DIST) \
 	$(TEST_DEPS_NODIST)
 
-@mk_include@ @srcdir@/Makefile.tests
-
 if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
@@ -46,8 +44,6 @@ AM_LDFLAGS_BLACK = \
 AM_LDFLAGS_PUBLIC = \
 	@abs_top_builddir@/src/libcvc4.la
 
-TESTS = $(UNIT_TESTS)
-
 EXTRA_DIST = \
 	no_cxxtest \
 	$(TEST_DEPS_DIST)
@@ -57,9 +53,17 @@ noinst_LTLIBRARIES = libdummy.la
 libdummy_la_SOURCES = expr/node_black.cpp
 libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 
-$(TESTS:%=%.cpp): %.cpp: %.h
+MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp)
+
+@mk_include@ @srcdir@/Makefile.tests
+
+# We leave "TESTS" empty here; it's handled in Makefile.tests (see
+# that file for comment)
+# TESTS =
+
+$(UNIT_TESTS:%=%.cpp): %.cpp: %.h
 	mkdir -p `dirname "$@"`
-	@CXXTESTGEN@ --have-eh --have-std --error-printer -o "$@" "$<"
+	$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
 $(WHITE_TESTS): %_white: %_white.cpp $(TEST_DEPS)
 	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
 	$(CXXLINK) $(AM_LDFLAGS_WHITE) $@.lo
@@ -70,15 +74,13 @@ $(PUBLIC_TESTS): %_public: %_public.cpp $(TEST_DEPS)
 	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
 	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
-MOSTLYCLEANFILES = $(TESTS) $(TESTS:%=%.cpp)
-
 else
 
 # force a user-visible failure for "make check"
 TESTS = no_cxxtest
 
 EXTRA_DIST = \
-	$(UNIT_TESTS) \
+	$(UNIT_TESTS:%=%.cpp) \
 	$(TEST_DEPS_DIST)
 
 endif

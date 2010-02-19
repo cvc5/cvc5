@@ -103,6 +103,7 @@ public:
   const Type* mkSort(std::string name);
 
   // variables are special, because duplicates are permitted
+  Expr mkVar(const Type* type, std::string name);
   Expr mkVar(const Type* type);
 
 private:

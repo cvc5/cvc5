@@ -16,15 +16,15 @@
 #include "node_builder.h"
 #include "node_manager.h"
 #include "expr/node.h"
+#include "expr/attribute.h"
 #include "util/output.h"
+
+using namespace std;
+using namespace CVC4::expr;
 
 namespace CVC4 {
 
 __thread NodeManager* NodeManager::s_current = 0;
-
-NodeManager::NodeManager() {
-  poolInsert(&NodeValue::s_null);
-}
 
 NodeValue* NodeManager::poolLookup(NodeValue* nv) const {
   NodeValueSet::const_iterator find = d_nodeValueSet.find(nv);
@@ -68,8 +68,21 @@ Node NodeManager::mkNode(Kind kind, const Node& child1, const Node& child2, cons
 }
 
 // N-ary version
-Node NodeManager::mkNode(Kind kind, const std::vector<Node>& children) {
+Node NodeManager::mkNode(Kind kind, const vector<Node>& children) {
   return NodeBuilder<>(this, kind).append(children);
+}
+
+Node NodeManager::mkVar(const Type* type, string name) {
+  Node n = NodeBuilder<>(this, VARIABLE);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(VarNameAttr(), name);
+  return n;
+}
+
+Node NodeManager::mkVar(const Type* type) {
+  Node n = NodeBuilder<>(this, VARIABLE);
+  n.setAttribute(TypeAttr(), type);
+  return n;
 }
 
 Node NodeManager::mkVar() {
