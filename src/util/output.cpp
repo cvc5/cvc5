@@ -18,18 +18,108 @@
 #include <iostream>
 #include "util/output.h"
 
+using namespace std;
+
 namespace CVC4 {
 
 /* Definitions of the declared globals from output.h... */
 
 null_streambuf null_sb;
-std::ostream null_os(&null_sb);
+ostream null_os(&null_sb);
 
-DebugC   DebugOut  (&std::cout);
-WarningC Warning(&std::cerr);
-MessageC Message(&std::cout);
-NoticeC  Notice (&std::cout);
-ChatC    Chat   (&std::cout);
-TraceC   Trace  (&std::cout);
+DebugC   DebugOut(&cout);
+WarningC Warning (&cerr);
+MessageC Message (&cout);
+NoticeC  Notice  (&cout);
+ChatC    Chat    (&cout);
+TraceC   Trace   (&cout);
+
+void DebugC::printf(const char* tag, const char* fmt, ...) {
+  if(d_tags.find(string(tag)) != d_tags.end()) {
+    // chop off output after 1024 bytes
+    char buf[1024];
+    va_list vl;
+    va_start(vl, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, vl);
+    va_end(vl);
+    *d_os << buf;
+  }
+}
+
+void DebugC::printf(string tag, const char* fmt, ...) {
+  if(d_tags.find(tag) != d_tags.end()) {
+    // chop off output after 1024 bytes
+    char buf[1024];
+    va_list vl;
+    va_start(vl, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, vl);
+    va_end(vl);
+    *d_os << buf;
+  }
+}
+
+void WarningC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+}
+
+void MessageC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+}
+
+void NoticeC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+}
+
+void ChatC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+}
+
+void TraceC::printf(const char* tag, const char* fmt, ...) {
+  if(d_tags.find(string(tag)) != d_tags.end()) {
+    // chop off output after 1024 bytes
+    char buf[1024];
+    va_list vl;
+    va_start(vl, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, vl);
+    va_end(vl);
+    *d_os << buf;
+  }
+}
+
+void TraceC::printf(string tag, const char* fmt, ...) {
+  if(d_tags.find(tag) != d_tags.end()) {
+    // chop off output after 1024 bytes
+    char buf[1024];
+    va_list vl;
+    va_start(vl, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, vl);
+    va_end(vl);
+    *d_os << buf;
+  }
+}
 
 }/* CVC4 namespace */

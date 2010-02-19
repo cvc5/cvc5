@@ -57,23 +57,46 @@ class CVC4_PUBLIC DebugC {
 public:
   DebugC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* tag, const char*);
-  void operator()(const char* tag, std::string);
-  void operator()(std::string tag, const char*);
-  void operator()(std::string tag, std::string);
+  void operator()(const char* tag, const char* s) {
+    if(d_tags.find(std::string(tag)) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
 
-  static void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-  static void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  void operator()(const char* tag, const std::string& s) {
+    if(d_tags.find(std::string(tag)) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
+
+  void operator()(const std::string& tag, const char* s) {
+    if(d_tags.find(tag) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
+
+  void operator()(const std::string& tag, const std::string& s) {
+    if(d_tags.find(tag) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
+
+  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
   std::ostream& operator()(const char* tag) {
-    if(d_tags.find(std::string(tag)) != d_tags.end())
+    if(d_tags.find(std::string(tag)) != d_tags.end()) {
       return *d_os;
-    else return null_os;
+    } else {
+      return null_os;
+    }
   }
   std::ostream& operator()(std::string tag) {
-    if(d_tags.find(tag) != d_tags.end())
+    if(d_tags.find(tag) != d_tags.end()) {
       return *d_os;
-    else return null_os;
+    } else {
+      return null_os;
+    }
   }
   /**
    * The "Yeting option" - this allows use of Debug() without a tag
@@ -190,28 +213,23 @@ public:
   void operator()(std::string tag, const char*);
   void operator()(std::string tag, std::string);
 
-  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {
-    // chop off output after 1024 bytes
-    char buf[1024];
-    va_list vl;
-    va_start(vl, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, vl);
-    va_end(vl);
-    *d_os << buf;
-  }
-  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {
-  }
+  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
   std::ostream& operator()(const char* tag) {
-    if(d_tags.find(tag) != d_tags.end())
+    if(d_tags.find(tag) != d_tags.end()) {
       return *d_os;
-    else return null_os;
+    } else {
+      return null_os;
+    }
   }
 
   std::ostream& operator()(std::string tag) {
-    if(d_tags.find(tag) != d_tags.end())
+    if(d_tags.find(tag) != d_tags.end()) {
       return *d_os;
-    else return null_os;
+    } else {
+      return null_os;
+    }
   }
 
   void on (const char* tag) { d_tags.insert(std::string(tag)); };
