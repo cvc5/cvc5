@@ -100,7 +100,7 @@ struct KindValueToTableValueMapping<const T*> {
   inline static void* convert(const T* const& t) {
     return reinterpret_cast<void*>(const_cast<T*>(t));
   }
-  inline static const T* convertBack(const void*& t) {
+  inline static const T* convertBack(const void* const& t) {
     return reinterpret_cast<const T*>(t);
   }
 };
@@ -381,16 +381,16 @@ public:
 
   template <class AttrKind>
   typename AttrKind::value_type getAttribute(const Node& n,
-                                             const AttrKind&);
+                                             const AttrKind&) const;
 
   template <class AttrKind>
   bool hasAttribute(const Node& n,
-                    const AttrKind&);
+                    const AttrKind&) const;
 
   template <class AttrKind>
   bool hasAttribute(const Node& n,
                     const AttrKind&,
-                    typename AttrKind::value_type*);
+                    typename AttrKind::value_type*) const;
 
   template <class AttrKind>
   void setAttribute(const Node& n,
@@ -406,12 +406,18 @@ struct getTable<bool> {
   static inline table_type& get(AttributeManager& am) {
     return am.d_bools;
   }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_bools;
+  }
 };
 
 template <>
 struct getTable<uint64_t> {
   typedef AttrHash<uint64_t> table_type;
   static inline table_type& get(AttributeManager& am) {
+    return am.d_ints;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_ints;
   }
 };
@@ -422,6 +428,9 @@ struct getTable<Node> {
   static inline table_type& get(AttributeManager& am) {
     return am.d_exprs;
   }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_exprs;
+  }
 };
 
 template <>
@@ -430,12 +439,18 @@ struct getTable<std::string> {
   static inline table_type& get(AttributeManager& am) {
     return am.d_strings;
   }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_strings;
+  }
 };
 
 template <class T>
-struct getTable<T*> {
+struct getTable<const T*> {
   typedef AttrHash<void*> table_type;
   static inline table_type& get(AttributeManager& am) {
+    return am.d_ptrs;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
     return am.d_ptrs;
   }
 };
@@ -444,14 +459,14 @@ struct getTable<T*> {
 
 template <class AttrKind>
 typename AttrKind::value_type AttributeManager::getAttribute(const Node& n,
-                                                             const AttrKind&) {
+                                                             const AttrKind&) const {
 
   typedef typename AttrKind::value_type value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
   typedef typename getTable<value_type>::table_type table_type;
 
-  table_type& ah = getTable<value_type>::get(*this);
-  typename table_type::iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
+  const table_type& ah = getTable<value_type>::get(*this);
+  typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
 
   if(i == ah.end()) {
     return typename AttrKind::value_type();
@@ -468,12 +483,12 @@ struct HasAttribute;
 
 template <class AttrKind>
 struct HasAttribute<true, AttrKind> {
-  static inline bool hasAttribute(AttributeManager* am,
+  static inline bool hasAttribute(const AttributeManager* am,
                                   const Node& n) {
     return true;
   }
 
-  static inline bool hasAttribute(AttributeManager* am,
+  static inline bool hasAttribute(const AttributeManager* am,
                                   const Node& n,
                                   typename AttrKind::value_type* ret) {
     if(ret != NULL) {
@@ -481,8 +496,8 @@ struct HasAttribute<true, AttrKind> {
       typedef KindValueToTableValueMapping<value_type> mapping;
       typedef typename getTable<value_type>::table_type table_type;
 
-      table_type& ah = getTable<value_type>::get(*am);
-      typename table_type::iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
+      const table_type& ah = getTable<value_type>::get(*am);
+      typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
 
       if(i == ah.end()) {
         *ret = AttrKind::default_value;
@@ -497,14 +512,14 @@ struct HasAttribute<true, AttrKind> {
 
 template <class AttrKind>
 struct HasAttribute<false, AttrKind> {
-  static inline bool hasAttribute(AttributeManager* am,
+  static inline bool hasAttribute(const AttributeManager* am,
                                   const Node& n) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
     typedef typename getTable<value_type>::table_type table_type;
 
-    table_type& ah = getTable<value_type>::get(*am);
-    typename table_type::iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
+    const table_type& ah = getTable<value_type>::get(*am);
+    typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
 
     if(i == ah.end()) {
       return false;
@@ -513,15 +528,15 @@ struct HasAttribute<false, AttrKind> {
     return true;
   }
 
-  static inline bool hasAttribute(AttributeManager* am,
+  static inline bool hasAttribute(const AttributeManager* am,
                                   const Node& n,
                                   typename AttrKind::value_type* ret) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
     typedef typename getTable<value_type>::table_type table_type;
 
-    table_type& ah = getTable<value_type>::get(*am);
-    typename table_type::iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
+    const table_type& ah = getTable<value_type>::get(*am);
+    typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
 
     if(i == ah.end()) {
       return false;
@@ -537,14 +552,14 @@ struct HasAttribute<false, AttrKind> {
 
 template <class AttrKind>
 bool AttributeManager::hasAttribute(const Node& n,
-                                    const AttrKind&) {
+                                    const AttrKind&) const {
   return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, n);
 }
 
 template <class AttrKind>
 bool AttributeManager::hasAttribute(const Node& n,
                                     const AttrKind&,
-                                    typename AttrKind::value_type* ret) {
+                                    typename AttrKind::value_type* ret) const {
   return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, n, ret);
 }
 

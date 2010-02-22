@@ -79,12 +79,12 @@ public:
 
   template <class AttrKind>
   inline typename AttrKind::value_type getAttribute(const Node& n,
-                                                    const AttrKind&);
+                                                    const AttrKind&) const;
 
   template <class AttrKind>
   inline bool hasAttribute(const Node& n,
                            const AttrKind&,
-                           typename AttrKind::value_type* = NULL);
+                           typename AttrKind::value_type* = NULL) const;
 
   template <class AttrKind>
   inline void setAttribute(const Node& n,
@@ -110,14 +110,14 @@ public:
 
 template <class AttrKind>
 inline typename AttrKind::value_type NodeManager::getAttribute(const Node& n,
-                                                               const AttrKind&) {
+                                                               const AttrKind&) const {
   return d_am.getAttribute(n, AttrKind());
 }
 
 template <class AttrKind>
 inline bool NodeManager::hasAttribute(const Node& n,
                                       const AttrKind&,
-                                      typename AttrKind::value_type* ret) {
+                                      typename AttrKind::value_type* ret) const {
   return d_am.hasAttribute(n, AttrKind(), ret);
 }
 

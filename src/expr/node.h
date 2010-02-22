@@ -25,6 +25,7 @@
 
 #include "cvc4_config.h"
 #include "expr/kind.h"
+#include "expr/type.h"
 #include "util/Assert.h"
 
 namespace CVC4 {
@@ -156,11 +157,11 @@ public:
   bool isAtomic() const;
 
   template <class AttrKind>
-  inline typename AttrKind::value_type getAttribute(const AttrKind&);
+  inline typename AttrKind::value_type getAttribute(const AttrKind&) const;
 
   template <class AttrKind>
   inline bool hasAttribute(const AttrKind&,
-                           typename AttrKind::value_type* = NULL);
+                           typename AttrKind::value_type* = NULL) const;
 
   template <class AttrKind>
   inline void setAttribute(const AttrKind&,
@@ -262,7 +263,7 @@ inline size_t Node::getNumChildren() const {
 }
 
 template <class AttrKind>
-inline typename AttrKind::value_type Node::getAttribute(const AttrKind&) {
+inline typename AttrKind::value_type Node::getAttribute(const AttrKind&) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
@@ -272,7 +273,7 @@ inline typename AttrKind::value_type Node::getAttribute(const AttrKind&) {
 
 template <class AttrKind>
 inline bool Node::hasAttribute(const AttrKind&,
-                               typename AttrKind::value_type* ret) {
+                               typename AttrKind::value_type* ret) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
