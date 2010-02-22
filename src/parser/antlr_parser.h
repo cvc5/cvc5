@@ -332,10 +332,6 @@ private:
   /** The symbol table lookup */
   SymbolTable<Expr> d_varSymbolTable;
 
-  /** A temporary hack: keep all the variable types in their own special
-      table. These should actually be Expr attributes. */
-  SymbolTable<const Type*> d_varTypeTable;
-
   /** The sort table */
   SymbolTable<const Type*> d_sortTable;
 

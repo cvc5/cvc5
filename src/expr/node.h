@@ -35,6 +35,7 @@ class Node;
 inline std::ostream& operator<<(std::ostream&, const Node&);
 
 class NodeManager;
+class Type;
 
 namespace expr {
   class NodeValue;
@@ -139,6 +140,7 @@ public:
   inline Kind getKind() const;
 
   inline size_t getNumChildren() const;
+  const Type* getType() const;
 
   static Node null();
 

@@ -93,7 +93,7 @@ public:
   }
 
   void testAttributes() {
-    AttributeManager& am = d_nm->d_am;
+    AttributeManager& am = d_nm->d_attrManager;
 
     //Debug.on("boolattr");
 

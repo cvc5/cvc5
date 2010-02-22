@@ -27,19 +27,19 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
 }
 
 Expr::Expr() :
-  d_node(new Node()), d_em(NULL) {
+  d_node(new Node()), d_exprManager(NULL) {
 }
 
 Expr::Expr(ExprManager* em, Node* node) :
-  d_node(node), d_em(em) {
+  d_node(node), d_exprManager(em) {
 }
 
 Expr::Expr(const Expr& e) :
-  d_node(new Node(*e.d_node)), d_em(e.d_em) {
+  d_node(new Node(*e.d_node)), d_exprManager(e.d_exprManager) {
 }
 
 ExprManager* Expr::getExprManager() const {
-  return d_em;
+  return d_exprManager;
 }
 
 Expr::~Expr() {
@@ -52,13 +52,13 @@ Expr& Expr::operator=(const Expr& e) {
     ExprManagerScope ems(*this);
     delete d_node;
     d_node = new Node(*e.d_node);
-    d_em = e.d_em;
+    d_exprManager = e.d_exprManager;
   }
   return *this;
 }
 
 bool Expr::operator==(const Expr& e) const {
-  if(d_em != e.d_em){
+  if(d_exprManager != e.d_exprManager){
     return false;
   }
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
@@ -73,7 +73,7 @@ bool Expr::operator!=(const Expr& e) const {
 bool Expr::operator<(const Expr& e) const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
-  if(d_em != e.d_em){
+  if(d_exprManager != e.d_exprManager){
     return false;
   }
   return *d_node < *e.d_node;
@@ -92,6 +92,11 @@ Kind Expr::getKind() const {
 size_t Expr::getNumChildren() const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->getNumChildren();
+}
+
+const Type* Expr::getType() const {
+  ExprManagerScope ems(*this);
+  return d_node->getType();
 }
 
 std::string Expr::toString() const {
@@ -126,52 +131,52 @@ BoolExpr::BoolExpr(const Expr& e) :
 }
 
 BoolExpr BoolExpr::notExpr() const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  return d_em->mkExpr(NOT, *this);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  return d_exprManager->mkExpr(NOT, *this);
 }
 
 BoolExpr BoolExpr::andExpr(const BoolExpr& e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == e.d_em, "Different expression managers!");
-  return d_em->mkExpr(AND, *this, e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == e.d_exprManager, "Different expression managers!");
+  return d_exprManager->mkExpr(AND, *this, e);
 }
 
 BoolExpr BoolExpr::orExpr(const BoolExpr& e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == e.d_em, "Different expression managers!");
-  return d_em->mkExpr(OR, *this, e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == e.d_exprManager, "Different expression managers!");
+  return d_exprManager->mkExpr(OR, *this, e);
 }
 
 BoolExpr BoolExpr::xorExpr(const BoolExpr& e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == e.d_em, "Different expression managers!");
-  return d_em->mkExpr(XOR, *this, e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == e.d_exprManager, "Different expression managers!");
+  return d_exprManager->mkExpr(XOR, *this, e);
 }
 
 BoolExpr BoolExpr::iffExpr(const BoolExpr& e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == e.d_em, "Different expression managers!");
-  return d_em->mkExpr(IFF, *this, e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == e.d_exprManager, "Different expression managers!");
+  return d_exprManager->mkExpr(IFF, *this, e);
 }
 
 BoolExpr BoolExpr::impExpr(const BoolExpr& e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == e.d_em, "Different expression managers!");
-  return d_em->mkExpr(IMPLIES, *this, e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == e.d_exprManager, "Different expression managers!");
+  return d_exprManager->mkExpr(IMPLIES, *this, e);
 }
 
 BoolExpr BoolExpr::iteExpr(const BoolExpr& then_e, const BoolExpr& else_e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == then_e.d_em, "Different expression managers!");
-  Assert(d_em == else_e.d_em, "Different expression managers!");
-  return d_em->mkExpr(ITE, *this, then_e, else_e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == then_e.d_exprManager, "Different expression managers!");
+  Assert(d_exprManager == else_e.d_exprManager, "Different expression managers!");
+  return d_exprManager->mkExpr(ITE, *this, then_e, else_e);
 }
 
 Expr BoolExpr::iteExpr(const Expr& then_e, const Expr& else_e) const {
-  Assert(d_em != NULL, "Don't have an expression manager for this expression!");
-  Assert(d_em == then_e.getExprManager(), "Different expression managers!");
-  Assert(d_em == else_e.getExprManager(), "Different expression managers!");
-  return d_em->mkExpr(ITE, *this, then_e, else_e);
+  Assert(d_exprManager != NULL, "Don't have an expression manager for this expression!");
+  Assert(d_exprManager == then_e.getExprManager(), "Different expression managers!");
+  Assert(d_exprManager == else_e.getExprManager(), "Different expression managers!");
+  return d_exprManager->mkExpr(ITE, *this, then_e, else_e);
 }
 
 void Expr::printAst(std::ostream & o, int indent) const{

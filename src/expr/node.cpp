@@ -160,6 +160,13 @@ Node Node::xorExpr(const Node& right) const {
   return NodeManager::currentNM()->mkNode(XOR, *this, right);
 }
 
+const Type* Node::getType() const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  return NodeManager::currentNM()->getType(*this);
+}
+
 static void indent(ostream & o, int indent) {
   for(int i=0; i < indent; i++) {
     o << ' ';

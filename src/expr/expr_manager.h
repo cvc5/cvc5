@@ -108,7 +108,7 @@ public:
 
 private:
   /** The internal node manager */
-  NodeManager* d_nm;
+  NodeManager* d_nodeManager;
   
   /**
    * Returns the internal node manager. This should only be used by internal

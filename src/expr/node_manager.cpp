@@ -73,8 +73,7 @@ Node NodeManager::mkNode(Kind kind, const vector<Node>& children) {
 }
 
 Node NodeManager::mkVar(const Type* type, string name) {
-  Node n = NodeBuilder<>(this, VARIABLE);
-  n.setAttribute(TypeAttr(), type);
+  Node n = mkVar(type);
   n.setAttribute(VarNameAttr(), name);
   return n;
 }

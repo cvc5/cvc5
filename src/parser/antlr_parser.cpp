@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** A super-class for ANTLR-generated input language parsers
  **/
 
 /*
@@ -75,7 +75,7 @@ const Type*
 AntlrParser::getType(std::string var_name, 
                      SymbolType type) {
   Assert( isDeclared(var_name, type) );
-  const Type* t = d_varTypeTable.getObject(var_name);
+  const Type* t = getSymbol(var_name,type).getType();
   return t;
 }
 
@@ -173,7 +173,6 @@ AntlrParser::mkVar(const std::string name, const Type* type) {
   Assert( !isDeclared(name) ) ;
   Expr expr = d_exprManager->mkVar(type, name);
   d_varSymbolTable.bindName(name, expr);
-  d_varTypeTable.bindName(name,type);
   Assert( isDeclared(name) ) ;
   return expr;
 }

@@ -108,6 +108,11 @@ public:
    */
   size_t getNumChildren() const;
 
+  /** Returns the type of the expression, if it has been computed.
+   * Returns NULL if the type of the expression is not known.
+   */
+  const Type* getType() const;
+
   /**
    * Returns the string representation of the expression.
    * @return a string representation of the expression
@@ -162,7 +167,7 @@ protected:
   Node* d_node;
 
   /** The responsible expression manager */
-  ExprManager* d_em;
+  ExprManager* d_exprManager;
 
   /**
    * Returns the actual internal node.

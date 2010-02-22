@@ -14,6 +14,7 @@
  **/
 
 /* circular dependency; force node.h first */
+#include "expr/attribute.h"
 #include "expr/node.h"
 
 #ifndef __CVC4__NODE_MANAGER_H
@@ -47,7 +48,7 @@ class NodeManager {
   typedef __gnu_cxx::hash_set<NodeValue*, __gnu_cxx::hash<NodeValue*>, NodeValue::NodeValueEq> NodeValueSet;
   NodeValueSet d_nodeValueSet;
 
-  expr::AttributeManager d_am;
+  expr::AttributeManager d_attrManager;
 
   NodeValue* poolLookup(NodeValue* nv) const;
   void poolInsert(NodeValue* nv);
@@ -56,7 +57,7 @@ class NodeManager {
 
 public:
 
-  NodeManager() : d_am(this) {
+  NodeManager() : d_attrManager(this) {
     poolInsert( &NodeValue::s_null );
   }
 
@@ -90,6 +91,8 @@ public:
   inline void setAttribute(const Node& n,
                            const AttrKind&,
                            const typename AttrKind::value_type& value);
+
+  inline const Type* getType(const Node& n);
 };
 
 class NodeManagerScope {
@@ -111,21 +114,25 @@ public:
 template <class AttrKind>
 inline typename AttrKind::value_type NodeManager::getAttribute(const Node& n,
                                                                const AttrKind&) const {
-  return d_am.getAttribute(n, AttrKind());
+  return d_attrManager.getAttribute(n, AttrKind());
 }
 
 template <class AttrKind>
 inline bool NodeManager::hasAttribute(const Node& n,
                                       const AttrKind&,
                                       typename AttrKind::value_type* ret) const {
-  return d_am.hasAttribute(n, AttrKind(), ret);
+  return d_attrManager.hasAttribute(n, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void NodeManager::setAttribute(const Node& n,
                                       const AttrKind&,
                                       const typename AttrKind::value_type& value) {
-  d_am.setAttribute(n, AttrKind(), value);
+  d_attrManager.setAttribute(n, AttrKind(), value);
+}
+
+inline const Type* NodeManager::getType(const Node& n) {
+  return getAttribute(n,CVC4::expr::TypeAttr());
 }
 
 }/* CVC4 namespace */
