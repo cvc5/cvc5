@@ -68,16 +68,16 @@ int main(int argc, char *argv[]) {
     SmtEngine smt(&exprMgr, &options);
 
     // If no file supplied we read from standard input
-    bool inputFromStdin = firstArgIndex >= argc;
+    bool inputFromStdin = firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
 
     // Auto-detect input language by filename extension
     if(!inputFromStdin && options.lang == Parser::LANG_AUTO) {
-      if(!strcmp(".smt", argv[firstArgIndex] + strlen(argv[firstArgIndex]) - 4)) {
+      const char* filename = argv[firstArgIndex];
+      unsigned len = strlen(filename);
+      if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
         options.lang = Parser::LANG_SMTLIB;
-      } else if(!strcmp(".cvc", argv[firstArgIndex]
-          + strlen(argv[firstArgIndex]) - 4)
-          || !strcmp(".cvc4", argv[firstArgIndex] + strlen(argv[firstArgIndex])
-              - 5)) {
+      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
+                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
         options.lang = Parser::LANG_CVC4;
       }
     }

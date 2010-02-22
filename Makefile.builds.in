@@ -57,9 +57,8 @@ ifeq ($(BUILDING_SHARED),1)
 	progdir="$(abs_builddir)$(bindir)"; file=cvc4; \
 		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
 		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"
-endif
-ifeq ($(BUILDING_STATIC),1)
-#	if we're building static libs, just install them directly
+else
+#	if we're building static libs only, just install the driver binary directly
 	$(install_sh) \
 		$(CURRENT_BUILD)/src/main/cvc4 \
 		"$(abs_builddir)$(bindir)"
@@ -78,9 +77,8 @@ ifeq ($(BUILDING_SHARED),1)
 	thelibdir="`pwd`$(libdir)"; progdir="`pwd`$(bindir)"; file=cvc4; \
 		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
 		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"
-endif
-ifeq ($(BUILDING_STATIC),1)
-#	if we're building static libs, just install them directly
+else
+#	if we're building static libs only, just install the driver binary directly
 	$(install_sh) $(CURRENT_BUILD)/src/main/cvc4 "`pwd`$(bindir)"
 endif
 #	set up builds/bin and builds/lib

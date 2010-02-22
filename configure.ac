@@ -407,6 +407,7 @@ if test "$enable_shared" = yes; then BUILDING_SHARED=1; fi
 if test "$enable_static" = yes; then BUILDING_STATIC=1; fi
 AC_SUBST(BUILDING_SHARED)
 AC_SUBST(BUILDING_STATIC)
+AM_CONDITIONAL([STATIC_BINARY], [test "$enable_shared" != yes -a "$enable_static" = yes])
 
 AC_SUBST(CVC4_LIBRARY_VERSION)
 AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)

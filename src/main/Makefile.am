@@ -15,4 +15,8 @@ cvc4_LDADD = \
 	../parser/libcvc4parser.la \
 	../libcvc4.la
 
+if STATIC_BINARY
+cvc4_LINK = $(CXXLINK) -all-static
+else
 cvc4_LINK = $(CXXLINK)
+endif
