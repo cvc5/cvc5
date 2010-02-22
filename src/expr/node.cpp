@@ -97,51 +97,83 @@ Node& Node::operator=(const Node& e) {
 }
 
 Node Node::eqExpr(const Node& right) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(EQUAL, *this, right);
 }
 
 Node Node::notExpr() const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(NOT, *this);
 }
 
 Node Node::andExpr(const Node& right) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(AND, *this, right);
 }
 
 Node Node::orExpr(const Node& right) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(OR, *this, right);
 }
 
 Node Node::iteExpr(const Node& thenpart, const Node& elsepart) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(ITE, *this, thenpart, elsepart);
 }
 
 Node Node::iffExpr(const Node& right) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(IFF, *this, right);
 }
 
 Node Node::impExpr(const Node& right) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(IMPLIES, *this, right);
 }
 
 Node Node::xorExpr(const Node& right) const {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->mkNode(XOR, *this, right);
 }
 
-static void indent(ostream & o, int indent){
-  for(int i=0; i < indent; i++)
+static void indent(ostream & o, int indent) {
+  for(int i=0; i < indent; i++) {
     o << ' ';
+  }
 }
 
 void Node::printAst(ostream & o, int ind) const {
   indent(o, ind);
   o << '(';
   o << getKind();
-  if(getKind() == VARIABLE){
+  if(getKind() == VARIABLE) {
     o << ' ' << getId();
-
-  }else if(getNumChildren() >= 1){
-    for(Node::iterator child = begin(); child != end(); ++child){
+  } else if(getNumChildren() >= 1) {
+    for(Node::iterator child = begin(); child != end(); ++child) {
       o << endl;
       (*child).printAst(o, ind + 1);
     }
