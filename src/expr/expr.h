@@ -13,11 +13,13 @@
  ** Public-facing expression interface.
  **/
 
+// circular dependency: force expr_manager.h first
+#include "expr/expr_manager.h"
+
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H
 
 #include "cvc4_config.h"
-#include "expr/expr_manager.h"
 
 #include <string>
 #include <iostream>

@@ -1,0 +1,6 @@
+% EXPECT: VALID
+a:BOOLEAN;
+b:BOOLEAN;
+ASSERT(a);
+QUERY(a OR b);
+

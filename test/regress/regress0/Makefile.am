@@ -1,7 +1,8 @@
 SUBDIRS = precedence
 
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/../../bin/cvc4
-TESTS =	hole6.cvc \
+TESTS =	bug32.cvc \
+	hole6.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
 	logops.03.cvc \

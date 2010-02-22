@@ -18,6 +18,7 @@
 
 #include "cvc4_config.h"
 #include "expr/kind.h"
+#include "expr/node_manager.h"
 #include <vector>
 
 namespace CVC4 {
@@ -27,7 +28,6 @@ class Type;
 class BooleanType; 
 class FunctionType; 
 class KindType;
-class NodeManager;
 class SmtEngine;
 
 class CVC4_PUBLIC ExprManager {
@@ -118,8 +118,31 @@ private:
 
   /** SmtEngine will use all the internals, so it will grab the node manager */
   friend class SmtEngine;
+
+  /** ExprManagerScope reaches in to get the NodeManager */
+  friend class ExprManagerScope;
 };
 
-}
+}/* CVC4 namespace */
+
+#include "expr/expr.h"
+
+namespace CVC4 {
+
+/**
+ * A wrapper (essentially) for NodeManagerScope.  Without this, we'd
+ * need Expr to be a friend of ExprManager.
+ */
+class ExprManagerScope {
+  NodeManagerScope d_nms;
+public:
+  inline ExprManagerScope(const Expr& e) :
+    d_nms(e.getExprManager() == NULL ?
+          NodeManager::currentNM() : e.getExprManager()->getNodeManager()) {
+  }
+};
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR_MANAGER_H */
+

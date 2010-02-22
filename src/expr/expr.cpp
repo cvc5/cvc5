@@ -43,11 +43,13 @@ ExprManager* Expr::getExprManager() const {
 }
 
 Expr::~Expr() {
+  ExprManagerScope ems(*this);
   delete d_node;
 }
 
 Expr& Expr::operator=(const Expr& e) {
   if(this != &e) {
+    ExprManagerScope ems(*this);
     delete d_node;
     d_node = new Node(*e.d_node);
     d_em = e.d_em;
@@ -79,7 +81,7 @@ bool Expr::operator<(const Expr& e) const {
 
 size_t Expr::hash() const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return (d_node->isNull());
+  return (d_node->hash());
 }
 
 Kind Expr::getKind() const {
@@ -93,6 +95,7 @@ size_t Expr::getNumChildren() const {
 }
 
 std::string Expr::toString() const {
+  ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->toString();
 }
@@ -107,6 +110,7 @@ Expr::operator bool() const {
 }
 
 void Expr::toStream(std::ostream& out) const {
+  ExprManagerScope ems(*this);
   d_node->toStream(out);
 }
 

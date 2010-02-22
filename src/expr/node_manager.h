@@ -13,6 +13,9 @@
  ** A manager for Nodes.
  **/
 
+/* circular dependency; force node.h first */
+#include "expr/node.h"
+
 #ifndef __CVC4__NODE_MANAGER_H
 #define __CVC4__NODE_MANAGER_H
 
@@ -20,7 +23,6 @@
 #include <string>
 #include <ext/hash_set>
 
-#include "expr/node.h"
 #include "expr/kind.h"
 
 namespace __gnu_cxx {
