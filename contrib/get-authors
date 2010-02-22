@@ -20,7 +20,7 @@ while [ $# -gt 0 ]; do
     ( while read lines author; do
         pct=$((100*$lines/$total_lines))
         if [ "$author" != "$original_author" ]; then
-          if [ $pct -gt 10 ]; then
+          if [ $pct -ge 10 ]; then
             major_contributors="${major_contributors:+$major_contributors, }$author"
           else
             minor_contributors="${minor_contributors:+$minor_contributors, }$author"

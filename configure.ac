@@ -453,10 +453,16 @@ LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 mk_include=include
 AC_SUBST(mk_include)
 
+# CVC4_FALSE
+#
+# This is used to _always_ comment out rules in automake makefiles, but
+# still trigger certain automake behavior; see test/unit/Makefile.am.
+AM_CONDITIONAL([CVC4_FALSE], [false])
+
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib/ doc/ src/ test/ -name Makefile.am | sort | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib/ src/ test/ -name Makefile.am | sort | sed 's,\.am$,,'])
 )
 
 AC_OUTPUT

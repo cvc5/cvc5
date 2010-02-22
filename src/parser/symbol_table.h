@@ -1,4 +1,4 @@
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** symbol_table.h
  ** Original author: cconway
  ** Major contributors: dejan, mdeters

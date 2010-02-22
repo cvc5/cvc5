@@ -1,7 +1,7 @@
 /*********************                                                        */
 /** expr_manager.h
  ** Original author: dejan
- ** Major contributors: mdeters
+ ** Major contributors: cconway, mdeters
  ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)

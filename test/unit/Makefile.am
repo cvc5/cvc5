@@ -51,11 +51,6 @@ EXTRA_DIST = \
 	no_cxxtest \
 	$(TEST_DEPS_DIST)
 
-# without these here, LTCXXCOMPILE, CXXLINK, etc., aren't set :-(
-noinst_LTLIBRARIES = libdummy.la
-libdummy_la_SOURCES = expr/node_black.cpp
-libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
-
 MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp)
 
 @mk_include@ @srcdir@/Makefile.tests
@@ -86,6 +81,13 @@ EXTRA_DIST = \
 	$(UNIT_TESTS:%=%.cpp) \
 	$(TEST_DEPS_DIST)
 
+endif
+
+# trick automake into setting LTCXXCOMPILE, CXXLINK, etc.
+if CVC4_FALSE
+noinst_LTLIBRARIES = libdummy.la
+libdummy_la_SOURCES = expr/node_black.cpp
+libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 endif
 
 # synonyms for "check"

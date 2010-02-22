@@ -1,5 +1,5 @@
-/*********************                                           -*- C++ -*-  */
-/** type.h
+/*********************                                                        */
+/** type.cpp
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): none
