@@ -108,15 +108,13 @@ template<bool ref_count>
     /** Default constructor, makes a null expression. */
     NodeTemplate();
 
-<<<<<<< .working
-  Node operator[](int i) const {
-    Assert(i >= 0 && unsigned(i) < d_ev->d_nchildren);
-    return Node(d_ev->d_children[i]);
-  }
-=======
+    NodeTemplate operator[](int i) const {
+      Assert(i >= 0 && unsigned(i) < d_ev->d_nchildren);
+      return NodeTemplate(d_ev->d_children[i]);
+    }
+
     template <bool ref_count_1>
     NodeTemplate(const NodeTemplate<ref_count_1>&);
->>>>>>> .merge-right.r241
 
     /** Destructor.  Decrements the reference count and, if zero,
      *  collects the NodeValue. */
@@ -129,26 +127,14 @@ template<bool ref_count>
       return d_ev != e.d_ev;
     }
 
-    NodeTemplate operator[](int i) const {
-      Assert(i >= 0 && i < d_ev->d_nchildren);
-      return NodeTemplate(d_ev->d_children[i]);
-    }
-
     /**
      * We compare by expression ids so, keeping things deterministic and having
      * that subexpressions have to be smaller than the enclosing expressions.
      */
     inline bool operator<(const NodeTemplate& e) const;
 
-<<<<<<< .working
-  /*
-  Node plusExpr(const Node& right) const;
-  Node uMinusExpr() const;
-  Node multExpr(const Node& right) const;
-=======
-    NodeTemplate& operator=(const NodeTemplate&);
->>>>>>> .merge-right.r241
-  */
+    template <bool ref_count_1>
+    NodeTemplate& operator=(const NodeTemplate<ref_count_1>&);
 
     size_t hash() const {
       return d_ev->getId();
@@ -157,7 +143,6 @@ template<bool ref_count>
     uint64_t getId() const {
       return d_ev->getId();
     }
-  const Type* getType() const;
 
     const Type* getType() const;
 
@@ -179,21 +164,11 @@ template<bool ref_count>
 
     inline size_t getNumChildren() const;
 
-<<<<<<< .working
-  template <class AttrKind>
-  inline typename AttrKind::value_type getAttribute(const AttrKind&) const;
-=======
-    static NodeTemplate null();
->>>>>>> .merge-right.r241
 
-<<<<<<< .working
-  template <class AttrKind>
-  inline bool hasAttribute(const AttrKind&,
-                           typename AttrKind::value_type* = NULL) const;
-=======
+    static NodeTemplate null();
+
     typedef typename NodeValue::iterator<ref_count> iterator;
     typedef typename NodeValue::iterator<ref_count> const_iterator;
->>>>>>> .merge-right.r241
 
     inline iterator begin();
     inline iterator end();
@@ -336,39 +311,22 @@ template<bool ref_count>
 
 template <bool ref_count>
 template <class AttrKind>
-<<<<<<< .working
-inline typename AttrKind::value_type Node::getAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
-
-=======
 inline typename AttrKind::value_type NodeTemplate<ref_count>::getAttribute(const AttrKind&) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
 
->>>>>>> .merge-right.r241
   return NodeManager::currentNM()->getAttribute(*this, AttrKind());
 }
 
 template <bool ref_count>
 template <class AttrKind>
-<<<<<<< .working
-inline bool Node::hasAttribute(const AttrKind&,
-                               typename AttrKind::value_type* ret) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
-
-=======
 inline bool NodeTemplate<ref_count>::hasAttribute(const AttrKind&,
                                typename AttrKind::value_type* ret) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
 
->>>>>>> .merge-right.r241
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
 }
 
@@ -458,8 +416,9 @@ template<bool ref_count>
   }
 
 template<bool ref_count>
+template<bool ref_count_1>
   NodeTemplate<ref_count>& NodeTemplate<ref_count>::operator=
-      (const NodeTemplate<ref_count>& e) {
+      (const NodeTemplate<ref_count_1>& e) {
     Assert(d_ev != NULL, "Expecting a non-NULL expression value!");
     Assert(e.d_ev != NULL, "Expecting a non-NULL expression value on RHS!");
     if(EXPECT_TRUE( d_ev != e.d_ev )) {
