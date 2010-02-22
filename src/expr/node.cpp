@@ -1,3 +1,4 @@
+<<<<<<< .working
 /*********************                                                        */
 /** node.cpp
  ** Original author: mdeters
@@ -198,3 +199,5 @@ void Node::debugPrint() {
 }
 
 }/* CVC4 namespace */
+=======
+>>>>>>> .merge-right.r241

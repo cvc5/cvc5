@@ -33,7 +33,7 @@
 
 namespace CVC4 {
 
-class Node;
+template <bool ref_count> class NodeTemplate;
 template <unsigned> class NodeBuilder;
 class NodeManager;
 
@@ -76,7 +76,7 @@ class NodeValue {
 
   // todo add exprMgr ref in debug case
 
-  friend class CVC4::Node;
+  template <bool> friend class CVC4::NodeTemplate;
   template <unsigned> friend class CVC4::NodeBuilder;
   friend class CVC4::NodeManager;
 
@@ -103,49 +103,45 @@ class NodeValue {
   const_ev_iterator ev_begin() const;
   const_ev_iterator ev_end() const;
 
-  class node_iterator {
+  template <bool ref_count>
+  class iterator {
     const_ev_iterator d_i;
   public:
-    explicit node_iterator(const_ev_iterator i) : d_i(i) {}
+    explicit iterator(const_ev_iterator i) : d_i(i) {}
 
-    inline Node operator*();
+    inline CVC4::NodeTemplate<ref_count> operator*();
 
-    bool operator==(const node_iterator& i) {
+    bool operator==(const iterator& i) {
       return d_i == i.d_i;
     }
 
-    bool operator!=(const node_iterator& i) {
+    bool operator!=(const iterator& i) {
       return d_i != i.d_i;
     }
 
-    node_iterator operator++() {
+    iterator operator++() {
       ++d_i;
       return *this;
     }
 
-    node_iterator operator++(int) {
-      return node_iterator(d_i++);
+    iterator operator++(int) {
+      return iterator(d_i++);
     }
 
     typedef std::input_iterator_tag iterator_category;
-    typedef Node value_type;
-    typedef ptrdiff_t difference_type;
-    typedef Node* pointer;
-    typedef Node& reference;
   };
-  typedef node_iterator const_node_iterator;
 
 public:
 
-  // Iterator support
-  typedef node_iterator iterator;
-  typedef node_iterator const_iterator;
+  template <bool ref_count>
+  iterator<ref_count> begin() const {
+    return iterator<ref_count>(d_children);
+  }
 
-  iterator begin();
-  iterator end();
-
-  const_iterator begin() const;
-  const_iterator end() const;
+  template <bool ref_count>
+  iterator<ref_count> end() const {
+    return iterator<ref_count>(d_children + d_nchildren);
+  }
 
   /**
    * Hash this expression.
@@ -207,8 +203,9 @@ public:
 namespace CVC4 {
 namespace expr {
 
-inline Node NodeValue::node_iterator::operator*() {
-  return Node(*d_i);
+template <bool ref_count>
+inline CVC4::NodeTemplate<ref_count> NodeValue::iterator<ref_count>::operator*() {
+  return NodeTemplate<ref_count>(*d_i);
 }
 
 }/* CVC4::expr namespace */

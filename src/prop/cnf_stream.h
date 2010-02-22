@@ -81,14 +81,14 @@ protected:
    * @param node the node
    * @return true if the node has been cached
    */
-  bool isCached(const Node& node) const;
+  bool isCached(const TNode& node) const;
 
   /**
    * Returns the cashed literal corresponding to the given node.
    * @param node the node to lookup
    * @return returns the corresponding literal
    */
-  SatLiteral lookupInCache(const Node& n) const;
+  SatLiteral lookupInCache(const TNode& n) const;
 
   /**
    * Caches the pair of the node and the literal corresponding to the
@@ -96,7 +96,7 @@ protected:
    * @param node node
    * @param lit
    */
-  void cacheTranslation(const Node& node, SatLiteral lit);
+  void cacheTranslation(const TNode& node, SatLiteral lit);
 
   /**
    * Acquires a new variable from the SAT solver to represent the node and
@@ -104,7 +104,7 @@ protected:
    * @param node a formula
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(const Node& node);
+  SatLiteral newLiteral(const TNode& node);
 
 public:
 
@@ -128,7 +128,7 @@ public:
    * @param node node to convert and assert
    * @param whether the sat solver can choose to remove this clause
    */
-  virtual void convertAndAssert(const Node& node) = 0;
+  virtual void convertAndAssert(const TNode& node) = 0;
 
 }; /* class CnfStream */
 
@@ -150,7 +150,7 @@ public:
    * Convert a given formula to CNF and assert it to the SAT solver.
    * @param node the formula to assert
    */
-  void convertAndAssert(const Node& node);
+  void convertAndAssert(const TNode& node);
 
   /**
    * Constructs the stream to use the given sat solver.
@@ -170,21 +170,21 @@ private:
   //   - returning l
   //
   // handleX( n ) can assume that n is not in d_translationCache
-  SatLiteral handleAtom(const Node& node);
-  SatLiteral handleNot(const Node& node);
-  SatLiteral handleXor(const Node& node);
-  SatLiteral handleImplies(const Node& node);
-  SatLiteral handleIff(const Node& node);
-  SatLiteral handleIte(const Node& node);
-  SatLiteral handleAnd(const Node& node);
-  SatLiteral handleOr(const Node& node);
+  SatLiteral handleAtom(const TNode& node);
+  SatLiteral handleNot(const TNode& node);
+  SatLiteral handleXor(const TNode& node);
+  SatLiteral handleImplies(const TNode& node);
+  SatLiteral handleIff(const TNode& node);
+  SatLiteral handleIte(const TNode& node);
+  SatLiteral handleAnd(const TNode& node);
+  SatLiteral handleOr(const TNode& node);
 
   /**
    * Transforms the node into CNF recursively.
    * @param node the formula to transform
    * @return the literal representing the root of the formula
    */
-  SatLiteral toCNF(const Node& node);
+  SatLiteral toCNF(const TNode& node);
 
 }; /* class TseitinCnfStream */
 

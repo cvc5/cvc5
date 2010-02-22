@@ -12,9 +12,3 @@
  **
  **/
 
-#include "expr/node_builder.h"
-#include "expr/node_manager.h"
-#include "expr/node_value.h"
-#include "util/output.h"
-
-using namespace std;

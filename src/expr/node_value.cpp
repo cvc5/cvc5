@@ -27,6 +27,8 @@ namespace CVC4 {
 
 size_t NodeValue::next_id = 1;
 
+NodeValue NodeValue::s_null;
+
 NodeValue::NodeValue() :
   d_id(0),
   d_rc(MAX_RC),
@@ -62,22 +64,6 @@ void NodeValue::dec() {
       // FIXME gc
     }
   }
-}
-
-NodeValue::iterator NodeValue::begin() {
-  return node_iterator(d_children);
-}
-
-NodeValue::iterator NodeValue::end() {
-  return node_iterator(d_children + d_nchildren);
-}
-
-NodeValue::const_iterator NodeValue::begin() const {
-  return const_node_iterator(d_children);
-}
-
-NodeValue::const_iterator NodeValue::end() const {
-  return const_node_iterator(d_children + d_nchildren);
 }
 
 NodeValue::ev_iterator NodeValue::ev_begin() {
