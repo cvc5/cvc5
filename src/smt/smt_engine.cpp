@@ -25,7 +25,6 @@ using namespace CVC4::prop;
 namespace CVC4 {
 
 SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
-  d_assertions(),
   d_exprManager(em),
   d_nodeManager(em->getNodeManager()),
   d_options(opts)
@@ -50,35 +49,25 @@ Node SmtEngine::preprocess(const Node& e) {
   return e;
 }
 
-void SmtEngine::processAssertionList() {
-  for(unsigned i = 0; i < d_assertions.size(); ++i) {
-    d_propEngine->assertFormula(d_assertions[i]);
-  }
-  d_assertions.clear();
-}
-
 Result SmtEngine::check() {
   Debug("smt") << "SMT check()" << std::endl;
-  processAssertionList();
   return d_propEngine->checkSat();
 }
 
 Result SmtEngine::quickCheck() {
   Debug("smt") << "SMT quickCheck()" << std::endl;
-  processAssertionList();
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
 void SmtEngine::addFormula(const Node& e) {
   Debug("smt") << "push_back assertion " << e << std::endl;
-  d_assertions.push_back(e);
+  d_propEngine->assertFormula(preprocess(e));
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
-  Node node_e = preprocess(e.getNode());
-  addFormula(node_e);
+  addFormula(e.getNode());
   Result r = check().asSatisfiabilityResult();
   Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << std::endl;
   return r;
@@ -87,8 +76,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 Result SmtEngine::query(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << std::endl;
-  Node node_e = preprocess(d_nodeManager->mkNode(NOT, e.getNode()));
-  addFormula(node_e);
+  addFormula(e.getNode().notExpr());
   Result r = check().asValidityResult();
   Debug("smt") << "SMT query(" << e << ") ==> " << r << std::endl;
   return r;
@@ -97,8 +85,7 @@ Result SmtEngine::query(const BoolExpr& e) {
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
-  Node node_e = preprocess(e.getNode());
-  addFormula(node_e);
+  addFormula(e.getNode());
   return quickCheck().asValidityResult();
 }
 
