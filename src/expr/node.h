@@ -48,7 +48,6 @@ using CVC4::expr::NodeValue;
 class Node {
 
   friend class NodeValue;
-  friend class SoftNode;
 
   /** A convenient null-valued encapsulated pointer */
   static Node s_null;
@@ -106,7 +105,7 @@ public:
   bool operator!=(const Node& e) const { return d_ev != e.d_ev; }
 
   Node operator[](int i) const {
-    Assert(i >= 0 && i < d_ev->d_nchildren);
+    Assert(i >= 0 && unsigned(i) < d_ev->d_nchildren);
     return Node(d_ev->d_children[i]);
   }
 
@@ -130,9 +129,11 @@ public:
   Node impExpr(const Node& right) const;
   Node xorExpr(const Node& right) const;
 
+  /*
   Node plusExpr(const Node& right) const;
   Node uMinusExpr() const;
   Node multExpr(const Node& right) const;
+  */
 
   inline Kind getKind() const;
 
@@ -171,9 +172,9 @@ public:
    * @param indent number of spaces to indent the formula by.
    */
   void printAst(std::ostream & o, int indent = 0) const;
-  
+
 private:
-  
+
   /**
    * Pretty printer for use within gdb
    * This is not intended to be used outside of gdb.
@@ -262,18 +263,30 @@ inline size_t Node::getNumChildren() const {
 
 template <class AttrKind>
 inline typename AttrKind::value_type Node::getAttribute(const AttrKind&) {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->getAttribute(*this, AttrKind());
 }
 
 template <class AttrKind>
 inline bool Node::hasAttribute(const AttrKind&,
                                typename AttrKind::value_type* ret) {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void Node::setAttribute(const AttrKind&,
                                const typename AttrKind::value_type& value) {
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
   NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
 }
 

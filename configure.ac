@@ -4,7 +4,7 @@
 dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT
 
-AC_PREREQ(2.64)
+AC_PREREQ(2.61)
 AC_INIT
 AC_CONFIG_SRCDIR([src/include/cvc4_config.h])
 AC_CONFIG_AUX_DIR([config])
@@ -30,7 +30,7 @@ CVC4_RELEASE_STRING=prerelease
 #
 # For more information, see:
 # http://www.gnu.org/software/libtool/manual/libtool.html#Versioning
-# For guidance on when to change the version number, refer to the 
+# For guidance on when to change the version number, refer to the
 # developer's guide.
 
 CVC4_LIBRARY_VERSION=$CVC4_MAJOR:$CVC4_MINOR:$CVC4_RELEASE
@@ -195,10 +195,24 @@ case "$with_build" in
     ;;
 esac
 
+# permit a static binary
+AC_MSG_CHECKING([whether to build a static binary])
+AC_ARG_ENABLE([static-binary],
+     [AS_HELP_STRING([--enable-static-binary],
+                     [build a statically-linked binary [default=no]])])
+if test -z "${enable_static_binary+set}"; then
+  enable_static_binary=no
+fi
+AC_MSG_RESULT([$enable_static_binary])
+if test "${enable_static_binary}" = yes -a "${enable_static}" != yes; then
+  enable_static=yes
+  AC_MSG_WARN([forcing static-library building, --enable-static-binary given])
+fi
+
 AC_MSG_CHECKING([whether to optimize libcvc4])
 
 AC_ARG_ENABLE([optimized],
-  [AS_HELP_STRING([--enable-optimized],       
+  [AS_HELP_STRING([--enable-optimized],
      [optimize the build])])
 
 if test -z "${enable_optimized+set}"; then
@@ -213,8 +227,8 @@ fi
 
 AC_MSG_CHECKING([whether to include debugging symbols in libcvc4])
 
-AC_ARG_ENABLE([debug-symbols],   
-  [AS_HELP_STRING([--disable-debug-symbols],  
+AC_ARG_ENABLE([debug-symbols],
+  [AS_HELP_STRING([--disable-debug-symbols],
      [do not include debug symbols in libcvc4])])
 
 if test -z "${enable_debug_symbols+set}"; then
@@ -229,8 +243,8 @@ fi
 
 AC_MSG_CHECKING([whether to include assertions in build])
 
-AC_ARG_ENABLE([assertions],      
-  [AS_HELP_STRING([--disable-assertions],     
+AC_ARG_ENABLE([assertions],
+  [AS_HELP_STRING([--disable-assertions],
      [turn off assertions in build])])
 
 if test -z "${enable_assertions+set}"; then
@@ -244,8 +258,8 @@ if test "$enable_assertions" = yes; then
 fi
 
 AC_MSG_CHECKING([whether to do a traceable build of CVC4])
-AC_ARG_ENABLE([tracing],         
-  [AS_HELP_STRING([--disable-tracing],        
+AC_ARG_ENABLE([tracing],
+  [AS_HELP_STRING([--disable-tracing],
      [remove all tracing code from CVC4])])
 
 if test -z "${enable_tracing+set}"; then
@@ -259,8 +273,8 @@ if test "$enable_tracing" = yes; then
 fi
 
 AC_MSG_CHECKING([whether to do a muzzled build of CVC4])
-AC_ARG_ENABLE([muzzle],          
-  [AS_HELP_STRING([--enable-muzzle],          
+AC_ARG_ENABLE([muzzle],
+  [AS_HELP_STRING([--enable-muzzle],
      [completely silence CVC4; remove ALL non-result output from build])])
 
 if test -z "${enable_muzzle+set}"; then
@@ -274,8 +288,8 @@ if test "$enable_muzzle" = yes; then
 fi
 
 AC_MSG_CHECKING([whether to do a gcov-enabled build of CVC4])
-AC_ARG_ENABLE([coverage],        
-  [AS_HELP_STRING([--enable-coverage],        
+AC_ARG_ENABLE([coverage],
+  [AS_HELP_STRING([--enable-coverage],
      [build with support for gcov coverage testing])])
 
 if test -z "${enable_coverage+set}"; then
@@ -291,8 +305,8 @@ fi
 
 AC_MSG_CHECKING([whether to do a profiling-enabled build of CVC4])
 
-AC_ARG_ENABLE([profiling],       
-  [AS_HELP_STRING([--enable-profiling],       
+AC_ARG_ENABLE([profiling],
+  [AS_HELP_STRING([--enable-profiling],
      [build with support for gprof profiling])])
 
 if test -z "${enable_profiling+set}"; then
@@ -325,9 +339,11 @@ DX_PS_FEATURE(OFF)
 DX_DOT_FEATURE(OFF)
 DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc)
 
+AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
+
 AC_SUBST([CXXTEST])
 
-AC_ARG_WITH([cxxtest-dir], 
+AC_ARG_WITH([cxxtest-dir],
   [AS_HELP_STRING([--with-cxxtest-dir=DIR], [path to CxxTest installation])],
   [CXXTEST="$withval"])
 
@@ -389,7 +405,7 @@ AC_LIB_ANTLR
 AC_CHECK_HEADERS([getopt.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_HEADER_STDBOOL
+#AC_HEADER_STDBOOL
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
@@ -407,7 +423,7 @@ if test "$enable_shared" = yes; then BUILDING_SHARED=1; fi
 if test "$enable_static" = yes; then BUILDING_STATIC=1; fi
 AC_SUBST(BUILDING_SHARED)
 AC_SUBST(BUILDING_STATIC)
-AM_CONDITIONAL([STATIC_BINARY], [test "$enable_shared" != yes -a "$enable_static" = yes])
+AM_CONDITIONAL([STATIC_BINARY], [test "$enable_static_binary" = yes])
 
 AC_SUBST(CVC4_LIBRARY_VERSION)
 AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)
@@ -477,6 +493,10 @@ Muzzle       : $enable_muzzle
 gcov support : $enable_coverage
 gprof support: $enable_profiling
 unit tests   : $support_unit_tests
+
+static libs  : $enable_static
+shared libs  : $enable_shared
+static binary: $enable_static_binary
 
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS

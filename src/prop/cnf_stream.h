@@ -116,6 +116,14 @@ public:
   CnfStream(SatSolver* satSolver);
 
   /**
+   * Destructs a CnfStream.  This implementation does nothing, but we
+   * need a virtual destructor for safety in case subclasses have a
+   * destructor.
+   */
+  virtual ~CnfStream() {
+  }
+
+  /**
    * Converts and asserts a formula.
    * @param node node to convert and assert
    * @param whether the sat solver can choose to remove this clause
