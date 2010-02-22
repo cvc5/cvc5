@@ -37,6 +37,7 @@ CVC4 options:\n\
    --stats         give statistics on exit\n\
    --segv-nospin   (debug builds only) don't spin on segfault waiting for gdb\n\
    --parse-only    exit after parsing input\n\
+   --show-config   show CVC4 static configuration\n\
 ";
 
 }/* CVC4::main namespace */

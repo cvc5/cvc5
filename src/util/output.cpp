@@ -27,12 +27,17 @@ namespace CVC4 {
 null_streambuf null_sb;
 ostream null_os(&null_sb);
 
+NullDebugC debugNullCvc4Stream CVC4_PUBLIC;
+NullC nullCvc4Stream CVC4_PUBLIC;
+
+#ifndef CVC4_MUZZLE
+
 DebugC   DebugOut(&cout);
-WarningC Warning (&cerr);
-MessageC Message (&cout);
-NoticeC  Notice  (&cout);
-ChatC    Chat    (&cout);
-TraceC   Trace   (&cout);
+WarningC WarningOut(&cerr);
+MessageC MessageOut(&cout);
+NoticeC  NoticeOut(&cout);
+ChatC    ChatOut(&cout);
+TraceC   TraceOut(&cout);
 
 void DebugC::printf(const char* tag, const char* fmt, ...) {
   if(d_tags.find(string(tag)) != d_tags.end()) {
@@ -121,5 +126,7 @@ void TraceC::printf(string tag, const char* fmt, ...) {
     *d_os << buf;
   }
 }
+
+#endif /* CVC4_MUZZLE */
 
 }/* CVC4 namespace */

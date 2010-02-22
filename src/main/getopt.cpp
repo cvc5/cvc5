@@ -27,7 +27,7 @@
 #include "main.h"
 #include "util/exception.h"
 #include "usage.h"
-#include "about.h"
+#include "util/configuration.h"
 #include "util/output.h"
 #include "util/options.h"
 #include "parser/parser.h"
@@ -52,21 +52,47 @@ CNF conversions currently supported as arguments to the --cnf option:\n\
   var     variable-introduction method (new vars, no exp. blow up in # clauses)\n\
 ";
 
-// FIXME add a comment here describing the purpose of this
+/**
+ * For the main getopt() routine, we need ways to switch on long
+ * options without clashing with short option characters.  This is an
+ * enum of those long options.  For long options (e.g. "--verbose")
+ * with a short option equivalent ("-v"), we use the single-letter
+ * short option; therefore, this enumeration starts at 256 to avoid
+ * any collision.
+ */
 enum OptionValue {
   CNF = 256, /* no clash with char options */
   SMTCOMP,
   STATS,
   SEGV_NOSPIN,
   PARSE_ONLY,
-  NO_CHECKING
+  NO_CHECKING,
+  SHOW_CONFIG
 };/* enum OptionValue */
 
-// FIXME add a comment here describing the option array
+/**
+ * This is a table of long options.  By policy, each short option
+ * should have an equivalent long option (but the reverse isn't the
+ * case), so this table should thus contain all command-line options.
+ *
+ * Each option in this array has four elements:
+ *
+ * 1. the long option string
+ * 2. argument behavior for the option:
+ *    no_argument - no argument permitted
+ *    required_argument - an argument is expected
+ *    optional_argument - an argument is permitted but not required
+ * 3. this is a pointer to an int which is set to the 4th entry of the
+ *    array if the option is present; or NULL, in which case
+ *    getopt_long() returns the 4th entry
+ * 4. the return value for getopt_long() when this long option (or the
+ *    value to set the 3rd entry to; see #3)
+ */
 static struct option cmdlineOptions[] = {
   // name, has_arg, *flag, val
   { "help"       , no_argument      , NULL, 'h'         },
   { "version"    , no_argument      , NULL, 'V'         },
+  { "about"      , no_argument      , NULL, 'V'         },
   { "verbose"    , no_argument      , NULL, 'v'         },
   { "quiet"      , no_argument      , NULL, 'q'         },
   { "lang"       , required_argument, NULL, 'L'         },
@@ -76,7 +102,8 @@ static struct option cmdlineOptions[] = {
   { "stats"      , no_argument      , NULL, STATS       },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
-  { "no-checking", no_argument      , NULL, NO_CHECKING }
+  { "no-checking", no_argument      , NULL, NO_CHECKING },
+  { "show-config", no_argument      , NULL, SHOW_CONFIG }
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -98,7 +125,17 @@ throw(OptionException) {
   }
   opts->binary_name = string(progName);
 
-  // FIXME add a comment here describing the option string
+  // The strange string in this call is the short option string.  The
+  // initial '+' means that option processing stops as soon as a
+  // non-option argument is encountered.  The initial ':' indicates
+  // that getopt_long() should return ':' instead of '?' for a missing
+  // option argument.  Then, each letter is a valid short option for
+  // getopt_long(), and if it's encountered, getopt_long() returns
+  // that character.  A ':' after an option character means an
+  // argument is required; two colons indicates an argument is
+  // optional; no colons indicate an argument is not permitted.
+  // cmdlineOptions specifies all the long-options and the return
+  // value for getopt_long() should they be encountered.
   while((c = getopt_long(argc, argv,
                          "+:hVvqL:d:",
                          cmdlineOptions, NULL)) != -1) {
@@ -109,7 +146,7 @@ throw(OptionException) {
       exit(1);
 
     case 'V':
-      fputs(about, stdout);
+      fputs(Configuration::about().c_str(), stdout);
       exit(0);
 
     case 'v':
@@ -182,14 +219,27 @@ throw(OptionException) {
       opts->semanticChecks = false;
       break;
 
+    case SHOW_CONFIG:
+      fputs(Configuration::about().c_str(), stdout);
+      printf("\n");
+      printf("version   : %s\n", Configuration::getVersionString().c_str());
+      printf("\n");
+      printf("debug code: %s\n", Configuration::isDebugBuild() ? "yes" : "no");
+      printf("tracing   : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
+      printf("muzzled   : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
+      printf("assertions: %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
+      printf("coverage  : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
+      printf("profiling : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
+      exit(0);
+
     case '?':
-      throw OptionException(string("can't understand option"));// + argv[optind - 1] + "'");
+      throw OptionException(string("can't understand option `") + argv[optind - 1] + "'");
 
     case ':':
-      throw OptionException(string("option missing its required argument"));// + argv[optind - 1] + "' missing its required argument");
+      throw OptionException(string("option `") + argv[optind - 1] + "' missing its required argument");
 
     default:
-      throw OptionException(string("can't understand option"));//: `") + argv[optind - 1] + "'");
+      throw OptionException(string("can't understand option:") + argv[optind - 1] + "'");
     }
 
   }

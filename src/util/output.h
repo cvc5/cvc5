@@ -49,6 +49,8 @@ extern null_streambuf null_sb;
 /** A null output stream singleton */
 extern std::ostream null_os CVC4_PUBLIC;
 
+#ifndef CVC4_MUZZLE
+
 /** The debug output class */
 class CVC4_PUBLIC DebugC {
   std::set<std::string> d_tags;
@@ -115,10 +117,10 @@ public:
 /** The debug output singleton */
 extern DebugC DebugOut CVC4_PUBLIC;
 #ifdef CVC4_DEBUG
-  #define Debug DebugOut
-#else
-  #define Debug if(0) DebugOut
-#endif
+#  define Debug DebugOut
+#else /* CVC4_DEBUG */
+#  define Debug if(0) debugNullCvc4Stream
+#endif /* CVC4_DEBUG */
 
 /** The warning output class */
 class CVC4_PUBLIC WarningC {
@@ -138,7 +140,8 @@ public:
 };/* class Warning */
 
 /** The warning output singleton */
-extern WarningC Warning CVC4_PUBLIC;
+extern WarningC WarningOut CVC4_PUBLIC;
+#define Warning WarningOut
 
 /** The message output class */
 class CVC4_PUBLIC MessageC {
@@ -158,7 +161,8 @@ public:
 };/* class Message */
 
 /** The message output singleton */
-extern MessageC Message CVC4_PUBLIC;
+extern MessageC MessageOut CVC4_PUBLIC;
+#define Message MessageOut
 
 /** The notice output class */
 class CVC4_PUBLIC NoticeC {
@@ -178,7 +182,8 @@ public:
 };/* class Notice */
 
 /** The notice output singleton */
-extern NoticeC Notice CVC4_PUBLIC;
+extern NoticeC NoticeOut CVC4_PUBLIC;
+#define Notice NoticeOut
 
 /** The chat output class */
 class CVC4_PUBLIC ChatC {
@@ -198,7 +203,8 @@ public:
 };/* class Chat */
 
 /** The chat output singleton */
-extern ChatC Chat CVC4_PUBLIC;
+extern ChatC ChatOut CVC4_PUBLIC;
+#define Chat ChatOut
 
 /** The trace output class */
 class CVC4_PUBLIC TraceC {
@@ -241,7 +247,75 @@ public:
 };/* class Trace */
 
 /** The trace output singleton */
-extern TraceC Trace CVC4_PUBLIC;
+extern TraceC TraceOut CVC4_PUBLIC;
+#ifdef CVC4_TRACING
+#  define Trace TraceOut
+#else /* CVC4_TRACING */
+#  define Trace if(0) debugNullCvc4Stream
+#endif /* CVC4_TRACING */
+
+#else /* ! CVC4_MUZZLE */
+
+#  define Debug if(0) debugNullCvc4Stream
+#  define Warning if(0) nullCvc4Stream
+#  define Message if(0) nullCvc4Stream
+#  define Notice if(0) nullCvc4Stream
+#  define Chat if(0) nullCvc4Stream
+#  define Trace if(0) debugNullCvc4Stream
+
+#endif /* ! CVC4_MUZZLE */
+
+/**
+ * Same shape as DebugC/TraceC, but does nothing; designed for
+ * compilation of muzzled builds.  None of these should ever be called
+ * in muzzled builds, but we offer this to the compiler so it doesn't complain.
+ */
+class CVC4_PUBLIC NullDebugC {
+public:
+  NullDebugC() {}
+  NullDebugC(std::ostream* os) {}
+
+  void operator()(const char* tag, const char*) {}
+  void operator()(const char* tag, std::string) {}
+  void operator()(std::string tag, const char*) {}
+  void operator()(std::string tag, std::string) {}
+
+  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {}
+  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {}
+
+  std::ostream& operator()(const char* tag) { return null_os; }
+  std::ostream& operator()(std::string tag) { return null_os; }
+
+  void on (const char* tag) {}
+  void on (std::string tag) {}
+  void off(const char* tag) {}
+  void off(std::string tag) {}
+
+  void setStream(std::ostream& os) {}
+};/* class NullDebugC */
+
+/**
+ * Same shape as WarningC/etc., but does nothing; designed for
+ * compilation of muzzled builds.  None of these should ever be called
+ * in muzzled builds, but we offer this to the compiler so it doesn't
+ * complain. */
+class CVC4_PUBLIC NullC {
+public:
+  NullC() {}
+  NullC(std::ostream* os) {}
+
+  void operator()(const char*) {}
+  void operator()(std::string) {}
+
+  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3))) {}
+
+  std::ostream& operator()() { return null_os; }
+
+  void setStream(std::ostream& os) {}
+};/* class NullC */
+
+extern NullDebugC debugNullCvc4Stream CVC4_PUBLIC;
+extern NullC nullCvc4Stream CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

@@ -9,8 +9,7 @@ cvc4_SOURCES = \
 	getopt.cpp \
 	util.cpp \
 	main.h \
-	usage.h \
-	about.h
+	usage.h
 
 cvc4_LDADD = \
 	../parser/libcvc4parser.la \

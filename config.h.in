@@ -1,5 +1,17 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Major component of the version of CVC4. */
+#undef CVC4_MAJOR
+
+/* Minor component of the version of CVC4. */
+#undef CVC4_MINOR
+
+/* Release component of the version of CVC4. */
+#undef CVC4_RELEASE
+
+/* Full release string for CVC4. */
+#undef CVC4_RELEASE_STRING
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

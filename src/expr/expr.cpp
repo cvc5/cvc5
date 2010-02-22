@@ -171,12 +171,14 @@ Expr BoolExpr::iteExpr(const Expr& then_e, const Expr& else_e) const {
 }
 
 void Expr::printAst(std::ostream & o, int indent) const{
-  getNode().printAst(o,indent);
+  getNode().printAst(o, indent);
 }
 
 void Expr::debugPrint(){
+#ifndef CVC4_MUZZLE
   printAst(Warning());
   Warning().flush();
+#endif /* ! CVC4_MUZZLE */
 }
 
 

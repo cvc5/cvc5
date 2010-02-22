@@ -19,4 +19,5 @@ libutil_la_SOURCES = \
 	output.cpp \
 	output.h \
 	result.h \
-	unique_id.h
+	unique_id.h \
+	configuration.h

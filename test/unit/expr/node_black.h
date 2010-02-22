@@ -160,9 +160,11 @@ public:
   void testOperatorSquare() {  
     /*Node operator[](int i) const */
 
+#ifdef CVC4_ASSERTIONS
     //Basic bounds check on a node w/out children
     TS_ASSERT_THROWS(Node::null()[-1], AssertionException);
     TS_ASSERT_THROWS(Node::null()[0], AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     //Basic access check
     Node tb = d_nm->mkNode(TRUE);
@@ -177,9 +179,11 @@ public:
     TS_ASSERT(tb == ite[1]);
     TS_ASSERT(eb == ite[2]);
 
+#ifdef CVC4_ASSERTIONS
     //Bounds check on a node with children
     TS_ASSERT_THROWS(ite == ite[-1],AssertionException);
     TS_ASSERT_THROWS(ite == ite[4],AssertionException);    
+#endif /* CVC4_ASSERTIONS */
   }
 
   /*tests:   Node& operator=(const Node&); */

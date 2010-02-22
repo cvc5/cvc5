@@ -10,7 +10,10 @@ AC_CONFIG_SRCDIR([src/include/cvc4_config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
-CVC4_RELEASE=prerelease
+CVC4_MAJOR=0
+CVC4_MINOR=0
+CVC4_RELEASE=0
+CVC4_RELEASE_STRING=prerelease
 
 # Libtool version numbers for libraries
 # Version numbers are in the form current:revision:age
@@ -30,8 +33,8 @@ CVC4_RELEASE=prerelease
 # For guidance on when to change the version number, refer to the 
 # developer's guide.
 
-CVC4_LIBRARY_VERSION=0:0:0
-CVC4_PARSER_LIBRARY_VERSION=0:0:0
+CVC4_LIBRARY_VERSION=$CVC4_MAJOR:$CVC4_MINOR:$CVC4_RELEASE
+CVC4_PARSER_LIBRARY_VERSION=$CVC4_MAJOR:$CVC4_MINOR:$CVC4_RELEASE
 
 # Using the AC_CANONICAL_* macros destroy the command line you get
 # from $@, which we want later for determining the build profile.  So
@@ -303,7 +306,7 @@ if test "$enable_profiling" = yes; then
   CVC4LDFLAGS="$CVC4LDFLAGS -pg"
 fi
 
-AM_INIT_AUTOMAKE(cvc4, $CVC4_RELEASE)
+AM_INIT_AUTOMAKE(cvc4, $CVC4_RELEASE_STRING)
 AC_CONFIG_HEADERS([config.h])
 
 # Initialize libtool's configuration options.
@@ -407,6 +410,11 @@ AC_SUBST(BUILDING_STATIC)
 
 AC_SUBST(CVC4_LIBRARY_VERSION)
 AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)
+
+AC_DEFINE_UNQUOTED(CVC4_MAJOR, ${CVC4_MAJOR}, [Major component of the version of CVC4.])
+AC_DEFINE_UNQUOTED(CVC4_MINOR, ${CVC4_MINOR}, [Minor component of the version of CVC4.])
+AC_DEFINE_UNQUOTED(CVC4_RELEASE, ${CVC4_RELEASE}, [Release component of the version of CVC4.])
+AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full release string for CVC4.])
 
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"

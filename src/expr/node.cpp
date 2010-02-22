@@ -133,7 +133,7 @@ static void indent(ostream & o, int indent){
     o << ' ';
 }
 
-void Node::printAst(ostream & o, int ind) const{
+void Node::printAst(ostream & o, int ind) const {
   indent(o, ind);
   o << '(';
   o << getKind();
@@ -143,17 +143,19 @@ void Node::printAst(ostream & o, int ind) const{
   }else if(getNumChildren() >= 1){
     for(Node::iterator child = begin(); child != end(); ++child){
       o << endl;
-      (*child).printAst(o, ind+1);
+      (*child).printAst(o, ind + 1);
     }
     o << endl;
     indent(o, ind);
   }
   o << ')';
 }
-  
-void Node::debugPrint(){
+
+void Node::debugPrint() {
+#ifndef CVC4_MUZZLE
   printAst(Warning(), 0);
   Warning().flush();
+#endif /* ! CVC4_MUZZLE */
 }
 
 }/* CVC4 namespace */

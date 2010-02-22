@@ -4,7 +4,10 @@ UNIT_TESTS = \
 	expr/node_black \
 	parser/parser_black \
 	context/context_black \
-	context/context_mm_black
+	context/context_mm_black \
+	util/assert_white \
+	util/configuration_white \
+	util/output_white
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
