@@ -58,17 +58,9 @@ public:
   static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
 
   /**
-   * Construct a Theory.
+   * Construct a theory.
    */
   Theory() {
-  }
-
-  /**
-   * Destructs a Theory.  This implementation does nothing, but we
-   * need a virtual destructor for safety in case subclasses have a
-   * destructor.
-   */
-  virtual ~Theory() {
   }
 
   /**

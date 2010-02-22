@@ -56,7 +56,7 @@ namespace expr {
 
 struct AttrHashFcn {
   enum { LARGE_PRIME = 1 };
-  std::size_t operator()(const std::pair<uint64_t, SoftNode>& p) const {
+  std::size_t operator()(const std::pair<unsigned, SoftNode>& p) const {
     return p.first * LARGE_PRIME + p.second.hash();
   }
 };
@@ -122,7 +122,7 @@ struct KindTableMapping {
 
 // use a TAG to indicate which table it should be in
 template <class value_type>
-struct AttrHash : public __gnu_cxx::hash_map<std::pair<uint64_t, SoftNode>, value_type, AttrHashFcn> {};
+struct AttrHash : public __gnu_cxx::hash_map<std::pair<unsigned, SoftNode>, value_type, AttrHashFcn> {};
 
 template <>
 class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHashBoolFcn> {
@@ -215,23 +215,19 @@ class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHas
 
 public:
 
-  typedef std::pair<uint64_t, SoftNode> key_type;
+  typedef std::pair<unsigned, SoftNode> key_type;
   typedef bool data_type;
   typedef std::pair<const key_type, data_type> value_type;
 
   typedef BitIterator iterator;
   typedef ConstBitIterator const_iterator;
 
-  BitIterator find(const std::pair<uint64_t, SoftNode>& k) {
+  BitIterator find(const std::pair<unsigned, SoftNode>& k) {
     super::iterator i = super::find(k.second);
     if(i == super::end()) {
       return BitIterator();
     }
-    Debug.printf("boolattr",
-                 "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
-                 &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
+    Debug.printf("boolattr", "underlying word at 0x%p looks like 0x%016llx, bit is %u\n", &(*i).second, (*i).second, k.first);
     return BitIterator(*i, k.first);
   }
 
@@ -239,16 +235,12 @@ public:
     return BitIterator();
   }
 
-  ConstBitIterator find(const std::pair<uint64_t, SoftNode>& k) const {
+  ConstBitIterator find(const std::pair<unsigned, SoftNode>& k) const {
     super::const_iterator i = super::find(k.second);
     if(i == super::end()) {
       return ConstBitIterator();
     }
-    Debug.printf("boolattr",
-                 "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
-                 &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
+    Debug.printf("boolattr", "underlying word at 0x%p looks like 0x%016llx, bit is %u\n", &(*i).second, (*i).second, k.first);
     return ConstBitIterator(*i, k.first);
   }
 
@@ -256,7 +248,7 @@ public:
     return ConstBitIterator();
   }
 
-  BitAccessor operator[](const std::pair<uint64_t, SoftNode>& k) {
+  BitAccessor operator[](const std::pair<unsigned, SoftNode>& k) {
     uint64_t& word = super::operator[](k.second);
     return BitAccessor(word, k.first);
   }
@@ -276,18 +268,18 @@ struct Attribute {
   /** cleanup routine when the Node goes away */
   static inline void cleanup(const value_t&) {}
 
-  static inline uint64_t getId() { return s_id; }
-  static inline uint64_t getHashValue() { return s_hashValue; }
+  static inline unsigned getId() { return s_id; }
+  static inline unsigned getHashValue() { return s_hashValue; }
 
   static const bool has_default_value = false;
 
 private:
 
   /** an id */
-  static const uint64_t s_id;
+  static const unsigned s_id;
 
   /** an extra hash value (to avoid same-value-type collisions) */
-  static const uint64_t s_hashValue;
+  static const unsigned s_hashValue;
 };
 
 /**
@@ -302,13 +294,13 @@ struct Attribute<T, bool> {
   /** cleanup routine when the Node goes away */
   static inline void cleanup(const bool&) {}
 
-  static inline uint64_t getId() { return s_id; }
-  static inline uint64_t getHashValue() { return s_hashValue; }
+  static inline unsigned getId() { return s_id; }
+  static inline unsigned getHashValue() { return s_hashValue; }
 
   static const bool has_default_value = true;
   static const bool default_value = false;
 
-  static inline uint64_t checkID(uint64_t id) {
+  static inline unsigned checkID(unsigned id) {
     AlwaysAssert(id <= 63,
                  "Too many boolean node attributes registered during initialization !");
     return id;
@@ -317,10 +309,10 @@ struct Attribute<T, bool> {
 private:
 
   /** a bit assignment */
-  static const uint64_t s_id;
+  static const unsigned s_id;
 
   /** an extra hash value (to avoid same-value-type collisions) */
-  static const uint64_t s_hashValue;
+  static const unsigned s_hashValue;
 };
 
 // SPECIFIC, GLOBAL ATTRIBUTE DEFINITIONS ======================================
@@ -331,11 +323,11 @@ namespace attr {
 
   template <class T>
   struct LastAttributeId {
-    static uint64_t s_id;
+    static unsigned s_id;
   };
 
   template <class T>
-  uint64_t LastAttributeId<T>::s_id = 0;
+  unsigned LastAttributeId<T>::s_id = 0;
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarName, std::string> VarNameAttr;
@@ -344,16 +336,16 @@ typedef Attribute<attr::Type, const CVC4::Type*> TypeAttr;
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
 template <class T, class value_t>
-const uint64_t Attribute<T, value_t>::s_id =
+const unsigned Attribute<T, value_t>::s_id =
   attr::LastAttributeId<typename KindValueToTableValueMapping<value_t>::table_value_type>::s_id++;
 template <class T, class value_t>
-const uint64_t Attribute<T, value_t>::s_hashValue = Attribute<T, value_t>::s_id;
+const unsigned Attribute<T, value_t>::s_hashValue = Attribute<T, value_t>::s_id;
 
 template <class T>
-const uint64_t Attribute<T, bool>::s_id =
+const unsigned Attribute<T, bool>::s_id =
   Attribute<T, bool>::checkID(attr::LastAttributeId<bool>::s_id++);
 template <class T>
-const uint64_t Attribute<T, bool>::s_hashValue = Attribute<T, bool>::s_id;
+const unsigned Attribute<T, bool>::s_hashValue = Attribute<T, bool>::s_id;
 
 class AttributeManager;
 

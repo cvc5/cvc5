@@ -18,8 +18,7 @@ for ac_option
 do
   case $ac_option in
     -*|*=*) ;;
-    production|debug|default|competition)
-       ac_cvc4_build_profile_set=yes
+    *) ac_cvc4_build_profile_set=yes
        AC_MSG_NOTICE([CVC4: building profile $ac_option])
        ac_option="--with-build=$ac_option" ;;
   esac

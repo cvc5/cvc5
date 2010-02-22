@@ -28,14 +28,6 @@ class OutputChannel {
 public:
 
   /**
-   * Destructs an OutputChannel.  This implementation does nothing,
-   * but we need a virtual destructor for safety in case subclasses
-   * have a destructor.
-   */
-  virtual ~OutputChannel() {
-  }
-
-  /**
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */
@@ -74,14 +66,6 @@ public:
  */
 class ExplainOutputChannel {
 public:
-
-  /**
-   * Destructs an ExplainOutputChannel.  This implementation does
-   * nothing, but we need a virtual destructor for safety in case
-   * subclasses have a destructor.
-   */
-  virtual ~ExplainOutputChannel() {
-  }
 
   /**
    * With safePoint(), the theory signals that it is at a safe point
