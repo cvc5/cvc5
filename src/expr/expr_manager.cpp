@@ -117,13 +117,13 @@ ExprManager::mkFunctionType(const std::vector<const Type*>& argTypes,
   return FunctionType::getInstance(this, argTypes, range);
 }
 
-const Type* ExprManager::mkSort(std::string name) {
+const Type* ExprManager::mkSort(const std::string& name) {
   // FIXME: Sorts should be unique per-ExprManager
   NodeManagerScope nms(d_nodeManager);
   return new SortType(this, name);
 }
 
-Expr ExprManager::mkVar(const Type* type, string name) {
+Expr ExprManager::mkVar(const Type* type, const std::string& name) {
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkVar(type, name)));
 }

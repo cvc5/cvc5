@@ -48,7 +48,7 @@ AntlrParser::AntlrParser(antlr::TokenStream& lexer, int k) :
   antlr::LLkParser(lexer, k), d_checksEnabled(true) {
 }
 
-Expr AntlrParser::getSymbol(std::string name, SymbolType type) {
+Expr AntlrParser::getSymbol(const std::string& name, SymbolType type) {
   Assert( isDeclared(name, type) );
 
 
@@ -63,40 +63,40 @@ Expr AntlrParser::getSymbol(std::string name, SymbolType type) {
   }
 }
 
-Expr AntlrParser::getVariable(std::string name) {
+Expr AntlrParser::getVariable(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Expr AntlrParser::getFunction(std::string name) {
+Expr AntlrParser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_FUNCTION);
 }
 
 const Type* 
-AntlrParser::getType(std::string var_name, 
+AntlrParser::getType(const std::string& var_name,
                      SymbolType type) {
   Assert( isDeclared(var_name, type) );
   const Type* t = getSymbol(var_name,type).getType();
   return t;
 }
 
-const Type* AntlrParser::getSort(std::string name) {
+const Type* AntlrParser::getSort(const std::string& name) {
   Assert( isDeclared(name, SYM_SORT) );
   const Type* t = d_sortTable.getObject(name);
   return t;
 }
 
 /* Returns true if name is bound to a boolean variable. */
-bool AntlrParser::isBoolean(std::string name) {
+bool AntlrParser::isBoolean(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name)->isBoolean();
 }
 
 /* Returns true if name is bound to a function. */
-bool AntlrParser::isFunction(std::string name) {
+bool AntlrParser::isFunction(const std::string& name) {
   return isDeclared(name, SYM_FUNCTION) && getType(name)->isFunction();
 }
 
 /* Returns true if name is bound to a function returning boolean. */
-bool AntlrParser::isPredicate(std::string name) {
+bool AntlrParser::isPredicate(const std::string& name) {
   return isDeclared(name, SYM_FUNCTION) && getType(name)->isPredicate();
 }
 
@@ -168,7 +168,7 @@ const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
 }
 
 Expr 
-AntlrParser::mkVar(const std::string name, const Type* type) {
+AntlrParser::mkVar(const std::string& name, const Type* type) {
   Debug("parser") << "mkVar(" << name << "," << *type << ")" << std::endl;
   Assert( !isDeclared(name) ) ;
   Expr expr = d_exprManager->mkVar(type, name);
@@ -189,7 +189,7 @@ AntlrParser::mkVars(const std::vector<std::string> names,
 
 
 const Type* 
-AntlrParser::newSort(std::string name) {
+AntlrParser::newSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Assert( !isDeclared(name, SYM_SORT) ) ;
   const Type* type = d_exprManager->mkSort(name);
@@ -279,7 +279,7 @@ void AntlrParser::setExpressionManager(ExprManager* em) {
   d_exprManager = em;
 }
 
-bool AntlrParser::isDeclared(string name, SymbolType type) {
+bool AntlrParser::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE: // Functions share var namespace
   case SYM_FUNCTION:
@@ -291,14 +291,14 @@ bool AntlrParser::isDeclared(string name, SymbolType type) {
   }
 }
 
-void AntlrParser::parseError(string message)
+void AntlrParser::parseError(const std::string& message)
     throw (antlr::SemanticException) {
   throw antlr::SemanticException(message, getFilename(),
                                  LT(1).get()->getLine(),
                                  LT(1).get()->getColumn());
 }
 
-void AntlrParser::checkDeclaration(string varName,
+void AntlrParser::checkDeclaration(const std::string& varName,
                                    DeclarationCheck check,
                                    SymbolType type)
     throw (antlr::SemanticException) {
@@ -327,7 +327,7 @@ void AntlrParser::checkDeclaration(string varName,
   }
 }
 
-void AntlrParser::checkFunction(string name)
+void AntlrParser::checkFunction(const std::string& name)
   throw (antlr::SemanticException) {
   if( d_checksEnabled && !isFunction(name) ) {
     parseError("Expecting function symbol, found '" + name + "'");

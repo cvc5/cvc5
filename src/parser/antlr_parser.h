@@ -109,26 +109,26 @@ protected:
   /**
    * Throws an ANTLR semantic exception with the given message.
    */
-  void parseError(std::string msg) throw (antlr::SemanticException);
+  void parseError(const std::string& msg) throw (antlr::SemanticException);
 
   /**
    * Returns a variable, given a name and a type.
    * @param var_name the name of the variable
    * @return the variable expression
    */
-  Expr getVariable(std::string var_name);
+  Expr getVariable(const std::string& var_name);
 
   /**
    * Returns a function, given a name and a type.
    * @param name the name of the function
    * @return the function expression
    */
-  Expr getFunction(std::string name);
+  Expr getFunction(const std::string& name);
 
   /**
    * Returns a sort, given a name
    */
-  const Type* getSort(std::string sort_name);
+  const Type* getSort(const std::string& sort_name);
 
   /**
    * Types of symbols. Used to define namespaces.
@@ -148,7 +148,7 @@ protected:
    * @param type the symbol type
    * @return true iff the symbol has been declared with the given type
    */
-  bool isDeclared(std::string name, SymbolType type = SYM_VARIABLE);
+  bool isDeclared(const std::string& name, SymbolType type = SYM_VARIABLE);
 
   /**
    * Checks if the declaration policy we want to enforce holds
@@ -158,7 +158,7 @@ protected:
    * @param type the type of the symbol
    * @throws SemanticException if checks are enabled and the check fails
    */
-  void checkDeclaration(std::string name,
+  void checkDeclaration(const std::string& name,
                         DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE)
     throw (antlr::SemanticException);
@@ -168,7 +168,7 @@ protected:
    * @param name the name to check
    * @throws SemanticException if checks are enabled and name is not bound to a function
    */
-  void checkFunction(std::string name) throw (antlr::SemanticException);
+  void checkFunction(const std::string& name) throw (antlr::SemanticException);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</codes> arguments.
@@ -184,7 +184,7 @@ protected:
    * @param name the symbol to lookup 
    * @param type the (namespace) type of the symbol
    */
-  const Type* getType(std::string var_name,
+  const Type* getType(const std::string& var_name,
                       SymbolType type = SYM_VARIABLE);
 
   /**
@@ -235,7 +235,7 @@ protected:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /** Create a new CVC4 variable expression of the given type. */
-  Expr mkVar(const std::string name, const Type* type);
+  Expr mkVar(const std::string& name, const Type* type);
 
   /** Create a set of new CVC4 variable expressions of the given
       type. */
@@ -271,7 +271,7 @@ protected:
   /**
    * Creates a new sort with the given name.
    */
-  const Type* newSort(std::string name);
+  const Type* newSort(const std::string& name);
 
   /**
    * Creates a new sorts with the given names.
@@ -280,13 +280,13 @@ protected:
   newSorts(const std::vector<std::string>& names);
 
   /** Is the symbol bound to a boolean variable? */
-  bool isBoolean(std::string name);
+  bool isBoolean(const std::string& name);
 
   /** Is the symbol bound to a function? */
-  bool isFunction(std::string name);
+  bool isFunction(const std::string& name);
 
   /** Is the symbol bound to a predicate? */
-  bool isPredicate(std::string name);
+  bool isPredicate(const std::string& name);
 
   /** Returns the boolean type. */
   const BooleanType* booleanType();
@@ -339,7 +339,7 @@ private:
   bool d_checksEnabled;
 
   /** Lookup a symbol in the given namespace. */
-  Expr getSymbol(std::string var_name, SymbolType type);
+  Expr getSymbol(const std::string& var_name, SymbolType type);
 };
 
 

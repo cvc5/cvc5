@@ -74,7 +74,7 @@ public:
   Node mkNode(Kind kind, const std::vector<Node>& children);
 
   // variables are special, because duplicates are permitted
-  Node mkVar(const Type* type, std::string name);
+  Node mkVar(const Type* type, const std::string& name);
   Node mkVar(const Type* type);
   Node mkVar();
 

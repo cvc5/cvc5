@@ -100,10 +100,10 @@ public:
                    const Type* range);
 
   /** Make a new sort with the given name. */
-  const Type* mkSort(std::string name);
+  const Type* mkSort(const std::string& name);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar(const Type* type, std::string name);
+  Expr mkVar(const Type* type, const std::string& name);
   Expr mkVar(const Type* type);
 
 private:
