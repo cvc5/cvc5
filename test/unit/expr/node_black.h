@@ -170,7 +170,7 @@ public:
     Node tb = d_nm->mkNode(TRUE);
     Node eb = d_nm->mkNode(FALSE);
     Node cnd = d_nm->mkNode(XOR, tb, eb);
-    Node ite = cnd.iteExpr(tb,eb);
+    Node ite = cnd.iteNode(tb,eb);
 
     TS_ASSERT(tb == cnd[0]);
     TS_ASSERT(eb == cnd[1]);
@@ -261,12 +261,12 @@ public:
 
   
 
-  void testEqExpr() {
-    /*Node eqExpr(const Node& right) const;*/
+  void testEqNode() {
+    /*Node eqNode(const Node& right) const;*/
 
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node eq = left.eqExpr(right);
+    Node eq = left.eqNode(right);
     
 
     TS_ASSERT(EQUAL == eq.getKind());
@@ -276,11 +276,11 @@ public:
     TS_ASSERT(eq[1] == right);
   }
 
-  void testNotExpr() {
-    /*  Node notExpr() const;*/
+  void testNotNode() {
+    /*  Node notNode() const;*/
 
     Node child = d_nm->mkNode(TRUE);
-    Node parent = child.notExpr();
+    Node parent = child.notNode();
 
     TS_ASSERT(NOT == parent.getKind());
     TS_ASSERT(1   == parent.getNumChildren());
@@ -288,12 +288,12 @@ public:
     TS_ASSERT(parent[0] == child);
     
   }
-  void testAndExpr() {
-    /*Node andExpr(const Node& right) const;*/
+  void testAndNode() {
+    /*Node andNode(const Node& right) const;*/
     
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node eq = left.andExpr(right);
+    Node eq = left.andNode(right);
     
 
     TS_ASSERT(AND == eq.getKind());
@@ -304,12 +304,12 @@ public:
     
   }
 
-  void testOrExpr() {
-    /*Node orExpr(const Node& right) const;*/
+  void testOrNode() {
+    /*Node orNode(const Node& right) const;*/
      
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node eq = left.orExpr(right);
+    Node eq = left.orNode(right);
     
 
     TS_ASSERT(OR  == eq.getKind());
@@ -320,13 +320,13 @@ public:
 
   }
 
-  void testIteExpr() {
-    /*Node iteExpr(const Node& thenpart, const Node& elsepart) const;*/
+  void testIteNode() {
+    /*Node iteNode(const Node& thenpart, const Node& elsepart) const;*/
 
     Node cnd = d_nm->mkNode(PLUS);
     Node thenBranch = d_nm->mkNode(TRUE);
     Node elseBranch = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node ite = cnd.iteExpr(thenBranch,elseBranch);
+    Node ite = cnd.iteNode(thenBranch,elseBranch);
     
 
     TS_ASSERT(ITE  == ite.getKind());
@@ -337,12 +337,12 @@ public:
     TS_ASSERT(*(++(++ite.begin())) == elseBranch);
   }
 
-  void testIffExpr() {
-    /*  Node iffExpr(const Node& right) const; */
+  void testIffNode() {
+    /*  Node iffNode(const Node& right) const; */
      
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node eq = left.iffExpr(right);
+    Node eq = left.iffNode(right);
     
 
     TS_ASSERT(IFF == eq.getKind());
@@ -353,11 +353,11 @@ public:
   }
 
   
-  void testImpExpr() {
-    /* Node impExpr(const Node& right) const; */
+  void testImpNode() {
+    /* Node impNode(const Node& right) const; */
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node eq = left.impExpr(right);
+    Node eq = left.impNode(right);
     
 
     TS_ASSERT(IMPLIES == eq.getKind());
@@ -367,11 +367,11 @@ public:
     TS_ASSERT(*(++eq.begin()) == right);
   }
 
-  void testXorExpr() {
-    /*Node xorExpr(const Node& right) const;*/
+  void testXorNode() {
+    /*Node xorNode(const Node& right) const;*/
     Node left = d_nm->mkNode(TRUE);
     Node right = d_nm->mkNode(NOT,(d_nm->mkNode(FALSE)));
-    Node eq = left.xorExpr(right);
+    Node eq = left.xorNode(right);
     
 
     TS_ASSERT(XOR == eq.getKind());
@@ -381,17 +381,17 @@ public:
     TS_ASSERT(*(++eq.begin()) == right);
   }
 
-  void testPlusExpr() {
-    /*Node plusExpr(const Node& right) const;*/
+  void testPlusNode() {
+    /*Node plusNode(const Node& right) const;*/
     TS_WARN( "TODO: No implementation to test." );
   }
 
-  void testUMinusExpr() {
-    /*Node uMinusExpr() const;*/
+  void testUMinusNode() {
+    /*Node uMinusNode() const;*/
     TS_WARN( "TODO: No implementation to test." );
   }
-  void testMultExpr() {
-    /*  Node multExpr(const Node& right) const;*/
+  void testMultNode() {
+    /*  Node multNode(const Node& right) const;*/
     TS_WARN( "TODO: No implementation to test." );    
   }
 
@@ -425,10 +425,10 @@ public:
     TS_ASSERT(0 == (Node::null()).getNumChildren());
 
     //test 1
-    TS_ASSERT(1 == (Node::null().notExpr()).getNumChildren());
+    TS_ASSERT(1 == (Node::null().notNode()).getNumChildren());
 
     //test 2
-    TS_ASSERT(2 == (Node::null().andExpr(Node::null())).getNumChildren() );
+    TS_ASSERT(2 == (Node::null().andNode(Node::null())).getNumChildren() );
 
     //Bigger tests
 

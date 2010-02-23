@@ -69,9 +69,9 @@ public:
 
   void testBuilder() {
     NodeBuilder<> b;
-    TS_ASSERT(b.d_ev->getId() == 0);
-    TS_ASSERT(b.d_ev->getKind() == UNDEFINED_KIND);
-    TS_ASSERT(b.d_ev->getNumChildren() == 0);
+    TS_ASSERT(b.d_nv->getId() == 0);
+    TS_ASSERT(b.d_nv->getKind() == UNDEFINED_KIND);
+    TS_ASSERT(b.d_nv->getNumChildren() == 0);
     /* etc. */
   }
 

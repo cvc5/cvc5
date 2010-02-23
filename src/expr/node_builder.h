@@ -57,21 +57,21 @@ class NodeBuilder {
   // extract another
   bool d_used;
 
-  NodeValue *d_ev;
-  NodeValue d_inlineEv;
+  NodeValue *d_nv;
+  NodeValue d_inlineNv;
   NodeValue *d_childrenStorage[nchild_thresh];
 
-  bool evIsAllocated() {
-    return d_ev->d_nchildren > nchild_thresh;
+  bool nvIsAllocated() {
+    return d_nv->d_nchildren > nchild_thresh;
   }
 
   template <unsigned N>
-  bool evIsAllocated(const NodeBuilder<N>& nb) {
-    return nb.d_ev->d_nchildren > N;
+  bool nvIsAllocated(const NodeBuilder<N>& nb) {
+    return nb.d_nv->d_nchildren > N;
   }
 
   bool evNeedsToBeAllocated() {
-    return d_ev->d_nchildren == d_size;
+    return d_nv->d_nchildren == d_size;
   }
 
   // realloc in the default way
@@ -86,15 +86,15 @@ class NodeBuilder {
     }
   }
 
-  // dealloc: only call this with d_used == false and evIsAllocated()
+  // dealloc: only call this with d_used == false and nvIsAllocated()
   inline void dealloc();
 
   void crop() {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    if(EXPECT_FALSE( evIsAllocated() ) && EXPECT_TRUE( d_size > d_ev->d_nchildren )) {
-      d_ev = (NodeValue*)
-        std::realloc(d_ev, sizeof(NodeValue) +
-                     ( sizeof(NodeValue*) * (d_size = d_ev->d_nchildren) ));
+    if(EXPECT_FALSE( nvIsAllocated() ) && EXPECT_TRUE( d_size > d_nv->d_nchildren )) {
+      d_nv = (NodeValue*)
+        std::realloc(d_nv, sizeof(NodeValue) +
+                     ( sizeof(NodeValue*) * (d_size = d_nv->d_nchildren) ));
     }
   }
 
@@ -108,37 +108,37 @@ public:
   inline NodeBuilder(NodeManager* nm, Kind k);
   inline ~NodeBuilder();
 
-  typedef NodeValue::ev_iterator iterator;
-  typedef NodeValue::const_ev_iterator const_iterator;
+  typedef NodeValue::nv_iterator iterator;
+  typedef NodeValue::const_nv_iterator const_iterator;
 
   iterator begin() {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_ev->ev_begin();
+    return d_nv->nv_begin();
   }
   iterator end() {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_ev->ev_end();
+    return d_nv->nv_end();
   }
   const_iterator begin() const {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_ev->ev_begin();
+    return d_nv->nv_begin();
   }
   const_iterator end() const {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_ev->ev_end();
+    return d_nv->nv_end();
   }
 
   Kind getKind() const {
-    return d_ev->getKind();
+    return d_nv->getKind();
   }
 
   unsigned getNumChildren() const {
-    return d_ev->getNumChildren();
+    return d_nv->getNumChildren();
   }
 
   Node operator[](int i) const {
-    Assert(i >= 0 && i < d_ev->getNumChildren());
-    return Node(d_ev->d_children[i]);
+    Assert(i >= 0 && i < d_nv->getNumChildren());
+    return Node(d_nv->d_children[i]);
   }
 
   void clear(Kind k = UNDEFINED_KIND);
@@ -171,8 +171,8 @@ public:
 
   NodeBuilder& operator<<(const Kind& k) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    Assert(d_ev->getKind() == UNDEFINED_KIND);
-    d_ev->d_kind = k;
+    Assert(d_nv->getKind() == UNDEFINED_KIND);
+    d_nv->d_kind = k;
     return *this;
   }
 
@@ -189,11 +189,11 @@ public:
 
   NodeBuilder& append(const Node& n) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    Debug("prop") << "append: " << this << " " << n << "[" << n.d_ev << "]" << std::endl;
+    Debug("prop") << "append: " << this << " " << n << "[" << n.d_nv << "]" << std::endl;
     allocateEvIfNecessaryForAppend();
-    NodeValue* ev = n.d_ev;
+    NodeValue* ev = n.d_nv;
     ev->inc();
-    d_ev->d_children[d_ev->d_nchildren++] = ev;
+    d_nv->d_children[d_nv->d_nchildren++] = ev;
     return *this;
   }
 
@@ -210,7 +210,7 @@ public:
   operator Node();
 
   inline void toStream(std::ostream& out) const {
-    d_ev->toStream(out);
+    d_nv->toStream(out);
   }
 
   /*
@@ -388,8 +388,8 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder() :
   d_hash(0),
   d_nm(NodeManager::currentNM()),
   d_used(false),
-  d_ev(&d_inlineEv),
-  d_inlineEv(0),
+  d_nv(&d_inlineNv),
+  d_inlineNv(0),
   d_childrenStorage() {}
 
 template <unsigned nchild_thresh>
@@ -398,12 +398,12 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(Kind k) :
   d_hash(0),
   d_nm(NodeManager::currentNM()),
   d_used(false),
-  d_ev(&d_inlineEv),
-  d_inlineEv(0),
+  d_nv(&d_inlineNv),
+  d_inlineNv(0),
   d_childrenStorage() {
 
   //Message() << "kind " << k << std::endl;
-  d_inlineEv.d_kind = k;
+  d_inlineNv.d_kind = k;
 }
 
 template <unsigned nchild_thresh>
@@ -412,18 +412,18 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<nchild_thresh>&
   d_hash(0),
   d_nm(nb.d_nm),
   d_used(nb.d_used),
-  d_ev(&d_inlineEv),
-  d_inlineEv(0),
+  d_nv(&d_inlineNv),
+  d_inlineNv(0),
   d_childrenStorage() {
 
-  if(evIsAllocated(nb)) {
+  if(nvIsAllocated(nb)) {
     realloc(nb.d_size, false);
-    std::copy(nb.d_ev->ev_begin(), nb.d_ev->ev_end(), d_ev->ev_begin());
+    std::copy(nb.d_nv->nv_begin(), nb.d_nv->nv_end(), d_nv->nv_begin());
   } else {
-    std::copy(nb.d_ev->ev_begin(), nb.d_ev->ev_end(), d_inlineEv.ev_begin());
+    std::copy(nb.d_nv->nv_begin(), nb.d_nv->nv_end(), d_inlineNv.nv_begin());
   }
-  d_ev->d_kind = nb.d_ev->d_kind;
-  d_ev->d_nchildren = nb.d_ev->d_nchildren;
+  d_nv->d_kind = nb.d_nv->d_kind;
+  d_nv->d_nchildren = nb.d_nv->d_nchildren;
 }
 
 template <unsigned nchild_thresh>
@@ -433,18 +433,18 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
   d_hash(0),
   d_nm(NodeManager::currentNM()),
   d_used(nb.d_used),
-  d_ev(&d_inlineEv),
-  d_inlineEv(0),
+  d_nv(&d_inlineNv),
+  d_inlineNv(0),
   d_childrenStorage() {
 
-  if(nb.d_ev->d_nchildren > nchild_thresh) {
+  if(nb.d_nv->d_nchildren > nchild_thresh) {
     realloc(nb.d_size, false);
-    std::copy(nb.d_ev->ev_begin(), nb.d_ev->end(), d_ev->ev_begin());
+    std::copy(nb.d_nv->ev_begin(), nb.d_nv->end(), d_nv->nv_begin());
   } else {
-    std::copy(nb.d_ev->ev_begin(), nb.d_ev->end(), d_inlineEv.ev_begin());
+    std::copy(nb.d_nv->ev_begin(), nb.d_nv->end(), d_inlineNv.nv_begin());
   }
-  d_ev->d_kind = nb.d_ev->d_kind;
-  d_ev->d_nchildren = nb.d_ev->d_nchildren;
+  d_nv->d_kind = nb.d_nv->d_kind;
+  d_nv->d_nchildren = nb.d_nv->d_nchildren;
 }
 
 template <unsigned nchild_thresh>
@@ -453,10 +453,10 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
   d_hash(0),
   d_nm(nm),
   d_used(false),
-  d_ev(&d_inlineEv),
-  d_inlineEv(0),
+  d_nv(&d_inlineNv),
+  d_inlineNv(0),
   d_childrenStorage() {
-  d_inlineEv.d_kind = UNDEFINED_KIND;
+  d_inlineNv.d_kind = UNDEFINED_KIND;
 }
 
 template <unsigned nchild_thresh>
@@ -465,12 +465,12 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
   d_hash(0),
   d_nm(nm),
   d_used(false),
-  d_ev(&d_inlineEv),
-  d_inlineEv(0),
+  d_nv(&d_inlineNv),
+  d_inlineNv(0),
   d_childrenStorage() {
 
   //Message() << "kind " << k << std::endl;
-  d_inlineEv.d_kind = k;
+  d_inlineNv.d_kind = k;
 }
 
 template <unsigned nchild_thresh>
@@ -494,27 +494,27 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
   d_hash = 0;
   d_nm = NodeManager::currentNM();
   d_used = false;
-  d_ev = &d_inlineEv;
-  d_inlineEv.d_kind = k;
-  d_inlineEv.d_nchildren = 0;
+  d_nv = &d_inlineNv;
+  d_inlineNv.d_kind = k;
+  d_inlineNv.d_nchildren = 0;
 }
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc() {
-  if(EXPECT_FALSE( evIsAllocated() )) {
-    d_ev = (NodeValue*)
-      std::realloc(d_ev,
+  if(EXPECT_FALSE( nvIsAllocated() )) {
+    d_nv = (NodeValue*)
+      std::realloc(d_nv,
                    sizeof(NodeValue) + ( sizeof(NodeValue*) * (d_size *= 2) ));
   } else {
-    d_ev = (NodeValue*)
+    d_nv = (NodeValue*)
       std::malloc(sizeof(NodeValue) + ( sizeof(NodeValue*) * (d_size *= 2) ));
-    d_ev->d_id = 0;
-    d_ev->d_rc = 0;
-    d_ev->d_kind = d_inlineEv.d_kind;
-    d_ev->d_nchildren = nchild_thresh;
-    std::copy(d_inlineEv.d_children,
-              d_inlineEv.d_children + nchild_thresh,
-              d_ev->d_children);
+    d_nv->d_id = 0;
+    d_nv->d_rc = 0;
+    d_nv->d_kind = d_inlineNv.d_kind;
+    d_nv->d_nchildren = nchild_thresh;
+    std::copy(d_inlineNv.d_children,
+              d_inlineNv.d_children + nchild_thresh,
+              d_nv->d_children);
   }
 }
 
@@ -522,22 +522,22 @@ template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
   Assert( d_size < toSize );
 
-  if(EXPECT_FALSE( evIsAllocated() )) {
-    d_ev = (NodeValue*)
-      std::realloc(d_ev, sizeof(NodeValue) +
+  if(EXPECT_FALSE( nvIsAllocated() )) {
+    d_nv = (NodeValue*)
+      std::realloc(d_nv, sizeof(NodeValue) +
                    ( sizeof(NodeValue*) * (d_size = toSize) ));
   } else {
-    d_ev = (NodeValue*)
+    d_nv = (NodeValue*)
       std::malloc(sizeof(NodeValue) +
                   ( sizeof(NodeValue*) * (d_size = toSize) ));
-    d_ev->d_id = 0;
-    d_ev->d_rc = 0;
-    d_ev->d_kind = d_inlineEv.d_kind;
-    d_ev->d_nchildren = nchild_thresh;
+    d_nv->d_id = 0;
+    d_nv->d_rc = 0;
+    d_nv->d_kind = d_inlineNv.d_kind;
+    d_nv->d_nchildren = nchild_thresh;
     if(copy) {
-      std::copy(d_inlineEv.d_children,
-                d_inlineEv.d_children + nchild_thresh,
-                d_ev->d_children);
+      std::copy(d_inlineNv.d_children,
+                d_inlineNv.d_children + nchild_thresh,
+                d_nv->d_children);
     }
   }
 }
@@ -550,64 +550,64 @@ inline void NodeBuilder<nchild_thresh>::dealloc() {
   Assert(!d_used,
          "Internal error: NodeBuilder: dealloc() called with d_used");
 
-  for(iterator i = d_ev->ev_begin();
-      i != d_ev->ev_end();
+  for(iterator i = d_nv->nv_begin();
+      i != d_nv->nv_end();
       ++i) {
     (*i)->dec();
   }
-  if(evIsAllocated()) {
-    free(d_ev);
+  if(nvIsAllocated()) {
+    free(d_nv);
   }
 }
 
 template <unsigned nchild_thresh>
 NodeBuilder<nchild_thresh>::operator Node() {// not const
   Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-  Assert(d_ev->getKind() != UNDEFINED_KIND,
+  Assert(d_nv->getKind() != UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
 
-  if(d_ev->d_kind == VARIABLE) {
-    Assert(d_ev->d_nchildren == 0);
-    NodeValue *ev = (NodeValue*)
+  if(d_nv->d_kind == VARIABLE) {
+    Assert(d_nv->d_nchildren == 0);
+    NodeValue *nv = (NodeValue*)
       std::malloc(sizeof(NodeValue) +
-                  ( sizeof(NodeValue*) * d_inlineEv.d_nchildren ));
-    ev->d_nchildren = 0;
-    ev->d_kind = VARIABLE;
-    ev->d_id = NodeValue::next_id++;// FIXME multithreading
-    ev->d_rc = 0;
+                  ( sizeof(NodeValue*) * d_inlineNv.d_nchildren ));
+    nv->d_nchildren = 0;
+    nv->d_kind = VARIABLE;
+    nv->d_id = NodeValue::next_id++;// FIXME multithreading
+    nv->d_rc = 0;
     d_used = true;
-    d_ev = NULL;
-    Debug("prop") << "result: " << Node(ev) << std::endl;
-    return Node(ev);
+    d_nv = NULL;
+    Debug("prop") << "result: " << Node(nv) << std::endl;
+    return Node(nv);
   }
 
   // implementation differs depending on whether the expression value
   // was malloc'ed or not
 
-  if(EXPECT_FALSE( evIsAllocated() )) {
+  if(EXPECT_FALSE( nvIsAllocated() )) {
     // Lookup the expression value in the pool we already have (with insert)
-    NodeValue* ev = d_nm->poolLookup(d_ev);
+    NodeValue* nv = d_nm->poolLookup(d_nv);
     // If something else is there, we reuse it
-    if(ev != NULL) {
+    if(nv != NULL) {
       // expression already exists in node manager
       dealloc();
       d_used = true;
-      Debug("prop") << "result: " << Node(ev) << std::endl;
-      return Node(ev);
+      Debug("prop") << "result: " << Node(nv) << std::endl;
+      return Node(nv);
     }
     // Otherwise crop and set the expression value to the allocate one
     crop();
-    ev = d_ev;
-    d_ev = NULL;
+    nv = d_nv;
+    d_nv = NULL;
     d_used = true;
-    d_nm->poolInsert(ev);
-    Node n(ev);
+    d_nm->poolInsert(nv);
+    Node n(nv);
     Debug("prop") << "result: " << n << std::endl;
     return n;
   }
 
   // Lookup the expression value in the pool we already have
-  NodeValue* ev = d_nm->poolLookup(&d_inlineEv);
+  NodeValue* ev = d_nm->poolLookup(&d_inlineNv);
   if(ev != NULL) {
     // expression already exists in node manager
     d_used = true;
@@ -618,16 +618,16 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
   // otherwise create the canonical expression value for this node
   ev = (NodeValue*)
     std::malloc(sizeof(NodeValue) +
-                ( sizeof(NodeValue*) * d_inlineEv.d_nchildren ));
-  ev->d_nchildren = d_inlineEv.d_nchildren;
-  ev->d_kind = d_inlineEv.d_kind;
+                ( sizeof(NodeValue*) * d_inlineNv.d_nchildren ));
+  ev->d_nchildren = d_inlineNv.d_nchildren;
+  ev->d_kind = d_inlineNv.d_kind;
   ev->d_id = NodeValue::next_id++;// FIXME multithreading
   ev->d_rc = 0;
-  std::copy(d_inlineEv.d_children,
-            d_inlineEv.d_children + d_inlineEv.d_nchildren,
+  std::copy(d_inlineNv.d_children,
+            d_inlineNv.d_children + d_inlineNv.d_nchildren,
             ev->d_children);
   d_used = true;
-  d_ev = NULL;
+  d_nv = NULL;
 
   // Make the new expression
   d_nm->poolInsert(ev);

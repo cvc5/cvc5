@@ -30,15 +30,20 @@
 
 namespace CVC4 {
 
+class Type;
+class NodeManager;
 template<bool ref_count>
   class NodeTemplate;
+
+/**
+ * The Node class encapsulates the NodeValue with reference counting.
+ */
 typedef NodeTemplate<true> Node;
+
+/**
+ * The TNode class encapsulates the NodeValue but doesn't count references.
+ */
 typedef NodeTemplate<false> TNode;
-
-inline std::ostream& operator<<(std::ostream&, const Node&);
-
-class NodeManager;
-class Type;
 
 namespace expr {
 class NodeValue;
@@ -48,43 +53,44 @@ using CVC4::expr::NodeValue;
 
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
- * maintained in the NodeValue.
+ * maintained in the NodeValue if ref_count is true.
+ * @param ref_count if true reference are counted in the NodeValue
  */
 template<bool ref_count>
   class NodeTemplate {
 
-  friend class NodeValue;
+    /**
+     * The NodeValue has access to the private constructors, so that the iterators
+     * can can create new nodes.
+     */
+    friend class NodeValue;
 
     /** A convenient null-valued encapsulated pointer */
     static NodeTemplate s_null;
 
     /** The referenced NodeValue */
-    NodeValue* d_ev;
+    NodeValue* d_nv;
 
-    bool d_count_ref;
-
-    /** This constructor is reserved for use by the NodeTemplate package; one
-     *  must construct an NodeTemplate using one of the build mechanisms of the
-     *  NodeTemplate package.
+    /**
+     * This constructor is reserved for use by the NodeTemplate package; one
+     * must construct an NodeTemplate using one of the build mechanisms of the
+     * NodeTemplate package.
      *
-     *  Increments the reference count.
+     * FIXME: there's a type-system escape here to cast away the const,
+     * since the refcount needs to be updated.  But conceptually Nodes
+     * don't change their arguments, and it's nice to have
+     * const_iterators over them.
      *
-     *  FIXME: there's a type-system escape here to cast away the const,
-     *  since the refcount needs to be updated.  But conceptually Nodes
-     *  don't change their arguments, and it's nice to have
-     *  const_iterators over them.  See notes in .cpp file for
-     *  details. */
-    // this really does needs to be explicit to avoid hard to track
-    // errors with Nodes implicitly wrapping NodeValues
+     * This really does needs to be explicit to avoid hard to track errors with
+     * Nodes implicitly wrapping NodeValues
+     */
     explicit NodeTemplate(const NodeValue*);
 
+    friend class NodeTemplate<true> ;
+    friend class NodeTemplate<false> ;
+    friend class NodeManager;
     template<unsigned>
       friend class NodeBuilder;
-
-    friend class NodeTemplate<true>;
-    friend class NodeTemplate<false>;
-
-    friend class NodeManager;
 
     /**
      * Assigns the expression value and does reference counting. No assumptions
@@ -95,126 +101,270 @@ template<bool ref_count>
      */
     void assignNodeValue(NodeValue* ev);
 
-    typedef NodeValue::ev_iterator ev_iterator;
-    typedef NodeValue::const_ev_iterator const_ev_iterator;
-
-    inline ev_iterator ev_begin();
-    inline ev_iterator ev_end();
-    inline const_ev_iterator ev_begin() const;
-    inline const_ev_iterator ev_end() const;
-
   public:
 
     /** Default constructor, makes a null expression. */
-    NodeTemplate();
+    NodeTemplate() : d_nv(&NodeValue::s_null) { }
 
-    NodeTemplate operator[](int i) const {
-      Assert(i >= 0 && unsigned(i) < d_ev->d_nchildren);
-      return NodeTemplate(d_ev->d_children[i]);
-    }
+    /**
+     * Copy constructor for nodes that can accept the nodes that are reference
+     * counted or not.
+     * @param node the node to make copy of
+     */
+    template<bool ref_count_1>
+      NodeTemplate(const NodeTemplate<ref_count_1>& node);
 
-    template <bool ref_count_1>
-    NodeTemplate(const NodeTemplate<ref_count_1>&);
+    /**
+     * Assignment operator for nodes, copies the relevant information from node
+     * to this node.
+     * @param node the node to copy
+     * @return reference to this node
+     */
+    template<bool ref_count_1>
+      NodeTemplate& operator=(const NodeTemplate<ref_count_1>& node);
 
-    /** Destructor.  Decrements the reference count and, if zero,
-     *  collects the NodeValue. */
+    /**
+     * Destructor. If ref_count is true it will decrement the reference count
+     * and, if zero, collect the NodeValue.
+     */
     ~NodeTemplate();
 
-    bool operator==(const NodeTemplate& e) const {
-      return d_ev == e.d_ev;
+    /**
+     * Return the null node.
+     * @return the null node
+     */
+    static NodeTemplate null() {
+      return s_null;
     }
-    bool operator!=(const NodeTemplate& e) const {
-      return d_ev != e.d_ev;
+
+    /**
+     * Returns true if this expression is a null expression.
+     * @return true if null
+     */
+    bool isNull() const {
+      return d_nv == &NodeValue::s_null;
+    }
+
+    /**
+     * Structural comparison operator for expressions.
+     * @param node the node to compare to
+     * @return true if expressions are equal, false otherwise
+     */
+    template <bool ref_count_1>
+    bool operator==(const NodeTemplate<ref_count_1>& node) const {
+      return d_nv == node.d_nv;
+    }
+
+    /**
+     * Structural comparison operator for expressions.
+     * @param node the node to compare to
+     * @return false if expressions are equal, true otherwise
+     */
+    template <bool ref_count_1>
+    bool operator!=(const NodeTemplate<ref_count_1>& node) const {
+      return d_nv != node.d_nv;
     }
 
     /**
      * We compare by expression ids so, keeping things deterministic and having
      * that subexpressions have to be smaller than the enclosing expressions.
+     * @param node the node to compare to
+     * @return true if this expression is smaller
      */
-    inline bool operator<(const NodeTemplate& e) const;
-
     template <bool ref_count_1>
-    NodeTemplate& operator=(const NodeTemplate<ref_count_1>&);
-
-    size_t hash() const {
-      return d_ev->getId();
+    inline bool operator<(const NodeTemplate<ref_count_1>& node) const {
+      return d_nv->d_id < node.d_nv->d_id;
     }
 
-    uint64_t getId() const {
-      return d_ev->getId();
+    /**
+     * Returns the i-th child of this node.
+     * @param i the index of the child
+     * @return the node representing the i-th child
+     */
+    NodeTemplate operator[](int i) const {
+      Assert(i >= 0 && unsigned(i) < d_nv->d_nchildren);
+      return NodeTemplate(d_nv->d_children[i]);
     }
 
-    const Type* getType() const;
-
-    NodeTemplate eqExpr(const NodeTemplate& right) const;
-    NodeTemplate notExpr() const;
-    NodeTemplate andExpr(const NodeTemplate& right) const;
-    NodeTemplate orExpr(const NodeTemplate& right) const;
-    NodeTemplate iteExpr(const NodeTemplate& thenpart,
-                         const NodeTemplate& elsepart) const;
-    NodeTemplate iffExpr(const NodeTemplate& right) const;
-    NodeTemplate impExpr(const NodeTemplate& right) const;
-    NodeTemplate xorExpr(const NodeTemplate& right) const;
-
-    NodeTemplate plusExpr(const NodeTemplate& right) const;
-    NodeTemplate uMinusExpr() const;
-    NodeTemplate multExpr(const NodeTemplate& right) const;
-
-    inline Kind getKind() const;
-
-    inline size_t getNumChildren() const;
-
-
-    static NodeTemplate null();
-
-    typedef typename NodeValue::iterator<ref_count> iterator;
-    typedef typename NodeValue::iterator<ref_count> const_iterator;
-
-    inline iterator begin();
-    inline iterator end();
-    inline const_iterator begin() const;
-    inline const_iterator end() const;
-
-    template <class AttrKind>
-    inline typename AttrKind::value_type getAttribute(const AttrKind&) const;
-
-    template <class AttrKind>
-    inline bool hasAttribute(const AttrKind&, typename AttrKind::value_type* = NULL) const;
-
-    inline std::string toString() const;
-    inline void toStream(std::ostream&) const;
-
-
-    bool isNull() const;
+    /**
+     * Returns true if this node is atomic (has no more Boolean structure)
+     * @return true if atomic
+     */
     bool isAtomic() const;
 
-  /**
-   * Very basic pretty printer for Node.
-   * @param o output stream to print to.
-   * @param indent number of spaces to indent the formula by.
-   */
-  void printAst(std::ostream & o, int indent = 0) const;
+    /**
+     * Returns the hash value of this node.
+     * @return the hash value
+     */
+    size_t hash() const {
+      return d_nv->getId();
+    }
 
-private:
+    /**
+     * Returns the unique id of this node
+     * @return the ud
+     */
+    uint64_t getId() const {
+      return d_nv->getId();
+    }
 
-  /**
-   * Pretty printer for use within gdb
-   * This is not intended to be used outside of gdb.
-   * This writes to the ostream Warning() and immediately flushes
-   * the ostream.
-   */
-  void debugPrint();
+    /**
+     * Returns the type of this node.
+     * @return the type
+     */
+    const Type* getType() const;
 
-  template<class AttrKind>
-  inline void setAttribute(
-      const AttrKind&, const typename AttrKind::value_type& value);
+    /**
+     * Returns the kind of this node.
+     * @return the kind
+     */
+    inline Kind getKind() const {
+      return Kind(d_nv->d_kind);
+    }
 
-    static void indent(std::ostream & o, int indent) {
+    /**
+     * Returns the number of children this node has.
+     * @return the number of children
+     */
+    inline size_t getNumChildren() const;
+
+    /**
+     * Returns the value of the given attribute that this has been attached.
+     * @param attKind the kind of the attribute
+     * @return the value of the attribute
+     */
+    template<class AttrKind>
+      inline typename AttrKind::value_type getAttribute(const AttrKind& attKind) const;
+
+    /**
+     * Returns true if this node has been associated an attribute of given kind.
+     * Additionaly, if a pointer to the value_kind is give, and the attribute
+     * value has been set for this node, it will be returned.
+     * @param attKind the kind of the attribute
+     * @param value where to store the value if it exists
+     * @return true if this node has the requested attribute
+     */
+    template<class AttrKind>
+      inline bool hasAttribute(const AttrKind& attKind, typename AttrKind::value_type* value = NULL) const;
+
+    /** Iterator allowing for scanning through the children. */
+    typedef typename NodeValue::iterator<ref_count> iterator;
+    /** Constant iterator allowing for scanning through the children. */
+    typedef typename NodeValue::iterator<ref_count> const_iterator;
+
+    /**
+     * Returns the iterator pointing to the first child.
+     * @return the iterator
+     */
+    inline iterator begin() {
+      return d_nv->begin<ref_count>();
+    }
+
+    /**
+     * Returns the iterator pointing to the end of the children (one beyond the
+     * last one.
+     * @return the end of the children iterator.
+     */
+    inline iterator end() {
+      return d_nv->end<ref_count>();
+    }
+
+    /**
+     * Returns the const_iterator pointing to the first child.
+     * @return the const_iterator
+     */
+    inline const_iterator begin() const {
+      return d_nv->begin<ref_count>();
+    }
+
+    /**
+     * Returns the const_iterator pointing to the end of the children (one
+     * beyond the last one.
+     * @return the end of the children const_iterator.
+     */
+    inline const_iterator end() const {
+      return d_nv->end<ref_count>();
+    }
+
+    /**
+     * Converts this node into a string representation.
+     * @return the string representation of this node.
+     */
+    inline std::string toString() const {
+      return d_nv->toString();
+    }
+
+    /**
+     * Converst this node into a string representation and sends it to the
+     * given stream
+     * @param out the sream to serialise this node to
+     */
+    inline void toStream(std::ostream& out) const {
+      d_nv->toStream(out);
+    }
+
+    /**
+     * Very basic pretty printer for Node.
+     * @param o output stream to print to.
+     * @param indent number of spaces to indent the formula by.
+     */
+    void printAst(std::ostream & o, int indent = 0) const;
+
+    NodeTemplate eqNode(const NodeTemplate& right) const;
+
+    NodeTemplate notNode() const;
+    NodeTemplate andNode(const NodeTemplate& right) const;
+    NodeTemplate orNode(const NodeTemplate& right) const;
+    NodeTemplate iteNode(const NodeTemplate& thenpart,
+                         const NodeTemplate& elsepart) const;
+    NodeTemplate iffNode(const NodeTemplate& right) const;
+    NodeTemplate impNode(const NodeTemplate& right) const;
+    NodeTemplate xorNode(const NodeTemplate& right) const;
+
+    NodeTemplate plusNode(const NodeTemplate& right) const;
+    NodeTemplate uMinusNode() const;
+    NodeTemplate multNode(const NodeTemplate& right) const;
+
+  private:
+
+    /**
+     * Pretty printer for use within gdb.  This is not intended to be used
+     * outside of gdb.  This writes to the Warning() stream and immediately
+     * flushes the stream.
+     */
+    void debugPrint();
+
+    /**
+     * Sets the given attribute of this node to the given value.
+     * @param attKind the kind of the atribute
+     * @param value the value to set the attribute to
+     */
+    template<class AttrKind>
+      inline void setAttribute(const AttrKind& attKind,
+                               const typename AttrKind::value_type& value);
+
+    /**
+     * Indents the given stream a given amount of spaces.
+     * @param out the stream to indent
+     * @param indent the numer of spaces
+     */
+    static void indent(std::ostream& out, int indent) {
       for(int i = 0; i < indent; i++)
-        o << ' ';
+        out << ' ';
     }
 
   };/* class NodeTemplate */
+
+/**
+ * Serializes a given node to the given stream.
+ * @param out the output stream to use
+ * @param node the node to output to the stream
+ * @return the changed stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, const Node& node) {
+  node.toStream(out);
+  return out;
+}
 
 }/* CVC4 namespace */
 
@@ -236,123 +386,42 @@ template<>
 namespace CVC4 {
 
 template<bool ref_count>
-  inline bool NodeTemplate<ref_count>::operator<(const NodeTemplate& e) const {
-    return d_ev->d_id < e.d_ev->d_id;
-  }
-
-inline std::ostream& operator<<(std::ostream& out, const Node& e) {
-  e.toStream(out);
-  return out;
-}
-
-template<bool ref_count>
-  inline Kind NodeTemplate<ref_count>::getKind() const {
-    return Kind(d_ev->d_kind);
-  }
-
-template<bool ref_count>
-  inline std::string NodeTemplate<ref_count>::toString() const {
-    return d_ev->toString();
-  }
-
-template<bool ref_count>
-  inline void NodeTemplate<ref_count>::toStream(std::ostream& out) const {
-    d_ev->toStream(out);
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::ev_iterator NodeTemplate<ref_count>::ev_begin() {
-    return d_ev->ev_begin();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::ev_iterator NodeTemplate<ref_count>::ev_end() {
-    return d_ev->ev_end();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::const_ev_iterator NodeTemplate<
-      ref_count>::ev_begin() const {
-    return d_ev->ev_begin();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::const_ev_iterator NodeTemplate<
-      ref_count>::ev_end() const {
-    return d_ev->ev_end();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::iterator NodeTemplate<ref_count>::begin() {
-    return d_ev->begin<ref_count> ();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::iterator NodeTemplate<ref_count>::end() {
-    return d_ev->end<ref_count> ();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::const_iterator NodeTemplate<
-      ref_count>::begin() const {
-    return d_ev->begin<ref_count> ();
-  }
-
-template<bool ref_count>
-  inline typename NodeTemplate<ref_count>::const_iterator NodeTemplate<
-      ref_count>::end() const {
-    return d_ev->end<ref_count> ();
-  }
-
-template<bool ref_count>
   inline size_t NodeTemplate<ref_count>::getNumChildren() const {
-    return d_ev->d_nchildren;
+    return d_nv->d_nchildren;
   }
 
-template <bool ref_count>
-template <class AttrKind>
-inline typename AttrKind::value_type NodeTemplate<ref_count>::getAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
+template<bool ref_count>
+  template<class AttrKind>
+    inline typename AttrKind::value_type NodeTemplate<ref_count>::
+    getAttribute(const AttrKind&) const {
+      Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+      return NodeManager::currentNM()->getAttribute(*this, AttrKind());
+    }
 
-  return NodeManager::currentNM()->getAttribute(*this, AttrKind());
-}
-
-template <bool ref_count>
-template <class AttrKind>
-inline bool NodeTemplate<ref_count>::hasAttribute(const AttrKind&,
-                               typename AttrKind::value_type* ret) const {
-  Assert( NodeManager::currentNM() != NULL,
+template<bool ref_count>
+  template<class AttrKind>
+    inline bool NodeTemplate<ref_count>::
+    hasAttribute(const AttrKind&, typename AttrKind::value_type* ret) const {
+      Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+      return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
+    }
 
-  return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
-}
-
-template <bool ref_count>
-template <class AttrKind>
-inline void NodeTemplate<ref_count>::setAttribute(const AttrKind&,
-                               const typename AttrKind::value_type& value) {
-  Assert( NodeManager::currentNM() != NULL,
+template<bool ref_count>
+  template<class AttrKind>
+    inline void NodeTemplate<ref_count>::
+    setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
+      Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
-
-  NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
-}
+      NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
+    }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&NodeValue::s_null);
-
-template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::null() {
-    return s_null;
-  }
-
-template<bool ref_count>
-  bool NodeTemplate<ref_count>::isNull() const {
-    return d_ev == &NodeValue::s_null;
-  }
 
 ////FIXME: This function is a major hack! Should be changed ASAP
 ////TODO: Should use positive definition, i.e. what kinds are atomic.
@@ -372,113 +441,105 @@ template<bool ref_count>
     }
   }
 
-template<bool ref_count>
-  NodeTemplate<ref_count>::NodeTemplate() :
-    d_ev(&NodeValue::s_null) {
-    // No refcount needed
-  }
-
 // FIXME: escape from type system convenient but is there a better
 // way?  Nodes conceptually don't change their expr values but of
 // course they do modify the refcount.  But it's nice to be able to
 // support node_iterators over const NodeValue*.  So.... hm.
 template<bool ref_count>
   NodeTemplate<ref_count>::NodeTemplate(const NodeValue* ev) :
-    d_ev(const_cast<NodeValue*> (ev)) {
-    Assert(d_ev != NULL, "Expecting a non-NULL expression value!");
+    d_nv(const_cast<NodeValue*> (ev)) {
+    Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
     if(ref_count)
-      d_ev->inc();
+      d_nv->inc();
   }
 
 template<bool ref_count>
-template<bool ref_count_1>
-  NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<ref_count_1>& e) {
-    Assert(e.d_ev != NULL, "Expecting a non-NULL expression value!");
-    d_ev = e.d_ev;
-    if(ref_count)
-      d_ev->inc();
-  }
+  template<bool ref_count_1>
+    NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<ref_count_1>& e) {
+      Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
+      d_nv = e.d_nv;
+      if(ref_count)
+        d_nv->inc();
+    }
 
 template<bool ref_count>
   NodeTemplate<ref_count>::~NodeTemplate() {
-    Assert(d_ev != NULL, "Expecting a non-NULL expression value!");
+    Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
     if(ref_count)
-      d_ev->dec();
-    Assert(ref_count || d_ev->d_rc > 0,
+      d_nv->dec();
+    Assert(ref_count || d_nv->d_rc > 0,
         "Temporary node pointing to an expired node");
   }
 
 template<bool ref_count>
   void NodeTemplate<ref_count>::assignNodeValue(NodeValue* ev) {
-    d_ev = ev;
+    d_nv = ev;
     if(ref_count)
-      d_ev->inc();
+      d_nv->inc();
   }
 
 template<bool ref_count>
-template<bool ref_count_1>
-  NodeTemplate<ref_count>& NodeTemplate<ref_count>::operator=
-      (const NodeTemplate<ref_count_1>& e) {
-    Assert(d_ev != NULL, "Expecting a non-NULL expression value!");
-    Assert(e.d_ev != NULL, "Expecting a non-NULL expression value on RHS!");
-    if(EXPECT_TRUE( d_ev != e.d_ev )) {
-      if(ref_count)
-        d_ev->dec();
-      d_ev = e.d_ev;
-      if(ref_count)
-        d_ev->inc();
+  template<bool ref_count_1>
+    NodeTemplate<ref_count>& NodeTemplate<ref_count>::
+    operator=(const NodeTemplate<ref_count_1>& e) {
+      Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+      Assert(e.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
+      if(EXPECT_TRUE( d_nv != e.d_nv )) {
+        if(ref_count)
+          d_nv->dec();
+        d_nv = e.d_nv;
+        if(ref_count)
+          d_nv->inc();
+      }
+      return *this;
     }
-    return *this;
-  }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::eqExpr(const NodeTemplate<
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::eqNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(EQUAL, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::notExpr() const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::notNode() const {
     return NodeManager::currentNM()->mkNode(NOT, *this);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::andExpr(
-      const NodeTemplate<ref_count>& right) const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::andNode(const NodeTemplate<
+      ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(AND, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::orExpr(
-      const NodeTemplate<ref_count>& right) const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::orNode(const NodeTemplate<
+      ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(OR, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::iteExpr(
-      const NodeTemplate<ref_count>& thenpart,
-      const NodeTemplate<ref_count>& elsepart) const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::iteNode(const NodeTemplate<
+      ref_count>& thenpart, const NodeTemplate<ref_count>& elsepart) const {
     return NodeManager::currentNM()->mkNode(ITE, *this, thenpart, elsepart);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::iffExpr(
-      const NodeTemplate<ref_count>& right) const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::iffNode(const NodeTemplate<
+      ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(IFF, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::impExpr(
-      const NodeTemplate<ref_count>& right) const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::impNode(const NodeTemplate<
+      ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(IMPLIES, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::xorExpr(
-      const NodeTemplate<ref_count>& right) const {
+  NodeTemplate<ref_count> NodeTemplate<ref_count>::xorNode(const NodeTemplate<
+      ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(XOR, *this, right);
   }
-
 
 template<bool ref_count>
   void NodeTemplate<ref_count>::printAst(std::ostream& out, int ind) const {
@@ -506,12 +567,12 @@ template<bool ref_count>
   }
 
 template<bool ref_count>
-const Type* NodeTemplate<ref_count>::getType() const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
-  return NodeManager::currentNM()->getType(*this);
-}
+  const Type* NodeTemplate<ref_count>::getType() const {
+    Assert( NodeManager::currentNM() != NULL,
+        "There is no current CVC4::NodeManager associated to this thread.\n"
+        "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+    return NodeManager::currentNM()->getType(*this);
+  }
 
 }/* CVC4 namespace */
 

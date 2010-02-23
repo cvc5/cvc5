@@ -76,7 +76,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 Result SmtEngine::query(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << std::endl;
-  addFormula(e.getNode().notExpr());
+  addFormula(e.getNode().notNode());
   Result r = check().asValidityResult();
   Debug("smt") << "SMT query(" << e << ") ==> " << r << std::endl;
   return r;

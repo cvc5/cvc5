@@ -95,7 +95,7 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
   for(Link* Px = nmaster->getFirst(); Px != NULL; Px = Px->next ){
     for(Link* Py = nslave->getFirst(); Py != NULL; Py = Py->next ){
       if(equiv(Px->data,Py->data)){
-        d_pending.push_back((Px->data).eqExpr(Py->data));
+        d_pending.push_back((Px->data).eqNode(Py->data));
       }
     }
   }

@@ -44,7 +44,7 @@ NodeValue::NodeValue(int) :
 }
 
 NodeValue::~NodeValue() {
-  for(ev_iterator i = ev_begin(); i != ev_end(); ++i) {
+  for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
     (*i)->dec();
   }
 }
@@ -66,19 +66,19 @@ void NodeValue::dec() {
   }
 }
 
-NodeValue::ev_iterator NodeValue::ev_begin() {
+NodeValue::nv_iterator NodeValue::nv_begin() {
   return d_children;
 }
 
-NodeValue::ev_iterator NodeValue::ev_end() {
+NodeValue::nv_iterator NodeValue::nv_end() {
   return d_children + d_nchildren;
 }
 
-NodeValue::const_ev_iterator NodeValue::ev_begin() const {
+NodeValue::const_nv_iterator NodeValue::nv_begin() const {
   return d_children;
 }
 
-NodeValue::const_ev_iterator NodeValue::ev_end() const {
+NodeValue::const_nv_iterator NodeValue::nv_end() const {
   return d_children + d_nchildren;
 }
 
@@ -99,8 +99,8 @@ void NodeValue::toStream(std::ostream& out) const {
       out << ":" << this;
     }
   } else {
-    for(const_ev_iterator i = ev_begin(); i != ev_end(); ++i) {
-      if(i != ev_end()) {
+    for(const_nv_iterator i = nv_begin(); i != nv_end(); ++i) {
+      if(i != nv_end()) {
         out << " ";
       }
       out << *i;

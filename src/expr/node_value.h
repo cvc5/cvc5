@@ -94,20 +94,20 @@ class NodeValue {
   /** Destructor decrements the ref counts of its children */
   ~NodeValue();
 
-  typedef NodeValue** ev_iterator;
-  typedef NodeValue const* const* const_ev_iterator;
+  typedef NodeValue** nv_iterator;
+  typedef NodeValue const* const* const_nv_iterator;
 
-  ev_iterator ev_begin();
-  ev_iterator ev_end();
+  nv_iterator nv_begin();
+  nv_iterator nv_end();
 
-  const_ev_iterator ev_begin() const;
-  const_ev_iterator ev_end() const;
+  const_nv_iterator nv_begin() const;
+  const_nv_iterator nv_end() const;
 
   template <bool ref_count>
   class iterator {
-    const_ev_iterator d_i;
+    const_nv_iterator d_i;
   public:
-    explicit iterator(const_ev_iterator i) : d_i(i) {}
+    explicit iterator(const_nv_iterator i) : d_i(i) {}
 
     inline CVC4::NodeTemplate<ref_count> operator*();
 
@@ -149,8 +149,8 @@ public:
    */
   size_t hash() const {
     size_t hash = d_kind;
-    const_ev_iterator i = ev_begin();
-    const_ev_iterator i_end = ev_end();
+    const_nv_iterator i = nv_begin();
+    const_nv_iterator i_end = nv_end();
     while (i != i_end) {
       hash ^= (*i)->d_id + 0x9e3779b9 + (hash << 6) + (hash >> 2);
       ++ i;
@@ -163,9 +163,9 @@ public:
       return false;
     if(d_nchildren != nv->d_nchildren)
       return false;
-    const_ev_iterator i = ev_begin();
-    const_ev_iterator j = nv->ev_begin();
-    const_ev_iterator i_end = ev_end();
+    const_nv_iterator i = nv_begin();
+    const_nv_iterator j = nv->nv_begin();
+    const_nv_iterator i_end = nv_end();
     while(i != i_end) {
       if ((*i) != (*j)) return false;
       ++i; ++j;
