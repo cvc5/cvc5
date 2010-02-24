@@ -47,6 +47,7 @@ class MultNodeBuilder;
 
 template <unsigned nchild_thresh>
 class NodeBuilder {
+
   unsigned d_size;
 
   uint64_t d_hash;
@@ -129,14 +130,17 @@ public:
   }
 
   Kind getKind() const {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     return d_nv->getKind();
   }
 
   unsigned getNumChildren() const {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     return d_nv->getNumChildren();
   }
 
   Node operator[](int i) const {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     Assert(i >= 0 && i < d_nv->getNumChildren());
     return Node(d_nv->d_children[i]);
   }
@@ -225,6 +229,11 @@ public:
   friend class PlusNodeBuilder;
   friend class MultNodeBuilder;
   */
+  
+  //Yet 1 more example of how terrifying C++ is as a language
+  //This is needed for copy constructors of different sizes to access private fields
+  template <unsigned N> friend class NodeBuilder;
+
 };/* class NodeBuilder */
 
 #if 0
@@ -439,9 +448,9 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
 
   if(nb.d_nv->d_nchildren > nchild_thresh) {
     realloc(nb.d_size, false);
-    std::copy(nb.d_nv->ev_begin(), nb.d_nv->end(), d_nv->nv_begin());
+    std::copy(nb.d_nv->ev_begin(), nb.d_nv->ev_end(), d_nv->nv_begin());
   } else {
-    std::copy(nb.d_nv->ev_begin(), nb.d_nv->end(), d_inlineNv.nv_begin());
+    std::copy(nb.d_nv->ev_begin(), nb.d_nv->ev_end(), d_inlineNv.nv_begin());
   }
   d_nv->d_kind = nb.d_nv->d_kind;
   d_nv->d_nchildren = nb.d_nv->d_nchildren;

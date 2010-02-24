@@ -86,10 +86,10 @@ struct KindValueToTableValueMapping<bool> {
 template <class T>
 struct KindValueToTableValueMapping<T*> {
   typedef void* table_value_type;
-  inline static void* convert(const T*& t) {
-    return reinterpret_cast<void*>(t);
+  inline static void* convert(const T* const& t) {
+    return reinterpret_cast<void*>(const_cast<T*>(t));
   }
-  inline static T* convertBack(void*& t) {
+  inline static T* convertBack(void* const& t) {
     return reinterpret_cast<T*>(t);
   }
 };
@@ -446,6 +446,17 @@ struct getTable<std::string> {
 
 template <class T>
 struct getTable<const T*> {
+  typedef AttrHash<void*> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_ptrs;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_ptrs;
+  }
+};
+
+template <class T>
+struct getTable<T*> {
   typedef AttrHash<void*> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_ptrs;

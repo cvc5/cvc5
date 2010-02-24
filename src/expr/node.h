@@ -325,6 +325,15 @@ template<bool ref_count>
     NodeTemplate uMinusNode() const;
     NodeTemplate multNode(const NodeTemplate& right) const;
 
+    /**
+     * Sets the given attribute of this node to the given value.
+     * @param attKind the kind of the atribute
+     * @param value the value to set the attribute to
+     */
+    template<class AttrKind>
+      inline void setAttribute(const AttrKind& attKind,
+                               const typename AttrKind::value_type& value);
+
   private:
 
     /**
@@ -334,14 +343,6 @@ template<bool ref_count>
      */
     void debugPrint();
 
-    /**
-     * Sets the given attribute of this node to the given value.
-     * @param attKind the kind of the atribute
-     * @param value the value to set the attribute to
-     */
-    template<class AttrKind>
-      inline void setAttribute(const AttrKind& attKind,
-                               const typename AttrKind::value_type& value);
 
     /**
      * Indents the given stream a given amount of spaces.

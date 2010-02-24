@@ -26,10 +26,13 @@ namespace theory {
 
 struct Link {
   context::CDO< Link* > next;
-  
-  //TODO soft reference
+
+  /**
+   * As I have not yet succeeded in justifying to myself that soft references are safe
+   * I am leaving this a hard refernce for now.
+   */
   Node data;
-  
+
   Link(context::Context* context, Node n, Link * l = NULL):
     next(context, l), data(n)
   {}
@@ -37,20 +40,23 @@ struct Link {
   static void* operator new(size_t size, context::ContextMemoryManager* pCMM) {
     return pCMM->newData(size);
   }
-  
+
 };
 
 
 
 class ECData : public context::ContextObj {
 private:
-  ECData * find;
+  ECData* find;
 
+  /**
+   * Is it safe to make this a soft link?  Why or why not?
+   */
   Node rep;
-  
+
   unsigned watchListSize;
-  Link * first;
-  Link * last;
+  Link* first;
+  Link* last;
 
 
   context::ContextObj* save(context::ContextMemoryManager* pCMM);

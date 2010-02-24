@@ -60,8 +60,7 @@ public:
   /**
    * Construct a Theory.
    */
-  Theory() {
-  }
+  Theory(context::Context* c) : d_assertions(c),  d_nextAssertion(c, 0){}
 
   /**
    * Destructs a Theory.  This implementation does nothing, but we
@@ -82,7 +81,10 @@ public:
    * setup() MUST NOT MODIFY context-dependent objects that it hasn't
    * itself just created.
    */
-  virtual void setup(const Node& n) = 0;
+
+  /*virtual void setup(const Node& n) = 0;*/
+
+  virtual void registerTerm(TNode n) = 0;
 
   /**
    * Assert a fact in the current context.
@@ -109,6 +111,9 @@ public:
   virtual void explain(OutputChannel& out,
                        const Node& n,
                        Effort level = FULL_EFFORT) = 0;
+private:
+  context::CDList<Node> d_assertions;
+  context::CDO<unsigned> d_nextAssertion;
 
 protected:
   /**
@@ -121,7 +126,7 @@ protected:
   /**
    * Returns true if the assertFactQueue is empty
    */
-  bool done() { return true; }
+  bool done();
 
 };/* class Theory */
 

@@ -18,5 +18,20 @@
 namespace CVC4 {
 namespace theory {
 
+bool Theory::done() {
+  return d_nextAssertion >= d_assertions.size(); 
+}
+
+
+Node Theory::get() {
+  Node n = d_assertions[d_nextAssertion];
+  d_nextAssertion = d_nextAssertion + 1;
+  return n;
+}
+
+void Theory::assertFact(const Node& n){
+  d_assertions.push_back(n);
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
