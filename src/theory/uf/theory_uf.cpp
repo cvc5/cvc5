@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ **
  **/
 
 
@@ -19,21 +19,30 @@
 #include "expr/kind.h"
 
 using namespace CVC4;
-using namespace theory;
 using namespace context;
+using namespace theory;
+using namespace uf;
 
 
+
+//TODO remove
 Node getOperator(Node x) { return Node::null(); }
 
 
 
 TheoryUF::TheoryUF(Context* c) :
-  Theory(c), d_pending(c), d_currentPendingIdx(c,0), d_disequality(c)
+  Theory(c),
+  d_pending(c),
+  d_currentPendingIdx(c,0),
+  d_disequality(c),
+  d_registered(c)
 {}
 
 TheoryUF::~TheoryUF(){}
 
 void TheoryUF::registerTerm(TNode n){
+
+  d_registered.push_back(n);
 
   ECData* ecN;
 
@@ -46,7 +55,8 @@ void TheoryUF::registerTerm(TNode n){
      * predecessors lists.
      * Also we do not have to worry about duplicates because all of the Link*
      * setup before are removed when the context n was setup in was popped out
-     * of. All we are going to do here are sanity checks.*/
+     * of. All we are going to do here are sanity checks.
+     */
 
     /*
      * Consider the following chain of events:
@@ -84,17 +94,26 @@ void TheoryUF::registerTerm(TNode n){
            "This data is either already in use or was not properly maintained "
            "during backtracking");
   }else{
+    //The attribute does not exist, so it is created and set
     ecN = new (true) ECData(d_context, n);
     n.setAttribute(ECAttr(), ecN);
   }
 
+  /* If the node is an APPLY, we need to add it to the predecessor list
+   * of its children.
+   */
   if(n.getKind() == APPLY){
     for(TNode::iterator cIter = n.begin(); cIter != n.end(); ++cIter){
       TNode child = *cIter;
 
-      ECData* ecChild = child.getAttribute(ECAttr());
-      ecChild = ccFind(ecChild);
+      /* Because this can be called after nodes have been merged, we need
+       * to lookup the representative in the UnionFind datastructure.
+       */
+      ECData* ecChild = ccFind(child.getAttribute(ECAttr()));
 
+      /* Because this can be called after nodes have been merged we may need
+       * to be merged with other predecessors of the equivalence class.
+       */
       for(Link* Px = ecChild->getFirst(); Px != NULL; Px = Px->next ){
         if(equiv(n, Px->data)){
           d_pending.push_back(n.eqNode(Px->data));
@@ -113,15 +132,15 @@ bool TheoryUF::sameCongruenceClass(TNode x, TNode y){
     ccFind(y.getAttribute(ECAttr()));
 }
 
-bool TheoryUF::equiv(Node x, Node y){
+bool TheoryUF::equiv(TNode x, TNode y){
   if(x.getNumChildren() != y.getNumChildren())
     return false;
 
   if(getOperator(x) != getOperator(y))
     return false;
 
-  Node::iterator xIter = x.begin();
-  Node::iterator yIter = y.begin();
+  TNode::iterator xIter = x.begin();
+  TNode::iterator yIter = y.begin();
 
   while(xIter != x.end()){
 
@@ -135,12 +154,30 @@ bool TheoryUF::equiv(Node x, Node y){
   return true;
 }
 
+/* This is a very basic, but *obviously correct* find implementation
+ * of the classic find algorithm.
+ * TODO after we have done some more testing:
+ * 1) Add path compression.  This is dependent on changes to ccUnion as
+ *    many better algorithms use eager path compression.
+ * 2) Elminate recursion.
+ */
 ECData* TheoryUF::ccFind(ECData * x){
   if( x->getFind() == x)
     return x;
   else{
     return ccFind(x->getFind());
   }
+  /* Slightly better Find w/ path compression and no recursion*/
+  /*
+    ECData* start;
+    ECData* next = x;
+    while(x != x->getFind()) x=x->getRep();
+    while( (start = next) != x){
+      next = start->getFind();
+      start->setFind(x);
+    }
+    return x;
+  */
 }
 
 void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
@@ -168,9 +205,8 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
   ECData::takeOverDescendantWatchList(nslave, nmaster);
 }
 
-//TODO make parameters soft references
 void TheoryUF::merge(){
-  do{
+  while(d_currentPendingIdx < d_pending.size() ) {
     TNode assertion = d_pending[d_currentPendingIdx];
     d_currentPendingIdx = d_currentPendingIdx + 1;
 
@@ -183,7 +219,7 @@ void TheoryUF::merge(){
       continue;
 
     ccUnion(ecX, ecY);
-  }while( d_currentPendingIdx < d_pending.size() );
+  }
 }
 
 void TheoryUF::check(OutputChannel& out, Effort level){

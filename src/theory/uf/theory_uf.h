@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ **
  **/
 
 
@@ -28,18 +28,28 @@
 
 namespace CVC4 {
 namespace theory {
+namespace uf {
+
 
 
 class TheoryUF : public Theory {
 private:
+
+
 
   /**
    * The associated context. Needed for allocating context dependent objects
    * and objects in context dependent memory.
    */
   context::Context* d_context;
-  
-  /** List of pending equivalence class merges. */
+
+  /** 
+   * List of pending equivalence class merges. 
+   *
+   * Tricky part:
+   * Must keep a hard link because new equality terms are created and appended
+   * to this list.
+   */
   context::CDList<Node> d_pending;
 
   /** Index of the next pending equality to merge. */
@@ -48,15 +58,31 @@ private:
   /** List of all disequalities this theory has seen. */
   context::CDList<Node> d_disequality;
 
+  /**
+   * List of all of the terms that are registered in the current context.
+   * When registerTerm is called on a term we want to guarentee that there
+   * is a hard link to the term for the duration of the context in which
+   * register term is called.
+   * This invariant is enough for us to use soft links where we want is the
+   * current implementation as well as making ECAttr() not context dependent.
+   * Soft links used both in ECData, and Link.
+   */
+  context::CDList<Node> d_registered;
 
 public:
 
+  /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
   TheoryUF(context::Context* c);
+
+  /** Destructor for the TheoryUF object. */
   ~TheoryUF();
 
+
+  //TODO Tim: I am going to delay documenting these functions while Morgan
+  //has pending changes to the contracts
+
   void registerTerm(TNode n);
-  
-  
+
   void check(OutputChannel& out, Effort level= FULL_EFFORT);
 
   void propagate(OutputChannel& out, Effort level= FULL_EFFORT){}
@@ -83,7 +109,7 @@ private:
    *    x.getOperator() == y.getOperator() and
    *    forall 1 <= i < n : ccFind(x[i]) == ccFind(y[i])
    */
-  bool equiv(Node x, Node y);
+  bool equiv(TNode x, TNode y);
 
   /**
    * Merges 2 equivalence classes, checks wether any predecessors need to
@@ -100,22 +126,31 @@ private:
    */
   ECData* ccFind(ECData* x);
 
-  /* Performs Congruence Closure to reflect the new additions to d_pending. */
+  /** Performs Congruence Closure to reflect the new additions to d_pending. */
   void merge();
 
 };
 
 
-
+/**
+ * Cleanup function for ECData. This will be used for called whenever
+ * a ECAttr is being destructed.
+ */
 struct ECCleanupFcn{
   static void cleanup(ECData* & ec){
     ec->deleteSelf();
   }
 };
 
+/** Unique name to use for constructing ECAttr. */
 struct EquivClass;
+
+/**
+ * ECAttr is the attribute that maps a node to an equivalence class.
+ */
 typedef expr::Attribute<EquivClass, ECData* /*, ECCleanupFcn*/> ECAttr;
 
+} /* CVC4::theory::uf namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 

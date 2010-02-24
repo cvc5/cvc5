@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ **
  **/
 
 #include "theory/uf/ecdata.h"
@@ -18,14 +18,15 @@
 using namespace CVC4;
 using namespace context;
 using namespace theory;
+using namespace uf;
 
 
-ECData::ECData(Context * context, const Node & n) :
+ECData::ECData(Context * context, TNode n) :
   ContextObj(context),
-  find(this), 
-  rep(n), 
-  watchListSize(0), 
-  first(NULL), 
+  find(this),
+  rep(n),
+  watchListSize(0),
+  first(NULL),
   last(NULL)
 {}
 
@@ -34,13 +35,13 @@ bool ECData::isClassRep(){
   return this == this->find;
 }
 
-void ECData::addPredecessor(Node n, Context* context){
+void ECData::addPredecessor(TNode n, Context* context){
   Assert(isClassRep());
 
   makeCurrent();
 
   Link * newPred = new (context->getCMM())  Link(context, n, first);
-  first = newPred; 
+  first = newPred;
   if(last == NULL){
     last = newPred;
   }
@@ -59,17 +60,11 @@ void ECData::restore(ContextObj* pContextObj) {
 Node ECData::getRep(){
   return rep;
 }
-  
+
 unsigned ECData::getWatchListSize(){
   return watchListSize;
 }
 
-void ECData::setWatchListSize(unsigned newSize){
-  Assert(isClassRep());
-
-  makeCurrent();
-  watchListSize = newSize;
-}
 
 void ECData::setFind(ECData * ec){
   makeCurrent();
@@ -83,21 +78,6 @@ ECData * ECData::getFind(){
 
 Link* ECData::getFirst(){
   return first;
-}
-
-
-Link* ECData::getLast(){
-  return last;
-}
-
-void ECData::setFirst(Link * nfirst){
-  makeCurrent();
-  first = nfirst;
-}
-
-void ECData::setLast(Link * nlast){
-  makeCurrent();
-  last = nlast;
 }
 
 
