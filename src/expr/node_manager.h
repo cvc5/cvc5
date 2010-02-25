@@ -114,6 +114,28 @@ public:
                            const AttrKind&,
                            const typename AttrKind::value_type& value);
 
+
+  /** Get the type for booleans. */
+  inline const BooleanType* booleanType() const {
+    return BooleanType::getInstance();
+  }
+
+  /** Get the type for sorts. */
+  inline const KindType* kindType() const {
+    return KindType::getInstance();
+  }
+
+  /** Make a function type from domain to range. */
+  inline const FunctionType*
+  mkFunctionType(const Type* domain, const Type* range);
+
+  /** Make a function type with input types from argTypes. */
+  inline const FunctionType*
+  mkFunctionType(const std::vector<const Type*>& argTypes, const Type* range);
+
+  /** Make a new sort with the given name. */
+  inline const Type* mkSort(const std::string& name);
+
   inline const Type* getType(TNode n);
 };
 
@@ -159,6 +181,29 @@ inline void NodeManager::setAttribute(TNode n,
   d_attrManager.setAttribute(n, AttrKind(), value);
 }
 
+/** Make a function type from domain to range.
+  * TODO: Function types should be unique for this manager. */
+const FunctionType*
+NodeManager::mkFunctionType(const Type* domain,
+                            const Type* range) {
+  std::vector<const Type*> argTypes;
+  argTypes.push_back(domain);
+  return new FunctionType(argTypes, range);
+}
+
+/** Make a function type with input types from argTypes.
+ * TODO: Function types should be unique for this manager. */
+const FunctionType*
+NodeManager::mkFunctionType(const std::vector<const Type*>& argTypes,
+                            const Type* range) {
+  Assert( argTypes.size() > 0 );
+  return new FunctionType(argTypes, range);
+}
+
+const Type*
+NodeManager::mkSort(const std::string& name) {
+  return new SortType(name);
+}
 inline const Type* NodeManager::getType(TNode n) {
   return getAttribute(n, CVC4::expr::TypeAttr());
 }

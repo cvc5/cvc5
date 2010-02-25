@@ -30,5 +30,4 @@ NodeValue* NodeManager::poolLookup(NodeValue* nv) const {
     return *find;
   }
 }
-
 }/* CVC4 namespace */

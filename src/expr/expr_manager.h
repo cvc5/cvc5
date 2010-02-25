@@ -46,10 +46,11 @@ public:
    */
   ~ExprManager();
 
-  /** Get the type for booleans. */
-  const BooleanType* booleanType();
+  /** Get the type for booleans */
+  const BooleanType* booleanType() const;
+
   /** Get the type for sorts. */
-  const KindType* kindType();
+  const KindType* kindType() const;
 
   /**
    * Make a unary expression of a given kind (TRUE, FALSE,...).

@@ -223,6 +223,74 @@ template<bool ref_count>
     }
 
     /**
+     * Returns a node representing the operator of this expression.
+     * If this is an APPLY, then the operator will be a functional term.
+     * Otherwise, it will be a node with kind BUILTIN
+     */
+    inline NodeTemplate<true> getOperator() const {
+      switch(getKind()) {
+      case kind::APPLY:
+        /* The operator is the first child. */
+        return NodeTemplate<true> (d_nv->d_children[0]);
+
+      case kind::EQUAL:
+      case kind::ITE:
+      case kind::TUPLE:
+      case kind::NOT:
+      case kind::AND:
+      case kind::IFF:
+      case kind::IMPLIES:
+      case kind::OR:
+      case kind::XOR:
+      case kind::PLUS:
+        /* Should return a BUILTIN node. */
+        Unimplemented("getOperator() on non-APPLY kind: " + getKind());
+        break;
+
+      case kind::FALSE:
+      case kind::TRUE:
+      case kind::SKOLEM:
+      case kind::VARIABLE:
+        IllegalArgument(*this,"getOperator() called on kind with no operator");
+        break;
+
+      default:
+        Unhandled(getKind());
+      }
+
+      NodeTemplate<true> n; // NULL Node for default return
+      return n;
+    }
+
+    /** Returns true if the node has an operator (i.e., it's not a variable or a constant). */
+    inline bool hasOperator() const {
+      switch(getKind()) {
+      case kind::APPLY:
+      case kind::EQUAL:
+      case kind::ITE:
+      case kind::TUPLE:
+      case kind::FALSE:
+      case kind::TRUE:
+      case kind::NOT:
+      case kind::AND:
+      case kind::IFF:
+      case kind::IMPLIES:
+      case kind::OR:
+      case kind::XOR:
+      case kind::PLUS:
+        return true;
+
+      case kind::SKOLEM:
+      case kind::VARIABLE:
+        return false;
+
+      default:
+        Unhandled(getKind());
+      }
+
+    }
+
+    /**
      * Returns the type of this node.
      * @return the type
      */

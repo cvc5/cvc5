@@ -13,7 +13,7 @@
  ** Implementation of expression types 
  **/
 
-#include "expr/expr_manager.h"
+#include "expr/node_manager.h"
 #include "expr/type.h"
 #include "util/Assert.h"
 #include <string>
@@ -25,28 +25,12 @@ std::ostream& operator<<(std::ostream& out, const Type& e) {
   return out;
 }
 
-Type::Type(ExprManager* exprManager) : 
-  d_exprManager(exprManager), d_name(std::string("<undefined>")) { 
-}
-
-Type::Type(ExprManager* exprManager, std::string name) : 
-  d_exprManager(exprManager), d_name(name) { 
+Type::Type() :
+  d_name(std::string("<undefined>")) {
 }
 
 Type::Type(std::string name) : 
   d_name(name) { 
-}
-
-bool Type::operator==(const Type& t) const {
-  return d_exprManager == t.d_exprManager && d_name == t.d_name;
-}
-
-bool Type::operator!=(const Type& t) const {
-  return !(*this == t);
-}
-
-ExprManager* Type::getExprManager() const {
-  return d_exprManager;
 }
 
 std::string Type::getName() const {
@@ -70,35 +54,16 @@ bool BooleanType::isBoolean() const {
   return true;
 }
 
-FunctionType::FunctionType(ExprManager* exprManager, 
-                           const std::vector<const Type*>& argTypes, 
+FunctionType::FunctionType(const std::vector<const Type*>& argTypes,
                            const Type* range) 
-  : Type(exprManager), d_argTypes(argTypes), d_rangeType(range) {
+  : d_argTypes(argTypes),
+    d_rangeType(range) {
   Assert( argTypes.size() > 0 );
 }
 
   // FIXME: What becomes of argument types?
 FunctionType::~FunctionType() {
 }
-
-FunctionType* 
-FunctionType::getInstance(ExprManager* exprManager, 
-                          const Type* domain, 
-                          const Type* range) {
-  std::vector<const Type*> argTypes;
-  argTypes.push_back(domain);
-  return getInstance(exprManager,argTypes,range);
-}
-
-  //FIXME: should be singleton
-FunctionType* 
-FunctionType::getInstance(ExprManager* exprManager, 
-            const std::vector<const Type*>& argTypes, 
-            const Type* range) {
-  Assert( argTypes.size() > 0 );
-  return new FunctionType(exprManager,argTypes,range);
-}
-
 
 const std::vector<const Type*> FunctionType::getArgTypes() const {
   return d_argTypes;
@@ -113,7 +78,7 @@ bool FunctionType::isFunction() const {
 }
 
 bool FunctionType::isPredicate() const {
-  return d_rangeType == d_exprManager->booleanType();
+  return d_rangeType->isBoolean();
 }
 
 void FunctionType::toStream(std::ostream& out) const {
@@ -150,8 +115,8 @@ KindType::getInstance() {
   return &s_instance;
 }
 
-SortType::SortType(ExprManager* exprManager,std::string name) 
-  : Type(exprManager,name) {
+SortType::SortType(std::string name)
+  : Type(name) {
 }
 
 SortType::~SortType() {

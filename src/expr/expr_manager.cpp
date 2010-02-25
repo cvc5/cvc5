@@ -38,14 +38,14 @@ ExprManager::~ExprManager() {
   delete d_nodeManager;
 }
 
-const BooleanType* ExprManager::booleanType() {
+const BooleanType* ExprManager::booleanType() const {
   NodeManagerScope nms(d_nodeManager);
-  return BooleanType::getInstance();
+  d_nodeManager->booleanType();
 }
 
-const KindType* ExprManager::kindType() {
+const KindType* ExprManager::kindType() const {
   NodeManagerScope nms(d_nodeManager);
-  return KindType::getInstance();
+  d_nodeManager->kindType();
 }
 
 Expr ExprManager::mkExpr(Kind kind) {
@@ -106,7 +106,7 @@ const FunctionType*
 ExprManager::mkFunctionType(const Type* domain, 
                             const Type* range) {
   NodeManagerScope nms(d_nodeManager);
-  return FunctionType::getInstance(this, domain, range);
+  return d_nodeManager->mkFunctionType(domain,range);
 }
 
 /** Make a function type with input types from argTypes. */
@@ -114,13 +114,12 @@ const FunctionType*
 ExprManager::mkFunctionType(const std::vector<const Type*>& argTypes, 
                             const Type* range) {
   NodeManagerScope nms(d_nodeManager);
-  return FunctionType::getInstance(this, argTypes, range);
+  return d_nodeManager->mkFunctionType(argTypes,range);
 }
 
 const Type* ExprManager::mkSort(const std::string& name) {
-  // FIXME: Sorts should be unique per-ExprManager
   NodeManagerScope nms(d_nodeManager);
-  return new SortType(this, name);
+  return d_nodeManager->mkSort(name);
 }
 
 Expr ExprManager::mkVar(const Type* type, const std::string& name) {

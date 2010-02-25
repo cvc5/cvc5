@@ -23,7 +23,7 @@
 
 namespace CVC4 {
 
-class ExprManager;
+class NodeManager;
 
 /**
  * Class encapsulating CVC4 expression types.
@@ -35,10 +35,6 @@ public:
 
   /** Comparison for disequality */
   bool operator!=(const Type& e) const;
-
-  /** Get the ExprManager associated with this type. May be NULL for
-      singleton types. */
-  ExprManager* getExprManager() const;
 
   /** Get the name of this type. May be empty for composite types. */
   std::string getName() const;
@@ -70,20 +66,14 @@ public:
   }
 
 protected:
-  /** Create a type associated with exprManager. */
-  Type(ExprManager* const exprManager);
-
-  /** Create a type associated with exprManager with the given name. */
-  Type(ExprManager* const exprManager, std::string name);
+  /** Create an un-named type. */
+  Type();
 
   /** Create a type with the given name. */
   Type(std::string name);
 
   /** Destructor */
   virtual ~Type() { };
-
-  /** The associated ExprManager */
-  ExprManager* d_exprManager;
 
   /** The name of the type (may be empty). */
   std::string d_name;
@@ -95,13 +85,13 @@ protected:
 class BooleanType : public Type {
 
 public:
-  static BooleanType* getInstance();
-
   /** Is this the boolean type? (Returns true.) */
   bool isBoolean() const;
 
+  static BooleanType* getInstance();
 private:
-  /** Create a type associated with exprManager. */
+
+  /** Create a type associated with nodeManager. */
   BooleanType();
 
   /** Do-nothing private copy constructor operator, to prevent
@@ -126,15 +116,6 @@ private:
 class FunctionType : public Type {
 
 public:
-  static FunctionType* getInstance(ExprManager* exprManager, 
-                                   const Type* domain, 
-                                   const Type* range);
-
-  static FunctionType* getInstance(ExprManager* exprManager, 
-                                   const std::vector<const Type*>& argTypes, 
-                                   const Type* range);
-
-
   /** Retrieve the argument types. The vector will be non-empty. */
   const std::vector<const Type*> getArgTypes() const;
 
@@ -154,14 +135,13 @@ public:
 
 private:
 
-  /** Construct a function type associated with exprManager,
-      given a vector of argument types and the range type. 
-      
-      @param argTypes a non-empty vector of input types
-      @param range the result type
-  */
-  FunctionType(ExprManager* exprManager, 
-               const std::vector<const Type*>& argTypes, 
+  /** Construct a function type associated with nodeManager,
+   * given a vector of argument types and the range type.
+
+   * @param argTypes a non-empty vector of input types
+   * @param range the result type
+   */
+  FunctionType(const std::vector<const Type*>& argTypes,
                const Type* range);
 
   /** Destructor */
@@ -173,25 +153,23 @@ private:
   /** The result type. */
   const Type* d_rangeType;
 
+  friend class NodeManager;
 };
 
 
 /** Class encapsulating the kind type (the type of types). 
-    TODO: Should be a singleton per-ExprManager.
 */
 class KindType : public Type {
 
 public:
-
-  /** Create a type associated with exprManager. */
-  static KindType* getInstance();
-
   /** Is this the kind type? (Returns true.) */
   bool isKind() const;
 
+  /** Get an instance of the kind type. */
+  static KindType* getInstance();
+
 private:
 
-  /** Create a type associated with exprManager. */
   KindType();
 
   /* Do-nothing private copy constructor, to prevent
@@ -210,17 +188,19 @@ private:
 };
 
 /** Class encapsulating a user-defined sort. 
-    TODO: Should sort be uniquely named per-exprManager and not conflict
+    TODO: Should sort be uniquely named per-nodeManager and not conflict
     with any builtins? */
 class SortType : public Type {
 
 public:
-
-  /** Create a sort associated with exprManager with the given name. */
-  SortType(ExprManager* exprManager, std::string name);
-
   /** Destructor */
   ~SortType();
+
+private:
+  /** Create a sort with the given name. */
+  SortType(std::string name);
+
+  friend class NodeManager;
 };
 
 /**
