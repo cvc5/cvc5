@@ -107,7 +107,12 @@ void TheoryUF::registerTerm(TNode n){
    * of its children.
    */
   if(n.getKind() == APPLY){
-    for(TNode::iterator cIter = n.begin(); cIter != n.end(); ++cIter){
+    TNode::iterator cIter = n.begin();
+
+    //The first element of an apply is the function symbol which should not
+    //have an associated ECData, so it needs to be skipped.
+    ++cIter;
+    for(; cIter != n.end(); ++cIter){
       TNode child = *cIter;
 
       /* Because this can be called after nodes have been merged, we need
@@ -137,6 +142,9 @@ bool TheoryUF::sameCongruenceClass(TNode x, TNode y){
 }
 
 bool TheoryUF::equiv(TNode x, TNode y){
+  Assert(x.getKind() == kind::APPLY);
+  Assert(y.getKind() == kind::APPLY);
+
   if(x.getNumChildren() != y.getNumChildren())
     return false;
 
@@ -145,6 +153,10 @@ bool TheoryUF::equiv(TNode x, TNode y){
 
   TNode::iterator xIter = x.begin();
   TNode::iterator yIter = y.begin();
+
+  //Skip operator of the applies
+  ++xIter;
+  ++yIter;
 
   while(xIter != x.end()){
 
@@ -226,9 +238,18 @@ void TheoryUF::merge(){
   }
 }
 
+Node TheoryUF::constructConflict(TNode diseq){
+  NodeBuilder<> nb(kind::AND);
+  nb << diseq;
+  for(unsigned i=0; i<d_pending.size(); ++i)
+    nb << d_pending[i];
+
+  return nb;
+}
+
 void TheoryUF::check(Effort level){
   while(!done()){
-    Node assertion;// = get();
+    Node assertion = get();
 
     switch(assertion.getKind()){
     case EQUAL:
@@ -256,7 +277,9 @@ void TheoryUF::check(Effort level){
       TNode left  = (*diseqIter)[0];
       TNode right = (*diseqIter)[1];
       if(sameCongruenceClass(left, right)){
-        d_out->conflict(*diseqIter, true);
+        Node remakeNeq = (*diseqIter).notNode();
+        Node conflict = constructConflict(remakeNeq);
+        d_out->conflict(conflict, true);
       }
     }
   }

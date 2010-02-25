@@ -126,6 +126,9 @@ private:
   /** Performs Congruence Closure to reflect the new additions to d_pending. */
   void merge();
 
+  /** Constructs a conflict from an inconsistent disequality. */
+  Node constructConflict(TNode diseq);
+
 };
 
 
