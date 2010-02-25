@@ -36,7 +36,6 @@ class Type;
 class NodeManager;
 template<bool ref_count>
   class NodeTemplate;
-
 /**
  * The Node class encapsulates the NodeValue with reference counting.
  */
@@ -48,7 +47,11 @@ typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 
 namespace expr {
-class NodeValue;
+  class NodeValue;
+
+  namespace attr {
+    class AttributeManager;
+  }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */
 
 using CVC4::expr::NodeValue;
@@ -93,6 +96,7 @@ template<bool ref_count>
     friend class NodeManager;
     template<unsigned>
       friend class NodeBuilder;
+    friend class ::CVC4::expr::attr::AttributeManager;
 
     /**
      * Assigns the expression value and does reference counting. No assumptions
@@ -355,18 +359,7 @@ template<bool ref_count>
     NodeTemplate impNode(const NodeTemplate& right) const;
     NodeTemplate xorNode(const NodeTemplate& right) const;
 
-    NodeTemplate plusNode(const NodeTemplate& right) const;
-    NodeTemplate uMinusNode() const;
-    NodeTemplate multNode(const NodeTemplate& right) const;
-
   private:
-
-    /**
-     * Pretty printer for use within gdb.  This is not intended to be used
-     * outside of gdb.  This writes to the Warning() stream and immediately
-     * flushes the stream.
-     */
-    void debugPrint();
 
     /**
      * Indents the given stream a given amount of spaces.
@@ -604,12 +597,6 @@ template<bool ref_count>
       indent(out, ind);
     }
     out << ')';
-  }
-
-template<bool ref_count>
-  void NodeTemplate<ref_count>::debugPrint() {
-    printAst(Warning(), 0);
-    Warning().flush();
   }
 
 template<bool ref_count>

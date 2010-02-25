@@ -58,8 +58,9 @@ public:
    * Indicate a theory conflict has arisen.
    *
    * @param n - a conflict at the current decision level.  This should
-   * be an OR-kinded node of literals that are false in the current
-   * assignment.
+   * be an AND-kinded node of literals that are TRUE in the current
+   * assignment and are in conflict (i.e., at least one must be
+   * assigned false).
    *
    * @param safe - whether it is safe to be interrupted
    */

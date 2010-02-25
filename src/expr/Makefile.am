@@ -7,6 +7,7 @@ noinst_LTLIBRARIES = libexpr.la
 
 libexpr_la_SOURCES = \
 	node.h \
+	node.cpp \
 	node_builder.h \
 	expr.h \
 	type.h \

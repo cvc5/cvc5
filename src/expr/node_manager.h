@@ -160,7 +160,7 @@ inline void NodeManager::setAttribute(TNode n,
 }
 
 inline const Type* NodeManager::getType(TNode n) {
-  return getAttribute(n,CVC4::expr::TypeAttr());
+  return getAttribute(n, CVC4::expr::TypeAttr());
 }
 
 inline void NodeManager::poolInsert(NodeValue* nv) {

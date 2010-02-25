@@ -509,7 +509,7 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
   d_used = false;
   d_nv = &d_inlineNv;
   d_inlineNv.d_kind = k;
-  d_inlineNv.d_nchildren = 0;
+  d_inlineNv.d_nchildren = 0;//FIXME leak
 }
 
 template <unsigned nchild_thresh>
@@ -551,6 +551,8 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
       std::copy(d_inlineNv.d_children,
                 d_inlineNv.d_children + nchild_thresh,
                 d_nv->d_children);
+      // inhibit decr'ing refcounts of children in dtor
+      d_inlineNv.d_nchildren = 0;
     }
   }
 }
@@ -583,7 +585,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
     Assert(d_nv->d_nchildren == 0);
     NodeValue *nv = (NodeValue*)
       std::malloc(sizeof(NodeValue) +
-                  ( sizeof(NodeValue*) * d_inlineNv.d_nchildren ));
+                  (sizeof(NodeValue*) * d_inlineNv.d_nchildren ));// FIXME :: WTF??
     nv->d_nchildren = 0;
     nv->d_kind = kind::VARIABLE;
     nv->d_id = NodeValue::next_id++;// FIXME multithreading
@@ -641,6 +643,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
             ev->d_children);
   d_used = true;
   d_nv = NULL;
+  d_inlineNv.d_nchildren = 0;// inhibit decr'ing refcounts of children in dtor
 
   // Make the new expression
   d_nm->poolInsert(ev);
