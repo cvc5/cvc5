@@ -191,9 +191,62 @@ public:
     return ((unsigned) k) & kindMask;
   }
   static inline Kind dKindToKind(unsigned d) {
-    return (d == kindMask) ? UNDEFINED_KIND : Kind(d);
+    return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
   }
 };
+
+inline NodeValue::NodeValue() :
+  d_id(0),
+  d_rc(MAX_RC),
+  d_kind(kind::NULL_EXPR),
+  d_nchildren(0) {
+}
+
+inline NodeValue::NodeValue(int) :
+  d_id(0),
+  d_rc(0),
+  d_kind(kindToDKind(kind::UNDEFINED_KIND)),
+  d_nchildren(0) {
+}
+
+inline NodeValue::~NodeValue() {
+  for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
+    (*i)->dec();
+  }
+}
+
+inline void NodeValue::inc() {
+  // FIXME multithreading
+  if(EXPECT_TRUE( d_rc < MAX_RC )) {
+    ++d_rc;
+  }
+}
+
+inline void NodeValue::dec() {
+  // FIXME multithreading
+  if(EXPECT_TRUE( d_rc < MAX_RC )) {
+    --d_rc;
+    if(EXPECT_FALSE( d_rc == 0 )) {
+      // FIXME gc
+    }
+  }
+}
+
+inline NodeValue::nv_iterator NodeValue::nv_begin() {
+  return d_children;
+}
+
+inline NodeValue::nv_iterator NodeValue::nv_end() {
+  return d_children + d_nchildren;
+}
+
+inline NodeValue::const_nv_iterator NodeValue::nv_begin() const {
+  return d_children;
+}
+
+inline NodeValue::const_nv_iterator NodeValue::nv_end() const {
+  return d_children + d_nchildren;
+}
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */

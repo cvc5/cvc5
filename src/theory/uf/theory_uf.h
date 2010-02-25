@@ -21,7 +21,6 @@
 #include "expr/attribute.h"
 
 #include "theory/theory.h"
-#include "theory/output_channel.h"
 
 #include "context/context.h"
 #include "theory/uf/ecdata.h"
@@ -30,9 +29,8 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
+class TheoryUF : public TheoryImpl<TheoryUF> {
 
-
-class TheoryUF : public Theory {
 private:
 
 
@@ -72,7 +70,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c);
+  TheoryUF(context::Context* c, OutputChannel& out);
 
   /** Destructor for the TheoryUF object. */
   ~TheoryUF();
@@ -82,14 +80,13 @@ public:
   //has pending changes to the contracts
 
   void registerTerm(TNode n);
+  void preRegisterTerm(TNode n);
 
-  void check(OutputChannel& out, Effort level= FULL_EFFORT);
+  void check(Effort level);
 
-  void propagate(OutputChannel& out, Effort level= FULL_EFFORT){}
+  void propagate(Effort level) {}
 
-  void explain(OutputChannel& out,
-               const Node& n,
-               Effort level = FULL_EFFORT){}
+  void explain(TNode n, Effort level) {}
 
 private:
   /**

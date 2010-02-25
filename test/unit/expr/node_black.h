@@ -24,6 +24,7 @@
 #include "expr/node.h"
 
 using namespace CVC4;
+using namespace CVC4::kind;
 using namespace std;
 
 class NodeBlack : public CxxTest::TestSuite {
@@ -40,8 +41,8 @@ public:
   }
 
   void tearDown() {
-    delete d_nm;
     delete d_scope;
+    delete d_nm;
   }
 
   bool imp(bool a, bool b) const {
@@ -379,20 +380,6 @@ public:
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
-  }
-
-  void testPlusNode() {
-    /*Node plusNode(const Node& right) const;*/
-    TS_WARN( "TODO: No implementation to test." );
-  }
-
-  void testUMinusNode() {
-    /*Node uMinusNode() const;*/
-    TS_WARN( "TODO: No implementation to test." );
-  }
-  void testMultNode() {
-    /*  Node multNode(const Node& right) const;*/
-    TS_WARN( "TODO: No implementation to test." );    
   }
 
   void testKindSingleton(Kind k) {

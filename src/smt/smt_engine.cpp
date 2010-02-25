@@ -21,16 +21,18 @@
 #include "prop/prop_engine.h"
 
 using namespace CVC4::prop;
+using CVC4::context::Context;
 
 namespace CVC4 {
 
 SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
+  d_ctxt(new Context),
   d_exprManager(em),
   d_nodeManager(em->getNodeManager()),
-  d_options(opts)
-{
-  d_decisionEngine = new DecisionEngine();
-  d_theoryEngine = new TheoryEngine(this);
+  d_options(opts) {
+  NodeManagerScope nms(d_nodeManager);
+  d_decisionEngine = new DecisionEngine;
+  d_theoryEngine = new TheoryEngine(this, d_ctxt);
   d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine);
 }
 
@@ -38,6 +40,7 @@ SmtEngine::~SmtEngine() {
   delete d_propEngine;
   delete d_theoryEngine;
   delete d_decisionEngine;
+  delete d_ctxt;
 }
 
 void SmtEngine::doCommand(Command* c) {
@@ -45,7 +48,7 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
-Node SmtEngine::preprocess(const Node& e) {
+Node SmtEngine::preprocess(TNode e) {
   return e;
 }
 
@@ -59,7 +62,7 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
-void SmtEngine::addFormula(const Node& e) {
+void SmtEngine::addFormula(TNode e) {
   Debug("smt") << "push_back assertion " << e << std::endl;
   d_propEngine->assertFormula(preprocess(e));
 }

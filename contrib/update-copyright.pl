@@ -2,6 +2,7 @@
 #
 # update-copyright.pl
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
+# Copyright (c) 2009, 2010  The CVC4 Project
 #
 # usage: update-copyright [ files/directories... ]
 #

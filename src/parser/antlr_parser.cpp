@@ -32,6 +32,7 @@
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace parser {

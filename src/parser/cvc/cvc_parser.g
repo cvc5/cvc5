@@ -216,7 +216,7 @@ iffFormula returns [CVC4::Expr f]
 }
   : f = impliesFormula
     ( IFF e = iffFormula
-        { f = mkExpr(CVC4::IFF, f, e); }
+        { f = mkExpr(CVC4::kind::IFF, f, e); }
     )?
   ;
 
@@ -230,7 +230,7 @@ impliesFormula returns [CVC4::Expr f]
 }
   : f = orFormula 
     ( IMPLIES e = impliesFormula
-        { f = mkExpr(CVC4::IMPLIES, f, e); }
+        { f = mkExpr(CVC4::kind::IMPLIES, f, e); }
     )?
   ;
 
@@ -246,7 +246,7 @@ orFormula returns [CVC4::Expr f]
   : e = xorFormula { exprs.push_back(e); }
       ( OR e = xorFormula { exprs.push_back(e); } )*
     {
-      f = (exprs.size() > 1 ? mkExpr(CVC4::OR, exprs) : exprs[0]);
+      f = (exprs.size() > 1 ? mkExpr(CVC4::kind::OR, exprs) : exprs[0]);
     }
   ;
 
@@ -260,7 +260,7 @@ xorFormula returns [CVC4::Expr f]
 }
   : f = andFormula
     ( XOR e = andFormula 
-      { f = mkExpr(CVC4::XOR,f, e); }
+      { f = mkExpr(CVC4::kind::XOR,f, e); }
     )*
   ;
 
@@ -276,7 +276,7 @@ andFormula returns [CVC4::Expr f]
   : e = notFormula { exprs.push_back(e); }
     ( AND e = notFormula { exprs.push_back(e); } )*
     {
-      f = (exprs.size() > 1 ? mkExpr(CVC4::AND, exprs) : exprs[0]);
+      f = (exprs.size() > 1 ? mkExpr(CVC4::kind::AND, exprs) : exprs[0]);
     }
   ;
 
@@ -290,7 +290,7 @@ notFormula returns [CVC4::Expr f]
 }
   : /* negation */
     NOT f = notFormula 
-    { f = mkExpr(CVC4::NOT, f); }
+    { f = mkExpr(CVC4::kind::NOT, f); }
   | /* a boolean atom */
     f = predFormula
   ;
@@ -302,7 +302,7 @@ predFormula returns [CVC4::Expr f]
   : { Expr e; }
     f = term 
     (EQUAL e = term
-      { f = mkExpr(CVC4::EQUAL, f, e); }
+      { f = mkExpr(CVC4::kind::EQUAL, f, e); }
     )?
   ; // TODO: lt, gt, etc.
 
@@ -323,7 +323,7 @@ term returns [CVC4::Expr t]
 
     LPAREN formulaList[args] RPAREN
     // TODO: check arity
-    { t = mkExpr(CVC4::APPLY, args); }
+    { t = mkExpr(CVC4::kind::APPLY, args); }
 
   | /* if-then-else */
     t = iteTerm
@@ -352,7 +352,7 @@ iteTerm returns [CVC4::Expr t]
     THEN iteThen = formula
     iteElse = iteElseTerm
     ENDIF     
-    { t = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }  
+    { t = mkExpr(CVC4::kind::ITE, iteCondition, iteThen, iteElse); }  
   ;
 
 /**
@@ -367,7 +367,7 @@ iteElseTerm returns [CVC4::Expr t]
   | ELSEIF iteCondition = formula
     THEN iteThen = formula
     iteElse = iteElseTerm
-    { t = mkExpr(CVC4::ITE, iteCondition, iteThen, iteElse); }
+    { t = mkExpr(CVC4::kind::ITE, iteCondition, iteThen, iteElse); }
   ;
 
 /**

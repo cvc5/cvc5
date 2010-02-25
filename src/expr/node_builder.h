@@ -13,6 +13,9 @@
  ** A builder interface for nodes.
  **/
 
+/* strong dependency; make sure node is included first */
+#include "node.h"
+
 #ifndef __CVC4__NODE_BUILDER_H
 #define __CVC4__NODE_BUILDER_H
 
@@ -145,42 +148,42 @@ public:
     return Node(d_nv->d_children[i]);
   }
 
-  void clear(Kind k = UNDEFINED_KIND);
+  void clear(Kind k = kind::UNDEFINED_KIND);
 
   // Compound expression constructors
   /*
-  NodeBuilder& eqExpr(const Node& right);
+  NodeBuilder& eqExpr(TNode right);
   NodeBuilder& notExpr();
-  NodeBuilder& andExpr(const Node& right);
-  NodeBuilder& orExpr(const Node& right);
-  NodeBuilder& iteExpr(const Node& thenpart, const Node& elsepart);
-  NodeBuilder& iffExpr(const Node& right);
-  NodeBuilder& impExpr(const Node& right);
-  NodeBuilder& xorExpr(const Node& right);
+  NodeBuilder& andExpr(TNode right);
+  NodeBuilder& orExpr(TNode right);
+  NodeBuilder& iteExpr(TNode thenpart, TNode elsepart);
+  NodeBuilder& iffExpr(TNode right);
+  NodeBuilder& impExpr(TNode right);
+  NodeBuilder& xorExpr(TNode right);
   */
 
   /* TODO design: these modify NodeBuilder ?? */
   /*
   NodeBuilder& operator!() { return notExpr(); }
-  NodeBuilder& operator&&(const Node& right) { return andExpr(right); }
-  NodeBuilder& operator||(const Node& right) { return orExpr(right);  }
+  NodeBuilder& operator&&(TNode right) { return andExpr(right); }
+  NodeBuilder& operator||(TNode right) { return orExpr(right);  }
   */
 
   /*
-  NodeBuilder& operator&&=(const Node& right) { return andExpr(right); }
-  NodeBuilder& operator||=(const Node& right) { return orExpr(right);  }
+  NodeBuilder& operator&&=(TNode right) { return andExpr(right); }
+  NodeBuilder& operator||=(TNode right) { return orExpr(right);  }
   */
 
   // "Stream" expression constructor syntax
 
   NodeBuilder& operator<<(const Kind& k) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    Assert(d_nv->getKind() == UNDEFINED_KIND);
+    Assert(d_nv->getKind() == kind::UNDEFINED_KIND);
     d_nv->d_kind = k;
     return *this;
   }
 
-  NodeBuilder& operator<<(const Node& n) {
+  NodeBuilder& operator<<(TNode n) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     return append(n);
   }
@@ -191,7 +194,7 @@ public:
     return append(children.begin(), children.end());
   }
 
-  NodeBuilder& append(const Node& n) {
+  NodeBuilder& append(TNode n) {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     Debug("prop") << "append: " << this << " " << n << "[" << n.d_nv << "]" << std::endl;
     allocateEvIfNecessaryForAppend();
@@ -466,7 +469,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm) :
   d_nv(&d_inlineNv),
   d_inlineNv(0),
   d_childrenStorage() {
-  d_inlineNv.d_kind = UNDEFINED_KIND;
+  d_inlineNv.d_kind = NodeValue::kindToDKind(kind::UNDEFINED_KIND);
 }
 
 template <unsigned nchild_thresh>
@@ -573,16 +576,16 @@ inline void NodeBuilder<nchild_thresh>::dealloc() {
 template <unsigned nchild_thresh>
 NodeBuilder<nchild_thresh>::operator Node() {// not const
   Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-  Assert(d_nv->getKind() != UNDEFINED_KIND,
+  Assert(d_nv->getKind() != kind::UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
 
-  if(d_nv->d_kind == VARIABLE) {
+  if(d_nv->d_kind == kind::VARIABLE) {
     Assert(d_nv->d_nchildren == 0);
     NodeValue *nv = (NodeValue*)
       std::malloc(sizeof(NodeValue) +
                   ( sizeof(NodeValue*) * d_inlineNv.d_nchildren ));
     nv->d_nchildren = 0;
-    nv->d_kind = VARIABLE;
+    nv->d_kind = kind::VARIABLE;
     nv->d_id = NodeValue::next_id++;// FIXME multithreading
     nv->d_rc = 0;
     d_used = true;

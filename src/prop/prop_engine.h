@@ -77,14 +77,14 @@ public:
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert
    */
-  void assertFormula(const Node& node);
+  void assertFormula(TNode node);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the sat solver.
    * The formula can be removed by the sat solver.
    * @param node the formula to assert
    */
-  void assertLemma(const Node& node);
+  void assertLemma(TNode node);
 
   /**
    * Checks the current context for satisfiability.

@@ -16,11 +16,17 @@
 
   LAST_KIND
 
-};/* enum Kind */
+};/* enum Kind_t */
+
+}/* CVC4::kind namespace */
+
+// import Kind into the "CVC4" namespace but keep the individual kind
+// constants under kind::
+typedef ::CVC4::kind::Kind_t Kind;
 
 inline std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, CVC4::Kind k) {
-  using namespace CVC4;
+  using namespace CVC4::kind;
 
   switch(k) {
 

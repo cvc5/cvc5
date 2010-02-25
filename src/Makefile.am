@@ -17,7 +17,7 @@ AM_CPPFLAGS =
 	-I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -fvisibility=hidden
 
-SUBDIRS = expr util context prop smt theory . parser main
+SUBDIRS = expr util context theory prop smt . parser main
 
 lib_LTLIBRARIES = libcvc4.la
 

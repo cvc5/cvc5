@@ -26,6 +26,7 @@
 #include "expr/kind.h"
 
 using namespace CVC4;
+using namespace CVC4::kind;
 using namespace std;
 
 class NodeBuilderBlack : public CxxTest::TestSuite {

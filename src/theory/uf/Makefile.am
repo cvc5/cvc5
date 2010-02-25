@@ -6,6 +6,7 @@ AM_CXXFLAGS = -Wall -fvisibility=hidden
 noinst_LTLIBRARIES = libuf.la
 
 libuf_la_SOURCES = \
+	theory_def.h \
 	ecdata.h \
 	ecdata.cpp \
 	theory_uf.h \

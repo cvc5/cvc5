@@ -112,6 +112,9 @@ public:
 
 private:
 
+  /** Our Context */
+  CVC4::context::Context* d_ctxt;
+
   /** Our expression manager */
   ExprManager* d_exprManager;
 
@@ -136,12 +139,12 @@ private:
    * passes over the Node.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  Node preprocess(const Node& node);
+  Node preprocess(TNode node);
 
   /**
    * Adds a formula to the current context.
    */
-  void addFormula(const Node& node);
+  void addFormula(TNode node);
 
   /**
    * Full check of consistency in current context.  Returns true iff

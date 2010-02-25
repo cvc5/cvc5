@@ -28,6 +28,8 @@
 #include "expr/type.h"
 #include "util/Assert.h"
 
+#include "util/output.h"
+
 namespace CVC4 {
 
 class Type;
@@ -107,12 +109,20 @@ template<bool ref_count>
     NodeTemplate() : d_nv(&NodeValue::s_null) { }
 
     /**
-     * Copy constructor for nodes that can accept the nodes that are reference
-     * counted or not.
+     * Conversion between nodes that are reference-counted and those that are
+     * not.
      * @param node the node to make copy of
      */
     template<bool ref_count_1>
       NodeTemplate(const NodeTemplate<ref_count_1>& node);
+
+    /**
+     * Copy constructor.  Note that GCC does NOT recognize an instantiation of
+     * the above template as a copy constructor and problems ensue.  So we
+     * provide an explicit one here.
+     * @param node the node to make copy of
+     */
+    NodeTemplate(const NodeTemplate<ref_count>& node);
 
     /**
      * Assignment operator for nodes, copies the relevant information from node
@@ -233,8 +243,23 @@ template<bool ref_count>
      * @param attKind the kind of the attribute
      * @return the value of the attribute
      */
-    template<class AttrKind>
+    template <class AttrKind>
       inline typename AttrKind::value_type getAttribute(const AttrKind& attKind) const;
+
+    // Note that there are two, distinct hasAttribute() declarations for
+    // a reason (rather than using a pointer-valued argument with a
+    // default value): they permit more optimized code in the underlying
+    // hasAttribute() implementations.
+
+    /**
+     * Returns true if this node has been associated an attribute of given kind.
+     * Additionaly, if a pointer to the value_kind is give, and the attribute
+     * value has been set for this node, it will be returned.
+     * @param attKind the kind of the attribute
+     * @return true if this node has the requested attribute
+     */
+    template <class AttrKind>
+      inline bool hasAttribute(const AttrKind& attKind) const;
 
     /**
      * Returns true if this node has been associated an attribute of given kind.
@@ -244,8 +269,17 @@ template<bool ref_count>
      * @param value where to store the value if it exists
      * @return true if this node has the requested attribute
      */
-    template<class AttrKind>
-      inline bool hasAttribute(const AttrKind& attKind, typename AttrKind::value_type* value = NULL) const;
+    template <class AttrKind>
+      inline bool hasAttribute(const AttrKind& attKind, typename AttrKind::value_type& value) const;
+
+    /**
+     * Sets the given attribute of this node to the given value.
+     * @param attKind the kind of the atribute
+     * @param value the value to set the attribute to
+     */
+    template <class AttrKind>
+      inline void setAttribute(const AttrKind& attKind,
+                               const typename AttrKind::value_type& value);
 
     /** Iterator allowing for scanning through the children. */
     typedef typename NodeValue::iterator<ref_count> iterator;
@@ -325,15 +359,6 @@ template<bool ref_count>
     NodeTemplate uMinusNode() const;
     NodeTemplate multNode(const NodeTemplate& right) const;
 
-    /**
-     * Sets the given attribute of this node to the given value.
-     * @param attKind the kind of the atribute
-     * @param value the value to set the attribute to
-     */
-    template<class AttrKind>
-      inline void setAttribute(const AttrKind& attKind,
-                               const typename AttrKind::value_type& value);
-
   private:
 
     /**
@@ -342,7 +367,6 @@ template<bool ref_count>
      * flushes the stream.
      */
     void debugPrint();
-
 
     /**
      * Indents the given stream a given amount of spaces.
@@ -404,7 +428,17 @@ template<bool ref_count>
 template<bool ref_count>
   template<class AttrKind>
     inline bool NodeTemplate<ref_count>::
-    hasAttribute(const AttrKind&, typename AttrKind::value_type* ret) const {
+    hasAttribute(const AttrKind&) const {
+      Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+      return NodeManager::currentNM()->hasAttribute(*this, AttrKind());
+    }
+
+template<bool ref_count>
+  template<class AttrKind>
+    inline bool NodeTemplate<ref_count>::
+    hasAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
       Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
@@ -428,6 +462,7 @@ template<bool ref_count>
 ////TODO: Should use positive definition, i.e. what kinds are atomic.
 template<bool ref_count>
   bool NodeTemplate<ref_count>::isAtomic() const {
+    using namespace kind;
     switch(getKind()) {
     case NOT:
     case XOR:
@@ -454,6 +489,8 @@ template<bool ref_count>
       d_nv->inc();
   }
 
+// the code for these two "conversion/copy constructors" is identical, but
+// apparently we need both.  see comment in the class.
 template<bool ref_count>
   template<bool ref_count_1>
     NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<ref_count_1>& e) {
@@ -462,6 +499,14 @@ template<bool ref_count>
       if(ref_count)
         d_nv->inc();
     }
+
+template<bool ref_count>
+  NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<ref_count>& e) {
+    Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
+    d_nv = e.d_nv;
+    if(ref_count)
+      d_nv->inc();
+  }
 
 template<bool ref_count>
   NodeTemplate<ref_count>::~NodeTemplate() {
@@ -498,48 +543,48 @@ template<bool ref_count>
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::eqNode(const NodeTemplate<
       ref_count>& right) const {
-    return NodeManager::currentNM()->mkNode(EQUAL, *this, right);
+    return NodeManager::currentNM()->mkNode(kind::EQUAL, *this, right);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::notNode() const {
-    return NodeManager::currentNM()->mkNode(NOT, *this);
+    return NodeManager::currentNM()->mkNode(kind::NOT, *this);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::andNode(const NodeTemplate<
       ref_count>& right) const {
-    return NodeManager::currentNM()->mkNode(AND, *this, right);
+    return NodeManager::currentNM()->mkNode(kind::AND, *this, right);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::orNode(const NodeTemplate<
       ref_count>& right) const {
-    return NodeManager::currentNM()->mkNode(OR, *this, right);
+    return NodeManager::currentNM()->mkNode(kind::OR, *this, right);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::iteNode(const NodeTemplate<
       ref_count>& thenpart, const NodeTemplate<ref_count>& elsepart) const {
-    return NodeManager::currentNM()->mkNode(ITE, *this, thenpart, elsepart);
+    return NodeManager::currentNM()->mkNode(kind::ITE, *this, thenpart, elsepart);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::iffNode(const NodeTemplate<
       ref_count>& right) const {
-    return NodeManager::currentNM()->mkNode(IFF, *this, right);
+    return NodeManager::currentNM()->mkNode(kind::IFF, *this, right);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::impNode(const NodeTemplate<
       ref_count>& right) const {
-    return NodeManager::currentNM()->mkNode(IMPLIES, *this, right);
+    return NodeManager::currentNM()->mkNode(kind::IMPLIES, *this, right);
   }
 
 template<bool ref_count>
   NodeTemplate<ref_count> NodeTemplate<ref_count>::xorNode(const NodeTemplate<
       ref_count>& right) const {
-    return NodeManager::currentNM()->mkNode(XOR, *this, right);
+    return NodeManager::currentNM()->mkNode(kind::XOR, *this, right);
   }
 
 template<bool ref_count>
@@ -547,7 +592,7 @@ template<bool ref_count>
     indent(out, ind);
     out << '(';
     out << getKind();
-    if(getKind() == VARIABLE) {
+    if(getKind() == kind::VARIABLE) {
       out << ' ' << getId();
 
     } else if(getNumChildren() >= 1) {

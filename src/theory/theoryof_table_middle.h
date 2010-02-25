@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** kind_prologue.h
+/** theoryof_table_middle.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,20 +10,26 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Prologue of the Node kind header.  This file starts the Kind enumeration.
+ ** The theoryOf table.
  **/
 
-#ifndef __CVC4__KIND_H
-#define __CVC4__KIND_H
-
-#include "cvc4_config.h"
-#include <iostream>
-
 namespace CVC4 {
-namespace kind {
+namespace theory {
 
-enum Kind_t {
-  /* undefined */
-  UNDEFINED_KIND = -1,
-  /** Null Kind */
-  NULL_EXPR,
+class Theory;
+
+class TheoryOfTable {
+
+  Theory** d_table;
+
+public:
+
+  TheoryOfTable() :
+    d_table(new Theory*[::CVC4::kind::LAST_KIND]) {
+  }
+
+  Theory* operator[](TNode n) {
+    Assert(n.getKind() >= 0 && n.getKind() < ::CVC4::kind::LAST_KIND,
+           "illegal to inquire theoryOf(UNDEFINED_KIND or out-of-range)");
+    return d_table[n.getKind()];
+  }

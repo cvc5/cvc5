@@ -24,7 +24,9 @@
 #include "expr/attribute.h"
 
 using namespace CVC4;
+using namespace CVC4::kind;
 using namespace CVC4::expr;
+using namespace CVC4::expr::attr;
 using namespace std;
 
 struct Test1;
@@ -36,11 +38,26 @@ struct Test5;
 typedef Attribute<Test1, std::string> TestStringAttr1;
 typedef Attribute<Test2, std::string> TestStringAttr2;
 
+// it would be nice to have CDAttribute<> for context-dependence
+typedef CDAttribute<Test1, bool> TestCDFlag;
+
+struct ecdata;
+struct cleanupfcn {
+  static void cleanup(ecdata* ec) { /* clean up */ }
+};
+
+// ManagedAttribute<> has a cleanup function deleting the value
+typedef ManagedAttribute<Test1, ecdata*, cleanupfcn> TestECDataAttr;
+
 typedef Attribute<Test1, bool> TestFlag1;
 typedef Attribute<Test2, bool> TestFlag2;
 typedef Attribute<Test3, bool> TestFlag3;
 typedef Attribute<Test4, bool> TestFlag4;
 typedef Attribute<Test5, bool> TestFlag5;
+
+struct FooBar {};
+struct Test6;
+typedef Attribute<Test6, FooBar> TestFlag6;
 
 class NodeWhite : public CxxTest::TestSuite {
 
@@ -55,8 +72,8 @@ public:
   }
 
   void tearDown() {
-    delete d_nm;
     delete d_scope;
+    delete d_nm;
   }
 
   void testNull() {
@@ -89,7 +106,6 @@ public:
     TS_ASSERT(TestFlag3::s_id == 2);
     TS_ASSERT(TestFlag4::s_id == 3);
     TS_ASSERT(TestFlag5::s_id == 4);
-    TS_ASSERT(attr::LastAttributeId<bool>::s_id == 5);
   }
 
   void testAttributes() {
@@ -201,68 +217,68 @@ public:
     // test two-arg version of hasAttribute()
     bool bb;
     Debug("boolattr", "get flag 1 on a (should be F)\n");
-    TS_ASSERT(a.hasAttribute(TestFlag1(), &bb));
+    TS_ASSERT(a.hasAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 1 on b (should be F)\n");
-    TS_ASSERT(b.hasAttribute(TestFlag1(), &bb));
+    TS_ASSERT(b.hasAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 1 on c (should be F)\n");
-    TS_ASSERT(c.hasAttribute(TestFlag1(), &bb));
+    TS_ASSERT(c.hasAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 1 on unnamed (should be F)\n");
-    TS_ASSERT(unnamed.hasAttribute(TestFlag1(), &bb));
+    TS_ASSERT(unnamed.hasAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
 
     Debug("boolattr", "get flag 2 on a (should be F)\n");
-    TS_ASSERT(a.hasAttribute(TestFlag2(), &bb));
+    TS_ASSERT(a.hasAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 2 on b (should be F)\n");
-    TS_ASSERT(b.hasAttribute(TestFlag2(), &bb));
+    TS_ASSERT(b.hasAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 2 on c (should be F)\n");
-    TS_ASSERT(c.hasAttribute(TestFlag2(), &bb));
+    TS_ASSERT(c.hasAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 2 on unnamed (should be F)\n");
-    TS_ASSERT(unnamed.hasAttribute(TestFlag2(), &bb));
+    TS_ASSERT(unnamed.hasAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
 
     Debug("boolattr", "get flag 3 on a (should be F)\n");
-    TS_ASSERT(a.hasAttribute(TestFlag3(), &bb));
+    TS_ASSERT(a.hasAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 3 on b (should be F)\n");
-    TS_ASSERT(b.hasAttribute(TestFlag3(), &bb));
+    TS_ASSERT(b.hasAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 3 on c (should be F)\n");
-    TS_ASSERT(c.hasAttribute(TestFlag3(), &bb));
+    TS_ASSERT(c.hasAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 3 on unnamed (should be F)\n");
-    TS_ASSERT(unnamed.hasAttribute(TestFlag3(), &bb));
+    TS_ASSERT(unnamed.hasAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
 
     Debug("boolattr", "get flag 4 on a (should be F)\n");
-    TS_ASSERT(a.hasAttribute(TestFlag4(), &bb));
+    TS_ASSERT(a.hasAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 4 on b (should be F)\n");
-    TS_ASSERT(b.hasAttribute(TestFlag4(), &bb));
+    TS_ASSERT(b.hasAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 4 on c (should be F)\n");
-    TS_ASSERT(c.hasAttribute(TestFlag4(), &bb));
+    TS_ASSERT(c.hasAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 4 on unnamed (should be F)\n");
-    TS_ASSERT(unnamed.hasAttribute(TestFlag4(), &bb));
+    TS_ASSERT(unnamed.hasAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
 
     Debug("boolattr", "get flag 5 on a (should be F)\n");
-    TS_ASSERT(a.hasAttribute(TestFlag5(), &bb));
+    TS_ASSERT(a.hasAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 5 on b (should be F)\n");
-    TS_ASSERT(b.hasAttribute(TestFlag5(), &bb));
+    TS_ASSERT(b.hasAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 5 on c (should be F)\n");
-    TS_ASSERT(c.hasAttribute(TestFlag5(), &bb));
+    TS_ASSERT(c.hasAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
     Debug("boolattr", "get flag 5 on unnamed (should be F)\n");
-    TS_ASSERT(unnamed.hasAttribute(TestFlag5(), &bb));
+    TS_ASSERT(unnamed.hasAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
 
     // setting boolean flags

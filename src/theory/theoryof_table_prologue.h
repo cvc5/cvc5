@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** kind_prologue.h
+/** theoryof_table_prologue.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,20 +10,12 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Prologue of the Node kind header.  This file starts the Kind enumeration.
+ ** The theoryOf table.
  **/
 
-#ifndef __CVC4__KIND_H
-#define __CVC4__KIND_H
+#ifndef __CVC4__THEORY__THEORYOF_TABLE_H
+#define __CVC4__THEORY__THEORYOF_TABLE_H
 
-#include "cvc4_config.h"
-#include <iostream>
+#include "expr/kind.h"
+#include "util/Assert.h"
 
-namespace CVC4 {
-namespace kind {
-
-enum Kind_t {
-  /* undefined */
-  UNDEFINED_KIND = -1,
-  /** Null Kind */
-  NULL_EXPR,

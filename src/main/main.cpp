@@ -39,94 +39,19 @@ using namespace CVC4::main;
 static Result lastResult;
 static struct Options options;
 
+int runCvc4(int argc, char *argv[]);
 void doCommand(SmtEngine&, Command*);
 
+/**
+ * CVC4's main() routine is just an exception-safe wrapper around CVC4.
+ * Please don't construct anything here.  Even if the constructor is
+ * inside the try { }, an exception during destruction can cause
+ * problems.  That's why main() wraps runCvc4() in the first place.
+ * Put everything in runCvc4().
+ */
 int main(int argc, char *argv[]) {
-
   try {
-
-    // Initialize the signal handlers
-    cvc4_init();
-
-    // Parse the options
-    int firstArgIndex = parseOptions(argc, argv, &options);
-
-    // If in competition mode, set output stream option to flush immediately
-    if(options.smtcomp_mode) {
-      cout << unitbuf;
-    }
-
-    // We only accept one input file
-    if(argc > firstArgIndex + 1) {
-      throw Exception("Too many input files specified.");
-    }
-
-    // Create the expression manager
-    ExprManager exprMgr;
-
-    // Create the SmtEngine
-    SmtEngine smt(&exprMgr, &options);
-
-    // If no file supplied we read from standard input
-    bool inputFromStdin = firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
-
-    // Auto-detect input language by filename extension
-    if(!inputFromStdin && options.lang == Parser::LANG_AUTO) {
-      const char* filename = argv[firstArgIndex];
-      unsigned len = strlen(filename);
-      if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        options.lang = Parser::LANG_SMTLIB;
-      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
-                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        options.lang = Parser::LANG_CVC4;
-      }
-    }
-
-    // Determine which messages to show based on smtcomp_mode and verbosity
-    if(options.smtcomp_mode) {
-      Debug.setStream(CVC4::null_os);
-      Trace.setStream(CVC4::null_os);
-      Notice.setStream(CVC4::null_os);
-      Chat.setStream(CVC4::null_os);
-      Message.setStream(CVC4::null_os);
-      Warning.setStream(CVC4::null_os);
-    } else {
-      if(options.verbosity < 2) {
-        Chat.setStream(CVC4::null_os);
-      }
-      if(options.verbosity < 1) {
-        Notice.setStream(CVC4::null_os);
-      }
-      if(options.verbosity < 0) {
-        Message.setStream(CVC4::null_os);
-        Warning.setStream(CVC4::null_os);
-      }
-    }
-
-    // Create the parser
-    Parser* parser;
-    if(inputFromStdin) {
-      parser = Parser::getNewParser(&exprMgr, options.lang, cin);
-    } else {
-      parser = Parser::getNewParser(&exprMgr, options.lang, argv[firstArgIndex]);
-    }
-
-    if(!options.semanticChecks) {
-      parser->disableChecks();
-    }
-
-    // Parse and execute commands until we are done
-    Command* cmd;
-    while((cmd = parser->parseNextCommand())) {
-      if( !options.parseOnly ) {
-        doCommand(smt, cmd);
-      }
-      delete cmd;
-    }
-
-    // Remove the parser
-    delete parser;
-
+    return runCvc4(argc, argv);
   } catch(OptionException& e) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;
@@ -153,6 +78,91 @@ int main(int argc, char *argv[]) {
     cerr << "CVC4 threw an exception of unknown type." << endl;
     abort();
   }
+}
+
+int runCvc4(int argc, char *argv[]) {
+
+  // Initialize the signal handlers
+  cvc4_init();
+
+  // Parse the options
+  int firstArgIndex = parseOptions(argc, argv, &options);
+
+  // If in competition mode, set output stream option to flush immediately
+  if(options.smtcomp_mode) {
+    cout << unitbuf;
+  }
+
+  // We only accept one input file
+  if(argc > firstArgIndex + 1) {
+    throw Exception("Too many input files specified.");
+  }
+
+  // Create the expression manager
+  ExprManager exprMgr;
+
+  // Create the SmtEngine
+  SmtEngine smt(&exprMgr, &options);
+
+  // If no file supplied we read from standard input
+  bool inputFromStdin = firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
+
+  // Auto-detect input language by filename extension
+  if(!inputFromStdin && options.lang == Parser::LANG_AUTO) {
+    const char* filename = argv[firstArgIndex];
+    unsigned len = strlen(filename);
+    if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
+      options.lang = Parser::LANG_SMTLIB;
+    } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
+              || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
+      options.lang = Parser::LANG_CVC4;
+    }
+  }
+
+  // Determine which messages to show based on smtcomp_mode and verbosity
+  if(options.smtcomp_mode) {
+    Debug.setStream(CVC4::null_os);
+    Trace.setStream(CVC4::null_os);
+    Notice.setStream(CVC4::null_os);
+    Chat.setStream(CVC4::null_os);
+    Message.setStream(CVC4::null_os);
+    Warning.setStream(CVC4::null_os);
+  } else {
+    if(options.verbosity < 2) {
+      Chat.setStream(CVC4::null_os);
+    }
+    if(options.verbosity < 1) {
+      Notice.setStream(CVC4::null_os);
+    }
+    if(options.verbosity < 0) {
+      Message.setStream(CVC4::null_os);
+      Warning.setStream(CVC4::null_os);
+    }
+  }
+
+  // Create the parser
+  Parser* parser;
+  if(inputFromStdin) {
+    parser = Parser::getNewParser(&exprMgr, options.lang, cin);
+  } else {
+    parser = Parser::getNewParser(&exprMgr, options.lang, argv[firstArgIndex]);
+  }
+
+  if(!options.semanticChecks) {
+    parser->disableChecks();
+  }
+
+  // Parse and execute commands until we are done
+  Command* cmd;
+  while((cmd = parser->parseNextCommand())) {
+    if( !options.parseOnly ) {
+      doCommand(smt, cmd);
+    }
+    delete cmd;
+  }
+
+  // Remove the parser
+  delete parser;
 
   switch(lastResult.asSatisfiabilityResult().isSAT()) {
 

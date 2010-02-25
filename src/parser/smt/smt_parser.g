@@ -117,7 +117,7 @@ benchAttribute returns [Command* smt_command = 0]
 annotatedFormula returns [CVC4::Expr formula]
 {
   Debug("parser") << "annotated formula: " << LT(1)->getText() << endl;
-  Kind kind = UNDEFINED_KIND;
+  Kind kind = CVC4::kind::UNDEFINED_KIND;
   vector<Expr> args; 
 }
   : /* a built-in operator application */
@@ -136,7 +136,7 @@ annotatedFormula returns [CVC4::Expr formula]
     { args.push_back(f); }
     annotatedFormulas[args] RPAREN
     // TODO: check arity
-    { formula = mkExpr(CVC4::APPLY,args); }
+    { formula = mkExpr(CVC4::kind::APPLY,args); }
 
   | /* An ite expression */
     LPAREN (ITE | IF_THEN_ELSE) 
@@ -145,7 +145,7 @@ annotatedFormula returns [CVC4::Expr formula]
     trueExpr = annotatedFormula
     falseExpr = annotatedFormula
     RPAREN
-    { formula = mkExpr(CVC4::ITE, test, trueExpr, falseExpr); }
+    { formula = mkExpr(CVC4::kind::ITE, test, trueExpr, falseExpr); }
 
   | /* a variable */
     { std::string name; }
@@ -178,13 +178,13 @@ builtinOp returns [CVC4::Kind kind]
 {
   Debug("parser") << "builtin: " << LT(1)->getText() << endl;
 }
-  : NOT      { kind = CVC4::NOT;     }
-  | IMPLIES  { kind = CVC4::IMPLIES; }
-  | AND      { kind = CVC4::AND;     }
-  | OR       { kind = CVC4::OR;      }
-  | XOR      { kind = CVC4::XOR;     }
-  | IFF      { kind = CVC4::IFF;     }
-  | EQUAL    { kind = CVC4::EQUAL;   }
+  : NOT      { kind = CVC4::kind::NOT;     }
+  | IMPLIES  { kind = CVC4::kind::IMPLIES; }
+  | AND      { kind = CVC4::kind::AND;     }
+  | OR       { kind = CVC4::kind::OR;      }
+  | XOR      { kind = CVC4::kind::XOR;     }
+  | IFF      { kind = CVC4::kind::IFF;     }
+  | EQUAL    { kind = CVC4::kind::EQUAL;   }
     /* TODO: lt, gt, plus, minus, etc. */
   ;
 

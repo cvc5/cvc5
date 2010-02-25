@@ -19,9 +19,10 @@
 #include "expr/kind.h"
 
 using namespace CVC4;
-using namespace context;
-using namespace theory;
-using namespace uf;
+using namespace CVC4::kind;
+using namespace CVC4::context;
+using namespace CVC4::theory;
+using namespace CVC4::theory::uf;
 
 
 
@@ -30,8 +31,8 @@ Node getOperator(Node x) { return Node::null(); }
 
 
 
-TheoryUF::TheoryUF(Context* c) :
-  Theory(c),
+TheoryUF::TheoryUF(Context* c, OutputChannel& out) :
+  TheoryImpl<TheoryUF>(c, out),
   d_pending(c),
   d_currentPendingIdx(c,0),
   d_disequality(c),
@@ -40,13 +41,16 @@ TheoryUF::TheoryUF(Context* c) :
 
 TheoryUF::~TheoryUF(){}
 
+void TheoryUF::preRegisterTerm(TNode n){
+}
+
 void TheoryUF::registerTerm(TNode n){
 
   d_registered.push_back(n);
 
   ECData* ecN;
 
-  if(n.hasAttribute(ECAttr(),&ecN)){
+  if(n.hasAttribute(ECAttr(), ecN)){
     /* registerTerm(n) is only called when a node has not been seen in the
      * current context.  ECAttr() is not a context-dependent attribute.
      * When n.hasAttribute(ECAttr(),...) is true on a registerTerm(n) call,
@@ -222,9 +226,9 @@ void TheoryUF::merge(){
   }
 }
 
-void TheoryUF::check(OutputChannel& out, Effort level){
+void TheoryUF::check(Effort level){
   while(!done()){
-    Node assertion = get();
+    Node assertion;// = get();
 
     switch(assertion.getKind()){
     case EQUAL:
@@ -252,7 +256,7 @@ void TheoryUF::check(OutputChannel& out, Effort level){
       TNode left  = (*diseqIter)[0];
       TNode right = (*diseqIter)[1];
       if(sameCongruenceClass(left, right)){
-        out.conflict(*diseqIter, true);
+        d_out->conflict(*diseqIter, true);
       }
     }
   }

@@ -11,23 +11,6 @@
  ** information.
  **
  ** Node attributes.
- **
- ** Attribute structures:
- **
- ** An attribute structure looks like the following:
- **
- ** struct VarNameAttr {
- **
- **   // the value type for this attribute
- **   typedef std::string value_type;
- **
- **   // an extra hash value (to avoid same-value-type collisions)
- **   enum { hash_value = 1 };
- **
- **   // cleanup routine when the Node goes away
- **   static inline void cleanup(const std::string&) {
- **   }
- ** }
  **/
 
 /* There are strong constraints on ordering of declarations of
@@ -44,7 +27,7 @@
 
 #include "config.h"
 #include "context/context.h"
-#include "expr/soft_node.h"
+#include "expr/node.h"
 #include "expr/type.h"
 
 #include "util/output.h"
@@ -54,81 +37,149 @@ namespace expr {
 
 // ATTRIBUTE HASH FUNCTIONS ====================================================
 
+namespace attr {
+
+/**
+ * A hash function for attribute table keys.  Attribute table keys are
+ * pairs, (unique-attribute-id, Node).
+ */
 struct AttrHashFcn {
-  enum { LARGE_PRIME = 1 };
-  std::size_t operator()(const std::pair<uint64_t, SoftNode>& p) const {
+  enum { LARGE_PRIME = 32452843ul };
+  std::size_t operator()(const std::pair<uint64_t, TNode>& p) const {
     return p.first * LARGE_PRIME + p.second.hash();
   }
 };
 
+/**
+ * A hash function for boolean-valued attribute table keys; here we
+ * don't have to store a pair as the key, because we use a known bit
+ * in [0..63] for each attribute
+ */
 struct AttrHashBoolFcn {
-  std::size_t operator()(const SoftNode& n) const {
+  std::size_t operator()(TNode n) const {
     return n.hash();
   }
 };
 
+}/* CVC4::expr::attr namespace */
+
 // ATTRIBUTE TYPE MAPPINGS =====================================================
 
+namespace attr {
+
+/**
+ * KindValueToTableValueMapping is a compile-time-only mechanism to
+ * convert "attribute value types" into "table value types" and back
+ * again.
+ *
+ * Each instantiation <T> is expected to have three members:
+ *
+ *   typename table_value_type
+ *
+ *      A type representing the underlying table's value_type for
+ *      attribute value type (T).  It may be different from T, e.g. T
+ *      could be a pointer-to-Foo, but the underlying table value_type
+ *      might be pointer-to-void.
+ *
+ *   static [convertible-to-table_value_type] convert([convertible-from-T])
+ *
+ *      Converts a T into a table_value_type.  Used to convert an
+ *      attribute value on setting it (and assigning it into the
+ *      underlying table).  See notes on specializations of
+ *      KindValueToTableValueMapping, below.
+ *
+ *   static [convertible-to-T] convertBack([convertible-from-table_value_type])
+ *
+ *      Converts a table_value_type back into a T.  Used to convert an
+ *      underlying table value back into the attribute's expected type
+ *      when retrieving it from the table.  See notes on
+ *      specializations of KindValueToTableValueMapping, below.
+ *
+ * This general (non-specialized) implementation of the template does
+ * nothing.
+ */
 template <class T>
 struct KindValueToTableValueMapping {
+  /** Simple case: T == table_value_type */
   typedef T table_value_type;
+  /** No conversion necessary */
   inline static T convert(const T& t) { return t; }
+  /** No conversion necessary */
   inline static T convertBack(const T& t) { return t; }
 };
 
-template <>
-struct KindValueToTableValueMapping<bool> {
-  typedef uint64_t table_value_type;
-  inline static uint64_t convert(const bool& t) { return t; }
-  inline static bool convertBack(const uint64_t& t) { return t; }
-};
-
+/**
+ * Specialization of KindValueToTableValueMapping<> for pointer-valued
+ * attributes.
+ */
 template <class T>
 struct KindValueToTableValueMapping<T*> {
+  /** Table's value type is void* */
   typedef void* table_value_type;
+  /** A simple reinterpret_cast<>() conversion from T* to void* */
   inline static void* convert(const T* const& t) {
     return reinterpret_cast<void*>(const_cast<T*>(t));
   }
+  /** A simple reinterpret_cast<>() conversion from void* to T* */
   inline static T* convertBack(void* const& t) {
     return reinterpret_cast<T*>(t);
   }
 };
 
+/**
+ * Specialization of KindValueToTableValueMapping<> for const
+ * pointer-valued attributes.
+ */
 template <class T>
 struct KindValueToTableValueMapping<const T*> {
+  /** Table's value type is void* */
   typedef void* table_value_type;
+  /** A simple reinterpret_cast<>() conversion from const T* const to void* */
   inline static void* convert(const T* const& t) {
     return reinterpret_cast<void*>(const_cast<T*>(t));
   }
+  /** A simple reinterpret_cast<>() conversion from const void* const to T* */
   inline static const T* convertBack(const void* const& t) {
     return reinterpret_cast<const T*>(t);
   }
 };
 
-template <class AttrKind, class T>
-struct OwnTable;
-
-template <class AttrKind, class T>
-struct KindValueToTableValueMapping<OwnTable<AttrKind, T> > {
-  typedef typename KindValueToTableValueMapping<T>::table_value_type table_value_type;
-};
-
-template <class AttrKind>
-struct KindTableMapping {
-  typedef typename AttrKind::value_type table_identifier;
-};
+}/* CVC4::expr::attr namespace */
 
 // ATTRIBUTE HASH TABLES =======================================================
 
-// use a TAG to indicate which table it should be in
+namespace attr {
+
+/**
+ * An "AttrHash<value_type>"---the hash table underlying
+ * attributes---is simply a mapping of pair<unique-attribute-id, Node>
+ * to value_type using our specialized hash function for these pairs.
+ */
 template <class value_type>
-struct AttrHash : public __gnu_cxx::hash_map<std::pair<uint64_t, SoftNode>, value_type, AttrHashFcn> {};
+struct AttrHash :
+    public __gnu_cxx::hash_map<std::pair<uint64_t, TNode>,
+                               value_type,
+                               AttrHashFcn> {
+};
 
+/**
+ * In the case of Boolean-valued attributes we have a special
+ * "AttrHash<bool>" to pack bits together in words.
+ */
 template <>
-class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHashBoolFcn> {
+class AttrHash<bool> :
+    protected __gnu_cxx::hash_map<TNode,
+                                  uint64_t,
+                                  AttrHashBoolFcn> {
 
-  typedef __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHashBoolFcn> super;
+  /** A "super" type, like in Java, for easy reference below. */
+  typedef __gnu_cxx::hash_map<TNode, uint64_t, AttrHashBoolFcn> super;
 
+  /**
+   * BitAccessor allows us to return a bit "by reference."  Of course,
+   * we don't require bit-addressibility supported by the system, we
+   * do it with a complex type.
+   */
   class BitAccessor {
 
     uint64_t& d_word;
@@ -159,9 +210,15 @@ class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHas
     }
   };
 
+  /**
+   * A (somewhat degenerate) iterator over boolean-valued attributes.
+   * This iterator doesn't support anything except comparison and
+   * dereference.  It's intended just for the result of find() on the
+   * table.
+   */
   class BitIterator {
 
-    std::pair<const SoftNode, uint64_t>* d_entry;
+    std::pair<const TNode, uint64_t>* d_entry;
 
     unsigned d_bit;
 
@@ -172,12 +229,12 @@ class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHas
       d_bit(0) {
     }
 
-    BitIterator(std::pair<const SoftNode, uint64_t>& entry, unsigned bit) :
+    BitIterator(std::pair<const TNode, uint64_t>& entry, unsigned bit) :
       d_entry(&entry),
       d_bit(bit) {
     }
 
-    std::pair<const SoftNode, BitAccessor> operator*() {
+    std::pair<const TNode, BitAccessor> operator*() {
       return std::make_pair(d_entry->first, BitAccessor(d_entry->second, d_bit));
     }
 
@@ -186,9 +243,15 @@ class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHas
     }
   };
 
+  /**
+   * A (somewhat degenerate) const_iterator over boolean-valued
+   * attributes.  This const_iterator doesn't support anything except
+   * comparison and dereference.  It's intended just for the result of
+   * find() on the table.
+   */
   class ConstBitIterator {
 
-    const std::pair<const SoftNode, uint64_t>* d_entry;
+    const std::pair<const TNode, uint64_t>* d_entry;
 
     unsigned d_bit;
 
@@ -199,12 +262,12 @@ class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHas
       d_bit(0) {
     }
 
-    ConstBitIterator(const std::pair<const SoftNode, uint64_t>& entry, unsigned bit) :
+    ConstBitIterator(const std::pair<const TNode, uint64_t>& entry, unsigned bit) :
       d_entry(&entry),
       d_bit(bit) {
     }
 
-    std::pair<const SoftNode, bool> operator*() {
+    std::pair<const TNode, bool> operator*() {
       return std::make_pair(d_entry->first, (d_entry->second & (1 << d_bit)) ? true : false);
     }
 
@@ -215,14 +278,20 @@ class AttrHash<bool> : protected __gnu_cxx::hash_map<SoftNode, uint64_t, AttrHas
 
 public:
 
-  typedef std::pair<uint64_t, SoftNode> key_type;
+  typedef std::pair<uint64_t, TNode> key_type;
   typedef bool data_type;
   typedef std::pair<const key_type, data_type> value_type;
 
+  /** an iterator type; see above for limitations */
   typedef BitIterator iterator;
+  /** a const_iterator type; see above for limitations */
   typedef ConstBitIterator const_iterator;
 
-  BitIterator find(const std::pair<uint64_t, SoftNode>& k) {
+  /**
+   * Find the boolean value in the hash table.  Returns something ==
+   * end() if not found.
+   */
+  BitIterator find(const std::pair<uint64_t, TNode>& k) {
     super::iterator i = super::find(k.second);
     if(i == super::end()) {
       return BitIterator();
@@ -235,11 +304,16 @@ public:
     return BitIterator(*i, k.first);
   }
 
+  /** The "off the end" iterator */
   BitIterator end() {
     return BitIterator();
   }
 
-  ConstBitIterator find(const std::pair<uint64_t, SoftNode>& k) const {
+  /**
+   * Find the boolean value in the hash table.  Returns something ==
+   * end() if not found.
+   */
+  ConstBitIterator find(const std::pair<uint64_t, TNode>& k) const {
     super::const_iterator i = super::find(k.second);
     if(i == super::end()) {
       return ConstBitIterator();
@@ -252,154 +326,301 @@ public:
     return ConstBitIterator(*i, k.first);
   }
 
+  /** The "off the end" const_iterator */
   ConstBitIterator end() const {
     return ConstBitIterator();
   }
 
-  BitAccessor operator[](const std::pair<uint64_t, SoftNode>& k) {
+  /**
+   * Access the hash table using the underlying operator[].  Inserts
+   * the key into the table (associated to default value) if it's not
+   * already there.
+   */
+  BitAccessor operator[](const std::pair<uint64_t, TNode>& k) {
     uint64_t& word = super::operator[](k.second);
     return BitAccessor(word, k.first);
   }
 };/* class AttrHash<bool> */
 
-// ATTRIBUTE PATTERN ===========================================================
+}/* CVC4::expr::attr namespace */
+
+// ATTRIBUTE CLEANUP FUNCTIONS =================================================
+
+namespace attr {
+
+/** Default cleanup for unmanaged Attribute<> */
+template <class T>
+struct AttributeCleanupFcn {
+  inline void cleanup(const T&) {}
+};
+
+/** Default cleanup for ManagedAttribute<> */
+template <class T>
+struct ManagedAttributeCleanupFcn {
+};
+
+/** Specialization for T* */
+template <class T>
+struct ManagedAttributeCleanupFcn<T*> {
+  inline void cleanup(T* p) { delete p; }
+};
+
+/** Specialization for const T* */
+template <class T>
+struct ManagedAttributeCleanupFcn<const T*> {
+  inline void cleanup(const T* p) { delete p; }
+};
+
+}/* CVC4::expr::attr namespace */
+
+// ATTRIBUTE DEFINITION ========================================================
 
 /**
  * An "attribute type" structure.
+ *
+ * @param T the tag for the attribute kind.
+ *
+ * @param value_t the underlying value_type for the attribute kind
+ *
+ * @param CleanupFcn Clean-up routine for associated values when the
+ * Node goes away.  Useful, e.g., for pointer-valued attributes when
+ * the values are "owned" by the table.
+ *
+ * @param context_dependent whether this attribute kind is
+ * context-dependent
  */
-template <class T, class value_t>
+template <class T,
+          class value_t,
+          class CleanupFcn = attr::AttributeCleanupFcn<value_t>,
+          bool context_dependent = false>
 struct Attribute {
 
-  /** the value type for this attribute */
+  /** The value type for this attribute. */
   typedef value_t value_type;
 
-  /** cleanup routine when the Node goes away */
-  static inline void cleanup(const value_t&) {}
-
+  /** Get the unique ID associated to this attribute. */
   static inline uint64_t getId() { return s_id; }
-  static inline uint64_t getHashValue() { return s_hashValue; }
 
+  /**
+   * This attribute does not have a default value: calling
+   * hasAttribute() for a Node that hasn't had this attribute set will
+   * return false, and getAttribute() for the Node will return a
+   * default-constructed value_type.
+   */
   static const bool has_default_value = false;
 
 private:
 
-  /** an id */
+  /**
+   * The unique ID associated to this attribute.  Assigned statically,
+   * at load time.
+   */
   static const uint64_t s_id;
-
-  /** an extra hash value (to avoid same-value-type collisions) */
-  static const uint64_t s_hashValue;
 };
 
 /**
  * An "attribute type" structure for boolean flags (special).
  */
-template <class T>
-struct Attribute<T, bool> {
+template <class T, class CleanupFcn, bool context_dependent>
+struct Attribute<T, bool, CleanupFcn, context_dependent> {
 
-  /** the value type for this attribute */
+  /** The value type for this attribute; here, bool. */
   typedef bool value_type;
 
-  /** cleanup routine when the Node goes away */
-  static inline void cleanup(const bool&) {}
-
+  /** Get the unique ID associated to this attribute. */
   static inline uint64_t getId() { return s_id; }
-  static inline uint64_t getHashValue() { return s_hashValue; }
 
+  /**
+   * Such bool-valued attributes ("flags") have a default value: they
+   * are false for all nodes on entry.  Calling hasAttribute() for a
+   * Node that hasn't had this attribute set will return true, and
+   * getAttribute() for the Node will return the default_value below.
+   */
   static const bool has_default_value = true;
+
+  /**
+   * Default value of the attribute for Nodes without one explicitly
+   * set.
+   */
   static const bool default_value = false;
 
+  /**
+   * Check that the ID is a valid ID for bool-valued attributes.  Fail
+   * an assert if not.  Otherwise return the id.
+   */
   static inline uint64_t checkID(uint64_t id) {
-    AlwaysAssert(id <= 63,
-                 "Too many boolean node attributes registered during initialization !");
+    AlwaysAssert( id <= 63,
+                  "Too many boolean node attributes registered "
+                  "during initialization !" );
     return id;
   }
 
 private:
 
-  /** a bit assignment */
+  /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
-
-  /** an extra hash value (to avoid same-value-type collisions) */
-  static const uint64_t s_hashValue;
 };
 
-// SPECIFIC, GLOBAL ATTRIBUTE DEFINITIONS ======================================
+// FIXME make context-dependent
+template <class T,
+          class value_type>
+struct CDAttribute :
+    public Attribute<T, value_type, attr::AttributeCleanupFcn<value_type>, true> {};
 
-namespace attr {
-  struct VarName {};
-  struct Type {};
-
-  template <class T>
-  struct LastAttributeId {
-    static uint64_t s_id;
-  };
-
-  template <class T>
-  uint64_t LastAttributeId<T>::s_id = 0;
-}/* CVC4::expr::attr namespace */
-
-typedef Attribute<attr::VarName, std::string> VarNameAttr;
-typedef Attribute<attr::Type, const CVC4::Type*> TypeAttr;
+// FIXME make context-dependent
+template <class T,
+          class value_type,
+          class CleanupFcn = attr::ManagedAttributeCleanupFcn<value_type> >
+struct ManagedAttribute :
+    public Attribute<T, value_type, CleanupFcn, false> {};
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
-template <class T, class value_t>
-const uint64_t Attribute<T, value_t>::s_id =
-  attr::LastAttributeId<typename KindValueToTableValueMapping<value_t>::table_value_type>::s_id++;
-template <class T, class value_t>
-const uint64_t Attribute<T, value_t>::s_hashValue = Attribute<T, value_t>::s_id;
+namespace attr {
 
+/**
+ * This is the last-attribute-assigner.  IDs are not globally
+ * unique; rather, they are unique for each table_value_type.
+ */
 template <class T>
-const uint64_t Attribute<T, bool>::s_id =
-  Attribute<T, bool>::checkID(attr::LastAttributeId<bool>::s_id++);
-template <class T>
-const uint64_t Attribute<T, bool>::s_hashValue = Attribute<T, bool>::s_id;
-
-class AttributeManager;
-
-template <class T>
-struct getTable {
-  //inline AttrHash<KindTableValueMapping<T> >& get(AttributeManager& am);
+struct LastAttributeId {
+  static uint64_t s_id;
 };
+
+/** Initially zero. */
+template <class T>
+uint64_t LastAttributeId<T>::s_id = 0;
+
+}/* CVC4::expr::attr namespace */
+
+/** Assign unique IDs to attributes at load time. */
+template <class T, class value_t, class CleanupFcn, bool context_dependent>
+const uint64_t Attribute<T, value_t, CleanupFcn, context_dependent>::s_id =
+  attr::LastAttributeId<typename attr::KindValueToTableValueMapping<value_t>::table_value_type>::s_id++;
+
+/**
+ * Assign unique IDs to bool-valued attributes at load time, checking
+ * that they are in range.
+ */
+template <class T, class CleanupFcn, bool context_dependent>
+const uint64_t Attribute<T, bool, CleanupFcn, context_dependent>::s_id =
+  Attribute<T, bool, CleanupFcn, context_dependent>::checkID(attr::LastAttributeId<bool>::s_id++);
 
 // ATTRIBUTE MANAGER ===========================================================
 
-class AttributeManager {
-  NodeManager* d_nm;
+namespace attr {
 
-  AttrHash<bool>    d_bools;
+/**
+ * A container for the main attribute tables of the system.  There's a
+ * one-to-one NodeManager : AttributeManager correspondence.
+ */
+class AttributeManager {
+
+  /** Underlying hash table for boolean-valued attributes */
+  AttrHash<bool>        d_bools;
+  /** Underlying hash table for integral-valued attributes */
   AttrHash<uint64_t>    d_ints;
-  AttrHash<SoftNode>    d_exprs;
+  /** Underlying hash table for node-valued attributes */
+  AttrHash<TNode>       d_exprs;
+  /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
+  /** Underlying hash table for pointer-valued attributes */
   AttrHash<void*>       d_ptrs;
 
+  /**
+   * getTable<> is a helper template that gets the right table from an
+   * AttributeManager given its type.
+   */
   template <class T>
   friend struct getTable;
 
 public:
-  AttributeManager(NodeManager* nm) : d_nm(nm) {}
 
+  /** Construct an attribute manager. */
+  AttributeManager() {}
+
+  /**
+   * Get a particular attribute on a particular node.
+   *
+   * @param n the node about which to inquire
+   *
+   * @param const AttrKind& the attribute kind to get
+   *
+   * @return the attribute value, if set, or a default-constructed
+   * AttrKind::value_type if not.
+   */
   template <class AttrKind>
-  typename AttrKind::value_type getAttribute(const Node& n,
+  typename AttrKind::value_type getAttribute(TNode n,
                                              const AttrKind&) const;
 
+  // Note that there are two, distinct hasAttribute() declarations for
+  // a reason (rather than using a default argument): they permit more
+  // optimized code.  The first (without parameter "ret") need never
+  // check whether its parameter is NULL.
+
+  /**
+   * Determine if a particular attribute exists for a particular node.
+   *
+   * @param n the node about which to inquire
+   *
+   * @param const AttrKind& the attribute kind to inquire about
+   *
+   * @return true if the given node has the given attribute
+   */
   template <class AttrKind>
-  bool hasAttribute(const Node& n,
+  bool hasAttribute(TNode n,
                     const AttrKind&) const;
 
+  /**
+   * Determine if a particular attribute exists for a particular node,
+   * and get it if it does.
+   *
+   * @param n the node about which to inquire
+   *
+   * @param const AttrKind& the attribute kind to inquire about
+   *
+   * @param ret a pointer to a return value, set in case the node has
+   * the attribute
+   *
+   * @return true if the given node has the given attribute
+   */
   template <class AttrKind>
-  bool hasAttribute(const Node& n,
+  bool hasAttribute(TNode n,
                     const AttrKind&,
-                    typename AttrKind::value_type*) const;
+                    typename AttrKind::value_type& ret) const;
 
+  /**
+   * Set a particular attribute on a particular node.
+   *
+   * @param n the node for which to set the attribute
+   *
+   * @param const AttrKind& the attribute kind to set
+   *
+   * @param ret a pointer to a return value, set in case the node has
+   * the attribute
+   *
+   * @return true if the given node has the given attribute
+   */
   template <class AttrKind>
-  void setAttribute(const Node& n,
+  void setAttribute(TNode n,
                     const AttrKind&,
                     const typename AttrKind::value_type& value);
 };
 
+}/* CVC4::expr::attr namespace */
+
 // MAPPING OF ATTRIBUTE KINDS TO TABLES IN THE ATTRIBUTE MANAGER ===============
 
+namespace attr {
+
+/**
+ * The getTable<> template provides (static) access to the
+ * AttributeManager field holding the table.
+ */
+template <class T>
+struct getTable;
+
+/** Access the "d_bools" member of AttributeManager. */
 template <>
 struct getTable<bool> {
   typedef AttrHash<bool> table_type;
@@ -411,6 +632,7 @@ struct getTable<bool> {
   }
 };
 
+/** Access the "d_ints" member of AttributeManager. */
 template <>
 struct getTable<uint64_t> {
   typedef AttrHash<uint64_t> table_type;
@@ -422,9 +644,10 @@ struct getTable<uint64_t> {
   }
 };
 
+/** Access the "d_exprs" member of AttributeManager. */
 template <>
 struct getTable<Node> {
-  typedef AttrHash<SoftNode> table_type;
+  typedef AttrHash<TNode> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_exprs;
   }
@@ -433,6 +656,7 @@ struct getTable<Node> {
   }
 };
 
+/** Access the "d_strings" member of AttributeManager. */
 template <>
 struct getTable<std::string> {
   typedef AttrHash<std::string> table_type;
@@ -444,17 +668,7 @@ struct getTable<std::string> {
   }
 };
 
-template <class T>
-struct getTable<const T*> {
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
-  }
-};
-
+/** Access the "d_ptrs" member of AttributeManager. */
 template <class T>
 struct getTable<T*> {
   typedef AttrHash<void*> table_type;
@@ -466,10 +680,27 @@ struct getTable<T*> {
   }
 };
 
+/** Access the "d_ptrs" member of AttributeManager. */
+template <class T>
+struct getTable<const T*> {
+  typedef AttrHash<void*> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_ptrs;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_ptrs;
+  }
+};
+
+}/* CVC4::expr::attr namespace */
+
 // ATTRIBUTE MANAGER IMPLEMENTATIONS ===========================================
 
+namespace attr {
+
+// implementation for AttributeManager::getAttribute()
 template <class AttrKind>
-typename AttrKind::value_type AttributeManager::getAttribute(const Node& n,
+typename AttrKind::value_type AttributeManager::getAttribute(TNode n,
                                                              const AttrKind&) const {
 
   typedef typename AttrKind::value_type value_type;
@@ -486,45 +717,56 @@ typename AttrKind::value_type AttributeManager::getAttribute(const Node& n,
   return mapping::convertBack((*i).second);
 }
 
-/* helper template class for hasAttribute(), specialized based on
+/* Helper template class for hasAttribute(), specialized based on
  * whether AttrKind has a "default value" that all Nodes implicitly
  * have or not. */
 template <bool has_default, class AttrKind>
 struct HasAttribute;
 
+/**
+ * Specialization of HasAttribute<> helper template for AttrKinds
+ * with a default value.
+ */
 template <class AttrKind>
 struct HasAttribute<true, AttrKind> {
+  /** This implementation is simple; it's always true. */
   static inline bool hasAttribute(const AttributeManager* am,
-                                  const Node& n) {
+                                  TNode n) {
     return true;
   }
 
+  /**
+   * This implementation returns the AttrKind's default value if the
+   * Node doesn't have the given attribute.
+   */
   static inline bool hasAttribute(const AttributeManager* am,
-                                  const Node& n,
-                                  typename AttrKind::value_type* ret) {
-    if(ret != NULL) {
-      typedef typename AttrKind::value_type value_type;
-      typedef KindValueToTableValueMapping<value_type> mapping;
-      typedef typename getTable<value_type>::table_type table_type;
+                                  TNode n,
+                                  typename AttrKind::value_type& ret) {
+    typedef typename AttrKind::value_type value_type;
+    typedef KindValueToTableValueMapping<value_type> mapping;
+    typedef typename getTable<value_type>::table_type table_type;
 
-      const table_type& ah = getTable<value_type>::get(*am);
-      typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
+    const table_type& ah = getTable<value_type>::get(*am);
+    typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n));
 
-      if(i == ah.end()) {
-        *ret = AttrKind::default_value;
-      } else {
-        *ret = mapping::convertBack((*i).second);
-      }
+    if(i == ah.end()) {
+      ret = AttrKind::default_value;
+    } else {
+      ret = mapping::convertBack((*i).second);
     }
 
     return true;
   }
 };
 
+/**
+ * Specialization of HasAttribute<> helper template for AttrKinds
+ * without a default value.
+ */
 template <class AttrKind>
 struct HasAttribute<false, AttrKind> {
   static inline bool hasAttribute(const AttributeManager* am,
-                                  const Node& n) {
+                                  TNode n) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
     typedef typename getTable<value_type>::table_type table_type;
@@ -540,8 +782,8 @@ struct HasAttribute<false, AttrKind> {
   }
 
   static inline bool hasAttribute(const AttributeManager* am,
-                                  const Node& n,
-                                  typename AttrKind::value_type* ret) {
+                                  TNode n,
+                                  typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
     typedef typename getTable<value_type>::table_type table_type;
@@ -553,29 +795,27 @@ struct HasAttribute<false, AttrKind> {
       return false;
     }
 
-    if(ret != NULL) {
-      *ret = mapping::convertBack((*i).second);
-    }
+    ret = mapping::convertBack((*i).second);
 
     return true;
   }
 };
 
 template <class AttrKind>
-bool AttributeManager::hasAttribute(const Node& n,
+bool AttributeManager::hasAttribute(TNode n,
                                     const AttrKind&) const {
   return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, n);
 }
 
 template <class AttrKind>
-bool AttributeManager::hasAttribute(const Node& n,
+bool AttributeManager::hasAttribute(TNode n,
                                     const AttrKind&,
-                                    typename AttrKind::value_type* ret) const {
+                                    typename AttrKind::value_type& ret) const {
   return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, n, ret);
 }
 
 template <class AttrKind>
-inline void AttributeManager::setAttribute(const Node& n,
+inline void AttributeManager::setAttribute(TNode n,
                                            const AttrKind&,
                                            const typename AttrKind::value_type& value) {
 
@@ -587,6 +827,7 @@ inline void AttributeManager::setAttribute(const Node& n,
   ah[std::make_pair(AttrKind::getId(), n)] = mapping::convert(value);
 }
 
+}/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 

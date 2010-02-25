@@ -5,6 +5,8 @@ AM_CXXFLAGS = -Wall -fvisibility=hidden
 
 noinst_LTLIBRARIES = libarith.la
 
-libarith_la_SOURCES =
+libarith_la_SOURCES = \
+	theory_def.h \
+	theory_arith.h
 
 EXTRA_DIST = kinds

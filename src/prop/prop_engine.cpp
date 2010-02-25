@@ -49,14 +49,14 @@ PropEngine::~PropEngine() {
   delete d_satSolver;
 }
 
-void PropEngine::assertFormula(const Node& node) {
+void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
   d_cnfStream->convertAndAssert(node);
 }
 
-void PropEngine::assertLemma(const Node& node) {
+void PropEngine::assertLemma(TNode node) {
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as removable
   d_cnfStream->convertAndAssert(node);

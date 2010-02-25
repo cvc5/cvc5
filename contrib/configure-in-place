@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# configure-in-place
+# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
+# Copyright (c) 2010  The CVC4 Project
+#
+# usage: configure-in-place [ arguments... ]
+#
+# This script configures CVC4 in the source directory (from where it
+# should be invoked).
+#
+
+if [ -e .svn ]; then
+  echo
+  echo "DO NOT USE THIS IN SUBVERSION WORKING DIRECTORIES!"
+  echo
+  echo "You might accidentally commit Makefiles in the source directories"
+  echo "improperly, since they exist in the source directory for"
+  echo "another purpose."
+  echo
+  exit 1
+fi
+
+./configure "$@"
+. builds/current
+builds/$(CURRENT_BUILD)/config.status

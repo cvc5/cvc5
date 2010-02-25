@@ -24,7 +24,11 @@ libexpr_la_SOURCES = \
 	command.h \
 	command.cpp
 
-EXTRA_DIST = @srcdir@/kind.h kind_prologue.h kind_middle.h kind_epilogue.h
+EXTRA_DIST = \
+	@srcdir@/kind.h \
+	kind_prologue.h \
+	kind_middle.h \
+	kind_epilogue.h
 
 @srcdir@/kind.h: @srcdir@/mkkind kind_prologue.h kind_middle.h kind_epilogue.h @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
 	chmod +x @srcdir@/mkkind

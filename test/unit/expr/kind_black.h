@@ -22,6 +22,7 @@
 #include "expr/kind.h"
 
 using namespace CVC4;
+using namespace CVC4::kind;
 using namespace std;
 
 class KindBlack : public CxxTest::TestSuite {

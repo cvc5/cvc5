@@ -1,22 +1,22 @@
 #!/bin/bash
 #
-# mkkind
+# mktheoryof
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
 # Copyright (c) 2010  The CVC4 Project
 #
-# The purpose of this script is to create kind.h from a prologue,
-# middle, epilogue, and a list of theory kinds.
+# The purpose of this script is to create theoryof_table.h from a
+# prologue, epilogue, and a list of theory kinds.
 #
 # Invocation:
 #
-#   mkkind prologue-file middle-file epilogue-file theory-kind-files...
+#   mktheoryof prologue-file epilogue-file theory-kind-files...
 #
 # Output is to standard out.
 #
 
 cat <<EOF
 /*********************                                           -*- C++ -*-  */
-/** kind.h
+/** theoryof_table.h
  **
  ** Copyright 2010  The AcSys Group, New York University, and as below.
  **
@@ -33,22 +33,25 @@ prologue=$1; shift
 middle=$1; shift
 epilogue=$1; shift
 
-cases=
+registers=
 cat "$prologue"
 while [ $# -gt 0 ]; do
   b=$(basename $(dirname "$1"))
-  echo
-  echo "  /* from $b */"
-  cases="$cases
+  B=$(echo "$b" | tr 'a-z' 'A-Z')
+  echo "#include \"theory/$b/theory_def.h\""
+  registers="$registers
   /* from $b */
+  void registerTheory(::CVC4::theory::$b::Theory$B* th) {
 "
   for r in `cat "$1"`; do
-    echo "  $r,"
-    cases="$cases  case $r: out << \"$r\"; break;
+    registers="$registers    d_table[::CVC4::kind::$r] = th;
 "
   done
+  registers="$registers  }
+"
   shift
 done
+echo
 cat "$middle"
-echo "$cases"
+echo "$registers"
 cat "$epilogue"

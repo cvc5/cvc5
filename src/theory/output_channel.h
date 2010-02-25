@@ -25,7 +25,19 @@ namespace theory {
  * Generic "theory output channel" interface.
  */
 class OutputChannel {
+  /** Disallow copying: private constructor */
+  OutputChannel(const OutputChannel&);
+
+  /** Disallow assignment: private operator=() */
+  OutputChannel& operator=(const OutputChannel&);
+
 public:
+
+  /**
+   * Construct an OutputChannel.
+   */
+  OutputChannel() {
+  }
 
   /**
    * Destructs an OutputChannel.  This implementation does nothing,
@@ -39,24 +51,28 @@ public:
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */
-  virtual void safePoint() throw(Interrupted&) {
+  virtual void safePoint() throw(Interrupted) {
   }
 
   /**
    * Indicate a theory conflict has arisen.
    *
-   * @param n - a conflict at the current decision level
+   * @param n - a conflict at the current decision level.  This should
+   * be an OR-kinded node of literals that are false in the current
+   * assignment.
+   *
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void conflict(Node n, bool safe = false) throw(Interrupted&) = 0;
+  virtual void conflict(TNode n, bool safe = false) throw(Interrupted) = 0;
 
   /**
    * Propagate a theory literal.
    *
-   * @param n - a theory consequence at the current decision level
+   * @param n - a theory consequence at the current decision level.
+   *
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void propagate(Node n, bool safe = false) throw(Interrupted&) = 0;
+  virtual void propagate(TNode n, bool safe = false) throw(Interrupted) = 0;
 
   /**
    * Tell the core that a valid theory lemma at decision level 0 has
@@ -65,31 +81,7 @@ public:
    * @param n - a theory lemma valid at decision level 0
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void lemma(Node n, bool safe = false) throw(Interrupted&) = 0;
-
-};/* class OutputChannel */
-
-/**
- * Generic "theory output channel" interface for explanations.
- */
-class ExplainOutputChannel {
-public:
-
-  /**
-   * Destructs an ExplainOutputChannel.  This implementation does
-   * nothing, but we need a virtual destructor for safety in case
-   * subclasses have a destructor.
-   */
-  virtual ~ExplainOutputChannel() {
-  }
-
-  /**
-   * With safePoint(), the theory signals that it is at a safe point
-   * and can be interrupted.  The default implementation never
-   * interrupts.
-   */
-  virtual void safePoint() throw(Interrupted&) {
-  }
+  virtual void lemma(TNode n, bool safe = false) throw(Interrupted) = 0;
 
   /**
    * Provide an explanation in response to an explanation request.
@@ -97,8 +89,9 @@ public:
    * @param n - an explanation
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void explanation(Node n, bool safe = false) throw(Interrupted&) = 0;
-};/* class ExplainOutputChannel */
+  virtual void explanation(TNode n, bool safe = false) throw(Interrupted) = 0;
+
+};/* class OutputChannel */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

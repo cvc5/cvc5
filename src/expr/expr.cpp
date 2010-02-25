@@ -19,6 +19,8 @@
 
 #include "util/output.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, const Expr& e) {

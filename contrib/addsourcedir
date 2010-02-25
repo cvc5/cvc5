@@ -2,6 +2,7 @@
 #
 # addsourcedir
 # Morgan Deters <mdeters@cs.nyu.edu> for the CVC4 project
+# Copyright (c) 2010  The CVC4 Project
 #
 # usage: addsourcedir paths...
 #

@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 # DIMACS to SMT
-# Morgan Deters 2009
+# Morgan Deters
+# Copyright (c) 2009, 2010  The CVC4 Project
 
 use strict;
 

@@ -124,6 +124,9 @@ Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
 Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
                              string filename) {
   istream* input = new ifstream(filename.c_str());
+  if(!*input) {
+    throw Exception("file does not exist or is unreadable: " + filename);
+  }
   return getNewParser(em, lang, input, filename, true);
 }
 

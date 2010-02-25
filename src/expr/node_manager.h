@@ -40,6 +40,19 @@ namespace CVC4 {
 
 class Type;
 
+namespace expr {
+namespace attr {
+
+struct VarName {};
+struct Type {};
+
+}/* CVC4::expr::attr namespace */
+
+typedef Attribute<attr::VarName, std::string> VarNameAttr;
+typedef Attribute<attr::Type, const CVC4::Type*> TypeAttr;
+
+}/* CVC4::expr namespace */
+
 class NodeManager {
   static __thread NodeManager* s_current;
 
@@ -48,7 +61,7 @@ class NodeManager {
   typedef __gnu_cxx::hash_set<NodeValue*, __gnu_cxx::hash<NodeValue*>, NodeValue::NodeValueEq> NodeValueSet;
   NodeValueSet d_nodeValueSet;
 
-  expr::AttributeManager d_attrManager;
+  expr::attr::AttributeManager d_attrManager;
 
   NodeValue* poolLookup(NodeValue* nv) const;
   void poolInsert(NodeValue* nv);
@@ -57,7 +70,7 @@ class NodeManager {
 
 public:
 
-  NodeManager() : d_attrManager(this) {
+  NodeManager() {
     poolInsert( &NodeValue::s_null );
   }
 
@@ -65,11 +78,11 @@ public:
 
   // general expression-builders
   Node mkNode(Kind kind);
-  Node mkNode(Kind kind, const Node& child1);
-  Node mkNode(Kind kind, const Node& child1, const Node& child2);
-  Node mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3);
-  Node mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4);
-  Node mkNode(Kind kind, const Node& child1, const Node& child2, const Node& child3, const Node& child4, const Node& child5);
+  Node mkNode(Kind kind, TNode child1);
+  Node mkNode(Kind kind, TNode child1, TNode child2);
+  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
+  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4);
+  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4, TNode child5);
   // N-ary version
   Node mkNode(Kind kind, const std::vector<Node>& children);
 
@@ -79,20 +92,29 @@ public:
   Node mkVar();
 
   template <class AttrKind>
-  inline typename AttrKind::value_type getAttribute(const Node& n,
+  inline typename AttrKind::value_type getAttribute(TNode n,
                                                     const AttrKind&) const;
 
-  template <class AttrKind>
-  inline bool hasAttribute(const Node& n,
-                           const AttrKind&,
-                           typename AttrKind::value_type* = NULL) const;
+  // Note that there are two, distinct hasAttribute() declarations for
+  // a reason (rather than using a pointer-valued argument with a
+  // default value): they permit more optimized code in the underlying
+  // hasAttribute() implementations.
 
   template <class AttrKind>
-  inline void setAttribute(const Node& n,
+  inline bool hasAttribute(TNode n,
+                           const AttrKind&) const;
+
+  template <class AttrKind>
+  inline bool hasAttribute(TNode n,
+                           const AttrKind&,
+                           typename AttrKind::value_type&) const;
+
+  template <class AttrKind>
+  inline void setAttribute(TNode n,
                            const AttrKind&,
                            const typename AttrKind::value_type& value);
 
-  inline const Type* getType(const Node& n);
+  inline const Type* getType(TNode n);
 };
 
 class NodeManagerScope {
@@ -112,27 +134,92 @@ public:
 };
 
 template <class AttrKind>
-inline typename AttrKind::value_type NodeManager::getAttribute(const Node& n,
+inline typename AttrKind::value_type NodeManager::getAttribute(TNode n,
                                                                const AttrKind&) const {
   return d_attrManager.getAttribute(n, AttrKind());
 }
 
 template <class AttrKind>
-inline bool NodeManager::hasAttribute(const Node& n,
+inline bool NodeManager::hasAttribute(TNode n,
+                                      const AttrKind&) const {
+  return d_attrManager.hasAttribute(n, AttrKind());
+}
+
+template <class AttrKind>
+inline bool NodeManager::hasAttribute(TNode n,
                                       const AttrKind&,
-                                      typename AttrKind::value_type* ret) const {
+                                      typename AttrKind::value_type& ret) const {
   return d_attrManager.hasAttribute(n, AttrKind(), ret);
 }
 
 template <class AttrKind>
-inline void NodeManager::setAttribute(const Node& n,
+inline void NodeManager::setAttribute(TNode n,
                                       const AttrKind&,
                                       const typename AttrKind::value_type& value) {
   d_attrManager.setAttribute(n, AttrKind(), value);
 }
 
-inline const Type* NodeManager::getType(const Node& n) {
+inline const Type* NodeManager::getType(TNode n) {
   return getAttribute(n,CVC4::expr::TypeAttr());
+}
+
+inline void NodeManager::poolInsert(NodeValue* nv) {
+  Assert(d_nodeValueSet.find(nv) == d_nodeValueSet.end(), "NodeValue already in"
+         "the pool!");
+  d_nodeValueSet.insert(nv);
+}
+
+}/* CVC4 namespace */
+
+#include "expr/node_builder.h"
+
+namespace CVC4 {
+
+// general expression-builders
+
+inline Node NodeManager::mkNode(Kind kind) {
+  return NodeBuilder<>(this, kind);
+}
+
+inline Node NodeManager::mkNode(Kind kind, TNode child1) {
+  return NodeBuilder<>(this, kind) << child1;
+}
+
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
+  return NodeBuilder<>(this, kind) << child1 << child2;
+}
+
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2, TNode child3) {
+  return NodeBuilder<>(this, kind) << child1 << child2 << child3;
+}
+
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4) {
+  return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4;
+}
+
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4, TNode child5) {
+  return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4 << child5;
+}
+
+// N-ary version
+inline Node NodeManager::mkNode(Kind kind, const std::vector<Node>& children) {
+  return NodeBuilder<>(this, kind).append(children);
+}
+
+inline Node NodeManager::mkVar(const Type* type, const std::string& name) {
+  Node n = mkVar(type);
+  n.setAttribute(expr::VarNameAttr(), name);
+  return n;
+}
+
+inline Node NodeManager::mkVar(const Type* type) {
+  Node n = NodeBuilder<>(this, kind::VARIABLE);
+  n.setAttribute(expr::TypeAttr(), type);
+  return n;
+}
+
+inline Node NodeManager::mkVar() {
+  return NodeBuilder<>(this, kind::VARIABLE);
 }
 
 }/* CVC4 namespace */
