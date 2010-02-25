@@ -214,6 +214,7 @@ public:
   operator Node();
 
   inline void toStream(std::ostream& out) const {
+    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     d_nv->toStream(out);
   }
 
@@ -448,9 +449,9 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(const NodeBuilder<N>& nb) :
 
   if(nb.d_nv->d_nchildren > nchild_thresh) {
     realloc(nb.d_size, false);
-    std::copy(nb.d_nv->ev_begin(), nb.d_nv->ev_end(), d_nv->nv_begin());
+    std::copy(nb.d_nv->nv_begin(), nb.d_nv->nv_end(), d_nv->nv_begin());
   } else {
-    std::copy(nb.d_nv->ev_begin(), nb.d_nv->ev_end(), d_inlineNv.nv_begin());
+    std::copy(nb.d_nv->nv_begin(), nb.d_nv->nv_end(), d_inlineNv.nv_begin());
   }
   d_nv->d_kind = nb.d_nv->d_kind;
   d_nv->d_nchildren = nb.d_nv->d_nchildren;
@@ -648,6 +649,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
 template <unsigned nchild_thresh>
 inline std::ostream& operator<<(std::ostream& out,
                                 const NodeBuilder<nchild_thresh>& b) {
+
   b.toStream(out);
   return out;
 }
