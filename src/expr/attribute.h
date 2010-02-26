@@ -46,7 +46,7 @@ namespace attr {
 struct AttrHashFcn {
   enum { LARGE_PRIME = 32452843ul };
   std::size_t operator()(const std::pair<uint64_t, NodeValue*>& p) const {
-    return p.first * LARGE_PRIME + p.second->hash();
+    return p.first * LARGE_PRIME + p.second->getId();
   }
 };
 
@@ -57,7 +57,7 @@ struct AttrHashFcn {
  */
 struct AttrHashBoolFcn {
   std::size_t operator()(NodeValue* nv) const {
-    return nv->hash();
+    return (size_t)nv->getId();
   }
 };
 
