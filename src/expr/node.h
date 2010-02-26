@@ -65,8 +65,8 @@ template<bool ref_count>
   class NodeTemplate {
 
     /**
-     * The NodeValue has access to the private constructors, so that the iterators
-     * can can create new nodes.
+     * The NodeValue has access to the private constructors, so that the
+     * iterators can can create new nodes.
      */
     friend class NodeValue;
 
@@ -100,8 +100,8 @@ template<bool ref_count>
 
     /**
      * Assigns the expression value and does reference counting. No assumptions
-     * are made on the expression, and should only be used if we know what we are
-     * doing.
+     * are made on the expression, and should only be used if we know what we 
+     * are doing.
      *
      * @param ev the expression value to assign
      */
@@ -575,7 +575,7 @@ template<bool ref_count>
     if(ref_count)
       d_nv->dec();
     Assert(ref_count || d_nv->d_rc > 0,
-        "Temporary node pointing to an expired node");
+           "Temporary node pointing to an expired node");
   }
 
 template<bool ref_count>
@@ -674,6 +674,32 @@ template<bool ref_count>
         "Perhaps a public-facing function is missing a NodeManagerScope ?" );
     return NodeManager::currentNM()->getType(*this);
   }
+
+
+
+/**
+ * Pretty printer for use within gdb.  This is not intended to be used
+ * outside of gdb.  This writes to the Warning() stream and immediately
+ * flushes the stream.
+ *
+ * Note that this function cannot be a template, since the compiler
+ * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
+ * So we implement twice.
+ *
+ * Tim's Note: I moved this into the node.h file because this allows gdb
+ * to find the symbol, and use it, which is the first standard this code needs
+ * to meet. A cleaner solution is welcomed.
+ */
+static void CVC4_PUBLIC debugPrintNode(const NodeTemplate<true>& n) {
+  n.printAst(Warning(), 0);
+  Warning().flush();
+}
+
+static void CVC4_PUBLIC debugPrintTNode(const NodeTemplate<false>& n) {
+  n.printAst(Warning(), 0);
+  Warning().flush();
+}
+
 
 }/* CVC4 namespace */
 

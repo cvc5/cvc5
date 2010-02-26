@@ -33,15 +33,10 @@ class TheoryUF : public TheoryImpl<TheoryUF> {
 
 private:
 
-
+  //TODO document
+  context::CDList<Node> d_assertions;
 
   /**
-   * The associated context. Needed for allocating context dependent objects
-   * and objects in context dependent memory.
-   */
-  context::Context* d_context;
-
-  /** 
    * List of pending equivalence class merges. 
    *
    * Tricky part:

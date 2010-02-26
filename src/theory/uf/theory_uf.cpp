@@ -26,13 +26,9 @@ using namespace CVC4::theory::uf;
 
 
 
-//TODO remove
-Node getOperator(Node x) { return Node::null(); }
-
-
-
 TheoryUF::TheoryUF(Context* c, OutputChannel& out) :
   TheoryImpl<TheoryUF>(c, out),
+  d_assertions(c),
   d_pending(c),
   d_currentPendingIdx(c,0),
   d_disequality(c),
@@ -47,6 +43,7 @@ void TheoryUF::preRegisterTerm(TNode n){
 void TheoryUF::registerTerm(TNode n){
 
   d_registered.push_back(n);
+  n.printAst(Warning());
 
   ECData* ecN;
 
@@ -148,7 +145,7 @@ bool TheoryUF::equiv(TNode x, TNode y){
   if(x.getNumChildren() != y.getNumChildren())
     return false;
 
-  if(getOperator(x) != getOperator(y))
+  if(x.getOperator() != y.getOperator())
     return false;
 
   TNode::iterator xIter = x.begin();
@@ -213,7 +210,8 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
   for(Link* Px = nmaster->getFirst(); Px != NULL; Px = Px->next ){
     for(Link* Py = nslave->getFirst(); Py != NULL; Py = Py->next ){
       if(equiv(Px->data,Py->data)){
-        d_pending.push_back((Px->data).eqNode(Py->data));
+        Node pendingEq = (Px->data).eqNode(Py->data);
+        d_pending.push_back(pendingEq);
       }
     }
   }
@@ -229,8 +227,11 @@ void TheoryUF::merge(){
     TNode x = assertion[0];
     TNode y = assertion[1];
 
-    ECData* ecX = ccFind(x.getAttribute(ECAttr()));
-    ECData* ecY = ccFind(y.getAttribute(ECAttr()));
+    ECData* tmpX = x.getAttribute(ECAttr());
+    ECData* tmpY = y.getAttribute(ECAttr());
+
+    ECData* ecX = ccFind(tmpX);
+    ECData* ecY = ccFind(tmpY);
     if(ecX == ecY)
       continue;
 
@@ -241,8 +242,8 @@ void TheoryUF::merge(){
 Node TheoryUF::constructConflict(TNode diseq){
   NodeBuilder<> nb(kind::AND);
   nb << diseq;
-  for(unsigned i=0; i<d_pending.size(); ++i)
-    nb << d_pending[i];
+  for(unsigned i=0; i<d_assertions.size(); ++i)
+    nb << d_assertions[i];
 
   return nb;
 }
@@ -253,6 +254,7 @@ void TheoryUF::check(Effort level){
 
     switch(assertion.getKind()){
     case EQUAL:
+      d_assertions.push_back(assertion);
       d_pending.push_back(assertion);
       merge();
       break;

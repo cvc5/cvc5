@@ -22,7 +22,7 @@
 #include "context/context.h"
 
 #include <queue>
-#include <vector>
+#include <list>
 
 #include <typeinfo>
 
@@ -293,13 +293,13 @@ Node TheoryImpl<T>::get() {
   d_facts.pop();
 
   if(! fact.getAttribute(RegisteredAttr())) {
-    std::vector<TNode> toReg;
+    std::list<TNode> toReg;
     toReg.push_back(fact);
 
     /* Essentially this is doing a breadth-first numbering of
      * non-registered subterms with children.  Any non-registered
      * leaves are immediately registered. */
-    for(std::vector<TNode>::iterator workp = toReg.begin();
+    for(std::list<TNode>::iterator workp = toReg.begin();
         workp != toReg.end();
         ++workp) {
 
@@ -323,7 +323,7 @@ Node TheoryImpl<T>::get() {
      * and the above registration of leaves, this should ensure that
      * all subterms in the entire tree were registered in
      * reverse-topological order. */
-    for(std::vector<TNode>::reverse_iterator i = toReg.rend();
+    for(std::list<TNode>::reverse_iterator i = toReg.rend();
         i != toReg.rbegin();
         ++i) {
 

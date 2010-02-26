@@ -20,26 +20,6 @@ namespace CVC4 {
 namespace expr {
 
 #ifdef CVC4_DEBUG
-
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.
- */
-void CVC4_PUBLIC debugPrint(const NodeTemplate<true>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-
-void CVC4_PUBLIC debugPrint(const NodeTemplate<false>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-
 #endif /* CVC4_DEBUG */
 
 }/* CVC4::expr namespace */
