@@ -23,7 +23,8 @@
 #include "expr/expr_manager.h"
 #include "util/result.h"
 #include "util/model.h"
-#include "util/decision_engine.h"
+
+#include "expr/node.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -31,9 +32,14 @@
 
 namespace CVC4 {
 
+namespace context {
+  class Context;
+}
+
 class Command;
 class Options;
 class TheoryEngine;
+class DecisionEngine;
 
 namespace prop {
   class PropEngine;

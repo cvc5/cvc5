@@ -22,7 +22,7 @@
 
 namespace CVC4 {
 
-struct Options {
+struct CVC4_PUBLIC Options {
 
   std::string binary_name;
 

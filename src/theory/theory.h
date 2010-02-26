@@ -13,6 +13,8 @@
  ** Base of the theory interface.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__THEORY_H
 #define __CVC4__THEORY__THEORY_H
 
@@ -282,9 +284,8 @@ protected:
 
 template <class T>
 Node TheoryImpl<T>::get() {
-  Warning.printf("testing %s == %s\n", typeid(*this).name(), typeid(T).name());
-  /*Assert(typeid(*this) == typeid(T),
-         "Improper Theory inheritance chain detected.");*/
+  Assert(typeid(*this) == typeid(T),
+         "Improper Theory inheritance chain detected.");
 
   Assert( !d_facts.empty(),
           "Theory::get() called with assertion queue empty!" );

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** theory_bool.h
+/** theory_arrays.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,25 +10,25 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The theory of booleans.
+ ** Theory of arrays.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
-#define __CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
+#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include "theory/theory.h"
 #include "context/context.h"
 
 namespace CVC4 {
 namespace theory {
-namespace booleans {
+namespace arrays {
 
-class TheoryBool : public TheoryImpl<TheoryBool> {
+class TheoryArrays : public TheoryImpl<TheoryArrays> {
 public:
-  TheoryBool(context::Context* c, OutputChannel& out) :
-    TheoryImpl<TheoryBool>(c, out) {
+  TheoryArrays(context::Context* c, OutputChannel& out) :
+    TheoryImpl<TheoryArrays>(c, out) {
   }
 
   void preRegisterTerm(TNode n) { Unimplemented(); }
@@ -38,8 +38,8 @@ public:
   void explain(TNode n, Effort e) { Unimplemented(); }
 };
 
-}/* CVC4::theory::booleans namespace */
+}/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BOOLEANS__THEORY_BOOL_H */
+#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */

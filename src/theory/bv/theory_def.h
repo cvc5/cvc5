@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** theoryof_table_prologue.h
+/** theory_def.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,14 +10,15 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The theoryOf table.
+ ** Definition for TheoryBV (for purposes of linking to the
+ ** theory-code-finding mechanisms in the parent directory).
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORYOF_TABLE_H
-#define __CVC4__THEORY__THEORYOF_TABLE_H
+#ifndef __CVC4__THEORY__BV__THEORY_DEF_H
+#define __CVC4__THEORY__BV__THEORY_DEF_H
 
-#include "expr/kind.h"
-#include "util/Assert.h"
+#include "theory/bv/theory_bv.h"
 
+#endif /* __CVC4__THEORY__BV__THEORY_DEF_H */

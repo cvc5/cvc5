@@ -17,9 +17,7 @@
  ** reference count on NodeValue instances and
  **/
 
-/* this must be above the check for __CVC4__EXPR__NODE_VALUE_H */
-/* to resolve a circular dependency */
-//#include "expr/node.h"
+#include "cvc4_private.h"
 
 #ifndef __CVC4__EXPR__NODE_VALUE_H
 #define __CVC4__EXPR__NODE_VALUE_H

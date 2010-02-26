@@ -13,6 +13,8 @@
  ** Node attributes.
  **/
 
+#include "cvc4_private.h"
+
 /* There are strong constraints on ordering of declarations of
  * attributes and nodes due to template use */
 #include "expr/node.h"

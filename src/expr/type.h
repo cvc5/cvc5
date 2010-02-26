@@ -28,7 +28,7 @@ class NodeManager;
 /**
  * Class encapsulating CVC4 expression types.
  */
-class Type {
+class CVC4_PUBLIC Type {
 public:
   /** Comparision for equality */
   bool operator==(const Type& t) const;

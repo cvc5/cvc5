@@ -13,9 +13,10 @@
  **
  **/
 
+#include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_UF_H
-#define __CVC4__THEORY__THEORY_UF_H
+#ifndef __CVC4__THEORY__UF__THEORY_UF_H
+#define __CVC4__THEORY__UF__THEORY_UF_H
 
 #include "expr/node.h"
 #include "expr/attribute.h"
@@ -150,4 +151,4 @@ typedef expr::Attribute<EquivClass, ECData* /*, ECCleanupFcn*/> ECAttr;
 } /* CVC4 namespace */
 
 
-#endif /* __CVC4__THEORY__THEORY_UF_H */
+#endif /* __CVC4__THEORY__UF__THEORY_UF_H */

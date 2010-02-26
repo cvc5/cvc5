@@ -13,6 +13,8 @@
  ** A builder interface for nodes.
  **/
 
+#include "cvc4_private.h"
+
 /* strong dependency; make sure node is included first */
 #include "node.h"
 

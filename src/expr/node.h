@@ -13,6 +13,8 @@
  ** Reference-counted encapsulation of a pointer to node information.
  **/
 
+#include "cvc4_private.h"
+
 #include "expr/node_value.h"
 
 #ifndef __CVC4__NODE_H
@@ -690,12 +692,12 @@ template<bool ref_count>
  * to find the symbol, and use it, which is the first standard this code needs
  * to meet. A cleaner solution is welcomed.
  */
-static void CVC4_PUBLIC debugPrintNode(const NodeTemplate<true>& n) {
+static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }
 
-static void CVC4_PUBLIC debugPrintTNode(const NodeTemplate<false>& n) {
+static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }

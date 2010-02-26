@@ -13,13 +13,20 @@
  ** The theory engine.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY_ENGINE_H
 #define __CVC4__THEORY_ENGINE_H
 
 #include "expr/node.h"
 #include "theory/theory.h"
-#include "theory/uf/theory_uf.h"
 #include "theory/theoryof_table.h"
+
+#include "theory/booleans/theory_bool.h"
+#include "theory/uf/theory_uf.h"
+#include "theory/arith/theory_arith.h"
+#include "theory/arrays/theory_arrays.h"
+#include "theory/bv/theory_bv.h"
 
 namespace CVC4 {
 
@@ -70,6 +77,8 @@ class TheoryEngine {
   theory::booleans::TheoryBool d_bool;
   theory::uf::TheoryUF d_uf;
   theory::arith::TheoryArith d_arith;
+  theory::arrays::TheoryArrays d_arrays;
+  theory::bv::TheoryBV d_bv;
 
 public:
 
@@ -81,11 +90,15 @@ public:
     d_theoryOut(),
     d_bool(ctxt, d_theoryOut),
     d_uf(ctxt, d_theoryOut),
-    d_arith(ctxt, d_theoryOut) {
+    d_arith(ctxt, d_theoryOut),
+    d_arrays(ctxt, d_theoryOut),
+    d_bv(ctxt, d_theoryOut) {
     d_theoryOut.setEngine(*this);
     theoryOfTable.registerTheory(&d_bool);
     theoryOfTable.registerTheory(&d_uf);
     theoryOfTable.registerTheory(&d_arith);
+    theoryOfTable.registerTheory(&d_arrays);
+    theoryOfTable.registerTheory(&d_bv);
   }
 
   /**

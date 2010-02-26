@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** theory_bool.h
+/** theory_bv.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,25 +10,25 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The theory of booleans.
+ ** Bitvector theory.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
-#define __CVC4__THEORY__BOOLEANS__THEORY_BOOL_H
+#ifndef __CVC4__THEORY__BV__THEORY_BV_H
+#define __CVC4__THEORY__BV__THEORY_BV_H
 
 #include "theory/theory.h"
 #include "context/context.h"
 
 namespace CVC4 {
 namespace theory {
-namespace booleans {
+namespace bv {
 
-class TheoryBool : public TheoryImpl<TheoryBool> {
+class TheoryBV : public TheoryImpl<TheoryBV> {
 public:
-  TheoryBool(context::Context* c, OutputChannel& out) :
-    TheoryImpl<TheoryBool>(c, out) {
+  TheoryBV(context::Context* c, OutputChannel& out) :
+    TheoryImpl<TheoryBV>(c, out) {
   }
 
   void preRegisterTerm(TNode n) { Unimplemented(); }
@@ -38,8 +38,8 @@ public:
   void explain(TNode n, Effort e) { Unimplemented(); }
 };
 
-}/* CVC4::theory::booleans namespace */
+}/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BOOLEANS__THEORY_BOOL_H */
+#endif /* __CVC4__THEORY__BV__THEORY_BV_H */

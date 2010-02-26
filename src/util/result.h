@@ -29,7 +29,7 @@ namespace CVC4 {
 /**
  * Three-valued, immutable SMT result, with optional explanation.
  */
-class Result {
+class CVC4_PUBLIC Result {
 public:
   enum SAT {
     UNSAT = 0,

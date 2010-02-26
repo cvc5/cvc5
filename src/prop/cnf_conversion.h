@@ -13,6 +13,8 @@
  ** A type for describing possible CNF conversions.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__CNF_CONVERSION_H
 #define __CVC4__CNF_CONVERSION_H
 

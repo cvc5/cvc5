@@ -13,6 +13,8 @@
  ** A decision engine for CVC4.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__DECISION_ENGINE_H
 #define __CVC4__DECISION_ENGINE_H
 
@@ -27,7 +29,7 @@ namespace CVC4 {
 /**
  * A decision mechanism for the next decision.
  */
-class CVC4_PUBLIC DecisionEngine {
+class DecisionEngine {
 public:
   /**
    * Destructor.

@@ -57,6 +57,38 @@ public:
 //    d_context->pop();
   }
 
+  // test at different sizes.  this triggers grow() behavior differently.
+  // grow() is completely broken in revision 256; fix forthcoming by Tim
+  void testCDList10() { listTest(10); }
+  void testCDList15() { listTest(15); }
+  void testCDList20() { listTest(20); }
+  void testCDList35() { listTest(35); }
+  void testCDList50() { listTest(50); }
+  void testCDList99() { listTest(99); }
+
+  void listTest(int N) {
+    CDList<int> list(d_context);
+
+    TS_ASSERT(list.empty());
+    for(int i = 0; i < N; ++i) {
+      TS_ASSERT(list.size() == i);
+      list.push_back(i);
+      TS_ASSERT(!list.empty());
+      TS_ASSERT(list.back() == i);
+      int i2 = 0;
+      for(CDList<int>::const_iterator j = list.begin();
+          j != list.end();
+          ++j) {
+        TS_ASSERT(*j == i2++);
+      }
+    }
+    TS_ASSERT(list.size() == N);
+
+    for(int i = 0; i < N; ++i) {
+      TS_ASSERT(list[i] == i);
+    }
+  }
+
   void tearDown() {
     delete d_context;
   }

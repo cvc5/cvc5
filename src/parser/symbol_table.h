@@ -13,6 +13,8 @@
  ** A symbol table for the parsers' use.
  **/
 
+#include "cvc4parser_private.h"
+
 #ifndef __CVC4__PARSER__SYMBOL_TABLE_H
 #define __CVC4__PARSER__SYMBOL_TABLE_H
 

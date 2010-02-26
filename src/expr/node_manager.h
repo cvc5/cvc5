@@ -13,6 +13,8 @@
  ** A manager for Nodes.
  **/
 
+#include "cvc4_private.h"
+
 /* circular dependency; force node.h first */
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -25,6 +27,7 @@
 #include <ext/hash_set>
 
 #include "expr/kind.h"
+#include "expr/expr.h"
 
 namespace __gnu_cxx {
   template<>
@@ -152,6 +155,19 @@ public:
   ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
     Debug("current") << "node manager scope: returning to " << NodeManager::s_current << "\n";
+  }
+};
+
+/**
+ * A wrapper (essentially) for NodeManagerScope.  Without this, we'd
+ * need Expr to be a friend of ExprManager.
+ */
+class ExprManagerScope {
+  NodeManagerScope d_nms;
+public:
+  inline ExprManagerScope(const Expr& e) :
+    d_nms(e.getExprManager() == NULL ?
+          NodeManager::currentNM() : e.getExprManager()->getNodeManager()) {
   }
 };
 

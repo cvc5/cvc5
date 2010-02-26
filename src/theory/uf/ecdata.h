@@ -14,6 +14,8 @@
  ** Currently keeps a context dependent watch list.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__UF__ECDATA_H
 #define __CVC4__THEORY__UF__ECDATA_H
 

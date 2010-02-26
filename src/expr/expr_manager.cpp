@@ -40,12 +40,12 @@ ExprManager::~ExprManager() {
 
 const BooleanType* ExprManager::booleanType() const {
   NodeManagerScope nms(d_nodeManager);
-  d_nodeManager->booleanType();
+  return d_nodeManager->booleanType();
 }
 
 const KindType* ExprManager::kindType() const {
   NodeManagerScope nms(d_nodeManager);
-  d_nodeManager->kindType();
+  return d_nodeManager->kindType();
 }
 
 Expr ExprManager::mkExpr(Kind kind) {

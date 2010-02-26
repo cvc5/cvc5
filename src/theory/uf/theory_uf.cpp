@@ -43,7 +43,9 @@ void TheoryUF::preRegisterTerm(TNode n){
 void TheoryUF::registerTerm(TNode n){
 
   d_registered.push_back(n);
+#ifdef CVC4_DEBUG
   n.printAst(Warning());
+#endif /* CVC4_DEBUG */
 
   ECData* ecN;
 

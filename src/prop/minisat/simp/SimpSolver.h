@@ -17,6 +17,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__PROP__MINISAT__SIMP_SOLVER_H
 #define __CVC4__PROP__MINISAT__SIMP_SOLVER_H
 

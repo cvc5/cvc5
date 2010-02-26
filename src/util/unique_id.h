@@ -13,6 +13,8 @@
  ** A mechanism for getting a compile-time unique ID.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__UNIQUE_ID_H
 #define __CVC4__UNIQUE_ID_H
 

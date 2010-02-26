@@ -15,7 +15,9 @@ libtheory_la_SOURCES = \
 libtheory_la_LIBADD = \
 	@builddir@/booleans/libbooleans.la \
 	@builddir@/uf/libuf.la \
-	@builddir@/arith/libarith.la
+	@builddir@/arith/libarith.la \
+	@builddir@/arrays/libarrays.la \
+	@builddir@/bv/libbv.la
 
 EXTRA_DIST = \
 	@srcdir@/theoryof_table.h \
@@ -36,4 +38,4 @@ BUILT_SOURCES = @srcdir@/theoryof_table.h
 dist-hook: @srcdir@/theoryof_table.h
 MAINTAINERCLEANFILES = @srcdir@/theoryof_table.h
 
-SUBDIRS = booleans uf arith
+SUBDIRS = booleans uf arith arrays bv

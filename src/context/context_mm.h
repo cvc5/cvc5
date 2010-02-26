@@ -14,6 +14,8 @@
  ** for use by ContextManager.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__CONTEXT__CONTEXT_MM_H
 #define __CVC4__CONTEXT__CONTEXT_MM_H
 

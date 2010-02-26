@@ -18,7 +18,7 @@
 
 namespace CVC4 {
 
-class Model {
+class CVC4_PUBLIC Model {
 };/* class Model */
 
 }/* CVC4 namespace */

@@ -19,9 +19,10 @@
  ** internals such as the representation and translation of 
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__CNF_STREAM_H
 #define __CVC4__CNF_STREAM_H
-
 
 #include "expr/node.h"
 #include "prop/sat.h"
