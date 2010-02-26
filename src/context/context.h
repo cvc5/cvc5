@@ -20,6 +20,7 @@
 #include "util/Assert.h"
 #include <cstdlib>
 #include <cstring>
+#include <new>
 
 namespace CVC4 {
 namespace context {
@@ -569,7 +570,7 @@ public:
    * For convenience, define operator= that takes an object of type T.
    */
   CDO<T>& operator=(const T& data) { set(data); return *this; }
-  
+
 }; /* class CDO */
 
   /**
@@ -623,13 +624,13 @@ class CDList :public ContextObj {
     if (d_callDestructor) {
       unsigned size = ((CDList<T>*)data)->d_size;
       while (d_size != size) {
-	--d_size;
-	d_list[d_size].~T();
+        --d_size;
+        d_list[d_size].~T();
       }
     }
     else {
       d_size = ((CDList<T>*)data)->d_size;
-    }      
+    }
   }
 
   /**
@@ -642,23 +643,25 @@ class CDList :public ContextObj {
 
   /**
    * Reallocate the array with more space.
+   * Throws bad_alloc if memory allocation fails.
    */
   void grow() {
     if (d_list == NULL) {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = 10;
       d_list = (T*)malloc(sizeof(T)*d_sizeAlloc);
+      if(d_list == NULL){
+        throw std::bad_alloc();
+      }
     }
     else {
       // Allocate a new array with double the size
       d_sizeAlloc *= 2;
-      T* newList = (T*)malloc(sizeof(T)*d_sizeAlloc);
-
-      // Copy the old data
-      memcpy(d_list, newList, sizeof(T)*d_size);
-
-      // Free the old list
-      free(d_list);
+      T* tmpList = (T*)realloc(d_list, sizeof(T)*d_sizeAlloc);
+      if(tmpList == NULL){
+        throw std::bad_alloc();
+      }
+      d_list = tmpList;
     }
   }
 
@@ -667,7 +670,7 @@ public:
    * Main constructor: d_list starts as NULL, size is 0
    */
  CDList(Context* context, bool callDestructor = true)
-   : ContextObj(context), d_list(NULL), d_callDestructor(callDestructor), 
+   : ContextObj(context), d_list(NULL), d_callDestructor(callDestructor),
     d_size(0), d_sizeAlloc(0) { }
 
   /**
@@ -676,10 +679,10 @@ public:
   ~CDList() {
     if(d_list != NULL) {
       if (d_callDestructor) {
-	while (d_size != 0) {
-	  --d_size;
-	  d_list[d_size].~T();
-	}
+        while (d_size != 0) {
+          --d_size;
+          d_list[d_size].~T();
+        }
       }
       delete d_list;
     }
