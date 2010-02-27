@@ -33,6 +33,10 @@ namespace CVC4 {
 
 template <bool ref_count> class NodeTemplate;
 template <unsigned> class NodeBuilder;
+class AndNodeBuilder;
+class OrNodeBuilder;
+class PlusNodeBuilder;
+class MultNodeBuilder;
 class NodeManager;
 
 namespace expr {
@@ -76,6 +80,10 @@ class NodeValue {
 
   template <bool> friend class CVC4::NodeTemplate;
   template <unsigned> friend class CVC4::NodeBuilder;
+  friend class CVC4::AndNodeBuilder;
+  friend class CVC4::OrNodeBuilder;
+  friend class CVC4::PlusNodeBuilder;
+  friend class CVC4::MultNodeBuilder;
   friend class CVC4::NodeManager;
 
   void inc();

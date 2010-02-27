@@ -24,6 +24,7 @@
 #include "util/result.h"
 #include "util/model.h"
 
+// FIXME private header in public code
 #include "expr/node.h"
 
 // In terms of abstraction, this is below (and provides services to)

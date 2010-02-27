@@ -24,6 +24,7 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "expr/kind.h"
+#include "util/Assert.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -203,7 +204,28 @@ public:
   }
 
   void testIterator(){
-    TS_WARN( "TODO: This test still needs to be written!" );
+    NodeBuilder<> b;
+    Node x = d_nm->mkVar();
+    Node y = d_nm->mkVar();
+    Node z = d_nm->mkVar();
+    b << x << y << z << kind::AND;
+
+    {
+      NodeBuilder<>::iterator i = b.begin();
+      TS_ASSERT(*i++ == x);
+      TS_ASSERT(*i++ == y);
+      TS_ASSERT(*i++ == z);
+      TS_ASSERT(i == b.end());
+    }
+
+    {
+      const NodeBuilder<>& c = b;
+      NodeBuilder<>::const_iterator i = c.begin();
+      TS_ASSERT(*i++ == x);
+      TS_ASSERT(*i++ == y);
+      TS_ASSERT(*i++ == z);
+      TS_ASSERT(i == b.end());
+    }
   }
 
   void testGetKind(){
@@ -241,6 +263,8 @@ public:
     push_back(noKind, K);
     TS_ASSERT_EQUALS(noKind.getNumChildren(), K+K);
 
+    noKind << AND;// avoid exception on marking it used
+    Node n = noKind;// avoid warning on clear()
     noKind.clear();
     TS_ASSERT_EQUALS(noKind.getNumChildren(), 0);
     push_back(noKind, K);
@@ -250,10 +274,9 @@ public:
     push_back(noKind, K);
     TS_ASSERT_EQUALS(noKind.getNumChildren(), K+K);
 
-
     noKind << specKind;
-    Node n = noKind;
-    TS_ASSERT_THROWS_ANYTHING(noKind.getNumChildren(););
+    n = noKind;
+    TS_ASSERT_THROWS_ANYTHING( noKind.getNumChildren() );
   }
 
   void testOperatorSquare(){
@@ -319,6 +342,7 @@ public:
     TS_ASSERT_EQUALS(nb.getNumChildren(), K);
     TS_ASSERT_DIFFERS(nb.begin(), nb.end());
 
+    Node n = nb;// avoid warning on clear()
     nb.clear();
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
@@ -332,6 +356,7 @@ public:
     TS_ASSERT_EQUALS(nb.getNumChildren(), K);
     TS_ASSERT_DIFFERS(nb.begin(), nb.end());
 
+    n = nb;// avoid warning on clear()
     nb.clear(specKind);
 
     TS_ASSERT_EQUALS(nb.getKind(), specKind);
@@ -339,9 +364,8 @@ public:
     TS_ASSERT_EQUALS(nb.begin(), nb.end());
 
     push_back(nb, K);
-    Node n = nb;
+    n = nb;// avoid warning on clear()
     nb.clear();
-
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
     TS_ASSERT_EQUALS(nb.getNumChildren(), 0);
@@ -366,9 +390,9 @@ public:
     TS_ASSERT_EQUALS(modified.getKind(), specKind);
 
     NodeBuilder<> nb(specKind);
-    Node n = nb;
+    Node n = nb;// avoid warning on clear()
     nb.clear(PLUS);
-    TS_ASSERT_THROWS_ANYTHING(nb << PLUS;);
+    TS_ASSERT_THROWS_ANYTHING( nb << PLUS; );
 
     NodeBuilder<> testRef;
     TS_ASSERT_EQUALS((testRef << specKind).getKind(), specKind);
@@ -414,30 +438,53 @@ public:
   }
 
   void testAppend(){
-    /*
-      NodeBuilder& append(const Node& n) {
-    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    Debug("prop") << "append: " << this << " " << n << "[" << n.d_ev << "]" << std::endl;
-    allocateEvIfNecessaryForAppend();
-    NodeValue* ev = n.d_ev;
-    ev->inc();
-    d_ev->d_children[d_ev->d_nchildren++] = ev;
-    return *this;
-  }
-     */
-    /*
-      
-  template <class Iterator>
-  NodeBuilder& append(const Iterator& begin, const Iterator& end) {
-    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    for(Iterator i = begin; i != end; ++i) {
-      append(*i);
-    }
-    return *this;
-  }
+    Node x = d_nm->mkVar();
+    Node y = d_nm->mkVar();
+    Node z = d_nm->mkVar();
+    Node m = d_nm->mkNode(AND, y, z, x);
+    Node n = d_nm->mkNode(OR, d_nm->mkNode(NOT, x), y, z);
+    Node o = d_nm->mkNode(XOR, y, x, z);
+    Node p = d_nm->mkNode(PLUS, z, d_nm->mkNode(UMINUS, x), z);
+    Node q = d_nm->mkNode(AND, x, z, d_nm->mkNode(NOT, y));
 
-    */
-    TS_WARN( "TODO: This test still needs to be written!" );
+    NodeBuilder<> b;
+
+    // test append(TNode)
+    b.append(n).append(o).append(q);
+
+    TS_ASSERT(b.getNumChildren() == 3);
+    TS_ASSERT(b[0] == n);
+    TS_ASSERT(b[1] == o);
+    TS_ASSERT(b[2] == q);
+
+    vector<Node> v;
+    v.push_back(m);
+    v.push_back(p);
+    v.push_back(q);
+    // test append(vector<Node>)
+    b.append(v);
+
+    TS_ASSERT(b.getNumChildren() == 6);
+    TS_ASSERT(b[0] == n);
+    TS_ASSERT(b[1] == o);
+    TS_ASSERT(b[2] == q);
+    TS_ASSERT(b[3] == m);
+    TS_ASSERT(b[4] == p);
+    TS_ASSERT(b[5] == q);
+
+    // test append(iterator, iterator)
+    b.append(v.rbegin(), v.rend());
+
+    TS_ASSERT(b.getNumChildren() == 9);
+    TS_ASSERT(b[0] == n);
+    TS_ASSERT(b[1] == o);
+    TS_ASSERT(b[2] == q);
+    TS_ASSERT(b[3] == m);
+    TS_ASSERT(b[4] == p);
+    TS_ASSERT(b[5] == q);
+    TS_ASSERT(b[6] == q);
+    TS_ASSERT(b[7] == p);
+    TS_ASSERT(b[8] == m);
   }
 
   void testOperatorNodeCast(){
@@ -476,11 +523,9 @@ public:
     push_back(b,K/2);
     push_back(c,K/2);
 
-
     a.toStream(astream);
     b.toStream(bstream);
     c.toStream(cstream);
-
 
     astr = astream.str();
     bstr = bstream.str();
@@ -489,7 +534,7 @@ public:
     TS_ASSERT_EQUALS(astr, bstr);
     TS_ASSERT_DIFFERS(astr, cstr);
 
-
+    Node n = a; n = b; n = c;// avoid warning on clear()
     a.clear(specKind);
     b.clear(specKind);
     c.clear(specKind);
@@ -497,16 +542,13 @@ public:
     bstream.flush();
     cstream.flush();
 
-
     push_back(a,2*K);
     push_back(b,2*K);
     push_back(c,2*K+1);
 
-
     a.toStream(astream);
     b.toStream(bstream);
     c.toStream(cstream);
-
 
     astr = astream.str();
     bstr = bstream.str();

@@ -10,7 +10,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The theoryOf table.
+ ** The middle section for the automatically-generated theoryOf table.
+ ** See the mktheoryof script.
  **/
 
 namespace CVC4 {

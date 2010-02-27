@@ -114,24 +114,17 @@ public:
   inline NodeBuilder(NodeManager* nm, Kind k);
   inline ~NodeBuilder();
 
-  typedef NodeValue::nv_iterator iterator;
-  typedef NodeValue::const_nv_iterator const_iterator;
+  typedef NodeValue::iterator<true> iterator;
+  typedef NodeValue::iterator<true> const_iterator;
 
-  iterator begin() {
-    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_nv->nv_begin();
-  }
-  iterator end() {
-    Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_nv->nv_end();
-  }
   const_iterator begin() const {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_nv->nv_begin();
+    return d_nv->begin<true>();
   }
+
   const_iterator end() const {
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
-    return d_nv->nv_end();
+    return d_nv->end<true>();
   }
 
   Kind getKind() const {
@@ -186,6 +179,7 @@ public:
   }
 
   NodeBuilder& operator<<(TNode n) {
+    // FIXME: collapse if ! UNDEFINED_KIND
     Assert(!d_used, "NodeBuilder is one-shot only; tried to access it after conversion");
     return append(n);
   }
@@ -223,7 +217,6 @@ public:
     d_nv->toStream(out);
   }
 
-  /*
   AndNodeBuilder   operator&&(Node);
   OrNodeBuilder    operator||(Node);
   PlusNodeBuilder  operator+ (Node);
@@ -234,7 +227,6 @@ public:
   friend class OrNodeBuilder;
   friend class PlusNodeBuilder;
   friend class MultNodeBuilder;
-  */
   
   //Yet 1 more example of how terrifying C++ is as a language
   //This is needed for copy constructors of different sizes to access private fields
@@ -242,54 +234,59 @@ public:
 
 };/* class NodeBuilder */
 
-#if 0
 class AndNodeBuilder {
-  NodeBuilder d_eb;
+  NodeBuilder<> d_eb;
 
 public:
 
-  AndNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
-    if(d_eb.d_kind != AND) {
-      d_eb.collapse();
-      d_eb.d_kind = AND;
+  AndNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
+    if(d_eb.d_nv->d_kind != kind::AND) {
+      Node n = d_eb;
+      d_eb.clear();
+      d_eb.d_nv->d_kind = kind::AND;
+      d_eb.append(n);
     }
   }
 
   AndNodeBuilder&   operator&&(Node);
   OrNodeBuilder     operator||(Node);
 
-  operator NodeBuilder() { return d_eb; }
+  operator NodeBuilder<>() { return d_eb; }
 
 };/* class AndNodeBuilder */
 
 class OrNodeBuilder {
-  NodeBuilder d_eb;
+  NodeBuilder<> d_eb;
 
 public:
 
-  OrNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
-    if(d_eb.d_kind != OR) {
-      d_eb.collapse();
-      d_eb.d_kind = OR;
+  OrNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
+    if(d_eb.d_nv->d_kind != kind::OR) {
+      Node n = d_eb;
+      d_eb.clear();
+      d_eb.d_nv->d_kind = kind::OR;
+      d_eb.append(n);
     }
   }
 
   AndNodeBuilder    operator&&(Node);
   OrNodeBuilder&    operator||(Node);
 
-  operator NodeBuilder() { return d_eb; }
+  operator NodeBuilder<>() { return d_eb; }
 
 };/* class OrNodeBuilder */
 
 class PlusNodeBuilder {
-  NodeBuilder d_eb;
+  NodeBuilder<> d_eb;
 
 public:
 
-  PlusNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
-    if(d_eb.d_kind != PLUS) {
-      d_eb.collapse();
-      d_eb.d_kind = PLUS;
+  PlusNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
+    if(d_eb.d_nv->d_kind != kind::PLUS) {
+      Node n = d_eb;
+      d_eb.clear();
+      d_eb.d_nv->d_kind = kind::PLUS;
+      d_eb.append(n);
     }
   }
 
@@ -297,19 +294,21 @@ public:
   PlusNodeBuilder&  operator-(Node);
   MultNodeBuilder   operator*(Node);
 
-  operator NodeBuilder() { return d_eb; }
+  operator NodeBuilder<>() { return d_eb; }
 
 };/* class PlusNodeBuilder */
 
 class MultNodeBuilder {
-  NodeBuilder d_eb;
+  NodeBuilder<> d_eb;
 
 public:
 
-  MultNodeBuilder(const NodeBuilder& eb) : d_eb(eb) {
-    if(d_eb.d_kind != MULT) {
-      d_eb.collapse();
-      d_eb.d_kind = MULT;
+  MultNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
+    if(d_eb.d_nv->d_kind != kind::MULT) {
+      Node n = d_eb;
+      d_eb.clear();
+      d_eb.d_nv->d_kind = kind::MULT;
+      d_eb.append(n);
     }
   }
 
@@ -317,27 +316,32 @@ public:
   PlusNodeBuilder   operator-(Node);
   MultNodeBuilder&  operator*(Node);
 
-  operator NodeBuilder() { return d_eb; }
+  operator NodeBuilder<>() { return d_eb; }
 
 };/* class MultNodeBuilder */
 
-inline AndNodeBuilder   NodeBuilder::operator&&(Node e) {
+template <unsigned nchild_thresh>
+inline AndNodeBuilder   NodeBuilder<nchild_thresh>::operator&&(Node e) {
   return AndNodeBuilder(*this) && e;
 }
 
-inline OrNodeBuilder    NodeBuilder::operator||(Node e) {
+template <unsigned nchild_thresh>
+inline OrNodeBuilder    NodeBuilder<nchild_thresh>::operator||(Node e) {
   return OrNodeBuilder(*this) || e;
 }
 
-inline PlusNodeBuilder  NodeBuilder::operator+ (Node e) {
+template <unsigned nchild_thresh>
+inline PlusNodeBuilder  NodeBuilder<nchild_thresh>::operator+ (Node e) {
   return PlusNodeBuilder(*this) + e;
 }
 
-inline PlusNodeBuilder  NodeBuilder::operator- (Node e) {
+template <unsigned nchild_thresh>
+inline PlusNodeBuilder  NodeBuilder<nchild_thresh>::operator- (Node e) {
   return PlusNodeBuilder(*this) - e;
 }
 
-inline MultNodeBuilder  NodeBuilder::operator* (Node e) {
+template <unsigned nchild_thresh>
+inline MultNodeBuilder  NodeBuilder<nchild_thresh>::operator* (Node e) {
   return MultNodeBuilder(*this) * e;
 }
 
@@ -347,11 +351,17 @@ inline AndNodeBuilder&  AndNodeBuilder::operator&&(Node e) {
 }
 
 inline OrNodeBuilder    AndNodeBuilder::operator||(Node e) {
-  return OrNodeBuilder(d_eb.collapse()) || e;
+  Node n = d_eb;
+  d_eb.clear();
+  d_eb.append(n);
+  return OrNodeBuilder(d_eb) || e;
 }
 
 inline AndNodeBuilder   OrNodeBuilder::operator&&(Node e) {
-  return AndNodeBuilder(d_eb.collapse()) && e;
+  Node n = d_eb;
+  d_eb.clear();
+  d_eb.append(n);
+  return AndNodeBuilder(d_eb) && e;
 }
 
 inline OrNodeBuilder&   OrNodeBuilder::operator||(Node e) {
@@ -364,29 +374,38 @@ inline PlusNodeBuilder& PlusNodeBuilder::operator+(Node e) {
   return *this;
 }
 
+/*
 inline PlusNodeBuilder& PlusNodeBuilder::operator-(Node e) {
   d_eb.append(e.uMinusExpr());
   return *this;
 }
+*/
 
 inline MultNodeBuilder  PlusNodeBuilder::operator*(Node e) {
-  return MultNodeBuilder(d_eb.collapse()) * e;
+  Node n = d_eb;
+  d_eb.clear();
+  d_eb.append(n);
+  return MultNodeBuilder(d_eb) * e;
 }
 
 inline PlusNodeBuilder  MultNodeBuilder::operator+(Node e) {
-  return MultNodeBuilder(d_eb.collapse()) + e;
+  Node n = d_eb;
+  d_eb.clear();
+  d_eb.append(n);
+  return MultNodeBuilder(d_eb) + e;
 }
 
 inline PlusNodeBuilder  MultNodeBuilder::operator-(Node e) {
-  return MultNodeBuilder(d_eb.collapse()) - e;
+  Node n = d_eb;
+  d_eb.clear();
+  d_eb.append(n);
+  return MultNodeBuilder(d_eb) - e;
 }
 
 inline MultNodeBuilder& MultNodeBuilder::operator*(Node e) {
   d_eb.append(e);
   return *this;
 }
-
-#endif /* 0 */
 
 }/* CVC4 namespace */
 
@@ -567,7 +586,7 @@ inline void NodeBuilder<nchild_thresh>::dealloc() {
   Assert(!d_used,
          "Internal error: NodeBuilder: dealloc() called with d_used");
 
-  for(iterator i = d_nv->nv_begin();
+  for(NodeValue::nv_iterator i = d_nv->nv_begin();
       i != d_nv->nv_end();
       ++i) {
     (*i)->dec();

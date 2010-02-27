@@ -10,7 +10,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The theoryOf table.
+ ** The prologue section for the automatically-generated theoryOf table.
+ ** See the mktheoryof script.
  **/
 
 #include "cvc4_private.h"

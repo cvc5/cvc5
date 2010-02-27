@@ -17,6 +17,7 @@
 
 //Used in some of the tests
 #include <vector>
+#include <sstream>
 
 #include "expr/expr_manager.h"
 #include "expr/node_value.h"
@@ -449,24 +450,52 @@ public:
   }
 
   void testIterator(){
-    /*typedef NodeValue::node_iterator iterator; */
-    /*typedef NodeValue::node_iterator const_iterator; */
+    NodeBuilder<> b;
+    Node x = d_nodeManager->mkVar();
+    Node y = d_nodeManager->mkVar();
+    Node z = d_nodeManager->mkVar();
+    Node n = b << x << y << z << kind::AND;
 
-    /*inline iterator begin(); */
-    /*inline iterator end(); */
-    /*inline const_iterator begin() const; */
-    /*inline const_iterator end() const; */
+    { // iterator
+      Node::iterator i = n.begin();
+      TS_ASSERT(*i++ == x);
+      TS_ASSERT(*i++ == y);
+      TS_ASSERT(*i++ == z);
+      TS_ASSERT(i == n.end());
+    }
 
-    TS_WARN( "TODO: This test still needs to be written!" );
+    { // same for const iterator
+      const Node& c = n;
+      Node::const_iterator i = c.begin();
+      TS_ASSERT(*i++ == x);
+      TS_ASSERT(*i++ == y);
+      TS_ASSERT(*i++ == z);
+      TS_ASSERT(i == n.end());
+    }
   }
 
   void testToString(){
-    /*inline std::string toString() const; */
-    TS_WARN( "TODO: This test still needs to be written!" );
+    Node w = d_nodeManager->mkVar(NULL, "w");
+    Node x = d_nodeManager->mkVar(NULL, "x");
+    Node y = d_nodeManager->mkVar(NULL, "y");
+    Node z = d_nodeManager->mkVar(NULL, "z");
+    Node m = NodeBuilder<>() << w << x << kind::OR;
+    Node n = NodeBuilder<>() << m << y << z << kind::AND;
+
+    TS_ASSERT(n.toString() == "(AND (OR w x) y z)");
   }
 
   void testToStream(){
-    /*inline void toStream(std::ostream&) const;*/
-    TS_WARN( "TODO: This test still needs to be written!" );
+    NodeBuilder<> b;
+    Node w = d_nodeManager->mkVar(NULL, "w");
+    Node x = d_nodeManager->mkVar(NULL, "x");
+    Node y = d_nodeManager->mkVar(NULL, "y");
+    Node z = d_nodeManager->mkVar(NULL, "z");
+    Node m = NodeBuilder<>() << x << y << kind::OR;
+    Node n = NodeBuilder<>() << w << m << z << kind::AND;
+
+    stringstream sstr;
+    n.toStream(sstr);
+    TS_ASSERT(sstr.str() == "(AND w (OR x y) z)");
   }
 };

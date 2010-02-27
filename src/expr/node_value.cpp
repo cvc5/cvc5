@@ -36,24 +36,24 @@ string NodeValue::toString() const {
 }
 
 void NodeValue::toStream(std::ostream& out) const {
-  out << "(" << Kind(d_kind);
   if(d_kind == kind::VARIABLE) {
     Node n(this);
     string s;
     if(n.hasAttribute(VarNameAttr(), s)) {
-      out << ":" << s;
+      out << s;
     } else {
-      out << ":" << this;
+      out << "var_" << d_id;
     }
   } else {
+    out << "(" << Kind(d_kind);
     for(const_nv_iterator i = nv_begin(); i != nv_end(); ++i) {
       if(i != nv_end()) {
         out << " ";
       }
-      out << *i;
+      Node(*i).toStream(out);
     }
+    out << ")";
   }
-  out << ")";
 }
 
 }/* CVC4 namespace */
