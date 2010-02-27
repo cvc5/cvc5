@@ -158,7 +158,7 @@ class ParserBlack : public CxxTest::TestSuite {
         // cout << "Testing good input: '" << goodInputs[i] << "'\n";
         // Debug.on("parser");
         istringstream stream(goodInputs[i]);
-        Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+        Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
         TS_ASSERT( !smtParser->done() );
         Command* cmd;
         while((cmd = smtParser->parseNextCommand())) {
@@ -180,7 +180,7 @@ class ParserBlack : public CxxTest::TestSuite {
     for(int i = 0; i < numInputs; ++i) {
       // cout << "Testing bad input: '" << badInputs[i] << "'\n";
       istringstream stream(badInputs[i]);
-      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
       TS_ASSERT_THROWS
         ( while(smtParser->parseNextCommand());
           cout << "\nBad input succeeded:\n" << badInputs[i] << endl;, 
@@ -196,7 +196,7 @@ class ParserBlack : public CxxTest::TestSuite {
         // cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
         // Debug.on("parser");
         istringstream stream(context + goodBooleanExprs[i]);
-        Parser* parser = Parser::getNewParser(d_exprManager, d_lang, stream);
+        Parser* parser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
         TS_ASSERT( !parser->done() );
         Command* cmd = parser->parseNextCommand();
         TS_ASSERT( !parser->done() );
@@ -221,7 +221,7 @@ class ParserBlack : public CxxTest::TestSuite {
     for(int i = 0; i < numExprs; ++i) {
       // cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
       istringstream stream(context + badBooleanExprs[i]);
-      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream);
+      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
       TS_ASSERT_THROWS
         ( smtParser->parseNextExpression();
           cout << "\nBad expr succeeded: " << badBooleanExprs[i] << endl;, 
