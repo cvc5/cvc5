@@ -25,6 +25,7 @@
 
 namespace antlr {
   class CharScanner;
+  class InputBuffer;
 }
 
 namespace CVC4 {
@@ -56,8 +57,8 @@ public:
     LANG_AUTO
   };
 
-  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::string filename);
-  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::istream& input);
+  static Parser* getMemoryMappedParser(ExprManager* em, InputLanguage lang, std::string filename);
+  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::istream& input, std::string filename);
 
   /**
    * Destructor.
@@ -96,18 +97,18 @@ private:
    * Create a new parser.
    * @param em the expression manager to usee
    * @param lang the language to parse
-   * @param input the input stream to parse
+   * @param inputBuffer the input buffer to parse
    * @param filename the filename to attach to the stream
    * @param deleteInput wheather to delete the input
    * @return the parser
    */
-  static Parser* getNewParser(ExprManager* em, InputLanguage lang, std::istream* input, std::string filename, bool deleteInput);
+  static Parser* getNewParser(ExprManager* em, InputLanguage lang, antlr::InputBuffer* inputBuffer, std::string filename);
 
   /**
    * Create a new parser given the actual antlr parser.
    * @param antlrParser the antlr parser to user
    */
-  Parser(std::istream* input, AntlrParser* antlrParser, antlr::CharScanner* antlrLexer, bool deleteInput);
+  Parser(antlr::InputBuffer* inputBuffer, AntlrParser* antlrParser, antlr::CharScanner* antlrLexer);
 
   /** Sets the done flag */
   void setDone(bool done = true);
@@ -122,7 +123,7 @@ private:
   antlr::CharScanner* d_antlrLexer;
 
   /** The input stream we are using */
-  std::istream* d_input;
+  antlr::InputBuffer* d_inputBuffer;
 
   /** Wherther to de-allocate the input */
   bool d_deleteInput;

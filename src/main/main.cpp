@@ -142,10 +142,19 @@ int runCvc4(int argc, char *argv[]) {
 
   // Create the parser
   Parser* parser;
+  istream* input = NULL;
+
   if(inputFromStdin) {
-    parser = Parser::getNewParser(&exprMgr, options.lang, cin);
+    parser = Parser::getNewParser(&exprMgr, options.lang, cin, "<stdin>");
+  } else if( options.memoryMap ) {
+    parser = Parser::getMemoryMappedParser(&exprMgr, options.lang, argv[firstArgIndex]);
   } else {
-    parser = Parser::getNewParser(&exprMgr, options.lang, argv[firstArgIndex]);
+    string filename = argv[firstArgIndex];
+    input = new ifstream(filename.c_str());
+    if(input == NULL) {
+      throw Exception("file does not exist or is unreadable: " + filename);
+    }
+    parser = Parser::getNewParser(&exprMgr, options.lang, *input, filename);
   }
 
   if(!options.semanticChecks) {
@@ -163,6 +172,7 @@ int runCvc4(int argc, char *argv[]) {
 
   // Remove the parser
   delete parser;
+  delete input;
 
   switch(lastResult.asSatisfiabilityResult().isSAT()) {
 

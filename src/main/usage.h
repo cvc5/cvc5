@@ -37,6 +37,8 @@ CVC4 options:\n\
    --stats         give statistics on exit\n\
    --segv-nospin   (debug builds only) don't spin on segfault waiting for gdb\n\
    --parse-only    exit after parsing input\n\
+   --no-checking   disable semantic checks in the parser\n\
+   --mmap          memory map file input\n\
    --show-config   show CVC4 static configuration\n\
 ";
 

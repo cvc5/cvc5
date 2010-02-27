@@ -51,6 +51,9 @@ struct CVC4_PUBLIC Options {
   /** Should the parser do semantic checks? */
   bool semanticChecks;
 
+  /** Should the parser memory-map file input? */
+  bool memoryMap;
+
   Options() : binary_name(),
               smtcomp_mode(false),
               statistics(false),
@@ -60,7 +63,8 @@ struct CVC4_PUBLIC Options {
               lang(parser::Parser::LANG_AUTO),
               d_cnfConversion(CVC4::CNF_VAR_INTRODUCTION),
               parseOnly(false),
-              semanticChecks(true)
+              semanticChecks(true),
+              memoryMap(false)
   {}
 };/* struct Options */
 

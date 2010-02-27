@@ -67,6 +67,7 @@ enum OptionValue {
   SEGV_NOSPIN,
   PARSE_ONLY,
   NO_CHECKING,
+  USE_MMAP,
   SHOW_CONFIG
 };/* enum OptionValue */
 
@@ -103,6 +104,7 @@ static struct option cmdlineOptions[] = {
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
   { "no-checking", no_argument      , NULL, NO_CHECKING },
+  { "mmap",        no_argument      , NULL, USE_MMAP    },
   { "show-config", no_argument      , NULL, SHOW_CONFIG }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -217,6 +219,10 @@ throw(OptionException) {
 
     case NO_CHECKING:
       opts->semanticChecks = false;
+      break;
+
+    case USE_MMAP:
+      opts->memoryMap = true;
       break;
 
     case SHOW_CONFIG:
