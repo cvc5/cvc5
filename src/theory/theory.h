@@ -324,8 +324,8 @@ Node TheoryImpl<T>::get() {
      * and the above registration of leaves, this should ensure that
      * all subterms in the entire tree were registered in
      * reverse-topological order. */
-    for(std::list<TNode>::reverse_iterator i = toReg.rend();
-        i != toReg.rbegin();
+    for(std::list<TNode>::reverse_iterator i = toReg.rbegin();
+        i != toReg.rend();
         ++i) {
 
       TNode n = *i;

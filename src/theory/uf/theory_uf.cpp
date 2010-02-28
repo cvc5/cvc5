@@ -124,7 +124,8 @@ void TheoryUF::registerTerm(TNode n){
        */
       for(Link* Px = ecChild->getFirst(); Px != NULL; Px = Px->next ){
         if(equiv(n, Px->data)){
-          d_pending.push_back(n.eqNode(Px->data));
+          Node pend = n.eqNode(Px->data);
+          d_pending.push_back(pend);
         }
       }
 
@@ -223,7 +224,7 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
 
 void TheoryUF::merge(){
   while(d_currentPendingIdx < d_pending.size() ) {
-    TNode assertion = d_pending[d_currentPendingIdx];
+    Node assertion = d_pending[d_currentPendingIdx];
     d_currentPendingIdx = d_currentPendingIdx + 1;
 
     TNode x = assertion[0];
