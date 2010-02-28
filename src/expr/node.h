@@ -119,8 +119,7 @@ template<bool ref_count>
      * not.
      * @param node the node to make copy of
      */
-    template<bool ref_count_1>
-      NodeTemplate(const NodeTemplate<ref_count_1>& node);
+    NodeTemplate(const NodeTemplate<!ref_count>& node);
 
     /**
      * Copy constructor.  Note that GCC does NOT recognize an instantiation of
@@ -128,7 +127,7 @@ template<bool ref_count>
      * provide an explicit one here.
      * @param node the node to make copy of
      */
-    NodeTemplate(const NodeTemplate<ref_count>& node);
+    NodeTemplate(const NodeTemplate& node);
 
     /**
      * Assignment operator for nodes, copies the relevant information from node
@@ -136,8 +135,15 @@ template<bool ref_count>
      * @param node the node to copy
      * @return reference to this node
      */
-    template<bool ref_count_1>
-      NodeTemplate& operator=(const NodeTemplate<ref_count_1>& node);
+    NodeTemplate& operator=(const NodeTemplate& node);
+
+    /**
+     * Assignment operator for nodes, copies the relevant information from node
+     * to this node.
+     * @param node the node to copy
+     * @return reference to this node
+     */
+    NodeTemplate& operator=(const NodeTemplate<!ref_count>& node);
 
     /**
      * Destructor. If ref_count is true it will decrement the reference count
@@ -418,16 +424,16 @@ template<bool ref_count>
      */
     void printAst(std::ostream & o, int indent = 0) const;
 
-    NodeTemplate eqNode(const NodeTemplate& right) const;
+    NodeTemplate<true> eqNode(const NodeTemplate& right) const;
 
-    NodeTemplate notNode() const;
-    NodeTemplate andNode(const NodeTemplate& right) const;
-    NodeTemplate orNode(const NodeTemplate& right) const;
-    NodeTemplate iteNode(const NodeTemplate& thenpart,
+    NodeTemplate<true> notNode() const;
+    NodeTemplate<true> andNode(const NodeTemplate& right) const;
+    NodeTemplate<true> orNode(const NodeTemplate& right) const;
+    NodeTemplate<true> iteNode(const NodeTemplate& thenpart,
                          const NodeTemplate& elsepart) const;
-    NodeTemplate iffNode(const NodeTemplate& right) const;
-    NodeTemplate impNode(const NodeTemplate& right) const;
-    NodeTemplate xorNode(const NodeTemplate& right) const;
+    NodeTemplate<true> iffNode(const NodeTemplate& right) const;
+    NodeTemplate<true> impNode(const NodeTemplate& right) const;
+    NodeTemplate<true> xorNode(const NodeTemplate& right) const;
 
   private:
 
@@ -555,16 +561,15 @@ template<bool ref_count>
 // the code for these two "conversion/copy constructors" is identical, but
 // apparently we need both.  see comment in the class.
 template<bool ref_count>
-  template<bool ref_count_1>
-    NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<ref_count_1>& e) {
-      Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
-      d_nv = e.d_nv;
-      if(ref_count)
-        d_nv->inc();
-    }
+  NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
+    Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
+    d_nv = e.d_nv;
+    if(ref_count)
+      d_nv->inc();
+  }
 
 template<bool ref_count>
-  NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<ref_count>& e) {
+  NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
     Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
     d_nv = e.d_nv;
     if(ref_count)
@@ -588,64 +593,78 @@ template<bool ref_count>
   }
 
 template<bool ref_count>
-  template<bool ref_count_1>
-    NodeTemplate<ref_count>& NodeTemplate<ref_count>::
-    operator=(const NodeTemplate<ref_count_1>& e) {
-      Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
-      Assert(e.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
-      if(EXPECT_TRUE( d_nv != e.d_nv )) {
-        if(ref_count)
-          d_nv->dec();
-        d_nv = e.d_nv;
-        if(ref_count)
-          d_nv->inc();
-      }
-      return *this;
+  NodeTemplate<ref_count>& NodeTemplate<ref_count>::
+    operator=(const NodeTemplate& e) {
+    Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+    Assert(e.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
+    if(EXPECT_TRUE( d_nv != e.d_nv )) {
+      if(ref_count)
+        d_nv->dec();
+      d_nv = e.d_nv;
+      if(ref_count)
+        d_nv->inc();
     }
+    return *this;
+  }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::eqNode(const NodeTemplate<
+  NodeTemplate<ref_count>& NodeTemplate<ref_count>::
+    operator=(const NodeTemplate<!ref_count>& e) {
+    Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+    Assert(e.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
+    if(EXPECT_TRUE( d_nv != e.d_nv )) {
+      if(ref_count)
+        d_nv->dec();
+      d_nv = e.d_nv;
+      if(ref_count)
+        d_nv->inc();
+    }
+    return *this;
+  }
+
+template<bool ref_count>
+  NodeTemplate<true> NodeTemplate<ref_count>::eqNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(kind::EQUAL, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::notNode() const {
+  NodeTemplate<true> NodeTemplate<ref_count>::notNode() const {
     return NodeManager::currentNM()->mkNode(kind::NOT, *this);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::andNode(const NodeTemplate<
+  NodeTemplate<true> NodeTemplate<ref_count>::andNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(kind::AND, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::orNode(const NodeTemplate<
+  NodeTemplate<true> NodeTemplate<ref_count>::orNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(kind::OR, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::iteNode(const NodeTemplate<
+  NodeTemplate<true> NodeTemplate<ref_count>::iteNode(const NodeTemplate<
       ref_count>& thenpart, const NodeTemplate<ref_count>& elsepart) const {
     return NodeManager::currentNM()->mkNode(kind::ITE, *this, thenpart, elsepart);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::iffNode(const NodeTemplate<
+  NodeTemplate<true> NodeTemplate<ref_count>::iffNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(kind::IFF, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::impNode(const NodeTemplate<
+  NodeTemplate<true> NodeTemplate<ref_count>::impNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(kind::IMPLIES, *this, right);
   }
 
 template<bool ref_count>
-  NodeTemplate<ref_count> NodeTemplate<ref_count>::xorNode(const NodeTemplate<
+  NodeTemplate<true> NodeTemplate<ref_count>::xorNode(const NodeTemplate<
       ref_count>& right) const {
     return NodeManager::currentNM()->mkNode(kind::XOR, *this, right);
   }

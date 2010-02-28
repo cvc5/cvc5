@@ -707,7 +707,8 @@ public:
   void push_back(const T& data) {
     makeCurrent();
     if (d_size == d_sizeAlloc) grow();
-    d_list[d_size++] = data;
+    ::new((void*)(d_list + d_size)) T(data);
+    ++ d_size;
   }
 
   /**
