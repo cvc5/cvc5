@@ -240,8 +240,9 @@ public:
 
     Node n = noKind;
 
+#ifdef CVC4_DEBUG
     TS_ASSERT_THROWS_ANYTHING(noKind.getKind(););
-
+#endif
 
 
     NodeBuilder<> spec(specKind);
@@ -274,9 +275,11 @@ public:
     push_back(noKind, K);
     TS_ASSERT_EQUALS(noKind.getNumChildren(), K+K);
 
+#ifdef CVC4_DEBUG
     noKind << specKind;
     n = noKind;
     TS_ASSERT_THROWS_ANYTHING( noKind.getNumChildren() );
+#endif
   }
 
   void testOperatorSquare(){
@@ -293,9 +296,10 @@ public:
     Node i_K = d_nm->mkNode(NOT);
 
 
+#ifdef CVC4_DEBUG
     TS_ASSERT_THROWS_ANYTHING(arr[-1];);
     TS_ASSERT_THROWS_ANYTHING(arr[0];);
-
+#endif
 
     arr << i_0;
 
@@ -322,15 +326,16 @@ public:
     for(int i=3;i<K;++i) TS_ASSERT_EQUALS(arr[i], Node::null());
     TS_ASSERT_EQUALS(arr[K], i_K);
 
+#ifdef CVC4_DEBUG
     Node n = arr;
     TS_ASSERT_THROWS_ANYTHING(arr[0];);
+#endif
   }
 
   void testClear(){
     /* void clear(Kind k = UNDEFINED_KIND); */
     NodeBuilder<> nb;
 
-    
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
     TS_ASSERT_EQUALS(nb.getNumChildren(), 0);
     TS_ASSERT_EQUALS(nb.begin(), nb.end());
@@ -376,8 +381,10 @@ public:
   void testStreamInsertionKind(){
     /* NodeBuilder& operator<<(const Kind& k); */
 
+#ifdef CVC4_DEBUG
     NodeBuilder<> spec(specKind);
     TS_ASSERT_THROWS_ANYTHING( spec << PLUS; );
+#endif
 
     NodeBuilder<> noSpec;
     noSpec << specKind;
@@ -392,14 +399,18 @@ public:
     NodeBuilder<> nb(specKind);
     Node n = nb;// avoid warning on clear()
     nb.clear(PLUS);
+
+#ifdef CVC4_DEBUG
     TS_ASSERT_THROWS_ANYTHING( nb << PLUS; );
+#endif
 
     NodeBuilder<> testRef;
     TS_ASSERT_EQUALS((testRef << specKind).getKind(), specKind);
 
-
+#ifdef CVC4_DEBUG
     NodeBuilder<> testTwo;
     TS_ASSERT_THROWS_ANYTHING(testTwo << specKind << PLUS;);
+#endif
 
     NodeBuilder<> testMixOrder1;
     TS_ASSERT_EQUALS((testMixOrder1<< specKind << d_nm->mkNode(TRUE)).getKind(),
@@ -420,9 +431,10 @@ public:
     TS_ASSERT_EQUALS(nb.getNumChildren(), K);
     TS_ASSERT_DIFFERS(nb.begin(), nb.end());
 
+#ifdef CVC4_DEBUG
     Node n = nb;
     TS_ASSERT_THROWS_ANYTHING(nb << n;);
-
+#endif
 
     NodeBuilder<> overflow(specKind);
     TS_ASSERT_EQUALS(overflow.getKind(), specKind);
@@ -504,7 +516,9 @@ public:
     TS_ASSERT_EQUALS(nexplicit.getKind(), specKind);
     TS_ASSERT_EQUALS(nexplicit.getNumChildren(), K);
 
+#ifdef CVC4_DEBUG
     TS_ASSERT_THROWS_ANYTHING(Node blah = implicit);
+#endif
   }
 
   void testToStream(){
