@@ -10,6 +10,12 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** This is a basic implementation of the Theory of Uninterpreted Functions
+ ** with Equality.  It is based on the Nelson-Oppen algorithm given in
+ ** "Fast Decision Procedures Based on Congruence Closure"
+ **  (http://portal.acm.org/ft_gateway.cfm?id=322198&type=pdf)
+ ** This has been extended to work in a context-dependent way.
+ ** This interacts heavily with the data-structures given in ecdata.h .
  **
  **/
 
@@ -34,11 +40,17 @@ class TheoryUF : public TheoryImpl<TheoryUF> {
 
 private:
 
-  //TODO document
+  /**
+   * List of all of the non-negated literals from the assertion queue.
+   * This is used only for conflict generation.
+   * This differs from pending as the program generates new equalities that
+   * are not in this list.
+   * This will probably be phased out in future version.
+   */
   context::CDList<Node> d_assertions;
 
   /**
-   * List of pending equivalence class merges. 
+   * List of pending equivalence class merges.
    *
    * Tricky part:
    * Must keep a hard link because new equality terms are created and appended
@@ -75,19 +87,58 @@ public:
   //TODO Tim: I am going to delay documenting these functions while Morgan
   //has pending changes to the contracts
 
+  /**
+   * Registers a previously unseen [in this context] node n.
+   * For TheoryUF, this sets up and maintains invaraints about
+   * equivalence class data-structures.
+   *
+   * Overloads a void registerTerm(TNode n); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
   void registerTerm(TNode n);
+
+  /**
+   * Currently this does nothing.
+   *
+   * Overloads a void preRegisterTerm(TNode n); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
   void preRegisterTerm(TNode n);
 
+  /**
+   * Checks whether the set of literals provided to the theory is consistent.
+   *
+   * If this is called at any effort level, it computes the congruence closure
+   * of all of the positive literals in the context.
+   *
+   * If this is called at full effort it checks if any of the negative literals
+   * are inconsistent with the congruence closure.
+   *
+   * Overloads  void check(Effort level); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
   void check(Effort level);
 
+  /**
+   * Propagates theory literals. Currently does nothing.
+   *
+   * Overloads void propagate(Effort level); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
   void propagate(Effort level) {}
 
+  /**
+   * Explains a previously reported conflict. Currently does nothing.
+   *
+   * Overloads void explain(TNode n, Effort level); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
   void explain(TNode n, Effort level) {}
 
 private:
   /**
    * Checks whether 2 nodes are already in the same equivalence class tree.
-   * This should only be used internally, and it should only be done when
+   * This should only be used internally, and it should only be called when
    * the only thing done with the equivalence classes is an equality check.
    *
    * @returns true iff ccFind(x) == ccFind(y);
