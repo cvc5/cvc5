@@ -15,7 +15,6 @@
 
 #include <cxxtest/TestSuite.h>
 
-//Used in some of the tests
 #include <vector>
 #include <limits.h>
 #include <sstream>
@@ -65,7 +64,7 @@ public:
   /**
    * Tests just constructors. No modification is done to the node.
    */
-  void testNodeConstructors(){
+  void testNodeConstructors() {
 
     //inline NodeBuilder();
     //inline NodeBuilder(Kind k);
@@ -151,14 +150,14 @@ public:
 
   }
 
-  void testDestructor(){
+  void testDestructor() {
     //inline ~NodeBuilder();
     NodeBuilder<K>* nb = new NodeBuilder<K>();
     delete nb;
     //Not sure what to test other than survival
   }
 
-  void testBeginEnd(){
+  void testBeginEnd() {
     /* Test begin and ends without resizing */
     NodeBuilder<K> ws;
     TS_ASSERT_EQUALS(ws.begin(), ws.end());
@@ -203,12 +202,12 @@ public:
     TS_ASSERT_EQUALS(smaller_citer, smaller.end());
   }
 
-  void testIterator(){
+  void testIterator() {
     NodeBuilder<> b;
     Node x = d_nm->mkVar();
     Node y = d_nm->mkVar();
     Node z = d_nm->mkVar();
-    b << x << y << z << kind::AND;
+    b << x << y << z << AND;
 
     {
       NodeBuilder<>::iterator i = b.begin();
@@ -228,7 +227,7 @@ public:
     }
   }
 
-  void testGetKind(){
+  void testGetKind() {
     /*  Kind getKind() const; */
     NodeBuilder<> noKind;
     TS_ASSERT_EQUALS(noKind.getKind(), UNDEFINED_KIND);
@@ -244,15 +243,13 @@ public:
     TS_ASSERT_THROWS_ANYTHING(noKind.getKind(););
 #endif
 
-
     NodeBuilder<> spec(specKind);
     TS_ASSERT_EQUALS(spec.getKind(), specKind);
     push_back(spec, K);
     TS_ASSERT_EQUALS(spec.getKind(), specKind);
-
   }
 
-  void testGetNumChildren(){
+  void testGetNumChildren() {
     /* unsigned getNumChildren() const; */
 
     NodeBuilder<> noKind;
@@ -282,7 +279,7 @@ public:
 #endif
   }
 
-  void testOperatorSquare(){
+  void testOperatorSquare() {
     /*
       Node operator[](int i) const {
       Assert(i >= 0 && i < d_ev->getNumChildren());
@@ -332,7 +329,7 @@ public:
 #endif
   }
 
-  void testClear(){
+  void testClear() {
     /* void clear(Kind k = UNDEFINED_KIND); */
     NodeBuilder<> nb;
 
@@ -378,7 +375,7 @@ public:
 
   }
 
-  void testStreamInsertionKind(){
+  void testStreamInsertionKind() {
     /* NodeBuilder& operator<<(const Kind& k); */
 
 #ifdef CVC4_DEBUG
@@ -420,7 +417,7 @@ public:
                      specKind);
   }
 
-  void testStreamInsertionNode(){
+  void testStreamInsertionNode() {
     /* NodeBuilder& operator<<(const Node& n); */
     NodeBuilder<K> nb(specKind);
     TS_ASSERT_EQUALS(nb.getKind(), specKind);
@@ -449,7 +446,7 @@ public:
 
   }
 
-  void testAppend(){
+  void testAppend() {
     Node x = d_nm->mkVar();
     Node y = d_nm->mkVar();
     Node z = d_nm->mkVar();
@@ -499,7 +496,7 @@ public:
     TS_ASSERT(b[8] == m);
   }
 
-  void testOperatorNodeCast(){
+  void testOperatorNodeCast() {
     /* operator Node();*/
     NodeBuilder<K> implicit(specKind);
     NodeBuilder<K> explic(specKind);
@@ -521,7 +518,7 @@ public:
 #endif
   }
 
-  void testToStream(){
+  void testToStream() {
     /* inline void toStream(std::ostream& out) const {
        d_ev->toStream(out);
        }
@@ -570,5 +567,62 @@ public:
 
     TS_ASSERT_EQUALS(astr, bstr);
     TS_ASSERT_DIFFERS(astr, cstr);
+  }
+
+  void testConvenienceBuilders() {
+    Node a = d_nm->mkVar();
+    Node b = d_nm->mkVar();
+    Node c = d_nm->mkVar();
+    Node d = d_nm->mkVar();
+    Node e = d_nm->mkVar();
+    Node f = d_nm->mkVar();
+
+    Node m = a && b;
+    Node n = a && b || c;
+    Node o = d + e - b;
+    Node p = a && o || c;
+
+    Node x = d + e + o - m;
+    Node y = f - a - c + e;
+
+    Node q = a && b && c;
+
+    Node r = e && d && b && a || x && y || f || q && a;
+
+    TS_ASSERT_EQUALS(m, d_nm->mkNode(AND, a, b));
+    TS_ASSERT_EQUALS(n, d_nm->mkNode(OR, m, c));
+    TS_ASSERT_EQUALS(o, d_nm->mkNode(PLUS, d, e, d_nm->mkNode(UMINUS, b)));
+    TS_ASSERT_EQUALS(p, d_nm->mkNode(OR, d_nm->mkNode(AND, a, o), c));
+
+    TS_ASSERT_EQUALS(x, d_nm->mkNode(PLUS, d, e, o, d_nm->mkNode(UMINUS, m)));
+    TS_ASSERT_EQUALS(y, d_nm->mkNode(PLUS,
+                                     f,
+                                     d_nm->mkNode(UMINUS, a),
+                                     d_nm->mkNode(UMINUS, c),
+                                     e));
+
+    TS_ASSERT_EQUALS(q, d_nm->mkNode(AND, a, b, c));
+
+    TS_ASSERT_EQUALS(r, d_nm->mkNode(OR,
+                                     d_nm->mkNode(AND, e, d, b, a),
+                                     d_nm->mkNode(AND, x, y),
+                                     f,
+                                     d_nm->mkNode(AND, q, a)));
+
+    Node assoc1 = (a && b) && c;
+    Node assoc2 = a && (b && c);
+
+    TS_ASSERT_EQUALS(assoc1, d_nm->mkNode(AND, a, b, c));
+    TS_ASSERT_EQUALS(assoc2, d_nm->mkNode(AND, a, d_nm->mkNode(AND, b, c)));
+
+    Node prec1 = (a && b) || c;
+    Node prec2 = a || (b && c);
+    Node prec3 = a && (b || c);
+    Node prec4 = (a || b) && c;
+
+    TS_ASSERT_EQUALS(prec1, d_nm->mkNode(OR, d_nm->mkNode(AND, a, b), c));
+    TS_ASSERT_EQUALS(prec2, d_nm->mkNode(OR, a, d_nm->mkNode(AND, b, c)));
+    TS_ASSERT_EQUALS(prec3, d_nm->mkNode(AND, a, d_nm->mkNode(OR, b, c)));
+    TS_ASSERT_EQUALS(prec4, d_nm->mkNode(AND, d_nm->mkNode(OR, a, b), c));
   }
 };

@@ -24,6 +24,7 @@
 using namespace std;
 
 namespace CVC4 {
+namespace expr {
 
 size_t NodeValue::next_id = 1;
 
@@ -56,4 +57,5 @@ void NodeValue::toStream(std::ostream& out) const {
   }
 }
 
+}/* CVC4::expr namespace */
 }/* CVC4 namespace */

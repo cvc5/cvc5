@@ -24,6 +24,8 @@
 #include "cvc4_config.h"
 #include "config.h"
 
+#include <cassert>
+
 namespace CVC4 {
 
 class CVC4_PUBLIC AssertionException : public Exception {
@@ -196,6 +198,8 @@ public:
       throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
     } \
   } while(0)
+#define DtorAlwaysAssert(cond, msg...) \
+  assert(EXPECT_TRUE( cond ))
 #define Unreachable(msg...) \
   throw UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define Unhandled(msg...) \
@@ -215,9 +219,11 @@ public:
 
 #ifdef CVC4_ASSERTIONS
 #  define Assert(cond, msg...) AlwaysAssert(cond, ## msg)
+#  define DtorAssert(cond, msg...) assert(EXPECT_TRUE( cond ))
 #  define AssertArgument(cond, arg, msg...) AlwaysAssertArgument(cond, arg, ## msg)
 #else /* ! CVC4_ASSERTIONS */
 #  define Assert(cond, msg...) /*EXPECT_TRUE( cond )*/
+#  define DtorAssert(cond, msg...) /*EXPECT_TRUE( cond )*/
 #  define AssertArgument(cond, arg, msg...) /*EXPECT_TRUE( cond )*/
 #endif /* CVC4_ASSERTIONS */
 

@@ -29,17 +29,17 @@ using namespace CVC4::context;
 
 using namespace std;
 
-
 /**
  * Very basic OutputChannel for testing simple Theory Behaviour.
  * Stores a call sequence for the output channel
  */
-enum OutputChannelCallType{CONFLICT, PROPOGATE, LEMMA, EXPLANATION};
+enum OutputChannelCallType{CONFLICT, PROPAGATE, LEMMA, EXPLANATION};
 class TestOutputChannel : public OutputChannel {
 private:
-  void push(OutputChannelCallType call, TNode n){
-    d_callHistory.push_back(make_pair(call,n));
+  void push(OutputChannelCallType call, TNode n) {
+    d_callHistory.push_back(make_pair(call, n));
   }
+
 public:
   vector< pair<OutputChannelCallType, Node> > d_callHistory;
 
@@ -49,71 +49,78 @@ public:
 
   void safePoint() throw(Interrupted) {}
 
-  void conflict(TNode n, bool safe = false) throw(Interrupted){
+  void conflict(TNode n, bool safe = false) throw(Interrupted) {
     push(CONFLICT, n);
   }
 
-  void propagate(TNode n, bool safe = false) throw(Interrupted){
-    push(PROPOGATE, n);
+  void propagate(TNode n, bool safe = false) throw(Interrupted) {
+    push(PROPAGATE, n);
   }
 
-  void lemma(TNode n, bool safe = false) throw(Interrupted){
+  void lemma(TNode n, bool safe = false) throw(Interrupted) {
     push(LEMMA, n);
   }
-  void explanation(TNode n, bool safe = false) throw(Interrupted){
+  void explanation(TNode n, bool safe = false) throw(Interrupted) {
     push(EXPLANATION, n);
   }
 
-  void clear(){
+  void clear() {
     d_callHistory.clear();
   }
-  Node getIthNode(int i){
+
+  Node getIthNode(int i) {
     Node tmp = (d_callHistory[i]).second;
     return tmp;
   }
 
-  OutputChannelCallType getIthCallType(int i){
+  OutputChannelCallType getIthCallType(int i) {
     return (d_callHistory[i]).first;
   }
 
-  unsigned getNumCalls(){
+  unsigned getNumCalls() {
     return d_callHistory.size();
   }
 };
 
 class DummyTheory : public TheoryImpl<DummyTheory> {
 public:
-  vector<Node> d_registerSequence;
+  set<Node> d_registered;
   vector<Node> d_getSequence;
 
   DummyTheory(context::Context* ctxt, OutputChannel& out) :
     TheoryImpl<DummyTheory>(ctxt, out) {}
 
-  void registerTerm(TNode n){
-    d_registerSequence.push_back(n);
+  void registerTerm(TNode n) {
+    // check that we registerTerm() a term only once
+    TS_ASSERT(d_registered.find(n) == d_registered.end());
+
+    for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
+      // check that registerTerm() is called in reverse topological order
+      TS_ASSERT(d_registered.find(*i) != d_registered.end());
+    }
+
+    d_registered.insert(n);
   }
 
-
-  Node getWrapper(){
+  Node getWrapper() {
     Node n = get();
     d_getSequence.push_back(n);
     return n;
   }
 
-  bool doneWrapper(){
+  bool doneWrapper() {
     return done();
   }
 
-  void check(Effort e){
-    while(!done()){
+  void check(Effort e) {
+    while(!done()) {
       getWrapper();
     }
   }
 
-  void preRegisterTerm(TNode n ){}
-  void propagate(Effort level = FULL_EFFORT){}
-  void explain(TNode n, Effort level = FULL_EFFORT){}
-
+  void preRegisterTerm(TNode n) {}
+  void propagate(Effort level) {}
+  void explain(TNode n, Effort level) {}
 };
 
 class TheoryBlack : public CxxTest::TestSuite {
@@ -132,7 +139,7 @@ class TheoryBlack : public CxxTest::TestSuite {
 
 public:
 
-  TheoryBlack() { }
+  TheoryBlack() {}
 
   void setUp() {
     d_nm = new NodeManager();
@@ -187,15 +194,13 @@ public:
     TS_ASSERT( Theory::quickCheckOrMore(s));
     TS_ASSERT( Theory::quickCheckOrMore(f));
 
-
     TS_ASSERT(!Theory::standardEffortOrMore(m));
     TS_ASSERT(!Theory::standardEffortOrMore(q));
     TS_ASSERT( Theory::standardEffortOrMore(s));
     TS_ASSERT( Theory::standardEffortOrMore(f));
-
   }
 
-  void testDone(){
+  void testDone() {
     TS_ASSERT(d_dummy->doneWrapper());
 
     d_dummy->assertFact(atom0);
@@ -208,7 +213,7 @@ public:
     TS_ASSERT(d_dummy->doneWrapper());
   }
 
-  void testRegisterSequence(){
+  void testRegisterTerm() {
     TS_ASSERT(d_dummy->doneWrapper());
 
     Node x = d_nm->mkVar();
@@ -218,7 +223,6 @@ public:
     Node f_x_eq_x = f_x.eqNode(x);
     Node x_eq_f_f_x = x.eqNode(f_f_x);
 
-
     d_dummy->assertFact(f_x_eq_x);
     d_dummy->assertFact(x_eq_f_f_x);
 
@@ -226,11 +230,13 @@ public:
 
     TS_ASSERT_EQUALS(got, f_x_eq_x);
 
-    TS_ASSERT_EQUALS(4, d_dummy-> d_registerSequence.size());
-    TS_ASSERT_EQUALS(x, d_dummy-> d_registerSequence[0]);
-    TS_ASSERT_EQUALS(f, d_dummy-> d_registerSequence[1]);
-    TS_ASSERT_EQUALS(f_x, d_dummy-> d_registerSequence[2]);
-    TS_ASSERT_EQUALS(f_x_eq_x, d_dummy-> d_registerSequence[3]);
+    TS_ASSERT_EQUALS(4, d_dummy->d_registered.size());
+    TS_ASSERT(d_dummy->d_registered.find(x) != d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(f) != d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(f_x) != d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(f_x_eq_x) != d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(f_f_x) == d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) == d_dummy->d_registered.end());
 
     TS_ASSERT(!d_dummy->doneWrapper());
 
@@ -238,15 +244,14 @@ public:
 
     TS_ASSERT_EQUALS(got, x_eq_f_f_x);
 
-    TS_ASSERT_EQUALS(6, d_dummy-> d_registerSequence.size());
-    TS_ASSERT_EQUALS(f_f_x, d_dummy-> d_registerSequence[4]);
-    TS_ASSERT_EQUALS(x_eq_f_f_x, d_dummy-> d_registerSequence[5]);
+    TS_ASSERT_EQUALS(6, d_dummy->d_registered.size());
+    TS_ASSERT(d_dummy->d_registered.find(f_f_x) != d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) != d_dummy->d_registered.end());
 
     TS_ASSERT(d_dummy->doneWrapper());
   }
 
-
-  void testOutputChannelAccessors(){
+  void testOutputChannelAccessors() {
     /* void setOutputChannel(OutputChannel& out)  */
     /* OutputChannel& getOutputChannel() */
 
@@ -261,7 +266,5 @@ public:
     const OutputChannel& oc = d_dummy->getOutputChannel();
 
     TS_ASSERT_EQUALS(&oc, &theOtherChannel);
-
   }
-
 };

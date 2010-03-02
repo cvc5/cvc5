@@ -98,7 +98,7 @@ class NodeValue {
   NodeValue(int);
 
   /** Destructor decrements the ref counts of its children */
-  ~NodeValue();
+  ~NodeValue() throw();
 
   typedef NodeValue** nv_iterator;
   typedef NodeValue const* const* const_nv_iterator;
@@ -165,17 +165,26 @@ public:
   }
 
   inline bool compareTo(const NodeValue* nv) const {
-    if(d_kind != nv->d_kind)
+    if(d_kind != nv->d_kind) {
       return false;
-    if(d_nchildren != nv->d_nchildren)
+    }
+
+    if(d_nchildren != nv->d_nchildren) {
       return false;
+    }
+
     const_nv_iterator i = nv_begin();
     const_nv_iterator j = nv->nv_begin();
     const_nv_iterator i_end = nv_end();
+
     while(i != i_end) {
-      if ((*i) != (*j)) return false;
-      ++i; ++j;
+      if((*i) != (*j)) {
+        return false;
+      }
+      ++i;
+      ++j;
     }
+
     return true;
   }
 
@@ -196,6 +205,7 @@ public:
   static inline unsigned kindToDKind(Kind k) {
     return ((unsigned) k) & kindMask;
   }
+
   static inline Kind dKindToKind(unsigned d) {
     return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
   }
@@ -215,7 +225,7 @@ inline NodeValue::NodeValue(int) :
   d_nchildren(0) {
 }
 
-inline NodeValue::~NodeValue() {
+inline NodeValue::~NodeValue() throw() {
   for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
     (*i)->dec();
   }
@@ -253,6 +263,13 @@ inline NodeValue::const_nv_iterator NodeValue::nv_begin() const {
 inline NodeValue::const_nv_iterator NodeValue::nv_end() const {
   return d_children + d_nchildren;
 }
+
+// for hash_maps, hash_sets, ...
+struct NodeValueHashFcn {
+  size_t operator()(const CVC4::expr::NodeValue* nv) const {
+    return (size_t)nv->hash();
+  }
+};/* struct NodeValueHashFcn */
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */

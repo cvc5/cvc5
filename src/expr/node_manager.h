@@ -29,16 +29,6 @@
 #include "expr/kind.h"
 #include "expr/expr.h"
 
-namespace __gnu_cxx {
-  template<>
-  struct hash<CVC4::NodeValue*> {
-    size_t operator()(const CVC4::NodeValue* nv) const {
-      return (size_t)nv->hash();
-    }
-  };
-}/* __gnu_cxx namespace */
-
-
 namespace CVC4 {
 
 class Type;
@@ -61,20 +51,21 @@ class NodeManager {
 
   template <unsigned> friend class CVC4::NodeBuilder;
 
-  typedef __gnu_cxx::hash_set<NodeValue*, __gnu_cxx::hash<NodeValue*>, NodeValue::NodeValueEq> NodeValueSet;
+  typedef __gnu_cxx::hash_set<expr::NodeValue*, expr::NodeValueHashFcn,
+                              expr::NodeValue::NodeValueEq> NodeValueSet;
   NodeValueSet d_nodeValueSet;
 
   expr::attr::AttributeManager d_attrManager;
 
-  NodeValue* poolLookup(NodeValue* nv) const;
-  void poolInsert(NodeValue* nv);
+  expr::NodeValue* poolLookup(expr::NodeValue* nv) const;
+  void poolInsert(expr::NodeValue* nv);
 
   friend class NodeManagerScope;
 
 public:
 
   NodeManager() {
-    poolInsert( &NodeValue::s_null );
+    poolInsert( &expr::NodeValue::s_null );
   }
 
   static NodeManager* currentNM() { return s_current; }
@@ -152,7 +143,7 @@ public:
     Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
 
-  ~NodeManagerScope() {
+  ~NodeManagerScope() throw() {
     NodeManager::s_current = d_oldNodeManager;
     Debug("current") << "node manager scope: returning to " << NodeManager::s_current << "\n";
   }
@@ -224,9 +215,9 @@ inline const Type* NodeManager::getType(TNode n) {
   return getAttribute(n, CVC4::expr::TypeAttr());
 }
 
-inline void NodeManager::poolInsert(NodeValue* nv) {
-  Assert(d_nodeValueSet.find(nv) == d_nodeValueSet.end(), "NodeValue already in"
-         "the pool!");
+inline void NodeManager::poolInsert(expr::NodeValue* nv) {
+  Assert(d_nodeValueSet.find(nv) == d_nodeValueSet.end(),
+         "NodeValue already in the pool!");
   d_nodeValueSet.insert(nv);
 }
 

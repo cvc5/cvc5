@@ -46,7 +46,7 @@ private:
   SatSolver *d_satSolver;
 
   /** Cache of what literal have been registered to a node. */
-  __gnu_cxx::hash_map<Node, SatLiteral> d_translationCache;
+  __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFcn> d_translationCache;
 
 protected:
 

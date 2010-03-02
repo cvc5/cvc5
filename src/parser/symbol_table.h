@@ -23,17 +23,14 @@
 
 #include <ext/hash_map>
 
-namespace __gnu_cxx {
-template<>
-  struct hash<std::string> {
-    size_t operator()(const std::string& str) const {
-      return hash<const char*>()(str.c_str());
-    }
-  };
-}/* __gnu_cxx namespace */
-
 namespace CVC4 {
 namespace parser {
+
+struct StringHashFcn {
+  size_t operator()(const std::string& str) const {
+    return __gnu_cxx::hash<const char*>()(str.c_str());
+  }
+};
 
 /**
  * Generic symbol table for looking up variables by name.
@@ -44,12 +41,9 @@ class SymbolTable {
 private:
 
   /** The name to expression bindings */
-  typedef __gnu_cxx::hash_map<std::string, ObjectType>
+  typedef __gnu_cxx::hash_map<std::string, ObjectType, StringHashFcn>
   LookupTable;
-/*
-  typedef __gnu_cxx::hash_map<std::string, std::stack<ObjectType> >
-  LookupTable;
-*/
+
   /** The table iterator */
   typedef typename LookupTable::iterator table_iterator;
   /** The table iterator */
