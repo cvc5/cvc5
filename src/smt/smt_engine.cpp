@@ -33,7 +33,7 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
   NodeManagerScope nms(d_nodeManager);
   d_decisionEngine = new DecisionEngine;
   d_theoryEngine = new TheoryEngine(this, d_ctxt);
-  d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine);
+  d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine, d_ctxt);
 }
 
 SmtEngine::~SmtEngine() {

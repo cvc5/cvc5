@@ -26,20 +26,21 @@
 #include <map>
 
 using namespace std;
+using namespace CVC4::context;
 
 namespace CVC4 {
 namespace prop {
 
 PropEngine::PropEngine(const Options* opts, DecisionEngine* de,
-                       TheoryEngine* te)
+                       TheoryEngine* te, Context* context)
 : d_inCheckSat(false),
   d_options(opts),
   d_decisionEngine(de),
-  d_theoryEngine(te) 
+  d_theoryEngine(te),
+  d_context(context)
 {
   Debug("prop") << "Constructing the PropEngine" << endl;
-  d_satSolver = new SatSolver();
-  SatSolverProxy::initSatSolver(d_satSolver, d_options);
+  d_satSolver = new SatSolver(this, d_theoryEngine, d_context, d_options);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
 }
 

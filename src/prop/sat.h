@@ -14,6 +14,8 @@
  **/
 
 #include "cvc4_private.h"
+#include "context/context.h"
+#include "theory/theory_engine.h"
 
 #ifndef __CVC4__PROP__SAT_H
 #define __CVC4__PROP__SAT_H
@@ -28,10 +30,12 @@
 #include "prop/minisat/simp/SimpSolver.h"
 
 namespace CVC4 {
+
+class TheoryEngine;
+
 namespace prop {
 
-/** The solver we are using */
-typedef minisat::SimpSolver SatSolver;
+class PropEngine;
 
 /** Type of the SAT variables */
 typedef minisat::Var SatVariable;
@@ -74,24 +78,56 @@ inline std::ostream& operator << (std::ostream& out, const SatClause& clause) {
  * It's only accessible from the PropEngine, and should be treated with major
  * care.
  */
-class SatSolverProxy {
+class SatSolver {
 
-  /** Only the prop engine can modify the internals of the SAT solver */
-  friend class PropEngine;
+  /** The prop engine we are using */
+  PropEngine* d_propEngine;
 
-  private:
+  /** The theory engine we are using */
+  TheoryEngine* d_theoryEngine;
 
-    /**
-     * Initializes the given sat solver with the given options.
-     * @param satSolver the SAT solver
-     * @param options the options
-     */
-    inline static void initSatSolver(SatSolver* satSolver,
-                                     const Options* options) {
+  /** Context we will be using to synchronzie the sat solver */
+  context::Context* d_context;
+
+  /** Minisat solver */
+  minisat::SimpSolver* d_minisat;
+
+  /** Remember the options */
+  Options* d_options;
+
+  public:
+
+    SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
+                   context::Context* context, const Options* options)
+      : d_propEngine(propEngine),
+        d_theoryEngine(theoryEngine),
+        d_context(context)
+    {
+      // Create the solver
+      d_minisat = new minisat::SimpSolver(this, d_context);
       // Setup the verbosity
-      satSolver->verbosity = (options->verbosity > 0) ? 1 : -1;
+      d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
       // Do not delete the satisfied clauses, just the learnt ones
-      satSolver->remove_satisfied = false;
+      d_minisat->remove_satisfied = false;
+    }
+
+    ~SatSolver() {
+      delete d_minisat;
+    }
+
+    inline bool solve() {
+      return d_minisat->solve();
+    }
+
+    inline void addClause(SatClause& clause) {
+      d_minisat->addClause(clause);
+    }
+
+    inline SatVariable newVar() {
+      return d_minisat->newVar();
+    }
+
+    inline void theoryCheck(SatClause& conflict) {
     }
 };
 

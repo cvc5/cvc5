@@ -53,7 +53,9 @@ class PropEngine {
   /** The theory engine we will be using */
   TheoryEngine *d_theoryEngine;
 
-  /** The SAT solver*/
+  context::Context* d_context;
+
+  /** The SAT solver proxy */
   SatSolver* d_satSolver;
 
   /** List of all of the assertions that need to be made */
@@ -67,7 +69,7 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(const Options*, DecisionEngine*, TheoryEngine*);
+  PropEngine(const Options*, DecisionEngine*, TheoryEngine*, context::Context*);
 
   /**
    * Destructor.

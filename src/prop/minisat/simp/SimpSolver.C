@@ -28,8 +28,9 @@ namespace CVC4 {
 namespace prop {
 namespace minisat {
 
-SimpSolver::SimpSolver() :
-    grow               (0)
+SimpSolver::SimpSolver(SatSolver* proxy, context::Context* context) :
+    Solver(proxy, context)
+  , grow               (0)
   , asymm_mode         (false)
   , redundancy_check   (false)
   , merges             (0)

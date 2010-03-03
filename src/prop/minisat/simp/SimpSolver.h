@@ -30,13 +30,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace CVC4 {
 namespace prop {
+
+class SatSolver;
+
 namespace minisat {
 
 class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-    SimpSolver();
+    SimpSolver(SatSolver* proxy, context::Context* context);
     CVC4_PUBLIC ~SimpSolver();
 
     // Problem specification:

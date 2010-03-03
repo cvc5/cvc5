@@ -17,10 +17,11 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
-
 #ifndef __CVC4__PROP__MINISAT__SOLVER_H
 #define __CVC4__PROP__MINISAT__SOLVER_H
+
+#include "cvc4_private.h"
+#include "context/context.h"
 
 #include <cstdio>
 #include <cassert>
@@ -32,27 +33,34 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "SolverTypes.h"
 
-
 //=================================================================================================
 // Solver -- the main class:
 
 namespace CVC4 {
 namespace prop {
 
-class SatSolverProxy;
+class SatSolver;
 
 namespace minisat {
 
 class Solver {
 
   /** The only CVC4 entry point to the private solver data */
-  friend class CVC4::prop::SatSolverProxy;
+  friend class CVC4::prop::SatSolver;
+
+protected:
+
+  /** The pointer to the proxy that provides interfaces to the SMT engine */
+  SatSolver* proxy;
+
+  /** The context from the SMT solver */
+  context::Context* context;
 
 public:
 
     // Constructor/Destructor:
     //
-    Solver();
+    Solver(SatSolver* proxy, context::Context* context);
     CVC4_PUBLIC ~Solver();
 
     // Problem specification:
@@ -165,7 +173,9 @@ protected:
     void     newDecisionLevel ();                                                      // Begins a new decision level.
     void     uncheckedEnqueue (Lit p, Clause* from = NULL);                            // Enqueue a literal. Assumes value of literal is undefined.
     bool     enqueue          (Lit p, Clause* from = NULL);                            // Test if fact 'p' contradicts current state, enqueue otherwise.
-    Clause*  propagate        ();                                                      // Perform unit propagation. Returns possibly conflicting clause.
+    Clause*  propagate        ();                                                      // Perform Boolean and Theory. Returns possibly conflicting clause.
+    Clause*  propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
+    Clause*  propagateTheory  ();                                                      // Perform Theory propagation. Returns possibly conflicting clause.
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     void     analyze          (Clause* confl, vec<Lit>& out_learnt, int& out_btlevel); // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
@@ -217,10 +227,8 @@ protected:
         return (int)(drand(seed) * size); }
 };
 
-
 //=================================================================================================
 // Implementation of inline methods:
-
 
 inline void Solver::insertVarOrder(Var x) {
     if (!order_heap.inHeap(x) && decision_var[x]) order_heap.insert(x); }
@@ -247,7 +255,7 @@ inline void Solver::claBumpActivity (Clause& c) {
 
 inline bool     Solver::enqueue         (Lit p, Clause* from)   { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
 inline bool     Solver::locked          (const Clause& c) const { return reason[var(c[0])] == &c && value(c[0]) == l_True; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); context->push(); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level[x] & 31); }

@@ -19,6 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "Solver.h"
 #include "Sort.h"
+#include "prop/sat.h"
 #include <cmath>
 
 //=================================================================================================
@@ -28,10 +29,14 @@ namespace CVC4 {
 namespace prop {
 namespace minisat {
 
-Solver::Solver() :
+Solver::Solver(SatSolver* proxy, context::Context* context) :
+
+    // SMT stuff
+    proxy(proxy)
+  , context(context)
 
     // Parameters: (formerly in 'SearchParams')
-    var_decay(1 / 0.95), clause_decay(1 / 0.999), random_var_freq(0.02)
+  , var_decay(1 / 0.95), clause_decay(1 / 0.999), random_var_freq(0.02)
   , restart_first(100), restart_inc(1.5), learntsize_factor((double)1/(double)3), learntsize_inc(1.1)
 
     // More parameters:
@@ -159,14 +164,20 @@ bool Solver::satisfied(const Clause& c) const {
 //
 void Solver::cancelUntil(int level) {
     if (decisionLevel() > level){
-        for (int c = trail.size()-1; c >= trail_lim[level]; c--){
+        // Pop the SMT context
+        for (int l = trail_lim.size() - level; l > 0; --l)
+          context->pop();
+        // Now the minisat stuff
+        for (int c = trail.size()-1; c >= trail_lim[level]; c--) {
             Var     x  = var(trail[c]);
             assigns[x] = toInt(l_Undef);
-            insertVarOrder(x); }
+            insertVarOrder(x);
+        }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
-    } }
+    }
+}
 
 
 //=================================================================================================
@@ -390,9 +401,40 @@ void Solver::uncheckedEnqueue(Lit p, Clause* from)
 }
 
 
+Clause* Solver::propagate()
+{
+    Clause* confl = NULL;
+
+    while(qhead < trail.size()) {
+      confl = propagateBool();
+      if (confl != NULL) break;
+      confl = propagateTheory();
+      if (confl != NULL) break;
+    }
+
+    return confl;
+}
+
 /*_________________________________________________________________________________________________
 |
-|  propagate : [void]  ->  [Clause*]
+|  propagateTheory : [void]  ->  [Clause*]
+|
+|  Description:
+|    Propagates all enqueued theory facts. If a conflict arises, the conflicting clause is returned,
+|    otherwise NULL.
+|
+|    Note: the propagation queue might be NOT empty
+|________________________________________________________________________________________________@*/
+Clause* Solver::propagateTheory()
+{
+  SatClause clause;
+  proxy->theoryCheck(clause);
+  return NULL;
+}
+
+/*_________________________________________________________________________________________________
+|
+|  propagateBool : [void]  ->  [Clause*]
 |  
 |  Description:
 |    Propagates all enqueued facts. If a conflict arises, the conflicting clause is returned,
@@ -401,7 +443,7 @@ void Solver::uncheckedEnqueue(Lit p, Clause* from)
 |    Post-conditions:
 |      * the propagation queue is empty, even if there was a conflict.
 |________________________________________________________________________________________________@*/
-Clause* Solver::propagate()
+Clause* Solver::propagateBool()
 {
     Clause* confl     = NULL;
     int     num_props = 0;
