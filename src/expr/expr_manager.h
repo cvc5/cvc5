@@ -24,8 +24,8 @@ namespace CVC4 {
 
 class Expr;
 class Type;
-class BooleanType; 
-class FunctionType; 
+class BooleanType;
+class FunctionType;
 class KindType;
 class SmtEngine;
 class NodeManager;
@@ -91,12 +91,12 @@ public:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /** Make a function type from domain to range. */
-  const FunctionType* 
-    mkFunctionType(const Type* domain, 
+  const FunctionType*
+    mkFunctionType(const Type* domain,
                    const Type* range);
 
   /** Make a function type with input types from argTypes. */
-  const FunctionType* 
+  const FunctionType*
     mkFunctionType(const std::vector<const Type*>& argTypes, 
                    const Type* range);
 

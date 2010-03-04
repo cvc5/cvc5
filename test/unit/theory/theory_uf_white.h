@@ -115,6 +115,64 @@ public:
     delete d_nm;
   }
 
+  void testPushPopChain(){
+    Node x = d_nm->mkVar();
+    Node f = d_nm->mkVar();
+    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
+    Node f_f_x = d_nm->mkNode(kind::APPLY, f, f_x);
+    Node f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_x);
+    Node f_f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_f_x);
+    Node f_f_f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_f_f_x);
+
+    Node f3_x_eq_x = f_f_f_x.eqNode(x);
+    Node f5_x_eq_x = f_f_f_f_f_x.eqNode(x);
+    Node f5_x_eq_f5_x = f_f_f_f_f_x.eqNode(f_f_f_f_f_x);
+    Node f1_x_neq_x = f_x.eqNode(x).notNode();
+
+    Node expectedConflict = d_nm->mkNode(kind::AND,
+                                         f1_x_neq_x,
+                                         f5_x_eq_f5_x,
+                                         f3_x_eq_x,
+                                         f5_x_eq_x
+                                         );
+
+    d_euf->assertFact( f5_x_eq_f5_x );
+
+    d_euf->assertFact( f3_x_eq_x );
+    d_euf->assertFact( f1_x_neq_x );
+    d_euf->check(level);
+    d_context->push();
+
+    d_euf->assertFact( f5_x_eq_x );
+    d_euf->check(level);
+
+    TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
+    TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
+    Node realConflict = d_outputChannel.getIthNode(0);
+    TS_ASSERT_EQUALS(expectedConflict, realConflict);
+
+    d_context->pop();
+    d_euf->check(level);
+
+    //Test that no additional calls to the output channel occurred.
+    TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
+
+    d_euf->assertFact( f5_x_eq_x );
+
+    d_euf->check(level);
+
+    TS_ASSERT_EQUALS(2, d_outputChannel.getNumCalls());
+    TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
+    TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(1));
+    Node  firstConflict = d_outputChannel.getIthNode(0);
+    Node secondConflict = d_outputChannel.getIthNode(1);
+    TS_ASSERT_EQUALS(expectedConflict,  firstConflict);
+    TS_ASSERT_EQUALS(expectedConflict, secondConflict);
+
+  }
+
+
+
   /* test that {f(f(x)) == x, f(f(f(x))) != f(x)} is inconsistent */
   void testSimpleChain(){
     Node x = d_nm->mkVar();
@@ -200,4 +258,33 @@ public:
     Node realConflict = d_outputChannel.getIthNode(0);
     TS_ASSERT_EQUALS(expectedConflict, realConflict);
   }
+
+
+  void testPushPopA(){
+    Node x = d_nm->mkVar();
+    Node x_eq_x = x.eqNode(x);
+
+    d_context->push();
+    d_euf->assertFact( x_eq_x );
+    d_euf->check(level);
+    d_context->pop();
+    d_euf->check(level);
+  }
+
+  void testPushPopB(){
+    Node x = d_nm->mkVar();
+    Node f = d_nm->mkVar();
+    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
+    Node f_x_eq_x = f_x.eqNode(x);
+
+    d_euf->assertFact( f_x_eq_x );
+    d_context->push();
+    d_euf->check(level);
+    d_context->pop();
+    d_euf->check(level);
+  }
+
+
+
+
 };

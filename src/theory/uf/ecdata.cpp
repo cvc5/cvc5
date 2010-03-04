@@ -23,16 +23,16 @@ using namespace uf;
 
 ECData::ECData(Context * context, TNode n) :
   ContextObj(context),
-  find(this),
-  rep(n),
-  watchListSize(0),
-  first(NULL),
-  last(NULL)
+  d_find(this),
+  d_rep(n),
+  d_watchListSize(0),
+  d_first(NULL),
+  d_last(NULL)
 {}
 
 
 bool ECData::isClassRep(){
-  return this == this->find;
+  return this == this->d_find;
 }
 
 void ECData::addPredecessor(TNode n, Context* context){
@@ -40,13 +40,13 @@ void ECData::addPredecessor(TNode n, Context* context){
 
   makeCurrent();
 
-  Link * newPred = new (context->getCMM())  Link(context, n, first);
-  first = newPred;
-  if(last == NULL){
-    last = newPred;
+  Link * newPred = new (context->getCMM())  Link(context, n, d_first);
+  d_first = newPred;
+  if(d_last == NULL){
+    d_last = newPred;
   }
 
-  ++watchListSize;
+  ++d_watchListSize;
 }
 
 ContextObj* ECData::save(ContextMemoryManager* pCMM) {
@@ -54,30 +54,35 @@ ContextObj* ECData::save(ContextMemoryManager* pCMM) {
 }
 
 void ECData::restore(ContextObj* pContextObj) {
-  *this = *((ECData*)pContextObj);
+  ECData* data = (ECData*)pContextObj;
+  d_find = data->d_find;
+  d_first = data->d_first;
+  d_last = data->d_last;
+  d_rep = data->d_rep;
+  d_watchListSize = data->d_watchListSize;
 }
 
 Node ECData::getRep(){
-  return rep;
+  return d_rep;
 }
 
 unsigned ECData::getWatchListSize(){
-  return watchListSize;
+  return d_watchListSize;
 }
 
 
 void ECData::setFind(ECData * ec){
   makeCurrent();
-  find = ec;
+  d_find = ec;
 }
 
 ECData * ECData::getFind(){
-  return find;
+  return d_find;
 }
 
 
 Link* ECData::getFirst(){
-  return first;
+  return d_first;
 }
 
 
@@ -87,14 +92,14 @@ void ECData::takeOverDescendantWatchList(ECData * nslave, ECData * nmaster){
 
   nmaster->makeCurrent();
 
-  nmaster->watchListSize +=  nslave->watchListSize;
+  nmaster->d_watchListSize +=  nslave->d_watchListSize;
 
-  if(nmaster->first == NULL){
-    nmaster->first = nslave->first;
-    nmaster->last = nslave->last;
-  }else if(nslave->first != NULL){
-    Link * currLast = nmaster->last;
-    currLast->next = nslave->first;
-    nmaster->last = nslave->last;
+  if(nmaster->d_first == NULL){
+    nmaster->d_first = nslave->d_first;
+    nmaster->d_last = nslave->d_last;
+  }else if(nslave->d_first != NULL){
+    Link * currLast = nmaster->d_last;
+    currLast->d_next = nslave->d_first;
+    nmaster->d_last = nslave->d_last;
   }
 }

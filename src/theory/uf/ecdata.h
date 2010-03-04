@@ -41,21 +41,21 @@ struct Link {
    * Pointer to the next element in linked list.
    * This is context dependent. 
    */
-  context::CDO< Link* > next;
+  context::CDO< Link* > d_next;
 
   /* Link is supposed to be allocated in a region of a ContextMemoryManager.
    * In order to avoid having to decrement the ref count at deletion time,
    * it is preferrable for the user of Link to maintain the invariant that
    * data will survival for the entire scope of the TNode.
    */
-  TNode data;
+  TNode d_data;
 
   /**
    * Creates a new Link w.r.t. a context for the node n.
    * An optional parameter is to specify the next element in the link.
    */
   Link(context::Context* context, TNode n, Link * l = NULL):
-    next(context, l), data(n)
+    d_next(context, l), d_data(n)
   {}
 
   /**
@@ -103,7 +103,7 @@ private:
    * This was chosen to be a ECData pointer in order to shortcut at least one
    * table every time the find pointer is examined.
    */
-  ECData* find;
+  ECData* d_find;
 
 
   /**
@@ -122,17 +122,17 @@ private:
    * the ECData will never get garbage collected.
    * So this needs to be a soft link.
    */
-  TNode rep;
+  TNode d_rep;
 
   /* Watch list datastructures. */
   /** Maintains watch list size for more efficient merging */
-  unsigned watchListSize;
+  unsigned d_watchListSize;
 
   /**
    *Pointer to the beginning of the watchlist.
    *This value is NULL iff the watch list is empty.
    */
-  Link* first;
+  Link* d_first;
 
   /**
    * Pointer to the end of the watch-list.
@@ -141,7 +141,7 @@ private:
    * preceeded by an O(|watchlist|) operation.)
    * This value is NULL iff the watch list is empty.
    */
-  Link* last;
+  Link* d_last;
 
 
   /** Context dependent operations */

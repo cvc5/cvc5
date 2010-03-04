@@ -122,9 +122,9 @@ void TheoryUF::registerTerm(TNode n){
       /* Because this can be called after nodes have been merged we may need
        * to be merged with other predecessors of the equivalence class.
        */
-      for(Link* Px = ecChild->getFirst(); Px != NULL; Px = Px->next ){
-        if(equiv(n, Px->data)){
-          Node pend = n.eqNode(Px->data);
+      for(Link* Px = ecChild->getFirst(); Px != NULL; Px = Px->d_next ){
+        if(equiv(n, Px->d_data)){
+          Node pend = n.eqNode(Px->d_data);
           d_pending.push_back(pend);
         }
       }
@@ -210,10 +210,10 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
 
   nslave->setFind(nmaster);
 
-  for(Link* Px = nmaster->getFirst(); Px != NULL; Px = Px->next ){
-    for(Link* Py = nslave->getFirst(); Py != NULL; Py = Py->next ){
-      if(equiv(Px->data,Py->data)){
-        Node pendingEq = (Px->data).eqNode(Py->data);
+  for(Link* Px = nmaster->getFirst(); Px != NULL; Px = Px->d_next ){
+    for(Link* Py = nslave->getFirst(); Py != NULL; Py = Py->d_next ){
+      if(equiv(Px->d_data,Py->d_data)){
+        Node pendingEq = (Px->d_data).eqNode(Py->d_data);
         d_pending.push_back(pendingEq);
       }
     }

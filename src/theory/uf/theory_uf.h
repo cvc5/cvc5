@@ -84,8 +84,6 @@ public:
   ~TheoryUF();
 
 
-  //TODO Tim: I am going to delay documenting these functions while Morgan
-  //has pending changes to the contracts
 
   /**
    * Registers a previously unseen [in this context] node n.
