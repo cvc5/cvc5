@@ -109,6 +109,8 @@ class SatSolver {
       d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
       // Do not delete the satisfied clauses, just the learnt ones
       d_minisat->remove_satisfied = false;
+      // Make minisat reuse the literal values
+      d_minisat->polarity_mode = minisat::SimpSolver::polarity_user;
     }
 
     ~SatSolver() {
