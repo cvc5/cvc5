@@ -24,14 +24,14 @@
 namespace CVC4 {
 namespace parser {
 
-class CVC4_PUBLIC ParserException: public Exception {
+class CVC4_PUBLIC ParserException : public Exception {
 public:
   // Constructors
   ParserException() { }
   ParserException(const std::string& msg): Exception(msg) { }
   ParserException(const char* msg): Exception(msg) { }
   // Destructor
-  virtual ~ParserException() { }
+  virtual ~ParserException() throw() {}
   virtual std::string toString() const {
     return "Parse Error: " + d_msg;
   }

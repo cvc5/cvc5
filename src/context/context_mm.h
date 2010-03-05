@@ -25,17 +25,16 @@
 namespace CVC4 {
 namespace context {
 
-
-  /**
-   * Region-based memory manager for contexts.  Calls to newData provide memory
-   * from the current region.  This memory will persist until the entire
-   * region is deallocated (by calling pop).
-   *
-   * If push is called, the current region is deactivated and pushed on a
-   * stack, and a new current region is created.  A subsequent call to pop
-   * releases the new region and restores the top region from the stack.
-   *
-   */
+/**
+ * Region-based memory manager for contexts.  Calls to newData provide memory
+ * from the current region.  This memory will persist until the entire
+ * region is deallocated (by calling pop).
+ *
+ * If push is called, the current region is deactivated and pushed on a
+ * stack, and a new current region is created.  A subsequent call to pop
+ * releases the new region and restores the top region from the stack.
+ *
+ */
 class ContextMemoryManager {
 
   /**
@@ -102,6 +101,7 @@ class ContextMemoryManager {
   void newChunk();
 
  public:
+
   /**
    * Constructor - creates an initial region and an empty stack
    */
@@ -110,7 +110,7 @@ class ContextMemoryManager {
   /**
    * Destructor - deletes all memory in all regions
    */
-  ~ContextMemoryManager();
+  ~ContextMemoryManager() throw();
 
   /**
    * Allocate size bytes from the current region
@@ -128,7 +128,7 @@ class ContextMemoryManager {
    */
   void pop();
 
-}; /* class ContextMemoryManager */
+};/* class ContextMemoryManager */
 
 }/* CVC4::context namespace */
 }/* CVC4 namespace */

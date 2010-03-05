@@ -151,7 +151,7 @@ int runCvc4(int argc, char *argv[]) {
   } else {
     string filename = argv[firstArgIndex];
     input = new ifstream(filename.c_str());
-    if(input == NULL) {
+    if(!*input) {
       throw Exception("file does not exist or is unreadable: " + filename);
     }
     parser = Parser::getNewParser(&exprMgr, options.lang, *input, filename);

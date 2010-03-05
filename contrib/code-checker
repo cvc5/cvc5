@@ -1,0 +1,96 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+while($#ARGV >= 0) {
+  my %FP;
+  my $file = shift @ARGV;
+
+  local $/ = undef;
+
+  open(FP, $file) || die "can't read $file";
+  print "checking $file...\n";
+  binmode FP;
+  my $buf = <FP>;
+  close FP;
+
+  print "file named incorrectly; use *.h: $file\n" if $file =~ /\.(hpp|H|hh)$/;
+  print "file named incorrectly; use *.cpp: $file\n" if $file =~ /\.(C|cc)$/;
+  if($file =~ /\.(h|hpp|H)$/) {
+    check_as_header($buf);
+  } elsif($file =~ /\.(h|cpp|C)$/) {
+    check_as_source($buf);
+  } else {
+    die "$file not checked (unknown type of file)";
+  }
+  open(FP, "cpp -nostdinc \"$file\" 2>/dev/null |") || die "can't cpp $file";
+  binmode FP;
+  $buf = <FP>;
+  close FP;
+
+  if($file =~ /\.(h|hpp|H)$/) {
+    check_as_header_cpp($buf);
+  } elsif($file =~ /\.(h|cpp|C)$/) {
+    check_as_source_cpp($buf);
+  } else {
+    die "$file not checked (unknown type of file)";
+  }
+}
+
+sub check_as_any {
+  my($buf) = @_;
+
+  print "no file head comment\n" unless $buf =~ m,^/*\*\*\*,;
+}
+
+sub check_as_header {
+  my($buf) = @_;
+  check_as_any($buf);
+}
+
+sub check_as_source {
+  my($buf) = @_;
+  check_as_any($buf);
+}
+
+sub check_as_any_cpp {
+  my($buf) = @_;
+
+  print "need space between tokens ) and {\n" if $buf =~ /\)\{/;
+  print "need space between tokens 'const' and {\n" if $buf =~ /\bconst\{/;
+  print "need space between tokens ) and 'const'\n" if $buf =~ /\)const\b/;
+  print "need space between tokens 'template' and <\n" if $buf =~ /\btemplate</;
+  print "need space between tokens } and 'else'\n" if $buf =~ /\}else\b/;
+  print "need space between tokens 'else' and {\n" if $buf =~ /\belse\{/;
+  print "need space between tokens 'do' and {\n" if $buf =~ /\bdo\{/;
+  print "need space between tokens } and 'while'\n" if $buf =~ /\}while\b/;
+
+  print "no space permitted before ;\n" if $buf =~ /\s+;/;
+  print "no space permitted between tokens 'if' and (\n" if $buf =~ /\bif\s\(/;
+  print "no space permitted between tokens 'while' and (\n" if $buf =~ /\bwhile\s\(/;
+  print "no space permitted between tokens 'for' and (\n" if $buf =~ /\bfor\s\(/;
+
+  my $code = $buf;
+  $code =~ s,\\.,.,g;
+  $code =~ s,"[^"]*","",g;
+
+  #print "'if' blocks must be braced, '{' should be last character on block opening line\n" if $code =~ /\bif\b.*[^{]\s*$/m;
+  #print "'while' blocks must be braced, '{' should be last character on block opening line\n" if $code =~ /\bwhile\b.*[^{]\s*$/m;
+  #print "'for' blocks must be braced, '{' should be last character on block opening line\n" if $code =~ /\bfor\b.*[^{]\s*$/m;
+  print "'else' cannot start a line (should follow preceding '}')\n" if $code =~ /^\s+else\b/m;
+}
+
+sub check_as_header_cpp {
+  my($buf) = @_;
+  check_as_any_cpp($buf);
+}
+
+sub check_as_source_cpp {
+  my($buf) = @_;
+  check_as_any_cpp($buf);
+}
+
+## Local Variables:
+## perl-indent-level: 2
+## perl-brace-offset: 0
+## End:

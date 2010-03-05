@@ -47,7 +47,6 @@ inline std::ostream& operator<<(std::ostream&, const NodeBuilder<nchild_thresh>&
 class AndNodeBuilder;
 class OrNodeBuilder;
 class PlusNodeBuilder;
-class MinusNodeBuilder;
 class MultNodeBuilder;
 
 template <unsigned nchild_thresh>
@@ -63,7 +62,7 @@ class NodeBuilder {
   // extract another
   bool d_used;
 
-  expr::NodeValue *d_nv;
+  expr::NodeValue* d_nv;
   expr::NodeValue d_inlineNv;
   expr::NodeValue *d_childrenStorage[nchild_thresh];
 
@@ -93,7 +92,7 @@ class NodeBuilder {
   }
 
   // dealloc: only call this with d_used == false and nvIsAllocated()
-  inline void dealloc() throw();
+  inline void dealloc();
 
   void crop() {
     Assert(!d_used, "NodeBuilder is one-shot only; attempt to access it after conversion");
@@ -101,6 +100,9 @@ class NodeBuilder {
       d_nv = (expr::NodeValue*)
         std::realloc(d_nv, sizeof(expr::NodeValue) +
                      ( sizeof(expr::NodeValue*) * (d_size = d_nv->d_nchildren) ));
+      if(d_nv == NULL) {
+        throw std::bad_alloc();
+      }
     }
   }
 
@@ -126,7 +128,7 @@ public:
   template <unsigned N> inline NodeBuilder(const NodeBuilder<N>& nb);
   inline NodeBuilder(NodeManager* nm);
   inline NodeBuilder(NodeManager* nm, Kind k);
-  inline ~NodeBuilder() throw();
+  inline ~NodeBuilder();
 
   typedef expr::NodeValue::iterator<true> iterator;
   typedef expr::NodeValue::iterator<true> const_iterator;
@@ -223,9 +225,10 @@ public:
   friend class PlusNodeBuilder;
   friend class MultNodeBuilder;
 
-  //Yet 1 more example of how terrifying C++ is as a language
-  //This is needed for copy constructors of different sizes to access private fields
-  template <unsigned N> friend class NodeBuilder;
+  // Yet 1 more example of how terrifying C++ is as a language
+  // This is needed for copy constructors of different sizes to access private fields
+  template <unsigned N>
+  friend class NodeBuilder;
 
 };/* class NodeBuilder */
 
@@ -423,14 +426,24 @@ inline MultNodeBuilder PlusNodeBuilder::operator*(const NodeTemplate<rc>& n) {
   return MultNodeBuilder(Node(d_eb), n);
 }
 
-/*
-inline PlusNodeBuilder& PlusNodeBuilder::operator+(PlusNodeBuilder& b) { return *this + Node(d_eb); }
-inline PlusNodeBuilder& PlusNodeBuilder::operator+(MultNodeBuilder& b) { return *this + Node(d_eb); }
-inline PlusNodeBuilder& PlusNodeBuilder::operator-(PlusNodeBuilder& b) { return *this - Node(d_eb); }
-inline PlusNodeBuilder& PlusNodeBuilder::operator-(MultNodeBuilder& b) { return *this - Node(d_eb); }
-inline MultNodeBuilder PlusNodeBuilder::operator*(PlusNodeBuilder& b) { return *this * Node(d_eb); }
-inline MultNodeBuilder PlusNodeBuilder::operator*(MultNodeBuilder& b) { return *this * Node(d_eb); }
-*/
+inline PlusNodeBuilder& operator+(PlusNodeBuilder& a, const PlusNodeBuilder& b) {
+  return a + Node(b.d_eb);
+}
+inline PlusNodeBuilder& operator+(PlusNodeBuilder& a, const MultNodeBuilder& b) {
+  return a + Node(b.d_eb);
+}
+inline PlusNodeBuilder& operator-(PlusNodeBuilder&a, const PlusNodeBuilder& b) {
+  return a - Node(b.d_eb);
+}
+inline PlusNodeBuilder& operator-(PlusNodeBuilder& a, const MultNodeBuilder& b) {
+  return a - Node(b.d_eb);
+}
+inline MultNodeBuilder operator*(PlusNodeBuilder& a, const PlusNodeBuilder& b) {
+  return a * Node(b.d_eb);
+}
+inline MultNodeBuilder operator*(PlusNodeBuilder& a, const MultNodeBuilder& b) {
+  return a * Node(b.d_eb);
+}
 
 template <bool rc>
 inline PlusNodeBuilder MultNodeBuilder::operator+(const NodeTemplate<rc>& n) {
@@ -439,7 +452,7 @@ inline PlusNodeBuilder MultNodeBuilder::operator+(const NodeTemplate<rc>& n) {
 
 template <bool rc>
 inline PlusNodeBuilder MultNodeBuilder::operator-(const NodeTemplate<rc>& n) {
-  return PlusNodeBuilder(Node(d_eb), n);
+  return PlusNodeBuilder(Node(d_eb), NodeManager::currentNM()->mkNode(kind::UMINUS, n));
 }
 
 template <bool rc>
@@ -448,14 +461,24 @@ inline MultNodeBuilder& MultNodeBuilder::operator*(const NodeTemplate<rc>& n) {
   return *this;
 }
 
-/*
-inline PlusNodeBuilder MultNodeBuilder::operator+(const PlusNodeBuilder& b) { return *this + Node(d_eb); }
-inline PlusNodeBuilder MultNodeBuilder::operator+(const MultNodeBuilder& b) { return *this + Node(d_eb); }
-inline PlusNodeBuilder MultNodeBuilder::operator-(const PlusNodeBuilder& b) { return *this - Node(d_eb); }
-inline PlusNodeBuilder MultNodeBuilder::operator-(const MultNodeBuilder& b) { return *this - Node(d_eb); }
-inline MultNodeBuilder& MultNodeBuilder::operator*(const PlusNodeBuilder& b) { return *this * Node(d_eb); }
-inline MultNodeBuilder& MultNodeBuilder::operator*(const MultNodeBuilder& b) { return *this * Node(d_eb); }
-*/
+inline PlusNodeBuilder operator+(MultNodeBuilder& a, const PlusNodeBuilder& b) {
+  return a + Node(b.d_eb);
+}
+inline PlusNodeBuilder operator+(MultNodeBuilder& a, const MultNodeBuilder& b) {
+  return a + Node(b.d_eb);
+}
+inline PlusNodeBuilder operator-(MultNodeBuilder& a, const PlusNodeBuilder& b) {
+  return a - Node(b.d_eb);
+}
+inline PlusNodeBuilder operator-(MultNodeBuilder& a, const MultNodeBuilder& b) {
+  return a - Node(b.d_eb);
+}
+inline MultNodeBuilder& operator*(MultNodeBuilder& a, const PlusNodeBuilder& b) {
+  return a * Node(b.d_eb);
+}
+inline MultNodeBuilder& operator*(MultNodeBuilder& a, const MultNodeBuilder& b) {
+  return a * Node(b.d_eb);
+}
 
 template <bool rc1, bool rc2>
 inline AndNodeBuilder operator&&(const NodeTemplate<rc1>& a, const NodeTemplate<rc2>& b) {
@@ -500,6 +523,41 @@ inline OrNodeBuilder operator||(const NodeTemplate<rc>& a, const AndNodeBuilder&
 template <bool rc>
 inline OrNodeBuilder operator||(const NodeTemplate<rc>& a, const OrNodeBuilder& b) {
   return a || Node(b.d_eb);
+}
+
+template <bool rc>
+inline PlusNodeBuilder operator+(const NodeTemplate<rc>& a, const PlusNodeBuilder& b) {
+  return a + Node(b.d_eb);
+}
+
+template <bool rc>
+inline PlusNodeBuilder operator+(const NodeTemplate<rc>& a, const MultNodeBuilder& b) {
+  return a + Node(b.d_eb);
+}
+
+template <bool rc>
+inline PlusNodeBuilder operator-(const NodeTemplate<rc>& a, const PlusNodeBuilder& b) {
+  return a - Node(b.d_eb);
+}
+
+template <bool rc>
+inline PlusNodeBuilder operator-(const NodeTemplate<rc>& a, const MultNodeBuilder& b) {
+  return a - Node(b.d_eb);
+}
+
+template <bool rc>
+inline MultNodeBuilder operator*(const NodeTemplate<rc>& a, const PlusNodeBuilder& b) {
+  return a * Node(b.d_eb);
+}
+
+template <bool rc>
+inline MultNodeBuilder operator*(const NodeTemplate<rc>& a, const MultNodeBuilder& b) {
+  return a * Node(b.d_eb);
+}
+
+template <bool rc>
+inline NodeTemplate<true> operator-(const NodeTemplate<rc>& a) {
+  return NodeManager::currentNM()->mkNode(kind::UMINUS, a);
 }
 
 }/* CVC4 namespace */
@@ -611,7 +669,7 @@ inline NodeBuilder<nchild_thresh>::NodeBuilder(NodeManager* nm, Kind k) :
 }
 
 template <unsigned nchild_thresh>
-inline NodeBuilder<nchild_thresh>::~NodeBuilder() throw() {
+inline NodeBuilder<nchild_thresh>::~NodeBuilder() {
   if(!d_used) {
     // Warning("NodeBuilder unused at destruction\n");
     // Commented above, as it happens a lot, for example with exceptions
@@ -642,9 +700,15 @@ void NodeBuilder<nchild_thresh>::realloc() {
     d_nv = (expr::NodeValue*)
       std::realloc(d_nv,
                    sizeof(expr::NodeValue) + ( sizeof(expr::NodeValue*) * (d_size *= 2) ));
+    if(d_nv == NULL) {
+      throw std::bad_alloc();
+    }
   } else {
     d_nv = (expr::NodeValue*)
       std::malloc(sizeof(expr::NodeValue) + ( sizeof(expr::NodeValue*) * (d_size *= 2) ));
+    if(d_nv == NULL) {
+      throw std::bad_alloc();
+    }
     d_nv->d_id = 0;
     d_nv->d_rc = 0;
     d_nv->d_kind = d_inlineNv.d_kind;
@@ -663,10 +727,16 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
     d_nv = (expr::NodeValue*)
       std::realloc(d_nv, sizeof(expr::NodeValue) +
                    ( sizeof(expr::NodeValue*) * (d_size = toSize) ));
+    if(d_nv == NULL) {
+      throw std::bad_alloc();
+    }
   } else {
     d_nv = (expr::NodeValue*)
       std::malloc(sizeof(expr::NodeValue) +
                   ( sizeof(expr::NodeValue*) * (d_size = toSize) ));
+    if(d_nv == NULL) {
+      throw std::bad_alloc();
+    }
     d_nv->d_id = 0;
     d_nv->d_rc = 0;
     d_nv->d_kind = d_inlineNv.d_kind;
@@ -682,12 +752,11 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize, bool copy) {
 }
 
 template <unsigned nchild_thresh>
-inline void NodeBuilder<nchild_thresh>::dealloc() throw() {
+inline void NodeBuilder<nchild_thresh>::dealloc() {
   /* Prefer asserts to if() because usually these conditions have been
    * checked already, so we don't want to do a double-check in
    * production; these are just sanity checks for debug builds */
-  DtorAssert(!d_used,
-             "Internal error: NodeBuilder: dealloc() called with d_used");
+  Assert(!d_used, "Internal error: NodeBuilder: dealloc() called with d_used");
 
   for(expr::NodeValue::nv_iterator i = d_nv->nv_begin();
       i != d_nv->nv_end();
@@ -707,9 +776,12 @@ NodeBuilder<nchild_thresh>::operator Node() const {// const version
 
   if(d_nv->d_kind == kind::VARIABLE) {
     Assert(d_nv->d_nchildren == 0);
-    expr::NodeValue *nv = (expr::NodeValue*)
+    expr::NodeValue* nv = (expr::NodeValue*)
       std::malloc(sizeof(expr::NodeValue) +
                   (sizeof(expr::NodeValue*) * d_inlineNv.d_nchildren ));// FIXME :: WTF??
+    if(nv == NULL) {
+      throw std::bad_alloc();
+    }
     nv->d_nchildren = 0;
     nv->d_kind = kind::VARIABLE;
     nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
@@ -736,6 +808,9 @@ NodeBuilder<nchild_thresh>::operator Node() const {// const version
     nv = (expr::NodeValue*)
       std::malloc(sizeof(expr::NodeValue) +
                   ( sizeof(expr::NodeValue*) * d_nv->d_nchildren ));
+    if(nv == NULL) {
+      throw std::bad_alloc();
+    }
     nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
     nv->d_rc = 0;
     nv->d_kind = d_nv->d_kind;
@@ -767,6 +842,9 @@ NodeBuilder<nchild_thresh>::operator Node() const {// const version
   ev = (expr::NodeValue*)
     std::malloc(sizeof(expr::NodeValue) +
                 ( sizeof(expr::NodeValue*) * d_inlineNv.d_nchildren ));
+  if(ev == NULL) {
+    throw std::bad_alloc();
+  }
   ev->d_nchildren = d_inlineNv.d_nchildren;
   ev->d_kind = d_inlineNv.d_kind;
   ev->d_id = expr::NodeValue::next_id++;// FIXME multithreading
@@ -797,9 +875,12 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
 
   if(d_nv->d_kind == kind::VARIABLE) {
     Assert(d_nv->d_nchildren == 0);
-    expr::NodeValue *nv = (expr::NodeValue*)
+    expr::NodeValue* nv = (expr::NodeValue*)
       std::malloc(sizeof(expr::NodeValue) +
                   (sizeof(expr::NodeValue*) * d_inlineNv.d_nchildren ));// FIXME :: WTF??
+    if(nv == NULL) {
+      throw std::bad_alloc();
+    }
     nv->d_nchildren = 0;
     nv->d_kind = kind::VARIABLE;
     nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
@@ -847,6 +928,9 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
   ev = (expr::NodeValue*)
     std::malloc(sizeof(expr::NodeValue) +
                 ( sizeof(expr::NodeValue*) * d_inlineNv.d_nchildren ));
+  if(ev == NULL) {
+    throw std::bad_alloc();
+  }
   ev->d_nchildren = d_inlineNv.d_nchildren;
   ev->d_kind = d_inlineNv.d_kind;
   ev->d_id = expr::NodeValue::next_id++;// FIXME multithreading
@@ -866,7 +950,6 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
 template <unsigned nchild_thresh>
 inline std::ostream& operator<<(std::ostream& out,
                                 const NodeBuilder<nchild_thresh>& b) {
-
   b.toStream(out);
   return out;
 }

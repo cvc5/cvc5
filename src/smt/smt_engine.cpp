@@ -25,8 +25,45 @@ using CVC4::context::Context;
 
 namespace CVC4 {
 
+namespace smt {
+
+/**
+ * This is an inelegant solution, but for the present, it will work.
+ * The point of this is to separate the public and private portions of
+ * the SmtEngine class, so that smt_engine.h doesn't
+ * #include "expr/node.h", which is a private CVC4 header (and can lead
+ * to linking errors due to the improper inlining of non-visible symbols
+ * into user code!).
+ *
+ * The "real" solution (that which is usually implemented) is to move
+ * ALL the implementation to SmtEnginePrivate and maintain a
+ * heap-allocated instance of it in SmtEngine.  SmtEngine (the public
+ * one) becomes an "interface shell" which simply acts as a forwarder
+ * of method calls.
+ */
+class SmtEnginePrivate {
+public:
+
+  /**
+   * Pre-process an Node.  This is expected to be highly-variable,
+   * with a lot of "source-level configurability" to add multiple
+   * passes over the Node.  TODO: may need to specify a LEVEL of
+   * preprocessing (certain contexts need more/less ?).
+   */
+  static Node preprocess(SmtEngine& smt, TNode node);
+
+  /**
+   * Adds a formula to the current context.
+   */
+  static void addFormula(SmtEngine& smt, TNode node);
+};/* class SmtEnginePrivate */
+
+}/* namespace CVC4::smt */
+
+using ::CVC4::smt::SmtEnginePrivate;
+
 SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
-  d_ctxt(new Context),
+  d_ctxt(em->getContext()),
   d_exprManager(em),
   d_nodeManager(em->getNodeManager()),
   d_options(opts) {
@@ -37,10 +74,10 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
 }
 
 SmtEngine::~SmtEngine() {
+  NodeManagerScope nms(d_nodeManager);
   delete d_propEngine;
   delete d_theoryEngine;
   delete d_decisionEngine;
-  delete d_ctxt;
 }
 
 void SmtEngine::doCommand(Command* c) {
@@ -48,7 +85,7 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
-Node SmtEngine::preprocess(TNode e) {
+Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode e) {
   return e;
 }
 
@@ -62,15 +99,15 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
-void SmtEngine::addFormula(TNode e) {
+void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode e) {
   Debug("smt") << "push_back assertion " << e << std::endl;
-  d_propEngine->assertFormula(preprocess(e));
+  smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, e));
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
-  addFormula(e.getNode());
+  SmtEnginePrivate::addFormula(*this, e.getNode());
   Result r = check().asSatisfiabilityResult();
   Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << std::endl;
   return r;
@@ -79,7 +116,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 Result SmtEngine::query(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << std::endl;
-  addFormula(e.getNode().notNode());
+  SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
   Debug("smt") << "SMT query(" << e << ") ==> " << r << std::endl;
   return r;
@@ -88,7 +125,7 @@ Result SmtEngine::query(const BoolExpr& e) {
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
-  addFormula(e.getNode());
+  SmtEnginePrivate::addFormula(*this, e.getNode());
   return quickCheck().asValidityResult();
 }
 

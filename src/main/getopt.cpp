@@ -46,12 +46,6 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt | smtlib  SMT-LIB format\n\
 ";
 
-static const char cnf_help[] = "\
-CNF conversions currently supported as arguments to the --cnf option:\n\
-  direct  put in equiv. CNF directly (exp. blow up in # clauses, no new vars)\n\
-  var     variable-introduction method (new vars, no exp. blow up in # clauses)\n\
-";
-
 /**
  * For the main getopt() routine, we need ways to switch on long
  * options without clashing with short option characters.  This is an
@@ -61,8 +55,7 @@ CNF conversions currently supported as arguments to the --cnf option:\n\
  * any collision.
  */
 enum OptionValue {
-  CNF = 256, /* no clash with char options */
-  SMTCOMP,
+  SMTCOMP = 256, /* no clash with char options */
   STATS,
   SEGV_NOSPIN,
   PARSE_ONLY,
@@ -98,7 +91,6 @@ static struct option cmdlineOptions[] = {
   { "quiet"      , no_argument      , NULL, 'q'         },
   { "lang"       , required_argument, NULL, 'L'         },
   { "debug"      , required_argument, NULL, 'd'         },
-  { "cnf"        , required_argument, NULL, CNF         },
   { "smtcomp"    , no_argument      , NULL, SMTCOMP     },
   { "stats"      , no_argument      , NULL, STATS       },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
@@ -177,21 +169,6 @@ throw(OptionException) {
       }
 
       fputs(lang_help, stdout);
-      exit(1);
-
-    case CNF:
-      if(!strcmp(optarg, "direct")) {
-        opts->d_cnfConversion = CNF_DIRECT_EXPONENTIAL;
-        break;
-      } else if(!strcmp(optarg, "var")) {
-        opts->d_cnfConversion = CNF_VAR_INTRODUCTION;
-        break;
-      } else if(strcmp(optarg, "help")) {
-        throw OptionException(string("unknown CNF conversion for --cnf: `") +
-                              optarg + "'.  Try --cnf help.");
-      }
-
-      fputs(cnf_help, stdout);
       exit(1);
 
     case 'd':

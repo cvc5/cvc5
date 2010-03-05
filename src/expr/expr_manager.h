@@ -30,6 +30,10 @@ class KindType;
 class SmtEngine;
 class NodeManager;
 
+namespace context {
+  class Context;
+}/* CVC4::context namespace */
+
 class CVC4_PUBLIC ExprManager {
 
 public:
@@ -97,7 +101,7 @@ public:
 
   /** Make a function type with input types from argTypes. */
   const FunctionType*
-    mkFunctionType(const std::vector<const Type*>& argTypes, 
+    mkFunctionType(const std::vector<const Type*>& argTypes,
                    const Type* range);
 
   /** Make a new sort with the given name. */
@@ -108,16 +112,28 @@ public:
   Expr mkVar(const Type* type);
 
 private:
+  /** The context */
+  context::Context* d_ctxt;
+
   /** The internal node manager */
   NodeManager* d_nodeManager;
-  
+
   /**
-   * Returns the internal node manager. This should only be used by internal
-   * users, i.e. the friend classes.
+   * Returns the internal node manager.  This should only be used by
+   * internal users, i.e. the friend classes.
    */
   NodeManager* getNodeManager() const;
 
-  /** SmtEngine will use all the internals, so it will grab the node manager */
+  /**
+   * Returns the internal Context.  Used by internal users, i.e. the
+   * friend classes.
+   */
+  context::Context* getContext() const;
+
+  /**
+   * SmtEngine will use all the internals, so it will grab the
+   * NodeManager.
+   */
   friend class SmtEngine;
 
   /** ExprManagerScope reaches in to get the NodeManager */

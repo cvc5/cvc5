@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "context/context.h"
+#include "context/cdo.h"
 #include "context/context_mm.h"
 
 namespace CVC4 {
@@ -104,7 +105,6 @@ private:
    * table every time the find pointer is examined.
    */
   ECData* d_find;
-
 
   /**
    * This is pointer back to the node that represents this equivalence class.

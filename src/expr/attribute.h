@@ -28,7 +28,7 @@
 #include <ext/hash_map>
 
 #include "config.h"
-#include "context/context.h"
+#include "context/cdmap.h"
 #include "expr/node.h"
 #include "expr/type.h"
 
@@ -344,6 +344,25 @@ public:
   }
 };/* class AttrHash<bool> */
 
+/**
+ * A "CDAttrHash<value_type>"---the hash table underlying
+ * attributes---is simply a context-dependent mapping of
+ * pair<unique-attribute-id, Node> to value_type using our specialized
+ * hash function for these pairs.
+ */
+template <class value_type>
+class CDAttrHash :
+    public CVC4::context::CDMap<std::pair<uint64_t, NodeValue*>,
+                                value_type,
+                                AttrHashFcn> {
+public:
+  CDAttrHash(context::Context* ctxt) :
+    context::CDMap<std::pair<uint64_t, NodeValue*>,
+                   value_type,
+                   AttrHashFcn>(ctxt) {
+  }
+};
+
 }/* CVC4::expr::attr namespace */
 
 // ATTRIBUTE CLEANUP FUNCTIONS =================================================
@@ -353,7 +372,7 @@ namespace attr {
 /** Default cleanup for unmanaged Attribute<> */
 template <class T>
 struct AttributeCleanupFcn {
-  inline void cleanup(const T&) {}
+  static inline void cleanup(const T&) {}
 };
 
 /** Default cleanup for ManagedAttribute<> */
@@ -364,13 +383,13 @@ struct ManagedAttributeCleanupFcn {
 /** Specialization for T* */
 template <class T>
 struct ManagedAttributeCleanupFcn<T*> {
-  inline void cleanup(T* p) { delete p; }
+  static inline void cleanup(T* p) { delete p; }
 };
 
 /** Specialization for const T* */
 template <class T>
 struct ManagedAttributeCleanupFcn<const T*> {
-  inline void cleanup(const T* p) { delete p; }
+  static inline void cleanup(const T* p) { delete p; }
 };
 
 }/* CVC4::expr::attr namespace */
@@ -388,13 +407,13 @@ struct ManagedAttributeCleanupFcn<const T*> {
  * Node goes away.  Useful, e.g., for pointer-valued attributes when
  * the values are "owned" by the table.
  *
- * @param context_dependent whether this attribute kind is
+ * @param context_dep whether this attribute kind is
  * context-dependent
  */
 template <class T,
           class value_t,
           class CleanupFcn = attr::AttributeCleanupFcn<value_t>,
-          bool context_dependent = false>
+          bool context_dep = false>
 struct Attribute {
 
   /** The value type for this attribute. */
@@ -411,6 +430,11 @@ struct Attribute {
    */
   static const bool has_default_value = false;
 
+  /**
+   * Expose this setting to the users of this Attribute kind.
+   */
+  static const bool context_dependent = context_dep;
+
 private:
 
   /**
@@ -423,8 +447,8 @@ private:
 /**
  * An "attribute type" structure for boolean flags (special).
  */
-template <class T, class CleanupFcn, bool context_dependent>
-struct Attribute<T, bool, CleanupFcn, context_dependent> {
+template <class T, class CleanupFcn, bool context_dep>
+struct Attribute<T, bool, CleanupFcn, context_dep> {
 
   /** The value type for this attribute; here, bool. */
   typedef bool value_type;
@@ -447,6 +471,11 @@ struct Attribute<T, bool, CleanupFcn, context_dependent> {
   static const bool default_value = false;
 
   /**
+   * Expose this setting to the users of this Attribute kind.
+   */
+  static const bool context_dependent = context_dep;
+
+  /**
    * Check that the ID is a valid ID for bool-valued attributes.  Fail
    * an assert if not.  Otherwise return the id.
    */
@@ -463,13 +492,28 @@ private:
   static const uint64_t s_id;
 };
 
-// FIXME make context-dependent
+/**
+ * This is a context-dependent attribute kind (the only difference
+ * between CDAttribute<> and Attribute<> (with the fourth argument
+ * "true") is that you cannot supply a cleanup function (a no-op one
+ * is used).
+ */
 template <class T,
           class value_type>
 struct CDAttribute :
     public Attribute<T, value_type, attr::AttributeCleanupFcn<value_type>, true> {};
 
-// FIXME make context-dependent
+/**
+ * This is a managed attribute kind (the only difference between
+ * ManagedAttribute<> and Attribute<> is the default cleanup function
+ * and the fact that ManagedAttributes cannot be context-dependent).
+ * In the default ManagedAttribute cleanup function, the value is
+ * destroyed with the delete operator.  If the value is allocated with
+ * the array version of new[], an alternate cleanup function should be
+ * provided that uses array delete[].  It is an error to create a
+ * ManagedAttribute<> kind with a non-pointer value_type if you don't
+ * also supply a custom cleanup function.
+ */
 template <class T,
           class value_type,
           class CleanupFcn = attr::ManagedAttributeCleanupFcn<value_type> >
@@ -484,29 +528,29 @@ namespace attr {
  * This is the last-attribute-assigner.  IDs are not globally
  * unique; rather, they are unique for each table_value_type.
  */
-template <class T>
+template <class T, bool context_dep>
 struct LastAttributeId {
   static uint64_t s_id;
 };
 
 /** Initially zero. */
-template <class T>
-uint64_t LastAttributeId<T>::s_id = 0;
+template <class T, bool context_dep>
+uint64_t LastAttributeId<T, context_dep>::s_id = 0;
 
 }/* CVC4::expr::attr namespace */
 
 /** Assign unique IDs to attributes at load time. */
-template <class T, class value_t, class CleanupFcn, bool context_dependent>
-const uint64_t Attribute<T, value_t, CleanupFcn, context_dependent>::s_id =
-  attr::LastAttributeId<typename attr::KindValueToTableValueMapping<value_t>::table_value_type>::s_id++;
+template <class T, class value_t, class CleanupFcn, bool context_dep>
+const uint64_t Attribute<T, value_t, CleanupFcn, context_dep>::s_id =
+  attr::LastAttributeId<typename attr::KindValueToTableValueMapping<value_t>::table_value_type, context_dep>::s_id++;
 
 /**
  * Assign unique IDs to bool-valued attributes at load time, checking
  * that they are in range.
  */
-template <class T, class CleanupFcn, bool context_dependent>
-const uint64_t Attribute<T, bool, CleanupFcn, context_dependent>::s_id =
-  Attribute<T, bool, CleanupFcn, context_dependent>::checkID(attr::LastAttributeId<bool>::s_id++);
+template <class T, class CleanupFcn, bool context_dep>
+const uint64_t Attribute<T, bool, CleanupFcn, context_dep>::s_id =
+  Attribute<T, bool, CleanupFcn, context_dep>::checkID(attr::LastAttributeId<bool, context_dep>::s_id++);
 
 // ATTRIBUTE MANAGER ===========================================================
 
@@ -519,27 +563,44 @@ namespace attr {
 class AttributeManager {
 
   /** Underlying hash table for boolean-valued attributes */
-  AttrHash<bool>        d_bools;
+  AttrHash<bool> d_bools;
   /** Underlying hash table for integral-valued attributes */
-  AttrHash<uint64_t>    d_ints;
+  AttrHash<uint64_t> d_ints;
   /** Underlying hash table for node-valued attributes */
-  AttrHash<TNode>       d_exprs;
+  AttrHash<TNode> d_exprs;
   /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
   /** Underlying hash table for pointer-valued attributes */
-  AttrHash<void*>       d_ptrs;
+  AttrHash<void*> d_ptrs;
+
+  /** Underlying hash table for context-dependent boolean-valued attributes */
+  CDAttrHash<bool> d_cdbools;
+  /** Underlying hash table for context-dependent integral-valued attributes */
+  CDAttrHash<uint64_t> d_cdints;
+  /** Underlying hash table for context-dependent node-valued attributes */
+  CDAttrHash<TNode> d_cdexprs;
+  /** Underlying hash table for context-dependent string-valued attributes */
+  CDAttrHash<std::string> d_cdstrings;
+  /** Underlying hash table for context-dependent pointer-valued attributes */
+  CDAttrHash<void*> d_cdptrs;
 
   /**
    * getTable<> is a helper template that gets the right table from an
    * AttributeManager given its type.
    */
-  template <class T>
+  template <class T, bool context_dep>
   friend struct getTable;
 
 public:
 
   /** Construct an attribute manager. */
-  AttributeManager() {}
+  AttributeManager(context::Context* ctxt) :
+    d_cdbools(ctxt),
+    d_cdints(ctxt),
+    d_cdexprs(ctxt),
+    d_cdstrings(ctxt),
+    d_cdptrs(ctxt) {
+  }
 
   /**
    * Get a particular attribute on a particular node.
@@ -619,12 +680,12 @@ namespace attr {
  * The getTable<> template provides (static) access to the
  * AttributeManager field holding the table.
  */
-template <class T>
+template <class T, bool context_dep>
 struct getTable;
 
 /** Access the "d_bools" member of AttributeManager. */
 template <>
-struct getTable<bool> {
+struct getTable<bool, false> {
   typedef AttrHash<bool> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_bools;
@@ -636,7 +697,7 @@ struct getTable<bool> {
 
 /** Access the "d_ints" member of AttributeManager. */
 template <>
-struct getTable<uint64_t> {
+struct getTable<uint64_t, false> {
   typedef AttrHash<uint64_t> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_ints;
@@ -648,7 +709,7 @@ struct getTable<uint64_t> {
 
 /** Access the "d_exprs" member of AttributeManager. */
 template <>
-struct getTable<Node> {
+struct getTable<Node, false> {
   typedef AttrHash<TNode> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_exprs;
@@ -660,7 +721,7 @@ struct getTable<Node> {
 
 /** Access the "d_strings" member of AttributeManager. */
 template <>
-struct getTable<std::string> {
+struct getTable<std::string, false> {
   typedef AttrHash<std::string> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_strings;
@@ -672,7 +733,7 @@ struct getTable<std::string> {
 
 /** Access the "d_ptrs" member of AttributeManager. */
 template <class T>
-struct getTable<T*> {
+struct getTable<T*, false> {
   typedef AttrHash<void*> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_ptrs;
@@ -684,13 +745,85 @@ struct getTable<T*> {
 
 /** Access the "d_ptrs" member of AttributeManager. */
 template <class T>
-struct getTable<const T*> {
+struct getTable<const T*, false> {
   typedef AttrHash<void*> table_type;
   static inline table_type& get(AttributeManager& am) {
     return am.d_ptrs;
   }
   static inline const table_type& get(const AttributeManager& am) {
     return am.d_ptrs;
+  }
+};
+
+/** Access the "d_cdbools" member of AttributeManager. */
+template <>
+struct getTable<bool, true> {
+  typedef CDAttrHash<bool> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdbools;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdbools;
+  }
+};
+
+/** Access the "d_cdints" member of AttributeManager. */
+template <>
+struct getTable<uint64_t, true> {
+  typedef CDAttrHash<uint64_t> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdints;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdints;
+  }
+};
+
+/** Access the "d_cdexprs" member of AttributeManager. */
+template <>
+struct getTable<Node, true> {
+  typedef CDAttrHash<TNode> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdexprs;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdexprs;
+  }
+};
+
+/** Access the "d_cdstrings" member of AttributeManager. */
+template <>
+struct getTable<std::string, true> {
+  typedef CDAttrHash<std::string> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdstrings;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdstrings;
+  }
+};
+
+/** Access the "d_cdptrs" member of AttributeManager. */
+template <class T>
+struct getTable<T*, true> {
+  typedef CDAttrHash<void*> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdptrs;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdptrs;
+  }
+};
+
+/** Access the "d_cdptrs" member of AttributeManager. */
+template <class T>
+struct getTable<const T*, true> {
+  typedef CDAttrHash<void*> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdptrs;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdptrs;
   }
 };
 
@@ -707,9 +840,9 @@ typename AttrKind::value_type AttributeManager::getAttribute(TNode n,
 
   typedef typename AttrKind::value_type value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
-  typedef typename getTable<value_type>::table_type table_type;
+  typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
-  const table_type& ah = getTable<value_type>::get(*this);
+  const table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*this);
   typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n.d_nv));
 
   if(i == ah.end()) {
@@ -746,9 +879,9 @@ struct HasAttribute<true, AttrKind> {
                                   typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
-    typedef typename getTable<value_type>::table_type table_type;
+    typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
-    const table_type& ah = getTable<value_type>::get(*am);
+    const table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*am);
     typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), nv));
 
     if(i == ah.end()) {
@@ -771,9 +904,9 @@ struct HasAttribute<false, AttrKind> {
                                   NodeValue* nv) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
-    typedef typename getTable<value_type>::table_type table_type;
+    typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
-    const table_type& ah = getTable<value_type>::get(*am);
+    const table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*am);
     typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), nv));
 
     if(i == ah.end()) {
@@ -788,9 +921,9 @@ struct HasAttribute<false, AttrKind> {
                                   typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
     typedef KindValueToTableValueMapping<value_type> mapping;
-    typedef typename getTable<value_type>::table_type table_type;
+    typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
-    const table_type& ah = getTable<value_type>::get(*am);
+    const table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*am);
     typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), nv));
 
     if(i == ah.end()) {
@@ -823,9 +956,9 @@ inline void AttributeManager::setAttribute(TNode n,
 
   typedef typename AttrKind::value_type value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
-  typedef typename getTable<value_type>::table_type table_type;
+  typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
-  table_type& ah = getTable<value_type>::get(*this);
+  table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*this);
   ah[std::make_pair(AttrKind::getId(), n.d_nv)] = mapping::convert(value);
 }
 

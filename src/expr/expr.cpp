@@ -60,7 +60,7 @@ Expr& Expr::operator=(const Expr& e) {
 }
 
 bool Expr::operator==(const Expr& e) const {
-  if(d_exprManager != e.d_exprManager){
+  if(d_exprManager != e.d_exprManager) {
     return false;
   }
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
@@ -75,7 +75,7 @@ bool Expr::operator!=(const Expr& e) const {
 bool Expr::operator<(const Expr& e) const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
-  if(d_exprManager != e.d_exprManager){
+  if(d_exprManager != e.d_exprManager) {
     return false;
   }
   return *d_node < *e.d_node;
@@ -181,11 +181,11 @@ Expr BoolExpr::iteExpr(const Expr& then_e, const Expr& else_e) const {
   return d_exprManager->mkExpr(ITE, *this, then_e, else_e);
 }
 
-void Expr::printAst(std::ostream & o, int indent) const{
+void Expr::printAst(std::ostream & o, int indent) const {
   getNode().printAst(o, indent);
 }
 
-void Expr::debugPrint(){
+void Expr::debugPrint() {
 #ifndef CVC4_MUZZLE
   printAst(Warning());
   Warning().flush();

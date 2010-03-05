@@ -36,10 +36,10 @@ using namespace std;
  * Very basic OutputChannel for testing simple Theory Behaviour.
  * Stores a call sequence for the output channel
  */
-enum OutputChannelCallType{CONFLICT, PROPOGATE, LEMMA, EXPLANATION};
+enum OutputChannelCallType { CONFLICT, PROPOGATE, LEMMA, EXPLANATION };
 class TestOutputChannel : public OutputChannel {
 private:
-  void push(OutputChannelCallType call, TNode n){
+  void push(OutputChannelCallType call, TNode n) {
     d_callHistory.push_back(make_pair(call,n));
   }
 public:
@@ -51,71 +51,71 @@ public:
 
   void safePoint() throw(Interrupted) {}
 
-  void conflict(TNode n, bool safe = false) throw(Interrupted){
+  void conflict(TNode n, bool safe = false) throw(Interrupted) {
     push(CONFLICT, n);
   }
 
-  void propagate(TNode n, bool safe = false) throw(Interrupted){
+  void propagate(TNode n, bool safe = false) throw(Interrupted) {
     push(PROPOGATE, n);
   }
 
-  void lemma(TNode n, bool safe = false) throw(Interrupted){
+  void lemma(TNode n, bool safe = false) throw(Interrupted) {
     push(LEMMA, n);
   }
-  void explanation(TNode n, bool safe = false) throw(Interrupted){
+  void explanation(TNode n, bool safe = false) throw(Interrupted) {
     push(EXPLANATION, n);
   }
 
-  void clear(){
+  void clear() {
     d_callHistory.clear();
   }
-  Node getIthNode(int i){
+
+  Node getIthNode(int i) {
     Node tmp = (d_callHistory[i]).second;
     return tmp;
   }
 
-  OutputChannelCallType getIthCallType(int i){
+  OutputChannelCallType getIthCallType(int i) {
     return (d_callHistory[i]).first;
   }
 
-  unsigned getNumCalls(){
+  unsigned getNumCalls() {
     return d_callHistory.size();
   }
 };
 
 class TheoryUFWhite : public CxxTest::TestSuite {
 
-  NodeManagerScope *d_scope;
-  NodeManager *d_nm;
+  Context* d_ctxt;
+  NodeManager* d_nm;
+  NodeManagerScope* d_scope;
 
   TestOutputChannel d_outputChannel;
-  Theory::Effort level;
+  Theory::Effort d_level;
 
-  Context* d_context;
   TheoryUF* d_euf;
 
 public:
 
-  TheoryUFWhite(): level(Theory::FULL_EFFORT) { }
+  TheoryUFWhite() : d_level(Theory::FULL_EFFORT) {}
 
   void setUp() {
-    d_nm = new NodeManager();
+    d_ctxt = new Context;
+    d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
-
-    d_context = new Context();
-
     d_outputChannel.clear();
-    d_euf = new TheoryUF(d_context, d_outputChannel);
+    d_euf = new TheoryUF(d_ctxt, d_outputChannel);
   }
 
   void tearDown() {
     delete d_euf;
-    delete d_context;
+    d_outputChannel.clear();
     delete d_scope;
     delete d_nm;
+    delete d_ctxt;
   }
 
-  void testPushPopChain(){
+  void testPushPopChain() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
     Node f_x = d_nm->mkNode(kind::APPLY, f, x);
@@ -140,26 +140,26 @@ public:
 
     d_euf->assertFact( f3_x_eq_x );
     d_euf->assertFact( f1_x_neq_x );
-    d_euf->check(level);
-    d_context->push();
+    d_euf->check(d_level);
+    d_ctxt->push();
 
     d_euf->assertFact( f5_x_eq_x );
-    d_euf->check(level);
+    d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
     TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
     Node realConflict = d_outputChannel.getIthNode(0);
     TS_ASSERT_EQUALS(expectedConflict, realConflict);
 
-    d_context->pop();
-    d_euf->check(level);
+    d_ctxt->pop();
+    d_euf->check(d_level);
 
     //Test that no additional calls to the output channel occurred.
     TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
 
     d_euf->assertFact( f5_x_eq_x );
 
-    d_euf->check(level);
+    d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(2, d_outputChannel.getNumCalls());
     TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
@@ -174,7 +174,7 @@ public:
 
 
   /* test that {f(f(x)) == x, f(f(f(x))) != f(x)} is inconsistent */
-  void testSimpleChain(){
+  void testSimpleChain() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
     Node f_x = d_nm->mkNode(kind::APPLY, f, x);
@@ -188,7 +188,7 @@ public:
 
     d_euf->assertFact(f_f_x_eq_x);
     d_euf->assertFact(f_f_f_x_neq_f_x);
-    d_euf->check(level);
+    d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
     TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
@@ -199,13 +199,13 @@ public:
   }
 
   /* test that !(x == x) is inconsistent */
-  void testSelfInconsistent(){
+  void testSelfInconsistent() {
     Node x = d_nm->mkVar();
     Node x_neq_x = (x.eqNode(x)).notNode();
     Node and_x_neq_x = d_nm->mkNode(kind::AND, x_neq_x);
 
     d_euf->assertFact(x_neq_x);
-    d_euf->check(level);
+    d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
     TS_ASSERT_EQUALS(and_x_neq_x, d_outputChannel.getIthNode(0));
@@ -213,12 +213,12 @@ public:
   }
 
   /* test that (x == x) is consistent */
-  void testSelfConsistent(){
+  void testSelfConsistent() {
     Node x = d_nm->mkVar();
     Node x_eq_x = x.eqNode(x);
 
     d_euf->assertFact(x_eq_x);
-    d_euf->check(level);
+    d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(0, d_outputChannel.getNumCalls());
   }
@@ -229,7 +229,7 @@ public:
       f(f(f(f(f(x))))) = x,
       f(x) != x
      } is inconsistent */
-  void testChain(){
+  void testChain() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
     Node f_x = d_nm->mkNode(kind::APPLY, f, x);
@@ -251,7 +251,7 @@ public:
     d_euf->assertFact( f3_x_eq_x );
     d_euf->assertFact( f5_x_eq_x );
     d_euf->assertFact( f1_x_neq_x );
-    d_euf->check(level);
+    d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
     TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
@@ -260,28 +260,28 @@ public:
   }
 
 
-  void testPushPopA(){
+  void testPushPopA() {
     Node x = d_nm->mkVar();
     Node x_eq_x = x.eqNode(x);
 
-    d_context->push();
+    d_ctxt->push();
     d_euf->assertFact( x_eq_x );
-    d_euf->check(level);
-    d_context->pop();
-    d_euf->check(level);
+    d_euf->check(d_level);
+    d_ctxt->pop();
+    d_euf->check(d_level);
   }
 
-  void testPushPopB(){
+  void testPushPopB() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
     Node f_x = d_nm->mkNode(kind::APPLY, f, x);
     Node f_x_eq_x = f_x.eqNode(x);
 
     d_euf->assertFact( f_x_eq_x );
-    d_context->push();
-    d_euf->check(level);
-    d_context->pop();
-    d_euf->check(level);
+    d_ctxt->push();
+    d_euf->check(d_level);
+    d_ctxt->pop();
+    d_euf->check(d_level);
   }
 
 

@@ -27,24 +27,28 @@
 
 using namespace CVC4;
 using namespace CVC4::kind;
+using namespace CVC4::context;
 using namespace std;
 
 class NodeBlack : public CxxTest::TestSuite {
 private:
 
-  NodeManager *d_nodeManager;
-  NodeManagerScope *d_scope;
+  Context* d_ctxt;
+  NodeManager* d_nodeManager;
+  NodeManagerScope* d_scope;
 
 public:
 
   void setUp() {
-    d_nodeManager = new NodeManager();
+    d_ctxt = new Context;
+    d_nodeManager = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nodeManager);
   }
 
   void tearDown() {
     delete d_scope;
     delete d_nodeManager;
+    delete d_ctxt;
   }
 
   bool imp(bool a, bool b) const {

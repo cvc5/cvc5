@@ -37,7 +37,8 @@ namespace CVC4 {
 class Type;
 class NodeManager;
 
-template<bool ref_count> class NodeTemplate;
+template <bool ref_count>
+class NodeTemplate;
 
 /**
  * The Node class encapsulates the NodeValue with reference counting.
@@ -64,7 +65,7 @@ class NodeValue;
  * maintained in the NodeValue if ref_count is true.
  * @param ref_count if true reference are counted in the NodeValue
  */
-template<bool ref_count>
+template <bool ref_count>
 class NodeTemplate {
 
   /**
@@ -94,11 +95,11 @@ class NodeTemplate {
    */
   explicit NodeTemplate(const expr::NodeValue*);
 
-  friend class NodeTemplate<true> ;
-  friend class NodeTemplate<false> ;
+  friend class NodeTemplate<true>;
+  friend class NodeTemplate<false>;
   friend class NodeManager;
 
-  template<unsigned>
+  template <unsigned>
   friend class NodeBuilder;
 
   friend class ::CVC4::expr::attr::AttributeManager;
@@ -152,7 +153,7 @@ public:
    * Destructor. If ref_count is true it will decrement the reference count
    * and, if zero, collect the NodeValue.
    */
-  ~NodeTemplate() throw();
+  ~NodeTemplate() throw(AssertionException);
 
   /**
    * Return the null node.
@@ -389,8 +390,9 @@ private:
    * @param indent the numer of spaces
    */
   static void indent(std::ostream& out, int indent) {
-    for(int i = 0; i < indent; i++)
+    for(int i = 0; i < indent; i++) {
       out << ' ';
+    }
   }
 
 };/* class NodeTemplate */
@@ -422,13 +424,13 @@ struct NodeHashFcn {
   }
 };
 
-template<bool ref_count>
+template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
   return d_nv->d_nchildren;
 }
 
-template<bool ref_count>
-template<class AttrKind>
+template <bool ref_count>
+template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
   Assert( NodeManager::currentNM() != NULL,
@@ -437,8 +439,8 @@ getAttribute(const AttrKind&) const {
   return NodeManager::currentNM()->getAttribute(*this, AttrKind());
 }
 
-template<bool ref_count>
-template<class AttrKind>
+template <bool ref_count>
+template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
   Assert( NodeManager::currentNM() != NULL,
@@ -447,18 +449,18 @@ hasAttribute(const AttrKind&) const {
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind());
 }
 
-template<bool ref_count>
-template<class AttrKind>
-inline bool NodeTemplate<ref_count>::
-hasAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
+template <bool ref_count>
+template <class AttrKind>
+inline bool NodeTemplate<ref_count>::hasAttribute(const AttrKind&,
+                                                  typename AttrKind::value_type& ret) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
 }
 
-template<bool ref_count>
-template<class AttrKind>
+template <bool ref_count>
+template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert( NodeManager::currentNM() != NULL,
@@ -467,12 +469,12 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
 }
 
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::s_null);
 
 ////FIXME: This function is a major hack! Should be changed ASAP
 ////TODO: Should use positive definition, i.e. what kinds are atomic.
-template<bool ref_count>
+template <bool ref_count>
 bool NodeTemplate<ref_count>::isAtomic() const {
   using namespace kind;
   switch(getKind()) {
@@ -493,7 +495,7 @@ bool NodeTemplate<ref_count>::isAtomic() const {
 // way?  Nodes conceptually don't change their expr values but of
 // course they do modify the refcount.  But it's nice to be able to
 // support node_iterators over const NodeValue*.  So.... hm.
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
@@ -504,7 +506,7 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
 
 // the code for these two "conversion/copy constructors" is identical, but
 // apparently we need both.  see comment in the class.
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
   Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
   d_nv = e.d_nv;
@@ -513,7 +515,7 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
   }
 }
 
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
   Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
   d_nv = e.d_nv;
@@ -522,17 +524,17 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
   }
 }
 
-template<bool ref_count>
-NodeTemplate<ref_count>::~NodeTemplate() throw() {
-  DtorAssert(d_nv != NULL, "Expecting a non-NULL expression value!");
+template <bool ref_count>
+NodeTemplate<ref_count>::~NodeTemplate() throw(AssertionException) {
+  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   if(ref_count) {
     d_nv->dec();
   }
-  DtorAssert(ref_count || d_nv->d_rc > 0,
-             "Temporary node pointing to an expired node");
+  Assert(ref_count || d_nv->d_rc > 0,
+         "Temporary node pointing to an expired node");
 }
 
-template<bool ref_count>
+template <bool ref_count>
 void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev) {
   d_nv = ev;
   if(ref_count) {
@@ -540,7 +542,7 @@ void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev) {
   }
 }
 
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate& e) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
@@ -557,7 +559,7 @@ operator=(const NodeTemplate& e) {
   return *this;
 }
 
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate<!ref_count>& e) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
@@ -574,54 +576,55 @@ operator=(const NodeTemplate<!ref_count>& e) {
   return *this;
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::eqNode(const NodeTemplate<
-                                                   ref_count>& right) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::eqNode(const NodeTemplate<ref_count>& right) const {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, *this, right);
 }
 
-template<bool ref_count>
+template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::notNode() const {
   return NodeManager::currentNM()->mkNode(kind::NOT, *this);
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::andNode(const NodeTemplate<
-                                                    ref_count>& right) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::andNode(const NodeTemplate<ref_count>& right) const {
   return NodeManager::currentNM()->mkNode(kind::AND, *this, right);
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::orNode(const NodeTemplate<
-                                                   ref_count>& right) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::orNode(const NodeTemplate<ref_count>& right) const {
   return NodeManager::currentNM()->mkNode(kind::OR, *this, right);
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::iteNode(const NodeTemplate<
-                                                    ref_count>& thenpart, const NodeTemplate<ref_count>& elsepart) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count>& thenpart,
+                                 const NodeTemplate<ref_count>& elsepart) const {
   return NodeManager::currentNM()->mkNode(kind::ITE, *this, thenpart, elsepart);
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::iffNode(const NodeTemplate<
-                                                    ref_count>& right) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::iffNode(const NodeTemplate<ref_count>& right) const {
   return NodeManager::currentNM()->mkNode(kind::IFF, *this, right);
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::impNode(const NodeTemplate<
-                                                    ref_count>& right) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::impNode(const NodeTemplate<ref_count>& right) const {
   return NodeManager::currentNM()->mkNode(kind::IMPLIES, *this, right);
 }
 
-template<bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::xorNode(const NodeTemplate<
-                                                    ref_count>& right) const {
+template <bool ref_count>
+NodeTemplate<true>
+NodeTemplate<ref_count>::xorNode(const NodeTemplate<ref_count>& right) const {
   return NodeManager::currentNM()->mkNode(kind::XOR, *this, right);
 }
 
-template<bool ref_count>
+template <bool ref_count>
 void NodeTemplate<ref_count>::printAst(std::ostream& out, int ind) const {
   indent(out, ind);
   out << '(';
@@ -681,7 +684,8 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
 }
 
 /**
- * Returns true if the node has an operator (i.e., it's not a variable or a constant).
+ * Returns true if the node has an operator (i.e., it's not a variable
+ * or a constant).
  */
 template <bool ref_count>
 bool NodeTemplate<ref_count>::hasOperator() const {
@@ -710,7 +714,7 @@ bool NodeTemplate<ref_count>::hasOperator() const {
   }
 }
 
-template<bool ref_count>
+template <bool ref_count>
 const Type* NodeTemplate<ref_count>::getType() const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
@@ -718,6 +722,7 @@ const Type* NodeTemplate<ref_count>::getType() const {
   return NodeManager::currentNM()->getType(*this);
 }
 
+#ifdef CVC4_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -725,7 +730,9 @@ const Type* NodeTemplate<ref_count>::getType() const {
  *
  * Note that this function cannot be a template, since the compiler
  * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.
+ * So we implement twice.  We mark as __attribute__((used)) so that
+ * GCC emits code for it even though static analysis indicates it's
+ * never called.
  *
  * Tim's Note: I moved this into the node.h file because this allows gdb
  * to find the symbol, and use it, which is the first standard this code needs
@@ -740,6 +747,7 @@ static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) 
   n.printAst(Warning(), 0);
   Warning().flush();
 }
+#endif /* CVC4_DEBUG */
 
 }/* CVC4 namespace */
 

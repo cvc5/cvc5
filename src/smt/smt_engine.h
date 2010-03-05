@@ -24,9 +24,6 @@
 #include "util/result.h"
 #include "util/model.h"
 
-// FIXME private header in public code
-#include "expr/node.h"
-
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
 // PropEngine.
@@ -35,7 +32,7 @@ namespace CVC4 {
 
 namespace context {
   class Context;
-}
+}/* CVC4::context namespace */
 
 class Command;
 class Options;
@@ -44,7 +41,11 @@ class DecisionEngine;
 
 namespace prop {
   class PropEngine;
-}
+}/* CVC4::prop namespace */
+
+namespace smt {
+  class SmtEnginePrivate;
+}/* CVC4::smt namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -140,18 +141,9 @@ private:
   /** The propositional engine */
   prop::PropEngine* d_propEngine;
 
-  /**
-   * Pre-process an Node.  This is expected to be highly-variable,
-   * with a lot of "source-level configurability" to add multiple
-   * passes over the Node.  TODO: may need to specify a LEVEL of
-   * preprocessing (certain contexts need more/less ?).
-   */
-  Node preprocess(TNode node);
-
-  /**
-   * Adds a formula to the current context.
-   */
-  void addFormula(TNode node);
+  // preprocess() and addFormula() used to be housed here; they are
+  // now in an SmtEnginePrivate class.  See the comment in
+  // smt_engine.cpp.
 
   /**
    * Full check of consistency in current context.  Returns true iff
@@ -165,6 +157,8 @@ private:
    * that).
    */
   Result quickCheck();
+
+  friend class ::CVC4::smt::SmtEnginePrivate;
 
 };/* class SmtEngine */
 

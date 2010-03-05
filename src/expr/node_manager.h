@@ -28,6 +28,7 @@
 
 #include "expr/kind.h"
 #include "expr/expr.h"
+#include "context/context.h"
 
 namespace CVC4 {
 
@@ -51,7 +52,8 @@ class NodeManager {
 
   template <unsigned> friend class CVC4::NodeBuilder;
 
-  typedef __gnu_cxx::hash_set<expr::NodeValue*, expr::NodeValueHashFcn,
+  typedef __gnu_cxx::hash_set<expr::NodeValue*,
+                              expr::NodeValueInternalHashFcn,
                               expr::NodeValue::NodeValueEq> NodeValueSet;
   NodeValueSet d_nodeValueSet;
 
@@ -61,10 +63,18 @@ class NodeManager {
   void poolInsert(expr::NodeValue* nv);
 
   friend class NodeManagerScope;
+  friend class expr::NodeValue;
+
+  std::vector<expr::NodeValue*> d_zombieList;
+
+  inline void gc(expr::NodeValue* nv) {
+    Assert(nv->d_rc == 0);
+    d_zombieList.push_back(nv);
+  }
 
 public:
 
-  NodeManager() {
+  NodeManager(context::Context* ctxt) : d_attrManager(ctxt) {
     poolInsert( &expr::NodeValue::s_null );
   }
 
@@ -133,6 +143,26 @@ public:
   inline const Type* getType(TNode n);
 };
 
+/**
+ * Resource-acquisition-is-instantiation C++ idiom: create one of
+ * these "scope" objects to temporarily change the thread-specific
+ * notion of the "current" NodeManager for Node creation/deletion,
+ * etc.  On destruction, the previous NodeManager pointer is restored.
+ * Therefore such objects should only be created and destroyed in a
+ * well-scoped manner (such as on the stack).
+ *
+ * This is especially useful on public-interface calls into the CVC4
+ * library, where CVC4's notion of the "current" NodeManager should be
+ * set to match the calling context.  See, for example, the
+ * implementations of public calls in the ExprManager and SmtEngine
+ * classes.
+ *
+ * You may create a NodeManagerScope with "new" and destroy it with
+ * "delete", or place it as a data member of an object that is, but if
+ * the scope of these new/delete pairs isn't properly maintained, the
+ * incorrect "current" NodeManager pointer may be restored after a
+ * delete.
+ */
 class NodeManagerScope {
   NodeManager *d_oldNodeManager;
 
@@ -143,22 +173,32 @@ public:
     Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
 
-  ~NodeManagerScope() throw() {
+  ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
     Debug("current") << "node manager scope: returning to " << NodeManager::s_current << "\n";
   }
 };
 
 /**
- * A wrapper (essentially) for NodeManagerScope.  Without this, we'd
- * need Expr to be a friend of ExprManager.
+ * A wrapper (essentially) for NodeManagerScope.  The current
+ * "NodeManager" pointer is set to this Expr's underlying
+ * ExpressionManager's NodeManager.  When the ExprManagerScope is
+ * destroyed, the previous NodeManager is restored.
+ *
+ * This is especially useful on public-interface calls into the CVC4
+ * library, where CVC4's notion of the "current" NodeManager should be
+ * set to match the calling context.  See, for example, the
+ * implementations of public calls in the Expr class.
+ *
+ * Without this, we'd need Expr to be a friend of ExprManager.
  */
 class ExprManagerScope {
   NodeManagerScope d_nms;
 public:
   inline ExprManagerScope(const Expr& e) :
-    d_nms(e.getExprManager() == NULL ?
-          NodeManager::currentNM() : e.getExprManager()->getNodeManager()) {
+    d_nms(e.getExprManager() == NULL
+          ? NodeManager::currentNM()
+          : e.getExprManager()->getNodeManager()) {
   }
 };
 

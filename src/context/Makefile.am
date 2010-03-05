@@ -9,5 +9,8 @@ libcontext_la_SOURCES = \
 	context.cpp \
 	context.h \
 	context_mm.cpp \
-	context_mm.h
-
+	context_mm.h \
+	cdo.h \
+	cdlist.h \
+	cdmap.h \
+	cdset.h

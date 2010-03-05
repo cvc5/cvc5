@@ -31,7 +31,7 @@ public:
   Exception(const std::string& msg) : d_msg(msg) {}
   Exception(const char* msg) : d_msg(msg) {}
   // Destructor
-  virtual ~Exception() {}
+  virtual ~Exception() throw() {}
   // NON-VIRTUAL METHOD for setting and printing the error message
   void setMessage(const std::string& msg) { d_msg = msg; }
   // Printing: feel free to redefine toString().  When inherited,

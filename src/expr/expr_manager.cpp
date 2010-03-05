@@ -25,17 +25,21 @@
 #include "expr/type.h"
 #include "expr/node_manager.h"
 #include "expr/expr_manager.h"
+#include "context/context.h"
 
 using namespace std;
+using namespace CVC4::context;
 
 namespace CVC4 {
 
 ExprManager::ExprManager() :
-  d_nodeManager(new NodeManager()) {
+  d_ctxt(new Context),
+  d_nodeManager(new NodeManager(d_ctxt)) {
 }
 
 ExprManager::~ExprManager() {
   delete d_nodeManager;
+  delete d_ctxt;
 }
 
 const BooleanType* ExprManager::booleanType() const {
@@ -136,4 +140,8 @@ NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
 }
 
-} // End namespace CVC4
+Context* ExprManager::getContext() const {
+  return d_ctxt;
+}
+
+}/* CVC4 namespace */

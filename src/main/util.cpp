@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
+#include <exception>
 #include <string.h>
 #include <signal.h>
 
@@ -63,6 +64,45 @@ void segv_handler(int sig, siginfo_t* info, void*) {
 #endif /* CVC4_DEBUG */
 }
 
+static terminate_handler default_terminator;
+
+void cvc4unexpected() {
+#ifdef CVC4_DEBUG
+  fprintf(stderr,
+          "\n"
+          "CVC4 threw an \"unexpected\" exception (one that wasn't properly specified\n"
+          "in the throws() specifier for the throwing function).\n\n");
+  if(segvNoSpin) {
+    fprintf(stderr, "No-spin requested.\n");
+    set_terminate(default_terminator);
+  } else {
+    fprintf(stderr, "Spinning so that a debugger can be connected.\n");
+    fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    for(;;) {
+      sleep(60);
+    }
+  }
+#else /* CVC4_DEBUG */
+  fprintf(stderr, "CVC4 threw an \"unexpected\" exception.\n");
+  set_terminate(default_terminator);
+#endif /* CVC4_DEBUG */
+}
+
+void cvc4terminate() {
+#ifdef CVC4_DEBUG
+  fprintf(stderr,
+          "\n"
+          "CVC4 was terminated by the C++ runtime.\n"
+          "Perhaps an exception was thrown during stack unwinding.  (Don't do that.)\n");
+  default_terminator();
+#else /* CVC4_DEBUG */
+  fprintf(stderr,
+          "CVC4 was terminated by the C++ runtime.\n"
+          "Perhaps an exception was thrown during stack unwinding.\n");
+  default_terminator();
+#endif /* CVC4_DEBUG */
+}
+
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw() {
   struct sigaction act1;
@@ -78,6 +118,9 @@ void cvc4_init() throw() {
   sigemptyset(&act2.sa_mask);
   if(sigaction(SIGSEGV, &act2, NULL))
     throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
+
+  set_unexpected(cvc4unexpected);
+  default_terminator = set_terminate(cvc4terminate);
 }
 
 }/* CVC4::main namespace */

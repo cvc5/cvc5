@@ -1,13 +1,24 @@
-CVC4 is copyright (C) 2009 the ACSys research group at the Courant
+CVC4 is copyright (C) 2009, 2010 the ACSys research group at the Courant
 Institute for Mathematical Sciences, New York University.
 All rights reserved.
 
 This is a prerelease version; distribution is restricted.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 02 Nov 2009 17:54:27 -0500
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNERS OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 04 Mar 2010 20:46:40 -0500
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
-See src/sat/minisat.
+See src/sat/minisat.  Its copyright:
 
   MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
 
@@ -29,4 +40,44 @@ See src/sat/minisat.
   LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
   OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+CVC4 incorporates the script "autogen.sh", excluded from the above copyright.
+See autogen.sh.  Its copyright:
+
+  Copyright (c) 2005-2009 United States Government as represented by
+  the U.S. Army Research Laboratory.
+ 
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+ 
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+ 
+  2. Redistributions in binary form must reproduce the above
+  copyright notice, this list of conditions and the following
+  disclaimer in the documentation and/or other materials provided
+  with the distribution.
+ 
+  3. The name of the author may not be used to endorse or promote
+  products derived from this software without specific prior written
+  permission.
+ 
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+CVC4 incorporates the script "doxygen.am", excluded from the above copyright.
+See config/doxygen.am.  Its copyright:
+
+  Copyright (C) 2004 Oren Ben-Kiki
+  This file is distributed under the same terms as the Automake macro files.
 

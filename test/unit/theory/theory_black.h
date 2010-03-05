@@ -87,8 +87,9 @@ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(context::Context* ctxt, OutputChannel& out) :
-    TheoryImpl<DummyTheory>(ctxt, out) {}
+  DummyTheory(Context* ctxt, OutputChannel& out) :
+    TheoryImpl<DummyTheory>(ctxt, out) {
+  }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
@@ -125,12 +126,11 @@ public:
 
 class TheoryBlack : public CxxTest::TestSuite {
 
-  NodeManagerScope *d_scope;
-  NodeManager *d_nm;
+  Context* d_ctxt;
+  NodeManager* d_nm;
+  NodeManagerScope* d_scope;
 
   TestOutputChannel d_outputChannel;
-
-  Context* d_context;
 
   DummyTheory* d_dummy;
 
@@ -139,28 +139,23 @@ class TheoryBlack : public CxxTest::TestSuite {
 
 public:
 
-  TheoryBlack() {}
-
   void setUp() {
-    d_nm = new NodeManager();
-
+    d_ctxt = new Context;
+    d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
-
-    d_context = new Context();
-
-    d_dummy = new DummyTheory(d_context, d_outputChannel);
-
+    d_dummy = new DummyTheory(d_ctxt, d_outputChannel);
     d_outputChannel.clear();
-
     atom0 = d_nm->mkNode(kind::TRUE);
     atom1 = d_nm->mkNode(kind::FALSE);
   }
 
   void tearDown() {
+    atom1 = Node::null();
+    atom0 = Node::null();
     delete d_dummy;
-    delete d_context;
     delete d_scope;
     delete d_nm;
+    delete d_ctxt;
   }
 
   void testEffort(){

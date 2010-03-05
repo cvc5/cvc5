@@ -29,7 +29,7 @@ Context::Context() : d_pCNOpre(NULL), d_pCNOpost(NULL) {
 }
 
 
-Context::~Context() {
+Context::~Context() throw(AssertionException) {
   // Delete all Scopes
   popto(0);
 
@@ -38,13 +38,13 @@ Context::~Context() {
 
   // Clear ContextNotifyObj lists so there are no dangling pointers
   ContextNotifyObj* pCNO;
-  while (d_pCNOpre != NULL) {
+  while(d_pCNOpre != NULL) {
     pCNO = d_pCNOpre;
     pCNO->d_ppCNOprev = NULL;
     d_pCNOpre = pCNO->d_pCNOnext;
     pCNO->d_pCNOnext = NULL;
   }
-  while (d_pCNOpost != NULL) {
+  while(d_pCNOpost != NULL) {
     pCNO = d_pCNOpost;
     pCNO->d_ppCNOprev = NULL;
     d_pCNOpost = pCNO->d_pCNOnext;
@@ -69,7 +69,7 @@ void Context::pop() {
 
   // Notify the (pre-pop) ContextNotifyObj objects
   ContextNotifyObj* pCNO = d_pCNOpre;
-  while (pCNO != NULL) {
+  while(pCNO != NULL) {
     pCNO->notify();
     pCNO = pCNO->d_pCNOnext;
   }
@@ -88,7 +88,7 @@ void Context::pop() {
 
   // Notify the (post-pop) ContextNotifyObj objects
   pCNO = d_pCNOpost;
-  while (pCNO != NULL) {
+  while(pCNO != NULL) {
     pCNO->notify();
     pCNO = pCNO->d_pCNOnext;
   }
@@ -99,8 +99,8 @@ void Context::pop() {
 
 void Context::popto(int toLevel) {
   // Pop scopes until there are none left or toLevel is reached
-  if (toLevel < 0) toLevel = 0;
-  while (toLevel < getLevel()) pop();
+  if(toLevel < 0) toLevel = 0;
+  while(toLevel < getLevel()) pop();
 }
 
 
@@ -147,19 +147,17 @@ void ContextObj::update() {
 }
 
 
-ContextObj* ContextObj::restoreAndContinue()
-{
+ContextObj* ContextObj::restoreAndContinue() {
   // Variable to hold next object in list
   ContextObj* pContextObjNext;
 
   // Check the restore pointer.  If NULL, this must be the bottom Scope
-  if (d_pContextObjRestore == NULL) {
+  if(d_pContextObjRestore == NULL) {
     Assert(d_pScope == d_pScope->getContext()->getBottomScope(),
            "Expected bottom scope");
     pContextObjNext = d_pContextObjNext;
     // Nothing else to do
-  }
-  else {
+  } else {
     // Call restore to update the subclass data
     restore(d_pContextObjRestore);
 
@@ -177,48 +175,48 @@ ContextObj* ContextObj::restoreAndContinue()
 }
 
 
-ContextObj::ContextObj(Context* pContext)
-  : d_pContextObjRestore(NULL)
-{
+ContextObj::ContextObj(Context* pContext) :
+  d_pContextObjRestore(NULL) {
+
   Assert(pContext != NULL, "NULL context pointer");
+
   d_pScope = pContext->getBottomScope();
   d_pScope->addToChain(this);
 }
 
 
-ContextObj::~ContextObj()
-{
+ContextObj::~ContextObj() throw(AssertionException) {
   for(;;) {
-    if (next() != NULL) {
+    if(next() != NULL) {
       next()->prev() = prev();
     }
     *(prev()) = next();
-    if (d_pContextObjRestore == NULL) break;
+    if(d_pContextObjRestore == NULL) {
+      break;
+    }
     restoreAndContinue();
   }
 }
 
 
 ContextNotifyObj::ContextNotifyObj(Context* pContext, bool preNotify) {
-  if (preNotify) {
+  if(preNotify) {
     pContext->addNotifyObjPre(this);
-  }
-  else {
+  } else {
     pContext->addNotifyObjPost(this);
   }
 }
 
-ContextNotifyObj::~ContextNotifyObj()
-{
-  if (d_pCNOnext != NULL) {
+
+ContextNotifyObj::~ContextNotifyObj() throw(AssertionException) {
+  if(d_pCNOnext != NULL) {
     d_pCNOnext->d_ppCNOprev = d_ppCNOprev;
   }
-  if (d_ppCNOprev != NULL) {
+  if(d_ppCNOprev != NULL) {
     *(d_ppCNOprev) = d_pCNOnext;
   }
 }
 
+
 } /* CVC4::context namespace */
-
-
 } /* CVC4 namespace */

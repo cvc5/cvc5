@@ -21,7 +21,7 @@ using namespace std;
 namespace CVC4 {
 
 ostream& operator<<(ostream& out, const Command* command) {
-  if (command == NULL) {
+  if(command == NULL) {
     out << "null";
   } else {
     command->toStream(out);

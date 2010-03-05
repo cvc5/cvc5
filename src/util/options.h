@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include "parser/parser.h"
-#include "prop/cnf_conversion.h"
 
 namespace CVC4 {
 
@@ -42,9 +41,6 @@ struct CVC4_PUBLIC Options {
   /** The input language */
   parser::Parser::InputLanguage lang;
 
-  /** The CNF conversion */
-  CVC4::CnfConversion d_cnfConversion;
-
   /** Should we exit after parsing? */
   bool parseOnly;
 
@@ -61,7 +57,6 @@ struct CVC4_PUBLIC Options {
               err(0),
               verbosity(0),
               lang(parser::Parser::LANG_AUTO),
-              d_cnfConversion(CVC4::CNF_VAR_INTRODUCTION),
               parseOnly(false),
               semanticChecks(true),
               memoryMap(false)

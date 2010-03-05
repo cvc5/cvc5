@@ -25,6 +25,10 @@ using namespace std;
 
 namespace CVC4 {
 
+#ifdef CVC4_DEBUG
+__thread CVC4_PUBLIC const char* s_debugAssertionFailure = NULL;
+#endif /* CVC4_DEBUG */
+
 void AssertionException::construct(const char* header, const char* extra,
                                    const char* function, const char* file,
                                    unsigned line, const char* fmt,
@@ -65,7 +69,13 @@ void AssertionException::construct(const char* header, const char* extra,
   }
 
   setMessage(string(buf));
+
+#ifdef CVC4_DEBUG
+  // we leak buf[] but only in debug mode with assertions failing
+  s_debugAssertionFailure = buf;
+#else /* CVC4_DEBUG */
   delete [] buf;
+#endif /* CVC4_DEBUG */
 }
 
 void AssertionException::construct(const char* header, const char* extra,
@@ -98,7 +108,13 @@ void AssertionException::construct(const char* header, const char* extra,
   }
 
   setMessage(string(buf));
+
+#ifdef CVC4_DEBUG
+  // we leak buf[] but only in debug mode with assertions failing
+  s_debugAssertionFailure = buf;
+#else /* CVC4_DEBUG */
   delete [] buf;
+#endif /* CVC4_DEBUG */
 }
 
 }/* CVC4 namespace */

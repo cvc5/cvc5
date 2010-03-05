@@ -7,6 +7,7 @@ UNIT_TESTS = \
 	parser/parser_black \
 	context/context_black \
 	context/context_mm_black \
+	context/cdlist_black \
 	theory/theory_black \
 	theory/theory_uf_white \
 	util/assert_white \

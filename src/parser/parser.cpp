@@ -18,12 +18,12 @@
 #include <antlr/CharScanner.hpp>
 #include <antlr/CharBuffer.hpp>
 
-#include "parser.h"
-#include "memory_mapped_input_buffer.h"
+#include "parser/parser.h"
+#include "parser/memory_mapped_input_buffer.h"
 #include "expr/command.h"
 #include "util/output.h"
 #include "util/Assert.h"
-#include "parser_exception.h"
+#include "parser/parser_exception.h"
 #include "parser/antlr_parser.h"
 #include "parser/smt/generated/AntlrSmtParser.hpp"
 #include "parser/smt/generated/AntlrSmtLexer.hpp"
@@ -125,7 +125,7 @@ Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,
 
 Parser* Parser::getMemoryMappedParser(ExprManager* em, InputLanguage lang, string filename) {
   MemoryMappedInputBuffer* inputBuffer = new MemoryMappedInputBuffer(filename);
-  return getNewParser(em,lang,inputBuffer,filename);
+  return getNewParser(em, lang, inputBuffer, filename);
 }
 
 Parser* Parser::getNewParser(ExprManager* em, InputLanguage lang,

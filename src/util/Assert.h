@@ -19,12 +19,13 @@
 #include <string>
 #include <sstream>
 #include <cstdio>
+#include <cstdlib>
 #include <cstdarg>
-#include "util/exception.h"
-#include "cvc4_config.h"
-#include "config.h"
 
-#include <cassert>
+#include "config.h"
+#include "cvc4_config.h"
+#include "util/exception.h"
+#include "util/output.h"
 
 namespace CVC4 {
 
@@ -192,14 +193,42 @@ public:
   }
 };/* class IllegalArgumentException */
 
-#define AlwaysAssert(cond, msg...) \
-  do { \
-    if(EXPECT_FALSE( ! (cond) )) { \
-      throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
-    } \
+#ifdef CVC4_DEBUG
+
+extern __thread CVC4_PUBLIC const char* s_debugAssertionFailure;
+
+// If we're currently handling an exception, print a warning instead;
+// otherwise std::terminate() is called by the runtime and we lose
+// details of the exception
+#define AlwaysAssert(cond, msg...)                                      \
+  do {                                                                  \
+    if(EXPECT_FALSE( ! (cond) )) {                                      \
+      if(EXPECT_FALSE( std::uncaught_exception() )) {                   \
+        Warning() << "===========================================" << std::endl \
+                  << "An assertion failed during stack unwinding:" << std::endl \
+                  << AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg) << std::endl \
+                  << "===========================================" << std::endl; \
+        if(s_debugAssertionFailure != NULL) {                                \
+          Warning() << "The propagating exception is:" << std::endl     \
+                    << s_debugAssertionFailure << std::endl                  \
+                    << "===========================================" << std::endl; \
+        }                                                               \
+      } else {                                                          \
+        throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+      }                                                                 \
+    }                                                                   \
   } while(0)
-#define DtorAlwaysAssert(cond, msg...) \
-  assert(EXPECT_TRUE( cond ))
+#else /* CVC4_DEBUG */
+// These simpler (but less useful) versions for non-debug builds fails
+// with terminate() if thrown during stack unwinding.
+#  define AlwaysAssert(cond, msg...)                                    \
+     do {                                                               \
+       if(EXPECT_FALSE( ! (cond) )) {                                   \
+         throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+       }                                                                \
+     } while(0)
+#endif /* CVC4_DEBUG */
+
 #define Unreachable(msg...) \
   throw UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define Unhandled(msg...) \
@@ -219,11 +248,9 @@ public:
 
 #ifdef CVC4_ASSERTIONS
 #  define Assert(cond, msg...) AlwaysAssert(cond, ## msg)
-#  define DtorAssert(cond, msg...) assert(EXPECT_TRUE( cond ))
 #  define AssertArgument(cond, arg, msg...) AlwaysAssertArgument(cond, arg, ## msg)
 #else /* ! CVC4_ASSERTIONS */
 #  define Assert(cond, msg...) /*EXPECT_TRUE( cond )*/
-#  define DtorAssert(cond, msg...) /*EXPECT_TRUE( cond )*/
 #  define AssertArgument(cond, arg, msg...) /*EXPECT_TRUE( cond )*/
 #endif /* CVC4_ASSERTIONS */
 

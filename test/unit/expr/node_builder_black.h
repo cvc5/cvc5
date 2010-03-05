@@ -23,29 +23,34 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "expr/kind.h"
+#include "context/context.h"
 #include "util/Assert.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
+using namespace CVC4::context;
 using namespace std;
 
 class NodeBuilderBlack : public CxxTest::TestSuite {
 private:
 
-  NodeManagerScope *d_scope;
-  NodeManager *d_nm;
+  Context* d_ctxt;
+  NodeManager* d_nm;
+  NodeManagerScope* d_scope;
 
 public:
 
   void setUp() {
-    d_nm = new NodeManager();
+    d_ctxt = new Context;
+    d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
     specKind = PLUS;
   }
 
   void tearDown() {
-    delete d_nm;
     delete d_scope;
+    delete d_nm;
+    delete d_ctxt;
   }
 
 
@@ -609,20 +614,37 @@ public:
                                      f,
                                      d_nm->mkNode(AND, q, a)));
 
-    Node assoc1 = (a && b) && c;
-    Node assoc2 = a && (b && c);
+    TS_ASSERT_EQUALS(Node((a && b) && c), d_nm->mkNode(AND, a, b, c));
+    TS_ASSERT_EQUALS(Node(a && (b && c)), d_nm->mkNode(AND, a, d_nm->mkNode(AND, b, c)));
+    TS_ASSERT_EQUALS(Node((a || b) || c), d_nm->mkNode(OR, a, b, c));
+    TS_ASSERT_EQUALS(Node(a || (b || c)), d_nm->mkNode(OR, a, d_nm->mkNode(OR, b, c)));
+    TS_ASSERT_EQUALS(Node((a && b) || c), d_nm->mkNode(OR, d_nm->mkNode(AND, a, b), c));
+    TS_ASSERT_EQUALS(Node(a && (b || c)), d_nm->mkNode(AND, a, d_nm->mkNode(OR, b, c)));
+    TS_ASSERT_EQUALS(Node((a || b) && c), d_nm->mkNode(AND, d_nm->mkNode(OR, a, b), c));
+    TS_ASSERT_EQUALS(Node(a || (b && c)), d_nm->mkNode(OR, a, d_nm->mkNode(AND, b, c)));
 
-    TS_ASSERT_EQUALS(assoc1, d_nm->mkNode(AND, a, b, c));
-    TS_ASSERT_EQUALS(assoc2, d_nm->mkNode(AND, a, d_nm->mkNode(AND, b, c)));
+    TS_ASSERT_EQUALS(Node((a + b) + c), d_nm->mkNode(PLUS, a, b, c));
+    TS_ASSERT_EQUALS(Node(a + (b + c)), d_nm->mkNode(PLUS, a, d_nm->mkNode(PLUS, b, c)));
+    TS_ASSERT_EQUALS(Node((a - b) - c), d_nm->mkNode(PLUS, a, d_nm->mkNode(UMINUS, b), d_nm->mkNode(UMINUS, c)));
+    TS_ASSERT_EQUALS(Node(a - (b - c)), d_nm->mkNode(PLUS, a, d_nm->mkNode(UMINUS, d_nm->mkNode(PLUS, b, d_nm->mkNode(UMINUS, c)))));
+    TS_ASSERT_EQUALS(Node((a * b) * c), d_nm->mkNode(MULT, a, b, c));
+    TS_ASSERT_EQUALS(Node(a * (b * c)), d_nm->mkNode(MULT, a, d_nm->mkNode(MULT, b, c)));
+    TS_ASSERT_EQUALS(Node((a + b) - c), d_nm->mkNode(PLUS, a, b, d_nm->mkNode(UMINUS, c)));
+    TS_ASSERT_EQUALS(Node(a + (b - c)), d_nm->mkNode(PLUS, a, d_nm->mkNode(PLUS, b, d_nm->mkNode(UMINUS, c))));
+    TS_ASSERT_EQUALS(Node((a - b) + c), d_nm->mkNode(PLUS, a, d_nm->mkNode(UMINUS, b), c));
+    TS_ASSERT_EQUALS(Node(a - (b + c)), d_nm->mkNode(PLUS, a, d_nm->mkNode(UMINUS, d_nm->mkNode(PLUS, b, c))));
+    TS_ASSERT_EQUALS(Node((a + b) * c), d_nm->mkNode(MULT, d_nm->mkNode(PLUS, a, b), c));
+    TS_ASSERT_EQUALS(Node(a + (b * c)), d_nm->mkNode(PLUS, a, d_nm->mkNode(MULT, b, c)));
+    TS_ASSERT_EQUALS(Node((a - b) * c), d_nm->mkNode(MULT, d_nm->mkNode(PLUS, a, d_nm->mkNode(UMINUS, b)), c));
+    TS_ASSERT_EQUALS(Node(a - (b * c)), d_nm->mkNode(PLUS, a, d_nm->mkNode(UMINUS, d_nm->mkNode(MULT, b, c))));
+    TS_ASSERT_EQUALS(Node((a * b) + c), d_nm->mkNode(PLUS, d_nm->mkNode(MULT, a, b), c));
+    TS_ASSERT_EQUALS(Node(a * (b + c)), d_nm->mkNode(MULT, a, d_nm->mkNode(PLUS, b, c)));
+    TS_ASSERT_EQUALS(Node((a * b) - c), d_nm->mkNode(PLUS, d_nm->mkNode(MULT, a, b), d_nm->mkNode(UMINUS, c)));
+    TS_ASSERT_EQUALS(Node(a * (b - c)), d_nm->mkNode(MULT, a, d_nm->mkNode(PLUS, b, d_nm->mkNode(UMINUS, c))));
 
-    Node prec1 = (a && b) || c;
-    Node prec2 = a || (b && c);
-    Node prec3 = a && (b || c);
-    Node prec4 = (a || b) && c;
-
-    TS_ASSERT_EQUALS(prec1, d_nm->mkNode(OR, d_nm->mkNode(AND, a, b), c));
-    TS_ASSERT_EQUALS(prec2, d_nm->mkNode(OR, a, d_nm->mkNode(AND, b, c)));
-    TS_ASSERT_EQUALS(prec3, d_nm->mkNode(AND, a, d_nm->mkNode(OR, b, c)));
-    TS_ASSERT_EQUALS(prec4, d_nm->mkNode(AND, d_nm->mkNode(OR, a, b), c));
+    TS_ASSERT_EQUALS(Node(-a), d_nm->mkNode(UMINUS, a));
+    TS_ASSERT_EQUALS(Node(- a - b), d_nm->mkNode(PLUS, d_nm->mkNode(UMINUS, a), d_nm->mkNode(UMINUS, b)));
+    TS_ASSERT_EQUALS(Node(- a + b), d_nm->mkNode(PLUS, d_nm->mkNode(UMINUS, a), b));
+    TS_ASSERT_EQUALS(Node(- a * b), d_nm->mkNode(MULT, d_nm->mkNode(UMINUS, a), b));
   }
 };
