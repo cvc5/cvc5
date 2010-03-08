@@ -143,14 +143,13 @@ public:
    * @param literal the literal from the sat solver
    * @return the actual node
    */
-  Node getNode(const SatLiteral& literal) {
-    Node node;
-    NodeCache::iterator find = d_nodeCache.find(literal);
-    if (find != d_nodeCache.end()) {
-      node = find->second;
-    }
-    return node;
-  }
+  Node getNode(const SatLiteral& literal);
+
+  /**
+   * Returns the literal the represents the given node in the SAT CNF
+   * representation.
+   */
+  SatLiteral getLiteral(const TNode& node);
 
 }; /* class CnfStream */
 

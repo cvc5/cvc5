@@ -250,7 +250,7 @@ void TheoryUF::merge(){
     (ecX->getRep()).printAst(Debug("uf"));
     Debug("uf") << "right equivalence class :";
     (ecY->getRep()).printAst(Debug("uf"));
-
+    Debug("uf") << std::endl;
 
     ccUnion(ecX, ecY);
   }
@@ -282,6 +282,7 @@ void TheoryUF::check(Effort level){
 
   while(!done()){
     Node assertion = get();
+    Debug("uf") << "TheoryUF::check(): " << assertion << std::endl;
 
     switch(assertion.getKind()){
     case EQUAL:
@@ -295,6 +296,8 @@ void TheoryUF::check(Effort level){
     default:
       Unreachable();
     }
+
+    Debug("uf") << "TheoryUF::check(): done = " << (done() ? "true" : "false") << std::endl;
   }
 
   //Make sure all outstanding merges are completed.

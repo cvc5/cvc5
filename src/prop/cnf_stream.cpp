@@ -87,6 +87,25 @@ SatLiteral CnfStream::newLiteral(const TNode& node, bool theoryLiteral) {
   return lit;
 }
 
+Node CnfStream::getNode(const SatLiteral& literal) {
+  Node node;
+  NodeCache::iterator find = d_nodeCache.find(literal);
+  if(find != d_nodeCache.end()) {
+    node = find->second;
+  }
+  return node;
+}
+
+SatLiteral CnfStream::getLiteral(const TNode& node) {
+  TranslationCache::iterator find = d_translationCache.find(node);
+  SatLiteral literal;
+  if(find != d_translationCache.end()) {
+    literal = find->second;
+  }
+  Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
+  return literal;
+}
+
 SatLiteral TseitinCnfStream::handleAtom(const TNode& node) {
   Assert(node.isAtomic(), "handleAtom(n) expects n to be an atom");
   Assert(!isCached(node), "atom already mapped!");

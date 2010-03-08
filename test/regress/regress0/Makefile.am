@@ -11,6 +11,7 @@ TESTS =	bug32.cvc \
 	simple2.smt \
 	simple.cvc \
 	simple.smt \
+  simple-uf.smt \
 	smallcnf.cvc \
 	test11.cvc \
 	test9.cvc \

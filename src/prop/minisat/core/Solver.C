@@ -436,9 +436,15 @@ Clause* Solver::propagate()
 |________________________________________________________________________________________________@*/
 Clause* Solver::propagateTheory()
 {
+  Clause* c = NULL;
   SatClause clause;
   proxy->theoryCheck(clause);
-  return NULL;
+  if (clause.size() > 0) {
+    Clause* c = Clause_new(clause, false);
+    clauses.push(c);
+    attachClause(*c);
+  }
+  return c;
 }
 
 /*_________________________________________________________________________________________________
