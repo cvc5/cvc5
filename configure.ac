@@ -10,6 +10,8 @@ AC_CONFIG_SRCDIR([src/include/cvc4_config.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+
 CVC4_MAJOR=0
 CVC4_MINOR=0
 CVC4_RELEASE=0
