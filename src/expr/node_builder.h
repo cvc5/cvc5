@@ -189,7 +189,7 @@ public:
 
   NodeBuilder& append(TNode n) {
     Assert(!d_used, "NodeBuilder is one-shot only; attempt to access it after conversion");
-    Debug("prop") << "append: " << this << " " << n << "[" << n.d_nv << "]" << std::endl;
+    Debug("node") << "append: " << this << " " << n << "[" << n.d_nv << "]" << std::endl;
     allocateEvIfNecessaryForAppend();
     expr::NodeValue* ev = n.d_nv;
     ev->inc();
@@ -834,7 +834,7 @@ NodeBuilder<nchild_thresh>::operator Node() const {// const version
   if(ev != NULL) {
     // expression already exists in node manager
     //d_used = true; // const version
-    Debug("prop") << "result: " << Node(ev) << std::endl;
+    Debug("node") << "result: " << Node(ev) << std::endl;
     return Node(ev);
   }
 
@@ -887,7 +887,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
     nv->d_rc = 0;
     d_used = true;
     d_nv = NULL;
-    Debug("prop") << "result: " << Node(nv) << std::endl;
+    Debug("node") << "result: " << Node(nv) << std::endl;
     return Node(nv);
   }
 
@@ -902,7 +902,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
       // expression already exists in node manager
       dealloc();
       d_used = true;
-      Debug("prop") << "result: " << Node(nv) << std::endl;
+      Debug("node") << "result: " << Node(nv) << std::endl;
       return Node(nv);
     }
     // Otherwise crop and set the expression value to the allocated one
@@ -920,7 +920,7 @@ NodeBuilder<nchild_thresh>::operator Node() {// not const
   if(ev != NULL) {
     // expression already exists in node manager
     d_used = true;
-    Debug("prop") << "result: " << Node(ev) << std::endl;
+    Debug("node") << "result: " << Node(ev) << std::endl;
     return Node(ev);
   }
 
