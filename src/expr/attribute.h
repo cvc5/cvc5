@@ -342,6 +342,14 @@ public:
     uint64_t& word = super::operator[](k.second);
     return BitAccessor(word, k.first);
   }
+
+  /**
+   * Delete all flags from the given node.
+   */
+  void erase(NodeValue* nv) {
+    super::erase(nv);
+  }
+
 };/* class AttrHash<bool> */
 
 /**
@@ -362,6 +370,17 @@ public:
                    AttrHashFcn>(ctxt) {
   }
 };
+
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
+/// FIXME ------ need optimized (packed) specialization of CDAttrHash<bool> ------- FIXME
 
 }/* CVC4::expr::attr namespace */
 
@@ -562,6 +581,9 @@ namespace attr {
  */
 class AttributeManager {
 
+  // IF YOU ADD ANY TABLES, don't forget to add them also to the
+  // implementation of deleteAllAttributes().
+
   /** Underlying hash table for boolean-valued attributes */
   AttrHash<bool> d_bools;
   /** Underlying hash table for integral-valued attributes */
@@ -572,6 +594,9 @@ class AttributeManager {
   AttrHash<std::string> d_strings;
   /** Underlying hash table for pointer-valued attributes */
   AttrHash<void*> d_ptrs;
+
+  // IF YOU ADD ANY TABLES, don't forget to add them also to the
+  // implementation of deleteAllAttributes().
 
   /** Underlying hash table for context-dependent boolean-valued attributes */
   CDAttrHash<bool> d_cdbools;
@@ -605,7 +630,7 @@ public:
   /**
    * Get a particular attribute on a particular node.
    *
-   * @param n the node about which to inquire
+   * @param nv the node about which to inquire
    *
    * @param const AttrKind& the attribute kind to get
    *
@@ -613,7 +638,7 @@ public:
    * AttrKind::value_type if not.
    */
   template <class AttrKind>
-  typename AttrKind::value_type getAttribute(TNode n,
+  typename AttrKind::value_type getAttribute(NodeValue* nv,
                                              const AttrKind&) const;
 
   // Note that there are two, distinct hasAttribute() declarations for
@@ -624,21 +649,21 @@ public:
   /**
    * Determine if a particular attribute exists for a particular node.
    *
-   * @param n the node about which to inquire
+   * @param nv the node about which to inquire
    *
    * @param const AttrKind& the attribute kind to inquire about
    *
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
-  bool hasAttribute(TNode n,
+  bool hasAttribute(NodeValue* nv,
                     const AttrKind&) const;
 
   /**
    * Determine if a particular attribute exists for a particular node,
    * and get it if it does.
    *
-   * @param n the node about which to inquire
+   * @param nv the node about which to inquire
    *
    * @param const AttrKind& the attribute kind to inquire about
    *
@@ -648,14 +673,14 @@ public:
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
-  bool hasAttribute(TNode n,
+  bool hasAttribute(NodeValue* nv,
                     const AttrKind&,
                     typename AttrKind::value_type& ret) const;
 
   /**
    * Set a particular attribute on a particular node.
    *
-   * @param n the node for which to set the attribute
+   * @param nv the node for which to set the attribute
    *
    * @param const AttrKind& the attribute kind to set
    *
@@ -665,9 +690,16 @@ public:
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
-  void setAttribute(TNode n,
+  void setAttribute(NodeValue* nv,
                     const AttrKind&,
                     const typename AttrKind::value_type& value);
+
+  /**
+   * Remove all attributes associated to the given node.
+   *
+   * @param nv the node from which to delete attributes
+   */
+  void deleteAllAttributes(NodeValue* nv);
 };
 
 }/* CVC4::expr::attr namespace */
@@ -835,7 +867,7 @@ namespace attr {
 
 // implementation for AttributeManager::getAttribute()
 template <class AttrKind>
-typename AttrKind::value_type AttributeManager::getAttribute(TNode n,
+typename AttrKind::value_type AttributeManager::getAttribute(NodeValue* nv,
                                                              const AttrKind&) const {
 
   typedef typename AttrKind::value_type value_type;
@@ -843,7 +875,7 @@ typename AttrKind::value_type AttributeManager::getAttribute(TNode n,
   typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
   const table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*this);
-  typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), n.d_nv));
+  typename table_type::const_iterator i = ah.find(std::make_pair(AttrKind::getId(), nv));
 
   if(i == ah.end()) {
     return typename AttrKind::value_type();
@@ -937,20 +969,20 @@ struct HasAttribute<false, AttrKind> {
 };
 
 template <class AttrKind>
-bool AttributeManager::hasAttribute(TNode n,
+bool AttributeManager::hasAttribute(NodeValue* nv,
                                     const AttrKind&) const {
-  return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, n.d_nv);
+  return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, nv);
 }
 
 template <class AttrKind>
-bool AttributeManager::hasAttribute(TNode n,
+bool AttributeManager::hasAttribute(NodeValue* nv,
                                     const AttrKind&,
                                     typename AttrKind::value_type& ret) const {
-  return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, n.d_nv, ret);
+  return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, nv, ret);
 }
 
 template <class AttrKind>
-inline void AttributeManager::setAttribute(TNode n,
+inline void AttributeManager::setAttribute(NodeValue* nv,
                                            const AttrKind&,
                                            const typename AttrKind::value_type& value) {
 
@@ -959,7 +991,7 @@ inline void AttributeManager::setAttribute(TNode n,
   typedef typename getTable<value_type, AttrKind::context_dependent>::table_type table_type;
 
   table_type& ah = getTable<value_type, AttrKind::context_dependent>::get(*this);
-  ah[std::make_pair(AttrKind::getId(), n.d_nv)] = mapping::convert(value);
+  ah[std::make_pair(AttrKind::getId(), nv)] = mapping::convert(value);
 }
 
 }/* CVC4::expr::attr namespace */

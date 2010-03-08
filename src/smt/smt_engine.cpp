@@ -10,6 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** The main entry point into the CVC4 library's SMT interface.
  **/
 
 #include "smt/smt_engine.h"
@@ -67,6 +68,7 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
   d_exprManager(em),
   d_nodeManager(em->getNodeManager()),
   d_options(opts) {
+
   NodeManagerScope nms(d_nodeManager);
   d_decisionEngine = new DecisionEngine;
   d_theoryEngine = new TheoryEngine(this, d_ctxt);

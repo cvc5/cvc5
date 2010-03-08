@@ -244,16 +244,17 @@ public:
     emptyTrash();
 
     typename __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn>::iterator
-      i(d_map.find(k));
+      i = d_map.find(k);
 
-    if(i == d_map.end()) { // Create new object
+    if(i == d_map.end()) {// create new object
       CDOmap<Key, Data, HashFcn>*
-	obj(new(true) CDOmap<Key, Data, HashFcn>(d_context, this, k, d));
+	obj = new(true) CDOmap<Key, Data, HashFcn>(d_context, this, k, d);
       d_map[k] = obj;
     } else {
       (*i).second->set(d);
     }
   }
+
   // FIXME: no erase(), too much hassle to implement efficiently...
 
   // Iterator for CDMap: points to pair<const Key, CDOMap<Key, Data, HashFcn>&>;

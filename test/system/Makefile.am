@@ -22,6 +22,17 @@ TEST_DEPS = \
 EXTRA_DIST = \
 	$(TEST_DEPS_DIST)
 
+if STATIC_BINARY
+system_LINK = $(CXXLINK) -all-static
+else
+system_LINK = $(CXXLINK)
+endif
+
+# WHEN SYSTEM TESTS ARE ADDED, BUILD LIKE THIS:
+# system_test: system_test.cpp
+# 	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@.lo $<
+# 	$(AM_V_CXXLD)$(system_LINK) $(AM_LDFLAGS) $@.lo
+
 # rebuild tests if a library changes
 $(TESTS):: $(TEST_DEPS)
 

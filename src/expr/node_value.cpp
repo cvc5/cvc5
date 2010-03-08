@@ -38,9 +38,11 @@ string NodeValue::toString() const {
 
 void NodeValue::toStream(std::ostream& out) const {
   if(d_kind == kind::VARIABLE) {
-    Node n(this);
     string s;
-    if(n.hasAttribute(VarNameAttr(), s)) {
+    // conceptually "this" is const, and hasAttribute() doesn't change
+    // its argument, but it requires a non-const key arg (for now)
+    if(NodeManager::currentNM()->hasAttribute(const_cast<NodeValue*>(this),
+                                              VarNameAttr(), s)) {
       out << s;
     } else {
       out << "var_" << d_id;
@@ -51,7 +53,7 @@ void NodeValue::toStream(std::ostream& out) const {
       if(i != nv_end()) {
         out << " ";
       }
-      Node(*i).toStream(out);
+      (*i)->toStream(out);
     }
     out << ")";
   }

@@ -32,7 +32,8 @@
 namespace CVC4 {
 
 template <bool ref_count> class NodeTemplate;
-template <unsigned> class NodeBuilder;
+template <class Builder> class NodeBuilderBase;
+template <unsigned N> class NodeBuilder;
 class AndNodeBuilder;
 class OrNodeBuilder;
 class PlusNodeBuilder;
@@ -79,7 +80,8 @@ class NodeValue {
   // todo add exprMgr ref in debug case
 
   template <bool> friend class CVC4::NodeTemplate;
-  template <unsigned> friend class CVC4::NodeBuilder;
+  template <class Builder> friend class CVC4::NodeBuilderBase;
+  template <unsigned N> friend class CVC4::NodeBuilder;
   friend class CVC4::AndNodeBuilder;
   friend class CVC4::OrNodeBuilder;
   friend class CVC4::PlusNodeBuilder;
@@ -93,9 +95,6 @@ class NodeValue {
 
   /** Private default constructor for the null value. */
   NodeValue();
-
-  /** Private default constructor for the NodeBuilder. */
-  NodeValue(int);
 
   /** Destructor decrements the ref counts of its children */
   ~NodeValue();
@@ -226,6 +225,15 @@ struct NodeValueInternalHashFcn {
   }
 };/* struct NodeValueHashFcn */
 
+/**
+ * For hash_maps, hash_sets, etc.
+ */
+struct NodeValueIDHashFcn {
+  inline size_t operator()(const NodeValue* nv) const {
+    return (size_t) nv->getId();
+  }
+};/* struct NodeValueHashFcn */
+
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
@@ -238,13 +246,6 @@ inline NodeValue::NodeValue() :
   d_id(0),
   d_rc(MAX_RC),
   d_kind(kind::NULL_EXPR),
-  d_nchildren(0) {
-}
-
-inline NodeValue::NodeValue(int) :
-  d_id(0),
-  d_rc(0),
-  d_kind(kindToDKind(kind::UNDEFINED_KIND)),
   d_nchildren(0) {
 }
 

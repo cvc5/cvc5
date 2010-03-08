@@ -212,6 +212,7 @@ extern __thread CVC4_PUBLIC const char* s_debugAssertionFailure;
           Warning() << "The propagating exception is:" << std::endl     \
                     << s_debugAssertionFailure << std::endl                  \
                     << "===========================================" << std::endl; \
+          s_debugAssertionFailure = NULL;                               \
         }                                                               \
       } else {                                                          \
         throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \

@@ -64,18 +64,24 @@ MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp)
 # that file for comment)
 # TESTS =
 
+if STATIC_BINARY
+unit_LINK = $(CXXLINK) -all-static
+else
+unit_LINK = $(CXXLINK)
+endif
+
 $(UNIT_TESTS:%=%.cpp): %.cpp: %.h
-	mkdir -p `dirname "$@"`
-	$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
+	$(AM_V_at)mkdir -p `dirname "$@"`
+	$(AM_V_GEN)$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
 $(WHITE_TESTS): %_white: %_white.cpp $(TEST_DEPS)
-	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
-	$(CXXLINK) $(AM_LDFLAGS_WHITE) $@.lo
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_WHITE) $@.lo
 $(BLACK_TESTS): %_black: %_black.cpp $(TEST_DEPS)
-	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
-	$(CXXLINK) $(AM_LDFLAGS_BLACK) $@.lo
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_BLACK) $@.lo
 $(PUBLIC_TESTS): %_public: %_public.cpp $(TEST_DEPS)
-	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
-	$(CXXLINK) $(AM_LDFLAGS_PUBLIC) $@.lo
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
 else
 

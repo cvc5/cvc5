@@ -15,6 +15,7 @@ libexpr_la_SOURCES = \
 	node_manager.h \
 	expr_manager.h \
 	attribute.h \
+	attribute.cpp \
 	@srcdir@/kind.h \
 	node_builder.cpp \
 	node_manager.cpp \

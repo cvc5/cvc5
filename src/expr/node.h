@@ -99,8 +99,8 @@ class NodeTemplate {
   friend class NodeTemplate<false>;
   friend class NodeManager;
 
-  template <unsigned>
-  friend class NodeBuilder;
+  template <class Builder>
+  friend class NodeBuilderBase;
 
   friend class ::CVC4::expr::attr::AttributeManager;
 
