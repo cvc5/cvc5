@@ -38,14 +38,20 @@ TheoryUF::TheoryUF(Context* c, OutputChannel& out) :
 TheoryUF::~TheoryUF(){}
 
 void TheoryUF::preRegisterTerm(TNode n){
+  Debug("uf") << "uf: begin preRegisterTerm(" << n << ")" << std::endl;
+  Debug("uf") << "uf: end preRegisterTerm(" << n << ")" << std::endl;
 }
 
 void TheoryUF::registerTerm(TNode n){
 
+  Debug("uf") << "uf: begin registerTerm(" << n << ")" << std::endl;
+  n.printAst(Debug("uf"));
+
+
   d_registered.push_back(n);
-#ifdef CVC4_DEBUG
-  n.printAst(Warning());
-#endif /* CVC4_DEBUG */
+
+
+
 
   ECData* ecN;
 
@@ -132,6 +138,7 @@ void TheoryUF::registerTerm(TNode n){
       ecChild->addPredecessor(n, d_context);
     }
   }
+  Debug("uf") << "uf: end registerTerm(" << n << ")" << std::endl;
 
 }
 
@@ -238,20 +245,41 @@ void TheoryUF::merge(){
     if(ecX == ecY)
       continue;
 
+    Debug("uf") << "merging equivalence classes for " << std::endl;
+    Debug("uf") << "left equivalence class :";
+    (ecX->getRep()).printAst(Debug("uf"));
+    Debug("uf") << "right equivalence class :";
+    (ecY->getRep()).printAst(Debug("uf"));
+
+
     ccUnion(ecX, ecY);
   }
 }
 
 Node TheoryUF::constructConflict(TNode diseq){
+  Debug("uf") << "uf: begin constructConflict()" << std::endl;
+
   NodeBuilder<> nb(kind::AND);
   nb << diseq;
   for(unsigned i=0; i<d_assertions.size(); ++i)
     nb << d_assertions[i];
 
-  return nb;
+  Node conflict = nb;
+
+
+  Debug("uf") << "conflict constructed : ";
+  conflict.printAst(Debug("uf"));
+  Debug("uf") << std::endl;
+
+  Debug("uf") << "uf: ending constructConflict()" << std::endl;
+
+  return conflict;
 }
 
 void TheoryUF::check(Effort level){
+
+  Debug("uf") << "uf: begin check(" << level << ")" << std::endl;
+
   while(!done()){
     Node assertion = get();
 
@@ -288,4 +316,7 @@ void TheoryUF::check(Effort level){
       }
     }
   }
+
+  Debug("uf") << "uf: end check(" << level << ")" << std::endl;
+
 }

@@ -126,17 +126,13 @@ public:
 
     Node f3_x_eq_x = f_f_f_x.eqNode(x);
     Node f5_x_eq_x = f_f_f_f_f_x.eqNode(x);
-    Node f5_x_eq_f5_x = f_f_f_f_f_x.eqNode(f_f_f_f_f_x);
     Node f1_x_neq_x = f_x.eqNode(x).notNode();
 
     Node expectedConflict = d_nm->mkNode(kind::AND,
                                          f1_x_neq_x,
-                                         f5_x_eq_f5_x,
                                          f3_x_eq_x,
                                          f5_x_eq_x
                                          );
-
-    d_euf->assertFact( f5_x_eq_f5_x );
 
     d_euf->assertFact( f3_x_eq_x );
     d_euf->assertFact( f1_x_neq_x );
