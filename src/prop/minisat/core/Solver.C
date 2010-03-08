@@ -77,7 +77,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar)
+Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
 {
     int v = nVars();
     watches   .push();          // (list for positive literal)
@@ -87,6 +87,8 @@ Var Solver::newVar(bool sign, bool dvar)
     level     .push(-1);
     activity  .push(0);
     seen      .push(0);
+
+    theory    .push(theoryAtom);
 
     polarity    .push((char)sign);
     decision_var.push((char)dvar);
@@ -394,11 +396,17 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 void Solver::uncheckedEnqueue(Lit p, Clause* from)
 {
     assert(value(p) == l_Undef);
-    assigns  [var(p)] = toInt(lbool(!sign(p)));  // <<== abstract but not uttermost effecient
+    assigns  [var(p)] = toInt(lbool(!sign(p)));  // <<== abstract but not uttermost efficient
     level    [var(p)] = decisionLevel();
     reason   [var(p)] = from;
+    // Added for phase-caching
     polarity [var(p)] = sign(p);
     trail.push(p);
+
+    if (theory[var(p)]) {
+      // Enqueue to the theory
+      proxy->enqueueTheoryLiteral(p);
+    }
 }
 
 

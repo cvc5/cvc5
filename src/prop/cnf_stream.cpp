@@ -14,6 +14,7 @@
  ** of given an equisatisfiable stream of assertions to PropEngine.
  **/
 
+#include "sat.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "expr/node.h"
@@ -71,12 +72,18 @@ SatLiteral CnfStream::lookupInCache(const TNode& n) const {
 
 void CnfStream::cacheTranslation(const TNode& node, SatLiteral lit) {
   Debug("cnf") << "caching translation " << node << " to " << lit << endl;
+  // We always cash bot the node and the negation at the same time
   d_translationCache[node] = lit;
+  d_translationCache[node.notNode()] = ~lit;
 }
 
-SatLiteral CnfStream::newLiteral(const TNode& node) {
-  SatLiteral lit = SatLiteral(d_satSolver->newVar());
+SatLiteral CnfStream::newLiteral(const TNode& node, bool theoryLiteral) {
+  SatLiteral lit = SatLiteral(d_satSolver->newVar(theoryLiteral));
   cacheTranslation(node, lit);
+  if (theoryLiteral) {
+    d_nodeCache[lit] = node;
+    d_nodeCache[~lit] = node.notNode();
+  }
   return lit;
 }
 
@@ -86,7 +93,7 @@ SatLiteral TseitinCnfStream::handleAtom(const TNode& node) {
 
   Debug("cnf") << "handleAtom(" << node << ")" << endl;
 
-  SatLiteral lit = newLiteral(node);
+  SatLiteral lit = newLiteral(node, true);
 
   switch(node.getKind()) {
   case TRUE:

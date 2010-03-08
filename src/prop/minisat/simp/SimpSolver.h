@@ -44,7 +44,7 @@ class SimpSolver : public Solver {
 
     // Problem specification:
     //
-    Var     newVar    (bool polarity = true, bool dvar = true);
+    Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false);
     bool    addClause (vec<Lit>& ps);
 
     // Variable mode:

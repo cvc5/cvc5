@@ -60,7 +60,8 @@ class TheoryEngine {
       d_engine = &engine;
     }
 
-    void conflict(TNode, bool) throw(theory::Interrupted) {
+    void conflict(TNode conflictNode, bool) throw(theory::Interrupted) {
+      Debug("theory") << "conflict(" << conflictNode << ")" << std::endl;
     }
 
     void propagate(TNode, bool) throw(theory::Interrupted) {
@@ -107,8 +108,22 @@ public:
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  theory::Theory* theoryOf(TNode n) {
-    return theoryOfTable[n];
+  theory::Theory* theoryOf(const TNode& node) {
+    return theoryOfTable[node];
+  }
+
+  /**
+   * Assert the formula to the apropriate theory.
+   * @param node the assertion
+   */
+  inline void assertFact(const TNode& node) {
+    Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
+    theory::Theory* theory = theoryOf(node);
+    if (theory != NULL) theory->assertFact(node);
+  }
+
+  inline void check(theory::Theory::Effort effort) {
+    d_uf.check(effort);
   }
 
 };/* class TheoryEngine */

@@ -46,7 +46,12 @@ private:
   SatSolver *d_satSolver;
 
   /** Cache of what literal have been registered to a node. */
-  __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFcn> d_translationCache;
+  typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFcn> TranslationCache;
+  TranslationCache d_translationCache;
+
+  /** Cache of what nodes have been registered to a literal. */
+  typedef __gnu_cxx::hash_map<SatLiteral, Node, SatSolver::SatLiteralHashFcn> NodeCache;
+  NodeCache d_nodeCache;
 
 protected:
 
@@ -103,9 +108,11 @@ protected:
    * Acquires a new variable from the SAT solver to represent the node and
    * inserts the necessary data it into the mapping tables.
    * @param node a formula
+   * @param theoryLiteral is this literal a theory literal (i.e. theory to be
+   *        informed when set to true/false
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(const TNode& node);
+  SatLiteral newLiteral(const TNode& node, bool theoryLiteral = false);
 
 public:
 
@@ -130,6 +137,20 @@ public:
    * @param whether the sat solver can choose to remove this clause
    */
   virtual void convertAndAssert(const TNode& node) = 0;
+
+  /**
+   * Returns a node the is represented by a give SatLiteral literal.
+   * @param literal the literal from the sat solver
+   * @return the actual node
+   */
+  Node getNode(const SatLiteral& literal) {
+    Node node;
+    NodeCache::iterator find = d_nodeCache.find(literal);
+    if (find != d_nodeCache.end()) {
+      node = find->second;
+    }
+    return node;
+  }
 
 }; /* class CnfStream */
 

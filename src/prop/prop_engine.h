@@ -25,12 +25,12 @@
 #include "util/options.h"
 #include "util/decision_engine.h"
 #include "theory/theory_engine.h"
-#include "prop/sat.h"
 
 namespace CVC4 {
 namespace prop {
 
 class CnfStream;
+class SatSolver;
 
 /**
  * PropEngine is the abstraction of a Sat Solver, providing methods for

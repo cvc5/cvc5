@@ -12,8 +12,8 @@
  **
  **/
 
+#include "sat.h"
 #include "prop/prop_engine.h"
-#include "prop/cnf_stream.h"
 
 #include "theory/theory_engine.h"
 #include "util/decision_engine.h"
@@ -42,6 +42,7 @@ PropEngine::PropEngine(const Options* opts, DecisionEngine* de,
   Debug("prop") << "Constructing the PropEngine" << endl;
   d_satSolver = new SatSolver(this, d_theoryEngine, d_context, d_options);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
+  d_satSolver->setCnfStream(d_cnfStream);
 }
 
 PropEngine::~PropEngine() {

@@ -58,8 +58,8 @@ SimpSolver::~SimpSolver()
 }
 
 
-Var SimpSolver::newVar(bool sign, bool dvar) {
-    Var v = Solver::newVar(sign, dvar);
+Var SimpSolver::newVar(bool sign, bool dvar, bool theoryAtom) {
+    Var v = Solver::newVar(sign, dvar,theoryAtom);
 
     if (use_simplification){
         n_occ    .push(0);
