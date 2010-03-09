@@ -208,6 +208,15 @@ AntlrParser::newSorts(const std::vector<std::string>& names) {
   return types;
 }
 
+void
+AntlrParser::setLogic(const std::string& name) {
+  if( name == "QF_UF" ) {
+    newSort("U");
+  } else {
+    Unhandled("setLogic: " + name);
+  }
+}
+
 const BooleanType* AntlrParser::booleanType() {
   return d_exprManager->booleanType(); 
 }

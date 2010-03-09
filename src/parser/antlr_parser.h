@@ -65,6 +65,13 @@ public:
   void setExpressionManager(ExprManager* expr_manager);
 
   /**
+   * Sets the logic for the current benchmark. Declares any logic symbols.
+   *
+   * @param name the name of the logic (e.g., QF_UF, AUFLIA)
+   */
+  void setLogic(const std::string& name);
+
+  /**
    * Parse a command.
    * @return a command
    */

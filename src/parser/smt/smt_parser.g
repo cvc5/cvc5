@@ -96,7 +96,8 @@ benchAttribute returns [Command* smt_command = 0]
   SetBenchmarkStatusCommand::BenchmarkStatus b_status = SetBenchmarkStatusCommand::SMT_UNKNOWN;
 }
   : LOGIC_ATTR logic = identifier
-    { smt_command = new SetBenchmarkLogicCommand(logic);   }
+    { setLogic(logic);
+      smt_command = new SetBenchmarkLogicCommand(logic);   }
   | ASSUMPTION_ATTR formula = annotatedFormula
     { smt_command = new AssertCommand(formula);   }
   | FORMULA_ATTR formula = annotatedFormula
