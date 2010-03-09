@@ -1,7 +1,8 @@
 TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/../../bin/cvc4
 TESTS =	simple.01.cvc \
 	simple.02.cvc \
-	simple.03.cvc
+	simple.03.cvc \
+	simple.04.cvc
 
 # synonyms for "check"
 .PHONY: regress regress0 test
