@@ -126,6 +126,27 @@ annotatedFormula returns [CVC4::Expr formula]
     { checkArity(kind, args.size());
       formula = mkExpr(kind,args); }
 
+  | /* a "distinct" expr */
+    LPAREN DISTINCT annotatedFormulas[args] RPAREN
+    { std::vector<Expr> diseqs;
+      for(unsigned i = 0; i < args.size(); ++i) {
+        for(unsigned j = i+1; j < args.size(); ++j) {
+          diseqs.push_back(mkExpr(CVC4::kind::NOT, 
+                                  mkExpr(CVC4::kind::EQUAL,args[i],args[j])));
+        }
+      }
+      formula = mkExpr(CVC4::kind::AND, diseqs); }
+
+  | /* An ite expression */
+    LPAREN (ITE | IF_THEN_ELSE) 
+    { Expr test, trueExpr, falseExpr; }
+    test = annotatedFormula 
+    trueExpr = annotatedFormula
+    falseExpr = annotatedFormula
+    RPAREN
+    { formula = mkExpr(CVC4::kind::ITE, test, trueExpr, falseExpr); }
+
+
   | /* A non-built-in function application */
 
     // Semantic predicate not necessary if parenthesized subexpressions
@@ -138,15 +159,6 @@ annotatedFormula returns [CVC4::Expr formula]
     annotatedFormulas[args] RPAREN
     // TODO: check arity
     { formula = mkExpr(CVC4::kind::APPLY,args); }
-
-  | /* An ite expression */
-    LPAREN (ITE | IF_THEN_ELSE) 
-    { Expr test, trueExpr, falseExpr; }
-    test = annotatedFormula 
-    trueExpr = annotatedFormula
-    falseExpr = annotatedFormula
-    RPAREN
-    { formula = mkExpr(CVC4::kind::ITE, test, trueExpr, falseExpr); }
 
   | /* a variable */
     { std::string name; }
