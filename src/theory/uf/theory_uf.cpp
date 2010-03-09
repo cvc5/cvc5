@@ -45,7 +45,6 @@ void TheoryUF::preRegisterTerm(TNode n){
 void TheoryUF::registerTerm(TNode n){
 
   Debug("uf") << "uf: begin registerTerm(" << n << ")" << std::endl;
-  n.printAst(Debug("uf"));
 
 
   d_registered.push_back(n);
@@ -246,10 +245,8 @@ void TheoryUF::merge(){
       continue;
 
     Debug("uf") << "merging equivalence classes for " << std::endl;
-    Debug("uf") << "left equivalence class :";
-    (ecX->getRep()).printAst(Debug("uf"));
-    Debug("uf") << "right equivalence class :";
-    (ecY->getRep()).printAst(Debug("uf"));
+    Debug("uf") << "left equivalence class :" << (ecX->getRep()) << std::endl;
+    Debug("uf") << "right equivalence class :" << (ecY->getRep()) << std::endl;
     Debug("uf") << std::endl;
 
     ccUnion(ecX, ecY);
@@ -267,9 +264,7 @@ Node TheoryUF::constructConflict(TNode diseq){
   Node conflict = nb;
 
 
-  Debug("uf") << "conflict constructed : ";
-  conflict.printAst(Debug("uf"));
-  Debug("uf") << std::endl;
+  Debug("uf") << "conflict constructed : " << conflict << std::endl;
 
   Debug("uf") << "uf: ending constructConflict()" << std::endl;
 
