@@ -66,14 +66,14 @@ void PropEngine::assertLemma(TNode node) {
 
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
-  Debug("prop") << "solve()" << endl;
+  Debug("prop") << "PropEngine::checkSat()" << endl;
   // Mark that we are in the checkSat
   d_inCheckSat = true;
   // Check the problem
   bool result = d_satSolver->solve();
   // Not in checkSat any more
   d_inCheckSat = false;
-  Debug("prop") << "solve() => " << (result ? "true" : "false") << endl;
+  Debug("prop") << "PropEngine::checkSat() => " << (result ? "true" : "false") << endl;
   return Result(result ? Result::SAT : Result::UNSAT);
 }
 

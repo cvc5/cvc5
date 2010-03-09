@@ -65,7 +65,7 @@ Var SimpSolver::newVar(bool sign, bool dvar, bool theoryAtom) {
         n_occ    .push(0);
         n_occ    .push(0);
         occurs   .push();
-        frozen   .push((char)false);
+        frozen   .push((char)theoryAtom);
         touched  .push(0);
         elim_heap.insert(v);
         elimtable.push();
@@ -156,6 +156,7 @@ bool SimpSolver::addClause(vec<Lit>& ps)
 
 void SimpSolver::removeClause(Clause& c)
 {
+    Debug("minisat") << "SimpSolver::removeClause(" << c << ")" << std::endl;
     assert(!c.learnt());
 
     if (use_simplification)

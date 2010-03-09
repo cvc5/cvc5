@@ -141,6 +141,7 @@ void Solver::attachClause(Clause& c) {
 
 
 void Solver::detachClause(Clause& c) {
+    Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
     assert(find(watches[toInt(~c[0])], &c));
     assert(find(watches[toInt(~c[1])], &c));
@@ -151,8 +152,10 @@ void Solver::detachClause(Clause& c) {
 
 
 void Solver::removeClause(Clause& c) {
+    Debug("minisat") << "Solver::removeClause(" << c << ")" << std::endl;
     detachClause(c);
-    free(&c); }
+    free(&c);
+}
 
 
 bool Solver::satisfied(const Clause& c) const {
@@ -440,8 +443,8 @@ Clause* Solver::propagateTheory()
   SatClause clause;
   proxy->theoryCheck(clause);
   if (clause.size() > 0) {
-    Clause* c = Clause_new(clause, false);
-    clauses.push(c);
+    c = Clause_new(clause, true);
+    learnts.push(c);
     attachClause(*c);
   }
   return c;
