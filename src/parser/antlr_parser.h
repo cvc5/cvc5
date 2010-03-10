@@ -252,6 +252,8 @@ protected:
   mkVars(const std::vector<std::string> names, 
          const Type* type);
 
+  /** Create a new variable definition (e.g., from a let binding). */
+  void defineVar(const std::string& name, const Expr& val);
 
   /** Returns a function type over the given domain and range types. */
   const Type* functionType(const Type* domain, const Type* range);

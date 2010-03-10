@@ -171,10 +171,8 @@ const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
 Expr 
 AntlrParser::mkVar(const std::string& name, const Type* type) {
   Debug("parser") << "mkVar(" << name << "," << *type << ")" << std::endl;
-  Assert( !isDeclared(name) );
   Expr expr = d_exprManager->mkVar(type, name);
-  d_varSymbolTable.bindName(name, expr);
-  Assert( isDeclared(name) );
+  defineVar(name,expr);
   return expr;
 }
 
@@ -188,6 +186,12 @@ AntlrParser::mkVars(const std::vector<std::string> names,
   return vars;
 }
 
+void
+AntlrParser::defineVar(const std::string& name, const Expr& val) {
+  Assert(!isDeclared(name));
+  d_varSymbolTable.bindName(name,val);
+  Assert(isDeclared(name));
+}
 
 const Type* 
 AntlrParser::newSort(const std::string& name) {

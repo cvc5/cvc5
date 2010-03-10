@@ -120,6 +120,8 @@ annotatedFormula returns [CVC4::Expr formula]
   Debug("parser") << "annotated formula: " << LT(1)->getText() << endl;
   Kind kind = CVC4::kind::UNDEFINED_KIND;
   vector<Expr> args; 
+  std::string name;
+  Expr expr1, expr2, expr3;
 }
   : /* a built-in operator application */
     LPAREN kind = builtinOp annotatedFormulas[args] RPAREN 
@@ -127,6 +129,7 @@ annotatedFormula returns [CVC4::Expr formula]
       formula = mkExpr(kind,args); }
 
   | /* a "distinct" expr */
+    /* TODO: Should there be a DISTINCT kind in the Expr package? */
     LPAREN DISTINCT annotatedFormulas[args] RPAREN
     { std::vector<Expr> diseqs;
       for(unsigned i = 0; i < args.size(); ++i) {
@@ -146,7 +149,20 @@ annotatedFormula returns [CVC4::Expr formula]
     RPAREN
     { formula = mkExpr(CVC4::kind::ITE, test, trueExpr, falseExpr); }
 
+  | /* A let binding */
+    /* TODO: Create an Expr of LET kind? */
+    LPAREN LET LPAREN name=variable[CHECK_UNDECLARED] expr1=annotatedFormula RPAREN
+    { defineVar(name,expr1); }
+    formula=annotatedFormula
+    RPAREN
 
+  | /* An flet binding */
+    /* TODO: Create an Expr of LET kind? */
+    LPAREN FLET LPAREN name=function_var[CHECK_UNDECLARED] expr1=annotatedFormula RPAREN
+    { defineVar(name,expr1); }
+    formula=annotatedFormula
+    RPAREN
+    
   | /* A non-built-in function application */
 
     // Semantic predicate not necessary if parenthesized subexpressions
@@ -162,7 +178,9 @@ annotatedFormula returns [CVC4::Expr formula]
 
   | /* a variable */
     { std::string name; }
-    name = identifier[CHECK_DECLARED]
+    ( name = identifier[CHECK_DECLARED] 
+      | name = variable[CHECK_DECLARED]
+      | name = function_var[CHECK_DECLARED] )
     { formula = getVariable(name); }
 
     /* constants */
@@ -234,6 +252,18 @@ functionSymbol returns [CVC4::Expr fun]
  */
 attribute
   :  C_IDENTIFIER
+  ;
+
+variable[DeclarationCheck check = CHECK_NONE] returns [std::string name]
+  : x:VAR_IDENTIFIER
+    { name = x->getText();
+      checkDeclaration(name, check, SYM_VARIABLE); }
+  ;
+
+function_var[DeclarationCheck check = CHECK_NONE] returns [std::string name]
+  : x:FUN_IDENTIFIER
+    { name = x->getText();
+      checkDeclaration(name, check, SYM_FUNCTION); }
   ;
 
 /**
@@ -328,6 +358,6 @@ returns [std::string id]
 }
   : x:IDENTIFIER
     { id = x->getText();
-      checkDeclaration(id, check,type); }
+      checkDeclaration(id, check, type); }
   ;
 

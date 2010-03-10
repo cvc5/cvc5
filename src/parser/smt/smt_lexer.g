@@ -110,9 +110,18 @@ IDENTIFIER options { paraphrase = "an identifier"; testLiterals = true; }
  * Matches an identifier starting with a colon. An identifier is a sequence of letters,
  * digits and "_", "'", "." symbols, starting with a colon.
  */
-C_IDENTIFIER options { paraphrase = "an identifier starting with a colon"; testLiterals = true; }
+C_IDENTIFIER options { paraphrase = "an attribute (e.g., ':x')"; testLiterals = true; }
   :  ':' ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*
   ;
+
+VAR_IDENTIFIER options { paraphrase = "a variable (e.g., '?x')"; testLiterals = false; }
+  :  '?' IDENTIFIER 
+  ;
+
+FUN_IDENTIFIER options { paraphrase = "a function variable (e.g, '$x')"; testLiterals = false; }
+  :  '$' IDENTIFIER 
+  ;
+
 
 /**
  * Matches the value of user-defined annotations or attributes. The only constraint imposed on a user-defined value is that it start with

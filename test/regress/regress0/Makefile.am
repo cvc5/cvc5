@@ -2,7 +2,12 @@ SUBDIRS = precedence uf
 
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/../../bin/cvc4
 TESTS =	bug32.cvc \
+    distinct.smt \
+    flet.smt \
+    flet2.smt \
 	hole6.cvc \
+	let.smt \
+	let2.smt \
 	logops.01.cvc \
 	logops.02.cvc \
 	logops.03.cvc \
