@@ -154,6 +154,7 @@ annotatedFormula returns [CVC4::Expr formula]
     LPAREN LET LPAREN name=variable[CHECK_UNDECLARED] expr1=annotatedFormula RPAREN
     { defineVar(name,expr1); }
     formula=annotatedFormula
+    { undefineVar(name); }
     RPAREN
 
   | /* An flet binding */
@@ -161,6 +162,7 @@ annotatedFormula returns [CVC4::Expr formula]
     LPAREN FLET LPAREN name=function_var[CHECK_UNDECLARED] expr1=annotatedFormula RPAREN
     { defineVar(name,expr1); }
     formula=annotatedFormula
+    { undefineVar(name); }
     RPAREN
     
   | /* A non-built-in function application */

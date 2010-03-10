@@ -193,6 +193,14 @@ AntlrParser::defineVar(const std::string& name, const Expr& val) {
   Assert(isDeclared(name));
 }
 
+void
+AntlrParser::undefineVar(const std::string& name) {
+  Assert(isDeclared(name));
+  d_varSymbolTable.unbindName(name);
+  Assert(!isDeclared(name));
+}
+
+
 const Type* 
 AntlrParser::newSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;

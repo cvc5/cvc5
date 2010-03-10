@@ -254,6 +254,8 @@ protected:
 
   /** Create a new variable definition (e.g., from a let binding). */
   void defineVar(const std::string& name, const Expr& val);
+  /** Remove a variable definition (e.g., from a let binding). */
+  void undefineVar(const std::string& name);
 
   /** Returns a function type over the given domain and range types. */
   const Type* functionType(const Type* domain, const Type* range);
