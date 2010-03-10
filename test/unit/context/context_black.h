@@ -56,8 +56,10 @@ public:
     // the interface doesn't declare any exceptions
     d_context->push();
     d_context->pop();
+#ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS( d_context->pop(), AssertionException );
     TS_ASSERT_THROWS( d_context->pop(), AssertionException );
+#endif /* CVC4_ASSERTIONS */
   }
 
   void tearDown() {

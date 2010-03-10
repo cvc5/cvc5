@@ -235,7 +235,9 @@ public:
     Debug("boolattr", "get flag 1 on c (should be F)\n");
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
+#ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS( d_ctxt->pop(), AssertionException );
+#endif /* CVC4_ASSERTIONS */
   }
 
   void testAttributes() {
