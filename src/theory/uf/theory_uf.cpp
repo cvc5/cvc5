@@ -289,7 +289,7 @@ void TheoryUF::check(Effort level){
       d_disequality.push_back(assertion[0]);
       break;
     default:
-      Unreachable();
+      Unhandled(assertion.getKind());
     }
 
     Debug("uf") << "TheoryUF::check(): done = " << (done() ? "true" : "false") << std::endl;

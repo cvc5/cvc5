@@ -47,7 +47,7 @@ class TheoryEngine {
   SmtEngine* d_smt;
 
   /** A table of Kinds to pointers to Theory */
-  theory::TheoryOfTable theoryOfTable;
+  theory::TheoryOfTable d_theoryOfTable;
 
   /**
    * An output channel for Theory that passes messages
@@ -63,11 +63,10 @@ class TheoryEngine {
 
   public:
 
-    EngineOutputChannel(TheoryEngine* engine, context::Context* context)
-    : d_engine(engine),
+    EngineOutputChannel(TheoryEngine* engine, context::Context* context) :
+      d_engine(engine),
       d_context(context),
-      d_conflictNode(context)
-    {
+      d_conflictNode(context) {
     }
 
     void conflict(TNode conflictNode, bool) throw(theory::Interrupted) {
@@ -87,11 +86,58 @@ class TheoryEngine {
   };
 
   EngineOutputChannel d_theoryOut;
+
   theory::booleans::TheoryBool d_bool;
   theory::uf::TheoryUF d_uf;
   theory::arith::TheoryArith d_arith;
   theory::arrays::TheoryArrays d_arrays;
   theory::bv::TheoryBV d_bv;
+
+  /**
+   * Check whether a node is in the rewrite cache or not.
+   */
+  bool inRewriteCache(TNode n) throw() {
+    return n.hasAttribute(theory::RewriteCache());
+  }
+
+  /**
+   * Get the value of the rewrite cache (or Node::null()) if there is
+   * none).
+   */
+  Node getRewriteCache(TNode n) throw() {
+    return n.getAttribute(theory::RewriteCache());
+  }
+
+  Node rewrite(TNode in) {
+    /*
+    Node out = theoryOf(in)->rewrite(in);
+    in.setAttribute(theory::RewriteCache(), out);
+    return out;
+    */
+    if(inRewriteCache(in)) {
+      return getRewriteCache(in);
+    } else if(in.getKind() == kind::VARIABLE) {
+      return in;
+    } else if(in.getKind() == kind::EQUAL) {
+      Assert(in.getNumChildren() == 2);
+      if(in[0] == in[1]) {
+        Node out = NodeManager::currentNM()->mkNode(kind::TRUE);
+        //in.setAttribute(theory::RewriteCache(), out);
+        return out;
+      }
+    } else {
+      NodeBuilder<> b(in.getKind());
+      for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
+        b << rewrite(*c);
+      }
+      Node out = b;
+      //in.setAttribute(theory::RewriteCache(), out);
+      return out;
+    }
+
+    //in.setAttribute(theory::RewriteCache(), in);
+    return in;
+  }
 
 public:
 
@@ -105,13 +151,13 @@ public:
     d_uf(ctxt, d_theoryOut),
     d_arith(ctxt, d_theoryOut),
     d_arrays(ctxt, d_theoryOut),
-    d_bv(ctxt, d_theoryOut)
-  {
-    theoryOfTable.registerTheory(&d_bool);
-    theoryOfTable.registerTheory(&d_uf);
-    theoryOfTable.registerTheory(&d_arith);
-    theoryOfTable.registerTheory(&d_arrays);
-    theoryOfTable.registerTheory(&d_bv);
+    d_bv(ctxt, d_theoryOut) {
+
+    d_theoryOfTable.registerTheory(&d_bool);
+    d_theoryOfTable.registerTheory(&d_uf);
+    d_theoryOfTable.registerTheory(&d_arith);
+    d_theoryOfTable.registerTheory(&d_arrays);
+    d_theoryOfTable.registerTheory(&d_bv);
   }
 
   /**
@@ -120,25 +166,70 @@ public:
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  theory::Theory* theoryOf(const TNode& node) {
-    if (node.getKind() == kind::EQUAL) return &d_uf;
-    else return NULL;
+  theory::Theory* theoryOf(TNode n) {
+    Kind k = n.getKind();
+
+    Assert(k >= 0 && k < kind::LAST_KIND);
+
+    if(k == kind::APPLY) {
+      // FIXME: we don't yet have a Type-to-Theory map.  When we do,
+      // look up the type of the LHS and return that Theory (?)
+      // k = n.getOperator().getKind();
+      return &d_uf;
+      //Unimplemented();
+    } else if(k == kind::VARIABLE) {
+      return &d_uf;
+      //Unimplemented();
+    } else if(k == kind::EQUAL) {
+      // if LHS is a VARIABLE, use theoryOf(LHS.getType())
+      // otherwise, use theoryOf(LHS)
+      TNode lhs = n[0];
+      if(lhs.getKind() == kind::VARIABLE) {
+        // FIXME: we don't yet have a Type-to-Theory map.  When we do,
+        // look up the type of the LHS and return that Theory (?)
+        return &d_uf;
+        //Unimplemented();
+      } else {
+        return theoryOf(lhs);
+      }
+    } else {
+      // use our Kind-to-Theory mapping
+      return d_theoryOfTable[k];
+    }
   }
+
+  /**
+   * Preprocess a node.  This involves theory-specific rewriting, then
+   * calling preRegisterTerm() on what's left over.
+   * @param the node to preprocess
+   */
+  Node preprocess(TNode n);
 
   /**
    * Assert the formula to the apropriate theory.
    * @param node the assertion
    */
-  inline void assertFact(const TNode& node) {
+  inline void assertFact(TNode node) {
     Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
-    theory::Theory* theory = node.getKind() == kind::NOT ? theoryOf(node[0]) : theoryOf(node);
-    if (theory != NULL) theory->assertFact(node);
+    theory::Theory* theory =
+      node.getKind() == kind::NOT ? theoryOf(node[0]) : theoryOf(node);
+    if(theory != NULL) {
+      theory->assertFact(node);
+    }
   }
 
+  /**
+   * Check all (currently-active) theories for conflicts.
+   * @param effort the effort level to use
+   */
   inline void check(theory::Theory::Effort effort) {
     try {
+      //d_bool.check(effort);
       d_uf.check(effort);
-    } catch (const theory::Interrupted&) {
+      //d_arith.check(effort);
+      //d_arrays.check(effort);
+      //d_bv.check(effort);
+    } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
     }
   }

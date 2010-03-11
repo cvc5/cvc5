@@ -14,7 +14,75 @@
  **/
 
 #include "theory/theory_engine.h"
+#include "expr/node.h"
+#include "expr/attribute.h"
+
+#include <list>
+
+using namespace std;
 
 namespace CVC4 {
+
+namespace theory {
+
+struct PreRegisteredTag {};
+typedef expr::Attribute<PreRegisteredTag, bool> PreRegistered;
+
+}/* CVC4::theory namespace */
+
+Node TheoryEngine::preprocess(TNode t) {
+  Node top = rewrite(t);
+  Debug("rewrite") << "rewrote: " << t << "\nto     : " << top << "\n";
+  return top;
+
+  list<TNode> toReg;
+  toReg.push_back(top);
+
+  /* Essentially this is doing a breadth-first numbering of
+   * non-registered subterms with children.  Any non-registered
+   * leaves are immediately registered. */
+  for(list<TNode>::iterator workp = toReg.begin();
+      workp != toReg.end();
+      ++workp) {
+
+    TNode n = *workp;
+
+    for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
+      TNode c = *i;
+
+      if(!c.getAttribute(theory::PreRegistered())) {// c not yet registered
+        if(c.getNumChildren() == 0) {
+          c.setAttribute(theory::PreRegistered(), true);
+          theoryOf(c)->preRegisterTerm(c);
+        } else {
+          toReg.push_back(c);
+        }
+      }
+    }
+  }
+
+  /* Now register the list of terms in reverse order.  Between this
+   * and the above registration of leaves, this should ensure that
+   * all subterms in the entire tree were registered in
+   * reverse-topological order. */
+  for(std::list<TNode>::reverse_iterator i = toReg.rbegin();
+      i != toReg.rend();
+      ++i) {
+
+    TNode n = *i;
+
+    /* Note that a shared TNode in the DAG rooted at "fact" could
+     * appear twice on the list, so we have to avoid hitting it
+     * twice. */
+    // FIXME when ExprSets are online, use one of those to avoid
+    // duplicates in the above?
+    if(!n.getAttribute(theory::PreRegistered())) {
+      n.setAttribute(theory::PreRegistered(), true);
+      theoryOf(n)->preRegisterTerm(n);
+    }
+  }
+
+  return top;
+}
 
 }/* CVC4 namespace */

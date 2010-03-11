@@ -28,12 +28,19 @@ public:
   TheoryOfTable() :
     d_table(new Theory*[::CVC4::kind::LAST_KIND]) {
   }
-  ~TheoryOfTable(){
-    delete[] d_table;
+
+  ~TheoryOfTable() {
+    delete [] d_table;
   }
 
   Theory* operator[](TNode n) {
     Assert(n.getKind() >= 0 && n.getKind() < ::CVC4::kind::LAST_KIND,
            "illegal to inquire theoryOf(UNDEFINED_KIND or out-of-range)");
     return d_table[n.getKind()];
+  }
+
+  Theory* operator[](::CVC4::Kind k) {
+    Assert(k >= 0 && k < ::CVC4::kind::LAST_KIND,
+           "illegal to inquire theoryOf(UNDEFINED_KIND or out-of-range)");
+    return d_table[k];
   }

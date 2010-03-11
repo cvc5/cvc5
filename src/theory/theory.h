@@ -31,6 +31,10 @@
 namespace CVC4 {
 namespace theory {
 
+// rewrite cache support
+struct RewriteCacheTag {};
+typedef expr::Attribute<RewriteCacheTag, Node> RewriteCache;
+
 template <class T>
 class TheoryImpl;
 

@@ -88,7 +88,7 @@ void SmtEngine::doCommand(Command* c) {
 }
 
 Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode e) {
-  return e;
+  return smt.d_theoryEngine->preprocess(e);
 }
 
 Result SmtEngine::check() {
