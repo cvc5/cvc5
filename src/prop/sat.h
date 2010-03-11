@@ -179,7 +179,7 @@ void SatSolver::theoryCheck(SatClause& conflict) {
   Node conflictNode = d_theoryEngine->getConflict();
   // If the conflict is there, construct the conflict clause
   if (!conflictNode.isNull()) {
-    Debug("prop") << "SatSolver::theoryCheck() => conflict" << std::endl;
+    Debug("prop") << "SatSolver::theoryCheck() => conflict: " << conflictNode << std::endl;
     Node::const_iterator literal_it = conflictNode.begin();
     Node::const_iterator literal_end = conflictNode.end();
     while (literal_it != literal_end) {

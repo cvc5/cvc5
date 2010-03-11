@@ -87,14 +87,14 @@ protected:
    * @param node the node
    * @return true if the node has been cached
    */
-  bool isCached(const TNode& node) const;
+  bool isCached(TNode node) const;
 
   /**
    * Returns the cashed literal corresponding to the given node.
    * @param node the node to lookup
    * @return returns the corresponding literal
    */
-  SatLiteral lookupInCache(const TNode& n) const;
+  SatLiteral lookupInCache(TNode n) const;
 
   /**
    * Caches the pair of the node and the literal corresponding to the
@@ -102,7 +102,7 @@ protected:
    * @param node node
    * @param lit
    */
-  void cacheTranslation(const TNode& node, SatLiteral lit);
+  void cacheTranslation(TNode node, SatLiteral lit);
 
   /**
    * Acquires a new variable from the SAT solver to represent the node and
@@ -112,7 +112,7 @@ protected:
    *        informed when set to true/false
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(const TNode& node, bool theoryLiteral = false);
+  SatLiteral newLiteral(TNode node, bool theoryLiteral = false);
 
 public:
 
@@ -136,7 +136,7 @@ public:
    * @param node node to convert and assert
    * @param whether the sat solver can choose to remove this clause
    */
-  virtual void convertAndAssert(const TNode& node) = 0;
+  virtual void convertAndAssert(TNode node) = 0;
 
   /**
    * Returns a node the is represented by a give SatLiteral literal.
@@ -149,7 +149,7 @@ public:
    * Returns the literal the represents the given node in the SAT CNF
    * representation.
    */
-  SatLiteral getLiteral(const TNode& node);
+  SatLiteral getLiteral(TNode node);
 
 }; /* class CnfStream */
 
@@ -171,7 +171,7 @@ public:
    * Convert a given formula to CNF and assert it to the SAT solver.
    * @param node the formula to assert
    */
-  void convertAndAssert(const TNode& node);
+  void convertAndAssert(TNode node);
 
   /**
    * Constructs the stream to use the given sat solver.
@@ -191,21 +191,21 @@ private:
   //   - returning l
   //
   // handleX( n ) can assume that n is not in d_translationCache
-  SatLiteral handleAtom(const TNode& node);
-  SatLiteral handleNot(const TNode& node);
-  SatLiteral handleXor(const TNode& node);
-  SatLiteral handleImplies(const TNode& node);
-  SatLiteral handleIff(const TNode& node);
-  SatLiteral handleIte(const TNode& node);
-  SatLiteral handleAnd(const TNode& node);
-  SatLiteral handleOr(const TNode& node);
+  SatLiteral handleAtom(TNode node);
+  SatLiteral handleNot(TNode node);
+  SatLiteral handleXor(TNode node);
+  SatLiteral handleImplies(TNode node);
+  SatLiteral handleIff(TNode node);
+  SatLiteral handleIte(TNode node);
+  SatLiteral handleAnd(TNode node);
+  SatLiteral handleOr(TNode node);
 
   /**
    * Transforms the node into CNF recursively.
    * @param node the formula to transform
    * @return the literal representing the root of the formula
    */
-  SatLiteral toCNF(const TNode& node);
+  SatLiteral toCNF(TNode node);
 
 }; /* class TseitinCnfStream */
 

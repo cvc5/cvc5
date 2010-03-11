@@ -61,23 +61,23 @@ void CnfStream::assertClause(SatLiteral a, SatLiteral b, SatLiteral c) {
   assertClause(clause);
 }
 
-bool CnfStream::isCached(const TNode& n) const {
+bool CnfStream::isCached(TNode n) const {
   return d_translationCache.find(n) != d_translationCache.end();
 }
 
-SatLiteral CnfStream::lookupInCache(const TNode& n) const {
+SatLiteral CnfStream::lookupInCache(TNode n) const {
   Assert(isCached(n), "Node is not in CNF translation cache");
   return d_translationCache.find(n)->second;
 }
 
-void CnfStream::cacheTranslation(const TNode& node, SatLiteral lit) {
+void CnfStream::cacheTranslation(TNode node, SatLiteral lit) {
   Debug("cnf") << "caching translation " << node << " to " << lit << endl;
   // We always cash bot the node and the negation at the same time
   d_translationCache[node] = lit;
   d_translationCache[node.notNode()] = ~lit;
 }
 
-SatLiteral CnfStream::newLiteral(const TNode& node, bool theoryLiteral) {
+SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
   SatLiteral lit = SatLiteral(d_satSolver->newVar(theoryLiteral));
   cacheTranslation(node, lit);
   if (theoryLiteral) {
@@ -96,7 +96,7 @@ Node CnfStream::getNode(const SatLiteral& literal) {
   return node;
 }
 
-SatLiteral CnfStream::getLiteral(const TNode& node) {
+SatLiteral CnfStream::getLiteral(TNode node) {
   TranslationCache::iterator find = d_translationCache.find(node);
   Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
   SatLiteral literal = find->second;
@@ -104,14 +104,14 @@ SatLiteral CnfStream::getLiteral(const TNode& node) {
   return literal;
 }
 
-SatLiteral TseitinCnfStream::handleAtom(const TNode& node) {
+SatLiteral TseitinCnfStream::handleAtom(TNode node) {
   Assert(node.isAtomic(), "handleAtom(n) expects n to be an atom");
   Assert(!isCached(node), "atom already mapped!");
 
   Debug("cnf") << "handleAtom(" << node << ")" << endl;
  
-   bool theoryLiteral = node.getKind() != kind::VARIABLE;
-   SatLiteral lit = newLiteral(node, theoryLiteral);
+  bool theoryLiteral = node.getKind() != kind::VARIABLE;
+  SatLiteral lit = newLiteral(node, theoryLiteral);
 
   switch(node.getKind()) {
   case TRUE:
@@ -127,7 +127,7 @@ SatLiteral TseitinCnfStream::handleAtom(const TNode& node) {
   return lit;
 }
 
-SatLiteral TseitinCnfStream::handleXor(const TNode& xorNode) {
+SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
   Assert(!isCached(xorNode), "Atom already mapped!");
   Assert(xorNode.getKind() == XOR, "Expecting an XOR expression!");
   Assert(xorNode.getNumChildren() == 2, "Expecting exactly 2 children!");
@@ -145,7 +145,7 @@ SatLiteral TseitinCnfStream::handleXor(const TNode& xorNode) {
   return xorLit;
 }
 
-SatLiteral TseitinCnfStream::handleOr(const TNode& orNode) {
+SatLiteral TseitinCnfStream::handleOr(TNode orNode) {
   Assert(!isCached(orNode), "Atom already mapped!");
   Assert(orNode.getKind() == OR, "Expecting an OR expression!");
   Assert(orNode.getNumChildren() > 1, "Expecting more then 1 child!");
@@ -181,7 +181,7 @@ SatLiteral TseitinCnfStream::handleOr(const TNode& orNode) {
   return orLit;
 }
 
-SatLiteral TseitinCnfStream::handleAnd(const TNode& andNode) {
+SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
   Assert(!isCached(andNode), "Atom already mapped!");
   Assert(andNode.getKind() == AND, "Expecting an AND expression!");
   Assert(andNode.getNumChildren() > 1, "Expecting more than 1 child!");
@@ -216,7 +216,7 @@ SatLiteral TseitinCnfStream::handleAnd(const TNode& andNode) {
   return andLit;
 }
 
-SatLiteral TseitinCnfStream::handleImplies(const TNode& impliesNode) {
+SatLiteral TseitinCnfStream::handleImplies(TNode impliesNode) {
   Assert(!isCached(impliesNode), "Atom already mapped!");
   Assert(impliesNode.getKind() == IMPLIES, "Expecting an IMPLIES expression!");
   Assert(impliesNode.getNumChildren() == 2, "Expecting exactly 2 children!");
@@ -241,7 +241,7 @@ SatLiteral TseitinCnfStream::handleImplies(const TNode& impliesNode) {
 }
 
 
-SatLiteral TseitinCnfStream::handleIff(const TNode& iffNode) {
+SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
   Assert(!isCached(iffNode), "Atom already mapped!");
   Assert(iffNode.getKind() == IFF, "Expecting an IFF expression!");
   Assert(iffNode.getNumChildren() == 2, "Expecting exactly 2 children!");
@@ -271,7 +271,7 @@ SatLiteral TseitinCnfStream::handleIff(const TNode& iffNode) {
 }
 
 
-SatLiteral TseitinCnfStream::handleNot(const TNode& notNode) {
+SatLiteral TseitinCnfStream::handleNot(TNode notNode) {
   Assert(!isCached(notNode), "Atom already mapped!");
   Assert(notNode.getKind() == NOT, "Expecting a NOT expression!");
   Assert(notNode.getNumChildren() == 1, "Expecting exactly 2 children!");
@@ -284,7 +284,7 @@ SatLiteral TseitinCnfStream::handleNot(const TNode& notNode) {
   return notLit;
 }
 
-SatLiteral TseitinCnfStream::handleIte(const TNode& iteNode) {
+SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   Assert(iteNode.getKind() == ITE);
   Assert(iteNode.getNumChildren() == 3);
 
@@ -309,7 +309,7 @@ SatLiteral TseitinCnfStream::handleIte(const TNode& iteNode) {
   return iteLit;
 }
 
-SatLiteral TseitinCnfStream::toCNF(const TNode& node) {
+SatLiteral TseitinCnfStream::toCNF(TNode node) {
 
   // If the node has already been translated, return the previous translation
   if(isCached(node)) {
@@ -342,7 +342,7 @@ SatLiteral TseitinCnfStream::toCNF(const TNode& node) {
   }
 }
 
-void TseitinCnfStream::convertAndAssert(const TNode& node) {
+void TseitinCnfStream::convertAndAssert(TNode node) {
   Debug("cnf") << "convertAndAssert(" << node << ")" << endl;
   // If the node is a conjuntion, we handle each conjunct separatelu
   if(node.getKind() == AND) {
