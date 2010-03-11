@@ -109,8 +109,9 @@ SatLiteral TseitinCnfStream::handleAtom(const TNode& node) {
   Assert(!isCached(node), "atom already mapped!");
 
   Debug("cnf") << "handleAtom(" << node << ")" << endl;
-
-  SatLiteral lit = newLiteral(node, true);
+ 
+   bool theoryLiteral = node.getKind() != kind::VARIABLE;
+   SatLiteral lit = newLiteral(node, theoryLiteral);
 
   switch(node.getKind()) {
   case TRUE:
