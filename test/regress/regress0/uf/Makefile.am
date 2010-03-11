@@ -3,6 +3,18 @@ TESTS =	simple.01.cvc \
 	simple.02.cvc \
 	simple.03.cvc \
 	simple.04.cvc \
+	euf_simp01.smt \
+	euf_simp02.smt \
+	euf_simp03.smt \
+	euf_simp04.smt \
+	euf_simp05.smt \
+	euf_simp06.smt \
+	euf_simp08.smt \
+	euf_simp09.smt \
+	euf_simp10.smt \
+	euf_simp11.smt \
+	euf_simp12.smt \
+	euf_simp13.smt \
 	dead_dnd002.smt \
 	iso_brn001.smt \
 	SEQ032_size2.smt

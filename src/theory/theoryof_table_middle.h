@@ -28,6 +28,9 @@ public:
   TheoryOfTable() :
     d_table(new Theory*[::CVC4::kind::LAST_KIND]) {
   }
+  ~TheoryOfTable(){
+    delete[] d_table;
+  }
 
   Theory* operator[](TNode n) {
     Assert(n.getKind() >= 0 && n.getKind() < ::CVC4::kind::LAST_KIND,

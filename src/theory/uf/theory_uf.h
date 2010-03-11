@@ -194,7 +194,7 @@ struct EquivClass;
 /**
  * ECAttr is the attribute that maps a node to an equivalence class.
  */
-typedef expr::Attribute<EquivClass, ECData* /*, ECCleanupFcn*/> ECAttr;
+typedef expr::Attribute<EquivClass, ECData*, ECCleanupFcn > ECAttr;
 
 } /* CVC4::theory::uf namespace */
 } /* CVC4::theory namespace */
