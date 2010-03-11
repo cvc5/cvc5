@@ -2,4 +2,5 @@
   :logic QF_UF
   :status unsat
   :extrafuns ((a U) (b U) (f U U)) 
-  :formula (let (?x a) (not (= ?x a))))
+  :formula (let (?x a) (and (= a b) (not (= ?x b))))
+)

@@ -182,6 +182,8 @@ void Solver::cancelUntil(int level) {
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
     }
+    // Now, clear the TheoryEngine queue
+    proxy->clearAssertionQueues();
 }
 
 
@@ -442,7 +444,25 @@ Clause* Solver::propagateTheory()
   Clause* c = NULL;
   SatClause clause;
   proxy->theoryCheck(clause);
-  if (clause.size() > 0) {
+  int clause_size = clause.size();
+  Assert(clause_size != 1, "Can't handle unit clause explanations");
+  if(clause_size > 0) {
+    // Find the max level of the conflict
+    int max_level = 0;
+    for (int i = 0; i < clause_size; ++i) {
+      int current_level = level[var(clause[i])];
+      Debug("minisat") << "Literal: " << clause[i] << " with reason " << reason[var(clause[i])] << " at level " << current_level << std::endl;
+      Assert(toLbool(assigns[var(clause[i])]) != l_Undef, "Got an unassigned literal in conflict!");
+      if (current_level > max_level) max_level = current_level;
+    }
+    // If smaller than the decision level then pop back so we can analyse
+    Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
+    Assert(max_level <= decisionLevel(), "What is going on, can't get literals of a higher level as conflict!");
+    if (max_level < decisionLevel()) {
+      Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
+      cancelUntil(max_level);
+    }
+    // Create the new clause and attach all the information
     c = Clause_new(clause, true);
     learnts.push(c);
     attachClause(*c);

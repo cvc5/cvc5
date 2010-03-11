@@ -98,10 +98,8 @@ Node CnfStream::getNode(const SatLiteral& literal) {
 
 SatLiteral CnfStream::getLiteral(const TNode& node) {
   TranslationCache::iterator find = d_translationCache.find(node);
-  SatLiteral literal;
-  if(find != d_translationCache.end()) {
-    literal = find->second;
-  }
+  Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
+  SatLiteral literal = find->second;
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
 }

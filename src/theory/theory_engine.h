@@ -150,6 +150,13 @@ public:
     return d_theoryOut.d_conflictNode;
   }
 
+  /**
+   * Clears the queues of the theories.
+   */
+  void clearAssertionQueues() {
+    d_uf.clearAssertionQueue();
+  }
+
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

@@ -93,6 +93,8 @@ public:
   inline void enqueueTheoryLiteral(const SatLiteral& l);
 
   inline void setCnfStream(CnfStream* cnfStream);
+
+  inline void clearAssertionQueues();
 };
 
 }/* CVC4::prop namespace */
@@ -206,6 +208,10 @@ void SatSolver::setCnfStream(CnfStream* cnfStream) {
   d_cnfStream = cnfStream;
 }
 
+
+void SatSolver::clearAssertionQueues() {
+  d_theoryEngine->clearAssertionQueues();
+}
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

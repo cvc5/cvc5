@@ -174,6 +174,16 @@ public:
   }
 
   /**
+   * Clear the assertion queue.
+   */
+  void clearAssertionQueue() {
+    while (d_facts.size() > 0) {
+      d_facts.pop();
+    }
+  }
+
+
+  /**
    * Check the current assignment's consistency.
    */
   virtual void check(Effort level = FULL_EFFORT) = 0;
