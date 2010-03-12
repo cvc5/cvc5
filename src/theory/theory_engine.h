@@ -254,7 +254,8 @@ public:
    * Check all (currently-active) theories for conflicts.
    * @param effort the effort level to use
    */
-  inline void check(theory::Theory::Effort effort) {
+  inline bool check(theory::Theory::Effort effort) {
+    bool ok = true;
     try {
       //d_bool.check(effort);
       d_uf.check(effort);
@@ -263,7 +264,9 @@ public:
       //d_bv.check(effort);
     } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
+      ok = false;
     }
+    return ok;
   }
 
   /**

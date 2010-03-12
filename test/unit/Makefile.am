@@ -4,6 +4,7 @@ UNIT_TESTS = \
 	expr/node_black \
 	expr/kind_black \
 	expr/node_builder_black \
+	expr/attribute_black \
 	parser/parser_black \
 	context/context_black \
 	context/context_mm_black \

@@ -174,23 +174,19 @@ SatVariable SatSolver::newVar(bool theoryAtom) {
 }
 
 void SatSolver::theoryCheck(SatClause& conflict) {
-  // Run the thoery checks
-  d_theoryEngine->check(theory::Theory::FULL_EFFORT);
-  // Try to get the conflict
-  Node conflictNode = d_theoryEngine->getConflict();
-  // If the conflict is there, construct the conflict clause
-  if (!conflictNode.isNull()) {
+  // Try theory propagation
+  if (!d_theoryEngine->check(theory::Theory::FULL_EFFORT)) {
+    // We have a conflict, get it
+    Node conflictNode = d_theoryEngine->getConflict();
     Debug("prop") << "SatSolver::theoryCheck() => conflict: " << conflictNode << std::endl;
+    // Go through the literals and construct the conflict clause
     Node::const_iterator literal_it = conflictNode.begin();
     Node::const_iterator literal_end = conflictNode.end();
     while (literal_it != literal_end) {
-      // Get the node and construct it's negation
-      Node literalNode = (*literal_it);
-      Node negated = literalNode.getKind() == kind::NOT ? literalNode[0] : literalNode.notNode();
       // Get the literal corresponding to the node
-      SatLiteral l = d_cnfStream->getLiteral(negated);
-      // Add to the conflict clause and continue
-      conflict.push(l);
+      SatLiteral l = d_cnfStream->getLiteral(*literal_it);
+      // Add the negation to the conflict clause and continue
+      conflict.push(~l);
       literal_it ++;
     }
   }
