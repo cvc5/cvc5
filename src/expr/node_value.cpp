@@ -28,7 +28,7 @@ namespace expr {
 
 size_t NodeValue::next_id = 1;
 
-NodeValue NodeValue::s_null;
+NodeValue NodeValue::s_null(0);
 
 string NodeValue::toString() const {
   stringstream ss;

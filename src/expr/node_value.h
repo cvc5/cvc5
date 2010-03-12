@@ -75,17 +75,13 @@ class NodeValue {
   unsigned d_nchildren : 16;
 
   /** Variable number of child nodes */
-  NodeValue *d_children[0];
+  NodeValue* d_children[0];
 
   // todo add exprMgr ref in debug case
 
   template <bool> friend class CVC4::NodeTemplate;
   template <class Builder> friend class CVC4::NodeBuilderBase;
-  template <unsigned N> friend class CVC4::NodeBuilder;
-  friend class CVC4::AndNodeBuilder;
-  friend class CVC4::OrNodeBuilder;
-  friend class CVC4::PlusNodeBuilder;
-  friend class CVC4::MultNodeBuilder;
+  template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
   friend class CVC4::NodeManager;
 
   void inc();
@@ -93,11 +89,17 @@ class NodeValue {
 
   static size_t next_id;
 
-  /** Private default constructor for the null value. */
-  NodeValue();
+public:
+  /**
+   * Uninitializing constructor for NodeBuilder's use.  This is
+   * somewhat dangerous, but must also be public for the
+   * makeStackNodeBuilder() macro to work.
+   */
+  NodeValue() { /* do not initialize! */ }
 
-  /** Destructor decrements the ref counts of its children */
-  ~NodeValue();
+private:
+  /** Private constructor for the null value. */
+  NodeValue(int);
 
   typedef NodeValue** nv_iterator;
   typedef NodeValue const* const* const_nv_iterator;
@@ -135,6 +137,9 @@ class NodeValue {
 
     typedef std::input_iterator_tag iterator_category;
   };
+
+  /** Decrement ref counts of children */
+  inline void decrRefCounts();
 
 public:
 
@@ -211,6 +216,11 @@ public:
   static inline Kind dKindToKind(unsigned d) {
     return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
   }
+
+  static inline const NodeValue& null() {
+    return s_null;
+  }
+
 };/* class NodeValue */
 
 /**
@@ -242,14 +252,14 @@ struct NodeValueIDHashFcn {
 namespace CVC4 {
 namespace expr {
 
-inline NodeValue::NodeValue() :
+inline NodeValue::NodeValue(int) :
   d_id(0),
   d_rc(MAX_RC),
   d_kind(kind::NULL_EXPR),
   d_nchildren(0) {
 }
 
-inline NodeValue::~NodeValue() {
+inline void NodeValue::decrRefCounts() {
   for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
     (*i)->dec();
   }

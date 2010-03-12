@@ -164,33 +164,41 @@ case "$with_build" in
     CVC4CPPFLAGS=
     CVC4CXXFLAGS=-O3
     CVC4LDFLAGS=
-    if test -z "${enable_assertions+set}"; then enable_assertions=no             ; fi
-    if test -z "${enable_tracing+set}"   ; then enable_tracing=no                ; fi
-    if test -z "${enable_muzzle+set}"    ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
+    if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
+    if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
+    if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
+    if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing
     CVC4CPPFLAGS=-DCVC4_DEBUG
     CVC4CXXFLAGS='-O0 -fno-inline -ggdb3'
     CVC4LDFLAGS=
-    if test -z "${enable_assertions+set}"; then enable_assertions=yes            ; fi
-    if test -z "${enable_tracing+set}"   ; then enable_tracing=yes               ; fi
-    if test -z "${enable_muzzle+set}"    ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
+    if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
+    if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
+    if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
+    if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   default) # moderately optimized, assertions, tracing
     CVC4CPPFLAGS=
     CVC4CXXFLAGS=-O2
     CVC4LDFLAGS=
-    if test -z "${enable_assertions+set}"; then enable_assertions=yes            ; fi
-    if test -z "${enable_tracing+set}"   ; then enable_tracing=yes               ; fi
-    if test -z "${enable_muzzle+set}"    ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
+    if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
+    if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
+    if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
+    if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   competition) # maximally optimized, no assertions, no tracing, muzzled
     CVC4CPPFLAGS=
     CVC4CXXFLAGS='-O9 -funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
     CVC4LDFLAGS=
-    if test -z "${enable_assertions+set}"; then enable_assertions=no             ; fi
-    if test -z "${enable_tracing+set}"   ; then enable_tracing=no                ; fi
-    if test -z "${enable_muzzle+set}"    ; then enable_muzzle=yes                ; fi
+    if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
+    if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=no          ; fi
+    if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
+    if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
+    if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
     ;;
   *)
     AC_MSG_FAILURE([unknown build profile: $with_build])

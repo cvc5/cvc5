@@ -38,14 +38,14 @@ maintainer-clean-local:
 	touch @srcdir@/stamp-generated
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
 @srcdir@/generated/AntlrSmtLexer.hpp: smt_lexer.g @srcdir@/stamp-generated
-	-rm -f $(ANTLR_LEXER_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/smt_lexer.g"
+	$(AM_V_at)-rm -f $(ANTLR_LEXER_STUFF)
+	$(AM_V_GEN)$(ANTLR) -o "@srcdir@/generated" "@srcdir@/smt_lexer.g"
 @srcdir@/generated/AntlrSmtLexer.cpp $(ANTLR_TOKEN_STUFF): @srcdir@/generated/AntlrSmtLexer.hpp
 # doesn't actually depend on the lexer, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
 @srcdir@/generated/AntlrSmtParser.hpp: smt_parser.g smt_lexer.g $(ANTLR_TOKEN_STUFF) @srcdir@/stamp-generated
-	-rm -f $(ANTLR_PARSER_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/smt_parser.g"
+	$(AM_V_at)-rm -f $(ANTLR_PARSER_STUFF)
+	$(AM_V_GEN)$(ANTLR) -o "@srcdir@/generated" "@srcdir@/smt_parser.g"
 @srcdir@/generated/AntlrSmtParser.cpp: @srcdir@/generated/AntlrSmtParser.hpp

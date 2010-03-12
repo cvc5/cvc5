@@ -81,11 +81,6 @@ bool Expr::operator<(const Expr& e) const {
   return *d_node < *e.d_node;
 }
 
-size_t Expr::hash() const {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return (d_node->hash());
-}
-
 Kind Expr::getKind() const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->getKind();

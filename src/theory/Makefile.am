@@ -27,7 +27,7 @@ EXTRA_DIST = \
 
 @srcdir@/theoryof_table.h: @srcdir@/mktheoryof theoryof_table_prologue.h theoryof_table_middle.h theoryof_table_epilogue.h @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
 	chmod +x @srcdir@/mktheoryof
-	(@srcdir@/mktheoryof \
+	$(AM_V_GEN)(@srcdir@/mktheoryof \
 		@srcdir@/theoryof_table_prologue.h \
 		@srcdir@/theoryof_table_middle.h \
 		@srcdir@/theoryof_table_epilogue.h \

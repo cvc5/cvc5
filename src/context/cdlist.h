@@ -56,6 +56,8 @@ class CDList : public ContextObj {
    */
   unsigned d_sizeAlloc;
 
+protected:
+
   /**
    * Implementation of mandatory ContextObj method save: simply copies the
    * current size to a copy using the copy constructor (the pointer and the
@@ -83,8 +85,10 @@ class CDList : public ContextObj {
     }
   }
 
+private:
+
   /**
-   * Privae copy constructor used only by save above.  d_list and d_sizeAlloc
+   * Private copy constructor used only by save above.  d_list and d_sizeAlloc
    * are not copied: only the base class information and d_size are needed in
    * restore.
    */
@@ -122,14 +126,18 @@ public:
   /**
    * Main constructor: d_list starts as NULL, size is 0
    */
- CDList(Context* context, bool callDestructor = true)
-   : ContextObj(context), d_list(NULL), d_callDestructor(callDestructor),
-    d_size(0), d_sizeAlloc(0) { }
+ CDList(Context* context, bool callDestructor = true) :
+   ContextObj(context),
+   d_list(NULL),
+   d_callDestructor(callDestructor),
+   d_size(0),
+   d_sizeAlloc(0) {
+ }
 
   /**
    * Destructor: delete the list
    */
-  ~CDList() throw() {
+  ~CDList() throw(AssertionException) {
     if(d_list != NULL) {
       if(d_callDestructor) {
         while(d_size != 0) {
@@ -144,26 +152,33 @@ public:
   /**
    * Return the current size of (i.e. valid number of objects in) the list
    */
-  unsigned size() const { return d_size; }
-
+  unsigned size() const {
+    return d_size;
+  }
 
   /**
    * Return true iff there are no valid objects in the list.
    */
-  bool empty() const { return d_size == 0; }
+  bool empty() const {
+    return d_size == 0;
+  }
 
   /**
    * Add an item to the end of the list.
    */
   void push_back(const T& data) {
     makeCurrent();
-    if(d_size == d_sizeAlloc) grow();
+
+    if(d_size == d_sizeAlloc) {
+      grow();
+    }
+
     ::new((void*)(d_list + d_size)) T(data);
-    ++ d_size;
+    ++d_size;
   }
 
   /**
-   * operator[]: return the ith item in the list
+   * Access to the ith item in the list.
    */
   const T& operator[](unsigned i) const {
     Assert(i < d_size, "index out of bounds in CDList::operator[]");
@@ -171,11 +186,11 @@ public:
   }
 
   /**
-   * return the most recent item added to the list
+   * Returns the most recent item added to the list.
    */
   const T& back() const {
     Assert(d_size > 0, "CDList::back() called on empty list");
-    return d_list[d_size-1];
+    return d_list[d_size - 1];
   }
 
   /**
@@ -186,19 +201,66 @@ public:
    * uninitialized list, as begin() and end() will have the same value (NULL).
    */
   class const_iterator {
-    friend class CDList<T>;
     T* d_it;
-    const_iterator(T* it) : d_it(it) {};
+
+    const_iterator(T* it) : d_it(it) {}
+
+    friend class CDList<T>;
+
   public:
+
     const_iterator() : d_it(NULL) {}
-    bool operator==(const const_iterator& i) const { return d_it == i.d_it; }
-    bool operator!=(const const_iterator& i) const { return d_it != i.d_it; }
-    const T& operator*() const { return *d_it; }
+
+    inline bool operator==(const const_iterator& i) const {
+      return d_it == i.d_it;
+    }
+
+    inline bool operator!=(const const_iterator& i) const {
+      return d_it != i.d_it;
+    }
+
+    inline const T& operator*() const {
+      return *d_it;
+    }
+
     /** Prefix increment */
-    const_iterator& operator++() { ++d_it; return *this; }
+    const_iterator& operator++() {
+      ++d_it;
+      return *this;
+    }
+
     /** Prefix decrement */
     const_iterator& operator--() { --d_it; return *this; }
-  }; /* class const_iterator */
+
+    // Postfix operations on iterators: requires a Proxy object to
+    // hold the intermediate value for dereferencing
+    class Proxy {
+      const T* d_t;
+
+    public:
+
+      Proxy(const T& p): d_t(&p) {}
+
+      T& operator*() {
+        return *d_t;
+      }
+    };/* class CDList<>::const_iterator::Proxy */
+
+    /** Postfix increment: returns Proxy with the old value. */
+    Proxy operator++(int) {
+      Proxy e(*(*this));
+      ++(*this);
+      return e;
+    }
+
+    /** Postfix decrement: returns Proxy with the old value. */
+    Proxy operator--(int) {
+      Proxy e(*(*this));
+      --(*this);
+      return e;
+    }
+
+  };/* class CDList<>::const_iterator */
 
   /**
    * Returns an iterator pointing to the first item in the list.

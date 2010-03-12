@@ -39,7 +39,7 @@ using namespace CVC4::main;
 static Result lastResult;
 static struct Options options;
 
-int runCvc4(int argc, char *argv[]);
+int runCvc4(int argc, char* argv[]);
 void doCommand(SmtEngine&, Command*);
 
 /**
@@ -49,7 +49,7 @@ void doCommand(SmtEngine&, Command*);
  * problems.  That's why main() wraps runCvc4() in the first place.
  * Put everything in runCvc4().
  */
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   try {
     return runCvc4(argc, argv);
   } catch(OptionException& e) {
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   }
 }
 
-int runCvc4(int argc, char *argv[]) {
+int runCvc4(int argc, char* argv[]) {
 
   // Initialize the signal handlers
   cvc4_init();

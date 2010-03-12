@@ -163,7 +163,8 @@ class CDMap : public ContextObj {
 
   friend class CDOmap<Key, Data, HashFcn>;
 
-  __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn> d_map;
+  typedef __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn> table_type;
+  table_type d_map;
 
   // The vector of CDOmap objects to be destroyed
   std::vector<CDOmap<Key, Data, HashFcn>*> d_trash;
@@ -200,7 +201,7 @@ public:
 
   ~CDMap() throw(AssertionException) {
     // Delete all the elements and clear the map
-    for(typename __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn>::iterator
+    for(typename table_type::iterator
 	  i = d_map.begin(), iend = d_map.end(); i != iend; ++i) {
       /*
         delete (*i).second;
@@ -227,11 +228,10 @@ public:
   CDOmap<Key, Data, HashFcn>& operator[](const Key& k) {
     emptyTrash();
 
-    typename __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn>::iterator
-      i(d_map.find(k));
+    typename table_type::iterator i = d_map.find(k);
 
     CDOmap<Key, Data, HashFcn>* obj;
-    if(i == d_map.end()) { // Create new object
+    if(i == d_map.end()) {// create new object
       obj = new(true) CDOmap<Key, Data, HashFcn>(d_context, this, k, Data());
       d_map[k] = obj;
     } else {
@@ -243,8 +243,7 @@ public:
   void insert(const Key& k, const Data& d) {
     emptyTrash();
 
-    typename __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn>::iterator
-      i = d_map.find(k);
+    typename table_type::iterator i = d_map.find(k);
 
     if(i == d_map.end()) {// create new object
       CDOmap<Key, Data, HashFcn>*
@@ -257,19 +256,12 @@ public:
 
   // FIXME: no erase(), too much hassle to implement efficiently...
 
-  // Iterator for CDMap: points to pair<const Key, CDOMap<Key, Data, HashFcn>&>;
-  // in most cases, this will be functionally similar to pair<const Key, Data>.
-  class iterator : public std::iterator<std::input_iterator_tag, std::pair<const Key, Data>, std::ptrdiff_t> {
-
-    // Private members
-    typename __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn>::const_iterator d_it;
+  class iterator {
+    const CDOmap<Key, Data, HashFcn>* d_it;
 
   public:
 
-    // Constructor from __gnu_cxx::hash_map
-    iterator(const typename __gnu_cxx::hash_map<Key, CDOmap<Key, Data, HashFcn>*, HashFcn>::const_iterator& i) : d_it(i) {}
-
-    // Copy constructor
+    iterator(const CDOmap<Key, Data, HashFcn>* p) : d_it(p) {}
     iterator(const iterator& i) : d_it(i.d_it) {}
 
     // Default constructor
@@ -285,80 +277,11 @@ public:
 
     // Dereference operators.
     std::pair<const Key, Data> operator*() const {
-      const std::pair<const Key, CDOmap<Key, Data, HashFcn>*>& p(*d_it);
-      return std::pair<const Key, Data>(p.first, *p.second);
-    }
-
-    // Who needs an operator->() for maps anyway?...
-    // It'd be nice, but not possible by design.
-    //std::pair<const Key, Data>* operator->() const {
-    //  return &(operator*());
-    //}
-
-    // Prefix and postfix increment
-    iterator& operator++() {
-      ++d_it;
-      return *this;
-    }
-
-    // Postfix increment: requires a Proxy object to hold the
-    // intermediate value for dereferencing
-    class Proxy {
-      const std::pair<const Key, Data>* d_pair;
-    public:
-      Proxy(const std::pair<const Key, Data>& p): d_pair(&p) {}
-      std::pair<const Key, Data>& operator*() {
-        return *d_pair;
-      }
-    };/* class CDMap<>::iterator::Proxy */
-
-    // Actual postfix increment: returns Proxy with the old value.
-    // Now, an expression like *i++ will return the current *i, and
-    // then advance the iterator.  However, don't try to use Proxy for
-    // anything else.
-    Proxy operator++(int) {
-      Proxy e(*(*this));
-      ++(*this);
-      return e;
-    }
-  };/* class CDMap<>::iterator */
-
-  typedef iterator const_iterator;
-
-  iterator begin() const {
-    return iterator(d_map.begin());
-  }
-
-  iterator end() const {
-    return iterator(d_map.end());
-  }
-
-  class orderedIterator {
-    const CDOmap<Key, Data, HashFcn>* d_it;
-
-  public:
-
-    orderedIterator(const CDOmap<Key, Data, HashFcn>* p) : d_it(p) {}
-    orderedIterator(const orderedIterator& i) : d_it(i.d_it) {}
-
-    // Default constructor
-    orderedIterator() {}
-
-    // (Dis)equality
-    bool operator==(const orderedIterator& i) const {
-      return d_it == i.d_it;
-    }
-    bool operator!=(const orderedIterator& i) const {
-      return d_it != i.d_it;
-    }
-
-    // Dereference operators.
-    std::pair<const Key, Data> operator*() const {
       return std::pair<const Key, Data>(d_it->getKey(), d_it->get());
     }
 
-    // Prefix and postfix increment
-    orderedIterator& operator++() {
+    // Prefix increment
+    iterator& operator++() {
       d_it = d_it->next();
       return *this;
     }
@@ -370,34 +293,41 @@ public:
 
     public:
 
-      Proxy(const std::pair<const Key, Data>& p): d_pair(&p) {}
+      Proxy(const std::pair<const Key, Data>& p) : d_pair(&p) {}
 
-      std::pair<const Key, Data>& operator*() {
+      const std::pair<const Key, Data>& operator*() const {
         return *d_pair;
       }
-    };/* class CDMap<>::orderedIterator::Proxy */
+    };/* class CDMap<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.
     // Now, an expression like *i++ will return the current *i, and
     // then advance the orderedIterator.  However, don't try to use
     // Proxy for anything else.
-    Proxy operator++(int) {
+    const Proxy operator++(int) {
       Proxy e(*(*this));
       ++(*this);
       return e;
     }
-  };/* class CDMap<>::orderedIterator */
+  };/* class CDMap<>::iterator */
 
-  orderedIterator orderedBegin() const {
-    return orderedIterator(d_first);
+  typedef iterator const_iterator;
+
+  iterator begin() const {
+    return iterator(d_first);
   }
 
-  orderedIterator orderedEnd() const {
-    return orderedIterator(NULL);
+  iterator end() const {
+    return iterator(NULL);
   }
 
   iterator find(const Key& k) const {
-    return iterator(d_map.find(k));
+    typename table_type::const_iterator i = d_map.find(k);
+    if(i == d_map.end()) {
+      return end();
+    } else {
+      return iterator((*i).second);
+    }
   }
 
 };/* class CDMap<> */

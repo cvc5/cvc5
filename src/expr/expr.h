@@ -92,12 +92,6 @@ public:
   operator bool() const;
 
   /**
-   * Returns the hash value of the expression. Equal expression will have the
-   * same hash value.
-   */
-  size_t hash() const;
-
-  /**
    * Returns the kind of the expression (AND, PLUS ...).
    * @return the kind of the expression
    */

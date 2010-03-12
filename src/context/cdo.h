@@ -63,7 +63,7 @@ class CDO : public ContextObj {
   /**
    * operator= for CDO is private to ensure CDO object is not copied.
    */
-  CDO<T>& operator=(const CDO<T>& cdo) {}
+  CDO<T>& operator=(const CDO<T>& cdo);
 
 public:
   /**

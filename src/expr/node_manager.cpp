@@ -52,24 +52,6 @@ struct Reclaim {
   }
 };
 
-/**
- * Reclaim a particular zombie.
- */
-void NodeManager::reclaimZombie(expr::NodeValue* nv) {
-  Debug("gc") << "deleting node value " << nv
-              << " [" << nv->d_id << "]: " << nv->toString() << "\n";
-
-  if(nv->getKind() != kind::VARIABLE) {
-    poolRemove(nv);
-  }
-
-  d_attrManager.deleteAllAttributes(nv);
-
-  // dtor decr's ref counts of children
-  // FIXME: NOT  ACTUALLY GARBAGE COLLECTING  YET (DUE TO  ISSUES WITH
-  // CDMAPs (?) ) delete nv;
-}
-
 void NodeManager::reclaimZombies() {
   // FIXME multithreading
 
@@ -102,9 +84,25 @@ void NodeManager::reclaimZombies() {
   for(vector<NodeValue*>::iterator i = zombies.begin();
       i != zombies.end();
       ++i) {
+    NodeValue* nv = *i;
+
     // collect ONLY IF still zero
     if((*i)->d_rc == 0) {
-      reclaimZombie(*i);
+      Debug("gc") << "deleting node value " << nv
+                  << " [" << nv->d_id << "]: " << nv->toString() << "\n";
+
+      // remove from the pool
+      if(nv->getKind() != kind::VARIABLE) {
+        poolRemove(nv);
+      }
+
+      // remove attributes
+      d_attrManager.deleteAllAttributes(nv);
+
+      // decr ref counts of children
+      nv->decrRefCounts();
+      //free(nv);
+#warning NOT FREEING NODEVALUES
     }
   }
 }

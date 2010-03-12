@@ -134,23 +134,23 @@ public:
    */
   void addNotifyObjPost(ContextNotifyObj* pCNO);
 
-}; /* class Context */
+};/* class Context */
 
-  /**
-   * Conceptually, a Scope encapsulates that portion of the context that
-   * changes after a call to push() and must be undone on a subsequent call to
-   * pop().  In particular, each call to push() creates a new Scope object .
-   * This new Scope object becomes the top scope and it points (via the
-   * d_pScopePrev member) to the previous top Scope.  Each call to pop()
-   * deletes the current top scope and restores the previous one.  The main
-   * purpose of a Scope is to maintain a linked list of ContexObj objects which
-   * change while the Scope is the top scope and which must be restored when
-   * the Scope is deleted.
-   *
-   * A Scope is also associated with a ContextMemoryManager.  All memory
-   * allocated by the Scope is allocated in a single region using the
-   * ContextMemoryManager and released all at once when the Scope is popped.
-   */
+/**
+ * Conceptually, a Scope encapsulates that portion of the context that
+ * changes after a call to push() and must be undone on a subsequent call to
+ * pop().  In particular, each call to push() creates a new Scope object .
+ * This new Scope object becomes the top scope and it points (via the
+ * d_pScopePrev member) to the previous top Scope.  Each call to pop()
+ * deletes the current top scope and restores the previous one.  The main
+ * purpose of a Scope is to maintain a linked list of ContexObj objects which
+ * change while the Scope is the top scope and which must be restored when
+ * the Scope is deleted.
+ *
+ * A Scope is also associated with a ContextMemoryManager.  All memory
+ * allocated by the Scope is allocated in a single region using the
+ * ContextMemoryManager and released all at once when the Scope is popped.
+ */
 class Scope {
 
   /**
@@ -432,14 +432,14 @@ public:
 
 };/* class ContextObj */
 
-  /**
-   * For more flexible context-dependent behavior than that provided
-   * by ContextObj, objects may implement the ContextNotifyObj
-   * interface and simply get a notification when a pop has occurred.
-   * See Context class for how to register a ContextNotifyObj with the
-   * Context (you can choose to have notification come before or after
-   * the ContextObj objects have been restored).
-   */
+/**
+ * For more flexible context-dependent behavior than that provided by
+ * ContextObj, objects may implement the ContextNotifyObj interface
+ * and simply get a notification when a pop has occurred.  See
+ * Context class for how to register a ContextNotifyObj with the
+ * Context (you can choose to have notification come before or after
+ * the ContextObj objects have been restored).
+ */
 class ContextNotifyObj {
   /**
    * Context is our friend so that when the Context is deleted, any
@@ -490,7 +490,7 @@ public:
    * implemented by the subclass.
    */
   virtual void notify() = 0;
-}; /* class ContextNotifyObj */
+};/* class ContextNotifyObj */
 
 // Inline functions whose definitions had to be delayed:
 

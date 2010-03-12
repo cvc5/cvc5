@@ -107,7 +107,7 @@ const char *progPath;
 const char *progName;
 
 /** Parse argc/argv and put the result into a CVC4::Options struct. */
-int parseOptions(int argc, char** argv, CVC4::Options* opts)
+int parseOptions(int argc, char* argv[], CVC4::Options* opts)
 throw(OptionException) {
   progPath = progName = argv[0];
   int c;

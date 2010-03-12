@@ -100,11 +100,6 @@ class NodeManager {
    */
   void reclaimZombies();
 
-  /**
-   * Reclaim a particular zombie.
-   */
-  void reclaimZombie(expr::NodeValue* nv);
-
 public:
 
   NodeManager(context::Context* ctxt) :

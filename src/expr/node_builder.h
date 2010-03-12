@@ -421,9 +421,9 @@ protected:
 
 protected:
 
-  inline NodeBuilderBase(char* buf, unsigned maxChildren,
+  inline NodeBuilderBase(expr::NodeValue* buf, unsigned maxChildren,
                          Kind k = kind::UNDEFINED_KIND);
-  inline NodeBuilderBase(char* buf, unsigned maxChildren,
+  inline NodeBuilderBase(expr::NodeValue* buf, unsigned maxChildren,
                          NodeManager* nm, Kind k = kind::UNDEFINED_KIND);
 
 private:
@@ -575,24 +575,24 @@ public:
  */
 class BackedNodeBuilder : public NodeBuilderBase<BackedNodeBuilder> {
 public:
-  inline BackedNodeBuilder(char* buf, unsigned maxChildren) :
+  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren) :
     NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
   }
 
-  inline BackedNodeBuilder(char* buf, unsigned maxChildren, Kind k) :
+  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren, Kind k) :
     NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
   }
 
-  inline BackedNodeBuilder(char* buf, unsigned maxChildren, NodeManager* nm) :
+  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren, NodeManager* nm) :
     NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
   }
 
-  inline BackedNodeBuilder(char* buf, unsigned maxChildren, NodeManager* nm, Kind k) :
+  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren, NodeManager* nm, Kind k) :
     NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
   }
 
   // we don't want a vtable, so do not declare a dtor!
-  //inline ~NodeBuilder();
+  //inline ~BackedNodeBuilder();
 
 private:
   // disallow copy or assignment (there would be no backing store!)
@@ -610,13 +610,15 @@ private:
  * declarations are permitted.
  */
 #define makeStackNodeBuilder(__v, __n)                                  \
-  size_t __cvc4_backednodebuilder_nchildren__ ## __v = (__n);           \
-  char __cvc4_backednodebuilder_buf__ ## __v                            \
-  [ sizeof(NodeValue) +                                                 \
-    sizeof(NodeValue*) * __cvc4_backednodebuilder_nchildren__ ## __v ]  \
-    __attribute__((aligned(__WORDSIZE / 8)));                           \
-  BackedNodeBuilder __v(__cvc4_backednodebuilder_buf__ ## __v,          \
-                        __cvc4_backednodebuilder_nchildren__ ## __v)
+  const size_t __cvc4_backednodebuilder_nchildren__ ## __v = (__n);     \
+  ::CVC4::expr::NodeValue __cvc4_backednodebuilder_buf__ ## __v[1 + (((sizeof(::CVC4::expr::NodeValue) + sizeof(::CVC4::expr::NodeValue*) + 1) / sizeof(::CVC4::expr::NodeValue*)) * __cvc4_backednodebuilder_nchildren__ ## __v)]; \
+  ::CVC4::BackedNodeBuilder __v(__cvc4_backednodebuilder_buf__ ## __v, \
+                                __cvc4_backednodebuilder_nchildren__ ## __v)
+// IF THE ABOVE ASSERTION FAILS, write another compiler-specific
+// version of makeStackNodeBuilder() that works for your compiler
+// (even if it's suboptimal, ignoring its __n argument, and just
+// creates a NodeBuilder<10>).
+
 
 /**
  * Simple NodeBuilder interface.  This is a template that requires
@@ -626,9 +628,18 @@ private:
  */
 template <unsigned nchild_thresh = default_nchild_thresh>
 class NodeBuilder : public NodeBuilderBase<NodeBuilder<nchild_thresh> > {
-  char d_backingStore[ sizeof(expr::NodeValue)
-                       + (sizeof(expr::NodeValue*) * nchild_thresh) ]
-    __attribute__((aligned(__WORDSIZE / 8)));
+  // This is messy:
+  // 1. This (anonymous) struct here must be a POD to avoid the
+  //    compiler laying out things in a different way.
+  // 2. The layout is engineered carefully.  We can't just
+  //    stack-allocate enough bytes as a char[] because we break
+  //    strict-aliasing rules.  The first thing in the struct is a
+  //    "NodeValue" so a pointer to this struct should be safely
+  //    castable to a pointer to a NodeValue (same alignment).
+  struct BackingStore {
+    expr::NodeValue n;
+    expr::NodeValue* c[nchild_thresh];
+  } d_backingStore;
 
   typedef NodeBuilderBase<NodeBuilder<nchild_thresh> > super;
 
@@ -637,19 +648,31 @@ class NodeBuilder : public NodeBuilderBase<NodeBuilder<nchild_thresh> > {
 
 public:
   inline NodeBuilder() :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >(d_backingStore, nchild_thresh) {
+    NodeBuilderBase<NodeBuilder<nchild_thresh> >
+      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
+       nchild_thresh) {
   }
 
   inline NodeBuilder(Kind k) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >(d_backingStore, nchild_thresh, k) {
+    NodeBuilderBase<NodeBuilder<nchild_thresh> >
+      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
+       nchild_thresh,
+       k) {
   }
 
   inline NodeBuilder(NodeManager* nm) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >(d_backingStore, nchild_thresh, nm) {
+    NodeBuilderBase<NodeBuilder<nchild_thresh> >
+      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
+       nchild_thresh,
+       nm) {
   }
 
   inline NodeBuilder(NodeManager* nm, Kind k) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >(d_backingStore, nchild_thresh, nm, k) {
+    NodeBuilderBase<NodeBuilder<nchild_thresh> >
+      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
+       nchild_thresh,
+       nm,
+       k) {
   }
 
   // These implementations are identical, but we need to have both of
@@ -657,20 +680,22 @@ public:
   // generalization of a copy constructor (and a default copy
   // constructor will be generated [?])
   inline NodeBuilder(const NodeBuilder& nb) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >(d_backingStore,
-                                                 nchild_thresh,
-                                                 nb.d_nm,
-                                                 nb.getKind()) {
+    NodeBuilderBase<NodeBuilder<nchild_thresh> >
+      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
+       nchild_thresh,
+       nb.d_nm,
+       nb.getKind()) {
     internalCopy(nb);
   }
 
   // technically this is a conversion, not a copy
   template <unsigned N>
   inline NodeBuilder(const NodeBuilder<N>& nb) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >(d_backingStore,
-                                                 nchild_thresh,
-                                                 nb.d_nm,
-                                                 nb.getKind()) {
+    NodeBuilderBase<NodeBuilder<nchild_thresh> >
+      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
+       nchild_thresh,
+       nb.d_nm,
+       nb.getKind()) {
     internalCopy(nb);
   }
 
@@ -1019,8 +1044,8 @@ inline NodeTemplate<true> operator-(const NodeTemplate<rc>& a) {
 namespace CVC4 {
 
 template <class Builder>
-inline NodeBuilderBase<Builder>::NodeBuilderBase(char* buf, unsigned maxChildren, Kind k) :
-  d_inlineNv(*reinterpret_cast<expr::NodeValue*>(buf)),
+inline NodeBuilderBase<Builder>::NodeBuilderBase(expr::NodeValue* buf, unsigned maxChildren, Kind k) :
+  d_inlineNv(*buf),
   d_nv(&d_inlineNv),
   d_nm(NodeManager::currentNM()),
   d_inlineNvMaxChildren(maxChildren),
@@ -1033,8 +1058,8 @@ inline NodeBuilderBase<Builder>::NodeBuilderBase(char* buf, unsigned maxChildren
 }
 
 template <class Builder>
-inline NodeBuilderBase<Builder>::NodeBuilderBase(char* buf, unsigned maxChildren, NodeManager* nm, Kind k) :
-  d_inlineNv(*reinterpret_cast<expr::NodeValue*>(buf)),
+inline NodeBuilderBase<Builder>::NodeBuilderBase(expr::NodeValue* buf, unsigned maxChildren, NodeManager* nm, Kind k) :
+  d_inlineNv(*buf),
   d_nv(&d_inlineNv),
   d_nm(nm),
   d_inlineNvMaxChildren(maxChildren),

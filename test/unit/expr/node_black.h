@@ -258,16 +258,6 @@ public:
     
   }
 
-  void testHash() {
-    /* Not sure how to test this except survial... */
-    Node a = d_nodeManager->mkNode(ITE);
-    Node b = d_nodeManager->mkNode(ITE);
-    
-    TS_ASSERT(b.hash() == a.hash());
-  }
-
-  
-
   void testEqNode() {
     /*Node eqNode(const Node& right) const;*/
 

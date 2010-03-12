@@ -647,4 +647,25 @@ public:
     TS_ASSERT_EQUALS(Node(- a + b), d_nm->mkNode(PLUS, d_nm->mkNode(UMINUS, a), b));
     TS_ASSERT_EQUALS(Node(- a * b), d_nm->mkNode(MULT, d_nm->mkNode(UMINUS, a), b));
   }
+
+  /**
+   * This tests the "stack builder"
+   */
+  void testStackBuilder() {
+    try {
+      for(unsigned i = 0; i < 100; ++i) {
+        size_t n = 1 + (rand() % 50);
+
+        // make a builder "b" with a backing store for n children
+        makeStackNodeBuilder(b, n);
+
+        // build one-past-the-end
+        for(size_t j = 0; j <= n; ++j) {
+          b << Node::null();
+        }
+      }
+    } catch(Exception e) {
+      std::cout << e;
+    }
+  }
 };
