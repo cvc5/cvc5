@@ -70,13 +70,23 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
   d_options(opts) {
 
   NodeManagerScope nms(d_nodeManager);
+
   d_decisionEngine = new DecisionEngine;
   d_theoryEngine = new TheoryEngine(this, d_ctxt);
   d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine, d_ctxt);
 }
 
+void SmtEngine::shutdown() {
+  d_propEngine->shutdown();
+  d_theoryEngine->shutdown();
+  d_decisionEngine->shutdown();
+}
+
 SmtEngine::~SmtEngine() {
   NodeManagerScope nms(d_nodeManager);
+
+  shutdown();
+
   delete d_propEngine;
   delete d_theoryEngine;
   delete d_decisionEngine;

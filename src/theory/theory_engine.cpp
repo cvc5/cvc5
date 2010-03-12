@@ -85,4 +85,44 @@ Node TheoryEngine::preprocess(TNode t) {
   return top;
 }
 
+Node TheoryEngine::rewrite(TNode in) {
+  if(inRewriteCache(in)) {
+    return getRewriteCache(in);
+  }
+
+  if(in.getKind() == kind::VARIABLE ||
+     in.getKind() == kind::SKOLEM) {
+    return in;
+  }
+
+  /*
+    theory::Theory* thy = theoryOf(in);
+    if(thy == NULL) {
+    Node out = rewriteBuiltins(in);
+    setRewriteCache(in, out);
+    return in;
+    } else {
+    Node out = thy->rewrite(in);
+    setRewriteCache(in, out);
+    return out;
+    }
+  */
+
+  if(in.getKind() == kind::EQUAL) {
+    Assert(in.getNumChildren() == 2);
+    if(in[0] == in[1]) {
+      Node out = NodeManager::currentNM()->mkNode(kind::TRUE);
+      //setRewriteCache(in, out);
+      return out;
+    }
+  } else {
+    Node out = rewriteChildren(in);
+    //setRewriteCache(in, out);
+    return out;
+  }
+
+  //setRewriteCache(in, in);
+  return in;
+}
+
 }/* CVC4 namespace */

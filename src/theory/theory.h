@@ -23,12 +23,15 @@
 #include "theory/output_channel.h"
 #include "context/context.h"
 
-#include <queue>
+#include <deque>
 #include <list>
 
 #include <typeinfo>
 
 namespace CVC4 {
+
+class TheoryEngine;
+
 namespace theory {
 
 // rewrite cache support
@@ -50,13 +53,17 @@ class Theory {
 private:
 
   template <class T>
-  friend class TheoryImpl;
+  friend class ::CVC4::theory::TheoryImpl;
+
+  friend class ::CVC4::TheoryEngine;
 
   /**
    * Construct a Theory.
    */
   Theory(context::Context* ctxt, OutputChannel& out) throw() :
     d_context(ctxt),
+    d_facts(),
+    d_factsResetter(*this),
     d_out(&out) {
   }
 
@@ -65,12 +72,59 @@ private:
    */
   Theory();
 
+  /**
+   * The context for the Theory.
+   */
+  context::Context* d_context;
+
+  /**
+   * The assertFact() queue.
+   *
+   * This queue MUST be emptied by ANY call to check() at ANY effort
+   * level.  In debug builds, this is checked.  On backjump we clear
+   * the fact queue (see FactsResetter, below).
+   *
+   * These can safely be TNodes because the literal map maintained in
+   * the SAT solver keeps them live.  As an added benefit, if we have
+   * them as TNodes, dtors are cheap (optimized away?).
+   */
+  std::deque<TNode> d_facts;
+
+  /** Helper class to reset the fact queue on pop(). */
+  class FactsResetter : public context::ContextNotifyObj {
+    Theory& d_thy;
+
+  public:
+    FactsResetter(Theory& thy) :
+      context::ContextNotifyObj(thy.d_context),
+      d_thy(thy) {
+    }
+
+    void notify() {
+      d_thy.d_facts.clear();
+    }
+  } d_factsResetter;
+
+  friend class FactsResetter;
+
 protected:
 
   /**
-   * The output channel for the Theory.
+   * This is called at shutdown time by the TheoryEngine, just before
+   * destruction.  It is important because there are destruction
+   * ordering issues between PropEngine and Theory (based on what
+   * hard-links to Nodes are outstanding).  As the fact queue might be
+   * nonempty, we ensure here that it's clear.  If you overload this,
+   * you must make an explicit call here to the Theory implementation
+   * of this function too.
    */
-  context::Context* d_context;
+  virtual void shutdown() {
+    d_facts.clear();
+  }
+
+  context::Context* getContext() const {
+    return d_context;
+  }
 
   /**
    * The output channel for the Theory.
@@ -78,12 +132,11 @@ protected:
   OutputChannel* d_out;
 
   /**
-   * The assertFact() queue.
+   * Returns true if the assertFact queue is empty
    */
-  // FIXME CD: on backjump we clear the facts IFF the queue gets
-  // emptied on every DL.  In general I guess we need a CDQueue<>?
-  // Perhaps one that asserts it's empty at each push?
-  std::queue<Node> d_facts;
+  bool done() throw() {
+    return d_facts.empty();
+  }
 
   /**
    * Return whether a node is shared or not.  Used by setup().
@@ -91,10 +144,18 @@ protected:
   bool isShared(TNode n) throw();
 
   /**
-   * Returns true if the assertFact queue is empty
+   * Check whether a node is in the rewrite cache or not.
    */
-  bool done() throw() {
-    return d_facts.empty();
+  static bool inRewriteCache(TNode n) throw() {
+    return n.hasAttribute(RewriteCache());
+  }
+
+  /**
+   * Get the value of the rewrite cache (or Node::null()) if there is
+   * none).
+   */
+  static Node getRewriteCache(TNode n) throw() {
+    return n.getAttribute(RewriteCache());
   }
 
 public:
@@ -157,6 +218,13 @@ public:
   virtual void preRegisterTerm(TNode) = 0;
 
   /**
+   * Rewrite a term.  Done one time for a Node, ever.
+   */
+  virtual Node rewrite(TNode n) {
+    return n;
+  }
+
+  /**
    * Register a term.
    *
    * When get() is called to get the next thing off the theory queue,
@@ -174,18 +242,8 @@ public:
    */
   void assertFact(TNode n) {
     Debug("theory") << "Theory::assertFact(" << n << ")" << std::endl;
-    d_facts.push(n);
+    d_facts.push_back(n);
   }
-
-  /**
-   * Clear the assertion queue.
-   */
-  void clearAssertionQueue() {
-    while (d_facts.size() > 0) {
-      d_facts.pop();
-    }
-  }
-
 
   /**
    * Check the current assignment's consistency.
@@ -306,7 +364,7 @@ Node TheoryImpl<T>::get() {
           "Theory::get() called with assertion queue empty!" );
 
   Node fact = d_facts.front();
-  d_facts.pop();
+  d_facts.pop_front();
 
   Debug("theory") << "Theory::get() => " << fact << "(" << d_facts.size() << " left)" << std::endl;
 

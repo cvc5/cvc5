@@ -96,7 +96,7 @@ class TheoryEngine {
   /**
    * Check whether a node is in the rewrite cache or not.
    */
-  bool inRewriteCache(TNode n) throw() {
+  static bool inRewriteCache(TNode n) throw() {
     return n.hasAttribute(theory::RewriteCache());
   }
 
@@ -104,39 +104,58 @@ class TheoryEngine {
    * Get the value of the rewrite cache (or Node::null()) if there is
    * none).
    */
-  Node getRewriteCache(TNode n) throw() {
+  static Node getRewriteCache(TNode n) throw() {
     return n.getAttribute(theory::RewriteCache());
   }
 
-  Node rewrite(TNode in) {
-    /*
-    Node out = theoryOf(in)->rewrite(in);
-    in.setAttribute(theory::RewriteCache(), out);
-    return out;
-    */
-    if(inRewriteCache(in)) {
-      return getRewriteCache(in);
-    } else if(in.getKind() == kind::VARIABLE) {
-      return in;
-    } else if(in.getKind() == kind::EQUAL) {
-      Assert(in.getNumChildren() == 2);
-      if(in[0] == in[1]) {
-        Node out = NodeManager::currentNM()->mkNode(kind::TRUE);
-        //in.setAttribute(theory::RewriteCache(), out);
-        return out;
-      }
-    } else {
-      NodeBuilder<> b(in.getKind());
-      for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
-        b << rewrite(*c);
-      }
-      Node out = b;
-      //in.setAttribute(theory::RewriteCache(), out);
-      return out;
-    }
+  /**
+   * Get the value of the rewrite cache (or Node::null()) if there is
+   * none).
+   */
+  static void setRewriteCache(TNode n, TNode v) throw() {
+    return n.setAttribute(theory::RewriteCache(), v);
+  }
 
-    //in.setAttribute(theory::RewriteCache(), in);
-    return in;
+  /**
+   * This is the top rewrite entry point, called during preprocessing.
+   * It dispatches to the proper theories to rewrite the given Node.
+   */
+  Node rewrite(TNode in);
+
+  /**
+   * Convenience function to recurse through the children, rewriting,
+   * while leaving the Node's kind alone.
+   */
+  Node rewriteChildren(TNode in) {
+    NodeBuilder<> b(in.getKind());
+    for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
+      b << rewrite(*c);
+    }
+    return Node(b);
+  }
+
+  /**
+   * Rewrite Nodes with builtin kind (that is, those Nodes n for which
+   * theoryOf(n) == NULL).  The master list is in expr/builtin_kinds.
+   */
+  Node rewriteBuiltins(TNode in) {
+    switch(Kind k = in.getKind()) {
+    case kind::EQUAL:
+      return rewriteChildren(in);
+
+    case kind::ITE:
+      Unhandled(k);
+
+    case kind::SKOLEM:
+    case kind::VARIABLE:
+      return in;
+
+    case kind::TUPLE:
+      return rewriteChildren(in);
+
+    default:
+      Unhandled(k);
+    }
   }
 
 public:
@@ -158,6 +177,19 @@ public:
     d_theoryOfTable.registerTheory(&d_arith);
     d_theoryOfTable.registerTheory(&d_arrays);
     d_theoryOfTable.registerTheory(&d_bv);
+  }
+
+  /**
+   * This is called at shutdown time by the SmtEngine, just before
+   * destruction.  It is important because there are destruction
+   * ordering issues between PropEngine and Theory.
+   */
+  void shutdown() {
+    d_bool.shutdown();
+    d_uf.shutdown();
+    d_arith.shutdown();
+    d_arrays.shutdown();
+    d_bv.shutdown();
   }
 
   /**
@@ -239,13 +271,6 @@ public:
    */
   inline Node getConflict() {
     return d_theoryOut.d_conflictNode;
-  }
-
-  /**
-   * Clears the queues of the theories.
-   */
-  void clearAssertionQueues() {
-    d_uf.clearAssertionQueue();
   }
 
 };/* class TheoryEngine */

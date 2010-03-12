@@ -146,6 +146,14 @@ private:
   // smt_engine.cpp.
 
   /**
+   * This is called by the destructor, just before destroying the
+   * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
+   * is important because there are destruction ordering issues
+   * between PropEngine and Theory.
+   */
+  void shutdown();
+
+  /**
    * Full check of consistency in current context.  Returns true iff
    * consistent.
    */

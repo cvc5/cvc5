@@ -182,8 +182,6 @@ void Solver::cancelUntil(int level) {
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
     }
-    // Now, clear the TheoryEngine queue
-    proxy->clearAssertionQueues();
 }
 
 

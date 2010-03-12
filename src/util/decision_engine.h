@@ -41,6 +41,15 @@ public:
    */
   virtual Node nextDecision();// = 0
 
+  /**
+   * This is called by SmtEngine, at shutdown time, just before
+   * destruction.  It is important because there are destruction
+   * ordering issues between some parts of the system.  For now,
+   * there's nothing to do here in the DecisionEngine.
+   */
+  virtual void shutdown() {
+  }
+
   // TODO: design decision: decision engine should be notified of
   // propagated lits, and also why(?) (so that it can make decisions
   // based on the utility of various theories and various theory

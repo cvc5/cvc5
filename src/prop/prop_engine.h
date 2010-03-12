@@ -77,6 +77,16 @@ public:
   CVC4_PUBLIC ~PropEngine();
 
   /**
+   * This is called by SmtEngine, at shutdown time, just before
+   * destruction.  It is important because there are destruction
+   * ordering issues between some parts of the system (notably between
+   * PropEngine and Theory).  For now, there's nothing to do here in
+   * the PropEngine.
+   */
+  void shutdown() {
+  }
+
+  /**
    * Converts the given formula to CNF and assert the CNF to the sat solver.
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert

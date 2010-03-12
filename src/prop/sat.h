@@ -77,8 +77,10 @@ public:
     inline size_t operator()(const SatLiteral& literal) const;
   };
 
-  inline SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine, context::Context* context,
-            const Options* options);
+  inline SatSolver(PropEngine* propEngine,
+                   TheoryEngine* theoryEngine,
+                   context::Context* context,
+                   const Options* options);
 
   inline ~SatSolver();
 
@@ -93,8 +95,6 @@ public:
   inline void enqueueTheoryLiteral(const SatLiteral& l);
 
   inline void setCnfStream(CnfStream* cnfStream);
-
-  inline void clearAssertionQueues();
 };
 
 }/* CVC4::prop namespace */
@@ -135,7 +135,8 @@ inline std::ostream& operator <<(std::ostream& out, const SatClause& clause) {
   return out;
 }
 
-size_t SatSolver::SatLiteralHashFcn::operator()(const SatLiteral& literal) const {
+inline size_t
+SatSolver::SatLiteralHashFcn::operator()(const SatLiteral& literal) const {
   return (size_t) minisat::toInt(literal);
 }
 
@@ -206,11 +207,6 @@ void SatSolver::enqueueTheoryLiteral(const SatLiteral& l) {
 
 void SatSolver::setCnfStream(CnfStream* cnfStream) {
   d_cnfStream = cnfStream;
-}
-
-
-void SatSolver::clearAssertionQueues() {
-  d_theoryEngine->clearAssertionQueues();
 }
 
 }/* CVC4::prop namespace */

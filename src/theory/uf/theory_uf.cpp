@@ -103,7 +103,7 @@ void TheoryUF::registerTerm(TNode n){
            "during backtracking");
   }else{
     //The attribute does not exist, so it is created and set
-    ecN = new (true) ECData(d_context, n);
+    ecN = new (true) ECData(getContext(), n);
     n.setAttribute(ECAttr(), ecN);
   }
 
@@ -134,7 +134,7 @@ void TheoryUF::registerTerm(TNode n){
         }
       }
 
-      ecChild->addPredecessor(n, d_context);
+      ecChild->addPredecessor(n, getContext());
     }
   }
   Debug("uf") << "uf: end registerTerm(" << n << ")" << std::endl;
