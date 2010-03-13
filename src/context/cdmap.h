@@ -101,7 +101,7 @@ public:
     }
   }
 
-  ~CDOmap() throw(AssertionException) {}
+  ~CDOmap() throw(AssertionException) { destroy(); }
 
   void set(const Data& data) {
     makeCurrent();

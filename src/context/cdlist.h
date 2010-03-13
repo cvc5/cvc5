@@ -138,15 +138,9 @@ public:
    * Destructor: delete the list
    */
   ~CDList() throw(AssertionException) {
-    if(d_list != NULL) {
-      if(d_callDestructor) {
-        while(d_size != 0) {
-          --d_size;
-          d_list[d_size].~T();
-        }
-      }
-      free(d_list);
-    }
+    T* list = d_list;
+    destroy();
+    free(list);
   }
 
   /**

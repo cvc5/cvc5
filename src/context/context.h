@@ -273,6 +273,10 @@ public:
  *    ContextMemoryManager (see item 2 above).
  * 4. In the subclass implementation, any time the state is about to be
  *    changed, first call makeCurrent().
+ * 5. In the subclass implementation, the destructor should call destroy().
+ *    Unfortunately, the destroy() functionality cannot be in the ContextObj
+ *    destructor since it needs to call the subclass-specific restore() method
+ *    in order to properly clean up saved copies.
  */
 class ContextObj {
   /**
@@ -353,6 +357,14 @@ protected:
   }
 
   /**
+   * Should be called from sub-class destructor: calls restore until restored
+   * to initial version.  Also removes object from all Scope lists.  Note that
+   * this doesn't actually free the memory allocated by the ContextMemoryManager
+   * for this object.  This isn't done until the corresponding Scope is popped.
+   */
+  void destroy() throw(AssertionException);
+
+  /**
    * operator new using ContextMemoryManager (common case used by
    * subclasses during save() ).  No delete is required for memory
    * allocated this way, since it is automatically released when the
@@ -385,13 +397,9 @@ public:
   ContextObj(Context* context);
 
   /**
-   * Destructor: Calls restore until restored to initial version.
-   * Also removes object from all Scope lists.  Note that this doesn't
-   * actually free the memory allocated by the ContextMemoryManager
-   * for this object.  This isn't done until the corresponding Scope
-   * is popped.
+   * Destructor does nothing: subclass must explicitly call destroy() instead.
    */
-  virtual ~ContextObj() throw(AssertionException);
+  virtual ~ContextObj() {}
 
   /**
    * If you want to allocate a ContextObj object on the heap, use this

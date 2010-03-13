@@ -175,17 +175,7 @@ ContextObj* ContextObj::restoreAndContinue() {
 }
 
 
-ContextObj::ContextObj(Context* pContext) :
-  d_pContextObjRestore(NULL) {
-
-  Assert(pContext != NULL, "NULL context pointer");
-
-  d_pScope = pContext->getBottomScope();
-  d_pScope->addToChain(this);
-}
-
-
-ContextObj::~ContextObj() throw(AssertionException) {
+void ContextObj::destroy() throw(AssertionException) {
   for(;;) {
     if(next() != NULL) {
       next()->prev() = prev();
@@ -196,6 +186,16 @@ ContextObj::~ContextObj() throw(AssertionException) {
     }
     restoreAndContinue();
   }
+}
+
+
+ContextObj::ContextObj(Context* pContext) :
+  d_pContextObjRestore(NULL) {
+
+  Assert(pContext != NULL, "NULL context pointer");
+
+  d_pScope = pContext->getBottomScope();
+  d_pScope->addToChain(this);
 }
 
 
