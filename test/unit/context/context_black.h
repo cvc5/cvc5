@@ -37,6 +37,10 @@ public:
     d_context = new Context;
   }
 
+  void tearDown() {
+    delete d_context;
+  }
+
   void testIntCDO() {
     // Test that push/pop maintains the original value
     CDO<int> a1(d_context);
@@ -62,7 +66,12 @@ public:
 #endif /* CVC4_ASSERTIONS */
   }
 
-  void tearDown() {
-    delete d_context;
+  void testDtor() {
+    // Destruction of ContextObj was broken in revision 324 (bug #45) when
+    // at a higher context level with an intervening modification.
+    // (The following caused a "pure virtual method called" error.)
+    CDO<int> i(d_context);
+    d_context->push();
+    i = 5;
   }
 };

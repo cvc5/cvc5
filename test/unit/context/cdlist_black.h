@@ -35,7 +35,7 @@ public:
   }
 
   // test at different sizes.  this triggers grow() behavior differently.
-  // grow() is completely broken in revision 256; fix forthcoming by Tim
+  // grow() was completely broken in revision 256
   void testCDList10() { listTest(10); }
   void testCDList15() { listTest(15); }
   void testCDList20() { listTest(20); }
