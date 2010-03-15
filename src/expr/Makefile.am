@@ -33,7 +33,7 @@ EXTRA_DIST = \
 	kind_epilogue.h
 
 @srcdir@/kind.h: mkkind kind_prologue.h kind_middle.h kind_epilogue.h builtin_kinds @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
-	chmod +x @srcdir@/mkkind
+	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_GEN)(@srcdir@/mkkind \
 		@srcdir@/kind_prologue.h \
 		@srcdir@/kind_middle.h \

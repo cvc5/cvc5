@@ -24,8 +24,6 @@
 #include <cstdarg>
 #include <set>
 
-#include "util/exception.h"
-
 namespace CVC4 {
 
 /**
@@ -60,25 +58,25 @@ public:
   DebugC(std::ostream* os) : d_os(os) {}
 
   void operator()(const char* tag, const char* s) {
-    if(d_tags.find(std::string(tag)) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
       *d_os << s;
     }
   }
 
   void operator()(const char* tag, const std::string& s) {
-    if(d_tags.find(std::string(tag)) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
       *d_os << s;
     }
   }
 
   void operator()(const std::string& tag, const char* s) {
-    if(d_tags.find(tag) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       *d_os << s;
     }
   }
 
   void operator()(const std::string& tag, const std::string& s) {
-    if(d_tags.find(tag) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       *d_os << s;
     }
   }
@@ -87,14 +85,14 @@ public:
   void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
   std::ostream& operator()(const char* tag) {
-    if(d_tags.find(std::string(tag)) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
       return *d_os;
     } else {
       return null_os;
     }
   }
   std::ostream& operator()(std::string tag) {
-    if(d_tags.find(tag) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return *d_os;
     } else {
       return null_os;
@@ -223,7 +221,7 @@ public:
   void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
   std::ostream& operator()(const char* tag) {
-    if(d_tags.find(tag) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return *d_os;
     } else {
       return null_os;
@@ -231,7 +229,7 @@ public:
   }
 
   std::ostream& operator()(std::string tag) {
-    if(d_tags.find(tag) != d_tags.end()) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return *d_os;
     } else {
       return null_os;

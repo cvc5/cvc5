@@ -159,11 +159,15 @@ fi
 
 # Unpack standard build types. Any particular options can be overriden with
 # --enable/disable-X options
+if test -z "${OPTLEVEL+set}"; then OPTLEVEL=3; fi
+# our defaults for CXXFLAGS are better than autoconf's
+if test -z "${CXXFLAGS+set}"; then CXXFLAGS=; fi
 case "$with_build" in
   production) # highly optimized, no assertions, no tracing
     CVC4CPPFLAGS=
-    CVC4CXXFLAGS=-O3
+    CVC4CXXFLAGS=
     CVC4LDFLAGS=
+    if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=3                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
@@ -172,7 +176,7 @@ case "$with_build" in
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing
     CVC4CPPFLAGS=-DCVC4_DEBUG
-    CVC4CXXFLAGS='-O0 -fno-inline -ggdb3'
+    CVC4CXXFLAGS='-fno-inline'
     CVC4LDFLAGS=
     if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
@@ -182,9 +186,10 @@ case "$with_build" in
     ;;
   default) # moderately optimized, assertions, tracing
     CVC4CPPFLAGS=
-    CVC4CXXFLAGS=-O2
+    CVC4CXXFLAGS=
     CVC4LDFLAGS=
-    if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
+    if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=2                       ; fi
+    if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
@@ -192,9 +197,10 @@ case "$with_build" in
     ;;
   competition) # maximally optimized, no assertions, no tracing, muzzled
     CVC4CPPFLAGS=
-    CVC4CXXFLAGS='-O9 -funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
+    CVC4CXXFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
     CVC4LDFLAGS=
-    if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
+    if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=9                       ; fi
+    if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=no          ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
@@ -232,7 +238,9 @@ fi
 AC_MSG_RESULT([$enable_optimized])
 
 if test "$enable_optimized" = yes; then
-  CVC4CXXFLAGS="$CVC4CXXFLAGS -O3"
+  CVC4CXXFLAGS="$CVC4CXXFLAGS -O$OPTLEVEL"
+else
+  CVC4CXXFLAGS="$CVC4CXXFLAGS -O0"
 fi
 
 AC_MSG_CHECKING([whether to include debugging symbols in libcvc4])
@@ -497,13 +505,19 @@ if test -n "$CXXTEST"; then
   support_unit_tests='unit testing infrastructure enabled in build directory'
 fi
 
+if test "$enable_optimized" = yes; then
+  optimized="yes, at level $OPTLEVEL"
+else
+  optimized="no"
+fi
+
 cat <<EOF
 
 CVC4 $VERSION
 
 Build profile: $with_build
 Build ID     : $build_type
-Optimized    : $enable_optimized
+Optimized    : $optimized
 Debug symbols: $enable_debug_symbols
 Assertions   : $enable_assertions
 Tracing      : $enable_tracing

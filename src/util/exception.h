@@ -17,7 +17,6 @@
 #define __CVC4__EXCEPTION_H
 
 #include <string>
-#include <iostream>
 #include "cvc4_config.h"
 
 namespace CVC4 {

@@ -310,7 +310,8 @@ void TheoryUF::check(Effort level){
       if(sameCongruenceClass(left, right)){
         Node remakeNeq = (*diseqIter).notNode();
         Node conflict = constructConflict(remakeNeq);
-        d_out->conflict(conflict, true);
+        d_out->conflict(conflict, false);
+        return;
       }
     }
   }
