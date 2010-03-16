@@ -91,7 +91,7 @@ size_t Expr::getNumChildren() const {
   return d_node->getNumChildren();
 }
 
-const Type* Expr::getType() const {
+Type* Expr::getType() const {
   ExprManagerScope ems(*this);
   return d_node->getType();
 }

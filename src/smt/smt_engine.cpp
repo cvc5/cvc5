@@ -51,12 +51,12 @@ public:
    * passes over the Node.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  static Node preprocess(SmtEngine& smt, TNode node);
+  static Node preprocess(SmtEngine& smt, TNode n);
 
   /**
    * Adds a formula to the current context.
    */
-  static void addFormula(SmtEngine& smt, TNode node);
+  static void addFormula(SmtEngine& smt, TNode n);
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -97,8 +97,8 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
-Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode e) {
-  return smt.d_theoryEngine->preprocess(e);
+Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n) {
+  return smt.d_theoryEngine->preprocess(n);
 }
 
 Result SmtEngine::check() {
@@ -111,9 +111,9 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
-void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode e) {
-  Debug("smt") << "push_back assertion " << e << std::endl;
-  smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, e));
+void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n) {
+  Debug("smt") << "push_back assertion " << n << std::endl;
+  smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, n));
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {

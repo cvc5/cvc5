@@ -26,11 +26,12 @@ std::ostream& operator<<(std::ostream& out, const Type& e) {
 }
 
 Type::Type() :
-  d_name(std::string("<undefined>")) {
+  d_name(std::string("<undefined>")),
+  d_rc(0) {
 }
 
 Type::Type(std::string name) : 
-  d_name(name) { 
+  d_name(name) {
 }
 
 std::string Type::getName() const {
@@ -39,7 +40,9 @@ std::string Type::getName() const {
 
 BooleanType BooleanType::s_instance;
 
-BooleanType::BooleanType() : Type(std::string("BOOLEAN")) {
+BooleanType::BooleanType() :
+  Type(std::string("BOOLEAN")) {
+  d_rc = RC_MAX;// singleton, not heap-allocated
 }
 
 BooleanType::~BooleanType() {
@@ -54,22 +57,23 @@ bool BooleanType::isBoolean() const {
   return true;
 }
 
-FunctionType::FunctionType(const std::vector<const Type*>& argTypes,
-                           const Type* range) 
-  : d_argTypes(argTypes),
-    d_rangeType(range) {
+FunctionType::FunctionType(const std::vector<Type*>& argTypes,
+                           Type* range) :
+  d_argTypes(argTypes),
+  d_rangeType(range) {
+
   Assert( argTypes.size() > 0 );
 }
 
-  // FIXME: What becomes of argument types?
+// FIXME: What becomes of argument types?
 FunctionType::~FunctionType() {
 }
 
-const std::vector<const Type*> FunctionType::getArgTypes() const {
+const std::vector<Type*> FunctionType::getArgTypes() const {
   return d_argTypes;
 }
 
-const Type* FunctionType::getRangeType() const {
+Type* FunctionType::getRangeType() const {
   return d_rangeType;
 }
 
@@ -100,7 +104,9 @@ void FunctionType::toStream(std::ostream& out) const {
 
 KindType KindType::s_instance;
 
-KindType::KindType() : Type(std::string("KIND")) {
+KindType::KindType() :
+  Type(std::string("KIND")) {
+  d_rc = RC_MAX;// singleton, not heap-allocated
 }
 
 KindType::~KindType() {
@@ -115,12 +121,11 @@ KindType::getInstance() {
   return &s_instance;
 }
 
-SortType::SortType(std::string name)
-  : Type(name) {
+SortType::SortType(std::string name) :
+  Type(name) {
 }
 
 SortType::~SortType() {
 }
-
 
 }

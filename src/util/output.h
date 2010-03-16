@@ -109,6 +109,9 @@ public:
   void off(const char* tag) { d_tags.erase (std::string(tag)); }
   void off(std::string tag) { d_tags.erase (tag);              }
 
+  bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
+  bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
+
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Debug */
 
@@ -241,6 +244,9 @@ public:
   void off(const char* tag) { d_tags.erase (std::string(tag)); };
   void off(std::string tag) { d_tags.erase (tag);              };
 
+  bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
+  bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
+
   void setStream(std::ostream& os) { d_os = &os; }
 };/* class Trace */
 
@@ -288,6 +294,9 @@ public:
   void on (std::string tag) {}
   void off(const char* tag) {}
   void off(std::string tag) {}
+
+  bool isOn(const char* tag) { return false; }
+  bool isOn(std::string tag) { return false; }
 
   void setStream(std::ostream& os) {}
 };/* class NullDebugC */

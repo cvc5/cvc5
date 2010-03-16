@@ -51,10 +51,10 @@ public:
   ~ExprManager();
 
   /** Get the type for booleans */
-  const BooleanType* booleanType() const;
+  BooleanType* booleanType() const;
 
   /** Get the type for sorts. */
-  const KindType* kindType() const;
+  KindType* kindType() const;
 
   /**
    * Make a unary expression of a given kind (TRUE, FALSE,...).
@@ -95,21 +95,21 @@ public:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /** Make a function type from domain to range. */
-  const FunctionType*
-    mkFunctionType(const Type* domain,
-                   const Type* range);
+  FunctionType*
+    mkFunctionType(Type* domain,
+                   Type* range);
 
   /** Make a function type with input types from argTypes. */
-  const FunctionType*
-    mkFunctionType(const std::vector<const Type*>& argTypes,
-                   const Type* range);
+  FunctionType*
+    mkFunctionType(const std::vector<Type*>& argTypes,
+                   Type* range);
 
   /** Make a new sort with the given name. */
-  const Type* mkSort(const std::string& name);
+  Type* mkSort(const std::string& name);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar(const Type* type, const std::string& name);
-  Expr mkVar(const Type* type);
+  Expr mkVar(Type* type, const std::string& name);
+  Expr mkVar(Type* type);
 
 private:
   /** The context */

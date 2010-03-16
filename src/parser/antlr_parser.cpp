@@ -60,7 +60,7 @@ Expr AntlrParser::getSymbol(const std::string& name, SymbolType type) {
     return d_varSymbolTable.getObject(name);
 
   default:
-    Unhandled("Unhandled symbol type!");
+    Unhandled(type);
   }
 }
 
@@ -72,17 +72,16 @@ Expr AntlrParser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_FUNCTION);
 }
 
-const Type* 
-AntlrParser::getType(const std::string& var_name,
-                     SymbolType type) {
+Type* AntlrParser::getType(const std::string& var_name,
+                           SymbolType type) {
   Assert( isDeclared(var_name, type) );
-  const Type* t = getSymbol(var_name,type).getType();
+  Type* t = getSymbol(var_name, type).getType();
   return t;
 }
 
-const Type* AntlrParser::getSort(const std::string& name) {
+Type* AntlrParser::getSort(const std::string& name) {
   Assert( isDeclared(name, SYM_SORT) );
-  const Type* t = d_sortTable.getObject(name);
+  Type* t = d_sortTable.getObject(name);
   return t;
 }
 
@@ -134,33 +133,30 @@ Expr AntlrParser::mkExpr(Kind kind, const std::vector<Expr>& children) {
   return result;
 }
 
-const Type* 
-AntlrParser::functionType(const Type* domainType, 
-                          const Type* rangeType) {
-  return d_exprManager->mkFunctionType(domainType,rangeType);
+Type* AntlrParser::functionType(Type* domainType,
+                                Type* rangeType) {
+  return d_exprManager->mkFunctionType(domainType, rangeType);
 }
 
-const Type* 
-AntlrParser::functionType(const std::vector<const Type*>& argTypes, 
-                          const Type* rangeType) {
+Type* AntlrParser::functionType(const std::vector<Type*>& argTypes,
+                                Type* rangeType) {
   Assert( argTypes.size() > 0 );
-  return d_exprManager->mkFunctionType(argTypes,rangeType);
+  return d_exprManager->mkFunctionType(argTypes, rangeType);
 }
 
-const Type* 
-AntlrParser::functionType(const std::vector<const Type*>& sorts) {
+Type* AntlrParser::functionType(const std::vector<Type*>& sorts) {
   Assert( sorts.size() > 0 );
   if( sorts.size() == 1 ) {
     return sorts[0];
   } else {
-    std::vector<const Type*> argTypes(sorts);
-    const Type* rangeType = argTypes.back();
+    std::vector<Type*> argTypes(sorts);
+    Type* rangeType = argTypes.back();
     argTypes.pop_back();
-    return functionType(argTypes,rangeType);
+    return functionType(argTypes, rangeType);
   }
 }
 
-const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
+Type* AntlrParser::predicateType(const std::vector<Type*>& sorts) {
   if(sorts.size() == 0) {
     return d_exprManager->booleanType();
   } else {
@@ -168,17 +164,16 @@ const Type* AntlrParser::predicateType(const std::vector<const Type*>& sorts) {
   }
 }
 
-Expr 
-AntlrParser::mkVar(const std::string& name, const Type* type) {
+Expr AntlrParser::mkVar(const std::string& name, Type* type) {
   Debug("parser") << "mkVar(" << name << "," << *type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(type, name);
-  defineVar(name,expr);
+  defineVar(name, expr);
   return expr;
 }
 
-const std::vector<Expr> 
-AntlrParser::mkVars(const std::vector<std::string> names, 
-                    const Type* type) {
+const std::vector<Expr>
+AntlrParser::mkVars(const std::vector<std::string> names,
+                    Type* type) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkVar(names[i], type));
@@ -186,55 +181,51 @@ AntlrParser::mkVars(const std::vector<std::string> names,
   return vars;
 }
 
-void
-AntlrParser::defineVar(const std::string& name, const Expr& val) {
+void AntlrParser::defineVar(const std::string& name, const Expr& val) {
   Assert(!isDeclared(name));
-  d_varSymbolTable.bindName(name,val);
+  d_varSymbolTable.bindName(name, val);
   Assert(isDeclared(name));
 }
 
-void
-AntlrParser::undefineVar(const std::string& name) {
+void AntlrParser::undefineVar(const std::string& name) {
   Assert(isDeclared(name));
   d_varSymbolTable.unbindName(name);
   Assert(!isDeclared(name));
 }
 
 
-const Type* 
-AntlrParser::newSort(const std::string& name) {
+Type* AntlrParser::newSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Assert( !isDeclared(name, SYM_SORT) );
-  const Type* type = d_exprManager->mkSort(name);
+  Type* type = d_exprManager->mkSort(name);
   d_sortTable.bindName(name, type);
   Assert( isDeclared(name, SYM_SORT) );
   return type;
 }
 
-const std::vector<const Type*>
+const std::vector<Type*>
 AntlrParser::newSorts(const std::vector<std::string>& names) {
-  std::vector<const Type*> types;
+  std::vector<Type*> types;
   for(unsigned i = 0; i < names.size(); ++i) {
     types.push_back(newSort(names[i]));
   }
   return types;
 }
 
-void
-AntlrParser::setLogic(const std::string& name) {
+void AntlrParser::setLogic(const std::string& name) {
   if( name == "QF_UF" ) {
     newSort("U");
   } else {
-    Unhandled("setLogic: " + name);
+    Unhandled(name);
   }
 }
 
-const BooleanType* AntlrParser::booleanType() {
-  return d_exprManager->booleanType(); 
+BooleanType* AntlrParser::booleanType() {
+  return d_exprManager->booleanType();
 }
 
-const KindType* AntlrParser::kindType() {
-  return d_exprManager->kindType(); 
+KindType* AntlrParser::kindType() {
+  return d_exprManager->kindType();
 }
 
 unsigned int AntlrParser::minArity(Kind kind) {
@@ -251,7 +242,7 @@ unsigned int AntlrParser::minArity(Kind kind) {
     return 1;
 
   case APPLY:
-  case EQUAL: 
+  case EQUAL:
   case IFF:
   case IMPLIES:
   case PLUS:
@@ -262,7 +253,7 @@ unsigned int AntlrParser::minArity(Kind kind) {
     return 3;
 
   default:
-    Unhandled("kind in minArity");
+    Unhandled(kind);
   }
 }
 
@@ -277,7 +268,7 @@ unsigned int AntlrParser::maxArity(Kind kind) {
   case NOT:
     return 1;
 
-  case EQUAL: 
+  case EQUAL:
   case IFF:
   case IMPLIES:
   case XOR:
@@ -293,7 +284,7 @@ unsigned int AntlrParser::maxArity(Kind kind) {
     return UINT_MAX;
 
   default:
-    Unhandled("kind in maxArity");
+    Unhandled(kind);
   }
 }
 
@@ -309,7 +300,7 @@ bool AntlrParser::isDeclared(const std::string& name, SymbolType type) {
   case SYM_SORT:
     return d_sortTable.isBound(name);
   default:
-    Unhandled("Unhandled symbol type!");
+    Unhandled(type);
   }
 }
 
@@ -345,7 +336,7 @@ void AntlrParser::checkDeclaration(const std::string& varName,
     break;
 
   default:
-    Unhandled("Unknown check type!");
+    Unhandled(check);
   }
 }
 
@@ -353,7 +344,7 @@ void AntlrParser::checkFunction(const std::string& name)
   throw (antlr::SemanticException) {
   if( d_checksEnabled && !isFunction(name) ) {
     parseError("Expecting function symbol, found '" + name + "'");
-  } 
+  }
 }
 
 void AntlrParser::checkArity(Kind kind, unsigned int numArgs)

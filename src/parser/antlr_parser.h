@@ -137,7 +137,7 @@ protected:
   /**
    * Returns a sort, given a name
    */
-  const Type* getSort(const std::string& sort_name);
+  Type* getSort(const std::string& sort_name);
 
   /**
    * Types of symbols. Used to define namespaces.
@@ -193,7 +193,7 @@ protected:
    * @param name the symbol to lookup 
    * @param type the (namespace) type of the symbol
    */
-  const Type* getType(const std::string& var_name,
+  Type* getType(const std::string& var_name,
                       SymbolType type = SYM_VARIABLE);
 
   /**
@@ -244,13 +244,13 @@ protected:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /** Create a new CVC4 variable expression of the given type. */
-  Expr mkVar(const std::string& name, const Type* type);
+  Expr mkVar(const std::string& name, Type* type);
 
   /** Create a set of new CVC4 variable expressions of the given
       type. */
   const std::vector<Expr> 
   mkVars(const std::vector<std::string> names, 
-         const Type* type);
+         Type* type);
 
   /** Create a new variable definition (e.g., from a let binding). */
   void defineVar(const std::string& name, const Expr& val);
@@ -258,12 +258,12 @@ protected:
   void undefineVar(const std::string& name);
 
   /** Returns a function type over the given domain and range types. */
-  const Type* functionType(const Type* domain, const Type* range);
+  Type* functionType(Type* domain, Type* range);
 
   /** Returns a function type over the given types. argTypes must be
       non-empty. */
-  const Type* functionType(const std::vector<const Type*>& argTypes,
-                           const Type* rangeType);
+  Type* functionType(const std::vector<Type*>& argTypes,
+                     Type* rangeType);
 
   /** 
    * Returns a function type over the given types. If types has only
@@ -271,7 +271,7 @@ protected:
    *
    * @param types a non-empty list of input and output types. 
    */
-  const Type* functionType(const std::vector<const Type*>& types);
+  Type* functionType(const std::vector<Type*>& types);
 
   /** 
    * Returns a predicate type over the given sorts. If sorts is empty,
@@ -279,17 +279,17 @@ protected:
 
    * @param sorts a list of input types
    */
-  const Type* predicateType(const std::vector<const Type*>& sorts);
+  Type* predicateType(const std::vector<Type*>& sorts);
 
   /**
    * Creates a new sort with the given name.
    */
-  const Type* newSort(const std::string& name);
+  Type* newSort(const std::string& name);
 
   /**
    * Creates a new sorts with the given names.
    */
-  const std::vector<const Type*>
+  const std::vector<Type*>
   newSorts(const std::vector<std::string>& names);
 
   /** Is the symbol bound to a boolean variable? */
@@ -302,10 +302,10 @@ protected:
   bool isPredicate(const std::string& name);
 
   /** Returns the boolean type. */
-  const BooleanType* booleanType();
+  BooleanType* booleanType();
 
   /** Returns the kind type (i.e., the type of types). */
-  const KindType* kindType();
+  KindType* kindType();
 
   /** Returns the minimum arity of the given kind. */
   static unsigned int minArity(Kind kind);
@@ -346,7 +346,7 @@ private:
   SymbolTable<Expr> d_varSymbolTable;
 
   /** The sort table */
-  SymbolTable<const Type*> d_sortTable;
+  SymbolTable<Type*> d_sortTable;
 
   /** Are semantic checks enabled during parsing? */
   bool d_checksEnabled;

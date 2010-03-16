@@ -115,11 +115,11 @@ C_IDENTIFIER options { paraphrase = "an attribute (e.g., ':x')"; testLiterals = 
   ;
 
 VAR_IDENTIFIER options { paraphrase = "a variable (e.g., '?x')"; testLiterals = false; }
-  :  '?' IDENTIFIER 
+  :  '?' IDENTIFIER
   ;
 
 FUN_IDENTIFIER options { paraphrase = "a function variable (e.g, '$x')"; testLiterals = false; }
-  :  '$' IDENTIFIER 
+  :  '$' IDENTIFIER
   ;
 
 

@@ -183,7 +183,8 @@ private:
  * a ECAttr is being destructed.
  */
 struct ECCleanupFcn{
-  static void cleanup(ECData* & ec){
+  static void cleanup(ECData* ec){
+    Debug("ufgc") << "cleaning up ECData " << ec << "\n";
     ec->deleteSelf();
   }
 };

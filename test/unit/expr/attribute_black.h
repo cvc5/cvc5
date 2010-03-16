@@ -62,7 +62,7 @@ public:
   struct MyDataAttributeId {};
 
   struct MyDataCleanupFunction {
-    static void cleanup(MyData*& myData){
+    static void cleanup(MyData* myData){
       delete myData;
     }
   };

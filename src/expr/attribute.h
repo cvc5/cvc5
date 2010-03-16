@@ -389,27 +389,138 @@ public:
 namespace attr {
 
 /** Default cleanup for unmanaged Attribute<> */
-template <class T>
-struct AttributeCleanupFcn {
-  static inline void cleanup(const T&) {}
-};
+struct NullCleanupFcn {
+};/* struct NullCleanupFcn */
 
 /** Default cleanup for ManagedAttribute<> */
 template <class T>
 struct ManagedAttributeCleanupFcn {
-};
+};/* struct ManagedAttributeCleanupFcn<> */
 
 /** Specialization for T* */
 template <class T>
 struct ManagedAttributeCleanupFcn<T*> {
   static inline void cleanup(T* p) { delete p; }
-};
+};/* struct ManagedAttributeCleanupFcn<T*> */
 
 /** Specialization for const T* */
 template <class T>
 struct ManagedAttributeCleanupFcn<const T*> {
   static inline void cleanup(const T* p) { delete p; }
+};/* struct ManagedAttributeCleanupFcn<const T*> */
+
+/**
+ * Helper for Attribute<> class below to determine whether a cleanup
+ * is defined or not.
+ */
+template <class T, class C>
+struct getCleanupFcn {
+  typedef T value_type;
+  typedef KindValueToTableValueMapping<value_type> mapping;
+  static void fn(typename mapping::table_value_type t) {
+    C::cleanup(mapping::convertBack(t));
+  }
+};/* struct getCleanupFcn<> */
+
+/**
+ * Specialization for NullCleanupFcn.
+ */
+template <class T>
+struct getCleanupFcn<T, NullCleanupFcn> {
+  typedef T value_type;
+  typedef KindValueToTableValueMapping<value_type> mapping;
+  static void (*const fn)(typename mapping::table_value_type);
+};/* struct getCleanupFcn<T, NullCleanupFcn> */
+
+// out-of-class initialization required (because it's a non-integral type)
+template <class T>
+void (*const getCleanupFcn<T, NullCleanupFcn>::fn)(typename getCleanupFcn<T, NullCleanupFcn>::mapping::table_value_type) = NULL;
+
+/**
+ * Specialization for ManagedAttributeCleanupFcn<T>.
+ */
+template <class T>
+struct getCleanupFcn<T, ManagedAttributeCleanupFcn<T> > {
+  typedef T value_type;
+  typedef KindValueToTableValueMapping<value_type> mapping;
+  static void (*const fn)(typename mapping::table_value_type);
+};/* struct getCleanupFcn<T, ManagedAttributeCleanupFcn<T> > */
+
+// out-of-class initialization required (because it's a non-integral type)
+template <class T>
+void (*const getCleanupFcn<T, ManagedAttributeCleanupFcn<T> >::fn)(typename getCleanupFcn<T, ManagedAttributeCleanupFcn<T> >::mapping::table_value_type) = NULL;
+
+/**
+ * Specialization for ManagedAttributeCleanupFcn<T*>.
+ */
+template <class T>
+struct getCleanupFcn<T*, ManagedAttributeCleanupFcn<T*> > {
+  typedef T* value_type;
+  typedef ManagedAttributeCleanupFcn<value_type> C;
+  typedef KindValueToTableValueMapping<value_type> mapping;
+  static void fn(typename mapping::table_value_type t) {
+    C::cleanup(mapping::convertBack(t));
+  }
+};/* struct getCleanupFcn<T*, ManagedAttributeCleanupFcn<T*> > */
+
+/**
+ * Specialization for ManagedAttributeCleanupFcn<const T*>.
+ */
+template <class T>
+struct getCleanupFcn<const T*, ManagedAttributeCleanupFcn<const T*> > {
+  typedef const T* value_type;
+  typedef ManagedAttributeCleanupFcn<value_type> C;
+  typedef KindValueToTableValueMapping<value_type> mapping;
+  static void fn(typename mapping::table_value_type t) {
+    C::cleanup(mapping::convertBack(t));
+  }
+};/* struct getCleanupFcn<const T*, ManagedAttributeCleanupFcn<const T*> > */
+
+/**
+ * Cause compile-time error for improperly-instantiated
+ * getCleanupFcn<>.
+ */
+template <class T, class U>
+struct getCleanupFcn<T, ManagedAttributeCleanupFcn<U> >;
+
+}/* CVC4::expr::attr namespace */
+
+// ATTRIBUTE IDENTIFIER ASSIGNMENT TEMPLATE ====================================
+
+namespace attr {
+
+/**
+ * This is the last-attribute-assigner.  IDs are not globally
+ * unique; rather, they are unique for each table_value_type.
+ */
+template <class T, bool context_dep>
+struct LastAttributeId {
+  static uint64_t s_id;
 };
+
+/** Initially zero. */
+template <class T, bool context_dep>
+uint64_t LastAttributeId<T, context_dep>::s_id = 0;
+
+}/* CVC4::expr::attr namespace */
+
+// ATTRIBUTE TRAITS ============================================================
+
+namespace attr {
+
+/**
+ * This is the last-attribute-assigner.  IDs are not globally
+ * unique; rather, they are unique for each table_value_type.
+ */
+template <class T, bool context_dep>
+struct AttributeTraits {
+  typedef void (*cleanup_t)(T);
+  static std::vector<cleanup_t> cleanup;
+};
+
+template <class T, bool context_dep>
+std::vector<typename AttributeTraits<T, context_dep>::cleanup_t>
+  AttributeTraits<T, context_dep>::cleanup;
 
 }/* CVC4::expr::attr namespace */
 
@@ -431,9 +542,16 @@ struct ManagedAttributeCleanupFcn<const T*> {
  */
 template <class T,
           class value_t,
-          class CleanupFcn = attr::AttributeCleanupFcn<value_t>,
+          class CleanupFcn = attr::NullCleanupFcn,
           bool context_dep = false>
-struct Attribute {
+class Attribute {
+  /**
+   * The unique ID associated to this attribute.  Assigned statically,
+   * at load time.
+   */
+  static const uint64_t s_id;
+
+public:
 
   /** The value type for this attribute. */
   typedef value_t value_type;
@@ -454,20 +572,43 @@ struct Attribute {
    */
   static const bool context_dependent = context_dep;
 
-private:
-
   /**
-   * The unique ID associated to this attribute.  Assigned statically,
-   * at load time.
+   * Register this attribute kind and check that the ID is a valid ID
+   * for bool-valued attributes.  Fail an assert if not.  Otherwise
+   * return the id.
    */
-  static const uint64_t s_id;
+  static inline uint64_t registerAttribute() {
+    typedef typename attr::KindValueToTableValueMapping<value_t>::table_value_type table_value_type;
+    typedef attr::AttributeTraits<table_value_type, context_dep> traits;
+    uint64_t id = attr::LastAttributeId<table_value_type, context_dep>::s_id++;
+    Assert(traits::cleanup.size() == id);// sanity check
+    traits::cleanup.push_back(attr::getCleanupFcn<value_t, CleanupFcn>::fn);
+    return id;
+  }
+};/* class Attribute<> */
+
+/**
+ * An "attribute type" structure for boolean flags (special).  The
+ * full one is below; the existence of this one disallows for boolean
+ * flag attributes with a specialized cleanup function.
+ */
+/* -- doesn't work; other specialization is "more specific" ??
+template <class T, class CleanupFcn, bool context_dep>
+class Attribute<T, bool, CleanupFcn, context_dep> {
+  template <bool> struct ERROR_bool_attributes_cannot_have_cleanup_functions;
+  ERROR_bool_attributes_cannot_have_cleanup_functions<true> blah;
 };
+*/
 
 /**
  * An "attribute type" structure for boolean flags (special).
  */
-template <class T, class CleanupFcn, bool context_dep>
-struct Attribute<T, bool, CleanupFcn, context_dep> {
+template <class T, bool context_dep>
+class Attribute<T, bool, attr::NullCleanupFcn, context_dep> {
+  /** IDs for bool-valued attributes are actually bit assignments. */
+  static const uint64_t s_id;
+
+public:
 
   /** The value type for this attribute; here, bool. */
   typedef bool value_type;
@@ -495,21 +636,18 @@ struct Attribute<T, bool, CleanupFcn, context_dep> {
   static const bool context_dependent = context_dep;
 
   /**
-   * Check that the ID is a valid ID for bool-valued attributes.  Fail
-   * an assert if not.  Otherwise return the id.
+   * Register this attribute kind and check that the ID is a valid ID
+   * for bool-valued attributes.  Fail an assert if not.  Otherwise
+   * return the id.
    */
-  static inline uint64_t checkID(uint64_t id) {
+  static inline uint64_t registerAttribute() {
+    uint64_t id = attr::LastAttributeId<bool, context_dep>::s_id++;
     AlwaysAssert( id <= 63,
                   "Too many boolean node attributes registered "
                   "during initialization !" );
     return id;
   }
-
-private:
-
-  /** IDs for bool-valued attributes are actually bit assignments. */
-  static const uint64_t s_id;
-};
+};/* class Attribute<..., bool, ...> */
 
 /**
  * This is a context-dependent attribute kind (the only difference
@@ -520,7 +658,7 @@ private:
 template <class T,
           class value_type>
 struct CDAttribute :
-    public Attribute<T, value_type, attr::AttributeCleanupFcn<value_type>, true> {};
+    public Attribute<T, value_type, attr::NullCleanupFcn, true> {};
 
 /**
  * This is a managed attribute kind (the only difference between
@@ -541,35 +679,21 @@ struct ManagedAttribute :
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
-namespace attr {
-
-/**
- * This is the last-attribute-assigner.  IDs are not globally
- * unique; rather, they are unique for each table_value_type.
- */
-template <class T, bool context_dep>
-struct LastAttributeId {
-  static uint64_t s_id;
-};
-
-/** Initially zero. */
-template <class T, bool context_dep>
-uint64_t LastAttributeId<T, context_dep>::s_id = 0;
-
-}/* CVC4::expr::attr namespace */
-
 /** Assign unique IDs to attributes at load time. */
+// Use of the comma-operator here forces instantiation (and
+// initialization) of the AttributeTraits<> structure and its
+// "cleanup" vector before registerAttribute() is called.  This is
+// important because otherwise the vector is initialized later,
+// clearing the first-pushed cleanup function.
 template <class T, class value_t, class CleanupFcn, bool context_dep>
 const uint64_t Attribute<T, value_t, CleanupFcn, context_dep>::s_id =
-  attr::LastAttributeId<typename attr::KindValueToTableValueMapping<value_t>::table_value_type, context_dep>::s_id++;
+  ( attr::AttributeTraits<typename attr::KindValueToTableValueMapping<value_t>::table_value_type, context_dep>::cleanup.size(),
+    Attribute<T, value_t, CleanupFcn, context_dep>::registerAttribute() );
 
-/**
- * Assign unique IDs to bool-valued attributes at load time, checking
- * that they are in range.
- */
-template <class T, class CleanupFcn, bool context_dep>
-const uint64_t Attribute<T, bool, CleanupFcn, context_dep>::s_id =
-  Attribute<T, bool, CleanupFcn, context_dep>::checkID(attr::LastAttributeId<bool, context_dep>::s_id++);
+/** Assign unique IDs to attributes at load time. */
+template <class T, bool context_dep>
+const uint64_t Attribute<T, bool, attr::NullCleanupFcn, context_dep>::s_id =
+  Attribute<T, bool, attr::NullCleanupFcn, context_dep>::registerAttribute();
 
 // ATTRIBUTE MANAGER ===========================================================
 
@@ -608,6 +732,9 @@ class AttributeManager {
   CDAttrHash<std::string> d_cdstrings;
   /** Underlying hash table for context-dependent pointer-valued attributes */
   CDAttrHash<void*> d_cdptrs;
+
+  template <class T>
+  void deleteFromTable(AttrHash<T>& table, NodeValue* nv);
 
   /**
    * getTable<> is a helper template that gets the right table from an

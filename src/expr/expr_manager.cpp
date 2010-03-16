@@ -42,12 +42,12 @@ ExprManager::~ExprManager() {
   delete d_ctxt;
 }
 
-const BooleanType* ExprManager::booleanType() const {
+BooleanType* ExprManager::booleanType() const {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->booleanType();
 }
 
-const KindType* ExprManager::kindType() const {
+KindType* ExprManager::kindType() const {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->kindType();
 }
@@ -106,32 +106,30 @@ Expr ExprManager::mkExpr(Kind kind, const vector<Expr>& children) {
 }
 
 /** Make a function type from domain to range. */
-const FunctionType* 
-ExprManager::mkFunctionType(const Type* domain, 
-                            const Type* range) {
+FunctionType* ExprManager::mkFunctionType(Type* domain,
+                                          Type* range) {
   NodeManagerScope nms(d_nodeManager);
-  return d_nodeManager->mkFunctionType(domain,range);
+  return d_nodeManager->mkFunctionType(domain, range);
 }
 
 /** Make a function type with input types from argTypes. */
-const FunctionType* 
-ExprManager::mkFunctionType(const std::vector<const Type*>& argTypes, 
-                            const Type* range) {
+FunctionType* ExprManager::mkFunctionType(const std::vector<Type*>& argTypes,
+                                          Type* range) {
   NodeManagerScope nms(d_nodeManager);
-  return d_nodeManager->mkFunctionType(argTypes,range);
+  return d_nodeManager->mkFunctionType(argTypes, range);
 }
 
-const Type* ExprManager::mkSort(const std::string& name) {
+Type* ExprManager::mkSort(const std::string& name) {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkSort(name);
 }
 
-Expr ExprManager::mkVar(const Type* type, const std::string& name) {
+Expr ExprManager::mkVar(Type* type, const std::string& name) {
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkVar(type, name)));
 }
 
-Expr ExprManager::mkVar(const Type* type) {
+Expr ExprManager::mkVar(Type* type) {
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkVar(type)));
 }

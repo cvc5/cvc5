@@ -72,7 +72,7 @@ public:
     TS_ASSERT(b.isNull());
 
     Node c = b;
-    
+
     TS_ASSERT(c.isNull());
   }
 
@@ -93,7 +93,7 @@ public:
   /*tests:  bool operator==(const Node& e) const  */
   void testOperatorEquals() {
     Node a, b, c;
-    
+
     b = d_nodeManager->mkVar();
 
     a = b;
@@ -113,7 +113,7 @@ public:
 
     TS_ASSERT(c==a);
     TS_ASSERT(c==b);
-    TS_ASSERT(c==c);    
+    TS_ASSERT(c==c);
 
 
     TS_ASSERT(d==d);
@@ -133,7 +133,7 @@ public:
 
 
     Node a, b, c;
-    
+
     b = d_nodeManager->mkVar();
 
     a = b;
@@ -142,19 +142,19 @@ public:
     Node d = d_nodeManager->mkVar();
 
     /*structed assuming operator == works */
-    TS_ASSERT(iff(a!=a,!(a==a)));
-    TS_ASSERT(iff(a!=b,!(a==b)));
-    TS_ASSERT(iff(a!=c,!(a==c)));
+    TS_ASSERT(iff(a!=a, !(a==a)));
+    TS_ASSERT(iff(a!=b, !(a==b)));
+    TS_ASSERT(iff(a!=c, !(a==c)));
 
 
-    TS_ASSERT(iff(b!=a,!(b==a)));
-    TS_ASSERT(iff(b!=b,!(b==b)));
-    TS_ASSERT(iff(b!=c,!(b==c)));
+    TS_ASSERT(iff(b!=a, !(b==a)));
+    TS_ASSERT(iff(b!=b, !(b==b)));
+    TS_ASSERT(iff(b!=c, !(b==c)));
 
 
-    TS_ASSERT(iff(c!=a,!(c==a)));
-    TS_ASSERT(iff(c!=b,!(c==b)));
-    TS_ASSERT(iff(c!=c,!(c==c)));
+    TS_ASSERT(iff(c!=a, !(c==a)));
+    TS_ASSERT(iff(c!=b, !(c==b)));
+    TS_ASSERT(iff(c!=c, !(c==c)));
 
     TS_ASSERT(!(d!=d));
 
@@ -164,7 +164,7 @@ public:
 
   }
 
-  void testOperatorSquare() {  
+  void testOperatorSquare() {
     /*Node operator[](int i) const */
 
 #ifdef CVC4_ASSERTIONS
@@ -177,7 +177,7 @@ public:
     Node tb = d_nodeManager->mkNode(TRUE);
     Node eb = d_nodeManager->mkNode(FALSE);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-    Node ite = cnd.iteNode(tb,eb);
+    Node ite = cnd.iteNode(tb, eb);
 
     TS_ASSERT(tb == cnd[0]);
     TS_ASSERT(eb == cnd[1]);
@@ -188,8 +188,8 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     //Bounds check on a node with children
-    TS_ASSERT_THROWS(ite == ite[-1],AssertionException);
-    TS_ASSERT_THROWS(ite == ite[4],AssertionException);    
+    TS_ASSERT_THROWS(ite == ite[-1], AssertionException);
+    TS_ASSERT_THROWS(ite == ite[4], AssertionException);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -197,23 +197,23 @@ public:
   void testOperatorAssign() {
     Node a, b;
     Node c = d_nodeManager->mkNode(NOT);
-    
+
     b = c;
     TS_ASSERT(b==c);
 
-    
+
     a = b = c;
 
     TS_ASSERT(a==b);
     TS_ASSERT(a==c);
   }
-  
+
   void testOperatorLessThan() {
     /* We don't have access to the ids so we can't test the implementation
-     * in the black box tests. 
+     * in the black box tests.
      */
 
-    
+
     Node a = d_nodeManager->mkVar();
     Node b = d_nodeManager->mkVar();
 
@@ -225,14 +225,14 @@ public:
 
     TS_ASSERT(!(c<d));
     TS_ASSERT(!(d<c));
-    
+
     /* TODO:
      * Less than has the rather difficult to test property that subexpressions
      * are less than enclosing expressions.
      *
      * But what would be a convincing test of this property?
      */
-    
+
     //Simple test of descending descendant property
     Node child = d_nodeManager->mkNode(TRUE);
     Node parent = d_nodeManager->mkNode(NOT, child);
@@ -245,9 +245,9 @@ public:
     Node curr = d_nodeManager->mkNode(NULL_EXPR);
     for(int i=0;i<N;i++) {
       chain.push_back(curr);
-      curr = d_nodeManager->mkNode(AND,curr);
+      curr = d_nodeManager->mkNode(AND, curr);
     }
-    
+
     for(int i=0;i<N;i++) {
       for(int j=i+1;j<N;j++) {
 	Node chain_i = chain[i];
@@ -255,16 +255,16 @@ public:
 	TS_ASSERT(chain_i<chain_j);
       }
     }
-    
+
   }
 
   void testEqNode() {
     /*Node eqNode(const Node& right) const;*/
 
     Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
     Node eq = left.eqNode(right);
-    
+
 
     TS_ASSERT(EQUAL == eq.getKind());
     TS_ASSERT(2     == eq.getNumChildren());
@@ -283,31 +283,31 @@ public:
     TS_ASSERT(1   == parent.getNumChildren());
 
     TS_ASSERT(parent[0] == child);
-    
+
   }
   void testAndNode() {
     /*Node andNode(const Node& right) const;*/
-    
+
     Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
     Node eq = left.andNode(right);
-    
+
 
     TS_ASSERT(AND == eq.getKind());
     TS_ASSERT(2   == eq.getNumChildren());
 
     TS_ASSERT(*(eq.begin()) == left);
     TS_ASSERT(*(++eq.begin()) == right);
-    
+
   }
 
   void testOrNode() {
     /*Node orNode(const Node& right) const;*/
-     
+
     Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
     Node eq = left.orNode(right);
-    
+
 
     TS_ASSERT(OR  == eq.getKind());
     TS_ASSERT(2   == eq.getNumChildren());
@@ -322,9 +322,9 @@ public:
 
     Node cnd = d_nodeManager->mkNode(PLUS);
     Node thenBranch = d_nodeManager->mkNode(TRUE);
-    Node elseBranch = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
-    Node ite = cnd.iteNode(thenBranch,elseBranch);
-    
+    Node elseBranch = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
+    Node ite = cnd.iteNode(thenBranch, elseBranch);
+
 
     TS_ASSERT(ITE  == ite.getKind());
     TS_ASSERT(3    == ite.getNumChildren());
@@ -336,11 +336,11 @@ public:
 
   void testIffNode() {
     /*  Node iffNode(const Node& right) const; */
-     
+
     Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
     Node eq = left.iffNode(right);
-    
+
 
     TS_ASSERT(IFF == eq.getKind());
     TS_ASSERT(2   == eq.getNumChildren());
@@ -349,13 +349,13 @@ public:
     TS_ASSERT(*(++eq.begin()) == right);
   }
 
-  
+
   void testImpNode() {
     /* Node impNode(const Node& right) const; */
     Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
     Node eq = left.impNode(right);
-    
+
 
     TS_ASSERT(IMPLIES == eq.getKind());
     TS_ASSERT(2 == eq.getNumChildren());
@@ -367,9 +367,9 @@ public:
   void testXorNode() {
     /*Node xorNode(const Node& right) const;*/
     Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT,(d_nodeManager->mkNode(FALSE)));
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
     Node eq = left.xorNode(right);
-    
+
 
     TS_ASSERT(XOR == eq.getKind());
     TS_ASSERT(2   == eq.getNumChildren());
@@ -394,13 +394,13 @@ public:
 
 
   void testGetOperator() {
-    const Type* sort = d_nodeManager->mkSort("T");
-    const Type* booleanType = d_nodeManager->booleanType();
-    const Type* predType = d_nodeManager->mkFunctionType(sort,booleanType);
+    Type* sort = d_nodeManager->mkSort("T");
+    Type* booleanType = d_nodeManager->booleanType();
+    Type* predType = d_nodeManager->mkFunctionType(sort, booleanType);
 
     Node f = d_nodeManager->mkVar(predType);
     Node a = d_nodeManager->mkVar(booleanType);
-    Node fa = d_nodeManager->mkNode(kind::APPLY,f,a);
+    Node fa = d_nodeManager->mkNode(kind::APPLY, f, a);
 
     TS_ASSERT( fa.hasOperator() );
     TS_ASSERT( !f.hasOperator() );
@@ -410,7 +410,7 @@ public:
     TS_ASSERT_THROWS( f.getOperator(), AssertionException );
     TS_ASSERT_THROWS( a.getOperator(), AssertionException );
   }
-  
+
   void testNaryExpForSize(Kind k, int N){
     NodeBuilder<> nbz(k);
     for(int i=0;i<N;i++){
@@ -434,13 +434,13 @@ public:
 
     //Bigger tests
 
-    srand(0);    
+    srand(0);
     int trials = 500;
     for(int i=0;i<trials; i++){
       int N = rand() % 1000;
       testNaryExpForSize(NOT, N);
     }
-    
+
   }
 
   void testIterator(){
@@ -469,10 +469,12 @@ public:
   }
 
   void testToString(){
-    Node w = d_nodeManager->mkVar(NULL, "w");
-    Node x = d_nodeManager->mkVar(NULL, "x");
-    Node y = d_nodeManager->mkVar(NULL, "y");
-    Node z = d_nodeManager->mkVar(NULL, "z");
+    Type* booleanType = d_nodeManager->booleanType();
+
+    Node w = d_nodeManager->mkVar(booleanType, "w");
+    Node x = d_nodeManager->mkVar(booleanType, "x");
+    Node y = d_nodeManager->mkVar(booleanType, "y");
+    Node z = d_nodeManager->mkVar(booleanType, "z");
     Node m = NodeBuilder<>() << w << x << kind::OR;
     Node n = NodeBuilder<>() << m << y << z << kind::AND;
 
@@ -480,11 +482,12 @@ public:
   }
 
   void testToStream(){
-    NodeBuilder<> b;
-    Node w = d_nodeManager->mkVar(NULL, "w");
-    Node x = d_nodeManager->mkVar(NULL, "x");
-    Node y = d_nodeManager->mkVar(NULL, "y");
-    Node z = d_nodeManager->mkVar(NULL, "z");
+    Type* booleanType = d_nodeManager->booleanType();
+
+    Node w = d_nodeManager->mkVar(booleanType, "w");
+    Node x = d_nodeManager->mkVar(booleanType, "x");
+    Node y = d_nodeManager->mkVar(booleanType, "y");
+    Node z = d_nodeManager->mkVar(booleanType, "z");
     Node m = NodeBuilder<>() << x << y << kind::OR;
     Node n = NodeBuilder<>() << w << m << z << kind::AND;
 

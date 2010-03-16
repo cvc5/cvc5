@@ -30,6 +30,7 @@
 #include "expr/expr.h"
 #include "expr/node_value.h"
 #include "context/context.h"
+#include "expr/type.h"
 
 namespace CVC4 {
 
@@ -44,7 +45,7 @@ struct Type {};
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarName, std::string> VarNameAttr;
-typedef Attribute<attr::Type, const CVC4::Type*> TypeAttr;
+typedef ManagedAttribute<attr::Type, CVC4::Type*, attr::TypeCleanupFcn> TypeAttr;
 
 }/* CVC4::expr namespace */
 
@@ -55,12 +56,12 @@ class NodeManager {
 
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValueInternalHashFcn,
-                              expr::NodeValue::NodeValueEq> NodeValueSet;
+                              expr::NodeValue::NodeValueEq> NodeValuePool;
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValueIDHashFcn,
                               expr::NodeValue::NodeValueEq> ZombieSet;
 
-  NodeValueSet d_nodeValueSet;
+  NodeValuePool d_nodeValuePool;
 
   expr::attr::AttributeManager d_attrManager;
 
@@ -108,6 +109,8 @@ public:
     poolInsert( &expr::NodeValue::s_null );
   }
 
+  ~NodeManager();
+
   static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders
@@ -121,8 +124,8 @@ public:
   Node mkNode(Kind kind, const std::vector<Node>& children);
 
   // variables are special, because duplicates are permitted
-  Node mkVar(const Type* type, const std::string& name);
-  Node mkVar(const Type* type);
+  Node mkVar(Type* type, const std::string& name);
+  Node mkVar(Type* type);
   Node mkVar();
 
   template <class AttrKind>
@@ -172,27 +175,26 @@ public:
                            const typename AttrKind::value_type& value);
 
   /** Get the type for booleans. */
-  inline const BooleanType* booleanType() const {
+  inline BooleanType* booleanType() const {
     return BooleanType::getInstance();
   }
 
   /** Get the type for sorts. */
-  inline const KindType* kindType() const {
+  inline KindType* kindType() const {
     return KindType::getInstance();
   }
 
   /** Make a function type from domain to range. */
-  inline const FunctionType*
-  mkFunctionType(const Type* domain, const Type* range) const;
+  inline FunctionType* mkFunctionType(Type* domain, Type* range) const;
 
   /** Make a function type with input types from argTypes. */
-  inline const FunctionType*
-  mkFunctionType(const std::vector<const Type*>& argTypes, const Type* range) const;
+  inline FunctionType* mkFunctionType(const std::vector<Type*>& argTypes,
+                                      Type* range) const;
 
   /** Make a new sort with the given name. */
-  inline const Type* mkSort(const std::string& name) const;
+  inline Type* mkSort(const std::string& name) const;
 
-  inline const Type* getType(TNode n) const;
+  inline Type* getType(TNode n) const;
 };
 
 /**
@@ -308,41 +310,39 @@ inline void NodeManager::setAttribute(TNode n,
 
 /** Make a function type from domain to range.
  * TODO: Function types should be unique for this manager. */
-const FunctionType*
-NodeManager::mkFunctionType(const Type* domain,
-                            const Type* range) const {
-  std::vector<const Type*> argTypes;
+FunctionType* NodeManager::mkFunctionType(Type* domain,
+                                          Type* range) const {
+  std::vector<Type*> argTypes;
   argTypes.push_back(domain);
   return new FunctionType(argTypes, range);
 }
 
 /** Make a function type with input types from argTypes.
  * TODO: Function types should be unique for this manager. */
-const FunctionType*
-NodeManager::mkFunctionType(const std::vector<const Type*>& argTypes,
-                            const Type* range) const {
+FunctionType* NodeManager::mkFunctionType(const std::vector<Type*>& argTypes,
+                                          Type* range) const {
   Assert( argTypes.size() > 0 );
   return new FunctionType(argTypes, range);
 }
 
-const Type*
-NodeManager::mkSort(const std::string& name) const {
+Type* NodeManager::mkSort(const std::string& name) const {
   return new SortType(name);
 }
-inline const Type* NodeManager::getType(TNode n) const {
+
+inline Type* NodeManager::getType(TNode n) const {
   return getAttribute(n, CVC4::expr::TypeAttr());
 }
 
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
-  Assert(d_nodeValueSet.find(nv) == d_nodeValueSet.end(),
+  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
          "NodeValue already in the pool!");
-  d_nodeValueSet.insert(nv);// FIXME multithreading
+  d_nodeValuePool.insert(nv);// FIXME multithreading
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
-  Assert(d_nodeValueSet.find(nv) != d_nodeValueSet.end(),
+  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end(),
          "NodeValue is not in the pool!");
-  d_nodeValueSet.erase(nv);// FIXME multithreading
+  d_nodeValuePool.erase(nv);// FIXME multithreading
 }
 
 }/* CVC4 namespace */
@@ -382,14 +382,15 @@ inline Node NodeManager::mkNode(Kind kind, const std::vector<Node>& children) {
   return NodeBuilder<>(this, kind).append(children);
 }
 
-inline Node NodeManager::mkVar(const Type* type, const std::string& name) {
+inline Node NodeManager::mkVar(Type* type, const std::string& name) {
   Node n = mkVar(type);
   n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
-inline Node NodeManager::mkVar(const Type* type) {
+inline Node NodeManager::mkVar(Type* type) {
   Node n = mkVar();
+  type->inc();// reference-count the type
   n.setAttribute(expr::TypeAttr(), type);
   return n;
 }

@@ -17,11 +17,20 @@
 #define __CVC4__TYPE_H
 
 #include "cvc4_config.h"
+#include "util/output.h"
+#include "util/Assert.h"
 
 #include <string>
 #include <vector>
+#include <limits.h>
 
 namespace CVC4 {
+
+namespace expr {
+  namespace attr {
+    struct TypeCleanupFcn;
+  }/* CVC4::expr::attr namespace */
+}/* CVC4::expr namespace */
 
 class NodeManager;
 
@@ -29,7 +38,11 @@ class NodeManager;
  * Class encapsulating CVC4 expression types.
  */
 class CVC4_PUBLIC Type {
+protected:
+  static const unsigned RC_MAX = UINT_MAX;
+
 public:
+
   /** Comparision for equality */
   bool operator==(const Type& t) const;
 
@@ -72,11 +85,38 @@ protected:
   /** Create a type with the given name. */
   Type(std::string name);
 
-  /** Destructor */
-  virtual ~Type() { };
-
   /** The name of the type (may be empty). */
   std::string d_name;
+
+  /**
+   * The reference count for this Type (how many times it's referred
+   * to in the Type attribute table)
+   */
+  unsigned d_rc;
+
+  /** Force a virtual destructor for safety. */
+  virtual ~Type() {
+    Assert(d_rc == RC_MAX || d_rc == 0,
+           "illegal ref count %u for destructed Type", d_rc);
+  }
+
+  /** Increment the reference count */
+  void inc() {
+    if(d_rc != RC_MAX) {
+      ++d_rc;
+    }
+  }
+
+  /** Decrement the reference count */
+  void dec() {
+    if(d_rc != RC_MAX) {
+      Assert(d_rc != 0, "illegal ref count %u for dec()", d_rc);
+      --d_rc;
+    }
+  }
+
+  friend class ::CVC4::NodeManager;
+  friend struct ::CVC4::expr::attr::TypeCleanupFcn;
 };
 
 /**
@@ -117,10 +157,10 @@ class FunctionType : public Type {
 
 public:
   /** Retrieve the argument types. The vector will be non-empty. */
-  const std::vector<const Type*> getArgTypes() const;
+  const std::vector<Type*> getArgTypes() const;
 
   /** Get the range type (i.e., the type of the result). */
-  const Type* getRangeType() const;
+  Type* getRangeType() const;
   
   /** Is this as function type? (Returns true.) */
   bool isFunction() const;
@@ -141,17 +181,17 @@ private:
    * @param argTypes a non-empty vector of input types
    * @param range the result type
    */
-  FunctionType(const std::vector<const Type*>& argTypes,
-               const Type* range);
+  FunctionType(const std::vector<Type*>& argTypes,
+               Type* range);
 
   /** Destructor */
   ~FunctionType();
   
   /** The list of input types. */
-  const std::vector<const Type*> d_argTypes;
+  const std::vector<Type*> d_argTypes;
 
   /** The result type. */
-  const Type* d_rangeType;
+  Type* d_rangeType;
 
   friend class NodeManager;
 };
@@ -211,6 +251,22 @@ private:
  */
 std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
 
-}
+namespace expr {
+namespace attr {
+
+struct TypeCleanupFcn {
+  static void cleanup(Type* t) {
+    // reference-count the Type
+    t->dec();
+    if(t->d_rc == 0) {
+      delete t;
+    }
+  }
+};
+
+}/* CVC4::expr::attr namespace */
+}/* CVC4::expr namespace */
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4__TYPE_H */

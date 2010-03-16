@@ -13,6 +13,8 @@
  ** The theory output channel interface.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__INTERRUPTED_H
 #define __CVC4__THEORY__INTERRUPTED_H
 
@@ -21,14 +23,7 @@
 namespace CVC4 {
 namespace theory {
 
-class CVC4_PUBLIC Interrupted : public CVC4::Exception {
-public:
-
-  // Constructors
-  Interrupted() : CVC4::Exception("CVC4::Theory::Interrupted") {}
-  Interrupted(const std::string& msg) : CVC4::Exception(msg) {}
-  Interrupted(const char* msg) : CVC4::Exception(msg) {}
-
+class Interrupted : public CVC4::Exception {
 };/* class Interrupted */
 
 }/* CVC4::theory namespace */

@@ -89,15 +89,15 @@ command returns [CVC4::Command* cmd = 0]
 declaration returns [CVC4::DeclarationCommand* cmd]
 {
   vector<string> ids;
-  const Type* t;
+  Type* t;
   Debug("parser") << "declaration: " << LT(1)->getText() << endl;
-} 
+}
   : identifierList[ids, CHECK_UNDECLARED] COLON t = declType[ids] SEMICOLON
     { cmd = new DeclarationCommand(ids,t); }
   ;
 
 /** Match the right-hand side of a declaration. Returns the type. */
-declType[std::vector<std::string>& idList] returns [const CVC4::Type* t]
+declType[std::vector<std::string>& idList] returns [CVC4::Type* t]
 {
   Debug("parser") << "declType: " << LT(1)->getText() << endl;
 }
@@ -111,9 +111,9 @@ declType[std::vector<std::string>& idList] returns [const CVC4::Type* t]
  * Match the type in a declaration and do the declaration binding.
  * TODO: Actually parse sorts into Type objects.
  */
-type returns  [const CVC4::Type* t]
+type returns  [CVC4::Type* t]
 {
-  const Type *t1, *t2;
+  Type *t1, *t2;
   Debug("parser") << "type: " << LT(1)->getText() << endl;
 }
   : /* Simple type */
@@ -122,10 +122,10 @@ type returns  [const CVC4::Type* t]
     t1 = baseType RIGHT_ARROW t2 = baseType
     { t = functionType(t1,t2); }
   | /* Multi-parameter function type */
-    LPAREN t1 = baseType 
-    { std::vector<const Type*> argTypes;
+    LPAREN t1 = baseType
+    { std::vector<Type*> argTypes;
       argTypes.push_back(t1); }
-    (COMMA t1 = baseType { argTypes.push_back(t1); } )+ 
+    (COMMA t1 = baseType { argTypes.push_back(t1); } )+
     RPAREN RIGHT_ARROW t2 = baseType
     { t = functionType(argTypes,t2); }
   ;
@@ -136,7 +136,7 @@ type returns  [const CVC4::Type* t]
  * @param idList the list to fill with identifiers.
  * @param check what kinds of check to perform on the symbols
  */
-identifierList[std::vector<std::string>& idList, 
+identifierList[std::vector<std::string>& idList,
                DeclarationCheck check = CHECK_NONE]
 {
   string id;
@@ -150,10 +150,10 @@ identifierList[std::vector<std::string>& idList,
  * Matches an identifier and returns a string.
  */
 identifier[DeclarationCheck check = CHECK_NONE,
-           SymbolType type = SYM_VARIABLE] 
+           SymbolType type = SYM_VARIABLE]
 returns [std::string id]
   : x:IDENTIFIER
-    { id = x->getText(); 
+    { id = x->getText();
       checkDeclaration(id, check, type); }
   ;
 
@@ -161,7 +161,7 @@ returns [std::string id]
  * Matches a type.
  * TODO: parse more types
  */
-baseType returns [const CVC4::Type* t]
+baseType returns [CVC4::Type* t]
 {
   std::string id;
   Debug("parser") << "base type: " << LT(1)->getText() << endl;
@@ -173,7 +173,7 @@ baseType returns [const CVC4::Type* t]
 /**
  * Matches a type identifier
  */
-typeSymbol returns [const CVC4::Type* t]
+typeSymbol returns [CVC4::Type* t]
 {
   std::string id;
   Debug("parser") << "type symbol: " << LT(1)->getText() << endl;
@@ -228,7 +228,7 @@ impliesFormula returns [CVC4::Expr f]
   Expr e;
   Debug("parser") << "=> Formula: " << LT(1)->getText() << endl;
 }
-  : f = orFormula 
+  : f = orFormula
     ( IMPLIES e = impliesFormula
         { f = mkExpr(CVC4::kind::IMPLIES, f, e); }
     )?
@@ -259,7 +259,7 @@ xorFormula returns [CVC4::Expr f]
   Debug("parser") << "XOR formula: " << LT(1)->getText() << endl;
 }
   : f = andFormula
-    ( XOR e = andFormula 
+    ( XOR e = andFormula
       { f = mkExpr(CVC4::kind::XOR,f, e); }
     )*
   ;
@@ -289,7 +289,7 @@ notFormula returns [CVC4::Expr f]
   Debug("parser") << "NOT formula: " << LT(1)->getText() << endl;
 }
   : /* negation */
-    NOT f = notFormula 
+    NOT f = notFormula
     { f = mkExpr(CVC4::kind::NOT, f); }
   | /* a boolean atom */
     f = predFormula
@@ -300,7 +300,7 @@ predFormula returns [CVC4::Expr f]
   Debug("parser") << "predicate formula: " << LT(1)->getText() << endl;
 }
   : { Expr e; }
-    f = term 
+    f = term
     (EQUAL e = term
       { f = mkExpr(CVC4::kind::EQUAL, f, e); }
     )?
@@ -315,8 +315,8 @@ term returns [CVC4::Expr t]
   Debug("parser") << "term: " << LT(1)->getText() << endl;
 }
   : /* function application */
-    // { isFunction(LT(1)->getText()) }? 
-    { Expr f; 
+    // { isFunction(LT(1)->getText()) }?
+    { Expr f;
       std::vector<CVC4::Expr> args; }
     f = functionSymbol[CHECK_DECLARED]
     { args.push_back( f ); }
@@ -343,16 +343,16 @@ term returns [CVC4::Expr t]
 /**
  * Parses an ITE term.
  */
-iteTerm returns [CVC4::Expr t] 
+iteTerm returns [CVC4::Expr t]
 {
   Expr iteCondition, iteThen, iteElse;
   Debug("parser") << "ite: " << LT(1)->getText() << endl;
 }
-  : IF iteCondition = formula 
+  : IF iteCondition = formula
     THEN iteThen = formula
     iteElse = iteElseTerm
-    ENDIF     
-    { t = mkExpr(CVC4::kind::ITE, iteCondition, iteThen, iteElse); }  
+    ENDIF
+    { t = mkExpr(CVC4::kind::ITE, iteCondition, iteThen, iteElse); }
   ;
 
 /**
@@ -379,8 +379,8 @@ functionSymbol[DeclarationCheck check = CHECK_NONE] returns [CVC4::Expr f]
 {
   Debug("parser") << "function symbol: " << LT(1)->getText() << endl;
   std::string name;
-}  
+}
   : name = identifier[check,SYM_FUNCTION]
-    { checkFunction(name);  
+    { checkFunction(name);
       f = getFunction(name); }
   ;

@@ -102,12 +102,12 @@ benchAttribute returns [Command* smt_command = 0]
     { smt_command = new AssertCommand(formula);   }
   | FORMULA_ATTR formula = annotatedFormula
     { smt_command = new CheckSatCommand(formula); }
-  | STATUS_ATTR b_status = status                   
-    { smt_command = new SetBenchmarkStatusCommand(b_status); }        
-  | EXTRAFUNS_ATTR LPAREN (functionDeclaration)+ RPAREN  
-  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN  
-  | EXTRASORTS_ATTR LPAREN (sortDeclaration)+ RPAREN  
-  | NOTES_ATTR STRING_LITERAL        
+  | STATUS_ATTR b_status = status
+    { smt_command = new SetBenchmarkStatusCommand(b_status); }
+  | EXTRAFUNS_ATTR LPAREN (functionDeclaration)+ RPAREN
+  | EXTRAPREDS_ATTR LPAREN (predicateDeclaration)+ RPAREN
+  | EXTRASORTS_ATTR LPAREN (sortDeclaration)+ RPAREN
+  | NOTES_ATTR STRING_LITERAL
   | annotation
   ;
 
@@ -119,12 +119,12 @@ annotatedFormula returns [CVC4::Expr formula]
 {
   Debug("parser") << "annotated formula: " << LT(1)->getText() << endl;
   Kind kind = CVC4::kind::UNDEFINED_KIND;
-  vector<Expr> args; 
+  vector<Expr> args;
   std::string name;
   Expr expr1, expr2, expr3;
 }
   : /* a built-in operator application */
-    LPAREN kind = builtinOp annotatedFormulas[args] RPAREN 
+    LPAREN kind = builtinOp annotatedFormulas[args] RPAREN
     { checkArity(kind, args.size());
       formula = mkExpr(kind,args); }
 
@@ -134,16 +134,16 @@ annotatedFormula returns [CVC4::Expr formula]
     { std::vector<Expr> diseqs;
       for(unsigned i = 0; i < args.size(); ++i) {
         for(unsigned j = i+1; j < args.size(); ++j) {
-          diseqs.push_back(mkExpr(CVC4::kind::NOT, 
+          diseqs.push_back(mkExpr(CVC4::kind::NOT,
                                   mkExpr(CVC4::kind::EQUAL,args[i],args[j])));
         }
       }
       formula = mkExpr(CVC4::kind::AND, diseqs); }
 
   | /* An ite expression */
-    LPAREN (ITE | IF_THEN_ELSE) 
+    LPAREN (ITE | IF_THEN_ELSE)
     { Expr test, trueExpr, falseExpr; }
-    test = annotatedFormula 
+    test = annotatedFormula
     trueExpr = annotatedFormula
     falseExpr = annotatedFormula
     RPAREN
@@ -164,12 +164,12 @@ annotatedFormula returns [CVC4::Expr formula]
     formula=annotatedFormula
     { undefineVar(name); }
     RPAREN
-    
+
   | /* A non-built-in function application */
 
     // Semantic predicate not necessary if parenthesized subexpressions
     // are disallowed
-    // { isFunction(LT(2)->getText()) }? 
+    // { isFunction(LT(2)->getText()) }?
 
     { Expr f; }
     LPAREN f = functionSymbol
@@ -180,7 +180,7 @@ annotatedFormula returns [CVC4::Expr formula]
 
   | /* a variable */
     { std::string name; }
-    ( name = identifier[CHECK_DECLARED] 
+    ( name = identifier[CHECK_DECLARED]
       | name = variable[CHECK_DECLARED]
       | name = function_var[CHECK_DECLARED] )
     { formula = getVariable(name); }
@@ -195,7 +195,7 @@ annotatedFormula returns [CVC4::Expr formula]
  * Matches a sequence of annotaed formulas and puts them into the formulas
  * vector.
  * @param formulas the vector to fill with formulas
- */   
+ */
 annotatedFormulas[std::vector<Expr>& formulas]
 {
   Expr f;
@@ -222,7 +222,7 @@ builtinOp returns [CVC4::Kind kind]
   ;
 
 /**
- * Matches a (possibly undeclared) predicate identifier (returning the string). 
+ * Matches a (possibly undeclared) predicate identifier (returning the string).
  * @param check what kind of check to do with the symbol
  */
 predicateName[DeclarationCheck check = CHECK_NONE] returns [std::string p]
@@ -241,14 +241,14 @@ functionName[DeclarationCheck check = CHECK_NONE] returns [std::string name]
  * Matches an previously declared function symbol (returning an Expr)
  */
 functionSymbol returns [CVC4::Expr fun]
-{ 
+{
   string name;
 }
   : name = functionName[CHECK_DECLARED]
     { checkFunction(name);
       fun = getFunction(name); }
   ;
-  
+
 /**
  * Matches an attribute name from the input (:attribute_name).
  */
@@ -272,12 +272,12 @@ function_var[DeclarationCheck check = CHECK_NONE] returns [std::string name]
  * Matches the sort symbol, which can be an arbitrary identifier.
  * @param check the check to perform on the name
  */
-sortName[DeclarationCheck check = CHECK_NONE] returns [std::string name] 
-  : name = identifier[check,SYM_SORT] 
+sortName[DeclarationCheck check = CHECK_NONE] returns [std::string name]
+  : name = identifier[check,SYM_SORT]
   ;
 
-sortSymbol returns [const CVC4::Type* t]
-{ 
+sortSymbol returns [CVC4::Type* t]
+{
   std::string name;
 }
   : name = sortName { t = getSort(name); }
@@ -286,47 +286,47 @@ sortSymbol returns [const CVC4::Type* t]
 functionDeclaration
 {
   string name;
-  const Type* t;
-  std::vector<const Type*> sorts;
+  Type* t;
+  std::vector<Type*> sorts;
 }
-  : LPAREN name = functionName[CHECK_UNDECLARED] 
+  : LPAREN name = functionName[CHECK_UNDECLARED]
       t = sortSymbol // require at least one sort
     { sorts.push_back(t); }
       sortList[sorts] RPAREN
     { t = functionType(sorts);
-      mkVar(name, t); } 
+      mkVar(name, t); }
   ;
-              
+
 /**
  * Matches the declaration of a predicate and declares it
  */
 predicateDeclaration
 {
   string p_name;
-  std::vector<const Type*> p_sorts;
-  const Type *t;
+  std::vector<Type*> p_sorts;
+  Type *t;
 }
   : LPAREN p_name = predicateName[CHECK_UNDECLARED] sortList[p_sorts] RPAREN
     { t = predicateType(p_sorts);
-      mkVar(p_name, t); } 
+      mkVar(p_name, t); }
   ;
 
-sortDeclaration 
+sortDeclaration
 {
   string name;
 }
   : name = sortName[CHECK_UNDECLARED]
     { newSort(name); }
   ;
-  
+
 /**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
-sortList[std::vector<const Type*>& sorts]
+sortList[std::vector<Type*>& sorts]
 {
-  const Type* t;
+  Type* t;
 }
-  : ( t = sortSymbol { sorts.push_back(t); })* 
+  : ( t = sortSymbol { sorts.push_back(t); })*
   ;
 
 /**
@@ -350,11 +350,11 @@ annotation
  * @param check what kinds of check to do on the symbol
  * @return the id string
  */
-identifier[DeclarationCheck check = CHECK_NONE, 
-           SymbolType type = SYM_VARIABLE] 
+identifier[DeclarationCheck check = CHECK_NONE,
+           SymbolType type = SYM_VARIABLE]
 returns [std::string id]
 {
-  Debug("parser") << "identifier: " << LT(1)->getText() 
+  Debug("parser") << "identifier: " << LT(1)->getText()
                   << " check? " << toString(check)
                   << " type? " << toString(type) << endl;
 }

@@ -25,9 +25,18 @@ namespace CVC4 {
 
 __thread NodeManager* NodeManager::s_current = 0;
 
+NodeManager::~NodeManager() {
+  NodeManagerScope nms(this);
+  while(!d_zombies.empty()) {
+    reclaimZombies();
+  }
+
+  poolRemove( &expr::NodeValue::s_null );
+}
+
 NodeValue* NodeManager::poolLookup(NodeValue* nv) const {
-  NodeValueSet::const_iterator find = d_nodeValueSet.find(nv);
-  if(find == d_nodeValueSet.end()) {
+  NodeValuePool::const_iterator find = d_nodeValuePool.find(nv);
+  if(find == d_nodeValuePool.end()) {
     return NULL;
   } else {
     return *find;
@@ -87,7 +96,7 @@ void NodeManager::reclaimZombies() {
     NodeValue* nv = *i;
 
     // collect ONLY IF still zero
-    if((*i)->d_rc == 0) {
+    if(nv->d_rc == 0) {
       Debug("gc") << "deleting node value " << nv
                   << " [" << nv->d_id << "]: " << nv->toString() << "\n";
 
@@ -101,8 +110,7 @@ void NodeManager::reclaimZombies() {
 
       // decr ref counts of children
       nv->decrRefCounts();
-      //free(nv);
-#warning NOT FREEING NODEVALUES
+      free(nv);
     }
   }
 }
