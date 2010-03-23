@@ -522,7 +522,9 @@ NodeTemplate<ref_count>::~NodeTemplate() throw(AssertionException) {
   if(ref_count) {
     d_nv->dec();
   }
-  Assert(ref_count || d_nv->d_rc > 0,
+  Assert(ref_count ||
+         d_nv->d_rc > 0 ||
+         d_nv->isBeingDeleted(),
          "Temporary node pointing to an expired node");
 }
 

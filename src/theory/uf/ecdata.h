@@ -175,6 +175,8 @@ public:
    */
   ECData(context::Context* context, TNode n);
 
+  ~ECData() { Debug("ufgc") << "Calling ECData destructor" << std::endl;}
+
   /**
    * An ECData takes over the watch list of another ECData.
    * This is the second step in the union operator for ECData.

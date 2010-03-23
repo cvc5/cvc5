@@ -201,13 +201,13 @@ public:
 
   ~CDMap() throw(AssertionException) {
     // Delete all the elements and clear the map
-    for(typename table_type::iterator
-	  i = d_map.begin(), iend = d_map.end(); i != iend; ++i) {
-      /*
+    /*for(typename table_type::iterator
+          i = d_map.begin(), iend = d_map.end(); i != iend; ++i) {
+
         delete (*i).second;
         free((*i).second);
-      */
-    }
+
+    }*/
     d_map.clear();
     emptyTrash();
   }

@@ -61,6 +61,19 @@ struct Reclaim {
   }
 };
 
+struct NVReclaim {
+  NodeValue*& d_reclaimField;
+  NVReclaim(NodeValue*& reclaim) :
+    d_reclaimField(reclaim) {
+
+    Debug("gc") << ">> setting NVRECLAIM field\n";
+  }
+  ~NVReclaim() {
+    Debug("gc") << "<< clearing NVRECLAIM field\n";
+    d_reclaimField = NULL;
+  }
+};
+
 void NodeManager::reclaimZombies() {
   // FIXME multithreading
 
@@ -104,6 +117,8 @@ void NodeManager::reclaimZombies() {
       if(nv->getKind() != kind::VARIABLE) {
         poolRemove(nv);
       }
+      NVReclaim rc(d_underTheShotgun);
+      d_underTheShotgun = nv;
 
       // remove attributes
       d_attrManager.deleteAllAttributes(nv);

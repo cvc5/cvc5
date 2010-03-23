@@ -72,6 +72,12 @@ class NodeManager {
   friend class NodeManagerScope;
   friend class expr::NodeValue;
 
+  bool isCurrentlyDeleting(const expr::NodeValue *nv) const{
+    return d_underTheShotgun == nv;
+  }
+
+  expr::NodeValue* d_underTheShotgun;
+
   bool d_reclaiming;
   ZombieSet d_zombies;
 
@@ -105,7 +111,10 @@ public:
 
   NodeManager(context::Context* ctxt) :
     d_attrManager(ctxt),
-    d_reclaiming(false) {
+    d_underTheShotgun(NULL),
+    d_reclaiming(false)
+
+  {
     poolInsert( &expr::NodeValue::s_null );
   }
 

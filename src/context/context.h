@@ -399,7 +399,7 @@ public:
   /**
    * Destructor does nothing: subclass must explicitly call destroy() instead.
    */
-  virtual ~ContextObj() {}
+  virtual ~ContextObj() { Debug("contextgc") << "context obj dest" << std::endl; }
 
   /**
    * If you want to allocate a ContextObj object on the heap, use this
@@ -426,6 +426,7 @@ public:
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
+    this->~ContextObj();
     ::operator delete(this);
   }
 
