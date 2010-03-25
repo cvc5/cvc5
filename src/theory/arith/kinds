@@ -1,3 +1,12 @@
-PLUS
-MULT
-UMINUS
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/expr/builtin_kinds.
+#
+
+operator PLUS "arithmetic addition"
+operator MULT "arithmetic multiplication"
+operator UMINUS "arithmetic negation"
+
+constant CONST_RATIONAL ::CVC4::Rational "a multiple-precision rational constant"
+constant CONST_INTEGER ::CVC4::Integer "a multiple-precision integer constant"

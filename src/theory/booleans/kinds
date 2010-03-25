@@ -1,8 +1,14 @@
-FALSE
-TRUE
-NOT
-AND
-IFF
-IMPLIES
-OR
-XOR
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/expr/builtin_kinds.
+#
+
+operator FALSE "falsity"
+operator TRUE "truth"
+operator NOT "logical not"
+operator AND "logical and"
+operator IFF "logical equivalence"
+operator IMPLIES "logical implication"
+operator OR "logical or"
+operator XOR "exclusive or"

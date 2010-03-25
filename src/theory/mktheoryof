@@ -34,6 +34,27 @@ middle=$1; shift
 epilogue=$1; shift
 
 registers=
+
+function special {
+  r=$1
+  comment=$2
+
+  registers="$registers    d_table[::CVC4::kind::$r] = th;
+"
+}
+
+function operator {
+  special "$1" "$2"
+}
+
+function parameterized {
+  special "$1" "$2"
+}
+
+function constant {
+  special "$1" "$3"
+}
+
 cat "$prologue"
 while [ $# -gt 0 ]; do
   b=$(basename $(dirname "$1"))
@@ -43,10 +64,7 @@ while [ $# -gt 0 ]; do
   /* from $b */
   void registerTheory(::CVC4::theory::$b::Theory$B* th) {
 "
-  for r in `cat "$1"`; do
-    registers="$registers    d_table[::CVC4::kind::$r] = th;
-"
-  done
+  source "$1"
   registers="$registers  }
 "
   shift

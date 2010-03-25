@@ -34,6 +34,28 @@ middle=$1; shift
 epilogue=$1; shift
 
 cases=
+
+function special {
+  r=$1
+  comment=$2
+
+  echo "  $r, /*! $comment */"
+  cases="$cases  case $r: out << \"$r\"; break;
+"
+}
+
+function operator {
+  special "$1" "$2"
+}
+
+function parameterized {
+  special "$1" "$2"
+}
+
+function constant {
+  special "$1" "$3"
+}
+
 cat "$prologue"
 while [ $# -gt 0 ]; do
   b=$(basename $(dirname "$1"))
@@ -42,11 +64,7 @@ while [ $# -gt 0 ]; do
   cases="$cases
   /* from $b */
 "
-  for r in `cat "$1"`; do
-    echo "  $r,"
-    cases="$cases  case $r: out << \"$r\"; break;
-"
-  done
+  source "$1"
   shift
 done
 cat "$middle"
