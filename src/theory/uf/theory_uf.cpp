@@ -54,7 +54,7 @@ void TheoryUF::registerTerm(TNode n){
 
   ECData* ecN;
 
-  if(n.hasAttribute(ECAttr(), ecN)){
+  if(n.getAttribute(ECAttr(), ecN)){
     /* registerTerm(n) is only called when a node has not been seen in the
      * current context.  ECAttr() is not a context-dependent attribute.
      * When n.hasAttribute(ECAttr(),...) is true on a registerTerm(n) call,

@@ -74,9 +74,9 @@ public:
     MyData* data;
     MyData* data1;
     MyDataAttribute attr;
-    TS_ASSERT(!node->hasAttribute(attr, data));
+    TS_ASSERT(!node->getAttribute(attr, data));
     node->setAttribute(attr, new MyData());
-    TS_ASSERT(node->hasAttribute(attr, data1));
+    TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT(MyData::count == 1);
     delete node;
   }

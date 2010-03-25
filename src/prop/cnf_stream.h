@@ -46,11 +46,11 @@ private:
   SatSolver *d_satSolver;
 
   /** Cache of what literal have been registered to a node. */
-  typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFcn> TranslationCache;
+  typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFunction> TranslationCache;
   TranslationCache d_translationCache;
 
   /** Cache of what nodes have been registered to a literal. */
-  typedef __gnu_cxx::hash_map<SatLiteral, Node, SatSolver::SatLiteralHashFcn> NodeCache;
+  typedef __gnu_cxx::hash_map<SatLiteral, Node, SatSolver::SatLiteralHashFunction> NodeCache;
   NodeCache d_nodeCache;
 
 protected:

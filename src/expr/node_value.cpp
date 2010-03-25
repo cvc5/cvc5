@@ -41,7 +41,7 @@ void NodeValue::toStream(std::ostream& out) const {
     string s;
     // conceptually "this" is const, and hasAttribute() doesn't change
     // its argument, but it requires a non-const key arg (for now)
-    if(NodeManager::currentNM()->hasAttribute(const_cast<NodeValue*>(this),
+    if(NodeManager::currentNM()->getAttribute(const_cast<NodeValue*>(this),
                                               VarNameAttr(), s)) {
       out << s;
     } else {

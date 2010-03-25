@@ -288,7 +288,7 @@ public:
    * @return true if this node has the requested attribute
    */
   template <class AttrKind>
-  inline bool hasAttribute(const AttrKind& attKind,
+  inline bool getAttribute(const AttrKind& attKind,
                            typename AttrKind::value_type& value) const;
 
   /**
@@ -410,7 +410,7 @@ inline std::ostream& operator<<(std::ostream& out, const Node& node) {
 namespace CVC4 {
 
 // for hash_maps, hash_sets..
-struct NodeHashFcn {
+struct NodeHashFunction {
   size_t operator()(const CVC4::Node& node) const {
     return (size_t) node.getId();
   }
@@ -443,12 +443,12 @@ hasAttribute(const AttrKind&) const {
 
 template <bool ref_count>
 template <class AttrKind>
-inline bool NodeTemplate<ref_count>::hasAttribute(const AttrKind&,
+inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
-  return NodeManager::currentNM()->hasAttribute(*this, AttrKind(), ret);
+  return NodeManager::currentNM()->getAttribute(*this, AttrKind(), ret);
 }
 
 template <bool ref_count>

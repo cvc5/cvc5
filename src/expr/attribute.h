@@ -45,7 +45,7 @@ namespace attr {
  * A hash function for attribute table keys.  Attribute table keys are
  * pairs, (unique-attribute-id, Node).
  */
-struct AttrHashFcn {
+struct AttrHashStrategy {
   enum { LARGE_PRIME = 32452843ul };
   std::size_t operator()(const std::pair<uint64_t, NodeValue*>& p) const {
     return p.first * LARGE_PRIME + p.second->getId();
@@ -57,7 +57,7 @@ struct AttrHashFcn {
  * don't have to store a pair as the key, because we use a known bit
  * in [0..63] for each attribute
  */
-struct AttrHashBoolFcn {
+struct AttrHashBoolStrategy {
   std::size_t operator()(NodeValue* nv) const {
     return (size_t)nv->getId();
   }
@@ -161,7 +161,7 @@ template <class value_type>
 struct AttrHash :
     public __gnu_cxx::hash_map<std::pair<uint64_t, NodeValue*>,
                                value_type,
-                               AttrHashFcn> {
+                               AttrHashStrategy> {
 };
 
 /**
@@ -172,10 +172,10 @@ template <>
 class AttrHash<bool> :
     protected __gnu_cxx::hash_map<NodeValue*,
                                   uint64_t,
-                                  AttrHashBoolFcn> {
+                                  AttrHashBoolStrategy> {
 
   /** A "super" type, like in Java, for easy reference below. */
-  typedef __gnu_cxx::hash_map<NodeValue*, uint64_t, AttrHashBoolFcn> super;
+  typedef __gnu_cxx::hash_map<NodeValue*, uint64_t, AttrHashBoolStrategy> super;
 
   /**
    * BitAccessor allows us to return a bit "by reference."  Of course,
@@ -362,12 +362,12 @@ template <class value_type>
 class CDAttrHash :
     public CVC4::context::CDMap<std::pair<uint64_t, NodeValue*>,
                                 value_type,
-                                AttrHashFcn> {
+                                AttrHashStrategy> {
 public:
   CDAttrHash(context::Context* ctxt) :
     context::CDMap<std::pair<uint64_t, NodeValue*>,
                    value_type,
-                   AttrHashFcn>(ctxt) {
+                   AttrHashStrategy>(ctxt) {
   }
 };
 
@@ -389,99 +389,99 @@ public:
 namespace attr {
 
 /** Default cleanup for unmanaged Attribute<> */
-struct NullCleanupFcn {
-};/* struct NullCleanupFcn */
+struct NullCleanupStrategy {
+};/* struct NullCleanupStrategy */
 
 /** Default cleanup for ManagedAttribute<> */
 template <class T>
-struct ManagedAttributeCleanupFcn {
-};/* struct ManagedAttributeCleanupFcn<> */
+struct ManagedAttributeCleanupStrategy {
+};/* struct ManagedAttributeCleanupStrategy<> */
 
 /** Specialization for T* */
 template <class T>
-struct ManagedAttributeCleanupFcn<T*> {
+struct ManagedAttributeCleanupStrategy<T*> {
   static inline void cleanup(T* p) { delete p; }
-};/* struct ManagedAttributeCleanupFcn<T*> */
+};/* struct ManagedAttributeCleanupStrategy<T*> */
 
 /** Specialization for const T* */
 template <class T>
-struct ManagedAttributeCleanupFcn<const T*> {
+struct ManagedAttributeCleanupStrategy<const T*> {
   static inline void cleanup(const T* p) { delete p; }
-};/* struct ManagedAttributeCleanupFcn<const T*> */
+};/* struct ManagedAttributeCleanupStrategy<const T*> */
 
 /**
  * Helper for Attribute<> class below to determine whether a cleanup
  * is defined or not.
  */
 template <class T, class C>
-struct getCleanupFcn {
+struct getCleanupStrategy {
   typedef T value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
   static void fn(typename mapping::table_value_type t) {
     C::cleanup(mapping::convertBack(t));
   }
-};/* struct getCleanupFcn<> */
+};/* struct getCleanupStrategy<> */
 
 /**
- * Specialization for NullCleanupFcn.
+ * Specialization for NullCleanupStrategy.
  */
 template <class T>
-struct getCleanupFcn<T, NullCleanupFcn> {
+struct getCleanupStrategy<T, NullCleanupStrategy> {
   typedef T value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
   static void (*const fn)(typename mapping::table_value_type);
-};/* struct getCleanupFcn<T, NullCleanupFcn> */
+};/* struct getCleanupStrategy<T, NullCleanupStrategy> */
 
 // out-of-class initialization required (because it's a non-integral type)
 template <class T>
-void (*const getCleanupFcn<T, NullCleanupFcn>::fn)(typename getCleanupFcn<T, NullCleanupFcn>::mapping::table_value_type) = NULL;
+void (*const getCleanupStrategy<T, NullCleanupStrategy>::fn)(typename getCleanupStrategy<T, NullCleanupStrategy>::mapping::table_value_type) = NULL;
 
 /**
- * Specialization for ManagedAttributeCleanupFcn<T>.
+ * Specialization for ManagedAttributeCleanupStrategy<T>.
  */
 template <class T>
-struct getCleanupFcn<T, ManagedAttributeCleanupFcn<T> > {
+struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> > {
   typedef T value_type;
   typedef KindValueToTableValueMapping<value_type> mapping;
   static void (*const fn)(typename mapping::table_value_type);
-};/* struct getCleanupFcn<T, ManagedAttributeCleanupFcn<T> > */
+};/* struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> > */
 
 // out-of-class initialization required (because it's a non-integral type)
 template <class T>
-void (*const getCleanupFcn<T, ManagedAttributeCleanupFcn<T> >::fn)(typename getCleanupFcn<T, ManagedAttributeCleanupFcn<T> >::mapping::table_value_type) = NULL;
+void (*const getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> >::fn)(typename getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> >::mapping::table_value_type) = NULL;
 
 /**
- * Specialization for ManagedAttributeCleanupFcn<T*>.
+ * Specialization for ManagedAttributeCleanupStrategy<T*>.
  */
 template <class T>
-struct getCleanupFcn<T*, ManagedAttributeCleanupFcn<T*> > {
+struct getCleanupStrategy<T*, ManagedAttributeCleanupStrategy<T*> > {
   typedef T* value_type;
-  typedef ManagedAttributeCleanupFcn<value_type> C;
+  typedef ManagedAttributeCleanupStrategy<value_type> C;
   typedef KindValueToTableValueMapping<value_type> mapping;
   static void fn(typename mapping::table_value_type t) {
     C::cleanup(mapping::convertBack(t));
   }
-};/* struct getCleanupFcn<T*, ManagedAttributeCleanupFcn<T*> > */
+};/* struct getCleanupStrategy<T*, ManagedAttributeCleanupStrategy<T*> > */
 
 /**
- * Specialization for ManagedAttributeCleanupFcn<const T*>.
+ * Specialization for ManagedAttributeCleanupStrategy<const T*>.
  */
 template <class T>
-struct getCleanupFcn<const T*, ManagedAttributeCleanupFcn<const T*> > {
+struct getCleanupStrategy<const T*, ManagedAttributeCleanupStrategy<const T*> > {
   typedef const T* value_type;
-  typedef ManagedAttributeCleanupFcn<value_type> C;
+  typedef ManagedAttributeCleanupStrategy<value_type> C;
   typedef KindValueToTableValueMapping<value_type> mapping;
   static void fn(typename mapping::table_value_type t) {
     C::cleanup(mapping::convertBack(t));
   }
-};/* struct getCleanupFcn<const T*, ManagedAttributeCleanupFcn<const T*> > */
+};/* struct getCleanupStrategy<const T*, ManagedAttributeCleanupStrategy<const T*> > */
 
 /**
  * Cause compile-time error for improperly-instantiated
- * getCleanupFcn<>.
+ * getCleanupStrategy<>.
  */
 template <class T, class U>
-struct getCleanupFcn<T, ManagedAttributeCleanupFcn<U> >;
+struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<U> >;
 
 }/* CVC4::expr::attr namespace */
 
@@ -533,7 +533,7 @@ std::vector<typename AttributeTraits<T, context_dep>::cleanup_t>
  *
  * @param value_t the underlying value_type for the attribute kind
  *
- * @param CleanupFcn Clean-up routine for associated values when the
+ * @param CleanupStrategy Clean-up routine for associated values when the
  * Node goes away.  Useful, e.g., for pointer-valued attributes when
  * the values are "owned" by the table.
  *
@@ -542,7 +542,7 @@ std::vector<typename AttributeTraits<T, context_dep>::cleanup_t>
  */
 template <class T,
           class value_t,
-          class CleanupFcn = attr::NullCleanupFcn,
+          class CleanupStrategy = attr::NullCleanupStrategy,
           bool context_dep = false>
 class Attribute {
   /**
@@ -582,7 +582,7 @@ public:
     typedef attr::AttributeTraits<table_value_type, context_dep> traits;
     uint64_t id = attr::LastAttributeId<table_value_type, context_dep>::s_id++;
     Assert(traits::cleanup.size() == id);// sanity check
-    traits::cleanup.push_back(attr::getCleanupFcn<value_t, CleanupFcn>::fn);
+    traits::cleanup.push_back(attr::getCleanupStrategy<value_t, CleanupStrategy>::fn);
     return id;
   }
 };/* class Attribute<> */
@@ -593,8 +593,8 @@ public:
  * flag attributes with a specialized cleanup function.
  */
 /* -- doesn't work; other specialization is "more specific" ??
-template <class T, class CleanupFcn, bool context_dep>
-class Attribute<T, bool, CleanupFcn, context_dep> {
+template <class T, class CleanupStrategy, bool context_dep>
+class Attribute<T, bool, CleanupStrategy, context_dep> {
   template <bool> struct ERROR_bool_attributes_cannot_have_cleanup_functions;
   ERROR_bool_attributes_cannot_have_cleanup_functions<true> blah;
 };
@@ -604,7 +604,7 @@ class Attribute<T, bool, CleanupFcn, context_dep> {
  * An "attribute type" structure for boolean flags (special).
  */
 template <class T, bool context_dep>
-class Attribute<T, bool, attr::NullCleanupFcn, context_dep> {
+class Attribute<T, bool, attr::NullCleanupStrategy, context_dep> {
   /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
 
@@ -658,7 +658,7 @@ public:
 template <class T,
           class value_type>
 struct CDAttribute :
-    public Attribute<T, value_type, attr::NullCleanupFcn, true> {};
+    public Attribute<T, value_type, attr::NullCleanupStrategy, true> {};
 
 /**
  * This is a managed attribute kind (the only difference between
@@ -673,9 +673,9 @@ struct CDAttribute :
  */
 template <class T,
           class value_type,
-          class CleanupFcn = attr::ManagedAttributeCleanupFcn<value_type> >
+          class CleanupStrategy = attr::ManagedAttributeCleanupStrategy<value_type> >
 struct ManagedAttribute :
-    public Attribute<T, value_type, CleanupFcn, false> {};
+    public Attribute<T, value_type, CleanupStrategy, false> {};
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
@@ -685,15 +685,15 @@ struct ManagedAttribute :
 // "cleanup" vector before registerAttribute() is called.  This is
 // important because otherwise the vector is initialized later,
 // clearing the first-pushed cleanup function.
-template <class T, class value_t, class CleanupFcn, bool context_dep>
-const uint64_t Attribute<T, value_t, CleanupFcn, context_dep>::s_id =
+template <class T, class value_t, class CleanupStrategy, bool context_dep>
+const uint64_t Attribute<T, value_t, CleanupStrategy, context_dep>::s_id =
   ( attr::AttributeTraits<typename attr::KindValueToTableValueMapping<value_t>::table_value_type, context_dep>::cleanup.size(),
-    Attribute<T, value_t, CleanupFcn, context_dep>::registerAttribute() );
+    Attribute<T, value_t, CleanupStrategy, context_dep>::registerAttribute() );
 
 /** Assign unique IDs to attributes at load time. */
 template <class T, bool context_dep>
-const uint64_t Attribute<T, bool, attr::NullCleanupFcn, context_dep>::s_id =
-  Attribute<T, bool, attr::NullCleanupFcn, context_dep>::registerAttribute();
+const uint64_t Attribute<T, bool, attr::NullCleanupStrategy, context_dep>::s_id =
+  Attribute<T, bool, attr::NullCleanupStrategy, context_dep>::registerAttribute();
 
 // ATTRIBUTE MANAGER ===========================================================
 
@@ -800,7 +800,7 @@ public:
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
-  bool hasAttribute(NodeValue* nv,
+  bool getAttribute(NodeValue* nv,
                     const AttrKind&,
                     typename AttrKind::value_type& ret) const;
 
@@ -1033,7 +1033,7 @@ struct HasAttribute<true, AttrKind> {
    * This implementation returns the AttrKind's default value if the
    * Node doesn't have the given attribute.
    */
-  static inline bool hasAttribute(const AttributeManager* am,
+  static inline bool getAttribute(const AttributeManager* am,
                                   NodeValue* nv,
                                   typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
@@ -1075,7 +1075,7 @@ struct HasAttribute<false, AttrKind> {
     return true;
   }
 
-  static inline bool hasAttribute(const AttributeManager* am,
+  static inline bool getAttribute(const AttributeManager* am,
                                   NodeValue* nv,
                                   typename AttrKind::value_type& ret) {
     typedef typename AttrKind::value_type value_type;
@@ -1102,10 +1102,10 @@ bool AttributeManager::hasAttribute(NodeValue* nv,
 }
 
 template <class AttrKind>
-bool AttributeManager::hasAttribute(NodeValue* nv,
+bool AttributeManager::getAttribute(NodeValue* nv,
                                     const AttrKind&,
                                     typename AttrKind::value_type& ret) const {
-  return HasAttribute<AttrKind::has_default_value, AttrKind>::hasAttribute(this, nv, ret);
+  return HasAttribute<AttrKind::has_default_value, AttrKind>::getAttribute(this, nv, ret);
 }
 
 template <class AttrKind>

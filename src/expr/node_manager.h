@@ -45,41 +45,39 @@ struct Type {};
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarName, std::string> VarNameAttr;
-typedef ManagedAttribute<attr::Type, CVC4::Type*, attr::TypeCleanupFcn> TypeAttr;
+typedef ManagedAttribute<attr::Type, CVC4::Type*, attr::TypeCleanupStrategy> TypeAttr;
 
 }/* CVC4::expr namespace */
 
 class NodeManager {
-  static __thread NodeManager* s_current;
-
   template <class Builder> friend class CVC4::NodeBuilderBase;
+  friend class NodeManagerScope;
+  friend class expr::NodeValue;
 
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValueInternalHashFcn,
+                              expr::NodeValueInternalHashFunction,
                               expr::NodeValue::NodeValueEq> NodeValuePool;
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValueIDHashFcn,
+                              expr::NodeValueIDHashFunction,
                               expr::NodeValue::NodeValueEq> ZombieSet;
+
+  static __thread NodeManager* s_current;
 
   NodeValuePool d_nodeValuePool;
 
   expr::attr::AttributeManager d_attrManager;
+  expr::NodeValue* d_underTheShotgun;
+
+  bool d_reclaiming;
+  ZombieSet d_zombies;
 
   expr::NodeValue* poolLookup(expr::NodeValue* nv) const;
   void poolInsert(expr::NodeValue* nv);
   void poolRemove(expr::NodeValue* nv);
 
-  friend class NodeManagerScope;
-  friend class expr::NodeValue;
-
   bool isCurrentlyDeleting(const expr::NodeValue *nv) const{
     return d_underTheShotgun == nv;
   }
-
-  expr::NodeValue* d_underTheShotgun;
-
-  bool d_reclaiming;
-  ZombieSet d_zombies;
 
   /**
    * Register a NodeValue as a zombie.
@@ -114,70 +112,147 @@ public:
     d_underTheShotgun(NULL),
     d_reclaiming(false)
 
-  {
+  { // static initialization
     poolInsert( &expr::NodeValue::s_null );
   }
 
   ~NodeManager();
 
+  /** The node manager in the current context. */
   static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders
+  /** Create a node with no children. */
   Node mkNode(Kind kind);
+
+  /** Create a node with one child. */
   Node mkNode(Kind kind, TNode child1);
+
+  /** Create a node with two children. */
   Node mkNode(Kind kind, TNode child1, TNode child2);
+
+  /** Create a node with three children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
+
+  /** Create a node with four children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4);
+
+  /** Create a node with five children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4, TNode child5);
-  // N-ary version
+
+  /** Create a node with an arbitrary number of children. */
   Node mkNode(Kind kind, const std::vector<Node>& children);
 
-  // variables are special, because duplicates are permitted
+  // NOTE: variables are special, because duplicates are permitted
+
+  /** Create a variable with the given type and name. */
   Node mkVar(Type* type, const std::string& name);
+
+  /** Create a variable with the given type. */
   Node mkVar(Type* type);
+
+  /** Create a variable of unknown type (?). */
   Node mkVar();
 
+  /** Retrieve an attribute for a node.
+   *
+   * @param nv the node value
+   * @param attr an instance of the attribute kind to retrieve.
+   * @returns the attribute, if set, or a default-constructed
+   * <code>AttrKind::value_type</code> if not.
+   */
   template <class AttrKind>
   inline typename AttrKind::value_type getAttribute(expr::NodeValue* nv,
-                                                    const AttrKind&) const;
+                                                    const AttrKind& attr) const;
 
-  // Note that there are two, distinct hasAttribute() declarations for
-  // a reason (rather than using a pointer-valued argument with a
-  // default value): they permit more optimized code in the underlying
-  // hasAttribute() implementations.
+  /* NOTE: there are two, distinct hasAttribute() declarations for
+   a reason (rather than using a pointer-valued argument with a
+   default value): they permit more optimized code in the underlying
+   hasAttribute() implementations. */
 
+  /** Check whether an attribute is set for a node.
+   *
+   * @param nv the node value
+   * @param attr an instance of the attribute kind to check
+   * @returns <code>true</code> iff <code>attr</code> is set for <code>nv</code>.
+   */
   template <class AttrKind>
   inline bool hasAttribute(expr::NodeValue* nv,
-                           const AttrKind&) const;
+                           const AttrKind& attr) const;
 
+  /** Check whether an attribute is set for a node.
+   *
+   * @param nv the node value
+   * @param attr an instance of the attribute kind to check
+   * @param value a reference to an object of the attribute's value type.
+   * <code>value</code> will be set to the value of the attribute, if it is
+   * set for <code>nv</code>; otherwise, it will be set to the default value of
+   * the attribute.
+   * @returns <code>true</code> iff <code>attr</code> is set for <code>nv</code>.
+   */
   template <class AttrKind>
-  inline bool hasAttribute(expr::NodeValue* nv,
-                           const AttrKind&,
-                           typename AttrKind::value_type&) const;
+  inline bool getAttribute(expr::NodeValue* nv,
+                           const AttrKind& attr,
+                           typename AttrKind::value_type& value) const;
 
+  /** Set an attribute for a node.
+    *
+    * @param nv the node value
+    * @param attr an instance of the attribute kind to set
+    * @param value the value of <code>attr</code> for <code>nv</code>
+    */
   template <class AttrKind>
   inline void setAttribute(expr::NodeValue* nv,
                            const AttrKind&,
                            const typename AttrKind::value_type& value);
 
+  /** Retrieve an attribute for a TNode.
+   *
+   * @param n the node
+   * @param attr an instance of the attribute kind to retrieve.
+   * @returns the attribute, if set, or a default-constructed
+   * <code>AttrKind::value_type</code> if not.
+   */
   template <class AttrKind>
   inline typename AttrKind::value_type getAttribute(TNode n,
                                                     const AttrKind&) const;
 
-  // Note that there are two, distinct hasAttribute() declarations for
-  // a reason (rather than using a pointer-valued argument with a
-  // default value): they permit more optimized code in the underlying
-  // hasAttribute() implementations.
+  /* NOTE: there are two, distinct hasAttribute() declarations for
+   a reason (rather than using a pointer-valued argument with a
+   default value): they permit more optimized code in the underlying
+   hasAttribute() implementations. */
 
+  /** Check whether an attribute is set for a TNode.
+   *
+   * @param n the node
+   * @param attr an instance of the attribute kind to check
+   * @returns <code>true</code> iff <code>attr</code> is set for <code>n</code>.
+   */
   template <class AttrKind>
   inline bool hasAttribute(TNode n,
-                           const AttrKind&) const;
+                           const AttrKind& attr) const;
 
+  /** Check whether an attribute is set for a TNode.
+   *
+   * @param n the node
+   * @param attr an instance of the attribute kind to check
+   * @param value a reference to an object of the attribute's value type.
+   * <code>value</code> will be set to the value of the attribute, if it is
+   * set for <code>nv</code>; otherwise, it will be set to the default value of
+   * the attribute.
+   * @returns <code>true</code> iff <code>attr</code> is set for <code>n</code>.
+   */
   template <class AttrKind>
-  inline bool hasAttribute(TNode n,
-                           const AttrKind&,
-                           typename AttrKind::value_type&) const;
+  inline bool getAttribute(TNode n,
+                           const AttrKind& attr,
+                           typename AttrKind::value_type& value) const;
 
+  /** Set an attribute for a TNode.
+    *
+    * @param n the node
+    * @param attr an instance of the attribute kind to set
+    * @param value the value of <code>attr</code> for <code>n</code>
+    */
   template <class AttrKind>
   inline void setAttribute(TNode n,
                            const AttrKind&,
@@ -203,30 +278,36 @@ public:
   /** Make a new sort with the given name. */
   inline Type* mkSort(const std::string& name) const;
 
+  /** Get the type for the given node.
+   *
+   * TODO: Does this call compute the type if it's not already available?
+   */
   inline Type* getType(TNode n) const;
 };
 
 /**
- * Resource-acquisition-is-instantiation C++ idiom: create one of
- * these "scope" objects to temporarily change the thread-specific
- * notion of the "current" NodeManager for Node creation/deletion,
- * etc.  On destruction, the previous NodeManager pointer is restored.
- * Therefore such objects should only be created and destroyed in a
- * well-scoped manner (such as on the stack).
+ * This class changes the "current" thread-global
+ * <code>NodeManager</code> when it is created and reinstates the
+ * previous thread-global <code>NodeManager</code> when it is
+ * destroyed, effectively maintaining a set of nested
+ * <code>NodeManager</code> scopes.  This is especially useful on
+ * public-interface calls into the CVC4 library, where CVC4's notion
+ * of the "current" <code>NodeManager</code> should be set to match
+ * the calling context.  See, for example, the implementations of
+ * public calls in the <code>ExprManager</code> and
+ * <code>SmtEngine</code> classes.
  *
- * This is especially useful on public-interface calls into the CVC4
- * library, where CVC4's notion of the "current" NodeManager should be
- * set to match the calling context.  See, for example, the
- * implementations of public calls in the ExprManager and SmtEngine
- * classes.
- *
- * You may create a NodeManagerScope with "new" and destroy it with
- * "delete", or place it as a data member of an object that is, but if
- * the scope of these new/delete pairs isn't properly maintained, the
- * incorrect "current" NodeManager pointer may be restored after a
- * delete.
+ * The client must be careful to create and destroy
+ * <code>NodeManagerScope</code> objects in a well-nested manner (such
+ * as on the stack). You may create a <code>NodeManagerScope</code>
+ * with <code>new</code> and destroy it with <code>delete</code>, or
+ * place it as a data member of an object that is, but if the scope of
+ * these <code>new</code>/<code>delete</code> pairs isn't properly
+ * maintained, the incorrect "current" <code>NodeManager</code>
+ * pointer may be restored after a delete.
  */
 class NodeManagerScope {
+  /** The old NodeManager, to be restored on destruction. */
   NodeManager *d_oldNodeManager;
 
 public:
@@ -243,18 +324,14 @@ public:
 };
 
 /**
- * A wrapper (essentially) for NodeManagerScope.  The current
- * "NodeManager" pointer is set to this Expr's underlying
- * ExpressionManager's NodeManager.  When the ExprManagerScope is
- * destroyed, the previous NodeManager is restored.
- *
- * This is especially useful on public-interface calls into the CVC4
- * library, where CVC4's notion of the "current" NodeManager should be
- * set to match the calling context.  See, for example, the
- * implementations of public calls in the Expr class.
- *
- * Without this, we'd need Expr to be a friend of ExprManager.
+ * Creates
+ * a <code>NodeManagerScope</code> with the underlying <code>NodeManager</code>
+ * of a given <code>Expr</code> or <code>ExprManager</code>.
+ * The <code>NodeManagerScope</code> is destroyed when the <code>ExprManagerScope</code>
+ * is destroyed. See <code>NodeManagerScope</code> for more information.
  */
+// NOTE: Without this, we'd need Expr to be a friend of ExprManager.
+// [chris 3/25/2010] Why?
 class ExprManagerScope {
   NodeManagerScope d_nms;
 public:
@@ -262,6 +339,9 @@ public:
     d_nms(e.getExprManager() == NULL
           ? NodeManager::currentNM()
           : e.getExprManager()->getNodeManager()) {
+  }
+  inline ExprManagerScope(const ExprManager& exprManager) :
+    d_nms(exprManager.getNodeManager()) {
   }
 };
 
@@ -278,10 +358,10 @@ inline bool NodeManager::hasAttribute(expr::NodeValue* nv,
 }
 
 template <class AttrKind>
-inline bool NodeManager::hasAttribute(expr::NodeValue* nv,
+inline bool NodeManager::getAttribute(expr::NodeValue* nv,
                                       const AttrKind&,
                                       typename AttrKind::value_type& ret) const {
-  return d_attrManager.hasAttribute(nv, AttrKind(), ret);
+  return d_attrManager.getAttribute(nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
@@ -304,10 +384,10 @@ inline bool NodeManager::hasAttribute(TNode n,
 }
 
 template <class AttrKind>
-inline bool NodeManager::hasAttribute(TNode n,
+inline bool NodeManager::getAttribute(TNode n,
                                       const AttrKind&,
                                       typename AttrKind::value_type& ret) const {
-  return d_attrManager.hasAttribute(n.d_nv, AttrKind(), ret);
+  return d_attrManager.getAttribute(n.d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>

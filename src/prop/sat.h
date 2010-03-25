@@ -73,7 +73,7 @@ class SatSolver {
 public:
 
   /** Hash function for literals */
-  struct SatLiteralHashFcn {
+  struct SatLiteralHashFunction {
     inline size_t operator()(const SatLiteral& literal) const;
   };
 
@@ -136,7 +136,7 @@ inline std::ostream& operator <<(std::ostream& out, const SatClause& clause) {
 }
 
 inline size_t
-SatSolver::SatLiteralHashFcn::operator()(const SatLiteral& literal) const {
+SatSolver::SatLiteralHashFunction::operator()(const SatLiteral& literal) const {
   return (size_t) minisat::toInt(literal);
 }
 

@@ -28,7 +28,7 @@ namespace CVC4 {
 
 namespace expr {
   namespace attr {
-    struct TypeCleanupFcn;
+    struct TypeCleanupStrategy;
   }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */
 
@@ -116,7 +116,7 @@ protected:
   }
 
   friend class ::CVC4::NodeManager;
-  friend struct ::CVC4::expr::attr::TypeCleanupFcn;
+  friend struct ::CVC4::expr::attr::TypeCleanupStrategy;
 };
 
 /**
@@ -254,7 +254,7 @@ std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
 namespace expr {
 namespace attr {
 
-struct TypeCleanupFcn {
+struct TypeCleanupStrategy {
   static void cleanup(Type* t) {
     // reference-count the Type
     t->dec();

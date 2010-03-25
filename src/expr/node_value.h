@@ -231,16 +231,16 @@ public:
  * PERFORMING for other uses!  NodeValue::internalHash() will lead to
  * collisions for all VARIABLEs.
  */
-struct NodeValueInternalHashFcn {
+struct NodeValueInternalHashFunction {
   inline size_t operator()(const NodeValue* nv) const {
     return (size_t) nv->internalHash();
   }
-};/* struct NodeValueHashFcn */
+};/* struct NodeValueInternalHashFunction */
 
 /**
  * For hash_maps, hash_sets, etc.
  */
-struct NodeValueIDHashFcn {
+struct NodeValueIDHashFunction {
   inline size_t operator()(const NodeValue* nv) const {
     return (size_t) nv->getId();
   }
