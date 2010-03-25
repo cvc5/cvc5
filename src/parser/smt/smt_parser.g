@@ -149,28 +149,16 @@ annotatedFormula returns [CVC4::Expr formula]
     RPAREN
     { formula = mkExpr(CVC4::kind::ITE, test, trueExpr, falseExpr); }
 
-  | /* A let binding */
-    /* TODO: Create an Expr of LET kind? */
-    LPAREN LET LPAREN name=variable[CHECK_UNDECLARED] expr1=annotatedFormula RPAREN
-    { defineVar(name,expr1); }
-    formula=annotatedFormula
-    { undefineVar(name); }
-    RPAREN
-
-  | /* An flet binding */
-    /* TODO: Create an Expr of LET kind? */
-    LPAREN FLET LPAREN name=function_var[CHECK_UNDECLARED] expr1=annotatedFormula RPAREN
+  | /* A let/flet binding */
+    LPAREN (LET LPAREN name=variable[CHECK_UNDECLARED] 
+            | FLET LPAREN name=function_var[CHECK_UNDECLARED] )
+            expr1=annotatedFormula RPAREN
     { defineVar(name,expr1); }
     formula=annotatedFormula
     { undefineVar(name); }
     RPAREN
 
   | /* A non-built-in function application */
-
-    // Semantic predicate not necessary if parenthesized subexpressions
-    // are disallowed
-    // { isFunction(LT(2)->getText()) }?
-
     { Expr f; }
     LPAREN f = functionSymbol
     { args.push_back(f); }
@@ -188,7 +176,7 @@ annotatedFormula returns [CVC4::Expr formula]
     /* constants */
   | TRUE          { formula = getTrueExpr(); }
   | FALSE         { formula = getFalseExpr(); }
-    /* TODO: let, flet, quantifiers, arithmetic constants */
+    /* TODO: quantifiers, arithmetic constants */
   ;
 
 /**
