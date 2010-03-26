@@ -20,4 +20,8 @@ libutil_la_SOURCES = \
 	output.h \
 	result.h \
 	unique_id.h \
-	configuration.h
+	configuration.ha \
+	rational.h \
+	rational.cpp \
+	integer.h \
+	integer.cpp
