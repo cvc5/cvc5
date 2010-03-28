@@ -11,6 +11,12 @@
  ** information.
  **
  ** A multiprecision rational constant.
+ ** This stores the rational as a pair of multiprecision integers,
+ ** one for the numerator and one for the denominator.
+ ** The number is always stored so that the gcd of the numerator and denominator
+ ** is 1.  (This is referred to as referred to as canonical form in GMP's
+ ** literature.) A consquence is that that the numerator and denominator may be
+ ** different than the values used to construct the Rational.
  **/
 
 #include <gmpxx.h>
@@ -46,7 +52,7 @@ public:
   }
 
   /**
-   * Constructs a Rational from a C string.
+   * Constructs a Rational from a C string in a given base (defaults to 10).
    * Throws std::invalid_argument if the stribng is not a valid rational.
    * For more information about what is a vaid rational string,
    * see GMP's documentation for mpq_set_str().
@@ -58,10 +64,16 @@ public:
     d_value.canonicalize();
   }
 
+  /**
+   * Creates a Rational from another Rational, q, by performing a deep copy.
+   */
   Rational(const Rational& q) : d_value(q.d_value) {
     d_value.canonicalize();
   }
 
+  /**
+   * Constructs a canonical Rational from a numerator and denominator.
+   */
   Rational(  signed int n,   signed int d) : d_value(n,d) {
     d_value.canonicalize();
   }
@@ -84,10 +96,18 @@ public:
   ~Rational() {}
 
 
+  /**
+   * Returns the value of numerator of the Rational.
+   * Note that this makes a deep copy of the numerator.
+   */
   Integer getNumerator() const {
     return Integer(d_value.get_num());
   }
 
+  /**
+   * Returns the value of denominator of the Rational.
+   * Note that this makes a deep copy of the denominator.
+   */
   Integer getDenominator() const{
     return Integer(d_value.get_den());
   }
@@ -143,17 +163,14 @@ public:
     return Rational( d_value / y.d_value );
   }
 
+  /** Returns a string representing the rational in the given base. */
   std::string toString(int base = 10) const {
     return d_value.get_str(base);
   }
 
-
-  friend std::ostream& operator<<(std::ostream& os, const Rational& n);
-
-
   /**
-   * Computes the hash of the node from the first word of the
-   * numerator, the denominator.
+   * Computes the hash of the rational from hashes of the numerator and the
+   * denominator.
    */
   size_t hash() const {
     size_t numeratorHash = gmpz_hash(d_value.get_num_mpz_t());
