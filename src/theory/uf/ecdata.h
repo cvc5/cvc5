@@ -175,7 +175,10 @@ public:
    */
   ECData(context::Context* context, TNode n);
 
-  ~ECData() { Debug("ufgc") << "Calling ECData destructor" << std::endl;}
+  ~ECData() {
+    Debug("ufgc") << "Calling ECData destructor" << std::endl;
+    destroy();
+  }
 
   /**
    * An ECData takes over the watch list of another ECData.

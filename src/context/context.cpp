@@ -177,6 +177,10 @@ ContextObj* ContextObj::restoreAndContinue() {
 
 void ContextObj::destroy() throw(AssertionException) {
   for(;;) {
+    // If valgrind reports invalid writes on the next few lines,
+    // here's a hint: make sure all classes derived from ContextObj in
+    // the system properly call destroy() in their destructors.
+    // That's needed to maintain this linked list properly.
     if(next() != NULL) {
       next()->prev() = prev();
     }

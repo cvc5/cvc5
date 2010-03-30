@@ -10,15 +10,17 @@ UNIT_TESTS = \
 	parser/parser_black \
 	context/context_black \
 	context/context_mm_black \
+	context/cdo_black \
 	context/cdlist_black \
+	context/cdmap_black \
 	theory/theory_black \
 	theory/theory_uf_white \
 	util/assert_white \
 	util/configuration_white \
-	util/output_white \
-	util/integer_black \
-	util/integer_white \
-	util/rational_white
+	util/output_white
+#	util/integer_black \
+#	util/integer_white \
+#	util/rational_white
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution

@@ -421,8 +421,8 @@ inline void NodeManager::setAttribute(TNode n,
 
 /** Make a function type from domain to range.
  * TODO: Function types should be unique for this manager. */
-FunctionType* NodeManager::mkFunctionType(Type* domain,
-                                          Type* range) const {
+inline FunctionType* NodeManager::mkFunctionType(Type* domain,
+                                                 Type* range) const {
   std::vector<Type*> argTypes;
   argTypes.push_back(domain);
   return new FunctionType(argTypes, range);
@@ -430,13 +430,14 @@ FunctionType* NodeManager::mkFunctionType(Type* domain,
 
 /** Make a function type with input types from argTypes.
  * TODO: Function types should be unique for this manager. */
-FunctionType* NodeManager::mkFunctionType(const std::vector<Type*>& argTypes,
-                                          Type* range) const {
+inline FunctionType*
+NodeManager::mkFunctionType(const std::vector<Type*>& argTypes,
+                            Type* range) const {
   Assert( argTypes.size() > 0 );
   return new FunctionType(argTypes, range);
 }
 
-Type* NodeManager::mkSort(const std::string& name) const {
+inline Type* NodeManager::mkSort(const std::string& name) const {
   return new SortType(name);
 }
 

@@ -1,8 +1,8 @@
 /*********************                                                        */
-/** context_black.h
- ** Original author: dejan
+/** cdo_black.h
+ ** Original author: mdeters
  ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Black box testing of CVC4::context::Context.
+ ** Black box testing of CVC4::context::CDO<>.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -26,7 +26,7 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::context;
 
-class ContextBlack : public CxxTest::TestSuite {
+class CDOBlack : public CxxTest::TestSuite {
 private:
 
   Context* d_context;
@@ -41,23 +41,17 @@ public:
     delete d_context;
   }
 
-  void testContextPushPop() {
-    // Test what happens when the context is popped below 0
-    // the interface doesn't declare any exceptions
+  void testIntCDO() {
+    // Test that push/pop maintains the original value
+    CDO<int> a1(d_context);
+    a1 = 5;
+    TS_ASSERT(d_context->getLevel() == 0);
     d_context->push();
+    a1 = 10;
+    TS_ASSERT(d_context->getLevel() == 1);
+    TS_ASSERT(a1 == 10);
     d_context->pop();
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( d_context->pop(), AssertionException );
-    TS_ASSERT_THROWS( d_context->pop(), AssertionException );
-#endif /* CVC4_ASSERTIONS */
-  }
-
-  void testDtor() {
-    // Destruction of ContextObj was broken in revision 324 (bug #45) when
-    // at a higher context level with an intervening modification.
-    // (The following caused a "pure virtual method called" error.)
-    CDO<int> i(d_context);
-    d_context->push();
-    i = 5;
+    TS_ASSERT(d_context->getLevel() == 0);
+    TS_ASSERT(a1 == 5);
   }
 };

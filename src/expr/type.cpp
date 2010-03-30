@@ -31,7 +31,8 @@ Type::Type() :
 }
 
 Type::Type(std::string name) : 
-  d_name(name) {
+  d_name(name),
+  d_rc(0) {
 }
 
 std::string Type::getName() const {
