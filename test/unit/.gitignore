@@ -1,2 +1,4 @@
-/.deps
-/Makefile.in
+*_black
+*_white
+*_black.cpp
+*_white.cpp
