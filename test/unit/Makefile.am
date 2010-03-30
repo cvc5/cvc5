@@ -17,10 +17,10 @@ UNIT_TESTS = \
 	theory/theory_uf_white \
 	util/assert_white \
 	util/configuration_white \
-	util/output_white
-#	util/integer_black \
-#	util/integer_white \
-#	util/rational_white
+	util/output_white \
+	util/integer_black \
+	util/integer_white \
+	util/rational_white
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
