@@ -23,6 +23,8 @@
 
 #include <ext/hash_map>
 
+#include "util/Assert.h"
+
 namespace CVC4 {
 namespace parser {
 

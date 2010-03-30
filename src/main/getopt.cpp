@@ -30,11 +30,10 @@
 #include "util/configuration.h"
 #include "util/output.h"
 #include "util/options.h"
-#include "parser/parser.h"
+#include "parser/parser_options.h"
 
 using namespace std;
 using namespace CVC4;
-using namespace CVC4::parser;
 
 namespace CVC4 {
 namespace main {
@@ -153,13 +152,13 @@ throw(OptionException) {
 
     case 'L':
       if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
-        opts->lang = Parser::LANG_CVC4;
+        opts->lang = parser::LANG_CVC4;
         break;
       } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
-        opts->lang = Parser::LANG_SMTLIB;
+        opts->lang = parser::LANG_SMTLIB;
         break;
       } else if(!strcmp(optarg, "auto")) {
-        opts->lang = Parser::LANG_AUTO;
+        opts->lang = parser::LANG_AUTO;
         break;
       }
 
@@ -187,7 +186,7 @@ throw(OptionException) {
       // silences CVC4 (except "sat" or "unsat" or "unknown", forces smtlib input)
       opts->smtcomp_mode = true;
       opts->verbosity = -1;
-      opts->lang = Parser::LANG_SMTLIB;
+      opts->lang = parser::LANG_SMTLIB;
       break;
 
     case PARSE_ONLY:

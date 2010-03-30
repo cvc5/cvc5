@@ -34,10 +34,17 @@ libcvc4parser_noinst_la_LIBADD = \
 
 libcvc4parser_la_SOURCES =
 libcvc4parser_noinst_la_SOURCES = \
-	parser.h \
-	parser.cpp \
-	parser_exception.h \
-	symbol_table.h \
-	antlr_parser.h \
-	antlr_parser.cpp \
-	memory_mapped_input_buffer.h
+	antlr_input.h \
+	antlr_input.cpp \
+	bounded_token_buffer.h \
+	bounded_token_buffer.cpp \
+	bounded_token_factory.h \
+	bounded_token_factory.cpp \
+	input.h \
+	input.cpp \
+	memory_mapped_input_buffer.h \
+	memory_mapped_input_buffer.cpp \
+    parser_options.h \
+    parser_exception.h \
+	symbol_table.h
+

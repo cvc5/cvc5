@@ -1,8 +1,5 @@
 TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/../../bin/cvc4
-TESTS =	simple.01.cvc \
-	simple.02.cvc \
-	simple.03.cvc \
-	simple.04.cvc \
+TESTS =	\
 	euf_simp01.smt \
 	euf_simp02.smt \
 	euf_simp03.smt \
@@ -17,7 +14,11 @@ TESTS =	simple.01.cvc \
 	euf_simp13.smt \
 	dead_dnd002.smt \
 	iso_brn001.smt \
-	SEQ032_size2.smt
+	SEQ032_size2.smt \
+    simple.01.cvc \
+    simple.02.cvc \
+    simple.03.cvc \
+    simple.04.cvc
 
 # synonyms for "check"
 .PHONY: regress regress0 test

@@ -22,7 +22,7 @@
 #include "config.h"
 #include "main.h"
 #include "usage.h"
-#include "parser/parser.h"
+#include "parser/input.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "expr/command.h"
@@ -93,6 +93,11 @@ int runCvc4(int argc, char* argv[]) {
     cout << unitbuf;
   }
 
+  /* NOTE: ANTLR3 doesn't support input from stdin */
+  if(firstArgIndex >= argc) {
+    throw Exception("No input file specified.");
+  }
+
   // We only accept one input file
   if(argc > firstArgIndex + 1) {
     throw Exception("Too many input files specified.");
@@ -105,17 +110,17 @@ int runCvc4(int argc, char* argv[]) {
   SmtEngine smt(&exprMgr, &options);
 
   // If no file supplied we read from standard input
-  bool inputFromStdin = firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
+  // bool inputFromStdin = firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
 
   // Auto-detect input language by filename extension
-  if(!inputFromStdin && options.lang == Parser::LANG_AUTO) {
+  if(/*!inputFromStdin && */options.lang == parser::LANG_AUTO) {
     const char* filename = argv[firstArgIndex];
     unsigned len = strlen(filename);
     if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-      options.lang = Parser::LANG_SMTLIB;
+      options.lang = parser::LANG_SMTLIB;
     } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
               || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-      options.lang = Parser::LANG_CVC4;
+      options.lang = parser::LANG_CVC4;
     }
   }
 
@@ -141,21 +146,15 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Create the parser
-  Parser* parser;
+  Input* parser;
   istream* input = NULL;
 
-  if(inputFromStdin) {
-    parser = Parser::getNewParser(&exprMgr, options.lang, cin, "<stdin>");
-  } else if( options.memoryMap ) {
-    parser = Parser::getMemoryMappedParser(&exprMgr, options.lang, argv[firstArgIndex]);
-  } else {
-    string filename = argv[firstArgIndex];
-    input = new ifstream(filename.c_str());
-    if(!*input) {
-      throw Exception("file does not exist or is unreadable: " + filename);
-    }
-    parser = Parser::getNewParser(&exprMgr, options.lang, *input, filename);
-  }
+//  if(inputFromStdin) {
+    //    parser = Parser::getNewParser(&exprMgr, options.lang, cin, "<stdin>");
+//  } else {
+    parser = Input::newFileParser(&exprMgr, options.lang, argv[firstArgIndex],
+                                   options.memoryMap);
+//  }
 
   if(!options.semanticChecks) {
     parser->disableChecks();

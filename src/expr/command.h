@@ -36,6 +36,20 @@ class Command;
 inline std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const Command*) CVC4_PUBLIC;
 
+/** The status an SMT benchmark can have */
+enum BenchmarkStatus {
+  /** Benchmark is satisfiable */
+  SMT_SATISFIABLE,
+  /** Benchmark is unsatisfiable */
+  SMT_UNSATISFIABLE,
+  /** The status of the benchmark is unknown */
+  SMT_UNKNOWN
+};
+
+inline std::ostream& operator<<(std::ostream& out,
+                                BenchmarkStatus status)
+  CVC4_PUBLIC;
+
 class CVC4_PUBLIC Command {
 public:
   virtual void invoke(CVC4::SmtEngine* smt_engine) = 0;
@@ -107,15 +121,6 @@ protected:
 
 class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
 public:
-  /** The status an SMT benchmark can have */
-  enum BenchmarkStatus {
-    /** Benchmark is satisfiable */
-    SMT_SATISFIABLE,
-    /** Benchmark is unsatisfiable */
-    SMT_UNSATISFIABLE,
-    /** The status of the benchmark is unknown */
-    SMT_UNKNOWN
-  };
   SetBenchmarkStatusCommand(BenchmarkStatus status);
   void invoke(SmtEngine* smt);
   void toStream(std::ostream& out) const;
@@ -123,9 +128,6 @@ protected:
   BenchmarkStatus d_status;
 };/* class SetBenchmarkStatusCommand */
 
-inline std::ostream& operator<<(std::ostream& out,
-                                SetBenchmarkStatusCommand::BenchmarkStatus status)
-  CVC4_PUBLIC;
 
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
 public:
@@ -288,16 +290,16 @@ inline void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
 
 /* output stream insertion operator for benchmark statuses */
 inline std::ostream& operator<<(std::ostream& out,
-                                SetBenchmarkStatusCommand::BenchmarkStatus status) {
+                                BenchmarkStatus status) {
   switch(status) {
 
-  case SetBenchmarkStatusCommand::SMT_SATISFIABLE:
+  case SMT_SATISFIABLE:
     return out << "sat";
 
-  case SetBenchmarkStatusCommand::SMT_UNSATISFIABLE:
+  case SMT_UNSATISFIABLE:
     return out << "unsat";
 
-  case SetBenchmarkStatusCommand::SMT_UNKNOWN:
+  case SMT_UNKNOWN:
     return out << "unknown";
 
   default:

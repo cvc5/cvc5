@@ -19,13 +19,35 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "parser/parser.h"
+#include "parser/input.h"
 #include "expr/command.h"
 #include "util/output.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
 using namespace std;
+
+/* Set up declaration context for expr inputs */
+
+void setupContext(Input* input) {
+  /* a, b, c: BOOLEAN */
+  input->mkVar("a",(Type*)input->booleanType());
+  input->mkVar("b",(Type*)input->booleanType());
+  input->mkVar("c",(Type*)input->booleanType());
+  /* t, u, v: TYPE */
+  Type *t = input->newSort("t");
+  Type *u = input->newSort("u");
+  Type *v = input->newSort("v");
+  /* f : t->u; g: u->v; h: v->t; */
+  input->mkVar("f", input->functionType(t,u));
+  input->mkVar("g", input->functionType(u,v));
+  input->mkVar("h", input->functionType(v,t));
+  /* x:t; y:u; z:v; */
+  input->mkVar("x",t);
+  input->mkVar("y",u);
+  input->mkVar("z",v);
+}
+
 
 /************************** CVC test inputs ********************************/
 
@@ -44,9 +66,8 @@ const string goodCvc4Inputs[] = {
 
 const int numGoodCvc4Inputs = sizeof(goodCvc4Inputs) / sizeof(string);
 
-const string cvc4ExprContext = "a,b,c:BOOLEAN;";
 
-/* The following expressions are good in a context where a, b, and c have been declared as BOOLEAN. */
+/* The following expressions are valid after setupContext. */
 const string goodCvc4Exprs[] = {
     "a AND b",
     "a AND b OR c",
@@ -71,7 +92,7 @@ const string badCvc4Inputs[] = {
 
 const int numBadCvc4Inputs = sizeof(badCvc4Inputs) / sizeof(string);
 
-/* The following expressions are bad even in a context where a, b, and c have been declared as BOOLEAN. */
+/* The following expressions are invalid even after setupContext. */
 const string badCvc4Exprs[] = {
     "a AND", // wrong arity
     "AND(a,b)", // not infix
@@ -100,18 +121,7 @@ const string goodSmtInputs[] = {
 
 const int numGoodSmtInputs = sizeof(goodSmtInputs) / sizeof(string);
 
-/* The parser is just going to read this benchmark and leave its decls
-   in the context. The SMT exprs below will then be able to refer to them,
-   even though they're "out of scope." */
-const string smtExprContext = 
-  "(benchmark foo\n"
-  "  :extrasorts (t u v)\n"
-  "  :extrapreds ((a) (b) (c))\n"
-  "  :extrafuns ((f t u) (g u v) (h v t) (x t) (y u) (z v)))\n";
-
-/* The following expressions are good in a context where a, b, and c
-   have been declared as BOOLEAN, t, u, v, are sorts, f, g, h are
-   functions, and x, y, z are variables. */
+/* The following expressions are valid after setupContext. */
 const string goodSmtExprs[] = {
     "(and a b)",
     "(or (and a b) c)",
@@ -134,7 +144,7 @@ const string badSmtInputs[] = {
 
 const int numBadSmtInputs = sizeof(badSmtInputs) / sizeof(string);
 
-/* The following expressions are bad even in a context where a, b, and c have been declared as BOOLEAN. */
+/* The following expressions are invalid even after setupContext. */
 const string badSmtExprs[] = {
     "(and)", // wrong arity
     "(and a b", // no closing paren
@@ -152,61 +162,66 @@ const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
 class ParserBlack : public CxxTest::TestSuite {
   ExprManager *d_exprManager;
 
-  void tryGoodInputs(Parser::InputLanguage d_lang, const string goodInputs[], int numInputs) {
+  void tryGoodInputs(InputLanguage d_lang, const string goodInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
       try {
-        // cout << "Testing good input: '" << goodInputs[i] << "'\n";
-        // Debug.on("parser");
-        istringstream stream(goodInputs[i]);
-        Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
-        TS_ASSERT( !smtParser->done() );
+//         Debug.on("parser");
+//         Debug.on("parser-extra");
+         Debug("test") << "Testing good input: '" << goodInputs[i] << "'\n";
+//        istringstream stream(goodInputs[i]);
+        Input* parser = Input::newStringParser(d_exprManager, d_lang, goodInputs[i], "test");
+        TS_ASSERT( !parser->done() );
         Command* cmd;
-        while((cmd = smtParser->parseNextCommand())) {
+        while((cmd = parser->parseNextCommand())) {
           // cout << "Parsed command: " << (*cmd) << endl;
         }
-        TS_ASSERT( smtParser->parseNextCommand() == NULL );
-        TS_ASSERT( smtParser->done() );
-        delete smtParser;
+        TS_ASSERT( parser->parseNextCommand() == NULL );
+        TS_ASSERT( parser->done() );
+        delete parser;
+//        Debug.off("parser");
+//        Debug.off("parser-extra");
       } catch (Exception& e) {
         cout << "\nGood input failed:\n" << goodInputs[i] << endl
              << e << endl;
+//        Debug.off("parser-extra");
         throw;
       }
-
     }
   }
 
-  void tryBadInputs(Parser::InputLanguage d_lang, const string badInputs[], int numInputs) {
+  void tryBadInputs(InputLanguage d_lang, const string badInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
-      // cout << "Testing bad input: '" << badInputs[i] << "'\n";
-      istringstream stream(badInputs[i]);
-      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
+//      cout << "Testing bad input: '" << badInputs[i] << "'\n";
+//      Debug.on("parser");
+      Input* parser = Input::newStringParser(d_exprManager, d_lang, badInputs[i], "test");
       TS_ASSERT_THROWS
-        ( while(smtParser->parseNextCommand());
+        ( while(parser->parseNextCommand());
           cout << "\nBad input succeeded:\n" << badInputs[i] << endl;, 
           ParserException );
-      delete smtParser;
+//      Debug.off("parser");
+      delete parser;
     }
   }
 
-  void tryGoodExprs(Parser::InputLanguage d_lang,const string& context, const string goodBooleanExprs[], int numExprs) {
+  void tryGoodExprs(InputLanguage d_lang, const string goodBooleanExprs[], int numExprs) {
     // cout << "Using context: " << context << endl;
+//    Debug.on("parser");
+//    Debug.on("parser-extra");
     for(int i = 0; i < numExprs; ++i) {
       try {
         // cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
         // Debug.on("parser");
-        istringstream stream(context + goodBooleanExprs[i]);
-        Parser* parser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
+//        istringstream stream(context + goodBooleanExprs[i]);
+        Input* parser = Input::newStringParser(d_exprManager, d_lang,
+                                              goodBooleanExprs[i], "test");
         TS_ASSERT( !parser->done() );
-        Command* cmd = parser->parseNextCommand();
+        setupContext(parser);
         TS_ASSERT( !parser->done() );
-        Expr e;
-        while(e = parser->parseNextExpression()) {
-          // cout << "Parsed expr: " << e << endl;
-        }
+        Expr e = parser->parseNextExpression();
+        TS_ASSERT( !e.isNull() );
+        e = parser->parseNextExpression();
         TS_ASSERT( parser->done() );
         TS_ASSERT( e.isNull() );
-        delete cmd;
         delete parser;
       } catch (Exception& e) {
         cout << "\nGood expr failed:\n" << goodBooleanExprs[i] << endl;
@@ -216,17 +231,22 @@ class ParserBlack : public CxxTest::TestSuite {
     }
   }
 
-  void tryBadExprs(Parser::InputLanguage d_lang,const string& context, const string badBooleanExprs[], int numExprs) {
+  void tryBadExprs(InputLanguage d_lang, const string badBooleanExprs[], int numExprs) {
     //Debug.on("parser");
     for(int i = 0; i < numExprs; ++i) {
       // cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
-      istringstream stream(context + badBooleanExprs[i]);
-      Parser* smtParser = Parser::getNewParser(d_exprManager, d_lang, stream, "test");
+//      istringstream stream(context + badBooleanExprs[i]);
+      Input* parser = Input::newStringParser(d_exprManager, d_lang,
+                                             badBooleanExprs[i], "test");
+
+      TS_ASSERT( !parser->done() );
+      setupContext(parser);
+      TS_ASSERT( !parser->done() );
       TS_ASSERT_THROWS
-        ( smtParser->parseNextExpression();
+        ( parser->parseNextExpression();
           cout << "\nBad expr succeeded: " << badBooleanExprs[i] << endl;, 
           ParserException );
-      delete smtParser;
+      delete parser;
     }
     //Debug.off("parser");
   }
@@ -241,34 +261,34 @@ public:
   }
 
   void testGoodCvc4Inputs() {
-    tryGoodInputs(Parser::LANG_CVC4,goodCvc4Inputs,numGoodCvc4Inputs);
+    tryGoodInputs(LANG_CVC4,goodCvc4Inputs,numGoodCvc4Inputs);
   }
 
   void testBadCvc4Inputs() {
-    tryBadInputs(Parser::LANG_CVC4,badCvc4Inputs,numBadCvc4Inputs);
+    tryBadInputs(LANG_CVC4,badCvc4Inputs,numBadCvc4Inputs);
   }
 
   void testGoodCvc4Exprs() {
-    tryGoodExprs(Parser::LANG_CVC4,cvc4ExprContext,goodCvc4Exprs,numGoodCvc4Exprs);
+    tryGoodExprs(LANG_CVC4,goodCvc4Exprs,numGoodCvc4Exprs);
   }
 
   void testBadCvc4Exprs() {
-    tryBadExprs(Parser::LANG_CVC4,cvc4ExprContext,badCvc4Exprs,numBadCvc4Exprs);
+    tryBadExprs(LANG_CVC4,badCvc4Exprs,numBadCvc4Exprs);
   }
 
   void testGoodSmtInputs() {
-    tryGoodInputs(Parser::LANG_SMTLIB,goodSmtInputs,numGoodSmtInputs);
+    tryGoodInputs(LANG_SMTLIB,goodSmtInputs,numGoodSmtInputs);
   }
 
   void testBadSmtInputs() {
-    tryBadInputs(Parser::LANG_SMTLIB,badSmtInputs,numBadSmtInputs);
+    tryBadInputs(LANG_SMTLIB,badSmtInputs,numBadSmtInputs);
   }
 
   void testGoodSmtExprs() {
-    tryGoodExprs(Parser::LANG_SMTLIB,smtExprContext,goodSmtExprs,numGoodSmtExprs);
+    tryGoodExprs(LANG_SMTLIB,goodSmtExprs,numGoodSmtExprs);
   }
 
   void testBadSmtExprs() {
-    tryBadExprs(Parser::LANG_SMTLIB,smtExprContext,badSmtExprs,numBadSmtExprs);
+    tryBadExprs(LANG_SMTLIB,badSmtExprs,numBadSmtExprs);
   }
 };

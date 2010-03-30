@@ -1,0 +1,17 @@
+/autom4te.cache
+/stamp-h
+/config.h.in
+/config.log
+/config.status
+/config.cache
+/libtool
+/stamp-h1
+/cvc4-*.tar.gz
+/cvc4-*.tar.bz2
+/builds
+/doc
+/Makefile.in
+/configure
+/aclocal.m4
+/callgrind.out*
+/gmon.out

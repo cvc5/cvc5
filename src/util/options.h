@@ -17,7 +17,9 @@
 #define __CVC4__OPTIONS_H
 
 #include <iostream>
-#include "parser/parser.h"
+#include <string>
+#include "cvc4_config.h"
+#include "parser/parser_options.h"
 
 namespace CVC4 {
 
@@ -39,7 +41,7 @@ struct CVC4_PUBLIC Options {
   int verbosity;
 
   /** The input language */
-  parser::Parser::InputLanguage lang;
+  parser::InputLanguage lang;
 
   /** Should we exit after parsing? */
   bool parseOnly;
@@ -56,7 +58,7 @@ struct CVC4_PUBLIC Options {
               out(0),
               err(0),
               verbosity(0),
-              lang(parser::Parser::LANG_AUTO),
+              lang(parser::LANG_AUTO),
               parseOnly(false),
               semanticChecks(true),
               memoryMap(false)
