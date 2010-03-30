@@ -4,11 +4,14 @@
 # src/expr/builtin_kinds.
 #
 
-operator FALSE "falsity"
-operator TRUE "truth"
-operator NOT "logical not"
-operator AND "logical and"
-operator IFF "logical equivalence"
-operator IMPLIES "logical implication"
-operator OR "logical or"
-operator XOR "exclusive or"
+theory ::CVC4::theory::booleans::TheoryBool "theory_bool.h"
+
+operator FALSE 0 "falsity"
+operator TRUE 0 "truth"
+
+operator NOT 1 "logical not"
+operator AND 2: "logical and"
+operator IFF 2 "logical equivalence"
+operator IMPLIES 2 "logical implication"
+operator OR 2: "logical or"
+operator XOR 2: "exclusive or"

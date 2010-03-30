@@ -17,7 +17,7 @@ libexpr_la_SOURCES = \
 	attribute.h \
 	attribute.cpp \
 	@srcdir@/kind.h \
-	node_builder.cpp \
+	@srcdir@/metakind.h \
 	node_manager.cpp \
 	expr_manager.cpp \
 	node_value.cpp \
@@ -28,20 +28,26 @@ libexpr_la_SOURCES = \
 
 EXTRA_DIST = \
 	@srcdir@/kind.h \
-	kind_prologue.h \
-	kind_middle.h \
-	kind_epilogue.h
+	@srcdir@/metakind.h \
+	kind_template.h \
+	metakind_template.h
 
-@srcdir@/kind.h: mkkind kind_prologue.h kind_middle.h kind_epilogue.h builtin_kinds @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
+@srcdir@/kind.h: mkkind kind_template.h builtin_kinds @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_GEN)(@srcdir@/mkkind \
-		@srcdir@/kind_prologue.h \
-		@srcdir@/kind_middle.h \
-		@srcdir@/kind_epilogue.h \
+		@srcdir@/kind_template.h \
 		@srcdir@/builtin_kinds \
 		`grep '^SUBDIRS = ' @top_srcdir@/src/theory/Makefile.in | cut -d' ' -f3- | tr ' ' "\n" | xargs -i__D__ echo @top_srcdir@/src/theory/__D__/kinds` \
 	> @srcdir@/kind.h) || (rm -f @srcdir@/kind.h && exit 1)
 
-BUILT_SOURCES = @srcdir@/kind.h
-dist-hook: @srcdir@/kind.h
-MAINTAINERCLEANFILES = @srcdir@/kind.h
+@srcdir@/metakind.h: mkmetakind metakind_template.h builtin_kinds @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
+	$(AM_V_at)chmod +x @srcdir@/mkmetakind
+	$(AM_V_GEN)(@srcdir@/mkmetakind \
+		@srcdir@/metakind_template.h \
+		@srcdir@/builtin_kinds \
+		`grep '^SUBDIRS = ' @top_srcdir@/src/theory/Makefile.in | cut -d' ' -f3- | tr ' ' "\n" | xargs -i__D__ echo @top_srcdir@/src/theory/__D__/kinds` \
+	> @srcdir@/metakind.h) || (rm -f @srcdir@/metakind.h && exit 1)
+
+BUILT_SOURCES = @srcdir@/kind.h @srcdir@/metakind.h
+dist-hook: @srcdir@/kind.h @srcdir@/metakind.h
+MAINTAINERCLEANFILES = @srcdir@/kind.h @srcdir@/metakind.h

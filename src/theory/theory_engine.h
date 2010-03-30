@@ -133,6 +133,8 @@ class TheoryEngine {
     for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
       b << rewrite(*c);
     }
+    Debug("rewrite") << "rewrote-children of " << in << std::endl
+                     << "got " << b << std::endl;
     return Node(b);
   }
 
@@ -205,13 +207,7 @@ public:
 
     Assert(k >= 0 && k < kind::LAST_KIND);
 
-    if(k == kind::APPLY) {
-      // FIXME: we don't yet have a Type-to-Theory map.  When we do,
-      // look up the type of the LHS and return that Theory (?)
-      // k = n.getOperator().getKind();
-      return &d_uf;
-      //Unimplemented();
-    } else if(k == kind::VARIABLE) {
+    if(k == kind::VARIABLE) {
       return &d_uf;
       //Unimplemented();
     } else if(k == kind::EQUAL) {

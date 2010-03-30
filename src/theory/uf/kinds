@@ -4,4 +4,6 @@
 # src/expr/builtin_kinds.
 #
 
-parameterized APPLY "uninterpreted function application"
+theory ::CVC4::theory::uf::TheoryUF "theory_uf.h"
+
+parameterized APPLY_UF 1: "uninterpreted function application"

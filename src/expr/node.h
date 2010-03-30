@@ -58,6 +58,7 @@ class NodeValue;
     class AttributeManager;
   }/* CVC4::expr::attr namespace */
 
+  class NodeSetDepth;
 }/* CVC4::expr namespace */
 
 /**
@@ -208,8 +209,7 @@ public:
    * @return the node representing the i-th child
    */
   NodeTemplate operator[](int i) const {
-    Assert(i >= 0 && unsigned(i) < d_nv->d_nchildren);
-    return NodeTemplate(d_nv->d_children[i]);
+    return NodeTemplate(d_nv->getChild(i));
   }
 
   /**
@@ -234,7 +234,7 @@ public:
   NodeTemplate<true> getOperator() const;
 
   /** Returns true if the node has an operator (i.e., it's not a variable or a constant). */
-  bool hasOperator() const;
+  inline bool hasOperator() const;
 
   /**
    * Returns the type of this node.
@@ -251,10 +251,24 @@ public:
   }
 
   /**
+   * Returns the metakind of this node.
+   * @return the metakind
+   */
+  inline kind::MetaKind getMetaKind() const {
+    return kind::metaKindOf(getKind());
+  }
+
+  /**
    * Returns the number of children this node has.
    * @return the number of children
    */
   inline size_t getNumChildren() const;
+
+  /**
+   * If this is a CONST_* Node, extract the constant from it.
+   */
+  template <class T>
+  inline const T& getConst() const;
 
   /**
    * Returns the value of the given attribute that this has been attached.
@@ -352,9 +366,25 @@ public:
    * given stream
    * @param out the sream to serialise this node to
    */
-  inline void toStream(std::ostream& out) const {
-    d_nv->toStream(out);
+  inline void toStream(std::ostream& out, int toDepth = -1) const {
+    d_nv->toStream(out, toDepth);
   }
+
+  /**
+   * IOStream manipulator to set the maximum depth of Nodes when
+   * pretty-printing.  -1 means print to any depth.  E.g.:
+   *
+   *   // let a, b, c, and d be VARIABLEs
+   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
+   *   out << setdepth(3) << n;
+   *
+   * gives "(OR a b (AND c (NOT d)))", but
+   *
+   *   out << setdepth(1) << [same node as above]
+   *
+   * gives "(OR a b (...))"
+   */
+  typedef expr::NodeSetDepth setdepth;
 
   /**
    * Very basic pretty printer for Node.
@@ -387,7 +417,85 @@ private:
     }
   }
 
-};/* class NodeTemplate */
+};/* class NodeTemplate<ref_count> */
+
+namespace expr {
+
+/**
+ * IOStream manipulator to set the maximum depth of Nodes when
+ * pretty-printing.  -1 means print to any depth.  E.g.:
+ *
+ *   // let a, b, c, and d be VARIABLEs
+ *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
+ *   out << setdepth(3) << n;
+ *
+ * gives "(OR a b (AND c (NOT d)))", but
+ *
+ *   out << setdepth(1) << [same node as above]
+ *
+ * gives "(OR a b (...))".
+ *
+ * The implementation of this class serves two purposes; it holds
+ * information about the depth setting (such as the index of the
+ * allocated word in ios_base), and serves also as the manipulator
+ * itself (as above).
+ */
+class NodeSetDepth {
+  /**
+   * The allocated index in ios_base for our depth setting.
+   */
+  static const int s_iosIndex;
+
+  /**
+   * The default depth to print, for ostreams that haven't yet had a
+   * setdepth() applied to them.
+   */
+  static const int s_defaultPrintDepth = 3;
+
+  /**
+   * When this manipulator is 
+   */
+  long d_depth;
+
+public:
+  /**
+   * Construct a NodeSetDepth with the given depth.
+   */
+  NodeSetDepth(long depth) : d_depth(depth) {}
+
+  inline void applyDepth(std::ostream& out) {
+    out.iword(s_iosIndex) = d_depth;
+  }
+
+  static inline long getDepth(std::ostream& out) {
+    long& l = out.iword(s_iosIndex);
+    if(l == 0) {
+      // set the default print depth on this ostream
+      l = s_defaultPrintDepth;
+    }
+    return l;
+  }
+
+  static inline void setDepth(std::ostream& out, long depth) {
+    out.iword(s_iosIndex) = depth;
+  }
+};
+
+/**
+ * Sets the default depth when pretty-printing a Node to an ostream.
+ * Use like this:
+ *
+ *   // let out be an ostream, n a Node
+ *   out << Node::setdepth(n) << n << endl;
+ *
+ * The depth stays permanently (until set again) with the stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, NodeSetDepth sd) {
+  sd.applyDepth(out);
+  return out;
+}
+
+}/* CVC4::expr namespace */
 
 /**
  * Serializes a given node to the given stream.
@@ -395,8 +503,8 @@ private:
  * @param node the node to output to the stream
  * @return the changed stream.
  */
-inline std::ostream& operator<<(std::ostream& out, const Node& node) {
-  node.toStream(out);
+inline std::ostream& operator<<(std::ostream& out, TNode n) {
+  n.toStream(out, Node::setdepth::getDepth(out));
   return out;
 }
 
@@ -418,7 +526,13 @@ struct NodeHashFunction {
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
-  return d_nv->d_nchildren;
+  return d_nv->getNumChildren();
+}
+
+template <bool ref_count>
+template <class T>
+inline const T& NodeTemplate<ref_count>::getConst() const {
+  return d_nv->getConst<T>();
 }
 
 template <bool ref_count>
@@ -493,17 +607,25 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   if(ref_count) {
     d_nv->inc();
+  } else {
+    Assert(d_nv->d_rc > 0, "TNode constructed from NodeValue with rc == 0");
   }
 }
 
-// the code for these two "conversion/copy constructors" is identical, but
-// apparently we need both.  see comment in the class.
+// the code for these two following constructors ("conversion/copy
+// constructors") is identical, but we need both.  see comment in the
+// class.
+
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
   Assert(e.d_nv != NULL, "Expecting a non-NULL expression value!");
   d_nv = e.d_nv;
   if(ref_count) {
     d_nv->inc();
+  } else {
+    // shouldn't ever happen
+    Assert(d_nv->d_rc > 0,
+           "INTERNAL ERROR: TNode constructed from Node with rc == 0");
   }
 }
 
@@ -513,6 +635,8 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
   d_nv = e.d_nv;
   if(ref_count) {
     d_nv->inc();
+  } else {
+    Assert(d_nv->d_rc > 0, "TNode constructed from TNode with rc == 0");
   }
 }
 
@@ -521,11 +645,10 @@ NodeTemplate<ref_count>::~NodeTemplate() throw(AssertionException) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   if(ref_count) {
     d_nv->dec();
+  } else {
+    Assert(d_nv->d_rc > 0 || d_nv->isBeingDeleted(),
+           "TNode pointing to an expired NodeValue at destruction time");
   }
-  Assert(ref_count ||
-         d_nv->d_rc > 0 ||
-         d_nv->isBeingDeleted(),
-         "Temporary node pointing to an expired node");
 }
 
 template <bool ref_count>
@@ -533,6 +656,8 @@ void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev) {
   d_nv = ev;
   if(ref_count) {
     d_nv->inc();
+  } else {
+    Assert(d_nv->d_rc > 0, "TNode assigned to NodeValue with rc == 0");
   }
 }
 
@@ -548,6 +673,8 @@ operator=(const NodeTemplate& e) {
     d_nv = e.d_nv;
     if(ref_count) {
       d_nv->inc();
+    } else {
+      Assert(d_nv->d_rc > 0, "TNode assigned from TNode with rc == 0");
     }
   }
   return *this;
@@ -565,6 +692,10 @@ operator=(const NodeTemplate<!ref_count>& e) {
     d_nv = e.d_nv;
     if(ref_count) {
       d_nv->inc();
+    } else {
+      // shouldn't ever happen
+      Assert(d_nv->d_rc > 0,
+             "INTERNAL ERROR: TNode assigned from Node with rc == 0");
     }
   }
   return *this;
@@ -623,16 +754,24 @@ void NodeTemplate<ref_count>::printAst(std::ostream& out, int ind) const {
   indent(out, ind);
   out << '(';
   out << getKind();
-  if(getKind() == kind::VARIABLE) {
+  if(getMetaKind() == kind::metakind::VARIABLE) {
     out << ' ' << getId();
-
-  } else if(getNumChildren() >= 1) {
-    for(const_iterator child = begin(); child != end(); ++child) {
+  } else if(getMetaKind() == kind::metakind::CONSTANT) {
+    out << ' ';
+    kind::metakind::NodeValueConstPrinter::toStream(out, d_nv);
+  } else {
+    if(hasOperator()) {
       out << std::endl;
-      NodeTemplate((*child)).printAst(out, ind + 1);
+      getOperator().printAst(out, ind + 1);
     }
-    out << std::endl;
-    indent(out, ind);
+    if(getNumChildren() >= 1) {
+      for(const_iterator child = begin(); child != end(); ++child) {
+        out << std::endl;
+        (*child).printAst(out, ind + 1);
+      }
+      out << std::endl;
+      indent(out, ind);
+    }
   }
   out << ')';
 }
@@ -644,36 +783,31 @@ void NodeTemplate<ref_count>::printAst(std::ostream& out, int ind) const {
  */
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
-  switch(Kind k = getKind()) {
-  case kind::APPLY:
-    /* The operator is the first child. */
-    return NodeTemplate<true>(d_nv->d_children[0]);
+  Assert( NodeManager::currentNM() != NULL,
+          "There is no current CVC4::NodeManager associated to this thread.\n"
+          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
 
-  case kind::EQUAL:
-  case kind::ITE:
-  case kind::TUPLE:
-  case kind::NOT:
-  case kind::AND:
-  case kind::IFF:
-  case kind::IMPLIES:
-  case kind::OR:
-  case kind::XOR:
-  case kind::PLUS: {
+  switch(kind::MetaKind mk = getMetaKind()) {
+  case kind::metakind::INVALID:
+    IllegalArgument(*this, "getOperator() called on Node with INVALID-kinded kind");
+
+  case kind::metakind::VARIABLE:
+    IllegalArgument(*this, "getOperator() called on Node with VARIABLE-kinded kind");
+
+  case kind::metakind::OPERATOR: {
     /* Returns a BUILTIN node. */
-    /* TODO: construct a singleton at load-time? */
-    /* TODO: maybe keep a table like the TheoryOfTable ? */
-    NodeTemplate<true> n = NodeManager::currentNM()->mkNode(k);
-    return NodeManager::currentNM()->mkNode(kind::BUILTIN, n);
+    return NodeManager::currentNM()->operatorOf(getKind());
   }
 
-  case kind::FALSE:
-  case kind::TRUE:
-  case kind::SKOLEM:
-  case kind::VARIABLE:
-    IllegalArgument(*this, "getOperator() called on kind with no operator");
+  case kind::metakind::PARAMETERIZED:
+    /* The operator is the first child. */
+    return Node(d_nv->d_children[0]);
+
+  case kind::metakind::CONSTANT:
+    IllegalArgument(*this, "getOperator() called on Node with CONSTANT-kinded kind");
 
   default:
-    Unhandled(getKind());
+    Unhandled(mk);
   }
 }
 
@@ -682,30 +816,8 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
  * or a constant).
  */
 template <bool ref_count>
-bool NodeTemplate<ref_count>::hasOperator() const {
-  switch(getKind()) {
-  case kind::APPLY:
-  case kind::EQUAL:
-  case kind::ITE:
-  case kind::TUPLE:
-  case kind::FALSE:
-  case kind::TRUE:
-  case kind::NOT:
-  case kind::AND:
-  case kind::IFF:
-  case kind::IMPLIES:
-  case kind::OR:
-  case kind::XOR:
-  case kind::PLUS:
-    return true;
-
-  case kind::SKOLEM:
-  case kind::VARIABLE:
-    return false;
-
-  default:
-    Unhandled(getKind());
-  }
+inline bool NodeTemplate<ref_count>::hasOperator() const {
+  return NodeManager::hasOperator(getKind());
 }
 
 template <bool ref_count>

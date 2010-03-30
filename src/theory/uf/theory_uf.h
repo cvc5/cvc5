@@ -30,6 +30,7 @@
 #include "theory/theory.h"
 
 #include "context/context.h"
+#include "context/cdo.h"
 #include "context/cdlist.h"
 #include "theory/uf/ecdata.h"
 

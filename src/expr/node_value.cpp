@@ -19,6 +19,8 @@
 
 #include "expr/node_value.h"
 #include "expr/node.h"
+#include "expr/kind.h"
+#include "expr/metakind.h"
 #include <sstream>
 
 using namespace std;
@@ -36,9 +38,19 @@ string NodeValue::toString() const {
   return ss.str();
 }
 
-void NodeValue::toStream(std::ostream& out) const {
-  if(d_kind == kind::VARIABLE) {
+void NodeValue::toStream(std::ostream& out, int toDepth) const {
+  using namespace CVC4::kind;
+  using namespace CVC4;
+
+  if(getKind() == kind::NULL_EXPR) {
+    out << "null";
+  } else if(getMetaKind() == kind::metakind::VARIABLE) {
+    if(getKind() != kind::VARIABLE) {
+      out << getKind() << ':';
+    }
+
     string s;
+
     // conceptually "this" is const, and hasAttribute() doesn't change
     // its argument, but it requires a non-const key arg (for now)
     if(NodeManager::currentNM()->getAttribute(const_cast<NodeValue*>(this),
@@ -48,14 +60,23 @@ void NodeValue::toStream(std::ostream& out) const {
       out << "var_" << d_id;
     }
   } else {
-    out << "(" << Kind(d_kind);
-    for(const_nv_iterator i = nv_begin(); i != nv_end(); ++i) {
-      if(i != nv_end()) {
-        out << " ";
+    out << '(' << Kind(d_kind);
+    if(getMetaKind() == kind::metakind::CONSTANT) {
+      out << ' ';
+      kind::metakind::NodeValueConstPrinter::toStream(out, this);
+    } else {
+      for(const_nv_iterator i = nv_begin(); i != nv_end(); ++i) {
+        if(i != nv_end()) {
+          out << ' ';
+        }
+        if(toDepth != 0) {
+          (*i)->toStream(out, toDepth < 0 ? toDepth : toDepth - 1);
+        } else {
+          out << "(...)";
+        }
       }
-      (*i)->toStream(out);
     }
-    out << ")";
+    out << ')';
   }
 }
 

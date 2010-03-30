@@ -4,9 +4,22 @@
 # src/expr/builtin_kinds.
 #
 
-operator PLUS "arithmetic addition"
-operator MULT "arithmetic multiplication"
-operator UMINUS "arithmetic negation"
+theory ::CVC4::theory::arith::TheoryArith "theory_arith.h"
 
-constant CONST_RATIONAL ::CVC4::Rational "a multiple-precision rational constant"
-constant CONST_INTEGER ::CVC4::Integer "a multiple-precision integer constant"
+operator PLUS 2: "arithmetic addition"
+operator MULT 2: "arithmetic multiplication"
+operator UMINUS 1 "arithmetic negation"
+
+constant \
+    CONST_RATIONAL \
+    ::CVC4::Rational \
+    ::CVC4::RationalHashFcn \
+    "util/rational.h" \
+    "a multiple-precision rational constant"
+
+constant \
+    CONST_INTEGER \
+    ::CVC4::Integer \
+    ::CVC4::IntegerHashFcn \
+    "util/integer.h" \
+    "a multiple-precision integer constant"

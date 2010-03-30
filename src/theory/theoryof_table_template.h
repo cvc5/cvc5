@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** theoryof_table_middle.h
+/** theoryof_table_template.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,9 +10,19 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** The middle section for the automatically-generated theoryOf table.
+ ** The template for the automatically-generated theoryOf table.
  ** See the mktheoryof script.
  **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__THEORYOF_TABLE_H
+#define __CVC4__THEORY__THEORYOF_TABLE_H
+
+#include "expr/kind.h"
+#include "util/Assert.h"
+
+${theoryof_table_includes}
 
 namespace CVC4 {
 namespace theory {
@@ -44,3 +54,10 @@ public:
            "illegal to inquire theoryOf(UNDEFINED_KIND or out-of-range)");
     return d_table[k];
   }
+${theoryof_table_registers}
+};/* class TheoryOfTable */
+
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__THEORYOF_TABLE_H */

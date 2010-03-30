@@ -27,6 +27,7 @@
 #include <ext/hash_set>
 
 #include "expr/kind.h"
+#include "expr/metakind.h"
 #include "expr/expr.h"
 #include "expr/node_value.h"
 #include "context/context.h"
@@ -55,29 +56,31 @@ class NodeManager {
   friend class expr::NodeValue;
 
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValueInternalHashFunction,
-                              expr::NodeValue::NodeValueEq> NodeValuePool;
+                              expr::NodeValuePoolHashFcn,
+                              expr::NodeValuePoolEq> NodeValuePool;
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValueIDHashFunction,
-                              expr::NodeValue::NodeValueEq> ZombieSet;
+                              expr::NodeValueEq> ZombieSet;
 
   static __thread NodeManager* s_current;
 
   NodeValuePool d_nodeValuePool;
 
   expr::attr::AttributeManager d_attrManager;
-  expr::NodeValue* d_underTheShotgun;
 
+  expr::NodeValue* d_nodeUnderDeletion;
   bool d_reclaiming;
   ZombieSet d_zombies;
 
-  expr::NodeValue* poolLookup(expr::NodeValue* nv) const;
+  inline expr::NodeValue* poolLookup(expr::NodeValue* nv) const;
   void poolInsert(expr::NodeValue* nv);
-  void poolRemove(expr::NodeValue* nv);
+  inline void poolRemove(expr::NodeValue* nv);
 
-  bool isCurrentlyDeleting(const expr::NodeValue *nv) const{
-    return d_underTheShotgun == nv;
+  bool isCurrentlyDeleting(const expr::NodeValue* nv) const{
+    return d_nodeUnderDeletion == nv;
   }
+
+  Node d_operators[kind::LAST_KIND];
 
   /**
    * Register a NodeValue as a zombie.
@@ -87,12 +90,12 @@ class NodeManager {
     if(d_reclaiming) {// FIXME multithreading
       // currently reclaiming zombies; just push onto the list
       Debug("gc") << "zombifying node value " << nv
-                  << " [" << nv->d_id << "]: " << nv->toString()
+                  << " [" << nv->d_id << "]: " << *nv
                   << " [CURRENTLY-RECLAIMING]\n";
       d_zombies.insert(nv);// FIXME multithreading
     } else {
       Debug("gc") << "zombifying node value " << nv
-                  << " [" << nv->d_id << "]: " << nv->toString() << "\n";
+                  << " [" << nv->d_id << "]: " << *nv << "\n";
       d_zombies.insert(nv);// FIXME multithreading
 
       // for now, collect eagerly.  can add heuristic here later..
@@ -105,17 +108,26 @@ class NodeManager {
    */
   void reclaimZombies();
 
+  /**
+   * This template gives a mechanism to stack-allocate a NodeValue
+   * with enough space for N children (where N is a compile-time
+   * constant).  You use it like this:
+   *
+   *   NVStorage<4> nvStorage;
+   *   NodeValue& nvStack = reinterpret_cast<NodeValue&>(nvStorage);
+   *
+   * ...and then you can use nvStack as a NodeValue that you know has
+   * room for 4 children.
+   */
+  template <size_t N>
+  struct NVStorage {
+    expr::NodeValue nv;
+    expr::NodeValue* child[N];
+  };/* struct NodeManager::NVStorage<N> */
+
 public:
 
-  NodeManager(context::Context* ctxt) :
-    d_attrManager(ctxt),
-    d_underTheShotgun(NULL),
-    d_reclaiming(false)
-
-  { // static initialization
-    poolInsert( &expr::NodeValue::s_null );
-  }
-
+  NodeManager(context::Context* ctxt);
   ~NodeManager();
 
   /** The node manager in the current context. */
@@ -154,6 +166,21 @@ public:
   /** Create a variable of unknown type (?). */
   Node mkVar();
 
+  /** Create a constant of type T */
+  template <class T>
+  Node mkConst(const T&);
+
+  /** Determine whether Nodes of a particular Kind have operators. */
+  static inline bool hasOperator(Kind mk);
+
+  /** Get the (singleton) operator of an OPERATOR-kinded kind. */
+  inline TNode operatorOf(Kind k) {
+    AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k,
+                    "Kind is not an OPERATOR-kinded kind "
+                    "in NodeManager::operatorOf()" );
+    return d_operators[k];
+  }
+
   /** Retrieve an attribute for a node.
    *
    * @param nv the node value
@@ -164,11 +191,6 @@ public:
   template <class AttrKind>
   inline typename AttrKind::value_type getAttribute(expr::NodeValue* nv,
                                                     const AttrKind& attr) const;
-
-  /* NOTE: there are two, distinct hasAttribute() declarations for
-   a reason (rather than using a pointer-valued argument with a
-   default value): they permit more optimized code in the underlying
-   hasAttribute() implementations. */
 
   /** Check whether an attribute is set for a node.
    *
@@ -422,6 +444,15 @@ inline Type* NodeManager::getType(TNode n) const {
   return getAttribute(n, CVC4::expr::TypeAttr());
 }
 
+inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
+  NodeValuePool::const_iterator find = d_nodeValuePool.find(nv);
+  if(find == d_nodeValuePool.end()) {
+    return NULL;
+  } else {
+    return *find;
+  }
+}
+
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
          "NodeValue already in the pool!");
@@ -436,11 +467,34 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
 
 }/* CVC4 namespace */
 
+#define __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#include "expr/metakind.h"
+#undef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+
 #include "expr/node_builder.h"
 
 namespace CVC4 {
 
 // general expression-builders
+
+inline bool NodeManager::hasOperator(Kind k) {
+  switch(kind::MetaKind mk = kind::metaKindOf(k)) {
+
+  case kind::metakind::INVALID:
+  case kind::metakind::VARIABLE:
+    return false;
+
+  case kind::metakind::OPERATOR:
+  case kind::metakind::PARAMETERIZED:
+    return true;
+
+  case kind::metakind::CONSTANT:
+    return false;
+
+  default:
+    Unhandled(mk);
+  }
+}
 
 inline Node NodeManager::mkNode(Kind kind) {
   return NodeBuilder<>(this, kind);
@@ -487,6 +541,63 @@ inline Node NodeManager::mkVar(Type* type) {
 inline Node NodeManager::mkVar() {
   // TODO: rewrite to not use NodeBuilder
   return NodeBuilder<>(this, kind::VARIABLE);
+}
+
+template <class T>
+Node NodeManager::mkConst(const T& val) {
+  // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
+
+  //
+  // TODO: construct a special NodeValue that points to this T but
+  // is == an inlined version (like exists in the hash_set).
+  //
+  // Something similar for (a, b) and (a, b, c) and (a, b, c, d)
+  // versions.
+  //
+  // ALSO TODO: make poolLookup() use hash_set<>::operator[] to auto-insert,
+  // and then set = value after to avoid double-hashing.  fix in all places
+  // where poolLookup is called.
+  //
+  // THEN ALSO TODO: CDMap<> destruction in attribute.cpp to make valgrind
+  // happy
+  //
+  // THEN: reconsider CVC3 tracing mechanism, experiments..
+  //
+
+  NVStorage<1> nvStorage;
+  expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
+
+  nvStack.d_id = 0;
+  nvStack.d_kind = kind::metakind::ConstantMap<T>::kind;
+  nvStack.d_rc = 0;
+  nvStack.d_nchildren = 1;
+  nvStack.d_children[0] =
+    const_cast<expr::NodeValue*>(reinterpret_cast<const expr::NodeValue*>(&val));
+  expr::NodeValue* nv = poolLookup(&nvStack);
+
+  if(nv != NULL) {
+    return Node(nv);
+  }
+
+  nv = (expr::NodeValue*)
+    std::malloc(sizeof(expr::NodeValue) + sizeof(T));
+  if(nv == NULL) {
+    throw std::bad_alloc();
+  }
+
+  nv->d_nchildren = 0;
+  nv->d_kind = kind::metakind::ConstantMap<T>::kind;
+  nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+  nv->d_rc = 0;
+
+  //OwningTheory::mkConst(val);
+  new (&nv->d_children) T(val);
+
+  poolInsert(nv);
+  Debug("gc") << "creating node value " << nv
+              << " [" << nv->d_id << "]: " << *nv << "\n";
+
+  return Node(nv);
 }
 
 }/* CVC4 namespace */

@@ -126,19 +126,17 @@ annotatedFormula returns [CVC4::Expr formula]
   : /* a built-in operator application */
     LPAREN kind = builtinOp annotatedFormulas[args] RPAREN
     { checkArity(kind, args.size());
-      formula = mkExpr(kind,args); }
+      if((kind == kind::AND || kind == kind::OR) && args.size() == 1) {
+        formula = args[0];
+      } else {
+        formula = mkExpr(kind, args);
+      }
+    }
 
   | /* a "distinct" expr */
     /* TODO: Should there be a DISTINCT kind in the Expr package? */
     LPAREN DISTINCT annotatedFormulas[args] RPAREN
-    { std::vector<Expr> diseqs;
-      for(unsigned i = 0; i < args.size(); ++i) {
-        for(unsigned j = i+1; j < args.size(); ++j) {
-          diseqs.push_back(mkExpr(CVC4::kind::NOT,
-                                  mkExpr(CVC4::kind::EQUAL,args[i],args[j])));
-        }
-      }
-      formula = mkExpr(CVC4::kind::AND, diseqs); }
+    { formula = mkExpr(CVC4::kind::DISTINCT, args); }
 
   | /* An ite expression */
     LPAREN (ITE | IF_THEN_ELSE)
@@ -164,7 +162,7 @@ annotatedFormula returns [CVC4::Expr formula]
     { args.push_back(f); }
     annotatedFormulas[args] RPAREN
     // TODO: check arity
-    { formula = mkExpr(CVC4::kind::APPLY,args); }
+    { formula = mkExpr(CVC4::kind::APPLY_UF, args); }
 
   | /* a variable */
     { std::string name; }

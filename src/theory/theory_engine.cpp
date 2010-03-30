@@ -90,8 +90,7 @@ Node TheoryEngine::rewrite(TNode in) {
     return getRewriteCache(in);
   }
 
-  if(in.getKind() == kind::VARIABLE ||
-     in.getKind() == kind::SKOLEM) {
+  if(in.getMetaKind() == kind::metakind::VARIABLE) {
     return in;
   }
 
@@ -108,6 +107,7 @@ Node TheoryEngine::rewrite(TNode in) {
     }
   */
 
+  // these special cases should go away when theory rewriting comes online
   if(in.getKind() == kind::EQUAL) {
     Assert(in.getNumChildren() == 2);
     if(in[0] == in[1]) {
@@ -115,6 +115,22 @@ Node TheoryEngine::rewrite(TNode in) {
       //setRewriteCache(in, out);
       return out;
     }
+  } else if(in.getKind() == kind::DISTINCT) {
+    vector<Node> diseqs;
+    for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
+      TNode::iterator j = i;
+      while(++j != in.end()) {
+        Node eq = NodeManager::currentNM()->mkNode(CVC4::kind::EQUAL, *i, *j);
+        Node neq = NodeManager::currentNM()->mkNode(CVC4::kind::NOT, eq);
+        diseqs.push_back(neq);
+      }
+    }
+    Node out =
+      diseqs.size() == 1
+      ? diseqs[0]
+      : NodeManager::currentNM()->mkNode(CVC4::kind::AND, diseqs);
+    //setRewriteCache(in, out);
+    return out;
   } else {
     Node out = rewriteChildren(in);
     //setRewriteCache(in, out);

@@ -107,15 +107,12 @@ void TheoryUF::registerTerm(TNode n){
     n.setAttribute(ECAttr(), ecN);
   }
 
-  /* If the node is an APPLY, we need to add it to the predecessor list
+  /* If the node is an APPLY_UF, we need to add it to the predecessor list
    * of its children.
    */
-  if(n.getKind() == APPLY){
+  if(n.getKind() == APPLY_UF){
     TNode::iterator cIter = n.begin();
 
-    //The first element of an apply is the function symbol which should not
-    //have an associated ECData, so it needs to be skipped.
-    ++cIter;
     for(; cIter != n.end(); ++cIter){
       TNode child = *cIter;
 
@@ -148,8 +145,8 @@ bool TheoryUF::sameCongruenceClass(TNode x, TNode y){
 }
 
 bool TheoryUF::equiv(TNode x, TNode y){
-  Assert(x.getKind() == kind::APPLY);
-  Assert(y.getKind() == kind::APPLY);
+  Assert(x.getKind() == kind::APPLY_UF);
+  Assert(y.getKind() == kind::APPLY_UF);
 
   if(x.getNumChildren() != y.getNumChildren())
     return false;
@@ -157,12 +154,10 @@ bool TheoryUF::equiv(TNode x, TNode y){
   if(x.getOperator() != y.getOperator())
     return false;
 
+  // intentionally don't look at operator
+
   TNode::iterator xIter = x.begin();
   TNode::iterator yIter = y.begin();
-
-  //Skip operator of the applies
-  ++xIter;
-  ++yIter;
 
   while(xIter != x.end()){
 
@@ -258,11 +253,12 @@ Node TheoryUF::constructConflict(TNode diseq){
 
   NodeBuilder<> nb(kind::AND);
   nb << diseq;
-  for(unsigned i=0; i<d_assertions.size(); ++i)
+  for(unsigned i = 0; i < d_assertions.size(); ++i) {
     nb << d_assertions[i];
+  }
 
-  Node conflict = nb;
-
+  Assert(nb.getNumChildren() > 0);
+  Node conflict = nb.getNumChildren() == 1 ? nb[0] : nb;
 
   Debug("uf") << "conflict constructed : " << conflict << std::endl;
 

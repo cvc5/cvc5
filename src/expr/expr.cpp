@@ -177,6 +177,7 @@ Expr BoolExpr::iteExpr(const Expr& then_e, const Expr& else_e) const {
 }
 
 void Expr::printAst(std::ostream & o, int indent) const {
+  ExprManagerScope ems(*this);
   getNode().printAst(o, indent);
 }
 

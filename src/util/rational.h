@@ -19,12 +19,12 @@
  ** different than the values used to construct the Rational.
  **/
 
+#ifndef __CVC4__RATIONAL_H
+#define __CVC4__RATIONAL_H
+
 #include <gmpxx.h>
 #include <string>
 #include "integer.h"
-
-#ifndef __CVC4__RATIONAL_H
-#define __CVC4__RATIONAL_H
 
 namespace CVC4 {
 
@@ -181,9 +181,14 @@ public:
 
 };/* class Rational */
 
+struct RationalHashFcn {
+  static inline size_t hash(const CVC4::Rational& r) {
+    return r.hash();
+  }
+};
+
 std::ostream& operator<<(std::ostream& os, const Rational& n);
 
 }/* CVC4 namespace */
 
 #endif /* __CVC4__RATIONAL_H */
-

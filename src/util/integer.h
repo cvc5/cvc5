@@ -12,12 +12,12 @@
  **
  ** A multiprecision integer constant.
  **/
-#include <gmpxx.h>
-#include <string>
-
 
 #ifndef __CVC4__INTEGER_H
 #define __CVC4__INTEGER_H
+
+#include <gmpxx.h>
+#include <string>
 
 namespace CVC4 {
 
@@ -148,10 +148,14 @@ public:
   friend class CVC4::Rational;
 };/* class Integer */
 
-std::ostream& operator<<(std::ostream& os, const Integer& n);
+struct IntegerHashFcn {
+  static inline size_t hash(const CVC4::Integer& i) {
+    return i.hash();
+  }
+};
 
+std::ostream& operator<<(std::ostream& os, const Integer& n);
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__RATIONAL_H */
-
+#endif /* __CVC4__INTEGER_H */

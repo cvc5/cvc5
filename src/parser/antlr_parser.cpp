@@ -241,7 +241,7 @@ unsigned int AntlrParser::minArity(Kind kind) {
   case OR:
     return 1;
 
-  case APPLY:
+  case APPLY_UF:
   case EQUAL:
   case IFF:
   case IMPLIES:
@@ -278,7 +278,7 @@ unsigned int AntlrParser::maxArity(Kind kind) {
     return 3;
 
   case AND:
-  case APPLY:
+  case APPLY_UF:
   case PLUS:
   case OR:
     return UINT_MAX;

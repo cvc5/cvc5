@@ -16,11 +16,14 @@
 #include "expr/node.h"
 #include "util/output.h"
 
+#include <iostream>
+
+using namespace std;
+
 namespace CVC4 {
 namespace expr {
 
-#ifdef CVC4_DEBUG
-#endif /* CVC4_DEBUG */
+const int NodeSetDepth::s_iosIndex = std::ios_base::xalloc();
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */

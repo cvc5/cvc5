@@ -383,6 +383,19 @@ Node TheoryImpl<T>::get() {
 
       TNode n = *workp;
 
+      if(n.hasOperator()) {
+        TNode c = n.getOperator();
+
+        if(! c.getAttribute(RegisteredAttr())) {
+          if(c.getNumChildren() == 0) {
+            c.setAttribute(RegisteredAttr(), true);
+            registerTerm(c);
+          } else {
+            toReg.push_back(c);
+          }
+        }
+      }
+
       for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
         TNode c = *i;
 

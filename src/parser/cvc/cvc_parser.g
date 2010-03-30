@@ -323,7 +323,7 @@ term returns [CVC4::Expr t]
 
     LPAREN formulaList[args] RPAREN
     // TODO: check arity
-    { t = mkExpr(CVC4::kind::APPLY, args); }
+    { t = mkExpr(CVC4::kind::APPLY_UF, args); }
 
   | /* if-then-else */
     t = iteTerm

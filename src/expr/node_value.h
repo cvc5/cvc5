@@ -19,12 +19,15 @@
 
 #include "cvc4_private.h"
 
+// circular dependency
+#include "expr/metakind.h"
+
 #ifndef __CVC4__EXPR__NODE_VALUE_H
 #define __CVC4__EXPR__NODE_VALUE_H
 
 #include "cvc4_config.h"
-#include <stdint.h>
 #include "expr/kind.h"
+#include <stdint.h>
 
 #include <string>
 #include <iterator>
@@ -40,7 +43,24 @@ class PlusNodeBuilder;
 class MultNodeBuilder;
 class NodeManager;
 
+namespace kind {
+  namespace metakind {
+    template < ::CVC4::Kind k, bool pool >
+    struct NodeValueConstCompare;
+
+    struct NodeValueCompare;
+    struct NodeValueConstPrinter;
+  }/* CVC4::kind::metakind namespace */
+}/* CVC4::kind namespace */
+
 namespace expr {
+
+#if __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
+    __CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
+    __CVC4__EXPR__NODE_VALUE__NBITS__ID + \
+    __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 64
+#  error NodeValue header bit assignment does not sum to 64 !
+#endif /* sum != 64 */
 
 /**
  * This is an NodeValue.
@@ -50,39 +70,47 @@ class NodeValue {
   /** A convenient null-valued expression value */
   static NodeValue s_null;
 
+  static const unsigned NBITS_REFCOUNT = __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
+  static const unsigned NBITS_KIND = __CVC4__EXPR__NODE_VALUE__NBITS__KIND;
+  static const unsigned NBITS_ID = __CVC4__EXPR__NODE_VALUE__NBITS__ID;
+  static const unsigned NBITS_NCHILDREN = __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
+
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
-  static const unsigned MAX_RC = 255;
-
-  /** Number of bits assigned to the kind in the NodeValue header */
-  static const unsigned KINDBITS = 8;
+  static const unsigned MAX_RC = (1u << NBITS_REFCOUNT) - 1;
 
   /** A mask for d_kind */
-  static const unsigned kindMask = (1u << KINDBITS) - 1;
+  static const unsigned kindMask = (1u << NBITS_KIND) - 1;
 
   // this header fits into one 64-bit word
 
   /** The ID (0 is reserved for the null value) */
-  unsigned d_id        : 32;
+  unsigned d_id        : NBITS_ID;
 
   /** The expression's reference count.  @see cvc4::Node. */
-  unsigned d_rc        :  8;
+  unsigned d_rc        : NBITS_REFCOUNT;
 
   /** Kind of the expression */
-  unsigned d_kind      : KINDBITS;
+  unsigned d_kind      : NBITS_KIND;
 
   /** Number of children */
-  unsigned d_nchildren : 16;
+  unsigned d_nchildren : NBITS_NCHILDREN;
 
   /** Variable number of child nodes */
   NodeValue* d_children[0];
 
   // todo add exprMgr ref in debug case
 
-  template <bool> friend class CVC4::NodeTemplate;
-  template <class Builder> friend class CVC4::NodeBuilderBase;
-  template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
-  friend class CVC4::NodeManager;
+  template <bool> friend class ::CVC4::NodeTemplate;
+  template <class Builder> friend class ::CVC4::NodeBuilderBase;
+  template <unsigned nchild_thresh> friend class ::CVC4::NodeBuilder;
+  friend class ::CVC4::NodeManager;
+
+  template <Kind k, bool pool>
+  friend struct ::CVC4::kind::metakind::NodeValueConstCompare; 
+
+  friend struct ::CVC4::kind::metakind::NodeValueCompare;
+  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
 
   void inc();
   void dec();
@@ -146,14 +174,10 @@ private:
 public:
 
   template <bool ref_count>
-  iterator<ref_count> begin() const {
-    return iterator<ref_count>(d_children);
-  }
+  inline iterator<ref_count> begin() const;
 
   template <bool ref_count>
-  iterator<ref_count> end() const {
-    return iterator<ref_count>(d_children + d_nchildren);
-  }
+  inline iterator<ref_count> end() const;
 
   /**
    * Hash this NodeValue.  For hash_maps, hash_sets, etc.. but this is
@@ -162,7 +186,11 @@ public:
    * collisions for all VARIABLEs.
    * @return the hash value of this expression.
    */
-  size_t internalHash() const {
+  size_t poolHash() const {
+    if(getMetaKind() == kind::metakind::CONSTANT) {
+      return kind::metakind::NodeValueCompare::constHash(this);
+    }
+
     size_t hash = d_kind;
     const_nv_iterator i = nv_begin();
     const_nv_iterator i_end = nv_end();
@@ -173,43 +201,17 @@ public:
     return hash;
   }
 
-  inline bool compareTo(const NodeValue* nv) const {
-    if(d_kind != nv->d_kind) {
-      return false;
-    }
-
-    if(d_nchildren != nv->d_nchildren) {
-      return false;
-    }
-
-    const_nv_iterator i = nv_begin();
-    const_nv_iterator j = nv->nv_begin();
-    const_nv_iterator i_end = nv_end();
-
-    while(i != i_end) {
-      if((*i) != (*j)) {
-        return false;
-      }
-      ++i;
-      ++j;
-    }
-
-    return true;
-  }
-
-  // Comparison predicate
-  struct NodeValueEq {
-    bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
-      return nv1->compareTo(nv2);
-    }
-  };
-
   unsigned getId() const { return d_id; }
   Kind getKind() const { return dKindToKind(d_kind); }
-  unsigned getNumChildren() const { return d_nchildren; }
+  kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
+  unsigned getNumChildren() const {
+    return (getMetaKind() == kind::metakind::PARAMETERIZED)
+      ? d_nchildren - 1
+      : d_nchildren;
+  }
 
   std::string toString() const;
-  void toStream(std::ostream& out) const;
+  void toStream(std::ostream& out, int toDepth = -1) const;
 
   static inline unsigned kindToDKind(Kind k) {
     return ((unsigned) k) & kindMask;
@@ -223,19 +225,27 @@ public:
     return s_null;
   }
 
+  /**
+   * If this is a CONST_* Node, extract the constant from it.
+   */
+  template <class T>
+  inline const T& getConst() const;
+
+  NodeValue* getChild(int i) const;
+
 };/* class NodeValue */
 
 /**
  * For hash_maps, hash_sets, etc.. but this is for expr package
  * internal use only at present!  This is likely to be POORLY
- * PERFORMING for other uses!  NodeValue::internalHash() will lead to
+ * PERFORMING for other uses!  NodeValue::poolHash() will lead to
  * collisions for all VARIABLEs.
  */
-struct NodeValueInternalHashFunction {
+struct NodeValuePoolHashFcn {
   inline size_t operator()(const NodeValue* nv) const {
-    return (size_t) nv->internalHash();
+    return (size_t) nv->poolHash();
   }
-};/* struct NodeValueInternalHashFunction */
+};/* struct NodeValuePoolHashFcn */
 
 /**
  * For hash_maps, hash_sets, etc.
@@ -244,12 +254,14 @@ struct NodeValueIDHashFunction {
   inline size_t operator()(const NodeValue* nv) const {
     return (size_t) nv->getId();
   }
-};/* struct NodeValueHashFcn */
+};/* struct NodeValueIDHashFcn */
+
+inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#include "node_manager.h"
+#include "expr/node_manager.h"
 
 namespace CVC4 {
 namespace expr {
@@ -306,11 +318,32 @@ inline NodeValue::const_nv_iterator NodeValue::nv_end() const {
   return d_children + d_nchildren;
 }
 
+template <bool ref_count>
+inline NodeValue::iterator<ref_count> NodeValue::begin() const {
+  NodeValue* const* firstChild = d_children;
+  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    ++firstChild;
+  }
+  return iterator<ref_count>(firstChild);
+}
 
-inline bool NodeValue::isBeingDeleted() const
-{
+template <bool ref_count>
+inline NodeValue::iterator<ref_count> NodeValue::end() const {
+  return iterator<ref_count>(d_children + d_nchildren);
+}
+
+inline bool NodeValue::isBeingDeleted() const {
   return NodeManager::currentNM() != NULL &&
     NodeManager::currentNM()->isCurrentlyDeleting(this);
+}
+
+inline NodeValue* NodeValue::getChild(int i) const {
+  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    ++i;
+  }
+
+  Assert(i >= 0 && unsigned(i) < d_nchildren);
+  return d_children[i];
 }
 
 }/* CVC4::expr namespace */
@@ -324,6 +357,11 @@ namespace expr {
 template <bool ref_count>
 inline CVC4::NodeTemplate<ref_count> NodeValue::iterator<ref_count>::operator*() {
   return NodeTemplate<ref_count>(*d_i);
+}
+
+inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
+  nv.toStream(out, Node::setdepth::getDepth(out));
+  return out;
 }
 
 }/* CVC4::expr namespace */

@@ -56,8 +56,8 @@ public:
 
   template <unsigned N>
   void push_back(NodeBuilder<N>& nb, int n){
-    for(int i=0; i<n; ++i){
-      nb << Node::null();
+    for(int i = 0; i < n; ++i){
+      nb << d_nm->mkNode(TRUE);
     }
   }
 
@@ -295,8 +295,7 @@ public:
 
     Node i_0 = d_nm->mkNode(FALSE);
     Node i_2 = d_nm->mkNode(TRUE);
-    Node i_K = d_nm->mkNode(NOT);
-
+    Node i_K = d_nm->mkNode(NOT, i_0);
 
 #ifdef CVC4_DEBUG
     TS_ASSERT_THROWS_ANYTHING(arr[-1];);
@@ -314,23 +313,26 @@ public:
     TS_ASSERT_EQUALS(arr[0], i_0);
     TS_ASSERT_EQUALS(arr[2], i_2);
 
-    push_back(arr, K-3);
+    push_back(arr, K - 3);
 
     TS_ASSERT_EQUALS(arr[0], i_0);
     TS_ASSERT_EQUALS(arr[2], i_2);
-    for(int i=3;i<K;++i) TS_ASSERT_EQUALS(arr[i], Node::null());
+    for(int i = 3; i < K; ++i) {
+      TS_ASSERT_EQUALS(arr[i], d_nm->mkNode(TRUE));
+    }
 
     arr << i_K;
 
-
     TS_ASSERT_EQUALS(arr[0], i_0);
     TS_ASSERT_EQUALS(arr[2], i_2);
-    for(int i=3;i<K;++i) TS_ASSERT_EQUALS(arr[i], Node::null());
+    for(int i = 3; i < K; ++i) {
+      TS_ASSERT_EQUALS(arr[i], d_nm->mkNode(TRUE));
+    }
     TS_ASSERT_EQUALS(arr[K], i_K);
 
 #ifdef CVC4_DEBUG
     Node n = arr;
-    TS_ASSERT_THROWS_ANYTHING(arr[0];);
+    TS_ASSERT_THROWS_ANYTHING(arr[0]);
 #endif
   }
 
@@ -383,10 +385,10 @@ public:
   void testStreamInsertionKind() {
     /* NodeBuilder& operator<<(const Kind& k); */
 
-#ifdef CVC4_DEBUG
+#ifdef CVC4_ASSERTIONS
     NodeBuilder<> spec(specKind);
-    TS_ASSERT_THROWS_ANYTHING( spec << PLUS; );
-#endif
+    TS_ASSERT_THROWS( spec << PLUS, AssertionException );
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> noSpec;
     noSpec << specKind;
@@ -399,26 +401,32 @@ public:
     TS_ASSERT_EQUALS(modified.getKind(), specKind);
 
     NodeBuilder<> nb(specKind);
+    nb << d_nm->mkNode(TRUE) << d_nm->mkNode(FALSE);
     Node n = nb;// avoid warning on clear()
     nb.clear(PLUS);
 
-#ifdef CVC4_DEBUG
-    TS_ASSERT_THROWS_ANYTHING( nb << PLUS; );
-#endif
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(n = nb, AssertionException);
+    nb.clear(PLUS);
+#endif /* CVC4_ASSERTIONS */
+
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS( nb << PLUS, AssertionException );
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testRef;
     TS_ASSERT_EQUALS((testRef << specKind).getKind(), specKind);
 
-#ifdef CVC4_DEBUG
+#ifdef CVC4_ASSERTIONS
     NodeBuilder<> testTwo;
-    TS_ASSERT_THROWS_ANYTHING(testTwo << specKind << PLUS;);
-#endif
+    TS_ASSERT_THROWS(testTwo << specKind << PLUS, AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testMixOrder1;
-    TS_ASSERT_EQUALS((testMixOrder1<< specKind << d_nm->mkNode(TRUE)).getKind(),
+    TS_ASSERT_EQUALS((testMixOrder1 << specKind << d_nm->mkNode(TRUE)).getKind(),
                      specKind);
     NodeBuilder<> testMixOrder2;
-    TS_ASSERT_EQUALS((testMixOrder2<< d_nm->mkNode(TRUE)<<specKind).getKind(),
+    TS_ASSERT_EQUALS((testMixOrder2 << d_nm->mkNode(TRUE) << specKind).getKind(),
                      specKind);
   }
 
@@ -433,10 +441,10 @@ public:
     TS_ASSERT_EQUALS(nb.getNumChildren(), K);
     TS_ASSERT_DIFFERS(nb.begin(), nb.end());
 
-#ifdef CVC4_DEBUG
+#ifdef CVC4_ASSERTIONS
     Node n = nb;
-    TS_ASSERT_THROWS_ANYTHING(nb << n;);
-#endif
+    TS_ASSERT_THROWS(nb << n, AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> overflow(specKind);
     TS_ASSERT_EQUALS(overflow.getKind(), specKind);
@@ -518,9 +526,9 @@ public:
     TS_ASSERT_EQUALS(nexplicit.getKind(), specKind);
     TS_ASSERT_EQUALS(nexplicit.getNumChildren(), K);
 
-#ifdef CVC4_DEBUG
-    TS_ASSERT_THROWS_ANYTHING(Node blah = implicit);
-#endif
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(Node blah = implicit, AssertionException);
+#endif /* CVC4_ASSERTIONS */
   }
 
   void testToStream() {
@@ -535,9 +543,8 @@ public:
     string astr, bstr, cstr;
     stringstream astream, bstream, cstream;
 
-    push_back(a,K/2);
-    push_back(b,K/2);
-    push_back(c,K/2);
+    push_back(a, K / 2);
+    push_back(b, K / 2);
 
     a.toStream(astream);
     b.toStream(bstream);
@@ -661,7 +668,7 @@ public:
 
         // build one-past-the-end
         for(size_t j = 0; j <= n; ++j) {
-          b << Node::null();
+          b << d_nm->mkNode(TRUE);
         }
       }
     } catch(Exception e) {

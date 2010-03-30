@@ -25,22 +25,36 @@ namespace CVC4 {
 
 __thread NodeManager* NodeManager::s_current = 0;
 
+NodeManager::NodeManager(context::Context* ctxt) :
+  d_attrManager(ctxt),
+  d_nodeUnderDeletion(NULL),
+  d_reclaiming(false) {
+  poolInsert( &expr::NodeValue::s_null );
+
+  for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
+    Kind k = Kind(i);
+
+    if(hasOperator(k)) {
+      d_operators[i] = mkConst(Kind(k));
+    }
+  }
+}
+
 NodeManager::~NodeManager() {
+  // have to ensure "this" is the current NodeManager during
+  // destruction of operators, because they get GCed.
+
   NodeManagerScope nms(this);
+
+  for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
+    d_operators[i] = Node::null();
+  }
+
   while(!d_zombies.empty()) {
     reclaimZombies();
   }
 
   poolRemove( &expr::NodeValue::s_null );
-}
-
-NodeValue* NodeManager::poolLookup(NodeValue* nv) const {
-  NodeValuePool::const_iterator find = d_nodeValuePool.find(nv);
-  if(find == d_nodeValuePool.end()) {
-    return NULL;
-  } else {
-    return *find;
-  }
 }
 
 /**
@@ -81,6 +95,9 @@ void NodeManager::reclaimZombies() {
 
   // during reclamation, reclaimZombies() is never supposed to be called
   Assert(! d_reclaiming, "NodeManager::reclaimZombies() not re-entrant!");
+
+  // whether exit is normal or exceptional, the Reclaim dtor is called
+  // and ensures that d_reclaiming is set back to false.
   Reclaim r(d_reclaiming);
 
   // We copy the set away and clear the NodeManager's set of zombies.
@@ -111,14 +128,18 @@ void NodeManager::reclaimZombies() {
     // collect ONLY IF still zero
     if(nv->d_rc == 0) {
       Debug("gc") << "deleting node value " << nv
-                  << " [" << nv->d_id << "]: " << nv->toString() << "\n";
+                  << " [" << nv->d_id << "]: " << *nv << "\n";
 
       // remove from the pool
       if(nv->getKind() != kind::VARIABLE) {
         poolRemove(nv);
       }
-      NVReclaim rc(d_underTheShotgun);
-      d_underTheShotgun = nv;
+
+      // whether exit is normal or exceptional, the NVReclaim dtor is
+      // called and ensures that d_nodeUnderDeletion is set back to
+      // NULL.
+      NVReclaim rc(d_nodeUnderDeletion);
+      d_nodeUnderDeletion = nv;
 
       // remove attributes
       d_attrManager.deleteAllAttributes(nv);

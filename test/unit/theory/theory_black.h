@@ -211,10 +211,13 @@ public:
   void testRegisterTerm() {
     TS_ASSERT(d_dummy->doneWrapper());
 
-    Node x = d_nm->mkVar();
-    Node f = d_nm->mkVar();
-    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
-    Node f_f_x = d_nm->mkNode(kind::APPLY, f, f_x);
+    Type* typeX = d_nm->booleanType();
+    Type* typeF = d_nm->mkFunctionType(typeX, typeX);
+
+    Node x = d_nm->mkVar(typeX, "x");
+    Node f = d_nm->mkVar(typeF, "f");
+    Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
+    Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
     Node f_x_eq_x = f_x.eqNode(x);
     Node x_eq_f_f_x = x.eqNode(f_f_x);
 
@@ -225,11 +228,12 @@ public:
 
     TS_ASSERT_EQUALS(got, f_x_eq_x);
 
-    TS_ASSERT_EQUALS(4, d_dummy->d_registered.size());
+    TS_ASSERT_EQUALS(5, d_dummy->d_registered.size());
     TS_ASSERT(d_dummy->d_registered.find(x) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(f) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(f_x) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(f_x_eq_x) != d_dummy->d_registered.end());
+    TS_ASSERT(d_dummy->d_registered.find(d_nm->operatorOf(kind::EQUAL)) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(f_f_x) == d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) == d_dummy->d_registered.end());
 
@@ -239,7 +243,7 @@ public:
 
     TS_ASSERT_EQUALS(got, x_eq_f_f_x);
 
-    TS_ASSERT_EQUALS(6, d_dummy->d_registered.size());
+    TS_ASSERT_EQUALS(7, d_dummy->d_registered.size());
     TS_ASSERT(d_dummy->d_registered.find(f_f_x) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) != d_dummy->d_registered.end());
 

@@ -118,11 +118,11 @@ public:
   void testPushPopChain() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
-    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
-    Node f_f_x = d_nm->mkNode(kind::APPLY, f, f_x);
-    Node f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_x);
-    Node f_f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_f_x);
-    Node f_f_f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_f_f_x);
+    Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
+    Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
+    Node f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_x);
+    Node f_f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_f_x);
+    Node f_f_f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_f_f_x);
 
     Node f3_x_eq_x = f_f_f_x.eqNode(x);
     Node f5_x_eq_x = f_f_f_f_f_x.eqNode(x);
@@ -173,9 +173,9 @@ public:
   void testSimpleChain() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
-    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
-    Node f_f_x = d_nm->mkNode(kind::APPLY, f, f_x);
-    Node f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_x);
+    Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
+    Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
+    Node f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_x);
 
     Node f_f_x_eq_x = f_f_x.eqNode(x);
     Node f_f_f_x_neq_f_x = (f_f_f_x.eqNode(f_x)).notNode();
@@ -198,13 +198,12 @@ public:
   void testSelfInconsistent() {
     Node x = d_nm->mkVar();
     Node x_neq_x = (x.eqNode(x)).notNode();
-    Node and_x_neq_x = d_nm->mkNode(kind::AND, x_neq_x);
 
     d_euf->assertFact(x_neq_x);
     d_euf->check(d_level);
 
     TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
-    TS_ASSERT_EQUALS(and_x_neq_x, d_outputChannel.getIthNode(0));
+    TS_ASSERT_EQUALS(x_neq_x, d_outputChannel.getIthNode(0));
     TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
   }
 
@@ -228,11 +227,11 @@ public:
   void testChain() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
-    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
-    Node f_f_x = d_nm->mkNode(kind::APPLY, f, f_x);
-    Node f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_x);
-    Node f_f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_f_x);
-    Node f_f_f_f_f_x = d_nm->mkNode(kind::APPLY, f, f_f_f_f_x);
+    Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
+    Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
+    Node f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_x);
+    Node f_f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_f_x);
+    Node f_f_f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_f_f_x);
 
     Node f3_x_eq_x = f_f_f_x.eqNode(x);
     Node f5_x_eq_x = f_f_f_f_f_x.eqNode(x);
@@ -270,7 +269,7 @@ public:
   void testPushPopB() {
     Node x = d_nm->mkVar();
     Node f = d_nm->mkVar();
-    Node f_x = d_nm->mkNode(kind::APPLY, f, x);
+    Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
     Node f_x_eq_x = f_x.eqNode(x);
 
     d_euf->assertFact( f_x_eq_x );
