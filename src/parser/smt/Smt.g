@@ -191,8 +191,8 @@ annotatedFormula[CVC4::Expr& expr]
 
   | /* a let/flet binding */
     LPAREN_TOK 
-    (LET_TOK LPAREN_TOK var_identifier[name,CHECK_UNDECLARED]
-      | FLET_TOK LPAREN_TOK fun_identifier[name,CHECK_UNDECLARED] )
+    (LET_TOK LPAREN_TOK let_identifier[name,CHECK_UNDECLARED]
+      | FLET_TOK LPAREN_TOK flet_identifier[name,CHECK_UNDECLARED] )
     annotatedFormula[expr] RPAREN_TOK
     { ANTLR_INPUT->defineVar(name,expr); }
     annotatedFormula[expr]
@@ -201,8 +201,8 @@ annotatedFormula[CVC4::Expr& expr]
 
   | /* a variable */
     ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-      | var_identifier[name,CHECK_DECLARED] 
-      | fun_identifier[name,CHECK_DECLARED] )
+      | let_identifier[name,CHECK_DECLARED] 
+      | flet_identifier[name,CHECK_DECLARED] )
     { expr = ANTLR_INPUT->getVariable(name); }
 
     /* constants */
@@ -378,29 +378,29 @@ identifier[std::string& id,
   ;
 
 /**
- * Matches an variable identifier and sets the string reference parameter id.
+ * Matches a let-bound identifier and sets the string reference parameter id.
  * @param id string to hold the identifier
  * @param check what kinds of check to do on the symbol
  */
-var_identifier[std::string& id,
+let_identifier[std::string& id,
     		   CVC4::parser::DeclarationCheck check] 
-  : VAR_IDENTIFIER
-    { id = AntlrInput::tokenText($VAR_IDENTIFIER);
-      Debug("parser") << "var_identifier: " << id
+  : LET_IDENTIFIER
+    { id = AntlrInput::tokenText($LET_IDENTIFIER);
+      Debug("parser") << "let_identifier: " << id
                       << " check? " << toString(check) << std::endl;
       ANTLR_INPUT->checkDeclaration(id, check, SYM_VARIABLE); }
   ;
 
 /**
- * Matches an function identifier and sets the string reference parameter id.
+ * Matches an flet-bound identifier and sets the string reference parameter id.
  * @param id string to hold the identifier
  * @param check what kinds of check to do on the symbol
  */
-fun_identifier[std::string& id,
-    		   CVC4::parser::DeclarationCheck check] 
-  : FUN_IDENTIFIER
-    { id = AntlrInput::tokenText($FUN_IDENTIFIER);
-      Debug("parser") << "fun_identifier: " << id
+flet_identifier[std::string& id,
+    		    CVC4::parser::DeclarationCheck check] 
+  : FLET_IDENTIFIER
+    { id = AntlrInput::tokenText($FLET_IDENTIFIER);
+      Debug("parser") << "flet_identifier: " << id
                       << " check? " << toString(check) << std::endl;
       ANTLR_INPUT->checkDeclaration(id, check); }
   ;
@@ -477,14 +477,14 @@ ATTR_IDENTIFIER /*options { paraphrase = 'an identifier starting with a colon'; 
 /**
  * Matches an identifier starting with a question mark.
  */
-VAR_IDENTIFIER
+LET_IDENTIFIER
   : '?' IDENTIFIER
   ;
   
 /**
  * Matches an identifier starting with a dollar sign.
  */
-FUN_IDENTIFIER
+FLET_IDENTIFIER
   : '$' IDENTIFIER
   ;
 
