@@ -66,8 +66,6 @@ inline std::string toString(DeclarationCheck check) {
 enum SymbolType {
   /** Variables */
   SYM_VARIABLE,
-  /** Functions */
-  SYM_FUNCTION,
   /** Sorts */
   SYM_SORT
 };
@@ -77,7 +75,6 @@ enum SymbolType {
 inline std::string toString(SymbolType type) {
   switch(type) {
   case SYM_VARIABLE: return "SYM_VARIABLE";
-  case SYM_FUNCTION: return "SYM_FUNCTION";
   case SYM_SORT: return "SYM_SORT";
   default: Unreachable();
   }
@@ -207,13 +204,6 @@ public:
     Expr getVariable(const std::string& var_name);
 
     /**
-     * Returns a function, given a name and a type.
-     * @param name the name of the function
-     * @return the function expression
-     */
-    Expr getFunction(const std::string& name);
-
-    /**
      * Returns a sort, given a name
      */
     Type* getSort(const std::string& sort_name);
@@ -278,30 +268,6 @@ public:
     /** Remove a variable definition (e.g., from a let binding). */
     void undefineVar(const std::string& name);
 
-    /** Returns a function type over the given domain and range types. */
-    Type* functionType(Type* domain, Type* range);
-
-    /** Returns a function type over the given types. argTypes must be
-        non-empty. */
-    Type* functionType(const std::vector<Type*>& argTypes,
-                             Type* rangeType);
-
-    /**
-     * Returns a function type over the given types. If types has only
-     * one element, then the type is just types[0].
-     *
-     * @param types a non-empty list of input and output types.
-     */
-    Type* functionType(const std::vector<Type*>& types);
-
-    /**
-     * Returns a predicate type over the given sorts. If sorts is empty,
-     * then the type is just BOOLEAN.
-
-     * @param sorts a list of input types
-     */
-    Type* predicateType(const std::vector<Type*>& sorts);
-
     /**
      * Creates a new sort with the given name.
      */
@@ -321,18 +287,6 @@ public:
 
     /** Is the symbol bound to a predicate? */
     bool isPredicate(const std::string& name);
-
-    /** Returns the boolean type. */
-    BooleanType* booleanType();
-
-    /** Returns the kind type (i.e., the type of types). */
-    KindType* kindType();
-
-    /** Returns the minimum arity of the given kind. */
-    static unsigned int minArity(Kind kind);
-
-    /** Returns the maximum arity of the given kind. */
-    static unsigned int maxArity(Kind kind);
 
     /** Throws a <code>ParserException</code> with the given error message.
      * Implementations should fill in the <code>ParserException</code> with

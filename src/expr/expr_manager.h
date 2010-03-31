@@ -99,10 +99,25 @@ public:
     mkFunctionType(Type* domain,
                    Type* range);
 
-  /** Make a function type with input types from argTypes. */
+  /** Make a function type with input types from argTypes. <code>argTypes</code>
+   * must have at least one element. */
   FunctionType*
     mkFunctionType(const std::vector<Type*>& argTypes,
                    Type* range);
+
+  /** Make a function type with input types from <code>sorts[0..sorts.size()-2]</code>
+   * and result type <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have at
+   * least 2 elements.
+   */
+  FunctionType*
+    mkFunctionType(const std::vector<Type*>& sorts);
+
+  /** Make a predicate type with input types from <code>sorts</code>. The result with
+   * be a function type with range <code>BOOLEAN</code>. <code>sorts</code> must have at
+   * least one element.
+   */
+  FunctionType*
+    mkPredicateType(const std::vector<Type*>& sorts);
 
   /** Make a new sort with the given name. */
   Type* mkSort(const std::string& name);
@@ -110,6 +125,12 @@ public:
   // variables are special, because duplicates are permitted
   Expr mkVar(Type* type, const std::string& name);
   Expr mkVar(Type* type);
+
+  /** Returns the minimum arity of the given kind. */
+  static unsigned int minArity(Kind kind);
+
+  /** Returns the maximum arity of the given kind. */
+  static unsigned int maxArity(Kind kind);
 
 private:
   /** The context */

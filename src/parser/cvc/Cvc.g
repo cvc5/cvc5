@@ -133,7 +133,9 @@ declType[CVC4::Type*& t, std::vector<std::string>& idList]
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : /* A sort declaration (e.g., "T : TYPE") */
-    TYPE_TOK { ANTLR_INPUT->newSorts(idList); t = ANTLR_INPUT->kindType(); }
+    TYPE_TOK 
+    { ANTLR_INPUT->newSorts(idList); 
+      t = EXPR_MANAGER->kindType(); }
   | /* A variable declaration */
     type[t] { ANTLR_INPUT->mkVars(idList,t); }
   ;
@@ -144,21 +146,21 @@ declType[CVC4::Type*& t, std::vector<std::string>& idList]
  */
 type[CVC4::Type*& t]
 @init {
+  Type* t2;
   std::vector<Type*> typeList;
   Debug("parser-extra") << "type: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : /* Simple type */
     baseType[t]
   | /* Single-parameter function type */
-    baseType[t] { typeList.push_back(t); }
-    ARROW_TOK baseType[t] 
-    { t = ANTLR_INPUT->functionType(typeList,t); }
+    baseType[t] ARROW_TOK baseType[t2] 
+    { t = EXPR_MANAGER->mkFunctionType(t,t2); }
   | /* Multi-parameter function type */
     LPAREN baseType[t]
     { typeList.push_back(t); }
     (COMMA baseType[t] { typeList.push_back(t); } )+
     RPAREN ARROW_TOK baseType[t]
-    { t = ANTLR_INPUT->functionType(typeList,t); }
+    { t = EXPR_MANAGER->mkFunctionType(typeList,t); }
   ;
 
 /**
@@ -198,7 +200,7 @@ baseType[CVC4::Type*& t]
   std::string id;
   Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : BOOLEAN_TOK { t = ANTLR_INPUT->booleanType(); }
+  : BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
   | typeSymbol[t]
   ;
 
@@ -415,9 +417,9 @@ functionSymbol[CVC4::Expr& f]
   Debug("parser-extra") << "function symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string name;
 }
-  : identifier[name,CHECK_DECLARED,SYM_FUNCTION]
+  : identifier[name,CHECK_DECLARED,SYM_VARIABLE]
     { ANTLR_INPUT->checkFunction(name);
-      f = ANTLR_INPUT->getFunction(name); }
+      f = ANTLR_INPUT->getVariable(name); }
   ;
 
 

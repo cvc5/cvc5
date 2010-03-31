@@ -255,7 +255,7 @@ predicateName[std::string& name, CVC4::parser::DeclarationCheck check]
  * @param check what kind of check to do with the symbol
  */
 functionName[std::string& name, CVC4::parser::DeclarationCheck check]
-  :  identifier[name,check,SYM_FUNCTION] 
+  :  identifier[name,check,SYM_VARIABLE] 
   ;
 
 /**
@@ -267,7 +267,7 @@ functionSymbol[CVC4::Expr& fun]
 }
   : functionName[name,CHECK_DECLARED]
     { ANTLR_INPUT->checkFunction(name);
-      fun = ANTLR_INPUT->getFunction(name); }
+      fun = ANTLR_INPUT->getVariable(name); }
   ;
   
 /**
@@ -276,8 +276,6 @@ functionSymbol[CVC4::Expr& fun]
 attribute
   :  ATTR_IDENTIFIER
   ;
-
-
 
 functionDeclaration
 @declarations {
@@ -288,7 +286,11 @@ functionDeclaration
       t = sortSymbol // require at least one sort
     { sorts.push_back(t); }
       sortList[sorts] RPAREN_TOK
-    { t = ANTLR_INPUT->functionType(sorts);
+    { if( sorts.size() == 1 ) {
+        Assert( t == sorts[0] ); 
+      } else {
+        t = EXPR_MANAGER->mkFunctionType(sorts);
+      }
       ANTLR_INPUT->mkVar(name, t); } 
   ;
               
@@ -301,7 +303,12 @@ predicateDeclaration
   std::vector<Type*> p_sorts;
 }
   : LPAREN_TOK predicateName[name,CHECK_UNDECLARED] sortList[p_sorts] RPAREN_TOK
-    { Type *t = ANTLR_INPUT->predicateType(p_sorts);
+    { Type *t;
+      if( p_sorts.empty() ) {
+        t = EXPR_MANAGER->booleanType();
+      } else { 
+        t = EXPR_MANAGER->mkPredicateType(p_sorts);
+      }
       ANTLR_INPUT->mkVar(name, t); } 
   ;
 
@@ -395,7 +402,7 @@ fun_identifier[std::string& id,
     { id = AntlrInput::tokenText($FUN_IDENTIFIER);
       Debug("parser") << "fun_identifier: " << id
                       << " check? " << toString(check) << std::endl;
-      ANTLR_INPUT->checkDeclaration(id, check, SYM_FUNCTION); }
+      ANTLR_INPUT->checkDeclaration(id, check); }
   ;
 
 

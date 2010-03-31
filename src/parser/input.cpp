@@ -163,7 +163,6 @@ Expr Input::getSymbol(const std::string& name, SymbolType type) {
   switch( type ) {
 
   case SYM_VARIABLE: // Functions share var namespace
-  case SYM_FUNCTION:
     return d_varSymbolTable.getObject(name);
 
   default:
@@ -174,10 +173,6 @@ Expr Input::getSymbol(const std::string& name, SymbolType type) {
 
 Expr Input::getVariable(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
-}
-
-Expr Input::getFunction(const std::string& name) {
-  return getSymbol(name, SYM_FUNCTION);
 }
 
 Type*
@@ -201,46 +196,12 @@ bool Input::isBoolean(const std::string& name) {
 
 /* Returns true if name is bound to a function. */
 bool Input::isFunction(const std::string& name) {
-  return isDeclared(name, SYM_FUNCTION) && getType(name)->isFunction();
+  return isDeclared(name, SYM_VARIABLE) && getType(name)->isFunction();
 }
 
 /* Returns true if name is bound to a function returning boolean. */
 bool Input::isPredicate(const std::string& name) {
-  return isDeclared(name, SYM_FUNCTION) && getType(name)->isPredicate();
-}
-
-Type*
-Input::functionType(Type* domainType,
-                          Type* rangeType) {
-  return d_exprManager->mkFunctionType(domainType,rangeType);
-}
-
-Type*
-Input::functionType(const std::vector<Type*>& argTypes,
-                          Type* rangeType) {
-  Assert( argTypes.size() > 0 );
-  return d_exprManager->mkFunctionType(argTypes,rangeType);
-}
-
-Type*
-Input::functionType(const std::vector<Type*>& sorts) {
-  Assert( sorts.size() > 0 );
-  if( sorts.size() == 1 ) {
-    return sorts[0];
-  } else {
-    std::vector<Type*> argTypes(sorts);
-    Type* rangeType = argTypes.back();
-    argTypes.pop_back();
-    return functionType(argTypes,rangeType);
-  }
-}
-
-Type* Input::predicateType(const std::vector<Type*>& sorts) {
-  if(sorts.size() == 0) {
-    return d_exprManager->booleanType();
-  } else {
-    return d_exprManager->mkFunctionType(sorts, d_exprManager->booleanType());
-  }
+  return isDeclared(name, SYM_VARIABLE) && getType(name)->isPredicate();
 }
 
 Expr 
@@ -303,80 +264,9 @@ Input::newSorts(const std::vector<std::string>& names) {
   return types;
 }
 
-BooleanType* Input::booleanType() {
-  return d_exprManager->booleanType();
-}
-
-KindType* Input::kindType() {
-  return d_exprManager->kindType();
-}
-
-unsigned int Input::minArity(Kind kind) {
-  switch(kind) {
-  case FALSE:
-  case SKOLEM:
-  case TRUE:
-  case VARIABLE:
-    return 0;
-
-  case AND:
-  case NOT:
-  case OR:
-    return 1;
-
-  case APPLY_UF:
-  case DISTINCT:
-  case EQUAL:
-  case IFF:
-  case IMPLIES:
-  case PLUS:
-  case XOR:
-    return 2;
-
-  case ITE:
-    return 3;
-
-  default:
-    Unhandled(kind);
-  }
-}
-
-unsigned int Input::maxArity(Kind kind) {
-  switch(kind) {
-  case FALSE:
-  case SKOLEM:
-  case TRUE:
-  case VARIABLE:
-    return 0;
-
-  case NOT:
-    return 1;
-
-  case EQUAL:
-  case IFF:
-  case IMPLIES:
-  case XOR:
-    return 2;
-
-  case ITE:
-    return 3;
-
-  case AND:
-  case APPLY_UF:
-  case DISTINCT:
-  case PLUS:
-  case OR:
-    return UINT_MAX;
-
-  default:
-    Unhandled(kind);
-  }
-}
-
 bool Input::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
-  case SYM_VARIABLE: // Functions share var namespace
-  case SYM_FUNCTION:
+  case SYM_VARIABLE:
     return d_varSymbolTable.isBound(name);
   case SYM_SORT:
     return d_sortTable.isBound(name);
@@ -427,8 +317,8 @@ void Input::checkArity(Kind kind, unsigned int numArgs)
     return;
   }
 
-  unsigned int min = minArity(kind);
-  unsigned int max = maxArity(kind);
+  unsigned int min = d_exprManager->minArity(kind);
+  unsigned int max = d_exprManager->maxArity(kind);
 
   if( numArgs < min || numArgs > max ) {
     stringstream ss;

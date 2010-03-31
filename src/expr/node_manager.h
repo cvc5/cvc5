@@ -293,9 +293,24 @@ public:
   /** Make a function type from domain to range. */
   inline FunctionType* mkFunctionType(Type* domain, Type* range) const;
 
-  /** Make a function type with input types from argTypes. */
+  /** Make a function type with input types from argTypes. <code>argTypes</code>
+   * must have at least one element. */
   inline FunctionType* mkFunctionType(const std::vector<Type*>& argTypes,
                                       Type* range) const;
+
+  /** Make a function type with input types from <code>sorts[0..sorts.size()-2]</code>
+   * and result type <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have at
+   * least 2 elements.
+   */
+  inline FunctionType*
+    mkFunctionType(const std::vector<Type*>& sorts);
+
+  /** Make a predicate type with input types from <code>sorts</code>. The result with
+   * be a function type with range <code>BOOLEAN</code>. <code>sorts</code> must have at
+   * least one element.
+   */
+  inline FunctionType*
+    mkPredicateType(const std::vector<Type*>& sorts);
 
   /** Make a new sort with the given name. */
   inline Type* mkSort(const std::string& name) const;
@@ -437,6 +452,20 @@ NodeManager::mkFunctionType(const std::vector<Type*>& argTypes,
   return new FunctionType(argTypes, range);
 }
 
+inline FunctionType*
+NodeManager::mkFunctionType(const std::vector<Type*>& sorts) {
+  Assert( sorts.size() >= 2 );
+  std::vector<Type*> argTypes(sorts);
+  Type* rangeType = argTypes.back();
+  argTypes.pop_back();
+  return mkFunctionType(argTypes,rangeType);
+}
+
+inline FunctionType*
+NodeManager::mkPredicateType(const std::vector<Type*>& sorts) {
+  Assert( sorts.size() >= 1 );
+  return mkFunctionType(sorts,booleanType());
+}
 inline Type* NodeManager::mkSort(const std::string& name) const {
   return new SortType(name);
 }

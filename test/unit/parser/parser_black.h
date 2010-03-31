@@ -27,27 +27,6 @@ using namespace CVC4;
 using namespace CVC4::parser;
 using namespace std;
 
-/* Set up declaration context for expr inputs */
-
-void setupContext(Input* input) {
-  /* a, b, c: BOOLEAN */
-  input->mkVar("a",(Type*)input->booleanType());
-  input->mkVar("b",(Type*)input->booleanType());
-  input->mkVar("c",(Type*)input->booleanType());
-  /* t, u, v: TYPE */
-  Type *t = input->newSort("t");
-  Type *u = input->newSort("u");
-  Type *v = input->newSort("v");
-  /* f : t->u; g: u->v; h: v->t; */
-  input->mkVar("f", input->functionType(t,u));
-  input->mkVar("g", input->functionType(u,v));
-  input->mkVar("h", input->functionType(v,t));
-  /* x:t; y:u; z:v; */
-  input->mkVar("x",t);
-  input->mkVar("y",u);
-  input->mkVar("z",v);
-}
-
 
 /************************** CVC test inputs ********************************/
 
@@ -161,6 +140,27 @@ const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
 
 class ParserBlack : public CxxTest::TestSuite {
   ExprManager *d_exprManager;
+
+  /* Set up declaration context for expr inputs */
+
+  void setupContext(Input* input) {
+    /* a, b, c: BOOLEAN */
+    input->mkVar("a",(Type*)d_exprManager->booleanType());
+    input->mkVar("b",(Type*)d_exprManager->booleanType());
+    input->mkVar("c",(Type*)d_exprManager->booleanType());
+    /* t, u, v: TYPE */
+    Type *t = input->newSort("t");
+    Type *u = input->newSort("u");
+    Type *v = input->newSort("v");
+    /* f : t->u; g: u->v; h: v->t; */
+    input->mkVar("f", (Type*)d_exprManager->mkFunctionType(t,u));
+    input->mkVar("g", (Type*)d_exprManager->mkFunctionType(u,v));
+    input->mkVar("h", (Type*)d_exprManager->mkFunctionType(v,t));
+    /* x:t; y:u; z:v; */
+    input->mkVar("x",t);
+    input->mkVar("y",u);
+    input->mkVar("z",v);
+  }
 
   void tryGoodInputs(InputLanguage d_lang, const string goodInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {

@@ -20,15 +20,17 @@
  *      Author: dejan
  */
 
-#include "expr/node.h"
-#include "expr/expr.h"
-#include "expr/type.h"
-#include "expr/node_manager.h"
-#include "expr/expr_manager.h"
 #include "context/context.h"
+#include "expr/expr.h"
+#include "expr/expr_manager.h"
+#include "expr/kind.h"
+#include "expr/node.h"
+#include "expr/node_manager.h"
+#include "expr/type.h"
 
 using namespace std;
 using namespace CVC4::context;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 
@@ -115,8 +117,23 @@ FunctionType* ExprManager::mkFunctionType(Type* domain,
 /** Make a function type with input types from argTypes. */
 FunctionType* ExprManager::mkFunctionType(const std::vector<Type*>& argTypes,
                                           Type* range) {
+  Assert( argTypes.size() >= 1 );
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkFunctionType(argTypes, range);
+}
+
+FunctionType*
+ExprManager::mkFunctionType(const std::vector<Type*>& sorts) {
+  Assert( sorts.size() >= 2 );
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->mkFunctionType(sorts);
+}
+
+FunctionType*
+ExprManager::mkPredicateType(const std::vector<Type*>& sorts) {
+  Assert( sorts.size() >= 1 );
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->mkPredicateType(sorts);
 }
 
 Type* ExprManager::mkSort(const std::string& name) {
@@ -133,6 +150,69 @@ Expr ExprManager::mkVar(Type* type) {
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkVar(type)));
 }
+
+unsigned int ExprManager::minArity(Kind kind) {
+  switch(kind) {
+  case FALSE:
+  case SKOLEM:
+  case TRUE:
+  case VARIABLE:
+    return 0;
+
+  case AND:
+  case NOT:
+  case OR:
+    return 1;
+
+  case APPLY_UF:
+  case DISTINCT:
+  case EQUAL:
+  case IFF:
+  case IMPLIES:
+  case PLUS:
+  case XOR:
+    return 2;
+
+  case ITE:
+    return 3;
+
+  default:
+    Unhandled(kind);
+  }
+}
+
+unsigned int ExprManager::maxArity(Kind kind) {
+  switch(kind) {
+  case FALSE:
+  case SKOLEM:
+  case TRUE:
+  case VARIABLE:
+    return 0;
+
+  case NOT:
+    return 1;
+
+  case EQUAL:
+  case IFF:
+  case IMPLIES:
+  case XOR:
+    return 2;
+
+  case ITE:
+    return 3;
+
+  case AND:
+  case APPLY_UF:
+  case DISTINCT:
+  case PLUS:
+  case OR:
+    return UINT_MAX;
+
+  default:
+    Unhandled(kind);
+  }
+}
+
 
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
