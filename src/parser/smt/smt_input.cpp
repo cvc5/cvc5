@@ -17,13 +17,15 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-SmtInput::SmtInput(ExprManager* exprManager, const std::string& filename, bool useMmap) :
-  AntlrInput(exprManager,filename,2,useMmap) {
+SmtInput::SmtInput(ExprManager* exprManager, const std::string& filename,
+                   bool useMmap) :
+  AntlrInput(exprManager, filename, 2, useMmap) {
   init();
 }
 
-SmtInput::SmtInput(ExprManager* exprManager, const std::string& input, const std::string& name) :
-  AntlrInput(exprManager,input,name,2) {
+SmtInput::SmtInput(ExprManager* exprManager, const std::string& input,
+                   const std::string& name) :
+  AntlrInput(exprManager, input, name, 2) {
   init();
 }
 
@@ -47,7 +49,6 @@ void SmtInput::init() {
   }
 
   setParser(d_pSmtParser->pParser);
-  SetSmtInput(this);
 }
 
 
@@ -62,10 +63,6 @@ Command* SmtInput::doParseCommand() throw (ParserException) {
 
 Expr SmtInput::doParseExpr() throw (ParserException) {
   return d_pSmtParser->parseExpr(d_pSmtParser);
-}
-
-pANTLR3_LEXER SmtInput::getLexer() {
-  return d_pSmtLexer->pLexer;
 }
 
 } // namespace parser

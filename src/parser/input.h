@@ -92,7 +92,41 @@ inline std::string toString(SymbolType type) {
  */
 class CVC4_PUBLIC Input {
 
+  /** Whether to de-allocate the input */
+//  bool d_deleteInput;
+
+  /** The expression manager */
+  ExprManager* d_exprManager;
+
+  /** The symbol table lookup */
+  SymbolTable<Expr> d_varSymbolTable;
+
+  /** The sort table */
+  SymbolTable<Type*> d_sortTable;
+
+  /** The name of the input file. */
+  std::string d_filename;
+
+  /** Are we done */
+  bool d_done;
+
+  /** Are semantic checks enabled during parsing? */
+  bool d_checksEnabled;
+
 public:
+
+  /**
+   * Create a new parser for the given file.
+   * @param exprManager the ExprManager to use
+   * @param filename the path of the file to parse
+   */
+  Input(ExprManager* exprManager, const std::string& filename);
+
+  /**
+   * Destructor.
+   */
+  ~Input();
+
   /** Create a parser for the given file.
     *
     * @param exprManager the ExprManager for creating expressions from the input
@@ -120,13 +154,10 @@ public:
   static Input* newStringParser(ExprManager* exprManager, InputLanguage lang, const std::string& input, const std::string& name);
 
   /**
-   * Destructor.
-   */
-  ~Input();
-
-  /**
    * Parse the next command of the input. If EOF is encountered a EmptyCommand
    * is returned and done flag is set.
+   *
+   * @throws ParserException if an error is encountered during parsing.
    */
   Command* parseNextCommand() throw(ParserException);
 
@@ -134,6 +165,7 @@ public:
    * Parse the next expression of the stream. If EOF is encountered a null
    * expression is returned and done flag is set.
    * @return the parsed expression
+   * @throws ParserException if an error is encountered during parsing.
    */
   Expr parseNextExpression() throw(ParserException);
 
@@ -344,18 +376,29 @@ public:
     /** Returns the maximum arity of the given kind. */
     static unsigned int maxArity(Kind kind);
 
+    /** Throws a <code>ParserException</code> with the given error message.
+     * Implementations should fill in the <code>ParserException</code> with
+     * line number information, etc. */
     virtual void parseError(const std::string& msg) throw (ParserException) = 0;
 
 protected:
-    virtual Command* doParseCommand() throw(ParserException) = 0;
-    virtual Expr doParseExpr() throw(ParserException) = 0;
 
-    /**
-     * Create a new parser for the given file.
-     * @param exprManager the ExprManager to use
-     * @param filename the path of the file to parse
-     */
-    Input(ExprManager* exprManager, const std::string& filename);
+  /** Called by <code>parseNextCommand</code> to actually parse a command from
+   * the input by invoking the implementation-specific parsing method.  Returns
+   * <code>NULL</code> if there is no command there to parse.
+   *
+   * @throws ParserException if an error is encountered during parsing.
+   */
+  virtual Command* doParseCommand() throw(ParserException) = 0;
+
+  /** Called by <code>parseNextExpression</code> to actually parse an
+   * expression from the input by invoking the implementation-specific
+   * parsing method. Returns a null <code>Expr</code> if there is no
+   * expression there to parse.
+   *
+   * @throws ParserException if an error is encountered during parsing.
+   */
+  virtual Expr doParseExpr() throw(ParserException) = 0;
 
 private:
 
@@ -364,27 +407,6 @@ private:
 
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(const std::string& var_name, SymbolType type);
-
-  /** Whether to de-allocate the input */
-//  bool d_deleteInput;
-
-  /** The expression manager */
-  ExprManager* d_exprManager;
-
-  /** The symbol table lookup */
-  SymbolTable<Expr> d_varSymbolTable;
-
-  /** The sort table */
-  SymbolTable<Type*> d_sortTable;
-
-  /** The name of the input file. */
-  std::string d_filename;
-
-  /** Are we done */
-  bool d_done;
-
-  /** Are semantic checks enabled during parsing? */
-  bool d_checksEnabled;
 
 }; // end of class Parser
 

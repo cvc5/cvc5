@@ -308,6 +308,9 @@ void AntlrInput::setLexer(pANTLR3_LEXER pLexer) {
 void AntlrInput::setParser(pANTLR3_PARSER pParser) {
   d_parser = pParser;
   // ANTLR isn't using super, AFAICT.
+  // We could also use @parser::context to add a field to the generated parser, but then
+  // it would have to be declared separately in every input's grammar and we'd have to
+  // pass it in as an address anyway.
   d_parser->super = this;
   d_parser->rec->reportError = &reportError;
 }

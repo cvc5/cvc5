@@ -33,6 +33,11 @@ options {
 }
 
 @lexer::includes {
+/** This suppresses warnings about the redefinition of token symbols between different
+  * parsers. The redefinitions should be harmless as long as no client: (a) #include's 
+  * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
+#pragma GCC system_header
+
 /* This improves performance by ~10 percent on big inputs.
  * This option is only valid if we know the input is ASCII (or some 8-bit encoding).
  * If we know the input is UTF-16, we can use ANTLR3_INLINE_INPUT_UTF16.
@@ -43,40 +48,25 @@ options {
 
 @parser::includes {
 #include "expr/command.h"
-#include "parser/input.h"
 
 namespace CVC4 {
   class Expr;
-namespace parser {
-  class SmtInput;
 }
-}
-
-extern
-void SetSmtInput(CVC4::parser::SmtInput* smt);
-
 }
 
 @parser::postinclude {
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "parser/input.h"
 #include "parser/smt/smt_input.h"
 #include "util/output.h"
 #include <vector>
 
 using namespace CVC4;
 using namespace CVC4::parser;
-}
 
-@members {
-static CVC4::parser::SmtInput *input;
-
-extern
-void SetSmtInput(CVC4::parser::SmtInput* _input) {
-  input = _input;
-}
+#undef SMT_INPUT
+#define SMT_INPUT ((SmtInput*)(PARSER->super))
 }
 
 /**
@@ -130,7 +120,7 @@ benchAttribute returns [CVC4::Command* smt_command]
   Expr expr;
 }
   : LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
-    { input->setLogic(name);
+    { SMT_INPUT->setLogic(name);
       smt_command = new SetBenchmarkLogicCommand(name);   }
   | ASSUMPTION_TOK annotatedFormula[expr]
     { smt_command = new AssertCommand(expr);   }
@@ -158,13 +148,13 @@ annotatedFormula[CVC4::Expr& expr]
 } 
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr] RPAREN_TOK 
-    { input->checkArity(kind, args.size());
+    { SMT_INPUT->checkArity(kind, args.size());
       if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
       } else {
-        expr = input->mkExpr(kind, args);
+        expr = SMT_INPUT->mkExpr(kind, args);
       }
     }
 
@@ -179,7 +169,7 @@ annotatedFormula[CVC4::Expr& expr]
     { args.push_back(expr); }
     annotatedFormulas[args,expr] RPAREN_TOK
     // TODO: check arity
-    { expr = input->mkExpr(CVC4::kind::APPLY_UF,args); }
+    { expr = SMT_INPUT->mkExpr(CVC4::kind::APPLY_UF,args); }
 
   | /* An ite expression */
     LPAREN_TOK (ITE_TOK | IF_THEN_ELSE_TOK) 
@@ -190,27 +180,27 @@ annotatedFormula[CVC4::Expr& expr]
     annotatedFormula[expr]
     { args.push_back(expr); } 
     RPAREN_TOK
-    { expr = input->mkExpr(CVC4::kind::ITE, args); }
+    { expr = SMT_INPUT->mkExpr(CVC4::kind::ITE, args); }
 
   | /* a let/flet binding */
     LPAREN_TOK 
     (LET_TOK LPAREN_TOK var_identifier[name,CHECK_UNDECLARED]
       | FLET_TOK LPAREN_TOK fun_identifier[name,CHECK_UNDECLARED] )
     annotatedFormula[expr] RPAREN_TOK
-    { input->defineVar(name,expr); }
+    { SMT_INPUT->defineVar(name,expr); }
     annotatedFormula[expr]
     RPAREN_TOK
-    { input->undefineVar(name); }
+    { SMT_INPUT->undefineVar(name); }
 
   | /* a variable */
     ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]
       | var_identifier[name,CHECK_DECLARED] 
       | fun_identifier[name,CHECK_DECLARED] )
-    { expr = input->getVariable(name); }
+    { expr = SMT_INPUT->getVariable(name); }
 
     /* constants */
-  | TRUE_TOK          { expr = input->getTrueExpr(); }
-  | FALSE_TOK         { expr = input->getFalseExpr(); }
+  | TRUE_TOK          { expr = SMT_INPUT->getTrueExpr(); }
+  | FALSE_TOK         { expr = SMT_INPUT->getFalseExpr(); }
     /* TODO: let, flet, quantifiers, arithmetic constants */
   ;
 
@@ -269,8 +259,8 @@ functionSymbol[CVC4::Expr& fun]
 	std::string name;
 }
   : functionName[name,CHECK_DECLARED]
-    { input->checkFunction(name);
-      fun = input->getFunction(name); }
+    { SMT_INPUT->checkFunction(name);
+      fun = SMT_INPUT->getFunction(name); }
   ;
   
 /**
@@ -291,8 +281,8 @@ functionDeclaration
       t = sortSymbol // require at least one sort
     { sorts.push_back(t); }
       sortList[sorts] RPAREN_TOK
-    { t = input->functionType(sorts);
-      input->mkVar(name, t); } 
+    { t = SMT_INPUT->functionType(sorts);
+      SMT_INPUT->mkVar(name, t); } 
   ;
               
 /**
@@ -304,8 +294,8 @@ predicateDeclaration
   std::vector<Type*> p_sorts;
 }
   : LPAREN_TOK predicateName[name,CHECK_UNDECLARED] sortList[p_sorts] RPAREN_TOK
-    { Type *t = input->predicateType(p_sorts);
-      input->mkVar(name, t); } 
+    { Type *t = SMT_INPUT->predicateType(p_sorts);
+      SMT_INPUT->mkVar(name, t); } 
   ;
 
 sortDeclaration 
@@ -314,7 +304,7 @@ sortDeclaration
 }
   : sortName[name,CHECK_UNDECLARED]
     { Debug("parser") << "sort decl: '" << name << "'" << std::endl;
-      input->newSort(name); }
+      SMT_INPUT->newSort(name); }
   ;
   
 /**
@@ -337,7 +327,7 @@ sortSymbol returns [CVC4::Type* t]
   std::string name;
 }
   : sortName[name,CHECK_NONE] 
-  	{ $t = input->getSort(name); }
+  	{ $t = SMT_INPUT->getSort(name); }
   ;
 
 /**
@@ -370,7 +360,7 @@ identifier[std::string& id,
       Debug("parser") << "identifier: " << id
                       << " check? " << toString(check)
                       << " type? " << toString(type) << std::endl;
-      input->checkDeclaration(id, check, type); }
+      SMT_INPUT->checkDeclaration(id, check, type); }
   ;
 
 /**
@@ -384,7 +374,7 @@ var_identifier[std::string& id,
     { id = AntlrInput::tokenText($VAR_IDENTIFIER);
       Debug("parser") << "var_identifier: " << id
                       << " check? " << toString(check) << std::endl;
-      input->checkDeclaration(id, check, SYM_VARIABLE); }
+      SMT_INPUT->checkDeclaration(id, check, SYM_VARIABLE); }
   ;
 
 /**
@@ -398,7 +388,7 @@ fun_identifier[std::string& id,
     { id = AntlrInput::tokenText($FUN_IDENTIFIER);
       Debug("parser") << "fun_identifier: " << id
                       << " check? " << toString(check) << std::endl;
-      input->checkDeclaration(id, check, SYM_FUNCTION); }
+      SMT_INPUT->checkDeclaration(id, check, SYM_FUNCTION); }
   ;
 
 

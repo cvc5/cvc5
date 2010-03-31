@@ -33,6 +33,11 @@ options {
 }
 
 @lexer::includes {
+/** This suppresses warnings about the redefinition of token symbols between different
+  * parsers. The redefinitions should be harmless as long as no client: (a) #include's 
+  * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
+#pragma GCC system_header
+
 /* This improves performance by ~10 percent on big inputs.
  * This option is only valid if we know the input is ASCII (or some 8-bit encoding).
  * If we know the input is UTF-16, we can use ANTLR3_INLINE_INPUT_UTF16.
@@ -43,40 +48,25 @@ options {
 
 @parser::includes {
 #include "expr/command.h"
-#include "parser/input.h"
 
 namespace CVC4 {
   class Expr;
-namespace parser {
-  class CvcInput;
 }
-}
-
-extern
-void SetCvcInput(CVC4::parser::CvcInput* input);
-
 }
 
 @parser::postinclude {
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "parser/input.h"
 #include "parser/cvc/cvc_input.h"
 #include "util/output.h"
 #include <vector>
 
 using namespace CVC4;
 using namespace CVC4::parser;
-}
 
-@members {
-static CVC4::parser::CvcInput *input;
-
-extern
-void SetCvcInput(CVC4::parser::CvcInput* _input) {
-  input = _input;
-}
+#undef CVC_INPUT
+#define CVC_INPUT ((CvcInput*)(PARSER->super))
 }
 
 /**
@@ -108,7 +98,7 @@ command returns [CVC4::Command* cmd = 0]
   : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f);   }
   | QUERY_TOK formula[f] SEMICOLON { cmd = new QueryCommand(f);    }
   | CHECKSAT_TOK formula[f] SEMICOLON { cmd = new CheckSatCommand(f); }
-  | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(input->getTrueExpr()); }
+  | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(CVC_INPUT->getTrueExpr()); }
   | PUSH_TOK SEMICOLON { cmd = new PushCommand(); }
   | POP_TOK SEMICOLON { cmd = new PopCommand(); }
   | declaration[cmd]
@@ -136,9 +126,9 @@ declType[CVC4::Type*& t, std::vector<std::string>& idList]
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : /* A sort declaration (e.g., "T : TYPE") */
-    TYPE_TOK { input->newSorts(idList); t = input->kindType(); }
+    TYPE_TOK { CVC_INPUT->newSorts(idList); t = CVC_INPUT->kindType(); }
   | /* A variable declaration */
-    type[t] { input->mkVars(idList,t); }
+    type[t] { CVC_INPUT->mkVars(idList,t); }
   ;
 
 /**
@@ -155,13 +145,13 @@ type[CVC4::Type*& t]
   | /* Single-parameter function type */
     baseType[t] { typeList.push_back(t); }
     ARROW_TOK baseType[t] 
-    { t = input->functionType(typeList,t); }
+    { t = CVC_INPUT->functionType(typeList,t); }
   | /* Multi-parameter function type */
     LPAREN baseType[t]
     { typeList.push_back(t); }
     (COMMA baseType[t] { typeList.push_back(t); } )+
     RPAREN ARROW_TOK baseType[t]
-    { t = input->functionType(typeList,t); }
+    { t = CVC_INPUT->functionType(typeList,t); }
   ;
 
 /**
@@ -189,7 +179,7 @@ identifier[std::string& id,
            CVC4::parser::SymbolType type]
   : IDENTIFIER
     { id = AntlrInput::tokenText($IDENTIFIER);
-      input->checkDeclaration(id, check, type); }
+      CVC_INPUT->checkDeclaration(id, check, type); }
   ;
 
 /**
@@ -201,7 +191,7 @@ baseType[CVC4::Type*& t]
   std::string id;
   Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : BOOLEAN_TOK { t = input->booleanType(); }
+  : BOOLEAN_TOK { t = CVC_INPUT->booleanType(); }
   | typeSymbol[t]
   ;
 
@@ -214,7 +204,7 @@ typeSymbol[CVC4::Type*& t]
   Debug("parser-extra") << "type symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : identifier[id,CHECK_DECLARED,SYM_SORT]
-    { t = input->getSort(id); }
+    { t = CVC_INPUT->getSort(id); }
   ;
 
 /**
@@ -252,7 +242,7 @@ iffFormula[CVC4::Expr& f]
   : impliesFormula[f]
     ( IFF_TOK 
     	iffFormula[e]
-        { f = input->mkExpr(CVC4::kind::IFF, f, e); }
+        { f = CVC_INPUT->mkExpr(CVC4::kind::IFF, f, e); }
     )?
   ;
 
@@ -266,7 +256,7 @@ impliesFormula[CVC4::Expr& f]
 }
   : orFormula[f]
     ( IMPLIES_TOK impliesFormula[e]
-        { f = input->mkExpr(CVC4::kind::IMPLIES, f, e); }
+        { f = CVC_INPUT->mkExpr(CVC4::kind::IMPLIES, f, e); }
     )?
   ;
 
@@ -283,7 +273,7 @@ orFormula[CVC4::Expr& f]
         xorFormula[f] { exprs.push_back(f); } )*
     {
       if( exprs.size() > 0 ) {
-        f = input->mkExpr(CVC4::kind::OR, exprs);
+        f = CVC_INPUT->mkExpr(CVC4::kind::OR, exprs);
       }
     }
   ;
@@ -298,7 +288,7 @@ xorFormula[CVC4::Expr& f]
 }
   : andFormula[f]
     ( XOR_TOK andFormula[e]
-      { f = input->mkExpr(CVC4::kind::XOR,f, e); }
+      { f = CVC_INPUT->mkExpr(CVC4::kind::XOR,f, e); }
     )*
   ;
 
@@ -315,7 +305,7 @@ andFormula[CVC4::Expr& f]
       notFormula[f] { exprs.push_back(f); } )*
     {
       if( exprs.size() > 0 ) {
-        f = input->mkExpr(CVC4::kind::AND, exprs);
+        f = CVC_INPUT->mkExpr(CVC4::kind::AND, exprs);
       }
     }
   ;
@@ -330,7 +320,7 @@ notFormula[CVC4::Expr& f]
 }
   : /* negation */
     NOT_TOK notFormula[f]
-    { f = input->mkExpr(CVC4::kind::NOT, f); }
+    { f = CVC_INPUT->mkExpr(CVC4::kind::NOT, f); }
   | /* a boolean atom */
     predFormula[f]
   ;
@@ -342,7 +332,7 @@ predFormula[CVC4::Expr& f]
 }
   : term[f]
     (EQUAL_TOK term[e]
-      { f = input->mkExpr(CVC4::kind::EQUAL, f, e); }
+      { f = CVC_INPUT->mkExpr(CVC4::kind::EQUAL, f, e); }
     )?
   ; // TODO: lt, gt, etc.
 
@@ -361,7 +351,7 @@ term[CVC4::Expr& f]
     { args.push_back( f ); }
     LPAREN formulaList[args] RPAREN
     // TODO: check arity
-    { f = input->mkExpr(CVC4::kind::APPLY_UF, args); }
+    { f = CVC_INPUT->mkExpr(CVC4::kind::APPLY_UF, args); }
 
   | /* if-then-else */
     iteTerm[f]
@@ -370,12 +360,12 @@ term[CVC4::Expr& f]
     LPAREN formula[f] RPAREN
 
     /* constants */
-  | TRUE_TOK  { f = input->getTrueExpr(); }
-  | FALSE_TOK { f = input->getFalseExpr(); }
+  | TRUE_TOK  { f = CVC_INPUT->getTrueExpr(); }
+  | FALSE_TOK { f = CVC_INPUT->getFalseExpr(); }
 
   | /* variable */
     identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { f = input->getVariable(name); }
+    { f = CVC_INPUT->getVariable(name); }
   ;
 
 /**
@@ -390,7 +380,7 @@ iteTerm[CVC4::Expr& f]
     THEN_TOK formula[f] { args.push_back(f); }
     iteElseTerm[f] { args.push_back(f); }
     ENDIF_TOK
-    { f = input->mkExpr(CVC4::kind::ITE, args); }
+    { f = CVC_INPUT->mkExpr(CVC4::kind::ITE, args); }
   ;
 
 /**
@@ -405,7 +395,7 @@ iteElseTerm[CVC4::Expr& f]
   | ELSEIF_TOK iteCondition = formula[f] { args.push_back(f); }
     THEN_TOK iteThen = formula[f] { args.push_back(f); }
     iteElse = iteElseTerm[f] { args.push_back(f); }
-    { f = input->mkExpr(CVC4::kind::ITE, args); }
+    { f = CVC_INPUT->mkExpr(CVC4::kind::ITE, args); }
   ;
 
 /**
@@ -419,8 +409,8 @@ functionSymbol[CVC4::Expr& f]
   std::string name;
 }
   : identifier[name,CHECK_DECLARED,SYM_FUNCTION]
-    { input->checkFunction(name);
-      f = input->getFunction(name); }
+    { CVC_INPUT->checkFunction(name);
+      f = CVC_INPUT->getFunction(name); }
   ;
 
 

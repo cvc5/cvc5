@@ -47,7 +47,6 @@ void CvcInput::init() {
   }
 
   setParser(d_pCvcParser->pParser);
-  SetCvcInput(this);
 }
 
 
@@ -64,9 +63,11 @@ Expr CvcInput::doParseExpr() throw (ParserException) {
   return d_pCvcParser->parseExpr(d_pCvcParser);
 }
 
+/*
 pANTLR3_LEXER CvcInput::getLexer() {
   return d_pCvcLexer->pLexer;
 }
+*/
 
 } // namespace parser
 
