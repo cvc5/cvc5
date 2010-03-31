@@ -153,6 +153,11 @@ public:
    */
   static Input* newStringParser(ExprManager* exprManager, InputLanguage lang, const std::string& input, const std::string& name);
 
+  /** Get the <code>ExprManager</code> associated with this input. */
+  inline ExprManager* getExprManager() const {
+    return d_exprManager;
+  }
+
   /**
    * Parse the next command of the input. If EOF is encountered a EmptyCommand
    * is returned and done flag is set.
@@ -257,53 +262,6 @@ public:
      */
     Type* getType(const std::string& var_name,
                         SymbolType type = SYM_VARIABLE);
-
-    /**
-     * Returns the true expression.
-     * @return the true expression
-     */
-    Expr getTrueExpr() const;
-
-    /**
-     * Returns the false expression.
-     * @return the false expression
-     */
-    Expr getFalseExpr() const;
-
-    /**
-     * Creates a new unary CVC4 expression using the expression manager.
-     * @param kind the kind of the expression
-     * @param child the child
-     * @return the new unary expression
-     */
-    Expr mkExpr(Kind kind, const Expr& child);
-
-    /**
-     * Creates a new binary CVC4 expression using the expression manager.
-     * @param kind the kind of the expression
-     * @param child1 the first child
-     * @param child2 the second child
-     * @return the new binary expression
-     */
-    Expr mkExpr(Kind kind, const Expr& child_1, const Expr& child_2);
-
-    /**
-     * Creates a new ternary CVC4 expression using the expression manager.
-     * @param kind the kind of the expression
-     * @param child_1 the first child
-     * @param child_2 the second child
-     * @param child_3
-     * @return the new ternary expression
-     */
-    Expr mkExpr(Kind kind, const Expr& child_1, const Expr& child_2,
-                const Expr& child_3);
-
-    /**
-     * Creates a new CVC4 expression using the expression manager.
-     * @param kind the kind of the expression
-     * @param children the children of the expression
-     */
-    Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
     /** Create a new CVC4 variable expression of the given type. */
     Expr mkVar(const std::string& name, Type* type);

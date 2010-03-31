@@ -209,39 +209,6 @@ bool Input::isPredicate(const std::string& name) {
   return isDeclared(name, SYM_FUNCTION) && getType(name)->isPredicate();
 }
 
-Expr Input::getTrueExpr() const {
-  return d_exprManager->mkExpr(TRUE);
-}
-
-Expr Input::getFalseExpr() const {
-  return d_exprManager->mkExpr(FALSE);
-}
-
-Expr Input::mkExpr(Kind kind, const Expr& child) {
-  Expr result = d_exprManager->mkExpr(kind, child);
-  Debug("parser") << "mkExpr() => " << result << std::endl;
-  return result;
-}
-
-Expr Input::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2) {
-  Expr result = d_exprManager->mkExpr(kind, child_1, child_2);
-  Debug("parser") << "mkExpr() => " << result << std::endl;
-  return result;
-}
-
-Expr Input::mkExpr(Kind kind, const Expr& child_1, const Expr& child_2,
-                         const Expr& child_3) {
-  Expr result = d_exprManager->mkExpr(kind, child_1, child_2, child_3);
-  Debug("parser") << "mkExpr() => " << result << std::endl;
-  return result;
-}
-
-Expr Input::mkExpr(Kind kind, const std::vector<Expr>& children) {
-  Expr result = d_exprManager->mkExpr(kind, children);
-  Debug("parser") << "mkExpr() => " << result << std::endl;
-  return result;
-}
-
 Type*
 Input::functionType(Type* domainType,
                           Type* rangeType) {
