@@ -17,4 +17,4 @@ Makefile.in
 callgrind.out*
 gmon.out
 stamp-generated
-generated
+generated/
