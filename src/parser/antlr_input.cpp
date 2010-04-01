@@ -17,15 +17,17 @@
 #include <limits.h>
 #include <antlr3.h>
 
+#include "antlr_input.h"
+#include "bounded_token_buffer.h"
+#include "bounded_token_factory.h"
+#include "memory_mapped_input_buffer.h"
+#include "parser_exception.h"
+#include "parser_state.h"
+
 #include "util/output.h"
 #include "util/Assert.h"
 #include "expr/command.h"
 #include "expr/type.h"
-#include "parser/antlr_input.h"
-#include "parser/bounded_token_buffer.h"
-#include "parser/bounded_token_factory.h"
-#include "parser/memory_mapped_input_buffer.h"
-#include "parser/parser_exception.h"
 
 using namespace std;
 using namespace CVC4;
@@ -92,12 +94,14 @@ pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
 
 void AntlrInput::parseError(const std::string& message)
     throw (ParserException) {
-  Debug("parser") << "Throwing exception: " << getFilename() << ":"
+  Debug("parser") << "Throwing exception: "
+      << getParserState()->getFilename() << ":"
       << d_lexer->getLine(d_lexer) << "."
       << d_lexer->getCharPositionInLine(d_lexer) << ": "
       << message << endl;
-  throw ParserException(message, getFilename(), d_lexer->getLine(d_lexer),
-                          d_lexer->getCharPositionInLine(d_lexer));
+  throw ParserException(message, getParserState()->getFilename(),
+                        d_lexer->getLine(d_lexer),
+                        d_lexer->getCharPositionInLine(d_lexer));
 }
 
 void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
@@ -268,11 +272,11 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   // Now get ready to throw an exception
   pANTLR3_PARSER parser = (pANTLR3_PARSER)(recognizer->super);
   AlwaysAssert(parser!=NULL);
-  AntlrInput *input = (AntlrInput*)(parser->super);
-  AlwaysAssert(input!=NULL);
+  ParserState *parserState = (ParserState*)(parser->super);
+  AlwaysAssert(parserState!=NULL);
 
   // Call the error display routine
-  input->parseError(ss.str());
+  parserState->parseError(ss.str());
 }
 
 void AntlrInput::setLexer(pANTLR3_LEXER pLexer) {
@@ -304,7 +308,7 @@ void AntlrInput::setParser(pANTLR3_PARSER pParser) {
   // We could also use @parser::context to add a field to the generated parser, but then
   // it would have to be declared separately in every input's grammar and we'd have to
   // pass it in as an address anyway.
-  d_parser->super = this;
+  d_parser->super = getParserState();
   d_parser->rec->reportError = &reportError;
 }
 

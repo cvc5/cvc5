@@ -146,23 +146,23 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Create the parser
-  Input* parser;
-  istream* input = NULL;
+  Input* input;
 
+  /* TODO: Hack ANTLR3 to support input from streams */
 //  if(inputFromStdin) {
     //    parser = Parser::getNewParser(&exprMgr, options.lang, cin, "<stdin>");
 //  } else {
-    parser = Input::newFileParser(&exprMgr, options.lang, argv[firstArgIndex],
+    input = Input::newFileInput(&exprMgr, options.lang, argv[firstArgIndex],
                                    options.memoryMap);
 //  }
 
   if(!options.semanticChecks) {
-    parser->disableChecks();
+    input->disableChecks();
   }
 
   // Parse and execute commands until we are done
   Command* cmd;
-  while((cmd = parser->parseNextCommand())) {
+  while((cmd = input->parseNextCommand())) {
     if( !options.parseOnly ) {
       doCommand(smt, cmd);
     }
@@ -170,7 +170,7 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Remove the parser
-  delete parser;
+  delete input;
   delete input;
 
   switch(lastResult.asSatisfiabilityResult().isSAT()) {

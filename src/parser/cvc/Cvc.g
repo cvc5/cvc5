@@ -48,7 +48,7 @@ options {
 
 @parser::includes {
 #include "expr/command.h"
-#include "parser/input.h"
+#include "parser/parser_state.h"
 
 namespace CVC4 {
   class Expr;
@@ -60,6 +60,7 @@ namespace CVC4 {
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
+#include "parser/parser_state.h"
 #include "util/output.h"
 #include <vector>
 
@@ -68,10 +69,10 @@ using namespace CVC4::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
-#undef ANTLR_INPUT 
-#define ANTLR_INPUT ((Input*)PARSER->super)
+#undef PARSER_STATE 
+#define PARSER_STATE ((ParserState*)PARSER->super)
 #undef EXPR_MANAGER
-#define EXPR_MANAGER ANTLR_INPUT->getExprManager()
+#define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef MK_EXPR
 #define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
@@ -136,10 +137,10 @@ declType[CVC4::Type*& t, std::vector<std::string>& idList]
 }
   : /* A sort declaration (e.g., "T : TYPE") */
     TYPE_TOK 
-    { ANTLR_INPUT->newSorts(idList); 
+    { PARSER_STATE->newSorts(idList); 
       t = EXPR_MANAGER->kindType(); }
   | /* A variable declaration */
-    type[t] { ANTLR_INPUT->mkVars(idList,t); }
+    type[t] { PARSER_STATE->mkVars(idList,t); }
   ;
 
 /**
@@ -190,7 +191,7 @@ identifier[std::string& id,
            CVC4::parser::SymbolType type]
   : IDENTIFIER
     { id = AntlrInput::tokenText($IDENTIFIER);
-      ANTLR_INPUT->checkDeclaration(id, check, type); }
+      PARSER_STATE->checkDeclaration(id, check, type); }
   ;
 
 /**
@@ -215,7 +216,7 @@ typeSymbol[CVC4::Type*& t]
   Debug("parser-extra") << "type symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : identifier[id,CHECK_DECLARED,SYM_SORT]
-    { t = ANTLR_INPUT->getSort(id); }
+    { t = PARSER_STATE->getSort(id); }
   ;
 
 /**
@@ -376,7 +377,7 @@ term[CVC4::Expr& f]
 
   | /* variable */
     identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { f = ANTLR_INPUT->getVariable(name); }
+    { f = PARSER_STATE->getVariable(name); }
   ;
 
 /**
@@ -420,8 +421,8 @@ functionSymbol[CVC4::Expr& f]
   std::string name;
 }
   : identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { ANTLR_INPUT->checkFunction(name);
-      f = ANTLR_INPUT->getVariable(name); }
+    { PARSER_STATE->checkFunction(name);
+      f = PARSER_STATE->getVariable(name); }
   ;
 
 

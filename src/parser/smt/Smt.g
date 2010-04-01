@@ -48,7 +48,7 @@ options {
 
 @parser::includes {
 #include "expr/command.h"
-#include "parser/input.h"
+#include "parser/parser_state.h"
 
 namespace CVC4 {
   class Expr;
@@ -60,6 +60,7 @@ namespace CVC4 {
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
+#include "parser/parser_state.h"
 #include "util/output.h"
 #include <vector>
 
@@ -68,10 +69,10 @@ using namespace CVC4::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
-#undef ANTLR_INPUT 
-#define ANTLR_INPUT ((Input*)PARSER->super)
+#undef PARSER_STATE 
+#define PARSER_STATE ((ParserState*)PARSER->super)
 #undef EXPR_MANAGER
-#define EXPR_MANAGER ANTLR_INPUT->getExprManager()
+#define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef MK_EXPR
 #define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
@@ -129,7 +130,7 @@ benchAttribute returns [CVC4::Command* smt_command]
   Expr expr;
 }
   : LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
-    { ANTLR_INPUT->setLogic(name);
+    { PARSER_STATE->setLogic(name);
       smt_command = new SetBenchmarkLogicCommand(name);   }
   | ASSUMPTION_TOK annotatedFormula[expr]
     { smt_command = new AssertCommand(expr);   }
@@ -157,7 +158,7 @@ annotatedFormula[CVC4::Expr& expr]
 } 
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr] RPAREN_TOK 
-    { ANTLR_INPUT->checkArity(kind, args.size());
+    { PARSER_STATE->checkArity(kind, args.size());
       if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
@@ -196,16 +197,16 @@ annotatedFormula[CVC4::Expr& expr]
     (LET_TOK LPAREN_TOK let_identifier[name,CHECK_UNDECLARED]
       | FLET_TOK LPAREN_TOK flet_identifier[name,CHECK_UNDECLARED] )
     annotatedFormula[expr] RPAREN_TOK
-    { ANTLR_INPUT->defineVar(name,expr); }
+    { PARSER_STATE->defineVar(name,expr); }
     annotatedFormula[expr]
     RPAREN_TOK
-    { ANTLR_INPUT->undefineVar(name); }
+    { PARSER_STATE->undefineVar(name); }
 
   | /* a variable */
     ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]
       | let_identifier[name,CHECK_DECLARED] 
       | flet_identifier[name,CHECK_DECLARED] )
-    { expr = ANTLR_INPUT->getVariable(name); }
+    { expr = PARSER_STATE->getVariable(name); }
 
     /* constants */
   | TRUE_TOK          { expr = MK_CONST(true); }
@@ -268,8 +269,8 @@ functionSymbol[CVC4::Expr& fun]
 	std::string name;
 }
   : functionName[name,CHECK_DECLARED]
-    { ANTLR_INPUT->checkFunction(name);
-      fun = ANTLR_INPUT->getVariable(name); }
+    { PARSER_STATE->checkFunction(name);
+      fun = PARSER_STATE->getVariable(name); }
   ;
   
 /**
@@ -293,7 +294,7 @@ functionDeclaration
       } else {
         t = EXPR_MANAGER->mkFunctionType(sorts);
       }
-      ANTLR_INPUT->mkVar(name, t); } 
+      PARSER_STATE->mkVar(name, t); } 
   ;
               
 /**
@@ -311,7 +312,7 @@ predicateDeclaration
       } else { 
         t = EXPR_MANAGER->mkPredicateType(p_sorts);
       }
-      ANTLR_INPUT->mkVar(name, t); } 
+      PARSER_STATE->mkVar(name, t); } 
   ;
 
 sortDeclaration 
@@ -320,7 +321,7 @@ sortDeclaration
 }
   : sortName[name,CHECK_UNDECLARED]
     { Debug("parser") << "sort decl: '" << name << "'" << std::endl;
-      ANTLR_INPUT->newSort(name); }
+      PARSER_STATE->newSort(name); }
   ;
   
 /**
@@ -343,7 +344,7 @@ sortSymbol returns [CVC4::Type* t]
   std::string name;
 }
   : sortName[name,CHECK_NONE] 
-  	{ $t = ANTLR_INPUT->getSort(name); }
+  	{ $t = PARSER_STATE->getSort(name); }
   ;
 
 /**
@@ -376,7 +377,7 @@ identifier[std::string& id,
       Debug("parser") << "identifier: " << id
                       << " check? " << toString(check)
                       << " type? " << toString(type) << std::endl;
-      ANTLR_INPUT->checkDeclaration(id, check, type); }
+      PARSER_STATE->checkDeclaration(id, check, type); }
   ;
 
 /**
@@ -390,7 +391,7 @@ let_identifier[std::string& id,
     { id = AntlrInput::tokenText($LET_IDENTIFIER);
       Debug("parser") << "let_identifier: " << id
                       << " check? " << toString(check) << std::endl;
-      ANTLR_INPUT->checkDeclaration(id, check, SYM_VARIABLE); }
+      PARSER_STATE->checkDeclaration(id, check, SYM_VARIABLE); }
   ;
 
 /**
@@ -404,7 +405,7 @@ flet_identifier[std::string& id,
     { id = AntlrInput::tokenText($FLET_IDENTIFIER);
       Debug("parser") << "flet_identifier: " << id
                       << " check? " << toString(check) << std::endl;
-      ANTLR_INPUT->checkDeclaration(id, check); }
+      PARSER_STATE->checkDeclaration(id, check); }
   ;
 
 
