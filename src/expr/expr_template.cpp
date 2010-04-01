@@ -78,17 +78,6 @@ Expr& Expr::operator=(const Expr& e) {
   return *this;
 }
 
-/* This should only ever be assigning NULL to a null Expr! */
-Expr& Expr::operator=(uintptr_t n) {
-  AlwaysAssert(n == 0);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-
-  if(EXPECT_FALSE( !isNull() )) {
-    *d_node = Node::null();
-  }
-  return *this;
-}
-
 bool Expr::operator==(const Expr& e) const {
   if(d_exprManager != e.d_exprManager) {
     return false;

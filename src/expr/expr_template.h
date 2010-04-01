@@ -90,15 +90,6 @@ public:
    */
   Expr& operator=(const Expr& e);
 
-  /*
-   * Assignment from an integer. Fails if the integer is not 0.
-   * NOTE: This is here purely to support the auto-initialization
-   * behavior of the ANTLR3 C backend (i.e., a rule attribute
-   * <code>Expr e</code> gets initialized with <code>e = NULL;</code>.
-   * Should be removed if future versions of ANTLR fix the problem.
-   */
-  Expr& operator=(uintptr_t n);
-
   /**
    * Syntactic comparison operator. Returns true if expressions belong to the
    * same expression manager and are syntactically identical.
