@@ -2,7 +2,7 @@
 /** parser_black.h
  ** Original author: cconway
  ** Major contributors: none
- ** Minor contributors (to current version): mdeters, dejan
+ ** Minor contributors (to current version): dejan, mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

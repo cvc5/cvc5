@@ -1,8 +1,8 @@
 /*********************                                                        */
 /** node_manager.h
  ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): taking
+ ** Major contributors: cconway
+ ** Minor contributors (to current version): taking, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

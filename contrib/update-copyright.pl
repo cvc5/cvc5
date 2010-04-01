@@ -62,7 +62,7 @@ $dir =~ s,/[^/]+/*$,,;
 
 my @searchdirs = ();
 if($#ARGV == -1) {
-  (chdir($dir."/..") && -f "src/include/cvc4_config.h") || die "can't find top-level source directory for CVC4";
+  (chdir($dir."/..") && -f "src/include/cvc4_public.h") || die "can't find top-level source directory for CVC4";
   my $pwd = `pwd`; chomp $pwd;
 
   print <<EOF;
@@ -102,10 +102,10 @@ sub recurse {
     my $is_directory = S_ISDIR($mode);
     if($is_directory) {
       next if $file =~ /$excluded_directories/;
-      next if $srcdir.'/'.$file =~ /$excluded_paths/;
       recurse($srcdir.'/'.$file);
     } else {
       next if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g)$/);
+      next if ($srcdir.'/'.$file) =~ /$excluded_paths/;
       print "$srcdir/$file...";
       my $infile = $srcdir.'/'.$file;
       my $outfile = $srcdir.'/#'.$file.'.tmp';

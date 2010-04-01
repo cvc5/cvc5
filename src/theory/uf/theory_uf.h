@@ -1,8 +1,8 @@
 /*********************                                                        */
 /** theory_uf.h
  ** Original author: taking
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

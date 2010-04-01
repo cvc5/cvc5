@@ -1,3 +1,18 @@
+/*********************                                                        */
+/** smt_input.cpp
+ ** Original author: cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** [[ Add file-specific comments here ]]
+ **/
+
 #include <antlr3.h>
 
 #include "expr/expr_manager.h"

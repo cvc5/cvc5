@@ -1,8 +1,8 @@
 /*********************                                                        */
 /** node_value.cpp
  ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): dejan
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

@@ -1,8 +1,8 @@
 /* *******************                                                        */
 /*  Cvc.g
  ** Original author: cconway
- ** Major contributors: dejan, mdeters
- ** Minor contributors (to current version): none
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

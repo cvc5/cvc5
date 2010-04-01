@@ -1,3 +1,18 @@
+/*********************                                                        */
+/** bounded_token_factory.cpp
+ ** Original author: cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.
+ **
+ ** [[ Add file-specific comments here ]]
+ **/
+
 #include <antlr3input.h>
 #include <antlr3commontoken.h>
 #include <antlr3interfaces.h>

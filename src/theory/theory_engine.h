@@ -1,7 +1,7 @@
 /*********************                                                        */
 /** theory_engine.h
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: dejan
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)

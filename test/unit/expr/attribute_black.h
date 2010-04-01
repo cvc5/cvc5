@@ -1,8 +1,8 @@
 /*********************                                                        */
-/** node_black.h
- ** Original author: mdeters
- ** Major contributors: taking
- ** Minor contributors (to current version): none
+/** attribute_black.h
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
