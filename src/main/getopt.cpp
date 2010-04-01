@@ -207,6 +207,11 @@ throw(OptionException) {
       printf("\n");
       printf("version   : %s\n", Configuration::getVersionString().c_str());
       printf("\n");
+      printf("library   : %u.%u.%u\n",
+             Configuration::getVersionMajor(),
+             Configuration::getVersionMinor(),
+             Configuration::getVersionRelease());
+      printf("\n");
       printf("debug code: %s\n", Configuration::isDebugBuild() ? "yes" : "no");
       printf("tracing   : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
       printf("muzzled   : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
