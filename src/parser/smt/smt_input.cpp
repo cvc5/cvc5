@@ -1,10 +1,3 @@
-/*
- * smt_parser.cpp
- *
- *  Created on: Mar 5, 2010
- *      Author: chris
- */
-
 #include <antlr3.h>
 
 #include "expr/expr_manager.h"
@@ -65,6 +58,5 @@ Expr SmtInput::doParseExpr() throw (ParserException) {
   return d_pSmtParser->parseExpr(d_pSmtParser);
 }
 
-} // namespace parser
-
-} // namespace CVC4
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */

@@ -13,10 +13,11 @@
  ** Template for the Node kind header.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__KIND_H
 #define __CVC4__KIND_H
 
-#include "cvc4_config.h"
 #include <iostream>
 #include <sstream>
 
@@ -62,9 +63,9 @@ inline std::string kindToString(::CVC4::Kind k) {
   return ss.str();
 }
 
-struct KindHashFcn {
+struct KindHashStrategy {
   static inline size_t hash(::CVC4::Kind k) { return k; }
-};
+};/* struct KindHashStrategy */
 
 }/* CVC4::kind namespace */
 }/* CVC4 namespace */

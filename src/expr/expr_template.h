@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** expr.h
+/** expr_template.h
  ** Original author: dejan
  ** Major contributors: none
  ** Minor contributors (to current version): taking, mdeters
@@ -13,22 +13,30 @@
  ** Public-facing expression interface.
  **/
 
+#include "cvc4_public.h"
+
 // circular dependency: force expr_manager.h first
 #include "expr/expr_manager.h"
 
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H
 
-#include "cvc4_config.h"
-
 #include <string>
 #include <iostream>
 #include <stdint.h>
 
+${includes}
+
+// This is a hack, but an important one: if there's an error, the
+// compiler directs the user to the template file instead of the
+// generated one.  We don't want the user to modify the generated one,
+// since it'll get overwritten on a later build.
+#line 35 "${template}"
+
 namespace CVC4 {
 
 // The internal expression representation
-template <bool count_ref>
+template <bool ref_count>
 class NodeTemplate;
 
 /**
@@ -36,6 +44,20 @@ class NodeTemplate;
  * expressions.
  */
 class CVC4_PUBLIC Expr {
+protected:
+
+  /** The internal expression representation */
+  NodeTemplate<true>* d_node;
+
+  /** The responsible expression manager */
+  ExprManager* d_exprManager;
+
+  /**
+   * Constructor for internal purposes.
+   * @param em the expression manager that handles this expression
+   * @param node the actual expression node pointer
+   */
+  Expr(ExprManager* em, NodeTemplate<true>* node);
 
 public:
 
@@ -44,7 +66,7 @@ public:
 
   /**
    * Copy constructor, makes a copy of a given expression
-   * @param the expression to copy
+   * @param e the expression to copy
    */
   Expr(const Expr& e);
 
@@ -68,7 +90,7 @@ public:
    */
   Expr& operator=(const Expr& e);
 
-  /**
+  /*
    * Assignment from an integer. Fails if the integer is not 0.
    * NOTE: This is here purely to support the auto-initialization
    * behavior of the ANTLR3 C backend (i.e., a rule attribute
@@ -104,11 +126,6 @@ public:
   bool operator<(const Expr& e) const;
 
   /**
-   * Returns true if the expression is not the null expression.
-   */
-  operator bool() const;
-
-  /**
    * Returns the kind of the expression (AND, PLUS ...).
    * @return the kind of the expression
    */
@@ -119,6 +136,19 @@ public:
    * @return the number of children
    */
   size_t getNumChildren() const;
+
+  /**
+   * Check if this is an expression that has an operator.
+   * @return true if this expression has an operator
+   */
+  bool hasOperator() const;
+
+  /**
+   * Get the operator of this expression.
+   * @throws IllegalArgumentException if it has no operator
+   * @return the operator of this expression
+   */
+  Expr getOperator() const;
 
   /** Returns the type of the expression, if it has been computed.
    * Returns NULL if the type of the expression is not known.
@@ -133,7 +163,7 @@ public:
 
   /**
    * Outputs the string representation of the expression to the stream.
-   * @param the output stream
+   * @param out the output stream
    */
   void toStream(std::ostream& out) const;
 
@@ -142,6 +172,28 @@ public:
    * @return true if a null expression
    */
   bool isNull() const;
+
+  /**
+   * Check if this is a null expression.
+   * @return true if NOT a null expression
+   */
+  operator bool() const;
+
+  /**
+   * Check if this is an expression representing a constant.
+   * @return true if a constant expression
+   */
+  bool isConst() const;
+
+  /**
+   * Check if this is an expression representing a constant.
+   * @return true if a constant expression
+   */
+  bool isAtomic() const;
+
+  /** Extract a constant of type T */
+  template <class T>
+  const T& getConst() const;
 
   /**
    * Returns the expression reponsible for this expression.
@@ -154,10 +206,10 @@ public:
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
-  void printAst(std::ostream & out, int indent = 0) const;
-  
+  void printAst(std::ostream& out, int indent = 0) const;
+
 private:
-  
+
   /**
    * Pretty printer for use within gdb
    * This is not intended to be used outside of gdb.
@@ -167,19 +219,6 @@ private:
   void debugPrint();
 
 protected:
-
-  /**
-   * Constructor for internal purposes.
-   * @param em the expression manager that handles this expression
-   * @param node the actual expression node pointer
-   */
-  Expr(ExprManager* em, NodeTemplate<true>* node);
-
-  /** The internal expression representation */
-  NodeTemplate<true>* d_node;
-
-  /** The responsible expression manager */
-  ExprManager* d_exprManager;
 
   /**
    * Returns the actual internal node.
@@ -279,6 +318,8 @@ public:
   Expr iteExpr(const Expr& then_e, const Expr& else_e) const;
 };
 
-}
+${getConst_instantiations}
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR_H */

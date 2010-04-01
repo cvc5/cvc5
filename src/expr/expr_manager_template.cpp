@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** expr_manager.cpp
+/** expr_manager_template.cpp
  ** Original author: dejan
  ** Major contributors: cconway, mdeters
  ** Minor contributors (to current version): none
@@ -10,23 +10,25 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** Public-facing expression manager interface, implementation.
  **/
 
-/*
- * expr_manager.cpp
- *
- *  Created on: Dec 10, 2009
- *      Author: dejan
- */
-
-#include "context/context.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
-#include "expr/kind.h"
 #include "expr/node.h"
-#include "expr/node_manager.h"
+#include "expr/expr.h"
+#include "expr/kind.h"
+#include "expr/metakind.h"
 #include "expr/type.h"
+#include "expr/node_manager.h"
+#include "expr/expr_manager.h"
+#include "context/context.h"
+
+${includes}
+
+// This is a hack, but an important one: if there's an error, the
+// compiler directs the user to the template file instead of the
+// generated one.  We don't want the user to modify the generated one,
+// since it'll get overwritten on a later build.
+#line 32 "${template}"
 
 using namespace std;
 using namespace CVC4::context;
@@ -122,15 +124,13 @@ FunctionType* ExprManager::mkFunctionType(const std::vector<Type*>& argTypes,
   return d_nodeManager->mkFunctionType(argTypes, range);
 }
 
-FunctionType*
-ExprManager::mkFunctionType(const std::vector<Type*>& sorts) {
+FunctionType* ExprManager::mkFunctionType(const std::vector<Type*>& sorts) {
   Assert( sorts.size() >= 2 );
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkFunctionType(sorts);
 }
 
-FunctionType*
-ExprManager::mkPredicateType(const std::vector<Type*>& sorts) {
+FunctionType* ExprManager::mkPredicateType(const std::vector<Type*>& sorts) {
   Assert( sorts.size() >= 1 );
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkPredicateType(sorts);
@@ -151,11 +151,12 @@ Expr ExprManager::mkVar(Type* type) {
   return Expr(this, new Node(d_nodeManager->mkVar(type)));
 }
 
-unsigned int ExprManager::minArity(Kind kind) {
+unsigned ExprManager::minArity(Kind kind) {
+  // FIXME: should be implemented this way, but parser depends on *parse*-level.
+  // See bug 75.
+  //return metakind::getLowerBoundForKind(kind);
   switch(kind) {
-  case FALSE:
   case SKOLEM:
-  case TRUE:
   case VARIABLE:
     return 0;
 
@@ -181,11 +182,12 @@ unsigned int ExprManager::minArity(Kind kind) {
   }
 }
 
-unsigned int ExprManager::maxArity(Kind kind) {
+unsigned ExprManager::maxArity(Kind kind) {
+  // FIXME: should be implemented this way, but parser depends on *parse*-level.
+  // See bug 75.
+  //return metakind::getUpperBoundForKind(kind);
   switch(kind) {
-  case FALSE:
   case SKOLEM:
-  case TRUE:
   case VARIABLE:
     return 0;
 
@@ -213,7 +215,6 @@ unsigned int ExprManager::maxArity(Kind kind) {
   }
 }
 
-
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
 }
@@ -221,5 +222,7 @@ NodeManager* ExprManager::getNodeManager() const {
 Context* ExprManager::getContext() const {
   return d_ctxt;
 }
+
+${mkConst_implementations}
 
 }/* CVC4 namespace */

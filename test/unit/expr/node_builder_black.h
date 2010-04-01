@@ -57,7 +57,7 @@ public:
   template <unsigned N>
   void push_back(NodeBuilder<N>& nb, int n){
     for(int i = 0; i < n; ++i){
-      nb << d_nm->mkNode(TRUE);
+      nb << d_nm->mkConst(true);
     }
   }
 
@@ -293,8 +293,8 @@ public:
     */
     NodeBuilder<> arr(specKind);
 
-    Node i_0 = d_nm->mkNode(FALSE);
-    Node i_2 = d_nm->mkNode(TRUE);
+    Node i_0 = d_nm->mkConst(false);
+    Node i_2 = d_nm->mkConst(true);
     Node i_K = d_nm->mkNode(NOT, i_0);
 
 #ifdef CVC4_DEBUG
@@ -318,7 +318,7 @@ public:
     TS_ASSERT_EQUALS(arr[0], i_0);
     TS_ASSERT_EQUALS(arr[2], i_2);
     for(int i = 3; i < K; ++i) {
-      TS_ASSERT_EQUALS(arr[i], d_nm->mkNode(TRUE));
+      TS_ASSERT_EQUALS(arr[i], d_nm->mkConst(true));
     }
 
     arr << i_K;
@@ -326,7 +326,7 @@ public:
     TS_ASSERT_EQUALS(arr[0], i_0);
     TS_ASSERT_EQUALS(arr[2], i_2);
     for(int i = 3; i < K; ++i) {
-      TS_ASSERT_EQUALS(arr[i], d_nm->mkNode(TRUE));
+      TS_ASSERT_EQUALS(arr[i], d_nm->mkConst(true));
     }
     TS_ASSERT_EQUALS(arr[K], i_K);
 
@@ -401,7 +401,7 @@ public:
     TS_ASSERT_EQUALS(modified.getKind(), specKind);
 
     NodeBuilder<> nb(specKind);
-    nb << d_nm->mkNode(TRUE) << d_nm->mkNode(FALSE);
+    nb << d_nm->mkConst(true) << d_nm->mkConst(false);
     Node n = nb;// avoid warning on clear()
     nb.clear(PLUS);
 
@@ -423,10 +423,10 @@ public:
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testMixOrder1;
-    TS_ASSERT_EQUALS((testMixOrder1 << specKind << d_nm->mkNode(TRUE)).getKind(),
+    TS_ASSERT_EQUALS((testMixOrder1 << specKind << d_nm->mkConst(true)).getKind(),
                      specKind);
     NodeBuilder<> testMixOrder2;
-    TS_ASSERT_EQUALS((testMixOrder2 << d_nm->mkNode(TRUE) << specKind).getKind(),
+    TS_ASSERT_EQUALS((testMixOrder2 << d_nm->mkConst(true) << specKind).getKind(),
                      specKind);
   }
 
@@ -539,12 +539,13 @@ public:
 
     NodeBuilder<K> a(specKind);
     NodeBuilder<K> b(specKind);
-    NodeBuilder<K> c(TRUE);
+    NodeBuilder<K> c(NOT);
     string astr, bstr, cstr;
     stringstream astream, bstream, cstream;
 
     push_back(a, K / 2);
     push_back(b, K / 2);
+    push_back(c, 1);
 
     a.toStream(astream);
     b.toStream(bstream);
@@ -668,7 +669,7 @@ public:
 
         // build one-past-the-end
         for(size_t j = 0; j <= n; ++j) {
-          b << d_nm->mkNode(TRUE);
+          b << d_nm->mkConst(true);
         }
       }
     } catch(Exception e) {

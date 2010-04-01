@@ -20,8 +20,6 @@
 #ifndef __CVC4__DEBUG_H
 #define __CVC4__DEBUG_H
 
-#include "cvc4_config.h"
-
 #include <cassert>
 
 #ifdef CVC4_ASSERTIONS

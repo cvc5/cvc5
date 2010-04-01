@@ -145,8 +145,8 @@ public:
     d_scope = new NodeManagerScope(d_nm);
     d_dummy = new DummyTheory(d_ctxt, d_outputChannel);
     d_outputChannel.clear();
-    atom0 = d_nm->mkNode(kind::TRUE);
-    atom1 = d_nm->mkNode(kind::FALSE);
+    atom0 = d_nm->mkConst(true);
+    atom1 = d_nm->mkConst(false);
   }
 
   void tearDown() {

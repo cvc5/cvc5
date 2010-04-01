@@ -19,7 +19,7 @@
 #include <cstring>
 #include <new>
 
-#include "config.h"
+#include "cvc4autoconfig.h"
 #include "main.h"
 #include "usage.h"
 #include "parser/input.h"

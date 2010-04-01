@@ -1,12 +1,7 @@
-/*
- * smt_parser.h
- *
- *  Created on: Mar 5, 2010
- *      Author: chris
- */
+#include "cvc4parser_public.h"
 
-#ifndef SMT_PARSER_H_
-#define SMT_PARSER_H_
+#ifndef __CVC4__PARSER__SMT_INPUT_H
+#define __CVC4__PARSER__SMT_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/smt/generated/SmtLexer.h"
@@ -32,7 +27,8 @@ class SmtInput : public AntlrInput {
 
 public:
 
-  /** Create a file input.
+  /**
+   * Create a file input.
    *
    * @param exprManager the manager to use when building expressions from the input
    * @param filename the path of the file to read
@@ -41,7 +37,8 @@ public:
    */
   SmtInput(ExprManager* exprManager, const std::string& filename, bool useMmap);
 
-  /** Create a string input.
+  /**
+   * Create a string input.
    *
    * @param exprManager the manager to use when building expressions from the input
    * @param input the string to read
@@ -49,20 +46,22 @@ public:
    */
   SmtInput(ExprManager* exprManager, const std::string& input, const std::string& name);
 
-  /* Destructor. Frees the lexer and the parser. */
+  /** Destructor. Frees the lexer and the parser. */
   ~SmtInput();
 
 protected:
 
-  /** Parse a command from the input. Returns <code>NULL</code> if there is
-   * no command there to parse.
+  /**
+   * Parse a command from the input. Returns <code>NULL</code> if
+   * there is no command there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
   Command* doParseCommand() throw(ParserException);
 
-  /** Parse an expression from the input. Returns a null <code>Expr</code>
-   * if there is no expression there to parse.
+  /**
+   * Parse an expression from the input. Returns a null
+   * <code>Expr</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
@@ -70,14 +69,15 @@ protected:
 
 private:
 
-  /** Initialize the class. Called from the constructors once the input stream
-   * is initialized. */
+  /**
+   * Initialize the class. Called from the constructors once the input
+   * stream is initialized.
+   */
   void init();
 
-}; // class SmtInput
+};/* class SmtInput */
 
-} // namespace parser
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
-} // namespace CVC4
-
-#endif /* SMT_PARSER_H_ */
+#endif /* __CVC4__PARSER__SMT_INPUT_H */

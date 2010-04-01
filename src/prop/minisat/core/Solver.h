@@ -17,16 +17,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__PROP__MINISAT__SOLVER_H
 #define __CVC4__PROP__MINISAT__SOLVER_H
 
-#include "cvc4_private.h"
 #include "context/context.h"
 
 #include <cstdio>
 #include <cassert>
 
-#include "cvc4_config.h"
 #include "../mtl/Vec.h"
 #include "../mtl/Heap.h"
 #include "../mtl/Alg.h"

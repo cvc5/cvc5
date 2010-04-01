@@ -174,8 +174,8 @@ public:
 #endif /* CVC4_ASSERTIONS */
 
     //Basic access check
-    Node tb = d_nodeManager->mkNode(TRUE);
-    Node eb = d_nodeManager->mkNode(FALSE);
+    Node tb = d_nodeManager->mkConst(true);
+    Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
     Node ite = cnd.iteNode(tb, eb);
 
@@ -232,7 +232,7 @@ public:
      */
 
     // simple test of descending descendant property
-    Node child = d_nodeManager->mkNode(TRUE);
+    Node child = d_nodeManager->mkConst(true);
     Node parent = d_nodeManager->mkNode(NOT, child);
 
     TS_ASSERT(child < parent);
@@ -259,8 +259,8 @@ public:
   void testEqNode() {
     /* Node eqNode(const Node& right) const; */
 
-    Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT, d_nodeManager->mkNode(FALSE));
+    Node left = d_nodeManager->mkConst(true);
+    Node right = d_nodeManager->mkNode(NOT, d_nodeManager->mkConst(false));
     Node eq = left.eqNode(right);
 
     TS_ASSERT(EQUAL == eq.getKind());
@@ -273,7 +273,7 @@ public:
   void testNotNode() {
     /* Node notNode() const; */
 
-    Node child = d_nodeManager->mkNode(TRUE);
+    Node child = d_nodeManager->mkConst(true);
     Node parent = child.notNode();
 
     TS_ASSERT(NOT == parent.getKind());
@@ -285,8 +285,8 @@ public:
   void testAndNode() {
     /*Node andNode(const Node& right) const;*/
 
-    Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
+    Node left = d_nodeManager->mkConst(true);
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.andNode(right);
 
 
@@ -301,8 +301,8 @@ public:
   void testOrNode() {
     /*Node orNode(const Node& right) const;*/
 
-    Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
+    Node left = d_nodeManager->mkConst(true);
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.orNode(right);
 
 
@@ -321,8 +321,8 @@ public:
     Node b = d_nodeManager->mkVar();
 
     Node cnd = d_nodeManager->mkNode(PLUS, a, b);
-    Node thenBranch = d_nodeManager->mkNode(TRUE);
-    Node elseBranch = d_nodeManager->mkNode(NOT, d_nodeManager->mkNode(FALSE));
+    Node thenBranch = d_nodeManager->mkConst(true);
+    Node elseBranch = d_nodeManager->mkNode(NOT, d_nodeManager->mkConst(false));
     Node ite = cnd.iteNode(thenBranch, elseBranch);
 
     TS_ASSERT(ITE == ite.getKind());
@@ -336,8 +336,8 @@ public:
   void testIffNode() {
     /*  Node iffNode(const Node& right) const; */
 
-    Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
+    Node left = d_nodeManager->mkConst(true);
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.iffNode(right);
 
 
@@ -351,8 +351,8 @@ public:
 
   void testImpNode() {
     /* Node impNode(const Node& right) const; */
-    Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
+    Node left = d_nodeManager->mkConst(true);
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.impNode(right);
 
 
@@ -365,8 +365,8 @@ public:
 
   void testXorNode() {
     /*Node xorNode(const Node& right) const;*/
-    Node left = d_nodeManager->mkNode(TRUE);
-    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkNode(FALSE)));
+    Node left = d_nodeManager->mkConst(true);
+    Node right = d_nodeManager->mkNode(NOT, (d_nodeManager->mkConst(false)));
     Node eq = left.xorNode(right);
 
 
@@ -422,7 +422,7 @@ public:
 
   void testNaryExpForSize(Kind k, int N) {
     NodeBuilder<> nbz(k);
-    Node trueNode = d_nodeManager->mkNode(TRUE);
+    Node trueNode = d_nodeManager->mkConst(true);
     for(int i = 0; i < N; ++i) {
       nbz << trueNode;
     }
@@ -433,7 +433,7 @@ public:
   void testNumChildren() {
     /*inline size_t getNumChildren() const;*/
 
-    Node trueNode = d_nodeManager->mkNode(TRUE);
+    Node trueNode = d_nodeManager->mkConst(true);
 
     //test 0
     TS_ASSERT(0 == (Node::null()).getNumChildren());

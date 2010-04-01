@@ -13,12 +13,13 @@
  ** SmtEngine: the main public entry point of libcvc4.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__SMT_ENGINE_H
 #define __CVC4__SMT_ENGINE_H
 
 #include <vector>
 
-#include "cvc4_config.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/result.h"

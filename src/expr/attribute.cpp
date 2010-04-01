@@ -25,29 +25,6 @@ namespace CVC4 {
 namespace expr {
 namespace attr {
 
-/**
- * Search for the NodeValue in all attribute tables and remove it,
- * calling the cleanup function if one is defined.
- */
-template <class T>
-inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
-                                              NodeValue* nv) {
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::s_id; ++id) {
-    typedef AttributeTraits<T, false> traits_t;
-    typedef AttrHash<T> hash_t;
-    pair<uint64_t, NodeValue*> pr = std::make_pair(id, nv);
-    if(traits_t::cleanup[id] != NULL) {
-      typename hash_t::iterator i = table.find(pr);
-      if(i != table.end()) {
-        traits_t::cleanup[id]((*i).second);
-        table.erase(pr);
-      }
-    } else {
-      table.erase(pr);
-    }
-  }
-}
-
 void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   d_bools.erase(nv);
   deleteFromTable(d_ints, nv);

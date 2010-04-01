@@ -19,7 +19,6 @@
 #ifndef __CVC4__PROP_ENGINE_H
 #define __CVC4__PROP_ENGINE_H
 
-#include "cvc4_config.h"
 #include "expr/node.h"
 #include "util/result.h"
 #include "util/options.h"

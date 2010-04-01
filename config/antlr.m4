@@ -1,11 +1,11 @@
 ##
-# Check for ANTLR's runantlr script. Will set ANTLR to the location of the
-# runantlr script
+# Check for ANTLR's antlr3 script.
+# Will set ANTLR to the location of the script.
 ##
 AC_DEFUN([AC_PROG_ANTLR], [
   AC_ARG_VAR([ANTLR],[location of the antlr3 script])
 
-  # Check the existance of the runantlr script
+  # Check the existence of the runantlr script
   if test -z "$ANTLR"; then
     AC_CHECK_PROGS(ANTLR, [antlr3])
   else
@@ -25,13 +25,13 @@ AC_DEFUN([AC_PROG_ANTLR], [
 ])
 
 ##
-# Check the existance of the ANTLR C++ runtime library and headers
-# Will set ANTLR_CPPFLAGS and ANTLR_LIBS to the location of the ANTLR headers
+# Check the existence of the ANTLR3 C runtime library and headers
+# Will set ANTLR_INCLUDES and ANTLR_LIBS to the location of the ANTLR headers
 # and library respectively
 ##
 AC_DEFUN([AC_LIB_ANTLR],[
 
-  # Get the location of the  ANTLR c++ includes and libraries
+  # Get the location of the ANTLR3 C includes and libraries
   AC_ARG_WITH(
     [antlr-dir],
     AS_HELP_STRING(
@@ -39,10 +39,10 @@ AC_DEFUN([AC_LIB_ANTLR],[
       [path to ANTLR C headers and libraries]
     ),
     ANTLR_PREFIXES="$withval",
-    ANTLR_PREFIXES="/usr/local /usr /opt/local /opt"
+    ANTLR_PREFIXES="$ANTLR_HOME /usr/local /usr /opt/local /opt"
   )
 
-  AC_MSG_CHECKING(for ANTLR C runtime library)
+  AC_MSG_CHECKING(for ANTLR3 C runtime library)
 
   # Use C and remember the variables we are changing
   AC_LANG_PUSH(C)
@@ -72,7 +72,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
       ],
           [
             AC_MSG_RESULT(no)
-            AC_MSG_ERROR([ANTLR C runtime not found, see <http://www.antlr.org/>])
+            AC_MSG_ERROR([ANTLR3 C runtime not found, see <http://www.antlr.org/>])
           ]
     )
   done

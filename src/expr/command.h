@@ -16,6 +16,8 @@
  ** client code.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__COMMAND_H
 #define __CVC4__COMMAND_H
 
@@ -24,7 +26,6 @@
 #include <string>
 #include <vector>
 
-#include "cvc4_config.h"
 #include "expr/expr.h"
 #include "util/result.h"
 

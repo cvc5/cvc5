@@ -129,6 +129,10 @@ class TheoryEngine {
    * while leaving the Node's kind alone.
    */
   Node rewriteChildren(TNode in) {
+    if(in.getMetaKind() == kind::metakind::CONSTANT) {
+      return in;
+    }
+
     NodeBuilder<> b(in.getKind());
     for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
       b << rewrite(*c);

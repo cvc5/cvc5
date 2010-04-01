@@ -36,7 +36,7 @@ namespace theory {
 
 // rewrite cache support
 struct RewriteCacheTag {};
-typedef expr::Attribute<RewriteCacheTag, Node> RewriteCache;
+typedef expr::Attribute<RewriteCacheTag, TNode> RewriteCache;
 
 template <class T>
 class TheoryImpl;

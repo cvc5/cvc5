@@ -13,14 +13,16 @@
  ** Exception class for parse errors.
  **/
 
+#include "cvc4parser_public.h"
+
 #ifndef __CVC4__PARSER__PARSER_EXCEPTION_H
 #define __CVC4__PARSER__PARSER_EXCEPTION_H
 
-#include "util/exception.h"
-#include "cvc4_config.h"
 #include <iostream>
 #include <string>
 #include <sstream>
+
+#include "util/exception.h"
 
 namespace CVC4 {
 namespace parser {

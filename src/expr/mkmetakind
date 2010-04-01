@@ -4,15 +4,15 @@
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
 # Copyright (c) 2010  The CVC4 Project
 #
-# The purpose of this script is to create metakind.h from a prologue,
-# two middle sections, epilogue, and a list of theory kinds.
+# The purpose of this script is to create metakind.h from a template
+# and a list of theory kinds.
 #
 # This is kept distinct from kind.h because kind.h is a public header
 # and metakind.h is intended for the expr package only.
 #
 # Invocation:
 #
-#   mkmetakind prologue-file middle1-file middle2-file epilogue-file theory-kind-files...
+#   mkmetakind template-file theory-kind-files...
 #
 # Output is to standard out.
 #
@@ -20,7 +20,7 @@
 copyright=2010
 
 cat <<EOF
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** metakind.h
  **
  ** Copyright $copyright  The AcSys Group, New York University, and as below.
@@ -98,6 +98,15 @@ function operator {
   register_metakind OPERATOR "$1" "$2"
 }
 
+function nonatomic_operator {
+  # nonatomic_operator K #children ["comment"]
+
+  lineno=${BASH_LINENO[0]}
+
+  check_theory_seen
+  register_metakind NONATOMIC_OPERATOR "$1" "$2"
+}
+
 function parameterized {
   # parameterized K #children ["comment"]
 
@@ -115,7 +124,14 @@ function constant {
   check_theory_seen
 
   if ! expr "$2" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: constant $1 class \`$2' isn't fully-qualified (e.g., ::CVC4::Rational)" >&2
+    if ! primitive_type "$2"; then
+      # if there's an embedded space, we're probably doing something
+      # tricky to specify the CONST payload, like "int const*"; in any
+      # case, this warning gives too many false positives, so disable it
+      if ! expr "$2" : '..* ..*' >/dev/null; then
+        echo "$kf:$lineno: warning: constant $1 class \`$2' isn't fully-qualified (e.g., ::CVC4::Rational)" >&2
+      fi
+    fi
   fi
   if ! expr "$3" : '\(::*\)' >/dev/null; then
     echo "$kf:$lineno: warning: constant $1 hasher \`$3' isn't fully-qualified (e.g., ::CVC4::RationalHashFcn)" >&2
@@ -133,14 +149,15 @@ function constant {
 namespace expr {
 
 template <>
-inline const $2 & NodeValue::getConst< $2 >() const {
-  Assert(getKind() == ::CVC4::kind::$1);
+inline $2 const& NodeValue::getConst< $2 >() const {
+  AssertArgument(getKind() == ::CVC4::kind::$1, *this,
+                 \"Improper kind for getConst<$2>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
   // pool), we must check d_nchildren here.
   return d_nchildren == 0
-    ? *reinterpret_cast< const $2 * >(d_children)
-    : *reinterpret_cast< const $2 * >(d_children[0]);
+    ? *reinterpret_cast< $2 const* >(d_children)
+    : *reinterpret_cast< $2 const* >(d_children[0]);
 }
 
 }/* CVC4::expr namespace */
@@ -166,10 +183,12 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 "
   metakind_constHashes="${metakind_constHashes}
   case kind::$1:
+#line $lineno \"$kf\"
     return $3::hash(nv->getConst< $2 >());
 "
   metakind_constPrinters="${metakind_constPrinters}
   case kind::$1:
+#line $lineno \"$kf\"
     out << nv->getConst< $2 >();
     break;
 "
@@ -179,17 +198,27 @@ function register_metakind {
   mk=$1
   k=$2
   nc=$3
+
+  if [ $mk = NONATOMIC_OPERATOR ]; then
+    metakind_isatomic="${metakind_isatomic}    false, /* $k */
+";
+    mk=OPERATOR
+  else
+    metakind_isatomic="${metakind_isatomic}    true, /* $k */
+";
+  fi
+
   metakind_kinds="${metakind_kinds}    metakind::$mk, /* $k */
 ";
 
   # figure out the range given by $nc
-  if expr "$nc" : '^[0-9]\+$' >/dev/null; then
+  if expr "$nc" : '[0-9]\+$' >/dev/null; then
     lb=$nc
     ub=$nc
-  elif expr "$nc" : '^[0-9]\+:$' >/dev/null; then
+  elif expr "$nc" : '[0-9]\+:$' >/dev/null; then
     let `echo "$nc" | awk 'BEGIN{FS=":"}{print"lb="$1}'`
     ub=MAX_CHILDREN
-  elif expr "$nc" : '^[0-9]\+:[0-9]\+$' >/dev/null; then
+  elif expr "$nc" : '[0-9]\+:[0-9]\+$' >/dev/null; then
     let `echo "$nc" | awk 'BEGIN{FS=":"}{print"lb="$1" ub="$2}'`
     if [ $ub -lt $lb ]; then
       echo "$kf:$lineno: error in range \`$nc': LB < UB (in definition of $k)" >&2
@@ -200,10 +229,33 @@ function register_metakind {
     exit 1
   fi
 
+  if [ $mk = OPERATOR -o $mk = PARAMETERIZED ]; then
+    if [ $lb = 0 ]; then
+      echo "$kf:$lineno: error in range \`$nc' for \`$k': $mk-kinded kinds must always take at least one child" >&2
+      exit 1
+    fi
+  fi
+
   metakind_lbchildren="${metakind_lbchildren}
     $lb, /* $k */"
   metakind_ubchildren="${metakind_ubchildren}
     $ub, /* $k */"
+}
+
+# Returns 0 if arg is a primitive C++ type, or a pointer to same; 1
+# otherwise.  Really all this does is check whether we should issue a
+# "not fully qualified" warning or not.
+function primitive_type {
+  strip=`expr "$1" : ' *\(.*\)\* *'`
+  if [ -n "$strip" ]; then
+    primitive_type "$strip" >&2
+    return $?
+  fi
+
+  case "$1" in
+    bool|int|size_t|long|void|char|float|double) return 0;;
+    *) return 1;;
+  esac
 }
 
 function check_theory_seen {
@@ -226,6 +278,9 @@ while [ $# -gt 0 ]; do
   metakind_kinds="${metakind_kinds}
     /* from $b */
 "
+  metakind_isatomic="${metakind_isatomic}
+    /* from $b */
+"
   source "$kf"
   check_theory_seen
   shift
@@ -235,9 +290,16 @@ check_builtin_theory_seen
 ## output
 
 text=$(cat "$template")
-for var in metakind_includes metakind_kinds metakind_constantMaps \
-           metakind_compares metakind_constHashes metakind_constPrinters \
-           metakind_ubchildren metakind_lbchildren; do
+for var in \
+    metakind_includes \
+    metakind_kinds \
+    metakind_isatomic \
+    metakind_constantMaps \
+    metakind_compares \
+    metakind_constHashes \
+    metakind_constPrinters \
+    metakind_ubchildren \
+    metakind_lbchildren; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error=`expr "$text" : '.*\${\([^}]*\)}.*'`

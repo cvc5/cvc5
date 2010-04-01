@@ -19,6 +19,8 @@
  ** different than the values used to construct the Rational.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__RATIONAL_H
 #define __CVC4__RATIONAL_H
 
@@ -181,11 +183,11 @@ public:
 
 };/* class Rational */
 
-struct RationalHashFcn {
+struct RationalHashStrategy {
   static inline size_t hash(const CVC4::Rational& r) {
     return r.hash();
   }
-};
+};/* struct RationalHashStrategy */
 
 std::ostream& operator<<(std::ostream& os, const Rational& n);
 

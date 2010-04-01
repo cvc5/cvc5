@@ -13,6 +13,8 @@
  ** A multiprecision integer constant.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__INTEGER_H
 #define __CVC4__INTEGER_H
 
@@ -148,11 +150,11 @@ public:
   friend class CVC4::Rational;
 };/* class Integer */
 
-struct IntegerHashFcn {
+struct IntegerHashStrategy {
   static inline size_t hash(const CVC4::Integer& i) {
     return i.hash();
   }
-};
+};/* struct IntegerHashStrategy */
 
 std::ostream& operator<<(std::ostream& os, const Integer& n);
 

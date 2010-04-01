@@ -1,6 +1,8 @@
 /*********************                                                        */
-/** memory_mapped_input_buffer.cpp
+/** memory_mapped_input_buffer.h
  ** Original author: cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -11,6 +13,8 @@
  ** ANTLR input buffer from a memory-mapped file.
  **/
 
+#include "cvc4parser_private.h"
+
 #ifndef __CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
 #define __CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
 
@@ -20,15 +24,18 @@
 namespace CVC4 {
 namespace parser {
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 pANTLR3_INPUT_STREAM
 MemoryMappedInputBufferNew(const std::string& filename);
 
-}
+#ifdef __cplusplus
+}/* extern "C" */
+#endif
 
-}
-}
-
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H */

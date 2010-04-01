@@ -13,6 +13,8 @@
  ** Encapsulation of the result of a query.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__RESULT_H
 #define __CVC4__RESULT_H
 

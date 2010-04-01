@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** cvc4_config.h
+/** cvc4_public.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -11,11 +11,11 @@
  ** information.
  **
  ** Macros that should be defined everywhere during the building of
- ** the libraries and driver binary.
+ ** the libraries and driver binary, and also exported to the user.
  **/
 
-#ifndef __CVC4_CONFIG_H
-#define __CVC4_CONFIG_H
+#ifndef __CVC4_PUBLIC_H
+#define __CVC4_PUBLIC_H
 
 #if defined _WIN32 || defined __CYGWIN__
 #  ifdef BUILDING_DLL
@@ -47,4 +47,4 @@
 #  define NULL ((void*) 0)
 #endif
 
-#endif /* __CVC4_CONFIG_H */
+#endif /* __CVC4_PUBLIC_H */

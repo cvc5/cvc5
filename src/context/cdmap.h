@@ -271,7 +271,9 @@ public:
       // ContextObj destructor, which calls CDOmap::destroy(), which
       // restore()'s, which puts the CDOmap on the trash, which causes
       // a double-delete.
-      (*i).second->~CDOmap();
+      (*i).second->~Element();
+      // Writing ...->~CDOmap() in the above is legal (?) but breaks
+      // g++ 4.1, though later versions have no problem.
 
       typename table_type::iterator j = d_map.find(k);
       // This if() succeeds for objects inserted when in the

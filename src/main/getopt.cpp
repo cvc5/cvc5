@@ -23,14 +23,15 @@
 
 #include <getopt.h>
 
-#include "config.h"
-#include "main.h"
 #include "util/exception.h"
-#include "usage.h"
 #include "util/configuration.h"
 #include "util/output.h"
 #include "util/options.h"
 #include "parser/parser_options.h"
+
+#include "cvc4autoconfig.h"
+#include "main.h"
+#include "usage.h"
 
 using namespace std;
 using namespace CVC4;

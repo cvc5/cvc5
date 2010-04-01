@@ -16,10 +16,9 @@
 #include <new>
 #include <cstdarg>
 #include <cstdio>
+
 #include "util/Assert.h"
 #include "util/exception.h"
-#include "cvc4_config.h"
-#include "config.h"
 
 using namespace std;
 

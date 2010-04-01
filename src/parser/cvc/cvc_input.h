@@ -1,12 +1,7 @@
-/*
- * cvc_parser.h
- *
- *  Created on: Mar 5, 2010
- *      Author: chris
- */
+#include "cvc4parser_public.h"
 
-#ifndef CVC_PARSER_H_
-#define CVC_PARSER_H_
+#ifndef __CVC4__PARSER__CVC_INPUT_H
+#define __CVC4__PARSER__CVC_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/cvc/generated/CvcLexer.h"
@@ -76,8 +71,7 @@ private:
 
 }; // class CvcInput
 
-} // namespace parser
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
-} // namespace CVC4
-
-#endif /* CVC_PARSER_H_ */
+#endif /* __CVC4__PARSER__CVC_INPUT_H */

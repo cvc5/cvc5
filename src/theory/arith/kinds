@@ -10,16 +10,14 @@ operator PLUS 2: "arithmetic addition"
 operator MULT 2: "arithmetic multiplication"
 operator UMINUS 1 "arithmetic negation"
 
-constant \
-    CONST_RATIONAL \
+constant CONST_RATIONAL \
     ::CVC4::Rational \
-    ::CVC4::RationalHashFcn \
+    ::CVC4::RationalHashStrategy \
     "util/rational.h" \
     "a multiple-precision rational constant"
 
-constant \
-    CONST_INTEGER \
+constant CONST_INTEGER \
     ::CVC4::Integer \
-    ::CVC4::IntegerHashFcn \
+    ::CVC4::IntegerHashStrategy \
     "util/integer.h" \
     "a multiple-precision integer constant"

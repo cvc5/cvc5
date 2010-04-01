@@ -2,8 +2,10 @@ AM_CPPFLAGS = \
 	-D__BUILDING_CVC4PARSERLIB \
 	-I@srcdir@/../../include -I@srcdir@/../.. $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall -fvisibility=hidden
+
 # Compile generated C files using C++ compiler
 CC=$(CXX)
+AM_CFLAGS = $(AM_CXXFLAGS)
 
 noinst_LTLIBRARIES = libparsercvc.la
 
@@ -30,17 +32,17 @@ BUILT_SOURCES = $(ANTLR_STUFF)
 dist-hook: $(ANTLR_STUFF)
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
-	-rmdir @srcdir@/generated
-	-rm -f @srcdir@/stamp-generated
+	-$(AM_V_at)rmdir @srcdir@/generated
+	-$(AM_V_at)rm -f @srcdir@/stamp-generated
 
 @srcdir@/stamp-generated:
-	mkdir -p @srcdir@/generated
-	touch @srcdir@/stamp-generated
+	$(AM_V_at)mkdir -p @srcdir@/generated
+	$(AM_V_at)touch @srcdir@/stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
 @srcdir@/generated/CvcLexer.h: Cvc.g @srcdir@/stamp-generated
-	-rm -f $(ANTLR_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/Cvc.g"
+	-$(AM_V_at)rm -f $(ANTLR_STUFF)
+	$(AM_V_GEN)$(ANTLR) -o "@srcdir@/generated" "@srcdir@/Cvc.g"
 
 # These don't actually depend on CvcLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules

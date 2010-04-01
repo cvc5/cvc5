@@ -13,6 +13,8 @@
  ** Assertion utility classes, functions, exceptions, and macros.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__ASSERT_H
 #define __CVC4__ASSERT_H
 
@@ -22,8 +24,6 @@
 #include <cstdlib>
 #include <cstdarg>
 
-#include "config.h"
-#include "cvc4_config.h"
 #include "util/exception.h"
 #include "util/output.h"
 

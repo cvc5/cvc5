@@ -293,24 +293,28 @@ public:
   /** Make a function type from domain to range. */
   inline FunctionType* mkFunctionType(Type* domain, Type* range) const;
 
-  /** Make a function type with input types from argTypes. <code>argTypes</code>
-   * must have at least one element. */
+  /**
+   * Make a function type with input types from
+   * argTypes. <code>argTypes</code> must have at least one element.
+   */
   inline FunctionType* mkFunctionType(const std::vector<Type*>& argTypes,
                                       Type* range) const;
 
-  /** Make a function type with input types from <code>sorts[0..sorts.size()-2]</code>
-   * and result type <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have at
-   * least 2 elements.
+  /**
+   * Make a function type with input types from
+   * <code>sorts[0..sorts.size()-2]</code> and result type
+   * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
+   * at least 2 elements.
    */
-  inline FunctionType*
-    mkFunctionType(const std::vector<Type*>& sorts);
+  inline FunctionType* mkFunctionType(const std::vector<Type*>& sorts) const;
 
-  /** Make a predicate type with input types from <code>sorts</code>. The result with
-   * be a function type with range <code>BOOLEAN</code>. <code>sorts</code> must have at
-   * least one element.
+  /**
+   * Make a predicate type with input types from
+   * <code>sorts</code>. The result with be a function type with range
+   * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
+   * element.
    */
-  inline FunctionType*
-    mkPredicateType(const std::vector<Type*>& sorts);
+  inline FunctionType* mkPredicateType(const std::vector<Type*>& sorts) const;
 
   /** Make a new sort with the given name. */
   inline Type* mkSort(const std::string& name) const;
@@ -453,7 +457,7 @@ NodeManager::mkFunctionType(const std::vector<Type*>& argTypes,
 }
 
 inline FunctionType*
-NodeManager::mkFunctionType(const std::vector<Type*>& sorts) {
+NodeManager::mkFunctionType(const std::vector<Type*>& sorts) const {
   Assert( sorts.size() >= 2 );
   std::vector<Type*> argTypes(sorts);
   Type* rangeType = argTypes.back();
@@ -462,10 +466,11 @@ NodeManager::mkFunctionType(const std::vector<Type*>& sorts) {
 }
 
 inline FunctionType*
-NodeManager::mkPredicateType(const std::vector<Type*>& sorts) {
+NodeManager::mkPredicateType(const std::vector<Type*>& sorts) const {
   Assert( sorts.size() >= 1 );
   return mkFunctionType(sorts,booleanType());
 }
+
 inline Type* NodeManager::mkSort(const std::string& name) const {
   return new SortType(name);
 }
@@ -576,23 +581,6 @@ inline Node NodeManager::mkVar() {
 template <class T>
 Node NodeManager::mkConst(const T& val) {
   // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
-
-  //
-  // TODO: construct a special NodeValue that points to this T but
-  // is == an inlined version (like exists in the hash_set).
-  //
-  // Something similar for (a, b) and (a, b, c) and (a, b, c, d)
-  // versions.
-  //
-  // ALSO TODO: make poolLookup() use hash_set<>::operator[] to auto-insert,
-  // and then set = value after to avoid double-hashing.  fix in all places
-  // where poolLookup is called.
-  //
-  // THEN ALSO TODO: CDMap<> destruction in attribute.cpp to make valgrind
-  // happy
-  //
-  // THEN: reconsider CVC3 tracing mechanism, experiments..
-  //
 
   NVStorage<1> nvStorage;
   expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);

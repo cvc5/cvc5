@@ -1,6 +1,6 @@
 /*********************                                                        */
-/** integer.cpp
- ** Original author: taking
+/** bool.h
+ ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
@@ -19,10 +19,19 @@
  ** different than the values used to construct the Rational.
  **/
 
-#include "util/integer.h"
+#include "cvc4_public.h"
 
-using namespace CVC4;
+#ifndef __CVC4__BOOL_H
+#define __CVC4__BOOL_H
 
-std::ostream& CVC4::operator<<(std::ostream& os, const Integer& n){
-  return os << n.toString();
-}
+namespace CVC4 {
+
+struct BoolHashStrategy {
+  static inline size_t hash(bool b) {
+    return b;
+  }
+};/* struct BoolHashStrategy */
+
+}/* CVC4 namespace */
+
+#endif /* __CVC4__BOOL_H */

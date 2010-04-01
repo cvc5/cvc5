@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** expr.cpp
+/** expr_template.cpp
  ** Original author: dejan
  ** Major contributors: mdeters
  ** Minor contributors (to current version): taking
@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** Public-facing expression interface, implementation.
  **/
 
 #include "expr/expr.h"
@@ -18,6 +18,14 @@
 #include "util/Assert.h"
 
 #include "util/output.h"
+
+${includes}
+
+// This is a hack, but an important one: if there's an error, the
+// compiler directs the user to the template file instead of the
+// generated one.  We don't want the user to modify the generated one,
+// since it'll get overwritten on a later build.
+#line 29 "${template}"
 
 using namespace CVC4::kind;
 
@@ -29,25 +37,25 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
 }
 
 Expr::Expr() :
-  d_node(new Node()), d_exprManager(NULL) {
+  d_node(new Node),
+  d_exprManager(NULL) {
 }
 
 Expr::Expr(ExprManager* em, Node* node) :
-  d_node(node), d_exprManager(em) {
+  d_node(node),
+  d_exprManager(em) {
 }
 
 Expr::Expr(const Expr& e) :
-  d_node(new Node(*e.d_node)), d_exprManager(e.d_exprManager) {
+  d_node(new Node(*e.d_node)),
+  d_exprManager(e.d_exprManager) {
 }
 
 Expr::Expr(uintptr_t n) :
-    d_node(new Node()),
-    d_exprManager(NULL) {
-  AlwaysAssert(n==0);
-}
+  d_node(new Node),
+  d_exprManager(NULL) {
 
-ExprManager* Expr::getExprManager() const {
-  return d_exprManager;
+  AlwaysAssert(n == 0);
 }
 
 Expr::~Expr() {
@@ -55,33 +63,37 @@ Expr::~Expr() {
   delete d_node;
 }
 
+ExprManager* Expr::getExprManager() const {
+  return d_exprManager;
+}
+
 Expr& Expr::operator=(const Expr& e) {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+
   ExprManagerScope ems(*this);
   *d_node = *e.d_node;
   d_exprManager = e.d_exprManager;
+
   return *this;
 }
 
 /* This should only ever be assigning NULL to a null Expr! */
 Expr& Expr::operator=(uintptr_t n) {
-  AlwaysAssert(n==0);
+  AlwaysAssert(n == 0);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  if( EXPECT_FALSE(!isNull()) ) {
+
+  if(EXPECT_FALSE( !isNull() )) {
     *d_node = Node::null();
   }
   return *this;
-/*
-  Assert(isNull());
-  return *this;
-*/
 }
 
 bool Expr::operator==(const Expr& e) const {
   if(d_exprManager != e.d_exprManager) {
     return false;
   }
+  ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
   return *d_node == *e.d_node;
@@ -94,20 +106,37 @@ bool Expr::operator!=(const Expr& e) const {
 bool Expr::operator<(const Expr& e) const {
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
-  if(d_exprManager != e.d_exprManager) {
-    return false;
+  if(isNull() && !e.isNull()) {
+    return true;
   }
+  ExprManagerScope ems(*this);
   return *d_node < *e.d_node;
 }
 
 Kind Expr::getKind() const {
+  ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->getKind();
 }
 
 size_t Expr::getNumChildren() const {
+  ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->getNumChildren();
+}
+
+bool Expr::hasOperator() const {
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->hasOperator();
+}
+
+Expr Expr::getOperator() const {
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  CheckArgument(d_node->hasOperator(),
+                "Expr::getOperator() called on an Expr with no operator");
+  return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
 Type* Expr::getType() const {
@@ -122,12 +151,25 @@ std::string Expr::toString() const {
 }
 
 bool Expr::isNull() const {
+  ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->isNull();
 }
 
 Expr::operator bool() const {
   return !isNull();
+}
+
+bool Expr::isConst() const {
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->isConst();
+}
+
+bool Expr::isAtomic() const {
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->isAtomic();
 }
 
 void Expr::toStream(std::ostream& out) const {
@@ -207,5 +249,6 @@ void Expr::debugPrint() {
 #endif /* ! CVC4_MUZZLE */
 }
 
+${getConst_implementations}
 
-} // End namespace CVC4
+}/* CVC4 namespace */

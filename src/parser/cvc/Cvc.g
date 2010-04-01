@@ -74,6 +74,8 @@ using namespace CVC4::parser;
 #define EXPR_MANAGER ANTLR_INPUT->getExprManager()
 #undef MK_EXPR
 #define MK_EXPR EXPR_MANAGER->mkExpr
+#undef MK_CONST
+#define MK_CONST EXPR_MANAGER->mkConst
 }
 
 /**
@@ -105,7 +107,7 @@ command returns [CVC4::Command* cmd = 0]
   : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f);   }
   | QUERY_TOK formula[f] SEMICOLON { cmd = new QueryCommand(f);    }
   | CHECKSAT_TOK formula[f] SEMICOLON { cmd = new CheckSatCommand(f); }
-  | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(MK_EXPR(CVC4::kind::TRUE)); }
+  | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(MK_CONST(true)); }
   | PUSH_TOK SEMICOLON { cmd = new PushCommand(); }
   | POP_TOK SEMICOLON { cmd = new PopCommand(); }
   | declaration[cmd]
@@ -369,8 +371,8 @@ term[CVC4::Expr& f]
     LPAREN formula[f] RPAREN
 
     /* constants */
-  | TRUE_TOK  { f = MK_EXPR(CVC4::kind::TRUE); }
-  | FALSE_TOK { f = MK_EXPR(CVC4::kind::FALSE); }
+  | TRUE_TOK  { f = MK_CONST(true); }
+  | FALSE_TOK { f = MK_CONST(false); }
 
   | /* variable */
     identifier[name,CHECK_DECLARED,SYM_VARIABLE]

@@ -35,8 +35,7 @@
 #include <antlr3lexer.h>
 #include <antlr3tokenstream.h>
 
-#include "bounded_token_buffer.h"
-#include "cvc4_config.h"
+#include "parser/bounded_token_buffer.h"
 #include "util/Assert.h"
 
 namespace CVC4 {

@@ -5,11 +5,11 @@
 # Copyright (c) 2010  The CVC4 Project
 #
 # The purpose of this script is to create theoryof_table.h from a
-# prologue, epilogue, and a list of theory kinds.
+# template and a list of theory kinds.
 #
 # Invocation:
 #
-#   mktheoryof prologue-file epilogue-file theory-kind-files...
+#   mktheoryof template-file theory-kind-files...
 #
 # Output is to standard out.
 #
@@ -17,7 +17,7 @@
 copyright=2010
 
 cat <<EOF
-/*********************                                           -*- C++ -*-  */
+/*********************                                                        */
 /** theoryof_table.h
  **
  ** Copyright $copyright  The AcSys Group, New York University, and as below.
@@ -78,6 +78,14 @@ function variable {
 
 function operator {
   # operator K #children ["comment"]
+
+  lineno=${BASH_LINENO[0]}
+
+  do_theoryof "$1"
+}
+
+function nonatomic_operator {
+  # nonatomic_operator K #children ["comment"]
 
   lineno=${BASH_LINENO[0]}
 

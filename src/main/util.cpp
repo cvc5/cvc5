@@ -21,8 +21,8 @@
 #include <signal.h>
 
 #include "util/exception.h"
-#include "config.h"
 
+#include "cvc4autoconfig.h"
 #include "main.h"
 
 using CVC4::Exception;

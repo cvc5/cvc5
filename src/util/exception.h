@@ -13,11 +13,12 @@
  ** CVC4's exception base class and some associated utilities.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__EXCEPTION_H
 #define __CVC4__EXCEPTION_H
 
 #include <string>
-#include "cvc4_config.h"
 
 namespace CVC4 {
 

@@ -6,12 +6,18 @@
 
 theory ::CVC4::theory::booleans::TheoryBool "theory_bool.h"
 
-operator FALSE 0 "falsity"
-operator TRUE 0 "truth"
+constant CONST_BOOLEAN \
+    bool \
+    ::CVC4::BoolHashStrategy \
+    "util/bool.h" \
+    "truth and falsity"
 
-operator NOT 1 "logical not"
-operator AND 2: "logical and"
-operator IFF 2 "logical equivalence"
-operator IMPLIES 2 "logical implication"
-operator OR 2: "logical or"
-operator XOR 2: "exclusive or"
+# these are nonatomic because they have boolean structure.
+# i.e. nodes n with this kind return false for n.isAtomic()
+nonatomic_operator NOT 1 "logical not"
+nonatomic_operator AND 2: "logical and"
+nonatomic_operator IFF 2 "logical equivalence"
+nonatomic_operator IMPLIES 2 "logical implication"
+nonatomic_operator OR 2: "logical or"
+nonatomic_operator XOR 2: "exclusive or"
+nonatomic_operator ITE 3 "if-then-else"

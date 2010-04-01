@@ -1,10 +1,3 @@
-/*
- * cvc_parser.cpp
- *
- *  Created on: Mar 5, 2010
- *      Author: chris
- */
-
 #include <antlr3.h>
 
 #include "expr/expr_manager.h"
@@ -69,6 +62,5 @@ pANTLR3_LEXER CvcInput::getLexer() {
 }
 */
 
-} // namespace parser
-
-} // namespace CVC4
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */

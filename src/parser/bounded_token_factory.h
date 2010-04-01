@@ -1,12 +1,7 @@
-/*
- * bounded_token_factory.h
- *
- *  Created on: Mar 2, 2010
- *      Author: dejan
- */
+#include "cvc4parser_private.h"
 
-#ifndef BOUNDED_TOKEN_FACTORY_H_
-#define BOUNDED_TOKEN_FACTORY_H_
+#ifndef __CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
+#define __CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
 
 namespace CVC4 {
 namespace parser {
@@ -28,11 +23,10 @@ pANTLR3_TOKEN_FACTORY
 BoundedTokenFactoryNew(pANTLR3_INPUT_STREAM input,ANTLR3_UINT32 size);
 
 #ifdef __cplusplus
-}
+}/* extern "C" */
 #endif
 
-}
-}
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
-
-#endif /* BOUNDED_TOKEN_FACTORY_H_ */
+#endif /* __CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H */

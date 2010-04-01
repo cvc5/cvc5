@@ -46,7 +46,8 @@ libcvc4_noinst_la_LIBADD = \
 empty.cpp:; touch empty.cpp
 
 publicheaders = \
-	include/cvc4_config.h
+	include/cvc4_public.h \
+	include/cvc4parser_public.h
 
 install-data-local: $(publicheaders)
 	$(mkinstalldirs) $(DESTDIR)$(includedir)/cvc4

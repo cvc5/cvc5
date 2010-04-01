@@ -13,10 +13,11 @@
  ** Interface for expression types 
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__TYPE_H
 #define __CVC4__TYPE_H
 
-#include "cvc4_config.h"
 #include "util/output.h"
 #include "util/Assert.h"
 
@@ -262,7 +263,7 @@ struct TypeCleanupStrategy {
       delete t;
     }
   }
-};
+};/* struct TypeCleanupStrategy */
 
 }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */

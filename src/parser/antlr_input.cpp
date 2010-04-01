@@ -13,13 +13,6 @@
  ** A super-class for ANTLR-generated input language parsers
  **/
 
-/*
- * antlr_parser.cpp
- *
- *  Created on: Nov 30, 2009
- *      Author: dejan
- */
-
 #include <iostream>
 #include <limits.h>
 #include <antlr3.h>

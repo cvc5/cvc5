@@ -13,12 +13,14 @@
  ** Global (command-line or equivalent) tuning parameters.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__OPTIONS_H
 #define __CVC4__OPTIONS_H
 
 #include <iostream>
 #include <string>
-#include "cvc4_config.h"
+
 #include "parser/parser_options.h"
 
 namespace CVC4 {

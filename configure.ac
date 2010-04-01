@@ -1,21 +1,26 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
+m4_define(_CVC4_MAJOR,          0 )      dnl version (major)
+m4_define(_CVC4_MINOR,          0 )      dnl version (minor)
+m4_define(_CVC4_RELEASE,        0 )      dnl version (alpha)
+m4_define(_CVC4_RELEASE_STRING, [prerelease]) dnl version string
+
 dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT
 
 AC_PREREQ(2.61)
-AC_INIT
-AC_CONFIG_SRCDIR([src/include/cvc4_config.h])
+AC_INIT([cvc4], _CVC4_RELEASE_STRING)
+AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
-CVC4_MAJOR=0
-CVC4_MINOR=0
-CVC4_RELEASE=0
-CVC4_RELEASE_STRING=prerelease
+CVC4_MAJOR=_CVC4_MAJOR
+CVC4_MINOR=_CVC4_MINOR
+CVC4_RELEASE=_CVC4_RELEASE
+CVC4_RELEASE_STRING=_CVC4_RELEASE_STRING
 
 # Libtool version numbers for libraries
 # Version numbers are in the form current:revision:age
@@ -138,7 +143,7 @@ AC_MSG_RESULT($build_type)
 AC_MSG_CHECKING([what dir to configure])
 if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
   AC_MSG_RESULT([this one (in builds/)])
-elif test -e src/include/cvc4_config.h; then
+elif test -e src/include/cvc4_public.h; then
   AC_MSG_RESULT([builds/$target/$build_type])
   echo
   if test -z "$ac_srcdir"; then
@@ -166,6 +171,7 @@ case "$with_build" in
   production) # highly optimized, no assertions, no tracing
     CVC4CPPFLAGS=
     CVC4CXXFLAGS=
+    CVC4CFLAGS=
     CVC4LDFLAGS=
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=3                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
@@ -177,6 +183,7 @@ case "$with_build" in
   debug) # unoptimized, debug symbols, assertions, tracing
     CVC4CPPFLAGS=-DCVC4_DEBUG
     CVC4CXXFLAGS='-fno-inline'
+    CVC4CFLAGS='-fno-inline'
     CVC4LDFLAGS=
     if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
@@ -187,6 +194,7 @@ case "$with_build" in
   default) # moderately optimized, assertions, tracing
     CVC4CPPFLAGS=
     CVC4CXXFLAGS=
+    CVC4CFLAGS=
     CVC4LDFLAGS=
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=2                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
@@ -198,6 +206,7 @@ case "$with_build" in
   competition) # maximally optimized, no assertions, no tracing, muzzled
     CVC4CPPFLAGS=
     CVC4CXXFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
+    CVC4CFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
     CVC4LDFLAGS=
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=9                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
@@ -239,8 +248,10 @@ AC_MSG_RESULT([$enable_optimized])
 
 if test "$enable_optimized" = yes; then
   CVC4CXXFLAGS="$CVC4CXXFLAGS -O$OPTLEVEL"
+  CVC4CFLAGS="$CVC4CFLAGS -O$OPTLEVEL"
 else
   CVC4CXXFLAGS="$CVC4CXXFLAGS -O0"
+  CVC4CFLAGS="$CVC4CFLAGS -O0"
 fi
 
 AC_MSG_CHECKING([whether to include debugging symbols in libcvc4])
@@ -257,6 +268,7 @@ AC_MSG_RESULT([$enable_debug_symbols])
 
 if test "$enable_debug_symbols" = yes; then
   CVC4CXXFLAGS="$CVC4CXXFLAGS -ggdb3"
+  CVC4CFLAGS="$CVC4CFLAGS -ggdb3"
 fi
 
 AC_MSG_CHECKING([whether to include assertions in build])
@@ -325,6 +337,7 @@ dnl so that we can automatically disable shared and enable static?
 
   CVC4CPPFLAGS="$CVC4CPPFLAGS -DCVC4_COVERAGE"
   CVC4CXXFLAGS="$CVC4CXXFLAGS --coverage"
+  CVC4CFLAGS="$CVC4CFLAGS --coverage"
   CVC4LDFLAGS="$CVC4LDFLAGS --coverage"
 fi
 
@@ -343,11 +356,12 @@ AC_MSG_RESULT([$enable_profiling])
 if test "$enable_profiling" = yes; then
   CVC4CPPFLAGS="$CVC4CPPFLAGS -DCVC4_PROFILING"
   CVC4CXXFLAGS="$CVC4CXXFLAGS -pg"
+  CVC4CFLAGS="$CVC4CFLAGS -pg"
   CVC4LDFLAGS="$CVC4LDFLAGS -pg"
 fi
 
-AM_INIT_AUTOMAKE(cvc4, $CVC4_RELEASE_STRING)
-AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE([1.11 no-define])
+AC_CONFIG_HEADERS([cvc4autoconfig.h])
 
 # Initialize libtool's configuration options.
 _LT_SET_OPTION([LT_INIT],[win32-dll])
@@ -402,7 +416,7 @@ fi
 
 AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
-AC_ARG_VAR(TEST_CPPFLAGS, [CXXFLAGS to use when testing (default=$CPPFLAGS)])
+AC_ARG_VAR(TEST_CPPFLAGS, [CPPFLAGS to use when testing (default=$CPPFLAGS)])
 AC_ARG_VAR(TEST_CXXFLAGS, [CXXFLAGS to use when testing (default=$CXXFLAGS)])
 AC_ARG_VAR(TEST_LDFLAGS,  [LDFLAGS to use when testing (default=$LDFLAGS)])
 
@@ -463,6 +477,7 @@ AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full releas
 
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
+CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 # mk_include
@@ -540,6 +555,7 @@ static binary: $enable_static_binary
 
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
+CFLAGS       : $CFLAGS
 LDFLAGS      : $LDFLAGS
 
 libcvc4 version      : $CVC4_LIBRARY_VERSION

@@ -10,14 +10,16 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** SmtEngine: the main public entry point of libcvc4.
+ ** Interface to a public class that provides compile-time information
+ ** about the CVC4 library.
  **/
+
+#include "cvc4_public.h"
 
 #ifndef __CVC4__CONFIGURATION_H
 #define __CVC4__CONFIGURATION_H
 
-#include "config.h"
-#include "cvc4_config.h"
+#include <string>
 
 namespace CVC4 {
 
@@ -31,84 +33,29 @@ class CVC4_PUBLIC Configuration {
 
 public:
 
-  static bool isDebugBuild() {
-#ifdef CVC4_DEBUG
-    return true;
-#else /* CVC4_DEBUG */
-    return false;
-#endif /* CVC4_DEBUG */
-  }
+  static bool isDebugBuild();
 
-  static bool isTracingBuild() {
-#ifdef CVC4_TRACING
-    return true;
-#else /* CVC4_TRACING */
-    return false;
-#endif /* CVC4_TRACING */
-  }
+  static bool isTracingBuild();
 
-  static bool isMuzzledBuild() {
-#ifdef CVC4_MUZZLE
-    return true;
-#else /* CVC4_MUZZLE */
-    return false;
-#endif /* CVC4_MUZZLE */
-  }
+  static bool isMuzzledBuild();
 
-  static bool isAssertionBuild() {
-#ifdef CVC4_ASSERTIONS
-    return true;
-#else /* CVC4_ASSERTIONS */
-    return false;
-#endif /* CVC4_ASSERTIONS */
-  }
+  static bool isAssertionBuild();
 
-  static bool isCoverageBuild() {
-#ifdef CVC4_COVERAGE
-    return true;
-#else /* CVC4_COVERAGE */
-    return false;
-#endif /* CVC4_COVERAGE */
-  }
+  static bool isCoverageBuild();
 
-  static bool isProfilingBuild() {
-#ifdef CVC4_PROFILING
-    return true;
-#else /* CVC4_PROFILING */
-    return false;
-#endif /* CVC4_PROFILING */
-  }
+  static bool isProfilingBuild();
 
-  static std::string getPackageName() {
-    return PACKAGE;
-  }
+  static std::string getPackageName();
 
-  static std::string getVersionString() {
-    return VERSION;
-  }
+  static std::string getVersionString();
 
-  static unsigned getVersionMajor() {
-    return 0;
-  }
+  static unsigned getVersionMajor();
 
-  static unsigned getVersionMinor() {
-    return 0;
-  }
+  static unsigned getVersionMinor();
 
-  static unsigned getVersionRelease() {
-    return 0;
-  }
+  static unsigned getVersionRelease();
 
-  static std::string about() {
-    return std::string("\
-This is a pre-release of CVC4.\n\
-Copyright (C) 2009, 2010\n\
-  The ACSys Group\n\
-  Courant Institute of Mathematical Sciences,\n\
-  New York University\n\
-  New York, NY  10012  USA\n");
-  }
-
+  static std::string about();
 };
 
 }/* CVC4 namespace */

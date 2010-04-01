@@ -1,8 +1,8 @@
 /*********************                                                        */
-/** parser.h
- ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): cconway
+/** input.h
+ ** Original author: cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -13,13 +13,14 @@
  ** Parser abstraction.
  **/
 
+#include "cvc4parser_public.h"
+
 #ifndef __CVC4__PARSER__PARSER_H
 #define __CVC4__PARSER__PARSER_H
 
 #include <string>
 #include <iostream>
 
-#include "cvc4_config.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "parser/parser_exception.h"

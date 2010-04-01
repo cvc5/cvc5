@@ -13,6 +13,8 @@
  ** A model.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__MODEL_H
 #define __CVC4__MODEL_H
 

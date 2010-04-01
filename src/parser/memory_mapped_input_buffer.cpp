@@ -1,10 +1,3 @@
-/*
- * memory_mapped_input_buffer.cpp
- *
- *  Created on: Mar 3, 2010
- *      Author: chris
- */
-
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -14,7 +7,7 @@
 #include <sys/stat.h>
 #include <antlr3input.h>
 
-#include "memory_mapped_input_buffer.h"
+#include "parser/memory_mapped_input_buffer.h"
 #include "util/Assert.h"
 #include "util/exception.h"
 

@@ -2,7 +2,9 @@ AM_CPPFLAGS = \
 	-D__BUILDING_CVC4PARSERLIB \
 	-I@srcdir@/../../include -I@srcdir@/../.. $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall -fvisibility=hidden
+
 # Compile generated C files using C++ compiler
+AM_CFLAGS = $(AM_CXXFLAGS)
 CC=$(CXX)
 
 noinst_LTLIBRARIES = libparsersmt.la
@@ -30,17 +32,17 @@ BUILT_SOURCES = $(ANTLR_STUFF)
 dist-hook: $(ANTLR_STUFF)
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
-	-rmdir @srcdir@/generated
-	-rm -f @srcdir@/stamp-generated
+	-$(AM_V_at)rmdir @srcdir@/generated
+	-$(AM_V_at)rm -f @srcdir@/stamp-generated
 
 @srcdir@/stamp-generated:
-	mkdir -p @srcdir@/generated
-	touch @srcdir@/stamp-generated
+	$(AM_V_at)mkdir -p @srcdir@/generated
+	$(AM_V_at)touch @srcdir@/stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
 @srcdir@/generated/SmtLexer.h: Smt.g @srcdir@/stamp-generated
-	-rm -f $(ANTLR_STUFF)
-	$(ANTLR) -o "@srcdir@/generated" "@srcdir@/Smt.g"
+	-$(AM_V_at)rm -f $(ANTLR_STUFF)
+	$(AM_V_GEN)$(ANTLR) -o "@srcdir@/generated" "@srcdir@/Smt.g"
 
 # These don't actually depend on SmtLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules

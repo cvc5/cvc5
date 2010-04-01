@@ -25,10 +25,9 @@
 #ifndef __CVC4__EXPR__NODE_VALUE_H
 #define __CVC4__EXPR__NODE_VALUE_H
 
-#include "cvc4_config.h"
 #include "expr/kind.h"
-#include <stdint.h>
 
+#include <stdint.h>
 #include <string>
 #include <iterator>
 

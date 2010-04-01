@@ -13,10 +13,10 @@
  ** SAT Solver.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__PROP__SAT_H
 #define __CVC4__PROP__SAT_H
-
-#include "cvc4_private.h"
 
 #define __CVC4_USE_MINISAT
 

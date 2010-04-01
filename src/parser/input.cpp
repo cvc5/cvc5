@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** parser.cpp
+/** input.cpp
  ** Original author: mdeters
  ** Major contributors: dejan
  ** Minor contributors (to current version): cconway

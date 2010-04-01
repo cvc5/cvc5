@@ -113,15 +113,12 @@ SatLiteral TseitinCnfStream::handleAtom(TNode node) {
   bool theoryLiteral = node.getKind() != kind::VARIABLE;
   SatLiteral lit = newLiteral(node, theoryLiteral);
 
-  switch(node.getKind()) {
-  case TRUE:
-    assertClause(lit);
-    break;
-  case FALSE:
-    assertClause(~lit);
-    break;
-  default:
-    break;
+  if(node.getKind() == kind::CONST_BOOLEAN) {
+    if(node.getConst<bool>()) {
+      assertClause(lit);
+    } else {
+      assertClause(~lit);
+    }
   }
 
   return lit;

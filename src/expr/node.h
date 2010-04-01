@@ -15,6 +15,7 @@
 
 #include "cvc4_private.h"
 
+// circular dependency
 #include "expr/node_value.h"
 
 #ifndef __CVC4__NODE_H
@@ -25,11 +26,10 @@
 #include <iostream>
 #include <stdint.h>
 
-#include "cvc4_config.h"
 #include "expr/kind.h"
+#include "expr/metakind.h"
 #include "expr/type.h"
 #include "util/Assert.h"
-
 #include "util/output.h"
 
 namespace CVC4 {
@@ -216,7 +216,15 @@ public:
    * Returns true if this node is atomic (has no more Boolean structure)
    * @return true if atomic
    */
-  bool isAtomic() const;
+  inline bool isAtomic() const;
+
+  /**
+   * Returns true if this node represents a constant
+   * @return true if const
+   */
+  inline bool isConst() const {
+    return getMetaKind() == kind::metakind::CONSTANT;
+  }
 
   /**
    * Returns the unique id of this node
@@ -578,23 +586,9 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
 template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::s_null);
 
-////FIXME: This function is a major hack! Should be changed ASAP
-////TODO: Should use positive definition, i.e. what kinds are atomic.
 template <bool ref_count>
 bool NodeTemplate<ref_count>::isAtomic() const {
-  using namespace kind;
-  switch(getKind()) {
-  case NOT:
-  case XOR:
-  case ITE:
-  case IFF:
-  case IMPLIES:
-  case OR:
-  case AND:
-    return false;
-  default:
-    return true;
-  }
+  return kind::kindIsAtomic(getKind());
 }
 
 // FIXME: escape from type system convenient but is there a better

@@ -16,7 +16,7 @@
 #include <exception>
 #include <string>
 
-#include "config.h"
+#include "cvc4autoconfig.h"
 #include "util/exception.h"
 
 #ifndef __CVC4__MAIN__MAIN_H

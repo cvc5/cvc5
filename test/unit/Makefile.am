@@ -1,5 +1,6 @@
 # All unit tests
 UNIT_TESTS = \
+	expr/expr_black \
 	expr/node_white \
 	expr/node_black \
 	expr/kind_black \

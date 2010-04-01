@@ -18,7 +18,6 @@
 #ifndef __CVC4__DECISION_ENGINE_H
 #define __CVC4__DECISION_ENGINE_H
 
-#include "cvc4_config.h"
 #include "expr/node.h"
 
 namespace CVC4 {

@@ -13,10 +13,10 @@
  ** Output utility classes and functions.
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__OUTPUT_H
 #define __CVC4__OUTPUT_H
-
-#include "cvc4_config.h"
 
 #include <iostream>
 #include <string>

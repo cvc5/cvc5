@@ -123,6 +123,16 @@ ${metakind_kinds}
   return metaKinds[k];
 }/* metaKindOf(k) */
 
+static inline bool kindIsAtomic(Kind k) {
+  static const bool isAtomic[] = {
+    false, /* NULL_EXPR */
+${metakind_isatomic}
+    false /* LAST_KIND */
+  };/* isAtomic[] */
+
+  return isAtomic[k];
+}/* kindIsAtomic(k) */
+
 }/* CVC4::kind namespace */
 
 namespace expr {

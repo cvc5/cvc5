@@ -74,6 +74,8 @@ using namespace CVC4::parser;
 #define EXPR_MANAGER ANTLR_INPUT->getExprManager()
 #undef MK_EXPR
 #define MK_EXPR EXPR_MANAGER->mkExpr
+#undef MK_CONST
+#define MK_CONST EXPR_MANAGER->mkConst
 }
 
 /**
@@ -206,8 +208,8 @@ annotatedFormula[CVC4::Expr& expr]
     { expr = ANTLR_INPUT->getVariable(name); }
 
     /* constants */
-  | TRUE_TOK          { expr = MK_EXPR(CVC4::kind::TRUE); }
-  | FALSE_TOK         { expr = MK_EXPR(CVC4::kind::FALSE); }
+  | TRUE_TOK          { expr = MK_CONST(true); }
+  | FALSE_TOK         { expr = MK_CONST(false); }
     /* TODO: let, flet, quantifiers, arithmetic constants */
   ;
 

@@ -111,7 +111,7 @@ Node TheoryEngine::rewrite(TNode in) {
   if(in.getKind() == kind::EQUAL) {
     Assert(in.getNumChildren() == 2);
     if(in[0] == in[1]) {
-      Node out = NodeManager::currentNM()->mkNode(kind::TRUE);
+      Node out = NodeManager::currentNM()->mkConst(true);
       //setRewriteCache(in, out);
       return out;
     }

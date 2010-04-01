@@ -1,10 +1,3 @@
-/*
- * bounded_token_factory.cpp
- *
- *  Created on: Mar 2, 2010
- *      Author: dejan
- */
-
 #include <antlr3input.h>
 #include <antlr3commontoken.h>
 #include <antlr3interfaces.h>
@@ -130,5 +123,6 @@ setInputStream  (pANTLR3_TOKEN_FACTORY factory, pANTLR3_INPUT_STREAM input)
                 factory->unTruc.strFactory = NULL;
     }
 }
-}
-}
+
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
