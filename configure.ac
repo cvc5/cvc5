@@ -317,6 +317,12 @@ fi
 AC_MSG_RESULT([$enable_coverage])
 
 if test "$enable_coverage" = yes; then
+dnl TODO: Is there someway to detect if enable_shared is set by default,
+dnl so that we can automatically disable shared and enable static?
+  if test "$enable_shared" = yes; then
+    AC_MSG_ERROR([Gcov requires static libraries. Use --disable-shared.])
+  fi
+
   CVC4CPPFLAGS="$CVC4CPPFLAGS -DCVC4_COVERAGE"
   CVC4CXXFLAGS="$CVC4CXXFLAGS --coverage"
   CVC4LDFLAGS="$CVC4LDFLAGS --coverage"
