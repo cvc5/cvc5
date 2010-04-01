@@ -4,6 +4,7 @@
 /config.log
 /config.status
 /config.cache
+/cvc4autoconfig.h.in
 /libtool
 /stamp-h1
 /cvc4-*.tar.gz
@@ -18,3 +19,5 @@ callgrind.out*
 gmon.out
 stamp-generated
 generated/
+*~
+#*#
