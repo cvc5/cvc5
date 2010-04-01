@@ -49,8 +49,7 @@ BooleanType::BooleanType() :
 BooleanType::~BooleanType() {
 }
 
-BooleanType*
-BooleanType::getInstance() {
+BooleanType* BooleanType::getInstance() {
   return &s_instance;
 }
 
@@ -117,8 +116,7 @@ bool KindType::isKind() const {
   return true;
 }
 
-KindType*
-KindType::getInstance() {
+KindType* KindType::getInstance() {
   return &s_instance;
 }
 
@@ -129,4 +127,4 @@ SortType::SortType(std::string name) :
 SortType::~SortType() {
 }
 
-}
+}/* CVC4 namespace */

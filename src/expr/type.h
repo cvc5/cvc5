@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Interface for expression types 
+ ** Interface for expression types
  **/
 
 #include "cvc4_public.h"
@@ -44,11 +44,11 @@ protected:
 
 public:
 
-  /** Comparision for equality */
-  bool operator==(const Type& t) const;
+  /** Comparison for equality */
+  //bool operator==(const Type& t) const;
 
   /** Comparison for disequality */
-  bool operator!=(const Type& e) const;
+  //bool operator!=(const Type& e) const;
 
   /** Get the name of this type. May be empty for composite types. */
   std::string getName() const;
@@ -59,7 +59,7 @@ public:
   }
 
   /** Is this a function type? */
-  virtual bool isFunction() const { 
+  virtual bool isFunction() const {
     return false;
   }
 
@@ -135,17 +135,20 @@ private:
   /** Create a type associated with nodeManager. */
   BooleanType();
 
-  /** Do-nothing private copy constructor operator, to prevent
-      copy-construction. */
-  BooleanType(const BooleanType&); 
+  /**
+   * Do-nothing private copy constructor operator, to prevent
+   * copy-construction.
+   */
+  BooleanType(const BooleanType&);
 
   /** Destructor */
   ~BooleanType();
 
-  /** Do-nothing private assignment operator, to prevent
-     assignment. */
+  /**
+   * Do-nothing private assignment operator, to prevent assignment.
+   */
   BooleanType& operator=(const BooleanType&);
-  
+
   /** The singleton instance */
   static BooleanType s_instance;
 };
@@ -162,7 +165,7 @@ public:
 
   /** Get the range type (i.e., the type of the result). */
   Type* getRangeType() const;
-  
+
   /** Is this as function type? (Returns true.) */
   bool isFunction() const;
 
@@ -170,14 +173,17 @@ public:
       boolean.) */
   bool isPredicate() const;
 
-  /** Outputs a string representation of this type to the stream,
-      in the format "D -> R" or "(A, B, C) -> R". */
+  /**
+   * Outputs a string representation of this type to the stream,
+   * in the format "D -> R" or "(A, B, C) -> R".
+   */
   void toStream(std::ostream& out) const;
 
 private:
 
-  /** Construct a function type associated with nodeManager,
-   * given a vector of argument types and the range type.
+  /**
+   * Construct a function type associated with nodeManager, given a
+   * vector of argument types and the range type.
 
    * @param argTypes a non-empty vector of input types
    * @param range the result type
@@ -187,7 +193,7 @@ private:
 
   /** Destructor */
   ~FunctionType();
-  
+
   /** The list of input types. */
   const std::vector<Type*> d_argTypes;
 
@@ -198,7 +204,7 @@ private:
 };
 
 
-/** Class encapsulating the kind type (the type of types). 
+/** Class encapsulating the kind type (the type of types).
 */
 class KindType : public Type {
 
@@ -213,22 +219,21 @@ private:
 
   KindType();
 
-  /* Do-nothing private copy constructor, to prevent
-     copy construction. */
-  KindType(const KindType&); 
+  /* Do-nothing private copy constructor, to prevent copy
+     construction. */
+  KindType(const KindType&);
 
   /** Destructor */
   ~KindType();
 
-  /* Do-nothing private assignment operator, to prevent
-     assignment. */
+  /* Do-nothing private assignment operator, to prevent assignment. */
   KindType& operator=(const KindType&);
 
   /** The singleton instance */
   static KindType s_instance;
 };
 
-/** Class encapsulating a user-defined sort. 
+/** Class encapsulating a user-defined sort.
     TODO: Should sort be uniquely named per-nodeManager and not conflict
     with any builtins? */
 class SortType : public Type {

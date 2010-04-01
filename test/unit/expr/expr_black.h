@@ -362,7 +362,7 @@ public:
     TS_ASSERT(r2->isAtomic());
 
     Expr x = d_em->mkExpr(AND, *a, *b);
-    Expr y = d_em->mkExpr(XOR, *a, *b, *c);
+    Expr y = d_em->mkExpr(ITE, *a, *b, *c);
     Expr z = d_em->mkExpr(IFF, x, y);
 
     TS_ASSERT(!x.isAtomic());
