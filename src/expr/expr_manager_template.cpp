@@ -195,69 +195,11 @@ Expr ExprManager::mkVar(Type* type) {
 }
 
 unsigned ExprManager::minArity(Kind kind) {
-  // FIXME: should be implemented this way, but parser depends on *parse*-level.
-  // See bug 75.
-  //return metakind::getLowerBoundForKind(kind);
-  switch(kind) {
-  case SKOLEM:
-  case VARIABLE:
-    return 0;
-
-  case AND:
-  case NOT:
-  case OR:
-    return 1;
-
-  case APPLY_UF:
-  case DISTINCT:
-  case EQUAL:
-  case IFF:
-  case IMPLIES:
-  case PLUS:
-  case MULT:
-  case XOR:
-    return 2;
-
-  case ITE:
-    return 3;
-
-  default:
-    Unhandled(kind);
-  }
+  return metakind::getLowerBoundForKind(kind);
 }
 
 unsigned ExprManager::maxArity(Kind kind) {
-  // FIXME: should be implemented this way, but parser depends on *parse*-level.
-  // See bug 75.
-  //return metakind::getUpperBoundForKind(kind);
-  switch(kind) {
-  case SKOLEM:
-  case VARIABLE:
-    return 0;
-
-  case NOT:
-    return 1;
-
-  case EQUAL:
-  case IFF:
-  case IMPLIES:
-  case XOR:
-    return 2;
-
-  case ITE:
-    return 3;
-
-  case AND:
-  case APPLY_UF:
-  case DISTINCT:
-  case PLUS:
-  case MULT:
-  case OR:
-    return UINT_MAX;
-
-  default:
-    Unhandled(kind);
-  }
+  return metakind::getUpperBoundForKind(kind);
 }
 
 NodeManager* ExprManager::getNodeManager() const {

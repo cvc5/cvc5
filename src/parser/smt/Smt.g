@@ -158,12 +158,12 @@ annotatedFormula[CVC4::Expr& expr]
 } 
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr] RPAREN_TOK 
-    { PARSER_STATE->checkArity(kind, args.size());
-      if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
+    { if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
       } else {
+        PARSER_STATE->checkArity(kind, args.size());
         expr = MK_EXPR(kind, args);
       }
     }
