@@ -171,7 +171,6 @@ int runCvc4(int argc, char* argv[]) {
 
   // Remove the parser
   delete input;
-  delete input;
 
   switch(lastResult.asSatisfiabilityResult().isSAT()) {
 
