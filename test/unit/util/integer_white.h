@@ -29,12 +29,13 @@ public:
   void testHash(){
     Integer large (largeVal);
     Integer zero;
-    Integer one_word(75890);
-    Integer two_words("7890D789D33234027890D789D3323402", 16);
+    Integer fits_in_2_bytes(55890);
+    Integer fits_in_16_bytes("7890D789D33234027890D789D3323402", 16);
 
-    TS_ASSERT_EQUALS(zero.hash(), 0);
-    TS_ASSERT_EQUALS(one_word.hash(), 75890);
-    TS_ASSERT_EQUALS(two_words.hash(), 9921844058862803974UL);
-    TS_ASSERT_EQUALS(large.hash(), 772190219532412699UL);
+
+    TS_ASSERT_THROWS_NOTHING(size_t res0 = zero.hash());
+    TS_ASSERT_THROWS_NOTHING(size_t res1 = fits_in_2_bytes.hash());
+    TS_ASSERT_THROWS_NOTHING(size_t res2 = fits_in_16_bytes.hash());
+    TS_ASSERT_THROWS_NOTHING(size_t res3 = large.hash());
   }
 };

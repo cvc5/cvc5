@@ -67,8 +67,8 @@ public:
 
     signed int nsi = -5478, dsi = 34783;
     unsigned int nui = 5478u, dui = 347589u;
-    signed long int nsli = 2348905477690867690l, dsli = -3475765675789089l;
-    unsigned long int nuli = 8434689476905478ul, duli = 3234475234894569047ul;
+    signed long int nsli = 1489054690l, dsli = -347576678l;
+    unsigned long int nuli = 2434689476ul, duli = 323447523ul;
 
     Rational qsi(nsi, dsi);
     Rational qui(nui, dui);
@@ -83,8 +83,8 @@ public:
     TS_ASSERT_EQUALS(dui/33, qui.getDenominator().getUnsignedLong());
 
 
-    TS_ASSERT_EQUALS(-nsli, qsli.getNumerator().getLong());
-    TS_ASSERT_EQUALS(-dsli, qsli.getDenominator().getLong());
+    TS_ASSERT_EQUALS(-nsli/2, qsli.getNumerator().getLong());
+    TS_ASSERT_EQUALS(-dsli/2, qsli.getDenominator().getLong());
 
     TS_ASSERT_EQUALS(nuli, quli.getNumerator().getUnsignedLong());
     TS_ASSERT_EQUALS(duli, quli.getDenominator().getUnsignedLong());
@@ -377,32 +377,32 @@ public:
     TS_ASSERT_EQUALS(reduce2.getDenominator(), den2);
 
 
-    Rational reduce3( 454789890342L, 273L);
-    Integer num3(151596630114L);
-    Integer den3(91);
+    Rational reduce3(822898902L, 273L);
+    Integer num3(39185662L);
+    Integer den3(13);
 
     TS_ASSERT_EQUALS(reduce2.getNumerator(), num2);
     TS_ASSERT_EQUALS(reduce2.getDenominator(), den2);
 
-    Rational reduce4( 454789890342L,-273L);
-    Integer num4(-151596630114L);
-    Integer den4(91);
+    Rational reduce4( 822898902L,-273L);
+    Integer num4(-39185662L);
+    Integer den4(13);
 
 
     TS_ASSERT_EQUALS(reduce4.getNumerator(), num4);
     TS_ASSERT_EQUALS(reduce4.getDenominator(), den4);
 
-    Rational reduce5(-454789890342L, 273L);
-    Integer num5(-151596630114L);
-    Integer den5(91);
+    Rational reduce5(-822898902L, 273L);
+    Integer num5(-39185662L);
+    Integer den5(13);
 
 
     TS_ASSERT_EQUALS(reduce5.getNumerator(), num5);
     TS_ASSERT_EQUALS(reduce5.getDenominator(), den5);
 
-    Rational reduce6(-454789890342L,-273L);
-    Integer num6(151596630114L);
-    Integer den6(91);
+    Rational reduce6(-822898902L,-273L);
+    Integer num6(39185662L);
+    Integer den6(13);
 
 
     TS_ASSERT_EQUALS(reduce6.getNumerator(), num6);
@@ -418,8 +418,9 @@ public:
 
     TS_ASSERT_EQUALS(zero.hash(), 1);
     TS_ASSERT_EQUALS(one_word.hash(), 7589 xor 59);
-    TS_ASSERT_EQUALS(two_words.hash(), 9921844058862803974UL ^ 1);
+    TS_ASSERT_EQUALS(two_words.hash(),
+		     (two_words.getNumerator().hash()) xor 1);
     TS_ASSERT_EQUALS(large.hash(),
-                     (large.getNumerator().hash())^(large.getDenominator().hash()));
+                     (large.getNumerator().hash()) xor (large.getDenominator().hash()));
   }
 };
