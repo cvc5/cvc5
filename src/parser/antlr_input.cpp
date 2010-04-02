@@ -104,6 +104,47 @@ void AntlrInput::parseError(const std::string& message)
                         d_lexer->getCharPositionInLine(d_lexer));
 }
 
+void *
+AntlrInput::recoverFromMismatchedToken(pANTLR3_BASE_RECOGNIZER recognizer,
+                                       ANTLR3_UINT32 ttype,
+                                       pANTLR3_BITSET_LIST follow) {
+
+  pANTLR3_PARSER parser = (pANTLR3_PARSER) (recognizer->super);
+  pANTLR3_INT_STREAM is = parser->tstream->istream;
+  void *matchedSymbol;
+
+
+  // Create an exception if we need one
+  //
+  if(recognizer->state->exception == NULL) {
+    antlr3RecognitionExceptionNew(recognizer);
+  }
+
+  if(recognizer->mismatchIsUnwantedToken(recognizer, is, ttype) == ANTLR3_TRUE) {
+    recognizer->state->exception->type = ANTLR3_UNWANTED_TOKEN_EXCEPTION;
+    recognizer->state->exception->message
+        = (void*)ANTLR3_UNWANTED_TOKEN_EXCEPTION_NAME;
+  }
+
+  if(recognizer->mismatchIsMissingToken(recognizer, is, follow)) {
+    // We can fake the missing token and proceed
+    //
+    matchedSymbol = recognizer->getMissingSymbol(recognizer, is,
+                                                 recognizer->state->exception,
+                                                 ttype, follow);
+    recognizer->state->exception->type = ANTLR3_MISSING_TOKEN_EXCEPTION;
+    recognizer->state->exception->message = (void*)ANTLR3_MISSING_TOKEN_EXCEPTION_NAME;
+    recognizer->state->exception->token = matchedSymbol;
+    recognizer->state->exception->expecting = ttype;
+
+    // Print out the error after we insert so that ANTLRWorks sees the
+    // token in the exception.
+    //
+  }
+  reportError(recognizer);
+  Unreachable("reportError should have thrown exception in AntlrInput::recoverFromMismatchedToken");
+}
+
 void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_EXCEPTION ex = recognizer->state->exception;
   pANTLR3_UINT8 * tokenNames = recognizer->state->tokenNames;
@@ -310,6 +351,7 @@ void AntlrInput::setParser(pANTLR3_PARSER pParser) {
   // pass it in as an address anyway.
   d_parser->super = getParserState();
   d_parser->rec->reportError = &reportError;
+  d_parser->rec->recoverFromMismatchedToken = &recoverFromMismatchedToken;
 }
 
 

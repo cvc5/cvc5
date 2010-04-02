@@ -79,6 +79,7 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 }
 
+
 /**
  * Parses an expression.
  * @return the parsed expression

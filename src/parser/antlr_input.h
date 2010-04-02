@@ -67,6 +67,13 @@ class AntlrInput : public Input {
   /** Turns an ANTLR3 exception into a message for the user and calls <code>parseError</code>. */
   static void reportError(pANTLR3_BASE_RECOGNIZER recognizer);
 
+  /** Collects information from a parse error and calls reportError. Replaces the default
+   * implementation, which tries to recover from the error.
+   */
+  static void *
+  recoverFromMismatchedToken(pANTLR3_BASE_RECOGNIZER recognizer,
+                             ANTLR3_UINT32 ttype, pANTLR3_BITSET_LIST follow);
+
 public:
 
   /** Create a file input.
