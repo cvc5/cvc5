@@ -129,9 +129,6 @@ $2 const & Expr::getConst< $2 >() const;
   getConst_implementations="${getConst_implementations}
 template <>
 $2 const & Expr::getConst() const {
-  // check even for production builds
-  CheckArgument(getKind() == ::CVC4::kind::$1, *this,
-                \"Improper kind for getConst<$2>()\");
   return d_node->getConst< $2 >();
 }
 "

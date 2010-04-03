@@ -57,34 +57,16 @@ KindType* ExprManager::kindType() const {
 }
 
 Expr ExprManager::mkExpr(Kind kind) {
-  const unsigned n = 0;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkNode(kind)));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
-  const unsigned n = 1;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode())));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
-  const unsigned n = 2;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
                                           child2.getNode())));
@@ -92,12 +74,6 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                          const Expr& child3) {
-  const unsigned n = 3;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode())));
@@ -105,12 +81,6 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                          const Expr& child3, const Expr& child4) {
-  const unsigned n = 4;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode(),
@@ -120,12 +90,6 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                          const Expr& child3, const Expr& child4,
                          const Expr& child5) {
-  const unsigned n = 5;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode(),
@@ -133,13 +97,6 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
 }
 
 Expr ExprManager::mkExpr(Kind kind, const vector<Expr>& children) {
-  const unsigned n = children.size();
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
-
   NodeManagerScope nms(d_nodeManager);
 
   vector<Node> nodes;
