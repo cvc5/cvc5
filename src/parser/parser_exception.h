@@ -30,9 +30,26 @@ namespace parser {
 class CVC4_PUBLIC ParserException : public Exception {
 public:
   // Constructors
-  ParserException() { }
-  ParserException(const std::string& msg): Exception(msg) { }
-  ParserException(const char* msg): Exception(msg) { }
+  ParserException() :
+    d_filename(),
+    d_line(0),
+    d_column(0) {
+  }
+
+  ParserException(const std::string& msg) :
+    Exception(msg),
+    d_filename(),
+    d_line(0),
+    d_column(0) {
+  }
+
+  ParserException(const char* msg) :
+    Exception(msg),
+    d_filename(),
+    d_line(0),
+    d_column(0) {
+  }
+
   ParserException(const std::string& msg, const std::string& filename,
                   unsigned long line, unsigned long column) :
     Exception(msg),
@@ -43,11 +60,12 @@ public:
 
   // Destructor
   virtual ~ParserException() throw() {}
+
   virtual std::string toString() const {
     if( d_line > 0 ) {
       std::stringstream ss;
-      ss <<  "Parser Error: " << d_filename << ":" << d_line << "."
-           << d_column << ": " << d_msg;
+      ss <<  "Parse Error: " << d_filename << ":" << d_line << "."
+         << d_column << ": " << d_msg;
       return ss.str();
     } else {
       return "Parse Error: " + d_msg;

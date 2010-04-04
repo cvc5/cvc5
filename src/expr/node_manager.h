@@ -65,25 +65,100 @@ class NodeManager {
 
   expr::attr::AttributeManager d_attrManager;
 
+  /**
+   * The node value we're currently freeing.  This unique node value
+   * is permitted to have outstanding TNodes to it (in "soft"
+   * contexts, like as a key in attribute tables), even though
+   * normally it's an error to have a TNode to a node value with a
+   * reference count of 0.  Being "under deletion" also enables
+   * assertions that inc() is not called on it.  (A poorly-behaving
+   * attribute cleanup function could otherwise create a "Node" that
+   * points to the node value that is in the process of being deleted,
+   * springing it back to life.)
+   */
   expr::NodeValue* d_nodeUnderDeletion;
+
+  /**
+   * True iff we are in reclaimZombies().  This avoids unnecessary
+   * recursion; a NodeValue being deleted might zombify other
+   * NodeValues, but these shouldn't trigger a (recursive) call to
+   * reclaimZombies().
+   */
   bool d_reclaiming;
+
+  /**
+   * The set of zombie nodes.  We may want to revisit this design, as
+   * we might like to delete nodes in least-recently-used order.  But
+   * we also need to avoid processing a zombie twice.
+   */
   ZombieSet d_zombies;
 
+  /**
+   * A set of operator singletons (w.r.t.  to this NodeManager
+   * instance) for operators.  Conceptually, Nodes with kind, say,
+   * PLUS, are APPLYs of a PLUS operator to arguments.  This array
+   * holds the set of operators for these things.  A PLUS operator is
+   * a Node with kind "BUILTIN", and if you call
+   * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
+   */
+  Node d_operators[kind::LAST_KIND];
+
+  /**
+   * Look up a NodeValue in the pool associated to this NodeManager.
+   * The NodeValue argument need not be a "completely-constructed"
+   * NodeValue.  In particular, "non-inlined" constants are permited
+   * (see below).
+   *
+   * For non-CONSTANT metakinds, nv's d_kind and d_nchildren should be
+   * correctly set, and d_children[0..n-1] should be valid (extant)
+   * NodeValues for lookup.
+   *
+   * For CONSTANT metakinds, nv's d_kind should be set correctly.
+   * Normally a CONSTANT would have d_nchildren == 0 and the constant
+   * value inlined in the d_children space.  However, here we permit
+   * "non-inlined" NodeValues to avoid unnecessary copying.  For
+   * these, d_nchildren == 1, and d_nchildren is a pointer to the
+   * constant value.
+   *
+   * The point of this complex design is to permit efficient lookups
+   * (without fully constructing a NodeValue).  In the case that the
+   * argument is not fully constructed, and this function returns
+   * NULL, the caller should fully construct an equivalent one before
+   * calling poolInsert().  NON-FULLY-CONSTRUCTED NODEVALUES are not
+   * permitted in the pool!
+   */
   inline expr::NodeValue* poolLookup(expr::NodeValue* nv) const;
-  void poolInsert(expr::NodeValue* nv);
+
+  /**
+   * Insert a NodeValue into the NodeManager's pool.
+   *
+   * It is an error to insert a NodeValue already in the pool.
+   * Enquire first with poolLookup().
+   */
+  inline void poolInsert(expr::NodeValue* nv);
+
+  /**
+   * Remove a NodeValue from the NodeManager's pool.
+   *
+   * It is an error to request the removal of a NodeValue from the
+   * pool that is not in the pool.
+   */
   inline void poolRemove(expr::NodeValue* nv);
 
-  bool isCurrentlyDeleting(const expr::NodeValue* nv) const{
+  /**
+   * Determine if nv is currently being deleted by the NodeManager.
+   */
+  inline bool isCurrentlyDeleting(const expr::NodeValue* nv) const {
     return d_nodeUnderDeletion == nv;
   }
-
-  Node d_operators[kind::LAST_KIND];
 
   /**
    * Register a NodeValue as a zombie.
    */
   inline void gc(expr::NodeValue* nv) {
     Assert(nv->d_rc == 0);
+    // if d_reclaiming is set, make sure we don't call
+    // reclaimZombies(), because it's already running.
     if(d_reclaiming) {// FIXME multithreading
       // currently reclaiming zombies; just push onto the list
       Debug("gc") << "zombifying node value " << nv
@@ -169,6 +244,7 @@ public:
   static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders
+
   /** Create a node with no children. */
   Node mkNode(Kind kind);
 
@@ -182,33 +258,45 @@ public:
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
 
   /** Create a node with four children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4);
+  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
+              TNode child4);
 
   /** Create a node with five children. */
-  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4, TNode child5);
+  Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
+              TNode child4, TNode child5);
 
   /** Create a node with an arbitrary number of children. */
-  Node mkNode(Kind kind, const std::vector<Node>& children);
+  template <bool ref_count>
+  Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
-  // NOTE: variables are special, because duplicates are permitted
-
-  /** Create a variable with the given type and name. */
+  /**
+   * Create a variable with the given type and name.  NOTE that no
+   * lookup is done on the name.  If you mkVar(type, "a") and then
+   * mkVar(type, "a") again, you have two variables.
+   */
   Node mkVar(Type* type, const std::string& name);
 
   /** Create a variable with the given type. */
   Node mkVar(Type* type);
 
-  /** Create a variable of unknown type (?). */
-  Node mkVar();
-
-  /** Create a constant of type T */
+  /**
+   * Create a constant of type T.  It will have the appropriate
+   * CONST_* kind defined for T.
+   */
   template <class T>
   Node mkConst(const T&);
 
-  /** Determine whether Nodes of a particular Kind have operators. */
-  static inline bool hasOperator(Kind mk);
+  /**
+   * Determine whether Nodes of a particular Kind have operators.
+   * @returns true if Nodes of Kind k have operators.
+   */
+  static inline bool hasOperator(Kind k);
 
-  /** Get the (singleton) operator of an OPERATOR-kinded kind. */
+  /**
+   * Get the (singleton) operator of an OPERATOR-kinded kind.  The
+   * returned node n will have kind BUILTIN, and calling
+   * n.getConst<CVC4::Kind>() will yield k.
+   */
   inline TNode operatorOf(Kind k) {
     AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k,
                     "Kind is not an OPERATOR-kinded kind "
@@ -216,7 +304,8 @@ public:
     return d_operators[k];
   }
 
-  /** Retrieve an attribute for a node.
+  /**
+   * Retrieve an attribute for a node.
    *
    * @param nv the node value
    * @param attr an instance of the attribute kind to retrieve.
@@ -227,43 +316,52 @@ public:
   inline typename AttrKind::value_type getAttribute(expr::NodeValue* nv,
                                                     const AttrKind& attr) const;
 
-  /** Check whether an attribute is set for a node.
+  /**
+   * Check whether an attribute is set for a node.
    *
    * @param nv the node value
    * @param attr an instance of the attribute kind to check
-   * @returns <code>true</code> iff <code>attr</code> is set for <code>nv</code>.
+   * @returns <code>true</code> iff <code>attr</code> is set for
+   * <code>nv</code>.
    */
   template <class AttrKind>
   inline bool hasAttribute(expr::NodeValue* nv,
                            const AttrKind& attr) const;
 
-  /** Check whether an attribute is set for a node.
+  /**
+   * Check whether an attribute is set for a node, and, if so,
+   * retrieve it.
    *
    * @param nv the node value
    * @param attr an instance of the attribute kind to check
    * @param value a reference to an object of the attribute's value type.
    * <code>value</code> will be set to the value of the attribute, if it is
-   * set for <code>nv</code>; otherwise, it will be set to the default value of
-   * the attribute.
-   * @returns <code>true</code> iff <code>attr</code> is set for <code>nv</code>.
+   * set for <code>nv</code>; otherwise, it will be set to the default
+   * value of the attribute.
+   * @returns <code>true</code> iff <code>attr</code> is set for
+   * <code>nv</code>.
    */
   template <class AttrKind>
   inline bool getAttribute(expr::NodeValue* nv,
                            const AttrKind& attr,
                            typename AttrKind::value_type& value) const;
 
-  /** Set an attribute for a node.
-    *
-    * @param nv the node value
-    * @param attr an instance of the attribute kind to set
-    * @param value the value of <code>attr</code> for <code>nv</code>
-    */
+  /**
+   * Set an attribute for a node.  If the node doesn't have the
+   * attribute, this function assigns one.  If the node has one, this
+   * overwrites it.
+   *
+   * @param nv the node value
+   * @param attr an instance of the attribute kind to set
+   * @param value the value of <code>attr</code> for <code>nv</code>
+   */
   template <class AttrKind>
   inline void setAttribute(expr::NodeValue* nv,
                            const AttrKind&,
                            const typename AttrKind::value_type& value);
 
-  /** Retrieve an attribute for a TNode.
+  /**
+   * Retrieve an attribute for a TNode.
    *
    * @param n the node
    * @param attr an instance of the attribute kind to retrieve.
@@ -274,12 +372,8 @@ public:
   inline typename AttrKind::value_type getAttribute(TNode n,
                                                     const AttrKind&) const;
 
-  /* NOTE: there are two, distinct hasAttribute() declarations for
-   a reason (rather than using a pointer-valued argument with a
-   default value): they permit more optimized code in the underlying
-   hasAttribute() implementations. */
-
-  /** Check whether an attribute is set for a TNode.
+  /**
+   * Check whether an attribute is set for a TNode.
    *
    * @param n the node
    * @param attr an instance of the attribute kind to check
@@ -289,7 +383,9 @@ public:
   inline bool hasAttribute(TNode n,
                            const AttrKind& attr) const;
 
-  /** Check whether an attribute is set for a TNode.
+  /**
+   * Check whether an attribute is set for a TNode and, if so, retieve
+   * it.
    *
    * @param n the node
    * @param attr an instance of the attribute kind to check
@@ -304,33 +400,46 @@ public:
                            const AttrKind& attr,
                            typename AttrKind::value_type& value) const;
 
-  /** Set an attribute for a TNode.
-    *
-    * @param n the node
-    * @param attr an instance of the attribute kind to set
-    * @param value the value of <code>attr</code> for <code>n</code>
-    */
+  /**
+   * Set an attribute for a node.  If the node doesn't have the
+   * attribute, this function assigns one.  If the node has one, this
+   * overwrites it.
+   *
+   * @param n the node
+   * @param attr an instance of the attribute kind to set
+   * @param value the value of <code>attr</code> for <code>n</code>
+   */
   template <class AttrKind>
   inline void setAttribute(TNode n,
                            const AttrKind&,
                            const typename AttrKind::value_type& value);
 
-  /** Get the type for booleans. */
+  /** Get the (singleton) type for booleans. */
   inline BooleanType* booleanType() const {
     return BooleanType::getInstance();
   }
 
-  /** Get the type for sorts. */
+  /** Get the (singleton) type for sorts. */
   inline KindType* kindType() const {
     return KindType::getInstance();
   }
 
-  /** Make a function type from domain to range. */
+  /**
+   * Make a function type from domain to range.
+   *
+   * @param domain the domain type
+   * @param range the range type
+   * @returns the functional type domain -> range
+   */
   inline FunctionType* mkFunctionType(Type* domain, Type* range) const;
 
   /**
    * Make a function type with input types from
    * argTypes. <code>argTypes</code> must have at least one element.
+   *
+   * @param argTypes the domain is a tuple (argTypes[0], ..., argTypes[n])
+   * @param range the range type
+   * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   inline FunctionType* mkFunctionType(const std::vector<Type*>& argTypes,
                                       Type* range) const;
@@ -399,24 +508,37 @@ public:
 
   NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current) {
     NodeManager::s_current = nm;
-    Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
+    Debug("current") << "node manager scope: "
+                     << NodeManager::s_current << "\n";
   }
 
   ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
-    Debug("current") << "node manager scope: returning to " << NodeManager::s_current << "\n";
+    Debug("current") << "node manager scope: "
+                     << "returning to " << NodeManager::s_current << "\n";
   }
 };
 
 /**
- * Creates
- * a <code>NodeManagerScope</code> with the underlying <code>NodeManager</code>
- * of a given <code>Expr</code> or <code>ExprManager</code>.
- * The <code>NodeManagerScope</code> is destroyed when the <code>ExprManagerScope</code>
- * is destroyed. See <code>NodeManagerScope</code> for more information.
+ * Creates a <code>NodeManagerScope</code> with the underlying
+ * <code>NodeManager</code> of a given <code>Expr</code> or
+ * <code>ExprManager</code>.  The <code>NodeManagerScope</code> is
+ * destroyed when the <code>ExprManagerScope</code> is destroyed. See
+ * <code>NodeManagerScope</code> for more information.
  */
-// NOTE: Without this, we'd need Expr to be a friend of ExprManager.
-// [chris 3/25/2010] Why?
+// NOTE: Here, it seems ExprManagerScope is redundant, since we have
+// NodeManagerScope already.  However, without this class, we'd need
+// Expr to be a friend of ExprManager, because in the implementation
+// of Expr functions, it needs to set the current NodeManager
+// correctly (and to do that it needs access to
+// ExprManager::getNodeManager()).  So, we make ExprManagerScope a
+// friend of ExprManager's, since it's implementation is simple to
+// read and understand (and verify that it doesn't do any mischief).
+//
+// ExprManager::getNodeManager() can't just be made public, since
+// ExprManager is exposed to clients of the library and NodeManager is
+// not.  Similarly, ExprManagerScope shouldn't go in expr_manager.h,
+// since that's a public header.
 class ExprManagerScope {
   NodeManagerScope d_nms;
 public:
@@ -431,8 +553,8 @@ public:
 };
 
 template <class AttrKind>
-inline typename AttrKind::value_type NodeManager::getAttribute(expr::NodeValue* nv,
-                                                               const AttrKind&) const {
+inline typename AttrKind::value_type
+NodeManager::getAttribute(expr::NodeValue* nv, const AttrKind&) const {
   return d_attrManager.getAttribute(nv, AttrKind());
 }
 
@@ -443,42 +565,42 @@ inline bool NodeManager::hasAttribute(expr::NodeValue* nv,
 }
 
 template <class AttrKind>
-inline bool NodeManager::getAttribute(expr::NodeValue* nv,
-                                      const AttrKind&,
-                                      typename AttrKind::value_type& ret) const {
+inline bool
+NodeManager::getAttribute(expr::NodeValue* nv, const AttrKind&,
+                          typename AttrKind::value_type& ret) const {
   return d_attrManager.getAttribute(nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
-inline void NodeManager::setAttribute(expr::NodeValue* nv,
-                                      const AttrKind&,
-                                      const typename AttrKind::value_type& value) {
+inline void
+NodeManager::setAttribute(expr::NodeValue* nv, const AttrKind&,
+                          const typename AttrKind::value_type& value) {
   d_attrManager.setAttribute(nv, AttrKind(), value);
 }
 
 template <class AttrKind>
-inline typename AttrKind::value_type NodeManager::getAttribute(TNode n,
-                                                               const AttrKind&) const {
+inline typename AttrKind::value_type
+NodeManager::getAttribute(TNode n, const AttrKind&) const {
   return d_attrManager.getAttribute(n.d_nv, AttrKind());
 }
 
 template <class AttrKind>
-inline bool NodeManager::hasAttribute(TNode n,
-                                      const AttrKind&) const {
+inline bool
+NodeManager::hasAttribute(TNode n, const AttrKind&) const {
   return d_attrManager.hasAttribute(n.d_nv, AttrKind());
 }
 
 template <class AttrKind>
-inline bool NodeManager::getAttribute(TNode n,
-                                      const AttrKind&,
-                                      typename AttrKind::value_type& ret) const {
+inline bool
+NodeManager::getAttribute(TNode n, const AttrKind&,
+                          typename AttrKind::value_type& ret) const {
   return d_attrManager.getAttribute(n.d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
-inline void NodeManager::setAttribute(TNode n,
-                                      const AttrKind&,
-                                      const typename AttrKind::value_type& value) {
+inline void
+NodeManager::setAttribute(TNode n, const AttrKind&,
+                          const typename AttrKind::value_type& value) {
   d_attrManager.setAttribute(n.d_nv, AttrKind(), value);
 }
 
@@ -574,6 +696,7 @@ inline void NodeManager::poolInsert(expr::NodeValue* nv) {
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end(),
          "NodeValue is not in the pool!");
+
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
 
@@ -620,20 +743,27 @@ inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
   return NodeBuilder<>(this, kind) << child1 << child2;
 }
 
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2, TNode child3) {
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
+                                TNode child3) {
   return NodeBuilder<>(this, kind) << child1 << child2 << child3;
 }
 
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4) {
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
+                                TNode child3, TNode child4) {
   return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4;
 }
 
-inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2, TNode child3, TNode child4, TNode child5) {
-  return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4 << child5;
+inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
+                                TNode child3, TNode child4, TNode child5) {
+  return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4
+                                   << child5;
 }
 
 // N-ary version
-inline Node NodeManager::mkNode(Kind kind, const std::vector<Node>& children) {
+template <bool ref_count>
+inline Node NodeManager::mkNode(Kind kind,
+                                const std::vector<NodeTemplate<ref_count> >&
+                                children) {
   return NodeBuilder<>(this, kind).append(children);
 }
 
@@ -644,15 +774,10 @@ inline Node NodeManager::mkVar(Type* type, const std::string& name) {
 }
 
 inline Node NodeManager::mkVar(Type* type) {
-  Node n = mkVar();
+  Node n = Node(NodeBuilder<>(this, kind::VARIABLE));
   type->inc();// reference-count the type
   n.setAttribute(TypeAttr(), type);
   return n;
-}
-
-inline Node NodeManager::mkVar() {
-  // TODO: rewrite to not use NodeBuilder
-  return NodeBuilder<>(this, kind::VARIABLE);
 }
 
 template <class T>

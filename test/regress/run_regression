@@ -77,7 +77,17 @@ else
   echo "$expected_error" >"$experrfile"
 fi
 
-("$cvc4" --segv-nospin "$benchmark"; echo $? >"$exitstatusfile") > "$outfile" 2> "$errfile"
+cvc4dir=`dirname "$cvc4"`
+cvc4dirfull=`cd "$cvc4dir" && pwd`
+if [ -z "$cvc4dirfull" ]; then
+  error "getting directory of \`$cvc4 !?"
+fi
+cvc4base=`basename "$cvc4"`
+cvc4full="$cvc4dirfull/$cvc4base"
+( cd `dirname "$benchmark"`;
+  "$cvc4full" --segv-nospin `basename "$benchmark"`;
+  echo $? >"$exitstatusfile"
+) > "$outfile" 2> "$errfile"
 
 diffs=`diff -u "$expoutfile" "$outfile"`
 diffexit=$?

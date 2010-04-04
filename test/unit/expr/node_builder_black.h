@@ -37,6 +37,7 @@ private:
   Context* d_ctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
+  Type* d_booleanType;
 
 public:
 
@@ -44,7 +45,9 @@ public:
     d_ctxt = new Context;
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
+
     specKind = PLUS;
+    d_booleanType = d_nm->booleanType();
   }
 
   void tearDown() {
@@ -209,9 +212,9 @@ public:
 
   void testIterator() {
     NodeBuilder<> b;
-    Node x = d_nm->mkVar();
-    Node y = d_nm->mkVar();
-    Node z = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
+    Node y = d_nm->mkVar(d_booleanType);
+    Node z = d_nm->mkVar(d_booleanType);
     b << x << y << z << AND;
 
     {
@@ -460,9 +463,9 @@ public:
   }
 
   void testAppend() {
-    Node x = d_nm->mkVar();
-    Node y = d_nm->mkVar();
-    Node z = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
+    Node y = d_nm->mkVar(d_booleanType);
+    Node z = d_nm->mkVar(d_booleanType);
     Node m = d_nm->mkNode(AND, y, z, x);
     Node n = d_nm->mkNode(OR, d_nm->mkNode(NOT, x), y, z);
     Node o = d_nm->mkNode(XOR, y, x);
@@ -587,12 +590,12 @@ public:
   }
 
   void testConvenienceBuilders() {
-    Node a = d_nm->mkVar();
-    Node b = d_nm->mkVar();
-    Node c = d_nm->mkVar();
-    Node d = d_nm->mkVar();
-    Node e = d_nm->mkVar();
-    Node f = d_nm->mkVar();
+    Node a = d_nm->mkVar(d_booleanType);
+    Node b = d_nm->mkVar(d_booleanType);
+    Node c = d_nm->mkVar(d_booleanType);
+    Node d = d_nm->mkVar(d_booleanType);
+    Node e = d_nm->mkVar(d_booleanType);
+    Node f = d_nm->mkVar(d_booleanType);
 
     Node m = a && b;
     Node n = a && b || c;

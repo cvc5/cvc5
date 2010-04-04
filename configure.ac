@@ -165,7 +165,8 @@ fi
 # Unpack standard build types. Any particular options can be overriden with
 # --enable/disable-X options
 if test -z "${OPTLEVEL+set}"; then OPTLEVEL=3; fi
-# our defaults for CXXFLAGS are better than autoconf's
+# our defaults for CFLAGS/CXXFLAGS are better than autoconf's
+if test -z "${CFLAGS+set}"; then CFLAGS=; fi
 if test -z "${CXXFLAGS+set}"; then CXXFLAGS=; fi
 case "$with_build" in
   production) # highly optimized, no assertions, no tracing
@@ -477,7 +478,7 @@ AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full releas
 
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
-CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated"
+CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 FLAG_VISIBILITY_HIDDEN='-fvisibility=hidden'

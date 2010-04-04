@@ -241,7 +241,8 @@ class MultNodeBuilder;
 /**
  * A base class for NodeBuilders.  When extending this class, use:
  *
- *   class MyExtendedNodeBuilder : public NodeBuilderBase<MyExtendedNodeBuilder> { ... };
+ *   class MyExtendedNodeBuilder :
+ *       public NodeBuilderBase<MyExtendedNodeBuilder> { ... };
  *
  * This ensures that certain member functions return the right
  * (derived) class type.
@@ -396,13 +397,14 @@ protected:
       expr::NodeValue* newBlock = (expr::NodeValue*)
         std::realloc(d_nv,
                      sizeof(expr::NodeValue) +
-                     ( sizeof(expr::NodeValue*) * (d_nvMaxChildren = d_nv->d_nchildren) ));
+                     ( sizeof(expr::NodeValue*) * d_nv->d_nchildren ));
       if(newBlock == NULL) {
         // In this case, d_nv was NOT freed.  If we throw, the
         // deallocation should occur on destruction of the
         // NodeBuilder.
         throw std::bad_alloc();
       }
+      d_nvMaxChildren = d_nv->d_nchildren;
       d_nv = newBlock;
     }
   }
@@ -446,37 +448,43 @@ public:
 
   /** Get the begin-const-iterator of this Node-under-construction. */
   inline const_iterator begin() const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     return d_nv->begin<true>();
   }
 
   /** Get the end-const-iterator of this Node-under-construction. */
   inline const_iterator end() const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     return d_nv->end<true>();
   }
 
   /** Get the kind of this Node-under-construction. */
   inline Kind getKind() const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     return d_nv->getKind();
   }
 
   /** Get the kind of this Node-under-construction. */
   inline kind::MetaKind getMetaKind() const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     return d_nv->getMetaKind();
   }
 
   /** Get the current number of children of this Node-under-construction. */
   inline unsigned getNumChildren() const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     return d_nv->getNumChildren();
   }
 
   /** Access to children of this Node-under-construction. */
   inline Node operator[](int i) const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     Assert(i >= 0 && unsigned(i) < d_nv->getNumChildren(),
            "index out of range for NodeBuilder[]");
     return Node(d_nv->getChild(i));
@@ -500,7 +508,8 @@ public:
 
   /** Set the Kind of this Node-under-construction. */
   inline Builder& operator<<(const Kind& k) {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     Assert(getKind() == kind::UNDEFINED_KIND,
            "can't redefine the Kind of a NodeBuilder");
     AssertArgument(k != kind::UNDEFINED_KIND &&
@@ -518,7 +527,8 @@ public:
    * on it but then never wrote code like that.
    */
   Builder& operator<<(TNode n) {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     /* FIXME: disable this "collapsing" for now..
     if(EXPECT_FALSE( getKind() != kind::UNDEFINED_KIND )) {
       Node n2 = operator Node();
@@ -529,15 +539,19 @@ public:
   }
 
   /** Append a sequence of children to this Node-under-construction. */
-  inline Builder& append(const std::vector<Node>& children) {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+  template <bool ref_count>
+  inline Builder&
+  append(const std::vector<NodeTemplate<ref_count> >& children) {
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     return append(children.begin(), children.end());
   }
 
   /** Append a sequence of children to this Node-under-construction. */
   template <class Iterator>
   Builder& append(const Iterator& begin, const Iterator& end) {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     for(Iterator i = begin; i != end; ++i) {
       append(*i);
     }
@@ -546,7 +560,8 @@ public:
 
   /** Append a child to this Node-under-construction. */
   Builder& append(TNode n) {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     Assert(!n.isNull(), "Cannot use NULL Node as a child of a Node");
     allocateNvIfNecessaryForAppend();
     expr::NodeValue* nv = n.d_nv;
@@ -561,7 +576,8 @@ public:
   operator Node() const;
 
   inline void toStream(std::ostream& out, int depth = -1) const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
     d_nv->toStream(out, depth);
   }
 
@@ -596,7 +612,9 @@ public:
     NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
   }
 
-  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren, NodeManager* nm) :
+  inline BackedNodeBuilder(expr::NodeValue* buf,
+                           unsigned maxChildren,
+                           NodeManager* nm) :
     NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
   }
 
@@ -627,8 +645,12 @@ private:
  */
 #define makeStackNodeBuilder(__v, __n)                                  \
   const size_t __cvc4_backednodebuilder_nchildren__ ## __v = (__n);     \
-  ::CVC4::expr::NodeValue __cvc4_backednodebuilder_buf__ ## __v[1 + (((sizeof(::CVC4::expr::NodeValue) + sizeof(::CVC4::expr::NodeValue*) + 1) / sizeof(::CVC4::expr::NodeValue*)) * __cvc4_backednodebuilder_nchildren__ ## __v)]; \
-  ::CVC4::BackedNodeBuilder __v(__cvc4_backednodebuilder_buf__ ## __v, \
+  ::CVC4::expr::NodeValue __cvc4_backednodebuilder_buf__ ## __v         \
+      [1 + ( ( ( sizeof(::CVC4::expr::NodeValue) +                      \
+                sizeof(::CVC4::expr::NodeValue*) + 1 ) /                \
+               sizeof(::CVC4::expr::NodeValue*) ) *                     \
+             __cvc4_backednodebuilder_nchildren__ ## __v)];             \
+  ::CVC4::BackedNodeBuilder __v(__cvc4_backednodebuilder_buf__ ## __v,  \
                                 __cvc4_backednodebuilder_nchildren__ ## __v)
 // IF THE ABOVE ASSERTION FAILS, write another compiler-specific
 // version of makeStackNodeBuilder() that works for your compiler
@@ -718,7 +740,8 @@ public:
   // we don't want a vtable, so do not declare a dtor!
   //inline ~NodeBuilder();
 
-  // This is needed for copy constructors of different sizes to access private fields
+  // This is needed for copy constructors of different sizes to access
+  // private fields
   template <unsigned N>
   friend class NodeBuilder;
 
@@ -845,7 +868,8 @@ inline Builder& NodeBuilderBase<Builder>::operator+=(TNode e) {
 
 template <class Builder>
 inline Builder& NodeBuilderBase<Builder>::operator-=(TNode e) {
-  return collapseTo(kind::PLUS).append(NodeManager::currentNM()->mkNode(kind::UMINUS, e));
+  return collapseTo(kind::PLUS).
+    append(NodeManager::currentNM()->mkNode(kind::UMINUS, e));
 }
 
 template <class Builder>
@@ -1171,12 +1195,13 @@ void NodeBuilderBase<Builder>::realloc(size_t toSize) {
     // Ensure d_nv is not modified on allocation failure
     expr::NodeValue* newBlock = (expr::NodeValue*)
       std::realloc(d_nv, sizeof(expr::NodeValue) +
-                   ( sizeof(expr::NodeValue*) * (d_nvMaxChildren = toSize) ));
+                   ( sizeof(expr::NodeValue*) * toSize ));
     if(newBlock == NULL) {
       // In this case, d_nv was NOT freed.  If we throw, the
       // deallocation should occur on destruction of the NodeBuilder.
       throw std::bad_alloc();
     }
+    d_nvMaxChildren = toSize;
     // Here, the copy (between two heap-allocated buffers) has already
     // been done for us by the std::realloc().
     d_nv = newBlock;
@@ -1184,10 +1209,11 @@ void NodeBuilderBase<Builder>::realloc(size_t toSize) {
     // Ensure d_nv is not modified on allocation failure
     expr::NodeValue* newBlock = (expr::NodeValue*)
       std::malloc(sizeof(expr::NodeValue) +
-                  ( sizeof(expr::NodeValue*) * (d_nvMaxChildren = toSize) ));
+                  ( sizeof(expr::NodeValue*) * toSize ));
     if(newBlock == NULL) {
       throw std::bad_alloc();
     }
+    d_nvMaxChildren = toSize;
 
     d_nv = newBlock;
     d_nv->d_id = 0;
@@ -1239,7 +1265,8 @@ void NodeBuilderBase<Builder>::decrRefCounts() {
 // NON-CONST VERSION OF NODE EXTRACTOR
 template <class Builder>
 NodeBuilderBase<Builder>::operator Node() {
-  Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+  Assert(!isUsed(), "NodeBuilder is one-shot only; "
+         "attempt to access it after conversion");
   Assert(getKind() != kind::UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
 
@@ -1410,7 +1437,8 @@ NodeBuilderBase<Builder>::operator Node() {
 // CONST VERSION OF NODE EXTRACTOR
 template <class Builder>
 NodeBuilderBase<Builder>::operator Node() const {
-  Assert(!isUsed(), "NodeBuilder is one-shot only; attempt to access it after conversion");
+  Assert(!isUsed(), "NodeBuilder is one-shot only; "
+         "attempt to access it after conversion");
   Assert(getKind() != kind::UNDEFINED_KIND,
          "Can't make an expression of an undefined kind!");
 

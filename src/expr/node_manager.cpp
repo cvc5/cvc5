@@ -58,33 +58,41 @@ NodeManager::~NodeManager() {
 }
 
 /**
- * This class ensure that NodeManager::d_reclaiming gets set to false
+ * This class ensures that NodeManager::d_reclaiming gets set to false
  * even on exceptional exit from NodeManager::reclaimZombies().
  */
 struct Reclaim {
   bool& d_reclaimField;
+
   Reclaim(bool& reclaim) :
     d_reclaimField(reclaim) {
 
     Debug("gc") << ">> setting RECLAIM field\n";
     d_reclaimField = true;
   }
+
   ~Reclaim() {
     Debug("gc") << "<< clearing RECLAIM field\n";
     d_reclaimField = false;
   }
 };
 
+/**
+ * Similarly, ensure d_nodeUnderDeletion gets set to NULL even on
+ * exceptional exit from NodeManager::reclaimZombies().
+ */
 struct NVReclaim {
-  NodeValue*& d_reclaimField;
-  NVReclaim(NodeValue*& reclaim) :
-    d_reclaimField(reclaim) {
+  NodeValue*& d_deletionField;
+
+  NVReclaim(NodeValue*& deletionField) :
+    d_deletionField(deletionField) {
 
     Debug("gc") << ">> setting NVRECLAIM field\n";
   }
+
   ~NVReclaim() {
     Debug("gc") << "<< clearing NVRECLAIM field\n";
-    d_reclaimField = NULL;
+    d_deletionField = NULL;
   }
 };
 
@@ -107,11 +115,11 @@ void NodeManager::reclaimZombies() {
   // Let's say we're reclaiming zombie NodeValue "A" and its child "B"
   // then becomes a zombie (NodeManager::gc(B) is called).
   //
-  // One way to handle B's zombification is simply to put it into
-  // d_zombies.  This is what we do.  However, if we're currently
-  // processing d_zombies in the loop below, such addition may be
-  // invisible to us (B is leaked) or even invalidate our iterator,
-  // causing a crash.
+  // One way to handle B's zombification would be simply to put it
+  // into d_zombies.  This is what we do.  However, if we were to
+  // concurrently process d_zombies in the loop below, such addition
+  // may be invisible to us (B is leaked) or even invalidate our
+  // iterator, causing a crash.  So we need to copy the set away.
 
   vector<NodeValue*> zombies;
   zombies.reserve(d_zombies.size());
@@ -149,6 +157,6 @@ void NodeManager::reclaimZombies() {
       free(nv);
     }
   }
-}
+}/* NodeManager::reclaimZombies() */
 
 }/* CVC4 namespace */

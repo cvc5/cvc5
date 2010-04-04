@@ -31,7 +31,6 @@ using namespace CVC4::context;
 
 using namespace std;
 
-
 /**
  * Very basic OutputChannel for testing simple Theory Behaviour.
  * Stores a call sequence for the output channel
@@ -95,6 +94,8 @@ class TheoryUFWhite : public CxxTest::TestSuite {
 
   TheoryUF* d_euf;
 
+  Type* d_booleanType;
+
 public:
 
   TheoryUFWhite() : d_level(Theory::FULL_EFFORT) {}
@@ -105,6 +106,8 @@ public:
     d_scope = new NodeManagerScope(d_nm);
     d_outputChannel.clear();
     d_euf = new TheoryUF(d_ctxt, d_outputChannel);
+
+    d_booleanType = d_nm->booleanType();
   }
 
   void tearDown() {
@@ -116,8 +119,8 @@ public:
   }
 
   void testPushPopChain() {
-    Node x = d_nm->mkVar();
-    Node f = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
+    Node f = d_nm->mkVar(d_booleanType);
     Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
     Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
     Node f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_x);
@@ -171,8 +174,8 @@ public:
 
   /* test that {f(f(x)) == x, f(f(f(x))) != f(x)} is inconsistent */
   void testSimpleChain() {
-    Node x = d_nm->mkVar();
-    Node f = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
+    Node f = d_nm->mkVar(d_booleanType);
     Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
     Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
     Node f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_x);
@@ -196,7 +199,7 @@ public:
 
   /* test that !(x == x) is inconsistent */
   void testSelfInconsistent() {
-    Node x = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
     Node x_neq_x = (x.eqNode(x)).notNode();
 
     d_euf->assertFact(x_neq_x);
@@ -209,7 +212,7 @@ public:
 
   /* test that (x == x) is consistent */
   void testSelfConsistent() {
-    Node x = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
     Node x_eq_x = x.eqNode(x);
 
     d_euf->assertFact(x_eq_x);
@@ -225,8 +228,8 @@ public:
       f(x) != x
      } is inconsistent */
   void testChain() {
-    Node x = d_nm->mkVar();
-    Node f = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
+    Node f = d_nm->mkVar(d_booleanType);
     Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
     Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
     Node f_f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_f_x);
@@ -256,7 +259,7 @@ public:
 
 
   void testPushPopA() {
-    Node x = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
     Node x_eq_x = x.eqNode(x);
 
     d_ctxt->push();
@@ -267,8 +270,8 @@ public:
   }
 
   void testPushPopB() {
-    Node x = d_nm->mkVar();
-    Node f = d_nm->mkVar();
+    Node x = d_nm->mkVar(d_booleanType);
+    Node f = d_nm->mkVar(d_booleanType);
     Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
     Node f_x_eq_x = f_x.eqNode(x);
 

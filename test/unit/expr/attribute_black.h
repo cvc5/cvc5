@@ -70,7 +70,8 @@ public:
   typedef expr::Attribute<MyDataAttributeId, MyData*, MyDataCleanupFunction> MyDataAttribute;
 
   void testDeallocation() {
-    Node* node = new Node(d_nodeManager->mkVar());
+    Type* booleanType = d_nodeManager->booleanType();
+    Node* node = new Node(d_nodeManager->mkVar(booleanType));
     MyData* data;
     MyData* data1;
     MyDataAttribute attr;

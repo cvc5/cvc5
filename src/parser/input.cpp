@@ -43,7 +43,7 @@ void Input::enableChecks() {
   d_parserState->enableChecks();
 }
 
-Command* Input::parseNextCommand() throw (ParserException) {
+Command* Input::parseNextCommand() throw(ParserException) {
   Debug("parser") << "parseNextCommand()" << std::endl;
   Command* cmd = NULL;
   if(!done()) {
@@ -54,14 +54,14 @@ Command* Input::parseNextCommand() throw (ParserException) {
       }
     } catch(ParserException& e) {
       d_parserState->setDone();
-      throw ParserException(e.toString());
+      throw;
     }
   }
   Debug("parser") << "parseNextCommand() => " << cmd << std::endl;
   return cmd;
 }
 
-Expr Input::parseNextExpression() throw (ParserException) {
+Expr Input::parseNextExpression() throw(ParserException) {
   Debug("parser") << "parseNextExpression()" << std::endl;
   Expr result;
   if(!done()) {
@@ -71,7 +71,7 @@ Expr Input::parseNextExpression() throw (ParserException) {
         d_parserState->setDone();
     } catch(ParserException& e) {
       d_parserState->setDone();
-      throw ParserException(e.toString());
+      throw;
     }
   }
   Debug("parser") << "parseNextExpression() => " << result << std::endl;

@@ -60,6 +60,7 @@ class AttributeWhite : public CxxTest::TestSuite {
   Context* d_ctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
+  Type* d_booleanType;
 
 public:
 
@@ -67,6 +68,8 @@ public:
     d_ctxt = new Context;
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
+
+    d_booleanType = d_nm->booleanType();
   }
 
   void tearDown() {
@@ -150,9 +153,9 @@ public:
 
     //Debug.on("boolattr");
 
-    Node a = d_nm->mkVar();
-    Node b = d_nm->mkVar();
-    Node c = d_nm->mkVar();
+    Node a = d_nm->mkVar(d_booleanType);
+    Node b = d_nm->mkVar(d_booleanType);
+    Node c = d_nm->mkVar(d_booleanType);
 
     Debug("boolattr", "get flag 1 on a (should be F)\n");
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
@@ -280,10 +283,10 @@ public:
 
     //Debug.on("boolattr");
 
-    Node a = d_nm->mkVar();
-    Node b = d_nm->mkVar();
-    Node c = d_nm->mkVar();
-    Node unnamed = d_nm->mkVar();
+    Node a = d_nm->mkVar(d_booleanType);
+    Node b = d_nm->mkVar(d_booleanType);
+    Node c = d_nm->mkVar(d_booleanType);
+    Node unnamed = d_nm->mkVar(d_booleanType);
 
     a.setAttribute(VarNameAttr(), "a");
     b.setAttribute(VarNameAttr(), "b");
