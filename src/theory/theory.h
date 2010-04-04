@@ -38,34 +38,20 @@ namespace theory {
 struct RewriteCacheTag {};
 typedef expr::Attribute<RewriteCacheTag, TNode> RewriteCache;
 
-template <class T>
-class TheoryImpl;
-
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
  *
  * This is essentially an interface class.  The TheoryEngine has
- * pointers to Theory.  But each individual theory implementation T
- * should inherit from TheoryImpl<T>, which specializes a few things
- * for that theory.
+ * pointers to Theory.  Note that only one specific Theory type (e.g.,
+ * TheoryUF) can exist per NodeManager, because of how the
+ * RegisteredAttr works.  (If you need multiple instances of the same
+ * theory, you'll have to write a multiplexed theory that dispatches
+ * all calls to them.)
  */
 class Theory {
 private:
 
-  template <class T>
-  friend class ::CVC4::theory::TheoryImpl;
-
   friend class ::CVC4::TheoryEngine;
-
-  /**
-   * Construct a Theory.
-   */
-  Theory(context::Context* ctxt, OutputChannel& out) throw() :
-    d_context(ctxt),
-    d_facts(),
-    d_factsResetter(*this),
-    d_out(&out) {
-  }
 
   /**
    * Disallow default construction.
@@ -110,13 +96,23 @@ private:
 protected:
 
   /**
+   * Construct a Theory.
+   */
+  Theory(context::Context* ctxt, OutputChannel& out) throw() :
+    d_context(ctxt),
+    d_facts(),
+    d_factsResetter(*this),
+    d_out(&out) {
+  }
+
+  /**
    * This is called at shutdown time by the TheoryEngine, just before
    * destruction.  It is important because there are destruction
    * ordering issues between PropEngine and Theory (based on what
    * hard-links to Nodes are outstanding).  As the fact queue might be
    * nonempty, we ensure here that it's clear.  If you overload this,
-   * you must make an explicit call here to the Theory implementation
-   * of this function too.
+   * you must make an explicit call here to this->Theory::shutdown()
+   * too.
    */
   virtual void shutdown() {
     d_facts.clear();
@@ -157,6 +153,24 @@ protected:
   static Node getRewriteCache(TNode n) throw() {
     return n.getAttribute(RewriteCache());
   }
+
+  /** Tag for the "registerTerm()-has-been-called" flag on Nodes */
+  struct Registered {};
+  /** The "registerTerm()-has-been-called" flag on Nodes */
+  typedef CVC4::expr::CDAttribute<Registered, bool> RegisteredAttr;
+
+  /** Tag for the "preRegisterTerm()-has-been-called" flag on Nodes */
+  struct PreRegistered {};
+  /** The "preRegisterTerm()-has-been-called" flag on Nodes */
+  typedef CVC4::expr::Attribute<PreRegistered, bool> PreRegisteredAttr;
+
+  /**
+   * Returns the next atom in the assertFact() queue.  Guarantees that
+   * registerTerm() has been called on the theory specific subterms.
+   *
+   * @return the next atom in the assertFact() queue.
+   */
+  Node get();
 
 public:
 
@@ -307,133 +321,6 @@ protected:
   }
 
 };/* class Theory */
-
-
-/**
- * Base class for T-solver implementations.  Each individual
- * implementation T of the Theory interface should inherit from
- * TheoryImpl<T>.  This class specializes some things for a particular
- * theory implementation.
- *
- * The problem with this is that Theory implementations cannot be
- * further subclassed without designing all non-children in the type
- * DAG to play the same trick as here (be template-polymorphic in their
- * most-derived child), linearizing the inheritance hierarchy (viewing
- * each instantiation separately).
- */
-template <class T>
-class TheoryImpl : public Theory {
-
-protected:
-
-  /**
-   * Construct a Theory.
-   */
-  TheoryImpl(context::Context* ctxt, OutputChannel& out) :
-    Theory(ctxt, out) {
-    /* FIXME: assert here that a TheoryImpl<T> doesn't already exist
-     * for this NodeManager??  If it does, we're hosed because they'll
-     * share per-theory node attributes. */
-  }
-
-  /** Tag for the "registerTerm()-has-been-called" flag on Nodes */
-  struct Registered {};
-  /** The "registerTerm()-has-been-called" flag on Nodes */
-  typedef CVC4::expr::CDAttribute<Registered, bool> RegisteredAttr;
-
-  /** Tag for the "preRegisterTerm()-has-been-called" flag on Nodes */
-  struct PreRegistered {};
-  /** The "preRegisterTerm()-has-been-called" flag on Nodes */
-  typedef CVC4::expr::Attribute<PreRegistered, bool> PreRegisteredAttr;
-
-  /**
-   * Returns the next atom in the assertFact() queue.  Guarantees that
-   * registerTerm() has been called on the theory specific subterms.
-   *
-   * @return the next atom in the assertFact() queue.
-   */
-  Node get();
-};/* class TheoryImpl<T> */
-
-template <class T>
-Node TheoryImpl<T>::get() {
-  Assert(typeid(*this) == typeid(T),
-         "Improper Theory inheritance chain detected.");
-
-  Assert( !d_facts.empty(),
-          "Theory::get() called with assertion queue empty!" );
-
-  Node fact = d_facts.front();
-  d_facts.pop_front();
-
-  Debug("theory") << "Theory::get() => " << fact << "(" << d_facts.size() << " left)" << std::endl;
-
-  if(! fact.getAttribute(RegisteredAttr())) {
-    std::list<TNode> toReg;
-    toReg.push_back(fact);
-
-    Debug("theory") << "Theory::get(): registering new atom" << std::endl;
-
-    /* Essentially this is doing a breadth-first numbering of
-     * non-registered subterms with children.  Any non-registered
-     * leaves are immediately registered. */
-    for(std::list<TNode>::iterator workp = toReg.begin();
-        workp != toReg.end();
-        ++workp) {
-
-      TNode n = *workp;
-
-      if(n.hasOperator()) {
-        TNode c = n.getOperator();
-
-        if(! c.getAttribute(RegisteredAttr())) {
-          if(c.getNumChildren() == 0) {
-            c.setAttribute(RegisteredAttr(), true);
-            registerTerm(c);
-          } else {
-            toReg.push_back(c);
-          }
-        }
-      }
-
-      for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
-        TNode c = *i;
-
-        if(! c.getAttribute(RegisteredAttr())) {
-          if(c.getNumChildren() == 0) {
-            c.setAttribute(RegisteredAttr(), true);
-            registerTerm(c);
-          } else {
-            toReg.push_back(c);
-          }
-        }
-      }
-    }
-
-    /* Now register the list of terms in reverse order.  Between this
-     * and the above registration of leaves, this should ensure that
-     * all subterms in the entire tree were registered in
-     * reverse-topological order. */
-    for(std::list<TNode>::reverse_iterator i = toReg.rbegin();
-        i != toReg.rend();
-        ++i) {
-
-      TNode n = *i;
-
-      /* Note that a shared TNode in the DAG rooted at "fact" could
-       * appear twice on the list, so we have to avoid hitting it
-       * twice. */
-      // FIXME when ExprSets are online, use one of those to avoid
-      // duplicates in the above?
-      if(! n.getAttribute(RegisteredAttr())) {
-        n.setAttribute(RegisteredAttr(), true);
-        registerTerm(n);
-      }
-    }
-  }
-
-  return fact;
-}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -5,3 +5,4 @@ x, y: A;
 f: A -> B;
 QUERY (f(x) = f(y));
 
+% EXIT: 10

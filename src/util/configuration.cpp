@@ -94,7 +94,7 @@ string Configuration::about() {
 This is a pre-release of CVC4.\n\
 Copyright (C) 2009, 2010\n\
   The ACSys Group\n\
-  Courant Institute of Mathematical Sciences,\n\
+  Courant Institute of Mathematical Sciences\n\
   New York University\n\
   New York, NY  10012  USA\n");
 }

@@ -200,11 +200,11 @@ function register_metakind {
   nc=$3
 
   if [ $mk = NONATOMIC_OPERATOR ]; then
-    metakind_isatomic="${metakind_isatomic}    false, /* $k */
+    metakind_canbeatomic="${metakind_canbeatomic}    false, /* $k */
 ";
     mk=OPERATOR
   else
-    metakind_isatomic="${metakind_isatomic}    true, /* $k */
+    metakind_canbeatomic="${metakind_canbeatomic}    true, /* $k */
 ";
   fi
 
@@ -278,7 +278,7 @@ while [ $# -gt 0 ]; do
   metakind_kinds="${metakind_kinds}
     /* from $b */
 "
-  metakind_isatomic="${metakind_isatomic}
+  metakind_canbeatomic="${metakind_canbeatomic}
     /* from $b */
 "
   source "$kf"
@@ -293,7 +293,7 @@ text=$(cat "$template")
 for var in \
     metakind_includes \
     metakind_kinds \
-    metakind_isatomic \
+    metakind_canbeatomic \
     metakind_constantMaps \
     metakind_compares \
     metakind_constHashes \

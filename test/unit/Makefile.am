@@ -10,6 +10,7 @@ UNIT_TESTS = \
 	expr/attribute_black \
 	parser/parser_white \
 	context/context_black \
+	context/context_white \
 	context/context_mm_black \
 	context/cdo_black \
 	context/cdlist_black \

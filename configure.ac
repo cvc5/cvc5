@@ -480,6 +480,9 @@ CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
 CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
+FLAG_VISIBILITY_HIDDEN='-fvisibility=hidden'
+AC_SUBST(FLAG_VISIBILITY_HIDDEN)
+
 # mk_include
 #
 # When automake scans Makefiles, it complains about non-standard make

@@ -58,25 +58,25 @@ int main(int argc, char* argv[]) {
     }
     cerr << "CVC4 Error:" << endl << e << endl;
     printf(usage, options.binary_name.c_str());
-    abort();
+    exit(1);
   } catch(Exception& e) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;
     }
     cerr << "CVC4 Error:" << endl << e << endl;
-    abort();
+    exit(1);
   } catch(bad_alloc) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;
     }
     cerr << "CVC4 ran out of memory." << endl;
-    abort();
+    exit(1);
   } catch(...) {
     if(options.smtcomp_mode) {
       cout << "unknown" << endl;
     }
     cerr << "CVC4 threw an exception of unknown type." << endl;
-    abort();
+    exit(1);
   }
 }
 

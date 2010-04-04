@@ -1,3 +1,4 @@
 a, b, c: BOOLEAN;
 % EXPECT: VALID
 QUERY (IF c THEN a ELSE b ENDIF) <=> ((c AND a) OR (NOT c AND b));
+% EXIT: 20

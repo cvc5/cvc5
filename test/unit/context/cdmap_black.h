@@ -30,6 +30,8 @@ public:
   void setUp() {
     d_context = new Context;
     //Debug.on("cdmap");
+    //Debug.on("gc");
+    //Debug.on("pushpop");
   }
 
   void tearDown() {

@@ -1,6 +1,7 @@
-% Expect: VALID
+% EXPECT: VALID
 % Simple test for right precedence of AND, <=>, NOT.
 
 A, B, C: BOOLEAN;
 
 QUERY (NOT A AND NOT B <=> C) <=> (((NOT A) AND (NOT B)) <=> C);
+% EXIT: 20

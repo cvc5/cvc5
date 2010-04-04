@@ -244,9 +244,9 @@ public:
 
     Node n = noKind;
 
-#ifdef CVC4_DEBUG
-    TS_ASSERT_THROWS_ANYTHING(noKind.getKind(););
-#endif
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(noKind.getKind(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> spec(specKind);
     TS_ASSERT_EQUALS(spec.getKind(), specKind);
@@ -277,11 +277,11 @@ public:
     push_back(noKind, K);
     TS_ASSERT_EQUALS(noKind.getNumChildren(), K+K);
 
-#ifdef CVC4_DEBUG
+#ifdef CVC4_ASSERTIONS
     noKind << specKind;
     n = noKind;
-    TS_ASSERT_THROWS_ANYTHING( noKind.getNumChildren() );
-#endif
+    TS_ASSERT_THROWS( noKind.getNumChildren(), AssertionException );
+#endif /* CVC4_ASSERTIONS */
   }
 
   void testOperatorSquare() {
@@ -297,10 +297,10 @@ public:
     Node i_2 = d_nm->mkConst(true);
     Node i_K = d_nm->mkNode(NOT, i_0);
 
-#ifdef CVC4_DEBUG
-    TS_ASSERT_THROWS_ANYTHING(arr[-1];);
-    TS_ASSERT_THROWS_ANYTHING(arr[0];);
-#endif
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(arr[-1], AssertionException);
+    TS_ASSERT_THROWS(arr[0], AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     arr << i_0;
 
@@ -330,10 +330,10 @@ public:
     }
     TS_ASSERT_EQUALS(arr[K], i_K);
 
-#ifdef CVC4_DEBUG
+#ifdef CVC4_ASSERTIONS
     Node n = arr;
-    TS_ASSERT_THROWS_ANYTHING(arr[0]);
-#endif
+    TS_ASSERT_THROWS(arr[0], AssertionException);
+#endif /* CVC4_ASSERTIONS */
   }
 
   void testClear() {
@@ -468,6 +468,10 @@ public:
     Node o = d_nm->mkNode(XOR, y, x);
     Node p = d_nm->mkNode(PLUS, z, d_nm->mkNode(UMINUS, x), z);
     Node q = d_nm->mkNode(AND, x, z, d_nm->mkNode(NOT, y));
+
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(d_nm->mkNode(XOR, y, x, x), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> b;
 

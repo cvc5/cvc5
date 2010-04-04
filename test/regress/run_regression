@@ -44,35 +44,68 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
-  if [ -z "$expected_output" ]; then
-    error "cannot determine status of \`$benchmark'"
+  expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
+  if [ -z "$expected_output" -a -z "$expected_error" ]; then
+    error "cannot determine expected output of \`$benchmark': " \
+          "please use \`% EXPECT:' and/or \`% EXPECT-ERROR:' gestures"
   fi
   expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
+  if [ -z "$expected_exit_status" ]; then
+    error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+  fi
 else
   error "benchmark \`$benchmark' must be *.cvc or *.smt"
 fi
 
-expfile=`mktemp -t cvc4_expected.XXXXXXXXXX`
-outfile=`mktemp -t cvc4_output.XXXXXXXXXX`
-echo "$expected_output" >"$expfile"
+expoutfile=`mktemp -t cvc4_expect_stdout.XXXXXXXXXX`
+experrfile=`mktemp -t cvc4_expect_stderr.XXXXXXXXXX`
+outfile=`mktemp -t cvc4_stdout.XXXXXXXXXX`
+errfile=`mktemp -t cvc4_stderr.XXXXXXXXXX`
+exitstatusfile=`mktemp -t cvc4_exitstatus.XXXXXXXXXX`
+if [ -z "$expected_output" ]; then
+  # in case expected stdout output is empty, make sure we don't differ
+  # by a newline, which we would if we echo "" >"$expoutfile"
+  touch "$expoutfile"
+else
+  echo "$expected_output" >"$expoutfile"
+fi
+if [ -z "$expected_error" ]; then
+  # in case expected stderr output is empty, make sure we don't differ
+  # by a newline, which we would if we echo "" >"$experrfile"
+  touch "$experrfile"
+else
+  echo "$expected_error" >"$experrfile"
+fi
 
-# echo "$cvc4" --segv-nospin "$benchmark"
-"$cvc4" --segv-nospin "$benchmark" > "$outfile"
+("$cvc4" --segv-nospin "$benchmark"; echo $? >"$exitstatusfile") > "$outfile" 2> "$errfile"
 
-diffs=`diff -u "$expfile" "$outfile"`
+diffs=`diff -u "$expoutfile" "$outfile"`
 diffexit=$?
-rm -f "$expfile"
+diffserr=`diff -u "$experrfile" "$errfile"`
+diffexiterr=$?
+exit_status=`cat "$exitstatusfile"`
+
+rm -f "$expoutfile"
+rm -f "$experrfile"
 rm -f "$outfile"
+rm -f "$errfile"
+rm -f "$exitstatusfile"
+
+exitcode=0
 if [ $diffexit -ne 0 ]; then
-  echo "$prog: error: differences between expected and actual output"
+  echo "$prog: error: differences between expected and actual output on stdout"
   echo "$diffs"
-  exit 1
+  exitcode=1
+fi
+if [ $diffexiterr -ne 0 ]; then
+  echo "$prog: error: differences between expected and actual output on stderr"
+  echo "$diffserr"
+  exitcode=1
 fi
 
-if [ -n "$expected_exit_status" ]; then
-  :
-  #if [ $exit_status != "$expected_exit_status" ]; then
-  #  error "expected exit status \`$expected_exit_status' but got \`$exit_status'"
-  #fi
+if [ "$exit_status" != "$expected_exit_status" ]; then
+  echo  "$prog: error: expected exit status \`$expected_exit_status' but got \`$exit_status'"
+  exitcode=1
 fi
 
+exit $exitcode

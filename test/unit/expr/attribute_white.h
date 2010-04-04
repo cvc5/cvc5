@@ -17,12 +17,14 @@
 
 #include <string>
 
+#include "context/context.h"
 #include "expr/node_value.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node.h"
 #include "expr/attribute.h"
-#include "context/context.h"
+#include "expr/node.h"
+#include "theory/theory.h"
+#include "theory/uf/theory_uf.h"
 #include "util/Assert.h"
 
 using namespace CVC4;
@@ -74,24 +76,73 @@ public:
   }
 
   void testAttributeIds() {
-    TS_ASSERT(VarNameAttr::s_id == 0);
-    TS_ASSERT(TestStringAttr1::s_id == 1);
-    TS_ASSERT(TestStringAttr2::s_id == 2);
-    TS_ASSERT((attr::LastAttributeId<string, false>::s_id == 3));
+    // Test that IDs for (a subset of) attributes in the system are
+    // unique and that the LastAttributeId (which would be the next ID
+    // to assign) is greater than all attribute IDs.
 
-    TS_ASSERT(TypeAttr::s_id == 0);
-    TS_ASSERT((attr::LastAttributeId<void*, false>::s_id == 1));
+    // We used to check ID assignments explicitly.  However, between
+    // compilation modules, you don't get a strong guarantee
+    // (initialization order is somewhat implementation-specific, and
+    // anyway you'd have to change the tests anytime you add an
+    // attribute).  So we back off, and just test that they're unique
+    // and that the next ID to be assigned is strictly greater than
+    // those that have already been assigned.
 
-    TS_ASSERT(TestFlag1::s_id == 0);
-    TS_ASSERT(TestFlag2::s_id == 1);
-    TS_ASSERT(TestFlag3::s_id == 2);
-    TS_ASSERT(TestFlag4::s_id == 3);
-    TS_ASSERT(TestFlag5::s_id == 4);
-    TS_ASSERT((attr::LastAttributeId<bool, false>::s_id == 5));
-  
-    TS_ASSERT(TestFlag1cd::s_id == 0);
-    TS_ASSERT(TestFlag2cd::s_id == 1);
-    TS_ASSERT((attr::LastAttributeId<bool, true>::s_id == 2));
+    unsigned lastId = attr::LastAttributeId<string, false>::s_id;
+    TS_ASSERT_LESS_THAN(VarNameAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestStringAttr1::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestStringAttr2::s_id, lastId);
+
+    TS_ASSERT_DIFFERS(VarNameAttr::s_id, TestStringAttr1::s_id);
+    TS_ASSERT_DIFFERS(VarNameAttr::s_id, TestStringAttr2::s_id);
+    TS_ASSERT_DIFFERS(TestStringAttr1::s_id, TestStringAttr2::s_id);
+
+    lastId = attr::LastAttributeId<void*, false>::s_id;
+    TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(theory::uf::ECAttr::s_id, lastId);
+    TS_ASSERT_DIFFERS(NodeManager::TypeAttr::s_id, theory::uf::ECAttr::s_id);
+
+    lastId = attr::LastAttributeId<bool, false>::s_id;
+    TS_ASSERT_LESS_THAN(NodeManager::AtomicAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(theory::Theory::PreRegisteredAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag1::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag2::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag3::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag4::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag5::s_id, lastId);
+    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id,
+                      theory::Theory::PreRegisteredAttr::s_id);
+    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag1::s_id);
+    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag2::s_id);
+    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag3::s_id);
+    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag4::s_id);
+    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag5::s_id);
+    TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag1::s_id);
+    TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag2::s_id);
+    TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag3::s_id);
+    TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag4::s_id);
+    TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag5::s_id);
+    TS_ASSERT_DIFFERS(TestFlag1::s_id, TestFlag2::s_id);
+    TS_ASSERT_DIFFERS(TestFlag1::s_id, TestFlag3::s_id);
+    TS_ASSERT_DIFFERS(TestFlag1::s_id, TestFlag4::s_id);
+    TS_ASSERT_DIFFERS(TestFlag1::s_id, TestFlag5::s_id);
+    TS_ASSERT_DIFFERS(TestFlag2::s_id, TestFlag3::s_id);
+    TS_ASSERT_DIFFERS(TestFlag2::s_id, TestFlag4::s_id);
+    TS_ASSERT_DIFFERS(TestFlag2::s_id, TestFlag5::s_id);
+    TS_ASSERT_DIFFERS(TestFlag3::s_id, TestFlag4::s_id);
+    TS_ASSERT_DIFFERS(TestFlag3::s_id, TestFlag5::s_id);
+    TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
+
+    lastId = attr::LastAttributeId<bool, true>::s_id;
+    TS_ASSERT_LESS_THAN(theory::Theory::RegisteredAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag1cd::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TestFlag2cd::s_id, lastId);
+    TS_ASSERT_DIFFERS(theory::Theory::RegisteredAttr::s_id, TestFlag1cd::s_id);
+    TS_ASSERT_DIFFERS(theory::Theory::RegisteredAttr::s_id, TestFlag2cd::s_id);
+    TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
+
+    lastId = attr::LastAttributeId<TNode, false>::s_id;
+    TS_ASSERT_LESS_THAN(theory::RewriteCache::s_id, lastId);
   }
 
   void testCDAttributes() {

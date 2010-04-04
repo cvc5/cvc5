@@ -1,7 +1,7 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4PARSERLIB \
 	-I@srcdir@/../../include -I@srcdir@/../.. $(ANTLR_INCLUDES)
-AM_CXXFLAGS = -Wall -fvisibility=hidden
+AM_CXXFLAGS = -Wall $(FLAG_VISIBILITY_HIDDEN)
 
 # Compile generated C files using C++ compiler
 CC=$(CXX)

@@ -10,9 +10,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- **
+ ** Implementation of the theory of uninterpreted functions.
  **/
-
 
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/ecdata.h"
@@ -24,37 +23,32 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 
-
-
 TheoryUF::TheoryUF(Context* c, OutputChannel& out) :
-  TheoryImpl<TheoryUF>(c, out),
+  Theory(c, out),
   d_assertions(c),
   d_pending(c),
   d_currentPendingIdx(c,0),
   d_disequality(c),
-  d_registered(c)
-{}
+  d_registered(c) {
+}
 
-TheoryUF::~TheoryUF(){}
+TheoryUF::~TheoryUF() {
+}
 
-void TheoryUF::preRegisterTerm(TNode n){
+void TheoryUF::preRegisterTerm(TNode n) {
   Debug("uf") << "uf: begin preRegisterTerm(" << n << ")" << std::endl;
   Debug("uf") << "uf: end preRegisterTerm(" << n << ")" << std::endl;
 }
 
-void TheoryUF::registerTerm(TNode n){
+void TheoryUF::registerTerm(TNode n) {
 
   Debug("uf") << "uf: begin registerTerm(" << n << ")" << std::endl;
 
-
   d_registered.push_back(n);
-
-
-
 
   ECData* ecN;
 
-  if(n.getAttribute(ECAttr(), ecN)){
+  if(n.getAttribute(ECAttr(), ecN)) {
     /* registerTerm(n) is only called when a node has not been seen in the
      * current context.  ECAttr() is not a context-dependent attribute.
      * When n.hasAttribute(ECAttr(),...) is true on a registerTerm(n) call,
@@ -101,7 +95,7 @@ void TheoryUF::registerTerm(TNode n){
            "Expected getWatchListSize() == 0.  "
            "This data is either already in use or was not properly maintained "
            "during backtracking");
-  }else{
+  } else {
     //The attribute does not exist, so it is created and set
     ecN = new (true) ECData(getContext(), n);
     n.setAttribute(ECAttr(), ecN);
@@ -110,10 +104,10 @@ void TheoryUF::registerTerm(TNode n){
   /* If the node is an APPLY_UF, we need to add it to the predecessor list
    * of its children.
    */
-  if(n.getKind() == APPLY_UF){
+  if(n.getKind() == APPLY_UF) {
     TNode::iterator cIter = n.begin();
 
-    for(; cIter != n.end(); ++cIter){
+    for(; cIter != n.end(); ++cIter) {
       TNode child = *cIter;
 
       /* Because this can be called after nodes have been merged, we need
@@ -124,8 +118,8 @@ void TheoryUF::registerTerm(TNode n){
       /* Because this can be called after nodes have been merged we may need
        * to be merged with other predecessors of the equivalence class.
        */
-      for(Link* Px = ecChild->getFirst(); Px != NULL; Px = Px->d_next ){
-        if(equiv(n, Px->d_data)){
+      for(Link* Px = ecChild->getFirst(); Px != NULL; Px = Px->d_next ) {
+        if(equiv(n, Px->d_data)) {
           Node pend = n.eqNode(Px->d_data);
           d_pending.push_back(pend);
         }
@@ -138,30 +132,32 @@ void TheoryUF::registerTerm(TNode n){
 
 }
 
-bool TheoryUF::sameCongruenceClass(TNode x, TNode y){
+bool TheoryUF::sameCongruenceClass(TNode x, TNode y) {
   return
     ccFind(x.getAttribute(ECAttr())) ==
     ccFind(y.getAttribute(ECAttr()));
 }
 
-bool TheoryUF::equiv(TNode x, TNode y){
+bool TheoryUF::equiv(TNode x, TNode y) {
   Assert(x.getKind() == kind::APPLY_UF);
   Assert(y.getKind() == kind::APPLY_UF);
 
-  if(x.getNumChildren() != y.getNumChildren())
+  if(x.getNumChildren() != y.getNumChildren()) {
     return false;
+  }
 
-  if(x.getOperator() != y.getOperator())
+  if(x.getOperator() != y.getOperator()) {
     return false;
+  }
 
   // intentionally don't look at operator
 
   TNode::iterator xIter = x.begin();
   TNode::iterator yIter = y.begin();
 
-  while(xIter != x.end()){
+  while(xIter != x.end()) {
 
-    if(!sameCongruenceClass(*xIter, *yIter)){
+    if(!sameCongruenceClass(*xIter, *yIter)) {
       return false;
     }
 
@@ -178,10 +174,10 @@ bool TheoryUF::equiv(TNode x, TNode y){
  *    many better algorithms use eager path compression.
  * 2) Elminate recursion.
  */
-ECData* TheoryUF::ccFind(ECData * x){
-  if( x->getFind() == x)
+ECData* TheoryUF::ccFind(ECData * x) {
+  if(x->getFind() == x) {
     return x;
-  else{
+  } else {
     return ccFind(x->getFind());
   }
   /* Slightly better Find w/ path compression and no recursion*/
@@ -189,7 +185,7 @@ ECData* TheoryUF::ccFind(ECData * x){
     ECData* start;
     ECData* next = x;
     while(x != x->getFind()) x=x->getRep();
-    while( (start = next) != x){
+    while( (start = next) != x) {
       next = start->getFind();
       start->setFind(x);
     }
@@ -197,23 +193,23 @@ ECData* TheoryUF::ccFind(ECData * x){
   */
 }
 
-void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
+void TheoryUF::ccUnion(ECData* ecX, ECData* ecY) {
   ECData* nslave;
   ECData* nmaster;
 
-  if(ecX->getWatchListSize() <= ecY->getWatchListSize()){
+  if(ecX->getWatchListSize() <= ecY->getWatchListSize()) {
     nslave = ecX;
     nmaster = ecY;
-  }else{
+  } else {
     nslave = ecY;
     nmaster = ecX;
   }
 
   nslave->setFind(nmaster);
 
-  for(Link* Px = nmaster->getFirst(); Px != NULL; Px = Px->d_next ){
-    for(Link* Py = nslave->getFirst(); Py != NULL; Py = Py->d_next ){
-      if(equiv(Px->d_data,Py->d_data)){
+  for(Link* Px = nmaster->getFirst(); Px != NULL; Px = Px->d_next ) {
+    for(Link* Py = nslave->getFirst(); Py != NULL; Py = Py->d_next ) {
+      if(equiv(Px->d_data,Py->d_data)) {
         Node pendingEq = (Px->d_data).eqNode(Py->d_data);
         d_pending.push_back(pendingEq);
       }
@@ -223,7 +219,7 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY){
   ECData::takeOverDescendantWatchList(nslave, nmaster);
 }
 
-void TheoryUF::merge(){
+void TheoryUF::merge() {
   while(d_currentPendingIdx < d_pending.size() ) {
     Node assertion = d_pending[d_currentPendingIdx];
     d_currentPendingIdx = d_currentPendingIdx + 1;
@@ -248,7 +244,7 @@ void TheoryUF::merge(){
   }
 }
 
-Node TheoryUF::constructConflict(TNode diseq){
+Node TheoryUF::constructConflict(TNode diseq) {
   Debug("uf") << "uf: begin constructConflict()" << std::endl;
 
   NodeBuilder<> nb(kind::AND);
@@ -267,15 +263,15 @@ Node TheoryUF::constructConflict(TNode diseq){
   return conflict;
 }
 
-void TheoryUF::check(Effort level){
+void TheoryUF::check(Effort level) {
 
   Debug("uf") << "uf: begin check(" << level << ")" << std::endl;
 
-  while(!done()){
+  while(!done()) {
     Node assertion = get();
     Debug("uf") << "TheoryUF::check(): " << assertion << std::endl;
 
-    switch(assertion.getKind()){
+    switch(assertion.getKind()) {
     case EQUAL:
       d_assertions.push_back(assertion);
       d_pending.push_back(assertion);
@@ -292,18 +288,18 @@ void TheoryUF::check(Effort level){
   }
 
   //Make sure all outstanding merges are completed.
-  if(d_currentPendingIdx < d_pending.size()){
+  if(d_currentPendingIdx < d_pending.size()) {
     merge();
   }
 
-  if(fullEffort(level)){
+  if(fullEffort(level)) {
     for(CDList<Node>::const_iterator diseqIter = d_disequality.begin();
         diseqIter != d_disequality.end();
-        ++diseqIter){
+        ++diseqIter) {
 
       TNode left  = (*diseqIter)[0];
       TNode right = (*diseqIter)[1];
-      if(sameCongruenceClass(left, right)){
+      if(sameCongruenceClass(left, right)) {
         Node remakeNeq = (*diseqIter).notNode();
         Node conflict = constructConflict(remakeNeq);
         d_out->conflict(conflict, false);
@@ -313,5 +309,4 @@ void TheoryUF::check(Effort level){
   }
 
   Debug("uf") << "uf: end check(" << level << ")" << std::endl;
-
 }

@@ -1,7 +1,9 @@
 SUBDIRS = precedence uf
 
-TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/../../bin/cvc4
+TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
 TESTS =	\
+    error.cvc \
+    boolean-prec.cvc \
     distinct.smt \
     flet.smt \
     flet2.smt \
@@ -43,7 +45,7 @@ TESTS =	\
 	wiki.19.cvc \
 	wiki.20.cvc \
 	wiki.21.cvc
-	
+
 # synonyms for "check"
 .PHONY: regress regress0 test
 regress regress0 test: check

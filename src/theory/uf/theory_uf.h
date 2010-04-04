@@ -38,7 +38,7 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-class TheoryUF : public TheoryImpl<TheoryUF> {
+class TheoryUF : public Theory {
 
 private:
 
@@ -176,31 +176,30 @@ private:
   /** Constructs a conflict from an inconsistent disequality. */
   Node constructConflict(TNode diseq);
 
-};
+};/* class TheoryUF */
 
 
 /**
  * Cleanup function for ECData. This will be used for called whenever
  * a ECAttr is being destructed.
  */
-struct ECCleanupStrategy{
-  static void cleanup(ECData* ec){
+struct ECCleanupStrategy {
+  static void cleanup(ECData* ec) {
     Debug("ufgc") << "cleaning up ECData " << ec << "\n";
     ec->deleteSelf();
   }
-};
+};/* struct ECCleanupStrategy */
 
 /** Unique name to use for constructing ECAttr. */
-struct EquivClass;
+struct ECAttrTag {};
 
 /**
  * ECAttr is the attribute that maps a node to an equivalence class.
  */
-typedef expr::Attribute<EquivClass, ECData*, ECCleanupStrategy > ECAttr;
+typedef expr::Attribute<ECAttrTag, ECData*, ECCleanupStrategy> ECAttr;
 
-} /* CVC4::theory::uf namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
-
+}/* CVC4::theory::uf namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__UF__THEORY_UF_H */

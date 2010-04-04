@@ -70,8 +70,10 @@ void AssertionException::construct(const char* header, const char* extra,
   setMessage(string(buf));
 
 #ifdef CVC4_DEBUG
-  // we leak buf[] but only in debug mode with assertions failing
-  s_debugAssertionFailure = buf;
+  if(s_debugAssertionFailure == NULL) {
+    // we leak buf[] but only in debug mode with assertions failing
+    s_debugAssertionFailure = buf;
+  }
 #else /* CVC4_DEBUG */
   delete [] buf;
 #endif /* CVC4_DEBUG */
@@ -110,7 +112,9 @@ void AssertionException::construct(const char* header, const char* extra,
 
 #ifdef CVC4_DEBUG
   // we leak buf[] but only in debug mode with assertions failing
-  s_debugAssertionFailure = buf;
+  if(s_debugAssertionFailure == NULL) {
+    s_debugAssertionFailure = buf;
+  }
 #else /* CVC4_DEBUG */
   delete [] buf;
 #endif /* CVC4_DEBUG */

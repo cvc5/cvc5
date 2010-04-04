@@ -281,13 +281,13 @@ dbgTokLT  (pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k)
 static pANTLR3_COMMON_TOKEN
 LB(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_INT32 k)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_COMMON_TOKEN 
 get (pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 i)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_TOKEN_SOURCE 
@@ -306,19 +306,19 @@ setTokenSource	(   pANTLR3_TOKEN_STREAM ts,
 static pANTLR3_STRING	    
 toString    (pANTLR3_TOKEN_STREAM ts)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_STRING
 toStringSS(pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_STRING	    
 toStringTT  (pANTLR3_TOKEN_STREAM ts, pANTLR3_COMMON_TOKEN start, pANTLR3_COMMON_TOKEN stop)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 /** Move the input pointer to the next incoming token.  The stream
@@ -395,13 +395,13 @@ discardOffChannel   (pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_BOOLEAN dis
 static pANTLR3_VECTOR	    
 getTokens   (pANTLR3_COMMON_TOKEN_STREAM tokenStream)
 {
-    AlwaysAssert(false);
+    Unreachable();
 }
 
 static pANTLR3_LIST	    
 getTokenRange	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }                                                   
 /** Given a start and stop index, return a List of all tokens in
  *  the token type BitSet.  Return null if no tokens were found.  This
@@ -410,19 +410,19 @@ getTokenRange	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANT
 static pANTLR3_LIST	    
 getTokensSet	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, pANTLR3_BITSET types)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_LIST	    
 getTokensList	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, pANTLR3_LIST list)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_LIST	    
 getTokensType	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, ANTLR3_UINT32 type)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static ANTLR3_UINT32	    
@@ -450,13 +450,13 @@ _LA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 static ANTLR3_UINT32	    
 dbgLA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static ANTLR3_MARKER
 mark	(pANTLR3_INT_STREAM is)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 /// As per mark() but with a call to tell the debugger we are doing this
@@ -464,7 +464,7 @@ mark	(pANTLR3_INT_STREAM is)
 static ANTLR3_MARKER
 dbgMark	(pANTLR3_INT_STREAM is)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static void		    
@@ -476,7 +476,7 @@ release	(pANTLR3_INT_STREAM is, ANTLR3_MARKER mark)
 static ANTLR3_UINT32	    
 size	(pANTLR3_INT_STREAM is)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static ANTLR3_MARKER   
@@ -496,33 +496,33 @@ tindex	(pANTLR3_INT_STREAM is)
 static void		    
 dbgRewindLast	(pANTLR3_INT_STREAM is)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 static void		    
 rewindLast	(pANTLR3_INT_STREAM is)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 static void		    
 rewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 static void		    
 dbgRewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 {
-   AlwaysAssert(false);
+   Unreachable();
 }
 
 static void		    
 seek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 {
-    AlwaysAssert(false);
+    Unreachable();
 }
 static void		    
 dbgSeek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 {
-  AlwaysAssert(false);
+  Unreachable();
 }
 
 static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer) {

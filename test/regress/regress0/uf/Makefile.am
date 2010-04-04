@@ -1,4 +1,4 @@
-TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/../../bin/cvc4
+TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/src/main/cvc4
 TESTS =	\
 	euf_simp01.smt \
 	euf_simp02.smt \

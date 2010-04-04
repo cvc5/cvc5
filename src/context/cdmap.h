@@ -191,7 +191,8 @@ class CDMap : public ContextObj {
     for(typename std::vector<Element*>::iterator i = d_trash.begin();
         i != d_trash.end();
         ++i) {
-      (*i)->deleteSelf();
+      Debug("gc") << "emptyTrash(): " << *i << std::endl;
+      //(*i)->deleteSelf();
     }
     d_trash.clear();
   }

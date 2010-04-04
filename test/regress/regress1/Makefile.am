@@ -1,4 +1,4 @@
-TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/../../bin/cvc4
+TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
 TESTS =	friedman_n4_i5.smt \
 	hole7.cvc \
 	hole8.cvc \

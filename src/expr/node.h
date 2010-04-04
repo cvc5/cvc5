@@ -587,8 +587,8 @@ template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::s_null);
 
 template <bool ref_count>
-bool NodeTemplate<ref_count>::isAtomic() const {
-  return kind::kindIsAtomic(getKind());
+inline bool NodeTemplate<ref_count>::isAtomic() const {
+  return NodeManager::currentNM()->isAtomic(*this);
 }
 
 // FIXME: escape from type system convenient but is there a better

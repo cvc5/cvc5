@@ -25,10 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-class TheoryBool : public TheoryImpl<TheoryBool> {
+class TheoryBool : public Theory {
 public:
   TheoryBool(context::Context* c, OutputChannel& out) :
-    TheoryImpl<TheoryBool>(c, out) {
+    Theory(c, out) {
   }
 
   void preRegisterTerm(TNode n) { Unimplemented(); }

@@ -35,18 +35,15 @@
 
 namespace CVC4 {
 
-class Type;
-
 namespace expr {
+
+// Definition of an attribute for the variable name.
+// TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
-
-struct VarName {};
-struct Type {};
-
+  struct VarNameTag {};
 }/* CVC4::expr::attr namespace */
 
-typedef Attribute<attr::VarName, std::string> VarNameAttr;
-typedef ManagedAttribute<attr::Type, CVC4::Type*, attr::TypeCleanupStrategy> TypeAttr;
+typedef expr::Attribute<attr::VarNameTag, std::string> VarNameAttr;
 
 }/* CVC4::expr namespace */
 
@@ -124,6 +121,44 @@ class NodeManager {
     expr::NodeValue nv;
     expr::NodeValue* child[N];
   };/* struct NodeManager::NVStorage<N> */
+
+  // attribute tags
+  struct TypeTag {};
+  struct AtomicTag {};
+
+  // NodeManager's attributes.  These aren't exposed outside of this
+  // class; use the getters.
+  typedef expr::ManagedAttribute<TypeTag,
+                                 CVC4::Type*,
+                                 expr::attr::TypeCleanupStrategy> TypeAttr;
+  typedef expr::Attribute<AtomicTag, bool> AtomicAttr;
+
+  /**
+   * Returns true if this node is atomic (has no more Boolean
+   * structure).  This is the NodeValue version for NodeManager's
+   * internal use.  There's a public version of this function below
+   * that takes a TNode.
+   * @param nv the node to check for atomicity
+   * @return true if atomic
+   */
+  inline bool isAtomic(expr::NodeValue* nv) const {
+    // The kindCanBeAtomic() and metakind checking are just optimizations
+    // (to avoid the hashtable lookup).  We assume that all nodes have
+    // the atomic attribute pre-computed and set at their time of
+    // creation.  This is because:
+    // (1) it's super cheap to do it bottom-up.
+    // (2) if we computed it lazily, we'd need a second attribute to
+    //     tell us whether we had computed it yet or not.
+    // The pre-computation and registration occurs in poolInsert().
+    AssertArgument(nv->getMetaKind() != kind::metakind::INVALID, *nv,
+                   "NodeManager::isAtomic() called on INVALID node (%s)",
+                   kind::kindToString(nv->getKind()).c_str());
+    return
+      nv->getMetaKind() == kind::metakind::VARIABLE ||
+      nv->getMetaKind() == kind::metakind::CONSTANT ||
+      ( kind::kindCanBeAtomic(nv->getKind()) &&
+        getAttribute(nv, AtomicAttr()) );
+  }
 
 public:
 
@@ -324,6 +359,15 @@ public:
    * TODO: Does this call compute the type if it's not already available?
    */
   inline Type* getType(TNode n) const;
+
+  /**
+   * Returns true if this node is atomic (has no more Boolean structure)
+   * @param n the node to check for atomicity
+   * @return true if atomic
+   */
+  inline bool isAtomic(TNode n) const {
+    return isAtomic(n.d_nv);
+  }
 };
 
 /**
@@ -476,7 +520,7 @@ inline Type* NodeManager::mkSort(const std::string& name) const {
 }
 
 inline Type* NodeManager::getType(TNode n) const {
-  return getAttribute(n, CVC4::expr::TypeAttr());
+  return getAttribute(n, TypeAttr());
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
@@ -492,6 +536,39 @@ inline void NodeManager::poolInsert(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
          "NodeValue already in the pool!");
   d_nodeValuePool.insert(nv);// FIXME multithreading
+
+  switch(nv->getMetaKind()) {
+  case kind::metakind::INVALID:
+  case kind::metakind::VARIABLE:
+  case kind::metakind::CONSTANT:
+    // nothing to do (don't bother setting the attribute, isAtomic()
+    // on VARIABLEs and CONSTANTs is always true)
+    break;
+
+  case kind::metakind::OPERATOR:
+  case kind::metakind::PARAMETERIZED:
+    {
+      // register this NodeValue as atomic or not; use nv_begin/end
+      // because we need to consider the operator too in the case of
+      // PARAMETERIZED-metakinded nodes (i.e. APPLYs); they could have a
+      // buried ITE.
+
+      // assume it's atomic if its kind can be atomic, check children
+      // to see if that is actually true
+      bool atomic = kind::kindCanBeAtomic(nv->getKind());
+      if(atomic) {
+        for(expr::NodeValue::nv_iterator i = nv->nv_begin();
+            i != nv->nv_end();
+            ++i) {
+          if(!(atomic = isAtomic(*i))) {
+            break;
+          }
+        }
+      }
+
+      setAttribute(nv, AtomicAttr(), atomic);
+    }
+  }
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
@@ -569,7 +646,7 @@ inline Node NodeManager::mkVar(Type* type, const std::string& name) {
 inline Node NodeManager::mkVar(Type* type) {
   Node n = mkVar();
   type->inc();// reference-count the type
-  n.setAttribute(expr::TypeAttr(), type);
+  n.setAttribute(TypeAttr(), type);
   return n;
 }
 

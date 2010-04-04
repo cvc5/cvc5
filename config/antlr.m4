@@ -26,10 +26,11 @@ AC_DEFUN([AC_PROG_ANTLR], [
 
 ##
 # Check the existence of the ANTLR3 C runtime library and headers
-# Will set ANTLR_INCLUDES and ANTLR_LIBS to the location of the ANTLR headers
-# and library respectively
+# Will set ANTLR_INCLUDES and ANTLR_LIBS to the location of the ANTLR
+# headers and library respectively
 ##
 AC_DEFUN([AC_LIB_ANTLR],[
+  AC_ARG_VAR(ANTLR_HOME, [path to libantlr3c installation])
 
   # Get the location of the ANTLR3 C includes and libraries
   AC_ARG_WITH(

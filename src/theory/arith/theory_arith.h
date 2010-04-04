@@ -25,10 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class TheoryArith : public TheoryImpl<TheoryArith> {
+class TheoryArith : public Theory {
 public:
   TheoryArith(context::Context* c, OutputChannel& out) :
-    TheoryImpl<TheoryArith>(c, out) {
+    Theory(c, out) {
   }
 
   void preRegisterTerm(TNode n) { Unimplemented(); }

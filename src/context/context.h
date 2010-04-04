@@ -208,12 +208,12 @@ public:
   /**
    * Get the level of the current Scope
    */
-  int getLevel(void) const { return d_level; }
+  int getLevel() const { return d_level; }
 
   /**
    * Return true iff this Scope is the current top Scope
    */
-  bool isCurrent(void) const { return this == d_pContext->getTopScope(); }
+  bool isCurrent() const { return this == d_pContext->getTopScope(); }
 
   /**
    * When a ContextObj object is modified for the first time in this Scope, it
@@ -240,7 +240,7 @@ public:
   static void operator delete(void* pMem) {}
 
   //FIXME:  //! Check for memory leaks
-  //  void check(void);
+  //  void check();
 
 };/* class Scope */
 

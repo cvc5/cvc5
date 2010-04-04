@@ -82,13 +82,13 @@ public:
   }
 };
 
-class DummyTheory : public TheoryImpl<DummyTheory> {
+class DummyTheory : public Theory {
 public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
   DummyTheory(Context* ctxt, OutputChannel& out) :
-    TheoryImpl<DummyTheory>(ctxt, out) {
+    Theory(ctxt, out) {
   }
 
   void registerTerm(TNode n) {

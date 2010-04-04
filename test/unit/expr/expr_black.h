@@ -354,7 +354,9 @@ public:
     TS_ASSERT(mult->isAtomic());
     TS_ASSERT(plus->isAtomic());
     TS_ASSERT(d->isAtomic());
-    TS_ASSERT(!null->isAtomic());
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(null->isAtomic(), IllegalArgumentException);
+#endif /* CVC4_ASSERTIONS */
 
     TS_ASSERT(i1->isAtomic());
     TS_ASSERT(i2->isAtomic());
@@ -368,6 +370,12 @@ public:
     TS_ASSERT(!x.isAtomic());
     TS_ASSERT(!y.isAtomic());
     TS_ASSERT(!z.isAtomic());
+
+    Expr w1 = d_em->mkExpr(PLUS, d_em->mkExpr(ITE, z, *i1, *i2), *i2);
+    Expr w2 = d_em->mkExpr(PLUS, d_em->mkExpr(MULT, *i1, *i2), *i2);
+
+    TS_ASSERT(!w1.isAtomic());
+    TS_ASSERT(w2.isAtomic());
   }
 
   void testGetConst() {
