@@ -465,7 +465,7 @@ public:
     Node z = d_nm->mkVar();
     Node m = d_nm->mkNode(AND, y, z, x);
     Node n = d_nm->mkNode(OR, d_nm->mkNode(NOT, x), y, z);
-    Node o = d_nm->mkNode(XOR, y, x, z);
+    Node o = d_nm->mkNode(XOR, y, x);
     Node p = d_nm->mkNode(PLUS, z, d_nm->mkNode(UMINUS, x), z);
     Node q = d_nm->mkNode(AND, x, z, d_nm->mkNode(NOT, y));
 
