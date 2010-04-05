@@ -36,6 +36,7 @@ libcvc4parser_la_SOURCES =
 libcvc4parser_noinst_la_SOURCES = \
 	antlr_input.h \
 	antlr_input.cpp \
+	antlr_input_imports.cpp \
 	bounded_token_buffer.h \
 	bounded_token_buffer.cpp \
 	bounded_token_factory.h \
