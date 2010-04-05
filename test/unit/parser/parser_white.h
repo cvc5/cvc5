@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Black box testing of CVC4::parser::SmtParser.
+ ** White box testing of CVC4::parser::SmtParser.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -139,7 +139,7 @@ const string badSmtExprs[] = {
 
 const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
 
-class ParserBlack : public CxxTest::TestSuite {
+class ParserWhite : public CxxTest::TestSuite {
   ExprManager *d_exprManager;
 
   /* Set up declaration context for expr inputs */
@@ -227,7 +227,7 @@ class ParserBlack : public CxxTest::TestSuite {
       } catch (Exception& e) {
         cout << "\nGood expr failed:\n" << goodBooleanExprs[i] << endl;
         cout << e;
-        throw e;
+        throw;
       }
     }
   }
