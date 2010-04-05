@@ -134,7 +134,6 @@ void AntlrInput::setParser(pANTLR3_PARSER pParser) {
   // it would have to be declared separately in every input's grammar and we'd have to
   // pass it in as an address anyway.
   d_parser->super = getParserState();
-  d_parser->rec->match = &match;
   d_parser->rec->reportError = &reportError;
   d_parser->rec->recoverFromMismatchedToken = &recoverFromMismatchedToken;
 }

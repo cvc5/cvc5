@@ -64,9 +64,6 @@ class AntlrInput : public Input {
    *  NOTE: We assume that we <em>can</em> free it on exit. No sharing! */
   pANTLR3_INPUT_STREAM d_input;
 
-  static void *match(pANTLR3_BASE_RECOGNIZER recognizer, ANTLR3_UINT32 ttype,
-                     pANTLR3_BITSET_LIST follow);
-
   /** Turns an ANTLR3 exception into a message for the user and calls <code>parseError</code>. */
   static void reportError(pANTLR3_BASE_RECOGNIZER recognizer);
 
