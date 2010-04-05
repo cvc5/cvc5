@@ -11,6 +11,8 @@
  ** information.
  **
  ** Expression manager implementation.
+ **
+ ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
  **/
 
 #include "node_manager.h"

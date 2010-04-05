@@ -11,6 +11,8 @@
  ** information.
  **
  ** A manager for Nodes.
+ **
+ ** Reviewed by Chris Conway, Apr 5 2010 (bug #65).
  **/
 
 #include "cvc4_private.h"
