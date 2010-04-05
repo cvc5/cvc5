@@ -92,6 +92,84 @@ pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
   return d_tokenStream;
 }
 
+
+/// Match current input symbol against ttype.  Upon error, do one token
+/// insertion or deletion if possible.
+/// To turn off single token insertion or deletion error
+/// recovery, override mismatchRecover() and have it call
+/// plain mismatch(), which does not recover.  Then any error
+/// in a rule will cause an exception and immediate exit from
+/// rule.  Rule would recover by resynchronizing to the set of
+/// symbols that can follow rule ref.
+///
+// [chris 4/5/2010] Copy and paste from antlr3baserecognizer.c
+void *
+AntlrInput::match(pANTLR3_BASE_RECOGNIZER recognizer, ANTLR3_UINT32 ttype,
+      pANTLR3_BITSET_LIST follow) {
+  pANTLR3_PARSER parser;
+  pANTLR3_TREE_PARSER tparser;
+  pANTLR3_INT_STREAM is;
+  void * matchedSymbol;
+
+  switch(recognizer->type) {
+  case ANTLR3_TYPE_PARSER:
+
+    parser = (pANTLR3_PARSER)(recognizer->super);
+    tparser = NULL;
+    is = parser->tstream->istream;
+
+    break;
+
+  case ANTLR3_TYPE_TREE_PARSER:
+
+    tparser = (pANTLR3_TREE_PARSER)(recognizer->super);
+    parser = NULL;
+    is = tparser->ctnstream->tnstream->istream;
+
+    break;
+
+  default:
+
+    ANTLR3_FPRINTF(
+                   stderr,
+                   "Base recognizer function 'match' called by unknown parser type - provide override for this function\n");
+    return ANTLR3_FALSE;
+
+    break;
+  }
+
+  // Pick up the current input token/node for assignment to labels
+  //
+  matchedSymbol = recognizer->getCurrentInputSymbol(recognizer, is);
+
+  if(is->_LA(is, 1) == ttype) {
+    // The token was the one we were told to expect
+    //
+    is->consume(is); // Consume that token from the stream
+    recognizer->state->errorRecovery = ANTLR3_FALSE; // Not in error recovery now (if we were)
+    recognizer->state->failed = ANTLR3_FALSE; // The match was a success
+    return matchedSymbol; // We are done
+  }
+
+  // We did not find the expected token type, if we are backtracking then
+  // we just set the failed flag and return.
+  //
+  if(recognizer->state->backtracking > 0) {
+    // Backtracking is going on
+    //
+    recognizer->state->failed = ANTLR3_TRUE;
+    return matchedSymbol;
+  }
+
+  // We did not find the expected token and there is no backtracking
+  // going on, so we mismatch, which creates an exception in the recognizer exception
+  // stack.
+  //
+  matchedSymbol = recognizer->recoverFromMismatchedToken(recognizer, ttype,
+                                                         follow);
+  return matchedSymbol;
+}
+
 void AntlrInput::parseError(const std::string& message)
     throw (ParserException) {
   Debug("parser") << "Throwing exception: "
@@ -346,6 +424,7 @@ void AntlrInput::setParser(pANTLR3_PARSER pParser) {
   // it would have to be declared separately in every input's grammar and we'd have to
   // pass it in as an address anyway.
   d_parser->super = getParserState();
+  d_parser->rec->match = &match;
   d_parser->rec->reportError = &reportError;
   d_parser->rec->recoverFromMismatchedToken = &recoverFromMismatchedToken;
 }
