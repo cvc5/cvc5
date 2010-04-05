@@ -45,17 +45,6 @@ namespace parser {
 #pragma warning( disable : 4100 )
 #endif
 
-// COMMON_TOKEN_STREAM API
-//
-static void					setTokenTypeChannel	(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_UINT32 ttype, ANTLR3_UINT32 channel);
-static void					discardTokenType	(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_INT32 ttype);
-static void					discardOffChannel	(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_BOOLEAN discard);
-static pANTLR3_VECTOR		getTokens			(pANTLR3_COMMON_TOKEN_STREAM cts);
-static pANTLR3_LIST			getTokenRange		(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop);
-static pANTLR3_LIST			getTokensSet		(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, pANTLR3_BITSET types);
-static pANTLR3_LIST			getTokensList		(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, pANTLR3_LIST list);
-static pANTLR3_LIST			getTokensType		(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, ANTLR3_UINT32 type);
-
 // TOKEN_STREAM API 
 //
 static pANTLR3_COMMON_TOKEN tokLT				(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k);
@@ -86,10 +75,8 @@ static void					dbgRewindLast				(pANTLR3_INT_STREAM is);
 static void					seek						(pANTLR3_INT_STREAM is, ANTLR3_MARKER index);
 static void					dbgSeek						(pANTLR3_INT_STREAM is, ANTLR3_MARKER index);
 static pANTLR3_STRING		getSourceName				(pANTLR3_INT_STREAM is);
-static pANTLR3_COMMON_TOKEN LB							(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_INT32 i);
 
 static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer);
-static pANTLR3_COMMON_TOKEN simpleEmit        (pANTLR3_LEXER lexer);
 
 void
 BoundedTokenBufferFree(pBOUNDED_TOKEN_BUFFER buffer) {
@@ -97,6 +84,7 @@ BoundedTokenBufferFree(pBOUNDED_TOKEN_BUFFER buffer) {
   ANTLR3_FREE(buffer->tokenBuffer);
   ANTLR3_FREE(buffer);
 }
+
 
 /*ANTLR3_API pANTLR3_COMMON_TOKEN_STREAM
 antlr3CommonTokenDebugStreamSourceNew(ANTLR3_UINT32 hint, pANTLR3_TOKEN_SOURCE source, pANTLR3_DEBUG_EVENT_LISTENER debugger)
@@ -278,12 +266,6 @@ dbgTokLT  (pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k)
 #pragma warning( disable : 4702 )
 #endif
 
-static pANTLR3_COMMON_TOKEN
-LB(pANTLR3_COMMON_TOKEN_STREAM cts, ANTLR3_INT32 k)
-{
-  Unreachable();
-}
-
 static pANTLR3_COMMON_TOKEN 
 get (pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 i)
 {
@@ -350,79 +332,6 @@ static void
 dbgConsume	(pANTLR3_INT_STREAM is)
 {
     consume(is);
-}
-
-/** A simple filter mechanism whereby you can tell this token stream
- *  to force all tokens of type ttype to be on channel.  For example,
- *  when interpreting, we cannot execute actions so we need to tell
- *  the stream to force all WS and NEWLINE to be a different, ignored,
- *  channel.
- */
-static void		    
-setTokenTypeChannel (pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 ttype, ANTLR3_UINT32 channel)
-{
-    if	(tokenStream->channelOverrides == NULL)
-    {
-	tokenStream->channelOverrides	= antlr3ListNew(10);
-    }
-
-    /* We add one to the channel so we can distinguish NULL as being no entry in the
-     * table for a particular token type.
-     */
-    tokenStream->channelOverrides->put(tokenStream->channelOverrides, ttype, ANTLR3_FUNC_PTR((ANTLR3_UINT32)channel + 1), NULL);
-}
-
-static void		    
-discardTokenType    (pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_INT32 ttype)
-{
-    if	(tokenStream->discardSet == NULL)
-    {
-	tokenStream->discardSet	= antlr3ListNew(31);
-    }
-
-    /* We add one to the channel so we can distinguish NULL as being no entry in the
-     * table for a particular token type. We could use bitsets for this I suppose too.
-     */
-    tokenStream->discardSet->put(tokenStream->discardSet, ttype, ANTLR3_FUNC_PTR((ANTLR3_UINT32)ttype + 1), NULL);
-}
-
-static void		    
-discardOffChannel   (pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_BOOLEAN discard)
-{
-    tokenStream->discardOffChannel  = discard;
-}
-
-static pANTLR3_VECTOR	    
-getTokens   (pANTLR3_COMMON_TOKEN_STREAM tokenStream)
-{
-    Unreachable();
-}
-
-static pANTLR3_LIST	    
-getTokenRange	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop)
-{
-  Unreachable();
-}                                                   
-/** Given a start and stop index, return a List of all tokens in
- *  the token type BitSet.  Return null if no tokens were found.  This
- *  method looks at both on and off channel tokens.
- */
-static pANTLR3_LIST	    
-getTokensSet	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, pANTLR3_BITSET types)
-{
-  Unreachable();
-}
-
-static pANTLR3_LIST	    
-getTokensList	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, pANTLR3_LIST list)
-{
-  Unreachable();
-}
-
-static pANTLR3_LIST	    
-getTokensType	(pANTLR3_COMMON_TOKEN_STREAM tokenStream, ANTLR3_UINT32 start, ANTLR3_UINT32 stop, ANTLR3_UINT32 type)
-{
-  Unreachable();
 }
 
 static ANTLR3_UINT32	    
@@ -529,7 +438,6 @@ static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer) {
   pANTLR3_COMMON_TOKEN_STREAM tokenStream;
   pANTLR3_COMMON_TOKEN tok;
   ANTLR3_BOOLEAN discard;
-  void * channelI;
 
   tokenStream = buffer->commonTstream;
 
@@ -588,50 +496,6 @@ getSourceName				(pANTLR3_INT_STREAM is)
 	// only things that have a context for a source name.
 	//
 	return ((pANTLR3_TOKEN_STREAM)(is->super))->tokenSource->fileName;
-}
-
-static pANTLR3_COMMON_TOKEN
-simpleEmit        (pANTLR3_LEXER lexer)
-{
-    pANTLR3_COMMON_TOKEN        token;
-
-    /* We could check pointers to token factories and so on, but
-     * we are in code that we want to run as fast as possible
-     * so we are not checking any errors. So make sure you have installed an input stream before
-     * trying to emit a new token.
-     */
-    token   = antlr3CommonTokenNew( lexer->rec->state->type );
-        // lexer->rec->state->tokFactory->newToken(lexer->rec->state->tokFactory);
-
-    /* Install the supplied information, and some other bits we already know
-     * get added automatically, such as the input stream it is associated with
-     * (though it can all be overridden of course)
-     */
-    // token->type             = lexer->rec->state->type;
-    token->channel          = lexer->rec->state->channel;
-    token->start            = lexer->rec->state->tokenStartCharIndex;
-    token->stop             = lexer->getCharIndex(lexer) - 1;
-    token->line             = lexer->rec->state->tokenStartLine;
-    token->charPosition = lexer->rec->state->tokenStartCharPositionInLine;
-
-        if      (lexer->rec->state->text != NULL)
-        {
-                token->textState                = ANTLR3_TEXT_STRING;
-                token->tokText.text         = lexer->rec->state->text;
-        }
-        else
-        {
-                token->textState        = ANTLR3_TEXT_NONE;
-        }
-    token->lineStart    = lexer->input->currentLine;
-        token->user1            = lexer->rec->state->user1;
-        token->user2            = lexer->rec->state->user2;
-        token->user3            = lexer->rec->state->user3;
-        token->custom           = lexer->rec->state->custom;
-
-    lexer->rec->state->token        = token;
-
-    return  token;
 }
 
 

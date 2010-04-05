@@ -35,7 +35,7 @@ BoundedTokenFactoryNew(pANTLR3_INPUT_STREAM input,ANTLR3_UINT32 size)
 {
     pANTLR3_TOKEN_FACTORY   factory;
     pANTLR3_COMMON_TOKEN tok;
-    int i;
+    ANTLR3_UINT32 i;
 
     /* allocate memory
      */
