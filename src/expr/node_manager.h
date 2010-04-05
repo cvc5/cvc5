@@ -106,7 +106,7 @@ class NodeManager {
   /**
    * Look up a NodeValue in the pool associated to this NodeManager.
    * The NodeValue argument need not be a "completely-constructed"
-   * NodeValue.  In particular, "non-inlined" constants are permited
+   * NodeValue.  In particular, "non-inlined" constants are permitted
    * (see below).
    *
    * For non-CONSTANT metakinds, nv's d_kind and d_nchildren should be
@@ -155,7 +155,7 @@ class NodeManager {
   /**
    * Register a NodeValue as a zombie.
    */
-  inline void gc(expr::NodeValue* nv) {
+  inline void markForDeletion(expr::NodeValue* nv) {
     Assert(nv->d_rc == 0);
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
@@ -532,7 +532,7 @@ public:
 // of Expr functions, it needs to set the current NodeManager
 // correctly (and to do that it needs access to
 // ExprManager::getNodeManager()).  So, we make ExprManagerScope a
-// friend of ExprManager's, since it's implementation is simple to
+// friend of ExprManager's, since its implementation is simple to
 // read and understand (and verify that it doesn't do any mischief).
 //
 // ExprManager::getNodeManager() can't just be made public, since

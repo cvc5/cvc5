@@ -113,7 +113,7 @@ void NodeManager::reclaimZombies() {
   // NodeValue's children, which may (recursively) reclaim them.
   //
   // Let's say we're reclaiming zombie NodeValue "A" and its child "B"
-  // then becomes a zombie (NodeManager::gc(B) is called).
+  // then becomes a zombie (NodeManager::markForDeletion(B) is called).
   //
   // One way to handle B's zombification would be simply to put it
   // into d_zombies.  This is what we do.  However, if we were to

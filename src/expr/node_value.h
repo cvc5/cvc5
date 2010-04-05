@@ -296,7 +296,7 @@ inline void NodeValue::dec() {
       Assert(NodeManager::currentNM() != NULL,
              "No current NodeManager on destruction of NodeValue: "
              "maybe a public CVC4 interface function is missing a NodeManagerScope ?");
-      NodeManager::currentNM()->gc(this);
+      NodeManager::currentNM()->markForDeletion(this);
     }
   }
 }
