@@ -83,9 +83,9 @@ See config/doxygen.am.  Its copyright:
   This file is distributed under the same terms as the Automake macro files.
 
 CVC4 incorporates code from ANTLR3, excluded from the above copyright.
-See http://www.antlr.org/, and the files
-src/parser/bounded_token_buffer.h and
-src/parser/bounded_token_buffer.cpp.  Their copyright:
+See http://www.antlr.org/, and the files src/parser/bounded_token_buffer.h,
+src/parser/bounded_token_buffer.cpp, and src/parser/antlr_input_imports.cpp.
+Their copyright:
 
   [The "BSD licence"]
   Copyright (c) 2005-2009 Jim Idle, Temporal Wave LLC
