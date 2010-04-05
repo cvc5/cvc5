@@ -322,7 +322,7 @@ sortDeclaration
 }
   : sortName[name,CHECK_UNDECLARED]
     { Debug("parser") << "sort decl: '" << name << "'" << std::endl;
-      PARSER_STATE->newSort(name); }
+      PARSER_STATE->mkSort(name); }
   ;
   
 /**

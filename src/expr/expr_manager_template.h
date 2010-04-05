@@ -192,7 +192,7 @@ public:
   Type* mkSort(const std::string& name);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar(Type* type, const std::string& name);
+  Expr mkVar(const std::string& name, Type* type);
   Expr mkVar(Type* type);
 
   /** Returns the minimum arity of the given kind. */

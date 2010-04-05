@@ -184,9 +184,9 @@ Type* ExprManager::mkSort(const std::string& name) {
   return d_nodeManager->mkSort(name);
 }
 
-Expr ExprManager::mkVar(Type* type, const std::string& name) {
+Expr ExprManager::mkVar(const std::string& name, Type* type) {
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkVar(type, name)));
+  return Expr(this, new Node(d_nodeManager->mkVar(name, type)));
 }
 
 Expr ExprManager::mkVar(Type* type) {

@@ -138,7 +138,7 @@ declType[CVC4::Type*& t, std::vector<std::string>& idList]
 }
   : /* A sort declaration (e.g., "T : TYPE") */
     TYPE_TOK 
-    { PARSER_STATE->newSorts(idList); 
+    { PARSER_STATE->mkSorts(idList); 
       t = EXPR_MANAGER->kindType(); }
   | /* A variable declaration */
     type[t] { PARSER_STATE->mkVars(idList,t); }

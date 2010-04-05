@@ -127,8 +127,6 @@ AntlrInput::recoverFromMismatchedToken(pANTLR3_BASE_RECOGNIZER recognizer,
   }
 
   if(recognizer->mismatchIsMissingToken(recognizer, is, follow)) {
-    // We can fake the missing token and proceed
-    //
     matchedSymbol = recognizer->getMissingSymbol(recognizer, is,
                                                  recognizer->state->exception,
                                                  ttype, follow);
@@ -136,11 +134,8 @@ AntlrInput::recoverFromMismatchedToken(pANTLR3_BASE_RECOGNIZER recognizer,
     recognizer->state->exception->message = (void*)ANTLR3_MISSING_TOKEN_EXCEPTION_NAME;
     recognizer->state->exception->token = matchedSymbol;
     recognizer->state->exception->expecting = ttype;
-
-    // Print out the error after we insert so that ANTLRWorks sees the
-    // token in the exception.
-    //
   }
+
   reportError(recognizer);
   Unreachable("reportError should have thrown exception in AntlrInput::recoverFromMismatchedToken");
 }
@@ -178,7 +173,8 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
       if(ex->expecting == ANTLR3_TOKEN_EOF) {
         ss << "Expected end of file.";
       } else {
-        ss << "Expected " << tokenNames[ex->expecting] << ".";
+        ss << "Expected " << tokenNames[ex->expecting]
+           << ", found '" << tokenText((pANTLR3_COMMON_TOKEN)ex->token) << "'.";
       }
     }
     break;
@@ -235,14 +231,12 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     break;
 
   case ANTLR3_NO_VIABLE_ALT_EXCEPTION:
-
     // We could not pick any alt decision from the input given
     // so god knows what happened - however when you examine your grammar,
     // you should. It means that at the point where the current token occurred
     // that the DFA indicates nowhere to go from here.
     //
-    ss << "Cannot match to any predicted input.";
-
+    ss << "Unexpected token: '" << tokenText((pANTLR3_COMMON_TOKEN)ex->token) << "'.";
     break;
 
   case ANTLR3_MISMATCHED_SET_EXCEPTION:
@@ -258,7 +252,8 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     // possible tokens at this point, but we did not see any
     // member of that set.
     //
-    ss << "Unexpected input. Expected one of : ";
+    ss << "Unexpected input: '" << tokenText((pANTLR3_COMMON_TOKEN)ex->token)
+       << "'. Expected one of: ";
 
     // What tokens could we have accepted at this point in the
     // parse?
@@ -296,7 +291,8 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     // but found a token that ended that sequence earlier than
     // we should have done.
     //
-    ss << "Missing elements.";
+    ss << "Sequence terminated early by token: '"
+       << tokenText((pANTLR3_COMMON_TOKEN)ex->token) << "'.";
     break;
 
   default:

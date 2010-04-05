@@ -270,11 +270,11 @@ public:
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
   /**
-   * Create a variable with the given type and name.  NOTE that no
-   * lookup is done on the name.  If you mkVar(type, "a") and then
-   * mkVar(type, "a") again, you have two variables.
+   * Create a variable with the given name and type.  NOTE that no
+   * lookup is done on the name.  If you mkVar("a", type) and then
+   * mkVar("a", type) again, you have two variables.
    */
-  Node mkVar(Type* type, const std::string& name);
+  Node mkVar(const std::string& name, Type* type);
 
   /** Create a variable with the given type. */
   Node mkVar(Type* type);
@@ -767,7 +767,7 @@ inline Node NodeManager::mkNode(Kind kind,
   return NodeBuilder<>(this, kind).append(children);
 }
 
-inline Node NodeManager::mkVar(Type* type, const std::string& name) {
+inline Node NodeManager::mkVar(const std::string& name, Type* type) {
   Node n = mkVar(type);
   n.setAttribute(expr::VarNameAttr(), name);
   return n;

@@ -51,8 +51,8 @@ public:
     try {
       d_em = new ExprManager;
 
-      a = new Expr(d_em->mkVar(d_em->booleanType(), "a"));
-      b = new Expr(d_em->mkVar(d_em->booleanType(), "b"));
+      a = new Expr(d_em->mkVar("a",d_em->booleanType()));
+      b = new Expr(d_em->mkVar("b", d_em->booleanType()));
       c = new Expr(d_em->mkExpr(MULT, *a, *b));
       mult = new Expr(d_em->mkConst(MULT));
       plus = new Expr(d_em->mkConst(PLUS));

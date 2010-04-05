@@ -214,8 +214,8 @@ public:
     Type* typeX = d_nm->booleanType();
     Type* typeF = d_nm->mkFunctionType(typeX, typeX);
 
-    Node x = d_nm->mkVar(typeX, "x");
-    Node f = d_nm->mkVar(typeF, "f");
+    Node x = d_nm->mkVar("x",typeX);
+    Node f = d_nm->mkVar("f",typeF);
     Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
     Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
     Node f_x_eq_x = f_x.eqNode(x);

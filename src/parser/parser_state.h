@@ -230,13 +230,13 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  Type* newSort(const std::string& name);
+  Type* mkSort(const std::string& name);
 
   /**
    * Creates a new sorts with the given names.
    */
   const std::vector<Type*>
-  newSorts(const std::vector<std::string>& names);
+  mkSorts(const std::vector<std::string>& names);
 
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);

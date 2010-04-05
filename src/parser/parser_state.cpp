@@ -94,7 +94,7 @@ bool ParserState::isPredicate(const std::string& name) {
 Expr 
 ParserState::mkVar(const std::string& name, Type* type) {
   Debug("parser") << "mkVar(" << name << "," << *type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(type, name);
+  Expr expr = d_exprManager->mkVar(name, type);
   defineVar(name,expr);
   return expr;
 }
@@ -104,7 +104,7 @@ ParserState::mkVars(const std::vector<std::string> names,
                     Type* type) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkVar(names[i], type));
+    vars.push_back(mkVar(names[i],type));
   }
   return vars;
 }
@@ -126,14 +126,14 @@ ParserState::undefineVar(const std::string& name) {
 void
 ParserState::setLogic(const std::string& name) {
   if( name == "QF_UF" ) {
-    newSort("U");
+    mkSort("U");
   } else {
     Unhandled(name);
   }
 }
 
 Type*
-ParserState::newSort(const std::string& name) {
+ParserState::mkSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Assert( !isDeclared(name, SYM_SORT) ) ;
   Type* type = d_exprManager->mkSort(name);
@@ -143,10 +143,10 @@ ParserState::newSort(const std::string& name) {
 }
 
 const std::vector<Type*>
-ParserState::newSorts(const std::vector<std::string>& names) {
+ParserState::mkSorts(const std::vector<std::string>& names) {
   std::vector<Type*> types;
   for(unsigned i = 0; i < names.size(); ++i) {
-    types.push_back(newSort(names[i]));
+    types.push_back(mkSort(names[i]));
   }
   return types;
 }

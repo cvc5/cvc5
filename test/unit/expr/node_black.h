@@ -215,8 +215,8 @@ public:
     /* We don't have access to the ids so we can't test the implementation
      * in the black box tests. */
 
-    Node a = d_nodeManager->mkVar(d_nodeManager->booleanType(), "a");
-    Node b = d_nodeManager->mkVar(d_nodeManager->booleanType(), "b");
+    Node a = d_nodeManager->mkVar("a", d_nodeManager->booleanType());
+    Node b = d_nodeManager->mkVar("b", d_nodeManager->booleanType());
 
     TS_ASSERT(a<b || b<a);
     TS_ASSERT(!(a<b && b<a));
@@ -492,10 +492,10 @@ public:
   void testToString() {
     Type* booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkVar(booleanType, "w");
-    Node x = d_nodeManager->mkVar(booleanType, "x");
-    Node y = d_nodeManager->mkVar(booleanType, "y");
-    Node z = d_nodeManager->mkVar(booleanType, "z");
+    Node w = d_nodeManager->mkVar("w",booleanType);
+    Node x = d_nodeManager->mkVar("x",booleanType);
+    Node y = d_nodeManager->mkVar("y",booleanType);
+    Node z = d_nodeManager->mkVar("z",booleanType);
     Node m = NodeBuilder<>() << w << x << kind::OR;
     Node n = NodeBuilder<>() << m << y << z << kind::AND;
 
@@ -505,10 +505,10 @@ public:
   void testToStream() {
     Type* booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkVar(booleanType, "w");
-    Node x = d_nodeManager->mkVar(booleanType, "x");
-    Node y = d_nodeManager->mkVar(booleanType, "y");
-    Node z = d_nodeManager->mkVar(booleanType, "z");
+    Node w = d_nodeManager->mkVar("w",booleanType);
+    Node x = d_nodeManager->mkVar("x",booleanType);
+    Node y = d_nodeManager->mkVar("y",booleanType);
+    Node z = d_nodeManager->mkVar("z",booleanType);
     Node m = NodeBuilder<>() << x << y << kind::OR;
     Node n = NodeBuilder<>() << w << m << z << kind::AND;
     Node o = NodeBuilder<>() << n << n << kind::XOR;

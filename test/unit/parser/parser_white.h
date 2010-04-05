@@ -150,9 +150,9 @@ class ParserWhite : public CxxTest::TestSuite {
     parserState->mkVar("b",(Type*)d_exprManager->booleanType());
     parserState->mkVar("c",(Type*)d_exprManager->booleanType());
     /* t, u, v: TYPE */
-    Type *t = parserState->newSort("t");
-    Type *u = parserState->newSort("u");
-    Type *v = parserState->newSort("v");
+    Type *t = parserState->mkSort("t");
+    Type *u = parserState->mkSort("u");
+    Type *v = parserState->mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
     parserState->mkVar("f", (Type*)d_exprManager->mkFunctionType(t,u));
     parserState->mkVar("g", (Type*)d_exprManager->mkFunctionType(u,v));
