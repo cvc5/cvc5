@@ -134,8 +134,13 @@ void AntlrInput::setParser(pANTLR3_PARSER pParser) {
   // it would have to be declared separately in every input's grammar and we'd have to
   // pass it in as an address anyway.
   d_parser->super = getParserState();
+//  d_parser->rec->match = &match;
   d_parser->rec->reportError = &reportError;
-  d_parser->rec->recoverFromMismatchedToken = &recoverFromMismatchedToken;
+  /* Don't try to recover from a parse error. */
+  // [chris 4/5/2010] Not clear on why this cast is necessary, but I get an error if I remove it.
+  d_parser->rec->recoverFromMismatchedToken =
+      (void* (*)(ANTLR3_BASE_RECOGNIZER_struct*, ANTLR3_UINT32, ANTLR3_BITSET_LIST_struct*))
+      d_parser->rec->mismatch;
 }
 
 
