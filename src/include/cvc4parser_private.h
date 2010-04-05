@@ -22,6 +22,9 @@
 #endif /* ! (__BUILDING_CVC4PARSERLIB || __BUILDING_CVC4PARSERLIB_UNIT_TEST) */
 
 #include "cvc4parser_public.h"
-#include "cvc4autoconfig.h"
+// It would be nice to #include this here, but there are conflicts with
+// antlr3's autoheader stuff, which they export :(
+//
+// #include "cvc4autoconfig.h"
 
 #endif /* __CVC4PARSER_PRIVATE_H */
