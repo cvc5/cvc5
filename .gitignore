@@ -21,3 +21,5 @@ stamp-generated
 generated/
 *~
 #*#
+*.gcov
+/lcov/
