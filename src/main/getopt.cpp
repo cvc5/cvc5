@@ -81,6 +81,12 @@ enum OptionValue {
  *    getopt_long() returns the 4th entry
  * 4. the return value for getopt_long() when this long option (or the
  *    value to set the 3rd entry to; see #3)
+ *
+ * If you add something here, you should add it in src/main/usage.h
+ * also, to document it.
+ *
+ * If you add something that has a short option equivalent, you should
+ * add it to the getopt_long() call in parseOptions().
  */
 static struct option cmdlineOptions[] = {
   // name, has_arg, *flag, val
@@ -91,6 +97,7 @@ static struct option cmdlineOptions[] = {
   { "quiet"      , no_argument      , NULL, 'q'         },
   { "lang"       , required_argument, NULL, 'L'         },
   { "debug"      , required_argument, NULL, 'd'         },
+  { "trace"      , required_argument, NULL, 't'         },
   { "smtcomp"    , no_argument      , NULL, SMTCOMP     },
   { "stats"      , no_argument      , NULL, STATS       },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
@@ -131,7 +138,7 @@ throw(OptionException) {
   // cmdlineOptions specifies all the long-options and the return
   // value for getopt_long() should they be encountered.
   while((c = getopt_long(argc, argv,
-                         "+:hVvqL:d:",
+                         "+:hVvqL:d:t:",
                          cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
@@ -171,8 +178,13 @@ throw(OptionException) {
       fputs(lang_help, stdout);
       exit(1);
 
+    case 't':
+      Trace.on(optarg);
+      break;
+
     case 'd':
       Debug.on(optarg);
+      Trace.on(optarg);
       /* fall-through */
 
     case STATS:

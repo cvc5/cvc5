@@ -42,12 +42,14 @@ struct Link {
    * Pointer to the next element in linked list.
    * This is context dependent. 
    */
-  context::CDO< Link* > d_next;
+  context::CDO<Link*> d_next;
 
-  /* Link is supposed to be allocated in a region of a ContextMemoryManager.
-   * In order to avoid having to decrement the ref count at deletion time,
-   * it is preferrable for the user of Link to maintain the invariant that
-   * data will survival for the entire scope of the TNode.
+  /**
+   * Link is supposed to be allocated in a region of a
+   * ContextMemoryManager.  In order to avoid having to decrement the
+   * ref count at deletion time, it is preferrable for the user of
+   * Link to maintain the invariant that data will survival for the
+   * entire scope of the TNode.
    */
   TNode d_data;
 
@@ -55,9 +57,12 @@ struct Link {
    * Creates a new Link w.r.t. a context for the node n.
    * An optional parameter is to specify the next element in the link.
    */
-  Link(context::Context* context, TNode n, Link * l = NULL):
-    d_next(context, l), d_data(n)
-  {}
+  Link(context::Context* context, TNode n, Link* l = NULL) :
+    d_next(true, context, l),
+    d_data(n) {
+    Debug("context") << "Link: " << this
+                     << " so cdo is " << &d_next << std::endl;
+  }
 
   /**
    * Allocates a new Link in the region for the provided ContextMemoryManager.
@@ -67,7 +72,25 @@ struct Link {
     return pCMM->newData(size);
   }
 
-};
+private:
+
+  /**
+   * The destructor isn't actually defined.  This declaration keeps
+   * the compiler from creating (wastefully) a default definition, and
+   * ensures that we get a link error if someone uses Link in a way
+   * that requires destruction.  Objects of class Link should always
+   * be allocated in a ContextMemoryManager, which doesn't call
+   * destructors.
+   */
+  ~Link() throw();
+
+  /**
+   * Just like the destructor, this is not defined.  This ensures no
+   * one tries to create a Link on the heap.
+   */
+  static void* operator new(size_t size);
+
+};/* struct Link */
 
 
 /**
@@ -124,13 +147,16 @@ private:
    */
   TNode d_rep;
 
-  /* Watch list datastructures. */
-  /** Maintains watch list size for more efficient merging */
+  // Watch list data structures follow
+
+  /**
+   * Maintains watch list size for more efficient merging.
+   */
   unsigned d_watchListSize;
 
   /**
-   *Pointer to the beginning of the watchlist.
-   *This value is NULL iff the watch list is empty.
+   * Pointer to the beginning of the watchlist.
+   * This value is NULL iff the watch list is empty.
    */
   Link* d_first;
 
@@ -143,11 +169,11 @@ private:
    */
   Link* d_last;
 
-
-  /** Context dependent operations */
+  /** Context-dependent operation: save this ECData */
   context::ContextObj* save(context::ContextMemoryManager* pCMM);
-  void restore(context::ContextObj* pContextObj);
 
+  /** Context-dependent operation: restore this ECData */
+  void restore(context::ContextObj* pContextObj);
 
 public:
   /**
@@ -157,15 +183,14 @@ public:
   bool isClassRep();
 
   /**
-   * Adds a node to the watch list of the equivalence class.
-   * Requires a Context in-order to do context dependent memory allocation.
+   * Adds a node to the watch list of the equivalence class.  Does
+   * context-dependent memory allocation in the Context with which
+   * this ECData was created.
    *
    * @param n the node to be added.
    * @pre isClassRep() == true
    */
-  void addPredecessor(TNode n, context::Context* context);
-
-
+  void addPredecessor(TNode n);
 
   /**
    * Creates a EQ with the representative n
@@ -175,6 +200,7 @@ public:
    */
   ECData(context::Context* context, TNode n);
 
+  /** Destructor for ECDatas */
   ~ECData() {
     Debug("ufgc") << "Calling ECData destructor" << std::endl;
     destroy();
@@ -188,7 +214,6 @@ public:
    * getLast() or getFirst()
    */
   static void takeOverDescendantWatchList(ECData * nslave, ECData * nmaster);
-
 
   /**
    * Returns the representative of this ECData.
@@ -212,7 +237,6 @@ public:
    */
   ECData* getFind();
 
-
   /**
    * Sets the find pointer of the equivalence class to be another ECData object.
    *
@@ -223,13 +247,10 @@ public:
    */
   void setFind(ECData * ec);
 
-
-}; /* class ECData */
-
+};/* class ECData */
 
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-
 
 #endif /* __CVC4__THEORY__UF__ECDATA_H */

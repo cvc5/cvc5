@@ -125,7 +125,7 @@ void TheoryUF::registerTerm(TNode n) {
         }
       }
 
-      ecChild->addPredecessor(n, getContext());
+      ecChild->addPredecessor(n);
     }
   }
   Debug("uf") << "uf: end registerTerm(" << n << ")" << std::endl;

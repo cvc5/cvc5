@@ -164,14 +164,14 @@ public:
     TS_ASSERT(b.d_pScope == t);
     TS_ASSERT(b.d_pContextObjRestore != NULL);
     TS_ASSERT(b.d_pContextObjNext == &a);
-    //TS_ASSERT(b.d_ppContextObjPrev == &t->d_pContextObjList);// THIS ONE FAILS
+    TS_ASSERT(b.d_ppContextObjPrev == &t->d_pContextObjList);
 
     d_context->pop();
 
     TS_ASSERT(s->d_pContext == d_context);
     TS_ASSERT(s->d_pCMM == d_context->d_pCMM);
     TS_ASSERT(s->d_level == 0);
-    //TS_ASSERT(s->d_pContextObjList == &b);// THIS ONE FAILS
+    TS_ASSERT(s->d_pContextObjList == &c);
 
     TS_ASSERT(a.d_pScope == s);
     TS_ASSERT(a.d_pContextObjRestore == NULL);
@@ -181,6 +181,11 @@ public:
     TS_ASSERT(b.d_pScope == s);
     TS_ASSERT(b.d_pContextObjRestore == NULL);
     TS_ASSERT(b.d_pContextObjNext == &a);
-    TS_ASSERT(b.d_ppContextObjPrev == &s->d_pContextObjList);
+    TS_ASSERT(b.d_ppContextObjPrev == &c.d_pContextObjNext);
+
+    TS_ASSERT(c.d_pScope == s);
+    TS_ASSERT(c.d_pContextObjRestore == NULL);
+    TS_ASSERT(c.d_pContextObjNext == &b);
+    TS_ASSERT(c.d_ppContextObjPrev == &s->d_pContextObjList);
   }
 };

@@ -10,8 +10,12 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
+ ** Implementation of base context operations.
  **/
 
+
+#include <iostream>
+#include <vector>
 
 #include "context/context.h"
 #include "util/Assert.h"
@@ -54,7 +58,7 @@ Context::~Context() throw(AssertionException) {
 
 
 void Context::push() {
-  // FIXME: TRACE("pushpop", indentStr, "Push", " {");
+  Trace("pushpop") << std::string(2 * getLevel(), ' ') << "Push {" << std::endl;
 
   // Create a new memory region
   d_pCMM->push();
@@ -93,7 +97,7 @@ void Context::pop() {
     pCNO = pCNO->d_pCNOnext;
   }
 
-  //FIXME:  TRACE("pushpop", indentStr, "}", " Pop");
+  Trace("pushpop") << std::string(2 * getLevel(), ' ') << "} Pop" << std::endl;
 }
 
 
@@ -124,16 +128,47 @@ void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
 }
 
 
-void ContextObj::update() {
+void ContextObj::update() throw(AssertionException) {
+  Debug("context") << "before update(" << this << "):" << std::endl
+                   << *getContext() << std::endl;
+
   // Call save() to save the information in the current object
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
 
+  Debug("context") << "in update(" << this << ") with restore "
+                   << pContextObjSaved << ": waypoint 1" << std::endl
+                   << *getContext() << std::endl;
+
   // Check that base class data was saved
-  Assert(pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
-         pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev &&
-         pContextObjSaved->d_pContextObjRestore == d_pContextObjRestore &&
-         pContextObjSaved->d_pScope == d_pScope,
-         "save() did not properly copy information in base class");
+  Assert( ( pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
+            pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev &&
+            pContextObjSaved->d_pContextObjRestore == d_pContextObjRestore &&
+            pContextObjSaved->d_pScope == d_pScope ),
+          "save() did not properly copy information in base class" );
+
+  // Link the "saved" object in place of this ContextObj in the scope
+  // we're moving it FROM.
+  Debug("context") << "in update(" << this
+                   << "): next() == " << next() << std::endl;
+  if(next() != NULL) {
+    Debug("context") << "in update(" << this
+                     << "): next()->prev() == " << next()->prev() << std::endl;
+    next()->prev() = &pContextObjSaved->next();
+    Debug("context") << "in update(" << this
+                     << "): next()->prev() is now "
+                     << next()->prev() << std::endl;
+  }
+  Debug("context") << "in update(" << this
+                   << "): prev() == " << prev() << std::endl;
+  Debug("context") << "in update(" << this
+                   << "): *prev() == " << *prev() << std::endl;
+  *prev() = pContextObjSaved;
+  Debug("context") << "in update(" << this
+                   << "): *prev() is now " << *prev() << std::endl;
+
+  Debug("context") << "in update(" << this << ") with restore "
+                   << pContextObjSaved << ": waypoint 3" << std::endl
+                   << *getContext() << std::endl;
 
   // Update Scope pointer to current top Scope
   d_pScope = d_pScope->getContext()->getTopScope();
@@ -144,18 +179,27 @@ void ContextObj::update() {
   // Insert object into the list of objects that need to be restored when this
   // Scope is popped.
   d_pScope->addToChain(this);
+
+  Debug("context") << "after update(" << this << ") with restore "
+                   << pContextObjSaved << ":" << std::endl
+                   << *getContext() << std::endl;
 }
 
 
-ContextObj* ContextObj::restoreAndContinue() {
+ContextObj* ContextObj::restoreAndContinue() throw(AssertionException) {
   // Variable to hold next object in list
   ContextObj* pContextObjNext;
 
   // Check the restore pointer.  If NULL, this must be the bottom Scope
   if(d_pContextObjRestore == NULL) {
-    Assert(d_pScope == d_pScope->getContext()->getBottomScope(),
-           "Expected bottom scope");
+    // might not be bottom scope, since objects allocated in context
+    // memory don't get linked to scope 0
+    //
+    // Assert(d_pScope == d_pScope->getContext()->getBottomScope(),
+    //        "Expected bottom scope");
+
     pContextObjNext = d_pContextObjNext;
+
     // Nothing else to do
   } else {
     // Call restore to update the subclass data
@@ -169,13 +213,23 @@ ContextObj* ContextObj::restoreAndContinue() {
     next() = d_pContextObjRestore->d_pContextObjNext;
     prev() = d_pContextObjRestore->d_ppContextObjPrev;
     d_pContextObjRestore = d_pContextObjRestore->d_pContextObjRestore;
+
+    // Re-link this ContextObj to the list in this scope
+    if(next() != NULL) {
+      next()->prev() = &next();
+    }
+    *prev() = this;
   }
+
   // Return the next object in the list
   return pContextObjNext;
 }
 
 
 void ContextObj::destroy() throw(AssertionException) {
+  Debug("context") << "before destroy " << this
+                   << " (level " << getLevel() << "):" << std::endl
+                   << *getContext() << std::endl;
   for(;;) {
     // If valgrind reports invalid writes on the next few lines,
     // here's a hint: make sure all classes derived from ContextObj in
@@ -184,12 +238,18 @@ void ContextObj::destroy() throw(AssertionException) {
     if(next() != NULL) {
       next()->prev() = prev();
     }
-    *(prev()) = next();
+    *prev() = next();
     if(d_pContextObjRestore == NULL) {
       break;
     }
+    Debug("context") << "in destroy " << this << ", restore object is "
+                     << d_pContextObjRestore << " at level "
+                     << d_pContextObjRestore->getLevel() << ":" << std::endl
+                     << *getContext() << std::endl;
     restoreAndContinue();
   }
+  Debug("context") << "after destroy " << this << ":" << std::endl
+                   << *getContext() << std::endl;
 }
 
 
@@ -198,7 +258,23 @@ ContextObj::ContextObj(Context* pContext) :
 
   Assert(pContext != NULL, "NULL context pointer");
 
+  Debug("context") << "create new ContextObj(" << this << ")" << std::endl;
   d_pScope = pContext->getBottomScope();
+  d_pScope->addToChain(this);
+}
+
+
+ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
+  d_pContextObjRestore(NULL) {
+
+  Assert(pContext != NULL, "NULL context pointer");
+
+  Debug("context") << "create new ContextObj(" << this << ")" << std::endl;
+  if(allocatedInCMM) {
+    d_pScope = pContext->getTopScope();
+  } else {
+    d_pScope = pContext->getBottomScope();
+  }
   d_pScope->addToChain(this);
 }
 
@@ -217,8 +293,44 @@ ContextNotifyObj::~ContextNotifyObj() throw(AssertionException) {
     d_pCNOnext->d_ppCNOprev = d_ppCNOprev;
   }
   if(d_ppCNOprev != NULL) {
-    *(d_ppCNOprev) = d_pCNOnext;
+    *d_ppCNOprev = d_pCNOnext;
   }
+}
+
+
+std::ostream& operator<<(std::ostream& out,
+                         const Context& context) throw(AssertionException) {
+  const std::string separator(79, '-');
+
+  int level = context.d_scopeList.size() - 1;
+  typedef std::vector<Scope*>::const_reverse_iterator const_reverse_iterator;
+  for(const_reverse_iterator i = context.d_scopeList.rbegin();
+      i != context.d_scopeList.rend();
+      ++i, --level) {
+    Scope* pScope = *i;
+    Assert(pScope->getLevel() == level);
+    Assert(pScope->getContext() == &context);
+    out << separator << std::endl
+        << *pScope << std::endl;
+  }
+  return out << separator << std::endl;
+}
+
+
+std::ostream& operator<<(std::ostream& out,
+                         const Scope& scope) throw(AssertionException) {
+  out << "Scope " << scope.d_level << ":";
+  ContextObj* pContextObj = scope.d_pContextObjList;
+  Assert(pContextObj == NULL ||
+         pContextObj->prev() == &scope.d_pContextObjList);
+  while(pContextObj != NULL) {
+    out << " <--> " << pContextObj;
+    Assert(pContextObj->d_pScope == &scope);
+    Assert(pContextObj->next() == NULL ||
+           pContextObj->next()->prev() == &pContextObj->next());
+    pContextObj = pContextObj->next();
+  }
+  return out << " --> NULL";
 }
 
 

@@ -10,7 +10,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- **
+ ** Implementation of equivalence class data for UF theory.  This is a
+ ** context-dependent object.
  **/
 
 #include "theory/uf/ecdata.h"
@@ -20,29 +21,27 @@ using namespace context;
 using namespace theory;
 using namespace uf;
 
-
 ECData::ECData(Context * context, TNode n) :
   ContextObj(context),
   d_find(this),
   d_rep(n),
   d_watchListSize(0),
   d_first(NULL),
-  d_last(NULL)
-{}
+  d_last(NULL) {
+}
 
-
-bool ECData::isClassRep(){
+bool ECData::isClassRep() {
   return this == this->d_find;
 }
 
-void ECData::addPredecessor(TNode n, Context* context){
+void ECData::addPredecessor(TNode n) {
   Assert(isClassRep());
 
   makeCurrent();
 
-  Link * newPred = new (context->getCMM())  Link(context, n, d_first);
+  Link * newPred = new(getCMM()) Link(getContext(), n, d_first);
   d_first = newPred;
-  if(d_last == NULL){
+  if(d_last == NULL) {
     d_last = newPred;
   }
 
@@ -62,43 +61,40 @@ void ECData::restore(ContextObj* pContextObj) {
   d_watchListSize = data->d_watchListSize;
 }
 
-Node ECData::getRep(){
+Node ECData::getRep() {
   return d_rep;
 }
 
-unsigned ECData::getWatchListSize(){
+unsigned ECData::getWatchListSize() {
   return d_watchListSize;
 }
 
-
-void ECData::setFind(ECData * ec){
+void ECData::setFind(ECData * ec) {
   makeCurrent();
   d_find = ec;
 }
 
-ECData * ECData::getFind(){
+ECData* ECData::getFind() {
   return d_find;
 }
 
-
-Link* ECData::getFirst(){
+Link* ECData::getFirst() {
   return d_first;
 }
 
-
-void ECData::takeOverDescendantWatchList(ECData * nslave, ECData * nmaster){
+void ECData::takeOverDescendantWatchList(ECData* nslave, ECData* nmaster) {
   Assert(nslave != nmaster);
-  Assert(nslave->getFind() == nmaster );
+  Assert(nslave->getFind() == nmaster);
 
   nmaster->makeCurrent();
 
-  nmaster->d_watchListSize +=  nslave->d_watchListSize;
+  nmaster->d_watchListSize += nslave->d_watchListSize;
 
-  if(nmaster->d_first == NULL){
+  if(nmaster->d_first == NULL) {
     nmaster->d_first = nslave->d_first;
     nmaster->d_last = nslave->d_last;
-  }else if(nslave->d_first != NULL){
-    Link * currLast = nmaster->d_last;
+  } else if(nslave->d_first != NULL) {
+    Link* currLast = nmaster->d_last;
     currLast->d_next = nslave->d_first;
     nmaster->d_last = nslave->d_last;
   }

@@ -34,7 +34,6 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
 
   // FIXME CD-bools in optimized table
   for(unsigned id = 0; id < attr::LastAttributeId<bool, true>::s_id; ++id) {
-    Debug("gc") << "looking for " << id << " x " << nv << ":" << *nv << std::endl;
     d_cdbools.obliterate(std::make_pair(id, nv));
   }
   for(unsigned id = 0; id < attr::LastAttributeId<uint64_t, true>::s_id; ++id) {

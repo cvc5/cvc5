@@ -32,7 +32,8 @@ CVC4 options:\n\
    --help | -h     this command line reference\n\
    --verbose | -v  increase verbosity (repeatable)\n\
    --quiet | -q    decrease verbosity (repeatable)\n\
-   --debug | -d    debugging for something (e.g. --debug arith)\n\
+   --trace | -t    tracing for something (e.g. --trace pushpop)\n\
+   --debug | -d    debugging for something (e.g. --debug arith), implies -t\n\
    --smtcomp       competition mode (very quiet)\n\
    --stats         give statistics on exit\n\
    --segv-nospin   (debug builds only) don't spin on segfault waiting for gdb\n\

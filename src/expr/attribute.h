@@ -112,11 +112,6 @@ public:
   typename AttrKind::value_type getAttribute(NodeValue* nv,
                                              const AttrKind&) const;
 
-  // Note that there are two, distinct hasAttribute() declarations for
-  // a reason (rather than using a default argument): they permit more
-  // optimized code.  The first (without parameter "ret") need never
-  // check whether its parameter is NULL.
-
   /**
    * Determine if a particular attribute exists for a particular node.
    *

@@ -71,6 +71,7 @@ class CDOmap : public ContextObj {
       }
       d_next->d_prev = d_prev;
       d_prev->d_next = d_next;
+      Debug("gc") << "CDMap<> trash push_back " << this << std::endl;
       d_map->d_trash.push_back(this);
     } else {
       d_data = p->d_data;
@@ -155,7 +156,7 @@ public:
 
   CDMapData(Context* context) : ContextObj(context) {}
   CDMapData(const ContextObj& co) : ContextObj(co) {}
-  ~CDMapData() { destroy(); }
+  ~CDMapData() throw(AssertionException) { destroy(); }
 };
 
 /**
@@ -192,7 +193,7 @@ class CDMap : public ContextObj {
         i != d_trash.end();
         ++i) {
       Debug("gc") << "emptyTrash(): " << *i << std::endl;
-      //(*i)->deleteSelf();
+      (*i)->deleteSelf();
     }
     d_trash.clear();
   }
@@ -201,21 +202,26 @@ public:
 
   CDMap(Context* context) :
     ContextObj(context),
+    d_map(),
     d_first(NULL),
     d_context(context),
     d_trash() {
   }
 
   ~CDMap() throw(AssertionException) {
+    Debug("gc") << "cdmap " << this
+                << " disappearing, destroying..." << std::endl;
     destroy();
+    Debug("gc") << "cdmap " << this
+                << " disappearing, done destroying" << std::endl;
     for(typename table_type::iterator i = d_map.begin();
         i != d_map.end();
         ++i) {
       (*i).second->deleteSelf();
     }
-    //d_map.clear();
-    Debug("gc") << "cdmap gone, emptying trash" << std::endl;
+    Debug("gc") << "cdmap " << this << " gone, emptying trash" << std::endl;
     emptyTrash();
+    Debug("gc") << "done emptying trash for " << this << std::endl;
   }
 
   // The usual operators of map

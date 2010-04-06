@@ -42,7 +42,7 @@ void CommandSequence::invoke(SmtEngine* smtEngine) {
   }
 }
 
-void CheckSatCommand::toStream(ostream& out) const {
+void CheckSatCommand::toStream(std::ostream& out) const {
   if(d_expr.isNull()) {
     out << "CheckSat()";
   } else {
@@ -50,7 +50,7 @@ void CheckSatCommand::toStream(ostream& out) const {
   }
 }
 
-void CommandSequence::toStream(ostream& out) const {
+void CommandSequence::toStream(std::ostream& out) const {
   out << "CommandSequence[" << endl;
   for(unsigned i = d_index; i < d_commandSequence.size(); ++i) {
     out << *d_commandSequence[i] << endl;
@@ -75,7 +75,7 @@ void PushCommand::invoke(SmtEngine* smtEngine) {
   smtEngine->push();
 }
 
-void PushCommand::toStream(ostream& out) const {
+void PushCommand::toStream(std::ostream& out) const {
   out << "Push()";
 }
 
@@ -83,7 +83,7 @@ void PopCommand::invoke(SmtEngine* smtEngine) {
   smtEngine->pop();
 }
 
-void PopCommand::toStream(ostream& out) const {
+void PopCommand::toStream(std::ostream& out) const {
   out << "Pop()";
 }
 

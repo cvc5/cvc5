@@ -66,11 +66,26 @@ class CDO : public ContextObj {
   CDO<T>& operator=(const CDO<T>& cdo);
 
 public:
+
   /**
    * Main constructor - uses default constructor for T to create the initial
    * value of d_data.
    */
-  CDO(Context* context) : ContextObj(context) {}
+  CDO(Context* context) :
+    ContextObj(context) {
+  }
+
+  /**
+   * Main constructor - uses default constructor for T to create the
+   * initial value of d_data.
+   *
+   * This version takes an argument that specifies whether this CDO<>
+   * was itself allocated in context memory.  If it was, it is linked
+   * with the current scope rather than scope 0.
+   */
+  CDO(bool allocatedInCMM, Context* context) :
+    ContextObj(allocatedInCMM, context) {
+  }
 
   /**
    * Constructor from object of type T.  Creates a ContextObj and sets the data
@@ -78,7 +93,24 @@ public:
    * current Scope.  If the Scope is popped, the value will revert to whatever
    * is assigned by the default constructor for T
    */
-  CDO(Context* context, const T& data) : ContextObj(context) {
+  CDO(Context* context, const T& data) :
+    ContextObj(context) {
+    makeCurrent();
+    d_data = data;
+  }
+
+  /**
+   * Constructor from object of type T.  Creates a ContextObj and sets the data
+   * to the given data value.  Note that this value is only valid in the
+   * current Scope.  If the Scope is popped, the value will revert to whatever
+   * is assigned by the default constructor for T.
+   *
+   * This version takes an argument that specifies whether this CDO<>
+   * was itself allocated in context memory.  If it was, it is linked
+   * with the current scope rather than scope 0.
+   */
+  CDO(bool allocatedInCMM, Context* context, const T& data) :
+    ContextObj(allocatedInCMM, context) {
     makeCurrent();
     d_data = data;
   }
@@ -86,7 +118,7 @@ public:
   /**
    * Destructor - call destroy() method
    */
-  ~CDO() throw() { destroy(); }
+  ~CDO() throw(AssertionException) { destroy(); }
 
   /**
    * Set the data in the CDO.  First call makeCurrent.

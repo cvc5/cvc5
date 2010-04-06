@@ -159,19 +159,16 @@ class NodeManager {
    */
   inline void markForDeletion(expr::NodeValue* nv) {
     Assert(nv->d_rc == 0);
+
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
-    if(d_reclaiming) {// FIXME multithreading
-      // currently reclaiming zombies; just push onto the list
-      Debug("gc") << "zombifying node value " << nv
-                  << " [" << nv->d_id << "]: " << *nv
-                  << " [CURRENTLY-RECLAIMING]\n";
-      d_zombies.insert(nv);// FIXME multithreading
-    } else {
-      Debug("gc") << "zombifying node value " << nv
-                  << " [" << nv->d_id << "]: " << *nv << "\n";
-      d_zombies.insert(nv);// FIXME multithreading
+    Debug("gc") << "zombifying node value " << nv
+                << " [" << nv->d_id << "]: " << *nv
+                << (d_reclaiming ? " [CURRENTLY-RECLAIMING]" : "")
+                << std::endl;
+    d_zombies.insert(nv);// FIXME multithreading
 
+    if(!d_reclaiming) {// FIXME multithreading
       // for now, collect eagerly.  can add heuristic here later..
       reclaimZombies();
     }

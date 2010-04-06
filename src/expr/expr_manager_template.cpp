@@ -132,7 +132,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                                           child5.getNode())));
 }
 
-Expr ExprManager::mkExpr(Kind kind, const vector<Expr>& children) {
+Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
   const unsigned n = children.size();
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
