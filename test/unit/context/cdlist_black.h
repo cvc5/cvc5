@@ -48,21 +48,21 @@ public:
 
     TS_ASSERT(list.empty());
     for(int i = 0; i < N; ++i) {
-      TS_ASSERT(list.size() == i);
+      TS_ASSERT_EQUALS(list.size(), unsigned(i));
       list.push_back(i);
       TS_ASSERT(!list.empty());
-      TS_ASSERT(list.back() == i);
+      TS_ASSERT_EQUALS(list.back(), i);
       int i2 = 0;
       for(CDList<int>::const_iterator j = list.begin();
           j != list.end();
           ++j) {
-        TS_ASSERT(*j == i2++);
+        TS_ASSERT_EQUALS(*j, i2++);
       }
     }
-    TS_ASSERT(list.size() == N);
+    TS_ASSERT_EQUALS(list.size(), unsigned(N));
 
     for(int i = 0; i < N; ++i) {
-      TS_ASSERT(list[i] == i);
+      TS_ASSERT_EQUALS(list[i], i);
     }
   }
 

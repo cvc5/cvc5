@@ -423,10 +423,10 @@ public:
 #endif /* CVC4_ASSERTIONS */
   }
 
-  void testNaryExpForSize(Kind k, int N) {
+  void testNaryExpForSize(Kind k, unsigned N) {
     NodeBuilder<> nbz(k);
     Node trueNode = d_nodeManager->mkConst(true);
-    for(int i = 0; i < N; ++i) {
+    for(unsigned i = 0; i < N; ++i) {
       nbz << trueNode;
     }
     Node result = nbz;
@@ -452,7 +452,7 @@ public:
     srand(0);
     int trials = 500;
     for(int i = 0; i < trials; ++i) {
-      int N = rand() % 1000 + 2;
+      unsigned N = rand() % 1000 + 2;
       testNaryExpForSize(AND, N);
     }
 

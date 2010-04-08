@@ -145,7 +145,7 @@ public:
     d_euf->assertFact( f5_x_eq_x );
     d_euf->check(d_level);
 
-    TS_ASSERT_EQUALS(1, d_outputChannel.getNumCalls());
+    TS_ASSERT_EQUALS(1u, d_outputChannel.getNumCalls());
     TS_ASSERT_EQUALS(CONFLICT, d_outputChannel.getIthCallType(0));
     Node realConflict = d_outputChannel.getIthNode(0);
     TS_ASSERT_EQUALS(expectedConflict, realConflict);

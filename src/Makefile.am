@@ -55,7 +55,3 @@ install-data-local: $(publicheaders)
 		echo $(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"; \
 		$(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"; \
 	done
-
-include/cvc4.h: smt/smt_engine.h
-	@srcdir@/headergen.pl $< $@
-include/cvc4_expr.h: expr/expr.h

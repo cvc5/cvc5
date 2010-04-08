@@ -45,16 +45,16 @@ public:
     TS_ASSERT_EQUALS(z4.getLong(), 0);
 
     Integer z5("7896890");
-    TS_ASSERT_EQUALS(z5.getUnsignedLong(), 7896890);
+    TS_ASSERT_EQUALS(z5.getUnsignedLong(), 7896890ul);
 
     Integer z6(z5);
-    TS_ASSERT_EQUALS(z5.getUnsignedLong(), 7896890);
-    TS_ASSERT_EQUALS(z6.getUnsignedLong(), 7896890);
+    TS_ASSERT_EQUALS(z5.getUnsignedLong(), 7896890ul);
+    TS_ASSERT_EQUALS(z6.getUnsignedLong(), 7896890ul);
 
 
     string bigValue("1536729");
     Integer z7(bigValue);
-    TS_ASSERT_EQUALS(z7.getUnsignedLong(), 1536729);
+    TS_ASSERT_EQUALS(z7.getUnsignedLong(), 1536729ul);
   }
 
   void testOperatorAssign(){
@@ -62,24 +62,24 @@ public:
     Integer y(79);
     Integer z(45789);
 
-    TS_ASSERT_EQUALS(x.getUnsignedLong(), 0);
-    TS_ASSERT_EQUALS(y.getUnsignedLong(), 79);
-    TS_ASSERT_EQUALS(z.getUnsignedLong(), 45789);
+    TS_ASSERT_EQUALS(x.getUnsignedLong(), 0ul);
+    TS_ASSERT_EQUALS(y.getUnsignedLong(), 79ul);
+    TS_ASSERT_EQUALS(z.getUnsignedLong(), 45789ul);
 
     x = y = z;
 
-    TS_ASSERT_EQUALS(x.getUnsignedLong(), 45789);
-    TS_ASSERT_EQUALS(y.getUnsignedLong(), 45789);
-    TS_ASSERT_EQUALS(z.getUnsignedLong(), 45789);
+    TS_ASSERT_EQUALS(x.getUnsignedLong(), 45789ul);
+    TS_ASSERT_EQUALS(y.getUnsignedLong(), 45789ul);
+    TS_ASSERT_EQUALS(z.getUnsignedLong(), 45789ul);
 
     Integer a(2);
 
     y = a;
 
-    TS_ASSERT_EQUALS(a.getUnsignedLong(), 2);
-    TS_ASSERT_EQUALS(y.getUnsignedLong(), 2);
-    TS_ASSERT_EQUALS(x.getUnsignedLong(), 45789);
-    TS_ASSERT_EQUALS(z.getUnsignedLong(), 45789);
+    TS_ASSERT_EQUALS(a.getUnsignedLong(), 2ul);
+    TS_ASSERT_EQUALS(y.getUnsignedLong(), 2ul);
+    TS_ASSERT_EQUALS(x.getUnsignedLong(), 45789ul);
+    TS_ASSERT_EQUALS(z.getUnsignedLong(), 45789ul);
   }
 
   void testOperatorEquals(){

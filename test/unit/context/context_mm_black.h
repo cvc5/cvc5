@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Black box testing of CVC4::Node.
+ ** Black box testing of CVC4::context::ContextMemoryManager.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -40,23 +40,24 @@ public:
     // Push, then allocate, then pop
     // We make sure that we don't allocate too much so that all the regions
     // should be reclaimed
-    int chunkSizeBytes = 16384;
-    int maxFreeChunks = 100;
-    int piecesPerChunk = 13;
-    int len = chunkSizeBytes / piecesPerChunk; // Length of the individual block
-    int N = maxFreeChunks*piecesPerChunk;
-    for (int p = 0; p < 5; ++ p) {
+    unsigned chunkSizeBytes = 16384;
+    unsigned maxFreeChunks = 100;
+    unsigned piecesPerChunk = 13;
+    unsigned len = chunkSizeBytes / piecesPerChunk; // Length of the individual block
+    unsigned N = maxFreeChunks*piecesPerChunk;
+    for(unsigned p = 0; p < 5; ++ p) {
       d_cmm->push();
-      for (int i = 0; i < N; ++i) {
+      for(unsigned i = 0; i < N; ++i) {
         char* newMem = (char*)d_cmm->newData(len);
         // We only setup the memory in the first run, the others should
         // reclaim the same memory
-        if (p == 0) {
-          for(int k = 0; k < len - 1; k ++)
+        if(p == 0) {
+          for(unsigned k = 0; k < len - 1; k ++) {
             newMem[k] = 'a';
+          }
           newMem[len-1] = 0;
         }
-        if (strlen(newMem) != len - 1) {
+        if(strlen(newMem) != len - 1) {
           cout << strlen(newMem) << " : " << len - 1 << endl;
         }
         TS_ASSERT(strlen(newMem) == len - 1);
@@ -64,22 +65,23 @@ public:
       d_cmm->pop();
     }
 
-    int factor = 3;
-    N = 16384/factor;
+    unsigned factor = 3;
+    N = 16384 / factor;
 
     // Push, then allocate, then pop all at once
-    for (int p = 0; p < 5; ++ p) {
+    for(unsigned p = 0; p < 5; ++ p) {
       d_cmm->push();
-      for (int i = 1; i < N; ++i) {
-        int len = i*factor;
+      for(unsigned i = 1; i < N; ++i) {
+        unsigned len = i * factor;
         char* newMem = (char*)d_cmm->newData(len);
-        for(int k = 0; k < len - 1; k ++)
+        for(unsigned k = 0; k < len - 1; k ++) {
           newMem[k] = 'a';
+        }
         newMem[len-1] = 0;
         TS_ASSERT(strlen(newMem) == len - 1);
       }
     }
-    for (int p = 0; p < 5; ++ p) {
+    for(unsigned p = 0; p < 5; ++ p) {
       d_cmm->pop();
     }
 

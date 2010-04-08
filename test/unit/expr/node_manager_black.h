@@ -52,7 +52,7 @@ public:
   void testMkNode1() {
     Node x = d_nodeManager->mkVar("x",d_nodeManager->booleanType());
     Node n = d_nodeManager->mkNode(NOT, x);
-    TS_ASSERT_EQUALS( n.getNumChildren(), 1 );
+    TS_ASSERT_EQUALS( n.getNumChildren(), 1u );
     TS_ASSERT_EQUALS( n.getKind(), NOT);
     TS_ASSERT_EQUALS( n[0], x);
   }
@@ -61,7 +61,7 @@ public:
     Node x = d_nodeManager->mkVar("x",d_nodeManager->booleanType());
     Node y = d_nodeManager->mkVar("y",d_nodeManager->booleanType());
     Node n = d_nodeManager->mkNode(IMPLIES, x, y);
-    TS_ASSERT_EQUALS( n.getNumChildren(), 2 );
+    TS_ASSERT_EQUALS( n.getNumChildren(), 2u );
     TS_ASSERT_EQUALS( n.getKind(), IMPLIES);
     TS_ASSERT_EQUALS( n[0], x);
     TS_ASSERT_EQUALS( n[1], y);
@@ -72,7 +72,7 @@ public:
     Node y = d_nodeManager->mkVar("y",d_nodeManager->booleanType());
     Node z = d_nodeManager->mkVar("z",d_nodeManager->booleanType());
     Node n = d_nodeManager->mkNode(AND, x, y, z);
-    TS_ASSERT_EQUALS( n.getNumChildren(), 3 );
+    TS_ASSERT_EQUALS( n.getNumChildren(), 3u );
     TS_ASSERT_EQUALS( n.getKind(), AND);
     TS_ASSERT_EQUALS( n[0], x);
     TS_ASSERT_EQUALS( n[1], y);
@@ -85,12 +85,12 @@ public:
     Node x3 = d_nodeManager->mkVar("x3",d_nodeManager->booleanType());
     Node x4 = d_nodeManager->mkVar("x4",d_nodeManager->booleanType());
     Node n = d_nodeManager->mkNode(AND, x1, x2, x3, x4);
-    TS_ASSERT_EQUALS( n.getNumChildren(), 4 );
-    TS_ASSERT_EQUALS( n.getKind(), AND);
-    TS_ASSERT_EQUALS( n[0], x1);
-    TS_ASSERT_EQUALS( n[1], x2);
-    TS_ASSERT_EQUALS( n[2], x3);
-    TS_ASSERT_EQUALS( n[3], x4);
+    TS_ASSERT_EQUALS( n.getNumChildren(), 4u );
+    TS_ASSERT_EQUALS( n.getKind(), AND );
+    TS_ASSERT_EQUALS( n[0], x1 );
+    TS_ASSERT_EQUALS( n[1], x2 );
+    TS_ASSERT_EQUALS( n[2], x3 );
+    TS_ASSERT_EQUALS( n[3], x4 );
   }
 
   void testMkNode5() {
@@ -100,7 +100,7 @@ public:
     Node x4 = d_nodeManager->mkVar("x4",d_nodeManager->booleanType());
     Node x5 = d_nodeManager->mkVar("x5",d_nodeManager->booleanType());
     Node n = d_nodeManager->mkNode(AND, x1, x2, x3, x4, x5);
-    TS_ASSERT_EQUALS( n.getNumChildren(), 5 );
+    TS_ASSERT_EQUALS( n.getNumChildren(), 5u );
     TS_ASSERT_EQUALS( n.getKind(), AND);
     TS_ASSERT_EQUALS( n[0], x1);
     TS_ASSERT_EQUALS( n[1], x2);
@@ -120,7 +120,7 @@ public:
     Node n = d_nodeManager->mkNode(AND, args);
     TS_ASSERT_EQUALS( n.getNumChildren(), args.size() );
     TS_ASSERT_EQUALS( n.getKind(), AND);
-    for( int i=0; i < args.size(); ++i ) {
+    for( unsigned i = 0; i < args.size(); ++i ) {
       TS_ASSERT_EQUALS( n[i], args[i]);
     }
   }
@@ -136,7 +136,7 @@ public:
     Node n = d_nodeManager->mkNode(AND, args);
     TS_ASSERT_EQUALS( n.getNumChildren(), args.size() );
     TS_ASSERT_EQUALS( n.getKind(), AND);
-    for( int i=0; i < args.size(); ++i ) {
+    for( unsigned i = 0; i < args.size(); ++i ) {
       TS_ASSERT_EQUALS( n[i], args[i]);
     }
   }
@@ -145,7 +145,7 @@ public:
     Type* booleanType = d_nodeManager->booleanType();
     Node x = d_nodeManager->mkVar(booleanType);
     TS_ASSERT_EQUALS(x.getKind(),VARIABLE);
-    TS_ASSERT_EQUALS(x.getNumChildren(),0);
+    TS_ASSERT_EQUALS(x.getNumChildren(),0u);
     TS_ASSERT_EQUALS(x.getType(),booleanType);
   }
 
@@ -153,7 +153,7 @@ public:
     Type* booleanType = d_nodeManager->booleanType();
     Node x = d_nodeManager->mkVar("x", booleanType);
     TS_ASSERT_EQUALS(x.getKind(),VARIABLE);
-    TS_ASSERT_EQUALS(x.getNumChildren(),0);
+    TS_ASSERT_EQUALS(x.getNumChildren(),0u);
     TS_ASSERT_EQUALS(x.getAttribute(VarNameAttr()),"x");
     TS_ASSERT_EQUALS(x.getType(),booleanType);
   }
@@ -219,7 +219,7 @@ public:
     TS_ASSERT( t->isFunction() );
 
     FunctionType* ft = (FunctionType*)t;
-    TS_ASSERT_EQUALS(ft->getArgTypes().size(), 1);
+    TS_ASSERT_EQUALS(ft->getArgTypes().size(), 1u);
     TS_ASSERT_EQUALS(ft->getArgTypes()[0], booleanType);
     TS_ASSERT_EQUALS(ft->getRangeType(), booleanType);
 

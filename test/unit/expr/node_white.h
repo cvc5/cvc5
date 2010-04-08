@@ -51,7 +51,7 @@ public:
   }
 
   void testNull() {
-    Node::s_null;
+    TS_ASSERT_EQUALS(Node::null(), Node::s_null);
   }
 
   void testCopyCtor() {

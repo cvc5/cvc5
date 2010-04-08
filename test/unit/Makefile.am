@@ -48,7 +48,7 @@ if HAVE_CXXTESTGEN
 AM_CPPFLAGS = \
 	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
 	$(TEST_CPPFLAGS)
-AM_CXXFLAGS = $(TEST_CXXFLAGS)
+AM_CXXFLAGS = -Wall $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)
 
 AM_CXXFLAGS_WHITE = -fno-access-control -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
@@ -85,13 +85,13 @@ $(UNIT_TESTS:%=%.cpp): %.cpp: %.h
 	$(AM_V_at)mkdir -p `dirname "$@"`
 	$(AM_V_GEN)$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
 $(WHITE_TESTS): %_white: %_white.cpp $(TEST_DEPS)
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo $<
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo @abs_builddir@/$<
 	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_WHITE) $@.lo
 $(BLACK_TESTS): %_black: %_black.cpp $(TEST_DEPS)
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo $<
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo @abs_builddir@/$<
 	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_BLACK) $@.lo
 $(PUBLIC_TESTS): %_public: %_public.cpp $(TEST_DEPS)
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo $<
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo @abs_builddir@/$<
 	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_PUBLIC) $@.lo
 
 else

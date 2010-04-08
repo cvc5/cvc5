@@ -228,7 +228,7 @@ public:
 
     TS_ASSERT_EQUALS(got, f_x_eq_x);
 
-    TS_ASSERT_EQUALS(5, d_dummy->d_registered.size());
+    TS_ASSERT_EQUALS(5u, d_dummy->d_registered.size());
     TS_ASSERT(d_dummy->d_registered.find(x) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(f) != d_dummy->d_registered.end());
     TS_ASSERT(d_dummy->d_registered.find(f_x) != d_dummy->d_registered.end());

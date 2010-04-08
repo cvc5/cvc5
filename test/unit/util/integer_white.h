@@ -33,9 +33,9 @@ public:
     Integer fits_in_16_bytes("7890D789D33234027890D789D3323402", 16);
 
 
-    TS_ASSERT_THROWS_NOTHING(size_t res0 = zero.hash());
-    TS_ASSERT_THROWS_NOTHING(size_t res1 = fits_in_2_bytes.hash());
-    TS_ASSERT_THROWS_NOTHING(size_t res2 = fits_in_16_bytes.hash());
-    TS_ASSERT_THROWS_NOTHING(size_t res3 = large.hash());
+    TS_ASSERT_THROWS_NOTHING(zero.hash());
+    TS_ASSERT_THROWS_NOTHING(fits_in_2_bytes.hash());
+    TS_ASSERT_THROWS_NOTHING(fits_in_16_bytes.hash());
+    TS_ASSERT_THROWS_NOTHING(large.hash());
   }
 };

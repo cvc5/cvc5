@@ -30,10 +30,11 @@ bindir = @bindir@
 libdir = @libdir@
 abs_builddir = @abs_builddir@
 
-# Are we building static/dynamic libraries?  One or the other can be
+# Are we building static/dynamic libraries/binaries?  One or the other can be
 # on, or both.
 BUILDING_STATIC = @BUILDING_STATIC@
 BUILDING_SHARED = @BUILDING_SHARED@
+STATIC_BINARY = @STATIC_BINARY@
 
 .PHONY: _default_build_ all
 _default_build_: all
@@ -51,8 +52,8 @@ all:
 	$(CURRENT_BUILD)/libtool --mode=install install -v \
 		$(CURRENT_BUILD)/src/parser/libcvc4parser.la \
 		"$(abs_builddir)$(libdir)"
-ifeq ($(BUILDING_SHARED),1)
-#	if we're building shared libs, relink
+ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
+#	if we're building shared libs and the binary is not static, relink
 	thelibdir="$(abs_builddir)$(libdir)"; \
 	progdir="$(abs_builddir)$(bindir)"; file=cvc4; \
 		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
@@ -72,8 +73,8 @@ endif
 	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la "`pwd`$(libdir)"
 #	install libcvc4parser
 	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
-ifeq ($(BUILDING_SHARED),1)
-#	if we're building shared libs, relink
+ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
+#	if we're building shared libs and the binary is not static, relink
 	thelibdir="`pwd`$(libdir)"; progdir="`pwd`$(bindir)"; file=cvc4; \
 		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
 		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"

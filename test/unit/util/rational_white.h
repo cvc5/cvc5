@@ -104,26 +104,26 @@ public:
     Rational y(78,6);
     Rational z(45789,1);
 
-    TS_ASSERT_EQUALS(x.getNumerator().getUnsignedLong(), 0);
-    TS_ASSERT_EQUALS(y.getNumerator().getUnsignedLong(), 13);
-    TS_ASSERT_EQUALS(z.getNumerator().getUnsignedLong(), 45789);
+    TS_ASSERT_EQUALS(x.getNumerator().getUnsignedLong(), 0ul);
+    TS_ASSERT_EQUALS(y.getNumerator().getUnsignedLong(), 13ul);
+    TS_ASSERT_EQUALS(z.getNumerator().getUnsignedLong(), 45789ul);
 
     x = y = z;
 
-    TS_ASSERT_EQUALS(x.getNumerator().getUnsignedLong(), 45789);
-    TS_ASSERT_EQUALS(y.getNumerator().getUnsignedLong(), 45789);
-    TS_ASSERT_EQUALS(z.getNumerator().getUnsignedLong(), 45789);
+    TS_ASSERT_EQUALS(x.getNumerator().getUnsignedLong(), 45789ul);
+    TS_ASSERT_EQUALS(y.getNumerator().getUnsignedLong(), 45789ul);
+    TS_ASSERT_EQUALS(z.getNumerator().getUnsignedLong(), 45789ul);
 
     Rational a(78,91);
 
     y = a;
 
-    TS_ASSERT_EQUALS(a.getNumerator().getUnsignedLong(), 6);
-    TS_ASSERT_EQUALS(a.getDenominator().getUnsignedLong(), 7);
-    TS_ASSERT_EQUALS(y.getNumerator().getUnsignedLong(), 6);
-    TS_ASSERT_EQUALS(y.getDenominator().getUnsignedLong(), 7);
-    TS_ASSERT_EQUALS(x.getNumerator().getUnsignedLong(), 45789);
-    TS_ASSERT_EQUALS(z.getNumerator().getUnsignedLong(), 45789);
+    TS_ASSERT_EQUALS(a.getNumerator().getUnsignedLong(), 6ul);
+    TS_ASSERT_EQUALS(a.getDenominator().getUnsignedLong(), 7ul);
+    TS_ASSERT_EQUALS(y.getNumerator().getUnsignedLong(), 6ul);
+    TS_ASSERT_EQUALS(y.getDenominator().getUnsignedLong(), 7ul);
+    TS_ASSERT_EQUALS(x.getNumerator().getUnsignedLong(), 45789ul);
+    TS_ASSERT_EQUALS(z.getNumerator().getUnsignedLong(), 45789ul);
   }
 
   void testToStringStuff(){
@@ -416,8 +416,8 @@ public:
     Rational one_word(75890L,590L);
     Rational two_words("7890D789D33234027890D789D3323402", 16);
 
-    TS_ASSERT_EQUALS(zero.hash(), 1);
-    TS_ASSERT_EQUALS(one_word.hash(), 7589 xor 59);
+    TS_ASSERT_EQUALS(zero.hash(), 1u);
+    TS_ASSERT_EQUALS(one_word.hash(), 7589u xor 59u);
     TS_ASSERT_EQUALS(two_words.hash(),
 		     (two_words.getNumerator().hash()) xor 1);
     TS_ASSERT_EQUALS(large.hash(),
