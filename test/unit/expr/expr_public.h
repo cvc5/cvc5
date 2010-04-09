@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** expr_black.h
+/** expr_public.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Black box testing of CVC4::Expr.
+ ** Public black-box testing of CVC4::Expr.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -27,7 +27,7 @@ using namespace CVC4;
 using namespace CVC4::kind;
 using namespace std;
 
-class ExprBlack : public CxxTest::TestSuite {
+class ExprPublic : public CxxTest::TestSuite {
 private:
 
   ExprManager* d_em;

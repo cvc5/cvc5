@@ -140,24 +140,6 @@ public:
   }
 };/* class CDOmap<> */
 
-// Dummy subclass of ContextObj to serve as our data class
-class CDMapData : public ContextObj {
-  // befriend CDMap<> so that it can allocate us
-  template <class Key, class Data, class HashFcn>
-  friend class CDMap;
-
-  ContextObj* save(ContextMemoryManager* pCMM) {
-    return new(pCMM) CDMapData(*this);
-  }
-
-  void restore(ContextObj* data) {}
-
-public:
-
-  CDMapData(Context* context) : ContextObj(context) {}
-  CDMapData(const ContextObj& co) : ContextObj(co) {}
-  ~CDMapData() throw(AssertionException) { destroy(); }
-};
 
 /**
  * Generic templated class for a map which must be saved and restored
@@ -181,11 +163,13 @@ class CDMap : public ContextObj {
 
   // Nothing to save; the elements take care of themselves
   virtual ContextObj* save(ContextMemoryManager* pCMM) {
-    return new(pCMM) CDMapData(*this);
+    Unreachable();
   }
 
   // Similarly, nothing to restore
-  virtual void restore(ContextObj* data) {}
+  virtual void restore(ContextObj* data) {
+    Unreachable();
+  }
 
   void emptyTrash() {
     //FIXME multithreading

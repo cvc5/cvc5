@@ -172,8 +172,8 @@ class CVC4_PUBLIC NoticeC {
 public:
   NoticeC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char*);
-  void operator()(std::string);
+  void operator()(const char* s) { *d_os << s; }
+  void operator()(std::string s) { *d_os << s; }
 
   void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
@@ -193,8 +193,8 @@ class CVC4_PUBLIC ChatC {
 public:
   ChatC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char*);
-  void operator()(std::string);
+  void operator()(const char* s) { *d_os << s; }
+  void operator()(std::string s) { *d_os << s; }
 
   void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
@@ -215,10 +215,29 @@ class CVC4_PUBLIC TraceC {
 public:
   TraceC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* tag, const char*);
-  void operator()(const char* tag, std::string);
-  void operator()(std::string tag, const char*);
-  void operator()(std::string tag, std::string);
+  void operator()(const char* tag, const char* s) {
+    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
+
+  void operator()(const char* tag, const std::string& s) {
+    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
+
+  void operator()(const std::string& tag, const char* s) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
+
+  void operator()(const std::string& tag, const std::string& s) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
+      *d_os << s;
+    }
+  }
 
   void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
   void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));

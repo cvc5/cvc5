@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** configuration_white.h
+/** configuration_black.h
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** White box testing of CVC4::Configuration.
+ ** Black box testing of CVC4::Configuration.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -20,7 +20,7 @@
 using namespace CVC4;
 using namespace std;
 
-class ConfigurationWhite : public CxxTest::TestSuite {
+class ConfigurationBlack : public CxxTest::TestSuite {
 
 public:
 

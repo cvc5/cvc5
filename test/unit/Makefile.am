@@ -1,6 +1,6 @@
 # All unit tests
 UNIT_TESTS = \
-	expr/expr_black \
+	expr/expr_public \
 	expr/node_white \
 	expr/node_black \
 	expr/kind_black \
@@ -16,11 +16,13 @@ UNIT_TESTS = \
 	context/cdo_black \
 	context/cdlist_black \
 	context/cdmap_black \
+	context/cdmap_white \
 	theory/theory_black \
 	theory/theory_uf_white \
 	util/assert_white \
-	util/configuration_white \
-	util/output_white \
+	util/configuration_black \
+	util/output_black \
+	util/exception_black \
 	util/integer_black \
 	util/integer_white \
 	util/rational_white

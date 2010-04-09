@@ -23,6 +23,14 @@
 using namespace std;
 using namespace CVC4::context;
 
+
+struct DtorSensitiveObject {
+  bool& d_dtorCalled;
+  DtorSensitiveObject(bool& dtorCalled) : d_dtorCalled(dtorCalled) {}
+  ~DtorSensitiveObject() { d_dtorCalled = true; }
+};
+
+
 class CDListBlack : public CxxTest::TestSuite {
 private:
 
@@ -32,6 +40,10 @@ public:
 
   void setUp() {
     d_context = new Context();
+  }
+
+  void tearDown() {
+    delete d_context;
   }
 
   // test at different sizes.  this triggers grow() behavior differently.
@@ -44,7 +56,12 @@ public:
   void testCDList99() { listTest(99); }
 
   void listTest(int N) {
-    CDList<int> list(d_context);
+    listTest(N, true);
+    listTest(N, false);
+  }
+
+  void listTest(int N, bool callDestructor) {
+    CDList<int> list(d_context, callDestructor);
 
     TS_ASSERT(list.empty());
     for(int i = 0; i < N; ++i) {
@@ -66,7 +83,46 @@ public:
     }
   }
 
-  void tearDown() {
-    delete d_context;
+  void testDtorCalled() {
+    bool shouldRemainFalse = false;
+    bool shouldFlipToTrue = false;
+    bool alsoFlipToTrue = false;
+    bool shouldAlsoRemainFalse = false;
+    bool aThirdFalse = false;
+
+    CDList<DtorSensitiveObject> listT(d_context, true);
+    CDList<DtorSensitiveObject> listF(d_context, false);
+
+    DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
+    DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
+    DtorSensitiveObject alsoFlipToTrueDSO(alsoFlipToTrue);
+    DtorSensitiveObject shouldAlsoRemainFalseDSO(shouldAlsoRemainFalse);
+    DtorSensitiveObject aThirdFalseDSO(aThirdFalse);
+
+    listT.push_back(shouldAlsoRemainFalseDSO);
+    listF.push_back(shouldAlsoRemainFalseDSO);
+
+    d_context->push();
+
+    listT.push_back(shouldFlipToTrueDSO);
+    listT.push_back(alsoFlipToTrueDSO);
+
+    listF.push_back(shouldRemainFalseDSO);
+    listF.push_back(shouldAlsoRemainFalseDSO);
+    listF.push_back(aThirdFalseDSO);
+
+    TS_ASSERT_EQUALS(shouldRemainFalse, false);
+    TS_ASSERT_EQUALS(shouldFlipToTrue, false);
+    TS_ASSERT_EQUALS(alsoFlipToTrue, false);
+    TS_ASSERT_EQUALS(shouldAlsoRemainFalse, false);
+    TS_ASSERT_EQUALS(aThirdFalse, false);
+
+    d_context->pop();
+
+    TS_ASSERT_EQUALS(shouldRemainFalse, false);
+    TS_ASSERT_EQUALS(shouldFlipToTrue, true);
+    TS_ASSERT_EQUALS(alsoFlipToTrue, true);
+    TS_ASSERT_EQUALS(shouldAlsoRemainFalse, false);
+    TS_ASSERT_EQUALS(aThirdFalse, false);
   }
 };

@@ -199,7 +199,6 @@ inline bool NodeValueConstCompare<k, pool>::compare(const ::CVC4::expr::NodeValu
     if(x->d_nchildren == 1) {
       Assert(y->d_nchildren == 0);
       return compare(y, x);
-      return *reinterpret_cast<T*>(x->d_children[0]) == y->getConst<T>();
     } else if(y->d_nchildren == 1) {
       Assert(x->d_nchildren == 0);
       return x->getConst<T>() == *reinterpret_cast<T*>(y->d_children[0]);

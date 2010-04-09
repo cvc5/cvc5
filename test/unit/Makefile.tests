@@ -8,7 +8,7 @@
 # It's a pain to make automake happy.
 
 # Add "filtered" tests to the set of TESTS
-TESTS = $(filter $(TEST_PREFIX)%,$(UNIT_TESTS))
+TESTS = $(filter $(TEST_PREFIX)%,$(filter %$(TEST_SUFFIX),$(UNIT_TESTS)))
 
 # subsets of the tests, based on name
 WHITE_TESTS = $(filter %_white,$(UNIT_TESTS))

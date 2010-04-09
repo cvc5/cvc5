@@ -95,6 +95,7 @@ private:
   CDList(const CDList<T>& l) :
     ContextObj(l),
     d_list(NULL),
+    d_callDestructor(l.d_callDestructor),
     d_size(l.d_size),
     d_sizeAlloc(0) {
   }

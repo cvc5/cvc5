@@ -60,4 +60,55 @@ public:
     d_context->push();
     i = 5;
   }
+
+  void testPreNotify() {
+    struct MyContextNotifyObj : ContextNotifyObj {
+      int nCalls;
+
+      MyContextNotifyObj(Context* context, bool pre) :
+        ContextNotifyObj(context, pre),
+        nCalls(0) {
+      }
+
+      void notify() {
+        ++nCalls;
+      }
+    } a(d_context, true), b(d_context, false);
+
+    {
+      MyContextNotifyObj c(d_context, true), d(d_context, false);
+
+      TS_ASSERT_EQUALS(a.nCalls, 0);
+      TS_ASSERT_EQUALS(b.nCalls, 0);
+      TS_ASSERT_EQUALS(c.nCalls, 0);
+      TS_ASSERT_EQUALS(d.nCalls, 0);
+
+      d_context->push();
+      d_context->push();
+
+      TS_ASSERT_EQUALS(a.nCalls, 0);
+      TS_ASSERT_EQUALS(b.nCalls, 0);
+      TS_ASSERT_EQUALS(c.nCalls, 0);
+      TS_ASSERT_EQUALS(d.nCalls, 0);
+
+      d_context->pop();
+
+      TS_ASSERT_EQUALS(a.nCalls, 1);
+      TS_ASSERT_EQUALS(b.nCalls, 1);
+      TS_ASSERT_EQUALS(c.nCalls, 1);
+      TS_ASSERT_EQUALS(d.nCalls, 1);
+
+      d_context->pop();
+
+      TS_ASSERT_EQUALS(a.nCalls, 2);
+      TS_ASSERT_EQUALS(b.nCalls, 2);
+      TS_ASSERT_EQUALS(c.nCalls, 2);
+      TS_ASSERT_EQUALS(d.nCalls, 2);
+    }
+
+    // we do this to get full code coverage of destruction paths
+    delete d_context;
+
+    d_context = NULL;
+  }
 };
