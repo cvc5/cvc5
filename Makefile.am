@@ -55,4 +55,4 @@ lcov18: all
 	$(GENHTML) -o "@top_srcdir@/html" cvc4-coverage-public.info cvc4-coverage-black.info cvc4-coverage-white.info
 	@echo "De-mangling C++ symbols..."
 	@find "@top_srcdir@/html" -name '*.func.html' | \
-		xargs perl -pi -e 's,(<td class="coverFn"><a href=".*">)(.*)(</a></td>),$$_=`c++filt "$$2"`;chomp;print "$$1<xmp>$$_</xmp>$$3";,e'
+		xargs perl -ni -e 's,(<td class="coverFn"><a href=".*">)(.*)(</a></td>.*),$$_=`c++filt "$$2"`;chomp;print "$$1<xmp>$$_</xmp>$$3\n";,e || print'
