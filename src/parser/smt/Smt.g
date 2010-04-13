@@ -198,10 +198,11 @@ annotatedFormula[CVC4::Expr& expr]
     (LET_TOK LPAREN_TOK let_identifier[name,CHECK_UNDECLARED]
       | FLET_TOK LPAREN_TOK flet_identifier[name,CHECK_UNDECLARED] )
     annotatedFormula[expr] RPAREN_TOK
-    { PARSER_STATE->defineVar(name,expr); }
+    { PARSER_STATE->pushScope();
+      PARSER_STATE->defineVar(name,expr); }
     annotatedFormula[expr]
     RPAREN_TOK
-    { PARSER_STATE->undefineVar(name); }
+    { PARSER_STATE->popScope(); }
 
   | /* a variable */
     ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]

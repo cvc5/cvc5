@@ -9,6 +9,7 @@ UNIT_TESTS = \
 	expr/node_manager_white \
 	expr/attribute_white \
 	expr/attribute_black \
+	expr/declaration_scope_black \
 	parser/parser_white \
 	context/context_black \
 	context/context_white \

@@ -261,6 +261,12 @@ public:
     delete d_exprManager;
   }
 
+  void testBs() {
+    DeclarationScope declScope;
+    declScope.bind("foo", d_exprManager->mkVar("foo",d_exprManager->booleanType()));
+
+  }
+
   void testGoodCvc4Inputs() {
     tryGoodInputs(LANG_CVC4,goodCvc4Inputs,numGoodCvc4Inputs);
   }

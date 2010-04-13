@@ -50,7 +50,7 @@ Expr ParserState::getSymbol(const std::string& name, SymbolType type) {
   switch( type ) {
 
   case SYM_VARIABLE: // Functions share var namespace
-    return d_varTable.getObject(name);
+    return d_declScope.lookup(name);
 
   default:
     Unhandled(type);
@@ -72,7 +72,7 @@ ParserState::getType(const std::string& var_name,
 
 Type* ParserState::getSort(const std::string& name) {
   Assert( isDeclared(name, SYM_SORT) );
-  Type* t = d_sortTable.getObject(name);
+  Type *t = d_declScope.lookupType(name);
   return t;
 }
 
@@ -112,16 +112,18 @@ ParserState::mkVars(const std::vector<std::string> names,
 void
 ParserState::defineVar(const std::string& name, const Expr& val) {
   Assert(!isDeclared(name));
-  d_varTable.bindName(name,val);
+  d_declScope.bind(name,val);
   Assert(isDeclared(name));
 }
 
+/*
 void
 ParserState::undefineVar(const std::string& name) {
   Assert(isDeclared(name));
-  d_varTable.unbindName(name);
+  d_declScope.unbind(name);
   Assert(!isDeclared(name));
 }
+*/
 
 void
 ParserState::setLogic(const std::string& name) {
@@ -137,7 +139,7 @@ ParserState::mkSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Assert( !isDeclared(name, SYM_SORT) ) ;
   Type* type = d_exprManager->mkSort(name);
-  d_sortTable.bindName(name, type);
+  d_declScope.bindType(name, type);
   Assert( isDeclared(name, SYM_SORT) ) ;
   return type;
 }
@@ -154,9 +156,9 @@ ParserState::mkSorts(const std::vector<std::string>& names) {
 bool ParserState::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
-    return d_varTable.isBound(name);
+    return d_declScope.isBound(name);
   case SYM_SORT:
-    return d_sortTable.isBound(name);
+    return d_declScope.isBoundType(name);
   default:
     Unhandled(type);
   }
