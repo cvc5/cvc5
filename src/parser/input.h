@@ -73,6 +73,7 @@ public:
     * @param exprManager the ExprManager for creating expressions from the input
     * @param lang the input language
     * @param filename the input filename
+    * @param useMmap true if the parser should use memory-mapped I/O (default: false)
     */
    static Input* newFileInput(ExprManager* exprManager, InputLanguage lang, const std::string& filename, bool useMmap=false);
 

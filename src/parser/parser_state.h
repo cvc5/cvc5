@@ -199,7 +199,7 @@ public:
   void checkFunction(const std::string& name) throw (ParserException);
 
   /**
-   * Check that <code>kind</code> can accept <code>numArgs</codes> arguments.
+   * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
    * @param kind the built-in operator to check
    * @param numArgs the number of actual arguments
    * @throws ParserException if checks are enabled and the operator <code>kind</code> cannot be
@@ -209,7 +209,7 @@ public:
 
   /**
    * Returns the type for the variable with the given name.
-   * @param name the symbol to lookup
+   * @param var_name the symbol to lookup
    * @param type the (namespace) type of the symbol
    */
   Type* getType(const std::string& var_name, SymbolType type = SYM_VARIABLE);

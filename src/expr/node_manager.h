@@ -356,7 +356,7 @@ public:
    */
   template <class AttrKind>
   inline void setAttribute(expr::NodeValue* nv,
-                           const AttrKind&,
+                           const AttrKind& attr,
                            const typename AttrKind::value_type& value);
 
   /**
@@ -368,8 +368,8 @@ public:
    * <code>AttrKind::value_type</code> if not.
    */
   template <class AttrKind>
-  inline typename AttrKind::value_type getAttribute(TNode n,
-                                                    const AttrKind&) const;
+  inline typename AttrKind::value_type 
+  getAttribute(TNode n, const AttrKind& attr) const;
 
   /**
    * Check whether an attribute is set for a TNode.
@@ -410,7 +410,7 @@ public:
    */
   template <class AttrKind>
   inline void setAttribute(TNode n,
-                           const AttrKind&,
+                           const AttrKind& attr,
                            const typename AttrKind::value_type& value);
 
   /** Get the (singleton) type for booleans. */
