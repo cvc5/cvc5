@@ -208,6 +208,20 @@ public:
     Debug("gc") << "done emptying trash for " << this << std::endl;
   }
 
+  void clear() throw(AssertionException) {
+    Debug("gc") << "cdmap " << this
+                << " disappearing, destroying..." << std::endl;
+    for(typename table_type::iterator i = d_map.begin();
+        i != d_map.end();
+        ++i) {
+      (*i).second->deleteSelf();
+    }
+    d_map.clear();
+    emptyTrash();
+    Debug("gc") << "done emptying trash for " << this << std::endl;
+  }
+
+
   // The usual operators of map
 
   size_t size() const {

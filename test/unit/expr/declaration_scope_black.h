@@ -56,7 +56,7 @@ public:
 
   void testBind() {
     DeclarationScope declScope;
-    Type *booleanType = d_exprManager->booleanType();
+    Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
     declScope.bind("x",x);
     TS_ASSERT( declScope.isBound("x") );
@@ -65,7 +65,7 @@ public:
 
   void testBind2() {
     DeclarationScope declScope;
-    Type *booleanType = d_exprManager->booleanType();
+    Type booleanType = d_exprManager->booleanType();
     // var name attribute shouldn't matter
     Expr y = d_exprManager->mkVar("y", booleanType);
     declScope.bind("x",y);
@@ -75,7 +75,7 @@ public:
 
   void testBind3() {
     DeclarationScope declScope;
-    Type *booleanType = d_exprManager->booleanType();
+    Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
     declScope.bind("x",x);
     Expr y = d_exprManager->mkVar(booleanType);
@@ -87,11 +87,11 @@ public:
 
   void testBind4() {
     DeclarationScope declScope;
-    Type *booleanType = d_exprManager->booleanType();
+    Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
     declScope.bind("x",x);
 
-    Type *t = d_exprManager->mkSort("T");
+    Type t = d_exprManager->mkSort("T");
     // duplicate binding for type is OK
     declScope.bindType("x",t);
 
@@ -103,7 +103,7 @@ public:
 
   void testBindType() {
     DeclarationScope declScope;
-    Type *s = d_exprManager->mkSort("S");
+    Type s = d_exprManager->mkSort("S");
     declScope.bindType("S",s);
     TS_ASSERT( declScope.isBoundType("S") );
     TS_ASSERT_EQUALS( declScope.lookupType("S"), s );
@@ -112,7 +112,7 @@ public:
   void testBindType2() {
     DeclarationScope declScope;
     // type name attribute shouldn't matter
-    Type *s = d_exprManager->mkSort("S");
+    Type s = d_exprManager->mkSort("S");
     declScope.bindType("T",s);
     TS_ASSERT( declScope.isBoundType("T") );
     TS_ASSERT_EQUALS( declScope.lookupType("T"), s );
@@ -120,9 +120,9 @@ public:
 
   void testBindType3() {
     DeclarationScope declScope;
-    Type *s = d_exprManager->mkSort("S");
+    Type s = d_exprManager->mkSort("S");
     declScope.bindType("S",s);
-    Type *t = d_exprManager->mkSort("T");
+    Type t = d_exprManager->mkSort("T");
     // new binding covers old
     declScope.bindType("S",t);
     TS_ASSERT( declScope.isBoundType("S") );
@@ -131,7 +131,7 @@ public:
 
   void testPushScope() {
     DeclarationScope declScope;
-    Type *booleanType = d_exprManager->booleanType();
+    Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
     declScope.bind("x",x);
     declScope.pushScope();

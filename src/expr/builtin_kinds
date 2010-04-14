@@ -120,3 +120,11 @@ operator DISTINCT 2: "disequality"
 variable SKOLEM "skolem var"
 variable VARIABLE "variable"
 operator TUPLE 2: "a tuple"
+
+constant TYPE_CONSTANT \
+    ::CVC4::TypeConstant \
+    ::CVC4::TypeConstantHashStrategy \
+    "expr/type_constant.h" \
+    "basic types"
+operator FUNCTION_TYPE 2: "function type"
+variable SORT_TYPE "sort type"

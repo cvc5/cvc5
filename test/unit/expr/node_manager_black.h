@@ -142,7 +142,7 @@ public:
   }
 
   void testMkVar1() {
-    Type* booleanType = d_nodeManager->booleanType();
+    Type booleanType = d_nodeManager->booleanType();
     Node x = d_nodeManager->mkVar(booleanType);
     TS_ASSERT_EQUALS(x.getKind(),VARIABLE);
     TS_ASSERT_EQUALS(x.getNumChildren(),0u);
@@ -150,7 +150,7 @@ public:
   }
 
   void testMkVar2() {
-    Type* booleanType = d_nodeManager->booleanType();
+    Type booleanType = d_nodeManager->booleanType();
     Node x = d_nodeManager->mkVar("x", booleanType);
     TS_ASSERT_EQUALS(x.getKind(),VARIABLE);
     TS_ASSERT_EQUALS(x.getNumChildren(),0u);
@@ -187,19 +187,19 @@ public:
   }
 
   void testBooleanType() {
-    Type* booleanType1 = d_nodeManager->booleanType();
-    Type* booleanType2 = d_nodeManager->booleanType();
-    Type* otherType = d_nodeManager->mkSort("T");
-    TS_ASSERT( booleanType1->isBoolean() );
+    Type booleanType1 = d_nodeManager->booleanType();
+    Type booleanType2 = d_nodeManager->booleanType();
+    Type otherType = d_nodeManager->mkSort("T");
+    TS_ASSERT( booleanType1.isBoolean() );
     TS_ASSERT_EQUALS(booleanType1, booleanType2);
     TS_ASSERT( booleanType1 != otherType );
   }
 
   void testKindType() {
-    Type* kindType1 = d_nodeManager->kindType();
-    Type* kindType2 = d_nodeManager->kindType();
-    Type* otherType = d_nodeManager->mkSort("T");
-    TS_ASSERT( kindType1->isKind() );
+    Type kindType1 = d_nodeManager->kindType();
+    Type kindType2 = d_nodeManager->kindType();
+    Type otherType = d_nodeManager->mkSort("T");
+    TS_ASSERT( kindType1.isKind() );
     TS_ASSERT_EQUALS(kindType1, kindType2);
     TS_ASSERT( kindType1 != otherType );
     // TODO: Is there a way to get the type of otherType (it should == kindType)
@@ -213,98 +213,98 @@ public:
    * with the current type implementation it's the best we can do. */
 
   void testMkFunctionType2() {
-    Type *booleanType = d_nodeManager->booleanType();
-    Type *t = d_nodeManager->mkFunctionType(booleanType,booleanType);
+    Type booleanType = d_nodeManager->booleanType();
+    Type t = d_nodeManager->mkFunctionType(booleanType,booleanType);
     TS_ASSERT( t != booleanType );
-    TS_ASSERT( t->isFunction() );
+    TS_ASSERT( t.isFunction() );
 
-    FunctionType* ft = (FunctionType*)t;
-    TS_ASSERT_EQUALS(ft->getArgTypes().size(), 1u);
-    TS_ASSERT_EQUALS(ft->getArgTypes()[0], booleanType);
-    TS_ASSERT_EQUALS(ft->getRangeType(), booleanType);
+    FunctionType ft = (FunctionType)t;
+    TS_ASSERT_EQUALS(ft.getArgTypes().size(), 1u);
+    TS_ASSERT_EQUALS(ft.getArgTypes()[0], booleanType);
+    TS_ASSERT_EQUALS(ft.getRangeType(), booleanType);
 
 /*    Type *t2 = d_nodeManager->mkFunctionType(booleanType,booleanType);
     TS_ASSERT_EQUALS( t, t2 );*/
   }
 
   void testMkFunctionTypeVecType() {
-    Type *a = d_nodeManager->mkSort("a");
-    Type *b = d_nodeManager->mkSort("b");
-    Type *c = d_nodeManager->mkSort("c");
+    Type a = d_nodeManager->mkSort("a");
+    Type b = d_nodeManager->mkSort("b");
+    Type c = d_nodeManager->mkSort("c");
 
-    std::vector<Type*> argTypes;
+    std::vector<Type> argTypes;
     argTypes.push_back(a);
     argTypes.push_back(b);
 
-    Type *t = d_nodeManager->mkFunctionType(argTypes,c);
+    Type t = d_nodeManager->mkFunctionType(argTypes,c);
 
     TS_ASSERT( t != a );
     TS_ASSERT( t != b );
     TS_ASSERT( t != c );
-    TS_ASSERT( t->isFunction() );
+    TS_ASSERT( t.isFunction() );
 
-    FunctionType* ft = (FunctionType*)t;
-    TS_ASSERT_EQUALS(ft->getArgTypes().size(), argTypes.size());
-    TS_ASSERT_EQUALS(ft->getArgTypes()[0], a);
-    TS_ASSERT_EQUALS(ft->getArgTypes()[1], b);
-    TS_ASSERT_EQUALS(ft->getRangeType(), c);
+    FunctionType ft = (FunctionType)t;
+    TS_ASSERT_EQUALS(ft.getArgTypes().size(), argTypes.size());
+    TS_ASSERT_EQUALS(ft.getArgTypes()[0], a);
+    TS_ASSERT_EQUALS(ft.getArgTypes()[1], b);
+    TS_ASSERT_EQUALS(ft.getRangeType(), c);
 
 /*    Type *t2 = d_nodeManager->mkFunctionType(argTypes,c);
     TS_ASSERT_EQUALS( t, t2 );*/
   }
 
   void testMkFunctionTypeVec() {
-    Type *a = d_nodeManager->mkSort("a");
-    Type *b = d_nodeManager->mkSort("b");
-    Type *c = d_nodeManager->mkSort("c");
+    Type a = d_nodeManager->mkSort("a");
+    Type b = d_nodeManager->mkSort("b");
+    Type c = d_nodeManager->mkSort("c");
 
-    std::vector<Type*> types;
+    std::vector<Type> types;
     types.push_back(a);
     types.push_back(b);
     types.push_back(c);
 
-    Type *t = d_nodeManager->mkFunctionType(types);
+    Type t = d_nodeManager->mkFunctionType(types);
 
     TS_ASSERT( t != a );
     TS_ASSERT( t != b );
     TS_ASSERT( t != c );
-    TS_ASSERT( t->isFunction() );
+    TS_ASSERT( t.isFunction() );
 
-    FunctionType* ft = (FunctionType*)t;
-    TS_ASSERT_EQUALS(ft->getArgTypes().size(), types.size()-1);
-    TS_ASSERT_EQUALS(ft->getArgTypes()[0], a);
-    TS_ASSERT_EQUALS(ft->getArgTypes()[1], b);
-    TS_ASSERT_EQUALS(ft->getRangeType(), c);
+    FunctionType ft = (FunctionType)t;
+    TS_ASSERT_EQUALS(ft.getArgTypes().size(), types.size()-1);
+    TS_ASSERT_EQUALS(ft.getArgTypes()[0], a);
+    TS_ASSERT_EQUALS(ft.getArgTypes()[1], b);
+    TS_ASSERT_EQUALS(ft.getRangeType(), c);
 
 /*    Type *t2 = d_nodeManager->mkFunctionType(types);
     TS_ASSERT_EQUALS( t, t2 );*/
   }
 
   void testMkPredicateType() {
-    Type *a = d_nodeManager->mkSort("a");
-    Type *b = d_nodeManager->mkSort("b");
-    Type *c = d_nodeManager->mkSort("c");
-    Type *booleanType = d_nodeManager->booleanType();
+    Type a = d_nodeManager->mkSort("a");
+    Type b = d_nodeManager->mkSort("b");
+    Type c = d_nodeManager->mkSort("c");
+    Type booleanType = d_nodeManager->booleanType();
 
-    std::vector<Type*> argTypes;
+    std::vector<Type> argTypes;
     argTypes.push_back(a);
     argTypes.push_back(b);
     argTypes.push_back(c);
 
-    Type *t = d_nodeManager->mkPredicateType(argTypes);
+    Type t = d_nodeManager->mkPredicateType(argTypes);
 
     TS_ASSERT( t != a );
     TS_ASSERT( t != b );
     TS_ASSERT( t != c );
     TS_ASSERT( t != booleanType );
-    TS_ASSERT( t->isFunction() );
+    TS_ASSERT( t.isFunction() );
 
-    FunctionType* ft = (FunctionType*)t;
-    TS_ASSERT_EQUALS(ft->getArgTypes().size(), argTypes.size());
-    TS_ASSERT_EQUALS(ft->getArgTypes()[0], a);
-    TS_ASSERT_EQUALS(ft->getArgTypes()[1], b);
-    TS_ASSERT_EQUALS(ft->getArgTypes()[2], c);
-    TS_ASSERT_EQUALS(ft->getRangeType(), booleanType);
+    FunctionType ft = (FunctionType)t;
+    TS_ASSERT_EQUALS(ft.getArgTypes().size(), argTypes.size());
+    TS_ASSERT_EQUALS(ft.getArgTypes()[0], a);
+    TS_ASSERT_EQUALS(ft.getArgTypes()[1], b);
+    TS_ASSERT_EQUALS(ft.getArgTypes()[2], c);
+    TS_ASSERT_EQUALS(ft.getRangeType(), booleanType);
 
 //    Type *t2 = d_nodeManager->mkPredicateType(argTypes);
 //    TS_ASSERT_EQUALS( t, t2 );

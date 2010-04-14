@@ -29,7 +29,6 @@
 
 #include "context/cdmap.h"
 #include "expr/node.h"
-#include "expr/type.h"
 #include "util/output.h"
 
 // include supporting templates
@@ -57,7 +56,9 @@ class AttributeManager {
   /** Underlying hash table for integral-valued attributes */
   AttrHash<uint64_t> d_ints;
   /** Underlying hash table for node-valued attributes */
-  AttrHash<TNode> d_exprs;
+  AttrHash<TNode> d_tnodes;
+  /** Underlying hash table for node-valued attributes */
+  AttrHash<Node> d_nodes;
   /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
   /** Underlying hash table for pointer-valued attributes */
@@ -71,7 +72,9 @@ class AttributeManager {
   /** Underlying hash table for context-dependent integral-valued attributes */
   CDAttrHash<uint64_t> d_cdints;
   /** Underlying hash table for context-dependent node-valued attributes */
-  CDAttrHash<TNode> d_cdexprs;
+  CDAttrHash<TNode> d_cdtnodes;
+  /** Underlying hash table for context-dependent node-valued attributes */
+  CDAttrHash<Node> d_cdnodes;
   /** Underlying hash table for context-dependent string-valued attributes */
   CDAttrHash<std::string> d_cdstrings;
   /** Underlying hash table for context-dependent pointer-valued attributes */
@@ -79,6 +82,9 @@ class AttributeManager {
 
   template <class T>
   void deleteFromTable(AttrHash<T>& table, NodeValue* nv);
+
+  template <class T>
+  void deleteAllFromTable(AttrHash<T>& table);
 
   /**
    * getTable<> is a helper template that gets the right table from an
@@ -93,7 +99,8 @@ public:
   AttributeManager(context::Context* ctxt) :
     d_cdbools(ctxt),
     d_cdints(ctxt),
-    d_cdexprs(ctxt),
+    d_cdtnodes(ctxt),
+    d_cdnodes(ctxt),
     d_cdstrings(ctxt),
     d_cdptrs(ctxt) {
   }
@@ -166,6 +173,11 @@ public:
    * @param nv the node from which to delete attributes
    */
   void deleteAllAttributes(NodeValue* nv);
+
+  /**
+   * Remove all attributes from the tables.
+   */
+  void deleteAllAttributes();
 };
 
 }/* CVC4::expr::attr namespace */
@@ -205,15 +217,27 @@ struct getTable<uint64_t, false> {
   }
 };
 
-/** Access the "d_exprs" member of AttributeManager. */
+/** Access the "d_tnodes" member of AttributeManager. */
 template <>
 struct getTable<TNode, false> {
   typedef AttrHash<TNode> table_type;
   static inline table_type& get(AttributeManager& am) {
-    return am.d_exprs;
+    return am.d_tnodes;
   }
   static inline const table_type& get(const AttributeManager& am) {
-    return am.d_exprs;
+    return am.d_tnodes;
+  }
+};
+
+/** Access the "d_nodes" member of AttributeManager. */
+template <>
+struct getTable<Node, false> {
+  typedef AttrHash<Node> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_nodes;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_nodes;
   }
 };
 
@@ -277,15 +301,27 @@ struct getTable<uint64_t, true> {
   }
 };
 
-/** Access the "d_cdexprs" member of AttributeManager. */
+/** Access the "d_tnodes" member of AttributeManager. */
 template <>
 struct getTable<TNode, true> {
   typedef CDAttrHash<TNode> table_type;
   static inline table_type& get(AttributeManager& am) {
-    return am.d_cdexprs;
+    return am.d_cdtnodes;
   }
   static inline const table_type& get(const AttributeManager& am) {
-    return am.d_cdexprs;
+    return am.d_cdtnodes;
+  }
+};
+
+/** Access the "d_nodes" member of AttributeManager. */
+template <>
+struct getTable<Node, true> {
+  typedef CDAttrHash<Node> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_cdnodes;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_cdnodes;
   }
 };
 
@@ -498,6 +534,27 @@ inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
     }
   }
 }
+
+/**
+ * Remove all attributes from the table calling the cleanup function if one is defined.
+ */
+template <class T>
+inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
+  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::s_id; ++id) {
+    typedef AttributeTraits<T, false> traits_t;
+    typedef AttrHash<T> hash_t;
+    if(traits_t::cleanup[id] != NULL) {
+      typename hash_t::iterator it = table.begin();
+      typename hash_t::iterator it_end = table.end();
+      while (it != it_end) {
+        traits_t::cleanup[id]((*it).second);
+        ++ it;
+      }
+    }
+    table.clear();
+  }
+}
+
 
 }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */

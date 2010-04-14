@@ -30,7 +30,6 @@
 
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "expr/expr.h"
 #include "expr/node_value.h"
 #include "context/context.h"
 #include "expr/type.h"
@@ -86,7 +85,12 @@ class NodeManager {
    * NodeValues, but these shouldn't trigger a (recursive) call to
    * reclaimZombies().
    */
-  bool d_reclaiming;
+  bool d_dontGC;
+
+  /**
+   * Marks that we are in the Destructor currently.
+   */
+  bool d_inDestruction;
 
   /**
    * The set of zombie nodes.  We may want to revisit this design, as
@@ -164,11 +168,11 @@ class NodeManager {
     // reclaimZombies(), because it's already running.
     Debug("gc") << "zombifying node value " << nv
                 << " [" << nv->d_id << "]: " << *nv
-                << (d_reclaiming ? " [CURRENTLY-RECLAIMING]" : "")
+                << (d_dontGC ? " [CURRENTLY-RECLAIMING]" : "")
                 << std::endl;
     d_zombies.insert(nv);// FIXME multithreading
 
-    if(!d_reclaiming) {// FIXME multithreading
+    if(!d_dontGC) {// FIXME multithreading
       // for now, collect eagerly.  can add heuristic here later..
       reclaimZombies();
     }
@@ -202,9 +206,7 @@ class NodeManager {
 
   // NodeManager's attributes.  These aren't exposed outside of this
   // class; use the getters.
-  typedef expr::ManagedAttribute<TypeTag,
-                                 CVC4::Type*,
-                                 expr::attr::TypeCleanupStrategy> TypeAttr;
+  typedef expr::Attribute<TypeTag, Node> TypeAttr;
   typedef expr::Attribute<AtomicTag, bool> AtomicAttr;
 
   /**
@@ -239,6 +241,11 @@ public:
   NodeManager(context::Context* ctxt);
   ~NodeManager();
 
+  /**
+   * Return true if we are in destruction.
+   */
+  bool inDestruction() const { return d_inDestruction; }
+
   /** The node manager in the current context. */
   static NodeManager* currentNM() { return s_current; }
 
@@ -246,37 +253,49 @@ public:
 
   /** Create a node with no children. */
   Node mkNode(Kind kind);
+  Node* mkNodePtr(Kind kind);
 
   /** Create a node with one child. */
   Node mkNode(Kind kind, TNode child1);
+  Node* mkNodePtr(Kind kind, TNode child1);
 
   /** Create a node with two children. */
   Node mkNode(Kind kind, TNode child1, TNode child2);
+  Node* mkNodePtr(Kind kind, TNode child1, TNode child2);
 
   /** Create a node with three children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
+  Node* mkNodePtr(Kind kind, TNode child1, TNode child2, TNode child3);
 
   /** Create a node with four children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
+              TNode child4);
+  Node* mkNodePtr(Kind kind, TNode child1, TNode child2, TNode child3,
               TNode child4);
 
   /** Create a node with five children. */
   Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3,
               TNode child4, TNode child5);
+  Node* mkNodePtr(Kind kind, TNode child1, TNode child2, TNode child3,
+              TNode child4, TNode child5);
 
   /** Create a node with an arbitrary number of children. */
   template <bool ref_count>
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
+  template <bool ref_count>
+  Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
    * mkVar("a", type) again, you have two variables.
    */
-  Node mkVar(const std::string& name, Type* type);
+  Node mkVar(const std::string& name, const Type& type);
+  Node* mkVarPtr(const std::string& name, const Type& type);
 
   /** Create a variable with the given type. */
-  Node mkVar(Type* type);
+  Node mkVar(const Type& type);
+  Node* mkVarPtr(const Type& type);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -414,14 +433,10 @@ public:
                            const typename AttrKind::value_type& value);
 
   /** Get the (singleton) type for booleans. */
-  inline BooleanType* booleanType() const {
-    return BooleanType::getInstance();
-  }
+  inline BooleanType booleanType();
 
   /** Get the (singleton) type for sorts. */
-  inline KindType* kindType() const {
-    return KindType::getInstance();
-  }
+  inline KindType kindType();
 
   /**
    * Make a function type from domain to range.
@@ -430,7 +445,7 @@ public:
    * @param range the range type
    * @returns the functional type domain -> range
    */
-  inline FunctionType* mkFunctionType(Type* domain, Type* range) const;
+  inline Type mkFunctionType(const Type& domain, const Type& range);
 
   /**
    * Make a function type with input types from
@@ -440,8 +455,7 @@ public:
    * @param range the range type
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
-  inline FunctionType* mkFunctionType(const std::vector<Type*>& argTypes,
-                                      Type* range) const;
+  inline Type mkFunctionType(const std::vector<Type>& argTypes, const Type& range);
 
   /**
    * Make a function type with input types from
@@ -449,7 +463,7 @@ public:
    * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
    * at least 2 elements.
    */
-  inline FunctionType* mkFunctionType(const std::vector<Type*>& sorts) const;
+  inline Type mkFunctionType(const std::vector<Type>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -457,16 +471,15 @@ public:
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  inline FunctionType* mkPredicateType(const std::vector<Type*>& sorts) const;
+  inline Type mkPredicateType(const std::vector<Type>& sorts);
 
   /** Make a new sort with the given name. */
-  inline Type* mkSort(const std::string& name) const;
+  inline Type mkSort(const std::string& name);
 
-  /** Get the type for the given node.
-   *
-   * TODO: Does this call compute the type if it's not already available?
+  /**
+   * Get the type for the given node.
    */
-  inline Type* getType(TNode n) const;
+  inline Type getType(TNode n);
 
   /**
    * Returns true if this node is atomic (has no more Boolean structure)
@@ -518,38 +531,6 @@ public:
   }
 };
 
-/**
- * Creates a <code>NodeManagerScope</code> with the underlying
- * <code>NodeManager</code> of a given <code>Expr</code> or
- * <code>ExprManager</code>.  The <code>NodeManagerScope</code> is
- * destroyed when the <code>ExprManagerScope</code> is destroyed. See
- * <code>NodeManagerScope</code> for more information.
- */
-// NOTE: Here, it seems ExprManagerScope is redundant, since we have
-// NodeManagerScope already.  However, without this class, we'd need
-// Expr to be a friend of ExprManager, because in the implementation
-// of Expr functions, it needs to set the current NodeManager
-// correctly (and to do that it needs access to
-// ExprManager::getNodeManager()).  So, we make ExprManagerScope a
-// friend of ExprManager's, since its implementation is simple to
-// read and understand (and verify that it doesn't do any mischief).
-//
-// ExprManager::getNodeManager() can't just be made public, since
-// ExprManager is exposed to clients of the library and NodeManager is
-// not.  Similarly, ExprManagerScope shouldn't go in expr_manager.h,
-// since that's a public header.
-class ExprManagerScope {
-  NodeManagerScope d_nms;
-public:
-  inline ExprManagerScope(const Expr& e) :
-    d_nms(e.getExprManager() == NULL
-          ? NodeManager::currentNM()
-          : e.getExprManager()->getNodeManager()) {
-  }
-  inline ExprManagerScope(const ExprManager& exprManager) :
-    d_nms(exprManager.getNodeManager()) {
-  }
-};
 
 template <class AttrKind>
 inline typename AttrKind::value_type
@@ -603,45 +584,61 @@ NodeManager::setAttribute(TNode n, const AttrKind&,
   d_attrManager.setAttribute(n.d_nv, AttrKind(), value);
 }
 
+
+/** Get the (singleton) type for booleans. */
+inline BooleanType NodeManager::booleanType() {
+  return Type(this, new Node(mkConst<TypeConstant>(BOOLEAN_TYPE)));
+}
+
+/** Get the (singleton) type for sorts. */
+inline KindType NodeManager::kindType() {
+  return Type(this, new Node(mkConst<TypeConstant>(KIND_TYPE)));
+}
+
 /** Make a function type from domain to range.
  * TODO: Function types should be unique for this manager. */
-inline FunctionType* NodeManager::mkFunctionType(Type* domain,
-                                                 Type* range) const {
-  std::vector<Type*> argTypes;
-  argTypes.push_back(domain);
-  return new FunctionType(argTypes, range);
+inline Type NodeManager::mkFunctionType(const Type& domain, const Type& range) {
+  return Type(this, mkNodePtr(kind::FUNCTION_TYPE, *domain.d_typeNode, *range.d_typeNode));
 }
 
-/** Make a function type with input types from argTypes.
- * TODO: Function types should be unique for this manager. */
-inline FunctionType*
-NodeManager::mkFunctionType(const std::vector<Type*>& argTypes,
-                            Type* range) const {
-  Assert( argTypes.size() > 0 );
-  return new FunctionType(argTypes, range);
+inline Type NodeManager::mkFunctionType(const std::vector<Type>& argTypes, const Type& range) {
+  Assert(argTypes.size() >= 1);
+  std::vector<Type> sorts(argTypes);
+  sorts.push_back(range);
+  return mkFunctionType(sorts);
 }
 
-inline FunctionType*
-NodeManager::mkFunctionType(const std::vector<Type*>& sorts) const {
-  Assert( sorts.size() >= 2 );
-  std::vector<Type*> argTypes(sorts);
-  Type* rangeType = argTypes.back();
-  argTypes.pop_back();
-  return mkFunctionType(argTypes,rangeType);
+
+inline Type
+NodeManager::mkFunctionType(const std::vector<Type>& sorts) {
+  Assert(sorts.size() >= 2);
+  std::vector<Node> sortNodes;
+  for (unsigned i = 0; i < sorts.size(); ++ i) {
+    sortNodes.push_back(*(sorts[i].d_typeNode));
+  }
+  return Type(this, mkNodePtr(kind::FUNCTION_TYPE, sortNodes));
 }
 
-inline FunctionType*
-NodeManager::mkPredicateType(const std::vector<Type*>& sorts) const {
-  Assert( sorts.size() >= 1 );
-  return mkFunctionType(sorts,booleanType());
+inline Type
+NodeManager::mkPredicateType(const std::vector<Type>& sorts) {
+  Assert(sorts.size() >= 1);
+  std::vector<Node> sortNodes;
+  for (unsigned i = 0; i < sorts.size(); ++ i) {
+    sortNodes.push_back(*(sorts[i].d_typeNode));
+  }
+  sortNodes.push_back(*(booleanType().d_typeNode));
+  return Type(this, mkNodePtr(kind::FUNCTION_TYPE, sortNodes));
 }
 
-inline Type* NodeManager::mkSort(const std::string& name) const {
-  return new SortType(name);
+inline Type NodeManager::mkSort(const std::string& name) {
+  return Type(this, mkVarPtr(name, kindType()));
 }
 
-inline Type* NodeManager::getType(TNode n) const {
-  return getAttribute(n, TypeAttr());
+inline Type NodeManager::getType(TNode n)  {
+  Node* typeNode = new Node;
+  getAttribute(n, TypeAttr(), *typeNode);
+  // TODO: Type computation
+  return Type(this, typeNode);
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
@@ -731,31 +728,69 @@ inline bool NodeManager::hasOperator(Kind k) {
 }
 
 inline Node NodeManager::mkNode(Kind kind) {
-  return NodeBuilder<>(this, kind);
+  return NodeBuilder<0>(this, kind);
+}
+
+inline Node* NodeManager::mkNodePtr(Kind kind) {
+  NodeBuilder<0> nb(this, kind);
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
-  return NodeBuilder<>(this, kind) << child1;
+  return NodeBuilder<1>(this, kind) << child1;
+}
+
+inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1) {
+  NodeBuilder<1> nb(this, kind);
+  nb << child1;
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
-  return NodeBuilder<>(this, kind) << child1 << child2;
+  return NodeBuilder<2>(this, kind) << child1 << child2;
+}
+
+inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2) {
+  NodeBuilder<2> nb(this, kind);
+  nb << child1 << child2;
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3) {
-  return NodeBuilder<>(this, kind) << child1 << child2 << child3;
+  return NodeBuilder<3>(this, kind) << child1 << child2 << child3;
+}
+
+inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
+                                TNode child3) {
+  NodeBuilder<3> nb(this, kind);
+  nb << child1 << child2 << child3;
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3, TNode child4) {
-  return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4;
+  return NodeBuilder<4>(this, kind) << child1 << child2 << child3 << child4;
+}
+
+inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
+                                TNode child3, TNode child4) {
+  NodeBuilder<4> nb(this, kind);
+  nb << child1 << child2 << child3 << child4;
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3, TNode child4, TNode child5) {
-  return NodeBuilder<>(this, kind) << child1 << child2 << child3 << child4
+  return NodeBuilder<5>(this, kind) << child1 << child2 << child3 << child4
                                    << child5;
+}
+
+inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
+                                TNode child3, TNode child4, TNode child5) {
+  NodeBuilder<5> nb(this, kind);
+  nb << child1 << child2 << child3 << child4 << child5;
+  return nb.constructNodePtr();
 }
 
 // N-ary version
@@ -766,16 +801,34 @@ inline Node NodeManager::mkNode(Kind kind,
   return NodeBuilder<>(this, kind).append(children);
 }
 
-inline Node NodeManager::mkVar(const std::string& name, Type* type) {
+template <bool ref_count>
+inline Node* NodeManager::mkNodePtr(Kind kind,
+                                const std::vector<NodeTemplate<ref_count> >&
+                                children) {
+  return NodeBuilder<>(this, kind).append(children).constructNodePtr();
+}
+
+inline Node NodeManager::mkVar(const std::string& name, const Type& type) {
   Node n = mkVar(type);
   n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
-inline Node NodeManager::mkVar(Type* type) {
-  Node n = Node(NodeBuilder<>(this, kind::VARIABLE));
-  type->inc();// reference-count the type
-  n.setAttribute(TypeAttr(), type);
+inline Node* NodeManager::mkVarPtr(const std::string& name, const Type& type) {
+  Node* n = mkVarPtr(type);
+  n->setAttribute(expr::VarNameAttr(), name);
+  return n;
+}
+
+inline Node NodeManager::mkVar(const Type& type) {
+  Node n = NodeBuilder<0>(this, kind::VARIABLE);
+  n.setAttribute(TypeAttr(), *type.d_typeNode);
+  return n;
+}
+
+inline Node* NodeManager::mkVarPtr(const Type& type) {
+  Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
+  n->setAttribute(TypeAttr(), *type.d_typeNode);
   return n;
 }
 

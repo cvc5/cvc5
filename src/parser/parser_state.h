@@ -174,7 +174,7 @@ public:
   /**
    * Returns a sort, given a name
    */
-  Type* getSort(const std::string& sort_name);
+  Type getSort(const std::string& sort_name);
 
   /**
    * Checks if a symbol has been declared.
@@ -216,15 +216,15 @@ public:
    * @param var_name the symbol to lookup
    * @param type the (namespace) type of the symbol
    */
-  Type* getType(const std::string& var_name, SymbolType type = SYM_VARIABLE);
+  Type getType(const std::string& var_name, SymbolType type = SYM_VARIABLE);
 
   /** Create a new CVC4 variable expression of the given type. */
-  Expr mkVar(const std::string& name, Type* type);
+  Expr mkVar(const std::string& name, const Type& type);
 
   /** Create a set of new CVC4 variable expressions of the given
    type. */
   const std::vector<Expr>
-  mkVars(const std::vector<std::string> names, Type* type);
+  mkVars(const std::vector<std::string> names, const Type& type);
 
   /** Create a new variable definition (e.g., from a let binding). */
   void defineVar(const std::string& name, const Expr& val);
@@ -234,12 +234,12 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  Type* mkSort(const std::string& name);
+  Type mkSort(const std::string& name);
 
   /**
    * Creates a new sorts with the given names.
    */
-  const std::vector<Type*>
+  const std::vector<Type>
   mkSorts(const std::vector<std::string>& names);
 
   /** Is the symbol bound to a boolean variable? */

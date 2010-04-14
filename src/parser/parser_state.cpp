@@ -62,38 +62,38 @@ Expr ParserState::getVariable(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Type*
+Type
 ParserState::getType(const std::string& var_name,
                      SymbolType type) {
   Assert( isDeclared(var_name, type) );
-  Type* t = getSymbol(var_name,type).getType();
+  Type t = getSymbol(var_name,type).getType();
   return t;
 }
 
-Type* ParserState::getSort(const std::string& name) {
+Type ParserState::getSort(const std::string& name) {
   Assert( isDeclared(name, SYM_SORT) );
-  Type *t = d_declScope.lookupType(name);
+  Type t = d_declScope.lookupType(name);
   return t;
 }
 
 /* Returns true if name is bound to a boolean variable. */
 bool ParserState::isBoolean(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name)->isBoolean();
+  return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
 }
 
 /* Returns true if name is bound to a function. */
 bool ParserState::isFunction(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name)->isFunction();
+  return isDeclared(name, SYM_VARIABLE) && getType(name).isFunction();
 }
 
 /* Returns true if name is bound to a function returning boolean. */
 bool ParserState::isPredicate(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name)->isPredicate();
+  return isDeclared(name, SYM_VARIABLE) && getType(name).isPredicate();
 }
 
 Expr 
-ParserState::mkVar(const std::string& name, Type* type) {
-  Debug("parser") << "mkVar(" << name << "," << *type << ")" << std::endl;
+ParserState::mkVar(const std::string& name, const Type& type) {
+  Debug("parser") << "mkVar(" << name << "," << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type);
   defineVar(name,expr);
   return expr;
@@ -101,7 +101,7 @@ ParserState::mkVar(const std::string& name, Type* type) {
 
 const std::vector<Expr>
 ParserState::mkVars(const std::vector<std::string> names,
-                    Type* type) {
+                    const Type& type) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkVar(names[i],type));
@@ -134,19 +134,19 @@ ParserState::setLogic(const std::string& name) {
   }
 }
 
-Type*
+Type
 ParserState::mkSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Assert( !isDeclared(name, SYM_SORT) ) ;
-  Type* type = d_exprManager->mkSort(name);
+  Type type = d_exprManager->mkSort(name);
   d_declScope.bindType(name, type);
   Assert( isDeclared(name, SYM_SORT) ) ;
   return type;
 }
 
-const std::vector<Type*>
+const std::vector<Type>
 ParserState::mkSorts(const std::vector<std::string>& names) {
-  std::vector<Type*> types;
+  std::vector<Type> types;
   for(unsigned i = 0; i < names.size(); ++i) {
     types.push_back(mkSort(names[i]));
   }

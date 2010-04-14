@@ -123,7 +123,7 @@ command returns [CVC4::Command* cmd = 0]
 declaration[CVC4::Command*& cmd]
 @init {
   std::vector<std::string> ids;
-  Type* t;
+  Type t;
   Debug("parser-extra") << "declaration: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : // FIXME: These could be type or function declarations, if that matters.
@@ -132,7 +132,7 @@ declaration[CVC4::Command*& cmd]
   ;
 
 /** Match the right-hand side of a declaration. Returns the type. */
-declType[CVC4::Type*& t, std::vector<std::string>& idList]
+declType[CVC4::Type& t, std::vector<std::string>& idList]
 @init {
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
@@ -148,10 +148,10 @@ declType[CVC4::Type*& t, std::vector<std::string>& idList]
  * Match the type in a declaration and do the declaration binding.
  * TODO: Actually parse sorts into Type objects.
  */
-type[CVC4::Type*& t]
+type[CVC4::Type& t]
 @init {
-  Type* t2;
-  std::vector<Type*> typeList;
+  Type t2;
+  std::vector<Type> typeList;
   Debug("parser-extra") << "type: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : /* Simple type */
@@ -199,7 +199,7 @@ identifier[std::string& id,
  * Matches a type.
  * TODO: parse more types
  */
-baseType[CVC4::Type*& t]
+baseType[CVC4::Type& t]
 @init {
   std::string id;
   Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
@@ -211,7 +211,7 @@ baseType[CVC4::Type*& t]
 /**
  * Matches a type identifier
  */
-typeSymbol[CVC4::Type*& t]
+typeSymbol[CVC4::Type& t]
 @init {
   std::string id;
   Debug("parser-extra") << "type symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;

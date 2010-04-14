@@ -5,3 +5,9 @@
 #
 
 theory ::CVC4::theory::bv::TheoryBV "theory_bv.h"
+
+constant CONST_BITVECTOR \
+    ::CVC4::BitVector \
+    ::CVC4::BitVectorHashStrategy \
+    "util/bitvector.h" \
+    "a fixed-width bit-vector constant"

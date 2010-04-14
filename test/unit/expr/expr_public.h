@@ -254,22 +254,18 @@ public:
   }
 
   void testGetType() {
-    /* Type* getType() const; */
+    /* Type getType(); */
 
     TS_ASSERT(a->getType() == d_em->booleanType());
     TS_ASSERT(b->getType() == d_em->booleanType());
-    TS_ASSERT(c->getType() == NULL);
-    TS_ASSERT(mult->getType() == NULL);
-    TS_ASSERT(plus->getType() == NULL);
-    TS_ASSERT(d->getType() == NULL);
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(null->getType(), AssertionException);
-#endif /* CVC4_ASSERTIONS */
-
-    TS_ASSERT(i1->getType() == NULL);
-    TS_ASSERT(i2->getType() == NULL);
-    TS_ASSERT(r1->getType() == NULL);
-    TS_ASSERT(r2->getType() == NULL);
+    TS_ASSERT(c->getType().isNull());
+    TS_ASSERT(mult->getType().isNull());
+    TS_ASSERT(plus->getType().isNull());
+    TS_ASSERT(d->getType().isNull());
+    TS_ASSERT(i1->getType().isNull());
+    TS_ASSERT(i2->getType().isNull());
+    TS_ASSERT(r1->getType().isNull());
+    TS_ASSERT(r2->getType().isNull());
   }
 
   void testToString() {

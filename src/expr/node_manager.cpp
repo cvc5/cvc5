@@ -27,55 +27,23 @@ namespace CVC4 {
 
 __thread NodeManager* NodeManager::s_current = 0;
 
-NodeManager::NodeManager(context::Context* ctxt) :
-  d_attrManager(ctxt),
-  d_nodeUnderDeletion(NULL),
-  d_reclaiming(false) {
-  poolInsert( &expr::NodeValue::s_null );
-
-  for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
-    Kind k = Kind(i);
-
-    if(hasOperator(k)) {
-      d_operators[i] = mkConst(Kind(k));
-    }
-  }
-}
-
-NodeManager::~NodeManager() {
-  // have to ensure "this" is the current NodeManager during
-  // destruction of operators, because they get GCed.
-
-  NodeManagerScope nms(this);
-
-  for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
-    d_operators[i] = Node::null();
-  }
-
-  while(!d_zombies.empty()) {
-    reclaimZombies();
-  }
-
-  poolRemove( &expr::NodeValue::s_null );
-}
-
 /**
  * This class ensures that NodeManager::d_reclaiming gets set to false
  * even on exceptional exit from NodeManager::reclaimZombies().
  */
-struct Reclaim {
-  bool& d_reclaimField;
+struct ScopedBool {
+  bool& d_value;
 
-  Reclaim(bool& reclaim) :
-    d_reclaimField(reclaim) {
+  ScopedBool(bool& reclaim) :
+    d_value(reclaim) {
 
     Debug("gc") << ">> setting RECLAIM field\n";
-    d_reclaimField = true;
+    d_value = true;
   }
 
-  ~Reclaim() {
+  ~ScopedBool() {
     Debug("gc") << "<< clearing RECLAIM field\n";
-    d_reclaimField = false;
+    d_value = false;
   }
 };
 
@@ -98,17 +66,57 @@ struct NVReclaim {
   }
 };
 
+
+NodeManager::NodeManager(context::Context* ctxt) :
+  d_attrManager(ctxt),
+  d_nodeUnderDeletion(NULL),
+  d_dontGC(false),
+  d_inDestruction(false) {
+  poolInsert( &expr::NodeValue::s_null );
+
+  for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
+    Kind k = Kind(i);
+
+    if(hasOperator(k)) {
+      d_operators[i] = mkConst(Kind(k));
+    }
+  }
+}
+
+NodeManager::~NodeManager() {
+  // have to ensure "this" is the current NodeManager during
+  // destruction of operators, because they get GCed.
+
+  NodeManagerScope nms(this);
+  ScopedBool inDestruction(d_inDestruction);
+
+  {
+    ScopedBool dontGC(d_dontGC);
+    d_attrManager.deleteAllAttributes();
+  }
+
+  for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
+    d_operators[i] = Node::null();
+  }
+
+  while(!d_zombies.empty()) {
+    reclaimZombies();
+  }
+
+  poolRemove( &expr::NodeValue::s_null );
+}
+
 void NodeManager::reclaimZombies() {
   // FIXME multithreading
 
   Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
-  Assert(! d_reclaiming, "NodeManager::reclaimZombies() not re-entrant!");
+  Assert(! d_dontGC, "NodeManager::reclaimZombies() not re-entrant!");
 
   // whether exit is normal or exceptional, the Reclaim dtor is called
   // and ensures that d_reclaiming is set back to false.
-  Reclaim r(d_reclaiming);
+  ScopedBool r(d_dontGC);
 
   // We copy the set away and clear the NodeManager's set of zombies.
   // This is because reclaimZombie() decrements the RC of the

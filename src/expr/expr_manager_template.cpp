@@ -46,12 +46,12 @@ ExprManager::~ExprManager() {
   delete d_ctxt;
 }
 
-BooleanType* ExprManager::booleanType() const {
+BooleanType ExprManager::booleanType() const {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->booleanType();
 }
 
-KindType* ExprManager::kindType() const {
+KindType ExprManager::kindType() const {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->kindType();
 }
@@ -64,7 +64,7 @@ Expr ExprManager::mkExpr(Kind kind) {
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkNode(kind)));
+  return Expr(this, d_nodeManager->mkNodePtr(kind));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
@@ -75,7 +75,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode())));
+  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode()));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
@@ -86,8 +86,8 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
-                                          child2.getNode())));
+  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(),
+                                             child2.getNode()));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
@@ -99,8 +99,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
-                                          child2.getNode(), child3.getNode())));
+  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(), child2.getNode(), child3.getNode()));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
@@ -112,9 +111,9 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
+  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode(),
-                                          child4.getNode())));
+                                          child4.getNode()));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
@@ -127,9 +126,9 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkNode(kind, child1.getNode(),
+  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(),
                                           child2.getNode(), child3.getNode(),
-                                          child5.getNode())));
+                                          child5.getNode()));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
@@ -149,49 +148,52 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
     nodes.push_back(it->getNode());
     ++it;
   }
-  return Expr(this, new Node(d_nodeManager->mkNode(kind, nodes)));
+  return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
 }
 
 /** Make a function type from domain to range. */
-FunctionType* ExprManager::mkFunctionType(Type* domain,
-                                          Type* range) {
+FunctionType ExprManager::mkFunctionType(const Type& domain, const Type& range) {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkFunctionType(domain, range);
 }
 
 /** Make a function type with input types from argTypes. */
-FunctionType* ExprManager::mkFunctionType(const std::vector<Type*>& argTypes,
-                                          Type* range) {
+FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, const Type& range) {
   Assert( argTypes.size() >= 1 );
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkFunctionType(argTypes, range);
 }
 
-FunctionType* ExprManager::mkFunctionType(const std::vector<Type*>& sorts) {
+FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
   Assert( sorts.size() >= 2 );
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkFunctionType(sorts);
 }
 
-FunctionType* ExprManager::mkPredicateType(const std::vector<Type*>& sorts) {
+FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   Assert( sorts.size() >= 1 );
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkPredicateType(sorts);
 }
 
-Type* ExprManager::mkSort(const std::string& name) {
+SortType ExprManager::mkSort(const std::string& name) {
   NodeManagerScope nms(d_nodeManager);
   return d_nodeManager->mkSort(name);
 }
 
-Expr ExprManager::mkVar(const std::string& name, Type* type) {
+Type ExprManager::getType(const Expr& e) {
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkVar(name, type)));
+  return d_nodeManager->getType(e.getNode());
 }
 
-Expr ExprManager::mkVar(Type* type) {
+Expr ExprManager::mkVar(const std::string& name, const Type& type) {
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, new Node(d_nodeManager->mkVar(type)));
+  return Expr(this, d_nodeManager->mkVarPtr(name, type));
+}
+
+Expr ExprManager::mkVar(const Type& type) {
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this, d_nodeManager->mkVarPtr(type));
 }
 
 unsigned ExprManager::minArity(Kind kind) {

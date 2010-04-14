@@ -341,6 +341,13 @@ public:
     super::erase(nv);
   }
 
+  /**
+   * Clear the hash table.
+   */
+  void clear() {
+    super::clear();
+  }
+
 };/* class AttrHash<bool> */
 
 /**

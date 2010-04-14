@@ -211,8 +211,8 @@ public:
   void testRegisterTerm() {
     TS_ASSERT(d_dummy->doneWrapper());
 
-    Type* typeX = d_nm->booleanType();
-    Type* typeF = d_nm->mkFunctionType(typeX, typeX);
+    Type typeX = d_nm->booleanType();
+    Type typeF = d_nm->mkFunctionType(typeX, typeX);
 
     Node x = d_nm->mkVar("x",typeX);
     Node f = d_nm->mkVar("f",typeF);

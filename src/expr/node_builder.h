@@ -537,7 +537,26 @@ public:
     return static_cast<Builder&>(*this);
   }
 
+private:
+
+  /** Construct the node value out of the node builder */
+  expr::NodeValue* constructNV();
+  expr::NodeValue* constructNV() const;
+
+public:
+
+  /** Construct the Node out of the node builder */
+  Node constructNode();
+  Node constructNode() const;
+
+  /** Construct a Node on the heap out of the node builder */
+  Node* constructNodePtr();
+  Node* constructNodePtr() const;
+
+  // two versions, so we can support extraction from (const)
+  // NodeBuilders which are temporaries appearing as rvalues
   operator Node();
+  operator Node() const;
 
   inline void toStream(std::ostream& out, int depth = -1) const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
@@ -1227,7 +1246,17 @@ void NodeBuilderBase<Builder>::decrRefCounts() {
 }
 
 template <class Builder>
-NodeBuilderBase<Builder>::operator Node() {
+Node* NodeBuilderBase<Builder>::constructNodePtr() {
+  return new Node(constructNV());
+}
+
+template <class Builder>
+Node* NodeBuilderBase<Builder>::constructNodePtr() const {
+  return new Node(constructNV());
+}
+
+template <class Builder>
+expr::NodeValue* NodeBuilderBase<Builder>::constructNV() {
   Assert(!isUsed(), "NodeBuilder is one-shot only; "
          "attempt to access it after conversion");
   Assert(getKind() != kind::UNDEFINED_KIND,
@@ -1265,7 +1294,7 @@ NodeBuilderBase<Builder>::operator Node() {
     setUsed();
     Debug("gc") << "creating node value " << nv
                 << " [" << nv->d_id << "]: " << nv->toString() << "\n";
-    return Node(nv);
+    return nv;
   }
 
   // check that there are the right # of children for this kind
@@ -1309,7 +1338,7 @@ NodeBuilderBase<Builder>::operator Node() {
       decrRefCounts();
       d_inlineNv.d_nchildren = 0;
       setUsed();
-      return Node(poolNv);
+      return poolNv;
     } else {
       /* Subcase (b): The Node under construction is NOT already in
        * the NodeManager's pool. */
@@ -1347,7 +1376,7 @@ NodeBuilderBase<Builder>::operator Node() {
       d_nm->poolInsert(nv);
       Debug("gc") << "creating node value " << nv
                   << " [" << nv->d_id << "]: " << *nv << "\n";
-      return Node(nv);
+      return nv;
     }
   } else {
     /** Case 2. d_nv does NOT point to d_inlineNv: it is a new, larger
@@ -1369,7 +1398,7 @@ NodeBuilderBase<Builder>::operator Node() {
 
       dealloc();
       setUsed();
-      return Node(poolNv);
+      return poolNv;
     } else {
       /* Subcase (b) The Node under construction is NOT already in the
        * NodeManager's pool. */
@@ -1392,9 +1421,196 @@ NodeBuilderBase<Builder>::operator Node() {
       d_nm->poolInsert(nv);
       Debug("gc") << "creating node value " << nv
                   << " [" << nv->d_id << "]: " << *nv << "\n";
-      return Node(nv);
+      return nv;
     }
   }
+}
+
+// CONST VERSION OF NODE EXTRACTOR
+template <class Builder>
+expr::NodeValue* NodeBuilderBase<Builder>::constructNV() const {
+  Assert(!isUsed(), "NodeBuilder is one-shot only; "
+         "attempt to access it after conversion");
+  Assert(getKind() != kind::UNDEFINED_KIND,
+         "Can't make an expression of an undefined kind!");
+
+  // NOTE: The comments in this function refer to the cases in the
+  // file comments at the top of this file.
+
+  // Case 0: If a VARIABLE
+  if(getMetaKind() == kind::metakind::VARIABLE) {
+    /* 0. If a VARIABLE, treat similarly to 1(b), except that we know
+     * there are no children (no reference counts to reason about),
+     * and we don't keep VARIABLE-kinded Nodes in the NodeManager
+     * pool. */
+
+    Assert( ! nvIsAllocated(),
+            "internal NodeBuilder error: "
+            "VARIABLE-kinded NodeBuilder is heap-allocated !?" );
+    Assert( d_inlineNv.d_nchildren == 0,
+            "improperly-formed VARIABLE-kinded NodeBuilder: "
+            "no children permitted" );
+
+    // we have to copy the inline NodeValue out
+    expr::NodeValue* nv = (expr::NodeValue*)
+      std::malloc(sizeof(expr::NodeValue));
+    if(nv == NULL) {
+      throw std::bad_alloc();
+    }
+    // there are no children, so we don't have to worry about
+    // reference counts in this case.
+    nv->d_nchildren = 0;
+    nv->d_kind = d_nv->d_kind;
+    nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+    nv->d_rc = 0;
+    Debug("gc") << "creating node value " << nv
+                << " [" << nv->d_id << "]: " << *nv << "\n";
+    return nv;
+  }
+
+  // check that there are the right # of children for this kind
+  Assert(getMetaKind() != kind::metakind::CONSTANT,
+         "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds");
+  Assert(d_nv->d_nchildren >= kind::metakind::getLowerBoundForKind(getKind()),
+         "Nodes with kind %s must have at least %u children (the one under "
+         "construction has %u)",
+         kind::kindToString(getKind()).c_str(),
+         kind::metakind::getLowerBoundForKind(getKind()),
+         getNumChildren());
+  Assert(d_nv->d_nchildren <= kind::metakind::getUpperBoundForKind(getKind()),
+         "Nodes with kind %s must have at most %u children (the one under "
+         "construction has %u)",
+         kind::kindToString(getKind()).c_str(),
+         kind::metakind::getUpperBoundForKind(getKind()),
+         getNumChildren());
+
+  // Implementation differs depending on whether the NodeValue was
+  // malloc'ed or not and whether or not it's in the already-been-seen
+  // NodeManager pool of Nodes.  See implementation notes at the top
+  // of this file.
+
+  if(EXPECT_TRUE( ! nvIsAllocated() )) {
+    /** Case 1.  d_nv points to d_inlineNv: it is the backing store
+     ** supplied by the user (or derived class) **/
+
+    // Lookup the expression value in the pool we already have
+    expr::NodeValue* poolNv = d_nm->poolLookup(&d_inlineNv);
+    // If something else is there, we reuse it
+    if(poolNv != NULL) {
+      /* Subcase (a): The Node under construction already exists in
+       * the NodeManager's pool. */
+
+      /* 1(a). The existing NodeManager pool entry is returned; we
+       * leave child reference counts alone and get them at
+       * NodeBuilder destruction time. */
+
+      return poolNv;
+    } else {
+      /* Subcase (b): The Node under construction is NOT already in
+       * the NodeManager's pool. */
+
+      /* 1(b). A new heap-allocated NodeValue must be constructed and
+       * all settings and children from d_inlineNv copied into it.
+       * This new NodeValue is put into the NodeManager's pool.  The
+       * NodeBuilder cannot be marked as "used", so we increment all
+       * child reference counts (which will be decremented to match on
+       * destruction of the NodeBuilder).  We return a Node wrapper
+       * for this new NodeValue, which increments its reference
+       * count. */
+
+      // create the canonical expression value for this node
+      expr::NodeValue* nv = (expr::NodeValue*)
+        std::malloc(sizeof(expr::NodeValue) +
+                    ( sizeof(expr::NodeValue*) * d_inlineNv.d_nchildren ));
+      if(nv == NULL) {
+        throw std::bad_alloc();
+      }
+      nv->d_nchildren = d_inlineNv.d_nchildren;
+      nv->d_kind = d_inlineNv.d_kind;
+      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+      nv->d_rc = 0;
+
+      std::copy(d_inlineNv.d_children,
+                d_inlineNv.d_children + d_inlineNv.d_nchildren,
+                nv->d_children);
+
+      for(expr::NodeValue::nv_iterator i = nv->nv_begin();
+          i != nv->nv_end();
+          ++i) {
+        (*i)->inc();
+      }
+
+      //poolNv = nv;
+      d_nm->poolInsert(nv);
+      Debug("gc") << "creating node value " << nv
+                  << " [" << nv->d_id << "]: " << *nv << "\n";
+      return nv;
+    }
+  } else {
+    /** Case 2. d_nv does NOT point to d_inlineNv: it is a new, larger
+     ** buffer that was heap-allocated by this NodeBuilder. **/
+
+    // Lookup the expression value in the pool we already have (with insert)
+    expr::NodeValue* poolNv = d_nm->poolLookup(d_nv);
+    // If something else is there, we reuse it
+    if(poolNv != NULL) {
+      /* Subcase (a): The Node under construction already exists in
+       * the NodeManager's pool. */
+
+      /* 2(a). The existing NodeManager pool entry is returned; we
+       * leave child reference counts alone and get them at
+       * NodeBuilder destruction time. */
+
+      return poolNv;
+    } else {
+      /* Subcase (b) The Node under construction is NOT already in the
+       * NodeManager's pool. */
+
+      /* 2(b). The heap-allocated d_nv cannot be "cropped" to the
+       * correct size; we create a copy, increment child reference
+       * counts, place this copy into the NodeManager pool, and return
+       * a Node wrapper around it.  The child reference counts will be
+       * decremented to match at NodeBuilder destruction time. */
+
+      // create the canonical expression value for this node
+      expr::NodeValue* nv = (expr::NodeValue*)
+        std::malloc(sizeof(expr::NodeValue) +
+                    ( sizeof(expr::NodeValue*) * d_nv->d_nchildren ));
+      if(nv == NULL) {
+        throw std::bad_alloc();
+      }
+      nv->d_nchildren = d_nv->d_nchildren;
+      nv->d_kind = d_nv->d_kind;
+      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+      nv->d_rc = 0;
+
+      std::copy(d_nv->d_children,
+                d_nv->d_children + d_nv->d_nchildren,
+                nv->d_children);
+
+      for(expr::NodeValue::nv_iterator i = nv->nv_begin();
+          i != nv->nv_end();
+          ++i) {
+        (*i)->inc();
+      }
+
+      //poolNv = nv;
+      d_nm->poolInsert(nv);
+      Debug("gc") << "creating node value " << nv
+                  << " [" << nv->d_id << "]: " << *nv << "\n";
+      return nv;
+    }
+  }
+}
+
+template <class Builder>
+NodeBuilderBase<Builder>::operator Node() {
+  return Node(constructNV());
+}
+
+template <class Builder>
+NodeBuilderBase<Builder>::operator Node() const {
+  return Node(constructNV());
 }
 
 template <unsigned nchild_thresh>

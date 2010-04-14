@@ -69,10 +69,11 @@ public:
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
 
-    d_booleanType = d_nm->booleanType();
+    d_booleanType = new Type(d_nm->booleanType());
   }
 
   void tearDown() {
+    delete d_booleanType;
     delete d_scope;
     delete d_nm;
     delete d_ctxt;
@@ -101,9 +102,7 @@ public:
     TS_ASSERT_DIFFERS(TestStringAttr1::s_id, TestStringAttr2::s_id);
 
     lastId = attr::LastAttributeId<void*, false>::s_id;
-    TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);
     TS_ASSERT_LESS_THAN(theory::uf::ECAttr::s_id, lastId);
-    TS_ASSERT_DIFFERS(NodeManager::TypeAttr::s_id, theory::uf::ECAttr::s_id);
 
     lastId = attr::LastAttributeId<bool, false>::s_id;
     TS_ASSERT_LESS_THAN(NodeManager::AtomicAttr::s_id, lastId);
@@ -146,14 +145,18 @@ public:
 
     lastId = attr::LastAttributeId<TNode, false>::s_id;
     TS_ASSERT_LESS_THAN(theory::RewriteCache::s_id, lastId);
+
+    lastId = attr::LastAttributeId<Node, false>::s_id;
+    TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);
+
   }
 
   void testCDAttributes() {
     //Debug.on("boolattr");
 
-    Node a = d_nm->mkVar(d_booleanType);
-    Node b = d_nm->mkVar(d_booleanType);
-    Node c = d_nm->mkVar(d_booleanType);
+    Node a = d_nm->mkVar(*d_booleanType);
+    Node b = d_nm->mkVar(*d_booleanType);
+    Node c = d_nm->mkVar(*d_booleanType);
 
     Debug("boolattr", "get flag 1 on a (should be F)\n");
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
@@ -279,10 +282,10 @@ public:
   void testAttributes() {
     //Debug.on("boolattr");
 
-    Node a = d_nm->mkVar(d_booleanType);
-    Node b = d_nm->mkVar(d_booleanType);
-    Node c = d_nm->mkVar(d_booleanType);
-    Node unnamed = d_nm->mkVar(d_booleanType);
+    Node a = d_nm->mkVar(*d_booleanType);
+    Node b = d_nm->mkVar(*d_booleanType);
+    Node c = d_nm->mkVar(*d_booleanType);
+    Node unnamed = d_nm->mkVar(*d_booleanType);
 
     a.setAttribute(VarNameAttr(), "a");
     b.setAttribute(VarNameAttr(), "b");

@@ -27,11 +27,12 @@ using namespace context;
 DeclarationScope::DeclarationScope() :
   d_context(new Context()),
   d_exprMap(new (true) CDMap<std::string,Expr,StringHashFunction>(d_context)),
-  d_typeMap(new (true) CDMap<std::string,Type*,StringHashFunction>(d_context)) {
+  d_typeMap(new (true) CDMap<std::string,Type,StringHashFunction>(d_context)) {
 }
 
 DeclarationScope::~DeclarationScope() {
   d_exprMap->deleteSelf();
+  d_typeMap->deleteSelf();
   delete d_context;
 }
 
@@ -47,7 +48,7 @@ Expr DeclarationScope::lookup(const std::string& name) const throw () {
   return (*d_exprMap->find(name)).second;
 }
 
-void DeclarationScope::bindType(const std::string& name, Type* t) throw () {
+void DeclarationScope::bindType(const std::string& name, const Type& t) throw () {
   d_typeMap->insert(name,t);
 }
 
@@ -55,7 +56,7 @@ bool DeclarationScope::isBoundType(const std::string& name) const throw () {
   return d_typeMap->find(name) != d_typeMap->end();
 }
 
-Type* DeclarationScope::lookupType(const std::string& name) const throw () {
+Type DeclarationScope::lookupType(const std::string& name) const throw () {
   return (*d_typeMap->find(name)).second;
 }
 

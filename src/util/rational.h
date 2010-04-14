@@ -24,9 +24,8 @@
 #ifndef __CVC4__RATIONAL_H
 #define __CVC4__RATIONAL_H
 
-#include <gmpxx.h>
 #include <string>
-#include "integer.h"
+#include "util/integer.h"
 
 namespace CVC4 {
 
@@ -76,20 +75,20 @@ public:
   /**
    * Constructs a canonical Rational from a numerator and denominator.
    */
-  Rational(  signed int n,   signed int d) : d_value(n,d) {
+  Rational(signed int n, signed int d) : d_value(n,d) {
     d_value.canonicalize();
   }
   Rational(unsigned int n, unsigned int d) : d_value(n,d) {
     d_value.canonicalize();
   }
-  Rational(  signed long int n,   signed long int d) : d_value(n,d) {
+  Rational(signed long int n, signed long int d) : d_value(n,d) {
     d_value.canonicalize();
   }
   Rational(unsigned long int n, unsigned long int d) : d_value(n,d) {
     d_value.canonicalize();
   }
 
-  Rational(const Integer& n, const Integer& d):
+  Rational(const Integer& n, const Integer& d) :
     d_value(n.get_mpz(), d.get_mpz())
   {
     d_value.canonicalize();

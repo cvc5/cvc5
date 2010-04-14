@@ -146,17 +146,17 @@ class ParserWhite : public CxxTest::TestSuite {
 
   void setupContext(ParserState* parserState) {
     /* a, b, c: BOOLEAN */
-    parserState->mkVar("a",(Type*)d_exprManager->booleanType());
-    parserState->mkVar("b",(Type*)d_exprManager->booleanType());
-    parserState->mkVar("c",(Type*)d_exprManager->booleanType());
+    parserState->mkVar("a",d_exprManager->booleanType());
+    parserState->mkVar("b",d_exprManager->booleanType());
+    parserState->mkVar("c",d_exprManager->booleanType());
     /* t, u, v: TYPE */
-    Type *t = parserState->mkSort("t");
-    Type *u = parserState->mkSort("u");
-    Type *v = parserState->mkSort("v");
+    Type t = parserState->mkSort("t");
+    Type u = parserState->mkSort("u");
+    Type v = parserState->mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parserState->mkVar("f", (Type*)d_exprManager->mkFunctionType(t,u));
-    parserState->mkVar("g", (Type*)d_exprManager->mkFunctionType(u,v));
-    parserState->mkVar("h", (Type*)d_exprManager->mkFunctionType(v,t));
+    parserState->mkVar("f", d_exprManager->mkFunctionType(t,u));
+    parserState->mkVar("g", d_exprManager->mkFunctionType(u,v));
+    parserState->mkVar("h", d_exprManager->mkFunctionType(v,t));
     /* x:t; y:u; z:v; */
     parserState->mkVar("x",t);
     parserState->mkVar("y",u);

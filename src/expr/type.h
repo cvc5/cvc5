@@ -24,153 +24,146 @@
 #include <string>
 #include <vector>
 #include <limits.h>
+#include <stdint.h>
 
 namespace CVC4 {
 
-namespace expr {
-  namespace attr {
-    struct TypeCleanupStrategy;
-  }/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
-
 class NodeManager;
+template <bool ref_count> class NodeTemplate;
+
+class BooleanType;
+class FunctionType;
+class KindType;
+class SortType;
 
 /**
  * Class encapsulating CVC4 expression types.
  */
 class CVC4_PUBLIC Type {
+
+  friend class NodeManager;
+
 protected:
-  static const unsigned RC_MAX = UINT_MAX;
+
+  /** The internal expression representation */
+  NodeTemplate<true>* d_typeNode;
+
+  /** The responsible expression manager */
+  NodeManager* d_nodeManager;
+
+  /**
+   * Construct a new type given the typeNode;
+   */
+  Type makeType(NodeTemplate<false> typeNode) const;
+
+  /**
+   * Constructor for internal purposes.
+   * @param em the expression manager that handles this expression
+   * @param node the actual expression node pointer for this type
+   */
+  Type(NodeManager* em, NodeTemplate<true>* typeNode);
 
 public:
 
+  /**
+   * Initialize from an integer. Fails if the integer is not 0.
+   * NOTE: This is here purely to support the auto-initialization
+   * behavior of the ANTLR3 C backend. Should be removed if future
+   * versions of ANTLR fix the problem.
+   */
+  Type(uintptr_t n);
+
+  /** Force a virtual destructor for safety. */
+  virtual ~Type();
+
+  /** Default constructor */
+  Type();
+
+  /** Copy constructor */
+  Type(const Type& t);
+
+  /** Check whether this is a null type */
+  bool isNull() const;
+
+  /** Assignment operator */
+  Type& operator=(const Type& t);
+
   /** Comparison for equality */
-  //bool operator==(const Type& t) const;
+  bool operator==(const Type& t) const;
 
   /** Comparison for disequality */
-  //bool operator!=(const Type& e) const;
+  bool operator!=(const Type& t) const;
 
-  /** Get the name of this type. May be empty for composite types. */
-  std::string getName() const;
+  /** Is this the Boolean type? */
+  bool isBoolean() const;
 
-  /** Is this the boolean type? */
-  virtual bool isBoolean() const {
-    return false;
-  }
+  /** Cast to a Boolean type */
+  operator BooleanType() const;
 
   /** Is this a function type? */
-  virtual bool isFunction() const {
-    return false;
-  }
+  bool isFunction() const;
 
   /** Is this a predicate type? NOTE: all predicate types are also
       function types. */
-  virtual bool isPredicate() const {
-    return false;
-  }
+  bool isPredicate() const;
+
+  /** Cast to a function type */
+  operator FunctionType() const;
+
+  /** Is this a sort kind */
+  bool isSort() const;
+
+  /** Cast to a sort type */
+  operator SortType() const;
 
   /** Is this a kind type (i.e., the type of a type)? */
-  virtual bool isKind() const {
-    return false;
-  }
+  bool isKind() const;
+
+  /** Cast to a kind type */
+  operator KindType() const;
 
   /** Outputs a string representation of this type to the stream. */
-  virtual void toStream(std::ostream& out) const {
-    out << getName();
-  }
+  virtual void toStream(std::ostream& out) const;
 
-protected:
-  /** Create an un-named type. */
-  Type();
-
-  /** Create a type with the given name. */
-  Type(std::string name);
-
-  /** The name of the type (may be empty). */
-  std::string d_name;
-
-  /**
-   * The reference count for this Type (how many times it's referred
-   * to in the Type attribute table)
-   */
-  unsigned d_rc;
-
-  /** Force a virtual destructor for safety. */
-  virtual ~Type() {
-    Assert(d_rc == RC_MAX || d_rc == 0,
-           "illegal ref count %u for destructed Type", d_rc);
-  }
-
-  /** Increment the reference count */
-  void inc() {
-    if(d_rc != RC_MAX) {
-      ++d_rc;
-    }
-  }
-
-  /** Decrement the reference count */
-  void dec() {
-    if(d_rc != RC_MAX) {
-      Assert(d_rc != 0, "illegal ref count %u for dec()", d_rc);
-      --d_rc;
-    }
-  }
-
-  friend class ::CVC4::NodeManager;
-  friend struct ::CVC4::expr::attr::TypeCleanupStrategy;
 };
 
 /**
  * Singleton class encapsulating the boolean type.
  */
-class BooleanType : public Type {
+class CVC4_PUBLIC BooleanType : public Type {
 
 public:
+
+  /** Construct from the base type */
+  BooleanType(const Type& type);
+
   /** Is this the boolean type? (Returns true.) */
   bool isBoolean() const;
 
-  static BooleanType* getInstance();
-private:
-
-  /** Create a type associated with nodeManager. */
-  BooleanType();
-
-  /**
-   * Do-nothing private copy constructor operator, to prevent
-   * copy-construction.
-   */
-  BooleanType(const BooleanType&);
-
-  /** Destructor */
-  ~BooleanType();
-
-  /**
-   * Do-nothing private assignment operator, to prevent assignment.
-   */
-  BooleanType& operator=(const BooleanType&);
-
-  /** The singleton instance */
-  static BooleanType s_instance;
+  /** Just outputs BOOLEAN */
+  void toStream(std::ostream& out) const;
 };
 
 /**
  * Class encapsulating a function type.
- * TODO: Override == to check component types?
  */
-class FunctionType : public Type {
+class CVC4_PUBLIC FunctionType : public Type {
 
 public:
-  /** Retrieve the argument types. The vector will be non-empty. */
-  const std::vector<Type*> getArgTypes() const;
+
+  /** Construct from the base type */
+  FunctionType(const Type& type);
+
+  /** Get the argument types */
+  std::vector<Type> getArgTypes() const;
 
   /** Get the range type (i.e., the type of the result). */
-  Type* getRangeType() const;
+  Type getRangeType() const;
 
   /** Is this as function type? (Returns true.) */
   bool isFunction() const;
 
-  /** Is this as predicate type? (Returns true if range is
-      boolean.) */
+  /** Is this as predicate type? (Returns true if range is Boolean.) */
   bool isPredicate() const;
 
   /**
@@ -179,74 +172,38 @@ public:
    */
   void toStream(std::ostream& out) const;
 
-private:
-
-  /**
-   * Construct a function type associated with nodeManager, given a
-   * vector of argument types and the range type.
-
-   * @param argTypes a non-empty vector of input types
-   * @param range the result type
-   */
-  FunctionType(const std::vector<Type*>& argTypes,
-               Type* range);
-
-  /** Destructor */
-  ~FunctionType();
-
-  /** The list of input types. */
-  const std::vector<Type*> d_argTypes;
-
-  /** The result type. */
-  Type* d_rangeType;
-
-  friend class NodeManager;
 };
 
-
-/** Class encapsulating the kind type (the type of types).
-*/
-class KindType : public Type {
+/**
+ * Class encapsulating a user-defined sort.
+ */
+class CVC4_PUBLIC SortType : public Type {
 
 public:
+
+  /** Construct from the base type */
+  SortType(const Type& type);
+
+  /** Get the name of the sort */
+  std::string getName() const;
+
+  /** Outouts the name of the sort */
+  void toStream(std::ostream& out) const;
+};
+
+/**
+ * Class encapsulating the kind type (the type of types).
+ */
+class CVC4_PUBLIC KindType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  KindType(const Type& type);
+
   /** Is this the kind type? (Returns true.) */
   bool isKind() const;
 
-  /** Get an instance of the kind type. */
-  static KindType* getInstance();
-
-private:
-
-  KindType();
-
-  /* Do-nothing private copy constructor, to prevent copy
-     construction. */
-  KindType(const KindType&);
-
-  /** Destructor */
-  ~KindType();
-
-  /* Do-nothing private assignment operator, to prevent assignment. */
-  KindType& operator=(const KindType&);
-
-  /** The singleton instance */
-  static KindType s_instance;
-};
-
-/** Class encapsulating a user-defined sort.
-    TODO: Should sort be uniquely named per-nodeManager and not conflict
-    with any builtins? */
-class SortType : public Type {
-
-public:
-  /** Destructor */
-  ~SortType();
-
-private:
-  /** Create a sort with the given name. */
-  SortType(std::string name);
-
-  friend class NodeManager;
 };
 
 /**
@@ -256,22 +213,6 @@ private:
  * @return the stream
  */
 std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
-
-namespace expr {
-namespace attr {
-
-struct TypeCleanupStrategy {
-  static void cleanup(Type* t) {
-    // reference-count the Type
-    t->dec();
-    if(t->d_rc == 0) {
-      delete t;
-    }
-  }
-};/* struct TypeCleanupStrategy */
-
-}/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
 
 }/* CVC4 namespace */
 

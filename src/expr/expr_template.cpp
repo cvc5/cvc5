@@ -18,6 +18,7 @@
 #include "util/Assert.h"
 
 #include "util/output.h"
+#include "expr/expr_manager_scope.h"
 
 ${includes}
 
@@ -25,7 +26,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 29 "${template}"
+#line 30 "${template}"
 
 using namespace CVC4::kind;
 
@@ -128,10 +129,10 @@ Expr Expr::getOperator() const {
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
-Type* Expr::getType() const {
+Type Expr::getType() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->getType();
+  return d_exprManager->getType(*this);
 }
 
 std::string Expr::toString() const {

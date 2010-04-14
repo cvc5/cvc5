@@ -85,10 +85,10 @@ public:
   ~ExprManager();
 
   /** Get the type for booleans */
-  BooleanType* booleanType() const;
+  BooleanType booleanType() const;
 
   /** Get the type for sorts. */
-  KindType* kindType() const;
+  KindType kindType() const;
 
   /**
    * Make a unary expression of a given kind (TRUE, FALSE,...).
@@ -162,15 +162,13 @@ public:
   Expr mkConst(const T&);
 
   /** Make a function type from domain to range. */
-  FunctionType* mkFunctionType(Type* domain,
-                               Type* range);
+  FunctionType mkFunctionType(const Type& domain, const Type& range);
 
   /**
    * Make a function type with input types from argTypes.
    * <code>argTypes</code> must have at least one element.
    */
-  FunctionType* mkFunctionType(const std::vector<Type*>& argTypes,
-                               Type* range);
+  FunctionType mkFunctionType(const std::vector<Type>& argTypes, const Type& range);
 
   /**
    * Make a function type with input types from
@@ -178,7 +176,7 @@ public:
    * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
    * at least 2 elements.
    */
-  FunctionType* mkFunctionType(const std::vector<Type*>& sorts);
+  FunctionType mkFunctionType(const std::vector<Type>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -186,14 +184,17 @@ public:
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  FunctionType* mkPredicateType(const std::vector<Type*>& sorts);
+  FunctionType mkPredicateType(const std::vector<Type>& sorts);
 
   /** Make a new sort with the given name. */
-  Type* mkSort(const std::string& name);
+  SortType mkSort(const std::string& name);
+
+  /** Get the type of an expression */
+  Type getType(const Expr& e);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar(const std::string& name, Type* type);
-  Expr mkVar(Type* type);
+  Expr mkVar(const std::string& name, const Type& type);
+  Expr mkVar(const Type& type);
 
   /** Returns the minimum arity of the given kind. */
   static unsigned minArity(Kind kind);

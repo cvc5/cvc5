@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "expr/type.h"
 #include "util/result.h"
 
 namespace CVC4 {
@@ -92,10 +93,11 @@ public:
 
 class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
 public:
-  DeclarationCommand(const std::vector<std::string>& ids, const Type* t);
+  DeclarationCommand(const std::vector<std::string>& ids, const Type& t);
   void toStream(std::ostream& out) const;
 protected:
   std::vector<std::string> d_declaredSymbols;
+  Type d_type;
 };
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
@@ -257,8 +259,10 @@ inline void CommandSequence::addCommand(Command* cmd) {
 
 /* class DeclarationCommand */
 
-inline DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, const Type* t) :
-  d_declaredSymbols(ids) {
+inline DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, const Type& t) :
+  d_declaredSymbols(ids),
+  d_type(t)
+{
 }
 
 /* class SetBenchmarkStatusCommand */

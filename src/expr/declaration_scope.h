@@ -56,7 +56,7 @@ class CVC4_PUBLIC DeclarationScope {
   context::CDMap<std::string,Expr,StringHashFunction> *d_exprMap;
 
   /** A map for types. */
-  context::CDMap<std::string,Type*,StringHashFunction> *d_typeMap;
+  context::CDMap<std::string,Type,StringHashFunction> *d_typeMap;
 
 public:
   /** Create a declaration scope. */
@@ -85,7 +85,7 @@ public:
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
    */
-  void bindType(const std::string& name, Type* t) throw ();
+  void bindType(const std::string& name, const Type& t) throw ();
 
   /** Check whether a name is bound to an expression.
    *
@@ -113,7 +113,7 @@ public:
    * @param name the identifier to lookup
    * @returns the type bound to <code>name</code> in the current scope.
    */
-  Type* lookupType(const std::string& name) const throw ();
+  Type lookupType(const std::string& name) const throw ();
 
   /** Pop a scope level. Deletes all bindings since the last call to
    * <code>pushScope</code>. Calls to <code>pushScope</code> and

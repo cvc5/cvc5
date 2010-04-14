@@ -144,7 +144,7 @@ public:
   /** Returns the type of the expression, if it has been computed.
    * Returns NULL if the type of the expression is not known.
    */
-  Type* getType() const;
+  Type getType() const;
 
   /**
    * Returns the string representation of the expression.

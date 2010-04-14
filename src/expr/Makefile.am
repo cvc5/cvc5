@@ -26,7 +26,8 @@ libexpr_la_SOURCES = \
 	command.h \
 	command.cpp \
 	declaration_scope.h \
-	declaration_scope.cpp
+	declaration_scope.cpp \
+	expr_manager_scope.h 
 
 EXTRA_DIST = \
 	@srcdir@/kind.h \
