@@ -30,21 +30,8 @@ UNIT_TESTS = \
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
-TEST_DEPS_DIST =
-
-# Make-level dependencies; these don't go in the source distribution
-# but should trigger a re-compile of all unit tests.  Libraries are
-# included here because (1) if static-linking, the tests must be
-# relinked, and (2) if they've changed that means the sources changed,
-# and that means we should ensure the tests compile against any
-# changes made in the header files.
-TEST_DEPS_NODIST = \
-	$(abs_top_builddir)/src/libcvc4.la \
-	$(abs_top_builddir)/src/parser/libcvc4parser.la
-
-TEST_DEPS = \
-	$(TEST_DEPS_DIST) \
-	$(TEST_DEPS_NODIST)
+TEST_DEPS_DIST = \
+	memory.h
 
 if HAVE_CXXTESTGEN
 
@@ -57,13 +44,16 @@ AM_LDFLAGS = $(TEST_LDFLAGS)
 AM_CXXFLAGS_WHITE = -fno-access-control -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
 AM_CXXFLAGS_BLACK = -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
 AM_CXXFLAGS_PUBLIC =
-AM_LDFLAGS_WHITE = \
+AM_LDFLAGS_WHITE =
+AM_LDFLAGS_BLACK =
+AM_LDFLAGS_PUBLIC =
+AM_LIBADD_WHITE = \
 	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
 	@abs_top_builddir@/src/libcvc4_noinst.la
-AM_LDFLAGS_BLACK = \
+AM_LIBADD_BLACK = \
 	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
 	@abs_top_builddir@/src/libcvc4_noinst.la
-AM_LDFLAGS_PUBLIC = \
+AM_LIBADD_PUBLIC = \
 	@abs_top_builddir@/src/libcvc4.la
 
 EXTRA_DIST = \
@@ -84,18 +74,48 @@ else
 unit_LINK = $(CXXLINK)
 endif
 
+@AMDEP_TRUE@@am__include@ $(UNIT_TESTS:%=@am__quote@./$(DEPDIR)/%.Plo@am__quote@)
+
+$(UNIT_TESTS:%=@am__quote@./$(DEPDIR)/%.Plo@am__quote@): %.Plo:
+	$(AM_V_at)$(MKDIR_P) `dirname "$@"`
+	$(AM_V_GEN)test -e "$@" || touch "$@"
+
 $(UNIT_TESTS:%=%.cpp): %.cpp: %.h
-	$(AM_V_at)mkdir -p `dirname "$@"`
+	$(AM_V_at)$(MKDIR_P) `dirname "$@"`
 	$(AM_V_GEN)$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
-$(WHITE_TESTS): %_white: %_white.cpp $(TEST_DEPS)
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@.lo @abs_builddir@/$<
-	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_WHITE) $@.lo
-$(BLACK_TESTS): %_black: %_black.cpp $(TEST_DEPS)
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@.lo @abs_builddir@/$<
-	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_BLACK) $@.lo
-$(PUBLIC_TESTS): %_public: %_public.cpp $(TEST_DEPS)
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@.lo @abs_builddir@/$<
-	$(AM_V_CXXLD)$(unit_LINK) $(AM_LDFLAGS_PUBLIC) $@.lo
+
+$(WHITE_TESTS:%=%.lo): %_white.lo: %_white.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$(@:%.lo=%).Tpo $(DEPDIR)/$(@:%.lo=%).Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@ $<
+
+$(WHITE_TESTS): %_white: %_white.lo $(AM_LIBADD_WHITE)
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_WHITE) $(AM_LDFLAGS_WHITE) $<
+
+$(BLACK_TESTS:%=%.lo): %_black.lo: %_black.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$(@:%.lo=%).Tpo $(DEPDIR)/$(@:%.lo=%).Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@ $<
+
+$(BLACK_TESTS): %_black: %_black.lo $(AM_LIBADD_BLACK)
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_BLACK) $(AM_LDFLAGS_BLACK) $<
+
+$(PUBLIC_TESTS:%=%.lo): %_public.lo: %_public.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$(@:%.lo=%).Tpo $(DEPDIR)/$(@:%.lo=%).Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@ $<
+
+$(PUBLIC_TESTS): %_public: %_public.lo $(AM_LIBADD_PUBLIC)
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_PUBLIC) $(AM_LDFLAGS_PUBLIC) $<
 
 else
 

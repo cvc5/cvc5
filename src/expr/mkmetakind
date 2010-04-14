@@ -148,6 +148,12 @@ function constant {
 
 namespace expr {
 
+// The reinterpret_cast of d_children to \"$2 const*\"
+// flags a \"strict aliasing\" warning; it's okay, because we never access
+// the embedded constant as a NodeValue* child, and never access an embedded
+// NodeValue* child as a constant.
+#pragma GCC diagnostic ignored \"-Wstrict-aliasing\"
+
 template <>
 inline $2 const& NodeValue::getConst< $2 >() const {
   AssertArgument(getKind() == ::CVC4::kind::$1, *this,
@@ -159,6 +165,9 @@ inline $2 const& NodeValue::getConst< $2 >() const {
     ? *reinterpret_cast< $2 const* >(d_children)
     : *reinterpret_cast< $2 const* >(d_children[0]);
 }
+
+// re-enable the warning
+#pragma GCC diagnostic warning \"-Wstrict-aliasing\"
 
 }/* CVC4::expr namespace */
 

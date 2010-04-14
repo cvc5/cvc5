@@ -23,12 +23,14 @@ EXTRA_DIST = \
 	@srcdir@/theoryof_table.h \
 	theoryof_table_template.h
 
-@srcdir@/theoryof_table.h: theoryof_table_template.h mktheoryof @top_srcdir@/src/theory/Makefile.in @top_srcdir@/src/theory/*/kinds
+include @top_srcdir@/src/theory/Makefile.subdirs
+
+@srcdir@/theoryof_table.h: theoryof_table_template.h mktheoryof @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mktheoryof
-	$(AM_V_at)mv -f $@ $@~ 2>/dev/null || true
+	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mktheoryof \
 		$< \
-		`grep '^SUBDIRS = ' @top_srcdir@/src/theory/Makefile.in | cut -d' ' -f3- | tr ' ' "\n" | xargs -i__D__ echo @top_srcdir@/src/theory/__D__/kinds` \
+		`cat @top_srcdir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
 BUILT_SOURCES = @srcdir@/theoryof_table.h

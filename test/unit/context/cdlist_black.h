@@ -17,19 +17,23 @@
 
 #include <vector>
 #include <iostream>
+
+#include <limits.h>
+
+#include "memory.h"
+
 #include "context/context.h"
 #include "context/cdlist.h"
 
 using namespace std;
 using namespace CVC4::context;
-
+using namespace CVC4::test;
 
 struct DtorSensitiveObject {
   bool& d_dtorCalled;
   DtorSensitiveObject(bool& dtorCalled) : d_dtorCalled(dtorCalled) {}
   ~DtorSensitiveObject() { d_dtorCalled = true; }
 };
-
 
 class CDListBlack : public CxxTest::TestSuite {
 private:
@@ -124,5 +128,18 @@ public:
     TS_ASSERT_EQUALS(alsoFlipToTrue, true);
     TS_ASSERT_EQUALS(shouldAlsoRemainFalse, false);
     TS_ASSERT_EQUALS(aThirdFalse, false);
+  }
+
+  void testOutOfMemory() {
+    CDList<unsigned> list(d_context);
+    WithLimitedMemory wlm(0);
+
+    TS_ASSERT_THROWS({
+        // We cap it at UINT_MAX, preferring to terminate with a
+        // failure than run indefinitely.
+        for(unsigned i = 0; i < UINT_MAX; ++i) {
+          list.push_back(i);
+        }
+      }, bad_alloc);
   }
 };

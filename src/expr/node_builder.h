@@ -58,12 +58,11 @@
  **      (b) The Node under construction is NOT already in the
  **          NodeManager's pool.
  **
- ** When a Node is extracted (see the non-const version of
- ** NodeBuilderBase<>::operator Node()), we convert the NodeBuilder to
- ** a Node and make sure the reference counts are properly maintained.
- ** That means we must ensure there are no reference-counting errors
- ** among the node's children, that the children aren't re-decremented
- ** on clear() or NodeBuilder destruction, and that the returned Node
+ ** When a Node is extracted, we convert the NodeBuilder to a Node and
+ ** make sure the reference counts are properly maintained.  That
+ ** means we must ensure there are no reference-counting errors among
+ ** the node's children, that the children aren't re-decremented on
+ ** clear() or NodeBuilder destruction, and that the returned Node
  ** wraps a NodeValue with a reference count of 1.
  **
  **   0.    If a VARIABLE, treat similarly to 1(b), except that we
@@ -108,37 +107,6 @@
  ** have its reference count incremented from zero to one, then
  ** decremented, which makes it eligible for collection before the
  ** builder has even returned it!  So this is a no-no.
- **
- ** For the _const_ version of NodeBuilderBase<>::operator Node(), no
- ** reference-count modifications or anything else can take place!
- ** Therefore, we have a slightly more expensive version:
- **
- **   0.    If a VARIABLE, treat similarly to 1(b), except that we
- **         know there are no children, and we don't keep
- **         VARIABLE-kinded Nodes in the NodeManager pool.
- **
- **   1(a). The existing NodeManager pool entry is returned; we leave
- **         child reference counts alone and get them at NodeBuilder
- **         destruction time.
- **
- **   1(b). A new heap-allocated NodeValue must be constructed and all
- **         settings and children from d_inlineNv copied into it.
- **         This new NodeValue is put into the NodeManager's pool.
- **         The NodeBuilder cannot be marked as "used", so we
- **         increment all child reference counts (which will be
- **         decremented to match on destruction of the NodeBuilder).
- **         We return a Node wrapper for this new NodeValue, which
- **         increments its reference count.
- **
- **   2(a). The existing NodeManager pool entry is returned; we leave
- **         child reference counts alone and get them at NodeBuilder
- **         destruction time.
- **
- **   2(b). The heap-allocated d_nv cannot be "cropped" to the correct
- **         size; we create a copy, increment child reference counts,
- **         place this copy into the NodeManager pool, and return a
- **         Node wrapper around it.  The child reference counts will
- **         be decremented to match at NodeBuilder destruction time.
  **
  ** There are also two cases when the NodeBuilder is clear()'ed:
  **
@@ -285,9 +253,8 @@ protected:
 
   /**
    * Returns whether or not this NodeBuilder has been "used"---i.e.,
-   * whether a Node has been extracted with [the non-const version of]
-   * operator Node().  Internally, this state is represented by d_nv
-   * pointing to NULL.
+   * whether a Node has been extracted with operator Node().
+   * Internally, this state is represented by d_nv pointing to NULL.
    */
   inline bool isUsed() const {
     return EXPECT_FALSE( d_nv == NULL );
@@ -570,10 +537,7 @@ public:
     return static_cast<Builder&>(*this);
   }
 
-  // two versions, so we can support extraction from (const)
-  // NodeBuilders which are temporaries appearing as rvalues
   operator Node();
-  operator Node() const;
 
   inline void toStream(std::ostream& out, int depth = -1) const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
@@ -890,19 +854,19 @@ inline OrNodeBuilder AndNodeBuilder::operator||(const NodeTemplate<rc>& n) {
 
 inline AndNodeBuilder& operator&&(AndNodeBuilder& a,
                                   const AndNodeBuilder& b) {
-  return a && Node(b.d_eb);
+  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline AndNodeBuilder& operator&&(AndNodeBuilder& a,
                                   const OrNodeBuilder& b) {
-  return a && Node(b.d_eb);
+  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline OrNodeBuilder operator||(AndNodeBuilder& a,
                                 const AndNodeBuilder& b) {
-  return a || Node(b.d_eb);
+  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline OrNodeBuilder operator||(AndNodeBuilder& a,
                                 const OrNodeBuilder& b) {
-  return a || Node(b.d_eb);
+  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
@@ -918,19 +882,19 @@ inline OrNodeBuilder& OrNodeBuilder::operator||(const NodeTemplate<rc>& n) {
 
 inline AndNodeBuilder operator&&(OrNodeBuilder& a,
                                  const AndNodeBuilder& b) {
-  return a && Node(b.d_eb);
+  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline AndNodeBuilder operator&&(OrNodeBuilder& a,
                                  const OrNodeBuilder& b) {
-  return a && Node(b.d_eb);
+  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline OrNodeBuilder& operator||(OrNodeBuilder& a,
                                  const AndNodeBuilder& b) {
-  return a || Node(b.d_eb);
+  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline OrNodeBuilder& operator||(OrNodeBuilder& a,
                                  const OrNodeBuilder& b) {
-  return a || Node(b.d_eb);
+  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
@@ -952,27 +916,27 @@ inline MultNodeBuilder PlusNodeBuilder::operator*(const NodeTemplate<rc>& n) {
 
 inline PlusNodeBuilder& operator+(PlusNodeBuilder& a,
                                   const PlusNodeBuilder& b) {
-  return a + Node(b.d_eb);
+  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline PlusNodeBuilder& operator+(PlusNodeBuilder& a,
                                   const MultNodeBuilder& b) {
-  return a + Node(b.d_eb);
+  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline PlusNodeBuilder& operator-(PlusNodeBuilder&a,
                                   const PlusNodeBuilder& b) {
-  return a - Node(b.d_eb);
+  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline PlusNodeBuilder& operator-(PlusNodeBuilder& a,
                                   const MultNodeBuilder& b) {
-  return a - Node(b.d_eb);
+  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline MultNodeBuilder operator*(PlusNodeBuilder& a,
                                  const PlusNodeBuilder& b) {
-  return a * Node(b.d_eb);
+  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline MultNodeBuilder operator*(PlusNodeBuilder& a,
                                  const MultNodeBuilder& b) {
-  return a * Node(b.d_eb);
+  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
@@ -994,27 +958,27 @@ inline MultNodeBuilder& MultNodeBuilder::operator*(const NodeTemplate<rc>& n) {
 
 inline PlusNodeBuilder operator+(MultNodeBuilder& a,
                                  const PlusNodeBuilder& b) {
-  return a + Node(b.d_eb);
+  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline PlusNodeBuilder operator+(MultNodeBuilder& a,
                                  const MultNodeBuilder& b) {
-  return a + Node(b.d_eb);
+  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline PlusNodeBuilder operator-(MultNodeBuilder& a,
                                  const PlusNodeBuilder& b) {
-  return a - Node(b.d_eb);
+  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline PlusNodeBuilder operator-(MultNodeBuilder& a,
                                  const MultNodeBuilder& b) {
-  return a - Node(b.d_eb);
+  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline MultNodeBuilder& operator*(MultNodeBuilder& a,
                                   const PlusNodeBuilder& b) {
-  return a * Node(b.d_eb);
+  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 inline MultNodeBuilder& operator*(MultNodeBuilder& a,
                                   const MultNodeBuilder& b) {
-  return a * Node(b.d_eb);
+  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc1, bool rc2>
@@ -1050,61 +1014,61 @@ inline MultNodeBuilder operator*(const NodeTemplate<rc1>& a,
 template <bool rc>
 inline AndNodeBuilder operator&&(const NodeTemplate<rc>& a,
                                  const AndNodeBuilder& b) {
-  return a && Node(b.d_eb);
+  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline AndNodeBuilder operator&&(const NodeTemplate<rc>& a,
                                  const OrNodeBuilder& b) {
-  return a && Node(b.d_eb);
+  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline OrNodeBuilder operator||(const NodeTemplate<rc>& a,
                                 const AndNodeBuilder& b) {
-  return a || Node(b.d_eb);
+  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline OrNodeBuilder operator||(const NodeTemplate<rc>& a,
                                 const OrNodeBuilder& b) {
-  return a || Node(b.d_eb);
+  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline PlusNodeBuilder operator+(const NodeTemplate<rc>& a,
                                  const PlusNodeBuilder& b) {
-  return a + Node(b.d_eb);
+  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline PlusNodeBuilder operator+(const NodeTemplate<rc>& a,
                                  const MultNodeBuilder& b) {
-  return a + Node(b.d_eb);
+  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline PlusNodeBuilder operator-(const NodeTemplate<rc>& a,
                                  const PlusNodeBuilder& b) {
-  return a - Node(b.d_eb);
+  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline PlusNodeBuilder operator-(const NodeTemplate<rc>& a,
                                  const MultNodeBuilder& b) {
-  return a - Node(b.d_eb);
+  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline MultNodeBuilder operator*(const NodeTemplate<rc>& a,
                                  const PlusNodeBuilder& b) {
-  return a * Node(b.d_eb);
+  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
 inline MultNodeBuilder operator*(const NodeTemplate<rc>& a,
                                  const MultNodeBuilder& b) {
-  return a * Node(b.d_eb);
+  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
 }
 
 template <bool rc>
@@ -1262,7 +1226,6 @@ void NodeBuilderBase<Builder>::decrRefCounts() {
   d_inlineNv.d_nchildren = 0;
 }
 
-// NON-CONST VERSION OF NODE EXTRACTOR
 template <class Builder>
 NodeBuilderBase<Builder>::operator Node() {
   Assert(!isUsed(), "NodeBuilder is one-shot only; "
@@ -1424,183 +1387,6 @@ NodeBuilderBase<Builder>::operator Node() {
       d_nv = &d_inlineNv;
       d_nvMaxChildren = d_inlineNvMaxChildren;
       setUsed();
-
-      //poolNv = nv;
-      d_nm->poolInsert(nv);
-      Debug("gc") << "creating node value " << nv
-                  << " [" << nv->d_id << "]: " << *nv << "\n";
-      return Node(nv);
-    }
-  }
-}
-
-// CONST VERSION OF NODE EXTRACTOR
-template <class Builder>
-NodeBuilderBase<Builder>::operator Node() const {
-  Assert(!isUsed(), "NodeBuilder is one-shot only; "
-         "attempt to access it after conversion");
-  Assert(getKind() != kind::UNDEFINED_KIND,
-         "Can't make an expression of an undefined kind!");
-
-  // NOTE: The comments in this function refer to the cases in the
-  // file comments at the top of this file.
-
-  // Case 0: If a VARIABLE
-  if(getMetaKind() == kind::metakind::VARIABLE) {
-    /* 0. If a VARIABLE, treat similarly to 1(b), except that we know
-     * there are no children (no reference counts to reason about),
-     * and we don't keep VARIABLE-kinded Nodes in the NodeManager
-     * pool. */
-
-    Assert( ! nvIsAllocated(),
-            "internal NodeBuilder error: "
-            "VARIABLE-kinded NodeBuilder is heap-allocated !?" );
-    Assert( d_inlineNv.d_nchildren == 0,
-            "improperly-formed VARIABLE-kinded NodeBuilder: "
-            "no children permitted" );
-
-    // we have to copy the inline NodeValue out
-    expr::NodeValue* nv = (expr::NodeValue*)
-      std::malloc(sizeof(expr::NodeValue));
-    if(nv == NULL) {
-      throw std::bad_alloc();
-    }
-    // there are no children, so we don't have to worry about
-    // reference counts in this case.
-    nv->d_nchildren = 0;
-    nv->d_kind = d_nv->d_kind;
-    nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
-    nv->d_rc = 0;
-    Debug("gc") << "creating node value " << nv
-                << " [" << nv->d_id << "]: " << *nv << "\n";
-    return Node(nv);
-  }
-
-  // check that there are the right # of children for this kind
-  Assert(getMetaKind() != kind::metakind::CONSTANT,
-         "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds");
-  Assert(d_nv->d_nchildren >= kind::metakind::getLowerBoundForKind(getKind()),
-         "Nodes with kind %s must have at least %u children (the one under "
-         "construction has %u)",
-         kind::kindToString(getKind()).c_str(),
-         kind::metakind::getLowerBoundForKind(getKind()),
-         getNumChildren());
-  Assert(d_nv->d_nchildren <= kind::metakind::getUpperBoundForKind(getKind()),
-         "Nodes with kind %s must have at most %u children (the one under "
-         "construction has %u)",
-         kind::kindToString(getKind()).c_str(),
-         kind::metakind::getUpperBoundForKind(getKind()),
-         getNumChildren());
-
-  // Implementation differs depending on whether the NodeValue was
-  // malloc'ed or not and whether or not it's in the already-been-seen
-  // NodeManager pool of Nodes.  See implementation notes at the top
-  // of this file.
-
-  if(EXPECT_TRUE( ! nvIsAllocated() )) {
-    /** Case 1.  d_nv points to d_inlineNv: it is the backing store
-     ** supplied by the user (or derived class) **/
-
-    // Lookup the expression value in the pool we already have
-    expr::NodeValue* poolNv = d_nm->poolLookup(&d_inlineNv);
-    // If something else is there, we reuse it
-    if(poolNv != NULL) {
-      /* Subcase (a): The Node under construction already exists in
-       * the NodeManager's pool. */
-
-      /* 1(a). The existing NodeManager pool entry is returned; we
-       * leave child reference counts alone and get them at
-       * NodeBuilder destruction time. */
-
-      return Node(poolNv);
-    } else {
-      /* Subcase (b): The Node under construction is NOT already in
-       * the NodeManager's pool. */
-
-      /* 1(b). A new heap-allocated NodeValue must be constructed and
-       * all settings and children from d_inlineNv copied into it.
-       * This new NodeValue is put into the NodeManager's pool.  The
-       * NodeBuilder cannot be marked as "used", so we increment all
-       * child reference counts (which will be decremented to match on
-       * destruction of the NodeBuilder).  We return a Node wrapper
-       * for this new NodeValue, which increments its reference
-       * count. */
-
-      // create the canonical expression value for this node
-      expr::NodeValue* nv = (expr::NodeValue*)
-        std::malloc(sizeof(expr::NodeValue) +
-                    ( sizeof(expr::NodeValue*) * d_inlineNv.d_nchildren ));
-      if(nv == NULL) {
-        throw std::bad_alloc();
-      }
-      nv->d_nchildren = d_inlineNv.d_nchildren;
-      nv->d_kind = d_inlineNv.d_kind;
-      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
-      nv->d_rc = 0;
-
-      std::copy(d_inlineNv.d_children,
-                d_inlineNv.d_children + d_inlineNv.d_nchildren,
-                nv->d_children);
-
-      for(expr::NodeValue::nv_iterator i = nv->nv_begin();
-          i != nv->nv_end();
-          ++i) {
-        (*i)->inc();
-      }
-
-      //poolNv = nv;
-      d_nm->poolInsert(nv);
-      Debug("gc") << "creating node value " << nv
-                  << " [" << nv->d_id << "]: " << *nv << "\n";
-      return Node(nv);
-    }
-  } else {
-    /** Case 2. d_nv does NOT point to d_inlineNv: it is a new, larger
-     ** buffer that was heap-allocated by this NodeBuilder. **/
-
-    // Lookup the expression value in the pool we already have (with insert)
-    expr::NodeValue* poolNv = d_nm->poolLookup(d_nv);
-    // If something else is there, we reuse it
-    if(poolNv != NULL) {
-      /* Subcase (a): The Node under construction already exists in
-       * the NodeManager's pool. */
-
-      /* 2(a). The existing NodeManager pool entry is returned; we
-       * leave child reference counts alone and get them at
-       * NodeBuilder destruction time. */
-
-      return Node(poolNv);
-    } else {
-      /* Subcase (b) The Node under construction is NOT already in the
-       * NodeManager's pool. */
-
-      /* 2(b). The heap-allocated d_nv cannot be "cropped" to the
-       * correct size; we create a copy, increment child reference
-       * counts, place this copy into the NodeManager pool, and return
-       * a Node wrapper around it.  The child reference counts will be
-       * decremented to match at NodeBuilder destruction time. */
-
-      // create the canonical expression value for this node
-      expr::NodeValue* nv = (expr::NodeValue*)
-        std::malloc(sizeof(expr::NodeValue) +
-                    ( sizeof(expr::NodeValue*) * d_nv->d_nchildren ));
-      if(nv == NULL) {
-        throw std::bad_alloc();
-      }
-      nv->d_nchildren = d_nv->d_nchildren;
-      nv->d_kind = d_nv->d_kind;
-      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
-      nv->d_rc = 0;
-
-      std::copy(d_nv->d_children,
-                d_nv->d_children + d_nv->d_nchildren,
-                nv->d_children);
-
-      for(expr::NodeValue::nv_iterator i = nv->nv_begin();
-          i != nv->nv_end();
-          ++i) {
-        (*i)->inc();
-      }
 
       //poolNv = nv;
       d_nm->poolInsert(nv);

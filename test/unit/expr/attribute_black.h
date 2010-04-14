@@ -91,8 +91,8 @@ public:
     Type* booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
     const uint64_t val = 63489;
-    uint64_t data0;
-    uint64_t data1;
+    uint64_t data0 = 0;
+    uint64_t data1 = 0;
 
     PrimitiveIntAttribute attr;
     TS_ASSERT(!node->getAttribute(attr, data0));
@@ -100,8 +100,8 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    uint64_t data2;
-    uint64_t data3;
+    uint64_t data2 = 0;
+    uint64_t data3 = 0;
     CDPrimitiveIntAttribute cdattr;
     TS_ASSERT(!node->getAttribute(cdattr, data2));
     node->setAttribute(cdattr, val);
@@ -155,8 +155,8 @@ public:
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     Foo* val = new Foo(63489);
-    Foo* data0;
-    Foo* data1;
+    Foo* data0 = NULL;
+    Foo* data1 = NULL;
 
     PtrAttribute attr;
     TS_ASSERT(!node->getAttribute(attr, data0));
@@ -164,8 +164,8 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    Foo* data2;
-    Foo* data3;
+    Foo* data2 = NULL;
+    Foo* data3 = NULL;
     CDPtrAttribute cdattr;
     TS_ASSERT(!node->getAttribute(cdattr, data2));
     node->setAttribute(cdattr, val);
@@ -186,8 +186,8 @@ public:
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     const Foo* val = new Foo(63489);
-    const Foo* data0;
-    const Foo* data1;
+    const Foo* data0 = NULL;
+    const Foo* data1 = NULL;
 
     ConstPtrAttribute attr;
     TS_ASSERT(!node->getAttribute(attr, data0));
@@ -195,8 +195,8 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    const Foo* data2;
-    const Foo* data3;
+    const Foo* data2 = NULL;
+    const Foo* data3 = NULL;
     CDConstPtrAttribute cdattr;
     TS_ASSERT(!node->getAttribute(cdattr, data2));
     node->setAttribute(cdattr, val);
