@@ -1246,6 +1246,16 @@ void NodeBuilderBase<Builder>::decrRefCounts() {
 }
 
 template <class Builder>
+Node NodeBuilderBase<Builder>::constructNode() {
+  return Node(constructNV());
+}
+
+template <class Builder>
+Node NodeBuilderBase<Builder>::constructNode() const {
+  return Node(constructNV());
+}
+
+template <class Builder>
 Node* NodeBuilderBase<Builder>::constructNodePtr() {
   return new Node(constructNV());
 }
@@ -1253,6 +1263,16 @@ Node* NodeBuilderBase<Builder>::constructNodePtr() {
 template <class Builder>
 Node* NodeBuilderBase<Builder>::constructNodePtr() const {
   return new Node(constructNV());
+}
+
+template <class Builder>
+NodeBuilderBase<Builder>::operator Node() {
+  return constructNode();
+}
+
+template <class Builder>
+NodeBuilderBase<Builder>::operator Node() const {
+  return constructNode();
 }
 
 template <class Builder>
@@ -1601,16 +1621,6 @@ expr::NodeValue* NodeBuilderBase<Builder>::constructNV() const {
       return nv;
     }
   }
-}
-
-template <class Builder>
-NodeBuilderBase<Builder>::operator Node() {
-  return Node(constructNV());
-}
-
-template <class Builder>
-NodeBuilderBase<Builder>::operator Node() const {
-  return Node(constructNV());
 }
 
 template <unsigned nchild_thresh>
