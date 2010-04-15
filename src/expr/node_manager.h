@@ -473,6 +473,9 @@ public:
    */
   inline Type mkPredicateType(const std::vector<Type>& sorts);
 
+  /** Make a new sort. */
+  inline Type mkSort();
+
   /** Make a new sort with the given name. */
   inline Type mkSort(const std::string& name);
 
@@ -628,6 +631,10 @@ NodeManager::mkPredicateType(const std::vector<Type>& sorts) {
   }
   sortNodes.push_back(*(booleanType().d_typeNode));
   return Type(this, mkNodePtr(kind::FUNCTION_TYPE, sortNodes));
+}
+
+inline Type NodeManager::mkSort() {
+  return Type(this, mkVarPtr(kindType()));
 }
 
 inline Type NodeManager::mkSort(const std::string& name) {
