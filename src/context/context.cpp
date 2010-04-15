@@ -227,9 +227,13 @@ ContextObj* ContextObj::restoreAndContinue() throw(AssertionException) {
 
 
 void ContextObj::destroy() throw(AssertionException) {
-  Debug("context") << "before destroy " << this
-                   << " (level " << getLevel() << "):" << std::endl
-                   << *getContext() << std::endl;
+  if( Debug.isOn("context") ) {
+    /* Context can be big and complicated, so we only want to process this output
+     * if we're really going to use it. (Same goes below.)
+     */
+    Debug("context") << "before destroy " << this << " (level " << getLevel()
+          << "):" << std::endl << *getContext() << std::endl;
+  }
   for(;;) {
     // If valgrind reports invalid writes on the next few lines,
     // here's a hint: make sure all classes derived from ContextObj in
@@ -242,14 +246,18 @@ void ContextObj::destroy() throw(AssertionException) {
     if(d_pContextObjRestore == NULL) {
       break;
     }
-    Debug("context") << "in destroy " << this << ", restore object is "
-                     << d_pContextObjRestore << " at level "
-                     << d_pContextObjRestore->getLevel() << ":" << std::endl
-                     << *getContext() << std::endl;
+    if( Debug.isOn("context") ) {
+      Debug("context") << "in destroy " << this << ", restore object is "
+            << d_pContextObjRestore << " at level "
+            << d_pContextObjRestore->getLevel() << ":" << std::endl
+            << *getContext() << std::endl;
+    }
     restoreAndContinue();
   }
-  Debug("context") << "after destroy " << this << ":" << std::endl
-                   << *getContext() << std::endl;
+  if( Debug.isOn("context") ) {
+    Debug("context") << "after destroy " << this << ":" << std::endl
+          << *getContext() << std::endl;
+  }
 }
 
 
