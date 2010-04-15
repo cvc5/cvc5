@@ -1,7 +1,116 @@
+================ CHANGES TO THE ORIGINAL CODE ==================================
+
+The only CVC4 connections passed to minisat are the proxy (defined in sat.h) and
+the context. The context is obtained from the SmtEngine, and the proxy is an 
+intermediary class that has all-access to the SatSolver so as to simplify the 
+interface to (possible) other sat solvers. These two are passed to minisat at 
+construction time and some additional flags are set. We use the SimpSolver 
+solver with simplifications.
+
+To compare with original minisat code in SVN you can compare to revision 6 on 
+the trunk.
+
+The PropEngine then uses the following
+
+// Create the sat solver (this is the proxy, which will create minisat)
+d_satSolver = new SatSolver(this, d_theoryEngine, d_context, d_options);
+// Add some clauses
+d_cnfStream->convertAndAssert(node);
+// Check for satisfiabilty 
+bool result = d_satSolver->solve();
+
+* Adding theory literals:
+
+The newVar method has been changed from 
+  Var Solver::newVar(bool sign, bool dvar)
+to 
+  Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
+in order to mark the variables as theory literals. For that purpose there is a 
+new boolean array called "theory" that is true or false if the variables is for
+a theory literal.
+
+* Backtracking/Pushing
+
+Backtracking in minisat is performed through the cancelUntil() method, which is 
+now modified to pop the context the appropriate number of times.
+
+Minisat pushes the scope in the newDecisionLevel() method where we appropriately 
+also push the CVC4 context.
+
+* Phase caching
+
+In order to implement phase-caching (RSAT paper) we 
+(1) flag minisat to use the user-provided polarities first by setting the 
+minisat::SimpSolver::polarity_user flag when initializing the solver (in sat.h)
+(2) when a variable is set (in uncheckedEnqueue()) we remember the value in the
+"polarity" table.
+
+* Asserting the theory literals
+
+In the uncheckedEnqueue() method, if the literal is a theory literal (looking 
+in the "theory" table), it is passed to the prop engine thorough the proxy. 
+
+* Theory propagation (checking)
+
+The BCP propagation method was changed from propagate to propagateBool and 
+another method propagateTheory is defined to do the theory propagation. The 
+propagate method now looks like
+
+Clause* Solver::propagate()
+{
+    Clause* confl = NULL;
+
+    while(qhead < trail.size()) {
+      confl = propagateBool();
+      if (confl != NULL) break;
+      confl = propagateTheory();
+      if (confl != NULL) break;
+    }
+
+    return confl;
+}
+
+The propagateBool method will perform the BCP on the newly assigned variables 
+in the trail, and if a conflict is found it will break. Otherwise, the theory 
+propagation is given a chance to check for satisfiability and maybe enqueue some
+additional propagated literals. 
+
+* Conflict resolution
+
+If a conflict is detected during theory propagation we can rely on the minisat
+conflict resolution with a twist. Since a theory can return a conflict where
+all literals are assigned at a level lower than the current level, we must 
+backtrack to the highest level of any literal in the conflict. This is done
+already in the propagateTheory().  
+
+* Clause simplification
+
+Minisat performs some simplifications on the clause database:
+(1) variable elimination
+(2) subsumtion
+
+Subsumtion is complete even with theory reasoning, but eliminating theory 
+literals by resolution might be incomplete:
+
+(x = 0 \vee x = 1) \wedge (x != 1 \vee y = 1) \wedge x = y
+            ^^^^^          ^^^^^^
+              v              ~v
+
+would, after eliminating v, simplify to
+(x = 0) wedge (y = 1) wedge (x = y) which is unsatisfiable
+
+while x = 1, y = 1 is a satisfying assignment for the above.
+
+Minisat does not perform variable elimination on the variables that are marked
+as frozen (in the "frozen", SimSolver.h) table. We put all the theory literals 
+in the frozen table, which solves the incompleteness problem. 
+
+================ NOTES =========================================================
+
 * Accessing the internals of the SAT solver
 
 The non-public parts of the SAT solver are accessed via the static methods in 
-the SatSolverProxy class. SatSolverProxy is declared as a friend of the 
+the SatSolver class. SatSolverProxy is declared as a friend of the 
 SatSolver and has all-privileges access to the internals -- use with care!!!
 
 * Clause Database and CNF
@@ -39,30 +148,10 @@ compacting the database.
 The question is whether to add the propagation/conflict lemmas as removable or 
 not?
 
-* Making it Backtrackable
-
-First, whenever we push a context, we have to know which clauses to remove from
-the clauses vector (the problem clauses). For this we keep a CDO<int> that tells
-us how many clauses are in the database. 
-
-We do the same for the learnt (removable) clauses, but this involves a little 
-bit more work. When removing clauses, minisat will sort the learnt clauses and 
-then remove the first half on non-locked clauses. We remember a CDO<int> for 
-the current context and sort/remove from that index on in the vector. 
-
-Also, each time we push a context, we need to remember the SAT solvers decision 
-level in order to make it the "0" decision level. We also keep this in a 
-CDO<int>, but the actual level has to be kept in the SAT solver and hard-coded 
-in the routines.
-
 * Literal Activities
 
 We do not backtrack literal activities. This does not semantically change the 
 equivalence of the context, but does change solve times if the same problem is
 run several times.
-
-* Conflict Analysis
-
-TODO
 
 * Do we need to assign literals that only appear in satisfied clauses?
