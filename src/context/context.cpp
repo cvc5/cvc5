@@ -227,7 +227,7 @@ ContextObj* ContextObj::restoreAndContinue() throw(AssertionException) {
 
 
 void ContextObj::destroy() throw(AssertionException) {
-  if( Debug.isOn("context") ) {
+  if( DebugOut.isOn("context") ) {
     /* Context can be big and complicated, so we only want to process this output
      * if we're really going to use it. (Same goes below.)
      */
@@ -246,7 +246,7 @@ void ContextObj::destroy() throw(AssertionException) {
     if(d_pContextObjRestore == NULL) {
       break;
     }
-    if( Debug.isOn("context") ) {
+    if( DebugOut.isOn("context") ) {
       Debug("context") << "in destroy " << this << ", restore object is "
             << d_pContextObjRestore << " at level "
             << d_pContextObjRestore->getLevel() << ":" << std::endl
@@ -254,7 +254,7 @@ void ContextObj::destroy() throw(AssertionException) {
     }
     restoreAndContinue();
   }
-  if( Debug.isOn("context") ) {
+  if( DebugOut.isOn("context") ) {
     Debug("context") << "after destroy " << this << ":" << std::endl
           << *getContext() << std::endl;
   }
