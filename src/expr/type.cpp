@@ -84,13 +84,8 @@ bool Type::operator!=(const Type& t) const {
 
 void Type::toStream(std::ostream& out) const {
   NodeManagerScope nms(d_nodeManager);
-  // Do the cast by hand
-  if (isBoolean()) { out << (BooleanType)*this; return; }
-  if (isFunction()) { out << (FunctionType)*this; return; }
-  if (isKind()) { out << (KindType)*this; return; }
-  if (isSort()) { out << (SortType)*this; return; }
-  // We should not get here
-  Unreachable("Type not implemented completely");
+  out << *d_typeNode;
+  return;
 }
 
 /** Is this the Boolean type? */
@@ -100,10 +95,36 @@ bool Type::isBoolean() const {
 }
 
 /** Cast to a Boolean type */
-Type::operator BooleanType() const {
+Type::operator BooleanType() const throw (AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isBoolean());
   return BooleanType(*this);
+}
+
+/** Is this the integer type? */
+bool Type::isInteger() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isInteger();
+}
+
+/** Cast to a integer type */
+Type::operator IntegerType() const throw (AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isInteger());
+  return IntegerType(*this);
+}
+
+/** Is this the real type? */
+bool Type::isReal() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isInteger();
+}
+
+/** Cast to a integer type */
+Type::operator RealType() const throw (AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isReal());
+  return RealType(*this);
 }
 
 /** Is this a function type? */
@@ -120,7 +141,7 @@ bool Type::isPredicate() const {
 }
 
 /** Cast to a function type */
-Type::operator FunctionType() const {
+Type::operator FunctionType() const throw (AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isFunction());
   return FunctionType(*this);
@@ -133,7 +154,7 @@ bool Type::isSort() const {
 }
 
 /** Cast to a sort type */
-Type::operator SortType() const {
+Type::operator SortType() const throw (AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isSort());
   return SortType(*this);
@@ -146,7 +167,7 @@ bool Type::isKind() const {
 }
 
 /** Cast to a kind type */
-Type::operator KindType() const {
+Type::operator KindType() const throw (AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isKind());
   return KindType(*this);
@@ -170,45 +191,46 @@ Type FunctionType::getRangeType() const {
   return makeType(d_typeNode->getRangeType());
 }
 
-void BooleanType::toStream(std::ostream& out) const {
-  out << "BOOLEAN";
-}
-
 std::string SortType::getName() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getAttribute(expr::VarNameAttr());
 }
 
-void SortType::toStream(std::ostream& out) const {
-  NodeManagerScope nms(d_nodeManager);
-  out << getName();
+BooleanType::BooleanType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isBoolean());
 }
 
-void FunctionType::toStream(std::ostream& out) const {
-  NodeManagerScope nms(d_nodeManager);
-  unsigned arity = d_typeNode->getNumChildren();
-
-  if(arity > 2) {
-    out << "(";
-  }
-  unsigned int i;
-  for(i=0; i < arity - 1; ++i) {
-    if(i > 0) {
-      out << ",";
-    }
-    out << makeType((*d_typeNode)[i]);
-  }
-  if(arity > 2) {
-    out << ")";
-  }
-  out << " -> ";
-  (*d_typeNode)[i].toStream(out);
+IntegerType::IntegerType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isInteger());
 }
 
-BooleanType::BooleanType(const Type& t) : Type(t) {}
-FunctionType::FunctionType(const Type& t) : Type(t) {}
-KindType::KindType(const Type& t) : Type(t) {}
-SortType::SortType(const Type& t) : Type(t) {}
+RealType::RealType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isReal());
+}
+
+FunctionType::FunctionType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isFunction());
+}
+
+KindType::KindType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isKind());
+}
+
+SortType::SortType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isSort());
+}
 
 
 }/* CVC4 namespace */

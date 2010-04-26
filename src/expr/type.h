@@ -1,7 +1,7 @@
 /*********************                                                        */
 /** type.h
  ** Original author: cconway
- ** Major contributors: mdeters
+ ** Major contributors: mdeters, dejan
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
@@ -32,6 +32,8 @@ class NodeManager;
 class TypeNode;
 
 class BooleanType;
+class IntegerType;
+class RealType;
 class FunctionType;
 class KindType;
 class SortType;
@@ -52,14 +54,16 @@ protected:
   NodeManager* d_nodeManager;
 
   /**
-   * Construct a new type given the typeNode;
+   * Construct a new type given the typeNode, for internal use only.
+   * @param typeNode the TypeNode to use
+   * @return the Type corresponding to the TypeNode
    */
   Type makeType(const TypeNode& typeNode) const;
 
   /**
    * Constructor for internal purposes.
    * @param em the expression manager that handles this expression
-   * @param node the actual expression node pointer for this type
+   * @param typeNode the actual TypeNode pointer for this type
    */
   Type(NodeManager* em, TypeNode* typeNode);
 
@@ -79,70 +83,158 @@ public:
   /** Default constructor */
   Type();
 
-  /** Copy constructor */
+  /**
+   * Copy constructor.
+   * @param t the type to make a copy of
+   */
   Type(const Type& t);
 
-  /** Check whether this is a null type */
+  /**
+   * Check whether this is a null type
+   * @return true if type is null
+   */
   bool isNull() const;
 
-  /** Assignment operator */
+  /**
+   * Assignment operator.
+   * @param t the type to assign to this type
+   * @return this type after assignment.
+   */
   Type& operator=(const Type& t);
 
-  /** Comparison for equality */
+  /**
+   * Comparison for structural equality.
+   * @param t the type to compare to
+   * @returns true if the types are equal
+   */
   bool operator==(const Type& t) const;
 
-  /** Comparison for disequality */
+  /**
+   * Comparison for structural disequality.
+   * @param t the type to compare to
+   * @returns true if the types are not equal
+   */
   bool operator!=(const Type& t) const;
 
-  /** Is this the Boolean type? */
+  /**
+   * Is this the Boolean type?
+   * @return true if the type is a Boolean type
+   */
   bool isBoolean() const;
 
-  /** Cast to a Boolean type */
-  operator BooleanType() const;
+  /**
+   * Cast this type to a Boolean type
+   * @return the BooleanType
+   */
+  operator BooleanType() const throw (AssertionException);
 
-  /** Is this a function type? */
+  /**
+   * Is this the integer type?
+   * @return true if the type is a integer type
+   */
+  bool isInteger() const;
+
+  /**
+   * Cast this type to a integer type
+   * @return the IntegerType
+   */
+  operator IntegerType() const throw (AssertionException);
+
+  /**
+   * Is this the real type?
+   * @return true if the type is a real type
+   */
+  bool isReal() const;
+
+  /**
+   * Cast this type to a real type
+   * @return the RealType
+   */
+  operator RealType() const throw (AssertionException);
+
+  /**
+   * Is this a function type?
+   * @return true if the type is a Boolean type
+   */
   bool isFunction() const;
 
-  /** Is this a predicate type? NOTE: all predicate types are also
-      function types. */
+  /**
+   * Is this a predicate type, i.e. if it's a function type mapping to Boolean.
+   * Aall predicate types are also function types.
+   * @return true if the type is a predicate type
+   */
   bool isPredicate() const;
 
-  /** Cast to a function type */
-  operator FunctionType() const;
+  /**
+   * Cast this type to a function type
+   * @return the FunctionType
+   */
+  operator FunctionType() const throw (AssertionException);
 
-  /** Is this a sort kind */
+  /**
+   * Is this a sort kind?
+   * @return true if this is a sort kind
+   */
   bool isSort() const;
 
-  /** Cast to a sort type */
-  operator SortType() const;
+  /**
+   * Cast this type to a sort type
+   * @return the function Type
+   */
+  operator SortType() const throw (AssertionException);
 
-  /** Is this a kind type (i.e., the type of a type)? */
+  /**
+   * Is this a kind type (i.e., the type of a type)?
+   * @return true if this is a kind type
+   */
   bool isKind() const;
 
-  /** Cast to a kind type */
-  operator KindType() const;
+  /**
+   * Cast to a kind type
+   * @return the kind type
+   */
+  operator KindType() const throw (AssertionException);
 
-  /** Outputs a string representation of this type to the stream. */
-  virtual void toStream(std::ostream& out) const;
-
+  /**
+   * Outputs a string representation of this type to the stream.
+   * @param out the stream to output to
+   */
+  void toStream(std::ostream& out) const;
 };
 
 /**
- * Singleton class encapsulating the boolean type.
+ * Singleton class encapsulating the Boolean type.
  */
 class CVC4_PUBLIC BooleanType : public Type {
 
 public:
 
   /** Construct from the base type */
-  BooleanType(const Type& type);
-
-  /** Is this the boolean type? (Returns true.) */
-  bool isBoolean() const;
-
-  /** Just outputs BOOLEAN */
-  void toStream(std::ostream& out) const;
+  BooleanType(const Type& type) throw (AssertionException);
 };
+
+/**
+ * Singleton class encapsulating the integer type.
+ */
+class CVC4_PUBLIC IntegerType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  IntegerType(const Type& type) throw (AssertionException);
+};
+
+/**
+ * Singleton class encapsulating the real type.
+ */
+class CVC4_PUBLIC RealType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  RealType(const Type& type) throw (AssertionException);
+};
+
 
 /**
  * Class encapsulating a function type.
@@ -152,20 +244,13 @@ class CVC4_PUBLIC FunctionType : public Type {
 public:
 
   /** Construct from the base type */
-  FunctionType(const Type& type);
+  FunctionType(const Type& type) throw (AssertionException);
 
   /** Get the argument types */
   std::vector<Type> getArgTypes() const;
 
   /** Get the range type (i.e., the type of the result). */
   Type getRangeType() const;
-
-  /**
-   * Outputs a string representation of this type to the stream,
-   * in the format "D -> R" or "(A, B, C) -> R".
-   */
-  void toStream(std::ostream& out) const;
-
 };
 
 /**
@@ -176,13 +261,10 @@ class CVC4_PUBLIC SortType : public Type {
 public:
 
   /** Construct from the base type */
-  SortType(const Type& type);
+  SortType(const Type& type) throw (AssertionException);
 
   /** Get the name of the sort */
   std::string getName() const;
-
-  /** Outouts the name of the sort */
-  void toStream(std::ostream& out) const;
 };
 
 /**
@@ -193,11 +275,7 @@ class CVC4_PUBLIC KindType : public Type {
 public:
 
   /** Construct from the base type */
-  KindType(const Type& type);
-
-  /** Is this the kind type? (Returns true.) */
-  bool isKind() const;
-
+  KindType(const Type& type) throw (AssertionException);
 };
 
 /**

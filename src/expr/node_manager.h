@@ -311,10 +311,6 @@ public:
   template <class NodeClass, class T>
   NodeClass mkConstInternal(const T&);
 
-  /** Create a type-variable */
-  TypeNode mkTypeVar();
-  TypeNode mkTypeVar(const std::string& name);
-
   /** Create a node with no children. */
   TypeNode mkTypeNode(Kind kind, const std::vector<TypeNode>& children);
 
@@ -446,8 +442,14 @@ public:
                            const AttrKind& attr,
                            const typename AttrKind::value_type& value);
 
-  /** Get the (singleton) type for booleans. */
+  /** Get the (singleton) type for Booleans. */
   inline TypeNode booleanType();
+
+  /** Get the (singleton) type for integers. */
+  inline TypeNode integerType();
+
+  /** Get the (singleton) type for booleans. */
+  inline TypeNode realType();
 
   /** Get the (singleton) type for sorts. */
   inline TypeNode kindType();
@@ -607,6 +609,16 @@ inline TypeNode NodeManager::booleanType() {
   return TypeNode(mkTypeConst<TypeConstant>(BOOLEAN_TYPE));
 }
 
+/** Get the (singleton) type for integers. */
+inline TypeNode NodeManager::integerType() {
+  return TypeNode(mkTypeConst<TypeConstant>(INTEGER_TYPE));
+}
+
+/** Get the (singleton) type for reals. */
+inline TypeNode NodeManager::realType() {
+  return TypeNode(mkTypeConst<TypeConstant>(REAL_TYPE));
+}
+
 /** Get the (singleton) type for sorts. */
 inline TypeNode NodeManager::kindType() {
   return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
@@ -646,14 +658,6 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   }
   sortNodes.push_back(booleanType());
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
-}
-
-inline TypeNode NodeManager::mkSort() {
-  return mkTypeVar();
-}
-
-inline TypeNode NodeManager::mkSort(const std::string& name) {
-  return mkTypeVar(name);
 }
 
 inline TypeNode NodeManager::getType(TNode n)  {
@@ -747,6 +751,17 @@ inline bool NodeManager::hasOperator(Kind k) {
   default:
     Unhandled(mk);
   }
+}
+
+inline TypeNode NodeManager::mkSort() {
+  TypeNode type = NodeBuilder<0>(this, kind::VARIABLE).constructTypeNode();
+  return type;
+}
+
+inline TypeNode NodeManager::mkSort(const std::string& name) {
+  TypeNode type = mkSort();
+  type.setAttribute(expr::VarNameAttr(), name);
+  return type;
 }
 
 inline Node NodeManager::mkNode(Kind kind) {
@@ -852,17 +867,6 @@ inline Node NodeManager::mkVar(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   n.setAttribute(TypeAttr(), type);
   return n;
-}
-
-inline TypeNode NodeManager::mkTypeVar(const std::string& name) {
-  TypeNode type = mkTypeVar();
-  type.setAttribute(expr::VarNameAttr(), name);
-  return type;
-}
-
-inline TypeNode NodeManager::mkTypeVar() {
-  TypeNode type = NodeBuilder<0>(this, kind::VARIABLE).constructTypeNode();
-  return type;
 }
 
 inline Node* NodeManager::mkVarPtr(const TypeNode& type) {

@@ -38,14 +38,14 @@ class NodeValue;
 }/* CVC4::expr namespace */
 
 /**
- * Encapsulation of an NodeValue pointer.  The reference count is
- * maintained in the NodeValue if ref_count is true.
+ * Encapsulation of an NodeValue pointer for Types. The reference count is
+ * maintained in the NodeValue.
  */
 class TypeNode {
 
   /**
    * The NodeValue has access to the private constructors, so that the
-   * iterators can can create new nodes.
+   * iterators can can create new types.
    */
   friend class expr::NodeValue;
 
@@ -102,14 +102,6 @@ public:
    */
   static TypeNode null() {
     return s_null;
-  }
-
-  /**
-   * Returns true if this type is a null type.
-   * @return true if null
-   */
-  bool isNull() const {
-    return d_nv == &expr::NodeValue::s_null;
   }
 
   /**
@@ -292,8 +284,22 @@ public:
    */
   void printAst(std::ostream & o, int indent = 0) const;
 
+  /**
+   * Returns true if this type is a null type.
+   * @return true if null
+   */
+  bool isNull() const {
+    return d_nv == &expr::NodeValue::s_null;
+  }
+
   /** Is this the Boolean type? */
   bool isBoolean() const;
+
+  /** Is this the Integer type? */
+  bool isInteger() const;
+
+  /** Is this the Real type? */
+  bool isReal() const;
 
   /** Is this a function type? */
   bool isFunction() const;

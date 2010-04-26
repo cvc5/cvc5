@@ -23,6 +23,14 @@ bool TypeNode::isBoolean() const {
   return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE;
 }
 
+bool TypeNode::isInteger() const {
+  return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE;
+}
+
+bool TypeNode::isReal() const {
+  return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE;
+}
+
 /** Is this a function type? */
 bool TypeNode::isFunction() const {
   return getKind() == kind::FUNCTION_TYPE;
