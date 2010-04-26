@@ -34,6 +34,7 @@
 namespace CVC4 {
 
 template <bool ref_count> class NodeTemplate;
+class TypeNode;
 template <class Builder> class NodeBuilderBase;
 template <unsigned N> class NodeBuilder;
 class AndNodeBuilder;
@@ -101,6 +102,7 @@ class NodeValue {
   // todo add exprMgr ref in debug case
 
   template <bool> friend class ::CVC4::NodeTemplate;
+  friend class ::CVC4::TypeNode;
   template <class Builder> friend class ::CVC4::NodeBuilderBase;
   template <unsigned nchild_thresh> friend class ::CVC4::NodeBuilder;
   friend class ::CVC4::NodeManager;
@@ -137,13 +139,13 @@ private:
   const_nv_iterator nv_begin() const;
   const_nv_iterator nv_end() const;
 
-  template <bool ref_count>
+  template <typename T>
   class iterator {
     const_nv_iterator d_i;
   public:
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
-    inline CVC4::NodeTemplate<ref_count> operator*();
+    inline T operator*();
 
     bool operator==(const iterator& i) {
       return d_i == i.d_i;
@@ -172,11 +174,11 @@ private:
 
 public:
 
-  template <bool ref_count>
-  inline iterator<ref_count> begin() const;
+  template <typename T>
+  inline iterator<T> begin() const;
 
-  template <bool ref_count>
-  inline iterator<ref_count> end() const;
+  template <typename T>
+  inline iterator<T> end() const;
 
   /**
    * Hash this NodeValue.  For hash_maps, hash_sets, etc.. but this is
@@ -317,18 +319,18 @@ inline NodeValue::const_nv_iterator NodeValue::nv_end() const {
   return d_children + d_nchildren;
 }
 
-template <bool ref_count>
-inline NodeValue::iterator<ref_count> NodeValue::begin() const {
+template <typename T>
+inline NodeValue::iterator<T> NodeValue::begin() const {
   NodeValue* const* firstChild = d_children;
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     ++firstChild;
   }
-  return iterator<ref_count>(firstChild);
+  return iterator<T>(firstChild);
 }
 
-template <bool ref_count>
-inline NodeValue::iterator<ref_count> NodeValue::end() const {
-  return iterator<ref_count>(d_children + d_nchildren);
+template <typename T>
+inline NodeValue::iterator<T> NodeValue::end() const {
+  return iterator<T>(d_children + d_nchildren);
 }
 
 inline bool NodeValue::isBeingDeleted() const {
@@ -349,13 +351,14 @@ inline NodeValue* NodeValue::getChild(int i) const {
 }/* CVC4 namespace */
 
 #include "expr/node.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace expr {
 
-template <bool ref_count>
-inline CVC4::NodeTemplate<ref_count> NodeValue::iterator<ref_count>::operator*() {
-  return NodeTemplate<ref_count>(*d_i);
+template <typename T>
+inline T NodeValue::iterator<T>::operator*() {
+  return T(*d_i);
 }
 
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {

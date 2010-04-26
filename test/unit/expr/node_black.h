@@ -36,7 +36,7 @@ private:
   Context* d_ctxt;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
-  Type *d_booleanType;
+  TypeNode *d_booleanType;
 
 public:
 
@@ -44,7 +44,7 @@ public:
     d_ctxt = new Context;
     d_nodeManager = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nodeManager);
-    d_booleanType = new Type(d_nodeManager->booleanType());
+    d_booleanType = new TypeNode(d_nodeManager->booleanType());
   }
 
   void tearDown() {
@@ -400,9 +400,9 @@ public:
   }
 
   void testGetOperator() {
-    Type sort = d_nodeManager->mkSort("T");
-    Type booleanType = d_nodeManager->booleanType();
-    Type predType = d_nodeManager->mkFunctionType(sort, booleanType);
+    TypeNode sort = d_nodeManager->mkSort("T");
+    TypeNode booleanType = d_nodeManager->booleanType();
+    TypeNode predType = d_nodeManager->mkFunctionType(sort, booleanType);
 
     Node f = d_nodeManager->mkVar(predType);
     Node a = d_nodeManager->mkVar(booleanType);
@@ -490,7 +490,7 @@ public:
   }
 
   void testToString() {
-    Type booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
 
     Node w = d_nodeManager->mkVar("w",booleanType);
     Node x = d_nodeManager->mkVar("x",booleanType);
@@ -503,7 +503,7 @@ public:
   }
 
   void testToStream() {
-    Type booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
 
     Node w = d_nodeManager->mkVar("w",booleanType);
     Node x = d_nodeManager->mkVar("x",booleanType);

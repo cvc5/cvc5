@@ -37,7 +37,7 @@ private:
   Context* d_ctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
-  Type* d_booleanType;
+  TypeNode* d_booleanType;
 
 public:
 
@@ -47,7 +47,7 @@ public:
     d_scope = new NodeManagerScope(d_nm);
 
     specKind = PLUS;
-    d_booleanType = new Type(d_nm->booleanType());
+    d_booleanType = new TypeNode(d_nm->booleanType());
   }
 
   void tearDown() {

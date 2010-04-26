@@ -33,7 +33,7 @@
 
 namespace CVC4 {
 
-class Type;
+class TypeNode;
 class NodeManager;
 
 template <bool ref_count>
@@ -229,7 +229,7 @@ public:
    * Returns the unique id of this node
    * @return the ud
    */
-  uint64_t getId() const {
+  unsigned getId() const {
     return d_nv->getId();
   }
 
@@ -247,7 +247,7 @@ public:
    * Returns the type of this node.
    * @return the type
    */
-  Type getType() const;
+  TypeNode getType() const;
 
   /**
    * Returns the kind of this node.
@@ -322,16 +322,16 @@ public:
                            const typename AttrKind::value_type& value);
 
   /** Iterator allowing for scanning through the children. */
-  typedef typename expr::NodeValue::iterator<ref_count> iterator;
+  typedef typename expr::NodeValue::iterator< NodeTemplate<ref_count> > iterator;
   /** Constant iterator allowing for scanning through the children. */
-  typedef typename expr::NodeValue::iterator<ref_count> const_iterator;
+  typedef typename expr::NodeValue::iterator< NodeTemplate<ref_count> > const_iterator;
 
   /**
    * Returns the iterator pointing to the first child.
    * @return the iterator
    */
   inline iterator begin() {
-    return d_nv->begin<ref_count>();
+    return d_nv->begin< NodeTemplate<ref_count> >();
   }
 
   /**
@@ -340,7 +340,7 @@ public:
    * @return the end of the children iterator.
    */
   inline iterator end() {
-    return d_nv->end<ref_count>();
+    return d_nv->end< NodeTemplate<ref_count> >();
   }
 
   /**
@@ -348,7 +348,7 @@ public:
    * @return the const_iterator
    */
   inline const_iterator begin() const {
-    return d_nv->begin<ref_count>();
+    return d_nv->begin< NodeTemplate<ref_count> >();
   }
 
   /**
@@ -357,7 +357,7 @@ public:
    * @return the end of the children const_iterator.
    */
   inline const_iterator end() const {
-    return d_nv->end<ref_count>();
+    return d_nv->end< NodeTemplate<ref_count> >();
   }
 
   /**
@@ -814,7 +814,7 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 }
 
 template <bool ref_count>
-Type NodeTemplate<ref_count>::getType() const {
+TypeNode NodeTemplate<ref_count>::getType() const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );

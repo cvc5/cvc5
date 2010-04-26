@@ -60,7 +60,7 @@ class AttributeWhite : public CxxTest::TestSuite {
   Context* d_ctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
-  Type* d_booleanType;
+  TypeNode* d_booleanType;
 
 public:
 
@@ -69,7 +69,7 @@ public:
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
 
-    d_booleanType = new Type(d_nm->booleanType());
+    d_booleanType = new TypeNode(d_nm->booleanType());
   }
 
   void tearDown() {
@@ -146,7 +146,7 @@ public:
     lastId = attr::LastAttributeId<TNode, false>::s_id;
     TS_ASSERT_LESS_THAN(theory::RewriteCache::s_id, lastId);
 
-    lastId = attr::LastAttributeId<Node, false>::s_id;
+    lastId = attr::LastAttributeId<TypeNode, false>::s_id;
     TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);
 
   }

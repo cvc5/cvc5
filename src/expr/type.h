@@ -29,7 +29,7 @@
 namespace CVC4 {
 
 class NodeManager;
-template <bool ref_count> class NodeTemplate;
+class TypeNode;
 
 class BooleanType;
 class FunctionType;
@@ -41,12 +41,12 @@ class SortType;
  */
 class CVC4_PUBLIC Type {
 
-  friend class NodeManager;
+  friend class ExprManager;
 
 protected:
 
   /** The internal expression representation */
-  NodeTemplate<true>* d_typeNode;
+  TypeNode* d_typeNode;
 
   /** The responsible expression manager */
   NodeManager* d_nodeManager;
@@ -54,14 +54,14 @@ protected:
   /**
    * Construct a new type given the typeNode;
    */
-  Type makeType(NodeTemplate<false> typeNode) const;
+  Type makeType(const TypeNode& typeNode) const;
 
   /**
    * Constructor for internal purposes.
    * @param em the expression manager that handles this expression
    * @param node the actual expression node pointer for this type
    */
-  Type(NodeManager* em, NodeTemplate<true>* typeNode);
+  Type(NodeManager* em, TypeNode* typeNode);
 
 public:
 
@@ -159,12 +159,6 @@ public:
 
   /** Get the range type (i.e., the type of the result). */
   Type getRangeType() const;
-
-  /** Is this as function type? (Returns true.) */
-  bool isFunction() const;
-
-  /** Is this as predicate type? (Returns true if range is Boolean.) */
-  bool isPredicate() const;
 
   /**
    * Outputs a string representation of this type to the stream,

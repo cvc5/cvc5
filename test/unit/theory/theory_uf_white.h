@@ -94,7 +94,7 @@ class TheoryUFWhite : public CxxTest::TestSuite {
 
   TheoryUF* d_euf;
 
-  Type* d_booleanType;
+  TypeNode* d_booleanType;
 
 public:
 
@@ -107,7 +107,7 @@ public:
     d_outputChannel.clear();
     d_euf = new TheoryUF(d_ctxt, d_outputChannel);
 
-    d_booleanType = new Type(d_nm->booleanType());
+    d_booleanType = new TypeNode(d_nm->booleanType());
   }
 
   void tearDown() {

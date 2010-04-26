@@ -8,9 +8,12 @@ noinst_LTLIBRARIES = libexpr.la
 libexpr_la_SOURCES = \
 	node.h \
 	node.cpp \
+	type_node.h \
+	type_node.cpp \
 	node_builder.h \
 	@srcdir@/expr.h \
 	type.h \
+	type.cpp \
 	node_value.h \
 	node_manager.h \
 	@srcdir@/expr_manager.h \
@@ -22,7 +25,6 @@ libexpr_la_SOURCES = \
 	@srcdir@/expr_manager.cpp \
 	node_value.cpp \
 	@srcdir@/expr.cpp \
-	type.cpp \
 	command.h \
 	command.cpp \
 	declaration_scope.h \
@@ -36,6 +38,8 @@ EXTRA_DIST = \
 	@srcdir@/expr.h \
 	@srcdir@/expr_manager.cpp \
 	@srcdir@/expr.cpp \
+	@srcdir@/type.h \
+	@srcdir@/type.cpp \
 	kind_template.h \
 	metakind_template.h \
 	expr_manager_template.h \

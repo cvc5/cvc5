@@ -18,6 +18,7 @@
 /* There are strong constraints on ordering of declarations of
  * attributes and nodes due to template use */
 #include "expr/node.h"
+#include "expr/type_node.h"
 
 #ifndef __CVC4__EXPR__ATTRIBUTE_H
 #define __CVC4__EXPR__ATTRIBUTE_H
@@ -59,6 +60,8 @@ class AttributeManager {
   AttrHash<TNode> d_tnodes;
   /** Underlying hash table for node-valued attributes */
   AttrHash<Node> d_nodes;
+  /** Underlying hash table for types attributes */
+  AttrHash<TypeNode> d_types;
   /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
   /** Underlying hash table for pointer-valued attributes */
@@ -241,6 +244,18 @@ struct getTable<Node, false> {
   }
 };
 
+/** Access the "d_types" member of AttributeManager. */
+template <>
+struct getTable<TypeNode, false> {
+  typedef AttrHash<TypeNode> table_type;
+  static inline table_type& get(AttributeManager& am) {
+    return am.d_types;
+  }
+  static inline const table_type& get(const AttributeManager& am) {
+    return am.d_types;
+  }
+};
+
 /** Access the "d_strings" member of AttributeManager. */
 template <>
 struct getTable<std::string, false> {
@@ -313,7 +328,7 @@ struct getTable<TNode, true> {
   }
 };
 
-/** Access the "d_nodes" member of AttributeManager. */
+/** Access the "d_cdnodes" member of AttributeManager. */
 template <>
 struct getTable<Node, true> {
   typedef CDAttrHash<Node> table_type;

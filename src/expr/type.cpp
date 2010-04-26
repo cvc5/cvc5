@@ -15,6 +15,7 @@
 
 #include "expr/node_manager.h"
 #include "expr/type.h"
+#include "expr/type_node.h"
 #include "expr/type_constant.h"
 #include "util/Assert.h"
 #include <string>
@@ -26,12 +27,12 @@ std::ostream& operator<<(std::ostream& out, const Type& e) {
   return out;
 }
 
-Type Type::makeType(NodeTemplate<false> typeNode) const
+Type Type::makeType(const TypeNode& typeNode) const
 {
-  return Type(d_nodeManager, new Node(typeNode));
+  return Type(d_nodeManager, new TypeNode(typeNode));
 }
 
-Type::Type(NodeManager* nm, NodeTemplate<true>* node)
+Type::Type(NodeManager* nm, TypeNode* node)
 : d_typeNode(node),
   d_nodeManager(nm)
 {
@@ -43,19 +44,19 @@ Type::~Type() {
 }
 
 Type::Type()
-: d_typeNode(new Node()),
+: d_typeNode(new TypeNode()),
   d_nodeManager(NULL)
 {
 }
 
 Type::Type(uintptr_t n)
-: d_typeNode(new Node()),
+: d_typeNode(new TypeNode()),
   d_nodeManager(NULL) {
   AlwaysAssert(n == 0);
 }
 
 Type::Type(const Type& t)
-: d_typeNode(new Node(*t.d_typeNode)),
+: d_typeNode(new TypeNode(*t.d_typeNode)),
   d_nodeManager(t.d_nodeManager)
 {
 }
@@ -95,8 +96,7 @@ void Type::toStream(std::ostream& out) const {
 /** Is this the Boolean type? */
 bool Type::isBoolean() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::TYPE_CONSTANT
-      && d_typeNode->getConst<TypeConstant>() == BOOLEAN_TYPE;
+  return d_typeNode->isBoolean();
 }
 
 /** Cast to a Boolean type */
@@ -109,14 +109,14 @@ Type::operator BooleanType() const {
 /** Is this a function type? */
 bool Type::isFunction() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::FUNCTION_TYPE;
+  return d_typeNode->isFunction();
 }
 
 /** Is this a predicate type? NOTE: all predicate types are also
     function types. */
 bool Type::isPredicate() const {
   NodeManagerScope nms(d_nodeManager);
-  return isFunction() && ((FunctionType)*this).getRangeType().isBoolean();
+  return d_typeNode->isPredicate();
 }
 
 /** Cast to a function type */
@@ -129,8 +129,7 @@ Type::operator FunctionType() const {
 /** Is this a sort kind */
 bool Type::isSort() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::VARIABLE &&
-      d_typeNode->getType().isKind();
+  return d_typeNode->isSort();
 }
 
 /** Cast to a sort type */
@@ -143,8 +142,7 @@ Type::operator SortType() const {
 /** Is this a kind type (i.e., the type of a type)? */
 bool Type::isKind() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::TYPE_CONSTANT
-      && d_typeNode->getConst<TypeConstant>() == KIND_TYPE;
+  return d_typeNode->isKind();
 }
 
 /** Cast to a kind type */
@@ -157,15 +155,19 @@ Type::operator KindType() const {
 std::vector<Type> FunctionType::getArgTypes() const {
   NodeManagerScope nms(d_nodeManager);
   std::vector<Type> args;
-  for (unsigned i = 0, i_end = d_typeNode->getNumChildren() - 1; i < i_end; ++ i) {
-    args.push_back(makeType((*d_typeNode)[i]));
+  std::vector<TypeNode> argNodes = d_typeNode->getArgTypes();
+  std::vector<TypeNode>::iterator it = argNodes.begin();
+  std::vector<TypeNode>::iterator it_end = argNodes.end();
+  for(; it != it_end; ++ it) {
+    args.push_back(makeType(*it));
   }
   return args;
 }
 
 Type FunctionType::getRangeType() const {
   NodeManagerScope nms(d_nodeManager);
-  return makeType((*d_typeNode)[d_typeNode->getNumChildren()-1]);
+  Assert(isFunction());
+  return makeType(d_typeNode->getRangeType());
 }
 
 void BooleanType::toStream(std::ostream& out) const {

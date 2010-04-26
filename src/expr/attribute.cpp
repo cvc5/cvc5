@@ -30,6 +30,7 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   deleteFromTable(d_ints, nv);
   deleteFromTable(d_tnodes, nv);
   deleteFromTable(d_nodes, nv);
+  deleteFromTable(d_types, nv);
   deleteFromTable(d_strings, nv);
   deleteFromTable(d_ptrs, nv);
 
@@ -59,6 +60,7 @@ void AttributeManager::deleteAllAttributes() {
   deleteAllFromTable(d_ints);
   deleteAllFromTable(d_tnodes);
   deleteAllFromTable(d_nodes);
+  deleteAllFromTable(d_types);
   deleteAllFromTable(d_strings);
   deleteAllFromTable(d_ptrs);
 

@@ -20,6 +20,7 @@
 /* circular dependency; force node.h first */
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "expr/type_node.h"
 
 #ifndef __CVC4__NODE_MANAGER_H
 #define __CVC4__NODE_MANAGER_H
@@ -32,7 +33,6 @@
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 #include "context/context.h"
-#include "expr/type.h"
 
 namespace CVC4 {
 
@@ -206,7 +206,7 @@ class NodeManager {
 
   // NodeManager's attributes.  These aren't exposed outside of this
   // class; use the getters.
-  typedef expr::Attribute<TypeTag, Node> TypeAttr;
+  typedef expr::Attribute<TypeTag, TypeNode> TypeAttr;
   typedef expr::Attribute<AtomicTag, bool> AtomicAttr;
 
   /**
@@ -290,12 +290,13 @@ public:
    * lookup is done on the name.  If you mkVar("a", type) and then
    * mkVar("a", type) again, you have two variables.
    */
-  Node mkVar(const std::string& name, const Type& type);
-  Node* mkVarPtr(const std::string& name, const Type& type);
+  Node mkVar(const std::string& name, const TypeNode& type);
+  Node* mkVarPtr(const std::string& name, const TypeNode& type);
 
   /** Create a variable with the given type. */
-  Node mkVar(const Type& type);
-  Node* mkVarPtr(const Type& type);
+  Node mkVar(const TypeNode& type);
+  Node* mkVarPtr(const TypeNode& type);
+
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -303,6 +304,19 @@ public:
    */
   template <class T>
   Node mkConst(const T&);
+
+  template <class T>
+  TypeNode mkTypeConst(const T&);
+
+  template <class NodeClass, class T>
+  NodeClass mkConstInternal(const T&);
+
+  /** Create a type-variable */
+  TypeNode mkTypeVar();
+  TypeNode mkTypeVar(const std::string& name);
+
+  /** Create a node with no children. */
+  TypeNode mkTypeNode(Kind kind, const std::vector<TypeNode>& children);
 
   /**
    * Determine whether Nodes of a particular Kind have operators.
@@ -433,10 +447,10 @@ public:
                            const typename AttrKind::value_type& value);
 
   /** Get the (singleton) type for booleans. */
-  inline BooleanType booleanType();
+  inline TypeNode booleanType();
 
   /** Get the (singleton) type for sorts. */
-  inline KindType kindType();
+  inline TypeNode kindType();
 
   /**
    * Make a function type from domain to range.
@@ -445,7 +459,7 @@ public:
    * @param range the range type
    * @returns the functional type domain -> range
    */
-  inline Type mkFunctionType(const Type& domain, const Type& range);
+  inline TypeNode mkFunctionType(const TypeNode& domain, const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -455,7 +469,7 @@ public:
    * @param range the range type
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
-  inline Type mkFunctionType(const std::vector<Type>& argTypes, const Type& range);
+  inline TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes, const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -463,7 +477,7 @@ public:
    * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
    * at least 2 elements.
    */
-  inline Type mkFunctionType(const std::vector<Type>& sorts);
+  inline TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
 
   /**
    * Make a predicate type with input types from
@@ -471,18 +485,18 @@ public:
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  inline Type mkPredicateType(const std::vector<Type>& sorts);
+  inline TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
   /** Make a new sort. */
-  inline Type mkSort();
+  inline TypeNode mkSort();
 
   /** Make a new sort with the given name. */
-  inline Type mkSort(const std::string& name);
+  inline TypeNode mkSort(const std::string& name);
 
   /**
    * Get the type for the given node.
    */
-  inline Type getType(TNode n);
+  inline TypeNode getType(TNode n);
 
   /**
    * Returns true if this node is atomic (has no more Boolean structure)
@@ -589,63 +603,64 @@ NodeManager::setAttribute(TNode n, const AttrKind&,
 
 
 /** Get the (singleton) type for booleans. */
-inline BooleanType NodeManager::booleanType() {
-  return Type(this, new Node(mkConst<TypeConstant>(BOOLEAN_TYPE)));
+inline TypeNode NodeManager::booleanType() {
+  return TypeNode(mkTypeConst<TypeConstant>(BOOLEAN_TYPE));
 }
 
 /** Get the (singleton) type for sorts. */
-inline KindType NodeManager::kindType() {
-  return Type(this, new Node(mkConst<TypeConstant>(KIND_TYPE)));
+inline TypeNode NodeManager::kindType() {
+  return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
 }
 
-/** Make a function type from domain to range.
- * TODO: Function types should be unique for this manager. */
-inline Type NodeManager::mkFunctionType(const Type& domain, const Type& range) {
-  return Type(this, mkNodePtr(kind::FUNCTION_TYPE, *domain.d_typeNode, *range.d_typeNode));
-}
-
-inline Type NodeManager::mkFunctionType(const std::vector<Type>& argTypes, const Type& range) {
-  Assert(argTypes.size() >= 1);
-  std::vector<Type> sorts(argTypes);
+/** Make a function type from domain to range. */
+inline TypeNode NodeManager::mkFunctionType(const TypeNode& domain, const TypeNode& range) {
+  std::vector<TypeNode> sorts;
+  sorts.push_back(domain);
   sorts.push_back(range);
   return mkFunctionType(sorts);
 }
 
+inline TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes, const TypeNode& range) {
+  Assert(argTypes.size() >= 1);
+  std::vector<TypeNode> sorts(argTypes);
+  sorts.push_back(range);
+  return mkFunctionType(sorts);
+}
 
-inline Type
-NodeManager::mkFunctionType(const std::vector<Type>& sorts) {
+inline TypeNode
+NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 2);
-  std::vector<Node> sortNodes;
+  std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    sortNodes.push_back(*(sorts[i].d_typeNode));
+    sortNodes.push_back(sorts[i]);
   }
-  return Type(this, mkNodePtr(kind::FUNCTION_TYPE, sortNodes));
+  return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
 }
 
-inline Type
-NodeManager::mkPredicateType(const std::vector<Type>& sorts) {
+inline TypeNode
+NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 1);
-  std::vector<Node> sortNodes;
+  std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    sortNodes.push_back(*(sorts[i].d_typeNode));
+    sortNodes.push_back(sorts[i]);
   }
-  sortNodes.push_back(*(booleanType().d_typeNode));
-  return Type(this, mkNodePtr(kind::FUNCTION_TYPE, sortNodes));
+  sortNodes.push_back(booleanType());
+  return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
 }
 
-inline Type NodeManager::mkSort() {
-  return Type(this, mkVarPtr(kindType()));
+inline TypeNode NodeManager::mkSort() {
+  return mkTypeVar();
 }
 
-inline Type NodeManager::mkSort(const std::string& name) {
-  return Type(this, mkVarPtr(name, kindType()));
+inline TypeNode NodeManager::mkSort(const std::string& name) {
+  return mkTypeVar(name);
 }
 
-inline Type NodeManager::getType(TNode n)  {
-  Node* typeNode = new Node;
-  getAttribute(n, TypeAttr(), *typeNode);
+inline TypeNode NodeManager::getType(TNode n)  {
+  TypeNode typeNode;
+  getAttribute(n, TypeAttr(), typeNode);
   // TODO: Type computation
-  return Type(this, typeNode);
+  return typeNode;
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
@@ -815,34 +830,61 @@ inline Node* NodeManager::mkNodePtr(Kind kind,
   return NodeBuilder<>(this, kind).append(children).constructNodePtr();
 }
 
-inline Node NodeManager::mkVar(const std::string& name, const Type& type) {
+// N-ary version for types
+inline TypeNode NodeManager::mkTypeNode(Kind kind, const std::vector<TypeNode>& children) {
+  return NodeBuilder<>(this, kind).append(children).constructTypeNode();
+}
+
+
+inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
   Node n = mkVar(type);
   n.setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
-inline Node* NodeManager::mkVarPtr(const std::string& name, const Type& type) {
+inline Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type) {
   Node* n = mkVarPtr(type);
   n->setAttribute(expr::VarNameAttr(), name);
   return n;
 }
 
-inline Node NodeManager::mkVar(const Type& type) {
+inline Node NodeManager::mkVar(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
-  n.setAttribute(TypeAttr(), *type.d_typeNode);
+  n.setAttribute(TypeAttr(), type);
   return n;
 }
 
-inline Node* NodeManager::mkVarPtr(const Type& type) {
+inline TypeNode NodeManager::mkTypeVar(const std::string& name) {
+  TypeNode type = mkTypeVar();
+  type.setAttribute(expr::VarNameAttr(), name);
+  return type;
+}
+
+inline TypeNode NodeManager::mkTypeVar() {
+  TypeNode type = NodeBuilder<0>(this, kind::VARIABLE).constructTypeNode();
+  return type;
+}
+
+inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
-  n->setAttribute(TypeAttr(), *type.d_typeNode);
+  n->setAttribute(TypeAttr(), type);
   return n;
 }
 
 template <class T>
 Node NodeManager::mkConst(const T& val) {
-  // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
+  return mkConstInternal<Node, T>(val);
+}
 
+template <class T>
+TypeNode NodeManager::mkTypeConst(const T& val) {
+  return mkConstInternal<TypeNode, T>(val);
+}
+
+template <class NodeClass, class T>
+NodeClass NodeManager::mkConstInternal(const T& val) {
+
+  // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
   NVStorage<1> nvStorage;
   expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
 
@@ -855,7 +897,7 @@ Node NodeManager::mkConst(const T& val) {
   expr::NodeValue* nv = poolLookup(&nvStack);
 
   if(nv != NULL) {
-    return Node(nv);
+    return NodeClass(nv);
   }
 
   nv = (expr::NodeValue*)
@@ -876,7 +918,7 @@ Node NodeManager::mkConst(const T& val) {
   Debug("gc") << "creating node value " << nv
               << " [" << nv->d_id << "]: " << *nv << "\n";
 
-  return Node(nv);
+  return NodeClass(nv);
 }
 
 }/* CVC4 namespace */

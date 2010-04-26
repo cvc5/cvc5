@@ -70,7 +70,7 @@ public:
   typedef expr::Attribute<MyDataAttributeId, MyData*, MyDataCleanupFunction> MyDataAttribute;
 
   void testDeallocation() {
-    Type booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
     MyData* data;
     MyData* data1;
@@ -88,7 +88,7 @@ public:
   typedef expr::Attribute<PrimitiveIntAttributeId,uint64_t> PrimitiveIntAttribute;
   typedef expr::CDAttribute<CDPrimitiveIntAttributeId,uint64_t> CDPrimitiveIntAttribute;
   void testInts(){
-    BooleanType booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
     const uint64_t val = 63489;
     uint64_t data0 = 0;
@@ -116,7 +116,7 @@ public:
   typedef expr::Attribute<TNodeAttributeId, TNode> TNodeAttribute;
   typedef expr::CDAttribute<CDTNodeAttributeId, TNode> CDTNodeAttribute;
   void testTNodes(){
-    BooleanType booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     Node val(d_nodeManager->mkVar(booleanType));
@@ -151,7 +151,7 @@ public:
   typedef expr::Attribute<PtrAttributeId, Foo*> PtrAttribute;
   typedef expr::CDAttribute<CDPtrAttributeId, Foo*> CDPtrAttribute;
   void testPtrs(){
-    BooleanType booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     Foo* val = new Foo(63489);
@@ -182,7 +182,7 @@ public:
   typedef expr::Attribute<ConstPtrAttributeId, const Foo*> ConstPtrAttribute;
   typedef expr::CDAttribute<CDConstPtrAttributeId, const Foo*> CDConstPtrAttribute;
   void testConstPtrs(){
-    BooleanType booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     const Foo* val = new Foo(63489);
@@ -212,7 +212,7 @@ public:
   typedef expr::Attribute<StringAttributeId, std::string> StringAttribute;
   typedef expr::CDAttribute<CDStringAttributeId, std::string> CDStringAttribute;
   void testStrings(){
-    BooleanType booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     std::string val("63489");
@@ -241,7 +241,7 @@ public:
   typedef expr::Attribute<BoolAttributeId, bool> BoolAttribute;
   typedef expr::CDAttribute<CDBoolAttributeId, bool> CDBoolAttribute;
   void testBools(){
-    BooleanType booleanType = d_nodeManager->booleanType();
+    TypeNode booleanType = d_nodeManager->booleanType();
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     bool val = true;

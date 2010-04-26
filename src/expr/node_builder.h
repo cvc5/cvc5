@@ -173,6 +173,7 @@
 
 /* strong dependency; make sure node is included first */
 #include "node.h"
+#include "type_node.h"
 
 #ifndef __CVC4__NODE_BUILDER_H
 #define __CVC4__NODE_BUILDER_H
@@ -410,21 +411,21 @@ public:
   // override this in a derived class.
   inline ~NodeBuilderBase();
 
-  typedef expr::NodeValue::iterator<true> iterator;
-  typedef expr::NodeValue::iterator<true> const_iterator;
+  typedef expr::NodeValue::iterator< NodeTemplate<true>  > iterator;
+  typedef expr::NodeValue::iterator< NodeTemplate<true> > const_iterator;
 
   /** Get the begin-const-iterator of this Node-under-construction. */
   inline const_iterator begin() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    return d_nv->begin<true>();
+    return d_nv->begin< NodeTemplate<true> >();
   }
 
   /** Get the end-const-iterator of this Node-under-construction. */
   inline const_iterator end() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    return d_nv->end<true>();
+    return d_nv->end< NodeTemplate<true> >();
   }
 
   /** Get the kind of this Node-under-construction. */
@@ -505,6 +506,14 @@ public:
     return append(n);
   }
 
+  /** Append a sequence of children to this TypeNode-under-construction. */
+  inline Builder&
+  append(const std::vector<TypeNode>& children) {
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
+    return append(children.begin(), children.end());
+  }
+
   /** Append a sequence of children to this Node-under-construction. */
   template <bool ref_count>
   inline Builder&
@@ -537,6 +546,18 @@ public:
     return static_cast<Builder&>(*this);
   }
 
+  /** Append a child to this Node-under-construction. */
+  Builder& append(const TypeNode& typeNode) {
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
+    Assert(!typeNode.isNull(), "Cannot use NULL Node as a child of a Node");
+    allocateNvIfNecessaryForAppend();
+    expr::NodeValue* nv = typeNode.d_nv;
+    nv->inc();
+    d_nv->d_children[d_nv->d_nchildren++] = nv;
+    return static_cast<Builder&>(*this);
+  }
+
 private:
 
   /** Construct the node value out of the node builder */
@@ -552,6 +573,10 @@ public:
   /** Construct a Node on the heap out of the node builder */
   Node* constructNodePtr();
   Node* constructNodePtr() const;
+
+  /** Construction of the TypeNode out of the node builder */
+  TypeNode constructTypeNode();
+  TypeNode constructTypeNode() const;
 
   // two versions, so we can support extraction from (const)
   // NodeBuilders which are temporaries appearing as rvalues
@@ -1243,6 +1268,17 @@ void NodeBuilderBase<Builder>::decrRefCounts() {
   }
 
   d_inlineNv.d_nchildren = 0;
+}
+
+
+template <class Builder>
+TypeNode NodeBuilderBase<Builder>::constructTypeNode() {
+  return TypeNode(constructNV());
+}
+
+template <class Builder>
+TypeNode NodeBuilderBase<Builder>::constructTypeNode() const {
+  return TypeNode(constructNV());
 }
 
 template <class Builder>
