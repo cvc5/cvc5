@@ -115,15 +115,6 @@ ParserState::defineVar(const std::string& name, const Expr& val) {
   Assert(isDeclared(name));
 }
 
-/*
-void
-ParserState::undefineVar(const std::string& name) {
-  Assert(isDeclared(name));
-  d_declScope.unbind(name);
-  Assert(!isDeclared(name));
-}
-*/
-
 Type
 ParserState::mkSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;

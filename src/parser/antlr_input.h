@@ -67,6 +67,9 @@ class AntlrInput : public Input {
   /** Turns an ANTLR3 exception into a message for the user and calls <code>parseError</code>. */
   static void reportError(pANTLR3_BASE_RECOGNIZER recognizer);
 
+  /** Builds a message for a lexer error and calls <code>parseError</code>. */
+  static void lexerError(pANTLR3_BASE_RECOGNIZER recognizer);
+
 public:
 
   /** Create a file input.

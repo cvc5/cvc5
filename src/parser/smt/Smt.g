@@ -61,7 +61,9 @@ namespace CVC4 {
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser_state.h"
+#include "util/integer.h"
 #include "util/output.h"
+#include "util/rational.h"
 #include <vector>
 
 using namespace CVC4;
@@ -229,6 +231,13 @@ annotatedFormula[CVC4::Expr& expr]
     /* constants */
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
+  | NUMERAL_TOK
+    { Integer num( AntlrInput::tokenText($NUMERAL_TOK) );
+      expr = MK_CONST(num); }
+  | RATIONAL_TOK
+    { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
+      Rational rat( AntlrInput::tokenText($RATIONAL_TOK) );
+      expr = MK_CONST(rat); }
     // NOTE: Theory constants go here
     /* TODO: let, flet, quantifiers, arithmetic constants */
   ;
@@ -525,7 +534,11 @@ WHITESPACE
  * Matches a numeral from the input (non-empty sequence of digits).
  */
 NUMERAL_TOK
-  :  (DIGIT)+
+  : DIGIT+
+  ;
+
+RATIONAL_TOK
+  : DIGIT+ '.' DIGIT+
   ;
 
 /**
@@ -557,7 +570,8 @@ ALPHA
  * Matches the digits (0-9)
  */
 fragment DIGIT :   '0'..'9';
-
+// fragment NON_ZERO_DIGIT : '1'..'9';
+// fragment NUMERAL_SEQ : '0' | NON_ZERO_DIGIT DIGIT*;
 
 /**
  * Matches an allowed escaped character.

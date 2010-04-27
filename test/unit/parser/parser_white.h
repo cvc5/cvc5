@@ -109,7 +109,10 @@ const string goodSmtExprs[] = {
     "(and (iff a b) (not a))",
     "(iff (xor a b) (and (or a b) (not (and a b))))",
     "(ite a (f x) y)",
-    "(if_then_else a (f x) y)"
+    "(if_then_else a (f x) y)",
+    "1",
+    "0"// ,
+//    "1.5"
 };
 
 const int numGoodSmtExprs = sizeof(goodSmtExprs) / sizeof(string);
@@ -134,7 +137,9 @@ const string badSmtExprs[] = {
     "(not a b)", // wrong arity
     "not a", // needs parens
     "(ite a x)", // wrong arity
-    "(a b)" // using non-function as function
+    "(a b)", // using non-function as function
+    ".5", // rational constants must have integer prefix
+    "1." // rational constants must have fractional suffix
 };
 
 const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);

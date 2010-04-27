@@ -91,6 +91,16 @@ pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
   return d_tokenStream;
 }
 
+void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
+  pANTLR3_LEXER lexer = (pANTLR3_LEXER)(recognizer->super);
+  AlwaysAssert(lexer!=NULL);
+  ParserState *parserState = (ParserState*)(lexer->super);
+  AlwaysAssert(parserState!=NULL);
+
+  // Call the error display routine
+  parserState->parseError("Error finding next token.");
+}
+
 void AntlrInput::parseError(const std::string& message)
     throw (ParserException) {
   Debug("parser") << "Throwing exception: "
@@ -125,6 +135,11 @@ void AntlrInput::setLexer(pANTLR3_LEXER pLexer) {
   }
 
   d_tokenStream = buffer->commonTstream;
+
+  // ANTLR isn't using super, AFAICT.
+  d_lexer->super = getParserState();
+  // Override default lexer error reporting
+  d_lexer->rec->reportError = &lexerError;
 }
 
 void AntlrInput::setParser(pANTLR3_PARSER pParser) {
