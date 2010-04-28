@@ -93,7 +93,7 @@ setLogic(Parser *parser, const std::string& name) {
   if( name == "QF_UF" ) {
     parser->mkSort("U");
   } else if(name == "QF_LRA"){
-    parser->mkSort("Real");
+    parser->defineType("Real", parser->getExprManager()->realType());
   } else{
     // NOTE: Theory types go here
     Unhandled(name);
