@@ -91,9 +91,9 @@ using namespace CVC4::parser;
 void
 setLogic(Parser *parser, const std::string& name) {
   if( name == "QF_UF" ) {
-    parserState->mkSort("U");
+    parser->mkSort("U");
   } else if(name == "QF_LRA"){
-    parserState->mkSort("Real");
+    parser->mkSort("Real");
   } else{
     // NOTE: Theory types go here
     Unhandled(name);
