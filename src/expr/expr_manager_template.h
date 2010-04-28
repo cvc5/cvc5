@@ -90,6 +90,12 @@ public:
   /** Get the type for sorts. */
   KindType kindType() const;
 
+  /** Get the type for reals. */
+  RealType realType() const;
+
+  /** Get the type for integers */
+  IntegerType integerType() const;
+
   /**
    * Make a unary expression of a given kind (TRUE, FALSE,...).
    * @param kind the kind of expression

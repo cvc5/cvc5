@@ -56,6 +56,16 @@ KindType ExprManager::kindType() const {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->kindType()));
 }
 
+RealType ExprManager::realType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return Type(d_nodeManager, new TypeNode(d_nodeManager->realType()));
+}
+
+IntegerType ExprManager::integerType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return Type(d_nodeManager, new TypeNode(d_nodeManager->integerType()));
+}
+
 Expr ExprManager::mkExpr(Kind kind) {
   const unsigned n = 0;
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
