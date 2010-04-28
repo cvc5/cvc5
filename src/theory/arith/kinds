@@ -8,7 +8,8 @@ theory ::CVC4::theory::arith::TheoryArith "theory_arith.h"
 
 operator PLUS 2: "arithmetic addition"
 operator MULT 2: "arithmetic multiplication"
-operator UMINUS 1 "arithmetic negation"
+operator MINUS 2 "arithmetic binary subtraction operator"
+operator UMINUS 1 "arithmetic unary negation"
 
 constant CONST_RATIONAL \
     ::CVC4::Rational \
@@ -21,3 +22,8 @@ constant CONST_INTEGER \
     ::CVC4::IntegerHashStrategy \
     "util/integer.h" \
     "a multiple-precision integer constant"
+
+operator LT 2 "less than, x < y"
+operator LEQ 2 "less than or equal, x <= y"
+operator GT 2 "greater than, x > y"
+operator GEQ 2 "greater than or equal, x >= y"

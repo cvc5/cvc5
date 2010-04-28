@@ -33,9 +33,11 @@ options {
 }
 
 @lexer::includes {
-/** This suppresses warnings about the redefinition of token symbols between different
-  * parsers. The redefinitions should be harmless as long as no client: (a) #include's 
-  * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
+/** This suppresses warnings about the redefinition of token symbols between
+  * different parsers. The redefinitions should be harmless as long as no
+  * client: (a) #include's the lexer headers for two grammars AND (b) uses the
+  * token symbol definitions.
+  */
 #pragma GCC system_header
 
 /* This improves performance by ~10 percent on big inputs.
@@ -90,7 +92,9 @@ void
 setLogic(ParserState *parserState, const std::string& name) {
   if( name == "QF_UF" ) {
     parserState->mkSort("U");
-  } else {
+  } else if(name == "QF_LRA"){
+    parserState->mkSort("Real");
+  } else{
     // NOTE: Theory types go here
     Unhandled(name);
   }
@@ -269,6 +273,18 @@ builtinOp[CVC4::Kind& kind]
   | IFF_TOK      { $kind = CVC4::kind::IFF;     }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
+  | GREATER_THAN_TOK
+                 { $kind = CVC4::kind::GT; }
+  | GREATER_THAN_TOK EQUAL_TOK
+                 { $kind = CVC4::kind::GEQ; }
+  | LESS_THAN_TOK EQUAL_TOK
+                 { $kind = CVC4::kind::LEQ; }
+  | LESS_THAN_TOK
+                 { $kind = CVC4::kind::LT; }
+  | PLUS_TOK     { $kind = CVC4::kind::PLUS; }
+  | STAR_TOK     { $kind = CVC4::kind::MULT; }
+  | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
+  | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
     // NOTE: Theory operators go here
     /* TODO: lt, gt, plus, minus, etc. */
   ;

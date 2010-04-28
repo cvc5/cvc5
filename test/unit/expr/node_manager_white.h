@@ -36,7 +36,7 @@ class NodeManagerWhite : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_ctxt = new Context;
+    d_ctxt = new Context();
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
   }
