@@ -24,6 +24,7 @@
 #ifndef __CVC4__RATIONAL_H
 #define __CVC4__RATIONAL_H
 
+#include <gmp.h>
 #include <string>
 #include "util/integer.h"
 
@@ -93,7 +94,11 @@ public:
   {
     d_value.canonicalize();
   }
-
+  Rational(const Integer& n) :
+    d_value(n.get_mpz())
+  {
+    d_value.canonicalize();
+  }
   ~Rational() {}
 
 
@@ -113,6 +118,20 @@ public:
     return Integer(d_value.get_den());
   }
 
+  Rational inverse() const {
+    return Rational(getDenominator(), getNumerator());
+  }
+
+  int cmp(const Rational& x) const {
+    //Don't use mpq_class's cmp() function.
+    //The name ends up conflicting with this function.
+    return mpq_cmp(d_value.get_mpq_t(), x.d_value.get_mpq_t());
+  }
+
+
+  int sgn() {
+    return mpq_sgn(d_value.get_mpq_t());
+  }
 
   Rational& operator=(const Rational& x){
     if(this == &x) return *this;

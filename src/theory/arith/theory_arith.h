@@ -1,7 +1,7 @@
 /*********************                                                        */
 /** theory_arith.h
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: taking
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
@@ -20,22 +20,52 @@
 
 #include "theory/theory.h"
 #include "context/context.h"
+#include "context/cdlist.h"
+
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/tableau.h"
+#include "theory/arith/arith_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
 class TheoryArith : public Theory {
+private:
+  ArithConstants d_constants;
+
+  context::CDList<Node> d_diseq;
+  Tableau d_tableau;
+  ArithRewriter d_rewriter;
+
 public:
   TheoryArith(context::Context* c, OutputChannel& out) :
-    Theory(c, out) {
-  }
+    Theory(c, out),
+    d_constants(NodeManager::currentNM()), d_diseq(c), d_rewriter(&d_constants)
+  {}
+
+  Node rewrite(TNode n);
 
   void preRegisterTerm(TNode n) { Unimplemented(); }
-  void registerTerm(TNode n) { Unimplemented(); }
-  void check(Effort e) { Unimplemented(); }
+  void registerTerm(TNode n);
+  void check(Effort e);
   void propagate(Effort e) { Unimplemented(); }
   void explain(TNode n, Effort e) { Unimplemented(); }
+
+private:
+  void AssertLower(TNode n);
+  void AssertUpper(TNode n);
+  void update(TNode x_i, DeltaRational& v);
+  void pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v);
+  TNode updateInconsistentVars();
+
+  TNode selectSlackBelow(TNode x_i);
+  TNode selectSlackAbove(TNode x_i);
+  TNode selectSmallestInconsistentVar();
+
+  Node generateConflictAbove(TNode conflictVar);
+  Node generateConflictBelow(TNode conflictVar);
+
 };
 
 }/* CVC4::theory::arith namespace */
