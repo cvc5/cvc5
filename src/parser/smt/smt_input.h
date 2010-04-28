@@ -18,7 +18,7 @@
 #ifndef __CVC4__PARSER__SMT_INPUT_H
 #define __CVC4__PARSER__SMT_INPUT_H
 
-#include "parser/antlr_input.h"
+#include "parser/input.h"
 #include "parser/smt/generated/SmtLexer.h"
 #include "parser/smt/generated/SmtParser.h"
 
@@ -32,7 +32,7 @@ class ExprManager;
 
 namespace parser {
 
-class SmtInput : public AntlrInput {
+class SmtInput : public Input {
 
   /** The ANTLR3 SMT lexer for the input. */
   pSmtLexer d_pSmtLexer;
@@ -43,14 +43,11 @@ class SmtInput : public AntlrInput {
 public:
 
   /**
-   * Create a file input.
+   * Create an input.
    *
-   * @param exprManager the manager to use when building expressions from the input
-   * @param filename the path of the file to read
-   * @param useMmap <code>true</code> if the input should use memory-mapped
-   * I/O; otherwise, the input will use the standard ANTLR3 I/O implementation.
+   * @param inputStream the input stream to use
    */
-  SmtInput(ExprManager* exprManager, const std::string& filename, bool useMmap);
+  SmtInput(AntlrInputStream *inputStream);
 
   /**
    * Create a string input.
@@ -59,7 +56,7 @@ public:
    * @param input the string to read
    * @param name the "filename" to use when reporting errors
    */
-  SmtInput(ExprManager* exprManager, const std::string& input, const std::string& name);
+//  SmtInput(ExprManager* exprManager, const std::string& input, const std::string& name);
 
   /** Destructor. Frees the lexer and the parser. */
   ~SmtInput();
@@ -72,7 +69,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* doParseCommand() throw(ParserException);
+  Command* parseCommand() throw(ParserException);
 
   /**
    * Parse an expression from the input. Returns a null
@@ -80,7 +77,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr doParseExpr() throw(ParserException);
+  Expr parseExpr() throw(ParserException);
 
 private:
 

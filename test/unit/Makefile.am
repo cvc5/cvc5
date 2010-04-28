@@ -10,7 +10,7 @@ UNIT_TESTS = \
 	expr/attribute_white \
 	expr/attribute_black \
 	expr/declaration_scope_black \
-	parser/parser_white \
+	parser/parser_black \
 	context/context_black \
 	context/context_white \
 	context/context_mm_black \
@@ -37,7 +37,7 @@ if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
 	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
-	$(TEST_CPPFLAGS)
+	$(ANTLR_INCLUDES) $(TEST_CPPFLAGS)
 AM_CXXFLAGS = -Wall $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)
 

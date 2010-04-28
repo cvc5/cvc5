@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** parser_state.cpp
+/** parser.cpp
  ** Original author: cconway
  ** Major contributors: dejan, mdeters
  ** Minor contributors (to current version): none
@@ -18,14 +18,14 @@
 #include <stdint.h>
 
 #include "input.h"
+#include "parser.h"
+#include "parser_exception.h"
 #include "expr/command.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/output.h"
 #include "util/Assert.h"
-#include "parser/parser_exception.h"
-#include "parser/symbol_table.h"
 #include "parser/cvc/cvc_input.h"
 #include "parser/smt/smt_input.h"
 
@@ -35,15 +35,15 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace parser {
 
-ParserState::ParserState(ExprManager* exprManager, const std::string& filename, Input* input) :
+Parser::Parser(ExprManager* exprManager, Input* input) :
   d_exprManager(exprManager),
   d_input(input),
-  d_filename(filename),
   d_done(false),
   d_checksEnabled(true) {
+  d_input->setParser(this);
 }
 
-Expr ParserState::getSymbol(const std::string& name, SymbolType type) {
+Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   Assert( isDeclared(name, type) );
 
   switch( type ) {
@@ -57,41 +57,41 @@ Expr ParserState::getSymbol(const std::string& name, SymbolType type) {
 }
 
 
-Expr ParserState::getVariable(const std::string& name) {
+Expr Parser::getVariable(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
 Type
-ParserState::getType(const std::string& var_name,
+Parser::getType(const std::string& var_name,
                      SymbolType type) {
   Assert( isDeclared(var_name, type) );
   Type t = getSymbol(var_name,type).getType();
   return t;
 }
 
-Type ParserState::getSort(const std::string& name) {
+Type Parser::getSort(const std::string& name) {
   Assert( isDeclared(name, SYM_SORT) );
   Type t = d_declScope.lookupType(name);
   return t;
 }
 
 /* Returns true if name is bound to a boolean variable. */
-bool ParserState::isBoolean(const std::string& name) {
+bool Parser::isBoolean(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
 }
 
 /* Returns true if name is bound to a function. */
-bool ParserState::isFunction(const std::string& name) {
+bool Parser::isFunction(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isFunction();
 }
 
 /* Returns true if name is bound to a function returning boolean. */
-bool ParserState::isPredicate(const std::string& name) {
+bool Parser::isPredicate(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isPredicate();
 }
 
 Expr 
-ParserState::mkVar(const std::string& name, const Type& type) {
+Parser::mkVar(const std::string& name, const Type& type) {
   Debug("parser") << "mkVar(" << name << "," << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type);
   defineVar(name,expr);
@@ -99,7 +99,7 @@ ParserState::mkVar(const std::string& name, const Type& type) {
 }
 
 const std::vector<Expr>
-ParserState::mkVars(const std::vector<std::string> names,
+Parser::mkVars(const std::vector<std::string> names,
                     const Type& type) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
@@ -109,24 +109,29 @@ ParserState::mkVars(const std::vector<std::string> names,
 }
 
 void
-ParserState::defineVar(const std::string& name, const Expr& val) {
+Parser::defineVar(const std::string& name, const Expr& val) {
   Assert(!isDeclared(name));
   d_declScope.bind(name,val);
   Assert(isDeclared(name));
 }
 
-Type
-ParserState::mkSort(const std::string& name) {
-  Debug("parser") << "newSort(" << name << ")" << std::endl;
-  Assert( !isDeclared(name, SYM_SORT) ) ;
-  Type type = d_exprManager->mkSort(name);
-  d_declScope.bindType(name, type);
+void
+Parser::defineType(const std::string& name, const Type& type) {
+  Assert( !isDeclared(name, SYM_SORT) );
+  d_declScope.bindType(name,type);
   Assert( isDeclared(name, SYM_SORT) ) ;
+}
+
+Type
+Parser::mkSort(const std::string& name) {
+  Debug("parser") << "newSort(" << name << ")" << std::endl;
+  Type type = d_exprManager->mkSort(name);
+  defineType(name,type);
   return type;
 }
 
 const std::vector<Type>
-ParserState::mkSorts(const std::vector<std::string>& names) {
+Parser::mkSorts(const std::vector<std::string>& names) {
   std::vector<Type> types;
   for(unsigned i = 0; i < names.size(); ++i) {
     types.push_back(mkSort(names[i]));
@@ -134,7 +139,7 @@ ParserState::mkSorts(const std::vector<std::string>& names) {
   return types;
 }
 
-bool ParserState::isDeclared(const std::string& name, SymbolType type) {
+bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
     return d_declScope.isBound(name);
@@ -145,7 +150,7 @@ bool ParserState::isDeclared(const std::string& name, SymbolType type) {
   }
 }
 
-void ParserState::checkDeclaration(const std::string& varName,
+void Parser::checkDeclaration(const std::string& varName,
                                    DeclarationCheck check,
                                    SymbolType type)
     throw (ParserException) {
@@ -174,14 +179,14 @@ void ParserState::checkDeclaration(const std::string& varName,
   }
 }
 
-void ParserState::checkFunction(const std::string& name)
+void Parser::checkFunction(const std::string& name)
   throw (ParserException) {
   if( d_checksEnabled && !isFunction(name) ) {
     parseError("Expecting function symbol, found '" + name + "'");
   }
 }
 
-void ParserState::checkArity(Kind kind, unsigned int numArgs)
+void Parser::checkArity(Kind kind, unsigned int numArgs)
   throw (ParserException) {
   if(!d_checksEnabled) {
     return;
@@ -204,12 +209,47 @@ void ParserState::checkArity(Kind kind, unsigned int numArgs)
   }
 }
 
-void ParserState::enableChecks() {
+void Parser::enableChecks() {
   d_checksEnabled = true;
 }
 
-void ParserState::disableChecks() {
+void Parser::disableChecks() {
   d_checksEnabled = false;
+}
+
+Command* Parser::nextCommand() throw(ParserException) {
+  Debug("parser") << "nextCommand()" << std::endl;
+  Command* cmd = NULL;
+  if(!done()) {
+    try {
+      cmd = d_input->parseCommand();
+      if(cmd == NULL) {
+        setDone();
+      }
+    } catch(ParserException& e) {
+      setDone();
+      throw;
+    }
+  }
+  Debug("parser") << "nextCommand() => " << cmd << std::endl;
+  return cmd;
+}
+
+Expr Parser::nextExpression() throw(ParserException) {
+  Debug("parser") << "nextExpression()" << std::endl;
+  Expr result;
+  if(!done()) {
+    try {
+      result = d_input->parseExpr();
+      if(result.isNull())
+        setDone();
+    } catch(ParserException& e) {
+      setDone();
+      throw;
+    }
+  }
+  Debug("parser") << "nextExpression() => " << result << std::endl;
+  return result;
 }
 
 

@@ -35,8 +35,8 @@
 #include <antlr3.h>
 #include <sstream>
 
-#include "antlr_input.h"
-#include "parser_state.h"
+#include "input.h"
+#include "parser.h"
 #include "util/Assert.h"
 
 using namespace std;
@@ -62,10 +62,10 @@ namespace parser {
 /* *** CVC4 NOTE ***
  * This function is has been modified in not-completely-trivial ways from its
  * libantlr3c implementation to support more informative error messages and to
- * invoke the error reporting mechanism of the AntlrInput class instead of the
+ * invoke the error reporting mechanism of the Input class instead of the
  * default error printer.
  */
-void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
+void Input::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_EXCEPTION ex = recognizer->state->exception;
   pANTLR3_UINT8 * tokenNames = recognizer->state->tokenNames;
   stringstream ss;
@@ -230,13 +230,15 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   }
 
   // Now get ready to throw an exception
-  pANTLR3_PARSER parser = (pANTLR3_PARSER)(recognizer->super);
+  pANTLR3_PARSER antlr3Parser = (pANTLR3_PARSER)(recognizer->super);
+  AlwaysAssert(antlr3Parser!=NULL);
+  Parser *parser = (Parser*)(antlr3Parser->super);
   AlwaysAssert(parser!=NULL);
-  ParserState *parserState = (ParserState*)(parser->super);
-  AlwaysAssert(parserState!=NULL);
+  Input *input = parser->getInput();
+  AlwaysAssert(input!=NULL);
 
   // Call the error display routine
-  parserState->parseError(ss.str());
+  input->parseError(ss.str());
 }
 
 } // namespace parser

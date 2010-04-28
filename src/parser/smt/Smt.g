@@ -50,7 +50,7 @@ options {
 
 @parser::includes {
 #include "expr/command.h"
-#include "parser/parser_state.h"
+#include "parser/parser.h"
 
 namespace CVC4 {
   class Expr;
@@ -61,8 +61,8 @@ namespace CVC4 {
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "parser/antlr_input.h"
-#include "parser/parser_state.h"
+#include "parser/input.h"
+#include "parser/parser.h"
 #include "util/integer.h"
 #include "util/output.h"
 #include "util/rational.h"
@@ -74,7 +74,7 @@ using namespace CVC4::parser;
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
 #undef PARSER_STATE 
-#define PARSER_STATE ((ParserState*)PARSER->super)
+#define PARSER_STATE ((Parser*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef MK_EXPR
@@ -85,11 +85,11 @@ using namespace CVC4::parser;
 /**   
  * Sets the logic for the current benchmark. Declares any logic symbols.
  *
- * @param parserState pointer to the current parser state
+ * @param parser the CVC4 Parser object
  * @param name the name of the logic (e.g., QF_UF, AUFLIA)
  */
 void
-setLogic(ParserState *parserState, const std::string& name) {
+setLogic(Parser *parser, const std::string& name) {
   if( name == "QF_UF" ) {
     parserState->mkSort("U");
   } else if(name == "QF_LRA"){
@@ -174,7 +174,7 @@ benchAttribute returns [CVC4::Command* smt_command]
  */
 annotatedFormula[CVC4::Expr& expr]
 @init {
-  Debug("parser") << "annotated formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "annotated formula: " << Input::tokenText(LT(1)) << std::endl;
   Kind kind;
   std::string name;
   std::vector<Expr> args; /* = getExprVector(); */
@@ -236,11 +236,11 @@ annotatedFormula[CVC4::Expr& expr]
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
   | NUMERAL_TOK
-    { Integer num( AntlrInput::tokenText($NUMERAL_TOK) );
+    { Integer num( Input::tokenText($NUMERAL_TOK) );
       expr = MK_CONST(num); }
   | RATIONAL_TOK
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      Rational rat( AntlrInput::tokenText($RATIONAL_TOK) );
+      Rational rat( Input::tokenText($RATIONAL_TOK) );
       expr = MK_CONST(rat); }
     // NOTE: Theory constants go here
     /* TODO: let, flet, quantifiers, arithmetic constants */
@@ -263,7 +263,7 @@ annotatedFormulas[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
 */
 builtinOp[CVC4::Kind& kind]
 @init {
-  Debug("parser") << "builtin: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "builtin: " << Input::tokenText(LT(1)) << std::endl;
 }
   : NOT_TOK      { $kind = CVC4::kind::NOT;     }
   | IMPLIES_TOK  { $kind = CVC4::kind::IMPLIES; }
@@ -417,7 +417,7 @@ identifier[std::string& id,
 		   CVC4::parser::DeclarationCheck check, 
            CVC4::parser::SymbolType type] 
   : IDENTIFIER
-    { id = AntlrInput::tokenText($IDENTIFIER);
+    { id = Input::tokenText($IDENTIFIER);
       Debug("parser") << "identifier: " << id
                       << " check? " << toString(check)
                       << " type? " << toString(type) << std::endl;
@@ -432,7 +432,7 @@ identifier[std::string& id,
 let_identifier[std::string& id,
     		   CVC4::parser::DeclarationCheck check] 
   : LET_IDENTIFIER
-    { id = AntlrInput::tokenText($LET_IDENTIFIER);
+    { id = Input::tokenText($LET_IDENTIFIER);
       Debug("parser") << "let_identifier: " << id
                       << " check? " << toString(check) << std::endl;
       PARSER_STATE->checkDeclaration(id, check, SYM_VARIABLE); }
@@ -446,7 +446,7 @@ let_identifier[std::string& id,
 flet_identifier[std::string& id,
     		    CVC4::parser::DeclarationCheck check] 
   : FLET_IDENTIFIER
-    { id = AntlrInput::tokenText($FLET_IDENTIFIER);
+    { id = Input::tokenText($FLET_IDENTIFIER);
       Debug("parser") << "flet_identifier: " << id
                       << " check? " << toString(check) << std::endl;
       PARSER_STATE->checkDeclaration(id, check); }

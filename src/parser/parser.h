@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** parser_state.h
+/** parser.h
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters
@@ -20,13 +20,12 @@
 
 #include <string>
 
+#include "input.h"
+#include "parser_exception.h"
+#include "parser_options.h"
 #include "expr/declaration_scope.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
-#include "parser/input.h"
-#include "parser/parser_exception.h"
-#include "parser/parser_options.h"
-#include "parser/symbol_table.h"
 #include "util/Assert.h"
 
 namespace CVC4 {
@@ -89,7 +88,12 @@ inline std::string toString(SymbolType type) {
   }
 }
 
-class ParserState {
+/**
+ * This class encapsulates all of the state of a parser, including the
+ * name of the file, line number and column information, and in-scope
+ * declarations.
+ */
+class CVC4_PUBLIC Parser {
 
   /** The expression manager */
   ExprManager *d_exprManager;
@@ -101,7 +105,7 @@ class ParserState {
   DeclarationScope d_declScope;
 
   /** The name of the input file. */
-  std::string d_filename;
+//  std::string d_filename;
 
   /** Are we done */
   bool d_done;
@@ -114,7 +118,14 @@ class ParserState {
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
 public:
-  ParserState(ExprManager* exprManager, const std::string& filename, Input* input);
+  /** Create a parser state.
+   *
+   * @param exprManager the expression manager to use when creating expressions
+   * @param input the parser input
+   */
+  Parser(ExprManager* exprManager, Input* input);
+
+  virtual ~Parser() { }
 
   /** Get the associated <code>ExprManager</code>. */
   inline ExprManager* getExprManager() const {
@@ -153,9 +164,11 @@ public:
   void disableChecks();
 
   /** Get the name of the input file. */
+/*
   inline const std::string getFilename() {
     return d_filename;
   }
+*/
 
   /**
    * Sets the logic for the current benchmark. Declares any logic symbols.
@@ -228,8 +241,9 @@ public:
 
   /** Create a new variable definition (e.g., from a let binding). */
   void defineVar(const std::string& name, const Expr& val);
-  /** Remove a variable definition (e.g., from a let binding). */
-  void undefineVar(const std::string& name);
+
+  /** Create a new type definition. */
+  void defineType(const std::string& name, const Type& type);
 
   /**
    * Creates a new sort with the given name.
@@ -251,13 +265,16 @@ public:
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);
 
+  Command* nextCommand() throw(ParserException);
+  Expr nextExpression() throw(ParserException);
+
   inline void parseError(const std::string& msg) throw (ParserException) {
     d_input->parseError(msg);
   }
 
   inline void pushScope() { d_declScope.pushScope(); }
   inline void popScope() { d_declScope.popScope(); }
-}; // class ParserState
+}; // class Parser
 
 } // namespace parser
 

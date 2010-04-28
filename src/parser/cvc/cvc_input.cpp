@@ -16,6 +16,7 @@
 #include <antlr3.h>
 
 #include "expr/expr_manager.h"
+#include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "parser/cvc/cvc_input.h"
 #include "parser/cvc/generated/CvcLexer.h"
@@ -25,18 +26,9 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-CvcInput::CvcInput(ExprManager* exprManager, const std::string& filename, bool useMmap) :
-  AntlrInput(exprManager,filename,2,useMmap) {
-  init();
-}
-
-CvcInput::CvcInput(ExprManager* exprManager, const std::string& input, const std::string& name) :
-  AntlrInput(exprManager,input,name,2) {
-  init();
-}
-
-void CvcInput::init() {
-  pANTLR3_INPUT_STREAM input = getInputStream();
+CvcInput::CvcInput(AntlrInputStream *inputStream) :
+  Input(inputStream,2) {
+  pANTLR3_INPUT_STREAM input = inputStream->getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 
   d_pCvcLexer = CvcLexerNew(input);
@@ -44,7 +36,7 @@ void CvcInput::init() {
     throw ParserException("Failed to create CVC lexer.");
   }
 
-  setLexer( d_pCvcLexer->pLexer );
+  setAntlr3Lexer( d_pCvcLexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
   AlwaysAssert( tokenStream != NULL );
@@ -54,7 +46,7 @@ void CvcInput::init() {
     throw ParserException("Failed to create CVC parser.");
   }
 
-  setParser(d_pCvcParser->pParser);
+  setAntlr3Parser(d_pCvcParser->pParser);
 }
 
 
@@ -63,11 +55,11 @@ CvcInput::~CvcInput() {
   d_pCvcParser->free(d_pCvcParser);
 }
 
-Command* CvcInput::doParseCommand() throw (ParserException) {
+Command* CvcInput::parseCommand() throw (ParserException) {
   return d_pCvcParser->parseCommand(d_pCvcParser);
 }
 
-Expr CvcInput::doParseExpr() throw (ParserException) {
+Expr CvcInput::parseExpr() throw (ParserException) {
   return d_pCvcParser->parseExpr(d_pCvcParser);
 }
 

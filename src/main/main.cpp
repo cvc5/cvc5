@@ -23,6 +23,7 @@
 #include "main.h"
 #include "usage.h"
 #include "parser/input.h"
+#include "parser/parser.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "expr/command.h"
@@ -152,17 +153,18 @@ int runCvc4(int argc, char* argv[]) {
 //  if(inputFromStdin) {
     //    parser = Parser::getNewParser(&exprMgr, options.lang, cin, "<stdin>");
 //  } else {
-    input = Input::newFileInput(&exprMgr, options.lang, argv[firstArgIndex],
-                                   options.memoryMap);
+    input = Input::newFileInput(options.lang, argv[firstArgIndex],
+                                     options.memoryMap);
 //  }
+  Parser parser(&exprMgr, input);
 
   if(!options.semanticChecks) {
-    input->disableChecks();
+    parser.disableChecks();
   }
 
   // Parse and execute commands until we are done
   Command* cmd;
-  while((cmd = input->parseNextCommand())) {
+  while((cmd = parser.nextCommand())) {
     if( !options.parseOnly ) {
       doCommand(smt, cmd);
     }

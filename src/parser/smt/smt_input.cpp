@@ -15,9 +15,10 @@
 
 #include <antlr3.h>
 
+#include "smt_input.h"
 #include "expr/expr_manager.h"
+#include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt/smt_input.h"
 #include "parser/smt/generated/SmtLexer.h"
 #include "parser/smt/generated/SmtParser.h"
 
@@ -25,20 +26,9 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-SmtInput::SmtInput(ExprManager* exprManager, const std::string& filename,
-                   bool useMmap) :
-  AntlrInput(exprManager, filename, 2, useMmap) {
-  init();
-}
-
-SmtInput::SmtInput(ExprManager* exprManager, const std::string& input,
-                   const std::string& name) :
-  AntlrInput(exprManager, input, name, 2) {
-  init();
-}
-
-void SmtInput::init() {
-  pANTLR3_INPUT_STREAM input = getInputStream();
+SmtInput::SmtInput(AntlrInputStream *inputStream) :
+  Input(inputStream, 2) {
+  pANTLR3_INPUT_STREAM input = inputStream->getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 
   d_pSmtLexer = SmtLexerNew(input);
@@ -46,7 +36,7 @@ void SmtInput::init() {
     throw ParserException("Failed to create SMT lexer.");
   }
 
-  setLexer( d_pSmtLexer->pLexer );
+  setAntlr3Lexer( d_pSmtLexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
   AlwaysAssert( tokenStream != NULL );
@@ -56,7 +46,7 @@ void SmtInput::init() {
     throw ParserException("Failed to create SMT parser.");
   }
 
-  setParser(d_pSmtParser->pParser);
+  setAntlr3Parser(d_pSmtParser->pParser);
 }
 
 
@@ -65,11 +55,11 @@ SmtInput::~SmtInput() {
   d_pSmtParser->free(d_pSmtParser);
 }
 
-Command* SmtInput::doParseCommand() throw (ParserException) {
+Command* SmtInput::parseCommand() throw (ParserException) {
   return d_pSmtParser->parseCommand(d_pSmtParser);
 }
 
-Expr SmtInput::doParseExpr() throw (ParserException) {
+Expr SmtInput::parseExpr() throw (ParserException) {
   return d_pSmtParser->parseExpr(d_pSmtParser);
 }
 

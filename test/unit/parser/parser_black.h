@@ -20,7 +20,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "parser/input.h"
-#include "parser/parser_state.h"
+#include "parser/parser.h"
 #include "expr/command.h"
 #include "util/output.h"
 
@@ -144,28 +144,28 @@ const string badSmtExprs[] = {
 
 const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
 
-class ParserWhite : public CxxTest::TestSuite {
+class ParserBlack : public CxxTest::TestSuite {
   ExprManager *d_exprManager;
 
   /* Set up declaration context for expr inputs */
 
-  void setupContext(ParserState* parserState) {
+  void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
-    parserState->mkVar("a",d_exprManager->booleanType());
-    parserState->mkVar("b",d_exprManager->booleanType());
-    parserState->mkVar("c",d_exprManager->booleanType());
+    parser.mkVar("a",d_exprManager->booleanType());
+    parser.mkVar("b",d_exprManager->booleanType());
+    parser.mkVar("c",d_exprManager->booleanType());
     /* t, u, v: TYPE */
-    Type t = parserState->mkSort("t");
-    Type u = parserState->mkSort("u");
-    Type v = parserState->mkSort("v");
+    Type t = parser.mkSort("t");
+    Type u = parser.mkSort("u");
+    Type v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parserState->mkVar("f", d_exprManager->mkFunctionType(t,u));
-    parserState->mkVar("g", d_exprManager->mkFunctionType(u,v));
-    parserState->mkVar("h", d_exprManager->mkFunctionType(v,t));
+    parser.mkVar("f", d_exprManager->mkFunctionType(t,u));
+    parser.mkVar("g", d_exprManager->mkFunctionType(u,v));
+    parser.mkVar("h", d_exprManager->mkFunctionType(v,t));
     /* x:t; y:u; z:v; */
-    parserState->mkVar("x",t);
-    parserState->mkVar("y",u);
-    parserState->mkVar("z",v);
+    parser.mkVar("x",t);
+    parser.mkVar("y",u);
+    parser.mkVar("z",v);
   }
 
   void tryGoodInputs(InputLanguage d_lang, const string goodInputs[], int numInputs) {
@@ -175,15 +175,16 @@ class ParserWhite : public CxxTest::TestSuite {
 //         Debug.on("parser-extra");
          Debug("test") << "Testing good input: '" << goodInputs[i] << "'\n";
 //        istringstream stream(goodInputs[i]);
-        Input* parser = Input::newStringInput(d_exprManager, d_lang, goodInputs[i], "test");
-        TS_ASSERT( !parser->done() );
+        Input* input = Input::newStringInput(d_lang, goodInputs[i], "test");
+        Parser parser(d_exprManager, input);
+        TS_ASSERT( !parser.done() );
         Command* cmd;
-        while((cmd = parser->parseNextCommand())) {
+        while((cmd = parser.nextCommand()) != NULL) {
           // cout << "Parsed command: " << (*cmd) << endl;
         }
-        TS_ASSERT( parser->parseNextCommand() == NULL );
-        TS_ASSERT( parser->done() );
-        delete parser;
+        TS_ASSERT( parser.nextCommand() == NULL );
+        TS_ASSERT( parser.done() );
+        delete input;
 //        Debug.off("parser");
 //        Debug.off("parser-extra");
       } catch (Exception& e) {
@@ -199,13 +200,14 @@ class ParserWhite : public CxxTest::TestSuite {
     for(int i = 0; i < numInputs; ++i) {
 //      cout << "Testing bad input: '" << badInputs[i] << "'\n";
 //      Debug.on("parser");
-      Input* parser = Input::newStringInput(d_exprManager, d_lang, badInputs[i], "test");
+      Input* input = Input::newStringInput(d_lang, badInputs[i], "test");
+      Parser parser(d_exprManager, input);
       TS_ASSERT_THROWS
-        ( while(parser->parseNextCommand());
+        ( while(parser.nextCommand());
           cout << "\nBad input succeeded:\n" << badInputs[i] << endl;,
           ParserException );
 //      Debug.off("parser");
-      delete parser;
+      delete input;
     }
   }
 
@@ -218,15 +220,16 @@ class ParserWhite : public CxxTest::TestSuite {
         // cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
         // Debug.on("parser");
 //        istringstream stream(context + goodBooleanExprs[i]);
-        Input* input = Input::newStringInput(d_exprManager, d_lang,
+        Input* input = Input::newStringInput(d_lang,
                                               goodBooleanExprs[i], "test");
-        TS_ASSERT( !input->done() );
-        setupContext(input->getParserState());
-        TS_ASSERT( !input->done() );
-        Expr e = input->parseNextExpression();
+        Parser parser(d_exprManager, input);
+        TS_ASSERT( !parser.done() );
+        setupContext(parser);
+        TS_ASSERT( !parser.done() );
+        Expr e = parser.nextExpression();
         TS_ASSERT( !e.isNull() );
-        e = input->parseNextExpression();
-        TS_ASSERT( input->done() );
+        e = parser.nextExpression();
+        TS_ASSERT( parser.done() );
         TS_ASSERT( e.isNull() );
         delete input;
       } catch (Exception& e) {
@@ -242,14 +245,14 @@ class ParserWhite : public CxxTest::TestSuite {
     for(int i = 0; i < numExprs; ++i) {
       // cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
 //      istringstream stream(context + badBooleanExprs[i]);
-      Input* input = Input::newStringInput(d_exprManager, d_lang,
+      Input* input = Input::newStringInput(d_lang,
                                            badBooleanExprs[i], "test");
+      Parser parser(d_exprManager, input);
 
-      TS_ASSERT( !input->done() );
-      setupContext(input->getParserState());
-      TS_ASSERT( !input->done() );
+      setupContext(parser);
+      TS_ASSERT( !parser.done() );
       TS_ASSERT_THROWS
-        ( input->parseNextExpression();
+        ( parser.nextExpression();
           cout << "\nBad expr succeeded: " << badBooleanExprs[i] << endl;,
           ParserException );
       delete input;
