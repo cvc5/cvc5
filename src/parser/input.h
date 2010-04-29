@@ -167,7 +167,10 @@ public:
 
   /** Retrieve the text associated with a token. */
   inline static std::string tokenText(pANTLR3_COMMON_TOKEN token);
-
+  /** Retrieve an Integer from the text of a token */
+  inline static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
+  /** Retrieve a Rational from the text of a token */
+  inline static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
 
 protected:
   /** Create an input. This input takes ownership of the given input stream,
@@ -229,6 +232,16 @@ std::string Input::tokenText(pANTLR3_COMMON_TOKEN token) {
                         <<  "end=" << end << std::endl
                         <<  "txt='" << txt << "'" << std::endl;
   return txt;
+}
+
+Integer Input::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
+  Integer i( tokenText(token) );
+  return i;
+}
+
+Rational Input::tokenToRational(pANTLR3_COMMON_TOKEN token) {
+  Rational r( tokenText(token) );
+  return r;
 }
 
 }/* CVC4::parser namespace */

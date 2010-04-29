@@ -99,6 +99,7 @@ setLogic(Parser *parser, const std::string& name) {
     Unhandled(name);
   }
 }
+
 }
 
 
@@ -140,8 +141,10 @@ command returns [CVC4::Command* cmd]
     { cmd = new SetBenchmarkStatusCommand(b_status); }  
   | /* sort declaration */
     DECLARE_SORT_TOK identifier[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL_TOK
-    // FIXME: What does the numeral argument mean?
-    { Debug("parser") << "declare sort: '" << name << "' " << n << std::endl;
+    { Debug("parser") << "declare sort: '" << name << "' arity=" << n << std::endl;
+      if( Input::tokenToInteger(n) > 0 ) {
+        Unimplemented("Parameterized user sorts.");
+      }
       PARSER_STATE->mkSort(name); 
       $cmd = new DeclarationCommand(name,EXPR_MANAGER->kindType()); }
   | /* function declaration */
@@ -223,12 +226,10 @@ term[CVC4::Expr& expr]
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
   | NUMERAL_TOK
-    { Integer num( Input::tokenText($NUMERAL_TOK) );
-      expr = MK_CONST(num); }
+    { expr = MK_CONST( Input::tokenToInteger($NUMERAL_TOK) ); }
   | RATIONAL_TOK
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      Rational rat( Input::tokenText($RATIONAL_TOK) );
-      expr = MK_CONST(rat); }
+      expr = MK_CONST( Input::tokenToRational($RATIONAL_TOK) ); }
     // NOTE: Theory constants go here
   ;
 

@@ -236,14 +236,12 @@ annotatedFormula[CVC4::Expr& expr]
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
   | NUMERAL_TOK
-    { Integer num( Input::tokenText($NUMERAL_TOK) );
-      expr = MK_CONST(num); }
+    { expr = MK_CONST( Input::tokenToInteger($NUMERAL_TOK) ); }
   | RATIONAL_TOK
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      Rational rat( Input::tokenText($RATIONAL_TOK) );
-      expr = MK_CONST(rat); }
+      expr = MK_CONST( Input::tokenToRational($RATIONAL_TOK) ); }
     // NOTE: Theory constants go here
-    /* TODO: let, flet, quantifiers, arithmetic constants */
+    /* TODO: quantifiers, arithmetic constants */
   ;
 
 /**
