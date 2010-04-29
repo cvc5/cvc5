@@ -141,6 +141,21 @@ ${metakind_canbeatomic}
   return canBeAtomic[k];
 }/* kindCanBeAtomic(k) */
 
+
+/**
+ * Map a kind of the operator to the kind of the enclosing expression. For
+ * example, since the kind of functions is just VARIABLE, it should map
+ * VARIABLE to APPLY_UF.
+ */
+static inline Kind operatorKindToKind(Kind k) {
+  static const Kind kind2kind[] = {
+    kind::UNDEFINED_KIND, /* NULL_EXPR */
+${metakind_operatorKinds}
+    kind::UNDEFINED_KIND  /* LAST_KIND */
+  };
+
+  return kind2kind[k];
+}
 }/* CVC4::kind namespace */
 
 namespace expr {

@@ -314,6 +314,15 @@ public:
       function types. */
   bool isPredicate() const;
 
+  /** Is this a bit-vector type */
+  bool isBitVector() const;
+
+  /** Is this a bit-vector type of size <code>size</code> */
+  bool isBitVector(unsigned size) const;
+
+  /** Get the size of this bit-vector type */
+  unsigned getBitVectorSize() const;
+
   /** Is this a sort kind */
   bool isSort() const;
 

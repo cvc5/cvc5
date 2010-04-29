@@ -67,4 +67,21 @@ bool TypeNode::isKind() const {
   return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == KIND_TYPE;
 }
 
+/** Is this a bit-vector type */
+bool TypeNode::isBitVector() const {
+  return getKind() == kind::BITVECTOR_TYPE;
+}
+
+/** Is this a bit-vector type of size <code>size</code> */
+bool TypeNode::isBitVector(unsigned size) const {
+  return getKind() == kind::BITVECTOR_TYPE && getConst<unsigned>() == size;
+}
+
+/** Get the size of this bit-vector type */
+unsigned TypeNode::getBitVectorSize() const {
+  Assert(isBitVector());
+  return getConst<unsigned>();
+}
+
+
 }/* CVC4 namespace */

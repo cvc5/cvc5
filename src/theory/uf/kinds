@@ -6,4 +6,4 @@
 
 theory ::CVC4::theory::uf::TheoryUF "theory_uf.h"
 
-parameterized APPLY_UF 1: "uninterpreted function application"
+parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"

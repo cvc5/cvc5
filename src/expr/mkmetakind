@@ -46,6 +46,7 @@ metakind_constHashes=
 metakind_constPrinters=
 metakind_ubchildren=
 metakind_lbchildren=
+metakind_operatorKinds=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -86,7 +87,7 @@ function variable {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind VARIABLE "$1" 0
+  register_metakind VARIABLE "$1" UNDEFINED_KIND 0
 }
 
 function operator {
@@ -95,7 +96,7 @@ function operator {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind OPERATOR "$1" "$2"
+  register_metakind OPERATOR "$1" UNDEFINED_KIND "$2"
 }
 
 function nonatomic_operator {
@@ -104,16 +105,16 @@ function nonatomic_operator {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind NONATOMIC_OPERATOR "$1" "$2"
+  register_metakind NONATOMIC_OPERATOR "$1" UNDEFINED_KIND "$2"
 }
 
 function parameterized {
-  # parameterized K #children ["comment"]
+  # parameterized K1 K2 #children ["comment"]
 
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind PARAMETERIZED "$1" "$2"
+  register_metakind PARAMETERIZED "$1" "$2" "$3"
 }
 
 function constant {
@@ -141,7 +142,7 @@ function constant {
     metakind_includes="${metakind_includes}
 #include \"$4\""
   fi
-  register_metakind CONSTANT "$1" 0
+  register_metakind CONSTANT "$1" UNDEFINED_KIND 0
   metakind_constantMaps="${metakind_constantMaps}
 }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
@@ -206,7 +207,11 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 function register_metakind {
   mk=$1
   k=$2
-  nc=$3
+  k1=$3
+  nc=$4
+
+  metakind_operatorKinds="${metakind_operatorKinds}    kind::$k1, /* $k */
+"; 
 
   if [ $mk = NONATOMIC_OPERATOR ]; then
     metakind_canbeatomic="${metakind_canbeatomic}    false, /* $k */
@@ -290,6 +295,9 @@ while [ $# -gt 0 ]; do
   metakind_canbeatomic="${metakind_canbeatomic}
     /* from $b */
 "
+  metakind_operatorKinds="${metakind_operatorKinds}
+    /* from $b */
+"
   source "$kf"
   check_theory_seen
   shift
@@ -308,7 +316,8 @@ for var in \
     metakind_constHashes \
     metakind_constPrinters \
     metakind_ubchildren \
-    metakind_lbchildren; do
+    metakind_lbchildren \
+    metakind_operatorKinds; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error=`expr "$text" : '.*\${\([^}]*\)}.*'`

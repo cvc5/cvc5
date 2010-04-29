@@ -11,3 +11,16 @@ constant CONST_BITVECTOR \
     ::CVC4::BitVectorHashStrategy \
     "util/bitvector.h" \
     "a fixed-width bit-vector constant"
+    
+operator BITVECTOR_CONCAT 2 "bit-vector concatenation"
+constant BITVECTOR_EXTRACT_OP \
+	::CVC4::BitVectorExtract \
+	::CVC4::BitVectorExtractHashStrategy \
+	"util/bitvector.h" \
+	"operator for the bit-vector extract"
+	
+parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 2 "disequality"
+
+
+
+    

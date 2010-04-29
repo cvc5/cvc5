@@ -34,6 +34,7 @@ class TypeNode;
 class BooleanType;
 class IntegerType;
 class RealType;
+class BitVectorType;
 class FunctionType;
 class KindType;
 class SortType;
@@ -151,6 +152,18 @@ public:
    * @return the RealType
    */
   operator RealType() const throw (AssertionException);
+
+  /**
+   * Is this the bit-vector type?
+   * @return true if the type is a bit-vector type
+   */
+  bool isBitVector() const;
+
+  /**
+   * Cast this type to a bit-vector type
+   * @return the BitVectorType
+   */
+  operator BitVectorType() const throw (AssertionException);
 
   /**
    * Is this a function type?
@@ -276,6 +289,24 @@ public:
 
   /** Construct from the base type */
   KindType(const Type& type) throw (AssertionException);
+};
+
+
+/**
+ * Class encapsulating the bit-vector type.
+ */
+class CVC4_PUBLIC BitVectorType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  BitVectorType(const Type& type) throw (AssertionException);
+
+  /**
+   * Returns the size of the bit-vector type.
+   * @return the width of the bit-vector type (> 0)
+   */
+  unsigned getSize() const;
 };
 
 /**

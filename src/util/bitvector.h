@@ -85,14 +85,54 @@ public:
   }
 };
 
+/**
+ * Hash function for the BitVector constants.
+ */
 struct BitVectorHashStrategy {
   static inline size_t hash(const BitVector& bv) {
     return bv.hash();
   }
 };
 
-std::ostream& operator <<(std::ostream& os, const BitVector& bv);
+/**
+ * The structure representing the extraction operation for bit-vectors. The
+ * operation map bit-vectors to bit-vector of size <code>high - low + 1</code>
+ * by taking the bits at indices <code>high ... low</code>
+ */
+struct BitVectorExtract  {
+  /** The high bit of the range for this extract */
+  unsigned high;
+  /** The low bit of the range for this extract */
+  unsigned low;
 
+  bool operator == (const BitVectorExtract& extract) const {
+    return high == extract.high && low == extract.low;
+  }
+};
+
+/**
+ * Hash function for the BitVectorExtract objects.
+ */
+class BitVectorExtractHashStrategy {
+public:
+  static size_t hash(const BitVectorExtract& extract) {
+    size_t hash = extract.low;
+    hash ^= extract.high + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    return hash;
+  }
+};
+
+/**
+ * Hash function for the unsigned integers.
+ */
+struct UnsignedHashStrategy {
+  static inline size_t hash(unsigned x) {
+    return (size_t)x;
+  }
+};
+
+std::ostream& operator <<(std::ostream& os, const BitVector& bv);
+std::ostream& operator <<(std::ostream& os, const BitVectorExtract& bv);
 }
 
 

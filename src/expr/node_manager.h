@@ -285,6 +285,12 @@ public:
   template <bool ref_count>
   Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
+  /** Create a node by applying an operator to the children */
+  template <bool ref_count>
+  Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
+  template <bool ref_count>
+  Node* mkNodePtr(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
+
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
@@ -454,6 +460,9 @@ public:
   /** Get the (singleton) type for sorts. */
   inline TypeNode kindType();
 
+  /** Get the type of bitvectors of size <code>size</code> */
+  inline TypeNode bitVectorType(unsigned size);
+
   /**
    * Make a function type from domain to range.
    *
@@ -622,6 +631,10 @@ inline TypeNode NodeManager::realType() {
 /** Get the (singleton) type for sorts. */
 inline TypeNode NodeManager::kindType() {
   return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
+}
+
+inline TypeNode NodeManager::bitVectorType(unsigned size) {
+  return TypeNode(mkTypeConst<unsigned>(kind::BITVECTOR_TYPE));
 }
 
 /** Make a function type from domain to range. */
@@ -844,6 +857,23 @@ inline Node* NodeManager::mkNodePtr(Kind kind,
                                 children) {
   return NodeBuilder<>(this, kind).append(children).constructNodePtr();
 }
+
+// N-ary version for operators
+template <bool ref_count>
+inline Node NodeManager::mkNode(TNode opNode,
+                                const std::vector<NodeTemplate<ref_count> >&
+                                children) {
+  Assert(kind::metaKindOf(opNode.getKind()) == kind::metakind::PARAMETERIZED);
+  return NodeBuilder<>(this, kind::operatorKindToKind(opNode.getKind())).append(children);
+}
+
+template <bool ref_count>
+inline Node* NodeManager::mkNodePtr(TNode opNode,
+                                const std::vector<NodeTemplate<ref_count> >&
+                                children) {
+  return NodeBuilder<>(this, kind::operatorKindToKind(opNode.getKind())).constructNodePtr();
+}
+
 
 // N-ary version for types
 inline TypeNode NodeManager::mkTypeNode(Kind kind, const std::vector<TypeNode>& children) {

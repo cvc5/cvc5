@@ -120,11 +120,24 @@ bool Type::isReal() const {
   return d_typeNode->isInteger();
 }
 
-/** Cast to a integer type */
+/** Cast to a real type */
 Type::operator RealType() const throw (AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isReal());
   return RealType(*this);
+}
+
+/** Is this the bit-vector type? */
+bool Type::isBitVector() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isBitVector();
+}
+
+/** Cast to a bit-vector type */
+Type::operator BitVectorType() const throw (AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isBitVector());
+  return BitVectorType(*this);
 }
 
 /** Is this a function type? */
@@ -214,6 +227,12 @@ RealType::RealType(const Type& t) throw (AssertionException)
   Assert(isReal());
 }
 
+BitVectorType::BitVectorType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isBitVector());
+}
+
 FunctionType::FunctionType(const Type& t) throw (AssertionException)
 : Type(t)
 {
@@ -232,5 +251,9 @@ SortType::SortType(const Type& t) throw (AssertionException)
   Assert(isSort());
 }
 
+
+unsigned BitVectorType::getSize() const {
+  return d_typeNode->getBitVectorSize();
+}
 
 }/* CVC4 namespace */

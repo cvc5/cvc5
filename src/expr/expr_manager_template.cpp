@@ -66,6 +66,11 @@ IntegerType ExprManager::integerType() const {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->integerType()));
 }
 
+BitVectorType ExprManager::bitVectorType(unsigned size) const {
+  NodeManagerScope nms(d_nodeManager);
+  return Type(d_nodeManager, new TypeNode(d_nodeManager->bitVectorType(size)));
+}
+
 Expr ExprManager::mkExpr(Kind kind) {
   const unsigned n = 0;
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
@@ -159,6 +164,27 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
     ++it;
   }
   return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
+}
+
+Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
+  const unsigned n = children.size();
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+
+  NodeManagerScope nms(d_nodeManager);
+
+  vector<Node> nodes;
+  vector<Expr>::const_iterator it = children.begin();
+  vector<Expr>::const_iterator it_end = children.end();
+  while(it != it_end) {
+    nodes.push_back(it->getNode());
+    ++it;
+  }
+  return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(), nodes));
 }
 
 /** Make a function type from domain to range. */

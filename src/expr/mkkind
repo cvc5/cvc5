@@ -93,12 +93,12 @@ function nonatomic_operator {
 }
 
 function parameterized {
-  # parameterized K #children ["comment"]
+  # parameterized K1 K2 #children ["comment"]
 
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_kind "$1" "$2" "$3"
+  register_kind "$1" "$3" "$4"
 }
 
 function constant {

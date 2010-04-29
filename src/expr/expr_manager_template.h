@@ -96,6 +96,9 @@ public:
   /** Get the type for integers */
   IntegerType integerType() const;
 
+  /** The the type for bit-vectors */
+  BitVectorType bitVectorType(unsigned size) const;
+
   /**
    * Make a unary expression of a given kind (TRUE, FALSE,...).
    * @param kind the kind of expression
@@ -162,6 +165,15 @@ public:
    * @return the n-ary expression
    */
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
+
+  /**
+   * Make an n-ary expression of given tre operator to appply and a vector of
+   * it's children
+   * @param opExpr the operator expression
+   * @param children the subexpressions
+   * @return the n-ary expression
+   */
+  Expr mkExpr(Expr opExpr, const std::vector<Expr>& children);
 
   /** Create a constant of type T */
   template <class T>

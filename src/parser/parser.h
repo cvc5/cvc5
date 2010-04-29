@@ -13,7 +13,7 @@
  ** A collection of state for use by parser implementations.
  **/
 
-#include "cvc4parser_private.h"
+#include "cvc4parser_public.h"
 
 #ifndef __CVC4__PARSER__PARSER_STATE_H
 #define __CVC4__PARSER__PARSER_STATE_H

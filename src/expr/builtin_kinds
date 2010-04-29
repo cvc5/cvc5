@@ -128,3 +128,10 @@ constant TYPE_CONSTANT \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
 variable SORT_TYPE "sort type"
+
+constant BITVECTOR_TYPE \
+	unsigned \
+	::CVC4::UnsignedHashStrategy \
+	"util/bitvector.h" \
+	"bit-vector type" 
+	

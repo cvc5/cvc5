@@ -178,6 +178,7 @@ annotatedFormula[CVC4::Expr& expr]
   Kind kind;
   std::string name;
   std::vector<Expr> args; /* = getExprVector(); */
+  Expr op; /* Operator expression FIXME: move away kill it */
 } 
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr] RPAREN_TOK 
@@ -195,14 +196,12 @@ annotatedFormula[CVC4::Expr& expr]
 
     // Semantic predicate not necessary if parenthesized subexpressions
     // are disallowed
-    // { isFunction(LT(2)->getText()) }? 
-
+    // { isFunction(LT(2)->getText()) }? 	
     LPAREN_TOK 
-    functionSymbol[expr]
-    { args.push_back(expr); }
+    parameterizedOperator[op]
     annotatedFormulas[args,expr] RPAREN_TOK
     // TODO: check arity
-    { expr = MK_EXPR(CVC4::kind::APPLY_UF,args); }
+    { expr = MK_EXPR(op,args); }
 
   | /* An ite expression */
     LPAREN_TOK ITE_TOK 
@@ -283,8 +282,16 @@ builtinOp[CVC4::Kind& kind]
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
+  // Bit-vectors
     // NOTE: Theory operators go here
     /* TODO: lt, gt, plus, minus, etc. */
+  ;
+
+/**
+ * Matches an operator.
+ */
+parameterizedOperator[CVC4::Expr& op] 
+  : functionSymbol[op]
   ;
 
 /**
