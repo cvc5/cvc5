@@ -154,8 +154,8 @@ const string goodSmt2Inputs[] = {
     "(assert false) (check-sat)",
     "(declare-fun a () Bool) (declare-fun b () Bool)",
     "(declare-fun a () Bool) (declare-fun b () Bool) (assert (=> (and (=> a b) a) b))",
-    "(declare-sort a 1) (declare-fun f (a) a) (declare-fun x () a) (assert (= (f x) x))",
-    "(declare-sort a 1) (declare-fun x () a) (declare-fun y () a) (assert (= (ite true x y) x))",
+    "(declare-sort a 0) (declare-fun f (a) a) (declare-fun x () a) (assert (= (f x) x))",
+    "(declare-sort a 0) (declare-fun x () a) (declare-fun y () a) (assert (= (ite true x y) x))",
     ";; nothing but a comment",
     "; a comment\n(check-sat ; goodbye\n)"
   };
@@ -181,7 +181,7 @@ const string badSmt2Inputs[] = {
     "(assert)", // no args
     "(check-sat true)", // shouldn't have an arg
     "(declare-sort a)", // no arg
-    "(declare-sort a 1) (declare-sort a 1)", // double decl
+    "(declare-sort a 0) (declare-sort a 0)", // double decl
     "(declare-fun p Bool)" // should be "p () Bool"
   };
 
