@@ -165,6 +165,9 @@ throw(OptionException) {
       } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
         opts->lang = parser::LANG_SMTLIB;
         break;
+      } else if(!strcmp(optarg, "smtlib2") || !strcmp(optarg, "smt2")) {
+        opts->lang = parser::LANG_SMTLIB_V2;
+        break;
       } else if(!strcmp(optarg, "auto")) {
         opts->lang = parser::LANG_AUTO;
         break;

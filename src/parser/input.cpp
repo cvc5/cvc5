@@ -27,6 +27,7 @@
 #include "expr/type.h"
 #include "parser/cvc/cvc_input.h"
 #include "parser/smt/smt_input.h"
+#include "parser/smt2/smt2_input.h"
 #include "util/output.h"
 #include "util/Assert.h"
 
@@ -180,6 +181,10 @@ Input* Input::newInput(InputLanguage lang, AntlrInputStream *inputStream) {
   }
   case LANG_SMTLIB:
     input = new SmtInput(inputStream);
+    break;
+
+  case LANG_SMTLIB_V2:
+    input = new Smt2Input(inputStream);
     break;
 
   default:

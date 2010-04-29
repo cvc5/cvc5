@@ -25,6 +25,8 @@ namespace parser {
 enum InputLanguage {
   /** The SMTLIB input language */
   LANG_SMTLIB,
+  /** The SMTLIB v2 input language */
+  LANG_SMTLIB_V2,
   /** The CVC4 input language */
   LANG_CVC4,
   /** Auto-detect the language */

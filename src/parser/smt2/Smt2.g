@@ -1,5 +1,5 @@
 /* *******************                                                        */
-/*  Smt.g
+/*  Smt2.g
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters
@@ -10,10 +10,10 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Parser for SMT-LIB input language.
+ ** Parser for SMT-LIB v2 input language.
  **/
 
-grammar Smt;
+grammar Smt2;
 
 options {
   language = 'C';                  // C output for antlr
@@ -104,83 +104,78 @@ setLogic(Parser *parser, const std::string& name) {
 
 /**
  * Parses an expression.
- * @return the parsed expression
+ * @return the parsed expression, or the Null Expr if we've reached the end of the input
  */
 parseExpr returns [CVC4::Expr expr]
-  : annotatedFormula[expr]
+  : term[expr]
   | EOF
   ;
 
 /**
- * Parses a command (the whole benchmark)
- * @return the command of the benchmark
+ * Parses a command 
+ * @return the parsed command, or NULL if we've reached the end of the input
  */
 parseCommand returns [CVC4::Command* cmd]
-  : b = benchmark { $cmd = b; }
-  ;
-
-/**
- * Matches the whole SMT-LIB benchmark.
- * @return the sequence command containing the whole problem
- */
-benchmark returns [CVC4::Command* cmd]
-  : LPAREN_TOK BENCHMARK_TOK IDENTIFIER c = benchAttributes RPAREN_TOK 
-  	{ $cmd = c; }
+  : LPAREN_TOK c = command RPAREN_TOK { $cmd = c; }
   | EOF { $cmd = 0; }
   ;
 
 /**
- * Matches a sequence of benchmark attributes and returns a pointer to a
- * command sequence.
- * @return the command sequence
+ * Parse the internal portion of the command, ignoring the surrounding parentheses.
  */
-benchAttributes returns [CVC4::CommandSequence* cmd_seq]
-@init {
-  cmd_seq = new CommandSequence();
-}
-  : (cmd = benchAttribute { if (cmd) cmd_seq->addCommand(cmd); } )+
-  ;
-
-/**
- * Matches a benchmark attribute, sucha as ':logic', ':formula', and returns
- * a corresponding command
- * @return a command corresponding to the attribute
- */
-benchAttribute returns [CVC4::Command* smt_command]
-@declarations { 
+command returns [CVC4::Command* cmd]
+@declarations {
   std::string name;
   BenchmarkStatus b_status;
   Expr expr;
+  Type t;
+  std::vector<Type> sorts;
 }
-  : LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
-    { setLogic(PARSER_STATE,name);
-      smt_command = new SetBenchmarkLogicCommand(name);   }
-  | ASSUMPTION_TOK annotatedFormula[expr]
-    { smt_command = new AssertCommand(expr);   }
-  | FORMULA_TOK annotatedFormula[expr]
-    { smt_command = new CheckSatCommand(expr); }
-  | STATUS_TOK status[b_status]                   
-    { smt_command = new SetBenchmarkStatusCommand(b_status); }        
-  | EXTRAFUNS_TOK LPAREN_TOK (functionDeclaration)+ RPAREN_TOK  
-  | EXTRAPREDS_TOK LPAREN_TOK (predicateDeclaration)+ RPAREN_TOK  
-  | EXTRASORTS_TOK LPAREN_TOK sortDeclaration+ RPAREN_TOK  
-  | NOTES_TOK STRING_LITERAL        
-  | annotation
+  : /* set the logic */
+    SET_LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
+    { Debug("parser") << "set logic: '" << name << "' " << std::endl;
+      setLogic(PARSER_STATE,name);
+      $cmd = new SetBenchmarkLogicCommand(name);   }
+  | SET_INFO_TOK STATUS_TOK status[b_status]
+    { cmd = new SetBenchmarkStatusCommand(b_status); }  
+  | /* sort declaration */
+    DECLARE_SORT_TOK identifier[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL_TOK
+    // FIXME: What does the numeral argument mean?
+    { Debug("parser") << "declare sort: '" << name << "' " << n << std::endl;
+      PARSER_STATE->mkSort(name); 
+      $cmd = new DeclarationCommand(name,EXPR_MANAGER->kindType()); }
+  | /* function declaration */
+    DECLARE_FUN_TOK identifier[name,CHECK_UNDECLARED,SYM_VARIABLE] 
+    LPAREN_TOK sortList[sorts] RPAREN_TOK 
+    sortSymbol[t]
+    { Debug("parser") << "declare fun: '" << name << "' " << std::endl;
+      if( sorts.size() > 0 ) {
+        t = EXPR_MANAGER->mkFunctionType(sorts,t);
+      }
+      PARSER_STATE->mkVar(name, t); 
+      $cmd = new DeclarationCommand(name,t); } 
+  | /* assertion */
+    ASSERT_TOK term[expr]
+    { cmd = new AssertCommand(expr);   }
+  | /* checksat */
+    CHECKSAT_TOK 
+    { cmd = new CheckSatCommand(MK_CONST(true)); }
   ;
 
+
 /**
- * Matches an annotated formula.
+ * Matches a term.
  * @return the expression representing the formula
  */
-annotatedFormula[CVC4::Expr& expr]
+term[CVC4::Expr& expr]
 @init {
-  Debug("parser") << "annotated formula: " << Input::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "term: " << Input::tokenText(LT(1)) << std::endl;
   Kind kind;
   std::string name;
-  std::vector<Expr> args; /* = getExprVector(); */
+  std::vector<Expr> args; 
 } 
   : /* a built-in operator application */
-    LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr] RPAREN_TOK 
+    LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK 
     { if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
@@ -192,44 +187,36 @@ annotatedFormula[CVC4::Expr& expr]
     }
 
   | /* A non-built-in function application */
-
-    // Semantic predicate not necessary if parenthesized subexpressions
-    // are disallowed
-    // { isFunction(LT(2)->getText()) }? 
-
     LPAREN_TOK 
     functionSymbol[expr]
     { args.push_back(expr); }
-    annotatedFormulas[args,expr] RPAREN_TOK
+    termList[args,expr] RPAREN_TOK
     // TODO: check arity
     { expr = MK_EXPR(CVC4::kind::APPLY_UF,args); }
 
   | /* An ite expression */
     LPAREN_TOK ITE_TOK 
-    annotatedFormula[expr]
+    term[expr]
     { args.push_back(expr); } 
-    annotatedFormula[expr]
+    term[expr]
     { args.push_back(expr); } 
-    annotatedFormula[expr]
+    term[expr]
     { args.push_back(expr); } 
     RPAREN_TOK
     { expr = MK_EXPR(CVC4::kind::ITE, args); }
 
-  | /* a let/flet binding */
-    LPAREN_TOK 
-    (LET_TOK LPAREN_TOK let_identifier[name,CHECK_UNDECLARED]
-      | FLET_TOK LPAREN_TOK flet_identifier[name,CHECK_UNDECLARED] )
-    annotatedFormula[expr] RPAREN_TOK
-    { PARSER_STATE->pushScope();
-      PARSER_STATE->defineVar(name,expr); }
-    annotatedFormula[expr]
+  | /* a let binding */
+    LPAREN_TOK LET_TOK LPAREN_TOK 
+    { PARSER_STATE->pushScope(); }
+    ( LPAREN_TOK identifier[name,CHECK_UNDECLARED,SYM_VARIABLE] term[expr] RPAREN_TOK
+      { PARSER_STATE->defineVar(name,expr); } )+
+    RPAREN_TOK
+    term[expr]
     RPAREN_TOK
     { PARSER_STATE->popScope(); }
 
   | /* a variable */
-    ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-      | let_identifier[name,CHECK_DECLARED] 
-      | flet_identifier[name,CHECK_DECLARED] )
+    identifier[name,CHECK_DECLARED,SYM_VARIABLE]
     { expr = PARSER_STATE->getVariable(name); }
 
     /* constants */
@@ -243,19 +230,18 @@ annotatedFormula[CVC4::Expr& expr]
       Rational rat( Input::tokenText($RATIONAL_TOK) );
       expr = MK_CONST(rat); }
     // NOTE: Theory constants go here
-    /* TODO: let, flet, quantifiers, arithmetic constants */
   ;
 
 /**
- * Matches a sequence of annotated formulas and puts them into the formulas
+ * Matches a sequence of terms and puts them into the formulas
  * vector.
- * @param formulas the vector to fill with formulas
+ * @param formulas the vector to fill with terms
  * @param expr an Expr reference for the elements of the sequence
  */   
 /* NOTE: We pass an Expr in here just to avoid allocating a fresh Expr every 
  * time through this rule. */
-annotatedFormulas[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
-  : ( annotatedFormula[expr] { formulas.push_back(expr); } )+
+termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
+  : ( term[expr] { formulas.push_back(expr); } )+
   ;
 
 /**
@@ -270,7 +256,6 @@ builtinOp[CVC4::Kind& kind]
   | AND_TOK      { $kind = CVC4::kind::AND;     }
   | OR_TOK       { $kind = CVC4::kind::OR;      }
   | XOR_TOK      { $kind = CVC4::kind::XOR;     }
-  | IFF_TOK      { $kind = CVC4::kind::IFF;     }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
   | GREATER_THAN_TOK
@@ -286,15 +271,6 @@ builtinOp[CVC4::Kind& kind]
   | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
     // NOTE: Theory operators go here
-    /* TODO: lt, gt, plus, minus, etc. */
-  ;
-
-/**
- * Matches a (possibly undeclared) predicate identifier (returning the string). 
- * @param check what kind of check to do with the symbol
- */
-predicateName[std::string& name, CVC4::parser::DeclarationCheck check]
-  :  functionName[name,check]
   ;
 
 /**
@@ -318,61 +294,13 @@ functionSymbol[CVC4::Expr& fun]
   ;
   
 /**
- * Matches an attribute name from the input (:attribute_name).
- */
-attribute
-  :  ATTR_IDENTIFIER
-  ;
-
-functionDeclaration
-@declarations {
-  std::string name;
-  std::vector<Type> sorts;
-}
-  : LPAREN_TOK functionName[name,CHECK_UNDECLARED] 
-      t = sortSymbol // require at least one sort
-    { sorts.push_back(t); }
-      sortList[sorts] RPAREN_TOK
-    { if( sorts.size() == 1 ) {
-        Assert( t == sorts[0] ); 
-      } else {
-        t = EXPR_MANAGER->mkFunctionType(sorts);
-      }
-      PARSER_STATE->mkVar(name, t); } 
-  ;
-              
-/**
- * Matches the declaration of a predicate and declares it
- */
-predicateDeclaration
-@declarations {
-  std::string name;
-  std::vector<Type> p_sorts;
-}
-  : LPAREN_TOK predicateName[name,CHECK_UNDECLARED] sortList[p_sorts] RPAREN_TOK
-    { Type t;
-      if( p_sorts.empty() ) {
-        t = EXPR_MANAGER->booleanType();
-      } else { 
-        t = EXPR_MANAGER->mkPredicateType(p_sorts);
-      }
-      PARSER_STATE->mkVar(name, t); } 
-  ;
-
-sortDeclaration 
-@declarations {
-  std::string name;
-}
-  : sortName[name,CHECK_UNDECLARED]
-    { Debug("parser") << "sort decl: '" << name << "'" << std::endl;
-      PARSER_STATE->mkSort(name); }
-  ;
-  
-/**
  * Matches a sequence of sort symbols and fills them into the given vector.
  */
 sortList[std::vector<CVC4::Type>& sorts]
-  : ( t = sortSymbol { sorts.push_back(t); })* 
+@declarations {
+  Type t;
+}
+  : ( sortSymbol[t] { sorts.push_back(t); })* 
   ;
 
 /**
@@ -383,12 +311,14 @@ sortName[std::string& name, CVC4::parser::DeclarationCheck check]
   : identifier[name,check,SYM_SORT] 
   ;
 
-sortSymbol returns [CVC4::Type t]
+sortSymbol[CVC4::Type& t]
 @declarations {
   std::string name;
 }
   : sortName[name,CHECK_NONE] 
-  	{ $t = PARSER_STATE->getSort(name); }
+  	{ t = PARSER_STATE->getSort(name); }
+  | BOOL_TOK
+    { t = EXPR_MANAGER->booleanType(); }
   ;
 
 /**
@@ -398,13 +328,6 @@ status[ CVC4::BenchmarkStatus& status ]
   : SAT_TOK       { $status = SMT_SATISFIABLE;    }
   | UNSAT_TOK     { $status = SMT_UNSATISFIABLE;  }
   | UNKNOWN_TOK   { $status = SMT_UNKNOWN;        }
-  ;
-
-/**
- * Matches an annotation, which is an attribute name, with an optional user
- */
-annotation
-  : attribute (USER_VALUE)?
   ;
 
 /**
@@ -424,55 +347,24 @@ identifier[std::string& id,
       PARSER_STATE->checkDeclaration(id, check, type); }
   ;
 
-/**
- * Matches a let-bound identifier and sets the string reference parameter id.
- * @param id string to hold the identifier
- * @param check what kinds of check to do on the symbol
- */
-let_identifier[std::string& id,
-    		   CVC4::parser::DeclarationCheck check] 
-  : LET_IDENTIFIER
-    { id = Input::tokenText($LET_IDENTIFIER);
-      Debug("parser") << "let_identifier: " << id
-                      << " check? " << toString(check) << std::endl;
-      PARSER_STATE->checkDeclaration(id, check, SYM_VARIABLE); }
-  ;
-
-/**
- * Matches an flet-bound identifier and sets the string reference parameter id.
- * @param id string to hold the identifier
- * @param check what kinds of check to do on the symbol
- */
-flet_identifier[std::string& id,
-    		    CVC4::parser::DeclarationCheck check] 
-  : FLET_IDENTIFIER
-    { id = Input::tokenText($FLET_IDENTIFIER);
-      Debug("parser") << "flet_identifier: " << id
-                      << " check? " << toString(check) << std::endl;
-      PARSER_STATE->checkDeclaration(id, check); }
-  ;
-
 // Base SMT-LIB tokens
-ASSUMPTION_TOK  : ':assumption';
-BENCHMARK_TOK   : 'benchmark';
-EXTRAFUNS_TOK   : ':extrafuns';
-EXTRAPREDS_TOK  : ':extrapreds';
-EXTRASORTS_TOK  : ':extrasorts';
-FALSE_TOK       : 'false';
-FLET_TOK        : 'flet';
-FORMULA_TOK     : ':formula';
-ITE_TOK         : 'ite' | 'if_then_else';
-LET_TOK         : 'let';
-LOGIC_TOK       : ':logic';
-LPAREN_TOK      : '(';
-NOTES_TOK       : ':notes';
-RPAREN_TOK      : ')';
-SAT_TOK         : 'sat';
-STATUS_TOK      : ':status';
-THEORY_TOK      : 'theory';
-TRUE_TOK        : 'true';
-UNKNOWN_TOK     : 'unknown';
-UNSAT_TOK       : 'unsat';
+ASSERT_TOK : 'assert';
+BOOL_TOK : 'Bool';
+CHECKSAT_TOK : 'check-sat';
+DECLARE_FUN_TOK : 'declare-fun';
+DECLARE_SORT_TOK : 'declare-sort';
+FALSE_TOK : 'false';
+ITE_TOK : 'ite';
+LET_TOK : 'let';
+LPAREN_TOK : '(';
+RPAREN_TOK : ')';
+SAT_TOK : 'sat';
+SET_LOGIC_TOK : 'set-logic';
+SET_INFO_TOK : 'set-info';
+STATUS_TOK : ':status';
+TRUE_TOK : 'true';
+UNKNOWN_TOK : 'unknown';
+UNSAT_TOK : 'unsat';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';
@@ -484,8 +376,7 @@ EQUAL_TOK         : '=';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 GREATER_THAN_TOK  : '>';
-IFF_TOK           : 'iff';
-IMPLIES_TOK       : 'implies';
+IMPLIES_TOK       : '=>';
 LESS_THAN_TOK     : '<';
 MINUS_TOK         : '-';
 NOT_TOK           : 'not';
@@ -513,31 +404,6 @@ IDENTIFIER
 ATTR_IDENTIFIER 
   :  ':' IDENTIFIER
   ;
-
-/**
- * Matches an identifier starting with a question mark.
- */
-LET_IDENTIFIER
-  : '?' IDENTIFIER
-  ;
-  
-/**
- * Matches an identifier starting with a dollar sign.
- */
-FLET_IDENTIFIER
-  : '$' IDENTIFIER
-  ;
-
-/**
- * Matches the value of user-defined annotations or attributes. The only constraint imposed on a user-defined value is that it start with
- * an open brace and end with closed brace.
- */
-USER_VALUE
-  :   '{'
-      ( ~('{' | '}') )*
-    '}'
-  ;
-
 
 /**
  * Matches and skips whitespace in the input.

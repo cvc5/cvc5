@@ -144,6 +144,69 @@ const string badSmtExprs[] = {
 
 const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
 
+/************************** SMT v2 test inputs ********************************/
+
+const string goodSmt2Inputs[] = {
+    "", // empty string is OK
+    "(set-logic QF_UF)",
+    "(assert true)",
+    "(check-sat)",
+    "(assert false) (check-sat)",
+    "(declare-fun a () Bool) (declare-fun b () Bool)",
+    "(declare-fun a () Bool) (declare-fun b () Bool) (assert (=> (and (=> a b) a) b))",
+    "(declare-sort a 1) (declare-fun f (a) a) (declare-fun x () a) (assert (= (f x) x))",
+    "(declare-sort a 1) (declare-fun x () a) (declare-fun y () a) (assert (= (ite true x y) x))",
+    ";; nothing but a comment",
+    "; a comment\n(check-sat ; goodbye\n)"
+  };
+
+const int numGoodSmt2Inputs = sizeof(goodSmt2Inputs) / sizeof(string);
+
+/* The following expressions are valid after setupContext. */
+const string goodSmt2Exprs[] = {
+    "(and a b)",
+    "(or (and a b) c)",
+    "(=> (and (=> a b) a) b)",
+    "(and (= a b) (not a))",
+    "(= (xor a b) (and (or a b) (not (and a b))))",
+    "(ite a (f x) y)",
+    "1",
+    "0"// ,
+//    "1.5"
+};
+
+const int numGoodSmt2Exprs = sizeof(goodSmt2Exprs) / sizeof(string);
+
+const string badSmt2Inputs[] = {
+    "(assert)", // no args
+    "(check-sat true)", // shouldn't have an arg
+    "(declare-sort a)", // no arg
+    "(declare-sort a 1) (declare-sort a 1)", // double decl
+    "(declare-fun p Bool)" // should be "p () Bool"
+  };
+
+const int numBadSmt2Inputs = sizeof(badSmt2Inputs) / sizeof(string);
+
+/* The following expressions are invalid even after setupContext. */
+const string badSmt2Exprs[] = {
+    "(and)", // wrong arity
+    "(and a b", // no closing paren
+    "(a and b)", // infix
+    "(implies a b)", // no implies in v2
+    "(iff a b)", // no iff in v2
+    "(OR (AND a b) c)", // wrong case
+    "(a IMPLIES b)", // infix AND wrong case
+    "(not a b)", // wrong arity
+    "not a", // needs parens
+    "(ite a x)", // wrong arity
+    "(if_then_else a (f x) y)", // no if_then_else in v2
+    "(a b)", // using non-function as function
+    ".5", // rational constants must have integer prefix
+    "1." // rational constants must have fractional suffix
+};
+
+const int numBadSmt2Exprs = sizeof(badSmt2Exprs) / sizeof(string);
+
 class ParserBlack : public CxxTest::TestSuite {
   ExprManager *d_exprManager;
 
@@ -305,5 +368,21 @@ public:
 
   void testBadSmtExprs() {
     tryBadExprs(LANG_SMTLIB,badSmtExprs,numBadSmtExprs);
+  }
+
+  void testGoodSmt2Inputs() {
+    tryGoodInputs(LANG_SMTLIB_V2,goodSmt2Inputs,numGoodSmt2Inputs);
+  }
+
+  void testBadSmt2Inputs() {
+    tryBadInputs(LANG_SMTLIB_V2,badSmt2Inputs,numBadSmt2Inputs);
+  }
+
+  void testGoodSmt2Exprs() {
+    tryGoodExprs(LANG_SMTLIB_V2,goodSmt2Exprs,numGoodSmt2Exprs);
+  }
+
+  void testBadSmt2Exprs() {
+    tryBadExprs(LANG_SMTLIB_V2,badSmt2Exprs,numBadSmt2Exprs);
   }
 };
