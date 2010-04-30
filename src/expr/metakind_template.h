@@ -148,13 +148,11 @@ ${metakind_canbeatomic}
  * VARIABLE to APPLY_UF.
  */
 static inline Kind operatorKindToKind(Kind k) {
-  static const Kind kind2kind[] = {
-    kind::UNDEFINED_KIND, /* NULL_EXPR */
+  switch (k) {
 ${metakind_operatorKinds}
-    kind::UNDEFINED_KIND  /* LAST_KIND */
+  default:
+    return kind::UNDEFINED_KIND;  /* LAST_KIND */
   };
-
-  return kind2kind[k];
 }
 }/* CVC4::kind namespace */
 

@@ -87,7 +87,7 @@ function variable {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind VARIABLE "$1" UNDEFINED_KIND 0
+  register_metakind VARIABLE "$1" 0
 }
 
 function operator {
@@ -96,7 +96,7 @@ function operator {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind OPERATOR "$1" UNDEFINED_KIND "$2"
+  register_metakind OPERATOR "$1" "$2"
 }
 
 function nonatomic_operator {
@@ -105,7 +105,7 @@ function nonatomic_operator {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind NONATOMIC_OPERATOR "$1" UNDEFINED_KIND "$2"
+  register_metakind NONATOMIC_OPERATOR "$1" "$2"
 }
 
 function parameterized {
@@ -114,7 +114,8 @@ function parameterized {
   lineno=${BASH_LINENO[0]}
 
   check_theory_seen
-  register_metakind PARAMETERIZED "$1" "$2" "$3"
+  register_metakind PARAMETERIZED "$1" "$3"
+  registerOperatorToKind "$1" "$2"
 }
 
 function constant {
@@ -142,7 +143,7 @@ function constant {
     metakind_includes="${metakind_includes}
 #include \"$4\""
   fi
-  register_metakind CONSTANT "$1" UNDEFINED_KIND 0
+  register_metakind CONSTANT "$1" 0
   metakind_constantMaps="${metakind_constantMaps}
 }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
@@ -204,14 +205,18 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 "
 }
 
+function registerOperatorToKind {
+	operatorKind=$1
+	applyKind=$2
+	metakind_operatorKinds="${metakind_operatorKinds}    case kind::$applyKind: return kind::$operatorKind;
+"; 
+}
+
 function register_metakind {
   mk=$1
   k=$2
-  k1=$3
-  nc=$4
+  nc=$3
 
-  metakind_operatorKinds="${metakind_operatorKinds}    kind::$k1, /* $k */
-"; 
 
   if [ $mk = NONATOMIC_OPERATOR ]; then
     metakind_canbeatomic="${metakind_canbeatomic}    false, /* $k */

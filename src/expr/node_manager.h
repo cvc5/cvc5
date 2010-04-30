@@ -871,7 +871,7 @@ template <bool ref_count>
 inline Node* NodeManager::mkNodePtr(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
-  return NodeBuilder<>(this, kind::operatorKindToKind(opNode.getKind())).constructNodePtr();
+  return NodeBuilder<>(this, kind::operatorKindToKind(opNode.getKind())).append(children).constructNodePtr();
 }
 
 
