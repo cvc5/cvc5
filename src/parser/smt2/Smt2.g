@@ -61,7 +61,7 @@ namespace CVC4 {
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "parser/input.h"
+#include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "util/integer.h"
 #include "util/output.h"
@@ -142,7 +142,7 @@ command returns [CVC4::Command* cmd]
   | /* sort declaration */
     DECLARE_SORT_TOK identifier[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL_TOK
     { Debug("parser") << "declare sort: '" << name << "' arity=" << n << std::endl;
-      if( Input::tokenToInteger(n) > 0 ) {
+      if( AntlrInput::tokenToInteger(n) > 0 ) {
         Unimplemented("Parameterized user sorts.");
       }
       PARSER_STATE->mkSort(name); 
@@ -172,7 +172,7 @@ command returns [CVC4::Command* cmd]
  */
 term[CVC4::Expr& expr]
 @init {
-  Debug("parser") << "term: " << Input::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind;
   std::string name;
   std::vector<Expr> args; 
@@ -226,10 +226,10 @@ term[CVC4::Expr& expr]
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
   | NUMERAL_TOK
-    { expr = MK_CONST( Input::tokenToInteger($NUMERAL_TOK) ); }
+    { expr = MK_CONST( AntlrInput::tokenToInteger($NUMERAL_TOK) ); }
   | RATIONAL_TOK
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      expr = MK_CONST( Input::tokenToRational($RATIONAL_TOK) ); }
+      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_TOK) ); }
     // NOTE: Theory constants go here
   ;
 
@@ -250,7 +250,7 @@ termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
 */
 builtinOp[CVC4::Kind& kind]
 @init {
-  Debug("parser") << "builtin: " << Input::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "builtin: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : NOT_TOK      { $kind = CVC4::kind::NOT;     }
   | IMPLIES_TOK  { $kind = CVC4::kind::IMPLIES; }
@@ -341,7 +341,7 @@ identifier[std::string& id,
 		   CVC4::parser::DeclarationCheck check, 
            CVC4::parser::SymbolType type] 
   : IDENTIFIER
-    { id = Input::tokenText($IDENTIFIER);
+    { id = AntlrInput::tokenText($IDENTIFIER);
       Debug("parser") << "identifier: " << id
                       << " check? " << toString(check)
                       << " type? " << toString(type) << std::endl;

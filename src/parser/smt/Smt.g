@@ -61,7 +61,7 @@ namespace CVC4 {
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "parser/input.h"
+#include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "util/integer.h"
 #include "util/output.h"
@@ -174,7 +174,7 @@ benchAttribute returns [CVC4::Command* smt_command]
  */
 annotatedFormula[CVC4::Expr& expr]
 @init {
-  Debug("parser") << "annotated formula: " << Input::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "annotated formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind;
   std::string name;
   std::vector<Expr> args; /* = getExprVector(); */
@@ -235,10 +235,10 @@ annotatedFormula[CVC4::Expr& expr]
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
   | NUMERAL_TOK
-    { expr = MK_CONST( Input::tokenToInteger($NUMERAL_TOK) ); }
+    { expr = MK_CONST( AntlrInput::tokenToInteger($NUMERAL_TOK) ); }
   | RATIONAL_TOK
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      expr = MK_CONST( Input::tokenToRational($RATIONAL_TOK) ); }
+      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_TOK) ); }
     // NOTE: Theory constants go here
     /* TODO: quantifiers, arithmetic constants */
   ;
@@ -260,7 +260,7 @@ annotatedFormulas[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
 */
 builtinOp[CVC4::Kind& kind]
 @init {
-  Debug("parser") << "builtin: " << Input::tokenText(LT(1)) << std::endl;
+  Debug("parser") << "builtin: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : NOT_TOK      { $kind = CVC4::kind::NOT;     }
   | IMPLIES_TOK  { $kind = CVC4::kind::IMPLIES; }
@@ -422,7 +422,7 @@ identifier[std::string& id,
 		   CVC4::parser::DeclarationCheck check, 
            CVC4::parser::SymbolType type] 
   : IDENTIFIER
-    { id = Input::tokenText($IDENTIFIER);
+    { id = AntlrInput::tokenText($IDENTIFIER);
       Debug("parser") << "identifier: " << id
                       << " check? " << toString(check)
                       << " type? " << toString(type) << std::endl;
@@ -437,7 +437,7 @@ identifier[std::string& id,
 let_identifier[std::string& id,
     		   CVC4::parser::DeclarationCheck check] 
   : LET_IDENTIFIER
-    { id = Input::tokenText($LET_IDENTIFIER);
+    { id = AntlrInput::tokenText($LET_IDENTIFIER);
       Debug("parser") << "let_identifier: " << id
                       << " check? " << toString(check) << std::endl;
       PARSER_STATE->checkDeclaration(id, check, SYM_VARIABLE); }
@@ -451,7 +451,7 @@ let_identifier[std::string& id,
 flet_identifier[std::string& id,
     		    CVC4::parser::DeclarationCheck check] 
   : FLET_IDENTIFIER
-    { id = Input::tokenText($FLET_IDENTIFIER);
+    { id = AntlrInput::tokenText($FLET_IDENTIFIER);
       Debug("parser") << "flet_identifier: " << id
                       << " check? " << toString(check) << std::endl;
       PARSER_STATE->checkDeclaration(id, check); }

@@ -13,12 +13,12 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-#include "cvc4parser_public.h"
+#include "cvc4parser_private.h"
 
 #ifndef __CVC4__PARSER__CVC_INPUT_H
 #define __CVC4__PARSER__CVC_INPUT_H
 
-#include "parser/input.h"
+#include "parser/antlr_input.h"
 #include "parser/cvc/generated/CvcLexer.h"
 #include "parser/cvc/generated/CvcParser.h"
 
@@ -32,7 +32,7 @@ class ExprManager;
 
 namespace parser {
 
-class CvcInput : public Input {
+class CvcInput : public AntlrInput {
   /** The ANTLR3 CVC lexer for the input. */
   pCvcLexer d_pCvcLexer;
 

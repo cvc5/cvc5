@@ -17,6 +17,7 @@
 
 #include "smt2_input.h"
 #include "expr/expr_manager.h"
+#include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/generated/Smt2Lexer.h"
@@ -27,7 +28,7 @@ namespace parser {
 
 /* Use lookahead=2 */
 Smt2Input::Smt2Input(AntlrInputStream *inputStream) :
-  Input(inputStream, 2) {
+  AntlrInput(inputStream, 2) {
   pANTLR3_INPUT_STREAM input = inputStream->getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 

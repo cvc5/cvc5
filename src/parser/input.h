@@ -10,15 +10,14 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Base for ANTLR parser classes.
+ ** Base for parser inputs.
  **/
 
-#include "cvc4parser_private.h"
+#include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__ANTLR_INPUT_H
-#define __CVC4__PARSER__ANTLR_INPUT_H
+#ifndef __CVC4__PARSER__INPUT_H
+#define __CVC4__PARSER__INPUT_H
 
-#include <antlr3.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -38,44 +37,25 @@ class FunctionType;
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */
-class AntlrInputStream {
-  std::string d_name;
-  pANTLR3_INPUT_STREAM d_input;
+class InputStream {
 
-  AntlrInputStream(std::string name,pANTLR3_INPUT_STREAM input);
-  /* This is private and throws an exception, because you should never use it. */
-  AntlrInputStream(const AntlrInputStream& inputStream) {
-    Unimplemented("copy constructor for AntlrInputStream");
-  }
-  /* This is private and throws an exception, because you should never use it. */
-  AntlrInputStream& operator=(const AntlrInputStream& inputStream) {
-    Unimplemented("operator= for AntlrInputStream");
+  /** The name of this input stream. */
+  std::string d_name;
+
+protected:
+
+  /** Initialize the input stream with a name. */
+  InputStream(std::string name) :
+    d_name(name) {
   }
 
 public:
 
-  virtual ~AntlrInputStream();
+  /** Do-nothing destructor. */
+  virtual ~InputStream() { }
 
-  pANTLR3_INPUT_STREAM getAntlr3InputStream() const;
+  /** Get the name of this input stream. */
   const std::string getName() const;
-
-  /** Create a file input.
-   *
-   * @param filename the path of the file to read
-   * @param useMmap <code>true</code> if the input should use memory-mapped I/O; otherwise, the
-   * input will use the standard ANTLR3 I/O implementation.
-   */
-  static AntlrInputStream* newFileInputStream(const std::string& name, bool useMmap = false);
-
-  /** Create an input from an istream. */
-  // AntlrInputStream newInputStream(std::istream& input, const std::string& name);
-
-  /** Create a string input.
-   *
-   * @param input the string to read
-   * @param name the "filename" to use when reporting errors
-   */
-  static AntlrInputStream* newStringInputStream(const std::string& input, const std::string& name);
 };
 
 class Parser;
@@ -89,37 +69,8 @@ class Parser;
 class CVC4_PUBLIC Input {
   friend class Parser; // for parseError, parseCommand, parseExpr
 
-  /** The display name of the input (e.g., the filename). */
-  std::string d_name;
-
-  /** The token lookahead used to lex and parse the input. This should usually be equal to
-   * <code>K</code> for an LL(k) grammar. */
-  unsigned int d_lookahead;
-
-  /** The ANTLR3 lexer associated with this input. This will be <code>NULL</code> initially. It
-   *  must be set by a call to <code>setLexer</code>, preferably in the subclass constructor. */
-  pANTLR3_LEXER d_lexer;
-
-  /** The ANTLR3 parser associated with this input. This will be <code>NULL</code> initially. It
-   *  must be set by a call to <code>setParser</code>, preferably in the subclass constructor.
-   *  The <code>super</code> field of <code>d_parser</code> will be set to <code>this</code> and
-   *  <code>reportError</code> will be set to <code>Input::reportError</code>. */
-  pANTLR3_PARSER d_parser;
-
-  /** The ANTLR3 token stream associated with this input. We only need this so we can free it on exit.
-   *  This is set by <code>setLexer</code>.
-   *  NOTE: We assume that we <em>can</em> free it on exit. No sharing! */
-  pANTLR3_COMMON_TOKEN_STREAM d_tokenStream;
-
-  /** The ANTLR3 input stream associated with this input. We only need this so we can free it on exit.
-   *  NOTE: We assume that we <em>can</em> free it on exit. No sharing! */
-  AntlrInputStream *d_inputStream;
-
-  /** Turns an ANTLR3 exception into a message for the user and calls <code>parseError</code>. */
-  static void reportError(pANTLR3_BASE_RECOGNIZER recognizer);
-
-  /** Builds a message for a lexer error and calls <code>parseError</code>. */
-  static void lexerError(pANTLR3_BASE_RECOGNIZER recognizer);
+  /** The input stream. */
+  InputStream *d_inputStream;
 
   /* Since we own d_tokenStream and it needs to be freed, we need to prevent
    * copy construction and assignment.
@@ -140,15 +91,6 @@ public:
     */
   static Input* newFileInput(InputLanguage lang, const std::string& filename, bool useMmap=false);
 
-  /** Create an input for the given AntlrInputStream. NOTE: the new Input
-   * will take ownership of the input stream and delete it at destruction time.
-   *
-   * @param lang the input language
-   * @param inputStream the input stream
-   *
-   * */
-  static Input* newInput(InputLanguage lang, AntlrInputStream *inputStream);
-
   /** Create an input for the given stream.
    *
    * @param lang the input language
@@ -165,30 +107,16 @@ public:
    */
   static Input* newStringInput(InputLanguage lang, const std::string& input, const std::string& name);
 
-  /** Retrieve the text associated with a token. */
-  inline static std::string tokenText(pANTLR3_COMMON_TOKEN token);
-  /** Retrieve an Integer from the text of a token */
-  inline static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
-  /** Retrieve a Rational from the text of a token */
-  inline static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
-
 protected:
-  /** Create an input. This input takes ownership of the given input stream,
-   * and will delete it at destruction time.
-   *
-   * @param inputStream the input stream to use
-   * @param lookahead the lookahead needed to parse the input (i.e., k for
-   * an LL(k) grammar)
-   */
-  Input(AntlrInputStream *inputStream, unsigned int lookahead);
 
+  /** Create an input.
+   *
+   * @param inputStream the input stream
+   */
+  Input(InputStream* inputStream);
 
   /** Retrieve the input stream for this parser. */
-  AntlrInputStream *getInputStream();
-
-  /** Retrieve the token stream for this parser. Must not be called before
-   * <code>setLexer()</code>. */
-  pANTLR3_COMMON_TOKEN_STREAM getTokenStream();
+  InputStream *getInputStream();
 
   /** Parse a command from
    * the input by invoking the implementation-specific parsing method.  Returns
@@ -201,7 +129,7 @@ protected:
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  void parseError(const std::string& msg) throw (ParserException);
+  virtual void parseError(const std::string& msg) throw (ParserException) = 0;
 
   /** Parse an
    * expression from the input by invoking the implementation-specific
@@ -212,37 +140,9 @@ protected:
    */
   virtual Expr parseExpr() throw(ParserException) = 0;
 
-  /** Set the ANTLR3 lexer for this input. */
-  void setAntlr3Lexer(pANTLR3_LEXER pLexer);
-
-  /** Set the ANTLR3 parser implementation for this input. */
-  void setAntlr3Parser(pANTLR3_PARSER pParser);
-
   /** Set the Parser object for this input. */
-  void setParser(Parser *parser);
+  virtual void setParser(Parser *parser) = 0;
 };
-
-std::string Input::tokenText(pANTLR3_COMMON_TOKEN token) {
-  ANTLR3_MARKER start = token->getStartIndex(token);
-  ANTLR3_MARKER end = token->getStopIndex(token);
-  /* start and end are boundary pointers. The text is a string
-   * of (end-start+1) bytes beginning at start. */
-  std::string txt( (const char *)start, end-start+1 );
-  Debug("parser-extra") << "tokenText: start=" << start << std::endl
-                        <<  "end=" << end << std::endl
-                        <<  "txt='" << txt << "'" << std::endl;
-  return txt;
-}
-
-Integer Input::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
-  Integer i( tokenText(token) );
-  return i;
-}
-
-Rational Input::tokenToRational(pANTLR3_COMMON_TOKEN token) {
-  Rational r( tokenText(token) );
-  return r;
-}
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

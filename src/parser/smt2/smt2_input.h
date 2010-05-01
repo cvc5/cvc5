@@ -13,12 +13,12 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-#include "cvc4parser_public.h"
+#include "cvc4parser_private.h"
 
 #ifndef __CVC4__PARSER__SMT2_INPUT_H
 #define __CVC4__PARSER__SMT2_INPUT_H
 
-#include "parser/input.h"
+#include "parser/antlr_input.h"
 #include "parser/smt2/generated/Smt2Lexer.h"
 #include "parser/smt2/generated/Smt2Parser.h"
 
@@ -32,7 +32,7 @@ class ExprManager;
 
 namespace parser {
 
-class Smt2Input : public Input {
+class Smt2Input : public AntlrInput {
 
   /** The ANTLR3 SMT2 lexer for the input. */
   pSmt2Lexer d_pSmt2Lexer;

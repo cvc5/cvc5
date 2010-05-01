@@ -35,7 +35,7 @@
 #include <antlr3.h>
 #include <sstream>
 
-#include "input.h"
+#include "antlr_input.h"
 #include "parser.h"
 #include "util/Assert.h"
 
@@ -65,7 +65,7 @@ namespace parser {
  * invoke the error reporting mechanism of the Input class instead of the
  * default error printer.
  */
-void Input::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
+void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_EXCEPTION ex = recognizer->state->exception;
   pANTLR3_UINT8 * tokenNames = recognizer->state->tokenNames;
   stringstream ss;
@@ -234,7 +234,7 @@ void Input::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   AlwaysAssert(antlr3Parser!=NULL);
   Parser *parser = (Parser*)(antlr3Parser->super);
   AlwaysAssert(parser!=NULL);
-  Input *input = parser->getInput();
+  AntlrInput *input = (AntlrInput*) parser->getInput() ;
   AlwaysAssert(input!=NULL);
 
   // Call the error display routine

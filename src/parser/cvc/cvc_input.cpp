@@ -16,7 +16,7 @@
 #include <antlr3.h>
 
 #include "expr/expr_manager.h"
-#include "parser/input.h"
+#include "parser/antlr_input.h"
 #include "parser/parser_exception.h"
 #include "parser/cvc/cvc_input.h"
 #include "parser/cvc/generated/CvcLexer.h"
@@ -27,7 +27,7 @@ namespace parser {
 
 /* Use lookahead=2 */
 CvcInput::CvcInput(AntlrInputStream *inputStream) :
-  Input(inputStream,2) {
+  AntlrInput(inputStream,2) {
   pANTLR3_INPUT_STREAM input = inputStream->getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 
