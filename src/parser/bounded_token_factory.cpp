@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** An ANTLR3 bounded token factory implementation.
  **/
 
 #include <antlr3input.h>

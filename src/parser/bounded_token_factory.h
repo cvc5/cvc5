@@ -10,7 +10,10 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** [[ Add file-specific comments here ]]
+ ** An ANTLR3 bounded token factory. The factory has a fixed number of
+ ** tokens that are re-used as parsing proceeds. Only use this factory
+ ** if you *know* that the number of active tokens will be bounded
+ ** (e.g., if you're using a bounded token stream).
  **/
 
 #include "cvc4parser_private.h"
