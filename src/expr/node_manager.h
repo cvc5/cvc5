@@ -864,14 +864,20 @@ inline Node NodeManager::mkNode(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
   Assert(kind::metaKindOf(opNode.getKind()) == kind::metakind::PARAMETERIZED);
-  return NodeBuilder<>(this, kind::operatorKindToKind(opNode.getKind())).append(children);
+  NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode;
+  nb.append(children);
+  return nb;
 }
 
 template <bool ref_count>
 inline Node* NodeManager::mkNodePtr(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
-  return NodeBuilder<>(this, kind::operatorKindToKind(opNode.getKind())).append(children).constructNodePtr();
+  NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode;
+  nb.append(children);
+  return nb.constructNodePtr();
 }
 
 
