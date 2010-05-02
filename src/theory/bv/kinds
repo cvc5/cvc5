@@ -6,21 +6,81 @@
 
 theory ::CVC4::theory::bv::TheoryBV "theory_bv.h"
 
-constant CONST_BITVECTOR \
+constant BITVECTOR_CONST \
     ::CVC4::BitVector \
     ::CVC4::BitVectorHashStrategy \
     "util/bitvector.h" \
     "a fixed-width bit-vector constant"
     
 operator BITVECTOR_CONCAT 2 "bit-vector concatenation"
+operator BITVECTOR_AND 2 "bitwise and"
+operator BITVECTOR_OR 2 "bitwise or"      
+operator BITVECTOR_XOR 2 "bitwise xor"      
+operator BITVECTOR_NOT 2 "bitwise not"
+operator BITVECTOR_NAND 2 "bitwise nand"
+operator BITVECTOR_NOR 2 "bitwise nor"
+operator BITVECTOR_XNOR 2 "bitwise xnor"
+operator BITVECTOR_COMP 2 "equality comparison (returns one bit)"
+operator BITVECTOR_MULT 2 "bit-vector multiplication"
+operator BITVECTOR_PLUS 2 "bit-vector addition"
+operator BITVECTOR_SUB 2 "bit-vector subtraction"
+operator BITVECTOR_NEG 1 "bit-vector unary negation"
+operator BITVECTOR_UDIV 2 "bit-vector unsigned division, truncating towards 0 (undefined if divisor is 0)"    
+operator BITVECTOR_UREM 2 "bit-vector unsigned remainder from truncating division (undefined if divisor is 0)"    
+operator BITVECTOR_SDIV 2 "bit-vector 2's complement signed division"
+operator BITVECTOR_SREM 2 "bit-vector 2's complement signed remainder (sign follows dividend)"
+operator BITVECTOR_SMOD 2 "bit-vector 2's complement signed remainder (sign follows divisor)"
+operator BITVECTOR_SHL 2 "bit-vector left shift"
+operator BITVECTOR_LSHR 2 "bit-vector logical shift right"
+operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right"
+operator BITVECTOR_ULT 2 "bit-vector unsigned less than"
+operator BITVECTOR_ULE 2 "bit-vector unsigned less than or equal"
+operator BITVECTOR_UGT 2 "bit-vector unsigned greater than"
+operator BITVECTOR_UGE 2 "bit-vector unsigned greater than or equal"
+operator BITVECTOR_SLT 2 "bit-vector signed less than"
+operator BITVECTOR_SLE 2 "bit-vector signed less than or equal"
+operator BITVECTOR_SGT 2 "bit-vector signed greater than"
+operator BITVECTOR_SGE 2 "signed greater than or equal"
+
 constant BITVECTOR_EXTRACT_OP \
 	::CVC4::BitVectorExtract \
 	::CVC4::BitVectorExtractHashStrategy \
 	"util/bitvector.h" \
 	"operator for the bit-vector extract"
+
+constant BITVECTOR_REPEAT_OP \
+	::CVC4::BitVectorRepeat \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRepeat >" \
+	"util/bitvector.h" \
+	"operator for the bit-vector repeat"
+
+constant BITVECTOR_ZERO_EXTEND_OP \
+	::CVC4::BitVectorZeroExtend \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorZeroExtend >" \
+	"util/bitvector.h" \
+	"operator for the bit-vector zero-extend"
+
+constant BITVECTOR_SIGN_EXTEND_OP \
+	::CVC4::BitVectorSignExtend \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSignExtend >" \
+	"util/bitvector.h" \
+	"operator for the bit-vector sign-extend"
+
+constant BITVECTOR_ROTATE_LEFT_OP \
+	::CVC4::BitVectorRotateLeft \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRotateLeft >" \
+	"util/bitvector.h" \
+	"operator for the bit-vector rotate left"
+
+constant BITVECTOR_ROTATE_RIGHT_OP \
+	::CVC4::BitVectorRotateRight \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRotateRight >" \
+	"util/bitvector.h" \
+	"operator for the bit-vector rotate right"
 	
-parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 2 "disequality"
-
-
-
-    
+parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 1 "bit-vector extract"
+parameterized BITVECTOR_REPEAT BITVECTOR_REPEAT_OP 1 "bit-vector repeat"
+parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend"
+parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-extend"
+parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left"
+parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right"

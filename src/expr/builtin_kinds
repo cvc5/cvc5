@@ -130,8 +130,8 @@ operator FUNCTION_TYPE 2: "function type"
 variable SORT_TYPE "sort type"
 
 constant BITVECTOR_TYPE \
-	unsigned \
-	::CVC4::UnsignedHashStrategy \
+	::CVC4::BitVectorSize \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSize >" \
 	"util/bitvector.h" \
 	"bit-vector type" 
 	

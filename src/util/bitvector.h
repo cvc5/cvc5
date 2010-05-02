@@ -105,6 +105,9 @@ struct BitVectorExtract  {
   /** The low bit of the range for this extract */
   unsigned low;
 
+  BitVectorExtract(unsigned high, unsigned low)
+  : high(high), low(low) {}
+
   bool operator == (const BitVectorExtract& extract) const {
     return high == extract.high && low == extract.low;
   }
@@ -122,11 +125,51 @@ public:
   }
 };
 
-/**
- * Hash function for the unsigned integers.
- */
+struct BitVectorSize {
+  unsigned size;
+  BitVectorSize(unsigned size)
+  : size(size) {}
+  operator unsigned () const { return size; }
+};
+
+struct BitVectorRepeat {
+  unsigned repeatAmount;
+  BitVectorRepeat(unsigned repeatAmount)
+  : repeatAmount(repeatAmount) {}
+  operator unsigned () const { return repeatAmount; }
+};
+
+struct BitVectorZeroExtend {
+  unsigned zeroExtendAmount;
+  BitVectorZeroExtend(unsigned zeroExtendAmount)
+  : zeroExtendAmount(zeroExtendAmount) {}
+  operator unsigned () const { return zeroExtendAmount; }
+};
+
+struct BitVectorSignExtend {
+  unsigned signExtendAmount;
+  BitVectorSignExtend(unsigned signExtendAmount)
+  : signExtendAmount(signExtendAmount) {}
+  operator unsigned () const { return signExtendAmount; }
+};
+
+struct BitVectorRotateLeft {
+  unsigned rotateLeftAmount;
+  BitVectorRotateLeft(unsigned rotateLeftAmount)
+  : rotateLeftAmount(rotateLeftAmount) {}
+  operator unsigned () const { return rotateLeftAmount; }
+};
+
+struct BitVectorRotateRight {
+  unsigned rotateRightAmount;
+  BitVectorRotateRight(unsigned rotateRightAmount)
+  : rotateRightAmount(rotateRightAmount) {}
+  operator unsigned () const { return rotateRightAmount; }
+};
+
+template <typename T>
 struct UnsignedHashStrategy {
-  static inline size_t hash(unsigned x) {
+  static inline size_t hash(const T& x) {
     return (size_t)x;
   }
 };

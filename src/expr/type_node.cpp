@@ -74,13 +74,13 @@ bool TypeNode::isBitVector() const {
 
 /** Is this a bit-vector type of size <code>size</code> */
 bool TypeNode::isBitVector(unsigned size) const {
-  return getKind() == kind::BITVECTOR_TYPE && getConst<unsigned>() == size;
+  return getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size;
 }
 
 /** Get the size of this bit-vector type */
 unsigned TypeNode::getBitVectorSize() const {
   Assert(isBitVector());
-  return getConst<unsigned>();
+  return getConst<BitVectorSize>();
 }
 
 

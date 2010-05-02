@@ -94,7 +94,8 @@ setLogic(Parser *parser, const std::string& name) {
     parser->mkSort("U");
   } else if(name == "QF_LRA"){
     parser->defineType("Real", parser->getExprManager()->realType());
-  } else{
+  } else if(name == "QF_BV"){
+  } else {
     // NOTE: Theory types go here
     Unhandled(name);
   }
@@ -270,6 +271,7 @@ builtinOp[CVC4::Kind& kind]
   | IFF_TOK      { $kind = CVC4::kind::IFF;     }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
+    // NOTE: Theory operators go here
   | GREATER_THAN_TOK
                  { $kind = CVC4::kind::GT; }
   | GREATER_THAN_TOK EQUAL_TOK
@@ -283,7 +285,35 @@ builtinOp[CVC4::Kind& kind]
   | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
   // Bit-vectors
-    // NOTE: Theory operators go here
+  | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
+  | BVAND_TOK    { $kind = CVC4::kind::BITVECTOR_AND;    } 
+  | BVOR_TOK     { $kind = CVC4::kind::BITVECTOR_OR;     }   
+  | BVXOR_TOK    { $kind = CVC4::kind::BITVECTOR_XOR;    }
+  | BVNOT_TOK    { $kind = CVC4::kind::BITVECTOR_NOT;    }
+  | BVNAND_TOK   { $kind = CVC4::kind::BITVECTOR_NAND;   }
+  | BVNOR_TOK    { $kind = CVC4::kind::BITVECTOR_NOR;    }
+  | BVXNOR_TOK   { $kind = CVC4::kind::BITVECTOR_XNOR;   }
+  | BVCOMP_TOK   { $kind = CVC4::kind::BITVECTOR_COMP;   }
+  | BVMUL_TOK    { $kind = CVC4::kind::BITVECTOR_MULT;   }
+  | BVADD_TOK    { $kind = CVC4::kind::BITVECTOR_PLUS;   }
+  | BVSUB_TOK    { $kind = CVC4::kind::BITVECTOR_SUB;    }
+  | BVNEG_TOK    { $kind = CVC4::kind::BITVECTOR_NEG;    }
+  | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV;   }
+  | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM;   }
+  | BVSDIV_TOK   { $kind = CVC4::kind::BITVECTOR_SDIV;   } 
+  | BVSREM_TOK   { $kind = CVC4::kind::BITVECTOR_SREM;   }
+  | BVSMOD_TOK   { $kind = CVC4::kind::BITVECTOR_SMOD;   }
+  | BVSHL_TOK    { $kind = CVC4::kind::BITVECTOR_SHL;    }
+  | BVLSHR_TOK   { $kind = CVC4::kind::BITVECTOR_LSHR;   }
+  | BVASHR_TOK   { $kind = CVC4::kind::BITVECTOR_ASHR;   }
+  | BVULT_TOK    { $kind = CVC4::kind::BITVECTOR_ULT;    }
+  | BVULE_TOK    { $kind = CVC4::kind::BITVECTOR_ULE;    }
+  | BVUGT_TOK    { $kind = CVC4::kind::BITVECTOR_UGT;    }
+  | BVUGE_TOK    { $kind = CVC4::kind::BITVECTOR_UGE;    }
+  | BVSLT_TOK    { $kind = CVC4::kind::BITVECTOR_SLT;    }
+  | BVSLE_TOK    { $kind = CVC4::kind::BITVECTOR_SLE;    }
+  | BVSGT_TOK    { $kind = CVC4::kind::BITVECTOR_SGT;    }
+  | BVSGE_TOK    { $kind = CVC4::kind::BITVECTOR_SGE;    }
     /* TODO: lt, gt, plus, minus, etc. */
   ;
 
@@ -292,6 +322,25 @@ builtinOp[CVC4::Kind& kind]
  */
 parameterizedOperator[CVC4::Expr& op] 
   : functionSymbol[op]
+  | bitVectorOperator[op]
+  ;
+
+/**
+ * Matches a bit-vector operator (the ones parametrized by numbers)
+ */
+bitVectorOperator[CVC4::Expr& op]
+  : EXTRACT_TOK '[' n1 = NUMERAL_TOK ':' n2 = NUMERAL_TOK ']'
+    { op = MK_CONST(BitVectorExtract(AntlrInput::tokenToUnsigned($n1), AntlrInput::tokenToUnsigned($n2))); }
+  | REPEAT_TOK '[' n = NUMERAL_TOK ']' 
+    { op = MK_CONST(BitVectorRepeat(AntlrInput::tokenToUnsigned($n))); }
+  | ZERO_EXTEND_TOK '[' n = NUMERAL_TOK ']'
+    { op = MK_CONST(BitVectorZeroExtend(AntlrInput::tokenToUnsigned($n))); }
+  | SIGN_EXTEND_TOK '[' n = NUMERAL_TOK ']'
+    { op = MK_CONST(BitVectorSignExtend(AntlrInput::tokenToUnsigned($n))); }
+  | ROTATE_LEFT_TOK '[' n = NUMERAL_TOK ']'
+    { op = MK_CONST(BitVectorRotateLeft(AntlrInput::tokenToUnsigned($n))); }
+  | ROTATE_RIGHT_TOK '[' n = NUMERAL_TOK ']'
+    { op = MK_CONST(BitVectorRotateRight(AntlrInput::tokenToUnsigned($n))); }  
   ;
 
 /**
@@ -319,7 +368,7 @@ functionSymbol[CVC4::Expr& fun]
 }
   : functionName[name,CHECK_DECLARED]
     { PARSER_STATE->checkFunction(name);
-      fun = PARSER_STATE->getVariable(name); }
+      fun = PARSER_STATE->getVariable(name); }  
   ;
   
 /**
@@ -394,6 +443,9 @@ sortSymbol returns [CVC4::Type t]
 }
   : sortName[name,CHECK_NONE] 
   	{ $t = PARSER_STATE->getSort(name); }
+  | BITVECTOR_TOK '[' NUMERAL_TOK ']' {
+  	$t = EXPR_MANAGER->bitVectorType(AntlrInput::tokenToUnsigned($NUMERAL_TOK));
+  }
   ;
 
 /**
@@ -503,6 +555,43 @@ STAR_TOK          : '*';
 TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 
+// Bitvector tokens 
+BITVECTOR_TOK     : 'BitVec';
+CONCAT_TOK        : 'concat';
+EXTRACT_TOK       : 'extract';
+BVAND_TOK         : 'bvand';
+BVOR_TOK          : 'bvor';
+BVXOR_TOK         : 'bvxor';
+BVNOT_TOK         : 'bvnot';
+BVNAND_TOK        : 'bvnand';
+BVNOR_TOK         : 'bvnor';
+BVXNOR_TOK        : 'bvxnor';
+BVCOMP_TOK        : 'bvcomp';
+BVMUL_TOK         : 'bvmul';
+BVADD_TOK         : 'bvadd';
+BVSUB_TOK         : 'bvsub';
+BVNEG_TOK         : 'bvneg';
+BVUDIV_TOK        : 'bvudiv';
+BVUREM_TOK        : 'bvurem';
+BVSDIV_TOK        : 'bvsdiv';
+BVSREM_TOK        : 'bvsrem';
+BVSMOD_TOK        : 'bvsmod';
+BVSHL_TOK         : 'bvshl';
+BVLSHR_TOK        : 'bvlshr';
+BVASHR_TOK        : 'bvashr';
+BVULT_TOK         : 'bvult';
+BVULE_TOK         : 'bvule';
+BVUGT_TOK         : 'bvugt';
+BVUGE_TOK         : 'bvuge';
+BVSLT_TOK         : 'bvslt';
+BVSLE_TOK         : 'bvsle';
+BVSGT_TOK         : 'bvsgt';
+BVSGE_TOK         : 'bvsge';
+REPEAT_TOK        : 'repeat';
+ZERO_EXTEND_TOK   : 'zero_extend';
+SIGN_EXTEND_TOK   : 'sign_extend';
+ROTATE_LEFT_TOK   : 'rotate_left';
+ROTATE_RIGHT_TOK  : 'rotate_right';
 
 /**
  * Matches an identifier from the input. An identifier is a sequence of letters,

@@ -134,6 +134,8 @@ public:
 
   /** Retrieve the text associated with a token. */
   inline static std::string tokenText(pANTLR3_COMMON_TOKEN token);
+  /** Retrieve an unsigned from the text of a token */
+  inline static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
   /** Retrieve an Integer from the text of a token */
   inline static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
   /** Retrieve a Rational from the text of a token */
@@ -179,6 +181,15 @@ std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
                         <<  "txt='" << txt << "'" << std::endl;
   return txt;
 }
+
+unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
+  unsigned result;
+  std::stringstream ss;
+  ss << tokenText(token);
+  ss >> result;
+  return result;
+}
+
 
 Integer AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
   Integer i( tokenText(token) );

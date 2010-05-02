@@ -634,7 +634,7 @@ inline TypeNode NodeManager::kindType() {
 }
 
 inline TypeNode NodeManager::bitVectorType(unsigned size) {
-  return TypeNode(mkTypeConst<unsigned>(kind::BITVECTOR_TYPE));
+  return TypeNode(mkTypeConst<BitVectorSize>(BitVectorSize(size)));
 }
 
 /** Make a function type from domain to range. */
