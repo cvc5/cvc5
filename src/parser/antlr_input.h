@@ -112,6 +112,10 @@ class AntlrInput : public Input{
   /** Builds a message for a lexer error and calls <code>parseError</code>. */
   static void lexerError(pANTLR3_BASE_RECOGNIZER recognizer);
 
+  /** Returns the next available lexer token from the current input stream. */
+  static pANTLR3_COMMON_TOKEN
+  nextTokenStr (pANTLR3_TOKEN_SOURCE toksource);
+
   /* Since we own d_tokenStream and it needs to be freed, we need to prevent
    * copy construction and assignment.
    */
