@@ -137,13 +137,13 @@ public:
   static AntlrInput* newInput(InputLanguage lang, AntlrInputStream *inputStream);
 
   /** Retrieve the text associated with a token. */
-  inline static std::string tokenText(pANTLR3_COMMON_TOKEN token);
+  static std::string tokenText(pANTLR3_COMMON_TOKEN token);
   /** Retrieve an unsigned from the text of a token */
-  inline static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
+  static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
   /** Retrieve an Integer from the text of a token */
-  inline static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
+  static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
   /** Retrieve a Rational from the text of a token */
-  inline static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
+  static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
 
 protected:
   /** Create an input. This input takes ownership of the given input stream,
@@ -174,7 +174,7 @@ protected:
   void setParser(Parser *parser);
 };
 
-std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
+inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
   ANTLR3_MARKER start = token->getStartIndex(token);
   ANTLR3_MARKER end = token->getStopIndex(token);
   /* start and end are boundary pointers. The text is a string
@@ -186,7 +186,7 @@ std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
   return txt;
 }
 
-unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
+inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
   unsigned result;
   std::stringstream ss;
   ss << tokenText(token);
@@ -194,13 +194,12 @@ unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
   return result;
 }
 
-
-Integer AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
+inline Integer AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
   Integer i( tokenText(token) );
   return i;
 }
 
-Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
+inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
   Rational r( tokenText(token) );
   return r;
 }

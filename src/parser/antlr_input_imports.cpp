@@ -262,7 +262,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
  * This is copied, largely unmodified, from antlr3lexer.c
  *
  */
-inline pANTLR3_COMMON_TOKEN
+pANTLR3_COMMON_TOKEN
 AntlrInput::nextTokenStr (pANTLR3_TOKEN_SOURCE toksource)
 {
   pANTLR3_LEXER lexer;
