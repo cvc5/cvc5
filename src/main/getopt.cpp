@@ -41,9 +41,10 @@ namespace main {
 
 static const char lang_help[] = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
-  auto          attempt to automatically determine the input language\n\
-  pl | cvc4     CVC4 presentation language\n\
-  smt | smtlib  SMT-LIB format\n\
+  auto           attempt to automatically determine the input language\n\
+  pl | cvc4      CVC4 presentation language\n\
+  smt | smtlib   SMT-LIB format 1.2\n\
+  smt2 | smtlib2 SMT-LIB format 2.0\n\
 ";
 
 /**

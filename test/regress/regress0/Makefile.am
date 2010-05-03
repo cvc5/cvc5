@@ -2,17 +2,17 @@ SUBDIRS = precedence uf
 
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
 TESTS =	\
-    error.cvc \
-    boolean-prec.cvc \
-    distinct.smt \
-    flet.smt \
-    flet2.smt \
+	error.cvc \
+	boolean-prec.cvc \
+	distinct.smt \
+	flet.smt \
+	flet2.smt \
 	let.smt \
 	let2.smt \
 	simple2.smt \
 	simple.smt \
 	simple-uf.smt \
-    bug32.cvc \
+	bug32.cvc \
 	hole6.cvc \
 	logops.01.cvc \
 	logops.02.cvc \

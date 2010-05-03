@@ -117,7 +117,9 @@ int runCvc4(int argc, char* argv[]) {
   if(/*!inputFromStdin && */options.lang == parser::LANG_AUTO) {
     const char* filename = argv[firstArgIndex];
     unsigned len = strlen(filename);
-    if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
+    if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
+      options.lang = parser::LANG_SMTLIB_V2;
+    } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
       options.lang = parser::LANG_SMTLIB;
     } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
               || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {

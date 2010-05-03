@@ -5,7 +5,7 @@
 #
 # usage:
 #
-#     run_regression cvc4-binary [ benchmark.cvc | benchmark.smt ]
+#     run_regression cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
 #
 # Runs benchmark and checks for correct exit status and output.
 #
@@ -13,7 +13,7 @@
 prog=`basename "$0"`
 
 if [ $# != 2 ]; then
-  echo "usage: $prog cvc4-binary [ benchmark.cvc | benchmark.smt ]" >&2
+  echo "usage: $prog cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
   exit 1
 fi
 
@@ -42,6 +42,16 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   else
     error "cannot determine status of \`$benchmark'"
   fi
+elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
+  if grep '^ *(set-info  *:status  *sat' "$benchmark" &>/dev/null; then
+    expected_output=SAT
+    expected_exit_status=10
+  elif grep '^ *(set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
+    expected_output=UNSAT
+    expected_exit_status=20
+  else
+    error "cannot determine status of \`$benchmark'"
+  fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
@@ -54,7 +64,7 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
     error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
   fi
 else
-  error "benchmark \`$benchmark' must be *.cvc or *.smt"
+  error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2"
 fi
 
 expoutfile=`mktemp -t cvc4_expect_stdout.XXXXXXXXXX`
