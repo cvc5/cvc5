@@ -25,12 +25,12 @@ EXTRA_DIST = \
 
 include @top_srcdir@/src/theory/Makefile.subdirs
 
-@srcdir@/theoryof_table.h: theoryof_table_template.h mktheoryof @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/theoryof_table.h: theoryof_table_template.h mktheoryof @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mktheoryof
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mktheoryof \
 		$< \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
 BUILT_SOURCES = @srcdir@/theoryof_table.h

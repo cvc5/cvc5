@@ -49,58 +49,58 @@ EXTRA_DIST = \
 
 include @top_srcdir@/src/theory/Makefile.subdirs
 
-@srcdir@/kind.h: kind_template.h mkkind builtin_kinds @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/kind.h: kind_template.h mkkind builtin_kinds @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkkind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkkind \
 		$< \
 		@srcdir@/builtin_kinds \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-@srcdir@/metakind.h: metakind_template.h mkmetakind builtin_kinds @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/metakind.h: metakind_template.h mkmetakind builtin_kinds @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkmetakind
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkmetakind \
 		$< \
 		@srcdir@/builtin_kinds \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-@srcdir@/expr.h: expr_template.h mkexpr builtin_kinds @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/expr.h: expr_template.h mkexpr builtin_kinds @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
 		@srcdir@/builtin_kinds \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-@srcdir@/expr.cpp: expr_template.cpp mkexpr builtin_kinds @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/expr.cpp: expr_template.cpp mkexpr builtin_kinds @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
 		@srcdir@/builtin_kinds \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-@srcdir@/expr_manager.h: expr_manager_template.h mkexpr builtin_kinds @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/expr_manager.h: expr_manager_template.h mkexpr builtin_kinds @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
 		@srcdir@/builtin_kinds \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
-@srcdir@/expr_manager.cpp: expr_manager_template.cpp mkexpr builtin_kinds @top_srcdir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
+@srcdir@/expr_manager.cpp: expr_manager_template.cpp mkexpr builtin_kinds @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mkexpr
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
 	$(AM_V_GEN)(@srcdir@/mkexpr \
 		$< \
 		@srcdir@/builtin_kinds \
-		`cat @top_srcdir@/src/theory/.subdirs` \
+		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
 
 BUILT_SOURCES = \
