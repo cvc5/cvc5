@@ -15,12 +15,10 @@
 
 #include "cvc4_public.h"
 
-// circular dependency: force expr_manager.h first
-#include "expr/expr_manager.h"
-
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H
 
+#include "expr/type.h"
 #include <string>
 #include <iostream>
 #include <stdint.h>
@@ -31,13 +29,47 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 35 "${template}"
+#line 33 "${template}"
 
 namespace CVC4 {
 
 // The internal expression representation
 template <bool ref_count>
 class NodeTemplate;
+
+class Expr;
+
+/**
+ * Exception thrown in the case of type-checking errors.
+ */
+class TypeCheckingException : public Exception {
+
+private:
+
+  /** The expression responsible for the error */
+  Expr* d_expr;
+
+protected:
+
+  TypeCheckingException(): Exception() {}
+  TypeCheckingException(const Expr& expr, std::string message);
+
+public:
+
+  /** Destructor */
+  ~TypeCheckingException() throw ();
+
+  /**
+   * Get the Node that caused the type-checking to fail.
+   * @return the node
+   */
+  Expr getExpression() const;
+
+  /** Returns the message corresponding to the type-checking failure */
+  std::string toString() const;
+
+  friend class ExprManager;
+};
 
 /**
  * Class encapsulating CVC4 expressions and methods for constructing new
@@ -144,7 +176,7 @@ public:
   /** Returns the type of the expression, if it has been computed.
    * Returns NULL if the type of the expression is not known.
    */
-  Type getType() const;
+  Type getType() const throw (TypeCheckingException);
 
   /**
    * Returns the string representation of the expression.

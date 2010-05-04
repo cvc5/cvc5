@@ -21,6 +21,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "expr/expr.h"
 
 #ifndef __CVC4__NODE_MANAGER_H
 #define __CVC4__NODE_MANAGER_H
@@ -507,7 +508,7 @@ public:
   /**
    * Get the type for the given node.
    */
-  inline TypeNode getType(TNode n);
+  TypeNode getType(TNode n) throw (TypeCheckingExceptionPrivate);
 
   /**
    * Returns true if this node is atomic (has no more Boolean structure)
@@ -671,13 +672,6 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   }
   sortNodes.push_back(booleanType());
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
-}
-
-inline TypeNode NodeManager::getType(TNode n)  {
-  TypeNode typeNode;
-  getAttribute(n, TypeAttr(), typeNode);
-  // TODO: Type computation
-  return typeNode;
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {

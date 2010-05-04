@@ -26,4 +26,25 @@ namespace expr {
 const int NodeSetDepth::s_iosIndex = std::ios_base::xalloc();
 
 }/* CVC4::expr namespace */
+
+
+TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node, std::string message)
+: Exception(message), d_node(new Node(node))
+{
+}
+
+TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() throw () {
+  delete d_node;
+}
+
+std::string TypeCheckingExceptionPrivate::toString() const {
+  std::stringstream ss;
+  ss << "Error type-checking " << d_node << ": " << d_msg;
+  return ss.str();
+}
+
+Node TypeCheckingExceptionPrivate::getNode() const {
+  return *d_node;
+}
+
 }/* CVC4 namespace */

@@ -8,6 +8,7 @@ noinst_LTLIBRARIES = libarith.la
 libarith_la_SOURCES = \
 	theory_arith.h \
 	theory_arith.cpp \
+	theory_arith_type_rules.h \
 	arith_rewriter.h \
 	arith_rewriter.cpp \
 	arith_utilities.h \

@@ -29,7 +29,10 @@
 namespace CVC4 {
 
 class NodeManager;
+class ExprManager;
 class TypeNode;
+template <bool ref_count>
+class NodeTemplate;
 
 class BooleanType;
 class IntegerType;

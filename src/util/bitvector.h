@@ -83,6 +83,10 @@ public:
   std::string toString(unsigned int base = 2) const {
     return d_value.get_str(base);
   }
+
+  unsigned getSize() const {
+    return d_size;
+  }
 };
 
 /**

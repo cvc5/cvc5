@@ -14,6 +14,7 @@
  **/
 
 #include "expr/expr.h"
+#include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "util/Assert.h"
 
@@ -26,7 +27,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 30 "${template}"
+#line 31 "${template}"
 
 using namespace CVC4::kind;
 
@@ -35,6 +36,25 @@ namespace CVC4 {
 std::ostream& operator<<(std::ostream& out, const Expr& e) {
   e.toStream(out);
   return out;
+}
+
+TypeCheckingException::TypeCheckingException(const Expr& expr, std::string message)
+: Exception(message), d_expr(new Expr(expr))
+{
+}
+
+TypeCheckingException::~TypeCheckingException() throw () {
+  delete d_expr;
+}
+
+std::string TypeCheckingException::toString() const {
+  std::stringstream ss;
+  ss << "Error type-checking " << d_expr << ": " << d_msg;
+  return ss.str();
+}
+
+Expr TypeCheckingException::getExpression() const {
+  return *d_expr;
 }
 
 Expr::Expr() :
@@ -129,7 +149,7 @@ Expr Expr::getOperator() const {
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
-Type Expr::getType() const {
+Type Expr::getType() const throw (TypeCheckingException) {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_exprManager->getType(*this);

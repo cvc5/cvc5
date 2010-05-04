@@ -229,9 +229,15 @@ SortType ExprManager::mkSort(const std::string& name) {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name)));
 }
 
-Type ExprManager::getType(const Expr& e) {
+Type ExprManager::getType(const Expr& e) throw (TypeCheckingException) {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->getType(e.getNode())));
+  Type t;
+  try {
+    t = Type(d_nodeManager, new TypeNode(d_nodeManager->getType(e.getNode())));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
+  }
+  return t;
 }
 
 Expr ExprManager::mkVar(const std::string& name, const Type& type) {

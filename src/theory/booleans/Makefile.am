@@ -6,6 +6,7 @@ AM_CXXFLAGS = -Wall $(FLAG_VISIBILITY_HIDDEN)
 noinst_LTLIBRARIES = libbooleans.la
 
 libbooleans_la_SOURCES = \
-	theory_bool.h
+	theory_bool.h \
+	theory_bool_type_rules.h
 
 EXTRA_DIST = kinds

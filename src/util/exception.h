@@ -34,7 +34,8 @@ public:
   virtual ~Exception() throw() {}
   // NON-VIRTUAL METHOD for setting and printing the error message
   void setMessage(const std::string& msg) { d_msg = msg; }
-  // Printing: feel free to redefine toString().  When inherited,
+  std::string getMessage() const { return d_msg; }
+    // Printing: feel free to redefine toString().  When inherited,
   // it's recommended that this method print the type of exception
   // before the actual message.
   virtual std::string toString() const { return d_msg; }

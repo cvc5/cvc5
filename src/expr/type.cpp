@@ -14,6 +14,7 @@
  **/
 
 #include "expr/node_manager.h"
+#include "expr/expr_manager.h"
 #include "expr/type.h"
 #include "expr/type_node.h"
 #include "expr/type_constant.h"

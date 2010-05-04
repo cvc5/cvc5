@@ -22,6 +22,7 @@
 
 #include "expr/kind.h"
 #include "expr/type.h"
+#include "expr/expr.h"
 
 ${includes}
 
@@ -208,7 +209,7 @@ public:
   SortType mkSort(const std::string& name);
 
   /** Get the type of an expression */
-  Type getType(const Expr& e);
+  Type getType(const Expr& e) throw (TypeCheckingException);
 
   // variables are special, because duplicates are permitted
   Expr mkVar(const std::string& name, const Type& type);

@@ -26,8 +26,10 @@
 #include <iostream>
 #include <stdint.h>
 
+#include "type.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/expr.h"
 #include "util/Assert.h"
 #include "util/output.h"
 
@@ -38,6 +40,43 @@ class NodeManager;
 
 template <bool ref_count>
 class NodeTemplate;
+
+/**
+ * Exception thrown during the type-checking phase, it can be
+ * thrown by node.getType().
+ */
+class TypeCheckingExceptionPrivate : public Exception {
+
+private:
+
+  /** The node repsonsible for the failure */
+  NodeTemplate<true>* d_node;
+
+protected:
+
+  TypeCheckingExceptionPrivate(): Exception() {}
+
+public:
+
+  /**
+   * Construct the exception with the problematic node and the message
+   * @param node the problematic node
+   * @param message the message explaining the failure
+   */
+  TypeCheckingExceptionPrivate(NodeTemplate<false> node, std::string message);
+
+  /** Destructor */
+  ~TypeCheckingExceptionPrivate() throw ();
+
+  /**
+   * Get the Node that caused the type-checking to fail.
+   * @return the node
+   */
+  NodeTemplate<true> getNode() const;
+
+  /** Returns the message corresponding to the type-checking failure */
+  std::string toString() const;
+};
 
 /**
  * The Node class encapsulates the NodeValue with reference counting.
@@ -247,7 +286,7 @@ public:
    * Returns the type of this node.
    * @return the type
    */
-  TypeNode getType() const;
+  TypeNode getType() const throw (CVC4::TypeCheckingExceptionPrivate);
 
   /**
    * Returns the kind of this node.
@@ -814,7 +853,7 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 }
 
 template <bool ref_count>
-TypeNode NodeTemplate<ref_count>::getType() const {
+TypeNode NodeTemplate<ref_count>::getType() const throw (CVC4::TypeCheckingExceptionPrivate) {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );

@@ -17,6 +17,12 @@
 
 #include "node_manager.h"
 
+#include "expr/builtin_type_rules.h"
+#include "theory/booleans/theory_bool_type_rules.h"
+#include "theory/uf/theory_uf_type_rules.h"
+#include "theory/arith/theory_arith_type_rules.h"
+#include "theory/bv/theory_bv_type_rules.h"
+
 #include <ext/hash_set>
 
 using namespace std;
@@ -168,5 +174,190 @@ void NodeManager::reclaimZombies() {
     }
   }
 }/* NodeManager::reclaimZombies() */
+
+TypeNode NodeManager::getType(TNode n) throw (TypeCheckingExceptionPrivate) {
+  TypeNode typeNode;
+  bool hasType = getAttribute(n, TypeAttr(), typeNode);
+  if (!hasType) {
+    // Infer the type
+    switch (n.getKind()) {
+    case kind::EQUAL:
+      typeNode = CVC4::EqualityTypeRule::computeType(this, n);
+      break;
+    case kind::DISTINCT:
+      typeNode = CVC4::DistinctTypeRule::computeType(this, n);
+      break;
+    case kind::CONST_BOOLEAN:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::NOT:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::AND:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::IFF:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::IMPLIES:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::OR:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::XOR:
+      typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
+      break;
+    case kind::ITE:
+      typeNode = CVC4::theory::boolean::IteTypeRule::computeType(this, n);
+      break;
+    case kind::APPLY_UF:
+      typeNode = CVC4::theory::uf::UfTypeRule::computeType(this, n);
+      break;
+    case kind::PLUS:
+      typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n);
+      break;
+    case kind::MULT:
+      typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n);
+      break;
+    case kind::MINUS:
+      typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n);
+      break;
+    case kind::UMINUS:
+      typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n);
+      break;
+    case kind::CONST_RATIONAL:
+      typeNode = CVC4::theory::arith::ArithConstantTypeRule::computeType(this, n);
+      break;
+    case kind::CONST_INTEGER:
+      typeNode = CVC4::theory::arith::ArithConstantTypeRule::computeType(this, n);
+      break;
+    case kind::LT:
+      typeNode = CVC4::theory::arith::ArithPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::LEQ:
+      typeNode = CVC4::theory::arith::ArithPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::GT:
+      typeNode = CVC4::theory::arith::ArithPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::GEQ:
+      typeNode = CVC4::theory::arith::ArithPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_CONST:
+      typeNode = CVC4::theory::bv::BitVectorConstantTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_AND:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_OR:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_XOR:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_NOT:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_NAND:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_NOR:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_XNOR:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_COMP:
+      typeNode = CVC4::theory::bv::BitVectorCompRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_MULT:
+      typeNode = CVC4::theory::bv::BitVectorArithRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_PLUS:
+      typeNode = CVC4::theory::bv::BitVectorArithRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SUB:
+      typeNode = CVC4::theory::bv::BitVectorArithRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_NEG:
+      typeNode = CVC4::theory::bv::BitVectorArithRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_UDIV:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_UREM:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SDIV:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SREM:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SMOD:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SHL:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_LSHR:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_ASHR:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_ROTATE_LEFT:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_ROTATE_RIGHT:
+      typeNode = CVC4::theory::bv::BitVectorFixedWidthTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_ULT:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_ULE:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_UGT:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_UGE:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SLT:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SLE:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SGT:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SGE:
+      typeNode = CVC4::theory::bv::BitVectorPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_EXTRACT:
+      typeNode = CVC4::theory::bv::BitVectorExtractTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_CONCAT:
+      typeNode = CVC4::theory::bv::BitVectorConcatRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_REPEAT:
+      typeNode = CVC4::theory::bv::BitVectorRepeatTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_ZERO_EXTEND:
+      typeNode = CVC4::theory::bv::BitVectorExtendTypeRule::computeType(this, n);
+      break;
+    case kind::BITVECTOR_SIGN_EXTEND:
+      typeNode = CVC4::theory::bv::BitVectorExtendTypeRule::computeType(this, n);
+      break;
+    default:
+     Unimplemented();
+    }
+    setAttribute(n, TypeAttr(), typeNode);
+  }
+  return typeNode;
+}
 
 }/* CVC4 namespace */
