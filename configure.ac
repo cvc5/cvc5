@@ -229,7 +229,7 @@ case "$with_build" in
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   competition) # maximally optimized, no assertions, no tracing, muzzled
-    CVC4CPPFLAGS=
+    CVC4CPPFLAGS='-DCVC4_COMPETITION_MODE'
     CVC4CXXFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
     CVC4CFLAGS='-funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs'
     CVC4LDFLAGS=

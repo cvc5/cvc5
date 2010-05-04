@@ -27,10 +27,11 @@
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "expr/command.h"
-#include "util/result.h"
 #include "util/Assert.h"
+#include "util/configuration.h"
 #include "util/output.h"
 #include "util/options.h"
+#include "util/result.h"
 
 using namespace std;
 using namespace CVC4;
@@ -54,28 +55,28 @@ int main(int argc, char* argv[]) {
   try {
     return runCvc4(argc, argv);
   } catch(OptionException& e) {
-    if(options.smtcomp_mode) {
-      cout << "unknown" << endl;
-    }
+#ifdef CVC4_COMPETITION_MODE
+    cout << "unknown" << endl;
+#endif
     cerr << "CVC4 Error:" << endl << e << endl;
     printf(usage, options.binary_name.c_str());
     exit(1);
   } catch(Exception& e) {
-    if(options.smtcomp_mode) {
-      cout << "unknown" << endl;
-    }
+#ifdef CVC4_COMPETITION_MODE
+    cout << "unknown" << endl;
+#endif
     cerr << "CVC4 Error:" << endl << e << endl;
     exit(1);
   } catch(bad_alloc) {
-    if(options.smtcomp_mode) {
-      cout << "unknown" << endl;
-    }
+#ifdef CVC4_COMPETITION_MODE
+    cout << "unknown" << endl;
+#endif
     cerr << "CVC4 ran out of memory." << endl;
     exit(1);
   } catch(...) {
-    if(options.smtcomp_mode) {
-      cout << "unknown" << endl;
-    }
+#ifdef CVC4_COMPETITION_MODE
+    cout << "unknown" << endl;
+#endif
     cerr << "CVC4 threw an exception of unknown type." << endl;
     exit(1);
   }
@@ -90,9 +91,9 @@ int runCvc4(int argc, char* argv[]) {
   int firstArgIndex = parseOptions(argc, argv, &options);
 
   // If in competition mode, set output stream option to flush immediately
-  if(options.smtcomp_mode) {
-    cout << unitbuf;
-  }
+#ifdef CVC4_COMPETITION_MODE
+  cout << unitbuf;
+#endif
 
   /* NOTE: ANTLR3 doesn't support input from stdin */
   if(firstArgIndex >= argc) {
@@ -128,7 +129,7 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Determine which messages to show based on smtcomp_mode and verbosity
-  if(options.smtcomp_mode) {
+  if(Configuration::isMuzzledBuild()) {
     Debug.setStream(CVC4::null_os);
     Trace.setStream(CVC4::null_os);
     Notice.setStream(CVC4::null_os);
@@ -160,7 +161,7 @@ int runCvc4(int argc, char* argv[]) {
 //  }
   Parser parser(&exprMgr, input);
 
-  if(!options.semanticChecks) {
+  if(!options.semanticChecks || Configuration::isMuzzledBuild()) {
     parser.disableChecks();
   }
 

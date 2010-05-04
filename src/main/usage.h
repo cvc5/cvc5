@@ -30,18 +30,23 @@ CVC4 options:\n\
    --lang | -L     force input language (default is `auto'; see --lang help)\n\
    --version | -V  identify this CVC4 binary\n\
    --help | -h     this command line reference\n\
+   --parse-only    exit after parsing input\n\
+   --mmap          memory map file input\n\
+   --show-config   show CVC4 static configuration\n"
+#ifdef CVC4_DEBUG
+"\
+   --segv-nospin   don't spin on segfault waiting for gdb\n"
+#endif
+#ifndef CVC4_MUZZLE
+"\
+   --no-checking   disable semantic checks in the parser\n\
    --verbose | -v  increase verbosity (repeatable)\n\
    --quiet | -q    decrease verbosity (repeatable)\n\
    --trace | -t    tracing for something (e.g. --trace pushpop)\n\
    --debug | -d    debugging for something (e.g. --debug arith), implies -t\n\
-   --smtcomp       competition mode (very quiet)\n\
-   --stats         give statistics on exit\n\
-   --segv-nospin   (debug builds only) don't spin on segfault waiting for gdb\n\
-   --parse-only    exit after parsing input\n\
-   --no-checking   disable semantic checks in the parser\n\
-   --mmap          memory map file input\n\
-   --show-config   show CVC4 static configuration\n\
-";
+   --stats         give statistics on exit\n"
+#endif
+;
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

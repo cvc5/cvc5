@@ -91,21 +91,20 @@ enum OptionValue {
  */
 static struct option cmdlineOptions[] = {
   // name, has_arg, *flag, val
+  { "verbose"    , no_argument      , NULL, 'v'         },
+  { "quiet"      , no_argument      , NULL, 'q'         },
+  { "debug"      , required_argument, NULL, 'd'         },
+  { "trace"      , required_argument, NULL, 't'         },
+  { "stats"      , no_argument      , NULL, STATS       },
+  { "no-checking", no_argument      , NULL, NO_CHECKING },
+  { "show-config", no_argument      , NULL, SHOW_CONFIG },
+  { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "help"       , no_argument      , NULL, 'h'         },
   { "version"    , no_argument      , NULL, 'V'         },
   { "about"      , no_argument      , NULL, 'V'         },
-  { "verbose"    , no_argument      , NULL, 'v'         },
-  { "quiet"      , no_argument      , NULL, 'q'         },
   { "lang"       , required_argument, NULL, 'L'         },
-  { "debug"      , required_argument, NULL, 'd'         },
-  { "trace"      , required_argument, NULL, 't'         },
-  { "smtcomp"    , no_argument      , NULL, SMTCOMP     },
-  { "stats"      , no_argument      , NULL, STATS       },
-  { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
-  { "no-checking", no_argument      , NULL, NO_CHECKING },
-  { "mmap",        no_argument      , NULL, USE_MMAP    },
-  { "show-config", no_argument      , NULL, SHOW_CONFIG }
+  { "mmap",        no_argument      , NULL, USE_MMAP    }
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -197,13 +196,6 @@ throw(OptionException) {
 
     case SEGV_NOSPIN:
       segvNoSpin = true;
-      break;
-
-    case SMTCOMP:
-      // silences CVC4 (except "sat" or "unsat" or "unknown", forces smtlib input)
-      opts->smtcomp_mode = true;
-      opts->verbosity = -1;
-      opts->lang = parser::LANG_SMTLIB;
       break;
 
     case PARSE_ONLY:

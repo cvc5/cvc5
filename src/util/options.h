@@ -29,7 +29,6 @@ struct CVC4_PUBLIC Options {
 
   std::string binary_name;
 
-  bool smtcomp_mode;
   bool statistics;
 
   std::ostream *out;
@@ -55,7 +54,6 @@ struct CVC4_PUBLIC Options {
   bool memoryMap;
 
   Options() : binary_name(),
-              smtcomp_mode(false),
               statistics(false),
               out(0),
               err(0),

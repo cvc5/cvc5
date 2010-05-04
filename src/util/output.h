@@ -343,6 +343,14 @@ public:
 extern NullDebugC debugNullCvc4Stream CVC4_PUBLIC;
 extern NullC nullCvc4Stream CVC4_PUBLIC;
 
+inline bool debugTagIsOn(std::string tag) {
+#ifdef CVC4_DEBUG
+  return DebugOut.isOn(tag);
+#else
+  return false;
+#endif
+}
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__OUTPUT_H */
