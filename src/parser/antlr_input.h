@@ -62,7 +62,8 @@ public:
    * @param useMmap <code>true</code> if the input should use memory-mapped I/O; otherwise, the
    * input will use the standard ANTLR3 I/O implementation.
    */
-  static AntlrInputStream* newFileInputStream(const std::string& name, bool useMmap = false);
+  static AntlrInputStream* newFileInputStream(const std::string& name, bool useMmap = false)
+    throw (InputStreamException);
 
   /** Create an input from an istream. */
   // AntlrInputStream newInputStream(std::istream& input, const std::string& name);
@@ -72,7 +73,8 @@ public:
    * @param input the string to read
    * @param name the "filename" to use when reporting errors
    */
-  static AntlrInputStream* newStringInputStream(const std::string& input, const std::string& name);
+  static AntlrInputStream* newStringInputStream(const std::string& input, const std::string& name)
+    throw (InputStreamException);
 };
 
 class Parser;
@@ -134,7 +136,7 @@ public:
    * @param inputStream the input stream
    *
    * */
-  static AntlrInput* newInput(InputLanguage lang, AntlrInputStream *inputStream);
+  static AntlrInput* newInput(InputLanguage lang, AntlrInputStream& inputStream);
 
   /** Retrieve the text associated with a token. */
   static std::string tokenText(pANTLR3_COMMON_TOKEN token);
@@ -153,7 +155,7 @@ protected:
    * @param lookahead the lookahead needed to parse the input (i.e., k for
    * an LL(k) grammar)
    */
-  AntlrInput(AntlrInputStream *inputStream, unsigned int lookahead);
+  AntlrInput(AntlrInputStream& inputStream, unsigned int lookahead);
 
   /** Retrieve the token stream for this parser. Must not be called before
    * <code>setLexer()</code>. */

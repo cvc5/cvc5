@@ -36,6 +36,13 @@ class FunctionType;
 
 namespace parser {
 
+class CVC4_PUBLIC InputStreamException : public Exception {
+
+public:
+  InputStreamException(const std::string& msg);
+  virtual ~InputStreamException() throw() { }
+};
+
 /** Wrapper around an ANTLR3 input stream. */
 class InputStream {
 
@@ -89,7 +96,8 @@ public:
     * @param filename the input filename
     * @param useMmap true if the parser should use memory-mapped I/O (default: false)
     */
-  static Input* newFileInput(InputLanguage lang, const std::string& filename, bool useMmap=false);
+  static Input* newFileInput(InputLanguage lang, const std::string& filename, bool useMmap=false)
+      throw (InputStreamException);
 
   /** Create an input for the given stream.
    *
@@ -105,7 +113,8 @@ public:
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  static Input* newStringInput(InputLanguage lang, const std::string& input, const std::string& name);
+  static Input* newStringInput(InputLanguage lang, const std::string& input, const std::string& name)
+    throw (InputStreamException);
 
 protected:
 
@@ -113,7 +122,7 @@ protected:
    *
    * @param inputStream the input stream
    */
-  Input(InputStream* inputStream);
+  Input(InputStream& inputStream);
 
   /** Retrieve the input stream for this parser. */
   InputStream *getInputStream();

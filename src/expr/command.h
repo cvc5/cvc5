@@ -29,6 +29,7 @@
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "util/result.h"
+#include "util/sexpr.h"
 
 namespace CVC4 {
 
@@ -141,6 +142,16 @@ public:
 protected:
   std::string d_logic;
 };/* class SetBenchmarkLogicCommand */
+
+class CVC4_PUBLIC SetInfoCommand : public Command {
+public:
+  SetInfoCommand(std::string flag, SExpr& sexpr);
+  void invoke(SmtEngine* smt);
+  void toStream(std::ostream& out) const;
+protected:
+  std::string d_flag;
+  SExpr d_sexpr;
+};/* class SetInfoCommand */
 
 class CVC4_PUBLIC CommandSequence : public Command {
 public:
@@ -298,6 +309,17 @@ inline void SetBenchmarkLogicCommand::invoke(SmtEngine* smt) {
 
 inline void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
   out << "SetBenchmarkLogic(" << d_logic << ")";
+}
+
+inline SetInfoCommand::SetInfoCommand(std::string flag, SExpr& sexpr) :
+  d_flag(flag),
+  d_sexpr(sexpr) {
+}
+
+inline void SetInfoCommand::invoke(SmtEngine* smt) { }
+
+inline void SetInfoCommand::toStream(std::ostream& out) const {
+  out << "SetInfo(" << d_flag << ", " << d_sexpr << ")";
 }
 
 /* output stream insertion operator for benchmark statuses */

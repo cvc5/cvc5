@@ -114,6 +114,8 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     } else {
       if(ex->expecting == ANTLR3_TOKEN_EOF) {
         ss << "Missing end of file marker.";
+      } else if( ex->expecting == 0 ) {
+        ss << "Unexpected token: '" << tokenText((pANTLR3_COMMON_TOKEN)ex->token) << "'.";
       } else {
         ss << "Missing " << tokenNames[ex->expecting] << ".";
       }
@@ -147,6 +149,8 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     } else {
       if(ex->expecting == ANTLR3_TOKEN_EOF) {
         ss << "Expected end of file.";
+      } else if( ex->expecting == 0 ) {
+        ss << "Unexpected token: '" << tokenText((pANTLR3_COMMON_TOKEN)ex->token) << "'.";
       } else {
         ss << "Expected " << tokenNames[ex->expecting] << ".";
       }

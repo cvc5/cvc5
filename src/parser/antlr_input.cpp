@@ -43,6 +43,7 @@ namespace parser {
 AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input) :
   InputStream(name),
   d_input(input) {
+  AlwaysAssert( input != NULL );
 }
 
 AntlrInputStream::~AntlrInputStream() {
@@ -53,34 +54,36 @@ pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {
   return d_input;
 }
 
-AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name, bool useMmap) {
+AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name, bool useMmap)
+  throw (InputStreamException) {
+  pANTLR3_INPUT_STREAM input = NULL;
   if( useMmap ) {
-    return new AntlrInputStream( name, MemoryMappedInputBufferNew(name) );
+    input = MemoryMappedInputBufferNew(name);
   } else {
-    return new AntlrInputStream( name, antlr3AsciiFileStreamNew((pANTLR3_UINT8) name.c_str()) );
+    input = antlr3AsciiFileStreamNew((pANTLR3_UINT8) name.c_str());
   }
-/*
-    if( d_inputStream == NULL ) {
-      throw ParserException("Couldn't open file: " + filename);
-    }
-*/
+  if( input == NULL ) {
+    throw InputStreamException("Couldn't open file: " + name);
+  }
+  return new AntlrInputStream( name, input );
 }
 
-AntlrInputStream* AntlrInputStream::newStringInputStream(const std::string& input, const std::string& name) /*throw (InputStreamException) */{
+AntlrInputStream* AntlrInputStream::newStringInputStream(const std::string& input, const std::string& name)
+  throw (InputStreamException) {
   char* inputStr = strdup(input.c_str());
   char* nameStr = strdup(name.c_str());
-/*
-  if( inputStr==NULL || nameStr==NULL ) {
+  AlwaysAssert( inputStr!=NULL && nameStr!=NULL );
+  pANTLR3_INPUT_STREAM inputStream =
+      antlr3NewAsciiStringInPlaceStream((pANTLR3_UINT8) inputStr,
+                                        input.size(),
+                                        (pANTLR3_UINT8) nameStr);
+  if( inputStream==NULL ) {
     throw InputStreamException("Couldn't initialize string input: '" + input + "'");
   }
-*/
-  return new AntlrInputStream( name,
-                               antlr3NewAsciiStringInPlaceStream(
-                                  (pANTLR3_UINT8)inputStr,input.size(),
-                                  (pANTLR3_UINT8)nameStr) );
+  return new AntlrInputStream( name, inputStream );
 }
 
-AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream *inputStream) {
+AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStream) {
   AntlrInput* input;
 
   switch(lang) {
@@ -102,12 +105,12 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream *inputStre
   return input;
 }
 
-AntlrInput::AntlrInput(AntlrInputStream *inputStream, unsigned int lookahead) :
+AntlrInput::AntlrInput(AntlrInputStream& inputStream, unsigned int lookahead) :
     Input(inputStream),
     d_lookahead(lookahead),
     d_lexer(NULL),
     d_parser(NULL),
-    d_antlr3InputStream( inputStream->getAntlr3InputStream() ),
+    d_antlr3InputStream( inputStream.getAntlr3InputStream() ),
     d_tokenStream(NULL) {
 }
 

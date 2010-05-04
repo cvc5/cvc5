@@ -27,9 +27,9 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-Smt2Input::Smt2Input(AntlrInputStream *inputStream) :
+Smt2Input::Smt2Input(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
-  pANTLR3_INPUT_STREAM input = inputStream->getAntlr3InputStream();
+  pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 
   d_pSmt2Lexer = Smt2LexerNew(input);

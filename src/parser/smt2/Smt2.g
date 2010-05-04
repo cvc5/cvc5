@@ -100,8 +100,12 @@ setLogic(Parser *parser, const std::string& name) {
   }
 }
 
+static void
+setInfo(Parser *parser, const std::string& flag, const SExpr& sexpr) {
+  // TODO: ???
 }
 
+}
 
 /**
  * Parses an expression.
@@ -130,16 +134,19 @@ command returns [CVC4::Command* cmd]
   Expr expr;
   Type t;
   std::vector<Type> sorts;
+  SExpr sexpr;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
     { Debug("parser") << "set logic: '" << name << "' " << std::endl;
       setLogic(PARSER_STATE,name);
-      $cmd = new SetBenchmarkLogicCommand(name);   }
-  | SET_INFO_TOK c=setInfo
-    { cmd = c; }
+      $cmd = new SetBenchmarkLogicCommand(name); }
+  | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
+    { name = AntlrInput::tokenText($KEYWORD);
+      setInfo(PARSER_STATE,name,sexpr);    
+      cmd = new SetInfoCommand(name,sexpr); }
   | /* sort declaration */
-    DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL_TOK
+    DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL
     { Debug("parser") << "declare sort: '" << name << "' arity=" << n << std::endl;
       if( AntlrInput::tokenToInteger(n) > 0 ) {
         Unimplemented("Parameterized user sorts.");
@@ -162,36 +169,31 @@ command returns [CVC4::Command* cmd]
   | /* checksat */
     CHECKSAT_TOK 
     { cmd = new CheckSatCommand(MK_CONST(true)); }
+  | EXIT_TOK
+    { // TODO: Explicitly represent exit as command?
+      cmd = 0; }
   ;
 
-setInfo returns [CVC4::Command* cmd]
-@declarations { 
-  BenchmarkStatus status; 
+symbolicExpr[CVC4::SExpr& sexpr]
+@declarations {
+  std::vector<SExpr> children;
 }
-  : CATEGORY_TOK sym=SYMBOL {
-      // FIXME?
-      cmd = new EmptyCommand(":category");
-    }
-  | DIFFICULTY_TOK RATIONAL_TOK {
-      // FIXME?
-      cmd = new EmptyCommand(":difficulty");
-    }
-  | NOTES_TOK sym=SYMBOL {
-      // FIXME?
-      cmd = new EmptyCommand(":notes");
-    }
-  | SMT_VERSION_TOK RATIONAL_TOK {
-      // FIXME?
-      cmd = new EmptyCommand(":smt-lib-version");
-    }
-  | SOURCE_TOK sym=SYMBOL {
-      // FIXME?
-      cmd = new EmptyCommand(":source");
-    }
-  | STATUS_TOK benchmarkStatus[status]
-    { cmd = new SetBenchmarkStatusCommand(status); }  
-;
-
+  : NUMERAL
+    { sexpr = SExpr(AntlrInput::tokenText($NUMERAL)); }
+  | RATIONAL
+    { sexpr = SExpr(AntlrInput::tokenText($RATIONAL)); }
+  | STRING_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
+  | SYMBOL
+    { sexpr = SExpr(AntlrInput::tokenText($SYMBOL)); }
+  | KEYWORD
+    { sexpr = SExpr(AntlrInput::tokenText($KEYWORD)); }
+  | LPAREN_TOK 
+    (symbolicExpr[sexpr] { children.push_back(sexpr); } )* 
+  	RPAREN_TOK
+    { sexpr = SExpr(children); }
+  ;
+  
 /**
  * Matches a term.
  * @return the expression representing the formula
@@ -251,11 +253,11 @@ term[CVC4::Expr& expr]
     /* constants */
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
-  | NUMERAL_TOK
-    { expr = MK_CONST( AntlrInput::tokenToInteger($NUMERAL_TOK) ); }
-  | RATIONAL_TOK
+  | NUMERAL
+    { expr = MK_CONST( AntlrInput::tokenToInteger($NUMERAL) ); }
+  | RATIONAL
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_TOK) ); }
+      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL) ); }
     // NOTE: Theory constants go here
   ;
 
@@ -377,26 +379,27 @@ symbol[std::string& id,
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
 BOOL_TOK : 'Bool';
-CATEGORY_TOK : ':category';
+//CATEGORY_TOK : ':category';
 CHECKSAT_TOK : 'check-sat';
-DIFFICULTY_TOK : ':difficulty';
+//DIFFICULTY_TOK : ':difficulty';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
+EXIT_TOK : 'exit';
 FALSE_TOK : 'false';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
 LPAREN_TOK : '(';
-NOTES_TOK : ':notes';
+//NOTES_TOK : ':notes';
 RPAREN_TOK : ')';
-SAT_TOK : 'sat';
+//SAT_TOK : 'sat';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
-SMT_VERSION_TOK : ':smt-lib-version';
-SOURCE_TOK : ':source';
-STATUS_TOK : ':status';
+//SMT_VERSION_TOK : ':smt-lib-version';
+//SOURCE_TOK : ':source';
+//STATUS_TOK : ':status';
 TRUE_TOK : 'true';
-UNKNOWN_TOK : 'unknown';
-UNSAT_TOK : 'unsat';
+//UNKNOWN_TOK : 'unknown';
+//UNSAT_TOK : 'unsat';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';
@@ -422,14 +425,29 @@ TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 
 /**
- * Matches a symbol from the input. A symbol a non-empty sequence of 
- * letters, digits and the characters + - / * = % ? ! . $ ~ & ^ < > @ that 
- * does not start with a digit or a sequence of printable ASCII characters 
- * that starts and ends with | and does not otherwise contain |.
+ * Matches a symbol from the input. A symbol is a "simple" symbole or a 
+ * sequence of printable ASCII characters that starts and ends with | and 
+ * does not otherwise contain |.
  */
 SYMBOL
+  : SIMPLE_SYMBOL
+  | '|' ~('|')+ '|'
+  ;
+
+/**
+ * Matches a keyword from the input. A keyword is a symbol symbol, prefixed
+ * with a colon.
+ */
+KEYWORD
+  : ':' SIMPLE_SYMBOL
+  ;
+
+/** Matches a "simple" symbol: a non-empty sequence of letters, digits and 
+ * the characters + - / * = % ? ! . $ ~ & ^ < > @ that does not start with a 
+ * digit. 
+ */
+fragment SIMPLE_SYMBOL 
   : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)*
-  | '|' ~('|') '|'
   ;
 
 /**
@@ -442,11 +460,11 @@ WHITESPACE
 /**
  * Matches a numeral from the input (non-empty sequence of digits).
  */
-NUMERAL_TOK
+NUMERAL
   : DIGIT+
   ;
 
-RATIONAL_TOK
+RATIONAL
   : DIGIT+ '.' DIGIT+
   ;
 
@@ -479,12 +497,12 @@ ALPHA
  * Matches the digits (0-9)
  */
 fragment DIGIT : '0'..'9';
-// fragment NON_ZERO_DIGIT : '1'..'9';
-// fragment NUMERAL_SEQ : '0' | NON_ZERO_DIGIT DIGIT*;
 
+/** Matches the characters that may appear in a "symbol" (i.e., an identifier) 
+ */
 fragment SYMBOL_CHAR 
-  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '~' | '&' 
-  | '^' | '<' | '>' | '@'
+  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '_' | '~' 
+  | '&' | '^' | '<' | '>' | '@'
   ;
 
 /**

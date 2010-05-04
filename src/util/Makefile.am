@@ -28,4 +28,5 @@ libutil_la_SOURCES = \
 	integer.cpp \
 	bitvector.h \
 	bitvector.cpp \
-	gmp_util.h
+	gmp_util.h \
+	sexpr.h

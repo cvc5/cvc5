@@ -40,6 +40,12 @@ class Smt2Input : public AntlrInput {
   /** The ANTLR3 CVC parser for the input. */
   pSmt2Parser d_pSmt2Parser;
 
+  /**
+   * Initialize the class. Called from the constructors once the input
+   * stream is initialized.
+   */
+  void init();
+
 public:
 
   /**
@@ -47,7 +53,7 @@ public:
    *
    * @param inputStream the input stream to use
    */
-  Smt2Input(AntlrInputStream *inputStream);
+  Smt2Input(AntlrInputStream& inputStream);
 
   /**
    * Create a string input.
@@ -59,7 +65,7 @@ public:
 //  Smt2Input(ExprManager* exprManager, const std::string& input, const std::string& name);
 
   /** Destructor. Frees the lexer and the parser. */
-  ~Smt2Input();
+  virtual ~Smt2Input();
 
 protected:
 
@@ -78,14 +84,6 @@ protected:
    * @throws ParserException if an error is encountered during parsing.
    */
   Expr parseExpr() throw(ParserException);
-
-private:
-
-  /**
-   * Initialize the class. Called from the constructors once the input
-   * stream is initialized.
-   */
-  void init();
 
 };/* class Smt2Input */
 

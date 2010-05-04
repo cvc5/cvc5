@@ -47,7 +47,7 @@ public:
    *
    * @param inputStream the input stream to use
    */
-  SmtInput(AntlrInputStream *inputStream);
+  SmtInput(AntlrInputStream& inputStream);
 
   /**
    * Create a string input.

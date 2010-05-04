@@ -45,7 +45,7 @@ public:
    *
    * @param inputStream the input to parse
    */
-  CvcInput(AntlrInputStream *inputStream);
+  CvcInput(AntlrInputStream& inputStream);
 
   /** Create a string input.
    *

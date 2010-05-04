@@ -31,12 +31,16 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace parser {
 
+InputStreamException::InputStreamException(const std::string& msg) :
+  Exception(msg) {
+}
+
 const std::string InputStream::getName() const {
   return d_name;
 }
 
-Input::Input(InputStream *inputStream) :
-    d_inputStream( inputStream ) {
+Input::Input(InputStream& inputStream) :
+    d_inputStream( &inputStream ) {
 }
 
 Input::~Input() {
@@ -48,15 +52,19 @@ InputStream *Input::getInputStream() {
 }
 
 Input* Input::newFileInput(InputLanguage lang,
-                           const std::string& filename, bool useMmap) {
+                           const std::string& filename,
+                           bool useMmap)
+  throw (InputStreamException) {
   AntlrInputStream *inputStream = AntlrInputStream::newFileInputStream(filename,useMmap);
-  return AntlrInput::newInput(lang,inputStream);
+  return AntlrInput::newInput(lang,*inputStream);
 }
 
 Input* Input::newStringInput(InputLanguage lang,
-                             const std::string& str, const std::string& name) {
+                             const std::string& str,
+                             const std::string& name)
+  throw (InputStreamException) {
   AntlrInputStream *inputStream = AntlrInputStream::newStringInputStream(str,name);
-  return AntlrInput::newInput(lang,inputStream);
+  return AntlrInput::newInput(lang,*inputStream);
 }
 
 }/* CVC4::parser namespace */
