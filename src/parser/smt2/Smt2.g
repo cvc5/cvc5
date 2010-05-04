@@ -127,20 +127,19 @@ parseCommand returns [CVC4::Command* cmd]
 command returns [CVC4::Command* cmd]
 @declarations {
   std::string name;
-  BenchmarkStatus b_status;
   Expr expr;
   Type t;
   std::vector<Type> sorts;
 }
   : /* set the logic */
-    SET_LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
+    SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
     { Debug("parser") << "set logic: '" << name << "' " << std::endl;
       setLogic(PARSER_STATE,name);
       $cmd = new SetBenchmarkLogicCommand(name);   }
-  | SET_INFO_TOK STATUS_TOK status[b_status]
-    { cmd = new SetBenchmarkStatusCommand(b_status); }  
+  | SET_INFO_TOK c=setInfo
+    { cmd = c; }
   | /* sort declaration */
-    DECLARE_SORT_TOK identifier[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL_TOK
+    DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL_TOK
     { Debug("parser") << "declare sort: '" << name << "' arity=" << n << std::endl;
       if( AntlrInput::tokenToInteger(n) > 0 ) {
         Unimplemented("Parameterized user sorts.");
@@ -148,7 +147,7 @@ command returns [CVC4::Command* cmd]
       PARSER_STATE->mkSort(name); 
       $cmd = new DeclarationCommand(name,EXPR_MANAGER->kindType()); }
   | /* function declaration */
-    DECLARE_FUN_TOK identifier[name,CHECK_UNDECLARED,SYM_VARIABLE] 
+    DECLARE_FUN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] 
     LPAREN_TOK sortList[sorts] RPAREN_TOK 
     sortSymbol[t]
     { Debug("parser") << "declare fun: '" << name << "' " << std::endl;
@@ -165,6 +164,33 @@ command returns [CVC4::Command* cmd]
     { cmd = new CheckSatCommand(MK_CONST(true)); }
   ;
 
+setInfo returns [CVC4::Command* cmd]
+@declarations { 
+  BenchmarkStatus status; 
+}
+  : CATEGORY_TOK sym=SYMBOL {
+      // FIXME?
+      cmd = new EmptyCommand(":category");
+    }
+  | DIFFICULTY_TOK RATIONAL_TOK {
+      // FIXME?
+      cmd = new EmptyCommand(":difficulty");
+    }
+  | NOTES_TOK sym=SYMBOL {
+      // FIXME?
+      cmd = new EmptyCommand(":notes");
+    }
+  | SMT_VERSION_TOK RATIONAL_TOK {
+      // FIXME?
+      cmd = new EmptyCommand(":smt-lib-version");
+    }
+  | SOURCE_TOK sym=SYMBOL {
+      // FIXME?
+      cmd = new EmptyCommand(":source");
+    }
+  | STATUS_TOK benchmarkStatus[status]
+    { cmd = new SetBenchmarkStatusCommand(status); }  
+;
 
 /**
  * Matches a term.
@@ -211,7 +237,7 @@ term[CVC4::Expr& expr]
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK 
     { PARSER_STATE->pushScope(); }
-    ( LPAREN_TOK identifier[name,CHECK_UNDECLARED,SYM_VARIABLE] term[expr] RPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] term[expr] RPAREN_TOK
       { PARSER_STATE->defineVar(name,expr); } )+
     RPAREN_TOK
     term[expr]
@@ -219,7 +245,7 @@ term[CVC4::Expr& expr]
     { PARSER_STATE->popScope(); }
 
   | /* a variable */
-    identifier[name,CHECK_DECLARED,SYM_VARIABLE]
+    symbol[name,CHECK_DECLARED,SYM_VARIABLE]
     { expr = PARSER_STATE->getVariable(name); }
 
     /* constants */
@@ -275,11 +301,11 @@ builtinOp[CVC4::Kind& kind]
   ;
 
 /**
- * Matches a (possibly undeclared) function identifier (returning the string)
+ * Matches a (possibly undeclared) function symbol (returning the string)
  * @param check what kind of check to do with the symbol
  */
 functionName[std::string& name, CVC4::parser::DeclarationCheck check]
-  :  identifier[name,check,SYM_VARIABLE] 
+  :  symbol[name,check,SYM_VARIABLE] 
   ;
 
 /**
@@ -305,11 +331,11 @@ sortList[std::vector<CVC4::Type>& sorts]
   ;
 
 /**
- * Matches the sort symbol, which can be an arbitrary identifier.
+ * Matches the sort symbol, which can be an arbitrary symbol.
  * @param check the check to perform on the name
  */
 sortName[std::string& name, CVC4::parser::DeclarationCheck check] 
-  : identifier[name,check,SYM_SORT] 
+  : symbol[name,check,SYM_SORT] 
   ;
 
 sortSymbol[CVC4::Type& t]
@@ -325,24 +351,24 @@ sortSymbol[CVC4::Type& t]
 /**
  * Matches the status of the benchmark, one of 'sat', 'unsat' or 'unknown'.
  */
-status[ CVC4::BenchmarkStatus& status ]
+benchmarkStatus[ CVC4::BenchmarkStatus& status ]
   : SAT_TOK       { $status = SMT_SATISFIABLE;    }
   | UNSAT_TOK     { $status = SMT_UNSATISFIABLE;  }
   | UNKNOWN_TOK   { $status = SMT_UNKNOWN;        }
   ;
 
 /**
- * Matches an identifier and sets the string reference parameter id.
- * @param id string to hold the identifier
+ * Matches an symbol and sets the string reference parameter id.
+ * @param id string to hold the symbol
  * @param check what kinds of check to do on the symbol
- * @param type the intended namespace for the identifier
+ * @param type the intended namespace for the symbol
  */
-identifier[std::string& id,
+symbol[std::string& id,
 		   CVC4::parser::DeclarationCheck check, 
            CVC4::parser::SymbolType type] 
-  : IDENTIFIER
-    { id = AntlrInput::tokenText($IDENTIFIER);
-      Debug("parser") << "identifier: " << id
+  : SYMBOL
+    { id = AntlrInput::tokenText($SYMBOL);
+      Debug("parser") << "symbol: " << id
                       << " check? " << toString(check)
                       << " type? " << toString(type) << std::endl;
       PARSER_STATE->checkDeclaration(id, check, type); }
@@ -351,17 +377,22 @@ identifier[std::string& id,
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
 BOOL_TOK : 'Bool';
+CATEGORY_TOK : ':category';
 CHECKSAT_TOK : 'check-sat';
+DIFFICULTY_TOK : ':difficulty';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 FALSE_TOK : 'false';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
 LPAREN_TOK : '(';
+NOTES_TOK : ':notes';
 RPAREN_TOK : ')';
 SAT_TOK : 'sat';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
+SMT_VERSION_TOK : ':smt-lib-version';
+SOURCE_TOK : ':source';
 STATUS_TOK : ':status';
 TRUE_TOK : 'true';
 UNKNOWN_TOK : 'unknown';
@@ -390,20 +421,15 @@ STAR_TOK          : '*';
 TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 
-
 /**
- * Matches an identifier from the input. An identifier is a sequence of letters,
- * digits and "_", "'", "." symbols, starting with a letter.
+ * Matches a symbol from the input. A symbol a non-empty sequence of 
+ * letters, digits and the characters + - / * = % ? ! . $ ~ & ^ < > @ that 
+ * does not start with a digit or a sequence of printable ASCII characters 
+ * that starts and ends with | and does not otherwise contain |.
  */
-IDENTIFIER
-  :  ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*
-  ;
-
-/**
- * Matches an identifier starting with a colon.
- */
-ATTR_IDENTIFIER 
-  :  ':' IDENTIFIER
+SYMBOL
+  : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)*
+  | '|' ~('|') '|'
   ;
 
 /**
@@ -452,9 +478,14 @@ ALPHA
 /**
  * Matches the digits (0-9)
  */
-fragment DIGIT :   '0'..'9';
+fragment DIGIT : '0'..'9';
 // fragment NON_ZERO_DIGIT : '1'..'9';
 // fragment NUMERAL_SEQ : '0' | NON_ZERO_DIGIT DIGIT*;
+
+fragment SYMBOL_CHAR 
+  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '~' | '&' 
+  | '^' | '<' | '>' | '@'
+  ;
 
 /**
  * Matches an allowed escaped character.
