@@ -137,8 +137,9 @@ command returns [CVC4::Command* cmd]
   SExpr sexpr;
 }
   : /* set the logic */
-    SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
-    { Debug("parser") << "set logic: '" << name << "' " << std::endl;
+    SET_LOGIC_TOK SYMBOL
+    { name = AntlrInput::tokenText($SYMBOL);
+      Debug("parser") << "set logic: '" << name << "' " << std::endl;
       setLogic(PARSER_STATE,name);
       $cmd = new SetBenchmarkLogicCommand(name); }
   | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
@@ -425,7 +426,7 @@ TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 
 /**
- * Matches a symbol from the input. A symbol is a "simple" symbole or a 
+ * Matches a symbol from the input. A symbol is a "simple" symbol or a 
  * sequence of printable ASCII characters that starts and ends with | and 
  * does not otherwise contain |.
  */
@@ -435,7 +436,7 @@ SYMBOL
   ;
 
 /**
- * Matches a keyword from the input. A keyword is a symbol symbol, prefixed
+ * Matches a keyword from the input. A keyword is a simple symbol prefixed
  * with a colon.
  */
 KEYWORD
