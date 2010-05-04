@@ -149,8 +149,10 @@ const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
 const string goodSmt2Inputs[] = {
     "", // empty string is OK
     "(set-logic QF_UF)",
+    "(set-info :notes |This is a note, take note!|)",
     "(assert true)",
     "(check-sat)",
+    "(exit)",
     "(assert false) (check-sat)",
     "(declare-fun a () Bool) (declare-fun b () Bool)",
     "(declare-fun a () Bool) (declare-fun b () Bool) (assert (=> (and (=> a b) a) b))",
@@ -179,6 +181,7 @@ const int numGoodSmt2Exprs = sizeof(goodSmt2Exprs) / sizeof(string);
 
 const string badSmt2Inputs[] = {
     "(assert)", // no args
+    "(set-info :notes |Symbols can't contain the | character|)",
     "(check-sat true)", // shouldn't have an arg
     "(declare-sort a)", // no arg
     "(declare-sort a 0) (declare-sort a 0)", // double decl
