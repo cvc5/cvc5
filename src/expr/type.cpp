@@ -118,7 +118,7 @@ Type::operator IntegerType() const throw (AssertionException) {
 /** Is this the real type? */
 bool Type::isReal() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isInteger();
+  return d_typeNode->isReal();
 }
 
 /** Cast to a real type */

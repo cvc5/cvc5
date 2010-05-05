@@ -56,6 +56,9 @@ protected:
 
 public:
 
+  /** Copy constructor */
+  TypeCheckingException(const TypeCheckingException& t);
+
   /** Destructor */
   ~TypeCheckingException() throw ();
 

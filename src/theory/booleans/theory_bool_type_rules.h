@@ -22,7 +22,7 @@ namespace boolean {
 class BooleanTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode booleanType = nodeManager->booleanType();
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
@@ -36,7 +36,8 @@ public:
 
 class IteTypeRule {
   public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n) throw (TypeCheckingException) {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode booleanType = nodeManager->booleanType();
     if (n[0].getType() != booleanType) {
       throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");

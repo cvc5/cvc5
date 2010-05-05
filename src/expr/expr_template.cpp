@@ -38,6 +38,11 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
   return out;
 }
 
+TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
+: Exception(t.d_msg), d_expr(new Expr(t.getExpression()))
+  {}
+
+
 TypeCheckingException::TypeCheckingException(const Expr& expr, std::string message)
 : Exception(message), d_expr(new Expr(expr))
 {

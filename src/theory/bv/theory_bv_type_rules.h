@@ -25,7 +25,7 @@ namespace bv {
 class BitVectorConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     return nodeManager->bitVectorType(n.getConst<BitVector>().getSize());
   }
 };
@@ -33,7 +33,7 @@ public:
 class BitVectorCompRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode lhs = n[0].getType();
     TypeNode rhs = n[1].getType();
     if (!lhs.isBitVector() || lhs != rhs) {
@@ -46,7 +46,7 @@ public:
 class BitVectorArithRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     unsigned maxWidth = 0;
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
@@ -65,7 +65,7 @@ public:
 class BitVectorFixedWidthTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
     TypeNode t = (*it).getType();
@@ -84,7 +84,7 @@ public:
 class BitVectorPredicateTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode lhsType = n[0].getType();
     if (!lhsType.isBitVector()) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
@@ -100,7 +100,7 @@ public:
 class BitVectorExtractTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode t = n[0].getType();
     if (!t.isBitVector()) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
@@ -119,7 +119,7 @@ public:
 class BitVectorConcatRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     unsigned size = 0;
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
@@ -137,7 +137,7 @@ public:
 class BitVectorRepeatTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode t = n[0].getType();
     if (!t.isBitVector()) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
@@ -150,7 +150,7 @@ public:
 class BitVectorExtendTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TypeNode t = n[0].getType();
     if (!t.isBitVector()) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");

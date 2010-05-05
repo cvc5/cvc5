@@ -22,7 +22,7 @@ namespace uf {
 class UfTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
-      throw (TypeCheckingException) {
+      throw (TypeCheckingExceptionPrivate) {
     TNode f = n.getOperator();
     TypeNode fType = f.getType();
     if (n.getNumChildren() != fType.getNumChildren() - 1) {

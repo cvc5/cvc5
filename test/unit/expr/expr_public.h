@@ -32,12 +32,14 @@ private:
 
   ExprManager* d_em;
 
-  Expr* a;
-  Expr* b;
-  Expr* c;
-  Expr* mult;
-  Expr* plus;
-  Expr* d;
+  Expr* a_bool;
+  Expr* b_bool;
+  Expr* c_bool_mult;
+  Expr* mult_op;
+  Expr* plus_op;
+  Type* fun_type;
+  Expr* fun_op;
+  Expr* d_apply_fun_bool;
   Expr* null;
 
   Expr* i1;
@@ -51,12 +53,14 @@ public:
     try {
       d_em = new ExprManager;
 
-      a = new Expr(d_em->mkVar("a",d_em->booleanType()));
-      b = new Expr(d_em->mkVar("b", d_em->booleanType()));
-      c = new Expr(d_em->mkExpr(MULT, *a, *b));
-      mult = new Expr(d_em->mkConst(MULT));
-      plus = new Expr(d_em->mkConst(PLUS));
-      d = new Expr(d_em->mkExpr(APPLY_UF, *plus, *b, *c));
+      a_bool = new Expr(d_em->mkVar("a",d_em->booleanType()));
+      b_bool = new Expr(d_em->mkVar("b", d_em->booleanType()));
+      c_bool_mult = new Expr(d_em->mkExpr(MULT, *a_bool, *b_bool));
+      mult_op = new Expr(d_em->mkConst(MULT));
+      plus_op = new Expr(d_em->mkConst(PLUS));
+      fun_type = new Type(d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType()));
+      fun_op = new Expr(d_em->mkVar("f", *fun_type));
+      d_apply_fun_bool = new Expr(d_em->mkExpr(APPLY_UF, *fun_op, *a_bool));
       null = new Expr;
 
       i1 = new Expr(d_em->mkConst(Integer("0")));
@@ -77,12 +81,14 @@ public:
       delete i1;
 
       delete null;
-      delete d;
-      delete plus;
-      delete mult;
-      delete c;
-      delete b;
-      delete a;
+      delete d_apply_fun_bool;
+      delete fun_type;
+      delete fun_op;
+      delete plus_op;
+      delete mult_op;
+      delete c_bool_mult;
+      delete b_bool;
+      delete a_bool;
 
       delete d_em;
     } catch(Exception e) {
@@ -98,8 +104,8 @@ public:
   }
 
   void testCtors() {
-    TS_ASSERT(!a->isNull());
-    TS_ASSERT(!b->isNull());
+    TS_ASSERT(!a_bool->isNull());
+    TS_ASSERT(!b_bool->isNull());
 
     /* Expr(); */
     Expr e;
@@ -113,7 +119,7 @@ public:
     TS_ASSERT(!(e < e2));
     TS_ASSERT(e.isNull());
     TS_ASSERT(e2.isNull());
-    Expr f = d_em->mkExpr(PLUS, *a, *b);
+    Expr f = d_em->mkExpr(PLUS, *a_bool, *b_bool);
     Expr f2 = f;
     TS_ASSERT(!f.isNull());
     TS_ASSERT(!f2.isNull());
@@ -121,12 +127,12 @@ public:
     TS_ASSERT(f2 == f);
     TS_ASSERT(!(f2 < f));
     TS_ASSERT(!(f < f2));
-    TS_ASSERT(f == d_em->mkExpr(PLUS, *a, *b));
+    TS_ASSERT(f == d_em->mkExpr(PLUS, *a_bool, *b_bool));
   }
 
   void testAssignment() {
     /* Expr& operator=(const Expr& e); */
-    Expr e = d_em->mkExpr(PLUS, *a, *b);
+    Expr e = d_em->mkExpr(PLUS, *a_bool, *b_bool);
     Expr f;
     TS_ASSERT(f.isNull());
     f = e;
@@ -135,78 +141,78 @@ public:
     TS_ASSERT(f == e);
     TS_ASSERT(!(f < e));
     TS_ASSERT(!(e < f));
-    TS_ASSERT(f == d_em->mkExpr(PLUS, *a, *b));
+    TS_ASSERT(f == d_em->mkExpr(PLUS, *a_bool, *b_bool));
   }
 
   void testEquality() {
     /* bool operator==(const Expr& e) const; */
     /* bool operator!=(const Expr& e) const; */
 
-    TS_ASSERT(*a == *a);
-    TS_ASSERT(*b == *b);
-    TS_ASSERT(!(*a != *a));
-    TS_ASSERT(!(*b != *b));
+    TS_ASSERT(*a_bool == *a_bool);
+    TS_ASSERT(*b_bool == *b_bool);
+    TS_ASSERT(!(*a_bool != *a_bool));
+    TS_ASSERT(!(*b_bool != *b_bool));
 
-    TS_ASSERT(*a != *b);
-    TS_ASSERT(*b != *a);
-    TS_ASSERT(!(*a == *b));
-    TS_ASSERT(!(*b == *a));
+    TS_ASSERT(*a_bool != *b_bool);
+    TS_ASSERT(*b_bool != *a_bool);
+    TS_ASSERT(!(*a_bool == *b_bool));
+    TS_ASSERT(!(*b_bool == *a_bool));
   }
 
   void testComparison() {
     /* bool operator<(const Expr& e) const; */
 
-    TS_ASSERT(*null < *a);
-    TS_ASSERT(*null < *b);
-    TS_ASSERT(*null < *c);
-    TS_ASSERT(*null < *d);
-    TS_ASSERT(*null < *plus);
-    TS_ASSERT(*null < *mult);
+    TS_ASSERT(*null < *a_bool);
+    TS_ASSERT(*null < *b_bool);
+    TS_ASSERT(*null < *c_bool_mult);
+    TS_ASSERT(*null < *d_apply_fun_bool);
+    TS_ASSERT(*null < *plus_op);
+    TS_ASSERT(*null < *mult_op);
     TS_ASSERT(*null < *i1);
     TS_ASSERT(*null < *i2);
     TS_ASSERT(*null < *r1);
     TS_ASSERT(*null < *r2);
 
-    TS_ASSERT(*a < *b);
-    TS_ASSERT(*a < *c);
-    TS_ASSERT(*a < *d);
-    TS_ASSERT(!(*b < *a));
-    TS_ASSERT(!(*c < *a));
-    TS_ASSERT(!(*d < *a));
+    TS_ASSERT(*a_bool < *b_bool);
+    TS_ASSERT(*a_bool < *c_bool_mult);
+    TS_ASSERT(*a_bool < *d_apply_fun_bool);
+    TS_ASSERT(!(*b_bool < *a_bool));
+    TS_ASSERT(!(*c_bool_mult < *a_bool));
+    TS_ASSERT(!(*d_apply_fun_bool < *a_bool));
 
-    TS_ASSERT(*b < *c);
-    TS_ASSERT(*b < *d);
-    TS_ASSERT(!(*c < *b));
-    TS_ASSERT(!(*d < *b));
+    TS_ASSERT(*b_bool < *c_bool_mult);
+    TS_ASSERT(*b_bool < *d_apply_fun_bool);
+    TS_ASSERT(!(*c_bool_mult < *b_bool));
+    TS_ASSERT(!(*d_apply_fun_bool < *b_bool));
 
-    TS_ASSERT(*c < *d);
-    TS_ASSERT(!(*d < *c));
+    TS_ASSERT(*c_bool_mult < *d_apply_fun_bool);
+    TS_ASSERT(!(*d_apply_fun_bool < *c_bool_mult));
 
-    TS_ASSERT(*mult < *c);
-    TS_ASSERT(*mult < *d);
-    TS_ASSERT(*plus < *d);
-    TS_ASSERT(!(*c < *mult));
-    TS_ASSERT(!(*d < *mult));
-    TS_ASSERT(!(*d < *plus));
+    TS_ASSERT(*mult_op < *c_bool_mult);
+    TS_ASSERT(*mult_op < *d_apply_fun_bool);
+    TS_ASSERT(*plus_op < *d_apply_fun_bool);
+    TS_ASSERT(!(*c_bool_mult < *mult_op));
+    TS_ASSERT(!(*d_apply_fun_bool < *mult_op));
+    TS_ASSERT(!(*d_apply_fun_bool < *plus_op));
 
     TS_ASSERT(!(*null < *null));
-    TS_ASSERT(!(*a < *a));
-    TS_ASSERT(!(*b < *b));
-    TS_ASSERT(!(*c < *c));
-    TS_ASSERT(!(*plus < *plus));
-    TS_ASSERT(!(*mult < *mult));
-    TS_ASSERT(!(*d < *d));
+    TS_ASSERT(!(*a_bool < *a_bool));
+    TS_ASSERT(!(*b_bool < *b_bool));
+    TS_ASSERT(!(*c_bool_mult < *c_bool_mult));
+    TS_ASSERT(!(*plus_op < *plus_op));
+    TS_ASSERT(!(*mult_op < *mult_op));
+    TS_ASSERT(!(*d_apply_fun_bool < *d_apply_fun_bool));
   }
 
   void testGetKind() {
     /* Kind getKind() const; */
 
-    TS_ASSERT(a->getKind() == VARIABLE);
-    TS_ASSERT(b->getKind() == VARIABLE);
-    TS_ASSERT(c->getKind() == MULT);
-    TS_ASSERT(mult->getKind() == BUILTIN);
-    TS_ASSERT(plus->getKind() == BUILTIN);
-    TS_ASSERT(d->getKind() == APPLY_UF);
+    TS_ASSERT(a_bool->getKind() == VARIABLE);
+    TS_ASSERT(b_bool->getKind() == VARIABLE);
+    TS_ASSERT(c_bool_mult->getKind() == MULT);
+    TS_ASSERT(mult_op->getKind() == BUILTIN);
+    TS_ASSERT(plus_op->getKind() == BUILTIN);
+    TS_ASSERT(d_apply_fun_bool->getKind() == APPLY_UF);
     TS_ASSERT(null->getKind() == NULL_EXPR);
 
     TS_ASSERT(i1->getKind() == CONST_INTEGER);
@@ -218,12 +224,12 @@ public:
   void testGetNumChildren() {
     /* size_t getNumChildren() const; */
 
-    TS_ASSERT(a->getNumChildren() == 0);
-    TS_ASSERT(b->getNumChildren() == 0);
-    TS_ASSERT(c->getNumChildren() == 2);
-    TS_ASSERT(mult->getNumChildren() == 0);
-    TS_ASSERT(plus->getNumChildren() == 0);
-    TS_ASSERT(d->getNumChildren() == 2);
+    TS_ASSERT(a_bool->getNumChildren() == 0);
+    TS_ASSERT(b_bool->getNumChildren() == 0);
+    TS_ASSERT(c_bool_mult->getNumChildren() == 2);
+    TS_ASSERT(mult_op->getNumChildren() == 0);
+    TS_ASSERT(plus_op->getNumChildren() == 0);
+    TS_ASSERT(d_apply_fun_bool->getNumChildren() == 1);
     TS_ASSERT(null->getNumChildren() == 0);
 
     TS_ASSERT(i1->getNumChildren() == 0);
@@ -236,48 +242,48 @@ public:
     /* bool hasOperator() const; */
     /* Expr getOperator() const; */
 
-    TS_ASSERT(!a->hasOperator());
-    TS_ASSERT(!b->hasOperator());
-    TS_ASSERT(c->hasOperator());
-    TS_ASSERT(!mult->hasOperator());
-    TS_ASSERT(!plus->hasOperator());
-    TS_ASSERT(d->hasOperator());
+    TS_ASSERT(!a_bool->hasOperator());
+    TS_ASSERT(!b_bool->hasOperator());
+    TS_ASSERT(c_bool_mult->hasOperator());
+    TS_ASSERT(!mult_op->hasOperator());
+    TS_ASSERT(!plus_op->hasOperator());
+    TS_ASSERT(d_apply_fun_bool->hasOperator());
     TS_ASSERT(!null->hasOperator());
 
-    TS_ASSERT_THROWS(a->getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(b->getOperator(), IllegalArgumentException);
-    TS_ASSERT(c->getOperator() == *mult);
-    TS_ASSERT_THROWS(plus->getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(mult->getOperator(), IllegalArgumentException);
-    TS_ASSERT(d->getOperator() == *plus);
+    TS_ASSERT_THROWS(a_bool->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(b_bool->getOperator(), IllegalArgumentException);
+    TS_ASSERT(c_bool_mult->getOperator() == *mult_op);
+    TS_ASSERT_THROWS(plus_op->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(mult_op->getOperator(), IllegalArgumentException);
+    TS_ASSERT(d_apply_fun_bool->getOperator() == *fun_op);
     TS_ASSERT_THROWS(null->getOperator(), IllegalArgumentException);
   }
 
   void testGetType() {
     /* Type getType(); */
 
-    TS_ASSERT(a->getType() == d_em->booleanType());
-    TS_ASSERT(b->getType() == d_em->booleanType());
-// TODO: Type-checking exceptions
-//    TS_ASSERT(c->getType().isNull());
-//    TS_ASSERT(mult->getType().isNull());
-//    TS_ASSERT(plus->getType().isNull());
-//    TS_ASSERT(d->getType().isNull());
-//    TS_ASSERT(i1->getType().isNull());
-//    TS_ASSERT(i2->getType().isNull());
-//    TS_ASSERT(r1->getType().isNull());
-//    TS_ASSERT(r2->getType().isNull());
+    TS_ASSERT(a_bool->getType() == d_em->booleanType());
+    TS_ASSERT(b_bool->getType() == d_em->booleanType());
+    TS_ASSERT_THROWS(c_bool_mult->getType(), TypeCheckingException);
+// These need better support for operators
+//    TS_ASSERT(mult_op->getType().isNull());
+//    TS_ASSERT(plus_op->getType().isNull());
+    TS_ASSERT(d_apply_fun_bool->getType() == d_em->booleanType());
+    TS_ASSERT(i1->getType().isInteger());
+    TS_ASSERT(i2->getType().isInteger());
+    TS_ASSERT(r1->getType().isReal());
+    TS_ASSERT(r2->getType().isReal());
   }
 
   void testToString() {
     /* std::string toString() const; */
 
-    TS_ASSERT(a->toString() == "a");
-    TS_ASSERT(b->toString() == "b");
-    TS_ASSERT(c->toString() == "(MULT a b)");
-    TS_ASSERT(mult->toString() == "(BUILTIN MULT)");
-    TS_ASSERT(plus->toString() == "(BUILTIN PLUS)");
-    TS_ASSERT(d->toString() == "(APPLY_UF (BUILTIN PLUS) b (MULT a b))");
+    TS_ASSERT(a_bool->toString() == "a");
+    TS_ASSERT(b_bool->toString() == "b");
+    TS_ASSERT(c_bool_mult->toString() == "(MULT a b)");
+    TS_ASSERT(mult_op->toString() == "(BUILTIN MULT)");
+    TS_ASSERT(plus_op->toString() == "(BUILTIN PLUS)");
+    TS_ASSERT(d_apply_fun_bool->toString() == "(APPLY_UF f a)");
     TS_ASSERT(null->toString() == "null");
 
     TS_ASSERT(i1->toString() == "(CONST_INTEGER 0)");
@@ -291,12 +297,12 @@ public:
 
     stringstream sa, sb, sc, smult, splus, sd, snull;
     stringstream si1, si2, sr1, sr2;
-    a->toStream(sa);
-    b->toStream(sb);
-    c->toStream(sc);
-    mult->toStream(smult);
-    plus->toStream(splus);
-    d->toStream(sd);
+    a_bool->toStream(sa);
+    b_bool->toStream(sb);
+    c_bool_mult->toStream(sc);
+    mult_op->toStream(smult);
+    plus_op->toStream(splus);
+    d_apply_fun_bool->toStream(sd);
     null->toStream(snull);
 
     i1->toStream(si1);
@@ -309,7 +315,7 @@ public:
     TS_ASSERT(sc.str() == "(MULT a b)");
     TS_ASSERT(smult.str() == "(BUILTIN MULT)");
     TS_ASSERT(splus.str() == "(BUILTIN PLUS)");
-    TS_ASSERT(sd.str() == "(APPLY_UF (BUILTIN PLUS) b (MULT a b))");
+    TS_ASSERT(sd.str() == "(APPLY_UF f a)");
     TS_ASSERT(snull.str() == "null");
 
     TS_ASSERT(si1.str() == "(CONST_INTEGER 0)");
@@ -321,36 +327,36 @@ public:
   void testIsNull() {
     /* bool isNull() const; */
 
-    TS_ASSERT(!a->isNull());
-    TS_ASSERT(!b->isNull());
-    TS_ASSERT(!c->isNull());
-    TS_ASSERT(!mult->isNull());
-    TS_ASSERT(!plus->isNull());
-    TS_ASSERT(!d->isNull());
+    TS_ASSERT(!a_bool->isNull());
+    TS_ASSERT(!b_bool->isNull());
+    TS_ASSERT(!c_bool_mult->isNull());
+    TS_ASSERT(!mult_op->isNull());
+    TS_ASSERT(!plus_op->isNull());
+    TS_ASSERT(!d_apply_fun_bool->isNull());
     TS_ASSERT(null->isNull());
   }
 
   void testIsConst() {
     /* bool isConst() const; */
 
-    TS_ASSERT(!a->isConst());
-    TS_ASSERT(!b->isConst());
-    TS_ASSERT(!c->isConst());
-    TS_ASSERT(mult->isConst());
-    TS_ASSERT(plus->isConst());
-    TS_ASSERT(!d->isConst());
+    TS_ASSERT(!a_bool->isConst());
+    TS_ASSERT(!b_bool->isConst());
+    TS_ASSERT(!c_bool_mult->isConst());
+    TS_ASSERT(mult_op->isConst());
+    TS_ASSERT(plus_op->isConst());
+    TS_ASSERT(!d_apply_fun_bool->isConst());
     TS_ASSERT(!null->isConst());
   }
 
   void testIsAtomic() {
     /* bool isAtomic() const; */
 
-    TS_ASSERT(a->isAtomic());
-    TS_ASSERT(b->isAtomic());
-    TS_ASSERT(c->isAtomic());
-    TS_ASSERT(mult->isAtomic());
-    TS_ASSERT(plus->isAtomic());
-    TS_ASSERT(d->isAtomic());
+    TS_ASSERT(a_bool->isAtomic());
+    TS_ASSERT(b_bool->isAtomic());
+    TS_ASSERT(c_bool_mult->isAtomic());
+    TS_ASSERT(mult_op->isAtomic());
+    TS_ASSERT(plus_op->isAtomic());
+    TS_ASSERT(d_apply_fun_bool->isAtomic());
 #ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS(null->isAtomic(), IllegalArgumentException);
 #endif /* CVC4_ASSERTIONS */
@@ -360,8 +366,8 @@ public:
     TS_ASSERT(r1->isAtomic());
     TS_ASSERT(r2->isAtomic());
 
-    Expr x = d_em->mkExpr(AND, *a, *b);
-    Expr y = d_em->mkExpr(ITE, *a, *b, *c);
+    Expr x = d_em->mkExpr(AND, *a_bool, *b_bool);
+    Expr y = d_em->mkExpr(ITE, *a_bool, *b_bool, *c_bool_mult);
     Expr z = d_em->mkExpr(IFF, x, y);
 
     TS_ASSERT(!x.isAtomic());
@@ -379,14 +385,14 @@ public:
     /* template <class T>
        const T& getConst() const; */
 
-    TS_ASSERT_THROWS(a->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(b->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(c->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT(mult->getConst<Kind>() == MULT);
-    TS_ASSERT_THROWS(mult->getConst<Integer>(), IllegalArgumentException);
-    TS_ASSERT(plus->getConst<Kind>() == PLUS);
-    TS_ASSERT_THROWS(plus->getConst<Rational>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(d->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(a_bool->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(b_bool->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(c_bool_mult->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT(mult_op->getConst<Kind>() == MULT);
+    TS_ASSERT_THROWS(mult_op->getConst<Integer>(), IllegalArgumentException);
+    TS_ASSERT(plus_op->getConst<Kind>() == PLUS);
+    TS_ASSERT_THROWS(plus_op->getConst<Rational>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(d_apply_fun_bool->getConst<Kind>(), IllegalArgumentException);
     TS_ASSERT_THROWS(null->getConst<Kind>(), IllegalArgumentException);
 
     TS_ASSERT(i1->getConst<Integer>() == 0);
@@ -403,12 +409,12 @@ public:
   void testGetExprManager() {
     /* ExprManager* getExprManager() const; */
 
-    TS_ASSERT(a->getExprManager() == d_em);
-    TS_ASSERT(b->getExprManager() == d_em);
-    TS_ASSERT(c->getExprManager() == d_em);
-    TS_ASSERT(mult->getExprManager() == d_em);
-    TS_ASSERT(plus->getExprManager() == d_em);
-    TS_ASSERT(d->getExprManager() == d_em);
+    TS_ASSERT(a_bool->getExprManager() == d_em);
+    TS_ASSERT(b_bool->getExprManager() == d_em);
+    TS_ASSERT(c_bool_mult->getExprManager() == d_em);
+    TS_ASSERT(mult_op->getExprManager() == d_em);
+    TS_ASSERT(plus_op->getExprManager() == d_em);
+    TS_ASSERT(d_apply_fun_bool->getExprManager() == d_em);
     TS_ASSERT(null->getExprManager() == NULL);
 
     TS_ASSERT(i1->getExprManager() == d_em);
