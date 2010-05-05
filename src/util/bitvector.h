@@ -37,6 +37,9 @@ public:
   BitVector(unsigned size, const BitVector& q)
   : d_size(size), d_value(q.d_value) {}
 
+  BitVector(unsigned size, const std::string& num, unsigned base = 2)
+  : d_size(size), d_value(0) {}
+
   ~BitVector() {}
 
   BitVector& operator =(const BitVector& x) {
