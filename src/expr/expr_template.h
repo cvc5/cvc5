@@ -42,7 +42,7 @@ class Expr;
 /**
  * Exception thrown in the case of type-checking errors.
  */
-class TypeCheckingException : public Exception {
+class CVC4_PUBLIC TypeCheckingException : public Exception {
 
 private:
 
