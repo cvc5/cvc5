@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** integer_black.h
+/** bitvector_black.h
  ** Original author: taking
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** Black box testing of CVC4::Integer.
+ ** Black box testing of CVC4::BitVector.
  **/
 
 #include <cxxtest/TestSuite.h>
