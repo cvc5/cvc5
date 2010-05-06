@@ -52,8 +52,8 @@ public:
 
   /**
    * Constructs a Integer from a C string.
-   * Throws std::invalid_argument if the stribng is not a valid rational.
-   * For more information about what is a vaid rational string,
+   * Throws std::invalid_argument if the string is not a valid rational.
+   * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
   Integer(const char * s, int base = 10): d_value(s,base) {}
@@ -118,6 +118,16 @@ public:
   }
   Integer operator/(const Integer& y) const {
     return Integer( d_value / y.d_value );
+  }
+
+  /** Raise this Integer to the power <code>exp</code>.
+   *
+   * @param exp the exponent
+   */
+  Integer pow(unsigned long int exp) const {
+    mpz_class result;
+    mpz_pow_ui(result.get_mpz_t(),d_value.get_mpz_t(),exp);
+    return Integer( result );
   }
 
   std::string toString(int base = 10) const{

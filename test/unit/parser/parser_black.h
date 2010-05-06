@@ -173,8 +173,8 @@ const string goodSmt2Exprs[] = {
     "(= (xor a b) (and (or a b) (not (and a b))))",
     "(ite a (f x) y)",
     "1",
-    "0"// ,
-//    "1.5"
+    "0",
+    "1.5"
 };
 
 const int numGoodSmt2Exprs = sizeof(goodSmt2Exprs) / sizeof(string);

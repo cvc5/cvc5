@@ -48,6 +48,13 @@ private:
 
 public:
 
+  /** Creates a rational from a decimal string (e.g., <code>"1.5"</code>).
+   *
+   * @param dec a string encoding a decimal number in the format
+   * <code>[0-9]*\.[0-9]*</code>
+   */
+  static Rational fromDecimal(const std::string& dec);
+
   /** Constructs a rational with the value 0/1. */
   Rational() : d_value(0){
     d_value.canonicalize();
@@ -55,8 +62,8 @@ public:
 
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
-   * Throws std::invalid_argument if the stribng is not a valid rational.
-   * For more information about what is a vaid rational string,
+   * Throws std::invalid_argument if the string is not a valid rational.
+   * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
   Rational(const char * s, int base = 10): d_value(s,base) {

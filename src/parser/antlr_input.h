@@ -29,6 +29,8 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/Assert.h"
+#include "util/integer.h"
+#include "util/rational.h"
 
 namespace CVC4 {
 
@@ -146,6 +148,8 @@ public:
   static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
   /** Retrieve a Rational from the text of a token */
   static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
+  /** Retrive a Bitvector from the text of a token */
+//  static Bitvector tokenToBitvector(pANTLR3_COMMON_TOKEN token, int base);
 
 protected:
   /** Create an input. This input takes ownership of the given input stream,
@@ -202,8 +206,7 @@ inline Integer AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
 }
 
 inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
-  Rational r( tokenText(token) );
-  return r;
+  return Rational::fromDecimal( tokenText(token) );
 }
 
 }/* CVC4::parser namespace */
