@@ -21,6 +21,7 @@ UNIT_TESTS = \
 	theory/theory_black \
 	theory/theory_uf_white \
 	util/assert_white \
+	util/bitvector_black \
 	util/configuration_black \
 	util/output_black \
 	util/exception_black \

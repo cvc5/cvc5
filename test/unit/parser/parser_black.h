@@ -174,7 +174,9 @@ const string goodSmt2Exprs[] = {
     "(ite a (f x) y)",
     "1",
     "0",
-    "1.5"
+    "1.5",
+    "#xfab09c7",
+    "#b0001011"
 };
 
 const int numGoodSmt2Exprs = sizeof(goodSmt2Exprs) / sizeof(string);
@@ -205,7 +207,11 @@ const string badSmt2Exprs[] = {
     "(if_then_else a (f x) y)", // no if_then_else in v2
     "(a b)", // using non-function as function
     ".5", // rational constants must have integer prefix
-    "1." // rational constants must have fractional suffix
+    "1.", // rational constants must have fractional suffix
+    "#x", // hex constants must have at least one digit
+    "#b", // ditto binary constants
+    "#xg0f",
+    "#b9"
 };
 
 const int numBadSmt2Exprs = sizeof(badSmt2Exprs) / sizeof(string);
@@ -271,7 +277,7 @@ class ParserBlack : public CxxTest::TestSuite {
       TS_ASSERT_THROWS
         ( while(parser.nextCommand());
           cout << "\nBad input succeeded:\n" << badInputs[i] << endl;,
-          ParserException );
+          const ParserException& );
 //      Debug.off("parser");
       delete input;
     }
@@ -299,13 +305,21 @@ class ParserBlack : public CxxTest::TestSuite {
         TS_ASSERT( e.isNull() );
         delete input;
       } catch (Exception& e) {
-        cout << "\nGood expr failed:\n" << goodBooleanExprs[i] << endl;
-        cout << e;
+        cout << endl
+             << "Good expr failed." << endl
+             << "Input: <<" << goodBooleanExprs[i] << ">>" << endl
+             << "Output: <<" << e << ">>" << endl;
         throw;
       }
     }
   }
 
+  /* NOTE: The check implemented here may fail if a bad expression expression string
+   * has a prefix that is parseable as a good expression. E.g., the bad SMT v2 expression
+   * "#b10@@@@@@" will actually return the bit-vector 10 and ignore the tail of the
+   * input. It's more trouble than it's worth to check that the whole input was
+   * consumed here, so just be careful to avoid valid prefixes in tests.
+   */
   void tryBadExprs(InputLanguage d_lang, const string badBooleanExprs[], int numExprs) {
     //Debug.on("parser");
     for(int i = 0; i < numExprs; ++i) {
@@ -318,9 +332,12 @@ class ParserBlack : public CxxTest::TestSuite {
       setupContext(parser);
       TS_ASSERT( !parser.done() );
       TS_ASSERT_THROWS
-        ( parser.nextExpression();
-          cout << "\nBad expr succeeded: " << badBooleanExprs[i] << endl;,
-          ParserException );
+        ( Expr e = parser.nextExpression();
+          cout << endl
+               << "Bad expr succeeded." << endl
+               << "Input: <<" << badBooleanExprs[i] << ">>" << endl
+               << "Output: <<" << e << ">>" << endl;,
+          const ParserException& );
       delete input;
     }
     //Debug.off("parser");

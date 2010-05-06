@@ -259,6 +259,14 @@ term[CVC4::Expr& expr]
   | RATIONAL
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL) ); }
+  | HEX_LITERAL
+    { std::string hexString = AntlrInput::tokenText($HEX_LITERAL);
+      AlwaysAssert( hexString.find("#x") == 0 );
+      expr = MK_CONST( BitVector(hexString.erase(0,2), 16) ); }
+  | BINARY_LITERAL
+    { std::string binString = AntlrInput::tokenText($BINARY_LITERAL);
+      AlwaysAssert( binString.find("#b") == 0 );
+      expr = MK_CONST( BitVector(binString.erase(0,2), 2) ); }
     // NOTE: Theory constants go here
   ;
 
@@ -349,15 +357,6 @@ sortSymbol[CVC4::Type& t]
   	{ t = PARSER_STATE->getSort(name); }
   | BOOL_TOK
     { t = EXPR_MANAGER->booleanType(); }
-  ;
-
-/**
- * Matches the status of the benchmark, one of 'sat', 'unsat' or 'unknown'.
- */
-benchmarkStatus[ CVC4::BenchmarkStatus& status ]
-  : SAT_TOK       { $status = SMT_SATISFIABLE;    }
-  | UNSAT_TOK     { $status = SMT_UNSATISFIABLE;  }
-  | UNKNOWN_TOK   { $status = SMT_UNKNOWN;        }
   ;
 
 /**
@@ -459,15 +458,36 @@ WHITESPACE
   ;
 
 /**
- * Matches a numeral from the input (non-empty sequence of digits).
+ * Matches an integer constant from the input (non-empty sequence of digits).
+ * This is a bit looser than what the standard allows, because it accepts 
+ * leading zeroes. 
  */
 NUMERAL
   : DIGIT+
   ;
 
+/**
+  * Matches a rational constant from the input. This is a bit looser
+  * than what the standard allows, because it accepts leading zeroes. 
+  */
 RATIONAL
   : DIGIT+ '.' DIGIT+
   ;
+
+/**
+ * Matches a hexadecimal constant.
+ */
+ HEX_LITERAL
+  : '#x' HEX_DIGIT+
+  ;
+
+/**
+ * Matches a binary constant.
+ */
+ BINARY_LITERAL
+  : '#b' ('0' | '1')+
+  ;
+
 
 /**
  * Matches a double quoted string literal. Escaping is supported, and escape
@@ -498,6 +518,8 @@ ALPHA
  * Matches the digits (0-9)
  */
 fragment DIGIT : '0'..'9';
+
+fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 
 /** Matches the characters that may appear in a "symbol" (i.e., an identifier) 
  */

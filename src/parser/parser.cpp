@@ -241,8 +241,9 @@ Expr Parser::nextExpression() throw(ParserException) {
   if(!done()) {
     try {
       result = d_input->parseExpr();
-      if(result.isNull())
+      if(result.isNull()) {
         setDone();
+      }
     } catch(ParserException& e) {
       setDone();
       throw;

@@ -8,9 +8,12 @@
 #ifndef __CVC4__BITVECTOR_H_
 #define __CVC4__BITVECTOR_H_
 
-#include <string>
 #include <iostream>
+#include "util/Assert.h"
 #include "util/gmp_util.h"
+#include "util/integer.h"
+
+using namespace std;
 
 namespace CVC4 {
 
@@ -19,9 +22,9 @@ class BitVector {
 private:
 
   unsigned d_size;
-  mpz_class d_value;
+  Integer d_value;
 
-  BitVector(unsigned size, const mpz_class& val) : d_size(size), d_value(val) {}
+  BitVector(unsigned size, const Integer& val) : d_size(size), d_value(val) {}
 
 public:
 
@@ -37,8 +40,7 @@ public:
   BitVector(unsigned size, const BitVector& q)
   : d_size(size), d_value(q.d_value) {}
 
-  BitVector(const std::string& num, unsigned base = 2)
-  : d_size(1), d_value(0) {}
+  BitVector(const std::string& num, unsigned base = 2);
 
   ~BitVector() {}
 
@@ -80,17 +82,58 @@ public:
   }
 
   size_t hash() const {
-    return gmpz_hash(d_value.get_mpz_t());
+    return d_value.hash();
   }
 
   std::string toString(unsigned int base = 2) const {
-    return d_value.get_str(base);
+    std::string str = d_value.toString(base);
+    if( base == 2 && d_size > str.size() ) {
+      std::string zeroes;
+      for( unsigned int i=0; i < d_size - str.size(); ++i ) {
+        zeroes.append("0");
+      }
+      return zeroes + str;
+    } else {
+      return str;
+    }
   }
 
   unsigned getSize() const {
     return d_size;
   }
 };
+
+inline BitVector::BitVector(const std::string& num, unsigned base) {
+  AlwaysAssert( base == 2 || base == 16 );
+
+  if( base == 2 ) {
+    d_size = num.size();
+//    d_value = Integer(num,2);
+/*
+    for( string::const_iterator it = num.begin(); it != num.end(); ++it ) {
+      if( *it != '0' || *it != '1' ) {
+        IllegalArgument(num, "BitVector argument is not a binary string.");
+      }
+      z = (Integer(2) * z) + (*it == '1');
+      d_value = mpz_class(z.get_mpz());
+    }
+*/
+  } else if( base == 16 ) {
+    d_size = num.size() * 4;
+//    // Use a stream to decode the hex string
+//    stringstream ss;
+//    ss.setf(ios::hex, ios::basefield);
+//    ss << num;
+//    ss >> z;
+//    d_value = mpz_class(z);
+//    break;
+  } else {
+    Unreachable("Unsupported base in BitVector(std::string&, unsigned int).");
+  }
+
+  d_value = Integer(num,base);
+}
+
 
 /**
  * Hash function for the BitVector constants.
