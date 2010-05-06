@@ -260,13 +260,13 @@ term[CVC4::Expr& expr]
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL) ); }
   | HEX_LITERAL
-    { std::string hexString = AntlrInput::tokenText($HEX_LITERAL);
-      AlwaysAssert( hexString.find("#x") == 0 );
-      expr = MK_CONST( BitVector(hexString.erase(0,2), 16) ); }
+    { Assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
+      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL,2);
+      expr = MK_CONST( BitVector(hexString, 16) ); }
   | BINARY_LITERAL
-    { std::string binString = AntlrInput::tokenText($BINARY_LITERAL);
-      AlwaysAssert( binString.find("#b") == 0 );
-      expr = MK_CONST( BitVector(binString.erase(0,2), 2) ); }
+    { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
+      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL,2);
+      expr = MK_CONST( BitVector(binString, 2) ); }
     // NOTE: Theory constants go here
   ;
 

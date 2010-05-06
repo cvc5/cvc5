@@ -20,6 +20,8 @@
 
 #include <antlr3.h>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -143,10 +145,24 @@ public:
 
   /** Retrieve the text associated with a token. */
   static std::string tokenText(pANTLR3_COMMON_TOKEN token);
+
+  /** Retrieve a substring of the text associated with a token.
+   *
+   * @param token the token
+   * @param index the index of the starting character of the substring
+   * @param n the size of the substring. If <code>n</code> is 0, then all of the
+   * characters up to the end of the token text will be included. If <code>n</code>
+   * would make the substring span past the end of the token text, only those
+   * characters up to the end of the token text will be included.
+   */
+  static std::string tokenTextSubstr(pANTLR3_COMMON_TOKEN token, size_t index, size_t n = 0);
+
   /** Retrieve an unsigned from the text of a token */
   static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
+
   /** Retrieve an Integer from the text of a token */
   static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
+
   /** Retrieve a Rational from the text of a token */
   static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
 
@@ -189,6 +205,25 @@ inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
                         <<  "end=" << end << std::endl
                         <<  "txt='" << txt << "'" << std::endl;
   return txt;
+}
+
+inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
+                                               size_t index,
+                                               size_t n) {
+  ANTLR3_MARKER start = token->getStartIndex(token);
+  ANTLR3_MARKER end = token->getStopIndex(token);
+  Assert( start < end );
+  if( index > (size_t) end - start ) {
+    stringstream ss;
+    ss << "Out-of-bounds substring index: " << index;
+    throw std::invalid_argument(ss.str());
+  }
+  start += index;
+  if( n==0 || n >= (size_t) end - start ) {
+    return std::string( (const char *)start + index, end-start+1 );
+  } else {
+    return std::string( (const char *)start + index, n );
+  }
 }
 
 inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {

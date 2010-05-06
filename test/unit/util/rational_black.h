@@ -41,8 +41,6 @@ public:
     TS_ASSERT_THROWS( Rational::fromDecimal("1.2.3");, const std::invalid_argument& );
     TS_ASSERT_THROWS( Rational::fromDecimal("1.2/3");, const std::invalid_argument& );
     TS_ASSERT_THROWS( Rational::fromDecimal("Hello, world!");, const std::invalid_argument& );
-
-    Rational(1);
   }
 
 };
