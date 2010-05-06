@@ -53,6 +53,9 @@ struct CVC4_PUBLIC Options {
   /** Should the parser memory-map file input? */
   bool memoryMap;
 
+  /** Should we strictly enforce the language standard while parsing? */
+  bool strictParsing;
+
   Options() : binary_name(),
               statistics(false),
               out(0),
@@ -61,7 +64,8 @@ struct CVC4_PUBLIC Options {
               lang(parser::LANG_AUTO),
               parseOnly(false),
               semanticChecks(true),
-              memoryMap(false)
+              memoryMap(false),
+              strictParsing(false)
   {}
 };/* struct Options */
 

@@ -209,14 +209,6 @@ void Parser::checkArity(Kind kind, unsigned int numArgs)
   }
 }
 
-void Parser::enableChecks() {
-  d_checksEnabled = true;
-}
-
-void Parser::disableChecks() {
-  d_checksEnabled = false;
-}
-
 Command* Parser::nextCommand() throw(ParserException) {
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;

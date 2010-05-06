@@ -113,6 +113,8 @@ class CVC4_PUBLIC Parser {
   /** Are semantic checks enabled during parsing? */
   bool d_checksEnabled;
 
+  /** Are we parsing in strict mode? */
+  bool d_strictMode;
 
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(const std::string& var_name, SymbolType type);
@@ -158,10 +160,18 @@ public:
   }
 
   /** Enable semantic checks during parsing. */
-  void enableChecks();
+  void enableChecks() { d_checksEnabled = true; }
 
   /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
-  void disableChecks();
+  void disableChecks() { d_checksEnabled = false; }
+
+  /** Enable strict parsing, according to the language standards. */
+  void enableStrictMode() { d_strictMode = true; }
+
+  /** Disable strict parsing. Allows certain syntactic infelicities to pass without comment. */
+  void disableStrictMode() { d_strictMode = false; }
+
+  bool strictModeEnabled() { return d_strictMode; }
 
   /** Get the name of the input file. */
 /*

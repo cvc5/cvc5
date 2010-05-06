@@ -165,6 +165,10 @@ int runCvc4(int argc, char* argv[]) {
     parser.disableChecks();
   }
 
+  if( options.strictParsing ) {
+    parser.enableStrictMode();
+  }
+
   // Parse and execute commands until we are done
   Command* cmd;
   while((cmd = parser.nextCommand())) {
