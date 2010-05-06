@@ -273,4 +273,16 @@ public:
     TS_ASSERT_EQUALS(res, large.toString());
   }
 
+  void testPow() {
+    TS_ASSERT_EQUALS( Integer(1), Integer(1).pow(0) );
+    TS_ASSERT_EQUALS( Integer(1), Integer(5).pow(0) );
+    TS_ASSERT_EQUALS( Integer(1), Integer(-1).pow(0) );
+    TS_ASSERT_EQUALS( Integer(0), Integer(0).pow(1) );
+    TS_ASSERT_EQUALS( Integer(5), Integer(5).pow(1) );
+    TS_ASSERT_EQUALS( Integer(-5), Integer(-5).pow(1) );
+    TS_ASSERT_EQUALS( Integer(16), Integer(2).pow(4) );
+    TS_ASSERT_EQUALS( Integer(16), Integer(-2).pow(4) );
+    TS_ASSERT_EQUALS( Integer(1000), Integer(10).pow(3) );
+    TS_ASSERT_EQUALS( Integer(-1000), Integer(-10).pow(3) );
+  }
 };
