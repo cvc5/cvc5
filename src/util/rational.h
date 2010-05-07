@@ -39,7 +39,7 @@ namespace CVC4 {
  ** in danger of invoking the char* constructor, from whence you will segfault.
  **/
 
-class Rational {
+class CVC4_PUBLIC Rational {
 private:
   /**
    * Stores the value of the rational is stored in a C++ GMP rational class.
