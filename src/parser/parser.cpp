@@ -39,7 +39,8 @@ Parser::Parser(ExprManager* exprManager, Input* input) :
   d_exprManager(exprManager),
   d_input(input),
   d_done(false),
-  d_checksEnabled(true) {
+  d_checksEnabled(true),
+  d_strictMode(false) {
   d_input->setParser(this);
 }
 

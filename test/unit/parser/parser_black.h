@@ -176,7 +176,8 @@ const string goodSmt2Exprs[] = {
     "0",
     "1.5",
     "#xfab09c7",
-    "#b0001011"
+    "#b0001011",
+    "(* 5 01)" // '01' is OK in non-strict mode
 };
 
 const int numGoodSmt2Exprs = sizeof(goodSmt2Exprs) / sizeof(string);
@@ -192,7 +193,8 @@ const string badSmt2Inputs[] = {
 
 const int numBadSmt2Inputs = sizeof(badSmt2Inputs) / sizeof(string);
 
-/* The following expressions are invalid even after setupContext. */
+/* The following expressions are invalid even after setupContext
+ * in non-strict mode. */
 const string badSmt2Exprs[] = {
     "(and)", // wrong arity
     "(and a b", // no closing paren
@@ -215,6 +217,15 @@ const string badSmt2Exprs[] = {
 };
 
 const int numBadSmt2Exprs = sizeof(badSmt2Exprs) / sizeof(string);
+
+/* The following expressions are invalid in strict mode, even after setupContext. */
+const string badStrictSmt2Exprs[] = {
+    "(and a)", // no unary and's
+    "(or a)",  // no unary or's
+    "(* 5 01)" // '01' is not a valid integer constant
+};
+
+const int numBadStrictSmt2Exprs = sizeof(badStrictSmt2Exprs) / sizeof(string);
 
 class ParserBlack : public CxxTest::TestSuite {
   ExprManager *d_exprManager;
@@ -270,7 +281,7 @@ class ParserBlack : public CxxTest::TestSuite {
 
   void tryBadInputs(InputLanguage d_lang, const string badInputs[], int numInputs) {
     for(int i = 0; i < numInputs; ++i) {
-//      cout << "Testing bad input: '" << badInputs[i] << "'\n";
+//      cerr << "Testing bad input: '" << badInputs[i] << "'\n";
 //      Debug.on("parser");
       Input* input = Input::newStringInput(d_lang, badInputs[i], "test");
       Parser parser(d_exprManager, input);
@@ -320,15 +331,18 @@ class ParserBlack : public CxxTest::TestSuite {
    * input. It's more trouble than it's worth to check that the whole input was
    * consumed here, so just be careful to avoid valid prefixes in tests.
    */
-  void tryBadExprs(InputLanguage d_lang, const string badBooleanExprs[], int numExprs) {
-    //Debug.on("parser");
+  void tryBadExprs(InputLanguage d_lang, const string badBooleanExprs[], int numExprs,
+                   bool strictMode = false) {
+//    Debug.on("parser");
+//    Debug.on("parser-extra");
     for(int i = 0; i < numExprs; ++i) {
-      // cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
-//      istringstream stream(context + badBooleanExprs[i]);
+//      cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
       Input* input = Input::newStringInput(d_lang,
                                            badBooleanExprs[i], "test");
       Parser parser(d_exprManager, input);
-
+      if( strictMode ) {
+        parser.enableStrictMode();
+      }
       setupContext(parser);
       TS_ASSERT( !parser.done() );
       TS_ASSERT_THROWS
@@ -340,7 +354,7 @@ class ParserBlack : public CxxTest::TestSuite {
           const ParserException& );
       delete input;
     }
-    //Debug.off("parser");
+//    Debug.off("parser");
   }
 
 public:
@@ -404,5 +418,9 @@ public:
 
   void testBadSmt2Exprs() {
     tryBadExprs(LANG_SMTLIB_V2,badSmt2Exprs,numBadSmt2Exprs);
+  }
+
+  void testBadSmt2StrictExprs() {
+    tryBadExprs(LANG_SMTLIB_V2,badStrictSmt2Exprs,numBadStrictSmt2Exprs,true);
   }
 };

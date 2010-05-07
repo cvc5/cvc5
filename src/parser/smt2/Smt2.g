@@ -33,6 +33,7 @@ options {
 }
 
 @lexer::includes {
+
 /** This suppresses warnings about the redefinition of token symbols between
   * different parsers. The redefinitions should be harmless as long as no
   * client: (a) #include's the lexer headers for two grammars AND (b) uses the
@@ -46,6 +47,19 @@ options {
  * Otherwise, we have to let the lexer detect the encoding at runtime.
  */
 #define ANTLR3_INLINE_INPUT_ASCII
+}
+
+@lexer::postinclude {
+#include <stdint.h>
+
+#include "parser/parser.h"
+#include "parser/antlr_input.h"
+
+using namespace CVC4;
+using namespace CVC4::parser;
+
+#undef PARSER_STATE 
+#define PARSER_STATE ((Parser*)LEXER->super)
 }
 
 @parser::includes {
@@ -147,7 +161,7 @@ command returns [CVC4::Command* cmd]
       setInfo(PARSER_STATE,name,sexpr);    
       cmd = new SetInfoCommand(name,sexpr); }
   | /* sort declaration */
-    DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=NUMERAL
+    DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL
     { Debug("parser") << "declare sort: '" << name << "' arity=" << n << std::endl;
       if( AntlrInput::tokenToInteger(n) > 0 ) {
         Unimplemented("Parameterized user sorts.");
@@ -179,10 +193,10 @@ symbolicExpr[CVC4::SExpr& sexpr]
 @declarations {
   std::vector<SExpr> children;
 }
-  : NUMERAL
-    { sexpr = SExpr(AntlrInput::tokenText($NUMERAL)); }
-  | RATIONAL
-    { sexpr = SExpr(AntlrInput::tokenText($RATIONAL)); }
+  : INTEGER_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
+  | RATIONAL_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($RATIONAL_LITERAL)); }
   | STRING_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
   | SYMBOL
@@ -256,11 +270,11 @@ term[CVC4::Expr& expr]
     /* constants */
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
-  | NUMERAL
-    { expr = MK_CONST( AntlrInput::tokenToInteger($NUMERAL) ); }
-  | RATIONAL
+  | INTEGER_LITERAL
+    { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
+  | RATIONAL_LITERAL
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL) ); }
+      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_LITERAL) ); }
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL,2);
@@ -460,20 +474,37 @@ WHITESPACE
   ;
 
 /**
- * Matches an integer constant from the input (non-empty sequence of digits).
- * This is a bit looser than what the standard allows, because it accepts 
- * leading zeroes. 
+ * Matches an integer constant from the input (non-empty sequence of digits, with
+ * no leading zeroes).
  */
-NUMERAL
-  : DIGIT+
+INTEGER_LITERAL
+  : NUMERAL
   ;
 
+/** Match an integer constant. In non-strict mode, this is any sequence of
+ * digits. In strict mode, non-zero integers can't have leading zeroes. */
+fragment NUMERAL
+@init {
+  char *start = (char*) GETCHARINDEX();
+}
+  : DIGIT+
+    { Debug("parser-extra") << "NUMERAL: " 
+       << (uintptr_t)start << ".." << GETCHARINDEX() 
+       << " strict? " << (bool)(PARSER_STATE->strictModeEnabled())
+       << " ^0? " << (bool)(*start == '0')
+       << " len>1? " << (bool)(start < (char*)(GETCHARINDEX() - 1))
+       << endl; }
+    { !PARSER_STATE->strictModeEnabled() || 
+      *start != '0' ||
+      start == (char*)(GETCHARINDEX() - 1) }?
+  ;
+  
 /**
   * Matches a rational constant from the input. This is a bit looser
   * than what the standard allows, because it accepts leading zeroes. 
   */
-RATIONAL
-  : DIGIT+ '.' DIGIT+
+RATIONAL_LITERAL
+  : NUMERAL '.' DIGIT+
   ;
 
 /**
