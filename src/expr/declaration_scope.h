@@ -15,6 +15,7 @@
 #define DECLARATION_SCOPE_H_
 
 #include "expr.h"
+#include "util/hash.h"
 
 #include <ext/hash_map>
 
@@ -30,15 +31,6 @@ template <class Key, class Data, class HashFcn>
 class CDMap;
 
 } //namespace context
-
-/** A basic hash function for std::string
- * TODO: Does this belong somewhere else (like util/)?
- */
-struct StringHashFunction {
-  size_t operator()(const std::string& str) const {
-    return __gnu_cxx::hash<const char*>()(str.c_str());
-  }
-};
 
 class CVC4_PUBLIC ScopeException : public Exception {
 };

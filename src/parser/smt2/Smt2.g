@@ -77,6 +77,7 @@ namespace CVC4 {
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
+#include "parser/smt2/smt2.h"
 #include "util/integer.h"
 #include "util/output.h"
 #include "util/rational.h"
@@ -95,29 +96,6 @@ using namespace CVC4::parser;
 #define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
-
-/**   
- * Sets the logic for the current benchmark. Declares any logic symbols.
- *
- * @param parser the CVC4 Parser object
- * @param name the name of the logic (e.g., QF_UF, AUFLIA)
- */
-static void
-setLogic(Parser *parser, const std::string& name) {
-  if( name == "QF_UF" ) {
-    parser->mkSort("U");
-  } else if(name == "QF_LRA"){
-    parser->defineType("Real", parser->getExprManager()->realType());
-  } else{
-    // NOTE: Theory types go here
-    Unhandled(name);
-  }
-}
-
-static void
-setInfo(Parser *parser, const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
-}
 
 }
 
@@ -154,11 +132,11 @@ command returns [CVC4::Command* cmd]
     SET_LOGIC_TOK SYMBOL
     { name = AntlrInput::tokenText($SYMBOL);
       Debug("parser") << "set logic: '" << name << "' " << std::endl;
-      setLogic(PARSER_STATE,name);
+      Smt2::setLogic(*PARSER_STATE,name);
       $cmd = new SetBenchmarkLogicCommand(name); }
   | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      setInfo(PARSER_STATE,name,sexpr);    
+      Smt2::setInfo(*PARSER_STATE,name,sexpr);    
       cmd = new SetInfoCommand(name,sexpr); }
   | /* sort declaration */
     DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL
@@ -195,8 +173,8 @@ symbolicExpr[CVC4::SExpr& sexpr]
 }
   : INTEGER_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
-  | RATIONAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($RATIONAL_LITERAL)); }
+  | DECIMAL_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
   | STRING_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
   | SYMBOL
@@ -229,7 +207,7 @@ term[CVC4::Expr& expr]
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
       } else {
-        PARSER_STATE->checkArity(kind, args.size());
+        PARSER_STATE->checkOperator(kind, args.size());
         expr = MK_EXPR(kind, args);
       }
     }
@@ -272,9 +250,9 @@ term[CVC4::Expr& expr]
   | FALSE_TOK         { expr = MK_CONST(false); }
   | INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
-  | RATIONAL_LITERAL
+  | DECIMAL_LITERAL
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
-      expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_LITERAL) ); }
+      expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL,2);
@@ -371,8 +349,6 @@ sortSymbol[CVC4::Type& t]
 }
   : sortName[name,CHECK_NONE] 
   	{ t = PARSER_STATE->getSort(name); }
-  | BOOL_TOK
-    { t = EXPR_MANAGER->booleanType(); }
   ;
 
 /**
@@ -394,7 +370,6 @@ symbol[std::string& id,
 
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
-BOOL_TOK : 'Bool';
 //CATEGORY_TOK : ':category';
 CHECKSAT_TOK : 'check-sat';
 //DIFFICULTY_TOK : ':difficulty';
@@ -500,10 +475,9 @@ fragment NUMERAL
   ;
   
 /**
-  * Matches a rational constant from the input. This is a bit looser
-  * than what the standard allows, because it accepts leading zeroes. 
+  * Matches a decimal constant from the input. 
   */
-RATIONAL_LITERAL
+DECIMAL_LITERAL
   : NUMERAL '.' DIGIT+
   ;
 

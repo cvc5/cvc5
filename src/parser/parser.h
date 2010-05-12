@@ -19,6 +19,7 @@
 #define __CVC4__PARSER__PARSER_STATE_H
 
 #include <string>
+#include <set>
 
 #include "input.h"
 #include "parser_exception.h"
@@ -116,6 +117,9 @@ class CVC4_PUBLIC Parser {
   /** Are we parsing in strict mode? */
   bool d_strictMode;
 
+  /** The set of operators available in the current logic. */
+  std::set<Kind> d_logicOperators;
+
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
@@ -185,7 +189,7 @@ public:
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
-  void setLogic(const std::string& name);
+//  void setLogic(const std::string& name);
 
   /**
    * Returns a variable, given a name and a type.
@@ -234,6 +238,16 @@ public:
    */
   void checkArity(Kind kind, unsigned int numArgs) throw (ParserException);
 
+  /** Check that <code>kind</code> is a legal operator in the current logic and
+   * that it can accept <code>numArgs</code> arguments.
+   *
+   * @param kind the built-in operator to check
+   * @param numArgs the number of actual arguments
+   * @throws ParserException if the parser mode is strict and the operator <code>kind</kind>
+   * has not been enabled
+   */
+  void checkOperator(Kind kind, unsigned int numArgs) throw (ParserException);
+
   /**
    * Returns the type for the variable with the given name.
    * @param var_name the symbol to lookup
@@ -265,6 +279,12 @@ public:
    */
   const std::vector<Type>
   mkSorts(const std::vector<std::string>& names);
+
+  /** Add an operator to the current legal set.
+   *
+   * @param kind the built-in operator to add
+   */
+  void addOperator(Kind kind);
 
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);

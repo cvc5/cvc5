@@ -24,6 +24,8 @@ ANTLR_STUFF = \
 
 libparsersmt2_la_SOURCES = \
 	Smt2.g \
+	smt2.h \
+    smt2.cpp \
 	smt2_input.h \
 	smt2_input.cpp \
 	$(ANTLR_STUFF)

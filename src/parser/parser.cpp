@@ -210,6 +210,17 @@ void Parser::checkArity(Kind kind, unsigned int numArgs)
   }
 }
 
+void Parser::checkOperator(Kind kind, unsigned int numArgs) throw (ParserException) {
+  if( d_strictMode && d_logicOperators.find(kind) == d_logicOperators.end() ) {
+    parseError( "Operator is not defined in the current logic: " + kindToString(kind) );
+  }
+  checkArity(kind,numArgs);
+}
+
+void Parser::addOperator(Kind kind) {
+  d_logicOperators.insert(kind);
+}
+
 Command* Parser::nextCommand() throw(ParserException) {
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
