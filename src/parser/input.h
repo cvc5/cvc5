@@ -150,7 +150,7 @@ protected:
   virtual Expr parseExpr() throw(ParserException) = 0;
 
   /** Set the Parser object for this input. */
-  virtual void setParser(Parser *parser) = 0;
+  virtual void setParser(Parser& parser) = 0;
 };
 
 }/* CVC4::parser namespace */

@@ -35,13 +35,13 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace parser {
 
-Parser::Parser(ExprManager* exprManager, Input* input) :
+Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode) :
   d_exprManager(exprManager),
   d_input(input),
   d_done(false),
   d_checksEnabled(true),
-  d_strictMode(false) {
-  d_input->setParser(this);
+  d_strictMode(strictMode) {
+  d_input->setParser(*this);
 }
 
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
@@ -111,14 +111,12 @@ Parser::mkVars(const std::vector<std::string> names,
 
 void
 Parser::defineVar(const std::string& name, const Expr& val) {
-  Assert(!isDeclared(name));
   d_declScope.bind(name,val);
   Assert(isDeclared(name));
 }
 
 void
 Parser::defineType(const std::string& name, const Type& type) {
-  Assert( !isDeclared(name, SYM_SORT) );
   d_declScope.bindType(name,type);
   Assert( isDeclared(name, SYM_SORT) ) ;
 }

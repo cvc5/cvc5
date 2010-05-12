@@ -204,14 +204,13 @@ void AntlrInput::setAntlr3Lexer(pANTLR3_LEXER pLexer) {
   d_lexer->rec->state->tokSource->nextToken = &nextTokenStr;
 }
 
-void AntlrInput::setParser(Parser *parser) {
+void AntlrInput::setParser(Parser& parser) {
   // ANTLR isn't using super in the lexer or the parser, AFAICT.
   // We could also use @lexer/parser::context to add a field to the generated
   // objects, but then it would have to be declared separately in every
   // language's grammar and we'd have to in the address of the field anyway.
-  d_lexer->super = parser;
-  d_parser->super = parser;
-
+  d_lexer->super = &parser;
+  d_parser->super = &parser;
 }
 
 void AntlrInput::setAntlr3Parser(pANTLR3_PARSER pParser) {

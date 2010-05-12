@@ -20,6 +20,7 @@
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
+#include "parser/smt2/smt2.h"
 #include "parser/smt2/generated/Smt2Lexer.h"
 #include "parser/smt2/generated/Smt2Parser.h"
 
@@ -62,6 +63,13 @@ Command* Smt2Input::parseCommand() throw (ParserException) {
 
 Expr Smt2Input::parseExpr() throw (ParserException) {
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
+}
+
+void Smt2Input::setParser(Parser& parser) {
+  super::setParser(parser);
+  if( !parser.strictModeEnabled() ) {
+    Smt2::addTheory(parser,Smt2::THEORY_CORE);
+  }
 }
 
 }/* CVC4::parser namespace */

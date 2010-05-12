@@ -60,6 +60,8 @@ void Smt2::addTheory(Parser& parser, Theory theory) {
   switch(theory) {
   case THEORY_CORE:
     parser.defineType("Bool", parser.getExprManager()->booleanType());
+    parser.defineVar("true", parser.getExprManager()->mkConst(true));
+    parser.defineVar("false", parser.getExprManager()->mkConst(false));
     parser.addOperator(kind::AND);
     parser.addOperator(kind::EQUAL);
     parser.addOperator(kind::IFF);

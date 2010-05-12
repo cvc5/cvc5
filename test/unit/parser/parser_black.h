@@ -82,11 +82,11 @@ protected:
       }
   }
 
-  void tryBadInput(const string badInput) {
+  void tryBadInput(const string badInput, bool strictMode = false) {
 //      cerr << "Testing bad input: '" << badInput << "'\n";
 //      Debug.on("parser");
       Input* input = Input::newStringInput(d_lang, badInput, "test");
-      Parser parser(d_exprManager, input);
+      Parser parser(d_exprManager, input, strictMode);
       TS_ASSERT_THROWS
         ( while(parser.nextCommand());
           cout << "\nBad input succeeded:\n" << badInput << endl;,
@@ -134,10 +134,7 @@ protected:
 //    Debug.on("parser-extra");
 //      cout << "Testing bad expr: '" << badExpr << "'\n";
       Input* input = Input::newStringInput(d_lang, badExpr, "test");
-      Parser parser(d_exprManager, input);
-      if( strictMode ) {
-        parser.enableStrictMode();
-      }
+      Parser parser(d_exprManager, input, strictMode);
       setupContext(parser);
       TS_ASSERT( !parser.done() );
       TS_ASSERT_THROWS
@@ -278,10 +275,10 @@ public:
     tryGoodInput(""); // empty string is OK
     tryGoodInput("(set-logic QF_UF)");
     tryGoodInput("(set-info :notes |This is a note, take note!|)");
-    tryGoodInput("(set-logic QF_UF)(assert true)");
+    tryGoodInput("(set-logic QF_UF) (assert true)");
     tryGoodInput("(check-sat)");
     tryGoodInput("(exit)");
-    tryGoodInput("(assert false) (check-sat)");
+    tryGoodInput("(set-logic QF_UF) (assert false) (check-sat)");
     tryGoodInput("(set-logic QF_UF) (declare-fun a () Bool) "
                  "(declare-fun b () Bool)");
     tryGoodInput("(set-logic QF_UF) (declare-fun a () Bool) "
@@ -299,10 +296,13 @@ public:
   void testBadSmt2Inputs() {
     tryBadInput("(assert)"); // no args
     tryBadInput("(set-info :notes |Symbols can't contain the | character|)");
-    tryBadInput("(check-sat true)"); // shouldn't have an arg
+    tryBadInput("(set-logic QF_UF) (check-sat true)"); // shouldn't have an arg
     tryBadInput("(declare-sort a)"); // no arg
     tryBadInput("(declare-sort a 0) (declare-sort a 0)"); // double decl
-    tryBadInput("(declare-fun p Bool)"); // should be "p () Bool"
+    tryBadInput("(set-logic QF_UF) (declare-fun p Bool)"); // should be "p () Bool"
+    // strict mode
+    tryBadInput("(assert true)", true); // no set-logic, core theory symbol "true" undefined
+    tryBadInput("(declare-fun p Bool)", true); // core theory symbol "Bool" undefined
   }
 
   void testGoodSmt2Exprs() {

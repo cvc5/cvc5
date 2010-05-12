@@ -129,7 +129,7 @@ public:
    * @param exprManager the expression manager to use when creating expressions
    * @param input the parser input
    */
-  Parser(ExprManager* exprManager, Input* input);
+  Parser(ExprManager* exprManager, Input* input, bool strictMode = false);
 
   virtual ~Parser() { }
 

@@ -246,8 +246,8 @@ term[CVC4::Expr& expr]
     { expr = PARSER_STATE->getVariable(name); }
 
     /* constants */
-  | TRUE_TOK          { expr = MK_CONST(true); }
-  | FALSE_TOK         { expr = MK_CONST(false); }
+//  | TRUE_TOK          { expr = MK_CONST(true); }
+//  | FALSE_TOK         { expr = MK_CONST(false); }
   | INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
   | DECIMAL_LITERAL
@@ -376,7 +376,7 @@ CHECKSAT_TOK : 'check-sat';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 EXIT_TOK : 'exit';
-FALSE_TOK : 'false';
+//FALSE_TOK : 'false';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
 LPAREN_TOK : '(';
@@ -388,7 +388,7 @@ SET_INFO_TOK : 'set-info';
 //SMT_VERSION_TOK : ':smt-lib-version';
 //SOURCE_TOK : ':source';
 //STATUS_TOK : ':status';
-TRUE_TOK : 'true';
+//TRUE_TOK : 'true';
 //UNKNOWN_TOK : 'unknown';
 //UNSAT_TOK : 'unsat';
 

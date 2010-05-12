@@ -90,7 +90,7 @@ class Parser;
  * for the given input language and attach it to an input source of the
  * appropriate type.
  */
-class AntlrInput : public Input{
+class AntlrInput : public Input {
   /** The token lookahead used to lex and parse the input. This should usually be equal to
    * <code>K</code> for an LL(k) grammar. */
   unsigned int d_lookahead;
@@ -192,7 +192,7 @@ protected:
   void setAntlr3Parser(pANTLR3_PARSER pParser);
 
   /** Set the Parser object for this input. */
-  void setParser(Parser *parser);
+  virtual void setParser(Parser& parser);
 };
 
 inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
