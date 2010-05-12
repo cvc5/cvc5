@@ -52,14 +52,14 @@ options {
 @lexer::postinclude {
 #include <stdint.h>
 
-#include "parser/parser.h"
+#include "parser/smt2/smt2.h"
 #include "parser/antlr_input.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
 
 #undef PARSER_STATE 
-#define PARSER_STATE ((Parser*)LEXER->super)
+#define PARSER_STATE ((Smt2*)LEXER->super)
 }
 
 @parser::includes {
@@ -89,7 +89,7 @@ using namespace CVC4::parser;
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
 #undef PARSER_STATE 
-#define PARSER_STATE ((Parser*)PARSER->super)
+#define PARSER_STATE ((Smt2*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef MK_EXPR
@@ -132,11 +132,14 @@ command returns [CVC4::Command* cmd]
     SET_LOGIC_TOK SYMBOL
     { name = AntlrInput::tokenText($SYMBOL);
       Debug("parser") << "set logic: '" << name << "' " << std::endl;
-      Smt2::setLogic(*PARSER_STATE,name);
+      if( PARSER_STATE->strictModeEnabled() && PARSER_STATE->logicIsSet() ) {
+        PARSER_STATE->parseError("Only one set-logic is allowed.");
+      }
+      PARSER_STATE->setLogic(name);
       $cmd = new SetBenchmarkLogicCommand(name); }
   | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      Smt2::setInfo(*PARSER_STATE,name,sexpr);    
+      PARSER_STATE->setInfo(name,sexpr);    
       cmd = new SetInfoCommand(name,sexpr); }
   | /* sort declaration */
     DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL

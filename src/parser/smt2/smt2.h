@@ -22,6 +22,7 @@
 namespace std { using namespace __gnu_cxx; }
 
 #include "util/hash.h"
+#include "parser/parser.h"
 
 namespace CVC4 {
 
@@ -29,9 +30,8 @@ class SExpr;
 
 namespace parser {
 
-class Parser;
-
-class Smt2 {
+class Smt2 : public Parser {
+  friend class ParserBuilder;
 
 public:
   enum Logic {
@@ -51,14 +51,25 @@ public:
     THEORY_REALS_INTS,
   };
 
+private:
+  bool d_logicSet;
+  Logic d_logic;
+
+protected:
+  Smt2(ExprManager* exprManager, Input* input, bool strictMode = false);
+
+public:
   /**
    * Add theory symbols to the parser state.
    *
    * @param parser the CVC4 Parser object
    * @param theory the theory to open (e.g., Core, Ints)
    */
-  static void
-  addTheory(Parser& parser, Theory theory);
+  void
+  addTheory(Theory theory);
+
+  bool
+  logicIsSet();
 
   /**
    * Sets the logic for the current benchmark. Declares any logic and theory symbols.
@@ -66,17 +77,17 @@ public:
    * @param parser the CVC4 Parser object
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
-  static void
-  setLogic(Parser& parser, const std::string& name);
+  void
+  setLogic(const std::string& name);
 
-  static void
-  setInfo(Parser& parser, const std::string& flag, const SExpr& sexpr);
+  void
+  setInfo(const std::string& flag, const SExpr& sexpr);
 
   static Logic toLogic(const std::string& name);
 
 private:
 
-  static void addArithmeticOperators(Parser& parser);
+  void addArithmeticOperators();
   static std::hash_map<const std::string, Logic, CVC4::StringHashFunction> newLogicMap();
 };
 }/* CVC4::parser namespace */

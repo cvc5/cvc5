@@ -19,8 +19,8 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "parser/input.h"
 #include "parser/parser.h"
+#include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
 #include "expr/command.h"
 #include "util/output.h"
@@ -62,17 +62,20 @@ protected:
 //         Debug.on("parser-extra");
 //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
 //        istringstream stream(goodInputs[i]);
-        Input* input = Input::newStringInput(d_lang, goodInput, "test");
-        Parser parser(d_exprManager, input);
-        TS_ASSERT( !parser.done() );
+        ParserBuilder parserBuilder(d_lang,"test");
+        Parser *parser =
+          parserBuilder.withStringInput(goodInput)
+            .withExprManager(*d_exprManager)
+            .build();
+        TS_ASSERT( !parser->done() );
         Command* cmd;
-        while((cmd = parser.nextCommand()) != NULL) {
+        while((cmd = parser->nextCommand()) != NULL) {
           Debug("parser") << "Parsed command: " << (*cmd) << endl;
         }
 
-        TS_ASSERT( parser.done() );
-        delete input;
-        Debug.off("parser");
+        TS_ASSERT( parser->done() );
+        delete parser;
+//        Debug.off("parser");
 //        Debug.off("parser-extra");
       } catch (Exception& e) {
         cout << "\nGood input failed:\n" << goodInput << endl
@@ -85,14 +88,18 @@ protected:
   void tryBadInput(const string badInput, bool strictMode = false) {
 //      cerr << "Testing bad input: '" << badInput << "'\n";
 //      Debug.on("parser");
-      Input* input = Input::newStringInput(d_lang, badInput, "test");
-      Parser parser(d_exprManager, input, strictMode);
+    ParserBuilder parserBuilder(d_lang,"test");
+    Parser *parser =
+      parserBuilder.withStringInput(badInput)
+        .withExprManager(*d_exprManager)
+        .withStrictMode(strictMode)
+        .build();
       TS_ASSERT_THROWS
-        ( while(parser.nextCommand());
+        ( while(parser->nextCommand());
           cout << "\nBad input succeeded:\n" << badInput << endl;,
           const ParserException& );
 //      Debug.off("parser");
-      delete input;
+      delete parser;
   }
 
   void tryGoodExpr(const string goodExpr) {
@@ -102,18 +109,20 @@ protected:
 //        cerr << "Testing good expr: '" << goodExpr << "'\n";
         // Debug.on("parser");
 //        istringstream stream(context + goodBooleanExprs[i]);
-        Input* input = Input::newStringInput(d_lang,
-                                              goodExpr, "test");
-        Parser parser(d_exprManager, input);
-        TS_ASSERT( !parser.done() );
-        setupContext(parser);
-        TS_ASSERT( !parser.done() );
-        Expr e = parser.nextExpression();
+        ParserBuilder parserBuilder(d_lang,"test");
+        Parser *parser =
+          parserBuilder.withStringInput(goodExpr)
+            .withExprManager(*d_exprManager)
+            .build();
+        TS_ASSERT( !parser->done() );
+        setupContext(*parser);
+        TS_ASSERT( !parser->done() );
+        Expr e = parser->nextExpression();
         TS_ASSERT( !e.isNull() );
-        e = parser.nextExpression();
-        TS_ASSERT( parser.done() );
+        e = parser->nextExpression();
+        TS_ASSERT( parser->done() );
         TS_ASSERT( e.isNull() );
-        delete input;
+        delete parser;
       } catch (Exception& e) {
         cout << endl
              << "Good expr failed." << endl
@@ -133,18 +142,22 @@ protected:
 //    Debug.on("parser");
 //    Debug.on("parser-extra");
 //      cout << "Testing bad expr: '" << badExpr << "'\n";
-      Input* input = Input::newStringInput(d_lang, badExpr, "test");
-      Parser parser(d_exprManager, input, strictMode);
-      setupContext(parser);
-      TS_ASSERT( !parser.done() );
+      ParserBuilder parserBuilder(d_lang,"test");
+      Parser *parser =
+        parserBuilder.withStringInput(badExpr)
+          .withExprManager(*d_exprManager)
+          .withStrictMode(strictMode)
+          .build();
+      setupContext(*parser);
+      TS_ASSERT( !parser->done() );
       TS_ASSERT_THROWS
-        ( Expr e = parser.nextExpression();
+        ( Expr e = parser->nextExpression();
           cout << endl
                << "Bad expr succeeded." << endl
                << "Input: <<" << badExpr << ">>" << endl
                << "Output: <<" << e << ">>" << endl;,
           const ParserException& );
-      delete input;
+      delete parser;
 //    Debug.off("parser");
   }
 
@@ -266,8 +279,8 @@ class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Smt2ParserTest() : ParserBlack(LANG_SMTLIB_V2) { }
 
-  void setupContext(Parser& parser) {
-    Smt2::addTheory(parser,Smt2::THEORY_CORE);
+  void setupContext(Smt2& parser) {
+    parser.addTheory(Smt2::THEORY_CORE);
     super::setupContext(parser);
   }
 

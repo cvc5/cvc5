@@ -75,6 +75,7 @@ class Parser;
  */
 class CVC4_PUBLIC Input {
   friend class Parser; // for parseError, parseCommand, parseExpr
+  friend class ParserBuilder;
 
   /** The input stream. */
   InputStream *d_inputStream;
@@ -84,11 +85,6 @@ class CVC4_PUBLIC Input {
    */
   Input(const Input& input) { Unimplemented("Copy constructor for Input."); }
   Input& operator=(const Input& input) { Unimplemented("operator= for Input."); }
-
-public:
-
-  /** Destructor. Frees the token stream and closes the input. */
-  virtual ~Input();
 
   /** Create an input for the given file.
     *
@@ -115,6 +111,11 @@ public:
    */
   static Input* newStringInput(InputLanguage lang, const std::string& input, const std::string& name)
     throw (InputStreamException);
+
+public:
+
+  /** Destructor. Frees the token stream and closes the input. */
+  virtual ~Input();
 
 protected:
 

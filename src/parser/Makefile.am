@@ -48,6 +48,8 @@ libcvc4parser_noinst_la_SOURCES = \
 	memory_mapped_input_buffer.cpp \
     parser.h \
     parser.cpp \
+    parser_builder.h \
+    parser_builder.cpp \
     parser_options.h \
     parser_exception.h
 

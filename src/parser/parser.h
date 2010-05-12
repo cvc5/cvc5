@@ -95,6 +95,7 @@ inline std::string toString(SymbolType type) {
  * declarations.
  */
 class CVC4_PUBLIC Parser {
+  friend class ParserBuilder;
 
   /** The expression manager */
   ExprManager *d_exprManager;
@@ -123,15 +124,20 @@ class CVC4_PUBLIC Parser {
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
-public:
-  /** Create a parser state.
+protected:
+  /** Create a parser state. NOTE: The parser takes "ownership" of the given
+   * input and will delete it on destruction.
    *
    * @param exprManager the expression manager to use when creating expressions
    * @param input the parser input
    */
   Parser(ExprManager* exprManager, Input* input, bool strictMode = false);
 
-  virtual ~Parser() { }
+public:
+
+  virtual ~Parser() {
+    delete d_input;
+  }
 
   /** Get the associated <code>ExprManager</code>. */
   inline ExprManager* getExprManager() const {
@@ -145,9 +151,9 @@ public:
 
   /** Set the declaration scope manager for this input. NOTE: This should <em>only</me> be
    * called before parsing begins. Otherwise, previous declarations will be lost. */
-  inline void setDeclarationScope(DeclarationScope declScope) {
+/*  inline void setDeclarationScope(DeclarationScope declScope) {
     d_declScope = declScope;
-  }
+  }*/
 
   /**
    * Check if we are done -- either the end of input has been reached, or some

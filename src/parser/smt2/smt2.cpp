@@ -39,15 +39,23 @@ Smt2::Logic Smt2::toLogic(const std::string& name) {
   return logicMap[name];
 }
 
-void Smt2::addArithmeticOperators(Parser& parser) {
-  parser.addOperator(kind::PLUS);
-  parser.addOperator(kind::MINUS);
-  parser.addOperator(kind::UMINUS);
-  parser.addOperator(kind::MULT);
-  parser.addOperator(kind::LT);
-  parser.addOperator(kind::LEQ);
-  parser.addOperator(kind::GT);
-  parser.addOperator(kind::GEQ);
+Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode) :
+  Parser(exprManager,input,strictMode),
+  d_logicSet(false) {
+  if( !strictModeEnabled() ) {
+    addTheory(Smt2::THEORY_CORE);
+  }
+}
+
+void Smt2::addArithmeticOperators() {
+  addOperator(kind::PLUS);
+  addOperator(kind::MINUS);
+  addOperator(kind::UMINUS);
+  addOperator(kind::MULT);
+  addOperator(kind::LT);
+  addOperator(kind::LEQ);
+  addOperator(kind::GT);
+  addOperator(kind::GEQ);
 }
 
 /**
@@ -56,39 +64,43 @@ void Smt2::addArithmeticOperators(Parser& parser) {
  * @param parser the CVC4 Parser object
  * @param theory the theory to open (e.g., Core, Ints)
  */
-void Smt2::addTheory(Parser& parser, Theory theory) {
+void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_CORE:
-    parser.defineType("Bool", parser.getExprManager()->booleanType());
-    parser.defineVar("true", parser.getExprManager()->mkConst(true));
-    parser.defineVar("false", parser.getExprManager()->mkConst(false));
-    parser.addOperator(kind::AND);
-    parser.addOperator(kind::EQUAL);
-    parser.addOperator(kind::IFF);
-    parser.addOperator(kind::IMPLIES);
-    parser.addOperator(kind::ITE);
-    parser.addOperator(kind::NOT);
-    parser.addOperator(kind::OR);
-    parser.addOperator(kind::XOR);
+    defineType("Bool", getExprManager()->booleanType());
+    defineVar("true", getExprManager()->mkConst(true));
+    defineVar("false", getExprManager()->mkConst(false));
+    addOperator(kind::AND);
+    addOperator(kind::EQUAL);
+    addOperator(kind::IFF);
+    addOperator(kind::IMPLIES);
+    addOperator(kind::ITE);
+    addOperator(kind::NOT);
+    addOperator(kind::OR);
+    addOperator(kind::XOR);
     break;
 
   case THEORY_REALS_INTS:
-    parser.defineType("Real", parser.getExprManager()->realType());
+    defineType("Real", getExprManager()->realType());
     // falling-through on purpose, to add Ints part of RealsInts
 
   case THEORY_INTS:
-    parser.defineType("Int", parser.getExprManager()->integerType());
-    addArithmeticOperators(parser);
+    defineType("Int", getExprManager()->integerType());
+    addArithmeticOperators();
     break;
 
   case THEORY_REALS:
-    parser.defineType("Real", parser.getExprManager()->realType());
-    addArithmeticOperators(parser);
+    defineType("Real", getExprManager()->realType());
+    addArithmeticOperators();
     break;
 
   default:
     Unhandled(theory);
   }
+}
+
+bool Smt2::logicIsSet() {
+  return d_logicSet;
 }
 
 /**
@@ -97,17 +109,20 @@ void Smt2::addTheory(Parser& parser, Theory theory) {
  * @param parser the CVC4 Parser object
  * @param name the name of the logic (e.g., QF_UF, AUFLIA)
  */
-void Smt2::setLogic(Parser& parser, const std::string& name) {
-  // Core theory belongs to every logic
-  addTheory(parser, THEORY_CORE);
+void Smt2::setLogic(const std::string& name) {
+  d_logicSet = true;
+  d_logic = toLogic(name);
 
-  switch(toLogic(name)) {
+  // Core theory belongs to every logic
+  addTheory(THEORY_CORE);
+
+  switch(d_logic) {
   case QF_UF:
-    parser.addOperator(kind::APPLY_UF);
+    addOperator(kind::APPLY_UF);
     break;
 
   case QF_LRA:
-    addTheory(parser, THEORY_REALS);
+    addTheory(THEORY_REALS);
     break;
 
   default:
@@ -115,7 +130,7 @@ void Smt2::setLogic(Parser& parser, const std::string& name) {
   }
 }
 
-void Smt2::setInfo(Parser& parser, const std::string& flag, const SExpr& sexpr) {
+void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???
 }
 

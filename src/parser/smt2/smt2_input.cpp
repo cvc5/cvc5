@@ -65,12 +65,5 @@ Expr Smt2Input::parseExpr() throw (ParserException) {
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 
-void Smt2Input::setParser(Parser& parser) {
-  super::setParser(parser);
-  if( !parser.strictModeEnabled() ) {
-    Smt2::addTheory(parser,Smt2::THEORY_CORE);
-  }
-}
-
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

@@ -32,6 +32,8 @@ class ExprManager;
 
 namespace parser {
 
+class Smt2;
+
 class Smt2Input : public AntlrInput {
   typedef AntlrInput super;
 
@@ -85,11 +87,6 @@ protected:
    * @throws ParserException if an error is encountered during parsing.
    */
   Expr parseExpr() throw(ParserException);
-
-  /** Set the Parser object for this input. This implementation overrides the super-class
-   * implementation to add the core theory symbols to the parser state when strict
-   * mode is disabled. */
-  virtual void setParser(Parser& parser);
 
 };/* class Smt2Input */
 

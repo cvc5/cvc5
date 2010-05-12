@@ -22,8 +22,8 @@
 #include "cvc4autoconfig.h"
 #include "main.h"
 #include "usage.h"
-#include "parser/input.h"
 #include "parser/parser.h"
+#include "parser/parser_builder.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "expr/command.h"
@@ -149,29 +149,19 @@ int runCvc4(int argc, char* argv[]) {
     }
   }
 
-  // Create the parser
-  Input* input;
-
   /* TODO: Hack ANTLR3 to support input from streams */
-//  if(inputFromStdin) {
-    //    parser = Parser::getNewParser(&exprMgr, options.lang, cin, "<stdin>");
-//  } else {
-    input = Input::newFileInput(options.lang, argv[firstArgIndex],
-                                     options.memoryMap);
-//  }
-  Parser parser(&exprMgr, input);
+  ParserBuilder parserBuilder(options.lang,  argv[firstArgIndex]);
 
-  if(!options.semanticChecks || Configuration::isMuzzledBuild()) {
-    parser.disableChecks();
-  }
-
-  if( options.strictParsing ) {
-    parser.enableStrictMode();
-  }
+  Parser *parser =
+      parserBuilder.withExprManager(exprMgr)
+        .withMmap(options.memoryMap)
+        .withChecks(options.semanticChecks && !Configuration::isMuzzledBuild() )
+        .withStrictMode( options.strictParsing )
+        .build();
 
   // Parse and execute commands until we are done
   Command* cmd;
-  while((cmd = parser.nextCommand())) {
+  while((cmd = parser->nextCommand())) {
     if( !options.parseOnly ) {
       doCommand(smt, cmd);
     }
@@ -179,7 +169,7 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Remove the parser
-  delete input;
+  delete parser;
 
   switch(lastResult.asSatisfiabilityResult().isSAT()) {
 
