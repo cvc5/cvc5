@@ -21,6 +21,7 @@
 #include "expr/expr_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
+#include "parser/smt2/smt2.h"
 #include "expr/command.h"
 #include "util/output.h"
 
@@ -29,210 +30,14 @@ using namespace CVC4::parser;
 using namespace std;
 
 
-/************************** CVC test inputs ********************************/
 
-const string goodCvc4Inputs[] = {
-      "", // empty string is OK
-      "ASSERT TRUE;",
-      "QUERY TRUE;",
-      "CHECKSAT FALSE;",
-      "a, b : BOOLEAN;",
-      "a, b : BOOLEAN; QUERY (a => b) AND a => b;",
-      "T, U : TYPE; f : T -> U; x : T; CHECKSAT f(x) = x;",
-      "T : TYPE; x, y : T; a : BOOLEAN; QUERY (IF a THEN x ELSE y ENDIF) = x;",
-      "%% nothing but a comment",
-      "% a comment\nASSERT TRUE; %a command\n% another comment",
-  };
-
-const int numGoodCvc4Inputs = sizeof(goodCvc4Inputs) / sizeof(string);
-
-
-/* The following expressions are valid after setupContext. */
-const string goodCvc4Exprs[] = {
-    "a AND b",
-    "a AND b OR c",
-    "(a => b) AND a => b",
-    "(a <=> b) AND (NOT a)",
-    "(a XOR b) <=> (a OR b) AND (NOT (a AND b))"
-};
-
-const int numGoodCvc4Exprs = sizeof(goodCvc4Exprs) / sizeof(string);
-
-const string badCvc4Inputs[] = {
-      ";", // no command
-      "ASSERT;", // no args
-      "QUERY",
-      "CHECKSAT",
-      "a, b : boolean;", // lowercase boolean isn't a type
-      "0x : INT;", // 0x isn't an identifier
-      "a, b : BOOLEAN\nQUERY (a => b) AND a => b;", // no semicolon after decl
-      "a : BOOLEAN; a: BOOLEAN;" // double decl
-      "a, b: BOOLEAN; QUERY a(b);" // non-function used as function
-  };
-
-const int numBadCvc4Inputs = sizeof(badCvc4Inputs) / sizeof(string);
-
-/* The following expressions are invalid even after setupContext. */
-const string badCvc4Exprs[] = {
-    "a AND", // wrong arity
-    "AND(a,b)", // not infix
-    "(OR (AND a b) c)", // not infix
-    "a IMPLIES b", // should be =>
-    "a NOT b", // wrong arity, not infix
-    "a and b" // wrong case
-};
-
-const int numBadCvc4Exprs = sizeof(badCvc4Exprs) / sizeof(string);
-
-/************************** SMT test inputs ********************************/
-
-const string goodSmtInputs[] = {
-    "", // empty string is OK
-    "(benchmark foo :assumption true)",
-    "(benchmark bar :formula true)",
-    "(benchmark qux :formula false)",
-    "(benchmark baz :extrapreds ( (a) (b) ) )",
-    "(benchmark zab :extrapreds ( (a) (b) ) :formula (implies (and (implies a b) a) b))",
-    "(benchmark zub :extrasorts (a) :extrafuns ( (f a a) (x a) )  :formula (= (f x) x))",
-    "(benchmark fuz :extrasorts (a) :extrafuns ((x a) (y a)) :formula (= (ite true x y) x))",
-    ";; nothing but a comment",
-    "; a comment\n(benchmark foo ; hello\n  :formula true; goodbye\n)"
-  };
-
-const int numGoodSmtInputs = sizeof(goodSmtInputs) / sizeof(string);
-
-/* The following expressions are valid after setupContext. */
-const string goodSmtExprs[] = {
-    "(and a b)",
-    "(or (and a b) c)",
-    "(implies (and (implies a b) a) b)",
-    "(and (iff a b) (not a))",
-    "(iff (xor a b) (and (or a b) (not (and a b))))",
-    "(ite a (f x) y)",
-    "(if_then_else a (f x) y)",
-    "1",
-    "0"// ,
-//    "1.5"
-};
-
-const int numGoodSmtExprs = sizeof(goodSmtExprs) / sizeof(string);
-
-const string badSmtInputs[] = {
-    "(benchmark foo)", // empty benchmark is not OK
-    "(benchmark bar :assumption)", // no args
-    "(benchmark bar :formula)",
-    "(benchmark baz :extrapreds ( (a) (a) ) )", // double decl
-    "(benchmark zub :extrasorts (a) :extrapreds (p a))" // (p a) needs parens
-  };
-
-const int numBadSmtInputs = sizeof(badSmtInputs) / sizeof(string);
-
-/* The following expressions are invalid even after setupContext. */
-const string badSmtExprs[] = {
-    "(and)", // wrong arity
-    "(and a b", // no closing paren
-    "(a and b)", // infix
-    "(OR (AND a b) c)", // wrong case
-    "(a IMPLIES b)", // infix AND wrong case
-    "(not a b)", // wrong arity
-    "not a", // needs parens
-    "(ite a x)", // wrong arity
-    "(a b)", // using non-function as function
-    ".5", // rational constants must have integer prefix
-    "1." // rational constants must have fractional suffix
-};
-
-const int numBadSmtExprs = sizeof(badSmtExprs) / sizeof(string);
-
-/************************** SMT v2 test inputs ********************************/
-
-const string goodSmt2Inputs[] = {
-    "", // empty string is OK
-    "(set-logic QF_UF)",
-    "(set-info :notes |This is a note, take note!|)",
-    "(assert true)",
-    "(check-sat)",
-    "(exit)",
-    "(assert false) (check-sat)",
-    "(declare-fun a () Bool) (declare-fun b () Bool)",
-    "(declare-fun a () Bool) (declare-fun b () Bool) (assert (=> (and (=> a b) a) b))",
-    "(declare-sort a 0) (declare-fun f (a) a) (declare-fun x () a) (assert (= (f x) x))",
-    "(declare-sort a 0) (declare-fun x () a) (declare-fun y () a) (assert (= (ite true x y) x))",
-    ";; nothing but a comment",
-    "; a comment\n(check-sat ; goodbye\n)"
-  };
-
-const int numGoodSmt2Inputs = sizeof(goodSmt2Inputs) / sizeof(string);
-
-/* The following expressions are valid after setupContext. */
-const string goodSmt2Exprs[] = {
-    "(and a b)",
-    "(or (and a b) c)",
-    "(=> (and (=> a b) a) b)",
-    "(and (= a b) (not a))",
-    "(= (xor a b) (and (or a b) (not (and a b))))",
-    "(ite a (f x) y)",
-    "1",
-    "0",
-    "1.5",
-    "#xfab09c7",
-    "#b0001011",
-    "(* 5 01)" // '01' is OK in non-strict mode
-};
-
-const int numGoodSmt2Exprs = sizeof(goodSmt2Exprs) / sizeof(string);
-
-const string badSmt2Inputs[] = {
-    "(assert)", // no args
-    "(set-info :notes |Symbols can't contain the | character|)",
-    "(check-sat true)", // shouldn't have an arg
-    "(declare-sort a)", // no arg
-    "(declare-sort a 0) (declare-sort a 0)", // double decl
-    "(declare-fun p Bool)" // should be "p () Bool"
-  };
-
-const int numBadSmt2Inputs = sizeof(badSmt2Inputs) / sizeof(string);
-
-/* The following expressions are invalid even after setupContext
- * in non-strict mode. */
-const string badSmt2Exprs[] = {
-    "(and)", // wrong arity
-    "(and a b", // no closing paren
-    "(a and b)", // infix
-    "(implies a b)", // no implies in v2
-    "(iff a b)", // no iff in v2
-    "(OR (AND a b) c)", // wrong case
-    "(a IMPLIES b)", // infix AND wrong case
-    "(not a b)", // wrong arity
-    "not a", // needs parens
-    "(ite a x)", // wrong arity
-    "(if_then_else a (f x) y)", // no if_then_else in v2
-    "(a b)", // using non-function as function
-    ".5", // rational constants must have integer prefix
-    "1.", // rational constants must have fractional suffix
-    "#x", // hex constants must have at least one digit
-    "#b", // ditto binary constants
-    "#xg0f",
-    "#b9"
-};
-
-const int numBadSmt2Exprs = sizeof(badSmt2Exprs) / sizeof(string);
-
-/* The following expressions are invalid in strict mode, even after setupContext. */
-const string badStrictSmt2Exprs[] = {
-    "(and a)", // no unary and's
-    "(or a)",  // no unary or's
-    "(* 5 01)" // '01' is not a valid integer constant
-};
-
-const int numBadStrictSmt2Exprs = sizeof(badStrictSmt2Exprs) / sizeof(string);
-
-class ParserBlack : public CxxTest::TestSuite {
+class ParserBlack {
+  InputLanguage d_lang;
   ExprManager *d_exprManager;
 
+protected:
   /* Set up declaration context for expr inputs */
-
-  void setupContext(Parser& parser) {
+  virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
     parser.mkVar("a",d_exprManager->booleanType());
     parser.mkVar("b",d_exprManager->booleanType());
@@ -251,60 +56,54 @@ class ParserBlack : public CxxTest::TestSuite {
     parser.mkVar("z",v);
   }
 
-  void tryGoodInputs(InputLanguage d_lang, const string goodInputs[], int numInputs) {
-    for(int i = 0; i < numInputs; ++i) {
+  void tryGoodInput(const string goodInput) {
       try {
-//         Debug.on("parser");
+//        Debug.on("parser");
 //         Debug.on("parser-extra");
-         Debug("test") << "Testing good input: '" << goodInputs[i] << "'\n";
+//        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
 //        istringstream stream(goodInputs[i]);
-        Input* input = Input::newStringInput(d_lang, goodInputs[i], "test");
+        Input* input = Input::newStringInput(d_lang, goodInput, "test");
         Parser parser(d_exprManager, input);
         TS_ASSERT( !parser.done() );
         Command* cmd;
         while((cmd = parser.nextCommand()) != NULL) {
-          // cout << "Parsed command: " << (*cmd) << endl;
+          Debug("parser") << "Parsed command: " << (*cmd) << endl;
         }
-        TS_ASSERT( parser.nextCommand() == NULL );
+
         TS_ASSERT( parser.done() );
         delete input;
-//        Debug.off("parser");
+        Debug.off("parser");
 //        Debug.off("parser-extra");
       } catch (Exception& e) {
-        cout << "\nGood input failed:\n" << goodInputs[i] << endl
+        cout << "\nGood input failed:\n" << goodInput << endl
              << e << endl;
-//        Debug.off("parser-extra");
+//        Debug.off("parser");
         throw;
       }
-    }
   }
 
-  void tryBadInputs(InputLanguage d_lang, const string badInputs[], int numInputs) {
-    for(int i = 0; i < numInputs; ++i) {
-//      cerr << "Testing bad input: '" << badInputs[i] << "'\n";
+  void tryBadInput(const string badInput) {
+//      cerr << "Testing bad input: '" << badInput << "'\n";
 //      Debug.on("parser");
-      Input* input = Input::newStringInput(d_lang, badInputs[i], "test");
+      Input* input = Input::newStringInput(d_lang, badInput, "test");
       Parser parser(d_exprManager, input);
       TS_ASSERT_THROWS
         ( while(parser.nextCommand());
-          cout << "\nBad input succeeded:\n" << badInputs[i] << endl;,
+          cout << "\nBad input succeeded:\n" << badInput << endl;,
           const ParserException& );
 //      Debug.off("parser");
       delete input;
-    }
   }
 
-  void tryGoodExprs(InputLanguage d_lang, const string goodBooleanExprs[], int numExprs) {
-    // cout << "Using context: " << context << endl;
+  void tryGoodExpr(const string goodExpr) {
 //    Debug.on("parser");
 //    Debug.on("parser-extra");
-    for(int i = 0; i < numExprs; ++i) {
       try {
-        // cout << "Testing good expr: '" << goodBooleanExprs[i] << "'\n";
+//        cerr << "Testing good expr: '" << goodExpr << "'\n";
         // Debug.on("parser");
 //        istringstream stream(context + goodBooleanExprs[i]);
         Input* input = Input::newStringInput(d_lang,
-                                              goodBooleanExprs[i], "test");
+                                              goodExpr, "test");
         Parser parser(d_exprManager, input);
         TS_ASSERT( !parser.done() );
         setupContext(parser);
@@ -318,11 +117,10 @@ class ParserBlack : public CxxTest::TestSuite {
       } catch (Exception& e) {
         cout << endl
              << "Good expr failed." << endl
-             << "Input: <<" << goodBooleanExprs[i] << ">>" << endl
+             << "Input: <<" << goodExpr << ">>" << endl
              << "Output: <<" << e << ">>" << endl;
         throw;
       }
-    }
   }
 
   /* NOTE: The check implemented here may fail if a bad expression expression string
@@ -331,14 +129,11 @@ class ParserBlack : public CxxTest::TestSuite {
    * input. It's more trouble than it's worth to check that the whole input was
    * consumed here, so just be careful to avoid valid prefixes in tests.
    */
-  void tryBadExprs(InputLanguage d_lang, const string badBooleanExprs[], int numExprs,
-                   bool strictMode = false) {
+  void tryBadExpr(const string badExpr, bool strictMode = false) {
 //    Debug.on("parser");
 //    Debug.on("parser-extra");
-    for(int i = 0; i < numExprs; ++i) {
-//      cout << "Testing bad expr: '" << badBooleanExprs[i] << "'\n";
-      Input* input = Input::newStringInput(d_lang,
-                                           badBooleanExprs[i], "test");
+//      cout << "Testing bad expr: '" << badExpr << "'\n";
+      Input* input = Input::newStringInput(d_lang, badExpr, "test");
       Parser parser(d_exprManager, input);
       if( strictMode ) {
         parser.enableStrictMode();
@@ -349,78 +144,204 @@ class ParserBlack : public CxxTest::TestSuite {
         ( Expr e = parser.nextExpression();
           cout << endl
                << "Bad expr succeeded." << endl
-               << "Input: <<" << badBooleanExprs[i] << ">>" << endl
+               << "Input: <<" << badExpr << ">>" << endl
                << "Output: <<" << e << ">>" << endl;,
           const ParserException& );
       delete input;
-    }
 //    Debug.off("parser");
   }
 
-public:
-  void setUp() {
-    d_exprManager = new ExprManager();
+  ParserBlack(InputLanguage lang) :
+    d_lang(lang),
+    d_exprManager(new ExprManager()) {
   }
 
-  void tearDown() {
+public:
+  virtual ~ParserBlack() {
     delete d_exprManager;
   }
+};
 
-  void testBs() {
-    DeclarationScope declScope;
-    declScope.bind("foo", d_exprManager->mkVar("foo",d_exprManager->booleanType()));
+class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack  {
 
-  }
+public:
+  Cvc4ParserTest() : ParserBlack(LANG_CVC4) { }
 
   void testGoodCvc4Inputs() {
-    tryGoodInputs(LANG_CVC4,goodCvc4Inputs,numGoodCvc4Inputs);
+    tryGoodInput(""); // empty string is OK
+    tryGoodInput("ASSERT TRUE;");
+    tryGoodInput("QUERY TRUE;");
+    tryGoodInput("CHECKSAT FALSE;");
+    tryGoodInput("a, b : BOOLEAN;");
+    tryGoodInput("a, b : BOOLEAN; QUERY (a => b) AND a => b;");
+    tryGoodInput("T, U : TYPE; f : T -> U; x : T; CHECKSAT f(x) = x;");
+    tryGoodInput("T : TYPE; x, y : T; a : BOOLEAN; QUERY (IF a THEN x ELSE y ENDIF) = x;");
+    tryGoodInput("%% nothing but a comment");
+    tryGoodInput("% a comment\nASSERT TRUE; %a command\n% another comment");
   }
 
   void testBadCvc4Inputs() {
-    tryBadInputs(LANG_CVC4,badCvc4Inputs,numBadCvc4Inputs);
+    tryBadInput(";"); // no command
+    tryBadInput("ASSERT;"); // no args
+    tryBadInput("QUERY");
+    tryBadInput("CHECKSAT");
+    tryBadInput("a, b : boolean;"); // lowercase boolean isn't a type
+    tryBadInput("0x : INT;"); // 0x isn't an identifier
+    tryBadInput("a, b : BOOLEAN\nQUERY (a => b) AND a => b;"); // no semicolon after decl
+    tryBadInput("a : BOOLEAN; a: BOOLEAN;"); // double decl
+    tryBadInput("a, b: BOOLEAN; QUERY a(b);"); // non-function used as function
   }
 
   void testGoodCvc4Exprs() {
-    tryGoodExprs(LANG_CVC4,goodCvc4Exprs,numGoodCvc4Exprs);
+    tryGoodExpr("a AND b");
+    tryGoodExpr("a AND b OR c");
+    tryGoodExpr("(a => b) AND a => b");
+    tryGoodExpr("(a <=> b) AND (NOT a)");
+    tryGoodExpr("(a XOR b) <=> (a OR b) AND (NOT (a AND b))");
   }
 
   void testBadCvc4Exprs() {
-    tryBadExprs(LANG_CVC4,badCvc4Exprs,numBadCvc4Exprs);
+    tryBadInput("a AND"); // wrong arity
+    tryBadInput("AND(a,b)"); // not infix
+    tryBadInput("(OR (AND a b) c)"); // not infix
+    tryBadInput("a IMPLIES b"); // should be =>
+    tryBadInput("a NOT b"); // wrong arity, not infix
+    tryBadInput("a and b"); // wrong case
   }
+};
+
+class SmtParserTest : public CxxTest::TestSuite, public ParserBlack {
+public:
+  SmtParserTest() : ParserBlack(LANG_SMTLIB) { }
 
   void testGoodSmtInputs() {
-    tryGoodInputs(LANG_SMTLIB,goodSmtInputs,numGoodSmtInputs);
+    tryGoodInput(""); // empty string is OK
+    tryGoodInput("(benchmark foo :assumption true)");
+    tryGoodInput("(benchmark bar :formula true)");
+    tryGoodInput("(benchmark qux :formula false)");
+    tryGoodInput("(benchmark baz :extrapreds ( (a) (b) ) )");
+    tryGoodInput("(benchmark zab :extrapreds ( (a) (b) ) :formula (implies (and (implies a b) a) b))");
+    tryGoodInput("(benchmark zub :extrasorts (a) :extrafuns ( (f a a) (x a) )  :formula (= (f x) x))");
+    tryGoodInput("(benchmark fuz :extrasorts (a) :extrafuns ((x a) (y a)) :formula (= (ite true x y) x))");
+    tryGoodInput(";; nothing but a comment");
+    tryGoodInput("; a comment\n(benchmark foo ; hello\n  :formula true; goodbye\n)");
   }
 
   void testBadSmtInputs() {
-    tryBadInputs(LANG_SMTLIB,badSmtInputs,numBadSmtInputs);
+    tryBadInput("(benchmark foo)"); // empty benchmark is not OK
+    tryBadInput("(benchmark bar :assumption)"); // no args
+    tryBadInput("(benchmark bar :formula)");
+    tryBadInput("(benchmark baz :extrapreds ( (a) (a) ) )"); // double decl
+    tryBadInput("(benchmark zub :extrasorts (a) :extrapreds (p a))"); // (p a) needs parens
   }
 
   void testGoodSmtExprs() {
-    tryGoodExprs(LANG_SMTLIB,goodSmtExprs,numGoodSmtExprs);
+    tryGoodExpr("(and a b)");
+    tryGoodExpr("(or (and a b) c)");
+    tryGoodExpr("(implies (and (implies a b) a) b)");
+    tryGoodExpr("(and (iff a b) (not a))");
+    tryGoodExpr("(iff (xor a b) (and (or a b) (not (and a b))))");
+    tryGoodExpr("(ite a (f x) y)");
+    tryGoodExpr("(if_then_else a (f x) y)");
+    tryGoodExpr("1");
+    tryGoodExpr("0");
+    tryGoodExpr("1.5");
   }
 
   void testBadSmtExprs() {
-    tryBadExprs(LANG_SMTLIB,badSmtExprs,numBadSmtExprs);
+    tryBadExpr("(and)"); // wrong arity
+    tryBadExpr("(and a b"); // no closing paren
+    tryBadExpr("(a and b)"); // infix
+    tryBadExpr("(OR (AND a b) c)"); // wrong case
+    tryBadExpr("(a IMPLIES b)"); // infix AND wrong case
+    tryBadExpr("(not a b)"); // wrong arity
+    tryBadExpr("not a"); // needs parens
+    tryBadExpr("(ite a x)"); // wrong arity
+    tryBadExpr("(a b)"); // using non-function as function
+    tryBadExpr(".5"); // rational constants must have integer prefix
+    tryBadExpr("1."); // rational constants must have fractional suffix
+  }
+};
+
+class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
+  typedef ParserBlack super;
+
+public:
+  Smt2ParserTest() : ParserBlack(LANG_SMTLIB_V2) { }
+
+  void setupContext(Parser& parser) {
+    Smt2::addTheory(parser,Smt2::THEORY_CORE);
+    super::setupContext(parser);
   }
 
   void testGoodSmt2Inputs() {
-    tryGoodInputs(LANG_SMTLIB_V2,goodSmt2Inputs,numGoodSmt2Inputs);
+    tryGoodInput(""); // empty string is OK
+    tryGoodInput("(set-logic QF_UF)");
+    tryGoodInput("(set-info :notes |This is a note, take note!|)");
+    tryGoodInput("(set-logic QF_UF)(assert true)");
+    tryGoodInput("(check-sat)");
+    tryGoodInput("(exit)");
+    tryGoodInput("(assert false) (check-sat)");
+    tryGoodInput("(set-logic QF_UF) (declare-fun a () Bool) "
+                 "(declare-fun b () Bool)");
+    tryGoodInput("(set-logic QF_UF) (declare-fun a () Bool) "
+                 "(declare-fun b () Bool) (assert (=> (and (=> a b) a) b))");
+    tryGoodInput("(set-logic QF_UF) (declare-sort a 0) "
+                 "(declare-fun f (a) a) (declare-fun x () a) "
+                 "(assert (= (f x) x))");
+    tryGoodInput("(set-logic QF_UF) (declare-sort a 0) "
+                 "(declare-fun x () a) (declare-fun y () a) "
+                 "(assert (= (ite true x y) x))");
+    tryGoodInput(";; nothing but a comment");
+    tryGoodInput("; a comment\n(check-sat ; goodbye\n)");
   }
 
   void testBadSmt2Inputs() {
-    tryBadInputs(LANG_SMTLIB_V2,badSmt2Inputs,numBadSmt2Inputs);
+    tryBadInput("(assert)"); // no args
+    tryBadInput("(set-info :notes |Symbols can't contain the | character|)");
+    tryBadInput("(check-sat true)"); // shouldn't have an arg
+    tryBadInput("(declare-sort a)"); // no arg
+    tryBadInput("(declare-sort a 0) (declare-sort a 0)"); // double decl
+    tryBadInput("(declare-fun p Bool)"); // should be "p () Bool"
   }
 
   void testGoodSmt2Exprs() {
-    tryGoodExprs(LANG_SMTLIB_V2,goodSmt2Exprs,numGoodSmt2Exprs);
+    tryGoodExpr("(and a b)");
+    tryGoodExpr("(or (and a b) c)");
+    tryGoodExpr("(=> (and (=> a b) a) b)");
+    tryGoodExpr("(and (= a b) (not a))");
+    tryGoodExpr("(= (xor a b) (and (or a b) (not (and a b))))");
+    tryGoodExpr("(ite a (f x) y)");
+    tryGoodExpr("1");
+    tryGoodExpr("0");
+    tryGoodExpr("1.5");
+    tryGoodExpr("#xfab09c7");
+    tryGoodExpr("#b0001011");
+    tryGoodExpr("(* 5 01)"); // '01' is OK in non-strict mode
   }
 
   void testBadSmt2Exprs() {
-    tryBadExprs(LANG_SMTLIB_V2,badSmt2Exprs,numBadSmt2Exprs);
-  }
-
-  void testBadSmt2StrictExprs() {
-    tryBadExprs(LANG_SMTLIB_V2,badStrictSmt2Exprs,numBadStrictSmt2Exprs,true);
+    tryBadExpr("(and)"); // wrong arity
+    tryBadExpr("(and a b"); // no closing paren
+    tryBadExpr("(a and b)"); // infix
+    tryBadExpr("(implies a b)"); // no implies in v2
+    tryBadExpr("(iff a b)"); // no iff in v2
+    tryBadExpr("(OR (AND a b) c)"); // wrong case
+    tryBadExpr("(a IMPLIES b)"); // infix AND wrong case
+    tryBadExpr("(not a b)"); // wrong arity
+    tryBadExpr("not a"); // needs parens
+    tryBadExpr("(ite a x)"); // wrong arity
+    tryBadExpr("(if_then_else a (f x) y)"); // no if_then_else in v2
+    tryBadExpr("(a b)"); // using non-function as function
+    tryBadExpr(".5"); // rational constants must have integer prefix
+    tryBadExpr("1."); // rational constants must have fractional suffix
+    tryBadExpr("#x"); // hex constants must have at least one digit
+    tryBadExpr("#b"); // ditto binary constants
+    tryBadExpr("#xg0f");
+    tryBadExpr("#b9");
+    // Bad strict exprs
+    tryBadExpr("(and a)", true); // no unary and's
+    tryBadExpr("(or a)", true);  // no unary or's
+    tryBadExpr("(* 5 01)", true); // '01' is not a valid integer constant
   }
 };
