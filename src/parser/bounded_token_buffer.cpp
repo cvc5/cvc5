@@ -10,7 +10,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** An ANTLR3 bounded token stream implementation.
+ ** An ANTLR3 bounded token stream implementation. 
  ** This code is largely based on the original token buffer implementation
  ** in libantlr3c, by Jim Idle.
  **/

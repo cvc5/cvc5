@@ -44,7 +44,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="parser|smt2" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="prop|parser|smt2" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>

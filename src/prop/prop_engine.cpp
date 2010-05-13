@@ -12,8 +12,9 @@
  **
  **/
 
+#include "cnf_stream.h"
+#include "prop_engine.h"
 #include "sat.h"
-#include "prop/prop_engine.h"
 
 #include "theory/theory_engine.h"
 #include "util/decision_engine.h"

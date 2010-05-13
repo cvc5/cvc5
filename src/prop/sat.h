@@ -18,14 +18,19 @@
 #ifndef __CVC4__PROP__SAT_H
 #define __CVC4__PROP__SAT_H
 
+// Just defining this for now, since there's no other SAT solver bindings.
+// Optional blocks below will be unconditionally included
 #define __CVC4_USE_MINISAT
+
+#include "util/options.h"
 
 #ifdef __CVC4_USE_MINISAT
 
-#include "util/options.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/minisat/simp/SimpSolver.h"
+
+#endif /* __CVC4_USE_MINISAT */
 
 namespace CVC4 {
 
@@ -36,6 +41,10 @@ namespace prop {
 class PropEngine;
 class CnfStream;
 
+/* Definitions of abstract types and conversion functions for SAT interface */
+
+#ifdef __CVC4_USE_MINISAT
+
 /** Type of the SAT variables */
 typedef minisat::Var SatVariable;
 
@@ -44,6 +53,25 @@ typedef minisat::Lit SatLiteral;
 
 /** Type of the SAT clauses */
 typedef minisat::vec<SatLiteral> SatClause;
+
+/**
+ * Returns the variable of the literal.
+ * @param lit the literal
+ */
+inline SatVariable literalToVariable(SatLiteral lit) {
+  return minisat::var(lit);
+}
+
+inline bool literalSign(SatLiteral lit) {
+  return minisat::sign(lit);
+}
+
+static inline size_t
+hashSatLiteral(const SatLiteral& literal) {
+  return (size_t) minisat::toInt(literal);
+}
+
+#endif /* __CVC4_USE_MINISAT */
 
 /**
  * The proxy class that allows us to modify the internals of the SAT solver.
@@ -64,60 +92,90 @@ class SatSolver {
   /** Context we will be using to synchronzie the sat solver */
   context::Context* d_context;
 
+  /** Remember the options */
+  Options* d_options;
+  
+  /* Pointer to the concrete SAT solver. Including this via the
+     preprocessor saves us a level of indirection vs, e.g., defining a
+     sub-class for each solver. */
+
+#ifdef __CVC4_USE_MINISAT
+
   /** Minisat solver */
   minisat::SimpSolver* d_minisat;
 
-  /** Remember the options */
-  Options* d_options;
+#endif /* __CVC4_USE_MINISAT */
+
+protected:
 
 public:
-
   /** Hash function for literals */
   struct SatLiteralHashFunction {
     inline size_t operator()(const SatLiteral& literal) const;
   };
 
-  inline SatSolver(PropEngine* propEngine,
+  SatSolver(PropEngine* propEngine,
                    TheoryEngine* theoryEngine,
                    context::Context* context,
                    const Options* options);
 
-  inline ~SatSolver();
+  ~SatSolver();
 
-  inline bool solve();
+  bool solve();
+  
+  void addClause(SatClause& clause);
 
-  inline void addClause(SatClause& clause);
+  SatVariable newVar(bool theoryAtom = false);
 
-  inline SatVariable newVar(bool theoryAtom = false);
+  void theoryCheck(SatClause& conflict);
 
-  inline void theoryCheck(SatClause& conflict);
-
-  inline void enqueueTheoryLiteral(const SatLiteral& l);
-
-  inline void setCnfStream(CnfStream* cnfStream);
+  void enqueueTheoryLiteral(const SatLiteral& l);
+  
+  void setCnfStream(CnfStream* cnfStream);
 };
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+/* Functions that delegate to the concrete SAT solver. */
 
-#include "context/context.h"
-#include "theory/theory_engine.h"
-#include "prop/prop_engine.h"
-#include "prop/cnf_stream.h"
+#ifdef __CVC4_USE_MINISAT
 
-namespace CVC4 {
-namespace prop {
-
-/**
- * Returns the variable of the literal.
- * @param lit the literal
- */
-inline SatVariable literalToVariable(SatLiteral lit) {
-  return minisat::var(lit);
+inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
+                     context::Context* context, const Options* options) :
+  d_propEngine(propEngine),
+  d_cnfStream(NULL),
+  d_theoryEngine(theoryEngine),
+  d_context(context)
+{
+  // Create the solver
+  d_minisat = new minisat::SimpSolver(this, d_context);
+  // Setup the verbosity
+  d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
+  // Do not delete the satisfied clauses, just the learnt ones
+  d_minisat->remove_satisfied = false;
+  // Make minisat reuse the literal values
+  d_minisat->polarity_mode = minisat::SimpSolver::polarity_user;
 }
 
-inline bool literalSign(SatLiteral lit) {
-  return minisat::sign(lit);
+inline SatSolver::~SatSolver() {
+  delete d_minisat;
+}
+
+inline bool SatSolver::solve() {
+  return d_minisat->solve();
+}
+
+inline void SatSolver::addClause(SatClause& clause) {
+  d_minisat->addClause(clause);
+}
+
+inline SatVariable SatSolver::newVar(bool theoryAtom) {
+  return d_minisat->newVar(true, true, theoryAtom);
+}
+
+#endif /* __CVC4_USE_MINISAT */
+
+inline size_t
+SatSolver::SatLiteralHashFunction::operator()(const SatLiteral& literal) const {
+  return hashSatLiteral(literal);
 }
 
 inline std::ostream& operator <<(std::ostream& out, SatLiteral lit) {
@@ -135,79 +193,7 @@ inline std::ostream& operator <<(std::ostream& out, const SatClause& clause) {
   return out;
 }
 
-inline size_t
-SatSolver::SatLiteralHashFunction::operator()(const SatLiteral& literal) const {
-  return (size_t) minisat::toInt(literal);
-}
-
-SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
-                     context::Context* context, const Options* options) :
-  d_propEngine(propEngine),
-  d_cnfStream(NULL),
-  d_theoryEngine(theoryEngine),
-  d_context(context)
-{
-  // Create the solver
-  d_minisat = new minisat::SimpSolver(this, d_context);
-  // Setup the verbosity
-  d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
-  // Do not delete the satisfied clauses, just the learnt ones
-  d_minisat->remove_satisfied = false;
-  // Make minisat reuse the literal values
-  d_minisat->polarity_mode = minisat::SimpSolver::polarity_user;
-}
-
-SatSolver::~SatSolver() {
-  delete d_minisat;
-}
-
-bool SatSolver::solve() {
-  return d_minisat->solve();
-}
-
-void SatSolver::addClause(SatClause& clause) {
-  d_minisat->addClause(clause);
-}
-
-SatVariable SatSolver::newVar(bool theoryAtom) {
-  return d_minisat->newVar(true, true, theoryAtom);
-}
-
-void SatSolver::theoryCheck(SatClause& conflict) {
-  // Try theory propagation
-  if (!d_theoryEngine->check(theory::Theory::FULL_EFFORT)) {
-    // We have a conflict, get it
-    Node conflictNode = d_theoryEngine->getConflict();
-    Debug("prop") << "SatSolver::theoryCheck() => conflict: " << conflictNode << std::endl;
-    // Go through the literals and construct the conflict clause
-    Node::const_iterator literal_it = conflictNode.begin();
-    Node::const_iterator literal_end = conflictNode.end();
-    while (literal_it != literal_end) {
-      // Get the literal corresponding to the node
-      SatLiteral l = d_cnfStream->getLiteral(*literal_it);
-      // Add the negation to the conflict clause and continue
-      conflict.push(~l);
-      literal_it ++;
-    }
-  }
-}
-
-void SatSolver::enqueueTheoryLiteral(const SatLiteral& l) {
-  Node literalNode = d_cnfStream->getNode(l);
-  // We can get null from the prop engine if the literal is useless (i.e.)
-  // the expression is not in context anyomore
-  if(!literalNode.isNull()) {
-    d_theoryEngine->assertFact(literalNode);
-  }
-}
-
-void SatSolver::setCnfStream(CnfStream* cnfStream) {
-  d_cnfStream = cnfStream;
-}
-
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
-
-#endif
 
 #endif /* __CVC4__PROP__SAT_H */
