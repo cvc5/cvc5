@@ -707,14 +707,10 @@ inline void NodeManager::poolInsert(expr::NodeValue* nv) {
       // assume it's atomic if its kind can be atomic, check children
       // to see if that is actually true
       bool atomic = kind::kindCanBeAtomic(nv->getKind());
-      if(atomic) {
-        for(expr::NodeValue::nv_iterator i = nv->nv_begin();
-            i != nv->nv_end();
-            ++i) {
-          if(!(atomic = isAtomic(*i))) {
-            break;
-          }
-        }
+      for(expr::NodeValue::nv_iterator i = nv->nv_begin();
+          atomic && i != nv->nv_end();
+          ++i) {
+        atomic = isAtomic(*i);
       }
 
       setAttribute(nv, AtomicAttr(), atomic);

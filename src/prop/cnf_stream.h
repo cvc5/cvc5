@@ -11,12 +11,12 @@
  ** information.
  **
  ** This class takes a sequence of formulas.
- ** It outputs a stream of clauses that is propositional
- ** equisatisfiable with the conjunction of the formulas.
+ ** It outputs a stream of clauses that is propositionally
+ ** equi-satisfiable with the conjunction of the formulas.
  ** This stream is maintained in an online fashion.
  **
  ** Unlike other parts of the system it is aware of the PropEngine's
- ** internals such as the representation and translation of 
+ ** internals such as the representation and translation of [??? -Chris]
  **/
 
 #include "cvc4_private.h"
@@ -35,7 +35,7 @@ namespace prop {
 class PropEngine;
 
 /**
- * Comments for the behavior of the whole class...
+ * Comments for the behavior of the whole class... [??? -Chris]
  * @author Tim King <taking@cs.nyu.edu>
  */
 class CnfStream {
@@ -45,7 +45,7 @@ private:
   /** The SAT solver we will be using */
   SatSolver *d_satSolver;
 
-  /** Cache of what literal have been registered to a node. */
+  /** Cache of what literals have been registered to a node. */
   typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFunction> TranslationCache;
   TranslationCache d_translationCache;
 
@@ -139,15 +139,17 @@ public:
   virtual void convertAndAssert(TNode node) = 0;
 
   /**
-   * Returns a node the is represented by a give SatLiteral literal.
+   * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
    * @return the actual node
    */
   Node getNode(const SatLiteral& literal);
 
   /**
-   * Returns the literal the represents the given node in the SAT CNF
-   * representation.
+   * Returns the literal that represents the given node in the SAT CNF
+   * representation. [Presumably there are some constraints on the kind
+   * of node? E.g., it needs to be a boolean? -Chris]
+   *
    */
   SatLiteral getLiteral(TNode node);
 
@@ -156,12 +158,12 @@ public:
 /**
  * TseitinCnfStream is based on the following recursive algorithm
  * http://people.inf.ethz.ch/daniekro/classes/251-0247-00/f2007/readings/Tseitin70.pdf
- * The general gist of the algorithm is to introduce a new literal that 
- * will be equivalent to each subexpression in the constructed equisatisfiable
- * formula then substitute the new literal for the formula, and to do this
+ * The general idea is to introduce a new literal that
+ * will be equivalent to each subexpression in the constructed equi-satisfiable
+ * formula, then substitute the new literal for the formula, and so on,
  * recursively.
  * 
- * This implementation does this in a single recursive pass.
+ * This implementation does this in a single recursive pass. [??? -Chris]
  */
 class TseitinCnfStream : public CnfStream {
 

@@ -271,7 +271,7 @@ SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
 SatLiteral TseitinCnfStream::handleNot(TNode notNode) {
   Assert(!isCached(notNode), "Atom already mapped!");
   Assert(notNode.getKind() == NOT, "Expecting a NOT expression!");
-  Assert(notNode.getNumChildren() == 1, "Expecting exactly 2 children!");
+  Assert(notNode.getNumChildren() == 1, "Expecting exactly 1 child!");
 
   SatLiteral notLit = ~toCNF(notNode[0]);
 
@@ -341,29 +341,29 @@ SatLiteral TseitinCnfStream::toCNF(TNode node) {
 
 void TseitinCnfStream::convertAndAssert(TNode node) {
   Debug("cnf") << "convertAndAssert(" << node << ")" << endl;
-  // If the node is a conjuntion, we handle each conjunct separatelu
   if(node.getKind() == AND) {
-    TNode::const_iterator conjunct = node.begin();
-    TNode::const_iterator node_end = node.end();
-    while(conjunct != node_end) {
+    // If the node is a conjunction, we handle each conjunct separately
+    for( TNode::const_iterator conjunct = node.begin(),
+         node_end = node.end();
+         conjunct != node_end;
+         ++conjunct ) {
       convertAndAssert(*conjunct);
-      ++ conjunct;
     }
-    return;
-  }
-  // If the node is a disjunction, we construct a clause and assert it
-  if(node.getKind() == OR) {
+  } else if(node.getKind() == OR) {
+    // If the node is a disjunction, we construct a clause and assert it
     int nChildren = node.getNumChildren();
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
     for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
+      Assert( disjunct != node.end() );
       clause[i] = toCNF(*disjunct);
     }
+    Assert( disjunct == node.end() );
     assertClause(clause);
-    return;
+  } else {
+    // Otherwise, we just convert using the definitional transformation
+    assertClause(toCNF(node));
   }
-  // Otherwise, we just convert using the definitional transformation
-  assertClause(toCNF(node));
 }
 
 }/* CVC4::prop namespace */
