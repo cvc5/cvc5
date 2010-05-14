@@ -73,12 +73,26 @@ hashSatLiteral(const SatLiteral& literal) {
 
 #endif /* __CVC4_USE_MINISAT */
 
+/** Interface encapsulating the "input" to the solver, e.g., from the 
+ * CNF converter. 
+ * 
+ * TODO: Is it possible to push the typedefs of SatClause and SatVariable
+ * into here, somehow?
+ */
+class SatInputInterface {
+public:
+  /** Assert a clause in the solver. */
+  virtual void addClause(SatClause& clause) = 0;
+  /** Create a new boolean variable in the solver. */
+  virtual SatVariable newVar(bool theoryAtom = false) = 0;
+};
+
 /**
  * The proxy class that allows us to modify the internals of the SAT solver.
  * It's only accessible from the PropEngine, and should be treated with major
  * care.
  */
-class SatSolver {
+class SatSolver : public SatInputInterface {
 
   /** The prop engine we are using */
   PropEngine* d_propEngine;

@@ -43,7 +43,7 @@ class CnfStream {
 private:
 
   /** The SAT solver we will be using */
-  SatSolver *d_satSolver;
+  SatInputInterface *d_satSolver;
 
   /** Cache of what literals have been registered to a node. */
   typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFunction> TranslationCache;
@@ -121,7 +121,7 @@ public:
    * and sends them to the given sat solver.
    * @param satSolver the sat solver to use
    */
-  CnfStream(SatSolver* satSolver);
+  CnfStream(SatInputInterface* satSolver);
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -179,7 +179,7 @@ public:
    * Constructs the stream to use the given sat solver.
    * @param satSolver the sat solver to use
    */
-  TseitinCnfStream(SatSolver* satSolver);
+  TseitinCnfStream(SatInputInterface* satSolver);
 
 private:
 

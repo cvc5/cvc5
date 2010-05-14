@@ -29,11 +29,11 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver *satSolver) :
+CnfStream::CnfStream(SatInputInterface *satSolver) :
   d_satSolver(satSolver) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver) :
+TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver) :
   CnfStream(satSolver) {
 }
 
