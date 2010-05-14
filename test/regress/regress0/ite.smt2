@@ -1,0 +1,6 @@
+(set-logic QF_LRA)
+(set-info :status unsat)
+(declare-fun x () Real)
+(declare-fun y () Real)
+(assert (not (= x (ite true x y))))
+(check-sat)

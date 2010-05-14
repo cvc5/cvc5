@@ -12,6 +12,8 @@ TESTS =	\
 	simple2.smt \
 	simple.smt \
 	simple-uf.smt \
+	ite.smt2 \
+	ite2.smt2 \
 	bug32.cvc \
 	hole6.cvc \
 	logops.01.cvc \

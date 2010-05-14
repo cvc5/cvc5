@@ -306,6 +306,46 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   return iteLit;
 }
 
+Node TseitinCnfStream::handleNonAtomicNode(TNode node) {
+  /* Our main goal here is to tease out any ITE's sitting under a theory operator. */
+  Node rewrite;
+  NodeManager *nodeManager = NodeManager::currentNM();
+  if(nodeManager->getAttribute(node, IteRewriteAttr(), rewrite)) {
+    return rewrite.isNull() ? Node(node) : rewrite;
+  }
+
+  if(node.getKind() == ITE) {
+    Assert( node.getNumChildren() == 3 );
+    Node skolem = nodeManager->mkVar(node.getType());
+    Node newAssertion =
+        nodeManager->mkNode(
+            ITE,
+            node[0],
+            nodeManager->mkNode(EQUAL, skolem, node[1]),
+            nodeManager->mkNode(EQUAL, skolem, node[2]));
+    nodeManager->setAttribute(node, IteRewriteAttr(), skolem);
+    convertAndAssert( newAssertion );
+    return skolem;
+  } else {
+    std::vector<Node> newChildren;
+    bool somethingChanged = false;
+    for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
+      Node newChild = handleNonAtomicNode(*it);
+      somethingChanged |= (newChild != *it);
+      newChildren.push_back(newChild);
+    }
+
+    if(somethingChanged) {
+      rewrite = nodeManager->mkNode(node.getKind(), newChildren);
+      nodeManager->setAttribute(node, IteRewriteAttr(), rewrite);
+      return rewrite;
+    } else {
+      nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
+      return node;
+    }
+  }
+}
+
 SatLiteral TseitinCnfStream::toCNF(TNode node) {
 
   // If the node has already been translated, return the previous translation
@@ -335,7 +375,7 @@ SatLiteral TseitinCnfStream::toCNF(TNode node) {
   case AND:
     return handleAnd(node);
   default:
-    Unreachable();
+    return handleAtom(handleNonAtomicNode(node));
   }
 }
 

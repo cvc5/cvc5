@@ -202,6 +202,10 @@ private:
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
+  struct IteRewriteTag {};
+  typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
+  Node handleNonAtomicNode(TNode node);
+
   /**
    * Transforms the node into CNF recursively.
    * @param node the formula to transform
