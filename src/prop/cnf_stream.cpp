@@ -47,12 +47,14 @@ void CnfStream::assertClause(SatLiteral a) {
   clause[0] = a;
   assertClause(clause);
 }
+
 void CnfStream::assertClause(SatLiteral a, SatLiteral b) {
   SatClause clause(2);
   clause[0] = a;
   clause[1] = b;
   assertClause(clause);
 }
+
 void CnfStream::assertClause(SatLiteral a, SatLiteral b, SatLiteral c) {
   SatClause clause(3);
   clause[0] = a;
@@ -102,6 +104,14 @@ SatLiteral CnfStream::getLiteral(TNode node) {
   SatLiteral literal = find->second;
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
+}
+
+const CnfStream::NodeCache& CnfStream::getNodeCache() const {
+  return d_nodeCache;
+}
+
+const CnfStream::TranslationCache& CnfStream::getTranslationCache() const {
+  return d_translationCache;
 }
 
 SatLiteral TseitinCnfStream::handleAtom(TNode node) {
@@ -285,6 +295,8 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   Assert(iteNode.getKind() == ITE);
   Assert(iteNode.getNumChildren() == 3);
 
+  Debug("cnf") << "handlIte(" << iteNode[0] << " " << iteNode[1] << " " << iteNode[2] << ")" << endl;
+
   SatLiteral condLit = toCNF(iteNode[0]);
   SatLiteral thenLit = toCNF(iteNode[1]);
   SatLiteral elseLit = toCNF(iteNode[2]);
@@ -293,20 +305,30 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
 
   // If ITE is true then one of the branches is true and the condition
   // implies which one
+  // lit -> (ite b t e)
+  // lit -> (t | e) & (b -> t) & (!b -> e)
+  // lit -> (t | e) & (!b | t) & (b | e)
+  // (!lit | t | e) & (!lit | !b | t) & (!lit | b | e)
+  assertClause(~iteLit, thenLit, elseLit);
   assertClause(~iteLit, ~condLit, thenLit);
   assertClause(~iteLit, condLit, elseLit);
-  assertClause(~iteLit, elseLit, thenLit);
 
   // If ITE is false then one of the branches is false and the condition
   // implies which one
+  // !lit -> !(ite b t e)
+  // !lit -> (!t | !e) & (b -> !t) & (!b -> !e)
+  // !lit -> (!t | !e) & (!b | !t) & (b | !e)
+  // (lit | !t | !e) & (lit | !b | !t) & (lit | b | !e)
+  assertClause(iteLit, ~thenLit, ~elseLit);
   assertClause(iteLit, ~condLit, ~thenLit);
   assertClause(iteLit, condLit, ~elseLit);
-  assertClause(iteLit, ~thenLit, ~elseLit);
 
   return iteLit;
 }
 
 Node TseitinCnfStream::handleNonAtomicNode(TNode node) {
+  Debug("cnf") << "handleNonAtomicNode(" << node << ")" << endl;
+
   /* Our main goal here is to tease out any ITE's sitting under a theory operator. */
   Node rewrite;
   NodeManager *nodeManager = NodeManager::currentNM();
@@ -347,6 +369,7 @@ Node TseitinCnfStream::handleNonAtomicNode(TNode node) {
 }
 
 SatLiteral TseitinCnfStream::toCNF(TNode node) {
+  Debug("cnf") << "toCNF(" << node << ")" << endl;
 
   // If the node has already been translated, return the previous translation
   if(isCached(node)) {

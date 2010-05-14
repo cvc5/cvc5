@@ -39,18 +39,19 @@ class PropEngine;
  * @author Tim King <taking@cs.nyu.edu>
  */
 class CnfStream {
+public:
+  /** Cache of what nodes have been registered to a literal. */
+  typedef __gnu_cxx::hash_map<SatLiteral, Node, SatSolver::SatLiteralHashFunction> NodeCache;
+
+  /** Cache of what literals have been registered to a node. */
+  typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFunction> TranslationCache;
 
 private:
 
   /** The SAT solver we will be using */
   SatInputInterface *d_satSolver;
 
-  /** Cache of what literals have been registered to a node. */
-  typedef __gnu_cxx::hash_map<Node, SatLiteral, NodeHashFunction> TranslationCache;
   TranslationCache d_translationCache;
-
-  /** Cache of what nodes have been registered to a literal. */
-  typedef __gnu_cxx::hash_map<SatLiteral, Node, SatSolver::SatLiteralHashFunction> NodeCache;
   NodeCache d_nodeCache;
 
 protected:
@@ -153,6 +154,8 @@ public:
    */
   SatLiteral getLiteral(TNode node);
 
+  const TranslationCache& getTranslationCache() const;
+  const NodeCache& getNodeCache() const;
 }; /* class CnfStream */
 
 /**

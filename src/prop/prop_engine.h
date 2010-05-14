@@ -63,6 +63,8 @@ class PropEngine {
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
 
+  void printSatisfyingAssignment();
+
 public:
 
   /**

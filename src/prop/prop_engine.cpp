@@ -25,6 +25,7 @@
 
 #include <utility>
 #include <map>
+#include <iomanip>
 
 using namespace std;
 using namespace CVC4::context;
@@ -65,6 +66,26 @@ void PropEngine::assertLemma(TNode node) {
   d_cnfStream->convertAndAssert(node);
 }
 
+
+void PropEngine::printSatisfyingAssignment(){
+  const CnfStream::TranslationCache& transCache = d_cnfStream->getTranslationCache();
+  Debug("prop-value") << "Literal | Value | Expr" << endl
+                      << "---------------------------------------------------------" << endl;
+  for(CnfStream::TranslationCache::const_iterator i = transCache.begin(),
+      end = transCache.end();
+      i != end;
+      ++i) {
+    pair<Node, SatLiteral> curr = *i;
+    SatLiteral l = curr.second;
+    if(!sign(l)) {
+      Node n = curr.first;
+      SatLiteralValue value = d_satSolver->value(l);
+      Debug("prop-value") << /*setw(4) << */ "'" << l << "' " /*<< setw(4)*/ << value << " " << n
+            << endl;
+    }
+  }
+}
+
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "PropEngine::checkSat()" << endl;
@@ -74,6 +95,11 @@ Result PropEngine::checkSat() {
   bool result = d_satSolver->solve();
   // Not in checkSat any more
   d_inCheckSat = false;
+
+  if( result && debugTagIsOn("prop") ) {
+    printSatisfyingAssignment();
+  }
+
   Debug("prop") << "PropEngine::checkSat() => " << (result ? "true" : "false") << endl;
   return Result(result ? Result::SAT : Result::UNSAT);
 }

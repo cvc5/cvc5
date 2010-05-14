@@ -28,6 +28,7 @@ void SatSolver::theoryCheck(SatClause& conflict) {
 
 void SatSolver::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
+  Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   // We can get null from the prop engine if the literal is useless (i.e.)
   // the expression is not in context anyomore
   if(!literalNode.isNull()) {

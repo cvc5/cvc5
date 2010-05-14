@@ -54,6 +54,8 @@ typedef minisat::Lit SatLiteral;
 /** Type of the SAT clauses */
 typedef minisat::vec<SatLiteral> SatClause;
 
+typedef minisat::lbool SatLiteralValue;
+
 /**
  * Returns the variable of the literal.
  * @param lit the literal
@@ -71,6 +73,15 @@ hashSatLiteral(const SatLiteral& literal) {
   return (size_t) minisat::toInt(literal);
 }
 
+inline std::string stringOfLiteralValue(SatLiteralValue val) {
+  if( val == minisat::l_False ) {
+    return "0";
+  } else if (val == minisat::l_True ) {
+    return "1";
+  } else { // unknown
+    return "_";
+  }
+}
 #endif /* __CVC4_USE_MINISAT */
 
 /** Interface encapsulating the "input" to the solver, e.g., from the 
@@ -146,6 +157,8 @@ public:
   void enqueueTheoryLiteral(const SatLiteral& l);
   
   void setCnfStream(CnfStream* cnfStream);
+
+  SatLiteralValue value(SatLiteral l);
 };
 
 /* Functions that delegate to the concrete SAT solver. */
@@ -185,6 +198,10 @@ inline SatVariable SatSolver::newVar(bool theoryAtom) {
   return d_minisat->newVar(true, true, theoryAtom);
 }
 
+inline SatLiteralValue SatSolver::value(SatLiteral l) {
+  return d_minisat->modelValue(l);
+}
+
 #endif /* __CVC4_USE_MINISAT */
 
 inline size_t
@@ -204,6 +221,11 @@ inline std::ostream& operator <<(std::ostream& out, const SatClause& clause) {
     out << " " << clause[i];
   }
   out << ";";
+  return out;
+}
+
+inline std::ostream& operator <<(std::ostream& out, const SatLiteralValue& val) {
+  out << stringOfLiteralValue(val);
   return out;
 }
 
