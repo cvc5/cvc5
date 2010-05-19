@@ -67,7 +67,11 @@ class ArithRewriter{
 private:
   ArithConstants* d_constants;
 
+  //This is where the core of the work is done for rewriteAtom
+  //With a few additional checks done by rewriteAtom
+  Node rewriteAtomCore(TNode atom);
   Node rewriteAtom(TNode atom);
+
   Node rewriteTerm(TNode t);
   Node rewriteMult(TNode t);
   Node rewritePlus(TNode t);
@@ -75,6 +79,8 @@ private:
 
 
   Node var2pnf(TNode variable);
+
+  Node multPnfByNonZero(TNode pnf, Rational& q);
 
 public:
   ArithRewriter(ArithConstants* ac) :

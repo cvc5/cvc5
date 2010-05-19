@@ -570,6 +570,13 @@ struct NodeHashFunction {
   }
 };
 
+// for hash_maps, hash_sets..
+struct TNodeHashFunction {
+  size_t operator()(CVC4::TNode node) const {
+    return (size_t) node.getId();
+  }
+};
+
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
   return d_nv->getNumChildren();

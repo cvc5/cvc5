@@ -196,7 +196,8 @@ public:
     //Assert(isAdmissableVariable(var));
     Assert(var.getAttribute(IsBasic()));
 
-    Assert(d_basicVars.find(var) != d_basicVars.end());
+    //The new basic variable cannot already be a basic variable
+    Assert(d_basicVars.find(var) == d_basicVars.end());
     d_basicVars.insert(var);
     d_rows[var] = new Row(var,sum);
   }

@@ -12,7 +12,7 @@ typedef expr::Attribute<IsNormalAttrID, bool> IsNormal;
 
 
 inline bool isNormalized(TNode x){
-  return x.hasAttribute(IsNormal());
+  return x.getAttribute(IsNormal());
 }
 
 struct NormalFormAttrID;

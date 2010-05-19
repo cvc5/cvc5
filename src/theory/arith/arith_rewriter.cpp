@@ -18,11 +18,6 @@ using namespace CVC4::theory::arith;
 
 Kind multKind(Kind k, int sgn);
 
-Node coerceToRationalNode(TNode constant);
-
-Node multPnfByNonZero(TNode pnf, Rational& q);
-
-
 /**
  * Performs a quick check to see if it is easy to rewrite to
  * this normal form
@@ -52,15 +47,24 @@ Node almostVarOrConstEqn(TNode atom, Kind k, TNode left, TNode right){
     bool res = evaluateConstantPredicate(k,lc, rc);
     return mkBoolNode(res);
   }else if(leftIsVar && rightIsConst){
-    return atom;
+    if(right.getKind() == kind::CONST_RATIONAL){
+      return atom;
+    }else{
+      return NodeManager::currentNM()->mkNode(k,left,coerceToRationalNode(right));
+    }
   }else if(leftIsConst && rightIsVar){
-    return NodeManager::currentNM()->mkNode(multKind(k,-1),right,left);
+    if(left.getKind() == kind::CONST_RATIONAL){
+      return NodeManager::currentNM()->mkNode(multKind(k,-1),right,left);
+    }else{
+      Node q_left = coerceToRationalNode(left);
+      return NodeManager::currentNM()->mkNode(multKind(k,-1),right,q_left);
+    }
   }
 
   return Node::null();
 }
 
-Node ArithRewriter::rewriteAtom(TNode atom){
+Node ArithRewriter::rewriteAtomCore(TNode atom){
 
   Kind k = atom.getKind();
   Assert(isRelationOperator(k));
@@ -73,6 +77,7 @@ Node ArithRewriter::rewriteAtom(TNode atom){
   if(nf != Node::null() ){
     return nf;
   }
+
 
   //Transform this to: (left- right) |><| 0
   Node diff = makeSubtractionNode(left, right);
@@ -110,7 +115,7 @@ Node ArithRewriter::rewriteAtom(TNode atom){
         nf = NodeManager::currentNM()->mkNode(newKind, newLeft, newRight);
       }
     }else{ //(+ p_1 .. p_N)  |><| b
-      NodeBuilder<> plus;
+      NodeBuilder<> plus(kind::PLUS);
       for(int i=1; i<=N; ++i){
         TNode p_i = rewritten[i];
         plus << multPnfByNonZero(p_i, d);
@@ -121,6 +126,19 @@ Node ArithRewriter::rewriteAtom(TNode atom){
   }
 
   return nf;
+}
+
+Node ArithRewriter::rewriteAtom(TNode atom){
+  Node rewritten = rewriteAtomCore(atom);
+  if(rewritten.getKind() == kind::LT){
+    Node geq = NodeManager::currentNM()->mkNode(kind::GEQ, rewritten[0], rewritten[1]);
+    return NodeManager::currentNM()->mkNode(kind::NOT, geq);
+  }else if(rewritten.getKind() == kind::GT){
+    Node leq = NodeManager::currentNM()->mkNode(kind::LEQ, rewritten[0], rewritten[1]);
+    return NodeManager::currentNM()->mkNode(kind::NOT, leq);
+  }else{
+    return rewritten;
+  }
 }
 
 
@@ -317,7 +335,7 @@ Node ArithRewriter::rewriteMult(TNode t){
       if(rewrittenChild.getMetaKind() == kind::metakind::CONSTANT){//c
         Rational c = rewrittenChild.getConst<Rational>();
         accumulator = accumulator * c;
-        if(accumulator == 0){
+        if(accumulator == d_constants->d_ZERO){
           return d_constants->d_ZERO_NODE;
         }
       }else if(rewrittenChild.getMetaKind() == kind::metakind::VARIABLE){ //v
@@ -391,8 +409,8 @@ Node ArithRewriter::rewriteTerm(TNode t){
  * The claim is that this is always okay:
  * If d' = q*d, p' = (* d' p_1 p_2 .. p_M) =_{Reals} q * pnf.
  */
-Node multPnfByNonZero(TNode pnf, Rational& q){
-  Assert(q != 0);
+Node ArithRewriter::multPnfByNonZero(TNode pnf, Rational& q){
+  Assert(q != d_constants->d_ZERO);
   //TODO Assert(isPNF(pnf) );
 
   int M = pnf.getNumChildren()-1;
@@ -400,7 +418,7 @@ Node multPnfByNonZero(TNode pnf, Rational& q){
   Rational new_d = d*q;
 
 
-  NodeBuilder<> mult;
+  NodeBuilder<> mult(kind::MULT);
   mult << mkRationalNode(new_d);
   for(int i=1; i<=M; ++i){
     mult << pnf[i];
@@ -443,8 +461,7 @@ Kind multKind(Kind k, int sgn){
 }
 
 Node ArithRewriter::rewrite(TNode n){
-  using namespace std;
-  cout << "Trace rewrite:" << n << endl;
+  Debug("arithrewriter") << "Trace rewrite:" << n << std::endl;
 
   if(n.getAttribute(IsNormal())){
     return n;
@@ -452,7 +469,7 @@ Node ArithRewriter::rewrite(TNode n){
 
   Node res;
 
-  if(n.isAtomic()){
+  if(isRelationOperator(n.getKind())){
     res = rewriteAtom(n);
   }else{
     res = rewriteTerm(n);

@@ -21,10 +21,12 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdlist.h"
+#include "expr/node.h"
 
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
 #include "theory/arith/arith_rewriter.h"
+#include "theory/arith/partial_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,16 +35,19 @@ namespace arith {
 class TheoryArith : public Theory {
 private:
   ArithConstants d_constants;
+  ArithPartialModel d_partialModel;
 
   context::CDList<Node> d_diseq;
+  context::CDList<Node> d_preprocessed;
+  //TODO This is currently needed to save preprocessed nodes that may not
+  //currently have an outisde reference. Get rid of when preprocessing is occuring
+  //correctly.
+
   Tableau d_tableau;
   ArithRewriter d_rewriter;
 
 public:
-  TheoryArith(context::Context* c, OutputChannel& out) :
-    Theory(c, out),
-    d_constants(NodeManager::currentNM()), d_diseq(c), d_rewriter(&d_constants)
-  {}
+  TheoryArith(context::Context* c, OutputChannel& out);
 
   Node rewrite(TNode n);
 
@@ -53,11 +58,12 @@ public:
   void explain(TNode n, Effort e) { Unimplemented(); }
 
 private:
-  void AssertLower(TNode n);
-  void AssertUpper(TNode n);
+  void AssertLower(TNode n, TNode orig);
+  void AssertUpper(TNode n, TNode orig);
   void update(TNode x_i, DeltaRational& v);
   void pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v);
-  TNode updateInconsistentVars();
+
+  Node updateInconsistentVars();
 
   TNode selectSlackBelow(TNode x_i);
   TNode selectSlackAbove(TNode x_i);
@@ -65,6 +71,9 @@ private:
 
   Node generateConflictAbove(TNode conflictVar);
   Node generateConflictBelow(TNode conflictVar);
+
+  //TODO get rid of this!
+  Node simulatePreprocessing(TNode n);
 
 };
 

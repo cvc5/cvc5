@@ -3,9 +3,13 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
+#include <ostream>
+
 
 #ifndef __CVC4__THEORY__ARITH__DELTA_RATIONAL_H
 #define __CVC4__THEORY__ARITH__DELTA_RATIONAL_H
+
+namespace CVC4 {
 
 /**
  * A DeltaRational is a pair of rationals (c,k) that represent the number
@@ -18,10 +22,18 @@ private:
   CVC4::Rational k;
 
 public:
-  DeltaRational() : c(0), k(0) {}
-  DeltaRational(const CVC4::Rational& base) : c(base), k(0) {}
+  DeltaRational() : c(0,1), k(0,1) {}
+  DeltaRational(const CVC4::Rational& base) : c(base), k(0,1) {}
   DeltaRational(const CVC4::Rational& base, const CVC4::Rational& coeff) :
     c(base), k(coeff) {}
+
+  const CVC4::Rational& getInfintestimalPart() const {
+    return k;
+  }
+
+  const CVC4::Rational& getNoninfintestimalPart() const {
+    return c;
+  }
 
   DeltaRational operator+(const DeltaRational& other) const{
     CVC4::Rational tmpC = c+other.c;
@@ -58,7 +70,7 @@ public:
     return !(*this <= other);
   }
 
-  DeltaRational& operator=(DeltaRational& other){
+  DeltaRational& operator=(const DeltaRational& other){
     c = other.c;
     k = other.k;
     return *(this);
@@ -78,5 +90,9 @@ public:
     return *(this);
   }
 };
+
+std::ostream& operator<<(std::ostream& os, const DeltaRational& n);
+
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__ARITH__DELTA_RATIONAL_H */

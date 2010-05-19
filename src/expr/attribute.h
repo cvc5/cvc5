@@ -555,19 +555,31 @@ inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
  */
 template <class T>
 inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
+  bool anyRequireClearing = false;
+  typedef AttributeTraits<T, false> traits_t;
+  typedef AttrHash<T> hash_t;
   for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::s_id; ++id) {
-    typedef AttributeTraits<T, false> traits_t;
-    typedef AttrHash<T> hash_t;
     if(traits_t::cleanup[id] != NULL) {
-      typename hash_t::iterator it = table.begin();
-      typename hash_t::iterator it_end = table.end();
-      while (it != it_end) {
-        traits_t::cleanup[id]((*it).second);
-        ++ it;
-      }
+      anyRequireClearing = true;
     }
-    table.clear();
   }
+
+  if(anyRequireClearing){
+    typename hash_t::iterator it = table.begin();
+    typename hash_t::iterator it_end = table.end();
+
+    while (it != it_end){
+      uint64_t id = (*it).first.first;
+      Debug("attrgc") << "id " << id
+                      << " node_value: " << ((*it).first.second)
+                      << std::endl;
+      if(traits_t::cleanup[id] != NULL) {
+        traits_t::cleanup[id]((*it).second);
+      }
+      ++it;
+    }
+  }
+  table.clear();
 }
 
 

@@ -24,6 +24,8 @@ TESTS =	\
 	logops.04.cvc \
 	logops.05.cvc \
 	simple.cvc \
+	ineq_basic.smt \
+	ineq_slack.smt \
 	smallcnf.cvc \
 	test11.cvc \
 	test9.cvc \

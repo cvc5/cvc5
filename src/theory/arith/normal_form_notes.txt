@@ -453,3 +453,114 @@ bool isNormalFormAtom(TNode n){
     return false;
   }
 }
+
+/***********************************************/
+/***********************************************/
+/******************* DRAFT 4 *******************/
+/***********************************************/
+/***********************************************/
+
+/** DRAFT 4
+ * variable := n
+ *   guards
+ *     n getMetaKind() == metakind::VARIABLE
+
+ * constant := n
+ *   guards
+      n.getKind() == kind::CONST_RATIONAL
+
+ * monomial := variable | (* [variable])
+ *   guards
+ *     len [variable] >= 2
+ *     isSorted nodeOrder (getMList monomial)
+
+
+ * coeff_mono := monomial | (* coeff monomial)
+ *   guards
+ *     coeff is renaming for constant
+       coeff \not\in {0,1}
+
+ * sum := coeff_mono | (+ [coeff_mono])
+ *   guards
+ *     len [coeff_mono] >= 2
+ *     isStronglySorted cmono_cmp [coeff_mono]
+
+ * cons_sum := sum |  (+ constant_1 sum) | constant_0
+ *   guards
+ *     constant_1, constant_0 are accepted by constant
+ *     constant_1 != 1
+
+ * comparison := leads_with_one |><| constant
+ *   guards
+ *     |><| is GEQ, EQ, LEQ
+ *     isStronglySorted cmono_cmp (monomial::[coeff_monomial])
+ *     leads with_one is a subexpression of sum s.t. it is also accepted by
+ *     leads_with_one :=  monomial | (+ monomial [coeff_monomial])
+
+ * Normal Form for terms := cons_sum
+ * Normal Form for atoms := TRUE | FALSE | comparison | (not comparison)
+ *
+ * Important Notes:
+ *
+ *  The languages for each are stratified. i.e. it is either the case that
+ *  they or all of their children belong to a language that is strictly
+ *  smaller according to the following partial order.
+ *    constant -> monomial -> coeff_mono -> sum -> cons_sum
+ *    variable                                     comparison
+ *  This partial order is not unique, but it is simple.
+ *
+ *  This gives rise to the notion of the tightest language that accepts a node,
+ *  which is simply the least according to the stratification order above.
+ *
+ *  Each subexpression of a normal form is also a normal form.
+ *
+ *  The tightest language that accepts a node does not always indicate the
+ *  tighest language of the children:
+ *     (+ v1 (* v1 v2) (* 2 (* v1 v2 v2)))
+
+ * TAGGING:
+ *  A node in normal form is tagged with the tightest binding above that
+ *  accepts/generates it.
+ *  All subexpressions are also in normal form and are also tagged.
+ *  The tags for terms are as follows:
+ *    enum { CONSTANT, VARIABLE, MONOMIAL, COEFF_MONOMIAL, SUM, CONS_SUM};
+ */
+
+ Auxillary
+ let rec tuple_cmp elem_cmp pairs_list =
+      match pair_list with
+         [] -> 0
+        |(x,y)::ps -> let cmp_res = elem_cmp x y in
+                       if cmp_res <> 0
+                       then cmp_res
+                       else tuple_cmp elem_cmp ps
+
+ let lex_cmp elem_cmp l0 l1 =
+      if len l0 == len l1
+      then tuple_cmp elem_cmp (zip l0 l1)
+      else (len l0) - (len l1)
+
+ let rec adjacent l =
+      mathc l with
+       a::b::xs -> (a,b)::(adjacent b::xs)
+      | _ -> []
+
+ let isWeaklySorted cmp l =
+     forall (fun (x,y) -> cmp x y <= 0) (adjacent l)
+
+ let isStronglySorted cmp l =
+     forall (fun (x,y) -> cmp x y < 0) (adjacent l)
+
+ let getMList monomial =
+         match monomial with
+           variable -> [variable]
+          |(* [variable]) -> [variable]
+
+ let drop_coeff coeff_mono =
+      match coeff_mono in
+         monomial -> monomial
+        |(* coeff monomial) -> monomial
+
+let mono_cmp m0 m1 = lex_cmp nodeOrder (getMList m0) (getMList m1)
+let cmono_cmp cm0 cm1 = mono_cmp (drop_coeff cm0) (drop_coeff cm1)
+

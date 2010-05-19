@@ -1,6 +1,7 @@
 
-
+#include "expr/node.h"
 #include "expr/attribute.h"
+
 
 #ifndef __CVC4__THEORY__ARITH__BASIC_H
 #define __CVC4__THEORY__ARITH__BASIC_H
@@ -15,7 +16,7 @@ typedef expr::Attribute<IsBasicAttrID, bool> IsBasic;
 
 
 inline bool isBasic(TNode x){
-  return x.hasAttribute(IsBasic());
+  return x.getAttribute(IsBasic());
 }
 
 inline void makeBasic(TNode x){

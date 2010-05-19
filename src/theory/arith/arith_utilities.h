@@ -101,22 +101,51 @@ inline Node pushInNegation(Node assertion){
   case EQUAL:
     return assertion;
   case GT:
-    k = LT;
-    break;
-  case GEQ:
     k = LEQ;
     break;
+  case GEQ:
+    k = LT;
+    break;
   case LEQ:
-    k = GEQ;
+    k = GT;
     break;
   case LT:
-    k = GT;
+    k = GEQ;
     break;
   default:
     Unreachable();
   }
 
   return NodeManager::currentNM()->mkNode(k, p[0],p[1]);
+}
+
+/**
+ * Validates that a node constraint has the following form:
+ *   constraint: x |><| c
+ * where |><| is either <, <=, ==, >=, LT,
+ * x is of metakind a variabale,
+ * and c is a constant rational.
+ */
+inline bool validateConstraint(TNode constraint){
+  using namespace CVC4::kind;
+  switch(constraint.getKind()){
+  case LT:case LEQ: case EQUAL: case GEQ: case GT: break;
+  default: return false;
+  }
+
+  if(constraint[0].getMetaKind() != metakind::VARIABLE) return false;
+  return constraint[1].getKind() == CONST_RATIONAL;
+}
+
+inline int deltaCoeff(Kind k){
+  switch(k){
+  case kind::LT:
+    return -1;
+  case kind::GT:
+    return 1;
+  default:
+    return 0;
+  }
 }
 
 }; /* namesapce arith */

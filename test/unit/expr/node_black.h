@@ -561,4 +561,28 @@ public:
     sstr << Node::setdepth(3) << o;
     TS_ASSERT(sstr.str() == "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
   }
+
+//  This Test is designed to fail in a way that will cause a segfault,
+//  so it is commented out.
+//  This is for demonstrating what a certain type of user error looks like.
+//   Node level0(){
+//     NodeBuilder<> nb(kind::AND);
+//     Node x = d_nodeManager->mkVar(*d_booleanType);
+//     nb << x;
+//     nb << x;
+//     return Node(nb.constructNode());
+//   }
+
+//   TNode level1(){
+//     return level0();
+//   }
+
+//   void testChaining() {
+//     Node res = level1();
+
+//     TS_ASSERT(res.getKind() == kind::NULL_EXPR);
+//     TS_ASSERT(res != Node::null());
+
+//     cerr << "I finished both tests now watch as I crash" << endl;
+//   }
 };

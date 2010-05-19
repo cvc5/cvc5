@@ -261,7 +261,7 @@ public:
     try {
       //d_bool.check(effort);
       d_uf.check(effort);
-      //d_arith.check(effort);
+      d_arith.check(effort);
       //d_arrays.check(effort);
       //d_bv.check(effort);
     } catch(const theory::Interrupted&) {
