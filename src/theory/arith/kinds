@@ -10,6 +10,7 @@ operator PLUS 2: "arithmetic addition"
 operator MULT 2: "arithmetic multiplication"
 operator MINUS 2 "arithmetic binary subtraction operator"
 operator UMINUS 1 "arithmetic unary negation"
+operator DIVISION 2 "arithmetic division"
 
 constant CONST_RATIONAL \
     ::CVC4::Rational \

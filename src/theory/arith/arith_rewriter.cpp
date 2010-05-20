@@ -253,7 +253,7 @@ Node ArithRewriter::rewritePlus(TNode t){
   if(pnfs.size() == 1){
     Node p_1 = *(pnfs.begin());
     if(p_1[0].getConst<Rational>() == d_constants->d_ONE){
-      if(accumulator == 0){  // 0 + (* 1 var) |-> var
+      if(accumulator == d_constants->d_ZERO){  // 0 + (* 1 var) |-> var
         Node var = p_1[1];
         return var;
       }
@@ -386,6 +386,26 @@ Node ArithRewriter::rewriteMult(TNode t){
   }
 }
 
+Node ArithRewriter::rewriteConstantDiv(TNode t){
+  Assert(t.getKind()== kind::DIVISION);
+
+  Node reLeft = rewrite(t[0]);
+  Node reRight = rewrite(t[1]);
+  Assert(reLeft.getKind()== kind::CONST_RATIONAL);
+  Assert(reRight.getKind()== kind::CONST_RATIONAL);
+
+  Rational num = reLeft.getConst<Rational>();
+  Rational den = reRight.getConst<Rational>();
+
+  Assert(den != d_constants->d_ZERO);
+
+  Rational div = num / den;
+
+  Node result = mkRationalNode(div);
+
+  return result;
+}
+
 Node ArithRewriter::rewriteTerm(TNode t){
   if(t.getMetaKind() == kind::metakind::CONSTANT){
     return coerceToRationalNode(t);
@@ -395,6 +415,8 @@ Node ArithRewriter::rewriteTerm(TNode t){
     return rewriteMult(t);
   }else if(t.getKind() == kind::PLUS){
     return rewritePlus(t);
+  }else if(t.getKind() == kind::DIVISION){
+    return rewriteConstantDiv(t);
   }else{
     Unreachable();
     return Node::null();

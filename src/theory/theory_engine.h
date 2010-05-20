@@ -221,8 +221,15 @@ public:
       if(lhs.getKind() == kind::VARIABLE) {
         // FIXME: we don't yet have a Type-to-Theory map.  When we do,
         // look up the type of the LHS and return that Theory (?)
-        return &d_uf;
-        //Unimplemented();
+
+        //The following JUST hacks around this lack of a table
+        TypeNode type_of_n = lhs.getType();
+        if(type_of_n.isReal()){
+          return &d_arith;
+        }else{
+          return &d_uf;
+          //Unimplemented();
+        }
       } else {
         return theoryOf(lhs);
       }

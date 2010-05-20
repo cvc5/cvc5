@@ -82,6 +82,9 @@ private:
 
   Node multPnfByNonZero(TNode pnf, Rational& q);
 
+  Node rewriteConstantDiv(TNode t);
+
+
 public:
   ArithRewriter(ArithConstants* ac) :
     d_constants(ac)

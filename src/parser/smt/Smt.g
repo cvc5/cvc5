@@ -284,10 +284,11 @@ builtinOp[CVC4::Kind& kind]
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
+  | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
   // Bit-vectors
   | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
-  | BVAND_TOK    { $kind = CVC4::kind::BITVECTOR_AND;    } 
-  | BVOR_TOK     { $kind = CVC4::kind::BITVECTOR_OR;     }   
+  | BVAND_TOK    { $kind = CVC4::kind::BITVECTOR_AND;    }
+  | BVOR_TOK     { $kind = CVC4::kind::BITVECTOR_OR;     }
   | BVXOR_TOK    { $kind = CVC4::kind::BITVECTOR_XOR;    }
   | BVNOT_TOK    { $kind = CVC4::kind::BITVECTOR_NOT;    }
   | BVNAND_TOK   { $kind = CVC4::kind::BITVECTOR_NAND;   }
@@ -300,7 +301,7 @@ builtinOp[CVC4::Kind& kind]
   | BVNEG_TOK    { $kind = CVC4::kind::BITVECTOR_NEG;    }
   | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV;   }
   | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM;   }
-  | BVSDIV_TOK   { $kind = CVC4::kind::BITVECTOR_SDIV;   } 
+  | BVSDIV_TOK   { $kind = CVC4::kind::BITVECTOR_SDIV;   }
   | BVSREM_TOK   { $kind = CVC4::kind::BITVECTOR_SREM;   }
   | BVSMOD_TOK   { $kind = CVC4::kind::BITVECTOR_SMOD;   }
   | BVSHL_TOK    { $kind = CVC4::kind::BITVECTOR_SHL;    }

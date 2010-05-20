@@ -28,26 +28,40 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
 
+#include <vector>
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
 class TheoryArith : public Theory {
 private:
-  ArithConstants d_constants;
-  ArithPartialModel d_partialModel;
+  /* Chopping block begins */
 
-  context::CDList<Node> d_diseq;
   context::CDList<Node> d_preprocessed;
   //TODO This is currently needed to save preprocessed nodes that may not
   //currently have an outisde reference. Get rid of when preprocessing is occuring
   //correctly.
 
+  std::vector<Node> d_variables;
+  //TODO get rid of this.  Currently forces every variable and skolem constant that
+  // can hit the tableau to stay alive forever!
+  //This needs to come before d_partialModel and d_tableau in the file
+
+
+  /* Chopping block ends */
+  ArithConstants d_constants;
+  ArithPartialModel d_partialModel;
+
+  context::CDList<Node> d_diseq;
   Tableau d_tableau;
   ArithRewriter d_rewriter;
 
+
+
 public:
   TheoryArith(context::Context* c, OutputChannel& out);
+  ~TheoryArith();
 
   Node rewrite(TNode n);
 
@@ -74,6 +88,13 @@ private:
 
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);
+  void setupVariable(TNode x){
+    Assert(x.getMetaKind() == kind::metakind::VARIABLE);
+    d_partialModel.setAssignment(x,d_constants.d_ZERO_DELTA);
+    d_variables.push_back(Node(x));
+
+    Debug("arithgc") << "setupVariable("<<x<<")"<<std::endl;
+  };
 
 };
 

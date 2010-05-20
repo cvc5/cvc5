@@ -12,12 +12,14 @@ using namespace CVC4::theory::arith::partial_model;
 void ArithPartialModel::setUpperBound(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
 
+  Debug("partial_model") << "setUpperBound(" << x << "," << r << ")" << endl;
+
   d_UpperBoundMap[x] = r;
 }
 
 void ArithPartialModel::setLowerBound(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
-
+  Debug("partial_model") << "setLowerBound(" << x << "," << r << ")" << endl;
   d_LowerBoundMap[x] = r;
 }
 

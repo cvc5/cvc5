@@ -31,15 +31,20 @@ using namespace CVC4::theory::arith;
 
 TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   Theory(c, out),
+  d_preprocessed(c),
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_diseq(c),
-  d_preprocessed(c),
   d_rewriter(&d_constants)
 {
   uint64_t ass_id = partial_model::Assignment::getId();
-  Debug("arithsetup") << "Assignment: " << ass_id
-                      << std::endl;
+  Debug("arithsetup") << "Assignment: " << ass_id << std::endl;
+}
+TheoryArith::~TheoryArith(){
+  for(vector<Node>::iterator i=d_variables.begin(); i!= d_variables.end(); ++i){
+    Node var = *i;
+    Debug("arithgc") << var << endl;
+  }
 }
 
 
@@ -87,13 +92,14 @@ Node TheoryArith::rewrite(TNode n){
   return result;
 }
 
+
 void TheoryArith::registerTerm(TNode tn){
   Debug("arith") << "registerTerm(" << tn << ")" << endl;
 
   if(tn.getKind() == kind::BUILTIN) return;
 
   if(tn.getMetaKind() == metakind::VARIABLE){
-    d_partialModel.setAssignment(tn,d_constants.d_ZERO_DELTA);
+    setupVariable(tn);
   }
 
   //TODO is an atom
@@ -115,7 +121,9 @@ void TheoryArith::registerTerm(TNode tn){
           //TODO
           TypeNode real_type = NodeManager::currentNM()->realType();
           slack = NodeManager::currentNM()->mkVar(real_type);
-          d_partialModel.setAssignment(slack,d_constants.d_ZERO_DELTA);
+
+          setupVariable(slack);
+
           left.setAttribute(Slack(), slack);
           makeBasic(slack);
 
