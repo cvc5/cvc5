@@ -94,7 +94,7 @@ public:
   void subsitute(Row& row_s){
     TNode x_s = row_s.basicVar();
 
-    Assert(!has(x_s));
+    Assert(has(x_s));
     Assert(x_s != d_x_i);
 
 

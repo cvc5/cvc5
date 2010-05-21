@@ -110,7 +110,7 @@ public:
    * @return true if expressions are equal, false otherwise
    */
   bool operator==(const TypeNode& typeNode) const {
-    return d_nv == typeNode.d_nv;
+    return d_nv == typeNode.d_nv || (typeNode.isReal() && this->isReal());
   }
 
   /**
@@ -119,7 +119,7 @@ public:
    * @return true if expressions are equal, false otherwise
    */
   bool operator!=(const TypeNode& typeNode) const {
-    return d_nv != typeNode.d_nv;
+    return !(*this == typeNode);
   }
 
   /**

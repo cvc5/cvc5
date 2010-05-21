@@ -23,7 +23,7 @@ namespace CVC4 {
 
 class EqualityTypeRule {
   public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n) throw (TypeCheckingException) {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n) throw (TypeCheckingExceptionPrivate) {
     if (n[0].getType() != n[1].getType()) {
       throw TypeCheckingExceptionPrivate(n, "Left and right hand side of the equation are not of the same type");
     }

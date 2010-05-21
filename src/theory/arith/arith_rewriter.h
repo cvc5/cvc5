@@ -75,6 +75,7 @@ private:
   Node rewriteTerm(TNode t);
   Node rewriteMult(TNode t);
   Node rewritePlus(TNode t);
+  Node rewriteMinus(TNode t);
   Node makeSubtractionNode(TNode l, TNode r);
 
 

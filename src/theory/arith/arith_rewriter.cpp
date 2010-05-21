@@ -417,6 +417,9 @@ Node ArithRewriter::rewriteTerm(TNode t){
     return rewritePlus(t);
   }else if(t.getKind() == kind::DIVISION){
     return rewriteConstantDiv(t);
+  }else if(t.getKind() == kind::MINUS){
+    Node sub = makeSubtractionNode(t[0],t[1]);
+    return rewrite(sub);
   }else{
     Unreachable();
     return Node::null();

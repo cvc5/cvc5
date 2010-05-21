@@ -338,6 +338,7 @@ Node TseitinCnfStream::handleNonAtomicNode(TNode node) {
 
   if(node.getKind() == ITE) {
     Assert( node.getNumChildren() == 3 );
+    //TODO should this be a skolem?
     Node skolem = nodeManager->mkVar(node.getType());
     Node newAssertion =
         nodeManager->mkNode(

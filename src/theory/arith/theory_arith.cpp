@@ -99,6 +99,7 @@ void TheoryArith::registerTerm(TNode tn){
   if(tn.getKind() == kind::BUILTIN) return;
 
   if(tn.getMetaKind() == metakind::VARIABLE){
+
     setupVariable(tn);
   }
 
@@ -419,12 +420,25 @@ Node TheoryArith::generateConflictBelow(TNode conflictVar){
 Node TheoryArith::simulatePreprocessing(TNode n){
   if(n.getKind() == NOT){
     Node sub = simulatePreprocessing(n[0]);
-    return NodeManager::currentNM()->mkNode(NOT,sub);
+    if(sub.getKind() == NOT){
+      return sub[0];
+    }else{
+      return NodeManager::currentNM()->mkNode(NOT,sub);
+    }
   }else{
     Node rewritten = rewrite(n);
     Kind k = rewritten.getKind();
-    if(!isRelationOperator(k)){
-      return rewritten;
+    bool negate = false;
+
+    if(rewritten.getKind() == NOT){
+      Node sub = simulatePreprocessing(rewritten[0]);
+      if(sub.getKind() == NOT){
+        return sub[0];
+      }else{
+        return NodeManager::currentNM()->mkNode(NOT,sub);
+      }
+    } else if(!isRelationOperator(k)){
+      Unreachable("Slack must be have been created!");
     }else if(rewritten[0].getMetaKind() == metakind::VARIABLE){
       return rewritten;
     }else {

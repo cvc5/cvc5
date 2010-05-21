@@ -28,7 +28,8 @@ bool TypeNode::isInteger() const {
 }
 
 bool TypeNode::isReal() const {
-  return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE;
+  return getKind() == kind::TYPE_CONSTANT
+    && (getConst<TypeConstant>() == REAL_TYPE || getConst<TypeConstant>() == INTEGER_TYPE);
 }
 
 /** Is this a function type? */
