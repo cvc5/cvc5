@@ -57,6 +57,12 @@ public:
     TS_ASSERT_EQUALS(z7.getUnsignedLong(), 1536729ul);
   }
 
+  void testCompareAgainstZero(){
+    Integer z(0);
+    TS_ASSERT_THROWS_NOTHING(z == 0;);
+    TS_ASSERT_EQUALS(z,0);
+  }
+
   void testOperatorAssign(){
     Integer x(0);
     Integer y(79);

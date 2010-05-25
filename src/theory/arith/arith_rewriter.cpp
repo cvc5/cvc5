@@ -265,8 +265,11 @@ Node ArithRewriter::rewritePlus(TNode t){
 
   NodeBuilder<> nb(kind::PLUS);
   nb << mkRationalNode(accumulator);
+  Debug("arithrewrite") << mkRationalNode(accumulator) << std::endl;
   for(vector<Node>::iterator i = pnfs.begin(); i != pnfs.end(); ++i){
     nb << *i;
+    Debug("arithrewrite") << (*i) << std::endl;
+
   }
 
   Node normalForm = nb;
@@ -279,6 +282,7 @@ Node ArithRewriter::rewritePlus(TNode t){
 Node toPnf(Rational& c, std::set<Node>& variables){
   NodeBuilder<> nb(kind::MULT);
   nb << mkRationalNode(c);
+
   for(std::set<Node>::iterator i = variables.begin(); i != variables.end(); ++i){
     nb << *i;
   }
@@ -312,22 +316,31 @@ Node ArithRewriter::rewriteMult(TNode t){
   Rational accumulator(1,1);
   set<Node> variables;
   vector<Node> sums;
-  stack<pair<TNode, TNode::iterator> > mult_iterators;
 
-  mult_iterators.push(make_pair(t, t.begin()));
-  while(!mult_iterators.empty()){
-    pair<TNode, TNode::iterator> p = mult_iterators.top();
-    mult_iterators.pop();
+  //These stacks need to be kept in lock step
+  stack<TNode> mult_iterators_nodes;
+  stack<unsigned> mult_iterators_iters;
 
-    TNode mult = p.first;
-    TNode::iterator i = p.second;
+  mult_iterators_nodes.push(t);
+  mult_iterators_iters.push(0);
 
-    for(; i!= mult.end(); ++i){
-      TNode child = *i;
+  while(!mult_iterators_nodes.empty()){
+    TNode mult = mult_iterators_nodes.top();
+    unsigned i = mult_iterators_iters.top();
+
+    mult_iterators_nodes.pop();
+    mult_iterators_iters.pop();
+
+
+    for(; i < mult.getNumChildren(); ++i){
+      TNode child = mult[i];
       if(child.getKind() == kind::MULT){ //TODO add not rewritten already checks
         ++i;
-        mult_iterators.push(make_pair(mult,i));
-        mult_iterators.push(make_pair(child,child.begin()));
+        mult_iterators_nodes.push(mult);
+        mult_iterators_iters.push(i);
+
+        mult_iterators_nodes.push(child);
+        mult_iterators_iters.push(0);
         break;
       }
       Node rewrittenChild = rewrite(child);

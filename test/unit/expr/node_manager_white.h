@@ -48,7 +48,7 @@ public:
   }
 
   void testMkConstInt() {
-    Integer i = "3";
+    Integer i("3");
     Node n = d_nm->mkConst(i);
     Node m = d_nm->mkConst(i);
     TS_ASSERT_EQUALS(n.getId(), m.getId());

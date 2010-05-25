@@ -32,6 +32,12 @@ public:
     TS_ASSERT_THROWS_NOTHING( delete q );
   }
 
+  void testCompareAgainstZero(){
+    Rational q(0);
+    TS_ASSERT_THROWS_NOTHING(q == 0;);
+    TS_ASSERT_EQUALS(q,0);
+  }
+
   void testConstructors(){
     Rational zero; //Default constructor
     TS_ASSERT_EQUALS(0L, zero.getNumerator().getLong());

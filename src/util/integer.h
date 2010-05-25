@@ -56,7 +56,7 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  Integer(const char * s, int base = 10): d_value(s,base) {}
+  explicit Integer(const char * s, int base = 10): d_value(s,base) {}
   Integer(const std::string& s, unsigned base = 10) : d_value(s, base) {}
 
   Integer(const Integer& q) : d_value(q.d_value) {}

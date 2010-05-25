@@ -75,7 +75,7 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  Rational(const char * s, int base = 10): d_value(s,base) {
+  explicit Rational(const char * s, int base = 10): d_value(s,base) {
     d_value.canonicalize();
   }
   Rational(const std::string& s, unsigned base = 10) : d_value(s, base) {
@@ -86,6 +86,22 @@ public:
    * Creates a Rational from another Rational, q, by performing a deep copy.
    */
   Rational(const Rational& q) : d_value(q.d_value) {
+    d_value.canonicalize();
+  }
+
+  /**
+   * Constructs a canonical Rational from a numerator.
+   */
+  Rational(signed int n) : d_value(n,1) {
+    d_value.canonicalize();
+  }
+  Rational(unsigned int n) : d_value(n,1) {
+    d_value.canonicalize();
+  }
+  Rational(signed long int n) : d_value(n,1) {
+    d_value.canonicalize();
+  }
+  Rational(unsigned long int n) : d_value(n,1) {
     d_value.canonicalize();
   }
 

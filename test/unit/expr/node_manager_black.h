@@ -167,13 +167,13 @@ public:
 
 
   void testMkConstInt() {
-    Integer i = "3";
+    Integer i("3");
     Node n = d_nodeManager->mkConst(i);
     TS_ASSERT_EQUALS(n.getConst<Integer>(),i);
   }
 
   void testMkConstRat() {
-    Rational r = "3/2";
+    Rational r("3/2");
     Node n = d_nodeManager->mkConst(r);
     TS_ASSERT_EQUALS(n.getConst<Rational>(),r);
   }
