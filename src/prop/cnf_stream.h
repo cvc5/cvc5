@@ -39,7 +39,9 @@ class PropEngine;
  * @author Tim King <taking@cs.nyu.edu>
  */
 class CnfStream {
+
 public:
+
   /** Cache of what nodes have been registered to a literal. */
   typedef __gnu_cxx::hash_map<SatLiteral, Node, SatSolver::SatLiteralHashFunction> NodeCache;
 
@@ -57,23 +59,30 @@ private:
 protected:
 
   /**
+   * Are we asserting a lemma (true) or a permanent clause (false).
+   * This is set at the begining of convertAndAssert so that it doesn't
+   * need to be passed on over the stack.
+   */
+  bool d_assertingLemma;
+
+  /**
    * Asserts the given clause to the sat solver.
    * @param clause the clasue to assert
    */
-  void assertClause(SatClause& clause);
+  void assertClause(TNode node, SatClause& clause);
 
   /**
    * Asserts the unit clause to the sat solver.
    * @param a the unit literal of the clause
    */
-  void assertClause(SatLiteral a);
+  void assertClause(TNode node, SatLiteral a);
 
   /**
    * Asserts the binary clause to the sat solver.
    * @param a the first literal in the clause
    * @param b the second literal in the clause
    */
-  void assertClause(SatLiteral a, SatLiteral b);
+  void assertClause(TNode node, SatLiteral a, SatLiteral b);
 
   /**
    * Asserts the ternary clause to the sat solver.
@@ -81,7 +90,7 @@ protected:
    * @param b the second literal in the clause
    * @param c the thirs literal in the clause
    */
-  void assertClause(SatLiteral a, SatLiteral b, SatLiteral c);
+  void assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c);
 
   /**
    * Returns true if the node has been cashed in the translation cache.
@@ -137,7 +146,7 @@ public:
    * @param node node to convert and assert
    * @param whether the sat solver can choose to remove this clause
    */
-  virtual void convertAndAssert(TNode node) = 0;
+  virtual void convertAndAssert(TNode node, bool lemma = false) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -175,8 +184,9 @@ public:
   /**
    * Convert a given formula to CNF and assert it to the SAT solver.
    * @param node the formula to assert
+   * @param lemma is this a lemma that is erasable
    */
-  void convertAndAssert(TNode node);
+  void convertAndAssert(TNode node, bool lemma);
 
   /**
    * Constructs the stream to use the given sat solver.

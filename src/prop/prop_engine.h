@@ -23,9 +23,11 @@
 #include "util/result.h"
 #include "util/options.h"
 #include "util/decision_engine.h"
-#include "theory/theory_engine.h"
 
 namespace CVC4 {
+
+class TheoryEngine;
+
 namespace prop {
 
 class CnfStream;
@@ -96,7 +98,9 @@ public:
 
   /**
    * Converts the given formula to CNF and assert the CNF to the sat solver.
-   * The formula can be removed by the sat solver.
+   * The formula can be removed by the sat solver after backtracking lower
+   * than the (SAT and SMT) level at which it was asserted.
+   *
    * @param node the formula to assert
    */
   void assertLemma(TNode node);

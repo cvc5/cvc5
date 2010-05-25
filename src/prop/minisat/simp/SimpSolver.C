@@ -118,7 +118,7 @@ bool SimpSolver::solve(const vec<Lit>& assumps, bool do_simp, bool turn_off_simp
 
 
 
-bool SimpSolver::addClause(vec<Lit>& ps)
+bool SimpSolver::addClause(vec<Lit>& ps, ClauseType type)
 {
     for (int i = 0; i < ps.size(); i++)
         if (isEliminated(var(ps[i])))
@@ -129,7 +129,7 @@ bool SimpSolver::addClause(vec<Lit>& ps)
     if (redundancy_check && implied(ps))
         return true;
 
-    if (!Solver::addClause(ps))
+    if (!Solver::addClause(ps, type))
         return false;
 
     if (use_simplification && clauses.size() == nclauses + 1){
@@ -485,7 +485,7 @@ bool SimpSolver::eliminateVar(Var v, bool fail)
     vec<Lit> resolvent;
     for (int i = 0; i < pos.size(); i++)
         for (int j = 0; j < neg.size(); j++)
-            if (merge(*pos[i], *neg[j], v, resolvent) && !addClause(resolvent))
+            if (merge(*pos[i], *neg[j], v, resolvent) && !addClause(resolvent, CLAUSE_CONFLICT))
                 return false;
 
     // DEBUG: For checking that a clause set is saturated with respect to variable elimination.
@@ -527,7 +527,7 @@ void SimpSolver::remember(Var v)
             clause.push(c[j]);
 
         remembered_clauses++;
-        check(addClause(clause));
+        check(addClause(clause, CLAUSE_PROBLEM));
         free(&c);
     }
 

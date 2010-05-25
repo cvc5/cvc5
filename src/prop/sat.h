@@ -93,7 +93,7 @@ inline std::string stringOfLiteralValue(SatLiteralValue val) {
 class SatInputInterface {
 public:
   /** Assert a clause in the solver. */
-  virtual void addClause(SatClause& clause) = 0;
+  virtual void addClause(SatClause& clause, bool lemma) = 0;
   /** Create a new boolean variable in the solver. */
   virtual SatVariable newVar(bool theoryAtom = false) = 0;
 };
@@ -148,7 +148,7 @@ public:
 
   bool solve();
   
-  void addClause(SatClause& clause);
+  void addClause(SatClause& clause, bool lemma);
 
   SatVariable newVar(bool theoryAtom = false);
 
@@ -190,8 +190,8 @@ inline bool SatSolver::solve() {
   return d_minisat->solve();
 }
 
-inline void SatSolver::addClause(SatClause& clause) {
-  d_minisat->addClause(clause);
+inline void SatSolver::addClause(SatClause& clause, bool lemma) {
+  d_minisat->addClause(clause, lemma ? minisat::Solver::CLAUSE_LEMMA : minisat::Solver::CLAUSE_PROBLEM);
 }
 
 inline SatVariable SatSolver::newVar(bool theoryAtom) {

@@ -9,7 +9,9 @@ namespace prop {
 
 void SatSolver::theoryCheck(SatClause& conflict) {
   // Try theory propagation
-  if (!d_theoryEngine->check(theory::Theory::FULL_EFFORT)) {
+  bool ok = d_theoryEngine->check(theory::Theory::FULL_EFFORT);
+  // If in conflict construct the conflict clause
+  if (!ok) {
     // We have a conflict, get it
     Node conflictNode = d_theoryEngine->getConflict();
     Debug("prop") << "SatSolver::theoryCheck() => conflict: " << conflictNode << std::endl;

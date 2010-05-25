@@ -66,7 +66,18 @@ public:
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false); // Add a new variable with parameters specifying variable mode.
-    bool    addClause (vec<Lit>& ps);                           // Add a clause to the solver. NOTE! 'ps' may be shrunk by this method!
+
+    // Types of clauses
+    enum ClauseType {
+      // Clauses defined by the problem
+      CLAUSE_PROBLEM,
+      // Lemma clauses added by the theories
+      CLAUSE_LEMMA,
+      // Conflict clauses
+      CLAUSE_CONFLICT
+    };
+
+    bool    addClause (vec<Lit>& ps, ClauseType type);                           // Add a clause to the solver. NOTE! 'ps' may be shrunk by this method!
 
     // Solving:
     //
@@ -148,9 +159,12 @@ protected:
     vec<char>           decision_var;     // Declares if a variable is eligible for selection in the decision heuristic.
     vec<Lit>            trail;            // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
+    vec<Clause*>        lemmas;           // List of lemmas we added (context dependent)
+    vec<int>            lemmas_lim;       // Separator indices for different decision levels in 'lemmas'.
     vec<Clause*>        reason;           // 'reason[var]' is the clause that implied the variables current value, or 'NULL' if none.
     vec<int>            level;            // 'level[var]' contains the level at which the assignment was made.
     int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
+    int                 lhead;            // Head of the lemma stack (for backtracking)
     int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
     int64_t             simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
     vec<Lit>            assumptions;      // Current set of assumptions provided to solve by the user.
@@ -256,7 +270,7 @@ inline void Solver::claBumpActivity (Clause& c) {
 
 inline bool     Solver::enqueue         (Lit p, Clause* from)   { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
 inline bool     Solver::locked          (const Clause& c) const { return reason[var(c[0])] == &c && value(c[0]) == l_True; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); context->push(); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); lemmas_lim.push(lemmas.size()); context->push(); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level[x] & 31); }

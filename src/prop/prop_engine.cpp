@@ -33,6 +33,26 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace prop {
 
+/** Keeps a boolean flag scoped */
+class ScopedBool {
+
+private:
+
+  bool d_original;
+  bool& d_reference;
+
+public:
+
+  ScopedBool(bool& reference) :
+    d_reference(reference) {
+    d_original = reference;
+  }
+
+  ~ScopedBool() {
+    d_reference = d_original;
+  }
+};
+
 PropEngine::PropEngine(const Options* opts, DecisionEngine* de,
                        TheoryEngine* te, Context* context)
 : d_inCheckSat(false),
@@ -61,6 +81,7 @@ void PropEngine::assertFormula(TNode node) {
 }
 
 void PropEngine::assertLemma(TNode node) {
+  Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as removable
   d_cnfStream->convertAndAssert(node);
@@ -89,12 +110,13 @@ void PropEngine::printSatisfyingAssignment(){
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "PropEngine::checkSat()" << endl;
+
   // Mark that we are in the checkSat
+  ScopedBool scopedBool(d_inCheckSat);
   d_inCheckSat = true;
+
   // Check the problem
   bool result = d_satSolver->solve();
-  // Not in checkSat any more
-  d_inCheckSat = false;
 
   if( result && debugTagIsOn("prop") ) {
     printSatisfyingAssignment();

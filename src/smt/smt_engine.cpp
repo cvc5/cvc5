@@ -20,6 +20,8 @@
 #include "util/exception.h"
 #include "util/options.h"
 #include "prop/prop_engine.h"
+#include "theory/theory_engine.h"
+
 
 using namespace CVC4::prop;
 using CVC4::context::Context;
@@ -72,8 +74,11 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
   NodeManagerScope nms(d_nodeManager);
 
   d_decisionEngine = new DecisionEngine;
-  d_theoryEngine = new TheoryEngine(this, d_ctxt);
+  // We have mutual dependancy here, so we add the prop engine to the theory
+  // engine later (it is non-essential there)
+  d_theoryEngine = new TheoryEngine(d_ctxt);
   d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine, d_ctxt);
+  d_theoryEngine->setPropEngine(d_propEngine);
 }
 
 void SmtEngine::shutdown() {

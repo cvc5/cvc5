@@ -130,8 +130,8 @@ void TheoryArith::registerTerm(TNode tn){
 
           Node slackEqLeft = NodeManager::currentNM()->mkNode(EQUAL,slack,left);
           slackEqLeft.setAttribute(TheoryArithPropagated(), true);
-          //TODO this has to be wrong no?
-          d_out->lemma(slackEqLeft);
+          //TODO this has to be wrong no? YES (dejan)
+          // d_out->lemma(slackEqLeft);
 
           d_tableau.addRow(slackEqLeft);
 

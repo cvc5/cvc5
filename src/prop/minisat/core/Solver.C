@@ -98,7 +98,7 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
 }
 
 
-bool Solver::addClause(vec<Lit>& ps)
+bool Solver::addClause(vec<Lit>& ps, ClauseType type)
 {
     assert(decisionLevel() == 0);
 
@@ -119,16 +119,19 @@ bool Solver::addClause(vec<Lit>& ps)
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
+        assert(type != CLAUSE_LEMMA);
         assert(value(ps[0]) == l_Undef);
         uncheckedEnqueue(ps[0]);
         return ok = (propagate() == NULL);
     }else{
         Clause* c = Clause_new(ps, false);
         clauses.push(c);
+        if (type == CLAUSE_LEMMA) lemmas.push(c);
         attachClause(*c);
     }
 
     return true;
+
 }
 
 
@@ -181,6 +184,12 @@ void Solver::cancelUntil(int level) {
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
+        // We can erase the lemmas now
+        for (int c = lemmas.size() - 1; c >= lemmas_lim[level]; c--) {
+          // TODO: can_erase[lemma[c]] = true;
+        }
+        lemmas.shrink(lemmas.size() - lemmas_lim[level]);
+        lemmas_lim.shrink(lemmas_lim.size() - level);
     }
 }
 

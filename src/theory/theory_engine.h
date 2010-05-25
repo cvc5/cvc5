@@ -22,6 +22,7 @@
 #include "theory/theory.h"
 #include "theory/theoryof_table.h"
 
+#include "prop/prop_engine.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/arith/theory_arith.h"
@@ -29,8 +30,6 @@
 #include "theory/bv/theory_bv.h"
 
 namespace CVC4 {
-
-class SmtEngine;
 
 // In terms of abstraction, this is below (and provides services to)
 // PropEngine.
@@ -43,8 +42,8 @@ class SmtEngine;
  */
 class TheoryEngine {
 
-  /** Associated SMT engine */
-  SmtEngine* d_smt;
+  /** Associated PropEngine engine */
+  prop::PropEngine* d_propEngine;
 
   /** A table of Kinds to pointers to Theory */
   theory::TheoryOfTable d_theoryOfTable;
@@ -80,7 +79,8 @@ class TheoryEngine {
     void propagate(TNode, bool) throw(theory::Interrupted) {
     }
 
-    void lemma(TNode, bool) throw(theory::Interrupted) {
+    void lemma(TNode node, bool) throw(theory::Interrupted) {
+      d_engine->newLemma(node);
     }
 
     void explanation(TNode, bool) throw(theory::Interrupted) {
@@ -171,8 +171,8 @@ public:
   /**
    * Construct a theory engine.
    */
-  TheoryEngine(SmtEngine* smt, context::Context* ctxt) :
-    d_smt(smt),
+  TheoryEngine(context::Context* ctxt) :
+    d_propEngine(NULL),
     d_theoryOut(this, ctxt),
     d_bool(ctxt, d_theoryOut),
     d_uf(ctxt, d_theoryOut),
@@ -185,6 +185,12 @@ public:
     d_theoryOfTable.registerTheory(&d_arith);
     d_theoryOfTable.registerTheory(&d_arrays);
     d_theoryOfTable.registerTheory(&d_bv);
+  }
+
+  void setPropEngine(prop::PropEngine* propEngine)
+  {
+    Assert(d_propEngine == NULL);
+    d_propEngine = propEngine;
   }
 
   /**
@@ -263,8 +269,10 @@ public:
    * Check all (currently-active) theories for conflicts.
    * @param effort the effort level to use
    */
-  inline bool check(theory::Theory::Effort effort) {
+  inline bool check(theory::Theory::Effort effort)
+  {
     d_theoryOut.d_conflictNode = Node::null();
+    // Do the checking
     try {
       //d_bool.check(effort);
       d_uf.check(effort);
@@ -274,7 +282,12 @@ public:
     } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
     }
+    // Return wheather we have a conflict
     return d_theoryOut.d_conflictNode.get().isNull();
+  }
+
+  inline void newLemma(TNode node) {
+    d_propEngine->assertLemma(node);
   }
 
   /**
