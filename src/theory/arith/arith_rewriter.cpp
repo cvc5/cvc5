@@ -448,6 +448,9 @@ Node ArithRewriter::rewriteTerm(TNode t){
   }else if(t.getKind() == kind::MINUS){
     Node sub = makeSubtractionNode(t[0],t[1]);
     return rewrite(sub);
+  }else if(t.getKind() == kind::UMINUS){
+    Node sub = makeUnaryMinusNode(t[0]);
+    return rewrite(sub);
   }else{
     Unreachable();
     return Node::null();
@@ -481,13 +484,14 @@ Node ArithRewriter::multPnfByNonZero(TNode pnf, Rational& q){
   return result;
 }
 
-
+Node ArithRewriter::makeUnaryMinusNode(TNode n){
+  Node tmp = NodeManager::currentNM()->mkNode(kind::MULT,d_constants->d_NEGATIVE_ONE_NODE,n);
+  return tmp;
+}
 
 Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
-  using namespace CVC4::kind;
-  NodeManager* currentNM = NodeManager::currentNM();
-  Node negR = currentNM->mkNode(MULT, d_constants->d_NEGATIVE_ONE_NODE, r);
-  Node diff = currentNM->mkNode(PLUS, l, negR);
+  Node negR = makeUnaryMinusNode(r);
+  Node diff = NodeManager::currentNM()->mkNode(kind::PLUS, l, negR);
 
   return diff;
 }

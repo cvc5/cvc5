@@ -77,6 +77,7 @@ private:
   Node rewritePlus(TNode t);
   Node rewriteMinus(TNode t);
   Node makeSubtractionNode(TNode l, TNode r);
+  Node makeUnaryMinusNode(TNode n);
 
 
   Node var2pnf(TNode variable);

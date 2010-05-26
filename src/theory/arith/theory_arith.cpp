@@ -428,7 +428,6 @@ Node TheoryArith::simulatePreprocessing(TNode n){
   }else{
     Node rewritten = rewrite(n);
     Kind k = rewritten.getKind();
-    bool negate = false;
 
     if(rewritten.getKind() == NOT){
       Node sub = simulatePreprocessing(rewritten[0]);
@@ -532,6 +531,7 @@ void TheoryArith::check(Effort level){
     }
     if(enqueuedCaseSplit){
       //d_out->caseSplit();
+      Warning() << "Outstanding case split in theory arith" << endl;
     }
   }
 }
