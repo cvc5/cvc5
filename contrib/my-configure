@@ -1,3 +1,6 @@
+# Includes the contents of the file .cvc4_config, if it exists, 
+# on the ./configure command line
+
 #! /bin/bash
 
 CONFIG_OPTIONS=
