@@ -6,4 +6,4 @@ if [ -e .cvc4_config ]; then
   CONFIG_OPTIONS=`cat .cvc4_config`
 fi
 
-echo ./configure $CONFIG_OPTIONS $*
+./configure $CONFIG_OPTIONS $*
