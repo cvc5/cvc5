@@ -15,6 +15,73 @@
  ** popped.  Requires that operator= be defined for the data class,
  ** and operator== for the key class.  For key types that don't have a
  ** __gnu_cxx::hash<>, you should provide an explicit HashFcn.
+ **
+ ** Internal documentation:
+ **
+ ** CDMap<> is something of a work in progress at present (26 May
+ ** 2010), due to some recent discoveries of problems with its
+ ** internal state.  Here are some notes on the internal use of
+ ** CDOmaps that may be useful in figuring out this mess:
+ **
+ **     So you have a CDMap<>.
+ **
+ **     You insert some (key,value) pairs.  Each allocates a CDOmap<>
+ **     and goes on a doubly-linked list headed by map.d_first and
+ **     threaded via cdomap.{d_prev,d_next}.  CDOmaps are constructed
+ **     with a NULL d_map pointer, but then immediately call
+ **     makeCurrent() and set the d_map pointer back to the map.  At
+ **     context level 0, this doesn't lead to anything special.  In
+ **     higher context levels, this stores away a CDOmap with a NULL
+ **     map pointer at level 0, and a non-NULL map pointer in the
+ **     current context level.  (Remember that for later.)
+ **
+ **     When a key is associated to a new value in a CDMap, its
+ **     associated CDOmap calls makeCurrent(), then sets the new
+ **     value.  The save object is also a CDOmap (allocated in context
+ **     memory).
+ **
+ **     Now, CDOmaps disappear in a variety of ways.
+ **
+ **     First, you might pop beyond a "modification of the value"
+ **     scope level, requiring a re-association of the key to an old
+ **     value.  This is easy.  CDOmap::restore() does the work, and
+ **     the context memory of the save object is reclaimed as usual.
+ **
+ **     Second, you might pop beyond a "insert the key" scope level,
+ **     requiring that the key be completely removed from the map and
+ **     its CDOmap object memory freed.  Here, the CDOmap is restored
+ **     to a "NULL-map" state (see above), signaling it to remove
+ **     itself from the map completely and put itself on a "trash
+ **     list" for the map.
+ **
+ **     Third, you might obliterate() the key.  This calls the CDOmap
+ **     destructor, which calls destroy(), which does a successive
+ **     restore() until level 0.  If the key was in the map since
+ **     level 0, the restore() won't remove it, so in that case
+ **     obliterate() removes it from the map and frees the CDOmap's
+ **     memory.
+ **
+ **     Fourth, you might delete the CDMap (calling CDMap::~CDMap()).
+ **     This first calls destroy(), as per ContextObj contract, but
+ **     CDMap doesn't save/restore itself, so that does nothing at the
+ **     CDMap-level.  Then it empties the trash.  Then, for each
+ **     element in the map, it marks it as being "part of a complete
+ **     map destruction", which essentially short-circuits
+ **     CDOmap::restore() (see CDOmap::restore()), then deallocates
+ **     it.  Finally it asserts that the trash is empty (which it
+ **     should be, since restore() was short-circuited).
+ **
+ **     Fifth, you might clear() the CDMap.  This does exactly the
+ **     same as CDMap::~CDMap(), except that it doesn't call destroy()
+ **     on itself.
+ **
+ **     CDMap::emptyTrash() simply goes through and calls
+ **     ->deleteSelf() on all elements in the trash.
+ **     ContextObj::deleteSelf() calls the CDOmap destructor, then
+ **     frees the memory associated to the CDOmap.  CDOmap::~CDOmap()
+ **     calls destroy(), which restores as much as possible.  (Note,
+ **     though, that since objects placed on the trash have already
+ **     restored to the fullest extent possible, it does nothing.)
  **/
 
 #include "cvc4_private.h"
@@ -58,33 +125,36 @@ class CDOmap : public ContextObj {
   }
 
   virtual void restore(ContextObj* data) {
-    CDOmap* p = static_cast<CDOmap*>(data);
-    if(p->d_map == NULL) {
-      Assert(d_map->d_map.find(d_key) != d_map->d_map.end() &&
-             (*d_map->d_map.find(d_key)).second == this);
-      // no longer in map (popped beyond first level in which it was)
-      d_map->d_map.erase(d_key);
-      // If we call deleteSelf() here, it re-enters restore().  So,
-      // put it on a "trash heap" instead, for later deletion.
-      //
-      // FIXME multithreading
-      if(d_map->d_first == this) {
-        Debug("gc") << "remove first-elem " << this << " from map " << d_map << " with next-elem " << d_next << std::endl;
-        if(d_next == this) {
-          Assert(d_prev == this);
-          d_map->d_first = NULL;
+    if(d_map != NULL) {
+      CDOmap* p = static_cast<CDOmap*>(data);
+      if(p->d_map == NULL) {
+        Assert(d_map->d_map.find(d_key) != d_map->d_map.end() &&
+               (*d_map->d_map.find(d_key)).second == this);
+        // no longer in map (popped beyond first level in which it was)
+        d_map->d_map.erase(d_key);
+        // If we call deleteSelf() here, it re-enters restore().  So,
+        // put it on a "trash heap" instead, for later deletion.
+        //
+        // FIXME multithreading
+        if(d_map->d_first == this) {
+          Debug("gc") << "remove first-elem " << this << " from map " << d_map << " with next-elem " << d_next << std::endl;
+          if(d_next == this) {
+            Assert(d_prev == this);
+            d_map->d_first = NULL;
+          } else {
+            d_map->d_first = d_next;
+          }
         } else {
-          d_map->d_first = d_next;
+          Debug("gc") << "remove nonfirst-elem " << this << " from map " << d_map << std::endl;
         }
+        d_next->d_prev = d_prev;
+        d_prev->d_next = d_next;
+        Debug("gc") << "CDMap<> trash push_back " << this << std::endl;
+        //this->deleteSelf();
+        d_map->d_trash.push_back(this);
       } else {
-        Debug("gc") << "remove nonfirst-elem " << this << " from map " << d_map << std::endl;
+        d_data = p->d_data;
       }
-      d_next->d_prev = d_prev;
-      d_prev->d_next = d_next;
-      Debug("gc") << "CDMap<> trash push_back " << this << std::endl;
-      d_map->d_trash.push_back(this);
-    } else {
-      d_data = p->d_data;
     }
   }
 
@@ -211,29 +281,43 @@ public:
     destroy();
     Debug("gc") << "cdmap " << this
                 << " disappearing, done destroying" << std::endl;
-    for(typename table_type::iterator i = d_map.begin();
-        i != d_map.end();
-        ++i) {
-      (*i).second->deleteSelf();
-    }
+
     Debug("gc") << "cdmap " << this << " gone, emptying trash" << std::endl;
     emptyTrash();
     Debug("gc") << "done emptying trash for " << this << std::endl;
-  }
 
-  void clear() throw(AssertionException) {
-    Debug("gc") << "cdmap " << this
-                << " disappearing, destroying..." << std::endl;
     for(typename table_type::iterator i = d_map.begin();
         i != d_map.end();
         ++i) {
+      // mark it as being a destruction (short-circuit restore())
+      (*i).second->d_map = NULL;
       (*i).second->deleteSelf();
     }
     d_map.clear();
-    emptyTrash();
-    Debug("gc") << "done emptying trash for " << this << std::endl;
+    d_first = NULL;
+
+    Assert(d_trash.empty());
   }
 
+  void clear() throw(AssertionException) {
+    Debug("gc") << "clearing cdmap " << this << std::endl;
+
+    Debug("gc") << "cdmap " << this << " cleared, emptying trash" << std::endl;
+    emptyTrash();
+    Debug("gc") << "done emptying trash for " << this << std::endl;
+
+    for(typename table_type::iterator i = d_map.begin();
+        i != d_map.end();
+        ++i) {
+      // mark it as being a destruction (short-circuit restore())
+      (*i).second->d_map = NULL;
+      (*i).second->deleteSelf();
+    }
+    d_map.clear();
+    d_first = NULL;
+
+    Assert(d_trash.empty());
+  }
 
   // The usual operators of map
 
