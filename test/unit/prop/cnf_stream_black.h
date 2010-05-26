@@ -93,14 +93,63 @@ public:
 
 /* [chris 5/26/2010] In the tests below, we don't attempt to delve into the
  * deep structure of the CNF conversion. Firstly, we just want to make sure
- * that the conversion doesn't choke on any boolean Exprs. In some cases,
- * we'll check to make sure a certain number of assertions are generated.
+ * that the conversion doesn't choke on any boolean Exprs. We'll also check
+ * that addClause got called. We won't check that it gets called a particular
+ * number of times, or with what.
  */
 
-void testTrue() {
+void testAnd() {
   NodeManagerScope nms(d_nodeManager);
-  d_satSolver->reset();
-  d_cnfStream->convertAndAssert( d_nodeManager->mkConst(true) );
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(kind::AND, a, b, c) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testComplexExpr() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node d = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node e = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node f = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(
+          kind::IMPLIES,
+          d_nodeManager->mkNode(kind::AND, a, b),
+          d_nodeManager->mkNode(
+              kind::IFF,
+              d_nodeManager->mkNode(kind::OR, c, d),
+              d_nodeManager->mkNode(
+                  kind::NOT,
+                  d_nodeManager->mkNode(kind::XOR, e, f)))) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testFalse() {
+  NodeManagerScope nms(d_nodeManager);
+  d_cnfStream->convertAndAssert( d_nodeManager->mkConst(false) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testIff() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(kind::IFF, a, b) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testImplies() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(kind::IMPLIES, a, b) );
   TS_ASSERT( d_satSolver->addClauseCalled() );
 }
 
@@ -118,5 +167,49 @@ void testIte() {
           d_nodeManager->mkVar(d_nodeManager->integerType())
                             ));
 
+}
+
+void testNot() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(kind::NOT, a) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testOr() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(kind::OR, a, b, c) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testTrue() {
+  NodeManagerScope nms(d_nodeManager);
+  d_cnfStream->convertAndAssert( d_nodeManager->mkConst(true) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testVar() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(a);
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+  d_satSolver->reset();
+  d_cnfStream->convertAndAssert(b);
+  TS_ASSERT( d_satSolver->addClauseCalled() );
+}
+
+void testXor() {
+  NodeManagerScope nms(d_nodeManager);
+  Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
+  d_cnfStream->convertAndAssert(
+      d_nodeManager->mkNode(kind::XOR, a, b) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
 }
 };
