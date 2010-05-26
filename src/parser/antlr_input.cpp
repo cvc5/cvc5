@@ -159,8 +159,12 @@ void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
   AntlrInput *input = (AntlrInput*) parser->getInput();
   AlwaysAssert(input!=NULL);
 
-  // Call the error display routine
-  input->parseError("Error finding next token.");
+  /* Call the error display routine *if* there's not already a 
+   * parse error pending.  If a parser error is pending, this
+   * error is probably less important, so we just drop it. */
+  if( input->d_parser->rec->state->error == ANTLR3_FALSE ) {
+    input->parseError("Error finding next token.");
+  }
 }
 
 void AntlrInput::parseError(const std::string& message)
