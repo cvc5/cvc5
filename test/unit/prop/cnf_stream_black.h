@@ -19,63 +19,6 @@
 
 #include "util/Assert.h"
 
-/** Mock objects and definitions from sat.h*/
-
-/* Prevent sat.h from being included, so we can mock it. */
-/* #define __CVC4__PROP__SAT_H */
-
-/* namespace CVC4 { */
-/* namespace prop { */
-
-/* typedef unsigned int SatVariable; */
-/* typedef int SatLiteralValue; */
-
-/* class SatLiteral { */
-/*   friend class SatSolver; */
-
-/*   SatLiteralValue d_value; */
-
-/* public: */
-/*   SatLiteral(SatVariable x) { */
-/*     AlwaysAssert( x > 0 ); */
-/*     d_value = (SatLiteralValue)x; */
-/*   } */
-
-/* friend SatLiteral operator~(SatLiteral lit); */
-/* }; */
-
-/* SatLiteral operator~(SatLiteral lit) { */
-/*   return SatLiteral(-lit.d_value); */
-/* } */
-
-/* typedef std::vector<SatLiteral> SatClause; */
-
-
-/* class SatSolver { */
-/*   SatVariable d_nextVar; */
-
-/* public: */
-/*   /\** Hash function for literals *\/ */
-/*   struct SatLiteralHashFunction { */
-/*     size_t operator()(const SatLiteral& literal) const { */
-/*       return literal.d_value; */
-/*     } */
-/*   }; */
-
-/*   SatSolver() : */
-/*     d_nextVar(1) { */
-/*   } */
-
-/*   SatVariable newVar(bool theoryAtom) { */
-/*     return d_nextVar++; */
-/*   } */
-
-/*   void addClause(SatClause& clause) { */
-/*     // do nothing */
-/*   } */
-/* }; */
-/* } */
-/* } */
 
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"
@@ -95,61 +38,48 @@ using namespace std;
 /* This fake class relies on the face that a MiniSat variable is just an int. */
 class FakeSatSolver : public SatInputInterface {
   SatVariable d_nextVar;
+  bool d_addClauseCalled;
+
 public:
   FakeSatSolver() :
-    d_nextVar(0) {
+    d_nextVar(0),
+    d_addClauseCalled(false) {
   }
-
-  void addClause(SatClause& clause) { }
 
   SatVariable newVar(bool theoryAtom) {
     return d_nextVar++;
   }
 
-//   MOCK_METHOD1(addClause, void (SatClause&));
-//   MOCK_METHOD1(newVar, SatVariable (bool));
+  void addClause(SatClause& c, bool lemma) {
+    d_addClauseCalled = true;
+  }
+
+  void reset() {
+    d_addClauseCalled = false;
+  }
+
+  unsigned int addClauseCalled() {
+    return d_addClauseCalled;
+  }
 };
 
 class CnfStreamBlack : public CxxTest::TestSuite {
   /** The SAT solver proxy */
-  SatInputInterface *d_satSolver;
+  FakeSatSolver *d_satSolver;
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
 
   Context* d_context;
 
-  /* SmtEngine* d_smtEngine; */
-
-//  * The decision engine
-  /* DecisionEngine* d_decisionEngine; */
-
-//  * The decision engine
-  /* TheoryEngine* d_theoryEngine; */
-
   /* ExprManager *d_exprManager; */
   NodeManager *d_nodeManager;
 
 void setUp() {
-  /* int argc = 1; */
-  /* char *argv[] = { static_cast<char *>("cnf_stream_black") }; */
-  /* ::testing::GTEST_FLAG(throw_on_failure) = true; */
-  /* ::testing::InitGoogleMock(&argc, argv); */
-
   d_context = new Context;
   d_nodeManager = new NodeManager(d_context);
   d_satSolver = new FakeSatSolver;
-  /* d_exprManager = new ExprManager(); */
-
-  /* opts = new Options;  */
-  /* d_smtEngine = new SmtEngine(d_exprManager, opts); */
-  /* d_cnfStream = d_smtEngine->getPropEngine()->getCnfStream(); */
-  /* d_decisionEngine = new DecisionEngine; */
-  /* d_theoryEngine = new TheoryEngine(d_smtEngine, d_ctxt); */
-  /* d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine, d_ctxt); */
-  /* d_satSolver = new SatSolver(d_propEngine, d_theoryEngine, d_context, opts); */
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
-  /* d_satSolver->setCnfStream(d_cnfStream); */
 }
 
 void tearDown() {
@@ -160,9 +90,18 @@ void tearDown() {
 }
 
 public:
+
+/* [chris 5/26/2010] In the tests below, we don't attempt to delve into the
+ * deep structure of the CNF conversion. Firstly, we just want to make sure
+ * that the conversion doesn't choke on any boolean Exprs. In some cases,
+ * we'll check to make sure a certain number of assertions are generated.
+ */
+
 void testTrue() {
   NodeManagerScope nms(d_nodeManager);
+  d_satSolver->reset();
   d_cnfStream->convertAndAssert( d_nodeManager->mkConst(true) );
+  TS_ASSERT( d_satSolver->addClauseCalled() );
 }
 
 void testIte() {
