@@ -43,6 +43,8 @@ inline std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
 
 template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
 class CDOmap : public ContextObj {
+  friend class CDMap<Key, Data, HashFcn>;
+
   Key d_key;
   Data d_data;
   CDMap<Key, Data, HashFcn>* d_map;
@@ -67,7 +69,15 @@ class CDOmap : public ContextObj {
       //
       // FIXME multithreading
       if(d_map->d_first == this) {
-        d_map->d_first = d_next;
+        Debug("gc") << "remove first-elem " << this << " from map " << d_map << " with next-elem " << d_next << std::endl;
+        if(d_next == this) {
+          Assert(d_prev == this);
+          d_map->d_first = NULL;
+        } else {
+          d_map->d_first = d_next;
+        }
+      } else {
+        Debug("gc") << "remove nonfirst-elem " << this << " from map " << d_map << std::endl;
       }
       d_next->d_prev = d_prev;
       d_prev->d_next = d_next;
@@ -98,10 +108,13 @@ public:
     CDOmap*& first = d_map->d_first;
     if(first == NULL) {
       first = d_next = d_prev = this;
+      Debug("gc") << "add first-elem " << this << " to map " << d_map << std::endl;
     } else {
+      Debug("gc") << "add nonfirst-elem " << this << " to map " << d_map << " with first-elem " << first << "[" << first->d_prev << " " << first->d_next << std::endl;
       d_prev = first->d_prev;
       d_next = first;
-      d_prev->d_next = first->d_prev = this;
+      d_prev->d_next = this;
+      first->d_prev = this;
     }
   }
 
@@ -286,7 +299,19 @@ public:
       // never gets a NULL map and so they leak.
       if(j != d_map.end()) {
         Element* elt = (*j).second;
+        if(d_first == elt) {
+          if(elt->d_next == elt) {
+            Assert(elt->d_prev == elt);
+            d_first = NULL;
+          } else {
+            d_first = elt->d_next;
+          }
+        } else {
+          elt->d_prev->d_next = elt->d_next;
+          elt->d_next->d_prev = elt->d_prev;
+        }
         d_map.erase(j);//FIXME multithreading
+        Debug("gc") << "key " << k << " obliterated zero-scope: " << elt << std::endl;
         // was already destructed, so don't call ->deleteSelf()
         ::operator delete(elt);
       }
