@@ -164,18 +164,34 @@ struct pnfLessThan {
   }
 };
 
-Node addPnfs(TNode p0, TNode p1){
-  //TODO asserts
+//Two pnfs are equal up to their coefficients
+bool pnfsMatch(TNode p0, TNode p1){
+
+  unsigned M = p0.getNumChildren()-1;
+  if (M+1 != p1.getNumChildren()){
+    return false;
+  }
+
+  for(unsigned i=1; i <= M; ++i){
+    if(p0[i] != p1[i])
+      return false;
+  }
+  return true;
+}
+
+Node addMatchingPnfs(TNode p0, TNode p1){
+  Assert(pnfsMatch(p0,p1));
+
+  unsigned M = p0.getNumChildren()-1;
+
   Rational c0 = p0[0].getConst<Rational>();
   Rational c1 = p1[0].getConst<Rational>();
-
-  int M = p0.getNumChildren();
 
   Rational addedC = c0 + c1;
   Node newC = mkRationalNode(addedC);
   NodeBuilder<> nb(kind::PLUS);
   nb << newC;
-  for(int i=1; i <= M; ++i){
+  for(unsigned i=1; i <= M; ++i){
     nb << p0[i];
   }
   Node newPnf = nb;
@@ -200,7 +216,7 @@ void sortAndCombineCoefficients(std::vector<Node>& pnfs){
       combined.insert(pnf);
     }else{
       Node current = *pos;
-      Node sum = addPnfs(pnf, current);
+      Node sum = addMatchingPnfs(pnf, current);
       combined.erase(pos);
       combined.insert(sum);
     }
@@ -319,28 +335,27 @@ Node ArithRewriter::rewriteMult(TNode t){
 
   //These stacks need to be kept in lock step
   stack<TNode> mult_iterators_nodes;
-  stack<unsigned> mult_iterators_iters;
+  stack<TNode::const_iterator> mult_iterators_iters;
 
   mult_iterators_nodes.push(t);
-  mult_iterators_iters.push(0);
+  mult_iterators_iters.push(t.begin());
 
   while(!mult_iterators_nodes.empty()){
     TNode mult = mult_iterators_nodes.top();
-    unsigned i = mult_iterators_iters.top();
+    TNode::const_iterator i = mult_iterators_iters.top();
 
     mult_iterators_nodes.pop();
     mult_iterators_iters.pop();
 
-
-    for(; i < mult.getNumChildren(); ++i){
-      TNode child = mult[i];
+    for(; i != mult.end(); ++i){
+      TNode child = *i;
       if(child.getKind() == kind::MULT){ //TODO add not rewritten already checks
         ++i;
         mult_iterators_nodes.push(mult);
         mult_iterators_iters.push(i);
 
         mult_iterators_nodes.push(child);
-        mult_iterators_iters.push(0);
+        mult_iterators_iters.push(child.begin());
         break;
       }
       Node rewrittenChild = rewrite(child);
