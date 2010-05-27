@@ -86,10 +86,18 @@ class NodeManager {
    * NodeValues, but these shouldn't trigger a (recursive) call to
    * reclaimZombies().
    */
-  bool d_dontGC;
+  bool d_inReclaimZombies;
 
   /**
-   * Marks that we are in the Destructor currently.
+   * Indicates that the NodeManager is in the process of being destroyed.
+   * The main purpose of this is to disable certain debugging assertions
+   * that might be sensitive to the order in which objects get cleaned up
+   * (e.g., TNode-valued attributes that outlive their associated Node).
+   * This may be true before or after the actual NodeManager destructor
+   * is executing, while other associated cleanup procedures run. E.g.,
+   * an object that contains a NodeManager can set
+   * <code>d_inDestruction</code> by calling
+   * <code>prepareToBeDestroyed</code>.
    */
   bool d_inDestruction;
 
@@ -169,11 +177,11 @@ class NodeManager {
     // reclaimZombies(), because it's already running.
     Debug("gc") << "zombifying node value " << nv
                 << " [" << nv->d_id << "]: " << *nv
-                << (d_dontGC ? " [CURRENTLY-RECLAIMING]" : "")
+                << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
                 << std::endl;
     d_zombies.insert(nv);// FIXME multithreading
 
-    if(!d_dontGC) {// FIXME multithreading
+    if(!d_inReclaimZombies) {// FIXME multithreading
       // for now, collect eagerly.  can add heuristic here later..
       reclaimZombies();
     }
@@ -243,9 +251,21 @@ public:
   ~NodeManager();
 
   /**
-   * Return true if we are in destruction.
+   * Return true if the destructor has been invoked, or
+   * <code>prepareToBeDestroyed()</code> has previously been called.
    */
   bool inDestruction() const { return d_inDestruction; }
+
+  /** Signals that this expression manager will soon be destroyed.
+   * Turns off debugging assertions that may not hold as the system
+   * is being torn down.
+   *
+   * NOTE: It is *not* required to call this function before destroying
+   * the NodeManager.
+   */
+  void prepareToBeDestroyed() {
+    d_inDestruction = true;
+  }
 
   /** The node manager in the current context. */
   static NodeManager* currentNM() { return s_current; }

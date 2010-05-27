@@ -168,6 +168,9 @@ int runCvc4(int argc, char* argv[]) {
     delete cmd;
   }
 
+  // Get ready for tear-down
+  exprMgr.prepareToBeDestroyed();
+
   // Remove the parser
   delete parser;
 
@@ -183,6 +186,7 @@ int runCvc4(int argc, char* argv[]) {
     return 0;
 
   }
+
 }
 
 void doCommand(SmtEngine& smt, Command* cmd) {

@@ -34,21 +34,22 @@ namespace CVC4 {
 __thread NodeManager* NodeManager::s_current = 0;
 
 /**
- * This class ensures that NodeManager::d_reclaiming gets set to false
- * even on exceptional exit from NodeManager::reclaimZombies().
+ * This class sets it reference argument to true and ensures that it gets set
+ * to false on destruction. This can be used to make sure a flag gets toggled
+ * in a function even on exceptional exit (e.g., see reclaimZombies()).
  */
 struct ScopedBool {
   bool& d_value;
 
-  ScopedBool(bool& reclaim) :
-    d_value(reclaim) {
+  ScopedBool(bool& value) :
+    d_value(value) {
 
-    Debug("gc") << ">> setting RECLAIM field\n";
+    Debug("gc") << ">> setting ScopedBool\n";
     d_value = true;
   }
 
   ~ScopedBool() {
-    Debug("gc") << "<< clearing RECLAIM field\n";
+    Debug("gc") << "<< clearing ScopedBool\n";
     d_value = false;
   }
 };
@@ -76,7 +77,7 @@ struct NVReclaim {
 NodeManager::NodeManager(context::Context* ctxt) :
   d_attrManager(ctxt),
   d_nodeUnderDeletion(NULL),
-  d_dontGC(false),
+  d_inReclaimZombies(false),
   d_inDestruction(false) {
   poolInsert( &expr::NodeValue::s_null );
 
@@ -94,10 +95,10 @@ NodeManager::~NodeManager() {
   // destruction of operators, because they get GCed.
 
   NodeManagerScope nms(this);
-  ScopedBool inDestruction(d_inDestruction);
+  d_inDestruction = true;
 
   {
-    ScopedBool dontGC(d_dontGC);
+    ScopedBool dontGC(d_inReclaimZombies);
     d_attrManager.deleteAllAttributes();
   }
 
@@ -118,11 +119,11 @@ void NodeManager::reclaimZombies() {
   Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
-  Assert(! d_dontGC, "NodeManager::reclaimZombies() not re-entrant!");
+  Assert(! d_inReclaimZombies, "NodeManager::reclaimZombies() not re-entrant!");
 
   // whether exit is normal or exceptional, the Reclaim dtor is called
-  // and ensures that d_reclaiming is set back to false.
-  ScopedBool r(d_dontGC);
+  // and ensures that d_inReclaimZombies is set back to false.
+  ScopedBool r(d_inReclaimZombies);
 
   // We copy the set away and clear the NodeManager's set of zombies.
   // This is because reclaimZombie() decrements the RC of the
