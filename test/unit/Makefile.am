@@ -88,34 +88,34 @@ $(UNIT_TESTS:%=%.cpp): %.cpp: %.h
 	$(AM_V_GEN)$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
 
 $(WHITE_TESTS:%=%.lo): %_white.lo: %_white.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ @abs_builddir@/$<
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$(@:%.lo=%).Tpo $(DEPDIR)/$(@:%.lo=%).Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@ $<
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@ @abs_builddir@/$<
 
 $(WHITE_TESTS): %_white: %_white.lo $(AM_LIBADD_WHITE)
 	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_WHITE) $(AM_LDFLAGS_WHITE) $<
 
 $(BLACK_TESTS:%=%.lo): %_black.lo: %_black.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ @abs_builddir@/$<
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$(@:%.lo=%).Tpo $(DEPDIR)/$(@:%.lo=%).Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@ $<
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@ @abs_builddir@/$<
 
 $(BLACK_TESTS): %_black: %_black.lo $(AM_LIBADD_BLACK)
 	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_BLACK) $(AM_LDFLAGS_BLACK) $<
 
 $(PUBLIC_TESTS:%=%.lo): %_public.lo: %_public.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ @abs_builddir@/$<
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$(@:%.lo=%).Tpo $(DEPDIR)/$(@:%.lo=%).Plo
 @am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@ $<
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@ @abs_builddir@/$<
 
 $(PUBLIC_TESTS): %_public: %_public.lo $(AM_LIBADD_PUBLIC)
 	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_PUBLIC) $(AM_LDFLAGS_PUBLIC) $<
