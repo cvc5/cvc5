@@ -32,8 +32,19 @@ if ! [ -r "$benchmark" ]; then
   error "\`$benchmark' doesn't exist or isn't readable" >&2
 fi
 
+tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
-  if grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
+  if grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
+    expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
+    expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
+    tmpbenchmark=`mktemp -t cvc4_benchmark.XXXXXXXXXX`.smt
+    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" >"$tmpbenchmark"
+    if [ -z "$expected_exit_status" ]; then
+      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+    fi
+    benchmark=$tmpbenchmark
+  elif grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
     expected_output=SAT
     expected_exit_status=10
   elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
@@ -43,7 +54,17 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
-  if grep '^ *(set-info  *:status  *sat' "$benchmark" &>/dev/null; then
+  if grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
+    expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
+    expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
+    tmpbenchmark=`mktemp -t cvc4_benchmark.XXXXXXXXXX`.smt2
+    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" >"$tmpbenchmark"
+    if [ -z "$expected_exit_status" ]; then
+      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+    fi
+    benchmark=$tmpbenchmark
+  elif grep '^ *(set-info  *:status  *sat' "$benchmark" &>/dev/null; then
     expected_output=SAT
     expected_exit_status=10
   elif grep '^ *(set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
@@ -94,6 +115,7 @@ if [ -z "$cvc4dirfull" ]; then
 fi
 cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
+echo  running $cvc4full `basename "$benchmark"` from `dirname "$benchmark"`
 ( cd `dirname "$benchmark"`;
   "$cvc4full" --segv-nospin `basename "$benchmark"`;
   echo $? >"$exitstatusfile"
@@ -110,6 +132,7 @@ rm -f "$experrfile"
 rm -f "$outfile"
 rm -f "$errfile"
 rm -f "$exitstatusfile"
+test -n "$tmpbenchmark" && rm -f "$tmpbenchmark"
 
 exitcode=0
 if [ $diffexit -ne 0 ]; then
