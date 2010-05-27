@@ -6,7 +6,7 @@ regress1: regress0
 regress2: regress0 regress1
 regress3: regress0 regress1 regress2
 regress0 regress1 regress2 regress3:
-	cd $@ && $(MAKE) check
+	-cd $@ && $(MAKE) check
 
 # synonyms for "check"
 .PHONY: regress test

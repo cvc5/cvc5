@@ -413,7 +413,7 @@ if test "$enable_profiling" = yes; then
   CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }-pg"
 fi
 
-AM_INIT_AUTOMAKE([1.11 no-define color-tests])
+AM_INIT_AUTOMAKE([1.11 no-define parallel-tests color-tests])
 AC_CONFIG_HEADERS([cvc4autoconfig.h])
 
 # Initialize libtool's configuration options.

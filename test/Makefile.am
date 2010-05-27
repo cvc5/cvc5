@@ -1,11 +1,46 @@
-SUBDIRS = unit system regress
+SUBDIRS = unit system regress .
+
+MAKEFLAGS = -k
 
 .PHONY: regress0 regress1 regress2 regress3
 regress0 regress1 regress2 regress3:
+	@$(MAKE) check-pre; \
 	for dir in $(SUBDIRS); do \
-		(cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1; \
-	done
+		test $$dir = . || (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@); \
+	done; \
+	$(MAKE) check-local
 
 # synonyms for "check"
 .PHONY: regress test
 regress test: check
+
+am__tty_colors = \
+red=; grn=; lgn=; blu=; std=; \
+test "X$(AM_COLOR_TESTS)" != Xno \
+&& test "X$$TERM" != Xdumb \
+&& { test "X$(AM_COLOR_TESTS)" = Xalways || test -t 1 2>/dev/null; } \
+&& { \
+  red='[0;31m'; \
+  grn='[0;32m'; \
+  lgn='[1;32m'; \
+  blu='[1;34m'; \
+  std='[m'; \
+}
+subdirs_to_check = unit system regress/regress0 regress/regress1 regress/regress2 regress/regress3
+check-recursive: check-pre
+.PHONY: check-pre
+check-pre:
+	@rm -f $(subdirs_to_check:=/test-suite.log)
+check-local:
+	@$(am__tty_colors); \
+	echo $${blu}===============================  TESTING SUMMARY  =============================$$std; \
+	for log in $(subdirs_to_check:=/test-suite.log); do \
+		if test -s "$$log"; then \
+			status="`head -n 5 $$log | tail -1`"; \
+			if echo "$$status" | grep -q failed; then col=$$red; \
+			else col=$$grn; fi; \
+			echo "$$col$$status"; \
+			echo "    @abs_builddir@/$$log$$std"; \
+		fi; \
+	done; \
+	echo $${blu}===============================  TESTING SUMMARY  =============================$$std
