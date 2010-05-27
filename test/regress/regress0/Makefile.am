@@ -11,6 +11,7 @@ TESTS =	\
 	flet.smt \
 	flet2.smt \
 	ite_real_int_type.smt \
+	ite_real_valid.smt \
 	let.smt \
 	let2.smt \
 	simple2.smt \

@@ -359,6 +359,7 @@ Node TseitinCnfStream::handleNonAtomicNode(TNode node) {
     }
 
     if(somethingChanged) {
+
       rewrite = nodeManager->mkNode(node.getKind(), newChildren);
       nodeManager->setAttribute(node, IteRewriteAttr(), rewrite);
       return rewrite;
@@ -399,7 +400,11 @@ SatLiteral TseitinCnfStream::toCNF(TNode node) {
   case AND:
     return handleAnd(node);
   default:
-    return handleAtom(handleNonAtomicNode(node));
+    {
+      Node atomic = handleNonAtomicNode(node);
+      AlwaysAssert(isCached(atomic) || atomic.isAtomic());
+      return toCNF(atomic);
+    }
   }
 }
 

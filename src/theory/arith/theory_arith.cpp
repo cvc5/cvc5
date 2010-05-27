@@ -29,6 +29,10 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
+struct EagerSplittingTag {};
+typedef expr::Attribute<EagerSplittingTag, bool> EagerlySplitUpon;
+
+
 TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   Theory(c, out),
   d_preprocessed(c),
@@ -47,6 +51,29 @@ TheoryArith::~TheoryArith(){
   }
 }
 
+void TheoryArith::preRegisterTerm(TNode n) {
+  Debug("arith_preregister") << "arith: begin TheoryArith::preRegisterTerm("
+                             << n << ")" << endl;
+
+  if(n.getKind() == EQUAL){
+    if(!n.getAttribute(EagerlySplitUpon())){
+      TNode left = n[0];
+      TNode right = n[1];
+
+      Node lt = NodeManager::currentNM()->mkNode(LT, left,right);
+      Node gt = NodeManager::currentNM()->mkNode(GT, left,right);
+      Node eagerSplit = NodeManager::currentNM()->mkNode(OR, n, lt, gt);
+
+      d_splits.push_back(eagerSplit);
+
+      n.setAttribute(EagerlySplitUpon(), true);
+      d_out->augmentingLemma(eagerSplit);
+    }
+  }
+
+  Debug("arith_preregister") << "arith: end TheoryArith::preRegisterTerm("
+                             << n << ")" << endl;
+}
 
 bool isBasicSum(TNode n){
   if(n.getKind() != kind::PLUS) return false;
@@ -220,11 +247,13 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
     TNode x_j = *basicIter;
     Row* row_j = d_tableau.lookup(x_j);
 
-    Rational& a_ji = row_j->lookup(x_i);
+    if(row_j->has(x_i)){
+      Rational& a_ji = row_j->lookup(x_i);
 
-    DeltaRational assignment = d_partialModel.getAssignment(x_j);
-    DeltaRational  nAssignment = assignment+(diff * a_ji);
-    d_partialModel.setAssignment(x_j, nAssignment);
+      DeltaRational assignment = d_partialModel.getAssignment(x_j);
+      DeltaRational  nAssignment = assignment+(diff * a_ji);
+      d_partialModel.setAssignment(x_j, nAssignment);
+    }
   }
 
   d_partialModel.setAssignment(x_i, v);
@@ -252,7 +281,7 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
     TNode x_k = *basicIter;
     Row* row_k = d_tableau.lookup(x_k);
 
-    if(x_k != x_i){
+    if(x_k != x_i && row_k->has(x_j)){
       DeltaRational a_kj = row_k->lookup(x_j);
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + theta;
       d_partialModel.setAssignment(x_k, nextAssignment);
@@ -321,7 +350,9 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
   d_partialModel.beginRecordingAssignments();
   while(true){
     TNode x_i = selectSmallestInconsistentVar();
+    Debug("arith_update") << "selectSmallestInconsistentVar()=" << x_i << endl;
     if(x_i == Node::null()){
+      Debug("arith_update") << "No inconsistent variables" << endl;
       d_partialModel.stopRecordingAssignments(false);
       return Node::null(); //sat
     }
@@ -509,6 +540,8 @@ void TheoryArith::check(Effort level){
     if(possibleConflict != Node::null()){
       Debug("arith") << "Found a conflict " << possibleConflict << endl;
       d_out->conflict(possibleConflict);
+    }else{
+      Debug("arith") << "No conflict found" << endl;
     }
   }
 
@@ -516,22 +549,33 @@ void TheoryArith::check(Effort level){
     bool enqueuedCaseSplit = false;
     typedef context::CDList<Node>::const_iterator diseq_iterator;
     for(diseq_iterator i = d_diseq.begin(); i!= d_diseq.end(); ++i){
+
       Node assertion = *i;
+      Debug("arith") << "splitting"  << assertion << endl;
       TNode eq = assertion[0];
       TNode x_i = eq[0];
       TNode c_i = eq[1];
       DeltaRational constant =  c_i.getConst<Rational>();
+      Debug("arith") << "broken apart" << endl;
       if(d_partialModel.getAssignment(x_i) == constant){
+        Debug("arith") << "here" << endl;
         enqueuedCaseSplit = true;
         Node lt = NodeManager::currentNM()->mkNode(LT,x_i,c_i);
         Node gt = NodeManager::currentNM()->mkNode(GT,x_i,c_i);
         Node caseSplit = NodeManager::currentNM()->mkNode(OR, eq, lt, gt);
         //d_out->enqueueCaseSplits(caseSplit);
+        Debug("arith") << "finished" << caseSplit << endl;
       }
+      Debug("arith") << "end of for loop" << endl;
+
     }
+    Debug("arith") << "finished" << endl;
+
     if(enqueuedCaseSplit){
       //d_out->caseSplit();
-      Warning() << "Outstanding case split in theory arith" << endl;
+      //Warning() << "Outstanding case split in theory arith" << endl;
     }
   }
+  Debug("arith") << "TheoryArith::check end" << std::endl;
+
 }

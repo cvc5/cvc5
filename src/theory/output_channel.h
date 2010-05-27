@@ -18,6 +18,7 @@
 #ifndef __CVC4__THEORY__OUTPUT_CHANNEL_H
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
+#include "util/Assert.h"
 #include "theory/interrupted.h"
 
 namespace CVC4 {
@@ -53,7 +54,7 @@ public:
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */
-  virtual void safePoint() throw(Interrupted) {
+  virtual void safePoint() throw(Interrupted, AssertionException) {
   }
 
   /**
@@ -66,7 +67,7 @@ public:
    *
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void conflict(TNode n, bool safe = false) throw(Interrupted) = 0;
+  virtual void conflict(TNode n, bool safe = false) throw(Interrupted, AssertionException) = 0;
 
   /**
    * Propagate a theory literal.
@@ -75,7 +76,7 @@ public:
    *
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void propagate(TNode n, bool safe = false) throw(Interrupted) = 0;
+  virtual void propagate(TNode n, bool safe = false) throw(Interrupted, AssertionException) = 0;
 
   /**
    * Tell the core that a valid theory lemma at decision level 0 has
@@ -84,7 +85,16 @@ public:
    * @param n - a theory lemma valid at decision level 0
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void lemma(TNode n, bool safe = false) throw(Interrupted) = 0;
+  virtual void lemma(TNode n, bool safe = false) throw(Interrupted, AssertionException) = 0;
+
+  /**
+   * Tell the core to add the following valid lemma as if it were a user assertion.
+   * This should NOT be called during solving, only preprocessing.
+   *
+   * @param n - a theory lemma valid to be asserted
+   * @param safe - whether it is safe to be interrupted
+   */
+  virtual void augmentingLemma(TNode n, bool safe = false) throw(Interrupted, AssertionException) = 0;
 
   /**
    * Provide an explanation in response to an explanation request.
@@ -92,7 +102,7 @@ public:
    * @param n - an explanation
    * @param safe - whether it is safe to be interrupted
    */
-  virtual void explanation(TNode n, bool safe = false) throw(Interrupted) = 0;
+  virtual void explanation(TNode n, bool safe = false) throw(Interrupted, AssertionException) = 0;
 
 };/* class OutputChannel */
 

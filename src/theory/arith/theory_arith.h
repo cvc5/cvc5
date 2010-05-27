@@ -38,6 +38,10 @@ class TheoryArith : public Theory {
 private:
   /* Chopping block begins */
 
+  std::vector<Node> d_splits;
+  //This stores the eager splits sent out of the theory.
+  //TODO get rid of this.
+
   context::CDList<Node> d_preprocessed;
   //TODO This is currently needed to save preprocessed nodes that may not
   //currently have an outisde reference. Get rid of when preprocessing is occuring
@@ -65,7 +69,7 @@ public:
 
   Node rewrite(TNode n);
 
-  void preRegisterTerm(TNode n) { Unimplemented(); }
+  void preRegisterTerm(TNode n);
   void registerTerm(TNode n);
   void check(Effort e);
   void propagate(Effort e) { Unimplemented(); }

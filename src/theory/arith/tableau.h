@@ -36,6 +36,7 @@ public:
 
     //TODO Assert(d_x_i.getType() == REAL);
     Assert(sum.getKind() == PLUS);
+    Rational zero(0,1);
 
     for(TNode::iterator iter=sum.begin(); iter != sum.end(); ++iter){
       TNode pair = *iter;
@@ -48,7 +49,10 @@ public:
       //TODO Assert(var_i.getKind() == REAL);
       Assert(!has(var_i));
       d_nonbasic.insert(var_i);
-      d_coeffs[var_i] = coeff.getConst<Rational>();
+      Rational q = coeff.getConst<Rational>();
+      d_coeffs[var_i] = q;
+      Assert(q != zero);
+      Assert(d_coeffs[var_i] != zero);
     }
   }
 
@@ -66,12 +70,13 @@ public:
 
   bool has(TNode x_j){
     CoefficientTable::iterator x_jPos = d_coeffs.find(x_j);
-
     return x_jPos != d_coeffs.end();
   }
 
   Rational& lookup(TNode x_j){
-    return d_coeffs[x_j];
+    CoefficientTable::iterator x_jPos = d_coeffs.find(x_j);
+    Assert(x_jPos !=  d_coeffs.end());
+    return (*x_jPos).second;
   }
 
   void pivot(TNode x_j){
@@ -89,17 +94,22 @@ public:
       TNode nb = *nonbasicIter;
       d_coeffs[nb] = d_coeffs[nb] * negInverseA_rs;
     }
+
   }
 
   void subsitute(Row& row_s){
     TNode x_s = row_s.basicVar();
 
     Assert(has(x_s));
+    Assert(d_nonbasic.find(x_s) != d_nonbasic.end());
     Assert(x_s != d_x_i);
 
+    Rational zero(0,1);
 
     Rational a_rs = lookup(x_s);
+    Assert(a_rs != zero);
     d_coeffs.erase(x_s);
+    d_nonbasic.erase(x_s);
 
     for(std::set<TNode>::iterator iter = row_s.d_nonbasic.begin();
         iter != row_s.d_nonbasic.end();
@@ -108,6 +118,10 @@ public:
       Rational a_sj = a_rs * row_s.lookup(x_j);
       if(has(x_j)){
         d_coeffs[x_j] = d_coeffs[x_j] + a_sj;
+        if(d_coeffs[x_j] == zero){
+          d_coeffs.erase(x_j);
+          d_nonbasic.erase(x_j);
+        }
       }else{
         d_nonbasic.insert(x_j);
         d_coeffs[x_j] = a_sj;

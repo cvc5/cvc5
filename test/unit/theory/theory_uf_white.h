@@ -48,20 +48,23 @@ public:
 
   ~TestOutputChannel() {}
 
-  void safePoint() throw(Interrupted) {}
+  void safePoint()  throw(Interrupted, AssertionException) {}
 
-  void conflict(TNode n, bool safe = false) throw(Interrupted) {
+  void conflict(TNode n, bool safe = false)  throw(Interrupted, AssertionException) {
     push(CONFLICT, n);
   }
 
-  void propagate(TNode n, bool safe = false) throw(Interrupted) {
+  void propagate(TNode n, bool safe = false)  throw(Interrupted, AssertionException) {
     push(PROPOGATE, n);
   }
 
-  void lemma(TNode n, bool safe = false) throw(Interrupted) {
+  void lemma(TNode n, bool safe = false) throw(Interrupted, AssertionException) {
     push(LEMMA, n);
   }
-  void explanation(TNode n, bool safe = false) throw(Interrupted) {
+  void augmentingLemma(TNode n, bool safe = false) throw(Interrupted, AssertionException){
+    Unreachable();
+  }
+  void explanation(TNode n, bool safe = false)  throw(Interrupted, AssertionException) {
     push(EXPLANATION, n);
   }
 

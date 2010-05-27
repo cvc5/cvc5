@@ -31,11 +31,18 @@ public:
     Theory(c, out) {
   }
 
-  void preRegisterTerm(TNode n) { Unimplemented(); }
-  void registerTerm(TNode n) { Unimplemented(); }
+  void preRegisterTerm(TNode n) {
+    Debug("bool") << "bool: begin preRegisterTerm(" << n << ")" << std::endl;
+    Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
+  }
+  void registerTerm(TNode n) {
+    Debug("bool") << "bool: begin preRegisterTerm(" << n << ")" << std::endl;
+    Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
+  }
   void check(Effort e) { Unimplemented(); }
   void propagate(Effort e) { Unimplemented(); }
   void explain(TNode n, Effort e) { Unimplemented(); }
+
 };
 
 }/* CVC4::theory::booleans namespace */

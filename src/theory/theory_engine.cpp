@@ -32,8 +32,7 @@ typedef expr::Attribute<PreRegisteredTag, bool> PreRegistered;
 
 Node TheoryEngine::preprocess(TNode t) {
   Node top = rewrite(t);
-  Debug("rewrite") << "rewrote: " << t << "\nto     : " << top << "\n";
-  return top;
+  Debug("rewrite") << "rewrote: " << t << endl << "to     : " << top << endl;
 
   list<TNode> toReg;
   toReg.push_back(top);

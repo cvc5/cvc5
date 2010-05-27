@@ -68,7 +68,7 @@ class TheoryEngine {
       d_conflictNode(context) {
     }
 
-    void conflict(TNode conflictNode, bool safe) throw(theory::Interrupted) {
+    void conflict(TNode conflictNode, bool safe) throw(theory::Interrupted, AssertionException) {
       Debug("theory") << "EngineOutputChannel::conflict(" << conflictNode << ")" << std::endl;
       d_conflictNode = conflictNode;
       if(safe) {
@@ -76,14 +76,16 @@ class TheoryEngine {
       }
     }
 
-    void propagate(TNode, bool) throw(theory::Interrupted) {
+    void propagate(TNode, bool) throw(theory::Interrupted, AssertionException) {
     }
 
-    void lemma(TNode node, bool) throw(theory::Interrupted) {
+    void lemma(TNode node, bool) throw(theory::Interrupted, AssertionException) {
       d_engine->newLemma(node);
     }
-
-    void explanation(TNode, bool) throw(theory::Interrupted) {
+    void augmentingLemma(TNode node, bool) throw(theory::Interrupted, AssertionException) {
+      d_engine->newAugmentingLemma(node);
+    }
+    void explanation(TNode, bool) throw(theory::Interrupted, AssertionException) {
     }
   };
 
@@ -289,7 +291,10 @@ public:
   inline void newLemma(TNode node) {
     d_propEngine->assertLemma(node);
   }
-
+  inline void newAugmentingLemma(TNode node) {
+    Node preprocessed = preprocess(node);
+    d_propEngine->assertFormula(preprocessed);
+  }
   /**
    * Returns the last conflict (if any).
    */
