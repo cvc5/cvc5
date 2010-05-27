@@ -54,6 +54,11 @@ class NodeManager {
   friend class NodeManagerScope;
   friend class expr::NodeValue;
 
+  /** Predicate for use with STL algorithms */
+  struct NodeValueReferenceCountNonZero {
+    bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
+  };
+
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValuePoolHashFcn,
                               expr::NodeValuePoolEq> NodeValuePool;

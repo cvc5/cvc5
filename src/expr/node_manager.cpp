@@ -24,6 +24,7 @@
 #include "theory/bv/theory_bv_type_rules.h"
 
 #include <ext/hash_set>
+#include <algorithm>
 
 using namespace std;
 using namespace CVC4::expr;
@@ -140,9 +141,10 @@ void NodeManager::reclaimZombies() {
 
   vector<NodeValue*> zombies;
   zombies.reserve(d_zombies.size());
-  std::copy(d_zombies.begin(),
-            d_zombies.end(),
-            std::back_inserter(zombies));
+  std::remove_copy_if(d_zombies.begin(),
+                      d_zombies.end(),
+                      std::back_inserter(zombies),
+                      NodeValueReferenceCountNonZero());
   d_zombies.clear();
 
   for(vector<NodeValue*>::iterator i = zombies.begin();
