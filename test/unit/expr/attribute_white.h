@@ -105,20 +105,12 @@ public:
     TS_ASSERT_LESS_THAN(theory::uf::ECAttr::s_id, lastId);
 
     lastId = attr::LastAttributeId<bool, false>::s_id;
-    TS_ASSERT_LESS_THAN(NodeManager::AtomicAttr::s_id, lastId);
     TS_ASSERT_LESS_THAN(theory::Theory::PreRegisteredAttr::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag1::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag2::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag3::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag4::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag5::s_id, lastId);
-    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id,
-                      theory::Theory::PreRegisteredAttr::s_id);
-    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag1::s_id);
-    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag2::s_id);
-    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag3::s_id);
-    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag4::s_id);
-    TS_ASSERT_DIFFERS(NodeManager::AtomicAttr::s_id, TestFlag5::s_id);
     TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag1::s_id);
     TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag2::s_id);
     TS_ASSERT_DIFFERS(theory::Theory::PreRegisteredAttr::s_id, TestFlag3::s_id);

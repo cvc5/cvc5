@@ -83,15 +83,6 @@ function operator {
   register_kind "$1" "$2" "$3"
 }
 
-function nonatomic_operator {
-  # nonatomic_operator K #children ["comment"]
-
-  lineno=${BASH_LINENO[0]}
-
-  check_theory_seen
-  register_kind "$1" "$2" "$3"
-}
-
 function parameterized {
   # parameterized K1 K2 #children ["comment"]
 

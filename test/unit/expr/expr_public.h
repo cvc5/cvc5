@@ -348,39 +348,6 @@ public:
     TS_ASSERT(!null->isConst());
   }
 
-  void testIsAtomic() {
-    /* bool isAtomic() const; */
-
-    TS_ASSERT(a_bool->isAtomic());
-    TS_ASSERT(b_bool->isAtomic());
-    TS_ASSERT(c_bool_mult->isAtomic());
-    TS_ASSERT(mult_op->isAtomic());
-    TS_ASSERT(plus_op->isAtomic());
-    TS_ASSERT(d_apply_fun_bool->isAtomic());
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(null->isAtomic(), IllegalArgumentException);
-#endif /* CVC4_ASSERTIONS */
-
-    TS_ASSERT(i1->isAtomic());
-    TS_ASSERT(i2->isAtomic());
-    TS_ASSERT(r1->isAtomic());
-    TS_ASSERT(r2->isAtomic());
-
-    Expr x = d_em->mkExpr(AND, *a_bool, *b_bool);
-    Expr y = d_em->mkExpr(ITE, *a_bool, *b_bool, *c_bool_mult);
-    Expr z = d_em->mkExpr(IFF, x, y);
-
-    TS_ASSERT(!x.isAtomic());
-    TS_ASSERT(!y.isAtomic());
-    TS_ASSERT(!z.isAtomic());
-
-    Expr w1 = d_em->mkExpr(PLUS, d_em->mkExpr(ITE, z, *i1, *i2), *i2);
-    Expr w2 = d_em->mkExpr(PLUS, d_em->mkExpr(MULT, *i1, *i2), *i2);
-
-    TS_ASSERT(!w1.isAtomic());
-    TS_ASSERT(w2.isAtomic());
-  }
-
   void testGetConst() {
     /* template <class T>
        const T& getConst() const; */

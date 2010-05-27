@@ -253,11 +253,19 @@ public:
     return NodeTemplate(d_nv->getChild(i));
   }
 
-  /**
-   * Returns true if this node is atomic (has no more Boolean structure)
-   * @return true if atomic
+  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
+   *
+   * It has been decided for now to hold off on implementations of
+   * these functions, as they may only be needed in CNF conversion,
+   * where it's pointless to do a lazy isAtomic determination by
+   * searching through the DAG, and storing it, since the result will
+   * only be used once.  For more details see the 4/27/2010 CVC4
+   * developer's meeting notes at:
+   *
+   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
-  inline bool isAtomic() const;
+  // bool containsDecision(); // is "atomic"
+  // bool properlyContainsDecision(); // maybe not atomic but all children are
 
   /**
    * Returns true if this node represents a constant
@@ -685,15 +693,6 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
 
 template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::s_null);
-
-template <bool ref_count>
-inline bool NodeTemplate<ref_count>::isAtomic() const {
-  if(!ref_count) {
-    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
-  }
-
-  return NodeManager::currentNM()->isAtomic(*this);
-}
 
 // FIXME: escape from type system convenient but is there a better
 // way?  Nodes conceptually don't change their expr values but of

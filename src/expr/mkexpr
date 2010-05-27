@@ -104,14 +104,6 @@ function operator {
   check_theory_seen
 }
 
-function nonatomic_operator {
-  # nonatomic_operator K #children ["comment"]
-
-  lineno=${BASH_LINENO[0]}
-
-  check_theory_seen
-}
-
 function parameterized {
   # parameterized K #children ["comment"]
 

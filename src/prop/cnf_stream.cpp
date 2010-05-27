@@ -115,11 +115,10 @@ const CnfStream::TranslationCache& CnfStream::getTranslationCache() const {
 }
 
 SatLiteral TseitinCnfStream::handleAtom(TNode node) {
-  Assert(node.isAtomic(), "handleAtom(n) expects n to be an atom");
   Assert(!isCached(node), "atom already mapped!");
 
   Debug("cnf") << "handleAtom(" << node << ")" << endl;
- 
+
   bool theoryLiteral = node.getKind() != kind::VARIABLE;
   SatLiteral lit = newLiteral(node, theoryLiteral);
 
@@ -378,11 +377,6 @@ SatLiteral TseitinCnfStream::toCNF(TNode node) {
     return lookupInCache(node);
   }
 
-  // Atomic nodes are treated specially
-  if(node.isAtomic()) {
-    return handleAtom(node);
-  }
-
   // Handle each Boolean operator case
   switch(node.getKind()) {
   case NOT:
@@ -402,8 +396,7 @@ SatLiteral TseitinCnfStream::toCNF(TNode node) {
   default:
     {
       Node atomic = handleNonAtomicNode(node);
-      AlwaysAssert(isCached(atomic) || atomic.isAtomic());
-      return toCNF(atomic);
+      return isCached(atomic) ? lookupInCache(atomic) : handleAtom(atomic);
     }
   }
 }

@@ -211,11 +211,19 @@ public:
    */
   bool isConst() const;
 
-  /**
-   * Check if this is an expression representing a constant.
-   * @return true if a constant expression
+  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
+   *
+   * It has been decided for now to hold off on implementations of
+   * these functions, as they may only be needed in CNF conversion,
+   * where it's pointless to do a lazy isAtomic determination by
+   * searching through the DAG, and storing it, since the result will
+   * only be used once.  For more details see the 4/27/2010 CVC4
+   * developer's meeting notes at:
+   *
+   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
-  bool isAtomic() const;
+  // bool containsDecision(); // is "atomic"
+  // bool properlyContainsDecision(); // maybe not atomic but all children are
 
   /** Extract a constant of type T */
   template <class T>

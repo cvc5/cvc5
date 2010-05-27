@@ -99,15 +99,6 @@ function operator {
   register_metakind OPERATOR "$1" "$2"
 }
 
-function nonatomic_operator {
-  # nonatomic_operator K #children ["comment"]
-
-  lineno=${BASH_LINENO[0]}
-
-  check_theory_seen
-  register_metakind NONATOMIC_OPERATOR "$1" "$2"
-}
-
 function parameterized {
   # parameterized K1 K2 #children ["comment"]
 
@@ -217,16 +208,6 @@ function register_metakind {
   k=$2
   nc=$3
 
-
-  if [ $mk = NONATOMIC_OPERATOR ]; then
-    metakind_canbeatomic="${metakind_canbeatomic}    false, /* $k */
-";
-    mk=OPERATOR
-  else
-    metakind_canbeatomic="${metakind_canbeatomic}    true, /* $k */
-";
-  fi
-
   metakind_kinds="${metakind_kinds}    metakind::$mk, /* $k */
 ";
 
@@ -297,9 +278,6 @@ while [ $# -gt 0 ]; do
   metakind_kinds="${metakind_kinds}
     /* from $b */
 "
-  metakind_canbeatomic="${metakind_canbeatomic}
-    /* from $b */
-"
   metakind_operatorKinds="${metakind_operatorKinds}
     /* from $b */
 "
@@ -315,7 +293,6 @@ text=$(cat "$template")
 for var in \
     metakind_includes \
     metakind_kinds \
-    metakind_canbeatomic \
     metakind_constantMaps \
     metakind_compares \
     metakind_constHashes \

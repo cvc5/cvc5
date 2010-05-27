@@ -127,22 +127,6 @@ ${metakind_kinds}
 }/* metaKindOf(k) */
 
 /**
- * Determine if a particular kind can be atomic or not.  Some kinds
- * are never atomic (OR, NOT, ITE...), some can be atomic depending on
- * their children (PLUS might have an ITE under it, for instance).
- */
-static inline bool kindCanBeAtomic(Kind k) {
-  static const bool canBeAtomic[] = {
-    false, /* NULL_EXPR */
-${metakind_canbeatomic}
-    false /* LAST_KIND */
-  };/* canBeAtomic[] */
-
-  return canBeAtomic[k];
-}/* kindCanBeAtomic(k) */
-
-
-/**
  * Map a kind of the operator to the kind of the enclosing expression. For
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.

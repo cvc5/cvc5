@@ -84,14 +84,6 @@ function operator {
   do_theoryof "$1"
 }
 
-function nonatomic_operator {
-  # nonatomic_operator K #children ["comment"]
-
-  lineno=${BASH_LINENO[0]}
-
-  do_theoryof "$1"
-}
-
 function parameterized {
   # parameterized K #children ["comment"]
 

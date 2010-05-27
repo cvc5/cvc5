@@ -182,12 +182,6 @@ bool Expr::isConst() const {
   return d_node->isConst();
 }
 
-bool Expr::isAtomic() const {
-  ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->isAtomic();
-}
-
 void Expr::toStream(std::ostream& out) const {
   ExprManagerScope ems(*this);
   d_node->toStream(out);

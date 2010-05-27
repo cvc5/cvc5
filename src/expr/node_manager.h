@@ -211,39 +211,24 @@ class NodeManager {
 
   // attribute tags
   struct TypeTag {};
-  struct AtomicTag {};
 
   // NodeManager's attributes.  These aren't exposed outside of this
   // class; use the getters.
   typedef expr::Attribute<TypeTag, TypeNode> TypeAttr;
-  typedef expr::Attribute<AtomicTag, bool> AtomicAttr;
 
-  /**
-   * Returns true if this node is atomic (has no more Boolean
-   * structure).  This is the NodeValue version for NodeManager's
-   * internal use.  There's a public version of this function below
-   * that takes a TNode.
-   * @param nv the node to check for atomicity
-   * @return true if atomic
+  /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
+   *
+   * It has been decided for now to hold off on implementations of
+   * these functions, as they may only be needed in CNF conversion,
+   * where it's pointless to do a lazy isAtomic determination by
+   * searching through the DAG, and storing it, since the result will
+   * only be used once.  For more details see the 4/27/2010 CVC4
+   * developer's meeting notes at:
+   *
+   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
-  inline bool isAtomic(expr::NodeValue* nv) const {
-    // The kindCanBeAtomic() and metakind checking are just optimizations
-    // (to avoid the hashtable lookup).  We assume that all nodes have
-    // the atomic attribute pre-computed and set at their time of
-    // creation.  This is because:
-    // (1) it's super cheap to do it bottom-up.
-    // (2) if we computed it lazily, we'd need a second attribute to
-    //     tell us whether we had computed it yet or not.
-    // The pre-computation and registration occurs in poolInsert().
-    AssertArgument(nv->getMetaKind() != kind::metakind::INVALID, *nv,
-                   "NodeManager::isAtomic() called on INVALID node (%s)",
-                   kind::kindToString(nv->getKind()).c_str());
-    return
-      nv->getMetaKind() == kind::metakind::VARIABLE ||
-      nv->getMetaKind() == kind::metakind::CONSTANT ||
-      ( kind::kindCanBeAtomic(nv->getKind()) &&
-        getAttribute(nv, AtomicAttr()) );
-  }
+  // bool containsDecision(TNode); // is "atomic"
+  // bool properlyContainsDecision(TNode); // all children are atomic
 
 public:
 
@@ -529,15 +514,6 @@ public:
    * Get the type for the given node.
    */
   TypeNode getType(TNode n) throw (TypeCheckingExceptionPrivate);
-
-  /**
-   * Returns true if this node is atomic (has no more Boolean structure)
-   * @param n the node to check for atomicity
-   * @return true if atomic
-   */
-  inline bool isAtomic(TNode n) const {
-    return isAtomic(n.d_nv);
-  }
 };
 
 /**
@@ -707,35 +683,6 @@ inline void NodeManager::poolInsert(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
          "NodeValue already in the pool!");
   d_nodeValuePool.insert(nv);// FIXME multithreading
-
-  switch(nv->getMetaKind()) {
-  case kind::metakind::INVALID:
-  case kind::metakind::VARIABLE:
-  case kind::metakind::CONSTANT:
-    // nothing to do (don't bother setting the attribute, isAtomic()
-    // on VARIABLEs and CONSTANTs is always true)
-    break;
-
-  case kind::metakind::OPERATOR:
-  case kind::metakind::PARAMETERIZED:
-    {
-      // register this NodeValue as atomic or not; use nv_begin/end
-      // because we need to consider the operator too in the case of
-      // PARAMETERIZED-metakinded nodes (i.e. APPLYs); they could have a
-      // buried ITE.
-
-      // assume it's atomic if its kind can be atomic, check children
-      // to see if that is actually true
-      bool atomic = kind::kindCanBeAtomic(nv->getKind());
-      for(expr::NodeValue::nv_iterator i = nv->nv_begin();
-          atomic && i != nv->nv_end();
-          ++i) {
-        atomic = isAtomic(*i);
-      }
-
-      setAttribute(nv, AtomicAttr(), atomic);
-    }
-  }
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
