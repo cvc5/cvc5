@@ -247,6 +247,9 @@ public:
    * @return the node representing the i-th child
    */
   NodeTemplate operator[](int i) const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
     return NodeTemplate(d_nv->getChild(i));
   }
 
@@ -269,6 +272,10 @@ public:
    * @return the ud
    */
   unsigned getId() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return d_nv->getId();
   }
 
@@ -293,6 +300,10 @@ public:
    * @return the kind
    */
   inline Kind getKind() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return Kind(d_nv->d_kind);
   }
 
@@ -370,6 +381,10 @@ public:
    * @return the iterator
    */
   inline iterator begin() {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return d_nv->begin< NodeTemplate<ref_count> >();
   }
 
@@ -379,6 +394,10 @@ public:
    * @return the end of the children iterator.
    */
   inline iterator end() {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return d_nv->end< NodeTemplate<ref_count> >();
   }
 
@@ -387,6 +406,10 @@ public:
    * @return the const_iterator
    */
   inline const_iterator begin() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return d_nv->begin< NodeTemplate<ref_count> >();
   }
 
@@ -396,6 +419,10 @@ public:
    * @return the end of the children const_iterator.
    */
   inline const_iterator end() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return d_nv->end< NodeTemplate<ref_count> >();
   }
 
@@ -404,6 +431,10 @@ public:
    * @return the string representation of this node.
    */
   inline std::string toString() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     return d_nv->toString();
   }
 
@@ -413,6 +444,10 @@ public:
    * @param out the sream to serialise this node to
    */
   inline void toStream(std::ostream& out, int toDepth = -1) const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
     d_nv->toStream(out, toDepth);
   }
 
@@ -595,6 +630,11 @@ getAttribute(const AttrKind&) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->getAttribute(*this, AttrKind());
 }
 
@@ -605,6 +645,11 @@ hasAttribute(const AttrKind&) const {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind());
 }
 
@@ -615,6 +660,11 @@ inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->getAttribute(*this, AttrKind(), ret);
 }
 
@@ -625,6 +675,11 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
 }
 
@@ -633,6 +688,10 @@ NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::s_null
 
 template <bool ref_count>
 inline bool NodeTemplate<ref_count>::isAtomic() const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->isAtomic(*this);
 }
 
@@ -664,7 +723,7 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
   } else {
     // shouldn't ever happen
     Assert(d_nv->d_rc > 0,
-           "INTERNAL ERROR: TNode constructed from Node with rc == 0");
+           "TNode constructed from Node with rc == 0");
   }
 }
 
@@ -734,7 +793,7 @@ operator=(const NodeTemplate<!ref_count>& e) {
     } else {
       // shouldn't ever happen
       Assert(d_nv->d_rc > 0,
-             "INTERNAL ERROR: TNode assigned from Node with rc == 0");
+             "TNode assigned from Node with rc == 0");
     }
   }
   return *this;
@@ -743,23 +802,39 @@ operator=(const NodeTemplate<!ref_count>& e) {
 template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::eqNode(const NodeTemplate<ref_count>& right) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::EQUAL, *this, right);
 }
 
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::notNode() const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::NOT, *this);
 }
 
 template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::andNode(const NodeTemplate<ref_count>& right) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::AND, *this, right);
 }
 
 template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::orNode(const NodeTemplate<ref_count>& right) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::OR, *this, right);
 }
 
@@ -767,24 +842,40 @@ template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::iteNode(const NodeTemplate<ref_count>& thenpart,
                                  const NodeTemplate<ref_count>& elsepart) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::ITE, *this, thenpart, elsepart);
 }
 
 template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::iffNode(const NodeTemplate<ref_count>& right) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::IFF, *this, right);
 }
 
 template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::impNode(const NodeTemplate<ref_count>& right) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::IMPLIES, *this, right);
 }
 
 template <bool ref_count>
 NodeTemplate<true>
 NodeTemplate<ref_count>::xorNode(const NodeTemplate<ref_count>& right) const {
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->mkNode(kind::XOR, *this, right);
 }
 
@@ -826,6 +917,10 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
 
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   switch(kind::MetaKind mk = getMetaKind()) {
   case kind::metakind::INVALID:
     IllegalArgument(*this, "getOperator() called on Node with INVALID-kinded kind");
@@ -864,6 +959,11 @@ TypeNode NodeTemplate<ref_count>::getType() const throw (CVC4::TypeCheckingExcep
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+
+  if(!ref_count) {
+    Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+  }
+
   return NodeManager::currentNM()->getType(*this);
 }
 
