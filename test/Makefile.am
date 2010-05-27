@@ -34,13 +34,16 @@ check-pre:
 check-local:
 	@$(am__tty_colors); \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std; \
-	for log in $(subdirs_to_check:=/test-suite.log); do \
+	for dir in $(subdirs_to_check); do \
+		log=$$dir/test-suite.log; \
 		if test -s "$$log"; then \
 			status="`head -n 5 $$log | tail -1`"; \
-			if echo "$$status" | grep -q failed; then col=$$red; \
-			else col=$$grn; fi; \
-			echo "$$col$$status"; \
-			echo "    @abs_builddir@/$$log$$std"; \
+			if echo "$$status" | grep -q failed; then \
+				echo "$$red$$status"; \
+				echo "    @abs_builddir@/$$log$$std"; \
+			else \
+				printf "$$grn%-30s in $$dir$$std\\n" "$$status"; \
+			fi; \
 		fi; \
 	done; \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std
