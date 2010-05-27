@@ -246,6 +246,11 @@ case "$with_build" in
     ;;
 esac
 
+AM_CONDITIONAL([CVC4_BUILD_PROFILE_PRODUCTION],  [test "$with_build" = production])
+AM_CONDITIONAL([CVC4_BUILD_PROFILE_DEBUG],       [test "$with_build" = debug])
+AM_CONDITIONAL([CVC4_BUILD_PROFILE_DEFAULT],     [test "$with_build" = default])
+AM_CONDITIONAL([CVC4_BUILD_PROFILE_COMPETITION], [test "$with_build" = competition])
+
 # permit a static binary
 AC_MSG_CHECKING([whether to build a static binary])
 AC_ARG_ENABLE([static-binary],
