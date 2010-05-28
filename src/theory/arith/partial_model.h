@@ -142,6 +142,8 @@ public:
   bool strictlyBelowUpperBound(TNode x);
   bool strictlyAboveLowerBound(TNode x);
   bool assignmentIsConsistent(TNode x);
+
+  void printModel(TNode x);
 };
 
 

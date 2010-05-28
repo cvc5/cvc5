@@ -223,3 +223,26 @@ void ArithPartialModel::stopRecordingAssignments(bool revert){
   }
 
 }
+void ArithPartialModel::printModel(TNode x){
+
+  Debug("model") << "model" << x << ":"<< getAssignment(x) << " ";
+
+  CDDRationalMap::iterator i = d_LowerBoundMap.find(x);
+  if(i != d_LowerBoundMap.end()){
+    DeltaRational l = (*i).second;
+    Debug("model") << l << " ";
+    Debug("model") << getLowerConstraint(x) << " ";
+  }else{
+    Debug("model") << "no lb ";
+  }
+
+  i = d_UpperBoundMap.find(x);
+  if(i != d_UpperBoundMap.end()){
+    DeltaRational u = (*i).second;
+    Debug("model") << u << " ";
+    Debug("model") << getUpperConstraint(x) << " ";
+  }else{
+    Debug("model") << "no ub ";
+  }
+  Debug("model") << endl;
+}
