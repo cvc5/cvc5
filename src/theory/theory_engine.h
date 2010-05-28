@@ -145,7 +145,8 @@ class TheoryEngine {
     }
     Debug("rewrite") << "rewrote-children of " << in << std::endl
                      << "got " << b << std::endl;
-    return b;
+    Node ret = b;
+    return ret;
   }
 
   /**

@@ -91,10 +91,10 @@ Node TheoryEngine::removeITEs(TNode node) {
   Debug("ite") << "handleNonAtomicNode(" << node << ")" << endl;
 
   /* The result may be cached already */
-  Node rewrite;
+  Node cachedRewrite;
   NodeManager *nodeManager = NodeManager::currentNM();
-  if(nodeManager->getAttribute(node, theory::IteRewriteAttr(), rewrite)) {
-    return rewrite.isNull() ? Node(node) : rewrite;
+  if(nodeManager->getAttribute(node, theory::IteRewriteAttr(), cachedRewrite)) {
+    return cachedRewrite.isNull() ? Node(node) : cachedRewrite;
   }
 
   if(node.getKind() == kind::ITE){
@@ -112,7 +112,7 @@ Node TheoryEngine::removeITEs(TNode node) {
                             nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
       nodeManager->setAttribute(node, theory::IteRewriteAttr(), skolem);
 
-      Node preprocessed = preprocess(newAssertion);
+      Node preprocessed = rewrite(newAssertion);
       d_propEngine->assertFormula(preprocessed);
 
       return skolem;
@@ -128,14 +128,37 @@ Node TheoryEngine::removeITEs(TNode node) {
 
   if(somethingChanged) {
 
-    rewrite = nodeManager->mkNode(node.getKind(), newChildren);
-    nodeManager->setAttribute(node, theory::IteRewriteAttr(), rewrite);
-    return rewrite;
+    cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
+    nodeManager->setAttribute(node, theory::IteRewriteAttr(), cachedRewrite);
+    return cachedRewrite;
   } else {
     nodeManager->setAttribute(node, theory::IteRewriteAttr(), Node::null());
     return node;
   }
 
+}
+
+Node blastDistinct(TNode in){
+  Assert(in.getKind() == kind::DISTINCT);
+  if(in.getNumChildren() == 2){
+    //If this is the case exactly 1 != pair will be generated so the AND is not required
+    Node eq = NodeManager::currentNM()->mkNode(CVC4::kind::EQUAL, in[0], in[1]);
+    Node neq = NodeManager::currentNM()->mkNode(CVC4::kind::NOT, eq);
+    return neq;
+  }
+  //Assume that in.getNumChildren() > 2
+  // => diseqs.size() > 1
+  vector<Node> diseqs;
+  for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
+    TNode::iterator j = i;
+    while(++j != in.end()) {
+      Node eq = NodeManager::currentNM()->mkNode(CVC4::kind::EQUAL, *i, *j);
+      Node neq = NodeManager::currentNM()->mkNode(CVC4::kind::NOT, eq);
+      diseqs.push_back(neq);
+    }
+  }
+  Node out = NodeManager::currentNM()->mkNode(CVC4::kind::AND, diseqs);
+  return out;
 }
 
 Node TheoryEngine::rewrite(TNode in) {
@@ -147,39 +170,27 @@ Node TheoryEngine::rewrite(TNode in) {
     return in;
   }
 
-  in = removeITEs(in);
+  Node intermediate = removeITEs(in);
 
   // these special cases should go away when theory rewriting comes online
-  if(in.getKind() == kind::DISTINCT) {
-    vector<Node> diseqs;
-    for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
-      TNode::iterator j = i;
-      while(++j != in.end()) {
-        Node eq = NodeManager::currentNM()->mkNode(CVC4::kind::EQUAL, *i, *j);
-        Node neq = NodeManager::currentNM()->mkNode(CVC4::kind::NOT, eq);
-        diseqs.push_back(neq);
-      }
-    }
-    Node out =
-      diseqs.size() == 1
-      ? diseqs[0]
-      : NodeManager::currentNM()->mkNode(CVC4::kind::AND, diseqs);
-    //setRewriteCache(in, out);
+  if(intermediate.getKind() == kind::DISTINCT) {
+    Node out = blastDistinct(intermediate);
+    //setRewriteCache(intermediate, out);
     return out;
   }
 
-  theory::Theory* thy = theoryOf(in);
+  theory::Theory* thy = theoryOf(intermediate);
   if(thy == NULL) {
-    Node out = rewriteBuiltins(in);
-    //setRewriteCache(in, out);
-    return in;
+    Node out = rewriteBuiltins(intermediate);
+    //setRewriteCache(intermediate, out);
+    return out;
   } else if(thy != &d_bool){
-    Node out = thy->rewrite(in);
-    //setRewriteCache(in, out);
+    Node out = thy->rewrite(intermediate);
+    //setRewriteCache(intermediate, out);
     return out;
   }else{
-    Node out = rewriteChildren(in);
-    setRewriteCache(in, out);
+    Node out = rewriteChildren(intermediate);
+    //setRewriteCache(intermediate, out);
     return out;
   }
 
