@@ -107,6 +107,7 @@ Kind multKind(Kind k){
 void registerAtom(TNode rel){
   //addBound(rel);
   //Anything else?
+
 }
 
 Node TheoryArith::rewrite(TNode n){
@@ -132,6 +133,7 @@ void TheoryArith::registerTerm(TNode tn){
 
   //TODO is an atom
   if(isRelationOperator(tn.getKind())){
+
     Node normalForm = (isNormalized(tn)) ? Node(tn) : rewrite(tn);
     normalForm = (normalForm.getKind() == NOT) ? pushInNegation(normalForm):normalForm;
     Kind k = normalForm.getKind();
@@ -159,6 +161,8 @@ void TheoryArith::registerTerm(TNode tn){
           slackEqLeft.setAttribute(TheoryArithPropagated(), true);
           //TODO this has to be wrong no? YES (dejan)
           // d_out->lemma(slackEqLeft);
+
+          Debug("slack") << "slack " << slackEqLeft << endl;
 
           d_tableau.addRow(slackEqLeft);
 
@@ -468,7 +472,14 @@ Node TheoryArith::simulatePreprocessing(TNode n){
         return NodeManager::currentNM()->mkNode(NOT,sub);
       }
     } else if(!isRelationOperator(k)){
-      Unreachable("Slack must be have been created!");
+      if(rewritten.getKind() == CONST_BOOLEAN){
+        Warning() << "How did I get a const boolean here" << endl;
+        Warning() << "offending node has id " << n.getId() << endl;
+        Warning() << "offending node is "<< n << endl;
+        return rewritten;
+      }else{
+        Unreachable("Unexpected type!");
+      }
     }else if(rewritten[0].getMetaKind() == metakind::VARIABLE){
       return rewritten;
     }else {
@@ -496,6 +507,9 @@ void TheoryArith::check(Effort level){
     d_preprocessed.push_back(assertion);
 
     switch(assertion.getKind()){
+    case CONST_BOOLEAN:
+      Warning() << "No bools should be reached dagnabbit" << endl;
+      break;
     case LEQ:
       AssertUpper(assertion, original);
       break;
@@ -524,6 +538,9 @@ void TheoryArith::check(Effort level){
           }
         case EQUAL:
           d_diseq.push_back(assertion);
+          break;
+        case CONST_BOOLEAN:
+          Warning() << "No bools should be reached dagnabbit" << endl;
           break;
         default:
           Unhandled();
