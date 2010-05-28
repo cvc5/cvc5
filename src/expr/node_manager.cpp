@@ -229,6 +229,9 @@ TypeNode NodeManager::getType(TNode n) throw (TypeCheckingExceptionPrivate) {
     case kind::UMINUS:
       typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n);
       break;
+    case kind::DIVISION:
+      typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n);
+      break;
     case kind::CONST_RATIONAL:
       typeNode = CVC4::theory::arith::ArithConstantTypeRule::computeType(this, n);
       break;

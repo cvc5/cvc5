@@ -325,49 +325,6 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   return iteLit;
 }
 
-Node TseitinCnfStream::handleNonAtomicNode(TNode node) {
-  Debug("cnf") << "handleNonAtomicNode(" << node << ")" << endl;
-
-  /* Our main goal here is to tease out any ITE's sitting under a theory operator. */
-  Node rewrite;
-  NodeManager *nodeManager = NodeManager::currentNM();
-  if(nodeManager->getAttribute(node, IteRewriteAttr(), rewrite)) {
-    return rewrite.isNull() ? Node(node) : rewrite;
-  }
-
-  if(node.getKind() == ITE) {
-    Assert( node.getNumChildren() == 3 );
-    //TODO should this be a skolem?
-    Node skolem = nodeManager->mkVar(node.getType());
-    Node newAssertion =
-        nodeManager->mkNode(
-            ITE,
-            node[0],
-            nodeManager->mkNode(EQUAL, skolem, node[1]),
-            nodeManager->mkNode(EQUAL, skolem, node[2]));
-    nodeManager->setAttribute(node, IteRewriteAttr(), skolem);
-    convertAndAssert(newAssertion, d_assertingLemma);
-    return skolem;
-  } else {
-    std::vector<Node> newChildren;
-    bool somethingChanged = false;
-    for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-      Node newChild = handleNonAtomicNode(*it);
-      somethingChanged |= (newChild != *it);
-      newChildren.push_back(newChild);
-    }
-
-    if(somethingChanged) {
-
-      rewrite = nodeManager->mkNode(node.getKind(), newChildren);
-      nodeManager->setAttribute(node, IteRewriteAttr(), rewrite);
-      return rewrite;
-    } else {
-      nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
-      return node;
-    }
-  }
-}
 
 SatLiteral TseitinCnfStream::toCNF(TNode node) {
   Debug("cnf") << "toCNF(" << node << ")" << endl;
@@ -395,8 +352,11 @@ SatLiteral TseitinCnfStream::toCNF(TNode node) {
     return handleAnd(node);
   default:
     {
-      Node atomic = handleNonAtomicNode(node);
-      return isCached(atomic) ? lookupInCache(atomic) : handleAtom(atomic);
+      //TODO make sure this does not contain any boolean substructure
+      return handleAtom(node);
+      //Unreachable();
+      //Node atomic = handleNonAtomicNode(node);
+      //return isCached(atomic) ? lookupInCache(atomic) : handleAtom(atomic);
     }
   }
 }

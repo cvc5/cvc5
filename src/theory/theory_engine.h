@@ -136,6 +136,10 @@ class TheoryEngine {
     }
 
     NodeBuilder<> b(in.getKind());
+    if(in.getMetaKind() == kind::metakind::PARAMETERIZED){
+      Assert(in.hasOperator());
+      b << in.getOperator();
+    }
     for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
       b << rewrite(*c);
     }
@@ -167,6 +171,8 @@ class TheoryEngine {
       Unhandled(k);
     }
   }
+
+  Node removeITEs(TNode t);
 
 public:
 
@@ -220,7 +226,14 @@ public:
     Assert(k >= 0 && k < kind::LAST_KIND);
 
     if(k == kind::VARIABLE) {
-      return &d_uf;
+      TypeNode t = n.getType();
+      if(t.isBoolean()){
+        return &d_bool;
+      }else if(t.isReal()){
+        return &d_arith;
+      }else{
+        return &d_uf;
+      }
       //Unimplemented();
     } else if(k == kind::EQUAL) {
       // if LHS is a VARIABLE, use theoryOf(LHS.getType())

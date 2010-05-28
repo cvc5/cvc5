@@ -28,6 +28,9 @@ namespace theory {
 struct PreRegisteredTag {};
 typedef expr::Attribute<PreRegisteredTag, bool> PreRegistered;
 
+struct IteRewriteTag {};
+typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
+
 }/* CVC4::theory namespace */
 
 Node TheoryEngine::preprocess(TNode t) {
@@ -83,6 +86,57 @@ Node TheoryEngine::preprocess(TNode t) {
 
   return top;
 }
+  /* Our goal is to tease out any ITE's sitting under a theory operator. */
+Node TheoryEngine::removeITEs(TNode node) {
+  Debug("ite") << "handleNonAtomicNode(" << node << ")" << endl;
+
+  /* The result may be cached already */
+  Node rewrite;
+  NodeManager *nodeManager = NodeManager::currentNM();
+  if(nodeManager->getAttribute(node, theory::IteRewriteAttr(), rewrite)) {
+    return rewrite.isNull() ? Node(node) : rewrite;
+  }
+
+  if(node.getKind() == kind::ITE){
+    if(theoryOf(node[1]) != &d_bool && node[1].getKind() != kind::EQUAL) {
+      Assert( node.getNumChildren() == 3 );
+
+      Debug("ite") << theoryOf(node[1]) << " " << &d_bool <<endl;
+
+      Node skolem = nodeManager->mkVar(node.getType());
+      Node newAssertion =
+        nodeManager->mkNode(
+                            kind::ITE,
+                            node[0],
+                            nodeManager->mkNode(kind::EQUAL, skolem, node[1]),
+                            nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
+      nodeManager->setAttribute(node, theory::IteRewriteAttr(), skolem);
+
+      Node preprocessed = preprocess(newAssertion);
+      d_propEngine->assertFormula(preprocessed);
+
+      return skolem;
+    }
+  }
+  std::vector<Node> newChildren;
+  bool somethingChanged = false;
+  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
+    Node newChild = removeITEs(*it);
+    somethingChanged |= (newChild != *it);
+    newChildren.push_back(newChild);
+  }
+
+  if(somethingChanged) {
+
+    rewrite = nodeManager->mkNode(node.getKind(), newChildren);
+    nodeManager->setAttribute(node, theory::IteRewriteAttr(), rewrite);
+    return rewrite;
+  } else {
+    nodeManager->setAttribute(node, theory::IteRewriteAttr(), Node::null());
+    return node;
+  }
+
+}
 
 Node TheoryEngine::rewrite(TNode in) {
   if(inRewriteCache(in)) {
@@ -93,28 +147,10 @@ Node TheoryEngine::rewrite(TNode in) {
     return in;
   }
 
-  /*
-    theory::Theory* thy = theoryOf(in);
-    if(thy == NULL) {
-    Node out = rewriteBuiltins(in);
-    setRewriteCache(in, out);
-    return in;
-    } else {
-    Node out = thy->rewrite(in);
-    setRewriteCache(in, out);
-    return out;
-    }
-  */
+  in = removeITEs(in);
 
   // these special cases should go away when theory rewriting comes online
-  if(in.getKind() == kind::EQUAL) {
-    Assert(in.getNumChildren() == 2);
-    if(in[0] == in[1]) {
-      Node out = NodeManager::currentNM()->mkConst(true);
-      //setRewriteCache(in, out);
-      return out;
-    }
-  } else if(in.getKind() == kind::DISTINCT) {
+  if(in.getKind() == kind::DISTINCT) {
     vector<Node> diseqs;
     for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
       TNode::iterator j = i;
@@ -130,14 +166,24 @@ Node TheoryEngine::rewrite(TNode in) {
       : NodeManager::currentNM()->mkNode(CVC4::kind::AND, diseqs);
     //setRewriteCache(in, out);
     return out;
-  } else {
-    Node out = rewriteChildren(in);
+  }
+
+  theory::Theory* thy = theoryOf(in);
+  if(thy == NULL) {
+    Node out = rewriteBuiltins(in);
     //setRewriteCache(in, out);
+    return in;
+  } else if(thy != &d_bool){
+    Node out = thy->rewrite(in);
+    //setRewriteCache(in, out);
+    return out;
+  }else{
+    Node out = rewriteChildren(in);
+    setRewriteCache(in, out);
     return out;
   }
 
-  //setRewriteCache(in, in);
-  return in;
+  Unreachable();
 }
 
 }/* CVC4 namespace */

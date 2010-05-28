@@ -119,6 +119,14 @@ public:
    */
   void check(Effort level);
 
+
+  /**
+   * Rewrites a node in the theory of uninterpreted functions.
+   * This is fairly basic and only ensures that atoms that are
+   * unsatisfiable or a valid are rewritten to false or true respectively.
+   */
+  Node rewrite(TNode n);
+
   /**
    * Propagates theory literals. Currently does nothing.
    *

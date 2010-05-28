@@ -35,6 +35,18 @@ TheoryUF::TheoryUF(Context* c, OutputChannel& out) :
 TheoryUF::~TheoryUF() {
 }
 
+Node TheoryUF::rewrite(TNode n){
+  Debug("uf") << "uf: begin rewrite(" << n << ")" << std::endl;
+  Node ret(n);
+  if(n.getKind() == EQUAL){
+    Assert(n.getNumChildren() == 2);
+    if(n[0] == n[1]) {
+      ret = NodeManager::currentNM()->mkConst(true);
+    }
+  }
+  Debug("uf") << "uf: end rewrite(" << n << ") : " << ret << std::endl;
+  return ret;
+}
 void TheoryUF::preRegisterTerm(TNode n) {
   Debug("uf") << "uf: begin preRegisterTerm(" << n << ")" << std::endl;
   Debug("uf") << "uf: end preRegisterTerm(" << n << ")" << std::endl;
