@@ -189,7 +189,7 @@ Node addMatchingPnfs(TNode p0, TNode p1){
 
   Rational addedC = c0 + c1;
   Node newC = mkRationalNode(addedC);
-  NodeBuilder<> nb(kind::PLUS);
+  NodeBuilder<> nb(kind::MULT);
   nb << newC;
   for(unsigned i=1; i <= M; ++i){
     nb << p0[i];
@@ -198,7 +198,7 @@ Node addMatchingPnfs(TNode p0, TNode p1){
   return newPnf;
 }
 
-void sortAndCombineCoefficients(std::vector<Node>& pnfs){
+void ArithRewriter::sortAndCombineCoefficients(std::vector<Node>& pnfs){
   using namespace std;
 
   /* combined contains exactly 1 representative per for each pnf.
@@ -224,7 +224,10 @@ void sortAndCombineCoefficients(std::vector<Node>& pnfs){
   pnfs.clear();
   for(PnfSet::iterator i=combined.begin(); i != combined.end(); ++i){
     Node pnf = *i;
-    pnfs.push_back(pnf);
+    if(pnf[0].getConst<Rational>() != d_constants->d_ZERO){
+      //after combination the coefficient may be zero
+      pnfs.push_back(pnf);
+    }
   }
 }
 
@@ -537,6 +540,7 @@ Node ArithRewriter::rewrite(TNode n){
   }else{
     n.setAttribute(NormalForm(), res);
   }
+  Debug("arithrewriter") << "Trace rewrite:" << n << "|->"<< res << std::endl;
 
   return res;
 }
