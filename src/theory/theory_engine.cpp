@@ -176,7 +176,7 @@ Node TheoryEngine::rewrite(TNode in) {
   if(intermediate.getKind() == kind::DISTINCT) {
     Node out = blastDistinct(intermediate);
     //setRewriteCache(intermediate, out);
-    return out;
+    return rewrite(out); //TODO let this fall through?
   }
 
   theory::Theory* thy = theoryOf(intermediate);
