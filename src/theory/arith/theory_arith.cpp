@@ -286,13 +286,14 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
     Row* row_k = d_tableau.lookup(x_k);
 
     if(x_k != x_i && row_k->has(x_j)){
-      DeltaRational a_kj = row_k->lookup(x_j);
-      DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + theta;
+      Rational a_kj = row_k->lookup(x_j);
+      DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
     }
   }
 
   d_tableau.pivot(x_i, x_j);
+  d_tableau.printTableau();
 }
 
 TNode TheoryArith::selectSmallestInconsistentVar(){
@@ -369,6 +370,8 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
         d_partialModel.stopRecordingAssignments(true);
         return generateConflictBelow(x_i); //unsat
       }
+      d_partialModel.printModel(x_i);
+      d_partialModel.printModel(x_j);
       pivotAndUpdate(x_i, x_j, l_i);
     }else if(d_partialModel.aboveUpperBound(x_i, beta_i, true)){
       DeltaRational u_i = d_partialModel.getUpperBound(x_i);
@@ -377,6 +380,8 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
         d_partialModel.stopRecordingAssignments(true);
         return generateConflictAbove(x_i); //unsat
       }
+      d_partialModel.printModel(x_i);
+      d_partialModel.printModel(x_j);
       pivotAndUpdate(x_i, x_j, u_i);
     }
   }
@@ -501,7 +506,7 @@ void TheoryArith::check(Effort level){
   while(!done()){
     Node original = get();
     Node assertion = simulatePreprocessing(original);
-    Debug("arith") << "arith assertion(" << original
+    Debug("arith_assertions") << "arith assertion(" << original
                    << " \\-> " << assertion << ")" << std::endl;
 
     d_preprocessed.push_back(assertion);
@@ -555,10 +560,10 @@ void TheoryArith::check(Effort level){
   if(fullEffort(level)){
     Node possibleConflict = updateInconsistentVars();
     if(possibleConflict != Node::null()){
-      Debug("arith") << "Found a conflict " << possibleConflict << endl;
+      Debug("arith_conflict") << "Found a conflict " << possibleConflict << endl;
       d_out->conflict(possibleConflict);
     }else{
-      Debug("arith") << "No conflict found" << endl;
+      Debug("arith_conflict") << "No conflict found" << endl;
     }
   }
 
@@ -593,6 +598,13 @@ void TheoryArith::check(Effort level){
       //Warning() << "Outstanding case split in theory arith" << endl;
     }
   }
+  if(fullEffort(level)){
+    for(vector<Node>::iterator i=d_variables.begin(); i!= d_variables.end(); ++i){
+      Node var = *i;
+      d_partialModel.printModel(var);
+    }
+  }
+
   Debug("arith") << "TheoryArith::check end" << std::endl;
 
 }

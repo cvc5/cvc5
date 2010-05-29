@@ -128,6 +128,17 @@ public:
       }
     }
   }
+
+  void printRow(){
+    Debug("tableau") << d_x_i << " ";
+    for(std::set<TNode>::iterator nonbasicIter = d_nonbasic.begin();
+        nonbasicIter != d_nonbasic.end();
+        ++nonbasicIter){
+      TNode nb = *nonbasicIter;
+      Debug("tableau") << "{" << nb << "," << d_coeffs[nb] << "}";
+    }
+    Debug("tableau") << std::endl;
+  }
 };
 
 class Tableau {
@@ -213,7 +224,23 @@ public:
     //The new basic variable cannot already be a basic variable
     Assert(d_basicVars.find(var) == d_basicVars.end());
     d_basicVars.insert(var);
-    d_rows[var] = new Row(var,sum);
+    Row* row_var = new Row(var,sum);
+    d_rows[var] = row_var;
+
+    //A variable in the row may have been made non-basic already.
+    //fake the pivot of this variable
+    for(TNode::iterator sumIter = sum.begin(); sumIter!=sum.end(); ++sumIter){
+      TNode child = *sumIter; //(MULT (CONST_RATIONAL 1998/1001) x_5)
+      Assert(child.getKind() == kind::MULT);
+      Assert(child.getNumChildren() == 2);
+      Assert(child[0].getKind() == kind::CONST_RATIONAL);
+      TNode c = child[1];
+      Assert(var.getMetaKind() == kind::metakind::VARIABLE);
+      if(contains(c)){
+        Row* row_c = lookup(c);
+        row_var->subsitute(*row_c);
+      }
+    }
   }
 
   /**
@@ -247,6 +274,13 @@ public:
           row_k->subsitute(*row_s);
         }
       }
+    }
+  }
+  void printTableau(){
+    for(VarSet::iterator basicIter = begin(); basicIter != end(); ++basicIter){
+      TNode basic = *basicIter;
+      Row* row_k = lookup(basic);
+      row_k->printRow();
     }
   }
 };
