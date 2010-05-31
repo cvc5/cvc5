@@ -187,6 +187,8 @@ annotatedFormula[CVC4::Expr& expr]
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
+      } else if( (kind == CVC4::kind::AND || kind == CVC4::kind::OR) ) {
+        expr = EXPR_MANAGER->mkAssociative(kind,args);
       } else {
         PARSER_STATE->checkArity(kind, args.size());
         expr = MK_EXPR(kind, args);

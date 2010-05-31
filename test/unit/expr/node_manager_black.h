@@ -337,4 +337,21 @@ public:
     TS_ASSERT_EQUALS(ft.getRangeType(), booleanType);
 
   }
+
+  void testMkNodeTooFew() {
+    TS_ASSERT_THROWS( d_nodeManager->mkNode(AND), AssertionException );
+    Node x = d_nodeManager->mkVar( d_nodeManager->booleanType() );
+    TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, x), AssertionException );
+  }
+
+  void testMkNodeTooMany() {
+    std::vector<Node> vars;
+    const unsigned int max = metakind::getUpperBoundForKind(AND);
+    TypeNode boolType = d_nodeManager->booleanType();
+    for( unsigned int i = 0; i <= max; ++i ) {
+      vars.push_back( d_nodeManager->mkVar(boolType) );
+    }
+    TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, vars), AssertionException );
+  }
+
 };

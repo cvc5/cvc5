@@ -164,6 +164,13 @@ public:
   size_t getNumChildren() const;
 
   /**
+   * Returns the i'th child of this expression.
+   * @param i the index of the child to retrieve
+   * @return the child
+   */
+  Expr getChild(unsigned int i) const;
+
+  /**
    * Check if this is an expression that has an operator.
    * @return true if this expression has an operator
    */

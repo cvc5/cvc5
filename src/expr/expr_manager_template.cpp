@@ -250,6 +250,63 @@ Expr ExprManager::mkVar(const Type& type) {
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode));
 }
 
+Expr ExprManager::mkAssociative(Kind kind,
+                                const std::vector<Expr>& children) {
+  NodeManagerScope nms(d_nodeManager);
+  const unsigned int max = maxArity(kind);
+  const unsigned int min = minArity(kind);
+  unsigned int numChildren = children.size();
+
+  if( numChildren <= max ) {
+    return mkExpr(kind,children);
+  } else {
+    std::vector<Expr>::const_iterator it = children.begin() ;
+    std::vector<Expr>::const_iterator end = children.end() ;
+
+    /* The new top-level children and the children of each sub node */
+    std::vector<Node> newChildren;
+    std::vector<Node> subChildren;
+
+    while( it != end && numChildren > max ) {
+      /* Grab the next max children and make a node for them. */
+      for( std::vector<Expr>::const_iterator next = it + max;
+           it != next;
+           ++it, --numChildren ) {
+        subChildren.push_back(it->getNode());
+      }
+      Node subNode = d_nodeManager->mkNode(kind,subChildren);
+      newChildren.push_back(subNode);
+
+      subChildren.clear();
+    }
+
+    /* If there's children left, "top off" the Expr. */
+    if(numChildren > 0) {
+      /* If the leftovers are too few, just copy them into newChildren;
+       * otherwise make a new sub-node  */
+      if(numChildren < min) {
+        for(; it != end; ++it) {
+          newChildren.push_back(it->getNode());
+        }
+      } else {
+        for(; it != end; ++it) {
+          subChildren.push_back(it->getNode());
+        }
+        Node subNode = d_nodeManager->mkNode(kind, subChildren);
+        newChildren.push_back(subNode);
+      }
+    }
+
+    /* It would be really weird if this happened, but let's make sure. */
+    Assert( newChildren.size() >= min, "Too few new children in mkAssociative" );
+    /* We could call mkAssociative recursively with newChildren in this case, but it
+     * would take an astonishing number of children to make this fail. */
+    Assert( newChildren.size() <= max, "Too many new children in mkAssociative" );
+
+    return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
+  }
+}
+
 unsigned ExprManager::minArity(Kind kind) {
   return metakind::getLowerBoundForKind(kind);
 }

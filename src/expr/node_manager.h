@@ -519,6 +519,7 @@ public:
    * Get the type for the given node.
    */
   TypeNode getType(TNode n) throw (TypeCheckingExceptionPrivate);
+
 };
 
 /**

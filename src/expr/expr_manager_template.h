@@ -180,6 +180,19 @@ public:
   template <class T>
   Expr mkConst(const T&);
 
+  /** Create an Expr by applying an associative operator to the children.
+   * If <code>children.size()</code> is greater than the max arity for
+   * <code>kind</code>, then the expression will be broken up into
+   * suitably-sized chunks, taking advantage of the associativity of
+   * <code>kind</code>. For example, if kind <code>FOO</code> has max arity
+   * 2, then calling <code>mkAssociative(FOO,a,b,c)</code> will return
+   * <code>(FOO (FOO a b) c)</code> or code>(FOO a (FOO b c))</code>.
+   * The order of the arguments will be preserved in a left-to-right
+   * traversal of the resulting tree.
+   */
+  Expr mkAssociative(Kind kind, const std::vector<Expr>& children);
+
+
   /** Make a function type from domain to range. */
   FunctionType mkFunctionType(const Type& domain, const Type& range);
 

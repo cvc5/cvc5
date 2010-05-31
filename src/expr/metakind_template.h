@@ -292,6 +292,23 @@ ${metakind_ubchildren}
   return ubs[k];
 }
 
+/** Returns true if the given kind is associative. This is used by ExprManager to
+ * decide whether it's safe to modify big expressions by changing the grouping of
+ * the arguments. */
+/* TODO: This could be generated. */
+inline bool isAssociative(::CVC4::Kind k) {
+  switch(k) {
+  case kind::AND:
+  case kind::OR:
+  case kind::MULT:
+  case kind::PLUS:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
 }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
 }/* CVC4 namespace */
