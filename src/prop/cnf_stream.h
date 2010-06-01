@@ -144,9 +144,10 @@ public:
   /**
    * Converts and asserts a formula.
    * @param node node to convert and assert
-   * @param whether the sat solver can choose to remove this clause
+   * @param whether the sat solver can choose to remove the clauses
+   * @param negated wheather we are asserting the node negated
    */
-  virtual void convertAndAssert(TNode node, bool lemma = false) = 0;
+  virtual void convertAndAssert(TNode node, bool lemma, bool negated = false) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -185,8 +186,9 @@ public:
    * Convert a given formula to CNF and assert it to the SAT solver.
    * @param node the formula to assert
    * @param lemma is this a lemma that is erasable
+   * @param negated true if negated
    */
-  void convertAndAssert(TNode node, bool lemma);
+  void convertAndAssert(TNode node, bool lemma, bool negated = false);
 
   /**
    * Constructs the stream to use the given sat solver.
@@ -215,13 +217,20 @@ private:
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
+  void convertAndAssertAnd(TNode node, bool lemma, bool negated);
+  void convertAndAssertOr(TNode node, bool lemma, bool negated);
+  void convertAndAssertXor(TNode node, bool lemma, bool negated);
+  void convertAndAssertIff(TNode node, bool lemma, bool negated);
+  void convertAndAssertImplies(TNode node, bool lemma, bool negated);
+  void convertAndAssertIte(TNode node, bool lemma, bool negated);
 
   /**
    * Transforms the node into CNF recursively.
    * @param node the formula to transform
+   * @param negated wheather the literal is negated
    * @return the literal representing the root of the formula
    */
-  SatLiteral toCNF(TNode node);
+  SatLiteral toCNF(TNode node, bool negated = false);
 
 }; /* class TseitinCnfStream */
 
