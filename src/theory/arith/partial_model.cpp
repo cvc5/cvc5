@@ -203,20 +203,15 @@ void ArithPartialModel::beginRecordingAssignments(){
 void ArithPartialModel::stopRecordingAssignments(bool revert){
   Assert(d_savingAssignments);
 
-  d_savingAssignments = false;
+  d_savingAssignments = false; //
 
   if(revert){
     while(!d_history.empty()){
       pair<TNode, DeltaRational>& curr = d_history.back();
+
+      setAssignment(curr.first,curr.second);
+
       d_history.pop_back();
-
-      TNode x = curr.first;
-
-      DeltaRational* c;
-      bool hasAssignment = x.getAttribute(partial_model::Assignment(), c);
-      Assert(hasAssignment);
-
-      *c = curr.second;
     }
   }else{
     d_history.clear();

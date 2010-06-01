@@ -372,8 +372,8 @@ protected:
         // NodeBuilder.
         throw std::bad_alloc();
       }
-      d_nvMaxChildren = d_nv->d_nchildren;
       d_nv = newBlock;
+      d_nvMaxChildren = d_nv->d_nchildren;
     }
   }
 
