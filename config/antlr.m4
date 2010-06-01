@@ -19,9 +19,10 @@ AC_DEFUN([AC_PROG_ANTLR], [
     )
     AC_MSG_RESULT(no)
   fi
-
-  # Define the ANTL related variables
-  # AC_SUBST(ANTLR)
+  if test ! -x "$ANTLR";
+  then
+    AC_MSG_ERROR([antlr3 script is not executable])
+  fi
 ])
 
 ##
