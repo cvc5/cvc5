@@ -98,10 +98,9 @@ Node TheoryEngine::removeITEs(TNode node) {
   }
 
   if(node.getKind() == kind::ITE){
-    if(theoryOf(node[1]) != &d_bool && node[1].getKind() != kind::EQUAL) {
-      Assert( node.getNumChildren() == 3 );
-
-      Debug("ite") << theoryOf(node[1]) << " " << &d_bool <<endl;
+    Assert( node.getNumChildren() == 3 );
+    TypeNode nodeType = node[1].getType();
+    if(!nodeType.isBoolean()){
 
       Node skolem = nodeManager->mkVar(node.getType());
       Node newAssertion =
@@ -111,6 +110,13 @@ Node TheoryEngine::removeITEs(TNode node) {
                             nodeManager->mkNode(kind::EQUAL, skolem, node[1]),
                             nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
       nodeManager->setAttribute(node, theory::IteRewriteAttr(), skolem);
+
+      if(debugTagIsOn("ite")){
+        Debug("ite") << "removeITEs([" << node.getId() << "," << node << "])"
+                     << "->"
+                     << "["<<newAssertion.getId() << "," << newAssertion << "]"
+                     << endl;
+      }
 
       Node preprocessed = rewrite(newAssertion);
       d_propEngine->assertFormula(preprocessed);
