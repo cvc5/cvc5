@@ -598,8 +598,10 @@ void TheoryArith::check(Effort level){
       //Warning() << "Outstanding case split in theory arith" << endl;
     }
   }
-  if(fullEffort(level)){
-    for(vector<Node>::iterator i=d_variables.begin(); i!= d_variables.end(); ++i){
+  if(debugTagIsOn("model")){
+    for(vector<Node>::iterator i=d_variables.begin();
+        i!= d_variables.end();
+        ++i){
       Node var = *i;
       d_partialModel.printModel(var);
     }
