@@ -338,13 +338,18 @@ public:
 
   }
 
+  /* This test is only valid if assertions are enabled. */
   void testMkNodeTooFew() {
+#ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND), AssertionException );
     Node x = d_nodeManager->mkVar( d_nodeManager->booleanType() );
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, x), AssertionException );
+#endif
   }
 
+  /* This test is only valid if assertions are enabled. */
   void testMkNodeTooMany() {
+#ifdef CVC4_ASSERTIONS
     std::vector<Node> vars;
     const unsigned int max = metakind::getUpperBoundForKind(AND);
     TypeNode boolType = d_nodeManager->booleanType();
@@ -352,6 +357,7 @@ public:
       vars.push_back( d_nodeManager->mkVar(boolType) );
     }
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, vars), AssertionException );
+#endif
   }
 
 };

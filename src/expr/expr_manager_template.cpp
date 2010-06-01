@@ -252,61 +252,68 @@ Expr ExprManager::mkVar(const Type& type) {
 
 Expr ExprManager::mkAssociative(Kind kind,
                                 const std::vector<Expr>& children) {
-  Assert( metakind::isAssociative(kind), "Illegal kind in mkAssociative" );
+  CheckArgument( metakind::isAssociative(kind), kind,
+                 "Illegal kind in mkAssociative: %s",
+                 kind::kindToString(kind).c_str());
 
   NodeManagerScope nms(d_nodeManager);
   const unsigned int max = maxArity(kind);
   const unsigned int min = minArity(kind);
   unsigned int numChildren = children.size();
 
+  /* If the number of children is within bounds, then there's nothing to do. */
   if( numChildren <= max ) {
     return mkExpr(kind,children);
-  } else {
-    std::vector<Expr>::const_iterator it = children.begin() ;
-    std::vector<Expr>::const_iterator end = children.end() ;
+  } 
 
-    /* The new top-level children and the children of each sub node */
-    std::vector<Node> newChildren;
-    std::vector<Node> subChildren;
+  std::vector<Expr>::const_iterator it = children.begin() ;
+  std::vector<Expr>::const_iterator end = children.end() ;
 
-    while( it != end && numChildren > max ) {
-      /* Grab the next max children and make a node for them. */
-      for( std::vector<Expr>::const_iterator next = it + max;
-           it != next;
-           ++it, --numChildren ) {
+  /* The new top-level children and the children of each sub node */
+  std::vector<Node> newChildren;
+  std::vector<Node> subChildren;
+
+  while( it != end && numChildren > max ) {
+    /* Grab the next max children and make a node for them. */
+    for( std::vector<Expr>::const_iterator next = it + max;
+         it != next;
+         ++it, --numChildren ) {
+      subChildren.push_back(it->getNode());
+    }
+    Node subNode = d_nodeManager->mkNode(kind,subChildren);
+    newChildren.push_back(subNode);
+
+    subChildren.clear();
+  }
+
+  /* If there's children left, "top off" the Expr. */
+  if(numChildren > 0) {
+    /* If the leftovers are too few, just copy them into newChildren;
+     * otherwise make a new sub-node  */
+    if(numChildren < min) {
+      for(; it != end; ++it) {
+        newChildren.push_back(it->getNode());
+      }
+    } else {
+      for(; it != end; ++it) {
         subChildren.push_back(it->getNode());
       }
-      Node subNode = d_nodeManager->mkNode(kind,subChildren);
+      Node subNode = d_nodeManager->mkNode(kind, subChildren);
       newChildren.push_back(subNode);
-
-      subChildren.clear();
     }
-
-    /* If there's children left, "top off" the Expr. */
-    if(numChildren > 0) {
-      /* If the leftovers are too few, just copy them into newChildren;
-       * otherwise make a new sub-node  */
-      if(numChildren < min) {
-        for(; it != end; ++it) {
-          newChildren.push_back(it->getNode());
-        }
-      } else {
-        for(; it != end; ++it) {
-          subChildren.push_back(it->getNode());
-        }
-        Node subNode = d_nodeManager->mkNode(kind, subChildren);
-        newChildren.push_back(subNode);
-      }
-    }
-
-    /* It would be really weird if this happened, but let's make sure. */
-    Assert( newChildren.size() >= min, "Too few new children in mkAssociative" );
-    /* We could call mkAssociative recursively with newChildren in this case, but it
-     * would take an astonishing number of children to make this fail. */
-    Assert( newChildren.size() <= max, "Too many new children in mkAssociative" );
-
-    return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
   }
+
+  /* It's inconceivable we could have enough children for this to fail
+   * (more than 2^32, in most cases?). */
+  AlwaysAssert( newChildren.size() <= max,
+                "Too many new children in mkAssociative" );
+
+  /* It would be really weird if this happened (it would require
+   * min > 2, for one thing), but let's make sure. */
+  AlwaysAssert( newChildren.size() >= min, 
+                "Too few new children in mkAssociative" );
+
+  return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
 }
 
 unsigned ExprManager::minArity(Kind kind) {
