@@ -60,6 +60,7 @@ namespace CVC4 {
 @parser::postinclude {
 #include "expr/expr.h"
 #include "expr/kind.h"
+#include "expr/metakind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -187,7 +188,9 @@ annotatedFormula[CVC4::Expr& expr]
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
-      } else if( (kind == CVC4::kind::AND || kind == CVC4::kind::OR) ) {
+      } else if( CVC4::kind::metakind::isAssociative(kind) && 
+                 args.size() > EXPR_MANAGER->maxArity(kind) ) {
+    	/* Special treatment for associative operators with lots of children */
         expr = EXPR_MANAGER->mkAssociative(kind,args);
       } else {
         PARSER_STATE->checkArity(kind, args.size());

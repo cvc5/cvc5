@@ -252,6 +252,8 @@ Expr ExprManager::mkVar(const Type& type) {
 
 Expr ExprManager::mkAssociative(Kind kind,
                                 const std::vector<Expr>& children) {
+  Assert( metakind::isAssociative(kind), "Illegal kind in mkAssociative" );
+
   NodeManagerScope nms(d_nodeManager);
   const unsigned int max = maxArity(kind);
   const unsigned int min = minArity(kind);
