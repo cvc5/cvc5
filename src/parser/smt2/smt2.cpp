@@ -28,9 +28,13 @@ std::hash_map<const std::string, Smt2::Logic, CVC4::StringHashFunction> Smt2::ne
   std::hash_map<const std::string, Smt2::Logic, CVC4::StringHashFunction> logicMap;
   logicMap["QF_AX"] = QF_AX;
   logicMap["QF_BV"] = QF_BV;
+  logicMap["QF_IDL"] = QF_IDL;
   logicMap["QF_LIA"] = QF_LIA;
   logicMap["QF_LRA"] = QF_LRA;
+  logicMap["QF_NIA"] = QF_NIA;
+  logicMap["QF_RDL"] = QF_RDL;
   logicMap["QF_UF"] = QF_UF;
+  logicMap["QF_UFIDL"] = QF_UFIDL;
   return logicMap;
 }
 
@@ -117,15 +121,30 @@ void Smt2::setLogic(const std::string& name) {
   addTheory(THEORY_CORE);
 
   switch(d_logic) {
+  case QF_IDL:
+  case QF_LIA:
+  case QF_NIA:
+    addTheory(THEORY_INTS);
+    break;
+    
+  case QF_LRA:
+  case QF_RDL:
+    addTheory(THEORY_REALS);
+    break;
+
+  case QF_UFIDL:
+    addTheory(THEORY_INTS);
+    // falling-through on purpose, to add UF part of UFIDL
+
   case QF_UF:
     addOperator(kind::APPLY_UF);
     break;
 
-  case QF_LRA:
-    addTheory(THEORY_REALS);
-    break;
-
-  default:
+  case AUFLIA:
+  case AUFLIRA:
+  case AUFNIRA:
+  case QF_AUFBV:
+  case QF_AUFLIA:
     Unhandled(name);
   }
 }

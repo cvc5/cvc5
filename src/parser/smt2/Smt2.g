@@ -547,4 +547,3 @@ fragment SYMBOL_CHAR
  * Matches an allowed escaped character.
  */
 fragment ESCAPE : '\\' ('"' | '\\' | 'n' | 't' | 'r');
-

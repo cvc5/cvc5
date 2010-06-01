@@ -35,11 +35,20 @@ class Smt2 : public Parser {
 
 public:
   enum Logic {
+    AUFLIA,
+    AUFLIRA,
+    AUFNIRA,
+    QF_AUFBV,
+    QF_AUFLIA,
     QF_AX,
     QF_BV,
+    QF_IDL,
     QF_LIA,
     QF_LRA,
+    QF_NIA,
+    QF_RDL,
     QF_UF,
+    QF_UFIDL
   };
 
   enum Theory {
