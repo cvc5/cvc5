@@ -36,6 +36,8 @@ endif
 # rebuild tests if a library changes
 $(TESTS):: $(TEST_DEPS)
 
+export VERBOSE = 1
+
 # synonyms for "check"
 .PHONY: regress test
 regress test: check
