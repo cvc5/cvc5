@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+#include <stdio.h>
 #include <vector>
 
 #include "expr/expr.h"
@@ -49,17 +50,26 @@ class InputStream {
   /** The name of this input stream. */
   std::string d_name;
 
+  /** Indicates whether the input file is a temporary that we should
+    * delete on exit. */
+  bool d_fileIsTemporary;
+
 protected:
 
   /** Initialize the input stream with a name. */
-  InputStream(std::string name) :
-    d_name(name) {
+  InputStream(std::string name, bool isTemporary=false) :
+    d_name(name),
+    d_fileIsTemporary(isTemporary) {
   }
 
 public:
 
-  /** Do-nothing destructor. */
-  virtual ~InputStream() { }
+  /** Destructor. */
+  virtual ~InputStream() { 
+    if( d_fileIsTemporary ) {
+      remove(d_name.c_str());
+    }
+  }
 
   /** Get the name of this input stream. */
   const std::string getName() const;
@@ -92,7 +102,9 @@ class CVC4_PUBLIC Input {
     * @param filename the input filename
     * @param useMmap true if the parser should use memory-mapped I/O (default: false)
     */
-  static Input* newFileInput(InputLanguage lang, const std::string& filename, bool useMmap=false)
+  static Input* newFileInput(InputLanguage lang, 
+                             const std::string& filename, 
+                             bool useMmap=false)
       throw (InputStreamException);
 
   /** Create an input for the given stream.
@@ -101,7 +113,10 @@ class CVC4_PUBLIC Input {
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
    */
-  //static Parser* newStreamInput(InputLanguage lang, std::istream& input, const std::string& name);
+  static Input* newStreamInput(InputLanguage lang, 
+                               std::istream& input, 
+                               const std::string& name) 
+    throw (InputStreamException);
 
   /** Create an input for the given string
    *
@@ -109,7 +124,9 @@ class CVC4_PUBLIC Input {
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  static Input* newStringInput(InputLanguage lang, const std::string& input, const std::string& name)
+  static Input* newStringInput(InputLanguage lang, 
+                               const std::string& input, 
+                               const std::string& name)
     throw (InputStreamException);
 
 public:

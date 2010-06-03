@@ -52,21 +52,27 @@ public:
   }
 };*/
 
-ParserBuilder::ParserBuilder(InputLanguage lang, const std::string& filename) :
+ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename) :
     d_inputType(FILE_INPUT),
-    d_lang(lang),
+    d_lang(LANG_AUTO),
     d_filename(filename),
-    d_exprManager(NULL),
+    d_streamInput(NULL),
+    d_exprManager(exprManager),
     d_checksEnabled(true),
     d_strictMode(false),
     d_mmap(false) {
 }
 
-Parser *ParserBuilder::build() throw (InputStreamException) {
+Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
   Input *input;
   switch( d_inputType ) {
   case FILE_INPUT:
     input = Input::newFileInput(d_lang,d_filename,d_mmap);
+    break;
+  case STREAM_INPUT:
+    AlwaysAssert( d_streamInput != NULL,
+                  "Uninitialized stream input in ParserBuilder::build()" );
+    input = Input::newStreamInput(d_lang,*d_streamInput,d_filename);
     break;
   case STRING_INPUT:
     input = Input::newStringInput(d_lang,d_stringInput,d_filename);
@@ -74,9 +80,9 @@ Parser *ParserBuilder::build() throw (InputStreamException) {
   }
   switch(d_lang) {
   case LANG_SMTLIB_V2:
-    return new Smt2(d_exprManager, input, d_strictMode);
+    return new Smt2(&d_exprManager, input, d_strictMode);
   default:
-    return new Parser(d_exprManager, input, d_strictMode);
+    return new Parser(&d_exprManager, input, d_strictMode);
   }
 }
 
@@ -115,6 +121,27 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
+ParserBuilder& ParserBuilder::withExprManager(ExprManager& exprManager) {
+  d_exprManager = exprManager;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withFileInput() {
+  d_inputType = FILE_INPUT;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withFilename(const std::string& filename) {
+  d_filename = filename;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withInputLanguage(InputLanguage lang) {
+  d_lang = lang;
+  return *this;
+}
+
+
 ParserBuilder& ParserBuilder::withMmap(bool flag) {
   d_mmap = flag;
   return *this;
@@ -125,8 +152,9 @@ ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withExprManager(ExprManager& exprManager) {
-  d_exprManager = &exprManager;
+ParserBuilder& ParserBuilder::withStreamInput(std::istream& input) {
+  d_inputType = STREAM_INPUT;
+  d_streamInput = &input;
   return *this;
 }
 

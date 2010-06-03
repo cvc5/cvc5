@@ -12,6 +12,7 @@ UNIT_TESTS = \
 	expr/attribute_black \
 	expr/declaration_scope_black \
 	parser/parser_black \
+	parser/parser_builder_black \
 	prop/cnf_stream_black \
 	context/context_black \
 	context/context_white \

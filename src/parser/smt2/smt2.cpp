@@ -145,6 +145,8 @@ void Smt2::setLogic(const std::string& name) {
   case AUFNIRA:
   case QF_AUFBV:
   case QF_AUFLIA:
+  case QF_AX:
+  case QF_BV:
     Unhandled(name);
   }
 }

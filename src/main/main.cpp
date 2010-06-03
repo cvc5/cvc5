@@ -95,11 +95,6 @@ int runCvc4(int argc, char* argv[]) {
   cout << unitbuf;
 #endif
 
-  /* NOTE: ANTLR3 doesn't support input from stdin */
-  if(firstArgIndex >= argc) {
-    throw Exception("No input file specified.");
-  }
-
   // We only accept one input file
   if(argc > firstArgIndex + 1) {
     throw Exception("Too many input files specified.");
@@ -112,19 +107,26 @@ int runCvc4(int argc, char* argv[]) {
   SmtEngine smt(&exprMgr, &options);
 
   // If no file supplied we read from standard input
-  // bool inputFromStdin = firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
+  bool inputFromStdin = 
+    firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
 
   // Auto-detect input language by filename extension
-  if(/*!inputFromStdin && */options.lang == parser::LANG_AUTO) {
-    const char* filename = argv[firstArgIndex];
-    unsigned len = strlen(filename);
-    if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-      options.lang = parser::LANG_SMTLIB_V2;
-    } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-      options.lang = parser::LANG_SMTLIB;
-    } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
-              || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
+  const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
+
+  if(options.lang == parser::LANG_AUTO) {
+    if( inputFromStdin ) {
+      // We can't do any fancy detection on stdin
       options.lang = parser::LANG_CVC4;
+    } else {
+      unsigned len = strlen(filename);
+      if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
+        options.lang = parser::LANG_SMTLIB_V2;
+      } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
+        options.lang = parser::LANG_SMTLIB;
+      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
+                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
+        options.lang = parser::LANG_CVC4;
+      }
     }
   }
 
@@ -149,15 +151,19 @@ int runCvc4(int argc, char* argv[]) {
     }
   }
 
-  /* TODO: Hack ANTLR3 to support input from streams */
-  ParserBuilder parserBuilder(options.lang,  argv[firstArgIndex]);
-
-  Parser *parser =
-      parserBuilder.withExprManager(exprMgr)
+  ParserBuilder parserBuilder =
+      ParserBuilder(exprMgr, filename)
+        .withInputLanguage(options.lang)
         .withMmap(options.memoryMap)
-        .withChecks(options.semanticChecks && !Configuration::isMuzzledBuild() )
-        .withStrictMode( options.strictParsing )
-        .build();
+        .withChecks(options.semanticChecks && 
+                    !Configuration::isMuzzledBuild() )
+        .withStrictMode( options.strictParsing );
+
+  if( inputFromStdin ) {
+    parserBuilder.withStreamInput(cin);
+  }
+
+  Parser *parser = parserBuilder.build();
 
   // Parse and execute commands until we are done
   Command* cmd;

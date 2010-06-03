@@ -47,7 +47,9 @@ namespace parser {
 class AntlrInputStream : public InputStream {
   pANTLR3_INPUT_STREAM d_input;
 
-  AntlrInputStream(std::string name,pANTLR3_INPUT_STREAM input);
+  AntlrInputStream(std::string name,
+                   pANTLR3_INPUT_STREAM input,
+                   bool fileIsTemporary = false);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream);
@@ -67,18 +69,22 @@ public:
    * @param useMmap <code>true</code> if the input should use memory-mapped I/O; otherwise, the
    * input will use the standard ANTLR3 I/O implementation.
    */
-  static AntlrInputStream* newFileInputStream(const std::string& name, bool useMmap = false)
+  static AntlrInputStream* newFileInputStream(const std::string& name, 
+                                              bool useMmap = false)
     throw (InputStreamException);
 
   /** Create an input from an istream. */
-  // AntlrInputStream newInputStream(std::istream& input, const std::string& name);
+  static AntlrInputStream* newStreamInputStream(std::istream& input, 
+                                                const std::string& name)
+    throw (InputStreamException);
 
   /** Create a string input.
    *
    * @param input the string to read
    * @param name the "filename" to use when reporting errors
    */
-  static AntlrInputStream* newStringInputStream(const std::string& input, const std::string& name)
+  static AntlrInputStream* newStringInputStream(const std::string& input, 
+                                                const std::string& name)
     throw (InputStreamException);
 };
 

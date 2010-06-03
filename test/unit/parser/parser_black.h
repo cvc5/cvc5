@@ -1,5 +1,5 @@
 /*********************                                                        */
-/** parser_white.h
+/** parser_black.h
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): dejan, mdeters
@@ -10,17 +10,18 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **
- ** White box testing of CVC4::parser::SmtParser.
+ ** Black box testing of CVC4::parser::Parser, including CVC, SMT and
+ ** SMT v2 inputs.
  **/
 
 #include <cxxtest/TestSuite.h>
-//#include <string>
 #include <sstream>
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "parser/parser_options.h"
 #include "parser/smt2/smt2.h"
 #include "expr/command.h"
 #include "util/output.h"
@@ -28,8 +29,6 @@
 using namespace CVC4;
 using namespace CVC4::parser;
 using namespace std;
-
-
 
 class ParserBlack {
   InputLanguage d_lang;
@@ -62,10 +61,10 @@ protected:
 //         Debug.on("parser-extra");
 //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
 //        istringstream stream(goodInputs[i]);
-        ParserBuilder parserBuilder(d_lang,"test");
         Parser *parser =
-          parserBuilder.withStringInput(goodInput)
-            .withExprManager(*d_exprManager)
+          ParserBuilder(*d_exprManager,"test")
+            .withStringInput(goodInput)
+            .withInputLanguage(d_lang)
             .build();
         TS_ASSERT( !parser->done() );
         Command* cmd;
@@ -88,10 +87,11 @@ protected:
   void tryBadInput(const string badInput, bool strictMode = false) {
 //      cerr << "Testing bad input: '" << badInput << "'\n";
 //      Debug.on("parser");
-    ParserBuilder parserBuilder(d_lang,"test");
+
     Parser *parser =
-      parserBuilder.withStringInput(badInput)
-        .withExprManager(*d_exprManager)
+      ParserBuilder(*d_exprManager,"test")
+        .withStringInput(badInput)
+        .withInputLanguage(d_lang)
         .withStrictMode(strictMode)
         .build();
       TS_ASSERT_THROWS
@@ -109,11 +109,13 @@ protected:
 //        cerr << "Testing good expr: '" << goodExpr << "'\n";
         // Debug.on("parser");
 //        istringstream stream(context + goodBooleanExprs[i]);
-        ParserBuilder parserBuilder(d_lang,"test");
+
         Parser *parser =
-          parserBuilder.withStringInput(goodExpr)
-            .withExprManager(*d_exprManager)
+          ParserBuilder(*d_exprManager,"test")
+            .withStringInput(goodExpr)
+            .withInputLanguage(d_lang)
             .build();
+
         TS_ASSERT( !parser->done() );
         setupContext(*parser);
         TS_ASSERT( !parser->done() );
@@ -142,10 +144,11 @@ protected:
 //    Debug.on("parser");
 //    Debug.on("parser-extra");
 //      cout << "Testing bad expr: '" << badExpr << "'\n";
-      ParserBuilder parserBuilder(d_lang,"test");
+      
       Parser *parser =
-        parserBuilder.withStringInput(badExpr)
-          .withExprManager(*d_exprManager)
+        ParserBuilder(*d_exprManager,"test")
+          .withStringInput(badExpr)
+          .withInputLanguage(d_lang)
           .withStrictMode(strictMode)
           .build();
       setupContext(*parser);

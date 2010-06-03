@@ -45,9 +45,15 @@ public:
 
 class Parser;
 
+/**
+ * A builder for input language parsers. <code>build()</code> can be
+ * called any number of times on an instance and will generate a fresh
+ * parser each time.
+ */
 class CVC4_PUBLIC ParserBuilder {
   enum InputType {
     FILE_INPUT,
+    STREAM_INPUT,
     STRING_INPUT
   };
 
@@ -63,8 +69,11 @@ class CVC4_PUBLIC ParserBuilder {
   /** The string input, if any. */
   std::string d_stringInput;
 
+  /** The stream input, if any. */
+  std::istream *d_streamInput;
+
   /** The expression manager */
-  ExprManager *d_exprManager;
+  ExprManager& d_exprManager;
 
   /** Should semantic checks be enabled during parsing? */
   bool d_checksEnabled;
@@ -76,12 +85,43 @@ class CVC4_PUBLIC ParserBuilder {
   bool d_mmap;
 
 public:
-  ParserBuilder(InputLanguage lang, const std::string& filename);
-  Parser *build() throw (InputStreamException);
+
+  /** Create a parser builder using the given ExprManager and filename. */
+  ParserBuilder(ExprManager& exprManager, const std::string& filename);
+
+  /** Build the parser, using the current settings. */
+  Parser *build() throw (InputStreamException,AssertionException);
+
+  /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);
-  ParserBuilder& withMmap(bool flag = true);
-  ParserBuilder& withStrictMode(bool flag = true);
+
+  /** Set the ExprManager to use with the parser. */
   ParserBuilder& withExprManager(ExprManager& exprManager);
+
+  /** Set the parser to read a file for its input. (Default) */
+  ParserBuilder& withFileInput();
+
+  /** Set the filename for use by the parser. If file input is used,
+   * this file will be opened and read by the parser. Otherwise, the
+   * filename string (possibly a non-existent path) will only be used
+   * in error messages. */
+  ParserBuilder& withFilename(const std::string& filename);
+
+  /** Set the input language to be used by the parser. (Default:
+      LANG_AUTO). */
+  ParserBuilder& withInputLanguage(InputLanguage lang);
+
+  /** Should the parser memory-map its input? This is only relevant if
+   * the parser will have a file input. (Default: no) */
+  ParserBuilder& withMmap(bool flag = true);
+
+  /** Should the parser use strict mode? (Default: no) */
+  ParserBuilder& withStrictMode(bool flag = true);
+
+  /** Set the parser to use the given stream for its input. */
+  ParserBuilder& withStreamInput(std::istream& input);
+
+  /** Set the parser to use the given string for its input. */
   ParserBuilder& withStringInput(const std::string& input);
 };
 

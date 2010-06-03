@@ -40,8 +40,10 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace parser {
 
-AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input) :
-  InputStream(name),
+AntlrInputStream::AntlrInputStream(std::string name, 
+                                   pANTLR3_INPUT_STREAM input,
+                                   bool fileIsTemporary) :
+  InputStream(name,fileIsTemporary),
   d_input(input) {
   AlwaysAssert( input != NULL );
 }
@@ -54,7 +56,9 @@ pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {
   return d_input;
 }
 
-AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name, bool useMmap)
+AntlrInputStream* 
+AntlrInputStream::newFileInputStream(const std::string& name, 
+                                     bool useMmap)
   throw (InputStreamException) {
   pANTLR3_INPUT_STREAM input = NULL;
   if( useMmap ) {
@@ -68,7 +72,53 @@ AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name, 
   return new AntlrInputStream( name, input );
 }
 
-AntlrInputStream* AntlrInputStream::newStringInputStream(const std::string& input, const std::string& name)
+AntlrInputStream* 
+AntlrInputStream::newStreamInputStream(std::istream& input, 
+                                       const std::string& name)
+  throw (InputStreamException) {
+  // // TODO: make this more portable
+  // char *filename = strdup("/tmp/streaminput.XXXXXX");
+  // int fd = mkstemp(filename);
+  // if( fd == -1 ) {
+  //   throw InputStreamException("Couldn't create temporary for stream input: " + name); 
+  // }
+  
+  // // We don't want to use the temp file directly, so first close it
+  // close(fd);
+
+  // // Make a FIFO with our reserved temporary name
+  // int fd = mkfifo(filename, s_IRUSR);
+
+  // // Just stuff everything from the istream into the FIFO
+  // char buf[4096];
+  // while( !input.eof() && !input.fail() ) {
+  //   input.read( buf, sizeof(buf) );
+  //   write( fd, buf, input.gcount() );
+  // }
+
+  // if( !input.eof() ) {
+  //   throw InputStreamException("Stream input failed: " + name);
+  // }
+
+  // // Now create the ANTLR stream
+  // pANTLR3_INPUT_STREAM input = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename);
+  
+  // if( input == NULL ) {
+  //   throw InputStreamException("Couldn't create stream input: " + name);
+  // }
+
+  // // Create the stream with fileIsTemporary = true
+  // return new AntlrInputStream( name, input, true );
+
+  stringstream ss( ios_base::out );
+  ss << input.rdbuf();
+  return newStringInputStream( ss.str(), name );
+}
+
+
+AntlrInputStream* 
+AntlrInputStream::newStringInputStream(const std::string& input, 
+                                       const std::string& name)
   throw (InputStreamException) {
   char* inputStr = strdup(input.c_str());
   char* nameStr = strdup(name.c_str());
