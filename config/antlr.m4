@@ -6,22 +6,25 @@ AC_DEFUN([AC_PROG_ANTLR], [
   AC_ARG_VAR([ANTLR],[location of the antlr3 script])
 
   # Check the existence of the runantlr script
-  if test -z "$ANTLR"; then
-    AC_CHECK_PROGS(ANTLR, [antlr3])
+  if test "x$ANTLR" = "x"; then
+    AC_PATH_PROG(ANTLR, [antlr3])
   else
-    AC_CHECK_PROG(ANTLR, "$ANTLR", "$ANTLR", [])
+    AC_MSG_CHECKING([antlr3 script ($ANTLR)])
+    if test ! -e "$ANTLR"; then
+      AC_MSG_RESULT([not found])
+      unset ANTLR
+    elif test ! -x "$ANTLR"; then
+      AC_MSG_RESULT([not executable])
+      unset ANTLR
+    else
+      AC_MSG_RESULT([OK])
+    fi
   fi
-  if test no$ANTLR = "no";
-  then
+  if test "x$ANTLR" = "x"; then
     AC_MSG_WARN(
-      [Couldn't find the antlr3 script, make sure that the parser code has
-      been generated already. To obtain ANTLR see <http://www.antlr.org/>.]
+[No usable antlr3 script found. Make sure that the parser code has
+been generated already. To obtain ANTLR see <http://www.antlr.org/>.]
     )
-    AC_MSG_RESULT(no)
-  fi
-  if test ! -x "$ANTLR";
-  then
-    AC_MSG_ERROR([antlr3 script is not executable])
   fi
 ])
 
