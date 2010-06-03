@@ -32,7 +32,7 @@ UNIT_TESTS = \
 	util/rational_black \
 	util/rational_white
 
-VERBOSE = 1
+export VERBOSE = 1
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution

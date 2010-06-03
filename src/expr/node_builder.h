@@ -418,6 +418,9 @@ public:
   inline const_iterator begin() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
+    CheckArgument(getKind() != kind::UNDEFINED_KIND,
+                  "Iterators over NodeBuilder<> are undefined "
+                  "until a Kind is set");
     return d_nv->begin< NodeTemplate<true> >();
   }
 
@@ -425,6 +428,9 @@ public:
   inline const_iterator end() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
+    CheckArgument(getKind() != kind::UNDEFINED_KIND,
+                  "Iterators over NodeBuilder<> are undefined "
+                  "until a Kind is set");
     return d_nv->end< NodeTemplate<true> >();
   }
 
@@ -439,6 +445,9 @@ public:
   inline kind::MetaKind getMetaKind() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
+    CheckArgument(getKind() != kind::UNDEFINED_KIND,
+                  "The metakind of a NodeBuilder<> is undefined "
+                  "until a Kind is set");
     return d_nv->getMetaKind();
   }
 
@@ -446,16 +455,27 @@ public:
   inline unsigned getNumChildren() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
+    CheckArgument(getKind() != kind::UNDEFINED_KIND,
+                  "The number of children of a NodeBuilder<> is undefined "
+                  "until a Kind is set");
     return d_nv->getNumChildren();
   }
 
   /** Access to children of this Node-under-construction. */
-  inline Node operator[](int i) const {
+  inline Node getChild(int i) const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
+    CheckArgument(getKind() != kind::UNDEFINED_KIND,
+                  "NodeBuilder<> child access is not permitted "
+                  "until a Kind is set");
     Assert(i >= 0 && unsigned(i) < d_nv->getNumChildren(),
-           "index out of range for NodeBuilder[]");
+           "index out of range for NodeBuilder::getChild()");
     return Node(d_nv->getChild(i));
+  }
+
+  /** Access to children of this Node-under-construction. */
+  inline Node operator[](int i) const {
+    return getChild(i);
   }
 
   /**

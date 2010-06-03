@@ -34,6 +34,9 @@ check-pre:
 check-local:
 	@$(am__tty_colors); \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std; \
+	if test -s "unit/test-suite.log"; then :; else \
+		echo "$${red}Unit tests did not run; maybe there were compilation problems ?$$std"; \
+        fi; \
 	for dir in $(subdirs_to_check); do \
 		log=$$dir/test-suite.log; \
 		if test -s "$$log"; then \
