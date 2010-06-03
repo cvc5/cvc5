@@ -27,21 +27,28 @@ void ArithPartialModel::setAssignment(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
 
   if(d_savingAssignments){
-    d_history.push_back(make_pair(x,r));
+    DeltaRational current = getAssignment(x);
+    d_history.push_back(make_pair(x,current));
   }
 
-  DeltaRational* c;
-  if(x.getAttribute(partial_model::Assignment(), c)){
-    *c = r;
-    Debug("partial_model") << "pm: updating the assignment to" << x
-                           << " now " << r <<endl;
-  }else{
-    Debug("partial_model") << "pm: constructing an assignment for " << x
-                           << " initially " << r <<endl;
+  Assert(x.hasAttribute(partial_model::Assignment()));
 
-    c = new DeltaRational(r);
-    x.setAttribute(partial_model::Assignment(), c);
-  }
+  DeltaRational* c = x.getAttribute(partial_model::Assignment());
+  *c = r;
+  Debug("partial_model") << "pm: updating the assignment to" << x
+                         << " now " << r <<endl;
+}
+
+void ArithPartialModel::initialize(TNode x, const DeltaRational& r){
+   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
+
+
+   Assert(!x.hasAttribute(partial_model::Assignment()));
+   DeltaRational* c = new DeltaRational(r);
+   x.setAttribute(partial_model::Assignment(), c);
+
+   Debug("partial_model") << "pm: constructing an assignment for " << x
+                          << " initially " << (*c) <<endl;
 }
 
 /** Must know that the bound exists both calling this! */
@@ -70,6 +77,19 @@ DeltaRational ArithPartialModel::getAssignment(TNode x) const{
   DeltaRational* assign;
   AlwaysAssert(x.getAttribute(partial_model::Assignment(),assign));
   return *assign;
+}
+
+DeltaRational ArithPartialModel::getSavedAssignment(TNode x) const{
+  Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
+  if(d_savingAssignments){
+    for(HistoryStack::const_iterator i = d_history.begin(); i != d_history.end(); ++i){
+      pair<TNode, DeltaRational> curr = *i;
+      if(curr.first == x){
+        return DeltaRational(curr.second);
+      }
+    }
+  }
+  return getAssignment(x);
 }
 
 

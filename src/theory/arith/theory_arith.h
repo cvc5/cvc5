@@ -76,8 +76,8 @@ public:
   void explain(TNode n, Effort e) { Unimplemented(); }
 
 private:
-  void AssertLower(TNode n, TNode orig);
-  void AssertUpper(TNode n, TNode orig);
+  bool AssertLower(TNode n, TNode orig);
+  bool AssertUpper(TNode n, TNode orig);
   void update(TNode x_i, DeltaRational& v);
   void pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v);
 
@@ -90,15 +90,13 @@ private:
   Node generateConflictAbove(TNode conflictVar);
   Node generateConflictBelow(TNode conflictVar);
 
+  void setupVariable(TNode x);
+  DeltaRational computeRowValueUsingAssignment(TNode x);
+  DeltaRational computeRowValueUsingSavedAssignment(TNode x);
+  void checkTableau();
+
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);
-  void setupVariable(TNode x){
-    Assert(x.getMetaKind() == kind::metakind::VARIABLE);
-    d_partialModel.setAssignment(x,d_constants.d_ZERO_DELTA);
-    d_variables.push_back(Node(x));
-
-    Debug("arithgc") << "setupVariable("<<x<<")"<<std::endl;
-  };
 
 };
 

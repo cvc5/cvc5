@@ -115,7 +115,7 @@ public:
 
   /* */
   void stopRecordingAssignments(bool revert);
-
+  bool isRecording() { return d_savingAssignments;  }
 
   void setUpperBound(TNode x, const DeltaRational& r);
   void setLowerBound(TNode x, const DeltaRational& r);
@@ -144,6 +144,11 @@ public:
   bool assignmentIsConsistent(TNode x);
 
   void printModel(TNode x);
+
+  void initialize(TNode x, const DeltaRational& r);
+  
+  DeltaRational getSavedAssignment(TNode x) const;
+
 };
 
 

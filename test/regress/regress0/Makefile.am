@@ -55,7 +55,8 @@ TESTS =	\
 	wiki.18.cvc \
 	wiki.19.cvc \
 	wiki.20.cvc \
-	wiki.21.cvc
+	wiki.21.cvc \
+	fuzz_3.smt
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
