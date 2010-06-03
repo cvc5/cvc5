@@ -89,6 +89,9 @@ public:
 
     return *(this);
   }
+
+  std::string toString() const;
+
 };
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& n);

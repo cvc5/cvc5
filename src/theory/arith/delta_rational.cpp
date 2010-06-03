@@ -8,3 +8,9 @@ std::ostream& CVC4::operator<<(std::ostream& os, const DeltaRational& dq){
   return os << "(" << dq.getNoninfintestimalPart()
             << "," << dq.getInfintestimalPart() << ")";
 }
+
+
+std::string DeltaRational::toString() const {
+  return "(" + getNoninfintestimalPart().toString() + "," +
+    getInfintestimalPart().toString() + ")";
+}
