@@ -86,7 +86,8 @@ Node TheoryEngine::preprocess(TNode t) {
 
   return top;
 }
-  /* Our goal is to tease out any ITE's sitting under a theory operator. */
+
+/* Our goal is to tease out any ITE's sitting under a theory operator. */
 Node TheoryEngine::removeITEs(TNode node) {
   Debug("ite") << "handleNonAtomicNode(" << node << ")" << endl;
 
@@ -118,7 +119,7 @@ Node TheoryEngine::removeITEs(TNode node) {
                      << endl;
       }
 
-      Node preprocessed = rewrite(newAssertion);
+      Node preprocessed = preprocess(newAssertion);
       d_propEngine->assertFormula(preprocessed);
 
       return skolem;
