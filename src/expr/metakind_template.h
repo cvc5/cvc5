@@ -123,6 +123,8 @@ ${metakind_kinds}
     metakind::INVALID /* LAST_KIND */
   };/* metaKinds[] */
 
+  Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
+
   return metaKinds[k];
 }/* metaKindOf(k) */
 
