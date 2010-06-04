@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** ecdata.cpp
+/*! \file ecdata.cpp
+ ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Implementation of equivalence class data for UF theory.
  **
  ** Implementation of equivalence class data for UF theory.  This is a
  ** context-dependent object.

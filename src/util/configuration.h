@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** configuration.h
+/*! \file configuration.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,10 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Interface to a public class that provides compile-time information
+ ** about the CVC4 library.
  **
  ** Interface to a public class that provides compile-time information
  ** about the CVC4 library.

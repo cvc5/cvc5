@@ -1,12 +1,17 @@
 /*********************                                                        */
-/** type_node.h
+/*! \file type_node.h
+ ** \verbatim
  ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Reference-counted encapsulation of a pointer to node information.
  **
  ** Reference-counted encapsulation of a pointer to node information.
  **/
@@ -62,8 +67,8 @@ class TypeNode {
 
   friend class NodeManager;
 
-  template <class Builder>
-  friend class NodeBuilderBase;
+  template <unsigned nchild_thresh>
+  friend class NodeBuilder;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions

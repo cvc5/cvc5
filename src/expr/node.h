@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** node.h
+/*! \file node.h
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): cconway, taking
+ ** Major contributors: cconway, dejan
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Reference-counted encapsulation of a pointer to node information.
  **
  ** Reference-counted encapsulation of a pointer to node information.
  **/
@@ -138,8 +141,8 @@ class NodeTemplate {
   friend class NodeTemplate<false>;
   friend class NodeManager;
 
-  template <class Builder>
-  friend class NodeBuilderBase;
+  template <unsigned nchild_thresh>
+  friend class NodeBuilder;
 
   friend class ::CVC4::expr::attr::AttributeManager;
 

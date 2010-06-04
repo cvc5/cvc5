@@ -28,7 +28,9 @@
 # the license.)
 
 my $excluded_directories = '^(minisat|CVS|generated)$';
-my $excluded_paths = '^(src/parser/bounded_token_buffer\.(h|cpp))|(src/parser/antlr_input_imports.cpp)$';
+# re-include bounded_token_buffer.{h,cpp}
+#my $excluded_paths = '^(src/parser/bounded_token_buffer\.(h|cpp))|(src/parser/antlr_input_imports.cpp)$';
+my $excluded_paths = '^src/parser/antlr_input_imports.cpp$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
@@ -40,7 +42,7 @@ my $standard_template = <<EOF;
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\\endverbatim
 EOF
 
 my $public_template = <<EOF;
@@ -49,7 +51,7 @@ my $public_template = <<EOF;
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\\endverbatim
 EOF
 
 ## end config ##
@@ -125,11 +127,12 @@ sub recurse {
         } elsif($file =~ /\.g$/) {
           # avoid javadoc-style comment here; antlr complains
           print $OUT "/* *******************                                                        */\n";
-          print $OUT "/*  $file\n";
+          print $OUT "/*! \\file $file\n";
         } else {
           print $OUT "/*********************                                                        */\n";
-          print $OUT "/** $file\n";
+          print $OUT "/*! \\file $file\n";
         }
+        print $OUT " ** \\verbatim\n";
         print $OUT " ** Original author: $author\n";
         print $OUT " ** Major contributors: $major_contributors\n";
         print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
@@ -143,21 +146,25 @@ sub recurse {
         print "adding\n";
         if($file =~ /\.(y|yy|ypp|Y)$/) {
           print $OUT "%{/*******************                                                        */\n";
-          print $OUT "/** $file\n";
+          print $OUT "/*! \\file $file\n";
         } elsif($file =~ /\.g$/) {
           # avoid javadoc-style comment here; antlr complains
           print $OUT "/* *******************                                                        */\n";
-          print $OUT "/*  $file\n";
+          print $OUT "/*! \\file $file\n";
         } else {
           print $OUT "/*********************                                                        */\n";
-          print $OUT "/** $file\n";
+          print $OUT "/*! \\file $file\n";
         }
+        print $OUT " ** \\verbatim\n";
         print $OUT " ** Original author: $author\n";
         print $OUT " ** Major contributors: $major_contributors\n";
         print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
         print $OUT $standard_template;
         print $OUT " **\n";
-        print $OUT " ** [[ Add file-specific comments here ]]\n";
+        print $OUT " ** \brief [[ Add one-line brief description here ]]\n";
+        print $OUT " **\n";
+        print $OUT " ** [[ Add lengthier description here ]]\n";
+        print $OUT " ** \\todo document this file\n";
         print $OUT " **/\n\n";
         print $OUT $line;
         if($file =~ /\.(y|yy|ypp|Y)$/) {

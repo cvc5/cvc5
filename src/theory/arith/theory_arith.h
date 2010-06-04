@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** theory_arith.h
+/*! \file theory_arith.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: taking
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Arithmetic theory.
  **
  ** Arithmetic theory.
  **/

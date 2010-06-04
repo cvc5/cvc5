@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** node_manager.cpp
+/*! \file node_manager.cpp
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): dejan, taking
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): taking, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Expression manager implementation.
  **
  ** Expression manager implementation.
  **

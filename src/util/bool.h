@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** bool.h
+/*! \file bool.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A multiprecision rational constant.
  **
  ** A multiprecision rational constant.
  ** This stores the rational as a pair of multiprecision integers,

@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** parser_builder.h
+/*! \file parser_builder.h
+ ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A builder for parsers.
  **
  ** A builder for parsers.
  **/

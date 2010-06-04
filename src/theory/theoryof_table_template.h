@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** theoryof_table_template.h
+/*! \file theoryof_table_template.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief The template for the automatically-generated theoryOf table.
  **
  ** The template for the automatically-generated theoryOf table.
  ** See the mktheoryof script.

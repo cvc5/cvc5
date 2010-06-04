@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** context_mm.cpp
+/*! \file context_mm.cpp
+ ** \verbatim
  ** Original author: barrett
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
@@ -8,9 +9,11 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
  **
- ** Implementation of Context Memory Manaer
+ ** \brief Implementation of Context Memory Manager.
+ **
+ ** Implementation of Context Memory Manager
  **/
 
 

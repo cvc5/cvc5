@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** node_builder.h
+/*! \file node_builder.h
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): taking, dejan
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): taking, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A builder interface for Nodes.
  **
  ** A builder interface for Nodes.
  **
@@ -101,12 +104,12 @@
  **         returned in a Node wrapper.
  **
  ** NOTE IN 1(b) AND 2(b) THAT we can NOT create Node wrapper
- ** temporary for the NodeValue in the NodeBuilderBase<>::operator
- ** Node() member function.  If we create a temporary (for example by
- ** writing Debug("builder") << Node(nv) << endl), the NodeValue will
- ** have its reference count incremented from zero to one, then
- ** decremented, which makes it eligible for collection before the
- ** builder has even returned it!  So this is a no-no.
+ ** temporary for the NodeValue in the NodeBuilder<>::operator Node()
+ ** member function.  If we create a temporary (for example by writing
+ ** Debug("builder") << Node(nv) << endl), the NodeValue will have its
+ ** reference count incremented from zero to one, then decremented,
+ ** which makes it eligible for collection before the builder has even
+ ** returned it!  So this is a no-no.
  **
  ** There are also two cases when the NodeBuilder is clear()'ed:
  **
@@ -131,32 +134,10 @@
  **      d_nv is deallocated.
  **
  ** Regarding the backing store (typically on the stack): the file
- ** below provides three classes (two of them are templates):
- **
- **   template <class Builder> class NodeBuilderBase;
- **
- **     This is the base class for node builders.  It can not be used
- **     directly.  It contains a shared implementation but is intended
- **     to be subclassed.  Derived classes supply its "in-line" buffer.
- **
- **   class BackedNodeBuilder;
- **
- **     This is the usable form for a user-supplied-backing-store node
- **     builder.  A user can allocate a buffer large enough for a
- **     NodeValue with N children (say, on the stack), then pass a
- **     pointer to this buffer, and the parameter N, to a
- **     BackedNodeBuilder.  It will use this buffer to build its
- **     NodeValue until the number of children exceeds N; then it will
- **     allocate d_nv on the heap.
- **
- **     To ensure that the buffer is properly-sized, it is recommended
- **     to use the makeStackNodeBuilder(b, N) macro to make a
- **     BackedNodeBuilder "b" with a stack-allocated buffer large
- **     enough to hold N children.
+ ** below provides the template:
  **
  **   template <unsigned nchild_thresh> class NodeBuilder;
  **
- **     This is the conceptually easiest form of NodeBuilder to use.
  **     The default:
  **
  **       NodeBuilder<> b;
@@ -164,9 +145,7 @@
  **     gives you a backing buffer with capacity for 10 children in
  **     the same place as the NodeBuilder<> itself is allocated.  You
  **     can specify another size as a template parameter, but it must
- **     be a compile-time constant (which is why the BackedNodeBuilder
- **     creator-macro "makeStackNodeBuilder(b, N)" is sometimes
- **     preferred).
+ **     be a compile-time constant.
  **/
 
 #include "cvc4_private.h"
@@ -185,8 +164,8 @@
 namespace CVC4 {
   static const unsigned default_nchild_thresh = 10;
 
-  template <class Builder>
-  class NodeBuilderBase;
+  template <unsigned nchild_thresh>
+  class NodeBuilder;
 
   class NodeManager;
 }/* CVC4 namespace */
@@ -199,38 +178,31 @@ namespace CVC4 {
 
 namespace CVC4 {
 
-template <class Builder>
-inline std::ostream& operator<<(std::ostream&, const NodeBuilderBase<Builder>&);
+template <unsigned nchild_thresh>
+inline std::ostream& operator<<(std::ostream&, const NodeBuilder<nchild_thresh>&);
 
+/* see expr/convenience_node_builders.h */
 class AndNodeBuilder;
 class OrNodeBuilder;
 class PlusNodeBuilder;
 class MultNodeBuilder;
 
 /**
- * A base class for NodeBuilders.  When extending this class, use:
- *
- *   class MyExtendedNodeBuilder :
- *       public NodeBuilderBase<MyExtendedNodeBuilder> { ... };
- *
- * This ensures that certain member functions return the right
- * (derived) class type.
- *
- * There are no virtual functions here, and that should remain the
- * case!  This class is just used for sharing of implementation.  Two
- * types derive from it: BackedNodeBuilder (which allows for an
- * external buffer), and the NodeBuilder<> template, which requires
- * that you give it a compile-time constant backing-store size.
+ * The main template NodeBuilder.
  */
-template <class Builder>
-class NodeBuilderBase {
-protected:
-
+template <unsigned nchild_thresh = default_nchild_thresh>
+class NodeBuilder {
   /**
-   * A reference to an "in-line" stack-allocated buffer for use by the
+   * An "in-line" stack-allocated buffer for use by the
    * NodeBuilder.
    */
-  expr::NodeValue& d_inlineNv;
+  expr::NodeValue d_inlineNv;
+  /**
+   * Space for the children of the node being constructed.  This is
+   * never accessed directly, but rather through
+   * d_inlineNv.d_children[i].
+   */
+  expr::NodeValue* d_inlineNvChildSpace[nchild_thresh];
 
   /**
    * A pointer to the "current" NodeValue buffer; either &d_inlineNv
@@ -242,15 +214,12 @@ protected:
   NodeManager* d_nm;
 
   /**
-   * The maximum number of children that can be held in this "in-line"
-   * buffer.
-   */
-  const uint16_t d_inlineNvMaxChildren;
-
-  /**
    * The number of children allocated in d_nv.
    */
   uint16_t d_nvMaxChildren;
+
+  template <unsigned N>
+  void internalCopy(const NodeBuilder<N>& nb);
 
   /**
    * Returns whether or not this NodeBuilder has been "used"---i.e.,
@@ -267,7 +236,7 @@ protected:
   inline void setUsed() {
     Assert(!isUsed(), "Internal error: bad `used' state in NodeBuilder!");
     Assert(d_inlineNv.d_nchildren == 0 &&
-           d_nvMaxChildren == d_inlineNvMaxChildren,
+           d_nvMaxChildren == nchild_thresh,
            "Internal error: bad `inline' state in NodeBuilder!");
     d_nv = NULL;
   }
@@ -279,7 +248,7 @@ protected:
   inline void setUnused() {
     Assert(isUsed(), "Internal error: bad `used' state in NodeBuilder!");
     Assert(d_inlineNv.d_nchildren == 0 &&
-           d_nvMaxChildren == d_inlineNvMaxChildren,
+           d_nvMaxChildren == nchild_thresh,
            "Internal error: bad `inline' state in NodeBuilder!");
     d_nv = &d_inlineNv;
   }
@@ -377,7 +346,7 @@ protected:
     }
   }
 
-  Builder& collapseTo(Kind k) {
+  NodeBuilder<nchild_thresh>& collapseTo(Kind k) {
     AssertArgument(k != kind::UNDEFINED_KIND &&
                    k != kind::NULL_EXPR &&
                    k < kind::LAST_KIND,
@@ -389,27 +358,98 @@ protected:
       d_nv->d_kind = expr::NodeValue::kindToDKind(k);
       return append(n);
     }
-    return static_cast<Builder&>(*this);
+    return *this;
   }
-
-protected:
-
-  inline NodeBuilderBase(expr::NodeValue* buf, unsigned maxChildren,
-                         Kind k = kind::UNDEFINED_KIND);
-  inline NodeBuilderBase(expr::NodeValue* buf, unsigned maxChildren,
-                         NodeManager* nm, Kind k = kind::UNDEFINED_KIND);
-
-private:
-  // disallow copy or assignment of these base classes directly (there
-  // would be no backing store!)
-  NodeBuilderBase(const NodeBuilderBase& nb);
-  NodeBuilderBase& operator=(const NodeBuilderBase& nb);
 
 public:
 
-  // Intentionally not virtual; we don't want a vtable.  Don't
-  // override this in a derived class.
-  inline ~NodeBuilderBase();
+  inline NodeBuilder() :
+    d_nv(&d_inlineNv),
+    d_nm(NodeManager::currentNM()),
+    d_nvMaxChildren(nchild_thresh) {
+
+    d_inlineNv.d_id = 0;
+    d_inlineNv.d_rc = 0;
+    d_inlineNv.d_kind = expr::NodeValue::kindToDKind(kind::UNDEFINED_KIND);
+    d_inlineNv.d_nchildren = 0;
+  }
+
+  inline NodeBuilder(Kind k) :
+    d_nv(&d_inlineNv),
+    d_nm(NodeManager::currentNM()),
+    d_nvMaxChildren(nchild_thresh) {
+
+    Assert(k != kind::NULL_EXPR, "illegal Node-building kind");
+
+    d_inlineNv.d_id = 0;
+    d_inlineNv.d_rc = 0;
+    d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
+    d_inlineNv.d_nchildren = 0;
+  }
+
+  inline NodeBuilder(NodeManager* nm) :
+    d_nv(&d_inlineNv),
+    d_nm(nm),
+    d_nvMaxChildren(nchild_thresh) {
+
+    d_inlineNv.d_id = 0;
+    d_inlineNv.d_rc = 0;
+    d_inlineNv.d_kind = expr::NodeValue::kindToDKind(kind::UNDEFINED_KIND);
+    d_inlineNv.d_nchildren = 0;
+  }
+
+  inline NodeBuilder(NodeManager* nm, Kind k) :
+    d_nv(&d_inlineNv),
+    d_nm(nm),
+    d_nvMaxChildren(nchild_thresh) {
+
+    Assert(k != kind::NULL_EXPR, "illegal Node-building kind");
+
+    d_inlineNv.d_id = 0;
+    d_inlineNv.d_rc = 0;
+    d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
+    d_inlineNv.d_nchildren = 0;
+  }
+
+  inline ~NodeBuilder() {
+    if(EXPECT_FALSE( nvIsAllocated() )) {
+      dealloc();
+    } else if(EXPECT_FALSE( !isUsed() )) {
+      decrRefCounts();
+    }
+  }
+
+  // These implementations are identical, but we need to have both of
+  // these because the templatized version isn't recognized as a
+  // generalization of a copy constructor (and a default copy
+  // constructor will be generated [?])
+  inline NodeBuilder(const NodeBuilder& nb) :
+    d_nv(&d_inlineNv),
+    d_nm(nb.d_nm),
+    d_nvMaxChildren(nchild_thresh) {
+
+    d_inlineNv.d_id = 0;
+    d_inlineNv.d_rc = 0;
+    d_inlineNv.d_kind = nb.d_nv->d_kind;
+    d_inlineNv.d_nchildren = 0;
+
+    internalCopy(nb);
+  }
+
+  // technically this is a conversion, not a copy
+  template <unsigned N>
+  inline NodeBuilder(const NodeBuilder<N>& nb) :
+    d_nv(&d_inlineNv),
+    d_nm(nb.d_nm),
+    d_nvMaxChildren(nchild_thresh) {
+
+    d_inlineNv.d_id = 0;
+    d_inlineNv.d_rc = 0;
+    d_inlineNv.d_kind = nb.d_nv->d_kind;
+    d_inlineNv.d_nchildren = 0;
+
+    internalCopy(nb);
+  }
 
   typedef expr::NodeValue::iterator< NodeTemplate<true>  > iterator;
   typedef expr::NodeValue::iterator< NodeTemplate<true> > const_iterator;
@@ -485,9 +525,9 @@ public:
    * allocated, and decrements the reference counts of any currently
    * children in the NodeBuilder.
    *
-   * This should leave the BackedNodeBuilder in the state it was after
+   * This should leave the NodeBuilder in the state it was after
    * initial construction, except for Kind, which is set to the
-   * argument (if provided), or UNDEFINED_KIND.  In particular, the
+   * argument, if provided, or UNDEFINED_KIND.  In particular, the
    * associated NodeManager is not affected by clear().
    */
   void clear(Kind k = kind::UNDEFINED_KIND);
@@ -495,7 +535,7 @@ public:
   // "Stream" expression constructor syntax
 
   /** Set the Kind of this Node-under-construction. */
-  inline Builder& operator<<(const Kind& k) {
+  inline NodeBuilder<nchild_thresh>& operator<<(const Kind& k) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
     Assert(getKind() == kind::UNDEFINED_KIND,
@@ -505,7 +545,7 @@ public:
                    k < kind::LAST_KIND,
                    k, "illegal node-building kind");
     d_nv->d_kind = expr::NodeValue::kindToDKind(k);
-    return static_cast<Builder&>(*this);
+    return *this;
   }
 
   /**
@@ -514,7 +554,7 @@ public:
    * FIXME: do we really want that collapse behavior?  We had agreed
    * on it but then never wrote code like that.
    */
-  Builder& operator<<(TNode n) {
+  NodeBuilder<nchild_thresh>& operator<<(TNode n) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
     /* FIXME: disable this "collapsing" for now..
@@ -527,7 +567,7 @@ public:
   }
 
   /** Append a sequence of children to this TypeNode-under-construction. */
-  inline Builder&
+  inline NodeBuilder<nchild_thresh>&
   append(const std::vector<TypeNode>& children) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
@@ -536,7 +576,7 @@ public:
 
   /** Append a sequence of children to this Node-under-construction. */
   template <bool ref_count>
-  inline Builder&
+  inline NodeBuilder<nchild_thresh>&
   append(const std::vector<NodeTemplate<ref_count> >& children) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
@@ -545,17 +585,17 @@ public:
 
   /** Append a sequence of children to this Node-under-construction. */
   template <class Iterator>
-  Builder& append(const Iterator& begin, const Iterator& end) {
+  NodeBuilder<nchild_thresh>& append(const Iterator& begin, const Iterator& end) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
     for(Iterator i = begin; i != end; ++i) {
       append(*i);
     }
-    return static_cast<Builder&>(*this);
+    return *this;
   }
 
   /** Append a child to this Node-under-construction. */
-  Builder& append(TNode n) {
+  NodeBuilder<nchild_thresh>& append(TNode n) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
     Assert(!n.isNull(), "Cannot use NULL Node as a child of a Node");
@@ -563,11 +603,11 @@ public:
     expr::NodeValue* nv = n.d_nv;
     nv->inc();
     d_nv->d_children[d_nv->d_nchildren++] = nv;
-    return static_cast<Builder&>(*this);
+    return *this;
   }
 
   /** Append a child to this Node-under-construction. */
-  Builder& append(const TypeNode& typeNode) {
+  NodeBuilder<nchild_thresh>& append(const TypeNode& typeNode) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
     Assert(!typeNode.isNull(), "Cannot use NULL Node as a child of a Node");
@@ -575,7 +615,7 @@ public:
     expr::NodeValue* nv = typeNode.d_nv;
     nv->inc();
     d_nv->d_children[d_nv->d_nchildren++] = nv;
-    return static_cast<Builder&>(*this);
+    return *this;
   }
 
 private:
@@ -609,171 +649,24 @@ public:
     d_nv->toStream(out, depth);
   }
 
-  Builder& operator&=(TNode);
-  Builder& operator|=(TNode);
-  Builder& operator+=(TNode);
-  Builder& operator-=(TNode);
-  Builder& operator*=(TNode);
+  NodeBuilder<nchild_thresh>& operator&=(TNode);
+  NodeBuilder<nchild_thresh>& operator|=(TNode);
+  NodeBuilder<nchild_thresh>& operator+=(TNode);
+  NodeBuilder<nchild_thresh>& operator-=(TNode);
+  NodeBuilder<nchild_thresh>& operator*=(TNode);
 
   friend class AndNodeBuilder;
   friend class OrNodeBuilder;
   friend class PlusNodeBuilder;
   friend class MultNodeBuilder;
 
-};/* class NodeBuilderBase */
-
-/**
- * Backing-store interface version for NodeBuilders.  To construct one
- * of these, you need to create a backing store (preferably on the
- * stack) for it to hold its "inline" NodeValue.  There's a
- * convenience macro defined below, makeStackNodeBuilder(b, N),
- * defined below to define a stack-allocated BackedNodeBuilder "b"
- * with room for N children on the stack.
- */
-class BackedNodeBuilder : public NodeBuilderBase<BackedNodeBuilder> {
-public:
-  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren) :
-    NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
-  }
-
-  inline BackedNodeBuilder(expr::NodeValue* buf, unsigned maxChildren, Kind k) :
-    NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
-  }
-
-  inline BackedNodeBuilder(expr::NodeValue* buf,
-                           unsigned maxChildren,
-                           NodeManager* nm) :
-    NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
-  }
-
-  inline BackedNodeBuilder(expr::NodeValue* buf,
-                           unsigned maxChildren,
-                           NodeManager* nm,
-                           Kind k) :
-    NodeBuilderBase<BackedNodeBuilder>(buf, maxChildren) {
-  }
-
-  // we don't want a vtable, so do not declare a dtor!
-  //inline ~BackedNodeBuilder();
-
-private:
-  // disallow copy or assignment (there would be no backing store!)
-  BackedNodeBuilder(const BackedNodeBuilder& nb);
-  BackedNodeBuilder& operator=(const BackedNodeBuilder& nb);
-
-};/* class BackedNodeBuilder */
-
-/**
- * Stack-allocate a BackedNodeBuilder with a stack-allocated backing
- * store of size __n.  The BackedNodeBuilder will be named __v.
- *
- * __v must be a simple name.  __n must be convertible to size_t, and
- * will be evaluated only once.  This macro may only be used where
- * declarations are permitted.
- */
-#define makeStackNodeBuilder(__v, __n)                                  \
-  const size_t __cvc4_backednodebuilder_nchildren__ ## __v = (__n);     \
-  ::CVC4::expr::NodeValue __cvc4_backednodebuilder_buf__ ## __v         \
-      [1 + ( ( ( sizeof(::CVC4::expr::NodeValue) +                      \
-                sizeof(::CVC4::expr::NodeValue*) + 1 ) /                \
-               sizeof(::CVC4::expr::NodeValue*) ) *                     \
-             __cvc4_backednodebuilder_nchildren__ ## __v)];             \
-  ::CVC4::BackedNodeBuilder __v(__cvc4_backednodebuilder_buf__ ## __v,  \
-                                __cvc4_backednodebuilder_nchildren__ ## __v)
-// IF THE ABOVE ASSERTION FAILS, write another compiler-specific
-// version of makeStackNodeBuilder() that works for your compiler
-// (even if it's suboptimal, ignoring its __n argument, and just
-// creates a NodeBuilder<10>).
-
-
-/**
- * Simple NodeBuilder interface.  This is a template that requires
- * that the number of children of the "inline"-allocated NodeValue be
- * specified as a template parameter (which means it must be a
- * compile-time constant).
- */
-template <unsigned nchild_thresh = default_nchild_thresh>
-class NodeBuilder : public NodeBuilderBase<NodeBuilder<nchild_thresh> > {
-  // This is messy:
-  // 1. This (anonymous) struct here must be a POD to avoid the
-  //    compiler laying out things in a different way.
-  // 2. The layout is engineered carefully.  We can't just
-  //    stack-allocate enough bytes as a char[] because we break
-  //    strict-aliasing rules.  The first thing in the struct is a
-  //    "NodeValue" so a pointer to this struct should be safely
-  //    castable to a pointer to a NodeValue (same alignment).
-  struct BackingStore {
-    expr::NodeValue n;
-    expr::NodeValue* c[nchild_thresh];
-  } d_backingStore;
-
-  typedef NodeBuilderBase<NodeBuilder<nchild_thresh> > super;
-
-  template <unsigned N>
-  void internalCopy(const NodeBuilder<N>& nb);
-
-public:
-  inline NodeBuilder() :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >
-      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
-       nchild_thresh) {
-  }
-
-  inline NodeBuilder(Kind k) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >
-      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
-       nchild_thresh,
-       k) {
-  }
-
-  inline NodeBuilder(NodeManager* nm) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >
-      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
-       nchild_thresh,
-       nm) {
-  }
-
-  inline NodeBuilder(NodeManager* nm, Kind k) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >
-      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
-       nchild_thresh,
-       nm,
-       k) {
-  }
-
-  // These implementations are identical, but we need to have both of
-  // these because the templatized version isn't recognized as a
-  // generalization of a copy constructor (and a default copy
-  // constructor will be generated [?])
-  inline NodeBuilder(const NodeBuilder& nb) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >
-      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
-       nchild_thresh,
-       nb.d_nm,
-       nb.getKind()) {
-    internalCopy(nb);
-  }
-
-  // technically this is a conversion, not a copy
-  template <unsigned N>
-  inline NodeBuilder(const NodeBuilder<N>& nb) :
-    NodeBuilderBase<NodeBuilder<nchild_thresh> >
-      (reinterpret_cast<expr::NodeValue*>(&d_backingStore),
-       nchild_thresh,
-       nb.d_nm,
-       nb.getKind()) {
-    internalCopy(nb);
-  }
-
-  // we don't want a vtable, so do not declare a dtor!
-  //inline ~NodeBuilder();
-
   // This is needed for copy constructors of different sizes to access
   // private fields
   template <unsigned N>
   friend class NodeBuilder;
-
 };/* class NodeBuilder<> */
+
+}/* CVC4 namespace */
 
 // TODO: add templatized NodeTemplate<ref_count> to all above and
 // below inlines for 'const [T]Node&' arguments?  Technically a lot of
@@ -781,420 +674,13 @@ public:
 // this should be optimized into a simple pointer copy (?)
 // TODO: double-check this.
 
-class AndNodeBuilder {
-public:
-  NodeBuilder<> d_eb;
-
-  inline AndNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
-    d_eb.collapseTo(kind::AND);
-  }
-
-  inline AndNodeBuilder(TNode a, TNode b) : d_eb(kind::AND) {
-    d_eb << a << b;
-  }
-
-  template <bool rc>
-  inline AndNodeBuilder& operator&&(const NodeTemplate<rc>&);
-
-  template <bool rc>
-  inline OrNodeBuilder operator||(const NodeTemplate<rc>&);
-
-  inline operator NodeBuilder<>() { return d_eb; }
-  inline operator Node() { return d_eb; }
-
-};/* class AndNodeBuilder */
-
-class OrNodeBuilder {
-public:
-  NodeBuilder<> d_eb;
-
-  inline OrNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
-    d_eb.collapseTo(kind::OR);
-  }
-
-  inline OrNodeBuilder(TNode a, TNode b) : d_eb(kind::OR) {
-    d_eb << a << b;
-  }
-
-  template <bool rc>
-  inline AndNodeBuilder operator&&(const NodeTemplate<rc>&);
-
-  template <bool rc>
-  inline OrNodeBuilder& operator||(const NodeTemplate<rc>&);
-
-  inline operator NodeBuilder<>() { return d_eb; }
-  inline operator Node() { return d_eb; }
-
-};/* class OrNodeBuilder */
-
-class PlusNodeBuilder {
-public:
-  NodeBuilder<> d_eb;
-
-  inline PlusNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
-    d_eb.collapseTo(kind::PLUS);
-  }
-
-  inline PlusNodeBuilder(TNode a, TNode b) : d_eb(kind::PLUS) {
-    d_eb << a << b;
-  }
-
-  template <bool rc>
-  inline PlusNodeBuilder& operator+(const NodeTemplate<rc>&);
-
-  template <bool rc>
-  inline PlusNodeBuilder& operator-(const NodeTemplate<rc>&);
-
-  template <bool rc>
-  inline MultNodeBuilder operator*(const NodeTemplate<rc>&);
-
-  inline operator NodeBuilder<>() { return d_eb; }
-  inline operator Node() { return d_eb; }
-
-};/* class PlusNodeBuilder */
-
-class MultNodeBuilder {
-public:
-  NodeBuilder<> d_eb;
-
-  inline MultNodeBuilder(const NodeBuilder<>& eb) : d_eb(eb) {
-    d_eb.collapseTo(kind::MULT);
-  }
-
-  inline MultNodeBuilder(TNode a, TNode b) : d_eb(kind::MULT) {
-    d_eb << a << b;
-  }
-
-  template <bool rc>
-  inline PlusNodeBuilder operator+(const NodeTemplate<rc>&);
-
-  template <bool rc>
-  inline PlusNodeBuilder operator-(const NodeTemplate<rc>&);
-
-  template <bool rc>
-  inline MultNodeBuilder& operator*(const NodeTemplate<rc>&);
-
-  inline operator NodeBuilder<>() { return d_eb; }
-  inline operator Node() { return d_eb; }
-
-};/* class MultNodeBuilder */
-
-template <class Builder>
-inline Builder& NodeBuilderBase<Builder>::operator&=(TNode e) {
-  return collapseTo(kind::AND).append(e);
-}
-
-template <class Builder>
-inline Builder& NodeBuilderBase<Builder>::operator|=(TNode e) {
-  return collapseTo(kind::OR).append(e);
-}
-
-template <class Builder>
-inline Builder& NodeBuilderBase<Builder>::operator+=(TNode e) {
-  return collapseTo(kind::PLUS).append(e);
-}
-
-template <class Builder>
-inline Builder& NodeBuilderBase<Builder>::operator-=(TNode e) {
-  return collapseTo(kind::PLUS).
-    append(NodeManager::currentNM()->mkNode(kind::UMINUS, e));
-}
-
-template <class Builder>
-inline Builder& NodeBuilderBase<Builder>::operator*=(TNode e) {
-  return collapseTo(kind::MULT).append(e);
-}
-
-template <bool rc>
-inline AndNodeBuilder& AndNodeBuilder::operator&&(const NodeTemplate<rc>& n) {
-  d_eb.append(n);
-  return *this;
-}
-
-template <bool rc>
-inline OrNodeBuilder AndNodeBuilder::operator||(const NodeTemplate<rc>& n) {
-  return OrNodeBuilder(Node(d_eb), n);
-}
-
-inline AndNodeBuilder& operator&&(AndNodeBuilder& a,
-                                  const AndNodeBuilder& b) {
-  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline AndNodeBuilder& operator&&(AndNodeBuilder& a,
-                                  const OrNodeBuilder& b) {
-  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline OrNodeBuilder operator||(AndNodeBuilder& a,
-                                const AndNodeBuilder& b) {
-  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline OrNodeBuilder operator||(AndNodeBuilder& a,
-                                const OrNodeBuilder& b) {
-  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline AndNodeBuilder OrNodeBuilder::operator&&(const NodeTemplate<rc>& n) {
-  return AndNodeBuilder(Node(d_eb), n);
-}
-
-template <bool rc>
-inline OrNodeBuilder& OrNodeBuilder::operator||(const NodeTemplate<rc>& n) {
-  d_eb.append(n);
-  return *this;
-}
-
-inline AndNodeBuilder operator&&(OrNodeBuilder& a,
-                                 const AndNodeBuilder& b) {
-  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline AndNodeBuilder operator&&(OrNodeBuilder& a,
-                                 const OrNodeBuilder& b) {
-  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline OrNodeBuilder& operator||(OrNodeBuilder& a,
-                                 const AndNodeBuilder& b) {
-  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline OrNodeBuilder& operator||(OrNodeBuilder& a,
-                                 const OrNodeBuilder& b) {
-  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline PlusNodeBuilder& PlusNodeBuilder::operator+(const NodeTemplate<rc>& n) {
-  d_eb.append(n);
-  return *this;
-}
-
-template <bool rc>
-inline PlusNodeBuilder& PlusNodeBuilder::operator-(const NodeTemplate<rc>& n) {
-  d_eb.append(NodeManager::currentNM()->mkNode(kind::UMINUS, n));
-  return *this;
-}
-
-template <bool rc>
-inline MultNodeBuilder PlusNodeBuilder::operator*(const NodeTemplate<rc>& n) {
-  return MultNodeBuilder(Node(d_eb), n);
-}
-
-inline PlusNodeBuilder& operator+(PlusNodeBuilder& a,
-                                  const PlusNodeBuilder& b) {
-  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline PlusNodeBuilder& operator+(PlusNodeBuilder& a,
-                                  const MultNodeBuilder& b) {
-  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline PlusNodeBuilder& operator-(PlusNodeBuilder&a,
-                                  const PlusNodeBuilder& b) {
-  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline PlusNodeBuilder& operator-(PlusNodeBuilder& a,
-                                  const MultNodeBuilder& b) {
-  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline MultNodeBuilder operator*(PlusNodeBuilder& a,
-                                 const PlusNodeBuilder& b) {
-  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline MultNodeBuilder operator*(PlusNodeBuilder& a,
-                                 const MultNodeBuilder& b) {
-  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline PlusNodeBuilder MultNodeBuilder::operator+(const NodeTemplate<rc>& n) {
-  return PlusNodeBuilder(Node(d_eb), n);
-}
-
-template <bool rc>
-inline PlusNodeBuilder MultNodeBuilder::operator-(const NodeTemplate<rc>& n) {
-  return PlusNodeBuilder(Node(d_eb),
-                         NodeManager::currentNM()->mkNode(kind::UMINUS, n));
-}
-
-template <bool rc>
-inline MultNodeBuilder& MultNodeBuilder::operator*(const NodeTemplate<rc>& n) {
-  d_eb.append(n);
-  return *this;
-}
-
-inline PlusNodeBuilder operator+(MultNodeBuilder& a,
-                                 const PlusNodeBuilder& b) {
-  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline PlusNodeBuilder operator+(MultNodeBuilder& a,
-                                 const MultNodeBuilder& b) {
-  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline PlusNodeBuilder operator-(MultNodeBuilder& a,
-                                 const PlusNodeBuilder& b) {
-  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline PlusNodeBuilder operator-(MultNodeBuilder& a,
-                                 const MultNodeBuilder& b) {
-  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline MultNodeBuilder& operator*(MultNodeBuilder& a,
-                                  const PlusNodeBuilder& b) {
-  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-inline MultNodeBuilder& operator*(MultNodeBuilder& a,
-                                  const MultNodeBuilder& b) {
-  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc1, bool rc2>
-inline AndNodeBuilder operator&&(const NodeTemplate<rc1>& a,
-                                 const NodeTemplate<rc2>& b) {
-  return AndNodeBuilder(a, b);
-}
-
-template <bool rc1, bool rc2>
-inline OrNodeBuilder operator||(const NodeTemplate<rc1>& a,
-                                const NodeTemplate<rc2>& b) {
-  return OrNodeBuilder(a, b);
-}
-
-template <bool rc1, bool rc2>
-inline PlusNodeBuilder operator+(const NodeTemplate<rc1>& a,
-                                 const NodeTemplate<rc2>& b) {
-  return PlusNodeBuilder(a, b);
-}
-
-template <bool rc1, bool rc2>
-inline PlusNodeBuilder operator-(const NodeTemplate<rc1>& a,
-                                 const NodeTemplate<rc2>& b) {
-  return PlusNodeBuilder(a, NodeManager::currentNM()->mkNode(kind::UMINUS, b));
-}
-
-template <bool rc1, bool rc2>
-inline MultNodeBuilder operator*(const NodeTemplate<rc1>& a,
-                                 const NodeTemplate<rc2>& b) {
-  return MultNodeBuilder(a, b);
-}
-
-template <bool rc>
-inline AndNodeBuilder operator&&(const NodeTemplate<rc>& a,
-                                 const AndNodeBuilder& b) {
-  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline AndNodeBuilder operator&&(const NodeTemplate<rc>& a,
-                                 const OrNodeBuilder& b) {
-  return a && Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline OrNodeBuilder operator||(const NodeTemplate<rc>& a,
-                                const AndNodeBuilder& b) {
-  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline OrNodeBuilder operator||(const NodeTemplate<rc>& a,
-                                const OrNodeBuilder& b) {
-  return a || Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline PlusNodeBuilder operator+(const NodeTemplate<rc>& a,
-                                 const PlusNodeBuilder& b) {
-  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline PlusNodeBuilder operator+(const NodeTemplate<rc>& a,
-                                 const MultNodeBuilder& b) {
-  return a + Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline PlusNodeBuilder operator-(const NodeTemplate<rc>& a,
-                                 const PlusNodeBuilder& b) {
-  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline PlusNodeBuilder operator-(const NodeTemplate<rc>& a,
-                                 const MultNodeBuilder& b) {
-  return a - Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline MultNodeBuilder operator*(const NodeTemplate<rc>& a,
-                                 const PlusNodeBuilder& b) {
-  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline MultNodeBuilder operator*(const NodeTemplate<rc>& a,
-                                 const MultNodeBuilder& b) {
-  return a * Node(const_cast<NodeBuilder<>&>(b.d_eb));
-}
-
-template <bool rc>
-inline NodeTemplate<true> operator-(const NodeTemplate<rc>& a) {
-  return NodeManager::currentNM()->mkNode(kind::UMINUS, a);
-}
-
-}/* CVC4 namespace */
-
 #include "expr/node.h"
 #include "expr/node_manager.h"
 
 namespace CVC4 {
 
-template <class Builder>
-inline NodeBuilderBase<Builder>::NodeBuilderBase(expr::NodeValue* buf,
-                                                 unsigned maxChildren,
-                                                 Kind k) :
-  d_inlineNv(*buf),
-  d_nv(&d_inlineNv),
-  d_nm(NodeManager::currentNM()),
-  d_inlineNvMaxChildren(maxChildren),
-  d_nvMaxChildren(maxChildren) {
-
-  Assert(k != kind::NULL_EXPR, "illegal Node-building kind");
-
-  d_inlineNv.d_id = 0;
-  d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
-  d_inlineNv.d_nchildren = 0;
-}
-
-template <class Builder>
-inline NodeBuilderBase<Builder>::NodeBuilderBase(expr::NodeValue* buf,
-                                                 unsigned maxChildren,
-                                                 NodeManager* nm,
-                                                 Kind k) :
-  d_inlineNv(*buf),
-  d_nv(&d_inlineNv),
-  d_nm(nm),
-  d_inlineNvMaxChildren(maxChildren),
-  d_nvMaxChildren(maxChildren) {
-
-  Assert(k != kind::NULL_EXPR, "illegal Node-building kind");
-
-  d_inlineNv.d_id = 0;
-  d_inlineNv.d_rc = 0;
-  d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
-  d_inlineNv.d_nchildren = 0;
-}
-
-template <class Builder>
-inline NodeBuilderBase<Builder>::~NodeBuilderBase() {
-  if(EXPECT_FALSE( nvIsAllocated() )) {
-    dealloc();
-  } else if(EXPECT_FALSE( !isUsed() )) {
-    decrRefCounts();
-  }
-}
-
-template <class Builder>
-void NodeBuilderBase<Builder>::clear(Kind k) {
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::clear(Kind k) {
   Assert(k != kind::NULL_EXPR, "illegal Node-building clear kind");
 
   if(EXPECT_FALSE( nvIsAllocated() )) {
@@ -1214,8 +700,8 @@ void NodeBuilderBase<Builder>::clear(Kind k) {
   d_inlineNv.d_nchildren = 0;
 }
 
-template <class Builder>
-void NodeBuilderBase<Builder>::realloc(size_t toSize) {
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
   Assert( toSize > d_nvMaxChildren,
           "attempt to realloc() a NodeBuilder to a smaller/equal size!" );
 
@@ -1258,8 +744,8 @@ void NodeBuilderBase<Builder>::realloc(size_t toSize) {
   }
 }
 
-template <class Builder>
-void NodeBuilderBase<Builder>::dealloc() {
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::dealloc() {
   Assert( nvIsAllocated(),
           "Internal error: NodeBuilder: dealloc() called without a "
           "private NodeBuilder-allocated buffer" );
@@ -1272,11 +758,11 @@ void NodeBuilderBase<Builder>::dealloc() {
 
   free(d_nv);
   d_nv = &d_inlineNv;
-  d_nvMaxChildren = d_inlineNvMaxChildren;
+  d_nvMaxChildren = nchild_thresh;
 }
 
-template <class Builder>
-void NodeBuilderBase<Builder>::decrRefCounts() {
+template <unsigned nchild_thresh>
+void NodeBuilder<nchild_thresh>::decrRefCounts() {
   Assert( !nvIsAllocated(),
           "Internal error: NodeBuilder: decrRefCounts() called with a "
           "private NodeBuilder-allocated buffer" );
@@ -1291,48 +777,48 @@ void NodeBuilderBase<Builder>::decrRefCounts() {
 }
 
 
-template <class Builder>
-TypeNode NodeBuilderBase<Builder>::constructTypeNode() {
+template <unsigned nchild_thresh>
+TypeNode NodeBuilder<nchild_thresh>::constructTypeNode() {
   return TypeNode(constructNV());
 }
 
-template <class Builder>
-TypeNode NodeBuilderBase<Builder>::constructTypeNode() const {
+template <unsigned nchild_thresh>
+TypeNode NodeBuilder<nchild_thresh>::constructTypeNode() const {
   return TypeNode(constructNV());
 }
 
-template <class Builder>
-Node NodeBuilderBase<Builder>::constructNode() {
+template <unsigned nchild_thresh>
+Node NodeBuilder<nchild_thresh>::constructNode() {
   return Node(constructNV());
 }
 
-template <class Builder>
-Node NodeBuilderBase<Builder>::constructNode() const {
+template <unsigned nchild_thresh>
+Node NodeBuilder<nchild_thresh>::constructNode() const {
   return Node(constructNV());
 }
 
-template <class Builder>
-Node* NodeBuilderBase<Builder>::constructNodePtr() {
+template <unsigned nchild_thresh>
+Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
   return new Node(constructNV());
 }
 
-template <class Builder>
-Node* NodeBuilderBase<Builder>::constructNodePtr() const {
+template <unsigned nchild_thresh>
+Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
   return new Node(constructNV());
 }
 
-template <class Builder>
-NodeBuilderBase<Builder>::operator Node() {
+template <unsigned nchild_thresh>
+NodeBuilder<nchild_thresh>::operator Node() {
   return constructNode();
 }
 
-template <class Builder>
-NodeBuilderBase<Builder>::operator Node() const {
+template <unsigned nchild_thresh>
+NodeBuilder<nchild_thresh>::operator Node() const {
   return constructNode();
 }
 
-template <class Builder>
-expr::NodeValue* NodeBuilderBase<Builder>::constructNV() {
+template <unsigned nchild_thresh>
+expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   Assert(!isUsed(), "NodeBuilder is one-shot only; "
          "attempt to access it after conversion");
   Assert(getKind() != kind::UNDEFINED_KIND,
@@ -1396,7 +882,7 @@ expr::NodeValue* NodeBuilderBase<Builder>::constructNV() {
 
   if(EXPECT_TRUE( ! nvIsAllocated() )) {
     /** Case 1.  d_nv points to d_inlineNv: it is the backing store
-     ** supplied by the user (or derived class) **/
+     ** allocated "inline" in this NodeBuilder. **/
 
     // Lookup the expression value in the pool we already have
     expr::NodeValue* poolNv = d_nm->poolLookup(&d_inlineNv);
@@ -1490,7 +976,7 @@ expr::NodeValue* NodeBuilderBase<Builder>::constructNV() {
       expr::NodeValue* nv = d_nv;
       nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
       d_nv = &d_inlineNv;
-      d_nvMaxChildren = d_inlineNvMaxChildren;
+      d_nvMaxChildren = nchild_thresh;
       setUsed();
 
       //poolNv = nv;
@@ -1503,8 +989,8 @@ expr::NodeValue* NodeBuilderBase<Builder>::constructNV() {
 }
 
 // CONST VERSION OF NODE EXTRACTOR
-template <class Builder>
-expr::NodeValue* NodeBuilderBase<Builder>::constructNV() const {
+template <unsigned nchild_thresh>
+expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   Assert(!isUsed(), "NodeBuilder is one-shot only; "
          "attempt to access it after conversion");
   Assert(getKind() != kind::UNDEFINED_KIND,
@@ -1567,7 +1053,7 @@ expr::NodeValue* NodeBuilderBase<Builder>::constructNV() const {
 
   if(EXPECT_TRUE( ! nvIsAllocated() )) {
     /** Case 1.  d_nv points to d_inlineNv: it is the backing store
-     ** supplied by the user (or derived class) **/
+     ** allocated "inline" in this NodeBuilder. **/
 
     // Lookup the expression value in the pool we already have
     expr::NodeValue* poolNv = d_nm->poolLookup(&d_inlineNv);
@@ -1683,30 +1169,30 @@ template <unsigned nchild_thresh>
 template <unsigned N>
 void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
   if(nb.isUsed()) {
-    super::setUsed();
+    setUsed();
     return;
   }
 
-  if(nb.d_nvMaxChildren > super::d_nvMaxChildren) {
-    super::realloc(nb.d_nvMaxChildren);
+  if(nb.d_nvMaxChildren > d_nvMaxChildren) {
+    realloc(nb.d_nvMaxChildren);
   }
 
   std::copy(nb.d_nv->nv_begin(),
             nb.d_nv->nv_end(),
-            super::d_nv->nv_begin());
+            d_nv->nv_begin());
 
-  super::d_nv->d_nchildren = nb.d_nv->d_nchildren;
+  d_nv->d_nchildren = nb.d_nv->d_nchildren;
 
-  for(expr::NodeValue::nv_iterator i = super::d_nv->nv_begin();
-      i != super::d_nv->nv_end();
+  for(expr::NodeValue::nv_iterator i = d_nv->nv_begin();
+      i != d_nv->nv_end();
       ++i) {
     (*i)->inc();
   }
 }
 
-template <class Builder>
+template <unsigned nchild_thresh>
 inline std::ostream& operator<<(std::ostream& out,
-                                const NodeBuilderBase<Builder>& b) {
+                                const NodeBuilder<nchild_thresh>& b) {
   b.toStream(out, Node::setdepth::getDepth(out));
   return out;
 }

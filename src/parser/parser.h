@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** parser.h
+/*! \file parser.h
+ ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Minor contributors (to current version): mdeters, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A collection of state for use by parser implementations.
  **
  ** A collection of state for use by parser implementations.
  **/

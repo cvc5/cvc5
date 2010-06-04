@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** expr_manager_public.h
+/*! \file expr_manager_public.h
+ ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,9 +9,11 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
  **
- ** Public black-box testing of CVC4::Expr.
+ ** \brief Public black-box testing of CVC4::ExprManager.
+ **
+ ** Public black-box testing of CVC4::ExprManager.
  **/
 
 #include <cxxtest/TestSuite.h>

@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** input.cpp
+/*! \file antlr_input.cpp
+ ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A super-class for ANTLR-generated input language parsers.
  **
  ** A super-class for ANTLR-generated input language parsers
  **/

@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** memory.h
+/*! \file memory.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Utility class to help testing out-of-memory conditions.
  **
  ** Utility class to help testing out-of-memory conditions.
  **

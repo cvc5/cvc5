@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** main.h
+/*! \file main.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): dejan, barrett
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Header for main CVC4 driver.
  **
  ** Header for main CVC4 driver.
  **/

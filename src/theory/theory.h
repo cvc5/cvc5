@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** theory.h
+/*! \file theory.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): dejan, taking
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Base of the theory interface.
  **
  ** Base of the theory interface.
  **/

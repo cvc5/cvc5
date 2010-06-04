@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** unique_id.h
+/*! \file unique_id.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A mechanism for getting a compile-time unique ID.
  **
  ** A mechanism for getting a compile-time unique ID.
  **/

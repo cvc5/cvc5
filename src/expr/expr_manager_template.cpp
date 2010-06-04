@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** expr_manager_template.cpp
+/*! \file expr_manager_template.cpp
+ ** \verbatim
  ** Original author: dejan
  ** Major contributors: cconway, mdeters
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Public-facing expression manager interface, implementation.
  **
  ** Public-facing expression manager interface, implementation.
  **/
@@ -69,17 +72,6 @@ IntegerType ExprManager::integerType() const {
 BitVectorType ExprManager::bitVectorType(unsigned size) const {
   NodeManagerScope nms(d_nodeManager);
   return Type(d_nodeManager, new TypeNode(d_nodeManager->bitVectorType(size)));
-}
-
-Expr ExprManager::mkExpr(Kind kind) {
-  const unsigned n = 0;
-  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
-                "Exprs with kind %s must have at least %u children and "
-                "at most %u children (the one under construction has %u)",
-                kind::kindToString(kind).c_str(),
-                minArity(kind), maxArity(kind), n);
-  NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkNodePtr(kind));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
@@ -252,7 +244,7 @@ Expr ExprManager::mkVar(const Type& type) {
 
 Expr ExprManager::mkAssociative(Kind kind,
                                 const std::vector<Expr>& children) {
-  CheckArgument( metakind::isAssociative(kind), kind,
+  CheckArgument( kind::isAssociative(kind), kind,
                  "Illegal kind in mkAssociative: %s",
                  kind::kindToString(kind).c_str());
 

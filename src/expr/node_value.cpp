@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** node_value.cpp
+/*! \file node_value.cpp
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
  ** Minor contributors (to current version): cconway
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief An expression node.
  **
  ** An expression node.
  **

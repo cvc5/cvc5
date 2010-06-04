@@ -1,14 +1,18 @@
 /*********************                                                        */
-/** cnf_stream.cpp
+/*! \file cnf_stream.cpp
+ ** \verbatim
  ** Original author: taking
  ** Major contributors: dejan
- ** Minor contributors (to current version): mdeters
+ ** Minor contributors (to current version): mdeters, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A CNF converter that takes in asserts and has the side effect
+ ** of given an equisatisfiable stream of assertions to PropEngine.
  **
  ** A CNF converter that takes in asserts and has the side effect
  ** of given an equisatisfiable stream of assertions to PropEngine.

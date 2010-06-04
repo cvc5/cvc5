@@ -1,12 +1,17 @@
 /*********************                                                        */
-/** declaration_scope.cpp
+/*! \file declaration_scope.cpp
+ ** \verbatim
  ** Original author: cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Convenience class for scoping variable and type declarations (implementation).
  **
  ** Convenience class for scoping variable and type declarations (implementation)
  **/

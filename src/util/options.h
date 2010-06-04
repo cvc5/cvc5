@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** options.h
+/*! \file options.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: cconway
  ** Minor contributors (to current version): dejan
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Global (command-line or equivalent) tuning parameters.
  **
  ** Global (command-line or equivalent) tuning parameters.
  **/

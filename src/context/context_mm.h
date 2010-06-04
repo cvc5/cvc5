@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** context_mm.h
+/*! \file context_mm.h
+ ** \verbatim
  ** Original author: barrett
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Region-based memory manager with stack-based push and pop.
  **
  ** Region-based memory manager with stack-based push and pop.  Designed
  ** for use by ContextManager.

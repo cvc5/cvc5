@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** node_manager.h
+/*! \file node_manager.h
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: cconway
- ** Minor contributors (to current version): taking, dejan
+ ** Major contributors: cconway, dejan
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A manager for Nodes.
  **
  ** A manager for Nodes.
  **
@@ -50,7 +53,7 @@ typedef expr::Attribute<attr::VarNameTag, std::string> VarNameAttr;
 }/* CVC4::expr namespace */
 
 class NodeManager {
-  template <class Builder> friend class CVC4::NodeBuilderBase;
+  template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
   friend class NodeManagerScope;
   friend class expr::NodeValue;
 
@@ -261,10 +264,6 @@ public:
   static NodeManager* currentNM() { return s_current; }
 
   // general expression-builders
-
-  /** Create a node with no children. */
-  Node mkNode(Kind kind);
-  Node* mkNodePtr(Kind kind);
 
   /** Create a node with one child. */
   Node mkNode(Kind kind, TNode child1);
@@ -738,15 +737,6 @@ inline TypeNode NodeManager::mkSort(const std::string& name) {
   TypeNode type = mkSort();
   type.setAttribute(expr::VarNameAttr(), name);
   return type;
-}
-
-inline Node NodeManager::mkNode(Kind kind) {
-  return NodeBuilder<0>(this, kind);
-}
-
-inline Node* NodeManager::mkNodePtr(Kind kind) {
-  NodeBuilder<0> nb(this, kind);
-  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {

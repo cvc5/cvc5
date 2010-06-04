@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** theory_uf_type_rules.h
+/*! \file theory_uf_type_rules.h
+ ** \verbatim
  ** Original author: dejan
  ** Major contributors: none
  ** This file is part of the CVC4 prototype.
@@ -7,7 +8,11 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add brief comments here ]]
+ **
+ ** [[ Add file-specific comments here ]]
  **/
 
 #include "cvc4_private.h"

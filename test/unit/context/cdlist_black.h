@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** cdlist_black.h
+/*! \file cdlist_black.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Black box testing of CVC4::context::CDList<>.
  **
  ** Black box testing of CVC4::context::CDList<>.
  **/

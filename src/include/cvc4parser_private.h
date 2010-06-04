@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** cvc4parser_private.h
+/*! \file cvc4parser_private.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,10 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief #inclusion of this file marks a header as private and generates a
+ ** warning when the file is included improperly.
  **
  ** #inclusion of this file marks a header as private and generates a
  ** warning when the file is included improperly.

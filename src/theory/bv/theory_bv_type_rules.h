@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** theory_bv_types.h
+/*! \file theory_bv_type_rules.h
+ ** \verbatim
  ** Original author: dejan
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Bitvector theory.
  **
  ** Bitvector theory.
  **/

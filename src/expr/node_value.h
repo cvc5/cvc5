@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** node_value.h
+/*! \file node_value.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
  ** Minor contributors (to current version): cconway, taking
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief An expression node.
  **
  ** An expression node.
  **
@@ -35,7 +38,6 @@ namespace CVC4 {
 
 template <bool ref_count> class NodeTemplate;
 class TypeNode;
-template <class Builder> class NodeBuilderBase;
 template <unsigned N> class NodeBuilder;
 class AndNodeBuilder;
 class OrNodeBuilder;
@@ -103,7 +105,6 @@ class NodeValue {
 
   template <bool> friend class ::CVC4::NodeTemplate;
   friend class ::CVC4::TypeNode;
-  template <class Builder> friend class ::CVC4::NodeBuilderBase;
   template <unsigned nchild_thresh> friend class ::CVC4::NodeBuilder;
   friend class ::CVC4::NodeManager;
 

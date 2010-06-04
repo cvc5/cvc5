@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** node_manager_black.h
- ** Original author: 
- ** Major contributors: none
- ** Minor contributors (to current version): none
+/*! \file node_manager_black.h
+ ** \verbatim
+ ** Original author: cconway
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): taking, mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief White box testing of CVC4::NodeManager.
  **
  ** White box testing of CVC4::NodeManager.
  **/
@@ -341,7 +344,6 @@ public:
   /* This test is only valid if assertions are enabled. */
   void testMkNodeTooFew() {
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( d_nodeManager->mkNode(AND), AssertionException );
     Node x = d_nodeManager->mkVar( d_nodeManager->booleanType() );
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, x), AssertionException );
 #endif

@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** cdo.h
+/*! \file cdo.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): barrett
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief A context-dependent object.
  **
  ** A context-dependent object.
  **/

@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** expr_manager_template.h
+/*! \file expr_manager_template.h
+ ** \verbatim
  ** Original author: dejan
- ** Major contributors: mdeters
- ** Minor contributors (to current version): taking, cconway
+ ** Major contributors: cconway, mdeters
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Public-facing expression manager interface.
  **
  ** Public-facing expression manager interface.
  **/
@@ -99,13 +102,6 @@ public:
 
   /** The the type for bit-vectors */
   BitVectorType bitVectorType(unsigned size) const;
-
-  /**
-   * Make a unary expression of a given kind (TRUE, FALSE,...).
-   * @param kind the kind of expression
-   * @return the expression
-   */
-  Expr mkExpr(Kind kind);
 
   /**
    * Make a unary expression of a given kind (NOT, BVNOT, ...).

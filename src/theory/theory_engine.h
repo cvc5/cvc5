@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** theory_engine.h
+/*! \file theory_engine.h
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): none
+ ** Major contributors: taking, dejan
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief The theory engine.
  **
  ** The theory engine.
  **/

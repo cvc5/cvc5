@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** main.cpp
+/*! \file main.cpp
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): dejan, barrett, cconway
+ ** Major contributors: cconway
+ ** Minor contributors (to current version): barrett, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Main driver for CVC4 executable.
  **
  ** Main driver for CVC4 executable.
  **/

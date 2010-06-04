@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** cdlist.h
+/*! \file cdlist.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): barrett, taking
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Context-dependent list class.
  **
  ** Context-dependent list class.
  **/

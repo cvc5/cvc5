@@ -12,6 +12,7 @@ libexpr_la_SOURCES = \
 	type_node.cpp \
 	builtin_type_rules.h \
 	node_builder.h \
+	convenience_node_builders.h \
 	@srcdir@/expr.h \
 	type.h \
 	type.cpp \

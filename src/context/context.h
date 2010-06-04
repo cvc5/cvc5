@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** context.h
+/*! \file context.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: barrett
  ** Minor contributors (to current version): taking, dejan
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Context class and context manager.
  **
  ** Context class and context manager.
  **/

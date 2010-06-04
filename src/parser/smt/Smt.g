@@ -1,14 +1,17 @@
 /* *******************                                                        */
-/*  Smt.g
+/*! \file Smt.g
+ ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): mdeters, taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Parser for SMT-LIB input language.
  **
  ** Parser for SMT-LIB input language.
  **/
@@ -60,7 +63,6 @@ namespace CVC4 {
 @parser::postinclude {
 #include "expr/expr.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -171,7 +173,7 @@ annotatedFormula[CVC4::Expr& expr]
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
-      } else if( CVC4::kind::metakind::isAssociative(kind) && 
+      } else if( CVC4::kind::isAssociative(kind) && 
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
         expr = EXPR_MANAGER->mkAssociative(kind,args);

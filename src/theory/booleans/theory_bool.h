@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** theory_bool.h
+/*! \file theory_bool.h
+ ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: taking
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief The theory of booleans.
  **
  ** The theory of booleans.
  **/

@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** expr_template.h
+/*! \file expr_template.h
+ ** \verbatim
  ** Original author: dejan
  ** Major contributors: mdeters
  ** Minor contributors (to current version): cconway, taking
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Public-facing expression interface.
  **
  ** Public-facing expression interface.
  **/

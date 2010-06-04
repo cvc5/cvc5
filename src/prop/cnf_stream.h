@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** cnf_stream.h
+/*! \file cnf_stream.h
+ ** \verbatim
  ** Original author: taking
- ** Major contributors: dejan
- ** Minor contributors (to current version): cconway, mdeters
+ ** Major contributors: cconway, dejan
+ ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief This class transforms a sequence of formulas into clauses.
  **
  ** This class takes a sequence of formulas.
  ** It outputs a stream of clauses that is propositionally

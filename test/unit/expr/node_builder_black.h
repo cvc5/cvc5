@@ -1,14 +1,17 @@
 /*********************                                                        */
-/** node_builder_black.h
+/*! \file node_builder_black.h
+ ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Black box testing of CVC4::NodeBuilder.
  **
  ** Black box testing of CVC4::NodeBuilder.
  **/
@@ -20,6 +23,7 @@
 #include <sstream>
 
 #include "expr/node_builder.h"
+#include "expr/convenience_node_builders.h"
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "expr/kind.h"
@@ -672,26 +676,5 @@ public:
     TS_ASSERT_EQUALS(Node(- a - b), d_nm->mkNode(PLUS, d_nm->mkNode(UMINUS, a), d_nm->mkNode(UMINUS, b)));
     TS_ASSERT_EQUALS(Node(- a + b), d_nm->mkNode(PLUS, d_nm->mkNode(UMINUS, a), b));
     TS_ASSERT_EQUALS(Node(- a * b), d_nm->mkNode(MULT, d_nm->mkNode(UMINUS, a), b));
-  }
-
-  /**
-   * This tests the "stack builder"
-   */
-  void testStackBuilder() {
-    try {
-      for(unsigned i = 0; i < 100; ++i) {
-        size_t n = 1 + (rand() % 50);
-
-        // make a builder "b" with a backing store for n children
-        makeStackNodeBuilder(b, n);
-
-        // build one-past-the-end
-        for(size_t j = 0; j <= n; ++j) {
-          b << d_nm->mkConst(true);
-        }
-      }
-    } catch(Exception e) {
-      std::cout << e;
-    }
   }
 };

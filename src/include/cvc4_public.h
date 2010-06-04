@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** cvc4_public.h
+/*! \file cvc4_public.h
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,10 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Macros that should be defined everywhere during the building of
+ ** the libraries and driver binary, and also exported to the user.
  **
  ** Macros that should be defined everywhere during the building of
  ** the libraries and driver binary, and also exported to the user.

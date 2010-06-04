@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** configuration.cpp
+/*! \file configuration.cpp
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,10 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Implementation of Configuration class, which provides compile-time
+ ** configuration information about the CVC4 library.
  **
  ** Implementation of Configuration class, which provides compile-time
  ** configuration information about the CVC4 library.

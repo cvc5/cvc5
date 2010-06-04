@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** rational_black.h
+/*! \file rational_black.h
+ ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Black box testing of CVC4::Rational.
  **
  ** Black box testing of CVC4::Rational.
  **/

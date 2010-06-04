@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** smt_engine.cpp
+/*! \file smt_engine.cpp
+ ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
  ** Minor contributors (to current version): none
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief The main entry point into the CVC4 library's SMT interface.
  **
  ** The main entry point into the CVC4 library's SMT interface.
  **/

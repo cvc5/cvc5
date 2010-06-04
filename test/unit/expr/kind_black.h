@@ -1,5 +1,6 @@
 /*********************                                                        */
-/** kind_black.h
+/*! \file kind_black.h
+ ** \verbatim
  ** Original author: taking
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters
@@ -8,7 +9,9 @@
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
- ** information.
+ ** information.\endverbatim
+ **
+ ** \brief Black box testing of CVC4::Kind.
  **
  ** Black box testing of CVC4::Kind.
  **/
