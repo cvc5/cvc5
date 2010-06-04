@@ -64,6 +64,7 @@ namespace CVC4 {
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
+#include "parser/smt/smt.h"
 #include "util/integer.h"
 #include "util/output.h"
 #include "util/rational.h"
@@ -75,7 +76,7 @@ using namespace CVC4::parser;
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
 #undef PARSER_STATE 
-#define PARSER_STATE ((Parser*)PARSER->super)
+#define PARSER_STATE ((Smt*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef MK_EXPR
@@ -83,24 +84,6 @@ using namespace CVC4::parser;
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 
-/**   
- * Sets the logic for the current benchmark. Declares any logic symbols.
- *
- * @param parser the CVC4 Parser object
- * @param name the name of the logic (e.g., QF_UF, AUFLIA)
- */
-static void
-setLogic(Parser *parser, const std::string& name) {
-  if( name == "QF_UF" ) {
-    parser->mkSort("U");
-  } else if(name == "QF_LRA"){
-    parser->defineType("Real", parser->getExprManager()->realType());
-  } else if(name == "QF_BV"){
-  } else {
-    // NOTE: Theory types go here
-    Unhandled(name);
-  }
-}
 }
 
 
@@ -155,7 +138,7 @@ benchAttribute returns [CVC4::Command* smt_command]
   Expr expr;
 }
   : LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
-    { setLogic(PARSER_STATE,name);
+    { PARSER_STATE->setLogic(name);
       smt_command = new SetBenchmarkLogicCommand(name);   }
   | ASSUMPTION_TOK annotatedFormula[expr]
     { smt_command = new AssertCommand(expr);   }

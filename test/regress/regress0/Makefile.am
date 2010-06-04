@@ -14,13 +14,18 @@ TESTS =	\
 	ite_real_valid.smt \
 	let.smt \
 	let2.smt \
-	simple2.smt \
 	simple.smt \
+	simple2.smt \
+        simple-lra.smt \
+        simple-rdl.smt \
 	simple-uf.smt \
 	ite.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
+        simple-lra.smt2 \
+        simple-rdl.smt2 \
+	simple-uf.smt2 \
 	bug32.cvc \
 	hole6.cvc \
 	logops.01.cvc \

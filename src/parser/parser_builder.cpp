@@ -19,6 +19,7 @@
 #include "expr/expr_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
+#include "parser/smt/smt.h"
 #include "parser/smt2/smt2.h"
 
 namespace CVC4 {
@@ -64,7 +65,7 @@ ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filena
 }
 
 Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
-  Input *input;
+  Input *input = NULL;
   switch( d_inputType ) {
   case FILE_INPUT:
     input = Input::newFileInput(d_lang,d_filename,d_mmap);
@@ -77,8 +78,12 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
   case STRING_INPUT:
     input = Input::newStringInput(d_lang,d_stringInput,d_filename);
     break;
+  default:
+    Unreachable();
   }
   switch(d_lang) {
+  case LANG_SMTLIB:
+    return new Smt(&d_exprManager, input, d_strictMode);
   case LANG_SMTLIB_V2:
     return new Smt2(&d_exprManager, input, d_strictMode);
   default:

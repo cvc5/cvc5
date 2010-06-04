@@ -13,35 +13,12 @@
  ** Definitions of SMT2 constants.
  **/
 
-#include <ext/hash_map>
-namespace std {
-using namespace __gnu_cxx;
-}
-
 #include "parser/parser.h"
+#include "parser/smt/smt.h"
 #include "parser/smt2/smt2.h"
 
 namespace CVC4 {
 namespace parser {
-
-std::hash_map<const std::string, Smt2::Logic, CVC4::StringHashFunction> Smt2::newLogicMap() {
-  std::hash_map<const std::string, Smt2::Logic, CVC4::StringHashFunction> logicMap;
-  logicMap["QF_AX"] = QF_AX;
-  logicMap["QF_BV"] = QF_BV;
-  logicMap["QF_IDL"] = QF_IDL;
-  logicMap["QF_LIA"] = QF_LIA;
-  logicMap["QF_LRA"] = QF_LRA;
-  logicMap["QF_NIA"] = QF_NIA;
-  logicMap["QF_RDL"] = QF_RDL;
-  logicMap["QF_UF"] = QF_UF;
-  logicMap["QF_UFIDL"] = QF_UFIDL;
-  return logicMap;
-}
-
-Smt2::Logic Smt2::toLogic(const std::string& name) {
-  static std::hash_map<const std::string, Smt2::Logic, CVC4::StringHashFunction> logicMap = newLogicMap();
-  return logicMap[name];
-}
 
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode) :
   Parser(exprManager,input,strictMode),
@@ -115,38 +92,38 @@ bool Smt2::logicIsSet() {
  */
 void Smt2::setLogic(const std::string& name) {
   d_logicSet = true;
-  d_logic = toLogic(name);
+  d_logic = Smt::toLogic(name);
 
   // Core theory belongs to every logic
   addTheory(THEORY_CORE);
 
   switch(d_logic) {
-  case QF_IDL:
-  case QF_LIA:
-  case QF_NIA:
+  case Smt::QF_IDL:
+  case Smt::QF_LIA:
+  case Smt::QF_NIA:
     addTheory(THEORY_INTS);
     break;
     
-  case QF_LRA:
-  case QF_RDL:
+  case Smt::QF_LRA:
+  case Smt::QF_RDL:
     addTheory(THEORY_REALS);
     break;
 
-  case QF_UFIDL:
+  case Smt::QF_UFIDL:
     addTheory(THEORY_INTS);
     // falling-through on purpose, to add UF part of UFIDL
 
-  case QF_UF:
+  case Smt::QF_UF:
     addOperator(kind::APPLY_UF);
     break;
 
-  case AUFLIA:
-  case AUFLIRA:
-  case AUFNIRA:
-  case QF_AUFBV:
-  case QF_AUFLIA:
-  case QF_AX:
-  case QF_BV:
+  case Smt::AUFLIA:
+  case Smt::AUFLIRA:
+  case Smt::AUFNIRA:
+  case Smt::QF_AUFBV:
+  case Smt::QF_AUFLIA:
+  case Smt::QF_AX:
+  case Smt::QF_BV:
     Unhandled(name);
   }
 }

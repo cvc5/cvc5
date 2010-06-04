@@ -18,11 +18,8 @@
 #ifndef __CVC4__PARSER__SMT2_H
 #define __CVC4__PARSER__SMT2_H
 
-#include <ext/hash_map>
-namespace std { using namespace __gnu_cxx; }
-
-#include "util/hash.h"
 #include "parser/parser.h"
+#include "parser/smt/smt.h"
 
 namespace CVC4 {
 
@@ -34,23 +31,6 @@ class Smt2 : public Parser {
   friend class ParserBuilder;
 
 public:
-  enum Logic {
-    AUFLIA,
-    AUFLIRA,
-    AUFNIRA,
-    QF_AUFBV,
-    QF_AUFLIA,
-    QF_AX,
-    QF_BV,
-    QF_IDL,
-    QF_LIA,
-    QF_LRA,
-    QF_NIA,
-    QF_RDL,
-    QF_UF,
-    QF_UFIDL
-  };
-
   enum Theory {
     THEORY_ARRAYS,
     THEORY_BITVECTORS,
@@ -62,7 +42,7 @@ public:
 
 private:
   bool d_logicSet;
-  Logic d_logic;
+  Smt::Logic d_logic;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false);
@@ -92,12 +72,9 @@ public:
   void
   setInfo(const std::string& flag, const SExpr& sexpr);
 
-  static Logic toLogic(const std::string& name);
-
 private:
 
   void addArithmeticOperators();
-  static std::hash_map<const std::string, Logic, CVC4::StringHashFunction> newLogicMap();
 };
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
