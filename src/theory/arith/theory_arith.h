@@ -32,6 +32,7 @@
 #include "theory/arith/partial_model.h"
 
 #include <vector>
+#include <queue>
 
 namespace CVC4 {
 namespace theory {
@@ -55,6 +56,8 @@ private:
   // can hit the tableau to stay alive forever!
   //This needs to come before d_partialModel and d_tableau in the file
 
+
+  std::priority_queue<Node> d_possiblyInconsistent;
 
   /* Chopping block ends */
   ArithConstants d_constants;
@@ -97,6 +100,8 @@ private:
   DeltaRational computeRowValueUsingAssignment(TNode x);
   DeltaRational computeRowValueUsingSavedAssignment(TNode x);
   void checkTableau();
+
+  void checkBasicVariable(TNode basic);
 
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);

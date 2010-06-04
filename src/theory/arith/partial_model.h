@@ -37,7 +37,9 @@ namespace partial_model {
 struct DeltaRationalCleanupStrategy{
   static void cleanup(DeltaRational* dq){
     Debug("arithgc") << "cleaning up  " << dq << "\n";
-    delete dq;
+    if(dq != NULL){
+      delete dq;
+    }
   }
 };
 
@@ -45,6 +47,12 @@ struct AssignmentAttrID {};
 typedef expr::Attribute<AssignmentAttrID,
                         DeltaRational*,
                         DeltaRationalCleanupStrategy> Assignment;
+
+
+struct SafeAssignmentAttrID {};
+typedef expr::Attribute<SafeAssignmentAttrID,
+                        DeltaRational*,
+                        DeltaRationalCleanupStrategy> SafeAssignment;
 
 /**
  * This defines a context dependent delta rational map.
@@ -108,12 +116,11 @@ private:
   partial_model::CDDRationalMap d_LowerBoundMap;
   partial_model::CDDRationalMap d_UpperBoundMap;
 
-  typedef std::pair<TNode, DeltaRational> HistoryPair;
-  typedef std::deque< HistoryPair > HistoryStack;
 
-  HistoryStack d_history;
+  typedef std::vector<TNode> HistoryList;
+  HistoryList d_history;
 
-  bool d_savingAssignments;
+  bool d_unsafeMode;
 
 public:
 
@@ -121,7 +128,7 @@ public:
     d_LowerBoundMap(c),
     d_UpperBoundMap(c),
     d_history(),
-    d_savingAssignments(false)
+    d_unsafeMode(false)
   { }
 
   void setLowerConstraint(TNode x, TNode constraint);
@@ -130,11 +137,21 @@ public:
   TNode getUpperConstraint(TNode x);
 
 
-  void beginRecordingAssignments();
 
-  /* */
-  void stopRecordingAssignments(bool revert);
-  bool isRecording() { return d_savingAssignments;  }
+  void initialize(TNode x, const DeltaRational& r);
+
+  DeltaRational getSafeAssignment(TNode x) const;
+
+  bool isInUnsafeMode() { return d_unsafeMode;  }
+
+  void turnOnUnsafeMode();
+  void turnOffUnsafeMode();
+
+  void revertAssignmentChanges();
+  void commitAssignmentChanges();
+
+
+
 
   void setUpperBound(TNode x, const DeltaRational& r);
   void setLowerBound(TNode x, const DeltaRational& r);
@@ -143,20 +160,20 @@ public:
   /** Must know that the bound exists before calling this! */
   DeltaRational getUpperBound(TNode x) const;
   DeltaRational getLowerBound(TNode x) const;
-  DeltaRational getAssignment(TNode x) const;
+  const DeltaRational& getAssignment(TNode x) const;
 
 
   /**
    * x <= l
    * ? c < l
    */
-  bool belowLowerBound(TNode x, DeltaRational& c, bool strict);
+  bool belowLowerBound(TNode x, const DeltaRational& c, bool strict);
 
   /**
    * x <= u
    * ? c < u
    */
-  bool aboveUpperBound(TNode x, DeltaRational& c, bool strict);
+  bool aboveUpperBound(TNode x, const DeltaRational& c, bool strict);
 
   bool strictlyBelowUpperBound(TNode x);
   bool strictlyAboveLowerBound(TNode x);
@@ -164,10 +181,8 @@ public:
 
   void printModel(TNode x);
 
-  void initialize(TNode x, const DeltaRational& r);
-  
-  DeltaRational getSavedAssignment(TNode x) const;
-
+private:
+  void clearSafeAssignments(bool revert);
 };
 
 

@@ -30,7 +30,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau.h"
-#include "theory/arith/normal.h"
+//#include "theory/arith/normal.h"
 #include "theory/arith/slack.h"
 #include "theory/arith/basic.h"
 
@@ -63,7 +63,6 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   uint64_t ass_id = partial_model::Assignment::getId();
   Debug("arithsetup") << "Assignment: " << ass_id << std::endl;
 
-  d_partialModel.beginRecordingAssignments();
 }
 TheoryArith::~TheoryArith(){
   for(vector<Node>::iterator i=d_variables.begin(); i!= d_variables.end(); ++i){
@@ -72,6 +71,40 @@ TheoryArith::~TheoryArith(){
   }
 }
 
+bool isBasicSum(TNode n){
+  if(n.getKind() != kind::PLUS) return false;
+
+  for(TNode::const_iterator i=n.begin(); i!=n.end(); ++i){
+    TNode child = *i;
+    if(child.getKind() != MULT) return false;
+    if(child[0].getKind() != CONST_RATIONAL) return false;
+    for(unsigned j=1; j<child.getNumChildren(); ++j){
+      TNode var = child[j];
+      if(var.getMetaKind() != metakind::VARIABLE) return false;
+    }
+  }
+  return true;
+}
+
+bool isNormalAtom(TNode n){
+  
+  if(!(n.getKind() == LEQ|| n.getKind() == GEQ || n.getKind() == EQUAL)){
+    return false;
+  }
+  TNode left = n[0];
+  TNode right = n[1];
+  if(right.getKind() != CONST_RATIONAL){
+    return false;
+  }
+  if(left.getMetaKind() == metakind::VARIABLE){
+    return true;
+  }else if(isBasicSum(left)){
+    return true;
+  }else{
+    return false;
+  }
+
+}
 void TheoryArith::preRegisterTerm(TNode n) {
   Debug("arith_preregister") << "arith: begin TheoryArith::preRegisterTerm("
                              << n << ")" << endl;
@@ -98,31 +131,63 @@ void TheoryArith::preRegisterTerm(TNode n) {
     setupVariable(n);
   }
 
+  //TODO is an atom
+  if(isRelationOperator(n.getKind())){
+
+    Assert(isNormalAtom(n));
+    Node normalForm(n);
+
+    if(normalForm.getKind() == NOT){
+      normalForm = pushInNegation(normalForm);
+    }
+    Kind k = normalForm.getKind();
+
+    if(k != kind::CONST_BOOLEAN){
+      Assert(isRelationOperator(k));
+      TNode left  = normalForm[0];
+      TNode right = normalForm[1];
+      if(left.getKind() == PLUS){
+        //We may need to introduce a slack variable.
+        Assert(left.getNumChildren() >= 2);
+        Assert(isBasicSum(left));
+        Node slack;
+        if(!left.getAttribute(Slack(), slack)){
+          //TODO
+          TypeNode real_type = NodeManager::currentNM()->realType();
+          slack = NodeManager::currentNM()->mkVar(real_type);
+
+          left.setAttribute(Slack(), slack);
+          makeBasic(slack);
+
+
+
+          Node slackEqLeft = NodeManager::currentNM()->mkNode(EQUAL,slack,left);
+          slackEqLeft.setAttribute(TheoryArithPropagated(), true);
+          //TODO this has to be wrong no? YES (dejan)
+          // d_out->lemma(slackEqLeft);
+
+          Debug("slack") << "slack " << slackEqLeft << endl;
+
+          d_tableau.addRow(slackEqLeft);
+
+          setupVariable(slack);
+        }
+      }
+    }
+  }
+
   Debug("arith_preregister") << "arith: end TheoryArith::preRegisterTerm("
                              << n << ")" << endl;
 }
 
-bool isBasicSum(TNode n){
-  if(n.getKind() != kind::PLUS) return false;
 
-  for(TNode::const_iterator i=n.begin(); i!=n.end(); ++i){
-    TNode child = *i;
-    if(child.getKind() != MULT) return false;
-    if(child[0].getKind() != CONST_RATIONAL) return false;
-    for(unsigned j=1; j<child.getNumChildren(); ++j){
-      TNode var = child[j];
-      if(var.getMetaKind() != metakind::VARIABLE) return false;
-    }
+
+
+void TheoryArith::checkBasicVariable(TNode basic){
+  Assert(isBasic(basic));
+  if(!d_partialModel.assignmentIsConsistent(basic)){
+    d_possiblyInconsistent.push(basic);
   }
-  return true;
-}
-
-
-
-void registerAtom(TNode rel){
-  //addBound(rel);
-  //Anything else?
-
 }
 
 /* Requirements:
@@ -153,6 +218,8 @@ void TheoryArith::setupVariable(TNode x){
       Debug("arith_setup") << "setup("<<x<< " " <<q<<")"<<std::endl;
     }
     d_partialModel.setAssignment(x,q);
+
+    checkBasicVariable(x);
   }
   Debug("arithgc") << "setupVariable("<<x<<")"<<std::endl;
 };
@@ -185,7 +252,7 @@ DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
   for(std::set<TNode>::iterator i = row->begin(); i != row->end();++i){
     TNode nonbasic = *i;
     Rational& coeff = row->lookup(nonbasic);
-    DeltaRational assignment = d_partialModel.getSavedAssignment(nonbasic);
+    DeltaRational assignment = d_partialModel.getSafeAssignment(nonbasic);
     sum = sum + (assignment * coeff);
   }
   return sum;
@@ -208,56 +275,6 @@ void TheoryArith::registerTerm(TNode tn){
   if(tn.getKind() == kind::BUILTIN) return;
 
 
-  //TODO is an atom
-  if(isRelationOperator(tn.getKind())){
-
-    Node normalForm = (isNormalized(tn)) ? Node(tn) : rewrite(tn);
-    normalForm = (normalForm.getKind() == NOT) ? pushInNegation(normalForm):normalForm;
-    Kind k = normalForm.getKind();
-
-    if(k != kind::CONST_BOOLEAN){
-      Assert(isRelationOperator(k));
-      TNode left  = normalForm[0];
-      TNode right = normalForm[1];
-      if(left.getKind() == PLUS){
-        //We may need to introduce a slack variable.
-        Assert(left.getNumChildren() >= 2);
-        Assert(isBasicSum(left));
-        Node slack;
-        if(!left.getAttribute(Slack(), slack)){
-          //TODO
-          TypeNode real_type = NodeManager::currentNM()->realType();
-          slack = NodeManager::currentNM()->mkVar(real_type);
-
-          left.setAttribute(Slack(), slack);
-          makeBasic(slack);
-
-
-
-          Node slackEqLeft = NodeManager::currentNM()->mkNode(EQUAL,slack,left);
-          slackEqLeft.setAttribute(TheoryArithPropagated(), true);
-          //TODO this has to be wrong no? YES (dejan)
-          // d_out->lemma(slackEqLeft);
-
-          Debug("slack") << "slack " << slackEqLeft << endl;
-
-          d_tableau.addRow(slackEqLeft);
-
-          setupVariable(slack);
-
-          Node rewritten = NodeManager::currentNM()->mkNode(k,slack,right);
-          registerAtom(rewritten);
-        }else{
-          Node rewritten = NodeManager::currentNM()->mkNode(k,slack,right);
-          registerAtom(rewritten);
-        }
-      }else{
-        Assert(left.getMetaKind() == metakind::VARIABLE);
-        Assert(right.getKind() == CONST_RATIONAL);
-        registerAtom(normalForm);
-      }
-    }
-  }
 }
 
 /* procedure AssertUpper( x_i <= c_i) */
@@ -288,6 +305,8 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
     if(d_partialModel.getAssignment(x_i) > c_i){
       update(x_i, c_i);
     }
+  }else{
+    checkBasicVariable(x_i);
   }
   d_partialModel.printModel(x_i);
   return false;
@@ -319,6 +338,8 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
     if(d_partialModel.getAssignment(x_i) < c_i){
       update(x_i, c_i);
     }
+  }else{
+    checkBasicVariable(x_i);
   }
   //d_partialModel.printModel(x_i);
 
@@ -326,7 +347,7 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
 }
 
 void TheoryArith::update(TNode x_i, DeltaRational& v){
-
+  Assert(!isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
 
   Debug("arith") <<"update " << x_i << ": "
@@ -345,6 +366,7 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
       DeltaRational assignment = d_partialModel.getAssignment(x_j);
       DeltaRational  nAssignment = assignment+(diff * a_ji);
       d_partialModel.setAssignment(x_j, nAssignment);
+      checkBasicVariable(x_j);
     }
   }
 
@@ -383,10 +405,13 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
       Rational a_kj = row_k->lookup(x_j);
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
+      checkBasicVariable(x_k);
     }
   }
 
   d_tableau.pivot(x_i, x_j);
+
+  checkBasicVariable(x_j);
 
   if(debugTagIsOn("tableau")){
     d_tableau.printTableau();
@@ -394,14 +419,31 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
 }
 
 TNode TheoryArith::selectSmallestInconsistentVar(){
+  Debug("arith_update") << "selectSmallestInconsistentVar()" << endl;
+  Debug("arith_update") << "possiblyInconsistent.size()"
+                        << d_possiblyInconsistent.size() << endl;
 
-  for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
-      basicIter != d_tableau.end();
-      ++basicIter){
+  while(!d_possiblyInconsistent.empty()){
+    TNode var = d_possiblyInconsistent.top();
+    Debug("arith_update") << "possiblyInconsistent var" << var << endl;
+    if(isBasic(var)){
+      if(!d_partialModel.assignmentIsConsistent(var)){
+        return var;
+      }
+    }
+    d_possiblyInconsistent.pop();
+  }
 
-    TNode basic = *basicIter;
-    if(!d_partialModel.assignmentIsConsistent(basic)){
-      return basic;
+  if(debugTagIsOn("paranoid:variables")){
+    for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
+        basicIter != d_tableau.end();
+        ++basicIter){
+
+      TNode basic = *basicIter;
+      Assert(d_partialModel.assignmentIsConsistent(basic));
+      if(!d_partialModel.assignmentIsConsistent(basic)){
+        return basic;
+      }
     }
   }
 
@@ -449,6 +491,7 @@ TNode TheoryArith::selectSlackAbove(TNode x_i){ // beta(x_i) > u_i
 Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
   Debug("arith") << "updateInconsistentVars" << endl;
 
+  d_partialModel.turnOnUnsafeMode();
 
   while(true){
     if(debugTagIsOn("paranoid:check_tableau")){
@@ -464,8 +507,8 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
         checkTableau();
       }
 
-      d_partialModel.stopRecordingAssignments(false);
-      d_partialModel.beginRecordingAssignments();
+      d_partialModel.commitAssignmentChanges();
+      d_partialModel.turnOffUnsafeMode();
 
       if(debugTagIsOn("paranoid:check_tableau")){
         checkTableau();
@@ -487,8 +530,10 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
           checkTableau();
         }
 
-        d_partialModel.stopRecordingAssignments(true);
-        d_partialModel.beginRecordingAssignments();
+        d_partialModel.revertAssignmentChanges();
+        d_partialModel.turnOffUnsafeMode();
+        //d_partialModel.stopRecordingAssignments(true);
+        //d_partialModel.beginRecordingAssignments();
 
         if(debugTagIsOn("paranoid:check_tableau")){
           checkTableau();
@@ -508,8 +553,10 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
           checkTableau();
         }
 
-        d_partialModel.stopRecordingAssignments(true);
-        d_partialModel.beginRecordingAssignments();
+        d_partialModel.revertAssignmentChanges();
+        d_partialModel.turnOffUnsafeMode();
+        //d_partialModel.stopRecordingAssignments(true);
+        //d_partialModel.beginRecordingAssignments();
 
         if(debugTagIsOn("paranoid:check_tableau")){
           checkTableau();
@@ -596,6 +643,7 @@ Node TheoryArith::generateConflictBelow(TNode conflictVar){
   return conflict;
 }
 
+
 //TODO get rid of this!
 Node TheoryArith::simulatePreprocessing(TNode n){
   if(n.getKind() == NOT){
@@ -606,17 +654,19 @@ Node TheoryArith::simulatePreprocessing(TNode n){
       return NodeManager::currentNM()->mkNode(NOT,sub);
     }
   }else{
-    Node rewritten = rewrite(n);
+    Assert(isNormalAtom(n));
+    Node rewritten = n;
     Kind k = rewritten.getKind();
 
-    if(rewritten.getKind() == NOT){
-      Node sub = simulatePreprocessing(rewritten[0]);
-      if(sub.getKind() == NOT){
-        return sub[0];
-      }else{
-        return NodeManager::currentNM()->mkNode(NOT,sub);
-      }
-    } else if(!isRelationOperator(k)){
+//  if(rewritten.getKind() == NOT){
+//       Node sub = simulatePreprocessing(rewritten[0]);
+//       if(sub.getKind() == NOT){
+//         return sub[0];
+//       }else{
+//         return NodeManager::currentNM()->mkNode(NOT,sub);
+//       }
+//     } else 
+    if(!isRelationOperator(k)){
       if(rewritten.getKind() == CONST_BOOLEAN){
         Warning() << "How did I get a const boolean here" << endl;
         Warning() << "offending node has id " << n.getId() << endl;
@@ -719,37 +769,37 @@ void TheoryArith::check(Effort level){
     }
   }
 
-  if(fullEffort(level)){
-    bool enqueuedCaseSplit = false;
-    typedef context::CDList<Node>::const_iterator diseq_iterator;
-    for(diseq_iterator i = d_diseq.begin(); i!= d_diseq.end(); ++i){
+  // if(fullEffort(level)){
+//     bool enqueuedCaseSplit = false;
+//     typedef context::CDList<Node>::const_iterator diseq_iterator;
+//     for(diseq_iterator i = d_diseq.begin(); i!= d_diseq.end(); ++i){
 
-      Node assertion = *i;
-      Debug("arith") << "splitting"  << assertion << endl;
-      TNode eq = assertion[0];
-      TNode x_i = eq[0];
-      TNode c_i = eq[1];
-      DeltaRational constant =  c_i.getConst<Rational>();
-      Debug("arith") << "broken apart" << endl;
-      if(d_partialModel.getAssignment(x_i) == constant){
-        Debug("arith") << "here" << endl;
-        enqueuedCaseSplit = true;
-        Node lt = NodeManager::currentNM()->mkNode(LT,x_i,c_i);
-        Node gt = NodeManager::currentNM()->mkNode(GT,x_i,c_i);
-        Node caseSplit = NodeManager::currentNM()->mkNode(OR, eq, lt, gt);
-        //d_out->enqueueCaseSplits(caseSplit);
-        Debug("arith") << "finished" << caseSplit << endl;
-      }
-      Debug("arith") << "end of for loop" << endl;
+//       Node assertion = *i;
+//       Debug("arith") << "splitting"  << assertion << endl;
+//       TNode eq = assertion[0];
+//       TNode x_i = eq[0];
+//       TNode c_i = eq[1];
+//       DeltaRational constant =  c_i.getConst<Rational>();
+//       Debug("arith") << "broken apart" << endl;
+//       if(d_partialModel.getAssignment(x_i) == constant){
+//         Debug("arith") << "here" << endl;
+//         enqueuedCaseSplit = true;
+//         Node lt = NodeManager::currentNM()->mkNode(LT,x_i,c_i);
+//         Node gt = NodeManager::currentNM()->mkNode(GT,x_i,c_i);
+//         Node caseSplit = NodeManager::currentNM()->mkNode(OR, eq, lt, gt);
+//         //d_out->enqueueCaseSplits(caseSplit);
+//         Debug("arith") << "finished" << caseSplit << endl;
+//       }
+//       Debug("arith") << "end of for loop" << endl;
 
-    }
-    Debug("arith") << "finished" << endl;
+//     }
+//     Debug("arith") << "finished" << endl;
 
-    if(enqueuedCaseSplit){
-      //d_out->caseSplit();
-      //Warning() << "Outstanding case split in theory arith" << endl;
-    }
-  }
+//     if(enqueuedCaseSplit){
+//       //d_out->caseSplit();
+//       //Warning() << "Outstanding case split in theory arith" << endl;
+//     }
+//   }
 
   Debug("arith") << "TheoryArith::check end" << std::endl;
 

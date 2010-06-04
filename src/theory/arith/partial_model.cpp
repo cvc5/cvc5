@@ -45,15 +45,21 @@ void ArithPartialModel::setLowerBound(TNode x, const DeltaRational& r){
 void ArithPartialModel::setAssignment(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
 
-  if(d_savingAssignments){
-    DeltaRational current = getAssignment(x);
-    d_history.push_back(make_pair(x,current));
-  }
-
   Assert(x.hasAttribute(partial_model::Assignment()));
 
-  DeltaRational* c = x.getAttribute(partial_model::Assignment());
-  *c = r;
+  DeltaRational* curr = x.getAttribute(partial_model::Assignment());
+
+  if(d_unsafeMode){
+    Assert(x.hasAttribute(partial_model::SafeAssignment()));
+    DeltaRational* saved = x.getAttribute(partial_model::SafeAssignment());
+    if(saved == NULL){
+      saved = new DeltaRational(*curr);
+      x.setAttribute(partial_model::SafeAssignment(), saved);
+      d_history.push_back(x);
+    }
+  }
+
+  *curr = r;
   Debug("partial_model") << "pm: updating the assignment to" << x
                          << " now " << r <<endl;
 }
@@ -61,10 +67,12 @@ void ArithPartialModel::setAssignment(TNode x, const DeltaRational& r){
 void ArithPartialModel::initialize(TNode x, const DeltaRational& r){
    Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
 
-
    Assert(!x.hasAttribute(partial_model::Assignment()));
+   Assert(!x.hasAttribute(partial_model::SafeAssignment()));
+
    DeltaRational* c = new DeltaRational(r);
    x.setAttribute(partial_model::Assignment(), c);
+   x.setAttribute(partial_model::SafeAssignment(), NULL);
 
    Debug("partial_model") << "pm: constructing an assignment for " << x
                           << " initially " << (*c) <<endl;
@@ -89,8 +97,19 @@ DeltaRational ArithPartialModel::getLowerBound(TNode x) const{
   return DeltaRational((*i).second);
 }
 
+DeltaRational ArithPartialModel::getSafeAssignment(TNode x) const{
+  Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
+  if(d_unsafeMode){
+    Assert( x.hasAttribute(partial_model::SafeAssignment()));
+    DeltaRational* safeAssignment = x.getAttribute(partial_model::SafeAssignment());
+    if(safeAssignment != NULL){
+      return *safeAssignment;
+    }
+  }
+  return getAssignment(x);
+}
 
-DeltaRational ArithPartialModel::getAssignment(TNode x) const{
+const DeltaRational& ArithPartialModel::getAssignment(TNode x) const{
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
 
   DeltaRational* assign;
@@ -98,18 +117,6 @@ DeltaRational ArithPartialModel::getAssignment(TNode x) const{
   return *assign;
 }
 
-DeltaRational ArithPartialModel::getSavedAssignment(TNode x) const{
-  Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
-  if(d_savingAssignments){
-    for(HistoryStack::const_iterator i = d_history.begin(); i != d_history.end(); ++i){
-      pair<TNode, DeltaRational> curr = *i;
-      if(curr.first == x){
-        return DeltaRational(curr.second);
-      }
-    }
-  }
-  return getAssignment(x);
-}
 
 
 void ArithPartialModel::setLowerConstraint(TNode x, TNode constraint){
@@ -163,7 +170,7 @@ TNode ArithPartialModel::getUpperConstraint(TNode x){
 // }
 
 
-bool ArithPartialModel::belowLowerBound(TNode x, DeltaRational& c, bool strict){
+bool ArithPartialModel::belowLowerBound(TNode x, const DeltaRational& c, bool strict){
   CDDRationalMap::iterator i = d_LowerBoundMap.find(x);
   if(i == d_LowerBoundMap.end()){
     // l = -\intfy
@@ -180,7 +187,7 @@ bool ArithPartialModel::belowLowerBound(TNode x, DeltaRational& c, bool strict){
   }
 }
 
-bool ArithPartialModel::aboveUpperBound(TNode x, DeltaRational& c, bool strict){
+bool ArithPartialModel::aboveUpperBound(TNode x, const DeltaRational& c, bool strict){
   CDDRationalMap::iterator i = d_UpperBoundMap.find(x);
   if(i == d_UpperBoundMap.end()){
     // u = -\intfy
@@ -222,7 +229,7 @@ bool ArithPartialModel::strictlyAboveLowerBound(TNode x){
 }
 
 bool ArithPartialModel::assignmentIsConsistent(TNode x){
-  DeltaRational beta = getAssignment(x);
+  const DeltaRational& beta = getAssignment(x);
 
   bool above_li = !belowLowerBound(x,beta,true);
   bool below_ui = !aboveUpperBound(x,beta,true);
@@ -231,32 +238,50 @@ bool ArithPartialModel::assignmentIsConsistent(TNode x){
   return  above_li && below_ui;
 }
 
-void ArithPartialModel::beginRecordingAssignments(){
-  Assert(!d_savingAssignments);
+void ArithPartialModel::turnOnUnsafeMode(){
+  Assert(!d_unsafeMode);
   Assert(d_history.empty());
 
-  d_savingAssignments = true;
+  d_unsafeMode = true;
 }
 
+void ArithPartialModel::turnOffUnsafeMode(){
+  Assert(d_unsafeMode);
+  Assert(d_history.empty());
 
-void ArithPartialModel::stopRecordingAssignments(bool revert){
-  Assert(d_savingAssignments);
+  d_unsafeMode = false;
+}
 
-  d_savingAssignments = false; //
+void ArithPartialModel::clearSafeAssignments(bool revert){
+  Assert(d_unsafeMode);
 
-  if(revert){
-    while(!d_history.empty()){
-      pair<TNode, DeltaRational>& curr = d_history.back();
+  for(HistoryList::iterator i = d_history.begin(); i != d_history.end(); ++i){
+    TNode x = *i;
 
-      setAssignment(curr.first,curr.second);
+    Assert(x.hasAttribute(partial_model::SafeAssignment()));
 
-      d_history.pop_back();
+    DeltaRational* safeAssignment = x.getAttribute(partial_model::SafeAssignment());
+
+    if(revert){
+      Assert(x.hasAttribute(partial_model::Assignment()));
+
+      DeltaRational* assign = x.getAttribute(partial_model::Assignment());
+      *assign = *safeAssignment;
     }
-  }else{
-    d_history.clear();
+    x.setAttribute(partial_model::SafeAssignment(), NULL);
+    delete safeAssignment;
   }
 
+  d_history.clear();
 }
+
+void ArithPartialModel::revertAssignmentChanges(){
+  clearSafeAssignments(true);
+}
+void ArithPartialModel::commitAssignmentChanges(){
+  clearSafeAssignments(false);
+}
+
 void ArithPartialModel::printModel(TNode x){
 
   Debug("model") << "model" << x << ":"<< getAssignment(x) << " ";

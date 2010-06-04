@@ -20,7 +20,6 @@
 
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal.h"
 
 #include <vector>
 #include <set>
@@ -542,10 +541,6 @@ Kind multKind(Kind k, int sgn){
 Node ArithRewriter::rewrite(TNode n){
   Debug("arithrewriter") << "Trace rewrite:" << n << std::endl;
 
-  if(n.getAttribute(IsNormal())){
-    return n;
-  }
-
   Node res;
 
   if(isRelationOperator(n.getKind())){
@@ -554,11 +549,6 @@ Node ArithRewriter::rewrite(TNode n){
     res = rewriteTerm(n);
   }
 
-  if(n == res){
-    n.setAttribute(NormalForm(), Node::null());
-  }else{
-    n.setAttribute(NormalForm(), res);
-  }
   Debug("arithrewriter") << "Trace rewrite:" << n << "|->"<< res << std::endl;
 
   return res;
