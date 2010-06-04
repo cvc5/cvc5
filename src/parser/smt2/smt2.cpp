@@ -101,6 +101,10 @@ void Smt2::setLogic(const std::string& name) {
   addTheory(THEORY_CORE);
 
   switch(d_logic) {
+  case Smt::QF_SAT:
+    /* No extra symbols necessary */
+    break;
+
   case Smt::QF_IDL:
   case Smt::QF_LIA:
   case Smt::QF_NIA:

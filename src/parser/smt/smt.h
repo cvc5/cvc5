@@ -47,6 +47,7 @@ public:
     QF_LRA,
     QF_NIA,
     QF_RDL,
+    QF_SAT,
     QF_UF,
     QF_UFIDL
   };
