@@ -18,6 +18,7 @@
 
 #include <limits.h>
 #include <antlr3.h>
+#include <stdint.h>
 
 #include "antlr_input.h"
 #include "input.h"
@@ -79,43 +80,46 @@ AntlrInputStream*
 AntlrInputStream::newStreamInputStream(std::istream& input, 
                                        const std::string& name)
   throw (InputStreamException) {
-  // // TODO: make this more portable
-  // char *filename = strdup("/tmp/streaminput.XXXXXX");
-  // int fd = mkstemp(filename);
-  // if( fd == -1 ) {
-  //   throw InputStreamException("Couldn't create temporary for stream input: " + name); 
-  // }
-  
-  // // We don't want to use the temp file directly, so first close it
-  // close(fd);
 
-  // // Make a FIFO with our reserved temporary name
-  // int fd = mkfifo(filename, s_IRUSR);
+  // Since these are all NULL on entry, realloc will be called
+  char *basep = NULL, *boundp = NULL, *cp = NULL;
+  /* 64KB seems like a reasonable default size. */
+  size_t bufSize = 0x10000;
 
-  // // Just stuff everything from the istream into the FIFO
-  // char buf[4096];
-  // while( !input.eof() && !input.fail() ) {
-  //   input.read( buf, sizeof(buf) );
-  //   write( fd, buf, input.gcount() );
-  // }
+  /* Keep going until we can't go no more. */
+  while( !input.eof() && !input.fail() ) {
 
-  // if( !input.eof() ) {
-  //   throw InputStreamException("Stream input failed: " + name);
-  // }
+    if( cp == boundp ) {
+      /* We ran out of room in the buffer. Realloc at double the size. */
+      ptrdiff_t offset = cp - basep;
+      basep = (char *) realloc(basep, bufSize);
+      if( basep == NULL ) {
+        throw InputStreamException("Failed buffering input stream: " + name);
+      }
+      cp = basep + offset;
+      boundp = basep + bufSize;
+      bufSize *= 2;
+    }
 
-  // // Now create the ANTLR stream
-  // pANTLR3_INPUT_STREAM input = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename);
-  
-  // if( input == NULL ) {
-  //   throw InputStreamException("Couldn't create stream input: " + name);
-  // }
+    /* Read as much as we have room for. */
+    input.read( cp, boundp - cp );
+    cp += input.gcount();
+  }
 
-  // // Create the stream with fileIsTemporary = true
-  // return new AntlrInputStream( name, input, true );
+  /* Make sure the fail bit didn't get set. */
+  if( !input.eof() ) {
+    throw InputStreamException("Stream input failed: " + name);
+  }
 
-  stringstream ss( ios_base::out );
-  ss << input.rdbuf();
-  return newStringInputStream( ss.str(), name );
+  /* Create an ANTLR input backed by the buffer. */
+  pANTLR3_INPUT_STREAM inputStream =
+      antlr3NewAsciiStringInPlaceStream((pANTLR3_UINT8) basep,
+                                        cp - basep,
+                                        (pANTLR3_UINT8) strdup(name.c_str()));
+  if( inputStream==NULL ) {
+    throw InputStreamException("Couldn't initialize input: " + name);
+  }
+  return new AntlrInputStream( name, inputStream );
 }
 
 
