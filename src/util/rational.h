@@ -203,10 +203,11 @@ public:
   }
 
 
+  
+
   Rational operator+(const Rational& y) const{
     return Rational( d_value + y.d_value );
   }
-
   Rational operator-(const Rational& y) const {
     return Rational( d_value - y.d_value );
   }
@@ -216,6 +217,16 @@ public:
   }
   Rational operator/(const Rational& y) const {
     return Rational( d_value / y.d_value );
+  }
+
+  Rational& operator+=(const Rational& y){
+    d_value += y.d_value;
+    return (*this);
+  }
+
+  Rational& operator*=(const Rational& y){
+    d_value *= y.d_value;
+    return (*this);
   }
 
   /** Returns a string representing the rational in the given base. */
