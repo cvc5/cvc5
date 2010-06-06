@@ -97,11 +97,15 @@ private:
   Node generateConflictBelow(TNode conflictVar);
 
   void setupVariable(TNode x);
+  void setupSlack(TNode left);
+
   DeltaRational computeRowValueUsingAssignment(TNode x);
   DeltaRational computeRowValueUsingSavedAssignment(TNode x);
   void checkTableau();
 
   void checkBasicVariable(TNode basic);
+
+
 
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);

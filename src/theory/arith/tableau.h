@@ -55,7 +55,6 @@ public:
 
     //TODO Assert(d_x_i.getType() == REAL);
     Assert(sum.getKind() == PLUS);
-    Rational zero(0,1);
 
     for(TNode::iterator iter=sum.begin(); iter != sum.end(); ++iter){
       TNode pair = *iter;
@@ -68,10 +67,9 @@ public:
       //TODO Assert(var_i.getKind() == REAL);
       Assert(!has(var_i));
       d_nonbasic.insert(var_i);
-      Rational q = coeff.getConst<Rational>();
-      d_coeffs[var_i] = q;
-      Assert(q != zero);
-      Assert(d_coeffs[var_i] != zero);
+      d_coeffs[var_i] = coeff.getConst<Rational>();
+      Assert(coeff.getConst<Rational>() != Rational(0,1));
+      Assert(d_coeffs[var_i] != Rational(0,1));
     }
   }
 
@@ -134,7 +132,21 @@ public:
         iter != row_s.d_nonbasic.end();
         ++iter){
       TNode x_j = *iter;
-      Rational a_sj = a_rs * row_s.lookup(x_j);
+      Rational a_sj = row_s.lookup(x_j);
+      a_sj *= a_rs;
+      CoefficientTable::iterator coeff_iter = d_coeffs.find(x_j);
+
+      if(coeff_iter != d_coeffs.end()){
+        coeff_iter->second += a_sj;
+        if(coeff_iter->second == zero){
+          d_coeffs.erase(coeff_iter);
+          d_nonbasic.erase(x_j);
+        }
+      }else{
+        d_nonbasic.insert(x_j);
+        d_coeffs.insert(make_pair(x_j,a_sj));
+      }
+      /*
       if(has(x_j)){
         d_coeffs[x_j] = d_coeffs[x_j] + a_sj;
         if(d_coeffs[x_j] == zero){
@@ -145,6 +157,7 @@ public:
         d_nonbasic.insert(x_j);
         d_coeffs[x_j] = a_sj;
       }
+      */
     }
   }
 

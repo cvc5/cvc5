@@ -60,12 +60,13 @@ typedef expr::Attribute<SafeAssignmentAttrID,
  * each variable.  This information is conext dependent.
  */
 typedef context::CDMap<TNode, DeltaRational, TNodeHashFunction> CDDRationalMap;
-/* Side disucssion for why new tables are introduced instead of using the attribute
- * framework.
- * It comes down to that the obvious ways to use the current attribute framework do
- * do not provide a terribly satisfying answer.
+/* Side disucssion for why new tables are introduced instead of using the
+ * attribute framework.
+ * It comes down to that the obvious ways to use the current attribute
+ * framework do not provide a terribly satisfying answer.
  * - Suppose the type of the attribute is CD and maps to type DeltaRational.
- *   Well it can't map to a DeltaRational, and it thus it will be a DeltaRational*
+ *   Well it can't map to a DeltaRational, and it thus it will be a
+ *   DeltaRational*
  *   However being context dependent means givening up cleanup functions.
  *   So this leaks memory.
  * - Suppose the type of the attribute is CD and the type mapped to
@@ -74,22 +75,23 @@ typedef context::CDMap<TNode, DeltaRational, TNodeHashFunction> CDDRationalMap;
  *   Inefficiency: Every lookup and comparison will require going through the
  *   massaging in between a node and the constant being wrapped. Every update
  *   requires going through the additional expense of creating at least 1 node.
- *   The Uglyness: If this was chosen it would also suggest using comparisons against
- *   DeltaRationals for the tracking the constraints for conflict analysis.
- *   This seems to invite misuse and introducing Nodes that should probably not escape
- *   arith.
- * - Suppose that the of the attribute was not CD and mapped to a CDO<DeltaRational*>
- *   or similarly a ContextObj that wraps a DeltaRational*.
+ *   The Uglyness: If this was chosen it would also suggest using comparisons
+ *   against DeltaRationals for the tracking the constraints for conflict
+ *   analysis. This seems to invite misuse and introducing Nodes that should
+ *   probably not escape arith.
+ * - Suppose that the of the attribute was not CD and mapped to a
+ *   CDO<DeltaRational*> or similarly a ContextObj that wraps a DeltaRational*.
  *   This is currently rejected just because this is difficult to get right,
- *   and maintain. However with enough effort this the best solution is probably of
- *   this form.
+ *   and maintain. However with enough effort this the best solution is
+ *   probably of this form.
  */
 
 
 /**
  * This is the literal that was asserted in the current context to the theory
  * that asserted the tightest lower bound on a variable.
- * For example: for a variable x this could be the constraint (>= x 4) or (not (<= x 50))
+ * For example: for a variable x this could be the constraint
+ *    (>= x 4) or (not (<= x 50))
  * Note the strong correspondence between this and LowerBoundMap.
  * This is used during conflict analysis.
  */
@@ -117,18 +119,18 @@ private:
   partial_model::CDDRationalMap d_UpperBoundMap;
 
 
+  /**
+   * List contains all of the variables that have an unsafe assignment.
+   */
   typedef std::vector<TNode> HistoryList;
   HistoryList d_history;
-
-  bool d_unsafeMode;
 
 public:
 
   ArithPartialModel(context::Context* c):
     d_LowerBoundMap(c),
     d_UpperBoundMap(c),
-    d_history(),
-    d_unsafeMode(false)
+    d_history()
   { }
 
   void setLowerConstraint(TNode x, TNode constraint);
@@ -138,23 +140,24 @@ public:
 
 
 
+  /* Initializes a variable to a safe value.*/
   void initialize(TNode x, const DeltaRational& r);
 
+  /* Gets the last assignment to a variable that is known to be conistent. */
   DeltaRational getSafeAssignment(TNode x) const;
 
-  bool isInUnsafeMode() { return d_unsafeMode;  }
-
-  void turnOnUnsafeMode();
-  void turnOffUnsafeMode();
-
+  /* Reverts all variable assignments to their safe values. */
   void revertAssignmentChanges();
-  void commitAssignmentChanges();
 
+  /* Commits all variables assignments as safe.*/
+  void commitAssignmentChanges();
 
 
 
   void setUpperBound(TNode x, const DeltaRational& r);
   void setLowerBound(TNode x, const DeltaRational& r);
+
+  /* Sets an unsafe variable assignment */
   void setAssignment(TNode x, const DeltaRational& r);
 
   /** Must know that the bound exists before calling this! */
@@ -182,6 +185,11 @@ public:
   void printModel(TNode x);
 
 private:
+
+  /**
+   * This function implements the mostly identical:
+   * revertAssignmentChanges() and commitAssignmentChanges().
+   */
   void clearSafeAssignments(bool revert);
 };
 

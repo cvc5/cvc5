@@ -44,19 +44,16 @@ void ArithPartialModel::setLowerBound(TNode x, const DeltaRational& r){
 
 void ArithPartialModel::setAssignment(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
-
   Assert(x.hasAttribute(partial_model::Assignment()));
+  Assert(x.hasAttribute(partial_model::SafeAssignment()));
 
   DeltaRational* curr = x.getAttribute(partial_model::Assignment());
 
-  if(d_unsafeMode){
-    Assert(x.hasAttribute(partial_model::SafeAssignment()));
-    DeltaRational* saved = x.getAttribute(partial_model::SafeAssignment());
-    if(saved == NULL){
-      saved = new DeltaRational(*curr);
-      x.setAttribute(partial_model::SafeAssignment(), saved);
-      d_history.push_back(x);
-    }
+  DeltaRational* saved = x.getAttribute(partial_model::SafeAssignment());
+  if(saved == NULL){
+    saved = new DeltaRational(*curr);
+    x.setAttribute(partial_model::SafeAssignment(), saved);
+    d_history.push_back(x);
   }
 
   *curr = r;
@@ -99,14 +96,14 @@ DeltaRational ArithPartialModel::getLowerBound(TNode x) const{
 
 DeltaRational ArithPartialModel::getSafeAssignment(TNode x) const{
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
-  if(d_unsafeMode){
-    Assert( x.hasAttribute(partial_model::SafeAssignment()));
-    DeltaRational* safeAssignment = x.getAttribute(partial_model::SafeAssignment());
-    if(safeAssignment != NULL){
-      return *safeAssignment;
-    }
+  Assert( x.hasAttribute(SafeAssignment()));
+
+  DeltaRational* safeAssignment = x.getAttribute(SafeAssignment());
+  if(safeAssignment != NULL){
+    return *safeAssignment;
+  }else{
+    return getAssignment(x); //The current assignment is safe.
   }
-  return getAssignment(x);
 }
 
 const DeltaRational& ArithPartialModel::getAssignment(TNode x) const{
@@ -238,34 +235,19 @@ bool ArithPartialModel::assignmentIsConsistent(TNode x){
   return  above_li && below_ui;
 }
 
-void ArithPartialModel::turnOnUnsafeMode(){
-  Assert(!d_unsafeMode);
-  Assert(d_history.empty());
-
-  d_unsafeMode = true;
-}
-
-void ArithPartialModel::turnOffUnsafeMode(){
-  Assert(d_unsafeMode);
-  Assert(d_history.empty());
-
-  d_unsafeMode = false;
-}
 
 void ArithPartialModel::clearSafeAssignments(bool revert){
-  Assert(d_unsafeMode);
 
   for(HistoryList::iterator i = d_history.begin(); i != d_history.end(); ++i){
     TNode x = *i;
 
-    Assert(x.hasAttribute(partial_model::SafeAssignment()));
+    Assert(x.hasAttribute(SafeAssignment()));
+    Assert(x.hasAttribute(Assignment()));
 
-    DeltaRational* safeAssignment = x.getAttribute(partial_model::SafeAssignment());
+    DeltaRational* safeAssignment = x.getAttribute(SafeAssignment());
 
     if(revert){
-      Assert(x.hasAttribute(partial_model::Assignment()));
-
-      DeltaRational* assign = x.getAttribute(partial_model::Assignment());
+      DeltaRational* assign = x.getAttribute(Assignment());
       *assign = *safeAssignment;
     }
     x.setAttribute(partial_model::SafeAssignment(), NULL);
