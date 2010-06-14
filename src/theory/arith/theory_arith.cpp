@@ -622,7 +622,7 @@ void TheoryArith::check(Effort level){
 
   bool conflictDuringAnAssert = false;
 
-  while(!done()){
+  while(!done() && !conflictDuringAnAssert){
     //checkTableau();
     Node original = get();
     Node assertion = simulatePreprocessing(original);
@@ -633,14 +633,16 @@ void TheoryArith::check(Effort level){
 
     switch(assertion.getKind()){
     case LEQ:
-      conflictDuringAnAssert |= AssertUpper(assertion, original);
+      conflictDuringAnAssert = AssertUpper(assertion, original);
       break;
     case GEQ:
-      conflictDuringAnAssert |= AssertLower(assertion, original);
+      conflictDuringAnAssert = AssertLower(assertion, original);
       break;
     case EQUAL:
-      conflictDuringAnAssert |= AssertUpper(assertion, original);
-      conflictDuringAnAssert |= AssertLower(assertion, original);
+      conflictDuringAnAssert = AssertUpper(assertion, original);
+      if(!conflictDuringAnAssert){
+        conflictDuringAnAssert = AssertLower(assertion, original);
+      }
       break;
     case NOT:
       {
@@ -649,13 +651,13 @@ void TheoryArith::check(Effort level){
         case LEQ: //(not (LEQ x c)) <=> (GT x c)
           {
             Node pushedin = pushInNegation(assertion);
-            conflictDuringAnAssert |= AssertLower(pushedin,original);
+            conflictDuringAnAssert = AssertLower(pushedin,original);
             break;
           }
         case GEQ: //(not (GEQ x c) <=> (LT x c)
           {
             Node pushedin = pushInNegation(assertion);
-            conflictDuringAnAssert |= AssertUpper(pushedin,original);
+            conflictDuringAnAssert = AssertUpper(pushedin,original);
             break;
           }
         case EQUAL:
@@ -671,9 +673,13 @@ void TheoryArith::check(Effort level){
     }
   }
   if(conflictDuringAnAssert){
+    while(!done()) { get(); }
+
     if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
     d_partialModel.revertAssignmentChanges();
     if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+
+
 
     //return
     return;
