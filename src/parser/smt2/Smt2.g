@@ -312,6 +312,8 @@ builtinOp[CVC4::Kind& kind]
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
+  | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
+  | STORE_TOK    { $kind = CVC4::kind::STORE; }
     // NOTE: Theory operators go here
   ;
 
@@ -421,7 +423,9 @@ PERCENT_TOK       : '%';
 PIPE_TOK          : '|';
 PLUS_TOK          : '+';
 POUND_TOK         : '#';
+SELECT_TOK        : 'select';
 STAR_TOK          : '*';
+STORE_TOK         : 'store';
 TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 

@@ -64,6 +64,14 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::XOR);
     break;
 
+  case THEORY_ARRAYS:
+    // FIXME: should define a paramterized type 'Array' with 2 arguments
+    mkSort("Array");
+
+    addOperator(kind::SELECT);
+    addOperator(kind::STORE);
+    break;
+
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
     // falling-through on purpose, to add Ints part of RealsInts
@@ -105,6 +113,10 @@ void Smt2::setLogic(const std::string& name) {
     /* No extra symbols necessary */
     break;
 
+  case Smt::QF_AX:
+    addTheory(THEORY_ARRAYS);
+    break;
+
   case Smt::QF_IDL:
   case Smt::QF_LIA:
   case Smt::QF_NIA:
@@ -129,7 +141,6 @@ void Smt2::setLogic(const std::string& name) {
   case Smt::AUFNIRA:
   case Smt::QF_AUFBV:
   case Smt::QF_AUFLIA:
-  case Smt::QF_AX:
   case Smt::QF_BV:
     Unhandled(name);
   }

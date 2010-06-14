@@ -261,7 +261,7 @@ builtinOp[CVC4::Kind& kind]
   | IFF_TOK      { $kind = CVC4::kind::IFF;     }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
-    // NOTE: Theory operators go here
+    // Arithmetic
   | GREATER_THAN_TOK
                  { $kind = CVC4::kind::GT; }
   | GREATER_THAN_TOK EQUAL_TOK
@@ -305,7 +305,9 @@ builtinOp[CVC4::Kind& kind]
   | BVSLE_TOK    { $kind = CVC4::kind::BITVECTOR_SLE;    }
   | BVSGT_TOK    { $kind = CVC4::kind::BITVECTOR_SGT;    }
   | BVSGE_TOK    { $kind = CVC4::kind::BITVECTOR_SGE;    }
-    /* TODO: lt, gt, plus, minus, etc. */
+    // NOTE: Theory operators go here
+  | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
+  | STORE_TOK    { $kind = CVC4::kind::STORE; }
   ;
 
 /**
@@ -542,7 +544,9 @@ PERCENT_TOK       : '%';
 PIPE_TOK          : '|';
 PLUS_TOK          : '+';
 POUND_TOK         : '#';
+SELECT_TOK        : 'select';
 STAR_TOK          : '*';
+STORE_TOK         : 'store';
 TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 

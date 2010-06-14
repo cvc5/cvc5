@@ -79,6 +79,20 @@ void Smt::addArithmeticOperators() {
  */
 void Smt::addTheory(Theory theory) {
   switch(theory) {
+  case THEORY_ARRAYS:
+  case THEORY_ARRAYS_EX: {
+    Type indexType = mkSort("Index");
+    Type elementTYpe = mkSort("Element");
+    
+    // FIXME: should be defineType("Array",arrayType(indexType,elementType))
+    // but arrayType isn't defined
+    mkSort("Array");
+
+    addOperator(kind::SELECT);
+    addOperator(kind::STORE);
+    break;
+  }
+
   case THEORY_EMPTY:
     mkSort("U");
     break;
@@ -117,6 +131,10 @@ void Smt::setLogic(const std::string& name) {
   d_logic = toLogic(name);
 
   switch(d_logic) {
+  case QF_AX:
+    addTheory(THEORY_ARRAYS_EX);
+    break;
+
   case QF_IDL:
   case QF_LIA:
   case QF_NIA:
@@ -146,7 +164,6 @@ void Smt::setLogic(const std::string& name) {
   case AUFNIRA:
   case QF_AUFBV:
   case QF_AUFLIA:
-  case QF_AX:
   case QF_BV:
     Unhandled(name);
   }

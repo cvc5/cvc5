@@ -5,3 +5,5 @@
 #
 
 theory ::CVC4::theory::arrays::TheoryArrays "theory_arrays.h"
+operator SELECT 2 "array select"
+operator STORE 3 "array store"
