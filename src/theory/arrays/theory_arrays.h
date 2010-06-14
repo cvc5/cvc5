@@ -22,7 +22,10 @@
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include "theory/theory.h"
-#include "context/context.h"
+
+namespace context {
+class Context;
+}
 
 namespace CVC4 {
 namespace theory {
@@ -30,15 +33,13 @@ namespace arrays {
 
 class TheoryArrays : public Theory {
 public:
-  TheoryArrays(context::Context* c, OutputChannel& out) :
-    Theory(c, out) {
-  }
-
-  void preRegisterTerm(TNode n) { Unimplemented(); }
-  void registerTerm(TNode n) { Unimplemented(); }
-  void check(Effort e) { Unimplemented(); }
-  void propagate(Effort e) { Unimplemented(); }
-  void explain(TNode n, Effort e) { Unimplemented(); }
+  TheoryArrays(context::Context* c, OutputChannel& out);
+  ~TheoryArrays();
+  void preRegisterTerm(TNode n) { }
+  void registerTerm(TNode n) { }
+  void check(Effort e);
+  void propagate(Effort e) { }
+  void explain(TNode n, Effort e) { }
 };
 
 }/* CVC4::theory::arrays namespace */
