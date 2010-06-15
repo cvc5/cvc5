@@ -1,6 +1,6 @@
 AM_CPPFLAGS = \
 	-I@srcdir@/../include -I@srcdir@/.. $(ANTLR_INCLUDES)
-AM_CXXFLAGS = -Wall
+AM_CXXFLAGS = -Wall -wunknown-pragmas
 
 bin_PROGRAMS = cvc4
 
