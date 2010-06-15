@@ -45,7 +45,7 @@ if HAVE_CXXTESTGEN
 AM_CPPFLAGS = \
 	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
 	$(ANTLR_INCLUDES) $(TEST_CPPFLAGS)
-AM_CXXFLAGS = -Wall -wunknown-pragmas $(TEST_CXXFLAGS)
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)
 
 AM_CXXFLAGS_WHITE = -fno-access-control -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST

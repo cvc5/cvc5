@@ -1,6 +1,6 @@
 include $(top_srcdir)/config/doxygen.am
 
-AM_CXXFLAGS = -Wall -wunknown-pragmas
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I config
