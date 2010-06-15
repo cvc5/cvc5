@@ -264,6 +264,12 @@ public:
 
   /**
    * Check the current assignment's consistency.
+   *
+   * An implementation of check() is required to either:
+   * - return a conflict on the output channel,
+   * - be interrupted,
+   * - throw an exception
+   * - or call get() until done() is true.
    */
   virtual void check(Effort level = FULL_EFFORT) = 0;
 
