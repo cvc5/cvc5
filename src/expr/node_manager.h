@@ -313,6 +313,8 @@ public:
   Node mkVar(const TypeNode& type);
   Node* mkVarPtr(const TypeNode& type);
 
+  /** Create a skolem constant with the given type. */
+  Node mkSkolem(const TypeNode& type);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -861,6 +863,12 @@ inline Node NodeManager::mkVar(const TypeNode& type) {
 inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   n->setAttribute(TypeAttr(), type);
+  return n;
+}
+
+inline Node NodeManager::mkSkolem(const TypeNode& type) {
+  Node n = NodeBuilder<0>(this, kind::SKOLEM);
+  n.setAttribute(TypeAttr(), type);
   return n;
 }
 

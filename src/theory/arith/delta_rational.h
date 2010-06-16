@@ -60,7 +60,7 @@ public:
     return DeltaRational(tmpC, tmpK);
   }
 
-  DeltaRational operator*(CVC4::Rational& a) const{
+  DeltaRational operator*(const Rational& a) const{
     CVC4::Rational tmpC = a*c;
     CVC4::Rational tmpK = a*k;
     return DeltaRational(tmpC, tmpK);
@@ -95,7 +95,7 @@ public:
     return *(this);
   }
 
-  DeltaRational& operator*=(CVC4::Rational& a){
+  DeltaRational& operator*=(const CVC4::Rational& a){
     c = c * a;
     k = k * a;
 

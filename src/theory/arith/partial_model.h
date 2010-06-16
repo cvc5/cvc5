@@ -104,12 +104,10 @@ typedef expr::CDAttribute<LowerConstraintAttrID,TNode> LowerConstraint;
 struct UpperConstraintAttrID {};
 typedef expr::CDAttribute<UpperConstraintAttrID,TNode> UpperConstraint;
 
-
-}; /*namespace partial_model*/
-
-
 struct TheoryArithPropagatedID {};
 typedef expr::CDAttribute<TheoryArithPropagatedID, bool> TheoryArithPropagated;
+
+}; /*namespace partial_model*/
 
 
 

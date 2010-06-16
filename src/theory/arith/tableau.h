@@ -44,27 +44,29 @@ class Row {
 
 public:
 
+  typedef std::set<TNode>::iterator iterator;
+
   /**
    * Construct a row equal to:
    *   basic = \sum_{x_i} c_i * x_i
    */
-  Row(TNode basic, TNode sum): d_x_i(basic),d_nonbasic(), d_coeffs(){
-    using namespace CVC4::kind;
+  Row(TNode basic, TNode sum):
+    d_x_i(basic),
+    d_nonbasic(),
+    d_coeffs(){
 
-    Assert(d_x_i.getMetaKind() == CVC4::kind::metakind::VARIABLE);
-
-    //TODO Assert(d_x_i.getType() == REAL);
-    Assert(sum.getKind() == PLUS);
+    Assert(d_x_i.getMetaKind() == kind::metakind::VARIABLE);
+    Assert(sum.getKind() == kind::PLUS);
 
     for(TNode::iterator iter=sum.begin(); iter != sum.end(); ++iter){
       TNode pair = *iter;
-      Assert(pair.getKind() == MULT);
+      Assert(pair.getKind() == kind::MULT);
       Assert(pair.getNumChildren() == 2);
       TNode coeff = pair[0];
       TNode var_i = pair[1];
-      Assert(coeff.getKind() == CONST_RATIONAL);
-      Assert(var_i.getKind() == VARIABLE);
-      //TODO Assert(var_i.getKind() == REAL);
+      Assert(coeff.getKind() == kind::CONST_RATIONAL);
+      Assert(var_i.getKind() == kind::VARIABLE);
+
       Assert(!has(var_i));
       d_nonbasic.insert(var_i);
       d_coeffs[var_i] = coeff.getConst<Rational>();
@@ -73,11 +75,11 @@ public:
     }
   }
 
-  std::set<TNode>::iterator begin(){
+  iterator begin(){
     return d_nonbasic.begin();
   }
 
-  std::set<TNode>::iterator end(){
+  iterator end(){
     return d_nonbasic.end();
   }
 
@@ -90,7 +92,7 @@ public:
     return x_jPos != d_coeffs.end();
   }
 
-  Rational& lookup(TNode x_j){
+  const Rational& lookup(TNode x_j){
     CoefficientTable::iterator x_jPos = d_coeffs.find(x_j);
     Assert(x_jPos !=  d_coeffs.end());
     return (*x_jPos).second;
@@ -105,11 +107,11 @@ public:
     d_nonbasic.insert(d_x_i);
     d_x_i = x_j;
 
-    for(std::set<TNode>::iterator nonbasicIter = d_nonbasic.begin();
+    for(iterator nonbasicIter = d_nonbasic.begin();
         nonbasicIter != d_nonbasic.end();
         ++nonbasicIter){
       TNode nb = *nonbasicIter;
-      d_coeffs[nb] = d_coeffs[nb] * negInverseA_rs;
+      d_coeffs[nb] *= negInverseA_rs;
     }
 
   }
@@ -128,7 +130,7 @@ public:
     d_coeffs.erase(x_s);
     d_nonbasic.erase(x_s);
 
-    for(std::set<TNode>::iterator iter = row_s.d_nonbasic.begin();
+    for(iterator iter = row_s.d_nonbasic.begin();
         iter != row_s.d_nonbasic.end();
         ++iter){
       TNode x_j = *iter;
@@ -146,24 +148,12 @@ public:
         d_nonbasic.insert(x_j);
         d_coeffs.insert(make_pair(x_j,a_sj));
       }
-      /*
-      if(has(x_j)){
-        d_coeffs[x_j] = d_coeffs[x_j] + a_sj;
-        if(d_coeffs[x_j] == zero){
-          d_coeffs.erase(x_j);
-          d_nonbasic.erase(x_j);
-        }
-      }else{
-        d_nonbasic.insert(x_j);
-        d_coeffs[x_j] = a_sj;
-      }
-      */
     }
   }
 
   void printRow(){
     Debug("tableau") << d_x_i << " ";
-    for(std::set<TNode>::iterator nonbasicIter = d_nonbasic.begin();
+    for(iterator nonbasicIter = d_nonbasic.begin();
         nonbasicIter != d_nonbasic.end();
         ++nonbasicIter){
       TNode nb = *nonbasicIter;
@@ -183,9 +173,6 @@ private:
   VarSet d_basicVars;
   RowsTable d_rows;
 
-  inline bool contains(TNode var){
-    return d_basicVars.find(var) != d_basicVars.end();
-  }
 
 public:
   /**
@@ -206,43 +193,6 @@ public:
     return d_rows[var];
   }
 
-  /**
-   * Iterator for the tableau. Iterates over rows.
-   */
-  /* TODO add back in =(
-  class iterator {
-  private:
-    const Tableau*  table_ref;
-    VarSet::iterator variableIter;
-
-    iterator(const Tableau* tr, VarSet::iterator& i) :
-      table_ref(tr), variableIter(i){}
-
-  public:
-    void operator++(){
-      ++variableIter;
-    }
-
-    bool operator==(iterator& other){
-      return variableIter == other.variableIter;
-    }
-    bool operator!=(iterator& other){
-      return variableIter != other.variableIter;
-    }
-
-    Row& operator*() const{
-      TNode var = *variableIter;
-      RowsTable::iterator iter = table_ref->d_rows.find(var);
-      return *iter;
-    }
-  };
-  iterator begin(){
-    return iterator(this, d_basicVars.begin());
-  }
-  iterator end(){
-    return iterator(this, d_basicVars.end());
-  }*/
-
   void addRow(TNode eq){
     Assert(eq.getKind() == kind::EQUAL);
     Assert(eq.getNumChildren() == 2);
@@ -250,7 +200,6 @@ public:
     TNode var = eq[0];
     TNode sum = eq[1];
 
-    //Assert(isAdmissableVariable(var));
     Assert(var.getAttribute(IsBasic()));
 
     //The new basic variable cannot already be a basic variable
@@ -260,9 +209,9 @@ public:
     d_rows[var] = row_var;
 
     //A variable in the row may have been made non-basic already.
-    //fake the pivot of this variable
+    //If this is the case we fake pivoting this variable
     for(TNode::iterator sumIter = sum.begin(); sumIter!=sum.end(); ++sumIter){
-      TNode child = *sumIter; //(MULT (CONST_RATIONAL 1998/1001) x_5)
+      TNode child = *sumIter;
       Assert(child.getKind() == kind::MULT);
       Assert(child.getNumChildren() == 2);
       Assert(child[0].getKind() == kind::CONST_RATIONAL);
@@ -314,6 +263,10 @@ public:
       Row* row_k = lookup(basic);
       row_k->printRow();
     }
+  }
+private:
+  inline bool contains(TNode var){
+    return d_basicVars.find(var) != d_basicVars.end();
   }
 };
 

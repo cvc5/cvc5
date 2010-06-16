@@ -175,7 +175,7 @@ bool ArithPartialModel::belowLowerBound(TNode x, const DeltaRational& c, bool st
     return false;
   }
 
-  DeltaRational l = (*i).second;
+  const DeltaRational& l = (*i).second;
 
   if(strict){
     return c < l;
@@ -191,7 +191,7 @@ bool ArithPartialModel::aboveUpperBound(TNode x, const DeltaRational& c, bool st
     // ? u < -\infty |-  _|_
     return false;
   }
-  DeltaRational u = (*i).second;
+  const DeltaRational& u = (*i).second;
 
   if(strict){
     return c > u;
@@ -208,9 +208,9 @@ bool ArithPartialModel::strictlyBelowUpperBound(TNode x){
   if(i == d_UpperBoundMap.end()){// u = \infty
     return true;
   }
-  DeltaRational u = (*i).second;
 
-  return *assign < u;
+  const DeltaRational& u = (*i).second;
+  return (*assign) < u;
 }
 
 bool ArithPartialModel::strictlyAboveLowerBound(TNode x){
@@ -221,7 +221,8 @@ bool ArithPartialModel::strictlyAboveLowerBound(TNode x){
   if(i == d_LowerBoundMap.end()){// l = \infty
     return true;
   }
-  DeltaRational l = (*i).second;
+
+  const DeltaRational& l = (*i).second;
   return l < *assign;
 }
 
