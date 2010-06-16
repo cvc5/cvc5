@@ -311,6 +311,54 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
   return false;
 }
 
+/* procedure AssertLower( x_i == c_i ) */
+bool TheoryArith::AssertEquality(TNode n, TNode original){
+  Assert(n.getKind() == EQUAL);
+  TNode x_i = n[0];
+  DeltaRational c_i(n[1].getConst<Rational>());
+
+  Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
+
+
+  // u_i <= c_i <= l_i
+  // This can happen if both c_i <= x_i and x_i <= c_i are in the system.
+  if(d_partialModel.belowLowerBound(x_i, c_i, false) &&
+     d_partialModel.aboveUpperBound(x_i, c_i, false)){
+    return false; //sat
+  }
+
+  if(d_partialModel.aboveUpperBound(x_i, c_i, true)){
+    Node ubc = d_partialModel.getUpperConstraint(x_i);
+    Node conflict =  NodeManager::currentNM()->mkNode(AND, ubc, original);
+    d_out->conflict(conflict);
+    Debug("arith") << "AssertLower conflict " << conflict << endl;
+    return true;
+  }
+
+  if(d_partialModel.belowLowerBound(x_i, c_i, true)){
+    Node lbc = d_partialModel.getLowerConstraint(x_i);
+    Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
+    Debug("arith") << "AssertUpper conflict " << conflict << endl;
+    d_out->conflict(conflict);
+    return true;
+  }
+
+  d_partialModel.setLowerConstraint(x_i,original);
+  d_partialModel.setLowerBound(x_i, c_i);
+
+  d_partialModel.setUpperConstraint(x_i,original);
+  d_partialModel.setUpperBound(x_i, c_i);
+
+  if(!isBasic(x_i)){
+    if(!(d_partialModel.getAssignment(x_i) == c_i)){
+      update(x_i, c_i);
+    }
+  }else{
+    checkBasicVariable(x_i);
+  }
+
+  return false;
+}
 void TheoryArith::update(TNode x_i, DeltaRational& v){
   Assert(!isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
@@ -581,11 +629,12 @@ bool TheoryArith::assertionCases(TNode original, TNode assertion){
   case GEQ:
     return AssertLower(assertion, original);
   case EQUAL:
-    if(AssertUpper(assertion, original)){
-      return true;
-    }else{
-      return AssertLower(assertion, original);
-    }
+    return AssertEquality(assertion,original);
+//     if(AssertUpper(assertion, original)){
+//       return true;
+//     }else{
+//       return AssertLower(assertion, original);
+//     }
   case NOT:
     {
       TNode atom = assertion[0];

@@ -134,6 +134,8 @@ private:
   bool AssertLower(TNode n, TNode orig);
   bool AssertUpper(TNode n, TNode orig);
 
+  bool AssertEquality(TNode n, TNode orig);
+
   /**
    * Updates the assignment of a nonbasic variable x_i to v.
    * Also updates the assignment of basic variables accordingly.
