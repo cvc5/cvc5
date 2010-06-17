@@ -1,4 +1,10 @@
+SUBDIRS = .
+
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
+
+# These are run for all build profiles.
+# If a test shouldn't be run in e.g. competition mode,
+# put it below in "TESTS +="
 TESTS =	bmc-galileo-8.smt \
 	bmc-galileo-9.smt \
 	bmc-ibm-10.smt \
@@ -15,6 +21,12 @@ TESTS =	bmc-galileo-8.smt \
 	friedman_n6_i4.smt \
 	hole9.cvc \
 	qwh.35.405.shuffled-as.sat03-1651.smt
+
+#if CVC4_BUILD_PROFILE_COMPETITION
+#else
+#TESTS += \
+#	error.cvc
+#endif
 
 # synonyms for "check"
 .PHONY: regress regress2 test
