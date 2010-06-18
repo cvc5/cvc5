@@ -161,7 +161,7 @@ void NodeManager::reclaimZombies() {
                   << " [" << nv->d_id << "]: " << *nv << "\n";
 
       // remove from the pool
-      if(nv->getKind() != kind::VARIABLE) {
+      if(nv->getMetaKind() != kind::metakind::VARIABLE) {
         poolRemove(nv);
       }
 
