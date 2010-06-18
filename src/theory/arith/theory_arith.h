@@ -31,6 +31,8 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
 
+#include "util/stats.h"
+
 #include <vector>
 #include <queue>
 
@@ -94,6 +96,7 @@ private:
    */
   ArithRewriter d_rewriter;
 
+
 public:
   TheoryArith(context::Context* c, OutputChannel& out);
   ~TheoryArith();
@@ -114,6 +117,9 @@ public:
   void check(Effort e);
   void propagate(Effort e) { Unimplemented(); }
   void explain(TNode n, Effort e) { Unimplemented(); }
+
+  void shutdown(){ }
+
 
 private:
   /**
@@ -227,6 +233,18 @@ private:
 
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);
+
+
+  /** These fields are designed to be accessable to TheoryArith methods. */
+  class Statistics {
+  public:
+    IntStat d_statPivots, d_statUpdates, d_statAssertUpperConflicts;
+    IntStat d_statAssertLowerConflicts, d_statUpdateConflicts;
+
+    Statistics();
+  };
+
+  Statistics d_statistics;
 
 };
 

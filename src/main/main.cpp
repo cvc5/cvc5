@@ -35,6 +35,7 @@
 #include "util/output.h"
 #include "util/options.h"
 #include "util/result.h"
+#include "util/stats.h"
 
 using namespace std;
 using namespace CVC4;
@@ -84,6 +85,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 }
+
 
 int runCvc4(int argc, char* argv[]) {
 
@@ -182,6 +184,10 @@ int runCvc4(int argc, char* argv[]) {
 
   // Remove the parser
   delete parser;
+
+  if(options.statistics){
+    StatisticsRegistry::flushStatistics(cerr);
+  }
 
   switch(lastResult.asSatisfiabilityResult().isSAT()) {
 

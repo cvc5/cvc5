@@ -30,4 +30,6 @@ libutil_la_SOURCES = \
 	bitvector.h \
 	bitvector.cpp \
 	gmp_util.h \
-	sexpr.h
+	sexpr.h \
+	stats.h \
+	stats.cpp

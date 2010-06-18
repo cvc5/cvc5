@@ -26,6 +26,7 @@
 #define __CVC4_USE_MINISAT
 
 #include "util/options.h"
+#include "util/stats.h"
 
 #ifdef __CVC4_USE_MINISAT
 
@@ -132,6 +133,49 @@ class SatSolver : public SatInputInterface {
   /** Minisat solver */
   minisat::SimpSolver* d_minisat;
 
+  class Statistics {
+  private:
+    ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
+    ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
+    ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
+    ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
+    ReferenceStat<uint64_t> d_statTotLiterals;
+  public:
+    Statistics() :
+      d_statStarts("sat::starts"),
+      d_statDecisions("sat::decisions"),
+      d_statRndDecisions("sat::rnd_decisions"),
+      d_statPropagations("sat::propagations"),
+      d_statConflicts("sat::conflicts"),
+      d_statClausesLiterals("sat::clauses_literals"),
+      d_statLearntsLiterals("sat::learnts_literals"),
+      d_statMaxLiterals("sat::max_literals"),
+      d_statTotLiterals("sat::tot_literals")
+    {
+      StatisticsRegistry::registerStat(&d_statStarts);
+      StatisticsRegistry::registerStat(&d_statDecisions);
+      StatisticsRegistry::registerStat(&d_statRndDecisions);
+      StatisticsRegistry::registerStat(&d_statPropagations);
+      StatisticsRegistry::registerStat(&d_statConflicts);
+      StatisticsRegistry::registerStat(&d_statClausesLiterals);
+      StatisticsRegistry::registerStat(&d_statLearntsLiterals);
+      StatisticsRegistry::registerStat(&d_statMaxLiterals);
+      StatisticsRegistry::registerStat(&d_statTotLiterals);
+    }
+    void init(minisat::SimpSolver* d_minisat){
+      d_statStarts.setData(d_minisat->starts);
+      d_statDecisions.setData(d_minisat->decisions);
+      d_statRndDecisions.setData(d_minisat->rnd_decisions);
+      d_statPropagations.setData(d_minisat->propagations);
+      d_statConflicts.setData(d_minisat->conflicts);
+      d_statClausesLiterals.setData(d_minisat->clauses_literals);
+      d_statLearntsLiterals.setData(d_minisat->learnts_literals);
+      d_statMaxLiterals.setData(d_minisat->max_literals);
+      d_statTotLiterals.setData(d_minisat->tot_literals);
+    }
+  };
+  Statistics d_statistics;
+
 #endif /* __CVC4_USE_MINISAT */
 
 protected:
@@ -150,7 +194,7 @@ public:
   ~SatSolver();
 
   bool solve();
-  
+
   void addClause(SatClause& clause, bool lemma);
 
   SatVariable newVar(bool theoryAtom = false);
@@ -158,7 +202,7 @@ public:
   void theoryCheck(SatClause& conflict);
 
   void enqueueTheoryLiteral(const SatLiteral& l);
-  
+
   void setCnfStream(CnfStream* cnfStream);
 
   SatLiteralValue value(SatLiteral l);
@@ -173,7 +217,8 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   d_propEngine(propEngine),
   d_cnfStream(NULL),
   d_theoryEngine(theoryEngine),
-  d_context(context)
+  d_context(context),
+  d_statistics()
 {
   // Create the solver
   d_minisat = new minisat::SimpSolver(this, d_context);
@@ -183,6 +228,8 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   d_minisat->remove_satisfied = false;
   // Make minisat reuse the literal values
   d_minisat->polarity_mode = minisat::SimpSolver::polarity_user;
+
+  d_statistics.init(d_minisat);
 }
 
 inline SatSolver::~SatSolver() {

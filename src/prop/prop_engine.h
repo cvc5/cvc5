@@ -90,8 +90,7 @@ public:
    * PropEngine and Theory).  For now, there's nothing to do here in
    * the PropEngine.
    */
-  void shutdown() {
-  }
+  void shutdown() { }
 
   /**
    * Converts the given formula to CNF and assert the CNF to the sat solver.

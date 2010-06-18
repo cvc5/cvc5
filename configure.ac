@@ -71,7 +71,7 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}"; then
+if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -124,6 +124,13 @@ if test -n "${enable_profiling+set}"; then
     btargs="$btargs profiling"
   else
     btargs="$btargs noprofiling"
+  fi
+fi
+if test -n "${enable_statistics+set}"; then
+  if test "$enable_statistics" = yes; then
+    btargs="$btargs statistics"
+  else
+    btargs="$btargs nostatistics"
   fi
 fi
 AC_MSG_RESULT([$with_build])
@@ -199,6 +206,7 @@ case "$with_build" in
     if test -z "${OPTLEVEL+set}"            ; then OPTLEVEL=3                       ; fi
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
+    if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -213,6 +221,7 @@ case "$with_build" in
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
+    if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   default) # moderately optimized, assertions, tracing
@@ -225,6 +234,7 @@ case "$with_build" in
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
+    if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
@@ -238,6 +248,7 @@ case "$with_build" in
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=no          ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
+    if test -z "${enable_statistics+set}"   ; then enable_statistics=no             ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
     ;;
@@ -300,6 +311,23 @@ AC_MSG_RESULT([$enable_debug_symbols])
 if test "$enable_debug_symbols" = yes; then
   CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-ggdb3"
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-ggdb3"
+fi
+
+AC_MSG_CHECKING([whether to include statistics are turned on in libcvc4])
+
+AC_ARG_ENABLE([statistics],
+  [AS_HELP_STRING([--disable-statistics],
+     [do not include statistics in libcvc4])])
+
+if test -z "${enable_statistics+set}"; then
+  enable_statistics=yes
+fi
+
+AC_MSG_RESULT([$enable_statistics])
+
+if test "$enable_statistics" = yes; then
+  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-DCVC4_STATISTICS_ON"
+  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-DCVC4_STATISTICS_ON"
 fi
 
 AC_MSG_CHECKING([whether to include assertions in build])
@@ -603,6 +631,7 @@ Muzzle       : $enable_muzzle
 gcov support : $enable_coverage
 gprof support: $enable_profiling
 unit tests   : $support_unit_tests
+statistics   : $enable_statistics
 
 static libs  : $enable_static
 shared libs  : $enable_shared

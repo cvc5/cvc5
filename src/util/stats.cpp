@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file hash.h
+/*! \file stats.cpp
  ** \verbatim
- ** Original author: cconway
- ** Major contributors: mdeters
+ ** Original author: taking
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
@@ -11,26 +11,29 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** rief [[ Add one-line brief description here ]]
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
 
-#ifndef __CVC4__HASH_H_
-#define __CVC4__HASH_H_
+#include "util/stats.h"
 
-#include <ext/hash_map>
-namespace std { using namespace __gnu_cxx; }
+using namespace CVC4;
 
-namespace CVC4 {
+StatisticsRegistry::StatSet StatisticsRegistry::d_registeredStats;
 
-struct StringHashFunction {
-  size_t operator()(const std::string& str) const {
-    return std::hash<const char*>()(str.c_str());
+std::string Stat::s_delim(",");
+
+
+
+
+void StatisticsRegistry::flushStatistics(std::ostream& out){
+#ifdef CVC4_STATISTICS_ON
+  for(StatSet::iterator i=d_registeredStats.begin();i != d_registeredStats.end();++i){
+    Stat* s = *i;
+    s->flushStat(out);
+    out << std::endl;
   }
-};
-
+#endif
 }
-
-#endif /* __CVC4__HASH_H_ */

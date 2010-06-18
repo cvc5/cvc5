@@ -54,17 +54,31 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_diseq(c),
-  d_rewriter(&d_constants)
+  d_rewriter(&d_constants),
+  d_statistics()
 {
   uint64_t ass_id = partial_model::Assignment::getId();
   Debug("arithsetup") << "Assignment: " << ass_id << std::endl;
-
 }
 TheoryArith::~TheoryArith(){
   for(vector<Node>::iterator i=d_variables.begin(); i!= d_variables.end(); ++i){
     Node var = *i;
     Debug("arithgc") << var << endl;
   }
+}
+
+TheoryArith::Statistics::Statistics():
+  d_statPivots("theory::arith::pivots",0),
+  d_statUpdates("theory::arith::updates",0),
+  d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0),
+  d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
+  d_statUpdateConflicts("theory::arith::UpdateConflicts", 0)
+{
+  StatisticsRegistry::registerStat(&d_statPivots);
+  StatisticsRegistry::registerStat(&d_statUpdates);
+  StatisticsRegistry::registerStat(&d_statAssertUpperConflicts);
+  StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
+  StatisticsRegistry::registerStat(&d_statUpdateConflicts);
 }
 
 bool isBasicSum(TNode n){
@@ -260,6 +274,7 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
     Node lbc = d_partialModel.getLowerConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
     Debug("arith") << "AssertUpper conflict " << conflict << endl;
+    ++(d_statistics.d_statAssertUpperConflicts);
     d_out->conflict(conflict);
     return true;
   }
@@ -294,6 +309,7 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
     Node conflict =  NodeManager::currentNM()->mkNode(AND, ubc, original);
     d_out->conflict(conflict);
     Debug("arith") << "AssertLower conflict " << conflict << endl;
+    ++(d_statistics.d_statAssertLowerConflicts);
     return true;
   }
 
@@ -362,6 +378,7 @@ bool TheoryArith::AssertEquality(TNode n, TNode original){
 void TheoryArith::update(TNode x_i, DeltaRational& v){
   Assert(!isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
+  ++(d_statistics.d_statUpdates);
 
   Debug("arith") <<"update " << x_i << ": "
                  << assignment_x_i << "|-> " << v << endl;
@@ -422,6 +439,7 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
     }
   }
 
+  ++(d_statistics.d_statPivots);
   d_tableau.pivot(x_i, x_j);
 
   checkBasicVariable(x_j);
@@ -507,6 +525,7 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
       DeltaRational l_i = d_partialModel.getLowerBound(x_i);
       TNode x_j = selectSlackBelow(x_i);
       if(x_j == TNode::null() ){
+        ++(d_statistics.d_statUpdateConflicts);
         return generateConflictBelow(x_i); //unsat
       }
       pivotAndUpdate(x_i, x_j, l_i);
@@ -515,6 +534,7 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
       DeltaRational u_i = d_partialModel.getUpperBound(x_i);
       TNode x_j = selectSlackAbove(x_i);
       if(x_j == TNode::null() ){
+        ++(d_statistics.d_statUpdateConflicts);
         return generateConflictAbove(x_i); //unsat
       }
       pivotAndUpdate(x_i, x_j, u_i);
@@ -630,11 +650,6 @@ bool TheoryArith::assertionCases(TNode original, TNode assertion){
     return AssertLower(assertion, original);
   case EQUAL:
     return AssertEquality(assertion,original);
-//     if(AssertUpper(assertion, original)){
-//       return true;
-//     }else{
-//       return AssertLower(assertion, original);
-//     }
   case NOT:
     {
       TNode atom = assertion[0];
