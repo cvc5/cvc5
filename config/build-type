@@ -20,6 +20,7 @@
 #
 # The overrides are as follows:
 #
+#   staticbinary
 #   optimized
 #   debugsymbols
 #   assertions
@@ -46,7 +47,7 @@ while [ $# -gt 0 ]; do
 done
 
 build_type_suffix=
-for arg in optimized debugsymbols assertions tracing muzzle coverage profiling; do
+for arg in staticbinary optimized debugsymbols statistics assertions tracing muzzle coverage profiling; do
   if eval [ -n '"${'$arg'+set}"' ]; then
     if eval [ '"${'$arg'}"' -eq 0 ]; then
       build_type_suffix=$build_type_suffix-no$arg

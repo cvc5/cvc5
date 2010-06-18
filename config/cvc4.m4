@@ -22,7 +22,7 @@ do
       ac_option_build=`expr "$ac_option" : '\([[^-]]*\)-\?'`
       ac_cvc4_build_profile_set=yes
       AC_MSG_NOTICE([CVC4: building profile $ac_option_build])
-      for x in optimized assertions tracing muzzle coverage profiling; do
+      for x in optimized statistics assertions tracing muzzle coverage profiling; do
         if expr "$ac_option" : '.*-no'$x'-\|.*-no'$x'$' >/dev/null; then
           eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--disable-$x\""'
         fi
@@ -30,6 +30,12 @@ do
           eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--enable-$x\""'
         fi
       done
+      if expr "$ac_option" : '.*-nostaticbinary-\|.*-nostaticbinary$' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--disable-static-binary\""'
+      fi
+      if expr "$ac_option" : '.*-staticbinary-\|.*-staticbinary$' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--enable-static-binary\""'
+      fi
       if expr "$ac_option" : '.*-nodebugsymbols-\|.*-nodebugsymbols$' >/dev/null; then
         eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--disable-debug-symbols\""'
       fi
