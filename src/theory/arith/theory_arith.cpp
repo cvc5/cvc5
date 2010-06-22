@@ -267,10 +267,10 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
 
 
-  if(d_partialModel.aboveUpperBound(x_i, c_i, false) ){
+  if(d_partialModel.aboveUpperBound(x_i, c_i, false) ){ // \upperbound(x_i) <= c_i
     return false; //sat
   }
-  if(d_partialModel.belowLowerBound(x_i, c_i, true)){
+  if(d_partialModel.belowLowerBound(x_i, c_i, true)){// \lowerbound(x_i) > c_i
     Node lbc = d_partialModel.getLowerConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
     Debug("arith") << "AssertUpper conflict " << conflict << endl;

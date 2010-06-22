@@ -66,6 +66,7 @@ public:
       AlwaysAssert(d_name.find(s_delim) == std::string::npos);
     }
   }
+  virtual ~Stat() {}
 
   virtual void flushInformation(std::ostream& out) const = 0;
 
@@ -96,6 +97,11 @@ inline void StatisticsRegistry::registerStat(Stat* s) throw (AssertionException)
 }
 
 
+
+/**
+ *  class T must have stream insertion operation defined.
+ * std::ostream& operator<<(std::ostream&, const T&);
+ */
 template<class T>
 class DataStat : public Stat{
 public:
@@ -111,15 +117,20 @@ public:
   }
 };
 
+/** T must have an assignment operator=(). */
 template <class T>
 class ReferenceStat: public DataStat<T>{
 private:
   const T* d_data;
 
 public:
-  ReferenceStat(const std::string& s): DataStat<T>(s), d_data(NULL){}
+  ReferenceStat(const std::string& s):
+    DataStat<T>(s), d_data(NULL)
+  {}
 
-  ReferenceStat(const std::string& s, const T& data):ReferenceStat<T>(s){
+  ReferenceStat(const std::string& s, const T& data):
+    DataStat<T>(s),d_data(NULL)
+  {
     setData(data);
   }
 
