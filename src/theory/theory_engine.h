@@ -335,7 +335,7 @@ private:
   public:
     IntStat d_statConflicts, d_statPropagate, d_statLemma, d_statAugLemma, d_statExplanatation;
     Statistics():
-      d_statConflicts("theory::conlficts",0),
+      d_statConflicts("theory::conflicts",0),
       d_statPropagate("theory::propagate",0),
       d_statLemma("theory::lemma",0),
       d_statAugLemma("theory::aug_lemma", 0),
