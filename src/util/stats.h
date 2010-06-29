@@ -49,6 +49,7 @@ public:
   static void flushStatistics(std::ostream& out);
 
   static inline void registerStat(Stat* s) throw (AssertionException);
+  static inline void unregisterStat(Stat* s) throw (AssertionException);
 }; /* class StatisticsRegistry */
 
 
@@ -93,6 +94,12 @@ inline void StatisticsRegistry::registerStat(Stat* s) throw (AssertionException)
   if(USE_STATISTICS){
     AlwaysAssert(d_registeredStats.find(s) == d_registeredStats.end());
     d_registeredStats.insert(s);
+  }
+}
+inline void StatisticsRegistry::unregisterStat(Stat* s) throw (AssertionException){
+  if(USE_STATISTICS){
+    AlwaysAssert(d_registeredStats.find(s) != d_registeredStats.end());
+    d_registeredStats.erase(s);
   }
 }
 
