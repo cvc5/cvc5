@@ -23,6 +23,7 @@ UNIT_TESTS = \
 	context/cdmap_white \
 	theory/theory_black \
 	theory/theory_uf_white \
+	theory/theory_arith_white \
 	util/assert_white \
 	util/bitvector_black \
 	util/configuration_black \

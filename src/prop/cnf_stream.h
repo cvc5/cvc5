@@ -127,6 +127,16 @@ protected:
    */
   SatLiteral newLiteral(TNode node, bool theoryLiteral = false);
 
+  /**
+   * Constructs a new literal for an atom and returns it.  Calls
+   * newLiteral().
+   *
+   * @param node the node to convert; there should be no boolean
+   * structure in this expression.  Assumed to not be in the
+   * translation cache.
+   */
+  SatLiteral convertAtom(TNode node);
+
 public:
 
   /**
@@ -161,14 +171,25 @@ public:
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
-   * representation. [Presumably there are some constraints on the kind
-   * of node? E.g., it needs to be a boolean? -Chris]
-   *
+   * representation.
+   * @param node [Presumably there are some constraints on the kind of
+   * node? E.g., it needs to be a boolean? -Chris]
+   * @param create Controls whether or not to create a new SAT literal
+   * mapping for Node if it does not exist.  This exists to break
+   * circular dependencies, where an atom is converted and asserted to
+   * the SAT solver, which propagates it immediately since it's a
+   * unit, which can theory-propagate additional literals that don't
+   * yet have a SAT literal mapping.
    */
-  SatLiteral getLiteral(TNode node);
+  SatLiteral getLiteral(TNode node, bool create = false);
 
-  const TranslationCache& getTranslationCache() const;
-  const NodeCache& getNodeCache() const;
+  const TranslationCache& getTranslationCache() const {
+    return d_translationCache;
+  }
+
+  const NodeCache& getNodeCache() const {
+    return d_nodeCache;
+  }
 }; /* class CnfStream */
 
 /**
@@ -178,7 +199,7 @@ public:
  * will be equivalent to each subexpression in the constructed equi-satisfiable
  * formula, then substitute the new literal for the formula, and so on,
  * recursively.
- * 
+ *
  * This implementation does this in a single recursive pass. [??? -Chris]
  */
 class TseitinCnfStream : public CnfStream {
@@ -211,7 +232,6 @@ private:
   //   - returning l
   //
   // handleX( n ) can assume that n is not in d_translationCache
-  SatLiteral handleAtom(TNode node);
   SatLiteral handleNot(TNode node);
   SatLiteral handleXor(TNode node);
   SatLiteral handleImplies(TNode node);

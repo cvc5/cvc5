@@ -27,6 +27,7 @@
 
 #include "util/options.h"
 #include "util/stats.h"
+#include "theory/theory.h"
 
 #ifdef __CVC4_USE_MINISAT
 
@@ -199,7 +200,13 @@ public:
 
   SatVariable newVar(bool theoryAtom = false);
 
-  void theoryCheck(SatClause& conflict);
+  void theoryCheck(theory::Theory::Effort effort, SatClause& conflict);
+
+  void explainPropagation(SatLiteral l, SatClause& explanation);
+
+  void theoryPropagate(std::vector<SatLiteral>& output);
+
+  void clearPropagatedLiterals();
 
   void enqueueTheoryLiteral(const SatLiteral& l);
 
@@ -228,6 +235,11 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   d_minisat->remove_satisfied = false;
   // Make minisat reuse the literal values
   d_minisat->polarity_mode = minisat::SimpSolver::polarity_user;
+
+  // No random choices
+  if(debugTagIsOn("no_rnd_decisions")){
+    d_minisat->random_var_freq = 0;
+  }
 
   d_statistics.init(d_minisat);
 }

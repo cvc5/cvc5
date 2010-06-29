@@ -64,13 +64,22 @@ class TheoryEngine {
     TheoryEngine* d_engine;
     context::Context* d_context;
     context::CDO<Node> d_conflictNode;
+    context::CDO<Node> d_explanationNode;
+
+    /**
+     * Literals that are propagated by the theory. Note that these are TNodes.
+     * The theory can only propagate nodes that have an assigned literal in the
+     * sat solver and are hence referenced in the SAT solver.
+     */
+    std::vector<TNode> d_propagatedLiterals;
 
   public:
 
     EngineOutputChannel(TheoryEngine* engine, context::Context* context) :
       d_engine(engine),
       d_context(context),
-      d_conflictNode(context) {
+      d_conflictNode(context),
+      d_explanationNode(context){
     }
 
     void conflict(TNode conflictNode, bool safe) throw(theory::Interrupted, AssertionException) {
@@ -82,7 +91,9 @@ class TheoryEngine {
       }
     }
 
-    void propagate(TNode, bool) throw(theory::Interrupted, AssertionException) {
+    void propagate(TNode lit, bool) throw(theory::Interrupted, AssertionException) {
+      d_propagatedLiterals.push_back(lit);
+      ++(d_engine->d_statistics.d_statPropagate);
       ++(d_engine->d_statistics.d_statPropagate);
     }
 
@@ -94,7 +105,9 @@ class TheoryEngine {
       ++(d_engine->d_statistics.d_statAugLemma);
       d_engine->newAugmentingLemma(node);
     }
-    void explanation(TNode, bool) throw(theory::Interrupted, AssertionException) {
+    void explanation(TNode explanationNode, bool) throw(theory::Interrupted, AssertionException) {
+      d_explanationNode = explanationNode;
+      ++(d_engine->d_statistics.d_statExplanatation);
       ++(d_engine->d_statistics.d_statExplanatation);
     }
   };
@@ -302,6 +315,7 @@ public:
   inline bool check(theory::Theory::Effort effort)
   {
     d_theoryOut.d_conflictNode = Node::null();
+    d_theoryOut.d_propagatedLiterals.clear();
     // Do the checking
     try {
       //d_bool.check(effort);
@@ -316,18 +330,43 @@ public:
     return d_theoryOut.d_conflictNode.get().isNull();
   }
 
+  inline const std::vector<TNode>& getPropagatedLiterals() const {
+    return d_theoryOut.d_propagatedLiterals;
+  }
+
+  void clearPropagatedLiterals() {
+    d_theoryOut.d_propagatedLiterals.clear();
+  }
+
   inline void newLemma(TNode node) {
     d_propEngine->assertLemma(node);
   }
+
   inline void newAugmentingLemma(TNode node) {
     Node preprocessed = preprocess(node);
     d_propEngine->assertFormula(preprocessed);
   }
+
   /**
    * Returns the last conflict (if any).
    */
   inline Node getConflict() {
     return d_theoryOut.d_conflictNode;
+  }
+
+  inline void propagate() {
+    d_theoryOut.d_propagatedLiterals.clear();
+    // Do the propagation
+    d_uf.propagate(theory::Theory::FULL_EFFORT);
+    d_arith.propagate(theory::Theory::FULL_EFFORT);
+  }
+
+  inline Node getExplanation(TNode node){
+    d_theoryOut.d_explanationNode = Node::null();
+    theory::Theory* theory =
+              node.getKind() == kind::NOT ? theoryOf(node[0]) : theoryOf(node);
+    theory->explain(node);
+    return d_theoryOut.d_explanationNode;
   }
 
 private:
@@ -349,6 +388,7 @@ private:
     }
   };
   Statistics d_statistics;
+
 
 };/* class TheoryEngine */
 

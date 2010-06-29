@@ -34,6 +34,7 @@
 #include "theory/arith/basic.h"
 
 #include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_propagator.h"
 
 #include "theory/arith/theory_arith.h"
 #include <map>
@@ -55,6 +56,7 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   d_partialModel(c),
   d_diseq(c),
   d_rewriter(&d_constants),
+  d_propagator(c),
   d_statistics()
 {
   uint64_t ass_id = partial_model::Assignment::getId();
@@ -80,6 +82,15 @@ TheoryArith::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::registerStat(&d_statUpdateConflicts);
 }
+
+TheoryArith::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_statPivots);
+  StatisticsRegistry::unregisterStat(&d_statUpdates);
+  StatisticsRegistry::unregisterStat(&d_statAssertUpperConflicts);
+  StatisticsRegistry::unregisterStat(&d_statAssertLowerConflicts);
+  StatisticsRegistry::unregisterStat(&d_statUpdateConflicts);
+}
+
 
 bool isBasicSum(TNode n){
   if(n.getKind() != kind::PLUS) return false;
@@ -143,6 +154,8 @@ void TheoryArith::preRegisterTerm(TNode n) {
     Assert(isNormalAtom(n));
 
 
+    d_propagator.addAtom(n);
+
     TNode left  = n[0];
     TNode right = n[1];
     if(left.getKind() == PLUS){
@@ -202,6 +215,10 @@ void TheoryArith::setupVariable(TNode x){
     d_partialModel.setAssignment(x,assignment);
 
     checkBasicVariable(x);
+    //Strictly speaking checking x is unnessecary as it cannot have an upper or
+    //lower bound. This is done to strongly enforce the notion that basic
+    //variables should not be changed without begin checked.
+
     //Strictly speaking checking x is unnessecary as it cannot have an upper or
     //lower bound. This is done to strongly enforce the notion that basic
     //variables should not be changed without begin checked.
@@ -682,41 +699,69 @@ void TheoryArith::check(Effort level){
   Debug("arith") << "TheoryArith::check begun" << std::endl;
 
   while(!done()){
+
     Node original = get();
     Node assertion = simulatePreprocessing(original);
     Debug("arith_assertions") << "arith assertion(" << original
                               << " \\-> " << assertion << ")" << std::endl;
 
+    d_propagator.assertLiteral(original);
     bool conflictDuringAnAssert = assertionCases(original, assertion);
 
-    if(conflictDuringAnAssert){
-      if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
-      d_partialModel.revertAssignmentChanges();
-      if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
 
+    if(conflictDuringAnAssert){
+      d_partialModel.revertAssignmentChanges();
       return;
     }
   }
 
-  if(fullEffort(level)){
-    if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+  //TODO This must be done everytime for the time being
+  if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
 
-    Node possibleConflict = updateInconsistentVars();
-    if(possibleConflict != Node::null()){
+  Node possibleConflict = updateInconsistentVars();
+  if(possibleConflict != Node::null()){
 
-      d_partialModel.revertAssignmentChanges();
+    d_partialModel.revertAssignmentChanges();
 
-      d_out->conflict(possibleConflict, true);
+    if(debugTagIsOn("arith::print-conflict"))
+      Debug("arith_conflict") << (possibleConflict) << std::endl;
 
-      Debug("arith_conflict") <<"Found a conflict "<< possibleConflict << endl;
-    }else{
-      d_partialModel.commitAssignmentChanges();
-    }
-    if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+    d_out->conflict(possibleConflict);
+
+    Debug("arith_conflict") <<"Found a conflict "<< possibleConflict << endl;
+  }else{
+    d_partialModel.commitAssignmentChanges();
   }
+  if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+
 
   Debug("arith") << "TheoryArith::check end" << std::endl;
 
+  if(debugTagIsOn("arith::print_model")) {
+    Debug("arith::print_model") << "Model:" << endl;
+
+    for (unsigned i = 0; i < d_variables.size(); ++ i) {
+      Debug("arith::print_model") << d_variables[i] << " : " <<
+        d_partialModel.getAssignment(d_variables[i]);
+      if(isBasic(d_variables[i]))
+        Debug("arith::print_model") << " (basic)";
+      Debug("arith::print_model") << endl;
+    }
+  }
+  if(debugTagIsOn("arith::print_assertions")) {
+    Debug("arith::print_assertions") << "Assertions:" << endl;
+    for (unsigned i = 0; i < d_variables.size(); ++ i) {
+      Node x = d_variables[i];
+      if (x.hasAttribute(partial_model::LowerConstraint())) {
+        Node constr = d_partialModel.getLowerConstraint(x);
+        Debug("arith::print_assertions") << constr.toString() << endl;
+      }
+      if (x.hasAttribute(partial_model::UpperConstraint())) {
+        Node constr = d_partialModel.getUpperConstraint(x);
+        Debug("arith::print_assertions") << constr.toString() << endl;
+      }
+    }
+  }
 }
 
 /**
@@ -748,5 +793,25 @@ void TheoryArith::checkTableau(){
                                     << "," << shouldBe << endl;
 
     Assert(sum == shouldBe);
+  }
+}
+
+
+void TheoryArith::explain(TNode n, Effort e) {
+  Node explanation = d_propagator.explain(n);
+  Debug("arith") << "arith::explain("<<explanation<<")->"
+                 << explanation << endl;
+  d_out->explanation(explanation, true);
+}
+
+void TheoryArith::propagate(Effort e) {
+
+  if(quickCheckOrMore(e)){
+    std::vector<Node> implied = d_propagator.getImpliedLiterals();
+    for(std::vector<Node>::iterator i = implied.begin();
+        i != implied.end();
+        ++i){
+      d_out->propagate(*i);
+    }
   }
 }

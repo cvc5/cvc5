@@ -15,10 +15,13 @@ libarith_la_SOURCES = \
 	delta_rational.cpp \
 	partial_model.h \
 	partial_model.cpp \
+	ordered_bounds_list.h \
 	basic.h \
 	normal.h \
 	slack.h \
 	tableau.h \
+	arith_propagator.h \
+	arith_propagator.cpp \
 	theory_arith.h \
 	theory_arith.cpp
 

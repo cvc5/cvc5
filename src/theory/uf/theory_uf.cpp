@@ -307,7 +307,7 @@ void TheoryUF::check(Effort level) {
     merge();
   }
 
-  if(fullEffort(level)) {
+  if(standardEffortOrMore(level)) {
     for(CDList<Node>::const_iterator diseqIter = d_disequality.begin();
         diseqIter != d_disequality.end();
         ++diseqIter) {

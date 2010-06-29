@@ -24,6 +24,8 @@
 #include "expr/node_manager.h"
 #include "context/context.h"
 
+#include "theory/theory_test_utils.h"
+
 #include <vector>
 
 using namespace CVC4;
@@ -34,60 +36,6 @@ using namespace CVC4::context;
 
 using namespace std;
 
-/**
- * Very basic OutputChannel for testing simple Theory Behaviour.
- * Stores a call sequence for the output channel
- */
-enum OutputChannelCallType { CONFLICT, PROPOGATE, LEMMA, EXPLANATION };
-class TestOutputChannel : public OutputChannel {
-private:
-  void push(OutputChannelCallType call, TNode n) {
-    d_callHistory.push_back(make_pair(call,n));
-  }
-public:
-  vector< pair<OutputChannelCallType, Node> > d_callHistory;
-
-  TestOutputChannel() {}
-
-  ~TestOutputChannel() {}
-
-  void safePoint()  throw(Interrupted, AssertionException) {}
-
-  void conflict(TNode n, bool safe = false)  throw(Interrupted, AssertionException) {
-    push(CONFLICT, n);
-  }
-
-  void propagate(TNode n, bool safe = false)  throw(Interrupted, AssertionException) {
-    push(PROPOGATE, n);
-  }
-
-  void lemma(TNode n, bool safe = false) throw(Interrupted, AssertionException) {
-    push(LEMMA, n);
-  }
-  void augmentingLemma(TNode n, bool safe = false) throw(Interrupted, AssertionException){
-    Unreachable();
-  }
-  void explanation(TNode n, bool safe = false)  throw(Interrupted, AssertionException) {
-    push(EXPLANATION, n);
-  }
-
-  void clear() {
-    d_callHistory.clear();
-  }
-
-  Node getIthNode(int i) {
-    Node tmp = (d_callHistory[i]).second;
-    return tmp;
-  }
-
-  OutputChannelCallType getIthCallType(int i) {
-    return (d_callHistory[i]).first;
-  }
-
-  unsigned getNumCalls() {
-    return d_callHistory.size();
-  }
-};
 
 class TheoryUFWhite : public CxxTest::TestSuite {
 

@@ -102,26 +102,10 @@ Node CnfStream::getNode(const SatLiteral& literal) {
   return node;
 }
 
-SatLiteral CnfStream::getLiteral(TNode node) {
-  TranslationCache::iterator find = d_translationCache.find(node);
-  Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
-  SatLiteral literal = find->second;
-  Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
-  return literal;
-}
-
-const CnfStream::NodeCache& CnfStream::getNodeCache() const {
-  return d_nodeCache;
-}
-
-const CnfStream::TranslationCache& CnfStream::getTranslationCache() const {
-  return d_translationCache;
-}
-
-SatLiteral TseitinCnfStream::handleAtom(TNode node) {
+SatLiteral CnfStream::convertAtom(TNode node) {
   Assert(!isCached(node), "atom already mapped!");
 
-  Debug("cnf") << "handleAtom(" << node << ")" << endl;
+  Debug("cnf") << "convertAtom(" << node << ")" << endl;
 
   bool theoryLiteral = node.getKind() != kind::VARIABLE;
   SatLiteral lit = newLiteral(node, theoryLiteral);
@@ -135,6 +119,23 @@ SatLiteral TseitinCnfStream::handleAtom(TNode node) {
   }
 
   return lit;
+}
+
+SatLiteral CnfStream::getLiteral(TNode node, bool create /* = false */) {
+  TranslationCache::iterator find = d_translationCache.find(node);
+  SatLiteral literal;
+  if(create) {
+    if(find == d_translationCache.end()) {
+      literal = convertAtom(node);
+    } else {
+      literal = find->second;
+    }
+  } else {
+    Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
+    literal = find->second;
+  }
+  Debug("cnf") << "CnfStream::getLiteral(" << node << ", create = " << create << ") => " << literal << std::endl;
+  return literal;
 }
 
 SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
@@ -366,10 +367,10 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
     default:
       {
         //TODO make sure this does not contain any boolean substructure
-        nodeLit = handleAtom(node);
+        nodeLit = convertAtom(node);
         //Unreachable();
         //Node atomic = handleNonAtomicNode(node);
-        //return isCached(atomic) ? lookupInCache(atomic) : handleAtom(atomic);
+        //return isCached(atomic) ? lookupInCache(atomic) : convertAtom(atomic);
       }
     }
   }

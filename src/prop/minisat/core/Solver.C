@@ -29,6 +29,28 @@ namespace CVC4 {
 namespace prop {
 namespace minisat {
 
+Clause* Solver::lazy_reason = reinterpret_cast<Clause*>(1);
+
+Clause* Solver::getReason(Lit l)
+{
+    if (reason[var(l)] != lazy_reason) return reason[var(l)];
+    // Get the explanation from the theory
+    SatClause explanation;
+    if (value(l) == l_True) {
+      proxy->explainPropagation(l, explanation);
+      assert(explanation[0] == l);
+    } else {
+      proxy->explainPropagation(~l, explanation);
+      assert(explanation[0] == ~l);
+    }
+    Clause* real_reason = Clause_new(explanation, true);
+    reason[var(l)] = real_reason;
+    // Add it to the database
+    learnts.push(real_reason);
+    attachClause(*real_reason);
+    return real_reason;
+}
+
 Solver::Solver(SatSolver* proxy, context::Context* context) :
 
     // SMT stuff
@@ -122,7 +144,7 @@ bool Solver::addClause(vec<Lit>& ps, ClauseType type)
         assert(type != CLAUSE_LEMMA);
         assert(value(ps[0]) == l_Undef);
         uncheckedEnqueue(ps[0]);
-        return ok = (propagate() == NULL);
+        return ok = (propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) == NULL);
     }else{
         Clause* c = Clause_new(ps, false);
         clauses.push(c);
@@ -282,7 +304,7 @@ void Solver::analyze(Clause* confl, vec<Lit>& out_learnt, int& out_btlevel)
         // Select next clause to look at:
         while (!seen[var(trail[index--])]);
         p     = trail[index+1];
-        confl = reason[var(p)];
+        confl = getReason(p);
         seen[var(p)] = 0;
         pathC--;
 
@@ -299,12 +321,12 @@ void Solver::analyze(Clause* confl, vec<Lit>& out_learnt, int& out_btlevel)
 
         out_learnt.copyTo(analyze_toclear);
         for (i = j = 1; i < out_learnt.size(); i++)
-            if (reason[var(out_learnt[i])] == NULL || !litRedundant(out_learnt[i], abstract_level))
+            if (getReason(out_learnt[i]) == NULL || !litRedundant(out_learnt[i], abstract_level))
                 out_learnt[j++] = out_learnt[i];
     }else{
         out_learnt.copyTo(analyze_toclear);
         for (i = j = 1; i < out_learnt.size(); i++){
-            Clause& c = *reason[var(out_learnt[i])];
+            Clause& c = *getReason(out_learnt[i]);
             for (int k = 1; k < c.size(); k++)
                 if (!seen[var(c[k])] && level[var(c[k])] > 0){
                     out_learnt[j++] = out_learnt[i];
@@ -342,13 +364,13 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     analyze_stack.clear(); analyze_stack.push(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason[var(analyze_stack.last())] != NULL);
+        assert(getReason(analyze_stack.last()) != NULL);
         Clause& c = *reason[var(analyze_stack.last())]; analyze_stack.pop();
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
             if (!seen[var(p)] && level[var(p)] > 0){
-                if (reason[var(p)] != NULL && (abstractLevel(var(p)) & abstract_levels) != 0){
+                if (getReason(p) != NULL && (abstractLevel(var(p)) & abstract_levels) != 0){
                     seen[var(p)] = 1;
                     analyze_stack.push(p);
                     analyze_toclear.push(p);
@@ -415,42 +437,74 @@ void Solver::uncheckedEnqueue(Lit p, Clause* from)
     polarity [var(p)] = sign(p);
     trail.push(p);
 
-    if (theory[var(p)]) {
+    if (theory[var(p)] && from != lazy_reason) {
       // Enqueue to the theory
       proxy->enqueueTheoryLiteral(p);
     }
 }
 
 
-Clause* Solver::propagate()
+Clause* Solver::propagate(TheoryCheckType type)
 {
     Clause* confl = NULL;
 
-    while(qhead < trail.size()) {
-      confl = propagateBool();
-      if (confl != NULL) break;
-      confl = propagateTheory();
-      if (confl != NULL) break;
+    // If this is the final check, no need for Boolean propagation and
+    // theory propagation
+    if (type == CHECK_WITHOUTH_PROPAGATION_FINAL) {
+      return theoryCheck(theory::Theory::FULL_EFFORT);
     }
+
+    // The effort we will be using to theory check
+    theory::Theory::Effort effort = type == CHECK_WITHOUTH_PROPAGATION_QUICK ?
+        theory::Theory::QUICK_CHECK : theory::Theory::STANDARD;
+
+    // Keep running until we have checked everything, we
+    // have no conflict and no new literals have been asserted
+    bool new_assertions;
+    do {
+        new_assertions = false;
+        while(qhead < trail.size()) {
+            confl = propagateBool();
+            if (confl != NULL) break;
+            confl = theoryCheck(effort);
+            if (confl != NULL) break;
+        }
+
+        if (confl == NULL && type == CHECK_WITH_PROPAGATION_STANDARD) {
+          new_assertions = propagateTheory();
+          if (!new_assertions) break;
+        }
+    } while (new_assertions);
 
     return confl;
 }
 
+bool Solver::propagateTheory() {
+  std::vector<Lit> propagatedLiterals;
+  proxy->theoryPropagate(propagatedLiterals);
+  const unsigned i_end = propagatedLiterals.size();
+  for (unsigned i = 0; i < i_end; ++ i) {
+    uncheckedEnqueue(propagatedLiterals[i], lazy_reason);
+  }
+  proxy->clearPropagatedLiterals();
+  return propagatedLiterals.size() > 0;
+}
+
 /*_________________________________________________________________________________________________
 |
-|  propagateTheory : [void]  ->  [Clause*]
+|  theoryCheck: [void]  ->  [Clause*]
 |
 |  Description:
-|    Propagates all enqueued theory facts. If a conflict arises, the conflicting clause is returned,
-|    otherwise NULL.
+|    Checks all enqueued theory facts for satisfiability. If a conflict arises, the conflicting
+|    clause is returned, otherwise NULL.
 |
 |    Note: the propagation queue might be NOT empty
 |________________________________________________________________________________________________@*/
-Clause* Solver::propagateTheory()
+Clause* Solver::theoryCheck(theory::Theory::Effort effort)
 {
   Clause* c = NULL;
   SatClause clause;
-  proxy->theoryCheck(clause);
+  proxy->theoryCheck(effort, clause);
   int clause_size = clause.size();
   Assert(clause_size != 1, "Can't handle unit clause explanations");
   if(clause_size > 0) {
@@ -598,7 +652,7 @@ bool Solver::simplify()
 {
     assert(decisionLevel() == 0);
 
-    if (!ok || propagate() != NULL)
+    if (!ok || propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) != NULL)
         return ok = false;
 
     if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
@@ -643,9 +697,9 @@ lbool Solver::search(int nof_conflicts, int nof_learnts)
     starts++;
 
     bool first = true;
-
+    TheoryCheckType check_type = CHECK_WITH_PROPAGATION_STANDARD;
     for (;;){
-        Clause* confl = propagate();
+        Clause* confl = propagate(check_type);
         if (confl != NULL){
             // CONFLICT
             conflicts++; conflictC++;
@@ -671,8 +725,15 @@ lbool Solver::search(int nof_conflicts, int nof_learnts)
             varDecayActivity();
             claDecayActivity();
 
+            // We have a conflict so, we are going back to standard checks
+            check_type = CHECK_WITH_PROPAGATION_STANDARD;
+
         }else{
             // NO CONFLICT
+
+            // If this was a final check, we are satisfiable
+            if (check_type == CHECK_WITHOUTH_PROPAGATION_FINAL)
+              return l_True;
 
             if (nof_conflicts >= 0 && conflictC >= nof_conflicts){
                 // Reached bound on number of conflicts:
@@ -709,9 +770,11 @@ lbool Solver::search(int nof_conflicts, int nof_learnts)
                 decisions++;
                 next = pickBranchLit(polarity_mode, random_var_freq);
 
-                if (next == lit_Undef)
-                    // Model found:
-                    return l_True;
+                if (next == lit_Undef) {
+                    // We need to do a full theory check to confirm
+                    check_type = CHECK_WITHOUTH_PROPAGATION_FINAL;
+                    continue;
+                }
             }
 
             // Increase decision level and enqueue 'next'

@@ -331,6 +331,8 @@ protected:
 
 };/* class Theory */
 
+std::ostream& operator<<(std::ostream& os, Theory::Effort level);
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 

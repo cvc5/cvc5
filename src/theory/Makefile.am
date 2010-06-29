@@ -9,6 +9,7 @@ libtheory_la_SOURCES = \
 	@srcdir@/theoryof_table.h \
 	theory_engine.h \
 	theory_engine.cpp \
+	theory_test_utils.h \
 	theory.h \
 	theory.cpp
 

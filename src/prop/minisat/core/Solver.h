@@ -23,6 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #define __CVC4__PROP__MINISAT__SOLVER_H
 
 #include "context/context.h"
+#include "theory/theory.h"
 
 #include <cstdio>
 #include <cassert>
@@ -161,7 +162,11 @@ protected:
     vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
     vec<Clause*>        lemmas;           // List of lemmas we added (context dependent)
     vec<int>            lemmas_lim;       // Separator indices for different decision levels in 'lemmas'.
-    vec<Clause*>        reason;           // 'reason[var]' is the clause that implied the variables current value, or 'NULL' if none.
+    static Clause*      lazy_reason;      // The mark when we need to ask the theory engine for a reason
+    vec<Clause*>        reason;           // 'reason[var]' is the clause that implied the variables current value, lazy_reason if theory propagated, or 'NULL' if none.
+
+    Clause* getReason(Lit l);             // Returns the reason, or asks the theory for an explanation
+
     vec<int>            level;            // 'level[var]' contains the level at which the assignment was made.
     int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
     int                 lhead;            // Head of the lemma stack (for backtracking)
@@ -181,6 +186,15 @@ protected:
     vec<Lit>            analyze_toclear;
     vec<Lit>            add_tmp;
 
+    enum TheoryCheckType {
+      // Quick check, but don't perform theory propagation
+      CHECK_WITHOUTH_PROPAGATION_QUICK,
+      // Check and perform theory propagation
+      CHECK_WITH_PROPAGATION_STANDARD,
+      // The SAT problem is satisfiable, perform a full theory check
+      CHECK_WITHOUTH_PROPAGATION_FINAL
+    };
+
     // Main internal methods:
     //
     void     insertVarOrder   (Var x);                                                 // Insert a variable in the decision order priority queue.
@@ -188,9 +202,10 @@ protected:
     void     newDecisionLevel ();                                                      // Begins a new decision level.
     void     uncheckedEnqueue (Lit p, Clause* from = NULL);                            // Enqueue a literal. Assumes value of literal is undefined.
     bool     enqueue          (Lit p, Clause* from = NULL);                            // Test if fact 'p' contradicts current state, enqueue otherwise.
-    Clause*  propagate        ();                                                      // Perform Boolean and Theory. Returns possibly conflicting clause.
+    Clause*  propagate        (TheoryCheckType type);                                  // Perform Boolean and Theory. Returns possibly conflicting clause.
     Clause*  propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
-    Clause*  propagateTheory  ();                                                      // Perform Theory propagation. Returns possibly conflicting clause.
+    bool     propagateTheory  ();                                                      // Perform Theory propagation. Return true if any literals were asserted.
+    Clause*  theoryCheck      (theory::Theory::Effort effort);                         // Perform a theory satisfiability check. Returns possibly conflicting clause.
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     void     analyze          (Clause* confl, vec<Lit>& out_learnt, int& out_btlevel); // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
@@ -216,7 +231,7 @@ protected:
 
     // Misc:
     //
-    int      decisionLevel    ()      const; // Gives the current decisionlevel.
+    int      decisionLevel    ()      const; // Gives the current decision level.
     uint32_t abstractLevel    (Var x) const; // Used to represent an abstraction of sets of decision levels.
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 
