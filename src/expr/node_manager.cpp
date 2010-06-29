@@ -362,7 +362,7 @@ TypeNode NodeManager::getType(TNode n) throw (TypeCheckingExceptionPrivate) {
       typeNode = CVC4::theory::bv::BitVectorExtendTypeRule::computeType(this, n);
       break;
     default:
-     Unimplemented();
+      Unhandled(n.getKind());
     }
     setAttribute(n, TypeAttr(), typeNode);
   }
