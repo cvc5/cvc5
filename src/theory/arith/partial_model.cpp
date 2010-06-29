@@ -32,6 +32,7 @@ void ArithPartialModel::setUpperBound(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
 
   Debug("partial_model") << "setUpperBound(" << x << "," << r << ")" << endl;
+  x.setAttribute(partial_model::HasHadABound(), true);
 
   d_UpperBoundMap[x] = r;
 }
@@ -39,6 +40,8 @@ void ArithPartialModel::setUpperBound(TNode x, const DeltaRational& r){
 void ArithPartialModel::setLowerBound(TNode x, const DeltaRational& r){
   Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
   Debug("partial_model") << "setLowerBound(" << x << "," << r << ")" << endl;
+  x.setAttribute(partial_model::HasHadABound(), true);
+
   d_LowerBoundMap[x] = r;
 }
 
@@ -57,6 +60,33 @@ void ArithPartialModel::setAssignment(TNode x, const DeltaRational& r){
   }
 
   *curr = r;
+  Debug("partial_model") << "pm: updating the assignment to" << x
+                         << " now " << r <<endl;
+}
+void ArithPartialModel::setAssignment(TNode x, const DeltaRational& safe, const DeltaRational& r){
+  Assert(x.getMetaKind() == CVC4::kind::metakind::VARIABLE);
+  Assert(x.hasAttribute(partial_model::Assignment()));
+  Assert(x.hasAttribute(partial_model::SafeAssignment()));
+
+  DeltaRational* curr = x.getAttribute(partial_model::Assignment());
+  DeltaRational* saved = x.getAttribute(partial_model::SafeAssignment());
+
+  if(safe == r){
+    if(saved != NULL){
+      x.setAttribute(partial_model::SafeAssignment(), NULL);
+      delete saved;
+    }
+  }else{
+    if(saved == NULL){
+      saved = new DeltaRational(safe);
+      x.setAttribute(partial_model::SafeAssignment(), saved);
+    }else{
+      *saved = safe;
+    }
+    d_history.push_back(x);
+  }
+  *curr = r;
+
   Debug("partial_model") << "pm: updating the assignment to" << x
                          << " now " << r <<endl;
 }
@@ -198,6 +228,12 @@ bool ArithPartialModel::aboveUpperBound(TNode x, const DeltaRational& c, bool st
   }else{
     return c >= u;
   }
+}
+
+bool ArithPartialModel::hasBounds(TNode x){
+  return
+    d_UpperBoundMap.find(x) != d_UpperBoundMap.end() ||
+    d_LowerBoundMap.find(x) != d_LowerBoundMap.end();
 }
 
 bool ArithPartialModel::strictlyBelowUpperBound(TNode x){

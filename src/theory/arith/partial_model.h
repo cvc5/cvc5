@@ -107,6 +107,9 @@ typedef expr::CDAttribute<UpperConstraintAttrID,TNode> UpperConstraint;
 struct TheoryArithPropagatedID {};
 typedef expr::CDAttribute<TheoryArithPropagatedID, bool> TheoryArithPropagated;
 
+struct HasHadABoundID {};
+typedef expr::Attribute<HasHadABoundID, bool> HasHadABound;
+
 }; /*namespace partial_model*/
 
 
@@ -152,11 +155,14 @@ public:
 
 
 
+
   void setUpperBound(TNode x, const DeltaRational& r);
   void setLowerBound(TNode x, const DeltaRational& r);
 
   /* Sets an unsafe variable assignment */
   void setAssignment(TNode x, const DeltaRational& r);
+  void setAssignment(TNode x, const DeltaRational& safe, const DeltaRational& r);
+
 
   /** Must know that the bound exists before calling this! */
   DeltaRational getUpperBound(TNode x) const;
@@ -181,6 +187,11 @@ public:
   bool assignmentIsConsistent(TNode x);
 
   void printModel(TNode x);
+
+  bool hasBounds(TNode x);
+  bool hasEverHadABound(TNode var){
+    return var.getAttribute(partial_model::HasHadABound());
+  }
 
 private:
 

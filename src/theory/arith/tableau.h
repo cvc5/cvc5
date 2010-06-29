@@ -22,6 +22,8 @@
 #include "expr/attribute.h"
 
 #include "theory/arith/basic.h"
+#include "theory/arith/arith_activity.h"
+
 
 #include <ext/hash_map>
 #include <set>
@@ -170,28 +172,35 @@ public:
 private:
   typedef __gnu_cxx::hash_map<TNode, Row*, NodeHashFunction> RowsTable;
 
-  VarSet d_basicVars;
-  RowsTable d_rows;
+  VarSet d_activeBasicVars;
+  RowsTable d_activeRows, d_inactiveRows;
 
 
 public:
   /**
    * Constructs an empty tableau.
    */
-  Tableau() : d_basicVars(), d_rows() {}
+  Tableau() : d_activeBasicVars(), d_activeRows(), d_inactiveRows() {}
 
   VarSet::iterator begin(){
-    return d_basicVars.begin();
+    return d_activeBasicVars.begin();
   }
 
   VarSet::iterator end(){
-    return d_basicVars.end();
+    return d_activeBasicVars.end();
   }
 
   Row* lookup(TNode var){
-    Assert(contains(var));
-    return d_rows[var];
+    Assert(isActiveBasicVariable(var));
+    return d_activeRows[var];
   }
+
+private:
+  Row* lookupEjected(TNode var){
+    Assert(isEjected(var));
+    return d_inactiveRows[var];
+  }
+public:
 
   void addRow(TNode eq){
     Assert(eq.getKind() == kind::EQUAL);
@@ -203,10 +212,10 @@ public:
     Assert(var.getAttribute(IsBasic()));
 
     //The new basic variable cannot already be a basic variable
-    Assert(d_basicVars.find(var) == d_basicVars.end());
-    d_basicVars.insert(var);
+    Assert(!isActiveBasicVariable(var));
+    d_activeBasicVars.insert(var);
     Row* row_var = new Row(var,sum);
-    d_rows[var] = row_var;
+    d_activeRows[var] = row_var;
 
     //A variable in the row may have been made non-basic already.
     //If this is the case we fake pivoting this variable
@@ -217,7 +226,7 @@ public:
       Assert(child[0].getKind() == kind::CONST_RATIONAL);
       TNode c = child[1];
       Assert(var.getMetaKind() == kind::metakind::VARIABLE);
-      if(contains(c)){
+      if(isActiveBasicVariable(c)){
         Row* row_c = lookup(c);
         row_var->subsitute(*row_c);
       }
@@ -231,42 +240,88 @@ public:
    *   a_rs != 0.
    */
   void pivot(TNode x_r, TNode x_s){
-    RowsTable::iterator ptrRow_r = d_rows.find(x_r);
-    Assert(ptrRow_r != d_rows.end());
+    RowsTable::iterator ptrRow_r = d_activeRows.find(x_r);
+    Assert(ptrRow_r != d_activeRows.end());
 
     Row* row_s = (*ptrRow_r).second;
 
     Assert(row_s->has(x_s));
     row_s->pivot(x_s);
 
-    d_rows.erase(ptrRow_r);
-    d_basicVars.erase(x_r);
+    d_activeRows.erase(ptrRow_r);
+    d_activeBasicVars.erase(x_r);
     makeNonbasic(x_r);
 
-    d_rows.insert(std::make_pair(x_s,row_s));
-    d_basicVars.insert(x_s);
+    d_activeRows.insert(std::make_pair(x_s,row_s));
+    d_activeBasicVars.insert(x_s);
     makeBasic(x_s);
 
-    for(VarSet::iterator basicIter = begin(); basicIter != end(); ++basicIter){
+    for(VarSet::iterator basicIter = begin(), endIter = end();
+        basicIter != endIter; ++basicIter){
       TNode basic = *basicIter;
       Row* row_k = lookup(basic);
       if(row_k->basicVar() != x_s){
         if(row_k->has(x_s)){
+          increaseActivity(basic, 30);
+
           row_k->subsitute(*row_s);
         }
       }
     }
   }
   void printTableau(){
-    for(VarSet::iterator basicIter = begin(); basicIter != end(); ++basicIter){
+    for(VarSet::iterator basicIter = begin(), endIter = end();
+        basicIter != endIter; ++basicIter){
       TNode basic = *basicIter;
       Row* row_k = lookup(basic);
       row_k->printRow();
     }
   }
+
+  bool isEjected(TNode var){
+    return d_inactiveRows.find(var) != d_inactiveRows.end();
+  }
+
+  void ejectBasic(TNode basic){
+    Assert(isActiveBasicVariable(basic));
+
+    Row* row = lookup(basic);
+    d_activeRows.erase(basic);
+    d_activeBasicVars.erase(basic);
+
+    d_inactiveRows.insert(make_pair(basic, row));
+  }
+
+  void reinjectBasic(TNode basic){
+    Assert(isEjected(basic));
+
+    Row* row = lookupEjected(basic);
+
+    d_inactiveRows.erase(basic);
+    d_activeBasicVars.insert(basic);
+    d_activeRows.insert(make_pair(basic, row));
+
+    updateRow(row);
+  }
 private:
-  inline bool contains(TNode var){
-    return d_basicVars.find(var) != d_basicVars.end();
+  inline bool isActiveBasicVariable(TNode var){
+    return d_activeBasicVars.find(var) != d_activeBasicVars.end();
+  }
+
+  void updateRow(Row* row){
+    for(Row::iterator i=row->begin(), endIter = row->end(); i != endIter; ){
+      TNode var = *i;
+      ++i;
+      if(isBasic(var)){
+        Row* row_var = isActiveBasicVariable(var) ? lookup(var) : lookupEjected(var);
+
+        Assert(row_var != row);
+        row->subsitute(*row_var);
+
+        i = row->begin();
+        endIter = row->end();
+      }
+    }
   }
 };
 

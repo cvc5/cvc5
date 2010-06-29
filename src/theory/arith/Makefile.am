@@ -11,6 +11,7 @@ libarith_la_SOURCES = \
 	arith_rewriter.cpp \
 	arith_utilities.h \
 	arith_constants.h \
+	arith_activity.h \
 	delta_rational.h \
 	delta_rational.cpp \
 	partial_model.h \
