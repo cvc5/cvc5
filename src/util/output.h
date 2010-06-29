@@ -116,6 +116,7 @@ public:
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
   void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& getStream() { return *d_os; }
 };/* class Debug */
 
 /** The debug output singleton */
@@ -141,6 +142,7 @@ public:
   std::ostream& operator()() { return *d_os; }
 
   void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& getStream() { return *d_os; }
 };/* class Warning */
 
 /** The warning output singleton */
@@ -162,6 +164,7 @@ public:
   std::ostream& operator()() { return *d_os; }
 
   void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& getStream() { return *d_os; }
 };/* class Message */
 
 /** The message output singleton */
@@ -183,6 +186,7 @@ public:
   std::ostream& operator()() { return *d_os; }
 
   void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& getStream() { return *d_os; }
 };/* class Notice */
 
 /** The notice output singleton */
@@ -204,6 +208,7 @@ public:
   std::ostream& operator()() { return *d_os; }
 
   void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& getStream() { return *d_os; }
 };/* class Chat */
 
 /** The chat output singleton */
@@ -270,6 +275,7 @@ public:
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
   void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& getStream() { return *d_os; }
 };/* class Trace */
 
 /** The trace output singleton */
@@ -321,6 +327,7 @@ public:
   bool isOn(std::string tag) { return false; }
 
   void setStream(std::ostream& os) {}
+  std::ostream& getStream() { return null_os; }
 };/* class NullDebugC */
 
 /**
@@ -341,6 +348,7 @@ public:
   std::ostream& operator()() { return null_os; }
 
   void setStream(std::ostream& os) {}
+  std::ostream& getStream() { return null_os; }
 };/* class NullC */
 
 extern NullDebugC debugNullCvc4Stream CVC4_PUBLIC;

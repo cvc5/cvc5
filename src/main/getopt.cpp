@@ -31,6 +31,7 @@
 #include "util/output.h"
 #include "util/options.h"
 #include "parser/parser_options.h"
+#include "expr/expr.h"
 
 #include "cvc4autoconfig.h"
 #include "main.h"
@@ -66,7 +67,8 @@ enum OptionValue {
   NO_CHECKING,
   USE_MMAP,
   SHOW_CONFIG,
-  STRICT_PARSING
+  STRICT_PARSING,
+  DEFAULT_EXPR_DEPTH
 };/* enum OptionValue */
 
 /**
@@ -110,6 +112,7 @@ static struct option cmdlineOptions[] = {
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
   { "mmap",        no_argument      , NULL, USE_MMAP    },
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
+  { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -217,6 +220,17 @@ throw(OptionException) {
 
     case STRICT_PARSING:
       opts->strictParsing = true;
+      break;
+
+    case DEFAULT_EXPR_DEPTH: {
+        int depth = atoi(optarg);
+        Debug.getStream() << Expr::setdepth(depth);
+        Trace.getStream() << Expr::setdepth(depth);
+        Notice.getStream() << Expr::setdepth(depth);
+        Chat.getStream() << Expr::setdepth(depth);
+        Message.getStream() << Expr::setdepth(depth);
+        Warning.getStream() << Expr::setdepth(depth);
+      }
       break;
 
     case SHOW_CONFIG:

@@ -42,6 +42,10 @@ class NodeTemplate;
 
 class Expr;
 
+namespace expr {
+  class NodeSetDepth;
+}/* CVC4::expr namespace */
+
 /**
  * Exception thrown in the case of type-checking errors.
  */
@@ -245,6 +249,22 @@ public:
   ExprManager* getExprManager() const;
 
   /**
+   * IOStream manipulator to set the maximum depth of Nodes when
+   * pretty-printing.  -1 means print to any depth.  E.g.:
+   *
+   *   // let a, b, c, and d be VARIABLEs
+   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
+   *   out << setdepth(3) << n;
+   *
+   * gives "(OR a b (AND c (NOT d)))", but
+   *
+   *   out << setdepth(1) << [same node as above]
+   *
+   * gives "(OR a b (...))"
+   */
+  typedef expr::NodeSetDepth setdepth;
+
+  /**
    * Very basic pretty printer for Expr.
    * This is equivalent to calling e.getNode().printAst(...)
    * @param out output stream to print to.
@@ -363,6 +383,84 @@ public:
 };
 
 ${getConst_instantiations}
+
+namespace expr {
+
+/**
+ * IOStream manipulator to set the maximum depth of Nodes when
+ * pretty-printing.  -1 means print to any depth.  E.g.:
+ *
+ *   // let a, b, c, and d be VARIABLEs
+ *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
+ *   out << setdepth(3) << n;
+ *
+ * gives "(OR a b (AND c (NOT d)))", but
+ *
+ *   out << setdepth(1) << [same node as above]
+ *
+ * gives "(OR a b (...))".
+ *
+ * The implementation of this class serves two purposes; it holds
+ * information about the depth setting (such as the index of the
+ * allocated word in ios_base), and serves also as the manipulator
+ * itself (as above).
+ */
+class NodeSetDepth {
+  /**
+   * The allocated index in ios_base for our depth setting.
+   */
+  static const int s_iosIndex;
+
+  /**
+   * The default depth to print, for ostreams that haven't yet had a
+   * setdepth() applied to them.
+   */
+  static const int s_defaultPrintDepth = 3;
+
+  /**
+   * When this manipulator is 
+   */
+  long d_depth;
+
+public:
+  /**
+   * Construct a NodeSetDepth with the given depth.
+   */
+  NodeSetDepth(long depth) : d_depth(depth) {}
+
+  inline void applyDepth(std::ostream& out) {
+    out.iword(s_iosIndex) = d_depth;
+  }
+
+  static inline long getDepth(std::ostream& out) {
+    long& l = out.iword(s_iosIndex);
+    if(l == 0) {
+      // set the default print depth on this ostream
+      l = s_defaultPrintDepth;
+    }
+    return l;
+  }
+
+  static inline void setDepth(std::ostream& out, long depth) {
+    out.iword(s_iosIndex) = depth;
+  }
+};
+
+/**
+ * Sets the default depth when pretty-printing a Node to an ostream.
+ * Use like this:
+ *
+ *   // let out be an ostream, n a Node
+ *   out << Node::setdepth(n) << n << endl;
+ *
+ * The depth stays permanently (until set again) with the stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, NodeSetDepth sd) {
+  sd.applyDepth(out);
+  return out;
+}
+
+}/* CVC4::expr namespace */
 
 }/* CVC4 namespace */
 

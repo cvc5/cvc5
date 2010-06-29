@@ -47,7 +47,9 @@ CVC4 options:\n\
    --quiet | -q    decrease verbosity (repeatable)\n\
    --trace | -t    tracing for something (e.g. --trace pushpop)\n\
    --debug | -d    debugging for something (e.g. --debug arith), implies -t\n\
-   --stats         give statistics on exit\n"
+   --stats         give statistics on exit\n\
+   --strict-parsing FIXME\n\
+   --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n"
 #endif
 ;
 
