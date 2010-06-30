@@ -34,7 +34,14 @@ fi
 
 tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
-  if grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
+  if test -e "$benchmark.expect"; then
+    expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
+    expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | sed 's,^% EXIT: ,,'`
+    if [ -z "$expected_exit_status" ]; then
+      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+    fi
+  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
@@ -54,7 +61,15 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
-  if grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
+  if test -e "$benchmark.expect"; then
+    expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
+    expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | sed 's,^% EXIT: ,,'`
+    if [ -z "$expected_exit_status" ]; then
+      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+    fi
+    benchmark=$tmpbenchmark
+  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
