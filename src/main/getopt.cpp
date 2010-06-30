@@ -196,7 +196,7 @@ throw(OptionException) {
     case 'd':
       Debug.on(optarg);
       Trace.on(optarg);
-      /* fall-through */
+      break;
 
     case STATS:
       opts->statistics = true;
