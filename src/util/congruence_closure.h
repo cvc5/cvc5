@@ -36,7 +36,9 @@ namespace CVC4 {
  * Congruence closure module for CVC4.
  *
  * This is a service class for theories.  One uses a CongruenceClosure
- * by adding a number of equalities with addEquality().
+ * by adding a number of relevant terms with addTerm() and equalities
+ * with addEquality().  It then gets notified (through OutputChannel,
+ * below), of new equalities.
  *
  * OutputChannel is a template argument (it's probably a thin layer,
  * and we want to avoid a virtual call hierarchy in this case, and
@@ -46,9 +48,23 @@ namespace CVC4 {
  *   class MyOutputChannel {
  *   public:
  *     void merge(TNode a, TNode b) {
- *       // CongruenceClosure is notifying us that a is now the EC
- *       // representative for b in this context.  After a pop a will
- *       // be its own representative again.
+ *       // CongruenceClosure is notifying us that "a" is now the EC
+ *       // representative for "b" in this context.  After a pop, "a"
+ *       // will be its own representative again.  Note that "a" and
+ *       // "b" might never have been added with addTerm().  However,
+ *       // something in their equivalence class was (for which a
+ *       // previous merge() would have notified you of their EC
+ *       // representative, which is now "a" or "b").
+ *       //
+ *       // This call is made immediately after the merge is done, and
+ *       // while other pending merges may be on the queue.  In particular,
+ *       // any exception thrown from this function will immediately
+ *       // exit the CongruenceClosure call.  A subsequent call to
+ *       // doPendingMerges() is necessary to continue merging;
+ *       // doPendingMerges() is automatically done at the very beginning
+ *       // of every call, including find() and areCongruent(), to ensure
+ *       // consistency.  However, if the context pops, the pending merges
+ *       // up to that level are cleared.
  *     }
  *   };
  */
@@ -59,13 +75,18 @@ class CongruenceClosure {
 
 public:
   /** Construct a congruence closure module instance */
-  CongruenceClosure(context::Context* ctxt, OutputChannel* out);
+  CongruenceClosure(context::Context* ctxt, OutputChannel* out)
+    throw(AssertionException);
 
   /**
-   * Add an equality literal eq into CC consideration.  This is the
-   * only input to the congruence closure module.
+   * Add a term into CC consideration.
    */
-  void addEquality(TNode eq);
+  void addTerm(TNode trm) throw(AssertionException);
+
+  /**
+   * Add an equality literal eq into CC consideration.
+   */
+  void addEquality(TNode eq) throw(AssertionException);
 
   /**
    * Inquire whether two expressions are congruent.
@@ -92,6 +113,13 @@ public:
    */
   Node explain(TNode eq)
     throw(CongruenceClosureException, AssertionException);
+
+  /**
+   * Request that any pending merges (canceled with an
+   * exception thrown from OutputChannel::merge()) be
+   * performed and the OutputChannel notified.
+   */
+  void doPendingMerges() throw(AssertionException);
 
 private:
 
