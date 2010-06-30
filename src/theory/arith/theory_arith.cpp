@@ -315,6 +315,34 @@ DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
   return sum;
 }
 
+RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
+  // Look for multiplications with a 0 argument and rewrite the whole
+  // thing as 0
+  if(n.getKind() == MULT) {
+    Rational ratZero;
+    Integer intZero;
+    for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
+      if((*i).getKind() == CONST_RATIONAL) {
+        if((*i).getConst<Rational>() == ratZero) {
+          n = NodeManager::currentNM()->mkConst(ratZero);
+          break;
+        }
+      } else if((*i).getKind() == CONST_INTEGER) {
+        if((*i).getConst<Integer>() == intZero) {
+          if(n.getType().isInteger()) {
+            n = NodeManager::currentNM()->mkConst(intZero);
+            break;
+          } else {
+            n = NodeManager::currentNM()->mkConst(ratZero);
+            break;
+          }
+        }
+      }
+    }
+  }
+  return RewritingComplete(Node(n));
+}
+
 Node TheoryArith::rewrite(TNode n){
   Debug("arith") << "rewrite(" << n << ")" << endl;
 

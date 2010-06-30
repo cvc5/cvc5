@@ -20,10 +20,11 @@
 
 #include "node_manager.h"
 
-#include "expr/builtin_type_rules.h"
+#include "theory/builtin/theory_builtin_type_rules.h"
 #include "theory/booleans/theory_bool_type_rules.h"
 #include "theory/uf/theory_uf_type_rules.h"
 #include "theory/arith/theory_arith_type_rules.h"
+#include "theory/arrays/theory_arrays_type_rules.h"
 #include "theory/bv/theory_bv_type_rules.h"
 
 #include <ext/hash_set>
@@ -181,17 +182,19 @@ void NodeManager::reclaimZombies() {
   }
 }/* NodeManager::reclaimZombies() */
 
-TypeNode NodeManager::getType(TNode n) throw (TypeCheckingExceptionPrivate) {
+TypeNode NodeManager::getType(TNode n)
+  throw (TypeCheckingExceptionPrivate, AssertionException) {
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
-  if (!hasType) {
+  Debug("getType") << "getting type for " << n << std::endl;
+  if(!hasType) {
     // Infer the type
-    switch (n.getKind()) {
+    switch(n.getKind()) {
     case kind::EQUAL:
-      typeNode = CVC4::EqualityTypeRule::computeType(this, n);
+      typeNode = CVC4::theory::builtin::EqualityTypeRule::computeType(this, n);
       break;
     case kind::DISTINCT:
-      typeNode = CVC4::DistinctTypeRule::computeType(this, n);
+      typeNode = CVC4::theory::builtin::DistinctTypeRule::computeType(this, n);
       break;
     case kind::CONST_BOOLEAN:
       typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n);
@@ -252,6 +255,12 @@ TypeNode NodeManager::getType(TNode n) throw (TypeCheckingExceptionPrivate) {
       break;
     case kind::GEQ:
       typeNode = CVC4::theory::arith::ArithPredicateTypeRule::computeType(this, n);
+      break;
+    case kind::SELECT:
+      typeNode = CVC4::theory::arrays::ArraySelectTypeRule::computeType(this, n);
+      break;
+    case kind::STORE:
+      typeNode = CVC4::theory::arrays::ArrayStoreTypeRule::computeType(this, n);
       break;
     case kind::BITVECTOR_CONST:
       typeNode = CVC4::theory::bv::BitVectorConstantTypeRule::computeType(this, n);
@@ -362,10 +371,12 @@ TypeNode NodeManager::getType(TNode n) throw (TypeCheckingExceptionPrivate) {
       typeNode = CVC4::theory::bv::BitVectorExtendTypeRule::computeType(this, n);
       break;
     default:
+      Debug("getType") << "FAILURE" << std::endl;
       Unhandled(n.getKind());
     }
     setAttribute(n, TypeAttr(), typeNode);
   }
+  Debug("getType") << "type of " << n << " is " << typeNode << std::endl;
   return typeNode;
 }
 

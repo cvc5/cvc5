@@ -148,7 +148,7 @@ public:
         }
       }else{
         d_nonbasic.insert(x_j);
-        d_coeffs.insert(make_pair(x_j,a_sj));
+        d_coeffs.insert(std::make_pair(x_j,a_sj));
       }
     }
   }
@@ -289,7 +289,7 @@ public:
     d_activeRows.erase(basic);
     d_activeBasicVars.erase(basic);
 
-    d_inactiveRows.insert(make_pair(basic, row));
+    d_inactiveRows.insert(std::make_pair(basic, row));
   }
 
   void reinjectBasic(TNode basic){
@@ -299,7 +299,7 @@ public:
 
     d_inactiveRows.erase(basic);
     d_activeBasicVars.insert(basic);
-    d_activeRows.insert(make_pair(basic, row));
+    d_activeRows.insert(std::make_pair(basic, row));
 
     updateRow(row);
   }

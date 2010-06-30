@@ -6,6 +6,12 @@
 
 theory ::CVC4::theory::bv::TheoryBV "theory_bv.h"
 
+constant BITVECTOR_TYPE \
+	::CVC4::BitVectorSize \
+	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSize >" \
+	"util/bitvector.h" \
+	"bit-vector type"
+
 constant BITVECTOR_CONST \
     ::CVC4::BitVector \
     ::CVC4::BitVectorHashStrategy \

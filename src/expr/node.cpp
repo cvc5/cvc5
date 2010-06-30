@@ -24,12 +24,6 @@
 using namespace std;
 
 namespace CVC4 {
-namespace expr {
-
-const int NodeSetDepth::s_iosIndex = std::ios_base::xalloc();
-
-}/* CVC4::expr namespace */
-
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node, std::string message)
 : Exception(message), d_node(new Node(node))

@@ -3,11 +3,11 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../../include -I@srcdir@/../..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-noinst_LTLIBRARIES = libarrays.la
+noinst_LTLIBRARIES = libbuiltin.la
 
-libarrays_la_SOURCES = \
-	theory_arrays_type_rules.h \
-	theory_arrays.h \
-	theory_arrays.cpp
+libbuiltin_la_SOURCES = \
+	theory_builtin_type_rules.h \
+	theory_builtin.h \
+	theory_builtin.cpp
 
 EXTRA_DIST = kinds

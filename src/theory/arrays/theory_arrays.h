@@ -23,9 +23,7 @@
 
 #include "theory/theory.h"
 
-namespace context {
-class Context;
-}
+#include <iostream>
 
 namespace CVC4 {
 namespace theory {
@@ -37,10 +35,25 @@ public:
   ~TheoryArrays();
   void preRegisterTerm(TNode n) { }
   void registerTerm(TNode n) { }
+
+  RewriteResponse preRewrite(TNode in, bool topLevel) {
+    Debug("arrays-rewrite") << "pre-rewriting " << in
+                            << " topLevel==" << topLevel << std::endl;
+    return RewritingComplete(in);
+  }
+
+  RewriteResponse postRewrite(TNode in, bool topLevel) {
+    Debug("arrays-rewrite") << "post-rewriting " << in
+                            << " topLevel==" << topLevel << std::endl;
+    return RewritingComplete(in);
+  }
+
   void check(Effort e);
   void propagate(Effort e) { }
   void explain(TNode n, Effort e) { }
-};
+  void shutdown() { }
+  std::string identify() const { return std::string("TheoryArrays"); }
+};/* class TheoryArrays */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */

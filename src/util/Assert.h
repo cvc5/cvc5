@@ -211,9 +211,9 @@ extern __thread CVC4_PUBLIC const char* s_debugAssertionFailure;
                   << "An assertion failed during stack unwinding:" << std::endl \
                   << AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg) << std::endl \
                   << "===========================================" << std::endl; \
-        if(s_debugAssertionFailure != NULL) {                                \
+        if(s_debugAssertionFailure != NULL) {                           \
           Warning() << "The propagating exception is:" << std::endl     \
-                    << s_debugAssertionFailure << std::endl                  \
+                    << s_debugAssertionFailure << std::endl             \
                     << "===========================================" << std::endl; \
           s_debugAssertionFailure = NULL;                               \
         }                                                               \

@@ -2,7 +2,7 @@
 /*! \file builtin_type_rules.cpp
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: none
+ ** Major contributors: mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -10,21 +10,23 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add brief comments here ]]
+ ** \brief Type rules for the builtin theory
  **
- ** [[ Add file-specific comments here ]]
+ ** Type rules for the builtin theory.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BUILTIN_TYPE_RULES_H_
-#define __CVC4__BUILTIN_TYPE_RULES_H_
+#ifndef __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H_
+#define __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H_
 
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "expr/expr.h"
 
 namespace CVC4 {
+namespace theory {
+namespace builtin {
 
 class EqualityTypeRule {
   public:
@@ -51,6 +53,8 @@ public:
   }
 };
 
-}
+}/* CVC4::theory::builtin namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4__BUILTIN_TYPE_RULES_H_ */
+#endif /* __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H_ */

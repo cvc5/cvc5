@@ -41,7 +41,6 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -109,6 +108,18 @@ public:
   Node rewrite(TNode n);
 
   /**
+   * Rewriting optimizations.
+   */
+  RewriteResponse preRewrite(TNode n, bool topLevel);
+
+  /**
+   * Plug in old rewrite to the new (pre,post)rewrite interface.
+   */
+  RewriteResponse postRewrite(TNode n, bool topLevel) {
+    return RewritingComplete(topLevel ? rewrite(n) : Node(n));
+  }
+
+  /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
@@ -122,6 +133,7 @@ public:
 
   void shutdown(){ }
 
+  std::string identify() const { return std::string("TheoryArith"); }
 
 private:
   /**
@@ -254,7 +266,7 @@ private:
   Statistics d_statistics;
 
 
-};
+};/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

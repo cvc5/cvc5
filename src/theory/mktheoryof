@@ -51,6 +51,7 @@ function theory {
       exit 1
     fi
     seen_theory_builtin=true
+    shift
   elif [ -z "$1" -o -z "$2" ]; then
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
@@ -113,6 +114,12 @@ function check_theory_seen {
   fi
 }
 
+function check_builtin_theory_seen {
+  if ! $seen_theory_builtin; then
+    echo "$me: warning: no declaration for the builtin theory found" >&2
+  fi
+}
+
 while [ $# -gt 0 ]; do
   kf=$1
   seen_theory=false
@@ -123,6 +130,7 @@ while [ $# -gt 0 ]; do
 "
   shift
 done
+check_builtin_theory_seen
 
 ## output
 

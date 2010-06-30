@@ -32,7 +32,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 33 "${template}"
+#line 36 "${template}"
 
 namespace CVC4 {
 
@@ -43,7 +43,7 @@ class NodeTemplate;
 class Expr;
 
 namespace expr {
-  class NodeSetDepth;
+  class CVC4_PUBLIC ExprSetDepth;
 }/* CVC4::expr namespace */
 
 /**
@@ -262,7 +262,7 @@ public:
    *
    * gives "(OR a b (...))"
    */
-  typedef expr::NodeSetDepth setdepth;
+  typedef expr::ExprSetDepth setdepth;
 
   /**
    * Very basic pretty printer for Expr.
@@ -382,8 +382,6 @@ public:
   Expr iteExpr(const Expr& then_e, const Expr& else_e) const;
 };
 
-${getConst_instantiations}
-
 namespace expr {
 
 /**
@@ -405,7 +403,7 @@ namespace expr {
  * allocated word in ios_base), and serves also as the manipulator
  * itself (as above).
  */
-class NodeSetDepth {
+class CVC4_PUBLIC ExprSetDepth {
   /**
    * The allocated index in ios_base for our depth setting.
    */
@@ -424,9 +422,9 @@ class NodeSetDepth {
 
 public:
   /**
-   * Construct a NodeSetDepth with the given depth.
+   * Construct a ExprSetDepth with the given depth.
    */
-  NodeSetDepth(long depth) : d_depth(depth) {}
+  ExprSetDepth(long depth) : d_depth(depth) {}
 
   inline void applyDepth(std::ostream& out) {
     out.iword(s_iosIndex) = d_depth;
@@ -446,6 +444,14 @@ public:
   }
 };
 
+}/* CVC4::expr namespace */
+
+${getConst_instantiations}
+
+#line 388 "${template}"
+
+namespace expr {
+
 /**
  * Sets the default depth when pretty-printing a Node to an ostream.
  * Use like this:
@@ -455,7 +461,7 @@ public:
  *
  * The depth stays permanently (until set again) with the stream.
  */
-inline std::ostream& operator<<(std::ostream& out, NodeSetDepth sd) {
+inline std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
   sd.applyDepth(out);
   return out;
 }

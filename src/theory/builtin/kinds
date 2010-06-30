@@ -1,4 +1,4 @@
-# builtin_kinds                                                       -*- sh -*-
+# kinds [for builtin theory]                                          -*- sh -*-
 #
 # This "kinds" file is written in a domain-specific language for
 # declaring CVC4 kinds.  Comments are marked with #, as this line is.
@@ -6,7 +6,10 @@
 # The first non-blank, non-comment line in this file must be a theory
 # declaration:
 #
-#   theory T header
+#   theory [builtin] T header
+#
+# The special tag "builtin" declares that this is the builtin theory.
+# There can be only one and it should be processed first.
 #
 # There are four basic commands for declaring kinds:
 #
@@ -103,7 +106,7 @@
 # commands.
 #
 
-theory builtin
+theory builtin ::CVC4::theory::builtin::TheoryBuiltin "theory_builtin.h"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -125,10 +128,3 @@ constant TYPE_CONSTANT \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
 variable SORT_TYPE "sort type"
-
-constant BITVECTOR_TYPE \
-	::CVC4::BitVectorSize \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSize >" \
-	"util/bitvector.h" \
-	"bit-vector type" 
-	

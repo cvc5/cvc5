@@ -31,7 +31,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 32 "${template}"
+#line 35 "${template}"
 
 using namespace std;
 using namespace CVC4::context;
@@ -67,11 +67,6 @@ RealType ExprManager::realType() const {
 IntegerType ExprManager::integerType() const {
   NodeManagerScope nms(d_nodeManager);
   return Type(d_nodeManager, new TypeNode(d_nodeManager->integerType()));
-}
-
-BitVectorType ExprManager::bitVectorType(unsigned size) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->bitVectorType(size)));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
@@ -216,7 +211,17 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkPredicateType(sortNodes)));
 }
 
-SortType ExprManager::mkSort(const std::string& name) {
+BitVectorType ExprManager::mkBitVectorType(unsigned size) const {
+  NodeManagerScope nms(d_nodeManager);
+  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkBitVectorType(size)));
+}
+
+ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
+  NodeManagerScope nms(d_nodeManager);
+  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkArrayType(*indexType.d_typeNode, *constituentType.d_typeNode)));
+}
+
+SortType ExprManager::mkSort(const std::string& name) const {
   NodeManagerScope nms(d_nodeManager);
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name)));
 }

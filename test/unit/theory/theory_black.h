@@ -129,6 +129,7 @@ public:
   void preRegisterTerm(TNode n) {}
   void propagate(Effort level) {}
   void explain(TNode n, Effort level) {}
+  string identify() const { return "DummyTheory"; }
 };
 
 class TheoryBlack : public CxxTest::TestSuite {

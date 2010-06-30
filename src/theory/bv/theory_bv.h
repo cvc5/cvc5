@@ -39,7 +39,8 @@ public:
   void check(Effort e) { Unimplemented(); }
   void propagate(Effort e) { Unimplemented(); }
   void explain(TNode n, Effort e) { Unimplemented(); }
-};
+  std::string identify() const { return std::string("TheoryBV"); }
+};/* class TheoryBV */
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */

@@ -314,7 +314,7 @@ builtinOp[CVC4::Kind& kind]
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
-    // NOTE: Theory operators go here
+  // NOTE: Theory operators go here
   ;
 
 /**
@@ -482,7 +482,7 @@ fragment NUMERAL
        << " strict? " << (bool)(PARSER_STATE->strictModeEnabled())
        << " ^0? " << (bool)(*start == '0')
        << " len>1? " << (bool)(start < (char*)(GETCHARINDEX() - 1))
-       << endl; }
+       << std::endl; }
     { !PARSER_STATE->strictModeEnabled() || 
       *start != '0' ||
       start == (char*)(GETCHARINDEX() - 1) }?

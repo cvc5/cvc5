@@ -26,8 +26,6 @@
 #include "expr/kind.h"
 #include "util/Assert.h"
 
-${metakind_includes}
-
 namespace CVC4 {
 
 namespace expr {
@@ -186,6 +184,8 @@ struct NodeValuePoolEq {
 #include "expr/node_value.h"
 
 #endif /* __CVC4__KIND__METAKIND_H */
+
+${metakind_includes}
 
 #ifdef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 

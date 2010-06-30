@@ -35,6 +35,20 @@ bool TypeNode::isReal() const {
     && (getConst<TypeConstant>() == REAL_TYPE || getConst<TypeConstant>() == INTEGER_TYPE);
 }
 
+bool TypeNode::isArray() const {
+  return getKind() == kind::ARRAY_TYPE;
+}
+
+TypeNode TypeNode::getArrayIndexType() const {
+  Assert(isArray());
+  return (*this)[0];
+}
+
+TypeNode TypeNode::getArrayConstituentType() const {
+  Assert(isArray());
+  return (*this)[1];
+}
+
 /** Is this a function type? */
 bool TypeNode::isFunction() const {
   return getKind() == kind::FUNCTION_TYPE;

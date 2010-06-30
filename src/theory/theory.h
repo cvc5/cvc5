@@ -29,7 +29,8 @@
 #include <deque>
 #include <list>
 
-#include <typeinfo>
+#include <string>
+#include <iostream>
 
 namespace CVC4 {
 
@@ -37,9 +38,43 @@ class TheoryEngine;
 
 namespace theory {
 
-// rewrite cache support
-struct RewriteCacheTag {};
-typedef expr::Attribute<RewriteCacheTag, TNode> RewriteCache;
+/**
+ * Instances of this class serve as response codes from
+ * Theory::preRewrite() and Theory::postRewrite().  Instances of
+ * derived classes RewritingComplete(n) and RewriteAgain(n) should
+ * be used for better self-documenting behavior.
+ */
+class RewriteResponse {
+protected:
+  enum Status { DONE, REWRITE };
+
+  RewriteResponse(Status s, Node n) : d_status(s), d_node(n) {}
+
+private:
+  const Status d_status;
+  const Node d_node;
+
+public:
+  bool isDone() const { return d_status == DONE; }
+  bool needsMoreRewriting() const { return d_status == REWRITE; }
+  Node getNode() const { return d_node; }
+};
+
+/**
+ * Return n, but request additional (pre,post)rewriting of it.
+ */
+class RewriteAgain : public RewriteResponse {
+public:
+  RewriteAgain(Node n) : RewriteResponse(REWRITE, n) {}
+};
+
+/**
+ * Signal that (pre,post)rewriting of the node is complete at n.
+ */
+class RewritingComplete : public RewriteResponse {
+public:
+  RewritingComplete(Node n) : RewriteResponse(DONE, n) {}
+};
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -121,6 +156,9 @@ protected:
     d_facts.clear();
   }
 
+  /**
+   * Get the context associated to this Theory.
+   */
   context::Context* getContext() const {
     return d_context;
   }
@@ -141,21 +179,6 @@ protected:
    * Return whether a node is shared or not.  Used by setup().
    */
   bool isShared(TNode n) throw();
-
-  /**
-   * Check whether a node is in the rewrite cache or not.
-   */
-  static bool inRewriteCache(TNode n) throw() {
-    return n.hasAttribute(RewriteCache());
-  }
-
-  /**
-   * Get the value of the rewrite cache (or Node::null()) if there is
-   * none).
-   */
-  static Node getRewriteCache(TNode n) throw() {
-    return n.getAttribute(RewriteCache());
-  }
 
   /** Tag for the "registerTerm()-has-been-called" flag on Nodes */
   struct Registered {};
@@ -230,15 +253,31 @@ public:
 
   /**
    * Pre-register a term.  Done one time for a Node, ever.
-   *
    */
   virtual void preRegisterTerm(TNode) = 0;
 
   /**
-   * Rewrite a term.  Done one time for a Node, ever.
+   * Pre-rewrite a term.  This default base-class implementation
+   * simply returns RewritingComplete(n).  A theory should never
+   * rewrite a term to a strictly larger term that contains itself, as
+   * this will cause a loop of hard Node links in the cache (and thus
+   * memory leakage).
    */
-  virtual Node rewrite(TNode n) {
-    return n;
+  virtual RewriteResponse preRewrite(TNode n, bool topLevel) {
+    Debug("theory-rewrite") << "no pre-rewriting to perform for " << n << std::endl;
+    return RewritingComplete(n);
+  }
+
+  /**
+   * Post-rewrite a term.  This default base-class implementation
+   * simply returns RewritingComplete(n).  A theory should never
+   * rewrite a term to a strictly larger term that contains itself, as
+   * this will cause a loop of hard Node links in the cache (and thus
+   * memory leakage).
+   */
+  virtual RewriteResponse postRewrite(TNode n, bool topLevel) {
+    Debug("theory-rewrite") << "no post-rewriting to perform for " << n << std::endl;
+    return RewritingComplete(n);
   }
 
   /**
@@ -284,6 +323,12 @@ public:
    * explanations to an output channel.
    */
   virtual void explain(TNode n, Effort level = FULL_EFFORT) = 0;
+
+  /**
+   * Identify this theory (for debugging, dynamic configuration,
+   * etc..)
+   */
+  virtual std::string identify() const = 0;
 
   //
   // CODE INVARIANT CHECKING (used only with CVC4_ASSERTIONS)
@@ -334,6 +379,11 @@ protected:
 std::ostream& operator<<(std::ostream& os, Theory::Effort level);
 
 }/* CVC4::theory namespace */
+
+inline std::ostream& operator<<(std::ostream& out, const CVC4::theory::Theory& theory) {
+  return out << theory.identify();
+}
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__THEORY_H */

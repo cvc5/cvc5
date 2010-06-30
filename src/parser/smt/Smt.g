@@ -129,7 +129,7 @@ benchAttributes returns [CVC4::CommandSequence* cmd_seq]
   ;
 
 /**
- * Matches a benchmark attribute, sucha as ':logic', ':formula', and returns
+ * Matches a benchmark attribute, such as ':logic', ':formula', and returns
  * a corresponding command
  * @return a command corresponding to the attribute
  */
@@ -261,7 +261,7 @@ builtinOp[CVC4::Kind& kind]
   | IFF_TOK      { $kind = CVC4::kind::IFF;     }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
-    // Arithmetic
+  // Arithmetic
   | GREATER_THAN_TOK
                  { $kind = CVC4::kind::GT; }
   | GREATER_THAN_TOK EQUAL_TOK
@@ -305,9 +305,10 @@ builtinOp[CVC4::Kind& kind]
   | BVSLE_TOK    { $kind = CVC4::kind::BITVECTOR_SLE;    }
   | BVSGT_TOK    { $kind = CVC4::kind::BITVECTOR_SGT;    }
   | BVSGE_TOK    { $kind = CVC4::kind::BITVECTOR_SGE;    }
-    // NOTE: Theory operators go here
+  // arrays
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
+  // NOTE: Theory operators go here
   ;
 
 /**
@@ -437,7 +438,7 @@ sortSymbol returns [CVC4::Type t]
   : sortName[name,CHECK_NONE] 
   	{ $t = PARSER_STATE->getSort(name); }
   | BITVECTOR_TOK '[' NUMERAL_TOK ']' {
-  	$t = EXPR_MANAGER->bitVectorType(AntlrInput::tokenToUnsigned($NUMERAL_TOK));
+  	$t = EXPR_MANAGER->mkBitVectorType(AntlrInput::tokenToUnsigned($NUMERAL_TOK));
   }
   ;
 

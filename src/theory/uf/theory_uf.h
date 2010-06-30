@@ -132,6 +132,13 @@ public:
   Node rewrite(TNode n);
 
   /**
+   * Plug in old rewrite to the new (pre,post)rewrite interface.
+   */
+  RewriteResponse postRewrite(TNode n, bool topLevel) {
+    return RewritingComplete(topLevel ? rewrite(n) : Node(n));
+  }
+
+  /**
    * Propagates theory literals. Currently does nothing.
    *
    * Overloads void propagate(Effort level); from theory.h.
@@ -146,6 +153,8 @@ public:
    * See theory/theory.h for more information about this method.
    */
   void explain(TNode n, Effort level) {}
+
+  std::string identify() const { return std::string("TheoryUF"); }
 
 private:
   /**

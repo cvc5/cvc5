@@ -26,7 +26,7 @@
 #include "expr/node_manager.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "util/Assert.h"
 
@@ -138,8 +138,17 @@ public:
     TS_ASSERT_DIFFERS(theory::Theory::RegisteredAttr::s_id, TestFlag2cd::s_id);
     TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
 
-    lastId = attr::LastAttributeId<TNode, false>::s_id;
-    TS_ASSERT_LESS_THAN(theory::RewriteCache::s_id, lastId);
+    lastId = attr::LastAttributeId<Node, false>::s_id;
+    TS_ASSERT_LESS_THAN(theory::PreRewriteCache::s_id, lastId);
+    TS_ASSERT_LESS_THAN(theory::PostRewriteCache::s_id, lastId);
+    TS_ASSERT_LESS_THAN(theory::PreRewriteCacheTop::s_id, lastId);
+    TS_ASSERT_LESS_THAN(theory::PostRewriteCacheTop::s_id, lastId);
+    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PostRewriteCache::s_id);
+    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PreRewriteCacheTop::s_id);
+    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
+    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PreRewriteCacheTop::s_id);
+    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
+    TS_ASSERT_DIFFERS(theory::PreRewriteCacheTop::s_id, theory::PostRewriteCacheTop::s_id);
 
     lastId = attr::LastAttributeId<TypeNode, false>::s_id;
     TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);

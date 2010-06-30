@@ -17,6 +17,8 @@
  ** \todo document this file
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__BITVECTOR_H_
 #define __CVC4__BITVECTOR_H_
 
@@ -24,8 +26,6 @@
 #include "util/Assert.h"
 #include "util/gmp_util.h"
 #include "util/integer.h"
-
-using namespace std;
 
 namespace CVC4 {
 

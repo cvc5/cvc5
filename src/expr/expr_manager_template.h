@@ -33,7 +33,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 33 "${template}"
+#line 37 "${template}"
 
 namespace CVC4 {
 
@@ -99,9 +99,6 @@ public:
 
   /** Get the type for integers */
   IntegerType integerType() const;
-
-  /** The the type for bit-vectors */
-  BitVectorType bitVectorType(unsigned size) const;
 
   /**
    * Make a unary expression of a given kind (NOT, BVNOT, ...).
@@ -214,8 +211,14 @@ public:
    */
   FunctionType mkPredicateType(const std::vector<Type>& sorts);
 
+  /** Make a type representing a bit-vector of the given size */
+  BitVectorType mkBitVectorType(unsigned size) const;
+
+  /** Make the type of arrays with the given parameterization */
+  ArrayType mkArrayType(Type indexType, Type constituentType) const;
+
   /** Make a new sort with the given name. */
-  SortType mkSort(const std::string& name);
+  SortType mkSort(const std::string& name) const;
 
   /** Get the type of an expression */
   Type getType(const Expr& e) throw (TypeCheckingException);
@@ -230,7 +233,8 @@ public:
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
-  /** Signals that this expression manager will soon be destroyed.
+  /**
+   * Signals that this expression manager will soon be destroyed.
    * Turns off debugging assertions that may not hold as the system
    * is being torn down.
    *

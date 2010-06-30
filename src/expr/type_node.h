@@ -39,7 +39,7 @@ namespace CVC4 {
 class NodeManager;
 
 namespace expr {
-class NodeValue;
+  class NodeValue;
 }/* CVC4::expr namespace */
 
 /**
@@ -115,7 +115,9 @@ public:
    * @return true if expressions are equal, false otherwise
    */
   bool operator==(const TypeNode& typeNode) const {
-    return d_nv == typeNode.d_nv || (typeNode.isReal() && this->isReal());
+    return
+      d_nv == typeNode.d_nv
+      || (typeNode.isReal() && this->isReal());
   }
 
   /**
@@ -306,6 +308,15 @@ public:
   /** Is this the Real type? */
   bool isReal() const;
 
+  /** Is this an array type? */
+  bool isArray() const;
+
+  /** Get the index type (for array types) */
+  TypeNode getArrayIndexType() const;
+
+  /** Get the element type (for array types) */
+  TypeNode getArrayConstituentType() const;
+
   /** Is this a function type? */
   bool isFunction() const;
 
@@ -315,8 +326,10 @@ public:
   /** Get the range type (i.e., the type of the result). */
   TypeNode getRangeType() const;
 
-  /** Is this a predicate type? NOTE: all predicate types are also
-      function types. */
+  /**
+   * Is this a predicate type?
+   * NOTE: all predicate types are also function types.
+   */
   bool isPredicate() const;
 
   /** Is this a bit-vector type */
@@ -360,6 +373,13 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
+// for hash_maps, hash_sets..
+struct TypeNodeHashStrategy {
+  static inline size_t hash(const CVC4::TypeNode& node) {
+    return (size_t) node.getId();
+  }
+};/* struct TypeNodeHashStrategy */
+
 }/* CVC4 namespace */
 
 #include <ext/hash_map>
@@ -367,13 +387,6 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
 #include "expr/node_manager.h"
 
 namespace CVC4 {
-
-// for hash_maps, hash_sets..
-struct TypeNodeHashFunction {
-  size_t operator()(const CVC4::TypeNode& node) const {
-    return (size_t) node.getId();
-  }
-};
 
 inline size_t TypeNode::getNumChildren() const {
   return d_nv->getNumChildren();

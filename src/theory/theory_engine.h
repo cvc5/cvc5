@@ -26,6 +26,7 @@
 #include "theory/theoryof_table.h"
 
 #include "prop/prop_engine.h"
+#include "theory/builtin/theory_builtin.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/arith/theory_arith.h"
@@ -35,6 +36,18 @@
 #include "util/stats.h"
 
 namespace CVC4 {
+
+namespace theory {
+
+// rewrite cache support
+template <bool topLevel> struct PreRewriteCacheTag {};
+typedef expr::Attribute<PreRewriteCacheTag<true>, Node> PreRewriteCacheTop;
+typedef expr::Attribute<PreRewriteCacheTag<false>, Node> PreRewriteCache;
+template <bool topLevel> struct PostRewriteCacheTag {};
+typedef expr::Attribute<PostRewriteCacheTag<true>, Node> PostRewriteCacheTop;
+typedef expr::Attribute<PostRewriteCacheTag<false>, Node> PostRewriteCache;
+
+}/* CVC4::theory namespace */
 
 // In terms of abstraction, this is below (and provides services to)
 // PropEngine.
@@ -116,6 +129,7 @@ class TheoryEngine {
 
   EngineOutputChannel d_theoryOut;
 
+  theory::builtin::TheoryBuiltin d_builtin;
   theory::booleans::TheoryBool d_bool;
   theory::uf::TheoryUF d_uf;
   theory::arith::TheoryArith d_arith;
@@ -124,26 +138,93 @@ class TheoryEngine {
 
 
   /**
-   * Check whether a node is in the rewrite cache or not.
+   * Check whether a node is in the pre-rewrite cache or not.
    */
-  static bool inRewriteCache(TNode n) throw() {
-    return n.hasAttribute(theory::RewriteCache());
+  static bool inPreRewriteCache(TNode n, bool topLevel) throw() {
+    if(topLevel) {
+      return n.hasAttribute(theory::PreRewriteCacheTop());
+    } else {
+      return n.hasAttribute(theory::PreRewriteCache());
+    }
   }
 
   /**
-   * Get the value of the rewrite cache (or Node::null()) if there is
+   * Get the value of the pre-rewrite cache (or Node::null()) if there is
    * none).
    */
-  static Node getRewriteCache(TNode n) throw() {
-    return n.getAttribute(theory::RewriteCache());
+  static Node getPreRewriteCache(TNode in, bool topLevel) throw() {
+    if(topLevel) {
+      Node out;
+      if(in.getAttribute(theory::PreRewriteCacheTop(), out)) {
+        return out.isNull() ? Node(in) : out;
+      }
+    } else {
+      Node out;
+      if(in.getAttribute(theory::PreRewriteCache(), out)) {
+        return out.isNull() ? Node(in) : out;
+      }
+    }
+    return Node::null();
   }
 
   /**
-   * Get the value of the rewrite cache (or Node::null()) if there is
+   * Set the value of the pre-rewrite cache.  v cannot be a null Node.
+   */
+  static void setPreRewriteCache(TNode n, bool topLevel, TNode v) throw() {
+    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
+    AssertArgument(!v.isNull(), v, "v cannot be null in setPreRewriteCache()");
+    // mappings from  n -> n  are actually stored as  n -> null  as a
+    // special case, to avoid cycles in the reference-counting of Nodes
+    if(topLevel) {
+      n.setAttribute(theory::PreRewriteCacheTop(), n == v ? TNode::null() : v);
+    } else {
+      n.setAttribute(theory::PreRewriteCache(), n == v ? TNode::null() : v);
+    }
+  }
+
+  /**
+   * Check whether a node is in the post-rewrite cache or not.
+   */
+  static bool inPostRewriteCache(TNode n, bool topLevel) throw() {
+    if(topLevel) {
+      return n.hasAttribute(theory::PostRewriteCacheTop());
+    } else {
+      return n.hasAttribute(theory::PostRewriteCache());
+    }
+  }
+
+  /**
+   * Get the value of the post-rewrite cache (or Node::null()) if there is
    * none).
    */
-  static void setRewriteCache(TNode n, TNode v) throw() {
-    return n.setAttribute(theory::RewriteCache(), v);
+  static Node getPostRewriteCache(TNode in, bool topLevel) throw() {
+    if(topLevel) {
+      Node out;
+      if(in.getAttribute(theory::PostRewriteCacheTop(), out)) {
+        return out.isNull() ? Node(in) : out;
+      }
+    } else {
+      Node out;
+      if(in.getAttribute(theory::PostRewriteCache(), out)) {
+        return out.isNull() ? Node(in) : out;
+      }
+    }
+    return Node::null();
+  }
+
+  /**
+   * Set the value of the post-rewrite cache.  v cannot be a null Node.
+   */
+  static void setPostRewriteCache(TNode n, bool topLevel, TNode v) throw() {
+    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
+    AssertArgument(!v.isNull(), v, "v cannot be null in setPostRewriteCache()");
+    // mappings from  n -> n  are actually stored as  n -> null  as a
+    // special case, to avoid cycles in the reference-counting of Nodes
+    if(topLevel) {
+      n.setAttribute(theory::PostRewriteCacheTop(), n == v ? TNode::null() : v);
+    } else {
+      n.setAttribute(theory::PostRewriteCache(), n == v ? TNode::null() : v);
+    }
   }
 
   /**
@@ -151,53 +232,6 @@ class TheoryEngine {
    * It dispatches to the proper theories to rewrite the given Node.
    */
   Node rewrite(TNode in);
-
-  /**
-   * Convenience function to recurse through the children, rewriting,
-   * while leaving the Node's kind alone.
-   */
-  Node rewriteChildren(TNode in) {
-    if(in.getMetaKind() == kind::metakind::CONSTANT) {
-      return in;
-    }
-
-    NodeBuilder<> b(in.getKind());
-    if(in.getMetaKind() == kind::metakind::PARAMETERIZED){
-      Assert(in.hasOperator());
-      b << in.getOperator();
-    }
-    for(TNode::iterator c = in.begin(); c != in.end(); ++c) {
-      b << rewrite(*c);
-    }
-    Debug("rewrite") << "rewrote-children of " << in << std::endl
-                     << "got " << b << std::endl;
-    Node ret = b;
-    return ret;
-  }
-
-  /**
-   * Rewrite Nodes with builtin kind (that is, those Nodes n for which
-   * theoryOf(n) == NULL).  The master list is in expr/builtin_kinds.
-   */
-  Node rewriteBuiltins(TNode in) {
-    switch(Kind k = in.getKind()) {
-    case kind::EQUAL:
-      return rewriteChildren(in);
-
-    case kind::ITE:
-      Unhandled(k);
-
-    case kind::SKOLEM:
-    case kind::VARIABLE:
-      return in;
-
-    case kind::TUPLE:
-      return rewriteChildren(in);
-
-    default:
-      Unhandled(k);
-    }
-  }
 
   Node removeITEs(TNode t);
 
@@ -209,6 +243,7 @@ public:
   TheoryEngine(context::Context* ctxt) :
     d_propEngine(NULL),
     d_theoryOut(this, ctxt),
+    d_builtin(ctxt, d_theoryOut),
     d_bool(ctxt, d_theoryOut),
     d_uf(ctxt, d_theoryOut),
     d_arith(ctxt, d_theoryOut),
@@ -216,6 +251,7 @@ public:
     d_bv(ctxt, d_theoryOut),
     d_statistics() {
 
+    d_theoryOfTable.registerTheory(&d_builtin);
     d_theoryOfTable.registerTheory(&d_bool);
     d_theoryOfTable.registerTheory(&d_uf);
     d_theoryOfTable.registerTheory(&d_arith);
@@ -235,6 +271,7 @@ public:
    * ordering issues between PropEngine and Theory.
    */
   void shutdown() {
+    d_builtin.shutdown();
     d_bool.shutdown();
     d_uf.shutdown();
     d_arith.shutdown();
@@ -248,45 +285,7 @@ public:
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  theory::Theory* theoryOf(TNode n) {
-    Kind k = n.getKind();
-
-    Assert(k >= 0 && k < kind::LAST_KIND);
-
-    if(k == kind::VARIABLE) {
-      TypeNode t = n.getType();
-      if(t.isBoolean()){
-        return &d_bool;
-      }else if(t.isReal()){
-        return &d_arith;
-      }else{
-        return &d_uf;
-      }
-      //Unimplemented();
-    } else if(k == kind::EQUAL) {
-      // if LHS is a VARIABLE, use theoryOf(LHS.getType())
-      // otherwise, use theoryOf(LHS)
-      TNode lhs = n[0];
-      if(lhs.getKind() == kind::VARIABLE) {
-        // FIXME: we don't yet have a Type-to-Theory map.  When we do,
-        // look up the type of the LHS and return that Theory (?)
-
-        //The following JUST hacks around this lack of a table
-        TypeNode type_of_n = lhs.getType();
-        if(type_of_n.isReal()){
-          return &d_arith;
-        }else{
-          return &d_uf;
-          //Unimplemented();
-        }
-      } else {
-        return theoryOf(lhs);
-      }
-    } else {
-      // use our Kind-to-Theory mapping
-      return d_theoryOfTable[k];
-    }
-  }
+  theory::Theory* theoryOf(TNode n);
 
   /**
    * Preprocess a node.  This involves theory-specific rewriting, then
@@ -318,6 +317,7 @@ public:
     d_theoryOut.d_propagatedLiterals.clear();
     // Do the checking
     try {
+      //d_builtin.check(effort);
       //d_bool.check(effort);
       d_uf.check(effort);
       d_arith.check(effort);

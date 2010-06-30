@@ -55,7 +55,7 @@ void SatSolver::theoryPropagate(std::vector<SatLiteral>& output) {
   // If any literals, make a clause
   const unsigned i_end = outputNodes.size();
   for (unsigned i = 0; i < i_end; ++ i) {
-    Debug("prop-explain") << "theoryPropagate() => " << outputNodes[i].toString() << endl;
+    Debug("prop-explain") << "theoryPropagate() => " << outputNodes[i].toString() << std::endl;
     // The second argument ("true") instructs the CNF stream to create
     // a new literal mapping if it doesn't exist.  This can happen due
     // to a circular dependence, if a SAT literal "a" is asserted as a
@@ -68,9 +68,9 @@ void SatSolver::theoryPropagate(std::vector<SatLiteral>& output) {
 
 void SatSolver::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
-  Debug("prop-explain") << "explainPropagation(" << lNode.toString() << ")" << endl;
+  Debug("prop-explain") << "explainPropagation(" << lNode.toString() << ")" << std::endl;
   Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
-  Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation.toString() << endl;
+  Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation.toString() << std::endl;
   if (lNode.getKind() == kind::AND) {
     Node::const_iterator it = theoryExplanation.begin();
     Node::const_iterator it_end = theoryExplanation.end();

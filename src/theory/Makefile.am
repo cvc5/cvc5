@@ -14,6 +14,7 @@ libtheory_la_SOURCES = \
 	theory.cpp
 
 libtheory_la_LIBADD = \
+	@builddir@/builtin/libbuiltin.la \
 	@builddir@/booleans/libbooleans.la \
 	@builddir@/uf/libuf.la \
 	@builddir@/arith/libarith.la \
@@ -38,4 +39,4 @@ BUILT_SOURCES = @srcdir@/theoryof_table.h
 dist-hook: @srcdir@/theoryof_table.h
 MAINTAINERCLEANFILES = @srcdir@/theoryof_table.h
 
-SUBDIRS = booleans uf arith arrays bv
+SUBDIRS = builtin booleans uf arith arrays bv

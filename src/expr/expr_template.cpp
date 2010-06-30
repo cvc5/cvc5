@@ -36,6 +36,12 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+namespace expr {
+
+const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
+
+}/* CVC4::expr namespace */
+
 std::ostream& operator<<(std::ostream& out, const Expr& e) {
   e.toStream(out);
   return out;

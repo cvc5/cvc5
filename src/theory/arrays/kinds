@@ -5,5 +5,11 @@
 #
 
 theory ::CVC4::theory::arrays::TheoryArrays "theory_arrays.h"
+
+operator ARRAY_TYPE 2 "array type"
+
+# select a i  is  a[i]
 operator SELECT 2 "array select"
+
+# store a i e  is  a[i] <= e
 operator STORE 3 "array store"

@@ -32,4 +32,5 @@ libutil_la_SOURCES = \
 	gmp_util.h \
 	sexpr.h \
 	stats.h \
-	stats.cpp
+	stats.cpp \
+	triple.h

@@ -566,6 +566,24 @@ public:
     return append(n);
   }
 
+  /**
+   * If this Node-under-construction has a Kind set, collapse it and
+   * append the given Node as a child.  Otherwise, simply append.
+   * FIXME: do we really want that collapse behavior?  We had agreed
+   * on it but then never wrote code like that.
+   */
+  NodeBuilder<nchild_thresh>& operator<<(TypeNode n) {
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
+    /* FIXME: disable this "collapsing" for now..
+    if(EXPECT_FALSE( getKind() != kind::UNDEFINED_KIND )) {
+      Node n2 = operator Node();
+      clear();
+      append(n2);
+    }*/
+    return append(n);
+  }
+
   /** Append a sequence of children to this TypeNode-under-construction. */
   inline NodeBuilder<nchild_thresh>&
   append(const std::vector<TypeNode>& children) {

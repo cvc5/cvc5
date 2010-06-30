@@ -24,6 +24,7 @@
 #include <signal.h>
 
 #include "util/exception.h"
+#include "util/Assert.h"
 
 #include "cvc4autoconfig.h"
 #include "main.h"
@@ -75,6 +76,11 @@ void cvc4unexpected() {
           "\n"
           "CVC4 threw an \"unexpected\" exception (one that wasn't properly specified\n"
           "in the throws() specifier for the throwing function).\n\n");
+  if(CVC4::s_debugAssertionFailure == NULL) {
+    fprintf(stderr, "The exception is unknown.\n\n");
+  } else {
+    fprintf(stderr, "The exception is:\n%s\n\n", CVC4::s_debugAssertionFailure);
+  }
   if(segvNoSpin) {
     fprintf(stderr, "No-spin requested.\n");
     set_terminate(default_terminator);

@@ -99,7 +99,7 @@ class NodeValue;
     class AttributeManager;
   }/* CVC4::expr::attr namespace */
 
-  class NodeSetDepth;
+  class ExprSetDepth;
 }/* CVC4::expr namespace */
 
 /**
@@ -304,7 +304,8 @@ public:
    * Returns the type of this node.
    * @return the type
    */
-  TypeNode getType() const throw (CVC4::TypeCheckingExceptionPrivate);
+  TypeNode getType() const
+    throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException);
 
   /**
    * Returns the kind of this node.
@@ -476,7 +477,7 @@ public:
    *
    * gives "(OR a b (...))"
    */
-  typedef expr::NodeSetDepth setdepth;
+  typedef expr::ExprSetDepth setdepth;
 
   /**
    * Very basic pretty printer for Node.
@@ -879,7 +880,8 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 }
 
 template <bool ref_count>
-TypeNode NodeTemplate<ref_count>::getType() const throw (CVC4::TypeCheckingExceptionPrivate) {
+TypeNode NodeTemplate<ref_count>::getType() const
+  throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException) {
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );

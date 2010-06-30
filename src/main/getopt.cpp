@@ -222,7 +222,8 @@ throw(OptionException) {
       opts->strictParsing = true;
       break;
 
-    case DEFAULT_EXPR_DEPTH: {
+    case DEFAULT_EXPR_DEPTH:
+      {
         int depth = atoi(optarg);
         Debug.getStream() << Expr::setdepth(depth);
         Trace.getStream() << Expr::setdepth(depth);

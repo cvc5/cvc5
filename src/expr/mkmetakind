@@ -75,10 +75,8 @@ function theory {
   fi
 
   theory_class=$1
-  if [ "$1" != builtin ]; then
-    metakind_includes="${metakind_includes}
+  metakind_includes="${metakind_includes}
 // #include \"theory/$b/$2\""
-  fi
 }
 
 function variable {

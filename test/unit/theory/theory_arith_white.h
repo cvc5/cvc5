@@ -206,7 +206,7 @@ public:
 
 
     Node expectedProp = d_nm->mkNode(GEQ, x, c);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), PROPOGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), PROPAGATE);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), expectedProp);
 
   }
@@ -236,7 +236,7 @@ public:
     d_arith->explain(rLeq1, d_level);
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPOGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPAGATE);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), EXPLANATION);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq1);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), rLt1);
@@ -270,8 +270,8 @@ public:
     d_arith->explain(rLeq1, d_level);
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 4u);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPOGATE);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), PROPOGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPAGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), PROPAGATE);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), EXPLANATION);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(3), EXPLANATION);
 

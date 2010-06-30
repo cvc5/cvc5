@@ -329,7 +329,11 @@ public:
   template <class NodeClass, class T>
   NodeClass mkConstInternal(const T&);
 
-  /** Create a node with no children. */
+  /** Create a node with children. */
+  TypeNode mkTypeNode(Kind kind, TypeNode child1);
+  TypeNode mkTypeNode(Kind kind, TypeNode child1, TypeNode child2);
+  TypeNode mkTypeNode(Kind kind, TypeNode child1, TypeNode child2,
+                      TypeNode child3);
   TypeNode mkTypeNode(Kind kind, const std::vector<TypeNode>& children);
 
   /**
@@ -472,9 +476,6 @@ public:
   /** Get the (singleton) type for sorts. */
   inline TypeNode kindType();
 
-  /** Get the type of bitvectors of size <code>size</code> */
-  inline TypeNode bitVectorType(unsigned size);
-
   /**
    * Make a function type from domain to range.
    *
@@ -492,7 +493,8 @@ public:
    * @param range the range type
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
-  inline TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes, const TypeNode& range);
+  inline TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
+                                 const TypeNode& range);
 
   /**
    * Make a function type with input types from
@@ -510,6 +512,12 @@ public:
    */
   inline TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
+  /** Make the type of bitvectors of size <code>size</code> */
+  inline TypeNode mkBitVectorType(unsigned size);
+
+  /** Make the type of arrays with the given parameterization */
+  inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
+
   /** Make a new sort. */
   inline TypeNode mkSort();
 
@@ -519,7 +527,8 @@ public:
   /**
    * Get the type for the given node.
    */
-  TypeNode getType(TNode n) throw (TypeCheckingExceptionPrivate);
+  TypeNode getType(TNode n)
+    throw (TypeCheckingExceptionPrivate, AssertionException);
 
 };
 
@@ -637,10 +646,6 @@ inline TypeNode NodeManager::kindType() {
   return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
 }
 
-inline TypeNode NodeManager::bitVectorType(unsigned size) {
-  return TypeNode(mkTypeConst<BitVectorSize>(BitVectorSize(size)));
-}
-
 /** Make a function type from domain to range. */
 inline TypeNode NodeManager::mkFunctionType(const TypeNode& domain, const TypeNode& range) {
   std::vector<TypeNode> sorts;
@@ -675,6 +680,15 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   }
   sortNodes.push_back(booleanType());
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
+}
+
+inline TypeNode NodeManager::mkBitVectorType(unsigned size) {
+  return TypeNode(mkTypeConst<BitVectorSize>(BitVectorSize(size)));
+}
+
+inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
+                                         TypeNode constituentType) {
+  return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
@@ -836,8 +850,23 @@ inline Node* NodeManager::mkNodePtr(TNode opNode,
 }
 
 
+inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1) {
+  return (NodeBuilder<1>(this, kind) << child1).constructTypeNode();
+}
+
+inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
+                                        TypeNode child2) {
+  return (NodeBuilder<2>(this, kind) << child1 << child2).constructTypeNode();
+}
+
+inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
+                                        TypeNode child2, TypeNode child3) {
+  return (NodeBuilder<3>(this, kind) << child1 << child2 << child3).constructTypeNode();;
+}
+
 // N-ary version for types
-inline TypeNode NodeManager::mkTypeNode(Kind kind, const std::vector<TypeNode>& children) {
+inline TypeNode NodeManager::mkTypeNode(Kind kind,
+                                        const std::vector<TypeNode>& children) {
   return NodeBuilder<>(this, kind).append(children).constructTypeNode();
 }
 
@@ -848,7 +877,8 @@ inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
   return n;
 }
 
-inline Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type) {
+inline Node* NodeManager::mkVarPtr(const std::string& name,
+                                   const TypeNode& type) {
   Node* n = mkVarPtr(type);
   n->setAttribute(expr::VarNameAttr(), name);
   return n;

@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR_TYPE_THEORY_BV_TYPE_RULES_H_
-#define __CVC4__EXPR_TYPE_THEORY_BV_TYPE_RULES_H_
+#ifndef __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#define __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -29,7 +29,7 @@ class BitVectorConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
       throw (TypeCheckingExceptionPrivate) {
-    return nodeManager->bitVectorType(n.getConst<BitVector>().getSize());
+    return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
   }
 };
 
@@ -42,7 +42,7 @@ public:
     if (!lhs.isBitVector() || lhs != rhs) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
     }
-    return nodeManager->bitVectorType(1);
+    return nodeManager->mkBitVectorType(1);
   }
 };
 
@@ -61,7 +61,7 @@ public:
       }
       if (maxWidth < t.getBitVectorSize()) maxWidth = t.getBitVectorSize();
     }
-    return nodeManager->bitVectorType(maxWidth);
+    return nodeManager->mkBitVectorType(maxWidth);
   }
 };
 
@@ -115,7 +115,7 @@ public:
     if (extractInfo.high >= t.getBitVectorSize()) {
       throw TypeCheckingExceptionPrivate(n, "high extract index is bigger than the size of the bit-vector");
     }
-    return nodeManager->bitVectorType(extractInfo.high - extractInfo.low + 1);
+    return nodeManager->mkBitVectorType(extractInfo.high - extractInfo.low + 1);
   }
 };
 
@@ -133,7 +133,7 @@ public:
        }
        size += t.getBitVectorSize();
     }
-    return nodeManager->bitVectorType(size);
+    return nodeManager->mkBitVectorType(size);
   }
 };
 
@@ -146,7 +146,7 @@ public:
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
     }
     unsigned repeatAmount = n.getOperator().getConst<BitVectorRepeat>();
-    return nodeManager->bitVectorType(repeatAmount * t.getBitVectorSize());
+    return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
 };
 
@@ -162,12 +162,12 @@ public:
         (unsigned) n.getOperator().getConst<BitVectorSignExtend>() :
         (unsigned) n.getOperator().getConst<BitVectorZeroExtend>();
 
-    return nodeManager->bitVectorType(extendAmount +  t.getBitVectorSize());
+    return nodeManager->mkBitVectorType(extendAmount +  t.getBitVectorSize());
   }
 };
 
-}
-}
-}
+}/* CVC4::theory::bv namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_TYPE_THEORY_BV_TYPE_RULES_H_ */
+#endif /* __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */

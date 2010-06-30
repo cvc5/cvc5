@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_UF_TYPE_RULES_H_
-#define __CVC4__THEORY_UF_TYPE_RULES_H_
+#ifndef __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H_
+#define __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H_
 
 namespace CVC4 {
 namespace theory {
@@ -49,4 +49,4 @@ public:
 }
 
 
-#endif /* THEORY_UF_TYPE_RULES_H_ */
+#endif /* __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H_ */

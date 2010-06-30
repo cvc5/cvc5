@@ -150,8 +150,10 @@ bool Type::isFunction() const {
   return d_typeNode->isFunction();
 }
 
-/** Is this a predicate type? NOTE: all predicate types are also
-    function types. */
+/**
+ * Is this a predicate type? NOTE: all predicate types are also
+ * function types.
+ */
 bool Type::isPredicate() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isPredicate();
@@ -162,6 +164,18 @@ Type::operator FunctionType() const throw (AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isFunction());
   return FunctionType(*this);
+}
+
+/** Is this an array type? */
+bool Type::isArray() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isArray();
+}
+
+/** Cast to an array type */
+Type::operator ArrayType() const throw (AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  return ArrayType(*this);
 }
 
 /** Is this a sort kind */
@@ -243,6 +257,12 @@ FunctionType::FunctionType(const Type& t) throw (AssertionException)
   Assert(isFunction());
 }
 
+ArrayType::ArrayType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isArray());
+}
+
 KindType::KindType(const Type& t) throw (AssertionException)
 : Type(t)
 {
@@ -255,9 +275,20 @@ SortType::SortType(const Type& t) throw (AssertionException)
   Assert(isSort());
 }
 
-
 unsigned BitVectorType::getSize() const {
   return d_typeNode->getBitVectorSize();
+}
+
+Type ArrayType::getIndexType() const {
+  return makeType(d_typeNode->getArrayIndexType());
+}
+
+Type ArrayType::getConstituentType() const {
+  return makeType(d_typeNode->getArrayConstituentType());
+}
+
+size_t TypeHashStrategy::hash(const Type& t) {
+  return TypeNodeHashStrategy::hash(*t.d_typeNode);
 }
 
 }/* CVC4 namespace */
