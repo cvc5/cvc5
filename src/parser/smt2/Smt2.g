@@ -230,16 +230,16 @@ term[CVC4::Expr& expr]
     // TODO: check arity
     { expr = MK_EXPR(CVC4::kind::APPLY_UF,args); }
 
-  | /* An ite expression */
-    LPAREN_TOK ITE_TOK 
-    term[expr]
-    { args.push_back(expr); } 
-    term[expr]
-    { args.push_back(expr); } 
-    term[expr]
-    { args.push_back(expr); } 
-    RPAREN_TOK
-    { expr = MK_EXPR(CVC4::kind::ITE, args); }
+  // | /* An ite expression */
+  //   LPAREN_TOK ITE_TOK 
+  //   term[expr]
+  //   { args.push_back(expr); } 
+  //   term[expr]
+  //   { args.push_back(expr); } 
+  //   term[expr]
+  //   { args.push_back(expr); } 
+  //   RPAREN_TOK
+  //   { expr = MK_EXPR(CVC4::kind::ITE, args); }
 
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK 
@@ -256,17 +256,18 @@ term[CVC4::Expr& expr]
     { expr = PARSER_STATE->getVariable(name); }
 
     /* constants */
-//  | TRUE_TOK          { expr = MK_CONST(true); }
-//  | FALSE_TOK         { expr = MK_CONST(false); }
   | INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
+
   | DECIMAL_LITERAL
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
+
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL,2);
       expr = MK_CONST( BitVector(hexString, 16) ); }
+
   | BINARY_LITERAL
     { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL,2);
@@ -300,6 +301,7 @@ builtinOp[CVC4::Kind& kind]
   | XOR_TOK      { $kind = CVC4::kind::XOR;     }
   | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
   | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
+  | ITE_TOK      { $kind = CVC4::kind::ITE; }
   | GREATER_THAN_TOK
                  { $kind = CVC4::kind::GT; }
   | GREATER_THAN_TOK EQUAL_TOK
@@ -310,7 +312,6 @@ builtinOp[CVC4::Kind& kind]
                  { $kind = CVC4::kind::LT; }
   | PLUS_TOK     { $kind = CVC4::kind::PLUS; }
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
-  | TILDE_TOK    { $kind = CVC4::kind::UMINUS; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
