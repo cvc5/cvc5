@@ -30,25 +30,25 @@ usage: %s [options] [input-file]\n\
 Without an input file, or with `-', CVC4 reads from standard input.\n\
 \n\
 CVC4 options:\n\
-   --lang | -L     force input language (default is `auto'; see --lang help)\n\
-   --version | -V  identify this CVC4 binary\n\
-   --help | -h     this command line reference\n\
-   --parse-only    exit after parsing input\n\
-   --mmap          memory map file input\n\
-   --show-config   show CVC4 static configuration\n"
+   --lang | -L      force input language (default is `auto'; see --lang help)\n\
+   --version | -V   identify this CVC4 binary\n\
+   --help | -h      this command line reference\n\
+   --parse-only     exit after parsing input\n\
+   --mmap           memory map file input\n\
+   --show-config    show CVC4 static configuration\n"
 #ifdef CVC4_DEBUG
 "\
-   --segv-nospin   don't spin on segfault waiting for gdb\n"
+   --segv-nospin    don't spin on segfault waiting for gdb\n"
 #endif
 #ifndef CVC4_MUZZLE
 "\
-   --no-checking   disable semantic checks in the parser\n\
-   --verbose | -v  increase verbosity (repeatable)\n\
-   --quiet | -q    decrease verbosity (repeatable)\n\
-   --trace | -t    tracing for something (e.g. --trace pushpop)\n\
-   --debug | -d    debugging for something (e.g. --debug arith), implies -t\n\
-   --stats         give statistics on exit\n\
-   --strict-parsing FIXME\n\
+   --no-checking    disable semantic checks in the parser\n\
+   --strict-parsing fail on inputs that are not strictly conformant (SMT2 only)\n\
+   --verbose | -v   increase verbosity (repeatable)\n\
+   --quiet | -q     decrease verbosity (repeatable)\n\
+   --trace | -t     tracing for something (e.g. --trace pushpop)\n\
+   --debug | -d     debugging for something (e.g. --debug arith), implies -t\n\
+   --stats          give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n"
 #endif
 ;
