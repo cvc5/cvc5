@@ -294,8 +294,8 @@ public:
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), EXPLANATION);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(3), EXPLANATION);
 
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), rLt1);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), rLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), rLt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), rLeq1);
 
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), rLeq0);

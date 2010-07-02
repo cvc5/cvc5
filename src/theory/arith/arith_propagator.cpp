@@ -25,342 +25,206 @@
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
-using namespace CVC4::theory::arith::propagator;
 
 using namespace CVC4::kind;
 
 using namespace std;
 
 ArithUnatePropagator::ArithUnatePropagator(context::Context* cxt) :
-  d_assertions(cxt), d_pendingAssertions(cxt,0)
+  d_pendingAssertions(cxt,0),
+  d_assertions(cxt)
 { }
 
 
-bool acceptedKinds(Kind k){
+inline int orderRelation(Kind k){
+
   switch(k){
   case EQUAL:
+    return 0;
   case LEQ:
+    return 1;
   case GEQ:
-    return true;
-  default:
-    return false;
-  }
-}
-
-void ArithUnatePropagator::addAtom(TNode atom){
-  Assert(acceptedKinds(atom.getKind()));
-
-  TNode left  = atom[0];
-  TNode right = atom[1];
-
-  if(!leftIsSetup(left)){
-    setupLefthand(left);
-  }
-
-  switch(atom.getKind()){
-  case EQUAL:
-    {
-      OrderedBoundsList* eqList = left.getAttribute(propagator::PropagatorEqList());
-      Assert(!eqList->contains(atom));
-      eqList->append(atom);
-      break;
-    }
-  case LEQ:
-    {
-      OrderedBoundsList* leqList = left.getAttribute(propagator::PropagatorLeqList());
-      Assert(! leqList->contains(atom));
-      leqList->append(atom);
-      break;
-    }
-    break;
-  case GEQ:
-    {
-      OrderedBoundsList* geqList = left.getAttribute(propagator::PropagatorGeqList());
-      Assert(! geqList->contains(atom));
-      geqList->append(atom);
-      break;
-    }
+    return 2;
   default:
     Unreachable();
   }
 }
-bool ArithUnatePropagator::leftIsSetup(TNode left){
-  return left.hasAttribute(propagator::PropagatorEqList());
+
+void reduceSymmetries(TNode& atom, Rational& b, TNode& otherAtom, Rational& otherB){
+  int orderedA = orderRelation(atom.getKind());
+  int orderedOA = orderRelation(otherAtom.getKind());
+
+  if((orderedOA < orderedA) || (orderedOA == orderedA && otherB < b)){
+    TNode tmp = atom;
+    atom = otherAtom;
+    otherAtom = tmp;
+
+    Rational q(b);
+    b = otherB;
+    otherB = q;
+  }
 }
 
-void ArithUnatePropagator::setupLefthand(TNode left){
-  Assert(!leftIsSetup(left));
-
-  OrderedBoundsList* eqList = new OrderedBoundsList();
-  OrderedBoundsList* geqList = new OrderedBoundsList();
-  OrderedBoundsList* leqList = new OrderedBoundsList();
-
-  left.setAttribute(propagator::PropagatorEqList(), eqList);
-  left.setAttribute(propagator::PropagatorLeqList(), leqList);
-  left.setAttribute(propagator::PropagatorGeqList(), geqList);
+void ArithUnatePropagator::addImplication(TNode a0, TNode a1){
+  vector<Node>* a0imps = a0.getAttribute(propagator::PropagatorIG());
+  a0imps->push_back(a1);
 }
+
+void ArithUnatePropagator::introduceImplications(TNode atom, TNode otherAtom){
+
+  Rational b = atom[1].getConst<Rational>();
+  Rational otherB = otherAtom[1].getConst<Rational>();
+
+  reduceSymmetries(atom, b, otherAtom, otherB);
+
+  Kind k = atom.getKind();
+  Kind otherK = otherAtom.getKind();
+
+  Node negation = NodeManager::currentNM()->mkNode(kind::NOT,atom);
+  Node negOtherAtom =  NodeManager::currentNM()->mkNode(kind::NOT,otherAtom);
+
+  if(k == EQUAL && otherK == EQUAL){
+    Assert(otherB != b);//Atoms need to be disinct
+    addImplication(atom, negOtherAtom); // x == b -> x != b'
+    addImplication(otherAtom, negation); // x == b' -> x != b
+  }else if(k == EQUAL && otherK == LEQ){
+    if(b <= otherB){
+      addImplication(atom, otherAtom); // (b <= b' and x == b) -> (x <= b');
+      addImplication(negOtherAtom, negation); // (b <= b' and x > b') -> (x != b);
+    }else{
+      addImplication(atom, negOtherAtom); // (b > b' and x == b) -> (x > b');
+      addImplication(otherAtom, negation); // (b > b' and x <= b') -> x != b;
+    }
+  }else if(k == EQUAL && otherK == GEQ){
+    if(b >= otherB){
+      addImplication(atom, otherAtom); // (b >= b' and x == b) -> (x >= b');
+      addImplication(negOtherAtom, negation); // (b >= b' and x < b') -> (x != b);
+    }else{
+      addImplication(atom, negOtherAtom); // (b < b' and x == b) -> (x < b');
+      addImplication(otherAtom, negation); // (b < b' and x >= b') -> x != b;
+    }
+  }else if(k == LEQ && otherK == EQUAL){
+    Unreachable();
+  }else if(k == LEQ && otherK == LEQ){
+    Assert(b.cmp(otherB) < 0);
+    addImplication(atom, otherAtom); // (b < b' and x <= b) -> (x <= b');
+    addImplication(negOtherAtom, negation); // (b < b' and x > b') -> (x > b);
+  }else if(k == LEQ && otherK == GEQ){
+    if(otherB == b){
+      addImplication(negOtherAtom, atom); // (b == b' and x > b') -> (x <= b);
+      addImplication(negation, otherAtom); // (b == b' and x < b') -> (x >= b);
+    }else if(b < otherB){
+      addImplication(atom, negOtherAtom); // (b < b' and x <= b) -> (x < b');
+      addImplication(otherAtom, negation); // (b < b' and x >= b') -> (x > b);
+    }else{
+      addImplication(negOtherAtom, negation); // (b > b' and x < b') -> (x > b);
+      addImplication(negation, otherAtom); // (b > b' and x > b) -> (x >= b');
+    }
+  }else if(k == GEQ && otherK == EQUAL){
+    Unreachable();
+  }else if(k == GEQ && otherK == LEQ){
+    Unreachable();
+  }else if(k == GEQ && otherK == GEQ){
+    Assert(b.cmp(otherB) < 0);
+    addImplication(otherAtom, atom); // (b < b' and x >= b') -> (x >= b);
+    addImplication(negation, negOtherAtom); // (b < b' and x > b) -> (x > b');
+  }else{
+    Unreachable();
+  }
+}
+
+void ArithUnatePropagator::addAtom(TNode atom){
+  Assert(!atom.getAttribute(propagator::IsInPropagator()));
+
+  Assert(isRelationOperator(atom.getKind()));
+
+  TNode left = atom[0];
+  Node negation = NodeManager::currentNM()->mkNode(kind::NOT,atom);
+
+
+  d_saver.push_back(negation);
+
+  std::vector<Node>* posImp = new std::vector<Node>();
+  std::vector<Node>* negImp = new std::vector<Node>();
+
+  atom.setAttribute(propagator::PropagatorIG(), posImp);
+  negation.setAttribute(propagator::PropagatorIG(), negImp);
+
+  std::vector<Node>* registered;
+  if(!left.getAttribute(propagator::PropagatorRegisteredAtoms(), registered)){
+    registered = new std::vector<Node>();
+    left.setAttribute(propagator::PropagatorRegisteredAtoms(), registered);
+  }
+
+  for(std::vector<Node>::iterator i=registered->begin();
+      i != registered->end(); ++i){
+    TNode otherAtom = *i;
+
+    introduceImplications(atom, otherAtom);
+  }
+
+  registered->push_back(atom);
+
+  Debug("propagator") << atom << " " << atom.getId() << " " << negation << " " << negation.getId() << std::endl;
+
+  atom.setAttribute(propagator::IsInPropagator(), true);
+  negation.setAttribute(propagator::IsInPropagator(), true);
+
+  Debug("propagator") << atom.getAttribute(propagator::IsInPropagator())<< " "
+                      << negation.getAttribute(propagator::IsInPropagator())<< std::endl;
+
+  Debug("propagator") << propagator::IsInPropagator().getId()<< std::endl;
+
+}
+ 
+
+
 
 void ArithUnatePropagator::assertLiteral(TNode lit){
+  Assert(lit.getAttribute(propagator::IsInPropagator()));
+  Assert(!lit.getAttribute(propagator::PropagatorMarked()));
+  lit.setAttribute(propagator::PropagatorMarked(),true);
 
-  if(lit.getKind() == NOT){
-    Assert(!lit[0].getAttribute(propagator::PropagatorMarked()));
-    lit[0].setAttribute(propagator::PropagatorMarked(), true);
-  }else{
-    Assert(!lit.getAttribute(propagator::PropagatorMarked()));
-    lit.setAttribute(propagator::PropagatorMarked(), true);
-  }
   d_assertions.push_back(lit);
 }
 
 std::vector<Node> ArithUnatePropagator::getImpliedLiterals(){
   std::vector<Node> impliedButNotAsserted;
+  std::list<Node> newlyImplied;
 
   while(d_pendingAssertions < d_assertions.size()){
-    TNode assertion = d_assertions[d_pendingAssertions];
+    Node assertion = d_assertions[d_pendingAssertions];
+    newlyImplied.push_back(assertion);
     d_pendingAssertions = d_pendingAssertions + 1;
-
-    enqueueImpliedLiterals(assertion, impliedButNotAsserted);
   }
 
-  if(debugTagIsOn("arith::propagator")){
-    for(std::vector<Node>::iterator i = impliedButNotAsserted.begin(),
-          endIter = impliedButNotAsserted.end(); i != endIter; ++i){
-      Node imp = *i;
-      Debug("arith::propagator") << explain(imp) << " (prop)-> " << imp << endl;
+  for(std::list<Node>::iterator i = newlyImplied.begin(); i != newlyImplied.end(); ++i){
+    Node newAssertion = *i;
+    Assert(newAssertion.hasAttribute(propagator::PropagatorIG()));
+    std::vector<Node>* implied = newAssertion.getAttribute(propagator::PropagatorIG());
+
+    for(std::vector<Node>::iterator j = implied->begin(); j != implied->end(); ++j){
+      Node blah = *j;
+      if(!blah.getAttribute(propagator::PropagatorMarked())){
+        blah.setAttribute(propagator::PropagatorMarked(),true);
+        newlyImplied.push_back(blah);
+        impliedButNotAsserted.push_back(blah);
+
+        Node explanation;
+        if(newAssertion.getAttribute(propagator::PropagatorExplanation(), explanation)){
+          blah.setAttribute(propagator::PropagatorExplanation(), explanation);
+        }else{
+          blah.setAttribute(propagator::PropagatorExplanation(), newAssertion);
+        }
+      }
     }
   }
 
   return impliedButNotAsserted;
 }
 
-/** This function is effectively a case split. */
-void ArithUnatePropagator::enqueueImpliedLiterals(TNode lit, std::vector<Node>& buffer){
-  switch(lit.getKind()){
-  case EQUAL:
-    enqueueEqualityImplications(lit, buffer);
-    break;
-  case LEQ:
-    enqueueUpperBoundImplications(lit, lit, buffer);
-    break;
-  case GEQ:
-    enqueueLowerBoundImplications(lit, lit, buffer);
-    break;
-  case NOT:
-    {
-      TNode under = lit[0];
-      switch(under.getKind()){
-      case EQUAL:
-        //Do nothing
-        break;;
-      case LEQ:
-        enqueueLowerBoundImplications(under, lit, buffer);
-        break;
-      case GEQ:
-        enqueueUpperBoundImplications(under, lit, buffer);
-        break;
-      default:
-        Unreachable();
-      }
-      break;
-    }
-  default:
-    Unreachable();
-  }
-}
-
-/**
- * An equality (x = c) has been asserted.
- * In this case we can propagate everything by comparing against the other constants.
- */
-void ArithUnatePropagator::enqueueEqualityImplications(TNode orig, std::vector<Node>& buffer){
-  TNode left = orig[0];
-  TNode right = orig[1];
-  const Rational& c = right.getConst<Rational>();
-
-  OrderedBoundsList* eqList = left.getAttribute(propagator::PropagatorEqList());
-  OrderedBoundsList* leqList = left.getAttribute(propagator::PropagatorLeqList());
-  OrderedBoundsList* geqList = left.getAttribute(propagator::PropagatorGeqList());
-
-
-  /* (x = c) /\ (c !=d) => (x != d)  */
-  for(OrderedBoundsList::iterator i = eqList->begin(); i != eqList->end(); ++i){
-    TNode eq = *i;
-    Assert(eq.getKind() == EQUAL);
-    if(!eq.getAttribute(propagator::PropagatorMarked())){ //Note that (x = c) is marked
-      Assert(eq[1].getConst<Rational>() != c);
-
-      eq.setAttribute(propagator::PropagatorMarked(), true);
-
-      Node neq = NodeManager::currentNM()->mkNode(NOT, eq);
-      neq.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(neq);
-    }
-  }
-  for(OrderedBoundsList::iterator i = leqList->begin(); i != leqList->end(); ++i){
-    TNode leq = *i;
-    Assert(leq.getKind() == LEQ);
-    if(!leq.getAttribute(propagator::PropagatorMarked())){
-      leq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = leq[1].getConst<Rational>();
-      if(c <= d){
-        /* (x = c) /\ (c <= d) => (x <= d)  */
-        leq.setAttribute(propagator::PropagatorExplanation(), orig);
-        buffer.push_back(leq);
-      }else{
-        /* (x = c) /\ (c > d) => (x > d)  */
-        Node gt = NodeManager::currentNM()->mkNode(NOT, leq);
-        gt.setAttribute(propagator::PropagatorExplanation(), orig);
-        buffer.push_back(gt);
-      }
-    }
-  }
-
-  for(OrderedBoundsList::iterator i = geqList->begin(); i != geqList->end(); ++i){
-    TNode geq = *i;
-    Assert(geq.getKind() == GEQ);
-    if(!geq.getAttribute(propagator::PropagatorMarked())){
-      geq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = geq[1].getConst<Rational>();
-      if(c >= d){
-        /* (x = c) /\ (c >= d) => (x >= d)  */
-        geq.setAttribute(propagator::PropagatorExplanation(), orig);
-        buffer.push_back(geq);
-      }else{
-        /* (x = c) /\ (c >= d) => (x >= d)  */
-        Node lt = NodeManager::currentNM()->mkNode(NOT, geq);
-        lt.setAttribute(propagator::PropagatorExplanation(), orig);
-        buffer.push_back(lt);
-      }
-    }
-  }
-}
-
-void ArithUnatePropagator::enqueueUpperBoundImplications(TNode atom, TNode orig, std::vector<Node>& buffer){
-
-  Assert(atom.getKind() == LEQ || (orig.getKind() == NOT && atom.getKind() == GEQ));
-
-  TNode left = atom[0];
-  TNode right = atom[1];
-  const Rational& c = right.getConst<Rational>();
-
-  OrderedBoundsList* eqList = left.getAttribute(propagator::PropagatorEqList());
-  OrderedBoundsList* leqList = left.getAttribute(propagator::PropagatorLeqList());
-  OrderedBoundsList* geqList = left.getAttribute(propagator::PropagatorGeqList());
-
-
-  //For every node (x <= d), we will restrict ourselves to look at the cases when (d >= c)
-  for(OrderedBoundsList::iterator i = leqList->lower_bound(atom); i != leqList->end(); ++i){
-    TNode leq = *i;
-    Assert(leq.getKind() == LEQ);
-    if(!leq.getAttribute(propagator::PropagatorMarked())){
-      leq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = leq[1].getConst<Rational>();
-      Assert( c <= d );
-
-      leq.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(leq); // (x<=c) /\ (c <= d) => (x <= d)
-      //Note that if c=d, that at the node is not marked this can only be reached when (x < c)
-      //So we do not have to worry about a circular dependency
-    }else if(leq != atom){
-      break; //No need to examine the rest, this atom implies the rest of the possible propagataions
-    }
-  }
-
-  for(OrderedBoundsList::iterator i = geqList->upper_bound(atom); i != geqList->end(); ++i){
-    TNode geq = *i;
-    Assert(geq.getKind() == GEQ);
-    if(!geq.getAttribute(propagator::PropagatorMarked())){
-      geq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = geq[1].getConst<Rational>();
-      Assert( c < d );
-
-      Node lt = NodeManager::currentNM()->mkNode(NOT, geq);
-      lt.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(lt); // x<=c /\ d > c => x < d
-    }else{
-      break; //No need to examine this atom implies the rest
-    }
-  }
-
-  for(OrderedBoundsList::iterator i = eqList->upper_bound(atom); i != eqList->end(); ++i){
-    TNode eq = *i;
-    Assert(eq.getKind() == EQUAL);
-    if(!eq.getAttribute(propagator::PropagatorMarked())){
-      eq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = eq[1].getConst<Rational>();
-      Assert( c < d );
-
-      Node neq = NodeManager::currentNM()->mkNode(NOT, eq);
-      neq.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(neq); // x<=c /\ c < d => x !=  d
-    }
-  }
-}
-
-void ArithUnatePropagator::enqueueLowerBoundImplications(TNode atom, TNode orig, std::vector<Node>& buffer){
-
-  Assert(atom.getKind() == GEQ || (orig.getKind() == NOT && atom.getKind() == LEQ));
-
-  TNode left = atom[0];
-  TNode right = atom[1];
-  const Rational& c = right.getConst<Rational>();
-
-  OrderedBoundsList* eqList = left.getAttribute(propagator::PropagatorEqList());
-  OrderedBoundsList* leqList = left.getAttribute(propagator::PropagatorLeqList());
-  OrderedBoundsList* geqList = left.getAttribute(propagator::PropagatorGeqList());
-
-
-  for(OrderedBoundsList::reverse_iterator i = geqList->reverse_lower_bound(atom);
-      i != geqList->rend(); i++){
-    TNode geq = *i;
-    Assert(geq.getKind() == GEQ);
-    if(!geq.getAttribute(propagator::PropagatorMarked())){
-      geq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = geq[1].getConst<Rational>();
-      Assert( c >= d );
-
-      geq.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(geq); // x>=c /\ c >= d => x >= d
-    }else if(geq != atom){
-      break; //No need to examine the rest, this atom implies the rest of the possible propagataions
-    }
-  }
-
-  for(OrderedBoundsList::reverse_iterator i = leqList->reverse_upper_bound(atom);
-      i != leqList->rend(); ++i){
-    TNode leq = *i;
-    Assert(leq.getKind() == LEQ);
-    if(!leq.getAttribute(propagator::PropagatorMarked())){
-      leq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = leq[1].getConst<Rational>();
-      Assert( c > d );
-
-      Node gt = NodeManager::currentNM()->mkNode(NOT, leq);
-      gt.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(gt); // x>=c /\ d < c => x > d
-    }else{
-      break; //No need to examine this atom implies the rest
-    }
-  }
-
-  for(OrderedBoundsList::reverse_iterator i = eqList->reverse_upper_bound(atom);
-      i != eqList->rend(); ++i){
-    TNode eq = *i;
-    Assert(eq.getKind() == EQUAL);
-    if(!eq.getAttribute(propagator::PropagatorMarked())){
-      eq.setAttribute(propagator::PropagatorMarked(), true);
-      const Rational& d = eq[1].getConst<Rational>();
-      Assert( c > d );
-
-      Node neq = NodeManager::currentNM()->mkNode(NOT, eq);
-      neq.setAttribute(propagator::PropagatorExplanation(), orig);
-      buffer.push_back(neq); // x>=c /\ c > d => x !=  d
-    }
-  }
-
-}
-
 Node ArithUnatePropagator::explain(TNode lit){
   Assert(lit.hasAttribute(propagator::PropagatorExplanation()));
+
   return lit.getAttribute(propagator::PropagatorExplanation());
 }
