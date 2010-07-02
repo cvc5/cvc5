@@ -66,6 +66,9 @@ void reduceSymmetries(TNode& atom, Rational& b, TNode& otherAtom, Rational& othe
 }
 
 void ArithUnatePropagator::addImplication(TNode a0, TNode a1){
+  Debug("arith-propagator") << "adding implication " << a0 << " ->" << a1 << endl;
+  Debug("arith-propagator") << "adding implication " << a0.getId() << " ->" << a1.getId() << endl; // 217 ->208
+
   vector<Node>* a0imps = a0.getAttribute(propagator::PropagatorIG());
   a0imps->push_back(a1);
 }
@@ -117,7 +120,7 @@ void ArithUnatePropagator::introduceImplications(TNode atom, TNode otherAtom){
       addImplication(atom, negOtherAtom); // (b < b' and x <= b) -> (x < b');
       addImplication(otherAtom, negation); // (b < b' and x >= b') -> (x > b);
     }else{
-      addImplication(negOtherAtom, negation); // (b > b' and x < b') -> (x > b);
+      addImplication(negOtherAtom, atom); // (b > b' and x < b') -> (x <= b);
       addImplication(negation, otherAtom); // (b > b' and x > b) -> (x >= b');
     }
   }else if(k == GEQ && otherK == EQUAL){
@@ -201,6 +204,14 @@ std::vector<Node> ArithUnatePropagator::getImpliedLiterals(){
 
     for(std::vector<Node>::iterator i = implies->begin(); i != implies->end(); ++i){
       Node impliedByAssertion = *i;
+      Node negation;
+      if (impliedByAssertion.getKind() == kind::NOT){
+        negation = impliedByAssertion[0];
+      }else{
+        negation = NodeManager::currentNM()->mkNode(kind::NOT,impliedByAssertion);
+      }
+      Debug("arith-propagator") << "about to check " << impliedByAssertion << endl;
+      Assert(!negation.getAttribute(propagator::PropagatorMarked()));
       if(!impliedByAssertion.getAttribute(propagator::PropagatorMarked())){
         impliedByAssertion.setAttribute(propagator::PropagatorMarked(),true);
         impliedButNotAsserted.push_back(impliedByAssertion);
