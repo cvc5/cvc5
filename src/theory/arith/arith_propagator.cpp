@@ -176,7 +176,6 @@ void ArithUnatePropagator::addAtom(TNode atom){
   Debug("propagator") << propagator::IsInPropagator().getId()<< std::endl;
 
 }
- 
 
 
 
@@ -190,31 +189,25 @@ void ArithUnatePropagator::assertLiteral(TNode lit){
 
 std::vector<Node> ArithUnatePropagator::getImpliedLiterals(){
   std::vector<Node> impliedButNotAsserted;
-  std::list<Node> newlyImplied;
 
   while(d_pendingAssertions < d_assertions.size()){
     Node assertion = d_assertions[d_pendingAssertions];
-    newlyImplied.push_back(assertion);
     d_pendingAssertions = d_pendingAssertions + 1;
-  }
 
-  for(std::list<Node>::iterator i = newlyImplied.begin(); i != newlyImplied.end(); ++i){
-    Node newAssertion = *i;
-    Assert(newAssertion.hasAttribute(propagator::PropagatorIG()));
-    std::vector<Node>* implied = newAssertion.getAttribute(propagator::PropagatorIG());
+    Assert(assertion.hasAttribute(propagator::PropagatorIG()));
+    std::vector<Node>* implies = assertion.getAttribute(propagator::PropagatorIG());
 
-    for(std::vector<Node>::iterator j = implied->begin(); j != implied->end(); ++j){
-      Node blah = *j;
-      if(!blah.getAttribute(propagator::PropagatorMarked())){
-        blah.setAttribute(propagator::PropagatorMarked(),true);
-        newlyImplied.push_back(blah);
-        impliedButNotAsserted.push_back(blah);
+    for(std::vector<Node>::iterator i = implies->begin(); i != implies->end(); ++i){
+      Node impliedByAssertion = *i;
+      if(!impliedByAssertion.getAttribute(propagator::PropagatorMarked())){
+        impliedByAssertion.setAttribute(propagator::PropagatorMarked(),true);
+        impliedButNotAsserted.push_back(impliedByAssertion);
 
         Node explanation;
-        if(newAssertion.getAttribute(propagator::PropagatorExplanation(), explanation)){
-          blah.setAttribute(propagator::PropagatorExplanation(), explanation);
+        if(assertion.getAttribute(propagator::PropagatorExplanation(), explanation)){
+          impliedByAssertion.setAttribute(propagator::PropagatorExplanation(), explanation);
         }else{
-          blah.setAttribute(propagator::PropagatorExplanation(), newAssertion);
+          impliedByAssertion.setAttribute(propagator::PropagatorExplanation(), assertion);
         }
       }
     }
