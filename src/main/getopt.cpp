@@ -68,7 +68,8 @@ enum OptionValue {
   USE_MMAP,
   SHOW_CONFIG,
   STRICT_PARSING,
-  DEFAULT_EXPR_DEPTH
+  DEFAULT_EXPR_DEPTH,
+  PRINT_EXPR_TYPES
 };/* enum OptionValue */
 
 /**
@@ -113,6 +114,7 @@ static struct option cmdlineOptions[] = {
   { "mmap",        no_argument      , NULL, USE_MMAP    },
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
+  { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -231,6 +233,17 @@ throw(OptionException) {
         Chat.getStream() << Expr::setdepth(depth);
         Message.getStream() << Expr::setdepth(depth);
         Warning.getStream() << Expr::setdepth(depth);
+      }
+      break;
+
+    case PRINT_EXPR_TYPES:
+      {
+        Debug.getStream() << Expr::printtypes(true);
+        Trace.getStream() << Expr::printtypes(true);
+        Notice.getStream() << Expr::printtypes(true);
+        Chat.getStream() << Expr::printtypes(true);
+        Message.getStream() << Expr::printtypes(true);
+        Warning.getStream() << Expr::printtypes(true);
       }
       break;
 

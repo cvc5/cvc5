@@ -213,7 +213,7 @@ public:
   }
 
   std::string toString() const;
-  void toStream(std::ostream& out, int toDepth = -1) const;
+  void toStream(std::ostream& out, int toDepth = -1, bool types = false) const;
 
   static inline unsigned kindToDKind(Kind k) {
     return ((unsigned) k) & kindMask;
@@ -234,6 +234,21 @@ public:
   inline const T& getConst() const;
 
   NodeValue* getChild(int i) const;
+
+  void printAst(std::ostream& out, int indent = 0) const;
+
+private:
+
+  /**
+   * Indents the given stream a given amount of spaces.
+   * @param out the stream to indent
+   * @param indent the numer of spaces
+   */
+  static inline void indent(std::ostream& out, int indent) {
+    for(int i = 0; i < indent; i++) {
+      out << ' ';
+    }
+  }
 
 };/* class NodeValue */
 
@@ -264,6 +279,7 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 }/* CVC4 namespace */
 
 #include "expr/node_manager.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace expr {
@@ -363,11 +379,31 @@ inline T NodeValue::iterator<T>::operator*() {
 }
 
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
-  nv.toStream(out, Node::setdepth::getDepth(out));
+  nv.toStream(out,
+              Node::setdepth::getDepth(out),
+              Node::printtypes::getPrintTypes(out));
   return out;
 }
 
 }/* CVC4::expr namespace */
+
+#ifdef CVC4_DEBUG
+/**
+ * Pretty printer for use within gdb.  This is not intended to be used
+ * outside of gdb.  This writes to the Warning() stream and immediately
+ * flushes the stream.
+ */
+static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
+  Warning() << Node::setdepth(-1) << *nv << std::endl;
+  Warning().flush();
+}
+
+static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {
+  nv->printAst(Warning(), 0);
+  Warning().flush();
+}
+#endif /* CVC4_DEBUG */
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR__NODE_VALUE_H */

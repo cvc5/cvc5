@@ -190,6 +190,9 @@ TypeNode NodeManager::getType(TNode n)
   if(!hasType) {
     // Infer the type
     switch(n.getKind()) {
+    case kind::SORT_TYPE:
+      typeNode = kindType();
+      break;
     case kind::EQUAL:
       typeNode = CVC4::theory::builtin::EqualityTypeRule::computeType(this, n);
       break;

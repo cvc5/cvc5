@@ -44,6 +44,7 @@ class Expr;
 
 namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
+  class CVC4_PUBLIC ExprPrintTypes;
 }/* CVC4::expr namespace */
 
 /**
@@ -70,8 +71,8 @@ public:
   ~TypeCheckingException() throw ();
 
   /**
-   * Get the Node that caused the type-checking to fail.
-   * @return the node
+   * Get the Expr that caused the type-checking to fail.
+   * @return the expr
    */
   Expr getExpression() const;
 
@@ -205,7 +206,7 @@ public:
    * Outputs the string representation of the expression to the stream.
    * @param out the output stream
    */
-  void toStream(std::ostream& out) const;
+  void toStream(std::ostream& out, int depth = -1, bool types = false) const;
 
   /**
    * Check if this is a null expression.
@@ -249,20 +250,31 @@ public:
   ExprManager* getExprManager() const;
 
   /**
-   * IOStream manipulator to set the maximum depth of Nodes when
+   * IOStream manipulator to set the maximum depth of Exprs when
    * pretty-printing.  -1 means print to any depth.  E.g.:
    *
    *   // let a, b, c, and d be VARIABLEs
-   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
-   *   out << setdepth(3) << n;
+   *   Expr e = em->mkExpr(OR, a, b, em->mkExpr(AND, c, em->mkExpr(NOT, d)))
+   *   out << setdepth(3) << e;
    *
    * gives "(OR a b (AND c (NOT d)))", but
    *
-   *   out << setdepth(1) << [same node as above]
+   *   out << setdepth(1) << [same expr as above]
    *
    * gives "(OR a b (...))"
    */
   typedef expr::ExprSetDepth setdepth;
+
+  /**
+   * IOStream manipulator to print type ascriptions or not.
+   *
+   *   // let a, b, c, and d be variables of sort U
+   *   Expr e = em->mkExpr(OR, a, b, em->mkExpr(AND, c, em->mkExpr(NOT, d)))
+   *   out << e;
+   *
+   * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
+   */
+  typedef expr::ExprPrintTypes printtypes;
 
   /**
    * Very basic pretty printer for Expr.
@@ -290,7 +302,7 @@ protected:
    */
   NodeTemplate<true> getNode() const;
 
-  // Friend to access the actual internal node information and private methods
+  // Friend to access the actual internal expr information and private methods
   friend class SmtEngine;
   friend class ExprManager;
 };
@@ -385,16 +397,16 @@ public:
 namespace expr {
 
 /**
- * IOStream manipulator to set the maximum depth of Nodes when
+ * IOStream manipulator to set the maximum depth of Exprs when
  * pretty-printing.  -1 means print to any depth.  E.g.:
  *
  *   // let a, b, c, and d be VARIABLEs
- *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
- *   out << setdepth(3) << n;
+ *   Expr e = em->mkExpr(OR, a, b, em->mkExpr(AND, c, em->mkExpr(NOT, d)))
+ *   out << setdepth(3) << e;
  *
  * gives "(OR a b (AND c (NOT d)))", but
  *
- *   out << setdepth(1) << [same node as above]
+ *   out << setdepth(1) << [same expr as above]
  *
  * gives "(OR a b (...))".
  *
@@ -416,7 +428,7 @@ class CVC4_PUBLIC ExprSetDepth {
   static const int s_defaultPrintDepth = 3;
 
   /**
-   * When this manipulator is 
+   * When this manipulator is used, the depth is stored here.
    */
   long d_depth;
 
@@ -444,6 +456,51 @@ public:
   }
 };
 
+/**
+ * IOStream manipulator to print type ascriptions or not.
+ *
+ *   // let a, b, c, and d be variables of sort U
+ *   Expr e = em->mkExpr(OR, a, b, em->mkExpr(AND, c, em->mkExpr(NOT, d)))
+ *   out << e;
+ *
+ * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
+ */
+class CVC4_PUBLIC ExprPrintTypes {
+  /**
+   * The allocated index in ios_base for our depth setting.
+   */
+  static const int s_iosIndex;
+
+  /**
+   * The default depth to print, for ostreams that haven't yet had a
+   * setdepth() applied to them.
+   */
+  static const int s_defaultPrintTypes = false;
+
+  /**
+   * When this manipulator is used, the setting is stored here.
+   */
+  bool d_printTypes;
+
+public:
+  /**
+   * Construct a ExprPrintTypes with the given setting.
+   */
+  ExprPrintTypes(bool printTypes) : d_printTypes(printTypes) {}
+
+  inline void applyPrintTypes(std::ostream& out) {
+    out.iword(s_iosIndex) = d_printTypes;
+  }
+
+  static inline bool getPrintTypes(std::ostream& out) {
+    return out.iword(s_iosIndex);
+  }
+
+  static inline void setPrintTypes(std::ostream& out, bool printTypes) {
+    out.iword(s_iosIndex) = printTypes;
+  }
+};
+
 }/* CVC4::expr namespace */
 
 ${getConst_instantiations}
@@ -453,16 +510,30 @@ ${getConst_instantiations}
 namespace expr {
 
 /**
- * Sets the default depth when pretty-printing a Node to an ostream.
- * Use like this:
+ * Sets the default print-types setting when pretty-printing an Expr
+ * to an ostream.  Use like this:
  *
- *   // let out be an ostream, n a Node
- *   out << Node::setdepth(n) << n << endl;
+ *   // let out be an ostream, e an Expr
+ *   out << Expr::setdepth(n) << e << endl;
  *
  * The depth stays permanently (until set again) with the stream.
  */
 inline std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
   sd.applyDepth(out);
+  return out;
+}
+
+/**
+ * Sets the default depth when pretty-printing a Expr to an ostream.
+ * Use like this:
+ *
+ *   // let out be an ostream, e an Expr
+ *   out << Expr::setprinttypes(true) << e << endl;
+ *
+ * The setting stays permanently (until set again) with the stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
+  pt.applyPrintTypes(out);
   return out;
 }
 

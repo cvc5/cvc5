@@ -161,7 +161,7 @@ sub recurse {
         print $OUT " ** Minor contributors (to current version): $minor_contributors\n";
         print $OUT $standard_template;
         print $OUT " **\n";
-        print $OUT " ** \brief [[ Add one-line brief description here ]]\n";
+        print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";
         print $OUT " **\n";
         print $OUT " ** [[ Add lengthier description here ]]\n";
         print $OUT " ** \\todo document this file\n";

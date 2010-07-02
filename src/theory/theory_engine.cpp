@@ -47,38 +47,30 @@ Theory* TheoryEngine::theoryOf(TNode n) {
   Assert(k >= 0 && k < kind::LAST_KIND);
 
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
-    TypeNode t = n.getType();
-    if(t.isBoolean()) {
-      return &d_bool;
-    } else if(t.isReal()) {
-      return &d_arith;
-    } else if(t.isArray()) {
-      return &d_arrays;
-    } else {
-      return &d_uf;
-    }
-    //Unimplemented();
-  } else if(k == kind::EQUAL) {
-    // if LHS is a variable, use theoryOf(LHS.getType())
-    // otherwise, use theoryOf(LHS)
-    TNode lhs = n[0];
-    if(lhs.getMetaKind() == kind::metakind::VARIABLE) {
-      // FIXME: we don't yet have a Type-to-Theory map.  When we do,
-      // look up the type of the LHS and return that Theory (?)
+    // FIXME: we don't yet have a Type-to-Theory map.  When we do,
+    // look up the type of the var and return that Theory (?)
 
-      //The following JUST hacks around this lack of a table
-      TypeNode type_of_n = lhs.getType();
-      if(type_of_n.isReal()) {
-        return &d_arith;
-      } else if(type_of_n.isArray()) {
-        return &d_arrays;
-      } else {
-        return &d_uf;
-        //Unimplemented();
+    //The following JUST hacks around this lack of a table
+    TypeNode t = n.getType();
+    Kind k = t.getKind();
+    if(k == kind::TYPE_CONSTANT) {
+      switch(TypeConstant tc = t.getConst<TypeConstant>()) {
+      case BOOLEAN_TYPE:
+        return d_theoryOfTable[kind::CONST_BOOLEAN];
+      case INTEGER_TYPE:
+        return d_theoryOfTable[kind::CONST_INTEGER];
+      case REAL_TYPE:
+        return d_theoryOfTable[kind::CONST_RATIONAL];
+      case KIND_TYPE:
+      default:
+        Unhandled(tc);
       }
-    } else {
-      return theoryOf(lhs);
     }
+
+    return d_theoryOfTable[k];
+  } else if(k == kind::EQUAL) {
+    // equality is special: use LHS
+    return theoryOf(n[0]);
   } else {
     // use our Kind-to-Theory mapping
     return d_theoryOfTable[k];
@@ -141,7 +133,7 @@ Node TheoryEngine::preprocess(TNode t) {
 
 /* Our goal is to tease out any ITE's sitting under a theory operator. */
 Node TheoryEngine::removeITEs(TNode node) {
-  Debug("ite") << "handleNonAtomicNode(" << node << ")" << endl;
+  Debug("ite") << "removeITEs(" << node << ")" << endl;
 
   /* The result may be cached already */
   Node cachedRewrite;
@@ -155,7 +147,7 @@ Node TheoryEngine::removeITEs(TNode node) {
     TypeNode nodeType = node[1].getType();
     if(!nodeType.isBoolean()){
 
-      Node skolem = nodeManager->mkVar(node.getType());
+      Node skolem = nodeManager->mkSkolem(node.getType());
       Node newAssertion =
         nodeManager->mkNode(
                             kind::ITE,

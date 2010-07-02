@@ -77,7 +77,7 @@ TypeNode TypeNode::getRangeType() const {
 
 /** Is this a sort kind */
 bool TypeNode::isSort() const {
-  return getKind() == kind::VARIABLE;
+  return getKind() == kind::SORT_TYPE;
 }
 
 /** Is this a kind type (i.e., the type of a type)? */

@@ -455,12 +455,13 @@ public:
    * given stream
    * @param out the sream to serialise this node to
    */
-  inline void toStream(std::ostream& out, int toDepth = -1) const {
+  inline void toStream(std::ostream& out, int toDepth = -1,
+                       bool types = false) const {
     if(!ref_count) {
       Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
     }
 
-    d_nv->toStream(out, toDepth);
+    d_nv->toStream(out, toDepth, types);
   }
 
   /**
@@ -480,11 +481,22 @@ public:
   typedef expr::ExprSetDepth setdepth;
 
   /**
+   * IOStream manipulator to print type ascriptions or not.
+   *
+   *   // let a, b, c, and d be variables of sort U
+   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
+   *   out << n;
+   *
+   * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
+   */
+  typedef expr::ExprPrintTypes printtypes;
+
+  /**
    * Very basic pretty printer for Node.
    * @param o output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
-  void printAst(std::ostream & o, int indent = 0) const;
+  inline void printAst(std::ostream& out, int indent = 0) const;
 
   NodeTemplate<true> eqNode(const NodeTemplate& right) const;
 
@@ -497,19 +509,6 @@ public:
   NodeTemplate<true> impNode(const NodeTemplate& right) const;
   NodeTemplate<true> xorNode(const NodeTemplate& right) const;
 
-private:
-
-  /**
-   * Indents the given stream a given amount of spaces.
-   * @param out the stream to indent
-   * @param indent the numer of spaces
-   */
-  static void indent(std::ostream& out, int indent) {
-    for(int i = 0; i < indent; i++) {
-      out << ' ';
-    }
-  }
-
 };/* class NodeTemplate<ref_count> */
 
 /**
@@ -519,7 +518,9 @@ private:
  * @return the changed stream.
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
-  n.toStream(out, Node::setdepth::getDepth(out));
+  n.toStream(out,
+             Node::setdepth::getDepth(out),
+             Node::printtypes::getPrintTypes(out));
   return out;
 }
 
@@ -805,30 +806,9 @@ NodeTemplate<ref_count>::xorNode(const NodeTemplate<ref_count>& right) const {
 }
 
 template <bool ref_count>
-void NodeTemplate<ref_count>::printAst(std::ostream& out, int ind) const {
-  indent(out, ind);
-  out << '(';
-  out << getKind();
-  if(getMetaKind() == kind::metakind::VARIABLE) {
-    out << ' ' << getId();
-  } else if(getMetaKind() == kind::metakind::CONSTANT) {
-    out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, d_nv);
-  } else {
-    if(hasOperator()) {
-      out << std::endl;
-      getOperator().printAst(out, ind + 1);
-    }
-    if(getNumChildren() >= 1) {
-      for(const_iterator child = begin(); child != end(); ++child) {
-        out << std::endl;
-        (*child).printAst(out, ind + 1);
-      }
-      out << std::endl;
-      indent(out, ind);
-    }
-  }
-  out << ')';
+inline void
+NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
+  d_nv->printAst(out, indent);
 }
 
 /**
@@ -910,11 +890,19 @@ TypeNode NodeTemplate<ref_count>::getType() const
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
+  Warning() << Node::setdepth(-1) << n << std::endl;
+  Warning().flush();
+}
+static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
+  Warning() << Node::setdepth(-1) << n << std::endl;
+  Warning().flush();
+}
+static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }

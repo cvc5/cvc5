@@ -280,8 +280,9 @@ public:
    * given stream
    * @param out the sream to serialise this node to
    */
-  inline void toStream(std::ostream& out, int toDepth = -1) const {
-    d_nv->toStream(out, toDepth);
+  inline void toStream(std::ostream& out, int toDepth = -1,
+                       bool types = false) const {
+    d_nv->toStream(out, toDepth, types);
   }
 
   /**
@@ -289,7 +290,7 @@ public:
    * @param o output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
-  void printAst(std::ostream & o, int indent = 0) const;
+  void printAst(std::ostream& out, int indent = 0) const;
 
   /**
    * Returns true if this type is a null type.
@@ -369,7 +370,9 @@ private:
  * @return the changed stream.
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out, Node::setdepth::getDepth(out));
+  n.toStream(out,
+             Node::setdepth::getDepth(out),
+             Node::printtypes::getPrintTypes(out));
   return out;
 }
 
@@ -464,6 +467,36 @@ setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
+
+inline void TypeNode::printAst(std::ostream& out, int indent) const {
+  d_nv->printAst(out, indent);
+}
+
+#ifdef CVC4_DEBUG
+/**
+ * Pretty printer for use within gdb.  This is not intended to be used
+ * outside of gdb.  This writes to the Warning() stream and immediately
+ * flushes the stream.
+ *
+ * Note that this function cannot be a template, since the compiler
+ * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
+ * So we implement twice.  We mark as __attribute__((used)) so that
+ * GCC emits code for it even though static analysis indicates it's
+ * never called.
+ *
+ * Tim's Note: I moved this into the node.h file because this allows gdb
+ * to find the symbol, and use it, which is the first standard this code needs
+ * to meet. A cleaner solution is welcomed.
+ */
+static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
+  Warning() << Node::setdepth(-1) << n << std::endl;
+  Warning().flush();
+}
+static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
+  n.printAst(Warning(), 0);
+  Warning().flush();
+}
+#endif /* CVC4_DEBUG */
 
 }/* CVC4 namespace */
 

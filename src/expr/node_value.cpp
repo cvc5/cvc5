@@ -41,26 +41,33 @@ string NodeValue::toString() const {
   return ss.str();
 }
 
-void NodeValue::toStream(std::ostream& out, int toDepth) const {
+void NodeValue::toStream(std::ostream& out, int toDepth, bool types) const {
   using namespace CVC4::kind;
   using namespace CVC4;
 
   if(getKind() == kind::NULL_EXPR) {
     out << "null";
   } else if(getMetaKind() == kind::metakind::VARIABLE) {
-    if(getKind() != kind::VARIABLE) {
+    if(getKind() != kind::VARIABLE &&
+       getKind() != kind::SORT_TYPE) {
       out << getKind() << ':';
     }
 
     string s;
+    NodeManager* nm = NodeManager::currentNM();
 
     // conceptually "this" is const, and hasAttribute() doesn't change
     // its argument, but it requires a non-const key arg (for now)
-    if(NodeManager::currentNM()->getAttribute(const_cast<NodeValue*>(this),
-                                              VarNameAttr(), s)) {
+    if(nm->getAttribute(const_cast<NodeValue*>(this),
+                        VarNameAttr(), s)) {
       out << s;
     } else {
       out << "var_" << d_id;
+    }
+    if(types) {
+      // print the whole type, but not *its* type
+      out << ":";
+      nm->getType(TNode(this)).toStream(out, -1, false);
     }
   } else {
     out << '(' << Kind(d_kind);
@@ -73,7 +80,7 @@ void NodeValue::toStream(std::ostream& out, int toDepth) const {
           out << ' ';
         }
         if(toDepth != 0) {
-          (*i)->toStream(out, toDepth < 0 ? toDepth : toDepth - 1);
+          (*i)->toStream(out, toDepth < 0 ? toDepth : toDepth - 1, types);
         } else {
           out << "(...)";
         }
@@ -81,6 +88,28 @@ void NodeValue::toStream(std::ostream& out, int toDepth) const {
     }
     out << ')';
   }
+}
+
+void NodeValue::printAst(std::ostream& out, int ind) const {
+  indent(out, ind);
+  out << '(';
+  out << getKind();
+  if(getMetaKind() == kind::metakind::VARIABLE) {
+    out << ' ' << getId();
+  } else if(getMetaKind() == kind::metakind::CONSTANT) {
+    out << ' ';
+    kind::metakind::NodeValueConstPrinter::toStream(out, this);
+  } else {
+    if(nv_begin() != nv_end()) {
+      for(const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
+        out << std::endl;
+        (*child)->printAst(out, ind + 1);
+      }
+      out << std::endl;
+      indent(out, ind);
+    }
+  }
+  out << ')';
 }
 
 }/* CVC4::expr namespace */

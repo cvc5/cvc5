@@ -127,4 +127,3 @@ constant TYPE_CONSTANT \
     "expr/type_constant.h" \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
-variable SORT_TYPE "sort type"

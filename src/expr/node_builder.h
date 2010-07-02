@@ -661,10 +661,11 @@ public:
   operator Node();
   operator Node() const;
 
-  inline void toStream(std::ostream& out, int depth = -1) const {
+  inline void toStream(std::ostream& out, int depth = -1,
+                       bool types = false) const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    d_nv->toStream(out, depth);
+    d_nv->toStream(out, depth, types);
   }
 
   NodeBuilder<nchild_thresh>& operator&=(TNode);
@@ -1211,7 +1212,9 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
 template <unsigned nchild_thresh>
 inline std::ostream& operator<<(std::ostream& out,
                                 const NodeBuilder<nchild_thresh>& b) {
-  b.toStream(out, Node::setdepth::getDepth(out));
+  b.toStream(out,
+             Node::setdepth::getDepth(out),
+             Node::printtypes::getPrintTypes(out));
   return out;
 }
 

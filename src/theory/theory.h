@@ -38,6 +38,14 @@ class TheoryEngine;
 
 namespace theory {
 
+// rewrite cache support
+template <bool topLevel> struct PreRewriteCacheTag {};
+typedef expr::Attribute<PreRewriteCacheTag<true>, Node> PreRewriteCacheTop;
+typedef expr::Attribute<PreRewriteCacheTag<false>, Node> PreRewriteCache;
+template <bool topLevel> struct PostRewriteCacheTag {};
+typedef expr::Attribute<PostRewriteCacheTag<true>, Node> PostRewriteCacheTop;
+typedef expr::Attribute<PostRewriteCacheTag<false>, Node> PostRewriteCache;
+
 /**
  * Instances of this class serve as response codes from
  * Theory::preRewrite() and Theory::postRewrite().  Instances of
@@ -372,6 +380,96 @@ protected:
    */
   virtual bool theoryReady(ReadyState s) {
     return true;
+  }
+
+  /**
+   * Check whether a node is in the pre-rewrite cache or not.
+   */
+  static bool inPreRewriteCache(TNode n, bool topLevel) throw() {
+    if(topLevel) {
+      return n.hasAttribute(PreRewriteCacheTop());
+    } else {
+      return n.hasAttribute(PreRewriteCache());
+    }
+  }
+
+  /**
+   * Get the value of the pre-rewrite cache (or Node::null()) if there is
+   * none).
+   */
+  static Node getPreRewriteCache(TNode n, bool topLevel) throw() {
+    if(topLevel) {
+      Node out;
+      if(n.getAttribute(PreRewriteCacheTop(), out)) {
+        return out.isNull() ? Node(n) : out;
+      }
+    } else {
+      Node out;
+      if(n.getAttribute(PreRewriteCache(), out)) {
+        return out.isNull() ? Node(n) : out;
+      }
+    }
+    return Node::null();
+  }
+
+  /**
+   * Set the value of the pre-rewrite cache.  v cannot be a null Node.
+   */
+  static void setPreRewriteCache(TNode n, bool topLevel, TNode v) throw() {
+    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
+    AssertArgument(!v.isNull(), v, "v cannot be null in setPreRewriteCache()");
+    // mappings from  n -> n  are actually stored as  n -> null  as a
+    // special case, to avoid cycles in the reference-counting of Nodes
+    if(topLevel) {
+      n.setAttribute(PreRewriteCacheTop(), n == v ? TNode::null() : v);
+    } else {
+      n.setAttribute(PreRewriteCache(), n == v ? TNode::null() : v);
+    }
+  }
+
+  /**
+   * Check whether a node is in the post-rewrite cache or not.
+   */
+  static bool inPostRewriteCache(TNode n, bool topLevel) throw() {
+    if(topLevel) {
+      return n.hasAttribute(PostRewriteCacheTop());
+    } else {
+      return n.hasAttribute(PostRewriteCache());
+    }
+  }
+
+  /**
+   * Get the value of the post-rewrite cache (or Node::null()) if there is
+   * none).
+   */
+  static Node getPostRewriteCache(TNode n, bool topLevel) throw() {
+    if(topLevel) {
+      Node out;
+      if(n.getAttribute(PostRewriteCacheTop(), out)) {
+        return out.isNull() ? Node(n) : out;
+      }
+    } else {
+      Node out;
+      if(n.getAttribute(PostRewriteCache(), out)) {
+        return out.isNull() ? Node(n) : out;
+      }
+    }
+    return Node::null();
+  }
+
+  /**
+   * Set the value of the post-rewrite cache.  v cannot be a null Node.
+   */
+  static void setPostRewriteCache(TNode n, bool topLevel, TNode v) throw() {
+    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
+    AssertArgument(!v.isNull(), v, "v cannot be null in setPostRewriteCache()");
+    // mappings from  n -> n  are actually stored as  n -> null  as a
+    // special case, to avoid cycles in the reference-counting of Nodes
+    if(topLevel) {
+      n.setAttribute(PostRewriteCacheTop(), n == v ? TNode::null() : v);
+    } else {
+      n.setAttribute(PostRewriteCache(), n == v ? TNode::null() : v);
+    }
   }
 
 };/* class Theory */

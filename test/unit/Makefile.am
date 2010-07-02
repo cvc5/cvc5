@@ -21,6 +21,7 @@ UNIT_TESTS = \
 	context/cdlist_black \
 	context/cdmap_black \
 	context/cdmap_white \
+	theory/theory_engine_white \
 	theory/theory_black \
 	theory/theory_uf_white \
 	theory/theory_arith_white \

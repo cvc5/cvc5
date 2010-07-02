@@ -745,8 +745,7 @@ inline bool NodeManager::hasOperator(Kind k) {
 }
 
 inline TypeNode NodeManager::mkSort() {
-  TypeNode type = NodeBuilder<0>(this, kind::VARIABLE).constructTypeNode();
-  return type;
+  return NodeBuilder<0>(this, kind::SORT_TYPE).constructTypeNode();
 }
 
 inline TypeNode NodeManager::mkSort(const std::string& name) {

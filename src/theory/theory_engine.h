@@ -37,18 +37,6 @@
 
 namespace CVC4 {
 
-namespace theory {
-
-// rewrite cache support
-template <bool topLevel> struct PreRewriteCacheTag {};
-typedef expr::Attribute<PreRewriteCacheTag<true>, Node> PreRewriteCacheTop;
-typedef expr::Attribute<PreRewriteCacheTag<false>, Node> PreRewriteCache;
-template <bool topLevel> struct PostRewriteCacheTag {};
-typedef expr::Attribute<PostRewriteCacheTag<true>, Node> PostRewriteCacheTop;
-typedef expr::Attribute<PostRewriteCacheTag<false>, Node> PostRewriteCache;
-
-}/* CVC4::theory namespace */
-
 // In terms of abstraction, this is below (and provides services to)
 // PropEngine.
 
@@ -136,95 +124,48 @@ class TheoryEngine {
   theory::arrays::TheoryArrays d_arrays;
   theory::bv::TheoryBV d_bv;
 
-
   /**
    * Check whether a node is in the pre-rewrite cache or not.
    */
   static bool inPreRewriteCache(TNode n, bool topLevel) throw() {
-    if(topLevel) {
-      return n.hasAttribute(theory::PreRewriteCacheTop());
-    } else {
-      return n.hasAttribute(theory::PreRewriteCache());
-    }
+    return theory::Theory::inPreRewriteCache(n, topLevel);
   }
 
   /**
    * Get the value of the pre-rewrite cache (or Node::null()) if there is
    * none).
    */
-  static Node getPreRewriteCache(TNode in, bool topLevel) throw() {
-    if(topLevel) {
-      Node out;
-      if(in.getAttribute(theory::PreRewriteCacheTop(), out)) {
-        return out.isNull() ? Node(in) : out;
-      }
-    } else {
-      Node out;
-      if(in.getAttribute(theory::PreRewriteCache(), out)) {
-        return out.isNull() ? Node(in) : out;
-      }
-    }
-    return Node::null();
+  static Node getPreRewriteCache(TNode n, bool topLevel) throw() {
+    return theory::Theory::getPreRewriteCache(n, topLevel);
   }
 
   /**
    * Set the value of the pre-rewrite cache.  v cannot be a null Node.
    */
   static void setPreRewriteCache(TNode n, bool topLevel, TNode v) throw() {
-    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
-    AssertArgument(!v.isNull(), v, "v cannot be null in setPreRewriteCache()");
-    // mappings from  n -> n  are actually stored as  n -> null  as a
-    // special case, to avoid cycles in the reference-counting of Nodes
-    if(topLevel) {
-      n.setAttribute(theory::PreRewriteCacheTop(), n == v ? TNode::null() : v);
-    } else {
-      n.setAttribute(theory::PreRewriteCache(), n == v ? TNode::null() : v);
-    }
+    return theory::Theory::setPreRewriteCache(n, topLevel, v);
   }
 
   /**
    * Check whether a node is in the post-rewrite cache or not.
    */
   static bool inPostRewriteCache(TNode n, bool topLevel) throw() {
-    if(topLevel) {
-      return n.hasAttribute(theory::PostRewriteCacheTop());
-    } else {
-      return n.hasAttribute(theory::PostRewriteCache());
-    }
+    return theory::Theory::inPostRewriteCache(n, topLevel);
   }
 
   /**
    * Get the value of the post-rewrite cache (or Node::null()) if there is
    * none).
    */
-  static Node getPostRewriteCache(TNode in, bool topLevel) throw() {
-    if(topLevel) {
-      Node out;
-      if(in.getAttribute(theory::PostRewriteCacheTop(), out)) {
-        return out.isNull() ? Node(in) : out;
-      }
-    } else {
-      Node out;
-      if(in.getAttribute(theory::PostRewriteCache(), out)) {
-        return out.isNull() ? Node(in) : out;
-      }
-    }
-    return Node::null();
+  static Node getPostRewriteCache(TNode n, bool topLevel) throw() {
+    return theory::Theory::getPostRewriteCache(n, topLevel);
   }
 
   /**
    * Set the value of the post-rewrite cache.  v cannot be a null Node.
    */
   static void setPostRewriteCache(TNode n, bool topLevel, TNode v) throw() {
-    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
-    AssertArgument(!v.isNull(), v, "v cannot be null in setPostRewriteCache()");
-    // mappings from  n -> n  are actually stored as  n -> null  as a
-    // special case, to avoid cycles in the reference-counting of Nodes
-    if(topLevel) {
-      n.setAttribute(theory::PostRewriteCacheTop(), n == v ? TNode::null() : v);
-    } else {
-      n.setAttribute(theory::PostRewriteCache(), n == v ? TNode::null() : v);
-    }
+    return theory::Theory::setPostRewriteCache(n, topLevel, v);
   }
 
   /**
@@ -233,6 +174,9 @@ class TheoryEngine {
    */
   Node rewrite(TNode in);
 
+  /**
+   * Replace ITE forms in a node.
+   */
   Node removeITEs(TNode t);
 
 public:
@@ -385,6 +329,14 @@ private:
       StatisticsRegistry::registerStat(&d_statLemma);
       StatisticsRegistry::registerStat(&d_statAugLemma);
       StatisticsRegistry::registerStat(&d_statExplanatation);
+    }
+
+    ~Statistics() {
+      StatisticsRegistry::unregisterStat(&d_statConflicts);
+      StatisticsRegistry::unregisterStat(&d_statPropagate);
+      StatisticsRegistry::unregisterStat(&d_statLemma);
+      StatisticsRegistry::unregisterStat(&d_statAugLemma);
+      StatisticsRegistry::unregisterStat(&d_statExplanatation);
     }
   };
   Statistics d_statistics;
