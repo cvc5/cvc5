@@ -147,7 +147,7 @@ Node TheoryEngine::removeITEs(TNode node) {
     TypeNode nodeType = node[1].getType();
     if(!nodeType.isBoolean()){
 
-      Node skolem = nodeManager->mkSkolem(node.getType());
+      Node skolem = nodeManager->mkVar(node.getType());
       Node newAssertion =
         nodeManager->mkNode(
                             kind::ITE,
