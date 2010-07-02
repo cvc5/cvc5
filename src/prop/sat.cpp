@@ -2,7 +2,7 @@
 /*! \file sat.cpp
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
+ ** Major contributors: mdeters, taking
  ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
