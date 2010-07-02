@@ -532,6 +532,13 @@ fi
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
 AC_CHECK_LIB(gmpxx, __gmpz_init, , [AC_MSG_ERROR([GNU MP C++ library (libgmpxx) not found, see http://gmplib.org/])])
 
+PKG_CHECK_MODULES([CLN], [cln >= 1.2.2])
+
+CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }$CLN_CFLAGS -D__CVC4__USE_CLN_IMP"
+CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }$CLN_CFLAGS"
+CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }$CLN_CFLAGS"
+CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }$CLN_LIBS"
+
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
 

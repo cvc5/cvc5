@@ -21,6 +21,7 @@
  ** literature.) A consquence is that that the numerator and denominator may be
  ** different than the values used to construct the Rational.
  **/
+#ifdef __CVC4__USE_CLN_IMP
 
 #include "util/integer.h"
 
@@ -29,3 +30,5 @@ using namespace CVC4;
 std::ostream& CVC4::operator<<(std::ostream& os, const Integer& n) {
   return os << n.toString();
 }
+
+#endif /* __CVC4__USE_CLN_IMP */

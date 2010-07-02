@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rational.cpp
+/*! \file rational_cln_imp.cpp
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters, cconway
@@ -15,6 +15,9 @@
  **
  ** A multi-precision rational constant.
  **/
+
+#ifdef __CVC4__USE_CLN_IMP
+
 
 #include "util/integer.h"
 #include "util/rational.h"
@@ -47,3 +50,5 @@ Rational Rational::fromDecimal(const string& dec) {
 std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
 }
+
+#endif /* __CVC4__USE_CLN_IMP */

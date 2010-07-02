@@ -419,17 +419,17 @@ public:
 
   }
 
-  void testHash(){
-    Rational large (canReduce);
-    Rational zero;
-    Rational one_word(75890L,590L);
-    Rational two_words("7890D789D33234027890D789D3323402", 16);
+//   void testHash(){
+//     Rational large (canReduce);
+//     Rational zero;
+//     Rational one_word(75890L,590L);
+//     Rational two_words("7890D789D33234027890D789D3323402", 16);
 
-    TS_ASSERT_EQUALS(zero.hash(), 1u);
-    TS_ASSERT_EQUALS(one_word.hash(), 7589u xor 59u);
-    TS_ASSERT_EQUALS(two_words.hash(),
-		     (two_words.getNumerator().hash()) xor 1);
-    TS_ASSERT_EQUALS(large.hash(),
-                     (large.getNumerator().hash()) xor (large.getDenominator().hash()));
-  }
+//     TS_ASSERT_EQUALS(zero.hash(), 1u);
+//     TS_ASSERT_EQUALS(one_word.hash(), 7589u xor 59u);
+//     TS_ASSERT_EQUALS(two_words.hash(),
+// 		     (two_words.getNumerator().hash()) xor 1);
+//     TS_ASSERT_EQUALS(large.hash(),
+//                      (large.getNumerator().hash()) xor (large.getDenominator().hash()));
+//   }
 };

@@ -25,9 +25,15 @@ libutil_la_SOURCES = \
 	configuration.h \
 	configuration.cpp \
 	rational.h \
-	rational.cpp \
 	integer.h \
-	integer.cpp \
+	rational_cln_imp.h \
+	integer_cln_imp.h \
+	rational_cln_imp.cpp \
+	integer_cln_imp.cpp \
+	rational_gmp_imp.h \
+	integer_gmp_imp.h \
+	rational_gmp_imp.cpp \
+	integer_gmp_imp.cpp \
 	bitvector.h \
 	bitvector.cpp \
 	gmp_util.h \
