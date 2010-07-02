@@ -180,6 +180,8 @@ void ArithUnatePropagator::addAtom(TNode atom){
 
 
 void ArithUnatePropagator::assertLiteral(TNode lit){
+  Debug("arith-propagator") << lit << std::endl;
+
   Assert(lit.getAttribute(propagator::IsInPropagator()));
   Assert(!lit.getAttribute(propagator::PropagatorMarked()));
   lit.setAttribute(propagator::PropagatorMarked(),true);
@@ -210,6 +212,14 @@ std::vector<Node> ArithUnatePropagator::getImpliedLiterals(){
           impliedByAssertion.setAttribute(propagator::PropagatorExplanation(), assertion);
         }
       }
+    }
+  }
+
+  if(debugTagIsOn("arith-propagator")){
+    for(vector<Node>::iterator i = impliedButNotAsserted.begin();
+        i != impliedButNotAsserted.end(); ++i){
+      Node implied = *i;
+      Debug("arith-propagator") << explain(implied) << "-> " << implied << endl;
     }
   }
 
