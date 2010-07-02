@@ -27,6 +27,7 @@ TESTS =	\
         simple-rdl.smt2 \
 	simple-uf.smt2 \
 	bug32.cvc \
+	bug167.smt \
 	hole6.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
