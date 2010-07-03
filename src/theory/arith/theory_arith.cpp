@@ -56,7 +56,7 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   d_partialModel(c),
   d_diseq(c),
   d_rewriter(&d_constants),
-  d_propagator(c),
+  d_propagator(c, this),
   d_statistics()
 {
   uint64_t ass_id = partial_model::Assignment::getId();
@@ -813,7 +813,7 @@ void TheoryArith::check(Effort level){
     Debug("arith_assertions") << "arith assertion(" << original
                               << " \\-> " << assertion << ")" << std::endl;
 
-    d_propagator.assertLiteral(original);
+    //d_propagator.assertLiteral(original);
     bool conflictDuringAnAssert = assertionCases(original, assertion);
 
 
@@ -906,14 +906,16 @@ void TheoryArith::checkTableau(){
 
 
 void TheoryArith::explain(TNode n, Effort e) {
+  /*
   Node explanation = d_propagator.explain(n);
   Debug("arith") << "arith::explain("<<explanation<<")->"
                  << explanation << endl;
   d_out->explanation(explanation, true);
+  */
 }
 
 void TheoryArith::propagate(Effort e) {
-
+  /*
   if(quickCheckOrMore(e)){
     std::vector<Node> implied = d_propagator.getImpliedLiterals();
     for(std::vector<Node>::iterator i = implied.begin();
@@ -922,4 +924,9 @@ void TheoryArith::propagate(Effort e) {
       d_out->propagate(*i);
     }
   }
+  */
+}
+
+void TheoryArith::addInternalLemma(TNode lemma) {
+  d_out->augmentingLemma(lemma);
 }

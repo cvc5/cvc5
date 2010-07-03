@@ -249,6 +249,10 @@ private:
   void ejectInactiveVariables();
   void reinjectVariable(TNode x);
 
+public:
+  void addInternalLemma(TNode lemma);
+
+private:
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);
 

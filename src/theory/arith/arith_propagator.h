@@ -28,68 +28,47 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "context/cdo.h"
-#include <vector>
+
+#include "theory/arith/ordered_set.h"
+
+
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
+struct RightHandRationalLT;
+class TheoryArith;
+
 class ArithUnatePropagator {
 private:
-  context::CDO<unsigned int> d_pendingAssertions;
-  context::CDList<Node> d_assertions;
-
-  std::vector<Node> d_saver;
+  TheoryArith* d_arith;
 
 public:
-  ArithUnatePropagator(context::Context* cxt);
+  ArithUnatePropagator(context::Context* cxt, TheoryArith* arith);
 
   void addAtom(TNode atom);
 
-  void assertLiteral(TNode lit);
-
-  std::vector<Node> getImpliedLiterals();
-
-  Node explain(TNode lit);
-
 private:
-  void addImplication(TNode a0, TNode a1);
-  void introduceImplications(TNode atom, TNode otherAtom);
+  void addImplication(TNode a, TNode b);
+  bool leftIsSetup(TNode left);
+  void setupLefthand(TNode left);
+  void addEquality(TNode atom, OrderedSet* eqSet, OrderedSet* leqSet, OrderedSet* geqSet, OrderedSet::iterator atomPos);
+  void addLeq(TNode atom, OrderedSet* eqSet,OrderedSet* leqSet, OrderedSet* geqSet, OrderedSet::iterator atomPos);
+  void addGeq(TNode atom, OrderedSet* eqSet, OrderedSet* leqSet, OrderedSet* geqSet, OrderedSet::iterator atomPos);
 
 };
 
 
+struct PropagatorLeqSetID {};
+typedef expr::Attribute<PropagatorLeqSetID, OrderedSet*, SetCleanupStrategy> PropagatorLeqSet;
 
-namespace propagator {
+struct PropagatorEqSetID {};
+typedef expr::Attribute<PropagatorEqSetID, OrderedSet*, SetCleanupStrategy> PropagatorEqSet;
 
-struct ListCleanupStrategy{
-  static void cleanup(std::vector<Node> * l){
-    Debug("arithgc") << "cleaning up  " << l << "\n";
-    delete l;
-  }
-};
+struct PropagatorGeqSetID {};
+typedef expr::Attribute<PropagatorGeqSetID, OrderedSet*, SetCleanupStrategy> PropagatorGeqSet;
 
-struct IsInPropagatorID {};
-typedef expr::Attribute<IsInPropagatorID, bool> IsInPropagator;
-
-struct PropagatorIGID {};
-typedef expr::Attribute<PropagatorIGID,
-                        std::vector<Node>*,
-                        ListCleanupStrategy> PropagatorIG;
-
-struct PropagatorRegisteredAtomsID {};
-typedef expr::Attribute<PropagatorRegisteredAtomsID,
-                        std::vector<Node>*,
-                        ListCleanupStrategy> PropagatorRegisteredAtoms;
-
-
-struct PropagatorMarkedID {};
-typedef expr::CDAttribute<PropagatorMarkedID, bool> PropagatorMarked;
-
-struct PropagatorExplanationID {};
-typedef expr::CDAttribute<PropagatorExplanationID, Node> PropagatorExplanation;
-
-}/* CVC4::theory::arith::propagator */
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
