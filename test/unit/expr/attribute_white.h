@@ -185,7 +185,7 @@ public:
     TS_ASSERT(c.hasAttribute(TestFlag1cd()));
 
     // test two-arg version of hasAttribute()
-    bool bb;
+    bool bb = false;
     Debug("boolattr", "get flag 1 on a (should be F)\n");
     TS_ASSERT(a.getAttribute(TestFlag1cd(), bb));
     TS_ASSERT(! bb);

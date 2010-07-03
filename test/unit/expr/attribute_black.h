@@ -248,8 +248,8 @@ public:
     Node* node = new Node(d_nodeManager->mkVar(booleanType));
 
     bool val = true;
-    bool data0;
-    bool data1;
+    bool data0 = false;
+    bool data1 = false;
 
     BoolAttribute attr;
     TS_ASSERT(node->getAttribute(attr, data0));
@@ -258,8 +258,8 @@ public:
     TS_ASSERT(node->getAttribute(attr, data1));
     TS_ASSERT_EQUALS(data1, val);
 
-    bool data2;
-    bool data3;
+    bool data2 = false;
+    bool data3 = false;
     CDBoolAttribute cdattr;
     TS_ASSERT(node->getAttribute(cdattr, data2));
     TS_ASSERT_EQUALS(false, data2);
