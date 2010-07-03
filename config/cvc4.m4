@@ -42,6 +42,14 @@ do
       if expr "$ac_option" : '.*-debugsymbols-\|.*-debugsymbols$' >/dev/null; then
         eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--enable-debug-symbols\""'
       fi
+      for x in cln gmp; do
+        if expr "$ac_option" : '.*-no'$x'-\|.*-no'$x'$' >/dev/null; then
+          eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--without-$x\""'
+        fi
+        if expr "$ac_option" : '.*-'$x'-\|.*-'$x'$' >/dev/null; then
+          eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--with-$x\""'
+        fi
+      done
       ac_option="--with-build=$ac_option_build"
   esac
   eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"$ac_option\""'

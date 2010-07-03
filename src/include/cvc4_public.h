@@ -21,6 +21,8 @@
 #ifndef __CVC4_PUBLIC_H
 #define __CVC4_PUBLIC_H
 
+#include <stdint.h>
+
 #if defined _WIN32 || defined __CYGWIN__
 #  ifdef BUILDING_DLL
 #    ifdef __GNUC__

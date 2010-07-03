@@ -45,7 +45,8 @@ TEST_DEPS_DIST = \
 if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
-	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
+	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" \
+	"-I@top_srcdir@/src" "-I@top_builddir@/src" \
 	$(ANTLR_INCLUDES) $(TEST_CPPFLAGS)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)

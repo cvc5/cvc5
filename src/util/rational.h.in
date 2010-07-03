@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rational.h
+/*! \file rational.h.in
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none
@@ -16,9 +16,18 @@
  ** Multi-precision rational constants.
  **/
 
-#ifdef __CVC4__USE_GMP_IMP
-#include "util/rational_gmp_imp.h"
-#endif
-#ifdef __CVC4__USE_CLN_IMP
-#include "util/rational_cln_imp.h"
-#endif
+// this is used to avoid a public header dependence on cvc4autoconfig.h
+#if /* use CLN */ @CVC4_USE_CLN_IMP@
+#  define CVC4_CLN_IMP
+#endif /* @CVC4_USE_CLN_IMP@ */
+#if /* use GMP */ @CVC4_USE_GMP_IMP@
+#  define CVC4_GMP_IMP
+#endif /* @CVC4_USE_GMP_IMP@ */
+
+#ifdef CVC4_CLN_IMP
+#  include "util/rational_cln_imp.h"
+#endif /* CVC4_CLN_IMP */
+
+#ifdef CVC4_GMP_IMP
+#  include "util/rational_gmp_imp.h"
+#endif /* CVC4_GMP_IMP */

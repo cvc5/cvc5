@@ -9,7 +9,8 @@ The core authors and designers of CVC4 are:
   Mina Jeong <mjeong@cs.nyu.edu>, New York University
   Dejan Jovanovic <dejan@cs.nyu.edu>, New York University
 
-The following individuals contributed code to CVC3 that may have been incorporated into CVC4:
+The following individuals contributed code to CVC3 that may have been
+incorporated into CVC4:
 
   Clark Barrett, New York University
   Christopher Conway <cconway@cs.nyu.edu>, New York University
@@ -18,7 +19,8 @@ The following individuals contributed code to CVC3 that may have been incorporat
   George Hagen, University of Iowa
   Dejan Jovanovic <dejan@cs.nyu.edu>, New York University
 
-The following individuals contributed code to CVC Lite that may have been incorporated in CVC4:
+The following individuals contributed code to CVC Lite that may have been
+incorporated in CVC4:
 
   Clark Barrett, New York University
   Sergey Berezin, Stanford University
@@ -36,3 +38,11 @@ The following individuals contributed code to CVC Lite that may have been incorp
   Jim Zhuang, Stanford University
 
 CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson
+
+The CVC4 parser incorporates some code from ANTLR3, by Jim Idle,
+Temporal Wave LLC.
+
+CVC4 contains the doxygen.m4 autoconf module by Oren Ben-Kiki.
+
+CVC4 maintainer versions contain the script autogen.sh, by the
+U.S. Army Research Laboratory

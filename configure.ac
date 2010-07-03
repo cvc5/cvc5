@@ -54,6 +54,12 @@ config_cmdline="$@"
 user_specified_enable_or_disable_static=${enable_static+yes}
 user_specified_enable_or_disable_shared=${enable_shared+yes}
 
+if test -e src/include/cvc4_public.h; then
+  CVC4_CONFIGURE_AT_TOP_LEVEL=yes
+else
+  CVC4_CONFIGURE_AT_TOP_LEVEL=no
+fi
+
 # turn off static lib building by default
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
@@ -75,7 +81,7 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}"; then
+if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -146,11 +152,102 @@ if test -n "${enable_statistics+set}"; then
 fi
 AC_MSG_RESULT([$with_build])
 
+AM_INIT_AUTOMAKE([1.11 no-define parallel-tests color-tests])
+AC_CONFIG_HEADERS([cvc4autoconfig.h])
+
+# Initialize libtool's configuration options.
+_LT_SET_OPTION([LT_INIT],[win32-dll])
+LT_INIT
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+
+# determine whether to use CLN or GMP.
+# we do this here so it can affect the build directory
+
+cvc4_use_gmp=0
+cvc4_use_cln=0
+
+AC_ARG_WITH(
+  [cln],
+  AS_HELP_STRING(
+    [--with-cln],
+    [use CLN instead of GMP (default, if CLN found)]
+  ),
+  [if test "$withval" = no; then
+     cvc4_use_gmp=1
+   else
+     cvc4_use_cln=1
+   fi
+  ]
+)
+
+AC_ARG_WITH(
+  [gmp],
+  AS_HELP_STRING(
+    [--with-gmp],
+    [use GMP instead of CLN]
+  ),
+  [if test "$withval" = no; then
+     cvc4_use_cln=1
+   else
+     cvc4_use_gmp=1
+   fi
+  ]
+)
+
+if test $cvc4_use_cln = 1 && test $cvc4_use_gmp = 1; then
+  # error
+  AC_MSG_ERROR([You cannot use both CLN and GMP.  Please pick one.])
+fi
+
+if test $cvc4_use_cln = 1 || test $cvc4_use_cln = 0 -a $cvc4_use_gmp = 0; then
+  # [mdeters] The PKG_CHECK_MODULES macro isn't customizable and doesn't fail
+  # gracefully.  You can only specify it once for a given library name.  That
+  # is, even on separate if/else branches, you can't put
+  # PKG_CHECK_MODULES([CLN], ...).  That's why things are so convoluted here,
+  # we have to have PKG_CHECK_MODULES _exactly_ once in configure.ac !
+  PKG_CHECK_MODULES([CLN], [cln >= 1.2.2],
+    [cvc4_use_cln=1],
+    [if test $cvc4_use_cln = 0; then
+       # fall back to GMP
+       AC_MSG_NOTICE([CLN not installed (or too old), will use gmp])
+     else
+       # fail
+       AC_MSG_ERROR([CLN not installed (or too old)])
+     fi
+    ]
+  )
+fi
+if test $cvc4_use_cln = 0; then
+  # try GMP, fail if not found
+  AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
+  AC_CHECK_LIB(gmpxx, __gmpz_init, , [AC_MSG_ERROR([GNU MP C++ library (libgmpxx) not found, see http://gmplib.org/])])
+  cvc4_cln_or_gmp=gmp
+else
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }$CLN_CFLAGS"
+  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }$CLN_CFLAGS"
+  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }$CLN_CFLAGS"
+  LIBS="${LIBS:+$LIBS }$CLN_LIBS"
+  cvc4_cln_or_gmp=cln
+fi
+
+if test $cvc4_cln_or_gmp = cln; then
+  AC_DEFINE_UNQUOTED(CVC4_CLN_IMP, [], [Defined if using the CLN multi-precision arithmetic library.])
+else
+  AC_DEFINE_UNQUOTED(CVC4_GMP_IMP, [], [Defined if using the GMP multi-precision arithmetic library.])
+fi
+AM_CONDITIONAL([CVC4_CLN_IMP], [test $cvc4_cln_or_gmp = cln])
+AM_CONDITIONAL([CVC4_GMP_IMP], [test $cvc4_cln_or_gmp = gmp])
+
+# construct the build string
 AC_MSG_CHECKING([for appropriate build string])
-build_type=`$ac_confdir/config/build-type $with_build $btargs`
+build_type=`$ac_confdir/config/build-type $with_build $btargs $cvc4_cln_or_gmp`
 if test "$custom_build_profile" = yes; then
   if test "$with_build" = default; then
-    build_type=`$ac_confdir/config/build-type custom $btargs`
+    build_type=`$ac_confdir/config/build-type custom $btargs $cvc4_cln_or_gmp`
   fi
 fi
 AC_MSG_RESULT($build_type)
@@ -165,7 +262,7 @@ AC_MSG_RESULT($build_type)
 AC_MSG_CHECKING([what dir to configure])
 if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
   AC_MSG_RESULT([this one (in builds/)])
-elif test -e src/include/cvc4_public.h; then
+elif test "$CVC4_CONFIGURE_AT_TOP_LEVEL" = yes; then
   AC_MSG_RESULT([builds/$target/$build_type])
   echo
   if test -z "$ac_srcdir"; then
@@ -337,8 +434,7 @@ fi
 AC_MSG_RESULT([$enable_statistics])
 
 if test "$enable_statistics" = yes; then
-  CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-DCVC4_STATISTICS_ON"
-  CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-DCVC4_STATISTICS_ON"
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_STATISTICS_ON"
 fi
 
 AC_MSG_CHECKING([whether to include assertions in build])
@@ -452,17 +548,6 @@ if test "$enable_profiling" = yes; then
   CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }-pg"
 fi
 
-AM_INIT_AUTOMAKE([1.11 no-define parallel-tests color-tests])
-AC_CONFIG_HEADERS([cvc4autoconfig.h])
-
-# Initialize libtool's configuration options.
-_LT_SET_OPTION([LT_INIT],[win32-dll])
-LT_INIT
-
-# Checks for programs.
-AC_PROG_CC
-AC_PROG_CXX
-AC_PROG_INSTALL
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 
@@ -529,15 +614,6 @@ if test -n "$CXXTEST"; then
 fi
 
 # Checks for libraries.
-AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
-AC_CHECK_LIB(gmpxx, __gmpz_init, , [AC_MSG_ERROR([GNU MP C++ library (libgmpxx) not found, see http://gmplib.org/])])
-
-PKG_CHECK_MODULES([CLN], [cln >= 1.2.2])
-
-CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }$CLN_CFLAGS -D__CVC4__USE_CLN_IMP"
-CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }$CLN_CFLAGS"
-CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }$CLN_CFLAGS"
-CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }$CLN_LIBS"
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
@@ -547,10 +623,11 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_HEADER_STDBOOL
-AC_TYPE_UINT16_T
-AC_TYPE_UINT32_T
-AC_TYPE_UINT64_T
-AC_TYPE_SIZE_T
+# these are bad macros, they clash with system header <stdint.h> !!
+#AC_TYPE_UINT16_T
+#AC_TYPE_UINT32_T
+#AC_TYPE_UINT64_T
+#AC_TYPE_SIZE_T
 
 # Checks for library functions.
 # (empty)
@@ -606,15 +683,29 @@ AC_SUBST(mk_include)
 # still trigger certain automake behavior; see test/unit/Makefile.am.
 AM_CONDITIONAL([CVC4_FALSE], [false])
 
+# set up substitutions for src/util/{rational,integer}.h.in
+if test $cvc4_cln_or_gmp = cln; then
+  CVC4_USE_CLN_IMP=1
+  CVC4_USE_GMP_IMP=0
+else
+  CVC4_USE_CLN_IMP=0
+  CVC4_USE_GMP_IMP=1
+fi
+AC_SUBST(CVC4_USE_CLN_IMP)
+AC_SUBST(CVC4_USE_GMP_IMP)
+
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
   m4_esyscmd([find contrib/ src/ test/ -name Makefile.am | sort | sed 's,\.am$,,'])
+  src/util/rational.h
+  src/util/integer.h
 )
 
 AC_OUTPUT
 
 # Final information to the user
+licensewarn=
 
 if test "$custom_build_profile" = yes; then
   if test "$with_build" = default; then
@@ -633,6 +724,21 @@ if test "$enable_optimized" = yes; then
   optimized="yes, at level $OPTLEVEL"
 else
   optimized="no"
+fi
+
+if test $cvc4_cln_or_gmp = cln; then
+  mplibrary='cln (GPL)'
+  licensewarn="${licensewarn}Please note that CVC4 will be built against the Class Library for
+Numbers (CLN).  This library is covered under the GPL, so use of this
+build of CVC4 will be more restrictive than CVC4's license would
+normally suggest.  For full details of CLN and its license, please visit
+  http://www.ginac.de/CLN/
+To build CVC4 with GMP instead (which is covered under the more permissive
+LGPL), configure --without-cln.
+
+"
+else
+  mplibrary='gmp (LGPL)'
 fi
 
 cat <<EOF
@@ -655,6 +761,8 @@ Static libs  : $enable_static
 Shared libs  : $enable_shared
 Static binary: $enable_static_binary
 
+MP library   : $mplibrary
+
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 CFLAGS       : $CFLAGS
@@ -663,6 +771,6 @@ LDFLAGS      : $LDFLAGS
 libcvc4 version      : $CVC4_LIBRARY_VERSION
 libcvc4parser version: $CVC4_PARSER_LIBRARY_VERSION
 
-Now just type make, followed by make check or make install, as you like.
+${licensewarn}Now just type make, followed by make check or make install, as you like.
 
 EOF

@@ -14,7 +14,7 @@ LIBCVC4_VERSION = @CVC4_LIBRARY_VERSION@
 
 AM_CPPFLAGS =
 	-D__BUILDING_CVC4LIB \
-	-I@srcdir@/include -I@srcdir@
+	-I@srcdir@/include -I@srcdir@ -I@builddir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = expr util context theory prop smt . parser main

@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file rational.cpp
+/*! \file rational_gmp_imp.cpp
  ** \verbatim
  ** Original author: taking
- ** Major contributors: mdeters, cconway
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
@@ -15,11 +15,15 @@
  **
  ** A multi-precision rational constant.
  **/
-#ifdef __CVC4__USE_GMP_IMP
 
-#include "util/integer.h"
+#include "cvc4autoconfig.h"
 #include "util/rational.h"
+#include "util/integer.h"
 #include <string>
+
+#ifndef CVC4_GMP_IMP
+#  error "This source should only ever be built if CVC4_GMP_IMP is on !"
+#endif /* CVC4_GMP_IMP */
 
 using namespace std;
 using namespace CVC4;
@@ -49,4 +53,3 @@ std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
 }
 
-#endif /* __CVC4__USE_GMP_IMP */

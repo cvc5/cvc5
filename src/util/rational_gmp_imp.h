@@ -1,9 +1,9 @@
 /*********************                                                        */
-/*! \file rational.h
+/*! \file rational_gmp_imp.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none
- ** Minor contributors (to current version): dejan, mdeters, cconway
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -11,11 +11,11 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Multi-precision rational constants.
+ ** \brief Multiprecision rational constants; wraps a GMP multiprecision
+ ** rational.
  **
- ** Multi-precision rational constants.
+ ** Multiprecision rational constants; wraps a GMP multiprecision rational.
  **/
-#ifdef __CVC4__USE_GMP_IMP
 
 #include "cvc4_public.h"
 
@@ -259,4 +259,4 @@ std::ostream& operator<<(std::ostream& os, const Rational& n);
 }/* CVC4 namespace */
 
 #endif /* __CVC4__RATIONAL_H */
-#endif /* __CVC4__USE_GMP_IMP */
+

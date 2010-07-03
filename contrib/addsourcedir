@@ -81,7 +81,7 @@ EOF
     clibtarget="lib${clibbase}_la"
     cat >"$srcdir/Makefile.am" <<EOF
 AM_CPPFLAGS = \\
-$definitions	-I@srcdir@/$topsrcdir/include -I@srcdir@/$topsrcdir
+$definitions	-I@srcdir@/$topsrcdir/include -I@srcdir@/$topsrcdir -I@builddir@/$topsrcdir
 AM_CXXFLAGS = -Wall$visibility
 
 noinst_LTLIBRARIES = $clibname

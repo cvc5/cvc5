@@ -60,6 +60,10 @@ public:
   static unsigned getVersionRelease();
 
   static std::string about();
+
+  static bool isBuiltWithGmp();
+
+  static bool isBuiltWithCln();
 };
 
 }/* CVC4 namespace */
