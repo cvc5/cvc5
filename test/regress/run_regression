@@ -132,7 +132,7 @@ cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
 echo  running $cvc4full `basename "$benchmark"` from `dirname "$benchmark"`
 ( cd `dirname "$benchmark"`;
-  "$cvc4full" -d extra-checking --segv-nospin `basename "$benchmark"`;
+  "$cvc4full" --segv-nospin `basename "$benchmark"`;
   echo $? >"$exitstatusfile"
 ) > "$outfile" 2> "$errfile"
 
