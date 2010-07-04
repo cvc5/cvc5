@@ -1,6 +1,6 @@
 (benchmark fuzzsmt
 :logic QF_LRA
-:status unknown
+:status unsat
 :extrafuns ((v0 Real))
 :formula
 (let (?e1 11)
