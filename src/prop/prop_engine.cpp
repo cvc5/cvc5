@@ -122,7 +122,7 @@ Result PropEngine::checkSat() {
   // Check the problem
   bool result = d_satSolver->solve();
 
-  if( result && debugTagIsOn("prop") ) {
+  if( result && Debug.isOn("prop") ) {
     printSatisfyingAssignment();
   }
 

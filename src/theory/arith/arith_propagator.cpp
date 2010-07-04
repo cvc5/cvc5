@@ -122,7 +122,7 @@ std::vector<Node> ArithUnatePropagator::getImpliedLiterals(){
     enqueueImpliedLiterals(assertion, impliedButNotAsserted);
   }
 
-  if(debugTagIsOn("arith::propagator")){
+  if(Debug.isOn("arith::propagator")){
     for(std::vector<Node>::iterator i = impliedButNotAsserted.begin(),
           endIter = impliedButNotAsserted.end(); i != endIter; ++i){
       Node imp = *i;

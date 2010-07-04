@@ -517,7 +517,7 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
 
   d_partialModel.setAssignment(x_i, v);
 
-  if(debugTagIsOn("paranoid:check_tableau")){
+  if(Debug.isOn("paranoid:check_tableau")){
     checkTableau();
   }
 }
@@ -562,7 +562,7 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
 
   checkBasicVariable(x_j);
 
-  if(debugTagIsOn("tableau")){
+  if(Debug.isOn("tableau")){
     d_tableau.printTableau();
   }
 }
@@ -583,7 +583,7 @@ TNode TheoryArith::selectSmallestInconsistentVar(){
     d_possiblyInconsistent.pop();
   }
 
-  if(debugTagIsOn("paranoid:variables")){
+  if(Debug.isOn("paranoid:variables")){
     for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
         basicIter != d_tableau.end();
         ++basicIter){
@@ -631,7 +631,7 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
   static int iteratationNum = 0;
   static const int EJECT_FREQUENCY = 10;
   while(true){
-    if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+    if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
     TNode x_i = selectSmallestInconsistentVar();
     Debug("arith_update") << "selectSmallestInconsistentVar()=" << x_i << endl;
@@ -824,14 +824,14 @@ void TheoryArith::check(Effort level){
   }
 
   //TODO This must be done everytime for the time being
-  if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+  if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
   Node possibleConflict = updateInconsistentVars();
   if(possibleConflict != Node::null()){
 
     d_partialModel.revertAssignmentChanges();
 
-    if(debugTagIsOn("arith::print-conflict"))
+    if(Debug.isOn("arith::print-conflict"))
       Debug("arith_conflict") << (possibleConflict) << std::endl;
 
     d_out->conflict(possibleConflict);
@@ -840,12 +840,12 @@ void TheoryArith::check(Effort level){
   }else{
     d_partialModel.commitAssignmentChanges();
   }
-  if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+  if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
 
   Debug("arith") << "TheoryArith::check end" << std::endl;
 
-  if(debugTagIsOn("arith::print_model")) {
+  if(Debug.isOn("arith::print_model")) {
     Debug("arith::print_model") << "Model:" << endl;
 
     for (unsigned i = 0; i < d_variables.size(); ++ i) {
@@ -856,7 +856,7 @@ void TheoryArith::check(Effort level){
       Debug("arith::print_model") << endl;
     }
   }
-  if(debugTagIsOn("arith::print_assertions")) {
+  if(Debug.isOn("arith::print_assertions")) {
     Debug("arith::print_assertions") << "Assertions:" << endl;
     for (unsigned i = 0; i < d_variables.size(); ++ i) {
       Node x = d_variables[i];
@@ -874,8 +874,8 @@ void TheoryArith::check(Effort level){
 
 /**
  * This check is quite expensive.
- * It should be wrapped in a debugTagIsOn guard.
- *   if(debugTagIsOn("paranoid:check_tableau")){
+ * It should be wrapped in a Debug.isOn() guard.
+ *   if(Debug.isOn("paranoid:check_tableau")){
  *      checkTableau();
  *   }
  */

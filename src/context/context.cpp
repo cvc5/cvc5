@@ -132,19 +132,15 @@ void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
 
 
 void ContextObj::update() throw(AssertionException) {
-  if(debugTagIsOn("context")) {
-    Debug("context") << "before update(" << this << "):" << std::endl
-                     << *getContext() << std::endl;
-  }
+  Debug("context") << "before update(" << this << "):" << std::endl
+                   << *getContext() << std::endl;
 
   // Call save() to save the information in the current object
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
 
-  if(debugTagIsOn("context")) {
-    Debug("context") << "in update(" << this << ") with restore "
-                     << pContextObjSaved << ": waypoint 1" << std::endl
-                     << *getContext() << std::endl;
-  }
+  Debug("context") << "in update(" << this << ") with restore "
+                   << pContextObjSaved << ": waypoint 1" << std::endl
+                   << *getContext() << std::endl;
 
   // Check that base class data was saved
   Assert( ( pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
@@ -173,11 +169,9 @@ void ContextObj::update() throw(AssertionException) {
   Debug("context") << "in update(" << this
                    << "): *prev() is now " << *prev() << std::endl;
 
-  if(debugTagIsOn("context")) {
-    Debug("context") << "in update(" << this << ") with restore "
-                     << pContextObjSaved << ": waypoint 3" << std::endl
-                     << *getContext() << std::endl;
-  }
+  Debug("context") << "in update(" << this << ") with restore "
+                   << pContextObjSaved << ": waypoint 3" << std::endl
+                   << *getContext() << std::endl;
 
   // Update Scope pointer to current top Scope
   d_pScope = d_pScope->getContext()->getTopScope();
@@ -189,11 +183,9 @@ void ContextObj::update() throw(AssertionException) {
   // Scope is popped.
   d_pScope->addToChain(this);
 
-  if(debugTagIsOn("context")) {
-    Debug("context") << "after update(" << this << ") with restore "
-                     << pContextObjSaved << ":" << std::endl
-                     << *getContext() << std::endl;
-  }
+  Debug("context") << "after update(" << this << ") with restore "
+                   << pContextObjSaved << ":" << std::endl
+                   << *getContext() << std::endl;
 }
 
 
@@ -238,12 +230,11 @@ ContextObj* ContextObj::restoreAndContinue() throw(AssertionException) {
 
 
 void ContextObj::destroy() throw(AssertionException) {
-  if(debugTagIsOn("context")) {
-    /* Context can be big and complicated, so we only want to process this output
-     * if we're really going to use it. (Same goes below.) */
-    Debug("context") << "before destroy " << this << " (level " << getLevel()
-          << "):" << std::endl << *getContext() << std::endl;
-  }
+  /* Context can be big and complicated, so we only want to process this output
+   * if we're really going to use it. (Same goes below.) */
+  Debug("context") << "before destroy " << this << " (level " << getLevel()
+                   << "):" << std::endl << *getContext() << std::endl;
+
   for(;;) {
     // If valgrind reports invalid writes on the next few lines,
     // here's a hint: make sure all classes derived from ContextObj in
@@ -256,18 +247,14 @@ void ContextObj::destroy() throw(AssertionException) {
     if(d_pContextObjRestore == NULL) {
       break;
     }
-    if(debugTagIsOn("context")) {
-      Debug("context") << "in destroy " << this << ", restore object is "
-            << d_pContextObjRestore << " at level "
-            << d_pContextObjRestore->getLevel() << ":" << std::endl
-            << *getContext() << std::endl;
-    }
+    Debug("context") << "in destroy " << this << ", restore object is "
+                     << d_pContextObjRestore << " at level "
+                     << d_pContextObjRestore->getLevel() << ":" << std::endl
+                     << *getContext() << std::endl;
     restoreAndContinue();
   }
-  if(debugTagIsOn("context")) {
-    Debug("context") << "after destroy " << this << ":" << std::endl
-          << *getContext() << std::endl;
-  }
+  Debug("context") << "after destroy " << this << ":" << std::endl
+                   << *getContext() << std::endl;
 }
 
 
@@ -318,7 +305,7 @@ ContextNotifyObj::~ContextNotifyObj() throw(AssertionException) {
 
 std::ostream& operator<<(std::ostream& out,
                          const Context& context) throw(AssertionException) {
-  const std::string separator(79, '-');
+  static const std::string separator(79, '-');
 
   int level = context.d_scopeList.size() - 1;
   typedef std::vector<Scope*>::const_reverse_iterator const_reverse_iterator;

@@ -154,12 +154,10 @@ Node TheoryEngine::removeITEs(TNode node) {
                             nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
       nodeManager->setAttribute(node, theory::IteRewriteAttr(), skolem);
 
-      if(debugTagIsOn("ite")){
-        Debug("ite") << "removeITEs([" << node.getId() << "," << node << "])"
-                     << "->"
-                     << "["<<newAssertion.getId() << "," << newAssertion << "]"
-                     << endl;
-      }
+      Debug("ite") << "removeITEs([" << node.getId() << "," << node << "])"
+                   << "->"
+                   << "["<<newAssertion.getId() << "," << newAssertion << "]"
+                   << endl;
 
       Node preprocessed = preprocess(newAssertion);
       d_propEngine->assertFormula(preprocessed);
@@ -416,8 +414,8 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
        * in the cache to make sure they are the same.  This is
        * especially necessary if a theory post-rewrites something into
        * a term of another theory. */
-      if(debugTagIsOn("extra-checking") &&
-         !debugTagIsOn("$extra-checking:inside-rewrite")) {
+      if(Debug.isOn("extra-checking") &&
+         !Debug.isOn("$extra-checking:inside-rewrite")) {
         ScopedDebug d("$extra-checking:inside-rewrite");
         Node rewrittenAgain = rewrite(rse.d_node, rse.d_topLevel);
         Assert(rewrittenAgain == rse.d_node,

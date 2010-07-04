@@ -508,9 +508,7 @@ public:
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
-    if(debugTagIsOn("context")) {
-      Debug("context") << "deleteSelf(" << this << ")" << std::endl;
-    }
+    Debug("context") << "deleteSelf(" << this << ")" << std::endl;
     this->~ContextObj();
     ::operator delete(this);
   }

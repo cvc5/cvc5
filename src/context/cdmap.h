@@ -106,11 +106,6 @@ namespace context {
 
 template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> > class CDMap;
 
-template <class T, class U>
-inline std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
-  return out << "[" << p.first << "," << p.second << "]";
-}
-
 template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
 class CDOmap : public ContextObj {
   friend class CDMap<Key, Data, HashFcn>;
