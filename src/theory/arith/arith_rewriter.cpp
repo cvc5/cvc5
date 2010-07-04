@@ -154,6 +154,11 @@ Node ArithRewriter::rewriteAtom(TNode atom){
   }else if(rewritten.getKind() == kind::GT){
     Node leq = NodeManager::currentNM()->mkNode(kind::LEQ, rewritten[0], rewritten[1]);
     return NodeManager::currentNM()->mkNode(kind::NOT, leq);
+  }else if(rewritten.getKind() == kind::EQUAL){
+    Node leq = NodeManager::currentNM()->mkNode(kind::LEQ, rewritten[0], rewritten[1]);
+    Node geq = NodeManager::currentNM()->mkNode(kind::GEQ, rewritten[0], rewritten[1]);
+
+    return NodeManager::currentNM()->mkNode(kind::AND, leq, geq);
   }else{
     return rewritten;
   }

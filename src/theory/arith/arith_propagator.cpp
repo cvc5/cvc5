@@ -308,7 +308,7 @@ void ArithUnatePropagator::addGeq
   }else if(leqIter != leqSet->begin()){
     --leqIter;
     TNode strictlyLT = *leqIter;
-    Assert(rightHandRationalIsEqual(strictlyLT, atom));
+    Assert(rightHandRationalIsLT(strictlyLT, atom));
     addImplication(strictlyLT, negation, "312");// (x <= b' /\ b' < b) => x < b
   }else{
     Assert(leqSet->empty());
