@@ -390,7 +390,16 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
       update(x_i, c_i);
     }
   }else{
-    checkBasicVariable(x_i);
+    if(d_partialModel.getAssignment(x_i) > c_i){
+      checkBasicVariable(x_i);
+      TNode x_j = selectSlackAbove(x_i);
+      if(x_j == TNode::null() ){
+        ++(d_statistics.d_statUpdateConflicts);
+        Node genConflict = generateConflictAbove(x_i); //unsat
+        d_out->conflict(genConflict);
+        return true;
+      }
+    }
   }
   d_partialModel.printModel(x_i);
   return false;
@@ -429,7 +438,16 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
       update(x_i, c_i);
     }
   }else{
-    checkBasicVariable(x_i);
+    if(d_partialModel.getAssignment(x_i) < c_i){
+      checkBasicVariable(x_i);
+      TNode x_j = selectSlackBelow(x_i);
+      if(x_j == TNode::null() ){
+        ++(d_statistics.d_statUpdateConflicts);
+        Node genConflict = generateConflictBelow(x_i); //unsat
+        d_out->conflict(genConflict);
+        return true;
+      }
+    }
   }
 
   return false;
@@ -483,6 +501,23 @@ bool TheoryArith::AssertEquality(TNode n, TNode original){
     }
   }else{
     checkBasicVariable(x_i);
+    if(d_partialModel.getAssignment(x_i) < c_i){
+      TNode x_j = selectSlackBelow(x_i);
+      if(x_j == TNode::null() ){
+        ++(d_statistics.d_statUpdateConflicts);
+        Node genConflict = generateConflictBelow(x_i); //unsat
+        d_out->conflict(genConflict);
+        return true;
+      }
+    }else if(d_partialModel.getAssignment(x_i) > c_i){
+      TNode x_j = selectSlackAbove(x_i);
+      if(x_j == TNode::null() ){
+        ++(d_statistics.d_statUpdateConflicts);
+        Node genConflict = generateConflictAbove(x_i); //unsat
+        d_out->conflict(genConflict);
+        return true;
+      }
+    }
   }
 
   return false;
