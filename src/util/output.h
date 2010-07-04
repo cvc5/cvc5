@@ -127,41 +127,6 @@ extern DebugC DebugOut CVC4_PUBLIC;
 #  define Debug if(0) debugNullCvc4Stream
 #endif /* CVC4_DEBUG */
 
-class CVC4_PUBLIC ScopedDebug {
-  std::string d_tag;
-  bool d_oldSetting;
-
-public:
-
-  ScopedDebug(std::string tag, bool newSetting = true) :
-    d_tag(tag) {
-    d_oldSetting = Debug.isOn(d_tag);
-    if(newSetting) {
-      Debug.on(d_tag);
-    } else {
-      Debug.off(d_tag);
-    }
-  }
-
-  ScopedDebug(const char* tag, bool newSetting = true) :
-    d_tag(tag) {
-    d_oldSetting = Debug.isOn(d_tag);
-    if(newSetting) {
-      Debug.on(d_tag);
-    } else {
-      Debug.off(d_tag);
-    }
-  }
-
-  ~ScopedDebug() {
-    if(d_oldSetting) {
-      Debug.on(d_tag);
-    } else {
-      Debug.off(d_tag);
-    }
-  }
-};/* class ScopedDebug */
-
 /** The warning output class */
 class CVC4_PUBLIC WarningC {
   std::ostream *d_os;
@@ -321,6 +286,55 @@ extern TraceC TraceOut CVC4_PUBLIC;
 #  define Trace if(0) debugNullCvc4Stream
 #endif /* CVC4_TRACING */
 
+#ifdef CVC4_DEBUG
+
+class CVC4_PUBLIC ScopedDebug {
+  std::string d_tag;
+  bool d_oldSetting;
+
+public:
+
+  ScopedDebug(std::string tag, bool newSetting = true) :
+    d_tag(tag) {
+    d_oldSetting = DebugOut.isOn(d_tag);
+    if(newSetting) {
+      DebugOut.on(d_tag);
+    } else {
+      DebugOut.off(d_tag);
+    }
+  }
+
+  ScopedDebug(const char* tag, bool newSetting = true) :
+    d_tag(tag) {
+    d_oldSetting = Debug.isOn(d_tag);
+    if(newSetting) {
+      Debug.on(d_tag);
+    } else {
+      Debug.off(d_tag);
+    }
+  }
+
+  ~ScopedDebug() {
+    if(d_oldSetting) {
+      Debug.on(d_tag);
+    } else {
+      Debug.off(d_tag);
+    }
+  }
+};/* class ScopedDebug */
+
+#else /* CVC4_DEBUG */
+
+class CVC4_PUBLIC ScopedDebug {
+public:
+  ScopedDebug(std::string tag, bool newSetting = true) {}
+  ScopedDebug(const char* tag, bool newSetting = true) {}
+};/* class ScopedDebug */
+
+#endif /* CVC4_DEBUG */
+
+#ifdef CVC4_TRACING
+
 class CVC4_PUBLIC ScopedTrace {
   std::string d_tag;
   bool d_oldSetting;
@@ -355,6 +369,16 @@ public:
     }
   }
 };/* class ScopedTrace */
+
+#else /* CVC4_TRACING */
+
+class CVC4_PUBLIC ScopedTrace {
+public:
+  ScopedTrace(std::string tag, bool newSetting = true) {}
+  ScopedTrace(const char* tag, bool newSetting = true) {}
+};/* class ScopedTrace */
+
+#endif /* CVC4_TRACING */
 
 #else /* ! CVC4_MUZZLE */
 
