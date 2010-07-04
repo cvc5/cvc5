@@ -27,8 +27,8 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-Node blastDistinct(TNode in) {
-  Debug("theory-rewrite") << "blastDistinct: " << in << std::endl;
+Node TheoryBuiltin::blastDistinct(TNode in) {
+  Debug("theory-rewrite") << "TheoryBuiltin::blastDistinct: " << in << std::endl;
   Assert(in.getKind() == kind::DISTINCT);
   if(in.getNumChildren() == 2) {
     // if this is the case exactly 1 != pair will be generated so the
@@ -51,17 +51,18 @@ Node blastDistinct(TNode in) {
   return out;
 }
 
-RewriteResponse TheoryBuiltin::postRewrite(TNode in, bool topLevel) {
-  if(topLevel) {
-    if(in.getKind() == kind::DISTINCT) {
-      return RewritingComplete(blastDistinct(in));
-    }
+RewriteResponse TheoryBuiltin::preRewrite(TNode in, bool topLevel) {
+  switch(in.getKind()) {
+  case kind::DISTINCT:
+    return RewritingComplete(blastDistinct(in));
+
+  case kind::EQUAL:
+    // EQUAL is a special case that should never end up here
+    Unreachable("TheoryBuiltin can't rewrite EQUAL !");
+
+  default:
+    return RewritingComplete(in);
   }
-
-  // EQUAL is a special case that should never end up here
-  Assert(in.getKind() != kind::EQUAL);
-
-  return RewritingComplete(in);
 }
 
 }/* CVC4::theory::builtin namespace */
