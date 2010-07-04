@@ -50,7 +50,7 @@ public:
   void addAtom(TNode atom);
 
 private:
-  void addImplication(TNode a, TNode b);
+  void addImplication(TNode a, TNode b, const char *);
   bool leftIsSetup(TNode left);
   void setupLefthand(TNode left);
   void addEquality(TNode atom, OrderedSet* eqSet, OrderedSet* leqSet, OrderedSet* geqSet, OrderedSet::iterator atomPos);
