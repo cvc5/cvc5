@@ -54,14 +54,14 @@ Node TheoryBuiltin::blastDistinct(TNode in) {
 RewriteResponse TheoryBuiltin::preRewrite(TNode in, bool topLevel) {
   switch(in.getKind()) {
   case kind::DISTINCT:
-    return RewritingComplete(blastDistinct(in));
+    return RewriteComplete(blastDistinct(in));
 
   case kind::EQUAL:
     // EQUAL is a special case that should never end up here
     Unreachable("TheoryBuiltin can't rewrite EQUAL !");
 
   default:
-    return RewritingComplete(in);
+    return RewriteComplete(in);
   }
 }
 

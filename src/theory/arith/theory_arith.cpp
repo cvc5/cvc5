@@ -340,7 +340,7 @@ RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
       }
     }
   }
-  return RewritingComplete(Node(n));
+  return RewriteComplete(Node(n));
 }
 
 Node TheoryArith::rewrite(TNode n){

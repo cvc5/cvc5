@@ -49,12 +49,13 @@ typedef expr::Attribute<PostRewriteCacheTag<false>, Node> PostRewriteCache;
 /**
  * Instances of this class serve as response codes from
  * Theory::preRewrite() and Theory::postRewrite().  Instances of
- * derived classes RewritingComplete(n) and RewriteAgain(n) should
- * be used for better self-documenting behavior.
+ * derived classes RewriteComplete(n), RewriteAgain(n), and
+ * FullRewriteNeeded(n) should be used, giving self-documenting
+ * rewrite behavior.
  */
 class RewriteResponse {
 protected:
-  enum Status { DONE, REWRITE };
+  enum Status { DONE, REWRITE, REWRITE_FULL };
 
   RewriteResponse(Status s, Node n) : d_status(s), d_node(n) {}
 
@@ -64,25 +65,55 @@ private:
 
 public:
   bool isDone() const { return d_status == DONE; }
-  bool needsMoreRewriting() const { return d_status == REWRITE; }
+  bool needsMoreRewriting() const { return d_status != DONE; }
+  bool needsFullRewriting() const { return d_status == REWRITE_FULL; }
   Node getNode() const { return d_node; }
-};
+};/* class RewriteResponse */
 
 /**
- * Return n, but request additional (pre,post)rewriting of it.
+ * Signal that (pre,post)rewriting of the Node is complete at n.  Note
+ * that if theory A returns this, and the Node is in another theory B,
+ * theory B will still be called on to pre- or postrewrite it.
+ */
+class RewriteComplete : public RewriteResponse {
+public:
+  RewriteComplete(Node n) : RewriteResponse(DONE, n) {}
+};/* class RewriteComplete */
+
+/**
+ * Return n, but request additional rewriting of it; if this is
+ * returned from preRewrite(), this re-preRewrite()'s the Node.  If
+ * this is returned from postRewrite(), this re-postRewrite()'s the
+ * Node, but does NOT re-preRewrite() it, nor does it rewrite the
+ * Node's children.
+ *
+ * Note that this is the behavior if a theory returns
+ * RewriteComplete() for a Node belonging to another theory.
  */
 class RewriteAgain : public RewriteResponse {
 public:
   RewriteAgain(Node n) : RewriteResponse(REWRITE, n) {}
-};
+};/* class RewriteAgain */
 
 /**
- * Signal that (pre,post)rewriting of the node is complete at n.
+ * Return n, but request an additional complete rewriting pass over
+ * it.  This has the same behavior as RewriteAgain() for
+ * pre-rewriting.  However, in post-rewriting, FullRewriteNeeded will
+ * _completely_ pre- and post-rewrite the term and the term's children
+ * (though it will use the cache to elide what calls it can).  Use
+ * with caution; it has bad effects on performance.  This might be
+ * useful if theory A rewrites a term into something quite different,
+ * and certain child nodes might belong to another theory whose normal
+ * form is unknown to theory A.  For example, if the builtin theory
+ * post-rewrites (DISTINCT a b c) into pairwise NOT EQUAL expressions,
+ * the theories owning a, b, and c might need to rewrite that EQUAL.
+ * (This came up, but the fix was to rewrite DISTINCT in
+ * pre-rewriting, obviating the problem.  See bug #168.)
  */
-class RewritingComplete : public RewriteResponse {
+class FullRewriteNeeded : public RewriteResponse {
 public:
-  RewritingComplete(Node n) : RewriteResponse(DONE, n) {}
-};
+  FullRewriteNeeded(Node n) : RewriteResponse(REWRITE_FULL, n) {}
+};/* class FullRewriteNeeded */
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -266,26 +297,26 @@ public:
 
   /**
    * Pre-rewrite a term.  This default base-class implementation
-   * simply returns RewritingComplete(n).  A theory should never
+   * simply returns RewriteComplete(n).  A theory should never
    * rewrite a term to a strictly larger term that contains itself, as
    * this will cause a loop of hard Node links in the cache (and thus
    * memory leakage).
    */
   virtual RewriteResponse preRewrite(TNode n, bool topLevel) {
     Debug("theory-rewrite") << "no pre-rewriting to perform for " << n << std::endl;
-    return RewritingComplete(n);
+    return RewriteComplete(n);
   }
 
   /**
    * Post-rewrite a term.  This default base-class implementation
-   * simply returns RewritingComplete(n).  A theory should never
+   * simply returns RewriteComplete(n).  A theory should never
    * rewrite a term to a strictly larger term that contains itself, as
    * this will cause a loop of hard Node links in the cache (and thus
    * memory leakage).
    */
   virtual RewriteResponse postRewrite(TNode n, bool topLevel) {
     Debug("theory-rewrite") << "no post-rewriting to perform for " << n << std::endl;
-    return RewritingComplete(n);
+    return RewriteComplete(n);
   }
 
   /**

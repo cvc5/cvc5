@@ -116,7 +116,7 @@ public:
    * Plug in old rewrite to the new (pre,post)rewrite interface.
    */
   RewriteResponse postRewrite(TNode n, bool topLevel) {
-    return RewritingComplete(topLevel ? rewrite(n) : Node(n));
+    return RewriteComplete(topLevel ? rewrite(n) : Node(n));
   }
 
   /**

@@ -39,13 +39,13 @@ public:
   RewriteResponse preRewrite(TNode in, bool topLevel) {
     Debug("arrays-rewrite") << "pre-rewriting " << in
                             << " topLevel==" << topLevel << std::endl;
-    return RewritingComplete(in);
+    return RewriteComplete(in);
   }
 
   RewriteResponse postRewrite(TNode in, bool topLevel) {
     Debug("arrays-rewrite") << "post-rewriting " << in
                             << " topLevel==" << topLevel << std::endl;
-    return RewritingComplete(in);
+    return RewriteComplete(in);
   }
 
   void check(Effort e);

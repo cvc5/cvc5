@@ -172,7 +172,7 @@ class TheoryEngine {
    * This is the top rewrite entry point, called during preprocessing.
    * It dispatches to the proper theories to rewrite the given Node.
    */
-  Node rewrite(TNode in);
+  Node rewrite(TNode in, bool topLevel = true);
 
   /**
    * Replace ITE forms in a node.

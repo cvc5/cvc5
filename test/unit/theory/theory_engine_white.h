@@ -119,7 +119,7 @@ public:
     TS_ASSERT_EQUALS(expected.d_node, n);
     TS_ASSERT_EQUALS(expected.d_topLevel, topLevel);
 
-    return RewritingComplete(n);
+    return RewriteComplete(n);
   }
 
   RewriteResponse postRewrite(TNode n, bool topLevel) {
@@ -147,7 +147,7 @@ public:
     TS_ASSERT_EQUALS(expected.d_node, n);
     TS_ASSERT_EQUALS(expected.d_topLevel, topLevel);
 
-    return RewritingComplete(n);
+    return RewriteComplete(n);
   }
 
   std::string identify() const throw() {

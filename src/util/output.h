@@ -127,6 +127,41 @@ extern DebugC DebugOut CVC4_PUBLIC;
 #  define Debug if(0) debugNullCvc4Stream
 #endif /* CVC4_DEBUG */
 
+class CVC4_PUBLIC ScopedDebug {
+  std::string d_tag;
+  bool d_oldSetting;
+
+public:
+
+  ScopedDebug(std::string tag, bool newSetting = true) :
+    d_tag(tag) {
+    d_oldSetting = Debug.isOn(d_tag);
+    if(newSetting) {
+      Debug.on(d_tag);
+    } else {
+      Debug.off(d_tag);
+    }
+  }
+
+  ScopedDebug(const char* tag, bool newSetting = true) :
+    d_tag(tag) {
+    d_oldSetting = Debug.isOn(d_tag);
+    if(newSetting) {
+      Debug.on(d_tag);
+    } else {
+      Debug.off(d_tag);
+    }
+  }
+
+  ~ScopedDebug() {
+    if(d_oldSetting) {
+      Debug.on(d_tag);
+    } else {
+      Debug.off(d_tag);
+    }
+  }
+};/* class ScopedDebug */
+
 /** The warning output class */
 class CVC4_PUBLIC WarningC {
   std::ostream *d_os;
@@ -286,6 +321,41 @@ extern TraceC TraceOut CVC4_PUBLIC;
 #  define Trace if(0) debugNullCvc4Stream
 #endif /* CVC4_TRACING */
 
+class CVC4_PUBLIC ScopedTrace {
+  std::string d_tag;
+  bool d_oldSetting;
+
+public:
+
+  ScopedTrace(std::string tag, bool newSetting = true) :
+    d_tag(tag) {
+    d_oldSetting = Trace.isOn(d_tag);
+    if(newSetting) {
+      Trace.on(d_tag);
+    } else {
+      Trace.off(d_tag);
+    }
+  }
+
+  ScopedTrace(const char* tag, bool newSetting = true) :
+    d_tag(tag) {
+    d_oldSetting = Trace.isOn(d_tag);
+    if(newSetting) {
+      Trace.on(d_tag);
+    } else {
+      Trace.off(d_tag);
+    }
+  }
+
+  ~ScopedTrace() {
+    if(d_oldSetting) {
+      Trace.on(d_tag);
+    } else {
+      Trace.off(d_tag);
+    }
+  }
+};/* class ScopedTrace */
+
 #else /* ! CVC4_MUZZLE */
 
 #  define Debug if(0) debugNullCvc4Stream
@@ -294,6 +364,18 @@ extern TraceC TraceOut CVC4_PUBLIC;
 #  define Notice if(0) nullCvc4Stream
 #  define Chat if(0) nullCvc4Stream
 #  define Trace if(0) debugNullCvc4Stream
+
+class CVC4_PUBLIC ScopedDebug {
+public:
+  ScopedDebug(std::string tag, bool newSetting = true) {}
+  ScopedDebug(const char* tag, bool newSetting = true) {}
+};/* class ScopedDebug */
+
+class CVC4_PUBLIC ScopedTrace {
+public:
+  ScopedTrace(std::string tag, bool newSetting = true) {}
+  ScopedTrace(const char* tag, bool newSetting = true) {}
+};/* class ScopedTrace */
 
 #endif /* ! CVC4_MUZZLE */
 

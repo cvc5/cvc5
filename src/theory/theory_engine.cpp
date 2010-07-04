@@ -146,11 +146,9 @@ Node TheoryEngine::removeITEs(TNode node) {
     Assert( node.getNumChildren() == 3 );
     TypeNode nodeType = node[1].getType();
     if(!nodeType.isBoolean()){
-
       Node skolem = nodeManager->mkVar(node.getType());
       Node newAssertion =
-        nodeManager->mkNode(
-                            kind::ITE,
+        nodeManager->mkNode(kind::ITE,
                             node[0],
                             nodeManager->mkNode(kind::EQUAL, skolem, node[1]),
                             nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
@@ -180,7 +178,6 @@ Node TheoryEngine::removeITEs(TNode node) {
   }
 
   if(somethingChanged) {
-
     cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
     nodeManager->setAttribute(node, theory::IteRewriteAttr(), cachedRewrite);
     return cachedRewrite;
@@ -246,10 +243,10 @@ struct RewriteStackElement {
   /**
    * Construct a fresh stack element.
    */
-  RewriteStackElement(Node n, Theory* thy, bool top) :
+  RewriteStackElement(Node n, Theory* thy, bool topLevel) :
     d_node(n),
     d_theory(thy),
-    d_topLevel(top),
+    d_topLevel(topLevel),
     d_nextChild(0) {
   }
 };
@@ -257,7 +254,7 @@ struct RewriteStackElement {
 }/* CVC4::theory::rewrite namespace */
 }/* CVC4::theory namespace */
 
-Node TheoryEngine::rewrite(TNode in) {
+Node TheoryEngine::rewrite(TNode in, bool topLevel) {
   using theory::rewrite::RewriteStackElement;
 
   Node noItes = removeITEs(in);
@@ -265,10 +262,11 @@ Node TheoryEngine::rewrite(TNode in) {
 
   // descend top-down into the theory rewriters
   vector<RewriteStackElement> stack;
-  stack.push_back(RewriteStackElement(noItes, theoryOf(noItes), true));
+  stack.push_back(RewriteStackElement(noItes, theoryOf(noItes), topLevel));
   Debug("theory-rewrite") << "TheoryEngine::rewrite() starting at" << endl
                           << "  " << noItes << " " << theoryOf(noItes)
-                          << " TOP-LEVEL 0" << endl;
+                          << " " << (topLevel ? "TOP-LEVEL " : "")
+                          << "0" << endl;
   // This whole thing is essentially recursive, but we avoid actually
   // doing any recursion.
   do {// do until the stack is empty..
@@ -299,7 +297,9 @@ Node TheoryEngine::rewrite(TNode in) {
           Debug("theory-rewrite") << "got back " << rse.d_node << " "
                                   << thy2 << "[" << *thy2 << "]"
                                   << (response.needsMoreRewriting() ?
-                                      " MORE-REWRITING" : " DONE")
+                                      (response.needsFullRewriting() ?
+                                       " FULL-REWRITING" : " MORE-REWRITING")
+                                      : " DONE")
                                   << endl;
           if(rse.d_theory != thy2) {
             Debug("theory-rewrite") << "pre-rewritten from " << *rse.d_theory
@@ -311,7 +311,7 @@ Node TheoryEngine::rewrite(TNode in) {
             // rewritten from theory T1 into T2, then back to T1 ?
             rse.d_topLevel = true;
           } else {
-            done = !response.needsMoreRewriting();
+            done = response.isDone();
           }
         } while(!done);
         setPreRewriteCache(original, wasTopLevel, rse.d_node);
@@ -383,7 +383,9 @@ Node TheoryEngine::rewrite(TNode in) {
         Debug("theory-rewrite") << "got back " << rse.d_node << " "
                                 << thy2 << "[" << *thy2 << "]"
                                 << (response.needsMoreRewriting() ?
-                                    " MORE-REWRITING" : " DONE")
+                                    (response.needsFullRewriting() ?
+                                     " FULL-REWRITING" : " MORE-REWRITING")
+                                    : " DONE")
                                 << endl;
         if(rse.d_theory != thy2) {
           Debug("theory-rewrite") << "post-rewritten from " << *rse.d_theory
@@ -395,9 +397,39 @@ Node TheoryEngine::rewrite(TNode in) {
           // rewritten from theory T1 into T2, then back to T1 ?
           rse.d_topLevel = true;
         } else {
-          done = !response.needsMoreRewriting();
+          done = response.isDone();
+        }
+        if(response.needsFullRewriting()) {
+          Debug("theory-rewrite") << "full-rewrite requested for node "
+                                  << rse.d_node.getId() << ", invoking..."
+                                  << endl;
+          Node n = rewrite(rse.d_node, rse.d_topLevel);
+          Debug("theory-rewrite") << "full-rewrite finished for node "
+                                  << rse.d_node.getId() << ", got node "
+                                  << n << " output." << endl;
+          rse.d_node = n;
+          done = true;
         }
       } while(!done);
+
+      /* If extra-checking is on, do _another_ rewrite before putting
+       * in the cache to make sure they are the same.  This is
+       * especially necessary if a theory post-rewrites something into
+       * a term of another theory. */
+      if(Debug.isOn("extra-checking") &&
+         !Debug.isOn("$extra-checking:inside-rewrite")) {
+        ScopedDebug d("$extra-checking:inside-rewrite");
+        Node rewrittenAgain = rewrite(rse.d_node, rse.d_topLevel);
+        Assert(rewrittenAgain == rse.d_node,
+               "\nExtra-checking assumption failed, "
+               "node is not completely rewritten.\n\n"
+               "Original : %s\n"
+               "Rewritten: %s\n"
+               "Again    : %s\n",
+               original.toString().c_str(),
+               rse.d_node.toString().c_str(),
+               rewrittenAgain.toString().c_str());
+      }
 
       setPostRewriteCache(original, wasTopLevel, rse.d_node);
 
