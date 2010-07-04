@@ -298,8 +298,8 @@ void ArithUnatePropagator::addGeq
     }else{
       Assert(rightHandRationalIsLT(atom, lowerBound));
       addImplication(negation, lowerBound, "300");// (x < b /\ b < b') => x <= b'
+      ++leqIter;
       if(leqIter != leqSet->end()){
-        ++leqIter;
         TNode next = *leqIter;
         Assert(rightHandRationalIsLT(atom, next));
         addImplication(negation, next, "305");// (x < b /\ b < b') => x <= b'
