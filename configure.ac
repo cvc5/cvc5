@@ -68,6 +68,9 @@ AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
+if test "$enable_shared" = no -a "$user_specified_enable_or_disable_shared" = yes; then
+  enable_static=yes
+fi
 if test "$enable_shared" = no -a "$enable_static" = yes; then
   enable_static_binary=yes
 fi
