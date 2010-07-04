@@ -12,11 +12,17 @@ TESTS =	friedman_n4_i5.smt \
 	fuzz_1.smt \
 	fuzz_2.smt
 
+EXTRA_DIST = $(TESTS)
+
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
 #TESTS += \
 #	error.cvc
 #endif
+#
+# and make sure to distribute it
+#EXTRA_DIST += \
+#	error.cvc
 
 # synonyms for "check"
 .PHONY: regress regress1 test

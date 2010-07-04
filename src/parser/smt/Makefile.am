@@ -30,8 +30,10 @@ libparsersmt_la_SOURCES = \
 	smt_input.cpp \
 	$(ANTLR_STUFF)
 
-BUILT_SOURCES = $(ANTLR_STUFF)
-dist-hook: $(ANTLR_STUFF)
+BUILT_SOURCES = $(ANTLR_STUFF) @srcdir@/stamp-generated
+
+EXTRA_DIST = @srcdir@/stamp-generated
+
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
 	-$(AM_V_at)rmdir @srcdir@/generated

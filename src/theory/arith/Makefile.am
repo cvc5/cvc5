@@ -18,7 +18,6 @@ libarith_la_SOURCES = \
 	partial_model.cpp \
 	ordered_bounds_list.h \
 	basic.h \
-	normal.h \
 	slack.h \
 	tableau.h \
 	arith_propagator.h \
@@ -26,4 +25,6 @@ libarith_la_SOURCES = \
 	theory_arith.h \
 	theory_arith.cpp
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds \
+	normal_form_notes.txt

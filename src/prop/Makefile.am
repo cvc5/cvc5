@@ -11,7 +11,6 @@ libprop_la_SOURCES = \
 	sat.h \
         sat.cpp \
 	cnf_stream.h \
-	cnf_stream.cpp \
-	cnf_conversion.h
+	cnf_stream.cpp
 
 SUBDIRS = minisat

@@ -25,13 +25,15 @@ ANTLR_STUFF = \
 libparsersmt2_la_SOURCES = \
 	Smt2.g \
 	smt2.h \
-    smt2.cpp \
+	smt2.cpp \
 	smt2_input.h \
 	smt2_input.cpp \
 	$(ANTLR_STUFF)
 
-BUILT_SOURCES = $(ANTLR_STUFF)
-dist-hook: $(ANTLR_STUFF)
+BUILT_SOURCES = $(ANTLR_STUFF) @srcdir@/stamp-generated
+
+EXTRA_DIST = @srcdir@/stamp-generated
+
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
 	-$(AM_V_at)rmdir @srcdir@/generated

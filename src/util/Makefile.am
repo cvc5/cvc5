@@ -16,6 +16,7 @@ libutil_la_SOURCES = \
 	decision_engine.h \
 	exception.h \
 	hash.h \
+	bool.h \
 	model.h \
 	options.h \
 	output.cpp \

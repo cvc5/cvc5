@@ -42,6 +42,12 @@ libcvc4_noinst_la_LIBADD = \
 	@builddir@/smt/libsmt.la \
 	@builddir@/theory/libtheory.la
 
+EXTRA_DIST = \
+	include/cvc4parser_private.h \
+	include/cvc4parser_public.h \
+	include/cvc4_private.h \
+	include/cvc4_public.h
+
 # empty.cpp hack; see above
 empty.cpp:; touch empty.cpp
 
@@ -55,3 +61,9 @@ install-data-local: $(publicheaders)
 		echo $(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"; \
 		$(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"; \
 	done
+
+uninstall-local:
+	@for f in $(publicheaders); do \
+		rm -f "$(DESTDIR)/$(includedir)/cvc4/$$f"
+	done
+	rmdir "$(DESTDIR)/$(includedir)/cvc4"

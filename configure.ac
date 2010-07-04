@@ -244,6 +244,9 @@ AM_CONDITIONAL([CVC4_GMP_IMP], [test $cvc4_cln_or_gmp = gmp])
 
 # construct the build string
 AC_MSG_CHECKING([for appropriate build string])
+if test -z "$ac_confdir"; then
+  ac_confdir="$srcdir"
+fi
 build_type=`$ac_confdir/config/build-type $with_build $btargs $cvc4_cln_or_gmp`
 if test "$custom_build_profile" = yes; then
   if test "$with_build" = default; then

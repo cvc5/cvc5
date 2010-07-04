@@ -10,11 +10,17 @@ TESTS =	C880mul.miter.shuffled-as.sat03-348.smt \
 	hole10.cvc \
 	instance_1151.smt
 
+EXTRA_DIST = $(TESTS)
+
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
 #TESTS += \
 #	error.cvc
 #endif
+#
+# and make sure to distribute it
+#EXTRA_DIST += \
+#	error.cvc
 
 # synonyms for "check"
 .PHONY: regress regress3 test

@@ -63,11 +63,17 @@ TESTS =	\
 	wiki.21.cvc \
 	fuzz_3.smt
 
+EXTRA_DIST = $(TESTS)
+
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
 	error.cvc
 endif
+
+# and make sure to distribute it
+EXTRA_DIST += \
+	error.cvc
 
 # synonyms for "check"
 .PHONY: regress regress0 test
