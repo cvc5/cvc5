@@ -72,14 +72,15 @@ static terminate_handler default_terminator;
 
 void cvc4unexpected() {
 #ifdef CVC4_DEBUG
-  fprintf(stderr,
-          "\n"
-          "CVC4 threw an \"unexpected\" exception (one that wasn't properly specified\n"
-          "in the throws() specifier for the throwing function).\n\n");
-  if(CVC4::s_debugAssertionFailure == NULL) {
-    fprintf(stderr, "The exception is unknown.\n\n");
+  fprintf(stderr, "\n"
+          "CVC4 threw an \"unexpected\" exception (one that wasn't properly "
+          "specified\nin the throws() specifier for the throwing function)."
+          "\n\n");
+  if(CVC4::s_debugLastException == NULL) {
+    fprintf(stderr,
+            "The exception is unknown (maybe it's not a CVC4::Exception).\n\n");
   } else {
-    fprintf(stderr, "The exception is:\n%s\n\n", CVC4::s_debugAssertionFailure);
+    fprintf(stderr, "The exception is:\n%s\n\n", CVC4::s_debugLastException);
   }
   if(segvNoSpin) {
     fprintf(stderr, "No-spin requested.\n");
@@ -99,10 +100,10 @@ void cvc4unexpected() {
 
 void cvc4terminate() {
 #ifdef CVC4_DEBUG
-  fprintf(stderr,
-          "\n"
+  fprintf(stderr, "\n"
           "CVC4 was terminated by the C++ runtime.\n"
-          "Perhaps an exception was thrown during stack unwinding.  (Don't do that.)\n");
+          "Perhaps an exception was thrown during stack unwinding.  "
+          "(Don't do that.)\n");
   default_terminator();
 #else /* CVC4_DEBUG */
   fprintf(stderr,

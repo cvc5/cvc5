@@ -28,7 +28,7 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-__thread CVC4_PUBLIC const char* s_debugAssertionFailure = NULL;
+__thread CVC4_PUBLIC const char* s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
 
 void AssertionException::construct(const char* header, const char* extra,
@@ -73,9 +73,9 @@ void AssertionException::construct(const char* header, const char* extra,
   setMessage(string(buf));
 
 #ifdef CVC4_DEBUG
-  if(s_debugAssertionFailure == NULL) {
+  if(s_debugLastException == NULL) {
     // we leak buf[] but only in debug mode with assertions failing
-    s_debugAssertionFailure = buf;
+    s_debugLastException = buf;
   }
 #else /* CVC4_DEBUG */
   delete [] buf;
@@ -115,12 +115,54 @@ void AssertionException::construct(const char* header, const char* extra,
 
 #ifdef CVC4_DEBUG
   // we leak buf[] but only in debug mode with assertions failing
-  if(s_debugAssertionFailure == NULL) {
-    s_debugAssertionFailure = buf;
+  if(s_debugLastException == NULL) {
+    s_debugLastException = buf;
   }
 #else /* CVC4_DEBUG */
   delete [] buf;
 #endif /* CVC4_DEBUG */
 }
+
+#ifdef CVC4_DEBUG
+
+/**
+ * Special assertion failure handling in debug mode; in non-debug
+ * builds, the exception is thrown from the macro.  We factor out this
+ * additional logic so as not to bloat the code at every Assert()
+ * expansion.
+ *
+ * Note this name is prefixed with "debug" because it is included in
+ * debug builds only; in debug builds, it handles all assertion
+ * failures (even those that exist in non-debug builds).
+ */
+void debugAssertionFailed(const AssertionException& thisException,
+                          const char* propagatingException) {
+  static __thread bool alreadyFired = false;
+
+  if(EXPECT_TRUE( !std::uncaught_exception() ) || alreadyFired) {
+    throw thisException;
+  }
+
+  alreadyFired = true;
+
+  // propagatingException is the propagating exception, but can be
+  // NULL if the propagating exception is not a CVC4::Exception.
+  Warning() << "===========================================" << std::endl
+            << "An assertion failed during stack unwinding:" << std::endl;
+  if(propagatingException != NULL) {
+    Warning() << "The propagating exception is:" << std::endl
+              << propagatingException << std::endl
+              << "===========================================" << std::endl;
+    Warning() << "The newly-thrown exception is:" << std::endl;
+  } else {
+    Warning() << "The propagating exception is unknown." << std::endl;
+  }
+  Warning() << thisException << std::endl
+            << "===========================================" << std::endl;
+
+  terminate();
+}
+
+#endif /* CVC4_DEBUG */
 
 }/* CVC4 namespace */

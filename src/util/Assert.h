@@ -198,33 +198,39 @@ public:
 
 #ifdef CVC4_DEBUG
 
-extern __thread CVC4_PUBLIC const char* s_debugAssertionFailure;
+#ifdef CVC4_DEBUG
+extern __thread CVC4_PUBLIC const char* s_debugLastException;
+#endif /* CVC4_DEBUG */
+
+/**
+ * Special assertion failure handling in debug mode; in non-debug
+ * builds, the exception is thrown from the macro.  We factor out this
+ * additional logic so as not to bloat the code at every Assert()
+ * expansion.
+ *
+ * Note this name is prefixed with "debug" because it is included in
+ * debug builds only; in debug builds, it handles all assertion
+ * failures (even those that exist in non-debug builds).
+ */
+void debugAssertionFailed(const AssertionException& thisException,
+                          const char* lastException) CVC4_PUBLIC;
 
 // If we're currently handling an exception, print a warning instead;
 // otherwise std::terminate() is called by the runtime and we lose
 // details of the exception
-#define AlwaysAssert(cond, msg...)                                      \
-  do {                                                                  \
-    if(EXPECT_FALSE( ! (cond) )) {                                      \
-      if(EXPECT_FALSE( std::uncaught_exception() )) {                   \
-        Warning() << "===========================================" << std::endl \
-                  << "An assertion failed during stack unwinding:" << std::endl \
-                  << AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg) << std::endl \
-                  << "===========================================" << std::endl; \
-        if(s_debugAssertionFailure != NULL) {                           \
-          Warning() << "The propagating exception is:" << std::endl     \
-                    << s_debugAssertionFailure << std::endl             \
-                    << "===========================================" << std::endl; \
-          s_debugAssertionFailure = NULL;                               \
-        }                                                               \
-      } else {                                                          \
-        throw AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+#  define AlwaysAssert(cond, msg...)                                    \
+    do {                                                                \
+      if(EXPECT_FALSE( ! (cond) )) {                                    \
+        /* save the last assertion failure */                           \
+        const char* lastException = s_debugLastException;               \
+        AssertionException exception(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+        debugAssertionFailed(exception, lastException);                 \
       }                                                                 \
-    }                                                                   \
-  } while(0)
+    } while(0)
+
 #else /* CVC4_DEBUG */
 // These simpler (but less useful) versions for non-debug builds fails
-// with terminate() if thrown during stack unwinding.
+// will terminate() if thrown during stack unwinding.
 #  define AlwaysAssert(cond, msg...)                                    \
      do {                                                               \
        if(EXPECT_FALSE( ! (cond) )) {                                   \
