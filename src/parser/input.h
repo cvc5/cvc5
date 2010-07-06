@@ -108,7 +108,7 @@ class CVC4_PUBLIC Input {
   static Input* newFileInput(InputLanguage lang, 
                              const std::string& filename, 
                              bool useMmap=false)
-      throw (InputStreamException);
+    throw (InputStreamException, AssertionException);
 
   /** Create an input for the given stream.
    *
@@ -119,7 +119,7 @@ class CVC4_PUBLIC Input {
   static Input* newStreamInput(InputLanguage lang, 
                                std::istream& input, 
                                const std::string& name) 
-    throw (InputStreamException);
+    throw (InputStreamException, AssertionException);
 
   /** Create an input for the given string
    *
@@ -130,7 +130,7 @@ class CVC4_PUBLIC Input {
   static Input* newStringInput(InputLanguage lang, 
                                const std::string& input, 
                                const std::string& name)
-    throw (InputStreamException);
+    throw (InputStreamException, AssertionException);
 
 public:
 
@@ -154,12 +154,14 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Command* parseCommand() throw(ParserException) = 0;
+  virtual Command* parseCommand()
+    throw (ParserException, AssertionException) = 0;
 
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  virtual void parseError(const std::string& msg) throw (ParserException) = 0;
+  virtual void parseError(const std::string& msg)
+    throw (ParserException, AssertionException) = 0;
 
   /** Parse an
    * expression from the input by invoking the implementation-specific
@@ -168,7 +170,8 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Expr parseExpr() throw(ParserException) = 0;
+  virtual Expr parseExpr()
+    throw (ParserException, AssertionException) = 0;
 
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser) = 0;
