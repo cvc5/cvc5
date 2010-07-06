@@ -26,7 +26,13 @@ TESTS =	\
         simple-lra.smt2 \
         simple-rdl.smt2 \
 	simple-uf.smt2 \
+	bug2.smt \
 	bug32.cvc \
+	bug49.smt \
+	bug161.smt \
+	bug164.smt \
+	bug167.smt \
+	bug168.smt \
 	hole6.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
@@ -61,6 +67,7 @@ TESTS =	\
 	wiki.19.cvc \
 	wiki.20.cvc \
 	wiki.21.cvc \
+	fuzz_1.smt \
 	fuzz_3.smt
 
 EXTRA_DIST = $(TESTS)
