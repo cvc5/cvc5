@@ -182,6 +182,12 @@ int runCvc4(int argc, char* argv[]) {
     delete cmd;
   }
 
+#ifdef CVC4_COMPETITION_MODE
+  // exit, don't return
+  // (don't want destructors to run)
+  exit(0);
+#endif
+
   // Get ready for tear-down
   exprMgr.prepareToBeDestroyed();
 

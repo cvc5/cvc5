@@ -258,12 +258,13 @@ throw(OptionException) {
              Configuration::getVersionMinor(),
              Configuration::getVersionRelease());
       printf("\n");
-      printf("debug code: %s\n", Configuration::isDebugBuild() ? "yes" : "no");
-      printf("tracing   : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
-      printf("muzzled   : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
-      printf("assertions: %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
-      printf("coverage  : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
-      printf("profiling : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
+      printf("debug code : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
+      printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
+      printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
+      printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
+      printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
+      printf("profiling  : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
+      printf("competition: %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
       exit(0);
 
     case '?':

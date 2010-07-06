@@ -73,6 +73,14 @@ bool Configuration::isProfilingBuild() {
 #endif /* CVC4_PROFILING */
 }
 
+bool Configuration::isCompetitionBuild() {
+#ifdef CVC4_COMPETITION_MODE
+  return true;
+#else /* CVC4_COMPETITION_MODE */
+  return false;
+#endif /* CVC4_COMPETITION_MODE */
+}
+
 string Configuration::getPackageName() {
   return PACKAGE_NAME;
 }

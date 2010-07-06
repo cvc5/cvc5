@@ -49,6 +49,8 @@ public:
 
   static bool isProfilingBuild();
 
+  static bool isCompetitionBuild();
+
   static std::string getPackageName();
 
   static std::string getVersionString();
