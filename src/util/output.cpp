@@ -142,7 +142,6 @@ void TraceC::printf(string tag, const char* fmt, ...) {
 
 NullDebugC Debug CVC4_PUBLIC;
 NullC Warning CVC4_PUBLIC;
-NullC Warning CVC4_PUBLIC;
 NullC Message CVC4_PUBLIC;
 NullC Notice CVC4_PUBLIC;
 NullC Chat CVC4_PUBLIC;

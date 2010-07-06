@@ -43,11 +43,10 @@ public:
       }
     return fType.getRangeType();
   }
-};
+};/* class UfTypeRule */
 
-}
-}
-}
-
+}/* CVC4::theory::uf namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H_ */

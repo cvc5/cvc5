@@ -55,7 +55,7 @@ options {
 
 namespace CVC4 {
   class Expr;
-}
+}/* CVC4 namespace */
 }
 
 @parser::postinclude {

@@ -512,7 +512,6 @@ public:
 
 extern NullDebugC Debug CVC4_PUBLIC;
 extern NullC Warning CVC4_PUBLIC;
-extern NullC Warning CVC4_PUBLIC;
 extern NullC Message CVC4_PUBLIC;
 extern NullC Notice CVC4_PUBLIC;
 extern NullC Chat CVC4_PUBLIC;

@@ -95,7 +95,6 @@ class TheoryEngine {
     void propagate(TNode lit, bool) throw(theory::Interrupted, AssertionException) {
       d_propagatedLiterals.push_back(lit);
       ++(d_engine->d_statistics.d_statPropagate);
-      ++(d_engine->d_statistics.d_statPropagate);
     }
 
     void lemma(TNode node, bool) throw(theory::Interrupted, AssertionException) {
@@ -108,8 +107,7 @@ class TheoryEngine {
     }
     void explanation(TNode explanationNode, bool) throw(theory::Interrupted, AssertionException) {
       d_explanationNode = explanationNode;
-      ++(d_engine->d_statistics.d_statExplanatation);
-      ++(d_engine->d_statistics.d_statExplanatation);
+      ++(d_engine->d_statistics.d_statExplanation);
     }
   };
 
@@ -320,19 +318,19 @@ public:
 private:
   class Statistics {
   public:
-    IntStat d_statConflicts, d_statPropagate, d_statLemma, d_statAugLemma, d_statExplanatation;
+    IntStat d_statConflicts, d_statPropagate, d_statLemma, d_statAugLemma, d_statExplanation;
     Statistics():
       d_statConflicts("theory::conflicts",0),
       d_statPropagate("theory::propagate",0),
       d_statLemma("theory::lemma",0),
       d_statAugLemma("theory::aug_lemma", 0),
-      d_statExplanatation("theory::explanation", 0)
+      d_statExplanation("theory::explanation", 0)
     {
       StatisticsRegistry::registerStat(&d_statConflicts);
       StatisticsRegistry::registerStat(&d_statPropagate);
       StatisticsRegistry::registerStat(&d_statLemma);
       StatisticsRegistry::registerStat(&d_statAugLemma);
-      StatisticsRegistry::registerStat(&d_statExplanatation);
+      StatisticsRegistry::registerStat(&d_statExplanation);
     }
 
     ~Statistics() {
@@ -340,11 +338,10 @@ private:
       StatisticsRegistry::unregisterStat(&d_statPropagate);
       StatisticsRegistry::unregisterStat(&d_statLemma);
       StatisticsRegistry::unregisterStat(&d_statAugLemma);
-      StatisticsRegistry::unregisterStat(&d_statExplanatation);
+      StatisticsRegistry::unregisterStat(&d_statExplanation);
     }
   };
   Statistics d_statistics;
-
 
 };/* class TheoryEngine */
 
