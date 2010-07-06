@@ -359,9 +359,21 @@ sortName[std::string& name, CVC4::parser::DeclarationCheck check]
 sortSymbol[CVC4::Type& t]
 @declarations {
   std::string name;
+  std::vector<CVC4::Type> args;
 }
   : sortName[name,CHECK_NONE] 
   	{ t = PARSER_STATE->getSort(name); }
+  | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
+    { 
+      if( name == "Array" ) {
+        if( args.size() != 2 ) {
+          PARSER_STATE->parseError("Illegal array type.");
+        }
+        t = EXPR_MANAGER->mkArrayType( args[0], args[1] ); 
+      } else {
+        PARSER_STATE->parseError("Unhandled parameterized type.");
+      }
+    }
   ;
 
 /**
