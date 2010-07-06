@@ -216,47 +216,48 @@ public:
     TS_ASSERT(d_dummy->doneWrapper());
   }
 
-  void testRegisterTerm() {
-    TS_ASSERT(d_dummy->doneWrapper());
+  // FIXME: move this to theory_engine test?
+//   void testRegisterTerm() {
+//     TS_ASSERT(d_dummy->doneWrapper());
 
-    TypeNode typeX = d_nm->booleanType();
-    TypeNode typeF = d_nm->mkFunctionType(typeX, typeX);
+//     TypeNode typeX = d_nm->booleanType();
+//     TypeNode typeF = d_nm->mkFunctionType(typeX, typeX);
 
-    Node x = d_nm->mkVar("x",typeX);
-    Node f = d_nm->mkVar("f",typeF);
-    Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
-    Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
-    Node f_x_eq_x = f_x.eqNode(x);
-    Node x_eq_f_f_x = x.eqNode(f_f_x);
+//     Node x = d_nm->mkVar("x",typeX);
+//     Node f = d_nm->mkVar("f",typeF);
+//     Node f_x = d_nm->mkNode(kind::APPLY_UF, f, x);
+//     Node f_f_x = d_nm->mkNode(kind::APPLY_UF, f, f_x);
+//     Node f_x_eq_x = f_x.eqNode(x);
+//     Node x_eq_f_f_x = x.eqNode(f_f_x);
 
-    d_dummy->assertFact(f_x_eq_x);
-    d_dummy->assertFact(x_eq_f_f_x);
+//     d_dummy->assertFact(f_x_eq_x);
+//     d_dummy->assertFact(x_eq_f_f_x);
 
-    Node got = d_dummy->getWrapper();
+//     Node got = d_dummy->getWrapper();
 
-    TS_ASSERT_EQUALS(got, f_x_eq_x);
+//     TS_ASSERT_EQUALS(got, f_x_eq_x);
 
-    TS_ASSERT_EQUALS(5u, d_dummy->d_registered.size());
-    TS_ASSERT(d_dummy->d_registered.find(x) != d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(f) != d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(f_x) != d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(f_x_eq_x) != d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(d_nm->operatorOf(kind::EQUAL)) != d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(f_f_x) == d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) == d_dummy->d_registered.end());
+//     TS_ASSERT_EQUALS(5u, d_dummy->d_registered.size());
+//     TS_ASSERT(d_dummy->d_registered.find(x) != d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(f) != d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(f_x) != d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(f_x_eq_x) != d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(d_nm->operatorOf(kind::EQUAL)) != d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(f_f_x) == d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) == d_dummy->d_registered.end());
 
-    TS_ASSERT(!d_dummy->doneWrapper());
+//     TS_ASSERT(!d_dummy->doneWrapper());
 
-    got = d_dummy->getWrapper();
+//     got = d_dummy->getWrapper();
 
-    TS_ASSERT_EQUALS(got, x_eq_f_f_x);
+//     TS_ASSERT_EQUALS(got, x_eq_f_f_x);
 
-    TS_ASSERT_EQUALS(7u, d_dummy->d_registered.size());
-    TS_ASSERT(d_dummy->d_registered.find(f_f_x) != d_dummy->d_registered.end());
-    TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) != d_dummy->d_registered.end());
+//     TS_ASSERT_EQUALS(7u, d_dummy->d_registered.size());
+//     TS_ASSERT(d_dummy->d_registered.find(f_f_x) != d_dummy->d_registered.end());
+//     TS_ASSERT(d_dummy->d_registered.find(x_eq_f_f_x) != d_dummy->d_registered.end());
 
-    TS_ASSERT(d_dummy->doneWrapper());
-  }
+//     TS_ASSERT(d_dummy->doneWrapper());
+//   }
 
   void testOutputChannelAccessors() {
     /* void setOutputChannel(OutputChannel& out)  */

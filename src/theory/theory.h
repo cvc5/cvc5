@@ -214,16 +214,6 @@ protected:
     return d_facts.empty();
   }
 
-  /**
-   * Return whether a node is shared or not.  Used by setup().
-   */
-  bool isShared(TNode n) throw();
-
-  /** Tag for the "registerTerm()-has-been-called" flag on Nodes */
-  struct Registered {};
-  /** The "registerTerm()-has-been-called" flag on Nodes */
-  typedef CVC4::expr::CDAttribute<Registered, bool> RegisteredAttr;
-
   /** Tag for the "preRegisterTerm()-has-been-called" flag on Nodes */
   struct PreRegistered {};
   /** The "preRegisterTerm()-has-been-called" flag on Nodes */
@@ -235,7 +225,16 @@ protected:
    *
    * @return the next atom in the assertFact() queue.
    */
-  Node get();
+  Node get() {
+    Assert( !d_facts.empty(),
+            "Theory::get() called with assertion queue empty!" );
+    Node fact = d_facts.front();
+    d_facts.pop_front();
+    Debug("theory") << "Theory::get() => " << fact
+                    << "(" << d_facts.size() << " left)" << std::endl;
+    d_out->newFact(fact);
+    return fact;
+  }
 
 public:
 

@@ -41,6 +41,79 @@ typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
 
 }/* CVC4::theory namespace */
 
+void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
+  if(! fact.getAttribute(RegisteredAttr())) {
+    std::list<TNode> toReg;
+    toReg.push_back(fact);
+
+    Debug("theory") << "Theory::get(): registering new atom" << std::endl;
+
+    /* Essentially this is doing a breadth-first numbering of
+     * non-registered subterms with children.  Any non-registered
+     * leaves are immediately registered. */
+    for(std::list<TNode>::iterator workp = toReg.begin();
+        workp != toReg.end();
+        ++workp) {
+
+      TNode n = *workp;
+
+// I don't think we need to register operators @CB
+
+//       if(n.hasOperator()) {
+//         TNode c = n.getOperator();
+
+//         if(! c.getAttribute(RegisteredAttr())) {
+//           if(c.getNumChildren() == 0) {
+//             c.setAttribute(RegisteredAttr(), true);
+//             d_engine->theoryOf(c)->registerTerm(c);
+//           } else {
+//             toReg.push_back(c);
+//           }
+//         }
+//       }
+
+      for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
+        TNode c = *i;
+
+        if(! c.getAttribute(RegisteredAttr())) {
+          if(c.getNumChildren() == 0) {
+            c.setAttribute(RegisteredAttr(), true);
+            d_engine->theoryOf(c)->registerTerm(c);
+          } else {
+            toReg.push_back(c);
+          }
+        }
+      }
+    }
+
+    /* Now register the list of terms in reverse order.  Between this
+     * and the above registration of leaves, this should ensure that
+     * all subterms in the entire tree were registered in
+     * reverse-topological order. */
+    for(std::list<TNode>::reverse_iterator i = toReg.rbegin();
+        i != toReg.rend();
+        ++i) {
+
+      TNode n = *i;
+
+      /* Note that a shared TNode in the DAG rooted at "fact" could
+       * appear twice on the list, so we have to avoid hitting it
+       * twice. */
+      // FIXME when ExprSets are online, use one of those to avoid
+      // duplicates in the above?
+      // Actually, that doesn't work because you have to make sure 
+      // that the *last* occurrence is the one that gets processed first @CB
+      // This could be a big performance problem though because it requires
+      // traversing a DAG as a tree and that can really blow up @CB
+      if(! n.getAttribute(RegisteredAttr())) {
+        n.setAttribute(RegisteredAttr(), true);
+        d_engine->theoryOf(n)->registerTerm(n);
+      }
+    }
+  }
+}
+
+
 Theory* TheoryEngine::theoryOf(TNode n) {
   Kind k = n.getKind();
 

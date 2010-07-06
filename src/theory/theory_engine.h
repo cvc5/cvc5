@@ -54,6 +54,11 @@ class TheoryEngine {
   /** A table of Kinds to pointers to Theory */
   theory::TheoryOfTable d_theoryOfTable;
 
+  /** Tag for the "registerTerm()-has-been-called" flag on Nodes */
+  struct Registered {};
+  /** The "registerTerm()-has-been-called" flag on Nodes */
+  typedef CVC4::expr::CDAttribute<Registered, bool> RegisteredAttr;
+
   /**
    * An output channel for Theory that passes messages
    * back to a TheoryEngine.
@@ -82,6 +87,8 @@ class TheoryEngine {
       d_conflictNode(context),
       d_explanationNode(context){
     }
+
+    void newFact(TNode n);
 
     void conflict(TNode conflictNode, bool safe) throw(theory::Interrupted, AssertionException) {
       Debug("theory") << "EngineOutputChannel::conflict(" << conflictNode << ")" << std::endl;
