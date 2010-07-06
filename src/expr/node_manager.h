@@ -191,7 +191,9 @@ class NodeManager {
 
     if(!d_inReclaimZombies) {// FIXME multithreading
       // for now, collect eagerly.  can add heuristic here later..
-      reclaimZombies();
+      if(d_zombies.size() > 5000) {
+        reclaimZombies();
+      }
     }
   }
 
