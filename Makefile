@@ -23,6 +23,5 @@ submission:
 	./configure competition
 	$(MAKE)
 	mkdir -p cvc4-smtcomp-2010
-	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2010/cvc4
-	cp -p contrib/run-smtcomp cvc4-smtcomp-2010/run
+	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2010/run
 	tar cfz cvc4-smtcomp-2010.tgz cvc4-smtcomp-2010
