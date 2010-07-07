@@ -37,8 +37,8 @@ SMT2_TESTS = \
 # Regression tests for PL inputs
 CVC_TESTS = \
 	boolean-prec.cvc \
-        ite.cvc \
 	hole6.cvc \
+        ite.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
 	logops.03.cvc \
