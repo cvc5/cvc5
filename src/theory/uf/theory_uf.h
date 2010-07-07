@@ -84,7 +84,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, OutputChannel& out);
+  TheoryUF(int id, context::Context* c, OutputChannel& out);
 
   /** Destructor for the TheoryUF object. */
   ~TheoryUF();

@@ -80,7 +80,7 @@ class FakeTheory : public Theory {
 
 public:
   FakeTheory(context::Context* ctxt, OutputChannel& out, std::string id) :
-    Theory(ctxt, out),
+    Theory(0, ctxt, out),
     d_id(id) {
   }
 

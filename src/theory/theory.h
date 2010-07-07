@@ -136,6 +136,11 @@ private:
   Theory();
 
   /**
+   * A unique integer identifying the theory
+   */
+  int d_id;
+
+  /**
    * The context for the Theory.
    */
   context::Context* d_context;
@@ -175,7 +180,8 @@ protected:
   /**
    * Construct a Theory.
    */
-  Theory(context::Context* ctxt, OutputChannel& out) throw() :
+  Theory(int id, context::Context* ctxt, OutputChannel& out) throw() :
+    d_id(id),
     d_context(ctxt),
     d_facts(),
     d_factsResetter(*this),
@@ -193,13 +199,6 @@ protected:
    */
   virtual void shutdown() {
     d_facts.clear();
-  }
-
-  /**
-   * Get the context associated to this Theory.
-   */
-  context::Context* getContext() const {
-    return d_context;
   }
 
   /**
@@ -267,6 +266,20 @@ public:
   static bool standardEffortOrMore(Effort e) { return e >= STANDARD; }
   static bool standardEffortOnly(Effort e)   { return e >= STANDARD && e < FULL_EFFORT; }
   static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
+
+  /**
+   * Get the id for this Theory.
+   */
+  int getId() const {
+    return d_id;
+  }
+
+  /**
+   * Get the context associated to this Theory.
+   */
+  context::Context* getContext() const {
+    return d_context;
+  }
 
   /**
    * Set the output channel associated to this theory.
@@ -338,6 +351,22 @@ public:
     Debug("theory") << "Theory::assertFact(" << n << ")" << std::endl;
     d_facts.push_back(n);
   }
+
+  /**
+   * This method is called to notify a theory that the node n should be considered a "shared term" by this theory
+   */
+  virtual void addSharedTerm(TNode n) { }
+
+  /**
+   * This method is called by the shared term manager when a shared term t
+   * which this theory cares about (either because it received a previous
+   * addSharedTerm call with t or because it received a previous notifyEq call
+   * with t as the second argument) becomes equal to another shared term u.
+   * This call also serves as notice to the theory that the shared term manager
+   * now considers u the representative for this equivalence class of shared
+   * terms, so future notifications for this class will be based on u not t.
+   */
+  virtual void notifyEq(TNode t, TNode u) { }
 
   /**
    * Check the current assignment's consistency.

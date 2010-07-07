@@ -50,8 +50,8 @@ using namespace CVC4::theory::arith;
 
 
 
-TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
-  Theory(c, out),
+TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
+  Theory(id, c, out),
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_diseq(c),

@@ -97,6 +97,8 @@ inline std::string stringOfLiteralValue(SatLiteralValue val) {
  */
 class SatInputInterface {
 public:
+  /** Virtual destructor to make g++ happy */
+  virtual ~SatInputInterface() { }
   /** Assert a clause in the solver. */
   virtual void addClause(SatClause& clause, bool lemma) = 0;
   /** Create a new boolean variable in the solver. */

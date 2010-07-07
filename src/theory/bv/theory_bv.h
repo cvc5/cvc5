@@ -30,8 +30,8 @@ namespace bv {
 
 class TheoryBV : public Theory {
 public:
-  TheoryBV(context::Context* c, OutputChannel& out) :
-    Theory(c, out) {
+  TheoryBV(int id, context::Context* c, OutputChannel& out) :
+    Theory(id, c, out) {
   }
 
   void preRegisterTerm(TNode n) { Unimplemented(); }

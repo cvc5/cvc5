@@ -31,7 +31,7 @@ namespace arrays {
 
 class TheoryArrays : public Theory {
 public:
-  TheoryArrays(context::Context* c, OutputChannel& out);
+  TheoryArrays(int id, context::Context* c, OutputChannel& out);
   ~TheoryArrays();
   void preRegisterTerm(TNode n) { }
   void registerTerm(TNode n) { }
@@ -48,6 +48,8 @@ public:
     return RewriteComplete(in);
   }
 
+  void addSharedTerm(TNode t);
+  void notifyEq(TNode eq);
   void check(Effort e);
   void propagate(Effort e) { }
   void explain(TNode n, Effort e) { }

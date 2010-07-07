@@ -42,6 +42,11 @@ typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
 }/* CVC4::theory namespace */
 
 void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
+  //FIXME: Assert(fact.isLiteral(), "expected literal");
+  if (fact.getKind() == kind::NOT) {
+    // No need to register negations - only atoms
+    fact = fact[0];
+  }
   if(! fact.getAttribute(RegisteredAttr())) {
     std::list<TNode> toReg;
     toReg.push_back(fact);
@@ -56,6 +61,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
         ++workp) {
 
       TNode n = *workp;
+      Theory* thParent = d_engine->theoryOf(n);
 
 // I don't think we need to register operators @CB
 
@@ -74,11 +80,15 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
 
       for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
         TNode c = *i;
+        Theory* thChild = d_engine->theoryOf(c);
 
+        if (thParent != thChild) {
+          d_engine->getSharedTermManager()->addTerm(c, thParent, thChild);
+        }
         if(! c.getAttribute(RegisteredAttr())) {
           if(c.getNumChildren() == 0) {
             c.setAttribute(RegisteredAttr(), true);
-            d_engine->theoryOf(c)->registerTerm(c);
+            thChild->registerTerm(c);
           } else {
             toReg.push_back(c);
           }

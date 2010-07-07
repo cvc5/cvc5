@@ -12,7 +12,11 @@ libtheory_la_SOURCES = \
 	theory_engine.cpp \
 	theory_test_utils.h \
 	theory.h \
-	theory.cpp
+	theory.cpp \
+	shared_term_manager.h \
+	shared_term_manager.cpp \
+	shared_data.h \
+	shared_data.cpp
 nodist_libtheory_la_SOURCES = \
 	theoryof_table.h
 

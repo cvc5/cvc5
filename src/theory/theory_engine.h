@@ -26,6 +26,7 @@
 #include "theory/theoryof_table.h"
 
 #include "prop/prop_engine.h"
+#include "theory/shared_term_manager.h"
 #include "theory/builtin/theory_builtin.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/uf/theory_uf.h"
@@ -122,6 +123,9 @@ class TheoryEngine {
 
   EngineOutputChannel d_theoryOut;
 
+  /** Pointer to Shared Term Manager */
+  SharedTermManager* d_sharedTermManager;
+
   theory::builtin::TheoryBuiltin d_builtin;
   theory::booleans::TheoryBool d_bool;
   theory::uf::TheoryUF d_uf;
@@ -192,13 +196,22 @@ public:
   TheoryEngine(context::Context* ctxt) :
     d_propEngine(NULL),
     d_theoryOut(this, ctxt),
-    d_builtin(ctxt, d_theoryOut),
-    d_bool(ctxt, d_theoryOut),
-    d_uf(ctxt, d_theoryOut),
-    d_arith(ctxt, d_theoryOut),
-    d_arrays(ctxt, d_theoryOut),
-    d_bv(ctxt, d_theoryOut),
+    d_builtin(0, ctxt, d_theoryOut),
+    d_bool(1, ctxt, d_theoryOut),
+    d_uf(2, ctxt, d_theoryOut),
+    d_arith(3, ctxt, d_theoryOut),
+    d_arrays(4, ctxt, d_theoryOut),
+    d_bv(5, ctxt, d_theoryOut),
     d_statistics() {
+
+    d_sharedTermManager = new SharedTermManager(this, ctxt);
+
+    d_sharedTermManager->registerTheory(&d_builtin);
+    d_sharedTermManager->registerTheory(&d_bool);
+    d_sharedTermManager->registerTheory(&d_uf);
+    d_sharedTermManager->registerTheory(&d_arith);
+    d_sharedTermManager->registerTheory(&d_arrays);
+    d_sharedTermManager->registerTheory(&d_bv);
 
     d_theoryOfTable.registerTheory(&d_builtin);
     d_theoryOfTable.registerTheory(&d_bool);
@@ -206,6 +219,10 @@ public:
     d_theoryOfTable.registerTheory(&d_arith);
     d_theoryOfTable.registerTheory(&d_arrays);
     d_theoryOfTable.registerTheory(&d_bv);
+  }
+
+  SharedTermManager* getSharedTermManager() {
+    return d_sharedTermManager;
   }
 
   void setPropEngine(prop::PropEngine* propEngine)
@@ -226,6 +243,7 @@ public:
     d_arith.shutdown();
     d_arrays.shutdown();
     d_bv.shutdown();
+    delete d_sharedTermManager;
   }
 
   /**
@@ -312,6 +330,11 @@ public:
     d_arith.propagate(theory::Theory::FULL_EFFORT);
     d_arrays.propagate(theory::Theory::FULL_EFFORT);
     //d_bv.propagate(theory::Theory::FULL_EFFORT);
+  }
+
+  inline Node getExplanation(TNode node, theory::Theory* theory) {
+    theory->explain(node);
+    return d_theoryOut.d_explanationNode;
   }
 
   inline Node getExplanation(TNode node){

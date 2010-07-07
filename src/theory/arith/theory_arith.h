@@ -99,7 +99,7 @@ private:
   ArithUnatePropagator d_propagator;
 
 public:
-  TheoryArith(context::Context* c, OutputChannel& out);
+  TheoryArith(int id, context::Context* c, OutputChannel& out);
   ~TheoryArith();
 
   /**
