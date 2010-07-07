@@ -51,7 +51,8 @@ if ! [ -d "builds/$arch" ] || ! [ -d "builds/$arch/$build" ] || [ ${#builds[@]} 
 fi
 
 function switchto {
-  perl -pi -e 's,^CURRENT_BUILD *= *.*,CURRENT_BUILD = '$arch/$1',' builds/current
+  config/mkbuilddir "$arch" "$1" >/dev/null
+  #perl -pi -e 's,^CURRENT_BUILD *= *.*,CURRENT_BUILD = '$arch/$1',' builds/current
   echo "Current build switched to \`$1'."
 }
 
