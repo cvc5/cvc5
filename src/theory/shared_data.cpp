@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file shared_data.cpp
  ** \verbatim
- ** Original author: taking
- ** Major contributors: mdeters
+ ** Original author: barrett
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Implementation of equivalence class data for UF theory.
+ ** \brief Implementation of shared data for shared term manager.
  **
- ** Implementation of equivalence class data for UF theory.  This is a
+ ** Implementation of shared data used by the shared term manager.  This is a
  ** context-dependent object.
  **/
 

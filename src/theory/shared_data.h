@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file shared_data.h
  ** \verbatim
- ** Original author: taking
- ** Major contributors: mdeters
+ ** Original author: barrett
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
@@ -11,10 +11,10 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Context dependent equivalence class datastructure for nodes.
+ ** \brief Context-dependent data class for shared terms
  **
- ** Context dependent equivalence class datastructure for nodes.
- ** Currently keeps a context dependent watch list.
+ ** Context-dependent data class for shared terms.
+ ** Used by SharedTermManager.
  **/
 
 #include "cvc4_private.h"
