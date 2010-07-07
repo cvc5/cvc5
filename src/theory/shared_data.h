@@ -72,13 +72,15 @@ private:
   SharedData* d_proofNext;
 
   /**
-   * The equality that justifies this node being equal to
-   * the node at d_proofNext.  Not valid if this is proof root.
+   * In order to precisely reconstruct the equality that justifies this node
+   * being equal to the node at d_proofNext, we need to know whether this edge
+   * has been switched.  Value is meaningless at the proof root.
    */
-  Node d_equality;
+  bool d_edgeReversed;
 
   /**
-   * The theory that can explain d_equality.  Not valid if this is proof root.
+   * The theory that can explain the equality of this node and the node at
+   * d_proofNext.  Not valid if this is proof root.
    */
   theory::Theory* d_explainingTheory;
 
@@ -157,14 +159,24 @@ public:
   void setProofNext(SharedData* pData) { makeCurrent(); d_proofNext = pData; }
 
   /**
-   * Get the equality associated with the link in the proof tree.
+   * Get the edge reversed property of this node
    */
-  Node getEquality() const { return d_equality; }
+  bool getEdgeReversed() const { return d_edgeReversed; }
 
   /**
-   * Set the equality associated with the link in the proof tree.
+   * Set the edge reversed flag to value
    */
-  void setEquality(TNode eq) { makeCurrent(); d_equality = eq; }
+  void setEdgeReversed(bool value) { makeCurrent(); d_edgeReversed = value; }
+
+  /**
+   * Get the original equality that created the link from this node to the next
+   * proof node.
+   */
+  Node getEquality() const {
+    return d_edgeReversed
+      ? NodeManager::currentNM()->mkNode(kind::EQUAL, d_proofNext->getRep(), d_rep)
+      : NodeManager::currentNM()->mkNode(kind::EQUAL, d_rep, d_proofNext->getRep());
+  }
 
   /**
    * Get the explaining theory

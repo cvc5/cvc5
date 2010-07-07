@@ -39,25 +39,77 @@ namespace theory {
  */
 class SharedTermManager {
 
+  /**
+   * Pointer back to theory engine
+   */
   TheoryEngine* d_engine;
 
+  /**
+   * Pointer to context
+   */
   context::Context* d_context;
 
+  /**
+   * List of all theories indexed by theory id (built by calls to registerTheory)
+   */
   std::vector<theory::Theory*> d_theories;
 
-  SharedData* find(SharedData* pData);
+  /**
+   * Private method to find equivalence class representative in union-find data
+   * structure.
+   */
+  SharedData* find(SharedData* pData) const;
+
+  /**
+   * Helper function for explain: add all reasons for equality at pData to set s
+   */
+  void collectExplanations(SharedData* pData, std::set<Node>& s) const;
 
 public:
+  /**
+   * Constructor
+   */
   SharedTermManager(TheoryEngine* engine, context::Context* context);
 
+  /**
+   * Should be called once for each theory at setup time
+   */
   void registerTheory(theory::Theory* th);
 
+  /**
+   * Called by theory engine to indicate that node n is shared by theories
+   * parent and child.
+   */
   void addTerm(TNode n, theory::Theory* parent,
                theory::Theory* child);
 
-  void addEq(theory::Theory* thReason, TNode eq);
+  /**
+   * Called by theory engine or theories to notify the shared term manager that
+   * two terms are equal.
+   *
+   * @param eq the equality between shared terms
+   * @param thReason the theory that knows why, NULL means it's a SAT assertion
+   */
+  void addEq(TNode eq, theory::Theory* thReason = NULL);
 
-  Node explain(TNode eq);
+  /**
+   * Called by theory engine or theories to notify the shared term manager that
+   * two terms are disequal.
+   *
+   * @param eq the equality between shared terms whose negation now holds
+   * @param thReason the theory that knows why, NULL means it's a SAT assertion
+   */
+  void addDiseq(TNode eq, theory::Theory* thReason = NULL) { }
+
+  /**
+   * Get an explanation for an equality known by the SharedTermManager
+   */
+  Node explain(TNode eq) const;
+
+  /**
+   * Get the representative node in the equivalence class containing n
+   */
+  Node getRep(TNode n) const;
 
 };/* class SharedTermManager */
 

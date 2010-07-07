@@ -1,5 +1,10 @@
 # All unit tests
 UNIT_TESTS = \
+	theory/shared_term_manager_black \
+	theory/theory_engine_white \
+	theory/theory_black \
+	theory/theory_uf_white \
+	theory/theory_arith_white \
 	expr/expr_public \
         expr/expr_manager_public \
 	expr/node_white \
@@ -21,10 +26,6 @@ UNIT_TESTS = \
 	context/cdlist_black \
 	context/cdmap_black \
 	context/cdmap_white \
-	theory/theory_engine_white \
-	theory/theory_black \
-	theory/theory_uf_white \
-	theory/theory_arith_white \
 	util/assert_white \
 	util/bitvector_black \
 	util/configuration_black \

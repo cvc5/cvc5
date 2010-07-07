@@ -45,9 +45,9 @@ void TheoryArrays::addSharedTerm(TNode t) {
 }
 
 
-void TheoryArrays::notifyEq(TNode eq) {
+void TheoryArrays::notifyEq(TNode lhs, TNode rhs) {
   Debug("arrays") << "TheoryArrays::notifyEq(): "
-                  << eq << endl;
+                  << lhs << " = " << rhs << endl;
 }
 
 

@@ -49,7 +49,7 @@ public:
   }
 
   void addSharedTerm(TNode t);
-  void notifyEq(TNode eq);
+  void notifyEq(TNode lhs, TNode rhs);
   void check(Effort e);
   void propagate(Effort e) { }
   void explain(TNode n, Effort e) { }

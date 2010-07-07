@@ -358,15 +358,15 @@ public:
   virtual void addSharedTerm(TNode n) { }
 
   /**
-   * This method is called by the shared term manager when a shared term t
+   * This method is called by the shared term manager when a shared term lhs
    * which this theory cares about (either because it received a previous
-   * addSharedTerm call with t or because it received a previous notifyEq call
-   * with t as the second argument) becomes equal to another shared term u.
+   * addSharedTerm call with lhs or because it received a previous notifyEq call
+   * with lhs as the second argument) becomes equal to another shared term rhs.
    * This call also serves as notice to the theory that the shared term manager
-   * now considers u the representative for this equivalence class of shared
-   * terms, so future notifications for this class will be based on u not t.
+   * now considers rhs the representative for this equivalence class of shared
+   * terms, so future notifications for this class will be based on rhs not lhs.
    */
-  virtual void notifyEq(TNode t, TNode u) { }
+  virtual void notifyEq(TNode lhs, TNode rhs) { }
 
   /**
    * Check the current assignment's consistency.

@@ -46,6 +46,14 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
   if (fact.getKind() == kind::NOT) {
     // No need to register negations - only atoms
     fact = fact[0];
+// FIXME: In future, might want to track disequalities in shared term manager
+//     if (fact.getKind() == kind::EQUAL) {
+//       d_engine->getSharedTermManager()->addDiseq(fact);
+//     }
+  }
+  else if (fact.getKind() == kind::EQUAL) {
+    // Automatically track all asserted equalities in the shared term manager
+    d_engine->getSharedTermManager()->addEq(fact);
   }
   if(! fact.getAttribute(RegisteredAttr())) {
     std::list<TNode> toReg;

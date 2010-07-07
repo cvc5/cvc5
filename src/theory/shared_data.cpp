@@ -33,6 +33,7 @@ SharedData::SharedData(Context * context, TNode n, uint64_t theories) :
   d_size(1),
   d_find(this),
   d_proofNext(this),
+  d_edgeReversed(false),
   d_explainingTheory(NULL),
   d_rep(n) {
 }
@@ -49,7 +50,7 @@ void SharedData::restore(ContextObj* pContextObj) {
   d_size = data->d_size;
   d_find = data->d_find;
   d_proofNext = data->d_proofNext;
-  d_equality = data->d_equality;
+  d_edgeReversed = data->d_edgeReversed;
   d_explainingTheory = data->d_explainingTheory;
   d_rep = data->d_rep;
 }
@@ -60,20 +61,23 @@ void SharedData::reverseEdges() {
 
   SharedData* parent = this;
   SharedData* current = d_proofNext;
-  Node equality = d_equality;
+  bool reversed = d_edgeReversed;
   Theory* explainingTheory = d_explainingTheory;
 
   makeCurrent();
+
+  // Make this the proof root
   d_proofNext = this;
   
-  Node tmpNode;
+  // Reverse the edges from here to the former root
+  bool tmpReversed;
   Theory* tmpTheory;
   SharedData* tmpData;
 
   while (!current->isProofRoot()) {
-    tmpNode = current->getEquality();
-    current->setEquality(equality);
-    equality = tmpNode;
+    tmpReversed = current->getEdgeReversed();
+    current->setEdgeReversed(!reversed);
+    reversed = tmpReversed;
 
     tmpTheory = current->getExplainingTheory();
     current->setExplainingTheory(explainingTheory);
@@ -84,7 +88,7 @@ void SharedData::reverseEdges() {
     parent = current;
     current = tmpData;
   }
-  current->setEquality(equality);
+  current->setEdgeReversed(!reversed);
   current->setExplainingTheory(explainingTheory);
   current->setProofNext(parent);
 }
