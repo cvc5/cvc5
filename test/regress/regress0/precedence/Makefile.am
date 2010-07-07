@@ -16,14 +16,12 @@ TESTS = \
 	implies-or.cvc \
 	not-and.cvc \
 	not-eq.cvc \
+        plus-mult.cvc \
 	or-implies.cvc \
 	or-xor.cvc \
 	xor-or.cvc \
 	xor-and.cvc \
 	xor-assoc.cvc
-
-# Causes failure in TheoryArith:
-#        plus-mult.cvc
 
 EXTRA_DIST = $(TESTS)
 
