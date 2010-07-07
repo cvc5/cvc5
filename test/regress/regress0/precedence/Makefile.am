@@ -4,20 +4,23 @@ TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/src/main/cvc4
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS = \
-	iff-implies.cvc \
-	implies-iff.cvc \
-	implies-or.cvc \
-	or-implies.cvc \
-	or-xor.cvc \
-	xor-or.cvc \
-	xor-and.cvc \
 	and-xor.cvc \
 	and-not.cvc \
-	not-and.cvc \
-	not-eq.cvc \
+        bool-cmp.cvc \
+        cmp-plus.cvc \
 	eq-fun.cvc \
 	iff-assoc.cvc \
+	iff-implies.cvc \
 	implies-assoc.cvc \
+	implies-iff.cvc \
+	implies-or.cvc \
+	not-and.cvc \
+	not-eq.cvc \
+	or-implies.cvc \
+	or-xor.cvc \
+        plus-mult.cvc \
+	xor-or.cvc \
+	xor-and.cvc \
 	xor-assoc.cvc
 
 EXTRA_DIST = $(TESTS)

@@ -1,0 +1,8 @@
+% EXPECT: VALID
+% Simple test for right precedence of plus/minus and mult/divide
+
+a, b, c, d: INT;
+
+QUERY (a + b * c - d = a * b + c * d) <=> 
+  (((a + (b * c)) - d) = ((a * b) + (c * d)));
+% EXIT: 20
