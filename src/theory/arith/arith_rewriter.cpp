@@ -435,24 +435,27 @@ Node ArithRewriter::rewriteMult(TNode t){
   }
 }
 
-Node ArithRewriter::rewriteConstantDiv(TNode t){
+Node ArithRewriter::rewriteDivByConstant(TNode t){
   Assert(t.getKind()== kind::DIVISION);
 
-  Node reLeft = rewrite(t[0]);
+  Node left = t[0];
   Node reRight = rewrite(t[1]);
-  Assert(reLeft.getKind()== kind::CONST_RATIONAL);
   Assert(reRight.getKind()== kind::CONST_RATIONAL);
 
-  Rational num = reLeft.getConst<Rational>();
+
   Rational den = reRight.getConst<Rational>();
 
   Assert(den != d_constants->d_ZERO);
 
-  Rational div = num / den;
+  Rational div = den.inverse();
 
   Node result = mkRationalNode(div);
 
-  return result;
+  Node mult = NodeManager::currentNM()->mkNode(kind::MULT,left,result);
+
+  Node reMult = rewrite(mult);
+
+  return reMult;
 }
 
 Node ArithRewriter::rewriteTerm(TNode t){
@@ -465,7 +468,7 @@ Node ArithRewriter::rewriteTerm(TNode t){
   }else if(t.getKind() == kind::PLUS){
     return rewritePlus(t);
   }else if(t.getKind() == kind::DIVISION){
-    return rewriteConstantDiv(t);
+    return rewriteDivByConstant(t);
   }else if(t.getKind() == kind::MINUS){
     Node sub = makeSubtractionNode(t[0],t[1]);
     return rewrite(sub);
