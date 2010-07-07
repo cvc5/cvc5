@@ -60,6 +60,11 @@ else
   CVC4_CONFIGURE_AT_TOP_LEVEL=no
 fi
 
+# override autoconf: we don't want it giving us CFLAGS/CXXFLAGS, but we do
+# want to respect the user's flags
+if test -z "${CFLAGS+set}"; then CFLAGS=; fi
+if test -z "${CXXFLAGS+set}"; then CXXFLAGS=; fi
+
 # turn off static lib building by default
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
@@ -311,10 +316,6 @@ fi
 
 # Unpack standard build types. Any particular options can be overriden with
 # --enable/disable-X options
-if test -z "${OPTLEVEL+set}"; then OPTLEVEL=3; fi
-# our defaults for CFLAGS/CXXFLAGS are better than autoconf's
-if test -z "${CFLAGS+set}"; then CFLAGS=; fi
-if test -z "${CXXFLAGS+set}"; then CXXFLAGS=; fi
 case "$with_build" in
   production) # highly optimized, no assertions, no tracing
     CVC4CPPFLAGS=
@@ -370,11 +371,15 @@ case "$with_build" in
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
+    if test -z "${user_specified_enable_or_disable_shared}"; then enable_shared=no; fi
+    if test -z "${user_specified_enable_or_disable_static}"; then enable_static=yes; fi
+    if test -z "${enable_static_binary+set}"; then enable_static_binary=yes         ; fi
     ;;
   *)
     AC_MSG_FAILURE([unknown build profile: $with_build])
     ;;
 esac
+if test -z "${OPTLEVEL+set}"; then OPTLEVEL=3; fi
 
 AM_CONDITIONAL([CVC4_BUILD_PROFILE_PRODUCTION],  [test "$with_build" = production])
 AM_CONDITIONAL([CVC4_BUILD_PROFILE_DEBUG],       [test "$with_build" = debug])
