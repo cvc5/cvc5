@@ -20,7 +20,7 @@ regress test: check
 
 submission:
 	if [ ! -e configure ]; then ./autogen.sh; fi
-	./configure competition
+	./configure competition --disable-shared --enable-static-binary
 	$(MAKE)
 	mkdir -p cvc4-smtcomp-2010
 	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2010/run
