@@ -363,7 +363,7 @@ public:
     return *obj;
   }
 
-  void insert(const Key& k, const Data& d) {
+  bool insert(const Key& k, const Data& d) {
     emptyTrash();
 
     typename table_type::iterator i = d_map.find(k);
@@ -371,8 +371,10 @@ public:
     if(i == d_map.end()) {// create new object
       Element* obj = new(true) Element(d_context, this, k, d);
       d_map[k] = obj;
+      return true;
     } else {
       (*i).second->set(d);
+      return false;
     }
   }
 
