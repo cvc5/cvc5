@@ -14,11 +14,10 @@ class Database:
         self.currentRow = dict()
     def currentRowIsClear(self):
         return len(self.currentRow) == 0
-    def writeDB(self, file):
+    def writeDB(self, file, order):
         assert self.currentRowIsClear()
-        file.write("#")
         first = True
-        for name in registry:
+        for name in order:
             if first:
                 first = False
             else:
@@ -28,7 +27,7 @@ class Database:
         file.write("\n")
         for row in self.rows:
             first = True
-            for name in registry:
+            for name in order:
                 if first:
                     first = False
                 else:
@@ -123,6 +122,25 @@ registry["average_resident_size"] = str2int
 
 registry["id"] = str2int
 
+def find(l, elem):
+    for i in xrange(len(l)):
+        if elem == l[i]:
+            return i
+    return -1
+
+def pushToFront(l, elem):
+    l.remove(elem)
+    l.insert(0,elem)
+
+regOrder = list(registry.keys())
+regOrder.sort()
+pushToFront(regOrder, "filename")
+pushToFront(regOrder, "theory::propagate")
+pushToFront(regOrder, "theory::conflicts")
+pushToFront(regOrder, "sat::decisions")
+pushToFront(regOrder, "system_time")
+pushToFront(regOrder, "user_time")
+
 def isSatResult(line):
     up = line.upper().strip()
     if up == "UNSAT":
@@ -209,4 +227,4 @@ else:
     handleFile(db, target)
     db.commitRow()
 
-db.writeDB(sys.stdout)
+db.writeDB(sys.stdout, regOrder)
