@@ -83,11 +83,9 @@ void Smt::addTheory(Theory theory) {
   case THEORY_ARRAYS:
   case THEORY_ARRAYS_EX: {
     Type indexType = mkSort("Index");
-    Type elementTYpe = mkSort("Element");
+    Type elementType = mkSort("Element");
     
-    // FIXME: should be defineType("Array",arrayType(indexType,elementType))
-    // but arrayType isn't defined
-    mkSort("Array");
+    defineType("Array",getExprManager()->mkArrayType(indexType,elementType));
 
     addOperator(kind::SELECT);
     addOperator(kind::STORE);
