@@ -130,13 +130,24 @@ public:
   /**
    * Main constructor: d_list starts as NULL, size is 0
    */
- CDList(Context* context, bool callDestructor = true) :
-   ContextObj(context),
-   d_list(NULL),
-   d_callDestructor(callDestructor),
-   d_size(0),
-   d_sizeAlloc(0) {
- }
+  CDList(Context* context, bool callDestructor = true) :
+    ContextObj(context),
+    d_list(NULL),
+    d_callDestructor(callDestructor),
+    d_size(0),
+    d_sizeAlloc(0) {
+  }
+
+  /**
+   * Main constructor: d_list starts as NULL, size is 0
+   */
+  CDList(bool allocatedInCMM, Context* context, bool callDestructor = true) :
+    ContextObj(allocatedInCMM, context),
+    d_list(NULL),
+    d_callDestructor(callDestructor),
+    d_size(0),
+    d_sizeAlloc(0) {
+  }
 
   /**
    * Destructor: delete the list

@@ -114,6 +114,9 @@ class CDOmap : public ContextObj {
   Data d_data;
   CDMap<Key, Data, HashFcn>* d_map;
 
+  /** never put this cdmap element on the trash */
+  bool d_noTrash;
+
   // Doubly-linked list for keeping track of elements in order of insertion
   CDOmap* d_prev;
   CDOmap* d_next;
@@ -147,9 +150,13 @@ class CDOmap : public ContextObj {
         }
         d_next->d_prev = d_prev;
         d_prev->d_next = d_next;
-        Debug("gc") << "CDMap<> trash push_back " << this << std::endl;
-        //this->deleteSelf();
-        d_map->d_trash.push_back(this);
+        if(d_noTrash) {
+          Debug("gc") << "CDMap<> no-trash " << this << std::endl;
+        } else {
+          Debug("gc") << "CDMap<> trash push_back " << this << std::endl;
+          //this->deleteSelf();
+          d_map->d_trash.push_back(this);
+        }
       } else {
         d_data = p->d_data;
       }
@@ -172,10 +179,15 @@ public:
          CDMap<Key, Data, HashFcn>* map,
 	 const Key& key,
          const Data& data,
-         bool atLevelZero = false) :
-    ContextObj(context),
+         bool atLevelZero = false,
+         bool allocatedInCMM = false) :
+    ContextObj(allocatedInCMM, context),
     d_key(key),
-    d_map(NULL) {
+    d_map(NULL),
+    d_noTrash(allocatedInCMM) {
+
+    // untested, probably unsafe.
+    Assert(!(atLevelZero && allocatedInCMM));
 
     if(atLevelZero) {
       // "Initializing" map insertion: this entry will never be
@@ -189,6 +201,14 @@ public:
       // initialize d_map in the constructor init list above, because
       // we want the restore of d_map to NULL to signal us to remove
       // the element from the map.
+
+      if(allocatedInCMM) {
+        // Force a save/restore point, even though the object is
+        // allocated here.  This is so that we can detect when the
+        // object falls out of the map (otherwise we wouldn't get it).
+        makeSaveRestorePoint();
+      }
+
       set(data);
     }
     d_map = map;
@@ -376,6 +396,21 @@ public:
       (*i).second->set(d);
       return false;
     }
+  }
+
+  // Use this for pointer data d allocated in context memory at this
+  // level.  THIS IS HIGHLY EXPERIMENTAL.  It seems to work if ALL
+  // your data objects are allocated from context memory.
+  void insertDataFromContextMemory(const Key& k, const Data& d) {
+    emptyTrash();
+
+    AlwaysAssert(d_map.find(k) == d_map.end());
+
+    Element* obj = new(d_context->getCMM()) Element(d_context, this, k, d,
+                                                    false /* atLevelZero */,
+                                                    true /* allocatedInCMM */);
+
+    d_map[k] = obj;
   }
 
   /**
