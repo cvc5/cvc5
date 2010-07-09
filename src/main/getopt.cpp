@@ -111,10 +111,11 @@ static struct option cmdlineOptions[] = {
   { "about"      , no_argument      , NULL, 'V'         },
   { "lang"       , required_argument, NULL, 'L'         },
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
-  { "mmap",        no_argument      , NULL, USE_MMAP    },
+  { "mmap"       , no_argument      , NULL, USE_MMAP    },
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
   { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
+  { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
 /** Full argv[0] */
@@ -257,12 +258,13 @@ throw(OptionException) {
              Configuration::getVersionMinor(),
              Configuration::getVersionRelease());
       printf("\n");
-      printf("debug code: %s\n", Configuration::isDebugBuild() ? "yes" : "no");
-      printf("tracing   : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
-      printf("muzzled   : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
-      printf("assertions: %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
-      printf("coverage  : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
-      printf("profiling : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
+      printf("debug code : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
+      printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
+      printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
+      printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
+      printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
+      printf("profiling  : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
+      printf("competition: %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
       exit(0);
 
     case '?':

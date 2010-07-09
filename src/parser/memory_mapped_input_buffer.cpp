@@ -112,6 +112,7 @@ void UnmapFile(pANTLR3_INPUT_STREAM input) {
   input->close(input);
 }
 
-}
-}
-}
+}/* extern "C" */
+
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */

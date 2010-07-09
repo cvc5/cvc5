@@ -5,11 +5,16 @@ TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
-	boolean-prec.cvc \
+
+# Regression tests for SMT inputs
+SMT_TESTS = \
 	distinct.smt \
 	flet.smt \
 	flet2.smt \
+	fuzz_1.smt \
+	fuzz_3.smt \
+	ineq_basic.smt \
+	ineq_slack.smt \
 	ite_real_int_type.smt \
 	ite_real_valid.smt \
 	let.smt \
@@ -18,26 +23,30 @@ TESTS =	\
 	simple2.smt \
         simple-lra.smt \
         simple-rdl.smt \
-	simple-uf.smt \
-	ite.smt2 \
+	simple-uf.smt
+
+# Regression tests for SMT2 inputs
+SMT2_TESTS = \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
         simple-lra.smt2 \
         simple-rdl.smt2 \
-	simple-uf.smt2 \
-	bug32.cvc \
+	simple-uf.smt2
+
+# Regression tests for PL inputs
+CVC_TESTS = \
+	boolean-prec.cvc \
 	bug167.smt \
 	bug169.smt \
 	hole6.cvc \
+        ite.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
 	logops.03.cvc \
 	logops.04.cvc \
 	logops.05.cvc \
 	simple.cvc \
-	ineq_basic.smt \
-	ineq_slack.smt \
 	smallcnf.cvc \
 	test11.cvc \
 	test9.cvc \
@@ -62,14 +71,31 @@ TESTS =	\
 	wiki.18.cvc \
 	wiki.19.cvc \
 	wiki.20.cvc \
-	wiki.21.cvc \
-	fuzz_3.smt
+	wiki.21.cvc
+
+# Regression tests derived from bug reports
+BUG_TESTS = \
+	bug2.smt \
+	bug32.cvc \
+	bug49.smt \
+	bug161.smt \
+	bug164.smt \
+	bug167.smt \
+	bug168.smt
+
+TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
+
+EXTRA_DIST = $(TESTS)
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
 	error.cvc
 endif
+
+# and make sure to distribute it
+EXTRA_DIST += \
+	error.cvc
 
 # synonyms for "check"
 .PHONY: regress regress0 test

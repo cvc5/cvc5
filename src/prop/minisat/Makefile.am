@@ -1,6 +1,6 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-	-I@srcdir@/mtl -I@srcdir@/core -I@srcdir@/../.. -I@srcdir@/../../include
+	-I@srcdir@/mtl -I@srcdir@/core -I@srcdir@/../.. -I@builddir@/../.. -I@srcdir@/../../include
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) -DNDEBUG
 
 noinst_LTLIBRARIES = libminisat.la

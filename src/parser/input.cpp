@@ -57,7 +57,7 @@ InputStream *Input::getInputStream() {
 Input* Input::newFileInput(InputLanguage lang,
                            const std::string& filename,
                            bool useMmap)
-  throw (InputStreamException) {
+  throw (InputStreamException, AssertionException) {
   AntlrInputStream *inputStream = 
     AntlrInputStream::newFileInputStream(filename,useMmap);
   return AntlrInput::newInput(lang,*inputStream);
@@ -66,7 +66,7 @@ Input* Input::newFileInput(InputLanguage lang,
 Input* Input::newStreamInput(InputLanguage lang, 
                              std::istream& input, 
                              const std::string& name) 
-  throw (InputStreamException) {
+  throw (InputStreamException, AssertionException) {
   AntlrInputStream *inputStream = 
     AntlrInputStream::newStreamInputStream(input,name);
   return AntlrInput::newInput(lang,*inputStream);
@@ -75,7 +75,7 @@ Input* Input::newStreamInput(InputLanguage lang,
 Input* Input::newStringInput(InputLanguage lang,
                              const std::string& str,
                              const std::string& name)
-  throw (InputStreamException) {
+  throw (InputStreamException, AssertionException) {
   AntlrInputStream *inputStream = AntlrInputStream::newStringInputStream(str,name);
   return AntlrInput::newInput(lang,*inputStream);
 }

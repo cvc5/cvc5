@@ -80,3 +80,21 @@ lcov lcov-all lcov18:
 
 endif
 
+# abs_srcdir is required here to get this Makefile instead of the
+# Makefile in the builddir (since $(srcdir) is stripped off of
+# EXTRA_DIST files)
+EXTRA_DIST = \
+	Makefile.builds.in \
+	Makefile.subdir \
+	config/build-type \
+	config/mkbuilddir \
+	contrib/addsourcedir \
+	contrib/code-checker \
+	contrib/configure-in-place \
+	contrib/cvc-devel.el \
+	contrib/cvc-mode.el \
+	contrib/dimacs_to_smt.pl \
+	contrib/editing-with-emacs \
+	contrib/switch-config
+dist-hook:
+	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"

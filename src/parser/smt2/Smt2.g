@@ -71,7 +71,7 @@ using namespace CVC4::parser;
 
 namespace CVC4 {
   class Expr;
-}
+}/* CVC4 namespace */
 }
 
 @parser::postinclude {
@@ -212,10 +212,12 @@ term[CVC4::Expr& expr]
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
         Assert( expr == args[0] );
-	 } else if( CVC4::kind::isAssociative(kind) && 
+      } else if( CVC4::kind::isAssociative(kind) && 
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
         expr = EXPR_MANAGER->mkAssociative(kind,args);
+      } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
+        expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
         expr = MK_EXPR(kind, args);
@@ -304,15 +306,16 @@ builtinOp[CVC4::Kind& kind]
   | ITE_TOK      { $kind = CVC4::kind::ITE; }
   | GREATER_THAN_TOK
                  { $kind = CVC4::kind::GT; }
-  | GREATER_THAN_TOK EQUAL_TOK
+  | GREATER_THAN_EQUAL_TOK
                  { $kind = CVC4::kind::GEQ; }
-  | LESS_THAN_TOK EQUAL_TOK
+  | LESS_THAN_EQUAL_TOK
                  { $kind = CVC4::kind::LEQ; }
   | LESS_THAN_TOK
                  { $kind = CVC4::kind::LT; }
   | PLUS_TOK     { $kind = CVC4::kind::PLUS; }
-  | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
+  | STAR_TOK     { $kind = CVC4::kind::MULT; }
+  | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
   // NOTE: Theory operators go here
@@ -359,9 +362,21 @@ sortName[std::string& name, CVC4::parser::DeclarationCheck check]
 sortSymbol[CVC4::Type& t]
 @declarations {
   std::string name;
+  std::vector<CVC4::Type> args;
 }
   : sortName[name,CHECK_NONE] 
   	{ t = PARSER_STATE->getSort(name); }
+  | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
+    { 
+      if( name == "Array" ) {
+        if( args.size() != 2 ) {
+          PARSER_STATE->parseError("Illegal array type.");
+        }
+        t = EXPR_MANAGER->mkArrayType( args[0], args[1] ); 
+      } else {
+        PARSER_STATE->parseError("Unhandled parameterized type.");
+      }
+    }
   ;
 
 /**
@@ -415,8 +430,10 @@ EQUAL_TOK         : '=';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 GREATER_THAN_TOK  : '>';
+GREATER_THAN_EQUAL_TOK  : '>=';
 IMPLIES_TOK       : '=>';
 LESS_THAN_TOK     : '<';
+LESS_THAN_EQUAL_TOK     : '<=';
 MINUS_TOK         : '-';
 NOT_TOK           : 'not';
 OR_TOK            : 'or';

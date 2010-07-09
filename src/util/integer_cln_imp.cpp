@@ -1,9 +1,9 @@
 /*********************                                                        */
-/*! \file integer.cpp
+/*! \file integer_cln_imp.cpp
  ** \verbatim
  ** Original author: taking
- ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -21,9 +21,13 @@
  ** literature.) A consquence is that that the numerator and denominator may be
  ** different than the values used to construct the Rational.
  **/
-#ifdef __CVC4__USE_CLN_IMP
 
+#include "cvc4autoconfig.h"
 #include "util/integer.h"
+
+#ifndef CVC4_CLN_IMP
+#  error "This source should only ever be built if CVC4_CLN_IMP is on !"
+#endif /* CVC4_CLN_IMP */
 
 using namespace CVC4;
 
@@ -31,4 +35,3 @@ std::ostream& CVC4::operator<<(std::ostream& os, const Integer& n) {
   return os << n.toString();
 }
 
-#endif /* __CVC4__USE_CLN_IMP */

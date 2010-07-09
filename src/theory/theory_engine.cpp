@@ -41,6 +41,97 @@ typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
 
 }/* CVC4::theory namespace */
 
+void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
+  //FIXME: Assert(fact.isLiteral(), "expected literal");
+  if (fact.getKind() == kind::NOT) {
+    // No need to register negations - only atoms
+    fact = fact[0];
+// FIXME: In future, might want to track disequalities in shared term manager
+//     if (fact.getKind() == kind::EQUAL) {
+//       d_engine->getSharedTermManager()->addDiseq(fact);
+//     }
+  }
+  else if (fact.getKind() == kind::EQUAL) {
+    // Automatically track all asserted equalities in the shared term manager
+    d_engine->getSharedTermManager()->addEq(fact);
+  }
+  if(! fact.getAttribute(RegisteredAttr())) {
+    std::list<TNode> toReg;
+    toReg.push_back(fact);
+
+    Debug("theory") << "Theory::get(): registering new atom" << std::endl;
+
+    /* Essentially this is doing a breadth-first numbering of
+     * non-registered subterms with children.  Any non-registered
+     * leaves are immediately registered. */
+    for(std::list<TNode>::iterator workp = toReg.begin();
+        workp != toReg.end();
+        ++workp) {
+
+      TNode n = *workp;
+      Theory* thParent = d_engine->theoryOf(n);
+
+// I don't think we need to register operators @CB
+
+//       if(n.hasOperator()) {
+//         TNode c = n.getOperator();
+
+//         if(! c.getAttribute(RegisteredAttr())) {
+//           if(c.getNumChildren() == 0) {
+//             c.setAttribute(RegisteredAttr(), true);
+//             d_engine->theoryOf(c)->registerTerm(c);
+//           } else {
+//             toReg.push_back(c);
+//           }
+//         }
+//       }
+
+      for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
+        TNode c = *i;
+        Theory* thChild = d_engine->theoryOf(c);
+
+        if (thParent != thChild) {
+          d_engine->getSharedTermManager()->addTerm(c, thParent, thChild);
+        }
+        if(! c.getAttribute(RegisteredAttr())) {
+          if(c.getNumChildren() == 0) {
+            c.setAttribute(RegisteredAttr(), true);
+            thChild->registerTerm(c);
+          } else {
+            toReg.push_back(c);
+          }
+        }
+      }
+    }
+
+    /* Now register the list of terms in reverse order.  Between this
+     * and the above registration of leaves, this should ensure that
+     * all subterms in the entire tree were registered in
+     * reverse-topological order. */
+    for(std::list<TNode>::reverse_iterator i = toReg.rbegin();
+        i != toReg.rend();
+        ++i) {
+
+      TNode n = *i;
+
+      /* Note that a shared TNode in the DAG rooted at "fact" could
+       * appear twice on the list, so we have to avoid hitting it
+       * twice. */
+      // FIXME when ExprSets are online, use one of those to avoid
+      // duplicates in the above?
+      // Actually, that doesn't work because you have to make sure 
+      // that the *last* occurrence is the one that gets processed first @CB
+      // This could be a big performance problem though because it requires
+      // traversing a DAG as a tree and that can really blow up @CB
+      if(! n.getAttribute(RegisteredAttr())) {
+        n.setAttribute(RegisteredAttr(), true);
+        d_engine->theoryOf(n)->registerTerm(n);
+      }
+    }
+  }
+}
+
+
 Theory* TheoryEngine::theoryOf(TNode n) {
   Kind k = n.getKind();
 
@@ -146,22 +237,18 @@ Node TheoryEngine::removeITEs(TNode node) {
     Assert( node.getNumChildren() == 3 );
     TypeNode nodeType = node[1].getType();
     if(!nodeType.isBoolean()){
-
       Node skolem = nodeManager->mkVar(node.getType());
       Node newAssertion =
-        nodeManager->mkNode(
-                            kind::ITE,
+        nodeManager->mkNode(kind::ITE,
                             node[0],
                             nodeManager->mkNode(kind::EQUAL, skolem, node[1]),
                             nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
       nodeManager->setAttribute(node, theory::IteRewriteAttr(), skolem);
 
-      if(debugTagIsOn("ite")){
-        Debug("ite") << "removeITEs([" << node.getId() << "," << node << "])"
-                     << "->"
-                     << "["<<newAssertion.getId() << "," << newAssertion << "]"
-                     << endl;
-      }
+      Debug("ite") << "removeITEs([" << node.getId() << "," << node << "])"
+                   << "->"
+                   << "["<<newAssertion.getId() << "," << newAssertion << "]"
+                   << endl;
 
       Node preprocessed = preprocess(newAssertion);
       d_propEngine->assertFormula(preprocessed);
@@ -180,7 +267,6 @@ Node TheoryEngine::removeITEs(TNode node) {
   }
 
   if(somethingChanged) {
-
     cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
     nodeManager->setAttribute(node, theory::IteRewriteAttr(), cachedRewrite);
     return cachedRewrite;
@@ -246,10 +332,10 @@ struct RewriteStackElement {
   /**
    * Construct a fresh stack element.
    */
-  RewriteStackElement(Node n, Theory* thy, bool top) :
+  RewriteStackElement(Node n, Theory* thy, bool topLevel) :
     d_node(n),
     d_theory(thy),
-    d_topLevel(top),
+    d_topLevel(topLevel),
     d_nextChild(0) {
   }
 };
@@ -257,7 +343,7 @@ struct RewriteStackElement {
 }/* CVC4::theory::rewrite namespace */
 }/* CVC4::theory namespace */
 
-Node TheoryEngine::rewrite(TNode in) {
+Node TheoryEngine::rewrite(TNode in, bool topLevel) {
   using theory::rewrite::RewriteStackElement;
 
   Node noItes = removeITEs(in);
@@ -265,10 +351,11 @@ Node TheoryEngine::rewrite(TNode in) {
 
   // descend top-down into the theory rewriters
   vector<RewriteStackElement> stack;
-  stack.push_back(RewriteStackElement(noItes, theoryOf(noItes), true));
+  stack.push_back(RewriteStackElement(noItes, theoryOf(noItes), topLevel));
   Debug("theory-rewrite") << "TheoryEngine::rewrite() starting at" << endl
                           << "  " << noItes << " " << theoryOf(noItes)
-                          << " TOP-LEVEL 0" << endl;
+                          << " " << (topLevel ? "TOP-LEVEL " : "")
+                          << "0" << endl;
   // This whole thing is essentially recursive, but we avoid actually
   // doing any recursion.
   do {// do until the stack is empty..
@@ -299,7 +386,9 @@ Node TheoryEngine::rewrite(TNode in) {
           Debug("theory-rewrite") << "got back " << rse.d_node << " "
                                   << thy2 << "[" << *thy2 << "]"
                                   << (response.needsMoreRewriting() ?
-                                      " MORE-REWRITING" : " DONE")
+                                      (response.needsFullRewriting() ?
+                                       " FULL-REWRITING" : " MORE-REWRITING")
+                                      : " DONE")
                                   << endl;
           if(rse.d_theory != thy2) {
             Debug("theory-rewrite") << "pre-rewritten from " << *rse.d_theory
@@ -311,7 +400,7 @@ Node TheoryEngine::rewrite(TNode in) {
             // rewritten from theory T1 into T2, then back to T1 ?
             rse.d_topLevel = true;
           } else {
-            done = !response.needsMoreRewriting();
+            done = response.isDone();
           }
         } while(!done);
         setPreRewriteCache(original, wasTopLevel, rse.d_node);
@@ -383,7 +472,9 @@ Node TheoryEngine::rewrite(TNode in) {
         Debug("theory-rewrite") << "got back " << rse.d_node << " "
                                 << thy2 << "[" << *thy2 << "]"
                                 << (response.needsMoreRewriting() ?
-                                    " MORE-REWRITING" : " DONE")
+                                    (response.needsFullRewriting() ?
+                                     " FULL-REWRITING" : " MORE-REWRITING")
+                                    : " DONE")
                                 << endl;
         if(rse.d_theory != thy2) {
           Debug("theory-rewrite") << "post-rewritten from " << *rse.d_theory
@@ -395,9 +486,39 @@ Node TheoryEngine::rewrite(TNode in) {
           // rewritten from theory T1 into T2, then back to T1 ?
           rse.d_topLevel = true;
         } else {
-          done = !response.needsMoreRewriting();
+          done = response.isDone();
+        }
+        if(response.needsFullRewriting()) {
+          Debug("theory-rewrite") << "full-rewrite requested for node "
+                                  << rse.d_node.getId() << ", invoking..."
+                                  << endl;
+          Node n = rewrite(rse.d_node, rse.d_topLevel);
+          Debug("theory-rewrite") << "full-rewrite finished for node "
+                                  << rse.d_node.getId() << ", got node "
+                                  << n << " output." << endl;
+          rse.d_node = n;
+          done = true;
         }
       } while(!done);
+
+      /* If extra-checking is on, do _another_ rewrite before putting
+       * in the cache to make sure they are the same.  This is
+       * especially necessary if a theory post-rewrites something into
+       * a term of another theory. */
+      if(Debug.isOn("extra-checking") &&
+         !Debug.isOn("$extra-checking:inside-rewrite")) {
+        ScopedDebug d("$extra-checking:inside-rewrite");
+        Node rewrittenAgain = rewrite(rse.d_node, rse.d_topLevel);
+        Assert(rewrittenAgain == rse.d_node,
+               "\nExtra-checking assumption failed, "
+               "node is not completely rewritten.\n\n"
+               "Original : %s\n"
+               "Rewritten: %s\n"
+               "Again    : %s\n",
+               original.toString().c_str(),
+               rse.d_node.toString().c_str(),
+               rewrittenAgain.toString().c_str());
+      }
 
       setPostRewriteCache(original, wasTopLevel, rse.d_node);
 

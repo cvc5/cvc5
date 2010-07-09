@@ -1,6 +1,6 @@
 (benchmark fuzzsmt
 :logic QF_LRA
-:status unknown
+:status sat
 :extrafuns ((v0 Real))
 :extrafuns ((v1 Real))
 :extrafuns ((v2 Real))

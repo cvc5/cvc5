@@ -182,32 +182,43 @@ int runCvc4(int argc, char* argv[]) {
     delete cmd;
   }
 
+  Result asSatResult = lastResult.asSatisfiabilityResult();
+  
+
+  int returnValue;
+
+  switch(asSatResult.isSAT()) {
+
+  case Result::SAT:
+    returnValue = 10;
+    break;
+  case Result::UNSAT:
+    returnValue = 20;
+    break;
+  default:
+    returnValue = 0;
+    break;
+  }
+
+#ifdef CVC4_COMPETITION_MODE
+  // exit, don't return
+  // (don't want destructors to run)
+  exit(returnValue);
+#endif
+
   // Get ready for tear-down
   exprMgr.prepareToBeDestroyed();
 
   // Remove the parser
   delete parser;
-
-  Result asSatResult = lastResult.asSatisfiabilityResult();
-  ReferenceStat< Result > s_statSatResult("sat/unsat", asSatResult);
+ReferenceStat< Result > s_statSatResult("sat/unsat", asSatResult);
   StatisticsRegistry::registerStat(&s_statSatResult);
 
   if(options.statistics){
     StatisticsRegistry::flushStatistics(cerr);
   }
 
-  switch(lastResult.asSatisfiabilityResult().isSAT()) {
-
-  case Result::SAT:
-    return 10;
-
-  case Result::UNSAT:
-    return 20;
-
-  default:
-    return 0;
-
-  }
+  return returnValue;
 
 }
 

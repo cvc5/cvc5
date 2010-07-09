@@ -19,7 +19,7 @@
 #ifndef DECLARATION_SCOPE_H_
 #define DECLARATION_SCOPE_H_
 
-#include "expr.h"
+#include "expr/expr.h"
 #include "util/hash.h"
 
 #include <ext/hash_map>

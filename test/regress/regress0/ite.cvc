@@ -1,0 +1,4 @@
+% EXPECT: UNSAT
+% EXIT: 20
+x, y : REAL;
+CHECKSAT (NOT (x = IF TRUE THEN x ELSE y ENDIF));

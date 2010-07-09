@@ -1,5 +1,5 @@
 SUBDIRS = regress0
-DIST_SUBDIRS = regress1 regress2 regress3
+DIST_SUBDIRS = regress0 regress1 regress2 regress3
 
 export VERBOSE = 1
 
@@ -13,3 +13,7 @@ regress0 regress1 regress2 regress3:
 # synonyms for "check"
 .PHONY: regress test
 regress test: check
+
+EXTRA_DIST = \
+	run_regression \
+	README

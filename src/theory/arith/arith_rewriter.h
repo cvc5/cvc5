@@ -103,7 +103,7 @@ private:
 
   Node multPnfByNonZero(TNode pnf, Rational& q);
 
-  Node rewriteConstantDiv(TNode t);
+  Node rewriteDivByConstant(TNode t);
   void sortAndCombineCoefficients(std::vector<Node>& pnfs);
 
 

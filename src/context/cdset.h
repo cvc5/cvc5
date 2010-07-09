@@ -22,6 +22,7 @@
 #define __CVC4__CONTEXT__CDSET_H
 
 #include "context/context.h"
+#include "context/cdmap.h"
 #include "util/Assert.h"
 
 namespace CVC4 {
@@ -45,8 +46,12 @@ public:
     return super::count(v);
   }
 
-  void insert(const V& v) {
-    super::insert(v, v);
+  bool insert(const V& v) {
+    return super::insert(v, v);
+  }
+
+  bool contains(const V& v) {
+    return find(v) != end();
   }
 
   // FIXME: no erase(), too much hassle to implement efficiently...

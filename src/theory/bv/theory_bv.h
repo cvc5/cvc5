@@ -30,14 +30,14 @@ namespace bv {
 
 class TheoryBV : public Theory {
 public:
-  TheoryBV(context::Context* c, OutputChannel& out) :
-    Theory(c, out) {
+  TheoryBV(int id, context::Context* c, OutputChannel& out) :
+    Theory(id, c, out) {
   }
 
   void preRegisterTerm(TNode n) { Unimplemented(); }
   void registerTerm(TNode n) { Unimplemented(); }
-  void check(Effort e) { Unimplemented(); }
-  void propagate(Effort e) { Unimplemented(); }
+  void check(Effort e) {}
+  void propagate(Effort e) {}
   void explain(TNode n, Effort e) { Unimplemented(); }
   std::string identify() const { return std::string("TheoryBV"); }
 };/* class TheoryBV */

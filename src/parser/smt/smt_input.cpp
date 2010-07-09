@@ -59,11 +59,13 @@ SmtInput::~SmtInput() {
   d_pSmtParser->free(d_pSmtParser);
 }
 
-Command* SmtInput::parseCommand() throw (ParserException) {
+Command* SmtInput::parseCommand()
+  throw (ParserException, AssertionException) {
   return d_pSmtParser->parseCommand(d_pSmtParser);
 }
 
-Expr SmtInput::parseExpr() throw (ParserException) {
+Expr SmtInput::parseExpr()
+  throw (ParserException, AssertionException) {
   return d_pSmtParser->parseExpr(d_pSmtParser);
 }
 

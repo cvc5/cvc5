@@ -26,6 +26,7 @@
 
 
 #include <ext/hash_map>
+#include <map>
 #include <set>
 
 #ifndef __CVC4__THEORY__ARITH__TABLEAU_H
@@ -39,14 +40,13 @@ namespace arith {
 class Row {
   TNode d_x_i;
 
-  typedef __gnu_cxx::hash_map<TNode, Rational, NodeHashFunction> CoefficientTable;
+  typedef std::map<TNode, Rational> CoefficientTable;
 
-  std::set<TNode> d_nonbasic;
   CoefficientTable d_coeffs;
 
 public:
 
-  typedef std::set<TNode>::iterator iterator;
+  typedef CoefficientTable::iterator iterator;
 
   /**
    * Construct a row equal to:
@@ -54,7 +54,6 @@ public:
    */
   Row(TNode basic, TNode sum):
     d_x_i(basic),
-    d_nonbasic(),
     d_coeffs(){
 
     Assert(d_x_i.getMetaKind() == kind::metakind::VARIABLE);
@@ -70,7 +69,6 @@ public:
       Assert(var_i.getKind() == kind::VARIABLE);
 
       Assert(!has(var_i));
-      d_nonbasic.insert(var_i);
       d_coeffs[var_i] = coeff.getConst<Rational>();
       Assert(coeff.getConst<Rational>() != Rational(0,1));
       Assert(d_coeffs[var_i] != Rational(0,1));
@@ -78,11 +76,11 @@ public:
   }
 
   iterator begin(){
-    return d_nonbasic.begin();
+    return d_coeffs.begin();
   }
 
   iterator end(){
-    return d_nonbasic.end();
+    return d_coeffs.end();
   }
 
   TNode basicVar(){
@@ -105,15 +103,11 @@ public:
     d_coeffs[d_x_i] = Rational(Integer(-1));
     d_coeffs.erase(x_j);
 
-    d_nonbasic.erase(x_j);
-    d_nonbasic.insert(d_x_i);
     d_x_i = x_j;
 
-    for(iterator nonbasicIter = d_nonbasic.begin();
-        nonbasicIter != d_nonbasic.end();
-        ++nonbasicIter){
-      TNode nb = *nonbasicIter;
-      d_coeffs[nb] *= negInverseA_rs;
+    for(iterator nonbasicIter = begin(), nonbasicIter_end = end();
+        nonbasicIter != nonbasicIter_end; ++nonbasicIter){
+      nonbasicIter->second *= negInverseA_rs;
     }
 
   }
@@ -122,7 +116,6 @@ public:
     TNode x_s = row_s.basicVar();
 
     Assert(has(x_s));
-    Assert(d_nonbasic.find(x_s) != d_nonbasic.end());
     Assert(x_s != d_x_i);
 
     Rational zero(0,1);
@@ -130,13 +123,11 @@ public:
     Rational a_rs = lookup(x_s);
     Assert(a_rs != zero);
     d_coeffs.erase(x_s);
-    d_nonbasic.erase(x_s);
 
-    for(iterator iter = row_s.d_nonbasic.begin();
-        iter != row_s.d_nonbasic.end();
-        ++iter){
-      TNode x_j = *iter;
-      Rational a_sj = row_s.lookup(x_j);
+    for(iterator iter = row_s.begin(), iter_end = row_s.end();
+        iter != iter_end; ++iter){
+      TNode x_j = iter->first;
+      Rational a_sj = iter->second;
       a_sj *= a_rs;
       CoefficientTable::iterator coeff_iter = d_coeffs.find(x_j);
 
@@ -144,10 +135,8 @@ public:
         coeff_iter->second += a_sj;
         if(coeff_iter->second == zero){
           d_coeffs.erase(coeff_iter);
-          d_nonbasic.erase(x_j);
         }
       }else{
-        d_nonbasic.insert(x_j);
         d_coeffs.insert(std::make_pair(x_j,a_sj));
       }
     }
@@ -155,10 +144,10 @@ public:
 
   void printRow(){
     Debug("tableau") << d_x_i << " ";
-    for(iterator nonbasicIter = d_nonbasic.begin();
-        nonbasicIter != d_nonbasic.end();
+    for(iterator nonbasicIter = d_coeffs.begin();
+        nonbasicIter != d_coeffs.end();
         ++nonbasicIter){
-      TNode nb = *nonbasicIter;
+      TNode nb = nonbasicIter->first;
       Debug("tableau") << "{" << nb << "," << d_coeffs[nb] << "}";
     }
     Debug("tableau") << std::endl;
@@ -260,12 +249,9 @@ public:
         basicIter != endIter; ++basicIter){
       TNode basic = *basicIter;
       Row* row_k = lookup(basic);
-      if(row_k->basicVar() != x_s){
-        if(row_k->has(x_s)){
-          increaseActivity(basic, 30);
-
-          row_k->subsitute(*row_s);
-        }
+      if(row_k->has(x_s)){
+         increaseActivity(basic, 30);
+        row_k->subsitute(*row_s);
       }
     }
   }
@@ -310,7 +296,7 @@ private:
 
   void updateRow(Row* row){
     for(Row::iterator i=row->begin(), endIter = row->end(); i != endIter; ){
-      TNode var = *i;
+      TNode var = i->first;
       ++i;
       if(isBasic(var)){
         Row* row_var = isActiveBasicVariable(var) ? lookup(var) : lookupEjected(var);

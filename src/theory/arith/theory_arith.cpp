@@ -50,8 +50,8 @@ using namespace CVC4::theory::arith;
 
 
 
-TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
-  Theory(c, out),
+TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
+  Theory(id, c, out),
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_diseq(c),
@@ -290,8 +290,8 @@ DeltaRational TheoryArith::computeRowValueUsingAssignment(TNode x){
 
   Row* row = d_tableau.lookup(x);
   for(Row::iterator i = row->begin(); i != row->end();++i){
-    TNode nonbasic = *i;
-    const Rational& coeff = row->lookup(nonbasic);
+    TNode nonbasic = i->first;
+    const Rational& coeff = i->second;
     const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic);
     sum = sum + (assignment * coeff);
   }
@@ -307,8 +307,8 @@ DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
 
   Row* row = d_tableau.lookup(x);
   for(Row::iterator i = row->begin(); i != row->end();++i){
-    TNode nonbasic = *i;
-    const Rational& coeff = row->lookup(nonbasic);
+    TNode nonbasic = i->first;
+    const Rational& coeff = i->second;
     const DeltaRational& assignment = d_partialModel.getSafeAssignment(nonbasic);
     sum = sum + (assignment * coeff);
   }
@@ -340,7 +340,7 @@ RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
       }
     }
   }
-  return RewritingComplete(Node(n));
+  return RewriteComplete(Node(n));
 }
 
 Node TheoryArith::rewrite(TNode n){
@@ -552,7 +552,7 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
 
   d_partialModel.setAssignment(x_i, v);
 
-  if(debugTagIsOn("paranoid:check_tableau")){
+  if(Debug.isOn("paranoid:check_tableau")){
     checkTableau();
   }
 }
@@ -597,7 +597,7 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
 
   checkBasicVariable(x_j);
 
-  if(debugTagIsOn("tableau")){
+  if(Debug.isOn("tableau")){
     d_tableau.printTableau();
   }
 }
@@ -618,7 +618,7 @@ TNode TheoryArith::selectSmallestInconsistentVar(){
     d_possiblyInconsistent.pop();
   }
 
-  if(debugTagIsOn("paranoid:variables")){
+  if(Debug.isOn("paranoid:variables")){
     for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
         basicIter != d_tableau.end();
         ++basicIter){
@@ -639,8 +639,8 @@ TNode TheoryArith::selectSlack(TNode x_i){
    Row* row_i = d_tableau.lookup(x_i);
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = *nbi;
-    const Rational& a_ij = row_i->lookup(nonbasic);
+    TNode nonbasic = nbi->first;
+    const Rational& a_ij = nbi->second;
     int cmp = a_ij.cmp(d_constants.d_ZERO);
     if(above){ // beta(x_i) > u_i
       if( cmp < 0 && d_partialModel.strictlyBelowUpperBound(nonbasic)){
@@ -666,7 +666,7 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
   static int iteratationNum = 0;
   static const int EJECT_FREQUENCY = 10;
   while(true){
-    if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+    if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
     TNode x_i = selectSmallestInconsistentVar();
     Debug("arith_update") << "selectSmallestInconsistentVar()=" << x_i << endl;
@@ -716,8 +716,8 @@ Node TheoryArith::generateConflictAbove(TNode conflictVar){
   nb << bound;
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = *nbi;
-    const Rational& a_ij = row_i->lookup(nonbasic);
+    TNode nonbasic = nbi->first;
+    const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
 
@@ -752,8 +752,8 @@ Node TheoryArith::generateConflictBelow(TNode conflictVar){
   nb << bound;
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = *nbi;
-    const Rational& a_ij = row_i->lookup(nonbasic);
+    TNode nonbasic = nbi->first;
+    const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
 
@@ -859,14 +859,14 @@ void TheoryArith::check(Effort level){
   }
 
   //TODO This must be done everytime for the time being
-  if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+  if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
   Node possibleConflict = updateInconsistentVars();
   if(possibleConflict != Node::null()){
 
     d_partialModel.revertAssignmentChanges();
 
-    if(debugTagIsOn("arith::print-conflict"))
+    if(Debug.isOn("arith::print-conflict"))
       Debug("arith_conflict") << (possibleConflict) << std::endl;
 
     d_out->conflict(possibleConflict);
@@ -875,12 +875,12 @@ void TheoryArith::check(Effort level){
   }else{
     d_partialModel.commitAssignmentChanges();
   }
-  if(debugTagIsOn("paranoid:check_tableau")){ checkTableau(); }
+  if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
 
   Debug("arith") << "TheoryArith::check end" << std::endl;
 
-  if(debugTagIsOn("arith::print_model")) {
+  if(Debug.isOn("arith::print_model")) {
     Debug("arith::print_model") << "Model:" << endl;
 
     for (unsigned i = 0; i < d_variables.size(); ++ i) {
@@ -891,7 +891,7 @@ void TheoryArith::check(Effort level){
       Debug("arith::print_model") << endl;
     }
   }
-  if(debugTagIsOn("arith::print_assertions")) {
+  if(Debug.isOn("arith::print_assertions")) {
     Debug("arith::print_assertions") << "Assertions:" << endl;
     for (unsigned i = 0; i < d_variables.size(); ++ i) {
       Node x = d_variables[i];
@@ -909,8 +909,8 @@ void TheoryArith::check(Effort level){
 
 /**
  * This check is quite expensive.
- * It should be wrapped in a debugTagIsOn guard.
- *   if(debugTagIsOn("paranoid:check_tableau")){
+ * It should be wrapped in a Debug.isOn() guard.
+ *   if(Debug.isOn("paranoid:check_tableau")){
  *      checkTableau();
  *   }
  */
@@ -925,8 +925,8 @@ void TheoryArith::checkTableau(){
     for(Row::iterator nonbasicIter = row_k->begin();
         nonbasicIter != row_k->end();
         ++nonbasicIter){
-      TNode nonbasic = *nonbasicIter;
-      const Rational& coeff = row_k->lookup(nonbasic);
+      TNode nonbasic = nonbasicIter->first;
+      const Rational& coeff = nonbasicIter->second;
       DeltaRational beta = d_partialModel.getAssignment(nonbasic);
       Debug("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;
       sum = sum + (beta*coeff);

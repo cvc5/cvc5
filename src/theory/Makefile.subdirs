@@ -4,3 +4,4 @@ $(top_builddir)/src/theory/.subdirs: $(top_srcdir)/src/theory/Makefile.am
 		echo "  GEN   " $@; \
 		$(am__mv) $(top_builddir)/src/theory/.subdirs.tmp $(top_builddir)/src/theory/.subdirs; \
 	fi
+

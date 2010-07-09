@@ -380,6 +380,15 @@ protected:
   inline void makeCurrent() throw(AssertionException);
 
   /**
+   * Just calls update(), but given a different name for the derived
+   * class-facing interface.  This is a "forced" makeCurrent(), useful
+   * for ContextObjs allocated in CMM that need a special "bottom"
+   * case when they disappear out of existence (kind of a destructor).
+   * See CDOmap (in cdmap.h) for an example.
+   */
+  inline void makeSaveRestorePoint() throw(AssertionException);
+
+  /**
    * Should be called from sub-class destructor: calls restore until restored
    * to initial version (version at context level 0).  Also removes object from
    * all Scope lists.  Note that this doesn't actually free the memory
@@ -438,6 +447,8 @@ protected:
     return d_pScope->isCurrent();
   }
 
+public:
+
   /**
    * operator new using ContextMemoryManager (common case used by
    * subclasses during save()).  No delete is required for memory
@@ -458,8 +469,6 @@ protected:
    * call to the above new operator.
    */
   static void operator delete(void* pMem, ContextMemoryManager* pCMM) {}
-
-public:
 
   /**
    * Create a new ContextObj.  The initial scope is set to the bottom
@@ -508,9 +517,7 @@ public:
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
-    if(debugTagIsOn("context")) {
-      Debug("context") << "deleteSelf(" << this << ")" << std::endl;
-    }
+    Debug("context") << "deleteSelf(" << this << ")" << std::endl;
     this->~ContextObj();
     ::operator delete(this);
   }
@@ -592,6 +599,10 @@ inline void ContextObj::makeCurrent() throw(AssertionException) {
   if(!(d_pScope->isCurrent())) {
     update();
   }
+}
+
+inline void ContextObj::makeSaveRestorePoint() throw(AssertionException) {
+  update();
 }
 
 inline Scope::~Scope() throw(AssertionException) {

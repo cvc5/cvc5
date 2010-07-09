@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: cconway
- ** Minor contributors (to current version): taking, mdeters
+ ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -24,7 +24,6 @@
 
 #include <iostream>
 #include "util/Assert.h"
-#include "util/gmp_util.h"
 #include "util/integer.h"
 
 namespace CVC4 {

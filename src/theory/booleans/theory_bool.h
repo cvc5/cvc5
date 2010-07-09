@@ -30,8 +30,8 @@ namespace booleans {
 
 class TheoryBool : public Theory {
 public:
-  TheoryBool(context::Context* c, OutputChannel& out) :
-    Theory(c, out) {
+  TheoryBool(int id, context::Context* c, OutputChannel& out) :
+    Theory(id, c, out) {
   }
 
   void preRegisterTerm(TNode n) {

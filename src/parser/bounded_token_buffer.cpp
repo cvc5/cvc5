@@ -519,5 +519,5 @@ getSourceName				(pANTLR3_INT_STREAM is)
 }
 
 
-}
-}
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */

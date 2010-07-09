@@ -74,12 +74,12 @@ public:
    */
   static AntlrInputStream* newFileInputStream(const std::string& name, 
                                               bool useMmap = false)
-    throw (InputStreamException);
+    throw (InputStreamException, AssertionException);
 
   /** Create an input from an istream. */
   static AntlrInputStream* newStreamInputStream(std::istream& input, 
                                                 const std::string& name)
-    throw (InputStreamException);
+    throw (InputStreamException, AssertionException);
 
   /** Create a string input.
    *
@@ -88,7 +88,7 @@ public:
    */
   static AntlrInputStream* newStringInputStream(const std::string& input, 
                                                 const std::string& name)
-    throw (InputStreamException);
+    throw (InputStreamException, AssertionException);
 };
 
 class Parser;
@@ -192,7 +192,8 @@ protected:
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  void parseError(const std::string& msg) throw (ParserException);
+  void parseError(const std::string& msg)
+    throw (ParserException, AssertionException);
 
   /** Set the ANTLR3 lexer for this input. */
   void setAntlr3Lexer(pANTLR3_LEXER pLexer);

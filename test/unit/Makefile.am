@@ -1,5 +1,10 @@
 # All unit tests
 UNIT_TESTS = \
+	theory/shared_term_manager_black \
+	theory/theory_engine_white \
+	theory/theory_black \
+	theory/theory_uf_white \
+	theory/theory_arith_white \
 	expr/expr_public \
         expr/expr_manager_public \
 	expr/node_white \
@@ -21,10 +26,6 @@ UNIT_TESTS = \
 	context/cdlist_black \
 	context/cdmap_black \
 	context/cdmap_white \
-	theory/theory_engine_white \
-	theory/theory_black \
-	theory/theory_uf_white \
-	theory/theory_arith_white \
 	util/assert_white \
 	util/bitvector_black \
 	util/configuration_black \
@@ -40,12 +41,14 @@ export VERBOSE = 1
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
 TEST_DEPS_DIST = \
-	memory.h
+	memory.h \
+	Makefile.tests
 
 if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
-	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" "-I@top_srcdir@/src" \
+	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" \
+	"-I@top_srcdir@/src" "-I@top_builddir@/src" \
 	$(ANTLR_INCLUDES) $(TEST_CPPFLAGS)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)
@@ -67,6 +70,8 @@ AM_LIBADD_PUBLIC = \
 
 EXTRA_DIST = \
 	no_cxxtest \
+	$(UNIT_TESTS:%=%.cpp) \
+	$(UNIT_TESTS:%=%.h) \
 	$(TEST_DEPS_DIST)
 
 MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp)
@@ -132,15 +137,19 @@ else
 TESTS = no_cxxtest
 
 EXTRA_DIST = \
-	$(UNIT_TESTS:%=%.cpp) \
-	$(TEST_DEPS_DIST)
+	no_cxxtest \
+	$(UNIT_TESTS:%=%.h) \
+	$(TEST_DEPS_DIST) \
+	no-cxxtest-available
 
 endif
+
+$(UNIT_TESTS:%=%.cpp): $(UNIT_TESTS:%=$(abs_builddir)/%.cpp)
 
 # trick automake into setting LTCXXCOMPILE, CXXLINK, etc.
 if CVC4_FALSE
 noinst_LTLIBRARIES = libdummy.la
-libdummy_la_SOURCES = expr/node_black.cpp
+nodist_libdummy_la_SOURCES = expr/node_black.cpp
 libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 endif
 
@@ -151,3 +160,35 @@ regress test: check
 # in unit test dir, regressN are also synonyms for check
 .PHONY: regress0 regress1 regress2 regress3
 regress0 regress1 regress2 regress3: check
+
+if HAVE_CXXTESTGEN
+# all is fine with the world
+else
+# all is not !
+no-cxxtest-available:
+	@if test "$(I_REALLY_WANT_TO_BUILD_CVC4_DIST_WITHOUT_TESTS)" = 1; then \
+		echo; \
+		echo "WARNING:"; \
+		echo "WARNING: No CxxTest to build unit tests, but, then, you know that;"; \
+		echo "WARNING: I hope you know what you're doing."; \
+		echo "WARNING:"; \
+		echo; \
+		( echo "CxxTest was not available at the time this distribution was built,"; \
+		  echo "so the tests could not be built.  You'll need CxxTest to test this"; \
+		  echo "distribution." ) >no-cxxtest-available; \
+	else \
+		echo; \
+		echo "ERROR:"; \
+        	echo "ERROR: You cannot make dist in this build directory, you do not have CxxTest."; \
+        	echo "ERROR: The tests should be generated for the user and included in the tarball,"; \
+		echo "ERROR: otherwise they'll be required to have CxxTest just to test the standard"; \
+		echo "ERROR: distribution built correctly."; \
+		echo "ERROR: If you really want to do this, append the following to your make command."; \
+		echo "ERROR:"; \
+        	echo "ERROR:     I_REALLY_WANT_TO_BUILD_CVC4_DIST_WITHOUT_TESTS=1"; \
+		echo "ERROR:"; \
+		echo; \
+		exit 1; \
+	fi >&2
+endif
+

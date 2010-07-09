@@ -36,6 +36,7 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::MINUS);
   addOperator(kind::UMINUS);
   addOperator(kind::MULT);
+  addOperator(kind::DIVISION);
   addOperator(kind::LT);
   addOperator(kind::LEQ);
   addOperator(kind::GT);

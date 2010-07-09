@@ -55,7 +55,7 @@ options {
 
 namespace CVC4 {
   class Expr;
-}
+}/* CVC4 namespace */
 }
 
 @parser::postinclude {
@@ -208,6 +208,8 @@ baseType[CVC4::Type& t]
   Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
+  | INT_TOK { t = EXPR_MANAGER->integerType(); }
+  | REAL_TOK { t = EXPR_MANAGER->realType(); }
   | typeSymbol[t]
   ;
 
@@ -338,24 +340,68 @@ notFormula[CVC4::Expr& f]
     NOT_TOK notFormula[f]
     { f = MK_EXPR(CVC4::kind::NOT, f); }
   | /* a boolean atom */
-    predFormula[f]
+    comparisonFormula[f]
   ;
 
-predFormula[CVC4::Expr& f]
+/** Parses a comparison formula (non-associative).
+    NOTE: equality should technically have higher precedence than
+    greater-than, less-than, etc., but I don't think this will ever
+    be relevant in a well-typed formula.
+*/
+comparisonFormula[CVC4::Expr& f]
 @init {
   Expr e;
+  Kind op;
   Debug("parser-extra") << "predicate formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : term[f]
-    (EQUAL_TOK term[e]
-      { f = MK_EXPR(CVC4::kind::EQUAL, f, e); }
+  : plusTerm[f]
+    ( ( EQUAL_TOK { op = CVC4::kind::EQUAL; }
+      | GT_TOK { op = CVC4::kind::GT; }
+      | GEQ_TOK { op = CVC4::kind::GEQ; } 
+      | LT_TOK { op = CVC4::kind::LT; }
+      | LEQ_TOK { op = CVC4::kind::LEQ; }) 
+      plusTerm[e]
+      { f = MK_EXPR(op, f, e); }
     )?
-  ; // TODO: lt, gt, etc.
+  ;
+
+/** Parses a plus/minus term (left-associative). 
+    TODO: This won't take advantage of n-ary PLUS's. */
+plusTerm[CVC4::Expr& f]
+@init {
+  Expr e;
+  Kind op;
+  std::vector<Expr> exprs;
+  Debug("parser-extra") << "plus term: " << AntlrInput::tokenText(LT(1)) << std::endl;
+}
+  : multTerm[f]
+    ( ( PLUS_TOK { op = CVC4::kind::PLUS; }
+      | MINUS_TOK { op = CVC4::kind::MINUS; } ) 
+      multTerm[e]
+      { f = MK_EXPR(op, f, e); }
+    )*
+  ;
+
+/** Parses a multiply/divide term (left-associative). 
+    TODO: This won't take advantage of n-ary MULT's. */
+multTerm[CVC4::Expr& f]
+@init {
+  Expr e;
+  Kind op;
+  Debug("parser-extra") << "multiplication term: " << AntlrInput::tokenText(LT(1)) << std::endl;
+}
+  : unaryTerm[f]
+    ( ( STAR_TOK { op = CVC4::kind::MULT; }
+      | DIV_TOK { op = CVC4::kind::DIVISION; } ) 
+      unaryTerm[e]
+      { f = MK_EXPR(op, f, e); }
+    )*
+  ;
 
 /**
- * Parses a term.
+ * Parses a unary term.
  */
-term[CVC4::Expr& f]
+unaryTerm[CVC4::Expr& f]
 @init {
   std::string name;
   std::vector<Expr> args;
@@ -372,12 +418,18 @@ term[CVC4::Expr& f]
   | /* if-then-else */
     iteTerm[f]
 
+    
+  | /* Unary minus */
+    MINUS_TOK unaryTerm[f] { f = MK_EXPR(CVC4::kind::UMINUS, f); }
+
   | /* parenthesized sub-formula */
     LPAREN formula[f] RPAREN
 
     /* constants */
   | TRUE_TOK  { f = MK_CONST(true); }
   | FALSE_TOK { f = MK_CONST(false); }
+
+  | NUMERAL_TOK { f = MK_CONST( AntlrInput::tokenToInteger($NUMERAL_TOK) ); }
 
   | /* variable */
     identifier[name,CHECK_DECLARED,SYM_VARIABLE]
@@ -442,6 +494,7 @@ ELSE_TOK : 'ELSE';
 ENDIF_TOK : 'ENDIF';
 FALSE_TOK : 'FALSE';
 IF_TOK : 'IF';
+INT_TOK : 'INT';
 NOT_TOK : 'NOT';
 OR_TOK : 'OR';
 POPTO_TOK : 'POPTO';
@@ -449,6 +502,7 @@ POP_TOK : 'POP';
 PRINT_TOK : 'PRINT';
 PUSH_TOK : 'PUSH';
 QUERY_TOK : 'QUERY';
+REAL_TOK : 'REAL';
 THEN_TOK : 'THEN';
 TRUE_TOK : 'TRUE';
 TYPE_TOK : 'TYPE';
@@ -464,10 +518,18 @@ SEMICOLON : ';';
 
 // Operators
 
-IMPLIES_TOK : '=>';
-IFF_TOK     : '<=>';
 ARROW_TOK : '->';
-EQUAL_TOK   : '=';
+DIV_TOK : '/';
+EQUAL_TOK : '=';
+GT_TOK : '>';
+GEQ_TOK : '>=';
+IFF_TOK : '<=>';
+IMPLIES_TOK : '=>';
+LT_TOK : '<';
+LEQ_TOK : '<=';
+MINUS_TOK : '-';
+PLUS_TOK : '+';
+STAR_TOK : '*';
 
 /**
  * Matches an identifier from the input. An identifier is a sequence of letters,
@@ -478,7 +540,7 @@ IDENTIFIER : ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*;
 /**
  * Matches a numeral from the input (non-empty sequence of digits).
  */
-NUMERAL: (DIGIT)+;
+NUMERAL_TOK: (DIGIT)+;
 
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').

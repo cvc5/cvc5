@@ -49,6 +49,8 @@ public:
 
   static bool isProfilingBuild();
 
+  static bool isCompetitionBuild();
+
   static std::string getPackageName();
 
   static std::string getVersionString();
@@ -60,6 +62,10 @@ public:
   static unsigned getVersionRelease();
 
   static std::string about();
+
+  static bool isBuiltWithGmp();
+
+  static bool isBuiltWithCln();
 };
 
 }/* CVC4 namespace */

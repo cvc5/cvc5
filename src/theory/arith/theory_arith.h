@@ -99,7 +99,7 @@ private:
   ArithUnatePropagator d_propagator;
 
 public:
-  TheoryArith(context::Context* c, OutputChannel& out);
+  TheoryArith(int id, context::Context* c, OutputChannel& out);
   ~TheoryArith();
 
   /**
@@ -116,7 +116,7 @@ public:
    * Plug in old rewrite to the new (pre,post)rewrite interface.
    */
   RewriteResponse postRewrite(TNode n, bool topLevel) {
-    return RewritingComplete(topLevel ? rewrite(n) : Node(n));
+    return RewriteComplete(topLevel ? rewrite(n) : Node(n));
   }
 
   /**

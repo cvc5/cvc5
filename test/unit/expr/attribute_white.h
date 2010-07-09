@@ -131,11 +131,11 @@ public:
     TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
 
     lastId = attr::LastAttributeId<bool, true>::s_id;
-    TS_ASSERT_LESS_THAN(theory::Theory::RegisteredAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TheoryEngine::RegisteredAttr::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag1cd::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag2cd::s_id, lastId);
-    TS_ASSERT_DIFFERS(theory::Theory::RegisteredAttr::s_id, TestFlag1cd::s_id);
-    TS_ASSERT_DIFFERS(theory::Theory::RegisteredAttr::s_id, TestFlag2cd::s_id);
+    TS_ASSERT_DIFFERS(TheoryEngine::RegisteredAttr::s_id, TestFlag1cd::s_id);
+    TS_ASSERT_DIFFERS(TheoryEngine::RegisteredAttr::s_id, TestFlag2cd::s_id);
     TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
 
     lastId = attr::LastAttributeId<Node, false>::s_id;
@@ -185,7 +185,7 @@ public:
     TS_ASSERT(c.hasAttribute(TestFlag1cd()));
 
     // test two-arg version of hasAttribute()
-    bool bb;
+    bool bb = false;
     Debug("boolattr", "get flag 1 on a (should be F)\n");
     TS_ASSERT(a.getAttribute(TestFlag1cd(), bb));
     TS_ASSERT(! bb);

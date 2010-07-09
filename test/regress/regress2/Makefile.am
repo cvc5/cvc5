@@ -22,11 +22,17 @@ TESTS =	bmc-galileo-8.smt \
 	hole9.cvc \
 	qwh.35.405.shuffled-as.sat03-1651.smt
 
+EXTRA_DIST = $(TESTS)
+
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
 #TESTS += \
 #	error.cvc
 #endif
+#
+# and make sure to distribute it
+#EXTRA_DIST += \
+#	error.cvc
 
 # synonyms for "check"
 .PHONY: regress regress2 test

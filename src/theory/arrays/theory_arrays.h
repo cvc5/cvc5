@@ -31,7 +31,7 @@ namespace arrays {
 
 class TheoryArrays : public Theory {
 public:
-  TheoryArrays(context::Context* c, OutputChannel& out);
+  TheoryArrays(int id, context::Context* c, OutputChannel& out);
   ~TheoryArrays();
   void preRegisterTerm(TNode n) { }
   void registerTerm(TNode n) { }
@@ -39,15 +39,17 @@ public:
   RewriteResponse preRewrite(TNode in, bool topLevel) {
     Debug("arrays-rewrite") << "pre-rewriting " << in
                             << " topLevel==" << topLevel << std::endl;
-    return RewritingComplete(in);
+    return RewriteComplete(in);
   }
 
   RewriteResponse postRewrite(TNode in, bool topLevel) {
     Debug("arrays-rewrite") << "post-rewriting " << in
                             << " topLevel==" << topLevel << std::endl;
-    return RewritingComplete(in);
+    return RewriteComplete(in);
   }
 
+  void addSharedTerm(TNode t);
+  void notifyEq(TNode lhs, TNode rhs);
   void check(Effort e);
   void propagate(Effort e) { }
   void explain(TNode n, Effort e) { }

@@ -1,3 +1,4 @@
+%% This test borrowed from CVC3 regressions, bug15.cvc
 % EXPECT: VALID
 x : REAL;
 y : REAL;

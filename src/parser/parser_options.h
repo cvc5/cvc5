@@ -21,6 +21,8 @@
 #ifndef __CVC4__PARSER__PARSER_OPTIONS_H
 #define __CVC4__PARSER__PARSER_OPTIONS_H
 
+#include <iostream>
+
 namespace CVC4 {
 namespace parser {
 
@@ -35,6 +37,27 @@ enum InputLanguage {
   /** Auto-detect the language */
   LANG_AUTO
 };/* enum InputLanguage */
+
+inline std::ostream& operator<<(std::ostream& out, InputLanguage lang) {
+  switch(lang) {
+  case LANG_SMTLIB:
+    out << "LANG_SMTLIB";
+    break;
+  case LANG_SMTLIB_V2:
+    out << "LANG_SMTLIB_V2";
+    break;
+  case LANG_CVC4:
+    out << "LANG_CVC4";
+    break;
+  case LANG_AUTO:
+    out << "LANG_AUTO";
+    break;
+  default:
+    out << "undefined_language";
+  }
+
+  return out;
+}
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

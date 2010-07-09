@@ -33,12 +33,22 @@ NullC nullCvc4Stream CVC4_PUBLIC;
 
 #ifndef CVC4_MUZZLE
 
-DebugC   DebugOut(&cout);
-WarningC WarningOut(&cerr);
-MessageC MessageOut(&cout);
-NoticeC  NoticeOut(&cout);
-ChatC    ChatOut(&cout);
-TraceC   TraceOut(&cout);
+#ifdef CVC4_DEBUG
+DebugC Debug CVC4_PUBLIC (&cout);
+#else /* CVC4_DEBUG */
+NullDebugC Debug CVC4_PUBLIC;
+#endif /* CVC4_DEBUG */
+
+WarningC Warning CVC4_PUBLIC (&cerr);
+MessageC Message CVC4_PUBLIC (&cout);
+NoticeC Notice CVC4_PUBLIC (&cout);
+ChatC Chat CVC4_PUBLIC (&cout);
+
+#ifdef CVC4_TRACING
+TraceC Trace CVC4_PUBLIC (&cout);
+#else /* CVC4_TRACING */
+NullDebugC Trace CVC4_PUBLIC;
+#endif /* CVC4_TRACING */
 
 void DebugC::printf(const char* tag, const char* fmt, ...) {
   if(d_tags.find(string(tag)) != d_tags.end()) {
@@ -128,6 +138,15 @@ void TraceC::printf(string tag, const char* fmt, ...) {
   }
 }
 
-#endif /* CVC4_MUZZLE */
+#else /* ! CVC4_MUZZLE */
+
+NullDebugC Debug CVC4_PUBLIC;
+NullC Warning CVC4_PUBLIC;
+NullC Message CVC4_PUBLIC;
+NullC Notice CVC4_PUBLIC;
+NullC Chat CVC4_PUBLIC;
+NullDebugC Trace CVC4_PUBLIC;
+
+#endif /* ! CVC4_MUZZLE */
 
 }/* CVC4 namespace */

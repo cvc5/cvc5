@@ -73,6 +73,14 @@ bool Configuration::isProfilingBuild() {
 #endif /* CVC4_PROFILING */
 }
 
+bool Configuration::isCompetitionBuild() {
+#ifdef CVC4_COMPETITION_MODE
+  return true;
+#else /* CVC4_COMPETITION_MODE */
+  return false;
+#endif /* CVC4_COMPETITION_MODE */
+}
+
 string Configuration::getPackageName() {
   return PACKAGE_NAME;
 }
@@ -100,7 +108,32 @@ Copyright (C) 2009, 2010\n\
   The ACSys Group\n\
   Courant Institute of Mathematical Sciences\n\
   New York University\n\
-  New York, NY  10012  USA\n");
+  New York, NY  10012  USA\n\n") +
+    (isBuiltWithCln() ? "\
+This CVC4 library uses CLN as its multi-precision arithmetic library.\n\n\
+CVC4 is open-source and is covered by the BSD license (modified).\n\
+However, CLN, the Class Library for Numbers, is covered by the GPL.  Thus\n\
+this CVC4 library cannot be used in proprietary applications.  Please\n\
+consult the CVC4 documentation for instructions about building a version\n\
+of CVC4 that links against GMP, and can be used in such applications.\n" :
+"This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
+CVC4 is open-source and is covered by the BSD license (modified).\n");
+}
+
+bool Configuration::isBuiltWithGmp() {
+#ifdef CVC4_GMP_IMP
+  return true;
+#else /* CVC4_GMP_IMP */
+  return false;
+#endif /* CVC4_GMP_IMP */
+}
+
+bool Configuration::isBuiltWithCln() {
+#ifdef CVC4_CLN_IMP
+  return true;
+#else /* CVC4_CLN_IMP */
+  return false;
+#endif /* CVC4_CLN_IMP */
 }
 
 }/* CVC4 namespace */

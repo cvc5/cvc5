@@ -1,9 +1,9 @@
 /*********************                                                        */
-/*! \file integer.h
+/*! \file integer_cln_imp.h
  ** \verbatim
  ** Original author: taking
- ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan, cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -11,12 +11,11 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A multiprecision integer constant.
+ ** \brief A multiprecision integer constant; wraps a CLN multiprecision
+ ** integer.
  **
- ** A multiprecision integer constant.
+ ** A multiprecision integer constant; wraps a CLN multiprecision integer.
  **/
-
-#ifdef __CVC4__USE_CLN_IMP
 
 #include "cvc4_public.h"
 
@@ -30,7 +29,6 @@
 #include <cln/input.h>
 #include <cln/integer_io.h>
 #include "util/Assert.h"
-#include "util/gmp_util.h"
 
 namespace CVC4 {
 
@@ -226,4 +224,3 @@ std::ostream& operator<<(std::ostream& os, const Integer& n);
 
 #endif /* __CVC4__INTEGER_H */
 
-#endif /* __CVC4__USE_CLN_IMP */
