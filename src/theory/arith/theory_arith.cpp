@@ -290,8 +290,8 @@ DeltaRational TheoryArith::computeRowValueUsingAssignment(TNode x){
 
   Row* row = d_tableau.lookup(x);
   for(Row::iterator i = row->begin(); i != row->end();++i){
-    TNode nonbasic = *i;
-    const Rational& coeff = row->lookup(nonbasic);
+    TNode nonbasic = i->first;
+    const Rational& coeff = i->second;
     const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic);
     sum = sum + (assignment * coeff);
   }
@@ -307,8 +307,8 @@ DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
 
   Row* row = d_tableau.lookup(x);
   for(Row::iterator i = row->begin(); i != row->end();++i){
-    TNode nonbasic = *i;
-    const Rational& coeff = row->lookup(nonbasic);
+    TNode nonbasic = i->first;
+    const Rational& coeff = i->second;
     const DeltaRational& assignment = d_partialModel.getSafeAssignment(nonbasic);
     sum = sum + (assignment * coeff);
   }
@@ -604,8 +604,8 @@ TNode TheoryArith::selectSlack(TNode x_i){
    Row* row_i = d_tableau.lookup(x_i);
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = *nbi;
-    const Rational& a_ij = row_i->lookup(nonbasic);
+    TNode nonbasic = nbi->first;
+    const Rational& a_ij = nbi->second;
     int cmp = a_ij.cmp(d_constants.d_ZERO);
     if(above){ // beta(x_i) > u_i
       if( cmp < 0 && d_partialModel.strictlyBelowUpperBound(nonbasic)){
@@ -681,8 +681,8 @@ Node TheoryArith::generateConflictAbove(TNode conflictVar){
   nb << bound;
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = *nbi;
-    const Rational& a_ij = row_i->lookup(nonbasic);
+    TNode nonbasic = nbi->first;
+    const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
 
@@ -717,8 +717,8 @@ Node TheoryArith::generateConflictBelow(TNode conflictVar){
   nb << bound;
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = *nbi;
-    const Rational& a_ij = row_i->lookup(nonbasic);
+    TNode nonbasic = nbi->first;
+    const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
 
@@ -890,8 +890,8 @@ void TheoryArith::checkTableau(){
     for(Row::iterator nonbasicIter = row_k->begin();
         nonbasicIter != row_k->end();
         ++nonbasicIter){
-      TNode nonbasic = *nonbasicIter;
-      const Rational& coeff = row_k->lookup(nonbasic);
+      TNode nonbasic = nonbasicIter->first;
+      const Rational& coeff = nonbasicIter->second;
       DeltaRational beta = d_partialModel.getAssignment(nonbasic);
       Debug("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;
       sum = sum + (beta*coeff);
