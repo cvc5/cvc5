@@ -1,0 +1,1646 @@
++ ./autogen.sh
+Preparing the cvc4 build system...please wait
+
+Found GNU Autoconf version 2.64
+Found GNU Automake version 1.11
+Found GNU Libtool version 2.2.6
+
+Automatically preparing build ... done
+
+The cvc4 build system is now prepared.  To build here, run:
+  ./configure
+  make
++ ./configure competition
+: CVC4: building profile competition
+checking build system type... x86_64-unknown-linux-gnu
+checking host system type... x86_64-unknown-linux-gnu
+checking target system type... x86_64-unknown-linux-gnu
+checking for requested build profile... competition
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking for style of include used by make... GNU
+checking for gcc... gcc
+checking for C compiler default output file name... a.out
+checking whether the C compiler works... yes
+checking whether we are cross compiling... no
+checking for suffix of executables... 
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking dependency style of gcc... gcc3
+checking for a sed that does not truncate output... /bin/sed
+checking for grep that handles long lines and -e... /bin/grep
+checking for egrep... /bin/grep -E
+checking for fgrep... /bin/grep -F
+checking for ld used by gcc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
+checking the name lister (/usr/bin/nm -B) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... 1572864
+checking whether the shell understands some XSI constructs... yes
+checking whether the shell understands "+="... yes
+checking for /usr/bin/ld option to reload object files... -r
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for ar... ar
+checking for strip... strip
+checking for ranlib... ranlib
+checking command to parse /usr/bin/nm -B output from gcc object... ok
+checking how to run the C preprocessor... gcc -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking for dlfcn.h... yes
+checking for objdir... .libs
+checking if gcc supports -fno-rtti -fno-exceptions... no
+checking for gcc option to produce PIC... -fPIC -DPIC
+checking if gcc PIC flag -fPIC -DPIC works... yes
+checking if gcc static flag -static works... yes
+checking if gcc supports -c -o file.o... yes
+checking if gcc supports -c -o file.o... (cached) yes
+checking whether the gcc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... no
+checking for gcc... (cached) gcc
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether gcc accepts -g... (cached) yes
+checking for gcc option to accept ISO C89... (cached) none needed
+checking dependency style of gcc... (cached) gcc3
+checking for g++... g++
+checking whether we are using the GNU C++ compiler... yes
+checking whether g++ accepts -g... yes
+checking dependency style of g++... gcc3
+checking whether we are using the GNU C++ compiler... (cached) yes
+checking whether g++ accepts -g... (cached) yes
+checking dependency style of g++... (cached) gcc3
+checking how to run the C++ preprocessor... g++ -E
+checking for ld used by g++... /usr/bin/ld -m elf_x86_64
+checking if the linker (/usr/bin/ld -m elf_x86_64) is GNU ld... yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking for g++ option to produce PIC... -fPIC -DPIC
+checking if g++ PIC flag -fPIC -DPIC works... yes
+checking if g++ static flag -static works... yes
+checking if g++ supports -c -o file.o... yes
+checking if g++ supports -c -o file.o... (cached) yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking for CLN... yes
+checking for appropriate build string... competition
+checking what dir to configure... builds/x86_64-unknown-linux-gnu/competition
+
+./config/mkbuilddir x86_64-unknown-linux-gnu competition
+Setting up builds/x86_64-unknown-linux-gnu/competition...
+removed `config.log'
+removed `confdefs.h'
+mkdir: created directory `builds'
+mkdir: created directory `builds/x86_64-unknown-linux-gnu'
+mkdir: created directory `builds/x86_64-unknown-linux-gnu/competition'
+`builds/Makefile' -> `x86_64-unknown-linux-gnu/competition/Makefile.builds'
+Creating builds/current...
+Linking builds/src...
+`builds/src' -> `x86_64-unknown-linux-gnu/competition/src'
+Linking builds/test...
+`builds/test' -> `x86_64-unknown-linux-gnu/competition/test'
+cd builds/x86_64-unknown-linux-gnu/competition
+../../../configure --with-build=competition
+checking build system type... x86_64-unknown-linux-gnu
+checking host system type... x86_64-unknown-linux-gnu
+checking target system type... x86_64-unknown-linux-gnu
+checking for requested build profile... competition
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking for style of include used by make... GNU
+checking for gcc... gcc
+checking for C compiler default output file name... a.out
+checking whether the C compiler works... yes
+checking whether we are cross compiling... no
+checking for suffix of executables... 
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking dependency style of gcc... gcc3
+checking for a sed that does not truncate output... /bin/sed
+checking for grep that handles long lines and -e... /bin/grep
+checking for egrep... /bin/grep -E
+checking for fgrep... /bin/grep -F
+checking for ld used by gcc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
+checking the name lister (/usr/bin/nm -B) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... 1572864
+checking whether the shell understands some XSI constructs... yes
+checking whether the shell understands "+="... yes
+checking for /usr/bin/ld option to reload object files... -r
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for ar... ar
+checking for strip... strip
+checking for ranlib... ranlib
+checking command to parse /usr/bin/nm -B output from gcc object... ok
+checking how to run the C preprocessor... gcc -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking for dlfcn.h... yes
+checking for objdir... .libs
+checking if gcc supports -fno-rtti -fno-exceptions... no
+checking for gcc option to produce PIC... -fPIC -DPIC
+checking if gcc PIC flag -fPIC -DPIC works... yes
+checking if gcc static flag -static works... yes
+checking if gcc supports -c -o file.o... yes
+checking if gcc supports -c -o file.o... (cached) yes
+checking whether the gcc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... no
+checking for gcc... (cached) gcc
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether gcc accepts -g... (cached) yes
+checking for gcc option to accept ISO C89... (cached) none needed
+checking dependency style of gcc... (cached) gcc3
+checking for g++... g++
+checking whether we are using the GNU C++ compiler... yes
+checking whether g++ accepts -g... yes
+checking dependency style of g++... gcc3
+checking whether we are using the GNU C++ compiler... (cached) yes
+checking whether g++ accepts -g... (cached) yes
+checking dependency style of g++... (cached) gcc3
+checking how to run the C++ preprocessor... g++ -E
+checking for ld used by g++... /usr/bin/ld -m elf_x86_64
+checking if the linker (/usr/bin/ld -m elf_x86_64) is GNU ld... yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking for g++ option to produce PIC... -fPIC -DPIC
+checking if g++ PIC flag -fPIC -DPIC works... yes
+checking if g++ static flag -static works... yes
+checking if g++ supports -c -o file.o... yes
+checking if g++ supports -c -o file.o... (cached) yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking for CLN... yes
+checking for appropriate build string... competition
+checking what dir to configure... this one (in builds/)
+checking whether to build a static binary... yes
+checking whether to optimize libcvc4... yes
+checking whether to include debugging symbols in libcvc4... no
+checking whether to include statistics are turned on in libcvc4... no
+checking whether to include assertions in build... no
+checking whether to do a traceable build of CVC4... no
+checking whether to do a muzzled build of CVC4... yes
+checking whether to do a gcov-enabled build of CVC4... no
+checking whether to do a profiling-enabled build of CVC4... no
+checking for antlr3... /home/mdeters/bin/antlr3
+checking for doxygen... /usr/bin/doxygen
+checking for perl... /usr/bin/perl
+checking for cxxtestgen.pl... /home/mdeters/cxxtest/cxxtestgen.pl
+checking for perl... perl
+checking for ANTLR3 C runtime library... found in /home/mdeters/libantlr3
+checking getopt.h usability... yes
+checking getopt.h presence... yes
+checking for getopt.h... yes
+checking for unistd.h... (cached) yes
+: creating ./config.status
+config.status: creating Makefile.builds
+config.status: creating Makefile
+config.status: creating contrib/Makefile
+config.status: creating src/Makefile
+config.status: creating src/context/Makefile
+config.status: creating src/expr/Makefile
+config.status: creating src/main/Makefile
+config.status: creating src/parser/Makefile
+config.status: creating src/parser/cvc/Makefile
+config.status: creating src/parser/smt/Makefile
+config.status: creating src/parser/smt2/Makefile
+config.status: creating src/prop/Makefile
+config.status: creating src/prop/minisat/Makefile
+config.status: creating src/smt/Makefile
+config.status: creating src/theory/Makefile
+config.status: creating src/theory/arith/Makefile
+config.status: creating src/theory/arrays/Makefile
+config.status: creating src/theory/booleans/Makefile
+config.status: creating src/theory/builtin/Makefile
+config.status: creating src/theory/bv/Makefile
+config.status: creating src/theory/uf/Makefile
+config.status: creating src/util/Makefile
+config.status: creating test/Makefile
+config.status: creating test/regress/Makefile
+config.status: creating test/regress/regress0/Makefile
+config.status: creating test/regress/regress0/precedence/Makefile
+config.status: creating test/regress/regress0/uf/Makefile
+config.status: creating test/regress/regress1/Makefile
+config.status: creating test/regress/regress2/Makefile
+config.status: creating test/regress/regress3/Makefile
+config.status: creating test/system/Makefile
+config.status: creating test/unit/Makefile
+config.status: creating src/util/rational.h
+config.status: creating src/util/integer.h
+config.status: creating cvc4autoconfig.h
+config.status: executing depfiles commands
+config.status: executing libtool commands
+
+CVC4 1.0a0-smtcomp2010
+
+Build profile: competition
+Build ID     : competition
+Optimized    : yes, at level 9
+Debug symbols: no
+Statistics   : no
+Assertions   : no
+Tracing      : no
+Muzzle       : yes
+gcov support : no
+gprof support: no
+Unit tests   : unit testing infrastructure enabled in build directory
+
+Static libs  : yes
+Shared libs  : no
+Static binary: yes
+
+MP library   : cln (GPL)
+
+CPPFLAGS     : -DCVC4_COMPETITION_MODE -DCVC4_MUZZLE
+CXXFLAGS     : -funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs -O9 -Wno-deprecated
+CFLAGS       : -funroll-all-loops -fexpensive-optimizations -fno-enforce-eh-specs -O9 -Wno-deprecated -fexceptions
+LDFLAGS      : 
+
+libcvc4 version      : 0:0:0
+libcvc4parser version: 0:0:0
+
+Please note that CVC4 will be built against the Class Library for
+Numbers (CLN).  This library is covered under the GPL, so use of this
+build of CVC4 will be more restrictive than CVC4's license would
+normally suggest.  For full details of CLN and its license, please visit
+  http://www.ginac.de/CLN/
+To build CVC4 with GMP instead (which is covered under the more permissive
+LGPL), configure --without-cln.
+
+Now just type make, followed by make check or make install, as you like.
+
++ make
+cd builds
+make all
+make[1]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds'
+(cd x86_64-unknown-linux-gnu/competition && make all)
+make[2]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make  all-recursive
+make[3]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+Making all in src
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+Making all in expr
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+  GEN    ../../src/theory/.subdirs
+  GEN    kind.h
+  GEN    metakind.h
+  GEN    expr.h
+  GEN    expr.cpp
+  GEN    expr_manager.h
+  GEN    expr_manager.cpp
+make  all-am
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+  CXX    node.lo
+  CXX    type_node.lo
+  CXX    type.lo
+  CXX    attribute.lo
+  CXX    node_manager.lo
+  CXX    node_value.lo
+  CXX    command.lo
+  CXX    declaration_scope.lo
+  CXX    expr.lo
+  CXX    expr_manager.lo
+  CXXLD  libexpr.la
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+Making all in util
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+make  all-am
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+  CXX    Assert.lo
+  CXX    decision_engine.lo
+  CXX    output.lo
+  CXX    configuration.lo
+  CXX    bitvector.lo
+  CXX    stats.lo
+  CXX    integer_cln_imp.lo
+  CXX    rational_cln_imp.lo
+  CXXLD  libutil.la
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+Making all in context
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/context'
+  CXX    context.lo
+  CXX    context_mm.lo
+  CXXLD  libcontext.la
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/context'
+Making all in theory
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+  GEN    theoryof_table.h
+make  all-recursive
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+Making all in builtin
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/builtin'
+  CXX    theory_builtin.lo
+  CXXLD  libbuiltin.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/builtin'
+Making all in booleans
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/booleans'
+  CCLD   libbooleans.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/booleans'
+Making all in uf
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/uf'
+  CXX    ecdata.lo
+  CXX    theory_uf.lo
+  CXXLD  libuf.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/uf'
+Making all in arith
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arith'
+  CXX    arith_rewriter.lo
+./../../expr/metakind.h: In function ‘bool pnfsMatch(CVC4::TNode, CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h: In member function ‘CVC4::Node CVC4::theory::arith::ArithRewriter::rewriteAtomCore(CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+  CXX    delta_rational.lo
+  CXX    partial_model.lo
+  CXX    arith_propagator.lo
+  CXX    theory_arith.lo
+./../../expr/metakind.h: In function ‘bool isBasicSum(CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h: In function ‘bool isNormalAtom(CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h: In member function ‘CVC4::Node CVC4::theory::arith::TheoryArith::simulatePreprocessing(CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h: In member function ‘bool CVC4::theory::arith::TheoryArith::AssertEquality(CVC4::TNode, CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h: In member function ‘void CVC4::theory::arith::TheoryArith::setupSlack(CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+./../../expr/metakind.h: In member function ‘virtual void CVC4::theory::arith::TheoryArith::preRegisterTerm(CVC4::TNode)’:
+./../../expr/metakind.h:228: warning: array subscript is below array bounds
+  CXXLD  libarith.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arith'
+Making all in arrays
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arrays'
+  CXX    theory_arrays.lo
+  CXXLD  libarrays.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arrays'
+Making all in bv
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/bv'
+  CCLD   libbv.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/bv'
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+  CXX    theory_engine.lo
+  CXX    theory.lo
+  CXX    shared_term_manager.lo
+./../expr/metakind.h: In member function ‘void CVC4::SharedTermManager::addEq(CVC4::TNode, CVC4::theory::Theory*)’:
+./../expr/metakind.h:228: warning: array subscript is below array bounds
+./../expr/metakind.h: In member function ‘CVC4::Node CVC4::SharedTermManager::explain(CVC4::TNode) const’:
+./../expr/metakind.h:228: warning: array subscript is below array bounds
+  CXX    shared_data.lo
+  CXXLD  libtheory.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+Making all in prop
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+Making all in minisat
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop/minisat'
+  CXX    Solver.lo
+  CXX    SimpSolver.lo
+  CXXLD  libminisat.la
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop/minisat'
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+  CXX    prop_engine.lo
+  CXX    sat.lo
+  CXX    cnf_stream.lo
+  CXXLD  libprop.la
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+Making all in smt
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/smt'
+  CXX    smt_engine.lo
+  CXXLD  libsmt.la
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/smt'
+Making all in .
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+touch empty.cpp
+  CXX    empty.lo
+  CXXLD  libcvc4_noinst.la
+  GEN    libcvc4.la
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+Making all in parser
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+Making all in smt
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../src/parser/smt/generated/SmtLexer.h
+make  all-am
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+  CXX    smt.lo
+  CXX    smt_input.lo
+  CC     SmtLexer.lo
+  CC     SmtParser.lo
+  CXXLD  libparsersmt.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+Making all in smt2
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../src/parser/smt2/generated/Smt2Lexer.h
+make  all-am
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+  CXX    smt2.lo
+  CXX    smt2_input.lo
+  CC     Smt2Lexer.lo
+  CC     Smt2Parser.lo
+  CXXLD  libparsersmt2.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+Making all in cvc
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../src/parser/cvc/generated/CvcLexer.h
+make  all-am
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+  CXX    cvc_input.lo
+  CC     CvcLexer.lo
+  CC     CvcParser.lo
+  CXXLD  libparsercvc.la
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+  CXX    antlr_input.lo
+  CXX    antlr_input_imports.lo
+  CXX    bounded_token_buffer.lo
+  CXX    bounded_token_factory.lo
+  CXX    input.lo
+  CXX    memory_mapped_input_buffer.lo
+  CXX    parser.lo
+  CXX    parser_builder.lo
+  CXXLD  libcvc4parser_noinst.la
+  GEN    libcvc4parser.la
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+Making all in main
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main'
+  CXX    main.o
+  CXX    getopt.o
+  CXX    util.o
+  GEN    cvc4
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+Making all in test
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+Making all in unit
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+Makefile:977: .deps/theory/shared_term_manager_black.Plo: No such file or directory
+Makefile:977: .deps/theory/theory_engine_white.Plo: No such file or directory
+Makefile:977: .deps/theory/theory_black.Plo: No such file or directory
+Makefile:977: .deps/theory/theory_uf_white.Plo: No such file or directory
+Makefile:977: .deps/theory/theory_arith_white.Plo: No such file or directory
+Makefile:977: .deps/expr/expr_public.Plo: No such file or directory
+Makefile:977: .deps/expr/expr_manager_public.Plo: No such file or directory
+Makefile:977: .deps/expr/node_white.Plo: No such file or directory
+Makefile:977: .deps/expr/node_black.Plo: No such file or directory
+Makefile:977: .deps/expr/kind_black.Plo: No such file or directory
+Makefile:977: .deps/expr/node_builder_black.Plo: No such file or directory
+Makefile:977: .deps/expr/node_manager_black.Plo: No such file or directory
+Makefile:977: .deps/expr/node_manager_white.Plo: No such file or directory
+Makefile:977: .deps/expr/attribute_white.Plo: No such file or directory
+Makefile:977: .deps/expr/attribute_black.Plo: No such file or directory
+Makefile:977: .deps/expr/declaration_scope_black.Plo: No such file or directory
+Makefile:977: .deps/parser/parser_black.Plo: No such file or directory
+Makefile:977: .deps/parser/parser_builder_black.Plo: No such file or directory
+Makefile:977: .deps/prop/cnf_stream_black.Plo: No such file or directory
+Makefile:977: .deps/context/context_black.Plo: No such file or directory
+Makefile:977: .deps/context/context_white.Plo: No such file or directory
+Makefile:977: .deps/context/context_mm_black.Plo: No such file or directory
+Makefile:977: .deps/context/cdo_black.Plo: No such file or directory
+Makefile:977: .deps/context/cdlist_black.Plo: No such file or directory
+Makefile:977: .deps/context/cdmap_black.Plo: No such file or directory
+Makefile:977: .deps/context/cdmap_white.Plo: No such file or directory
+Makefile:977: .deps/util/assert_white.Plo: No such file or directory
+Makefile:977: .deps/util/bitvector_black.Plo: No such file or directory
+Makefile:977: .deps/util/configuration_black.Plo: No such file or directory
+Makefile:977: .deps/util/output_black.Plo: No such file or directory
+Makefile:977: .deps/util/exception_black.Plo: No such file or directory
+Makefile:977: .deps/util/integer_black.Plo: No such file or directory
+Makefile:977: .deps/util/integer_white.Plo: No such file or directory
+Makefile:977: .deps/util/rational_black.Plo: No such file or directory
+Makefile:977: .deps/util/rational_white.Plo: No such file or directory
+  GEN    .deps/util/rational_white.Plo
+  GEN    .deps/util/rational_black.Plo
+  GEN    .deps/util/integer_white.Plo
+  GEN    .deps/util/integer_black.Plo
+  GEN    .deps/util/exception_black.Plo
+  GEN    .deps/util/output_black.Plo
+  GEN    .deps/util/configuration_black.Plo
+  GEN    .deps/util/bitvector_black.Plo
+  GEN    .deps/util/assert_white.Plo
+  GEN    .deps/context/cdmap_white.Plo
+  GEN    .deps/context/cdmap_black.Plo
+  GEN    .deps/context/cdlist_black.Plo
+  GEN    .deps/context/cdo_black.Plo
+  GEN    .deps/context/context_mm_black.Plo
+  GEN    .deps/context/context_white.Plo
+  GEN    .deps/context/context_black.Plo
+  GEN    .deps/prop/cnf_stream_black.Plo
+  GEN    .deps/parser/parser_builder_black.Plo
+  GEN    .deps/parser/parser_black.Plo
+  GEN    .deps/expr/declaration_scope_black.Plo
+  GEN    .deps/expr/attribute_black.Plo
+  GEN    .deps/expr/attribute_white.Plo
+  GEN    .deps/expr/node_manager_white.Plo
+  GEN    .deps/expr/node_manager_black.Plo
+  GEN    .deps/expr/node_builder_black.Plo
+  GEN    .deps/expr/kind_black.Plo
+  GEN    .deps/expr/node_black.Plo
+  GEN    .deps/expr/node_white.Plo
+  GEN    .deps/expr/expr_manager_public.Plo
+  GEN    .deps/expr/expr_public.Plo
+  GEN    .deps/theory/theory_arith_white.Plo
+  GEN    .deps/theory/theory_uf_white.Plo
+  GEN    .deps/theory/theory_black.Plo
+  GEN    .deps/theory/theory_engine_white.Plo
+  GEN    .deps/theory/shared_term_manager_black.Plo
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+make[5]: Nothing to be done for `all'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+Making all in system
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+make[5]: Nothing to be done for `all'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+Making all in regress
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+Making all in regress0
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+Making all in .
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make[7]: Nothing to be done for `all-am'.
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+Making all in precedence
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+make[7]: Nothing to be done for `all'.
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+Making all in uf
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make[7]: Nothing to be done for `all'.
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+make[6]: Nothing to be done for `all-am'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+Making all in .
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+make[5]: Nothing to be done for `all-am'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+Making all in contrib
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/contrib'
+make[4]: Nothing to be done for `all'.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/contrib'
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make[4]: Nothing to be done for `all-am'.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make[3]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make[2]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+/bin/sh /home/mdeters/cvc4-smtcomp2010/config/install-sh -d "x86_64-unknown-linux-gnu/competition/usr/local/bin" "x86_64-unknown-linux-gnu/competition/usr/local/lib"
+x86_64-unknown-linux-gnu/competition/libtool --mode=install install -v \
+		x86_64-unknown-linux-gnu/competition/src/libcvc4.la \
+		"/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib"
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.lai /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4.la
+`x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.lai' -> `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4.la'
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.a /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4.a
+`x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.a' -> `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4.a'
+libtool: install: chmod 644 /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4.a
+libtool: install: ranlib /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4.a
+libtool: install: warning: remember to run `libtool --finish /usr/local/lib'
+x86_64-unknown-linux-gnu/competition/libtool --mode=install install -v \
+		x86_64-unknown-linux-gnu/competition/src/parser/libcvc4parser.la \
+		"/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib"
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.lai /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4parser.la
+`x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.lai' -> `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4parser.la'
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.a /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4parser.a
+`x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.a' -> `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4parser.a'
+libtool: install: chmod 644 /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4parser.a
+libtool: install: ranlib /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib/libcvc4parser.a
+libtool: install: warning: remember to run `libtool --finish /usr/local/lib/.'
+/bin/sh /home/mdeters/cvc4-smtcomp2010/config/install-sh \
+		x86_64-unknown-linux-gnu/competition/src/main/cvc4 \
+		"/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/bin"
+test -e x86_64-unknown-linux-gnu/competition/lib || ln -sfv "/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib" x86_64-unknown-linux-gnu/competition/lib
+`x86_64-unknown-linux-gnu/competition/lib' -> `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/lib'
+test -e x86_64-unknown-linux-gnu/competition/bin || ln -sfv "/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/bin" x86_64-unknown-linux-gnu/competition/bin
+`x86_64-unknown-linux-gnu/competition/bin' -> `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/usr/local/bin'
+/bin/sh /home/mdeters/cvc4-smtcomp2010/config/install-sh -d "./usr/local/bin" "./usr/local/lib"
+x86_64-unknown-linux-gnu/competition/libtool --mode=install install -v x86_64-unknown-linux-gnu/competition/src/libcvc4.la "`pwd`/usr/local/lib"
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.lai /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4.la
+`x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.lai' -> `/home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4.la'
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.a /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4.a
+`x86_64-unknown-linux-gnu/competition/src/.libs/libcvc4.a' -> `/home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4.a'
+libtool: install: chmod 644 /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4.a
+libtool: install: ranlib /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4.a
+libtool: install: warning: remember to run `libtool --finish /usr/local/lib'
+x86_64-unknown-linux-gnu/competition/libtool --mode=install install -v x86_64-unknown-linux-gnu/competition/src/parser/libcvc4parser.la "`pwd`/usr/local/lib"
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.lai /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4parser.la
+`x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.lai' -> `/home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4parser.la'
+libtool: install: install -v x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.a /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4parser.a
+`x86_64-unknown-linux-gnu/competition/src/parser/.libs/libcvc4parser.a' -> `/home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4parser.a'
+libtool: install: chmod 644 /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4parser.a
+libtool: install: ranlib /home/mdeters/cvc4-smtcomp2010/builds/usr/local/lib/libcvc4parser.a
+libtool: install: warning: remember to run `libtool --finish /usr/local/lib/.'
+/bin/sh /home/mdeters/cvc4-smtcomp2010/config/install-sh x86_64-unknown-linux-gnu/competition/src/main/cvc4 "`pwd`/usr/local/bin"
+test -e lib || ln -sfv "./usr/local/lib" lib
+`lib' -> `./usr/local/lib'
+test -e bin || ln -sfv "./usr/local/bin" bin
+`bin' -> `./usr/local/bin'
+make[1]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds'
++ strip builds/bin/cvc4
++ make -k check
+cd builds
+make check
+make[1]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds'
+(cd x86_64-unknown-linux-gnu/competition && make check)
+make[2]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+Making check in src
+make[3]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+Making check in expr
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+make  check-am
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+make[5]: Nothing to be done for `check-am'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/expr'
+Making check in util
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+make  check-am
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+make[5]: Nothing to be done for `check-am'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/util'
+Making check in context
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/context'
+make[4]: Nothing to be done for `check'.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/context'
+Making check in theory
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+make  check-recursive
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+Making check in builtin
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/builtin'
+make[6]: Nothing to be done for `check'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/builtin'
+Making check in booleans
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/booleans'
+make[6]: Nothing to be done for `check'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/booleans'
+Making check in uf
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/uf'
+make[6]: Nothing to be done for `check'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/uf'
+Making check in arith
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arith'
+make[6]: Nothing to be done for `check'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arith'
+Making check in arrays
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arrays'
+make[6]: Nothing to be done for `check'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/arrays'
+Making check in bv
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/bv'
+make[6]: Nothing to be done for `check'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory/bv'
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+make[6]: Nothing to be done for `check-am'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/theory'
+Making check in prop
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+Making check in minisat
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop/minisat'
+make[5]: Nothing to be done for `check'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop/minisat'
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+make[5]: Nothing to be done for `check-am'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/prop'
+Making check in smt
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/smt'
+make[4]: Nothing to be done for `check'.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/smt'
+Making check in .
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+make[4]: Nothing to be done for `check-am'.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+Making check in parser
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+Making check in smt
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+make  check-am
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+make[6]: Nothing to be done for `check-am'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt'
+Making check in smt2
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+make  check-am
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+make[6]: Nothing to be done for `check-am'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/smt2'
+Making check in cvc
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+make  check-am
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+make[6]: Nothing to be done for `check-am'.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser/cvc'
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+make[5]: Nothing to be done for `check-am'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/parser'
+Making check in main
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main'
+make[4]: Nothing to be done for `check'.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main'
+make[3]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src'
+Making check in test
+make[3]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+Making check in unit
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+make  check-TESTS
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/theory/shared_term_manager_black.cpp
+  CXX    theory/shared_term_manager_black.lo
+  CXXLD  theory/shared_term_manager_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/theory/theory_engine_white.cpp
+  CXX    theory/theory_engine_white.lo
+  CXXLD  theory/theory_engine_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/theory/theory_black.cpp
+  CXX    theory/theory_black.lo
+  CXXLD  theory/theory_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/theory/theory_uf_white.cpp
+  CXX    theory/theory_uf_white.lo
+  CXXLD  theory/theory_uf_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/theory/theory_arith_white.cpp
+  CXX    theory/theory_arith_white.lo
+  CXXLD  theory/theory_arith_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/expr_public.cpp
+  CXX    expr/expr_public.lo
+  CXXLD  expr/expr_public
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/expr_manager_public.cpp
+  CXX    expr/expr_manager_public.lo
+  CXXLD  expr/expr_manager_public
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/node_white.cpp
+  CXX    expr/node_white.lo
+  CXXLD  expr/node_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/node_black.cpp
+  CXX    expr/node_black.lo
+  CXXLD  expr/node_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/kind_black.cpp
+  CXX    expr/kind_black.lo
+  CXXLD  expr/kind_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/node_builder_black.cpp
+  CXX    expr/node_builder_black.lo
+  CXXLD  expr/node_builder_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/node_manager_black.cpp
+  CXX    expr/node_manager_black.lo
+  CXXLD  expr/node_manager_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/node_manager_white.cpp
+  CXX    expr/node_manager_white.lo
+  CXXLD  expr/node_manager_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/attribute_white.cpp
+  CXX    expr/attribute_white.lo
+  CXXLD  expr/attribute_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/attribute_black.cpp
+  CXX    expr/attribute_black.lo
+  CXXLD  expr/attribute_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/expr/declaration_scope_black.cpp
+  CXX    expr/declaration_scope_black.lo
+  CXXLD  expr/declaration_scope_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/parser/parser_black.cpp
+  CXX    parser/parser_black.lo
+  CXXLD  parser/parser_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/parser/parser_builder_black.cpp
+  CXX    parser/parser_builder_black.lo
+  CXXLD  parser/parser_builder_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/prop/cnf_stream_black.cpp
+  CXX    prop/cnf_stream_black.lo
+  CXXLD  prop/cnf_stream_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/context_black.cpp
+  CXX    context/context_black.lo
+  CXXLD  context/context_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/context_white.cpp
+  CXX    context/context_white.lo
+  CXXLD  context/context_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/context_mm_black.cpp
+  CXX    context/context_mm_black.lo
+  CXXLD  context/context_mm_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/cdo_black.cpp
+  CXX    context/cdo_black.lo
+  CXXLD  context/cdo_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/cdlist_black.cpp
+  CXX    context/cdlist_black.lo
+  CXXLD  context/cdlist_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/cdmap_black.cpp
+  CXX    context/cdmap_black.lo
+  CXXLD  context/cdmap_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/context/cdmap_white.cpp
+  CXX    context/cdmap_white.lo
+  CXXLD  context/cdmap_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/assert_white.cpp
+  CXX    util/assert_white.lo
+  CXXLD  util/assert_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/bitvector_black.cpp
+  CXX    util/bitvector_black.lo
+  CXXLD  util/bitvector_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/configuration_black.cpp
+  CXX    util/configuration_black.lo
+  CXXLD  util/configuration_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/output_black.cpp
+  CXX    util/output_black.lo
+  CXXLD  util/output_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/exception_black.cpp
+  CXX    util/exception_black.lo
+  CXXLD  util/exception_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/integer_black.cpp
+  CXX    util/integer_black.lo
+  CXXLD  util/integer_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/integer_white.cpp
+  CXX    util/integer_white.lo
+  CXXLD  util/integer_white
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/rational_black.cpp
+  CXX    util/rational_black.lo
+  CXXLD  util/rational_black
+  GEN    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/util/rational_white.cpp
+  CXX    util/rational_white.lo
+  CXXLD  util/rational_white
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+PASS: theory/shared_term_manager_black
+PASS: theory/theory_engine_white
+PASS: theory/theory_black
+PASS: theory/theory_uf_white
+/bin/bash: line 1: 29784 Segmentation fault      "$tst" > theory/theory_arith_white.log-t 2>&1
+FAIL: theory/theory_arith_white
+PASS: expr/expr_public
+PASS: expr/expr_manager_public
+PASS: expr/node_white
+PASS: expr/node_black
+PASS: expr/kind_black
+PASS: expr/node_builder_black
+PASS: expr/node_manager_black
+PASS: expr/node_manager_white
+PASS: expr/attribute_white
+PASS: expr/attribute_black
+PASS: expr/declaration_scope_black
+PASS: parser/parser_black
+PASS: parser/parser_builder_black
+PASS: prop/cnf_stream_black
+PASS: context/context_black
+PASS: context/context_white
+PASS: context/context_mm_black
+PASS: context/cdo_black
+PASS: context/cdlist_black
+PASS: context/cdmap_black
+PASS: context/cdmap_white
+PASS: util/assert_white
+PASS: util/bitvector_black
+PASS: util/configuration_black
+PASS: util/output_black
+PASS: util/exception_black
+PASS: util/integer_black
+PASS: util/integer_white
+PASS: util/rational_black
+PASS: util/rational_white
+======================================================
+   cvc4 1.0a0-smtcomp2010: test/unit/test-suite.log   
+======================================================
+
+1 of 35 tests failed.  
+
+.. contents:: :depth: 2
+
+
+FAIL: theory/theory_arith_white (exit: 139)
+===========================================
+
+Running 8 tests.
+In TheoryArithWhite::testAssertEqualityEagerSplit:
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:146: Error: Test failed: Exception thrown from test
+.
+In TheoryArithWhite::testBasicConflict:
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:178: Error: Test failed: Exception thrown from test
+In TheoryArithWhite::testBasicPropagate:
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:206: Error: Test failed: Exception thrown from test
+In TheoryArithWhite::testTPLt1:
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:257: Error: Expected (d_outputChannel.getNumCalls() == 2u), found (3 != 2)
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:258: Error: Expected (d_outputChannel.getIthCallType(0) == PROPAGATE), found ({ 02 00 00 00  } != { 01 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:259: Error: Expected (d_outputChannel.getIthCallType(1) == EXPLANATION), found ({ 02 00 00 00  } != { 04 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:260: Error: Expected (d_outputChannel.getIthNode(0) == leq1), found ({ 70 F5 B6 01 00 00 00 00  } != { D0 EF B6 01 00 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:261: Error: Expected (d_outputChannel.getIthNode(1) == rLt1), found ({ A0 F6 B6 01 00 00 00 00  } != { 50 F0 B6 01 00 00 00 00  })
+In TheoryArithWhite::testTPLeq0:
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:291: Error: Expected (d_outputChannel.getNumCalls() == 4u), found (3 != 4)
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:292: Error: Expected (d_outputChannel.getIthCallType(0) == PROPAGATE), found ({ 02 00 00 00  } != { 01 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:293: Error: Expected (d_outputChannel.getIthCallType(1) == PROPAGATE), found ({ 02 00 00 00  } != { 01 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:294: Error: Expected (d_outputChannel.getIthCallType(2) == EXPLANATION), found ({ 02 00 00 00  } != { 04 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:295: Error: Expected (d_outputChannel.getIthCallType(3) == EXPLANATION), found ({ 00 00 00 00  } != { 04 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:297: Error: Expected (d_outputChannel.getIthNode(0) == rLt1), found ({ 90 D2 B6 01 00 00 00 00  } != { 70 CD B6 01 00 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:298: Error: Expected (d_outputChannel.getIthNode(1) == rLeq1), found ({ 90 D3 B6 01 00 00 00 00  } != { F0 CC B6 01 00 00 00 00  })
+/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/unit/theory/theory_arith_white.h:301: Error: Expected (d_outputChannel.getIthNode(2) == rLeq0), found ({ 30 D4 B6 01 00 00 00 00  } != { B0 CC B6 01 00 00 00 00  })
+============================
+1 of 35 tests failed
+See test/unit/test-suite.log
+============================
+make[6]: *** [test-suite.log] Error 1
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+make[5]: *** [check-TESTS] Error 2
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+make[4]: *** [check-am] Error 2
+make[4]: Target `check' not remade because of errors.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit'
+Making check in system
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+make  check-TESTS
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+==================
+All 0 tests passed
+==================
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/system'
+Making check in regress
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+Making check in regress0
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+Making check in .
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make  check-TESTS
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make[8]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+PASS: distinct.smt
+PASS: flet.smt
+PASS: flet2.smt
+PASS: fuzz_1.smt
+PASS: fuzz_3.smt
+PASS: ineq_basic.smt
+PASS: ineq_slack.smt
+PASS: ite_real_int_type.smt
+PASS: ite_real_valid.smt
+FAIL: let.smt
+FAIL: let2.smt
+PASS: simple.smt
+PASS: simple2.smt
+PASS: simple-lra.smt
+PASS: simple-rdl.smt
+FAIL: simple-uf.smt
+PASS: ite2.smt2
+FAIL: ite3.smt2
+FAIL: ite4.smt2
+PASS: simple-lra.smt2
+PASS: simple-rdl.smt2
+FAIL: simple-uf.smt2
+PASS: boolean-prec.cvc
+PASS: bug167.smt
+PASS: bug169.smt
+PASS: hole6.cvc
+PASS: ite.cvc
+PASS: logops.01.cvc
+PASS: logops.02.cvc
+PASS: logops.03.cvc
+PASS: logops.04.cvc
+PASS: logops.05.cvc
+PASS: simple.cvc
+PASS: smallcnf.cvc
+PASS: test11.cvc
+PASS: test9.cvc
+PASS: uf20-03.cvc
+PASS: wiki.01.cvc
+PASS: wiki.02.cvc
+PASS: wiki.03.cvc
+PASS: wiki.04.cvc
+PASS: wiki.05.cvc
+PASS: wiki.06.cvc
+PASS: wiki.07.cvc
+PASS: wiki.08.cvc
+PASS: wiki.09.cvc
+PASS: wiki.10.cvc
+PASS: wiki.11.cvc
+PASS: wiki.12.cvc
+PASS: wiki.13.cvc
+PASS: wiki.14.cvc
+PASS: wiki.15.cvc
+PASS: wiki.16.cvc
+PASS: wiki.17.cvc
+PASS: wiki.18.cvc
+PASS: wiki.19.cvc
+PASS: wiki.20.cvc
+PASS: wiki.21.cvc
+PASS: bug2.smt
+PASS: bug32.cvc
+FAIL: bug49.smt
+PASS: bug161.smt
+PASS: bug164.smt
+PASS: bug168.smt
+==================================================================
+   cvc4 1.0a0-smtcomp2010: test/regress/regress0/test-suite.log   
+==================================================================
+
+7 of 65 tests failed.  
+
+.. contents:: :depth: 2
+
+
+FAIL: let.smt (exit: 1)
+=======================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 let.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.qaGMU5SQRv	2010-07-10 18:02:02.000000000 -0400
++++ /tmp/cvc4_stdout.Be72nSmTEC	2010-07-10 18:02:02.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.dHC3woX6qN	2010-07-10 18:02:02.000000000 -0400
++++ /tmp/cvc4_stderr.RX7hXqny6t	2010-07-10 18:02:02.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137: 30700 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: let2.smt (exit: 1)
+========================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 let2.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.TyFw4w4zHJ	2010-07-10 18:02:02.000000000 -0400
++++ /tmp/cvc4_stdout.PqXMUS2tDc	2010-07-10 18:02:02.000000000 -0400
+@@ -1 +0,0 @@
+-SAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.XDuj4T5zq2	2010-07-10 18:02:02.000000000 -0400
++++ /tmp/cvc4_stderr.1ppBGK3V02	2010-07-10 18:02:02.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137: 30740 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+
+FAIL: simple-uf.smt (exit: 1)
+=============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 simple-uf.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.Dm6Roxudev	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stdout.zhB2myxF0u	2010-07-10 18:02:03.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.A1pJpYrMwJ	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stderr.JNkn5YcHkA	2010-07-10 18:02:03.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137: 30944 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: ite3.smt2 (exit: 1)
+=========================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 ite3.smt2 from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.pQEGvwPZHS	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stdout.JhIEHDSW4o	2010-07-10 18:02:03.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.37f85TpleS	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stderr.fhEb3lGzI4	2010-07-10 18:02:03.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137: 31027 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: ite4.smt2 (exit: 1)
+=========================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 ite4.smt2 from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.zrJ4s4QTxI	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stdout.OMwAI4D2lW	2010-07-10 18:02:03.000000000 -0400
+@@ -1 +0,0 @@
+-SAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.s3WiyoMb58	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stderr.0RjKxX46lB	2010-07-10 18:02:03.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137: 31068 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+
+FAIL: simple-uf.smt2 (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 simple-uf.smt2 from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.vR2X7rVscA	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stdout.87UWkhOJm8	2010-07-10 18:02:03.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.ljxn6x1giv	2010-07-10 18:02:03.000000000 -0400
++++ /tmp/cvc4_stderr.vhBR9JXue0	2010-07-10 18:02:03.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137: 31194 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: bug49.smt (exit: 1)
+=========================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 bug49.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.7cxIIG0OM8	2010-07-10 18:02:07.000000000 -0400
++++ /tmp/cvc4_stdout.TxxPtPk4FD	2010-07-10 18:02:07.000000000 -0400
+@@ -1 +0,0 @@
+-SAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.Ze7ydMSAVq	2010-07-10 18:02:07.000000000 -0400
++++ /tmp/cvc4_stderr.VaxdRh0he7	2010-07-10 18:02:07.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/../run_regression: line 137:   605 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+========================================
+7 of 65 tests failed
+See test/regress/regress0/test-suite.log
+========================================
+make[8]: *** [test-suite.log] Error 1
+make[8]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make[7]: *** [check-TESTS] Error 2
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make[6]: *** [check-am] Error 2
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+Making check in precedence
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+make  check-TESTS
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+make[8]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+PASS: and-xor.cvc
+PASS: and-not.cvc
+PASS: bool-cmp.cvc
+PASS: cmp-plus.cvc
+PASS: eq-fun.cvc
+PASS: iff-assoc.cvc
+PASS: iff-implies.cvc
+PASS: implies-assoc.cvc
+PASS: implies-iff.cvc
+PASS: implies-or.cvc
+PASS: not-and.cvc
+PASS: not-eq.cvc
+PASS: plus-mult.cvc
+PASS: or-implies.cvc
+PASS: or-xor.cvc
+PASS: xor-or.cvc
+PASS: xor-and.cvc
+PASS: xor-assoc.cvc
+===================
+All 18 tests passed
+===================
+make[8]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/precedence'
+Making check in uf
+make[6]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make  check-TESTS
+make[7]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make[8]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+FAIL: euf_simp01.smt
+FAIL: euf_simp02.smt
+FAIL: euf_simp03.smt
+FAIL: euf_simp04.smt
+FAIL: euf_simp05.smt
+FAIL: euf_simp06.smt
+FAIL: euf_simp08.smt
+FAIL: euf_simp09.smt
+FAIL: euf_simp10.smt
+FAIL: euf_simp11.smt
+FAIL: euf_simp12.smt
+FAIL: euf_simp13.smt
+PASS: dead_dnd002.smt
+FAIL: iso_brn001.smt
+FAIL: SEQ032_size2.smt
+FAIL: simple.01.cvc
+FAIL: simple.02.cvc
+FAIL: simple.03.cvc
+FAIL: simple.04.cvc
+=====================================================================
+   cvc4 1.0a0-smtcomp2010: test/regress/regress0/uf/test-suite.log   
+=====================================================================
+
+18 of 19 tests failed.  
+
+.. contents:: :depth: 2
+
+
+FAIL: euf_simp01.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp01.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.ww4MAdgraD	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stdout.F8jibClear	2010-07-10 18:02:10.000000000 -0400
+@@ -1 +0,0 @@
+-SAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.eK4Xh5mB8u	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stderr.I6bcct7oGo	2010-07-10 18:02:10.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  1842 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+
+FAIL: euf_simp02.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp02.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.96bCdTdtKv	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stdout.s4LW9ukTBY	2010-07-10 18:02:10.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.BamwY4NjOV	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stderr.I9wC0IVIpT	2010-07-10 18:02:10.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  1883 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp03.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp03.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.vSNXaLQ2qr	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stdout.xTPyXict3i	2010-07-10 18:02:10.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.3nWzlp85zy	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stderr.srNyVKx3pf	2010-07-10 18:02:10.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  1924 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp04.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp04.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.DYEXgdIsIP	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stdout.QP3a5ue8Dh	2010-07-10 18:02:10.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.QwD10Rndde	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stderr.5zuDyPJeQr	2010-07-10 18:02:10.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  1965 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp05.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp05.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.z9iDzgFkMn	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stdout.UfJ9aqmVcK	2010-07-10 18:02:10.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.ZAU5hLyi6D	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stderr.sHJMXMyVEq	2010-07-10 18:02:10.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2006 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp06.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp06.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.S0TMViSyPj	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stdout.ZWjjVMJwqY	2010-07-10 18:02:10.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.oXvs8UEv0L	2010-07-10 18:02:10.000000000 -0400
++++ /tmp/cvc4_stderr.33fOc8dMCk	2010-07-10 18:02:10.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2047 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp08.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp08.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.iSeIDzZQE6	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.tzrKY7eJ4O	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.Y9ysjbouaN	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.hauuegzPsL	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2088 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp09.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp09.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.AKx7rgFf5k	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.PXQUTxvnJI	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.ct8elNn54W	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.18kvOxjxy3	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2129 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp10.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp10.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.5VIwk3wEgN	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.jfoTN5nKxm	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.sXjiiPlGzo	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.gsyCfgq7v1	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2170 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp11.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp11.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.NPScHJ4RFs	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.aVhavRoM9y	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.tF0UtWWypS	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.Dojy3DKgU6	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2211 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp12.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp12.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.YeCJ3TReqV	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.ODwUa3hrN7	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.A9zpaV9481	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.Y2ovO70nL8	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2252 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: euf_simp13.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 euf_simp13.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.ybO4PjgUBr	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.D4XU59TzLS	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.wOxDVDJHO2	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.3GR7s0o4Qj	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2293 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: iso_brn001.smt (exit: 1)
+==============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 iso_brn001.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.XdVfpRvCZi	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stdout.TVSlnfo7Fz	2010-07-10 18:02:11.000000000 -0400
+@@ -1 +0,0 @@
+-SAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.dAimWgRvdF	2010-07-10 18:02:11.000000000 -0400
++++ /tmp/cvc4_stderr.bZCfoGJXrR	2010-07-10 18:02:11.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2374 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+
+FAIL: SEQ032_size2.smt (exit: 1)
+================================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 SEQ032_size2.smt from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.E6LpmzK4g0	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stdout.5yKM5G4IrU	2010-07-10 18:02:12.000000000 -0400
+@@ -1 +0,0 @@
+-UNSAT
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.iQjfnFBT7X	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stderr.gEPJOwJQRi	2010-07-10 18:02:12.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2415 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: simple.01.cvc (exit: 1)
+=============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 simple.01.cvc from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.gQgfJOYqO0	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stdout.j2txKjzlWw	2010-07-10 18:02:12.000000000 -0400
+@@ -1 +0,0 @@
+-VALID
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.OmrcHiE0bm	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stderr.ApWWj8TODo	2010-07-10 18:02:12.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2464 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: simple.02.cvc (exit: 1)
+=============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 simple.02.cvc from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.zfLiVzdNq3	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stdout.G8Z2Fa4ubE	2010-07-10 18:02:12.000000000 -0400
+@@ -1 +0,0 @@
+-INVALID
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.czVSjhEPMf	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stderr.FO82xPjjPy	2010-07-10 18:02:12.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2513 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+
+FAIL: simple.03.cvc (exit: 1)
+=============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 simple.03.cvc from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.3ST08Nkz9u	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stdout.uPIc1aoM2T	2010-07-10 18:02:12.000000000 -0400
+@@ -1 +0,0 @@
+-VALID
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.RKx6HgIFuX	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stderr.KXtNgL89ua	2010-07-10 18:02:12.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2563 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `20' but got `134'
+
+FAIL: simple.04.cvc (exit: 1)
+=============================
+
+running /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/src/main/cvc4 simple.04.cvc from /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf
+run_regression: error: differences between expected and actual output on stdout
+--- /tmp/cvc4_expect_stdout.HNSKjr84Tw	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stdout.imKc1ONSt9	2010-07-10 18:02:12.000000000 -0400
+@@ -1 +0,0 @@
+-INVALID
+run_regression: error: differences between expected and actual output on stderr
+--- /tmp/cvc4_expect_stderr.Ld90a7Tz4k	2010-07-10 18:02:12.000000000 -0400
++++ /tmp/cvc4_stderr.jdNJ4Y2UvI	2010-07-10 18:02:12.000000000 -0400
+@@ -0,0 +1,2 @@
++CVC4 suffered a segfault.
++/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/../../../test/regress/regress0/uf/../../run_regression: line 137:  2612 Aborted                 "$cvc4full" --segv-nospin `basename "$benchmark"`
+run_regression: error: expected exit status `10' but got `134'
+===========================================
+18 of 19 tests failed
+See test/regress/regress0/uf/test-suite.log
+===========================================
+make[8]: *** [test-suite.log] Error 1
+make[8]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make[7]: *** [check-TESTS] Error 2
+make[7]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make[6]: *** [check-am] Error 2
+make[6]: Target `check' not remade because of errors.
+make[6]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/uf'
+make[5]: *** [check-recursive] Error 1
+make[5]: Target `check' not remade because of errors.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0'
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+make[5]: Nothing to be done for `check-am'.
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+make[4]: *** [check-recursive] Error 1
+make[4]: Target `check' not remade because of errors.
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress'
+Making check in .
+make[4]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+make  check-local
+make[5]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+=============================== TESTING SUMMARY =============================
+1 of 35 tests failed.  
+    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/unit/test-suite.log
+All 0 tests passed.            in system
+7 of 65 tests failed.  
+    /home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test/regress/regress0/test-suite.log
+=============================== TESTING SUMMARY =============================
+make[5]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+make[4]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+make[3]: *** [check-recursive] Error 1
+make[3]: Target `check' not remade because of errors.
+make[3]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/test'
+Making check in contrib
+make[3]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/contrib'
+make[3]: Nothing to be done for `check'.
+make[3]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition/contrib'
+make[3]: Entering directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make[3]: Nothing to be done for `check-am'.
+make[3]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make[2]: *** [check-recursive] Error 1
+make[2]: Target `check' not remade because of errors.
+make[2]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds/x86_64-unknown-linux-gnu/competition'
+make[1]: *** [check] Error 2
+make[1]: Leaving directory `/home/mdeters/cvc4-smtcomp2010/builds'
+make: *** [check] Error 2
++ true
++ mkdir cvc4-1.0a0-smtcomp2010
++ cp smtcomp2010-runscript cvc4-1.0a0-smtcomp2010/run
++ chmod 755 cvc4-1.0a0-smtcomp2010/run
++ cp builds/bin/cvc4 cvc4-1.0a0-smtcomp2010/cvc4
++ tar cfzv cvc4-1.0a0-smtcomp2010.tgz cvc4-1.0a0-smtcomp2010
+cvc4-1.0a0-smtcomp2010/
+cvc4-1.0a0-smtcomp2010/run
+cvc4-1.0a0-smtcomp2010/cvc4

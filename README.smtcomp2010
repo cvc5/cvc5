@@ -3,15 +3,18 @@
 # This is the version submitted to SMT-COMP 2010.
 #
 # It was checked out, clean, then compiled with this
-# script on goedel.cims.nyu.edu.
+# script on goedel.cims.nyu.edu.  stdout/stderr were
+# redirected to compilation-log, subsequently checked
+# in.
 #
 ./autogen.sh
 ./configure competition
 make
 strip builds/bin/cvc4
-make check
+# non-LRA tests may fail because thy reg is off
+make -k check || true
 mkdir cvc4-1.0a0-smtcomp2010
-cp smtcomp2010-runscript cvc4-smtcomp2010/run
-chmod 755 cvc4-smtcomp2010/run
-cp builds/bin/cvc4 cvc4-smtcomp2010/cvc4
-tar cfzv cvc4-1.0a0-smtcomp2010
+cp smtcomp2010-runscript cvc4-1.0a0-smtcomp2010/run
+chmod 755 cvc4-1.0a0-smtcomp2010/run
+cp builds/bin/cvc4 cvc4-1.0a0-smtcomp2010/cvc4
+tar cfzv cvc4-1.0a0-smtcomp2010.tgz cvc4-1.0a0-smtcomp2010
