@@ -4,7 +4,7 @@
 m4_define(_CVC4_MAJOR,          0 )      dnl version (major)
 m4_define(_CVC4_MINOR,          0 )      dnl version (minor)
 m4_define(_CVC4_RELEASE,        0 )      dnl version (alpha)
-m4_define(_CVC4_RELEASE_STRING, [prerelease]) dnl version string
+m4_define(_CVC4_RELEASE_STRING, [prerelease-smtcomp2010]) dnl version string
 
 dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT

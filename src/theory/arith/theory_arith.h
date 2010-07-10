@@ -69,7 +69,7 @@ private:
    * basic variable. This is only required to be a superset though so its
    * contents must be checked to still be basic and inconsistent.
    */
-  std::priority_queue<Node> d_possiblyInconsistent;
+  std::priority_queue<Node, std::vector<Node>, std::greater<Node> > d_possiblyInconsistent;
 
   /** Stores system wide constants to avoid unnessecary reconstruction. */
   ArithConstants d_constants;

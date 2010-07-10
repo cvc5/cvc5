@@ -231,7 +231,7 @@ protected:
     d_facts.pop_front();
     Debug("theory") << "Theory::get() => " << fact
                     << "(" << d_facts.size() << " left)" << std::endl;
-    d_out->newFact(fact);
+    //d_out->newFact(fact);
     return fact;
   }
 
