@@ -8,10 +8,10 @@
 ./autogen.sh
 ./configure competition
 make
-strip bin/cvc4
+strip builds/bin/cvc4
 make check
 mkdir cvc4-1.0a0-smtcomp2010
 cp smtcomp2010-runscript cvc4-smtcomp2010/run
 chmod 755 cvc4-smtcomp2010/run
-cp bin/cvc4 cvc4-smtcomp2010/cvc4
+cp builds/bin/cvc4 cvc4-smtcomp2010/cvc4
 tar cfzv cvc4-1.0a0-smtcomp2010
