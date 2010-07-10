@@ -1,0 +1,3 @@
+#!/bin/bash
+#
+exec ./cvc4 --lang smt2 | tr '[A-Z]' '[a-z]'

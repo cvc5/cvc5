@@ -2,14 +2,16 @@
 #
 # This is the version submitted to SMT-COMP 2010.
 #
-# It was checked out, clean, then compiled with this script.
+# It was checked out, clean, then compiled with this
+# script on goedel.cims.nyu.edu.
 #
 ./autogen.sh
 ./configure competition
 make
 strip bin/cvc4
 make check
-mkdir cvc4-smtcomp2010
+mkdir cvc4-1.0a0-smtcomp2010
 cp smtcomp2010-runscript cvc4-smtcomp2010/run
+chmod 755 cvc4-smtcomp2010/run
 cp bin/cvc4 cvc4-smtcomp2010/cvc4
-tar cfzv cvc4-smtcomp2010
+tar cfzv cvc4-1.0a0-smtcomp2010
