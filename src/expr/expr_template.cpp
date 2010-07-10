@@ -138,6 +138,16 @@ bool Expr::operator<(const Expr& e) const {
   return *d_node < *e.d_node;
 }
 
+bool Expr::operator>(const Expr& e) const {
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
+  if(isNull() && !e.isNull()) {
+    return true;
+  }
+  ExprManagerScope ems(*this);
+  return *d_node > *e.d_node;
+}
+
 Kind Expr::getKind() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");

@@ -245,6 +245,39 @@ public:
   }
 
   /**
+   * We compare by expression ids so, keeping things deterministic and having
+   * that subexpressions have to be smaller than the enclosing expressions.
+   * @param node the node to compare to
+   * @return true if this expression is greater
+   */
+  template <bool ref_count_1>
+  inline bool operator>(const NodeTemplate<ref_count_1>& node) const {
+    return d_nv->d_id > node.d_nv->d_id;
+  }
+
+  /**
+   * We compare by expression ids so, keeping things deterministic and having
+   * that subexpressions have to be smaller than the enclosing expressions.
+   * @param node the node to compare to
+   * @return true if this expression is smaller than or equal to
+   */
+  template <bool ref_count_1>
+  inline bool operator<=(const NodeTemplate<ref_count_1>& node) const {
+    return d_nv->d_id <= node.d_nv->d_id;
+  }
+
+  /**
+   * We compare by expression ids so, keeping things deterministic and having
+   * that subexpressions have to be smaller than the enclosing expressions.
+   * @param node the node to compare to
+   * @return true if this expression is greater than or equal to
+   */
+  template <bool ref_count_1>
+  inline bool operator>=(const NodeTemplate<ref_count_1>& node) const {
+    return d_nv->d_id >= node.d_nv->d_id;
+  }
+
+  /**
    * Returns the i-th child of this node.
    * @param i the index of the child
    * @return the node representing the i-th child

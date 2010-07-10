@@ -160,6 +160,39 @@ public:
   bool operator<(const Expr& e) const;
 
   /**
+   * Order comparison operator. The only invariant on the order of expressions
+   * is that the expressions that were created sooner will be smaller in the
+   * ordering than all the expressions created later. Null expression is the
+   * smallest element of the ordering. The behavior of the operator is
+   * undefined if the expressions come from two different expression managers.
+   * @param e the expression to compare to
+   * @return true if this expression is greater than the given one
+   */
+  bool operator>(const Expr& e) const;
+
+  /**
+   * Order comparison operator. The only invariant on the order of expressions
+   * is that the expressions that were created sooner will be smaller in the
+   * ordering than all the expressions created later. Null expression is the
+   * smallest element of the ordering. The behavior of the operator is
+   * undefined if the expressions come from two different expression managers.
+   * @param e the expression to compare to
+   * @return true if this expression is smaller or equal to the given one
+   */
+  bool operator<=(const Expr& e) const { return !(*this > e); }
+
+  /**
+   * Order comparison operator. The only invariant on the order of expressions
+   * is that the expressions that were created sooner will be smaller in the
+   * ordering than all the expressions created later. Null expression is the
+   * smallest element of the ordering. The behavior of the operator is
+   * undefined if the expressions come from two different expression managers.
+   * @param e the expression to compare to
+   * @return true if this expression is greater or equal to the given one
+   */
+  bool operator>=(const Expr& e) const { return !(*this < e); }
+
+  /**
    * Returns the kind of the expression (AND, PLUS ...).
    * @return the kind of the expression
    */
