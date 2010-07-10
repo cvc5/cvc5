@@ -71,7 +71,7 @@ void SatSolver::explainPropagation(SatLiteral l, SatClause& explanation) {
   Debug("prop-explain") << "explainPropagation(" << lNode.toString() << ")" << std::endl;
   Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
   Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation.toString() << std::endl;
-  if (lNode.getKind() == kind::AND) {
+  if (theoryExplanation.getKind() == kind::AND) {
     Node::const_iterator it = theoryExplanation.begin();
     Node::const_iterator it_end = theoryExplanation.end();
     explanation.push(l);
