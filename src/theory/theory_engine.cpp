@@ -132,36 +132,40 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
 }
 
 
+Theory* TheoryEngine::theoryOf(TypeNode t) {
+  // FIXME: we don't yet have a Type-to-Theory map.  When we do,
+  // look up the type of the var and return that Theory (?)
+
+  // The following JUST hacks around this lack of a table
+  Kind k = t.getKind();
+  if(k == kind::TYPE_CONSTANT) {
+    switch(TypeConstant tc = t.getConst<TypeConstant>()) {
+    case BOOLEAN_TYPE:
+      return d_theoryOfTable[kind::CONST_BOOLEAN];
+    case INTEGER_TYPE:
+      return d_theoryOfTable[kind::CONST_INTEGER];
+    case REAL_TYPE:
+      return d_theoryOfTable[kind::CONST_RATIONAL];
+    case KIND_TYPE:
+    default:
+      Unhandled(tc);
+    }
+  }
+
+  return d_theoryOfTable[k];
+}
+
+
 Theory* TheoryEngine::theoryOf(TNode n) {
   Kind k = n.getKind();
 
   Assert(k >= 0 && k < kind::LAST_KIND);
 
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
-    // FIXME: we don't yet have a Type-to-Theory map.  When we do,
-    // look up the type of the var and return that Theory (?)
-
-    //The following JUST hacks around this lack of a table
-    TypeNode t = n.getType();
-    Kind k = t.getKind();
-    if(k == kind::TYPE_CONSTANT) {
-      switch(TypeConstant tc = t.getConst<TypeConstant>()) {
-      case BOOLEAN_TYPE:
-        return d_theoryOfTable[kind::CONST_BOOLEAN];
-      case INTEGER_TYPE:
-        return d_theoryOfTable[kind::CONST_INTEGER];
-      case REAL_TYPE:
-        return d_theoryOfTable[kind::CONST_RATIONAL];
-      case KIND_TYPE:
-      default:
-        Unhandled(tc);
-      }
-    }
-
-    return d_theoryOfTable[k];
+    return theoryOf(n.getType());
   } else if(k == kind::EQUAL) {
     // equality is special: use LHS
-    return theoryOf(n[0]);
+    return theoryOf(n[0].getType());
   } else {
     // use our Kind-to-Theory mapping
     return d_theoryOfTable[k];

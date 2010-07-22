@@ -247,6 +247,13 @@ public:
   }
 
   /**
+   * Get the theory associated to a given TypeNode.
+   *
+   * @returns the theory owning the type
+   */
+  theory::Theory* theoryOf(TypeNode t);
+
+  /**
    * Get the theory associated to a given Node.
    *
    * @returns the theory, or NULL if the TNode is

@@ -364,6 +364,13 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
     case AND:
       nodeLit = handleAnd(node);
       break;
+    case EQUAL:
+      if(node[0].getType().isBoolean() && node[1].getType().isBoolean()) {
+        nodeLit = handleIff(node[0].iffNode(node[1]));
+      } else {
+        nodeLit = convertAtom(node);
+      }
+      break;
     default:
       {
         //TODO make sure this does not contain any boolean substructure
