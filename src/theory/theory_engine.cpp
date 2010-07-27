@@ -165,7 +165,7 @@ Theory* TheoryEngine::theoryOf(TNode n) {
     return theoryOf(n.getType());
   } else if(k == kind::EQUAL) {
     // equality is special: use LHS
-    return theoryOf(n[0].getType());
+    return theoryOf(n[0]);
   } else {
     // use our Kind-to-Theory mapping
     return d_theoryOfTable[k];

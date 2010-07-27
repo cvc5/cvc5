@@ -206,7 +206,15 @@ term[CVC4::Expr& expr]
 } 
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK 
-    { if( !PARSER_STATE->strictModeEnabled() && 
+    { 
+      if( kind == CVC4::kind::EQUAL &&
+          args.size() > 0 &&
+          args[0].getType() == EXPR_MANAGER->booleanType() ) {
+        /* Use IFF for boolean equalities. */
+        kind = CVC4::kind::IFF;
+      }
+
+      if( !PARSER_STATE->strictModeEnabled() && 
           (kind == CVC4::kind::AND || kind == CVC4::kind::OR) && 
           args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.

@@ -32,12 +32,21 @@ namespace builtin {
 class EqualityTypeRule {
   public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) throw (TypeCheckingExceptionPrivate) {
+    TypeNode booleanType = nodeManager->booleanType();
+
     if( check ) {
-      if (n[0].getType(check) != n[1].getType(check)) {
+      TypeNode lhsType = n[0].getType(check);
+      TypeNode rhsType = n[1].getType(check);
+
+      if ( lhsType != rhsType ) {
         throw TypeCheckingExceptionPrivate(n, "Left and right hand side of the equation are not of the same type");
       }
+
+      if ( lhsType == booleanType ) {
+        throw TypeCheckingExceptionPrivate(n, "equality between two boolean terms (use IFF instead)");
+      }
     }
-    return nodeManager->booleanType();
+    return booleanType;
   }
 };
 
