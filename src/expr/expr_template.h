@@ -224,10 +224,31 @@ public:
    */
   Expr getOperator() const;
 
-  /** Returns the type of the expression, if it has been computed.
-   * Returns NULL if the type of the expression is not known.
+  /**
+   * Get the type for this Expr and optionally do type checking.
+   *
+   * Initial type computation will be near-constant time if
+   * type checking is not requested. Results are memoized, so that
+   * subsequent calls to getType() without type checking will be
+   * constant time.
+   *
+   * Initial type checking is linear in the size of the expression.
+   * Again, the results are memoized, so that subsequent calls to
+   * getType(), with or without type checking, will be constant
+   * time.
+   *
+   * NOTE: A TypeCheckingException can be thrown even when type
+   * checking is not requested. getType() will always return a
+   * valid and correct type and, thus, an exception will be thrown
+   * when no valid or correct type can be computed (e.g., if the
+   * arguments to a bit-vector operation aren't bit-vectors). When
+   * type checking is not requested, getType() will do the minimum
+   * amount of checking required to return a valid result.
+   *
+   * @param check whether we should check the type as we compute it 
+   * (default: false)
    */
-  Type getType() const throw (TypeCheckingException);
+  Type getType(bool check = false) const throw (TypeCheckingException);
 
   /**
    * Returns the string representation of the expression.

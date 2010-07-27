@@ -27,30 +27,35 @@ namespace boolean {
 
 class BooleanTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     TypeNode booleanType = nodeManager->booleanType();
-    TNode::iterator child_it = n.begin();
-    TNode::iterator child_it_end = n.end();
-    for(; child_it != child_it_end; ++child_it)
-      if((*child_it).getType() != booleanType) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a Boolean subexpression");
+    if( check ) {
+      TNode::iterator child_it = n.begin();
+      TNode::iterator child_it_end = n.end();
+      for(; child_it != child_it_end; ++child_it) {
+        if((*child_it).getType(check) != booleanType) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a Boolean subexpression");
+        }
       }
+    }
     return booleanType;
   }
 };
 
 class IteTypeRule {
   public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode booleanType = nodeManager->booleanType();
-    if (n[0].getType() != booleanType) {
-      throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
-    }
-    TypeNode iteType = n[1].getType();
-    if (iteType != n[2].getType()) {
-      throw TypeCheckingExceptionPrivate(n, "both branches of the ITE must be of the same type");
+    TypeNode iteType = n[1].getType(check);
+    if( check ) {
+      TypeNode booleanType = nodeManager->booleanType();
+      if (n[0].getType(check) != booleanType) {
+        throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
+      }
+      if (iteType != n[2].getType(check)) {
+        throw TypeCheckingExceptionPrivate(n, "both branches of the ITE must be of the same type");
+      }
     }
     return iteType;
   }

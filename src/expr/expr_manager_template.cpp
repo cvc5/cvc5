@@ -226,11 +226,36 @@ SortType ExprManager::mkSort(const std::string& name) const {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name)));
 }
 
-Type ExprManager::getType(const Expr& e) throw (TypeCheckingException) {
+/**
+ * Get the type for the given Expr and optionally do type checking.
+ *
+ * Initial type computation will be near-constant time if
+ * type checking is not requested. Results are memoized, so that
+ * subsequent calls to getType() without type checking will be
+ * constant time.
+ *
+ * Initial type checking is linear in the size of the expression.
+ * Again, the results are memoized, so that subsequent calls to
+ * getType(), with or without type checking, will be constant
+ * time.
+ *
+ * NOTE: A TypeCheckingException can be thrown even when type
+ * checking is not requested. getType() will always return a
+ * valid and correct type and, thus, an exception will be thrown
+ * when no valid or correct type can be computed (e.g., if the
+ * arguments to a bit-vector operation aren't bit-vectors). When
+ * type checking is not requested, getType() will do the minimum
+ * amount of checking required to return a valid result.
+ *
+ * @param n the Expr for which we want a type
+ * @param check whether we should check the type as we compute it 
+ * (default: false)
+ */
+Type ExprManager::getType(const Expr& e, bool check) throw (TypeCheckingException) {
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
-    t = Type(d_nodeManager, new TypeNode(d_nodeManager->getType(e.getNode())));
+    t = Type(d_nodeManager, new TypeNode(d_nodeManager->getType(e.getNode(), check)));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
   }

@@ -181,10 +181,10 @@ Expr Expr::getOperator() const {
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
-Type Expr::getType() const throw (TypeCheckingException) {
+Type Expr::getType(bool check) const throw (TypeCheckingException) {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_exprManager->getType(*this);
+  return d_exprManager->getType(*this, check);
 }
 
 std::string Expr::toString() const {

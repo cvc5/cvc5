@@ -18,6 +18,8 @@
 
 #include "cvc4_private.h"
 
+#include <algorithm>
+
 #ifndef __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
 #define __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
 
@@ -27,7 +29,7 @@ namespace bv {
 
 class BitVectorConstantTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
   }
@@ -35,12 +37,14 @@ public:
 
 class BitVectorCompRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode lhs = n[0].getType();
-    TypeNode rhs = n[1].getType();
-    if (!lhs.isBitVector() || lhs != rhs) {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
+    if( check ) {
+      TypeNode lhs = n[0].getType(check);
+      TypeNode rhs = n[1].getType(check);
+      if (!lhs.isBitVector() || lhs != rhs) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
+      }
     }
     return nodeManager->mkBitVectorType(1);
   }
@@ -48,18 +52,18 @@ public:
 
 class BitVectorArithRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     unsigned maxWidth = 0;
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
     // TODO: optimize unary neg
     for (; it != it_end; ++ it) {
-      TypeNode t = (*it).getType();
-      if (!t.isBitVector()) {
+      TypeNode t = (*it).getType(check);
+      if (check && !t.isBitVector()) {
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
       }
-      if (maxWidth < t.getBitVectorSize()) maxWidth = t.getBitVectorSize();
+      maxWidth = std::max( maxWidth, t.getBitVectorSize() );
     }
     return nodeManager->mkBitVectorType(maxWidth);
   }
@@ -67,17 +71,19 @@ public:
 
 class BitVectorFixedWidthTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     TNode::iterator it = n.begin();
-    TNode::iterator it_end = n.end();
-    TypeNode t = (*it).getType();
-    if (!t.isBitVector()) {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
-    }
-    for (++ it; it != it_end; ++ it) {
-      if ((*it).getType() != t) {
-        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
+    TypeNode t = (*it).getType(check);
+    if( check ) {
+      if (!t.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
+      }
+      TNode::iterator it_end = n.end();
+      for (++ it; it != it_end; ++ it) {
+        if ((*it).getType(check) != t) {
+          throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
+        }
       }
     }
     return t;
@@ -86,15 +92,17 @@ public:
 
 class BitVectorPredicateTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode lhsType = n[0].getType();
-    if (!lhsType.isBitVector()) {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
-    }
-    TypeNode rhsType = n[1].getType();
-    if (lhsType != rhsType) {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
+    if( check ) {
+      TypeNode lhsType = n[0].getType(check);
+      if (!lhsType.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
+      }
+      TypeNode rhsType = n[1].getType(check);
+      if (lhsType != rhsType) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms of the same width");
+      }
     }
     return nodeManager->booleanType();
   }
@@ -102,18 +110,25 @@ public:
 
 class BitVectorExtractTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode t = n[0].getType();
-    if (!t.isBitVector()) {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
-    }
     BitVectorExtract extractInfo = n.getOperator().getConst<BitVectorExtract>();
+
+    // NOTE: We're throwing a type-checking exception here even
+    // if check is false, bc if we allow high < low the resulting
+    // type will be illegal
     if (extractInfo.high < extractInfo.low) {
       throw TypeCheckingExceptionPrivate(n, "high extract index is smaller than the low extract index");
     }
-    if (extractInfo.high >= t.getBitVectorSize()) {
-      throw TypeCheckingExceptionPrivate(n, "high extract index is bigger than the size of the bit-vector");
+
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+      }
+      if (extractInfo.high >= t.getBitVectorSize()) {
+        throw TypeCheckingExceptionPrivate(n, "high extract index is bigger than the size of the bit-vector");
+      }
     }
     return nodeManager->mkBitVectorType(extractInfo.high - extractInfo.low + 1);
   }
@@ -121,13 +136,16 @@ public:
 
 class BitVectorConcatRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     unsigned size = 0;
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
     for (; it != it_end; ++ it) {
-       TypeNode t = n[0].getType();
+       TypeNode t = n[0].getType(check);
+       // NOTE: We're throwing a type-checking exception here even
+       // when check is false, bc if we don't check that the arguments
+       // are bit-vectors the result type will be inaccurate
        if (!t.isBitVector()) {
          throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
        }
@@ -139,9 +157,12 @@ public:
 
 class BitVectorRepeatTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode t = n[0].getType();
+    TypeNode t = n[0].getType(check);
+    // NOTE: We're throwing a type-checking exception here even
+    // when check is false, bc if the argument isn't a bit-vector
+    // the result type will be inaccurate
     if (!t.isBitVector()) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
     }
@@ -152,9 +173,12 @@ public:
 
 class BitVectorExtendTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode t = n[0].getType();
+    TypeNode t = n[0].getType(check);
+    // NOTE: We're throwing a type-checking exception here even
+    // when check is false, bc if the argument isn't a bit-vector
+    // the result type will be inaccurate
     if (!t.isBitVector()) {
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
     }

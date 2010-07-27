@@ -221,10 +221,12 @@ class NodeManager {
 
   // attribute tags
   struct TypeTag {};
+  struct TypeCheckedTag;
 
   // NodeManager's attributes.  These aren't exposed outside of this
   // class; use the getters.
   typedef expr::Attribute<TypeTag, TypeNode> TypeAttr;
+  typedef expr::Attribute<TypeCheckedTag, bool> TypeCheckedAttr;
 
   /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
    *
@@ -527,11 +529,32 @@ public:
   inline TypeNode mkSort(const std::string& name);
 
   /**
-   * Get the type for the given node.
+   * Get the type for the given node and optionally do type checking.
+   *
+   * Initial type computation will be near-constant time if
+   * type checking is not requested. Results are memoized, so that
+   * subsequent calls to getType() without type checking will be
+   * constant time.
+   *
+   * Initial type checking is linear in the size of the expression.
+   * Again, the results are memoized, so that subsequent calls to
+   * getType(), with or without type checking, will be constant
+   * time.
+   *
+   * NOTE: A TypeCheckingException can be thrown even when type
+   * checking is not requested. getType() will always return a
+   * valid and correct type and, thus, an exception will be thrown
+   * when no valid or correct type can be computed (e.g., if the
+   * arguments to a bit-vector operation aren't bit-vectors). When
+   * type checking is not requested, getType() will do the minimum
+   * amount of checking required to return a valid result.
+   *
+   * @param n the Node for which we want a type
+   * @param check whether we should check the type as we compute it 
+   * (default: false)
    */
-  TypeNode getType(TNode n)
+  TypeNode getType(TNode n, bool check = false)
     throw (TypeCheckingExceptionPrivate, AssertionException);
-
 };
 
 /**
@@ -888,18 +911,21 @@ inline Node* NodeManager::mkVarPtr(const std::string& name,
 inline Node NodeManager::mkVar(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 
 inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   n->setAttribute(TypeAttr(), type);
+  n->setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 
 inline Node NodeManager::mkSkolem(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::SKOLEM);
   n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 

@@ -28,7 +28,7 @@ namespace arith {
 
 class ArithConstantTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     if (n.getKind() == kind::CONST_RATIONAL) return nodeManager->realType();
     return nodeManager->integerType();
@@ -37,7 +37,7 @@ public:
 
 class ArithOperatorTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
     TypeNode integerType = nodeManager->integerType();
     TypeNode realType = nodeManager->realType();
@@ -45,10 +45,17 @@ public:
     TNode::iterator child_it_end = n.end();
     bool isInteger = true;
     for(; child_it != child_it_end; ++child_it) {
-      TypeNode childType = (*child_it).getType();
-      if (!childType.isInteger()) isInteger = false;
-      if(childType != integerType && childType != realType) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic subterm");
+      TypeNode childType = (*child_it).getType(check);
+      if (!childType.isInteger()) {
+        isInteger = false;
+        if( !check ) { // if we're not checking, nothing left to do
+          break;
+        }
+      }
+      if( check ) {
+        if(childType != integerType && childType != realType) {
+          throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic subterm");
+        }
       }
     }
     return (isInteger ? integerType : realType);
@@ -57,17 +64,19 @@ public:
 
 class ArithPredicateTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate) {
-    TypeNode integerType = nodeManager->integerType();
-    TypeNode realType = nodeManager->realType();
-    TypeNode lhsType = n[0].getType();
-    if (lhsType != integerType && lhsType != realType) {
-      throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic term on the left-hand-side");
-    }
-    TypeNode rhsType = n[1].getType();
-    if (rhsType != integerType && rhsType != realType) {
-      throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic term on the right-hand-side");
+    if( check ) {
+      TypeNode integerType = nodeManager->integerType();
+      TypeNode realType = nodeManager->realType();
+      TypeNode lhsType = n[0].getType(check);
+      if (lhsType != integerType && lhsType != realType) {
+        throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic term on the left-hand-side");
+      }
+      TypeNode rhsType = n[1].getType(check);
+      if (rhsType != integerType && rhsType != realType) {
+        throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic term on the right-hand-side");
+      }
     }
     return nodeManager->booleanType();
   }

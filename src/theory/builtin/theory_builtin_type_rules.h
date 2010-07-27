@@ -31,9 +31,11 @@ namespace builtin {
 
 class EqualityTypeRule {
   public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n) throw (TypeCheckingExceptionPrivate) {
-    if (n[0].getType() != n[1].getType()) {
-      throw TypeCheckingExceptionPrivate(n, "Left and right hand side of the equation are not of the same type");
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) throw (TypeCheckingExceptionPrivate) {
+    if( check ) {
+      if (n[0].getType(check) != n[1].getType(check)) {
+        throw TypeCheckingExceptionPrivate(n, "Left and right hand side of the equation are not of the same type");
+      }
     }
     return nodeManager->booleanType();
   }
@@ -41,13 +43,15 @@ class EqualityTypeRule {
 
 class DistinctTypeRule {
 public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n) {
-    TNode::iterator child_it = n.begin();
-    TNode::iterator child_it_end = n.end();
-    TypeNode firstType = (*child_it).getType();
-    for (++child_it; child_it != child_it_end; ++child_it) {
-      if ((*child_it).getType() != firstType) {
-        throw TypeCheckingExceptionPrivate(n, "Not all arguments are of the same type");
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    if( check ) {
+      TNode::iterator child_it = n.begin();
+      TNode::iterator child_it_end = n.end();
+      TypeNode firstType = (*child_it).getType(check);
+      for (++child_it; child_it != child_it_end; ++child_it) {
+        if ((*child_it).getType() != firstType) {
+          throw TypeCheckingExceptionPrivate(n, "Not all arguments are of the same type");
+        }
       }
     }
     return nodeManager->booleanType();

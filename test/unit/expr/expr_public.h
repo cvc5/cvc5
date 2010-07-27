@@ -265,9 +265,11 @@ public:
   void testGetType() {
     /* Type getType(); */
 
-    TS_ASSERT(a_bool->getType() == d_em->booleanType());
-    TS_ASSERT(b_bool->getType() == d_em->booleanType());
-    TS_ASSERT_THROWS(c_bool_mult->getType(), TypeCheckingException);
+    TS_ASSERT(a_bool->getType(false) == d_em->booleanType());
+    TS_ASSERT(a_bool->getType(true) == d_em->booleanType());
+    TS_ASSERT(b_bool->getType(false) == d_em->booleanType());
+    TS_ASSERT(b_bool->getType(true) == d_em->booleanType());
+    TS_ASSERT_THROWS(c_bool_mult->getType(true), TypeCheckingException);
 // These need better support for operators
 //    TS_ASSERT(mult_op->getType().isNull());
 //    TS_ASSERT(plus_op->getType().isNull());

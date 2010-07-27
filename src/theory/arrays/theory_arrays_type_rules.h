@@ -26,30 +26,34 @@ namespace theory {
 namespace arrays {
 
 struct ArraySelectTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate) {
     Assert(n.getKind() == kind::SELECT);
-    TypeNode arrayType = n[0].getType();
-    TypeNode indexType = n[1].getType();
-    if(arrayType.getArrayIndexType() != indexType) {
-      throw TypeCheckingExceptionPrivate(n, "array select not indexed with correct type for array");
+    TypeNode arrayType = n[0].getType(check);
+    if( check ) {
+      TypeNode indexType = n[1].getType(check);
+      if(arrayType.getArrayIndexType() != indexType) {
+        throw TypeCheckingExceptionPrivate(n, "array select not indexed with correct type for array");
+      }
     }
     return arrayType.getArrayConstituentType();
   }
 };/* struct ArraySelectTypeRule */
 
 struct ArrayStoreTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n)
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate) {
     Assert(n.getKind() == kind::STORE);
-    TypeNode arrayType = n[0].getType();
-    TypeNode indexType = n[1].getType();
-    TypeNode valueType = n[2].getType();
-    if(arrayType.getArrayIndexType() != indexType) {
-      throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
-    }
-    if(arrayType.getArrayConstituentType() != valueType) {
-      throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");
+    TypeNode arrayType = n[0].getType(check);
+    if( check ) {
+      TypeNode indexType = n[1].getType(check);
+      TypeNode valueType = n[2].getType(check);
+      if(arrayType.getArrayIndexType() != indexType) {
+        throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
+      }
+      if(arrayType.getArrayConstituentType() != valueType) {
+        throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");
+      }
     }
     return arrayType;
   }

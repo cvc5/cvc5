@@ -221,7 +221,8 @@ public:
   SortType mkSort(const std::string& name) const;
 
   /** Get the type of an expression */
-  Type getType(const Expr& e) throw (TypeCheckingException);
+  Type getType(const Expr& e, bool check = false) 
+    throw (TypeCheckingException);
 
   // variables are special, because duplicates are permitted
   Expr mkVar(const std::string& name, const Type& type);
