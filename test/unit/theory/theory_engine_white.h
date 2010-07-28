@@ -96,7 +96,7 @@ public:
 
   RewriteResponse preRewrite(TNode n, bool topLevel) {
     if(s_expected.empty()) {
-      cout << std::endl << Expr::setdepth(-1)
+      cout << std::endl
            << "didn't expect anything more, but got" << std::endl
            << "     PRE  " << topLevel << " " << identify() << " " << n << std::endl;
     }
@@ -109,7 +109,7 @@ public:
        expected.d_theory != this ||
        expected.d_node != n ||
        expected.d_topLevel != topLevel) {
-      cout << std::endl << Expr::setdepth(-1)
+      cout << std::endl
            << "HAVE PRE  " << topLevel << " " << identify() << " " << n << std::endl
            << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ") << expected.d_topLevel << " " << expected.d_theory->identify() << " " << expected.d_node << std::endl << std::endl;
     }
@@ -124,7 +124,7 @@ public:
 
   RewriteResponse postRewrite(TNode n, bool topLevel) {
     if(s_expected.empty()) {
-      cout << std::endl << Expr::setdepth(-1)
+      cout << std::endl
            << "didn't expect anything more, but got" << std::endl
            << "     POST " << topLevel << " " << identify() << " " << n << std::endl;
     }
@@ -137,7 +137,7 @@ public:
        expected.d_theory != this ||
        expected.d_node != n ||
        expected.d_topLevel != topLevel) {
-      cout << std::endl << Expr::setdepth(-1)
+      cout << std::endl
            << "HAVE POST " << topLevel << " " << identify() << " " << n << std::endl
            << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ") << expected.d_topLevel << " " << expected.d_theory->identify() << " " << expected.d_node << std::endl << std::endl;
     }
@@ -208,7 +208,7 @@ public:
     d_theoryEngine->d_theoryOfTable.
       registerTheory(reinterpret_cast<theory::bv::TheoryBV*>(d_bv));
 
-    //Debug.on("theory-rewrite");
+    Debug.on("theory-rewrite");
   }
 
   void tearDown() {
@@ -294,55 +294,56 @@ public:
     // We WOULD expect that the commented-out calls were made, except
     // for the cache
     FakeTheory::expect(PRE, d_bool, n, true);
-    FakeTheory::expect(PRE, d_arith, f1eqf2, true);
-    FakeTheory::expect(PRE, d_uf, f1, true);
+    FakeTheory::expect(PRE, d_uf, f1eqf2, true);
+    FakeTheory::expect(PRE, d_uf, f1, false);
     FakeTheory::expect(PRE, d_builtin, f, true);
     FakeTheory::expect(POST, d_builtin, f, true);
     FakeTheory::expect(PRE, d_arith, one, true);
     FakeTheory::expect(POST, d_arith, one, true);
-    FakeTheory::expect(POST, d_uf, f1, true);
-    FakeTheory::expect(PRE, d_uf, f2, true);
+    FakeTheory::expect(POST, d_uf, f1, false);
+    FakeTheory::expect(PRE, d_uf, f2, false);
     //FakeTheory::expect(PRE, d_builtin, f, true);
     //FakeTheory::expect(POST, d_builtin, f, true);
     FakeTheory::expect(PRE, d_arith, two, true);
     FakeTheory::expect(POST, d_arith, two, true);
-    FakeTheory::expect(POST, d_uf, f2, true);
-    FakeTheory::expect(POST, d_arith, f1eqf2, true);
+    FakeTheory::expect(POST, d_uf, f2, false);
+    FakeTheory::expect(POST, d_uf, f1eqf2, true);
     FakeTheory::expect(PRE, d_bool, or1, false);
     FakeTheory::expect(PRE, d_bool, and1, false);
-    FakeTheory::expect(PRE, d_arith, ffxeqgy, true);
-    FakeTheory::expect(PRE, d_uf, ffx, true);
+    FakeTheory::expect(PRE, d_uf, ffxeqgy, true);
+    FakeTheory::expect(PRE, d_uf, ffx, false);
     FakeTheory::expect(PRE, d_uf, fx, false);
     //FakeTheory::expect(PRE, d_builtin, f, true);
     //FakeTheory::expect(POST, d_builtin, f, true);
     FakeTheory::expect(PRE, d_arith, x, true);
     FakeTheory::expect(POST, d_arith, x, true);
     FakeTheory::expect(POST, d_uf, fx, false);
-    FakeTheory::expect(POST, d_uf, ffx, true);
-    FakeTheory::expect(PRE, d_uf, gy, true);
+    FakeTheory::expect(POST, d_uf, ffx, false);
+    FakeTheory::expect(PRE, d_uf, gy, false);
     FakeTheory::expect(PRE, d_builtin, g, true);
     FakeTheory::expect(POST, d_builtin, g, true);
     FakeTheory::expect(PRE, d_arith, y, true);
     FakeTheory::expect(POST, d_arith, y, true);
-    FakeTheory::expect(POST, d_uf, gy, true);
-    FakeTheory::expect(POST, d_arith, ffxeqgy, true);
+    FakeTheory::expect(POST, d_uf, gy, false);
+    FakeTheory::expect(POST, d_uf, ffxeqgy, true);
     FakeTheory::expect(PRE, d_uf, z1eqz2, true);
     FakeTheory::expect(PRE, d_uf, z1, false);
     FakeTheory::expect(POST, d_uf, z1, false);
     FakeTheory::expect(PRE, d_uf, z2, false);
     FakeTheory::expect(POST, d_uf, z2, false);
     FakeTheory::expect(POST, d_uf, z1eqz2, true);
-    //FakeTheory::expect(PRE, d_uf, ffx, true);
+    // tricky one: ffx is in cache but for a non-topLevel !
+    FakeTheory::expect(PRE, d_uf, ffx, true);
     //FakeTheory::expect(PRE, d_uf, fx, false);
     //FakeTheory::expect(POST, d_uf, fx, false);
-    //FakeTheory::expect(POST, d_uf, ffx, true);
+    FakeTheory::expect(POST, d_uf, ffx, true);
     FakeTheory::expect(POST, d_bool, and1, false);
-    FakeTheory::expect(PRE, d_arith, ffxeqf1, true);
+    FakeTheory::expect(PRE, d_uf, ffxeqf1, true);
     //FakeTheory::expect(PRE, d_uf, ffx, false);
     //FakeTheory::expect(POST, d_uf, ffx, false);
     //FakeTheory::expect(PRE, d_uf, f1, false);
     //FakeTheory::expect(POST, d_uf, f1, false);
-    FakeTheory::expect(POST, d_arith, ffxeqf1, true);
+    FakeTheory::expect(POST, d_uf, ffxeqf1, true);
     FakeTheory::expect(POST, d_bool, or1, false);
     FakeTheory::expect(POST, d_bool, n, true);
     nOut = d_theoryEngine->rewrite(n);
