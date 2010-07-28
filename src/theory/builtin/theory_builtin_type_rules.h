@@ -25,6 +25,8 @@
 #include "expr/type_node.h"
 #include "expr/expr.h"
 
+#include <sstream>
+
 namespace CVC4 {
 namespace theory {
 namespace builtin {
@@ -39,7 +41,11 @@ class EqualityTypeRule {
       TypeNode rhsType = n[1].getType(check);
 
       if ( lhsType != rhsType ) {
-        throw TypeCheckingExceptionPrivate(n, "Left and right hand side of the equation are not of the same type");
+        std::stringstream ss;
+        ss << "Types do not match in equation ";
+        ss << "[" << lhsType << "<>" << rhsType << "]";
+        
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
 
       if ( lhsType == booleanType ) {

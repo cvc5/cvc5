@@ -155,7 +155,7 @@ protected:
    * @throws ParserException if an error is encountered during parsing.
    */
   virtual Command* parseCommand()
-    throw (ParserException, AssertionException) = 0;
+    throw (ParserException, TypeCheckingException, AssertionException) = 0;
 
   /**
    * Throws a <code>ParserException</code> with the given message.
@@ -171,7 +171,7 @@ protected:
    * @throws ParserException if an error is encountered during parsing.
    */
   virtual Expr parseExpr()
-    throw (ParserException, AssertionException) = 0;
+    throw (ParserException, TypeCheckingException, AssertionException) = 0;
 
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser) = 0;

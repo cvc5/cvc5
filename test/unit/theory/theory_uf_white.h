@@ -74,7 +74,8 @@ public:
   }
 
   void testPushPopSimple() {
-    Node x = d_nm->mkVar(*d_booleanType);
+    TypeNode t = d_nm->mkSort();
+    Node x = d_nm->mkVar(t);
     Node x_eq_x = x.eqNode(x);
 
     d_ctxt->push();

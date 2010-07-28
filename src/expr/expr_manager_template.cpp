@@ -77,7 +77,11 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode()));
+  try {
+    return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
+  }
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
@@ -88,8 +92,14 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(),
-                                             child2.getNode()));
+  try {
+    return Expr(this, d_nodeManager->mkNodePtr(kind, 
+                                               child1.getNode(),
+                                               child2.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), 
+                                e.getMessage());
+  }
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
@@ -101,7 +111,15 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(), child2.getNode(), child3.getNode()));
+  try {
+    return Expr(this, d_nodeManager->mkNodePtr(kind, 
+                                               child1.getNode(), 
+                                               child2.getNode(), 
+                                               child3.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), 
+                                e.getMessage());
+  }
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
@@ -113,9 +131,16 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(),
-                                          child2.getNode(), child3.getNode(),
-                                          child4.getNode()));
+  try {
+    return Expr(this, d_nodeManager->mkNodePtr(kind, 
+                                               child1.getNode(),
+                                               child2.getNode(), 
+                                               child3.getNode(),
+                                               child4.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), 
+                                e.getMessage());
+  }
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
@@ -128,9 +153,17 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 kind::kindToString(kind).c_str(),
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode(),
-                                          child2.getNode(), child3.getNode(),
-                                          child5.getNode()));
+  try {
+    return Expr(this, d_nodeManager->mkNodePtr(kind, 
+                                               child1.getNode(),
+                                               child2.getNode(), 
+                                               child3.getNode(),
+                                               child4.getNode(),
+                                               child5.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), 
+                                e.getMessage());
+  }
 }
 
 Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
@@ -150,7 +183,12 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
     nodes.push_back(it->getNode());
     ++it;
   }
-  return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
+  try {
+    return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), 
+                                e.getMessage());
+  }
 }
 
 Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
@@ -171,7 +209,11 @@ Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
     nodes.push_back(it->getNode());
     ++it;
   }
-  return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(), nodes));
+  try {
+    return Expr(this,d_nodeManager->mkNodePtr(opExpr.getNode(), nodes));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
+  }
 }
 
 /** Make a function type from domain to range. */

@@ -59,12 +59,12 @@ CvcInput::~CvcInput() {
 }
 
 Command* CvcInput::parseCommand()
-  throw (ParserException, AssertionException) {
+  throw (ParserException, TypeCheckingException, AssertionException) {
   return d_pCvcParser->parseCommand(d_pCvcParser);
 }
 
 Expr CvcInput::parseExpr()
-  throw (ParserException, AssertionException) {
+  throw (ParserException, TypeCheckingException, AssertionException) {
   return d_pCvcParser->parseExpr(d_pCvcParser);
 }
 

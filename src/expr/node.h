@@ -34,6 +34,7 @@
 #include "expr/metakind.h"
 #include "expr/expr.h"
 #include "util/Assert.h"
+#include "util/configuration.h"
 #include "util/output.h"
 
 namespace CVC4 {

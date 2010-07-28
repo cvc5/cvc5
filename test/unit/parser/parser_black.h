@@ -191,7 +191,7 @@ public:
     tryGoodInput("CHECKSAT FALSE;");
     tryGoodInput("a, b : BOOLEAN;");
     tryGoodInput("a, b : BOOLEAN; QUERY (a => b) AND a => b;");
-    tryGoodInput("T, U : TYPE; f : T -> U; x : T; CHECKSAT f(x) = x;");
+    tryGoodInput("T, U : TYPE; f : T -> U; x : T; y : U; CHECKSAT f(x) = y;");
     tryGoodInput("T : TYPE; x, y : T; a : BOOLEAN; QUERY (IF a THEN x ELSE y ENDIF) = x;");
     tryGoodInput("%% nothing but a comment");
     tryGoodInput("% a comment\nASSERT TRUE; %a command\n% another comment");

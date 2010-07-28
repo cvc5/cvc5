@@ -234,6 +234,11 @@ Command* Parser::nextCommand() throw(ParserException) {
     } catch(ParserException& e) {
       setDone();
       throw;
+    } catch(TypeCheckingException& e) {
+      setDone();
+      stringstream ss;
+      ss << e.getMessage() << ": " << e.getExpression();
+      parseError( ss.str() );
     }
   }
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
@@ -252,6 +257,11 @@ Expr Parser::nextExpression() throw(ParserException) {
     } catch(ParserException& e) {
       setDone();
       throw;
+    } catch(TypeCheckingException& e) {
+      setDone();
+      stringstream ss;
+      ss << e.getMessage() << ": " << e.getExpression();
+      parseError( ss.str() );
     }
   }
   Debug("parser") << "nextExpression() => " << result << std::endl;

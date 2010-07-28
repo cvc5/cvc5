@@ -261,10 +261,12 @@ public:
   }
 
   void testRewriterComplicated() {
+    try {
     Node x = d_nm->mkVar("x", d_nm->integerType());
     Node y = d_nm->mkVar("y", d_nm->realType());
-    Node z1 = d_nm->mkVar("z1", d_nm->mkSort("U"));
-    Node z2 = d_nm->mkVar("z2", d_nm->mkSort("U"));
+    TypeNode u = d_nm->mkSort("U");
+    Node z1 = d_nm->mkVar("z1", u);
+    Node z2 = d_nm->mkVar("z2", u);
     Node f = d_nm->mkVar("f", d_nm->mkFunctionType(d_nm->integerType(),
                                                    d_nm->integerType()));
     Node g = d_nm->mkVar("g", d_nm->mkFunctionType(d_nm->realType(),
@@ -279,10 +281,8 @@ public:
     Node gy = d_nm->mkNode(APPLY_UF, g, y);
     Node z1eqz2 = d_nm->mkNode(EQUAL, z1, z2);
     Node f1eqf2 = d_nm->mkNode(EQUAL, f1, f2);
-    Node ffxeqgy = d_nm->mkNode(EQUAL,
-                                ffx,
-                                gy);
-    Node and1 = d_nm->mkNode(AND, ffxeqgy, z1eqz2, ffx);
+    Node ffxeqgy = d_nm->mkNode(EQUAL, ffx, gy);
+    Node and1 = d_nm->mkNode(AND, ffxeqgy, z1eqz2);
     Node ffxeqf1 = d_nm->mkNode(EQUAL, ffx, f1);
     Node or1 = d_nm->mkNode(OR, and1, ffxeqf1);
     // make the expression:
@@ -350,5 +350,9 @@ public:
     TS_ASSERT(FakeTheory::nothingMoreExpected());
 
     TS_ASSERT_EQUALS(nOut, nExpected);
+    } catch( TypeCheckingExceptionPrivate& e ) {
+      cerr << "Type error: " << e.getMessage() << ": " << e.getNode();
+      throw;
+    }
   }
 };

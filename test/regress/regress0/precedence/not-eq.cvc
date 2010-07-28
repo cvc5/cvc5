@@ -1,7 +1,7 @@
 % EXPECT: VALID
 % Simple test for right precedence of = and NOT.
 
-A, B: BOOLEAN;
+A, B: INT;
 
 QUERY (NOT A = B) <=> (NOT (A = B));
 % EXIT: 20

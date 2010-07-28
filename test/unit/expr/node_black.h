@@ -40,6 +40,7 @@ private:
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode *d_booleanType;
+  TypeNode *d_realType;
 
 public:
 
@@ -48,6 +49,7 @@ public:
     d_nodeManager = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
+    d_realType = new TypeNode(d_nodeManager->realType());
   }
 
   void tearDown() {
@@ -265,8 +267,9 @@ public:
   void testEqNode() {
     /* Node eqNode(const Node& right) const; */
 
-    Node left = d_nodeManager->mkConst(true);
-    Node right = d_nodeManager->mkNode(NOT, d_nodeManager->mkConst(false));
+    TypeNode t = d_nodeManager->mkSort();
+    Node left = d_nodeManager->mkVar(t);
+    Node right = d_nodeManager->mkVar(t);
     Node eq = left.eqNode(right);
 
     TS_ASSERT(EQUAL == eq.getKind());
@@ -326,7 +329,7 @@ public:
     Node a = d_nodeManager->mkVar(*d_booleanType);
     Node b = d_nodeManager->mkVar(*d_booleanType);
 
-    Node cnd = d_nodeManager->mkNode(PLUS, a, b);
+    Node cnd = d_nodeManager->mkNode(OR, a, b);
     Node thenBranch = d_nodeManager->mkConst(true);
     Node elseBranch = d_nodeManager->mkNode(NOT, d_nodeManager->mkConst(false));
     Node ite = cnd.iteNode(thenBranch, elseBranch);
@@ -395,10 +398,13 @@ public:
     n = d_nodeManager->mkNode(IFF, a, b);
     TS_ASSERT(IFF == n.getKind());
 
-    n = d_nodeManager->mkNode(PLUS, a, b);
+    Node x = d_nodeManager->mkVar(*d_realType);
+    Node y = d_nodeManager->mkVar(*d_realType);
+
+    n = d_nodeManager->mkNode(PLUS, x, y);
     TS_ASSERT(PLUS == n.getKind());
 
-    n = d_nodeManager->mkNode(UMINUS, a);
+    n = d_nodeManager->mkNode(UMINUS, x);
     TS_ASSERT(UMINUS == n.getKind());
   }
 
@@ -408,7 +414,7 @@ public:
     TypeNode predType = d_nodeManager->mkFunctionType(sort, booleanType);
 
     Node f = d_nodeManager->mkVar(predType);
-    Node a = d_nodeManager->mkVar(booleanType);
+    Node a = d_nodeManager->mkVar(sort);
     Node fa = d_nodeManager->mkNode(kind::APPLY_UF, f, a);
 
     TS_ASSERT( fa.hasOperator() );
