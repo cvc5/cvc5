@@ -72,7 +72,8 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() throw(ParserException, AssertionException);
+  Command* parseCommand() 
+    throw(ParserException, TypeCheckingException, AssertionException);
 
   /**
    * Parse an expression from the input. Returns a null
@@ -80,7 +81,8 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() throw(ParserException, AssertionException);
+  Expr parseExpr() 
+    throw(ParserException, TypeCheckingException, AssertionException);
 
 private:
 

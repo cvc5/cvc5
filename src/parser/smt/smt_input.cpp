@@ -60,12 +60,12 @@ SmtInput::~SmtInput() {
 }
 
 Command* SmtInput::parseCommand()
-  throw (ParserException, AssertionException) {
+  throw (ParserException, TypeCheckingException, AssertionException) {
   return d_pSmtParser->parseCommand(d_pSmtParser);
 }
 
 Expr SmtInput::parseExpr()
-  throw (ParserException, AssertionException) {
+  throw (ParserException, TypeCheckingException, AssertionException) {
   return d_pSmtParser->parseExpr(d_pSmtParser);
 }
 
