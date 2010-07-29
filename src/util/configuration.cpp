@@ -19,66 +19,38 @@
  **/
 
 #include "util/configuration.h"
-#include "cvc4autoconfig.h"
+#include "util/configuration_private.h"
 
 using namespace std;
 
 namespace CVC4 {
 
 bool Configuration::isDebugBuild() {
-#ifdef CVC4_DEBUG
-  return true;
-#else /* CVC4_DEBUG */
-  return false;
-#endif /* CVC4_DEBUG */
+  return IS_DEBUG_BUILD;
 }
 
 bool Configuration::isTracingBuild() {
-#ifdef CVC4_TRACING
-  return true;
-#else /* CVC4_TRACING */
-  return false;
-#endif /* CVC4_TRACING */
+  return IS_TRACING_BUILD;
 }
 
 bool Configuration::isMuzzledBuild() {
-#ifdef CVC4_MUZZLE
-  return true;
-#else /* CVC4_MUZZLE */
-  return false;
-#endif /* CVC4_MUZZLE */
+  return IS_MUZZLED_BUILD;
 }
 
 bool Configuration::isAssertionBuild() {
-#ifdef CVC4_ASSERTIONS
-  return true;
-#else /* CVC4_ASSERTIONS */
-  return false;
-#endif /* CVC4_ASSERTIONS */
+  return IS_ASSERTIONS_BUILD;
 }
 
 bool Configuration::isCoverageBuild() {
-#ifdef CVC4_COVERAGE
-  return true;
-#else /* CVC4_COVERAGE */
-  return false;
-#endif /* CVC4_COVERAGE */
+  return IS_COVERAGE_BUILD;
 }
 
 bool Configuration::isProfilingBuild() {
-#ifdef CVC4_PROFILING
-  return true;
-#else /* CVC4_PROFILING */
-  return false;
-#endif /* CVC4_PROFILING */
+  return IS_PROFILING_BUILD;
 }
 
 bool Configuration::isCompetitionBuild() {
-#ifdef CVC4_COMPETITION_MODE
-  return true;
-#else /* CVC4_COMPETITION_MODE */
-  return false;
-#endif /* CVC4_COMPETITION_MODE */
+  return IS_COMPETITION_BUILD;
 }
 
 string Configuration::getPackageName() {
@@ -102,38 +74,15 @@ unsigned Configuration::getVersionRelease() {
 }
 
 string Configuration::about() {
-  return string("\
-This is a pre-release of CVC4.\n\
-Copyright (C) 2009, 2010\n\
-  The ACSys Group\n\
-  Courant Institute of Mathematical Sciences\n\
-  New York University\n\
-  New York, NY  10012  USA\n\n") +
-    (isBuiltWithCln() ? "\
-This CVC4 library uses CLN as its multi-precision arithmetic library.\n\n\
-CVC4 is open-source and is covered by the BSD license (modified).\n\
-However, CLN, the Class Library for Numbers, is covered by the GPL.  Thus\n\
-this CVC4 library cannot be used in proprietary applications.  Please\n\
-consult the CVC4 documentation for instructions about building a version\n\
-of CVC4 that links against GMP, and can be used in such applications.\n" :
-"This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
-CVC4 is open-source and is covered by the BSD license (modified).\n");
+  return CVC4_ABOUT_STRING;
 }
 
 bool Configuration::isBuiltWithGmp() {
-#ifdef CVC4_GMP_IMP
-  return true;
-#else /* CVC4_GMP_IMP */
-  return false;
-#endif /* CVC4_GMP_IMP */
+ return IS_GMP_BUILD;
 }
 
 bool Configuration::isBuiltWithCln() {
-#ifdef CVC4_CLN_IMP
-  return true;
-#else /* CVC4_CLN_IMP */
-  return false;
-#endif /* CVC4_CLN_IMP */
+ return IS_CLN_BUILD;
 }
 
 }/* CVC4 namespace */

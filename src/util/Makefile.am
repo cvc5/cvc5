@@ -24,6 +24,7 @@ libutil_la_SOURCES = \
 	result.h \
 	unique_id.h \
 	configuration.h \
+	configuration_private.h \
 	configuration.cpp \
 	rational.h \
 	integer.h \

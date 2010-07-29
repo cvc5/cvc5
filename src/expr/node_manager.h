@@ -37,6 +37,7 @@
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 #include "context/context.h"
+#include "util/configuration_private.h"
 
 namespace CVC4 {
 
@@ -788,7 +789,7 @@ inline TypeNode NodeManager::mkSort(const std::string& name) {
 template <unsigned nchild_thresh>
 inline Node NodeManager::doMkNode(NodeBuilder<nchild_thresh>& nb) {
   Node n = nb.constructNode();
-  if( Configuration::isDebugBuild() ) {
+  if( IS_DEBUG_BUILD ) {
     // force an immediate type check
     getType(n,true);
   }
@@ -798,7 +799,7 @@ inline Node NodeManager::doMkNode(NodeBuilder<nchild_thresh>& nb) {
 template <unsigned nchild_thresh>
 inline Node* NodeManager::doMkNodePtr(NodeBuilder<nchild_thresh>& nb) {
   Node* np = nb.constructNodePtr();
-  if( Configuration::isDebugBuild() ) {
+  if( IS_DEBUG_BUILD ) {
     // force an immediate type check
     getType(*np,true);
   }
