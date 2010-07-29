@@ -13,7 +13,11 @@
  **
  ** \brief White box testing of CVC4::theory::Theory.
  **
- ** White box testing of CVC4::theory::Theory.
+ ** White box testing of CVC4::theory::Theory.  This test creates "fake" theory
+ ** interfaces and injects them into TheoryEngine, so we can test TheoryEngine's
+ ** behavior without relying on independent theory behavior.  This is done in
+ ** TheoryEngineWhite::setUp() by means of the TheoryEngineWhite::registerTheory()
+ ** interface.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -61,11 +65,16 @@ class FakeOutputChannel : public OutputChannel {
 
 class FakeTheory;
 
+/** Expected rewrite calls can be PRE- or POST-rewrites */
 enum RewriteType {
   PRE,
   POST
 };/* enum RewriteType */
 
+/**
+ * Stores an "expected" rewrite call.  The main test class will set up a sequence
+ * of these RewriteItems, then do a rewrite, ensuring that the actual call sequence
+ * matches the sequence of expected RewriteItems. */
 struct RewriteItem {
   RewriteType d_type;
   FakeTheory* d_theory;
@@ -73,9 +82,21 @@ struct RewriteItem {
   bool d_topLevel;
 };/* struct RewriteItem */
 
+/**
+ * Fake Theory interface.  Looks like a Theory, but really all it does is note when and
+ * how rewriting behavior is requested.
+ */
 class FakeTheory : public Theory {
+  /**
+   * This fake theory class is equally useful for bool, uf, arith, etc.  It keeps an
+   * identifier to identify itself.
+   */
   std::string d_id;
 
+  /**
+   * The expected sequence of rewrite calls.  Filled by FakeTheory::expect() and consumed
+   * by FakeTheory::preRewrite() and FakeTheory::postRewrite().
+   */
   static std::deque<RewriteItem> s_expected;
 
 public:
@@ -84,16 +105,27 @@ public:
     d_id(id) {
   }
 
+  /** Register an expected rewrite call */
   static void expect(RewriteType type, FakeTheory* thy,
                      TNode n, bool topLevel) throw() {
     RewriteItem item = { type, thy, n, topLevel };
     s_expected.push_back(item);
   }
 
+  /**
+   * Returns whether the expected queue is empty.  This is done after a call into
+   * the rewriter to ensure that the actual set of observed rewrite calls completed
+   * the sequence of expected rewrite calls.
+   */
   static bool nothingMoreExpected() throw() {
     return s_expected.empty();
   }
 
+  /**
+   * Overrides Theory::preRewrite().  This "fake theory" version ensures that
+   * this actual, observed pre-rewrite call matches the next "expected" call set up
+   * by the test.
+   */
   RewriteResponse preRewrite(TNode n, bool topLevel) {
     if(s_expected.empty()) {
       cout << std::endl
@@ -122,6 +154,11 @@ public:
     return RewriteComplete(n);
   }
 
+  /**
+   * Overrides Theory::postRewrite().  This "fake theory" version ensures that
+   * this actual, observed post-rewrite call matches the next "expected" call set up
+   * by the test.
+   */
   RewriteResponse postRewrite(TNode n, bool topLevel) {
     if(s_expected.empty()) {
       cout << std::endl
@@ -161,7 +198,10 @@ public:
   void explain(TNode, Theory::Effort) { Unimplemented(); }
 };/* class FakeTheory */
 
+
+/* definition of the s_expected static field in FakeTheory; see above */
 std::deque<RewriteItem> FakeTheory::s_expected;
+
 
 /**
  * Test the TheoryEngine.
@@ -185,6 +225,7 @@ public:
 
     d_nullChannel = new FakeOutputChannel;
 
+    // create our theories
     d_builtin = new FakeTheory(d_ctxt, *d_nullChannel, "Builtin");
     d_bool = new FakeTheory(d_ctxt, *d_nullChannel, "Bool");
     d_uf = new FakeTheory(d_ctxt, *d_nullChannel, "UF");
@@ -192,9 +233,10 @@ public:
     d_arrays = new FakeTheory(d_ctxt, *d_nullChannel, "Arrays");
     d_bv = new FakeTheory(d_ctxt, *d_nullChannel, "BV");
 
+    // create the TheoryEngine
     d_theoryEngine = new TheoryEngine(d_ctxt);
 
-    // insert our fake versions into the theoryOf table
+    // insert our fake versions into the TheoryEngine's theoryOf table
     d_theoryEngine->d_theoryOfTable.
       registerTheory(reinterpret_cast<theory::builtin::TheoryBuiltin*>(d_builtin));
     d_theoryEngine->d_theoryOfTable.
@@ -208,7 +250,7 @@ public:
     d_theoryEngine->d_theoryOfTable.
       registerTheory(reinterpret_cast<theory::bv::TheoryBV*>(d_bv));
 
-    Debug.on("theory-rewrite");
+    //Debug.on("theory-rewrite");
   }
 
   void tearDown() {
@@ -242,6 +284,7 @@ public:
     Node nExpected = n;
     Node nOut;
 
+    // set up the expected sequence of calls
     FakeTheory::expect(PRE, d_arith, n, true);
     FakeTheory::expect(PRE, d_arith, x, false);
     FakeTheory::expect(POST, d_arith, x, false);
@@ -254,14 +297,20 @@ public:
     FakeTheory::expect(POST, d_arith, zero, false);
     FakeTheory::expect(POST, d_arith, zTimesZero, false);
     FakeTheory::expect(POST, d_arith, n, true);
+
+    // do a full rewrite; FakeTheory::preRewrite() and FakeTheory::postRewrite()
+    // assert that the rewrite calls that are made match the expected sequence
+    // set up above
     nOut = d_theoryEngine->rewrite(n);
+
+    // assert that we consumed the sequence of expected calls completely
     TS_ASSERT(FakeTheory::nothingMoreExpected());
 
+    // assert that the rewritten node is what we expect
     TS_ASSERT_EQUALS(nOut, nExpected);
   }
 
   void testRewriterComplicated() {
-    try {
     Node x = d_nm->mkVar("x", d_nm->integerType());
     Node y = d_nm->mkVar("y", d_nm->realType());
     TypeNode u = d_nm->mkSort("U");
@@ -291,8 +340,7 @@ public:
     Node nExpected = n;
     Node nOut;
 
-    // We WOULD expect that the commented-out calls were made, except
-    // for the cache
+    // set up the expected sequence of calls
     FakeTheory::expect(PRE, d_bool, n, true);
     FakeTheory::expect(PRE, d_uf, f1eqf2, true);
     FakeTheory::expect(PRE, d_uf, f1, false);
@@ -302,6 +350,7 @@ public:
     FakeTheory::expect(POST, d_arith, one, true);
     FakeTheory::expect(POST, d_uf, f1, false);
     FakeTheory::expect(PRE, d_uf, f2, false);
+    // these aren't called because they're in the rewrite cache
     //FakeTheory::expect(PRE, d_builtin, f, true);
     //FakeTheory::expect(POST, d_builtin, f, true);
     FakeTheory::expect(PRE, d_arith, two, true);
@@ -313,6 +362,7 @@ public:
     FakeTheory::expect(PRE, d_uf, ffxeqgy, true);
     FakeTheory::expect(PRE, d_uf, ffx, false);
     FakeTheory::expect(PRE, d_uf, fx, false);
+    // these aren't called because they're in the rewrite cache
     //FakeTheory::expect(PRE, d_builtin, f, true);
     //FakeTheory::expect(POST, d_builtin, f, true);
     FakeTheory::expect(PRE, d_arith, x, true);
@@ -332,13 +382,9 @@ public:
     FakeTheory::expect(PRE, d_uf, z2, false);
     FakeTheory::expect(POST, d_uf, z2, false);
     FakeTheory::expect(POST, d_uf, z1eqz2, true);
-    // tricky one: ffx is in cache but for a non-topLevel !
-    FakeTheory::expect(PRE, d_uf, ffx, true);
-    //FakeTheory::expect(PRE, d_uf, fx, false);
-    //FakeTheory::expect(POST, d_uf, fx, false);
-    FakeTheory::expect(POST, d_uf, ffx, true);
     FakeTheory::expect(POST, d_bool, and1, false);
     FakeTheory::expect(PRE, d_uf, ffxeqf1, true);
+    // these aren't called because they're in the rewrite cache
     //FakeTheory::expect(PRE, d_uf, ffx, false);
     //FakeTheory::expect(POST, d_uf, ffx, false);
     //FakeTheory::expect(PRE, d_uf, f1, false);
@@ -346,13 +392,16 @@ public:
     FakeTheory::expect(POST, d_uf, ffxeqf1, true);
     FakeTheory::expect(POST, d_bool, or1, false);
     FakeTheory::expect(POST, d_bool, n, true);
+
+    // do a full rewrite; FakeTheory::preRewrite() and FakeTheory::postRewrite()
+    // assert that the rewrite calls that are made match the expected sequence
+    // set up above
     nOut = d_theoryEngine->rewrite(n);
+
+    // assert that we consumed the sequence of expected calls completely
     TS_ASSERT(FakeTheory::nothingMoreExpected());
 
+    // assert that the rewritten node is what we expect
     TS_ASSERT_EQUALS(nOut, nExpected);
-    } catch( TypeCheckingExceptionPrivate& e ) {
-      cerr << "Type error: " << e.getMessage() << ": " << e.getNode();
-      throw;
-    }
   }
 };
