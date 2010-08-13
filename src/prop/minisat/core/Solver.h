@@ -17,34 +17,68 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Solver_h
-#define Solver_h
+#include "cvc4_private.h"
+
+#ifndef __CVC4__PROP__MINISAT__SOLVER_H
+#define __CVC4__PROP__MINISAT__SOLVER_H
+
+#include "context/context.h"
+#include "theory/theory.h"
 
 #include <cstdio>
+#include <cassert>
 
-#include "Vec.h"
-#include "Heap.h"
-#include "Alg.h"
+#include "../mtl/Vec.h"
+#include "../mtl/Heap.h"
+#include "../mtl/Alg.h"
 
 #include "SolverTypes.h"
-
 
 //=================================================================================================
 // Solver -- the main class:
 
+namespace CVC4 {
+namespace prop {
+
+class SatSolver;
+
+namespace minisat {
 
 class Solver {
+
+  /** The only CVC4 entry point to the private solver data */
+  friend class CVC4::prop::SatSolver;
+
+protected:
+
+  /** The pointer to the proxy that provides interfaces to the SMT engine */
+  SatSolver* proxy;
+
+  /** The context from the SMT solver */
+  context::Context* context;
+
 public:
 
     // Constructor/Destructor:
     //
-    Solver();
-    ~Solver();
+    Solver(SatSolver* proxy, context::Context* context);
+    CVC4_PUBLIC ~Solver();
 
     // Problem specification:
     //
-    Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable mode.
-    bool    addClause (vec<Lit>& ps);                           // Add a clause to the solver. NOTE! 'ps' may be shrunk by this method!
+    Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false); // Add a new variable with parameters specifying variable mode.
+
+    // Types of clauses
+    enum ClauseType {
+      // Clauses defined by the problem
+      CLAUSE_PROBLEM,
+      // Lemma clauses added by the theories
+      CLAUSE_LEMMA,
+      // Conflict clauses
+      CLAUSE_CONFLICT
+    };
+
+    bool    addClause (vec<Lit>& ps, ClauseType type);                           // Add a clause to the solver. NOTE! 'ps' may be shrunk by this method!
 
     // Solving:
     //
@@ -54,7 +88,7 @@ public:
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
 
     // Variable mode:
-    // 
+    //
     void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
     void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
 
@@ -122,12 +156,20 @@ protected:
     vec<vec<Clause*> >  watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     vec<char>           assigns;          // The current assignments (lbool:s stored as char:s).
     vec<char>           polarity;         // The preferred polarity of each variable.
+    vec<bool>           theory;           // Is the variable representing a theory atom
     vec<char>           decision_var;     // Declares if a variable is eligible for selection in the decision heuristic.
     vec<Lit>            trail;            // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
-    vec<Clause*>        reason;           // 'reason[var]' is the clause that implied the variables current value, or 'NULL' if none.
+    vec<Clause*>        lemmas;           // List of lemmas we added (context dependent)
+    vec<int>            lemmas_lim;       // Separator indices for different decision levels in 'lemmas'.
+    static Clause*      lazy_reason;      // The mark when we need to ask the theory engine for a reason
+    vec<Clause*>        reason;           // 'reason[var]' is the clause that implied the variables current value, lazy_reason if theory propagated, or 'NULL' if none.
+
+    Clause* getReason(Lit l);             // Returns the reason, or asks the theory for an explanation
+
     vec<int>            level;            // 'level[var]' contains the level at which the assignment was made.
     int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
+    int                 lhead;            // Head of the lemma stack (for backtracking)
     int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
     int64_t             simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
     vec<Lit>            assumptions;      // Current set of assumptions provided to solve by the user.
@@ -144,6 +186,15 @@ protected:
     vec<Lit>            analyze_toclear;
     vec<Lit>            add_tmp;
 
+    enum TheoryCheckType {
+      // Quick check, but don't perform theory propagation
+      CHECK_WITHOUTH_PROPAGATION_QUICK,
+      // Check and perform theory propagation
+      CHECK_WITH_PROPAGATION_STANDARD,
+      // The SAT problem is satisfiable, perform a full theory check
+      CHECK_WITHOUTH_PROPAGATION_FINAL
+    };
+
     // Main internal methods:
     //
     void     insertVarOrder   (Var x);                                                 // Insert a variable in the decision order priority queue.
@@ -151,7 +202,10 @@ protected:
     void     newDecisionLevel ();                                                      // Begins a new decision level.
     void     uncheckedEnqueue (Lit p, Clause* from = NULL);                            // Enqueue a literal. Assumes value of literal is undefined.
     bool     enqueue          (Lit p, Clause* from = NULL);                            // Test if fact 'p' contradicts current state, enqueue otherwise.
-    Clause*  propagate        ();                                                      // Perform unit propagation. Returns possibly conflicting clause.
+    Clause*  propagate        (TheoryCheckType type);                                  // Perform Boolean and Theory. Returns possibly conflicting clause.
+    Clause*  propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
+    bool     propagateTheory  ();                                                      // Perform Theory propagation. Return true if any literals were asserted.
+    Clause*  theoryCheck      (theory::Theory::Effort effort);                         // Perform a theory satisfiability check. Returns possibly conflicting clause.
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     void     analyze          (Clause* confl, vec<Lit>& out_learnt, int& out_btlevel); // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
@@ -177,7 +231,7 @@ protected:
 
     // Misc:
     //
-    int      decisionLevel    ()      const; // Gives the current decisionlevel.
+    int      decisionLevel    ()      const; // Gives the current decision level.
     uint32_t abstractLevel    (Var x) const; // Used to represent an abstraction of sets of decision levels.
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 
@@ -203,10 +257,8 @@ protected:
         return (int)(drand(seed) * size); }
 };
 
-
 //=================================================================================================
 // Implementation of inline methods:
-
 
 inline void Solver::insertVarOrder(Var x) {
     if (!order_heap.inHeap(x) && decision_var[x]) order_heap.insert(x); }
@@ -233,7 +285,7 @@ inline void Solver::claBumpActivity (Clause& c) {
 
 inline bool     Solver::enqueue         (Lit p, Clause* from)   { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
 inline bool     Solver::locked          (const Clause& c) const { return reason[var(c[0])] == &c && value(c[0]) == l_True; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); lemmas_lim.push(lemmas.size()); context->push(); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level[x] & 31); }
@@ -256,6 +308,7 @@ inline bool     Solver::okay          ()      const   { return ok; }
 
 
 #define reportf(format, args...) ( fflush(stdout), fprintf(stderr, format, ## args), fflush(stderr) )
+//#define reportf(format, args...) do {} while(0)
 
 static inline void logLit(FILE* f, Lit l)
 {
@@ -297,6 +350,9 @@ inline void Solver::printClause(const C& c)
     }
 }
 
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
 
 //=================================================================================================
-#endif
+#endif /* __CVC4__PROP__MINISAT__SOLVER_H */

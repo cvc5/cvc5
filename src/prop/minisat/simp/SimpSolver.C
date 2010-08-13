@@ -24,9 +24,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 //=================================================================================================
 // Constructor/Destructor:
 
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
-SimpSolver::SimpSolver() :
-    grow               (0)
+SimpSolver::SimpSolver(SatSolver* proxy, context::Context* context) :
+    Solver(proxy, context)
+  , grow               (0)
   , asymm_mode         (false)
   , redundancy_check   (false)
   , merges             (0)
@@ -54,14 +58,14 @@ SimpSolver::~SimpSolver()
 }
 
 
-Var SimpSolver::newVar(bool sign, bool dvar) {
-    Var v = Solver::newVar(sign, dvar);
+Var SimpSolver::newVar(bool sign, bool dvar, bool theoryAtom) {
+    Var v = Solver::newVar(sign, dvar,theoryAtom);
 
     if (use_simplification){
         n_occ    .push(0);
         n_occ    .push(0);
         occurs   .push();
-        frozen   .push((char)false);
+        frozen   .push((char)theoryAtom);
         touched  .push(0);
         elim_heap.insert(v);
         elimtable.push();
@@ -114,7 +118,7 @@ bool SimpSolver::solve(const vec<Lit>& assumps, bool do_simp, bool turn_off_simp
 
 
 
-bool SimpSolver::addClause(vec<Lit>& ps)
+bool SimpSolver::addClause(vec<Lit>& ps, ClauseType type)
 {
     for (int i = 0; i < ps.size(); i++)
         if (isEliminated(var(ps[i])))
@@ -125,7 +129,7 @@ bool SimpSolver::addClause(vec<Lit>& ps)
     if (redundancy_check && implied(ps))
         return true;
 
-    if (!Solver::addClause(ps))
+    if (!Solver::addClause(ps, type))
         return false;
 
     if (use_simplification && clauses.size() == nclauses + 1){
@@ -152,6 +156,7 @@ bool SimpSolver::addClause(vec<Lit>& ps)
 
 void SimpSolver::removeClause(Clause& c)
 {
+    Debug("minisat") << "SimpSolver::removeClause(" << c << ")" << std::endl;
     assert(!c.learnt());
 
     if (use_simplification)
@@ -207,7 +212,7 @@ bool SimpSolver::strengthenClause(Clause& c, Lit l)
         updateElimHeap(var(l));
     }
 
-    return c.size() == 1 ? enqueue(c[0]) && propagate() == NULL : true;
+    return c.size() == 1 ? enqueue(c[0]) && propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) == NULL : true;
 }
 
 
@@ -224,11 +229,12 @@ bool SimpSolver::merge(const Clause& _ps, const Clause& _qs, Var v, vec<Lit>& ou
     for (int i = 0; i < qs.size(); i++){
         if (var(qs[i]) != v){
             for (int j = 0; j < ps.size(); j++)
-                if (var(ps[j]) == var(qs[i]))
+                if (var(ps[j]) == var(qs[i])) {
                     if (ps[j] == ~qs[i])
                         return false;
                     else
                         goto next;
+                }
             out_clause.push(qs[i]);
         }
         next:;
@@ -256,11 +262,12 @@ bool SimpSolver::merge(const Clause& _ps, const Clause& _qs, Var v)
     for (int i = 0; i < qs.size(); i++){
         if (var(__qs[i]) != v){
             for (int j = 0; j < ps.size(); j++)
-                if (var(__ps[j]) == var(__qs[i]))
+                if (var(__ps[j]) == var(__qs[i])) {
                     if (__ps[j] == ~__qs[i])
                         return false;
                     else
                         goto next;
+                }
         }
         next:;
     }
@@ -305,7 +312,7 @@ bool SimpSolver::implied(const vec<Lit>& c)
             uncheckedEnqueue(~c[i]);
         }
 
-    bool result = propagate() != NULL;
+    bool result = propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) != NULL;
     cancelUntil(0);
     return result;
 }
@@ -387,7 +394,7 @@ bool SimpSolver::asymm(Var v, Clause& c)
         else
             l = c[i];
 
-    if (propagate() != NULL){
+    if (propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) != NULL){
         cancelUntil(0);
         asymm_lits++;
         if (!strengthenClause(c, l))
@@ -478,7 +485,7 @@ bool SimpSolver::eliminateVar(Var v, bool fail)
     vec<Lit> resolvent;
     for (int i = 0; i < pos.size(); i++)
         for (int j = 0; j < neg.size(); j++)
-            if (merge(*pos[i], *neg[j], v, resolvent) && !addClause(resolvent))
+            if (merge(*pos[i], *neg[j], v, resolvent) && !addClause(resolvent, CLAUSE_CONFLICT))
                 return false;
 
     // DEBUG: For checking that a clause set is saturated with respect to variable elimination.
@@ -520,7 +527,7 @@ void SimpSolver::remember(Var v)
             clause.push(c[j]);
 
         remembered_clauses++;
-        check(addClause(clause));
+        check(addClause(clause, CLAUSE_PROBLEM));
         free(&c);
     }
 
@@ -698,3 +705,7 @@ void SimpSolver::toDimacs(const char* file)
     }else
         fprintf(stderr, "could not open file %s\n", file);
 }
+
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */

@@ -17,10 +17,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Queue_h
-#define Queue_h
+#include "cvc4_private.h"
+
+#ifndef CVC4_MiniSat_Queue_h
+#define CVC4_MiniSat_Queue_h
 
 #include "Vec.h"
+
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 
@@ -79,4 +85,9 @@ public:
 //};
 
 //=================================================================================================
-#endif
+
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
+
+#endif /* CVC4_MiniSat_Queue_h */

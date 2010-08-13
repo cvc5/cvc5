@@ -19,17 +19,46 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "Solver.h"
 #include "Sort.h"
+#include "prop/sat.h"
 #include <cmath>
-
 
 //=================================================================================================
 // Constructor/Destructor:
 
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
-Solver::Solver() :
+Clause* Solver::lazy_reason = reinterpret_cast<Clause*>(1);
+
+Clause* Solver::getReason(Lit l)
+{
+    if (reason[var(l)] != lazy_reason) return reason[var(l)];
+    // Get the explanation from the theory
+    SatClause explanation;
+    if (value(l) == l_True) {
+      proxy->explainPropagation(l, explanation);
+      assert(explanation[0] == l);
+    } else {
+      proxy->explainPropagation(~l, explanation);
+      assert(explanation[0] == ~l);
+    }
+    Clause* real_reason = Clause_new(explanation, true);
+    reason[var(l)] = real_reason;
+    // Add it to the database
+    learnts.push(real_reason);
+    attachClause(*real_reason);
+    return real_reason;
+}
+
+Solver::Solver(SatSolver* proxy, context::Context* context) :
+
+    // SMT stuff
+    proxy(proxy)
+  , context(context)
 
     // Parameters: (formerly in 'SearchParams')
-    var_decay(1 / 0.95), clause_decay(1 / 0.999), random_var_freq(0.02)
+  , var_decay(1 / 0.95), clause_decay(1 / 0.999), random_var_freq(0.02)
   , restart_first(100), restart_inc(1.5), learntsize_factor((double)1/(double)3), learntsize_inc(1.1)
 
     // More parameters:
@@ -70,7 +99,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar)
+Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
 {
     int v = nVars();
     watches   .push();          // (list for positive literal)
@@ -81,6 +110,8 @@ Var Solver::newVar(bool sign, bool dvar)
     activity  .push(0);
     seen      .push(0);
 
+    theory    .push(theoryAtom);
+
     polarity    .push((char)sign);
     decision_var.push((char)dvar);
 
@@ -89,7 +120,7 @@ Var Solver::newVar(bool sign, bool dvar)
 }
 
 
-bool Solver::addClause(vec<Lit>& ps)
+bool Solver::addClause(vec<Lit>& ps, ClauseType type)
 {
     assert(decisionLevel() == 0);
 
@@ -110,16 +141,19 @@ bool Solver::addClause(vec<Lit>& ps)
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
+        assert(type != CLAUSE_LEMMA);
         assert(value(ps[0]) == l_Undef);
         uncheckedEnqueue(ps[0]);
-        return ok = (propagate() == NULL);
+        return ok = (propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) == NULL);
     }else{
         Clause* c = Clause_new(ps, false);
         clauses.push(c);
+        if (type == CLAUSE_LEMMA) lemmas.push(c);
         attachClause(*c);
     }
 
     return true;
+
 }
 
 
@@ -132,6 +166,7 @@ void Solver::attachClause(Clause& c) {
 
 
 void Solver::detachClause(Clause& c) {
+    Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
     assert(find(watches[toInt(~c[0])], &c));
     assert(find(watches[toInt(~c[1])], &c));
@@ -142,8 +177,10 @@ void Solver::detachClause(Clause& c) {
 
 
 void Solver::removeClause(Clause& c) {
+    Debug("minisat") << "Solver::removeClause(" << c << ")" << std::endl;
     detachClause(c);
-    free(&c); }
+    free(&c);
+}
 
 
 bool Solver::satisfied(const Clause& c) const {
@@ -157,14 +194,26 @@ bool Solver::satisfied(const Clause& c) const {
 //
 void Solver::cancelUntil(int level) {
     if (decisionLevel() > level){
-        for (int c = trail.size()-1; c >= trail_lim[level]; c--){
+        // Pop the SMT context
+        for (int l = trail_lim.size() - level; l > 0; --l)
+          context->pop();
+        // Now the minisat stuff
+        for (int c = trail.size()-1; c >= trail_lim[level]; c--) {
             Var     x  = var(trail[c]);
             assigns[x] = toInt(l_Undef);
-            insertVarOrder(x); }
+            insertVarOrder(x);
+        }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
-    } }
+        // We can erase the lemmas now
+        for (int c = lemmas.size() - 1; c >= lemmas_lim[level]; c--) {
+          // TODO: can_erase[lemma[c]] = true;
+        }
+        lemmas.shrink(lemmas.size() - lemmas_lim[level]);
+        lemmas_lim.shrink(lemmas_lim.size() - level);
+    }
+}
 
 
 //=================================================================================================
@@ -255,7 +304,7 @@ void Solver::analyze(Clause* confl, vec<Lit>& out_learnt, int& out_btlevel)
         // Select next clause to look at:
         while (!seen[var(trail[index--])]);
         p     = trail[index+1];
-        confl = reason[var(p)];
+        confl = getReason(p);
         seen[var(p)] = 0;
         pathC--;
 
@@ -272,12 +321,12 @@ void Solver::analyze(Clause* confl, vec<Lit>& out_learnt, int& out_btlevel)
 
         out_learnt.copyTo(analyze_toclear);
         for (i = j = 1; i < out_learnt.size(); i++)
-            if (reason[var(out_learnt[i])] == NULL || !litRedundant(out_learnt[i], abstract_level))
+            if (getReason(out_learnt[i]) == NULL || !litRedundant(out_learnt[i], abstract_level))
                 out_learnt[j++] = out_learnt[i];
     }else{
         out_learnt.copyTo(analyze_toclear);
         for (i = j = 1; i < out_learnt.size(); i++){
-            Clause& c = *reason[var(out_learnt[i])];
+            Clause& c = *getReason(out_learnt[i]);
             for (int k = 1; k < c.size(); k++)
                 if (!seen[var(c[k])] && level[var(c[k])] > 0){
                     out_learnt[j++] = out_learnt[i];
@@ -315,13 +364,13 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     analyze_stack.clear(); analyze_stack.push(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason[var(analyze_stack.last())] != NULL);
+        assert(getReason(analyze_stack.last()) != NULL);
         Clause& c = *reason[var(analyze_stack.last())]; analyze_stack.pop();
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
             if (!seen[var(p)] && level[var(p)] > 0){
-                if (reason[var(p)] != NULL && (abstractLevel(var(p)) & abstract_levels) != 0){
+                if (getReason(p) != NULL && (abstractLevel(var(p)) & abstract_levels) != 0){
                     seen[var(p)] = 1;
                     analyze_stack.push(p);
                     analyze_toclear.push(p);
@@ -381,16 +430,110 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 void Solver::uncheckedEnqueue(Lit p, Clause* from)
 {
     assert(value(p) == l_Undef);
-    assigns [var(p)] = toInt(lbool(!sign(p)));  // <<== abstract but not uttermost effecient
-    level   [var(p)] = decisionLevel();
-    reason  [var(p)] = from;
+    assigns  [var(p)] = toInt(lbool(!sign(p)));  // <<== abstract but not uttermost efficient
+    level    [var(p)] = decisionLevel();
+    reason   [var(p)] = from;
+    // Added for phase-caching
+    polarity [var(p)] = sign(p);
     trail.push(p);
+
+    if (theory[var(p)] && from != lazy_reason) {
+      // Enqueue to the theory
+      proxy->enqueueTheoryLiteral(p);
+    }
 }
 
 
+Clause* Solver::propagate(TheoryCheckType type)
+{
+    Clause* confl = NULL;
+
+    // If this is the final check, no need for Boolean propagation and
+    // theory propagation
+    if (type == CHECK_WITHOUTH_PROPAGATION_FINAL) {
+      return theoryCheck(theory::Theory::FULL_EFFORT);
+    }
+
+    // The effort we will be using to theory check
+    theory::Theory::Effort effort = type == CHECK_WITHOUTH_PROPAGATION_QUICK ?
+        theory::Theory::QUICK_CHECK : theory::Theory::STANDARD;
+
+    // Keep running until we have checked everything, we
+    // have no conflict and no new literals have been asserted
+    bool new_assertions;
+    do {
+        new_assertions = false;
+        while(qhead < trail.size()) {
+            confl = propagateBool();
+            if (confl != NULL) break;
+            confl = theoryCheck(effort);
+            if (confl != NULL) break;
+        }
+
+        if (confl == NULL && type == CHECK_WITH_PROPAGATION_STANDARD) {
+          new_assertions = propagateTheory();
+          if (!new_assertions) break;
+        }
+    } while (new_assertions);
+
+    return confl;
+}
+
+bool Solver::propagateTheory() {
+  std::vector<Lit> propagatedLiterals;
+  proxy->theoryPropagate(propagatedLiterals);
+  const unsigned i_end = propagatedLiterals.size();
+  for (unsigned i = 0; i < i_end; ++ i) {
+    uncheckedEnqueue(propagatedLiterals[i], lazy_reason);
+  }
+  proxy->clearPropagatedLiterals();
+  return propagatedLiterals.size() > 0;
+}
+
 /*_________________________________________________________________________________________________
 |
-|  propagate : [void]  ->  [Clause*]
+|  theoryCheck: [void]  ->  [Clause*]
+|
+|  Description:
+|    Checks all enqueued theory facts for satisfiability. If a conflict arises, the conflicting
+|    clause is returned, otherwise NULL.
+|
+|    Note: the propagation queue might be NOT empty
+|________________________________________________________________________________________________@*/
+Clause* Solver::theoryCheck(theory::Theory::Effort effort)
+{
+  Clause* c = NULL;
+  SatClause clause;
+  proxy->theoryCheck(effort, clause);
+  int clause_size = clause.size();
+  Assert(clause_size != 1, "Can't handle unit clause explanations");
+  if(clause_size > 0) {
+    // Find the max level of the conflict
+    int max_level = 0;
+    for (int i = 0; i < clause_size; ++i) {
+      int current_level = level[var(clause[i])];
+      Debug("minisat") << "Literal: " << clause[i] << " with reason " << reason[var(clause[i])] << " at level " << current_level << std::endl;
+      Assert(toLbool(assigns[var(clause[i])]) != l_Undef, "Got an unassigned literal in conflict!");
+      if (current_level > max_level) max_level = current_level;
+    }
+    // If smaller than the decision level then pop back so we can analyse
+    Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
+    Assert(max_level <= decisionLevel(), "What is going on, can't get literals of a higher level as conflict!");
+    if (max_level < decisionLevel()) {
+      Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
+      cancelUntil(max_level);
+    }
+    // Create the new clause and attach all the information
+    c = Clause_new(clause, true);
+    learnts.push(c);
+    attachClause(*c);
+  }
+  return c;
+}
+
+/*_________________________________________________________________________________________________
+|
+|  propagateBool : [void]  ->  [Clause*]
 |  
 |  Description:
 |    Propagates all enqueued facts. If a conflict arises, the conflicting clause is returned,
@@ -399,7 +542,7 @@ void Solver::uncheckedEnqueue(Lit p, Clause* from)
 |    Post-conditions:
 |      * the propagation queue is empty, even if there was a conflict.
 |________________________________________________________________________________________________@*/
-Clause* Solver::propagate()
+Clause* Solver::propagateBool()
 {
     Clause* confl     = NULL;
     int     num_props = 0;
@@ -509,7 +652,7 @@ bool Solver::simplify()
 {
     assert(decisionLevel() == 0);
 
-    if (!ok || propagate() != NULL)
+    if (!ok || propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) != NULL)
         return ok = false;
 
     if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
@@ -554,9 +697,9 @@ lbool Solver::search(int nof_conflicts, int nof_learnts)
     starts++;
 
     bool first = true;
-
+    TheoryCheckType check_type = CHECK_WITH_PROPAGATION_STANDARD;
     for (;;){
-        Clause* confl = propagate();
+        Clause* confl = propagate(check_type);
         if (confl != NULL){
             // CONFLICT
             conflicts++; conflictC++;
@@ -582,8 +725,15 @@ lbool Solver::search(int nof_conflicts, int nof_learnts)
             varDecayActivity();
             claDecayActivity();
 
+            // We have a conflict so, we are going back to standard checks
+            check_type = CHECK_WITH_PROPAGATION_STANDARD;
+
         }else{
             // NO CONFLICT
+
+            // If this was a final check, we are satisfiable
+            if (check_type == CHECK_WITHOUTH_PROPAGATION_FINAL)
+              return l_True;
 
             if (nof_conflicts >= 0 && conflictC >= nof_conflicts){
                 // Reached bound on number of conflicts:
@@ -620,9 +770,11 @@ lbool Solver::search(int nof_conflicts, int nof_learnts)
                 decisions++;
                 next = pickBranchLit(polarity_mode, random_var_freq);
 
-                if (next == lit_Undef)
-                    // Model found:
-                    return l_True;
+                if (next == lit_Undef) {
+                    // We need to do a full theory check to confirm
+                    check_type = CHECK_WITHOUTH_PROPAGATION_FINAL;
+                    continue;
+                }
             }
 
             // Increase decision level and enqueue 'next'
@@ -722,7 +874,8 @@ void Solver::verifyModel()
 
     assert(!failed);
 
-    reportf("Verified %d original clauses.\n", clauses.size());
+    if(verbosity >= 1)
+        reportf("Verified %d original clauses.\n", clauses.size());
 }
 
 
@@ -739,3 +892,8 @@ void Solver::checkLiteralCount()
         assert((int)clauses_literals == cnt);
     }
 }
+
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
+

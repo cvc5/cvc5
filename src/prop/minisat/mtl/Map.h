@@ -17,12 +17,18 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Map_h
-#define Map_h
+#include "cvc4_private.h"
+
+#ifndef CVC4_MiniSat_Map_h
+#define CVC4_MiniSat_Map_h
 
 #include <stdint.h>
 
 #include "Vec.h"
+
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Default hash/equals functions
@@ -80,7 +86,7 @@ class Map {
         cap = newsize;
     }
 
-    
+
     public:
 
      Map () : table(NULL), cap(0), size(0) {}
@@ -94,7 +100,7 @@ class Map {
         for (int i = 0; i < ps.size(); i++)
             if (equals(ps[i].key, k)){
                 d = ps[i].data;
-                return true; } 
+                return true; }
         return false;
     }
 
@@ -115,4 +121,8 @@ class Map {
     }
 };
 
-#endif
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
+
+#endif /* CVC4_MiniSat_Map_h */

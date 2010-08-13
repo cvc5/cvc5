@@ -17,12 +17,17 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
+#include "cvc4_private.h"
 
-#ifndef SolverTypes_h
-#define SolverTypes_h
+#ifndef __CVC4__PROP__MINISAT__SOLVERTYPES_H
+#define __CVC4__PROP__MINISAT__SOLVERTYPES_H
 
 #include <cassert>
 #include <stdint.h>
+
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Variables, literals, lifted booleans, clauses:
@@ -194,4 +199,8 @@ inline void Clause::strengthen(Lit p)
     calcAbstraction();
 }
 
-#endif
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__PROP__MINISAT__SOLVERTYPES_H */

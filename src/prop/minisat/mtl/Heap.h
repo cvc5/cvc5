@@ -17,10 +17,17 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Heap_h
-#define Heap_h
+#include "cvc4_private.h"
+
+#ifndef CVC4_MiniSat_Heap_h
+#define CVC4_MiniSat_Heap_h
 
 #include "Vec.h"
+#include <cassert>
+
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // A heap implementation with support for decrease/increase key.
@@ -92,7 +99,7 @@ class Heap {
 
         indices[n] = heap.size();
         heap.push(n);
-        percolateUp(indices[n]); 
+        percolateUp(indices[n]);
     }
 
 
@@ -104,19 +111,19 @@ class Heap {
         indices[x]       = -1;
         heap.pop();
         if (heap.size() > 1) percolateDown(0);
-        return x; 
+        return x;
     }
 
 
-    void clear(bool dealloc = false) 
-    { 
+    void clear(bool dealloc = false)
+    {
         for (int i = 0; i < heap.size(); i++)
             indices[heap[i]] = -1;
 #ifdef NDEBUG
         for (int i = 0; i < indices.size(); i++)
             assert(indices[i] == -1);
 #endif
-        heap.clear(dealloc); 
+        heap.clear(dealloc);
     }
 
 
@@ -164,6 +171,9 @@ class Heap {
 
 };
 
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
 
 //=================================================================================================
-#endif
+#endif /* CVC4_MiniSat_Heap_h */

@@ -17,8 +17,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Alg_h
-#define Alg_h
+#include "cvc4_private.h"
+
+#ifndef CVC4_MiniSat_Alg_h
+#define CVC4_MiniSat_Alg_h
+
+#include <cassert>
+
+namespace CVC4 {
+namespace prop {
+namespace minisat {
 
 //=================================================================================================
 // Useful functions on vectors
@@ -54,4 +62,8 @@ static inline bool find(V& ts, const T& t)
     return j < ts.size();
 }
 
-#endif
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
+
+#endif /* CVC4_MiniSat_Alg_h */

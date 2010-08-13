@@ -17,26 +17,35 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef SimpSolver_h
-#define SimpSolver_h
+#include "cvc4_private.h"
+
+#ifndef __CVC4__PROP__MINISAT__SIMP_SOLVER_H
+#define __CVC4__PROP__MINISAT__SIMP_SOLVER_H
 
 #include <cstdio>
+#include <cassert>
 
-#include "Queue.h"
-#include "Solver.h"
+#include "../mtl/Queue.h"
+#include "../core/Solver.h"
 
+namespace CVC4 {
+namespace prop {
+
+class SatSolver;
+
+namespace minisat {
 
 class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-    SimpSolver();
-    ~SimpSolver();
+    SimpSolver(SatSolver* proxy, context::Context* context);
+    CVC4_PUBLIC ~SimpSolver();
 
     // Problem specification:
     //
-    Var     newVar    (bool polarity = true, bool dvar = true);
-    bool    addClause (vec<Lit>& ps);
+    Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false);
+    bool    addClause (vec<Lit>& ps, ClauseType type);
 
     // Variable mode:
     // 
@@ -157,5 +166,9 @@ inline bool  SimpSolver::isEliminated (Var v) const { return v < elimtable.size(
 inline void  SimpSolver::setFrozen    (Var v, bool b) { frozen[v] = (char)b; if (b) { updateElimHeap(v); } }
 inline bool  SimpSolver::solve        (bool do_simp, bool turn_off_simp) { vec<Lit> tmp; return solve(tmp, do_simp, turn_off_simp); }
 
+}/* CVC4::prop::minisat namespace */
+}/* CVC4::prop namespace */
+}/* CVC4 namespace */
+
 //=================================================================================================
-#endif
+#endif /* __CVC4__PROP__MINISAT__SIMP_SOLVER_H */
