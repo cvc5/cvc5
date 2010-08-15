@@ -1,5 +1,6 @@
 /******************************************************************************************[Sort.h]
-MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+Copyright (c) 2003-2007, Niklas Een, Niklas Sorensson
+Copyright (c) 2007-2010, Niklas Sorensson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,20 +18,16 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
+#ifndef Minisat_Sort_h
+#define Minisat_Sort_h
 
-#ifndef CVC4_MiniSat_Sort_h
-#define CVC4_MiniSat_Sort_h
-
-#include "Vec.h"
-
-namespace CVC4 {
-namespace prop {
-namespace minisat {
+#include "mtl/Vec.h"
 
 //=================================================================================================
 // Some sorting algorithms for vec's
 
+
+namespace Minisat {
 
 template<class T>
 struct LessThan_default {
@@ -96,9 +93,6 @@ template <class T> void sort(vec<T>& v) {
 
 
 //=================================================================================================
+}
 
-}/* CVC4::prop::minisat namespace */
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4_MiniSat_Sort_h */
+#endif

@@ -1,7 +1,4 @@
-MTL       = ../mtl
-CHDRS     = $(wildcard *.h) $(wildcard $(MTL)/*.h)
 EXEC      = minisat
-CFLAGS    = -I$(MTL) -Wall -ffloat-store
-LFLAGS    = -lz
+DEPDIR    = mtl utils
 
-include ../mtl/template.mk
+include $(MROOT)/mtl/template.mk

@@ -1,5 +1,5 @@
 /*******************************************************************************************[Map.h]
-MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+Copyright (c) 2006-2010, Niklas Sorensson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,18 +17,13 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
+#ifndef Minisat_Map_h
+#define Minisat_Map_h
 
-#ifndef CVC4_MiniSat_Map_h
-#define CVC4_MiniSat_Map_h
+#include "mtl/IntTypes.h"
+#include "mtl/Vec.h"
 
-#include <stdint.h>
-
-#include "Vec.h"
-
-namespace CVC4 {
-namespace prop {
-namespace minisat {
+namespace Minisat {
 
 //=================================================================================================
 // Default hash/equals functions
@@ -39,6 +34,12 @@ template<class K> struct Equal { bool     operator()(const K& k1, const K& k2) c
 
 template<class K> struct DeepHash  { uint32_t operator()(const K* k)               const { return hash(*k);  } };
 template<class K> struct DeepEqual { bool     operator()(const K* k1, const K* k2) const { return *k1 == *k2; } };
+
+static inline uint32_t hash(uint32_t x){ return x; }
+static inline uint32_t hash(uint64_t x){ return (uint32_t)x; }
+static inline uint32_t hash(int32_t x) { return (uint32_t)x; }
+static inline uint32_t hash(int64_t x) { return (uint32_t)x; }
+
 
 //=================================================================================================
 // Some primes
@@ -53,8 +54,10 @@ static const int primes [nprimes] = { 31, 73, 151, 313, 643, 1291, 2593, 5233, 1
 
 template<class K, class D, class H = Hash<K>, class E = Equal<K> >
 class Map {
+ public:
     struct Pair { K key; D data; };
 
+ private:
     H          hash;
     E          equals;
 
@@ -66,45 +69,89 @@ class Map {
     Map<K,D,H,E>&  operator = (Map<K,D,H,E>& other) { assert(0); }
                    Map        (Map<K,D,H,E>& other) { assert(0); }
 
+    bool    checkCap(int new_size) const { return new_size > cap; }
+
     int32_t index  (const K& k) const { return hash(k) % cap; }
-    void   _insert (const K& k, const D& d) { table[index(k)].push(); table[index(k)].last().key = k; table[index(k)].last().data = d; }
+    void   _insert (const K& k, const D& d) { 
+        vec<Pair>& ps = table[index(k)];
+        ps.push(); ps.last().key = k; ps.last().data = d; }
+
     void    rehash () {
         const vec<Pair>* old = table;
 
+        int old_cap = cap;
         int newsize = primes[0];
         for (int i = 1; newsize <= cap && i < nprimes; i++)
            newsize = primes[i];
 
         table = new vec<Pair>[newsize];
+        cap   = newsize;
 
-        for (int i = 0; i < cap; i++){
+        for (int i = 0; i < old_cap; i++){
             for (int j = 0; j < old[i].size(); j++){
                 _insert(old[i][j].key, old[i][j].data); }}
 
         delete [] old;
 
-        cap = newsize;
+        // printf(" --- rehashing, old-cap=%d, new-cap=%d\n", cap, newsize);
     }
 
+    
+ public:
 
-    public:
-
-     Map () : table(NULL), cap(0), size(0) {}
-     Map (const H& h, const E& e) : Map(), hash(h), equals(e) {}
+    Map () : table(NULL), cap(0), size(0) {}
+    Map (const H& h, const E& e) : hash(h), equals(e), table(NULL), cap(0), size(0){}
     ~Map () { delete [] table; }
 
-    void insert (const K& k, const D& d) { if (size+1 > cap / 2) rehash(); _insert(k, d); size++; }
-    bool peek   (const K& k, D& d) {
+    // PRECONDITION: the key must already exist in the map.
+    const D& operator [] (const K& k) const
+    {
+        assert(size != 0);
+        const D*         res = NULL;
+        const vec<Pair>& ps  = table[index(k)];
+        for (int i = 0; i < ps.size(); i++)
+            if (equals(ps[i].key, k))
+                res = &ps[i].data;
+        assert(res != NULL);
+        return *res;
+    }
+
+    // PRECONDITION: the key must already exist in the map.
+    D& operator [] (const K& k)
+    {
+        assert(size != 0);
+        D*         res = NULL;
+        vec<Pair>& ps  = table[index(k)];
+        for (int i = 0; i < ps.size(); i++)
+            if (equals(ps[i].key, k))
+                res = &ps[i].data;
+        assert(res != NULL);
+        return *res;
+    }
+
+    // PRECONDITION: the key must *NOT* exist in the map.
+    void insert (const K& k, const D& d) { if (checkCap(size+1)) rehash(); _insert(k, d); size++; }
+    bool peek   (const K& k, D& d) const {
         if (size == 0) return false;
         const vec<Pair>& ps = table[index(k)];
         for (int i = 0; i < ps.size(); i++)
             if (equals(ps[i].key, k)){
                 d = ps[i].data;
-                return true; }
+                return true; } 
         return false;
     }
 
-    void remove (const K& k) {
+    bool has   (const K& k) const {
+        if (size == 0) return false;
+        const vec<Pair>& ps = table[index(k)];
+        for (int i = 0; i < ps.size(); i++)
+            if (equals(ps[i].key, k))
+                return true;
+        return false;
+    }
+
+    // PRECONDITION: the key must exist in the map.
+    void remove(const K& k) {
         assert(table != NULL);
         vec<Pair>& ps = table[index(k)];
         int j = 0;
@@ -112,6 +159,7 @@ class Map {
         assert(j < ps.size());
         ps[j] = ps.last();
         ps.pop();
+        size--;
     }
 
     void clear  () {
@@ -119,10 +167,27 @@ class Map {
         delete [] table;
         table = NULL;
     }
+
+    int  elems() const { return size; }
+    int  bucket_count() const { return cap; }
+
+    // NOTE: the hash and equality objects are not moved by this method:
+    void moveTo(Map& other){
+        delete [] other.table;
+
+        other.table = table;
+        other.cap   = cap;
+        other.size  = size;
+
+        table = NULL;
+        size = cap = 0;
+    }
+
+    // NOTE: given a bit more time, I could make a more C++-style iterator out of this:
+    const vec<Pair>& bucket(int i) const { return table[i]; }
 };
 
-}/* CVC4::prop::minisat namespace */
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+//=================================================================================================
+}
 
-#endif /* CVC4_MiniSat_Map_h */
+#endif

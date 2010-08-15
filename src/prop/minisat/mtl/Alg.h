@@ -1,5 +1,6 @@
 /*******************************************************************************************[Alg.h]
-MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+Copyright (c) 2007-2010, Niklas Sorensson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,22 +18,20 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
+#ifndef Minisat_Alg_h
+#define Minisat_Alg_h
 
-#ifndef CVC4_MiniSat_Alg_h
-#define CVC4_MiniSat_Alg_h
+#include "mtl/Vec.h"
 
-#include <cassert>
-
-namespace CVC4 {
-namespace prop {
-namespace minisat {
+namespace Minisat {
 
 //=================================================================================================
-// Useful functions on vectors
+// Useful functions on vector-like types:
 
+//=================================================================================================
+// Removing and searching for elements:
+//
 
-#if 1
 template<class V, class T>
 static inline void remove(V& ts, const T& t)
 {
@@ -42,17 +41,7 @@ static inline void remove(V& ts, const T& t)
     for (; j < ts.size()-1; j++) ts[j] = ts[j+1];
     ts.pop();
 }
-#else
-template<class V, class T>
-static inline void remove(V& ts, const T& t)
-{
-    int j = 0;
-    for (; j < ts.size() && ts[j] != t; j++);
-    assert(j < ts.size());
-    ts[j] = ts.last();
-    ts.pop();
-}
-#endif
+
 
 template<class V, class T>
 static inline bool find(V& ts, const T& t)
@@ -62,8 +51,34 @@ static inline bool find(V& ts, const T& t)
     return j < ts.size();
 }
 
-}/* CVC4::prop::minisat namespace */
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
 
-#endif /* CVC4_MiniSat_Alg_h */
+//=================================================================================================
+// Copying vectors with support for nested vector types:
+//
+
+// Base case:
+template<class T>
+static inline void copy(const T& from, T& to)
+{
+    to = from;
+}
+
+// Recursive case:
+template<class T>
+static inline void copy(const vec<T>& from, vec<T>& to, bool append = false)
+{
+    if (!append)
+        to.clear();
+    for (int i = 0; i < from.size(); i++){
+        to.push();
+        copy(from[i], to.last());
+    }
+}
+
+template<class T>
+static inline void append(const vec<T>& from, vec<T>& to){ copy(from, to, true); }
+
+//=================================================================================================
+}
+
+#endif

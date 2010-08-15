@@ -1,5 +1,6 @@
 /******************************************************************************************[Heap.h]
-MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+Copyright (c) 2007-2010, Niklas Sorensson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -17,17 +18,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
+#ifndef Minisat_Heap_h
+#define Minisat_Heap_h
 
-#ifndef CVC4_MiniSat_Heap_h
-#define CVC4_MiniSat_Heap_h
+#include "mtl/Vec.h"
 
-#include "Vec.h"
-#include <cassert>
-
-namespace CVC4 {
-namespace prop {
-namespace minisat {
+namespace Minisat {
 
 //=================================================================================================
 // A heap implementation with support for decrease/increase key.
@@ -35,9 +31,9 @@ namespace minisat {
 
 template<class Comp>
 class Heap {
-    Comp     lt;
-    vec<int> heap;     // heap of ints
-    vec<int> indices;  // int -> index in heap
+    Comp     lt;       // The heap is a minimum-heap with respect to this comparator
+    vec<int> heap;     // Heap of integers
+    vec<int> indices;  // Each integers position (index) in the Heap
 
     // Index "traversal" functions
     static inline int left  (int i) { return i*2+1; }
@@ -45,20 +41,23 @@ class Heap {
     static inline int parent(int i) { return (i-1) >> 1; }
 
 
-    inline void percolateUp(int i)
+    void percolateUp(int i)
     {
-        int x = heap[i];
-        while (i != 0 && lt(x, heap[parent(i)])){
-            heap[i]          = heap[parent(i)];
-            indices[heap[i]] = i;
-            i                = parent(i);
+        int x  = heap[i];
+        int p  = parent(i);
+        
+        while (i != 0 && lt(x, heap[p])){
+            heap[i]          = heap[p];
+            indices[heap[p]] = i;
+            i                = p;
+            p                = parent(p);
         }
         heap   [i] = x;
         indices[x] = i;
     }
 
 
-    inline void percolateDown(int i)
+    void percolateDown(int i)
     {
         int x = heap[i];
         while (left(i) < heap.size()){
@@ -73,11 +72,6 @@ class Heap {
     }
 
 
-    bool heapProperty (int i) const {
-        return i >= heap.size()
-            || ((i == 0 || !lt(heap[i], heap[parent(i)])) && heapProperty(left(i)) && heapProperty(right(i))); }
-
-
   public:
     Heap(const Comp& c) : lt(c) { }
 
@@ -86,10 +80,20 @@ class Heap {
     bool inHeap    (int n)     const { return n < indices.size() && indices[n] >= 0; }
     int  operator[](int index) const { assert(index < heap.size()); return heap[index]; }
 
-    void decrease  (int n) { assert(inHeap(n)); percolateUp(indices[n]); }
 
-    // RENAME WHEN THE DEPRECATED INCREASE IS REMOVED.
-    void increase_ (int n) { assert(inHeap(n)); percolateDown(indices[n]); }
+    void decrease  (int n) { assert(inHeap(n)); percolateUp  (indices[n]); }
+    void increase  (int n) { assert(inHeap(n)); percolateDown(indices[n]); }
+
+
+    // Safe variant of insert/decrease/increase:
+    void update(int n)
+    {
+        if (!inHeap(n))
+            insert(n);
+        else {
+            percolateUp(indices[n]);
+            percolateDown(indices[n]); }
+    }
 
 
     void insert(int n)
@@ -99,7 +103,7 @@ class Heap {
 
         indices[n] = heap.size();
         heap.push(n);
-        percolateUp(indices[n]);
+        percolateUp(indices[n]); 
     }
 
 
@@ -111,69 +115,34 @@ class Heap {
         indices[x]       = -1;
         heap.pop();
         if (heap.size() > 1) percolateDown(0);
-        return x;
+        return x; 
     }
 
 
-    void clear(bool dealloc = false)
-    {
+    // Rebuild the heap from scratch, using the elements in 'ns':
+    void build(vec<int>& ns) {
         for (int i = 0; i < heap.size(); i++)
             indices[heap[i]] = -1;
-#ifdef NDEBUG
-        for (int i = 0; i < indices.size(); i++)
-            assert(indices[i] == -1);
-#endif
-        heap.clear(dealloc);
-    }
+        heap.clear();
 
+        for (int i = 0; i < ns.size(); i++){
+            indices[ns[i]] = i;
+            heap.push(ns[i]); }
 
-    // Fool proof variant of insert/decrease/increase
-    void update (int n)
-    {
-        if (!inHeap(n))
-            insert(n);
-        else {
-            percolateUp(indices[n]);
-            percolateDown(indices[n]);
-        }
-    }
-
-
-    // Delete elements from the heap using a given filter function (-object).
-    // *** this could probaly be replaced with a more general "buildHeap(vec<int>&)" method ***
-    template <class F>
-    void filter(const F& filt) {
-        int i,j;
-        for (i = j = 0; i < heap.size(); i++)
-            if (filt(heap[i])){
-                heap[j]          = heap[i];
-                indices[heap[i]] = j++;
-            }else
-                indices[heap[i]] = -1;
-
-        heap.shrink(i - j);
         for (int i = heap.size() / 2 - 1; i >= 0; i--)
             percolateDown(i);
-
-        assert(heapProperty());
     }
 
-
-    // DEBUG: consistency checking
-    bool heapProperty() const {
-        return heapProperty(1); }
-
-
-    // COMPAT: should be removed
-    void setBounds (int n) { }
-    void increase  (int n) { decrease(n); }
-    int  getmin    ()      { return removeMin(); }
-
+    void clear(bool dealloc = false) 
+    { 
+        for (int i = 0; i < heap.size(); i++)
+            indices[heap[i]] = -1;
+        heap.clear(dealloc); 
+    }
 };
 
-}/* CVC4::prop::minisat namespace */
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
 
 //=================================================================================================
-#endif /* CVC4_MiniSat_Heap_h */
+}
+
+#endif
