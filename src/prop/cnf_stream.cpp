@@ -84,7 +84,7 @@ void CnfStream::cacheTranslation(TNode node, SatLiteral lit) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
-  SatLiteral lit = SatLiteral(d_satSolver->newVar(theoryLiteral));
+  SatLiteral lit = Minisat::mkLit(d_satSolver->newVar(theoryLiteral));
   cacheTranslation(node, lit);
   if (theoryLiteral) {
     d_nodeCache[lit] = node;

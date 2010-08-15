@@ -51,37 +51,37 @@ class CnfStream;
 #ifdef __CVC4_USE_MINISAT
 
 /** Type of the SAT variables */
-typedef minisat::Var SatVariable;
+typedef Minisat::Var SatVariable;
 
 /** Type of the Sat literals */
-typedef minisat::Lit SatLiteral;
+typedef Minisat::Lit SatLiteral;
 
 /** Type of the SAT clauses */
-typedef minisat::vec<SatLiteral> SatClause;
+typedef Minisat::vec<SatLiteral> SatClause;
 
-typedef minisat::lbool SatLiteralValue;
+typedef Minisat::lbool SatLiteralValue;
 
 /**
  * Returns the variable of the literal.
  * @param lit the literal
  */
 inline SatVariable literalToVariable(SatLiteral lit) {
-  return minisat::var(lit);
+  return Minisat::var(lit);
 }
 
 inline bool literalSign(SatLiteral lit) {
-  return minisat::sign(lit);
+  return Minisat::sign(lit);
 }
 
 static inline size_t
 hashSatLiteral(const SatLiteral& literal) {
-  return (size_t) minisat::toInt(literal);
+  return (size_t) Minisat::toInt(literal);
 }
 
 inline std::string stringOfLiteralValue(SatLiteralValue val) {
-  if( val == minisat::l_False ) {
+  if( val == l_False ) {
     return "0";
-  } else if (val == minisat::l_True ) {
+  } else if (val == l_True ) {
     return "1";
   } else { // unknown
     return "_";
@@ -134,7 +134,7 @@ class SatSolver : public SatInputInterface {
 #ifdef __CVC4_USE_MINISAT
 
   /** Minisat solver */
-  minisat::SimpSolver* d_minisat;
+  Minisat::SimpSolver* d_minisat;
 
   class Statistics {
   private:
@@ -165,7 +165,7 @@ class SatSolver : public SatInputInterface {
       StatisticsRegistry::registerStat(&d_statMaxLiterals);
       StatisticsRegistry::registerStat(&d_statTotLiterals);
     }
-    void init(minisat::SimpSolver* d_minisat){
+    void init(Minisat::SimpSolver* d_minisat){
       d_statStarts.setData(d_minisat->starts);
       d_statDecisions.setData(d_minisat->decisions);
       d_statRndDecisions.setData(d_minisat->rnd_decisions);
@@ -230,13 +230,11 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   d_statistics()
 {
   // Create the solver
-  d_minisat = new minisat::SimpSolver(this, d_context);
+  d_minisat = new Minisat::SimpSolver(this, d_context);
   // Setup the verbosity
   d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
   // Do not delete the satisfied clauses, just the learnt ones
   d_minisat->remove_satisfied = false;
-  // Make minisat reuse the literal values
-  d_minisat->polarity_mode = minisat::SimpSolver::polarity_user;
 
   // No random choices
   if(Debug.isOn("no_rnd_decisions")){
@@ -255,7 +253,7 @@ inline bool SatSolver::solve() {
 }
 
 inline void SatSolver::addClause(SatClause& clause, bool lemma) {
-  d_minisat->addClause(clause, lemma ? minisat::Solver::CLAUSE_LEMMA : minisat::Solver::CLAUSE_PROBLEM);
+  d_minisat->addClause(clause, lemma ? Minisat::Solver::CLAUSE_LEMMA : Minisat::Solver::CLAUSE_PROBLEM);
 }
 
 inline SatVariable SatSolver::newVar(bool theoryAtom) {

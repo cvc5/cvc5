@@ -1,7 +1,9 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
-AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
+	-D __STDC_LIMIT_MACROS \
+	-D __STDC_FORMAT_MACROS \
+	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -I@srcdir@/minisat
+AM_CXXFLAGS = -Wall -Wno-parentheses -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = libprop.la
 
