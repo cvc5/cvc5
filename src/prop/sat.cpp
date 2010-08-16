@@ -56,12 +56,7 @@ void SatSolver::theoryPropagate(std::vector<SatLiteral>& output) {
   const unsigned i_end = outputNodes.size();
   for (unsigned i = 0; i < i_end; ++ i) {
     Debug("prop-explain") << "theoryPropagate() => " << outputNodes[i].toString() << std::endl;
-    // The second argument ("true") instructs the CNF stream to create
-    // a new literal mapping if it doesn't exist.  This can happen due
-    // to a circular dependence, if a SAT literal "a" is asserted as a
-    // unit to the SAT solver, a round of theory propagation can occur
-    // before all Nodes have SAT variable mappings.
-    SatLiteral l = d_cnfStream->getLiteral(outputNodes[i], true);
+    SatLiteral l = d_cnfStream->getLiteral(outputNodes[i]);
     output.push_back(l);
   }
 }
@@ -91,11 +86,8 @@ void SatSolver::clearPropagatedLiterals() {
 void SatSolver::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
-  // We can get null from the prop engine if the literal is useless (i.e.)
-  // the expression is not in context anyomore
-  if(!literalNode.isNull()) {
-    d_theoryEngine->assertFact(literalNode);
-  }
+  Assert(!literalNode.isNull());
+  d_theoryEngine->assertFact(literalNode);
 }
 
 void SatSolver::setCnfStream(CnfStream* cnfStream) {

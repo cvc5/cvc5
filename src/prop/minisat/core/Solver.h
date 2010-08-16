@@ -300,6 +300,7 @@ protected:
     int      decisionLevel    ()      const; // Gives the current decisionlevel.
     uint32_t abstractLevel    (Var x) const; // Used to represent an abstraction of sets of decision levels.
     CRef     reason           (Var x) const;
+    bool     hasReason        (Var x) const; // Does the variable have a reason
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
     bool     withinBudget     ()      const;
@@ -322,6 +323,8 @@ protected:
 
 //=================================================================================================
 // Implementation of inline methods:
+
+inline bool Solver::hasReason(Var x) const { return vardata[x].reason != CRef_Undef && vardata[x].reason != CRef_Lazy; }
 
 inline int  Solver::level (Var x) const { return vardata[x].level; }
 

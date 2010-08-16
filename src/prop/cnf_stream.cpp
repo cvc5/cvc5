@@ -94,12 +94,9 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
 }
 
 Node CnfStream::getNode(const SatLiteral& literal) {
-  Node node;
   NodeCache::iterator find = d_nodeCache.find(literal);
-  if(find != d_nodeCache.end()) {
-    node = find->second;
-  }
-  return node;
+  Assert(find != d_nodeCache.end());
+  return find->second;
 }
 
 SatLiteral CnfStream::convertAtom(TNode node) {
@@ -121,20 +118,11 @@ SatLiteral CnfStream::convertAtom(TNode node) {
   return lit;
 }
 
-SatLiteral CnfStream::getLiteral(TNode node, bool create /* = false */) {
+SatLiteral CnfStream::getLiteral(TNode node) {
   TranslationCache::iterator find = d_translationCache.find(node);
-  SatLiteral literal;
-  if(create) {
-    if(find == d_translationCache.end()) {
-      literal = convertAtom(node);
-    } else {
-      literal = find->second;
-    }
-  } else {
-    Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
-    literal = find->second;
-  }
-  Debug("cnf") << "CnfStream::getLiteral(" << node << ", create = " << create << ") => " << literal << std::endl;
+  Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
+  SatLiteral literal = find->second;
+  Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
 }
 

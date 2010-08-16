@@ -174,14 +174,8 @@ public:
    * representation.
    * @param node [Presumably there are some constraints on the kind of
    * node? E.g., it needs to be a boolean? -Chris]
-   * @param create Controls whether or not to create a new SAT literal
-   * mapping for Node if it does not exist.  This exists to break
-   * circular dependencies, where an atom is converted and asserted to
-   * the SAT solver, which propagates it immediately since it's a
-   * unit, which can theory-propagate additional literals that don't
-   * yet have a SAT literal mapping.
    */
-  SatLiteral getLiteral(TNode node, bool create = false);
+  SatLiteral getLiteral(TNode node);
 
   const TranslationCache& getTranslationCache() const {
     return d_translationCache;

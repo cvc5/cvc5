@@ -134,7 +134,7 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
 
 
 CRef Solver::reason(Var x) const {
-    // If we already have a reaspon, just return it
+    // If we already have a reason, just return it
     if (vardata[x].reason != CRef_Lazy) return vardata[x].reason;
 
     // What's the literal we are trying to explain
@@ -143,7 +143,7 @@ CRef Solver::reason(Var x) const {
     // Get the explanation from the theory
     SatClause explanation;
     proxy->explainPropagation(l, explanation);
-    assert(explanation[0] == l);
+    Assert(explanation[0] == l);
 
     // We're actually changing the state, so we hack it into non-const
     Solver* nonconst_this = const_cast<Solver*>(this);
@@ -191,7 +191,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
-    assert(c.size() > 1);
+    Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
     if (c.learnt()) learnts_literals += c.size();
@@ -493,7 +493,7 @@ CRef Solver::propagate(TheoryCheckType type)
 
     // The effort we will be using to theory check
     CVC4::theory::Theory::Effort effort = type == CHECK_WITHOUTH_PROPAGATION_QUICK ?
-        CVC4::theory::Theory::QUICK_CHECK : CVC4::theory::Theory::STANDARD;
+    CVC4::theory::Theory::QUICK_CHECK : CVC4::theory::Theory::STANDARD;
 
     // Keep running until we have checked everything, we
     // have no conflict and no new literals have been asserted
@@ -521,6 +521,7 @@ bool Solver::propagateTheory() {
   proxy->theoryPropagate(propagatedLiterals);
   const unsigned i_end = propagatedLiterals.size();
   for (unsigned i = 0; i < i_end; ++ i) {
+    Debug("minisat") << "Theory propagated: " << propagatedLiterals[i] << std::endl;
     uncheckedEnqueue(propagatedLiterals[i], CRef_Lazy);
   }
   proxy->clearPropagatedLiterals();
@@ -550,7 +551,7 @@ CRef Solver::theoryCheck(CVC4::theory::Theory::Effort effort)
     for (int i = 0; i < clause_size; ++i) {
       int current_level = level(var(clause[i]));
       Debug("minisat") << "Literal: " << clause[i] << " with reason " << reason(var(clause[i])) << " at level " << current_level << std::endl;
-      Assert(assigns[var(clause[i])] != l_Undef, "Got an unassigned literal in conflict!");
+      Assert(value(clause[i]) != l_Undef, "Got an unassigned literal in conflict!");
       if (current_level > max_level) max_level = current_level;
     }
     // If smaller than the decision level then pop back so we can analyse
@@ -613,6 +614,7 @@ CRef Solver::propagateBool()
                 *j++ = w; continue; }
 
             // Look for new watch:
+            Assert(c.size() >= 2);
             for (int k = 2; k < c.size(); k++)
                 if (value(c[k]) != l_False){
                     c[1] = c[k]; c[k] = false_lit;
@@ -789,12 +791,12 @@ lbool Solver::search(int nof_conflicts)
                            (int)max_learnts, nLearnts(), (double)learnts_literals/nLearnts(), progressEstimate()*100);
             }
 
-			// We have a conflict so, we are going back to standard checks
+	    // We have a conflict so, we are going back to standard checks
             check_type = CHECK_WITH_PROPAGATION_STANDARD;
         }else{
             // NO CONFLICT
 
-			// If this was a final check, we are satisfiable
+	    // If this was a final check, we are satisfiable
             if (check_type == CHECK_WITHOUTH_PROPAGATION_FINAL)
               return l_True;
 
@@ -1036,7 +1038,7 @@ void Solver::relocAll(ClauseAllocator& to)
     for (int i = 0; i < trail.size(); i++){
         Var v = var(trail[i]);
 
-        if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
+        if (hasReason(v) && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
             ca.reloc(vardata[v].reason, to);
     }
 
