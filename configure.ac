@@ -630,6 +630,8 @@ if test -n "$CXXTEST"; then
 fi
 
 # Checks for libraries.
+AC_CHECK_LIB(z, gzread, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
+AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
