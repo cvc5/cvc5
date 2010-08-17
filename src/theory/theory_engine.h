@@ -126,12 +126,12 @@ class TheoryEngine {
   /** Pointer to Shared Term Manager */
   SharedTermManager* d_sharedTermManager;
 
-  theory::builtin::TheoryBuiltin d_builtin;
-  theory::booleans::TheoryBool d_bool;
-  theory::uf::TheoryUF d_uf;
-  theory::arith::TheoryArith d_arith;
-  theory::arrays::TheoryArrays d_arrays;
-  theory::bv::TheoryBV d_bv;
+  theory::builtin::TheoryBuiltin* d_builtin;
+  theory::booleans::TheoryBool* d_bool;
+  theory::uf::TheoryUF* d_uf;
+  theory::arith::TheoryArith* d_arith;
+  theory::arrays::TheoryArrays* d_arrays;
+  theory::bv::TheoryBV* d_bv;
 
   /**
    * Check whether a node is in the pre-rewrite cache or not.
@@ -196,29 +196,30 @@ public:
   TheoryEngine(context::Context* ctxt) :
     d_propEngine(NULL),
     d_theoryOut(this, ctxt),
-    d_builtin(0, ctxt, d_theoryOut),
-    d_bool(1, ctxt, d_theoryOut),
-    d_uf(2, ctxt, d_theoryOut),
-    d_arith(3, ctxt, d_theoryOut),
-    d_arrays(4, ctxt, d_theoryOut),
-    d_bv(5, ctxt, d_theoryOut),
     d_statistics() {
 
     d_sharedTermManager = new SharedTermManager(this, ctxt);
 
-    d_sharedTermManager->registerTheory(&d_builtin);
-    d_sharedTermManager->registerTheory(&d_bool);
-    d_sharedTermManager->registerTheory(&d_uf);
-    d_sharedTermManager->registerTheory(&d_arith);
-    d_sharedTermManager->registerTheory(&d_arrays);
-    d_sharedTermManager->registerTheory(&d_bv);
+    d_builtin = new theory::builtin::TheoryBuiltin(0, ctxt, d_theoryOut);
+    d_bool = new theory::booleans::TheoryBool(1, ctxt, d_theoryOut);
+    d_uf = new theory::uf::TheoryUF(2, ctxt, d_theoryOut);
+    d_arith = new theory::arith::TheoryArith(3, ctxt, d_theoryOut);
+    d_arrays = new theory::arrays::TheoryArrays(4, ctxt, d_theoryOut);
+    d_bv = new theory::bv::TheoryBV(5, ctxt, d_theoryOut);
 
-    d_theoryOfTable.registerTheory(&d_builtin);
-    d_theoryOfTable.registerTheory(&d_bool);
-    d_theoryOfTable.registerTheory(&d_uf);
-    d_theoryOfTable.registerTheory(&d_arith);
-    d_theoryOfTable.registerTheory(&d_arrays);
-    d_theoryOfTable.registerTheory(&d_bv);
+    d_sharedTermManager->registerTheory(d_builtin);
+    d_sharedTermManager->registerTheory(d_bool);
+    d_sharedTermManager->registerTheory(d_uf);
+    d_sharedTermManager->registerTheory(d_arith);
+    d_sharedTermManager->registerTheory(d_arrays);
+    d_sharedTermManager->registerTheory(d_bv);
+
+    d_theoryOfTable.registerTheory(d_builtin);
+    d_theoryOfTable.registerTheory(d_bool);
+    d_theoryOfTable.registerTheory(d_uf);
+    d_theoryOfTable.registerTheory(d_arith);
+    d_theoryOfTable.registerTheory(d_arrays);
+    d_theoryOfTable.registerTheory(d_bv);
   }
 
   SharedTermManager* getSharedTermManager() {
@@ -237,12 +238,20 @@ public:
    * ordering issues between PropEngine and Theory.
    */
   void shutdown() {
-    d_builtin.shutdown();
-    d_bool.shutdown();
-    d_uf.shutdown();
-    d_arith.shutdown();
-    d_arrays.shutdown();
-    d_bv.shutdown();
+    d_builtin->shutdown();
+    d_bool->shutdown();
+    d_uf->shutdown();
+    d_arith->shutdown();
+    d_arrays->shutdown();
+    d_bv->shutdown();
+
+    delete d_bv;
+    delete d_arrays;
+    delete d_arith;
+    delete d_uf;
+    delete d_bool;
+    delete d_builtin;
+
     delete d_sharedTermManager;
   }
 
@@ -291,12 +300,12 @@ public:
     d_theoryOut.d_propagatedLiterals.clear();
     // Do the checking
     try {
-      //d_builtin.check(effort);
-      //d_bool.check(effort);
-      d_uf.check(effort);
-      d_arith.check(effort);
-      d_arrays.check(effort);
-      //d_bv.check(effort);
+      //d_builtin->check(effort);
+      //d_bool->check(effort);
+      d_uf->check(effort);
+      d_arith->check(effort);
+      d_arrays->check(effort);
+      //d_bv->check(effort);
     } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
     }
@@ -331,12 +340,12 @@ public:
   inline void propagate() {
     d_theoryOut.d_propagatedLiterals.clear();
     // Do the propagation
-    //d_builtin.propagate(theory::Theory::FULL_EFFORT);
-    //d_bool.propagate(theory::Theory::FULL_EFFORT);
-    d_uf.propagate(theory::Theory::FULL_EFFORT);
-    d_arith.propagate(theory::Theory::FULL_EFFORT);
-    d_arrays.propagate(theory::Theory::FULL_EFFORT);
-    //d_bv.propagate(theory::Theory::FULL_EFFORT);
+    //d_builtin->propagate(theory::Theory::FULL_EFFORT);
+    //d_bool->propagate(theory::Theory::FULL_EFFORT);
+    d_uf->propagate(theory::Theory::FULL_EFFORT);
+    d_arith->propagate(theory::Theory::FULL_EFFORT);
+    d_arrays->propagate(theory::Theory::FULL_EFFORT);
+    //d_bv->propagate(theory::Theory::FULL_EFFORT);
   }
 
   inline Node getExplanation(TNode node, theory::Theory* theory) {
