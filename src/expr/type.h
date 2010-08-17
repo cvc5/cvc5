@@ -43,6 +43,7 @@ class RealType;
 class BitVectorType;
 class ArrayType;
 class FunctionType;
+class TupleType;
 class KindType;
 class SortType;
 class Type;
@@ -183,7 +184,7 @@ public:
 
   /**
    * Is this a function type?
-   * @return true if the type is a Boolean type
+   * @return true if the type is a function type
    */
   bool isFunction() const;
 
@@ -201,8 +202,20 @@ public:
   operator FunctionType() const throw (AssertionException);
 
   /**
-   * Is this a function type?
-   * @return true if the type is a Boolean type
+   * Is this a tuple type?
+   * @return true if the type is a tuple type
+   */
+  bool isTuple() const;
+
+  /**
+   * Cast this type to a tuple type
+   * @return the TupleType
+   */
+  operator TupleType() const throw (AssertionException);
+
+  /**
+   * Is this an array type?
+   * @return true if the type is a array type
    */
   bool isArray() const;
 
@@ -295,7 +308,21 @@ public:
 };
 
 /**
- * Class encapsulating a function type.
+ * Class encapsulating a tuple type.
+ */
+class CVC4_PUBLIC TupleType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  TupleType(const Type& type) throw (AssertionException);
+
+  /** Get the constituent types */
+  std::vector<Type> getTypes() const;
+};
+
+/**
+ * Class encapsulating an array type.
  */
 class CVC4_PUBLIC ArrayType : public Type {
 

@@ -11,15 +11,16 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief White box testing of CVC4::theory::uf::TheoryUF.
+ ** \brief White box testing of CVC4::theory::uf::tim::TheoryUFTim.
  **
- ** White box testing of CVC4::theory::uf::TheoryUF.
+ ** White box testing of CVC4::theory::uf::tim::TheoryUFTim.
  **/
 
 #include <cxxtest/TestSuite.h>
 
 #include "theory/theory.h"
 #include "theory/uf/theory_uf.h"
+#include "theory/uf/tim/theory_uf_tim.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
@@ -31,13 +32,14 @@
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
+using namespace CVC4::theory::uf::tim;
 using namespace CVC4::expr;
 using namespace CVC4::context;
 
 using namespace std;
 
 
-class TheoryUFWhite : public CxxTest::TestSuite {
+class TheoryUFTimWhite : public CxxTest::TestSuite {
 
   Context* d_ctxt;
   NodeManager* d_nm;
@@ -46,20 +48,20 @@ class TheoryUFWhite : public CxxTest::TestSuite {
   TestOutputChannel d_outputChannel;
   Theory::Effort d_level;
 
-  TheoryUF* d_euf;
+  TheoryUFTim* d_euf;
 
   TypeNode* d_booleanType;
 
 public:
 
-  TheoryUFWhite() : d_level(Theory::FULL_EFFORT) {}
+  TheoryUFTimWhite() : d_level(Theory::FULL_EFFORT) {}
 
   void setUp() {
     d_ctxt = new Context;
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
     d_outputChannel.clear();
-    d_euf = new TheoryUF(0, d_ctxt, d_outputChannel);
+    d_euf = new TheoryUFTim(0, d_ctxt, d_outputChannel);
 
     d_booleanType = new TypeNode(d_nm->booleanType());
   }

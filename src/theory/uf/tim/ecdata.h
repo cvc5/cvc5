@@ -19,8 +19,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__ECDATA_H
-#define __CVC4__THEORY__UF__ECDATA_H
+#ifndef __CVC4__THEORY__UF__TIM__ECDATA_H
+#define __CVC4__THEORY__UF__TIM__ECDATA_H
 
 #include "expr/node.h"
 #include "context/context.h"
@@ -30,6 +30,7 @@
 namespace CVC4 {
 namespace theory {
 namespace uf {
+namespace tim {
 
 /**
  * Link is a context dependent linked list of nodes.
@@ -252,8 +253,9 @@ public:
 
 };/* class ECData */
 
+}/* CVC4::theory::uf::tim namespace */
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__ECDATA_H */
+#endif /* __CVC4__THEORY__UF__TIM__ECDATA_H */

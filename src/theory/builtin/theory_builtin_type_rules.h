@@ -44,7 +44,7 @@ class EqualityTypeRule {
         std::stringstream ss;
         ss << "Types do not match in equation ";
         ss << "[" << lhsType << "<>" << rhsType << "]";
-        
+
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
 
@@ -54,7 +54,8 @@ class EqualityTypeRule {
     }
     return booleanType;
   }
-};
+};/* class EqualityTypeRule */
+
 
 class DistinctTypeRule {
 public:
@@ -71,7 +72,22 @@ public:
     }
     return nodeManager->booleanType();
   }
-};
+};/* class DistinctTypeRule */
+
+
+class TupleTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    std::vector<TypeNode> types;
+    for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
+        child_it != child_it_end;
+        ++child_it) {
+      types.push_back((*child_it).getType(check));
+    }
+    return nodeManager->mkTupleType(types);
+  }
+};/* class TupleTypeRule */
+
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

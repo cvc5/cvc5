@@ -68,14 +68,14 @@ EOF
     if expr "$srcdir" : src/parser >/dev/null; then
       definitions="	-D__BUILDING_CVC4PARSERLIB \\
 "
-      visibility=" -fvisibility=hidden"
+      visibility=' $(FLAG_VISIBILITY_HIDDEN)'
     elif expr "$srcdir" : src/main >/dev/null; then
       definitions=
       visibility=
     else
       definitions="	-D__BUILDING_CVC4LIB \\
 "
-      visibility=" -fvisibility=hidden"
+      visibility=' $(FLAG_VISIBILITY_HIDDEN)'
     fi
     clibname="lib${clibbase}.la"
     clibtarget="lib${clibbase}_la"

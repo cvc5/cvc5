@@ -45,7 +45,8 @@ CVC4 options:\n\
    --debug | -d           debugging for something (e.g. --debug arith), implies -t\n\
    --stats                give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
-   --print-expr-types     print types with variables when printing exprs\n"
+   --print-expr-types     print types with variables when printing exprs\n\
+   --uf=morgan|tim        select uninterpreted function theory implementation\n"
 ;
 
 }/* CVC4::main namespace */

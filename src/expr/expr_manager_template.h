@@ -211,6 +211,13 @@ public:
    */
   FunctionType mkPredicateType(const std::vector<Type>& sorts);
 
+  /**
+   * Make a tuple type with types from
+   * <code>types[0..types.size()-1]</code>.  <code>types</code> must
+   * have at least 2 elements.
+   */
+  TupleType mkTupleType(const std::vector<Type>& types);
+
   /** Make a type representing a bit-vector of the given size */
   BitVectorType mkBitVectorType(unsigned size) const;
 

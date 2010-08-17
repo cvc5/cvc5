@@ -104,8 +104,8 @@ public:
     TS_ASSERT_DIFFERS(VarNameAttr::s_id, TestStringAttr2::s_id);
     TS_ASSERT_DIFFERS(TestStringAttr1::s_id, TestStringAttr2::s_id);
 
-    lastId = attr::LastAttributeId<void*, false>::s_id;
-    TS_ASSERT_LESS_THAN(theory::uf::ECAttr::s_id, lastId);
+    //lastId = attr::LastAttributeId<void*, false>::s_id;
+    //TS_ASSERT_LESS_THAN(theory::uf::ECAttr::s_id, lastId);
 
     lastId = attr::LastAttributeId<bool, false>::s_id;
     TS_ASSERT_LESS_THAN(theory::Theory::PreRegisteredAttr::s_id, lastId);

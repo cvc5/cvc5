@@ -63,7 +63,7 @@ bool TypeNode::isPredicate() const {
 std::vector<TypeNode> TypeNode::getArgTypes() const {
   Assert(isFunction());
   std::vector<TypeNode> args;
-  for (unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++ i) {
+  for (unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
     args.push_back((*this)[i]);
   }
   return args;
@@ -74,6 +74,20 @@ TypeNode TypeNode::getRangeType() const {
   return (*this)[getNumChildren()-1];
 }
 
+/** Is this a tuple type? */
+bool TypeNode::isTuple() const {
+  return getKind() == kind::TUPLE_TYPE;
+}
+
+/** Is this a tuple type? */
+std::vector<TypeNode> TypeNode::getTupleTypes() const {
+  Assert(isTuple());
+  std::vector<TypeNode> types;
+  for (unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
+    types.push_back((*this)[i]);
+  }
+  return types;
+}
 
 /** Is this a sort kind */
 bool TypeNode::isSort() const {

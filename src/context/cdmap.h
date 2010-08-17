@@ -247,9 +247,9 @@ public:
     return get();
   }
 
-  CDOmap& operator=(const Data& data) {
+  const Data& operator=(const Data& data) {
     set(data);
-    return *this;
+    return data;
   }
 
   CDOmap* next() const {

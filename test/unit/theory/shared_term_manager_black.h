@@ -31,6 +31,7 @@
 #include "context/context.h"
 #include "util/rational.h"
 #include "util/integer.h"
+#include "util/options.h"
 #include "util/Assert.h"
 
 using namespace CVC4;
@@ -50,6 +51,7 @@ class SharedTermManagerBlack : public CxxTest::TestSuite {
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
   TheoryEngine* d_theoryEngine;
+  Options d_options;
 
 public:
 
@@ -59,11 +61,11 @@ public:
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
 
-    d_theoryEngine = new TheoryEngine(d_ctxt);
-
+    d_theoryEngine = new TheoryEngine(d_ctxt, &d_options);
   }
 
   void tearDown() {
+    d_theoryEngine->shutdown();
     delete d_theoryEngine;
 
     delete d_scope;

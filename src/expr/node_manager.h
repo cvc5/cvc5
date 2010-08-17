@@ -523,6 +523,16 @@ public:
    */
   inline TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
 
+  /**
+   * Make a tuple type with types from
+   * <code>types</code>. <code>types</code> must have at least two
+   * elements.
+   *
+   * @param types a vector of types
+   * @returns the tuple type (types[0], ..., types[n])
+   */
+  inline TypeNode mkTupleType(const std::vector<TypeNode>& types);
+
   /** Make the type of bitvectors of size <code>size</code> */
   inline TypeNode mkBitVectorType(unsigned size);
 
@@ -712,6 +722,15 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   }
   sortNodes.push_back(booleanType());
   return mkTypeNode(kind::FUNCTION_TYPE, sortNodes);
+}
+
+inline TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
+  Assert(types.size() >= 2);
+  std::vector<TypeNode> typeNodes;
+  for (unsigned i = 0; i < types.size(); ++ i) {
+    typeNodes.push_back(types[i]);
+  }
+  return mkTypeNode(kind::TUPLE_TYPE, typeNodes);
 }
 
 inline TypeNode NodeManager::mkBitVectorType(unsigned size) {

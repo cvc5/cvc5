@@ -79,7 +79,7 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
   d_decisionEngine = new DecisionEngine;
   // We have mutual dependancy here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_ctxt);
+  d_theoryEngine = new TheoryEngine(d_ctxt, opts);
   d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine, d_ctxt);
   d_theoryEngine->setPropEngine(d_propEngine);
 }

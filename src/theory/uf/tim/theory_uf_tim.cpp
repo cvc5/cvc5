@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_uf.cpp
+/*! \file theory_uf_tim.cpp
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters
@@ -16,8 +16,8 @@
  ** Implementation of the theory of uninterpreted functions.
  **/
 
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/ecdata.h"
+#include "theory/uf/tim/theory_uf_tim.h"
+#include "theory/uf/tim/ecdata.h"
 #include "expr/kind.h"
 
 using namespace CVC4;
@@ -25,9 +25,10 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
+using namespace CVC4::theory::uf::tim;
 
-TheoryUF::TheoryUF(int id, Context* c, OutputChannel& out) :
-  Theory(id, c, out),
+TheoryUFTim::TheoryUFTim(int id, Context* c, OutputChannel& out) :
+  TheoryUF(id, c, out),
   d_assertions(c),
   d_pending(c),
   d_currentPendingIdx(c,0),
@@ -35,10 +36,10 @@ TheoryUF::TheoryUF(int id, Context* c, OutputChannel& out) :
   d_registered(c) {
 }
 
-TheoryUF::~TheoryUF() {
+TheoryUFTim::~TheoryUFTim() {
 }
 
-Node TheoryUF::rewrite(TNode n){
+Node TheoryUFTim::rewrite(TNode n){
   Debug("uf") << "uf: begin rewrite(" << n << ")" << std::endl;
   Node ret(n);
   if(n.getKind() == EQUAL){
@@ -50,12 +51,12 @@ Node TheoryUF::rewrite(TNode n){
   Debug("uf") << "uf: end rewrite(" << n << ") : " << ret << std::endl;
   return ret;
 }
-void TheoryUF::preRegisterTerm(TNode n) {
+void TheoryUFTim::preRegisterTerm(TNode n) {
   Debug("uf") << "uf: begin preRegisterTerm(" << n << ")" << std::endl;
   Debug("uf") << "uf: end preRegisterTerm(" << n << ")" << std::endl;
 }
 
-void TheoryUF::registerTerm(TNode n) {
+void TheoryUFTim::registerTerm(TNode n) {
 
   Debug("uf") << "uf: begin registerTerm(" << n << ")" << std::endl;
 
@@ -147,13 +148,13 @@ void TheoryUF::registerTerm(TNode n) {
 
 }
 
-bool TheoryUF::sameCongruenceClass(TNode x, TNode y) {
+bool TheoryUFTim::sameCongruenceClass(TNode x, TNode y) {
   return
     ccFind(x.getAttribute(ECAttr())) ==
     ccFind(y.getAttribute(ECAttr()));
 }
 
-bool TheoryUF::equiv(TNode x, TNode y) {
+bool TheoryUFTim::equiv(TNode x, TNode y) {
   Assert(x.getKind() == kind::APPLY_UF);
   Assert(y.getKind() == kind::APPLY_UF);
 
@@ -189,7 +190,7 @@ bool TheoryUF::equiv(TNode x, TNode y) {
  *    many better algorithms use eager path compression.
  * 2) Elminate recursion.
  */
-ECData* TheoryUF::ccFind(ECData * x) {
+ECData* TheoryUFTim::ccFind(ECData * x) {
   if(x->getFind() == x) {
     return x;
   } else {
@@ -208,7 +209,7 @@ ECData* TheoryUF::ccFind(ECData * x) {
   */
 }
 
-void TheoryUF::ccUnion(ECData* ecX, ECData* ecY) {
+void TheoryUFTim::ccUnion(ECData* ecX, ECData* ecY) {
   ECData* nslave;
   ECData* nmaster;
 
@@ -234,7 +235,7 @@ void TheoryUF::ccUnion(ECData* ecX, ECData* ecY) {
   ECData::takeOverDescendantWatchList(nslave, nmaster);
 }
 
-void TheoryUF::merge() {
+void TheoryUFTim::merge() {
   while(d_currentPendingIdx < d_pending.size() ) {
     Node assertion = d_pending[d_currentPendingIdx];
     d_currentPendingIdx = d_currentPendingIdx + 1;
@@ -259,7 +260,7 @@ void TheoryUF::merge() {
   }
 }
 
-Node TheoryUF::constructConflict(TNode diseq) {
+Node TheoryUFTim::constructConflict(TNode diseq) {
   Debug("uf") << "uf: begin constructConflict()" << std::endl;
 
   NodeBuilder<> nb(kind::AND);
@@ -278,13 +279,13 @@ Node TheoryUF::constructConflict(TNode diseq) {
   return conflict;
 }
 
-void TheoryUF::check(Effort level) {
+void TheoryUFTim::check(Effort level) {
 
   Debug("uf") << "uf: begin check(" << level << ")" << std::endl;
 
   while(!done()) {
     Node assertion = get();
-    Debug("uf") << "TheoryUF::check(): " << assertion << std::endl;
+    Debug("uf") << "TheoryUFTim::check(): " << assertion << std::endl;
 
     switch(assertion.getKind()) {
     case EQUAL:
@@ -293,13 +294,17 @@ void TheoryUF::check(Effort level) {
       merge();
       break;
     case NOT:
+      Assert(assertion[0].getKind() == EQUAL,
+             "predicates not supported in this UF implementation");
       d_disequality.push_back(assertion[0]);
       break;
+    case APPLY_UF:
+      Unhandled("predicates not supported in this UF implementation");
     default:
       Unhandled(assertion.getKind());
     }
 
-    Debug("uf") << "TheoryUF::check(): done = " << (done() ? "true" : "false") << std::endl;
+    Debug("uf") << "TheoryUFTim::check(): done = " << (done() ? "true" : "false") << std::endl;
   }
 
   //Make sure all outstanding merges are completed.

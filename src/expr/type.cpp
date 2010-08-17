@@ -166,6 +166,19 @@ Type::operator FunctionType() const throw (AssertionException) {
   return FunctionType(*this);
 }
 
+/** Is this a tuple type? */
+bool Type::isTuple() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isTuple();
+}
+
+/** Cast to a tuple type */
+Type::operator TupleType() const throw (AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isTuple());
+  return TupleType(*this);
+}
+
 /** Is this an array type? */
 bool Type::isArray() const {
   NodeManagerScope nms(d_nodeManager);
@@ -222,6 +235,18 @@ Type FunctionType::getRangeType() const {
   return makeType(d_typeNode->getRangeType());
 }
 
+std::vector<Type> TupleType::getTypes() const {
+  NodeManagerScope nms(d_nodeManager);
+  std::vector<Type> types;
+  std::vector<TypeNode> typeNodes = d_typeNode->getTupleTypes();
+  std::vector<TypeNode>::iterator it = typeNodes.begin();
+  std::vector<TypeNode>::iterator it_end = typeNodes.end();
+  for(; it != it_end; ++ it) {
+    types.push_back(makeType(*it));
+  }
+  return types;
+}
+
 std::string SortType::getName() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getAttribute(expr::VarNameAttr());
@@ -255,6 +280,12 @@ FunctionType::FunctionType(const Type& t) throw (AssertionException)
 : Type(t)
 {
   Assert(isFunction());
+}
+
+TupleType::TupleType(const Type& t) throw (AssertionException)
+: Type(t)
+{
+  Assert(isTuple());
 }
 
 ArrayType::ArrayType(const Type& t) throw (AssertionException)

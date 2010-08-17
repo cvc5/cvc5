@@ -205,6 +205,9 @@ TypeNode NodeManager::getType(TNode n, bool check)
     case kind::DISTINCT:
       typeNode = CVC4::theory::builtin::DistinctTypeRule::computeType(this, n, check);
       break;
+    case kind::TUPLE:
+      typeNode = CVC4::theory::builtin::TupleTypeRule::computeType(this, n, check);
+      break;
     case kind::CONST_BOOLEAN:
       typeNode = CVC4::theory::boolean::BooleanTypeRule::computeType(this, n, check);
       break;

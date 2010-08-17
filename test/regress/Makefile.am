@@ -1,6 +1,8 @@
 SUBDIRS = regress0
 DIST_SUBDIRS = regress0 regress1 regress2 regress3
 
+MAKEFLAGS = -k
+
 export VERBOSE = 1
 
 .PHONY: regress0 regress1 regress2 regress3

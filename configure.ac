@@ -76,9 +76,6 @@ AC_CANONICAL_TARGET
 if test "$enable_shared" = no -a "$user_specified_enable_or_disable_shared" = yes; then
   enable_static=yes
 fi
-if test "$enable_shared" = no -a "$enable_static" = yes; then
-  enable_static_binary=yes
-fi
 
 # Features requested by the user
 AC_MSG_CHECKING([for requested build profile])

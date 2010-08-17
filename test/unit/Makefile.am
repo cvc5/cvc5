@@ -3,7 +3,7 @@ UNIT_TESTS = \
 	theory/shared_term_manager_black \
 	theory/theory_engine_white \
 	theory/theory_black \
-	theory/theory_uf_white \
+	theory/theory_uf_tim_white \
 	theory/theory_arith_white \
 	expr/expr_public \
         expr/expr_manager_public \
@@ -29,6 +29,7 @@ UNIT_TESTS = \
 	util/assert_white \
 	util/bitvector_black \
 	util/configuration_black \
+	util/congruence_closure_white \
 	util/output_black \
 	util/exception_black \
 	util/integer_black \
@@ -182,13 +183,13 @@ no-cxxtest-available:
 	else \
 		echo; \
 		echo "ERROR:"; \
-        	echo "ERROR: You cannot make dist in this build directory, you do not have CxxTest."; \
-        	echo "ERROR: The tests should be generated for the user and included in the tarball,"; \
+		echo "ERROR: You cannot make dist in this build directory, you do not have CxxTest."; \
+		echo "ERROR: The tests should be generated for the user and included in the tarball,"; \
 		echo "ERROR: otherwise they'll be required to have CxxTest just to test the standard"; \
 		echo "ERROR: distribution built correctly."; \
 		echo "ERROR: If you really want to do this, append the following to your make command."; \
 		echo "ERROR:"; \
-        	echo "ERROR:     I_REALLY_WANT_TO_BUILD_CVC4_DIST_WITHOUT_TESTS=1"; \
+		echo "ERROR:     I_REALLY_WANT_TO_BUILD_CVC4_DIST_WITHOUT_TESTS=1"; \
 		echo "ERROR:"; \
 		echo; \
 		exit 1; \

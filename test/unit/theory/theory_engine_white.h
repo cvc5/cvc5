@@ -35,6 +35,7 @@
 #include "context/context.h"
 #include "util/rational.h"
 #include "util/integer.h"
+#include "util/options.h"
 #include "util/Assert.h"
 
 using namespace CVC4;
@@ -214,6 +215,7 @@ class TheoryEngineWhite : public CxxTest::TestSuite {
   FakeOutputChannel *d_nullChannel;
   FakeTheory *d_builtin, *d_bool, *d_uf, *d_arith, *d_arrays, *d_bv;
   TheoryEngine* d_theoryEngine;
+  Options d_options;
 
 public:
 
@@ -234,7 +236,7 @@ public:
     d_bv = new FakeTheory(d_ctxt, *d_nullChannel, "BV");
 
     // create the TheoryEngine
-    d_theoryEngine = new TheoryEngine(d_ctxt);
+    d_theoryEngine = new TheoryEngine(d_ctxt, &d_options);
 
     // insert our fake versions into the TheoryEngine's theoryOf table
     d_theoryEngine->d_theoryOfTable.
@@ -254,6 +256,7 @@ public:
   }
 
   void tearDown() {
+    d_theoryEngine->shutdown();
     delete d_theoryEngine;
 
     delete d_bv;

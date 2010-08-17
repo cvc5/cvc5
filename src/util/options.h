@@ -47,6 +47,12 @@ struct CVC4_PUBLIC Options {
   /** The input language */
   parser::InputLanguage lang;
 
+  /** Enumeration of UF implementation choices */
+  typedef enum { TIM, MORGAN } UfImplementation;
+
+  /** Which implementation of uninterpreted function theory to use */
+  UfImplementation uf_implementation;
+
   /** Should we exit after parsing? */
   bool parseOnly;
 
@@ -65,12 +71,28 @@ struct CVC4_PUBLIC Options {
               err(0),
               verbosity(0),
               lang(parser::LANG_AUTO),
+              uf_implementation(MORGAN),
               parseOnly(false),
               semanticChecks(true),
               memoryMap(false),
               strictParsing(false)
   {}
 };/* struct Options */
+
+inline std::ostream& operator<<(std::ostream& out, Options::UfImplementation uf) {
+  switch(uf) {
+  case Options::TIM:
+    out << "TIM";
+    break;
+  case Options::MORGAN:
+    out << "MORGAN";
+    break;
+  default:
+    out << "UfImplementation:UNKNOWN![" << unsigned(uf) << "]";
+  }
+
+  return out;
+}
 
 }/* CVC4 namespace */
 

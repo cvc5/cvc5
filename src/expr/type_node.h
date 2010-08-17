@@ -333,6 +333,12 @@ public:
    */
   bool isPredicate() const;
 
+  /** Is this a tuple type? */
+  bool isTuple() const;
+
+  /** Get the constituent types of a tuple type */
+  std::vector<TypeNode> getTupleTypes() const;
+
   /** Is this a bit-vector type */
   bool isBitVector() const;
 

@@ -69,7 +69,8 @@ enum OptionValue {
   SHOW_CONFIG,
   STRICT_PARSING,
   DEFAULT_EXPR_DEPTH,
-  PRINT_EXPR_TYPES
+  PRINT_EXPR_TYPES,
+  UF_THEORY
 };/* enum OptionValue */
 
 /**
@@ -115,6 +116,7 @@ static struct option cmdlineOptions[] = {
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
   { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
+  { "uf"         , required_argument, NULL, UF_THEORY },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -245,6 +247,24 @@ throw(OptionException) {
         Chat.getStream() << Expr::printtypes(true);
         Message.getStream() << Expr::printtypes(true);
         Warning.getStream() << Expr::printtypes(true);
+      }
+      break;
+
+    case UF_THEORY:
+      {
+        if(!strcmp(optarg, "tim")) {
+          opts->uf_implementation = Options::TIM;
+        } else if(!strcmp(optarg, "morgan")) {
+          opts->uf_implementation = Options::MORGAN;
+        } else if(!strcmp(optarg, "help")) {
+          printf("UF implementations available:\n");
+          printf("tim\n");
+          printf("morgan\n");
+          exit(1);
+        } else {
+          throw OptionException(string("unknown language for --uf: `") +
+                                optarg + "'.  Try --uf help.");
+        }
       }
       break;
 

@@ -30,10 +30,13 @@
 #include "theory/builtin/theory_builtin.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/uf/theory_uf.h"
+#include "theory/uf/tim/theory_uf_tim.h"
+#include "theory/uf/morgan/theory_uf_morgan.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
 
+#include "util/options.h"
 #include "util/stats.h"
 
 namespace CVC4 {
@@ -134,6 +137,12 @@ class TheoryEngine {
   theory::bv::TheoryBV* d_bv;
 
   /**
+   * Debugging flag to ensure that shutdown() is called before the
+   * destructor.
+   */
+  bool d_hasShutDown;
+
+  /**
    * Check whether a node is in the pre-rewrite cache or not.
    */
   static bool inPreRewriteCache(TNode n, bool topLevel) throw() {
@@ -193,16 +202,26 @@ public:
   /**
    * Construct a theory engine.
    */
-  TheoryEngine(context::Context* ctxt) :
+  TheoryEngine(context::Context* ctxt, const Options* opts) :
     d_propEngine(NULL),
     d_theoryOut(this, ctxt),
+    d_hasShutDown(false),
     d_statistics() {
 
     d_sharedTermManager = new SharedTermManager(this, ctxt);
 
     d_builtin = new theory::builtin::TheoryBuiltin(0, ctxt, d_theoryOut);
     d_bool = new theory::booleans::TheoryBool(1, ctxt, d_theoryOut);
-    d_uf = new theory::uf::TheoryUF(2, ctxt, d_theoryOut);
+    switch(opts->uf_implementation) {
+    case Options::TIM:
+      d_uf = new theory::uf::tim::TheoryUFTim(2, ctxt, d_theoryOut);
+      break;
+    case Options::MORGAN:
+      d_uf = new theory::uf::morgan::TheoryUFMorgan(2, ctxt, d_theoryOut);
+      break;
+    default:
+      Unhandled(opts->uf_implementation);
+    }
     d_arith = new theory::arith::TheoryArith(3, ctxt, d_theoryOut);
     d_arrays = new theory::arrays::TheoryArrays(4, ctxt, d_theoryOut);
     d_bv = new theory::bv::TheoryBV(5, ctxt, d_theoryOut);
@@ -222,12 +241,24 @@ public:
     d_theoryOfTable.registerTheory(d_bv);
   }
 
+  ~TheoryEngine() {
+    Assert(d_hasShutDown);
+
+    delete d_bv;
+    delete d_arrays;
+    delete d_arith;
+    delete d_uf;
+    delete d_bool;
+    delete d_builtin;
+
+    delete d_sharedTermManager;
+  }
+
   SharedTermManager* getSharedTermManager() {
     return d_sharedTermManager;
   }
 
-  void setPropEngine(prop::PropEngine* propEngine)
-  {
+  void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
   }
@@ -238,21 +269,17 @@ public:
    * ordering issues between PropEngine and Theory.
    */
   void shutdown() {
+    // Set this first; if a Theory shutdown() throws an exception,
+    // at least the destruction of the TheoryEngine won't confound
+    // matters.
+    d_hasShutDown = true;
+
     d_builtin->shutdown();
     d_bool->shutdown();
     d_uf->shutdown();
     d_arith->shutdown();
     d_arrays->shutdown();
     d_bv->shutdown();
-
-    delete d_bv;
-    delete d_arrays;
-    delete d_arith;
-    delete d_uf;
-    delete d_bool;
-    delete d_builtin;
-
-    delete d_sharedTermManager;
   }
 
   /**

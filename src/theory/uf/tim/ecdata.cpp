@@ -17,12 +17,13 @@
  ** context-dependent object.
  **/
 
-#include "theory/uf/ecdata.h"
+#include "theory/uf/tim/ecdata.h"
 
 using namespace CVC4;
-using namespace context;
-using namespace theory;
-using namespace uf;
+using namespace CVC4::context;
+using namespace CVC4::theory;
+using namespace CVC4::theory::uf;
+using namespace CVC4::theory::uf::tim;
 
 ECData::ECData(Context * context, TNode n) :
   ContextObj(context),

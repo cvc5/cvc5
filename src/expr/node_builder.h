@@ -874,7 +874,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
     nv->d_rc = 0;
     setUsed();
     Debug("gc") << "creating node value " << nv
-                << " [" << nv->d_id << "]: " << nv->toString() << "\n";
+                << " [" << nv->d_id << "]: " << *nv << "\n";
     return nv;
   }
 
