@@ -329,7 +329,9 @@ public:
         ++i) {
       // mark it as being a destruction (short-circuit restore())
       (*i).second->d_map = NULL;
-      (*i).second->deleteSelf();
+      if(!(*i).second->d_noTrash) {
+        (*i).second->deleteSelf();
+      }
     }
     d_map.clear();
     d_first = NULL;
@@ -349,7 +351,9 @@ public:
         ++i) {
       // mark it as being a destruction (short-circuit restore())
       (*i).second->d_map = NULL;
-      (*i).second->deleteSelf();
+      if(!(*i).second->d_noTrash) {
+        (*i).second->deleteSelf();
+      }
     }
     d_map.clear();
     d_first = NULL;
@@ -486,7 +490,9 @@ public:
         d_map.erase(j);//FIXME multithreading
         Debug("gc") << "key " << k << " obliterated zero-scope: " << elt << std::endl;
         // was already destructed, so don't call ->deleteSelf()
-        ::operator delete(elt);
+        if(!elt->d_noTrash) {
+          ::operator delete(elt);
+        }
       }
     }
   }

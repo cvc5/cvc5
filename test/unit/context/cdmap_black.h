@@ -930,9 +930,8 @@ public:
   };
 
   void testMapOfLists() {
-    try{
-      //Debug.on("gc");
-      //Debug.on("context");
+    //Debug.on("gc");
+    //Debug.on("context");
 
     CDMap<int, CDList<myint>*, int_hasher> map(d_context);
 
@@ -1055,6 +1054,13 @@ public:
     }
 
     TS_ASSERT(d_context->getLevel() == 0);
-  } catch(Exception& e) { cout << e << std::endl; throw e; }
+  }
+
+  void testCmmElementsAtLevel0() {
+    // this was crashing
+
+    CDMap<int, int*, int_hasher> map(d_context);
+    int* a = (int*)d_context->getCMM()->newData(sizeof(int));
+    map.insertDataFromContextMemory(1, a);
   }
 };
