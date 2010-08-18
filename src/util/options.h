@@ -71,7 +71,7 @@ struct CVC4_PUBLIC Options {
               err(0),
               verbosity(0),
               lang(parser::LANG_AUTO),
-              uf_implementation(MORGAN),
+              uf_implementation(TIM),
               parseOnly(false),
               semanticChecks(true),
               memoryMap(false),
