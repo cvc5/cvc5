@@ -45,6 +45,10 @@ public:
   void check(Effort e) { Unimplemented(); }
   void propagate(Effort e) { Unimplemented(); }
   void explain(TNode n, Effort e) { Unimplemented(); }
+
+  RewriteResponse preRewrite(TNode n, bool topLevel);
+  RewriteResponse postRewrite(TNode n, bool topLevel);
+
   std::string identify() const { return std::string("TheoryBool"); }
 };
 

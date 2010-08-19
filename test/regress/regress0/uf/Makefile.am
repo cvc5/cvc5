@@ -19,6 +19,7 @@ TESTS =	\
 	eq_diamond1.smt \
 	eq_diamond14.smt \
 	eq_diamond14.reduced.smt \
+	eq_diamond14.reduced2.smt \
 	dead_dnd002.smt \
 	iso_brn001.smt \
 	simple.01.cvc \

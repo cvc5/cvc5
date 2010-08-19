@@ -32,7 +32,6 @@
 :extrafuns ((y1 V))
 :extrafuns ((x1 V))
 :extrafuns ((y0 V))
-:status unknown
 :formula
 (flet ($n1 (= x0 y0))
 (flet ($n2 (= y0 x1))

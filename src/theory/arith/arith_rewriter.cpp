@@ -43,7 +43,7 @@ Kind multKind(Kind k, int sgn);
  * Also writes relations with constants on both sides to TRUE or FALSE.
  * If it can, it returns true and sets res to this value.
  *
- * This is for optimizing rewriteAtom() to avoid the more compuationally
+ * This is for optimizing rewriteAtom() to avoid the more computationally
  * expensive general rewriting procedure.
  *
  * If simplification is not done, it returns Node::null()
@@ -476,8 +476,7 @@ Node ArithRewriter::rewriteTerm(TNode t){
     Node sub = makeUnaryMinusNode(t[0]);
     return rewrite(sub);
   }else{
-    Unreachable();
-    return Node::null();
+    Unhandled(t);
   }
 }
 
@@ -533,7 +532,7 @@ Kind multKind(Kind k, int sgn){
     case GEQ: return LEQ;
     case GT: return LT;
     default:
-      Unhandled();
+      Unhandled(k);
     }
     return NULL_EXPR;
   }else{

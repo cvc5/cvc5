@@ -52,19 +52,20 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
 //     }
   }
   else if (fact.getKind() == kind::EQUAL) {
+    // FIXME: kind::IFF as well ?
     // Automatically track all asserted equalities in the shared term manager
     d_engine->getSharedTermManager()->addEq(fact);
   }
   if(! fact.getAttribute(RegisteredAttr())) {
-    std::list<TNode> toReg;
+    list<TNode> toReg;
     toReg.push_back(fact);
 
-    Debug("theory") << "Theory::get(): registering new atom" << std::endl;
+    Debug("theory") << "Theory::get(): registering new atom" << endl;
 
     /* Essentially this is doing a breadth-first numbering of
      * non-registered subterms with children.  Any non-registered
      * leaves are immediately registered. */
-    for(std::list<TNode>::iterator workp = toReg.begin();
+    for(list<TNode>::iterator workp = toReg.begin();
         workp != toReg.end();
         ++workp) {
 
@@ -108,7 +109,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
      * and the above registration of leaves, this should ensure that
      * all subterms in the entire tree were registered in
      * reverse-topological order. */
-    for(std::list<TNode>::reverse_iterator i = toReg.rbegin();
+    for(list<TNode>::reverse_iterator i = toReg.rbegin();
         i != toReg.rend();
         ++i) {
 
@@ -234,6 +235,7 @@ Node TheoryEngine::removeITEs(TNode node) {
   Node cachedRewrite;
   NodeManager *nodeManager = NodeManager::currentNM();
   if(nodeManager->getAttribute(node, theory::IteRewriteAttr(), cachedRewrite)) {
+    Debug("ite") << "removeITEs: in-cache: " << cachedRewrite << endl;
     return cachedRewrite.isNull() ? Node(node) : cachedRewrite;
   }
 
@@ -352,6 +354,9 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
 
   Node noItes = removeITEs(in);
   Node out;
+
+  Debug("theory-rewrite") << "removeITEs of: " << in << endl
+                          << "           is: " << noItes << endl;
 
   // descend top-down into the theory rewriters
   vector<RewriteStackElement> stack;
@@ -523,7 +528,6 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
                rse.d_node.toString().c_str(),
                rewrittenAgain.toString().c_str());
       }
-
       setPostRewriteCache(original, wasTopLevel, rse.d_node);
 
       out = rse.d_node;

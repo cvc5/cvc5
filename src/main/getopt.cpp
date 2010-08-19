@@ -262,7 +262,7 @@ throw(OptionException) {
           printf("morgan\n");
           exit(1);
         } else {
-          throw OptionException(string("unknown language for --uf: `") +
+          throw OptionException(string("unknown option for --uf: `") +
                                 optarg + "'.  Try --uf help.");
         }
       }

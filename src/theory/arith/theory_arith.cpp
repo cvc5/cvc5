@@ -316,6 +316,9 @@ DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
 }
 
 RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
+  // ensure a hard link to the node we're returning
+  Node out;
+
   // Look for multiplications with a 0 argument and rewrite the whole
   // thing as 0
   if(n.getKind() == MULT) {
@@ -324,23 +327,34 @@ RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
     for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
       if((*i).getKind() == CONST_RATIONAL) {
         if((*i).getConst<Rational>() == ratZero) {
-          n = NodeManager::currentNM()->mkConst(ratZero);
+          out = NodeManager::currentNM()->mkConst(ratZero);
           break;
         }
       } else if((*i).getKind() == CONST_INTEGER) {
         if((*i).getConst<Integer>() == intZero) {
           if(n.getType().isInteger()) {
-            n = NodeManager::currentNM()->mkConst(intZero);
+            out = NodeManager::currentNM()->mkConst(intZero);
             break;
           } else {
-            n = NodeManager::currentNM()->mkConst(ratZero);
+            out = NodeManager::currentNM()->mkConst(ratZero);
             break;
           }
         }
       }
     }
+  } else if(n.getKind() == EQUAL) {
+    if(n[0] == n[1]) {
+      out = NodeManager::currentNM()->mkConst(true);
+    }
   }
-  return RewriteComplete(Node(n));
+
+  if(out.isNull()) {
+    // no preRewrite to perform
+    return RewriteComplete(Node(n));
+  } else {
+    // out is always a constant, so doesn't need to be rewritten again
+    return RewriteComplete(out);
+  }
 }
 
 Node TheoryArith::rewrite(TNode n){

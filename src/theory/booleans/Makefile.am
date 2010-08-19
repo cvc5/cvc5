@@ -7,6 +7,7 @@ noinst_LTLIBRARIES = libbooleans.la
 
 libbooleans_la_SOURCES = \
 	theory_bool.h \
+	theory_bool.cpp \
 	theory_bool_type_rules.h
 
 EXTRA_DIST = kinds

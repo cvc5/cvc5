@@ -159,8 +159,9 @@ public:
    */
   void addEquality(TNode inputEq) {
     Debug("cc") << "CC addEquality[" << d_context->getLevel() << "]: " << inputEq << std::endl;
-    Assert(inputEq.getKind() == kind::EQUAL);
-    NodeBuilder<> eqb(kind::EQUAL);
+    Assert(inputEq.getKind() == kind::EQUAL ||
+           inputEq.getKind() == kind::IFF);
+    NodeBuilder<> eqb(inputEq.getKind());
     if(inputEq[1].getKind() == kind::APPLY_UF &&
        inputEq[0].getKind() != kind::APPLY_UF) {
       eqb << flatten(inputEq[1]) << inputEq[0];
@@ -190,7 +191,7 @@ public:
       EqMap::iterator i = d_eqMap.find(t);
       if(i == d_eqMap.end()) {
         Node v = NodeManager::currentNM()->mkSkolem(t.getType());
-        addEq(NodeManager::currentNM()->mkNode(kind::EQUAL, t, v), TNode::null());
+        addEq(NodeManager::currentNM()->mkNode(t.getType().isBoolean() ? kind::IFF : kind::EQUAL, t, v), TNode::null());
         d_eqMap.insert(t, v);
         return v;
       } else {
@@ -272,7 +273,8 @@ public:
    */
   inline Node explain(TNode eq)
     throw(CongruenceClosureException, AssertionException) {
-    Assert(eq.getKind() == kind::EQUAL);
+    Assert(eq.getKind() == kind::EQUAL ||
+           eq.getKind() == kind::IFF);
     return explain(eq[0], eq[1]);
   }
 
@@ -299,7 +301,8 @@ private:
       return TNode::null();
     } else {
       TNode l = (*i).second;
-      Assert(l.getKind() == kind::EQUAL);
+      Assert(l.getKind() == kind::EQUAL ||
+             l.getKind() == kind::IFF);
       return l;
     }
   }
@@ -309,7 +312,8 @@ private:
    */
   inline void setLookup(TNode a, TNode b) {
     Assert(a.getKind() == kind::TUPLE);
-    Assert(b.getKind() == kind::EQUAL);
+    Assert(b.getKind() == kind::EQUAL ||
+           b.getKind() == kind::IFF);
     d_lookup[a] = b;
   }
 
@@ -325,7 +329,8 @@ private:
    */
   inline void appendToUseList(TNode of, TNode eq) {
     Debug("cc") << "adding " << eq << " to use list of " << of << std::endl;
-    Assert(eq.getKind() == kind::EQUAL);
+    Assert(eq.getKind() == kind::EQUAL ||
+           eq.getKind() == kind::IFF);
     Assert(of == find(of));
     UseLists::iterator usei = d_useList.find(of);
     UseList* ul;
@@ -389,7 +394,8 @@ void CongruenceClosure<OutputChannel>::addEq(TNode eq, TNode inputEq) {
   d_proofRewrite[eq] = inputEq;
 
   Debug("cc") << "CC addEq[" << d_context->getLevel() << "]: " << eq << std::endl;
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == kind::EQUAL ||
+         eq.getKind() == kind::IFF);
   Assert(eq[1].getKind() != kind::APPLY_UF);
   if(areCongruent(eq[0], eq[1])) {
     Debug("cc") << "CC -- redundant, ignoring...\n";
@@ -466,7 +472,8 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
     Debug("cc") << "=== e is " << e << " ===" << std::endl;
 
     TNode a, b;
-    if(e.getKind() == kind::EQUAL) {
+    if(e.getKind() == kind::EQUAL ||
+       e.getKind() == kind::IFF) {
       // e is an equality a = b (a, b are constants)
 
       a = e[0];
@@ -481,8 +488,10 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
       Assert(e.getKind() == kind::TUPLE);
 
       Assert(e.getNumChildren() == 2);
-      Assert(e[0].getKind() == kind::EQUAL);
-      Assert(e[1].getKind() == kind::EQUAL);
+      Assert(e[0].getKind() == kind::EQUAL ||
+             e[0].getKind() == kind::IFF);
+      Assert(e[1].getKind() == kind::EQUAL ||
+             e[1].getKind() == kind::IFF);
 
       // tuple is (eq, lookup)
       a = e[0][1];
@@ -576,7 +585,8 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
               ++i) {
             TNode eq = *i;
             Debug("cc") << "CC  -- useList: " << eq << std::endl;
-            Assert(eq.getKind() == kind::EQUAL);
+            Assert(eq.getKind() == kind::EQUAL ||
+                   eq.getKind() == kind::IFF);
             // change from paper
             // use list elts can have form (apply c..) = x  OR  x = (apply c..)
             Assert(eq[0].getKind() == kind::APPLY_UF || eq[1].getKind() == kind::APPLY_UF);
@@ -730,7 +740,8 @@ Node CongruenceClosure<OutputChannel>::normalize(TNode t) const
 
     Node theLookup = lookup(ap);
     if(allConstants && !theLookup.isNull()) {
-      Assert(theLookup.getKind() == kind::EQUAL);
+      Assert(theLookup.getKind() == kind::EQUAL ||
+             theLookup.getKind() == kind::IFF);
       Assert(theLookup[0].getKind() == kind::APPLY_UF);
       Assert(theLookup[1].getKind() != kind::APPLY_UF);
       return find(theLookup[1]);
@@ -769,7 +780,8 @@ void CongruenceClosure<OutputChannel>::explainAlongPath(TNode a, TNode c, std::l
   while(a != c) {
     Node b = d_proof[a];
     Node e = d_proofLabel[a];
-    if(e.getKind() == kind::EQUAL) {
+    if(e.getKind() == kind::EQUAL ||
+       e.getKind() == kind::IFF) {
       pf.push_back(e);
     } else {
       Assert(e.getKind() == kind::TUPLE);
@@ -898,6 +910,11 @@ std::ostream& operator<<(std::ostream& out,
   for(typename CongruenceClosure<OutputChannel>::LookupMap::const_iterator i = cc.d_lookup.begin(); i != cc.d_lookup.end(); ++i) {
     TNode n = (*i).second;
     out << "  " << (*i).first << " => " << n << std::endl;
+  }
+
+  out << "Care set:" << std::endl;
+  for(typename CongruenceClosure<OutputChannel>::CareSet::const_iterator i = cc.d_careSet.begin(); i != cc.d_careSet.end(); ++i) {
+    out << "  " << *i << std::endl;
   }
 
   out << "==============================================" << std::endl;

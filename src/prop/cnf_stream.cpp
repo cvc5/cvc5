@@ -100,9 +100,9 @@ Node CnfStream::getNode(const SatLiteral& literal) {
 }
 
 SatLiteral CnfStream::convertAtom(TNode node) {
-  Assert(!isCached(node), "atom already mapped!");
-
   Debug("cnf") << "convertAtom(" << node << ")" << endl;
+
+  Assert(!isCached(node), "atom already mapped!");
 
   bool theoryLiteral = node.getKind() != kind::VARIABLE;
   SatLiteral lit = newLiteral(node, theoryLiteral);
@@ -245,6 +245,8 @@ SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
   Assert(iffNode.getKind() == IFF, "Expecting an IFF expression!");
   Assert(iffNode.getNumChildren() == 2, "Expecting exactly 2 children!");
 
+  Debug("cnf") << "handleIff(" << iffNode << ")" << endl;
+
   // Convert the children to CNF
   SatLiteral a = toCNF(iffNode[0]);
   SatLiteral b = toCNF(iffNode[1]);
@@ -287,7 +289,7 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   Assert(iteNode.getKind() == ITE);
   Assert(iteNode.getNumChildren() == 3);
 
-  Debug("cnf") << "handlIte(" << iteNode[0] << " " << iteNode[1] << " " << iteNode[2] << ")" << endl;
+  Debug("cnf") << "handleIte(" << iteNode[0] << " " << iteNode[1] << " " << iteNode[2] << ")" << endl;
 
   SatLiteral condLit = toCNF(iteNode[0]);
   SatLiteral thenLit = toCNF(iteNode[1]);
@@ -353,8 +355,10 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
       nodeLit = handleAnd(node);
       break;
     case EQUAL:
-      if(node[0].getType().isBoolean() && node[1].getType().isBoolean()) {
-        nodeLit = handleIff(node[0].iffNode(node[1]));
+      if(node[0].getType().isBoolean()) {
+        // should have an IFF instead
+        Unreachable("= Bool Bool  shouldn't be possible ?!");
+        //nodeLit = handleIff(node[0].iffNode(node[1]));
       } else {
         nodeLit = convertAtom(node);
       }

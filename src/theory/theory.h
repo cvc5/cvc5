@@ -313,6 +313,19 @@ public:
    * rewrite a term to a strictly larger term that contains itself, as
    * this will cause a loop of hard Node links in the cache (and thus
    * memory leakage).
+   *
+   * Be careful with the return value.  If a preRewrite() can return a
+   * sub-expression, and that sub-expression can be a member of the
+   * same theory and could be rewritten, make sure to return
+   * RewriteAgain instead of RewriteComplete.  This is an easy mistake
+   * to make, as preRewrite() is often a short-circuiting version of
+   * the same rewrites that occur in postRewrite(); however, in the
+   * postRewrite() case, the subexpressions have all been
+   * post-rewritten.  In the preRewrite() case, they have NOT yet been
+   * pre-rewritten.  For example, (ITE true (ITE true x y) z) should
+   * pre-rewrite to x; but if the outer preRewrite() returns
+   * RewriteComplete, the result of the pre-rewrite will be
+   * (ITE true x y).
    */
   virtual RewriteResponse preRewrite(TNode n, bool topLevel) {
     Debug("theory-rewrite") << "no pre-rewriting to perform for " << n << std::endl;
