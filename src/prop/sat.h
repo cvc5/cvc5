@@ -233,8 +233,6 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   d_minisat = new Minisat::SimpSolver(this, d_context);
   // Setup the verbosity
   d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
-  // Do not delete the satisfied clauses, just the learnt ones
-  d_minisat->remove_satisfied = false;
 
   // No random choices
   if(Debug.isOn("no_rnd_decisions")){
