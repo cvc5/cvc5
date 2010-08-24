@@ -172,6 +172,9 @@ AC_PROG_INSTALL
 # determine whether to use CLN or GMP.
 # we do this here so it can affect the build directory
 
+# [chris 8/24/2010] The user *must* specify --with-cln to get CLN
+# (and, thus, opt in to the GPL dependency).
+
 cvc4_use_gmp=0
 cvc4_use_cln=0
 
@@ -179,24 +182,27 @@ AC_ARG_WITH(
   [cln],
   AS_HELP_STRING(
     [--with-cln],
-    [use CLN instead of GMP (default, if CLN found)]
+    [use CLN instead of GMP]
   ),
-  [if test "$withval" = no; then
-     cvc4_use_gmp=1
-   else
+  [if test "$withval" != no; then
      cvc4_use_cln=1
    fi
   ]
 )
 
+# [chris 8/24/2010] --with-gmp has no practical effect, since GMP is
+# the default. Could be useful if other options are added later.
+
 AC_ARG_WITH(
   [gmp],
   AS_HELP_STRING(
     [--with-gmp],
-    [use GMP instead of CLN]
+    [use GMP instead of CLN (default)]
   ),
   [if test "$withval" = no; then
-     cvc4_use_cln=1
+     if test $cvc4_use_cln = 0; then
+       AC_MSG_ERROR([You must use either CLN and GMP.  Please pick one.])
+     fi
    else
      cvc4_use_gmp=1
    fi
@@ -208,7 +214,7 @@ if test $cvc4_use_cln = 1 && test $cvc4_use_gmp = 1; then
   AC_MSG_ERROR([You cannot use both CLN and GMP.  Please pick one.])
 fi
 
-if test $cvc4_use_cln = 1 || test $cvc4_use_cln = 0 -a $cvc4_use_gmp = 0; then
+if test $cvc4_use_cln = 1; then
   # [mdeters] The PKG_CHECK_MODULES macro isn't customizable and doesn't fail
   # gracefully.  You can only specify it once for a given library name.  That
   # is, even on separate if/else branches, you can't put
