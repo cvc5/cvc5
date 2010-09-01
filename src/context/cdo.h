@@ -85,6 +85,9 @@ public:
    * This version takes an argument that specifies whether this CDO<>
    * was itself allocated in context memory.  If it was, it is linked
    * with the current scope rather than scope 0.
+   *
+   * WARNING: Read the notes in src/context/context.h on "Gotchas when
+   * allocating contextual objects with non-standard allocators."
    */
   CDO(bool allocatedInCMM, Context* context) :
     ContextObj(allocatedInCMM, context) {
@@ -111,6 +114,9 @@ public:
    * This version takes an argument that specifies whether this CDO<>
    * was itself allocated in context memory.  If it was, it is linked
    * with the current scope rather than scope 0.
+   *
+   * WARNING: Read the notes in src/context/context.h on "Gotchas when
+   * allocating contextual objects with non-standard allocators."
    */
   CDO(bool allocatedInCMM, Context* context, const T& data) :
     ContextObj(allocatedInCMM, context) {

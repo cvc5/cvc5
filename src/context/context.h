@@ -268,7 +268,9 @@ public:
  * This is an abstract base class from which all objects that are
  * context-dependent should inherit.  For any data structure that you
  * want to have be automatically backtracked, do the following:
+ *
  * 1. Create a class for the data structure that inherits from ContextObj
+ *
  * 2. Implement save()
  *    The role of save() is to create a new ContexObj object that contains
  *    enough information to restore the object to its current state, even if
@@ -283,6 +285,7 @@ public:
  *    fact, any clean-up work on a saved object must be done by restore().
  *    This is because the destructor is never called explicitly on saved
  *    objects.
+ *
  * 3. Implement restore()
  *    The role of restore() is, given the ContextObj returned by a previous
  *    call to save(), to restore the current object to the state it was in
@@ -291,8 +294,10 @@ public:
  *    automatically.  Ideally, restore() should not have to free any memory
  *    as any memory allocated by save() should have been done using the
  *    ContextMemoryManager (see item 2 above).
+ *
  * 4. In the subclass implementation, any time the state is about to be
  *    changed, first call makeCurrent().
+ *
  * 5. In the subclass implementation, the destructor should call destroy(),
  *    which repeatedly calls restore() until the object is restored to context
  *    level 0.  Note, however, that if there is additional cleanup required at
@@ -301,6 +306,47 @@ public:
  *    cannot be in the ContextObj destructor is that it needs to call the
  *    subclass-specific restore() method in order to properly clean up saved
  *    copies.
+ *
+ * GOTCHAS WHEN ALLOCATING CONTEXTUAL OBJECTS WITH NON-STANDARD ALLOCATORS
+ *
+ * Be careful if you intend to allocate ContextObj in (for example)
+ * ContextMemoryManager memory.  ContextMemoryManager doesn't call the
+ * destructors of contained objects, which means the objects aren't
+ * properly unregistered from the Context (as in point #5, above).
+ * This can be remedied by allocating the ContextObj in the "top
+ * scope" rather than the "bottom scope" (which is what the
+ * "allocatedInCMM" flag to the special constructor in ContextObj
+ * does).
+ *
+ * But why allocate in CMM if it's so complicated?  There's a big
+ * advantage: you don't have to track the lifetime of the ContextObj.
+ * The object simply ceases to exist when the Context is popped.  Thus
+ * you can create an object in context memory, and if you stow
+ * pointers to it only in context memory as well, all is cleaned up
+ * for you when the scope pops.  Here's a list of gotchas:
+ *
+ * 1. For data structures intended solely to be allocated in context
+ *    memory, privately declare (but don't define) an operator
+ *    new(size_t) and destructor (as currently in the Link class, in
+ *    src/theory/uf/ecdata.h).
+ * 
+ * 2. For data structures that may or may not be allocated in context
+ *    memory, and are designed to be that way (esp. if they contain
+ *    ContextObj instances), they should be heavily documented --
+ *    especially the destructor, since it _may_or_may_not_be_called_.
+ * 
+ * 3. There's also an issue for generic code -- some class Foo<T>
+ *    might be allocated in context memory, and that might normally be
+ *    fine, but if T is a ContextObj this requires certain care.
+ *
+ * 4. Note that certain care is required for ContextObj inside of data
+ *    structures.  If the (enclosing) data structure can be allocated
+ *    in CMM, that means the (enclosed) ContextObj can be, even if it
+ *    was not designed to be allocated in that way.  In many
+ *    instances, it may be required that data structures enclosing
+ *    ContextObj be parameterized with a similar "bool allocatedInCMM"
+ *    argument as the special constructor in this class (and pass it
+ *    on to all ContextObj instances).
  */
 class ContextObj {
   /**
@@ -484,6 +530,9 @@ public:
    * specifies whether this ContextObj is itself allocated in context
    * memory.  If it is, it's invalid below the current scope level, so
    * we don't put it in scope 0.
+   *
+   * WARNING: Read the notes above on "Gotchas when allocating
+   * contextual objects with non-standard allocators."
    */
   ContextObj(bool allocatedInCMM, Context* context);
 
