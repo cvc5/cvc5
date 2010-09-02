@@ -21,7 +21,8 @@ TESTS =	bmc-galileo-8.smt \
 	bmc-ibm-7.smt \
 	friedman_n6_i4.smt \
 	hole9.cvc \
-	qwh.35.405.shuffled-as.sat03-1651.smt
+	qwh.35.405.shuffled-as.sat03-1651.smt \
+	eq_diamond14.smt
 
 EXTRA_DIST = $(TESTS)
 

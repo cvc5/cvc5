@@ -17,7 +17,6 @@ TESTS =	\
 	euf_simp12.smt \
 	euf_simp13.smt \
 	eq_diamond1.smt \
-	eq_diamond14.smt \
 	eq_diamond14.reduced.smt \
 	eq_diamond14.reduced2.smt \
 	dead_dnd002.smt \
