@@ -15,8 +15,8 @@ all %:
 	fi
 
 # synonyms for "check"
-.PHONY: regress test
-regress test: check
+.PHONY: test
+test: check
 
 submission:
 	if [ ! -e configure ]; then ./autogen.sh; fi
