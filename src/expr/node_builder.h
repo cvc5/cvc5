@@ -346,6 +346,7 @@ class NodeBuilder {
     }
   }
 
+  // used by convenience node builders
   NodeBuilder<nchild_thresh>& collapseTo(Kind k) {
     AssertArgument(k != kind::UNDEFINED_KIND &&
                    k != kind::NULL_EXPR &&
@@ -356,6 +357,7 @@ class NodeBuilder {
       Node n = operator Node();
       clear();
       d_nv->d_kind = expr::NodeValue::kindToDKind(k);
+      d_nv->d_id = 1; // have a kind already
       return append(n);
     }
     return *this;
@@ -379,9 +381,10 @@ public:
     d_nm(NodeManager::currentNM()),
     d_nvMaxChildren(nchild_thresh) {
 
-    Assert(k != kind::NULL_EXPR, "illegal Node-building kind");
+    Assert(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND,
+           "illegal Node-building kind");
 
-    d_inlineNv.d_id = 0;
+    d_inlineNv.d_id = 1; // have a kind already
     d_inlineNv.d_rc = 0;
     d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
     d_inlineNv.d_nchildren = 0;
@@ -403,9 +406,10 @@ public:
     d_nm(nm),
     d_nvMaxChildren(nchild_thresh) {
 
-    Assert(k != kind::NULL_EXPR, "illegal Node-building kind");
+    Assert(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND,
+           "illegal Node-building kind");
 
-    d_inlineNv.d_id = 0;
+    d_inlineNv.d_id = 1; // have a kind already
     d_inlineNv.d_rc = 0;
     d_inlineNv.d_kind = expr::NodeValue::kindToDKind(k);
     d_inlineNv.d_nchildren = 0;
@@ -428,7 +432,7 @@ public:
     d_nm(nb.d_nm),
     d_nvMaxChildren(nchild_thresh) {
 
-    d_inlineNv.d_id = 0;
+    d_inlineNv.d_id = nb.d_nv->d_id;
     d_inlineNv.d_rc = 0;
     d_inlineNv.d_kind = nb.d_nv->d_kind;
     d_inlineNv.d_nchildren = 0;
@@ -443,7 +447,7 @@ public:
     d_nm(nb.d_nm),
     d_nvMaxChildren(nchild_thresh) {
 
-    d_inlineNv.d_id = 0;
+    d_inlineNv.d_id = nb.d_nv->d_id;
     d_inlineNv.d_rc = 0;
     d_inlineNv.d_kind = nb.d_nv->d_kind;
     d_inlineNv.d_nchildren = 0;
@@ -538,12 +542,25 @@ public:
   inline NodeBuilder<nchild_thresh>& operator<<(const Kind& k) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    Assert(getKind() == kind::UNDEFINED_KIND,
+    Assert(getKind() == kind::UNDEFINED_KIND || d_nv->d_id == 0,
            "can't redefine the Kind of a NodeBuilder");
+    Assert(d_nv->d_id == 0,
+           "interal inconsistency with NodeBuilder: d_id != 0");
     AssertArgument(k != kind::UNDEFINED_KIND &&
                    k != kind::NULL_EXPR &&
                    k < kind::LAST_KIND,
                    k, "illegal node-building kind");
+    // This test means: we didn't have a Kind at the beginning (on
+    // NodeBuilder construction or at the last clear()), but we do
+    // now.  That means we appended a Kind with operator<<(Kind),
+    // which now (lazily) we'll collapse.
+    if(EXPECT_FALSE( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND )) {
+      Node n2 = operator Node();
+      clear();
+      append(n2);
+    } else if(d_nv->d_nchildren == 0) {
+      d_nv->d_id = 1; // remember that we had a kind from the start
+    }
     d_nv->d_kind = expr::NodeValue::kindToDKind(k);
     return *this;
   }
@@ -551,36 +568,38 @@ public:
   /**
    * If this Node-under-construction has a Kind set, collapse it and
    * append the given Node as a child.  Otherwise, simply append.
-   * FIXME: do we really want that collapse behavior?  We had agreed
-   * on it but then never wrote code like that.
    */
   NodeBuilder<nchild_thresh>& operator<<(TNode n) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    /* FIXME: disable this "collapsing" for now..
-    if(EXPECT_FALSE( getKind() != kind::UNDEFINED_KIND )) {
+    // This test means: we didn't have a Kind at the beginning (on
+    // NodeBuilder construction or at the last clear()), but we do
+    // now.  That means we appended a Kind with operator<<(Kind),
+    // which now (lazily) we'll collapse.
+    if(EXPECT_FALSE( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND )) {
       Node n2 = operator Node();
       clear();
       append(n2);
-    }*/
+    }
     return append(n);
   }
 
   /**
    * If this Node-under-construction has a Kind set, collapse it and
    * append the given Node as a child.  Otherwise, simply append.
-   * FIXME: do we really want that collapse behavior?  We had agreed
-   * on it but then never wrote code like that.
    */
   NodeBuilder<nchild_thresh>& operator<<(TypeNode n) {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    /* FIXME: disable this "collapsing" for now..
-    if(EXPECT_FALSE( getKind() != kind::UNDEFINED_KIND )) {
+    // This test means: we didn't have a Kind at the beginning (on
+    // NodeBuilder construction or at the last clear()), but we do
+    // now.  That means we appended a Kind with operator<<(Kind),
+    // which now (lazily) we'll collapse.
+    if(EXPECT_FALSE( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND )) {
       Node n2 = operator Node();
       clear();
       append(n2);
-    }*/
+    }
     return append(n);
   }
 
@@ -717,6 +736,8 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
     (*i)->dec();
   }
   d_inlineNv.d_nchildren = 0;
+  // keep track of whether or not we hvae a kind already
+  d_inlineNv.d_id = (k == kind::UNDEFINED_KIND) ? 0 : 1;
 }
 
 template <unsigned nchild_thresh>
@@ -749,7 +770,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
     d_nvMaxChildren = toSize;
 
     d_nv = newBlock;
-    d_nv->d_id = 0;
+    d_nv->d_id = d_inlineNv.d_id;
     d_nv->d_rc = 0;
     d_nv->d_kind = d_inlineNv.d_kind;
     d_nv->d_nchildren = d_inlineNv.d_nchildren;

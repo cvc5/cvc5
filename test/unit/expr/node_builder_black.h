@@ -613,6 +613,37 @@ public:
     TS_ASSERT_DIFFERS(astr, cstr);
   }
 
+  void testLeftistBuilding() {
+    NodeBuilder<> nb;
+
+    Node a = d_nm->mkVar(*d_booleanType);
+
+    Node b = d_nm->mkVar(*d_booleanType);
+    Node c = d_nm->mkVar(*d_booleanType);
+
+    Node d = d_nm->mkVar(*d_realType);
+    Node e = d_nm->mkVar(*d_realType);
+
+    nb << a << NOT
+       << b << c << OR
+       << c << a << AND
+       << d << e << ITE;
+
+    Node n = nb;
+    TS_ASSERT_EQUALS(n.getNumChildren(), 3u);
+    TS_ASSERT_EQUALS(n.getType(), *d_realType);
+    TS_ASSERT_EQUALS(n[0].getType(), *d_booleanType);
+    TS_ASSERT_EQUALS(n[1].getType(), *d_realType);
+    TS_ASSERT_EQUALS(n[2].getType(), *d_realType);
+
+    Node nota = d_nm->mkNode(NOT, a);
+    Node nota_or_b_or_c = d_nm->mkNode(OR, nota, b, c);
+    Node n0 = d_nm->mkNode(AND, nota_or_b_or_c, c, a);
+    Node nexpected = d_nm->mkNode(ITE, n0, d, e);
+
+    TS_ASSERT_EQUALS(nexpected, n);
+  }
+
   void testConvenienceBuilders() {
     Node a = d_nm->mkVar(*d_booleanType);
 
