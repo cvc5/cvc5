@@ -326,6 +326,7 @@ public:
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(!d_running);
       clock_gettime(CLOCK_REALTIME, &d_start);
+      d_running = true;
     }
   }
 
@@ -335,6 +336,7 @@ public:
       ::timespec end;
       clock_gettime(CLOCK_REALTIME, &end);
       d_data += end - d_start;
+      d_running = false;
     }
   }
 };/* class TimerStat */
