@@ -2,8 +2,8 @@ SUBDIRS = unit system regress .
 
 MAKEFLAGS = -k
 
-.PHONY: regress0 regress1 regress2 regress3
-regress0 regress1 regress2 regress3:
+.PHONY: units regress regress0 regress1 regress2 regress3
+units regress regress0 regress1 regress2 regress3:
 	@$(MAKE) check-pre; \
 	for dir in $(SUBDIRS); do \
 		test $$dir = . || (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@); \
@@ -11,8 +11,8 @@ regress0 regress1 regress2 regress3:
 	$(MAKE) check-local
 
 # synonyms for "check"
-.PHONY: regress test
-regress test: check
+.PHONY: test
+test: check
 
 am__tty_colors = \
 red=; grn=; lgn=; blu=; std=; \

@@ -16,6 +16,10 @@ regress0 regress1 regress2 regress3:
 .PHONY: regress test
 regress test: check
 
+# no-ops here
+.PHONY: units
+units:
+
 EXTRA_DIST = \
 	run_regression \
 	README

@@ -35,7 +35,8 @@ UNIT_TESTS = \
 	util/integer_black \
 	util/integer_white \
 	util/rational_black \
-	util/rational_white
+	util/rational_white \
+	util/stats_black
 
 export VERBOSE = 1
 
@@ -52,7 +53,7 @@ AM_CPPFLAGS = \
 	"-I@top_srcdir@/src" "-I@top_builddir@/src" \
 	"-I@top_srcdir@/src/prop/minisat" \
 	-D __STDC_LIMIT_MACROS \
-	-D __STDC_FORMAT_MACROS \	        
+	-D __STDC_FORMAT_MACROS \
 	$(ANTLR_INCLUDES) $(TEST_CPPFLAGS)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)
@@ -158,12 +159,12 @@ libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 endif
 
 # synonyms for "check"
-.PHONY: regress test
-regress test: check
+.PHONY: units test
+units test: check
 
-# in unit test dir, regressN are also synonyms for check
-.PHONY: regress0 regress1 regress2 regress3
-regress0 regress1 regress2 regress3: check
+# no-ops here
+.PHONY: regress regress0 regress1 regress2 regress3
+regress regress0 regress1 regress2 regress3:
 
 if HAVE_CXXTESTGEN
 # all is fine with the world

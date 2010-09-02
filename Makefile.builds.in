@@ -86,7 +86,9 @@ endif
 	test -e lib || ln -sfv ".$(libdir)" lib
 	test -e bin || ln -sfv ".$(bindir)" bin
 
-check regress regress0 regress1 regress2 regress3: all
+check test units regress: all
+	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
+regress%: all
 	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 
 # any other target than the default doesn't do the extra stuff above
