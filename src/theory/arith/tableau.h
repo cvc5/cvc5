@@ -23,7 +23,7 @@
 
 #include "theory/arith/basic.h"
 #include "theory/arith/arith_activity.h"
-
+#include "theory/arith/normal_form.h"
 
 #include <ext/hash_map>
 #include <map>
@@ -52,21 +52,21 @@ public:
    * Construct a row equal to:
    *   basic = \sum_{x_i} c_i * x_i
    */
-  Row(TNode basic, TNode sum):
+  Row(TNode basic, const Polynomial& sum):
     d_x_i(basic),
     d_coeffs(){
 
     Assert(d_x_i.getMetaKind() == kind::metakind::VARIABLE);
-    Assert(sum.getKind() == kind::PLUS);
 
-    for(TNode::iterator iter=sum.begin(); iter != sum.end(); ++iter){
-      TNode pair = *iter;
-      Assert(pair.getKind() == kind::MULT);
-      Assert(pair.getNumChildren() == 2);
-      TNode coeff = pair[0];
-      TNode var_i = pair[1];
+    for(Polynomial::iterator iter=sum.begin(), end = sum.end(); iter != end; ++iter){
+      const Monomial& mono = *iter;
+
+      Assert(!mono.isConstant());
+
+      TNode coeff = mono.getConstant().getNode();
+      TNode var_i =  mono.getVarList().getNode();
+
       Assert(coeff.getKind() == kind::CONST_RATIONAL);
-      Assert(var_i.getKind() == kind::VARIABLE);
 
       Assert(!has(var_i));
       d_coeffs[var_i] = coeff.getConst<Rational>();
@@ -192,13 +192,12 @@ private:
 public:
 
   void addRow(TNode eq){
-    Assert(eq.getKind() == kind::EQUAL);
-    Assert(eq.getNumChildren() == 2);
-
     TNode var = eq[0];
-    TNode sum = eq[1];
+    TNode sumNode = eq[1];
 
     Assert(var.getAttribute(IsBasic()));
+
+    Polynomial sum = Polynomial::parsePolynomial(sumNode);
 
     //The new basic variable cannot already be a basic variable
     Assert(!isActiveBasicVariable(var));
@@ -208,13 +207,11 @@ public:
 
     //A variable in the row may have been made non-basic already.
     //If this is the case we fake pivoting this variable
-    for(TNode::iterator sumIter = sum.begin(); sumIter!=sum.end(); ++sumIter){
-      TNode child = *sumIter;
-      Assert(child.getKind() == kind::MULT);
-      Assert(child.getNumChildren() == 2);
-      Assert(child[0].getKind() == kind::CONST_RATIONAL);
-      TNode c = child[1];
-      Assert(var.getMetaKind() == kind::metakind::VARIABLE);
+    for(Polynomial::iterator sumIter = sum.begin(); sumIter!= sum.end(); ++sumIter){
+      const Monomial& child = *sumIter;
+
+      Assert(!child.isConstant());
+      TNode c = child.getVarList().getNode();
       if(isActiveBasicVariable(c)){
         Row* row_c = lookup(c);
         row_var->subsitute(*row_c);

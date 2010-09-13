@@ -65,6 +65,32 @@ public:
 
   TheoryArithWhite() : d_level(Theory::FULL_EFFORT), d_zero(0), d_one(1), debug(false) {}
 
+  void fakeTheoryEnginePreprocess(TNode inp){
+    Node rewrite = inp; //FIXME this needs to enforce that inp is fully rewritten already!
+
+    if(debug) cout << rewrite << inp << endl;
+
+    std::list<Node> toPreregister;
+
+    toPreregister.push_back(rewrite);
+    for(std::list<Node>::iterator i = toPreregister.begin(); i != toPreregister.end(); ++i){
+      Node n = *i;
+      preregistered->insert(n);
+
+      for(Node::iterator citer = n.begin(); citer != n.end(); ++citer){
+        Node c = *citer;
+        if(preregistered->find(c) == preregistered->end()){
+          toPreregister.push_back(c);
+        }
+      }
+    }
+    for(std::list<Node>::reverse_iterator i = toPreregister.rbegin(); i != toPreregister.rend(); ++i){
+      Node n = *i;
+      if(debug) cout << n.getId() << " "<< n << endl;
+      d_arith->preRegisterTerm(n);
+    }
+  }
+
   void setUp() {
     d_ctxt = new Context;
     d_nm = new NodeManager(d_ctxt);
@@ -92,42 +118,14 @@ public:
     delete d_ctxt;
   }
 
-  Node fakeTheoryEnginePreprocess(TNode inp){
-    Node rewrite = d_arith->rewrite(inp);
-
-    if(debug) cout << rewrite << inp << endl;
-
-    std::list<Node> toPreregister;
-
-    toPreregister.push_back(rewrite);
-    for(std::list<Node>::iterator i = toPreregister.begin(); i != toPreregister.end(); ++i){
-      Node n = *i;
-      preregistered->insert(n);
-
-      for(Node::iterator citer = n.begin(); citer != n.end(); ++citer){
-        Node c = *citer;
-        if(preregistered->find(c) == preregistered->end()){
-          toPreregister.push_back(c);
-        }
-      }
-    }
-    for(std::list<Node>::reverse_iterator i = toPreregister.rbegin(); i != toPreregister.rend(); ++i){
-      Node n = *i;
-      if(debug) cout << n.getId() << " "<< n << endl;
-      d_arith->preRegisterTerm(n);
-    }
-
-    return rewrite;
-  }
-
   void testAssert() {
     Node x = d_nm->mkVar(*d_realType);
     Node c = d_nm->mkConst<Rational>(d_zero);
 
     Node leq = d_nm->mkNode(LEQ, x, c);
-    Node rLeq = fakeTheoryEnginePreprocess(leq);
+    fakeTheoryEnginePreprocess(leq);
 
-    d_arith->assertFact(rLeq);
+    d_arith->assertFact(leq);
 
     d_arith->check(d_level);
 
@@ -143,51 +141,19 @@ public:
     return dis;
   }
 
-  void testAssertEqualityEagerSplit() {
-    Node x = d_nm->mkVar(*d_realType);
-    Node c = d_nm->mkConst<Rational>(d_zero);
-
-    Node eq = d_nm->mkNode(EQUAL, x, c);
-    Node expectedDisjunct = simulateSplit(x,c);
-
-    Node rEq = fakeTheoryEnginePreprocess(eq);
-
-    d_arith->assertFact(rEq);
-
-    d_arith->check(d_level);
-
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 1u);
-
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), expectedDisjunct);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), AUG_LEMMA);
-
-  }
-  void testLtRewrite() {
-    Node x = d_nm->mkVar(*d_realType);
-    Node c = d_nm->mkConst<Rational>(d_zero);
-
-    Node lt = d_nm->mkNode(LT, x, c);
-    Node geq = d_nm->mkNode(GEQ, x, c);
-    Node expectedRewrite = d_nm->mkNode(NOT, geq);
-
-    Node rewrite = d_arith->rewrite(lt);
-
-    TS_ASSERT_EQUALS(expectedRewrite, rewrite);
-  }
-
   void testBasicConflict() {
     Node x = d_nm->mkVar(*d_realType);
     Node c = d_nm->mkConst<Rational>(d_zero);
 
     Node eq = d_nm->mkNode(EQUAL, x, c);
-    Node lt = d_nm->mkNode(LT, x, c);
+    Node lt = d_nm->mkNode(NOT, d_nm->mkNode(GEQ, x, c));
     Node expectedDisjunct = simulateSplit(x,c);
 
-    Node rEq = fakeTheoryEnginePreprocess(eq);
-    Node rLt = fakeTheoryEnginePreprocess(lt);
+    fakeTheoryEnginePreprocess(eq);
+    fakeTheoryEnginePreprocess(lt);
 
-    d_arith->assertFact(rEq);
-    d_arith->assertFact(rLt);
+    d_arith->assertFact(eq);
+    d_arith->assertFact(lt);
 
 
     d_arith->check(d_level);
@@ -198,7 +164,7 @@ public:
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), CONFLICT);
 
-    Node expectedClonflict = d_nm->mkNode(AND, rEq, rLt);
+    Node expectedClonflict = d_nm->mkNode(AND, eq, lt);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), expectedClonflict);
   }
@@ -208,13 +174,13 @@ public:
     Node c = d_nm->mkConst<Rational>(d_zero);
 
     Node eq = d_nm->mkNode(EQUAL, x, c);
-    Node lt = d_nm->mkNode(LT, x, c);
+    Node lt = d_nm->mkNode(NOT, d_nm->mkNode(GEQ, x, c));
     Node expectedDisjunct = simulateSplit(x,c);
 
-    Node rEq = fakeTheoryEnginePreprocess(eq);
-    Node rLt = fakeTheoryEnginePreprocess(lt);
+    fakeTheoryEnginePreprocess(eq);
+    fakeTheoryEnginePreprocess(lt);
 
-    d_arith->assertFact(rEq);
+    d_arith->assertFact(eq);
 
 
     d_arith->check(d_level);
@@ -236,29 +202,30 @@ public:
 
     Node leq0 = d_nm->mkNode(LEQ, x, c0);
     Node leq1 = d_nm->mkNode(LEQ, x, c1);
-    Node lt1 = d_nm->mkNode(LT, x, c1);
+    Node geq1 = d_nm->mkNode(GEQ, x, c1);
+    Node lt1 = d_nm->mkNode(NOT, geq1);
 
-    Node rLeq0 = fakeTheoryEnginePreprocess(leq0);
-    Node rLt1 = fakeTheoryEnginePreprocess(lt1);
-    Node rLeq1 = fakeTheoryEnginePreprocess(leq1);
+    fakeTheoryEnginePreprocess(leq0);
+    fakeTheoryEnginePreprocess(leq1);
+    fakeTheoryEnginePreprocess(geq1);
 
-    d_arith->assertFact(rLt1);
+    d_arith->assertFact(lt1);
 
 
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(  d_arith->explain(rLeq0, d_level), AssertionException );
-    TS_ASSERT_THROWS(  d_arith->explain(rLt1, d_level), AssertionException );
+    TS_ASSERT_THROWS(  d_arith->explain(leq0, d_level), AssertionException );
+    TS_ASSERT_THROWS(  d_arith->explain(lt1, d_level), AssertionException );
 #endif
-    d_arith->explain(rLeq1, d_level);
+    d_arith->explain(leq1, d_level);
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPAGATE);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), EXPLANATION);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq1);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), rLt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1);
   }
 
 
@@ -269,24 +236,25 @@ public:
 
     Node leq0 = d_nm->mkNode(LEQ, x, c0);
     Node leq1 = d_nm->mkNode(LEQ, x, c1);
-    Node lt1 = d_nm->mkNode(LT, x, c1);
+    Node geq1 = d_nm->mkNode(GEQ, x, c1);
+    Node lt1 = d_nm->mkNode(NOT, geq1);
 
-    Node rLeq0 = fakeTheoryEnginePreprocess(leq0);
-    Node rLt1 = fakeTheoryEnginePreprocess(lt1);
-    Node rLeq1 = fakeTheoryEnginePreprocess(leq1);
+    fakeTheoryEnginePreprocess(leq0);
+    fakeTheoryEnginePreprocess(leq1);
+    fakeTheoryEnginePreprocess(geq1);
 
-    d_arith->assertFact(rLeq0);
+    d_arith->assertFact(leq0);
 
 
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
 
-    d_arith->explain(rLt1, d_level);
+    d_arith->explain(lt1, d_level);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(  d_arith->explain(rLeq0, d_level), AssertionException );
+    TS_ASSERT_THROWS(  d_arith->explain(leq0, d_level), AssertionException );
 #endif
-    d_arith->explain(rLeq1, d_level);
+    d_arith->explain(leq1, d_level);
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 4u);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPAGATE);
@@ -294,12 +262,12 @@ public:
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), EXPLANATION);
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(3), EXPLANATION);
 
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), rLt1);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), rLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq1);
 
 
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), rLeq0);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(3), rLeq0);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(3), leq0);
   }
   void testTPLeq1() {
     Node x = d_nm->mkVar(*d_realType);
@@ -308,22 +276,23 @@ public:
 
     Node leq0 = d_nm->mkNode(LEQ, x, c0);
     Node leq1 = d_nm->mkNode(LEQ, x, c1);
-    Node lt1 = d_nm->mkNode(LT, x, c1);
+    Node geq1 = d_nm->mkNode(GEQ, x, c1);
+    Node lt1 = d_nm->mkNode(NOT, geq1);
 
-    Node rLeq0 = fakeTheoryEnginePreprocess(leq0);
-    Node rLt1 = fakeTheoryEnginePreprocess(lt1);
-    Node rLeq1 = fakeTheoryEnginePreprocess(leq1);
+    fakeTheoryEnginePreprocess(leq0);
+    fakeTheoryEnginePreprocess(leq1);
+    fakeTheoryEnginePreprocess(geq1);
 
-    d_arith->assertFact(rLeq1);
+    d_arith->assertFact(leq1);
 
 
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(  d_arith->explain(rLeq0, d_level), AssertionException );
-    TS_ASSERT_THROWS(  d_arith->explain(rLeq1, d_level), AssertionException );
-    TS_ASSERT_THROWS(  d_arith->explain(rLt1, d_level), AssertionException );
+    TS_ASSERT_THROWS(  d_arith->explain(leq0, d_level), AssertionException );
+    TS_ASSERT_THROWS(  d_arith->explain(leq1, d_level), AssertionException );
+    TS_ASSERT_THROWS(  d_arith->explain(lt1, d_level), AssertionException );
 #endif
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 0u);

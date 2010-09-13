@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-inline Node mkRationalNode(Rational& q){
+inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);
 }
 
@@ -87,6 +87,21 @@ inline bool isRelationOperator(Kind k){
   }
 }
 
+/** is k \in {LT, LEQ, EQ, GEQ, GT} */
+inline Kind negateRelationKind(Kind k){
+  using namespace kind;
+
+  switch(k){
+  case LT: return GT;
+  case LEQ: return GEQ;
+  case EQUAL: return EQUAL;
+  case GEQ: return LEQ;
+  case GT: return LT;
+
+  default:
+    Unreachable();
+  }
+}
 inline bool evaluateConstantPredicate(Kind k, const Rational& left, const Rational& right){
   using namespace kind;
 

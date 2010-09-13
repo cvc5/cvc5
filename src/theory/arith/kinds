@@ -12,6 +12,8 @@ operator MINUS 2 "arithmetic binary subtraction operator"
 operator UMINUS 1 "arithmetic unary negation"
 operator DIVISION 2 "arithmetic division"
 
+operator IDENTITY 1 "identity function"
+
 constant CONST_RATIONAL \
     ::CVC4::Rational \
     ::CVC4::RationalHashStrategy \

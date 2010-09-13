@@ -28,7 +28,7 @@
 
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
-#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/next_arith_rewriter.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/arith_propagator.h"
 
@@ -94,18 +94,13 @@ private:
   /**
    * The rewriter module for arithmetic.
    */
-  ArithRewriter d_rewriter;
+  NextArithRewriter d_nextRewriter;
 
   ArithUnatePropagator d_propagator;
 
 public:
   TheoryArith(int id, context::Context* c, OutputChannel& out);
   ~TheoryArith();
-
-  /**
-   * Rewrites a node to a unique normal form given in normal_form_notes.txt
-   */
-  Node rewrite(TNode n);
 
   /**
    * Rewriting optimizations.
@@ -116,7 +111,7 @@ public:
    * Plug in old rewrite to the new (pre,post)rewrite interface.
    */
   RewriteResponse postRewrite(TNode n, bool topLevel) {
-    return RewriteComplete(topLevel ? rewrite(n) : Node(n));
+    return d_nextRewriter.postRewrite(n);
   }
 
   /**

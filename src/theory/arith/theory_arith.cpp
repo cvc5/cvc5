@@ -33,10 +33,12 @@
 #include "theory/arith/basic.h"
 #include "theory/arith/arith_activity.h"
 
-#include "theory/arith/arith_rewriter.h"
+#include "theory/arith/next_arith_rewriter.h"
 #include "theory/arith/arith_propagator.h"
 
 #include "theory/arith/theory_arith.h"
+#include "theory/arith/normal_form.h"
+
 #include <map>
 #include <stdint.h>
 
@@ -55,7 +57,7 @@ TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_diseq(c),
-  d_rewriter(&d_constants),
+  d_nextRewriter(&d_constants),
   d_propagator(c),
   d_statistics()
 {
@@ -109,22 +111,9 @@ bool isBasicSum(TNode n){
 
 bool isNormalAtom(TNode n){
 
-  if(!(n.getKind() == LEQ|| n.getKind() == GEQ || n.getKind() == EQUAL)){
-    return false;
-  }
-  TNode left = n[0];
-  TNode right = n[1];
-  if(right.getKind() != CONST_RATIONAL){
-    return false;
-  }
-  if(left.getMetaKind() == metakind::VARIABLE){
-    return true;
-  }else if(isBasicSum(left)){
-    return true;
-  }else{
-    return false;
-  }
+  Comparison parse = Comparison::parseNormalForm(n);
 
+  return parse.isNormalForm();
 }
 
 
@@ -213,7 +202,6 @@ void TheoryArith::preRegisterTerm(TNode n) {
     if(left.getKind() == PLUS){
       //We may need to introduce a slack variable.
       Assert(left.getNumChildren() >= 2);
-      Assert(isBasicSum(left));
       if(!left.hasAttribute(Slack())){
         setupSlack(left);
       }
@@ -229,11 +217,9 @@ void TheoryArith::setupSlack(TNode left){
   left.setAttribute(Slack(), slack);
   makeBasic(slack);
 
-  Node slackEqLeft = NodeManager::currentNM()->mkNode(EQUAL,slack,left);
+  Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, slack, left);
 
-  Debug("slack") << "slack " << slackEqLeft << endl;
-
-  d_tableau.addRow(slackEqLeft);
+  d_tableau.addRow(eq);
 
   setupVariable(slack);
 }
@@ -316,55 +302,8 @@ DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
 }
 
 RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
-  // ensure a hard link to the node we're returning
-  Node out;
-
-  // Look for multiplications with a 0 argument and rewrite the whole
-  // thing as 0
-  if(n.getKind() == MULT) {
-    Rational ratZero;
-    Integer intZero;
-    for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
-      if((*i).getKind() == CONST_RATIONAL) {
-        if((*i).getConst<Rational>() == ratZero) {
-          out = NodeManager::currentNM()->mkConst(ratZero);
-          break;
-        }
-      } else if((*i).getKind() == CONST_INTEGER) {
-        if((*i).getConst<Integer>() == intZero) {
-          if(n.getType().isInteger()) {
-            out = NodeManager::currentNM()->mkConst(intZero);
-            break;
-          } else {
-            out = NodeManager::currentNM()->mkConst(ratZero);
-            break;
-          }
-        }
-      }
-    }
-  } else if(n.getKind() == EQUAL) {
-    if(n[0] == n[1]) {
-      out = NodeManager::currentNM()->mkConst(true);
-    }
-  }
-
-  if(out.isNull()) {
-    // no preRewrite to perform
-    return RewriteComplete(Node(n));
-  } else {
-    // out is always a constant, so doesn't need to be rewritten again
-    return RewriteComplete(out);
-  }
+  return d_nextRewriter.preRewrite(n);
 }
-
-Node TheoryArith::rewrite(TNode n){
-  Debug("arith") << "rewrite(" << n << ")" << endl;
-
-  Node result = d_rewriter.rewrite(n);
-  Debug("arith-rewrite") << "rewrite(" << n << ") -> " << result << endl;
-  return result;
-}
-
 
 void TheoryArith::registerTerm(TNode tn){
   Debug("arith") << "registerTerm(" << tn << ")" << endl;
