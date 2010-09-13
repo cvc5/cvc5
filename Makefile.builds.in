@@ -91,6 +91,12 @@ check test units regress: all
 regress%: all
 	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 
+TAGS tags:
+	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	ln -sf $(CURRENT_BUILD)/TAGS .
+
+.PHONY: TAGS tags
+
 # any other target than the default doesn't do the extra stuff above
 %:
 	(cd $(CURRENT_BUILD) && $(MAKE) $@)
