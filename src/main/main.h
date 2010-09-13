@@ -52,6 +52,12 @@ extern const char *progName;
  */
 extern bool segvNoSpin;
 
+/**
+ * Keep a copy of the options around globally, so that signal handlers can
+ * access it.
+ */
+extern struct Options options;
+
 /** Parse argc/argv and put the result into a CVC4::Options struct. */
 int parseOptions(int argc, char** argv, CVC4::Options*) throw(OptionException);
 

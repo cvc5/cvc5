@@ -43,7 +43,12 @@ using namespace CVC4::parser;
 using namespace CVC4::main;
 
 static Result lastResult;
-static struct Options options;
+
+namespace CVC4 {
+  namespace main {
+    struct Options options;
+  }/* CVC4::main namespace */
+}/* CVC4 namespace */
 
 int runCvc4(int argc, char* argv[]);
 void doCommand(SmtEngine&, Command*);
