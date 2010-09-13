@@ -68,4 +68,39 @@ public:
     TS_ASSERT_EQUALS(b.d_nv->d_nchildren, 0u);
     /* etc. */
   }
+
+  void testIterators() {
+    Node x = d_nm->mkVar("x", d_nm->integerType());
+    Node y = d_nm->mkVar("y", d_nm->integerType());
+    Node x_plus_y = d_nm->mkNode(PLUS, x, y);
+    Node two = d_nm->mkConst(Integer(2));
+    Node x_times_2 = d_nm->mkNode(MULT, x, two);
+
+    Node n = d_nm->mkNode(PLUS, x_times_2, x_plus_y, y);
+
+    Node::iterator i;
+
+    i = find(n.begin(), n.end(), x_plus_y);
+    TS_ASSERT(i != n.end());
+    TS_ASSERT(*i == x_plus_y);
+
+    i = find(n.begin(), n.end(), x);
+    TS_ASSERT(i == n.end());
+
+    i = find(x_times_2.begin(), x_times_2.end(), two);
+    TS_ASSERT(i != x_times_2.end());
+    TS_ASSERT(*i == two);
+
+    i = find(n.begin(), n.end(), y);
+    TS_ASSERT(i != n.end());
+    TS_ASSERT(*i == y);
+
+    vector<Node> v;
+    copy(n.begin(), n.end(), back_inserter(v));
+    TS_ASSERT(n.getNumChildren() == v.size());
+    TS_ASSERT(3 == v.size());
+    TS_ASSERT(v[0] == x_times_2);
+    TS_ASSERT(v[1] == x_plus_y);
+    TS_ASSERT(v[2] == y);
+  }
 };

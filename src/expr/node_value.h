@@ -144,6 +144,12 @@ private:
   class iterator {
     const_nv_iterator d_i;
   public:
+    typedef T value_type;
+    typedef ptrdiff_t difference_type;
+    typedef T* pointer;
+    typedef T& reference;
+
+    iterator() : d_i(NULL) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
     inline T operator*();
