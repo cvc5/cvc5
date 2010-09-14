@@ -43,6 +43,11 @@ template <class OutputChannel>
 std::ostream& operator<<(std::ostream& out,
                          const CongruenceClosure<OutputChannel>& cc);
 
+/**
+ * A CongruenceClosureException is thrown by
+ * CongruenceClosure::explain() when that method is asked to explain a
+ * congruence that doesn't exist.
+ */
 class CVC4_PUBLIC CongruenceClosureException : public Exception {
 public:
   inline CongruenceClosureException(std::string msg) :
@@ -158,7 +163,9 @@ public:
    * indirectly, so it can throw anything that that function can.
    */
   void addEquality(TNode inputEq) {
-    Debug("cc") << "CC addEquality[" << d_context->getLevel() << "]: " << inputEq << std::endl;
+    if(Debug.isOn("cc")) {
+      Debug("cc") << "CC addEquality[" << d_context->getLevel() << "]: " << inputEq << std::endl;
+    }
     Assert(inputEq.getKind() == kind::EQUAL ||
            inputEq.getKind() == kind::IFF);
     NodeBuilder<> eqb(inputEq.getKind());
@@ -216,11 +223,13 @@ public:
    * context.
    */
   inline bool areCongruent(TNode a, TNode b) const throw(AssertionException) {
-    Debug("cc") << "CC areCongruent? " << a << "  ==  " << b << std::endl;
-    Debug("cc") << "  a  " << a << std::endl;
-    Debug("cc") << "  a' " << normalize(a) << std::endl;
-    Debug("cc") << "  b  " << b << std::endl;
-    Debug("cc") << "  b' " << normalize(b) << std::endl;
+    if(Debug.isOn("cc")) {
+      Debug("cc") << "CC areCongruent? " << a << "  ==  " << b << std::endl;
+      Debug("cc") << "  a  " << a << std::endl;
+      Debug("cc") << "  a' " << normalize(a) << std::endl;
+      Debug("cc") << "  b  " << b << std::endl;
+      Debug("cc") << "  b' " << normalize(b) << std::endl;
+    }
 
     Node ap = find(a), bp = find(b);
 
@@ -365,9 +374,11 @@ void CongruenceClosure<OutputChannel>::addTerm(TNode t) {
   Node trm = replace(flatten(t));
   Node trmp = find(trm);
 
-  Debug("cc") << "CC addTerm [" << d_careSet.size() << "] " << d_careSet.contains(t) << ": " << t << std::endl
-              << "           [" << d_careSet.size() << "] " << d_careSet.contains(trm) << ": " << trm << std::endl
-              << "           [" << d_careSet.size() << "] " << d_careSet.contains(trmp) << ": " << trmp << std::endl;
+  if(Debug.isOn("cc")) {
+    Debug("cc") << "CC addTerm [" << d_careSet.size() << "] " << d_careSet.contains(t) << ": " << t << std::endl
+                << "           [" << d_careSet.size() << "] " << d_careSet.contains(trm) << ": " << trm << std::endl
+                << "           [" << d_careSet.size() << "] " << d_careSet.contains(trmp) << ": " << trmp << std::endl;
+  }
 
   if(t != trm && !d_careSet.contains(t)) {
     // we take care to only notify our client once of congruences
@@ -393,7 +404,9 @@ template <class OutputChannel>
 void CongruenceClosure<OutputChannel>::addEq(TNode eq, TNode inputEq) {
   d_proofRewrite[eq] = inputEq;
 
-  Debug("cc") << "CC addEq[" << d_context->getLevel() << "]: " << eq << std::endl;
+  if(Debug.isOn("cc")) {
+    Debug("cc") << "CC addEq[" << d_context->getLevel() << "]: " << eq << std::endl;
+  }
   Assert(eq.getKind() == kind::EQUAL ||
          eq.getKind() == kind::IFF);
   Assert(eq[1].getKind() != kind::APPLY_UF);
@@ -458,7 +471,7 @@ Node CongruenceClosure<OutputChannel>::buildRepresentativesOfApply(TNode apply,
 template <class OutputChannel>
 void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
   Debug("cc:detail") << "=== doing a round of propagation ===" << std::endl
-              << "the \"seed\" propagation is: " << seed << std::endl;
+                     << "the \"seed\" propagation is: " << seed << std::endl;
 
   std::list<Node> pending;
 
@@ -468,8 +481,8 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
     Node e = pending.front();
     pending.pop_front();
 
-    Debug("cc") << "=== top of propagate loop ===" << std::endl;
-    Debug("cc") << "=== e is " << e << " ===" << std::endl;
+    Debug("cc") << "=== top of propagate loop ===" << std::endl
+                << "=== e is " << e << " ===" << std::endl;
 
     TNode a, b;
     if(e.getKind() == kind::EQUAL ||
@@ -503,12 +516,14 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
       Debug("cc") << "                 ( " << a << " , " << b << " )" << std::endl;
     }
 
-    Debug("cc:detail") << "=====at start=====" << std::endl
-                << "a          :" << a << std::endl
-                << "NORMALIZE a:" << normalize(a) << std::endl
-                << "b          :" << b << std::endl
-                << "NORMALIZE b:" << normalize(b) << std::endl
-                << "alreadyCongruent?:" << areCongruent(a,b) << std::endl;
+    if(Debug.isOn("cc")) {
+      Debug("cc:detail") << "=====at start=====" << std::endl
+                         << "a          :" << a << std::endl
+                         << "NORMALIZE a:" << normalize(a) << std::endl
+                         << "b          :" << b << std::endl
+                         << "NORMALIZE b:" << normalize(b) << std::endl
+                         << "alreadyCongruent?:" << areCongruent(a,b) << std::endl;
+    }
 
     // change from paper: need to normalize() here since in our
     // implementation, a and b can be applications
@@ -557,9 +572,11 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
               i != cl->end();
               ++i) {
             TNode c = *i;
-            Debug("cc") << "c is " << c << "\n"
-                        << " from cl of " << ap << std::endl;
-            Debug("cc") << " it's find ptr is: " << find(c) << std::endl;
+            if(Debug.isOn("cc")) {
+              Debug("cc") << "c is " << c << "\n"
+                          << " from cl of " << ap << std::endl;
+              Debug("cc") << " it's find ptr is: " << find(c) << std::endl;
+            }
             Assert(find(c) == ap);
             Debug("cc:detail") << "calling merge2 " << c << bp << std::endl;
             merge(c, bp);
@@ -573,9 +590,11 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
       }
 
       { // use list handling
-        Debug("cc:detail") << "ap is " << ap << std::endl;
-        Debug("cc:detail") << "find(ap) is " << find(ap) << std::endl;
-        Debug("cc:detail") << "CC in prop go through useList of " << ap << std::endl;
+        if(Debug.isOn("cc:detail")) {
+          Debug("cc:detail") << "ap is " << ap << std::endl;
+          Debug("cc:detail") << "find(ap) is " << find(ap) << std::endl;
+          Debug("cc:detail") << "CC in prop go through useList of " << ap << std::endl;
+        }
         UseLists::iterator usei = d_useList.find(ap);
         if(usei != d_useList.end()) {
           UseList* ul = (*usei).second;
@@ -628,16 +647,17 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
       }/* use lists */
       Debug("cc:detail") << "CC in prop done with useList of " << ap << std::endl;
     } else {
-      Debug("cc:detail") << "CCs the same ( == " << ap << "), do nothing."
-                  << std::endl;
+      Debug("cc:detail") << "CCs the same ( == " << ap << "), do nothing." << std::endl;
     }
 
-    Debug("cc") << "=====at end=====" << std::endl
-                << "a          :" << a << std::endl
-                << "NORMALIZE a:" << normalize(a) << std::endl
-                << "b          :" << b << std::endl
-                << "NORMALIZE b:" << normalize(b) << std::endl
-                << "alreadyCongruent?:" << areCongruent(a,b) << std::endl;
+    if(Debug.isOn("cc")) {
+      Debug("cc") << "=====at end=====" << std::endl
+                  << "a          :" << a << std::endl
+                  << "NORMALIZE a:" << normalize(a) << std::endl
+                  << "b          :" << b << std::endl
+                  << "NORMALIZE b:" << normalize(b) << std::endl
+                  << "alreadyCongruent?:" << areCongruent(a,b) << std::endl;
+    }
     Assert(areCongruent(a, b));
   } while(!pending.empty());
 }/* propagate() */
@@ -646,12 +666,14 @@ void CongruenceClosure<OutputChannel>::propagate(TNode seed) {
 template <class OutputChannel>
 void CongruenceClosure<OutputChannel>::merge(TNode ec1, TNode ec2) {
   /*
-  Debug("cc:detail") << "  -- merging " << ec1
-                     << (d_careSet.find(ec1) == d_careSet.end() ?
-                         " -- NOT in care set" : " -- IN CARE SET") << std::endl
-                     << "         and " << ec2
-                     << (d_careSet.find(ec2) == d_careSet.end() ?
-                         " -- NOT in care set" : " -- IN CARE SET") << std::endl;
+  if(Debug.isOn("cc:detail")) {
+    Debug("cc:detail") << "  -- merging " << ec1
+                       << (d_careSet.find(ec1) == d_careSet.end() ?
+                           " -- NOT in care set" : " -- IN CARE SET") << std::endl
+                       << "         and " << ec2
+                       << (d_careSet.find(ec2) == d_careSet.end() ?
+                           " -- NOT in care set" : " -- IN CARE SET") << std::endl;
+  }
   */
 
   Debug("cc") << "CC setting rep of " << ec1 << std::endl;
@@ -850,7 +872,9 @@ Node CongruenceClosure<OutputChannel>::explain(Node a, Node b)
     explainAlongPath(b, c, pending, unionFind, terms);
   } while(!pending.empty());
 
-  Debug("cc") << "CC EXPLAIN final proof has size " << terms.size() << std::endl;
+  if(Debug.isOn("cc")) {
+    Debug("cc") << "CC EXPLAIN final proof has size " << terms.size() << std::endl;
+  }
 
   NodeBuilder<> pf(kind::AND);
   while(!terms.empty()) {

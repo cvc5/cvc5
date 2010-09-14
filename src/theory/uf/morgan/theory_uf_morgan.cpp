@@ -184,8 +184,10 @@ void TheoryUFMorgan::merge(TNode a, TNode b) {
     }
 
     DiseqList* deq = (*deq_i).second;
-    Debug("uf") << "a == " << a << std::endl;
-    Debug("uf") << "size of deq(a) is " << deq->size() << std::endl;
+    if(Debug.isOn("uf")) {
+      Debug("uf") << "a == " << a << std::endl;
+      Debug("uf") << "size of deq(a) is " << deq->size() << std::endl;
+    }
     for(DiseqList::const_iterator j = deq->begin(); j != deq->end(); ++j) {
       Debug("uf") << "  deq(a) ==> " << *j << std::endl;
       TNode deqn = *j;
@@ -193,10 +195,12 @@ void TheoryUFMorgan::merge(TNode a, TNode b) {
              deqn.getKind() == kind::IFF);
       TNode s = deqn[0];
       TNode t = deqn[1];
-      Debug("uf") << "       s  ==> " << s << std::endl
-                  << "       t  ==> " << t << std::endl
-                  << "  find(s) ==> " << debugFind(s) << std::endl
-                  << "  find(t) ==> " << debugFind(t) << std::endl;
+      if(Debug.isOn("uf")) {
+        Debug("uf") << "       s  ==> " << s << std::endl
+                    << "       t  ==> " << t << std::endl
+                    << "  find(s) ==> " << debugFind(s) << std::endl
+                    << "  find(t) ==> " << debugFind(t) << std::endl;
+      }
       TNode sp = find(s);
       TNode tp = find(t);
       if(sp == tp) {
@@ -236,7 +240,9 @@ void TheoryUFMorgan::appendToDiseqList(TNode of, TNode eq) {
     deq = (*deq_i).second;
   }
   deq->push_back(eq);
-  Debug("uf") << "  size is now " << deq->size() << std::endl;
+  if(Debug.isOn("uf")) {
+    Debug("uf") << "  size is now " << deq->size() << std::endl;
+  }
 }
 
 void TheoryUFMorgan::addDisequality(TNode eq) {
@@ -282,8 +288,11 @@ void TheoryUFMorgan::check(Effort level) {
                                                    assertion, d_trueNode);
         d_cc.addTerm(assertion);
         d_cc.addEquality(eq);
-        Debug("uf") << "true == false ? "
-                    << (find(d_trueNode) == find(d_falseNode)) << std::endl;
+
+        if(Debug.isOn("uf")) {
+          Debug("uf") << "true == false ? "
+                      << (find(d_trueNode) == find(d_falseNode)) << std::endl;
+        }
 
         Assert(find(d_trueNode) != find(d_falseNode));
 
@@ -302,10 +311,12 @@ void TheoryUFMorgan::check(Effort level) {
         d_cc.addTerm(a);
         d_cc.addTerm(b);
 
-        Debug("uf") << "       a  ==> " << a << std::endl
-                    << "       b  ==> " << b << std::endl
-                    << "  find(a) ==> " << debugFind(a) << std::endl
-                    << "  find(b) ==> " << debugFind(b) << std::endl;
+        if(Debug.isOn("uf")) {
+          Debug("uf") << "       a  ==> " << a << std::endl
+                      << "       b  ==> " << b << std::endl
+                      << "  find(a) ==> " << debugFind(a) << std::endl
+                      << "  find(b) ==> " << debugFind(b) << std::endl;
+        }
 
         // There are two ways to get a conflict here.
         if(!d_conflict.isNull()) {
@@ -338,12 +349,15 @@ void TheoryUFMorgan::check(Effort level) {
         // assert it's a predicate
         Assert(assertion[0].getOperator().getType().getRangeType().isBoolean());
 
-        Node eq = NodeManager::currentNM()->mkNode(kind::IFF, assertion[0], d_falseNode);
+        Node eq = NodeManager::currentNM()->mkNode(kind::IFF,
+                                                   assertion[0], d_falseNode);
         d_cc.addTerm(assertion[0]);
         d_cc.addEquality(eq);
 
-        Debug("uf") << "true == false ? "
-                    << (find(d_trueNode) == find(d_falseNode)) << std::endl;
+        if(Debug.isOn("uf")) {
+          Debug("uf") << "true == false ? "
+                      << (find(d_trueNode) == find(d_falseNode)) << std::endl;
+        }
 
         Assert(find(d_trueNode) != find(d_falseNode));
 
@@ -366,11 +380,13 @@ void TheoryUFMorgan::check(Effort level) {
 
     TNode left  = (*diseqIter)[0];
     TNode right = (*diseqIter)[1];
-    Debug("uf") << "testing left: " << left << std::endl
-                << "       right: " << right << std::endl
-                << "     find(L): " << debugFind(left) << std::endl
-                << "     find(R): " << debugFind(right) << std::endl
-                << "     areCong: " << d_cc.areCongruent(left, right) << std::endl;
+    if(Debug.isOn("uf")) {
+      Debug("uf") << "testing left: " << left << std::endl
+                  << "       right: " << right << std::endl
+                  << "     find(L): " << debugFind(left) << std::endl
+                  << "     find(R): " << debugFind(right) << std::endl
+                  << "     areCong: " << d_cc.areCongruent(left, right) << std::endl;
+    }
     Assert((debugFind(left) == debugFind(right)) == d_cc.areCongruent(left, right));
   }
 
@@ -383,6 +399,9 @@ void TheoryUFMorgan::propagate(Effort level) {
 }
 
 void TheoryUFMorgan::dump() {
+  if(!Debug.isOn("uf")) {
+    return;
+  }
   Debug("uf") << "============== THEORY_UF ==============" << std::endl;
   Debug("uf") << "Active assertions list:" << std::endl;
   for(context::CDList<Node>::const_iterator i = d_activeAssertions.begin();
