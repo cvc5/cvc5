@@ -43,10 +43,11 @@ namespace arith {
  *   where
  *     constant' \not\in {0,1}
 
- * polynomial := monomial | (+ [monomial])
+ * polynomial := monomial' | (+ [monomial])
  *   where
  *     len [monomial] >= 2
  *     isStrictlySorted monoOrder [monomial]
+ *     forall (\x -> x != 0) [monomial]
 
  * restricted_cmp := (|><| polynomial constant)
  *   where
@@ -334,8 +335,6 @@ public:
   bool operator<(const VarList& vl) const{ return cmp(vl) < 0; }
 
   bool operator==(const VarList& vl) const{ return cmp(vl) == 0; }
-
-  std::vector<Variable> asList() const;
 
 private:
   bool isSorted(iterator start, iterator end);

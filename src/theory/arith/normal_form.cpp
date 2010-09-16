@@ -58,23 +58,20 @@ VarList VarList::operator*(const VarList& vl) const{
   }else if(vl.empty()){
     return *this;
   }else{
-    vector<Variable> result;
-    vector<Variable> thisAsVec = this->asList();
-    vector<Variable> vlAsVec = vl.asList();
-    back_insert_iterator<vector<Variable> > bii(result);
+    vector<Node> result;
+    back_insert_iterator< vector<Node> > bii(result);
 
-    merge(thisAsVec.begin(), thisAsVec.end(), vlAsVec.begin(), vlAsVec.end(), bii);
+    Node::iterator
+      thisBegin = this->backingNode.begin(),
+      thisEnd = this->backingNode.end(),
+      v1Begin = vl.backingNode.begin(),
+      v1End = vl.backingNode.end();
 
-    return VarList::mkVarList(result);
+    merge(thisBegin, thisEnd, v1Begin, v1End, bii);
+    Assert(result.size() >= 2);
+    Node mult = NodeManager::currentNM()->mkNode(kind::MULT, result);
+    return VarList::parseVarList(mult);
   }
-}
-
-std::vector<Variable> VarList::asList() const {
-  vector<Variable> res;
-  for(iterator i = begin(), e = end(); i != e; ++i){
-    res.push_back(*i);
-  }
-  return res;
 }
 
 Monomial Monomial::mkMonomial(const Constant& c, const VarList& vl){
@@ -162,12 +159,17 @@ Polynomial Polynomial::operator*(const Monomial& mono) const{
     for(iterator i = this->begin(), end = this->end(); i != end; ++i){
       newMonos.push_back(mono * (*i));
     }
+
+    // We may need to sort newMonos.
+    // Suppose this = (+ x y), mono = x, (* x y).getId() < (* x x).getId()
+    // newMonos = <(* x x), (* x y)> after this loop.
+    // This is not sorted according to the current VarList order.
+    std::sort(newMonos.begin(), newMonos.end());
     return Polynomial::mkPolynomial(newMonos);
   }
 }
 
 Polynomial Polynomial::operator*(const Polynomial& poly) const{
-
   Polynomial res = Polynomial::mkZero();
   for(iterator i = this->begin(), end = this->end(); i != end; ++i){
     Monomial curr = *i;
