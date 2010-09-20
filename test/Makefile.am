@@ -26,7 +26,7 @@ test "X$(AM_COLOR_TESTS)" != Xno \
   blu='[1;34m'; \
   std='[m'; \
 }
-subdirs_to_check = unit system regress/regress0 regress/regress0/arith regress/regress0/uf regress/regress0/precedence regress/regress1 regress/regress2 regress/regress3
+subdirs_to_check = unit system regress/regress0 regress/regress0/arith regress/regress0/uf regress/regress0/bv regress/regress0/bv/core regress/regress0/precedence regress/regress1 regress/regress2 regress/regress3
 check-recursive: check-pre
 .PHONY: check-pre
 check-pre:
