@@ -1,0 +1,2 @@
+x, y : BITVECTOR(32);
+QUERY ((x @ y)[60:35] = x[28:3]);

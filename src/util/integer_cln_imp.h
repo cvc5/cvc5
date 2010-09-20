@@ -152,6 +152,14 @@ public:
     return Integer( d_value * y.d_value );
   }
 
+  Integer operator/(const Integer& y) const {
+    return Integer( cln::floor1(d_value, y.d_value) );
+  }
+
+  Integer operator%(const Integer& y) const {
+    return Integer( cln::floor2(d_value, y.d_value).remainder );
+  }
+
   /** Raise this Integer to the power <code>exp</code>.
    *
    * @param exp the exponent

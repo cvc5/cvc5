@@ -110,6 +110,9 @@ void Smt::addTheory(Theory theory) {
     addArithmeticOperators();
     break;
 
+  case THEORY_BITVECTORS:
+    break;
+
   default:
     Unhandled(theory);
   }
@@ -170,6 +173,10 @@ void Smt::setLogic(const std::string& name) {
     addUf();
     break;
 
+  case QF_BV:
+    addTheory(THEORY_BITVECTORS);
+    break;
+
   case AUFLIA:
   case AUFLIRA:
   case AUFNIRA:
@@ -177,7 +184,6 @@ void Smt::setLogic(const std::string& name) {
   case UFNIA:
   case QF_AUFBV:
   case QF_AUFLIA:
-  case QF_BV:
     Unhandled(name);
   }
 }

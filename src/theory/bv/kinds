@@ -12,13 +12,13 @@ constant BITVECTOR_TYPE \
 	"util/bitvector.h" \
 	"bit-vector type"
 
-constant BITVECTOR_CONST \
+constant CONST_BITVECTOR \
     ::CVC4::BitVector \
     ::CVC4::BitVectorHashStrategy \
     "util/bitvector.h" \
     "a fixed-width bit-vector constant"
     
-operator BITVECTOR_CONCAT 2 "bit-vector concatenation"
+operator BITVECTOR_CONCAT 2: "bit-vector concatenation"
 operator BITVECTOR_AND 2 "bitwise and"
 operator BITVECTOR_OR 2 "bitwise or"      
 operator BITVECTOR_XOR 2 "bitwise xor"      

@@ -1,0 +1,3 @@
+x : BITVECTOR(32);
+QUERY (x @ 0bin0 @ 0bin1 @ 0bin0 @ 0bin1 @ 0bin0 @ 0bin1 = x @ 0bin010101);
+

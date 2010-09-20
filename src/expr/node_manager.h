@@ -916,7 +916,6 @@ template <bool ref_count>
 inline Node NodeManager::mkNode(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
-  Assert(kind::metaKindOf(opNode.getKind()) == kind::metakind::PARAMETERIZED);
   NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
   nb << opNode;
   nb.append(children);

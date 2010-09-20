@@ -1,0 +1,7 @@
+(benchmark B_
+  :logic QF_BV
+  :extrafuns ((x BitVec[32]))
+  :extrafuns ((y BitVec[32]))
+  :formula
+(not (= (extract[62:33] (concat x y)) (extract[30:1] x)))
+)

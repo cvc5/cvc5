@@ -216,12 +216,6 @@ annotatedFormula[CVC4::Expr& expr]
     RPAREN_TOK
     { PARSER_STATE->popScope(); }
 
-  | /* a variable */
-    ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-      | let_identifier[name,CHECK_DECLARED] 
-      | flet_identifier[name,CHECK_DECLARED] )
-    { expr = PARSER_STATE->getVariable(name); }
-
     /* constants */
   | TRUE_TOK          { expr = MK_CONST(true); }
   | FALSE_TOK         { expr = MK_CONST(false); }
@@ -230,8 +224,17 @@ annotatedFormula[CVC4::Expr& expr]
   | RATIONAL_TOK
     { // FIXME: This doesn't work because an SMT rational is not a valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_TOK) ); }
+  | n = BITVECTOR_BV_CONST '[' size = NUMERAL_TOK  ']' 
+    { expr = MK_CONST( AntlrInput::tokenToBitvector($n, $size) ); }
     // NOTE: Theory constants go here
     /* TODO: quantifiers, arithmetic constants */
+
+  | /* a variable */
+    ( identifier[name,CHECK_DECLARED,SYM_VARIABLE]
+      | let_identifier[name,CHECK_DECLARED] 
+      | flet_identifier[name,CHECK_DECLARED] )
+    { expr = PARSER_STATE->getVariable(name); }
+
   ;
 
 /**
@@ -553,6 +556,7 @@ XOR_TOK           : 'xor';
 
 // Bitvector tokens 
 BITVECTOR_TOK     : 'BitVec';
+BV_TOK            : 'bv';
 CONCAT_TOK        : 'concat';
 EXTRACT_TOK       : 'extract';
 BVAND_TOK         : 'bvand';
@@ -588,6 +592,14 @@ ZERO_EXTEND_TOK   : 'zero_extend';
 SIGN_EXTEND_TOK   : 'sign_extend';
 ROTATE_LEFT_TOK   : 'rotate_left';
 ROTATE_RIGHT_TOK  : 'rotate_right';
+
+/**
+ * Mathces a bit-vector constant of the form bv123
+ */
+BITVECTOR_BV_CONST
+  : 'bv' DIGIT+
+  ;
+
 
 /**
  * Matches an identifier from the input. An identifier is a sequence of letters,

@@ -123,6 +123,9 @@ public:
   Integer operator/(const Integer& y) const {
     return Integer( d_value / y.d_value );
   }
+  Integer operator%(const Integer& y) const {
+    return Integer( d_value % y.d_value );
+  }
 
   /** Raise this Integer to the power <code>exp</code>.
    *

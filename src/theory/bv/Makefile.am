@@ -7,6 +7,10 @@ noinst_LTLIBRARIES = libbv.la
 
 libbv_la_SOURCES = \
 	theory_bv.h \
+	theory_bv.cpp \
+	theory_bv_utils.h \
+	theory_bv_rewrite_rules.h \
+	theory_bv_rewrite_rules.cpp \
 	theory_bv_type_rules.h
 
 EXTRA_DIST = kinds

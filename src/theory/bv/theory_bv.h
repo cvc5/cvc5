@@ -33,12 +33,12 @@ public:
   TheoryBV(int id, context::Context* c, OutputChannel& out) :
     Theory(id, c, out) {
   }
-
-  void preRegisterTerm(TNode n) { Unimplemented(); }
-  void registerTerm(TNode n) { Unimplemented(); }
+  void preRegisterTerm(TNode n) { }
+  void registerTerm(TNode n) { }
   void check(Effort e) {}
   void propagate(Effort e) {}
-  void explain(TNode n, Effort e) { Unimplemented(); }
+  void explain(TNode n, Effort e) { }
+  RewriteResponse postRewrite(TNode n, bool topLevel);
   std::string identify() const { return std::string("TheoryBV"); }
 };/* class TheoryBV */
 

@@ -35,9 +35,10 @@ private:
   unsigned d_size;
   Integer d_value;
 
-  BitVector(unsigned size, const Integer& val) : d_size(size), d_value(val) {}
-
 public:
+
+  BitVector(unsigned size, const Integer& val)
+  : d_size(size), d_value(val) {}
 
   BitVector(unsigned size = 0)
   : d_size(size), d_value(0) {}
@@ -58,6 +59,7 @@ public:
   BitVector& operator =(const BitVector& x) {
     if(this == &x)
       return *this;
+    d_size = x.d_size;
     d_value = x.d_value;
     return *this;
   }
@@ -92,8 +94,16 @@ public:
     return BitVector(d_size, d_value);
   }
 
+  BitVector concat (const BitVector& other) const {
+    return BitVector(d_size + other.d_size, (d_value * Integer(2).pow(other.d_size)) + other.d_value);
+  }
+
+  BitVector extract(unsigned high, unsigned low) {
+    return BitVector(high - low + 1, (d_value % (Integer(2).pow(high + 1))) / Integer(2).pow(low));
+  }
+
   size_t hash() const {
-    return d_value.hash();
+    return d_value.hash() + d_size;
   }
 
   std::string toString(unsigned int base = 2) const {

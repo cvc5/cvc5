@@ -277,7 +277,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
     case kind::STORE:
       typeNode = CVC4::theory::arrays::ArrayStoreTypeRule::computeType(this, n, check);
       break;
-    case kind::BITVECTOR_CONST:
+    case kind::CONST_BITVECTOR:
       typeNode = CVC4::theory::bv::BitVectorConstantTypeRule::computeType(this, n, check);
       break;
     case kind::BITVECTOR_AND:

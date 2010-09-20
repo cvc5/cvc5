@@ -175,6 +175,9 @@ public:
   /** Retrieve a Rational from the text of a token */
   static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
 
+  /** Get a bitvector constant from the text of the number and the size token */
+  static BitVector tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size);
+
 protected:
   /** Create an input. This input takes ownership of the given input stream,
    * and will delete it at destruction time.
@@ -230,9 +233,9 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
   }
   start += index;
   if( n==0 || n >= (size_t) end - start ) {
-    return std::string( (const char *)start + index, end-start+1 );
+    return std::string( (const char *)start, end-start+1 );
   } else {
-    return std::string( (const char *)start + index, n );
+    return std::string( (const char *)start, n );
   }
 }
 
@@ -250,6 +253,11 @@ inline Integer AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
 
 inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
   return Rational::fromDecimal( tokenText(token) );
+}
+
+inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size) {
+  std::string number_str = tokenTextSubstr(number, 2);
+  return BitVector(tokenToUnsigned(size), Integer(number_str));
 }
 
 }/* CVC4::parser namespace */
