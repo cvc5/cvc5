@@ -188,8 +188,6 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   Result asSatResult = lastResult.asSatisfiabilityResult();
-  
-
   int returnValue;
 
   switch(asSatResult.isSAT()) {
@@ -216,15 +214,18 @@ int runCvc4(int argc, char* argv[]) {
 
   // Remove the parser
   delete parser;
-ReferenceStat< Result > s_statSatResult("sat/unsat", asSatResult);
+
+  ReferenceStat< Result > s_statSatResult("sat/unsat", asSatResult);
   StatisticsRegistry::registerStat(&s_statSatResult);
 
   if(options.statistics){
     StatisticsRegistry::flushStatistics(cerr);
   }
 
-  return returnValue;
+  StatisticsRegistry::unregisterStat(&s_statSatResult);
+  StatisticsRegistry::unregisterStat(&s_statFilename);
 
+  return returnValue;
 }
 
 void doCommand(SmtEngine& smt, Command* cmd) {

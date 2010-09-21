@@ -126,7 +126,7 @@ class SatSolver : public SatInputInterface {
 
   /** Remember the options */
   Options* d_options;
-  
+
   /* Pointer to the concrete SAT solver. Including this via the
      preprocessor saves us a level of indirection vs, e.g., defining a
      sub-class for each solver. */
@@ -164,6 +164,17 @@ class SatSolver : public SatInputInterface {
       StatisticsRegistry::registerStat(&d_statLearntsLiterals);
       StatisticsRegistry::registerStat(&d_statMaxLiterals);
       StatisticsRegistry::registerStat(&d_statTotLiterals);
+    }
+    ~Statistics() {
+      StatisticsRegistry::unregisterStat(&d_statStarts);
+      StatisticsRegistry::unregisterStat(&d_statDecisions);
+      StatisticsRegistry::unregisterStat(&d_statRndDecisions);
+      StatisticsRegistry::unregisterStat(&d_statPropagations);
+      StatisticsRegistry::unregisterStat(&d_statConflicts);
+      StatisticsRegistry::unregisterStat(&d_statClausesLiterals);
+      StatisticsRegistry::unregisterStat(&d_statLearntsLiterals);
+      StatisticsRegistry::unregisterStat(&d_statMaxLiterals);
+      StatisticsRegistry::unregisterStat(&d_statTotLiterals);
     }
     void init(Minisat::SimpSolver* d_minisat){
       d_statStarts.setData(d_minisat->starts);
