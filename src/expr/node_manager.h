@@ -243,12 +243,6 @@ class NodeManager {
   // bool containsDecision(TNode); // is "atomic"
   // bool properlyContainsDecision(TNode); // all children are atomic
 
-  template <unsigned nchild_thresh>
-  Node doMkNode(NodeBuilder<nchild_thresh>&);
-
-  template <unsigned nchild_thresh>
-  Node* doMkNodePtr(NodeBuilder<nchild_thresh>&);
-
 public:
 
   NodeManager(context::Context* ctxt);
@@ -805,91 +799,70 @@ inline TypeNode NodeManager::mkSort(const std::string& name) {
   return type;
 }
 
-template <unsigned nchild_thresh>
-inline Node NodeManager::doMkNode(NodeBuilder<nchild_thresh>& nb) {
-  Node n = nb.constructNode();
-  if( IS_DEBUG_BUILD ) {
-    // force an immediate type check
-    getType(n,true);
-  }
-  return n;
-}
-
-template <unsigned nchild_thresh>
-inline Node* NodeManager::doMkNodePtr(NodeBuilder<nchild_thresh>& nb) {
-  Node* np = nb.constructNodePtr();
-  if( IS_DEBUG_BUILD ) {
-    // force an immediate type check
-    getType(*np,true);
-  }
-  return np;
-}
-
-
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
   NodeBuilder<1> nb(this, kind);
   nb << child1;
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1) {
   NodeBuilder<1> nb(this, kind);
   nb << child1;
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2) {
   NodeBuilder<2> nb(this, kind);
   nb << child1 << child2;
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2) {
   NodeBuilder<2> nb(this, kind);
   nb << child1 << child2;
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3) {
   NodeBuilder<3> nb(this, kind);
   nb << child1 << child2 << child3;
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
                                 TNode child3) {
   NodeBuilder<3> nb(this, kind);
   nb << child1 << child2 << child3;
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3, TNode child4) {
   NodeBuilder<4> nb(this, kind);
   nb << child1 << child2 << child3 << child4;
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
                                 TNode child3, TNode child4) {
   NodeBuilder<4> nb(this, kind);
   nb << child1 << child2 << child3 << child4;
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(Kind kind, TNode child1, TNode child2,
                                 TNode child3, TNode child4, TNode child5) {
   NodeBuilder<5> nb(this, kind);
   nb << child1 << child2 << child3 << child4 << child5;
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(Kind kind, TNode child1, TNode child2,
                                 TNode child3, TNode child4, TNode child5) {
   NodeBuilder<5> nb(this, kind);
   nb << child1 << child2 << child3 << child4 << child5;
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 // N-ary version
@@ -899,7 +872,7 @@ inline Node NodeManager::mkNode(Kind kind,
                                 children) {
   NodeBuilder<> nb(this, kind);
   nb.append(children);
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 template <bool ref_count>
@@ -908,7 +881,7 @@ inline Node* NodeManager::mkNodePtr(Kind kind,
                                 children) {
   NodeBuilder<> nb(this, kind);
   nb.append(children);
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 // N-ary version for operators
@@ -919,7 +892,7 @@ inline Node NodeManager::mkNode(TNode opNode,
   NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
   nb << opNode;
   nb.append(children);
-  return doMkNode(nb);
+  return nb.constructNode();
 }
 
 template <bool ref_count>
@@ -929,7 +902,7 @@ inline Node* NodeManager::mkNodePtr(TNode opNode,
   NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
   nb << opNode;
   nb.append(children);
-  return doMkNodePtr(nb);
+  return nb.constructNodePtr();
 }
 
 

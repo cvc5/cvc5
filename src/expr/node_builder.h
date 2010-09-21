@@ -829,22 +829,42 @@ TypeNode NodeBuilder<nchild_thresh>::constructTypeNode() const {
 
 template <unsigned nchild_thresh>
 Node NodeBuilder<nchild_thresh>::constructNode() {
-  return Node(constructNV());
+  Node n = Node(constructNV());
+  if( IS_DEBUG_BUILD ) {
+    // force an immediate type check
+    d_nm->getType(n,true);
+  }
+  return n;
 }
 
 template <unsigned nchild_thresh>
 Node NodeBuilder<nchild_thresh>::constructNode() const {
-  return Node(constructNV());
+  Node n = Node(constructNV());
+  if( IS_DEBUG_BUILD ) {
+    // force an immediate type check
+    d_nm->getType(n,true);
+  }
+  return n;
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
-  return new Node(constructNV());
+  Node *np = new Node(constructNV());
+  if( IS_DEBUG_BUILD ) {
+    // force an immediate type check
+    d_nm->getType(*np,true);
+  }
+  return np;
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
-  return new Node(constructNV());
+  Node *np = new Node(constructNV());
+  if( IS_DEBUG_BUILD ) {
+    // force an immediate type check
+    d_nm->getType(*np,true);
+  }
+  return np;
 }
 
 template <unsigned nchild_thresh>
