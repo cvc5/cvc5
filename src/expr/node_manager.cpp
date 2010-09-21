@@ -84,8 +84,7 @@ struct NVReclaim {
 NodeManager::NodeManager(context::Context* ctxt) :
   d_attrManager(ctxt),
   d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false),
-  d_inDestruction(false) {
+  d_inReclaimZombies(false) {
   poolInsert( &expr::NodeValue::s_null );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
@@ -102,7 +101,6 @@ NodeManager::~NodeManager() {
   // destruction of operators, because they get GCed.
 
   NodeManagerScope nms(this);
-  d_inDestruction = true;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);

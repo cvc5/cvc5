@@ -240,16 +240,6 @@ public:
 
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
-
-  /**
-   * Signals that this expression manager will soon be destroyed.
-   * Turns off debugging assertions that may not hold as the system
-   * is being torn down.
-   *
-   * NOTE: It is *not* required to call this function before destroying
-   * the ExprManager.
-   */
-  void prepareToBeDestroyed();
 };
 
 ${mkConst_instantiations}

@@ -209,9 +209,6 @@ int runCvc4(int argc, char* argv[]) {
   exit(returnValue);
 #endif
 
-  // Get ready for tear-down
-  exprMgr.prepareToBeDestroyed();
-
   // Remove the parser
   delete parser;
 

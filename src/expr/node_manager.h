@@ -98,19 +98,6 @@ class NodeManager {
   bool d_inReclaimZombies;
 
   /**
-   * Indicates that the NodeManager is in the process of being destroyed.
-   * The main purpose of this is to disable certain debugging assertions
-   * that might be sensitive to the order in which objects get cleaned up
-   * (e.g., TNode-valued attributes that outlive their associated Node).
-   * This may be true before or after the actual NodeManager destructor
-   * is executing, while other associated cleanup procedures run. E.g.,
-   * an object that contains a NodeManager can set
-   * <code>d_inDestruction</code> by calling
-   * <code>prepareToBeDestroyed</code>.
-   */
-  bool d_inDestruction;
-
-  /**
    * The set of zombie nodes.  We may want to revisit this design, as
    * we might like to delete nodes in least-recently-used order.  But
    * we also need to avoid processing a zombie twice.
@@ -247,23 +234,6 @@ public:
 
   NodeManager(context::Context* ctxt);
   ~NodeManager();
-
-  /**
-   * Return true if the destructor has been invoked, or
-   * <code>prepareToBeDestroyed()</code> has previously been called.
-   */
-  bool inDestruction() const { return d_inDestruction; }
-
-  /** Signals that this expression manager will soon be destroyed.
-   * Turns off debugging assertions that may not hold as the system
-   * is being torn down.
-   *
-   * NOTE: It is *not* required to call this function before destroying
-   * the NodeManager.
-   */
-  void prepareToBeDestroyed() {
-    d_inDestruction = true;
-  }
 
   /** The node manager in the current context. */
   static NodeManager* currentNM() { return s_current; }

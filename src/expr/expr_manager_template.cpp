@@ -398,10 +398,6 @@ unsigned ExprManager::maxArity(Kind kind) {
   return metakind::getUpperBoundForKind(kind);
 }
 
-void ExprManager::prepareToBeDestroyed() {
-  d_nodeManager->prepareToBeDestroyed();
-}
-
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
 }
