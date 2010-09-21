@@ -187,6 +187,12 @@ public:
   template <typename T>
   inline iterator<T> end() const;
 
+  template <typename T, Kind kind>
+  inline iterator<T> begin() const;
+
+  template <typename T, Kind kind>
+  inline iterator<T> end() const;
+
   /**
    * Hash this NodeValue.  For hash_maps, hash_sets, etc.. but this is
    * for expr package internal use only at present!  This is likely to
@@ -353,6 +359,22 @@ inline NodeValue::iterator<T> NodeValue::begin() const {
 
 template <typename T>
 inline NodeValue::iterator<T> NodeValue::end() const {
+  return iterator<T>(d_children + d_nchildren);
+}
+
+template <typename T, Kind kind>
+inline NodeValue::iterator<T> NodeValue::begin() const {
+  if (d_kind != kind) return iterator<T>(this);
+  NodeValue* const* firstChild = d_children;
+  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    ++firstChild;
+  }
+  return iterator<T>(firstChild);
+}
+
+template <typename T, Kind kind>
+inline NodeValue::iterator<T> NodeValue::end() const {
+  if (d_kind != kind) return iterator<T>(this + 1);
   return iterator<T>(d_children + d_nchildren);
 }
 

@@ -468,6 +468,34 @@ public:
   }
 
   /**
+   * Returns the iterator pointing to the first child.
+   * @return the iterator
+   */
+  template <Kind kind>
+  inline iterator begin() {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
+    return d_nv->begin< NodeTemplate<ref_count>, kind >();
+  }
+
+  /**
+   * Returns the iterator pointing to the end of the children (one beyond the
+   * last one.
+   * @return the end of the children iterator.
+   */
+  template <Kind kind>
+  inline iterator end() {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
+    return d_nv->end< NodeTemplate<ref_count>, kind >();
+  }
+
+
+  /**
    * Returns the const_iterator pointing to the first child.
    * @return the const_iterator
    */
@@ -490,6 +518,33 @@ public:
     }
 
     return d_nv->end< NodeTemplate<ref_count> >();
+  }
+
+  /**
+   * Returns the const_iterator pointing to the first child.
+   * @return the const_iterator
+   */
+  template <Kind kind>
+  inline const_iterator begin() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
+    return d_nv->begin< NodeTemplate<ref_count>, kind >();
+  }
+
+  /**
+   * Returns the const_iterator pointing to the end of the children (one
+   * beyond the last one.
+   * @return the end of the children const_iterator.
+   */
+  template <Kind kind>
+  inline const_iterator end() const {
+    if(!ref_count) {
+      Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
+    }
+
+    return d_nv->end< NodeTemplate<ref_count>, kind >();
   }
 
   /**
