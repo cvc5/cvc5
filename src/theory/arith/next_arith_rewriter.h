@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file arith_rewriter.h
+/*! \file next_arith_rewriter.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters

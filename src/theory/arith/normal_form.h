@@ -1,3 +1,26 @@
+/*********************                                                        */
+/*! \file normal_form.h
+ ** \verbatim
+ ** Original author: taking
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__ARITH__NORMAL_FORM_H
+#define __CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 #include "expr/node.h"
 #include "util/rational.h"
@@ -7,9 +30,6 @@
 #include <list>
 #include <algorithm>
 #include <ext/algorithm>
-
-#ifndef __CVC4__THEORY__ARITH__NORMAL_FORM_H
-#define __CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 namespace CVC4 {
 namespace theory {
@@ -29,34 +49,34 @@ namespace arith {
  * variable := n
  *   where
  *     n.getMetaKind() == metakind::VARIABLE
-
+ *
  * constant := n
  *   where
  *     n.getKind() == kind::CONST_RATIONAL
-
+ *
  * var_list := variable | (* [variable])
  *   where
  *     len [variable] >= 2
  *     isSorted varOrder [variable]
-
+ *
  * monomial := constant | var_list | (* constant' var_list')
  *   where
  *     constant' \not\in {0,1}
-
+ *
  * polynomial := monomial' | (+ [monomial])
  *   where
  *     len [monomial] >= 2
  *     isStrictlySorted monoOrder [monomial]
  *     forall (\x -> x != 0) [monomial]
-
+ *
  * restricted_cmp := (|><| polynomial constant)
  *   where
  *     |><| is GEQ, EQ, or EQ
  *     not (exists constantMonomial (monomialList polynomial))
  *     monomialCoefficient (head (monomialList polynomial)) == 1
-
+ *
  * comparison := TRUE | FALSE | restricted_cmp | (not restricted_cmp)
-
+ *
  * Normal Form for terms := polynomial
  * Normal Form for atoms := comparison
  */
@@ -94,11 +114,11 @@ namespace arith {
  *  And if isMember(node) is false, this throws an assertion failure in debug
  *  mode and has undefined behaviour if not in debug mode.
  * -Only public facing constructors, parseClass(node), and mk*() functions are
- *  considered privledged functions for the helper class.
- * -Only privledged functions may use private constructors, and access
+ *  considered privileged functions for the helper class.
+ * -Only privileged functions may use private constructors, and access
  *  private data members.
- * -All non-privledges functions are considered utility functions and
- *  must use a privledged function in order to create an instance of the class.
+ * -All non-privileged functions are considered utility functions and
+ *  must use a privileged function in order to create an instance of the class.
  */
 
 /**
@@ -143,6 +163,7 @@ namespace arith {
  *      | (+ [monomial]) -> [monomial]
  */
 
+
 /**
  * A NodeWrapper is a class that is a thinly veiled container of a Node object.
  */
@@ -152,7 +173,8 @@ private:
 public:
   NodeWrapper(Node n) : node(n) {}
   const Node& getNode() const { return node; }
-};
+};/* class NodeWrapper */
+
 
 class Variable : public NodeWrapper {
 public:
@@ -166,10 +188,11 @@ public:
 
   bool isNormalForm() { return isMember(getNode()); }
 
-  bool operator<(const Variable& v) const{ return getNode() < v.getNode();}
-  bool operator==(const Variable& v) const{ return getNode() == v.getNode();}
+  bool operator<(const Variable& v) const { return getNode() < v.getNode();}
+  bool operator==(const Variable& v) const { return getNode() == v.getNode();}
 
-};
+};/* class Variable */
+
 
 class Constant : public NodeWrapper {
 public:
@@ -187,7 +210,7 @@ public:
     return Constant(coerceToRationalNode(n));
   }
 
-  static Constant mkConstant(const Rational& rat){
+  static Constant mkConstant(const Rational& rat) {
     return Constant(mkRationalNode(rat));
   }
 
@@ -195,30 +218,34 @@ public:
     return getNode().getConst<Rational>();
   }
 
-  bool isZero() const{ return getValue() == 0; }
-  bool isOne() const{ return getValue() == 1; }
+  bool isZero() const { return getValue() == 0; }
+  bool isOne() const { return getValue() == 1; }
 
-  Constant operator*(const Constant& other) const{
+  Constant operator*(const Constant& other) const {
     return mkConstant(getValue() * other.getValue());
   }
-  Constant operator+(const Constant& other) const{
+  Constant operator+(const Constant& other) const {
     return mkConstant(getValue() + other.getValue());
   }
-  Constant operator-() const{
+  Constant operator-() const {
     return mkConstant(-getValue());
   }
-};
+
+};/* class Constant */
+
 
 template <class GetNodeIterator>
-inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end){
+inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
   NodeBuilder<> nb(k);
 
-  while(start != end){
+  while(start != end) {
     nb << (*start).getNode();
     ++start;
   }
+
   return Node(nb);
-}
+}/* makeNode<GetNodeIterator>(Kind, iterator, iterator) */
+
 
 /**
  * A VarList is a sorted list of variables representing a product.
@@ -231,18 +258,19 @@ class VarList {
 private:
   Node backingNode;
 
-  static Node multList(const std::vector<Variable>& list){
+  static Node multList(const std::vector<Variable>& list) {
     Assert(list.size() >= 2);
 
     return makeNode(kind::MULT, list.begin(), list.end());
   }
-  static Node makeTuple(Node n){
+  static Node makeTuple(Node n) {
+    // MGD FOR REVIEW: drop IDENTITY kind ?
     return NodeManager::currentNM()->mkNode(kind::IDENTITY, n);
   }
 
-  VarList() : backingNode(Node::null()){}
+  VarList() : backingNode(Node::null()) {}
 
-  VarList(Node n){
+  VarList(Node n) {
     backingNode = (Variable::isMember(n)) ? makeTuple(n) : n;
 
     Assert(isSorted(begin(), end()));
@@ -255,15 +283,15 @@ public:
   public:
     explicit iterator(Node::iterator i) : d_iter(i) {}
 
-    inline Variable operator*(){
+    inline Variable operator*() {
       return Variable(*d_iter);
     }
 
-    bool operator==(const iterator& i){
+    bool operator==(const iterator& i) {
       return d_iter == i.d_iter;
     }
 
-    bool operator!=(const iterator& i){
+    bool operator!=(const iterator& i) {
       return d_iter != i.d_iter;
     }
 
@@ -277,52 +305,52 @@ public:
     }
   };
 
-  Node getNode() const{
-    if(singleton()){
+  Node getNode() const {
+    if(singleton()) {
       return backingNode[0];
-    }else{
+    } else {
       return backingNode;
     }
   }
 
-  iterator begin() const{
+  iterator begin() const {
     return iterator(backingNode.begin());
   }
-  iterator end() const{
+  iterator end() const {
     return iterator(backingNode.end());
   }
 
-  VarList(Variable v) : backingNode(makeTuple(v.getNode())){
+  VarList(Variable v) : backingNode(makeTuple(v.getNode())) {
     Assert(isSorted(begin(), end()));
   }
-  VarList(const std::vector<Variable>& l) : backingNode(multList(l)){
+  VarList(const std::vector<Variable>& l) : backingNode(multList(l)) {
     Assert(l.size() >= 2);
     Assert(isSorted(begin(), end()));
   }
 
   static bool isMember(Node n);
 
-  bool isNormalForm() const{
+  bool isNormalForm() const {
     return !empty();
   }
 
-  static VarList mkEmptyVarList(){
+  static VarList mkEmptyVarList() {
     return VarList();
   }
 
 
   /** There are no restrictions on the size of l */
-  static VarList mkVarList(const std::vector<Variable>& l){
-    if(l.size() == 0){
+  static VarList mkVarList(const std::vector<Variable>& l) {
+    if(l.size() == 0) {
       return mkEmptyVarList();
-    }else if(l.size() == 1){
+    } else if(l.size() == 1) {
       return VarList((*l.begin()).getNode());
-    }else{
+    } else {
       return VarList(l);
     }
   }
 
-  int size() const{ return backingNode.getNumChildren(); }
+  int size() const { return backingNode.getNumChildren(); }
   bool empty() const { return size() == 0; }
   bool singleton() const { return backingNode.getKind() == kind::IDENTITY; }
 
@@ -332,13 +360,15 @@ public:
 
   int cmp(const VarList& vl) const;
 
-  bool operator<(const VarList& vl) const{ return cmp(vl) < 0; }
+  bool operator<(const VarList& vl) const { return cmp(vl) < 0; }
 
-  bool operator==(const VarList& vl) const{ return cmp(vl) == 0; }
+  bool operator==(const VarList& vl) const { return cmp(vl) == 0; }
 
 private:
   bool isSorted(iterator start, iterator end);
-};
+
+};/* class VarList */
+
 
 class Monomial : public NodeWrapper {
 private:
@@ -353,14 +383,14 @@ private:
     Assert(!c.isOne() || !multStructured(n));
   }
 
-  static Node makeMultNode(const Constant& c, const VarList& vl){
+  static Node makeMultNode(const Constant& c, const VarList& vl) {
     Assert(!c.isZero());
     Assert(!c.isOne());
     Assert(!vl.empty());
     return NodeManager::currentNM()->mkNode(kind::MULT, c.getNode(), vl.getNode());
   }
 
-  static bool multStructured(Node n){
+  static bool multStructured(Node n) {
     return n.getKind() ==  kind::MULT &&
       n[0].getKind() == kind::CONST_RATIONAL &&
       n.getNumChildren() == 2;
@@ -394,20 +424,20 @@ public:
 
   static Monomial parseMonomial(Node n);
 
-  static Monomial mkZero(){
+  static Monomial mkZero() {
     return Monomial(Constant::mkConstant(0));
   }
-  static Monomial mkOne(){
+  static Monomial mkOne() {
     return Monomial(Constant::mkConstant(1));
   }
-  const Constant& getConstant() const{ return constant; }
-  const VarList& getVarList() const{ return varList; }
+  const Constant& getConstant() const { return constant; }
+  const VarList& getVarList() const { return varList; }
 
-  bool isConstant() const{
+  bool isConstant() const {
     return varList.empty();
   }
 
-  bool isZero() const{
+  bool isZero() const {
     return constant.isZero();
   }
 
@@ -418,23 +448,23 @@ public:
   Monomial operator*(const Monomial& mono) const;
 
 
-  int cmp(const Monomial& mono) const{
+  int cmp(const Monomial& mono) const {
     return getVarList().cmp(mono.getVarList());
   }
 
-  bool operator<(const Monomial& vl) const{
+  bool operator<(const Monomial& vl) const {
     return cmp(vl) < 0;
   }
 
-  bool operator==(const Monomial& vl) const{
+  bool operator==(const Monomial& vl) const {
     return cmp(vl) == 0;
   }
 
-  static bool isSorted(const std::vector<Monomial>& m){
+  static bool isSorted(const std::vector<Monomial>& m) {
     return __gnu_cxx::is_sorted(m.begin(), m.end());
   }
 
-  static bool isStrictlySorted(const std::vector<Monomial>& m){
+  static bool isStrictlySorted(const std::vector<Monomial>& m) {
     return isSorted(m) && std::adjacent_find(m.begin(),m.end()) == m.end();
   }
 
@@ -445,10 +475,12 @@ public:
   static std::vector<Monomial> sumLikeTerms(const std::vector<Monomial>& monos);
 
   static void printList(const std::vector<Monomial>& monos);
-};
+};/* class Monomial */
+
 
 class Polynomial : public NodeWrapper {
 private:
+  // MGD FOR REVIEW: do not create this vector<>!
   std::vector<Monomial> monos;
 
   Polynomial(Node n, const std::vector<Monomial>& m):
@@ -458,7 +490,7 @@ private:
     Assert( Monomial::isStrictlySorted(monos) );
   }
 
-  static Node makePlusNode(const std::vector<Monomial>& m){
+  static Node makePlusNode(const std::vector<Monomial>& m) {
     Assert(m.size() >= 2);
 
     return makeNode(kind::PLUS, m.begin(), m.end());
@@ -467,8 +499,8 @@ private:
 public:
   typedef std::vector<Monomial>::const_iterator iterator;
 
-  iterator begin() const{ return monos.begin(); }
-  iterator end() const{ return monos.end(); }
+  iterator begin() const { return monos.begin(); }
+  iterator end() const { return monos.end(); }
 
   Polynomial(const Monomial& m):
     NodeWrapper(m.getNode()), monos()
@@ -483,51 +515,52 @@ public:
   }
 
 
-  static Polynomial mkPolynomial(const std::vector<Monomial>& m){
-    if(m.size() == 0){
+  static Polynomial mkPolynomial(const std::vector<Monomial>& m) {
+    if(m.size() == 0) {
       return Polynomial(Monomial::mkZero());
-    }else if(m.size() == 1){
+    } else if(m.size() == 1) {
       return Polynomial((*m.begin()));
-    }else{
+    } else {
       return Polynomial(m);
     }
   }
 
-  static Polynomial parsePolynomial(Node n){
+  // MGD FOR REVIEW: make this constant time (for non-debug mode)
+  static Polynomial parsePolynomial(Node n) {
     std::vector<Monomial> monos;
-    if(n.getKind() == kind::PLUS){
-      for(Node::iterator i=n.begin(), end=n.end(); i != end; ++i){
+    if(n.getKind() == kind::PLUS) {
+      for(Node::iterator i=n.begin(), end=n.end(); i != end; ++i) {
         monos.push_back(Monomial::parseMonomial(*i));
       }
-    }else{
+    } else {
       monos.push_back(Monomial::parseMonomial(n));
     }
     return Polynomial(n,monos);
   }
 
-  static Polynomial mkZero(){
+  static Polynomial mkZero() {
     return Polynomial(Monomial::mkZero());
   }
-  static Polynomial mkOne(){
+  static Polynomial mkOne() {
     return Polynomial(Monomial::mkOne());
   }
-  bool isZero() const{
+  bool isZero() const {
     return (monos.size() == 1) && (getHead().isZero());
   }
 
-  bool isConstant() const{
+  bool isConstant() const {
     return (monos.size() == 1) && (getHead().isConstant());
   }
 
-  bool containsConstant() const{
+  bool containsConstant() const {
     return getHead().isConstant();
   }
 
-  Monomial getHead() const{
+  Monomial getHead() const {
     return *(begin());
   }
 
-  Polynomial getTail() const{
+  Polynomial getTail() const {
     Assert(monos.size() >= 1);
 
     iterator start = begin()+1;
@@ -535,10 +568,10 @@ public:
     return mkPolynomial(subrange);
   }
 
-  void printList() const{
-    Debug("blah") << "start list" << std::endl;
+  void printList() const {
+    Debug("normal-form") << "start list" << std::endl;
     Monomial::printList(monos);
-    Debug("blah") << "end list" << std::endl;
+    Debug("normal-form") << "end list" << std::endl;
   }
 
   Polynomial operator+(const Polynomial& vl) const;
@@ -547,7 +580,8 @@ public:
 
   Polynomial operator*(const Polynomial& poly) const;
 
-};
+};/* class Polynomial */
+
 
 class Comparison : public NodeWrapper {
 private:
@@ -578,18 +612,18 @@ public:
 
   static Comparison mkComparison(Kind k, const Polynomial& left, const Constant& right);
 
-  bool isBoolean() const{
+  bool isBoolean() const {
     return (oper == kind::CONST_BOOLEAN);
   }
 
-  bool isNormalForm() const{
-    if(isBoolean()){
+  bool isNormalForm() const {
+    if(isBoolean()) {
       return true;
-    }else if(left.containsConstant()){
+    } else if(left.containsConstant()) {
       return false;
-    }else if(left.getHead().getConstant().isOne()){
+    } else if(left.getHead().getConstant().isOne()) {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
@@ -601,12 +635,11 @@ public:
   Comparison multiplyConstant(const Constant& constant) const;
 
   static Comparison parseNormalForm(TNode n);
-};
 
+};/* class Comparison */
 
-
-}; /* namesapce arith */
-}; /* namespace theory */
-}; /* namespace CVC4 */
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__ARITH__NORMAL_FORM_H */

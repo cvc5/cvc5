@@ -17,15 +17,15 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
 
+#ifndef __CVC4__THEORY__ARITH__ARITH_CONSTANTS_H
+#define __CVC4__THEORY__ARITH__ARITH_CONSTANTS_H
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "util/rational.h"
 #include "theory/arith/delta_rational.h"
-
-#ifndef __CVC4__THEORY__ARITH__ARITH_CONSTANTS_H
-#define __CVC4__THEORY__ARITH__ARITH_CONSTANTS_H
 
 namespace CVC4 {
 namespace theory {

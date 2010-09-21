@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file arith_rewriter.cpp
+/*! \file next_arith_rewriter.cpp
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none
