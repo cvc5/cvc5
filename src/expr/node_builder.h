@@ -661,6 +661,18 @@ private:
   expr::NodeValue* constructNV();
   expr::NodeValue* constructNV() const;
 
+  inline void debugCheckType(const TNode n) const {
+    // force an immediate type check, if we are in debug mode
+    // and the current node isn't a variable or constant
+    if( IS_DEBUG_BUILD ) {
+      kind::MetaKind mk = n.getMetaKind();
+      if( mk != kind::metakind::VARIABLE 
+          && mk != kind::metakind::CONSTANT ) {
+        d_nm->getType(n,true);
+      }
+    }
+  }
+
 public:
 
   /** Construct the Node out of the node builder */
@@ -830,40 +842,28 @@ TypeNode NodeBuilder<nchild_thresh>::constructTypeNode() const {
 template <unsigned nchild_thresh>
 Node NodeBuilder<nchild_thresh>::constructNode() {
   Node n = Node(constructNV());
-  if( IS_DEBUG_BUILD ) {
-    // force an immediate type check
-    d_nm->getType(n,true);
-  }
+  debugCheckType(n);
   return n;
 }
 
 template <unsigned nchild_thresh>
 Node NodeBuilder<nchild_thresh>::constructNode() const {
   Node n = Node(constructNV());
-  if( IS_DEBUG_BUILD ) {
-    // force an immediate type check
-    d_nm->getType(n,true);
-  }
+  debugCheckType(n);
   return n;
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
   Node *np = new Node(constructNV());
-  if( IS_DEBUG_BUILD ) {
-    // force an immediate type check
-    d_nm->getType(*np,true);
-  }
+  debugCheckType(*np);
   return np;
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
   Node *np = new Node(constructNV());
-  if( IS_DEBUG_BUILD ) {
-    // force an immediate type check
-    d_nm->getType(*np,true);
-  }
+  debugCheckType(*np);
   return np;
 }
 
