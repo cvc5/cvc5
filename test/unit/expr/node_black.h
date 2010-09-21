@@ -473,6 +473,7 @@ public:
 #endif /* CVC4_ASSERTIONS */
   }
 
+  // test iterators
   void testIterator() {
     NodeBuilder<> b;
     Node x = d_nodeManager->mkVar(*d_booleanType);
@@ -498,13 +499,42 @@ public:
     }
   }
 
+  // test the special "kinded-iterator"
+  void testKindedIterator() {
+    TypeNode integerType = d_nodeManager->integerType();
+
+    Node x = d_nodeManager->mkVar("x", integerType);
+    Node y = d_nodeManager->mkVar("y", integerType);
+    Node z = d_nodeManager->mkVar("z", integerType);
+    Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
+    Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
+
+    { // iterator
+      /* FAILING TEST:
+      Node::iterator i = plus_x_y_z.begin<PLUS>();
+      TS_ASSERT(*i++ == x);
+      TS_ASSERT(*i++ == y);
+      TS_ASSERT(*i++ == z);
+      TS_ASSERT(i == plus_x_y_z.end<PLUS>());
+
+      i = x.begin<PLUS>();
+      TS_ASSERT(*i++ == x);
+      TS_ASSERT(i == x.end<PLUS>());
+      */
+    }
+
+    { // same for const iterator
+      //const Node& c = plus_x_y_z;
+    }
+  }
+
   void testToString() {
     TypeNode booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkVar("w",booleanType);
-    Node x = d_nodeManager->mkVar("x",booleanType);
-    Node y = d_nodeManager->mkVar("y",booleanType);
-    Node z = d_nodeManager->mkVar("z",booleanType);
+    Node w = d_nodeManager->mkVar("w", booleanType);
+    Node x = d_nodeManager->mkVar("x", booleanType);
+    Node y = d_nodeManager->mkVar("y", booleanType);
+    Node z = d_nodeManager->mkVar("z", booleanType);
     Node m = NodeBuilder<>() << w << x << kind::OR;
     Node n = NodeBuilder<>() << m << y << z << kind::AND;
 
@@ -514,10 +544,10 @@ public:
   void testToStream() {
     TypeNode booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkVar("w",booleanType);
-    Node x = d_nodeManager->mkVar("x",booleanType);
-    Node y = d_nodeManager->mkVar("y",booleanType);
-    Node z = d_nodeManager->mkVar("z",booleanType);
+    Node w = d_nodeManager->mkVar("w", booleanType);
+    Node x = d_nodeManager->mkVar("x", booleanType);
+    Node y = d_nodeManager->mkVar("y", booleanType);
+    Node z = d_nodeManager->mkVar("z", booleanType);
     Node m = NodeBuilder<>() << x << y << kind::OR;
     Node n = NodeBuilder<>() << w << m << z << kind::AND;
     Node o = NodeBuilder<>() << n << n << kind::XOR;

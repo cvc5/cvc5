@@ -456,7 +456,7 @@ public:
 
   /**
    * Returns the iterator pointing to the end of the children (one beyond the
-   * last one.
+   * last one).
    * @return the end of the children iterator.
    */
   inline iterator end() {
@@ -468,7 +468,13 @@ public:
   }
 
   /**
-   * Returns the iterator pointing to the first child.
+   * Returns the iterator pointing to the first child, if the node's
+   * kind is the same as the template parameter, otherwise returns the
+   * iterator pointing to the node itself.  This is useful if you want
+   * to pretend to iterate over a "unary" PLUS, for instance, since
+   * unary PLUSes don't exist---begin<PLUS>() will give an iterator
+   * over the children if the node's a PLUS node, otherwise give an
+   * iterator over the node itself, as if it were a unary PLUS.
    * @return the iterator
    */
   template <Kind kind>
@@ -481,9 +487,15 @@ public:
   }
 
   /**
-   * Returns the iterator pointing to the end of the children (one beyond the
-   * last one.
-   * @return the end of the children iterator.
+   * Returns the iterator pointing to the end of the children (one
+   * beyond the last one), if the node's kind is the same as the
+   * template parameter, otherwise returns the iterator pointing to
+   * the one-of-the-node-itself.  This is useful if you want to
+   * pretend to iterate over a "unary" PLUS, for instance, since unary
+   * PLUSes don't exist---begin<PLUS>() will give an iterator over the
+   * children if the node's a PLUS node, otherwise give an iterator
+   * over the node itself, as if it were a unary PLUS.  @return the
+   * end of the children iterator.
    */
   template <Kind kind>
   inline iterator end() {

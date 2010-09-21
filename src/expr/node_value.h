@@ -364,7 +364,9 @@ inline NodeValue::iterator<T> NodeValue::end() const {
 
 template <typename T, Kind kind>
 inline NodeValue::iterator<T> NodeValue::begin() const {
-  if (d_kind != kind) return iterator<T>(this);
+  if(d_kind != kind) {
+    return iterator<T>(this);
+  }
   NodeValue* const* firstChild = d_children;
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     ++firstChild;
@@ -374,7 +376,9 @@ inline NodeValue::iterator<T> NodeValue::begin() const {
 
 template <typename T, Kind kind>
 inline NodeValue::iterator<T> NodeValue::end() const {
-  if (d_kind != kind) return iterator<T>(this + 1);
+  if(d_kind != kind) {
+    return iterator<T>(this + 1);
+  }
   return iterator<T>(d_children + d_nchildren);
 }
 
