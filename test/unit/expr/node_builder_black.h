@@ -43,6 +43,7 @@ private:
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
+  TypeNode* d_integerType;
   TypeNode* d_realType;
 
 public:
@@ -52,13 +53,16 @@ public:
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
 
-    specKind = PLUS;
+    specKind = AND;
+    d_integerType = new TypeNode(d_nm->integerType());
     d_booleanType = new TypeNode(d_nm->booleanType());
     d_realType = new TypeNode(d_nm->realType());
   }
 
   void tearDown() {
+    delete d_integerType;
     delete d_booleanType;
+    delete d_realType;
     delete d_scope;
     delete d_nm;
     delete d_ctxt;
@@ -253,11 +257,15 @@ public:
     /*  Kind getKind() const; */
     NodeBuilder<> noKind;
     TS_ASSERT_EQUALS(noKind.getKind(), UNDEFINED_KIND);
-    push_back(noKind, K);
+
+    Node x( d_nm->mkVar( *d_integerType ) );
+    noKind << x << x;
+    //     push_back(noKind, K);
     TS_ASSERT_EQUALS(noKind.getKind(), UNDEFINED_KIND);
 
-    noKind << specKind;
-    TS_ASSERT_EQUALS(noKind.getKind(), specKind);
+    noKind << PLUS;
+
+    TS_ASSERT_EQUALS(noKind.getKind(), PLUS);
 
     Node n = noKind;
 
@@ -265,39 +273,39 @@ public:
     TS_ASSERT_THROWS(noKind.getKind(), AssertionException);
 #endif /* CVC4_ASSERTIONS */
 
-    NodeBuilder<> spec(specKind);
-    TS_ASSERT_EQUALS(spec.getKind(), specKind);
-    push_back(spec, K);
-    TS_ASSERT_EQUALS(spec.getKind(), specKind);
+    NodeBuilder<> spec(PLUS);
+    TS_ASSERT_EQUALS(spec.getKind(), PLUS);
+    spec << x << x ;
+    TS_ASSERT_EQUALS(spec.getKind(), PLUS);
   }
 
   void testGetNumChildren() {
     /* unsigned getNumChildren() const; */
+    Node x( d_nm->mkVar( *d_integerType ) );
 
     NodeBuilder<> nb;
     TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
-    nb << specKind;
-    push_back(nb, K);
+    nb << PLUS << x << x;
 
-    TS_ASSERT_EQUALS(nb.getNumChildren(), K);
+    TS_ASSERT_EQUALS(nb.getNumChildren(), 2u);
 
-    push_back(nb, K);
-    TS_ASSERT_EQUALS(nb.getNumChildren(), K + K);
+    nb << x << x;
+    TS_ASSERT_EQUALS(nb.getNumChildren(), 4u);
 
     Node n = nb;// avoid warning on clear()
     nb.clear();
     TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
-    nb.clear(specKind);
+    nb.clear(PLUS);
     TS_ASSERT_EQUALS(nb.getNumChildren(), 0u);
-    push_back(nb, K);
+    nb << x << x << x;
 
-    TS_ASSERT_EQUALS(nb.getNumChildren(), K);
+    TS_ASSERT_EQUALS(nb.getNumChildren(), 3u);
 
-    push_back(nb, K);
-    TS_ASSERT_EQUALS(nb.getNumChildren(), K + K);
+    nb << x << x << x;
+    TS_ASSERT_EQUALS(nb.getNumChildren(), 6u);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( nb << specKind, AssertionException );
+    TS_ASSERT_THROWS( nb << PLUS, AssertionException );
     n = nb;
     TS_ASSERT_THROWS( nb.getNumChildren(), AssertionException );
 #endif /* CVC4_ASSERTIONS */
@@ -317,7 +325,7 @@ public:
     Node i_K = d_nm->mkNode(NOT, i_0);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(arr[-1], AssertionException);
+    TS_ASSERT_THROWS(arr[-1], AssertionException&);
     TS_ASSERT_THROWS(arr[0], AssertionException);
 #endif /* CVC4_ASSERTIONS */
 
