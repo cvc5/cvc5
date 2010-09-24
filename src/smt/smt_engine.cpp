@@ -95,8 +95,8 @@ SmtEngine::~SmtEngine() {
 
   shutdown();
 
-  delete d_propEngine;
   delete d_theoryEngine;
+  delete d_propEngine;
   delete d_decisionEngine;
 }
 

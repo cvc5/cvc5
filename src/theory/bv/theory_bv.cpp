@@ -14,6 +14,9 @@ void TheoryBV::preRegisterTerm(TNode node) {
   if (node.getKind() == kind::EQUAL) {
     d_eqEngine.addTerm(node[0]);
     d_eqEngine.addTerm(node[1]);
+    size_t triggerId = d_eqEngine.addTrigger(node[0], node[1]);
+    Assert(triggerId == d_triggers.size());
+    d_triggers.push_back(node);
   }
 }
 
@@ -82,24 +85,26 @@ void TheoryBV::check(Effort e) {
 
     // Get the assertion
     TNode assertion = get();
+    d_assertions.insert(assertion);
 
     Debug("bitvector") << "TheoryBV::check(" << e << "): asserting: " << assertion << std::endl;
 
     // Do the right stuff
     switch (assertion.getKind()) {
-    case kind::EQUAL:
-      d_eqEngine.addEquality(assertion[0], assertion[1]);
+    case kind::EQUAL: {
+      bool ok = d_eqEngine.addEquality(assertion[0], assertion[1]);
+      if (!ok) return;
       break;
+    }
     case kind::NOT: {
+      // We need to check this as the equality trigger might have been true when we made it
       TNode equality = assertion[0];
       if (d_eqEngine.areEqual(equality[0], equality[1])) {
         vector<TNode> assertions;
         d_eqEngine.getExplanation(equality[0], equality[1], assertions);
-        // We can assume that the explanation is bigger than one node
         assertions.push_back(assertion);
-        d_out->conflict(mkAnd(assertions));        
-      } else {
-        d_disequalities.push_back(assertion);
+        d_out->conflict(mkAnd(assertions));
+        return;
       }
       break;
     }
@@ -107,21 +112,32 @@ void TheoryBV::check(Effort e) {
       Unhandled();
     }
   }
-
-  // In full effort go back and check the disequalities
-  if (true) {
-    Debug("bitvector") << "TheoryBV::check(" << e << "): checking disequalities" << std::endl;
-
-    for (unsigned i = 0; i < d_disequalities.size(); ++ i) {
-      TNode assertion = d_disequalities[i];
-      TNode equality = assertion[0];
-      if (d_eqEngine.areEqual(equality[0], equality[1])) {
-        vector<TNode> assertions;
-        d_eqEngine.getExplanation(equality[0], equality[1], assertions);
-        assertions.push_back(assertion);
-        // We can assume that the explanation is bigger than one node
-        d_out->conflict(mkAnd(assertions));
-      }
-    }
-  }
 }
+
+bool TheoryBV::triggerEquality(size_t triggerId) {
+  Debug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << ")" << std::endl;
+  Assert(triggerId < d_triggers.size());
+  Debug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << "): " << d_triggers[triggerId] << std::endl;
+
+  TNode equality = d_triggers[triggerId];
+
+  // If we have just asserted this equality ignore it
+  if (d_assertions.contains(equality)) return true;
+
+  // If we have a negation asserted, we have a confict
+  if (d_assertions.contains(equality.notNode())) {
+
+    vector<TNode> assertions;
+    d_eqEngine.getExplanation(equality[0], equality[1], assertions);
+    assertions.push_back(equality.notNode());
+    d_out->conflict(mkAnd(assertions));
+
+    return false;
+  }
+
+  // Otherwise we propagate this equality
+  d_out->propagate(equality);
+
+  return true;
+}
+

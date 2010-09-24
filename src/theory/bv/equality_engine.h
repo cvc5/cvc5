@@ -13,13 +13,20 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-struct NodeIdTraits {
+struct BitSizeTraits {
+
   /** The null id */
-  static const size_t null; // Defined in the cpp file (GCC bug)
+  static const size_t id_null; // Defined in the cpp file (GCC bug)
+  /** The null trigger id */
+  static const size_t trigger_id_null;
+
   /** Number of bits we use for the id */
-  static const size_t s_id_bits   = 24;
+  static const size_t id_bits   = 24;
   /** Number of bits we use for the size the equivalence class */
-  static const size_t s_size_bits = 16;
+  static const size_t size_bits = 16;
+  /** Number of bits we use for the trigger id */
+  static const size_t trigger_id_bits = 24;
+
 };
 
 class EqualityNode {
@@ -27,22 +34,23 @@ class EqualityNode {
 public:
 
   /** The size of this equivalence class (if it's a representative) */
-  size_t d_size   : NodeIdTraits::s_size_bits;
+  size_t d_size   : BitSizeTraits::size_bits;
 
   /** The id (in the eq-manager) of the representative equality node */
-  size_t d_findId : NodeIdTraits::s_id_bits;
+  size_t d_findId : BitSizeTraits::id_bits;
 
   /** The next equality node in this class */
-  size_t d_nextId : NodeIdTraits::s_id_bits;
+  size_t d_nextId : BitSizeTraits::id_bits;
 
 public:
 
   /**
    * Creates a new node, which is in a list of it's own.
    */
-  EqualityNode(size_t nodeId = NodeIdTraits::null)
+  EqualityNode(size_t nodeId = BitSizeTraits::id_null)
   : d_size(1), d_findId(nodeId), d_nextId(nodeId) {}
 
+  /** Initialize the equality node */
   inline void init(size_t nodeId) {
     d_size = 1;
     d_findId = d_nextId = nodeId;
@@ -70,10 +78,8 @@ public:
   inline void merge(EqualityNode& other) {
     size_t tmp = d_nextId; d_nextId = other.d_nextId; other.d_nextId = tmp;
     if (addSize) {
-      Assert(d_size + other.d_size > d_size);
       d_size += other.d_size;
     } else {
-      Assert(d_size > other.d_size);
       d_size -= other.d_size;
     }
   }
@@ -115,11 +121,11 @@ class EqualityEngine {
    */
   struct Equality {
     /** Left hand side of the equality */
-    size_t lhs : NodeIdTraits::s_id_bits;
+    size_t lhs : BitSizeTraits::id_bits;
     /** Right hand side of the equality */
-    size_t rhs : NodeIdTraits::s_id_bits;
+    size_t rhs : BitSizeTraits::id_bits;
     /** Equality constructor */
-    Equality(size_t lhs = NodeIdTraits::null, size_t rhs = NodeIdTraits::null)
+    Equality(size_t lhs = BitSizeTraits::id_null, size_t rhs = BitSizeTraits::id_null)
     : lhs(lhs), rhs(rhs) {}
   };
 
@@ -133,13 +139,13 @@ class EqualityEngine {
   class EqualityEdge {
 
     // The id of the RHS of this equality
-    size_t d_nodeId : NodeIdTraits::s_id_bits;
+    size_t d_nodeId : BitSizeTraits::id_bits;
     // The next edge
-    size_t d_nextId : NodeIdTraits::s_id_bits;
+    size_t d_nextId : BitSizeTraits::id_bits;
 
   public:
 
-    EqualityEdge(size_t nodeId = NodeIdTraits::null, size_t nextId = NodeIdTraits::null)
+    EqualityEdge(size_t nodeId = BitSizeTraits::id_null, size_t nextId = BitSizeTraits::id_null)
     : d_nodeId(nodeId), d_nextId(nextId) {}
 
     /** Returns the id of the next edge */
@@ -175,7 +181,7 @@ class EqualityEngine {
   inline size_t getNodeId(TNode node) const;
 
   /** Merge the class2 into class1 */
-  void merge(EqualityNode& class1, EqualityNode& class2);
+  void merge(EqualityNode& class1, EqualityNode& class2, std::vector<size_t>& triggers);
 
   /** Undo the mereg of class2 into class1 */
   void undoMerge(EqualityNode& class1, EqualityNode& class2, size_t class2Id);
@@ -188,25 +194,47 @@ class EqualityEngine {
    */
   struct BfsData {
     // The current node
-    size_t nodeId : NodeIdTraits::s_id_bits;
+    size_t nodeId : BitSizeTraits::id_bits;
     // The index of the edge we traversed
-    size_t edgeId : NodeIdTraits::s_id_bits;
+    size_t edgeId : BitSizeTraits::id_bits;
     // Index in the queue of the previous node. Shouldn't be too much of them, at most the size
     // of the biggest equivalence class
-    size_t previousIndex : NodeIdTraits::s_size_bits;
+    size_t previousIndex : BitSizeTraits::size_bits;
 
-    BfsData(size_t nodeId = NodeIdTraits::null, size_t edgeId = NodeIdTraits::null, size_t prev = 0)
+    BfsData(size_t nodeId = BitSizeTraits::id_null, size_t edgeId = BitSizeTraits::id_null, size_t prev = 0)
     : nodeId(nodeId), edgeId(edgeId), previousIndex(prev) {}
   };
 
   /**
-   * Trigger that will
+   * Trigger that will be updated
    */
   struct Trigger {
-    size_t class1Id : NodeIdTraits::s_id_bits;
-    size_t class2Id : NodeIdTraits::s_id_bits;
+    /** The current class id of the LHS of the trigger */
+    size_t classId : BitSizeTraits::id_bits;
+    /** Next trigger for class 1 */
+    size_t nextTrigger : BitSizeTraits::id_bits;
+
+    Trigger(size_t classId, size_t nextTrigger)
+    : classId(classId), nextTrigger(nextTrigger) {}
   };
 
+  /**
+   * Vector of triggers (persistent and not-backtrackable). Triggers come in pairs for an
+   * equality trigger (t1, t2): one at position 2k for t1, and one at position 2k + 1 for t2. When
+   * updating triggers we always know where the other one is (^1).
+   */
+  std::vector<Trigger> d_equalityTriggers;
+
+  /**
+   * Trigger lists per node. The begin id changes as we merge, but the end always points to
+   * the acutal end of the triggers for this node.
+   */
+  std::vector<size_t> d_nodeTriggers;
+
+  /**
+   * Adds the trigger with triggerId to the begining of the trigger list of the node with id nodeId.
+   */
+  inline void addTriggerToList(size_t nodeId, size_t triggerId);
 
 public:
 
@@ -215,7 +243,10 @@ public:
    * the owner information.
    */
   EqualityEngine(OwnerClass& owner, context::Context* context)
-  : d_notify(owner), d_assertedEqualitiesCount(context, 0) {}
+  : d_notify(owner), d_assertedEqualitiesCount(context, 0) {
+    Debug("equality") << "EqualityEdge::EqualityEdge(): id_null = " << BitSizeTraits::id_null <<
+        ", trigger_id_null = " << BitSizeTraits::trigger_id_null << std::endl;
+  }
 
   /**
    * Adds a term to the term database. Returns the internal id of the term.
@@ -228,9 +259,9 @@ public:
   inline bool hasTerm(TNode t) const;
 
   /**
-   * Adds an equality t1 = t2 to the database.
+   * Adds an equality t1 = t2 to the database. Returns false if any of the triggers failed.
    */
-  void addEquality(TNode t1, TNode t2);
+  bool addEquality(TNode t1, TNode t2);
 
   /**
    * Returns the representative of the term t.
@@ -253,14 +284,14 @@ public:
    * Adds a notify trigger for equality t1 = t2, i.e. when t1 = t2 the notify will be called with
    * (t1, t2).
    */
-  void addTrigger(TNode t1, TNode t2);
+  size_t addTrigger(TNode t1, TNode t2);
 
 };
 
 template <typename OwnerClass, typename NotifyClass>
 size_t EqualityEngine<OwnerClass, NotifyClass>::addTerm(TNode t) {
 
-  Debug("equality") << "addTerm(" << t << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::addTerm(" << t << ")" << std::endl;
 
   // If term already added, retrurn it's id
   if (hasTerm(t)) return getNodeId(t);
@@ -270,8 +301,10 @@ size_t EqualityEngine<OwnerClass, NotifyClass>::addTerm(TNode t) {
   d_nodeIds[t] = newId;
   // Add the node to it's position
   d_nodes.push_back(t);
+  // Add the trigger list for this node
+  d_nodeTriggers.push_back(BitSizeTraits::trigger_id_null);
   // Add it to the equality graph
-  d_equalityGraph.push_back(NodeIdTraits::null);
+  d_equalityGraph.push_back(BitSizeTraits::id_null);
   // Add the equality node to the nodes
   if (d_equalityNodes.size() <= newId) {
     d_equalityNodes.resize(newId + 100);
@@ -304,9 +337,9 @@ EqualityNode& EqualityEngine<OwnerClass, NotifyClass>::getEqualityNode(size_t no
 }
 
 template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::addEquality(TNode t1, TNode t2) {
+bool EqualityEngine<OwnerClass, NotifyClass>::addEquality(TNode t1, TNode t2) {
 
-  Debug("equality") << "addEquality(" << t1 << "," << t2 << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::addEquality(" << t1 << "," << t2 << ")" << std::endl;
 
   // Backtrack if necessary
   backtrack();
@@ -320,7 +353,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::addEquality(TNode t1, TNode t2) {
   size_t t2classId = getEqualityNode(t2Id).getFind();
 
   // If already the same, we're done
-  if (t1classId == t2classId) return;
+  if (t1classId == t2classId) return true;
 
   // Get the nodes of the representatives
   EqualityNode& node1 = getEqualityNode(t1classId);
@@ -330,27 +363,37 @@ void EqualityEngine<OwnerClass, NotifyClass>::addEquality(TNode t1, TNode t2) {
   Assert(node2.getFind() == t2classId);
 
   // Depending on the size, merge them
+  std::vector<size_t> triggers;
   if (node1.getSize() < node2.getSize()) {
-    merge(node2, node1);
+    merge(node2, node1, triggers);
     d_assertedEqualities.push_back(Equality(t2classId, t1classId));
   } else {
-    merge(node1, node2);
+    merge(node1, node2, triggers);
     d_assertedEqualities.push_back(Equality(t1classId, t2classId));
   }
 
   // Add the actuall equality to the equality graph
   addGraphEdge(t1Id, t2Id);
 
-  Assert(2*d_assertedEqualities.size() == d_equalityEdges.size());
-
   // One more equality added
   d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
+
+  Assert(2*d_assertedEqualities.size() == d_equalityEdges.size());
+  Assert(d_assertedEqualities.size() == d_assertedEqualitiesCount);
+
+  // Notify the triggers
+  for (size_t i = 0, i_end = triggers.size(); i < i_end; ++ i) {
+    // Notify the trigger and exit if it fails
+    if (!d_notify(triggers[i])) return false;
+  }
+
+  return true;
 }
 
 template <typename OwnerClass, typename NotifyClass>
 TNode EqualityEngine<OwnerClass, NotifyClass>::getRepresentative(TNode t) const {
 
-  Debug("equality") << "getRepresentative(" << t << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::getRepresentative(" << t << ")" << std::endl;
 
   Assert(hasTerm(t));
 
@@ -358,14 +401,14 @@ TNode EqualityEngine<OwnerClass, NotifyClass>::getRepresentative(TNode t) const 
   const_cast<EqualityEngine*>(this)->backtrack();
   size_t representativeId = const_cast<EqualityEngine*>(this)->getEqualityNode(t).getFind();
 
-  Debug("equality") << "getRepresentative(" << t << ") => " << d_nodes[representativeId] << std::endl;
+  Debug("equality") << "EqualityEngine::getRepresentative(" << t << ") => " << d_nodes[representativeId] << std::endl;
 
   return d_nodes[representativeId];
 }
 
 template <typename OwnerClass, typename NotifyClass>
 bool EqualityEngine<OwnerClass, NotifyClass>::areEqual(TNode t1, TNode t2) const {
-  Debug("equality") << "areEqual(" << t1 << "," << t2 << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::areEqual(" << t1 << "," << t2 << ")" << std::endl;
 
   Assert(hasTerm(t1));
   Assert(hasTerm(t2));
@@ -375,15 +418,17 @@ bool EqualityEngine<OwnerClass, NotifyClass>::areEqual(TNode t1, TNode t2) const
   size_t rep1 = const_cast<EqualityEngine*>(this)->getEqualityNode(t1).getFind();
   size_t rep2 = const_cast<EqualityEngine*>(this)->getEqualityNode(t2).getFind();
 
-  Debug("equality") << "areEqual(" << t1 << "," << t2 << ") => " << (rep1 == rep2 ? "true" : "false") << std::endl;
+  Debug("equality") << "EqualityEngine::areEqual(" << t1 << "," << t2 << ") => " << (rep1 == rep2 ? "true" : "false") << std::endl;
 
   return rep1 == rep2;
 }
 
 template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::merge(EqualityNode& class1, EqualityNode& class2) {
+void EqualityEngine<OwnerClass, NotifyClass>::merge(EqualityNode& class1, EqualityNode& class2, std::vector<size_t>& triggers) {
 
-  Debug("equality") << "merge(" << class1.getFind() << "," << class2.getFind() << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::merge(" << class1.getFind() << "," << class2.getFind() << ")" << std::endl;
+
+  Assert(triggers.empty());
 
   size_t class1Id = class1.getFind();
   size_t class2Id = class2.getFind();
@@ -397,6 +442,26 @@ void EqualityEngine<OwnerClass, NotifyClass>::merge(EqualityNode& class1, Equali
     // Update it's find to class1 id
     currentNode.setFind(class1Id);
 
+    // Go through the triggers and inform if necessary
+    size_t currentTrigger = d_nodeTriggers[currentId];
+    while (currentTrigger != BitSizeTraits::trigger_id_null) {
+      Trigger& trigger = d_equalityTriggers[currentTrigger];
+      Trigger& otherTrigger = d_equalityTriggers[currentTrigger ^ 1];
+
+      // If the two are not already in the same class
+      if (otherTrigger.classId != trigger.classId) {
+        trigger.classId = class1Id;
+        // If they became the same, call the trigger
+        if (otherTrigger.classId == class1Id) {
+          // Id of the real trigger is half the internal one
+          triggers.push_back(currentTrigger >> 1);
+        }
+      }
+
+      // Go to the next trigger
+      currentTrigger = trigger.nextTrigger;
+    }
+
     // Move to the next node
     currentId = currentNode.getNext();
 
@@ -409,7 +474,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::merge(EqualityNode& class1, Equali
 template <typename OwnerClass, typename NotifyClass>
 void EqualityEngine<OwnerClass, NotifyClass>::undoMerge(EqualityNode& class1, EqualityNode& class2, size_t class2Id) {
 
-  Debug("equality") << "undoMerge(" << class1.getFind() << "," << class2Id << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::undoMerge(" << class1.getFind() << "," << class2Id << ")" << std::endl;
 
   // Now unmerge the lists (same as merge)
   class1.merge<false>(class2);
@@ -422,6 +487,14 @@ void EqualityEngine<OwnerClass, NotifyClass>::undoMerge(EqualityNode& class1, Eq
 
     // Update it's find to class1 id
     currentNode.setFind(class2Id);
+
+    // Go through the trigger list (if any) and undo the class
+    size_t currentTrigger = d_nodeTriggers[currentId];
+    while (currentTrigger != BitSizeTraits::trigger_id_null) {
+      Trigger& trigger = d_equalityTriggers[currentTrigger];
+      trigger.classId = class2Id;
+      currentTrigger = trigger.nextTrigger;
+    }
 
     // Move to the next node
     currentId = currentNode.getNext();
@@ -436,7 +509,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::backtrack() {
   // If we need to backtrack then do it
   if (d_assertedEqualitiesCount < d_assertedEqualities.size()) {
 
-    Debug("equality") << "backtrack(): nodes" << std::endl;
+    Debug("equality") << "EqualityEngine::backtrack(): nodes" << std::endl;
 
     for (int i = (int)d_assertedEqualities.size() - 1, i_end = (int)d_assertedEqualitiesCount; i >= i_end; --i) {
       // Get the ids of the merged classes
@@ -447,7 +520,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::backtrack() {
 
     d_assertedEqualities.resize(d_assertedEqualitiesCount);
 
-    Debug("equality") << "backtrack(): edges" << std::endl;
+    Debug("equality") << "EqualityEngine::backtrack(): edges" << std::endl;
 
     for (int i = (int)d_equalityEdges.size() - 2, i_end = (int)(2*d_assertedEqualitiesCount); i >= i_end; i -= 2) {
       EqualityEdge& edge1 = d_equalityEdges[i];
@@ -463,6 +536,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::backtrack() {
 
 template <typename OwnerClass, typename NotifyClass>
 void EqualityEngine<OwnerClass, NotifyClass>::addGraphEdge(size_t t1, size_t t2) {
+  Debug("equality") << "EqualityEngine::addGraphEdge(" << d_nodes[t1] << "," << d_nodes[t2] << ")" << std::endl;
   size_t edge = d_equalityEdges.size();
   d_equalityEdges.push_back(EqualityEdge(t2, d_equalityGraph[t1]));
   d_equalityEdges.push_back(EqualityEdge(t1, d_equalityGraph[t2]));
@@ -476,7 +550,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::getExplanation(TNode t1, TNode t2,
   Assert(t1 != t2);
   Assert(getRepresentative(t1) == getRepresentative(t2));
 
-  Debug("equality") << "getExplanation(" << t1 << "," << t2 << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::getExplanation(" << t1 << "," << t2 << ")" << std::endl;
 
   const_cast<EqualityEngine*>(this)->backtrack();
 
@@ -488,7 +562,7 @@ void EqualityEngine<OwnerClass, NotifyClass>::getExplanation(TNode t1, TNode t2,
   size_t t2Id = getNodeId(t2);
 
   // Find a path from t1 to t2 in the graph (BFS)
-  bfsQueue.push_back(BfsData(t1Id, NodeIdTraits::null, 0));
+  bfsQueue.push_back(BfsData(t1Id, BitSizeTraits::id_null, 0));
   size_t currentIndex = 0;
   while (true) {
     // There should always be a path, and every node can be visited only once (tree)
@@ -498,45 +572,47 @@ void EqualityEngine<OwnerClass, NotifyClass>::getExplanation(TNode t1, TNode t2,
     BfsData& current = bfsQueue[currentIndex];
     size_t currentNode = current.nodeId;
 
-    Debug("equality") << "getExplanation(): currentNode: " << currentNode << std::endl;
+    Debug("equality") << "EqualityEngine::getExplanation(): currentNode =  " << d_nodes[currentNode] << std::endl;
 
     // Go through the equality edges of this node
     size_t currentEdge = d_equalityGraph[currentNode];
 
-    while (currentEdge != NodeIdTraits::null) {
-      Debug("equality") << "getExplanation(): currentEdge: " << currentEdge << std::endl;
-
+    while (currentEdge != BitSizeTraits::id_null) {
       // Get the edge
       const EqualityEdge& edge = d_equalityEdges[currentEdge];
 
-      // Did we find the path
-      if (edge.getNodeId() == t2Id) {
+      // If not just the backwards edge
+      if ((currentEdge | 1u) != (current.edgeId | 1u)) {
 
-        Debug("equality") << "getExplanation(): path found: " << std::endl;
+        Debug("equality") << "EqualityEngine::getExplanation(): currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
 
-        // Reconstruct the path
-        do {
-          // Get the left and right hand side from the edge
-          size_t firstEdge = (currentEdge >> 1) << 1;
-          size_t secondEdge = (currentEdge | 1);
-          TNode lhs = d_nodes[d_equalityEdges[secondEdge].getNodeId()];
-          TNode rhs = d_nodes[d_equalityEdges[firstEdge].getNodeId()];
-          // Add the actual equality to the vector
-          equalities.push_back(lhs.eqNode(rhs));
+        // Did we find the path
+        if (edge.getNodeId() == t2Id) {
 
-          Debug("equality") << "getExplanation(): adding: " << lhs.eqNode(rhs) << std::endl;
+          Debug("equality") << "EqualityEngine::getExplanation(): path found: " << std::endl;
 
-          // Go to the previous
-          currentEdge = bfsQueue[currentIndex].edgeId;
-          currentIndex = bfsQueue[currentIndex].previousIndex;
-        } while (currentEdge != NodeIdTraits::null);
+          // Reconstruct the path
+          do {
+            // Get the left and right hand side from the edge
+            size_t firstEdge = (currentEdge >> 1) << 1;
+            size_t secondEdge = (currentEdge | 1);
+            TNode lhs = d_nodes[d_equalityEdges[secondEdge].getNodeId()];
+            TNode rhs = d_nodes[d_equalityEdges[firstEdge].getNodeId()];
+            // Add the actual equality to the vector
+            equalities.push_back(lhs.eqNode(rhs));
+
+            Debug("equality") << "EqualityEngine::getExplanation(): adding: " << lhs.eqNode(rhs) << std::endl;
+
+            // Go to the previous
+            currentEdge = bfsQueue[currentIndex].edgeId;
+            currentIndex = bfsQueue[currentIndex].previousIndex;
+        } while (currentEdge != BitSizeTraits::id_null);
 
         // Done
         return;
       }
 
       // Push to the visitation queue if it's not the backward edge 
-      if ((currentEdge | 1) != (current.edgeId | 1)) {
         bfsQueue.push_back(BfsData(edge.getNodeId(), currentEdge, currentIndex));
       }
       
@@ -550,13 +626,38 @@ void EqualityEngine<OwnerClass, NotifyClass>::getExplanation(TNode t1, TNode t2,
 }
 
 template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::addTrigger(TNode t1, TNode t2) {
+size_t EqualityEngine<OwnerClass, NotifyClass>::addTrigger(TNode t1, TNode t2) {
 
+  Debug("equality") << "EqualityEngine::addTrigger(" << t1 << "," << t2 << ")" << std::endl;
 
+  Assert(hasTerm(t1));
+  Assert(hasTerm(t2));
 
+  // Get the information about t1
+  size_t t1Id = getNodeId(t1);
+  size_t t1TriggerId = d_nodeTriggers[t1Id];
+  size_t t1classId = getEqualityNode(t1Id).getFind();
+
+  // Get the information about t2
+  size_t t2Id = getNodeId(t2);
+  size_t t2TriggerId = d_nodeTriggers[t2Id];
+  size_t t2classId = getEqualityNode(t2Id).getFind();
+
+  // Create the triggers
+  size_t t1NewTriggerId = d_equalityTriggers.size();
+  size_t t2NewTriggerId = t1NewTriggerId | 1;
+  d_equalityTriggers.push_back(Trigger(t1classId, t1TriggerId));
+  d_equalityTriggers.push_back(Trigger(t2classId, t2TriggerId));
+
+  // Add the trigger to the trigger graph
+  d_nodeTriggers[t1Id] = t1NewTriggerId;
+  d_nodeTriggers[t2Id] = t2NewTriggerId;
+
+  Debug("equality") << "EqualityEngine::addTrigger(" << t1 << "," << t2 << ") => " << t1NewTriggerId / 2 << std::endl;
+
+  // Return the global id of the trigger
+  return t1NewTriggerId / 2;
 }
-
-
 
 } // Namespace bv
 } // Namespace theory

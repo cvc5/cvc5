@@ -23,7 +23,7 @@
 
 #include "theory/theory.h"
 #include "context/context.h"
-#include "context/cdlist.h"
+#include "context/cdset.h"
 #include "equality_engine.h"
 
 namespace CVC4 {
@@ -39,6 +39,10 @@ public:
   public:
     EqualityNotify(TheoryBV& theoryBV)
     : d_theoryBV(theoryBV) {}
+
+    bool operator () (size_t triggerId) {
+      return d_theoryBV.triggerEquality(triggerId);
+    }
   };
 
 private:
@@ -46,21 +50,33 @@ private:
   /** Equality reasoning engine */
   EqualityEngine<TheoryBV, EqualityNotify> d_eqEngine;
 
-  /** The disequalities */
-  context::CDList<TNode> d_disequalities;
+  /** Equality triggers indexed by ids from the equality manager */
+  std::vector<Node> d_triggers;
+
+  /** The asserted stuff */
+  context::CDSet<TNode, TNodeHashFunction> d_assertions;
+
+  /** Called by the equality managere on triggers */
+  bool triggerEquality(size_t triggerId);
 
 public:
 
   TheoryBV(int id, context::Context* c, OutputChannel& out) :
-    Theory(id, c, out), d_eqEngine(*this, c), d_disequalities(c) {
+    Theory(id, c, out), d_eqEngine(*this, c), d_assertions(c) {
   }
 
   void preRegisterTerm(TNode n);
+
   void registerTerm(TNode n) { }
+
   void check(Effort e);
+
   void propagate(Effort e) {}
+
   void explain(TNode n, Effort e) { }
+
   RewriteResponse postRewrite(TNode n, bool topLevel);
+
   std::string identify() const { return std::string("TheoryBV"); }
 };/* class TheoryBV */
 
