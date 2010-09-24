@@ -23,19 +23,41 @@
 
 #include "theory/theory.h"
 #include "context/context.h"
+#include "context/cdlist.h"
+#include "equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
 class TheoryBV : public Theory {
+
 public:
+
+  class EqualityNotify {
+    TheoryBV& d_theoryBV;
+  public:
+    EqualityNotify(TheoryBV& theoryBV)
+    : d_theoryBV(theoryBV) {}
+  };
+
+private:
+
+  /** Equality reasoning engine */
+  EqualityEngine<TheoryBV, EqualityNotify> d_eqEngine;
+
+  /** The disequalities */
+  context::CDList<TNode> d_disequalities;
+
+public:
+
   TheoryBV(int id, context::Context* c, OutputChannel& out) :
-    Theory(id, c, out) {
+    Theory(id, c, out), d_eqEngine(*this, c), d_disequalities(c) {
   }
-  void preRegisterTerm(TNode n) { }
+
+  void preRegisterTerm(TNode n);
   void registerTerm(TNode n) { }
-  void check(Effort e) {}
+  void check(Effort e);
   void propagate(Effort e) {}
   void explain(TNode n, Effort e) { }
   RewriteResponse postRewrite(TNode n, bool topLevel);

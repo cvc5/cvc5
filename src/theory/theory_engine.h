@@ -332,7 +332,7 @@ public:
       d_uf->check(effort);
       d_arith->check(effort);
       d_arrays->check(effort);
-      //d_bv->check(effort);
+      d_bv->check(effort);
     } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
     }

@@ -28,6 +28,10 @@ inline Node mkFalse() {
   return NodeManager::currentNM()->mkConst<bool>(false);
 }
 
+inline Node mkAnd(std::vector<TNode>& children) {
+  return NodeManager::currentNM()->mkNode(kind::AND, children);
+}
+
 inline Node mkExtract(TNode node, unsigned high, unsigned low) {
   Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
   std::vector<Node> children;

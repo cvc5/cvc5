@@ -1,0 +1,10 @@
+x0, x1, x2: BITVECTOR(32);
+y0, y1, y2: BITVECTOR(32);
+a0, a1, a2, a3 : BITVECTOR(32);
+
+ASSERT (a0 = x0 AND x0 = a1) XOR (a0 = y0 AND y0 = a1);
+ASSERT (a1 = x1 AND x1 = a2) XOR (a1 = y1 AND y1 = a2);
+ASSERT (a2 = x2 AND x2 = a3) XOR (a2 = y2 AND y2 = a3);
+
+QUERY (a0 = a3);
+

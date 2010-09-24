@@ -1,0 +1,4 @@
+x, y, z : BITVECTOR(32);
+ASSERT(x = y);
+ASSERT(y = z);
+QUERY(x = z);

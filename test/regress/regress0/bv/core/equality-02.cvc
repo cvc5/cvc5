@@ -1,0 +1,15 @@
+x0, x1, x2, x3 : BITVECTOR(32);
+y0, y1, y2, y3 : BITVECTOR(32);
+
+ASSERT (x0 = x1);
+ASSERT (x1 = x2);
+ASSERT (x2 = x3);
+
+ASSERT (y0 = y1);
+ASSERT (y1 = y2);
+ASSERT (y2 = y3);
+
+ASSERT (x0 = y0);
+
+QUERY (x3 = y3);
+

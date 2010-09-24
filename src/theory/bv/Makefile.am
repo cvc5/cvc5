@@ -11,6 +11,8 @@ libbv_la_SOURCES = \
 	theory_bv_utils.h \
 	theory_bv_rewrite_rules.h \
 	theory_bv_rewrite_rules.cpp \
-	theory_bv_type_rules.h
+	theory_bv_type_rules.h \
+	equality_engine.h \
+	equality_engine.cpp 
 
 EXTRA_DIST = kinds

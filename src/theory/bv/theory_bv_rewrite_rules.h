@@ -50,6 +50,16 @@ struct CoreRewriteRules {
     static bool applies(Node node);
   };
 
+  struct FailEq {
+    static Node apply(Node node);
+    static bool applies(Node node);
+  };
+
+  struct SimplifyEq {
+    static Node apply(Node node);
+    static bool applies(Node node);
+  };
+
 };
 
 template<Kind kind, typename Rule>

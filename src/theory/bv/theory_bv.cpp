@@ -7,9 +7,19 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
+void TheoryBV::preRegisterTerm(TNode node) {
+
+  Debug("bitvector") << "TheoryBV::preRegister(" << node << ")" << std::endl;
+
+  if (node.getKind() == kind::EQUAL) {
+    d_eqEngine.addTerm(node[0]);
+    d_eqEngine.addTerm(node[1]);
+  }
+}
+
 RewriteResponse TheoryBV::postRewrite(TNode node, bool topLevel) {
 
-  Debug("bitvector") << "postRewrite(" << node << ", topLevel = " << (topLevel? "true" : "false") << ")" << std::endl;
+  Debug("bitvector") << "TheoryBV::postRewrite(" << node << ", topLevel = " << (topLevel? "true" : "false") << ")" << std::endl;
 
   Node result;
 
@@ -43,8 +53,12 @@ RewriteResponse TheoryBV::postRewrite(TNode node, bool topLevel) {
                 >::apply(node);
       break;
     case kind::EQUAL:
-      if (node[0] == node[1]) result = mkTrue();
-      else result = node;
+      result = LinearRewriteStrategy<
+                  // Two distinct values rewrite to false
+                  CoreRewriteRules::FailEq,
+                  // If both sides are equal equality is true
+                  CoreRewriteRules::SimplifyEq
+                >::apply(node);
       break;
     default:
       // TODO: figure out when this is an operator
@@ -54,7 +68,60 @@ RewriteResponse TheoryBV::postRewrite(TNode node, bool topLevel) {
     }
   }
 
-  Debug("bitvector") << "postRewrite(" << node << ", topLevel = " << (topLevel? "true" : "false") << ") => " << result << std::endl;
+  Debug("bitvector") << "TheoryBV::postRewrite(" << node << ", topLevel = " << (topLevel? "true" : "false") << ") => " << result << std::endl;
 
   return RewriteComplete(result);
+}
+
+
+void TheoryBV::check(Effort e) {
+
+  Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
+
+  while(!done()) {
+
+    // Get the assertion
+    TNode assertion = get();
+
+    Debug("bitvector") << "TheoryBV::check(" << e << "): asserting: " << assertion << std::endl;
+
+    // Do the right stuff
+    switch (assertion.getKind()) {
+    case kind::EQUAL:
+      d_eqEngine.addEquality(assertion[0], assertion[1]);
+      break;
+    case kind::NOT: {
+      TNode equality = assertion[0];
+      if (d_eqEngine.areEqual(equality[0], equality[1])) {
+        vector<TNode> assertions;
+        d_eqEngine.getExplanation(equality[0], equality[1], assertions);
+        // We can assume that the explanation is bigger than one node
+        assertions.push_back(assertion);
+        d_out->conflict(mkAnd(assertions));        
+      } else {
+        d_disequalities.push_back(assertion);
+      }
+      break;
+    }
+    default:
+      Unhandled();
+    }
+  }
+
+  // In full effort go back and check the disequalities
+  if (true) {
+    Debug("bitvector") << "TheoryBV::check(" << e << "): checking disequalities" << std::endl;
+
+    for (unsigned i = 0; i < d_disequalities.size(); ++ i) {
+      TNode assertion = d_disequalities[i];
+      TNode equality = assertion[0];
+      if (d_eqEngine.areEqual(equality[0], equality[1])) {
+        vector<TNode> assertions;
+        d_eqEngine.getExplanation(equality[0], equality[1], assertions);
+        assertions.push_back(assertion);
+        // We can assume that the explanation is bigger than one node
+        d_out->conflict(mkAnd(assertions));
+      }
+    }
+  }
 }

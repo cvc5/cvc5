@@ -245,5 +245,41 @@ Node CoreRewriteRules::ExtractExtract::apply(Node node) {
   Debug("bitvector") << "ExtractExtract(" << node << ") => " << result << endl;
 
   return result;
-
 }
+
+bool CoreRewriteRules::FailEq::applies(Node node) {
+  if (node.getKind() != kind::EQUAL) return false;
+  if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
+  if (node[1].getKind() != kind::CONST_BITVECTOR) return false;
+  return node[0] != node[1];
+}
+
+Node CoreRewriteRules::FailEq::apply(Node node) {
+  Assert(applies(node));
+
+  Debug("bitvector") << "FailEq(" << node << ")" << endl;
+
+  Node result = mkFalse();
+
+  Debug("bitvector") << "FailEq(" << node << ") => " << result << endl;
+
+  return result;
+}
+
+bool CoreRewriteRules::SimplifyEq::applies(Node node) {
+  if (node.getKind() != kind::EQUAL) return false;
+  return node[0] == node[1];
+}
+
+Node CoreRewriteRules::SimplifyEq::apply(Node node) {
+  Assert(applies(node));
+
+  Debug("bitvector") << "FailEq(" << node << ")" << endl;
+
+  Node result = mkTrue();
+
+  Debug("bitvector") << "FailEq(" << node << ") => " << result << endl;
+
+  return result;
+}
+
