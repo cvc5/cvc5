@@ -65,6 +65,9 @@ fi
 if test -z "${CFLAGS+set}"; then CFLAGS=; fi
 if test -z "${CXXFLAGS+set}"; then CXXFLAGS=; fi
 
+# on by default
+AM_MAINTAINER_MODE
+
 # turn off static lib building by default
 AC_ENABLE_SHARED
 AC_DISABLE_STATIC
@@ -636,7 +639,7 @@ fi
 AC_CHECK_LIB(z, gzread, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 
-AC_CHECK_LIB(rt, clock_gettime, , [AC_MSG_ERROR([can't find clock_gettime() in librt])])
+#AC_CHECK_LIB(rt, clock_gettime, , [AC_MSG_ERROR([can't find clock_gettime() in librt])])
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
@@ -720,7 +723,7 @@ AC_SUBST(CVC4_USE_GMP_IMP)
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib/ src/ test/ -name Makefile.am | sort | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib src test -name Makefile.am | sort | sed 's,\.am$,,'])
   src/util/rational.h
   src/util/integer.h
 )

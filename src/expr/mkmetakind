@@ -210,13 +210,13 @@ function register_metakind {
 ";
 
   # figure out the range given by $nc
-  if expr "$nc" : '[0-9]\+$' >/dev/null; then
+  if expr "$nc" : '[0-9][0-9]*$' >/dev/null; then
     lb=$nc
     ub=$nc
-  elif expr "$nc" : '[0-9]\+:$' >/dev/null; then
+  elif expr "$nc" : '[0-9][0-9]*:$' >/dev/null; then
     let `echo "$nc" | awk 'BEGIN{FS=":"}{print"lb="$1}'`
     ub=MAX_CHILDREN
-  elif expr "$nc" : '[0-9]\+:[0-9]\+$' >/dev/null; then
+  elif expr "$nc" : '[0-9][0-9]*:[0-9][0-9]*$' >/dev/null; then
     let `echo "$nc" | awk 'BEGIN{FS=":"}{print"lb="$1" ub="$2}'`
     if [ $ub -lt $lb ]; then
       echo "$kf:$lineno: error in range \`$nc': LB < UB (in definition of $k)" >&2
