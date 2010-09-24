@@ -639,7 +639,7 @@ fi
 AC_CHECK_LIB(z, gzread, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 
-#AC_CHECK_LIB(rt, clock_gettime, , [AC_MSG_ERROR([can't find clock_gettime() in librt])])
+AC_CHECK_LIB(rt, clock_gettime, , [AC_MSG_ERROR([can't find clock_gettime() in librt])])
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
