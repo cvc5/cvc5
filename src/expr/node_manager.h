@@ -38,6 +38,7 @@
 #include "expr/node_value.h"
 #include "context/context.h"
 #include "util/configuration_private.h"
+#include "util/tls.h"
 
 namespace CVC4 {
 
@@ -70,7 +71,7 @@ class NodeManager {
                               expr::NodeValueIDHashFunction,
                               expr::NodeValueEq> ZombieSet;
 
-  static __thread NodeManager* s_current;
+  static CVC4_THREADLOCAL(NodeManager*) s_current;
 
   NodeValuePool d_nodeValuePool;
 

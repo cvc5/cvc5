@@ -39,7 +39,8 @@ libutil_la_SOURCES = \
 
 BUILT_SOURCES = \
 	rational.h \
-	integer.h
+	integer.h \
+	tls.h
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \
@@ -62,4 +63,5 @@ EXTRA_DIST = \
 	rational_gmp_imp.cpp \
 	integer_gmp_imp.cpp \
 	rational.h.in \
-	integer.h.in
+	integer.h.in \
+	tls.h.in

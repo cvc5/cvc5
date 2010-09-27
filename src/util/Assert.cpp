@@ -22,13 +22,14 @@
 
 #include "util/Assert.h"
 #include "util/exception.h"
+#include "util/tls.h"
 
 using namespace std;
 
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-__thread CVC4_PUBLIC const char* s_debugLastException = NULL;
+CVC4_PUBLIC CVC4_THREADLOCAL(const char*) s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
 
 void AssertionException::construct(const char* header, const char* extra,

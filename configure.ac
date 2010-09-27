@@ -655,6 +655,25 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 #AC_TYPE_UINT64_T
 #AC_TYPE_SIZE_T
 
+# Check for availability of TLS support (e.g. __thread storage class)
+AC_MSG_CHECKING([whether user wants wants to use compiler-supported TLS])
+AC_ARG_ENABLE([tls], AS_HELP_STRING([--disable-tls], [don't use compiler-native TLS]))
+if test -z "${enable_tls+set}" || test "$enable_tls" = "yes"; then
+  AC_MSG_RESULT([yes])
+  AX_TLS([CVC4_TLS=$ac_cv_tls], [CVC4_TLS=])
+else
+  AC_MSG_RESULT([no])
+  CVC4_TLS=
+fi
+if test -n "$CVC4_TLS"; then
+  CVC4_TLS_SUPPORTED=1
+else
+  CVC4_TLS='pthread_getspecific()'
+  CVC4_TLS_SUPPORTED=0
+fi
+AC_SUBST([CVC4_TLS])
+AC_SUBST([CVC4_TLS_SUPPORTED])
+
 # Checks for library functions.
 # (empty)
 
@@ -726,6 +745,7 @@ AC_CONFIG_FILES([
   m4_esyscmd([find contrib src test -name Makefile.am | sort | sed 's,\.am$,,'])
   src/util/rational.h
   src/util/integer.h
+  src/util/tls.h
 )
 
 AC_OUTPUT
@@ -786,6 +806,7 @@ Unit tests   : $support_unit_tests
 Static libs  : $enable_static
 Shared libs  : $enable_shared
 Static binary: $enable_static_binary
+TLS support  : $CVC4_TLS
 
 MP library   : $mplibrary
 

@@ -94,7 +94,8 @@ void cvc4unexpected() {
     fprintf(stderr,
             "The exception is unknown (maybe it's not a CVC4::Exception).\n\n");
   } else {
-    fprintf(stderr, "The exception is:\n%s\n\n", CVC4::s_debugLastException);
+    fprintf(stderr, "The exception is:\n%s\n\n",
+            static_cast<const char*>(CVC4::s_debugLastException));
   }
   if(segvNoSpin) {
     fprintf(stderr, "No-spin requested.\n");

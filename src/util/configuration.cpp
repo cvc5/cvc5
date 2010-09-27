@@ -78,11 +78,15 @@ string Configuration::about() {
 }
 
 bool Configuration::isBuiltWithGmp() {
- return IS_GMP_BUILD;
+  return IS_GMP_BUILD;
 }
 
 bool Configuration::isBuiltWithCln() {
- return IS_CLN_BUILD;
+  return IS_CLN_BUILD;
+}
+
+bool Configuration::isBuiltWithTlsSupport() {
+  return USING_TLS;
 }
 
 }/* CVC4 namespace */

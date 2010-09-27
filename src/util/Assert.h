@@ -29,6 +29,7 @@
 
 #include "util/exception.h"
 #include "util/output.h"
+#include "util/tls.h"
 
 namespace CVC4 {
 
@@ -199,7 +200,7 @@ public:
 #ifdef CVC4_DEBUG
 
 #ifdef CVC4_DEBUG
-extern __thread CVC4_PUBLIC const char* s_debugLastException;
+extern CVC4_THREADLOCAL_PUBLIC(const char*) s_debugLastException;
 #endif /* CVC4_DEBUG */
 
 /**

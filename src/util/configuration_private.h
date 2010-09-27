@@ -11,9 +11,14 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Provides compile-time configuration information about the 
+ ** \brief Provides compile-time configuration information about the
  ** CVC4 library.
  **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__CONFIGURATION_PRIVATE_H
+#define __CVC4__CONFIGURATION_PRIVATE_H
 
 #include "cvc4autoconfig.h"
 
@@ -22,58 +27,64 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-#define IS_DEBUG_BUILD true
+#  define IS_DEBUG_BUILD true
 #else /* CVC4_DEBUG */
-#define IS_DEBUG_BUILD false
+#  define IS_DEBUG_BUILD false
 #endif /* CVC4_DEBUG */
-  
+
 #ifdef CVC4_TRACING
-#define IS_TRACING_BUILD true
+#  define IS_TRACING_BUILD true
 #else /* CVC4_TRACING */
-#define IS_TRACING_BUILD false
+#  define IS_TRACING_BUILD false
 #endif /* CVC4_TRACING */
 
 #ifdef CVC4_MUZZLE
-#define IS_MUZZLED_BUILD true
+#  define IS_MUZZLED_BUILD true
 #else /* CVC4_MUZZLE */
-#define IS_MUZZLED_BUILD false
+#  define IS_MUZZLED_BUILD false
 #endif /* CVC4_MUZZLE */
 
 #ifdef CVC4_ASSERTIONS
-#define IS_ASSERTIONS_BUILD true
+#  define IS_ASSERTIONS_BUILD true
 #else /* CVC4_ASSERTIONS */
-#define IS_ASSERTIONS_BUILD false
+#  define IS_ASSERTIONS_BUILD false
 #endif /* CVC4_ASSERTIONS */
 
 #ifdef CVC4_COVERAGE
-#define IS_COVERAGE_BUILD true
+#  define IS_COVERAGE_BUILD true
 #else /* CVC4_COVERAGE */
-#define IS_COVERAGE_BUILD false
+#  define IS_COVERAGE_BUILD false
 #endif /* CVC4_COVERAGE */
 
 #ifdef CVC4_PROFILING
-#define IS_PROFILING_BUILD true
+#  define IS_PROFILING_BUILD true
 #else /* CVC4_PROFILING */
-#define IS_PROFILING_BUILD false
+#  define IS_PROFILING_BUILD false
 #endif /* CVC4_PROFILING */
 
 #ifdef CVC4_COMPETITION_MODE
-#define IS_COMPETITION_BUILD true
+#  define IS_COMPETITION_BUILD true
 #else /* CVC4_COMPETITION_MODE */
-#define IS_COMPETITION_BUILD false
+#  define IS_COMPETITION_BUILD false
 #endif /* CVC4_COMPETITION_MODE */
 
 #ifdef CVC4_GMP_IMP
-#define IS_GMP_BUILD true
+#  define IS_GMP_BUILD true
 #else /* CVC4_GMP_IMP */
-#define IS_GMP_BUILD false
+#  define IS_GMP_BUILD false
 #endif /* CVC4_GMP_IMP */
 
 #ifdef CVC4_CLN_IMP
-#define IS_CLN_BUILD true
+#  define IS_CLN_BUILD true
 #else /* CVC4_CLN_IMP */
-#define IS_CLN_BUILD false
+#  define IS_CLN_BUILD false
 #endif /* CVC4_CLN_IMP */
+
+#ifdef TLS
+#  define USING_TLS true
+#else /* TLS */
+#  define USING_TLS false
+#endif /* TLS */
 
 #define CVC4_ABOUT_STRING string("\
 This is a pre-release of CVC4.\n\
@@ -92,5 +103,6 @@ of CVC4 that links against GMP, and can be used in such applications.\n" : \
 "This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n")
 
-
 }/* CVC4 namespace */
+
+#endif /* __CVC4__CONFIGURATION_PRIVATE_H */

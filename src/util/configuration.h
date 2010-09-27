@@ -66,6 +66,8 @@ public:
   static bool isBuiltWithGmp();
 
   static bool isBuiltWithCln();
+
+  static bool isBuiltWithTlsSupport();
 };
 
 }/* CVC4 namespace */

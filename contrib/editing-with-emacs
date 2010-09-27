@@ -12,7 +12,7 @@ describing your usual cvc4 editing location(s):
   (setq c-basic-offset 2)
   (c-set-offset 'innamespace 0)
   (setq indent-tabs-mode nil))
-(setq auto-mode-alist (cons '("/home/mdeters/cvc4.*/.*\\.\\(cc\\|cpp\\|h\\|hh\\|hpp\\|y\\|yy\\|ypp\\|lex\\|l\\|ll\\|lpp\\)$" . cvc4-c++-editing-mode) auto-mode-alist))
+(setq auto-mode-alist (cons '("/home/mdeters/cvc4.*/.*\\.\\(cc\\|cpp\\|h\\|hh\\|hpp\\|y\\|yy\\|ypp\\|lex\\|l\\|ll\\|lpp\\)\\(\\.in\\)?$" . cvc4-c++-editing-mode) auto-mode-alist))
 
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 02 Nov 2009 18:19:22 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 27 Sep 2010 17:35:38 -0400
