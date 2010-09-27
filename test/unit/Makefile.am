@@ -26,6 +26,7 @@ UNIT_TESTS = \
 	context/cdlist_black \
 	context/cdmap_black \
 	context/cdmap_white \
+	context/cdvector_black \
 	util/assert_white \
 	util/bitvector_black \
 	util/configuration_black \

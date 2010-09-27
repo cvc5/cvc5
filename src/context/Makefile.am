@@ -13,4 +13,5 @@ libcontext_la_SOURCES = \
 	cdo.h \
 	cdlist.h \
 	cdmap.h \
-	cdset.h
+	cdset.h \
+	cdvector.h

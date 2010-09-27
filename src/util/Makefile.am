@@ -34,7 +34,8 @@ libutil_la_SOURCES = \
 	sexpr.h \
 	stats.h \
 	stats.cpp \
-	triple.h
+	triple.h \
+	dynamic_array.h
 
 BUILT_SOURCES = \
 	rational.h \
