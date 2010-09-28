@@ -37,10 +37,14 @@ TheoryUFMorgan::TheoryUFMorgan(int id, Context* ctxt, OutputChannel& out) :
   d_conflict(),
   d_trueNode(),
   d_falseNode(),
+  d_trueEqFalseNode(),
   d_activeAssertions(ctxt) {
-  TypeNode boolType = NodeManager::currentNM()->booleanType();
-  d_trueNode = NodeManager::currentNM()->mkVar("TRUE_UF", boolType);
-  d_falseNode = NodeManager::currentNM()->mkVar("FALSE_UF", boolType);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode boolType = nm->booleanType();
+  d_trueNode = nm->mkVar("TRUE_UF", boolType);
+  d_falseNode = nm->mkVar("FALSE_UF", boolType);
+  d_trueEqFalseNode = nm->mkNode(kind::IFF, d_trueNode, d_falseNode);
+  addDisequality(d_trueEqFalseNode);
   d_cc.addTerm(d_trueNode);
   d_cc.addTerm(d_falseNode);
 }
@@ -81,17 +85,38 @@ Node TheoryUFMorgan::constructConflict(TNode diseq) {
 
   NodeBuilder<> nb(kind::AND);
   if(explanation.getKind() == kind::AND) {
-    for(Node::iterator i = explanation.begin();
-        i != explanation.end();
+    for(TNode::iterator i = TNode(explanation).begin();
+        i != TNode(explanation).end();
         ++i) {
-      nb << *i;
+      TNode n = *i;
+      Assert(n.getKind() == kind::EQUAL ||
+             n.getKind() == kind::IFF);
+      Assert(n[0] != d_trueNode &&
+             n[0] != d_falseNode);
+      if(n[1] == d_trueNode) {
+        nb << n[0];
+      } else if(n[1] == d_falseNode) {
+        nb << n[0].notNode();
+      } else {
+        nb << n;
+      }
     }
   } else {
     Assert(explanation.getKind() == kind::EQUAL ||
            explanation.getKind() == kind::IFF);
-    nb << explanation;
+    Assert(explanation[0] != d_trueNode &&
+           explanation[0] != d_falseNode);
+    if(explanation[1] == d_trueNode) {
+      nb << explanation[0];
+    } else if(explanation[1] == d_falseNode) {
+      nb << explanation[0].notNode();
+    } else {
+      nb << explanation;
+    }
   }
-  nb << diseq.notNode();
+  if(diseq != d_trueEqFalseNode) {
+    nb << diseq.notNode();
+  }
 
   // by construction this should be true
   Assert(nb.getNumChildren() > 1);
@@ -158,7 +183,15 @@ void TheoryUFMorgan::merge(TNode a, TNode b) {
     return;
   }
 
+  // should have already found such a conflict
+  Assert(find(d_trueNode) != find(d_falseNode));
+
   d_unionFind[a] = b;
+
+  if(Debug.isOn("uf") && find(d_trueNode) == find(d_falseNode)) {
+    Debug("uf") << "ok, pay attention now.." << std::endl;
+    dump();
+  }
 
   DiseqLists::iterator deq_i = d_disequalities.find(a);
   if(deq_i != d_disequalities.end()) {
@@ -260,6 +293,8 @@ void TheoryUFMorgan::check(Effort level) {
   Debug("uf") << "uf: begin check(" << level << ")" << std::endl;
 
   while(!done()) {
+    Assert(d_conflict.isNull());
+
     Node assertion = get();
 
     d_activeAssertions.push_back(assertion);
@@ -288,6 +323,13 @@ void TheoryUFMorgan::check(Effort level) {
                                                    assertion, d_trueNode);
         d_cc.addTerm(assertion);
         d_cc.addEquality(eq);
+
+        if(!d_conflict.isNull()) {
+          Node conflict = constructConflict(d_conflict);
+          d_conflict = Node::null();
+          d_out->conflict(conflict, false);
+          return;
+        }
 
         if(Debug.isOn("uf")) {
           Debug("uf") << "true == false ? "
@@ -354,6 +396,13 @@ void TheoryUFMorgan::check(Effort level) {
         d_cc.addTerm(assertion[0]);
         d_cc.addEquality(eq);
 
+        if(!d_conflict.isNull()) {
+          Node conflict = constructConflict(d_conflict);
+          d_conflict = Node::null();
+          d_out->conflict(conflict, false);
+          return;
+        }
+
         if(Debug.isOn("uf")) {
           Debug("uf") << "true == false ? "
                       << (find(d_trueNode) == find(d_falseNode)) << std::endl;
@@ -372,7 +421,9 @@ void TheoryUFMorgan::check(Effort level) {
       dump();
     }
   }
-  Debug("uf") << "uf check() done = " << (done() ? "true" : "false") << std::endl;
+  Assert(d_conflict.isNull());
+  Debug("uf") << "uf check() done = " << (done() ? "true" : "false")
+              << std::endl;
 
   for(CDList<Node>::const_iterator diseqIter = d_disequality.begin();
       diseqIter != d_disequality.end();
@@ -385,9 +436,11 @@ void TheoryUFMorgan::check(Effort level) {
                   << "       right: " << right << std::endl
                   << "     find(L): " << debugFind(left) << std::endl
                   << "     find(R): " << debugFind(right) << std::endl
-                  << "     areCong: " << d_cc.areCongruent(left, right) << std::endl;
+                  << "     areCong: " << d_cc.areCongruent(left, right)
+                  << std::endl;
     }
-    Assert((debugFind(left) == debugFind(right)) == d_cc.areCongruent(left, right));
+    Assert((debugFind(left) == debugFind(right)) ==
+           d_cc.areCongruent(left, right));
   }
 
   Debug("uf") << "uf: end check(" << level << ")" << std::endl;
@@ -413,7 +466,8 @@ void TheoryUFMorgan::dump() {
   for(UnionFind::const_iterator i = d_unionFind.begin();
       i != d_unionFind.end();
       ++i) {
-    Debug("uf") << "    " << (*i).first << "  ==>  " << (*i).second << std::endl;
+    Debug("uf") << "    " << (*i).first << "  ==>  " << (*i).second
+                << std::endl;
   }
   Debug("uf") << "Disequality lists:" << std::endl;
   for(DiseqLists::const_iterator i = d_disequalities.begin();

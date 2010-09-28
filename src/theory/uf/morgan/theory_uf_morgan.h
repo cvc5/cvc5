@@ -91,7 +91,7 @@ private:
 
   Node d_conflict;
 
-  Node d_trueNode, d_falseNode;
+  Node d_trueNode, d_falseNode, d_trueEqFalseNode;
 
   context::CDList<Node> d_activeAssertions;
 

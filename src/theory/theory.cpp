@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   case Theory::MIN_EFFORT:
     os << "MIN_EFFORT"; break;
   case Theory::QUICK_CHECK:
-    os << "QUICK_CHECK:"; break;
+    os << "QUICK_CHECK"; break;
   case Theory::STANDARD:
     os << "STANDARD"; break;
   case Theory::FULL_EFFORT:
@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
       Unreachable();
   }
   return os;
-}
+}/* ostream& operator<<(ostream&, Theory::Effort) */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

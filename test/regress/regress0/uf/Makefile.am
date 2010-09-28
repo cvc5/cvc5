@@ -19,6 +19,8 @@ TESTS =	\
 	eq_diamond1.smt \
 	eq_diamond14.reduced.smt \
 	eq_diamond14.reduced2.smt \
+	NEQ016_size5_reduced2a.smt \
+	NEQ016_size5_reduced2b.smt \
 	dead_dnd002.smt \
 	iso_brn001.smt \
 	simple.01.cvc \
