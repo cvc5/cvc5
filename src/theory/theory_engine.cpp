@@ -71,21 +71,6 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
       TNode n = *workp;
       Theory* thParent = d_engine->theoryOf(n);
 
-// I don't think we need to register operators @CB
-
-//       if(n.hasOperator()) {
-//         TNode c = n.getOperator();
-
-//         if(! c.getAttribute(RegisteredAttr())) {
-//           if(c.getNumChildren() == 0) {
-//             c.setAttribute(RegisteredAttr(), true);
-//             d_engine->theoryOf(c)->registerTerm(c);
-//           } else {
-//             toReg.push_back(c);
-//           }
-//         }
-//       }
-
       for(TNode::iterator i = n.begin(); i != n.end(); ++i) {
         TNode c = *i;
         Theory* thChild = d_engine->theoryOf(c);
@@ -367,7 +352,7 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
   // This whole thing is essentially recursive, but we avoid actually
   // doing any recursion.
   do {// do until the stack is empty..
-   RewriteStackElement& rse = stack.back();
+    RewriteStackElement& rse = stack.back();
     bool done;
 
     Debug("theory-rewrite") << "rewriter looking at level " << stack.size()
@@ -433,6 +418,16 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
 
     if(cached.isNull()) {
       unsigned nch = rse.d_nextChild++;
+
+      if(nch == 0 &&
+         rse.d_node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        // this is an apply, so we have to push the operator
+        TNode op = rse.d_node.getOperator();
+        Debug("theory-rewrite") << "pushing operator " << op
+                                << " of " << rse.d_node << endl;
+        rse.d_builder << op;
+      }
+
       if(nch < rse.d_node.getNumChildren()) {
         Debug("theory-rewrite") << "pushing child " << nch
                                 << " of " << rse.d_node << endl;

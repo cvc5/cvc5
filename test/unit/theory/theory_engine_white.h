@@ -13,11 +13,11 @@
  **
  ** \brief White box testing of CVC4::theory::Theory.
  **
- ** White box testing of CVC4::theory::Theory.  This test creates "fake" theory
- ** interfaces and injects them into TheoryEngine, so we can test TheoryEngine's
- ** behavior without relying on independent theory behavior.  This is done in
- ** TheoryEngineWhite::setUp() by means of the TheoryEngineWhite::registerTheory()
- ** interface.
+ ** White box testing of CVC4::theory::Theory.  This test creates
+ ** "fake" theory interfaces and injects them into TheoryEngine, so we
+ ** can test TheoryEngine's behavior without relying on independent
+ ** theory behavior.  This is done in TheoryEngineWhite::setUp() by
+ ** means of the TheoryEngineWhite::registerTheory() interface.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -131,7 +131,8 @@ public:
     if(s_expected.empty()) {
       cout << std::endl
            << "didn't expect anything more, but got" << std::endl
-           << "     PRE  " << topLevel << " " << identify() << " " << n << std::endl;
+           << "     PRE  " << topLevel << " " << identify() << " " << n
+           << std::endl;
     }
     TS_ASSERT(!s_expected.empty());
 
@@ -143,8 +144,11 @@ public:
        expected.d_node != n ||
        expected.d_topLevel != topLevel) {
       cout << std::endl
-           << "HAVE PRE  " << topLevel << " " << identify() << " " << n << std::endl
-           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ") << expected.d_topLevel << " " << expected.d_theory->identify() << " " << expected.d_node << std::endl << std::endl;
+           << "HAVE PRE  " << topLevel << " " << identify() << " " << n
+           << std::endl
+           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ")
+           << expected.d_topLevel << " " << expected.d_theory->identify()
+           << " " << expected.d_node << std::endl << std::endl;
     }
 
     TS_ASSERT_EQUALS(expected.d_type, PRE);
@@ -164,7 +168,8 @@ public:
     if(s_expected.empty()) {
       cout << std::endl
            << "didn't expect anything more, but got" << std::endl
-           << "     POST " << topLevel << " " << identify() << " " << n << std::endl;
+           << "     POST " << topLevel << " " << identify() << " " << n
+           << std::endl;
     }
     TS_ASSERT(!s_expected.empty());
 
@@ -176,8 +181,11 @@ public:
        expected.d_node != n ||
        expected.d_topLevel != topLevel) {
       cout << std::endl
-           << "HAVE POST " << topLevel << " " << identify() << " " << n << std::endl
-           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ") << expected.d_topLevel << " " << expected.d_theory->identify() << " " << expected.d_node << std::endl << std::endl;
+           << "HAVE POST " << topLevel << " " << identify() << " " << n
+           << std::endl
+           << "WANT " << (expected.d_type == PRE ? "PRE  " : "POST ")
+           << expected.d_topLevel << " " << expected.d_theory->identify()
+           << " " << expected.d_node << std::endl << std::endl;
     }
 
     TS_ASSERT_EQUALS(expected.d_type, POST);
@@ -338,7 +346,10 @@ public:
     Node ffxeqf1 = d_nm->mkNode(EQUAL, ffx, f1);
     Node or1 = d_nm->mkNode(OR, and1, ffxeqf1);
     // make the expression:
-    // (IMPLIES (EQUAL (f 1) (f 2)) (OR (AND (EQUAL (f (f x)) (g y)) (EQUAL z1 z2) (f (f x)))) (EQUAL (f (f x)) (f 1)))
+    // (IMPLIES (EQUAL (f 1) (f 2))
+    //   (OR (AND (EQUAL (f (f x)) (g y))
+    //            (EQUAL z1 z2))
+    //       (EQUAL (f (f x)) (f 1))))
     Node n = d_nm->mkNode(IMPLIES, f1eqf2, or1);
     Node nExpected = n;
     Node nOut;
@@ -347,8 +358,8 @@ public:
     FakeTheory::expect(PRE, d_bool, n, true);
     FakeTheory::expect(PRE, d_uf, f1eqf2, true);
     FakeTheory::expect(PRE, d_uf, f1, false);
-    FakeTheory::expect(PRE, d_builtin, f, true);
-    FakeTheory::expect(POST, d_builtin, f, true);
+    //FakeTheory::expect(PRE, d_builtin, f, true);
+    //FakeTheory::expect(POST, d_builtin, f, true);
     FakeTheory::expect(PRE, d_arith, one, true);
     FakeTheory::expect(POST, d_arith, one, true);
     FakeTheory::expect(POST, d_uf, f1, false);
@@ -373,8 +384,8 @@ public:
     FakeTheory::expect(POST, d_uf, fx, false);
     FakeTheory::expect(POST, d_uf, ffx, false);
     FakeTheory::expect(PRE, d_uf, gy, false);
-    FakeTheory::expect(PRE, d_builtin, g, true);
-    FakeTheory::expect(POST, d_builtin, g, true);
+    //FakeTheory::expect(PRE, d_builtin, g, true);
+    //FakeTheory::expect(POST, d_builtin, g, true);
     FakeTheory::expect(PRE, d_arith, y, true);
     FakeTheory::expect(POST, d_arith, y, true);
     FakeTheory::expect(POST, d_uf, gy, false);
