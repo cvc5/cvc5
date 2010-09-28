@@ -52,7 +52,6 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
 //     }
   }
   else if (fact.getKind() == kind::EQUAL) {
-    // FIXME: kind::IFF as well ?
     // Automatically track all asserted equalities in the shared term manager
     d_engine->getSharedTermManager()->addEq(fact);
   }
@@ -433,27 +432,14 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
     Node cached = getPostRewriteCache(original, wasTopLevel);
 
     if(cached.isNull()) {
-      if(rse.d_nextChild == 0 &&
-         rse.d_node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        ++rse.d_nextChild;
-        Node op = rse.d_node.getOperator();
-        Theory* t = theoryOf(op);
-        Debug("theory-rewrite") << "pushing operator of " << rse.d_node << endl;
-        stack.push_back(RewriteStackElement(op, t, t != rse.d_theory));
-        continue;// break out of this node, do its operator
-      } else {
-        unsigned nch = rse.d_nextChild++;
-        if(rse.d_node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-          --nch;
-        }
-        if(nch < rse.d_node.getNumChildren()) {
-          Debug("theory-rewrite") << "pushing child " << nch
-                                  << " of " << rse.d_node << endl;
-          Node c = rse.d_node[nch];
-          Theory* t = theoryOf(c);
-          stack.push_back(RewriteStackElement(c, t, t != rse.d_theory));
-          continue;// break out of this node, do its child
-        }
+      unsigned nch = rse.d_nextChild++;
+      if(nch < rse.d_node.getNumChildren()) {
+        Debug("theory-rewrite") << "pushing child " << nch
+                                << " of " << rse.d_node << endl;
+        Node c = rse.d_node[nch];
+        Theory* t = theoryOf(c);
+        stack.push_back(RewriteStackElement(c, t, t != rse.d_theory));
+        continue;// break out of this node, do its child
       }
 
       // incorporate the children's rewrites
