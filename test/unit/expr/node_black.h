@@ -510,21 +510,15 @@ public:
     Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
 
     { // iterator
-      /* FAILING TEST:
-      Node::iterator i = plus_x_y_z.begin<PLUS>();
+      Node::kinded_iterator i = plus_x_y_z.begin(PLUS);
       TS_ASSERT(*i++ == x);
       TS_ASSERT(*i++ == y);
       TS_ASSERT(*i++ == z);
-      TS_ASSERT(i == plus_x_y_z.end<PLUS>());
+      TS_ASSERT(i == plus_x_y_z.end(PLUS));
 
-      i = x.begin<PLUS>();
+      i = x.begin(PLUS);
       TS_ASSERT(*i++ == x);
-      TS_ASSERT(i == x.end<PLUS>());
-      */
-    }
-
-    { // same for const iterator
-      //const Node& c = plus_x_y_z;
+      TS_ASSERT(i == x.end(PLUS));
     }
   }
 
