@@ -562,11 +562,12 @@ public:
  */
 class NodeManagerScope {
   /** The old NodeManager, to be restored on destruction. */
-  NodeManager *d_oldNodeManager;
+  NodeManager* d_oldNodeManager;
 
 public:
 
-  NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current) {
+  NodeManagerScope(NodeManager* nm) :
+    d_oldNodeManager(NodeManager::s_current) {
     NodeManager::s_current = nm;
     Debug("current") << "node manager scope: "
                      << NodeManager::s_current << "\n";

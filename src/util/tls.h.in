@@ -24,6 +24,8 @@
 #ifndef __CVC4__TLS_H
 #define __CVC4__TLS_H
 
+#line 28 "@srcdir@/tls.h.in"
+
 #if @CVC4_TLS_SUPPORTED@
 #  define CVC4_THREADLOCAL(__type) @CVC4_TLS@ __type
 #  define CVC4_THREADLOCAL_PUBLIC(__type) @CVC4_TLS@ CVC4_PUBLIC __type
@@ -49,7 +51,7 @@ public:
     pthread_key_create(&d_key, ThreadLocalImpl::cleanup);
   }
 
-  ThreadLocalImpl(T t) {
+  ThreadLocalImpl(const T& t) {
     pthread_key_create(&d_key, ThreadLocalImpl::cleanup);
     pthread_setspecific(d_key, const_cast<void*>(reinterpret_cast<const void*>(t)));
   }
@@ -74,6 +76,10 @@ public:
 };/* class ThreadLocalImpl<T, true> */
 
 template <class T>
+class ThreadLocalImpl<T, false> {
+};/* class ThreadLocalImpl<T, false> */
+
+template <class T>
 class ThreadLocal : public ThreadLocalImpl<T, sizeof(T) <= sizeof(void*)> {
   typedef ThreadLocalImpl<T, sizeof(T) <= sizeof(void*)> super;
 
@@ -81,6 +87,13 @@ public:
   ThreadLocal() : super() {}
   ThreadLocal(const T& t) : super(t) {}
   ThreadLocal(const ThreadLocal<T>& tl) : super(tl) {}
+
+  ThreadLocal<T>& operator=(const T& t) {
+    return static_cast< ThreadLocal<T>& >(super::operator=(t));
+  }
+  ThreadLocal<T>& operator=(const ThreadLocal<T>& tl) {
+    return static_cast< ThreadLocal<T>& >(super::operator=(tl));
+  }
 };/* class ThreadLocal<T> */
 
 }/* CVC4 namespace */

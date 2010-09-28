@@ -39,7 +39,7 @@ using __gnu_cxx::hash_set;
 
 namespace CVC4 {
 
-CVC4_THREADLOCAL(NodeManager*) NodeManager::s_current = 0;
+CVC4_THREADLOCAL(NodeManager*) NodeManager::s_current = NULL;
 
 /**
  * This class sets it reference argument to true and ensures that it gets set
