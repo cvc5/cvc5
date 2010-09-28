@@ -455,6 +455,70 @@ public:
   /** Constant iterator allowing for scanning through the children. */
   typedef typename expr::NodeValue::iterator< NodeTemplate<ref_count> > const_iterator;
 
+  class kinded_iterator {
+    friend class NodeTemplate<ref_count>;
+
+    NodeTemplate<ref_count> d_node;
+    ssize_t d_child;
+
+    kinded_iterator(TNode node, ssize_t child) :
+      d_node(node),
+      d_child(child) {
+    }
+
+    // These are factories to serve as clients to Node::begin<K>() and
+    // Node::end<K>().
+    static kinded_iterator begin(TNode n, Kind k) {
+      return kinded_iterator(n, n.getKind() == k ? 0 : -2);
+    }
+    static kinded_iterator end(TNode n, Kind k) {
+      return kinded_iterator(n, n.getKind() == k ? n.getNumChildren() : -1);
+    }
+
+  public:
+    typedef NodeTemplate<ref_count> value_type;
+    typedef ptrdiff_t difference_type;
+    typedef NodeTemplate<ref_count>* pointer;
+    typedef NodeTemplate<ref_count>& reference;
+
+    kinded_iterator() :
+      d_node(NodeTemplate<ref_count>::null()),
+      d_child(-2) {
+    }
+
+    kinded_iterator(const kinded_iterator& i) :
+      d_node(i.d_node),
+      d_child(i.d_child) {
+    }
+
+    NodeTemplate<ref_count> operator*() {
+      return d_child < 0 ? d_node : d_node[d_child];
+    }
+
+    bool operator==(const kinded_iterator& i) {
+      return d_node == i.d_node && d_child == i.d_child;
+    }
+
+    bool operator!=(const kinded_iterator& i) {
+      return !(*this == i);
+    }
+
+    kinded_iterator& operator++() {
+      if(d_child != -1) {
+        ++d_child;
+      }
+      return *this;
+    }
+
+    kinded_iterator operator++(int) {
+      kinded_iterator i = *this;
+      ++*this;
+      return i;
+    }
+  };/* class NodeTemplate<ref_count>::kinded_iterator */
+
+  typedef kinded_iterator const_kinded_iterator;
+
   /**
    * Returns the iterator pointing to the first child.
    * @return the iterator
@@ -476,37 +540,38 @@ public:
 
   /**
    * Returns the iterator pointing to the first child, if the node's
-   * kind is the same as the template parameter, otherwise returns the
-   * iterator pointing to the node itself.  This is useful if you want
-   * to pretend to iterate over a "unary" PLUS, for instance, since
-   * unary PLUSes don't exist---begin<PLUS>() will give an iterator
-   * over the children if the node's a PLUS node, otherwise give an
-   * iterator over the node itself, as if it were a unary PLUS.
-   * @return the iterator
+   * kind is the same as the parameter, otherwise returns the iterator
+   * pointing to the node itself.  This is useful if you want to
+   * pretend to iterate over a "unary" PLUS, for instance, since unary
+   * PLUSes don't exist---begin(PLUS) will give an iterator over the
+   * children if the node's a PLUS node, otherwise give an iterator
+   * over the node itself, as if it were a unary PLUS.
+   * @param the kind to match
+   * @return the kinded_iterator iterating over this Node (if its kind
+   * is not the passed kind) or its children
    */
-  template <Kind kind>
-  inline iterator begin() {
+  inline kinded_iterator begin(Kind kind) {
     assertTNodeNotExpired();
-    return d_nv->begin< NodeTemplate<ref_count>, kind >();
+    return kinded_iterator::begin(*this, kind);
   }
 
   /**
    * Returns the iterator pointing to the end of the children (one
    * beyond the last one), if the node's kind is the same as the
-   * template parameter, otherwise returns the iterator pointing to
-   * the one-of-the-node-itself.  This is useful if you want to
-   * pretend to iterate over a "unary" PLUS, for instance, since unary
-   * PLUSes don't exist---begin<PLUS>() will give an iterator over the
-   * children if the node's a PLUS node, otherwise give an iterator
-   * over the node itself, as if it were a unary PLUS.  @return the
-   * end of the children iterator.
+   * parameter, otherwise returns the iterator pointing to the
+   * one-of-the-node-itself.  This is useful if you want to pretend to
+   * iterate over a "unary" PLUS, for instance, since unary PLUSes
+   * don't exist---begin(PLUS) will give an iterator over the children
+   * if the node's a PLUS node, otherwise give an iterator over the
+   * node itself, as if it were a unary PLUS.
+   * @param the kind to match
+   * @return the kinded_iterator pointing off-the-end of this Node (if
+   * its kind is not the passed kind) or off-the-end of its children
    */
-  template <Kind kind>
-  inline iterator end() {
+  inline kinded_iterator end(Kind kind) {
     assertTNodeNotExpired();
-    return d_nv->end< NodeTemplate<ref_count>, kind >();
+    return kinded_iterator::end(*this, kind);
   }
-
 
   /**
    * Returns the const_iterator pointing to the first child.
@@ -528,24 +593,38 @@ public:
   }
 
   /**
-   * Returns the const_iterator pointing to the first child.
-   * @return the const_iterator
+   * Returns the iterator pointing to the first child, if the node's
+   * kind is the same as the parameter, otherwise returns the iterator
+   * pointing to the node itself.  This is useful if you want to
+   * pretend to iterate over a "unary" PLUS, for instance, since unary
+   * PLUSes don't exist---begin(PLUS) will give an iterator over the
+   * children if the node's a PLUS node, otherwise give an iterator
+   * over the node itself, as if it were a unary PLUS.
+   * @param the kind to match
+   * @return the kinded_iterator iterating over this Node (if its kind
+   * is not the passed kind) or its children
    */
-  template <Kind kind>
-  inline const_iterator begin() const {
+  inline const_kinded_iterator begin(Kind kind) const {
     assertTNodeNotExpired();
-    return d_nv->begin< NodeTemplate<ref_count>, kind >();
+    return const_kinded_iterator::begin(*this, kind);
   }
 
   /**
-   * Returns the const_iterator pointing to the end of the children (one
-   * beyond the last one.
-   * @return the end of the children const_iterator.
+   * Returns the iterator pointing to the end of the children (one
+   * beyond the last one), if the node's kind is the same as the
+   * parameter, otherwise returns the iterator pointing to the
+   * one-of-the-node-itself.  This is useful if you want to pretend to
+   * iterate over a "unary" PLUS, for instance, since unary PLUSes
+   * don't exist---begin(PLUS) will give an iterator over the children
+   * if the node's a PLUS node, otherwise give an iterator over the
+   * node itself, as if it were a unary PLUS.
+   * @param the kind to match
+   * @return the kinded_iterator pointing off-the-end of this Node (if
+   * its kind is not the passed kind) or off-the-end of its children
    */
-  template <Kind kind>
-  inline const_iterator end() const {
+  inline const_kinded_iterator end(Kind kind) const {
     assertTNodeNotExpired();
-    return d_nv->end< NodeTemplate<ref_count>, kind >();
+    return const_kinded_iterator::end(*this, kind);
   }
 
   /**
