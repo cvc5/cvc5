@@ -71,7 +71,7 @@ public:
   }
 
   operator T() const {
-    return reinterpret_cast<T>(pthread_getspecific(d_key));
+    return static_cast<T>(pthread_getspecific(d_key));
   }
 };/* class ThreadLocalImpl<T, true> */
 

@@ -31,6 +31,8 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+#include "util/Assert.h"
+
 namespace CVC4 {
 namespace test {
 
@@ -46,10 +48,20 @@ class WithLimitedMemory {
 public:
 
   WithLimitedMemory() {
+#ifdef __APPLE__
+    TS_FAIL("setrlimit() is broken on Mac, can't run memory tests.");
+    AlwaysAssert(false,
+                 "setrlimit() is broken on Mac, can't run memory tests.");
+#endif /* __APPLE__ */
     remember();
   }
 
   WithLimitedMemory(rlim_t amount) {
+#ifdef __APPLE__
+    TS_FAIL("setrlimit() is broken on Mac, can't run memory tests.");
+    AlwaysAssert(false,
+                 "setrlimit() is broken on Mac, can't run memory tests.");
+#endif /* __APPLE__ */
     remember();
     set(amount);
   }

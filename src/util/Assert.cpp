@@ -138,7 +138,7 @@ void AssertionException::construct(const char* header, const char* extra,
  */
 void debugAssertionFailed(const AssertionException& thisException,
                           const char* propagatingException) {
-  static __thread bool alreadyFired = false;
+  static CVC4_THREADLOCAL(bool) alreadyFired = false;
 
   if(EXPECT_TRUE( !std::uncaught_exception() ) || alreadyFired) {
     throw thisException;

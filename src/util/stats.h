@@ -310,6 +310,36 @@ inline std::ostream& operator<<(std::ostream& os, const ::timespec& t) {
 }
 
 
+#ifdef __APPLE__
+
+class TimerStat : public BackedStat< ::timespec > {
+  bool d_running;
+
+public:
+
+  TimerStat(const std::string& s) :
+    BackedStat< ::timespec >(s, ::timespec()),
+    d_running(false) {
+  }
+
+  void start() {
+    if(__CVC4_USE_STATISTICS) {
+      AlwaysAssert(!d_running);
+      d_running = true;
+    }
+  }
+
+  void stop() {
+    if(__CVC4_USE_STATISTICS) {
+      AlwaysAssert(d_running);
+      ++d_data.tv_sec;
+      d_running = false;
+    }
+  }
+};/* class TimerStat */
+
+#else /* __APPLE__ */
+
 class TimerStat : public BackedStat< ::timespec > {
   // strange: timespec isn't placed in 'std' namespace ?!
   ::timespec d_start;
@@ -325,7 +355,7 @@ public:
   void start() {
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(!d_running);
-      clock_gettime(CLOCK_REALTIME, &d_start);
+      clock_gettime(CLOCK_MONOTONIC, &d_start);
       d_running = true;
     }
   }
@@ -334,13 +364,14 @@ public:
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(d_running);
       ::timespec end;
-      clock_gettime(CLOCK_REALTIME, &end);
+      clock_gettime(CLOCK_MONOTONIC, &end);
       d_data += end - d_start;
       d_running = false;
     }
   }
 };/* class TimerStat */
 
+#endif /* __APPLE__ */
 
 #undef __CVC4_USE_STATISTICS
 

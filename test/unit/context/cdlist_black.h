@@ -133,9 +133,16 @@ public:
     TS_ASSERT_EQUALS(aThirdFalse, false);
   }
 
+  /* setrlimit() totally broken on Mac OS X */
   void testOutOfMemory() {
+#ifdef __APPLE__
+
+    TS_WARN("can't run memory tests on Mac OS X");
+
+#else /* __APPLE__ */
+
     CDList<unsigned> list(d_context);
-    WithLimitedMemory wlm(0);
+    WithLimitedMemory wlm(1);
 
     TS_ASSERT_THROWS({
         // We cap it at UINT_MAX, preferring to terminate with a
@@ -144,5 +151,7 @@ public:
           list.push_back(i);
         }
       }, bad_alloc);
+
+#endif /* __APPLE__ */
   }
 };

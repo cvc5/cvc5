@@ -54,10 +54,21 @@ all:
 		"$(abs_builddir)$(libdir)"
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink
+#	the handling with empty $relink_command is a hack for Mac OS
 	thelibdir="$(abs_builddir)$(libdir)"; \
 	progdir="$(abs_builddir)$(bindir)"; file=cvc4; \
 		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
-		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"
+		if test -z "$$relink_command"; then \
+			$(mkinstalldirs) "$(CURRENT_BUILD)$(bindir)/.libs"; \
+			$(install_sh) \
+				$(CURRENT_BUILD)/src/main/.libs/cvc4 \
+				"$(abs_builddir)$(bindir)/.libs"; \
+			$(install_sh) \
+				$(CURRENT_BUILD)/src/main/cvc4 \
+				"$(abs_builddir)$(bindir)"; \
+		else \
+			eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
+		fi
 else
 #	if we're building static libs only, just install the driver binary directly
 	$(install_sh) \
@@ -75,9 +86,20 @@ endif
 	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink
+#	the handling with empty $relink_command is a hack for Mac OS
 	thelibdir="`pwd`$(libdir)"; progdir="`pwd`$(bindir)"; file=cvc4; \
 		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
-		eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"
+		if test -z "$$relink_command"; then \
+			$(mkinstalldirs) ".$(bindir)/.libs"; \
+			$(install_sh) \
+				$(CURRENT_BUILD)/src/main/.libs/cvc4 \
+				"`pwd`$(bindir)/.libs"; \
+			$(install_sh) \
+				$(CURRENT_BUILD)/src/main/cvc4 \
+				"`pwd`$(bindir)"; \
+		else \
+			eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
+		fi
 else
 #	if we're building static libs only, just install the driver binary directly
 	$(install_sh) $(CURRENT_BUILD)/src/main/cvc4 "`pwd`$(bindir)"
