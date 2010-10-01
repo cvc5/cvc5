@@ -50,12 +50,17 @@ TEST_DEPS_DIST = \
 if HAVE_CXXTESTGEN
 
 AM_CPPFLAGS = \
-	-I. "-I@CXXTEST@" "-I@top_srcdir@/src/include" \
-	"-I@top_srcdir@/src" "-I@top_builddir@/src" \
+	-I. \
+	"-I@CXXTEST@" \
+	"-I@top_srcdir@/src/include" \
+	"-I@top_srcdir@/lib" \
+	"-I@top_srcdir@/src" \
+	"-I@top_builddir@/src" \
 	"-I@top_srcdir@/src/prop/minisat" \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \
-	$(ANTLR_INCLUDES) $(TEST_CPPFLAGS)
+	$(ANTLR_INCLUDES) \
+	$(TEST_CPPFLAGS)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS)
 

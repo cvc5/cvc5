@@ -82,6 +82,26 @@ void segv_handler(int sig, siginfo_t* info, void*) {
 #endif /* CVC4_DEBUG */
 }
 
+/** Handler for SIGILL (illegal instruction). */
+void ill_handler(int sig, siginfo_t* info, void*) {
+#ifdef CVC4_DEBUG
+  fprintf(stderr, "CVC4 executed an illegal instruction in DEBUG mode.\n");
+  if(segvNoSpin) {
+    fprintf(stderr, "No-spin requested, aborting...\n");
+    abort();
+  } else {
+    fprintf(stderr, "Spinning so that a debugger can be connected.\n");
+    fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    for(;;) {
+      sleep(60);
+    }
+  }
+#else /* CVC4_DEBUG */
+  fprintf(stderr, "CVC4 executed an illegal instruction.\n");
+  abort();
+#endif /* CVC4_DEBUG */
+}
+
 static terminate_handler default_terminator;
 
 void cvc4unexpected() {
@@ -134,22 +154,33 @@ void cvc4_init() throw() {
   act1.sa_sigaction = sigint_handler;
   act1.sa_flags = SA_SIGINFO;
   sigemptyset(&act1.sa_mask);
-  if(sigaction(SIGINT, &act1, NULL))
+  if(sigaction(SIGINT, &act1, NULL)) {
     throw Exception(string("sigaction(SIGINT) failure: ") + strerror(errno));
+  }
 
   struct sigaction act2;
   act2.sa_sigaction = timeout_handler;
   act2.sa_flags = SA_SIGINFO;
   sigemptyset(&act2.sa_mask);
-  if(sigaction(SIGXCPU, &act2, NULL))
+  if(sigaction(SIGXCPU, &act2, NULL)) {
     throw Exception(string("sigaction(SIGXCPU) failure: ") + strerror(errno));
+  }
 
   struct sigaction act3;
   act3.sa_sigaction = segv_handler;
   act3.sa_flags = SA_SIGINFO;
   sigemptyset(&act3.sa_mask);
-  if(sigaction(SIGSEGV, &act3, NULL))
+  if(sigaction(SIGSEGV, &act3, NULL)) {
     throw Exception(string("sigaction(SIGSEGV) failure: ") + strerror(errno));
+  }
+
+  struct sigaction act4;
+  act4.sa_sigaction = segv_handler;
+  act4.sa_flags = SA_SIGINFO;
+  sigemptyset(&act4.sa_mask);
+  if(sigaction(SIGILL, &act4, NULL)) {
+    throw Exception(string("sigaction(SIGILL) failure: ") + strerror(errno));
+  }
 
   set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);

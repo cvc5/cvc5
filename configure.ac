@@ -14,6 +14,7 @@ AC_INIT([cvc4], _CVC4_RELEASE_STRING)
 AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
+AC_CONFIG_LIBOBJ_DIR([src/lib])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -639,7 +640,10 @@ fi
 AC_CHECK_LIB(z, gzread, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 
-AC_CHECK_LIB(rt, clock_gettime, , [AC_MSG_ERROR([can't find clock_gettime() in librt])])
+AC_SEARCH_LIBS([clock_gettime], [rt],
+               [AC_DEFINE([HAVE_CLOCK_GETTIME], [1],
+                          [Defined to 1 if clock_gettime() is supported by the platform.])],
+               [AC_LIBOBJ([clock_gettime])])
 
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
@@ -656,7 +660,7 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 #AC_TYPE_SIZE_T
 
 # Check for availability of TLS support (e.g. __thread storage class)
-AC_MSG_CHECKING([whether user wants wants to use compiler-supported TLS])
+AC_MSG_CHECKING([whether to use compiler-supported TLS if available])
 AC_ARG_ENABLE([tls], AS_HELP_STRING([--disable-tls], [don't use compiler-native TLS]))
 if test -z "${enable_tls+set}" || test "$enable_tls" = "yes"; then
   AC_MSG_RESULT([yes])
@@ -701,7 +705,7 @@ AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full releas
 
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
-CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
+CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -fexceptions"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
@@ -742,7 +746,7 @@ AC_SUBST(CVC4_USE_GMP_IMP)
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib src test -name Makefile.am | sort | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib lib src test -name Makefile.am | sort | sed 's,\.am$,,'])
   src/util/rational.h
   src/util/integer.h
   src/util/tls.h

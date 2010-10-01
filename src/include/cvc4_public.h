@@ -45,8 +45,8 @@
 #  endif /* __GNUC__ >= 4 */
 #endif /* defined _WIN32 || defined __CYGWIN__ */
 
-#define EXPECT_TRUE(x) __builtin_expect( (x), true)
-#define EXPECT_FALSE(x) __builtin_expect( (x), false)
+#define EXPECT_TRUE(x) __builtin_expect( (x), true )
+#define EXPECT_FALSE(x) __builtin_expect( (x), false )
 #define NORETURN __attribute__ ((noreturn))
 
 #ifndef NULL

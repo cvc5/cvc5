@@ -1,4 +1,5 @@
 AM_CPPFLAGS = \
+	-D__BUILDING_CVC4DRIVER \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
@@ -13,7 +14,8 @@ cvc4_SOURCES = \
 
 cvc4_LDADD = \
 	../parser/libcvc4parser.la \
-	../libcvc4.la
+	../libcvc4.la \
+	../lib/libreplacements.la
 
 if STATIC_BINARY
 cvc4_LINK = $(CXXLINK) -all-static

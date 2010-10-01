@@ -12,12 +12,12 @@
 #
 LIBCVC4_VERSION = @CVC4_LIBRARY_VERSION@
 
-AM_CPPFLAGS =
+AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
 	-I@srcdir@/include -I@srcdir@ -I@builddir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = expr util context theory prop smt . parser main
+SUBDIRS = lib expr util context theory prop smt . parser main
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -40,7 +40,8 @@ libcvc4_noinst_la_LIBADD = \
 	@builddir@/prop/libprop.la \
 	@builddir@/prop/minisat/libminisat.la \
 	@builddir@/smt/libsmt.la \
-	@builddir@/theory/libtheory.la
+	@builddir@/theory/libtheory.la \
+	@builddir@/lib/libreplacements.la
 
 EXTRA_DIST = \
 	include/cvc4parser_private.h \
