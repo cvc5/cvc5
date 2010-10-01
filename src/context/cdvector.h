@@ -1,4 +1,21 @@
-
+/*********************                                                        */
+/*! \file cdvector.h
+ ** \verbatim
+ ** Original author: taking
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
 
 #include "cvc4_private.h"
 
@@ -14,35 +31,26 @@ namespace CVC4 {
 namespace context {
 
 template <class T>
-struct UpdatableElement{
+struct UpdatableElement {
 public:
   T d_data;
   int d_contextLevelOfLastUpdate;
 
   UpdatableElement(const T& data) :
     d_data(data),
-    d_contextLevelOfLastUpdate(0){
+    d_contextLevelOfLastUpdate(0) {
   }
-
-  // UpdatableElement() :
-  //   d_data(),
-  //   d_contextLevelOfLastUpdate(0){
-  // }
-};
+};/* struct UpdatableElement<T> */
 
 template <class T>
-struct HistoryElement{
+struct HistoryElement {
 public:
   UpdatableElement<T> d_cached;
   unsigned d_index;
   HistoryElement(const UpdatableElement<T>& cache, unsigned index) :
-    d_cached(cache), d_index(index)
-  {}
-
-  // HistoryElement() :
-  //   d_cached(), d_index(0)
-  // {}
-};
+    d_cached(cache), d_index(index) {
+  }
+};/* struct HistoryElement<T> */
 
 
 /**
@@ -65,7 +73,6 @@ private:
 
   CDO<unsigned> d_historySize;
 
-
 private:
   void restoreConsistency() {
     Assert(d_history.size() >= d_historySize.get());
@@ -76,12 +83,12 @@ private:
     }
   }
 
-  bool isConsistent() const{
+  bool isConsistent() const {
     return d_history.size() == d_historySize.get();
   }
 
   void makeConsistent() {
-    if(!isConsistent()){
+    if(!isConsistent()) {
       restoreConsistency();
     }
     Assert(isConsistent());
@@ -92,7 +99,7 @@ public:
     d_context(c),
     d_current(callDestructor),
     d_history(callDestructor),
-    d_historySize(c,0){
+    d_historySize(c, 0) {
   }
 
   unsigned size() const {
@@ -117,7 +124,7 @@ public:
   /**
    * Access to the ith item in the list.
    */
-  const T& operator[](unsigned i){
+  const T& operator[](unsigned i) {
     return get(i);
   }
 
@@ -127,11 +134,11 @@ public:
     return d_current[i].d_data;
   }
 
-  void set(unsigned index, const T& data){
+  void set(unsigned index, const T& data) {
     Assert(index < size(), "index out of bounds in CDVector::set()");
     makeConsistent();
 
-    if(d_current[index].d_contextLevelOfLastUpdate == d_context->getLevel() ){
+    if(d_current[index].d_contextLevelOfLastUpdate == d_context->getLevel()) {
       d_current[index].d_data = data;
     }else{
       d_history.push_back(HistoryElement<T>(d_current[index], index));
@@ -142,7 +149,7 @@ public:
     }
   }
 
-};/* class CDVector */
+};/* class CDVector<T> */
 
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
