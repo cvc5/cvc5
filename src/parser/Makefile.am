@@ -31,6 +31,7 @@ libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
 libcvc4parser_noinst_la_LIBADD = \
 	@builddir@/smt/libparsersmt.la \
 	@builddir@/smt2/libparsersmt2.la \
+	@builddir@/cvc/libparsercvc.la \
 	@builddir@/../lib/libreplacements.la
 
 libcvc4parser_la_SOURCES =
