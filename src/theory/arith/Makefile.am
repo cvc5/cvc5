@@ -22,6 +22,7 @@ libarith_la_SOURCES = \
 	basic.h \
 	slack.h \
 	tableau.h \
+	tableau.cpp \
 	arith_propagator.h \
 	arith_propagator.cpp \
 	theory_arith.h \

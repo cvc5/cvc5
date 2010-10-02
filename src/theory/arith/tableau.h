@@ -21,8 +21,9 @@
 #include "expr/node.h"
 #include "expr/attribute.h"
 
-#include "theory/arith/basic.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/arith_activity.h"
+#include "theory/arith/basic.h"
 #include "theory/arith/normal_form.h"
 
 #include <ext/hash_map>
@@ -38,9 +39,9 @@ namespace arith {
 
 
 class Row {
-  TNode d_x_i;
+  ArithVar d_x_i;
 
-  typedef std::map<TNode, Rational> CoefficientTable;
+  typedef std::map<ArithVar, Rational, std::greater<ArithVar> > CoefficientTable;
 
   CoefficientTable d_coeffs;
 
@@ -52,28 +53,10 @@ public:
    * Construct a row equal to:
    *   basic = \sum_{x_i} c_i * x_i
    */
-  Row(TNode basic, const Polynomial& sum):
-    d_x_i(basic),
-    d_coeffs(){
+  Row(ArithVar basic,
+      const std::vector< Rational >& coefficients,
+      const std::vector< ArithVar >& variables);
 
-    Assert(d_x_i.getMetaKind() == kind::metakind::VARIABLE);
-
-    for(Polynomial::iterator iter=sum.begin(), end = sum.end(); iter != end; ++iter){
-      const Monomial& mono = *iter;
-
-      Assert(!mono.isConstant());
-
-      TNode coeff = mono.getConstant().getNode();
-      TNode var_i =  mono.getVarList().getNode();
-
-      Assert(coeff.getKind() == kind::CONST_RATIONAL);
-
-      Assert(!has(var_i));
-      d_coeffs[var_i] = coeff.getConst<Rational>();
-      Assert(coeff.getConst<Rational>() != Rational(0,1));
-      Assert(d_coeffs[var_i] != Rational(0,1));
-    }
-  }
 
   iterator begin(){
     return d_coeffs.begin();
@@ -83,93 +66,53 @@ public:
     return d_coeffs.end();
   }
 
-  TNode basicVar(){
+  ArithVar basicVar(){
     return d_x_i;
   }
 
-  bool has(TNode x_j){
+  bool has(ArithVar x_j){
     CoefficientTable::iterator x_jPos = d_coeffs.find(x_j);
     return x_jPos != d_coeffs.end();
   }
 
-  const Rational& lookup(TNode x_j){
+  const Rational& lookup(ArithVar x_j){
     CoefficientTable::iterator x_jPos = d_coeffs.find(x_j);
     Assert(x_jPos !=  d_coeffs.end());
     return (*x_jPos).second;
   }
 
-  void pivot(TNode x_j){
-    Rational negInverseA_rs = -(lookup(x_j).inverse());
-    d_coeffs[d_x_i] = Rational(Integer(-1));
-    d_coeffs.erase(x_j);
+  void pivot(ArithVar x_j);
 
-    d_x_i = x_j;
+  void subsitute(Row& row_s);
 
-    for(iterator nonbasicIter = begin(), nonbasicIter_end = end();
-        nonbasicIter != nonbasicIter_end; ++nonbasicIter){
-      nonbasicIter->second *= negInverseA_rs;
-    }
-
-  }
-
-  void subsitute(Row& row_s){
-    TNode x_s = row_s.basicVar();
-
-    Assert(has(x_s));
-    Assert(x_s != d_x_i);
-
-    Rational zero(0,1);
-
-    Rational a_rs = lookup(x_s);
-    Assert(a_rs != zero);
-    d_coeffs.erase(x_s);
-
-    for(iterator iter = row_s.begin(), iter_end = row_s.end();
-        iter != iter_end; ++iter){
-      TNode x_j = iter->first;
-      Rational a_sj = iter->second;
-      a_sj *= a_rs;
-      CoefficientTable::iterator coeff_iter = d_coeffs.find(x_j);
-
-      if(coeff_iter != d_coeffs.end()){
-        coeff_iter->second += a_sj;
-        if(coeff_iter->second == zero){
-          d_coeffs.erase(coeff_iter);
-        }
-      }else{
-        d_coeffs.insert(std::make_pair(x_j,a_sj));
-      }
-    }
-  }
-
-  void printRow(){
-    Debug("tableau") << d_x_i << " ";
-    for(iterator nonbasicIter = d_coeffs.begin();
-        nonbasicIter != d_coeffs.end();
-        ++nonbasicIter){
-      TNode nb = nonbasicIter->first;
-      Debug("tableau") << "{" << nb << "," << d_coeffs[nb] << "}";
-    }
-    Debug("tableau") << std::endl;
-  }
+  void printRow();
 };
 
 class Tableau {
 public:
-  typedef std::set<TNode> VarSet;
+  typedef std::set<ArithVar> VarSet;
 
 private:
-  typedef __gnu_cxx::hash_map<TNode, Row*, NodeHashFunction> RowsTable;
+  typedef __gnu_cxx::hash_map<ArithVar, Row*> RowsTable;
 
   VarSet d_activeBasicVars;
   RowsTable d_activeRows, d_inactiveRows;
+
+  ActivityMonitor& d_activityMonitor;
+  IsBasicManager& d_basicManager;
 
 
 public:
   /**
    * Constructs an empty tableau.
    */
-  Tableau() : d_activeBasicVars(), d_activeRows(), d_inactiveRows() {}
+  Tableau(ActivityMonitor &am, IsBasicManager& bm) :
+    d_activeBasicVars(),
+    d_activeRows(),
+    d_inactiveRows(),
+    d_activityMonitor(am),
+    d_basicManager(bm)
+  {}
 
   VarSet::iterator begin(){
     return d_activeBasicVars.begin();
@@ -179,45 +122,19 @@ public:
     return d_activeBasicVars.end();
   }
 
-  Row* lookup(TNode var){
+  Row* lookup(ArithVar var){
     Assert(isActiveBasicVariable(var));
     return d_activeRows[var];
   }
 
 private:
-  Row* lookupEjected(TNode var){
+  Row* lookupEjected(ArithVar var){
     Assert(isEjected(var));
     return d_inactiveRows[var];
   }
 public:
 
-  void addRow(TNode eq){
-    TNode var = eq[0];
-    TNode sumNode = eq[1];
-
-    Assert(var.getAttribute(IsBasic()));
-
-    Polynomial sum = Polynomial::parsePolynomial(sumNode);
-
-    //The new basic variable cannot already be a basic variable
-    Assert(!isActiveBasicVariable(var));
-    d_activeBasicVars.insert(var);
-    Row* row_var = new Row(var,sum);
-    d_activeRows[var] = row_var;
-
-    //A variable in the row may have been made non-basic already.
-    //If this is the case we fake pivoting this variable
-    for(Polynomial::iterator sumIter = sum.begin(); sumIter!= sum.end(); ++sumIter){
-      const Monomial& child = *sumIter;
-
-      Assert(!child.isConstant());
-      TNode c = child.getVarList().getNode();
-      if(isActiveBasicVariable(c)){
-        Row* row_c = lookup(c);
-        row_var->subsitute(*row_c);
-      }
-    }
-  }
+  void addRow(ArithVar basicVar, const std::vector<Rational>& coeffs, const std::vector<ArithVar>& variables);
 
   /**
    * preconditions:
@@ -225,47 +142,16 @@ public:
    *   x_s is non-basic, and
    *   a_rs != 0.
    */
-  void pivot(TNode x_r, TNode x_s){
-    RowsTable::iterator ptrRow_r = d_activeRows.find(x_r);
-    Assert(ptrRow_r != d_activeRows.end());
+  void pivot(ArithVar x_r, ArithVar x_s);
 
-    Row* row_s = (*ptrRow_r).second;
+  void printTableau();
 
-    Assert(row_s->has(x_s));
-    row_s->pivot(x_s);
-
-    d_activeRows.erase(ptrRow_r);
-    d_activeBasicVars.erase(x_r);
-    makeNonbasic(x_r);
-
-    d_activeRows.insert(std::make_pair(x_s,row_s));
-    d_activeBasicVars.insert(x_s);
-    makeBasic(x_s);
-
-    for(VarSet::iterator basicIter = begin(), endIter = end();
-        basicIter != endIter; ++basicIter){
-      TNode basic = *basicIter;
-      Row* row_k = lookup(basic);
-      if(row_k->has(x_s)){
-         increaseActivity(basic, 30);
-        row_k->subsitute(*row_s);
-      }
-    }
-  }
-  void printTableau(){
-    for(VarSet::iterator basicIter = begin(), endIter = end();
-        basicIter != endIter; ++basicIter){
-      TNode basic = *basicIter;
-      Row* row_k = lookup(basic);
-      row_k->printRow();
-    }
-  }
-
-  bool isEjected(TNode var){
+  bool isEjected(ArithVar var){
     return d_inactiveRows.find(var) != d_inactiveRows.end();
   }
 
-  void ejectBasic(TNode basic){
+  void ejectBasic(ArithVar basic){
+    Assert(d_basicManager.isBasic(basic));
     Assert(isActiveBasicVariable(basic));
 
     Row* row = lookup(basic);
@@ -275,7 +161,8 @@ public:
     d_inactiveRows.insert(std::make_pair(basic, row));
   }
 
-  void reinjectBasic(TNode basic){
+  void reinjectBasic(ArithVar basic){
+    Assert(d_basicManager.isBasic(basic));
     Assert(isEjected(basic));
 
     Row* row = lookupEjected(basic);
@@ -287,25 +174,11 @@ public:
     updateRow(row);
   }
 private:
-  inline bool isActiveBasicVariable(TNode var){
+  inline bool isActiveBasicVariable(ArithVar var){
     return d_activeBasicVars.find(var) != d_activeBasicVars.end();
   }
 
-  void updateRow(Row* row){
-    for(Row::iterator i=row->begin(), endIter = row->end(); i != endIter; ){
-      TNode var = i->first;
-      ++i;
-      if(isBasic(var)){
-        Row* row_var = isActiveBasicVariable(var) ? lookup(var) : lookupEjected(var);
-
-        Assert(row_var != row);
-        row->subsitute(*row_var);
-
-        i = row->begin();
-        endIter = row->end();
-      }
-    }
-  }
+  void updateRow(Row* row);
 };
 
 }; /* namespace arith  */

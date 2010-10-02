@@ -29,22 +29,32 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-struct IsBasicAttrID;
+class IsBasicManager {
+private:
+  std::vector<bool> d_basic;
 
-typedef expr::Attribute<IsBasicAttrID, bool> IsBasic;
+public:
+  IsBasicManager() : d_basic() {}
 
+  void init(ArithVar var, bool value){
+    Assert(var == d_basic.size());
+    d_basic.push_back(value);
+  }
 
-inline bool isBasic(TNode x){
-  return x.getAttribute(IsBasic());
-}
+  bool isBasic(ArithVar x) const{
+    return d_basic[x];
+  }
 
-inline void makeBasic(TNode x){
-  return x.setAttribute(IsBasic(), true);
-}
+  void makeBasic(ArithVar x){
+    Assert(!isBasic(x));
+    d_basic[x] = true;
+  }
 
-inline void makeNonbasic(TNode x){
-  return x.setAttribute(IsBasic(), false);
-}
+  void makeNonbasic(ArithVar x){
+    Assert(isBasic(x));
+    d_basic[x] = false;
+  }
+};
 
 }; /* namespace arith */
 }; /* namespace theory */

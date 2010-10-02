@@ -56,14 +56,15 @@ TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
   Theory(id, c, out),
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
+  d_basicManager(),
+  d_activityMonitor(),
   d_diseq(c),
+  d_tableau(d_activityMonitor, d_basicManager),
   d_nextRewriter(&d_constants),
   d_propagator(c),
   d_statistics()
-{
-  uint64_t ass_id = partial_model::Assignment::getId();
-  Debug("arithsetup") << "Assignment: " << ass_id << std::endl;
-}
+{}
+
 TheoryArith::~TheoryArith(){
   for(vector<Node>::iterator i=d_variables.begin(); i!= d_variables.end(); ++i){
     Node var = *i;
@@ -76,13 +77,17 @@ TheoryArith::Statistics::Statistics():
   d_statUpdates("theory::arith::updates",0),
   d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0),
   d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
-  d_statUpdateConflicts("theory::arith::UpdateConflicts", 0)
+  d_statUpdateConflicts("theory::arith::UpdateConflicts", 0),
+  d_statUserVariables("theory::arith::UserVariables", 0),
+  d_statSlackVariables("theory::arith::SlackVariables", 0)
 {
   StatisticsRegistry::registerStat(&d_statPivots);
   StatisticsRegistry::registerStat(&d_statUpdates);
   StatisticsRegistry::registerStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::registerStat(&d_statUpdateConflicts);
+  StatisticsRegistry::registerStat(&d_statUserVariables);
+  StatisticsRegistry::registerStat(&d_statSlackVariables);
 }
 
 TheoryArith::Statistics::~Statistics(){
@@ -91,6 +96,8 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::unregisterStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::unregisterStat(&d_statUpdateConflicts);
+  StatisticsRegistry::unregisterStat(&d_statUserVariables);
+  StatisticsRegistry::unregisterStat(&d_statSlackVariables);
 }
 
 
@@ -117,40 +124,40 @@ bool isNormalAtom(TNode n){
 }
 
 
-bool TheoryArith::shouldEject(TNode var){
+bool TheoryArith::shouldEject(ArithVar var){
   if(d_partialModel.hasBounds(var)){
     return false;
   }else if(d_tableau.isEjected(var)) {
     return false;
   }else if(!d_partialModel.hasEverHadABound(var)){
     return true;
-  }else if(getActivity(var) >= ACTIVITY_THRESHOLD){
+  }else if(d_activityMonitor.getActivity(var) >= ActivityMonitor::ACTIVITY_THRESHOLD){
     return true;
   }
   return false;
 }
 
-TNode TheoryArith::findBasicRow(TNode variable){
+ArithVar TheoryArith::findBasicRow(ArithVar variable){
   for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
-    TNode x_j = *basicIter;
+    ArithVar x_j = *basicIter;
     Row* row_j = d_tableau.lookup(x_j);
 
     if(row_j->has(variable)){
       return x_j;
     }
   }
-  return TNode::null();
+  return ARITHVAR_SENTINEL;
 }
 
 void TheoryArith::ejectInactiveVariables(){
   Debug("decay") << "begin ejectInactiveVariables()" << endl;
-  for(std::vector<Node>::iterator i = d_variables.begin(),
-        end = d_variables.end(); i != end; ++i){
-    TNode variable = *i;
+  for(ArithVar variable = 0, end = d_variables.size(); variable != end; ++variable){
+    //TNode var = *i;
+    //ArithVar variable = asArithVar(var);
     if(shouldEject(variable)){
-      if(isBasic(variable)){
+      if(d_basicManager.isBasic(variable)){
         Debug("decay") << "ejecting basic " << variable << endl;;
         d_tableau.ejectBasic(variable);
       }
@@ -158,7 +165,7 @@ void TheoryArith::ejectInactiveVariables(){
   }
 }
 
-void TheoryArith::reinjectVariable(TNode x){
+void TheoryArith::reinjectVariable(ArithVar x){
   d_tableau.reinjectBasic(x);
 
 
@@ -184,9 +191,9 @@ void TheoryArith::preRegisterTerm(TNode n) {
     d_out->augmentingLemma(eagerSplit);
   }
 
-  if(n.getMetaKind() == metakind::VARIABLE){
-
-    setupVariable(n);
+  if(isTheoryLeaf(n)){
+    ArithVar varN = requestArithVar(n,false);
+    setupInitialValue(varN);
   }
 
 
@@ -210,38 +217,81 @@ void TheoryArith::preRegisterTerm(TNode n) {
   Debug("arith_preregister") << "end arith::preRegisterTerm("<< n <<")"<< endl;
 }
 
-void TheoryArith::setupSlack(TNode left){
-  TypeNode real_type = NodeManager::currentNM()->realType();
-  Node slack = NodeManager::currentNM()->mkVar(real_type);
-
-  left.setAttribute(Slack(), slack);
-  makeBasic(slack);
-
-  Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, slack, left);
-
-  d_tableau.addRow(eq);
-
-  setupVariable(slack);
-}
 
 
-void TheoryArith::checkBasicVariable(TNode basic){
-  Assert(isBasic(basic));
+void TheoryArith::checkBasicVariable(ArithVar basic){
+  Assert(d_basicManager.isBasic(basic));
   if(!d_partialModel.assignmentIsConsistent(basic)){
     d_possiblyInconsistent.push(basic);
   }
 }
 
+bool TheoryArith::isTheoryLeaf(TNode x) const{
+  return x.getMetaKind() == kind::metakind::VARIABLE;
+}
+
+ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
+  Assert(isTheoryLeaf(x));
+  Assert(!x.hasAttribute(ArithVarAttr()));
+
+  ArithVar varX = d_variables.size();
+  d_variables.push_back(Node(x));
+
+  x.setAttribute(ArithVarAttr(), varX);
+
+
+  d_activityMonitor.initActivity(varX);
+  d_basicManager.init(varX, basic);
+
+  Debug("arith::arithvar") << x << " |-> " << varX << endl;
+
+  return varX;
+}
+
+void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::vector<ArithVar>& variables) const{
+  for(Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i){
+    const Monomial& mono = *i;
+    const Constant& constant = mono.getConstant();
+    const VarList& variable = mono.getVarList();
+
+    Node n = variable.getNode();
+
+    Assert(isTheoryLeaf(n));
+    Assert(n.hasAttribute(ArithVarAttr()));
+
+    ArithVar av = n.getAttribute(ArithVarAttr());
+
+    coeffs.push_back(constant.getValue());
+    variables.push_back(av);
+  }
+}
+
+void TheoryArith::setupSlack(TNode left){
+
+  TypeNode real_type = NodeManager::currentNM()->realType();
+  Node slack = NodeManager::currentNM()->mkVar(real_type);
+  left.setAttribute(Slack(), slack);
+
+  ArithVar varSlack = requestArithVar(slack, true);
+
+  Polynomial polyLeft = Polynomial::parsePolynomial(left);
+
+  vector<ArithVar> variables;
+  vector<Rational> coefficients;
+
+  asVectors(polyLeft, coefficients, variables);
+
+  d_tableau.addRow(varSlack, coefficients, variables);
+
+  setupInitialValue(varSlack);
+}
+
 /* Requirements:
  * For basic variables the row must have been added to the tableau.
  */
-void TheoryArith::setupVariable(TNode x){
-  Assert(x.getMetaKind() == kind::metakind::VARIABLE);
-  d_variables.push_back(Node(x));
+void TheoryArith::setupInitialValue(ArithVar x){
 
-  initActivity(x);
-
-  if(!isBasic(x)){
+  if(!d_basicManager.isBasic(x)){
     d_partialModel.initialize(x,d_constants.d_ZERO_DELTA);
   }else{
     //If the variable is basic, assertions may have already happened and updates
@@ -270,13 +320,13 @@ void TheoryArith::setupVariable(TNode x){
 /**
  * Computes the value of a basic variable using the current assignment.
  */
-DeltaRational TheoryArith::computeRowValueUsingAssignment(TNode x){
-  Assert(isBasic(x));
+DeltaRational TheoryArith::computeRowValueUsingAssignment(ArithVar x){
+  Assert(d_basicManager.isBasic(x));
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
   Row* row = d_tableau.lookup(x);
   for(Row::iterator i = row->begin(); i != row->end();++i){
-    TNode nonbasic = i->first;
+    ArithVar nonbasic = i->first;
     const Rational& coeff = i->second;
     const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic);
     sum = sum + (assignment * coeff);
@@ -287,13 +337,13 @@ DeltaRational TheoryArith::computeRowValueUsingAssignment(TNode x){
 /**
  * Computes the value of a basic variable using the current assignment.
  */
-DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(TNode x){
-  Assert(isBasic(x));
+DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(ArithVar x){
+  Assert(d_basicManager.isBasic(x));
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
   Row* row = d_tableau.lookup(x);
   for(Row::iterator i = row->begin(); i != row->end();++i){
-    TNode nonbasic = i->first;
+    ArithVar nonbasic = i->first;
     const Rational& coeff = i->second;
     const DeltaRational& assignment = d_partialModel.getSafeAssignment(nonbasic);
     sum = sum + (assignment * coeff);
@@ -311,13 +361,14 @@ void TheoryArith::registerTerm(TNode tn){
 
 /* procedure AssertUpper( x_i <= c_i) */
 bool TheoryArith::AssertUpper(TNode n, TNode original){
-  TNode x_i = n[0];
+  TNode nodeX_i = n[0];
+  ArithVar x_i = nodeX_i.getAttribute(ArithVarAttr());
   Rational dcoeff = Rational(Integer(deltaCoeff(n.getKind())));
   DeltaRational c_i(n[1].getConst<Rational>(), dcoeff);
 
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
-  if(isBasic(x_i) && d_tableau.isEjected(x_i)){
+  if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
     reinjectVariable(x_i);
   }
 
@@ -336,9 +387,9 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
 
-  resetActivity(x_i);
+  d_activityMonitor.resetActivity(x_i);
 
-  if(!isBasic(x_i)){
+  if(!d_basicManager.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) > c_i){
       update(x_i, c_i);
     }
@@ -351,13 +402,14 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
 
 /* procedure AssertLower( x_i >= c_i ) */
 bool TheoryArith::AssertLower(TNode n, TNode original){
-  TNode x_i = n[0];
+  TNode nodeX_i = n[0];
+  ArithVar x_i = nodeX_i.getAttribute(ArithVarAttr());
   Rational dcoeff = Rational(Integer(deltaCoeff(n.getKind())));
   DeltaRational c_i(n[1].getConst<Rational>(),dcoeff);
 
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(isBasic(x_i) && d_tableau.isEjected(x_i)){
+  if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
     reinjectVariable(x_i);
   }
 
@@ -375,9 +427,9 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
 
   d_partialModel.setLowerConstraint(x_i,original);
   d_partialModel.setLowerBound(x_i, c_i);
-  resetActivity(x_i);
+  d_activityMonitor.resetActivity(x_i);
 
-  if(!isBasic(x_i)){
+  if(!d_basicManager.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) < c_i){
       update(x_i, c_i);
     }
@@ -391,12 +443,13 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
 /* procedure AssertLower( x_i == c_i ) */
 bool TheoryArith::AssertEquality(TNode n, TNode original){
   Assert(n.getKind() == EQUAL);
-  TNode x_i = n[0];
+  TNode nodeX_i = n[0];
+  ArithVar x_i = nodeX_i.getAttribute(ArithVarAttr());
   DeltaRational c_i(n[1].getConst<Rational>());
 
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(isBasic(x_i) && d_tableau.isEjected(x_i)){
+  if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
     reinjectVariable(x_i);
   }
 
@@ -428,9 +481,9 @@ bool TheoryArith::AssertEquality(TNode n, TNode original){
 
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
-  resetActivity(x_i);
+  d_activityMonitor.resetActivity(x_i);
 
-  if(!isBasic(x_i)){
+  if(!d_basicManager.isBasic(x_i)){
     if(!(d_partialModel.getAssignment(x_i) == c_i)){
       update(x_i, c_i);
     }
@@ -440,8 +493,8 @@ bool TheoryArith::AssertEquality(TNode n, TNode original){
 
   return false;
 }
-void TheoryArith::update(TNode x_i, DeltaRational& v){
-  Assert(!isBasic(x_i));
+void TheoryArith::update(ArithVar x_i, DeltaRational& v){
+  Assert(!d_basicManager.isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
   ++(d_statistics.d_statUpdates);
 
@@ -452,7 +505,7 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
   for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
-    TNode x_j = *basicIter;
+    ArithVar x_j = *basicIter;
     Row* row_j = d_tableau.lookup(x_j);
 
     if(row_j->has(x_i)){
@@ -462,7 +515,7 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
       DeltaRational  nAssignment = assignment+(diff * a_ji);
       d_partialModel.setAssignment(x_j, nAssignment);
 
-      increaseActivity(x_j, 1);
+      d_activityMonitor.increaseActivity(x_j, 1);
 
       checkBasicVariable(x_j);
     }
@@ -475,7 +528,7 @@ void TheoryArith::update(TNode x_i, DeltaRational& v){
   }
 }
 
-void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
+void TheoryArith::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v){
   Assert(x_i != x_j);
 
   Row* row_i = d_tableau.lookup(x_i);
@@ -496,7 +549,7 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
   for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
-    TNode x_k = *basicIter;
+    ArithVar x_k = *basicIter;
     Row* row_k = d_tableau.lookup(x_k);
 
     if(x_k != x_i && row_k->has(x_j)){
@@ -504,7 +557,7 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
 
-      increaseActivity(x_j, 1);
+      d_activityMonitor.increaseActivity(x_j, 1);
 
       checkBasicVariable(x_k);
     }
@@ -520,15 +573,15 @@ void TheoryArith::pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v){
   }
 }
 
-TNode TheoryArith::selectSmallestInconsistentVar(){
+ArithVar TheoryArith::selectSmallestInconsistentVar(){
   Debug("arith_update") << "selectSmallestInconsistentVar()" << endl;
   Debug("arith_update") << "possiblyInconsistent.size()"
                         << d_possiblyInconsistent.size() << endl;
 
   while(!d_possiblyInconsistent.empty()){
-    TNode var = d_possiblyInconsistent.top();
+    ArithVar var = d_possiblyInconsistent.top();
     Debug("arith_update") << "possiblyInconsistent var" << var << endl;
-    if(isBasic(var)){
+    if(d_basicManager.isBasic(var)){
       if(!d_partialModel.assignmentIsConsistent(var)){
         return var;
       }
@@ -541,7 +594,7 @@ TNode TheoryArith::selectSmallestInconsistentVar(){
         basicIter != d_tableau.end();
         ++basicIter){
 
-      TNode basic = *basicIter;
+      ArithVar basic = *basicIter;
       Assert(d_partialModel.assignmentIsConsistent(basic));
       if(!d_partialModel.assignmentIsConsistent(basic)){
         return basic;
@@ -549,15 +602,15 @@ TNode TheoryArith::selectSmallestInconsistentVar(){
     }
   }
 
-  return TNode::null();
+  return ARITHVAR_SENTINEL;
 }
 
 template <bool above>
-TNode TheoryArith::selectSlack(TNode x_i){
+ArithVar TheoryArith::selectSlack(ArithVar x_i){
    Row* row_i = d_tableau.lookup(x_i);
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = nbi->first;
+    ArithVar nonbasic = nbi->first;
     const Rational& a_ij = nbi->second;
     int cmp = a_ij.cmp(d_constants.d_ZERO);
     if(above){ // beta(x_i) > u_i
@@ -574,7 +627,7 @@ TNode TheoryArith::selectSlack(TNode x_i){
       }
     }
   }
-  return TNode::null();
+  return ARITHVAR_SENTINEL;
 }
 
 
@@ -586,9 +639,9 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
   while(true){
     if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
-    TNode x_i = selectSmallestInconsistentVar();
+    ArithVar x_i = selectSmallestInconsistentVar();
     Debug("arith_update") << "selectSmallestInconsistentVar()=" << x_i << endl;
-    if(x_i == Node::null()){
+    if(x_i == ARITHVAR_SENTINEL){
       Debug("arith_update") << "No inconsistent variables" << endl;
       return Node::null(); //sat
     }
@@ -601,8 +654,8 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
 
     if(d_partialModel.belowLowerBound(x_i, beta_i, true)){
       DeltaRational l_i = d_partialModel.getLowerBound(x_i);
-      TNode x_j = selectSlackBelow(x_i);
-      if(x_j == TNode::null() ){
+      ArithVar x_j = selectSlackBelow(x_i);
+      if(x_j == ARITHVAR_SENTINEL ){
         ++(d_statistics.d_statUpdateConflicts);
         return generateConflictBelow(x_i); //unsat
       }
@@ -610,8 +663,8 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
 
     }else if(d_partialModel.aboveUpperBound(x_i, beta_i, true)){
       DeltaRational u_i = d_partialModel.getUpperBound(x_i);
-      TNode x_j = selectSlackAbove(x_i);
-      if(x_j == TNode::null() ){
+      ArithVar x_j = selectSlackAbove(x_i);
+      if(x_j == ARITHVAR_SENTINEL ){
         ++(d_statistics.d_statUpdateConflicts);
         return generateConflictAbove(x_i); //unsat
       }
@@ -620,7 +673,8 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
   }
 }
 
-Node TheoryArith::generateConflictAbove(TNode conflictVar){
+Node TheoryArith::generateConflictAbove(ArithVar conflictVar){
+
   Row* row_i = d_tableau.lookup(conflictVar);
 
   NodeBuilder<> nb(kind::AND);
@@ -634,7 +688,7 @@ Node TheoryArith::generateConflictAbove(TNode conflictVar){
   nb << bound;
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = nbi->first;
+    ArithVar nonbasic = nbi->first;
     const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
@@ -657,7 +711,7 @@ Node TheoryArith::generateConflictAbove(TNode conflictVar){
   return conflict;
 }
 
-Node TheoryArith::generateConflictBelow(TNode conflictVar){
+Node TheoryArith::generateConflictBelow(ArithVar conflictVar){
   Row* row_i = d_tableau.lookup(conflictVar);
 
   NodeBuilder<> nb(kind::AND);
@@ -670,7 +724,7 @@ Node TheoryArith::generateConflictBelow(TNode conflictVar){
   nb << bound;
 
   for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    TNode nonbasic = nbi->first;
+    ArithVar nonbasic = nbi->first;
     const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
@@ -801,26 +855,23 @@ void TheoryArith::check(Effort level){
   if(Debug.isOn("arith::print_model")) {
     Debug("arith::print_model") << "Model:" << endl;
 
-    for (unsigned i = 0; i < d_variables.size(); ++ i) {
+    for (ArithVar i = 0; i < d_variables.size(); ++ i) {
       Debug("arith::print_model") << d_variables[i] << " : " <<
-        d_partialModel.getAssignment(d_variables[i]);
-      if(isBasic(d_variables[i]))
+        d_partialModel.getAssignment(i);
+      if(d_basicManager.isBasic(i))
         Debug("arith::print_model") << " (basic)";
       Debug("arith::print_model") << endl;
     }
   }
   if(Debug.isOn("arith::print_assertions")) {
     Debug("arith::print_assertions") << "Assertions:" << endl;
-    for (unsigned i = 0; i < d_variables.size(); ++ i) {
-      Node x = d_variables[i];
-      if (x.hasAttribute(partial_model::LowerConstraint())) {
-        Node constr = d_partialModel.getLowerConstraint(x);
-        Debug("arith::print_assertions") << constr.toString() << endl;
-      }
-      if (x.hasAttribute(partial_model::UpperConstraint())) {
-        Node constr = d_partialModel.getUpperConstraint(x);
-        Debug("arith::print_assertions") << constr.toString() << endl;
-      }
+    for (ArithVar i = 0; i < d_variables.size(); ++ i) {
+      Node lConstr = d_partialModel.getLowerConstraint(i);
+      Debug("arith::print_assertions") << lConstr.toString() << endl;
+
+      Node uConstr = d_partialModel.getUpperConstraint(i);
+      Debug("arith::print_assertions") << uConstr.toString() << endl;
+
     }
   }
 }
@@ -836,14 +887,14 @@ void TheoryArith::checkTableau(){
 
   for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end(); ++basicIter){
-    TNode basic = *basicIter;
+    ArithVar basic = *basicIter;
     Row* row_k = d_tableau.lookup(basic);
     DeltaRational sum;
     Debug("paranoid:check_tableau") << "starting row" << basic << endl;
     for(Row::iterator nonbasicIter = row_k->begin();
         nonbasicIter != row_k->end();
         ++nonbasicIter){
-      TNode nonbasic = nonbasicIter->first;
+      ArithVar nonbasic = nonbasicIter->first;
       const Rational& coeff = nonbasicIter->second;
       DeltaRational beta = d_partialModel.getAssignment(nonbasic);
       Debug("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;

@@ -19,7 +19,8 @@
 
 
 #include "context/context.h"
-#include "context/cdmap.h"
+#include "context/cdvector.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -34,32 +35,35 @@ namespace theory {
 namespace arith {
 
 namespace partial_model {
-struct DeltaRationalCleanupStrategy{
-  static void cleanup(DeltaRational* dq){
-    Debug("arithgc") << "cleaning up  " << dq << "\n";
-    if(dq != NULL){
-      delete dq;
-    }
-  }
-};
-
-struct AssignmentAttrID {};
-typedef expr::Attribute<AssignmentAttrID,
-                        DeltaRational*,
-                        DeltaRationalCleanupStrategy> Assignment;
+// struct DeltaRationalCleanupStrategy{
+//   static void cleanup(DeltaRational* dq){
+//     Debug("arithgc") << "cleaning up  " << dq << "\n";
+//     if(dq != NULL){
+//       delete dq;
+//     }
+//   }
+// };
 
 
-struct SafeAssignmentAttrID {};
-typedef expr::Attribute<SafeAssignmentAttrID,
-                        DeltaRational*,
-                        DeltaRationalCleanupStrategy> SafeAssignment;
+// struct AssignmentAttrID {};
+// typedef expr::Attribute<AssignmentAttrID,
+//                         DeltaRational*,
+//                         DeltaRationalCleanupStrategy> Assignment;
+
+
+// struct SafeAssignmentAttrID {};
+// typedef expr::Attribute<SafeAssignmentAttrID,
+//                         DeltaRational*,
+//                         DeltaRationalCleanupStrategy> SafeAssignment;
+
+
 
 /**
  * This defines a context dependent delta rational map.
  * This is used to keep track of the current lower and upper bounds on
  * each variable.  This information is conext dependent.
  */
-typedef context::CDMap<TNode, DeltaRational, TNodeHashFunction> CDDRationalMap;
+//typedef context::CDMap<TNode, DeltaRational, TNodeHashFunction> CDDRationalMap;
 /* Side disucssion for why new tables are introduced instead of using the
  * attribute framework.
  * It comes down to that the obvious ways to use the current attribute
@@ -95,20 +99,20 @@ typedef context::CDMap<TNode, DeltaRational, TNodeHashFunction> CDDRationalMap;
  * Note the strong correspondence between this and LowerBoundMap.
  * This is used during conflict analysis.
  */
-struct LowerConstraintAttrID {};
-typedef expr::CDAttribute<LowerConstraintAttrID,TNode> LowerConstraint;
+// struct LowerConstraintAttrID {};
+// typedef expr::CDAttribute<LowerConstraintAttrID,TNode> LowerConstraint;
 
 /**
  * See the documentation for LowerConstraint.
  */
-struct UpperConstraintAttrID {};
-typedef expr::CDAttribute<UpperConstraintAttrID,TNode> UpperConstraint;
+// struct UpperConstraintAttrID {};
+// typedef expr::CDAttribute<UpperConstraintAttrID,TNode> UpperConstraint;
 
-struct TheoryArithPropagatedID {};
-typedef expr::CDAttribute<TheoryArithPropagatedID, bool> TheoryArithPropagated;
+// struct TheoryArithPropagatedID {};
+// typedef expr::CDAttribute<TheoryArithPropagatedID, bool> TheoryArithPropagated;
 
-struct HasHadABoundID {};
-typedef expr::Attribute<HasHadABoundID, bool> HasHadABound;
+// struct HasHadABoundID {};
+// typedef expr::Attribute<HasHadABoundID, bool> HasHadABound;
 
 }; /*namespace partial_model*/
 
@@ -116,36 +120,55 @@ typedef expr::Attribute<HasHadABoundID, bool> HasHadABound;
 
 class ArithPartialModel {
 private:
-  partial_model::CDDRationalMap d_LowerBoundMap;
-  partial_model::CDDRationalMap d_UpperBoundMap;
+
+  unsigned d_mapSize;
+  //Maps from ArithVar -> T
+
+  std::vector<bool> d_hasHadABound;
+
+  std::vector<bool> d_hasSafeAssignment;
+  std::vector<DeltaRational> d_assignment;
+  std::vector<DeltaRational> d_safeAssignment;
+
+  context::CDVector<DeltaRational> d_upperBound;
+  context::CDVector<DeltaRational> d_lowerBound;
+  context::CDVector<TNode> d_upperConstraint;
+  context::CDVector<TNode> d_lowerConstraint;
 
 
   /**
    * List contains all of the variables that have an unsafe assignment.
    */
-  typedef std::vector<TNode> HistoryList;
+  typedef std::vector<ArithVar> HistoryList;
   HistoryList d_history;
 
 public:
 
   ArithPartialModel(context::Context* c):
-    d_LowerBoundMap(c),
-    d_UpperBoundMap(c),
+    d_mapSize(0),
+    d_hasHadABound(),
+    d_hasSafeAssignment(),
+    d_assignment(),
+    d_safeAssignment(),
+    d_upperBound(c, false),
+    d_lowerBound(c, false),
+    d_upperConstraint(c,false),
+    d_lowerConstraint(c,false),
     d_history()
   { }
 
-  void setLowerConstraint(TNode x, TNode constraint);
-  void setUpperConstraint(TNode x, TNode constraint);
-  TNode getLowerConstraint(TNode x);
-  TNode getUpperConstraint(TNode x);
+  void setLowerConstraint(ArithVar x, TNode constraint);
+  void setUpperConstraint(ArithVar x, TNode constraint);
+  TNode getLowerConstraint(ArithVar x);
+  TNode getUpperConstraint(ArithVar x);
 
 
 
   /* Initializes a variable to a safe value.*/
-  void initialize(TNode x, const DeltaRational& r);
+  void initialize(ArithVar x, const DeltaRational& r);
 
   /* Gets the last assignment to a variable that is known to be conistent. */
-  DeltaRational getSafeAssignment(TNode x) const;
+  const DeltaRational& getSafeAssignment(ArithVar x) const;
 
   /* Reverts all variable assignments to their safe values. */
   void revertAssignmentChanges();
@@ -156,41 +179,42 @@ public:
 
 
 
-  void setUpperBound(TNode x, const DeltaRational& r);
-  void setLowerBound(TNode x, const DeltaRational& r);
+  void setUpperBound(ArithVar x, const DeltaRational& r);
+  void setLowerBound(ArithVar x, const DeltaRational& r);
 
   /* Sets an unsafe variable assignment */
-  void setAssignment(TNode x, const DeltaRational& r);
-  void setAssignment(TNode x, const DeltaRational& safe, const DeltaRational& r);
+  void setAssignment(ArithVar x, const DeltaRational& r);
+  void setAssignment(ArithVar x, const DeltaRational& safe, const DeltaRational& r);
 
 
   /** Must know that the bound exists before calling this! */
-  DeltaRational getUpperBound(TNode x) const;
-  DeltaRational getLowerBound(TNode x) const;
-  const DeltaRational& getAssignment(TNode x) const;
+  const DeltaRational& getUpperBound(ArithVar x);
+  const DeltaRational& getLowerBound(ArithVar x);
+  const DeltaRational& getAssignment(ArithVar x) const;
 
 
   /**
    * x <= l
    * ? c < l
    */
-  bool belowLowerBound(TNode x, const DeltaRational& c, bool strict);
+  bool belowLowerBound(ArithVar x, const DeltaRational& c, bool strict);
 
   /**
    * x <= u
    * ? c < u
    */
-  bool aboveUpperBound(TNode x, const DeltaRational& c, bool strict);
+  bool aboveUpperBound(ArithVar x, const DeltaRational& c, bool strict);
 
-  bool strictlyBelowUpperBound(TNode x);
-  bool strictlyAboveLowerBound(TNode x);
-  bool assignmentIsConsistent(TNode x);
+  bool strictlyBelowUpperBound(ArithVar x);
+  bool strictlyAboveLowerBound(ArithVar x);
+  bool assignmentIsConsistent(ArithVar x);
 
-  void printModel(TNode x);
+  void printModel(ArithVar x);
 
-  bool hasBounds(TNode x);
-  bool hasEverHadABound(TNode var){
-    return var.getAttribute(partial_model::HasHadABound());
+  bool hasBounds(ArithVar x);
+
+  bool hasEverHadABound(ArithVar var){
+    return d_hasHadABound[var];
   }
 
 private:
@@ -200,6 +224,13 @@ private:
    * revertAssignmentChanges() and commitAssignmentChanges().
    */
   void clearSafeAssignments(bool revert);
+
+  bool equalSizes();
+
+  bool inMaps(ArithVar x) const{
+    return 0 <= x && x < d_mapSize;
+  }
+
 };
 
 

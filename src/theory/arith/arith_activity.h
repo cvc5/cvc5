@@ -30,27 +30,34 @@ namespace theory {
 namespace arith {
 
 
-struct ArithActivityID {};
-typedef expr::Attribute<ArithActivityID, uint64_t> ArithActivity;
+class ActivityMonitor {
+private:
+  std::vector<uint64_t> d_activities;
 
-inline void resetActivity(TNode var){
-  var.setAttribute(ArithActivity(), 0);
-}
-inline void initActivity(TNode var){
-  resetActivity(var);
-}
+public:
+  const static uint64_t ACTIVITY_THRESHOLD = 100;
 
-inline uint64_t getActivity(TNode var){
-  return var.getAttribute(ArithActivity());
-}
+  ActivityMonitor() : d_activities() {}
 
-inline void increaseActivity(TNode var, uint64_t x){
-  Assert(var.hasAttribute(ArithActivity()));
-  uint64_t newValue = x + getActivity(var);
-  var.setAttribute(ArithActivity(), newValue);
-}
+  void resetActivity(ArithVar var){
+    d_activities[var] = 0;
+  }
 
-const static uint64_t ACTIVITY_THRESHOLD = 100;
+  void initActivity(ArithVar var){
+    Assert(var == d_activities.size());
+    d_activities.push_back(0);
+  }
+
+  uint64_t getActivity(ArithVar var) const{
+    return d_activities[var];
+  }
+
+  inline void increaseActivity(ArithVar var, uint64_t x){
+    d_activities[var] += x;
+  }
+
+};
+
 
 }; /* namesapce arith */
 }; /* namespace theory */

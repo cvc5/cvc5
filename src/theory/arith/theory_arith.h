@@ -26,6 +26,9 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/basic.h"
+#include "theory/arith/arith_activity.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
 #include "theory/arith/next_arith_rewriter.h"
@@ -55,12 +58,9 @@ private:
   std::vector<Node> d_splits;
   //This stores the eager splits sent out of the theory.
 
-  std::vector<Node> d_variables;
-  // Currently forces every variable and skolem constant that
-  // can hit the tableau to stay alive forever!
-
   /* Chopping block ends */
 
+  std::vector<Node> d_variables;
 
   /**
    * Priority Queue of the basic variables that may be inconsistent.
@@ -69,7 +69,7 @@ private:
    * basic variable. This is only required to be a superset though so its
    * contents must be checked to still be basic and inconsistent.
    */
-  std::priority_queue<Node> d_possiblyInconsistent;
+  std::priority_queue<ArithVar> d_possiblyInconsistent;
 
   /** Stores system wide constants to avoid unnessecary reconstruction. */
   ArithConstants d_constants;
@@ -80,6 +80,8 @@ private:
    */
   ArithPartialModel d_partialModel;
 
+  IsBasicManager d_basicManager;
+  ActivityMonitor d_activityMonitor;
 
   /**
    * List of all of the inequalities asserted in the current context.
@@ -131,6 +133,9 @@ public:
   std::string identify() const { return std::string("TheoryArith"); }
 
 private:
+
+  bool isTheoryLeaf(TNode x) const;
+
   /**
    * Assert*(n, orig) takes an bound n that is implied by orig.
    * and asserts that as a new bound if it is tighter than the current bound
@@ -155,14 +160,14 @@ private:
    * Updates the assignment of a nonbasic variable x_i to v.
    * Also updates the assignment of basic variables accordingly.
    */
-  void update(TNode x_i, DeltaRational& v);
+  void update(ArithVar x_i, DeltaRational& v);
 
   /**
    * Updates the value of a basic variable x_i to v,
    * and then pivots x_i with the nonbasic variable in its row x_j.
    * Updates the assignment of the other basic variables accordingly.
    */
-  void pivotAndUpdate(TNode x_i, TNode x_j, DeltaRational& v);
+  void pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v);
 
   /**
    * Tries to update the assignments of variables such that all of the
@@ -193,45 +198,51 @@ private:
    * - !above && a_ij > 0 && assignment(x_j) < upperbound(x_j)
    * - !above && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
    */
-  template <bool above>
-  TNode selectSlack(TNode x_i);
+  template <bool above>  ArithVar selectSlack(ArithVar x_i);
 
-  TNode selectSlackBelow(TNode x_i) { return selectSlack<false>(x_i); }
-  TNode selectSlackAbove(TNode x_i) { return selectSlack<true>(x_i);  }
+  ArithVar selectSlackBelow(ArithVar x_i) { return selectSlack<false>(x_i); }
+  ArithVar selectSlackAbove(ArithVar x_i) { return selectSlack<true>(x_i);  }
 
   /**
    * Returns the smallest basic variable whose assignment is not consistent
    * with its upper and lower bounds.
    */
-  TNode selectSmallestInconsistentVar();
+  ArithVar selectSmallestInconsistentVar();
 
   /**
    * Given a non-basic variable that is know to not be updatable
    * to a consistent value, construct and return a conflict.
    * Follows section 4.2 in the CAV06 paper.
    */
-  Node generateConflictAbove(TNode conflictVar);
-  Node generateConflictBelow(TNode conflictVar);
+  Node generateConflictAbove(ArithVar conflictVar);
+  Node generateConflictBelow(ArithVar conflictVar);
 
+
+  /**
+   * This requests a new unique ArithVar value for x.
+   * This also does initial (not context dependent) set up for a variable,
+   * except for setting up the initial.
+   */
+  ArithVar requestArithVar(TNode x, bool basic);
 
   /** Initial (not context dependent) sets up for a variable.*/
-  void setupVariable(TNode x);
+  void setupInitialValue(ArithVar x);
 
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);
 
 
   /** Computes the value of a row in the tableau using the current assignment.*/
-  DeltaRational computeRowValueUsingAssignment(TNode x);
+  DeltaRational computeRowValueUsingAssignment(ArithVar x);
 
   /** Computes the value of a row in the tableau using the safe assignment.*/
-  DeltaRational computeRowValueUsingSavedAssignment(TNode x);
+  DeltaRational computeRowValueUsingSavedAssignment(ArithVar x);
 
   /** Checks to make sure the assignment is consistent with the tableau. */
   void checkTableau();
 
   /** Check to make sure all of the basic variables are within their bounds. */
-  void checkBasicVariable(TNode basic);
+  void checkBasicVariable(ArithVar basic);
 
   /**
    * Handles the case splitting for check() for a new assertion.
@@ -239,13 +250,17 @@ private:
    */
   bool assertionCases(TNode original, TNode assertion);
 
-  TNode findBasicRow(TNode variable);
-  bool shouldEject(TNode var);
+  ArithVar findBasicRow(ArithVar variable);
+  bool shouldEject(ArithVar var);
   void ejectInactiveVariables();
-  void reinjectVariable(TNode x);
+  void reinjectVariable(ArithVar x);
 
   //TODO get rid of this!
   Node simulatePreprocessing(TNode n);
+
+  void asVectors(Polynomial& p,
+                 std::vector<Rational>& coeffs,
+                 std::vector<ArithVar>& variables) const;
 
 
   /** These fields are designed to be accessable to TheoryArith methods. */
@@ -253,6 +268,7 @@ private:
   public:
     IntStat d_statPivots, d_statUpdates, d_statAssertUpperConflicts;
     IntStat d_statAssertLowerConflicts, d_statUpdateConflicts;
+    IntStat d_statUserVariables, d_statSlackVariables;
 
     Statistics();
     ~Statistics();

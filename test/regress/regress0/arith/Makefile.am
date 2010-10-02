@@ -6,7 +6,8 @@ TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/src/main/cvc4
 TESTS =	\
 	arith.01.cvc \
 	arith.02.cvc \
-	arith.03.cvc
+	arith.03.cvc \
+	leq.01.smt
 
 EXTRA_DIST = $(TESTS)
 

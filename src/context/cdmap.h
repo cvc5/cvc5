@@ -340,19 +340,17 @@ public:
   }
 
   void clear() throw(AssertionException) {
-    Debug("gc") << "clearing cdmap " << this << std::endl;
-
-    Debug("gc") << "cdmap " << this << " cleared, emptying trash" << std::endl;
+    Debug("gc") << "clearing cdmap " << this << ", emptying trash" << std::endl;
     emptyTrash();
     Debug("gc") << "done emptying trash for " << this << std::endl;
 
-    for(typename table_type::iterator i = d_map.begin();
-        i != d_map.end();
-        ++i) {
+    for(Element* i = d_first; i != NULL;) {
       // mark it as being a destruction (short-circuit restore())
-      (*i).second->d_map = NULL;
-      if(!(*i).second->d_noTrash) {
-        (*i).second->deleteSelf();
+      Element* thisOne = i;
+      i = i->next();
+      thisOne->d_map = NULL;
+      if(!thisOne->d_noTrash) {
+        thisOne->deleteSelf();
       }
     }
     d_map.clear();
