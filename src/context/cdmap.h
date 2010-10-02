@@ -344,13 +344,13 @@ public:
     emptyTrash();
     Debug("gc") << "done emptying trash for " << this << std::endl;
 
-    for(Element* i = d_first; i != NULL;) {
+    for(typename table_type::iterator i = d_map.begin();
+        i != d_map.end();
+        ++i) {
       // mark it as being a destruction (short-circuit restore())
-      Element* thisOne = i;
-      i = i->next();
-      thisOne->d_map = NULL;
-      if(!thisOne->d_noTrash) {
-        thisOne->deleteSelf();
+      (*i).second->d_map = NULL;
+      if(!(*i).second->d_noTrash) {
+        (*i).second->deleteSelf();
       }
     }
     d_map.clear();

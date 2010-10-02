@@ -90,6 +90,9 @@ class AttributeManager {
   void deleteFromTable(AttrHash<T>& table, NodeValue* nv);
 
   template <class T>
+  void deleteFromTable(CDAttrHash<T>& table, NodeValue* nv);
+
+  template <class T>
   void deleteAllFromTable(AttrHash<T>& table);
 
   /**
@@ -550,6 +553,17 @@ inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
     } else {
       table.erase(pr);
     }
+  }
+}
+
+/**
+ * Obliterate a NodeValue from a (context-dependent) attribute table.
+ */
+template <class T>
+inline void AttributeManager::deleteFromTable(CDAttrHash<T>& table,
+                                              NodeValue* nv) {
+  for(unsigned id = 0; id < attr::LastAttributeId<T, true>::s_id; ++id) {
+    table.obliterate(std::make_pair(id, nv));
   }
 }
 
