@@ -78,6 +78,9 @@ void segv_handler(int sig, siginfo_t* info, void*) {
   }
 #else /* CVC4_DEBUG */
   fprintf(stderr, "CVC4 suffered a segfault.\n");
+  if(options.statistics) {
+    StatisticsRegistry::flushStatistics(cerr);
+  }
   abort();
 #endif /* CVC4_DEBUG */
 }
@@ -88,6 +91,9 @@ void ill_handler(int sig, siginfo_t* info, void*) {
   fprintf(stderr, "CVC4 executed an illegal instruction in DEBUG mode.\n");
   if(segvNoSpin) {
     fprintf(stderr, "No-spin requested, aborting...\n");
+    if(options.statistics) {
+      StatisticsRegistry::flushStatistics(cerr);
+    }
     abort();
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
@@ -98,6 +104,9 @@ void ill_handler(int sig, siginfo_t* info, void*) {
   }
 #else /* CVC4_DEBUG */
   fprintf(stderr, "CVC4 executed an illegal instruction.\n");
+  if(options.statistics) {
+    StatisticsRegistry::flushStatistics(cerr);
+  }
   abort();
 #endif /* CVC4_DEBUG */
 }
@@ -119,6 +128,9 @@ void cvc4unexpected() {
   }
   if(segvNoSpin) {
     fprintf(stderr, "No-spin requested.\n");
+    if(options.statistics) {
+      StatisticsRegistry::flushStatistics(cerr);
+    }
     set_terminate(default_terminator);
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
@@ -129,6 +141,9 @@ void cvc4unexpected() {
   }
 #else /* CVC4_DEBUG */
   fprintf(stderr, "CVC4 threw an \"unexpected\" exception.\n");
+  if(options.statistics) {
+    StatisticsRegistry::flushStatistics(cerr);
+  }
   set_terminate(default_terminator);
 #endif /* CVC4_DEBUG */
 }
@@ -139,11 +154,17 @@ void cvc4terminate() {
           "CVC4 was terminated by the C++ runtime.\n"
           "Perhaps an exception was thrown during stack unwinding.  "
           "(Don't do that.)\n");
+  if(options.statistics) {
+    StatisticsRegistry::flushStatistics(cerr);
+  }
   default_terminator();
 #else /* CVC4_DEBUG */
   fprintf(stderr,
           "CVC4 was terminated by the C++ runtime.\n"
           "Perhaps an exception was thrown during stack unwinding.\n");
+  if(options.statistics) {
+    StatisticsRegistry::flushStatistics(cerr);
+  }
   default_terminator();
 #endif /* CVC4_DEBUG */
 }
