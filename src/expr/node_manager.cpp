@@ -2,8 +2,8 @@
 /*! \file node_manager.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): taking, cconway
+ ** Major contributors: cconway, dejan
+ ** Minor contributors (to current version): acsys, taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

@@ -1,9 +1,9 @@
 /*********************                                                        */
-/*! \file theory_uf_white.h
+/*! \file theory_uf_tim_white.h
  ** \verbatim
  ** Original author: taking
- ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan
+ ** Major contributors: barrett
+ ** Minor contributors (to current version): cconway, dejan, mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

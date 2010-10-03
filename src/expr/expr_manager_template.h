@@ -2,8 +2,8 @@
 /*! \file expr_manager_template.h
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: cconway, mdeters
- ** Minor contributors (to current version): taking
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): taking, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

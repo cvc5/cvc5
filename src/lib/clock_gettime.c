@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file clock_gettime.c
  ** \verbatim
- ** Original author: 
+ ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.

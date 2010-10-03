@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_uf.h
+/*! \file theory_uf_tim.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters
