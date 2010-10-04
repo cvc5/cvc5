@@ -16,11 +16,6 @@
  ** Public-facing expression manager interface, implementation.
  **/
 
-#include "expr/node.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/metakind.h"
-#include "expr/type.h"
 #include "expr/node_manager.h"
 #include "expr/expr_manager.h"
 #include "context/context.h"
@@ -31,7 +26,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 35 "${template}"
+#line 30 "${template}"
 
 using namespace std;
 using namespace CVC4::context;

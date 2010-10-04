@@ -18,7 +18,6 @@
 
 #include "cvc4autoconfig.h"
 #include "util/rational.h"
-#include "util/integer.h"
 #include <string>
 
 #ifndef CVC4_GMP_IMP

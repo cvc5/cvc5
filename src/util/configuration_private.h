@@ -20,8 +20,6 @@
 #ifndef __CVC4__CONFIGURATION_PRIVATE_H
 #define __CVC4__CONFIGURATION_PRIVATE_H
 
-#include "cvc4autoconfig.h"
-
 using namespace std;
 
 namespace CVC4 {

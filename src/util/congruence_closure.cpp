@@ -17,17 +17,9 @@
  **/
 
 #include "util/congruence_closure.h"
-#include "util/Assert.h"
-
-#include <string>
-#include <list>
-#include <algorithm>
-#include <utility>
-#include <ext/hash_map>
 
 using namespace std;
 
 namespace CVC4 {
-
 
 }/* CVC4 namespace */

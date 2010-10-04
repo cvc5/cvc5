@@ -16,8 +16,12 @@
  ** Interface for expression types
  **/
 
-#ifndef __CVC4__TYPE_CONSTANT_H_
-#define __CVC4__TYPE_CONSTANT_H_
+#include "cvc4_public.h"
+
+#ifndef __CVC4__TYPE_CONSTANT_H
+#define __CVC4__TYPE_CONSTANT_H
+
+#include <iostream>
 
 namespace CVC4 {
 
@@ -33,7 +37,7 @@ enum TypeConstant {
   REAL_TYPE,
   /** The kind type (type of types) */
   KIND_TYPE
-};
+};/* enum TypeConstant */
 
 /**
  * We hash the constants with their values.
@@ -45,7 +49,6 @@ struct TypeConstantHashStrategy {
 };/* struct BoolHashStrategy */
 
 inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
-
   switch(typeConstant) {
   case BOOLEAN_TYPE:
     out << "BOOLEAN";
@@ -66,6 +69,6 @@ inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   return out;
 }
 
-}
+}/* CVC4 namespace */
 
-#endif /* __CVC4__TYPE_CONSTANT_H_ */
+#endif /* __CVC4__TYPE_CONSTANT_H */

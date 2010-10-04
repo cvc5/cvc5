@@ -18,13 +18,13 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SEXPR_H_
-#define __CVC4__SEXPR_H_
-
-#include "util/Assert.h"
+#ifndef __CVC4__SEXPR_H
+#define __CVC4__SEXPR_H
 
 #include <vector>
 #include <string>
+
+#include "util/Assert.h"
 
 namespace CVC4 {
 
@@ -106,6 +106,6 @@ inline std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) {
   return out;
 }
 
-}
+}/* CVC4 namespace */
 
-#endif /* __CVC4__SEXPR_H_ */
+#endif /* __CVC4__SEXPR_H */

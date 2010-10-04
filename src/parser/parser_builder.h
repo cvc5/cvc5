@@ -18,8 +18,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_BUILDER_H_
-#define __CVC4__PARSER__PARSER_BUILDER_H_
+#ifndef __CVC4__PARSER__PARSER_BUILDER_H
+#define __CVC4__PARSER__PARSER_BUILDER_H
 
 #include <string>
 
@@ -31,8 +31,8 @@ namespace CVC4 {
 class ExprManager;
 
 namespace parser {
-/*
 
+/*
 class InputBuilder {
 protected:
   InputLanguage d_lang;
@@ -126,9 +126,9 @@ public:
 
   /** Set the parser to use the given string for its input. */
   ParserBuilder& withStringInput(const std::string& input);
-};
+};/* class ParserBuilder */
 
-} /* namespace parser */
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
-} /* namespace CVC4 */
-#endif /* __CVC4__PARSER__PARSER_BUILDER_H_ */
+#endif /* __CVC4__PARSER__PARSER_BUILDER_H */

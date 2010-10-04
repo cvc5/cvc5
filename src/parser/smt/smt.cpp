@@ -16,9 +16,10 @@
 
 #include <ext/hash_map>
 namespace std {
-using namespace __gnu_cxx;
+  using namespace __gnu_cxx;
 }
 
+#include "expr/type.h"
 #include "parser/parser.h"
 #include "parser/smt/smt.h"
 

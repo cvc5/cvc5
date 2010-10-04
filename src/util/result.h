@@ -21,8 +21,6 @@
 #ifndef __CVC4__RESULT_H
 #define __CVC4__RESULT_H
 
-#include "util/Assert.h"
-
 namespace CVC4 {
 
 // TODO: perhaps best to templatize Result on its Kind (SAT/Validity),

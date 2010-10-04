@@ -115,5 +115,4 @@ unsigned TypeNode::getBitVectorSize() const {
   return getConst<BitVectorSize>();
 }
 
-
 }/* CVC4 namespace */

@@ -22,6 +22,7 @@
 
 #include "expr/expr.h"
 #include "expr/node_manager.h"
+#include "expr/expr_manager.h"
 
 namespace CVC4 {
 
@@ -56,9 +57,8 @@ public:
   inline ExprManagerScope(const ExprManager& exprManager) :
     d_nms(exprManager.getNodeManager()) {
   }
-};
+};/* class ExprManagerScope */
 
-}
-
+}/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR_MANAGER_SCOPE_H */

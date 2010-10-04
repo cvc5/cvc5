@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H_
-#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H_
+#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
+#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -63,4 +63,4 @@ struct ArrayStoreTypeRule {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H_ */
+#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H */

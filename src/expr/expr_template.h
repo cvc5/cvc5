@@ -21,10 +21,11 @@
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H
 
-#include "expr/type.h"
 #include <string>
 #include <iostream>
 #include <stdint.h>
+
+#include "util/exception.h"
 
 ${includes}
 
@@ -32,7 +33,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 36 "${template}"
+#line 37 "${template}"
 
 namespace CVC4 {
 
@@ -41,6 +42,8 @@ template <bool ref_count>
 class NodeTemplate;
 
 class Expr;
+class ExprManager;
+class Type;
 
 namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
@@ -553,13 +556,13 @@ public:
   static inline void setPrintTypes(std::ostream& out, bool printTypes) {
     out.iword(s_iosIndex) = printTypes;
   }
-};
+};/* class ExprPrintTypes */
 
 }/* CVC4::expr namespace */
 
 ${getConst_instantiations}
 
-#line 388 "${template}"
+#line 566 "${template}"
 
 namespace expr {
 

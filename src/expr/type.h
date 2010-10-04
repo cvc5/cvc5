@@ -21,19 +21,19 @@
 #ifndef __CVC4__TYPE_H
 #define __CVC4__TYPE_H
 
-#include "util/output.h"
-#include "util/Assert.h"
-
 #include <string>
 #include <vector>
 #include <limits.h>
 #include <stdint.h>
+
+#include "util/Assert.h"
 
 namespace CVC4 {
 
 class NodeManager;
 class ExprManager;
 class TypeNode;
+
 template <bool ref_count>
 class NodeTemplate;
 

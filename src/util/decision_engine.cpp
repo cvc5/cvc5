@@ -17,7 +17,6 @@
 
 #include "util/decision_engine.h"
 #include "util/Assert.h"
-#include "expr/node.h"
 
 namespace CVC4 {
 

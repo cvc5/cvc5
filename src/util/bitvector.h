@@ -19,8 +19,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BITVECTOR_H_
-#define __CVC4__BITVECTOR_H_
+#ifndef __CVC4__BITVECTOR_H
+#define __CVC4__BITVECTOR_H
 
 #include <iostream>
 #include "util/Assert.h"
@@ -247,7 +247,7 @@ struct UnsignedHashStrategy {
 
 std::ostream& operator <<(std::ostream& os, const BitVector& bv);
 std::ostream& operator <<(std::ostream& os, const BitVectorExtract& bv);
-}
 
+}/* CVC4 namespace */
 
-#endif /* __CVC4__BITVECTOR_H_ */
+#endif /* __CVC4__BITVECTOR_H */

@@ -25,6 +25,10 @@
 #ifndef __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 #define __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 
+#include <ext/hash_map>
+
+#include "context/cdmap.h"
+
 namespace CVC4 {
 namespace expr {
 

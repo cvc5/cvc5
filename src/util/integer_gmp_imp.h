@@ -24,6 +24,7 @@
 
 #include <string>
 #include <iostream>
+
 #include "util/gmp_util.h"
 
 namespace CVC4 {

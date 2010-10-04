@@ -16,13 +16,13 @@
  ** Convenience class for scoping variable and type declarations.
  **/
 
-#ifndef DECLARATION_SCOPE_H_
-#define DECLARATION_SCOPE_H_
+#ifndef DECLARATION_SCOPE_H
+#define DECLARATION_SCOPE_H
+
+#include <ext/hash_map>
 
 #include "expr/expr.h"
 #include "util/hash.h"
-
-#include <ext/hash_map>
 
 namespace CVC4 {
 
@@ -122,8 +122,8 @@ public:
 
   /** Push a scope level. */
   void pushScope() throw ();
-};
+};/* class DeclarationScope */
 
-} // namespace CVC4
+}/* namespace CVC4 */
 
-#endif /* DECLARATION_SCOPE_H_ */
+#endif /* DECLARATION_SCOPE_H */

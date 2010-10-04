@@ -21,14 +21,13 @@
 #ifndef __CVC4__UTIL__CONGRUENCE_CLOSURE_H
 #define __CVC4__UTIL__CONGRUENCE_CLOSURE_H
 
-#include <list>
-#include <ext/hash_map>
-#include <ext/hash_set>
 #include <sstream>
+#include <list>
+
+#include <ext/hash_map>
 
 #include "expr/node_manager.h"
 #include "expr/node.h"
-#include "context/context.h"
 #include "context/cdmap.h"
 #include "context/cdset.h"
 #include "context/cdlist.h"

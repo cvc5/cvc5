@@ -16,6 +16,7 @@
  ** Definitions of SMT2 constants.
  **/
 
+#include "expr/type.h"
 #include "parser/parser.h"
 #include "parser/smt/smt.h"
 #include "parser/smt2/smt2.h"

@@ -18,14 +18,11 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__ARRAY_H_
-#define __CVC4__ARRAY_H_
-
-#include <iostream>
-#include "util/Assert.h"
+#ifndef __CVC4__ARRAY_H
+#define __CVC4__ARRAY_H
 
 // we get ArrayType right now by #including type.h.
 // array.h is still useful for the auto-generated kinds #includes.
 #include "expr/type.h"
 
-#endif /* __CVC4__ARRAY_H_ */
+#endif /* __CVC4__ARRAY_H */

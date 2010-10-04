@@ -26,14 +26,8 @@
 #ifndef __CVC4__EXPR__ATTRIBUTE_H
 #define __CVC4__EXPR__ATTRIBUTE_H
 
-#include <stdint.h>
-
 #include <string>
-#include <ext/hash_map>
-
-#include "context/cdmap.h"
-#include "expr/node.h"
-#include "util/output.h"
+#include <stdint.h>
 
 // include supporting templates
 #define CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H

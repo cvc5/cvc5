@@ -29,4 +29,4 @@ std::ostream& operator <<(std::ostream& os, const BitVectorExtract& bv) {
   return os << "[" << bv.high << ":" << bv.low << "]";
 }
 
-}
+}/* CVC4 namespace */

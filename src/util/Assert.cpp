@@ -21,8 +21,6 @@
 #include <cstdio>
 
 #include "util/Assert.h"
-#include "util/exception.h"
-#include "util/tls.h"
 
 using namespace std;
 

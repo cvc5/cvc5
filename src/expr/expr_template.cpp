@@ -17,12 +17,9 @@
  **/
 
 #include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "expr/node.h"
-#include "util/Assert.h"
-
-#include "util/output.h"
 #include "expr/expr_manager_scope.h"
+#include "util/Assert.h"
 
 ${includes}
 
@@ -35,6 +32,8 @@ ${includes}
 using namespace CVC4::kind;
 
 namespace CVC4 {
+
+class ExprManager;
 
 namespace expr {
 

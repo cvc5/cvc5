@@ -16,13 +16,12 @@
  ** Implementation of expression types 
  **/
 
+#include <string>
+
 #include "expr/node_manager.h"
-#include "expr/expr_manager.h"
 #include "expr/type.h"
 #include "expr/type_node.h"
-#include "expr/type_constant.h"
 #include "util/Assert.h"
-#include <string>
 
 namespace CVC4 {
 
@@ -31,15 +30,13 @@ std::ostream& operator<<(std::ostream& out, const Type& e) {
   return out;
 }
 
-Type Type::makeType(const TypeNode& typeNode) const
-{
+Type Type::makeType(const TypeNode& typeNode) const {
   return Type(d_nodeManager, new TypeNode(typeNode));
 }
 
 Type::Type(NodeManager* nm, TypeNode* node)
 : d_typeNode(node),
-  d_nodeManager(nm)
-{
+  d_nodeManager(nm) {
 }
 
 Type::~Type() {

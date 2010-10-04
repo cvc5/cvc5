@@ -28,8 +28,11 @@
 #include <cstdarg>
 
 #include "util/exception.h"
-#include "util/output.h"
 #include "util/tls.h"
+
+// output.h not strictly needed for this header, but it _is_ needed to
+// actually _use_ anything in this header, so let's include it.
+#include "util/output.h"
 
 namespace CVC4 {
 

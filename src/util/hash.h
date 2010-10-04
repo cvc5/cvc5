@@ -17,8 +17,8 @@
  ** \todo document this file
  **/
 
-#ifndef __CVC4__HASH_H_
-#define __CVC4__HASH_H_
+#ifndef __CVC4__HASH_H
+#define __CVC4__HASH_H
 
 #include <ext/hash_map>
 namespace std { using namespace __gnu_cxx; }
@@ -29,8 +29,8 @@ struct StringHashFunction {
   size_t operator()(const std::string& str) const {
     return std::hash<const char*>()(str.c_str());
   }
-};
+};/* struct StringHashFunction */
 
-}
+}/* CVC4 namespace */
 
-#endif /* __CVC4__HASH_H_ */
+#endif /* __CVC4__HASH_H */

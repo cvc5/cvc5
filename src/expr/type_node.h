@@ -32,7 +32,6 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/Assert.h"
-#include "util/output.h"
 
 namespace CVC4 {
 

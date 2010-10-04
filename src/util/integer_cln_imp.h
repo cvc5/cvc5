@@ -23,12 +23,12 @@
 #define __CVC4__INTEGER_H
 
 #include <string>
-#include <iostream>
-#include <cln/integer.h>
 #include <sstream>
+#include <iostream>
+
+#include <cln/integer.h>
 #include <cln/input.h>
 #include <cln/integer_io.h>
-#include "util/Assert.h"
 
 namespace CVC4 {
 
