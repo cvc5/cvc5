@@ -232,13 +232,12 @@ bool TheoryArith::isTheoryLeaf(TNode x) const{
 
 ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
   Assert(isTheoryLeaf(x));
-  Assert(!x.hasAttribute(ArithVarAttr()));
+  Assert(!hasArithVar(x));
 
   ArithVar varX = d_variables.size();
   d_variables.push_back(Node(x));
 
-  x.setAttribute(ArithVarAttr(), varX);
-
+  setArithVar(x,varX);
 
   d_activityMonitor.initActivity(varX);
   d_basicManager.init(varX, basic);
@@ -257,9 +256,9 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
     Node n = variable.getNode();
 
     Assert(isTheoryLeaf(n));
-    Assert(n.hasAttribute(ArithVarAttr()));
+    Assert(hasArithVar(n));
 
-    ArithVar av = n.getAttribute(ArithVarAttr());
+    ArithVar av = asArithVar(n);
 
     coeffs.push_back(constant.getValue());
     variables.push_back(av);
@@ -362,7 +361,7 @@ void TheoryArith::registerTerm(TNode tn){
 /* procedure AssertUpper( x_i <= c_i) */
 bool TheoryArith::AssertUpper(TNode n, TNode original){
   TNode nodeX_i = n[0];
-  ArithVar x_i = nodeX_i.getAttribute(ArithVarAttr());
+  ArithVar x_i = asArithVar(nodeX_i);
   Rational dcoeff = Rational(Integer(deltaCoeff(n.getKind())));
   DeltaRational c_i(n[1].getConst<Rational>(), dcoeff);
 
@@ -403,7 +402,7 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
 /* procedure AssertLower( x_i >= c_i ) */
 bool TheoryArith::AssertLower(TNode n, TNode original){
   TNode nodeX_i = n[0];
-  ArithVar x_i = nodeX_i.getAttribute(ArithVarAttr());
+  ArithVar x_i = asArithVar(nodeX_i);
   Rational dcoeff = Rational(Integer(deltaCoeff(n.getKind())));
   DeltaRational c_i(n[1].getConst<Rational>(),dcoeff);
 
@@ -444,7 +443,7 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
 bool TheoryArith::AssertEquality(TNode n, TNode original){
   Assert(n.getKind() == EQUAL);
   TNode nodeX_i = n[0];
-  ArithVar x_i = nodeX_i.getAttribute(ArithVarAttr());
+  ArithVar x_i = asArithVar(nodeX_i);
   DeltaRational c_i(n[1].getConst<Rational>());
 
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;

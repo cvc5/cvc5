@@ -33,16 +33,26 @@ namespace theory {
 namespace arith {
 
 
-typedef uint64_t ArithVar;
+typedef uint32_t ArithVar;
 //static const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
 #define ARITHVAR_SENTINEL std::numeric_limits<ArithVar>::max()
 
 struct ArithVarAttrID{};
-typedef expr::Attribute<ArithVarAttrID,ArithVar> ArithVarAttr;
+typedef expr::Attribute<ArithVarAttrID,uint64_t> ArithVarAttr;
+
+inline bool hasArithVar(TNode x){
+  return x.hasAttribute(ArithVarAttr());
+}
 
 inline ArithVar asArithVar(TNode x){
-  Assert(x.hasAttribute(ArithVarAttr()));
+  Assert(hasArithVar(x));
+  Assert(x.getAttribute(ArithVarAttr()) <= ARITHVAR_SENTINEL);
   return x.getAttribute(ArithVarAttr());
+}
+
+inline void setArithVar(TNode x, ArithVar a){
+  Assert(!hasArithVar(x));
+  return x.setAttribute(ArithVarAttr(), (uint64_t)a);
 }
 
 inline Node mkRationalNode(const Rational& q){
