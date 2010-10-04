@@ -30,6 +30,8 @@
 #include <cln/input.h>
 #include <cln/integer_io.h>
 
+#include "util/Assert.h"
+
 namespace CVC4 {
 
 class Rational;
