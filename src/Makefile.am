@@ -20,19 +20,24 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 SUBDIRS = lib expr util context theory prop smt . parser main
 
 lib_LTLIBRARIES = libcvc4.la
-
 noinst_LTLIBRARIES = libcvc4_noinst.la
 
 libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
-libcvc4_la_LINK = $(CXXLINK)
-
-libcvc4_la_SOURCES =
-libcvc4_la_LIBADD = libcvc4_noinst.la
 
 # empty.cpp is a fake file added to "trick" automake into linking us as a
 # C++ library (rather than as a C library, which messes up exception
 # handling support)
+libcvc4_la_SOURCES = empty.cpp
 libcvc4_noinst_la_SOURCES = empty.cpp
+libcvc4_la_LIBADD = \
+	@builddir@/util/libutil.la \
+	@builddir@/expr/libexpr.la \
+	@builddir@/context/libcontext.la \
+	@builddir@/prop/libprop.la \
+	@builddir@/prop/minisat/libminisat.la \
+	@builddir@/smt/libsmt.la \
+	@builddir@/theory/libtheory.la \
+	@builddir@/lib/libreplacements.la
 libcvc4_noinst_la_LIBADD = \
 	@builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la \

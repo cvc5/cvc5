@@ -24,17 +24,38 @@ noinst_LTLIBRARIES = libcvc4parser_noinst.la
 
 libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS) \
 	-version-info $(LIBCVC4PARSER_VERSION)
-libcvc4parser_la_LIBADD = libcvc4parser_noinst.la
-libcvc4parser_la_LINK = $(CXXLINK)
-
 libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
+
+libcvc4parser_la_LIBADD = \
+	@builddir@/smt/libparsersmt.la \
+	@builddir@/smt2/libparsersmt2.la \
+	@builddir@/cvc/libparsercvc.la \
+	@builddir@/../lib/libreplacements.la
 libcvc4parser_noinst_la_LIBADD = \
 	@builddir@/smt/libparsersmt.la \
 	@builddir@/smt2/libparsersmt2.la \
 	@builddir@/cvc/libparsercvc.la \
 	@builddir@/../lib/libreplacements.la
 
-libcvc4parser_la_SOURCES =
+libcvc4parser_la_SOURCES = \
+	antlr_input.h \
+	antlr_input.cpp \
+	antlr_input_imports.cpp \
+	bounded_token_buffer.h \
+	bounded_token_buffer.cpp \
+	bounded_token_factory.h \
+	bounded_token_factory.cpp \
+	input.h \
+	input.cpp \
+	memory_mapped_input_buffer.h \
+	memory_mapped_input_buffer.cpp \
+	parser.h \
+	parser.cpp \
+	parser_builder.h \
+	parser_builder.cpp \
+	parser_options.h \
+	parser_exception.h
+
 libcvc4parser_noinst_la_SOURCES = \
 	antlr_input.h \
 	antlr_input.cpp \
