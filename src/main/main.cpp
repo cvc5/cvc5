@@ -110,20 +110,25 @@ int runCvc4(int argc, char* argv[]) {
     throw Exception("Too many input files specified.");
   }
 
+  // If no file supplied we will read from standard input
+  const bool inputFromStdin =
+    firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
+
+  // if we're reading from stdin, default to interactive mode
+  if(!options.interactiveSetByUser) {
+    options.interactive = inputFromStdin;
+  }
+
   // Create the expression manager
   ExprManager exprMgr;
 
   // Create the SmtEngine
   SmtEngine smt(&exprMgr, &options);
 
-  // If no file supplied we read from standard input
-  bool inputFromStdin =
-    firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
-
   // Auto-detect input language by filename extension
   const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
 
-  ReferenceStat< const char* > s_statFilename("filename",filename);
+  ReferenceStat< const char* > s_statFilename("filename", filename);
   StatisticsRegistry::registerStat(&s_statFilename);
 
   if(options.lang == parser::LANG_AUTO) {
@@ -180,6 +185,9 @@ int runCvc4(int argc, char* argv[]) {
 
   // Parse and execute commands until we are done
   Command* cmd;
+  if( options.interactive ) {
+    // cout << "CVC4> " << flush;
+  }
   while((cmd = parser->nextCommand())) {
     if( !options.parseOnly ) {
       doCommand(smt, cmd);
@@ -238,21 +246,19 @@ void doCommand(SmtEngine& smt, Command* cmd) {
       cout << "Invoking: " << *cmd << endl;
     }
 
-    cmd->invoke(&smt);
+    if(options.verbosity >= 0) {
+      cmd->invoke(&smt, cout);
+    } else {
+      cmd->invoke(&smt);
+    }
 
     QueryCommand *qc = dynamic_cast<QueryCommand*>(cmd);
     if(qc != NULL) {
       lastResult = qc->getResult();
-      if(options.verbosity >= 0) {
-        cout << lastResult << endl;
-      }
     } else {
       CheckSatCommand *csc = dynamic_cast<CheckSatCommand*>(cmd);
       if(csc != NULL) {
         lastResult = csc->getResult();
-        if(options.verbosity >= 0) {
-          cout << lastResult << endl;
-        }
       }
     }
   }

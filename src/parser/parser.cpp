@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <iterator>
 #include <stdint.h>
 
 #include "input.h"
@@ -79,6 +80,14 @@ Type Parser::getSort(const std::string& name) {
   return t;
 }
 
+Type Parser::getSort(const std::string& name,
+                     const std::vector<Type>& params) {
+  Assert( isDeclared(name, SYM_SORT) );
+  Type t = d_declScope.lookupType(name);
+  Warning() << "FIXME use params to realize parameterized sort\n";
+  return t;
+}
+
 /* Returns true if name is bound to a boolean variable. */
 bool Parser::isBoolean(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
@@ -94,7 +103,7 @@ bool Parser::isPredicate(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isPredicate();
 }
 
-Expr 
+Expr
 Parser::mkVar(const std::string& name, const Type& type) {
   Debug("parser") << "mkVar(" << name << "," << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type);
@@ -124,10 +133,25 @@ Parser::defineType(const std::string& name, const Type& type) {
   Assert( isDeclared(name, SYM_SORT) ) ;
 }
 
+void
+Parser::defineParameterizedType(const std::string& name,
+                                const std::vector<Type>& params,
+                                const Type& type) {
+  if(Debug.isOn("parser")) {
+    Debug("parser") << "defineParameterizedType(" << name << ", " << params.size() << ", [";
+    copy(params.begin(), params.end() - 1,
+         ostream_iterator<Type>(Debug("parser"), ", ") );
+    Debug("parser") << params.back();
+    Debug("parser") << "], " << type << ")" << std::endl;
+  }
+  Warning("defineSort unimplemented\n");
+  defineType(name,type);
+}
+
 Type
-Parser::mkSort(const std::string& name) {
-  Debug("parser") << "newSort(" << name << ")" << std::endl;
-  Type type = d_exprManager->mkSort(name);
+Parser::mkSort(const std::string& name, size_t arity) {
+  Debug("parser") << "newSort(" << name << ", " << arity << ")" << std::endl;
+  Type type = d_exprManager->mkSort(name, arity);
   defineType(name,type);
   return type;
 }
@@ -234,10 +258,10 @@ Command* Parser::nextCommand() throw(ParserException) {
     } catch(ParserException& e) {
       setDone();
       throw;
-    } catch(TypeCheckingException& e) {
+    } catch(Exception& e) {
       setDone();
       stringstream ss;
-      ss << e.getMessage() << ": " << e.getExpression();
+      ss << e;
       parseError( ss.str() );
     }
   }
@@ -257,10 +281,10 @@ Expr Parser::nextExpression() throw(ParserException) {
     } catch(ParserException& e) {
       setDone();
       throw;
-    } catch(TypeCheckingException& e) {
+    } catch(Exception& e) {
       setDone();
       stringstream ss;
-      ss << e.getMessage() << ": " << e.getExpression();
+      ss << e;
       parseError( ss.str() );
     }
   }

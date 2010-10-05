@@ -42,6 +42,10 @@ const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
 
 }/* CVC4::expr namespace */
 
+std::ostream& operator<<(std::ostream& out, const TypeCheckingException& e) {
+  return out << e.getMessage() << ": " << e.getExpression();
+}
+
 std::ostream& operator<<(std::ostream& out, const Expr& e) {
   e.toStream(out);
   return out;

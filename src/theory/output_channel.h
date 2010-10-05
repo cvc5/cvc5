@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief The theory output channel interface.
+ ** \brief The theory output channel interface
  **
  ** The theory output channel interface.
  **/

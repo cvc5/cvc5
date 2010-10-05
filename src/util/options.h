@@ -65,21 +65,34 @@ struct CVC4_PUBLIC Options {
   /** Should we strictly enforce the language standard while parsing? */
   bool strictParsing;
 
-  Options() : binary_name(),
-              statistics(false),
-              out(0),
-              err(0),
-              verbosity(0),
-              lang(parser::LANG_AUTO),
-              uf_implementation(MORGAN),
-              parseOnly(false),
-              semanticChecks(true),
-              memoryMap(false),
-              strictParsing(false)
-  {}
+  /** Whether we're in interactive mode or not */
+  bool interactive;
+
+  /**
+   * Whether we're in interactive mode (or not) due to explicit user
+   * setting (if false, we inferred the proper default setting).
+   */
+  bool interactiveSetByUser;
+
+  Options() :
+    binary_name(),
+    statistics(false),
+    out(0),
+    err(0),
+    verbosity(0),
+    lang(parser::LANG_AUTO),
+    uf_implementation(MORGAN),
+    parseOnly(false),
+    semanticChecks(true),
+    memoryMap(false),
+    strictParsing(false),
+    interactive(false),
+    interactiveSetByUser(false) {
+  }
 };/* struct Options */
 
-inline std::ostream& operator<<(std::ostream& out, Options::UfImplementation uf) {
+inline std::ostream& operator<<(std::ostream& out,
+                                Options::UfImplementation uf) {
   switch(uf) {
   case Options::TIM:
     out << "TIM";

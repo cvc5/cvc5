@@ -11,9 +11,19 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief The theory output channel interface.
+ ** \brief An exception signaling that a Theory should immediately
+ ** stop performing processing
  **
- ** The theory output channel interface.
+ ** An exception signaling that a Theory should immediately stop
+ ** performing processing and relinquish control to its caller (e.g.,
+ ** in a parallel environment).  A Theory might be interrupted if it
+ ** calls into its CVC4::theory::OutputChannel, and it should only
+ ** catch this exception to perform emergency repair of any invariants
+ ** it must re-establish.  Further, if this exception is caught by a
+ ** Theory, the Theory should rethrow the same exception (via "throw;"
+ ** in the exception block) rather than return, as the Interrupted
+ ** instance might contain additional information needed for the
+ ** proper management of CVC4 components.
  **/
 
 #include "cvc4_private.h"

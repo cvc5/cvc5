@@ -27,6 +27,9 @@
 #include "expr/expr_manager.h"
 #include "util/result.h"
 #include "util/model.h"
+#include "util/sexpr.h"
+#include "smt/noninteractive_exception.h"
+#include "smt/bad_option.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -36,6 +39,7 @@ namespace CVC4 {
 
 namespace context {
   class Context;
+  template <class T> class CDList;
 }/* CVC4::context namespace */
 
 class Command;
@@ -63,6 +67,61 @@ namespace smt {
 // The CNF conversion can go on in PropEngine.
 
 class CVC4_PUBLIC SmtEngine {
+private:
+
+  /** Our Context */
+  context::Context* d_context;
+
+  /** Our expression manager */
+  ExprManager* d_exprManager;
+
+  /** Out internal expression/node manager */
+  NodeManager* d_nodeManager;
+
+  /** User-level options */
+  const Options* d_options;
+
+  /** The decision engine */
+  DecisionEngine* d_decisionEngine;
+
+  /** The decision engine */
+  TheoryEngine* d_theoryEngine;
+
+  /** The propositional engine */
+  prop::PropEngine* d_propEngine;
+
+  /**
+   * The assertion list, before any conversion, for supporting
+   * getAssertions().  Only maintained if in interactive mode.
+   */
+  context::CDList<Expr>* d_assertionList;
+
+  // preprocess() and addFormula() used to be housed here; they are
+  // now in an SmtEnginePrivate class.  See the comment in
+  // smt_engine.cpp.
+
+  /**
+   * This is called by the destructor, just before destroying the
+   * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
+   * is important because there are destruction ordering issues
+   * between PropEngine and Theory.
+   */
+  void shutdown();
+
+  /**
+   * Full check of consistency in current context.  Returns true iff
+   * consistent.
+   */
+  Result check();
+
+  /**
+   * Quick check of consistency in current context: calls
+   * processAssertionList() then look for inconsistency (based only on
+   * that).
+   */
+  Result quickCheck();
+
+  friend class ::CVC4::smt::SmtEnginePrivate;
 
 public:
 
@@ -80,6 +139,37 @@ public:
    * Execute a command.
    */
   void doCommand(Command*);
+
+  /**
+   * Set information about the script executing.
+   */
+  void setInfo(const std::string& key, const SExpr& value) throw(BadOption);
+
+  /**
+   * Query information about the SMT environment.
+   */
+  const SExpr& getInfo(const std::string& key) const throw(BadOption);
+
+  /**
+   * Set an aspect of the current SMT execution environment.
+   */
+  void setOption(const std::string& key, const SExpr& value) throw(BadOption);
+
+  /**
+   * Get an aspect of the current SMT execution environment.
+   */
+  const SExpr& getOption(const std::string& key) const throw(BadOption);
+
+  /**
+   * Add a formula to the current context: preprocess, do per-theory
+   * setup, use processAssertionList(), asserting to T-solver for
+   * literals and conjunction of literals.  Returns false iff
+   * inconsistent.
+   */
+  void defineFunction(const std::string& name,
+                      const std::vector<std::pair<std::string, Type> >& args,
+                      Type type,
+                      Expr formula);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory
@@ -113,6 +203,17 @@ public:
   Model getModel();
 
   /**
+   * Get the assigned value of a term (only if preceded by a SAT or
+   * INVALID query).
+   */
+  Expr getValue(Expr term);
+
+  /**
+   * Get the current set of assertions.
+   */
+  std::vector<Expr> getAssertions() throw(NoninteractiveException);
+
+  /**
    * Push a user-level context.
    */
   void push();
@@ -121,56 +222,6 @@ public:
    * Pop a user-level context.  Throws an exception if nothing to pop.
    */
   void pop();
-
-private:
-
-  /** Our Context */
-  CVC4::context::Context* d_ctxt;
-
-  /** Our expression manager */
-  ExprManager* d_exprManager;
-
-  /** Out internal expression/node manager */
-  NodeManager* d_nodeManager;
-
-  /** User-level options */
-  const Options* d_options;
-
-  /** The decision engine */
-  DecisionEngine* d_decisionEngine;
-
-  /** The decision engine */
-  TheoryEngine* d_theoryEngine;
-
-  /** The propositional engine */
-  prop::PropEngine* d_propEngine;
-
-  // preprocess() and addFormula() used to be housed here; they are
-  // now in an SmtEnginePrivate class.  See the comment in
-  // smt_engine.cpp.
-
-  /**
-   * This is called by the destructor, just before destroying the
-   * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
-   * is important because there are destruction ordering issues
-   * between PropEngine and Theory.
-   */
-  void shutdown();
-
-  /**
-   * Full check of consistency in current context.  Returns true iff
-   * consistent.
-   */
-  Result check();
-
-  /**
-   * Quick check of consistency in current context: calls
-   * processAssertionList() then look for inconsistency (based only on
-   * that).
-   */
-  Result quickCheck();
-
-  friend class ::CVC4::smt::SmtEnginePrivate;
 
 };/* class SmtEngine */
 

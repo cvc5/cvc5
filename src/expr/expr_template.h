@@ -83,7 +83,10 @@ public:
   std::string toString() const;
 
   friend class ExprManager;
-};
+};/* class TypeCheckingException */
+
+std::ostream& operator<<(std::ostream& out,
+                         const TypeCheckingException& e) CVC4_PUBLIC;
 
 /**
  * Class encapsulating CVC4 expressions and methods for constructing new

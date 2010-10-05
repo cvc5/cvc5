@@ -16,12 +16,23 @@
  ** Implementation of command objects.
  **/
 
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <iterator>
+
 #include "expr/command.h"
 #include "smt/smt_engine.h"
+#include "util/output.h"
 
 using namespace std;
 
 namespace CVC4 {
+
+std::ostream& operator<<(std::ostream& out, const Command& c) {
+  c.toStream(out);
+  return out;
+}
 
 ostream& operator<<(ostream& out, const Command* command) {
   if(command == NULL) {
@@ -32,10 +43,134 @@ ostream& operator<<(ostream& out, const Command* command) {
   return out;
 }
 
+/* class Command */
+
+void Command::invoke(SmtEngine* smtEngine, std::ostream& out) {
+  invoke(smtEngine);
+  printResult(out);
+}
+
+std::string Command::toString() const {
+  std::stringstream ss;
+  toStream(ss);
+  return ss.str();
+}
+
+void Command::printResult(std::ostream& out) const {
+}
+
+/* class EmptyCommand */
+
+EmptyCommand::EmptyCommand(std::string name) :
+  d_name(name) {
+}
+
+void EmptyCommand::invoke(SmtEngine* smtEngine) {
+  /* empty commands have no implementation */
+}
+
+void EmptyCommand::toStream(std::ostream& out) const {
+  out << "EmptyCommand(" << d_name << ")";
+}
+
+/* class AssertCommand */
+
+AssertCommand::AssertCommand(const BoolExpr& e) :
+  d_expr(e) {
+}
+
+void AssertCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->assertFormula(d_expr);
+}
+
+void AssertCommand::toStream(std::ostream& out) const {
+  out << "Assert(" << d_expr << ")";
+}
+
+/* class PushCommand */
+
+void PushCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->push();
+}
+
+void PushCommand::toStream(std::ostream& out) const {
+  out << "Push()";
+}
+
+/* class PopCommand */
+
+void PopCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->pop();
+}
+
+void PopCommand::toStream(std::ostream& out) const {
+  out << "Pop()";
+}
+
+/* class CheckSatCommand */
+
+CheckSatCommand::CheckSatCommand(const BoolExpr& expr) :
+  d_expr(expr) {
+}
+
+void CheckSatCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->checkSat(d_expr);
+}
+
+void CheckSatCommand::toStream(std::ostream& out) const {
+  if(d_expr.isNull()) {
+    out << "CheckSat()";
+  } else {
+    out << "CheckSat(" << d_expr << ")";
+  }
+}
+
+Result CheckSatCommand::getResult() const {
+  return d_result;
+}
+
+void CheckSatCommand::printResult(std::ostream& out) const {
+  out << d_result << endl;
+}
+
+/* class QueryCommand */
+
+QueryCommand::QueryCommand(const BoolExpr& e) :
+  d_expr(e) {
+}
+
+void QueryCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->query(d_expr);
+}
+
+Result QueryCommand::getResult() const {
+  return d_result;
+}
+
+void QueryCommand::printResult(std::ostream& out) const {
+  out << d_result << endl;
+}
+
+void QueryCommand::toStream(std::ostream& out) const {
+  out << "Query(";
+  d_expr.printAst(out, 0);
+  out << ")";
+}
+
+/* class CommandSequence */
+
+CommandSequence::CommandSequence() :
+  d_index(0) {
+}
+
 CommandSequence::~CommandSequence() {
   for(unsigned i = d_index; i < d_commandSequence.size(); ++i) {
     delete d_commandSequence[i];
   }
+}
+
+void CommandSequence::addCommand(Command* cmd) {
+  d_commandSequence.push_back(cmd);
 }
 
 void CommandSequence::invoke(SmtEngine* smtEngine) {
@@ -45,11 +180,10 @@ void CommandSequence::invoke(SmtEngine* smtEngine) {
   }
 }
 
-void CheckSatCommand::toStream(std::ostream& out) const {
-  if(d_expr.isNull()) {
-    out << "CheckSat()";
-  } else {
-    out << "CheckSat(" << d_expr << ")";
+void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out) {
+  for(; d_index < d_commandSequence.size(); ++d_index) {
+    d_commandSequence[d_index]->invoke(smtEngine, out);
+    delete d_commandSequence[d_index];
   }
 }
 
@@ -61,33 +195,257 @@ void CommandSequence::toStream(std::ostream& out) const {
   out << "]";
 }
 
+/* class DeclarationCommand */
+
+DeclarationCommand::DeclarationCommand(const std::string& id, Type t) :
+  d_type(t) {
+  d_declaredSymbols.push_back(id);
+}
+
+DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, Type t) :
+  d_declaredSymbols(ids),
+  d_type(t) {
+}
+
 void DeclarationCommand::toStream(std::ostream& out) const {
-  out << "Declare(";
-  bool first = true;
-  for(unsigned i = 0; i < d_declaredSymbols.size(); ++i) {
-    if(!first) {
-      out << ", ";
-    }
-    out << d_declaredSymbols[i];
-    first = false;
+  out << "Declare([";
+  copy( d_declaredSymbols.begin(), d_declaredSymbols.end() - 1,
+        ostream_iterator<string>(out, ", ") );
+  out << d_declaredSymbols.back();
+  out << "])";
+}
+
+/* class DefineFunctionCommand */
+
+DefineFunctionCommand::DefineFunctionCommand(const std::string& name,
+                                                    const std::vector<std::pair<std::string, Type> >& args,
+                                                    Type type,
+                                                    Expr formula) :
+  d_name(name),
+  d_args(args),
+  d_type(type),
+  d_formula(formula) {
+}
+
+void DefineFunctionCommand::invoke(SmtEngine* smtEngine) {
+  smtEngine->defineFunction(d_name, d_args, d_type, d_formula);
+}
+
+void DefineFunctionCommand::toStream(std::ostream& out) const {
+  out << "DefineFunction( \"" << d_name << "\", [";
+  copy( d_args.begin(), d_args.end() - 1,
+        ostream_iterator<std::pair<std::string, Type> >(out, ", ") );
+  out << d_args.back();
+  out << "], << " << d_type << " >>, << " << d_formula << " >> )";
+}
+
+/* class GetValueCommand */
+
+GetValueCommand::GetValueCommand(Expr term) :
+  d_term(term) {
+}
+
+void GetValueCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->getValue(d_term);
+}
+
+Expr GetValueCommand::getResult() const {
+  return d_result;
+}
+
+void GetValueCommand::printResult(std::ostream& out) const {
+  out << d_result << endl;
+}
+
+void GetValueCommand::toStream(std::ostream& out) const {
+  out << "GetValue( << " << d_term << " >> )";
+}
+
+/* class GetAssertionsCommand */
+
+GetAssertionsCommand::GetAssertionsCommand() {
+}
+
+void GetAssertionsCommand::invoke(SmtEngine* smtEngine) {
+  stringstream ss;
+  const vector<Expr> v = smtEngine->getAssertions();
+  copy( v.begin(), v.end(), ostream_iterator<Expr>(ss, "\n") );
+  d_result = ss.str();
+}
+
+std::string GetAssertionsCommand::getResult() const {
+  return d_result;
+}
+
+void GetAssertionsCommand::printResult(std::ostream& out) const {
+  out << d_result;
+}
+
+void GetAssertionsCommand::toStream(std::ostream& out) const {
+  out << "GetAssertions()";
+}
+
+/* class SetBenchmarkStatusCommand */
+
+SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status) :
+  d_status(status) {
+}
+
+void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) {
+  // FIXME: TODO: something to be done with the status
+}
+
+void SetBenchmarkStatusCommand::toStream(std::ostream& out) const {
+  out << "SetBenchmarkStatus(" << d_status << ")";
+}
+
+/* class SetBenchmarkLogicCommand */
+
+SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic) :
+  d_logic(logic) {
+}
+
+void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) {
+  // FIXME: TODO: something to be done with the logic
+}
+
+void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
+  out << "SetBenchmarkLogic(" << d_logic << ")";
+}
+
+/* class SetInfoCommand */
+
+SetInfoCommand::SetInfoCommand(std::string flag, SExpr& sexpr) :
+  d_flag(flag),
+  d_sexpr(sexpr) {
+}
+
+void SetInfoCommand::invoke(SmtEngine* smtEngine) {
+  try {
+    smtEngine->setInfo(d_flag, d_sexpr);
+    //d_result = "success";
+  } catch(BadOption& bo) {
+    d_result = "unsupported";
   }
-  out << ")";
 }
 
-void PushCommand::invoke(SmtEngine* smtEngine) {
-  smtEngine->push();
+std::string SetInfoCommand::getResult() const {
+  return d_result;
 }
 
-void PushCommand::toStream(std::ostream& out) const {
-  out << "Push()";
+void SetInfoCommand::printResult(std::ostream& out) const {
+  if(d_result != "") {
+    out << d_result << endl;
+  }
 }
 
-void PopCommand::invoke(SmtEngine* smtEngine) {
-  smtEngine->pop();
+void SetInfoCommand::toStream(std::ostream& out) const {
+  out << "SetInfo(" << d_flag << ", " << d_sexpr << ")";
 }
 
-void PopCommand::toStream(std::ostream& out) const {
-  out << "Pop()";
+/* class GetInfoCommand */
+
+GetInfoCommand::GetInfoCommand(std::string flag) :
+  d_flag(flag) {
+}
+
+void GetInfoCommand::invoke(SmtEngine* smtEngine) {
+  try {
+    d_result = smtEngine->getInfo(d_flag).getValue();
+  } catch(BadOption& bo) {
+    d_result = "unsupported";
+  }
+}
+
+std::string GetInfoCommand::getResult() const {
+  return d_result;
+}
+
+void GetInfoCommand::printResult(std::ostream& out) const {
+  if(d_result != "") {
+    out << d_result << endl;
+  }
+}
+
+void GetInfoCommand::toStream(std::ostream& out) const {
+  out << "GetInfo(" << d_flag << ")";
+}
+
+/* class SetOptionCommand */
+
+SetOptionCommand::SetOptionCommand(std::string flag, SExpr& sexpr) :
+  d_flag(flag),
+  d_sexpr(sexpr) {
+}
+
+void SetOptionCommand::invoke(SmtEngine* smtEngine) {
+  try {
+    smtEngine->setOption(d_flag, d_sexpr);
+    //d_result = "success";
+  } catch(BadOption& bo) {
+    d_result = "unsupported";
+  }
+}
+
+std::string SetOptionCommand::getResult() const {
+  return d_result;
+}
+
+void SetOptionCommand::printResult(std::ostream& out) const {
+  if(d_result != "") {
+    out << d_result << endl;
+  }
+}
+
+void SetOptionCommand::toStream(std::ostream& out) const {
+  out << "SetOption(" << d_flag << ", " << d_sexpr << ")";
+}
+
+/* class GetOptionCommand */
+
+GetOptionCommand::GetOptionCommand(std::string flag) :
+  d_flag(flag) {
+}
+
+void GetOptionCommand::invoke(SmtEngine* smtEngine) {
+  try {
+    d_result = smtEngine->getOption(d_flag).getValue();
+  } catch(BadOption& bo) {
+    d_result = "unsupported";
+  }
+}
+
+std::string GetOptionCommand::getResult() const {
+  return d_result;
+}
+
+void GetOptionCommand::printResult(std::ostream& out) const {
+  if(d_result != "") {
+    out << d_result << endl;
+  }
+}
+
+void GetOptionCommand::toStream(std::ostream& out) const {
+  out << "GetOption(" << d_flag << ")";
+}
+
+/* output stream insertion operator for benchmark statuses */
+std::ostream& operator<<(std::ostream& out,
+                         BenchmarkStatus status) {
+  switch(status) {
+
+  case SMT_SATISFIABLE:
+    return out << "sat";
+
+  case SMT_UNSATISFIABLE:
+    return out << "unsat";
+
+  case SMT_UNKNOWN:
+    return out << "unknown";
+
+  default:
+    return out << "SetBenchmarkStatusCommand::[UNKNOWNSTATUS!]";
+  }
 }
 
 }/* CVC4 namespace */

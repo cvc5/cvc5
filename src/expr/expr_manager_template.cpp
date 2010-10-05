@@ -268,9 +268,9 @@ ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkArrayType(*indexType.d_typeNode, *constituentType.d_typeNode)));
 }
 
-SortType ExprManager::mkSort(const std::string& name) const {
+SortType ExprManager::mkSort(const std::string& name, size_t arity) const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name)));
+  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name, arity)));
 }
 
 /**

@@ -224,11 +224,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   ArrayType mkArrayType(Type indexType, Type constituentType) const;
 
-  /** Make a new sort with the given name. */
-  SortType mkSort(const std::string& name) const;
+  /** Make a new sort with the given name and arity. */
+  SortType mkSort(const std::string& name, size_t arity = 0) const;
 
   /** Get the type of an expression */
-  Type getType(const Expr& e, bool check = false) 
+  Type getType(const Expr& e, bool check = false)
     throw (TypeCheckingException);
 
   // variables are special, because duplicates are permitted

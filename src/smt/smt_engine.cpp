@@ -17,6 +17,9 @@
  **/
 
 #include "smt/smt_engine.h"
+#include "smt/noninteractive_exception.h"
+#include "context/context.h"
+#include "context/cdlist.h"
 #include "expr/command.h"
 #include "expr/node_builder.h"
 #include "util/output.h"
@@ -25,9 +28,10 @@
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
 
-
+using namespace CVC4;
+using namespace CVC4::smt;
 using namespace CVC4::prop;
-using CVC4::context::Context;
+using namespace CVC4::context;
 
 namespace CVC4 {
 
@@ -69,19 +73,30 @@ public:
 using ::CVC4::smt::SmtEnginePrivate;
 
 SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
-  d_ctxt(em->getContext()),
+  d_context(em->getContext()),
   d_exprManager(em),
   d_nodeManager(em->getNodeManager()),
-  d_options(opts) {
+  d_options(opts),
+  /* These next few are initialized below, after we have a NodeManager
+   * in scope. */
+  d_decisionEngine(NULL),
+  d_theoryEngine(NULL),
+  d_propEngine(NULL),
+  d_assertionList(NULL) {
 
   NodeManagerScope nms(d_nodeManager);
 
   d_decisionEngine = new DecisionEngine;
   // We have mutual dependancy here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_ctxt, opts);
-  d_propEngine = new PropEngine(opts, d_decisionEngine, d_theoryEngine, d_ctxt);
+  d_theoryEngine = new TheoryEngine(d_context, opts);
+  d_propEngine = new PropEngine(opts, d_decisionEngine,
+                                d_theoryEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
+
+  if(d_options->interactive) {
+    d_assertionList = new(true) CDList<Expr>(d_context);
+  }
 }
 
 void SmtEngine::shutdown() {
@@ -95,6 +110,8 @@ SmtEngine::~SmtEngine() {
 
   shutdown();
 
+  ::delete d_assertionList;
+
   delete d_theoryEngine;
   delete d_propEngine;
   delete d_decisionEngine;
@@ -105,53 +122,79 @@ void SmtEngine::doCommand(Command* c) {
   c->invoke(this);
 }
 
+void SmtEngine::setInfo(const std::string& key, const SExpr& value) throw(BadOption) {
+  // FIXME implement me
+}
+
+const SExpr& SmtEngine::getInfo(const std::string& key) const throw(BadOption) {
+  // FIXME implement me
+  throw BadOption();
+}
+
+void SmtEngine::setOption(const std::string& key, const SExpr& value) throw(BadOption) {
+  // FIXME implement me
+}
+
+const SExpr& SmtEngine::getOption(const std::string& key) const throw(BadOption) {
+  // FIXME implement me
+  throw BadOption();
+}
+
+void SmtEngine::defineFunction(const string& name,
+                               const vector<pair<string, Type> >& args,
+                               Type type,
+                               Expr formula) {
+  NodeManagerScope nms(d_nodeManager);
+  Unimplemented();
+}
+
 Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n) {
   return smt.d_theoryEngine->preprocess(n);
 }
 
 Result SmtEngine::check() {
-  Debug("smt") << "SMT check()" << std::endl;
+  Debug("smt") << "SMT check()" << endl;
   return d_propEngine->checkSat();
 }
 
 Result SmtEngine::quickCheck() {
-  Debug("smt") << "SMT quickCheck()" << std::endl;
+  Debug("smt") << "SMT quickCheck()" << endl;
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
 void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n) {
-  Debug("smt") << "push_back assertion " << n << std::endl;
+  Debug("smt") << "push_back assertion " << n << endl;
   smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, n));
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT checkSat(" << e << ")" << std::endl;
+  Debug("smt") << "SMT checkSat(" << e << ")" << endl;
   SmtEnginePrivate::addFormula(*this, e.getNode());
   Result r = check().asSatisfiabilityResult();
-  Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << std::endl;
+  Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
   return r;
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT query(" << e << ")" << std::endl;
+  Debug("smt") << "SMT query(" << e << ")" << endl;
   SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
-  Debug("smt") << "SMT query(" << e << ") ==> " << r << std::endl;
+  Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
   return r;
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT assertFormula(" << e << ")" << std::endl;
+  Debug("smt") << "SMT assertFormula(" << e << ")" << endl;
   SmtEnginePrivate::addFormula(*this, e.getNode());
   return quickCheck().asValidityResult();
 }
 
 Expr SmtEngine::simplify(const Expr& e) {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT simplify(" << e << ")" << std::endl;
+  Debug("smt") << "SMT simplify(" << e << ")" << endl;
   Unimplemented();
 }
 
@@ -160,15 +203,30 @@ Model SmtEngine::getModel() {
   Unimplemented();
 }
 
+Expr SmtEngine::getValue(Expr term) {
+  NodeManagerScope nms(d_nodeManager);
+  Unimplemented();
+}
+
+vector<Expr> SmtEngine::getAssertions() throw(NoninteractiveException) {
+  if(!d_options->interactive) {
+    const char* msg =
+      "Cannot query the current assertion list when not in interactive mode.";
+    throw NoninteractiveException(msg);
+  }
+  Assert(d_assertionList != NULL);
+  return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
+}
+
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT push()" << std::endl;
+  Debug("smt") << "SMT push()" << endl;
   Unimplemented();
 }
 
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT pop()" << std::endl;
+  Debug("smt") << "SMT pop()" << endl;
   Unimplemented();
 }
 

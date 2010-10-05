@@ -70,7 +70,9 @@ enum OptionValue {
   STRICT_PARSING,
   DEFAULT_EXPR_DEPTH,
   PRINT_EXPR_TYPES,
-  UF_THEORY
+  UF_THEORY,
+  INTERACTIVE,
+  NO_INTERACTIVE
 };/* enum OptionValue */
 
 /**
@@ -117,6 +119,8 @@ static struct option cmdlineOptions[] = {
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
   { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
   { "uf"         , required_argument, NULL, UF_THEORY },
+  { "interactive", no_argument      , NULL, INTERACTIVE },
+  { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -266,6 +270,16 @@ throw(OptionException) {
                                 optarg + "'.  Try --uf help.");
         }
       }
+      break;
+
+    case INTERACTIVE:
+      opts->interactive = true;
+      opts->interactiveSetByUser = true;
+      break;
+
+    case NO_INTERACTIVE:
+      opts->interactive = false;
+      opts->interactiveSetByUser = true;
       break;
 
     case SHOW_CONFIG:

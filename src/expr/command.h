@@ -39,7 +39,7 @@ namespace CVC4 {
 class SmtEngine;
 class Command;
 
-inline std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const Command*) CVC4_PUBLIC;
 
 /** The status an SMT benchmark can have */
@@ -52,115 +52,203 @@ enum BenchmarkStatus {
   SMT_UNKNOWN
 };
 
-inline std::ostream& operator<<(std::ostream& out,
-                                BenchmarkStatus status)
-  CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out,
+                         BenchmarkStatus status) CVC4_PUBLIC;
 
 class CVC4_PUBLIC Command {
 public:
-  virtual void invoke(CVC4::SmtEngine* smt_engine) = 0;
+  virtual void invoke(SmtEngine* smtEngine) = 0;
+  virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
   virtual ~Command() {};
   virtual void toStream(std::ostream&) const = 0;
   std::string toString() const;
+  virtual void printResult(std::ostream& out) const;
 };/* class Command */
 
+/**
+ * EmptyCommands (and its subclasses) are the residue of a command
+ * after the parser handles them (and there's nothing left to do).
+ */
 class CVC4_PUBLIC EmptyCommand : public Command {
+protected:
+  std::string d_name;
 public:
   EmptyCommand(std::string name = "");
-  void invoke(CVC4::SmtEngine* smtEngine);
+  void invoke(SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
-private:
-  std::string d_name;
 };/* class EmptyCommand */
 
 class CVC4_PUBLIC AssertCommand : public Command {
-public:
-  AssertCommand(const BoolExpr& e);
-  void invoke(CVC4::SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
+public:
+  AssertCommand(const BoolExpr& e);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
 };/* class AssertCommand */
 
 class CVC4_PUBLIC PushCommand : public Command {
 public:
-  void invoke(CVC4::SmtEngine* smtEngine);
+  void invoke(SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
 };/* class PushCommand */
 
 class CVC4_PUBLIC PopCommand : public Command {
 public:
-  void invoke(CVC4::SmtEngine* smtEngine);
+  void invoke(SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
 };/* class PopCommand */
 
-
 class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
-public:
-  DeclarationCommand(const std::string& id, const Type& t);
-  DeclarationCommand(const std::vector<std::string>& ids, const Type& t);
-  void toStream(std::ostream& out) const;
 protected:
   std::vector<std::string> d_declaredSymbols;
   Type d_type;
-};
+public:
+  DeclarationCommand(const std::string& id, Type t);
+  DeclarationCommand(const std::vector<std::string>& ids, Type t);
+  void toStream(std::ostream& out) const;
+};/* class DeclarationCommand */
+
+class CVC4_PUBLIC DefineFunctionCommand : public Command {
+protected:
+  std::string d_name;
+  std::vector<std::pair<std::string, Type> > d_args;
+  Type d_type;
+  Expr d_formula;
+public:
+  DefineFunctionCommand(const std::string& name,
+                        const std::vector<std::pair<std::string, Type> >& args,
+                        Type type, Expr formula);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+};/* class DefineFunctionCommand */
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
-public:
-  CheckSatCommand(const BoolExpr& expr);
-  void invoke(SmtEngine* smt);
-  Result getResult();
-  void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
   Result d_result;
+public:
+  CheckSatCommand(const BoolExpr& expr);
+  void invoke(SmtEngine* smtEngine);
+  Result getResult() const;
+  void printResult(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 };/* class CheckSatCommand */
 
 class CVC4_PUBLIC QueryCommand : public Command {
-public:
-  QueryCommand(const BoolExpr& e);
-  void invoke(SmtEngine* smt);
-  Result getResult();
-  void toStream(std::ostream& out) const;
 protected:
   BoolExpr d_expr;
   Result d_result;
+public:
+  QueryCommand(const BoolExpr& e);
+  void invoke(SmtEngine* smtEngine);
+  Result getResult() const;
+  void printResult(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
 };/* class QueryCommand */
 
-class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
+class CVC4_PUBLIC GetValueCommand : public Command {
+protected:
+  Expr d_term;
+  Expr d_result;
 public:
-  SetBenchmarkStatusCommand(BenchmarkStatus status);
-  void invoke(SmtEngine* smt);
+  GetValueCommand(Expr term);
+  void invoke(SmtEngine* smtEngine);
+  Expr getResult() const;
+  void printResult(std::ostream& out) const;
   void toStream(std::ostream& out) const;
+};/* class GetValueCommand */
+
+class CVC4_PUBLIC GetAssertionsCommand : public Command {
+protected:
+  std::string d_result;
+public:
+  GetAssertionsCommand();
+  void invoke(SmtEngine* smtEngine);
+  std::string getResult() const;
+  void printResult(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
+};/* class GetAssertionsCommand */
+
+class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
 protected:
   BenchmarkStatus d_status;
+public:
+  SetBenchmarkStatusCommand(BenchmarkStatus status);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
 };/* class SetBenchmarkStatusCommand */
 
-
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
-public:
-  SetBenchmarkLogicCommand(std::string logic);
-  void invoke(SmtEngine* smt);
-  void toStream(std::ostream& out) const;
 protected:
   std::string d_logic;
+public:
+  SetBenchmarkLogicCommand(std::string logic);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
 };/* class SetBenchmarkLogicCommand */
 
 class CVC4_PUBLIC SetInfoCommand : public Command {
-public:
-  SetInfoCommand(std::string flag, SExpr& sexpr);
-  void invoke(SmtEngine* smt);
-  void toStream(std::ostream& out) const;
 protected:
   std::string d_flag;
   SExpr d_sexpr;
+  std::string d_result;
+public:
+  SetInfoCommand(std::string flag, SExpr& sexpr);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+  std::string getResult() const;
+  void printResult(std::ostream& out) const;
 };/* class SetInfoCommand */
 
+class CVC4_PUBLIC GetInfoCommand : public Command {
+protected:
+  std::string d_flag;
+  std::string d_result;
+public:
+  GetInfoCommand(std::string flag);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+  std::string getResult() const;
+  void printResult(std::ostream& out) const;
+};/* class GetInfoCommand */
+
+class CVC4_PUBLIC SetOptionCommand : public Command {
+protected:
+  std::string d_flag;
+  SExpr d_sexpr;
+  std::string d_result;
+public:
+  SetOptionCommand(std::string flag, SExpr& sexpr);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+  std::string getResult() const;
+  void printResult(std::ostream& out) const;
+};/* class SetOptionCommand */
+
+class CVC4_PUBLIC GetOptionCommand : public Command {
+protected:
+  std::string d_flag;
+  std::string d_result;
+public:
+  GetOptionCommand(std::string flag);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+  std::string getResult() const;
+  void printResult(std::ostream& out) const;
+};/* class GetOptionCommand */
+
 class CVC4_PUBLIC CommandSequence : public Command {
+private:
+  /** All the commands to be executed (in sequence) */
+  std::vector<Command*> d_commandSequence;
+  /** Next command to be executed */
+  unsigned int d_index;
 public:
   CommandSequence();
   ~CommandSequence();
-  void invoke(SmtEngine* smt);
+  void invoke(SmtEngine* smtEngine);
+  void invoke(SmtEngine* smtEngine, std::ostream& out);
   void addCommand(Command* cmd);
   void toStream(std::ostream& out) const;
 
@@ -172,177 +260,7 @@ public:
 
   iterator begin() { return d_commandSequence.begin(); }
   iterator end() { return d_commandSequence.end(); }
-
-private:
-  /** All the commands to be executed (in sequence) */
-  std::vector<Command*> d_commandSequence;
-  /** Next command to be executed */
-  unsigned int d_index;
 };/* class CommandSequence */
-
-}/* CVC4 namespace */
-
-/* =========== inline function definitions =========== */
-
-#include "smt/smt_engine.h"
-
-namespace CVC4 {
-
-inline std::ostream& operator<<(std::ostream& out, const Command& c) {
-  c.toStream(out);
-  return out;
-}
-
-/* class Command */
-
-inline std::string Command::toString() const {
-  std::stringstream ss;
-  toStream(ss);
-  return ss.str();
-}
-
-/* class EmptyCommand */
-
-inline EmptyCommand::EmptyCommand(std::string name) :
-  d_name(name) {
-}
-
-inline void EmptyCommand::invoke(SmtEngine* smtEngine) {
-}
-
-inline void EmptyCommand::toStream(std::ostream& out) const {
-  out << "EmptyCommand(" << d_name << ")";
-}
-
-/* class AssertCommand */
-
-inline AssertCommand::AssertCommand(const BoolExpr& e) :
-  d_expr(e) {
-}
-
-inline void AssertCommand::invoke(SmtEngine* smtEngine) {
-  smtEngine->assertFormula(d_expr);
-}
-
-inline void AssertCommand::toStream(std::ostream& out) const {
-  out << "Assert(" << d_expr << ")";
-}
-
-/* class CheckSatCommand */
-
-inline CheckSatCommand::CheckSatCommand(const BoolExpr& expr) :
-  d_expr(expr) {
-}
-
-inline void CheckSatCommand::invoke(SmtEngine* smtEngine) {
-  d_result = smtEngine->checkSat(d_expr);
-}
-
-inline Result CheckSatCommand::getResult() {
-  return d_result;
-}
-
-/* class QueryCommand */
-
-inline QueryCommand::QueryCommand(const BoolExpr& e) :
-  d_expr(e) {
-}
-
-inline void QueryCommand::invoke(CVC4::SmtEngine* smtEngine) {
-  d_result = smtEngine->query(d_expr);
-}
-
-inline Result QueryCommand::getResult() {
-  return d_result;
-}
-
-inline void QueryCommand::toStream(std::ostream& out) const {
-  out << "Query(";
-  d_expr.printAst(out, 0);
-  out << ")";
-}
-
-/* class CommandSequence */
-
-inline CommandSequence::CommandSequence() :
-  d_index(0) {
-}
-
-inline void CommandSequence::addCommand(Command* cmd) {
-  d_commandSequence.push_back(cmd);
-}
-
-/* class DeclarationCommand */
-
-inline DeclarationCommand::DeclarationCommand(const std::string& id, const Type& t) :
-  d_type(t)
-{
-  d_declaredSymbols.push_back(id);
-}
-
-inline DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, const Type& t) :
-  d_declaredSymbols(ids),
-  d_type(t)
-{
-}
-
-/* class SetBenchmarkStatusCommand */
-
-inline SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status) :
-  d_status(status) {
-}
-
-inline void SetBenchmarkStatusCommand::invoke(SmtEngine* smt) {
-  // FIXME: TODO: something to be done with the status
-}
-
-inline void SetBenchmarkStatusCommand::toStream(std::ostream& out) const {
-  out << "SetBenchmarkStatus(" << d_status << ")";
-}
-
-/* class SetBenchmarkLogicCommand */
-
-inline SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic) :
-  d_logic(logic) {
-}
-
-inline void SetBenchmarkLogicCommand::invoke(SmtEngine* smt) {
-  // FIXME: TODO: something to be done with the logic
-}
-
-inline void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
-  out << "SetBenchmarkLogic(" << d_logic << ")";
-}
-
-inline SetInfoCommand::SetInfoCommand(std::string flag, SExpr& sexpr) :
-  d_flag(flag),
-  d_sexpr(sexpr) {
-}
-
-inline void SetInfoCommand::invoke(SmtEngine* smt) { }
-
-inline void SetInfoCommand::toStream(std::ostream& out) const {
-  out << "SetInfo(" << d_flag << ", " << d_sexpr << ")";
-}
-
-/* output stream insertion operator for benchmark statuses */
-inline std::ostream& operator<<(std::ostream& out,
-                                BenchmarkStatus status) {
-  switch(status) {
-
-  case SMT_SATISFIABLE:
-    return out << "sat";
-
-  case SMT_UNSATISFIABLE:
-    return out << "unsat";
-
-  case SMT_UNKNOWN:
-    return out << "unknown";
-
-  default:
-    return out << "SetBenchmarkStatusCommand::[UNKNOWNSTATUS!]";
-  }
-}
 
 }/* CVC4 namespace */
 

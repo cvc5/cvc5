@@ -29,8 +29,8 @@
 namespace CVC4 {
 
 /**
- * A simple S-expression. An S-expression is either an atom with a string value, or a
- * list of other S-expressions.
+ * A simple S-expression. An S-expression is either an atom with a
+ * string value, or a list of other S-expressions.
  */
 class CVC4_PUBLIC SExpr {
 
@@ -61,13 +61,15 @@ public:
   /** Is this S-expression an atom? */
   bool isAtom() const;
 
-  /** Get the string value of this S-expression. This will cause an error if this S-expression
-   * is not an atom.
+  /**
+   * Get the string value of this S-expression. This will cause an
+   * error if this S-expression is not an atom.
    */
   const std::string getValue() const;
 
-  /** Get the children of this S-expression. This will cause an error if this S-expression
-   * is not a list.
+  /**
+   * Get the children of this S-expression. This will cause an error
+   * if this S-expression is not a list.
    */
   const std::vector<SExpr> getChildren() const;
 };
@@ -93,7 +95,9 @@ inline std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) {
     std::vector<SExpr> children = sexpr.getChildren();
     out << "(";
     bool first = true;
-    for( std::vector<SExpr>::iterator it = children.begin(); it != children.end(); ++it ) {
+    for( std::vector<SExpr>::iterator it = children.begin();
+         it != children.end();
+         ++it ) {
       if( first ) {
         first = false;
       } else {

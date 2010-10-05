@@ -64,7 +64,8 @@ public:
   /**
    * Create a string input.
    *
-   * @param exprManager the manager to use when building expressions from the input
+   * @param exprManager the manager to use when building expressions
+   * from the input
    * @param input the string to read
    * @param name the "filename" to use when reporting errors
    */
@@ -81,7 +82,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() 
+  Command* parseCommand()
     throw(ParserException, TypeCheckingException, AssertionException);
 
   /**
@@ -90,7 +91,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() 
+  Expr parseExpr()
     throw(ParserException, TypeCheckingException, AssertionException);
 
 };/* class Smt2Input */

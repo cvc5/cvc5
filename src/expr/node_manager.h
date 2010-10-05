@@ -395,7 +395,7 @@ public:
    * <code>AttrKind::value_type</code> if not.
    */
   template <class AttrKind>
-  inline typename AttrKind::value_type 
+  inline typename AttrKind::value_type
   getAttribute(TNode n, const AttrKind& attr) const;
 
   /**
@@ -504,11 +504,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
-  /** Make a new sort. */
+  /** Make a new (anonymous) sort of arity 0. */
   inline TypeNode mkSort();
 
-  /** Make a new sort with the given name. */
-  inline TypeNode mkSort(const std::string& name);
+  /** Make a new sort with the given name and arity. */
+  inline TypeNode mkSort(const std::string& name, size_t arity = 0);
 
   /**
    * Get the type for the given node and optionally do type checking.
@@ -532,7 +532,7 @@ public:
    * amount of checking required to return a valid result.
    *
    * @param n the Node for which we want a type
-   * @param check whether we should check the type as we compute it 
+   * @param check whether we should check the type as we compute it
    * (default: false)
    */
   TypeNode getType(TNode n, bool check = false)
@@ -765,7 +765,8 @@ inline TypeNode NodeManager::mkSort() {
   return NodeBuilder<0>(this, kind::SORT_TYPE).constructTypeNode();
 }
 
-inline TypeNode NodeManager::mkSort(const std::string& name) {
+inline TypeNode NodeManager::mkSort(const std::string& name, size_t arity) {
+  Assert(arity == 0, "parameterized sorts not yet supported.");
   TypeNode type = mkSort();
   type.setAttribute(expr::VarNameAttr(), name);
   return type;

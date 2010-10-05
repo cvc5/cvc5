@@ -1,7 +1,7 @@
 # kinds                                                               -*- sh -*-
 #
 # For documentation on this file format, please refer to
-# src/expr/builtin_kinds.
+# src/theory/builtin/kinds.
 #
 
 theory ::CVC4::theory::bv::TheoryBV "theory_bv.h"

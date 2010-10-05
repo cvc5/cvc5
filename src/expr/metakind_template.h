@@ -98,7 +98,7 @@ struct NodeValueConstPrinter {
  * "metakind" is an ugly name but it's not used by client code, just
  * by the expr package, and the intent here is to keep it from
  * polluting the kind namespace.  For more documentation on what these
- * mean, see src/expr/builtin_kinds.
+ * mean, see src/theory/builtin/kinds.
  */
 enum MetaKind_t {
   INVALID = -1, /*! special node non-kinds like NULL_EXPR or LAST_KIND */

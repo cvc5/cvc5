@@ -98,7 +98,8 @@ bool Smt2::logicIsSet() {
 }
 
 /**
- * Sets the logic for the current benchmark. Declares any logic and theory symbols.
+ * Sets the logic for the current benchmark. Declares any logic and
+ * theory symbols.
  *
  * @param parser the CVC4 Parser object
  * @param name the name of the logic (e.g., QF_UF, AUFLIA)
@@ -124,7 +125,7 @@ void Smt2::setLogic(const std::string& name) {
   case Smt::QF_NIA:
     addTheory(THEORY_INTS);
     break;
-    
+
   case Smt::QF_LRA:
   case Smt::QF_RDL:
     addTheory(THEORY_REALS);
@@ -159,6 +160,10 @@ void Smt2::setLogic(const std::string& name) {
 }
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
+  // TODO: ???
+}
+
+void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???
 }
 

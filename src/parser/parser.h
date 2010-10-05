@@ -208,9 +208,15 @@ public:
   Expr getVariable(const std::string& var_name);
 
   /**
-   * Returns a sort, given a name
+   * Returns a sort, given a name.
    */
   Type getSort(const std::string& sort_name);
+
+  /**
+   * Returns a sort, given a name and args.
+   */
+  Type getSort(const std::string& sort_name,
+               const std::vector<Type>& params);
 
   /**
    * Checks if a symbol has been declared.
@@ -267,8 +273,10 @@ public:
   /** Create a new CVC4 variable expression of the given type. */
   Expr mkVar(const std::string& name, const Type& type);
 
-  /** Create a set of new CVC4 variable expressions of the given
-   type. */
+  /**
+   * Create a set of new CVC4 variable expressions of the given
+   * type.
+   */
   const std::vector<Expr>
   mkVars(const std::vector<std::string> names, const Type& type);
 
@@ -278,13 +286,18 @@ public:
   /** Create a new type definition. */
   void defineType(const std::string& name, const Type& type);
 
-  /**
-   * Creates a new sort with the given name.
-   */
-  Type mkSort(const std::string& name);
+  /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
+  void defineParameterizedType(const std::string& name,
+                               const std::vector<Type>& params,
+                               const Type& type);
 
   /**
-   * Creates a new sorts with the given names.
+   * Creates a new sort with the given name and arity.
+   */
+  Type mkSort(const std::string& name, size_t arity = 0);
+
+  /**
+   * Creates new sorts with the given names (all of arity 0).
    */
   const std::vector<Type>
   mkSorts(const std::vector<std::string>& names);

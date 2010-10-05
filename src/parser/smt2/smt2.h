@@ -57,28 +57,28 @@ public:
    * @param parser the CVC4 Parser object
    * @param theory the theory to open (e.g., Core, Ints)
    */
-  void
-  addTheory(Theory theory);
+  void addTheory(Theory theory);
 
-  bool
-  logicIsSet();
+  bool logicIsSet();
 
   /**
-   * Sets the logic for the current benchmark. Declares any logic and theory symbols.
+   * Sets the logic for the current benchmark. Declares any logic and
+   * theory symbols.
    *
    * @param parser the CVC4 Parser object
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
-  void
-  setLogic(const std::string& name);
+  void setLogic(const std::string& name);
 
-  void
-  setInfo(const std::string& flag, const SExpr& sexpr);
+  void setInfo(const std::string& flag, const SExpr& sexpr);
+
+  void setOption(const std::string& flag, const SExpr& sexpr);
 
 private:
 
   void addArithmeticOperators();
-};
+};/* class Smt2 */
+
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
