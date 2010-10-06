@@ -25,17 +25,18 @@ using namespace std;
 
 namespace CVC4 {
 
-TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node, std::string message)
-: Exception(message), d_node(new Node(node))
-{
+TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
+                                                           string message) :
+  Exception(message),
+  d_node(new Node(node)) {
 }
 
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() throw () {
   delete d_node;
 }
 
-std::string TypeCheckingExceptionPrivate::toString() const {
-  std::stringstream ss;
+string TypeCheckingExceptionPrivate::toString() const {
+  stringstream ss;
   ss << "Error type-checking " << d_node << ": " << d_msg;
   return ss.str();
 }

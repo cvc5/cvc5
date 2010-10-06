@@ -46,6 +46,7 @@ class FunctionType;
 class TupleType;
 class KindType;
 class SortType;
+class SortConstructorType;
 class Type;
 
 /** Strategy for hashing Types */
@@ -85,6 +86,9 @@ protected:
    */
   Type(NodeManager* em, TypeNode* typeNode);
 
+  /** Accessor for derived classes */
+  static TypeNode* getTypeNode(const Type& t) { return t.d_typeNode; }
+
 public:
 
   /**
@@ -112,6 +116,17 @@ public:
    * @return true if type is null
    */
   bool isNull() const;
+
+  /**
+   * Substitution of Types.
+   */
+  Type substitute(const Type& type, const Type& replacement) const;
+
+  /**
+   * Simultaneous substitution of Types.
+   */
+  Type substitute(const std::vector<Type>& types,
+                  const std::vector<Type>& replacements) const;
 
   /**
    * Assignment operator.
@@ -144,7 +159,7 @@ public:
    * Cast this type to a Boolean type
    * @return the BooleanType
    */
-  operator BooleanType() const throw (AssertionException);
+  operator BooleanType() const throw(AssertionException);
 
   /**
    * Is this the integer type?
@@ -156,7 +171,7 @@ public:
    * Cast this type to a integer type
    * @return the IntegerType
    */
-  operator IntegerType() const throw (AssertionException);
+  operator IntegerType() const throw(AssertionException);
 
   /**
    * Is this the real type?
@@ -168,7 +183,7 @@ public:
    * Cast this type to a real type
    * @return the RealType
    */
-  operator RealType() const throw (AssertionException);
+  operator RealType() const throw(AssertionException);
 
   /**
    * Is this the bit-vector type?
@@ -180,7 +195,7 @@ public:
    * Cast this type to a bit-vector type
    * @return the BitVectorType
    */
-  operator BitVectorType() const throw (AssertionException);
+  operator BitVectorType() const throw(AssertionException);
 
   /**
    * Is this a function type?
@@ -199,7 +214,7 @@ public:
    * Cast this type to a function type
    * @return the FunctionType
    */
-  operator FunctionType() const throw (AssertionException);
+  operator FunctionType() const throw(AssertionException);
 
   /**
    * Is this a tuple type?
@@ -211,7 +226,7 @@ public:
    * Cast this type to a tuple type
    * @return the TupleType
    */
-  operator TupleType() const throw (AssertionException);
+  operator TupleType() const throw(AssertionException);
 
   /**
    * Is this an array type?
@@ -223,7 +238,7 @@ public:
    * Cast this type to an array type
    * @return the ArrayType
    */
-  operator ArrayType() const throw (AssertionException);
+  operator ArrayType() const throw(AssertionException);
 
   /**
    * Is this a sort kind?
@@ -233,9 +248,21 @@ public:
 
   /**
    * Cast this type to a sort type
-   * @return the function Type
+   * @return the sort type
    */
-  operator SortType() const throw (AssertionException);
+  operator SortType() const throw(AssertionException);
+
+  /**
+   * Is this a sort constructor kind?
+   * @return true if this is a sort constructor kind
+   */
+  bool isSortConstructor() const;
+
+  /**
+   * Cast this type to a sort constructor type
+   * @return the sort constructor type
+   */
+  operator SortConstructorType() const throw(AssertionException);
 
   /**
    * Is this a kind type (i.e., the type of a type)?
@@ -247,7 +274,7 @@ public:
    * Cast to a kind type
    * @return the kind type
    */
-  operator KindType() const throw (AssertionException);
+  operator KindType() const throw(AssertionException);
 
   /**
    * Outputs a string representation of this type to the stream.
@@ -264,7 +291,7 @@ class CVC4_PUBLIC BooleanType : public Type {
 public:
 
   /** Construct from the base type */
-  BooleanType(const Type& type) throw (AssertionException);
+  BooleanType(const Type& type) throw(AssertionException);
 };
 
 /**
@@ -275,7 +302,7 @@ class CVC4_PUBLIC IntegerType : public Type {
 public:
 
   /** Construct from the base type */
-  IntegerType(const Type& type) throw (AssertionException);
+  IntegerType(const Type& type) throw(AssertionException);
 };
 
 /**
@@ -286,7 +313,7 @@ class CVC4_PUBLIC RealType : public Type {
 public:
 
   /** Construct from the base type */
-  RealType(const Type& type) throw (AssertionException);
+  RealType(const Type& type) throw(AssertionException);
 };
 
 
@@ -298,7 +325,7 @@ class CVC4_PUBLIC FunctionType : public Type {
 public:
 
   /** Construct from the base type */
-  FunctionType(const Type& type) throw (AssertionException);
+  FunctionType(const Type& type) throw(AssertionException);
 
   /** Get the argument types */
   std::vector<Type> getArgTypes() const;
@@ -315,7 +342,7 @@ class CVC4_PUBLIC TupleType : public Type {
 public:
 
   /** Construct from the base type */
-  TupleType(const Type& type) throw (AssertionException);
+  TupleType(const Type& type) throw(AssertionException);
 
   /** Get the constituent types */
   std::vector<Type> getTypes() const;
@@ -329,7 +356,7 @@ class CVC4_PUBLIC ArrayType : public Type {
 public:
 
   /** Construct from the base type */
-  ArrayType(const Type& type) throw (AssertionException);
+  ArrayType(const Type& type) throw(AssertionException);
 
   /** Get the index type */
   Type getIndexType() const;
@@ -346,10 +373,30 @@ class CVC4_PUBLIC SortType : public Type {
 public:
 
   /** Construct from the base type */
-  SortType(const Type& type) throw (AssertionException);
+  SortType(const Type& type) throw(AssertionException);
 
   /** Get the name of the sort */
   std::string getName() const;
+};
+
+/**
+ * Class encapsulating a user-defined sort constructor.
+ */
+class CVC4_PUBLIC SortConstructorType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  SortConstructorType(const Type& type) throw(AssertionException);
+
+  /** Get the name of the sort constructor */
+  std::string getName() const;
+
+  /** Get the arity of the sort constructor */
+  size_t getArity() const;
+
+  /** Instantiate a sort using this sort constructor */
+  SortType instantiate(const std::vector<Type>& params) const;
 };
 
 /**
@@ -360,7 +407,7 @@ class CVC4_PUBLIC KindType : public Type {
 public:
 
   /** Construct from the base type */
-  KindType(const Type& type) throw (AssertionException);
+  KindType(const Type& type) throw(AssertionException);
 };
 
 
@@ -372,7 +419,7 @@ class CVC4_PUBLIC BitVectorType : public Type {
 public:
 
   /** Construct from the base type */
-  BitVectorType(const Type& type) throw (AssertionException);
+  BitVectorType(const Type& type) throw(AssertionException);
 
   /**
    * Returns the size of the bit-vector type.
@@ -384,7 +431,7 @@ public:
 /**
  * Output operator for types
  * @param out the stream to output to
- * @param e the type to output
+ * @param t the type to output
  * @return the stream
  */
 std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;

@@ -70,9 +70,9 @@ class TypeNode {
   friend class NodeBuilder;
 
   /**
-   * Assigns the expression value and does reference counting. No assumptions
-   * are made on the expression, and should only be used if we know what we
-   * are doing.
+   * Assigns the expression value and does reference counting. No
+   * assumptions are made on the expression, and should only be used
+   * if we know what we are doing.
    *
    * @param ev the expression value to assign
    */
@@ -87,21 +87,23 @@ public:
   TypeNode(const TypeNode& node);
 
   /**
-   * Assignment operator for nodes, copies the relevant information from node
-   * to this node.
-   * @param node the node to copy
-   * @return reference to this node
-   */
-  TypeNode& operator=(const TypeNode& typeNode);
-
-  /**
    * Destructor. If ref_count is true it will decrement the reference count
    * and, if zero, collect the NodeValue.
    */
   ~TypeNode() throw(AssertionException);
 
   /**
+   * Assignment operator for nodes, copies the relevant information from node
+   * to this node.
+   *
+   * @param node the node to copy
+   * @return reference to this node
+   */
+  TypeNode& operator=(const TypeNode& typeNode);
+
+  /**
    * Return the null node.
+   *
    * @return the null node
    */
   static TypeNode null() {
@@ -109,18 +111,31 @@ public:
   }
 
   /**
+   * Substitution of TypeNodes.
+   */
+  TypeNode substitute(const TypeNode& type, const TypeNode& replacement) const;
+
+  /**
+   * Simultaneous substitution of TypeNodes.
+   */
+  TypeNode substitute(const std::vector<TypeNode>& types,
+                      const std::vector<TypeNode>& replacements) const;
+
+  /**
    * Structural comparison operator for expressions.
+   *
    * @param typeNode the type node to compare to
    * @return true if expressions are equal, false otherwise
    */
   bool operator==(const TypeNode& typeNode) const {
     return
-      d_nv == typeNode.d_nv
-      || (typeNode.isReal() && this->isReal());
+      d_nv == typeNode.d_nv ||
+      (typeNode.isReal() && this->isReal());
   }
 
   /**
    * Structural comparison operator for expressions.
+   *
    * @param typeNode the type node to compare to
    * @return true if expressions are equal, false otherwise
    */
@@ -131,6 +146,7 @@ public:
   /**
    * We compare by expression ids so, keeping things deterministic and having
    * that subexpressions have to be smaller than the enclosing expressions.
+   *
    * @param node the node to compare to
    * @return true if this expression is smaller
    */
@@ -140,23 +156,26 @@ public:
 
   /**
    * Returns the i-th child of this node.
+   *
    * @param i the index of the child
    * @return the node representing the i-th child
    */
-  TypeNode operator[](int i) const {
+  inline TypeNode operator[](int i) const {
     return TypeNode(d_nv->getChild(i));
   }
 
   /**
    * Returns the unique id of this node
+   *
    * @return the id
    */
-  unsigned getId() const {
+  inline unsigned getId() const {
     return d_nv->getId();
   }
 
   /**
    * Returns the kind of this type node.
+   *
    * @return the kind
    */
   inline Kind getKind() const {
@@ -165,6 +184,7 @@ public:
 
   /**
    * Returns the metakind of this type node.
+   *
    * @return the metakind
    */
   inline kind::MetaKind getMetaKind() const {
@@ -173,6 +193,7 @@ public:
 
   /**
    * Returns the number of children this node has.
+   *
    * @return the number of children
    */
   inline size_t getNumChildren() const;
@@ -185,11 +206,13 @@ public:
 
   /**
    * Returns the value of the given attribute that this has been attached.
+   *
    * @param attKind the kind of the attribute
    * @return the value of the attribute
    */
   template <class AttrKind>
-  inline typename AttrKind::value_type getAttribute(const AttrKind& attKind) const;
+  inline typename AttrKind::value_type
+  getAttribute(const AttrKind& attKind) const;
 
   // Note that there are two, distinct hasAttribute() declarations for
   // a reason (rather than using a pointer-valued argument with a
@@ -197,9 +220,11 @@ public:
   // hasAttribute() implementations.
 
   /**
-   * Returns true if this node has been associated an attribute of given kind.
-   * Additionaly, if a pointer to the value_kind is give, and the attribute
-   * value has been set for this node, it will be returned.
+   * Returns true if this node has been associated an attribute of
+   * given kind.  Additionally, if a pointer to the value_kind is
+   * give, and the attribute value has been set for this node, it will
+   * be returned.
+   *
    * @param attKind the kind of the attribute
    * @return true if this node has the requested attribute
    */
@@ -210,6 +235,7 @@ public:
    * Returns true if this node has been associated an attribute of given kind.
    * Additionaly, if a pointer to the value_kind is give, and the attribute
    * value has been set for this node, it will be returned.
+   *
    * @param attKind the kind of the attribute
    * @param value where to store the value if it exists
    * @return true if this node has the requested attribute
@@ -220,6 +246,7 @@ public:
 
   /**
    * Sets the given attribute of this node to the given value.
+   *
    * @param attKind the kind of the atribute
    * @param value the value to set the attribute to
    */
@@ -234,6 +261,7 @@ public:
 
   /**
    * Returns the iterator pointing to the first child.
+   *
    * @return the iterator
    */
   inline iterator begin() {
@@ -241,8 +269,9 @@ public:
   }
 
   /**
-   * Returns the iterator pointing to the end of the children (one beyond the
-   * last one.
+   * Returns the iterator pointing to the end of the children (one
+   * beyond the last one.
+   *
    * @return the end of the children iterator.
    */
   inline iterator end() {
@@ -251,6 +280,7 @@ public:
 
   /**
    * Returns the const_iterator pointing to the first child.
+   *
    * @return the const_iterator
    */
   inline const_iterator begin() const {
@@ -258,8 +288,9 @@ public:
   }
 
   /**
-   * Returns the const_iterator pointing to the end of the children (one
-   * beyond the last one.
+   * Returns the const_iterator pointing to the end of the children
+   * (one beyond the last one.
+   *
    * @return the end of the children const_iterator.
    */
   inline const_iterator end() const {
@@ -267,8 +298,9 @@ public:
   }
 
   /**
-   * Converts this node into a string representation.
-   * @return the string representation of this node.
+   * Converts this type into a string representation.
+   *
+   * @return the string representation of this type.
    */
   inline std::string toString() const {
     return d_nv->toString();
@@ -277,6 +309,7 @@ public:
   /**
    * Converst this node into a string representation and sends it to the
    * given stream
+   *
    * @param out the sream to serialise this node to
    */
   inline void toStream(std::ostream& out, int toDepth = -1,
@@ -286,6 +319,7 @@ public:
 
   /**
    * Very basic pretty printer for Node.
+   *
    * @param o output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
@@ -293,6 +327,7 @@ public:
 
   /**
    * Returns true if this type is a null type.
+   *
    * @return true if null
    */
   bool isNull() const {
@@ -350,6 +385,9 @@ public:
   /** Is this a sort kind */
   bool isSort() const;
 
+  /** Is this a sort constructor kind */
+  bool isSortConstructor() const;
+
   /** Is this a kind type (i.e., the type of a type)? */
   bool isKind() const;
 
@@ -357,6 +395,7 @@ private:
 
   /**
    * Indents the given stream a given amount of spaces.
+   *
    * @param out the stream to indent
    * @param indent the numer of spaces
    */
@@ -370,6 +409,7 @@ private:
 
 /**
  * Serializes a given node to the given stream.
+ *
  * @param out the output stream to use
  * @param node the node to output to the stream
  * @return the changed stream.
@@ -383,7 +423,7 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
 
 // for hash_maps, hash_sets..
 struct TypeNodeHashStrategy {
-  static inline size_t hash(const CVC4::TypeNode& node) {
+  static inline size_t hash(const TypeNode& node) {
     return (size_t) node.getId();
   }
 };/* struct TypeNodeHashStrategy */
@@ -429,7 +469,8 @@ inline void TypeNode::assignNodeValue(expr::NodeValue* ev) {
 
 inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
-  Assert(typeNode.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
+  Assert(typeNode.d_nv != NULL,
+         "Expecting a non-NULL expression value on RHS!");
   if(EXPECT_TRUE( d_nv != typeNode.d_nv )) {
     d_nv->dec();
     d_nv = typeNode.d_nv;

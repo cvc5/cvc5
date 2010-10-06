@@ -112,8 +112,14 @@ theory builtin ::CVC4::theory::builtin::TheoryBuiltin "theory_builtin.h"
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
 # not stored that way.  If you ask for the operator of (EQUAL a b),
 # you'll get a special, singleton (BUILTIN EQUAL) Node.
-constant BUILTIN ::CVC4::Kind ::CVC4::kind::KindHashStrategy \
-    "expr/kind.h" "The kind of nodes representing built-in operators"
+constant BUILTIN \
+    ::CVC4::Kind \
+    ::CVC4::kind::KindHashStrategy \
+    "expr/kind.h" \
+    "The kind of nodes representing built-in operators"
+
+variable FUNCTION "function"
+parameterized APPLY FUNCTION 1: "defined function application"
 
 operator EQUAL 2 "equality"
 operator DISTINCT 2: "disequality"

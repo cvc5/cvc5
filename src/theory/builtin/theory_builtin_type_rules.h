@@ -31,6 +31,33 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
+class ApplyTypeRule {
+  public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate) {
+    TNode f = n.getOperator();
+    TypeNode fType = f.getType(check);
+    if( !fType.isFunction() ) {
+      throw TypeCheckingExceptionPrivate(n, "operator does not have function type");
+    }
+    if( check ) {
+      if (n.getNumChildren() != fType.getNumChildren() - 1) {
+        throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the function type");
+      }
+      TNode::iterator argument_it = n.begin();
+      TNode::iterator argument_it_end = n.end();
+      TypeNode::iterator argument_type_it = fType.begin();
+      for(; argument_it != argument_it_end; ++argument_it) {
+        if((*argument_it).getType() != *argument_type_it) {
+          throw TypeCheckingExceptionPrivate(n, "argument types do not match the function type");
+        }
+      }
+    }
+    return fType.getRangeType();
+  }
+};/* class ApplyTypeRule */
+
+
 class EqualityTypeRule {
   public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) throw (TypeCheckingExceptionPrivate) {

@@ -17,11 +17,11 @@ constant CONST_BITVECTOR \
     ::CVC4::BitVectorHashStrategy \
     "util/bitvector.h" \
     "a fixed-width bit-vector constant"
-    
+
 operator BITVECTOR_CONCAT 2: "bit-vector concatenation"
 operator BITVECTOR_AND 2 "bitwise and"
-operator BITVECTOR_OR 2 "bitwise or"      
-operator BITVECTOR_XOR 2 "bitwise xor"      
+operator BITVECTOR_OR 2 "bitwise or"
+operator BITVECTOR_XOR 2 "bitwise xor"
 operator BITVECTOR_NOT 2 "bitwise not"
 operator BITVECTOR_NAND 2 "bitwise nand"
 operator BITVECTOR_NOR 2 "bitwise nor"
@@ -31,8 +31,8 @@ operator BITVECTOR_MULT 2 "bit-vector multiplication"
 operator BITVECTOR_PLUS 2 "bit-vector addition"
 operator BITVECTOR_SUB 2 "bit-vector subtraction"
 operator BITVECTOR_NEG 1 "bit-vector unary negation"
-operator BITVECTOR_UDIV 2 "bit-vector unsigned division, truncating towards 0 (undefined if divisor is 0)"    
-operator BITVECTOR_UREM 2 "bit-vector unsigned remainder from truncating division (undefined if divisor is 0)"    
+operator BITVECTOR_UDIV 2 "bit-vector unsigned division, truncating towards 0 (undefined if divisor is 0)"
+operator BITVECTOR_UREM 2 "bit-vector unsigned remainder from truncating division (undefined if divisor is 0)"
 operator BITVECTOR_SDIV 2 "bit-vector 2's complement signed division"
 operator BITVECTOR_SREM 2 "bit-vector 2's complement signed remainder (sign follows dividend)"
 operator BITVECTOR_SMOD 2 "bit-vector 2's complement signed remainder (sign follows divisor)"
@@ -83,7 +83,7 @@ constant BITVECTOR_ROTATE_RIGHT_OP \
 	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRotateRight >" \
 	"util/bitvector.h" \
 	"operator for the bit-vector rotate right"
-	
+
 parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 1 "bit-vector extract"
 parameterized BITVECTOR_REPEAT BITVECTOR_REPEAT_OP 1 "bit-vector repeat"
 parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend"

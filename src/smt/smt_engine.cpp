@@ -94,8 +94,10 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
                                 d_theoryEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
 
+  d_functions = new(true) FunctionMap(d_context);
+
   if(d_options->interactive) {
-    d_assertionList = new(true) CDList<Expr>(d_context);
+    d_assertionList = new(true) AssertionList(d_context);
   }
 }
 
@@ -110,7 +112,11 @@ SmtEngine::~SmtEngine() {
 
   shutdown();
 
-  ::delete d_assertionList;
+  if(d_assertionList != NULL) {
+    d_assertionList->deleteSelf();
+  }
+
+  d_functions->deleteSelf();
 
   delete d_theoryEngine;
   delete d_propEngine;
@@ -145,7 +151,7 @@ void SmtEngine::defineFunction(const string& name,
                                Type type,
                                Expr formula) {
   NodeManagerScope nms(d_nodeManager);
-  Unimplemented();
+  d_functions->insert(name, make_pair(make_pair(args, type), formula));
 }
 
 Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n) {

@@ -25,9 +25,11 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "context/cdmap_forward.h"
 #include "util/result.h"
 #include "util/model.h"
 #include "util/sexpr.h"
+#include "util/hash.h"
 #include "smt/noninteractive_exception.h"
 #include "smt/bad_option.h"
 
@@ -69,36 +71,39 @@ namespace smt {
 class CVC4_PUBLIC SmtEngine {
 private:
 
+  /** A name/type pair, used for signatures */
+  typedef std::pair<std::string, Type> TypedArg;
+  /** A vector of typed formals, and a return type */
+  typedef std::pair<std::vector<TypedArg>, Type> FunctionSignature;
+  /** The type of our internal map of defined functions */
+  typedef context::CDMap<std::string, std::pair<FunctionSignature, Expr>,
+    StringHashFunction>
+    FunctionMap;
+
+  /** The type of our internal assertion list */
+  typedef context::CDList<Expr> AssertionList;
+
   /** Our Context */
   context::Context* d_context;
-
   /** Our expression manager */
   ExprManager* d_exprManager;
-
   /** Out internal expression/node manager */
   NodeManager* d_nodeManager;
-
   /** User-level options */
   const Options* d_options;
-
   /** The decision engine */
   DecisionEngine* d_decisionEngine;
-
   /** The decision engine */
   TheoryEngine* d_theoryEngine;
-
   /** The propositional engine */
   prop::PropEngine* d_propEngine;
-
+  /** An index of our defined functions */
+  FunctionMap* d_functions;
   /**
-   * The assertion list, before any conversion, for supporting
+   * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in interactive mode.
    */
-  context::CDList<Expr>* d_assertionList;
-
-  // preprocess() and addFormula() used to be housed here; they are
-  // now in an SmtEnginePrivate class.  See the comment in
-  // smt_engine.cpp.
+  AssertionList* d_assertionList;
 
   /**
    * This is called by the destructor, just before destroying the

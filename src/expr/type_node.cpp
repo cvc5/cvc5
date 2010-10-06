@@ -16,23 +16,67 @@
  ** Reference-counted encapsulation of a pointer to node information.
  **/
 
+#include <vector>
+
 #include "expr/type_node.h"
+
+using namespace std;
 
 namespace CVC4 {
 
-TypeNode TypeNode::s_null(&expr::NodeValue::s_null);
+TypeNode TypeNode::s_null( &expr::NodeValue::s_null );
+
+TypeNode TypeNode::substitute(const TypeNode& type,
+                              const TypeNode& replacement) const {
+  NodeBuilder<> nb(getKind());
+  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    // push the operator
+    nb << TypeNode(d_nv->d_children[0]);
+  }
+  for(TypeNode::iterator i = begin(), iend = end(); i != iend; ++i) {
+    if(*i == type) {
+      nb << replacement;
+    } else {
+      (*i).substitute(type, replacement);
+    }
+  }
+  return nb.constructTypeNode();
+}
+
+TypeNode TypeNode::substitute(const vector<TypeNode>& types,
+                              const vector<TypeNode>& replacements) const {
+  vector<TypeNode>::const_iterator j = find(types.begin(), types.end(), *this);
+  if(j != types.end()) {
+    return replacements[j - types.begin()];
+  } else if(getNumChildren() == 0) {
+    return *this;
+  } else {
+    NodeBuilder<> nb(getKind());
+    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+      // push the operator
+      nb << TypeNode(d_nv->d_children[0]);
+    }
+    for(TypeNode::iterator i = begin(), iend = end(); i != iend; ++i) {
+      nb << (*i).substitute(types, replacements);
+    }
+    return nb.constructTypeNode();
+  }
+}
 
 bool TypeNode::isBoolean() const {
-  return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE;
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == BOOLEAN_TYPE;
 }
 
 bool TypeNode::isInteger() const {
-  return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE;
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == INTEGER_TYPE;
 }
 
 bool TypeNode::isReal() const {
   return getKind() == kind::TYPE_CONSTANT
-    && (getConst<TypeConstant>() == REAL_TYPE || getConst<TypeConstant>() == INTEGER_TYPE);
+    && ( getConst<TypeConstant>() == REAL_TYPE ||
+         getConst<TypeConstant>() == INTEGER_TYPE );
 }
 
 bool TypeNode::isArray() const {
@@ -60,10 +104,10 @@ bool TypeNode::isPredicate() const {
   return isFunction() && getRangeType().isBoolean();
 }
 
-std::vector<TypeNode> TypeNode::getArgTypes() const {
+vector<TypeNode> TypeNode::getArgTypes() const {
   Assert(isFunction());
-  std::vector<TypeNode> args;
-  for (unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
+  vector<TypeNode> args;
+  for(unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
     args.push_back((*this)[i]);
   }
   return args;
@@ -80,10 +124,10 @@ bool TypeNode::isTuple() const {
 }
 
 /** Is this a tuple type? */
-std::vector<TypeNode> TypeNode::getTupleTypes() const {
+vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
-  std::vector<TypeNode> types;
-  for (unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
+  vector<TypeNode> types;
+  for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
     types.push_back((*this)[i]);
   }
   return types;
@@ -91,12 +135,18 @@ std::vector<TypeNode> TypeNode::getTupleTypes() const {
 
 /** Is this a sort kind */
 bool TypeNode::isSort() const {
-  return getKind() == kind::SORT_TYPE;
+  return getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr());
+}
+
+/** Is this a sort constructor kind */
+bool TypeNode::isSortConstructor() const {
+  return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
 /** Is this a kind type (i.e., the type of a type)? */
 bool TypeNode::isKind() const {
-  return getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == KIND_TYPE;
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == KIND_TYPE;
 }
 
 /** Is this a bit-vector type */
@@ -106,7 +156,8 @@ bool TypeNode::isBitVector() const {
 
 /** Is this a bit-vector type of size <code>size</code> */
 bool TypeNode::isBitVector(unsigned size) const {
-  return getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size;
+  return getKind() == kind::BITVECTOR_TYPE &&
+    getConst<BitVectorSize>() == size;
 }
 
 /** Get the size of this bit-vector type */

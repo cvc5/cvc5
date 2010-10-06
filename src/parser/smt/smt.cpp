@@ -85,8 +85,8 @@ void Smt::addTheory(Theory theory) {
   case THEORY_ARRAYS_EX: {
     Type indexType = mkSort("Index");
     Type elementType = mkSort("Element");
-    
-    defineType("Array",getExprManager()->mkArrayType(indexType,elementType));
+
+    defineType("Array", getExprManager()->mkArrayType(indexType,elementType));
 
     addOperator(kind::SELECT);
     addOperator(kind::STORE);

@@ -173,7 +173,8 @@ public:
   template <class T>
   Expr mkConst(const T&);
 
-  /** Create an Expr by applying an associative operator to the children.
+  /**
+   * Create an Expr by applying an associative operator to the children.
    * If <code>children.size()</code> is greater than the max arity for
    * <code>kind</code>, then the expression will be broken up into
    * suitably-sized chunks, taking advantage of the associativity of
@@ -224,8 +225,16 @@ public:
   /** Make the type of arrays with the given parameterization */
   ArrayType mkArrayType(Type indexType, Type constituentType) const;
 
-  /** Make a new sort with the given name and arity. */
-  SortType mkSort(const std::string& name, size_t arity = 0) const;
+  /** Make a new sort with the given name. */
+  SortType mkSort(const std::string& name) const;
+
+  /** Make a new sort from a constructor */
+  SortType mkSort(SortConstructorType constructor,
+                  const std::vector<TypeNode>& children) const;
+
+  /** Make a sort constructor from a name and arity */
+  SortConstructorType mkSortConstructor(const std::string& name,
+                                        size_t arity) const;
 
   /** Get the type of an expression */
   Type getType(const Expr& e, bool check = false)

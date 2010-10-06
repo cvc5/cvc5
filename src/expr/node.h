@@ -342,11 +342,14 @@ public:
   /**
    * Returns a node representing the operator of this expression.
    * If this is an APPLY, then the operator will be a functional term.
-   * Otherwise, it will be a node with kind BUILTIN
+   * Otherwise, it will be a node with kind BUILTIN.
    */
   NodeTemplate<true> getOperator() const;
 
-  /** Returns true if the node has an operator (i.e., it's not a variable or a constant). */
+  /**
+   * Returns true if the node has an operator (i.e., it's not a
+   * variable or a constant).
+   */
   inline bool hasOperator() const;
 
   /**
@@ -721,14 +724,14 @@ struct NodeHashFunction {
   size_t operator()(const CVC4::Node& node) const {
     return (size_t) node.getId();
   }
-};
+};/* struct NodeHashFunction */
 
 // for hash_maps, hash_sets..
 struct TNodeHashFunction {
   size_t operator()(CVC4::TNode node) const {
     return (size_t) node.getId();
   }
-};
+};/* struct TNodeHashFunction */
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {
@@ -976,7 +979,7 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 /**
  * Returns a node representing the operator of this expression.
  * If this is an APPLY, then the operator will be a functional term.
- * Otherwise, it will be a node with kind BUILTIN
+ * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {

@@ -17,6 +17,8 @@
  ** \todo document this file
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__HASH_H
 #define __CVC4__HASH_H
 

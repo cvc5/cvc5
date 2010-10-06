@@ -75,6 +75,7 @@ public:
 
   /**
    * Get the Expr that caused the type-checking to fail.
+   *
    * @return the expr
    */
   Expr getExpression() const;
@@ -103,6 +104,7 @@ protected:
 
   /**
    * Constructor for internal purposes.
+   *
    * @param em the expression manager that handles this expression
    * @param node the actual expression node pointer
    */
@@ -115,6 +117,7 @@ public:
 
   /**
    * Copy constructor, makes a copy of a given expression
+   *
    * @param e the expression to copy
    */
   Expr(const Expr& e);
@@ -134,6 +137,7 @@ public:
    * Assignment operator, makes a copy of the given expression. If the
    * expression managers of the two expressions differ, the expression of
    * the given expression will be used.
+   *
    * @param e the expression to assign
    * @return the reference to this expression after assignment
    */
@@ -142,13 +146,15 @@ public:
   /**
    * Syntactic comparison operator. Returns true if expressions belong to the
    * same expression manager and are syntactically identical.
+   *
    * @param e the expression to compare to
    * @return true if expressions are syntactically the same, false otherwise
    */
   bool operator==(const Expr& e) const;
 
   /**
-   * Syntactic dis-equality operator.
+   * Syntactic disequality operator.
+   *
    * @param e the expression to compare to
    * @return true if expressions differ syntactically, false otherwise
    */
@@ -160,6 +166,7 @@ public:
    * ordering than all the expressions created later. Null expression is the
    * smallest element of the ordering. The behavior of the operator is
    * undefined if the expressions come from two different expression managers.
+   *
    * @param e the expression to compare to
    * @return true if this expression is smaller than the given one
    */
@@ -171,6 +178,7 @@ public:
    * ordering than all the expressions created later. Null expression is the
    * smallest element of the ordering. The behavior of the operator is
    * undefined if the expressions come from two different expression managers.
+   *
    * @param e the expression to compare to
    * @return true if this expression is greater than the given one
    */
@@ -182,6 +190,7 @@ public:
    * ordering than all the expressions created later. Null expression is the
    * smallest element of the ordering. The behavior of the operator is
    * undefined if the expressions come from two different expression managers.
+   *
    * @param e the expression to compare to
    * @return true if this expression is smaller or equal to the given one
    */
@@ -193,25 +202,37 @@ public:
    * ordering than all the expressions created later. Null expression is the
    * smallest element of the ordering. The behavior of the operator is
    * undefined if the expressions come from two different expression managers.
+   *
    * @param e the expression to compare to
    * @return true if this expression is greater or equal to the given one
    */
   bool operator>=(const Expr& e) const { return !(*this < e); }
 
   /**
+   * Get the ID of this expression (used for the comparison operators).
+   *
+   * @return an identifier uniquely identifying the value this
+   * expression holds.
+   */
+  unsigned getId() const;
+
+  /**
    * Returns the kind of the expression (AND, PLUS ...).
+   *
    * @return the kind of the expression
    */
   Kind getKind() const;
 
   /**
    * Returns the number of children of this expression.
+   *
    * @return the number of children
    */
   size_t getNumChildren() const;
 
   /**
    * Returns the i'th child of this expression.
+   *
    * @param i the index of the child to retrieve
    * @return the child
    */
@@ -219,12 +240,14 @@ public:
 
   /**
    * Check if this is an expression that has an operator.
+   *
    * @return true if this expression has an operator
    */
   bool hasOperator() const;
 
   /**
    * Get the operator of this expression.
+   *
    * @throws IllegalArgumentException if it has no operator
    * @return the operator of this expression
    */
@@ -598,6 +621,13 @@ inline std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
 }
 
 }/* CVC4::expr namespace */
+
+// for hash_maps, hash_sets..
+struct ExprHashFunction {
+  size_t operator()(CVC4::Expr e) const {
+    return (size_t) e.getId();
+  }
+};/* struct ExprHashFunction */
 
 }/* CVC4 namespace */
 

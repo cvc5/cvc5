@@ -92,19 +92,18 @@
 #ifndef __CVC4__CONTEXT__CDMAP_H
 #define __CVC4__CONTEXT__CDMAP_H
 
-#include "context/context.h"
-#include "util/Assert.h"
-
 #include <vector>
 #include <iterator>
 #include <ext/hash_map>
+
+#include "context/context.h"
+#include "util/Assert.h"
+#include "context/cdmap_forward.h"
 
 namespace CVC4 {
 namespace context {
 
 // Auxiliary class: almost the same as CDO (see cdo.h)
-
-template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> > class CDMap;
 
 template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
 class CDOmap : public ContextObj {

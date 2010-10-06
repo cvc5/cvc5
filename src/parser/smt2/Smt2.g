@@ -19,8 +19,8 @@
 grammar Smt2;
 
 options {
-  language = 'C';                  // C output for antlr
-//  defaultErrorHandler = false;      // Skip the default error handling, just break with exceptions
+  language = 'C'; // C output for antlr
+  //defaultErrorHandler = false; // Skip the default error handling, just break with exceptions
   k = 2;
 }
 
@@ -162,8 +162,15 @@ command returns [CVC4::Command* cmd]
     DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL
     { Debug("parser") << "declare sort: '" << name
                       << "' arity=" << n << std::endl;
-      PARSER_STATE->mkSort(name, AntlrInput::tokenToUnsigned(n));
-      $cmd = new DeclarationCommand(name,EXPR_MANAGER->kindType()); }
+      unsigned arity = AntlrInput::tokenToUnsigned(n);
+      if(arity == 0) {
+        PARSER_STATE->mkSort(name);
+        $cmd = new DeclarationCommand(name, EXPR_MANAGER->kindType());
+      } else {
+        PARSER_STATE->mkSortConstructor(name, arity);
+        $cmd = new DeclarationCommand(name, EXPR_MANAGER->kindType());
+      }
+    }
   | /* sort definition */
     DEFINE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT]
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
@@ -223,8 +230,8 @@ command returns [CVC4::Command* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      PARSER_STATE->mkVar(name, t);
-      $cmd = new DefineFunctionCommand(name,sortedVars,t,expr);
+      PARSER_STATE->mkFunction(name, t);
+      $cmd = new DefineFunctionCommand(name, sortedVars, t, expr);
     }
   | /* value query */
     GET_VALUE_TOK LPAREN_TOK termList[terms,expr] RPAREN_TOK
@@ -315,22 +322,18 @@ term[CVC4::Expr& expr]
 
   | /* A non-built-in function application */
     LPAREN_TOK
-    functionSymbol[expr]
-    { args.push_back(expr); }
+    functionName[name,CHECK_DECLARED]
+    { args.push_back(Expr()); }
     termList[args,expr] RPAREN_TOK
-    // TODO: check arity
-    { expr = MK_EXPR(CVC4::kind::APPLY_UF,args); }
-
-  // | /* An ite expression */
-  //   LPAREN_TOK ITE_TOK
-  //   term[expr]
-  //   { args.push_back(expr); }
-  //   term[expr]
-  //   { args.push_back(expr); }
-  //   term[expr]
-  //   { args.push_back(expr); }
-  //   RPAREN_TOK
-  //   { expr = MK_EXPR(CVC4::kind::ITE, args); }
+    { PARSER_STATE->checkFunction(name);
+      const bool isDefinedFunction =
+        PARSER_STATE->isDefinedFunction(name);
+      expr = isDefinedFunction ?
+        PARSER_STATE->getFunction(name) :
+        PARSER_STATE->getVariable(name);
+      args[0] = expr;
+      // TODO: check arity
+      expr = MK_EXPR(isDefinedFunction ? CVC4::kind::APPLY : CVC4::kind::APPLY_UF, args); }
 
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
@@ -479,7 +482,7 @@ sortSymbol[CVC4::Type& t]
         }
         t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
       } else {
-        PARSER_STATE->parseError("Unhandled parameterized type.");
+        t = PARSER_STATE->getSort(name, args);
       }
     }
   ;
@@ -516,9 +519,7 @@ symbol[std::string& id,
 
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
-//CATEGORY_TOK : ':category';
 CHECKSAT_TOK : 'check-sat';
-//DIFFICULTY_TOK : ':difficulty';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 DEFINE_FUN_TOK : 'define-fun';
@@ -526,23 +527,15 @@ DEFINE_SORT_TOK : 'define-sort';
 GET_VALUE_TOK : 'get-value';
 GET_ASSERTIONS_TOK : 'get-assertions';
 EXIT_TOK : 'exit';
-//FALSE_TOK : 'false';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
 LPAREN_TOK : '(';
-//NOTES_TOK : ':notes';
 RPAREN_TOK : ')';
-//SAT_TOK : 'sat';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
+GET_INFO_TOK : 'get-info';
 SET_OPTION_TOK : 'set-option';
 GET_OPTION_TOK : 'get-option';
-//SMT_VERSION_TOK : ':smt-lib-version';
-//SOURCE_TOK : ':source';
-//STATUS_TOK : ':status';
-//TRUE_TOK : 'true';
-//UNKNOWN_TOK : 'unknown';
-//UNSAT_TOK : 'unsat';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';
@@ -605,15 +598,18 @@ WHITESPACE
   ;
 
 /**
- * Matches an integer constant from the input (non-empty sequence of digits, with
- * no leading zeroes).
+ * Matches an integer constant from the input (non-empty sequence of
+ * digits, with no leading zeroes).
  */
 INTEGER_LITERAL
   : NUMERAL
   ;
 
-/** Match an integer constant. In non-strict mode, this is any sequence of
- * digits. In strict mode, non-zero integers can't have leading zeroes. */
+/**
+ * Match an integer constant. In non-strict mode, this is any sequence
+ * of digits. In strict mode, non-zero integers can't have leading
+ * zeroes.
+ */
 fragment NUMERAL
 @init {
   char *start = (char*) GETCHARINDEX();
@@ -631,8 +627,8 @@ fragment NUMERAL
   ;
 
 /**
-  * Matches a decimal constant from the input.
-  */
+ * Matches a decimal constant from the input.
+ */
 DECIMAL_LITERAL
   : NUMERAL '.' DIGIT+
   ;
@@ -684,7 +680,8 @@ fragment DIGIT : '0'..'9';
 
 fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 
-/** Matches the characters that may appear in a "symbol" (i.e., an identifier)
+/**
+ * Matches the characters that may appear in a "symbol" (i.e., an identifier)
  */
 fragment SYMBOL_CHAR
   : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '_' | '~'

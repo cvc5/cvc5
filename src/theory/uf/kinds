@@ -7,4 +7,6 @@
 theory ::CVC4::theory::uf::TheoryUF "theory_uf.h"
 
 parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"
-variable SORT_TYPE "sort type"
+
+variable SORT_TAG "sort tag"
+parameterized SORT_TYPE SORT_TAG 0: "sort type"

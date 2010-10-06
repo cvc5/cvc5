@@ -227,7 +227,7 @@ function register_metakind {
     exit 1
   fi
 
-  if [ $mk = OPERATOR -o $mk = PARAMETERIZED ]; then
+  if [ $mk = OPERATOR ] || [ $mk = PARAMETERIZED -a "$k" != SORT_TYPE ]; then
     if [ $lb = 0 ]; then
       echo "$kf:$lineno: error in range \`$nc' for \`$k': $mk-kinded kinds must always take at least one child" >&2
       exit 1
