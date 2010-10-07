@@ -31,7 +31,8 @@
 #include "util/sexpr.h"
 #include "util/hash.h"
 #include "smt/noninteractive_exception.h"
-#include "smt/bad_option.h"
+#include "smt/no_such_function_exception.h"
+#include "smt/bad_option_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -39,21 +40,33 @@
 
 namespace CVC4 {
 
-namespace context {
-  class Context;
-  template <class T> class CDList;
-}/* CVC4::context namespace */
-
+template <bool ref_count> class NodeTemplate;
+typedef NodeTemplate<true> Node;
+typedef NodeTemplate<false> TNode;
+class NodeHashFunction;
 class Command;
 class Options;
 class TheoryEngine;
 class DecisionEngine;
+
+namespace context {
+  class Context;
+  template <class T> class CDList;
+}/* CVC4::context namespace */
 
 namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
 
 namespace smt {
+  /**
+   * Representation of a defined function.  We keep these around in
+   * SmtEngine to permit expanding definitions late (and lazily), to
+   * support getValue() over defined functions, to support user output
+   * in terms of defined functions, etc.
+   */
+  class DefinedFunction;
+
   class SmtEnginePrivate;
 }/* CVC4::smt namespace */
 
@@ -69,17 +82,10 @@ namespace smt {
 // The CNF conversion can go on in PropEngine.
 
 class CVC4_PUBLIC SmtEngine {
-private:
 
-  /** A name/type pair, used for signatures */
-  typedef std::pair<std::string, Type> TypedArg;
-  /** A vector of typed formals, and a return type */
-  typedef std::pair<std::vector<TypedArg>, Type> FunctionSignature;
   /** The type of our internal map of defined functions */
-  typedef context::CDMap<std::string, std::pair<FunctionSignature, Expr>,
-    StringHashFunction>
-    FunctionMap;
-
+  typedef context::CDMap<Node, smt::DefinedFunction, NodeHashFunction>
+    DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Expr> AssertionList;
 
@@ -98,7 +104,7 @@ private:
   /** The propositional engine */
   prop::PropEngine* d_propEngine;
   /** An index of our defined functions */
-  FunctionMap* d_functions;
+  DefinedFunctionMap* d_definedFunctions;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in interactive mode.
@@ -141,29 +147,28 @@ public:
   ~SmtEngine();
 
   /**
-   * Execute a command.
-   */
-  void doCommand(Command*);
-
-  /**
    * Set information about the script executing.
    */
-  void setInfo(const std::string& key, const SExpr& value) throw(BadOption);
+  void setInfo(const std::string& key, const SExpr& value)
+    throw(BadOptionException);
 
   /**
    * Query information about the SMT environment.
    */
-  const SExpr& getInfo(const std::string& key) const throw(BadOption);
+  const SExpr& getInfo(const std::string& key) const
+    throw(BadOptionException);
 
   /**
    * Set an aspect of the current SMT execution environment.
    */
-  void setOption(const std::string& key, const SExpr& value) throw(BadOption);
+  void setOption(const std::string& key, const SExpr& value)
+    throw(BadOptionException);
 
   /**
    * Get an aspect of the current SMT execution environment.
    */
-  const SExpr& getOption(const std::string& key) const throw(BadOption);
+  const SExpr& getOption(const std::string& key) const
+    throw(BadOptionException);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory
@@ -171,9 +176,8 @@ public:
    * literals and conjunction of literals.  Returns false iff
    * inconsistent.
    */
-  void defineFunction(const std::string& name,
-                      const std::vector<std::pair<std::string, Type> >& args,
-                      Type type,
+  void defineFunction(Expr func,
+                      const std::vector<Expr>& formals,
                       Expr formula);
 
   /**
@@ -209,12 +213,14 @@ public:
 
   /**
    * Get the assigned value of a term (only if preceded by a SAT or
-   * INVALID query).
+   * INVALID query).  Only permitted if the SmtEngine is set to
+   * operate interactively.
    */
-  Expr getValue(Expr term);
+  Expr getValue(Expr term) throw(NoninteractiveException, AssertionException);
 
   /**
-   * Get the current set of assertions.
+   * Get the current set of assertions.  Only permitted if the
+   * SmtEngine is set to operate interactively.
    */
   std::vector<Expr> getAssertions() throw(NoninteractiveException);
 

@@ -33,6 +33,7 @@ SMT2_TESTS = \
 	ite4.smt2 \
         simple-lra.smt2 \
         simple-rdl.smt2 \
+        simple-rdl-definefun.smt2 \
 	simple-uf.smt2
 
 # Regression tests for PL inputs

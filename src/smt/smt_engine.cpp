@@ -16,10 +16,16 @@
  ** The main entry point into the CVC4 library's SMT interface.
  **/
 
+#include <vector>
+#include <string>
+
 #include "smt/smt_engine.h"
 #include "smt/noninteractive_exception.h"
+#include "smt/bad_option_exception.h"
+#include "smt/no_such_function_exception.h"
 #include "context/context.h"
 #include "context/cdlist.h"
+#include "expr/expr.h"
 #include "expr/command.h"
 #include "expr/node_builder.h"
 #include "util/output.h"
@@ -28,6 +34,7 @@
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
 
+using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::prop;
@@ -36,6 +43,28 @@ using namespace CVC4::context;
 namespace CVC4 {
 
 namespace smt {
+
+/**
+ * Representation of a defined function.  We keep these around in
+ * SmtEngine to permit expanding definitions late (and lazily), to
+ * support getValue() over defined functions, to support user output
+ * in terms of defined functions, etc.
+ */
+class DefinedFunction {
+  Node d_func;
+  std::vector<Node> d_formals;
+  Node d_formula;
+public:
+  DefinedFunction() {}
+  DefinedFunction(Node func, vector<Node> formals, Node formula) :
+    d_func(func),
+    d_formals(formals),
+    d_formula(formula) {
+  }
+  Node getFunction() const { return d_func; }
+  vector<Node> getFormals() const { return d_formals; }
+  Node getFormula() const { return d_formula; }
+};/* class DefinedFunction */
 
 /**
  * This is an inelegant solution, but for the present, it will work.
@@ -60,19 +89,27 @@ public:
    * passes over the Node.  TODO: may need to specify a LEVEL of
    * preprocessing (certain contexts need more/less ?).
    */
-  static Node preprocess(SmtEngine& smt, TNode n);
+  static Node preprocess(SmtEngine& smt, TNode n)
+    throw(NoSuchFunctionException, AssertionException);
 
   /**
    * Adds a formula to the current context.
    */
-  static void addFormula(SmtEngine& smt, TNode n);
+  static void addFormula(SmtEngine& smt, TNode n)
+    throw(NoSuchFunctionException, AssertionException);
+
+  /**
+   * Expand definitions in n.
+   */
+  static Node expandDefinitions(SmtEngine& smt, TNode n)
+    throw(NoSuchFunctionException, AssertionException);
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
 
-using ::CVC4::smt::SmtEnginePrivate;
+using namespace CVC4::smt;
 
-SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
+SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   d_context(em->getContext()),
   d_exprManager(em),
   d_nodeManager(em->getNodeManager()),
@@ -94,7 +131,7 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw () :
                                 d_theoryEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
 
-  d_functions = new(true) FunctionMap(d_context);
+  d_definedFunctions = new(true) DefinedFunctionMap(d_context);
 
   if(d_options->interactive) {
     d_assertionList = new(true) AssertionList(d_context);
@@ -116,46 +153,125 @@ SmtEngine::~SmtEngine() {
     d_assertionList->deleteSelf();
   }
 
-  d_functions->deleteSelf();
+  d_definedFunctions->deleteSelf();
 
   delete d_theoryEngine;
   delete d_propEngine;
   delete d_decisionEngine;
 }
 
-void SmtEngine::doCommand(Command* c) {
-  NodeManagerScope nms(d_nodeManager);
-  c->invoke(this);
-}
-
-void SmtEngine::setInfo(const std::string& key, const SExpr& value) throw(BadOption) {
+void SmtEngine::setInfo(const string& key, const SExpr& value)
+  throw(BadOptionException) {
+  if(key == ":status") {
+    return;
+  }
   // FIXME implement me
+  throw BadOptionException();
 }
 
-const SExpr& SmtEngine::getInfo(const std::string& key) const throw(BadOption) {
+const SExpr& SmtEngine::getInfo(const string& key) const
+  throw(BadOptionException) {
   // FIXME implement me
-  throw BadOption();
+  throw BadOptionException();
 }
 
-void SmtEngine::setOption(const std::string& key, const SExpr& value) throw(BadOption) {
+void SmtEngine::setOption(const string& key, const SExpr& value)
+  throw(BadOptionException) {
   // FIXME implement me
+  throw BadOptionException();
 }
 
-const SExpr& SmtEngine::getOption(const std::string& key) const throw(BadOption) {
+const SExpr& SmtEngine::getOption(const string& key) const
+  throw(BadOptionException) {
   // FIXME implement me
-  throw BadOption();
+  throw BadOptionException();
 }
 
-void SmtEngine::defineFunction(const string& name,
-                               const vector<pair<string, Type> >& args,
-                               Type type,
+void SmtEngine::defineFunction(Expr func,
+                               const vector<Expr>& formals,
                                Expr formula) {
   NodeManagerScope nms(d_nodeManager);
-  d_functions->insert(name, make_pair(make_pair(args, type), formula));
+  TNode funcNode = func.getTNode();
+  vector<Node> formalsNodes;
+  for(vector<Expr>::const_iterator i = formals.begin(),
+        iend = formals.end();
+      i != iend;
+      ++i) {
+    formalsNodes.push_back((*i).getNode());
+  }
+  TNode formulaNode = formula.getTNode();
+  DefinedFunction def(funcNode, formalsNodes, formulaNode);
+  d_definedFunctions->insert(funcNode, def);
 }
 
-Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n) {
-  return smt.d_theoryEngine->preprocess(n);
+Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n)
+  throw(NoSuchFunctionException, AssertionException) {
+  if(n.getKind() == kind::APPLY) {
+    TNode func = n.getOperator();
+    SmtEngine::DefinedFunctionMap::const_iterator i =
+      smt.d_definedFunctions->find(func);
+    DefinedFunction def = (*i).second;
+    vector<Node> formals = def.getFormals();
+
+    if(Debug.isOn("expand")) {
+      Debug("expand") << "found: " << n << endl;
+      Debug("expand") << " func: " << func << endl;
+      string name = func.getAttribute(expr::VarNameAttr());
+      Debug("expand") << "     : \"" << name << "\"" << endl;
+      if(i == smt.d_definedFunctions->end()) {
+        throw NoSuchFunctionException(Expr(smt.d_exprManager, new Node(func)));
+      }
+      Debug("expand") << " defn: " << def.getFunction() << endl
+                      << "       [";
+      if(formals.size() > 0) {
+        copy( formals.begin(), formals.end() - 1,
+              ostream_iterator<Node>(Debug("expand"), ", ") );
+        Debug("expand") << formals.back();
+      }
+      Debug("expand") << "]" << endl
+                      << "       " << def.getFunction().getType() << endl
+                      << "       " << def.getFormula() << endl;
+    }
+
+    TNode fm = def.getFormula();
+    Node instance = fm.substitute(formals.begin(), formals.end(),
+                                  n.begin(), n.end());
+    Debug("expand") << "made : " << instance << endl;
+
+    Node expanded = expandDefinitions(smt, instance);
+    return expanded;
+  } else if(n.getNumChildren() == 0) {
+    return n;
+  } else {
+    Debug("expand") << "cons : " << n << endl;
+    NodeBuilder<> nb(n.getKind());
+    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      Debug("expand") << "op   : " << n.getOperator() << endl;
+      nb << n.getOperator();
+    }
+    for(TNode::iterator i = n.begin(),
+          iend = n.end();
+        i != iend;
+        ++i) {
+      Node expanded = expandDefinitions(smt, *i);
+      Debug("expand") << "exchld: " << expanded << endl;
+      nb << expanded;
+    }
+    Node node = nb;
+    return node;
+  }
+}
+
+Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n)
+  throw(NoSuchFunctionException, AssertionException) {
+  if(!smt.d_options->lazyDefinitionExpansion) {
+    Node node = expandDefinitions(smt, n);
+    Debug("expand") << "have: " << n << endl
+                    << "made: " << node << endl;
+    return smt.d_theoryEngine->preprocess(node);
+  } else {
+    return smt.d_theoryEngine->preprocess(n);
+  }
 }
 
 Result SmtEngine::check() {
@@ -168,7 +284,8 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN);
 }
 
-void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n) {
+void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
+  throw(NoSuchFunctionException, AssertionException) {
   Debug("smt") << "push_back assertion " << n << endl;
   smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, n));
 }
@@ -209,8 +326,16 @@ Model SmtEngine::getModel() {
   Unimplemented();
 }
 
-Expr SmtEngine::getValue(Expr term) {
+Expr SmtEngine::getValue(Expr term)
+  throw(NoninteractiveException, AssertionException) {
+  if(!d_options->interactive) {
+    const char* msg =
+      "Cannot query the current assertion list when not in interactive mode.";
+    throw NoninteractiveException(msg);
+  }
+
   NodeManagerScope nms(d_nodeManager);
+
   Unimplemented();
 }
 

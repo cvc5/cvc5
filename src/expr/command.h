@@ -111,14 +111,13 @@ public:
 
 class CVC4_PUBLIC DefineFunctionCommand : public Command {
 protected:
-  std::string d_name;
-  std::vector<std::pair<std::string, Type> > d_args;
-  Type d_type;
+  Expr d_func;
+  std::vector<Expr> d_formals;
   Expr d_formula;
 public:
-  DefineFunctionCommand(const std::string& name,
-                        const std::vector<std::pair<std::string, Type> >& args,
-                        Type type, Expr formula);
+  DefineFunctionCommand(Expr func,
+                        const std::vector<Expr>& formals,
+                        Expr formula);
   void invoke(SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
 };/* class DefineFunctionCommand */

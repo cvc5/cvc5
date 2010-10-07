@@ -71,6 +71,7 @@ enum OptionValue {
   DEFAULT_EXPR_DEPTH,
   PRINT_EXPR_TYPES,
   UF_THEORY,
+  LAZY_DEFINITION_EXPANSION,
   INTERACTIVE,
   NO_INTERACTIVE
 };/* enum OptionValue */
@@ -119,6 +120,7 @@ static struct option cmdlineOptions[] = {
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
   { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
   { "uf"         , required_argument, NULL, UF_THEORY },
+  { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { NULL         , no_argument      , NULL, '\0'        }
@@ -270,6 +272,10 @@ throw(OptionException) {
                                 optarg + "'.  Try --uf help.");
         }
       }
+      break;
+
+    case LAZY_DEFINITION_EXPANSION:
+      opts->lazyDefinitionExpansion = true;
       break;
 
     case INTERACTIVE:

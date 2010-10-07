@@ -223,7 +223,11 @@ void Expr::toStream(std::ostream& out, int depth, bool types) const {
   d_node->toStream(out, depth, types);
 }
 
-Node Expr::getNode() const {
+Node Expr::getNode() const throw() {
+  return *d_node;
+}
+
+TNode Expr::getTNode() const throw() {
   return *d_node;
 }
 

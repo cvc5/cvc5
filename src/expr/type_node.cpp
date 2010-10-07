@@ -33,7 +33,10 @@ TypeNode TypeNode::substitute(const TypeNode& type,
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
   }
-  for(TypeNode::iterator i = begin(), iend = end(); i != iend; ++i) {
+  for(TypeNode::const_iterator i = begin(),
+        iend = end();
+      i != iend;
+      ++i) {
     if(*i == type) {
       nb << replacement;
     } else {
@@ -41,26 +44,6 @@ TypeNode TypeNode::substitute(const TypeNode& type,
     }
   }
   return nb.constructTypeNode();
-}
-
-TypeNode TypeNode::substitute(const vector<TypeNode>& types,
-                              const vector<TypeNode>& replacements) const {
-  vector<TypeNode>::const_iterator j = find(types.begin(), types.end(), *this);
-  if(j != types.end()) {
-    return replacements[j - types.begin()];
-  } else if(getNumChildren() == 0) {
-    return *this;
-  } else {
-    NodeBuilder<> nb(getKind());
-    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
-      // push the operator
-      nb << TypeNode(d_nv->d_children[0]);
-    }
-    for(TypeNode::iterator i = begin(), iend = end(); i != iend; ++i) {
-      nb << (*i).substitute(types, replacements);
-    }
-    return nb.constructTypeNode();
-  }
 }
 
 bool TypeNode::isBoolean() const {

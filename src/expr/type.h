@@ -60,6 +60,8 @@ struct CVC4_PUBLIC TypeHashStrategy {
  */
 class CVC4_PUBLIC Type {
 
+  friend class SmtEngine;
+  friend class SmtEnginePrivate;
   friend class ExprManager;
   friend class TypeNode;
   friend class TypeHashStrategy;
@@ -87,7 +89,7 @@ protected:
   Type(NodeManager* em, TypeNode* typeNode);
 
   /** Accessor for derived classes */
-  static TypeNode* getTypeNode(const Type& t) { return t.d_typeNode; }
+  static TypeNode* getTypeNode(const Type& t) throw() { return t.d_typeNode; }
 
 public:
 

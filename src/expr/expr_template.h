@@ -43,7 +43,12 @@ class NodeTemplate;
 
 class Expr;
 class ExprManager;
+class SmtEngine;
 class Type;
+
+namespace smt {
+  class SmtEnginePrivate;
+}/* CVC4::smt namespace */
 
 namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
@@ -383,10 +388,17 @@ protected:
    * Returns the actual internal node.
    * @return the internal node
    */
-  NodeTemplate<true> getNode() const;
+  NodeTemplate<true> getNode() const throw();
+
+  /**
+   * Returns the actual internal node as a TNode.
+   * @return the internal node
+   */
+  NodeTemplate<false> getTNode() const throw();
 
   // Friend to access the actual internal expr information and private methods
   friend class SmtEngine;
+  friend class smt::SmtEnginePrivate;
   friend class ExprManager;
 };
 

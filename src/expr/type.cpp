@@ -111,7 +111,10 @@ Type Type::substitute(const vector<Type>& types,
     replacementsNodes.push_back(*(*i).d_typeNode);
   }
 
-  return makeType(d_typeNode->substitute(typesNodes, replacementsNodes));
+  return makeType(d_typeNode->substitute(typesNodes.begin(),
+                                         typesNodes.end(),
+                                         replacementsNodes.begin(),
+                                         replacementsNodes.end()));
 }
 
 void Type::toStream(ostream& out) const {

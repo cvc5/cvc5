@@ -65,6 +65,9 @@ struct CVC4_PUBLIC Options {
   /** Should we strictly enforce the language standard while parsing? */
   bool strictParsing;
 
+  /** Should we expand function definitions lazily? */
+  bool lazyDefinitionExpansion;
+
   /** Whether we're in interactive mode or not */
   bool interactive;
 
@@ -86,6 +89,7 @@ struct CVC4_PUBLIC Options {
     semanticChecks(true),
     memoryMap(false),
     strictParsing(false),
+    lazyDefinitionExpansion(false),
     interactive(false),
     interactiveSetByUser(false) {
   }

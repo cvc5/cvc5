@@ -23,6 +23,7 @@
 
 #include "expr/command.h"
 #include "smt/smt_engine.h"
+#include "smt/bad_option_exception.h"
 #include "util/output.h"
 
 using namespace std;
@@ -217,26 +218,26 @@ void DeclarationCommand::toStream(std::ostream& out) const {
 
 /* class DefineFunctionCommand */
 
-DefineFunctionCommand::DefineFunctionCommand(const std::string& name,
-                                                    const std::vector<std::pair<std::string, Type> >& args,
-                                                    Type type,
-                                                    Expr formula) :
-  d_name(name),
-  d_args(args),
-  d_type(type),
+DefineFunctionCommand::DefineFunctionCommand(Expr func,
+                                             const std::vector<Expr>& formals,
+                                             Expr formula) :
+  d_func(func),
+  d_formals(formals),
   d_formula(formula) {
 }
 
 void DefineFunctionCommand::invoke(SmtEngine* smtEngine) {
-  smtEngine->defineFunction(d_name, d_args, d_type, d_formula);
+  smtEngine->defineFunction(d_func, d_formals, d_formula);
 }
 
 void DefineFunctionCommand::toStream(std::ostream& out) const {
-  out << "DefineFunction( \"" << d_name << "\", [";
-  copy( d_args.begin(), d_args.end() - 1,
-        ostream_iterator<std::pair<std::string, Type> >(out, ", ") );
-  out << d_args.back();
-  out << "], << " << d_type << " >>, << " << d_formula << " >> )";
+  out << "DefineFunction( \"" << d_func << "\", [";
+  if(d_formals.size() > 0) {
+    copy( d_formals.begin(), d_formals.end() - 1,
+          ostream_iterator<Expr>(out, ", ") );
+    out << d_formals.back();
+  }
+  out << "], << " << d_formula << " >> )";
 }
 
 /* class GetValueCommand */
@@ -324,7 +325,7 @@ void SetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setInfo(d_flag, d_sexpr);
     //d_result = "success";
-  } catch(BadOption& bo) {
+  } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }
 }
@@ -352,7 +353,7 @@ GetInfoCommand::GetInfoCommand(std::string flag) :
 void GetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getInfo(d_flag).getValue();
-  } catch(BadOption& bo) {
+  } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }
 }
@@ -382,7 +383,7 @@ void SetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setOption(d_flag, d_sexpr);
     //d_result = "success";
-  } catch(BadOption& bo) {
+  } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }
 }
@@ -410,7 +411,7 @@ GetOptionCommand::GetOptionCommand(std::string flag) :
 void GetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getOption(d_flag).getValue();
-  } catch(BadOption& bo) {
+  } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }
 }

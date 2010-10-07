@@ -131,7 +131,7 @@ command returns [CVC4::Command* cmd]
   Type t;
   std::vector<Expr> terms;
   std::vector<Type> sorts;
-  std::vector<std::pair<std::string, Type> > sortedVars;
+  std::vector<std::pair<std::string, Type> > sortedVarNames;
   SExpr sexpr;
 }
   : /* set the logic */
@@ -202,15 +202,15 @@ command returns [CVC4::Command* cmd]
       $cmd = new DeclarationCommand(name,t); }
   | /* function definition */
     DEFINE_FUN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-    LPAREN_TOK sortedVarList[sortedVars] RPAREN_TOK
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define fun: '" << name << "'" << std::endl;
-      if( sortedVars.size() > 0 ) {
+      if( sortedVarNames.size() > 0 ) {
         std::vector<CVC4::Type> sorts;
-        sorts.reserve(sortedVars.size());
+        sorts.reserve(sortedVarNames.size());
         for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-              sortedVars.begin(), iend = sortedVars.end();
+              sortedVarNames.begin(), iend = sortedVarNames.end();
             i != iend;
             ++i) {
           sorts.push_back((*i).second);
@@ -219,10 +219,10 @@ command returns [CVC4::Command* cmd]
       }
       PARSER_STATE->pushScope();
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVars.begin(), iend = sortedVars.end();
+            sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
           ++i) {
-        PARSER_STATE->mkVar((*i).first, (*i).second);
+        terms.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
       }
     }
     term[expr]
@@ -230,8 +230,8 @@ command returns [CVC4::Command* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      PARSER_STATE->mkFunction(name, t);
-      $cmd = new DefineFunctionCommand(name, sortedVars, t, expr);
+      Expr func = PARSER_STATE->mkFunction(name, t);
+      $cmd = new DefineFunctionCommand(func, terms, expr);
     }
   | /* value query */
     GET_VALUE_TOK LPAREN_TOK termList[terms,expr] RPAREN_TOK

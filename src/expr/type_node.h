@@ -118,8 +118,11 @@ public:
   /**
    * Simultaneous substitution of TypeNodes.
    */
-  TypeNode substitute(const std::vector<TypeNode>& types,
-                      const std::vector<TypeNode>& replacements) const;
+  template <class Iterator1, class Iterator2>
+  TypeNode substitute(Iterator1 typesBegin,
+                      Iterator1 typesEnd,
+                      Iterator2 replacementsBegin,
+                      Iterator2 replacementsEnd) const;
 
   /**
    * Structural comparison operator for expressions.
@@ -435,6 +438,35 @@ struct TypeNodeHashStrategy {
 #include "expr/node_manager.h"
 
 namespace CVC4 {
+
+template <class Iterator1, class Iterator2>
+TypeNode TypeNode::substitute(Iterator1 typesBegin,
+                              Iterator1 typesEnd,
+                              Iterator2 replacementsBegin,
+                              Iterator2 replacementsEnd) const {
+  Assert( typesEnd - typesBegin == replacementsEnd - replacementsBegin,
+          "Substitution iterator ranges must be equal size" );
+  Iterator1 j = find(typesBegin, typesEnd, *this);
+  if(j != typesEnd) {
+    return *(replacementsBegin + (j - typesBegin));
+  } else if(getNumChildren() == 0) {
+    return *this;
+  } else {
+    NodeBuilder<> nb(getKind());
+    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+      // push the operator
+      nb << TypeNode(d_nv->d_children[0]);
+    }
+    for(TypeNode::const_iterator i = begin(),
+          iend = end();
+        i != iend;
+        ++i) {
+      nb << (*i).substitute(typesBegin, typesEnd,
+                            replacementsBegin, replacementsEnd);
+    }
+    return nb.constructTypeNode();
+  }
+}
 
 inline size_t TypeNode::getNumChildren() const {
   return d_nv->getNumChildren();

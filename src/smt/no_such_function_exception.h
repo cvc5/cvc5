@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bad_option.h
+/*! \file no_such_function_exception.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
@@ -21,28 +21,24 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT__BAD_OPTION_H
-#define __CVC4__SMT__BAD_OPTION_H
+#ifndef __CVC4__SMT__NO_SUCH_FUNCTION_EXCEPTION_H
+#define __CVC4__SMT__NO_SUCH_FUNCTION_EXCEPTION_H
 
 #include "util/exception.h"
 
 namespace CVC4 {
 
-class CVC4_PUBLIC BadOption : public CVC4::Exception {
+class CVC4_PUBLIC NoSuchFunctionException : public CVC4::Exception {
 public:
-  BadOption() :
-    Exception("Unrecognized informational or option key or setting") {
+  NoSuchFunctionException(Expr name) :
+    Exception(std::string("Undefined function: `") + name.toString() + "': ") {
   }
 
-  BadOption(const std::string& msg) :
-    Exception(msg) {
+  NoSuchFunctionException(Expr name, const std::string& msg) :
+    Exception(std::string("Undefined function: `") + name.toString() + "': " + msg) {
   }
-
-  BadOption(const char* msg) :
-    Exception(msg) {
-  }
-};/* class BadOption */
+};/* class NoSuchFunctionException */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__BAD_OPTION_H */
+#endif /* __CVC4__SMT__NO_SUCH_FUNCTION_EXCEPTION_H */

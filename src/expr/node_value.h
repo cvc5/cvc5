@@ -171,8 +171,48 @@ private:
       return iterator(d_i++);
     }
 
-    typedef std::input_iterator_tag iterator_category;
-  };
+    iterator& operator--() {
+      --d_i;
+      return *this;
+    }
+
+    iterator operator--(int) {
+      return iterator(d_i--);
+    }
+
+    iterator& operator+=(difference_type p) {
+      d_i += p;
+      return *this;
+    }
+
+    iterator& operator-=(difference_type p) {
+      d_i -= p;
+      return *this;
+    }
+
+    iterator operator+(difference_type p) {
+      return iterator(d_i + p);
+    }
+
+    iterator operator-(difference_type p) {
+      return iterator(d_i - p);
+    }
+
+    difference_type operator-(iterator i) {
+      return d_i - i.d_i;
+    }
+
+    typedef std::random_access_iterator_tag iterator_category;
+  };/* class NodeValue::iterator<T> */
+
+  // operator+ (as a function) cannot be a template, so we have to
+  // define two versions
+  friend NodeValue::iterator<NodeTemplate<true> >
+  operator+(NodeValue::iterator<NodeTemplate<true> >::difference_type p,
+            NodeValue::iterator<NodeTemplate<true> > i);
+  friend NodeValue::iterator<NodeTemplate<false> >
+  operator+(NodeValue::iterator<NodeTemplate<false> >::difference_type p,
+            NodeValue::iterator<NodeTemplate<false> > i);
 
   /** Decrement ref counts of children */
   inline void decrRefCounts();
@@ -257,6 +297,26 @@ private:
   }
 
 };/* class NodeValue */
+
+/**
+ * Provides a symmetric addition operator to that already defined in
+ * the iterator class.
+ */
+inline NodeValue::iterator<NodeTemplate<true> >
+operator+(NodeValue::iterator<NodeTemplate<true> >::difference_type p,
+          NodeValue::iterator<NodeTemplate<true> > i) {
+  return i + p;
+}
+
+/**
+ * Provides a symmetric addition operator to that already defined in
+ * the iterator class.
+ */
+inline NodeValue::iterator<NodeTemplate<false> >
+operator+(NodeValue::iterator<NodeTemplate<false> >::difference_type p,
+          NodeValue::iterator<NodeTemplate<false> > i) {
+  return i + p;
+}
 
 /**
  * For hash_maps, hash_sets, etc.. but this is for expr package

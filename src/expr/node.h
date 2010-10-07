@@ -380,6 +380,20 @@ public:
     throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException);
 
   /**
+   * Substitution of Nodes.
+   */
+  Node substitute(TNode node, TNode replacement) const;
+
+  /**
+   * Simultaneous substitution of Nodes.
+   */
+  template <class Iterator1, class Iterator2>
+  Node substitute(Iterator1 nodesBegin,
+                  Iterator1 nodesEnd,
+                  Iterator2 replacementsBegin,
+                  Iterator2 replacementsEnd) const;
+
+  /**
    * Returns the kind of this node.
    * @return the kind
    */
@@ -1033,6 +1047,59 @@ TypeNode NodeTemplate<ref_count>::getType(bool check) const
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getType(*this, check);
+}
+
+template <bool ref_count>
+Node NodeTemplate<ref_count>::substitute(TNode node,
+                                         TNode replacement) const {
+  NodeBuilder<> nb(getKind());
+  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+    // push the operator
+    nb << getOperator();
+  }
+  for(TNode::const_iterator i = begin(),
+        iend = end();
+      i != iend;
+      ++i) {
+    if(*i == node) {
+      nb << replacement;
+    } else {
+      (*i).substitute(node, replacement);
+    }
+  }
+  Node n = nb;
+  return n;
+}
+
+template <bool ref_count>
+template <class Iterator1, class Iterator2>
+Node NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
+                                         Iterator1 nodesEnd,
+                                         Iterator2 replacementsBegin,
+                                         Iterator2 replacementsEnd) const {
+  Assert( nodesEnd - nodesBegin == replacementsEnd - replacementsBegin,
+          "Substitution iterator ranges must be equal size" );
+  Iterator1 j = find(nodesBegin, nodesEnd, *this);
+  if(j != nodesEnd) {
+    return *(replacementsBegin + (j - nodesBegin));
+  } else if(getNumChildren() == 0) {
+    return *this;
+  } else {
+    NodeBuilder<> nb(getKind());
+    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+      // push the operator
+      nb << getOperator();
+    }
+    for(TNode::const_iterator i = begin(),
+          iend = end();
+        i != iend;
+        ++i) {
+      nb << (*i).substitute(nodesBegin, nodesEnd,
+                            replacementsBegin, replacementsEnd);
+    }
+    Node n = nb;
+    return n;
+  }
 }
 
 #ifdef CVC4_DEBUG
