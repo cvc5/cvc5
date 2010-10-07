@@ -48,7 +48,6 @@ Row::Row(ArithVar basic,
     Assert(d_coeffs[var_i] != Rational(0,1));
   }
 }
-
 void Row::subsitute(Row& row_s){
   ArithVar x_s = row_s.basicVar();
 
@@ -115,7 +114,7 @@ void Tableau::addRow(ArithVar basicVar,
   Assert(!isActiveBasicVariable(basicVar));
   d_activeBasicVars.insert(basicVar);
   Row* row_current = new Row(basicVar,coeffs,variables);
-  d_activeRows[basicVar] = row_current;
+  d_rowsTable[basicVar] = row_current;
 
   //A variable in the row may have been made non-basic already.
   //If this is the case we fake pivoting this variable
@@ -143,23 +142,22 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
   Assert(d_basicManager.isBasic(x_r));
   Assert(!d_basicManager.isBasic(x_s));
 
-  RowsTable::iterator ptrRow_r = d_activeRows.find(x_r);
-  Assert(ptrRow_r != d_activeRows.end());
-
-  Row* row_s = (*ptrRow_r).second;
-
+  Row* row_s = lookup(x_r);
   Assert(row_s->has(x_s));
-  row_s->pivot(x_s);
 
-  d_activeRows.erase(ptrRow_r);
+  //Swap x_r and x_s in d_activeRows
+  d_rowsTable[x_s] = row_s;
+  d_rowsTable[x_r] = NULL;
+
   d_activeBasicVars.erase(x_r);
   d_basicManager.makeNonbasic(x_r);
 
-  d_activeRows.insert(std::make_pair(x_s,row_s));
   d_activeBasicVars.insert(x_s);
   d_basicManager.makeBasic(x_s);
 
-  for(VarSet::iterator basicIter = begin(), endIter = end();
+  row_s->pivot(x_s);
+
+  for(ArithVarSet::iterator basicIter = begin(), endIter = end();
       basicIter != endIter; ++basicIter){
     ArithVar basic = *basicIter;
     Row* row_k = lookup(basic);
@@ -169,19 +167,16 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
     }
   }
 }
-
 void Tableau::printTableau(){
-  for(VarSet::iterator basicIter = begin(), endIter = end();
-      basicIter != endIter; ++basicIter){
-    ArithVar basic = *basicIter;
-    Row* row_k = lookup(basic);
-    row_k->printRow();
-  }
-  for(RowsTable::iterator basicIter = d_inactiveRows.begin(), endIter =  d_inactiveRows.end();
-      basicIter != endIter; ++basicIter){
-    ArithVar basic = (*basicIter).first;
-    Row* row_k = lookupEjected(basic);
-    row_k->printRow();
+  Debug("tableau") << "Tableau::d_activeRows"  << endl;
+
+  typedef RowsTable::iterator table_iter;
+  for(table_iter rowIter = d_rowsTable.begin(), end = d_rowsTable.end();
+      rowIter != end; ++rowIter){
+    Row* row_k = *rowIter;
+    if(row_k != NULL){
+      row_k->printRow();
+    }
   }
 }
 

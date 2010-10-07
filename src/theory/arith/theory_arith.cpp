@@ -138,7 +138,7 @@ bool TheoryArith::shouldEject(ArithVar var){
 }
 
 ArithVar TheoryArith::findBasicRow(ArithVar variable){
-  for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
+  for(ArithVarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_j = *basicIter;
@@ -241,6 +241,7 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
 
   d_activityMonitor.initActivity(varX);
   d_basicManager.init(varX, basic);
+  d_tableau.increaseSize();
 
   Debug("arith::arithvar") << x << " |-> " << varX << endl;
 
@@ -501,7 +502,7 @@ void TheoryArith::update(ArithVar x_i, DeltaRational& v){
                  << assignment_x_i << "|-> " << v << endl;
   DeltaRational diff = v - assignment_x_i;
 
-  for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
+  for(ArithVarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_j = *basicIter;
@@ -545,7 +546,7 @@ void TheoryArith::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v){
   DeltaRational tmp = d_partialModel.getAssignment(x_j) + theta;
   d_partialModel.setAssignment(x_j, tmp);
 
-  for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
+  for(ArithVarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_k = *basicIter;
@@ -589,7 +590,7 @@ ArithVar TheoryArith::selectSmallestInconsistentVar(){
   }
 
   if(Debug.isOn("paranoid:variables")){
-    for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
+    for(ArithVarSet::iterator basicIter = d_tableau.begin();
         basicIter != d_tableau.end();
         ++basicIter){
 
@@ -884,7 +885,7 @@ void TheoryArith::check(Effort level){
  */
 void TheoryArith::checkTableau(){
 
-  for(Tableau::VarSet::iterator basicIter = d_tableau.begin();
+  for(ArithVarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end(); ++basicIter){
     ArithVar basic = *basicIter;
     Row* row_k = d_tableau.lookup(basic);

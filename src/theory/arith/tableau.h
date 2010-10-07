@@ -88,19 +88,64 @@ public:
   void printRow();
 };
 
-class Tableau {
+class ArithVarSet {
+private:
+  typedef std::list<ArithVar> VarList;
+
 public:
-  typedef std::set<ArithVar> VarSet;
+  typedef VarList::const_iterator iterator;
 
 private:
-  typedef __gnu_cxx::hash_map<ArithVar, Row*> RowsTable;
+  VarList d_list;
+  std::vector< VarList::iterator > d_posVector;
 
-  VarSet d_activeBasicVars;
-  RowsTable d_activeRows, d_inactiveRows;
+public:
+  ArithVarSet() : d_list(),  d_posVector() {}
+
+  iterator begin() const{ return d_list.begin(); }
+  iterator end() const{ return d_list.end(); }
+
+  void insert(ArithVar av){
+    Assert(inRange(av) );
+    Assert(!inSet(av) );
+
+    d_posVector[av] = d_list.insert(d_list.end(), av);
+  }
+
+  void erase(ArithVar var){
+    Assert( inRange(var) );
+    Assert( inSet(var) );
+
+    d_list.erase(d_posVector[var]);
+    d_posVector[var] = d_list.end();
+  }
+
+  void increaseSize(){
+    d_posVector.push_back(d_list.end());
+  }
+
+  bool inSet(ArithVar v) const{
+    Assert(inRange(v) );
+
+    return d_posVector[v] != d_list.end();
+  }
+
+private:
+  bool inRange(ArithVar v) const{
+    return v < d_posVector.size();
+  }
+};
+
+class Tableau {
+private:
+
+  typedef std::vector< Row* > RowsTable;
+
+  ArithVarSet d_activeBasicVars;
+  RowsTable d_rowsTable;
 
   ActivityMonitor& d_activityMonitor;
   IsBasicManager& d_basicManager;
-
 
 public:
   /**
@@ -108,29 +153,33 @@ public:
    */
   Tableau(ActivityMonitor &am, IsBasicManager& bm) :
     d_activeBasicVars(),
-    d_activeRows(),
-    d_inactiveRows(),
+    d_rowsTable(),
     d_activityMonitor(am),
     d_basicManager(bm)
   {}
 
-  VarSet::iterator begin(){
+  void increaseSize(){
+    d_activeBasicVars.increaseSize();
+    d_rowsTable.push_back(NULL);
+  }
+
+  ArithVarSet::iterator begin(){
     return d_activeBasicVars.begin();
   }
 
-  VarSet::iterator end(){
+  ArithVarSet::iterator end(){
     return d_activeBasicVars.end();
   }
 
   Row* lookup(ArithVar var){
     Assert(isActiveBasicVariable(var));
-    return d_activeRows[var];
+    return d_rowsTable[var];
   }
 
 private:
   Row* lookupEjected(ArithVar var){
     Assert(isEjected(var));
-    return d_inactiveRows[var];
+    return d_rowsTable[var];
   }
 public:
 
@@ -147,18 +196,14 @@ public:
   void printTableau();
 
   bool isEjected(ArithVar var){
-    return d_inactiveRows.find(var) != d_inactiveRows.end();
+    return d_basicManager.isBasic(var) && !isActiveBasicVariable(var);
   }
 
   void ejectBasic(ArithVar basic){
     Assert(d_basicManager.isBasic(basic));
     Assert(isActiveBasicVariable(basic));
 
-    Row* row = lookup(basic);
-    d_activeRows.erase(basic);
     d_activeBasicVars.erase(basic);
-
-    d_inactiveRows.insert(std::make_pair(basic, row));
   }
 
   void reinjectBasic(ArithVar basic){
@@ -166,16 +211,12 @@ public:
     Assert(isEjected(basic));
 
     Row* row = lookupEjected(basic);
-
-    d_inactiveRows.erase(basic);
     d_activeBasicVars.insert(basic);
-    d_activeRows.insert(std::make_pair(basic, row));
-
     updateRow(row);
   }
 private:
   inline bool isActiveBasicVariable(ArithVar var){
-    return d_activeBasicVars.find(var) != d_activeBasicVars.end();
+    return d_activeBasicVars.inSet(var);
   }
 
   void updateRow(Row* row);
