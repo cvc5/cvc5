@@ -169,20 +169,32 @@ protected:
   }
 
   ParserBlack(InputLanguage lang) :
-    d_lang(lang),
-    d_exprManager(new ExprManager()) {
+    d_lang(lang) {
   }
 
-public:
-  virtual ~ParserBlack() {
+  void setUp() {
+cout << "SET UP\n";
+    d_exprManager = new ExprManager;
+  }
+
+  void tearDown() {
     delete d_exprManager;
   }
 };
 
 class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack  {
+  typedef ParserBlack super;
 
 public:
   Cvc4ParserTest() : ParserBlack(LANG_CVC4) { }
+
+  void setUp() {
+    super::setUp();
+  }
+
+  void tearDown() {
+    super::tearDown();
+  }
 
   void testGoodCvc4Inputs() {
     tryGoodInput(""); // empty string is OK
@@ -228,8 +240,18 @@ public:
 };
 
 class SmtParserTest : public CxxTest::TestSuite, public ParserBlack {
+  typedef ParserBlack super;
+
 public:
   SmtParserTest() : ParserBlack(LANG_SMTLIB) { }
+
+  void setUp() {
+    super::setUp();
+  }
+
+  void tearDown() {
+    super::tearDown();
+  }
 
   void testGoodSmtInputs() {
     tryGoodInput(""); // empty string is OK
@@ -285,6 +307,14 @@ class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
 
 public:
   Smt2ParserTest() : ParserBlack(LANG_SMTLIB_V2) { }
+
+  void setUp() {
+    super::setUp();
+  }
+
+  void tearDown() {
+    super::tearDown();
+  }
 
   void setupContext(Smt2& parser) {
     parser.addTheory(Smt2::THEORY_CORE);

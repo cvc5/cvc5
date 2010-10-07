@@ -16,6 +16,7 @@ UNIT_TESTS = \
 	expr/attribute_white \
 	expr/attribute_black \
 	expr/declaration_scope_black \
+	expr/node_self_iterator_black \
 	parser/parser_black \
 	parser/parser_builder_black \
 	prop/cnf_stream_black \

@@ -27,7 +27,7 @@ libexpr_la_SOURCES = \
 	declaration_scope.h \
 	declaration_scope.cpp \
 	expr_manager_scope.h \
-	sort.h
+	node_self_iterator.h
 nodist_libexpr_la_SOURCES = \
 	kind.h \
 	metakind.h \

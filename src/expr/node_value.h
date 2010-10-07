@@ -119,11 +119,8 @@ class NodeValue {
 
   static size_t next_id;
 
-public:
   /**
-   * Uninitializing constructor for NodeBuilder's use.  This is
-   * somewhat dangerous, but must also be public for the
-   * makeStackNodeBuilder() macro to work.
+   * Uninitializing constructor for NodeBuilder's use.
    */
   NodeValue() { /* do not initialize! */ }
 
@@ -140,10 +137,11 @@ private:
   const_nv_iterator nv_begin() const;
   const_nv_iterator nv_end() const;
 
-  template <typename T>
+  template <class T>
   class iterator {
     const_nv_iterator d_i;
   public:
+    typedef std::random_access_iterator_tag iterator_category;
     typedef T value_type;
     typedef ptrdiff_t difference_type;
     typedef T* pointer;
@@ -152,13 +150,18 @@ private:
     iterator() : d_i(NULL) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
-    inline T operator*();
+    // conversion of a TNode iterator to a Node iterator
+    inline operator NodeValue::iterator<NodeTemplate<true> >() {
+      return iterator<NodeTemplate<true> >(d_i);
+    }
 
-    bool operator==(const iterator& i) {
+    inline T operator*() const;
+
+    bool operator==(const iterator& i) const {
       return d_i == i.d_i;
     }
 
-    bool operator!=(const iterator& i) {
+    bool operator!=(const iterator& i) const {
       return d_i != i.d_i;
     }
 
@@ -201,8 +204,6 @@ private:
     difference_type operator-(iterator i) {
       return d_i - i.d_i;
     }
-
-    typedef std::random_access_iterator_tag iterator_category;
   };/* class NodeValue::iterator<T> */
 
   // operator+ (as a function) cannot be a template, so we have to
@@ -440,7 +441,7 @@ namespace CVC4 {
 namespace expr {
 
 template <typename T>
-inline T NodeValue::iterator<T>::operator*() {
+inline T NodeValue::iterator<T>::operator*() const {
   return T(*d_i);
 }
 

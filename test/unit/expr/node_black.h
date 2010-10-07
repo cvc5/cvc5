@@ -39,8 +39,8 @@ private:
   Context* d_ctxt;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
-  TypeNode *d_booleanType;
-  TypeNode *d_realType;
+  TypeNode* d_booleanType;
+  TypeNode* d_realType;
 
 public:
 
