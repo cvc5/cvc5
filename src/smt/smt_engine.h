@@ -30,7 +30,7 @@
 #include "util/model.h"
 #include "util/sexpr.h"
 #include "util/hash.h"
-#include "smt/noninteractive_exception.h"
+#include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
 #include "smt/bad_option_exception.h"
 
@@ -207,22 +207,24 @@ public:
   Expr simplify(const Expr& e);
 
   /**
-   * Get a (counter)model (only if preceded by a SAT or INVALID query).
+   * Get the assigned value of a term (only if preceded by a SAT or
+   * INVALID query).  Only permitted if the SmtEngine is set to
+   * operate interactively and produce-models is on.
    */
-  Model getModel();
+  Expr getValue(Expr term) throw(ModalException, AssertionException);
 
   /**
    * Get the assigned value of a term (only if preceded by a SAT or
    * INVALID query).  Only permitted if the SmtEngine is set to
-   * operate interactively.
+   * operate interactively and produce-assignments is on.
    */
-  Expr getValue(Expr term) throw(NoninteractiveException, AssertionException);
+  SExpr getAssignment() throw(ModalException, AssertionException);
 
   /**
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.
    */
-  std::vector<Expr> getAssertions() throw(NoninteractiveException);
+  std::vector<Expr> getAssertions() throw(ModalException, AssertionException);
 
   /**
    * Push a user-level context.

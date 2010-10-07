@@ -53,7 +53,7 @@ class TypeCheckingExceptionPrivate : public Exception {
 
 private:
 
-  /** The node repsonsible for the failure */
+  /** The node responsible for the failure */
   NodeTemplate<true>* d_node;
 
 protected:

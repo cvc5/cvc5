@@ -60,6 +60,8 @@ namespace expr {
  */
 class CVC4_PUBLIC TypeCheckingException : public Exception {
 
+  friend class SmtEngine;
+
 private:
 
   /** The expression responsible for the error */

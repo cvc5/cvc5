@@ -77,6 +77,12 @@ struct CVC4_PUBLIC Options {
    */
   bool interactiveSetByUser;
 
+  /** Whether we support SmtEngine::getValue() for this run. */
+  bool produceModels;
+
+  /** Whether we support SmtEngine::getAssignment() for this run. */
+  bool produceAssignments;
+
   Options() :
     binary_name(),
     statistics(false),
@@ -91,7 +97,9 @@ struct CVC4_PUBLIC Options {
     strictParsing(false),
     lazyDefinitionExpansion(false),
     interactive(false),
-    interactiveSetByUser(false) {
+    interactiveSetByUser(false),
+    produceModels(false),
+    produceAssignments(false) {
   }
 };/* struct Options */
 

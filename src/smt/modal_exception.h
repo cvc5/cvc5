@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file noninteractive_exception.h
+/*! \file modal_exception.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
@@ -21,29 +21,29 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT__NONINTERACTIVE_EXCEPTION_H
-#define __CVC4__SMT__NONINTERACTIVE_EXCEPTION_H
+#ifndef __CVC4__SMT__MODAL_EXCEPTION_H
+#define __CVC4__SMT__MODAL_EXCEPTION_H
 
 #include "util/exception.h"
 
 namespace CVC4 {
 
-class CVC4_PUBLIC NoninteractiveException : public CVC4::Exception {
+class CVC4_PUBLIC ModalException : public CVC4::Exception {
 public:
-  NoninteractiveException() :
-    Exception("Interactive feature used while operating in "
-              "non-interactive mode") {
+  ModalException() :
+    Exception("Feature used while operating in "
+              "incorrect state") {
   }
 
-  NoninteractiveException(const std::string& msg) :
+  ModalException(const std::string& msg) :
     Exception(msg) {
   }
 
-  NoninteractiveException(const char* msg) :
+  ModalException(const char* msg) :
     Exception(msg) {
   }
-};/* class NoninteractiveException */
+};/* class ModalException */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__NONINTERACTIVE_EXCEPTION_H */
+#endif /* __CVC4__SMT__MODAL_EXCEPTION_H */

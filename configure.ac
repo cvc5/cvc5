@@ -228,10 +228,10 @@ if test $cvc4_use_cln = 1; then
     [cvc4_use_cln=1],
     [if test $cvc4_use_cln = 0; then
        # fall back to GMP
-       AC_MSG_NOTICE([CLN not installed (or too old), will use gmp])
+       AC_MSG_NOTICE([CLN not installed (or too old) or pkgconfig missing, will use gmp])
      else
        # fail
-       AC_MSG_ERROR([CLN not installed (or too old)])
+       AC_MSG_ERROR([CLN not installed (or too old) or pkgconfig missing])
      fi
     ]
   )

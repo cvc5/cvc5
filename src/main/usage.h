@@ -46,8 +46,12 @@ CVC4 options:\n\
    --stats                give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
    --print-expr-types     print types with variables when printing exprs\n\
-   --uf=morgan|tim        select uninterpreted function theory implementation\n"
-;
+   --uf=morgan|tim        select uninterpreted function theory implementation\n\
+   --interactive          run interactively\n\
+   --no-interactive       do not run interactively\n\
+   --produce-models       support the get-value command\n\
+   --produce-assignments  support the get-assignment command\n\
+   --lazy-definition-expansion expand define-fun lazily\n";
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

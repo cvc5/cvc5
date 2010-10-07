@@ -789,15 +789,11 @@ inline TypeNode NodeManager::mkSort(TypeNode constructor,
          constructor.getNumChildren() == 0,
          "expected a sort constructor");
   Assert(children.size() > 0, "expected non-zero # of children");
-  uint64_t arity;
-  std::string name;
-  bool hasArityAttribute =
-    getAttribute(constructor.d_nv, expr::SortArityAttr(), arity);
-  Assert(hasArityAttribute, "expected a sort constructor");
-  bool hasNameAttribute =
-    getAttribute(constructor.d_nv, expr::VarNameAttr(), name);
-  Assert(hasNameAttribute, "expected a sort constructor");
-  Assert(arity == children.size(),
+  Assert( hasAttribute(constructor.d_nv, expr::SortArityAttr()) &&
+          hasAttribute(constructor.d_nv, expr::VarNameAttr()),
+          "expected a sort constructor" );
+  std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
+  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr()) == children.size(),
          "arity mismatch in application of sort constructor");
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = Node(constructor.d_nv->d_children[0]);

@@ -73,7 +73,9 @@ enum OptionValue {
   UF_THEORY,
   LAZY_DEFINITION_EXPANSION,
   INTERACTIVE,
-  NO_INTERACTIVE
+  NO_INTERACTIVE,
+  PRODUCE_MODELS,
+  PRODUCE_ASSIGNMENTS
 };/* enum OptionValue */
 
 /**
@@ -123,6 +125,8 @@ static struct option cmdlineOptions[] = {
   { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
+  { "produce-models", no_argument   , NULL, PRODUCE_MODELS},
+  { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS},
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -286,6 +290,14 @@ throw(OptionException) {
     case NO_INTERACTIVE:
       opts->interactive = false;
       opts->interactiveSetByUser = true;
+      break;
+
+    case PRODUCE_MODELS:
+      opts->produceModels = true;
+      break;
+
+    case PRODUCE_ASSIGNMENTS:
+      opts->produceAssignments = true;
       break;
 
     case SHOW_CONFIG:

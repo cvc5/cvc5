@@ -20,7 +20,7 @@
 #include <string>
 
 #include "smt/smt_engine.h"
-#include "smt/noninteractive_exception.h"
+#include "smt/modal_exception.h"
 #include "smt/bad_option_exception.h"
 #include "smt/no_such_function_exception.h"
 #include "context/context.h"
@@ -191,6 +191,16 @@ void SmtEngine::defineFunction(Expr func,
                                const vector<Expr>& formals,
                                Expr formula) {
   NodeManagerScope nms(d_nodeManager);
+  Type formulaType = formula.getType(true);// type check body
+  if(formulaType != FunctionType(func.getType()).getRangeType()) {
+    stringstream ss;
+    ss << "Defined function's declared type does not match type of body\n"
+       << "The function: " << func << "\n"
+       << "Its type    : " << func.getType() << "\n"
+       << "The body    : " << formula << "\n"
+       << "Body type   : " << formulaType << "\n";
+    throw TypeCheckingException(func, ss.str());
+  }
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
   for(vector<Expr>::const_iterator i = formals.begin(),
@@ -321,29 +331,45 @@ Expr SmtEngine::simplify(const Expr& e) {
   Unimplemented();
 }
 
-Model SmtEngine::getModel() {
-  NodeManagerScope nms(d_nodeManager);
-  Unimplemented();
-}
-
 Expr SmtEngine::getValue(Expr term)
-  throw(NoninteractiveException, AssertionException) {
+  throw(ModalException, AssertionException) {
   if(!d_options->interactive) {
     const char* msg =
-      "Cannot query the current assertion list when not in interactive mode.";
-    throw NoninteractiveException(msg);
+      "Cannot get value when not in interactive mode.";
+    throw ModalException(msg);
   }
+  if(!d_options->produceModels) {
+    const char* msg =
+      "Cannot get value when produce-models options is off.";
+    throw ModalException(msg);
+  }
+  // TODO also check that the last query was sat/unknown, without intervening
+  // assertions
 
   NodeManagerScope nms(d_nodeManager);
 
   Unimplemented();
 }
 
-vector<Expr> SmtEngine::getAssertions() throw(NoninteractiveException) {
+SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
+  if(!d_options->produceAssignments) {
+    const char* msg =
+      "Cannot get the current assignment when produce-assignments option is off.";
+    throw ModalException(msg);
+  }
+  // TODO also check that the last query was sat/unknown, without intervening
+  // assertions
+
+  NodeManagerScope nms(d_nodeManager);
+
+  Unimplemented();
+}
+
+vector<Expr> SmtEngine::getAssertions() throw(ModalException, AssertionException) {
   if(!d_options->interactive) {
     const char* msg =
       "Cannot query the current assertion list when not in interactive mode.";
-    throw NoninteractiveException(msg);
+    throw ModalException(msg);
   }
   Assert(d_assertionList != NULL);
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
