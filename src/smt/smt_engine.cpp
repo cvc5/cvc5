@@ -162,10 +162,15 @@ SmtEngine::~SmtEngine() {
 
 void SmtEngine::setInfo(const string& key, const SExpr& value)
   throw(BadOptionException) {
-  if(key == ":status") {
+  if(key == ":status" ||
+     key == ":source" ||
+     key == ":category" ||
+     key == ":difficulty" ||
+     key == ":smt-lib-version" ||
+     key == ":notes") {
+    // ignore these
     return;
   }
-  // FIXME implement me
   throw BadOptionException();
 }
 
