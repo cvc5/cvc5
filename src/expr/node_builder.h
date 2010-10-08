@@ -664,11 +664,11 @@ private:
   inline void debugCheckType(const TNode n) const {
     // force an immediate type check, if we are in debug mode
     // and the current node isn't a variable or constant
-    if( IS_DEBUG_BUILD ) {
+    if( IS_DEBUG_BUILD && d_nm->d_earlyTypeChecking ) {
       kind::MetaKind mk = n.getMetaKind();
       if( mk != kind::metakind::VARIABLE 
           && mk != kind::metakind::CONSTANT ) {
-        d_nm->getType(n,true);
+        d_nm->getType(n, true);
       }
     }
   }
@@ -692,11 +692,11 @@ public:
   operator Node();
   operator Node() const;
 
-  inline void toStream(std::ostream& out, int depth = -1,
-                       bool types = false) const {
+  inline void toStream(std::ostream& out, int depth = -1, bool types = false,
+                       OutputLanguage language = language::output::LANG_AST) const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    d_nv->toStream(out, depth, types);
+    d_nv->toStream(out, depth, types, language);
   }
 
   NodeBuilder<nchild_thresh>& operator&=(TNode);

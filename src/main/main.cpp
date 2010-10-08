@@ -120,7 +120,7 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Create the expression manager
-  ExprManager exprMgr;
+  ExprManager exprMgr(options.earlyTypeChecking);
 
   // Create the SmtEngine
   SmtEngine smt(&exprMgr, &options);
@@ -131,19 +131,19 @@ int runCvc4(int argc, char* argv[]) {
   ReferenceStat< const char* > s_statFilename("filename", filename);
   StatisticsRegistry::registerStat(&s_statFilename);
 
-  if(options.lang == parser::LANG_AUTO) {
+  if(options.inputLanguage == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      options.lang = parser::LANG_CVC4;
+      options.inputLanguage = language::input::LANG_CVC4;
     } else {
       unsigned len = strlen(filename);
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        options.lang = parser::LANG_SMTLIB_V2;
+        options.inputLanguage = language::input::LANG_SMTLIB_V2;
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        options.lang = parser::LANG_SMTLIB;
+        options.inputLanguage = language::input::LANG_SMTLIB;
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        options.lang = parser::LANG_CVC4;
+        options.inputLanguage = language::input::LANG_CVC4;
       }
     }
   }
@@ -167,11 +167,19 @@ int runCvc4(int argc, char* argv[]) {
       Message.setStream(CVC4::null_os);
       Warning.setStream(CVC4::null_os);
     }
+
+    OutputLanguage language = language::toOutputLanguage(options.inputLanguage);
+    Debug.getStream() << Expr::setlanguage(language);
+    Trace.getStream() << Expr::setlanguage(language);
+    Notice.getStream() << Expr::setlanguage(language);
+    Chat.getStream() << Expr::setlanguage(language);
+    Message.getStream() << Expr::setlanguage(language);
+    Warning.getStream() << Expr::setlanguage(language);
   }
 
   ParserBuilder parserBuilder =
       ParserBuilder(exprMgr, filename)
-        .withInputLanguage(options.lang)
+        .withInputLanguage(options.inputLanguage)
         .withMmap(options.memoryMap)
         .withChecks(options.semanticChecks &&
                     !Configuration::isMuzzledBuild() )

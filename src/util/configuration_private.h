@@ -85,7 +85,7 @@ namespace CVC4 {
 #endif /* TLS */
 
 #define CVC4_ABOUT_STRING string("\
-This is a pre-release of CVC4.\n\
+This is CVC4 version " CVC4_RELEASE_STRING "\n\n\
 Copyright (C) 2009, 2010\n\
   The ACSys Group\n\
   Courant Institute of Mathematical Sciences\n\
@@ -99,7 +99,8 @@ this CVC4 library cannot be used in proprietary applications.  Please\n\
 consult the CVC4 documentation for instructions about building a version\n\
 of CVC4 that links against GMP, and can be used in such applications.\n" : \
 "This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
-CVC4 is open-source and is covered by the BSD license (modified).\n")
+CVC4 is open-source and is covered by the BSD license (modified).\n\n\
+THIS SOFTWARE PROVIDED AS-IS, WITHOUT ANY WARRANTIES. USE IT AT YOUR OWN RISK.\n")
 
 }/* CVC4 namespace */
 

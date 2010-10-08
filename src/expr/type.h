@@ -56,6 +56,14 @@ struct CVC4_PUBLIC TypeHashStrategy {
 };/* struct TypeHashStrategy */
 
 /**
+ * Output operator for types
+ * @param out the stream to output to
+ * @param t the type to output
+ * @return the stream
+ */
+std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
+
+/**
  * Class encapsulating CVC4 expression types.
  */
 class CVC4_PUBLIC Type {
@@ -65,6 +73,7 @@ class CVC4_PUBLIC Type {
   friend class ExprManager;
   friend class TypeNode;
   friend class TypeHashStrategy;
+  friend std::ostream& operator<<(std::ostream& out, const Type& t);
 
 protected:
 
@@ -283,7 +292,12 @@ public:
    * @param out the stream to output to
    */
   void toStream(std::ostream& out) const;
-};
+
+  /**
+   * Constructs a string representation of this type.
+   */
+  std::string toString() const;
+};/* class Type */
 
 /**
  * Singleton class encapsulating the Boolean type.
@@ -294,7 +308,7 @@ public:
 
   /** Construct from the base type */
   BooleanType(const Type& type) throw(AssertionException);
-};
+};/* class BooleanType */
 
 /**
  * Singleton class encapsulating the integer type.
@@ -305,7 +319,7 @@ public:
 
   /** Construct from the base type */
   IntegerType(const Type& type) throw(AssertionException);
-};
+};/* class IntegerType */
 
 /**
  * Singleton class encapsulating the real type.
@@ -316,8 +330,7 @@ public:
 
   /** Construct from the base type */
   RealType(const Type& type) throw(AssertionException);
-};
-
+};/* class RealType */
 
 /**
  * Class encapsulating a function type.
@@ -334,7 +347,7 @@ public:
 
   /** Get the range type (i.e., the type of the result). */
   Type getRangeType() const;
-};
+};/* class FunctionType */
 
 /**
  * Class encapsulating a tuple type.
@@ -348,7 +361,7 @@ public:
 
   /** Get the constituent types */
   std::vector<Type> getTypes() const;
-};
+};/* class TupleType */
 
 /**
  * Class encapsulating an array type.
@@ -365,7 +378,7 @@ public:
 
   /** Get the constituent type */
   Type getConstituentType() const;
-};
+};/* class ArrayType */
 
 /**
  * Class encapsulating a user-defined sort.
@@ -379,7 +392,7 @@ public:
 
   /** Get the name of the sort */
   std::string getName() const;
-};
+};/* class SortType */
 
 /**
  * Class encapsulating a user-defined sort constructor.
@@ -399,7 +412,7 @@ public:
 
   /** Instantiate a sort using this sort constructor */
   SortType instantiate(const std::vector<Type>& params) const;
-};
+};/* class SortConstructorType */
 
 /**
  * Class encapsulating the kind type (the type of types).
@@ -410,8 +423,7 @@ public:
 
   /** Construct from the base type */
   KindType(const Type& type) throw(AssertionException);
-};
-
+};/* class KindType */
 
 /**
  * Class encapsulating the bit-vector type.
@@ -428,15 +440,7 @@ public:
    * @return the width of the bit-vector type (> 0)
    */
   unsigned getSize() const;
-};
-
-/**
- * Output operator for types
- * @param out the stream to output to
- * @param t the type to output
- * @return the stream
- */
-std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
+};/* class BitVectorType */
 
 }/* CVC4 namespace */
 

@@ -82,10 +82,11 @@ struct NVReclaim {
 };
 
 
-NodeManager::NodeManager(context::Context* ctxt) :
+NodeManager::NodeManager(context::Context* ctxt, bool earlyTypeChecking) :
   d_attrManager(ctxt),
   d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false) {
+  d_inReclaimZombies(false),
+  d_earlyTypeChecking(earlyTypeChecking) {
   poolInsert( &expr::NodeValue::s_null );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {

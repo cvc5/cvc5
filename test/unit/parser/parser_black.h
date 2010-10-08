@@ -32,6 +32,7 @@
 
 using namespace CVC4;
 using namespace CVC4::parser;
+using namespace CVC4::language::input;
 using namespace std;
 
 class ParserBlack {

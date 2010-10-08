@@ -141,6 +141,8 @@ AntlrInputStream::newStringInputStream(const std::string& input,
 }
 
 AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStream) {
+  using namespace language::input;
+
   AntlrInput* input;
 
   switch(lang) {

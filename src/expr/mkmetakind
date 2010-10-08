@@ -198,7 +198,7 @@ function registerOperatorToKind {
 	operatorKind=$1
 	applyKind=$2
 	metakind_operatorKinds="${metakind_operatorKinds}    case kind::$applyKind: return kind::$operatorKind;
-"; 
+";
 }
 
 function register_metakind {

@@ -91,7 +91,7 @@ protected:
   std::string d_filename;
   unsigned long d_line;
   unsigned long d_column;
-}; // end of class ParserException
+};/* class ParserException */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

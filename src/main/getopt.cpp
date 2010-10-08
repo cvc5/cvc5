@@ -30,7 +30,7 @@
 #include "util/configuration.h"
 #include "util/output.h"
 #include "util/options.h"
-#include "parser/parser_options.h"
+#include "util/language.h"
 #include "expr/expr.h"
 
 #include "cvc4autoconfig.h"
@@ -75,7 +75,8 @@ enum OptionValue {
   INTERACTIVE,
   NO_INTERACTIVE,
   PRODUCE_MODELS,
-  PRODUCE_ASSIGNMENTS
+  PRODUCE_ASSIGNMENTS,
+  NO_EARLY_TYPE_CHECKING
 };/* enum OptionValue */
 
 /**
@@ -127,6 +128,7 @@ static struct option cmdlineOptions[] = {
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, PRODUCE_MODELS},
   { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS},
+  { "no-early-type-checking", no_argument, NULL, NO_EARLY_TYPE_CHECKING},
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -183,16 +185,16 @@ throw(OptionException) {
 
     case 'L':
       if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
-        opts->lang = parser::LANG_CVC4;
+        opts->inputLanguage = language::input::LANG_CVC4;
         break;
       } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
-        opts->lang = parser::LANG_SMTLIB;
+        opts->inputLanguage = language::input::LANG_SMTLIB;
         break;
       } else if(!strcmp(optarg, "smtlib2") || !strcmp(optarg, "smt2")) {
-        opts->lang = parser::LANG_SMTLIB_V2;
+        opts->inputLanguage = language::input::LANG_SMTLIB_V2;
         break;
       } else if(!strcmp(optarg, "auto")) {
-        opts->lang = parser::LANG_AUTO;
+        opts->inputLanguage = language::input::LANG_AUTO;
         break;
       }
 
@@ -300,12 +302,16 @@ throw(OptionException) {
       opts->produceAssignments = true;
       break;
 
+    case NO_EARLY_TYPE_CHECKING:
+      opts->earlyTypeChecking = false;
+      break;
+
     case SHOW_CONFIG:
       fputs(Configuration::about().c_str(), stdout);
       printf("\n");
-      printf("version   : %s\n", Configuration::getVersionString().c_str());
+      printf("version    : %s\n", Configuration::getVersionString().c_str());
       printf("\n");
-      printf("library   : %u.%u.%u\n",
+      printf("library    : %u.%u.%u\n",
              Configuration::getVersionMajor(),
              Configuration::getVersionMinor(),
              Configuration::getVersionRelease());

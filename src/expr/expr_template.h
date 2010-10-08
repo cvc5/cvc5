@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include "util/exception.h"
+#include "util/language.h"
 
 ${includes}
 
@@ -33,7 +34,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 37 "${template}"
+#line 38 "${template}"
 
 namespace CVC4 {
 
@@ -45,6 +46,8 @@ class Expr;
 class ExprManager;
 class SmtEngine;
 class Type;
+class TypeCheckingException;
+class TypeCheckingExceptionPrivate;
 
 namespace smt {
   class SmtEnginePrivate;
@@ -53,6 +56,7 @@ namespace smt {
 namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
   class CVC4_PUBLIC ExprPrintTypes;
+  class CVC4_PUBLIC ExprSetLanguage;
 }/* CVC4::expr namespace */
 
 /**
@@ -61,6 +65,7 @@ namespace expr {
 class CVC4_PUBLIC TypeCheckingException : public Exception {
 
   friend class SmtEngine;
+  friend class smt::SmtEnginePrivate;
 
 private:
 
@@ -69,8 +74,10 @@ private:
 
 protected:
 
-  TypeCheckingException(): Exception() {}
+  TypeCheckingException() : Exception() {}
   TypeCheckingException(const Expr& expr, std::string message);
+  TypeCheckingException(ExprManager* em,
+                        const TypeCheckingExceptionPrivate* exc);
 
 public:
 
@@ -95,6 +102,14 @@ public:
 
 std::ostream& operator<<(std::ostream& out,
                          const TypeCheckingException& e) CVC4_PUBLIC;
+
+/**
+ * Output operator for expressions
+ * @param out the stream to output to
+ * @param e the expression to output
+ * @return the stream
+ */
+std::ostream& operator<<(std::ostream& out, const Expr& e) CVC4_PUBLIC;
 
 /**
  * Class encapsulating CVC4 expressions and methods for constructing new
@@ -281,7 +296,7 @@ public:
    * type checking is not requested, getType() will do the minimum
    * amount of checking required to return a valid result.
    *
-   * @param check whether we should check the type as we compute it 
+   * @param check whether we should check the type as we compute it
    * (default: false)
    */
   Type getType(bool check = false) const throw (TypeCheckingException);
@@ -296,7 +311,8 @@ public:
    * Outputs the string representation of the expression to the stream.
    * @param out the output stream
    */
-  void toStream(std::ostream& out, int depth = -1, bool types = false) const;
+  void toStream(std::ostream& out, int depth = -1, bool types = false,
+                OutputLanguage lang = language::output::LANG_AST) const;
 
   /**
    * Check if this is a null expression.
@@ -367,6 +383,11 @@ public:
   typedef expr::ExprPrintTypes printtypes;
 
   /**
+   * IOStream manipulator to set the output language for Exprs.
+   */
+  typedef expr::ExprSetLanguage setlanguage;
+
+  /**
    * Very basic pretty printer for Expr.
    * This is equivalent to calling e.getNode().printAst(...)
    * @param out output stream to print to.
@@ -402,15 +423,10 @@ protected:
   friend class SmtEngine;
   friend class smt::SmtEnginePrivate;
   friend class ExprManager;
-};
+  friend class TypeCheckingException;
+  friend std::ostream& operator<<(std::ostream& out, const Expr& e);
 
-/**
- * Output operator for expressions
- * @param out the stream to output to
- * @param e the expression to output
- * @return the stream
- */
-std::ostream& operator<<(std::ostream& out, const Expr& e) CVC4_PUBLIC;
+};/* class Expr */
 
 /**
  * Extending the expression with the capability to construct Boolean
@@ -551,7 +567,7 @@ public:
   static inline void setDepth(std::ostream& out, long depth) {
     out.iword(s_iosIndex) = depth;
   }
-};
+};/* class ExprSetDepth */
 
 /**
  * IOStream manipulator to print type ascriptions or not.
@@ -598,11 +614,50 @@ public:
   }
 };/* class ExprPrintTypes */
 
+/**
+ * IOStream manipulator to set the output language for Exprs.
+ */
+class CVC4_PUBLIC ExprSetLanguage {
+  /**
+   * The allocated index in ios_base for our depth setting.
+   */
+  static const int s_iosIndex;
+
+  /**
+   * The default language to use, for ostreams that haven't yet had a
+   * setlanguage() applied to them.
+   */
+  static const int s_defaultLanguage = language::output::LANG_AST;
+
+  /**
+   * When this manipulator is used, the setting is stored here.
+   */
+  OutputLanguage d_language;
+
+public:
+  /**
+   * Construct a ExprSetLanguage with the given setting.
+   */
+  ExprSetLanguage(OutputLanguage l) : d_language(l) {}
+
+  inline void applyLanguage(std::ostream& out) {
+    out.iword(s_iosIndex) = int(d_language);
+  }
+
+  static inline OutputLanguage getLanguage(std::ostream& out) {
+    return OutputLanguage(out.iword(s_iosIndex));
+  }
+
+  static inline void setLanguage(std::ostream& out, OutputLanguage l) {
+    out.iword(s_iosIndex) = int(l);
+  }
+};/* class ExprSetLanguage */
+
 }/* CVC4::expr namespace */
 
 ${getConst_instantiations}
 
-#line 566 "${template}"
+#line 659 "${template}"
 
 namespace expr {
 
@@ -631,6 +686,20 @@ inline std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
  */
 inline std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
   pt.applyPrintTypes(out);
+  return out;
+}
+
+/**
+ * Sets the output language when pretty-printing a Expr to an ostream.
+ * Use like this:
+ *
+ *   // let out be an ostream, e an Expr
+ *   out << Expr::setlanguage(LANG_SMTLIB_V2) << e << endl;
+ *
+ * The setting stays permanently (until set again) with the stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, ExprSetLanguage l) {
+  l.applyLanguage(out);
   return out;
 }
 

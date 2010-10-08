@@ -34,9 +34,9 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ExprManager::ExprManager() :
+ExprManager::ExprManager(bool earlyTypeChecking) :
   d_ctxt(new Context),
-  d_nodeManager(new NodeManager(d_ctxt)) {
+  d_nodeManager(new NodeManager(d_ctxt, earlyTypeChecking)) {
 }
 
 ExprManager::~ExprManager() {
@@ -75,7 +75,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
   try {
     return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode()));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -92,8 +92,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
                                                child1.getNode(),
                                                child2.getNode()));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())),
-                                e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -112,8 +111,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                                                child2.getNode(),
                                                child3.getNode()));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())),
-                                e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -133,8 +131,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                                                child3.getNode(),
                                                child4.getNode()));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())),
-                                e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -156,8 +153,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                                                child4.getNode(),
                                                child5.getNode()));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())),
-                                e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -181,8 +177,7 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
   try {
     return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())),
-                                e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -207,7 +202,7 @@ Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
   try {
     return Expr(this,d_nodeManager->mkNodePtr(opExpr.getNode(), nodes));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
 }
 
@@ -309,16 +304,19 @@ Type ExprManager::getType(const Expr& e, bool check) throw (TypeCheckingExceptio
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
-    t = Type(d_nodeManager, new TypeNode(d_nodeManager->getType(e.getNode(), check)));
+    t = Type(d_nodeManager,
+             new TypeNode(d_nodeManager->getType(e.getNode(), check)));
   } catch (const TypeCheckingExceptionPrivate& e) {
-    throw TypeCheckingException(Expr(this, new Node(e.getNode())), e.getMessage());
+    throw TypeCheckingException(this, &e);
   }
   return t;
 }
 
 Expr ExprManager::mkVar(const std::string& name, const Type& type) {
   NodeManagerScope nms(d_nodeManager);
-  return Expr(this, d_nodeManager->mkVarPtr(name, *type.d_typeNode));
+  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode);
+  Debug("nm") << "set " << name << " on " << *n << std::endl;
+  return Expr(this, n);
 }
 
 Expr ExprManager::mkVar(const Type& type) {

@@ -29,6 +29,7 @@
 #define __CVC4__EXPR__NODE_VALUE_H
 
 #include "expr/kind.h"
+#include "util/language.h"
 
 #include <stdint.h>
 #include <string>
@@ -260,7 +261,8 @@ public:
   }
 
   std::string toString() const;
-  void toStream(std::ostream& out, int toDepth = -1, bool types = false) const;
+  void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+                OutputLanguage = language::output::LANG_AST) const;
 
   static inline unsigned kindToDKind(Kind k) {
     return ((unsigned) k) & kindMask;

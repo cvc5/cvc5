@@ -310,14 +310,14 @@ public:
   }
 
   /**
-   * Converst this node into a string representation and sends it to the
+   * Converts this node into a string representation and sends it to the
    * given stream
    *
-   * @param out the sream to serialise this node to
+   * @param out the stream to serialize this node to
    */
-  inline void toStream(std::ostream& out, int toDepth = -1,
-                       bool types = false) const {
-    d_nv->toStream(out, toDepth, types);
+  inline void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+                       OutputLanguage language = language::output::LANG_AST) const {
+    d_nv->toStream(out, toDepth, types, language);
   }
 
   /**

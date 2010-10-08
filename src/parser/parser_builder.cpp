@@ -58,7 +58,7 @@ public:
 
 ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename) :
     d_inputType(FILE_INPUT),
-    d_lang(LANG_AUTO),
+    d_lang(language::input::LANG_AUTO),
     d_filename(filename),
     d_streamInput(NULL),
     d_exprManager(exprManager),
@@ -85,9 +85,9 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
     Unreachable();
   }
   switch(d_lang) {
-  case LANG_SMTLIB:
+  case language::input::LANG_SMTLIB:
     return new Smt(&d_exprManager, input, d_strictMode);
-  case LANG_SMTLIB_V2:
+  case language::input::LANG_SMTLIB_V2:
     return new Smt2(&d_exprManager, input, d_strictMode);
   default:
     return new Parser(&d_exprManager, input, d_strictMode);

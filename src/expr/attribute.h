@@ -562,7 +562,8 @@ inline void AttributeManager::deleteFromTable(CDAttrHash<T>& table,
 }
 
 /**
- * Remove all attributes from the table calling the cleanup function if one is defined.
+ * Remove all attributes from the table calling the cleanup function
+ * if one is defined.
  */
 template <class T>
 inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
@@ -575,7 +576,7 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
     }
   }
 
-  if(anyRequireClearing){
+  if(anyRequireClearing) {
     typename hash_t::iterator it = table.begin();
     typename hash_t::iterator it_end = table.end();
 

@@ -118,6 +118,12 @@ class NodeManager {
   Node d_operators[kind::LAST_KIND];
 
   /**
+   * Whether to do early type checking (only effective in debug
+   * builds; other builds never do early type checking.
+   */
+  const bool d_earlyTypeChecking;
+
+  /**
    * Look up a NodeValue in the pool associated to this NodeManager.
    * The NodeValue argument need not be a "completely-constructed"
    * NodeValue.  In particular, "non-inlined" constants are permitted
@@ -233,9 +239,12 @@ class NodeManager {
   // bool containsDecision(TNode); // is "atomic"
   // bool properlyContainsDecision(TNode); // all children are atomic
 
+  // undefined private copy constructor (disallow copy)
+  NodeManager(const NodeManager&);
+
 public:
 
-  NodeManager(context::Context* ctxt);
+  explicit NodeManager(context::Context* ctxt, bool earlyTypeChecking = true);
   ~NodeManager();
 
   /** The node manager in the current context. */

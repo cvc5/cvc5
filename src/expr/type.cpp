@@ -29,9 +29,9 @@ using namespace std;
 
 namespace CVC4 {
 
-ostream& operator<<(ostream& out, const Type& e) {
-  e.toStream(out);
-  return out;
+ostream& operator<<(ostream& out, const Type& t) {
+  NodeManagerScope nms(t.d_nodeManager);
+  return out << *Type::getTypeNode(t);
 }
 
 Type Type::makeType(const TypeNode& typeNode) const {
@@ -121,6 +121,13 @@ void Type::toStream(ostream& out) const {
   NodeManagerScope nms(d_nodeManager);
   out << *d_typeNode;
   return;
+}
+
+string Type::toString() const {
+  NodeManagerScope nms(d_nodeManager);
+  stringstream ss;
+  ss << *d_typeNode;
+  return ss.str();
 }
 
 /** Is this the Boolean type? */

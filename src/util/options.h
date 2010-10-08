@@ -21,10 +21,16 @@
 #ifndef __CVC4__OPTIONS_H
 #define __CVC4__OPTIONS_H
 
+#ifdef CVC4_DEBUG
+#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
+#else /* CVC4_DEBUG */
+#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT false
+#endif /* CVC4_DEBUG */
+
 #include <iostream>
 #include <string>
 
-#include "parser/parser_options.h"
+#include "util/language.h"
 
 namespace CVC4 {
 
@@ -45,7 +51,7 @@ struct CVC4_PUBLIC Options {
   int verbosity;
 
   /** The input language */
-  parser::InputLanguage lang;
+  InputLanguage inputLanguage;
 
   /** Enumeration of UF implementation choices */
   typedef enum { TIM, MORGAN } UfImplementation;
@@ -83,13 +89,16 @@ struct CVC4_PUBLIC Options {
   /** Whether we support SmtEngine::getAssignment() for this run. */
   bool produceAssignments;
 
+  /** Whether we support SmtEngine::getAssignment() for this run. */
+  bool earlyTypeChecking;
+
   Options() :
     binary_name(),
     statistics(false),
     out(0),
     err(0),
     verbosity(0),
-    lang(parser::LANG_AUTO),
+    inputLanguage(language::input::LANG_AUTO),
     uf_implementation(MORGAN),
     parseOnly(false),
     semanticChecks(true),
@@ -99,7 +108,8 @@ struct CVC4_PUBLIC Options {
     interactive(false),
     interactiveSetByUser(false),
     produceModels(false),
-    produceAssignments(false) {
+    produceAssignments(false),
+    earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT) {
   }
 };/* struct Options */
 
@@ -120,5 +130,7 @@ inline std::ostream& operator<<(std::ostream& out,
 }
 
 }/* CVC4 namespace */
+
+#undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
 
 #endif /* __CVC4__OPTIONS_H */

@@ -136,7 +136,6 @@ Type DeclarationScope::lookupType(const std::string& name,
 
     return instantiation;
   } else {
-    Assert(p.second.isSort());
     if(Debug.isOn("sort")) {
       Debug("sort") << "instantiating using a sort substitution" << endl;
       Debug("sort") << "have formals [";

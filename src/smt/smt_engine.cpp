@@ -199,11 +199,12 @@ void SmtEngine::defineFunction(Expr func,
   Type formulaType = formula.getType(true);// type check body
   if(formulaType != FunctionType(func.getType()).getRangeType()) {
     stringstream ss;
-    ss << "Defined function's declared type does not match type of body\n"
-       << "The function: " << func << "\n"
-       << "Its type    : " << func.getType() << "\n"
-       << "The body    : " << formula << "\n"
-       << "Body type   : " << formulaType << "\n";
+    ss << "Defined function's declared type does not match that of body\n"
+       << "The function  : " << func << "\n"
+       << "Its range type: "
+       << FunctionType(func.getType()).getRangeType() << "\n"
+       << "The body      : " << formula << "\n"
+       << "Body type     : " << formulaType;
     throw TypeCheckingException(func, ss.str());
   }
   TNode funcNode = func.getTNode();
@@ -305,9 +306,22 @@ void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
   smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, n));
 }
 
+void SmtEngine::ensureBoolean(const BoolExpr& e) {
+  Type type = e.getType(true);
+  Type boolType = d_exprManager->booleanType();
+  if(type != boolType) {
+    stringstream ss;
+    ss << "Expected " << boolType << "\n"
+       << "The assertion : " << e << "\n"
+       << "Its type      : " << type;
+    throw TypeCheckingException(e, ss.str());
+  }
+}
+
 Result SmtEngine::checkSat(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << endl;
+  ensureBoolean(e);// ensure expr is type-checked at this point
   SmtEnginePrivate::addFormula(*this, e.getNode());
   Result r = check().asSatisfiabilityResult();
   Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
@@ -317,6 +331,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 Result SmtEngine::query(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << endl;
+  ensureBoolean(e);// ensure expr is type-checked at this point
   SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
   Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
@@ -326,12 +341,14 @@ Result SmtEngine::query(const BoolExpr& e) {
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT assertFormula(" << e << ")" << endl;
+  ensureBoolean(e);// type check node
   SmtEnginePrivate::addFormula(*this, e.getNode());
   return quickCheck().asValidityResult();
 }
 
 Expr SmtEngine::simplify(const Expr& e) {
   NodeManagerScope nms(d_nodeManager);
+  e.getType(true);// ensure expr is type-checked at this point
   Debug("smt") << "SMT simplify(" << e << ")" << endl;
   Unimplemented();
 }
@@ -352,6 +369,8 @@ Expr SmtEngine::getValue(Expr term)
   // assertions
 
   NodeManagerScope nms(d_nodeManager);
+  Type type = term.getType(true);// ensure expr is type-checked at this point
+  SmtEnginePrivate::preprocess(*this, term.getNode());
 
   Unimplemented();
 }

@@ -12,7 +12,7 @@
  ** information.\endverbatim
  **
  ** \brief Implementation of Configuration class, which provides compile-time
- ** configuration information about the CVC4 library.
+ ** configuration information about the CVC4 library
  **
  ** Implementation of Configuration class, which provides compile-time
  ** configuration information about the CVC4 library.

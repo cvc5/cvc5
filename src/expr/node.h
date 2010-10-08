@@ -36,6 +36,8 @@
 #include "util/Assert.h"
 #include "util/configuration.h"
 #include "util/output.h"
+#include "util/exception.h"
+#include "util/language.h"
 
 namespace CVC4 {
 
@@ -58,7 +60,7 @@ private:
 
 protected:
 
-  TypeCheckingExceptionPrivate(): Exception() {}
+  TypeCheckingExceptionPrivate() : Exception() {}
 
 public:
 
@@ -656,12 +658,12 @@ public:
   /**
    * Converst this node into a string representation and sends it to the
    * given stream
-   * @param out the sream to serialise this node to
+   * @param out the stream to serialize this node to
    */
-  inline void toStream(std::ostream& out, int toDepth = -1,
-                       bool types = false) const {
+  inline void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+                       OutputLanguage language = language::output::LANG_AST) const {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, types);
+    d_nv->toStream(out, toDepth, types, language);
   }
 
   /**
@@ -692,6 +694,11 @@ public:
   typedef expr::ExprPrintTypes printtypes;
 
   /**
+   * IOStream manipulator to set the output language for Exprs.
+   */
+  typedef expr::ExprSetLanguage setlanguage;
+
+  /**
    * Very basic pretty printer for Node.
    * @param o output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -720,7 +727,8 @@ public:
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,
              Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out));
+             Node::printtypes::getPrintTypes(out),
+             Node::setlanguage::getLanguage(out));
   return out;
 }
 

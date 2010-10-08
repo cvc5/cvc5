@@ -132,6 +132,12 @@ class CVC4_PUBLIC SmtEngine {
    */
   Result quickCheck();
 
+  /**
+   * Fully type-check the argument, and also type-check that it's
+   * actually Boolean.
+   */
+  void ensureBoolean(const BoolExpr& e);
+
   friend class ::CVC4::smt::SmtEnginePrivate;
 
 public:

@@ -39,6 +39,7 @@ namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
 const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
+const int ExprSetLanguage::s_iosIndex = std::ios_base::xalloc();
 
 }/* CVC4::expr namespace */
 
@@ -47,8 +48,8 @@ std::ostream& operator<<(std::ostream& out, const TypeCheckingException& e) {
 }
 
 std::ostream& operator<<(std::ostream& out, const Expr& e) {
-  e.toStream(out);
-  return out;
+  ExprManagerScope ems(*e.getExprManager());
+  return out << e.getNode();
 }
 
 TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
@@ -58,6 +59,12 @@ TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
 
 TypeCheckingException::TypeCheckingException(const Expr& expr, std::string message)
 : Exception(message), d_expr(new Expr(expr))
+{
+}
+
+TypeCheckingException::TypeCheckingException(ExprManager* em,
+                                             const TypeCheckingExceptionPrivate* exc)
+: Exception(exc->getMessage()), d_expr(new Expr(em, new Node(exc->getNode())))
 {
 }
 
@@ -218,9 +225,10 @@ bool Expr::isConst() const {
   return d_node->isConst();
 }
 
-void Expr::toStream(std::ostream& out, int depth, bool types) const {
+void Expr::toStream(std::ostream& out, int depth, bool types,
+                    OutputLanguage language) const {
   ExprManagerScope ems(*this);
-  d_node->toStream(out, depth, types);
+  d_node->toStream(out, depth, types, language);
 }
 
 Node Expr::getNode() const throw() {

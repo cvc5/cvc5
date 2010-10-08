@@ -74,12 +74,18 @@ private:
   /** ExprManagerScope reaches in to get the NodeManager */
   friend class ExprManagerScope;
 
+  // undefined, private copy constructor (disallow copy)
+  ExprManager(const ExprManager&);
+
 public:
 
   /**
    * Creates an expression manager.
+   * @param earlyTypeChecking whether to do type checking early (at Expr
+   * creation time); only used in debug builds---for other builds, type
+   * checking is never done early.
    */
-  ExprManager();
+  explicit ExprManager(bool earlyTypeChecking = true);
 
   /**
    * Destroys the expression manager. No will be deallocated at this point, so

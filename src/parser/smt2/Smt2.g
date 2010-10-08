@@ -250,7 +250,7 @@ command returns [CVC4::Command* cmd]
     }
   | /* assertion */
     ASSERT_TOK term[expr]
-    { cmd = new AssertCommand(expr);   }
+    { cmd = new AssertCommand(expr); }
   | /* checksat */
     CHECKSAT_TOK
     { cmd = new CheckSatCommand(MK_CONST(true)); }

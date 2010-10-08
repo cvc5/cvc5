@@ -13,7 +13,8 @@
  **
  ** \brief Similar to std::pair<>, for triples
  **
- ** Similar to std::pair<>, for triples.
+ ** Similar to std::pair<>, for triples.  Once we move to c++0x, this
+ ** can be removed in favor of (standard-provided) N-ary tuples.
  **/
 
 #include "cvc4_private.h"
