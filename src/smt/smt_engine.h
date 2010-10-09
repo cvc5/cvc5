@@ -119,9 +119,9 @@ class CVC4_PUBLIC SmtEngine {
   bool d_haveAdditions;
 
   /**
-   * Result of last checkSat/query.
+   * Most recent result of last checkSat/query or (set-info :status).
    */
-  Result d_lastResult;
+  Result d_status;
 
   /**
    * This is called by the destructor, just before destroying the
@@ -173,7 +173,7 @@ public:
   /**
    * Query information about the SMT environment.
    */
-  const SExpr& getInfo(const std::string& key) const
+  SExpr getInfo(const std::string& key) const
     throw(BadOptionException);
 
   /**
@@ -185,7 +185,7 @@ public:
   /**
    * Get an aspect of the current SMT execution environment.
    */
-  const SExpr& getOption(const std::string& key) const
+  SExpr getOption(const std::string& key) const
     throw(BadOptionException);
 
   /**

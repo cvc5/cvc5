@@ -352,7 +352,9 @@ GetInfoCommand::GetInfoCommand(std::string flag) :
 
 void GetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
-    d_result = smtEngine->getInfo(d_flag).getValue();
+    stringstream ss;
+    ss << smtEngine->getInfo(d_flag);
+    d_result = ss.str();
   } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }

@@ -24,6 +24,7 @@
 
 #include <string>
 #include <ostream>
+#include <sstream>
 #include <iomanip>
 #include <set>
 #include <ctime>
@@ -44,16 +45,28 @@ class CVC4_PUBLIC Stat;
 
 class CVC4_PUBLIC StatisticsRegistry {
 private:
-  struct StatCmp;
+  struct StatCmp {
+    inline bool operator()(const Stat* s1, const Stat* s2) const;
+  };/* class StatisticsRegistry::StatCmp */
 
   typedef std::set< Stat*, StatCmp > StatSet;
   static StatSet d_registeredStats;
 
 public:
+
+  typedef StatSet::const_iterator const_iterator;
+
   static void flushStatistics(std::ostream& out);
 
   static inline void registerStat(Stat* s) throw(AssertionException);
   static inline void unregisterStat(Stat* s) throw(AssertionException);
+
+  static inline const_iterator begin() {
+    return d_registeredStats.begin();
+  }
+  static inline const_iterator end() {
+    return d_registeredStats.end();
+  }
 };/* class StatisticsRegistry */
 
 
@@ -65,8 +78,8 @@ private:
 
 public:
 
-  Stat(const std::string& s) throw(CVC4::AssertionException) : d_name(s)
-  {
+  Stat(const std::string& s) throw(CVC4::AssertionException) :
+    d_name(s) {
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(d_name.find(s_delim) == std::string::npos);
     }
@@ -85,18 +98,17 @@ public:
   const std::string& getName() const {
     return d_name;
   }
+
+  virtual std::string getValue() const = 0;
 };/* class Stat */
 
+inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
+                                                    const Stat* s2) const {
+  return s1->getName() < s2->getName();
+}
 
-struct StatisticsRegistry::StatCmp {
-  bool operator()(const Stat* s1, const Stat* s2) const
-  {
-    return (s1->getName()) < (s2->getName());
-  }
-};/* class StatCmp */
-
-
-inline void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
+inline void StatisticsRegistry::registerStat(Stat* s)
+  throw(AssertionException) {
   if(__CVC4_USE_STATISTICS) {
     AlwaysAssert(d_registeredStats.find(s) == d_registeredStats.end());
     d_registeredStats.insert(s);
@@ -104,7 +116,8 @@ inline void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) 
 }/* StatisticsRegistry::registerStat */
 
 
-inline void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException) {
+inline void StatisticsRegistry::unregisterStat(Stat* s)
+  throw(AssertionException) {
   if(__CVC4_USE_STATISTICS) {
     AlwaysAssert(d_registeredStats.find(s) != d_registeredStats.end());
     d_registeredStats.erase(s);
@@ -120,7 +133,9 @@ inline void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException
 template <class T>
 class DataStat : public Stat {
 public:
-  DataStat(const std::string& s) : Stat(s) {}
+  DataStat(const std::string& s) :
+    Stat(s) {
+  }
 
   virtual const T& getData() const = 0;
   virtual void setData(const T&) = 0;
@@ -129,6 +144,12 @@ public:
     if(__CVC4_USE_STATISTICS) {
       out << getData();
     }
+  }
+
+  std::string getValue() const {
+    std::stringstream ss;
+    ss << getData();
+    return ss.str();
   }
 };/* class DataStat */
 
@@ -140,13 +161,14 @@ private:
   const T* d_data;
 
 public:
-  ReferenceStat(const std::string& s):
-    DataStat<T>(s), d_data(NULL)
-  {}
+  ReferenceStat(const std::string& s) :
+    DataStat<T>(s),
+    d_data(NULL) {
+  }
 
-  ReferenceStat(const std::string& s, const T& data):
-    DataStat<T>(s), d_data(NULL)
-  {
+  ReferenceStat(const std::string& s, const T& data) :
+    DataStat<T>(s),
+    d_data(NULL) {
     setData(data);
   }
 
@@ -155,6 +177,7 @@ public:
       d_data = &t;
     }
   }
+
   const T& getData() const {
     if(__CVC4_USE_STATISTICS) {
       return *d_data;
@@ -173,8 +196,10 @@ protected:
 
 public:
 
-  BackedStat(const std::string& s, const T& init): DataStat<T>(s), d_data(init)
-  {}
+  BackedStat(const std::string& s, const T& init) :
+    DataStat<T>(s),
+    d_data(init) {
+  }
 
   void setData(const T& t) {
     if(__CVC4_USE_STATISTICS) {
@@ -202,8 +227,9 @@ public:
 class IntStat : public BackedStat<int64_t> {
 public:
 
-  IntStat(const std::string& s, int64_t init): BackedStat<int64_t>(s, init)
-  {}
+  IntStat(const std::string& s, int64_t init) :
+    BackedStat<int64_t>(s, init) {
+  }
 
   IntStat& operator++() {
     if(__CVC4_USE_STATISTICS) {

@@ -119,7 +119,7 @@ constant BUILTIN \
     "The kind of nodes representing built-in operators"
 
 variable FUNCTION "function"
-parameterized APPLY FUNCTION 1: "defined function application"
+parameterized APPLY FUNCTION 0: "defined function application"
 
 operator EQUAL 2 "equality"
 operator DISTINCT 2: "disequality"

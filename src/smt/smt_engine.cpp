@@ -31,6 +31,7 @@
 #include "util/output.h"
 #include "util/exception.h"
 #include "util/options.h"
+#include "util/configuration.h"
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
 
@@ -121,7 +122,7 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   d_propEngine(NULL),
   d_assertionList(NULL),
   d_haveAdditions(false),
-  d_lastResult() {
+  d_status() {
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -166,7 +167,6 @@ void SmtEngine::setInfo(const string& key, const SExpr& value)
   throw(BadOptionException) {
   Debug("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(key == ":name" ||
-     key == ":status" ||
      key == ":source" ||
      key == ":category" ||
      key == ":difficulty" ||
@@ -174,15 +174,68 @@ void SmtEngine::setInfo(const string& key, const SExpr& value)
      key == ":notes") {
     // ignore these
     return;
+  } else if(key == ":status") {
+    string s;
+    if(value.isAtom()) {
+      s = value.getValue();
+    }
+    if(s != "sat" && s != "unsat" && s != "unknown") {
+      throw BadOptionException("argument to (set-info :status ..) must be "
+                               "`sat' or `unsat' or `unknown'");
+    }
+    if(s == "sat") {
+      d_status = Result::SAT;
+    } else if(s == "unsat") {
+      d_status = Result::UNSAT;
+    } else if(s == "unknown") {
+      d_status = Result::SAT_UNKNOWN;
+    } else {
+      Unreachable();
+    }
+    return;
   }
   throw BadOptionException();
 }
 
-const SExpr& SmtEngine::getInfo(const string& key) const
+SExpr SmtEngine::getInfo(const string& key) const
   throw(BadOptionException) {
   Debug("smt") << "SMT getInfo(" << key << ")" << endl;
-  // FIXME implement me
-  throw BadOptionException();
+  if(key == ":all-statistics") {
+    vector<SExpr> stats;
+    for(StatisticsRegistry::const_iterator i = StatisticsRegistry::begin();
+        i != StatisticsRegistry::end();
+        ++i) {
+      vector<SExpr> v;
+      v.push_back((*i)->getName());
+      v.push_back((*i)->getValue());
+      stats.push_back(v);
+    }
+    return stats;
+  } else if(key == ":error-behavior") {
+    return SExpr("immediate-exit");
+  } else if(key == ":name") {
+    return Configuration::getName();
+  } else if(key == ":version") {
+    return Configuration::getVersionString();
+  } else if(key == ":authors") {
+    return Configuration::about();
+  } else if(key == ":status") {
+    enum Result::SAT status = d_status.asSatisfiabilityResult().isSAT();
+    switch(status) {
+    case Result::SAT:
+      return SExpr("sat");
+    case Result::UNSAT:
+      return SExpr("unsat");
+    case Result::SAT_UNKNOWN:
+      return SExpr("unknown");
+    default:
+      Unhandled(status);
+    }
+  } else if(key == ":reason-unknown") {
+    throw BadOptionException();
+  } else {
+    throw BadOptionException();
+  }
 }
 
 void SmtEngine::setOption(const string& key, const SExpr& value)
@@ -192,11 +245,34 @@ void SmtEngine::setOption(const string& key, const SExpr& value)
   throw BadOptionException();
 }
 
-const SExpr& SmtEngine::getOption(const string& key) const
+SExpr SmtEngine::getOption(const string& key) const
   throw(BadOptionException) {
   Debug("smt") << "SMT getOption(" << key << ")" << endl;
-  // FIXME implement me
-  throw BadOptionException();
+  if(key == ":print-success") {
+    return SExpr("true");
+  } else if(key == ":expand-definitions") {
+    throw BadOptionException();
+  } else if(key == ":interactive-mode") {
+    throw BadOptionException();
+  } else if(key == ":produce-proofs") {
+    throw BadOptionException();
+  } else if(key == ":produce-unsat-cores") {
+    throw BadOptionException();
+  } else if(key == ":produce-models") {
+    throw BadOptionException();
+  } else if(key == ":produce-assignments") {
+    throw BadOptionException();
+  } else if(key == ":regular-output-channel") {
+    return SExpr("stdout");
+  } else if(key == ":diagnostic-output-channel") {
+    return SExpr("stderr");
+  } else if(key == ":random-seed") {
+    throw BadOptionException();
+  } else if(key == ":verbosity") {
+    throw BadOptionException();
+  } else {
+    throw BadOptionException();
+  }
 }
 
 void SmtEngine::defineFunction(Expr func,
@@ -205,12 +281,14 @@ void SmtEngine::defineFunction(Expr func,
   Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
   NodeManagerScope nms(d_nodeManager);
   Type formulaType = formula.getType(true);// type check body
-  if(formulaType != FunctionType(func.getType()).getRangeType()) {
+  Type funcType = func.getType();
+  Type rangeType = funcType.isFunction() ?
+    FunctionType(funcType).getRangeType() : funcType;
+  if(formulaType != rangeType) {
     stringstream ss;
     ss << "Defined function's declared type does not match that of body\n"
        << "The function  : " << func << "\n"
-       << "Its range type: "
-       << FunctionType(func.getType()).getRangeType() << "\n"
+       << "Its range type: " << rangeType << "\n"
        << "The body      : " << formula << "\n"
        << "Body type     : " << formulaType;
     throw TypeCheckingException(func, ss.str());
@@ -225,7 +303,9 @@ void SmtEngine::defineFunction(Expr func,
   }
   TNode formulaNode = formula.getTNode();
   DefinedFunction def(funcNode, formalsNodes, formulaNode);
-  d_haveAdditions = true;
+  // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
+  // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
+  // d_haveAdditions = true;
   d_definedFunctions->insert(funcNode, def);
 }
 
@@ -335,7 +415,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
   ensureBoolean(e);// ensure expr is type-checked at this point
   SmtEnginePrivate::addFormula(*this, e.getNode());
   Result r = check().asSatisfiabilityResult();
-  d_lastResult = r;
+  d_status = r;
   d_haveAdditions = false;
   Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
   return r;
@@ -348,7 +428,7 @@ Result SmtEngine::query(const BoolExpr& e) {
   ensureBoolean(e);// ensure expr is type-checked at this point
   SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
-  d_lastResult = r;
+  d_status = r;
   d_haveAdditions = false;
   Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
   return r;
@@ -389,7 +469,7 @@ Expr SmtEngine::getValue(Expr e)
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
   }
-  if(d_lastResult.asSatisfiabilityResult() != Result::SAT ||
+  if(d_status.asSatisfiabilityResult() != Result::SAT ||
      d_haveAdditions) {
     const char* msg =
       "Cannot get value unless immediately proceded by SAT/INVALID response.";
@@ -457,9 +537,8 @@ void SmtEngine::pop() {
   d_context->pop();
   Debug("userpushpop") << "SmtEngine: popped to level "
                        << d_context->getLevel() << endl;
-  // clear out last result: get-value/get-assignment no longer
-  // available here
-  d_lastResult = Result();
+  // FIXME: should we reset d_status here?
+  // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
 }/* CVC4 namespace */

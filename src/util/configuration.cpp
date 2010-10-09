@@ -18,12 +18,19 @@
  ** configuration information about the CVC4 library.
  **/
 
+#include <string>
+
 #include "util/configuration.h"
 #include "util/configuration_private.h"
+#include "cvc4autoconfig.h"
 
 using namespace std;
 
 namespace CVC4 {
+
+string Configuration::getName() {
+  return PACKAGE_NAME;
+}
 
 bool Configuration::isDebugBuild() {
   return IS_DEBUG_BUILD;

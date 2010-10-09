@@ -23,6 +23,7 @@
 
 #include <string>
 #include <set>
+#include <list>
 
 #include "input.h"
 #include "parser_exception.h"
@@ -123,6 +124,13 @@ class CVC4_PUBLIC Parser {
 
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
+
+  /**
+   * "Preemption commands": extra commands implied by subterms that
+   * should be issued before the currently-being-parsed command is
+   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   */
+  std::list<Command*> d_commandQueue;
 
   /** Lookup a symbol in the given namespace. */
   Expr getSymbol(const std::string& var_name, SymbolType type);
@@ -315,11 +323,19 @@ public:
   const std::vector<Type>
   mkSorts(const std::vector<std::string>& names);
 
-  /** Add an operator to the current legal set.
+  /**
+   * Add an operator to the current legal set.
    *
    * @param kind the built-in operator to add
    */
   void addOperator(Kind kind);
+
+  /**
+   * Preempt the next returned command with other ones; used to
+   * support the :named attribute in SMT-LIBv2, which implicitly
+   * inserts a new command before the current one.
+   */
+  void preemptCommand(Command* cmd);
 
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
@@ -334,7 +350,6 @@ public:
   bool isPredicate(const std::string& name);
 
   Command* nextCommand() throw(ParserException);
-  Expr nextExpression() throw(ParserException);
 
   inline void parseError(const std::string& msg) throw (ParserException) {
     d_input->parseError(msg);

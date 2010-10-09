@@ -196,7 +196,7 @@ command returns [CVC4::Command* cmd]
     sortSymbol[t]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
       if( sorts.size() > 0 ) {
-        t = EXPR_MANAGER->mkFunctionType(sorts,t);
+        t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       PARSER_STATE->mkVar(name, t);
       $cmd = new DeclarationCommand(name,t); }
@@ -215,7 +215,7 @@ command returns [CVC4::Command* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-        t = EXPR_MANAGER->mkFunctionType(sorts,t);
+        t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       PARSER_STATE->pushScope();
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
@@ -320,6 +320,7 @@ term[CVC4::Expr& expr]
   Kind kind;
   std::string name;
   std::vector<Expr> args;
+  SExpr sexpr;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -361,8 +362,9 @@ term[CVC4::Expr& expr]
         PARSER_STATE->getFunction(name) :
         PARSER_STATE->getVariable(name);
       args[0] = expr;
-      // TODO: check arity
-      expr = MK_EXPR(isDefinedFunction ? CVC4::kind::APPLY : CVC4::kind::APPLY_UF, args); }
+      expr = MK_EXPR(isDefinedFunction ?
+                     CVC4::kind::APPLY :
+                     CVC4::kind::APPLY_UF, args); }
 
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
@@ -374,9 +376,38 @@ term[CVC4::Expr& expr]
     RPAREN_TOK
     { PARSER_STATE->popScope(); }
 
-  | /* a variable */
-    symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { expr = PARSER_STATE->getVariable(name); }
+    /* a variable */
+  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
+    { const bool isDefinedFunction =
+        PARSER_STATE->isDefinedFunction(name);
+      if(isDefinedFunction) {
+        expr = MK_EXPR(CVC4::kind::APPLY,
+                       PARSER_STATE->getFunction(name));
+      } else {
+        expr = PARSER_STATE->getVariable(name);
+      }
+    }
+
+    /* attributed expressions */
+  | LPAREN_TOK ATTRIBUTE_TOK term[expr] KEYWORD symbolicExpr[sexpr] RPAREN_TOK
+    { std::string attr = AntlrInput::tokenText($KEYWORD);
+      if(attr == ":named") {
+        name = sexpr.getValue();
+        // FIXME ensure expr is a closed subterm
+        // check that sexpr is a fresh function symbol
+        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+        // define it
+        Expr func = PARSER_STATE->mkFunction(name, expr.getType());
+        // bind name to expr with define-fun
+        Command* c =
+          new DefineFunctionCommand(func, std::vector<Expr>(), expr);
+        PARSER_STATE->preemptCommand(c);
+      } else {
+        std::stringstream ss;
+        ss << "Attribute `" << attr << "' not supported";
+        PARSER_STATE->parseError(ss.str());
+      }
+    }
 
     /* constants */
   | INTEGER_LITERAL
@@ -558,6 +589,7 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 EXIT_TOK : 'exit';
 ITE_TOK : 'ite';
 LET_TOK : 'let';
+ATTRIBUTE_TOK : '!';
 LPAREN_TOK : '(';
 RPAREN_TOK : ')';
 SET_LOGIC_TOK : 'set-logic';

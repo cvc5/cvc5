@@ -37,6 +37,8 @@ class CVC4_PUBLIC Configuration {
 
 public:
 
+  static std::string getName();
+
   static bool isDebugBuild();
 
   static bool isTracingBuild();

@@ -195,9 +195,9 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 }
 
 function registerOperatorToKind {
-	operatorKind=$1
-	applyKind=$2
-	metakind_operatorKinds="${metakind_operatorKinds}    case kind::$applyKind: return kind::$operatorKind;
+  operatorKind=$1
+  applyKind=$2
+  metakind_operatorKinds="${metakind_operatorKinds}    case kind::$applyKind: return kind::$operatorKind;
 ";
 }
 
@@ -227,8 +227,14 @@ function register_metakind {
     exit 1
   fi
 
-  if [ $mk = OPERATOR ] || [ $mk = PARAMETERIZED -a "$k" != SORT_TYPE ]; then
-    if [ $lb = 0 ]; then
+  if [ $mk = OPERATOR -o $mk = PARAMETERIZED ]; then
+    if [ $mk = PARAMETERIZED -a "$k" = SORT_TYPE ]; then
+      # exception: zero-ary SORT_TYPE is permitted for sort constructors
+      :
+    elif [ $mk = PARAMETERIZED -a "$k" = APPLY ]; then
+      # exception: zero-ary APPLY is permitted for defined zero-ary functions
+      :
+    elif [ $lb = 0 ]; then
       echo "$kf:$lineno: error in range \`$nc' for \`$k': $mk-kinded kinds must always take at least one child" >&2
       exit 1
     fi

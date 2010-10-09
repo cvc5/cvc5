@@ -103,7 +103,9 @@ bool Parser::isFunction(const std::string& name) {
 
 /* Returns true if name is bound to a defined function. */
 bool Parser::isDefinedFunction(const std::string& name) {
-  return isFunction(name) && d_declScope.isBoundDefinedFunction(name);
+  // more permissive in type than isFunction(), because defined
+  // functions can be zero-ary and declared functions cannot.
+  return d_declScope.isBoundDefinedFunction(name);
 }
 
 /* Returns true if name is bound to a function returning boolean. */
@@ -286,50 +288,42 @@ void Parser::addOperator(Kind kind) {
   d_logicOperators.insert(kind);
 }
 
+void Parser::preemptCommand(Command* cmd) {
+  d_commandQueue.push_back(cmd);
+}
+
 Command* Parser::nextCommand() throw(ParserException) {
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
-  if(!done()) {
-    try {
-      cmd = d_input->parseCommand();
-      if(cmd == NULL) {
+  if(!d_commandQueue.empty()) {
+    cmd = d_commandQueue.front();
+    d_commandQueue.pop_front();
+    if(cmd == NULL) {
+      setDone();
+    }
+  } else {
+    if(!done()) {
+      try {
+        cmd = d_input->parseCommand();
+        d_commandQueue.push_back(cmd);
+        cmd = d_commandQueue.front();
+        d_commandQueue.pop_front();
+        if(cmd == NULL) {
+          setDone();
+        }
+      } catch(ParserException& e) {
         setDone();
+        throw;
+      } catch(Exception& e) {
+        setDone();
+        stringstream ss;
+        ss << e;
+        parseError( ss.str() );
       }
-    } catch(ParserException& e) {
-      setDone();
-      throw;
-    } catch(Exception& e) {
-      setDone();
-      stringstream ss;
-      ss << e;
-      parseError( ss.str() );
     }
   }
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
   return cmd;
-}
-
-Expr Parser::nextExpression() throw(ParserException) {
-  Debug("parser") << "nextExpression()" << std::endl;
-  Expr result;
-  if(!done()) {
-    try {
-      result = d_input->parseExpr();
-      if(result.isNull()) {
-        setDone();
-      }
-    } catch(ParserException& e) {
-      setDone();
-      throw;
-    } catch(Exception& e) {
-      setDone();
-      stringstream ss;
-      ss << e;
-      parseError( ss.str() );
-    }
-  }
-  Debug("parser") << "nextExpression() => " << result << std::endl;
-  return result;
 }
 
 
