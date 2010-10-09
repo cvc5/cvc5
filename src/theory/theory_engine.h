@@ -380,13 +380,15 @@ public:
     return d_theoryOut.d_explanationNode;
   }
 
-  inline Node getExplanation(TNode node){
+  inline Node getExplanation(TNode node) {
     d_theoryOut.d_explanationNode = Node::null();
     theory::Theory* theory =
               node.getKind() == kind::NOT ? theoryOf(node[0]) : theoryOf(node);
     theory->explain(node);
     return d_theoryOut.d_explanationNode;
   }
+
+  Node getValue(TNode node);
 
 private:
   class Statistics {

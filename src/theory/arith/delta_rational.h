@@ -46,11 +46,11 @@ public:
   DeltaRational(const CVC4::Rational& base, const CVC4::Rational& coeff) :
     c(base), k(coeff) {}
 
-  const CVC4::Rational& getInfintestimalPart() const {
+  const CVC4::Rational& getInfinitesimalPart() const {
     return k;
   }
 
-  const CVC4::Rational& getNoninfintestimalPart() const {
+  const CVC4::Rational& getNoninfinitesimalPart() const {
     return c;
   }
 

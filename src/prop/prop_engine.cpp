@@ -130,6 +130,20 @@ Result PropEngine::checkSat() {
   return Result(result ? Result::SAT : Result::UNSAT);
 }
 
+Node PropEngine::getValue(TNode node) {
+  Assert(node.getKind() == kind::VARIABLE &&
+         node.getType().isBoolean());
+  SatLiteralValue v = d_satSolver->value(d_cnfStream->getLiteral(node));
+  if(v == l_True) {
+    return NodeManager::currentNM()->mkConst(true);
+  } else if(v == l_False) {
+    return NodeManager::currentNM()->mkConst(false);
+  } else {
+    Assert(v == l_Undef);
+    return Node::null();
+  }
+}
+
 void PropEngine::push() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "push()" << endl;

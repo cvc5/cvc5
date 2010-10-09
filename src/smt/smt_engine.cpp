@@ -119,7 +119,9 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   d_decisionEngine(NULL),
   d_theoryEngine(NULL),
   d_propEngine(NULL),
-  d_assertionList(NULL) {
+  d_assertionList(NULL),
+  d_haveAdditions(false),
+  d_lastResult() {
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -162,7 +164,9 @@ SmtEngine::~SmtEngine() {
 
 void SmtEngine::setInfo(const string& key, const SExpr& value)
   throw(BadOptionException) {
-  if(key == ":status" ||
+  Debug("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
+  if(key == ":name" ||
+     key == ":status" ||
      key == ":source" ||
      key == ":category" ||
      key == ":difficulty" ||
@@ -176,18 +180,21 @@ void SmtEngine::setInfo(const string& key, const SExpr& value)
 
 const SExpr& SmtEngine::getInfo(const string& key) const
   throw(BadOptionException) {
+  Debug("smt") << "SMT getInfo(" << key << ")" << endl;
   // FIXME implement me
   throw BadOptionException();
 }
 
 void SmtEngine::setOption(const string& key, const SExpr& value)
   throw(BadOptionException) {
+  Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
   // FIXME implement me
   throw BadOptionException();
 }
 
 const SExpr& SmtEngine::getOption(const string& key) const
   throw(BadOptionException) {
+  Debug("smt") << "SMT getOption(" << key << ")" << endl;
   // FIXME implement me
   throw BadOptionException();
 }
@@ -195,6 +202,7 @@ const SExpr& SmtEngine::getOption(const string& key) const
 void SmtEngine::defineFunction(Expr func,
                                const vector<Expr>& formals,
                                Expr formula) {
+  Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
   NodeManagerScope nms(d_nodeManager);
   Type formulaType = formula.getType(true);// type check body
   if(formulaType != FunctionType(func.getType()).getRangeType()) {
@@ -217,6 +225,7 @@ void SmtEngine::defineFunction(Expr func,
   }
   TNode formulaNode = formula.getTNode();
   DefinedFunction def(funcNode, formalsNodes, formulaNode);
+  d_haveAdditions = true;
   d_definedFunctions->insert(funcNode, def);
 }
 
@@ -303,6 +312,7 @@ Result SmtEngine::quickCheck() {
 void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
   throw(NoSuchFunctionException, AssertionException) {
   Debug("smt") << "push_back assertion " << n << endl;
+  smt.d_haveAdditions = true;
   smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, n));
 }
 
@@ -319,42 +329,56 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) {
 }
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
+  Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << endl;
   ensureBoolean(e);// ensure expr is type-checked at this point
   SmtEnginePrivate::addFormula(*this, e.getNode());
   Result r = check().asSatisfiabilityResult();
+  d_lastResult = r;
+  d_haveAdditions = false;
   Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
   return r;
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
+  Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << endl;
   ensureBoolean(e);// ensure expr is type-checked at this point
   SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
+  d_lastResult = r;
+  d_haveAdditions = false;
   Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
   return r;
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
+  Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT assertFormula(" << e << ")" << endl;
   ensureBoolean(e);// type check node
+  if(d_assertionList != NULL) {
+    d_assertionList->push_back(e);
+  }
   SmtEnginePrivate::addFormula(*this, e.getNode());
   return quickCheck().asValidityResult();
 }
 
 Expr SmtEngine::simplify(const Expr& e) {
+  Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   e.getType(true);// ensure expr is type-checked at this point
   Debug("smt") << "SMT simplify(" << e << ")" << endl;
   Unimplemented();
 }
 
-Expr SmtEngine::getValue(Expr term)
+Expr SmtEngine::getValue(Expr e)
   throw(ModalException, AssertionException) {
+  Assert(e.getExprManager() == d_exprManager);
+  Type type = e.getType(true);// ensure expr is type-checked at this point
+  Debug("smt") << "SMT getValue(" << e << ")" << endl;
   if(!d_options->interactive) {
     const char* msg =
       "Cannot get value when not in interactive mode.";
@@ -365,17 +389,33 @@ Expr SmtEngine::getValue(Expr term)
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
   }
-  // TODO also check that the last query was sat/unknown, without intervening
-  // assertions
+  if(d_lastResult.asSatisfiabilityResult() != Result::SAT ||
+     d_haveAdditions) {
+    const char* msg =
+      "Cannot get value unless immediately proceded by SAT/INVALID response.";
+    throw ModalException(msg);
+  }
+  if(type.isFunction() || type.isPredicate() ||
+     type.isKind() || type.isSortConstructor()) {
+    const char* msg =
+      "Cannot get value of a function, predicate, or sort.";
+    throw ModalException(msg);
+  }
 
   NodeManagerScope nms(d_nodeManager);
-  Type type = term.getType(true);// ensure expr is type-checked at this point
-  SmtEnginePrivate::preprocess(*this, term.getNode());
+  Node eNode = e.getNode();
+  Node n = SmtEnginePrivate::preprocess(*this, eNode);
 
-  Unimplemented();
+  Debug("smt") << "--- getting value of " << n << endl;
+  Node resultNode = d_theoryEngine->getValue(n);
+
+  // type-check the result we got
+  Assert(resultNode.getType(true) == eNode.getType());
+  return Expr(d_exprManager, new Node(resultNode));
 }
 
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
+  Debug("smt") << "SMT getAssignment()" << endl;
   if(!d_options->produceAssignments) {
     const char* msg =
       "Cannot get the current assignment when produce-assignments option is off.";
@@ -389,7 +429,9 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
   Unimplemented();
 }
 
-vector<Expr> SmtEngine::getAssertions() throw(ModalException, AssertionException) {
+vector<Expr> SmtEngine::getAssertions()
+  throw(ModalException, AssertionException) {
+  Debug("smt") << "SMT getAssertions()" << endl;
   if(!d_options->interactive) {
     const char* msg =
       "Cannot query the current assertion list when not in interactive mode.";
@@ -402,13 +444,22 @@ vector<Expr> SmtEngine::getAssertions() throw(ModalException, AssertionException
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT push()" << endl;
-  Unimplemented();
+  d_context->push();
+  d_propEngine->push();
+  Debug("userpushpop") << "SmtEngine: pushed to level "
+                       << d_context->getLevel() << endl;
 }
 
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT pop()" << endl;
-  Unimplemented();
+  d_propEngine->pop();
+  d_context->pop();
+  Debug("userpushpop") << "SmtEngine: popped to level "
+                       << d_context->getLevel() << endl;
+  // clear out last result: get-value/get-assignment no longer
+  // available here
+  d_lastResult = Result();
 }
 
 }/* CVC4 namespace */

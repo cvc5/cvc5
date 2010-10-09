@@ -286,6 +286,11 @@ public:
     return explain(eq[0], eq[1]);
   }
 
+  /**
+   * Normalization.
+   */
+  Node normalize(TNode t) const throw(AssertionException);
+
 private:
 
   friend std::ostream& operator<< <>(std::ostream& out,
@@ -359,11 +364,6 @@ private:
    */
   void merge(TNode ec1, TNode ec2);
   void mergeProof(TNode a, TNode b, TNode e);
-
-  /**
-   * Internal normalization.
-   */
-  Node normalize(TNode t) const throw(AssertionException);
 
 };/* class CongruenceClosure */
 

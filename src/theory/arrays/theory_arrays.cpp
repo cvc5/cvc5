@@ -18,6 +18,7 @@
 
 
 #include "theory/arrays/theory_arrays.h"
+#include "theory/theory_engine.h"
 #include "expr/kind.h"
 
 
@@ -57,4 +58,21 @@ void TheoryArrays::check(Effort e) {
     Debug("arrays") << "TheoryArrays::check(): " << assertion << endl;
   }
   Debug("arrays") << "TheoryArrays::check(): done" << endl;
+}
+
+Node TheoryArrays::getValue(TNode n, TheoryEngine* engine) {
+  NodeManager* nodeManager = NodeManager::currentNM();
+
+  switch(n.getKind()) {
+
+  case kind::VARIABLE:
+    Unhandled(kind::VARIABLE);
+
+  case kind::EQUAL: // 2 args
+    return nodeManager->
+      mkConst( engine->getValue(n[0]) == engine->getValue(n[1]) );
+
+  default:
+    Unhandled(n.getKind());
+  }
 }

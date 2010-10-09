@@ -75,6 +75,8 @@ public:
 
   void explain(TNode n, Effort e) { }
 
+  Node getValue(TNode n, TheoryEngine* engine);
+
   RewriteResponse postRewrite(TNode n, bool topLevel);
 
   std::string identify() const { return std::string("TheoryBV"); }

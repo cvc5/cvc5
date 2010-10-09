@@ -184,7 +184,7 @@ public:
   const NodeCache& getNodeCache() const {
     return d_nodeCache;
   }
-}; /* class CnfStream */
+};/* class CnfStream */
 
 /**
  * TseitinCnfStream is based on the following recursive algorithm

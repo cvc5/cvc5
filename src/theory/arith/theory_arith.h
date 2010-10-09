@@ -128,6 +128,8 @@ public:
   void propagate(Effort e);
   void explain(TNode n, Effort e);
 
+  Node getValue(TNode n, TheoryEngine* engine);
+
   void shutdown(){ }
 
   std::string identify() const { return std::string("TheoryArith"); }

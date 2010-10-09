@@ -262,9 +262,11 @@ public:
   // TODO add compiler annotation "constant function" here
   static bool minEffortOnly(Effort e)        { return e == MIN_EFFORT; }
   static bool quickCheckOrMore(Effort e)     { return e >= QUICK_CHECK; }
-  static bool quickCheckOnly(Effort e)       { return e >= QUICK_CHECK && e < STANDARD; }
+  static bool quickCheckOnly(Effort e)       { return e >= QUICK_CHECK &&
+                                                      e <  STANDARD; }
   static bool standardEffortOrMore(Effort e) { return e >= STANDARD; }
-  static bool standardEffortOnly(Effort e)   { return e >= STANDARD && e < FULL_EFFORT; }
+  static bool standardEffortOnly(Effort e)   { return e >= STANDARD &&
+                                                      e <  FULL_EFFORT; }
   static bool fullEffort(Effort e)           { return e >= FULL_EFFORT; }
 
   /**
@@ -328,7 +330,8 @@ public:
    * (ITE true x y).
    */
   virtual RewriteResponse preRewrite(TNode n, bool topLevel) {
-    Debug("theory-rewrite") << "no pre-rewriting to perform for " << n << std::endl;
+    Debug("theory-rewrite") << "no pre-rewriting to perform for "
+                            << n << std::endl;
     return RewriteComplete(n);
   }
 
@@ -340,7 +343,8 @@ public:
    * memory leakage).
    */
   virtual RewriteResponse postRewrite(TNode n, bool topLevel) {
-    Debug("theory-rewrite") << "no post-rewriting to perform for " << n << std::endl;
+    Debug("theory-rewrite") << "no post-rewriting to perform for "
+                            << n << std::endl;
     return RewriteComplete(n);
   }
 
@@ -366,18 +370,21 @@ public:
   }
 
   /**
-   * This method is called to notify a theory that the node n should be considered a "shared term" by this theory
+   * This method is called to notify a theory that the node n should
+   * be considered a "shared term" by this theory
    */
   virtual void addSharedTerm(TNode n) { }
 
   /**
-   * This method is called by the shared term manager when a shared term lhs
-   * which this theory cares about (either because it received a previous
-   * addSharedTerm call with lhs or because it received a previous notifyEq call
-   * with lhs as the second argument) becomes equal to another shared term rhs.
-   * This call also serves as notice to the theory that the shared term manager
-   * now considers rhs the representative for this equivalence class of shared
-   * terms, so future notifications for this class will be based on rhs not lhs.
+   * This method is called by the shared term manager when a shared
+   * term lhs which this theory cares about (either because it
+   * received a previous addSharedTerm call with lhs or because it
+   * received a previous notifyEq call with lhs as the second
+   * argument) becomes equal to another shared term rhs.  This call
+   * also serves as notice to the theory that the shared term manager
+   * now considers rhs the representative for this equivalence class
+   * of shared terms, so future notifications for this class will be
+   * based on rhs not lhs.
    */
   virtual void notifyEq(TNode lhs, TNode rhs) { }
 
@@ -403,6 +410,38 @@ public:
    * explanations to an output channel.
    */
   virtual void explain(TNode n, Effort level = FULL_EFFORT) = 0;
+
+  /**
+   * Return the value of a node (typically used after a ).  If the
+   * theory supports model generation but has no value for this node,
+   * it should return Node::null().  If the theory doesn't support
+   * model generation at all, or usually would but doesn't in its
+   * current state, it should throw an exception saying so.
+   *
+   * The TheoryEngine is passed in so that you can recursively request
+   * values for the Node's children.  This is important because the
+   * TheoryEngine takes care of simple cases (metakind CONSTANT,
+   * Boolean-valued VARIABLES, ...) and can dispatch to other theories
+   * if that's necessary.  Only call your own getValue() recursively
+   * if you *know* that you are responsible handle the Node you're
+   * asking for; other theories can use your types, so be careful
+   * here!  To be safe, it's best to delegate back to the
+   * TheoryEngine.
+   *
+   * Usually, you need to handle at least the two cases of EQUAL and
+   * VARIABLE---EQUAL in case a value of yours is on the LHS of an
+   * EQUAL, and VARIABLE for variables of your types.  You also need
+   * to support any operators that can survive your rewriter.  You
+   * don't need to handle constants, as they are handled by the
+   * TheoryEngine.
+   *
+   * There are some gotchas here.  The user may be requesting the
+   * value of an expression that wasn't part of the satisfiable
+   * assertion, or has been declared since.  If you don't have a value
+   * and suspect this situation is the case, return Node::null()
+   * rather than throwing an exception.
+   */
+  virtual Node getValue(TNode n, TheoryEngine* engine) = 0;
 
   /**
    * Identify this theory (for debugging, dynamic configuration,
@@ -550,7 +589,8 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level);
 
 }/* CVC4::theory namespace */
 
-inline std::ostream& operator<<(std::ostream& out, const CVC4::theory::Theory& theory) {
+inline std::ostream& operator<<(std::ostream& out,
+                                const CVC4::theory::Theory& theory) {
   return out << theory.identify();
 }
 

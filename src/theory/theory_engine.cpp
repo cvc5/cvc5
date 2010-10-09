@@ -537,4 +537,20 @@ Node TheoryEngine::rewrite(TNode in, bool topLevel) {
   return out;
 }/* TheoryEngine::rewrite(TNode in) */
 
+
+Node TheoryEngine::getValue(TNode node) {
+  kind::MetaKind metakind = node.getMetaKind();
+  // special case: prop engine handles boolean vars
+  if(metakind == kind::metakind::VARIABLE && node.getType().isBoolean()) {
+    return d_propEngine->getValue(node);
+  }
+  // special case: value of a constant == itself
+  if(metakind == kind::metakind::CONSTANT) {
+    return node;
+  }
+
+  // otherwise ask the theory-in-charge
+  return theoryOf(node)->getValue(node, this);
+}/* TheoryEngine::getValue(TNode node) */
+
 }/* CVC4 namespace */

@@ -257,6 +257,35 @@ command returns [CVC4::Command* cmd]
   | /* get-assertions */
     GET_ASSERTIONS_TOK
     { cmd = new GetAssertionsCommand; }
+  | /* push */
+    PUSH_TOK k=INTEGER_LITERAL
+    { unsigned n = AntlrInput::tokenToUnsigned(k);
+      if(n == 0) {
+        cmd = new EmptyCommand;
+      } else if(n == 1) {
+        cmd = new PushCommand;
+      } else {
+        CommandSequence* seq = new CommandSequence;
+        do {
+          seq->addCommand(new PushCommand);
+        } while(--n > 0);
+        cmd = seq;
+      }
+    }
+  | POP_TOK k=INTEGER_LITERAL
+    { unsigned n = AntlrInput::tokenToUnsigned(k);
+      if(n == 0) {
+        cmd = new EmptyCommand;
+      } else if(n == 1) {
+        cmd = new PopCommand;
+      } else {
+        CommandSequence* seq = new CommandSequence;
+        do {
+          seq->addCommand(new PopCommand);
+        } while(--n > 0);
+        cmd = seq;
+      }
+    }
   | EXIT_TOK
     { cmd = NULL; }
   ;
@@ -536,6 +565,8 @@ SET_INFO_TOK : 'set-info';
 GET_INFO_TOK : 'get-info';
 SET_OPTION_TOK : 'set-option';
 GET_OPTION_TOK : 'get-option';
+PUSH_TOK : 'push';
+POP_TOK : 'pop';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';

@@ -17,6 +17,7 @@
  **/
 
 #include "theory/uf/morgan/theory_uf_morgan.h"
+#include "theory/theory_engine.h"
 #include "expr/kind.h"
 #include "util/congruence_closure.h"
 
@@ -449,6 +450,32 @@ void TheoryUFMorgan::check(Effort level) {
 void TheoryUFMorgan::propagate(Effort level) {
   Debug("uf") << "uf: begin propagate(" << level << ")" << std::endl;
   Debug("uf") << "uf: end propagate(" << level << ")" << std::endl;
+}
+
+Node TheoryUFMorgan::getValue(TNode n, TheoryEngine* engine) {
+  NodeManager* nodeManager = NodeManager::currentNM();
+
+  switch(n.getKind()) {
+
+  case kind::VARIABLE:
+  case kind::APPLY_UF:
+    if(n.getType().isBoolean()) {
+      if(d_cc.areCongruent(d_trueNode, n)) {
+        return nodeManager->mkConst(true);
+      } else if(d_cc.areCongruent(d_trueNode, n)) {
+        return nodeManager->mkConst(false);
+      }
+      return Node::null();
+    }
+    return d_cc.normalize(n);
+
+  case kind::EQUAL: // 2 args
+    return nodeManager->
+      mkConst( engine->getValue(n[0]) == engine->getValue(n[1]) );
+
+  default:
+    Unhandled(n.getKind());
+  }
 }
 
 void TheoryUFMorgan::dump() {

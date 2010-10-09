@@ -48,7 +48,7 @@ Row::Row(ArithVar basic,
     Assert(d_coeffs[var_i] != Rational(0,1));
   }
 }
-void Row::subsitute(Row& row_s){
+void Row::substitute(Row& row_s){
   ArithVar x_s = row_s.basicVar();
 
   Assert(has(x_s));
@@ -133,7 +133,7 @@ void Tableau::addRow(ArithVar basicVar,
       Assert(isActiveBasicVariable(var));
 
       Row* row_var = lookup(var);
-      row_current->subsitute(*row_var);
+      row_current->substitute(*row_var);
     }
   }
 }
@@ -163,7 +163,7 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
     Row* row_k = lookup(basic);
     if(row_k->has(x_s)){
       d_activityMonitor.increaseActivity(basic, 30);
-      row_k->subsitute(*row_s);
+      row_k->substitute(*row_s);
     }
   }
 }
@@ -189,7 +189,7 @@ void Tableau::updateRow(Row* row){
       Row* row_var = isActiveBasicVariable(var) ? lookup(var) : lookupEjected(var);
 
       Assert(row_var != row);
-      row->subsitute(*row_var);
+      row->substitute(*row_var);
 
       i = row->begin();
       endIter = row->end();

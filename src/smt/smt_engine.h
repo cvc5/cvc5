@@ -112,6 +112,18 @@ class CVC4_PUBLIC SmtEngine {
   AssertionList* d_assertionList;
 
   /**
+   * Whether or not we have added any
+   * assertions/declarations/definitions since the last checkSat/query
+   * (and therefore we're not responsible for an assignment).
+   */
+  bool d_haveAdditions;
+
+  /**
+   * Result of last checkSat/query.
+   */
+  Result d_lastResult;
+
+  /**
    * This is called by the destructor, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues
@@ -213,14 +225,14 @@ public:
   Expr simplify(const Expr& e);
 
   /**
-   * Get the assigned value of a term (only if preceded by a SAT or
-   * INVALID query).  Only permitted if the SmtEngine is set to
-   * operate interactively and produce-models is on.
+   * Get the assigned value of an expr (only if immediately preceded
+   * by a SAT or INVALID query).  Only permitted if the SmtEngine is
+   * set to operate interactively and produce-models is on.
    */
-  Expr getValue(Expr term) throw(ModalException, AssertionException);
+  Expr getValue(Expr e) throw(ModalException, AssertionException);
 
   /**
-   * Get the assigned value of a term (only if preceded by a SAT or
+   * Get the assignment (only if immediately preceded by a SAT or
    * INVALID query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */

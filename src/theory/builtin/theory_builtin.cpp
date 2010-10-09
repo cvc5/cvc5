@@ -17,6 +17,7 @@
  **/
 
 #include "theory/builtin/theory_builtin.h"
+#include "theory/theory_engine.h"
 #include "expr/kind.h"
 
 using namespace std;
@@ -26,7 +27,8 @@ namespace theory {
 namespace builtin {
 
 Node TheoryBuiltin::blastDistinct(TNode in) {
-  Debug("theory-rewrite") << "TheoryBuiltin::blastDistinct: " << in << std::endl;
+  Debug("theory-rewrite") << "TheoryBuiltin::blastDistinct: "
+                          << in << std::endl;
   Assert(in.getKind() == kind::DISTINCT);
   if(in.getNumChildren() == 2) {
     // if this is the case exactly 1 != pair will be generated so the
@@ -64,6 +66,40 @@ RewriteResponse TheoryBuiltin::preRewrite(TNode in, bool topLevel) {
 
   default:
     return RewriteComplete(in);
+  }
+}
+
+Node TheoryBuiltin::getValue(TNode n, TheoryEngine* engine) {
+  switch(n.getKind()) {
+
+  case kind::VARIABLE:
+    // no variables that the builtin theory is responsible for
+    Unreachable();
+
+  case kind::EQUAL: { // 2 args
+    // has to be an EQUAL over tuples, since all others should be
+    // handled elsewhere
+    Assert(n[0].getKind() == kind::TUPLE &&
+           n[1].getKind() == kind::TUPLE);
+    return NodeManager::currentNM()->
+      mkConst( getValue(n[0], engine) == getValue(n[1], engine) );
+  }
+
+  case kind::TUPLE: { // 2+ args
+    NodeBuilder<> nb(kind::TUPLE);
+    for(TNode::iterator i = n.begin(),
+          iend = n.end();
+        i != iend;
+        ++i) {
+      nb << engine->getValue(*i);
+    }
+    return Node(nb);
+  }
+
+  default:
+    // all other "builtins" should have been rewritten away or handled
+    // by theory engine, or handled elsewhere.
+    Unhandled(n.getKind());
   }
 }
 

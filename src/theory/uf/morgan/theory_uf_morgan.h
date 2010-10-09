@@ -151,12 +151,20 @@ public:
   void propagate(Effort level);
 
   /**
-   * Explains a previously reported conflict. Currently does nothing.
+   * Explains a previously theory-propagated literal.
    *
    * Overloads void explain(TNode n, Effort level); from theory.h.
    * See theory/theory.h for more information about this method.
    */
   void explain(TNode n, Effort level) {}
+
+  /**
+   * Gets a theory value.
+   *
+   * Overloads Node getValue(TNode n); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
+  Node getValue(TNode n, TheoryEngine* engine);
 
   std::string identify() const { return std::string("TheoryUFMorgan"); }
 

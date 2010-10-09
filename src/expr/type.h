@@ -216,7 +216,7 @@ public:
 
   /**
    * Is this a predicate type, i.e. if it's a function type mapping to Boolean.
-   * Aall predicate types are also function types.
+   * All predicate types are also function types.
    * @return true if the type is a predicate type
    */
   bool isPredicate() const;

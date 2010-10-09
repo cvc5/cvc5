@@ -156,6 +156,16 @@ public:
    */
   void explain(TNode n, Effort level) {}
 
+  /**
+   * Get a theory value.
+   *
+   * Overloads Node getValue(TNode n); from theory.h.
+   * See theory/theory.h for more information about this method.
+   */
+  Node getValue(TNode n, TheoryEngine* engine) {
+    Unimplemented("TheoryUFTim doesn't support model generation");
+  }
+
   std::string identify() const { return std::string("TheoryUFTim"); }
 
 private:

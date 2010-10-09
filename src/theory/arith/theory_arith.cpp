@@ -22,6 +22,8 @@
 #include "expr/metakind.h"
 #include "expr/node_builder.h"
 
+#include "theory/theory_engine.h"
+
 #include "util/rational.h"
 #include "util/integer.h"
 
@@ -925,5 +927,79 @@ void TheoryArith::propagate(Effort e) {
         ++i){
       d_out->propagate(*i);
     }
+  }
+}
+
+Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
+  NodeManager* nodeManager = NodeManager::currentNM();
+
+  switch(n.getKind()) {
+  case kind::VARIABLE: {
+    DeltaRational drat = d_partialModel.getAssignment(asArithVar(n));
+    // FIXME our infinitesimal is fixed here at 1e-06
+    return nodeManager->
+      mkConst( drat.getNoninfinitesimalPart() +
+               drat.getInfinitesimalPart() * Rational(1, 1000000) );
+  }
+
+  case kind::EQUAL: // 2 args
+    return nodeManager->
+      mkConst( engine->getValue(n[0]) == engine->getValue(n[1]) );
+
+  case kind::PLUS: { // 2+ args
+    Rational value = d_constants.d_ZERO;
+    for(TNode::iterator i = n.begin(),
+            iend = n.end();
+          i != iend;
+          ++i) {
+      value += engine->getValue(*i).getConst<Rational>();
+    }
+    return nodeManager->mkConst(value);
+  }
+
+  case kind::MULT: { // 2+ args
+    Rational value = d_constants.d_ONE;
+    for(TNode::iterator i = n.begin(),
+            iend = n.end();
+          i != iend;
+          ++i) {
+      value *= engine->getValue(*i).getConst<Rational>();
+    }
+    return nodeManager->mkConst(value);
+  }
+
+  case kind::MINUS: // 2 args
+    // should have been rewritten
+    Unreachable();
+
+  case kind::UMINUS: // 1 arg
+    // should have been rewritten
+    Unreachable();
+
+  case kind::DIVISION: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() /
+                                 engine->getValue(n[1]).getConst<Rational>() );
+
+  case kind::IDENTITY: // 1 arg
+    return engine->getValue(n[0]);
+
+  case kind::LT: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() <
+                                 engine->getValue(n[1]).getConst<Rational>() );
+
+  case kind::LEQ: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() <=
+                                 engine->getValue(n[1]).getConst<Rational>() );
+
+  case kind::GT: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() >
+                                 engine->getValue(n[1]).getConst<Rational>() );
+
+  case kind::GEQ: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() >=
+                                 engine->getValue(n[1]).getConst<Rational>() );
+
+  default:
+    Unhandled(n.getKind());
   }
 }

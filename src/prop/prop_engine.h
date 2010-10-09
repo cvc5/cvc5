@@ -114,6 +114,14 @@ public:
   Result checkSat();
 
   /**
+   * Get the value of a boolean variable.
+   *
+   * @return mkConst<true>, mkConst<false>, or Node::null() if
+   * unassigned.
+   */
+  Node getValue(TNode node);
+
+  /**
    * Push the context level.
    */
   void push();

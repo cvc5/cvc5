@@ -71,7 +71,7 @@ void NodeValue::toStream(std::ostream& out, int toDepth, bool types,
                           VarNameAttr(), s)) {
         out << s;
       } else {
-        out << "var_" << d_id << "[" << this << "]";
+        out << "var_" << d_id;
       }
       if(types) {
         // print the whole type, but not *its* type

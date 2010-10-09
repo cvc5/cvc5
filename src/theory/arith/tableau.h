@@ -83,7 +83,7 @@ public:
 
   void pivot(ArithVar x_j);
 
-  void subsitute(Row& row_s);
+  void substitute(Row& row_s);
 
   void printRow();
 };

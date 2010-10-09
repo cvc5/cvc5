@@ -17,9 +17,11 @@
  ** \todo document this file
  **/
 
-#include "theory_bv.h"
-#include "theory_bv_utils.h"
-#include "theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/bv/theory_bv_rewrite_rules.h"
+
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -160,3 +162,19 @@ bool TheoryBV::triggerEquality(size_t triggerId) {
   return true;
 }
 
+Node TheoryBV::getValue(TNode n, TheoryEngine* engine) {
+  NodeManager* nodeManager = NodeManager::currentNM();
+
+  switch(n.getKind()) {
+
+  case kind::VARIABLE:
+    Unhandled(kind::VARIABLE);
+
+  case kind::EQUAL: // 2 args
+    return nodeManager->
+      mkConst( engine->getValue(n[0]) == engine->getValue(n[1]) );
+
+  default:
+    Unhandled(n.getKind());
+  }
+}

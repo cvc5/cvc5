@@ -86,6 +86,21 @@ public:
   }
   enum UnknownExplanation whyUnknown();
 
+  inline bool operator==(Result r) {
+    if(d_which != r.d_which) {
+      return false;
+    }
+    if(d_which == TYPE_SAT) {
+      return d_sat == r.d_sat;
+    }
+    if(d_which == TYPE_VALIDITY) {
+      return d_validity == r.d_validity;
+    }
+    return false;
+  }
+  inline bool operator!=(Result r) {
+    return !(*this == r);
+  }
   inline Result asSatisfiabilityResult() const;
   inline Result asValidityResult() const;
 

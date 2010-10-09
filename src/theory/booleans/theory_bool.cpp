@@ -18,11 +18,11 @@
 
 #include "theory/theory.h"
 #include "theory/booleans/theory_bool.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace booleans {
-
 
 RewriteResponse TheoryBool::preRewrite(TNode n, bool topLevel) {
   if(n.getKind() == kind::IFF) {
@@ -140,6 +140,70 @@ RewriteResponse TheoryBool::postRewrite(TNode n, bool topLevel) {
   return RewriteComplete(n);
 }
 
+Node TheoryBool::getValue(TNode n, TheoryEngine* engine) {
+  NodeManager* nodeManager = NodeManager::currentNM();
+
+  switch(n.getKind()) {
+  case kind::VARIABLE:
+    // case for Boolean vars is implemented in TheoryEngine (since it
+    // appeals to the PropEngine to get the value)
+    Unreachable();
+
+  case kind::EQUAL: // 2 args
+    // should be handled by IFF
+    Unreachable();
+
+  case kind::NOT: // 1 arg
+    return nodeManager->mkConst(! engine->getValue(n[0]).getConst<bool>());
+
+  case kind::AND: { // 2+ args
+    for(TNode::iterator i = n.begin(),
+            iend = n.end();
+          i != iend;
+          ++i) {
+      if(! engine->getValue(*i).getConst<bool>()) {
+        return nodeManager->mkConst(false);
+      }
+    }
+    return nodeManager->mkConst(true);
+  }
+
+  case kind::IFF: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<bool>() ==
+                                 engine->getValue(n[1]).getConst<bool>() );
+
+  case kind::IMPLIES: // 2 args
+    return nodeManager->mkConst( (! engine->getValue(n[0]).getConst<bool>()) ||
+                                 engine->getValue(n[1]).getConst<bool>() );
+
+  case kind::OR: { // 2+ args
+    for(TNode::iterator i = n.begin(),
+            iend = n.end();
+          i != iend;
+          ++i) {
+      if(engine->getValue(*i).getConst<bool>()) {
+        return nodeManager->mkConst(true);
+      }
+    }
+    return nodeManager->mkConst(false);
+  }
+
+  case kind::XOR: // 2 args
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<bool>() !=
+                                 engine->getValue(n[1]).getConst<bool>() );
+
+  case kind::ITE: // 3 args
+    // all ITEs should be gone except (bool,bool,bool) ones
+    Assert( n[1].getType() == nodeManager->booleanType() &&
+            n[2].getType() == nodeManager->booleanType() );
+    return nodeManager->mkConst( engine->getValue(n[0]).getConst<bool>() ?
+                                 engine->getValue(n[1]).getConst<bool>() :
+                                 engine->getValue(n[2]).getConst<bool>() );
+
+  default:
+    Unhandled(n.getKind());
+  }
+}
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */
