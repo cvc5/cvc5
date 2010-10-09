@@ -410,7 +410,7 @@ Expr SmtEngine::getValue(Expr e)
   Node resultNode = d_theoryEngine->getValue(n);
 
   // type-check the result we got
-  Assert(resultNode.getType(true) == eNode.getType());
+  Assert(resultNode.isNull() || resultNode.getType(true) == eNode.getType());
   return Expr(d_exprManager, new Node(resultNode));
 }
 

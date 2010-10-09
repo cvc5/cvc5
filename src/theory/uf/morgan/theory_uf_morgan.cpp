@@ -462,10 +462,9 @@ Node TheoryUFMorgan::getValue(TNode n, TheoryEngine* engine) {
     if(n.getType().isBoolean()) {
       if(d_cc.areCongruent(d_trueNode, n)) {
         return nodeManager->mkConst(true);
-      } else if(d_cc.areCongruent(d_trueNode, n)) {
+      } else if(d_cc.areCongruent(d_falseNode, n)) {
         return nodeManager->mkConst(false);
       }
-      return Node::null();
     }
     return d_cc.normalize(n);
 
