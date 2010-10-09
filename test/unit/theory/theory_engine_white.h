@@ -205,6 +205,7 @@ public:
   void check(Theory::Effort) { Unimplemented(); }
   void propagate(Theory::Effort) { Unimplemented(); }
   void explain(TNode, Theory::Effort) { Unimplemented(); }
+  Node getValue(TNode n, TheoryEngine* engine) { return Node::null(); }
 };/* class FakeTheory */
 
 
