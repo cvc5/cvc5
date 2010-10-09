@@ -350,6 +350,7 @@ public:
   bool isPredicate(const std::string& name);
 
   Command* nextCommand() throw(ParserException);
+  Expr nextExpression() throw(ParserException);
 
   inline void parseError(const std::string& msg) throw (ParserException) {
     d_input->parseError(msg);

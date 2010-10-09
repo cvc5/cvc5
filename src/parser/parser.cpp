@@ -326,6 +326,29 @@ Command* Parser::nextCommand() throw(ParserException) {
   return cmd;
 }
 
+Expr Parser::nextExpression() throw(ParserException) {
+  Debug("parser") << "nextExpression()" << std::endl;
+  Expr result;
+  if(!done()) {
+    try {
+      result = d_input->parseExpr();
+      if(result.isNull()) {
+        setDone();
+      }
+    } catch(ParserException& e) {
+      setDone();
+      throw;
+    } catch(Exception& e) {
+      setDone();
+      stringstream ss;
+      ss << e;
+      parseError( ss.str() );
+    }
+  }
+  Debug("parser") << "nextExpression() => " << result << std::endl;
+  return result;
+}
+
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

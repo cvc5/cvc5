@@ -97,7 +97,7 @@ public:
                     );
 
     remove(filename);
-    //    mkfifo(ptr, S_IWUSR | s_IRUSR);    
+    //    mkfifo(ptr, S_IWUSR | s_IRUSR);
   }
 
   void testSimpleFileInput() {
