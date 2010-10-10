@@ -18,10 +18,10 @@ libutil_la_SOURCES = \
 	hash.h \
 	bool.h \
 	model.h \
-	options.h \
 	output.cpp \
 	output.h \
 	result.h \
+	result.cpp \
 	unique_id.h \
 	configuration.h \
 	configuration_private.h \

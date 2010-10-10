@@ -21,6 +21,9 @@
 #ifndef __CVC4__SHARED_TERM_MANAGER_H
 #define __CVC4__SHARED_TERM_MANAGER_H
 
+#include <set>
+#include <vector>
+
 #include "expr/node.h"
 #include "theory/shared_data.h"
 
@@ -50,18 +53,20 @@ class SharedTermManager {
   context::Context* d_context;
 
   /**
-   * List of all theories indexed by theory id (built by calls to registerTheory)
+   * List of all theories indexed by theory id (built by calls to
+   * registerTheory())
    */
   std::vector<theory::Theory*> d_theories;
 
   /**
-   * Private method to find equivalence class representative in union-find data
-   * structure.
+   * Private method to find equivalence class representative in
+   * union-find data structure.
    */
   SharedData* find(SharedData* pData) const;
 
   /**
-   * Helper function for explain: add all reasons for equality at pData to set s
+   * Helper function for explain: add all reasons for equality at
+   * pData to set s
    */
   void collectExplanations(SharedData* pData, std::set<Node>& s) const;
 
@@ -77,27 +82,30 @@ public:
   void registerTheory(theory::Theory* th);
 
   /**
-   * Called by theory engine to indicate that node n is shared by theories
-   * parent and child.
+   * Called by theory engine to indicate that node n is shared by
+   * theories parent and child.
    */
   void addTerm(TNode n, theory::Theory* parent,
                theory::Theory* child);
 
   /**
-   * Called by theory engine or theories to notify the shared term manager that
-   * two terms are equal.
+   * Called by theory engine or theories to notify the shared term
+   * manager that two terms are equal.
    *
    * @param eq the equality between shared terms
-   * @param thReason the theory that knows why, NULL means it's a SAT assertion
+   * @param thReason the theory that knows why, NULL means it's a SAT
+   * assertion
    */
   void addEq(TNode eq, theory::Theory* thReason = NULL);
 
   /**
-   * Called by theory engine or theories to notify the shared term manager that
-   * two terms are disequal.
+   * Called by theory engine or theories to notify the shared term
+   * manager that two terms are disequal.
    *
-   * @param eq the equality between shared terms whose negation now holds
-   * @param thReason the theory that knows why, NULL means it's a SAT assertion
+   * @param eq the equality between shared terms whose negation now
+   * holds
+   * @param thReason the theory that knows why, NULL means it's a SAT
+   * assertion
    */
   void addDiseq(TNode eq, theory::Theory* thReason = NULL) { }
 

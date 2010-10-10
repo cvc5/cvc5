@@ -26,6 +26,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "context/cdmap_forward.h"
+#include "context/cdset_forward.h"
 #include "util/result.h"
 #include "util/model.h"
 #include "util/sexpr.h"
@@ -88,6 +89,8 @@ class CVC4_PUBLIC SmtEngine {
     DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Expr> AssertionList;
+  /** The type of our internal assignment set */
+  typedef context::CDSet<Node, NodeHashFunction> AssignmentSet;
 
   /** Our Context */
   context::Context* d_context;
@@ -110,6 +113,11 @@ class CVC4_PUBLIC SmtEngine {
    * getAssertions().  Only maintained if in interactive mode.
    */
   AssertionList* d_assertionList;
+
+  /**
+   * List of items for which to retrieve values using getAssignment().
+   */
+  AssignmentSet* d_assignments;
 
   /**
    * Whether or not we have added any
@@ -229,7 +237,18 @@ public:
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(Expr e) throw(ModalException, AssertionException);
+  Expr getValue(const Expr& e) throw(ModalException, AssertionException);
+
+  /**
+   * Add a function to the set of expressions whose value is to be
+   * later returned by a call to getAssignment().  The expression
+   * should be a Boolean zero-ary defined function or a Boolean
+   * variable.  Rather than throwing a ModalException on modal
+   * failures (not in interactive mode or not producing assignments),
+   * this function returns true if the expression was added and false
+   * if this request was ignored.
+   */
+  bool addToAssignment(const Expr& e) throw(AssertionException);
 
   /**
    * Get the assignment (only if immediately preceded by a SAT or

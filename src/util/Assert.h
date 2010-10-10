@@ -163,7 +163,7 @@ public:
     va_list args;
     va_start(args, fmt);
     construct("Illegal argument detected",
-              ( std::string(argDesc) + " invalid" ).c_str(),
+              ( std::string("`") + argDesc + "' is a bad argument" ).c_str(),
               function, file, line, fmt, args);
     va_end(args);
   }
@@ -172,7 +172,7 @@ public:
                            const char* file, unsigned line) :
     AssertionException() {
     construct("Illegal argument detected",
-              ( std::string(argDesc) + " invalid" ).c_str(),
+              ( std::string("`") + argDesc + "' is a bad argument" ).c_str(),
               function, file, line);
   }
 
@@ -183,7 +183,7 @@ public:
     va_list args;
     va_start(args, fmt);
     construct("Illegal argument detected",
-              ( std::string(argDesc) + " invalid; expected " +
+              ( std::string("`") + argDesc + "' is a bad argument; expected " +
                 condStr + " to hold" ).c_str(),
               function, file, line, fmt, args);
     va_end(args);
@@ -194,7 +194,7 @@ public:
                            unsigned line) :
     AssertionException() {
     construct("Illegal argument detected",
-              ( std::string(argDesc) + " invalid; expected " +
+              ( std::string("`") + argDesc + "' is a bad argument; expected " +
                 condStr + " to hold" ).c_str(),
               function, file, line);
   }

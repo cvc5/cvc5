@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Global (command-line or equivalent) tuning parameters.
+ ** \brief Global (command-line, set-option, ...) parameters for SMT.
  **
- ** Global (command-line or equivalent) tuning parameters.
+ ** Global (command-line, set-option, ...) parameters for SMT.
  **/
 
 #include "cvc4_public.h"
@@ -89,7 +89,7 @@ struct CVC4_PUBLIC Options {
   /** Whether we support SmtEngine::getAssignment() for this run. */
   bool produceAssignments;
 
-  /** Whether we support SmtEngine::getAssignment() for this run. */
+  /** Whether we do typechecking at Expr creation time. */
   bool earlyTypeChecking;
 
   Options() :

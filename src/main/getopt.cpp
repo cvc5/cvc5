@@ -29,7 +29,7 @@
 #include "util/exception.h"
 #include "util/configuration.h"
 #include "util/output.h"
-#include "util/options.h"
+#include "smt/options.h"
 #include "util/language.h"
 #include "expr/expr.h"
 

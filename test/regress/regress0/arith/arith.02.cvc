@@ -1,4 +1,4 @@
-% EXPECT: VALID
+% EXPECT: valid
 x : REAL;
 y : REAL;
 z : REAL;

@@ -1,4 +1,4 @@
-% EXPECT: VALID
+% EXPECT: valid
 a:BOOLEAN;
 b:BOOLEAN;
 ASSERT(a);

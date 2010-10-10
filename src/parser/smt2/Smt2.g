@@ -248,6 +248,9 @@ command returns [CVC4::Command* cmd]
         $cmd = seq;
       }
     }
+  | /* get-assignment */
+    GET_ASSIGNMENT_TOK
+    { cmd = new GetAssignmentCommand; }
   | /* assertion */
     ASSERT_TOK term[expr]
     { cmd = new AssertCommand(expr); }
@@ -400,7 +403,7 @@ term[CVC4::Expr& expr]
         Expr func = PARSER_STATE->mkFunction(name, expr.getType());
         // bind name to expr with define-fun
         Command* c =
-          new DefineFunctionCommand(func, std::vector<Expr>(), expr);
+          new DefineNamedFunctionCommand(func, std::vector<Expr>(), expr);
         PARSER_STATE->preemptCommand(c);
       } else {
         std::stringstream ss;
@@ -585,6 +588,7 @@ DECLARE_SORT_TOK : 'declare-sort';
 DEFINE_FUN_TOK : 'define-fun';
 DEFINE_SORT_TOK : 'define-sort';
 GET_VALUE_TOK : 'get-value';
+GET_ASSIGNMENT_TOK : 'get-assignment';
 GET_ASSERTIONS_TOK : 'get-assertions';
 EXIT_TOK : 'exit';
 ITE_TOK : 'ite';

@@ -52,10 +52,10 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
-    expected_output=SAT
+    expected_output=sat
     expected_exit_status=10
   elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
-    expected_output=UNSAT
+    expected_output=unsat
     expected_exit_status=20
   else
     error "cannot determine status of \`$benchmark'"
@@ -80,10 +80,10 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *(set-info  *:status  *sat' "$benchmark" &>/dev/null; then
-    expected_output=SAT
+    expected_output=sat
     expected_exit_status=10
   elif grep '^ *(set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
-    expected_output=UNSAT
+    expected_output=unsat
     expected_exit_status=20
   else
     error "cannot determine status of \`$benchmark'"

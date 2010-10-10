@@ -33,7 +33,7 @@
 #include "util/Assert.h"
 #include "util/configuration.h"
 #include "util/output.h"
-#include "util/options.h"
+#include "smt/options.h"
 #include "util/result.h"
 #include "util/stats.h"
 
@@ -41,8 +41,6 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::main;
-
-static Result lastResult;
 
 namespace CVC4 {
   namespace main {
@@ -203,20 +201,15 @@ int runCvc4(int argc, char* argv[]) {
     delete cmd;
   }
 
-  Result asSatResult = lastResult.asSatisfiabilityResult();
+  string result = smt.getInfo(":status").getValue();
   int returnValue;
 
-  switch(asSatResult.isSAT()) {
-
-  case Result::SAT:
+  if(result == "sat") {
     returnValue = 10;
-    break;
-  case Result::UNSAT:
+  } else if(result == "unsat") {
     returnValue = 20;
-    break;
-  default:
+  } else {
     returnValue = 0;
-    break;
   }
 
 #ifdef CVC4_COMPETITION_MODE
@@ -228,7 +221,7 @@ int runCvc4(int argc, char* argv[]) {
   // Remove the parser
   delete parser;
 
-  ReferenceStat< Result > s_statSatResult("sat/unsat", asSatResult);
+  ReferenceStat< Result > s_statSatResult("sat/unsat", result);
   StatisticsRegistry::registerStat(&s_statSatResult);
 
   if(options.statistics){
@@ -258,16 +251,6 @@ void doCommand(SmtEngine& smt, Command* cmd) {
       cmd->invoke(&smt, cout);
     } else {
       cmd->invoke(&smt);
-    }
-
-    QueryCommand *qc = dynamic_cast<QueryCommand*>(cmd);
-    if(qc != NULL) {
-      lastResult = qc->getResult();
-    } else {
-      CheckSatCommand *csc = dynamic_cast<CheckSatCommand*>(cmd);
-      if(csc != NULL) {
-        lastResult = csc->getResult();
-      }
     }
   }
 }

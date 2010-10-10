@@ -22,6 +22,7 @@
 #define __CVC4__CONTEXT__CDSET_H
 
 #include "context/context.h"
+#include "context/cdset_forward.h"
 #include "context/cdmap.h"
 #include "util/Assert.h"
 

@@ -24,7 +24,7 @@
 #include <signal.h>
 
 #include "util/exception.h"
-#include "util/options.h"
+#include "smt/options.h"
 #include "util/Assert.h"
 #include "util/stats.h"
 

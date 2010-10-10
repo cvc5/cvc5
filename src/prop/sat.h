@@ -25,9 +25,9 @@
 // Optional blocks below will be unconditionally included
 #define __CVC4_USE_MINISAT
 
-#include "util/options.h"
 #include "util/stats.h"
 #include "theory/theory.h"
+#include "smt/options.h"
 
 #ifdef __CVC4_USE_MINISAT
 

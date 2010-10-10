@@ -1,5 +1,5 @@
 a, b, c: BOOLEAN;
-% EXPECT: VALID
+% EXPECT: valid
 QUERY TRUE XOR FALSE;
  
 % EXIT: 20

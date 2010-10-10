@@ -1,4 +1,4 @@
 a, b, c: BOOLEAN;
-% EXPECT: INVALID
+% EXPECT: invalid
 QUERY NOT c AND b;
 % EXIT: 10

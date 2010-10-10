@@ -1,4 +1,4 @@
-% EXPECT: VALID
+% EXPECT: valid
 % Simple test for right precedence of OR and XOR.
 
 A, B, C: BOOLEAN;

@@ -51,8 +51,8 @@ namespace theory {
 class SharedData : public context::ContextObj {
 private:
   /**
-   * Bit-vector representation of list of theories needing to be notified if
-   * this shared term is no longer the representative
+   * Bit-vector representation of list of theories needing to be
+   * notified if this shared term is no longer the representative
    */
   uint64_t d_theories;
 
@@ -72,25 +72,29 @@ private:
   SharedData* d_proofNext;
 
   /**
-   * In order to precisely reconstruct the equality that justifies this node
-   * being equal to the node at d_proofNext, we need to know whether this edge
-   * has been switched.  Value is meaningless at the proof root.
+   * In order to precisely reconstruct the equality that justifies
+   * this node being equal to the node at d_proofNext, we need to know
+   * whether this edge has been switched.  Value is meaningless at the
+   * proof root.
    */
   bool d_edgeReversed;
 
   /**
-   * The theory that can explain the equality of this node and the node at
-   * d_proofNext.  Not valid if this is proof root.
+   * The theory that can explain the equality of this node and the
+   * node at d_proofNext.  Not valid if this is proof root.
    */
   theory::Theory* d_explainingTheory;
 
   /**
-   * This is a pointer back to the node associated with this SharedData object.
+   * This is a pointer back to the node associated with this
+   * SharedData object.
    *
    * The following invariant should be maintained:
-   *  (n.getAttribute(SharedAttr()))->d_rep == n
-   * i.e. rep is equal to the node that maps to the SharedData using SharedAttr.
    *
+   *   (n.getAttribute(SharedAttr()))->d_rep == n
+   *
+   * i.e. rep is equal to the node that maps to the SharedData using
+   * SharedAttr.
    */
   TNode d_rep;
 
@@ -133,8 +137,8 @@ public:
   void setSize(unsigned size) { makeCurrent(); d_size = size; }
 
   /**
-   * Returns the find pointer of the SharedData.
-   * If this is the representative of the equivalence class, then getFind() == this
+   * Returns the find pointer of the SharedData.  If this is the
+   * representative of the equivalence class, then getFind() == this
    */
   SharedData* getFind() const { return d_find; }
 
@@ -169,13 +173,15 @@ public:
   void setEdgeReversed(bool value) { makeCurrent(); d_edgeReversed = value; }
 
   /**
-   * Get the original equality that created the link from this node to the next
-   * proof node.
+   * Get the original equality that created the link from this node to
+   * the next proof node.
    */
   Node getEquality() const {
     return d_edgeReversed
-      ? NodeManager::currentNM()->mkNode(kind::EQUAL, d_proofNext->getRep(), d_rep)
-      : NodeManager::currentNM()->mkNode(kind::EQUAL, d_rep, d_proofNext->getRep());
+      ? NodeManager::currentNM()->mkNode(kind::EQUAL,
+                                         d_proofNext->getRep(), d_rep)
+      : NodeManager::currentNM()->mkNode(kind::EQUAL,
+                                         d_rep, d_proofNext->getRep());
   }
 
   /**
@@ -186,7 +192,10 @@ public:
   /**
    * Set the explaining theory
    */
-  void setExplainingTheory(theory::Theory* t) { makeCurrent(); d_explainingTheory = t; }
+  void setExplainingTheory(theory::Theory* t) {
+    makeCurrent();
+    d_explainingTheory = t;
+  }
 
   /**
    * Get the shared term associated with this data

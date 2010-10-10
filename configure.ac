@@ -67,7 +67,7 @@ if test -z "${CFLAGS+set}"; then CFLAGS=; fi
 if test -z "${CXXFLAGS+set}"; then CXXFLAGS=; fi
 
 # on by default
-AM_MAINTAINER_MODE
+AM_MAINTAINER_MODE([enable])
 
 # turn off static lib building by default
 AC_ENABLE_SHARED

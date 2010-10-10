@@ -36,7 +36,6 @@
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
 
-#include "util/options.h"
 #include "util/stats.h"
 
 namespace CVC4 {
@@ -202,57 +201,12 @@ public:
   /**
    * Construct a theory engine.
    */
-  TheoryEngine(context::Context* ctxt, const Options* opts) :
-    d_propEngine(NULL),
-    d_theoryOut(this, ctxt),
-    d_hasShutDown(false),
-    d_statistics() {
+  TheoryEngine(context::Context* ctxt, const Options* opts);
 
-    d_sharedTermManager = new SharedTermManager(this, ctxt);
-
-    d_builtin = new theory::builtin::TheoryBuiltin(0, ctxt, d_theoryOut);
-    d_bool = new theory::booleans::TheoryBool(1, ctxt, d_theoryOut);
-    switch(opts->uf_implementation) {
-    case Options::TIM:
-      d_uf = new theory::uf::tim::TheoryUFTim(2, ctxt, d_theoryOut);
-      break;
-    case Options::MORGAN:
-      d_uf = new theory::uf::morgan::TheoryUFMorgan(2, ctxt, d_theoryOut);
-      break;
-    default:
-      Unhandled(opts->uf_implementation);
-    }
-    d_arith = new theory::arith::TheoryArith(3, ctxt, d_theoryOut);
-    d_arrays = new theory::arrays::TheoryArrays(4, ctxt, d_theoryOut);
-    d_bv = new theory::bv::TheoryBV(5, ctxt, d_theoryOut);
-
-    d_sharedTermManager->registerTheory(d_builtin);
-    d_sharedTermManager->registerTheory(d_bool);
-    d_sharedTermManager->registerTheory(d_uf);
-    d_sharedTermManager->registerTheory(d_arith);
-    d_sharedTermManager->registerTheory(d_arrays);
-    d_sharedTermManager->registerTheory(d_bv);
-
-    d_theoryOfTable.registerTheory(d_builtin);
-    d_theoryOfTable.registerTheory(d_bool);
-    d_theoryOfTable.registerTheory(d_uf);
-    d_theoryOfTable.registerTheory(d_arith);
-    d_theoryOfTable.registerTheory(d_arrays);
-    d_theoryOfTable.registerTheory(d_bv);
-  }
-
-  ~TheoryEngine() {
-    Assert(d_hasShutDown);
-
-    delete d_bv;
-    delete d_arrays;
-    delete d_arith;
-    delete d_uf;
-    delete d_bool;
-    delete d_builtin;
-
-    delete d_sharedTermManager;
-  }
+  /**
+   * Destroy a theory engine.
+   */
+  ~TheoryEngine();
 
   SharedTermManager* getSharedTermManager() {
     return d_sharedTermManager;

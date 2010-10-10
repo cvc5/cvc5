@@ -2,10 +2,10 @@
 
 a, b: BOOLEAN;
 
-% EXPECT: VALID
+% EXPECT: valid
 QUERY (a AND b) OR NOT (a AND b);
 
-% EXPECT: INVALID
+% EXPECT: invalid
 QUERY (a OR b);
 
 % EXIT: 10

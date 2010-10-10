@@ -38,7 +38,7 @@ class CVC4_PUBLIC SExpr {
   bool d_isAtom;
 
   /** The value of an atomic S-expression. */
-  std::string d_value;
+  std::string d_stringValue;
 
   /** The children of a list S-expression. */
   std::vector<SExpr> d_children;
@@ -50,7 +50,7 @@ public:
 
   SExpr(const std::string& value) :
     d_isAtom(true),
-    d_value(value) {
+    d_stringValue(value) {
   }
 
   SExpr(const std::vector<SExpr> children) :
@@ -80,7 +80,7 @@ inline bool SExpr::isAtom() const {
 
 inline const std::string SExpr::getValue() const {
   AlwaysAssert( d_isAtom );
-  return d_value;
+  return d_stringValue;
 }
 
 inline const std::vector<SExpr> SExpr::getChildren() const {

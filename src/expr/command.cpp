@@ -240,6 +240,28 @@ void DefineFunctionCommand::toStream(std::ostream& out) const {
   out << "], << " << d_formula << " >> )";
 }
 
+/* class DefineFunctionCommand */
+
+DefineNamedFunctionCommand::DefineNamedFunctionCommand(Expr func,
+                                                       const std::vector<Expr>& formals,
+                                                       Expr formula) :
+  DefineFunctionCommand(func, formals, formula) {
+}
+
+void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine) {
+  this->DefineFunctionCommand::invoke(smtEngine);
+  if(d_func.getType().isBoolean()) {
+    smtEngine->addToAssignment(d_func.getExprManager()->mkExpr(kind::APPLY,
+                                                               d_func));
+  }
+}
+
+void DefineNamedFunctionCommand::toStream(std::ostream& out) const {
+  out << "DefineNamedFunction( ";
+  this->DefineFunctionCommand::toStream(out);
+  out << " )";
+}
+
 /* class GetValueCommand */
 
 GetValueCommand::GetValueCommand(Expr term) :
@@ -260,6 +282,27 @@ void GetValueCommand::printResult(std::ostream& out) const {
 
 void GetValueCommand::toStream(std::ostream& out) const {
   out << "GetValue( << " << d_term << " >> )";
+}
+
+/* class GetAssignmentCommand */
+
+GetAssignmentCommand::GetAssignmentCommand() {
+}
+
+void GetAssignmentCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->getAssignment();
+}
+
+SExpr GetAssignmentCommand::getResult() const {
+  return d_result;
+}
+
+void GetAssignmentCommand::printResult(std::ostream& out) const {
+  out << d_result << endl;
+}
+
+void GetAssignmentCommand::toStream(std::ostream& out) const {
+  out << "GetAssignment()";
 }
 
 /* class GetAssertionsCommand */

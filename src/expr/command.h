@@ -122,6 +122,20 @@ public:
   void toStream(std::ostream& out) const;
 };/* class DefineFunctionCommand */
 
+/**
+ * This differs from DefineFunctionCommand only in that it instructs
+ * the SmtEngine to "remember" this function for later retrieval with
+ * getAssignment().  Used for :named attributes in SMT-LIBv2.
+ */
+class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand {
+public:
+  DefineNamedFunctionCommand(Expr func,
+                             const std::vector<Expr>& formals,
+                             Expr formula);
+  void invoke(SmtEngine* smtEngine);
+  void toStream(std::ostream& out) const;
+};/* class DefineNamedFunctionCommand */
+
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
   BoolExpr d_expr;
@@ -157,6 +171,17 @@ public:
   void printResult(std::ostream& out) const;
   void toStream(std::ostream& out) const;
 };/* class GetValueCommand */
+
+class CVC4_PUBLIC GetAssignmentCommand : public Command {
+protected:
+  SExpr d_result;
+public:
+  GetAssignmentCommand();
+  void invoke(SmtEngine* smtEngine);
+  SExpr getResult() const;
+  void printResult(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
+};/* class GetAssignmentCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command {
 protected:

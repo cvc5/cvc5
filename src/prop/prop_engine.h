@@ -25,12 +25,12 @@
 
 #include "expr/node.h"
 #include "util/result.h"
-#include "util/options.h"
 #include "util/decision_engine.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
+class Options;
 
 namespace prop {
 
@@ -133,7 +133,7 @@ public:
 
 };/* class PropEngine */
 
-}/* prop namespace */
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PROP_ENGINE_H */

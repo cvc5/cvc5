@@ -1,4 +1,4 @@
-% EXPECT: INVALID
+% EXPECT: invalid
 A: TYPE;
 B: TYPE;
 x, y: A;

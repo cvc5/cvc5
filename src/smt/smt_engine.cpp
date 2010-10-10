@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "smt/smt_engine.h"
 #include "smt/modal_exception.h"
@@ -30,7 +31,7 @@
 #include "expr/node_builder.h"
 #include "util/output.h"
 #include "util/exception.h"
-#include "util/options.h"
+#include "smt/options.h"
 #include "util/configuration.h"
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
@@ -120,7 +121,9 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   d_decisionEngine(NULL),
   d_theoryEngine(NULL),
   d_propEngine(NULL),
+  d_definedFunctions(NULL),
   d_assertionList(NULL),
+  d_assignments(NULL),
   d_haveAdditions(false),
   d_status() {
 
@@ -151,6 +154,10 @@ SmtEngine::~SmtEngine() {
   NodeManagerScope nms(d_nodeManager);
 
   shutdown();
+
+  if(d_assignments != NULL) {
+    d_assignments->deleteSelf();
+  }
 
   if(d_assertionList != NULL) {
     d_assertionList->deleteSelf();
@@ -183,15 +190,7 @@ void SmtEngine::setInfo(const string& key, const SExpr& value)
       throw BadOptionException("argument to (set-info :status ..) must be "
                                "`sat' or `unsat' or `unknown'");
     }
-    if(s == "sat") {
-      d_status = Result::SAT;
-    } else if(s == "unsat") {
-      d_status = Result::UNSAT;
-    } else if(s == "unknown") {
-      d_status = Result::SAT_UNKNOWN;
-    } else {
-      Unreachable();
-    }
+    d_status = Result(s);
     return;
   }
   throw BadOptionException();
@@ -220,19 +219,16 @@ SExpr SmtEngine::getInfo(const string& key) const
   } else if(key == ":authors") {
     return Configuration::about();
   } else if(key == ":status") {
-    enum Result::SAT status = d_status.asSatisfiabilityResult().isSAT();
-    switch(status) {
-    case Result::SAT:
-      return SExpr("sat");
-    case Result::UNSAT:
-      return SExpr("unsat");
-    case Result::SAT_UNKNOWN:
-      return SExpr("unknown");
-    default:
-      Unhandled(status);
-    }
+    return d_status.asSatisfiabilityResult().toString();
   } else if(key == ":reason-unknown") {
-    throw BadOptionException();
+    if(d_status.isUnknown()) {
+      stringstream ss;
+      ss << d_status.whyUnknown();
+      return ss.str();
+    } else {
+      throw ModalException("Can't get-info :reason-unknown when the "
+                           "last result wasn't unknown!");
+    }
   } else {
     throw BadOptionException();
   }
@@ -241,8 +237,31 @@ SExpr SmtEngine::getInfo(const string& key) const
 void SmtEngine::setOption(const string& key, const SExpr& value)
   throw(BadOptionException) {
   Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
-  // FIXME implement me
-  throw BadOptionException();
+  if(key == ":print-success") {
+    throw BadOptionException();
+  } else if(key == ":expand-definitions") {
+    throw BadOptionException();
+  } else if(key == ":interactive-mode") {
+    throw BadOptionException();
+  } else if(key == ":produce-proofs") {
+    throw BadOptionException();
+  } else if(key == ":produce-unsat-cores") {
+    throw BadOptionException();
+  } else if(key == ":produce-models") {
+    throw BadOptionException();
+  } else if(key == ":produce-assignments") {
+    throw BadOptionException();
+  } else if(key == ":regular-output-channel") {
+    throw BadOptionException();
+  } else if(key == ":diagnostic-output-channel") {
+    throw BadOptionException();
+  } else if(key == ":random-seed") {
+    throw BadOptionException();
+  } else if(key == ":verbosity") {
+    throw BadOptionException();
+  } else {
+    throw BadOptionException();
+  }
 }
 
 SExpr SmtEngine::getOption(const string& key) const
@@ -386,7 +405,7 @@ Result SmtEngine::check() {
 
 Result SmtEngine::quickCheck() {
   Debug("smt") << "SMT quickCheck()" << endl;
-  return Result(Result::VALIDITY_UNKNOWN);
+  return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
 void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
@@ -454,7 +473,7 @@ Expr SmtEngine::simplify(const Expr& e) {
   Unimplemented();
 }
 
-Expr SmtEngine::getValue(Expr e)
+Expr SmtEngine::getValue(const Expr& e)
   throw(ModalException, AssertionException) {
   Assert(e.getExprManager() == d_exprManager);
   Type type = e.getType(true);// ensure expr is type-checked at this point
@@ -494,19 +513,73 @@ Expr SmtEngine::getValue(Expr e)
   return Expr(d_exprManager, new Node(resultNode));
 }
 
+bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Type type = e.getType(true);
+  // must be Boolean
+  CheckArgument( type.isBoolean(), e,
+                 "expected Boolean-typed variable or function application "
+                 "in addToAssignment()" );
+  Node n = e.getNode();
+  // must be an APPLY of a zero-ary defined function, or a variable
+  CheckArgument( ( ( n.getKind() == kind::APPLY &&
+                     ( d_definedFunctions->find(n.getOperator()) !=
+                       d_definedFunctions->end() ) &&
+                     n.getNumChildren() == 0 ) ||
+                   n.getMetaKind() == kind::metakind::VARIABLE ), e,
+                 "expected variable or defined-function application "
+                 "in addToAssignment(),\ngot %s", e.toString().c_str() );
+  if(!d_options->interactive || !d_options->produceAssignments) {
+    return false;
+  }
+  if(d_assignments == NULL) {
+    d_assignments = new(true) AssignmentSet(d_context);
+  }
+  d_assignments->insert(n);
+
+  return true;
+}
+
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
   Debug("smt") << "SMT getAssignment()" << endl;
   if(!d_options->produceAssignments) {
     const char* msg =
-      "Cannot get the current assignment when produce-assignments option is off.";
+      "Cannot get the current assignment when "
+      "produce-assignments option is off.";
     throw ModalException(msg);
   }
   // TODO also check that the last query was sat/unknown, without intervening
   // assertions
 
   NodeManagerScope nms(d_nodeManager);
+  vector<SExpr> sexprs;
+  TypeNode boolType = d_nodeManager->booleanType();
+  for(AssignmentSet::const_iterator i = d_assignments->begin(),
+        iend = d_assignments->end();
+      i != iend;
+      ++i) {
+    Assert((*i).getType() == boolType);
 
-  Unimplemented();
+    Node n = SmtEnginePrivate::preprocess(*this, *i);
+
+    Debug("smt") << "--- getting value of " << n << endl;
+    Node resultNode = d_theoryEngine->getValue(n);
+
+    // type-check the result we got
+    Assert(resultNode.isNull() || resultNode.getType(true) == boolType);
+
+    vector<SExpr> v;
+    if((*i).getKind() == kind::APPLY) {
+      Assert((*i).getNumChildren() == 0);
+      v.push_back((*i).getOperator().toString());
+    } else {
+      Assert((*i).getMetaKind() == kind::metakind::VARIABLE);
+      v.push_back((*i).toString());
+    }
+    v.push_back(resultNode.toString());
+    sexprs.push_back(v);
+  }
+  return SExpr(sexprs);
 }
 
 vector<Expr> SmtEngine::getAssertions()

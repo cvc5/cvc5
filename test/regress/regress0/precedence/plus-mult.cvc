@@ -1,4 +1,4 @@
-% EXPECT: VALID
+% EXPECT: valid
 % Simple test for right precedence of plus/minus and mult/divide
 
 a, b, c, d, e: INT;
