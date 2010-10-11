@@ -26,18 +26,15 @@
 #include "expr/expr.h"
 #include "util/hash.h"
 
+#include "context/cdset_forward.h"
+#include "context/cdmap_forward.h"
+
 namespace CVC4 {
 
 class Type;
 
 namespace context {
   class Context;
-
-  template <class Key, class Data, class HashFcn>
-  class CDMap;
-
-  template <class V, class HashFcn>
-  class CDSet;
 }/* CVC4::context namespace */
 
 class CVC4_PUBLIC ScopeException : public Exception {
