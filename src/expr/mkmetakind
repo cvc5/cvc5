@@ -44,6 +44,7 @@ metakind_constantMaps=
 metakind_compares=
 metakind_constHashes=
 metakind_constPrinters=
+metakind_constDeleters=
 metakind_ubchildren=
 metakind_lbchildren=
 metakind_operatorKinds=
@@ -192,6 +193,13 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
     out << nv->getConst< $2 >();
     break;
 "
+  cname=`echo "$2" | awk 'BEGIN {FS="::"} {print$NF}'`
+  metakind_constDeleters="${metakind_constDeleters}
+  case kind::$1:
+#line $lineno \"$kf\"
+    std::allocator< $2 >().destroy(reinterpret_cast< $2* >(nv->d_children));
+    break;
+"
 }
 
 function registerOperatorToKind {
@@ -301,6 +309,7 @@ for var in \
     metakind_compares \
     metakind_constHashes \
     metakind_constPrinters \
+    metakind_constDeleters \
     metakind_ubchildren \
     metakind_lbchildren \
     metakind_operatorKinds; do

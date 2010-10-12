@@ -31,7 +31,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class ArithConstants{
+class ArithConstants {
 public:
   Rational d_ZERO;
   Rational d_ONE;
@@ -52,10 +52,16 @@ public:
     d_ONE_NODE(nm->mkConst(d_ONE)),
     d_NEGATIVE_ONE_NODE(nm->mkConst(d_NEGATIVE_ONE))
   {}
-};
 
-}; /* namesapce arith */
-}; /* namespace theory */
-}; /* namespace CVC4 */
+  ~ArithConstants() {
+    d_ZERO_NODE = Node::null();
+    d_ONE_NODE = Node::null();
+    d_NEGATIVE_ONE_NODE = Node::null();
+  }
+};/* class ArithConstants */
+
+}/* namespace CVC4::theory::arith */
+}/* namespace CVC4::theory */
+}/* namespace CVC4 */
 
 #endif /* __CVC4__THEORY__ARITH_ARITH_CONSTANTS_H */

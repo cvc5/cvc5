@@ -11,16 +11,13 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief This is a basic implementation of the Theory of Uninterpreted Functions
- ** with Equality.
+ ** \brief Implementation of the theory of uninterpreted functions with
+ ** equality
  **
- ** This is a basic implementation of the Theory of Uninterpreted Functions
- ** with Equality.  It is based on the Nelson-Oppen algorithm given in
- ** "Fast Decision Procedures Based on Congruence Closure"
- **  (http://portal.acm.org/ft_gateway.cfm?id=322198&type=pdf)
- ** This has been extended to work in a context-dependent way.
- ** This interacts heavily with the data-structures given in ecdata.h .
- **
+ ** Implementation of the theory of uninterpreted functions with equality,
+ ** based on CVC4's congruence closure module (which is in turn based on
+ ** the Nieuwenhuis and Oliveras paper, Fast Congruence Closure and
+ ** Extensions.
  **/
 
 #include "cvc4_private.h"
@@ -35,7 +32,7 @@
 #include "theory/uf/theory_uf.h"
 
 #include "context/context.h"
-#include "context/cdo.h"
+#include "context/context_mm.h"
 #include "context/cdlist.h"
 #include "util/congruence_closure.h"
 
@@ -81,19 +78,17 @@ private:
   typedef context::CDMap<TNode, TNode, TNodeHashFunction> UnionFind;
   UnionFind d_unionFind;
 
-  typedef context::CDList<Node> DiseqList;
+  typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > DiseqList;
   typedef context::CDMap<Node, DiseqList*, NodeHashFunction> DiseqLists;
 
   /** List of all disequalities this theory has seen. */
   DiseqLists d_disequalities;
 
-  context::CDList<Node> d_disequality;
-
   Node d_conflict;
 
   Node d_trueNode, d_falseNode, d_trueEqFalseNode;
 
-  context::CDList<Node> d_activeAssertions;
+  //context::CDList<Node> d_activeAssertions;
 
 public:
 

@@ -46,6 +46,10 @@ class PlusNodeBuilder;
 class MultNodeBuilder;
 class NodeManager;
 
+namespace expr {
+  class NodeValue;
+}
+
 namespace kind {
   namespace metakind {
     template < ::CVC4::Kind k, bool pool >
@@ -53,6 +57,8 @@ namespace kind {
 
     struct NodeValueCompare;
     struct NodeValueConstPrinter;
+
+    void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
   }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
 
@@ -110,10 +116,12 @@ class NodeValue {
   friend class ::CVC4::NodeManager;
 
   template <Kind k, bool pool>
-  friend struct ::CVC4::kind::metakind::NodeValueConstCompare; 
+  friend struct ::CVC4::kind::metakind::NodeValueConstCompare;
 
   friend struct ::CVC4::kind::metakind::NodeValueCompare;
   friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
+
+  friend void ::CVC4::kind::metakind::deleteNodeValueConstant(NodeValue* nv);
 
   void inc();
   void dec();

@@ -275,6 +275,25 @@ ${metakind_constPrinters}
   }
 }
 
+/**
+ * Cleanup to be performed when a NodeValue zombie is collected, and
+ * it has CONSTANT metakind.  This calls the destructor for the underlying
+ * C++ type representing the constant value.  See
+ * NodeManager::reclaimZombies() for more information.
+ *
+ * This doesn't support "non-inlined" NodeValues, which shouldn't need this
+ * kind of cleanup.
+ */
+inline void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
+  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
+
+  switch(nv->d_kind) {
+${metakind_constDeleters}
+  default:
+    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+  }
+}
+
 inline unsigned getLowerBoundForKind(::CVC4::Kind k) {
   static const unsigned lbs[] = {
     0, /* NULL_EXPR */

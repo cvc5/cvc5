@@ -27,6 +27,7 @@
 #include "expr/expr_manager.h"
 #include "context/cdmap_forward.h"
 #include "context/cdset_forward.h"
+#include "context/cdlist_forward.h"
 #include "util/result.h"
 #include "util/model.h"
 #include "util/sexpr.h"
@@ -52,7 +53,6 @@ class DecisionEngine;
 
 namespace context {
   class Context;
-  template <class T> class CDList;
 }/* CVC4::context namespace */
 
 namespace prop {

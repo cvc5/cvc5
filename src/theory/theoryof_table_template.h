@@ -25,7 +25,7 @@
 #include "expr/kind.h"
 #include "util/Assert.h"
 
-${theoryof_table_includes}
+${theoryof_table_forwards}
 
 namespace CVC4 {
 namespace theory {

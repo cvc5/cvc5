@@ -26,6 +26,7 @@
 #include "smt/no_such_function_exception.h"
 #include "context/context.h"
 #include "context/cdlist.h"
+#include "context/cdset.h"
 #include "expr/expr.h"
 #include "expr/command.h"
 #include "expr/node_builder.h"

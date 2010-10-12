@@ -34,12 +34,10 @@ TheoryUFMorgan::TheoryUFMorgan(int id, Context* ctxt, OutputChannel& out) :
   d_cc(ctxt, &d_ccChannel),
   d_unionFind(ctxt),
   d_disequalities(ctxt),
-  d_disequality(ctxt),
   d_conflict(),
   d_trueNode(),
   d_falseNode(),
-  d_trueEqFalseNode(),
-  d_activeAssertions(ctxt) {
+  d_trueEqFalseNode() {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode boolType = nm->booleanType();
   d_trueNode = nm->mkVar("TRUE_UF", boolType);
@@ -51,6 +49,9 @@ TheoryUFMorgan::TheoryUFMorgan(int id, Context* ctxt, OutputChannel& out) :
 }
 
 TheoryUFMorgan::~TheoryUFMorgan() {
+  d_trueNode = Node::null();
+  d_falseNode = Node::null();
+  d_trueEqFalseNode = Node::null();
 }
 
 RewriteResponse TheoryUFMorgan::postRewrite(TNode n, bool topLevel) {
@@ -189,11 +190,6 @@ void TheoryUFMorgan::merge(TNode a, TNode b) {
 
   d_unionFind[a] = b;
 
-  if(Debug.isOn("uf") && find(d_trueNode) == find(d_falseNode)) {
-    Debug("uf") << "ok, pay attention now.." << std::endl;
-    dump();
-  }
-
   DiseqLists::iterator deq_i = d_disequalities.find(a);
   if(deq_i != d_disequalities.end()) {
     // a set of other trees we are already disequal to
@@ -268,7 +264,8 @@ void TheoryUFMorgan::appendToDiseqList(TNode of, TNode eq) {
   DiseqLists::iterator deq_i = d_disequalities.find(of);
   DiseqList* deq;
   if(deq_i == d_disequalities.end()) {
-    deq = new(getContext()->getCMM()) DiseqList(true, getContext());
+    deq = new(getContext()->getCMM()) DiseqList(true, getContext(), false,
+                                                ContextMemoryAllocator<TNode>(getContext()->getCMM()));
     d_disequalities.insertDataFromContextMemory(of, deq);
   } else {
     deq = (*deq_i).second;
@@ -298,7 +295,7 @@ void TheoryUFMorgan::check(Effort level) {
 
     Node assertion = get();
 
-    d_activeAssertions.push_back(assertion);
+    //d_activeAssertions.push_back(assertion);
 
     Debug("uf") << "uf check(): " << assertion << std::endl;
 
@@ -349,7 +346,6 @@ void TheoryUFMorgan::check(Effort level) {
         Node b = assertion[0][1];
 
         addDisequality(assertion[0]);
-        d_disequality.push_back(assertion[0]);
 
         d_cc.addTerm(a);
         d_cc.addTerm(b);
@@ -418,14 +414,17 @@ void TheoryUFMorgan::check(Effort level) {
       Unhandled(assertion.getKind());
     }
 
+    /*
     if(Debug.isOn("uf")) {
       dump();
     }
+    */
   }
   Assert(d_conflict.isNull());
   Debug("uf") << "uf check() done = " << (done() ? "true" : "false")
               << std::endl;
 
+  /*
   for(CDList<Node>::const_iterator diseqIter = d_disequality.begin();
       diseqIter != d_disequality.end();
       ++diseqIter) {
@@ -443,6 +442,7 @@ void TheoryUFMorgan::check(Effort level) {
     Assert((debugFind(left) == debugFind(right)) ==
            d_cc.areCongruent(left, right));
   }
+  */
 
   Debug("uf") << "uf: end check(" << level << ")" << std::endl;
 }
@@ -477,6 +477,7 @@ Node TheoryUFMorgan::getValue(TNode n, TheoryEngine* engine) {
   }
 }
 
+/*
 void TheoryUFMorgan::dump() {
   if(!Debug.isOn("uf")) {
     return;
@@ -509,3 +510,4 @@ void TheoryUFMorgan::dump() {
   }
   Debug("uf") << "=======================================" << std::endl;
 }
+*/

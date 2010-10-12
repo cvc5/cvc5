@@ -164,7 +164,8 @@ void NodeManager::reclaimZombies() {
                   << " [" << nv->d_id << "]: " << *nv << "\n";
 
       // remove from the pool
-      if(nv->getMetaKind() != kind::metakind::VARIABLE) {
+      kind::MetaKind mk = nv->getMetaKind();
+      if(mk != kind::metakind::VARIABLE) {
         poolRemove(nv);
       }
 
@@ -179,6 +180,16 @@ void NodeManager::reclaimZombies() {
 
       // decr ref counts of children
       nv->decrRefCounts();
+      if(mk == kind::metakind::CONSTANT) {
+        // Destroy (call the destructor for) the C++ type representing
+        // the constant in this NodeValue.  This is needed for
+        // e.g. CVC4::Rational, since it has a gmp internal
+        // representation that mallocs memory and should be cleaned
+        // up.  (This won't delete a pointer value if used as a
+        // constant, but then, you should probably use a smart-pointer
+        // type for a constant payload.)
+        kind::metakind::deleteNodeValueConstant(nv);
+      }
       free(nv);
     }
   }

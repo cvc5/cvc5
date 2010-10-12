@@ -24,18 +24,8 @@
 #include "expr/node.h"
 #include "theory/theory.h"
 #include "theory/theoryof_table.h"
-
 #include "prop/prop_engine.h"
 #include "theory/shared_term_manager.h"
-#include "theory/builtin/theory_builtin.h"
-#include "theory/booleans/theory_bool.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/tim/theory_uf_tim.h"
-#include "theory/uf/morgan/theory_uf_morgan.h"
-#include "theory/arith/theory_arith.h"
-#include "theory/arrays/theory_arrays.h"
-#include "theory/bv/theory_bv.h"
-
 #include "util/stats.h"
 
 namespace CVC4 {
@@ -119,21 +109,19 @@ class TheoryEngine {
       d_explanationNode = explanationNode;
       ++(d_engine->d_statistics.d_statExplanation);
     }
-  };
-
-
+  };/* class EngineOutputChannel */
 
   EngineOutputChannel d_theoryOut;
 
   /** Pointer to Shared Term Manager */
   SharedTermManager* d_sharedTermManager;
 
-  theory::builtin::TheoryBuiltin* d_builtin;
-  theory::booleans::TheoryBool* d_bool;
-  theory::uf::TheoryUF* d_uf;
-  theory::arith::TheoryArith* d_arith;
-  theory::arrays::TheoryArrays* d_arrays;
-  theory::bv::TheoryBV* d_bv;
+  theory::Theory* d_builtin;
+  theory::Theory* d_bool;
+  theory::Theory* d_uf;
+  theory::Theory* d_arith;
+  theory::Theory* d_arrays;
+  theory::Theory* d_bv;
 
   /**
    * Debugging flag to ensure that shutdown() is called before the

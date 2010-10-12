@@ -16,6 +16,9 @@
  ** The theory engine.
  **/
 
+#include <vector>
+#include <list>
+
 #include "theory/theory_engine.h"
 #include "expr/node.h"
 #include "expr/attribute.h"
@@ -23,8 +26,14 @@
 #include "expr/node_builder.h"
 #include "smt/options.h"
 
-#include <vector>
-#include <list>
+#include "theory/builtin/theory_builtin.h"
+#include "theory/booleans/theory_bool.h"
+#include "theory/uf/theory_uf.h"
+#include "theory/uf/morgan/theory_uf_morgan.h"
+#include "theory/uf/tim/theory_uf_tim.h"
+#include "theory/arith/theory_arith.h"
+#include "theory/arrays/theory_arrays.h"
+#include "theory/bv/theory_bv.h"
 
 using namespace std;
 
@@ -141,19 +150,19 @@ TheoryEngine::TheoryEngine(context::Context* ctxt, const Options* opts) :
   d_arrays = new theory::arrays::TheoryArrays(4, ctxt, d_theoryOut);
   d_bv = new theory::bv::TheoryBV(5, ctxt, d_theoryOut);
 
-  d_sharedTermManager->registerTheory(d_builtin);
-  d_sharedTermManager->registerTheory(d_bool);
-  d_sharedTermManager->registerTheory(d_uf);
-  d_sharedTermManager->registerTheory(d_arith);
-  d_sharedTermManager->registerTheory(d_arrays);
-  d_sharedTermManager->registerTheory(d_bv);
+  d_sharedTermManager->registerTheory(static_cast<theory::builtin::TheoryBuiltin*>(d_builtin));
+  d_sharedTermManager->registerTheory(static_cast<theory::booleans::TheoryBool*>(d_bool));
+  d_sharedTermManager->registerTheory(static_cast<theory::uf::TheoryUF*>(d_uf));
+  d_sharedTermManager->registerTheory(static_cast<theory::arith::TheoryArith*>(d_arith));
+  d_sharedTermManager->registerTheory(static_cast<theory::arrays::TheoryArrays*>(d_arrays));
+  d_sharedTermManager->registerTheory(static_cast<theory::bv::TheoryBV*>(d_bv));
 
-  d_theoryOfTable.registerTheory(d_builtin);
-  d_theoryOfTable.registerTheory(d_bool);
-  d_theoryOfTable.registerTheory(d_uf);
-  d_theoryOfTable.registerTheory(d_arith);
-  d_theoryOfTable.registerTheory(d_arrays);
-  d_theoryOfTable.registerTheory(d_bv);
+  d_theoryOfTable.registerTheory(static_cast<theory::builtin::TheoryBuiltin*>(d_builtin));
+  d_theoryOfTable.registerTheory(static_cast<theory::booleans::TheoryBool*>(d_bool));
+  d_theoryOfTable.registerTheory(static_cast<theory::uf::TheoryUF*>(d_uf));
+  d_theoryOfTable.registerTheory(static_cast<theory::arith::TheoryArith*>(d_arith));
+  d_theoryOfTable.registerTheory(static_cast<theory::arrays::TheoryArrays*>(d_arrays));
+  d_theoryOfTable.registerTheory(static_cast<theory::bv::TheoryBV*>(d_bv));
 }
 
 TheoryEngine::~TheoryEngine() {

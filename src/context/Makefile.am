@@ -12,6 +12,10 @@ libcontext_la_SOURCES = \
 	context_mm.h \
 	cdo.h \
 	cdlist.h \
+	cdlist_context_memory.h \
+	cdlist_forward.h \
 	cdmap.h \
+	cdmap_forward.h \
 	cdset.h \
+	cdset_forward.h \
 	cdvector.h

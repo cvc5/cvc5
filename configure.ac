@@ -305,6 +305,8 @@ elif test "$CVC4_CONFIGURE_AT_TOP_LEVEL" = yes; then
 
 cd "\`dirname \\"\$0\\"\`"
 
+if test -d builds; then :; else echo 'No builds/ directory!' >&2; exit; fi
+
 current=(\`grep '^CURRENT_BUILD' builds/current | sed 's,^CURRENT_BUILD *= *\([^/]*\\)/\\(.*\\),\\1 \\2,'\`)
 arch=\${current[0]}
 build=\${current[1]}

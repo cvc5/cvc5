@@ -33,7 +33,7 @@ EOF
 
 template=$1; shift
 
-theoryof_table_includes=
+theoryof_table_forwards=
 theoryof_table_registers=
 
 seen_theory=false
@@ -61,7 +61,23 @@ function theory {
     echo "$kf:$lineno: warning: theory class not under ::CVC4::theory namespace" >&2
   fi
 
-  theoryof_table_includes="${theoryof_table_includes}#include \"theory/$b/$2\"
+  decl=
+  last=
+  num=0
+  for ns in `echo "$1" | sed 's,::, ,g'`; do
+    if [ -n "$last" ]; then
+      decl="${decl}namespace $last { "
+      let ++num
+    fi
+    last="$ns"
+  done
+  decl="${decl}class $last;"
+  while [ $num -gt 0 ]; do
+    decl="${decl} }"
+    let --num
+  done
+
+  theoryof_table_forwards="${theoryof_table_forwards}$decl // #include \"theory/$b/$2\"
 "
   theoryof_table_registers="${theoryof_table_registers}
   /* from $b */
@@ -103,7 +119,7 @@ function constant {
 
 function do_theoryof {
   check_theory_seen
-  theoryof_table_registers="${theoryof_table_registers}    d_table[::CVC4::kind::$1] = th;
+  theoryof_table_registers="${theoryof_table_registers}    d_table[::CVC4::kind::$1] = (Theory*)th;
 "
 }
 
@@ -135,7 +151,7 @@ check_builtin_theory_seen
 ## output
 
 text=$(cat "$template")
-for var in theoryof_table_includes theoryof_table_registers; do
+for var in theoryof_table_forwards theoryof_table_registers; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error=`expr "$text" : '.*\${\([^}]*\)}.*'`

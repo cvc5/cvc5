@@ -10,7 +10,8 @@ TESTS =	bug143.smt \
 	C880mul.miter.shuffled-as.sat03-348.smt \
 	comb2.shuffled-as.sat03-420.smt \
 	hole10.cvc \
-	instance_1151.smt
+	instance_1151.smt \
+	NEQ016_size5.smt
 
 EXTRA_DIST = $(TESTS)
 
