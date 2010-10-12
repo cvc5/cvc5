@@ -71,6 +71,7 @@ public:
     TS_ASSERT(j == NodeSelfIterator::selfEnd(x_and_y));
     TS_ASSERT(i == x_and_y.end());
     TS_ASSERT(j == x_and_y.end());
+
     i = x_and_y.begin();
     TS_ASSERT(i != x_and_y.end());
     TS_ASSERT(*i == x);

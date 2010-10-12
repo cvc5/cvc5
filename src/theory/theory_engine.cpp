@@ -130,6 +130,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt, const Options* opts) :
   d_propEngine(NULL),
   d_theoryOut(this, ctxt),
   d_hasShutDown(false),
+  d_incomplete(ctxt, false),
   d_statistics() {
 
   d_sharedTermManager = new SharedTermManager(this, ctxt);

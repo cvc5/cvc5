@@ -83,8 +83,10 @@ class TheoryEngine {
 
     void newFact(TNode n);
 
-    void conflict(TNode conflictNode, bool safe) throw(theory::Interrupted, AssertionException) {
-      Debug("theory") << "EngineOutputChannel::conflict(" << conflictNode << ")" << std::endl;
+    void conflict(TNode conflictNode, bool safe)
+      throw(theory::Interrupted, AssertionException) {
+      Debug("theory") << "EngineOutputChannel::conflict("
+                      << conflictNode << ")" << std::endl;
       d_conflictNode = conflictNode;
       ++(d_engine->d_statistics.d_statConflicts);
       if(safe) {
@@ -92,22 +94,31 @@ class TheoryEngine {
       }
     }
 
-    void propagate(TNode lit, bool) throw(theory::Interrupted, AssertionException) {
+    void propagate(TNode lit, bool)
+      throw(theory::Interrupted, AssertionException) {
       d_propagatedLiterals.push_back(lit);
       ++(d_engine->d_statistics.d_statPropagate);
     }
 
-    void lemma(TNode node, bool) throw(theory::Interrupted, AssertionException) {
+    void lemma(TNode node, bool)
+      throw(theory::Interrupted, AssertionException) {
       ++(d_engine->d_statistics.d_statLemma);
       d_engine->newLemma(node);
     }
-    void augmentingLemma(TNode node, bool) throw(theory::Interrupted, AssertionException) {
+    void augmentingLemma(TNode node, bool)
+      throw(theory::Interrupted, AssertionException) {
       ++(d_engine->d_statistics.d_statAugLemma);
       d_engine->newAugmentingLemma(node);
     }
-    void explanation(TNode explanationNode, bool) throw(theory::Interrupted, AssertionException) {
+    void explanation(TNode explanationNode, bool)
+      throw(theory::Interrupted, AssertionException) {
       d_explanationNode = explanationNode;
       ++(d_engine->d_statistics.d_statExplanation);
+    }
+
+    void setIncomplete()
+      throw(theory::Interrupted, AssertionException) {
+      d_engine->d_incomplete = true;
     }
   };/* class EngineOutputChannel */
 
@@ -128,6 +139,12 @@ class TheoryEngine {
    * destructor.
    */
   bool d_hasShutDown;
+
+  /**
+   * True if a theory has notified us of incompleteness (at this
+   * context level or below).
+   */
+  context::CDO<bool> d_incomplete;
 
   /**
    * Check whether a node is in the pre-rewrite cache or not.
@@ -203,6 +220,13 @@ public:
   void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
+  }
+
+  /**
+   * Return whether or not we are incomplete (in the current context).
+   */
+  bool isIncomplete() {
+    return d_incomplete;
   }
 
   /**

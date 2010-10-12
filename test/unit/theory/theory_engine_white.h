@@ -62,6 +62,9 @@ class FakeOutputChannel : public OutputChannel {
   void explanation(TNode n, bool safe) throw(AssertionException) {
     Unimplemented();
   }
+  void setIncomplete() throw(AssertionException) {
+    Unimplemented()
+  }
 };/* class FakeOutputChannel */
 
 class FakeTheory;

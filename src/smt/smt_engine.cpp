@@ -530,7 +530,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
                    n.getMetaKind() == kind::metakind::VARIABLE ), e,
                  "expected variable or defined-function application "
                  "in addToAssignment(),\ngot %s", e.toString().c_str() );
-  if(!d_options->interactive || !d_options->produceAssignments) {
+  if(!d_options->produceAssignments) {
     return false;
   }
   if(d_assignments == NULL) {
@@ -555,6 +555,10 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
     const char* msg =
       "Cannot get value unless immediately proceded by SAT/INVALID response.";
     throw ModalException(msg);
+  }
+
+  if(d_assignments == NULL) {
+    return SExpr();
   }
 
   NodeManagerScope nms(d_nodeManager);

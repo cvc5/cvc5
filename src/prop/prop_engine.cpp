@@ -58,13 +58,12 @@ public:
 };
 
 PropEngine::PropEngine(const Options* opts, DecisionEngine* de,
-                       TheoryEngine* te, Context* context)
-: d_inCheckSat(false),
+                       TheoryEngine* te, Context* context) :
+  d_inCheckSat(false),
   d_options(opts),
   d_decisionEngine(de),
   d_theoryEngine(te),
-  d_context(context)
-{
+  d_context(context) {
   Debug("prop") << "Constructing the PropEngine" << endl;
   d_satSolver = new SatSolver(this, d_theoryEngine, d_context, d_options);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
@@ -129,6 +128,9 @@ Result PropEngine::checkSat() {
 
   Debug("prop") << "PropEngine::checkSat() => "
                 << (result ? "true" : "false") << endl;
+  if(result && d_theoryEngine->isIncomplete()) {
+    return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
+  }
   return Result(result ? Result::SAT : Result::UNSAT);
 }
 

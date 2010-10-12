@@ -52,23 +52,33 @@ public:
 
   void safePoint() throw(Interrupted, AssertionException) {}
 
-  void conflict(TNode n, bool safe = false) throw(Interrupted, AssertionException) {
+  void conflict(TNode n, bool safe = false)
+    throw(Interrupted, AssertionException) {
     push(CONFLICT, n);
   }
 
-  void propagate(TNode n, bool safe = false) throw(Interrupted, AssertionException) {
+  void propagate(TNode n, bool safe = false)
+    throw(Interrupted, AssertionException) {
     push(PROPAGATE, n);
   }
 
-  void lemma(TNode n, bool safe = false) throw(Interrupted, AssertionException){
+  void lemma(TNode n, bool safe = false)
+    throw(Interrupted, AssertionException) {
     push(LEMMA, n);
   }
-  void augmentingLemma(TNode n, bool safe = false) throw(Interrupted, AssertionException){
+  void augmentingLemma(TNode n, bool safe = false)
+    throw(Interrupted, AssertionException) {
     Unreachable();
   }
 
-  void explanation(TNode n, bool safe = false) throw(Interrupted, AssertionException) {
+  void explanation(TNode n, bool safe = false)
+    throw(Interrupted, AssertionException) {
     push(EXPLANATION, n);
+  }
+
+  void setIncomplete()
+    throw(Interrupted, AssertionException) {
+    Unreachable();
   }
 
   void clear() {
