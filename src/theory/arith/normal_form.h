@@ -23,6 +23,7 @@
 #define __CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 #include "expr/node.h"
+#include "expr/node_self_iterator.h"
 #include "util/rational.h"
 #include "theory/arith/arith_constants.h"
 #include "theory/arith/arith_utilities.h"
@@ -247,6 +248,34 @@ inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
 }/* makeNode<GetNodeIterator>(Kind, iterator, iterator) */
 
 
+template <class GetNodeIterator>
+static void copy_range(GetNodeIterator begin, GetNodeIterator end, std::vector<Node>& result){
+  while(begin != end){
+    result.push_back(*begin);
+    ++begin;
+  }
+}
+
+template <class GetNodeIterator>
+static void merge_ranges(GetNodeIterator first1,
+                  GetNodeIterator last1,
+                  GetNodeIterator first2,
+                  GetNodeIterator last2,
+                  std::vector<Node>& result) {
+
+  while(first1 != last1 && first2 != last2){
+    if( (*first1) < (*first2) ){
+      result.push_back(*first1);
+      ++ first1;
+    }else{
+      result.push_back(*first2);
+      ++ first2;
+    }
+  }
+  copy_range(first1, last1, result);
+  copy_range(first2, last2, result);
+}
+
 /**
  * A VarList is a sorted list of variables representing a product.
  * If the VarList is empty, it represents an empty product or 1.
@@ -254,34 +283,56 @@ inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
  *
  * A non-sorted VarList can never be successfully made in debug mode.
  */
-class VarList {
+class VarList : public NodeWrapper {
 private:
-  Node backingNode;
 
   static Node multList(const std::vector<Variable>& list) {
     Assert(list.size() >= 2);
 
     return makeNode(kind::MULT, list.begin(), list.end());
   }
-  static Node makeTuple(Node n) {
-    // MGD FOR REVIEW: drop IDENTITY kind ?
-    return NodeManager::currentNM()->mkNode(kind::IDENTITY, n);
-  }
 
-  VarList() : backingNode(Node::null()) {}
+  VarList() : NodeWrapper(Node::null()) {}
 
-  VarList(Node n) {
-    backingNode = (Variable::isMember(n)) ? makeTuple(n) : n;
-
+  VarList(Node n) : NodeWrapper(n) {
     Assert(isSorted(begin(), end()));
   }
 
+  typedef expr::NodeSelfIterator internal_iterator;
+
+  internal_iterator internalBegin() const {
+    if(singleton()){
+      return expr::NodeSelfIterator::self(getNode());
+    }else{
+      return getNode().begin();
+    }
+  }
+
+  internal_iterator internalEnd() const {
+    if(singleton()){
+      return expr::NodeSelfIterator::selfEnd(getNode());
+    }else{
+      return getNode().end();
+    }
+  }
+  void merge(const VarList& other, std::vector<Node>& result) const{
+    internal_iterator
+      thisBegin = this->internalBegin(),
+      thisEnd = this->internalEnd(),
+      otherBegin = other.internalBegin(),
+      otherEnd = other.internalEnd();
+
+    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result);
+  }
+
 public:
-  class iterator  {
+
+  class iterator {
   private:
-    Node::iterator d_iter;
+    internal_iterator d_iter;
+
   public:
-    explicit iterator(Node::iterator i) : d_iter(i) {}
+    explicit iterator(internal_iterator i) : d_iter(i) {}
 
     inline Variable operator*() {
       return Variable(*d_iter);
@@ -305,25 +356,32 @@ public:
     }
   };
 
-  Node getNode() const {
-    if(singleton()) {
-      return backingNode[0];
-    } else {
-      return backingNode;
-    }
-  }
-
   iterator begin() const {
-    return iterator(backingNode.begin());
-  }
-  iterator end() const {
-    return iterator(backingNode.end());
+    expr::NodeSelfIterator iter;
+    if(singleton()){
+      iter = expr::NodeSelfIterator::self(getNode());
+    }else{
+      iter = getNode().begin();
+    }
+    return iterator(iter);
   }
 
-  VarList(Variable v) : backingNode(makeTuple(v.getNode())) {
+  iterator end() const {
+    expr::NodeSelfIterator iter;
+    if(singleton()){
+      iter = expr::NodeSelfIterator::self(getNode());
+    }else{
+      iter = getNode().end();
+    }
+
+    return iterator(iter);
+  }
+
+  VarList(Variable v) : NodeWrapper(v.getNode()) {
     Assert(isSorted(begin(), end()));
   }
-  VarList(const std::vector<Variable>& l) : backingNode(multList(l)) {
+
+  VarList(const std::vector<Variable>& l) : NodeWrapper(multList(l)) {
     Assert(l.size() >= 2);
     Assert(isSorted(begin(), end()));
   }
@@ -350,9 +408,17 @@ public:
     }
   }
 
-  int size() const { return backingNode.getNumChildren(); }
-  bool empty() const { return size() == 0; }
-  bool singleton() const { return backingNode.getKind() == kind::IDENTITY; }
+  bool empty() const { return getNode().isNull(); }
+  bool singleton() const {
+    return !empty() && getNode().getKind() != kind::MULT;
+  }
+
+  int size() const {
+    if(singleton())
+      return 1;
+    else
+      return getNode().getNumChildren();
+  }
 
   static VarList parseVarList(Node n);
 

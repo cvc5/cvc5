@@ -263,9 +263,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
     case kind::APPLY_UF:
       typeNode = CVC4::theory::uf::UfTypeRule::computeType(this, n, check);
       break;
-    case kind::IDENTITY:
-      typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n, check);
-      break;
     case kind::PLUS:
       typeNode = CVC4::theory::arith::ArithOperatorTypeRule::computeType(this, n, check);
       break;

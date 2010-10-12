@@ -980,9 +980,6 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
     return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() /
                                  engine->getValue(n[1]).getConst<Rational>() );
 
-  case kind::IDENTITY: // 1 arg
-    return engine->getValue(n[0]);
-
   case kind::LT: // 2 args
     return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() <
                                  engine->getValue(n[1]).getConst<Rational>() );

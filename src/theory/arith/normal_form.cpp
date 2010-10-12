@@ -70,22 +70,14 @@ VarList VarList::parseVarList(Node n) {
   }
 }
 
-VarList VarList::operator*(const VarList& vl) const {
+VarList VarList::operator*(const VarList& other) const {
   if(this->empty()) {
-    return vl;
-  } else if(vl.empty()) {
+    return other;
+  } else if(other.empty()) {
     return *this;
   } else {
     vector<Node> result;
-    back_insert_iterator< vector<Node> > bii(result);
-
-    Node::iterator
-      thisBegin = this->backingNode.begin(),
-      thisEnd = this->backingNode.end(),
-      v1Begin = vl.backingNode.begin(),
-      v1End = vl.backingNode.end();
-
-    merge(thisBegin, thisEnd, v1Begin, v1End, bii);
+    merge(other, result);
     Assert(result.size() >= 2);
     Node mult = NodeManager::currentNM()->mkNode(kind::MULT, result);
     return VarList::parseVarList(mult);
