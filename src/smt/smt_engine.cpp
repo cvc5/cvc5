@@ -88,8 +88,7 @@ public:
   /**
    * Pre-process an Node.  This is expected to be highly-variable,
    * with a lot of "source-level configurability" to add multiple
-   * passes over the Node.  TODO: may need to specify a LEVEL of
-   * preprocessing (certain contexts need more/less ?).
+   * passes over the Node.
    */
   static Node preprocess(SmtEngine& smt, TNode n)
     throw(NoSuchFunctionException, AssertionException);
@@ -488,7 +487,8 @@ Expr SmtEngine::getValue(const Expr& e)
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
   }
-  if(d_status.asSatisfiabilityResult() != Result::SAT ||
+  if(d_status.isNull() ||
+     d_status.asSatisfiabilityResult() != Result::SAT ||
      d_haveAdditions) {
     const char* msg =
       "Cannot get value unless immediately proceded by SAT/INVALID response.";
@@ -548,8 +548,13 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  // TODO also check that the last query was sat/unknown, without intervening
-  // assertions
+  if(d_status.isNull() ||
+     d_status.asSatisfiabilityResult() != Result::SAT ||
+     d_haveAdditions) {
+    const char* msg =
+      "Cannot get value unless immediately proceded by SAT/INVALID response.";
+    throw ModalException(msg);
+  }
 
   NodeManagerScope nms(d_nodeManager);
   vector<SExpr> sexprs;

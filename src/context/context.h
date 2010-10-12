@@ -246,6 +246,7 @@ public:
    * creation of new Scope objects in the current memory region.
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM) {
+    Trace("context_mm") << "Scope::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -329,12 +330,12 @@ public:
  *    memory, privately declare (but don't define) an operator
  *    new(size_t) and destructor (as currently in the Link class, in
  *    src/theory/uf/ecdata.h).
- * 
+ *
  * 2. For data structures that may or may not be allocated in context
  *    memory, and are designed to be that way (esp. if they contain
  *    ContextObj instances), they should be heavily documented --
  *    especially the destructor, since it _may_or_may_not_be_called_.
- * 
+ *
  * 3. There's also an issue for generic code -- some class Foo<T>
  *    might be allocated in context memory, and that might normally be
  *    fine, but if T is a ContextObj this requires certain care.
@@ -352,7 +353,7 @@ class ContextObj {
   /**
    * Pointer to Scope in which this object was last modified.
    */
-  Scope* d_pScope; 
+  Scope* d_pScope;
 
   /**
    * Pointer to most recent version of same ContextObj in a previous Scope
@@ -504,6 +505,7 @@ public:
    * to be done using the restore method.
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM) {
+    Trace("context_mm") << "Context::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 

@@ -122,6 +122,9 @@ public:
   bool isUnknown() const {
     return isSat() == SAT_UNKNOWN && isValid() == VALIDITY_UNKNOWN;
   }
+  bool isNull() const {
+    return d_which == TYPE_NONE;
+  }
   enum UnknownExplanation whyUnknown() const {
     AlwaysAssert( isUnknown(),
                   "This result is not unknown, so the reason for "

@@ -143,9 +143,14 @@ public:
   const T& get() const { return d_data; }
 
   /**
-   * For convenience, define operator T to be the same as get().
+   * For convenience, define operator T() to be the same as get().
    */
   operator T() { return get(); }
+
+  /**
+   * For convenience, define operator const T() to be the same as get().
+   */
+  operator const T() const { return get(); }
 
   /**
    * For convenience, define operator= that takes an object of type T.
