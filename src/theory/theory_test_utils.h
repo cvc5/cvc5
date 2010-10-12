@@ -95,6 +95,8 @@ public:
     push(EXPLANATION, n);
   }
 
+  void setIncomplete() throw(Interrupted, AssertionException) {}
+
   void clear() {
     d_callHistory.clear();
   }

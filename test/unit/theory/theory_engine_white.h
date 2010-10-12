@@ -63,7 +63,7 @@ class FakeOutputChannel : public OutputChannel {
     Unimplemented();
   }
   void setIncomplete() throw(AssertionException) {
-    Unimplemented()
+    Unimplemented();
   }
 };/* class FakeOutputChannel */
 
