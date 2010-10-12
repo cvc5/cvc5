@@ -471,7 +471,9 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  * flushes the stream.
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1) << *nv << std::endl;
+  Warning() << Node::setdepth(-1)
+            << Node::setlanguage(language::output::LANG_AST)
+            << *nv << std::endl;
   Warning().flush();
 }
 

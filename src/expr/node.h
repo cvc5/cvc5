@@ -1127,7 +1127,9 @@ Node NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << n << std::endl;
+  Warning() << Node::setdepth(-1)
+            << Node::setlanguage(language::output::LANG_AST)
+            << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
@@ -1136,7 +1138,9 @@ static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n)
 }
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << n << std::endl;
+  Warning() << Node::setdepth(-1)
+            << Node::setlanguage(language::output::LANG_AST)
+            << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {

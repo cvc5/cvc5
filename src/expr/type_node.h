@@ -567,7 +567,9 @@ inline void TypeNode::printAst(std::ostream& out, int indent) const {
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << n << std::endl;
+  Warning() << Node::setdepth(-1)
+            << Node::setlanguage(language::output::LANG_AST)
+            << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
