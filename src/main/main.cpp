@@ -73,12 +73,18 @@ int main(int argc, char* argv[]) {
     cout << "unknown" << endl;
 #endif
     cerr << "CVC4 Error:" << endl << e << endl;
+    if(options.statistics) {
+      StatisticsRegistry::flushStatistics(cerr);
+    }
     exit(1);
   } catch(bad_alloc) {
 #ifdef CVC4_COMPETITION_MODE
     cout << "unknown" << endl;
 #endif
     cerr << "CVC4 ran out of memory." << endl;
+    if(options.statistics) {
+      StatisticsRegistry::flushStatistics(cerr);
+    }
     exit(1);
   } catch(...) {
 #ifdef CVC4_COMPETITION_MODE
@@ -224,7 +230,7 @@ int runCvc4(int argc, char* argv[]) {
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
   StatisticsRegistry::registerStat(&s_statSatResult);
 
-  if(options.statistics){
+  if(options.statistics) {
     StatisticsRegistry::flushStatistics(cerr);
   }
 
