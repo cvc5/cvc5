@@ -118,6 +118,20 @@ NodeManager::~NodeManager() {
   }
 
   poolRemove( &expr::NodeValue::s_null );
+
+  if(Debug.isOn("gc:leaks")) {
+    Debug("gc:leaks") << "still in pool:" << std::endl;
+    for(NodeValuePool::const_iterator i = d_nodeValuePool.begin(),
+          iend = d_nodeValuePool.end();
+        i != iend;
+        ++i) {
+      Debug("gc:leaks") << "  " << *i
+                        << " id=" << (*i)->d_id
+                        << " rc=" << (*i)->d_rc
+                        << " " << **i << std::endl;
+    }
+    Debug("gc:leaks") << ":end:" << std::endl;
+  }
 }
 
 void NodeManager::reclaimZombies() {

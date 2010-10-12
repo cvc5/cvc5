@@ -171,7 +171,7 @@ AntlrInput::AntlrInput(AntlrInputStream& inputStream, unsigned int lookahead) :
     d_lexer(NULL),
     d_parser(NULL),
     d_antlr3InputStream( inputStream.getAntlr3InputStream() ),
-    d_tokenStream(NULL) {
+    d_tokenBuffer(NULL) {
 }
 
 /*
@@ -204,11 +204,11 @@ AntlrInput::Input(ExprManager* exprManager, const std::string& input, const std:
 */
 
 AntlrInput::~AntlrInput() {
-  d_tokenStream->free(d_tokenStream);
+  BoundedTokenBufferFree(d_tokenBuffer);
 }
 
 pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
-  return d_tokenStream;
+  return d_tokenBuffer->commonTstream;
 }
 
 void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
@@ -260,7 +260,7 @@ void AntlrInput::setAntlr3Lexer(pANTLR3_LEXER pLexer) {
     throw ParserException("Couldn't create token buffer.");
   }
 
-  d_tokenStream = buffer->commonTstream;
+  d_tokenBuffer = buffer;
 
   // Override default lexer error reporting
   d_lexer->rec->reportError = &lexerError;

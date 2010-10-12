@@ -28,9 +28,10 @@
 #include <string>
 #include <vector>
 
-#include "input.h"
-#include "parser_options.h"
-#include "parser_exception.h"
+#include "parser/input.h"
+#include "parser/parser_options.h"
+#include "parser/parser_exception.h"
+#include "parser/bounded_token_buffer.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/Assert.h"
@@ -117,10 +118,11 @@ class AntlrInput : public Input {
   /** The ANTLR3 input stream associated with this input. */
   pANTLR3_INPUT_STREAM d_antlr3InputStream;
 
-  /** The ANTLR3 token stream associated with this input. We only need this so we can free it on exit.
+  /** The ANTLR3 bounded token buffer associated with this input.
+   *  We only need this so we can free it on exit.
    *  This is set by <code>setLexer</code>.
    *  NOTE: We assume that we <em>can</em> free it on exit. No sharing! */
-  pANTLR3_COMMON_TOKEN_STREAM d_tokenStream;
+  pBOUNDED_TOKEN_BUFFER d_tokenBuffer;
 
   /** Turns an ANTLR3 exception into a message for the user and calls <code>parseError</code>. */
   static void reportError(pANTLR3_BASE_RECOGNIZER recognizer);
