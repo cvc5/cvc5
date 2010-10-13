@@ -1,4 +1,4 @@
-SUBDIRS = .
+SUBDIRS = . arith
 
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
 MAKEFLAGS = -k
