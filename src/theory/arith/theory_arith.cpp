@@ -936,10 +936,10 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
   switch(n.getKind()) {
   case kind::VARIABLE: {
     DeltaRational drat = d_partialModel.getAssignment(asArithVar(n));
-    // FIXME our infinitesimal is fixed here at 1e-06
+    const Rational& delta = d_partialModel.getDelta();
     return nodeManager->
       mkConst( drat.getNoninfinitesimalPart() +
-               drat.getInfinitesimalPart() * Rational(1, 1000000) );
+               drat.getInfinitesimalPart() * delta );
   }
 
   case kind::EQUAL: // 2 args
