@@ -95,6 +95,12 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
     parser = new Parser(&d_exprManager, input, d_strictMode);
   }
 
+  if( d_checksEnabled ) {
+    parser->enableChecks();
+  } else {
+    parser->disableChecks();
+  }
+
   return parser;
 }
 
