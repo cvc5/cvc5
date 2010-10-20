@@ -128,7 +128,7 @@ static struct option cmdlineOptions[] = {
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, PRODUCE_MODELS},
   { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS},
-  { "no-early-type-checking", no_argument, NULL, NO_EARLY_TYPE_CHECKING},
+  { "no-type-checking", no_argument, NULL, NO_EARLY_TYPE_CHECKING},
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 

@@ -123,13 +123,16 @@ int runCvc4(int argc, char* argv[]) {
   const bool inputFromStdin =
     firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
 
-  // if we're reading from stdin, default to interactive mode
-  // [chris 10/20/10] The expected behavior of interactive is
-  // different from the expected behavior of file input from
-  // stdin, due to EOL escapes in interactive mode
-
+  // if we're reading from stdin on a TTY, default to interactive mode
   if(!options.interactiveSetByUser) {
     options.interactive = inputFromStdin && isatty(fileno(stdin));
+  }
+
+  /* Early type checking can be turned off by --no-type-checking OR
+     --no-checking. We're assuming that earlyTypeChecking is not
+     explicitly set by the user. */
+  if(options.earlyTypeChecking) {
+    options.earlyTypeChecking = options.semanticChecks;
   }
 
   // Create the expression manager

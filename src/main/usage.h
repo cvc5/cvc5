@@ -38,7 +38,8 @@ CVC4 options:\n\
    --show-config          show CVC4 static configuration\n\
    --segv-nospin          don't spin on segfault waiting for gdb\n\
    --no-checking          disable semantic checks in the parser\n\
-   --strict-parsing       fail on inputs that are not strictly conformant (SMT2 only)\n\
+   --no-type-checking     disable type checking [default in non-debug builds]\n\
+   --strict-parsing       fail on non-conformant inputs (SMT2 only)\n\
    --verbose | -v         increase verbosity (repeatable)\n\
    --quiet | -q           decrease verbosity (repeatable)\n\
    --trace | -t           tracing for something (e.g. --trace pushpop)\n\
@@ -51,8 +52,7 @@ CVC4 options:\n\
    --no-interactive       do not run interactively\n\
    --produce-models       support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
-   --lazy-definition-expansion expand define-fun lazily\n\
-   --no-early-type-checking don't typecheck at Expr creation [non-DEBUG builds never do]\n";
+   --lazy-definition-expansion expand define-fun lazily\n";
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
