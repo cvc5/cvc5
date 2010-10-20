@@ -18,6 +18,11 @@
  ** an exception. Only use this factory if you *know* that the grammar
  ** has bounded lookahead (e.g., if you've set the k parameter in the 
  ** parser.
+ **
+ ** NOTE: ANTLR3 puts "hidden" tokens into this buffer too, so
+ ** pathological inputs can exceed the k token lookahead, even if
+ ** your grammar really is LL(k). Be sure that irrelevant tokens
+ ** are SKIP()'d and not "hidden".
  **/
 
 #ifndef	__CVC4__PARSER__BOUNDED_TOKEN_BUFFER_H

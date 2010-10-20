@@ -555,10 +555,10 @@ fragment DIGIT : '0'..'9';
 /**
  * Matches and skips whitespace in the input and ignores it.
  */
-WHITESPACE : (' ' | '\t' | '\f' | '\r' | '\n') { $channel = HIDDEN;; };
+WHITESPACE : (' ' | '\t' | '\f' | '\r' | '\n')+ { SKIP();; };
 
 /**
  * Matches the comments and ignores them
  */
-COMMENT : '%' (~('\n' | '\r'))* { $channel = HIDDEN;; };
+COMMENT : '%' (~('\n' | '\r'))* { SKIP();; };
 

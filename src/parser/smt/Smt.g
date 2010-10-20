@@ -646,7 +646,7 @@ USER_VALUE
  * Matches and skips whitespace in the input.
  */
 WHITESPACE
-  :  (' ' | '\t' | '\f' | '\r' | '\n')+             { $channel = HIDDEN;; }
+  :  (' ' | '\t' | '\f' | '\r' | '\n')+             { SKIP();; }
   ;
 
 /**
@@ -672,7 +672,7 @@ STRING_LITERAL
  * Matches the comments and ignores them
  */
 COMMENT
-  : ';' (~('\n' | '\r'))*                    { $channel = HIDDEN;; }
+  : ';' (~('\n' | '\r'))*                    { SKIP();; }
   ;
 
 
