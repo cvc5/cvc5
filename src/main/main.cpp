@@ -16,11 +16,14 @@
  ** Main driver for CVC4 executable.
  **/
 
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <iostream>
 #include <new>
+
+#include <stdio.h>
+#include <unistd.h>
 
 #include "cvc4autoconfig.h"
 #include "main.h"
@@ -125,9 +128,9 @@ int runCvc4(int argc, char* argv[]) {
   // different from the expected behavior of file input from
   // stdin, due to EOL escapes in interactive mode
 
-  // if(!options.interactiveSetByUser) {
-  //   options.interactive = inputFromStdin;
-  // }
+  if(!options.interactiveSetByUser) {
+    options.interactive = inputFromStdin && isatty(fileno(stdin));
+  }
 
   // Create the expression manager
   ExprManager exprMgr(options.earlyTypeChecking);
