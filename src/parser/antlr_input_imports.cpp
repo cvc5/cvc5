@@ -56,6 +56,7 @@
 
 #include "antlr_input.h"
 #include "parser.h"
+#include "parser_exception.h"
 #include "util/Assert.h"
 
 using namespace std;
@@ -88,6 +89,14 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_EXCEPTION ex = recognizer->state->exception;
   pANTLR3_UINT8 * tokenNames = recognizer->state->tokenNames;
   stringstream ss;
+
+  // Dig the CVC4 objects out of the ANTLR3 mess
+  pANTLR3_PARSER antlr3Parser = (pANTLR3_PARSER)(recognizer->super);
+  AlwaysAssert(antlr3Parser!=NULL);
+  Parser *parser = (Parser*)(antlr3Parser->super);
+  AlwaysAssert(parser!=NULL);
+  AntlrInput *input = (AntlrInput*) parser->getInput() ;
+  AlwaysAssert(input!=NULL);
 
   // Signal we are in error recovery now
   recognizer->state->errorRecovery = ANTLR3_TRUE;
@@ -251,14 +260,6 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     Unhandled("Unexpected exception in parser.");
     break;
   }
-
-  // Now get ready to throw an exception
-  pANTLR3_PARSER antlr3Parser = (pANTLR3_PARSER)(recognizer->super);
-  AlwaysAssert(antlr3Parser!=NULL);
-  Parser *parser = (Parser*)(antlr3Parser->super);
-  AlwaysAssert(parser!=NULL);
-  AntlrInput *input = (AntlrInput*) parser->getInput() ;
-  AlwaysAssert(input!=NULL);
 
   // Call the error display routine
   input->parseError(ss.str());

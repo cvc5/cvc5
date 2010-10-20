@@ -160,12 +160,6 @@ public:
     return d_input;
   }
 
-  /** Set the declaration scope manager for this input. NOTE: This should <em>only</me> be
-   * called before parsing begins. Otherwise, previous declarations will be lost. */
-/*  inline void setDeclarationScope(DeclarationScope declScope) {
-    d_declScope = declScope;
-  }*/
-
   /**
    * Check if we are done -- either the end of input has been reached, or some
    * error has been encountered.
@@ -189,7 +183,8 @@ public:
   /** Enable strict parsing, according to the language standards. */
   void enableStrictMode() { d_strictMode = true; }
 
-  /** Disable strict parsing. Allows certain syntactic infelicities to pass without comment. */
+  /** Disable strict parsing. Allows certain syntactic infelicities to
+      pass without comment. */
   void disableStrictMode() { d_strictMode = false; }
 
   bool strictModeEnabled() { return d_strictMode; }

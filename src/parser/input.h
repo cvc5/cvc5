@@ -47,7 +47,7 @@ public:
   virtual ~InputStreamException() throw() { }
 };
 
-/** Wrapper around an ANTLR3 input stream. */
+/** Wrapper around an input stream. */
 class InputStream {
 
   /** The name of this input stream. */
@@ -93,7 +93,7 @@ class CVC4_PUBLIC Input {
   /** The input stream. */
   InputStream *d_inputStream;
 
-  /* Since we own d_tokenStream and it needs to be freed, we need to prevent
+  /* Since we own d_inputStream and it needs to be freed, we need to prevent
    * copy construction and assignment.
    */
   Input(const Input& input) { Unimplemented("Copy constructor for Input."); }
@@ -134,8 +134,11 @@ class CVC4_PUBLIC Input {
 
 public:
 
-  /** Destructor. Frees the token stream and closes the input. */
+  /** Destructor. Frees the input stream and closes the input. */
   virtual ~Input();
+
+  /** Retrieve the remaining text in this input. */
+  virtual std::string getUnparsedText() = 0;
 
 protected:
 

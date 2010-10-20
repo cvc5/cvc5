@@ -24,9 +24,11 @@
 
 #include "cvc4autoconfig.h"
 #include "main.h"
+#include "interactive_shell.h"
 #include "usage.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "parser/parser_exception.h"
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "expr/command.h"
@@ -119,9 +121,13 @@ int runCvc4(int argc, char* argv[]) {
     firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
 
   // if we're reading from stdin, default to interactive mode
-  if(!options.interactiveSetByUser) {
-    options.interactive = inputFromStdin;
-  }
+  // [chris 10/20/10] The expected behavior of interactive is
+  // different from the expected behavior of file input from
+  // stdin, due to EOL escapes in interactive mode
+
+  // if(!options.interactiveSetByUser) {
+  //   options.interactive = inputFromStdin;
+  // }
 
   // Create the expression manager
   ExprManager exprMgr(options.earlyTypeChecking);
@@ -193,18 +199,22 @@ int runCvc4(int argc, char* argv[]) {
     parserBuilder.withStreamInput(cin);
   }
 
-  Parser *parser = parserBuilder.build();
-
   // Parse and execute commands until we are done
   Command* cmd;
   if( options.interactive ) {
-    // cout << "CVC4> " << flush;
-  }
-  while((cmd = parser->nextCommand())) {
-    if( !options.parseOnly ) {
-      doCommand(smt, cmd);
+    InteractiveShell shell(cin,cout,parserBuilder);
+    while((cmd = shell.readCommand())) {
+      doCommand(smt,cmd);
+      delete cmd;
     }
-    delete cmd;
+  } else {
+    Parser *parser = parserBuilder.build();
+    while((cmd = parser->nextCommand())) {
+      doCommand(smt, cmd);
+      delete cmd;
+    }
+    // Remove the parser
+    delete parser;
   }
 
   string result = smt.getInfo(":status").getValue();
@@ -224,9 +234,6 @@ int runCvc4(int argc, char* argv[]) {
   exit(returnValue);
 #endif
 
-  // Remove the parser
-  delete parser;
-
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
   StatisticsRegistry::registerStat(&s_statSatResult);
 
@@ -240,7 +247,12 @@ int runCvc4(int argc, char* argv[]) {
   return returnValue;
 }
 
+/** Executes a command. Deletes the command after execution. */
 void doCommand(SmtEngine& smt, Command* cmd) {
+  if( options.parseOnly ) {
+    return;
+  }
+
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
   if(seq != NULL) {
     for(CommandSequence::iterator subcmd = seq->begin();

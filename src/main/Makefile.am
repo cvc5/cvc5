@@ -6,11 +6,13 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 bin_PROGRAMS = cvc4
 
 cvc4_SOURCES = \
-	main.cpp \
 	getopt.cpp \
-	util.cpp \
+	interactive_shell.h \
+	interactive_shell.cpp \
 	main.h \
-	usage.h
+	main.cpp \
+	usage.h \
+	util.cpp
 
 cvc4_LDADD = \
 	../parser/libcvc4parser.la \

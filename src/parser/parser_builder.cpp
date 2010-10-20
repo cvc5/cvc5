@@ -84,45 +84,19 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
   default:
     Unreachable();
   }
+
+  Parser *parser = NULL;
   switch(d_lang) {
   case language::input::LANG_SMTLIB:
-    return new Smt(&d_exprManager, input, d_strictMode);
+    parser = new Smt(&d_exprManager, input, d_strictMode);
   case language::input::LANG_SMTLIB_V2:
-    return new Smt2(&d_exprManager, input, d_strictMode);
+    parser = new Smt2(&d_exprManager, input, d_strictMode);
   default:
-    return new Parser(&d_exprManager, input, d_strictMode);
+    parser = new Parser(&d_exprManager, input, d_strictMode);
   }
-}
 
-/*ParserBuilder& ParserBuilder::disableChecks() {
-  d_checksEnabled = false;
-  return *this;
+  return parser;
 }
-
-ParserBuilder& ParserBuilder::disableMmap() {
-  d_mmap = false;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::disableStrictMode() {
-  d_strictMode = false;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::enableChecks() {
-  d_checksEnabled = true;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::enableMmap() {
-  d_mmap = true;
-  return *this;
-}
-
-ParserBuilder& ParserBuilder::enableStrictMode() {
-  d_strictMode = true;
-  return *this;
-}*/
 
 ParserBuilder& ParserBuilder::withChecks(bool flag) {
   d_checksEnabled = flag;
