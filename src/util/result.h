@@ -60,6 +60,7 @@ public:
     INCOMPLETE,
     TIMEOUT,
     MEMOUT,
+    NO_STATUS,
     OTHER,
     UNKNOWN_REASON
   };
@@ -132,16 +133,16 @@ public:
     return d_unknownExplanation;
   }
 
-  bool operator==(const Result& r) const;
-  inline bool operator!=(const Result& r) const;
-  Result asSatisfiabilityResult() const;
-  Result asValidityResult() const;
+  bool operator==(const Result& r) const throw();
+  inline bool operator!=(const Result& r) const throw();
+  Result asSatisfiabilityResult() const throw();
+  Result asValidityResult() const throw();
 
   std::string toString() const;
 
 };/* class Result */
 
-inline bool Result::operator!=(const Result& r) const {
+inline bool Result::operator!=(const Result& r) const throw() {
   return !(*this == r);
 }
 

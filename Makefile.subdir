@@ -21,8 +21,8 @@ all %:
 .PHONY: check units
 ifeq ($(srcdir:test/%=test),test)
 # under the test/ directory, additional subtargets
-.PHONY: regress0 regress1 regress2 regress3
-check units regress0 regress1 regress2 regress3:
+.PHONY: regress regress0 regress1 regress2 regress3
+check units regress regress0 regress1 regress2 regress3:
 	@if test -e $(builddir); then \
 		echo cd $(builddir); \
 		cd $(builddir); \
@@ -49,5 +49,5 @@ check units:
 endif
 
 # synonyms for "check"
-.PHONY: regress test
-regress test: check
+.PHONY: test
+test: check

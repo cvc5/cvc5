@@ -47,9 +47,6 @@ Result::Result(const string& instr) :
   } else if(s == "invalid") {
     d_which = TYPE_VALIDITY;
     d_validity = INVALID;
-  } else if(s == "unknown") {
-    d_which = TYPE_SAT;
-    d_sat = SAT_UNKNOWN;
   } else if(s == "incomplete") {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
@@ -62,13 +59,16 @@ Result::Result(const string& instr) :
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = MEMOUT;
+  } else if(s.size() >= 7 && s.compare(0, 7, "unknown") == 0) {
+    d_which = TYPE_SAT;
+    d_sat = SAT_UNKNOWN;
   } else {
     IllegalArgument(s, "expected satisfiability/validity result, "
                     "instead got `%s'", s.c_str());
   }
 }
 
-bool Result::operator==(const Result& r) const {
+bool Result::operator==(const Result& r) const throw() {
   if(d_which != r.d_which) {
     return false;
   }
@@ -85,50 +85,56 @@ bool Result::operator==(const Result& r) const {
   return false;
 }
 
-Result Result::asSatisfiabilityResult() const {
+Result Result::asSatisfiabilityResult() const throw() {
   if(d_which == TYPE_SAT) {
     return *this;
   }
 
-  Assert(d_which == TYPE_VALIDITY);
+  if(d_which == TYPE_VALIDITY) {
+    switch(d_validity) {
 
-  switch(d_validity) {
+    case INVALID:
+      return Result(SAT);
 
-  case INVALID:
-    return Result(SAT);
+    case VALID:
+      return Result(UNSAT);
 
-  case VALID:
-    return Result(UNSAT);
+    case VALIDITY_UNKNOWN:
+      return Result(SAT_UNKNOWN, d_unknownExplanation);
 
-  case VALIDITY_UNKNOWN:
-    return Result(SAT_UNKNOWN, d_unknownExplanation);
-
-  default:
-    Unhandled(d_validity);
+    default:
+      Unhandled(d_validity);
+    }
   }
+
+  // TYPE_NONE
+  return Result(SAT_UNKNOWN, NO_STATUS);
 }
 
-Result Result::asValidityResult() const {
+Result Result::asValidityResult() const throw() {
   if(d_which == TYPE_VALIDITY) {
     return *this;
   }
 
-  Assert(d_which == TYPE_SAT);
+  if(d_which == TYPE_SAT) {
+    switch(d_sat) {
 
-  switch(d_sat) {
+    case SAT:
+      return Result(INVALID);
 
-  case SAT:
-    return Result(INVALID);
+    case UNSAT:
+      return Result(VALID);
 
-  case UNSAT:
-    return Result(VALID);
+    case SAT_UNKNOWN:
+      return Result(VALIDITY_UNKNOWN, d_unknownExplanation);
 
-  case SAT_UNKNOWN:
-    return Result(VALIDITY_UNKNOWN, d_unknownExplanation);
-
-  default:
-    Unhandled(d_sat);
+    default:
+      Unhandled(d_sat);
+    }
   }
+
+  // TYPE_NONE
+  return Result(VALIDITY_UNKNOWN, NO_STATUS);
 }
 
 string Result::toString() const {
@@ -164,6 +170,7 @@ ostream& operator<<(ostream& out,
   case Result::INCOMPLETE: out << "INCOMPLETE"; break;
   case Result::TIMEOUT: out << "TIMEOUT"; break;
   case Result::MEMOUT: out << "MEMOUT"; break;
+  case Result::NO_STATUS: out << "NO_STATUS"; break;
   case Result::OTHER: out << "OTHER"; break;
   case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
   default: Unhandled(e);
