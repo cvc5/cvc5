@@ -26,11 +26,11 @@
 #include "expr/node.h"
 #include "util/result.h"
 #include "util/decision_engine.h"
+#include "smt/options.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
-class Options;
 
 namespace prop {
 
@@ -50,7 +50,7 @@ class PropEngine {
   bool d_inCheckSat;
 
   /** The global options */
-  const Options *d_options;
+  //const Options d_options;
 
   /** The decision engine we will be using */
   DecisionEngine *d_decisionEngine;
@@ -76,7 +76,7 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(const Options*, DecisionEngine*, TheoryEngine*, context::Context*);
+  PropEngine(DecisionEngine*, TheoryEngine*, context::Context*, const Options&);
 
   /**
    * Destructor.

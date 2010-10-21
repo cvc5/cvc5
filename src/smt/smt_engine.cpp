@@ -111,21 +111,20 @@ public:
 
 using namespace CVC4::smt;
 
-SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
-  d_context(em->getContext()),
-  d_exprManager(em),
-  d_nodeManager(em->getNodeManager()),
-  d_options(opts),
-  /* These next few are initialized below, after we have a NodeManager
-   * in scope. */
-  d_decisionEngine(NULL),
-  d_theoryEngine(NULL),
-  d_propEngine(NULL),
-  d_definedFunctions(NULL),
-  d_assertionList(NULL),
-  d_assignments(NULL),
-  d_haveAdditions(false),
-  d_status() {
+SmtEngine::SmtEngine(ExprManager* em) throw() :
+  d_exprManager(em) {
+  Options opts;
+  init(opts);
+}
+
+SmtEngine::SmtEngine(ExprManager* em, const Options& opts) throw() :
+  d_exprManager(em){
+  init(opts);
+}
+
+void SmtEngine::init(const Options& opts) throw() {
+  d_context = d_exprManager->getContext();
+  d_nodeManager = d_exprManager->getNodeManager();
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -133,15 +132,26 @@ SmtEngine::SmtEngine(ExprManager* em, const Options* opts) throw() :
   // We have mutual dependancy here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, opts);
-  d_propEngine = new PropEngine(opts, d_decisionEngine,
-                                d_theoryEngine, d_context);
+  d_propEngine = new PropEngine(d_decisionEngine, d_theoryEngine, 
+                                d_context, opts);
   d_theoryEngine->setPropEngine(d_propEngine);
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_context);
 
-  if(d_options->interactive) {
+  d_assertionList = NULL;
+  d_interactive = opts.interactive;
+  if(d_interactive) {
     d_assertionList = new(true) AssertionList(d_context);
   }
+
+  d_assignments = NULL;
+  d_haveAdditions = false;
+
+  d_typeChecking = opts.typeChecking;
+  d_lazyDefinitionExpansion = opts.lazyDefinitionExpansion;
+  d_produceModels = opts.produceModels;
+  d_produceAssignments = opts.produceAssignments;
+
 }
 
 void SmtEngine::shutdown() {
@@ -299,7 +309,7 @@ void SmtEngine::defineFunction(Expr func,
                                Expr formula) {
   Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
   NodeManagerScope nms(d_nodeManager);
-  Type formulaType = formula.getType(true);// type check body
+  Type formulaType = formula.getType(d_typeChecking);// type check body
   Type funcType = func.getType();
   Type rangeType = funcType.isFunction() ?
     FunctionType(funcType).getRangeType() : funcType;
@@ -388,7 +398,7 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n)
 
 Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n)
   throw(NoSuchFunctionException, AssertionException) {
-  if(!smt.d_options->lazyDefinitionExpansion) {
+  if(!smt.d_lazyDefinitionExpansion) {
     Node node = expandDefinitions(smt, n);
     Debug("expand") << "have: " << n << endl
                     << "made: " << node << endl;
@@ -416,7 +426,7 @@ void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
 }
 
 void SmtEngine::ensureBoolean(const BoolExpr& e) {
-  Type type = e.getType(true);
+  Type type = e.getType(d_typeChecking);
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
     stringstream ss;
@@ -468,7 +478,9 @@ Result SmtEngine::assertFormula(const BoolExpr& e) {
 Expr SmtEngine::simplify(const Expr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  e.getType(true);// ensure expr is type-checked at this point
+  if( d_typeChecking ) {
+    e.getType(true);// ensure expr is type-checked at this point
+  }
   Debug("smt") << "SMT simplify(" << e << ")" << endl;
   Unimplemented();
 }
@@ -476,14 +488,14 @@ Expr SmtEngine::simplify(const Expr& e) {
 Expr SmtEngine::getValue(const Expr& e)
   throw(ModalException, AssertionException) {
   Assert(e.getExprManager() == d_exprManager);
-  Type type = e.getType(true);// ensure expr is type-checked at this point
+  Type type = e.getType(d_typeChecking);// ensure expr is type-checked at this point
   Debug("smt") << "SMT getValue(" << e << ")" << endl;
-  if(!d_options->interactive) {
+  if(!d_interactive) {
     const char* msg =
       "Cannot get value when not in interactive mode.";
     throw ModalException(msg);
   }
-  if(!d_options->produceModels) {
+  if(!d_produceModels) {
     const char* msg =
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
@@ -510,13 +522,13 @@ Expr SmtEngine::getValue(const Expr& e)
   Node resultNode = d_theoryEngine->getValue(n);
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType(true) == eNode.getType());
+  Assert(resultNode.isNull() || resultNode.getType() == eNode.getType());
   return Expr(d_exprManager, new Node(resultNode));
 }
 
 bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
   NodeManagerScope nms(d_nodeManager);
-  Type type = e.getType(true);
+  Type type = e.getType(d_typeChecking);
   // must be Boolean
   CheckArgument( type.isBoolean(), e,
                  "expected Boolean-typed variable or function application "
@@ -530,7 +542,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
                    n.getMetaKind() == kind::metakind::VARIABLE ), e,
                  "expected variable or defined-function application "
                  "in addToAssignment(),\ngot %s", e.toString().c_str() );
-  if(!d_options->produceAssignments) {
+  if(!d_produceAssignments) {
     return false;
   }
   if(d_assignments == NULL) {
@@ -543,7 +555,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
 
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
   Debug("smt") << "SMT getAssignment()" << endl;
-  if(!d_options->produceAssignments) {
+  if(!d_produceAssignments) {
     const char* msg =
       "Cannot get the current assignment when "
       "produce-assignments option is off.";
@@ -576,7 +588,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
     Node resultNode = d_theoryEngine->getValue(n);
 
     // type-check the result we got
-    Assert(resultNode.isNull() || resultNode.getType(true) == boolType);
+    Assert(resultNode.isNull() || resultNode.getType() == boolType);
 
     vector<SExpr> v;
     if((*i).getKind() == kind::APPLY) {
@@ -595,7 +607,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
   Debug("smt") << "SMT getAssertions()" << endl;
-  if(!d_options->interactive) {
+  if(!d_interactive) {
     const char* msg =
       "Cannot query the current assertion list when not in interactive mode.";
     throw ModalException(msg);

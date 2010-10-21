@@ -125,7 +125,7 @@ class SatSolver : public SatInputInterface {
   context::Context* d_context;
 
   /** Remember the options */
-  Options* d_options;
+  // Options* d_options;
 
   /* Pointer to the concrete SAT solver. Including this via the
      preprocessor saves us a level of indirection vs, e.g., defining a
@@ -203,7 +203,7 @@ public:
   SatSolver(PropEngine* propEngine,
                    TheoryEngine* theoryEngine,
                    context::Context* context,
-                   const Options* options);
+                   const Options& options);
 
   ~SatSolver();
 
@@ -233,7 +233,7 @@ public:
 #ifdef __CVC4_USE_MINISAT
 
 inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
-                     context::Context* context, const Options* options) :
+                     context::Context* context, const Options& options) :
   d_propEngine(propEngine),
   d_cnfStream(NULL),
   d_theoryEngine(theoryEngine),
@@ -243,7 +243,7 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   // Create the solver
   d_minisat = new Minisat::SimpSolver(this, d_context);
   // Setup the verbosity
-  d_minisat->verbosity = (options->verbosity > 0) ? 1 : -1;
+  d_minisat->verbosity = (options.verbosity > 0) ? 1 : -1;
 
   // No random choices
   if(Debug.isOn("no_rnd_decisions")){

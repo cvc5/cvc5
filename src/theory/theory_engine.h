@@ -22,10 +22,11 @@
 #define __CVC4__THEORY_ENGINE_H
 
 #include "expr/node.h"
+#include "prop/prop_engine.h"
+#include "smt/options.h"
+#include "theory/shared_term_manager.h"
 #include "theory/theory.h"
 #include "theory/theoryof_table.h"
-#include "prop/prop_engine.h"
-#include "theory/shared_term_manager.h"
 #include "util/stats.h"
 
 namespace CVC4 {
@@ -206,7 +207,7 @@ public:
   /**
    * Construct a theory engine.
    */
-  TheoryEngine(context::Context* ctxt, const Options* opts);
+  TheoryEngine(context::Context* ctxt, const Options& opts);
 
   /**
    * Destroy a theory engine.

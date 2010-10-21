@@ -89,6 +89,9 @@ struct CVC4_PUBLIC Options {
   /** Whether we support SmtEngine::getAssignment() for this run. */
   bool produceAssignments;
 
+  /** Whether we do typechecking at all. */
+  bool typeChecking;
+
   /** Whether we do typechecking at Expr creation time. */
   bool earlyTypeChecking;
 
@@ -109,6 +112,7 @@ struct CVC4_PUBLIC Options {
     interactiveSetByUser(false),
     produceModels(false),
     produceAssignments(false),
+    typeChecking(true),
     earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT) {
   }
 };/* struct Options */

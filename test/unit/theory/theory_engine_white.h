@@ -248,7 +248,7 @@ public:
     d_bv = new FakeTheory(d_ctxt, *d_nullChannel, "BV");
 
     // create the TheoryEngine
-    d_theoryEngine = new TheoryEngine(d_ctxt, &d_options);
+    d_theoryEngine = new TheoryEngine(d_ctxt, d_options);
 
     // insert our fake versions into the TheoryEngine's theoryOf table
     d_theoryEngine->d_theoryOfTable.

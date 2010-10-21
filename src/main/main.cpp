@@ -128,18 +128,11 @@ int runCvc4(int argc, char* argv[]) {
     options.interactive = inputFromStdin && isatty(fileno(stdin));
   }
 
-  /* Early type checking can be turned off by --no-type-checking OR
-     --no-checking. We're assuming that earlyTypeChecking is not
-     explicitly set by the user. */
-  if(options.earlyTypeChecking) {
-    options.earlyTypeChecking = options.semanticChecks;
-  }
-
   // Create the expression manager
   ExprManager exprMgr(options.earlyTypeChecking);
 
   // Create the SmtEngine
-  SmtEngine smt(&exprMgr, &options);
+  SmtEngine smt(&exprMgr, options);
 
   // Auto-detect input language by filename extension
   const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];

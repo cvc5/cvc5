@@ -664,7 +664,7 @@ private:
   inline void debugCheckType(const TNode n) const {
     // force an immediate type check, if we are in debug mode
     // and the current node isn't a variable or constant
-    if( IS_DEBUG_BUILD && d_nm->d_earlyTypeChecking ) {
+    if( d_nm->d_earlyTypeChecking ) {
       kind::MetaKind mk = n.getMetaKind();
       if( mk != kind::metakind::VARIABLE 
           && mk != kind::metakind::CONSTANT ) {

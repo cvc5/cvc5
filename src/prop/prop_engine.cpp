@@ -57,15 +57,15 @@ public:
   }
 };
 
-PropEngine::PropEngine(const Options* opts, DecisionEngine* de,
-                       TheoryEngine* te, Context* context) :
+PropEngine::PropEngine(DecisionEngine* de, TheoryEngine* te, 
+                       Context* context, const Options& opts) :
   d_inCheckSat(false),
-  d_options(opts),
+  // d_options(opts),
   d_decisionEngine(de),
   d_theoryEngine(te),
   d_context(context) {
   Debug("prop") << "Constructing the PropEngine" << endl;
-  d_satSolver = new SatSolver(this, d_theoryEngine, d_context, d_options);
+  d_satSolver = new SatSolver(this, d_theoryEngine, d_context, opts);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
   d_satSolver->setCnfStream(d_cnfStream);
 }

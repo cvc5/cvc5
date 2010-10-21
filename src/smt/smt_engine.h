@@ -34,6 +34,7 @@
 #include "util/hash.h"
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
+#include "smt/options.h"
 #include "smt/bad_option_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)
@@ -47,7 +48,6 @@ typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class NodeHashFunction;
 class Command;
-class Options;
 class TheoryEngine;
 class DecisionEngine;
 
@@ -99,7 +99,7 @@ class CVC4_PUBLIC SmtEngine {
   /** Out internal expression/node manager */
   NodeManager* d_nodeManager;
   /** User-level options */
-  const Options* d_options;
+  //const Options d_options;
   /** The decision engine */
   DecisionEngine* d_decisionEngine;
   /** The decision engine */
@@ -126,10 +126,38 @@ class CVC4_PUBLIC SmtEngine {
    */
   bool d_haveAdditions;
 
+  /** 
+   * Whether or not to type check input expressions.
+   */
+  bool d_typeChecking;
+
+  /**
+   * Whether we're being used in an interactive setting.
+   */
+  bool d_interactive;
+
+  /**
+   * Whether we expand function definitions lazily.
+   */
+  bool d_lazyDefinitionExpansion;
+
+  /**
+   * Whether getValue() is enabled.
+   */
+  bool d_produceModels;
+
+  /**
+   * Whether getAssignment() is enabled.
+   */
+  bool d_produceAssignments;
+
   /**
    * Most recent result of last checkSat/query or (set-info :status).
    */
   Result d_status;
+
+  /** Called by the constructors to setup fields. */
+  void init(const Options& opts) throw();
 
   /**
    * This is called by the destructor, just before destroying the
@@ -163,9 +191,14 @@ class CVC4_PUBLIC SmtEngine {
 public:
 
   /**
+   * Construct an SmtEngine with the given expression manager.
+   */
+  SmtEngine(ExprManager* em) throw();
+
+  /**
    * Construct an SmtEngine with the given expression manager and user options.
    */
-  SmtEngine(ExprManager* em, const Options* opts) throw();
+  SmtEngine(ExprManager* em, const Options& opts) throw();
 
   /**
    * Destruct the SMT engine.
@@ -272,6 +305,13 @@ public:
    * Pop a user-level context.  Throws an exception if nothing to pop.
    */
   void pop();
+
+  /** Enable type checking. Forces a type check on any Expr parameter
+      to an SmtEngine method. */
+  void enableTypeChecking() { d_typeChecking = true; }
+
+  /** Disable type checking. */
+  void disableTypeChecking() { d_typeChecking = false; }
 
 };/* class SmtEngine */
 

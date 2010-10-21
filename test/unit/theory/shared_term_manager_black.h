@@ -61,7 +61,7 @@ public:
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
 
-    d_theoryEngine = new TheoryEngine(d_ctxt, &d_options);
+    d_theoryEngine = new TheoryEngine(d_ctxt, d_options);
   }
 
   void tearDown() {

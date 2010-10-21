@@ -126,7 +126,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
   }
 }
 
-TheoryEngine::TheoryEngine(context::Context* ctxt, const Options* opts) :
+TheoryEngine::TheoryEngine(context::Context* ctxt, const Options& opts) :
   d_propEngine(NULL),
   d_theoryOut(this, ctxt),
   d_hasShutDown(false),
@@ -137,7 +137,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt, const Options* opts) :
 
   d_builtin = new theory::builtin::TheoryBuiltin(0, ctxt, d_theoryOut);
   d_bool = new theory::booleans::TheoryBool(1, ctxt, d_theoryOut);
-  switch(opts->uf_implementation) {
+  switch(opts.uf_implementation) {
   case Options::TIM:
     d_uf = new theory::uf::tim::TheoryUFTim(2, ctxt, d_theoryOut);
     break;
@@ -145,7 +145,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt, const Options* opts) :
     d_uf = new theory::uf::morgan::TheoryUFMorgan(2, ctxt, d_theoryOut);
     break;
   default:
-    Unhandled(opts->uf_implementation);
+    Unhandled(opts.uf_implementation);
   }
   d_arith = new theory::arith::TheoryArith(3, ctxt, d_theoryOut);
   d_arrays = new theory::arrays::TheoryArrays(4, ctxt, d_theoryOut);

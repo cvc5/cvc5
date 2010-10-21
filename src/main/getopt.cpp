@@ -76,7 +76,9 @@ enum OptionValue {
   NO_INTERACTIVE,
   PRODUCE_MODELS,
   PRODUCE_ASSIGNMENTS,
-  NO_EARLY_TYPE_CHECKING
+  NO_TYPE_CHECKING,
+  LAZY_TYPE_CHECKING,
+  EAGER_TYPE_CHECKING,
 };/* enum OptionValue */
 
 /**
@@ -128,7 +130,9 @@ static struct option cmdlineOptions[] = {
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, PRODUCE_MODELS},
   { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS},
-  { "no-type-checking", no_argument, NULL, NO_EARLY_TYPE_CHECKING},
+  { "no-type-checking", no_argument, NULL, NO_TYPE_CHECKING},
+  { "lazy-type-checking", no_argument, NULL, LAZY_TYPE_CHECKING},
+  { "eager-type-checking", no_argument, NULL, EAGER_TYPE_CHECKING},
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -229,6 +233,8 @@ throw(OptionException) {
 
     case NO_CHECKING:
       opts->semanticChecks = false;
+      opts->typeChecking = false;
+      opts->earlyTypeChecking = false;
       break;
 
     case USE_MMAP:
@@ -302,8 +308,18 @@ throw(OptionException) {
       opts->produceAssignments = true;
       break;
 
-    case NO_EARLY_TYPE_CHECKING:
+    case NO_TYPE_CHECKING:
+      opts->typeChecking = false;
       opts->earlyTypeChecking = false;
+      break;
+
+    case LAZY_TYPE_CHECKING:
+      opts->earlyTypeChecking = false;
+      break;
+
+    case EAGER_TYPE_CHECKING:
+      opts->typeChecking = true;
+      opts->earlyTypeChecking = true;
       break;
 
     case SHOW_CONFIG:
