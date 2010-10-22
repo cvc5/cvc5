@@ -206,6 +206,41 @@ inline int deltaCoeff(Kind k){
   }
 }
 
+/**
+ * Given a rewritten predicate to TheoryArith return a single kind to
+ * to indicate its underlying structure.
+ * The function returns the following in each case:
+ * - (K left right) -> K where is a wildcard for EQUAL, LEQ, or GEQ:
+ * - (NOT (EQUAL left right)) -> DISTINCT
+ * - (NOT (LEQ left right))   -> GT
+ * - (NOT (GEQ left right))   -> LT
+ * If none of these match, it returns UNDEFINED_KIND.
+ */
+ inline Kind simplifiedKind(TNode assertion){
+  switch(assertion.getKind()){
+  case kind::LEQ:
+  case  kind::GEQ:
+  case  kind::EQUAL:
+    return assertion.getKind();
+  case  kind::NOT:
+    {
+      TNode atom = assertion[0];
+      switch(atom.getKind()){
+      case  kind::LEQ: //(not (LEQ x c)) <=> (GT x c)
+        return  kind::GT;
+      case  kind::GEQ: //(not (GEQ x c) <=> (LT x c)
+        return  kind::LT;
+      case  kind::EQUAL:
+        return  kind::DISTINCT;
+      default:
+        return  kind::UNDEFINED_KIND;
+      }
+    }
+  default:
+    return kind::UNDEFINED_KIND;
+  }
+}
+
 }; /* namesapce arith */
 }; /* namespace theory */
 }; /* namespace CVC4 */

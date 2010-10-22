@@ -127,7 +127,7 @@ bool isNormalAtom(TNode n){
 
 
 bool TheoryArith::shouldEject(ArithVar var){
-  if(d_partialModel.hasBounds(var)){
+  if(d_partialModel.hasEitherBound(var)){
     return false;
   }else if(d_tableau.isEjected(var)) {
     return false;
@@ -171,8 +171,8 @@ void TheoryArith::reinjectVariable(ArithVar x){
   d_tableau.reinjectBasic(x);
 
 
-  DeltaRational safeAssignment = computeRowValueUsingSavedAssignment(x);
-  DeltaRational assignment = computeRowValueUsingAssignment(x);
+  DeltaRational safeAssignment = computeRowValue(x, true);
+  DeltaRational assignment = computeRowValue(x, false);
   d_partialModel.setAssignment(x,safeAssignment,assignment);
 }
 
@@ -307,16 +307,12 @@ void TheoryArith::setupInitialValue(ArithVar x){
 
     //This can go away if the tableau creation is done at preregister
     //time instead of register
-    DeltaRational safeAssignment = computeRowValueUsingSavedAssignment(x);
-    DeltaRational assignment = computeRowValueUsingAssignment(x);
+    DeltaRational safeAssignment = computeRowValue(x, true);
+    DeltaRational assignment = computeRowValue(x, false);
     d_partialModel.initialize(x,safeAssignment);
     d_partialModel.setAssignment(x,assignment);
 
     checkBasicVariable(x);
-    //Strictly speaking checking x is unnessecary as it cannot have an upper or
-    //lower bound. This is done to strongly enforce the notion that basic
-    //variables should not be changed without begin checked.
-
     //Strictly speaking checking x is unnessecary as it cannot have an upper or
     //lower bound. This is done to strongly enforce the notion that basic
     //variables should not be changed without begin checked.
@@ -328,7 +324,7 @@ void TheoryArith::setupInitialValue(ArithVar x){
 /**
  * Computes the value of a basic variable using the current assignment.
  */
-DeltaRational TheoryArith::computeRowValueUsingAssignment(ArithVar x){
+DeltaRational TheoryArith::computeRowValue(ArithVar x, bool useSafe){
   Assert(d_basicManager.isBasic(x));
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
@@ -336,28 +332,13 @@ DeltaRational TheoryArith::computeRowValueUsingAssignment(ArithVar x){
   for(Row::iterator i = row->begin(); i != row->end();++i){
     ArithVar nonbasic = i->first;
     const Rational& coeff = i->second;
-    const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic);
+
+    const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic, useSafe);
     sum = sum + (assignment * coeff);
   }
   return sum;
 }
 
-/**
- * Computes the value of a basic variable using the current assignment.
- */
-DeltaRational TheoryArith::computeRowValueUsingSavedAssignment(ArithVar x){
-  Assert(d_basicManager.isBasic(x));
-  DeltaRational sum = d_constants.d_ZERO_DELTA;
-
-  Row* row = d_tableau.lookup(x);
-  for(Row::iterator i = row->begin(); i != row->end();++i){
-    ArithVar nonbasic = i->first;
-    const Rational& coeff = i->second;
-    const DeltaRational& assignment = d_partialModel.getSafeAssignment(nonbasic);
-    sum = sum + (assignment * coeff);
-  }
-  return sum;
-}
 
 RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
   return d_nextRewriter.preRewrite(n);
@@ -368,12 +349,7 @@ void TheoryArith::registerTerm(TNode tn){
 }
 
 /* procedure AssertUpper( x_i <= c_i) */
-bool TheoryArith::AssertUpper(TNode n, TNode original){
-  TNode nodeX_i = n[0];
-  ArithVar x_i = asArithVar(nodeX_i);
-  Rational dcoeff = Rational(Integer(deltaCoeff(n.getKind())));
-  DeltaRational c_i(n[1].getConst<Rational>(), dcoeff);
-
+bool TheoryArith::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
   if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
@@ -409,12 +385,7 @@ bool TheoryArith::AssertUpper(TNode n, TNode original){
 }
 
 /* procedure AssertLower( x_i >= c_i ) */
-bool TheoryArith::AssertLower(TNode n, TNode original){
-  TNode nodeX_i = n[0];
-  ArithVar x_i = asArithVar(nodeX_i);
-  Rational dcoeff = Rational(Integer(deltaCoeff(n.getKind())));
-  DeltaRational c_i(n[1].getConst<Rational>(),dcoeff);
-
+bool TheoryArith::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode original){
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
 
   if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
@@ -449,11 +420,7 @@ bool TheoryArith::AssertLower(TNode n, TNode original){
 }
 
 /* procedure AssertLower( x_i == c_i ) */
-bool TheoryArith::AssertEquality(TNode n, TNode original){
-  Assert(n.getKind() == EQUAL);
-  TNode nodeX_i = n[0];
-  ArithVar x_i = asArithVar(nodeX_i);
-  DeltaRational c_i(n[1].getConst<Rational>());
+bool TheoryArith::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
 
@@ -501,7 +468,7 @@ bool TheoryArith::AssertEquality(TNode n, TNode original){
 
   return false;
 }
-void TheoryArith::update(ArithVar x_i, DeltaRational& v){
+void TheoryArith::update(ArithVar x_i, const DeltaRational& v){
   Assert(!d_basicManager.isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
   ++(d_statistics.d_statUpdates);
@@ -757,61 +724,66 @@ Node TheoryArith::generateConflictBelow(ArithVar conflictVar){
   return conflict;
 }
 
-
-//TODO get rid of this!
-Node TheoryArith::simulatePreprocessing(TNode n){
-  if(n.getKind() == NOT){
-    Node sub = simulatePreprocessing(n[0]);
-    Assert(sub.getKind() != NOT);
-    return NodeManager::currentNM()->mkNode(NOT,sub);
-
-  }else{
-    Assert(isNormalAtom(n));
-    Kind k = n.getKind();
-
-    Assert(isRelationOperator(k));
-    if(n[0].getMetaKind() == metakind::VARIABLE){
-      return n;
-    }else {
-      TNode left = n[0];
-      TNode right = n[1];
-      Assert(left.hasAttribute(Slack()));
-      Node slack = left.getAttribute(Slack());
-      return NodeManager::currentNM()->mkNode(k,slack,right);
-    }
+template <bool selectLeft>
+TNode getSide(TNode assertion, Kind simpleKind){
+  switch(simpleKind){
+  case LT:
+  case GT:
+  case DISTINCT:
+    return selectLeft ? (assertion[0])[0] : (assertion[0])[1];
+  case LEQ:
+  case GEQ:
+  case EQUAL:
+    return selectLeft ? assertion[0] : assertion[1];
+  default:
+    Unreachable();
+    return TNode::null();
   }
 }
 
-bool TheoryArith::assertionCases(TNode original, TNode assertion){
-  switch(assertion.getKind()){
+ArithVar TheoryArith::determineLeftVariable(TNode assertion, Kind simpleKind){
+  TNode left = getSide<true>(assertion, simpleKind);
+
+  if(isTheoryLeaf(left)){
+    return asArithVar(left);
+  }else{
+    Assert(left.hasAttribute(Slack()));
+    TNode slack = left.getAttribute(Slack());
+    return asArithVar(slack);
+  }
+}
+
+DeltaRational determineRightConstant(TNode assertion, Kind simpleKind){
+  TNode right = getSide<false>(assertion, simpleKind);
+
+  Assert(right.getKind() == CONST_RATIONAL);
+  const Rational& noninf = right.getConst<Rational>();
+
+  Rational inf = Rational(Integer(deltaCoeff(simpleKind)));
+  return DeltaRational(noninf, inf);
+}
+
+bool TheoryArith::assertionCases(TNode assertion){
+  Kind simpKind = simplifiedKind(assertion);
+  Assert(simpKind != UNDEFINED_KIND);
+  ArithVar x_i = determineLeftVariable(assertion, simpKind);
+  DeltaRational c_i = determineRightConstant(assertion, simpKind);
+
+  Debug("arith_assertions") << "arith assertion(" << assertion
+                            << " \\-> "
+                            <<x_i<<" "<< simpKind <<" "<< c_i << ")" << std::endl;
+  switch(simpKind){
   case LEQ:
-    return AssertUpper(assertion, original);
+  case LT:
+    return AssertUpper(x_i, c_i, assertion);
+  case GT:
   case GEQ:
-    return AssertLower(assertion, original);
+    return AssertLower(x_i, c_i, assertion);
   case EQUAL:
-    return AssertEquality(assertion,original);
-  case NOT:
-    {
-      TNode atom = assertion[0];
-      switch(atom.getKind()){
-      case LEQ: //(not (LEQ x c)) <=> (GT x c)
-        {
-          Node pushedin = pushInNegation(assertion);
-          return AssertLower(pushedin,original);
-        }
-      case GEQ: //(not (GEQ x c) <=> (LT x c)
-        {
-          Node pushedin = pushInNegation(assertion);
-          return AssertUpper(pushedin,original);
-        }
-      case EQUAL:
-        d_diseq.push_back(assertion);
-        return false;
-      default:
-        Unreachable();
-        return false;
-      }
-    }
+    return AssertEquality(x_i, c_i, assertion);
+  case DISTINCT:
+    d_diseq.push_back(assertion);
+    return false;
   default:
     Unreachable();
     return false;
@@ -823,14 +795,10 @@ void TheoryArith::check(Effort level){
 
   while(!done()){
 
-    Node original = get();
-    Node assertion = simulatePreprocessing(original);
-    Debug("arith_assertions") << "arith assertion(" << original
-                              << " \\-> " << assertion << ")" << std::endl;
+    Node assertion = get();
 
-    d_propagator.assertLiteral(original);
-    bool conflictDuringAnAssert = assertionCases(original, assertion);
-
+    d_propagator.assertLiteral(assertion);
+    bool conflictDuringAnAssert = assertionCases(assertion);
 
     if(conflictDuringAnAssert){
       d_partialModel.revertAssignmentChanges();

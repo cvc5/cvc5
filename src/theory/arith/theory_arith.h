@@ -153,16 +153,18 @@ private:
    *
    * returns true if a conflict was asserted.
    */
-  bool AssertLower(TNode n, TNode orig);
-  bool AssertUpper(TNode n, TNode orig);
+  bool AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode orig);
+  bool AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode orig);
+  bool AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode orig);
 
-  bool AssertEquality(TNode n, TNode orig);
+  ArithVar determineLeftVariable(TNode assertion, Kind simpleKind);
+
 
   /**
    * Updates the assignment of a nonbasic variable x_i to v.
    * Also updates the assignment of basic variables accordingly.
    */
-  void update(ArithVar x_i, DeltaRational& v);
+  void update(ArithVar x_i, const DeltaRational& v);
 
   /**
    * Updates the value of a basic variable x_i to v,
@@ -233,12 +235,14 @@ private:
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);
 
-
-  /** Computes the value of a row in the tableau using the current assignment.*/
-  DeltaRational computeRowValueUsingAssignment(ArithVar x);
-
-  /** Computes the value of a row in the tableau using the safe assignment.*/
-  DeltaRational computeRowValueUsingSavedAssignment(ArithVar x);
+  /**
+   * Computes the value of a basic variable using the assignments
+   * of the values of the variables in the basic variable's row tableau.
+   * This can compute the value using either:
+   * - the the current assignment (useSafe=false) or
+   * - the safe assignment (useSafe = true).
+   */
+  DeltaRational computeRowValue(ArithVar x, bool useSafe);
 
   /** Checks to make sure the assignment is consistent with the tableau. */
   void checkTableau();
@@ -250,15 +254,12 @@ private:
    * Handles the case splitting for check() for a new assertion.
    * returns true if their is a conflict.
    */
-  bool assertionCases(TNode original, TNode assertion);
+  bool assertionCases(TNode assertion);
 
   ArithVar findBasicRow(ArithVar variable);
   bool shouldEject(ArithVar var);
   void ejectInactiveVariables();
   void reinjectVariable(ArithVar x);
-
-  //TODO get rid of this!
-  Node simulatePreprocessing(TNode n);
 
   void asVectors(Polynomial& p,
                  std::vector<Rational>& coeffs,

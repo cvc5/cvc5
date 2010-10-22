@@ -88,6 +88,7 @@ public:
 
   /* Gets the last assignment to a variable that is known to be conistent. */
   const DeltaRational& getSafeAssignment(ArithVar x) const;
+  const DeltaRational& getAssignment(ArithVar x, bool safe) const;
 
   /* Reverts all variable assignments to their safe values. */
   void revertAssignmentChanges();
@@ -131,7 +132,13 @@ public:
   void printModel(ArithVar x);
 
   /** returns true iff x has both a lower and upper bound. */
-  bool hasBounds(ArithVar x);
+  bool hasEitherBound(ArithVar x);
+  inline bool hasLowerBound(ArithVar x){
+    return !d_lowerConstraint[x].isNull();
+  }
+  inline bool hasUpperBound(ArithVar x){
+    return !d_upperConstraint[x].isNull();
+  }
 
   bool hasEverHadABound(ArithVar var){
     return d_hasHadABound[var];
