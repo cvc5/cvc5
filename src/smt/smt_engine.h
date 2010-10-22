@@ -32,7 +32,6 @@
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
 #include "util/hash.h"
-#include "util/model.h"
 #include "util/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"

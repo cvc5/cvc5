@@ -17,14 +17,12 @@ libutil_la_SOURCES = \
 	exception.h \
 	hash.h \
 	bool.h \
-	model.h \
 	options.h \
 	options.cpp \
 	output.cpp \
 	output.h \
 	result.h \
 	result.cpp \
-	unique_id.h \
 	configuration.h \
 	configuration_private.h \
 	configuration.cpp \
@@ -36,7 +34,6 @@ libutil_la_SOURCES = \
 	sexpr.h \
 	stats.h \
 	stats.cpp \
-	triple.h \
 	dynamic_array.h \
 	language.h
 
