@@ -23,9 +23,9 @@
 #include <string.h>
 #include <signal.h>
 
-#include "util/exception.h"
-#include "smt/options.h"
 #include "util/Assert.h"
+#include "util/exception.h"
+#include "util/options.h"
 #include "util/stats.h"
 
 #include "cvc4autoconfig.h"

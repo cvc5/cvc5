@@ -19,25 +19,15 @@
 #include <exception>
 #include <string>
 
+#include "util/options.h"
 #include "cvc4autoconfig.h"
-#include "util/exception.h"
 
 #ifndef __CVC4__MAIN__MAIN_H
 #define __CVC4__MAIN__MAIN_H
 
 namespace CVC4 {
 
-struct Options;
-
 namespace main {
-
-/** Class representing an option-parsing exception. */
-class OptionException : public CVC4::Exception {
-public:
-  OptionException(const std::string& s) throw() :
-    CVC4::Exception("Error in option parsing: " + s) {
-  }
-};/* class OptionException */
 
 /** Full argv[0] */
 extern const char *progPath;
@@ -52,14 +42,7 @@ extern const char *progName;
  */
 extern bool segvNoSpin;
 
-/**
- * Keep a copy of the options around globally, so that signal handlers can
- * access it.
- */
-extern struct Options options;
-
-/** Parse argc/argv and put the result into a CVC4::Options struct. */
-int parseOptions(int argc, char** argv, CVC4::Options*) throw(OptionException);
+extern Options options;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw();

@@ -30,9 +30,18 @@
 #include <iostream>
 #include <string>
 
-#include "util/language.h"
+#include "exception.h"
+#include "language.h"
 
 namespace CVC4 {
+
+/** Class representing an option-parsing exception. */
+class OptionException : public CVC4::Exception {
+public:
+    OptionException(const std::string& s) throw() :
+      CVC4::Exception("Error in option parsing: " + s) {
+    }
+};/* class OptionException */
 
 struct CVC4_PUBLIC Options {
 
@@ -40,8 +49,9 @@ struct CVC4_PUBLIC Options {
 
   bool statistics;
 
-  std::ostream *out;
-  std::ostream *err;
+  std::istream& in;
+  std::ostream& out;
+  std::ostream& err;
 
   /* -1 means no output */
   /* 0 is normal (and default) -- warnings only */
@@ -58,6 +68,15 @@ struct CVC4_PUBLIC Options {
 
   /** Which implementation of uninterpreted function theory to use */
   UfImplementation uf_implementation;
+
+  /** Should we print the help message? */
+  bool help;
+
+  /** Should we print the release information? */
+  bool version;
+
+  /** Should we print the language help information? */
+  bool languageHelp;
 
   /** Should we exit after parsing? */
   bool parseOnly;
@@ -83,6 +102,9 @@ struct CVC4_PUBLIC Options {
    */
   bool interactiveSetByUser;
 
+  /** Whether we should "spin" on a SIG_SEGV. */
+  bool segvNoSpin;
+
   /** Whether we support SmtEngine::getValue() for this run. */
   bool produceModels;
 
@@ -98,8 +120,9 @@ struct CVC4_PUBLIC Options {
   Options() :
     binary_name(),
     statistics(false),
-    out(0),
-    err(0),
+    in(std::cin),
+    out(std::cout),
+    err(std::cerr),
     verbosity(0),
     inputLanguage(language::input::LANG_AUTO),
     uf_implementation(MORGAN),
@@ -110,11 +133,27 @@ struct CVC4_PUBLIC Options {
     lazyDefinitionExpansion(false),
     interactive(false),
     interactiveSetByUser(false),
+    segvNoSpin(false),
     produceModels(false),
     produceAssignments(false),
     typeChecking(true),
     earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT) {
   }
+
+  /** 
+   * Get a description of the command-line flags accepted by
+   * parseOptions.  The returned string will be escaped so that it is
+   * suitable as an argument to printf. */
+  std::string getDescription() const;
+
+  static void printUsage(const std::string msg, std::ostream& out);
+  static void printLanguageHelp(std::ostream& out);
+
+  /**
+   * Initialize the options based on the given command-line arguments.
+   */
+  int parseOptions(int argc, char* argv[])
+    throw(OptionException);
 };/* struct Options */
 
 inline std::ostream& operator<<(std::ostream& out,
@@ -132,6 +171,8 @@ inline std::ostream& operator<<(std::ostream& out,
 
   return out;
 }
+
+ 
 
 }/* CVC4 namespace */
 

@@ -18,6 +18,8 @@ libutil_la_SOURCES = \
 	hash.h \
 	bool.h \
 	model.h \
+	options.h \
+	options.cpp \
 	output.cpp \
 	output.h \
 	result.h \

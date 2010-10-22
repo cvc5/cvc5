@@ -30,7 +30,6 @@
 #include "prop/prop_engine.h"
 #include "prop/sat.h"
 #include "smt/smt_engine.h"
-#include "smt/options.h"
 #include "util/decision_engine.h"
 
 using namespace CVC4;

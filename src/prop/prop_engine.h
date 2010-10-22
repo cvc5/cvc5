@@ -24,9 +24,9 @@
 #define __CVC4__PROP_ENGINE_H
 
 #include "expr/node.h"
-#include "util/result.h"
 #include "util/decision_engine.h"
-#include "smt/options.h"
+#include "util/options.h"
+#include "util/result.h"
 
 namespace CVC4 {
 

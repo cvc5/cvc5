@@ -23,10 +23,10 @@
 
 #include "expr/node.h"
 #include "prop/prop_engine.h"
-#include "smt/options.h"
 #include "theory/shared_term_manager.h"
 #include "theory/theory.h"
 #include "theory/theoryof_table.h"
+#include "util/options.h"
 #include "util/stats.h"
 
 namespace CVC4 {

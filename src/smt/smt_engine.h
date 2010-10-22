@@ -23,19 +23,19 @@
 
 #include <vector>
 
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
+#include "context/cdlist_forward.h"
 #include "context/cdmap_forward.h"
 #include "context/cdset_forward.h"
-#include "context/cdlist_forward.h"
-#include "util/result.h"
-#include "util/model.h"
-#include "util/sexpr.h"
-#include "util/hash.h"
+#include "expr/expr.h"
+#include "expr/expr_manager.h"
+#include "smt/bad_option_exception.h"
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
-#include "smt/options.h"
-#include "smt/bad_option_exception.h"
+#include "util/hash.h"
+#include "util/model.h"
+#include "util/options.h"
+#include "util/result.h"
+#include "util/sexpr.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -47,7 +47,7 @@ template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class NodeHashFunction;
-class Command;
+
 class TheoryEngine;
 class DecisionEngine;
 

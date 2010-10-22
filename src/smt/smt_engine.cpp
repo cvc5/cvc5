@@ -20,22 +20,22 @@
 #include <string>
 #include <sstream>
 
-#include "smt/smt_engine.h"
-#include "smt/modal_exception.h"
-#include "smt/bad_option_exception.h"
-#include "smt/no_such_function_exception.h"
-#include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdset.h"
-#include "expr/expr.h"
+#include "context/context.h"
 #include "expr/command.h"
+#include "expr/expr.h"
 #include "expr/node_builder.h"
-#include "util/output.h"
-#include "util/exception.h"
-#include "smt/options.h"
-#include "util/configuration.h"
 #include "prop/prop_engine.h"
+#include "smt/bad_option_exception.h"
+#include "smt/modal_exception.h"
+#include "smt/no_such_function_exception.h"
+#include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
+#include "util/configuration.h"
+#include "util/exception.h"
+#include "util/options.h"
+#include "util/output.h"
 
 using namespace std;
 using namespace CVC4;

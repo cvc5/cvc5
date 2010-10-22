@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file getopt.cpp
+/*! \file options.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: cconway
@@ -26,30 +26,68 @@
 
 #include <getopt.h>
 
-#include "util/exception.h"
-#include "util/configuration.h"
-#include "util/output.h"
-#include "smt/options.h"
-#include "util/language.h"
 #include "expr/expr.h"
+#include "util/configuration.h"
+#include "util/exception.h"
+#include "util/language.h"
+#include "util/options.h"
+#include "util/output.h"
 
 #include "cvc4autoconfig.h"
-#include "main.h"
-#include "usage.h"
 
 using namespace std;
 using namespace CVC4;
 
 namespace CVC4 {
-namespace main {
 
-static const char lang_help[] = "\
+static const string optionsDescription = "\
+   --lang | -L            force input language (default is `auto'; see --lang help)\n\
+   --version | -V         identify this CVC4 binary\n\
+   --help | -h            this command line reference\n\
+   --parse-only           exit after parsing input\n\
+   --mmap                 memory map file input\n\
+   --show-config          show CVC4 static configuration\n\
+   --segv-nospin          don't spin on segfault waiting for gdb\n\
+   --lazy-type-checking   type check expressions only when necessary (default)\n\
+   --eager-type-checking  type check expressions immediately on creation\n\
+   --no-type-checking     never type check expressions\n\
+   --no-checking          disable ALL semantic checks, including type checks \n\
+   --strict-parsing       fail on non-conformant inputs (SMT2 only)\n\
+   --verbose | -v         increase verbosity (repeatable)\n\
+   --quiet | -q           decrease verbosity (repeatable)\n\
+   --trace | -t           tracing for something (e.g. --trace pushpop)\n\
+   --debug | -d           debugging for something (e.g. --debug arith), implies -t\n\
+   --stats                give statistics on exit\n\
+   --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
+   --print-expr-types     print types with variables when printing exprs\n\
+   --uf=morgan|tim        select uninterpreted function theory implementation\n\
+   --interactive          run interactively\n\
+   --no-interactive       do not run interactively\n\
+   --produce-models       support the get-value command\n\
+   --produce-assignments  support the get-assignment command\n\
+   --lazy-definition-expansion expand define-fun lazily\n";
+
+static const string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto           attempt to automatically determine the input language\n\
   pl | cvc4      CVC4 presentation language\n\
   smt | smtlib   SMT-LIB format 1.2\n\
   smt2 | smtlib2 SMT-LIB format 2.0\n\
 ";
+
+string Options::getDescription() const {
+  return optionsDescription;
+}
+
+void Options::printUsage(const string msg, std::ostream& out) {
+  out << msg << optionsDescription << endl << flush;
+  // printf(usage + options.getDescription(), options.binary_name.c_str());
+  //     printf(usage, binary_name.c_str());
+}
+
+void Options::printLanguageHelp(std::ostream& out) {
+  out << languageDescription << flush;
+}
 
 /**
  * For the main getopt() routine, we need ways to switch on long
@@ -136,16 +174,11 @@ static struct option cmdlineOptions[] = {
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
-/** Full argv[0] */
-const char *progPath;
-
-/** Just the basename component of argv[0] */
-const char *progName;
 
 /** Parse argc/argv and put the result into a CVC4::Options struct. */
-int parseOptions(int argc, char* argv[], CVC4::Options* opts)
+int Options::parseOptions(int argc, char* argv[])
 throw(OptionException) {
-  progPath = progName = argv[0];
+  const char *progName = argv[0];
   int c;
 
   // find the base name of the program
@@ -153,7 +186,7 @@ throw(OptionException) {
   if(x != NULL) {
     progName = x + 1;
   }
-  opts->binary_name = string(progName);
+  binary_name = string(progName);
 
   // The strange string in this call is the short option string.  The
   // initial '+' means that option processing stops as soon as a
@@ -172,33 +205,37 @@ throw(OptionException) {
     switch(c) {
 
     case 'h':
-      printf(usage, opts->binary_name.c_str());
-      exit(1);
+      help = true;
+      break;
+      // options.printUsage(usage);
+      // exit(1);
 
     case 'V':
-      fputs(Configuration::about().c_str(), stdout);
-      exit(0);
+      version = true;
+      break;
+      // fputs(Configuration::about().c_str(), stdout);
+      // exit(0);
 
     case 'v':
-      ++opts->verbosity;
+      ++verbosity;
       break;
 
     case 'q':
-      --opts->verbosity;
+      --verbosity;
       break;
 
     case 'L':
       if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
-        opts->inputLanguage = language::input::LANG_CVC4;
+        inputLanguage = language::input::LANG_CVC4;
         break;
       } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
-        opts->inputLanguage = language::input::LANG_SMTLIB;
+        inputLanguage = language::input::LANG_SMTLIB;
         break;
       } else if(!strcmp(optarg, "smtlib2") || !strcmp(optarg, "smt2")) {
-        opts->inputLanguage = language::input::LANG_SMTLIB_V2;
+        inputLanguage = language::input::LANG_SMTLIB_V2;
         break;
       } else if(!strcmp(optarg, "auto")) {
-        opts->inputLanguage = language::input::LANG_AUTO;
+        inputLanguage = language::input::LANG_AUTO;
         break;
       }
 
@@ -207,8 +244,8 @@ throw(OptionException) {
                               optarg + "'.  Try --lang help.");
       }
 
-      fputs(lang_help, stdout);
-      exit(1);
+      languageHelp = true;
+      break;
 
     case 't':
       Trace.on(optarg);
@@ -220,7 +257,7 @@ throw(OptionException) {
       break;
 
     case STATS:
-      opts->statistics = true;
+      statistics = true;
       break;
 
     case SEGV_NOSPIN:
@@ -228,21 +265,21 @@ throw(OptionException) {
       break;
 
     case PARSE_ONLY:
-      opts->parseOnly = true;
+      parseOnly = true;
       break;
 
     case NO_CHECKING:
-      opts->semanticChecks = false;
-      opts->typeChecking = false;
-      opts->earlyTypeChecking = false;
+      semanticChecks = false;
+      typeChecking = false;
+      earlyTypeChecking = false;
       break;
 
     case USE_MMAP:
-      opts->memoryMap = true;
+      memoryMap = true;
       break;
 
     case STRICT_PARSING:
-      opts->strictParsing = true;
+      strictParsing = true;
       break;
 
     case DEFAULT_EXPR_DEPTH:
@@ -271,9 +308,9 @@ throw(OptionException) {
     case UF_THEORY:
       {
         if(!strcmp(optarg, "tim")) {
-          opts->uf_implementation = Options::TIM;
+          uf_implementation = Options::TIM;
         } else if(!strcmp(optarg, "morgan")) {
-          opts->uf_implementation = Options::MORGAN;
+          uf_implementation = Options::MORGAN;
         } else if(!strcmp(optarg, "help")) {
           printf("UF implementations available:\n");
           printf("tim\n");
@@ -287,39 +324,39 @@ throw(OptionException) {
       break;
 
     case LAZY_DEFINITION_EXPANSION:
-      opts->lazyDefinitionExpansion = true;
+      lazyDefinitionExpansion = true;
       break;
 
     case INTERACTIVE:
-      opts->interactive = true;
-      opts->interactiveSetByUser = true;
+      interactive = true;
+      interactiveSetByUser = true;
       break;
 
     case NO_INTERACTIVE:
-      opts->interactive = false;
-      opts->interactiveSetByUser = true;
+      interactive = false;
+      interactiveSetByUser = true;
       break;
 
     case PRODUCE_MODELS:
-      opts->produceModels = true;
+      produceModels = true;
       break;
 
     case PRODUCE_ASSIGNMENTS:
-      opts->produceAssignments = true;
+      produceAssignments = true;
       break;
 
     case NO_TYPE_CHECKING:
-      opts->typeChecking = false;
-      opts->earlyTypeChecking = false;
+      typeChecking = false;
+      earlyTypeChecking = false;
       break;
 
     case LAZY_TYPE_CHECKING:
-      opts->earlyTypeChecking = false;
+      earlyTypeChecking = false;
       break;
 
     case EAGER_TYPE_CHECKING:
-      opts->typeChecking = true;
-      opts->earlyTypeChecking = true;
+      typeChecking = true;
+      earlyTypeChecking = true;
       break;
 
     case SHOW_CONFIG:
@@ -356,5 +393,4 @@ throw(OptionException) {
   return optind;
 }
 
-}/* CVC4::main namespace */
 }/* CVC4 namespace */

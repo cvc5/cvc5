@@ -21,10 +21,10 @@
 #include "sat.h"
 
 #include "theory/theory_engine.h"
-#include "util/decision_engine.h"
 #include "util/Assert.h"
+#include "util/decision_engine.h"
+#include "util/options.h"
 #include "util/output.h"
-#include "smt/options.h"
 #include "util/result.h"
 
 #include <utility>
