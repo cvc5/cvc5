@@ -111,8 +111,10 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
   switch(d_lang) {
   case language::input::LANG_SMTLIB:
     parser = new Smt(&d_exprManager, input, d_strictMode);
+    break;
   case language::input::LANG_SMTLIB_V2:
     parser = new Smt2(&d_exprManager, input, d_strictMode);
+    break;
   default:
     parser = new Parser(&d_exprManager, input, d_strictMode);
   }
