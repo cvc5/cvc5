@@ -29,17 +29,19 @@ namespace CVC4 {
 
   using namespace parser;
 
-class InteractiveShell {
+class CVC4_PUBLIC InteractiveShell {
   std::istream& d_in;
   std::ostream& d_out;
   ParserBuilder d_parserBuilder;
+  Parser* d_lastParser;
 
 public:
   InteractiveShell(ParserBuilder& parserBuilder,
                   const Options& options) : 
     d_in(*options.in),
     d_out(*options.out),
-    d_parserBuilder(parserBuilder) {
+    d_parserBuilder(parserBuilder),
+    d_lastParser(NULL) {
   }
 
   /** Read a command from the interactive shell. This will read as

@@ -83,6 +83,7 @@ ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filena
   d_filename = filename;
   d_streamInput = NULL;
   d_exprManager = exprManager;
+  d_parserToUseForState = NULL;
   d_checksEnabled = true;
   d_strictMode = false;
   d_mmap = false;
@@ -120,6 +121,11 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
     parser->enableChecks();
   } else {
     parser->disableChecks();
+  }
+
+  if( d_parserToUseForState != NULL ) {
+    parser->d_declScope = d_parserToUseForState->d_declScope;
+    parser->d_logicOperators = d_parserToUseForState->d_logicOperators;
   }
 
   return parser;
@@ -163,6 +169,11 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
       .withChecks(options.semanticChecks)
       .withStrictMode(options.strictParsing);
   }
+
+ParserBuilder& ParserBuilder::withStateFrom(const Parser* parser) {
+  d_parserToUseForState = parser;
+  return *this;
+}
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
   d_strictMode = flag;

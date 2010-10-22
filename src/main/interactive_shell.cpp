@@ -93,6 +93,7 @@ Command* InteractiveShell::readCommand() {
   Parser *parser = 
     d_parserBuilder
         .withStringInput(input)
+        .withStateFrom(d_lastParser)
         .build();
 
   /* There may be more than one command in the input. Build up a
@@ -104,7 +105,9 @@ Command* InteractiveShell::readCommand() {
     cmd_seq->addCommand(cmd);
   }
 
-  delete parser;
+  delete d_lastParser;
+  d_lastParser = parser;
+
   return cmd_seq;
 }
 

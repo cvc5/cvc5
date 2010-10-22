@@ -80,6 +80,9 @@ class CVC4_PUBLIC ParserBuilder {
   /** The expression manager */
   ExprManager& d_exprManager;
 
+  /** Parser to derive the initial state from. */
+  const Parser* d_parserToUseForState;
+
   /** Should semantic checks be enabled during parsing? */
   bool d_checksEnabled;
 
@@ -127,6 +130,11 @@ public:
 
   /** Derive settings from the given options. */
   ParserBuilder& withOptions(const Options& options);
+
+  /** Copy the state (e.g., variable and type declaration) from
+   * an existing parser. If <code>parser</code> is <code>NULL</code>,
+   * the default initial state will be used. */
+  ParserBuilder& withStateFrom(const Parser* parser);
 
   /** Should the parser use strict mode? (Default: no) */
   ParserBuilder& withStrictMode(bool flag = true);
