@@ -147,6 +147,7 @@ public:
 private:
 
   void computeDelta();
+  void deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u);
 
   /**
    * This function implements the mostly identical:

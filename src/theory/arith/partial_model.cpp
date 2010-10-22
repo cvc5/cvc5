@@ -250,27 +250,34 @@ void ArithPartialModel::printModel(ArithVar x){
   }
 }
 
+void ArithPartialModel::deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u){
+  const Rational& c = l.getNoninfinitesimalPart();
+  const Rational& k = l.getInfinitesimalPart();
+  const Rational& d = u.getNoninfinitesimalPart();
+  const Rational& h = u.getInfinitesimalPart();
+
+  if(c < d && k > h){
+    Rational ep = (d-c)/(k-h);
+    if(ep < d_delta){
+      d_delta = ep;
+    }
+  }
+}
+
 void ArithPartialModel::computeDelta(){
   Assert(!d_deltaIsSafe);
-  d_deltaIsSafe = true;
   d_delta = 1;
 
   for(ArithVar x = 0; x < d_mapSize; ++x){
-    if(hasBounds(x)){
+    const DeltaRational& a = getAssignment(x);
+    if(!d_lowerConstraint[x].isNull()){
       const DeltaRational& l = getLowerBound(x);
+      deltaIsSmallerThan(l,a);
+    }
+    if(!d_upperConstraint[x].isNull()){
       const DeltaRational& u = getUpperBound(x);
-      // c + k\ep <= d + h\ep
-      const Rational& c = l.getNoninfinitesimalPart();
-      const Rational& k = l.getInfinitesimalPart();
-      const Rational& d = u.getNoninfinitesimalPart();
-      const Rational& h = u.getInfinitesimalPart();
-
-      if(c < d && k > h){
-        Rational ep = (d-c)/(k-h);
-        if(ep < d_delta){
-          d_delta = ep;
-        }
-      }
+      deltaIsSmallerThan(a,u);
     }
   }
+  d_deltaIsSafe = true;
 }

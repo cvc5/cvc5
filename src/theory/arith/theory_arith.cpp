@@ -193,7 +193,13 @@ void TheoryArith::preRegisterTerm(TNode n) {
     d_out->augmentingLemma(eagerSplit);
   }
 
-  if(isTheoryLeaf(n)){
+  bool isStrictlyVarList = n.getKind() == kind::MULT && VarList::isMember(n);
+
+  if(isStrictlyVarList){
+    d_out->setIncomplete();
+  }
+
+  if(isTheoryLeaf(n) || isStrictlyVarList){
     ArithVar varN = requestArithVar(n,false);
     setupInitialValue(varN);
   }
@@ -935,8 +941,14 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
 
   switch(n.getKind()) {
   case kind::VARIABLE: {
-    DeltaRational drat = d_partialModel.getAssignment(asArithVar(n));
+    ArithVar var = asArithVar(n);
+    if(d_tableau.isEjected(var)){
+      reinjectVariable(var);
+    }
+
+    DeltaRational drat = d_partialModel.getAssignment(var);
     const Rational& delta = d_partialModel.getDelta();
+    Debug("getValue") << n << " " << drat << " " << delta << endl;
     return nodeManager->
       mkConst( drat.getNoninfinitesimalPart() +
                drat.getInfinitesimalPart() * delta );
