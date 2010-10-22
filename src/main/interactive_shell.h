@@ -21,6 +21,7 @@
 #include <string>
 
 #include "parser/parser_builder.h"
+#include "util/options.h"
 
 namespace CVC4 {
 
@@ -34,11 +35,10 @@ class InteractiveShell {
   ParserBuilder d_parserBuilder;
 
 public:
-  InteractiveShell(std::istream& in, 
-                   std::ostream& out, 
-                   ParserBuilder& parserBuilder) : 
-    d_in(in),
-    d_out(out),
+  InteractiveShell(ParserBuilder& parserBuilder,
+                  const Options& options) : 
+    d_in(*options.in),
+    d_out(*options.out),
     d_parserBuilder(parserBuilder) {
   }
 

@@ -27,6 +27,12 @@
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT false
 #endif /* CVC4_DEBUG */
 
+#ifdef CVC4_MUZZLED
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
+#else
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
+#endif
+
 #include <iostream>
 #include <string>
 
@@ -49,9 +55,9 @@ struct CVC4_PUBLIC Options {
 
   bool statistics;
 
-  std::istream& in;
-  std::ostream& out;
-  std::ostream& err;
+  std::istream* in;
+  std::ostream* out;
+  std::ostream* err;
 
   /* -1 means no output */
   /* 0 is normal (and default) -- warnings only */
@@ -120,14 +126,14 @@ struct CVC4_PUBLIC Options {
   Options() :
     binary_name(),
     statistics(false),
-    in(std::cin),
-    out(std::cout),
-    err(std::cerr),
+    in(&std::cin),
+    out(&std::cout),
+    err(&std::cerr),
     verbosity(0),
     inputLanguage(language::input::LANG_AUTO),
     uf_implementation(MORGAN),
     parseOnly(false),
-    semanticChecks(true),
+    semanticChecks(DO_SEMANTIC_CHECKS_BY_DEFAULT),
     memoryMap(false),
     strictParsing(false),
     lazyDefinitionExpansion(false),
@@ -136,7 +142,7 @@ struct CVC4_PUBLIC Options {
     segvNoSpin(false),
     produceModels(false),
     produceAssignments(false),
-    typeChecking(true),
+    typeChecking(DO_SEMANTIC_CHECKS_BY_DEFAULT),
     earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT) {
   }
 

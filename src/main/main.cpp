@@ -79,7 +79,7 @@ void printUsage() {
       << "Without an input file, or with `-', CVC4 reads from standard input." << endl
       << endl
       << "CVC4 options:" << endl;
-  Options::printUsage( ss.str(), options.out );
+  Options::printUsage( ss.str(), *options.out );
 }
 
 /**
@@ -94,34 +94,34 @@ int main(int argc, char* argv[]) {
     return runCvc4(argc, argv);
   } catch(OptionException& e) {
 #ifdef CVC4_COMPETITION_MODE
-    options.out << "unknown" << endl;
+    *options.out << "unknown" << endl;
 #endif
     cerr << "CVC4 Error:" << endl << e << endl;
     printUsage();
     exit(1);
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
-    options.out << "unknown" << endl;
+    *options.out << "unknown" << endl;
 #endif
-    options.err << "CVC4 Error:" << endl << e << endl;
+    *options.err << "CVC4 Error:" << endl << e << endl;
     if(options.statistics) {
-      StatisticsRegistry::flushStatistics(options.err);
+      StatisticsRegistry::flushStatistics(*options.err);
     }
     exit(1);
   } catch(bad_alloc) {
 #ifdef CVC4_COMPETITION_MODE
-    options.out << "unknown" << endl;
+    *options.out << "unknown" << endl;
 #endif
-    options.err << "CVC4 ran out of memory." << endl;
+    *options.err << "CVC4 ran out of memory." << endl;
     if(options.statistics) {
-      StatisticsRegistry::flushStatistics(options.err);
+      StatisticsRegistry::flushStatistics(*options.err);
     }
     exit(1);
   } catch(...) {
 #ifdef CVC4_COMPETITION_MODE
-    options.out << "unknown" << endl;
+    *options.out << "unknown" << endl;
 #endif
-    options.err << "CVC4 threw an exception of unknown type." << endl;
+    *options.err << "CVC4 threw an exception of unknown type." << endl;
     exit(1);
   }
 }
@@ -143,10 +143,10 @@ int runCvc4(int argc, char* argv[]) {
     printUsage();
     exit(1);
   } else if( options.languageHelp ) {
-    Options::printLanguageHelp(options.out);
+    Options::printLanguageHelp(*options.out);
     exit(1);
   } else if( options.version ) {
-    options.out << Configuration::about().c_str() << flush;
+    *options.out << Configuration::about().c_str() << flush;
     exit(0);
   } 
 
@@ -154,7 +154,7 @@ int runCvc4(int argc, char* argv[]) {
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC4_COMPETITION_MODE
-  options.out << unitbuf;
+  *options.out << unitbuf;
 #endif
 
   // We only accept one input file
@@ -230,12 +230,7 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   ParserBuilder parserBuilder =
-      ParserBuilder(exprMgr, filename)
-        .withInputLanguage(options.inputLanguage)
-        .withMmap(options.memoryMap)
-        .withChecks(options.semanticChecks &&
-                    !Configuration::isMuzzledBuild() )
-        .withStrictMode( options.strictParsing );
+    ParserBuilder(exprMgr, filename, options);
 
   if( inputFromStdin ) {
     parserBuilder.withStreamInput(cin);
@@ -244,7 +239,7 @@ int runCvc4(int argc, char* argv[]) {
   // Parse and execute commands until we are done
   Command* cmd;
   if( options.interactive ) {
-    InteractiveShell shell(options.in,options.out,parserBuilder);
+    InteractiveShell shell(parserBuilder,options);
     while((cmd = shell.readCommand())) {
       doCommand(smt,cmd);
       delete cmd;
@@ -280,7 +275,7 @@ int runCvc4(int argc, char* argv[]) {
   StatisticsRegistry::registerStat(&s_statSatResult);
 
   if(options.statistics) {
-    StatisticsRegistry::flushStatistics(options.err);
+    StatisticsRegistry::flushStatistics(*options.err);
   }
 
   StatisticsRegistry::unregisterStat(&s_statSatResult);
@@ -304,11 +299,11 @@ void doCommand(SmtEngine& smt, Command* cmd) {
     }
   } else {
     if(options.verbosity > 0) {
-      options.out << "Invoking: " << *cmd << endl;
+      *options.out << "Invoking: " << *cmd << endl;
     }
 
     if(options.verbosity >= 0) {
-      cmd->invoke(&smt, options.out);
+      cmd->invoke(&smt, *options.out);
     } else {
       cmd->invoke(&smt);
     }

@@ -56,15 +56,36 @@ public:
   }
 };*/
 
-ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename) :
-    d_inputType(FILE_INPUT),
-    d_lang(language::input::LANG_AUTO),
-    d_filename(filename),
-    d_streamInput(NULL),
-    d_exprManager(exprManager),
-    d_checksEnabled(true),
-    d_strictMode(false),
-    d_mmap(false) {
+ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename)//  :
+    // d_inputType(FILE_INPUT),
+    // d_lang(language::input::LANG_AUTO),
+  : d_filename(filename),
+    // d_streamInput(NULL),
+   d_exprManager(exprManager)
+    // d_checksEnabled(true),
+    // d_strictMode(false),
+    // d_mmap(false)
+{
+  init(exprManager,filename);
+}
+
+  ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename, const Options& options) :
+  d_filename(filename),
+   d_exprManager(exprManager)
+{
+  init(exprManager,filename);
+  withOptions(options);
+}
+
+  void ParserBuilder::init(ExprManager& exprManager, const std::string& filename) {
+  d_inputType = FILE_INPUT;
+  d_lang = language::input::LANG_AUTO;
+  d_filename = filename;
+  d_streamInput = NULL;
+  d_exprManager = exprManager;
+  d_checksEnabled = true;
+  d_strictMode = false;
+  d_mmap = false;
 }
 
 Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
@@ -134,6 +155,14 @@ ParserBuilder& ParserBuilder::withMmap(bool flag) {
   d_mmap = flag;
   return *this;
 }
+
+ParserBuilder& ParserBuilder::withOptions(const Options& options) {
+  return 
+    withInputLanguage(options.inputLanguage)
+      .withMmap(options.memoryMap)
+      .withChecks(options.semanticChecks)
+      .withStrictMode(options.strictParsing);
+  }
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
   d_strictMode = flag;
