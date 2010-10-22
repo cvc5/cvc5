@@ -119,7 +119,7 @@ class NodeManager {
 
   /**
    * Whether to do early type checking (only effective in debug
-   * builds; other builds never do early type checking.
+   * builds; other builds never do early type checking).
    */
   const bool d_earlyTypeChecking;
 

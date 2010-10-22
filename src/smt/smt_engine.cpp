@@ -490,11 +490,13 @@ Expr SmtEngine::getValue(const Expr& e)
   Assert(e.getExprManager() == d_exprManager);
   Type type = e.getType(d_typeChecking);// ensure expr is type-checked at this point
   Debug("smt") << "SMT getValue(" << e << ")" << endl;
+  /* FIXME - for SMT-LIBv2 compliance, we need to check this ?!
   if(!d_interactive) {
     const char* msg =
       "Cannot get value when not in interactive mode.";
     throw ModalException(msg);
   }
+  */
   if(!d_produceModels) {
     const char* msg =
       "Cannot get value when produce-models options is off.";
