@@ -22,8 +22,7 @@
 #include "expr/attribute.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/arith_activity.h"
-#include "theory/arith/basic.h"
+#include "theory/arith/arithvar_dense_set.h"
 #include "theory/arith/normal_form.h"
 
 #include <ext/hash_map>
@@ -144,14 +143,15 @@ private:
   ArithVarSet d_activeBasicVars;
   RowsTable d_rowsTable;
 
+
   ActivityMonitor& d_activityMonitor;
-  IsBasicManager& d_basicManager;
+  ArithVarDenseSet& d_basicManager;
 
 public:
   /**
    * Constructs an empty tableau.
    */
-  Tableau(ActivityMonitor &am, IsBasicManager& bm) :
+  Tableau(ActivityMonitor &am, ArithVarDenseSet& bm) :
     d_activeBasicVars(),
     d_rowsTable(),
     d_activityMonitor(am),
@@ -196,18 +196,18 @@ public:
   void printTableau();
 
   bool isEjected(ArithVar var){
-    return d_basicManager.isBasic(var) && !isActiveBasicVariable(var);
+    return d_basicManager.isMember(var) && !isActiveBasicVariable(var);
   }
 
   void ejectBasic(ArithVar basic){
-    Assert(d_basicManager.isBasic(basic));
+    Assert(d_basicManager.isMember(basic));
     Assert(isActiveBasicVariable(basic));
 
     d_activeBasicVars.erase(basic);
   }
 
   void reinjectBasic(ArithVar basic){
-    Assert(d_basicManager.isBasic(basic));
+    Assert(d_basicManager.isMember(basic));
     Assert(isEjected(basic));
 
     Row* row = lookupEjected(basic);

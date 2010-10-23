@@ -7,20 +7,18 @@ noinst_LTLIBRARIES = libarith.la
 
 libarith_la_SOURCES = \
 	theory_arith_type_rules.h \
-	next_arith_rewriter.h \
-	next_arith_rewriter.cpp \
+	arith_rewriter.h \
+	arith_rewriter.cpp \
 	normal_form.h\
 	normal_form.cpp \
 	arith_utilities.h \
 	arith_constants.h \
-	arith_activity.h \
 	delta_rational.h \
 	delta_rational.cpp \
 	partial_model.h \
 	partial_model.cpp \
 	ordered_bounds_list.h \
-	basic.h \
-	slack.h \
+	arithvar_dense_set.h \
 	tableau.h \
 	tableau.cpp \
 	arith_propagator.h \

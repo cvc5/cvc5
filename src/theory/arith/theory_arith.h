@@ -27,11 +27,10 @@
 #include "expr/node.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/basic.h"
-#include "theory/arith/arith_activity.h"
+#include "theory/arith/arithvar_dense_set.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
-#include "theory/arith/next_arith_rewriter.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/arith_propagator.h"
 
@@ -80,7 +79,7 @@ private:
    */
   ArithPartialModel d_partialModel;
 
-  IsBasicManager d_basicManager;
+  ArithVarDenseSet d_basicManager;
   ActivityMonitor d_activityMonitor;
 
   /**
@@ -96,7 +95,7 @@ private:
   /**
    * The rewriter module for arithmetic.
    */
-  NextArithRewriter d_nextRewriter;
+  ArithRewriter d_rewriter;
 
   ArithUnatePropagator d_propagator;
 
@@ -113,7 +112,7 @@ public:
    * Plug in old rewrite to the new (pre,post)rewrite interface.
    */
   RewriteResponse postRewrite(TNode n, bool topLevel) {
-    return d_nextRewriter.postRewrite(n);
+    return d_rewriter.postRewrite(n);
   }
 
   /**

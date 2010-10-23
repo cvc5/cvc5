@@ -31,11 +31,9 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau.h"
-#include "theory/arith/slack.h"
-#include "theory/arith/basic.h"
-#include "theory/arith/arith_activity.h"
+#include "theory/arith/arithvar_dense_set.h"
 
-#include "theory/arith/next_arith_rewriter.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_propagator.h"
 
 #include "theory/arith/theory_arith.h"
@@ -52,7 +50,10 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
+struct SlackAttrID;
+typedef expr::Attribute<SlackAttrID, Node> Slack;
 
+const static uint64_t ACTIVITY_THRESHOLD = 100;
 
 TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
   Theory(id, c, out),
@@ -62,7 +63,7 @@ TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
   d_activityMonitor(),
   d_diseq(c),
   d_tableau(d_activityMonitor, d_basicManager),
-  d_nextRewriter(&d_constants),
+  d_rewriter(&d_constants),
   d_propagator(c),
   d_statistics()
 {}
@@ -133,7 +134,7 @@ bool TheoryArith::shouldEject(ArithVar var){
     return false;
   }else if(!d_partialModel.hasEverHadABound(var)){
     return true;
-  }else if(d_activityMonitor.getActivity(var) >= ActivityMonitor::ACTIVITY_THRESHOLD){
+  }else if(d_activityMonitor[var] >= ACTIVITY_THRESHOLD){
     return true;
   }
   return false;
@@ -159,7 +160,7 @@ void TheoryArith::ejectInactiveVariables(){
     //TNode var = *i;
     //ArithVar variable = asArithVar(var);
     if(shouldEject(variable)){
-      if(d_basicManager.isBasic(variable)){
+      if(d_basicManager.isMember(variable)){
         Debug("decay") << "ejecting basic " << variable << endl;;
         d_tableau.ejectBasic(variable);
       }
@@ -228,7 +229,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
 
 
 void TheoryArith::checkBasicVariable(ArithVar basic){
-  Assert(d_basicManager.isBasic(basic));
+  Assert(d_basicManager.isMember(basic));
   if(!d_partialModel.assignmentIsConsistent(basic)){
     d_possiblyInconsistent.push(basic);
   }
@@ -247,8 +248,10 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
 
   setArithVar(x,varX);
 
-  d_activityMonitor.initActivity(varX);
-  d_basicManager.init(varX, basic);
+  Assert(varX == d_activityMonitor.size());
+  d_activityMonitor.push_back(0);
+
+  d_basicManager.init(varX,basic);
   d_tableau.increaseSize();
 
   Debug("arith::arithvar") << x << " |-> " << varX << endl;
@@ -299,7 +302,7 @@ void TheoryArith::setupSlack(TNode left){
  */
 void TheoryArith::setupInitialValue(ArithVar x){
 
-  if(!d_basicManager.isBasic(x)){
+  if(!d_basicManager.isMember(x)){
     d_partialModel.initialize(x,d_constants.d_ZERO_DELTA);
   }else{
     //If the variable is basic, assertions may have already happened and updates
@@ -325,7 +328,7 @@ void TheoryArith::setupInitialValue(ArithVar x){
  * Computes the value of a basic variable using the current assignment.
  */
 DeltaRational TheoryArith::computeRowValue(ArithVar x, bool useSafe){
-  Assert(d_basicManager.isBasic(x));
+  Assert(d_basicManager.isMember(x));
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
   Row* row = d_tableau.lookup(x);
@@ -341,7 +344,7 @@ DeltaRational TheoryArith::computeRowValue(ArithVar x, bool useSafe){
 
 
 RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
-  return d_nextRewriter.preRewrite(n);
+  return d_rewriter.preRewrite(n);
 }
 
 void TheoryArith::registerTerm(TNode tn){
@@ -352,7 +355,7 @@ void TheoryArith::registerTerm(TNode tn){
 bool TheoryArith::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
-  if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
+  if(d_basicManager.isMember(x_i) && d_tableau.isEjected(x_i)){
     reinjectVariable(x_i);
   }
 
@@ -371,9 +374,9 @@ bool TheoryArith::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode orig
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
 
-  d_activityMonitor.resetActivity(x_i);
+  d_activityMonitor[x_i] = 0;
 
-  if(!d_basicManager.isBasic(x_i)){
+  if(!d_basicManager.isMember(x_i)){
     if(d_partialModel.getAssignment(x_i) > c_i){
       update(x_i, c_i);
     }
@@ -388,7 +391,7 @@ bool TheoryArith::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode orig
 bool TheoryArith::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode original){
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
+  if(d_basicManager.isMember(x_i) && d_tableau.isEjected(x_i)){
     reinjectVariable(x_i);
   }
 
@@ -406,9 +409,9 @@ bool TheoryArith::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode orig
 
   d_partialModel.setLowerConstraint(x_i,original);
   d_partialModel.setLowerBound(x_i, c_i);
-  d_activityMonitor.resetActivity(x_i);
+  d_activityMonitor[x_i] = 0;
 
-  if(!d_basicManager.isBasic(x_i)){
+  if(!d_basicManager.isMember(x_i)){
     if(d_partialModel.getAssignment(x_i) < c_i){
       update(x_i, c_i);
     }
@@ -424,7 +427,7 @@ bool TheoryArith::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode o
 
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(d_basicManager.isBasic(x_i) && d_tableau.isEjected(x_i)){
+  if(d_basicManager.isMember(x_i) && d_tableau.isEjected(x_i)){
     reinjectVariable(x_i);
   }
 
@@ -456,9 +459,9 @@ bool TheoryArith::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode o
 
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
-  d_activityMonitor.resetActivity(x_i);
+  d_activityMonitor[x_i] = 0;
 
-  if(!d_basicManager.isBasic(x_i)){
+  if(!d_basicManager.isMember(x_i)){
     if(!(d_partialModel.getAssignment(x_i) == c_i)){
       update(x_i, c_i);
     }
@@ -469,7 +472,7 @@ bool TheoryArith::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode o
   return false;
 }
 void TheoryArith::update(ArithVar x_i, const DeltaRational& v){
-  Assert(!d_basicManager.isBasic(x_i));
+  Assert(!d_basicManager.isMember(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
   ++(d_statistics.d_statUpdates);
 
@@ -490,7 +493,7 @@ void TheoryArith::update(ArithVar x_i, const DeltaRational& v){
       DeltaRational  nAssignment = assignment+(diff * a_ji);
       d_partialModel.setAssignment(x_j, nAssignment);
 
-      d_activityMonitor.increaseActivity(x_j, 1);
+      d_activityMonitor[x_j] += 1;
 
       checkBasicVariable(x_j);
     }
@@ -532,7 +535,7 @@ void TheoryArith::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v){
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
 
-      d_activityMonitor.increaseActivity(x_j, 1);
+      d_activityMonitor[x_j] += 1;
 
       checkBasicVariable(x_k);
     }
@@ -556,7 +559,7 @@ ArithVar TheoryArith::selectSmallestInconsistentVar(){
   while(!d_possiblyInconsistent.empty()){
     ArithVar var = d_possiblyInconsistent.top();
     Debug("arith_update") << "possiblyInconsistent var" << var << endl;
-    if(d_basicManager.isBasic(var)){
+    if(d_basicManager.isMember(var)){
       if(!d_partialModel.assignmentIsConsistent(var)){
         return var;
       }
@@ -834,7 +837,7 @@ void TheoryArith::check(Effort level){
     for (ArithVar i = 0; i < d_variables.size(); ++ i) {
       Debug("arith::print_model") << d_variables[i] << " : " <<
         d_partialModel.getAssignment(i);
-      if(d_basicManager.isBasic(i))
+      if(d_basicManager.isMember(i))
         Debug("arith::print_model") << " (basic)";
       Debug("arith::print_model") << endl;
     }

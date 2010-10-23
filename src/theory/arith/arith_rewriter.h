@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file next_arith_rewriter.h
+/*! \file arith_rewriter.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters
@@ -21,14 +21,14 @@
 #include "theory/theory.h"
 #include "theory/arith/normal_form.h"
 
-#ifndef __CVC4__THEORY__ARITH__REWRITER_NEXT_H
-#define __CVC4__THEORY__ARITH__REWRITER_NEXT_H
+#ifndef __CVC4__THEORY__ARITH__REWRITER_H
+#define __CVC4__THEORY__ARITH__REWRITER_H
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class NextArithRewriter{
+class ArithRewriter{
 private:
   ArithConstants* d_constants;
 
@@ -56,7 +56,7 @@ private:
   RewriteResponse postRewriteAtomConstantRHS(TNode t);
 
 public:
-  NextArithRewriter(ArithConstants* ac) : d_constants(ac) {}
+  ArithRewriter(ArithConstants* ac) : d_constants(ac) {}
 
   RewriteResponse preRewrite(TNode n);
   RewriteResponse postRewrite(TNode n);
@@ -71,4 +71,4 @@ private:
 }; /* namespace theory */
 }; /* namespace CVC4 */
 
-#endif /* __CVC4__THEORY__ARITH__REWRITER_NEXT_H */
+#endif /* __CVC4__THEORY__ARITH__REWRITER_H */

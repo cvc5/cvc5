@@ -25,6 +25,7 @@
 #include "util/rational.h"
 #include "expr/node.h"
 #include "expr/attribute.h"
+#include <vector>
 #include <stdint.h>
 #include <limits>
 
@@ -54,6 +55,9 @@ inline void setArithVar(TNode x, ArithVar a){
   Assert(!hasArithVar(x));
   return x.setAttribute(ArithVarAttr(), (uint64_t)a);
 }
+
+typedef std::vector<uint64_t> ActivityMonitor;
+
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);

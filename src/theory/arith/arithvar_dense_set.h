@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file basic.h
+/*! \file arithvar_dense_set.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters
@@ -17,42 +17,51 @@
  ** \todo document this file
  **/
 
+#include <vector>
+#include "theory/arith/arith_utilities.h"
 
-#include "expr/node.h"
-#include "expr/attribute.h"
 
-
-#ifndef __CVC4__THEORY__ARITH__BASIC_H
-#define __CVC4__THEORY__ARITH__BASIC_H
+#ifndef __CVC4__THEORY__ARITH__ARTIHVAR_DENSE_SET_H
+#define __CVC4__THEORY__ARITH__ARTIHVAR_DENSE_SET_H
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class IsBasicManager {
+class ArithVarDenseSet {
 private:
-  std::vector<bool> d_basic;
+  std::vector<bool> d_set;
 
 public:
-  IsBasicManager() : d_basic() {}
+  ArithVarDenseSet() : d_set() {}
 
-  void init(ArithVar var, bool value){
-    Assert(var == d_basic.size());
-    d_basic.push_back(value);
+  size_t size() const {
+    return d_set.size();
   }
 
-  bool isBasic(ArithVar x) const{
-    return d_basic[x];
+  void increaseSize(ArithVar max){
+    Assert(max >= size());
+    d_set.resize(max+1, false);
   }
 
-  void makeBasic(ArithVar x){
-    Assert(!isBasic(x));
-    d_basic[x] = true;
+  bool isMember(ArithVar x) const{
+    return d_set[x];
   }
 
-  void makeNonbasic(ArithVar x){
-    Assert(isBasic(x));
-    d_basic[x] = false;
+  void init(ArithVar x, bool val) {
+    Assert(x >= size());
+    increaseSize(x);
+    d_set[x] = val;
+  }
+
+  void add(ArithVar x){
+    Assert(!isMember(x));
+    d_set[x] = true;
+  }
+
+  void remove(ArithVar x){
+    Assert(isMember(x));
+    d_set[x] = false;
   }
 };
 
@@ -60,4 +69,4 @@ public:
 }; /* namespace theory */
 }; /* namespace CVC4 */
 
-#endif /* __CVC4__THEORY__ARITH__BASIC_H */
+#endif /* __CVC4__THEORY__ARITH__ARTIHVAR_DENSE_SET_H */
