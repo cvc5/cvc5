@@ -160,6 +160,14 @@ public:
     return d_input;
   }
 
+  /** Deletes and replaces the current parser input. */
+  void setInput(Input* input)  {
+    delete d_input;
+    d_input = input;
+    d_input->setParser(*this);
+    d_done = false;
+  }
+
   /**
    * Check if we are done -- either the end of input has been reached, or some
    * error has been encountered.

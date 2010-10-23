@@ -21,6 +21,7 @@
 #include <string>
 
 #include "parser/parser_builder.h"
+#include "util/language.h"
 #include "util/options.h"
 
 namespace CVC4 {
@@ -32,16 +33,20 @@ namespace CVC4 {
 class CVC4_PUBLIC InteractiveShell {
   std::istream& d_in;
   std::ostream& d_out;
-  ParserBuilder d_parserBuilder;
-  Parser* d_lastParser;
+  Parser* d_parser;
+  const InputLanguage d_language;
+
+  static const std::string INPUT_FILENAME;
 
 public:
-  InteractiveShell(ParserBuilder& parserBuilder,
+  InteractiveShell(ExprManager& exprManager,
                   const Options& options) : 
     d_in(*options.in),
     d_out(*options.out),
-    d_parserBuilder(parserBuilder),
-    d_lastParser(NULL) {
+    d_language(options.inputLanguage) {
+    ParserBuilder parserBuilder(exprManager,INPUT_FILENAME,options);
+    /* Create parser with bogus input. */
+    d_parser = parserBuilder.withStringInput("").build();
   }
 
   /** Read a command from the interactive shell. This will read as

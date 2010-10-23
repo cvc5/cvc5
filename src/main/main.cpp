@@ -229,22 +229,23 @@ int runCvc4(int argc, char* argv[]) {
     Warning.getStream() << Expr::setlanguage(language);
   }
 
-  ParserBuilder parserBuilder =
-    ParserBuilder(exprMgr, filename, options);
-
-  if( inputFromStdin ) {
-    parserBuilder.withStreamInput(cin);
-  }
 
   // Parse and execute commands until we are done
   Command* cmd;
   if( options.interactive ) {
-    InteractiveShell shell(parserBuilder,options);
+    InteractiveShell shell(exprMgr,options);
     while((cmd = shell.readCommand())) {
       doCommand(smt,cmd);
       delete cmd;
     }
   } else {
+    ParserBuilder parserBuilder =
+      ParserBuilder(exprMgr, filename, options);
+
+    if( inputFromStdin ) {
+      parserBuilder.withStreamInput(cin);
+    }
+
     Parser *parser = parserBuilder.build();
     while((cmd = parser->nextCommand())) {
       doCommand(smt, cmd);

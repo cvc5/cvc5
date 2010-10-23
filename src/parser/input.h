@@ -99,6 +99,8 @@ class CVC4_PUBLIC Input {
   Input(const Input& input) { Unimplemented("Copy constructor for Input."); }
   Input& operator=(const Input& input) { Unimplemented("operator= for Input."); }
 
+public:
+
   /** Create an input for the given file.
     *
     * @param lang the input language
@@ -132,7 +134,6 @@ class CVC4_PUBLIC Input {
                                const std::string& name)
     throw (InputStreamException, AssertionException);
 
-public:
 
   /** Destructor. Frees the input stream and closes the input. */
   virtual ~Input();
@@ -151,8 +152,8 @@ protected:
   /** Retrieve the input stream for this parser. */
   InputStream *getInputStream();
 
-  /** Parse a command from
-   * the input by invoking the implementation-specific parsing method.  Returns
+  /** Parse a command from the input by invoking the
+   * implementation-specific parsing method.  Returns
    * <code>NULL</code> if there is no command there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
@@ -166,10 +167,9 @@ protected:
   virtual void parseError(const std::string& msg)
     throw (ParserException, AssertionException) = 0;
 
-  /** Parse an
-   * expression from the input by invoking the implementation-specific
-   * parsing method. Returns a null <code>Expr</code> if there is no
-   * expression there to parse.
+  /** Parse an expression from the input by invoking the
+   * implementation-specific parsing method. Returns a null
+   * <code>Expr</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */

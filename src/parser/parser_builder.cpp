@@ -29,67 +29,36 @@ namespace CVC4 {
 
 namespace parser {
 
-/*class FileInputBuilder : public InputBuilder {
-  bool d_useMmap;
-public:
-  FileInputBuilder(InputLanguage lang, const std::string& filename, bool useMmap) :
-    InputBuilder(lang,filename),
-    d_useMmap(useMmap) {
-  }
-  ParserBuilder& useMmap();
-
-  Input& build() {
-    return Input::newFileInput(d_lang,d_name,d_useMmap);
-  }
-};
-
-class StringInputBuilder : public InputBuilder {
-  std::string d_input;
-public:
-  StringInputBuilder(InputLanguage lang, const std::string& input, const std::string& name) :
-    InputBuilder(lang,name),
-    d_input(input) {
-  }
-
-  Input& build() {
-    return Input::newStringInput(lang,input,name);
-  }
-};*/
-
-ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename)//  :
-    // d_inputType(FILE_INPUT),
-    // d_lang(language::input::LANG_AUTO),
-  : d_filename(filename),
-    // d_streamInput(NULL),
-   d_exprManager(exprManager)
-    // d_checksEnabled(true),
-    // d_strictMode(false),
-    // d_mmap(false)
-{
+ParserBuilder::ParserBuilder(ExprManager& exprManager, 
+                             const std::string& filename) : 
+  d_filename(filename),
+  d_exprManager(exprManager) {
   init(exprManager,filename);
 }
 
-  ParserBuilder::ParserBuilder(ExprManager& exprManager, const std::string& filename, const Options& options) :
+ParserBuilder::ParserBuilder(ExprManager& exprManager, 
+                             const std::string& filename, 
+                             const Options& options) :
   d_filename(filename),
-   d_exprManager(exprManager)
-{
+  d_exprManager(exprManager) {
   init(exprManager,filename);
   withOptions(options);
 }
 
-  void ParserBuilder::init(ExprManager& exprManager, const std::string& filename) {
+void ParserBuilder::init(ExprManager& exprManager, 
+                         const std::string& filename) {
   d_inputType = FILE_INPUT;
   d_lang = language::input::LANG_AUTO;
   d_filename = filename;
   d_streamInput = NULL;
   d_exprManager = exprManager;
-  d_parserToUseForState = NULL;
   d_checksEnabled = true;
   d_strictMode = false;
   d_mmap = false;
 }
 
-Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
+Parser *ParserBuilder::build() 
+  throw (InputStreamException,AssertionException) {
   Input *input = NULL;
   switch( d_inputType ) {
   case FILE_INPUT:
@@ -123,11 +92,6 @@ Parser *ParserBuilder::build() throw (InputStreamException,AssertionException) {
     parser->enableChecks();
   } else {
     parser->disableChecks();
-  }
-
-  if( d_parserToUseForState != NULL ) {
-    parser->d_declScope = d_parserToUseForState->d_declScope;
-    parser->d_logicOperators = d_parserToUseForState->d_logicOperators;
   }
 
   return parser;
@@ -171,11 +135,6 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
       .withChecks(options.semanticChecks)
       .withStrictMode(options.strictParsing);
   }
-
-ParserBuilder& ParserBuilder::withStateFrom(const Parser* parser) {
-  d_parserToUseForState = parser;
-  return *this;
-}
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
   d_strictMode = flag;

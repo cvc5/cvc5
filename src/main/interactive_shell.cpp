@@ -18,12 +18,15 @@
 
 #include "interactive_shell.h"
 #include "expr/command.h"
+#include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 
 using namespace std;
 
 namespace CVC4 {
+
+const string InteractiveShell::INPUT_FILENAME = "<shell>";
 
 Command* InteractiveShell::readCommand() {
   /* Don't do anything if the input is closed. */
@@ -90,23 +93,26 @@ Command* InteractiveShell::readCommand() {
     }
   }
 
-  Parser *parser = 
-    d_parserBuilder
-        .withStringInput(input)
-        .withStateFrom(d_lastParser)
-        .build();
+  d_parser->setInput(Input::newStringInput(d_language,input,INPUT_FILENAME));
+  // Parser *parser = 
+  //   d_parserBuilder
+  //       .withStringInput(input)
+  //       .withStateFrom(d_lastParser)
+  //       .build();
 
   /* There may be more than one command in the input. Build up a
      sequence. */
   CommandSequence *cmd_seq = new CommandSequence();
   Command *cmd;
 
-  while( (cmd = parser->nextCommand()) ) {
+  while( (cmd = d_parser->nextCommand()) ) {
     cmd_seq->addCommand(cmd);
   }
 
-  delete d_lastParser;
-  d_lastParser = parser;
+  // if( d_lastParser ) {
+  //   delete d_lastParser;
+  // }
+  // d_lastParser = parser;
 
   return cmd_seq;
 }
