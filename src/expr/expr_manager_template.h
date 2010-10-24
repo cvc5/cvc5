@@ -75,7 +75,7 @@ private:
   friend class ExprManagerScope;
 
   // undefined, private copy constructor (disallow copy)
-  ExprManager(const ExprManager&);
+  ExprManager(const ExprManager&) CVC4_UNDEFINED;
 
 public:
 

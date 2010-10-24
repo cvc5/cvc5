@@ -240,7 +240,7 @@ class NodeManager {
   // bool properlyContainsDecision(TNode); // all children are atomic
 
   // undefined private copy constructor (disallow copy)
-  NodeManager(const NodeManager&);
+  NodeManager(const NodeManager&) CVC4_UNDEFINED;
 
 public:
 

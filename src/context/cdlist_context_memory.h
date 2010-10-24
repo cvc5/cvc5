@@ -157,7 +157,7 @@ protected:
   /**
    * Private copy constructor undefined (no copy permitted).
    */
-  CDList(const CDList<T, Allocator>& l);
+  CDList(const CDList<T, Allocator>& l) CVC4_UNDEFINED;
 
   /**
    * Allocate the first list segment.

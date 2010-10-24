@@ -45,6 +45,16 @@
 #  endif /* __GNUC__ >= 4 */
 #endif /* defined _WIN32 || defined __CYGWIN__ */
 
+// Can use CVC4_UNDEFINED for things like undefined, private
+// copy constructors.  The advantage is that with CVC4_UNDEFINED,
+// if something _does_ try to call the function, you get an error
+// at the point of the call (rather than a link error later).
+#ifdef __GNUC__
+#  define CVC4_UNDEFINED __attribute__((error("this function intentionally undefined")))
+#else /* ! __GNUC__ */
+#  define CVC4_UNDEFINED
+#endif /* __GNUC__ */
+
 #define EXPECT_TRUE(x) __builtin_expect( (x), true )
 #define EXPECT_FALSE(x) __builtin_expect( (x), false )
 #define NORETURN __attribute__ ((noreturn))

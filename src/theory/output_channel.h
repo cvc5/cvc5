@@ -32,10 +32,10 @@ namespace theory {
  */
 class OutputChannel {
   /** Disallow copying: private constructor */
-  OutputChannel(const OutputChannel&);
+  OutputChannel(const OutputChannel&) CVC4_UNDEFINED;
 
   /** Disallow assignment: private operator=() */
-  OutputChannel& operator=(const OutputChannel&);
+  OutputChannel& operator=(const OutputChannel&) CVC4_UNDEFINED;
 
 public:
 

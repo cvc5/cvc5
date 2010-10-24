@@ -36,8 +36,8 @@
 #include <iostream>
 #include <string>
 
-#include "exception.h"
-#include "language.h"
+#include "util/exception.h"
+#include "util/language.h"
 
 namespace CVC4 {
 
