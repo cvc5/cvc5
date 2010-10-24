@@ -52,24 +52,14 @@ Command* InteractiveShell::readCommand() {
     line = sb.str();
     // cout << "Input was '" << input << "'" << endl << flush;
 
-    /* If we hit EOF, we're done. */
-    if( d_in.eof() ) {
-      input += line;
-      break;
-    }
+    Assert( !(d_in.fail() && !d_in.eof()) || line.empty() );
 
-    /* Check for failure */
-    if( d_in.fail() ) {
+    /* Check for failure. */
+    if( d_in.fail() && !d_in.eof() ) {
       /* This should only happen if the input line was empty. */
       Assert( line.empty() );
       d_in.clear();
     }
-
-    /* Extract the newline delimiter from the stream too */
-    int c = d_in.get();
-    Assert( c == '\n' );
-
-    // cout << "Next char is '" << (char)c << "'" << endl << flush;
 
     /* Strip trailing whitespace. */
     int n = line.length() - 1;
@@ -78,12 +68,31 @@ Command* InteractiveShell::readCommand() {
       n--;
     }
 
+    /* If we hit EOF, we're done. */
+    if( d_in.eof() ) {
+      input += line;
+
+      if( input.empty() ) {
+        /* Nothing left to parse. */
+        return NULL;
+      }
+
+      /* Some input left to parse, but nothing left to read. 
+         Jump out of input loop. */
+      break;
+    }
+
+    /* Extract the newline delimiter from the stream too */
+    int c = d_in.get();
+    Assert( c == '\n' );
+
+    // cout << "Next char is '" << (char)c << "'" << endl << flush;
+
     input += line;
     
     /* If the last char was a backslash, continue on the next line. */
-    if( !line.empty() && line[n] == '\\' ) {
-      n = input.length() - 1;
-      Assert( input[n] == '\\' );
+    n = input.length() - 1;
+    if( !line.empty() && input[n] == '\\' ) {
       input[n] = '\n';
       d_out << "... > " << flush;
     } else {

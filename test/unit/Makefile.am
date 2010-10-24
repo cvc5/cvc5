@@ -39,7 +39,8 @@ UNIT_TESTS = \
 	util/integer_white \
 	util/rational_black \
 	util/rational_white \
-	util/stats_black
+	util/stats_black \
+	main/interactive_shell_black
 
 export VERBOSE = 1
 
@@ -74,11 +75,14 @@ AM_LDFLAGS_BLACK =
 AM_LDFLAGS_PUBLIC =
 AM_LIBADD_WHITE = \
 	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-	@abs_top_builddir@/src/libcvc4_noinst.la
+	@abs_top_builddir@/src/libcvc4_noinst.la \
+	@abs_top_builddir@/src/main/libmain.a
 AM_LIBADD_BLACK = \
 	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-	@abs_top_builddir@/src/libcvc4_noinst.la
+	@abs_top_builddir@/src/libcvc4_noinst.la \
+	@abs_top_builddir@/src/main/libmain.a
 AM_LIBADD_PUBLIC = \
+	@abs_top_builddir@/src/parser/libcvc4parser.la \
 	@abs_top_builddir@/src/libcvc4.la
 
 EXTRA_DIST = \
