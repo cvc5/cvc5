@@ -49,6 +49,8 @@ void NodeValue::toStream(std::ostream& out, int toDepth, bool types,
   using namespace CVC4::language::output;
 
   switch(language) {
+  case LANG_CVC4:
+    // FIXME support cvc output language
   case LANG_SMTLIB:
     // FIXME support smt-lib output language
   case LANG_SMTLIB_V2:
