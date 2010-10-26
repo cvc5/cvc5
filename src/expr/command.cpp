@@ -269,7 +269,8 @@ GetValueCommand::GetValueCommand(Expr term) :
 }
 
 void GetValueCommand::invoke(SmtEngine* smtEngine) {
-  d_result = smtEngine->getValue(d_term);
+  d_result = d_term.getExprManager()->mkExpr(kind::TUPLE, d_term,
+                                             smtEngine->getValue(d_term));
 }
 
 Expr GetValueCommand::getResult() const {
