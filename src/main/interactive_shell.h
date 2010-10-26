@@ -20,34 +20,29 @@
 #include <iostream>
 #include <string>
 
-#include "parser/parser_builder.h"
 #include "util/language.h"
-#include "util/options.h"
 
 namespace CVC4 {
 
   class Command;
+  class ExprManager;
+  class Options;
 
-  using namespace parser;
+  namespace parser {
+    class Parser;
+  }
 
 class CVC4_PUBLIC InteractiveShell {
   std::istream& d_in;
   std::ostream& d_out;
-  Parser* d_parser;
+  parser::Parser* d_parser;
   const InputLanguage d_language;
 
   static const std::string INPUT_FILENAME;
 
 public:
   InteractiveShell(ExprManager& exprManager,
-                  const Options& options) : 
-    d_in(*options.in),
-    d_out(*options.out),
-    d_language(options.inputLanguage) {
-    ParserBuilder parserBuilder(exprManager,INPUT_FILENAME,options);
-    /* Create parser with bogus input. */
-    d_parser = parserBuilder.withStringInput("").build();
-  }
+                   const Options& options);
 
   /** Read a command from the interactive shell. This will read as
       many lines as necessary to parse a well-formed command. */

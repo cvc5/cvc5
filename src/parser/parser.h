@@ -27,23 +27,22 @@
 
 #include "input.h"
 #include "parser_exception.h"
-#include "parser_options.h"
 #include "expr/declaration_scope.h"
-#include "expr/expr.h"
 #include "expr/kind.h"
-#include "util/Assert.h"
 
 namespace CVC4 {
 
 // Forward declarations
 class BooleanType;
+class Expr;
 class ExprManager;
 class Command;
 class FunctionType;
-class KindType;
 class Type;
 
 namespace parser {
+
+class Input;
 
 /** Types of check for the symols */
 enum DeclarationCheck {

@@ -53,7 +53,6 @@ libcvc4parser_la_SOURCES = \
 	parser.cpp \
 	parser_builder.h \
 	parser_builder.cpp \
-	parser_options.h \
 	parser_exception.h
 
 libcvc4parser_noinst_la_SOURCES = \

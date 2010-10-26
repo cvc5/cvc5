@@ -19,11 +19,13 @@
 #include <string>
 
 #include "parser_builder.h"
+#include "input.h"
+#include "parser.h"
+#include "smt/smt.h"
+#include "smt2/smt2.h"
+
 #include "expr/expr_manager.h"
-#include "parser/input.h"
-#include "parser/parser.h"
-#include "parser/smt/smt.h"
-#include "parser/smt2/smt2.h"
+#include "util/options.h"
 
 namespace CVC4 {
 

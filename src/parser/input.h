@@ -29,8 +29,8 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "parser/parser_exception.h"
-#include "parser/parser_options.h"
 #include "util/Assert.h"
+#include "util/language.h"
 
 namespace CVC4 {
 

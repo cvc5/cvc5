@@ -74,13 +74,13 @@ AM_LDFLAGS_WHITE =
 AM_LDFLAGS_BLACK =
 AM_LDFLAGS_PUBLIC =
 AM_LIBADD_WHITE = \
+	@abs_top_builddir@/src/main/libmain.a \
 	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-	@abs_top_builddir@/src/libcvc4_noinst.la \
-	@abs_top_builddir@/src/main/libmain.a
+	@abs_top_builddir@/src/libcvc4_noinst.la
 AM_LIBADD_BLACK = \
+	@abs_top_builddir@/src/main/libmain.a \
 	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-	@abs_top_builddir@/src/libcvc4_noinst.la \
-	@abs_top_builddir@/src/main/libmain.a
+	@abs_top_builddir@/src/libcvc4_noinst.la
 AM_LIBADD_PUBLIC = \
 	@abs_top_builddir@/src/parser/libcvc4parser.la \
 	@abs_top_builddir@/src/libcvc4.la

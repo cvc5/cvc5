@@ -24,13 +24,13 @@
 #include <string>
 
 #include "input.h"
-#include "parser_options.h"
 
-#include "util/options.h"
+#include "util/language.h"
 
 namespace CVC4 {
 
 class ExprManager;
+class Options;
 
 namespace parser {
 

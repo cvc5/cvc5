@@ -25,10 +25,10 @@
 #include "expr/expr_manager.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "parser/parser_options.h"
 #include "parser/smt2/smt2.h"
 #include "expr/command.h"
 #include "util/output.h"
+#include "util/language.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;

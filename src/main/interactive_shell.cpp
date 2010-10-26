@@ -17,16 +17,31 @@
 #include <iostream>
 
 #include "interactive_shell.h"
+
 #include "expr/command.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "util/options.h"
 
 using namespace std;
 
 namespace CVC4 {
 
+using namespace parser;
+
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
+
+InteractiveShell::InteractiveShell(ExprManager& exprManager,
+                                   const Options& options) : 
+   d_in(*options.in),
+   d_out(*options.out),
+   d_language(options.inputLanguage) {
+   ParserBuilder parserBuilder(exprManager,INPUT_FILENAME,options);
+   /* Create parser with bogus input. */
+   d_parser = parserBuilder.withStringInput("").build();
+}
+
 
 Command* InteractiveShell::readCommand() {
   /* Don't do anything if the input is closed. */
