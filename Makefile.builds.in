@@ -29,6 +29,7 @@ prefix = @prefix@
 bindir = @bindir@
 libdir = @libdir@
 abs_builddir = @abs_builddir@
+distdir = @PACKAGE@-@VERSION@
 
 # Are we building static/dynamic libraries/binaries?  One or the other can be
 # on, or both.
@@ -112,6 +113,12 @@ check test units regress: all
 	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 regress%: all
 	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
+
+dist:
+	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	$(install_sh) \
+		$(CURRENT_BUILD)/$(distdir).tar.gz \
+		"`pwd`"
 
 TAGS tags:
 	(cd $(CURRENT_BUILD) && $(MAKE) $@)
