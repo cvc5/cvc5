@@ -10,15 +10,23 @@ progname=`basename "$0"`
 
 postproc='sort -u'
 mode=packages
+target=
 
 if [ $# -gt 0 ]; then
-  if [ $# -eq 1 -a "$1" = "-a" ]; then
+  if [ "$1" = "-a" ]; then
     postproc=cat
     mode=headers
-  else
-    echo "usage: $progname [-a]"
+    shift
+  fi
+  if [ $# -gt 0 -a "$1" != "-h" ]; then
+    target="$1"
+    shift
+  fi
+  if [ $# -gt 0 ]; then
+    echo "usage: $progname [-a] [target]"
     echo "  -a ("all") produces _all_ headers in the source, with clusters for packages."
-    echo "  the default behavior produces just package dependence information."
+    echo "    the default behavior produces just package dependence information."
+    echo "  with target, focus on dependences of that particular package (e.g. \"expr\")"
     exit 1
   fi
 fi
@@ -56,6 +64,7 @@ if [ "$mode" = headers ]; then
     file=`echo "$path" | sed 's,^[^/]*/,,'`
     package=`echo "$file" | sed 's,^\(.*\)/.*,\1,'`
     file=`echo "$file" | sed 's,^.*/,,'`
+    if [ -n "$target" -a "$target" != "$package" ]; then continue; fi
     if [ -n "$oldpackage" -a "$package" != "$oldpackage" ]; then
       echo '  }'
     fi
@@ -76,6 +85,7 @@ for path in $paths; do
     package=`echo "$file" | sed 's,^\(.*\)/.*,\1,'`
     file=`echo "$file" | sed 's,^.*/,,'`
     incs=`grep '^# *include *".*"' "$path" | sed 's,^# *include *"\(.*\)".*,\1,'`
+    if [ -n "$target" -a "$target" != "$package" ]; then continue; fi
     for inc in $incs; do
       case "$inc" in
         expr/expr.h) inc=expr/expr_template.h ;;
@@ -99,13 +109,23 @@ for path in $paths; do
       fi
       incpath=`echo "$incpath" | sed 's,^\./,,'`
       incpath=`echo "$incpath" | sed "s,^$dir/,,"`
+      incdir=`echo "$incpath" | sed 's,^\([^/]*\).*,\1,'`
+      incpackage=`echo "$incpath" | sed 's,^\(.*\)/.*,\1,'`
+      incfile=`echo "$incpath" | sed 's,^.*/,,'`
       if [ "$mode" = packages ]; then
-        incdir=`echo "$incpath" | sed 's,^\([^/]*\).*,\1,'`
-        incpackage=`echo "$incpath" | sed 's,^\(.*\)/.*,\1,'`
-        incfile=`echo "$incpath" | sed 's,^.*/,,'`
-        [ "$package" != "$incpackage" ] && echo "  \"$package\" -> \"$incpackage\";"
+        if [ "$package" != "$incpackage" ]; then
+          if [ -n "$target" ]; then
+            echo "  \"$package\" -> \"$incpackage\"[label=\"$incfile\"];"
+          else
+            echo "  \"$package\" -> \"$incpackage\";"
+          fi
+        fi
       else
-        echo "  \"$package/$file\" -> \"$incpath\";"
+        if [ -n "$target" ]; then
+          [ "$package" != "$incpackage" ] && echo "  \"$package/$file\" -> \"$incpackage\"[label=\"$incfile\"];"
+        else
+          echo "  \"$package/$file\" -> \"$incpath\";"
+        fi
       fi
     done
   done | $postproc
