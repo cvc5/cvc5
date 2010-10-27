@@ -105,9 +105,9 @@ else
 unit_LINK = $(CXXLINK)
 endif
 
-@AMDEP_TRUE@@am__include@ $(UNIT_TESTS:%=@am__quote@./$(DEPDIR)/%.Plo@am__quote@)
+@AMDEP_TRUE@@am__include@ $(UNIT_TESTS:%=@am__quote@./@DEPDIR@/%.Plo@am__quote@)
 
-$(UNIT_TESTS:%=@am__quote@./$(DEPDIR)/%.Plo@am__quote@): %.Plo:
+$(UNIT_TESTS:%=@am__quote@./@DEPDIR@/%.Plo@am__quote@): %.Plo:
 	$(AM_V_at)$(MKDIR_P) `dirname "$@"`
 	$(AM_V_GEN)test -e "$@" || touch "$@"
 
@@ -161,7 +161,7 @@ EXTRA_DIST = \
 
 endif
 
-$(UNIT_TESTS:%=%.cpp): $(UNIT_TESTS:%=$(abs_builddir)/%.cpp)
+$(UNIT_TESTS:%=%.cpp): $(UNIT_TESTS:%=@abs_builddir@/%.cpp)
 
 # trick automake into setting LTCXXCOMPILE, CXXLINK, etc.
 if CVC4_FALSE
