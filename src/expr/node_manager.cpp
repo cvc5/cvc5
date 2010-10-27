@@ -31,7 +31,7 @@
 #include "util/tls.h"
 
 #include <algorithm>
-#include <list>
+#include <stack>
 #include <ext/hash_set>
 
 using namespace std;
@@ -427,15 +427,12 @@ TypeNode NodeManager::getType(TNode n, bool check)
   if(!hasType || needsCheck) {
     // TypeNode oldType = typeNode;
 
-    list<TNode> worklist;
-    worklist.push_back(n);
+    stack<TNode> worklist;
+    worklist.push(n);
 
-    /* Iterate and compute the children bottom up.  This iteration is
-       very inefficient: it would be better to top-sort the Nodes so
-       that the leaves are always computed first. */
+    /* Iterate and compute the children bottom up. */
     while( !worklist.empty() ) {
-      TNode m = worklist.front();
-      worklist.pop_front();
+      TNode m = worklist.top();
 
       bool readyToCompute = true;
       TNode::iterator it = m.begin();
@@ -445,17 +442,15 @@ TypeNode NodeManager::getType(TNode n, bool check)
         if( !hasAttribute(*it, TypeAttr()) 
             || (check && !getAttribute(*it, TypeCheckedAttr())) ) {
           readyToCompute = false;
-          worklist.push_back(*it);
+          worklist.push(*it);
         }
       }
 
       if( readyToCompute ) {
         /* All the children have types, time to compute */
         computeType(m,check);
-      } else {
-        /* Wait until the children have been computed. */
-        worklist.push_back(m);
-      }
+        worklist.pop();
+      } 
     }
 
     /* Retrieve the type computed in the loop */
