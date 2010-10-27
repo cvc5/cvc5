@@ -242,6 +242,9 @@ class NodeManager {
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) CVC4_UNDEFINED;
 
+  TypeNode computeType(TNode n, bool check = false)
+    throw (TypeCheckingExceptionPrivate, AssertionException);
+
 public:
 
   explicit NodeManager(context::Context* ctxt, bool earlyTypeChecking = true);
