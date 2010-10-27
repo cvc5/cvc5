@@ -70,6 +70,7 @@ install-data-local: $(publicheaders)
 
 uninstall-local:
 	@for f in $(publicheaders); do \
-		rm -f "$(DESTDIR)/$(includedir)/cvc4/$$f"
+		f=`echo "$$f" | sed 's,.*/,,'`; \
+		rm -f "$(DESTDIR)$(includedir)/cvc4/$$f"; \
 	done
-	rmdir "$(DESTDIR)/$(includedir)/cvc4"
+	@rmdir "$(DESTDIR)$(includedir)/cvc4"

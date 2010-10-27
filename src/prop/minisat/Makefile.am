@@ -21,8 +21,8 @@ libminisat_la_SOURCES = \
 	mtl/Queue.h \
 	mtl/Sort.h \
 	mtl/Vec.h \
-	mtl/Xalloc.h \
-	util/Options.h 
+	mtl/XAlloc.h \
+	utils/Options.h 
 
 EXTRA_DIST = \
 	core/Main.cc \
@@ -34,6 +34,7 @@ EXTRA_DIST = \
 	LICENSE \
 	mtl/config.mk \
 	mtl/template.mk \
+	utils/Options.cc \
 	utils/ParseUtils.h \
 	utils/System.h \
 	utils/System.cc \
