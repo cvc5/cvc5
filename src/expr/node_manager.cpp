@@ -430,15 +430,17 @@ TypeNode NodeManager::getType(TNode n, bool check)
     stack<TNode> worklist;
     worklist.push(n);
 
-    /* Iterate and compute the children bottom up. */
+    /* Iterate and compute the children bottom up. This avoids stack
+       overflows in computeType() when the Node graph is really
+       deep. */
     while( !worklist.empty() ) {
       TNode m = worklist.top();
 
       bool readyToCompute = true;
-      TNode::iterator it = m.begin();
-      TNode::iterator end = m.end();
 
-      for( ; it != end; ++it ) {
+      for( TNode::iterator it = m.begin(), end = m.end() ; 
+           it != end; 
+           ++it ) {
         if( !hasAttribute(*it, TypeAttr()) 
             || (check && !getAttribute(*it, TypeCheckedAttr())) ) {
           readyToCompute = false;
