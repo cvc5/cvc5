@@ -28,6 +28,7 @@
 #include "theory/bv/theory_bv_type_rules.h"
 
 #include "util/Assert.h"
+#include "util/options.h"
 #include "util/tls.h"
 
 #include <algorithm>
@@ -82,12 +83,23 @@ struct NVReclaim {
   }
 };
 
+NodeManager::NodeManager(context::Context* ctxt) :
+  d_attrManager(ctxt) {
+  Options options;
+  init(options);
+}
 
-NodeManager::NodeManager(context::Context* ctxt, bool earlyTypeChecking) :
-  d_attrManager(ctxt),
-  d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false),
-  d_earlyTypeChecking(earlyTypeChecking) {
+
+NodeManager::NodeManager(context::Context* ctxt, 
+                         const Options& options) :
+  d_attrManager(ctxt) {
+  init(options);
+}
+
+inline void NodeManager::init(const Options& options) {
+  d_nodeUnderDeletion = NULL;
+  d_inReclaimZombies = false;
+  d_earlyTypeChecking = options.earlyTypeChecking;
   poolInsert( &expr::NodeValue::s_null );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {

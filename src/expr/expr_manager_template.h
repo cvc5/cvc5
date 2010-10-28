@@ -40,6 +40,7 @@ namespace CVC4 {
 class Expr;
 class SmtEngine;
 class NodeManager;
+class Options;
 
 namespace context {
   class Context;
@@ -80,12 +81,17 @@ private:
 public:
 
   /**
-   * Creates an expression manager.
-   * @param earlyTypeChecking whether to do type checking early (at Expr
-   * creation time); only used in debug builds---for other builds, type
-   * checking is never done early.
+   * Creates an expression manager with default options.
    */
-  explicit ExprManager(bool earlyTypeChecking = true);
+  ExprManager();
+
+  /**
+   * Creates an expression manager.
+   *
+   * @param options the earlyTypeChecking field is used to configure
+   * whether to do at Expr creation time.
+   */
+  explicit ExprManager(const Options&);
 
   /**
    * Destroys the expression manager. No will be deallocated at this point, so

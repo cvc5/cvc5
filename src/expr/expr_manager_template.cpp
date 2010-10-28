@@ -19,6 +19,7 @@
 #include "expr/node_manager.h"
 #include "expr/expr_manager.h"
 #include "context/context.h"
+#include "util/options.h"
 
 ${includes}
 
@@ -34,9 +35,14 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-ExprManager::ExprManager(bool earlyTypeChecking) :
+ExprManager::ExprManager() :
   d_ctxt(new Context),
-  d_nodeManager(new NodeManager(d_ctxt, earlyTypeChecking)) {
+  d_nodeManager(new NodeManager(d_ctxt)) {
+}
+
+ExprManager::ExprManager(const Options& options) :
+  d_ctxt(new Context),
+  d_nodeManager(new NodeManager(d_ctxt, options)) {
 }
 
 ExprManager::~ExprManager() {

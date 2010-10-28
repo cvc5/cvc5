@@ -661,9 +661,9 @@ private:
   expr::NodeValue* constructNV();
   expr::NodeValue* constructNV() const;
 
-  inline void debugCheckType(const TNode n) const {
-    // force an immediate type check, if we are in debug mode
-    // and the current node isn't a variable or constant
+  inline void maybeCheckType(const TNode n) const {
+    /* force an immediate type check, if early type checking is
+       enabled and the current node isn't a variable or constant */
     if( d_nm->d_earlyTypeChecking ) {
       kind::MetaKind mk = n.getMetaKind();
       if( mk != kind::metakind::VARIABLE 
@@ -842,28 +842,28 @@ TypeNode NodeBuilder<nchild_thresh>::constructTypeNode() const {
 template <unsigned nchild_thresh>
 Node NodeBuilder<nchild_thresh>::constructNode() {
   Node n = Node(constructNV());
-  debugCheckType(n);
+  maybeCheckType(n);
   return n;
 }
 
 template <unsigned nchild_thresh>
 Node NodeBuilder<nchild_thresh>::constructNode() const {
   Node n = Node(constructNV());
-  debugCheckType(n);
+  maybeCheckType(n);
   return n;
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() {
   Node *np = new Node(constructNV());
-  debugCheckType(*np);
+  maybeCheckType(*np);
   return np;
 }
 
 template <unsigned nchild_thresh>
 Node* NodeBuilder<nchild_thresh>::constructNodePtr() const {
   Node *np = new Node(constructNV());
-  debugCheckType(*np);
+  maybeCheckType(*np);
   return np;
 }
 

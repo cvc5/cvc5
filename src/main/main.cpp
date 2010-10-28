@@ -172,7 +172,7 @@ int runCvc4(int argc, char* argv[]) {
   }
 
   // Create the expression manager
-  ExprManager exprMgr(options.earlyTypeChecking);
+  ExprManager exprMgr(options);
 
   // Create the SmtEngine
   SmtEngine smt(&exprMgr, options);
