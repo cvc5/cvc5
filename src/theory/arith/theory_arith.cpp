@@ -104,28 +104,6 @@ TheoryArith::Statistics::~Statistics(){
 }
 
 
-bool isBasicSum(TNode n){
-  if(n.getKind() != kind::PLUS) return false;
-
-  for(TNode::const_iterator i=n.begin(); i!=n.end(); ++i){
-    TNode child = *i;
-    if(child.getKind() != MULT) return false;
-    if(child[0].getKind() != CONST_RATIONAL) return false;
-    for(unsigned j=1; j<child.getNumChildren(); ++j){
-      TNode var = child[j];
-      if(var.getMetaKind() != metakind::VARIABLE) return false;
-    }
-  }
-  return true;
-}
-
-bool isNormalAtom(TNode n){
-
-  Comparison parse = Comparison::parseNormalForm(n);
-
-  return parse.isNormalForm();
-}
-
 
 bool TheoryArith::shouldEject(ArithVar var){
   if(d_partialModel.hasEitherBound(var)){
@@ -145,7 +123,7 @@ ArithVar TheoryArith::findBasicRow(ArithVar variable){
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_j = *basicIter;
-    Row* row_j = d_tableau.lookup(x_j);
+    ReducedRowVector* row_j = d_tableau.lookup(x_j);
 
     if(row_j->has(variable)){
       return x_j;
@@ -208,7 +186,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
 
   //TODO is an atom
   if(isRelationOperator(k)){
-    Assert(isNormalAtom(n));
+    Assert(Comparison::isNormalAtom(n));
 
 
     d_propagator.addAtom(n);
@@ -331,10 +309,12 @@ DeltaRational TheoryArith::computeRowValue(ArithVar x, bool useSafe){
   Assert(d_basicManager.isMember(x));
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
-  Row* row = d_tableau.lookup(x);
-  for(Row::iterator i = row->begin(); i != row->end();++i){
-    ArithVar nonbasic = i->first;
-    const Rational& coeff = i->second;
+  ReducedRowVector* row = d_tableau.lookup(x);
+  for(ReducedRowVector::NonZeroIterator i = row->beginNonZero(), end = row->endNonZero();
+      i != end;++i){
+    ArithVar nonbasic = getArithVar(*i);
+    if(nonbasic == row->basic()) continue;
+    const Rational& coeff = getCoefficient(*i);
 
     const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic, useSafe);
     sum = sum + (assignment * coeff);
@@ -484,7 +464,7 @@ void TheoryArith::update(ArithVar x_i, const DeltaRational& v){
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_j = *basicIter;
-    Row* row_j = d_tableau.lookup(x_j);
+    ReducedRowVector* row_j = d_tableau.lookup(x_j);
 
     if(row_j->has(x_i)){
       const Rational& a_ji = row_j->lookup(x_i);
@@ -509,7 +489,7 @@ void TheoryArith::update(ArithVar x_i, const DeltaRational& v){
 void TheoryArith::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v){
   Assert(x_i != x_j);
 
-  Row* row_i = d_tableau.lookup(x_i);
+  ReducedRowVector* row_i = d_tableau.lookup(x_i);
   const Rational& a_ij = row_i->lookup(x_j);
 
 
@@ -528,7 +508,7 @@ void TheoryArith::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v){
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_k = *basicIter;
-    Row* row_k = d_tableau.lookup(x_k);
+    ReducedRowVector* row_k = d_tableau.lookup(x_k);
 
     if(x_k != x_i && row_k->has(x_j)){
       const Rational& a_kj = row_k->lookup(x_j);
@@ -585,10 +565,13 @@ ArithVar TheoryArith::selectSmallestInconsistentVar(){
 
 template <bool above>
 ArithVar TheoryArith::selectSlack(ArithVar x_i){
-   Row* row_i = d_tableau.lookup(x_i);
+  ReducedRowVector* row_i = d_tableau.lookup(x_i);
 
-  for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    ArithVar nonbasic = nbi->first;
+  for(ReducedRowVector::NonZeroIterator nbi = row_i->beginNonZero(), end = row_i->endNonZero();
+      nbi != end; ++nbi){
+    ArithVar nonbasic = getArithVar(*nbi);
+    if(nonbasic == x_i) continue;
+
     const Rational& a_ij = nbi->second;
     int cmp = a_ij.cmp(d_constants.d_ZERO);
     if(above){ // beta(x_i) > u_i
@@ -653,7 +636,7 @@ Node TheoryArith::updateInconsistentVars(){ //corresponds to Check() in dM06
 
 Node TheoryArith::generateConflictAbove(ArithVar conflictVar){
 
-  Row* row_i = d_tableau.lookup(conflictVar);
+  ReducedRowVector* row_i = d_tableau.lookup(conflictVar);
 
   NodeBuilder<> nb(kind::AND);
   TNode bound = d_partialModel.getUpperConstraint(conflictVar);
@@ -665,8 +648,11 @@ Node TheoryArith::generateConflictAbove(ArithVar conflictVar){
 
   nb << bound;
 
-  for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    ArithVar nonbasic = nbi->first;
+  for(ReducedRowVector::NonZeroIterator nbi = row_i->beginNonZero(), end = row_i->endNonZero();
+      nbi != end; ++nbi){
+    ArithVar nonbasic = getArithVar(*nbi);
+    if(nonbasic == conflictVar) continue;
+
     const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
@@ -690,7 +676,7 @@ Node TheoryArith::generateConflictAbove(ArithVar conflictVar){
 }
 
 Node TheoryArith::generateConflictBelow(ArithVar conflictVar){
-  Row* row_i = d_tableau.lookup(conflictVar);
+  ReducedRowVector* row_i = d_tableau.lookup(conflictVar);
 
   NodeBuilder<> nb(kind::AND);
   TNode bound = d_partialModel.getLowerConstraint(conflictVar);
@@ -701,8 +687,10 @@ Node TheoryArith::generateConflictBelow(ArithVar conflictVar){
                  << " " << bound << endl;
   nb << bound;
 
-  for(Row::iterator nbi = row_i->begin(); nbi != row_i->end(); ++nbi){
-    ArithVar nonbasic = nbi->first;
+  for(ReducedRowVector::NonZeroIterator nbi = row_i->beginNonZero(), end = row_i->endNonZero(); nbi != end; ++nbi){
+    ArithVar nonbasic = getArithVar(*nbi);
+    if(nonbasic != conflictVar) continue;
+
     const Rational& a_ij = nbi->second;
 
     Assert(a_ij != d_constants.d_ZERO);
@@ -867,13 +855,15 @@ void TheoryArith::checkTableau(){
   for(ArithVarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end(); ++basicIter){
     ArithVar basic = *basicIter;
-    Row* row_k = d_tableau.lookup(basic);
+    ReducedRowVector* row_k = d_tableau.lookup(basic);
     DeltaRational sum;
     Debug("paranoid:check_tableau") << "starting row" << basic << endl;
-    for(Row::iterator nonbasicIter = row_k->begin();
-        nonbasicIter != row_k->end();
+    for(ReducedRowVector::NonZeroIterator nonbasicIter = row_k->beginNonZero();
+        nonbasicIter != row_k->endNonZero();
         ++nonbasicIter){
       ArithVar nonbasic = nonbasicIter->first;
+      if(basic == nonbasic) continue;
+
       const Rational& coeff = nonbasicIter->second;
       DeltaRational beta = d_partialModel.getAssignment(nonbasic);
       Debug("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;

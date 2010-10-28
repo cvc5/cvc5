@@ -21,6 +21,8 @@ libarith_la_SOURCES = \
 	arithvar_dense_set.h \
 	tableau.h \
 	tableau.cpp \
+	row_vector.h \
+	row_vector.cpp \
 	arith_propagator.h \
 	arith_propagator.cpp \
 	theory_arith.h \

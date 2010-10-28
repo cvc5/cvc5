@@ -740,6 +740,11 @@ public:
 
   static Comparison parseNormalForm(TNode n);
 
+  inline static bool isNormalAtom(TNode n){
+    Comparison parse = Comparison::parseNormalForm(n);
+    return parse.isNormalForm();
+  }
+
 };/* class Comparison */
 
 }/* CVC4::theory::arith namespace */
