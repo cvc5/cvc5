@@ -424,23 +424,20 @@ TypeNode NodeManager::getType(TNode n, bool check)
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
 
   Debug("getType") << "getting type for " << n << std::endl;
-  if(!hasType || needsCheck) {
-    // TypeNode oldType = typeNode;
 
+  if(needsCheck && !d_earlyTypeChecking) {
+    /* Iterate and compute the children bottom up. This avoids stack
+       overflows in computeType() when the Node graph is really deep,
+       which should only affect us when we're type checking lazily. */
     stack<TNode> worklist;
     worklist.push(n);
 
-    /* Iterate and compute the children bottom up. This avoids stack
-       overflows in computeType() when the Node graph is really
-       deep. */
     while( !worklist.empty() ) {
       TNode m = worklist.top();
 
       bool readyToCompute = true;
 
-      for( TNode::iterator it = m.begin(), end = m.end() ; 
-           it != end; 
-           ++it ) {
+      for( TNode::iterator it = m.begin(), end = m.end() ; it != end; ++it ) {
         if( !hasAttribute(*it, TypeAttr()) 
             || (check && !getAttribute(*it, TypeCheckedAttr())) ) {
           readyToCompute = false;
@@ -450,22 +447,24 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
       if( readyToCompute ) {
         /* All the children have types, time to compute */
-        computeType(m,check);
+        typeNode = computeType(m,check);
         worklist.pop();
       } 
-    }
+    } // end while
 
-    /* Retrieve the type computed in the loop */
-    hasType = getAttribute(n, TypeAttr(), typeNode);
-
-    /* Type should be there and the check should have happened if we
-       asked for it. */
-    Assert( hasType );
-    Assert( !check || hasAttribute(n, TypeCheckedAttr()) );
-
-    // DebugAssert( !hasType || oldType == typeNode,
-    //              "Type re-computation yielded a different type" );
+    /* Last type computed in loop should be the type of n */
+    Assert( typeNode == getAttribute(n,TypeAttr()) );
+  } else if( !hasType || needsCheck ) {
+    /* We can compute the type top-down, without worrying about
+       deep recursion. */
+    typeNode = computeType(n,check);
   }
+
+  /* The type should be have been computed and stored. */
+  Assert( hasAttribute(n, TypeAttr()) );
+  /* The check should have happened, if we asked for it. */
+  Assert( !check || hasAttribute(n, TypeCheckedAttr()) );
+
   Debug("getType") << "type of " << n << " is " << typeNode << std::endl;
   return typeNode;
 }
