@@ -592,7 +592,7 @@ AC_ARG_WITH([cxxtest-dir],
 # In the case of "./configure --with-cxxtest-dir=../cxxtest" (or other
 # relative path) and having switched the configure directory (see above),
 # search with respect to the top source dir, not the build dir
-if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
+if test "$CVC4_CONFIGURE_IN_BUILDS" = yes -a -n "$CXXTEST"; then
   case "$CXXTEST" in
     /*) ;;
     *)  CXXTEST="$srcdir/$CXXTEST" ;;
