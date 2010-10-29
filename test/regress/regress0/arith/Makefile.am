@@ -7,6 +7,7 @@ TESTS =	\
 	arith.01.cvc \
 	arith.02.cvc \
 	arith.03.cvc \
+	delta-minimized-row-vector-bug.smt \
 	leq.01.smt
 
 EXTRA_DIST = $(TESTS)
