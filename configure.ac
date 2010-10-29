@@ -282,18 +282,18 @@ if test "$CVC4_CONFIGURE_IN_BUILDS" = yes; then
   AC_MSG_RESULT([this one (in builds/)])
 elif test "$CVC4_CONFIGURE_AT_TOP_LEVEL" = yes; then
   AC_MSG_RESULT([builds/$target/$build_type])
-  echo
+  $as_echo
   if test -z "$ac_srcdir"; then
     mkbuilddir=./config/mkbuilddir
   else
     mkbuilddir=$ac_srcdir/config/mkbuilddir
   fi
-  echo $mkbuilddir "$target" "$build_type"
-  $mkbuilddir "$target" "$build_type"
-  echo cd "builds/$target/$build_type"
+  $as_echo "$mkbuilddir $target $build_type"
+  source $mkbuilddir "$target" "$build_type"
+  $as_echo "cd builds/$target/$build_type"
   cd "builds/$target/$build_type"
   CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
-  echo ../../../configure $config_cmdline
+  $as_echo "../../../configure $config_cmdline"
   `pwd`/../../../configure $config_cmdline
   exitval=$?
   cd ../../..
@@ -604,7 +604,7 @@ AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
 if test -z "$CXXTESTGEN"; then
   AC_MSG_NOTICE([unit tests disabled, cxxtestgen.pl not found.])
 elif test -z "$CXXTEST"; then
-  CXXTEST=$(dirname "$CXXTESTGEN")
+  CXXTEST=`dirname "$CXXTESTGEN"`
   AC_MSG_CHECKING([for location of CxxTest headers])
   if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
     AC_MSG_RESULT([$CXXTEST])

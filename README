@@ -18,6 +18,8 @@ are necessary for an independent install.
 The following tools and libraries are required to run CVC4. Versions
 given are minimum versions; more recent versions should be compatible.
 
+GNU C and C++ (gcc and g++), reasonably recent versions
+GNU Make
 GMP v4.2
 libantlr3c v3.2
 Optional: CLN v1.3
