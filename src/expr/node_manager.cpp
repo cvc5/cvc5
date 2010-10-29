@@ -423,9 +423,9 @@ TypeNode NodeManager::computeType(TNode n, bool check)
   }
 
   setAttribute(n, TypeAttr(), typeNode);
-  setAttribute(n, TypeCheckedAttr(), 
+  setAttribute(n, TypeCheckedAttr(),
                check || getAttribute(n, TypeCheckedAttr()));
-  
+
   return typeNode;
 }
 
@@ -449,8 +449,10 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
       bool readyToCompute = true;
 
-      for( TNode::iterator it = m.begin(), end = m.end() ; it != end; ++it ) {
-        if( !hasAttribute(*it, TypeAttr()) 
+      for( TNode::iterator it = m.begin(), end = m.end();
+           it != end;
+           ++it ) {
+        if( !hasAttribute(*it, TypeAttr())
             || (check && !getAttribute(*it, TypeCheckedAttr())) ) {
           readyToCompute = false;
           worklist.push(*it);
@@ -459,23 +461,23 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
       if( readyToCompute ) {
         /* All the children have types, time to compute */
-        typeNode = computeType(m,check);
+        typeNode = computeType(m, check);
         worklist.pop();
-      } 
+      }
     } // end while
 
     /* Last type computed in loop should be the type of n */
-    Assert( typeNode == getAttribute(n,TypeAttr()) );
+    Assert( typeNode == getAttribute(n, TypeAttr()) );
   } else if( !hasType || needsCheck ) {
     /* We can compute the type top-down, without worrying about
        deep recursion. */
-    typeNode = computeType(n,check);
+    typeNode = computeType(n, check);
   }
 
   /* The type should be have been computed and stored. */
   Assert( hasAttribute(n, TypeAttr()) );
   /* The check should have happened, if we asked for it. */
-  Assert( !check || hasAttribute(n, TypeCheckedAttr()) );
+  Assert( !check || getAttribute(n, TypeCheckedAttr()) );
 
   Debug("getType") << "type of " << n << " is " << typeNode << std::endl;
   return typeNode;

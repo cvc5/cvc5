@@ -49,15 +49,32 @@
 // copy constructors.  The advantage is that with CVC4_UNDEFINED,
 // if something _does_ try to call the function, you get an error
 // at the point of the call (rather than a link error later).
+
+// CVC4_UNUSED is to mark something (e.g. local variable, function)
+// as being _possibly_ unused, so that the compiler generates no
+// warning about it.  This might be the case for e.g. a variable
+// only used in DEBUG builds.
+
 #ifdef __GNUC__
-#  define CVC4_UNDEFINED __attribute__((error("this function intentionally undefined")))
+#  if __GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 3 )
+     /* error function attribute only exists in GCC >= 4.3.0 */
+#    define CVC4_UNDEFINED __attribute__((error("this function intentionally undefined")))
+#  else /* GCC < 4.3.0 */
+#    define CVC4_UNDEFINED
+#  endif /* GCC >= 4.3.0 */
 #else /* ! __GNUC__ */
 #  define CVC4_UNDEFINED
 #endif /* __GNUC__ */
 
+#ifdef __GNUC__
+#  define CVC4_UNUSED __attribute__((unused))
+#else /* ! __GNUC__ */
+#  define CVC4_UNUSED
+#endif /* __GNUC__ */
+
 #define EXPECT_TRUE(x) __builtin_expect( (x), true )
 #define EXPECT_FALSE(x) __builtin_expect( (x), false )
-#define NORETURN __attribute__ ((noreturn))
+#define CVC4_NORETURN __attribute__ ((noreturn))
 
 #ifndef NULL
 #  define NULL ((void*) 0)

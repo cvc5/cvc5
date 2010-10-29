@@ -133,7 +133,7 @@ int runCvc4(int argc, char* argv[]) {
   cvc4_init();
 
   progPath = argv[0];
-  
+
   // Parse the options
   int firstArgIndex = options.parseOptions(argc, argv);
 
@@ -148,7 +148,7 @@ int runCvc4(int argc, char* argv[]) {
   } else if( options.version ) {
     *options.out << Configuration::about().c_str() << flush;
     exit(0);
-  } 
+  }
 
   segvNoSpin = options.segvNoSpin;
 
