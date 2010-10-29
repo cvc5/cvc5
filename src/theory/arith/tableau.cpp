@@ -63,6 +63,9 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
   Assert(d_basicManager.isMember(x_r));
   Assert(!d_basicManager.isMember(x_s));
 
+  Debug("tableau") << "Tableau::pivot("
+                   <<  x_r <<", " <<x_s <<")"  << endl;
+
   ReducedRowVector* row_s = lookup(x_r);
   Assert(row_s->has(x_s));
 

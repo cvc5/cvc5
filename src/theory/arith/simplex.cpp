@@ -388,8 +388,9 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
       }
       d_griggioRuleQueue.pop();
     }
+
     d_pivotStage = false;
-    return updateInconsistentVars();
+    return privateUpdateInconsistentVars();
   }
 
   Unreachable();
@@ -451,7 +452,7 @@ Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
 
   for(ReducedRowVector::NonZeroIterator nbi = row_i->beginNonZero(), end = row_i->endNonZero(); nbi != end; ++nbi){
     ArithVar nonbasic = getArithVar(*nbi);
-    if(nonbasic != conflictVar) continue;
+    if(nonbasic == conflictVar) continue;
 
     const Rational& a_ij = nbi->second;
 
