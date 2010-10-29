@@ -33,6 +33,7 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/arith_propagator.h"
+#include "theory/arith/simplex.h"
 
 #include "util/stats.h"
 
@@ -98,6 +99,7 @@ private:
   ArithRewriter d_rewriter;
 
   ArithUnatePropagator d_propagator;
+  SimplexDecisionProcedure d_simplex;
 
 public:
   TheoryArith(int id, context::Context* c, OutputChannel& out);
@@ -137,88 +139,7 @@ private:
 
   bool isTheoryLeaf(TNode x) const;
 
-  /**
-   * Assert*(n, orig) takes an bound n that is implied by orig.
-   * and asserts that as a new bound if it is tighter than the current bound
-   * and updates the value of a basic variable if needed.
-   * If this new bound is in conflict with the other bound,
-   * a conflict is created and asserted to the output channel.
-   *
-   * orig must be an atom in the SAT solver so that it can be used for
-   * conflict analysis.
-   *
-   * n is of the form (x =?= c) where x is a variable,
-   * c is a constant and =?= is either LT, LEQ, EQ, GEQ, or GT.
-   *
-   * returns true if a conflict was asserted.
-   */
-  bool AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode orig);
-  bool AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode orig);
-  bool AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode orig);
-
   ArithVar determineLeftVariable(TNode assertion, Kind simpleKind);
-
-
-  /**
-   * Updates the assignment of a nonbasic variable x_i to v.
-   * Also updates the assignment of basic variables accordingly.
-   */
-  void update(ArithVar x_i, const DeltaRational& v);
-
-  /**
-   * Updates the value of a basic variable x_i to v,
-   * and then pivots x_i with the nonbasic variable in its row x_j.
-   * Updates the assignment of the other basic variables accordingly.
-   */
-  void pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v);
-
-  /**
-   * Tries to update the assignments of variables such that all of the
-   * assignments are consistent with their bounds.
-   *
-   * This is done by searching through the tableau.
-   * If all of the variables can be made consistent with their bounds
-   * Node::null() is returned. Otherwise a minimized conflict is returned.
-   *
-   * If a conflict is found, changes to the assignments need to be reverted.
-   *
-   * Tableau pivoting is performed so variables may switch from being basic to
-   * nonbasic and vice versa.
-   *
-   * Corresponds to the "check()" procedure in [Cav06].
-   */
-  Node updateInconsistentVars();
-
-  /**
-   * Given the basic variable x_i,
-   * this function finds the smallest nonbasic variable x_j in the row of x_i
-   * in the tableau that can "take up the slack" to let x_i satisfy its bounds.
-   * This returns TNode::null() if none exists.
-   *
-   * More formally one of the following conditions must be satisfied:
-   * -  above && a_ij < 0 && assignment(x_j) < upperbound(x_j)
-   * -  above && a_ij > 0 && assignment(x_j) > lowerbound(x_j)
-   * - !above && a_ij > 0 && assignment(x_j) < upperbound(x_j)
-   * - !above && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
-   */
-  template <bool above>  ArithVar selectSlack(ArithVar x_i);
-
-  ArithVar selectSlackBelow(ArithVar x_i) { return selectSlack<false>(x_i); }
-  ArithVar selectSlackAbove(ArithVar x_i) { return selectSlack<true>(x_i);  }
-
-  /**
-   * Returns the smallest basic variable whose assignment is not consistent
-   * with its upper and lower bounds.
-   */
-  ArithVar selectSmallestInconsistentVar();
-
-  /**
-   * Given a non-basic variable that is know to not be updatable
-   * to a consistent value, construct and return a conflict.
-   * Follows section 4.2 in the CAV06 paper.
-   */
-  Node generateConflictAbove(ArithVar conflictVar);
-  Node generateConflictBelow(ArithVar conflictVar);
 
 
   /**
@@ -234,20 +155,8 @@ private:
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);
 
-  /**
-   * Computes the value of a basic variable using the assignments
-   * of the values of the variables in the basic variable's row tableau.
-   * This can compute the value using either:
-   * - the the current assignment (useSafe=false) or
-   * - the safe assignment (useSafe = true).
-   */
-  DeltaRational computeRowValue(ArithVar x, bool useSafe);
 
-  /** Checks to make sure the assignment is consistent with the tableau. */
-  void checkTableau();
 
-  /** Check to make sure all of the basic variables are within their bounds. */
-  void checkBasicVariable(ArithVar basic);
 
   /**
    * Handles the case splitting for check() for a new assertion.
@@ -256,9 +165,6 @@ private:
   bool assertionCases(TNode assertion);
 
   ArithVar findBasicRow(ArithVar variable);
-  bool shouldEject(ArithVar var);
-  void ejectInactiveVariables();
-  void reinjectVariable(ArithVar x);
 
   void asVectors(Polynomial& p,
                  std::vector<Rational>& coeffs,
@@ -268,8 +174,6 @@ private:
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
   public:
-    IntStat d_statPivots, d_statUpdates, d_statAssertUpperConflicts;
-    IntStat d_statAssertLowerConflicts, d_statUpdateConflicts;
     IntStat d_statUserVariables, d_statSlackVariables;
 
     Statistics();
