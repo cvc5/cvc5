@@ -104,8 +104,7 @@ public:
 
   /** Returns true if the variable is in the row. */
   bool has(ArithVar x_j) const{
-    NonZeroIterator lb = lower_bound(x_j);
-    return getArithVar(*lb) == x_j;
+    return std::binary_search(d_entries.begin(), d_entries.end(), make_pair(x_j,0), cmp);
   }
 
   /**
