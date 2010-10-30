@@ -34,7 +34,7 @@ void Tableau::addRow(ArithVar basicVar,
   //The new basic variable cannot already be a basic variable
   Assert(!isActiveBasicVariable(basicVar));
   d_activeBasicVars.insert(basicVar);
-  ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs);
+  ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs,d_rowCount);
   d_rowsTable[basicVar] = row_current;
 
   //A variable in the row may have been made non-basic already.

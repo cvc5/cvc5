@@ -97,6 +97,8 @@ private:
   ActivityMonitor& d_activityMonitor;
   ArithVarDenseSet& d_basicManager;
 
+  std::vector<uint32_t> d_rowCount;
+
 public:
   /**
    * Constructs an empty tableau.
@@ -111,6 +113,7 @@ public:
   void increaseSize(){
     d_activeBasicVars.increaseSize();
     d_rowsTable.push_back(NULL);
+    d_rowCount.push_back(0);
   }
 
   ArithVarSet::iterator begin(){
@@ -132,6 +135,11 @@ private:
     return d_rowsTable[var];
   }
 public:
+
+  uint32_t getRowCount(ArithVar x){
+    Assert(x < d_rowCount.size());
+    return d_rowCount[x];
+  }
 
   void addRow(ArithVar basicVar,
               const std::vector<Rational>& coeffs,

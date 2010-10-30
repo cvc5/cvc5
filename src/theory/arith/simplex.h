@@ -75,7 +75,8 @@ public:
     d_activityMonitor(am),
     d_out(out),
     d_tableau(tableau),
-    d_numVariables(0)
+    d_numVariables(0),
+    d_pivotStage(true)
   {}
 
   void increaseMax() {d_numVariables++;}

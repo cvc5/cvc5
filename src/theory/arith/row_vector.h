@@ -36,34 +36,13 @@ public:
    * isSorted(arr, strictlySorted) is then equivalent to
    * If i<j, cmp(getArithVar(d_entries[i]), getArithVar(d_entries[j])) <= c.
    */
-  static bool isSorted(const VarCoeffArray& arr, bool strictlySorted) {
-    if(arr.size() >= 2){
-      NonZeroIterator curr = arr.begin();
-      NonZeroIterator end = arr.end();
-      ArithVar prev = getArithVar(*curr);
-      ++curr;
-      for(;curr != end; ++curr){
-        ArithVar v = getArithVar(*curr);
-        if(strictlySorted && prev > v) return false;
-        if(!strictlySorted && prev >= v) return false;
-        prev = v;
-      }
-    }
-    return true;
-  }
+  static bool isSorted(const VarCoeffArray& arr, bool strictlySorted);
 
   /**
    * noZeroCoefficients(arr) is equivalent to
    *  0 != getCoefficient(arr[i]) for all i.
    */
-  static bool noZeroCoefficients(const VarCoeffArray& arr){
-    for(NonZeroIterator curr = arr.begin(), end = arr.end();
-        curr != end; ++curr){
-      const Rational& coeff = getCoefficient(*curr);
-      if(coeff == 0) return false;
-    }
-    return true;
-  }
+  static bool noZeroCoefficients(const VarCoeffArray& arr);
 
   /**
    * Zips together an array of variables and coefficients and appends
@@ -73,7 +52,7 @@ public:
                   const std::vector< Rational >& coefficients,
                   VarCoeffArray& output);
 
-  static void merge(VarCoeffArray& arr, const VarCoeffArray& other, const Rational& c);
+  static void merge(VarCoeffArray& arr, const VarCoeffArray& other, const Rational& c, std::vector<uint32_t>& count);
 
 
 protected:
@@ -84,6 +63,8 @@ protected:
    */
   VarCoeffArray d_entries;
 
+  std::vector<uint32_t>& d_rowCount;
+
   NonZeroIterator lower_bound(ArithVar x_j) const{
     return std::lower_bound(d_entries.begin(), d_entries.end(), make_pair(x_j,0), cmp);
   }
@@ -92,10 +73,11 @@ protected:
 
 public:
 
-  RowVector() : d_entries() {}
+  //RowVector() : d_entries() {}
 
   RowVector(const std::vector< ArithVar >& variables,
-            const std::vector< Rational >& coefficients);
+            const std::vector< Rational >& coefficients,
+            std::vector<uint32_t>& counts);
 
 
   //Iterates over the nonzero entries in the Vector
@@ -154,7 +136,8 @@ public:
 
   ReducedRowVector(ArithVar basic,
                    const std::vector< ArithVar >& variables,
-                   const std::vector< Rational >& coefficients);
+                   const std::vector< Rational >& coefficients,
+                   std::vector<uint32_t>& count);
 
 
   ArithVar basic() const{

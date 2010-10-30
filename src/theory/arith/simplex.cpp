@@ -306,6 +306,9 @@ template <bool above>
 ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i){
   ReducedRowVector* row_i = d_tableau.lookup(x_i);
 
+  ArithVar slack = ARITHVAR_SENTINEL;
+  uint32_t numRows = std::numeric_limits<uint32_t>::max();
+
   for(ReducedRowVector::NonZeroIterator nbi = row_i->beginNonZero(), end = row_i->endNonZero();
       nbi != end; ++nbi){
     ArithVar nonbasic = getArithVar(*nbi);
@@ -315,24 +318,63 @@ ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i){
     int cmp = a_ij.cmp(d_constants.d_ZERO);
     if(above){ // beta(x_i) > u_i
       if( cmp < 0 && d_partialModel.strictlyBelowUpperBound(nonbasic)){
-        return nonbasic;
+        if(d_pivotStage){
+          if(d_tableau.getRowCount(nonbasic) < numRows){
+            slack = nonbasic;
+            numRows = d_tableau.getRowCount(nonbasic);
+          }
+        }else{
+          slack = nonbasic; break;
+        }
       }else if( cmp > 0 && d_partialModel.strictlyAboveLowerBound(nonbasic)){
-        return nonbasic;
+        if(d_pivotStage){
+          if(d_tableau.getRowCount(nonbasic) < numRows){
+            slack = nonbasic;
+            numRows = d_tableau.getRowCount(nonbasic);
+          }
+        }else{
+          slack = nonbasic; break;
+        }
       }
     }else{ //beta(x_i) < l_i
       if(cmp > 0 && d_partialModel.strictlyBelowUpperBound(nonbasic)){
-        return nonbasic;
-      }else if(cmp < 0 && d_partialModel.strictlyAboveLowerBound(nonbasic)){
-        return nonbasic;
+        if(d_pivotStage){
+          if(d_tableau.getRowCount(nonbasic) < numRows){
+            slack = nonbasic;
+            numRows = d_tableau.getRowCount(nonbasic);
+          }
+        }else{
+          slack = nonbasic; break;
+        }
+      }else if(cmp < 0 && d_partialModel.strictlyAboveLowerBound(nonbasic)){if(d_pivotStage){
+          if(d_tableau.getRowCount(nonbasic) < numRows){
+            slack = nonbasic;
+            numRows = d_tableau.getRowCount(nonbasic);
+          }
+        }else{
+          slack = nonbasic; break;
+        }
       }
     }
   }
-  return ARITHVAR_SENTINEL;
+
+  return slack;
 }
 
 Node SimplexDecisionProcedure::updateInconsistentVars(){
+  Node possibleConflict = privateUpdateInconsistentVars();
+  Assert(!possibleConflict.isNull() || d_griggioRuleQueue.empty());
+  Assert(!possibleConflict.isNull() || d_possiblyInconsistent.empty());
   d_pivotStage = true;
-  return privateUpdateInconsistentVars();
+
+  while(!d_griggioRuleQueue.empty()){
+    d_griggioRuleQueue.pop();
+  }
+  while(!d_possiblyInconsistent.empty()){
+    d_possiblyInconsistent.pop();
+  }
+
+  return possibleConflict;
 }
 
 //corresponds to Check() in dM06
