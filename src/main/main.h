@@ -20,6 +20,7 @@
 #include <string>
 
 #include "util/options.h"
+#include "util/exception.h"
 #include "cvc4autoconfig.h"
 
 #ifndef __CVC4__MAIN__MAIN_H
@@ -45,7 +46,7 @@ extern bool segvNoSpin;
 extern Options options;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
-void cvc4_init() throw();
+void cvc4_init() throw(Exception);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
