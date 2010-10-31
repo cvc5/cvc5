@@ -11,8 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief .
+ ** \brief A decision engine for CVC4
  **
+ ** A decision engine for CVC4.
  **/
 
 #include "util/decision_engine.h"

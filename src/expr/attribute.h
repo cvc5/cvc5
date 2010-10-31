@@ -112,62 +112,52 @@ public:
    * Get a particular attribute on a particular node.
    *
    * @param nv the node about which to inquire
-   *
-   * @param const AttrKind& the attribute kind to get
-   *
+   * @param attr the attribute kind to get
    * @return the attribute value, if set, or a default-constructed
    * AttrKind::value_type if not.
    */
   template <class AttrKind>
   typename AttrKind::value_type getAttribute(NodeValue* nv,
-                                             const AttrKind&) const;
+                                             const AttrKind& attr) const;
 
   /**
    * Determine if a particular attribute exists for a particular node.
    *
    * @param nv the node about which to inquire
-   *
-   * @param const AttrKind& the attribute kind to inquire about
-   *
+   * @param attr the attribute kind to inquire about
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
   bool hasAttribute(NodeValue* nv,
-                    const AttrKind&) const;
+                    const AttrKind& attr) const;
 
   /**
    * Determine if a particular attribute exists for a particular node,
    * and get it if it does.
    *
    * @param nv the node about which to inquire
-   *
-   * @param const AttrKind& the attribute kind to inquire about
-   *
+   * @param attr the attribute kind to inquire about
    * @param ret a pointer to a return value, set in case the node has
    * the attribute
-   *
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
   bool getAttribute(NodeValue* nv,
-                    const AttrKind&,
+                    const AttrKind& attr,
                     typename AttrKind::value_type& ret) const;
 
   /**
    * Set a particular attribute on a particular node.
    *
    * @param nv the node for which to set the attribute
-   *
-   * @param const AttrKind& the attribute kind to set
-   *
-   * @param ret a pointer to a return value, set in case the node has
+   * @param attr the attribute kind to set
+   * @param value a pointer to a return value, set in case the node has
    * the attribute
-   *
    * @return true if the given node has the given attribute
    */
   template <class AttrKind>
   void setAttribute(NodeValue* nv,
-                    const AttrKind&,
+                    const AttrKind& attr,
                     const typename AttrKind::value_type& value);
 
   /**

@@ -309,10 +309,17 @@ public:
 
   /**
    * Outputs the string representation of the expression to the stream.
-   * @param out the output stream
+   *
+   * @param out the stream to serialize this expression to
+   * @param toDepth the depth to which to print this expression, or -1
+   * to print it fully
+   * @param types set to true to ascribe types to the output
+   * expressions (might break language compliance, but good for
+   * debugging expressions)
+   * @param language the language in which to output
    */
-  void toStream(std::ostream& out, int depth = -1, bool types = false,
-                OutputLanguage lang = language::output::LANG_AST) const;
+  void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+                OutputLanguage language = language::output::LANG_AST) const;
 
   /**
    * Check if this is a null expression.

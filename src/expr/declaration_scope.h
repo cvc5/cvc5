@@ -67,10 +67,10 @@ public:
 
   /**
    * Bind an expression to a name in the current scope level.  If
-   * <code>name</code> is already bound in the current level, then the
-   * binding is replaced. If <code>name</code> is bound in a previous
-   * level, then the binding is "covered" by this one until the
-   * current scope is popped.
+   * <code>name</code> is already bound to an expression in the current
+   * level, then the binding is replaced. If <code>name</code> is bound
+   * in a previous level, then the binding is "covered" by this one
+   * until the current scope is popped.
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
@@ -78,14 +78,15 @@ public:
   void bind(const std::string& name, Expr obj) throw();
 
   /**
-   * Bind a type to a name in the current scope.  If <code>name</code>
-   * is already bound to a type in the current level, then the binding
-   * is replaced. If <code>name</code> is bound in a previous level,
-   * then the binding is "covered" by this one until the current scope
-   * is popped.
+   * Bind a function body to a name in the current scope.  If
+   * <code>name</code> is already bound to an expression in the current
+   * level, then the binding is replaced. If <code>name</code> is bound
+   * in a previous level, then the binding is "covered" by this one
+   * until the current scope is popped.  Same as bind() but registers
+   * this as a function (so that isBoundDefinedFunction() returns true).
    *
    * @param name an identifier
-   * @param t the type to bind to <code>name</code>
+   * @param obj the expression to bind to <code>name</code>
    */
   void bindDefinedFunction(const std::string& name, Expr obj) throw();
 
@@ -109,6 +110,7 @@ public:
    * one until the current scope is popped.
    *
    * @param name an identifier
+   * @param params the parameters to the type
    * @param t the type to bind to <code>name</code>
    */
   void bindType(const std::string& name,

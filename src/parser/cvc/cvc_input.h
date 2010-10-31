@@ -50,18 +50,7 @@ public:
    */
   CvcInput(AntlrInputStream& inputStream);
 
-  /** Create a string input.
-   *
-   * @param exprManager the manager to use when building expressions from the input
-   * @param input the string to read
-   * @param name the "filename" to use when reporting errors
-   */
-/*
-  CvcInput(ExprManager* exprManager, const std::string& input,
-           const std::string& name);
-*/
-
-  /* Destructor. Frees the lexer and the parser. */
+  /** Destructor. Frees the lexer and the parser. */
   ~CvcInput();
 
 protected:

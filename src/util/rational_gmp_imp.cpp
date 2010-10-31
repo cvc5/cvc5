@@ -30,7 +30,7 @@ using namespace CVC4;
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
  */
-Rational Rational::fromDecimal(const string& dec) {
+Rational Rational::fromDecimal(const std::string& dec) {
   // Find the decimal point, if there is one
   string::size_type i( dec.find(".") );
   if( i != string::npos ) {

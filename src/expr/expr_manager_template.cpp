@@ -27,7 +27,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 30 "${template}"
+#line 31 "${template}"
 
 using namespace std;
 using namespace CVC4::context;
@@ -302,7 +302,7 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * type checking is not requested, getType() will do the minimum
  * amount of checking required to return a valid result.
  *
- * @param n the Expr for which we want a type
+ * @param e the Expr for which we want a type
  * @param check whether we should check the type as we compute it
  * (default: false)
  */

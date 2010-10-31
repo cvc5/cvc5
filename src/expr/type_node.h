@@ -96,7 +96,7 @@ public:
    * Assignment operator for nodes, copies the relevant information from node
    * to this node.
    *
-   * @param node the node to copy
+   * @param typeNode the node to copy
    * @return reference to this node
    */
   TypeNode& operator=(const TypeNode& typeNode);
@@ -150,7 +150,7 @@ public:
    * We compare by expression ids so, keeping things deterministic and having
    * that subexpressions have to be smaller than the enclosing expressions.
    *
-   * @param node the node to compare to
+   * @param typeNode the node to compare to
    * @return true if this expression is smaller
    */
   inline bool operator<(const TypeNode& typeNode) const {
@@ -314,6 +314,11 @@ public:
    * given stream
    *
    * @param out the stream to serialize this node to
+   * @param toDepth the depth to which to print this expression, or -1 to
+   * print it fully
+   * @param types set to true to ascribe types to the output expressions
+   * (might break language compliance, but good for debugging expressions)
+   * @param language the language in which to output
    */
   inline void toStream(std::ostream& out, int toDepth = -1, bool types = false,
                        OutputLanguage language = language::output::LANG_AST) const {
@@ -323,7 +328,7 @@ public:
   /**
    * Very basic pretty printer for Node.
    *
-   * @param o output stream to print to.
+   * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
   void printAst(std::ostream& out, int indent = 0) const;
@@ -400,7 +405,7 @@ private:
    * Indents the given stream a given amount of spaces.
    *
    * @param out the stream to indent
-   * @param indent the numer of spaces
+   * @param indent the number of spaces
    */
   static void indent(std::ostream& out, int indent) {
     for(int i = 0; i < indent; i++) {
@@ -414,8 +419,8 @@ private:
  * Serializes a given node to the given stream.
  *
  * @param out the output stream to use
- * @param node the node to output to the stream
- * @return the changed stream.
+ * @param n the node to output to the stream
+ * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   n.toStream(out,

@@ -128,7 +128,7 @@ Monomial Monomial::operator*(const Monomial& mono) const {
   return Monomial::mkMonomial(newConstant, newVL);
 }
 
-vector<Monomial> Monomial::sumLikeTerms(const vector<Monomial> & monos) {
+vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
   Assert(isSorted(monos));
 
   Debug("blah") << "start sumLikeTerms" << std::endl;
@@ -161,7 +161,7 @@ void Monomial::print() const {
   Debug("normal-form") <<  getNode() << std::endl;
 }
 
-void Monomial::printList(const vector<Monomial>& list) {
+void Monomial::printList(const std::vector<Monomial>& list) {
   for(vector<Monomial>::const_iterator i = list.begin(), end = list.end(); i != end; ++i) {
     const Monomial& m =*i;
     m.print();

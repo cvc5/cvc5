@@ -135,11 +135,13 @@ class CVC4_PUBLIC Parser {
   Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
-  /** Create a parser state. NOTE: The parser takes "ownership" of the given
+  /**
+   * Create a parser state. NOTE: The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
    * @param exprManager the expression manager to use when creating expressions
    * @param input the parser input
+   * @param strictMode whether to incorporate strict(er) compliance checks
    */
   Parser(ExprManager* exprManager, Input* input, bool strictMode = false);
 
@@ -207,13 +209,14 @@ public:
   /**
    * Returns a function, given a name.
    *
-   * @param var_name the name of the variable
+   * @param name the name of the variable
    * @return the variable expression
    */
   Expr getFunction(const std::string& name);
 
   /**
    * Returns a sort, given a name.
+   * @param sort_name the name to look up
    */
   Type getSort(const std::string& sort_name);
 
@@ -267,7 +270,7 @@ public:
    * @param kind the built-in operator to check
    * @param numArgs the number of actual arguments
    * @throws ParserException if the parser mode is strict and the
-   * operator <code>kind</kind> has not been enabled
+   * operator <code>kind</code> has not been enabled
    */
   void checkOperator(Kind kind, unsigned int numArgs) throw (ParserException);
 

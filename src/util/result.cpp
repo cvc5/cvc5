@@ -28,7 +28,7 @@ using namespace std;
 
 namespace CVC4 {
 
-Result::Result(const string& instr) :
+Result::Result(const std::string& instr) :
   d_sat(SAT_UNKNOWN),
   d_validity(VALIDITY_UNKNOWN),
   d_which(TYPE_NONE),

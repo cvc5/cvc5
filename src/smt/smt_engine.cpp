@@ -180,7 +180,7 @@ SmtEngine::~SmtEngine() {
   delete d_decisionEngine;
 }
 
-void SmtEngine::setInfo(const string& key, const SExpr& value)
+void SmtEngine::setInfo(const std::string& key, const SExpr& value)
   throw(BadOptionException) {
   Debug("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(key == ":name" ||
@@ -206,7 +206,7 @@ void SmtEngine::setInfo(const string& key, const SExpr& value)
   throw BadOptionException();
 }
 
-SExpr SmtEngine::getInfo(const string& key) const
+SExpr SmtEngine::getInfo(const std::string& key) const
   throw(BadOptionException) {
   Debug("smt") << "SMT getInfo(" << key << ")" << endl;
   if(key == ":all-statistics") {
@@ -244,7 +244,7 @@ SExpr SmtEngine::getInfo(const string& key) const
   }
 }
 
-void SmtEngine::setOption(const string& key, const SExpr& value)
+void SmtEngine::setOption(const std::string& key, const SExpr& value)
   throw(BadOptionException) {
   Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
   if(key == ":print-success") {
@@ -274,7 +274,7 @@ void SmtEngine::setOption(const string& key, const SExpr& value)
   }
 }
 
-SExpr SmtEngine::getOption(const string& key) const
+SExpr SmtEngine::getOption(const std::string& key) const
   throw(BadOptionException) {
   Debug("smt") << "SMT getOption(" << key << ")" << endl;
   if(key == ":print-success") {
@@ -305,7 +305,7 @@ SExpr SmtEngine::getOption(const string& key) const
 }
 
 void SmtEngine::defineFunction(Expr func,
-                               const vector<Expr>& formals,
+                               const std::vector<Expr>& formals,
                                Expr formula) {
   Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
   NodeManagerScope nms(d_nodeManager);

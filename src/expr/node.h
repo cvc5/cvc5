@@ -565,7 +565,7 @@ public:
    * PLUSes don't exist---begin(PLUS) will give an iterator over the
    * children if the node's a PLUS node, otherwise give an iterator
    * over the node itself, as if it were a unary PLUS.
-   * @param the kind to match
+   * @param kind the kind to match
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
    */
@@ -583,7 +583,7 @@ public:
    * don't exist---begin(PLUS) will give an iterator over the children
    * if the node's a PLUS node, otherwise give an iterator over the
    * node itself, as if it were a unary PLUS.
-   * @param the kind to match
+   * @param kind the kind to match
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
    */
@@ -619,7 +619,7 @@ public:
    * PLUSes don't exist---begin(PLUS) will give an iterator over the
    * children if the node's a PLUS node, otherwise give an iterator
    * over the node itself, as if it were a unary PLUS.
-   * @param the kind to match
+   * @param kind the kind to match
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
    */
@@ -637,7 +637,7 @@ public:
    * don't exist---begin(PLUS) will give an iterator over the children
    * if the node's a PLUS node, otherwise give an iterator over the
    * node itself, as if it were a unary PLUS.
-   * @param the kind to match
+   * @param kind the kind to match
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
    */
@@ -658,7 +658,13 @@ public:
   /**
    * Converst this node into a string representation and sends it to the
    * given stream
+   *
    * @param out the stream to serialize this node to
+   * @param toDepth the depth to which to print this expression, or -1 to
+   * print it fully
+   * @param types set to true to ascribe types to the output expressions
+   * (might break language compliance, but good for debugging expressions)
+   * @param language the language in which to output
    */
   inline void toStream(std::ostream& out, int toDepth = -1, bool types = false,
                        OutputLanguage language = language::output::LANG_AST) const {
@@ -700,7 +706,7 @@ public:
 
   /**
    * Very basic pretty printer for Node.
-   * @param o output stream to print to.
+   * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
    */
   inline void printAst(std::ostream& out, int indent = 0) const;
@@ -721,8 +727,8 @@ public:
 /**
  * Serializes a given node to the given stream.
  * @param out the output stream to use
- * @param node the node to output to the stream
- * @return the changed stream.
+ * @param n the node to output to the stream
+ * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,

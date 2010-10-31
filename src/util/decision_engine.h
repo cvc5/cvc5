@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A decision engine for CVC4.
+ ** \brief A decision engine for CVC4
  **
  ** A decision engine for CVC4.
  **/

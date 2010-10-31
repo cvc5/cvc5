@@ -54,7 +54,6 @@ public:
   /**
    * Add theory symbols to the parser state.
    *
-   * @param parser the CVC4 Parser object
    * @param theory the theory to open (e.g., Core, Ints)
    */
   void addTheory(Theory theory);
@@ -65,7 +64,6 @@ public:
    * Sets the logic for the current benchmark. Declares any logic and
    * theory symbols.
    *
-   * @param parser the CVC4 Parser object
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
   void setLogic(const std::string& name);

@@ -30,8 +30,8 @@ bool RowVector::noZeroCoefficients(const VarCoeffArray& arr){
   return true;
 }
 
-void RowVector::zip(const vector< ArithVar >& variables,
-                    const vector< Rational >& coefficients,
+void RowVector::zip(const std::vector< ArithVar >& variables,
+                    const std::vector< Rational >& coefficients,
                     VarCoeffArray& output){
 
   Assert(coefficients.size() == variables.size() );
@@ -48,8 +48,8 @@ void RowVector::zip(const vector< ArithVar >& variables,
   }
 }
 
-RowVector::RowVector(const vector< ArithVar >& variables,
-                     const vector< Rational >& coefficients,
+RowVector::RowVector(const std::vector< ArithVar >& variables,
+                     const std::vector< Rational >& coefficients,
                      std::vector<uint32_t>& counts):
   d_rowCount(counts)
 {
@@ -135,8 +135,8 @@ void RowVector::printRow(){
 }
 
 ReducedRowVector::ReducedRowVector(ArithVar basic,
-                                   const vector<ArithVar>& variables,
-                                   const vector<Rational>& coefficients,
+                                   const std::vector<ArithVar>& variables,
+                                   const std::vector<Rational>& coefficients,
                                    std::vector<uint32_t>& count):
   RowVector(variables, coefficients, count), d_basic(basic){
 

@@ -183,7 +183,7 @@ void SharedTermManager::addEq(TNode eq, Theory* thReason) {
 }
 
 
-void SharedTermManager::collectExplanations(SharedData* pData, set<Node>& s) const {
+void SharedTermManager::collectExplanations(SharedData* pData, std::set<Node>& s) const {
   Theory* expTh = pData->getExplainingTheory();
   if(expTh == NULL) {
     // This equality is directly from SAT, no need to ask a theory for an explanation

@@ -44,12 +44,6 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::GEQ);
 }
 
-/**
- * Add theory symbols to the parser state.
- *
- * @param parser the CVC4 Parser object
- * @param theory the theory to open (e.g., Core, Ints)
- */
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_CORE:
@@ -97,13 +91,6 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
-/**
- * Sets the logic for the current benchmark. Declares any logic and
- * theory symbols.
- *
- * @param parser the CVC4 Parser object
- * @param name the name of the logic (e.g., QF_UF, AUFLIA)
- */
 void Smt2::setLogic(const std::string& name) {
   d_logicSet = true;
   d_logic = Smt::toLogic(name);

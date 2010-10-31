@@ -24,8 +24,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CNF_STREAM_H
-#define __CVC4__CNF_STREAM_H
+#ifndef __CVC4__PROP__CNF_STREAM_H
+#define __CVC4__PROP__CNF_STREAM_H
 
 #include "expr/node.h"
 #include "prop/sat.h"
@@ -34,6 +34,7 @@
 
 namespace CVC4 {
 namespace prop {
+
 
 class PropEngine;
 
@@ -70,18 +71,21 @@ protected:
 
   /**
    * Asserts the given clause to the sat solver.
+   * @param node the node giving rise to this clause
    * @param clause the clasue to assert
    */
   void assertClause(TNode node, SatClause& clause);
 
   /**
    * Asserts the unit clause to the sat solver.
+   * @param node the node giving rise to this clause
    * @param a the unit literal of the clause
    */
   void assertClause(TNode node, SatLiteral a);
 
   /**
    * Asserts the binary clause to the sat solver.
+   * @param node the node giving rise to this clause
    * @param a the first literal in the clause
    * @param b the second literal in the clause
    */
@@ -89,6 +93,7 @@ protected:
 
   /**
    * Asserts the ternary clause to the sat solver.
+   * @param node the node giving rise to this clause
    * @param a the first literal in the clause
    * @param b the second literal in the clause
    * @param c the thirs literal in the clause
@@ -96,33 +101,33 @@ protected:
   void assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c);
 
   /**
-   * Returns true if the node has been cashed in the translation cache.
+   * Returns true if the node has been cached in the translation cache.
    * @param node the node
    * @return true if the node has been cached
    */
   bool isCached(TNode node) const;
 
   /**
-   * Returns the cashed literal corresponding to the given node.
+   * Returns the cached literal corresponding to the given node.
    * @param node the node to lookup
    * @return returns the corresponding literal
    */
-  SatLiteral lookupInCache(TNode n) const;
+  SatLiteral lookupInCache(TNode node) const;
 
   /**
    * Caches the pair of the node and the literal corresponding to the
    * translation.
-   * @param node node
-   * @param lit
+   * @param node the node
+   * @param lit the literal
    */
   void cacheTranslation(TNode node, SatLiteral lit);
 
   /**
-   * Acquires a new variable from the SAT solver to represent the node and
-   * inserts the necessary data it into the mapping tables.
+   * Acquires a new variable from the SAT solver to represent the node
+   * and inserts the necessary data it into the mapping tables.
    * @param node a formula
-   * @param theoryLiteral is this literal a theory literal (i.e. theory to be
-   *        informed when set to true/false
+   * @param theoryLiteral whether this literal a theory literal (and
+   * therefore the theory is to be informed when set to true/false)
    * @return the literal corresponding to the formula
    */
   SatLiteral newLiteral(TNode node, bool theoryLiteral = false);
@@ -140,8 +145,8 @@ protected:
 public:
 
   /**
-   * Constructs a CnfStream that sends constructs an equi-satisfiable set of clauses
-   * and sends them to the given sat solver.
+   * Constructs a CnfStream that sends constructs an equi-satisfiable
+   * set of clauses and sends them to the given sat solver.
    * @param satSolver the sat solver to use
    */
   CnfStream(SatInputInterface* satSolver);
@@ -157,7 +162,7 @@ public:
   /**
    * Converts and asserts a formula.
    * @param node node to convert and assert
-   * @param whether the sat solver can choose to remove the clauses
+   * @param lemma whether the sat solver can choose to remove the clauses
    * @param negated wheather we are asserting the node negated
    */
   virtual void convertAndAssert(TNode node, bool lemma, bool negated = false) = 0;
@@ -184,7 +189,9 @@ public:
   const NodeCache& getNodeCache() const {
     return d_nodeCache;
   }
+
 };/* class CnfStream */
+
 
 /**
  * TseitinCnfStream is based on the following recursive algorithm
@@ -249,9 +256,10 @@ private:
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-}; /* class TseitinCnfStream */
+};/* class TseitinCnfStream */
 
-}/* prop namespace */
+
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CNF_STREAM_H */
+#endif /* __CVC4__PROP__CNF_STREAM_H */

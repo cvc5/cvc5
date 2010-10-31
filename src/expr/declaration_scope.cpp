@@ -76,7 +76,7 @@ void DeclarationScope::bindType(const std::string& name, Type t) throw() {
 }
 
 void DeclarationScope::bindType(const std::string& name,
-                                const vector<Type>& params,
+                                const std::vector<Type>& params,
                                 Type t) throw() {
   if(Debug.isOn("sort")) {
     Debug("sort") << "bindType(" << name << ", [";
@@ -104,7 +104,7 @@ Type DeclarationScope::lookupType(const std::string& name) const throw(Assertion
 }
 
 Type DeclarationScope::lookupType(const std::string& name,
-                                  const vector<Type>& params) const throw(AssertionException) {
+                                  const std::vector<Type>& params) const throw(AssertionException) {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   Assert(p.first.size() == params.size(),
          "type constructor arity is wrong: "

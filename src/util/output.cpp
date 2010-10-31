@@ -63,7 +63,7 @@ void DebugC::printf(const char* tag, const char* fmt, ...) {
   }
 }
 
-void DebugC::printf(string tag, const char* fmt, ...) {
+void DebugC::printf(std::string tag, const char* fmt, ...) {
   if(d_tags.find(tag) != d_tags.end()) {
     // chop off output after 1024 bytes
     char buf[1024];
@@ -127,7 +127,7 @@ void TraceC::printf(const char* tag, const char* fmt, ...) {
   }
 }
 
-void TraceC::printf(string tag, const char* fmt, ...) {
+void TraceC::printf(std::string tag, const char* fmt, ...) {
   if(d_tags.find(tag) != d_tags.end()) {
     // chop off output after 1024 bytes
     char buf[1024];

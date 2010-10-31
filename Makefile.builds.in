@@ -126,6 +126,12 @@ TAGS tags:
 
 .PHONY: TAGS tags
 
+.PHONY: doc-builds doc-prereq
+doc-builds: doc-prereq
+	(cd $(CURRENT_BUILD) && $(MAKE) doxygen-doc)
+doc-prereq:
+	(cd $(CURRENT_BUILD) && for dir in `find . -name Makefile | xargs grep -l BUILT_SOURCES`; do (cd `dirname "$$dir"`; (cat Makefile; echo 'doc-prereq: $$(BUILT_SOURCES)') | make -f- doc-prereq); done)
+
 # any other target than the default doesn't do the extra stuff above
 %:
 	(cd $(CURRENT_BUILD) && $(MAKE) $@)

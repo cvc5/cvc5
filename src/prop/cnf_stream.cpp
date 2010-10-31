@@ -71,9 +71,9 @@ bool CnfStream::isCached(TNode n) const {
   return d_translationCache.find(n) != d_translationCache.end();
 }
 
-SatLiteral CnfStream::lookupInCache(TNode n) const {
-  Assert(isCached(n), "Node is not in CNF translation cache");
-  return d_translationCache.find(n)->second;
+SatLiteral CnfStream::lookupInCache(TNode node) const {
+  Assert(isCached(node), "Node is not in CNF translation cache");
+  return d_translationCache.find(node)->second;
 }
 
 void CnfStream::cacheTranslation(TNode node, SatLiteral lit) {

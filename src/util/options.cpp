@@ -79,7 +79,7 @@ string Options::getDescription() const {
   return optionsDescription;
 }
 
-void Options::printUsage(const string msg, std::ostream& out) {
+void Options::printUsage(const std::string msg, std::ostream& out) {
   out << msg << optionsDescription << endl << flush;
   // printf(usage + options.getDescription(), options.binary_name.c_str());
   //     printf(usage, binary_name.c_str());

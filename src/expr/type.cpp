@@ -91,8 +91,8 @@ Type Type::substitute(const Type& type, const Type& replacement) const {
                                          *replacement.d_typeNode));
 }
 
-Type Type::substitute(const vector<Type>& types,
-                      const vector<Type>& replacements) const {
+Type Type::substitute(const std::vector<Type>& types,
+                      const std::vector<Type>& replacements) const {
   NodeManagerScope nms(d_nodeManager);
 
   vector<TypeNode> typesNodes, replacementsNodes;
@@ -117,7 +117,7 @@ Type Type::substitute(const vector<Type>& types,
                                          replacementsNodes.end()));
 }
 
-void Type::toStream(ostream& out) const {
+void Type::toStream(std::ostream& out) const {
   NodeManagerScope nms(d_nodeManager);
   out << *d_typeNode;
   return;
@@ -313,7 +313,7 @@ size_t SortConstructorType::getArity() const {
   return d_typeNode->getAttribute(expr::SortArityAttr());
 }
 
-SortType SortConstructorType::instantiate(const vector<Type>& params) const {
+SortType SortConstructorType::instantiate(const std::vector<Type>& params) const {
   NodeManagerScope nms(d_nodeManager);
   vector<TypeNode> paramsNodes;
   for(vector<Type>::const_iterator i = params.begin(),

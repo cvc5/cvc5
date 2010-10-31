@@ -18,6 +18,9 @@ all %:
 .PHONY: test
 test: check
 
+.PHONY: doc
+doc: doc-builds
+
 submission:
 	if [ ! -e configure ]; then ./autogen.sh; fi
 	./configure competition --disable-shared --enable-static-binary

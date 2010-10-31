@@ -26,7 +26,7 @@ using namespace std;
 namespace CVC4 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
-                                                           string message) :
+                                                           std::string message) :
   Exception(message),
   d_node(new Node(node)) {
 }
