@@ -91,7 +91,7 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
     abort();
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
-    fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    cerr << "Try:  gdb " << progName << " " << getpid() << endl;
     for(;;) {
       sleep(60);
     }
