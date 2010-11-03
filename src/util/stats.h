@@ -263,6 +263,32 @@ public:
 };/* class IntStat */
 
 
+/**
+ * The value for an AverageStat is the running average of (e1, e_2, ..., e_n),
+ *   (e1 + e_2 + ... + e_n)/n,
+ * where e_i is an entry added by an addEntry(e_i) call.
+ * The value is initially always 0.
+ * (This is to avoid making parsers confused.)
+ */
+class AverageStat : public BackedStat<double> {
+private:
+  uint32_t n;
+
+public:
+  AverageStat(const std::string& s) :
+    BackedStat<double>(s, 0.0 ), n(0) {
+  }
+
+  void addEntry(double e){
+    double oldSum = n*getData();
+    ++n;
+    double newSum = oldSum + e;
+    setData(newSum / n);
+  }
+
+};/* class AverageStat */
+
+
 // some utility functions for ::timespec
 inline ::timespec& operator+=(::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
