@@ -124,6 +124,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
   }
 
   if(isTheoryLeaf(n) || isStrictlyVarList){
+    ++(d_statistics.d_statUserVariables);
     ArithVar varN = requestArithVar(n,false);
     setupInitialValue(varN);
   }
@@ -197,6 +198,9 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
 
 void TheoryArith::setupSlack(TNode left){
 
+  
+
+  ++(d_statistics.d_statSlackVariables);
   TypeNode real_type = NodeManager::currentNM()->realType();
   Node slack = NodeManager::currentNM()->mkVar(real_type);
   left.setAttribute(Slack(), slack);
