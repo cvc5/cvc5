@@ -73,12 +73,15 @@ protected:
 
 public:
 
-  //RowVector() : d_entries() {}
-
   RowVector(const std::vector< ArithVar >& variables,
             const std::vector< Rational >& coefficients,
             std::vector<uint32_t>& counts);
 
+
+  /** Returns the number of nonzero variables in the vector. */
+  uint32_t size() const {
+    return d_entries.size();
+  }
 
   //Iterates over the nonzero entries in the Vector
   NonZeroIterator beginNonZero() const { return d_entries.begin(); }
