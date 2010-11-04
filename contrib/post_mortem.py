@@ -100,7 +100,15 @@ registry["sat::conflicts"] = str2int
 registry["theory::arith::AssertLowerConflicts"] = str2int
 registry["theory::arith::AssertUpperConflicts"] = str2int
 registry["theory::arith::UpdateConflicts"] = str2int
-registry["theory::arith::UpdateConflicts"] = str2int
+registry["theory::arith::Average#ConstantInPivotRow"] = str2float
+registry["theory::arith::AveragePivotLength"] = str2float
+
+registry["theory::arith::Ejections"] = str2int
+registry["theory::arith::UnEjections"] = str2int
+
+registry["theory::arith::SlackVariables"] = str2int
+registry["theory::arith::UserVariables"] = str2int
+
 registry["theory::arith::pivots"] = str2int
 registry["theory::arith::updates"] = str2int
 registry["theory::aug_lemma"] = str2int
@@ -179,12 +187,25 @@ def handleCoutFile(db, filename):
         addStat(db, "average_resident_size", time_return[10])
     file.close()
 
+ignoreThese = ["Illegal instruction",
+               "Aborted",
+               "CVC4 interrupted by timeout.",
+               "CVC4 suffered a segfault.",
+               "ssh: Could not resolve hostname",
+               "Trace/breakpoint trap",
+               "Segmentation fault"]
+def ignoreFault(ln):
+    for ignore in ignoreThese:
+        if (ln.find(ignore) != -1):
+            return True
+    return False
+
 
 def handleLine(db, ln):
     assert ln.strip() != ""
     if isSatResult(ln):
         addStat(db,"sat/unsat",ln)
-    else:
+    elif (not ignoreFault(ln)):
         (name,delim,result) = ln.partition(stat_name_delim)
         assert delim != ""
         addStat(db, name,result)
