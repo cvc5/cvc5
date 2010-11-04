@@ -196,6 +196,7 @@ private:
     IntStat d_statPivots, d_statUpdates, d_statAssertUpperConflicts;
     IntStat d_statAssertLowerConflicts, d_statUpdateConflicts;
 
+    IntStat d_statEjections, d_statUnEjections;
     Statistics();
     ~Statistics();
   };

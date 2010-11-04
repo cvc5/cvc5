@@ -16,13 +16,17 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_statUpdates("theory::arith::updates",0),
   d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0),
   d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
-  d_statUpdateConflicts("theory::arith::UpdateConflicts", 0)
+  d_statUpdateConflicts("theory::arith::UpdateConflicts", 0),
+  d_statEjections("theory::arith::Ejections", 0),
+  d_statUnEjections("theory::arith::UnEjections", 0)
 {
   StatisticsRegistry::registerStat(&d_statPivots);
   StatisticsRegistry::registerStat(&d_statUpdates);
   StatisticsRegistry::registerStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::registerStat(&d_statUpdateConflicts);
+  StatisticsRegistry::registerStat(&d_statEjections);
+  StatisticsRegistry::registerStat(&d_statUnEjections);
 }
 
 SimplexDecisionProcedure::Statistics::~Statistics(){
@@ -31,25 +35,30 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::unregisterStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::unregisterStat(&d_statUpdateConflicts);
+  StatisticsRegistry::unregisterStat(&d_statEjections);
+  StatisticsRegistry::unregisterStat(&d_statUnEjections);
 }
 
 
 void SimplexDecisionProcedure::ejectInactiveVariables(){
-  Debug("decay") << "begin ejectInactiveVariables()" << endl;
-  for(ArithVar variable = 0, end = d_numVariables; variable != end; ++variable){
 
-    if(shouldEject(variable)){
-      if(d_basicManager.isMember(variable)){
-        Debug("decay") << "ejecting basic " << variable << endl;;
-        d_tableau.ejectBasic(variable);
-      }
+  for(ArithVarSet::iterator i = d_tableau.begin(), end = d_tableau.end(); i != end;){
+    ArithVar variable = *i;
+    ++i;
+    Assert(d_basicManager.isMember(variable));
+
+    if(d_basicManager.isMember(variable) && shouldEject(variable)){
+      Debug("decay") << "ejecting basic " << variable << endl;
+      ++(d_statistics.d_statEjections);
+      d_tableau.ejectBasic(variable);
     }
   }
 }
 
 void SimplexDecisionProcedure::reinjectVariable(ArithVar x){
-  d_tableau.reinjectBasic(x);
+  ++(d_statistics.d_statUnEjections);
 
+  d_tableau.reinjectBasic(x);
 
   DeltaRational safeAssignment = computeRowValue(x, true);
   DeltaRational assignment = computeRowValue(x, false);
@@ -64,7 +73,7 @@ bool SimplexDecisionProcedure::shouldEject(ArithVar var){
   }else if(!d_partialModel.hasEverHadABound(var)){
     return true;
   }else if(d_activityMonitor[var] >= ACTIVITY_THRESHOLD){
-    return true;
+    return false;
   }
   return false;
 }
