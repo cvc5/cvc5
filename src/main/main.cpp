@@ -155,6 +155,10 @@ int runCvc4(int argc, char* argv[]) {
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC4_COMPETITION_MODE
   *options.out << unitbuf;
+  // competition mode implies --no-checking
+  options.semanticChecks = false;
+  options.typeChecking = false;
+  options.earlyTypeChecking = false;
 #endif
 
   // We only accept one input file
