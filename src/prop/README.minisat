@@ -1,10 +1,11 @@
-This is MiniSAT 2-070721, downloaded from here:
+This is MiniSAT 2.2.0, downloaded from here:
 
   http://minisat.se/MiniSat.html
 
-on 10 November 2009.
+on 11 July 2010.
 
-The code has been modified slightly to put everything in the CVC4::MiniSat namespace.
-The build process has been modified.
+The code has been modified to put everything in the CVC4::MiniSat
+namespace.  The build process has been modified.  Other parts have
+been modified to serve CVC4's purposes.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Tue, 10 Nov 2009 07:16:14 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Sun, 07 Nov 2010 22:27:09 -0500
