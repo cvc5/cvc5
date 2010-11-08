@@ -136,6 +136,12 @@ class TheoryEngine {
   theory::Theory* d_bv;
 
   /**
+   * Whether or not theory registration is on.  May not be safe to
+   * turn off with some theories.
+   */
+  bool d_theoryRegistration;
+
+  /**
    * Debugging flag to ensure that shutdown() is called before the
    * destructor.
    */

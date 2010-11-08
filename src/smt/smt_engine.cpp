@@ -253,22 +253,12 @@ SExpr SmtEngine::getInfo(const std::string& key) const
 void SmtEngine::setOption(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
   Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
-  if(d_logic != "") {
-    throw ModalException("logic already set; cannot set options");
-  }
+
   if(key == ":print-success") {
     throw BadOptionException();
   } else if(key == ":expand-definitions") {
     throw BadOptionException();
   } else if(key == ":interactive-mode") {
-    throw BadOptionException();
-  } else if(key == ":produce-proofs") {
-    throw BadOptionException();
-  } else if(key == ":produce-unsat-cores") {
-    throw BadOptionException();
-  } else if(key == ":produce-models") {
-    throw BadOptionException();
-  } else if(key == ":produce-assignments") {
     throw BadOptionException();
   } else if(key == ":regular-output-channel") {
     throw BadOptionException();
@@ -279,7 +269,23 @@ void SmtEngine::setOption(const std::string& key, const SExpr& value)
   } else if(key == ":verbosity") {
     throw BadOptionException();
   } else {
-    throw BadOptionException();
+    // The following options can only be set at the beginning; we throw
+    // a ModalException if someone tries.
+    if(d_logic != "") {
+      throw ModalException("logic already set; cannot set options");
+    }
+
+    if(key == ":produce-proofs") {
+      throw BadOptionException();
+    } else if(key == ":produce-unsat-cores") {
+      throw BadOptionException();
+    } else if(key == ":produce-models") {
+      throw BadOptionException();
+    } else if(key == ":produce-assignments") {
+      throw BadOptionException();
+    } else {
+      throw BadOptionException();
+    }
   }
 }
 

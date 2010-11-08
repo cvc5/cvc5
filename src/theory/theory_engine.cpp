@@ -65,7 +65,8 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
     // Automatically track all asserted equalities in the shared term manager
     d_engine->getSharedTermManager()->addEq(fact);
   }
-  if(! fact.getAttribute(RegisteredAttr())) {
+
+  if(d_engine->d_theoryRegistration && !fact.getAttribute(RegisteredAttr())) {
     list<TNode> toReg;
     toReg.push_back(fact);
 
@@ -123,12 +124,13 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
         d_engine->theoryOf(n)->registerTerm(n);
       }
     }
-  }
+  }/* d_engine->d_theoryRegistration && !fact.getAttribute(RegisteredAttr()) */
 }
 
 TheoryEngine::TheoryEngine(context::Context* ctxt, const Options& opts) :
   d_propEngine(NULL),
   d_theoryOut(this, ctxt),
+  d_theoryRegistration(opts.theoryRegistration),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
   d_statistics() {

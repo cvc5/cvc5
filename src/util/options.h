@@ -90,6 +90,9 @@ struct CVC4_PUBLIC Options {
   /** Should the parser do semantic checks? */
   bool semanticChecks;
 
+  /** Should the TheoryEngine do theory registration? */
+  bool theoryRegistration;
+
   /** Should the parser memory-map file input? */
   bool memoryMap;
 
@@ -134,6 +137,7 @@ struct CVC4_PUBLIC Options {
     uf_implementation(MORGAN),
     parseOnly(false),
     semanticChecks(DO_SEMANTIC_CHECKS_BY_DEFAULT),
+    theoryRegistration(true),
     memoryMap(false),
     strictParsing(false),
     lazyDefinitionExpansion(false),
