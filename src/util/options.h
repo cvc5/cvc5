@@ -29,9 +29,9 @@
 
 #if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
-#else
+#else /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
-#endif
+#endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
 
 #include <iostream>
 #include <string>
@@ -178,10 +178,9 @@ inline std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
- 
-
 }/* CVC4 namespace */
 
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
+#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 #endif /* __CVC4__OPTIONS_H */

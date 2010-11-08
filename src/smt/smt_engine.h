@@ -119,6 +119,11 @@ class CVC4_PUBLIC SmtEngine {
   AssignmentSet* d_assignments;
 
   /**
+   * The logic we're in.
+   */
+  std::string d_logic;
+
+  /**
    * Whether or not we have added any
    * assertions/declarations/definitions since the last checkSat/query
    * (and therefore we're not responsible for an assignment).
@@ -205,10 +210,15 @@ public:
   ~SmtEngine();
 
   /**
+   * Set the logic of the script.
+   */
+  void setLogic(const std::string& logic) throw(ModalException);
+
+  /**
    * Set information about the script executing.
    */
   void setInfo(const std::string& key, const SExpr& value)
-    throw(BadOptionException);
+    throw(BadOptionException, ModalException);
 
   /**
    * Query information about the SMT environment.
@@ -220,7 +230,7 @@ public:
    * Set an aspect of the current SMT execution environment.
    */
   void setOption(const std::string& key, const SExpr& value)
-    throw(BadOptionException);
+    throw(BadOptionException, ModalException);
 
   /**
    * Get an aspect of the current SMT execution environment.

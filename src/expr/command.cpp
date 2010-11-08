@@ -20,11 +20,13 @@
 #include <vector>
 #include <utility>
 #include <iterator>
+#include <sstream>
 
 #include "expr/command.h"
 #include "smt/smt_engine.h"
 #include "smt/bad_option_exception.h"
 #include "util/output.h"
+#include "util/sexpr.h"
 
 using namespace std;
 
@@ -337,7 +339,18 @@ SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status) :
 }
 
 void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) {
-  // FIXME: TODO: something to be done with the status
+  stringstream ss;
+  ss << d_status;
+  SExpr status = ss.str();
+  try {
+    smtEngine->setInfo(":status", status);
+    //d_result = "success";
+  } catch(ModalException& m) {
+    d_result = "error";
+  } catch(BadOptionException& bo) {
+    // should not happen
+    d_result = "error";
+  }
 }
 
 void SetBenchmarkStatusCommand::toStream(std::ostream& out) const {
@@ -351,7 +364,12 @@ SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic) :
 }
 
 void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) {
-  // FIXME: TODO: something to be done with the logic
+  try {
+    smtEngine->setLogic(d_logic);
+    //d_result = "success";
+  } catch(ModalException& m) {
+    d_result = "error";
+  }
 }
 
 void SetBenchmarkLogicCommand::toStream(std::ostream& out) const {
@@ -369,6 +387,8 @@ void SetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setInfo(d_flag, d_sexpr);
     //d_result = "success";
+  } catch(ModalException& m) {
+    d_result = "error";
   } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }
@@ -429,6 +449,8 @@ void SetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setOption(d_flag, d_sexpr);
     //d_result = "success";
+  } catch(ModalException& m) {
+    d_result = "error";
   } catch(BadOptionException& bo) {
     d_result = "unsupported";
   }

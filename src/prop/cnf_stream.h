@@ -72,7 +72,7 @@ protected:
   /**
    * Asserts the given clause to the sat solver.
    * @param node the node giving rise to this clause
-   * @param clause the clasue to assert
+   * @param clause the clause to assert
    */
   void assertClause(TNode node, SatClause& clause);
 

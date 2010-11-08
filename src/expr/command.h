@@ -196,6 +196,7 @@ public:
 
 class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
 protected:
+  std::string d_result;
   BenchmarkStatus d_status;
 public:
   SetBenchmarkStatusCommand(BenchmarkStatus status);
@@ -205,6 +206,7 @@ public:
 
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
 protected:
+  std::string d_result;
   std::string d_logic;
 public:
   SetBenchmarkLogicCommand(std::string logic);

@@ -151,7 +151,6 @@ void SmtEngine::init(const Options& opts) throw() {
   d_lazyDefinitionExpansion = opts.lazyDefinitionExpansion;
   d_produceModels = opts.produceModels;
   d_produceAssignments = opts.produceAssignments;
-
 }
 
 void SmtEngine::shutdown() {
@@ -180,8 +179,15 @@ SmtEngine::~SmtEngine() {
   delete d_decisionEngine;
 }
 
+void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
+  if(d_logic != "") {
+    throw ModalException("logic already set");
+  }
+  d_logic = s;
+}
+
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
-  throw(BadOptionException) {
+  throw(BadOptionException, ModalException) {
   Debug("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(key == ":name" ||
      key == ":source" ||
@@ -245,8 +251,11 @@ SExpr SmtEngine::getInfo(const std::string& key) const
 }
 
 void SmtEngine::setOption(const std::string& key, const SExpr& value)
-  throw(BadOptionException) {
+  throw(BadOptionException, ModalException) {
   Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
+  if(d_logic != "") {
+    throw ModalException("logic already set; cannot set options");
+  }
   if(key == ":print-success") {
     throw BadOptionException();
   } else if(key == ":expand-definitions") {
@@ -490,13 +499,6 @@ Expr SmtEngine::getValue(const Expr& e)
   Assert(e.getExprManager() == d_exprManager);
   Type type = e.getType(d_typeChecking);// ensure expr is type-checked at this point
   Debug("smt") << "SMT getValue(" << e << ")" << endl;
-  /* FIXME - for SMT-LIBv2 compliance, we need to check this ?!
-  if(!d_interactive) {
-    const char* msg =
-      "Cannot get value when not in interactive mode.";
-    throw ModalException(msg);
-  }
-  */
   if(!d_produceModels) {
     const char* msg =
       "Cannot get value when produce-models options is off.";

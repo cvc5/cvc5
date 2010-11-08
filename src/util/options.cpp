@@ -351,6 +351,7 @@ throw(OptionException) {
       break;
 
     case LAZY_TYPE_CHECKING:
+      typeChecking = true;
       earlyTypeChecking = false;
       break;
 
