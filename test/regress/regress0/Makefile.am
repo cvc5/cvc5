@@ -1,4 +1,4 @@
-SUBDIRS = . arith precedence uf bv
+SUBDIRS = . arith precedence uf bv lemmas
 
 TESTS_ENVIRONMENT = @srcdir@/../run_regression @top_builddir@/src/main/cvc4
 MAKEFLAGS = -k

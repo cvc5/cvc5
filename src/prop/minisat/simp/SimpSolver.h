@@ -41,7 +41,7 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-    SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context);
+    SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental = false);
     CVC4_PUBLIC ~SimpSolver();
 
     // Problem specification:
@@ -52,7 +52,7 @@ class SimpSolver : public Solver {
     bool    addClause (Lit p, ClauseType type);               // Add a unit clause to the solver.
     bool    addClause (Lit p, Lit q, ClauseType type);        // Add a binary clause to the solver.
     bool    addClause (Lit p, Lit q, Lit r, ClauseType type); // Add a ternary clause to the solver.
-    bool    addClause_(      vec<Lit>& ps, ClauseType type);
+    bool    addClause_(vec<Lit>& ps, ClauseType type);
     bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
 
     // Variable mode:

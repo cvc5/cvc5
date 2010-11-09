@@ -37,6 +37,14 @@ CnfStream::CnfStream(SatInputInterface *satSolver) :
   d_satSolver(satSolver) {
 }
 
+void CnfStream::recordTranslation(TNode node) {
+  if (d_assertingLemma) {
+    d_lemmas.push_back(stripNot(node));
+  } else {
+    d_translationTrail.push_back(stripNot(node));
+  }
+}
+
 TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver) :
   CnfStream(satSolver) {
 }
@@ -67,42 +75,61 @@ void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral 
   assertClause(node, clause);
 }
 
-bool CnfStream::isCached(TNode n) const {
-  return d_translationCache.find(n) != d_translationCache.end();
+bool CnfStream::isTranslated(TNode n) const {
+  TranslationCache::const_iterator find = d_translationCache.find(n);
+  return find != d_translationCache.end() && find->second.level >= 0;
 }
 
-SatLiteral CnfStream::lookupInCache(TNode node) const {
-  Assert(isCached(node), "Node is not in CNF translation cache");
-  return d_translationCache.find(node)->second;
-}
-
-void CnfStream::cacheTranslation(TNode node, SatLiteral lit) {
-  Debug("cnf") << "caching translation " << node << " to " << lit << endl;
-  // We always cash both the node and the negation at the same time
-  d_translationCache[node] = lit;
-  d_translationCache[node.notNode()] = ~lit;
+bool CnfStream::hasLiteral(TNode n) const {
+  TranslationCache::const_iterator find = d_translationCache.find(n);
+  return find != d_translationCache.end();
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
-  SatLiteral lit = Minisat::mkLit(d_satSolver->newVar(theoryLiteral));
-  cacheTranslation(node, lit);
+  Debug("cnf") << "newLiteral(" << node << ")" << endl;
+
+  // Get the literal for this node
+  SatLiteral lit;
+  if (!hasLiteral(node)) {
+    // If no literal, well make one
+    lit = Minisat::mkLit(d_satSolver->newVar(theoryLiteral));
+    d_translationCache[node].literal = lit;
+    d_translationCache[node.notNode()].literal = ~lit;
+  } else {
+    // We already have a literal
+    lit = getLiteral(node);
+    d_satSolver->renewVar(lit);
+  }
+
+  // We will translate clauses, so remember the level
+  int level = d_satSolver->getLevel();
+  d_translationCache[node].level = level;
+  d_translationCache[node.notNode()].level = level;
+
+  // If it's a theory literal, store it for back queries
   if (theoryLiteral) {
     d_nodeCache[lit] = node;
     d_nodeCache[~lit] = node.notNode();
   }
+
+  // Here, you can have it
+  Debug("cnf") << "newLiteral(" << node << ") => " << lit << endl;
   return lit;
 }
 
-Node CnfStream::getNode(const SatLiteral& literal) {
+TNode CnfStream::getNode(const SatLiteral& literal) {
+  Debug("cnf") << "getNode(" << literal << ")" << endl;
   NodeCache::iterator find = d_nodeCache.find(literal);
   Assert(find != d_nodeCache.end());
+  Assert(d_translationCache.find(find->second) != d_translationCache.end());
+  Debug("cnf") << "getNode(" << literal << ") => " << find->second << endl;
   return find->second;
 }
 
 SatLiteral CnfStream::convertAtom(TNode node) {
   Debug("cnf") << "convertAtom(" << node << ")" << endl;
 
-  Assert(!isCached(node), "atom already mapped!");
+  Assert(!isTranslated(node), "atom already mapped!");
 
   bool theoryLiteral = node.getKind() != kind::VARIABLE;
   SatLiteral lit = newLiteral(node, theoryLiteral);
@@ -121,13 +148,13 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 SatLiteral CnfStream::getLiteral(TNode node) {
   TranslationCache::iterator find = d_translationCache.find(node);
   Assert(find != d_translationCache.end(), "Literal not in the CNF Cache");
-  SatLiteral literal = find->second;
+  SatLiteral literal = find->second.literal;
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
 }
 
 SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
-  Assert(!isCached(xorNode), "Atom already mapped!");
+  Assert(!isTranslated(xorNode), "Atom already mapped!");
   Assert(xorNode.getKind() == XOR, "Expecting an XOR expression!");
   Assert(xorNode.getNumChildren() == 2, "Expecting exactly 2 children!");
 
@@ -145,7 +172,7 @@ SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
 }
 
 SatLiteral TseitinCnfStream::handleOr(TNode orNode) {
-  Assert(!isCached(orNode), "Atom already mapped!");
+  Assert(!isTranslated(orNode), "Atom already mapped!");
   Assert(orNode.getKind() == OR, "Expecting an OR expression!");
   Assert(orNode.getNumChildren() > 1, "Expecting more then 1 child!");
 
@@ -181,7 +208,7 @@ SatLiteral TseitinCnfStream::handleOr(TNode orNode) {
 }
 
 SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
-  Assert(!isCached(andNode), "Atom already mapped!");
+  Assert(!isTranslated(andNode), "Atom already mapped!");
   Assert(andNode.getKind() == AND, "Expecting an AND expression!");
   Assert(andNode.getNumChildren() > 1, "Expecting more than 1 child!");
 
@@ -216,7 +243,7 @@ SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
 }
 
 SatLiteral TseitinCnfStream::handleImplies(TNode impliesNode) {
-  Assert(!isCached(impliesNode), "Atom already mapped!");
+  Assert(!isTranslated(impliesNode), "Atom already mapped!");
   Assert(impliesNode.getKind() == IMPLIES, "Expecting an IMPLIES expression!");
   Assert(impliesNode.getNumChildren() == 2, "Expecting exactly 2 children!");
 
@@ -241,7 +268,7 @@ SatLiteral TseitinCnfStream::handleImplies(TNode impliesNode) {
 
 
 SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
-  Assert(!isCached(iffNode), "Atom already mapped!");
+  Assert(!isTranslated(iffNode), "Atom already mapped!");
   Assert(iffNode.getKind() == IFF, "Expecting an IFF expression!");
   Assert(iffNode.getNumChildren() == 2, "Expecting exactly 2 children!");
 
@@ -273,14 +300,11 @@ SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
 
 
 SatLiteral TseitinCnfStream::handleNot(TNode notNode) {
-  Assert(!isCached(notNode), "Atom already mapped!");
+  Assert(!isTranslated(notNode), "Atom already mapped!");
   Assert(notNode.getKind() == NOT, "Expecting a NOT expression!");
   Assert(notNode.getNumChildren() == 1, "Expecting exactly 1 child!");
 
   SatLiteral notLit = ~toCNF(notNode[0]);
-
-  // Since we don't introduce new variables, we need to cache the translation
-  cacheTranslation(notNode, notLit);
 
   return notLit;
 }
@@ -328,8 +352,12 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
   Node negatedNode = node.notNode();
 
   // If the non-negated node has already been translated, get the translation
-  if(isCached(node)) {
-    nodeLit = lookupInCache(node);
+  if(isTranslated(node)) {
+    nodeLit = getLiteral(node);
+    // If we are asserting a lemma, we need to take the whole tree to level 0
+    if (d_assertingLemma) {
+      moveToBaseLevel(node);
+    }
   } else {
     // Handle each Boolean operator case
     switch(node.getKind()) {
@@ -395,6 +423,7 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool lemma, bool negated)
     for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
       Assert( disjunct != node.end() );
       clause[i] = toCNF(*disjunct, true);
+      recordTranslation(*disjunct);
     }
     Assert(disjunct == node.end());
     assertClause(node, clause);
@@ -411,6 +440,7 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool lemma, bool negated) 
     for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
       Assert( disjunct != node.end() );
       clause[i] = toCNF(*disjunct, false);
+      recordTranslation(*disjunct);
     }
     Assert(disjunct == node.end());
     assertClause(node, clause);
@@ -451,6 +481,8 @@ void TseitinCnfStream::convertAndAssertXor(TNode node, bool lemma, bool negated)
     clause2[1] = ~q;
     assertClause(node, clause2);
   }
+  recordTranslation(node[0]);
+  recordTranslation(node[1]);
 }
 
 void TseitinCnfStream::convertAndAssertIff(TNode node, bool lemma, bool negated) {
@@ -481,6 +513,8 @@ void TseitinCnfStream::convertAndAssertIff(TNode node, bool lemma, bool negated)
     clause2[1] = q;
     assertClause(node, clause2);
   }
+  recordTranslation(node[0]);
+  recordTranslation(node[1]);
 }
 
 void TseitinCnfStream::convertAndAssertImplies(TNode node, bool lemma, bool negated) {
@@ -493,6 +527,8 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool lemma, bool nega
     clause[0] = ~p;
     clause[1] = q;
     assertClause(node, clause);
+    recordTranslation(node[0]);
+    recordTranslation(node[1]);
   } else {// Construct the
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], lemma, false);
@@ -523,6 +559,10 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool lemma, bool negated)
   clause4[0] = r;
   clause4[1] = p;
   assertClause(node, clause4);
+
+  recordTranslation(node[0]);
+  recordTranslation(node[1]);
+  recordTranslation(node[2]);
 }
 
 // At the top level we must ensure that all clauses that are asserted are
@@ -556,8 +596,78 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool lemma, bool negated) {
   default:
     // Atoms
     assertClause(node, toCNF(node, negated));
+    recordTranslation(node);
     break;
   }
+}
+
+void CnfStream::removeClausesAboveLevel(int level) {
+  while (d_translationTrail.size() > 0) {
+    TNode node = d_translationTrail.back();
+    Debug("cnf") << "Removing node " << node << " from CNF translation" << endl;
+    d_translationTrail.pop_back();
+    // Get the translation informations
+    TranslationInfo& infoPos = d_translationCache.find(node)->second;
+    // If already untranslated, we're done
+    if (infoPos.level == -1) continue;
+    // If the level of the node is less or equal to given we are done
+    if (infoPos.level <= level) break;
+    // Otherwise we have to undo the translation
+    undoTranslate(node, level);
+  }
+}
+
+void CnfStream::undoTranslate(TNode node, int level) {
+  // Get the translation information
+  TranslationInfo& infoPos = d_translationCache.find(node)->second;
+  // If already untranslated, we are done
+  if (infoPos.level == -1) return;
+  // If under the given level we're also done
+  if (infoPos.level <= level) return;
+  // Untranslate
+  infoPos.level = -1;
+  // Untranslate the negation node
+  // If not a not node, unregister it from sat and untranslate the negation
+  if (node.getKind() != kind::NOT) {
+    // Unregister the literal from SAT
+    SatLiteral lit = getLiteral(node);
+    d_satSolver->unregisterVar(lit);
+    // Untranslate the negation
+    TranslationInfo& infoNeg = d_translationCache.find(node.notNode())->second;
+    infoNeg.level = -1;
+  }
+  // undoTranslate the children
+  TNode::iterator child = node.begin();
+  TNode::iterator child_end = node.end();
+  while (child != child_end) {
+    undoTranslate(*child, level);
+    ++ child;
+  }
+}
+
+void CnfStream::moveToBaseLevel(TNode node) {
+  TNode posNode = stripNot(node);
+  TranslationInfo& infoPos = d_translationCache.find(posNode)->second;
+
+  Assert(infoPos.level >= 0);
+  if (infoPos.level == 0) return;
+
+  TNode negNode = node.notNode();
+  TranslationInfo& infoNeg = d_translationCache.find(negNode)->second;
+
+  infoPos.level = 0;
+  infoNeg.level = 0;
+
+  d_satSolver->renewVar(infoPos.literal, 0);
+
+  // undoTranslate the children
+  TNode::iterator child = posNode.begin();
+  TNode::iterator child_end = posNode.end();
+  while (child != child_end) {
+    moveToBaseLevel(*child);
+    ++ child;
+  }
+
 }
 
 }/* CVC4::prop namespace */

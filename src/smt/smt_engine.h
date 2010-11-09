@@ -48,7 +48,6 @@ typedef NodeTemplate<false> TNode;
 class NodeHashFunction;
 
 class TheoryEngine;
-class DecisionEngine;
 
 namespace context {
   class Context;
@@ -91,16 +90,18 @@ class CVC4_PUBLIC SmtEngine {
   /** The type of our internal assignment set */
   typedef context::CDSet<Node, NodeHashFunction> AssignmentSet;
 
-  /** Our Context */
+  /** Expr manager context */
   context::Context* d_context;
+
+  /** The context levels of user pushes */
+  std::vector<int> d_userLevels;
+  /** User level context */
+  context::Context* d_userContext;
+
   /** Our expression manager */
   ExprManager* d_exprManager;
   /** Out internal expression/node manager */
   NodeManager* d_nodeManager;
-  /** User-level options */
-  //const Options d_options;
-  /** The decision engine */
-  DecisionEngine* d_decisionEngine;
   /** The decision engine */
   TheoryEngine* d_theoryEngine;
   /** The propositional engine */
@@ -189,6 +190,10 @@ class CVC4_PUBLIC SmtEngine {
    * actually Boolean.
    */
   void ensureBoolean(const BoolExpr& e);
+
+  void internalPush();
+
+  void internalPop();
 
   friend class ::CVC4::smt::SmtEnginePrivate;
 

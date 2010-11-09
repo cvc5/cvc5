@@ -24,7 +24,6 @@
 #define __CVC4__PROP_ENGINE_H
 
 #include "expr/node.h"
-#include "util/decision_engine.h"
 #include "util/options.h"
 #include "util/result.h"
 
@@ -52,9 +51,6 @@ class PropEngine {
   /** The global options */
   //const Options d_options;
 
-  /** The decision engine we will be using */
-  DecisionEngine *d_decisionEngine;
-
   /** The theory engine we will be using */
   TheoryEngine *d_theoryEngine;
 
@@ -76,7 +72,7 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(DecisionEngine*, TheoryEngine*, context::Context*, const Options&);
+  PropEngine(TheoryEngine*, context::Context*, const Options&);
 
   /**
    * Destructor.

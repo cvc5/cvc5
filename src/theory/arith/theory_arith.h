@@ -24,6 +24,7 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdlist.h"
+#include "context/cdset.h"
 #include "expr/node.h"
 
 #include "theory/arith/arith_utilities.h"
@@ -86,7 +87,7 @@ private:
   /**
    * List of all of the inequalities asserted in the current context.
    */
-  context::CDList<Node> d_diseq;
+  context::CDSet<Node, NodeHashFunction> d_diseq;
 
   /**
    * The tableau for all of the constraints seen thus far in the system.

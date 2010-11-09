@@ -56,18 +56,44 @@ protected:
   /** The context from the SMT solver */
   CVC4::context::Context* context;
 
+  /** The current assertion level (user) */
+  int assertionLevel; 
+
+  /** Returns the current user assertion level */
+  int getAssertionLevel() const { return assertionLevel; }
+
+  /** Do we allow incremental solving */
+  bool enable_incremental;  
+
+  /** Did the problem get extended in the meantime (i.e. by adding a lemma) */
+  bool problem_extended;   
+
+  /** Literals propagated by lemmas */
+  vec<Lit> lemma_propagated_literals; 
+  /** Reasons of literals propagated by lemmas */
+  vec<CRef> lemma_propagated_reasons; 
+  /** Lemmas that propagated something, we need to recheck them after backtracking */
+  vec<CRef> propagating_lemmas;
+  vec<int> propagating_lemmas_lim;
+
+  /** Shrink 'cs' to contain only clauses below given level */
+  void removeClausesAboveLevel(vec<CRef>& cs, int level); 
+
+  /** True if we are inside the propagate method */
+  bool in_propagate;
+
 public:
 
     // Constructor/Destructor:
     //
-    Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context);
+    Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental = false);
     CVC4_PUBLIC ~Solver();
 
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false); // Add a new variable with parameters specifying variable mode.
 
-	// Types of clauses
+    // Types of clauses
     enum ClauseType {
       // Clauses defined by the problem
       CLAUSE_PROBLEM,
@@ -76,6 +102,13 @@ public:
       // Conflict clauses
       CLAUSE_CONFLICT
     };
+
+    // CVC4 context push/pop
+    void          push                     ();
+    void          pop                      ();
+
+    void unregisterVar(Lit lit); // Unregister the literal (set assertion level to -1)
+    void renewVar(Lit lit, int level = -1); // Register the literal (set assertion level to the given level, or current level if -1)
 
     bool    addClause (const vec<Lit>& ps, ClauseType type);                     // Add a clause to the solver. 
     bool    addEmptyClause(ClauseType type);                                     // Add the empty clause, making the solver contradictory.
@@ -174,8 +207,8 @@ protected:
 
     // Helper structures:
     //
-    struct VarData { CRef reason; int level; };
-    static inline VarData mkVarData(CRef cr, int l){ VarData d = {cr, l}; return d; }
+    struct VarData { CRef reason; int level; int intro_level; };
+    static inline VarData mkVarData(CRef cr, int l, int intro_l){ VarData d = {cr, l, intro_l}; return d; }
 
     struct Watcher {
         CRef cref;
@@ -213,6 +246,7 @@ protected:
     vec<char>           decision;         // Declares if a variable is eligible for selection in the decision heuristic.
     vec<Lit>            trail;            // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
+    vec<int>            trail_user_lim;   // Separator indices for different user push levels in 'trail'.
     vec<VarData>        vardata;          // Stores reason and level for each variable.
     int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
     int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
@@ -224,10 +258,8 @@ protected:
 
     ClauseAllocator     ca;
 
-	// CVC4 Stuff
+    // CVC4 Stuff
     vec<bool>           theory;           // Is the variable representing a theory atom
-    vec<CRef>           lemmas;           // List of lemmas we added (context dependent)
-    vec<int>            lemmas_lim;       // Separator indices for different decision levels in 'lemmas'.
 
     enum TheoryCheckType {
       // Quick check, but don't perform theory propagation
@@ -268,9 +300,10 @@ protected:
     bool     propagateTheory  ();                                                      // Perform Theory propagation. Return true if any literals were asserted.
     CRef     theoryCheck      (CVC4::theory::Theory::Effort effort);                   // Perform a theory satisfiability check. Returns possibly conflicting clause.
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
-    void     analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
+    void     popTrail         ();                                                      // Backtrack the trail to the previous push position
+    int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
-    bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()')
+    int      litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()') - returns the maximal level of the clauses proving redundancy of p
     lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
@@ -302,6 +335,7 @@ protected:
     CRef     reason           (Var x) const;
     bool     hasReason        (Var x) const; // Does the variable have a reason
     int      level            (Var x) const;
+    int      intro_level      (Var x) const; // Level at which this variable was introduced
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
     bool     withinBudget     ()      const;
 
@@ -321,12 +355,15 @@ protected:
 };
 
 
+
 //=================================================================================================
 // Implementation of inline methods:
 
 inline bool Solver::hasReason(Var x) const { return vardata[x].reason != CRef_Undef && vardata[x].reason != CRef_Lazy; }
 
 inline int  Solver::level (Var x) const { return vardata[x].level; }
+
+inline int  Solver::intro_level(Var x) const { return vardata[x].intro_level; }
 
 inline void Solver::insertVarOrder(Var x) {
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
@@ -365,7 +402,7 @@ inline bool     Solver::addClause       (Lit p, ClauseType type)                
 inline bool     Solver::addClause       (Lit p, Lit q, ClauseType type)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, type); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r, ClauseType type)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, type); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && ca.lea(reason(var(c[0]))) == &c; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); lemmas_lim.push(lemmas.size()); context->push(); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); propagating_lemmas_lim.push(propagating_lemmas.size()); context->push(); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }

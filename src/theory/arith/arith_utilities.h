@@ -237,10 +237,12 @@ inline int deltaCoeff(Kind k){
       case  kind::EQUAL:
         return  kind::DISTINCT;
       default:
+        Unreachable();
         return  kind::UNDEFINED_KIND;
       }
     }
   default:
+    Unreachable();
     return kind::UNDEFINED_KIND;
   }
 }

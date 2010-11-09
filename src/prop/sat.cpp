@@ -94,5 +94,13 @@ void SatSolver::setCnfStream(CnfStream* cnfStream) {
   d_cnfStream = cnfStream;
 }
 
+void SatSolver::removeClausesAboveLevel(int level) {
+  d_cnfStream->removeClausesAboveLevel(level);
+}
+
+TNode SatSolver::getNode(SatLiteral lit) {
+  return d_cnfStream->getNode(lit);
+}
+
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

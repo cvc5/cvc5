@@ -50,9 +50,13 @@ static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction o
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context) :
+Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enable_incremental) :
     proxy(proxy)
   , context(context)
+  , assertionLevel(0)
+  , enable_incremental(enable_incremental)
+  , problem_extended(false)
+  , in_propagate(false)
     // Parameters (user settable):
     //
   , verbosity        (0)
@@ -92,7 +96,7 @@ Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context) :
   , simpDB_props       (0)
   , order_heap         (VarOrderLt(activity))
   , progress_estimate  (0)
-  , remove_satisfied   (true)
+  , remove_satisfied   (!enable_incremental)
 
     // Resource constraints:
     //
@@ -120,7 +124,7 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
     watches  .init(mkLit(v, false));
     watches  .init(mkLit(v, true ));
     assigns  .push(l_Undef);
-    vardata  .push(mkVarData(CRef_Undef, 0));
+    vardata  .push(mkVarData(CRef_Undef, 0, assertionLevel));
     //activity .push(0);
     activity .push(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen     .push(0);
@@ -128,7 +132,14 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
     decision .push();
     trail    .capacity(v+1);
     setDecisionVar(v, dvar);
-	theory   .push(theoryAtom);
+    theory   .push(theoryAtom);
+
+    // We have extended the problem
+    if (in_propagate) {
+      problem_extended = true;
+      insertVarOrder(v);
+    }
+
     return v;
 }
 
@@ -148,9 +159,19 @@ CRef Solver::reason(Var x) const {
     // We're actually changing the state, so we hack it into non-const
     Solver* nonconst_this = const_cast<Solver*>(this);
 
-    // Construct the reason
-    CRef real_reason = nonconst_this->ca.alloc(explanation, true);
-    nonconst_this->vardata[x] = mkVarData(real_reason, level(x));
+    // Compute the assertion level for this clause
+    int explLevel = 0;
+    for (int i = 0; i < explanation.size(); ++ i) {
+      int varLevel = intro_level(var(explanation[i]));
+      if (varLevel > explLevel) {
+        explLevel = varLevel;
+      }
+    }
+
+    // Construct the reason (level 0)
+    // TODO compute the level
+    CRef real_reason = nonconst_this->ca.alloc(explLevel, explanation, true);
+    nonconst_this->vardata[x] = mkVarData(real_reason, level(x), intro_level(x));
     nonconst_this->learnts.push(real_reason);
     nonconst_this->attachClause(real_reason);
     return real_reason;
@@ -158,18 +179,61 @@ CRef Solver::reason(Var x) const {
 
 bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
 {
-    assert(decisionLevel() == 0);
     if (!ok) return false;
+
+    // If a lemma propagates the literal, we mark this
+    bool propagate_first_literal = false;
 
     // Check if clause is satisfied and remove false/duplicate literals:
     sort(ps);
     Lit p; int i, j;
-    for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
-        if (value(ps[i]) == l_True || ps[i] == ~p)
+    if (type != CLAUSE_LEMMA) {
+        // Problem clause
+        for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
+            if (value(ps[i]) == l_True || ps[i] == ~p)
+                return true;
+            else if (value(ps[i]) != l_False && ps[i] != p)
+                ps[j++] = p = ps[i];
+        ps.shrink(i - j);
+    } else {
+      // Lemma
+      vec<Lit> assigned_lits;
+        for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
+          if (ps[i] == ~p) {
+            // We don't add clauses that represent splits directly, they are decision literals
+            // so they will get decided upon and sent to the theory
             return true;
-        else if (value(ps[i]) != l_False && ps[i] != p)
-            ps[j++] = p = ps[i];
-    ps.shrink(i - j);
+          }
+          if (value(ps[i]) == l_Undef) {
+            // Anything not having a value gets added
+            if (ps[i] != p) {
+              ps[j++] = p = ps[i];
+            }
+          } else {
+            // If the literal has a value it gets added to the end of the clause
+            p = ps[i];
+            assigned_lits.push(p);
+            Debug("minisat::lemmas") << proxy->getNode(p) << " has value " << value(p) << endl;
+          }
+        }
+        Assert(j >= 1, "You are asserting a falsified lemma, produce a conflict instead!");
+        // If only one literal we could have unit propagation
+        if (j == 1) propagate_first_literal = true;
+        int max_level = -1;
+        int max_level_j = -1;
+        for (int assigned_i = 0; assigned_i < assigned_lits.size(); ++ assigned_i) {
+          ps[j++] = p = assigned_lits[assigned_i];
+          if (value(p) == l_True) propagate_first_literal = false;
+          else if (level(var(p)) > max_level) {
+            max_level = level(var(p));
+            max_level_j = j - 1;
+          }
+        }
+        if (value(ps[1]) != l_Undef) {
+          swap(ps[1], ps[max_level_j]);
+        }
+        ps.shrink(i - j);
+    }
 
     if (ps.size() == 0)
         return ok = false;
@@ -179,10 +243,19 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
         uncheckedEnqueue(ps[0]);
         return ok = (propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) == CRef_Undef);
     }else{
-        CRef cr = ca.alloc(ps, false);
+        CRef cr = ca.alloc(type == CLAUSE_LEMMA ? 0 : assertionLevel, ps, false);
         clauses.push(cr);
-	if (type == CLAUSE_LEMMA) lemmas.push(cr);
-        attachClause(cr);
+	attachClause(cr);
+        if (propagate_first_literal) {
+          Debug("minisat::lemmas") << "Lemma propagating: " << (theory[var(ps[0])] ? proxy->getNode(ps[0]).toString() : "bool") << endl;
+          lemma_propagated_literals.push(ps[0]);
+          lemma_propagated_reasons.push(cr);
+          propagating_lemmas.push(cr);
+        }
+    }
+
+    if (in_propagate && type == CLAUSE_LEMMA) {
+      problem_extended = true;
     }
 
     return true;
@@ -191,6 +264,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
+    CVC4::Debug("minisat") << "Solver::attachClause(" << c << ")" << std::endl;
     Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
@@ -250,15 +324,47 @@ void Solver::cancelUntil(int level) {
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
-        // We can erase the lemmas now
-        for (int c = lemmas.size() - 1; c >= lemmas_lim[level]; c--) {
-          // TODO: can_erase[lemma[c]] = true;
+
+        // Propagate the lemma literals
+        int i, j;
+        for (i = j = propagating_lemmas_lim[level]; i < propagating_lemmas.size(); ++ i) {
+          Clause& lemma = ca[propagating_lemmas[i]];
+          bool propagating = value(var(lemma[0])) == l_Undef;;
+          for(int lit = 1; lit < lemma.size() && propagating; ++ lit)  {
+            if (value(var(lemma[lit])) != l_False) {
+              propagating = false;
+              break;
+            }
+          }
+          if (propagating) {
+            // Propagate
+            uncheckedEnqueue(lemma[0], propagating_lemmas[i]);
+            // Remember the lemma
+            propagating_lemmas[j++] = propagating_lemmas[i];
+          }
         }
-        lemmas.shrink(lemmas.size() - lemmas_lim[level]);
-        lemmas_lim.shrink(lemmas_lim.size() - level);
+        propagating_lemmas.shrink(i - j);
+        propagating_lemmas_lim.shrink(propagating_lemmas_lim.size() - level);
     }
 }
 
+void Solver::popTrail() {
+  // If we're not incremental, just pop until level 0
+  if (!enable_incremental) {
+    cancelUntil(0);
+  } else {
+    // Otherwise pop until the last recorded level 0 trail index
+    int target_size = trail_user_lim.last();
+    for (int c = trail.size()-1; c >= target_size; c--){
+      Var      x  = var(trail[c]);
+      assigns [x] = l_Undef;
+      if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
+        polarity[x] = sign(trail[c]);
+      insertVarOrder(x); }
+    qhead = target_size;
+    trail.shrink(trail.size() - target_size);
+  }
+}
 
 //=================================================================================================
 // Major methods:
@@ -301,9 +407,10 @@ Lit Solver::pickBranchLit()
 |      * 'out_learnt[0]' is the asserting literal at level 'out_btlevel'.
 |      * If out_learnt.size() > 1 then 'out_learnt[1]' has the greatest decision level of the 
 |        rest of literals. There may be others from the same level though.
+|      * returns the maximal level of the resolved clauses
 |  
 |________________________________________________________________________________________________@*/
-void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
+int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 {
     int pathC = 0;
     Lit p     = lit_Undef;
@@ -313,9 +420,15 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     out_learnt.push();      // (leave room for the asserting literal)
     int index   = trail.size() - 1;
 
+    int max_level = 0; // Maximal level of the resolved clauses
+
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
         Clause& c = ca[confl];
+
+        if (c.level() > max_level) {
+          max_level = c.level();
+        }
 
         if (c.learnt())
             claBumpActivity(c);
@@ -344,7 +457,6 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     out_learnt[0] = ~p;
 
     // Simplify conflict clause:
-    //
     int i, j;
     out_learnt.copyTo(analyze_toclear);
     if (ccmin_mode == 2){
@@ -352,9 +464,23 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         for (i = 1; i < out_learnt.size(); i++)
             abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
 
-        for (i = j = 1; i < out_learnt.size(); i++)
-            if (reason(var(out_learnt[i])) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
+        for (i = j = 1; i < out_learnt.size(); i++) {
+            if (reason(var(out_learnt[i])) == CRef_Undef) {
                 out_learnt[j++] = out_learnt[i];
+            } else {
+              // Check if the literal is redundant
+              int red_level = litRedundant(out_learnt[i], abstract_level);
+              if (red_level < 0) {
+                // Literal is not redundant
+                out_learnt[j++] = out_learnt[i];
+              } else {
+                // Literal is redundant, mark the level of the redundancy derivation
+                if (max_level < red_level) {
+                  max_level = red_level;
+                }
+              }
+            }
+        }
         
     }else if (ccmin_mode == 1){
         for (i = j = 1; i < out_learnt.size(); i++){
@@ -395,18 +521,25 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     }
 
     for (int j = 0; j < analyze_toclear.size(); j++) seen[var(analyze_toclear[j])] = 0;    // ('seen[]' is now cleared)
+
+    // Return the maximal resolution level
+    return max_level;
 }
 
 
 // Check if 'p' can be removed. 'abstract_levels' is used to abort early if the algorithm is
 // visiting literals at levels that cannot be removed later.
-bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
+int Solver::litRedundant(Lit p, uint32_t abstract_levels)
 {
     analyze_stack.clear(); analyze_stack.push(p);
     int top = analyze_toclear.size();
+    int max_level = 0;
     while (analyze_stack.size() > 0){
         assert(reason(var(analyze_stack.last())) != CRef_Undef);
         Clause& c = ca[reason(var(analyze_stack.last()))]; analyze_stack.pop();
+        if (c.level() > max_level) {
+            max_level = c.level();
+        }
 
         for (int i = 1; i < c.size(); i++){
             Lit p  = c[i];
@@ -419,13 +552,13 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
                     for (int j = top; j < analyze_toclear.size(); j++)
                         seen[var(analyze_toclear[j])] = 0;
                     analyze_toclear.shrink(analyze_toclear.size() - top);
-                    return false;
+                    return -1;
                 }
             }
         }
     }
 
-    return true;
+    return max_level;
 }
 
 
@@ -472,7 +605,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
     assert(value(p) == l_Undef);
     assigns[var(p)] = lbool(!sign(p));
-    vardata[var(p)] = mkVarData(from, decisionLevel());
+    vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)));
     trail.push_(p);
     if (theory[var(p)] && from != CRef_Lazy) {
       // Enqueue to the theory
@@ -483,17 +616,22 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 
 CRef Solver::propagate(TheoryCheckType type)
 {
+    in_propagate = true;
+
     CRef confl = CRef_Undef;
 
     // If this is the final check, no need for Boolean propagation and
     // theory propagation
     if (type == CHECK_WITHOUTH_PROPAGATION_FINAL) {
-      return theoryCheck(CVC4::theory::Theory::FULL_EFFORT);
+      confl = theoryCheck(CVC4::theory::Theory::FULL_EFFORT);
+      in_propagate = false;
+      return confl;
     }
 
     // The effort we will be using to theory check
     CVC4::theory::Theory::Effort effort = type == CHECK_WITHOUTH_PROPAGATION_QUICK ?
-    CVC4::theory::Theory::QUICK_CHECK : CVC4::theory::Theory::STANDARD;
+    		CVC4::theory::Theory::QUICK_CHECK : 
+    		CVC4::theory::Theory::STANDARD;
 
     // Keep running until we have checked everything, we
     // have no conflict and no new literals have been asserted
@@ -512,6 +650,8 @@ CRef Solver::propagate(TheoryCheckType type)
           if (!new_assertions) break;
         }
     } while (new_assertions);
+
+    in_propagate = false;
 
     return confl;
 }
@@ -548,11 +688,15 @@ CRef Solver::theoryCheck(CVC4::theory::Theory::Effort effort)
   if(clause_size > 0) {
     // Find the max level of the conflict
     int max_level = 0;
+    int max_intro_level = 0;
     for (int i = 0; i < clause_size; ++i) {
-      int current_level = level(var(clause[i]));
-      Debug("minisat") << "Literal: " << clause[i] << " with reason " << reason(var(clause[i])) << " at level " << current_level << std::endl;
+      Var v = var(clause[i]);
+      int current_level = level(v);
+      int current_intro_level = intro_level(v);
+      Debug("minisat") << "Literal: " << clause[i] << " with reason " << reason(v) << " at level " << current_level << std::endl;
       Assert(value(clause[i]) != l_Undef, "Got an unassigned literal in conflict!");
       if (current_level > max_level) max_level = current_level;
+      if (current_intro_level > max_intro_level) max_intro_level = current_intro_level;
     }
     // If smaller than the decision level then pop back so we can analyse
     Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
@@ -561,8 +705,8 @@ CRef Solver::theoryCheck(CVC4::theory::Theory::Effort effort)
       Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
       cancelUntil(max_level);
     }
-    // Create the new clause and attach all the information
-    c = ca.alloc(clause, true);
+    // Create the new clause and attach all the information (level 0)
+    c = ca.alloc(max_intro_level, clause, true);
     learnts.push(c);
     attachClause(c);
   }
@@ -690,6 +834,18 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     cs.shrink(i - j);
 }
 
+void Solver::removeClausesAboveLevel(vec<CRef>& cs, int level)
+{
+    int i, j;
+    for (i = j = 0; i < cs.size(); i++){
+        Clause& c = ca[cs[i]];
+        if (c.level() > level)
+            removeClause(cs[i]);
+        else
+            cs[j++] = cs[i];
+    }
+    cs.shrink(i - j);
+}
 
 void Solver::rebuildOrderHeap()
 {
@@ -756,20 +912,25 @@ lbool Solver::search(int nof_conflicts)
 
     TheoryCheckType check_type = CHECK_WITH_PROPAGATION_STANDARD;
     for (;;){
+        problem_extended = false;
         CRef confl = propagate(check_type);
         if (confl != CRef_Undef){
             // CONFLICT
             conflicts++; conflictC++;
             if (decisionLevel() == 0) return l_False;
 
+	    // Clear the propagated literals
+            lemma_propagated_literals.clear();
+            lemma_propagated_reasons.clear();
+			
             learnt_clause.clear();
-            analyze(confl, learnt_clause, backtrack_level);
+            int max_level = analyze(confl, learnt_clause, backtrack_level);
             cancelUntil(backtrack_level);
 
             if (learnt_clause.size() == 1){
                 uncheckedEnqueue(learnt_clause[0]);
             }else{
-                CRef cr = ca.alloc(learnt_clause, true);
+                CRef cr = ca.alloc(max_level, learnt_clause, true);
                 learnts.push(cr);
                 attachClause(cr);
                 claBumpActivity(ca[cr]);
@@ -791,10 +952,26 @@ lbool Solver::search(int nof_conflicts)
                            (int)max_learnts, nLearnts(), (double)learnts_literals/nLearnts(), progressEstimate()*100);
             }
 
-	    // We have a conflict so, we are going back to standard checks
+		    // We have a conflict so, we are going back to standard checks
             check_type = CHECK_WITH_PROPAGATION_STANDARD;
         }else{
             // NO CONFLICT
+
+            // If we have more assertions from lemmas, we continue
+            if (problem_extended) {
+
+              for (int i = 0, i_end = lemma_propagated_literals.size(); i < i_end; ++ i) {
+                Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << endl;
+                uncheckedEnqueue(lemma_propagated_literals[i], lemma_propagated_reasons[i]);
+              }
+
+              lemma_propagated_literals.clear();
+              lemma_propagated_reasons.clear();
+
+              check_type = CHECK_WITH_PROPAGATION_STANDARD;
+
+              continue;
+            }
 
 	    // If this was a final check, we are satisfiable
             if (check_type == CHECK_WITHOUTH_PROPAGATION_FINAL)
@@ -895,6 +1072,8 @@ static double luby(double y, int x){
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
+    Debug("minisat") << "nvars = " << nVars() << endl;
+
     model.clear();
     conflict.clear();
     if (!ok) return l_False;
@@ -929,11 +1108,16 @@ lbool Solver::solve_()
     if (status == l_True){
         // Extend & copy model:
         model.growTo(nVars());
-        for (int i = 0; i < nVars(); i++) model[i] = value(i);
+        for (int i = 0; i < nVars(); i++) {
+          model[i] = value(i);
+          Debug("minisat") << i << " = " << model[i] << endl;
+        }
     }else if (status == l_False && conflict.size() == 0)
         ok = false;
 
-    cancelUntil(0);
+    // Cancel the trail downto previous push
+    popTrail();
+
     return status;
 }
 
@@ -1066,3 +1250,42 @@ void Solver::garbageCollect()
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
+
+void Solver::push()
+{
+  if (enable_incremental) {
+    ++ assertionLevel;
+    trail_user_lim.push(trail.size());
+  }
+}
+
+void Solver::pop()
+{
+  if (enable_incremental) {
+    -- assertionLevel;
+    // Remove all the clauses asserted (and implied) above the new base level
+    removeClausesAboveLevel(learnts, assertionLevel);
+    removeClausesAboveLevel(clauses, assertionLevel);
+
+    // Pop the user trail size
+    popTrail();
+    trail_user_lim.pop();
+
+    // Notify the cnf
+    proxy->removeClausesAboveLevel(assertionLevel);
+  }
+}
+
+void Solver::unregisterVar(Lit lit) {
+  Var v = var(lit);
+  vardata[v].intro_level = -1;
+  setDecisionVar(v, false);
+}
+
+void Solver::renewVar(Lit lit, int level) {
+  Var v = var(lit);
+  vardata[v].intro_level = level == -1 ? getAssertionLevel() : level;
+  setDecisionVar(v, true);
+}
+
+

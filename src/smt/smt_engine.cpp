@@ -124,24 +124,24 @@ SmtEngine::SmtEngine(ExprManager* em, const Options& opts) throw() :
 
 void SmtEngine::init(const Options& opts) throw() {
   d_context = d_exprManager->getContext();
+  d_userContext = new Context();
+
   d_nodeManager = d_exprManager->getNodeManager();
 
   NodeManagerScope nms(d_nodeManager);
 
-  d_decisionEngine = new DecisionEngine;
   // We have mutual dependancy here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, opts);
-  d_propEngine = new PropEngine(d_decisionEngine, d_theoryEngine, 
-                                d_context, opts);
+  d_propEngine = new PropEngine(d_theoryEngine, d_context, opts);
   d_theoryEngine->setPropEngine(d_propEngine);
 
-  d_definedFunctions = new(true) DefinedFunctionMap(d_context);
+  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
 
   d_assertionList = NULL;
   d_interactive = opts.interactive;
   if(d_interactive) {
-    d_assertionList = new(true) AssertionList(d_context);
+    d_assertionList = new(true) AssertionList(d_userContext);
   }
 
   d_assignments = NULL;
@@ -156,7 +156,6 @@ void SmtEngine::init(const Options& opts) throw() {
 void SmtEngine::shutdown() {
   d_propEngine->shutdown();
   d_theoryEngine->shutdown();
-  d_decisionEngine->shutdown();
 }
 
 SmtEngine::~SmtEngine() {
@@ -174,9 +173,10 @@ SmtEngine::~SmtEngine() {
 
   d_definedFunctions->deleteSelf();
 
+  delete d_userContext;
+
   delete d_theoryEngine;
   delete d_propEngine;
-  delete d_decisionEngine;
 }
 
 void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
@@ -457,8 +457,10 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << endl;
   ensureBoolean(e);// ensure expr is type-checked at this point
+  internalPush();
   SmtEnginePrivate::addFormula(*this, e.getNode());
   Result r = check().asSatisfiabilityResult();
+  internalPop();
   d_status = r;
   d_haveAdditions = false;
   Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
@@ -470,8 +472,10 @@ Result SmtEngine::query(const BoolExpr& e) {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << endl;
   ensureBoolean(e);// ensure expr is type-checked at this point
+  internalPush();
   SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
+  internalPop();
   d_status = r;
   d_haveAdditions = false;
   Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
@@ -629,21 +633,37 @@ vector<Expr> SmtEngine::getAssertions()
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT push()" << endl;
-  d_context->push();
-  d_propEngine->push();
+  d_userLevels.push_back(d_userContext->getLevel());
+  internalPush();
   Debug("userpushpop") << "SmtEngine: pushed to level "
-                       << d_context->getLevel() << endl;
+                       << d_userContext->getLevel() << endl;
 }
 
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT pop()" << endl;
-  d_propEngine->pop();
-  d_context->pop();
+  Assert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
+  while (d_userLevels.back() < d_userContext->getLevel()) {
+    internalPop();
+  }
+  d_userLevels.pop_back();
+
   Debug("userpushpop") << "SmtEngine: popped to level "
-                       << d_context->getLevel() << endl;
+                       << d_userContext->getLevel() << endl;
   // FIXME: should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
+}
+
+void SmtEngine::internalPop() {
+  Debug("smt") << "internalPop()" << endl;
+  d_propEngine->pop();
+  d_userContext->pop();
+}
+
+void SmtEngine::internalPush() {
+  Debug("smt") << "internalPush()" << endl;
+  d_userContext->push();
+  d_propEngine->push();
 }
 
 }/* CVC4 namespace */

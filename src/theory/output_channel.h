@@ -100,17 +100,6 @@ public:
     throw(Interrupted, AssertionException) = 0;
 
   /**
-   * Tell the core to add the following valid lemma as if it were a
-   * user assertion.  This should NOT be called during solving, only
-   * preprocessing.
-   *
-   * @param n - a theory lemma valid to be asserted
-   * @param safe - whether it is safe to be interrupted
-   */
-  virtual void augmentingLemma(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) = 0;
-
-  /**
    * Provide an explanation in response to an explanation request.
    *
    * @param n - an explanation

@@ -228,7 +228,9 @@ struct IntegerHashStrategy {
   }
 };/* struct IntegerHashStrategy */
 
-std::ostream& operator<<(std::ostream& os, const Integer& n);
+inline std::ostream& operator<<(std::ostream& os, const Integer& n) {
+  return os << n.toString();
+}
 
 }/* CVC4 namespace */
 

@@ -44,15 +44,15 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 // Constructor/Destructor:
 
 
-SimpSolver::SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context) :
-    Solver(proxy, context)
+SimpSolver::SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental) :
+    Solver(proxy, context, enableIncremental)
   , grow               (opt_grow)
   , clause_lim         (opt_clause_lim)
   , subsumption_lim    (opt_subsumption_lim)
   , simp_garbage_frac  (opt_simp_garbage_frac)
   , use_asymm          (opt_use_asymm)
   , use_rcheck         (opt_use_rcheck)
-  , use_elim           (opt_use_elim)
+  , use_elim           (!enableIncremental)
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)
@@ -65,7 +65,7 @@ SimpSolver::SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* con
 {
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
-    bwdsub_tmpunit        = ca.alloc(dummy);
+    bwdsub_tmpunit        = ca.alloc(0, dummy);
     remove_satisfied      = false;
 }
 

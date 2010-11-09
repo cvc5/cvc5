@@ -126,6 +126,9 @@ struct CVC4_PUBLIC Options {
   /** Whether we do typechecking at Expr creation time. */
   bool earlyTypeChecking;
 
+  /** Whether incemental solving (push/pop) */
+  bool incrementalSolving;
+
   Options() :
     binary_name(),
     statistics(false),
@@ -147,7 +150,8 @@ struct CVC4_PUBLIC Options {
     produceModels(false),
     produceAssignments(false),
     typeChecking(DO_SEMANTIC_CHECKS_BY_DEFAULT),
-    earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT) {
+    earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT),
+    incrementalSolving(false) {
   }
 
   /** 

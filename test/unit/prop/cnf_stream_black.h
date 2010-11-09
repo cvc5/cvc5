@@ -30,7 +30,6 @@
 #include "prop/prop_engine.h"
 #include "prop/sat.h"
 #include "smt/smt_engine.h"
-#include "util/decision_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::context;
@@ -63,6 +62,17 @@ public:
   unsigned int addClauseCalled() {
     return d_addClauseCalled;
   }
+
+  int getLevel() const {
+    return 0;
+  }
+
+  void unregisterVar(SatLiteral lit) {
+  }
+
+  void renewVar(SatLiteral lit, int level = -1) {
+  }
+
 };
 
 class CnfStreamBlack : public CxxTest::TestSuite {
