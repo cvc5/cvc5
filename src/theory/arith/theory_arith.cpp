@@ -416,7 +416,17 @@ void TheoryArith::check(Effort effortLevel){
           Node ltNode = NodeBuilder<2>(kind::LT) << lhs << rhs;
           Node gtNode = NodeBuilder<2>(kind::GT) << lhs << rhs;
           Node lemma = NodeBuilder<3>(OR) << eq << ltNode << gtNode;
-          d_out->lemma(lemma);
+
+          // < => !>
+          Node imp1 = NodeBuilder<2>(kind::IMPLIES) << ltNode << gtNode.notNode();
+          // < => !=
+          Node imp2 = NodeBuilder<2>(kind::IMPLIES) << ltNode << eq.notNode();
+          // > => !=
+          Node imp3 = NodeBuilder<2>(kind::IMPLIES) << gtNode << eq.notNode();
+          // All the implication
+          Node impClosure = NodeBuilder<3>(kind::AND) << imp1 << imp2 << imp3;
+
+          d_out->lemma(lemma.andNode(impClosure));
         }
       }
     }

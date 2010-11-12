@@ -181,7 +181,6 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
 {
     if (!ok) return false;
 
-    // If a lemma propagates the literal, we mark this
     bool propagate_first_literal = false;
 
     // Check if clause is satisfied and remove false/duplicate literals:
@@ -196,12 +195,15 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
                 ps[j++] = p = ps[i];
         ps.shrink(i - j);
     } else {
-      // Lemma
-      vec<Lit> assigned_lits;
+        // Lemma
+        vec<Lit> assigned_lits;
+        Debug("minisat::lemmas") << "Asserting lemma with " << ps.size() << " literals." << endl;
+        bool lemmaSatisfied = false;
         for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
           if (ps[i] == ~p) {
             // We don't add clauses that represent splits directly, they are decision literals
             // so they will get decided upon and sent to the theory
+            Debug("minisat::lemmas") << "Lemma is a tautology." << endl;
             return true;
           }
           if (value(ps[i]) == l_Undef) {
@@ -212,24 +214,24 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
           } else {
             // If the literal has a value it gets added to the end of the clause
             p = ps[i];
+            if (value(p) == l_True) lemmaSatisfied = true;
             assigned_lits.push(p);
             Debug("minisat::lemmas") << proxy->getNode(p) << " has value " << value(p) << endl;
           }
         }
-        Assert(j >= 1, "You are asserting a falsified lemma, produce a conflict instead!");
+        Assert(j >= 1 || lemmaSatisfied, "You are asserting a falsified lemma, produce a conflict instead!");
         // If only one literal we could have unit propagation
-        if (j == 1) propagate_first_literal = true;
+        if (j == 1 && !lemmaSatisfied) propagate_first_literal = true;
         int max_level = -1;
         int max_level_j = -1;
         for (int assigned_i = 0; assigned_i < assigned_lits.size(); ++ assigned_i) {
           ps[j++] = p = assigned_lits[assigned_i];
-          if (value(p) == l_True) propagate_first_literal = false;
-          else if (level(var(p)) > max_level) {
+          if (level(var(p)) > max_level && value(p) == l_False) {
             max_level = level(var(p));
             max_level_j = j - 1;
           }
         }
-        if (value(ps[1]) != l_Undef) {
+        if (value(ps[1]) != l_Undef && max_level != -1) {
           swap(ps[1], ps[max_level_j]);
         }
         ps.shrink(i - j);
@@ -343,7 +345,9 @@ void Solver::cancelUntil(int level) {
             propagating_lemmas[j++] = propagating_lemmas[i];
           }
         }
-        propagating_lemmas.shrink(i - j);
+        Assert(i >= j);
+        propagating_lemmas.shrink(propagating_lemmas.size() - j);
+        Assert(propagating_lemmas_lim.size() >= level);
         propagating_lemmas_lim.shrink(propagating_lemmas_lim.size() - level);
     }
 }
@@ -960,9 +964,13 @@ lbool Solver::search(int nof_conflicts)
             // If we have more assertions from lemmas, we continue
             if (problem_extended) {
 
+              Debug("minisat::lemmas") << "Problem extended with lemmas, adding propagations." << endl;
+
               for (int i = 0, i_end = lemma_propagated_literals.size(); i < i_end; ++ i) {
-                Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << endl;
-                uncheckedEnqueue(lemma_propagated_literals[i], lemma_propagated_reasons[i]);
+                if (value(var(lemma_propagated_literals[i])) == l_Undef) {
+                  Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << endl;
+                  uncheckedEnqueue(lemma_propagated_literals[i], lemma_propagated_reasons[i]);
+                }
               }
 
               lemma_propagated_literals.clear();
