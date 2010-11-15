@@ -648,15 +648,23 @@ public:
   ExprSetLanguage(OutputLanguage l) : d_language(l) {}
 
   inline void applyLanguage(std::ostream& out) {
-    out.iword(s_iosIndex) = int(d_language);
+    // (offset by one to detect whether default has been set yet)
+    out.iword(s_iosIndex) = int(d_language) + 1;
   }
 
   static inline OutputLanguage getLanguage(std::ostream& out) {
-    return OutputLanguage(out.iword(s_iosIndex));
+    long& l = out.iword(s_iosIndex);
+    if(l == 0) {
+      // set the default language on this ostream
+      // (offset by one to detect whether default has been set yet)
+      l = s_defaultLanguage + 1;
+    }
+    return OutputLanguage(l - 1);
   }
 
   static inline void setLanguage(std::ostream& out, OutputLanguage l) {
-    out.iword(s_iosIndex) = int(l);
+    // (offset by one to detect whether default has been set yet)
+    out.iword(s_iosIndex) = int(l) + 1;
   }
 };/* class ExprSetLanguage */
 
@@ -664,7 +672,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 659 "${template}"
+#line 676 "${template}"
 
 namespace expr {
 

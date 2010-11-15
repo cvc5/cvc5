@@ -570,57 +570,6 @@ public:
 #endif /* CVC4_ASSERTIONS */
   }
 
-  void testToStream() {
-    /* inline void toStream(std::ostream& out) const {
-       d_ev->toStream(out);
-       }
-     */
-
-    NodeBuilder<K> a(specKind);
-    NodeBuilder<K> b(specKind);
-    NodeBuilder<K> c(NOT);
-    string astr, bstr, cstr;
-    stringstream astream, bstream, cstream;
-
-    push_back(a, K / 2);
-    push_back(b, K / 2);
-    push_back(c, 1);
-
-    a.toStream(astream);
-    b.toStream(bstream);
-    c.toStream(cstream);
-
-    astr = astream.str();
-    bstr = bstream.str();
-    cstr = cstream.str();
-
-    TS_ASSERT_EQUALS(astr, bstr);
-    TS_ASSERT_DIFFERS(astr, cstr);
-
-    Node n = a; n = b; n = c;// avoid warning on clear()
-    a.clear(specKind);
-    b.clear(specKind);
-    c.clear(specKind);
-    astream.flush();
-    bstream.flush();
-    cstream.flush();
-
-    push_back(a,2*K);
-    push_back(b,2*K);
-    push_back(c,2*K+1);
-
-    a.toStream(astream);
-    b.toStream(bstream);
-    c.toStream(cstream);
-
-    astr = astream.str();
-    bstr = bstream.str();
-    cstr = cstream.str();
-
-    TS_ASSERT_EQUALS(astr, bstr);
-    TS_ASSERT_DIFFERS(astr, cstr);
-  }
-
   void testLeftistBuilding() {
     NodeBuilder<> nb;
 

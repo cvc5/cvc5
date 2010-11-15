@@ -178,9 +178,6 @@ namespace CVC4 {
 
 namespace CVC4 {
 
-template <unsigned nchild_thresh>
-inline std::ostream& operator<<(std::ostream&, const NodeBuilder<nchild_thresh>&);
-
 /* see expr/convenience_node_builders.h */
 class AndNodeBuilder;
 class OrNodeBuilder;
@@ -691,13 +688,6 @@ public:
   // NodeBuilders which are temporaries appearing as rvalues
   operator Node();
   operator Node() const;
-
-  inline void toStream(std::ostream& out, int depth = -1, bool types = false,
-                       OutputLanguage language = language::output::LANG_AST) const {
-    Assert(!isUsed(), "NodeBuilder is one-shot only; "
-           "attempt to access it after conversion");
-    d_nv->toStream(out, depth, types, language);
-  }
 
   NodeBuilder<nchild_thresh>& operator&=(TNode);
   NodeBuilder<nchild_thresh>& operator|=(TNode);
@@ -1248,15 +1238,6 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
       ++i) {
     (*i)->inc();
   }
-}
-
-template <unsigned nchild_thresh>
-inline std::ostream& operator<<(std::ostream& out,
-                                const NodeBuilder<nchild_thresh>& b) {
-  b.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out));
-  return out;
 }
 
 }/* CVC4 namespace */

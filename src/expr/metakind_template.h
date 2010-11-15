@@ -88,11 +88,6 @@ struct NodeValueCompare {
   inline static size_t constHash(const ::CVC4::expr::NodeValue* nv);
 };/* struct NodeValueCompare */
 
-struct NodeValueConstPrinter {
-  inline static void toStream(std::ostream& out,
-                              const ::CVC4::expr::NodeValue* nv);
-};
-
 /**
  * "metakinds" represent the "kinds" of kinds at the meta-level.
  * "metakind" is an ugly name but it's not used by client code, just
@@ -264,6 +259,12 @@ ${metakind_constHashes}
   }
 }
 
+struct NodeValueConstPrinter {
+  inline static void toStream(std::ostream& out,
+                              const ::CVC4::expr::NodeValue* nv);
+  inline static void toStream(std::ostream& out, TNode n);
+};
+
 inline void NodeValueConstPrinter::toStream(std::ostream& out,
                                             const ::CVC4::expr::NodeValue* nv) {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
@@ -273,6 +274,10 @@ ${metakind_constPrinters}
   default:
     Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
   }
+}
+
+inline void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
+  toStream(out, n.d_nv);
 }
 
 /**

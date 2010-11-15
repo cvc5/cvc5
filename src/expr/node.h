@@ -105,6 +105,12 @@ class NodeValue;
   class ExprSetDepth;
 }/* CVC4::expr namespace */
 
+namespace kind {
+  namespace metakind {
+    struct NodeValueConstPrinter;
+  }/* CVC4::kind::metakind namespace */
+}/* CVC4::kind namespace */
+
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
  * maintained in the NodeValue if ref_count is true.
@@ -148,6 +154,8 @@ class NodeTemplate {
   friend class NodeBuilder;
 
   friend class ::CVC4::expr::attr::AttributeManager;
+
+  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions

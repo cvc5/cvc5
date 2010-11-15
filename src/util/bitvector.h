@@ -122,7 +122,11 @@ public:
   unsigned getSize() const {
     return d_size;
   }
-};
+
+  const Integer& getValue() const {
+    return d_value;
+  }
+};/* class BitVector */
 
 inline BitVector::BitVector(const std::string& num, unsigned base) {
   AlwaysAssert( base == 2 || base == 16 );

@@ -21,6 +21,11 @@ fi
 target=$1
 build_type=$2
 
+: {$as_echo:=echo}
+: {$RM:=rm -f}
+: {$MKDIR_P:=mkdir -p}
+: {LN_S:=ln -s}
+
 $as_echo "Setting up builds/$target/$build_type..."
 $RM config.log config.status confdefs.h builds/Makefile
 $MKDIR_P "builds/$target/$build_type"

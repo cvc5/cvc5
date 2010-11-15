@@ -51,9 +51,10 @@ Node CoreRewriteRules::ConcatFlatten::apply(Node node) {
     }
   }
 
-  Debug("bitvector") << "ConcatFlatten(" << node << ") => " << result << endl;
+  Node resultNode = result;
+  Debug("bitvector") << "ConcatFlatten(" << node << ") => " << resultNode << endl;
 
-  return result;
+  return resultNode;
 }
 
 bool CoreRewriteRules::ConcatExtractMerge::applies(Node node) {

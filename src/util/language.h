@@ -37,7 +37,7 @@ enum Language {
   /** Auto-detect the language */
   LANG_AUTO = -1,
 
-  // COMMON INPUT AND OUTPUT LANGUAGES HAVE ENUM VALUES IN [0,999]
+  // COMMON INPUT AND OUTPUT LANGUAGES HAVE ENUM VALUES IN [0,9]
   // AND SHOULD CORRESPOND IN PLACEMENT WITH OUTPUTLANGUAGE
   //
   // EVEN IF A LANGUAGE ISN'T CURRENTLY SUPPORTED AS AN INPUT OR
@@ -49,15 +49,20 @@ enum Language {
   /** The SMTLIB v2 input language */
   LANG_SMTLIB_V2,
   /** The CVC4 input language */
-  LANG_CVC4
+  LANG_CVC4,
 
-  // START INPUT-ONLY LANGUAGES AT ENUM VALUE 1000
+  // START INPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE OUTPUT LANGUAGES
 
+  /** LANG_MAX is > any valid InputLanguage id */
+  LANG_MAX
 };/* enum Language */
 
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
+  case LANG_AUTO:
+    out << "LANG_AUTO";
+    break;
   case LANG_SMTLIB:
     out << "LANG_SMTLIB";
     break;
@@ -66,9 +71,6 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     break;
   case LANG_CVC4:
     out << "LANG_CVC4";
-    break;
-  case LANG_AUTO:
-    out << "LANG_AUTO";
     break;
   default:
     out << "undefined_input_language";
@@ -83,7 +85,7 @@ namespace output {
 enum Language {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
-  // COMMON INPUT AND OUTPUT LANGUAGES HAVE ENUM VALUES IN [0,999]
+  // COMMON INPUT AND OUTPUT LANGUAGES HAVE ENUM VALUES IN [0,9]
   // AND SHOULD CORRESPOND IN PLACEMENT WITH INPUTLANGUAGE
   //
   // EVEN IF A LANGUAGE ISN'T CURRENTLY SUPPORTED AS AN INPUT OR
@@ -97,12 +99,14 @@ enum Language {
   /** The CVC4 output language */
   LANG_CVC4 = input::LANG_CVC4,
 
-  // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 1000
+  // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
 
   /** The AST output language */
-  LANG_AST = 1000
+  LANG_AST = 10,
 
+  /** LANG_MAX is > any valid OutputLanguage id */
+  LANG_MAX
 };/* enum Language */
 
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
@@ -117,7 +121,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     out << "LANG_CVC4";
     break;
   case LANG_AST:
-    out << "LANG_AUTO";
+    out << "LANG_AST";
     break;
   default:
     out << "undefined_output_language";

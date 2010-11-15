@@ -50,7 +50,7 @@ private:
    */
   //const mpz_class& get_mpz() const { return d_value; }
   const cln::cl_I& get_cl_I() const { return d_value; }
- 
+
   /**
    * Constructs an Integer by copying a GMP C++ primitive.
    */
@@ -219,6 +219,16 @@ public:
     return equal_hashcode(d_value);
   }
 
+  /**
+   * Returns true iff bit n is set.
+   *
+   * @param n the bit to test (0 == least significant bit)
+   * @return true if bit n is set in this integer; false otherwise
+   */
+  bool testBit(unsigned n) const {
+    return cln::logbitp(n, d_value);
+  }
+
   friend class CVC4::Rational;
 };/* class Integer */
 
@@ -235,4 +245,3 @@ inline std::ostream& operator<<(std::ostream& os, const Integer& n) {
 }/* CVC4 namespace */
 
 #endif /* __CVC4__INTEGER_H */
-

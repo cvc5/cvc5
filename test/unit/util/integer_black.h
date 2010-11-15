@@ -294,4 +294,46 @@ public:
     TS_ASSERT_EQUALS( Integer(1000), Integer(10).pow(3) );
     TS_ASSERT_EQUALS( Integer(-1000), Integer(-10).pow(3) );
   }
+
+  void testTestBit() {
+    TS_ASSERT( ! Integer(0).testBit(6) );
+    TS_ASSERT( ! Integer(0).testBit(5) );
+    TS_ASSERT( ! Integer(0).testBit(4) );
+    TS_ASSERT( ! Integer(0).testBit(3) );
+    TS_ASSERT( ! Integer(0).testBit(2) );
+    TS_ASSERT( ! Integer(0).testBit(1) );
+    TS_ASSERT( ! Integer(0).testBit(0) );
+
+    TS_ASSERT( Integer(-1).testBit(6) );
+    TS_ASSERT( Integer(-1).testBit(5) );
+    TS_ASSERT( Integer(-1).testBit(4) );
+    TS_ASSERT( Integer(-1).testBit(3) );
+    TS_ASSERT( Integer(-1).testBit(2) );
+    TS_ASSERT( Integer(-1).testBit(1) );
+    TS_ASSERT( Integer(-1).testBit(0) );
+
+    TS_ASSERT( ! Integer(10).testBit(6) );
+    TS_ASSERT( ! Integer(10).testBit(5) );
+    TS_ASSERT( ! Integer(10).testBit(4) );
+    TS_ASSERT( Integer(10).testBit(3) );
+    TS_ASSERT( ! Integer(10).testBit(2) );
+    TS_ASSERT( Integer(10).testBit(1) );
+    TS_ASSERT( ! Integer(10).testBit(0) );
+
+    TS_ASSERT( ! Integer(14).testBit(6) );
+    TS_ASSERT( ! Integer(14).testBit(5) );
+    TS_ASSERT( ! Integer(14).testBit(4) );
+    TS_ASSERT( Integer(14).testBit(3) );
+    TS_ASSERT( Integer(14).testBit(2) );
+    TS_ASSERT( Integer(14).testBit(1) );
+    TS_ASSERT( ! Integer(14).testBit(0) );
+
+    TS_ASSERT( Integer(64).testBit(6) );
+    TS_ASSERT( ! Integer(64).testBit(5) );
+    TS_ASSERT( ! Integer(64).testBit(4) );
+    TS_ASSERT( ! Integer(64).testBit(3) );
+    TS_ASSERT( ! Integer(64).testBit(2) );
+    TS_ASSERT( ! Integer(64).testBit(1) );
+    TS_ASSERT( ! Integer(64).testBit(0) );
+  }
 };
