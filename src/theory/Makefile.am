@@ -3,6 +3,8 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
+SUBDIRS = builtin booleans uf arith arrays bv
+
 noinst_LTLIBRARIES = libtheory.la
 
 libtheory_la_SOURCES = \
@@ -48,5 +50,3 @@ theoryof_table.h: theoryof_table_template.h mktheoryof @top_builddir@/src/theory
 		$< \
 		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
-
-SUBDIRS = builtin booleans uf arith arrays bv

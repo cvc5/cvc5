@@ -17,7 +17,7 @@ AM_CPPFLAGS = \
 	-I@srcdir@/include -I@srcdir@ -I@builddir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib expr util context theory prop smt . parser main
+SUBDIRS = lib expr util context theory prop smt printer . parser main
 
 lib_LTLIBRARIES = libcvc4.la
 noinst_LTLIBRARIES = libcvc4_noinst.la
@@ -62,15 +62,15 @@ publicheaders = \
 	include/cvc4parser_public.h
 
 install-data-local: $(publicheaders)
-	$(mkinstalldirs) $(DESTDIR)$(includedir)/cvc4
+	$(mkinstalldirs) $(DESTDIR)$(prefix)$(includedir)/cvc4
 	@for f in $(publicheaders); do \
-		echo $(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"; \
-		$(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)/$(includedir)/cvc4"; \
+		echo $(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)$(prefix)$(includedir)/cvc4"; \
+		$(INSTALL_DATA) "$(srcdir)/$$f" "$(DESTDIR)$(prefix)$(includedir)/cvc4"; \
 	done
 
 uninstall-local:
 	@for f in $(publicheaders); do \
 		f=`echo "$$f" | sed 's,.*/,,'`; \
-		rm -f "$(DESTDIR)$(includedir)/cvc4/$$f"; \
+		rm -f "$(DESTDIR)$(prefix)$(includedir)/cvc4/$$f"; \
 	done
-	@rmdir "$(DESTDIR)$(includedir)/cvc4"
+	@rmdir "$(DESTDIR)$(prefix)$(includedir)/cvc4"

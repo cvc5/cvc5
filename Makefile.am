@@ -89,6 +89,7 @@ EXTRA_DIST = \
 	Makefile.builds.in \
 	Makefile.subdir \
 	config/build-type \
-	config/mkbuilddir
+	config/mkbuilddir \
+	config/doxygen.cfg
 dist-hook:
 	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"
