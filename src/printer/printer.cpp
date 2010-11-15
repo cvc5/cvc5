@@ -34,17 +34,20 @@ Printer* Printer::makePrinter(OutputLanguage lang) {
 
   switch(lang) {
   case LANG_SMTLIB:
-    //return new printer::smt::SmtPrinter;
+    return new printer::smt::SmtPrinter;
+
   case LANG_SMTLIB_V2:
     return new printer::smt2::Smt2Printer;
+
   case LANG_CVC4:
-    //return new printer::cvc::CvcPrinter;
+    return new printer::cvc::CvcPrinter;
+
   case LANG_AST:
     return new printer::ast::AstPrinter;
+
   default:
     Unhandled(lang);
   }
 }/* Printer::makePrinter() */
 
 }/* CVC4 namespace */
-

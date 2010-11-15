@@ -17,6 +17,7 @@
  **/
 
 #include "printer/smt/smt_printer.h"
+#include "util/language.h"
 
 #include <iostream>
 
@@ -28,7 +29,7 @@ namespace smt {
 
 std::ostream& SmtPrinter::toStream(std::ostream& out, TNode n,
                                    int toDepth, bool types) const {
-  return out;
+  return n.toStream(out, toDepth, types, language::output::LANG_SMTLIB_V2);
 }/* SmtPrinter::toStream() */
 
 }/* CVC4::printer::smt namespace */
