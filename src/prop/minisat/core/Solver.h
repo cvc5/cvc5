@@ -79,8 +79,8 @@ protected:
   /** Shrink 'cs' to contain only clauses below given level */
   void removeClausesAboveLevel(vec<CRef>& cs, int level); 
 
-  /** True if we are inside the propagate method */
-  bool in_propagate;
+  /** True if we are currently solving. */
+  bool in_solve;
 
 public:
 

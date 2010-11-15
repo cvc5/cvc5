@@ -81,19 +81,14 @@ void PropEngine::assertFormula(TNode node) {
 }
 
 void PropEngine::assertLemma(TNode node) {
-  Assert(d_inCheckSat, "Sat solver should be in solve()!");
+  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
+
+  //TODO This comment is now false
   // Assert as removable
   d_cnfStream->convertAndAssert(node, true, false);
 }
 
-void PropEngine::assertSafeLemma(TNode node) {
-  if(d_inCheckSat){
-    assertLemma(node);
-  }else{
-    assertFormula(node);
-  }
-}
 
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::TranslationCache& transCache =

@@ -56,7 +56,7 @@ Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bo
   , assertionLevel(0)
   , enable_incremental(enable_incremental)
   , problem_extended(false)
-  , in_propagate(false)
+  , in_solve(false)
     // Parameters (user settable):
     //
   , verbosity        (0)
@@ -135,7 +135,7 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
     theory   .push(theoryAtom);
 
     // We have extended the problem
-    if (in_propagate) {
+    if (in_solve) {
       problem_extended = true;
       insertVarOrder(v);
     }
@@ -256,7 +256,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
         }
     }
 
-    if (in_propagate && type == CLAUSE_LEMMA) {
+    if (type == CLAUSE_LEMMA) {
       problem_extended = true;
     }
 
@@ -620,15 +620,12 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 
 CRef Solver::propagate(TheoryCheckType type)
 {
-    in_propagate = true;
-
     CRef confl = CRef_Undef;
 
     // If this is the final check, no need for Boolean propagation and
     // theory propagation
     if (type == CHECK_WITHOUTH_PROPAGATION_FINAL) {
       confl = theoryCheck(CVC4::theory::Theory::FULL_EFFORT);
-      in_propagate = false;
       return confl;
     }
 
@@ -654,8 +651,6 @@ CRef Solver::propagate(TheoryCheckType type)
           if (!new_assertions) break;
         }
     } while (new_assertions);
-
-    in_propagate = false;
 
     return confl;
 }
@@ -916,7 +911,26 @@ lbool Solver::search(int nof_conflicts)
 
     TheoryCheckType check_type = CHECK_WITH_PROPAGATION_STANDARD;
     for (;;){
-        problem_extended = false;
+
+        // If we have more assertions from lemmas, we continue
+        if (problem_extended) {
+
+          Debug("minisat::lemmas") << "Problem extended with lemmas, adding propagations." << endl;
+
+          for (int i = 0, i_end = lemma_propagated_literals.size(); i < i_end; ++ i) {
+            if (value(var(lemma_propagated_literals[i])) == l_Undef) {
+              Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << endl;
+              uncheckedEnqueue(lemma_propagated_literals[i], lemma_propagated_reasons[i]);
+            }
+          }
+
+          lemma_propagated_literals.clear();
+          lemma_propagated_reasons.clear();
+
+          check_type = CHECK_WITH_PROPAGATION_STANDARD;
+          problem_extended = false;
+        }
+
         CRef confl = propagate(check_type);
         if (confl != CRef_Undef){
             // CONFLICT
@@ -959,27 +973,10 @@ lbool Solver::search(int nof_conflicts)
 		    // We have a conflict so, we are going back to standard checks
             check_type = CHECK_WITH_PROPAGATION_STANDARD;
         }else{
+
             // NO CONFLICT
-
-            // If we have more assertions from lemmas, we continue
-            if (problem_extended) {
-
-              Debug("minisat::lemmas") << "Problem extended with lemmas, adding propagations." << endl;
-
-              for (int i = 0, i_end = lemma_propagated_literals.size(); i < i_end; ++ i) {
-                if (value(var(lemma_propagated_literals[i])) == l_Undef) {
-                  Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << endl;
-                  uncheckedEnqueue(lemma_propagated_literals[i], lemma_propagated_reasons[i]);
-                }
-              }
-
-              lemma_propagated_literals.clear();
-              lemma_propagated_reasons.clear();
-
-              check_type = CHECK_WITH_PROPAGATION_STANDARD;
-
+            if (problem_extended)
               continue;
-            }
 
 	    // If this was a final check, we are satisfiable
             if (check_type == CHECK_WITHOUTH_PROPAGATION_FINAL)
@@ -1082,9 +1079,14 @@ lbool Solver::solve_()
 {
     Debug("minisat") << "nvars = " << nVars() << endl;
 
+    in_solve = true;
+
     model.clear();
     conflict.clear();
-    if (!ok) return l_False;
+    if (!ok){
+      in_solve = false;
+      return l_False;
+    }
 
     solves++;
 
@@ -1125,6 +1127,8 @@ lbool Solver::solve_()
 
     // Cancel the trail downto previous push
     popTrail();
+
+    in_solve = false;
 
     return status;
 }
