@@ -103,6 +103,7 @@ public:
    * @param node the formula to assert
    */
   void assertLemma(TNode node);
+  void assertSafeLemma(TNode node);
 
   /**
    * Checks the current context for satisfiability.

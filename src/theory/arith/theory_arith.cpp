@@ -34,7 +34,7 @@
 #include "theory/arith/arithvar_dense_set.h"
 
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_propagator.h"
+#include "theory/arith/unate_propagator.h"
 
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/normal_form.h"
@@ -62,7 +62,7 @@ TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
   d_diseq(c),
   d_tableau(d_activityMonitor, d_basicManager),
   d_rewriter(&d_constants),
-  d_propagator(c),
+  d_propagator(c, out),
   d_simplex(d_constants, d_partialModel, d_basicManager,  d_out, d_activityMonitor, d_tableau),
   d_statistics()
 {}
@@ -71,15 +71,21 @@ TheoryArith::~TheoryArith(){}
 
 TheoryArith::Statistics::Statistics():
   d_statUserVariables("theory::arith::UserVariables", 0),
-  d_statSlackVariables("theory::arith::SlackVariables", 0)
+  d_statSlackVariables("theory::arith::SlackVariables", 0),
+  d_statDisequalitySplits("theory::arith::DisequalitySplits", 0),
+  d_statDisequalityConflicts("theory::arith::DisequalityConflicts", 0)
 {
   StatisticsRegistry::registerStat(&d_statUserVariables);
   StatisticsRegistry::registerStat(&d_statSlackVariables);
+  StatisticsRegistry::registerStat(&d_statDisequalitySplits);
+  StatisticsRegistry::registerStat(&d_statDisequalityConflicts);
 }
 
 TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statUserVariables);
   StatisticsRegistry::unregisterStat(&d_statSlackVariables);
+  StatisticsRegistry::unregisterStat(&d_statDisequalitySplits);
+  StatisticsRegistry::unregisterStat(&d_statDisequalityConflicts);
 }
 
 
@@ -299,6 +305,7 @@ bool TheoryArith::assertionCases(TNode assertion){
       if (d_diseq.find(diseq) != d_diseq.end()) {
         NodeBuilder<3> conflict(kind::AND);
         conflict << diseq << assertion << d_partialModel.getLowerConstraint(x_i);
+        ++(d_statistics.d_statDisequalityConflicts);
         d_out->conflict((TNode)conflict);
         return true;
       }
@@ -311,6 +318,7 @@ bool TheoryArith::assertionCases(TNode assertion){
       if (d_diseq.find(diseq) != d_diseq.end()) {
         NodeBuilder<3> conflict(kind::AND);
         conflict << diseq << assertion << d_partialModel.getUpperConstraint(x_i);
+        ++(d_statistics.d_statDisequalityConflicts);
         d_out->conflict((TNode)conflict);
         return true;
       }
@@ -351,7 +359,7 @@ void TheoryArith::check(Effort effortLevel){
 
     Node assertion = get();
 
-    d_propagator.assertLiteral(assertion);
+    //d_propagator.assertLiteral(assertion);
     bool conflictDuringAnAssert = assertionCases(assertion);
 
     if(conflictDuringAnAssert){
@@ -426,6 +434,7 @@ void TheoryArith::check(Effort effortLevel){
           // All the implication
           Node impClosure = NodeBuilder<3>(kind::AND) << imp1 << imp2 << imp3;
 
+          ++(d_statistics.d_statDisequalitySplits);
           d_out->lemma(lemma.andNode(impClosure));
         }
       }
@@ -449,22 +458,22 @@ void TheoryArith::check(Effort effortLevel){
 }
 
 void TheoryArith::explain(TNode n, Effort e) {
-  Node explanation = d_propagator.explain(n);
-  Debug("arith") << "arith::explain("<<explanation<<")->"
-                 << explanation << endl;
-  d_out->explanation(explanation, true);
+  // Node explanation = d_propagator.explain(n);
+  // Debug("arith") << "arith::explain("<<explanation<<")->"
+  //                << explanation << endl;
+  // d_out->explanation(explanation, true);
 }
 
 void TheoryArith::propagate(Effort e) {
 
-  if(quickCheckOrMore(e)){
-    std::vector<Node> implied = d_propagator.getImpliedLiterals();
-    for(std::vector<Node>::iterator i = implied.begin();
-        i != implied.end();
-        ++i){
-      d_out->propagate(*i);
-    }
-  }
+  // if(quickCheckOrMore(e)){
+  //   std::vector<Node> implied = d_propagator.getImpliedLiterals();
+  //   for(std::vector<Node>::iterator i = implied.begin();
+  //       i != implied.end();
+  //       ++i){
+  //     d_out->propagate(*i);
+  //   }
+  // }
 }
 
 Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {

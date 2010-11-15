@@ -141,59 +141,6 @@ public:
     return dis;
   }
 
-//  void testBasicConflict() {
-//    Node x = d_nm->mkVar(*d_realType);
-//    Node c = d_nm->mkConst<Rational>(d_zero);
-//
-//    Node eq = d_nm->mkNode(EQUAL, x, c);
-//    Node lt = d_nm->mkNode(NOT, d_nm->mkNode(GEQ, x, c));
-//    Node expectedDisjunct = simulateSplit(x,c);
-//
-//    fakeTheoryEnginePreprocess(eq);
-//    fakeTheoryEnginePreprocess(lt);
-//
-//    d_arith->assertFact(eq);
-//    d_arith->assertFact(lt);
-//
-//    d_arith->check(d_level);
-//
-//    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), expectedDisjunct);
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), AUG_LEMMA);
-//
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), CONFLICT);
-//
-//    Node expectedClonflict = d_nm->mkNode(AND, eq, lt);
-//
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), expectedClonflict);
-//  }
-
-//  void testBasicPropagate() {
-//    Node x = d_nm->mkVar(*d_realType);
-//    Node c = d_nm->mkConst<Rational>(d_zero);
-//
-//    Node eq = d_nm->mkNode(EQUAL, x, c);
-//    Node lt = d_nm->mkNode(NOT, d_nm->mkNode(GEQ, x, c));
-//    Node expectedDisjunct = simulateSplit(x,c);
-//
-//    fakeTheoryEnginePreprocess(eq);
-//    fakeTheoryEnginePreprocess(lt);
-//
-//    d_arith->assertFact(eq);
-//
-//
-//    d_arith->check(d_level);
-//    d_arith->propagate(d_level);
-//
-//    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), AUG_LEMMA);
-//
-//
-//    Node expectedProp = d_nm->mkNode(GEQ, x, c);
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), PROPAGATE);
-//    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), expectedProp);
-//
-//  }
   void testTPLt1() {
     Node x = d_nm->mkVar(*d_realType);
     Node c0 = d_nm->mkConst<Rational>(d_zero);
@@ -214,17 +161,20 @@ public:
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(  d_arith->explain(leq0, d_level), AssertionException );
-    TS_ASSERT_THROWS(  d_arith->explain(lt1, d_level), AssertionException );
-#endif
-    d_arith->explain(leq1, d_level);
+    Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
+    Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
+    Node leq0ThenLt1  = NodeBuilder<2>(IMPLIES) << leq0 << lt1;
 
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPAGATE);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), EXPLANATION);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq1);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq0ThenLeq1);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1ThenLeq1);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
   }
 
 
@@ -246,27 +196,21 @@ public:
 
 
     d_arith->check(d_level);
-    d_arith->propagate(d_level);
 
+    Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
+    Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
+    Node leq0ThenLt1  = NodeBuilder<2>(IMPLIES) << leq0 << lt1;
 
-    d_arith->explain(lt1, d_level);
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(  d_arith->explain(leq0, d_level), AssertionException );
-#endif
-    d_arith->explain(leq1, d_level);
+    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
 
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 4u);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), PROPAGATE);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), PROPAGATE);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), EXPLANATION);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(3), EXPLANATION);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq0ThenLeq1);
 
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1ThenLeq1);
 
-
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(3), leq0);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
   }
   void testTPLeq1() {
     Node x = d_nm->mkVar(*d_realType);
@@ -288,12 +232,19 @@ public:
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(  d_arith->explain(leq0, d_level), AssertionException );
-    TS_ASSERT_THROWS(  d_arith->explain(leq1, d_level), AssertionException );
-    TS_ASSERT_THROWS(  d_arith->explain(lt1, d_level), AssertionException );
-#endif
+    Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
+    Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
+    Node leq0ThenLt1  = NodeBuilder<2>(IMPLIES) << leq0 << lt1;
 
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 0u);
+    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq0ThenLeq1);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1ThenLeq1);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
   }
 };

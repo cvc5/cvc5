@@ -318,7 +318,7 @@ public:
   }
 
   inline void newLemma(TNode node) {
-    d_propEngine->assertLemma(preprocess(node));
+    d_propEngine->assertSafeLemma(preprocess(node));
   }
 
   /**

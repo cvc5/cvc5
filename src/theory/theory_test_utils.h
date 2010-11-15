@@ -114,6 +114,12 @@ public:
     return d_callHistory.size();
   }
 
+  void printIth(std::ostream& os, int i){
+    os << "[TestOutputChannel " << i;
+    os << " " << getIthCallType(i);
+    os << " " << getIthNode(i) << "]";
+  }
+
 private:
   void push(OutputChannelCallType call, TNode n) {
     d_callHistory.push_back(std::make_pair(call,n));

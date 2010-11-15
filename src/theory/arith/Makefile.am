@@ -25,8 +25,8 @@ libarith_la_SOURCES = \
 	simplex.cpp \
 	row_vector.h \
 	row_vector.cpp \
-	arith_propagator.h \
-	arith_propagator.cpp \
+	unate_propagator.h \
+	unate_propagator.cpp \
 	theory_arith.h \
 	theory_arith.cpp
 
