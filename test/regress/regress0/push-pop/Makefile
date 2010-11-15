@@ -1,4 +1,4 @@
-topdir = ../../../push-pop
+topdir = ../../../..
 srcdir = test/regress/regress0/push-pop
 
 include $(topdir)/Makefile.subdir

@@ -17,7 +17,7 @@ AM_CPPFLAGS = \
 	-I@srcdir@/include -I@srcdir@ -I@builddir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib expr util context theory prop smt printer . parser main
+SUBDIRS = lib expr util context theory prop smt . parser main
 
 lib_LTLIBRARIES = libcvc4.la
 noinst_LTLIBRARIES = libcvc4_noinst.la
