@@ -39,6 +39,7 @@ public:
   void check(Effort e) { Unreachable(); }
   void propagate(Effort e) { Unreachable(); }
   void explain(TNode n, Effort e) { Unreachable(); }
+  void presolve() { Unreachable(); }
   Node getValue(TNode n, TheoryEngine* engine);
   void shutdown() { }
   RewriteResponse preRewrite(TNode n, bool topLevel);

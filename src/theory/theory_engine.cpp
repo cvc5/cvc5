@@ -617,4 +617,20 @@ Node TheoryEngine::getValue(TNode node) {
   return theoryOf(node)->getValue(node, this);
 }/* TheoryEngine::getValue(TNode node) */
 
+
+bool TheoryEngine::presolve(){
+  d_theoryOut.d_conflictNode = Node::null();
+  d_theoryOut.d_propagatedLiterals.clear();
+  try {
+    //d_uf->presolve();
+    d_arith->presolve();
+    //d_arrays->presolve();
+    //d_bv->presolve();
+  } catch(const theory::Interrupted&) {
+    Debug("theory") << "TheoryEngine::presolve() => conflict" << std::endl;
+  }
+  // Return wheather we have a conflict
+  return d_theoryOut.d_conflictNode.get().isNull();
+}
+
 }/* CVC4 namespace */

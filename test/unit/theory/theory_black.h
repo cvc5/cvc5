@@ -136,6 +136,9 @@ public:
     }
   }
 
+  void presolve() {
+    Unimplemented();
+  }
   void preRegisterTerm(TNode n) {}
   void propagate(Effort level) {}
   void explain(TNode n, Effort level) {}

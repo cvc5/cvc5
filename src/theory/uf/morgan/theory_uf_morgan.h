@@ -130,6 +130,10 @@ public:
    */
   void check(Effort level);
 
+  void presolve(){
+    Unimplemented();
+  }
+
   /**
    * Rewrites a node in the theory of uninterpreted functions.
    * This is fairly basic and only ensures that atoms that are

@@ -305,9 +305,15 @@ public:
     } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
     }
-    // Return wheather we have a conflict
+    // Return whether we have a conflict
     return d_theoryOut.d_conflictNode.get().isNull();
   }
+
+  /**
+   * Calls presolve() on all active theories and returns true
+   * if one of the theories discovers a conflict.
+   */
+  bool presolve();
 
   inline const std::vector<TNode>& getPropagatedLiterals() const {
     return d_theoryOut.d_propagatedLiterals;

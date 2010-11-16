@@ -118,6 +118,9 @@ Result PropEngine::checkSat() {
   ScopedBool scopedBool(d_inCheckSat);
   d_inCheckSat = true;
 
+  // TODO This currently ignores conflicts (a dangerous practice).
+  d_theoryEngine->presolve();
+
   // Check the problem
   bool result = d_satSolver->solve();
 

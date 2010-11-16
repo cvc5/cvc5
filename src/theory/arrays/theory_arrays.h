@@ -48,6 +48,10 @@ public:
     return RewriteComplete(in);
   }
 
+  void presolve() {
+    Unimplemented();
+  }
+
   void addSharedTerm(TNode t);
   void notifyEq(TNode lhs, TNode rhs);
   void check(Effort e);

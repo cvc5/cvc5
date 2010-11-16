@@ -46,6 +46,8 @@ public:
   void propagate(Effort e) { Unimplemented(); }
   void explain(TNode n, Effort e) { Unimplemented(); }
 
+  void presolve(){ Unimplemented(); }
+
   Node getValue(TNode n, TheoryEngine* engine);
 
   RewriteResponse preRewrite(TNode n, bool topLevel);

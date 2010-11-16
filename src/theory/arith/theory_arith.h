@@ -134,6 +134,12 @@ public:
 
   void shutdown(){ }
 
+  void presolve(){
+    static int callCount = 0;
+    Debug("arith::presolve") << "TheoryArith::presolve #" << (callCount++) << endl;
+    check(FULL_EFFORT);
+  }
+
   std::string identify() const { return std::string("TheoryArith"); }
 
 private:

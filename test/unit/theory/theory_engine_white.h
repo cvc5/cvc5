@@ -203,6 +203,8 @@ public:
     return "Fake" + d_id;
   }
 
+  void presolve() { Unimplemented(); }
+
   void preRegisterTerm(TNode) { Unimplemented(); }
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) { Unimplemented(); }
