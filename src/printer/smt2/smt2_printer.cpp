@@ -28,12 +28,12 @@ namespace smt2 {
 
 void printBvParameterizedOp(std::ostream& out, TNode n);
 
-std::ostream& Smt2Printer::toStream(std::ostream& out, TNode n,
-                                    int toDepth, bool types) const {
+void Smt2Printer::toStream(std::ostream& out, TNode n,
+                           int toDepth, bool types) const {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
     out << "null";
-    return out;
+    return;
   }
 
   // variable
@@ -55,7 +55,7 @@ std::ostream& Smt2Printer::toStream(std::ostream& out, TNode n,
       n.getType().toStream(out, -1, false, language::output::LANG_SMTLIB_V2);
     }
 
-    return out;
+    return;
   }
 
   // constant
@@ -80,7 +80,7 @@ std::ostream& Smt2Printer::toStream(std::ostream& out, TNode n,
       kind::metakind::NodeValueConstPrinter::toStream(out, n);
     }
 
-    return out;
+    return;
   }
 
   bool stillNeedToPrintParams = true;
@@ -191,8 +191,6 @@ std::ostream& Smt2Printer::toStream(std::ostream& out, TNode n,
     }
   }
   out << ')';
-
-  return out;
 }/* Smt2Printer::toStream() */
 
 void printBvParameterizedOp(std::ostream& out, TNode n) {

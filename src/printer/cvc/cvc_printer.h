@@ -31,7 +31,7 @@ namespace cvc {
 
 class CvcPrinter : public CVC4::Printer {
 public:
-  std::ostream& toStream(std::ostream& out, TNode n, int toDepth, bool types) const;
+  void toStream(std::ostream& out, TNode n, int toDepth, bool types) const;
 };/* class CvcPrinter */
 
 }/* CVC4::printer::cvc namespace */

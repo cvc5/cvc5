@@ -27,9 +27,9 @@ namespace CVC4 {
 namespace printer {
 namespace cvc {
 
-std::ostream& CvcPrinter::toStream(std::ostream& out, TNode n,
-                                   int toDepth, bool types) const {
-  return n.toStream(out, toDepth, types, language::output::LANG_AST);
+void CvcPrinter::toStream(std::ostream& out, TNode n,
+                          int toDepth, bool types) const {
+  n.toStream(out, toDepth, types, language::output::LANG_AST);
 }/* CvcPrinter::toStream() */
 
 }/* CVC4::printer::cvc namespace */

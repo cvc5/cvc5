@@ -28,12 +28,12 @@ namespace CVC4 {
 namespace printer {
 namespace ast {
 
-std::ostream& AstPrinter::toStream(std::ostream& out, TNode n,
+void AstPrinter::toStream(std::ostream& out, TNode n,
                                    int toDepth, bool types) const {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
     out << "null";
-    return out;
+    return;
   }
 
   // variable
@@ -55,7 +55,7 @@ std::ostream& AstPrinter::toStream(std::ostream& out, TNode n,
       n.getType().toStream(out, -1, false, language::output::LANG_AST);
     }
 
-    return out;
+    return;
   }
 
   out << '(' << n.getKind();
@@ -90,8 +90,6 @@ std::ostream& AstPrinter::toStream(std::ostream& out, TNode n,
     }
   }
   out << ')';
-
-  return out;
 }/* AstPrinter::toStream() */
 
 }/* CVC4::printer::ast namespace */

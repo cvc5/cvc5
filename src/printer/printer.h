@@ -43,8 +43,8 @@ public:
   }
 
   /** Write a Node out to a stream with this Printer. */
-  virtual std::ostream& toStream(std::ostream& out, TNode n,
-                                 int toDepth, bool types) const = 0;
+  virtual void toStream(std::ostream& out, TNode n,
+                        int toDepth, bool types) const = 0;
 };/* class Printer */
 
 }/* CVC4 namespace */
