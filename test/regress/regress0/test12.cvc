@@ -1,3 +1,4 @@
+% COMMAND-LINE: --incremental
 % EXPECT: invalid
 % EXPECT: invalid
 % EXPECT: invalid

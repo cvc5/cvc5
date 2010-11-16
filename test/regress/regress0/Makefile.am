@@ -22,8 +22,8 @@ SMT_TESTS = \
 	let2.smt \
 	simple.smt \
 	simple2.smt \
-        simple-lra.smt \
-        simple-rdl.smt \
+	simple-lra.smt \
+	simple-rdl.smt \
 	simple-uf.smt
 
 # Regression tests for SMT2 inputs
@@ -31,16 +31,16 @@ SMT2_TESTS = \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
-        simple-lra.smt2 \
-        simple-rdl.smt2 \
-        simple-rdl-definefun.smt2 \
+	simple-lra.smt2 \
+	simple-rdl.smt2 \
+	simple-rdl-definefun.smt2 \
 	simple-uf.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
 	boolean-prec.cvc \
 	hole6.cvc \
-        ite.cvc \
+	ite.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
 	logops.03.cvc \
@@ -48,8 +48,8 @@ CVC_TESTS = \
 	logops.05.cvc \
 	simple.cvc \
 	smallcnf.cvc \
-	test11.cvc \
 	test9.cvc \
+	test11.cvc \
 	uf20-03.cvc \
 	wiki.01.cvc \
 	wiki.02.cvc \
@@ -83,11 +83,13 @@ BUG_TESTS = \
 	bug167.smt \
 	bug168.smt \
 	bug187.smt2 \
+	bug216.smt2 \
 	bug220.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	bug216.smt2.expect
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else

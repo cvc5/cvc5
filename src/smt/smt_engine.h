@@ -125,11 +125,19 @@ class CVC4_PUBLIC SmtEngine {
   std::string d_logic;
 
   /**
-   * Whether or not we have added any
-   * assertions/declarations/definitions since the last checkSat/query
-   * (and therefore we're not responsible for an assignment).
+   * Whether or not we have added any assertions/declarations/definitions
+   * since the last checkSat/query (and therefore we're not responsible
+   * for an assignment).
    */
   bool d_haveAdditions;
+
+  /**
+   * Whether or not a query() or checkSat() has already been made through
+   * this SmtEngine.  If true, and d_incrementalSolving is false, then
+   * attempting an additional query() or checkSat() will fail with a
+   * ModalException.
+   */
+  bool d_queryMade;
 
   /** 
    * Whether or not to type check input expressions.
@@ -155,6 +163,11 @@ class CVC4_PUBLIC SmtEngine {
    * Whether getAssignment() is enabled.
    */
   bool d_produceAssignments;
+
+  /**
+   * Whether multiple queries can be made, and also push/pop is enabled.
+   */
+  bool d_incrementalSolving;
 
   /**
    * Most recent result of last checkSat/query or (set-info :status).

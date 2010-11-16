@@ -146,11 +146,14 @@ void SmtEngine::init(const Options& opts) throw() {
 
   d_assignments = NULL;
   d_haveAdditions = false;
+  d_queryMade = false;
 
   d_typeChecking = opts.typeChecking;
   d_lazyDefinitionExpansion = opts.lazyDefinitionExpansion;
   d_produceModels = opts.produceModels;
   d_produceAssignments = opts.produceAssignments;
+
+  d_incrementalSolving = opts.incrementalSolving;
 }
 
 void SmtEngine::shutdown() {
@@ -456,6 +459,12 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << endl;
+  if(d_queryMade && !d_incrementalSolving) {
+    throw ModalException("Cannot make multiple queries unless "
+                         "incremental solving is enabled "
+                         "(try --incremental)");
+  }
+  d_queryMade = true;
   ensureBoolean(e);// ensure expr is type-checked at this point
   internalPush();
   SmtEnginePrivate::addFormula(*this, e.getNode());
@@ -471,6 +480,12 @@ Result SmtEngine::query(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << endl;
+  if(d_queryMade && !d_incrementalSolving) {
+    throw ModalException("Cannot make multiple queries unless "
+                         "incremental solving is enabled "
+                         "(try --incremental)");
+  }
+  d_queryMade = true;
   ensureBoolean(e);// ensure expr is type-checked at this point
   internalPush();
   SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
@@ -633,6 +648,9 @@ vector<Expr> SmtEngine::getAssertions()
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT push()" << endl;
+  if(!d_incrementalSolving) {
+    throw ModalException("Cannot push when not solving incrementally (use --incremental)");
+  }
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
   Debug("userpushpop") << "SmtEngine: pushed to level "
@@ -642,7 +660,10 @@ void SmtEngine::push() {
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT pop()" << endl;
-  Assert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
+  if(!d_incrementalSolving) {
+    throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
+  }
+  AlwaysAssert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
   while (d_userLevels.back() < d_userContext->getLevel()) {
     internalPop();
   }

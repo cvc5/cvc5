@@ -38,15 +38,17 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | sed 's,^% EXIT: ,,'`
+    command_line=`grep '^% COMMAND-LINE: ' "$benchmark.expect" | sed 's,^% COMMAND-LINE: ,,'`
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
+  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
+    command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
     tmpbenchmark=`mktemp -t cvc4_benchmark.XXXXXXXXXX`.smt
-    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" >"$tmpbenchmark"
+    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
@@ -54,9 +56,11 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   elif grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
     expected_output=sat
     expected_exit_status=10
+    command_line=
   elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
     expected_output=unsat
     expected_exit_status=20
+    command_line=
   else
     error "cannot determine status of \`$benchmark'"
   fi
@@ -65,16 +69,17 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | sed 's,^% EXIT: ,,'`
+    command_line=`grep '^% COMMAND-LINE: ' "$benchmark.expect" | sed 's,^% COMMAND-LINE: ,,'`
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-    benchmark=$tmpbenchmark
-  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" "$benchmark"; then
+  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
+    command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
     tmpbenchmark=`mktemp -t cvc4_benchmark.XXXXXXXXXX`.smt2
-    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\): ' "$benchmark" >"$tmpbenchmark"
+    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
@@ -82,9 +87,11 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   elif grep '^ *(set-info  *:status  *sat' "$benchmark" &>/dev/null; then
     expected_output=sat
     expected_exit_status=10
+    command_line=
   elif grep '^ *(set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
     expected_output=unsat
     expected_exit_status=20
+    command_line=
   else
     error "cannot determine status of \`$benchmark'"
   fi
@@ -99,6 +106,7 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   if [ -z "$expected_exit_status" ]; then
     error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
   fi
+  command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
 else
   error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2"
 fi
@@ -130,9 +138,9 @@ if [ -z "$cvc4dirfull" ]; then
 fi
 cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
-echo  running $cvc4full `basename "$benchmark"` from `dirname "$benchmark"`
+echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
 ( cd `dirname "$benchmark"`;
-  "$cvc4full" $CVC4_REGRESSION_ARGS --segv-nospin `basename "$benchmark"`;
+  "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
   echo $? >"$exitstatusfile"
 ) > "$outfile" 2> "$errfile"
 
