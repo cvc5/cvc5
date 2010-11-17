@@ -35,6 +35,7 @@
 #include "context/cdlist_context_memory.h"
 #include "util/exception.h"
 #include "theory/uf/morgan/stacking_map.h"
+#include "util/stats.h"
 
 namespace CVC4 {
 
@@ -104,7 +105,7 @@ class CongruenceClosure {
   OutputChannel* d_out;
 
   // typedef all of these so that iterators are easy to define
-  typedef theory::uf::morgan::StackingMap <Node, NodeHashFunction> RepresentativeMap;
+  typedef theory::uf::morgan::StackingMap<Node, NodeHashFunction> RepresentativeMap;
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > ClassList;
   typedef context::CDMap<Node, ClassList*, NodeHashFunction> ClassLists;
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > UseList;
@@ -142,6 +143,10 @@ class CongruenceClosure {
   typedef context::CDSet<Node, NodeHashFunction> CareSet;
   CareSet d_careSet;
 
+  // === STATISTICS ===
+  AverageStat d_explanationLength;/*! average explanation length */
+  IntStat d_newSkolemVars;/*! new vars created */
+
 public:
   /** Construct a congruence closure module instance */
   CongruenceClosure(context::Context* ctxt, OutputChannel* out)
@@ -156,8 +161,12 @@ public:
     d_proof(ctxt),
     d_proofLabel(ctxt),
     d_proofRewrite(ctxt),
-    d_careSet(ctxt) {
+    d_careSet(ctxt),
+    d_explanationLength("congruence_closure::AverageExplanationLength"),
+    d_newSkolemVars("congruence_closure::NewSkolemVariables", 0) {
   }
+
+  ~CongruenceClosure() {}
 
   /**
    * Add a term into CC consideration.  This is context-dependent.
@@ -206,6 +215,7 @@ public:
     if(t.getKind() == kind::APPLY_UF) {
       EqMap::iterator i = d_eqMap.find(t);
       if(i == d_eqMap.end()) {
+        ++d_newSkolemVars;
         Node v = NodeManager::currentNM()->mkSkolem(t.getType());
         addEq(NodeManager::currentNM()->mkNode(t.getType().isBoolean() ? kind::IFF : kind::EQUAL, t, v), TNode::null());
         d_eqMap.insert(t, v);
@@ -375,6 +385,30 @@ private:
   void merge(TNode ec1, TNode ec2);
   void mergeProof(TNode a, TNode b, TNode e);
 
+public:
+
+  // === STATISTICS ACCESSORS ===
+
+  /**
+   * Get access to the explanation-length statistic.  Returns the
+   * statistic itself so that reference-statistics can be wrapped
+   * around it, useful since CongruenceClosure is a client class and
+   * shouldn't be directly registered with the StatisticsRegistry.
+   */
+  const AverageStat& getExplanationLength() const throw() {
+    return d_explanationLength;
+  }
+
+  /**
+   * Get access to the new-skolem-vars statistic.  Returns the
+   * statistic itself so that reference-statistics can be wrapped
+   * around it, useful since CongruenceClosure is a client class and
+   * shouldn't be directly registered with the StatisticsRegistry.
+   */
+  const IntStat& getNewSkolemVars() const throw() {
+    return d_newSkolemVars;
+  }
+
 };/* class CongruenceClosure */
 
 
@@ -468,7 +502,8 @@ Node CongruenceClosure<OutputChannel>::buildRepresentativesOfApply(TNode apply,
   Assert(apply.getKind() == kind::APPLY_UF);
   NodeBuilder<> argspb(kindToBuild);
   // FIXME probably don't have to do find() of operator
-  argspb << find(apply.getOperator());
+  Assert(find(apply.getOperator()) == apply.getOperator());
+  argspb << apply.getOperator();
   for(TNode::iterator i = apply.begin(); i != apply.end(); ++i) {
     argspb << find(*i);
   }
@@ -922,8 +957,10 @@ Node CongruenceClosure<OutputChannel>::explain(Node a, Node b)
   Assert(pf.getNumChildren() > 0);
 
   if(pf.getNumChildren() == 1) {
+    d_explanationLength.addEntry(1.0);
     return pf[0];
   } else {
+    d_explanationLength.addEntry(double(pf.getNumChildren()));
     return pf;
   }
 }/* explain() */

@@ -37,7 +37,19 @@ TheoryUFMorgan::TheoryUFMorgan(int id, Context* ctxt, OutputChannel& out) :
   d_conflict(),
   d_trueNode(),
   d_falseNode(),
-  d_trueEqFalseNode() {
+  d_trueEqFalseNode(),
+  d_checkTimer("theory::uf::morgan::checkTime"),
+  d_propagateTimer("theory::uf::morgan::propagateTime"),
+  d_explainTimer("theory::uf::morgan::explainTime"),
+  d_ccExplanationLength("theory::uf::morgan::cc::averageExplanationLength", d_cc.getExplanationLength()),
+  d_ccNewSkolemVars("theory::uf::morgan::cc::newSkolemVariables", d_cc.getNewSkolemVars()) {
+
+  StatisticsRegistry::registerStat(&d_checkTimer);
+  StatisticsRegistry::registerStat(&d_propagateTimer);
+  StatisticsRegistry::registerStat(&d_explainTimer);
+  StatisticsRegistry::registerStat(&d_ccExplanationLength);
+  StatisticsRegistry::registerStat(&d_ccNewSkolemVars);
+
   NodeManager* nm = NodeManager::currentNM();
   TypeNode boolType = nm->booleanType();
   d_trueNode = nm->mkVar("TRUE_UF", boolType);
@@ -52,6 +64,12 @@ TheoryUFMorgan::~TheoryUFMorgan() {
   d_trueNode = Node::null();
   d_falseNode = Node::null();
   d_trueEqFalseNode = Node::null();
+
+  StatisticsRegistry::unregisterStat(&d_checkTimer);
+  StatisticsRegistry::unregisterStat(&d_propagateTimer);
+  StatisticsRegistry::unregisterStat(&d_explainTimer);
+  StatisticsRegistry::unregisterStat(&d_ccExplanationLength);
+  StatisticsRegistry::unregisterStat(&d_ccNewSkolemVars);
 }
 
 RewriteResponse TheoryUFMorgan::postRewrite(TNode n, bool topLevel) {
@@ -269,6 +287,8 @@ void TheoryUFMorgan::addDisequality(TNode eq) {
 }
 
 void TheoryUFMorgan::check(Effort level) {
+  TimerStat::CodeTimer codeTimer(d_checkTimer);
+
   Debug("uf") << "uf: begin check(" << level << ")" << std::endl;
 
   while(!done()) {
@@ -429,8 +449,18 @@ void TheoryUFMorgan::check(Effort level) {
 }
 
 void TheoryUFMorgan::propagate(Effort level) {
+  TimerStat::CodeTimer codeTimer(d_propagateTimer);
+
   Debug("uf") << "uf: begin propagate(" << level << ")" << std::endl;
   Debug("uf") << "uf: end propagate(" << level << ")" << std::endl;
+}
+
+void TheoryUFMorgan::explain(TNode n, Effort level) {
+  TimerStat::CodeTimer codeTimer(d_explainTimer);
+
+  Debug("uf") << "uf: begin explain([" << n << "], " << level << ")" << std::endl;
+  Unimplemented();
+  Debug("uf") << "uf: end explain([" << n << "], " << level << ")" << std::endl;
 }
 
 Node TheoryUFMorgan::getValue(TNode n, TheoryEngine* engine) {

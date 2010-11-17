@@ -91,7 +91,12 @@ private:
 
   Node d_trueNode, d_falseNode, d_trueEqFalseNode;
 
-  //context::CDList<Node> d_activeAssertions;
+  // === STATISTICS ===
+  TimerStat d_checkTimer;/*! time spent in check() */
+  TimerStat d_propagateTimer;/*! time spent in propagate() */
+  TimerStat d_explainTimer;/*! time spent in explain() */
+  WrappedStat<AverageStat> d_ccExplanationLength;/*! CC module expl length */
+  WrappedStat<IntStat> d_ccNewSkolemVars;/*! CC module # skolem vars */
 
 public:
 
@@ -158,7 +163,7 @@ public:
    * Overloads void explain(TNode n, Effort level); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  void explain(TNode n, Effort level) {}
+  void explain(TNode n, Effort level);
 
   /**
    * Gets a theory value.

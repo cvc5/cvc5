@@ -113,7 +113,7 @@ inline void StatisticsRegistry::registerStat(Stat* s)
     AlwaysAssert(d_registeredStats.find(s) == d_registeredStats.end());
     d_registeredStats.insert(s);
   }
-}/* StatisticsRegistry::registerStat */
+}/* StatisticsRegistry::registerStat() */
 
 
 inline void StatisticsRegistry::unregisterStat(Stat* s)
@@ -122,8 +122,7 @@ inline void StatisticsRegistry::unregisterStat(Stat* s)
     AlwaysAssert(d_registeredStats.find(s) != d_registeredStats.end());
     d_registeredStats.erase(s);
   }
-}/* StatisticsRegistry::unregisterStat */
-
+}/* StatisticsRegistry::unregisterStat() */
 
 
 /**
@@ -131,14 +130,15 @@ inline void StatisticsRegistry::unregisterStat(Stat* s)
  * std::ostream& operator<<(std::ostream&, const T&);
  */
 template <class T>
-class DataStat : public Stat {
+class ReadOnlyDataStat : public Stat {
 public:
-  DataStat(const std::string& s) :
+  typedef T payload_t;
+
+  ReadOnlyDataStat(const std::string& s) :
     Stat(s) {
   }
 
   virtual const T& getData() const = 0;
-  virtual void setData(const T&) = 0;
 
   void flushInformation(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
@@ -151,7 +151,19 @@ public:
     ss << getData();
     return ss.str();
   }
-};/* class DataStat */
+};/* class DataStat<T> */
+
+
+template <class T>
+class DataStat : public ReadOnlyDataStat<T> {
+public:
+  DataStat(const std::string& s) :
+    ReadOnlyDataStat<T>(s) {
+  }
+
+  virtual void setData(const T&) = 0;
+
+};/* class DataStat<T> */
 
 
 /** T must have an assignment operator=(). */
@@ -185,7 +197,7 @@ public:
       Unreachable();
     }
   }
-};/* class ReferenceStat */
+};/* class ReferenceStat<T> */
 
 
 /** T must have an operator=() and a copy constructor. */
@@ -221,7 +233,47 @@ public:
       Unreachable();
     }
   }
-};/* class BackedStat */
+};/* class BackedStat<T> */
+
+
+/**
+ * A wrapper Stat for another Stat.
+ *
+ * This type of Stat is useful in cases where a module (like the
+ * CongruenceClosure module) might keep its own statistics, but might
+ * be instantiated in many contexts by many clients.  This makes such
+ * a statistic inappopriate to register with the StatisticsRegistry
+ * directly, as all would be output with the same name (and may be
+ * unregistered too quickly anyway).  A WrappedStat allows the calling
+ * client (say, TheoryUF) to wrap the Stat from the client module,
+ * giving it a globally unique name.
+ */
+template <class Stat>
+class WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
+  typedef typename Stat::payload_t T;
+
+  const ReadOnlyDataStat<T>& d_stat;
+
+  /** Private copy constructor undefined (no copy permitted). */
+  WrappedStat(const WrappedStat&) CVC4_UNDEFINED;
+  /** Private assignment operator undefined (no copy permitted). */
+  WrappedStat<T>& operator=(const WrappedStat&) CVC4_UNDEFINED;
+
+public:
+
+  WrappedStat(const std::string& s, const ReadOnlyDataStat<T>& stat) :
+    ReadOnlyDataStat<T>(s),
+    d_stat(stat) {
+  }
+
+  const T& getData() const {
+    if(__CVC4_USE_STATISTICS) {
+      return d_stat.getData();
+    } else {
+      Unreachable();
+    }
+  }
+};/* class WrappedStat<T> */
 
 
 class IntStat : public BackedStat<int64_t> {
@@ -280,10 +332,12 @@ public:
   }
 
   void addEntry(double e){
-    double oldSum = n*getData();
-    ++n;
-    double newSum = oldSum + e;
-    setData(newSum / n);
+    if(__CVC4_USE_STATISTICS) {
+      double oldSum = n*getData();
+      ++n;
+      double newSum = oldSum + e;
+      setData(newSum / n);
+    }
   }
 
 };/* class AverageStat */
@@ -363,12 +417,39 @@ inline std::ostream& operator<<(std::ostream& os, const ::timespec& t) {
 }
 
 
+/**
+ * A timer statistic.  The timer can be started and stopped
+ * arbitrarily, like a stopwatch; the value of the statistic at the
+ * end is the accummulated time.
+ */
 class TimerStat : public BackedStat< ::timespec > {
   // strange: timespec isn't placed in 'std' namespace ?!
   ::timespec d_start;
   bool d_running;
 
 public:
+
+  /**
+   * Utility class to make it easier to call stop() at the end of a
+   * code block.  When constructed, it starts the timer.  When
+   * destructed, it stops the timer.
+   */
+  class CodeTimer {
+    TimerStat& d_timer;
+
+    /** Private copy constructor undefined (no copy permitted). */
+    CodeTimer(const CodeTimer& timer) CVC4_UNDEFINED;
+    /** Private assignment operator undefined (no copy permitted). */
+    CodeTimer& operator=(const CodeTimer& timer) CVC4_UNDEFINED;
+
+  public:
+    CodeTimer(TimerStat& timer) : d_timer(timer) {
+      d_timer.start();
+    }
+    ~CodeTimer() {
+      d_timer.stop();
+    }
+  };/* class TimerStat::CodeTimer */
 
   TimerStat(const std::string& s) :
     BackedStat< ::timespec >(s, ::timespec()),
