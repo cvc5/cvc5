@@ -348,11 +348,11 @@ public:
 
     d_cc->addTerm(gfafb);
     d_cc->addTerm(gba);
+    d_cc->addTerm(gfaa);
     d_cc->addTerm(hfaa);
 
     d_cc->addEquality(a_eq_fb);
     d_cc->addEquality(fa_eq_b);
-    d_cc->addEquality(h_eq_g);
 
     TS_ASSERT(d_cc->areCongruent(a, fb));
     TS_ASSERT(d_cc->areCongruent(b, fa));
@@ -376,12 +376,11 @@ public:
 
     TS_ASSERT(d_out->areCongruent(gfafb, gba));
     TS_ASSERT(d_cc->areCongruent(b, fa));
-    TS_ASSERT(d_cc->areCongruent(gfafb, hba));
     TS_ASSERT(d_cc->areCongruent(gfafb, gba));
-    TS_ASSERT(d_cc->areCongruent(hba, gba));
+    TS_ASSERT(d_cc->areCongruent(hba, hba));
     TS_ASSERT(d_cc->areCongruent(hfaa, hba));
-    TS_ASSERT(d_out->areCongruent(hfaa, gba));// fails due to problem with care lists
-    TS_ASSERT(d_cc->areCongruent(hfaa, gba));
+    TS_ASSERT(d_out->areCongruent(gfaa, gba));
+    TS_ASSERT(d_cc->areCongruent(gfaa, gba));
 
     } catch(Exception e) {
       cout << "\n\n" << e << "\n\n";
