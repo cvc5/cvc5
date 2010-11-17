@@ -30,6 +30,7 @@
 
 #include "theory/theory.h"
 #include "theory/uf/theory_uf.h"
+#include "theory/uf/morgan/union_find.h"
 
 #include "context/context.h"
 #include "context/context_mm.h"
@@ -75,8 +76,10 @@ private:
    */
   CongruenceClosure<CongruenceChannel> d_cc;
 
-  typedef context::CDMap<TNode, TNode, TNodeHashFunction> UnionFind;
-  UnionFind d_unionFind;
+  /**
+   * Our union find for equalities.
+   */
+  UnionFind<TNode, TNodeHashFunction> d_unionFind;
 
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > DiseqList;
   typedef context::CDMap<Node, DiseqList*, NodeHashFunction> DiseqLists;
@@ -130,8 +133,8 @@ public:
    */
   void check(Effort level);
 
-  void presolve(){
-    Unimplemented();
+  void presolve() {
+    // do nothing for now
   }
 
   /**
@@ -172,8 +175,8 @@ private:
   /** Constructs a conflict from an inconsistent disequality. */
   Node constructConflict(TNode diseq);
 
-  TNode find(TNode a);
-  TNode debugFind(TNode a) const;
+  inline TNode find(TNode a);
+  inline TNode debugFind(TNode a) const;
 
   void appendToDiseqList(TNode of, TNode eq);
   void addDisequality(TNode eq);
@@ -194,6 +197,14 @@ private:
   void dump();
 
 };/* class TheoryUFMorgan */
+
+inline TNode TheoryUFMorgan::find(TNode a) {
+  return d_unionFind.find(a);
+}
+
+inline TNode TheoryUFMorgan::debugFind(TNode a) const {
+  return d_unionFind.debugFind(a);
+}
 
 }/* CVC4::theory::uf::morgan namespace */
 }/* CVC4::theory::uf namespace */

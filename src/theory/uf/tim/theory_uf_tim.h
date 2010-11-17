@@ -125,9 +125,8 @@ public:
    */
   void check(Effort level);
 
-
   void presolve() {
-    Unimplemented();
+    // do nothing
   }
 
   /**

@@ -131,25 +131,6 @@ Node TheoryUFMorgan::constructConflict(TNode diseq) {
   return conflict;
 }
 
-TNode TheoryUFMorgan::find(TNode a) {
-  UnionFind::iterator i = d_unionFind.find(a);
-  if(i == d_unionFind.end()) {
-    return a;
-  } else {
-    return d_unionFind[a] = find((*i).second);
-  }
-}
-
-// no path compression
-TNode TheoryUFMorgan::debugFind(TNode a) const {
-  UnionFind::iterator i = d_unionFind.find(a);
-  if(i == d_unionFind.end()) {
-    return a;
-  } else {
-    return debugFind((*i).second);
-  }
-}
-
 void TheoryUFMorgan::notifyCongruent(TNode a, TNode b) {
   Debug("uf") << "uf: notified of merge " << a << std::endl
               << "                  and " << b << std::endl;
@@ -188,7 +169,7 @@ void TheoryUFMorgan::merge(TNode a, TNode b) {
   // should have already found such a conflict
   Assert(find(d_trueNode) != find(d_falseNode));
 
-  d_unionFind[a] = b;
+  d_unionFind.setCanon(a, b);
 
   DiseqLists::iterator deq_i = d_disequalities.find(a);
   if(deq_i != d_disequalities.end()) {

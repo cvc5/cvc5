@@ -7,6 +7,10 @@ noinst_LTLIBRARIES = libufmorgan.la
 
 libufmorgan_la_SOURCES = \
 	theory_uf_morgan.h \
-	theory_uf_morgan.cpp
+	theory_uf_morgan.cpp \
+	union_find.h \
+	union_find.cpp \
+	stacking_map.h \
+	stacking_map.cpp
 
 EXTRA_DIST =

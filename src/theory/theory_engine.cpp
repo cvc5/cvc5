@@ -618,18 +618,18 @@ Node TheoryEngine::getValue(TNode node) {
 }/* TheoryEngine::getValue(TNode node) */
 
 
-bool TheoryEngine::presolve(){
+bool TheoryEngine::presolve() {
   d_theoryOut.d_conflictNode = Node::null();
   d_theoryOut.d_propagatedLiterals.clear();
   try {
-    //d_uf->presolve();
+    d_uf->presolve();
     d_arith->presolve();
     //d_arrays->presolve();
     //d_bv->presolve();
   } catch(const theory::Interrupted&) {
     Debug("theory") << "TheoryEngine::presolve() => conflict" << std::endl;
   }
-  // Return wheather we have a conflict
+  // Return whether we have a conflict
   return d_theoryOut.d_conflictNode.get().isNull();
 }
 
