@@ -578,7 +578,7 @@ AC_PROG_ANTLR
 
 DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
-DX_DOT_FEATURE(ON)
+DX_DOT_FEATURE(OFF)
 DX_INIT_DOXYGEN($PACKAGE_NAME, config/doxygen.cfg, $srcdir/doc)
 
 AC_ARG_VAR(CXXTEST, [path to CxxTest installation])
