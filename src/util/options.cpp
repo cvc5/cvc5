@@ -385,6 +385,7 @@ throw(OptionException) {
              Configuration::getVersionRelease());
       printf("\n");
       printf("debug code : %s\n", Configuration::isDebugBuild() ? "yes" : "no");
+      printf("statistics : %s\n", Configuration::isStatisticsBuild() ? "yes" : "no");
       printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
       printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
       printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");

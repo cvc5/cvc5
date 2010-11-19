@@ -41,6 +41,8 @@ public:
 
   static bool isDebugBuild();
 
+  static bool isStatisticsBuild();
+
   static bool isTracingBuild();
 
   static bool isMuzzledBuild();

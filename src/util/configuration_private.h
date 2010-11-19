@@ -30,6 +30,12 @@ namespace CVC4 {
 #  define IS_DEBUG_BUILD false
 #endif /* CVC4_DEBUG */
 
+#ifdef CVC4_STATISTICS_ON
+#  define IS_STATISTICS_BUILD true
+#else /* CVC4_STATISTICS_ON */
+#  define IS_STATISTICS_BUILD false
+#endif /* CVC4_STATISTICS_ON */
+
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true
 #else /* CVC4_TRACING */
