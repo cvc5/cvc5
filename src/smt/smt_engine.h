@@ -289,6 +289,9 @@ public:
   /**
    * Simplify a formula without doing "much" work.  Requires assist
    * from the SAT Engine.
+   *
+   * @todo (design) is this meant to give an equivalent or an
+   * equisatisfiable formula?
    */
   Expr simplify(const Expr& e);
 

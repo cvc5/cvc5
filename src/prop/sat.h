@@ -247,6 +247,8 @@ public:
 
   TNode getNode(SatLiteral lit);
 
+  void notifyRestart();
+
 };/* class SatSolver */
 
 /* Functions that delegate to the concrete SAT solver. */

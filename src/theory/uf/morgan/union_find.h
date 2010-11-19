@@ -132,10 +132,12 @@ template <class NodeType, class NodeHash>
 inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
   Assert(d_map.find(n) == d_map.end());
   Assert(d_map.find(newParent) == d_map.end());
-  Trace("ufuf") << "UFUF setting canon of " << n << " : " << newParent << " @ " << d_trace.size() << endl;
-  d_map[n] = newParent;
-  d_trace.push_back(make_pair(n, TNode::null()));
-  d_offset = d_trace.size();
+  if(n != newParent) {
+    Trace("ufuf") << "UFUF setting canon of " << n << " : " << newParent << " @ " << d_trace.size() << endl;
+    d_map[n] = newParent;
+    d_trace.push_back(make_pair(n, TNode::null()));
+    d_offset = d_trace.size();
+  }
 }
 
 }/* CVC4::theory::uf::morgan namespace */

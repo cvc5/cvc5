@@ -986,6 +986,9 @@ lbool Solver::search(int nof_conflicts)
                 // Reached bound on number of conflicts:
                 progress_estimate = progressEstimate();
                 cancelUntil(0);
+                // [mdeters] notify theory engine of restarts for deferred
+                // theory processing
+                proxy->notifyRestart();
                 return l_Undef; }
 
             // Simplify the set of problem clauses:

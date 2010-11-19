@@ -622,15 +622,61 @@ bool TheoryEngine::presolve() {
   d_theoryOut.d_conflictNode = Node::null();
   d_theoryOut.d_propagatedLiterals.clear();
   try {
+    /*
+    d_builtin->presolve();
+    if(!d_theoryOut.d_conflictNode.get().isNull()) {
+      return true;
+    }
+    d_bool->presolve();
+    if(!d_theoryOut.d_conflictNode.get().isNull()) {
+      return true;
+    }
+    */
     d_uf->presolve();
+    if(!d_theoryOut.d_conflictNode.get().isNull()) {
+      return true;
+    }
     d_arith->presolve();
-    //d_arrays->presolve();
-    //d_bv->presolve();
+    /*
+    if(!d_theoryOut.d_conflictNode.get().isNull()) {
+      return true;
+    }
+    d_arrays->presolve();
+    if(!d_theoryOut.d_conflictNode.get().isNull()) {
+      return true;
+    }
+    d_bv->presolve();
+    */
   } catch(const theory::Interrupted&) {
-    Debug("theory") << "TheoryEngine::presolve() => conflict" << std::endl;
+    Debug("theory") << "TheoryEngine::presolve() => interrupted" << endl;
   }
-  // Return whether we have a conflict
-  return d_theoryOut.d_conflictNode.get().isNull();
+  // return whether we have a conflict
+  return !d_theoryOut.d_conflictNode.get().isNull();
 }
+
+
+void TheoryEngine::notifyRestart() {
+  /*
+  d_builtin->notifyRestart();
+  d_bool->notifyRestart();
+  */
+  d_uf->notifyRestart();
+  /*
+  d_arith->notifyRestart();
+  d_arrays->notifyRestart();
+  d_bv->notifyRestart();
+  */
+}
+
+
+void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
+  d_builtin->staticLearning(in, learned);
+  d_bool->staticLearning(in, learned);
+  d_uf->staticLearning(in, learned);
+  d_arith->staticLearning(in, learned);
+  d_arrays->staticLearning(in, learned);
+  d_bv->staticLearning(in, learned);
+}
+
 
 }/* CVC4 namespace */

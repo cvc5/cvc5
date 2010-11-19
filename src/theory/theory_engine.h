@@ -310,10 +310,21 @@ public:
   }
 
   /**
+   * Calls staticLearning() on all active theories, accumulating their
+   * combined contributions in the "learned" builder.
+   */
+  void staticLearning(TNode in, NodeBuilder<>& learned);
+
+  /**
    * Calls presolve() on all active theories and returns true
    * if one of the theories discovers a conflict.
    */
   bool presolve();
+
+  /**
+   * Calls notifyRestart() on all active theories.
+   */
+  void notifyRestart();
 
   inline const std::vector<TNode>& getPropagatedLiterals() const {
     return d_theoryOut.d_propagatedLiterals;
@@ -365,9 +376,9 @@ private:
   public:
     IntStat d_statConflicts, d_statPropagate, d_statLemma, d_statAugLemma, d_statExplanation;
     Statistics():
-      d_statConflicts("theory::conflicts",0),
-      d_statPropagate("theory::propagate",0),
-      d_statLemma("theory::lemma",0),
+      d_statConflicts("theory::conflicts", 0),
+      d_statPropagate("theory::propagate", 0),
+      d_statLemma("theory::lemma", 0),
       d_statAugLemma("theory::aug_lemma", 0),
       d_statExplanation("theory::explanation", 0)
     {

@@ -444,14 +444,30 @@ public:
   virtual Node getValue(TNode n, TheoryEngine* engine) = 0;
 
   /**
-   * A Theory is called with presolve exactly one time per user check-sat.
-   * presolve() is called after preregistration, rewriting, and Boolean propagation,
-   * (other theories' propagation?), but the notified Theory has not yet had its check()
-   * or propagate() method called yet.
-   * A Theory may empty its assertFact() queue using get().
-   * A Theory can raise conflicts, add lemmas, and propagate literals during presolve.
+   * The theory should only add (via .operator<< or .append()) to the
+   * "learned" builder.  It is a conjunction to add to the formula at
+   * the top-level and may contain other theories' contributions.
+   */
+  virtual void staticLearning(TNode in, NodeBuilder<>& learned) { }
+
+  /**
+   * A Theory is called with presolve exactly one time per user
+   * check-sat.  presolve() is called after preregistration,
+   * rewriting, and Boolean propagation, (other theories'
+   * propagation?), but the notified Theory has not yet had its
+   * check() or propagate() method called.  A Theory may empty its
+   * assertFact() queue using get().  A Theory can raise conflicts,
+   * add lemmas, and propagate literals during presolve().
    */
   virtual void presolve() = 0;
+
+  /**
+   * Notification sent to the theory wheneven the search restarts.
+   * Serves as a good time to do some clean-up work, and you can
+   * assume you're at DL 0 for the purposes of Contexts.  This function
+   * should not use the output channel.
+   */
+  virtual void notifyRestart() { }
 
   /**
    * Identify this theory (for debugging, dynamic configuration,

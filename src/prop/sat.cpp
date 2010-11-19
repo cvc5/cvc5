@@ -102,5 +102,9 @@ TNode SatSolver::getNode(SatLiteral lit) {
   return d_cnfStream->getNode(lit);
 }
 
+void SatSolver::notifyRestart() {
+  d_theoryEngine->notifyRestart();
+}
+
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

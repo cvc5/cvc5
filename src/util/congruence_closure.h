@@ -140,7 +140,7 @@ class CongruenceClosure {
    * The set of terms we care about (i.e. those that have been given
    * us with addTerm() and their representatives).
    */
-  typedef context::CDSet<Node, NodeHashFunction> CareSet;
+  typedef context::CDSet<TNode, TNodeHashFunction> CareSet;
   CareSet d_careSet;
 
   // === STATISTICS ===
@@ -201,7 +201,9 @@ public:
   Node flatten(TNode t) {
     if(t.getKind() == kind::APPLY_UF) {
       NodeBuilder<> appb(kind::APPLY_UF);
-      appb << replace(flatten(t.getOperator()));
+      Assert(replace(flatten(t.getOperator())) == t.getOperator(),
+             "CongruenceClosure:: bad state: higher-order term ??");
+      appb << t.getOperator();
       for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
         appb << replace(flatten(*i));
       }
@@ -445,6 +447,9 @@ void CongruenceClosure<OutputChannel>::addTerm(TNode t) {
 
 template <class OutputChannel>
 void CongruenceClosure<OutputChannel>::addEq(TNode eq, TNode inputEq) {
+  Assert(!eq[0].getType().isFunction() && !eq[1].getType().isFunction(),
+         "CongruenceClosure:: equality between function symbols not allowed");
+
   d_proofRewrite[eq] = inputEq;
 
   if(Trace.isOn("cc")) {
@@ -502,7 +507,8 @@ Node CongruenceClosure<OutputChannel>::buildRepresentativesOfApply(TNode apply,
   Assert(apply.getKind() == kind::APPLY_UF);
   NodeBuilder<> argspb(kindToBuild);
   // FIXME probably don't have to do find() of operator
-  Assert(find(apply.getOperator()) == apply.getOperator());
+  Assert(find(apply.getOperator()) == apply.getOperator(),
+         "CongruenceClosure:: bad state: function symbol merged with another");
   argspb << apply.getOperator();
   for(TNode::iterator i = apply.begin(); i != apply.end(); ++i) {
     argspb << find(*i);
@@ -790,9 +796,10 @@ Node CongruenceClosure<OutputChannel>::normalize(TNode t) const
     return t;
   } else {// t is an apply
     NodeBuilder<> apb(kind::TUPLE);
-    TNode op = t.getOperator();
-    Node n = normalize(op);
-    apb << n;
+    Assert(normalize(t.getOperator()) == t.getOperator(),
+           "CongruenceClosure:: bad state: function symbol merged with another");
+    apb << t.getOperator();
+    Node n;
     bool allConstants = (n.getKind() != kind::APPLY_UF);
     for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
       TNode c = *i;
@@ -836,7 +843,7 @@ Node CongruenceClosure<OutputChannel>::highestNode(TNode a, UnionFind_t& unionFi
   } else {
     return unionFind[a] = highestNode((*i).second, unionFind);
   }
-}
+}/* highestNode() */
 
 
 template <class OutputChannel>
@@ -861,7 +868,10 @@ void CongruenceClosure<OutputChannel>::explainAlongPath(TNode a, TNode c, Pendin
       Assert(e[1][0].getKind() == kind::APPLY_UF);
       Assert(e[1][1].getKind() != kind::APPLY_UF);
       Assert(e[0][0].getNumChildren() == e[1][0].getNumChildren());
-      pending.push_back(std::make_pair(e[0][0].getOperator(), e[1][0].getOperator()));
+      Assert(e[0][0].getOperator() == e[1][0].getOperator(),
+             "CongruenceClosure:: bad state: function symbols should be equal");
+      // shouldn't have to prove this for operators
+      //pending.push_back(std::make_pair(e[0][0].getOperator(), e[1][0].getOperator()));
       for(int i = 0, nc = e[0][0].getNumChildren(); i < nc; ++i) {
         pending.push_back(std::make_pair(e[0][0][i], e[1][0][i]));
       }

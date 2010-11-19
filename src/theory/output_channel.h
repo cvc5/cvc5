@@ -82,8 +82,7 @@ public:
   /**
    * Propagate a theory literal.
    *
-   * @param n - a theory consequence at the current decision level.
-   *
+   * @param n - a theory consequence at the current decision level
    * @param safe - whether it is safe to be interrupted
    */
   virtual void propagate(TNode n, bool safe = false)
@@ -91,7 +90,7 @@ public:
 
   /**
    * Tell the core that a valid theory lemma at decision level 0 has
-   * been detected.  (This request a split.)
+   * been detected.  (This requests a split.)
    *
    * @param n - a theory lemma valid at decision level 0
    * @param safe - whether it is safe to be interrupted

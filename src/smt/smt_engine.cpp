@@ -414,16 +414,31 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n)
   }
 }
 
-Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode n)
+Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode in)
   throw(NoSuchFunctionException, AssertionException) {
+
+  Node n;
   if(!smt.d_lazyDefinitionExpansion) {
-    Node node = expandDefinitions(smt, n);
-    Debug("expand") << "have: " << n << endl
-                    << "made: " << node << endl;
-    return smt.d_theoryEngine->preprocess(node);
+    Debug("expand") << "have: " << n << endl;
+    n = expandDefinitions(smt, in);
+    Debug("expand") << "made: " << n << endl;
   } else {
-    return smt.d_theoryEngine->preprocess(n);
+    n = in;
   }
+
+  // For now, don't re-statically-learn from learned facts; this could
+  // be useful though (e.g., theory T1 could learn something further
+  // from something learned previously by T2).
+  NodeBuilder<> learned(kind::AND);
+  learned << n;
+  smt.d_theoryEngine->staticLearning(n, learned);
+  if(learned.getNumChildren() == 1) {
+    learned.clear();
+  } else {
+    n = learned;
+  }
+
+  return smt.d_theoryEngine->preprocess(n);
 }
 
 Result SmtEngine::check() {
@@ -516,6 +531,8 @@ Expr SmtEngine::simplify(const Expr& e) {
     e.getType(true);// ensure expr is type-checked at this point
   }
   Debug("smt") << "SMT simplify(" << e << ")" << endl;
+  // probably want to do an addFormula(), to get preprocessing, static
+  // learning, definition expansion...
   Unimplemented();
 }
 

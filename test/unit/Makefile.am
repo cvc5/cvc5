@@ -5,6 +5,8 @@ UNIT_TESTS = \
 	theory/theory_black \
 	theory/theory_uf_tim_white \
 	theory/theory_arith_white \
+	theory/stacking_map_black \
+	theory/union_find_black \
 	expr/expr_public \
         expr/expr_manager_public \
 	expr/node_white \

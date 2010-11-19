@@ -32,8 +32,12 @@ class TheoryBuiltin : public Theory {
   static Node blastDistinct(TNode in);
 
 public:
-  TheoryBuiltin(int id, context::Context* c, OutputChannel& out) : Theory(id, c, out) { }
+  TheoryBuiltin(int id, context::Context* c, OutputChannel& out) :
+    Theory(id, c, out) {
+  }
+
   ~TheoryBuiltin() { }
+
   void preRegisterTerm(TNode n) { Unreachable(); }
   void registerTerm(TNode n) { Unreachable(); }
   void check(Effort e) { Unreachable(); }

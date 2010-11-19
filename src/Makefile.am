@@ -24,11 +24,12 @@ noinst_LTLIBRARIES = libcvc4_noinst.la
 
 libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
 
-# empty.cpp is a fake file added to "trick" automake into linking us as a
-# C++ library (rather than as a C library, which messes up exception
-# handling support)
-libcvc4_la_SOURCES = empty.cpp
-libcvc4_noinst_la_SOURCES = empty.cpp
+# This "tricks" automake into linking us as a C++ library (rather than
+# as a C library, which messes up exception handling support)
+nodist_EXTRA_libcvc4_noinst_la_SOURCES = dummy.cpp
+nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
+libcvc4_noinst_la_SOURCES =
+libcvc4_la_SOURCES =
 libcvc4_la_LIBADD = \
 	@builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la \
@@ -55,9 +56,6 @@ EXTRA_DIST = \
 	include/cvc4parser_public.h \
 	include/cvc4_private.h \
 	include/cvc4_public.h
-
-# empty.cpp hack; see above
-empty.cpp:; touch empty.cpp
 
 publicheaders = \
 	include/cvc4_public.h \
