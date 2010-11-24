@@ -25,9 +25,8 @@
 #include "expr/attribute.h"
 #include "theory/output_channel.h"
 #include "context/context.h"
-
-#include <deque>
-#include <list>
+#include "context/cdlist.h"
+#include "context/cdo.h"
 
 #include <string>
 #include <iostream>
@@ -148,32 +147,14 @@ private:
   /**
    * The assertFact() queue.
    *
-   * This queue MUST be emptied by ANY call to check() at ANY effort
-   * level.  In debug builds, this is checked.  On backjump we clear
-   * the fact queue (see FactsResetter, below).
-   *
    * These can safely be TNodes because the literal map maintained in
    * the SAT solver keeps them live.  As an added benefit, if we have
    * them as TNodes, dtors are cheap (optimized away?).
    */
-  std::deque<TNode> d_facts;
+  context::CDList<TNode> d_facts;
 
-  /** Helper class to reset the fact queue on pop(). */
-  class FactsResetter : public context::ContextNotifyObj {
-    Theory& d_thy;
-
-  public:
-    FactsResetter(Theory& thy) :
-      context::ContextNotifyObj(thy.d_context),
-      d_thy(thy) {
-    }
-
-    void notify() {
-      d_thy.d_facts.clear();
-    }
-  } d_factsResetter;
-
-  friend class FactsResetter;
+  /** Index into the head of the facts list */
+  context::CDO<unsigned> d_factsHead;
 
 protected:
 
@@ -183,8 +164,8 @@ protected:
   Theory(int id, context::Context* ctxt, OutputChannel& out) throw() :
     d_id(id),
     d_context(ctxt),
-    d_facts(),
-    d_factsResetter(*this),
+    d_facts(ctxt),
+    d_factsHead(ctxt, 0),
     d_out(&out) {
   }
 
@@ -197,9 +178,7 @@ protected:
    * you must make an explicit call here to this->Theory::shutdown()
    * too.
    */
-  virtual void shutdown() {
-    d_facts.clear();
-  }
+  virtual void shutdown() { }
 
   /**
    * The output channel for the Theory.
@@ -210,7 +189,7 @@ protected:
    * Returns true if the assertFact queue is empty
    */
   bool done() throw() {
-    return d_facts.empty();
+    return d_factsHead == d_facts.size();
   }
 
   /** Tag for the "preRegisterTerm()-has-been-called" flag on Nodes */
@@ -224,11 +203,10 @@ protected:
    *
    * @return the next atom in the assertFact() queue.
    */
-  Node get() {
-    Assert( !d_facts.empty(),
-            "Theory::get() called with assertion queue empty!" );
-    Node fact = d_facts.front();
-    d_facts.pop_front();
+  TNode get() {
+    Assert( !done(), "Theory::get() called with assertion queue empty!" );
+    TNode fact = d_facts[d_factsHead];
+    d_factsHead = d_factsHead + 1;
     Debug("theory") << "Theory::get() => " << fact
                     << "(" << d_facts.size() << " left)" << std::endl;
     d_out->newFact(fact);
