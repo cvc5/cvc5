@@ -84,7 +84,8 @@ BUG_TESTS = \
 	bug168.smt \
 	bug187.smt2 \
 	bug216.smt2 \
-	bug220.smt2
+	bug220.smt2 \
+	bug239.smt
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

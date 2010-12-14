@@ -647,6 +647,7 @@ void TheoryUFMorgan::staticLearning(TNode n, NodeBuilder<>& learned) {
     // binary OR of binary ANDs of EQUALities
     if(n.getKind() == kind::OR && n.getNumChildren() == 2 &&
        n[0].getKind() == kind::AND && n[0].getNumChildren() == 2 &&
+       n[1].getKind() == kind::AND && n[1].getNumChildren() == 2 &&
        (n[0][0].getKind() == kind::EQUAL || n[0][0].getKind() == kind::IFF) &&
        (n[0][1].getKind() == kind::EQUAL || n[0][1].getKind() == kind::IFF) &&
        (n[1][0].getKind() == kind::EQUAL || n[1][0].getKind() == kind::IFF) &&
