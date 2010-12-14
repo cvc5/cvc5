@@ -235,17 +235,9 @@ function register_metakind {
     exit 1
   fi
 
-  if [ $mk = OPERATOR -o $mk = PARAMETERIZED ]; then
-    if [ $mk = PARAMETERIZED -a "$k" = SORT_TYPE ]; then
-      # exception: zero-ary SORT_TYPE is permitted for sort constructors
-      :
-    elif [ $mk = PARAMETERIZED -a "$k" = APPLY ]; then
-      # exception: zero-ary APPLY is permitted for defined zero-ary functions
-      :
-    elif [ $lb = 0 ]; then
-      echo "$kf:$lineno: error in range \`$nc' for \`$k': $mk-kinded kinds must always take at least one child" >&2
-      exit 1
-    fi
+  if [ $mk = OPERATOR -a $lb = 0 ]; then
+    echo "$kf:$lineno: error in range \`$nc' for \`$k': $mk-kinded kinds must always take at least one child" >&2
+    exit 1
   fi
 
   metakind_lbchildren="${metakind_lbchildren}
