@@ -234,6 +234,8 @@ public:
     Node eq = eqb;
     addEq(eq, inputEq);
   }
+
+private:
   void addEq(TNode eq, TNode inputEq);
 
   Node flatten(TNode t) {
@@ -279,6 +281,7 @@ public:
     }
   }
 
+public:
   /**
    * Inquire whether two expressions are congruent in the current
    * context.
@@ -310,6 +313,7 @@ public:
     return ap == bp || normalize(ap) == normalize(bp);
   }
 
+private:
   /**
    * Find the EC representative for a term t in the current context.
    */
@@ -327,6 +331,7 @@ public:
   Node nearestCommonAncestor(TNode a, TNode b, UnionFind_t& unionFind)
     throw(AssertionException);
 
+public:
   /**
    * Request an explanation for why a and b are in the same EC in the
    * current context.  Throws a CongruenceClosureException if they
