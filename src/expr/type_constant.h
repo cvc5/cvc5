@@ -36,7 +36,9 @@ enum TypeConstant {
   /** The real type */
   REAL_TYPE,
   /** The kind type (type of types) */
-  KIND_TYPE
+  KIND_TYPE,
+  /** The builtin operator type (type of non-PARAMETERIZED operators) */
+  BUILTIN_OPERATOR_TYPE
 };/* enum TypeConstant */
 
 /**

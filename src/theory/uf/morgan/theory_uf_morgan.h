@@ -74,7 +74,7 @@ private:
   /**
    * Instance of the congruence closure module.
    */
-  CongruenceClosure<CongruenceChannel> d_cc;
+  CongruenceClosure<CongruenceChannel, CongruenceOperator<kind::APPLY_UF> > d_cc;
 
   /**
    * Our union find for equalities.

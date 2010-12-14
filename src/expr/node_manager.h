@@ -472,6 +472,12 @@ public:
   inline TypeNode kindType();
 
   /**
+   * Get the (singleton) type for builtin operators (that is, the type
+   * of the Node returned from Node::getOperator() when the operator
+   * is built-in, like EQUAL). */
+  inline TypeNode builtinOperatorType();
+
+  /**
    * Make a function type from domain to range.
    *
    * @param domain the domain type
@@ -678,6 +684,11 @@ inline TypeNode NodeManager::realType() {
 /** Get the (singleton) type for sorts. */
 inline TypeNode NodeManager::kindType() {
   return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
+}
+
+/** Get the (singleton) type for builtin operators. */
+inline TypeNode NodeManager::builtinOperatorType() {
+  return TypeNode(mkTypeConst<TypeConstant>(BUILTIN_OPERATOR_TYPE));
 }
 
 /** Make a function type from domain to range. */

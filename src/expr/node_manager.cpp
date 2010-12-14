@@ -228,6 +228,9 @@ TypeNode NodeManager::computeType(TNode n, bool check)
 
   // Infer the type
   switch(n.getKind()) {
+  case kind::BUILTIN:
+    typeNode = builtinOperatorType();
+    break;
   case kind::SORT_TYPE:
     typeNode = kindType();
     break;

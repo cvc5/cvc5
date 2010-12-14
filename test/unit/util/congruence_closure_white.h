@@ -92,13 +92,18 @@ class CongruenceClosureWhite : public CxxTest::TestSuite {
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
   MyOutputChannel* d_out;
-  CongruenceClosure<MyOutputChannel>* d_cc;
+  CongruenceClosure<MyOutputChannel, CongruenceOperator<kind::APPLY_UF> >* d_cc;
+  CongruenceClosure<MyOutputChannel, CONGRUENCE_OPERATORS_2(kind::SELECT, kind::STORE)>* d_ccArray;
 
   TypeNode U;
   Node a, f, fa, ffa, fffa, ffffa, b, fb, ffb, fffb, ffffb;
   Node g, gab, gba, gfafb, gfbfa, gfaa, gbfb;
   Node h, hab, hba, hfaa;
   Node a_eq_b, fa_eq_b, a_eq_fb, fa_eq_fb, h_eq_g;
+
+  Node ar, ar_a, ar_b;
+  Node arar, arar_a, arar_b;
+
 public:
 
   void setUp() {
@@ -106,7 +111,8 @@ public:
     d_nm = new NodeManager(d_context);
     d_scope = new NodeManagerScope(d_nm);
     d_out = new MyOutputChannel(d_context, d_nm);
-    d_cc = new CongruenceClosure<MyOutputChannel>(d_context, d_out);
+    d_cc = new CongruenceClosure<MyOutputChannel, CongruenceOperator<kind::APPLY_UF> >(d_context, d_out);
+    d_ccArray = new CongruenceClosure<MyOutputChannel, CONGRUENCE_OPERATORS_2(kind::SELECT, kind::STORE)>(d_context, d_out);
 
     U = d_nm->mkSort("U");
 
@@ -140,10 +146,22 @@ public:
     fa_eq_fb = d_nm->mkNode(kind::EQUAL, fa, fb);
 
     h_eq_g = d_nm->mkNode(kind::EQUAL, h, g);
+
+    // arrays
+    ar = d_nm->mkVar("ar", d_nm->mkArrayType(U, U));
+    ar_a = d_nm->mkNode(kind::SELECT, ar, a);
+    ar_b = d_nm->mkNode(kind::SELECT, ar, b);
+
+    arar = d_nm->mkVar("arar", d_nm->mkArrayType(U, d_nm->mkArrayType(U, U)));
+    arar_a = d_nm->mkNode(kind::SELECT, arar, a);
+    arar_b = d_nm->mkNode(kind::SELECT, arar, b);
   }
 
   void tearDown() {
     try {
+      arar = arar_a = arar_b = Node::null();
+      ar = ar_a = ar_b = Node::null();
+
       f = a = fa = ffa = fffa = ffffa = Node::null();
       b = fb = ffb = fffb = ffffb = Node::null();
       g = gab = gba = gfafb = gfbfa = gfaa = gbfb = Node::null();
@@ -151,14 +169,14 @@ public:
       a_eq_b = fa_eq_b = a_eq_fb = fa_eq_fb = h_eq_g = Node::null();
       U = TypeNode::null();
 
+      delete d_ccArray;
       delete d_cc;
       delete d_out;
       delete d_scope;
       delete d_nm;
       delete d_context;
-
     } catch(Exception& e) {
-      Warning() << std::endl << e << std::endl;
+      cout << "\n\n" << e << "\n\n";
       throw;
     }
   }
@@ -382,7 +400,7 @@ public:
     TS_ASSERT(d_out->areCongruent(gfaa, gba));
     TS_ASSERT(d_cc->areCongruent(gfaa, gba));
 
-    } catch(Exception e) {
+    } catch(Exception& e) {
       cout << "\n\n" << e << "\n\n";
       throw;
     }
@@ -430,7 +448,10 @@ public:
     d_cc->addEquality(d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::APPLY_UF, f1,c_1,c_0),c_1));
     d_cc->addEquality(d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::APPLY_UF, f1,c_0,c_1),c_0));
     d_cc->addEquality(d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::APPLY_UF, f1,c_0,c_0),c_0));
-    }catch(Exception &e) { cout << e << "\n"; throw e; }
+    } catch(Exception& e) {
+      cout << "\n\n" << e << "\n\n";
+      throw e;
+    }
   }
 
   void testUF2() {
@@ -448,6 +469,61 @@ public:
     d_cc->addEquality(ffx_eq_fffx);
     d_cc->addEquality(ffx_eq_y);
     d_cc->addEquality(ffffx_eq_z);
+  }
+
+  void testSimpleArray() {
+    //Debug.on("cc");
+    // add terms, then add equalities
+    try {
+    d_ccArray->addTerm(ar_a);
+    d_ccArray->addTerm(ar_b);
+
+    d_ccArray->addEquality(a_eq_b);
+
+    TS_ASSERT(d_out->areCongruent(ar_a, ar_b));
+    TS_ASSERT(d_ccArray->areCongruent(ar_a, ar_b));
+
+    TS_ASSERT(!d_out->areCongruent(a, b));
+    TS_ASSERT(d_ccArray->areCongruent(a, b));
+    } catch(Exception& e) {
+      cout << "\n\n" << e << "\n\n";
+      throw;
+    }
+  }
+
+  void testSimpleReverseArray() {
+    // add equalities, then add terms; should get the same as
+    // testSimple()
+
+    d_ccArray->addEquality(a_eq_b);
+
+    d_ccArray->addTerm(ar_a);
+    d_ccArray->addTerm(ar_b);
+
+    TS_ASSERT(d_out->areCongruent(ar_a, ar_b));
+    TS_ASSERT(d_ccArray->areCongruent(ar_a, ar_b));
+
+    TS_ASSERT(!d_out->areCongruent(a, b));
+    TS_ASSERT(d_ccArray->areCongruent(a, b));
+  }
+
+  void testArray() {
+    Node ar_eq_arar_a = d_nm->mkNode(kind::EQUAL, ar, arar_a);
+    Node ar2 = d_nm->mkVar("ar2", d_nm->mkArrayType(U, U));
+    Node store_arar_b_ar2 = d_nm->mkNode(kind::STORE, arar, b, ar2);
+    Node select__store_arar_b_ar2__a =
+      d_nm->mkNode(kind::SELECT, store_arar_b_ar2, a);
+    Node select__store_arar_b_ar2__a__eq__arar_a =
+      d_nm->mkNode(kind::EQUAL, select__store_arar_b_ar2__a, arar_a);
+
+    d_ccArray->addTerm(ar);
+    d_ccArray->addTerm(select__store_arar_b_ar2__a);
+
+    d_ccArray->addEquality(ar_eq_arar_a);
+    d_ccArray->addEquality(select__store_arar_b_ar2__a__eq__arar_a);
+
+    TS_ASSERT(d_ccArray->areCongruent(ar, select__store_arar_b_ar2__a));
+    TS_ASSERT(d_out->areCongruent(ar, select__store_arar_b_ar2__a));
   }
 
 };/* class CongruenceClosureWhite */
