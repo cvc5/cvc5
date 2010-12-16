@@ -147,7 +147,6 @@ protected:
    * Caches the pair of the node and the literal corresponding to the
    * translation.
    * @param node the node
-   * @param lit the literal
    */
   bool hasLiteral(TNode node) const;
 

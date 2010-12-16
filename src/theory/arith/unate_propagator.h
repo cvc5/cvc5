@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file arith_propagator.h
+/*! \file unate_propagator.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none

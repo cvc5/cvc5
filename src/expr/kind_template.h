@@ -28,10 +28,10 @@ namespace CVC4 {
 namespace kind {
 
 enum Kind_t {
-  UNDEFINED_KIND = -1, /*! undefined */
-  NULL_EXPR, /*! Null kind */
+  UNDEFINED_KIND = -1, /**< undefined */
+  NULL_EXPR, /**< Null kind */
 ${kind_decls}
-  LAST_KIND
+  LAST_KIND /**< marks the upper-bound of this enumeration */
 
 };/* enum Kind_t */
 

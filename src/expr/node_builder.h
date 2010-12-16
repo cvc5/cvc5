@@ -136,7 +136,7 @@
  ** Regarding the backing store (typically on the stack): the file
  ** below provides the template:
  **
- **   template <unsigned nchild_thresh> class NodeBuilder;
+ **   template < unsigned nchild_thresh > class NodeBuilder;
  **
  **     The default:
  **

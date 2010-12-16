@@ -106,7 +106,7 @@ function register_kind {
   nc=$2
   comment=$3
 
-  kind_decls="${kind_decls}  $r, /*! $comment */
+  kind_decls="${kind_decls}  $r, /**< $comment */
 "
   kind_printers="${kind_printers}  case $r: out << \"$r\"; break;
 "
