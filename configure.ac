@@ -749,10 +749,11 @@ AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
   m4_esyscmd([find contrib lib src test -name Makefile.am | sort | sed 's,\.am$,,'])
-  src/util/rational.h
-  src/util/integer.h
-  src/util/tls.h
 )
+
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/tls.h])
 
 AC_OUTPUT
 

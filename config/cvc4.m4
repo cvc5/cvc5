@@ -60,3 +60,28 @@ shift
 dnl echo "args are now:" "${@}"
 m4_divert_pop([PARSE_ARGS])dnl
 ])# CVC4_REWRITE_ARGS_FOR_BUILD_PROFILE
+
+
+# CVC4_COPY_IF_CHANGED(FROM, TO)
+# ------------------------------
+# Copy file FROM to TO, if they have textual differences.
+AC_DEFUN([CVC4_COPY_IF_CHANGED], [
+if diff -q "$1" "$2" >/dev/null 2>&1; then
+  dnl they are the same
+  :
+else
+  dnl they are different
+  cp "$1" "$2"
+fi
+])# CVC4_COPY_IF_CHANGED
+
+
+# CVC4_CONFIG_FILE_ONLY_IF_CHANGED(FILE)
+# --------------------------------------
+# Run AC_CONFIG_FILES to generate file named in the argument, but if it
+# exists already, only replace it if it would be changed (this preserves
+# the old timestamp if no textual changes are to be made to the file).
+AC_DEFUN([CVC4_CONFIG_FILE_ONLY_IF_CHANGED], [
+AC_CONFIG_FILES([$1.tmp:$1.in],
+                CVC4_COPY_IF_CHANGED([$1.tmp],[$1]))
+])# CVC4_CONFIG_FILE_ONLY_IF_CHANGED
