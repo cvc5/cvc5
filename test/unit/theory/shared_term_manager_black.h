@@ -24,7 +24,6 @@
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "theory/theoryof_table.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "expr/kind.h"

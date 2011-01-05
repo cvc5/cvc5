@@ -37,7 +37,8 @@ libtheory_la_LIBADD = \
 EXTRA_DIST = \
 	rewriter_tables_template.h \
 	theory_traits_template.h \
-	mktheoryof \
+	mktheorytraits \
+	mkrewriter \
 	Makefile.subdirs
 
 BUILT_SOURCES = \

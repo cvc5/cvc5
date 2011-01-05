@@ -28,7 +28,6 @@
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "theory/theoryof_table.h"
 #include "theory/rewriter.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
