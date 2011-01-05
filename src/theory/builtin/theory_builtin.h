@@ -28,25 +28,10 @@ namespace theory {
 namespace builtin {
 
 class TheoryBuiltin : public Theory {
-  /** rewrite a DISTINCT expr */
-  static Node blastDistinct(TNode in);
-
 public:
-  TheoryBuiltin(int id, context::Context* c, OutputChannel& out) :
-    Theory(id, c, out) {
-  }
-
-  ~TheoryBuiltin() { }
-
-  void preRegisterTerm(TNode n) { Unreachable(); }
-  void registerTerm(TNode n) { Unreachable(); }
-  void check(Effort e) { Unreachable(); }
-  void propagate(Effort e) { Unreachable(); }
-  void explain(TNode n, Effort e) { Unreachable(); }
-  void presolve() { Unreachable(); }
+  TheoryBuiltin(context::Context* c, OutputChannel& out) :
+    Theory(THEORY_BUILTIN, c, out) {}
   Node getValue(TNode n, TheoryEngine* engine);
-  void shutdown() { }
-  RewriteResponse preRewrite(TNode n, bool topLevel);
   std::string identify() const { return std::string("TheoryBuiltin"); }
 };/* class TheoryBuiltin */
 

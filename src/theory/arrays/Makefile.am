@@ -7,6 +7,7 @@ noinst_LTLIBRARIES = libarrays.la
 
 libarrays_la_SOURCES = \
 	theory_arrays_type_rules.h \
+	theory_arrays_rewriter.h \
 	theory_arrays.h \
 	theory_arrays.cpp
 

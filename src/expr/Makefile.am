@@ -10,7 +10,6 @@ libexpr_la_SOURCES = \
 	node.cpp \
 	type_node.h \
 	type_node.cpp \
-	type_constant.h \
 	node_builder.h \
 	convenience_node_builders.h \
 	type.h \

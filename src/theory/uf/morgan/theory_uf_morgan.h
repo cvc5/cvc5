@@ -132,7 +132,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUFMorgan(int id, context::Context* ctxt, OutputChannel& out);
+  TheoryUFMorgan(context::Context* ctxt, OutputChannel& out);
 
   /** Destructor for UF theory, cleans up memory and statistics. */
   ~TheoryUFMorgan();
@@ -170,13 +170,6 @@ public:
   void check(Effort level);
 
   /**
-   * Rewrites a node in the theory of uninterpreted functions.
-   * This is fairly basic and only ensures that atoms that are
-   * unsatisfiable or a valid are rewritten to false or true respectively.
-   */
-  RewriteResponse postRewrite(TNode n, bool topLevel);
-
-  /**
    * Propagates theory literals.
    *
    * Overloads void propagate(Effort level); from theory.h.
@@ -190,7 +183,7 @@ public:
    * Overloads void explain(TNode n, Effort level); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  void explain(TNode n, Effort level);
+  void explain(TNode n);
 
   /**
    * The theory should only add (via .operator<< or .append()) to the

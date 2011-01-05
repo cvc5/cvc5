@@ -36,6 +36,15 @@
 #include "util/exception.h"
 #include "util/options.h"
 #include "util/output.h"
+#include "theory/builtin/theory_builtin.h"
+#include "theory/booleans/theory_bool.h"
+#include "theory/uf/theory_uf.h"
+#include "theory/uf/morgan/theory_uf_morgan.h"
+#include "theory/uf/tim/theory_uf_tim.h"
+#include "theory/arith/theory_arith.h"
+#include "theory/arrays/theory_arrays.h"
+#include "theory/bv/theory_bv.h"
+
 
 using namespace std;
 using namespace CVC4;
@@ -133,6 +142,24 @@ void SmtEngine::init(const Options& opts) throw() {
   // We have mutual dependancy here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context, opts);
+
+  // Add the theories
+  d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>();
+  d_theoryEngine->addTheory<theory::booleans::TheoryBool>();
+  d_theoryEngine->addTheory<theory::arith::TheoryArith>();
+  d_theoryEngine->addTheory<theory::arrays::TheoryArrays>();
+  d_theoryEngine->addTheory<theory::bv::TheoryBV>();
+  switch(opts.uf_implementation) {
+  case Options::TIM:
+    d_theoryEngine->addTheory<theory::uf::tim::TheoryUFTim>();
+    break;
+  case Options::MORGAN:
+    d_theoryEngine->addTheory<theory::uf::morgan::TheoryUFMorgan>();
+    break;
+  default:
+    Unhandled(opts.uf_implementation);
+  }
+
   d_propEngine = new PropEngine(d_theoryEngine, d_context, opts);
   d_theoryEngine->setPropEngine(d_propEngine);
 

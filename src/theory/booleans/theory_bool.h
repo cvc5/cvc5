@@ -30,8 +30,8 @@ namespace booleans {
 
 class TheoryBool : public Theory {
 public:
-  TheoryBool(int id, context::Context* c, OutputChannel& out) :
-    Theory(id, c, out) {
+  TheoryBool(context::Context* c, OutputChannel& out) :
+    Theory(THEORY_BOOL, c, out) {
   }
 
   void preRegisterTerm(TNode n) {
@@ -42,16 +42,8 @@ public:
     Debug("bool") << "bool: begin preRegisterTerm(" << n << ")" << std::endl;
     Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
   }
-  void check(Effort e) { Unimplemented(); }
-  void propagate(Effort e) { Unimplemented(); }
-  void explain(TNode n, Effort e) { Unimplemented(); }
-
-  void presolve(){ Unimplemented(); }
 
   Node getValue(TNode n, TheoryEngine* engine);
-
-  RewriteResponse preRewrite(TNode n, bool topLevel);
-  RewriteResponse postRewrite(TNode n, bool topLevel);
 
   std::string identify() const { return std::string("TheoryBool"); }
 };

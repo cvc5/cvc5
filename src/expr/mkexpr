@@ -72,20 +72,40 @@ function theory {
   # this script doesn't care about the theory class information, but
   # makes does make sure it's there
   seen_theory=true
-  if [ "$1" = builtin ]; then
+  if [ "$1" = THEORY_BUILTIN ]; then
     if $seen_theory_builtin; then
       echo "$kf:$lineno: error: \"builtin\" theory redefined" >&2
       exit 1
     fi
     seen_theory_builtin=true
-  elif [ -z "$1" -o -z "$2" ]; then
+  elif [ -z "$1" -o -z "$2" -o -z "$3" ]; then
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
-  elif ! expr "$1" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class \`$1' isn't fully-qualified (e.g., ::CVC4::theory::foo)" >&2
-  elif ! expr "$1" : '\(::CVC4::theory::*\)' >/dev/null; then
+  elif ! expr "$2" : '\(::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::CVC4::theory::foo)" >&2
+  elif ! expr "$2" : '\(::CVC4::theory::*\)' >/dev/null; then
     echo "$kf:$lineno: warning: theory class not under ::CVC4::theory namespace" >&2
   fi
+}
+
+function rewriter {
+  # rewriter class header
+  lineno=${BASH_LINENO[0]}
+}
+
+function properties {
+    # properties prop*
+    lineno=${BASH_LINENO[0]}
+}
+
+function endtheory {
+  # endtheory
+  lineno=${BASH_LINENO[0]}
+}
+
+function sort {
+  # sort TYPE ["comment"]
+  lineno=${BASH_LINENO[0]}
 }
 
 function variable {

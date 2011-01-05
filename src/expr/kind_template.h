@@ -24,6 +24,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "util/Assert.h"
+
 namespace CVC4 {
 namespace kind {
 
@@ -88,6 +90,70 @@ struct KindHashStrategy {
 };/* struct KindHashStrategy */
 
 }/* CVC4::kind namespace */
+
+/**
+ * The enumeration for the built-in atomic types.
+ */
+enum TypeConstant {
+  ${type_constant_list}
+  LAST_TYPE
+};/* enum TypeConstant */
+
+/**
+ * We hash the constants with their values.
+ */
+struct TypeConstantHashStrategy {
+  static inline size_t hash(TypeConstant tc) {
+    return tc;
+  }
+};/* struct BoolHashStrategy */
+
+inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
+  switch(typeConstant) {
+  ${type_constant_descriptions}
+  default:
+    out << "UNKNOWN_TYPE_CONSTANT";
+    break;
+  }
+  return out;
+}
+
+namespace theory {
+
+enum TheoryId {
+  ${theory_enum}
+  THEORY_LAST
+};
+
+inline std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
+  switch(theoryId) {
+  ${theory_descriptions}
+  default:
+    out << "UNKNOWN_THEORY";
+    break;
+  }
+  return out;
+}
+
+inline TheoryId kindToTheoryId(::CVC4::Kind k) {
+  switch (k) {
+    ${kind_to_theory_id}
+  default:
+    Unreachable();
+  }
+}
+
+inline TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {
+  switch (typeConstant) {
+    ${type_constant_to_theory_id}
+  default:
+    Unreachable();
+  }
+}
+
+}/* theory namespace */
+
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__KIND_H */

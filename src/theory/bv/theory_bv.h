@@ -61,8 +61,8 @@ private:
 
 public:
 
-  TheoryBV(int id, context::Context* c, OutputChannel& out) :
-    Theory(id, c, out), d_eqEngine(*this, c), d_assertions(c) {
+  TheoryBV(context::Context* c, OutputChannel& out) :
+    Theory(THEORY_BV, c, out), d_eqEngine(*this, c), d_assertions(c) {
   }
 
   void preRegisterTerm(TNode n);
@@ -71,17 +71,13 @@ public:
 
   void check(Effort e);
 
-  void presolve(){
-    Unimplemented();
-  }
+  void presolve() { }
 
-  void propagate(Effort e) {}
+  void propagate(Effort e) { }
 
-  void explain(TNode n, Effort e) { }
+  void explain(TNode n) { }
 
   Node getValue(TNode n, TheoryEngine* engine);
-
-  RewriteResponse postRewrite(TNode n, bool topLevel);
 
   std::string identify() const { return std::string("TheoryBV"); }
 };/* class TheoryBV */

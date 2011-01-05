@@ -37,8 +37,8 @@ class TheoryUF : public Theory {
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(int id, context::Context* ctxt, OutputChannel& out)
-    : Theory(id, ctxt, out) {}
+  TheoryUF(context::Context* ctxt, OutputChannel& out)
+    : Theory(THEORY_UF, ctxt, out) {}
 
 };/* class TheoryUF */
 

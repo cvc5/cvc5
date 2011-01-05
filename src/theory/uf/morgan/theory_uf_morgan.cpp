@@ -31,8 +31,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 using namespace CVC4::theory::uf::morgan;
 
-TheoryUFMorgan::TheoryUFMorgan(int id, Context* ctxt, OutputChannel& out) :
-  TheoryUF(id, ctxt, out),
+TheoryUFMorgan::TheoryUFMorgan(Context* ctxt, OutputChannel& out) :
+  TheoryUF(ctxt, out),
   d_assertions(ctxt),
   d_ccChannel(this),
   d_cc(ctxt, &d_ccChannel),
@@ -68,23 +68,6 @@ TheoryUFMorgan::~TheoryUFMorgan() {
 
   StatisticsRegistry::unregisterStat(&d_ccExplanationLength);
   StatisticsRegistry::unregisterStat(&d_ccNewSkolemVars);
-}
-
-RewriteResponse TheoryUFMorgan::postRewrite(TNode n, bool topLevel) {
-  if(topLevel) {
-    Debug("uf") << "uf: begin rewrite(" << n << ")" << endl;
-    Node ret(n);
-    if(n.getKind() == kind::EQUAL ||
-       n.getKind() == kind::IFF) {
-      if(n[0] == n[1]) {
-        ret = NodeManager::currentNM()->mkConst(true);
-      }
-    }
-    Debug("uf") << "uf: end rewrite(" << n << ") : " << ret << endl;
-    return RewriteComplete(ret);
-  } else {
-    return RewriteComplete(n);
-  }
 }
 
 void TheoryUFMorgan::preRegisterTerm(TNode n) {
@@ -258,63 +241,63 @@ void TheoryUFMorgan::merge(TNode a, TNode b) {
   // disequal to, and the attendant disequality
 
   // FIXME these could be "remembered" and then done in propagation (?)
-  EqLists::iterator eq_i = d_equalities.find(a);
-  if(eq_i != d_equalities.end()) {
-    EqList* eq = (*eq_i).second;
-    if(Debug.isOn("uf")) {
-      Debug("uf") << "a == " << a << endl;
-      Debug("uf") << "size of eq(a) is " << eq->size() << endl;
-    }
-    for(EqList::const_iterator j = eq->begin(); j != eq->end(); ++j) {
-      Debug("uf") << "  eq(a) ==> " << *j << endl;
-      TNode eqn = *j;
-      Assert(eqn.getKind() == kind::EQUAL ||
-             eqn.getKind() == kind::IFF);
-      TNode s = eqn[0];
-      TNode t = eqn[1];
-      if(Debug.isOn("uf")) {
-        Debug("uf") << "       s  ==> " << s << endl
-                    << "       t  ==> " << t << endl
-                    << "  find(s) ==> " << debugFind(s) << endl
-                    << "  find(t) ==> " << debugFind(t) << endl;
-      }
-      TNode sp = find(s);
-      TNode tp = find(t);
-      if(sp == tp) {
-        // propagation of equality
-        Debug("uf:prop") << "  uf-propagating " << eqn << endl;
-        ++d_propagations;
-        d_out->propagate(eqn);
-      } else {
-        Assert(sp == b || tp == b);
-        appendToEqList(b, eqn);
-        if(sp == b) {
-          map<TNode, TNode>::const_iterator k = alreadyDiseqs.find(tp);
-          if(k != alreadyDiseqs.end()) {
-            // propagation of disequality
-            // FIXME: this will propagate the same disequality on every
-            // subsequent merge, won't it??
-            Node deqn = (*k).second.notNode();
-            Debug("uf:prop") << "  uf-propagating " << deqn << endl;
-            ++d_propagations;
-            d_out->propagate(deqn);
-          }
-        } else {
-          map<TNode, TNode>::const_iterator k = alreadyDiseqs.find(sp);
-          if(k != alreadyDiseqs.end()) {
-            // propagation of disequality
-            // FIXME: this will propagate the same disequality on every
-            // subsequent merge, won't it??
-            Node deqn = (*k).second.notNode();
-            Debug("uf:prop") << "  uf-propagating " << deqn << endl;
-            ++d_propagations;
-            d_out->propagate(deqn);
-          }
-        }
-      }
-    }
-    Debug("uf") << "end eq-list." << endl;
-  }
+//  EqLists::iterator eq_i = d_equalities.find(a);
+//  if(eq_i != d_equalities.end()) {
+//    EqList* eq = (*eq_i).second;
+//    if(Debug.isOn("uf")) {
+//      Debug("uf") << "a == " << a << endl;
+//      Debug("uf") << "size of eq(a) is " << eq->size() << endl;
+//    }
+//    for(EqList::const_iterator j = eq->begin(); j != eq->end(); ++j) {
+//      Debug("uf") << "  eq(a) ==> " << *j << endl;
+//      TNode eqn = *j;
+//      Assert(eqn.getKind() == kind::EQUAL ||
+//             eqn.getKind() == kind::IFF);
+//      TNode s = eqn[0];
+//      TNode t = eqn[1];
+//      if(Debug.isOn("uf")) {
+//        Debug("uf") << "       s  ==> " << s << endl
+//                    << "       t  ==> " << t << endl
+//                    << "  find(s) ==> " << debugFind(s) << endl
+//                    << "  find(t) ==> " << debugFind(t) << endl;
+//      }
+//      TNode sp = find(s);
+//      TNode tp = find(t);
+//      if(sp == tp) {
+//        // propagation of equality
+//        Debug("uf:prop") << "  uf-propagating " << eqn << endl;
+//        ++d_propagations;
+//        d_out->propagate(eqn);
+//      } else {
+//        Assert(sp == b || tp == b);
+//        appendToEqList(b, eqn);
+//        if(sp == b) {
+//          map<TNode, TNode>::const_iterator k = alreadyDiseqs.find(tp);
+//          if(k != alreadyDiseqs.end()) {
+//            // propagation of disequality
+//            // FIXME: this will propagate the same disequality on every
+//            // subsequent merge, won't it??
+//            Node deqn = (*k).second.notNode();
+//            Debug("uf:prop") << "  uf-propagating " << deqn << endl;
+//            ++d_propagations;
+//            d_out->propagate(deqn);
+//          }
+//        } else {
+//          map<TNode, TNode>::const_iterator k = alreadyDiseqs.find(sp);
+//          if(k != alreadyDiseqs.end()) {
+//            // propagation of disequality
+//            // FIXME: this will propagate the same disequality on every
+//            // subsequent merge, won't it??
+//            Node deqn = (*k).second.notNode();
+//            Debug("uf:prop") << "  uf-propagating " << deqn << endl;
+//            ++d_propagations;
+//            d_out->propagate(deqn);
+//          }
+//        }
+//      }
+//    }
+//    Debug("uf") << "end eq-list." << endl;
+//  }
 }
 
 void TheoryUFMorgan::appendToDiseqList(TNode of, TNode eq) {
@@ -564,12 +547,12 @@ void TheoryUFMorgan::propagate(Effort level) {
   Debug("uf") << "uf: end propagate(" << level << ")" << endl;
 }
 
-void TheoryUFMorgan::explain(TNode n, Effort level) {
+void TheoryUFMorgan::explain(TNode n) {
   TimerStat::CodeTimer codeTimer(d_explainTimer);
 
-  Debug("uf") << "uf: begin explain([" << n << "], " << level << ")" << endl;
+  Debug("uf") << "uf: begin explain([" << n << "])" << endl;
   Unimplemented();
-  Debug("uf") << "uf: end explain([" << n << "], " << level << ")" << endl;
+  Debug("uf") << "uf: end explain([" << n << "])" << endl;
 }
 
 void TheoryUFMorgan::presolve() {

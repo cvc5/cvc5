@@ -106,7 +106,14 @@
 # commands.
 #
 
-theory builtin ::CVC4::theory::builtin::TheoryBuiltin "theory_builtin.h"
+theory THEORY_BUILTIN ::CVC4::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
+
+properties stable-infinite  
+
+# Rewriter responisble for all the terms of the theory
+rewriter ::CVC4::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
+
+sort BUILTIN_OPERATOR_TYPE "Built in type for built in operators"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -130,7 +137,9 @@ operator TUPLE 2: "a tuple"
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
     ::CVC4::TypeConstantHashStrategy \
-    "expr/type_constant.h" \
+    "expr/kind.h" \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
 operator TUPLE_TYPE 2: "tuple type"
+
+endtheory

@@ -30,9 +30,10 @@ bool VarList::isSorted(iterator start, iterator end) {
 }
 
 bool VarList::isMember(Node n) {
-  if(n.getNumChildren() == 0) {
-    return Variable::isMember(n);
-  } else if(n.getKind() == kind::MULT) {
+  if(Variable::isMember(n)) {
+    return true;
+  }
+  if(n.getKind() == kind::MULT) {
     Node::iterator curr = n.begin(), end = n.end();
     Node prev = *curr;
     if(!Variable::isMember(prev)) return false;
@@ -59,7 +60,7 @@ int VarList::cmp(const VarList& vl) const {
 }
 
 VarList VarList::parseVarList(Node n) {
-  if(n.getNumChildren() == 0) {
+  if(Variable::isMember(n)) {
     return VarList(Variable(n));
   } else {
     Assert(n.getKind() == kind::MULT);

@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
 #include "util/rational.h"
+#include "theory/theory.h"
 #include "theory/arith/arith_constants.h"
 #include "theory/arith/arith_utilities.h"
 
@@ -183,8 +184,11 @@ public:
     Assert(isMember(getNode()));
   }
 
+  // TODO: check if it's a theory leaf also
   static bool isMember(Node n) {
-    return n.getMetaKind() == kind::metakind::VARIABLE;
+    if (n.getKind() == kind::CONST_INTEGER) return false;
+    if (n.getKind() == kind::CONST_RATIONAL) return false;
+    return Theory::isLeafOf(n, theory::THEORY_ARITH);
   }
 
   bool isNormalForm() { return isMember(getNode()); }

@@ -131,24 +131,24 @@ public:
     TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
 
     lastId = attr::LastAttributeId<bool, true>::s_id;
-    TS_ASSERT_LESS_THAN(TheoryEngine::RegisteredAttr::s_id, lastId);
+//    TS_ASSERT_LESS_THAN(TheoryEngine::RegisteredAttr::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag1cd::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag2cd::s_id, lastId);
-    TS_ASSERT_DIFFERS(TheoryEngine::RegisteredAttr::s_id, TestFlag1cd::s_id);
-    TS_ASSERT_DIFFERS(TheoryEngine::RegisteredAttr::s_id, TestFlag2cd::s_id);
+//    TS_ASSERT_DIFFERS(TheoryEngine::RegisteredAttr::s_id, TestFlag1cd::s_id);
+//    TS_ASSERT_DIFFERS(TheoryEngine::RegisteredAttr::s_id, TestFlag2cd::s_id);
     TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
 
     lastId = attr::LastAttributeId<Node, false>::s_id;
-    TS_ASSERT_LESS_THAN(theory::PreRewriteCache::s_id, lastId);
-    TS_ASSERT_LESS_THAN(theory::PostRewriteCache::s_id, lastId);
-    TS_ASSERT_LESS_THAN(theory::PreRewriteCacheTop::s_id, lastId);
-    TS_ASSERT_LESS_THAN(theory::PostRewriteCacheTop::s_id, lastId);
-    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PostRewriteCache::s_id);
-    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PreRewriteCacheTop::s_id);
-    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
-    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PreRewriteCacheTop::s_id);
-    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
-    TS_ASSERT_DIFFERS(theory::PreRewriteCacheTop::s_id, theory::PostRewriteCacheTop::s_id);
+//    TS_ASSERT_LESS_THAN(theory::PreRewriteCache::s_id, lastId);
+//    TS_ASSERT_LESS_THAN(theory::PostRewriteCache::s_id, lastId);
+//    TS_ASSERT_LESS_THAN(theory::PreRewriteCacheTop::s_id, lastId);
+//    TS_ASSERT_LESS_THAN(theory::PostRewriteCacheTop::s_id, lastId);
+//    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PostRewriteCache::s_id);
+//    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PreRewriteCacheTop::s_id);
+//    TS_ASSERT_DIFFERS(theory::PreRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
+//    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PreRewriteCacheTop::s_id);
+//    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
+//    TS_ASSERT_DIFFERS(theory::PreRewriteCacheTop::s_id, theory::PostRewriteCacheTop::s_id);
 
     lastId = attr::LastAttributeId<TypeNode, false>::s_id;
     TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);

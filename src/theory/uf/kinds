@@ -4,9 +4,17 @@
 # src/theory/builtin/kinds.
 #
 
-theory ::CVC4::theory::uf::TheoryUF "theory_uf.h"
+theory THEORY_UF ::CVC4::theory::uf::TheoryUF "theory/uf/theory_uf.h"
+
+properties stable-infinite check propagate staticLearning presolve 
+
+rewriter ::CVC4::theory::uf::TheoryUfRewriter "theory/uf/theory_uf_rewriter.h"
+
+sort KIND_TYPE "Uninterpreted Sort"  
 
 parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"
 
 variable SORT_TAG "sort tag"
 parameterized SORT_TYPE SORT_TAG 0: "sort type"
+
+endtheory

@@ -4,13 +4,21 @@
 # src/theory/builtin/kinds.
 #
 
-theory ::CVC4::theory::arith::TheoryArith "theory_arith.h"
+theory THEORY_ARITH ::CVC4::theory::arith::TheoryArith "theory/arith/theory_arith.h"
+
+properties stable-infinite check propagate staticLearning presolve 
+
+rewriter ::CVC4::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
+
 
 operator PLUS 2: "arithmetic addition"
 operator MULT 2: "arithmetic multiplication"
 operator MINUS 2 "arithmetic binary subtraction operator"
 operator UMINUS 1 "arithmetic unary negation"
 operator DIVISION 2 "arithmetic division"
+
+sort REAL_TYPE "Real type"
+sort INTEGER_TYPE "Integer type"
 
 constant CONST_RATIONAL \
     ::CVC4::Rational \
@@ -28,3 +36,5 @@ operator LT 2 "less than, x < y"
 operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
 operator GEQ 2 "greater than or equal, x >= y"
+
+endtheory

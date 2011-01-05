@@ -4,7 +4,11 @@
 # src/theory/builtin/kinds.
 #
 
-theory ::CVC4::theory::bv::TheoryBV "theory_bv.h"
+theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
+
+properties finite check  
+
+rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 
 constant BITVECTOR_TYPE \
 	::CVC4::BitVectorSize \
@@ -90,3 +94,5 @@ parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-
 parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-extend"
 parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left"
 parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right"
+
+endtheory

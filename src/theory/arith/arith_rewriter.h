@@ -17,9 +17,12 @@
  ** \todo document this file
  **/
 
-#include "theory/arith/arith_constants.h"
 #include "theory/theory.h"
+#include "theory/arith/arith_constants.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
+
+#include "theory/rewriter.h"
 
 #ifndef __CVC4__THEORY__ARITH__REWRITER_H
 #define __CVC4__THEORY__ARITH__REWRITER_H
@@ -28,46 +31,67 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class ArithRewriter{
+class ArithRewriter {
+
 private:
-  ArithConstants* d_constants;
 
-  Node makeSubtractionNode(TNode l, TNode r);
-  Node makeUnaryMinusNode(TNode n);
+  static arith::ArithConstants* s_constants;
 
-  RewriteResponse preRewriteTerm(TNode t);
-  RewriteResponse postRewriteTerm(TNode t);
+  static Node makeSubtractionNode(TNode l, TNode r);
+  static Node makeUnaryMinusNode(TNode n);
 
-  RewriteResponse rewriteVariable(TNode t);
-  RewriteResponse rewriteConstant(TNode t);
-  RewriteResponse rewriteMinus(TNode t, bool pre);
-  RewriteResponse rewriteUMinus(TNode t, bool pre);
-  RewriteResponse rewriteDivByConstant(TNode t, bool pre);
+  static RewriteResponse preRewriteTerm(TNode t);
+  static RewriteResponse postRewriteTerm(TNode t);
 
-  RewriteResponse preRewritePlus(TNode t);
-  RewriteResponse postRewritePlus(TNode t);
+  static RewriteResponse rewriteVariable(TNode t);
+  static RewriteResponse rewriteConstant(TNode t);
+  static RewriteResponse rewriteMinus(TNode t, bool pre);
+  static RewriteResponse rewriteUMinus(TNode t, bool pre);
+  static RewriteResponse rewriteDivByConstant(TNode t, bool pre);
 
-  RewriteResponse preRewriteMult(TNode t);
-  RewriteResponse postRewriteMult(TNode t);
+  static RewriteResponse preRewritePlus(TNode t);
+  static RewriteResponse postRewritePlus(TNode t);
+
+  static RewriteResponse preRewriteMult(TNode t);
+  static RewriteResponse postRewriteMult(TNode t);
 
 
-  RewriteResponse preRewriteAtom(TNode t);
-  RewriteResponse postRewriteAtom(TNode t);
-  RewriteResponse postRewriteAtomConstantRHS(TNode t);
+  static RewriteResponse preRewriteAtom(TNode t);
+  static RewriteResponse postRewriteAtom(TNode t);
+  static RewriteResponse postRewriteAtomConstantRHS(TNode t);
 
 public:
-  ArithRewriter(ArithConstants* ac) : d_constants(ac) {}
 
-  RewriteResponse preRewrite(TNode n);
-  RewriteResponse postRewrite(TNode n);
+  static RewriteResponse preRewrite(TNode n);
+  static RewriteResponse postRewrite(TNode n);
+
+  static void init() {
+    if (s_constants == NULL) {
+      s_constants = new arith::ArithConstants(NodeManager::currentNM());
+    }
+  }
+
+  static void shutdown() {
+    if (s_constants != NULL) {
+      delete s_constants;
+      s_constants = NULL;
+    }
+  }
 
 private:
-  bool isAtom(TNode n) const { return isRelationOperator(n.getKind()); }
-  bool isTerm(TNode n) const { return !isAtom(n); }
+
+  static inline bool isAtom(TNode n) {
+    return arith::isRelationOperator(n.getKind());
+  }
+
+  static inline bool isTerm(TNode n) {
+    return !isAtom(n);
+  }
+
 };
 
 
-}; /* namesapce arith */
+}; /* namesapce rewrite */
 }; /* namespace theory */
 }; /* namespace CVC4 */
 

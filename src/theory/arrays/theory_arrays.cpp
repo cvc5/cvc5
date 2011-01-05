@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arrays;
 
 
-TheoryArrays::TheoryArrays(int id, Context* c, OutputChannel& out) :
-  Theory(id, c, out)
+TheoryArrays::TheoryArrays(Context* c, OutputChannel& out) :
+  Theory(THEORY_ARRAY, c, out)
 {
 }
 

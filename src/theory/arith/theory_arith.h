@@ -94,29 +94,12 @@ private:
    */
   Tableau d_tableau;
 
-  /**
-   * The rewriter module for arithmetic.
-   */
-  ArithRewriter d_rewriter;
-
   ArithUnatePropagator d_propagator;
   SimplexDecisionProcedure d_simplex;
 
 public:
-  TheoryArith(int id, context::Context* c, OutputChannel& out);
+  TheoryArith(context::Context* c, OutputChannel& out);
   ~TheoryArith();
-
-  /**
-   * Rewriting optimizations.
-   */
-  RewriteResponse preRewrite(TNode n, bool topLevel);
-
-  /**
-   * Plug in old rewrite to the new (pre,post)rewrite interface.
-   */
-  RewriteResponse postRewrite(TNode n, bool topLevel) {
-    return d_rewriter.postRewrite(n);
-  }
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -128,7 +111,9 @@ public:
 
   void check(Effort e);
   void propagate(Effort e);
-  void explain(TNode n, Effort e);
+  void explain(TNode n);
+
+  void notifyEq(TNode lhs, TNode rhs);
 
   Node getValue(TNode n, TheoryEngine* engine);
 
@@ -143,8 +128,6 @@ public:
   std::string identify() const { return std::string("TheoryArith"); }
 
 private:
-
-  bool isTheoryLeaf(TNode x) const;
 
   ArithVar determineLeftVariable(TNode assertion, Kind simpleKind);
 

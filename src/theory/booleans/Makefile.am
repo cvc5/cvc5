@@ -8,6 +8,8 @@ noinst_LTLIBRARIES = libbooleans.la
 libbooleans_la_SOURCES = \
 	theory_bool.h \
 	theory_bool.cpp \
-	theory_bool_type_rules.h
+	theory_bool_type_rules.h \
+	theory_bool_rewriter.h \
+	theory_bool_rewriter.cpp	
 
 EXTRA_DIST = kinds

@@ -61,7 +61,7 @@ public:
     d_nm = new NodeManager(d_ctxt);
     d_scope = new NodeManagerScope(d_nm);
     d_outputChannel.clear();
-    d_euf = new TheoryUFTim(0, d_ctxt, d_outputChannel);
+    d_euf = new TheoryUFTim(d_ctxt, d_outputChannel);
 
     d_booleanType = new TypeNode(d_nm->booleanType());
   }

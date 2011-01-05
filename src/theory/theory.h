@@ -37,83 +37,6 @@ class TheoryEngine;
 
 namespace theory {
 
-// rewrite cache support
-template <bool topLevel> struct PreRewriteCacheTag {};
-typedef expr::Attribute<PreRewriteCacheTag<true>, Node> PreRewriteCacheTop;
-typedef expr::Attribute<PreRewriteCacheTag<false>, Node> PreRewriteCache;
-template <bool topLevel> struct PostRewriteCacheTag {};
-typedef expr::Attribute<PostRewriteCacheTag<true>, Node> PostRewriteCacheTop;
-typedef expr::Attribute<PostRewriteCacheTag<false>, Node> PostRewriteCache;
-
-/**
- * Instances of this class serve as response codes from
- * Theory::preRewrite() and Theory::postRewrite().  Instances of
- * derived classes RewriteComplete(n), RewriteAgain(n), and
- * FullRewriteNeeded(n) should be used, giving self-documenting
- * rewrite behavior.
- */
-class RewriteResponse {
-protected:
-  enum Status { DONE, REWRITE, REWRITE_FULL };
-
-  RewriteResponse(Status s, Node n) : d_status(s), d_node(n) {}
-
-private:
-  const Status d_status;
-  const Node d_node;
-
-public:
-  bool isDone() const { return d_status == DONE; }
-  bool needsMoreRewriting() const { return d_status != DONE; }
-  bool needsFullRewriting() const { return d_status == REWRITE_FULL; }
-  Node getNode() const { return d_node; }
-};/* class RewriteResponse */
-
-/**
- * Signal that (pre,post)rewriting of the Node is complete at n.  Note
- * that if theory A returns this, and the Node is in another theory B,
- * theory B will still be called on to pre- or postrewrite it.
- */
-class RewriteComplete : public RewriteResponse {
-public:
-  RewriteComplete(Node n) : RewriteResponse(DONE, n) {}
-};/* class RewriteComplete */
-
-/**
- * Return n, but request additional rewriting of it; if this is
- * returned from preRewrite(), this re-preRewrite()'s the Node.  If
- * this is returned from postRewrite(), this re-postRewrite()'s the
- * Node, but does NOT re-preRewrite() it, nor does it rewrite the
- * Node's children.
- *
- * Note that this is the behavior if a theory returns
- * RewriteComplete() for a Node belonging to another theory.
- */
-class RewriteAgain : public RewriteResponse {
-public:
-  RewriteAgain(Node n) : RewriteResponse(REWRITE, n) {}
-};/* class RewriteAgain */
-
-/**
- * Return n, but request an additional complete rewriting pass over
- * it.  This has the same behavior as RewriteAgain() for
- * pre-rewriting.  However, in post-rewriting, FullRewriteNeeded will
- * _completely_ pre- and post-rewrite the term and the term's children
- * (though it will use the cache to elide what calls it can).  Use
- * with caution; it has bad effects on performance.  This might be
- * useful if theory A rewrites a term into something quite different,
- * and certain child nodes might belong to another theory whose normal
- * form is unknown to theory A.  For example, if the builtin theory
- * post-rewrites (DISTINCT a b c) into pairwise NOT EQUAL expressions,
- * the theories owning a, b, and c might need to rewrite that EQUAL.
- * (This came up, but the fix was to rewrite DISTINCT in
- * pre-rewriting, obviating the problem.  See bug #168.)
- */
-class FullRewriteNeeded : public RewriteResponse {
-public:
-  FullRewriteNeeded(Node n) : RewriteResponse(REWRITE_FULL, n) {}
-};/* class FullRewriteNeeded */
-
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
  *
@@ -137,7 +60,7 @@ private:
   /**
    * A unique integer identifying the theory
    */
-  int d_id;
+  TheoryId d_id;
 
   /**
    * The context for the Theory.
@@ -147,11 +70,10 @@ private:
   /**
    * The assertFact() queue.
    *
-   * These can safely be TNodes because the literal map maintained in
-   * the SAT solver keeps them live.  As an added benefit, if we have
-   * them as TNodes, dtors are cheap (optimized away?).
+   * These can not be TNodes as some atoms (such as equalities) are sent across theories withouth being stored
+   * in a global map.
    */
-  context::CDList<TNode> d_facts;
+  context::CDList<Node> d_facts;
 
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
@@ -161,7 +83,7 @@ protected:
   /**
    * Construct a Theory.
    */
-  Theory(int id, context::Context* ctxt, OutputChannel& out) throw() :
+  Theory(TheoryId id, context::Context* ctxt, OutputChannel& out) throw() :
     d_id(id),
     d_context(ctxt),
     d_facts(ctxt),
@@ -185,13 +107,6 @@ protected:
    */
   OutputChannel* d_out;
 
-  /**
-   * Returns true if the assertFact queue is empty
-   */
-  bool done() throw() {
-    return d_factsHead == d_facts.size();
-  }
-
   /** Tag for the "preRegisterTerm()-has-been-called" flag on Nodes */
   struct PreRegistered {};
   /** The "preRegisterTerm()-has-been-called" flag on Nodes */
@@ -214,6 +129,48 @@ protected:
   }
 
 public:
+
+  static inline TheoryId theoryOf(TypeNode typeNode) {
+    if (typeNode.getKind() == kind::TYPE_CONSTANT) {
+      return typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
+    } else {
+      return kindToTheoryId(typeNode.getKind());
+    }
+  }
+
+  /**
+   * Returns the theory responsible for the node.
+   */
+  static inline TheoryId theoryOf(TNode node) {
+    if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
+      // Constants, variables, 0-ary constructors
+      return theoryOf(node.getType());
+    } else {
+      // Regular nodes
+      return kindToTheoryId(node.getKind());
+    }
+  }
+
+  /**
+   * Checks if the node is a leaf node of this theory
+   */
+  inline bool isLeaf(TNode node) const {
+    return node.getNumChildren() == 0 || theoryOf(node) != d_id;
+  }
+
+  /**
+   * Checks if the node is a leaf node of a theory.
+   */
+  inline static bool isLeafOf(TNode node, TheoryId theoryId) {
+    return node.getNumChildren() == 0 || theoryOf(node) != theoryId;
+  }
+
+  /**
+   * Returns true if the assertFact queue is empty
+   */
+  bool done() throw() {
+    return d_factsHead == d_facts.size();
+  }
 
   /**
    * Destructs a Theory.  This implementation does nothing, but we
@@ -250,7 +207,7 @@ public:
   /**
    * Get the id for this Theory.
    */
-  int getId() const {
+  TheoryId getId() const {
     return d_id;
   }
 
@@ -285,46 +242,7 @@ public:
   /**
    * Pre-register a term.  Done one time for a Node, ever.
    */
-  virtual void preRegisterTerm(TNode) = 0;
-
-  /**
-   * Pre-rewrite a term.  This default base-class implementation
-   * simply returns RewriteComplete(n).  A theory should never
-   * rewrite a term to a strictly larger term that contains itself, as
-   * this will cause a loop of hard Node links in the cache (and thus
-   * memory leakage).
-   *
-   * Be careful with the return value.  If a preRewrite() can return a
-   * sub-expression, and that sub-expression can be a member of the
-   * same theory and could be rewritten, make sure to return
-   * RewriteAgain instead of RewriteComplete.  This is an easy mistake
-   * to make, as preRewrite() is often a short-circuiting version of
-   * the same rewrites that occur in postRewrite(); however, in the
-   * postRewrite() case, the subexpressions have all been
-   * post-rewritten.  In the preRewrite() case, they have NOT yet been
-   * pre-rewritten.  For example, (ITE true (ITE true x y) z) should
-   * pre-rewrite to x; but if the outer preRewrite() returns
-   * RewriteComplete, the result of the pre-rewrite will be
-   * (ITE true x y).
-   */
-  virtual RewriteResponse preRewrite(TNode n, bool topLevel) {
-    Debug("theory-rewrite") << "no pre-rewriting to perform for "
-                            << n << std::endl;
-    return RewriteComplete(n);
-  }
-
-  /**
-   * Post-rewrite a term.  This default base-class implementation
-   * simply returns RewriteComplete(n).  A theory should never
-   * rewrite a term to a strictly larger term that contains itself, as
-   * this will cause a loop of hard Node links in the cache (and thus
-   * memory leakage).
-   */
-  virtual RewriteResponse postRewrite(TNode n, bool topLevel) {
-    Debug("theory-rewrite") << "no post-rewriting to perform for "
-                            << n << std::endl;
-    return RewriteComplete(n);
-  }
+  virtual void preRegisterTerm(TNode) { }
 
   /**
    * Register a term.
@@ -337,14 +255,14 @@ public:
    * setup() MUST NOT MODIFY context-dependent objects that it hasn't
    * itself just created.
    */
-  virtual void registerTerm(TNode) = 0;
+  virtual void registerTerm(TNode) { }
 
   /**
    * Assert a fact in the current context.
    */
-  void assertFact(TNode n) {
-    Debug("theory") << "Theory::assertFact(" << n << ")" << std::endl;
-    d_facts.push_back(n);
+  void assertFact(TNode node) {
+    Debug("theory") << "Theory::assertFact(" << node << ")" << std::endl;
+    d_facts.push_back(node);
   }
 
   /**
@@ -375,19 +293,19 @@ public:
    * - throw an exception
    * - or call get() until done() is true.
    */
-  virtual void check(Effort level = FULL_EFFORT) = 0;
+  virtual void check(Effort level = FULL_EFFORT) { }
 
   /**
    * T-propagate new literal assignments in the current context.
    */
-  virtual void propagate(Effort level = FULL_EFFORT) = 0;
+  virtual void propagate(Effort level = FULL_EFFORT) { }
 
   /**
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).  Report
    * explanations to an output channel.
    */
-  virtual void explain(TNode n, Effort level = FULL_EFFORT) = 0;
+  virtual void explain(TNode n) { }
 
   /**
    * Return the value of a node (typically used after a ).  If the
@@ -437,7 +355,7 @@ public:
    * assertFact() queue using get().  A Theory can raise conflicts,
    * add lemmas, and propagate literals during presolve().
    */
-  virtual void presolve() = 0;
+  virtual void presolve() { };
 
   /**
    * Notification sent to the theory wheneven the search restarts.
@@ -495,96 +413,6 @@ protected:
    */
   virtual bool theoryReady(ReadyState s) {
     return true;
-  }
-
-  /**
-   * Check whether a node is in the pre-rewrite cache or not.
-   */
-  static bool inPreRewriteCache(TNode n, bool topLevel) throw() {
-    if(topLevel) {
-      return n.hasAttribute(PreRewriteCacheTop());
-    } else {
-      return n.hasAttribute(PreRewriteCache());
-    }
-  }
-
-  /**
-   * Get the value of the pre-rewrite cache (or Node::null()) if there is
-   * none).
-   */
-  static Node getPreRewriteCache(TNode n, bool topLevel) throw() {
-    if(topLevel) {
-      Node out;
-      if(n.getAttribute(PreRewriteCacheTop(), out)) {
-        return out.isNull() ? Node(n) : out;
-      }
-    } else {
-      Node out;
-      if(n.getAttribute(PreRewriteCache(), out)) {
-        return out.isNull() ? Node(n) : out;
-      }
-    }
-    return Node::null();
-  }
-
-  /**
-   * Set the value of the pre-rewrite cache.  v cannot be a null Node.
-   */
-  static void setPreRewriteCache(TNode n, bool topLevel, TNode v) throw() {
-    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
-    AssertArgument(!v.isNull(), v, "v cannot be null in setPreRewriteCache()");
-    // mappings from  n -> n  are actually stored as  n -> null  as a
-    // special case, to avoid cycles in the reference-counting of Nodes
-    if(topLevel) {
-      n.setAttribute(PreRewriteCacheTop(), n == v ? TNode::null() : v);
-    } else {
-      n.setAttribute(PreRewriteCache(), n == v ? TNode::null() : v);
-    }
-  }
-
-  /**
-   * Check whether a node is in the post-rewrite cache or not.
-   */
-  static bool inPostRewriteCache(TNode n, bool topLevel) throw() {
-    if(topLevel) {
-      return n.hasAttribute(PostRewriteCacheTop());
-    } else {
-      return n.hasAttribute(PostRewriteCache());
-    }
-  }
-
-  /**
-   * Get the value of the post-rewrite cache (or Node::null()) if there is
-   * none).
-   */
-  static Node getPostRewriteCache(TNode n, bool topLevel) throw() {
-    if(topLevel) {
-      Node out;
-      if(n.getAttribute(PostRewriteCacheTop(), out)) {
-        return out.isNull() ? Node(n) : out;
-      }
-    } else {
-      Node out;
-      if(n.getAttribute(PostRewriteCache(), out)) {
-        return out.isNull() ? Node(n) : out;
-      }
-    }
-    return Node::null();
-  }
-
-  /**
-   * Set the value of the post-rewrite cache.  v cannot be a null Node.
-   */
-  static void setPostRewriteCache(TNode n, bool topLevel, TNode v) throw() {
-    AssertArgument(!n.isNull(), n, "n cannot be null in setPostRewriteCache()");
-    AssertArgument(!v.isNull(), v, "v cannot be null in setPostRewriteCache()");
-    // mappings from  n -> n  are actually stored as  n -> null  as a
-    // special case, to avoid cycles in the reference-counting of Nodes
-    if(topLevel) {
-      n.setAttribute(PostRewriteCacheTop(), n == v ? TNode::null() : v);
-    } else {
-      n.setAttribute(PostRewriteCache(), n == v ? TNode::null() : v);
-    }
   }
 
 };/* class Theory */

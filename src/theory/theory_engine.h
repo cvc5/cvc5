@@ -21,11 +21,14 @@
 #ifndef __CVC4__THEORY_ENGINE_H
 #define __CVC4__THEORY_ENGINE_H
 
+#include <deque>
+
 #include "expr/node.h"
 #include "prop/prop_engine.h"
 #include "theory/shared_term_manager.h"
 #include "theory/theory.h"
-#include "theory/theoryof_table.h"
+#include "theory/theory_traits.h"
+#include "theory/rewriter.h"
 #include "util/options.h"
 #include "util/stats.h"
 
@@ -45,13 +48,11 @@ class TheoryEngine {
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
 
-  /** A table of Kinds to pointers to Theory */
-  theory::TheoryOfTable d_theoryOfTable;
+  /** Our context */
+  context::Context* d_context;
 
-  /** Tag for the "registerTerm()-has-been-called" flag on Nodes */
-  struct Registered {};
-  /** The "registerTerm()-has-been-called" flag on Nodes */
-  typedef CVC4::expr::CDAttribute<Registered, bool> RegisteredAttr;
+  /** A table of from theory ifs to theory pointers */
+  theory::Theory* d_theoryTable[theory::THEORY_LAST];
 
   /**
    * An output channel for Theory that passes messages
@@ -124,13 +125,6 @@ class TheoryEngine {
   /** Pointer to Shared Term Manager */
   SharedTermManager* d_sharedTermManager;
 
-  theory::Theory* d_builtin;
-  theory::Theory* d_bool;
-  theory::Theory* d_uf;
-  theory::Theory* d_arith;
-  theory::Theory* d_arrays;
-  theory::Theory* d_bv;
-
   /**
    * Whether or not theory registration is on.  May not be safe to
    * turn off with some theories.
@@ -150,56 +144,6 @@ class TheoryEngine {
   context::CDO<bool> d_incomplete;
 
   /**
-   * Check whether a node is in the pre-rewrite cache or not.
-   */
-  static bool inPreRewriteCache(TNode n, bool topLevel) throw() {
-    return theory::Theory::inPreRewriteCache(n, topLevel);
-  }
-
-  /**
-   * Get the value of the pre-rewrite cache (or Node::null()) if there is
-   * none).
-   */
-  static Node getPreRewriteCache(TNode n, bool topLevel) throw() {
-    return theory::Theory::getPreRewriteCache(n, topLevel);
-  }
-
-  /**
-   * Set the value of the pre-rewrite cache.  v cannot be a null Node.
-   */
-  static void setPreRewriteCache(TNode n, bool topLevel, TNode v) throw() {
-    return theory::Theory::setPreRewriteCache(n, topLevel, v);
-  }
-
-  /**
-   * Check whether a node is in the post-rewrite cache or not.
-   */
-  static bool inPostRewriteCache(TNode n, bool topLevel) throw() {
-    return theory::Theory::inPostRewriteCache(n, topLevel);
-  }
-
-  /**
-   * Get the value of the post-rewrite cache (or Node::null()) if there is
-   * none).
-   */
-  static Node getPostRewriteCache(TNode n, bool topLevel) throw() {
-    return theory::Theory::getPostRewriteCache(n, topLevel);
-  }
-
-  /**
-   * Set the value of the post-rewrite cache.  v cannot be a null Node.
-   */
-  static void setPostRewriteCache(TNode n, bool topLevel, TNode v) throw() {
-    return theory::Theory::setPostRewriteCache(n, topLevel, v);
-  }
-
-  /**
-   * This is the top rewrite entry point, called during preprocessing.
-   * It dispatches to the proper theories to rewrite the given Node.
-   */
-  Node rewrite(TNode in, bool topLevel = true);
-
-  /**
    * Replace ITE forms in a node.
    */
   Node removeITEs(TNode t);
@@ -215,6 +159,16 @@ public:
    * Destroy a theory engine.
    */
   ~TheoryEngine();
+
+  /**
+   * Adds a theory. Only one theory per theoryId can be present, so if there is another theory it will be deleted.
+   */
+  template <class TheoryClass>
+  void addTheory() {
+    TheoryClass* theory = new TheoryClass(d_context, d_theoryOut);
+    d_theoryTable[theory->getId()] = theory;
+    d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
+  }
 
   SharedTermManager* getSharedTermManager() {
     return d_sharedTermManager;
@@ -243,20 +197,15 @@ public:
     // matters.
     d_hasShutDown = true;
 
-    d_builtin->shutdown();
-    d_bool->shutdown();
-    d_uf->shutdown();
-    d_arith->shutdown();
-    d_arrays->shutdown();
-    d_bv->shutdown();
-  }
+    // Shutdown all the theories
+    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++ theoryId) {
+      if (d_theoryTable[theoryId]) {
+        d_theoryTable[theoryId]->shutdown();
+      }
+    }
 
-  /**
-   * Get the theory associated to a given TypeNode.
-   *
-   * @returns the theory owning the type
-   */
-  theory::Theory* theoryOf(TypeNode t);
+    theory::Rewriter::shutdown();
+  }
 
   /**
    * Get the theory associated to a given Node.
@@ -264,7 +213,19 @@ public:
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  theory::Theory* theoryOf(TNode n);
+  inline theory::Theory* theoryOf(TNode node) {
+    return d_theoryTable[theory::Theory::theoryOf(node)];
+  }
+
+  /**
+   * Get the theory associated to a given Node.
+   *
+   * @returns the theory, or NULL if the TNode is
+   * of built-in type.
+   */
+  inline theory::Theory* theoryOf(const TypeNode& typeNode) {
+    return d_theoryTable[theory::Theory::theoryOf(typeNode)];
+  }
 
   /**
    * Preprocess a node.  This involves theory-specific rewriting, then
@@ -274,14 +235,33 @@ public:
   Node preprocess(TNode n);
 
   /**
-   * Assert the formula to the apropriate theory.
+   * Assert the formula to the appropriate theory.
    * @param node the assertion
    */
   inline void assertFact(TNode node) {
     Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
-    theory::Theory* theory =
-      node.getKind() == kind::NOT ? theoryOf(node[0]) : theoryOf(node);
-    if(theory != NULL) {
+
+    // Get the atom
+    TNode atom = node.getKind() == kind::NOT ? node[0] : node;
+
+    // Again, eqaulity is a special case
+    if (atom.getKind() == kind::EQUAL) {
+      theory::TheoryId theoryLHS = theory::Theory::theoryOf(atom[0]);
+      Debug("theory") << "asserting " << node << " to " << theoryLHS << std::endl;
+      d_theoryTable[theoryLHS]->assertFact(node);
+//      theory::TheoryId theoryRHS = theory::Theory::theoryOf(atom[1]);
+//      if (theoryLHS != theoryRHS) {
+//        Debug("theory") << "asserting " << node << " to " << theoryRHS << std::endl;
+//        d_theoryTable[theoryRHS]->assertFact(node);
+//      }
+//      theory::TheoryId typeTheory = theory::Theory::theoryOf(atom[0].getType());
+//      if (typeTheory!= theoryLHS && typeTheory != theoryRHS) {
+//        Debug("theory") << "asserting " << node << " to " << typeTheory << std::endl;
+//        d_theoryTable[typeTheory]->assertFact(node);
+//      }
+    } else {
+      theory::Theory* theory = theoryOf(atom);
+      Debug("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
       theory->assertFact(node);
     }
   }
@@ -294,19 +274,26 @@ public:
   {
     d_theoryOut.d_conflictNode = Node::null();
     d_theoryOut.d_propagatedLiterals.clear();
+
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+    if (theory::TheoryTraits<THEORY>::hasCheck) { \
+       reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->check(effort); \
+       if (!d_theoryOut.d_conflictNode.get().isNull()) { \
+         return false; \
+       } \
+    }
+
     // Do the checking
     try {
-      //d_builtin->check(effort);
-      //d_bool->check(effort);
-      d_uf->check(effort);
-      d_arith->check(effort);
-      d_arrays->check(effort);
-      d_bv->check(effort);
+      CVC4_FOR_EACH_THEORY
     } catch(const theory::Interrupted&) {
       Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
     }
-    // Return whether we have a conflict
-    return d_theoryOut.d_conflictNode.get().isNull();
+
+    return true;
   }
 
   /**
@@ -346,14 +333,18 @@ public:
   }
 
   inline void propagate() {
-    d_theoryOut.d_propagatedLiterals.clear();
-    // Do the propagation
-    //d_builtin->propagate(theory::Theory::FULL_EFFORT);
-    //d_bool->propagate(theory::Theory::FULL_EFFORT);
-    d_uf->propagate(theory::Theory::FULL_EFFORT);
-    d_arith->propagate(theory::Theory::FULL_EFFORT);
-    d_arrays->propagate(theory::Theory::FULL_EFFORT);
-    //d_bv->propagate(theory::Theory::FULL_EFFORT);
+
+    // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+    if (theory::TheoryTraits<THEORY>::hasPropagate) { \
+        reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->propagate(theory::Theory::FULL_EFFORT); \
+    }
+
+    // Propagate for each theory using the statement above
+    CVC4_FOR_EACH_THEORY
   }
 
   inline Node getExplanation(TNode node, theory::Theory* theory) {
@@ -363,9 +354,13 @@ public:
 
   inline Node getExplanation(TNode node) {
     d_theoryOut.d_explanationNode = Node::null();
-    theory::Theory* theory =
-              node.getKind() == kind::NOT ? theoryOf(node[0]) : theoryOf(node);
-    theory->explain(node);
+    TNode atom = node.getKind() == kind::NOT ? node[0] : node;
+    if (atom.getKind() == kind::EQUAL) {
+      theoryOf(atom[0])->explain(node);
+    } else {
+      theoryOf(atom)->explain(node);
+    }
+    Assert(!d_theoryOut.d_explanationNode.get().isNull());
     return d_theoryOut.d_explanationNode;
   }
 

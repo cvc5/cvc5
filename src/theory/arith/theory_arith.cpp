@@ -53,15 +53,14 @@ using namespace CVC4::theory::arith;
 struct SlackAttrID;
 typedef expr::Attribute<SlackAttrID, Node> Slack;
 
-TheoryArith::TheoryArith(int id, context::Context* c, OutputChannel& out) :
-  Theory(id, c, out),
+TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
+  Theory(THEORY_ARITH, c, out),
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_basicManager(),
   d_activityMonitor(),
   d_diseq(c),
   d_tableau(d_activityMonitor, d_basicManager),
-  d_rewriter(&d_constants),
   d_propagator(c, out),
   d_simplex(d_constants, d_partialModel, d_basicManager,  d_out, d_activityMonitor, d_tableau),
   d_statistics()
@@ -116,7 +115,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
     d_out->setIncomplete();
   }
 
-  if(isTheoryLeaf(n) || isStrictlyVarList){
+  if(isLeaf(n) || isStrictlyVarList){
     ++(d_statistics.d_statUserVariables);
     ArithVar varN = requestArithVar(n,false);
     setupInitialValue(varN);
@@ -144,13 +143,8 @@ void TheoryArith::preRegisterTerm(TNode n) {
 }
 
 
-
-bool TheoryArith::isTheoryLeaf(TNode x) const{
-  return x.getMetaKind() == kind::metakind::VARIABLE;
-}
-
 ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
-  Assert(isTheoryLeaf(x));
+  Assert(isLeaf(x));
   Assert(!hasArithVar(x));
 
   ArithVar varX = d_variables.size();
@@ -179,7 +173,9 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
 
     Node n = variable.getNode();
 
-    Assert(isTheoryLeaf(n));
+    Debug("rewriter") << "should be var: " << n << endl;
+
+    Assert(isLeaf(n));
     Assert(hasArithVar(n));
 
     ArithVar av = asArithVar(n);
@@ -190,8 +186,6 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
 }
 
 void TheoryArith::setupSlack(TNode left){
-
-  
 
   ++(d_statistics.d_statSlackVariables);
   TypeNode real_type = NodeManager::currentNM()->realType();
@@ -242,10 +236,6 @@ void TheoryArith::setupInitialValue(ArithVar x){
   Debug("arithgc") << "setupVariable("<<x<<")"<<std::endl;
 };
 
-RewriteResponse TheoryArith::preRewrite(TNode n, bool topLevel) {
-  return d_rewriter.preRewrite(n);
-}
-
 void TheoryArith::registerTerm(TNode tn){
   Debug("arith") << "registerTerm(" << tn << ")" << endl;
 }
@@ -270,7 +260,7 @@ TNode getSide(TNode assertion, Kind simpleKind){
 ArithVar TheoryArith::determineLeftVariable(TNode assertion, Kind simpleKind){
   TNode left = getSide<true>(assertion, simpleKind);
 
-  if(isTheoryLeaf(left)){
+  if(isLeaf(left)){
     return asArithVar(left);
   }else{
     Assert(left.hasAttribute(Slack()));
@@ -457,7 +447,7 @@ void TheoryArith::check(Effort effortLevel){
   }
 }
 
-void TheoryArith::explain(TNode n, Effort e) {
+void TheoryArith::explain(TNode n) {
   // Node explanation = d_propagator.explain(n);
   // Debug("arith") << "arith::explain("<<explanation<<")->"
   //                << explanation << endl;
@@ -551,4 +541,8 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
   default:
     Unhandled(n.getKind());
   }
+}
+
+void TheoryArith::notifyEq(TNode lhs, TNode rhs) {
+
 }

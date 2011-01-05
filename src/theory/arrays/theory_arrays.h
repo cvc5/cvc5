@@ -31,32 +31,18 @@ namespace arrays {
 
 class TheoryArrays : public Theory {
 public:
-  TheoryArrays(int id, context::Context* c, OutputChannel& out);
+  TheoryArrays(context::Context* c, OutputChannel& out);
   ~TheoryArrays();
   void preRegisterTerm(TNode n) { }
   void registerTerm(TNode n) { }
 
-  RewriteResponse preRewrite(TNode in, bool topLevel) {
-    Debug("arrays-rewrite") << "pre-rewriting " << in
-                            << " topLevel==" << topLevel << std::endl;
-    return RewriteComplete(in);
-  }
-
-  RewriteResponse postRewrite(TNode in, bool topLevel) {
-    Debug("arrays-rewrite") << "post-rewriting " << in
-                            << " topLevel==" << topLevel << std::endl;
-    return RewriteComplete(in);
-  }
-
-  void presolve() {
-    Unimplemented();
-  }
+  void presolve() { }
 
   void addSharedTerm(TNode t);
   void notifyEq(TNode lhs, TNode rhs);
   void check(Effort e);
   void propagate(Effort e) { }
-  void explain(TNode n, Effort e) { }
+  void explain(TNode n) { }
   Node getValue(TNode n, TheoryEngine* engine);
   void shutdown() { }
   std::string identify() const { return std::string("TheoryArrays"); }

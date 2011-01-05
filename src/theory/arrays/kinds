@@ -4,7 +4,11 @@
 # src/theory/builtin/kinds.
 #
 
-theory ::CVC4::theory::arrays::TheoryArrays "theory_arrays.h"
+theory THEORY_ARRAY ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
+
+properties polite stable-infinite 
+
+rewriter ::CVC4::theory::arrays::TheoryArraysRewriter "theory/arrays/theory_arrays_rewriter.h"
 
 operator ARRAY_TYPE 2 "array type"
 
@@ -13,3 +17,5 @@ operator SELECT 2 "array select"
 
 # store a i e  is  a[i] <= e
 operator STORE 3 "array store"
+
+endtheory

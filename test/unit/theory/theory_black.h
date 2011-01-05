@@ -105,7 +105,7 @@ public:
   vector<Node> d_getSequence;
 
   DummyTheory(Context* ctxt, OutputChannel& out) :
-    Theory(0, ctxt, out) {
+    Theory(theory::THEORY_BUILTIN, ctxt, out) {
   }
 
   void registerTerm(TNode n) {

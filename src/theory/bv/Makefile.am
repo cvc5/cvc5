@@ -12,6 +12,8 @@ libbv_la_SOURCES = \
 	theory_bv_rewrite_rules.h \
 	theory_bv_rewrite_rules.cpp \
 	theory_bv_type_rules.h \
+	theory_bv_rewriter.h \
+	theory_bv_rewriter.cpp \
 	equality_engine.h \
 	equality_engine.cpp 
 

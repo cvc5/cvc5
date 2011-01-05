@@ -37,9 +37,17 @@ template=$1; shift
 
 kind_decls=
 kind_printers=
+kind_to_theory_id=
+
+type_constant_descriptions=
+type_constant_list=
+type_constant_to_theory_id= 
 
 seen_theory=false
 seen_theory_builtin=false
+
+theory_enum=
+theory_descriptions=
 
 function theory {
   # theory T header
@@ -49,20 +57,50 @@ function theory {
   # this script doesn't care about the theory class information, but
   # makes does make sure it's there
   seen_theory=true
-  if [ "$1" = builtin ]; then
+  if [ "$1" = THEORY_BUILTIN ]; then
     if $seen_theory_builtin; then
       echo "$kf:$lineno: error: \"builtin\" theory redefined" >&2
       exit 1
     fi
     seen_theory_builtin=true
-  elif [ -z "$1" -o -z "$2" ]; then
+  elif [ -z "$1" -o -z "$2" -o -z "$3" ]; then
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
-  elif ! expr "$1" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class \`$1' isn't fully-qualified (e.g., ::CVC4::theory::foo)" >&2
-  elif ! expr "$1" : '\(::CVC4::theory::*\)' >/dev/null; then
+  elif ! expr "$2" : '\(::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::CVC4::theory::foo)" >&2
+  elif ! expr "$2" : '\(::CVC4::theory::*\)' >/dev/null; then
     echo "$kf:$lineno: warning: theory class not under ::CVC4::theory namespace" >&2
   fi
+  
+  theory_id="$1"
+  theory_enum="$1, 
+    ${theory_enum}" 
+  theory_descriptions="${theory_descriptions}    case ${theory_id}: out << \"${theory_id}\"; break;
+"
+}
+
+function properties {
+  # rewriter class header
+  lineno=${BASH_LINENO[0]}
+}
+
+function endtheory {
+  # endtheory
+  lineno=${BASH_LINENO[0]}
+}
+
+function rewriter {
+  # properties prop*
+  lineno=${BASH_LINENO[0]}
+}
+
+function sort {
+  # sort TYPE ["comment"]
+  
+  lineno=${BASH_LINENO[0]}
+  
+  check_theory_seen
+  register_sort "$1" "$2"
 }
 
 function variable {
@@ -101,6 +139,18 @@ function constant {
   register_kind "$1" 0 "$5"
 }
 
+function register_sort {
+  id=$1
+  comment=$2
+  
+  type_constant_list="${type_constant_list}   ${id}, /**< ${comment} */
+"
+  type_constant_descriptions="${type_constant_descriptions}   case $id:  out << \"${comment}\"; break;
+"
+  type_constant_to_theory_id="${type_constant_to_theory_id}   case $id: return $theory_id; break;
+" 
+}
+
 function register_kind {
   r=$1
   nc=$2
@@ -109,6 +159,8 @@ function register_kind {
   kind_decls="${kind_decls}  $r, /**< $comment */
 "
   kind_printers="${kind_printers}  case $r: out << \"$r\"; break;
+"
+  kind_to_theory_id="${kind_to_theory_id}   case kind::$r: return $theory_id; break;
 "
 }
 
@@ -144,7 +196,7 @@ check_builtin_theory_seen
 ## output
 
 text=$(cat "$template")
-for var in kind_decls kind_printers; do
+for var in kind_decls kind_printers kind_to_theory_id theory_enum type_constant_list type_constant_descriptions type_constant_to_theory_id theory_descriptions; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error=`expr "$text" : '.*\${\([^}]*\)}.*'`

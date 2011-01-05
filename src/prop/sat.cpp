@@ -63,9 +63,9 @@ void SatSolver::theoryPropagate(std::vector<SatLiteral>& output) {
 
 void SatSolver::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
-  Debug("prop-explain") << "explainPropagation(" << lNode.toString() << ")" << std::endl;
+  Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
   Node theoryExplanation = d_theoryEngine->getExplanation(lNode);
-  Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation.toString() << std::endl;
+  Debug("prop-explain") << "explainPropagation() => " <<  theoryExplanation << std::endl;
   if (theoryExplanation.getKind() == kind::AND) {
     Node::const_iterator it = theoryExplanation.begin();
     Node::const_iterator it_end = theoryExplanation.end();
