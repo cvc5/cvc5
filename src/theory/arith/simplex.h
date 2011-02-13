@@ -134,6 +134,8 @@ public:
 private:
   Node privateUpdateInconsistentVars();
 
+  Node selectInitialConflict();
+
 private:
   /**
    * Given the basic variable x_i,
@@ -197,6 +199,9 @@ private:
     IntStat d_statAssertLowerConflicts, d_statUpdateConflicts;
 
     IntStat d_statEjections, d_statUnEjections;
+
+    IntStat d_statEarlyConflicts, d_statEarlyConflictImprovements;
+    TimerStat d_selectInitialConflictTime;
     Statistics();
     ~Statistics();
   };

@@ -277,7 +277,7 @@ Comparison Comparison::addConstant(const Constant& constant) const {
 
 Comparison Comparison::multiplyConstant(const Constant& constant) const {
   Assert(!isBoolean());
-  Kind newOper = (constant.getValue() < 0) ? negateRelationKind(oper) : oper;
+  Kind newOper = (constant.getValue() < 0) ? reverseRelationKind(oper) : oper;
 
   return mkComparison(newOper, left*Monomial(constant), right*constant);
 }

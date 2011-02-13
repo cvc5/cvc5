@@ -120,7 +120,7 @@ inline bool isRelationOperator(Kind k){
 }
 
 /** is k \in {LT, LEQ, EQ, GEQ, GT} */
-inline Kind negateRelationKind(Kind k){
+inline Kind reverseRelationKind(Kind k){
   using namespace kind;
 
   switch(k){
@@ -134,6 +134,7 @@ inline Kind negateRelationKind(Kind k){
     Unreachable();
   }
 }
+
 inline bool evaluateConstantPredicate(Kind k, const Rational& left, const Rational& right){
   using namespace kind;
 
@@ -211,20 +212,24 @@ inline int deltaCoeff(Kind k){
 }
 
 /**
- * Given a rewritten predicate to TheoryArith return a single kind to
+ * Given a literal to TheoryArith return a single kind to
  * to indicate its underlying structure.
  * The function returns the following in each case:
- * - (K left right) -> K where is a wildcard for EQUAL, LEQ, or GEQ:
+ * - (K left right) -> K where is a wildcard for EQUAL, LT, GT, LEQ, or GEQ:
  * - (NOT (EQUAL left right)) -> DISTINCT
  * - (NOT (LEQ left right))   -> GT
  * - (NOT (GEQ left right))   -> LT
+ * - (NOT (LT left right))    -> GEQ
+ * - (NOT (GT left right))    -> LEQ
  * If none of these match, it returns UNDEFINED_KIND.
  */
  inline Kind simplifiedKind(TNode assertion){
   switch(assertion.getKind()){
+  case kind::LT:
+  case kind::GT:
   case kind::LEQ:
-  case  kind::GEQ:
-  case  kind::EQUAL:
+  case kind::GEQ:
+  case kind::EQUAL:
     return assertion.getKind();
   case  kind::NOT:
     {
@@ -232,8 +237,12 @@ inline int deltaCoeff(Kind k){
       switch(atom.getKind()){
       case  kind::LEQ: //(not (LEQ x c)) <=> (GT x c)
         return  kind::GT;
-      case  kind::GEQ: //(not (GEQ x c) <=> (LT x c)
+      case  kind::GEQ: //(not (GEQ x c)) <=> (LT x c)
         return  kind::LT;
+      case  kind::LT: //(not (LT x c)) <=> (GEQ x c)
+        return  kind::GEQ;
+      case  kind::GT: //(not (GT x c) <=> (LEQ x c)
+        return  kind::LEQ;
       case  kind::EQUAL:
         return  kind::DISTINCT;
       default:

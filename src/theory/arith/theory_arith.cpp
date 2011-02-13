@@ -72,12 +72,14 @@ TheoryArith::Statistics::Statistics():
   d_statUserVariables("theory::arith::UserVariables", 0),
   d_statSlackVariables("theory::arith::SlackVariables", 0),
   d_statDisequalitySplits("theory::arith::DisequalitySplits", 0),
-  d_statDisequalityConflicts("theory::arith::DisequalityConflicts", 0)
+  d_statDisequalityConflicts("theory::arith::DisequalityConflicts", 0),
+  d_staticLearningTimer("theory::arith::staticLearningTimer")
 {
   StatisticsRegistry::registerStat(&d_statUserVariables);
   StatisticsRegistry::registerStat(&d_statSlackVariables);
   StatisticsRegistry::registerStat(&d_statDisequalitySplits);
   StatisticsRegistry::registerStat(&d_statDisequalityConflicts);
+  StatisticsRegistry::registerStat(&d_staticLearningTimer);
 }
 
 TheoryArith::Statistics::~Statistics(){
@@ -85,8 +87,170 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statSlackVariables);
   StatisticsRegistry::unregisterStat(&d_statDisequalitySplits);
   StatisticsRegistry::unregisterStat(&d_statDisequalityConflicts);
+  StatisticsRegistry::unregisterStat(&d_staticLearningTimer);
 }
 
+void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
+  TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
+
+  vector<TNode> workList;
+  workList.push_back(n);
+  __gnu_cxx::hash_set<TNode, TNodeHashFunction> processed;
+
+  while(!workList.empty()) {
+    n = workList.back();
+
+    bool unprocessedChildren = false;
+    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
+      if(processed.find(*i) == processed.end()) {
+        // unprocessed child
+        workList.push_back(*i);
+        unprocessedChildren = true;
+      }
+    }
+
+    if(unprocessedChildren) {
+      continue;
+    }
+
+    workList.pop_back();
+    // has node n been processed in the meantime ?
+    if(processed.find(n) != processed.end()) {
+      continue;
+    }
+    processed.insert(n);
+
+    // == MINS ==
+
+    Debug("mins") << "===================== looking at" << endl << n << endl;
+    if(n.getKind() == kind::ITE && n[0].getKind() != EQUAL && isRelationOperator(n[0].getKind())  ){
+      TNode c = n[0];
+      Kind k = simplifiedKind(c);
+      TNode t = n[1];
+      TNode e = n[2];
+      TNode cleft = (c.getKind() == NOT) ? c[0][0] : c[0];
+      TNode cright = (c.getKind() == NOT) ? c[0][1] : c[1];
+
+      if((t == cright) && (e == cleft)){
+	TNode tmp = t;
+	t = e;
+	e = tmp;
+	k = reverseRelationKind(k);
+      }
+      if(t == cleft && e == cright){
+	// t == cleft && e == cright
+	Assert( t == cleft );
+	Assert( e == cright );
+	switch(k){
+	case LT:   // (ite (< x y) x y)
+	case LEQ: { // (ite (<= x y) x y)
+	  Node nLeqX = NodeBuilder<2>(LEQ) << n << t;
+	  Node nLeqY = NodeBuilder<2>(LEQ) << n << e;
+	  Debug("arith::mins") << n << "is a min =>"  << nLeqX << nLeqY << endl;
+	  learned << nLeqX << nLeqY;
+	  break;
+	}
+	case GT: // (ite (> x y) x y)
+	case GEQ: { // (ite (>= x y) x y)
+	  Node nGeqX = NodeBuilder<2>(GEQ) << n << t;
+	  Node nGeqY = NodeBuilder<2>(GEQ) << n << e;
+	  Debug("arith::mins") << n << "is a max =>"  << nGeqX << nGeqY << endl;
+	  learned << nGeqX << nGeqY;
+	  break;
+	}
+	default: Unreachable();
+	}
+      }
+    }
+    // == 2-CONSTANTS ==
+
+    if(n.getKind() == ITE &&
+       (n[1].getKind() == CONST_RATIONAL || n[1].getKind() == CONST_INTEGER) &&
+       (n[2].getKind() == CONST_RATIONAL || n[2].getKind() == CONST_INTEGER)) {
+      Rational t = coerceToRational(n[1]);
+      Rational e = coerceToRational(n[2]);
+      TNode min = (t <= e) ? n[1] : n[2];
+      TNode max = (t >= e) ? n[1] : n[2];
+
+      Node nGeqMin = NodeBuilder<2>(GEQ) << n << min;
+      Node nLeqMax = NodeBuilder<2>(LEQ) << n << max;
+      Debug("arith::mins") << n << " is a constant sandwich"  << nGeqMin << nLeqMax << endl;
+      learned << nGeqMin << nLeqMax;
+    }
+
+    // // binary OR of binary ANDs of EQUALities
+    // if(n.getKind() == kind::OR && n.getNumChildren() == 2 &&
+    //    n[0].getKind() == kind::AND && n[0].getNumChildren() == 2 &&
+    //    n[1].getKind() == kind::AND && n[1].getNumChildren() == 2 &&
+    //    (n[0][0].getKind() == kind::EQUAL || n[0][0].getKind() == kind::IFF) &&
+    //    (n[0][1].getKind() == kind::EQUAL || n[0][1].getKind() == kind::IFF) &&
+    //    (n[1][0].getKind() == kind::EQUAL || n[1][0].getKind() == kind::IFF) &&
+    //    (n[1][1].getKind() == kind::EQUAL || n[1][1].getKind() == kind::IFF)) {
+    //   // now we have (a = b && c = d) || (e = f && g = h)
+
+    //   Debug("diamonds") << "has form of a diamond!" << endl;
+
+    //   TNode
+    //     a = n[0][0][0], b = n[0][0][1],
+    //     c = n[0][1][0], d = n[0][1][1],
+    //     e = n[1][0][0], f = n[1][0][1],
+    //     g = n[1][1][0], h = n[1][1][1];
+
+    //   // test that one of {a, b} = one of {c, d}, and make "b" the
+    //   // shared node (i.e. put in the form (a = b && b = d))
+    //   // note we don't actually care about the shared ones, so the
+    //   // "swaps" below are one-sided, ignoring b and c
+    //   if(a == c) {
+    //     a = b;
+    //   } else if(a == d) {
+    //     a = b;
+    //     d = c;
+    //   } else if(b == c) {
+    //     // nothing to do
+    //   } else if(b == d) {
+    //     d = c;
+    //   } else {
+    //     // condition not satisfied
+    //     Debug("diamonds") << "+ A fails" << endl;
+    //     continue;
+    //   }
+
+    //   Debug("diamonds") << "+ A holds" << endl;
+
+    //   // same: one of {e, f} = one of {g, h}, and make "f" the
+    //   // shared node (i.e. put in the form (e = f && f = h))
+    //   if(e == g) {
+    //     e = f;
+    //   } else if(e == h) {
+    //     e = f;
+    //     h = g;
+    //   } else if(f == g) {
+    //     // nothing to do
+    //   } else if(f == h) {
+    //     h = g;
+    //   } else {
+    //     // condition not satisfied
+    //     Debug("diamonds") << "+ B fails" << endl;
+    //     continue;
+    //   }
+
+    //   Debug("diamonds") << "+ B holds" << endl;
+
+    //   // now we have (a = b && b = d) || (e = f && f = h)
+    //   // test that {a, d} == {e, h}
+    //   if( (a == e && d == h) ||
+    //       (a == h && d == e) ) {
+    //     // learn: n implies a == d
+    //     Debug("diamonds") << "+ C holds" << endl;
+    //     Node newEquality = a.getType().isBoolean() ? a.iffNode(d) : a.eqNode(d);
+    //     Debug("diamonds") << "  ==> " << newEquality << endl;
+    //     learned << n.impNode(newEquality);
+    //   } else {
+    //     Debug("diamonds") << "+ C fails" << endl;
+    //   }
+    // }
+  }
+}
 
 
 

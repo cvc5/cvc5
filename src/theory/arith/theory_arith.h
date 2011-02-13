@@ -125,6 +125,8 @@ public:
     check(FULL_EFFORT);
   }
 
+  void staticLearning(TNode in, NodeBuilder<>& learned);
+
   std::string identify() const { return std::string("TheoryArith"); }
 
 private:
@@ -167,6 +169,7 @@ private:
     IntStat d_statUserVariables, d_statSlackVariables;
     IntStat d_statDisequalitySplits;
     IntStat d_statDisequalityConflicts;
+    TimerStat d_staticLearningTimer;
 
     Statistics();
     ~Statistics();

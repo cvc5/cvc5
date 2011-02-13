@@ -18,7 +18,10 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
   d_statUpdateConflicts("theory::arith::UpdateConflicts", 0),
   d_statEjections("theory::arith::Ejections", 0),
-  d_statUnEjections("theory::arith::UnEjections", 0)
+  d_statUnEjections("theory::arith::UnEjections", 0),
+  d_statEarlyConflicts("theory::arith::EarlyConflicts", 0),
+  d_statEarlyConflictImprovements("theory::arith::EarlyConflictImprovements", 0),
+  d_selectInitialConflictTime("theory::arith::selectInitialConflictTime")
 {
   StatisticsRegistry::registerStat(&d_statPivots);
   StatisticsRegistry::registerStat(&d_statUpdates);
@@ -27,6 +30,9 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_statUpdateConflicts);
   StatisticsRegistry::registerStat(&d_statEjections);
   StatisticsRegistry::registerStat(&d_statUnEjections);
+  StatisticsRegistry::registerStat(&d_statEarlyConflicts);
+  StatisticsRegistry::registerStat(&d_statEarlyConflictImprovements);
+  StatisticsRegistry::registerStat(&d_selectInitialConflictTime);
 }
 
 SimplexDecisionProcedure::Statistics::~Statistics(){
@@ -37,6 +43,9 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statUpdateConflicts);
   StatisticsRegistry::unregisterStat(&d_statEjections);
   StatisticsRegistry::unregisterStat(&d_statUnEjections);
+  StatisticsRegistry::unregisterStat(&d_statEarlyConflicts);
+  StatisticsRegistry::unregisterStat(&d_statEarlyConflictImprovements);
+  StatisticsRegistry::unregisterStat(&d_selectInitialConflictTime);
 }
 
 
@@ -370,8 +379,70 @@ ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i){
   return slack;
 }
 
+Node betterConflict(TNode x, TNode y){
+  if(x.isNull()) return y;
+  else if(y.isNull()) return x;
+  else if(x.getNumChildren() <= y.getNumChildren()) return x;
+  else return y;
+}
+
+Node SimplexDecisionProcedure::selectInitialConflict() {
+  Node bestConflict = Node::null();
+
+  TimerStat::CodeTimer codeTimer(d_statistics.d_selectInitialConflictTime);
+
+  vector<VarDRatPair>  init;
+
+  while( !d_griggioRuleQueue.empty()){
+    ArithVar var = d_griggioRuleQueue.top().first;
+    if(d_basicManager.isMember(var)){
+      if(!d_partialModel.assignmentIsConsistent(var)){
+        init.push_back( d_griggioRuleQueue.top());
+      }
+    }
+    d_griggioRuleQueue.pop();
+  }
+
+  int conflictChanges = 0;
+
+  for(vector<VarDRatPair>::iterator i=init.begin(), end=init.end(); i != end; ++i){
+    ArithVar x_i = (*i).first;
+    d_griggioRuleQueue.push(*i);
+
+    DeltaRational beta_i = d_partialModel.getAssignment(x_i);
+
+    if(d_partialModel.belowLowerBound(x_i, beta_i, true)){
+      DeltaRational l_i = d_partialModel.getLowerBound(x_i);
+      ArithVar x_j = selectSlackBelow(x_i);
+      if(x_j == ARITHVAR_SENTINEL ){
+	Node better = betterConflict(bestConflict, generateConflictBelow(x_i));
+	if(better != bestConflict) ++conflictChanges;
+	bestConflict = better;
+        ++(d_statistics.d_statEarlyConflicts);
+      }
+    }else if(d_partialModel.aboveUpperBound(x_i, beta_i, true)){
+      DeltaRational u_i = d_partialModel.getUpperBound(x_i);
+      ArithVar x_j = selectSlackAbove(x_i);
+      if(x_j == ARITHVAR_SENTINEL ){
+	Node better = betterConflict(bestConflict, generateConflictAbove(x_i));
+	if(better != bestConflict) ++conflictChanges;
+	bestConflict = better;
+        ++(d_statistics.d_statEarlyConflicts);
+      }
+    }
+  }
+  if(conflictChanges > 1) ++(d_statistics.d_statEarlyConflictImprovements);
+  return bestConflict;
+}
+
 Node SimplexDecisionProcedure::updateInconsistentVars(){
-  Node possibleConflict = privateUpdateInconsistentVars();
+  if(d_griggioRuleQueue.empty()) return Node::null();
+
+  Node possibleConflict = selectInitialConflict();
+  if(possibleConflict.isNull()){
+    possibleConflict = privateUpdateInconsistentVars();
+  }
+
   Assert(!possibleConflict.isNull() || d_griggioRuleQueue.empty());
   Assert(!possibleConflict.isNull() || d_possiblyInconsistent.empty());
   d_pivotStage = true;
