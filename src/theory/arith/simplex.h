@@ -28,8 +28,9 @@ private:
       return a.second > b.second;
     }
   };
+  typedef std::priority_queue<VarDRatPair, std::vector<VarDRatPair>, VarDRatPairCompare> GriggioPQueue;
 
-  std::priority_queue<VarDRatPair, std::vector<VarDRatPair>, VarDRatPairCompare> d_griggioRuleQueue;
+  GriggioPQueue d_griggioRuleQueue;
 
   /**
    * Priority Queue of the basic variables that may be inconsistent.
@@ -37,8 +38,13 @@ private:
    * This is required to contain at least 1 instance of every inconsistent
    * basic variable. This is only required to be a superset though so its
    * contents must be checked to still be basic and inconsistent.
+   *
+   * This is also required to agree with the row on variable order for termination.
+   * Effectively this means that this must be a min-heap.
    */
-  std::priority_queue<ArithVar> d_possiblyInconsistent;
+  typedef std::priority_queue<ArithVar, vector<ArithVar>, std::greater<ArithVar> > PQueue;
+
+  PQueue d_possiblyInconsistent;
 
   /** Stores system wide constants to avoid unnessecary reconstruction. */
   const ArithConstants& d_constants;
