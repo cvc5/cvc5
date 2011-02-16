@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bv_rewrite_rules.cpp
+/*! \file theory_bv_rewrite_rules_core.h
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: none
@@ -17,26 +17,22 @@
  ** \todo document this file
  **/
 
-#include <vector>
-#include "expr/node_builder.h"
-#include "theory_bv_rewrite_rules.h"
-#include "theory_bv_utils.h"
+#pragma once
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
+#include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv_utils.h"
 
-bool CoreRewriteRules::ConcatFlatten::applies(Node node) {
+namespace CVC4 {
+namespace theory {
+namespace bv {
+
+template<>
+bool RewriteRule<ConcatFlatten>::applies(Node node) {
   return (node.getKind() == kind::BITVECTOR_CONCAT);
 }
 
-Node CoreRewriteRules::ConcatFlatten::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ConcatFlatten(" << node << ")" << endl;
-
+template<>
+Node RewriteRule<ConcatFlatten>::apply(Node node) {
   NodeBuilder<> result(kind::BITVECTOR_CONCAT);
   vector<Node> processing_stack;
   processing_stack.push_back(node);
@@ -50,22 +46,17 @@ Node CoreRewriteRules::ConcatFlatten::apply(Node node) {
       result << current;
     }
   }
-
   Node resultNode = result;
-  Debug("bitvector") << "ConcatFlatten(" << node << ") => " << resultNode << endl;
-
   return resultNode;
 }
 
-bool CoreRewriteRules::ConcatExtractMerge::applies(Node node) {
+template<>
+bool RewriteRule<ConcatExtractMerge>::applies(Node node) {
   return (node.getKind() == kind::BITVECTOR_CONCAT);
 }
 
-Node CoreRewriteRules::ConcatExtractMerge::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ConcatExtractMerge(" << node << ")" << endl;
-
+template<>
+Node RewriteRule<ConcatExtractMerge>::apply(Node node) {
   vector<Node> mergedExtracts;
 
   Node current = node[0];
@@ -84,16 +75,16 @@ Node CoreRewriteRules::ConcatExtractMerge::apply(Node node) {
     }
     // If it is an extract and the first one, get the extract parameters
     else if (!mergeStarted) {
-      currentHigh = getExtractHigh(current);
-      currentLow = getExtractLow(current);
+      currentHigh = utils::getExtractHigh(current);
+      currentLow = utils::getExtractLow(current);
     }
 
     // If the next one can be merged, try to merge
     bool merged = false;
     if (next.getKind() == kind::BITVECTOR_EXTRACT && current[0] == next[0]) {
       //x[i : j] @ x[j − 1 : k] -> c x[i : k]
-      unsigned nextHigh = getExtractHigh(next);
-      unsigned nextLow  = getExtractLow(next);
+      unsigned nextHigh = utils::getExtractHigh(next);
+      unsigned nextLow  = utils::getExtractLow(next);
       if(nextHigh + 1 == currentLow) {
         currentLow = nextLow;
         mergeStarted = true;
@@ -103,7 +94,7 @@ Node CoreRewriteRules::ConcatExtractMerge::apply(Node node) {
     // If we haven't merged anything, add the previous merge and continue with the next
     if (!merged) {
       if (!mergeStarted) mergedExtracts.push_back(current);
-      else mergedExtracts.push_back(mkExtract(current[0], currentHigh, currentLow));
+      else mergedExtracts.push_back(utils::mkExtract(current[0], currentHigh, currentLow));
       current = next;
       mergeStarted = false;
     }
@@ -111,26 +102,19 @@ Node CoreRewriteRules::ConcatExtractMerge::apply(Node node) {
 
   // Add the last child
   if (!mergeStarted) mergedExtracts.push_back(current);
-  else mergedExtracts.push_back(mkExtract(current[0], currentHigh, currentLow));
-
-  // Create the result
-  Node result = mkConcat(mergedExtracts);
-
-  Debug("bitvector") << "ConcatExtractMerge(" << node << ") =>" << result << endl;
+  else mergedExtracts.push_back(utils::mkExtract(current[0], currentHigh, currentLow));
 
   // Return the result
-  return result;
+  return utils::mkConcat(mergedExtracts);
 }
 
-bool CoreRewriteRules::ConcatConstantMerge::applies(Node node) {
+template<>
+bool RewriteRule<ConcatConstantMerge>::applies(Node node) {
   return node.getKind() == kind::BITVECTOR_CONCAT;
 }
 
-Node CoreRewriteRules::ConcatConstantMerge::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ConcatConstantMerge(" << node << ")" << endl;
-
+template<>
+Node RewriteRule<ConcatConstantMerge>::apply(Node node) {
   vector<Node> mergedConstants;
   for (unsigned i = 0, end = node.getNumChildren(); i < end;) {
     if (node[i].getKind() != kind::CONST_BITVECTOR) {
@@ -153,82 +137,66 @@ Node CoreRewriteRules::ConcatConstantMerge::apply(Node node) {
         current = current.concat(node[k].getConst<BitVector>());
       }
       // Add the new merged constant
-      mergedConstants.push_back(mkConst(current));
+      mergedConstants.push_back(utils::mkConst(current));
       i = j + 1;
     }
   }
 
-  Node result = mkConcat(mergedConstants);
-
-  Debug("bitvector") << "ConcatConstantMerge(" << node << ") => " << result << endl;
-
-  return result;
+  return utils::mkConcat(mergedConstants);
 }
 
-bool CoreRewriteRules::ExtractWhole::applies(Node node) {
+template<>
+bool RewriteRule<ExtractWhole>::applies(Node node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
-  unsigned length = getSize(node[0]);
-  unsigned extractHigh = getExtractHigh(node);
+  unsigned length = utils::getSize(node[0]);
+  unsigned extractHigh = utils::getExtractHigh(node);
   if (extractHigh != length - 1) return false;
-  unsigned extractLow  = getExtractLow(node);
+  unsigned extractLow  = utils::getExtractLow(node);
   if (extractLow != 0) return false;
   return true;
 }
 
-Node CoreRewriteRules::ExtractWhole::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ExtractWhole(" << node << ")" << endl;
-  Debug("bitvector") << "ExtractWhole(" << node << ") => " << node[0] << endl;
-
+template<>
+Node RewriteRule<ExtractWhole>::apply(Node node) {
   return node[0];
 }
 
-bool CoreRewriteRules::ExtractConstant::applies(Node node) {
+template<>
+bool RewriteRule<ExtractConstant>::applies(Node node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
   return true;
 }
 
-Node CoreRewriteRules::ExtractConstant::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ExtractConstant(" << node << ")" << endl;
-
+template<>
+Node RewriteRule<ExtractConstant>::apply(Node node) {
   Node child = node[0];
   BitVector childValue = child.getConst<BitVector>();
-
-  Node result = mkConst(childValue.extract(getExtractHigh(node), getExtractLow(node)));
-
-  Debug("bitvector") << "ExtractConstant(" << node << ") => " << result << endl;
-
-  return result;
+  return utils::mkConst(childValue.extract(utils::getExtractHigh(node), utils::getExtractLow(node)));
 }
 
-bool CoreRewriteRules::ExtractConcat::applies(Node node) {
+template<>
+bool RewriteRule<ExtractConcat>::applies(Node node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::BITVECTOR_CONCAT) return false;
   return true;
 }
 
-Node CoreRewriteRules::ExtractConcat::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ExtractConcat(" << node << ")" << endl;
-
-  int extract_high = getExtractHigh(node);
-  int extract_low = getExtractLow(node);
+template<>
+Node RewriteRule<ExtractConcat>::apply(Node node) {
+  int extract_high = utils::getExtractHigh(node);
+  int extract_low = utils::getExtractLow(node);
 
   vector<Node> resultChildren;
 
   Node concat = node[0];
   for (int i = concat.getNumChildren() - 1; i >= 0 && extract_high >= 0; i--) {
     Node concatChild = concat[i];
-    int concatChildSize = getSize(concatChild);
+    int concatChildSize = utils::getSize(concatChild);
     if (extract_low < concatChildSize) {
       int extract_start = extract_low < 0 ? 0 : extract_low;
       int extract_end = extract_high < concatChildSize ? extract_high : concatChildSize - 1;
-      resultChildren.push_back(mkExtract(concatChild, extract_end, extract_start));
+      resultChildren.push_back(utils::mkExtract(concatChild, extract_end, extract_start));
     }
     extract_low -= concatChildSize;
     extract_high -= concatChildSize;
@@ -236,70 +204,62 @@ Node CoreRewriteRules::ExtractConcat::apply(Node node) {
 
   std::reverse(resultChildren.begin(), resultChildren.end());
 
-  Node result = mkConcat(resultChildren);
-
-  Debug("bitvector") << "ExtractConcat(" << node << ") => " << result << endl;
-
-  return result;
+  return utils::mkConcat(resultChildren);
 }
 
-bool CoreRewriteRules::ExtractExtract::applies(Node node) {
+template<>
+bool RewriteRule<ExtractExtract>::applies(Node node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::BITVECTOR_EXTRACT) return false;
   return true;
 }
 
-Node CoreRewriteRules::ExtractExtract::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "ExtractExtract(" << node << ")" << endl;
-
+template<>
+Node RewriteRule<ExtractExtract>::apply(Node node) {
   // x[i:j][k:l] ~>  x[k+j:l+j]
   Node child = node[0];
-  unsigned k = getExtractHigh(node);
-  unsigned l = getExtractLow(node);
-  unsigned j = getExtractLow(child);
+  unsigned k = utils::getExtractHigh(node);
+  unsigned l = utils::getExtractLow(node);
+  unsigned j = utils::getExtractLow(child);
 
-  Node result = mkExtract(child[0], k + j, l + j);
-
-  Debug("bitvector") << "ExtractExtract(" << node << ") => " << result << endl;
-
+  Node result = utils::mkExtract(child[0], k + j, l + j);
   return result;
 }
 
-bool CoreRewriteRules::FailEq::applies(Node node) {
+template<>
+bool RewriteRule<FailEq>::applies(Node node) {
   if (node.getKind() != kind::EQUAL) return false;
   if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
   if (node[1].getKind() != kind::CONST_BITVECTOR) return false;
   return node[0] != node[1];
 }
 
-Node CoreRewriteRules::FailEq::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "FailEq(" << node << ")" << endl;
-
-  Node result = mkFalse();
-
-  Debug("bitvector") << "FailEq(" << node << ") => " << result << endl;
-
-  return result;
+template<>
+Node RewriteRule<FailEq>::apply(Node node) {
+    return utils::mkFalse();
 }
 
-bool CoreRewriteRules::SimplifyEq::applies(Node node) {
+template<>
+bool RewriteRule<SimplifyEq>::applies(Node node) {
   if (node.getKind() != kind::EQUAL) return false;
   return node[0] == node[1];
 }
 
-Node CoreRewriteRules::SimplifyEq::apply(Node node) {
-  Assert(applies(node));
-
-  Debug("bitvector") << "FailEq(" << node << ")" << endl;
-
-  Node result = mkTrue();
-
-  Debug("bitvector") << "FailEq(" << node << ") => " << result << endl;
-
-  return result;
+template<>
+Node RewriteRule<SimplifyEq>::apply(Node node) {
+  return utils::mkTrue();
 }
 
+template<>
+bool RewriteRule<ReflexivityEq>::applies(Node node) {
+  return (node.getKind() == kind::EQUAL && node[0] < node[1]);
+}
+
+template<>
+Node RewriteRule<ReflexivityEq>::apply(Node node) {
+  return node[1].eqNode(node[0]);;
+}
+
+}
+}
+}

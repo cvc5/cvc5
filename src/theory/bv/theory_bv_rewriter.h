@@ -7,15 +7,17 @@
 
 #pragma once
 
-
-
 #include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
+class AllRewriteRules;
+
 class TheoryBVRewriter {
+
+  static AllRewriteRules* s_allRules;
 
 public:
 
@@ -25,9 +27,8 @@ public:
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  static inline void init() {}
-  static inline void shutdown() {}
-
+  static void init();
+  static void shutdown();
 };
 
 }

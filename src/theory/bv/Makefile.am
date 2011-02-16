@@ -10,7 +10,7 @@ libbv_la_SOURCES = \
 	theory_bv.cpp \
 	theory_bv_utils.h \
 	theory_bv_rewrite_rules.h \
-	theory_bv_rewrite_rules.cpp \
+	theory_bv_rewrite_rules_core.h \
 	theory_bv_type_rules.h \
 	theory_bv_rewriter.h \
 	theory_bv_rewriter.cpp \
