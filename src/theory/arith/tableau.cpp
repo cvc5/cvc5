@@ -33,7 +33,7 @@ void Tableau::addRow(ArithVar basicVar,
 
   //The new basic variable cannot already be a basic variable
   Assert(!isActiveBasicVariable(basicVar));
-  d_activeBasicVars.insert(basicVar);
+  d_activeBasicVars.add(basicVar);
   ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs,d_rowCount);
   d_rowsTable[basicVar] = row_current;
 
@@ -73,10 +73,10 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
   d_rowsTable[x_s] = row_s;
   d_rowsTable[x_r] = NULL;
 
-  d_activeBasicVars.erase(x_r);
+  d_activeBasicVars.remove(x_r);
   d_basicManager.remove(x_r);
 
-  d_activeBasicVars.insert(x_s);
+  d_activeBasicVars.add(x_s);
   d_basicManager.add(x_s);
 
   row_s->pivot(x_s);

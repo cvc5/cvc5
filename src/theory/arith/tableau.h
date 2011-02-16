@@ -22,7 +22,7 @@
 #include "expr/attribute.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/arithvar_dense_set.h"
+#include "theory/arith/arithvar_set.h"
 #include "theory/arith/normal_form.h"
 
 #include "theory/arith/row_vector.h"
@@ -37,54 +37,6 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class ArithVarSet {
-private:
-  typedef std::list<ArithVar> VarList;
-
-public:
-  typedef VarList::const_iterator iterator;
-
-private:
-  VarList d_list;
-  std::vector< VarList::iterator > d_posVector;
-
-public:
-  ArithVarSet() : d_list(),  d_posVector() {}
-
-  iterator begin() const{ return d_list.begin(); }
-  iterator end() const{ return d_list.end(); }
-
-  void insert(ArithVar av){
-    Assert(inRange(av) );
-    Assert(!inSet(av) );
-
-    d_posVector[av] = d_list.insert(d_list.end(), av);
-  }
-
-  void erase(ArithVar var){
-    Assert( inRange(var) );
-    Assert( inSet(var) );
-
-    d_list.erase(d_posVector[var]);
-    d_posVector[var] = d_list.end();
-  }
-
-  void increaseSize(){
-    d_posVector.push_back(d_list.end());
-  }
-
-  bool inSet(ArithVar v) const{
-    Assert(inRange(v) );
-
-    return d_posVector[v] != d_list.end();
-  }
-
-private:
-  bool inRange(ArithVar v) const{
-    return v < d_posVector.size();
-  }
-};
-
 class Tableau {
 private:
 
@@ -95,7 +47,7 @@ private:
 
 
   ActivityMonitor& d_activityMonitor;
-  ArithVarDenseSet& d_basicManager;
+  ArithVarSet& d_basicManager;
 
   std::vector<uint32_t> d_rowCount;
 
@@ -103,7 +55,7 @@ public:
   /**
    * Constructs an empty tableau.
    */
-  Tableau(ActivityMonitor &am, ArithVarDenseSet& bm) :
+  Tableau(ActivityMonitor &am, ArithVarSet& bm) :
     d_activeBasicVars(),
     d_rowsTable(),
     d_activityMonitor(am),
@@ -163,20 +115,22 @@ public:
     Assert(d_basicManager.isMember(basic));
     Assert(isActiveBasicVariable(basic));
 
-    d_activeBasicVars.erase(basic);
+    d_activeBasicVars.remove(basic);
   }
 
   void reinjectBasic(ArithVar basic){
+    AlwaysAssert(false);
+
     Assert(d_basicManager.isMember(basic));
     Assert(isEjected(basic));
 
     ReducedRowVector* row = lookupEjected(basic);
-    d_activeBasicVars.insert(basic);
+    d_activeBasicVars.add(basic);
     updateRow(row);
   }
 private:
   inline bool isActiveBasicVariable(ArithVar var){
-    return d_activeBasicVars.inSet(var);
+    return d_activeBasicVars.isMember(var);
   }
 
   void updateRow(ReducedRowVector* row);

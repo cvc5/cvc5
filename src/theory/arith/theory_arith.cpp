@@ -31,7 +31,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau.h"
-#include "theory/arith/arithvar_dense_set.h"
+#include "theory/arith/arithvar_set.h"
 
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/unate_propagator.h"
@@ -58,6 +58,7 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
   d_basicManager(),
+  d_userVariables(),
   d_activityMonitor(),
   d_diseq(c),
   d_tableau(d_activityMonitor, d_basicManager),
@@ -73,13 +74,18 @@ TheoryArith::Statistics::Statistics():
   d_statSlackVariables("theory::arith::SlackVariables", 0),
   d_statDisequalitySplits("theory::arith::DisequalitySplits", 0),
   d_statDisequalityConflicts("theory::arith::DisequalityConflicts", 0),
-  d_staticLearningTimer("theory::arith::staticLearningTimer")
+  d_staticLearningTimer("theory::arith::staticLearningTimer"),
+  d_permanentlyRemovedVariables("theory::arith::permanentlyRemovedVariables", 0),
+  d_presolveTime("theory::arith::presolveTime")
 {
   StatisticsRegistry::registerStat(&d_statUserVariables);
   StatisticsRegistry::registerStat(&d_statSlackVariables);
   StatisticsRegistry::registerStat(&d_statDisequalitySplits);
   StatisticsRegistry::registerStat(&d_statDisequalityConflicts);
   StatisticsRegistry::registerStat(&d_staticLearningTimer);
+
+  StatisticsRegistry::registerStat(&d_permanentlyRemovedVariables);
+  StatisticsRegistry::registerStat(&d_presolveTime);
 }
 
 TheoryArith::Statistics::~Statistics(){
@@ -88,6 +94,9 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statDisequalitySplits);
   StatisticsRegistry::unregisterStat(&d_statDisequalityConflicts);
   StatisticsRegistry::unregisterStat(&d_staticLearningTimer);
+
+  StatisticsRegistry::unregisterStat(&d_permanentlyRemovedVariables);
+  StatisticsRegistry::unregisterStat(&d_presolveTime);
 }
 
 void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
@@ -132,34 +141,34 @@ void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
       TNode cright = (c.getKind() == NOT) ? c[0][1] : c[1];
 
       if((t == cright) && (e == cleft)){
-	TNode tmp = t;
-	t = e;
-	e = tmp;
-	k = reverseRelationKind(k);
+        TNode tmp = t;
+        t = e;
+        e = tmp;
+        k = reverseRelationKind(k);
       }
       if(t == cleft && e == cright){
-	// t == cleft && e == cright
-	Assert( t == cleft );
-	Assert( e == cright );
-	switch(k){
-	case LT:   // (ite (< x y) x y)
-	case LEQ: { // (ite (<= x y) x y)
-	  Node nLeqX = NodeBuilder<2>(LEQ) << n << t;
-	  Node nLeqY = NodeBuilder<2>(LEQ) << n << e;
-	  Debug("arith::mins") << n << "is a min =>"  << nLeqX << nLeqY << endl;
-	  learned << nLeqX << nLeqY;
-	  break;
-	}
-	case GT: // (ite (> x y) x y)
-	case GEQ: { // (ite (>= x y) x y)
-	  Node nGeqX = NodeBuilder<2>(GEQ) << n << t;
-	  Node nGeqY = NodeBuilder<2>(GEQ) << n << e;
-	  Debug("arith::mins") << n << "is a max =>"  << nGeqX << nGeqY << endl;
-	  learned << nGeqX << nGeqY;
-	  break;
-	}
-	default: Unreachable();
-	}
+        // t == cleft && e == cright
+        Assert( t == cleft );
+        Assert( e == cright );
+        switch(k){
+        case LT:   // (ite (< x y) x y)
+        case LEQ: { // (ite (<= x y) x y)
+          Node nLeqX = NodeBuilder<2>(LEQ) << n << t;
+          Node nLeqY = NodeBuilder<2>(LEQ) << n << e;
+          Debug("arith::mins") << n << "is a min =>"  << nLeqX << nLeqY << endl;
+          learned << nLeqX << nLeqY;
+          break;
+        }
+        case GT: // (ite (> x y) x y)
+        case GEQ: { // (ite (>= x y) x y)
+          Node nGeqX = NodeBuilder<2>(GEQ) << n << t;
+          Node nGeqY = NodeBuilder<2>(GEQ) << n << e;
+          Debug("arith::mins") << n << "is a max =>"  << nGeqX << nGeqY << endl;
+          learned << nGeqX << nGeqY;
+          break;
+        }
+        default: Unreachable();
+        }
       }
     }
     // == 2-CONSTANTS ==
@@ -177,84 +186,15 @@ void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
       Debug("arith::mins") << n << " is a constant sandwich"  << nGeqMin << nLeqMax << endl;
       learned << nGeqMin << nLeqMax;
     }
-
-    // // binary OR of binary ANDs of EQUALities
-    // if(n.getKind() == kind::OR && n.getNumChildren() == 2 &&
-    //    n[0].getKind() == kind::AND && n[0].getNumChildren() == 2 &&
-    //    n[1].getKind() == kind::AND && n[1].getNumChildren() == 2 &&
-    //    (n[0][0].getKind() == kind::EQUAL || n[0][0].getKind() == kind::IFF) &&
-    //    (n[0][1].getKind() == kind::EQUAL || n[0][1].getKind() == kind::IFF) &&
-    //    (n[1][0].getKind() == kind::EQUAL || n[1][0].getKind() == kind::IFF) &&
-    //    (n[1][1].getKind() == kind::EQUAL || n[1][1].getKind() == kind::IFF)) {
-    //   // now we have (a = b && c = d) || (e = f && g = h)
-
-    //   Debug("diamonds") << "has form of a diamond!" << endl;
-
-    //   TNode
-    //     a = n[0][0][0], b = n[0][0][1],
-    //     c = n[0][1][0], d = n[0][1][1],
-    //     e = n[1][0][0], f = n[1][0][1],
-    //     g = n[1][1][0], h = n[1][1][1];
-
-    //   // test that one of {a, b} = one of {c, d}, and make "b" the
-    //   // shared node (i.e. put in the form (a = b && b = d))
-    //   // note we don't actually care about the shared ones, so the
-    //   // "swaps" below are one-sided, ignoring b and c
-    //   if(a == c) {
-    //     a = b;
-    //   } else if(a == d) {
-    //     a = b;
-    //     d = c;
-    //   } else if(b == c) {
-    //     // nothing to do
-    //   } else if(b == d) {
-    //     d = c;
-    //   } else {
-    //     // condition not satisfied
-    //     Debug("diamonds") << "+ A fails" << endl;
-    //     continue;
-    //   }
-
-    //   Debug("diamonds") << "+ A holds" << endl;
-
-    //   // same: one of {e, f} = one of {g, h}, and make "f" the
-    //   // shared node (i.e. put in the form (e = f && f = h))
-    //   if(e == g) {
-    //     e = f;
-    //   } else if(e == h) {
-    //     e = f;
-    //     h = g;
-    //   } else if(f == g) {
-    //     // nothing to do
-    //   } else if(f == h) {
-    //     h = g;
-    //   } else {
-    //     // condition not satisfied
-    //     Debug("diamonds") << "+ B fails" << endl;
-    //     continue;
-    //   }
-
-    //   Debug("diamonds") << "+ B holds" << endl;
-
-    //   // now we have (a = b && b = d) || (e = f && f = h)
-    //   // test that {a, d} == {e, h}
-    //   if( (a == e && d == h) ||
-    //       (a == h && d == e) ) {
-    //     // learn: n implies a == d
-    //     Debug("diamonds") << "+ C holds" << endl;
-    //     Node newEquality = a.getType().isBoolean() ? a.iffNode(d) : a.eqNode(d);
-    //     Debug("diamonds") << "  ==> " << newEquality << endl;
-    //     learned << n.impNode(newEquality);
-    //   } else {
-    //     Debug("diamonds") << "+ C fails" << endl;
-    //   }
-    // }
   }
 }
 
 
 
-ArithVar TheoryArith::findBasicRow(ArithVar variable){
+ArithVar TheoryArith::findShortestBasicRow(ArithVar variable){
+  ArithVar bestBasic = ARITHVAR_SENTINEL;
+  unsigned rowLength = 0;
+
   for(ArithVarSet::iterator basicIter = d_tableau.begin();
       basicIter != d_tableau.end();
       ++basicIter){
@@ -262,10 +202,14 @@ ArithVar TheoryArith::findBasicRow(ArithVar variable){
     ReducedRowVector* row_j = d_tableau.lookup(x_j);
 
     if(row_j->has(variable)){
-      return x_j;
+      if((bestBasic == ARITHVAR_SENTINEL) ||
+         (bestBasic != ARITHVAR_SENTINEL && row_j->size() < rowLength)){
+        bestBasic = x_j;
+        rowLength = row_j->size();
+      }
     }
   }
-  return ARITHVAR_SENTINEL;
+  return bestBasic;
 }
 
 
@@ -279,7 +223,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
     d_out->setIncomplete();
   }
 
-  if(isLeaf(n) || isStrictlyVarList){
+  if(Variable::isMember(n) || isStrictlyVarList){
     ++(d_statistics.d_statUserVariables);
     ArithVar varN = requestArithVar(n,false);
     setupInitialValue(varN);
@@ -322,6 +266,7 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
   d_activityMonitor.push_back(0);
 
   d_basicManager.init(varX,basic);
+  d_userVariables.init(varX, !basic);
   d_tableau.increaseSize();
 
   Debug("arith::arithvar") << x << " |-> " << varX << endl;
@@ -709,4 +654,72 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
 
 void TheoryArith::notifyEq(TNode lhs, TNode rhs) {
 
+}
+
+bool TheoryArith::entireStateIsConsistent(){
+  typedef std::vector<Node>::const_iterator VarIter;
+  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
+    ArithVar var = asArithVar(*i);
+    if(!d_partialModel.assignmentIsConsistent(var)){
+      d_partialModel.printModel(var);
+      cerr << "Assignment is not consistent for " << var << *i << endl;
+      return false;
+    }
+  }
+  return true;
+}
+
+void TheoryArith::permanentlyRemoveVariable(ArithVar v){
+  //There are 3 cases
+  // 1) v is non-basic and is contained in a row
+  // 2) v is basic
+  // 3) v is non-basic and is not contained in a row
+  //  It appears that this can happen after other variables have been removed!
+  //  Tread carefullty with this one.
+
+  if(!d_basicManager.isMember(v)){
+    ArithVar basic = findShortestBasicRow(v);
+
+    if(basic == ARITHVAR_SENTINEL){
+      //Case 3) do nothing else.
+      //TODO think hard about if this is okay...
+      return;
+    }
+
+    AlwaysAssert(basic != ARITHVAR_SENTINEL);
+    d_tableau.pivot(basic, v);
+  }
+
+  Assert(d_basicManager.isMember(v));
+
+  d_tableau.ejectBasic(v);
+  //remove the row from the tableau
+  //TODO: It would be better to remove the row from the tableau
+  //and store this row in another data structure
+
+
+  Debug("arith::permanentlyRemoveVariable") << v << " died an ignoble death."<< endl;
+  ++(d_statistics.d_permanentlyRemovedVariables);
+}
+
+void TheoryArith::presolve(){
+  TimerStat::CodeTimer codeTimer(d_statistics.d_presolveTime);
+
+  typedef std::vector<Node>::const_iterator VarIter;
+  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
+    Node variableNode = *i;
+    ArithVar var = asArithVar(variableNode);
+    if(d_userVariables.isMember(var) && !d_propagator.hasAnyAtoms(variableNode)){
+      //The user variable is unconstrained.
+      //Remove this variable permanently
+      permanentlyRemoveVariable(var);
+    }
+  }
+
+  //Assert(entireStateIsConsistent()); //Boy is this paranoid
+  if(Debug.isOn("paranoid:check_tableau")){ d_simplex.checkTableau(); }
+
+  static int callCount = 0;
+  Debug("arith::presolve") << "TheoryArith::presolve #" << (callCount++) << endl;
+  check(FULL_EFFORT);
 }

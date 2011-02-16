@@ -47,6 +47,15 @@ bool ArithUnatePropagator::leftIsSetup(TNode left){
   return left.hasAttribute(PropagatorEqSet());
 }
 
+bool ArithUnatePropagator::hasAnyAtoms(TNode v){
+  Assert(!leftIsSetup(v)
+         || !v.getAttribute(PropagatorEqSet())->empty()
+         || !v.getAttribute(PropagatorLeqSet())->empty()
+         || !v.getAttribute(PropagatorGeqSet())->empty());
+
+  return leftIsSetup(v);
+}
+
 void ArithUnatePropagator::setupLefthand(TNode left){
   Assert(!leftIsSetup(left));
 

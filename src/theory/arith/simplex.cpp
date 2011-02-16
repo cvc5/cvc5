@@ -21,7 +21,10 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_statUnEjections("theory::arith::UnEjections", 0),
   d_statEarlyConflicts("theory::arith::EarlyConflicts", 0),
   d_statEarlyConflictImprovements("theory::arith::EarlyConflictImprovements", 0),
-  d_selectInitialConflictTime("theory::arith::selectInitialConflictTime")
+  d_selectInitialConflictTime("theory::arith::selectInitialConflictTime"),
+  d_pivotsAfterConflict("theory::arith::pivotsAfterConflict", 0),
+  d_checksWithWastefulPivots("theory::arith::checksWithWastefulPivots", 0),
+  d_pivotTime("theory::arith::pivotTime")
 {
   StatisticsRegistry::registerStat(&d_statPivots);
   StatisticsRegistry::registerStat(&d_statUpdates);
@@ -33,6 +36,10 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_statEarlyConflicts);
   StatisticsRegistry::registerStat(&d_statEarlyConflictImprovements);
   StatisticsRegistry::registerStat(&d_selectInitialConflictTime);
+
+  StatisticsRegistry::registerStat(&d_pivotsAfterConflict);
+  StatisticsRegistry::registerStat(&d_checksWithWastefulPivots);
+  StatisticsRegistry::registerStat(&d_pivotTime);
 }
 
 SimplexDecisionProcedure::Statistics::~Statistics(){
@@ -46,10 +53,15 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statEarlyConflicts);
   StatisticsRegistry::unregisterStat(&d_statEarlyConflictImprovements);
   StatisticsRegistry::unregisterStat(&d_selectInitialConflictTime);
+
+  StatisticsRegistry::unregisterStat(&d_pivotsAfterConflict);
+  StatisticsRegistry::unregisterStat(&d_checksWithWastefulPivots);
+  StatisticsRegistry::unregisterStat(&d_pivotTime);
 }
 
 
 void SimplexDecisionProcedure::ejectInactiveVariables(){
+  return; //die die die
 
   for(ArithVarSet::iterator i = d_tableau.begin(), end = d_tableau.end(); i != end;){
     ArithVar variable = *i;
@@ -247,6 +259,32 @@ void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
 void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v){
   Assert(x_i != x_j);
 
+  TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
+
+  if(Debug.isOn("arith::pivotAndUpdate")){
+    Debug("arith::pivotAndUpdate") << "x_i " << "|->" << x_j << endl;
+    ReducedRowVector* row_k = d_tableau.lookup(x_i);
+    for(ReducedRowVector::NonZeroIterator varIter = row_k->beginNonZero();
+        varIter != row_k->endNonZero();
+        ++varIter){
+
+      ArithVar var = varIter->first;
+      const Rational& coeff = varIter->second;
+      DeltaRational beta = d_partialModel.getAssignment(var);
+      Debug("arith::pivotAndUpdate") << var << beta << coeff;
+      if(d_partialModel.hasLowerBound(var)){
+        Debug("arith::pivotAndUpdate") << "(lb " << d_partialModel.getLowerBound(var) << ")";
+      }
+      if(d_partialModel.hasUpperBound(var)){
+        Debug("arith::pivotAndUpdate") << "(up " << d_partialModel.getUpperBound(var)
+                                       << ")";
+      }
+      Debug("arith::pivotAndUpdate") << endl;
+    }
+    Debug("arith::pivotAndUpdate") << "end row"<< endl;
+  }
+
+
   ReducedRowVector* row_i = d_tableau.lookup(x_i);
   const Rational& a_ij = row_i->lookup(x_j);
 
@@ -279,10 +317,34 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
     }
   }
 
+  // Pivots
   ++(d_statistics.d_statPivots);
+  if( d_foundAConflict ){
+    ++d_pivotsSinceConflict;
+    if(d_pivotsSinceConflict == 1){
+      ++(d_statistics.d_checksWithWastefulPivots);
+    }
+    ++(d_statistics.d_pivotsAfterConflict);
+  }
+
   d_tableau.pivot(x_i, x_j);
 
   checkBasicVariable(x_j);
+
+  // Debug found conflict
+  if( !d_foundAConflict ){
+    DeltaRational beta_j = d_partialModel.getAssignment(x_j);
+
+    if(d_partialModel.belowLowerBound(x_j, beta_j, true)){
+      if(selectSlackBelow(x_j) == ARITHVAR_SENTINEL ){
+        d_foundAConflict = true;
+      }
+    }else if(d_partialModel.aboveUpperBound(x_j, beta_j, true)){
+      if(selectSlackAbove(x_j) == ARITHVAR_SENTINEL ){
+        d_foundAConflict = true;
+      }
+    }
+  }
 
   if(Debug.isOn("tableau")){
     d_tableau.printTableau();
@@ -364,7 +426,8 @@ ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i){
         }else{
           slack = nonbasic; break;
         }
-      }else if(cmp < 0 && d_partialModel.strictlyAboveLowerBound(nonbasic)){if(d_pivotStage){
+      }else if(cmp < 0 && d_partialModel.strictlyAboveLowerBound(nonbasic)){
+        if(d_pivotStage){
           if(d_tableau.getRowCount(nonbasic) < numRows){
             slack = nonbasic;
             numRows = d_tableau.getRowCount(nonbasic);
@@ -409,26 +472,15 @@ Node SimplexDecisionProcedure::selectInitialConflict() {
     ArithVar x_i = (*i).first;
     d_griggioRuleQueue.push(*i);
 
-    DeltaRational beta_i = d_partialModel.getAssignment(x_i);
+    Node possibleConflict = checkBasicForConflict(x_i);
+    if(!possibleConflict.isNull()){
+      Node better = betterConflict(bestConflict, possibleConflict);
 
-    if(d_partialModel.belowLowerBound(x_i, beta_i, true)){
-      DeltaRational l_i = d_partialModel.getLowerBound(x_i);
-      ArithVar x_j = selectSlackBelow(x_i);
-      if(x_j == ARITHVAR_SENTINEL ){
-	Node better = betterConflict(bestConflict, generateConflictBelow(x_i));
-	if(better != bestConflict) ++conflictChanges;
-	bestConflict = better;
-        ++(d_statistics.d_statEarlyConflicts);
+      if(better != bestConflict){
+        ++conflictChanges;
       }
-    }else if(d_partialModel.aboveUpperBound(x_i, beta_i, true)){
-      DeltaRational u_i = d_partialModel.getUpperBound(x_i);
-      ArithVar x_j = selectSlackAbove(x_i);
-      if(x_j == ARITHVAR_SENTINEL ){
-	Node better = betterConflict(bestConflict, generateConflictAbove(x_i));
-	if(better != bestConflict) ++conflictChanges;
-	bestConflict = better;
-        ++(d_statistics.d_statEarlyConflicts);
-      }
+      bestConflict = better;
+      ++(d_statistics.d_statEarlyConflicts);
     }
   }
   if(conflictChanges > 1) ++(d_statistics.d_statEarlyConflictImprovements);
@@ -438,7 +490,13 @@ Node SimplexDecisionProcedure::selectInitialConflict() {
 Node SimplexDecisionProcedure::updateInconsistentVars(){
   if(d_griggioRuleQueue.empty()) return Node::null();
 
-  Node possibleConflict = selectInitialConflict();
+  d_foundAConflict = false;
+  d_pivotsSinceConflict = 0;
+
+  Node possibleConflict = Node::null();
+  if(d_griggioRuleQueue.size() > 1){
+    possibleConflict = selectInitialConflict();
+  }
   if(possibleConflict.isNull()){
     possibleConflict = privateUpdateInconsistentVars();
   }
@@ -457,6 +515,25 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   return possibleConflict;
 }
 
+Node SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic){
+
+  Assert(d_basicManager.isMember(basic));
+  const DeltaRational& beta = d_partialModel.getAssignment(basic);
+
+  if(d_partialModel.belowLowerBound(basic, beta, true)){
+    ArithVar x_j = selectSlackBelow(basic);
+    if(x_j == ARITHVAR_SENTINEL ){
+      return generateConflictBelow(basic);
+    }
+  }else if(d_partialModel.aboveUpperBound(basic, beta, true)){
+    ArithVar x_j = selectSlackAbove(basic);
+    if(x_j == ARITHVAR_SENTINEL ){
+      return generateConflictAbove(basic);
+    }
+  }
+  return Node::null();
+}
+
 //corresponds to Check() in dM06
 Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
   Assert(d_pivotStage || d_griggioRuleQueue.empty());
@@ -470,7 +547,7 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
     if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
     ArithVar x_i = selectSmallestInconsistentVar();
-    Debug("arith_update") << "selectSmallestInconsistentVar()=" << x_i << endl;
+    Debug("arith::update::select") << "selectSmallestInconsistentVar()=" << x_i << endl;
     if(x_i == ARITHVAR_SENTINEL){
       Debug("arith_update") << "No inconsistent variables" << endl;
       return Node::null(); //sat
@@ -481,10 +558,11 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
       ejectInactiveVariables();
 
     DeltaRational beta_i = d_partialModel.getAssignment(x_i);
+    ArithVar x_j = ARITHVAR_SENTINEL;
 
     if(d_partialModel.belowLowerBound(x_i, beta_i, true)){
       DeltaRational l_i = d_partialModel.getLowerBound(x_i);
-      ArithVar x_j = selectSlackBelow(x_i);
+      x_j = selectSlackBelow(x_i);
       if(x_j == ARITHVAR_SENTINEL ){
         ++(d_statistics.d_statUpdateConflicts);
         return generateConflictBelow(x_i); //unsat
@@ -493,12 +571,18 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
 
     }else if(d_partialModel.aboveUpperBound(x_i, beta_i, true)){
       DeltaRational u_i = d_partialModel.getUpperBound(x_i);
-      ArithVar x_j = selectSlackAbove(x_i);
+      x_j = selectSlackAbove(x_i);
       if(x_j == ARITHVAR_SENTINEL ){
         ++(d_statistics.d_statUpdateConflicts);
         return generateConflictAbove(x_i); //unsat
       }
       pivotAndUpdate(x_i, x_j, u_i);
+    }
+    Assert(x_j != ARITHVAR_SENTINEL);
+    //Check to see if we already have a conflict with x_j to prevent wasteful work
+    Node earlyConflict = checkBasicForConflict(x_j);
+    if(!earlyConflict.isNull()){
+      return earlyConflict;
     }
   }
 

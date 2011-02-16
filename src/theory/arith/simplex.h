@@ -5,7 +5,7 @@
 #define __CVC4__THEORY__ARITH__SIMPLEX_H
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/arithvar_dense_set.h"
+#include "theory/arith/arithvar_set.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
@@ -55,7 +55,7 @@ private:
    */
   ArithPartialModel& d_partialModel;
 
-  ArithVarDenseSet& d_basicManager;
+  ArithVarSet& d_basicManager;
   ActivityMonitor& d_activityMonitor;
 
   OutputChannel* d_out;
@@ -70,7 +70,7 @@ private:
 public:
   SimplexDecisionProcedure(const ArithConstants& constants,
                            ArithPartialModel& pm,
-                           ArithVarDenseSet& bm,
+                           ArithVarSet& bm,
                            OutputChannel* out,
                            ActivityMonitor& am,
                            Tableau& tableau) :
@@ -197,6 +197,15 @@ private:
   /** Check to make sure all of the basic variables are within their bounds. */
   void checkBasicVariable(ArithVar basic);
 
+  /**
+   * Checks a basic variable, b, to see if it is in conflict.
+   * If a conflict is discovered a node summarizing the conflict is returned.
+   * Otherwise, Node::null() is returned.
+   */
+  Node checkBasicForConflict(ArithVar b);
+
+  bool d_foundAConflict;
+  unsigned d_pivotsSinceConflict;
 
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
@@ -207,7 +216,11 @@ private:
     IntStat d_statEjections, d_statUnEjections;
 
     IntStat d_statEarlyConflicts, d_statEarlyConflictImprovements;
+
     TimerStat d_selectInitialConflictTime;
+
+    IntStat d_pivotsAfterConflict, d_checksWithWastefulPivots;
+    TimerStat d_pivotTime;
     Statistics();
     ~Statistics();
   };

@@ -188,6 +188,7 @@ public:
   static bool isMember(Node n) {
     if (n.getKind() == kind::CONST_INTEGER) return false;
     if (n.getKind() == kind::CONST_RATIONAL) return false;
+    if (isRelationOperator(n.getKind())) return false;
     return Theory::isLeafOf(n, theory::THEORY_ARITH);
   }
 

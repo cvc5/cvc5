@@ -77,6 +77,9 @@ public:
    */
   void addAtom(TNode atom);
 
+  /** Returns true if v has been added as a left hand side in an atom */
+  bool hasAnyAtoms(TNode v);
+
 private:
   /** Sends an implication (=> a b) to the PropEngine via d_arithOut. */
   void addImplication(TNode a, TNode b);
