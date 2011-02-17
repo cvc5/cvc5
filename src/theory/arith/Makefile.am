@@ -31,5 +31,4 @@ libarith_la_SOURCES = \
 	theory_arith.cpp
 
 EXTRA_DIST = \
-	kinds \
-	normal_form_notes.txt
+	kinds
