@@ -48,6 +48,7 @@ void RowVector::zip(const std::vector< ArithVar >& variables,
   }
 }
 
+
 RowVector::RowVector(const std::vector< ArithVar >& variables,
                      const std::vector< Rational >& coefficients,
                      std::vector<uint32_t>& counts):
@@ -59,13 +60,28 @@ RowVector::RowVector(const std::vector< ArithVar >& variables,
 
   for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
     ++d_rowCount[getArithVar(*i)];
+    addArithVar(d_contains, getArithVar(*i));
   }
 
   Assert(isSorted(d_entries, true));
   Assert(noZeroCoefficients(d_entries));
 }
 
+void RowVector::addArithVar(ArithVarContainsSet& contains, ArithVar v){
+  if(v >= contains.size()){
+    contains.resize(v+1, false);
+  }
+  contains[v] = true;
+}
+
+void RowVector::removeArithVar(ArithVarContainsSet& contains, ArithVar v){
+  Assert(v < contains.size());
+  Assert(contains[v]);
+  contains[v] = false;
+}
+
 void RowVector::merge(VarCoeffArray& arr,
+                      ArithVarContainsSet& contains,
                       const VarCoeffArray& other,
                       const Rational& c,
                       std::vector<uint32_t>& counts){
@@ -85,6 +101,7 @@ void RowVector::merge(VarCoeffArray& arr,
     }else if(getArithVar(*curr1) > getArithVar(*curr2)){
       ++counts[getArithVar(*curr2)];
 
+      addArithVar(contains, getArithVar(*curr2));
       arr.push_back( make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
       ++curr2;
     }else{
@@ -94,6 +111,7 @@ void RowVector::merge(VarCoeffArray& arr,
 
         arr.push_back(make_pair(getArithVar(*curr1), res));
       }else{
+        removeArithVar(contains, getArithVar(*curr2));
         --counts[getArithVar(*curr2)];
       }
       ++curr1;
@@ -106,6 +124,8 @@ void RowVector::merge(VarCoeffArray& arr,
   }
   while(curr2 != end2){
     ++counts[getArithVar(*curr2)];
+
+    addArithVar(contains, getArithVar(*curr2));
 
     arr.push_back(make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
     ++curr2;
@@ -123,7 +143,7 @@ void RowVector::multiply(const Rational& c){
 void RowVector::addRowTimesConstant(const Rational& c, const RowVector& other){
   Assert(c != 0);
 
-  merge(d_entries, other.d_entries, c, d_rowCount);
+  merge(d_entries, d_contains, other.d_entries, c, d_rowCount);
 }
 
 void RowVector::printRow(){
@@ -144,7 +164,7 @@ ReducedRowVector::ReducedRowVector(ArithVar basic,
   VarCoeffArray justBasic;
   justBasic.push_back(make_pair(basic, Rational(-1)));
 
-  merge(d_entries,justBasic, Rational(1), d_rowCount);
+  merge(d_entries, d_contains, justBasic, Rational(1), d_rowCount);
 
   Assert(wellFormed());
 }
