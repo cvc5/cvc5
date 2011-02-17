@@ -96,15 +96,15 @@ public:
   }
 
   DeltaRational& operator*=(const CVC4::Rational& a){
-    c = c * a;
-    k = k * a;
+    c *=  a;
+    k *=  a;
 
     return *(this);
   }
 
   DeltaRational& operator+=(DeltaRational& other){
-    c =c + other.c;
-    k =k + other.k;
+    c += other.c;
+    k += other.k;
 
     return *(this);
   }
