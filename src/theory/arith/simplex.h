@@ -178,11 +178,11 @@ public:
   void checkTableau();
 
 private:
-  bool shouldEject(ArithVar var);
-  void ejectInactiveVariables();
+  //bool shouldEject(ArithVar var);
+  //void ejectInactiveVariables();
 
 public:
-  void reinjectVariable(ArithVar x);
+  //void reinjectVariable(ArithVar x);
 
   /**
    * Computes the value of a basic variable using the assignments

@@ -76,22 +76,27 @@ public:
     return d_activeBasicVars.end();
   }
 
-  ReducedRowVector* lookup(ArithVar var){
-    Assert(isActiveBasicVariable(var));
-    return d_rowsTable[var];
+  ReducedRowVector& lookup(ArithVar var){
+    Assert(d_activeBasicVars.isMember(var));
+    Assert(d_rowsTable[var] != NULL);
+    return *(d_rowsTable[var]);
   }
 
+  /*
 private:
   ReducedRowVector* lookupEjected(ArithVar var){
     Assert(isEjected(var));
     return d_rowsTable[var];
   }
+  */
 public:
+
 
   uint32_t getRowCount(ArithVar x){
     Assert(x < d_rowCount.size());
     return d_rowCount[x];
   }
+
 
   void addRow(ArithVar basicVar,
               const std::vector<Rational>& coeffs,
@@ -107,17 +112,24 @@ public:
 
   void printTableau();
 
+  /*
   bool isEjected(ArithVar var){
     return d_basicManager.isMember(var) && !isActiveBasicVariable(var);
   }
+  */
 
+  ReducedRowVector* removeRow(ArithVar basic);
+
+  /*
   void ejectBasic(ArithVar basic){
     Assert(d_basicManager.isMember(basic));
     Assert(isActiveBasicVariable(basic));
 
     d_activeBasicVars.remove(basic);
   }
+  */
 
+  /*
   void reinjectBasic(ArithVar basic){
     AlwaysAssert(false);
 
@@ -128,10 +140,13 @@ public:
     d_activeBasicVars.add(basic);
     updateRow(row);
   }
+  */
 private:
+  /*
   inline bool isActiveBasicVariable(ArithVar var){
     return d_activeBasicVars.isMember(var);
   }
+  */
 
   void updateRow(ReducedRowVector* row);
 };

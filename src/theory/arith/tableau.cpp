@@ -32,41 +32,54 @@ void Tableau::addRow(ArithVar basicVar,
   Assert(d_basicManager.isMember(basicVar));
 
   //The new basic variable cannot already be a basic variable
-  Assert(!isActiveBasicVariable(basicVar));
+  Assert(!d_activeBasicVars.isMember(basicVar));
   d_activeBasicVars.add(basicVar);
   ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs,d_rowCount);
   d_rowsTable[basicVar] = row_current;
 
   //A variable in the row may have been made non-basic already.
   //If this is the case we fake pivoting this variable
-  vector<Rational>::const_iterator coeffsIter = coeffs.begin();
-  vector<Rational>::const_iterator coeffsEnd = coeffs.end();
-
   vector<ArithVar>::const_iterator varsIter = variables.begin();
+  vector<ArithVar>::const_iterator varsEnd = variables.end();
 
-  for( ; coeffsIter != coeffsEnd; ++coeffsIter, ++ varsIter){
+  for( ; varsIter != varsEnd; ++varsIter){
     ArithVar var = *varsIter;
 
     if(d_basicManager.isMember(var)){
+      /*
       if(!isActiveBasicVariable(var)){
         reinjectBasic(var);
       }
       Assert(isActiveBasicVariable(var));
+      */
+      Assert(d_activeBasicVars.isMember(var));
 
-      ReducedRowVector* row_var = lookup(var);
-      row_current->substitute(*row_var);
+      ReducedRowVector& row_var = lookup(var);
+      row_current->substitute(row_var);
     }
   }
+}
+
+ReducedRowVector* Tableau::removeRow(ArithVar basic){
+  Assert(d_basicManager.isMember(basic));
+  Assert(d_activeBasicVars.isMember(basic));
+
+  ReducedRowVector* row = d_rowsTable[basic];
+
+  d_activeBasicVars.remove(basic);
+  d_rowsTable[basic] = NULL;
+
+  return row;
 }
 
 void Tableau::pivot(ArithVar x_r, ArithVar x_s){
   Assert(d_basicManager.isMember(x_r));
   Assert(!d_basicManager.isMember(x_s));
 
-  Debug("tableau") << "Tableau::pivot("
-                   <<  x_r <<", " <<x_s <<")"  << endl;
+  Debug("tableau") << "Tableau::pivot(" <<  x_r <<", " <<x_s <<")"  << endl;
 
-  ReducedRowVector* row_s = lookup(x_r);
+  ReducedRowVector* row_s = d_rowsTable[x_r];
+  Assert(row_s != NULL);
   Assert(row_s->has(x_s));
 
   //Swap x_r and x_s in d_activeRows
@@ -86,10 +99,10 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
     ArithVar basic = *basicIter;
     if(basic == x_s) continue;
 
-    ReducedRowVector* row_k = lookup(basic);
-    if(row_k->has(x_s)){
+    ReducedRowVector& row_k = lookup(basic);
+    if(row_k.has(x_s)){
       d_activityMonitor[basic] += 30;
-      row_k->substitute(*row_s);
+      row_k.substitute(*row_s);
     }
   }
 }
@@ -107,6 +120,7 @@ void Tableau::printTableau(){
 }
 
 
+/*
 void Tableau::updateRow(ReducedRowVector* row){
   ArithVar basic = row->basic();
   for(ReducedRowVector::NonZeroIterator i=row->beginNonZero(), endIter = row->endNonZero(); i != endIter; ){
@@ -123,3 +137,4 @@ void Tableau::updateRow(ReducedRowVector* row){
     }
   }
 }
+*/

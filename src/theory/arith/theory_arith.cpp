@@ -199,13 +199,13 @@ ArithVar TheoryArith::findShortestBasicRow(ArithVar variable){
       basicIter != d_tableau.end();
       ++basicIter){
     ArithVar x_j = *basicIter;
-    ReducedRowVector* row_j = d_tableau.lookup(x_j);
+    ReducedRowVector& row_j = d_tableau.lookup(x_j);
 
-    if(row_j->has(variable)){
+    if(row_j.has(variable)){
       if((bestBasic == ARITHVAR_SENTINEL) ||
-         (bestBasic != ARITHVAR_SENTINEL && row_j->size() < rowLength)){
+         (bestBasic != ARITHVAR_SENTINEL && row_j.size() < rowLength)){
         bestBasic = x_j;
-        rowLength = row_j->size();
+        rowLength = row_j.size();
       }
     }
   }
@@ -511,9 +511,11 @@ void TheoryArith::check(Effort effortLevel){
         TNode rhs = eq[1];
         Assert(rhs.getKind() == CONST_RATIONAL);
         ArithVar lhsVar = determineLeftVariable(eq, kind::EQUAL);
+        /*
         if(d_tableau.isEjected(lhsVar)){
           d_simplex.reinjectVariable(lhsVar);
         }
+        */
         DeltaRational lhsValue = d_partialModel.getAssignment(lhsVar);
         DeltaRational rhsValue = determineRightConstant(eq, kind::EQUAL);
         if (lhsValue == rhsValue) {
@@ -581,9 +583,11 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
   switch(n.getKind()) {
   case kind::VARIABLE: {
     ArithVar var = asArithVar(n);
+    /*
     if(d_tableau.isEjected(var)){
       d_simplex.reinjectVariable(var);
     }
+    */
 
     DeltaRational drat = d_partialModel.getAssignment(var);
     const Rational& delta = d_partialModel.getDelta();
@@ -683,6 +687,8 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
     if(basic == ARITHVAR_SENTINEL){
       //Case 3) do nothing else.
       //TODO think hard about if this is okay...
+      //Probably wrecks havoc with model generation
+      //*feh* DO IT ANYWAYS!
       return;
     }
 
@@ -692,11 +698,9 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
 
   Assert(d_basicManager.isMember(v));
 
-  d_tableau.ejectBasic(v);
   //remove the row from the tableau
-  //TODO: It would be better to remove the row from the tableau
-  //and store this row in another data structure
-
+  ReducedRowVector* row  = d_tableau.removeRow(v);
+  d_removedRows[v] = row;
 
   Debug("arith::permanentlyRemoveVariable") << v << " died an ignoble death."<< endl;
   ++(d_statistics.d_permanentlyRemovedVariables);
