@@ -55,19 +55,36 @@ void TheoryBV::check(Effort e) {
     // Do the right stuff
     switch (assertion.getKind()) {
     case kind::EQUAL: {
-      bool ok = d_eqEngine.addEquality(assertion[0], assertion[1]);
-      if (!ok) return;
+
+      // Slice the equality
+      std::vector<Node> lhsSlices, rhsSlices;
+      d_sliceManager.addEquality(assertion[0], assertion[1], lhsSlices, rhsSlices);
+      Assert(lhsSlices.size() == rhsSlices.size());
+
+      // Add the equality to the equality engine
+      for (int i = 0, i_end = lhsSlices.size(); i != i_end; ++ i) {
+        bool ok = d_eqEngine.addEquality(lhsSlices[i], rhsSlices[i]);
+        if (!ok) return;
+      }
       break;
     }
     case kind::NOT: {
       // We need to check this as the equality trigger might have been true when we made it
       TNode equality = assertion[0];
-      if (d_eqEngine.areEqual(equality[0], equality[1])) {
-        vector<TNode> assertions;
-        d_eqEngine.getExplanation(equality[0], equality[1], assertions);
-        assertions.push_back(assertion);
-        d_out->conflict(mkAnd(assertions));
-        return;
+
+      // Slice the equality
+      std::vector<Node> lhsSlices, rhsSlices;
+      d_sliceManager.addEquality(equality[0], equality[1], lhsSlices, rhsSlices);
+      Assert(lhsSlices.size() == rhsSlices.size());
+
+      for (int i = 0, i_end = lhsSlices.size(); i != i_end; ++ i) {
+        if (d_eqEngine.areEqual(lhsSlices[i], rhsSlices[i])) {
+          vector<TNode> assertions;
+          d_eqEngine.getExplanation(lhsSlices[i], rhsSlices[i], assertions);
+          assertions.push_back(assertion);
+          d_out->conflict(mkAnd(assertions));
+          return;
+        }
       }
       break;
     }

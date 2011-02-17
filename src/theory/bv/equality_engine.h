@@ -112,7 +112,6 @@ public:
    * Set the class representative.
    */
   inline void setFind(size_t findId) { d_findId = findId; }
-
 };
 
 
@@ -133,6 +132,9 @@ class EqualityEngine {
 
   /** Number of asserted equalities we have so far */
   context::CDO<size_t> d_assertedEqualitiesCount;
+
+  /** Number of functions in the system */
+  context::CDO<size_t> d_functionsCount;
 
   /**
    * We keep a list of asserted equalities. Not among original terms, but
@@ -262,7 +264,7 @@ public:
    * the owner information.
    */
   EqualityEngine(OwnerClass& owner, context::Context* context)
-  : d_notify(owner), d_assertedEqualitiesCount(context, 0) {
+  : d_notify(owner), d_assertedEqualitiesCount(context, 0), d_functionsCount(context, 0) {
     Debug("equality") << "EqualityEdge::EqualityEdge(): id_null = " << BitSizeTraits::id_null <<
         ", trigger_id_null = " << BitSizeTraits::trigger_id_null << std::endl;
   }
@@ -304,6 +306,11 @@ public:
    * (t1, t2).
    */
   size_t addTrigger(TNode t1, TNode t2);
+
+  /**
+   * Adds a new function to the equality engine. The funcions are not of fixed arity!
+   */
+  inline size_t newFunction() { d_functionsCount = d_functionsCount + 1; return d_functionsCount; }
 
 };
 

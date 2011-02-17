@@ -15,6 +15,7 @@ libbv_la_SOURCES = \
 	theory_bv_rewriter.h \
 	theory_bv_rewriter.cpp \
 	equality_engine.h \
-	equality_engine.cpp 
+	equality_engine.cpp \
+	slice_manager.h
 
 EXTRA_DIST = kinds

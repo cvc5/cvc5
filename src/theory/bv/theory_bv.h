@@ -24,7 +24,8 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdset.h"
-#include "equality_engine.h"
+#include "theory/bv/equality_engine.h"
+#include "theory/bv/slice_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,10 +46,16 @@ public:
     }
   };
 
+  typedef EqualityEngine<TheoryBV, EqualityNotify> BvEqualityEngine;
+
 private:
 
+
   /** Equality reasoning engine */
-  EqualityEngine<TheoryBV, EqualityNotify> d_eqEngine;
+  BvEqualityEngine d_eqEngine;
+
+  /** Slice manager */
+  SliceManager<TheoryBV> d_sliceManager;
 
   /** Equality triggers indexed by ids from the equality manager */
   std::vector<Node> d_triggers;
@@ -62,7 +69,11 @@ private:
 public:
 
   TheoryBV(context::Context* c, OutputChannel& out) :
-    Theory(THEORY_BV, c, out), d_eqEngine(*this, c), d_assertions(c) {
+    Theory(THEORY_BV, c, out), d_eqEngine(*this, c), d_sliceManager(*this), d_assertions(c) {
+  }
+
+  BvEqualityEngine& getEqualityEngine() {
+    return d_eqEngine;
   }
 
   void preRegisterTerm(TNode n);
