@@ -170,15 +170,11 @@ private:
   Node generateConflictBelow(ArithVar conflictVar);
 
 public:
-  /** Checks to make sure the assignment is consistent with the tableau. */
+  /**
+   * Checks to make sure the assignment is consistent with the tableau.
+   * This code is for debugging.
+   */
   void checkTableau();
-
-private:
-  //bool shouldEject(ArithVar var);
-  //void ejectInactiveVariables();
-
-public:
-  //void reinjectVariable(ArithVar x);
 
   /**
    * Computes the value of a basic variable using the assignments
@@ -200,17 +196,16 @@ private:
    */
   Node checkBasicForConflict(ArithVar b);
 
-  bool d_foundAConflict;
-  unsigned d_pivotsSinceConflict;
+  bool d_foundAConflict; // This field is used for statistics keeping ONLY!
+  unsigned d_pivotsSinceConflict; // This field is used for statistics keeping ONLY!
 
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
   public:
-    IntStat d_statPivots, d_statUpdates, d_statAssertUpperConflicts;
-    IntStat d_statAssertLowerConflicts, d_statUpdateConflicts;
+    IntStat d_statPivots, d_statUpdates;
 
-    IntStat d_statEjections, d_statUnEjections;
-
+    IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
+    IntStat d_statUpdateConflicts;
     IntStat d_statEarlyConflicts, d_statEarlyConflictImprovements;
 
     TimerStat d_selectInitialConflictTime;

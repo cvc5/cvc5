@@ -507,11 +507,6 @@ void TheoryArith::check(Effort effortLevel){
         TNode rhs = eq[1];
         Assert(rhs.getKind() == CONST_RATIONAL);
         ArithVar lhsVar = determineLeftVariable(eq, kind::EQUAL);
-        /*
-        if(d_tableau.isEjected(lhsVar)){
-          d_simplex.reinjectVariable(lhsVar);
-        }
-        */
         DeltaRational lhsValue = d_partialModel.getAssignment(lhsVar);
         DeltaRational rhsValue = determineRightConstant(eq, kind::EQUAL);
         if (lhsValue == rhsValue) {
@@ -579,11 +574,6 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
   switch(n.getKind()) {
   case kind::VARIABLE: {
     ArithVar var = asArithVar(n);
-    /*
-    if(d_tableau.isEjected(var)){
-      d_simplex.reinjectVariable(var);
-    }
-    */
 
     DeltaRational drat = d_partialModel.getAssignment(var);
     const Rational& delta = d_partialModel.getDelta();

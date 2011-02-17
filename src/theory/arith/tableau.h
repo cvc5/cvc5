@@ -79,22 +79,23 @@ public:
     return *(d_rowsTable[var]);
   }
 
-  /*
-private:
-  ReducedRowVector* lookupEjected(ArithVar var){
-    Assert(isEjected(var));
-    return d_rowsTable[var];
-  }
-  */
 public:
-
-
   uint32_t getRowCount(ArithVar x){
     Assert(x < d_rowCount.size());
     return d_rowCount[x];
   }
 
-
+  /**
+   * Adds a row to the tableau.
+   * The new row is equivalent to:
+   *   basicVar = \sum_i coeffs[i] * variables[i]
+   * preconditions:
+   *   basicVar is already declared to be basic
+   *   basicVar does not have a row associated with it in the tableau.
+   *
+   * Note: each variables[i] does not have to be non-basic.
+   * Pivoting will be mimicked if it is basic.
+   */
   void addRow(ArithVar basicVar,
               const std::vector<Rational>& coeffs,
               const std::vector<ArithVar>& variables);
@@ -109,43 +110,7 @@ public:
 
   void printTableau();
 
-  /*
-  bool isEjected(ArithVar var){
-    return d_basicManager.isMember(var) && !isActiveBasicVariable(var);
-  }
-  */
-
   ReducedRowVector* removeRow(ArithVar basic);
-
-  /*
-  void ejectBasic(ArithVar basic){
-    Assert(d_basicManager.isMember(basic));
-    Assert(isActiveBasicVariable(basic));
-
-    d_activeBasicVars.remove(basic);
-  }
-  */
-
-  /*
-  void reinjectBasic(ArithVar basic){
-    AlwaysAssert(false);
-
-    Assert(d_basicManager.isMember(basic));
-    Assert(isEjected(basic));
-
-    ReducedRowVector* row = lookupEjected(basic);
-    d_activeBasicVars.add(basic);
-    updateRow(row);
-  }
-  */
-private:
-  /*
-  inline bool isActiveBasicVariable(ArithVar var){
-    return d_activeBasicVars.isMember(var);
-  }
-  */
-
-  void updateRow(ReducedRowVector* row);
 };
 
 }; /* namespace arith  */

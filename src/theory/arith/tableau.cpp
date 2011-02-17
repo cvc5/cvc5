@@ -46,12 +46,6 @@ void Tableau::addRow(ArithVar basicVar,
     ArithVar var = *varsIter;
 
     if(d_basicManager.isMember(var)){
-      /*
-      if(!isActiveBasicVariable(var)){
-        reinjectBasic(var);
-      }
-      Assert(isActiveBasicVariable(var));
-      */
       Assert(d_activeBasicVars.isMember(var));
 
       ReducedRowVector& row_var = lookup(var);
@@ -117,23 +111,3 @@ void Tableau::printTableau(){
     }
   }
 }
-
-
-/*
-void Tableau::updateRow(ReducedRowVector* row){
-  ArithVar basic = row->basic();
-  for(ReducedRowVector::NonZeroIterator i=row->beginNonZero(), endIter = row->endNonZero(); i != endIter; ){
-    ArithVar var = i->first;
-    ++i;
-    if(var != basic && d_basicManager.isMember(var)){
-      ReducedRowVector* row_var = isActiveBasicVariable(var) ? lookup(var) : lookupEjected(var);
-
-      Assert(row_var != row);
-      row->substitute(*row_var);
-
-      i = row->beginNonZero();
-      endIter = row->endNonZero();
-    }
-  }
-}
-*/

@@ -17,8 +17,6 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0),
   d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
   d_statUpdateConflicts("theory::arith::UpdateConflicts", 0),
-  d_statEjections("theory::arith::Ejections", 0),
-  d_statUnEjections("theory::arith::UnEjections", 0),
   d_statEarlyConflicts("theory::arith::EarlyConflicts", 0),
   d_statEarlyConflictImprovements("theory::arith::EarlyConflictImprovements", 0),
   d_selectInitialConflictTime("theory::arith::selectInitialConflictTime"),
@@ -31,8 +29,6 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::registerStat(&d_statUpdateConflicts);
-  StatisticsRegistry::registerStat(&d_statEjections);
-  StatisticsRegistry::registerStat(&d_statUnEjections);
   StatisticsRegistry::registerStat(&d_statEarlyConflicts);
   StatisticsRegistry::registerStat(&d_statEarlyConflictImprovements);
   StatisticsRegistry::registerStat(&d_selectInitialConflictTime);
@@ -48,8 +44,6 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::unregisterStat(&d_statAssertLowerConflicts);
   StatisticsRegistry::unregisterStat(&d_statUpdateConflicts);
-  StatisticsRegistry::unregisterStat(&d_statEjections);
-  StatisticsRegistry::unregisterStat(&d_statUnEjections);
   StatisticsRegistry::unregisterStat(&d_statEarlyConflicts);
   StatisticsRegistry::unregisterStat(&d_statEarlyConflictImprovements);
   StatisticsRegistry::unregisterStat(&d_selectInitialConflictTime);
@@ -59,61 +53,9 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_pivotTime);
 }
 
-
-/*
-void SimplexDecisionProcedure::ejectInactiveVariables(){
-  return; //die die die
-
-  for(ArithVarSet::iterator i = d_tableau.begin(), end = d_tableau.end(); i != end;){
-    ArithVar variable = *i;
-    ++i;
-    Assert(d_basicManager.isMember(variable));
-
-    if(d_basicManager.isMember(variable) && shouldEject(variable)){
-      Debug("decay") << "ejecting basic " << variable << endl;
-      ++(d_statistics.d_statEjections);
-      d_tableau.ejectBasic(variable);
-    }
-  }
-}
-*/
-
-/*
-void SimplexDecisionProcedure::reinjectVariable(ArithVar x){
-  ++(d_statistics.d_statUnEjections);
-
-  d_tableau.reinjectBasic(x);
-
-  DeltaRational safeAssignment = computeRowValue(x, true);
-  DeltaRational assignment = computeRowValue(x, false);
-  d_partialModel.setAssignment(x,safeAssignment,assignment);
-}
-*/
-
-/*
-bool SimplexDecisionProcedure::shouldEject(ArithVar var){
-  if(d_partialModel.hasEitherBound(var)){
-    return false;
-  }else if(d_tableau.isEjected(var)) {
-    return false;
-  }else if(!d_partialModel.hasEverHadABound(var)){
-    return true;
-  }else if(d_activityMonitor[var] >= ACTIVITY_THRESHOLD){
-    return false;
-  }
-  return false;
-}
-*/
-
 /* procedure AssertLower( x_i >= c_i ) */
 bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode original){
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
-
-  /*
-  if(d_basicManager.isMember(x_i) && d_tableau.isEjected(x_i)){
-    reinjectVariable(x_i);
-  }
-  */
 
   if(d_partialModel.belowLowerBound(x_i, c_i, false)){
     return false; //sat
@@ -145,11 +87,6 @@ bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_
 bool SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
-  /*
-  if(d_basicManager.isMember(x_i) && d_tableau.isEjected(x_i)){
-    reinjectVariable(x_i);
-  }
-  */
 
   if(d_partialModel.aboveUpperBound(x_i, c_i, false) ){ // \upperbound(x_i) <= c_i
     return false; //sat
@@ -182,12 +119,6 @@ bool SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_
 bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
-
-  /*
-  if(d_basicManager.isMember(x_i) && d_tableau.isEjected(x_i)){
-    reinjectVariable(x_i);
-  }
-  */
 
   // u_i <= c_i <= l_i
   // This can happen if both c_i <= x_i and x_i <= c_i are in the system.
@@ -544,7 +475,6 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
   Debug("arith") << "updateInconsistentVars" << endl;
 
   uint32_t iteratationNum = 0;
-  //static const int EJECT_FREQUENCY = 10;
 
   while(!d_pivotStage || iteratationNum <= d_numVariables){
     if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
@@ -557,10 +487,6 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
     }
 
     ++iteratationNum;
-    /*
-    if(iteratationNum % EJECT_FREQUENCY == 0)
-      ejectInactiveVariables();
-    */
 
     DeltaRational beta_i = d_partialModel.getAssignment(x_i);
     ArithVar x_j = ARITHVAR_SENTINEL;
