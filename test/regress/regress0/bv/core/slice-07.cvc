@@ -1,0 +1,4 @@
+x: BITVECTOR(5); 
+ASSERT(x[4:1] = x[3:0]);
+QUERY(x[4:4]=x[0:0]);
+

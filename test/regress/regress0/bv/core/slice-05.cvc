@@ -1,0 +1,15 @@
+x1: BITVECTOR(64); 
+x2: BITVECTOR(32);
+x3: BITVECTOR(16);
+x4: BITVECTOR(8);
+x5: BITVECTOR(4);
+x6: BITVECTOR(2);
+x7: BITVECTOR(1);
+ASSERT(x1 = x2 @ x2);
+ASSERT(x2 = x3 @ x3);
+ASSERT(x3 = x4 @ x4);
+ASSERT(x4 = x5 @ x5);
+ASSERT(x5 = x6 @ x6);
+ASSERT(x6 = x7 @ x7);
+QUERY(x1[63:63] = x7);
+

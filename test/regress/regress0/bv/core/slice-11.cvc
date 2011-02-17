@@ -1,0 +1,4 @@
+x : BITVECTOR(8);
+ASSERT(x = 0bin01010101);
+QUERY(x[0:0]@x[2:2]@x[4:4]@x[6:6] = 0bin1111);
+

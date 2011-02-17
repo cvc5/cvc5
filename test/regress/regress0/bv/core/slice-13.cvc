@@ -1,0 +1,8 @@
+x, y: BITVECTOR(8);
+z1, z2: BITVECTOR(4);
+ASSERT(z1 = x[0:0]@x[2:2]@x[4:4]@x[6:6]);
+ASSERT(z2 = y[7:7]@y[5:5]@y[3:3]@y[1:1]);
+ASSERT(x = 0bin01010101);
+ASSERT(y = 0bin10101010);
+QUERY(z1 = z2);
+

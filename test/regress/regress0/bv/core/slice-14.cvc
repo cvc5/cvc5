@@ -1,0 +1,5 @@
+x: BITVECTOR(16);
+ASSERT(x[15:1] = x[14:0]);
+ASSERT(x[0:0] = 0bin0);
+QUERY(x = 0bin0000000000000000);
+

@@ -1,0 +1,7 @@
+x1, x2: BITVECTOR(64); 
+y, z : BITVECTOR(32);
+ASSERT(x1 = y @ z);
+ASSERT(x2[63:32] = y);
+ASSERT(x2[31:0] = z);
+QUERY(x1 = x2);
+
