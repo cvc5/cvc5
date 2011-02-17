@@ -56,9 +56,6 @@ inline void setArithVar(TNode x, ArithVar a){
   return x.setAttribute(ArithVarAttr(), (uint64_t)a);
 }
 
-typedef std::vector<uint64_t> ActivityMonitor;
-
-
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);
 }

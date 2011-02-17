@@ -101,7 +101,6 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
 
     ReducedRowVector& row_k = lookup(basic);
     if(row_k.has(x_s)){
-      d_activityMonitor[basic] += 30;
       row_k.substitute(*row_s);
     }
   }

@@ -45,8 +45,6 @@ private:
   ArithVarSet d_activeBasicVars;
   RowsTable d_rowsTable;
 
-
-  ActivityMonitor& d_activityMonitor;
   ArithVarSet& d_basicManager;
 
   std::vector<uint32_t> d_rowCount;
@@ -55,10 +53,9 @@ public:
   /**
    * Constructs an empty tableau.
    */
-  Tableau(ActivityMonitor &am, ArithVarSet& bm) :
+  Tableau(ArithVarSet& bm) :
     d_activeBasicVars(),
     d_rowsTable(),
-    d_activityMonitor(am),
     d_basicManager(bm)
   {}
 

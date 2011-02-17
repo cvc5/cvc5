@@ -129,7 +129,6 @@ bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_
 
   d_partialModel.setLowerConstraint(x_i,original);
   d_partialModel.setLowerBound(x_i, c_i);
-  d_activityMonitor[x_i] = 0;
 
   if(!d_basicManager.isMember(x_i)){
     if(d_partialModel.getAssignment(x_i) < c_i){
@@ -166,8 +165,6 @@ bool SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_
 
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
-
-  d_activityMonitor[x_i] = 0;
 
   if(!d_basicManager.isMember(x_i)){
     if(d_partialModel.getAssignment(x_i) > c_i){
@@ -220,7 +217,6 @@ bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
 
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
-  d_activityMonitor[x_i] = 0;
 
   if(!d_basicManager.isMember(x_i)){
     if(!(d_partialModel.getAssignment(x_i) == c_i)){
@@ -254,8 +250,6 @@ void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
       const DeltaRational& assignment = d_partialModel.getAssignment(x_j);
       DeltaRational  nAssignment = assignment+(diff * a_ji);
       d_partialModel.setAssignment(x_j, nAssignment);
-
-      d_activityMonitor[x_j] += 1;
 
       checkBasicVariable(x_j);
     }
@@ -321,8 +315,6 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
       const Rational& a_kj = row_k.lookup(x_j);
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
-
-      d_activityMonitor[x_j] += 1;
 
       checkBasicVariable(x_k);
     }

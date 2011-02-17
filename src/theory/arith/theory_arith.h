@@ -86,7 +86,6 @@ private:
 
   ArithVarSet d_basicManager;
   ArithVarSet d_userVariables;
-  ActivityMonitor d_activityMonitor;
 
   /**
    * List of all of the inequalities asserted in the current context.

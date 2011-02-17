@@ -59,11 +59,10 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   d_partialModel(c),
   d_basicManager(),
   d_userVariables(),
-  d_activityMonitor(),
   d_diseq(c),
-  d_tableau(d_activityMonitor, d_basicManager),
+  d_tableau(d_basicManager),
   d_propagator(c, out),
-  d_simplex(d_constants, d_partialModel, d_basicManager,  d_out, d_activityMonitor, d_tableau),
+  d_simplex(d_constants, d_partialModel, d_basicManager,  d_out, d_tableau),
   d_statistics()
 {}
 
@@ -261,9 +260,6 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
   d_simplex.increaseMax();
 
   setArithVar(x,varX);
-
-  Assert(varX == d_activityMonitor.size());
-  d_activityMonitor.push_back(0);
 
   d_basicManager.init(varX,basic);
   d_userVariables.init(varX, !basic);

@@ -56,10 +56,8 @@ private:
   ArithPartialModel& d_partialModel;
 
   ArithVarSet& d_basicManager;
-  ActivityMonitor& d_activityMonitor;
 
   OutputChannel* d_out;
-
 
   Tableau& d_tableau;
 
@@ -72,13 +70,11 @@ public:
                            ArithPartialModel& pm,
                            ArithVarSet& bm,
                            OutputChannel* out,
-                           ActivityMonitor& am,
                            Tableau& tableau) :
     d_possiblyInconsistent(),
     d_constants(constants),
     d_partialModel(pm),
     d_basicManager(bm),
-    d_activityMonitor(am),
     d_out(out),
     d_tableau(tableau),
     d_numVariables(0),
