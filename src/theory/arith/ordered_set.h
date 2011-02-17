@@ -2,26 +2,15 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "util/Assert.h"
+#include "theory/arith/arith_utilities.h"
 
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-struct RightHandRationalLT
-{
-  bool operator()(TNode s1, TNode s2) const
-  {
-    TNode rh1 = s1[1];
-    TNode rh2 = s2[1];
-    const Rational& c1 = rh1.getConst<Rational>();
-    const Rational& c2 = rh2.getConst<Rational>();
-    int cmpRes = c1.cmp(c2);
-    return cmpRes < 0;
-  }
-};
 
-typedef std::set<Node, RightHandRationalLT> OrderedSet;
+typedef std::set<TNode, RightHandRationalLT> OrderedSet;
 
 struct SetCleanupStrategy{
   static void cleanup(OrderedSet* l){

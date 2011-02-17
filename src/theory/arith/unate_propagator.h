@@ -49,12 +49,12 @@
 #define __CVC4__THEORY__ARITH__ARITH_PROPAGATOR_H
 
 #include "expr/node.h"
-#include "context/cdlist.h"
 #include "context/context.h"
-#include "context/cdo.h"
 
 #include "theory/output_channel.h"
 #include "theory/arith/ordered_set.h"
+
+#include <ext/hash_map>
 
 namespace CVC4 {
 namespace theory {
@@ -67,6 +67,16 @@ private:
    * The propagator uses this to pass implications back to the SAT solver.
    */
   OutputChannel& d_arithOut;
+
+  struct OrderedSetTriple {
+    OrderedSet d_leqSet;
+    OrderedSet d_eqSet;
+    OrderedSet d_geqSet;
+  };
+
+  /** TODO: justify making this a TNode. */
+  typedef __gnu_cxx::hash_map<Node, OrderedSetTriple, NodeHashFunction> NodeToOrderedSetMap;
+  NodeToOrderedSetMap d_orderedListMap;
 
 public:
   ArithUnatePropagator(context::Context* cxt, OutputChannel& arith);
@@ -81,6 +91,12 @@ public:
   bool hasAnyAtoms(TNode v);
 
 private:
+  OrderedSetTriple& getOrderedSetTriple(TNode left);
+  OrderedSet& getEqSet(TNode left);
+  OrderedSet& getLeqSet(TNode left);
+  OrderedSet& getGeqSet(TNode left);
+
+
   /** Sends an implication (=> a b) to the PropEngine via d_arithOut. */
   void addImplication(TNode a, TNode b);
 
@@ -92,32 +108,32 @@ private:
 
 
   /**
-   * The addKtoJs(...) functions are the work horses of ArithUnatePropagator.
+   * The addImplicationsUsingKAndJList(...)
+   * functions are the work horses of ArithUnatePropagator.
    * These take an atom of the kind K that has just been added
-   * to its associated list, and the list of Js associated with the lhs,
+   * to its associated list, and the ordered list of Js associated with the lhs,
    * and uses these to deduce unate implications.
    * (K and J vary over EQUAL, LEQ, and GEQ.)
    *
    * Input:
-   * atom - the atom being inserted
-   * Kset - the list of atoms of kind K associated with the lhs.
-   * atomPos - the atoms Position in its own list after being inserted.
+   * atom - the atom being inserted of kind K
+   * Jset - the list of atoms of kind J associated with the lhs.
    *
    * Unfortunately, these tend to be an absolute bear to read because
    * of all of the special casing and C++ iterator manipulation required.
    */
 
-  void addEqualityToEqualities(TNode eq, OrderedSet* eqSet, OrderedSet::iterator eqPos);
-  void addEqualityToLeqs(TNode eq, OrderedSet* leqSet);
-  void addEqualityToGeqs(TNode eq, OrderedSet* geqSet);
+  void addImplicationsUsingEqualityAndEqualityList(TNode eq, OrderedSet& eqSet);
+  void addImplicationsUsingEqualityAndLeqList(TNode eq, OrderedSet& leqSet);
+  void addImplicationsUsingEqualityAndGeqList(TNode eq, OrderedSet& geqSet);
 
-  void addLeqToLeqs(TNode leq, OrderedSet* leqSet, OrderedSet::iterator leqPos);
-  void addLeqToGeqs(TNode leq, OrderedSet* geqSet);
-  void addLeqToEqualities(TNode leq, OrderedSet* eqSet);
+  void addImplicationsUsingLeqAndEqualityList(TNode leq, OrderedSet& eqSet);
+  void addImplicationsUsingLeqAndLeqList(TNode leq, OrderedSet& leqSet);
+  void addImplicationsUsingLeqAndGeqList(TNode leq, OrderedSet& geqSet);
 
-  void addGeqToGeqs(TNode geq, OrderedSet* geqSet, OrderedSet::iterator geqPos);
-  void addGeqToLeqs(TNode geq, OrderedSet* leqSet);
-  void addGeqToEqualities(TNode geq, OrderedSet* eqSet);
+  void addImplicationsUsingGeqAndEqualityList(TNode geq, OrderedSet& eqSet);
+  void addImplicationsUsingGeqAndLeqList(TNode geq, OrderedSet& leqSet);
+  void addImplicationsUsingGeqAndGeqList(TNode geq, OrderedSet& geqSet);
 
 };
 
