@@ -28,6 +28,7 @@
 #include <vector>
 #include <stdint.h>
 #include <limits>
+#include <ext/hash_map>
 
 namespace CVC4 {
 namespace theory {
@@ -38,23 +39,10 @@ typedef uint32_t ArithVar;
 //static const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
 #define ARITHVAR_SENTINEL std::numeric_limits<ArithVar>::max()
 
-struct ArithVarAttrID{};
-typedef expr::Attribute<ArithVarAttrID,uint64_t> ArithVarAttr;
+//Maps from Nodes -> ArithVars, and vice versa
+typedef __gnu_cxx::hash_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
+typedef __gnu_cxx::hash_map<ArithVar, Node> ArithVarToNodeMap;
 
-inline bool hasArithVar(TNode x){
-  return x.hasAttribute(ArithVarAttr());
-}
-
-inline ArithVar asArithVar(TNode x){
-  Assert(hasArithVar(x));
-  Assert(x.getAttribute(ArithVarAttr()) <= ARITHVAR_SENTINEL);
-  return x.getAttribute(ArithVarAttr());
-}
-
-inline void setArithVar(TNode x, ArithVar a){
-  Assert(!hasArithVar(x));
-  return x.setAttribute(ArithVarAttr(), (uint64_t)a);
-}
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);

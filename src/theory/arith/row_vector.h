@@ -89,6 +89,7 @@ public:
             const std::vector< Rational >& coefficients,
             std::vector<uint32_t>& counts);
 
+  ~RowVector();
 
   /** Returns the number of nonzero variables in the vector. */
   uint32_t size() const {
@@ -195,6 +196,13 @@ public:
   void pivot(ArithVar x_j);
 
   void substitute(const ReducedRowVector& other);
+
+  /**
+   * Returns the reduced row as an equality with
+   * the basic variable on the lhs equal to the sum of the non-basics variables.
+   * The mapped from ArithVars to Nodes is specificied by map.
+   */
+  Node asEquality(const ArithVarToNodeMap& map) const;
 }; /* class ReducedRowVector */
 
 

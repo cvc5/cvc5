@@ -58,6 +58,7 @@ public:
     d_rowsTable(),
     d_basicManager(bm)
   {}
+  ~Tableau();
 
   void increaseSize(){
     d_activeBasicVars.increaseSize();

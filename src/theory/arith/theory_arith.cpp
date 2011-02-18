@@ -575,6 +575,13 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
   case kind::VARIABLE: {
     ArithVar var = asArithVar(n);
 
+    if(d_removedRows.find(var) != d_removedRows.end()){
+      Node eq = d_removedRows.find(var)->second;
+      Assert(n == eq[0]);
+      Node rhs = eq[1];
+      return getValue(rhs, engine);
+    }
+
     DeltaRational drat = d_partialModel.getAssignment(var);
     const Rational& delta = d_partialModel.getDelta();
     Debug("getValue") << n << " " << drat << " " << delta << endl;
@@ -667,28 +674,37 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
   //  It appears that this can happen after other variables have been removed!
   //  Tread carefullty with this one.
 
+  bool noRow = false;
+
   if(!d_basicManager.isMember(v)){
     ArithVar basic = findShortestBasicRow(v);
 
     if(basic == ARITHVAR_SENTINEL){
-      //Case 3) do nothing else.
-      //TODO think hard about if this is okay...
-      //Probably wrecks havoc with model generation
-      //*feh* DO IT ANYWAYS!
-      return;
+      noRow = true;
+    }else{
+      Assert(basic != ARITHVAR_SENTINEL);
+      d_tableau.pivot(basic, v);
     }
-
-    AlwaysAssert(basic != ARITHVAR_SENTINEL);
-    d_tableau.pivot(basic, v);
   }
 
-  Assert(d_basicManager.isMember(v));
+  if(d_basicManager.isMember(v)){
+    Assert(!noRow);
+    Assert(d_basicManager.isMember(v));
 
-  //remove the row from the tableau
-  ReducedRowVector* row  = d_tableau.removeRow(v);
-  d_removedRows[v] = row;
+    //remove the row from the tableau
+    ReducedRowVector* row  = d_tableau.removeRow(v);
+    Node eq = row->asEquality(d_arithVarToNodeMap);
 
-  Debug("arith::permanentlyRemoveVariable") << v << " died an ignoble death."<< endl;
+    if(Debug.isOn("row::print")) row->printRow();
+    Debug("arith::permanentlyRemoveVariable") << eq << endl;
+    delete row;
+
+    Assert(d_removedRows.find(v) ==  d_removedRows.end());
+    d_removedRows[v] = eq;
+  }
+
+  Debug("arith::permanentlyRemoveVariable") << "Permanently removed variable "
+                                            << v << ":" << asNode(v) << endl;
   ++(d_statistics.d_permanentlyRemovedVariables);
 }
 

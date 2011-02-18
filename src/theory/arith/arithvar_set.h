@@ -54,6 +54,9 @@ public:
   size_t size() const {
     return d_list.size();
   }
+  bool empty() const {
+    return d_list.empty();
+  }
 
   size_t allocated() const {
     return d_posVector.size();

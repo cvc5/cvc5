@@ -24,6 +24,14 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
+Tableau::~Tableau(){
+  while(!d_activeBasicVars.empty()){
+    ArithVar curr = *(d_activeBasicVars.begin());
+    ReducedRowVector* vec = removeRow(curr);
+    delete vec;
+  }
+}
+
 void Tableau::addRow(ArithVar basicVar,
                      const std::vector<Rational>& coeffs,
                      const std::vector<ArithVar>& variables){

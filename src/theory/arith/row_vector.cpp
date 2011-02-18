@@ -21,6 +21,16 @@ bool RowVector::isSorted(const VarCoeffArray& arr, bool strictlySorted) {
   return true;
 }
 
+RowVector::~RowVector(){
+  NonZeroIterator curr = beginNonZero();
+  NonZeroIterator end = endNonZero();
+  for(;curr != end; ++curr){
+    ArithVar v = getArithVar(*curr);
+    Assert(d_rowCount[v] >= 1);
+    --(d_rowCount[v]);
+  }
+}
+
 bool RowVector::noZeroCoefficients(const VarCoeffArray& arr){
   for(NonZeroIterator curr = arr.begin(), end = arr.end();
       curr != end; ++curr){
@@ -149,9 +159,9 @@ void RowVector::addRowTimesConstant(const Rational& c, const RowVector& other){
 void RowVector::printRow(){
   for(NonZeroIterator i = beginNonZero(); i != endNonZero(); ++i){
     ArithVar nb = getArithVar(*i);
-    Debug("tableau") << "{" << nb << "," << getCoefficient(*i) << "}";
+    Debug("row::print") << "{" << nb << "," << getCoefficient(*i) << "}";
   }
-  Debug("tableau") << std::endl;
+  Debug("row::print") << std::endl;
 }
 
 ReducedRowVector::ReducedRowVector(ArithVar basic,
@@ -192,4 +202,38 @@ void ReducedRowVector::pivot(ArithVar x_j){
   d_basic = x_j;
 
   Assert(wellFormed());
+}
+
+
+Node ReducedRowVector::asEquality(const ArithVarToNodeMap& map) const{
+  using namespace CVC4::kind;
+
+  Assert(size() >= 2);
+  Node sum = Node::null();
+  if(size() > 2){
+    NodeBuilder<> sumBuilder(PLUS);
+
+    for(NonZeroIterator i = beginNonZero(); i != endNonZero(); ++i){
+      ArithVar nb = getArithVar(*i);
+      if(nb == basic()) continue;
+      Node var = (map.find(nb))->second;
+      Node coeff = mkRationalNode(getCoefficient(*i));
+
+      Node mult = NodeBuilder<2>(MULT) << coeff << var;
+      sumBuilder << mult;
+    }
+    sum = sumBuilder;
+  }else{
+    Assert(size() == 2);
+    NonZeroIterator i = beginNonZero();
+    if(getArithVar(*i) == basic()){
+      ++i;
+    }
+    Assert(getArithVar(*i) != basic());
+    Node var = (map.find(getArithVar(*i)))->second;
+    Node coeff = mkRationalNode(getCoefficient(*i));
+    sum = NodeBuilder<2>(MULT) << coeff << var;
+  }
+  Node basicVar = (map.find(basic()))->second;
+  return NodeBuilder<2>(EQUAL) << basicVar << sum;
 }
