@@ -72,7 +72,7 @@ bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_
   d_partialModel.setLowerConstraint(x_i,original);
   d_partialModel.setLowerBound(x_i, c_i);
 
-  if(!d_basicManager.isMember(x_i)){
+  if(!d_tableau.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) < c_i){
       update(x_i, c_i);
     }
@@ -103,7 +103,7 @@ bool SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
 
-  if(!d_basicManager.isMember(x_i)){
+  if(!d_tableau.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) > c_i){
       update(x_i, c_i);
     }
@@ -149,7 +149,7 @@ bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
 
-  if(!d_basicManager.isMember(x_i)){
+  if(!d_tableau.isBasic(x_i)){
     if(!(d_partialModel.getAssignment(x_i) == c_i)){
       update(x_i, c_i);
     }
@@ -161,7 +161,7 @@ bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
 }
 
 void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
-  Assert(!d_basicManager.isMember(x_i));
+  Assert(!d_tableau.isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
   ++(d_statistics.d_statUpdates);
 
@@ -294,7 +294,7 @@ ArithVar SimplexDecisionProcedure::selectSmallestInconsistentVar(){
     while(!d_griggioRuleQueue.empty()){
       ArithVar var = d_griggioRuleQueue.top().first;
       Debug("arith_update") << "possiblyInconsistentGriggio var" << var << endl;
-      if(d_basicManager.isMember(var)){
+      if(d_tableau.isBasic(var)){
         if(!d_partialModel.assignmentIsConsistent(var)){
           return var;
         }
@@ -305,7 +305,7 @@ ArithVar SimplexDecisionProcedure::selectSmallestInconsistentVar(){
     while(!d_possiblyInconsistent.empty()){
       ArithVar var = d_possiblyInconsistent.top();
       Debug("arith_update") << "possiblyInconsistent var" << var << endl;
-      if(d_basicManager.isMember(var)){
+      if(d_tableau.isBasic(var)){
         if(!d_partialModel.assignmentIsConsistent(var)){
           return var;
         }
@@ -392,7 +392,7 @@ Node SimplexDecisionProcedure::selectInitialConflict() {
 
   while( !d_griggioRuleQueue.empty()){
     ArithVar var = d_griggioRuleQueue.top().first;
-    if(d_basicManager.isMember(var)){
+    if(d_tableau.isBasic(var)){
       if(!d_partialModel.assignmentIsConsistent(var)){
         init.push_back( d_griggioRuleQueue.top());
       }
@@ -451,7 +451,7 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
 
 Node SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic){
 
-  Assert(d_basicManager.isMember(basic));
+  Assert(d_tableau.isBasic(basic));
   const DeltaRational& beta = d_partialModel.getAssignment(basic);
 
   if(d_partialModel.belowLowerBound(basic, beta, true)){
@@ -520,7 +520,7 @@ Node SimplexDecisionProcedure::privateUpdateInconsistentVars(){
   if(d_pivotStage && iteratationNum >= d_numVariables){
     while(!d_griggioRuleQueue.empty()){
       ArithVar var = d_griggioRuleQueue.top().first;
-      if(d_basicManager.isMember(var)){
+      if(d_tableau.isBasic(var)){
         d_possiblyInconsistent.push(var);
       }
       d_griggioRuleQueue.pop();
@@ -623,7 +623,7 @@ Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
  * Computes the value of a basic variable using the current assignment.
  */
 DeltaRational SimplexDecisionProcedure::computeRowValue(ArithVar x, bool useSafe){
-  Assert(d_basicManager.isMember(x));
+  Assert(d_tableau.isBasic(x));
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
   ReducedRowVector& row = d_tableau.lookup(x);
@@ -641,7 +641,7 @@ DeltaRational SimplexDecisionProcedure::computeRowValue(ArithVar x, bool useSafe
 
 
 void SimplexDecisionProcedure::checkBasicVariable(ArithVar basic){
-  Assert(d_basicManager.isMember(basic));
+  Assert(d_tableau.isBasic(basic));
   if(!d_partialModel.assignmentIsConsistent(basic)){
     if(d_pivotStage){
       const DeltaRational& beta = d_partialModel.getAssignment(basic);

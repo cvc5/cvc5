@@ -25,8 +25,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
 Tableau::~Tableau(){
-  while(!d_activeBasicVars.empty()){
-    ArithVar curr = *(d_activeBasicVars.begin());
+  while(!d_basicVariables.empty()){
+    ArithVar curr = *(d_basicVariables.begin());
     ReducedRowVector* vec = removeRow(curr);
     delete vec;
   }
@@ -37,11 +37,10 @@ void Tableau::addRow(ArithVar basicVar,
                      const std::vector<ArithVar>& variables){
 
   Assert(coeffs.size() == variables.size());
-  Assert(d_basicManager.isMember(basicVar));
 
   //The new basic variable cannot already be a basic variable
-  Assert(!d_activeBasicVars.isMember(basicVar));
-  d_activeBasicVars.add(basicVar);
+  Assert(!d_basicVariables.isMember(basicVar));
+  d_basicVariables.add(basicVar);
   ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs,d_rowCount);
   d_rowsTable[basicVar] = row_current;
 
@@ -53,9 +52,7 @@ void Tableau::addRow(ArithVar basicVar,
   for( ; varsIter != varsEnd; ++varsIter){
     ArithVar var = *varsIter;
 
-    if(d_basicManager.isMember(var)){
-      Assert(d_activeBasicVars.isMember(var));
-
+    if(d_basicVariables.isMember(var)){
       ReducedRowVector& row_var = lookup(var);
       row_current->substitute(row_var);
     }
@@ -63,20 +60,19 @@ void Tableau::addRow(ArithVar basicVar,
 }
 
 ReducedRowVector* Tableau::removeRow(ArithVar basic){
-  Assert(d_basicManager.isMember(basic));
-  Assert(d_activeBasicVars.isMember(basic));
+  Assert(d_basicVariables.isMember(basic));
 
   ReducedRowVector* row = d_rowsTable[basic];
 
-  d_activeBasicVars.remove(basic);
+  d_basicVariables.remove(basic);
   d_rowsTable[basic] = NULL;
 
   return row;
 }
 
 void Tableau::pivot(ArithVar x_r, ArithVar x_s){
-  Assert(d_basicManager.isMember(x_r));
-  Assert(!d_basicManager.isMember(x_s));
+  Assert(d_basicVariables.isMember(x_r));
+  Assert(!d_basicVariables.isMember(x_s));
 
   Debug("tableau") << "Tableau::pivot(" <<  x_r <<", " <<x_s <<")"  << endl;
 
@@ -88,11 +84,9 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
   d_rowsTable[x_s] = row_s;
   d_rowsTable[x_r] = NULL;
 
-  d_activeBasicVars.remove(x_r);
-  d_basicManager.remove(x_r);
+  d_basicVariables.remove(x_r);
 
-  d_activeBasicVars.add(x_s);
-  d_basicManager.add(x_s);
+  d_basicVariables.add(x_s);
 
   row_s->pivot(x_s);
 

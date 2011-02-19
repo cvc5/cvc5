@@ -42,10 +42,9 @@ private:
 
   typedef std::vector< ReducedRowVector* > RowsTable;
 
-  ArithVarSet d_activeBasicVars;
   RowsTable d_rowsTable;
 
-  ArithVarSet& d_basicManager;
+  ArithVarSet d_basicVariables;
 
   std::vector<uint32_t> d_rowCount;
 
@@ -53,29 +52,33 @@ public:
   /**
    * Constructs an empty tableau.
    */
-  Tableau(ArithVarSet& bm) :
-    d_activeBasicVars(),
+  Tableau() :
     d_rowsTable(),
-    d_basicManager(bm)
+    d_basicVariables(),
+    d_rowCount()
   {}
   ~Tableau();
 
   void increaseSize(){
-    d_activeBasicVars.increaseSize();
+    d_basicVariables.increaseSize();
     d_rowsTable.push_back(NULL);
     d_rowCount.push_back(0);
   }
 
+  bool isBasic(ArithVar v) const {
+    return d_basicVariables.isMember(v);
+  }
+
   ArithVarSet::iterator begin(){
-    return d_activeBasicVars.begin();
+    return d_basicVariables.begin();
   }
 
   ArithVarSet::iterator end(){
-    return d_activeBasicVars.end();
+    return d_basicVariables.end();
   }
 
   ReducedRowVector& lookup(ArithVar var){
-    Assert(d_activeBasicVars.isMember(var));
+    Assert(d_basicVariables.isMember(var));
     Assert(d_rowsTable[var] != NULL);
     return *(d_rowsTable[var]);
   }

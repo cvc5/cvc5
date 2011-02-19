@@ -89,7 +89,9 @@ private:
    */
   ArithPartialModel d_partialModel;
 
-  ArithVarSet d_basicManager;
+  /**
+   * Set of ArithVars that were introduced via preregisteration.
+   */
   ArithVarSet d_userVariables;
 
   /**
@@ -100,7 +102,6 @@ private:
 
   inline bool hasArithVar(TNode x) const {
     return d_nodeToArithVarMap.find(x) != d_nodeToArithVarMap.end();
-    //return x.hasAttribute(ArithVarAttr());
   }
 
   inline ArithVar asArithVar(TNode x) const{

@@ -57,12 +57,11 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   Theory(THEORY_ARITH, c, out),
   d_constants(NodeManager::currentNM()),
   d_partialModel(c),
-  d_basicManager(),
   d_userVariables(),
   d_diseq(c),
-  d_tableau(d_basicManager),
+  d_tableau(),
   d_propagator(c, out),
-  d_simplex(d_constants, d_partialModel, d_basicManager,  d_out, d_tableau),
+  d_simplex(d_constants, d_partialModel, d_out, d_tableau),
   d_statistics()
 {}
 
@@ -261,7 +260,7 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
 
   setArithVar(x,varX);
 
-  d_basicManager.init(varX,basic);
+  //d_basicManager.init(varX,basic);
   d_userVariables.init(varX, !basic);
   d_tableau.increaseSize();
 
@@ -316,7 +315,7 @@ void TheoryArith::setupSlack(TNode left){
  */
 void TheoryArith::setupInitialValue(ArithVar x){
 
-  if(!d_basicManager.isMember(x)){
+  if(!d_tableau.isBasic(x)){
     d_partialModel.initialize(x,d_constants.d_ZERO_DELTA);
   }else{
     //If the variable is basic, assertions may have already happened and updates
@@ -542,7 +541,7 @@ void TheoryArith::check(Effort effortLevel){
     for (ArithVar i = 0; i < d_variables.size(); ++ i) {
       Debug("arith::print_model") << d_variables[i] << " : " <<
         d_partialModel.getAssignment(i);
-      if(d_basicManager.isMember(i))
+      if(d_tableau.isBasic(i))
         Debug("arith::print_model") << " (basic)";
       Debug("arith::print_model") << endl;
     }
@@ -676,7 +675,7 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
 
   bool noRow = false;
 
-  if(!d_basicManager.isMember(v)){
+  if(!d_tableau.isBasic(v)){
     ArithVar basic = findShortestBasicRow(v);
 
     if(basic == ARITHVAR_SENTINEL){
@@ -687,9 +686,8 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
     }
   }
 
-  if(d_basicManager.isMember(v)){
+  if(d_tableau.isBasic(v)){
     Assert(!noRow);
-    Assert(d_basicManager.isMember(v));
 
     //remove the row from the tableau
     ReducedRowVector* row  = d_tableau.removeRow(v);
