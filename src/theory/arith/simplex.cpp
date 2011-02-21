@@ -22,7 +22,9 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_selectInitialConflictTime("theory::arith::selectInitialConflictTime"),
   d_pivotsAfterConflict("theory::arith::pivotsAfterConflict", 0),
   d_checksWithWastefulPivots("theory::arith::checksWithWastefulPivots", 0),
-  d_pivotTime("theory::arith::pivotTime")
+  d_pivotTime("theory::arith::pivotTime"),
+  d_avgNumRowsNotContainingOnUpdate("theory::arith::avgNumRowsNotContainingOnUpdate"),
+  d_avgNumRowsNotContainingOnPivot("theory::arith::avgNumRowsNotContainingOnPivot")
 {
   StatisticsRegistry::registerStat(&d_statPivots);
   StatisticsRegistry::registerStat(&d_statUpdates);
@@ -36,6 +38,9 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_pivotsAfterConflict);
   StatisticsRegistry::registerStat(&d_checksWithWastefulPivots);
   StatisticsRegistry::registerStat(&d_pivotTime);
+
+  StatisticsRegistry::registerStat(&d_avgNumRowsNotContainingOnUpdate);
+  StatisticsRegistry::registerStat(&d_avgNumRowsNotContainingOnPivot);
 }
 
 SimplexDecisionProcedure::Statistics::~Statistics(){
@@ -51,6 +56,9 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_pivotsAfterConflict);
   StatisticsRegistry::unregisterStat(&d_checksWithWastefulPivots);
   StatisticsRegistry::unregisterStat(&d_pivotTime);
+
+  StatisticsRegistry::unregisterStat(&d_avgNumRowsNotContainingOnUpdate);
+  StatisticsRegistry::unregisterStat(&d_avgNumRowsNotContainingOnPivot);
 }
 
 /* procedure AssertLower( x_i >= c_i ) */
@@ -188,6 +196,10 @@ void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
 
   d_partialModel.setAssignment(x_i, v);
 
+  Assert(d_tableau.getNumRows() >= d_tableau.getRowCount(x_i));
+  double difference = ((double)d_tableau.getNumRows()) - ((double) d_tableau.getRowCount(x_i));
+
+  (d_statistics.d_avgNumRowsNotContainingOnUpdate).addEntry(difference);
   if(Debug.isOn("paranoid:check_tableau")){
     checkTableau();
   }
@@ -261,7 +273,11 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
     ++(d_statistics.d_pivotsAfterConflict);
   }
 
+  Assert(d_tableau.getNumRows() >= d_tableau.getRowCount(x_j));
+  double difference = ((double)d_tableau.getNumRows()) - ((double) d_tableau.getRowCount(x_j));
+  (d_statistics.d_avgNumRowsNotContainingOnPivot).addEntry(difference);
   d_tableau.pivot(x_i, x_j);
+
 
   checkBasicVariable(x_j);
 

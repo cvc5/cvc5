@@ -59,6 +59,10 @@ public:
   {}
   ~Tableau();
 
+  size_t getNumRows() const {
+    return d_basicVariables.size();
+  }
+
   void increaseSize(){
     d_basicVariables.increaseSize();
     d_rowsTable.push_back(NULL);

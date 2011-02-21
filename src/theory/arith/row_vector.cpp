@@ -117,7 +117,8 @@ void RowVector::merge(VarCoeffArray& arr,
     }else{
       Rational res = getCoefficient(*curr1) + c * getCoefficient(*curr2);
       if(res != 0){
-        ++counts[getArithVar(*curr2)];
+        //The variable is not new so the count stays the same
+        //bug: ++counts[getArithVar(*curr2)];
 
         arr.push_back(make_pair(getArithVar(*curr1), res));
       }else{
@@ -177,6 +178,7 @@ ReducedRowVector::ReducedRowVector(ArithVar basic,
   merge(d_entries, d_contains, justBasic, Rational(1), d_rowCount);
 
   Assert(wellFormed());
+  Assert(d_rowCount[d_basic] == 1);
 }
 
 void ReducedRowVector::substitute(const ReducedRowVector& row_s){
@@ -192,6 +194,7 @@ void ReducedRowVector::substitute(const ReducedRowVector& row_s){
 
   Assert(!has(x_s));
   Assert(wellFormed());
+  Assert(d_rowCount[basic()] == 1);
 }
 
 void ReducedRowVector::pivot(ArithVar x_j){
@@ -202,6 +205,9 @@ void ReducedRowVector::pivot(ArithVar x_j){
   d_basic = x_j;
 
   Assert(wellFormed());
+  //The invariant Assert(d_rowCount[basic()] == 1); does not hold.
+  //This is because the pivot is within the row first then
+  //is moved through the propagated through the rest of the tableau.
 }
 
 
@@ -236,4 +242,11 @@ Node ReducedRowVector::asEquality(const ArithVarToNodeMap& map) const{
   }
   Node basicVar = (map.find(basic()))->second;
   return NodeBuilder<2>(EQUAL) << basicVar << sum;
+}
+
+
+ReducedRowVector::~ReducedRowVector(){
+  //This executes before the super classes destructor RowVector,
+  // which will set this to 0.
+  Assert(d_rowCount[basic()] == 1);
 }

@@ -208,6 +208,10 @@ private:
 
     IntStat d_pivotsAfterConflict, d_checksWithWastefulPivots;
     TimerStat d_pivotTime;
+
+    AverageStat d_avgNumRowsNotContainingOnUpdate;
+    AverageStat d_avgNumRowsNotContainingOnPivot;
+
     Statistics();
     ~Statistics();
   };

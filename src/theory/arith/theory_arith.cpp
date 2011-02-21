@@ -694,9 +694,11 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
     Node eq = row->asEquality(d_arithVarToNodeMap);
 
     if(Debug.isOn("row::print")) row->printRow();
+    if(Debug.isOn("tableau")) d_tableau.printTableau();
     Debug("arith::permanentlyRemoveVariable") << eq << endl;
     delete row;
 
+    Assert(d_tableau.getRowCount(v) == 0);
     Assert(d_removedRows.find(v) ==  d_removedRows.end());
     d_removedRows[v] = eq;
   }

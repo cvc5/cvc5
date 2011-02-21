@@ -178,6 +178,7 @@ public:
                    const std::vector< Rational >& coefficients,
                    std::vector<uint32_t>& count);
 
+  ~ReducedRowVector();
 
   ArithVar basic() const{
     Assert(basicIsSet());
