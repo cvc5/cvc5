@@ -21,6 +21,8 @@ libarith_la_SOURCES = \
 	arithvar_set.h \
 	tableau.h \
 	tableau.cpp \
+	arith_priority_queue.h \
+	arith_priority_queue.cpp \
 	simplex.h \
 	simplex.cpp \
 	row_vector.h \

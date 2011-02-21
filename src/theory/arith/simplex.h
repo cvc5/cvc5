@@ -5,6 +5,7 @@
 #define __CVC4__THEORY__ARITH__SIMPLEX_H
 
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/arith_priority_queue.h"
 #include "theory/arith/arithvar_set.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
@@ -21,30 +22,7 @@ namespace arith {
 
 class SimplexDecisionProcedure {
 private:
-  typedef std::pair<ArithVar, DeltaRational> VarDRatPair;
 
-  struct VarDRatPairCompare{
-    inline bool operator()(const VarDRatPair& a, const VarDRatPair& b){
-      return a.second > b.second;
-    }
-  };
-  typedef std::priority_queue<VarDRatPair, std::vector<VarDRatPair>, VarDRatPairCompare> GriggioPQueue;
-
-  GriggioPQueue d_griggioRuleQueue;
-
-  /**
-   * Priority Queue of the basic variables that may be inconsistent.
-   *
-   * This is required to contain at least 1 instance of every inconsistent
-   * basic variable. This is only required to be a superset though so its
-   * contents must be checked to still be basic and inconsistent.
-   *
-   * This is also required to agree with the row on variable order for termination.
-   * Effectively this means that this must be a min-heap.
-   */
-  typedef std::priority_queue<ArithVar, vector<ArithVar>, std::greater<ArithVar> > PQueue;
-
-  PQueue d_possiblyInconsistent;
 
   /** Stores system wide constants to avoid unnessecary reconstruction. */
   const ArithConstants& d_constants;
@@ -58,23 +36,21 @@ private:
   OutputChannel* d_out;
 
   Tableau& d_tableau;
+  ArithPriorityQueue d_queue;
 
   ArithVar d_numVariables;
-
-  bool d_pivotStage;
 
 public:
   SimplexDecisionProcedure(const ArithConstants& constants,
                            ArithPartialModel& pm,
                            OutputChannel* out,
                            Tableau& tableau) :
-    d_possiblyInconsistent(),
     d_constants(constants),
     d_partialModel(pm),
     d_out(out),
     d_tableau(tableau),
-    d_numVariables(0),
-    d_pivotStage(true)
+    d_queue(pm, tableau),
+    d_numVariables(0)
   {}
 
   void increaseMax() {d_numVariables++;}
@@ -130,7 +106,7 @@ public:
    */
   Node updateInconsistentVars();
 private:
-  Node privateUpdateInconsistentVars();
+  template <bool limitIterations> Node searchForFeasibleSolution(uint32_t maxIterations);
 
   Node selectInitialConflict();
 
@@ -182,8 +158,6 @@ public:
   DeltaRational computeRowValue(ArithVar x, bool useSafe);
 
 private:
-  /** Check to make sure all of the basic variables are within their bounds. */
-  void checkBasicVariable(ArithVar basic);
 
   /**
    * Checks a basic variable, b, to see if it is in conflict.
