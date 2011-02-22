@@ -41,7 +41,7 @@ void Tableau::addRow(ArithVar basicVar,
   //The new basic variable cannot already be a basic variable
   Assert(!d_basicVariables.isMember(basicVar));
   d_basicVariables.add(basicVar);
-  ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs,d_rowCount);
+  ReducedRowVector* row_current = new ReducedRowVector(basicVar,variables, coeffs,d_rowCount, d_columnMatrix);
   d_rowsTable[basicVar] = row_current;
 
   //A variable in the row may have been made non-basic already.
@@ -90,17 +90,22 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
 
   row_s->pivot(x_s);
 
-  for(ArithVarSet::iterator basicIter = begin(), endIter = end();
-      basicIter != endIter; ++basicIter){
+  ArithVarSet::VarList copy(getColumn(x_s).getList());
+  vector<ArithVar>::iterator basicIter = copy.begin(), endIter = copy.end();
+
+  for(; basicIter != endIter; ++basicIter){
     ArithVar basic = *basicIter;
     if(basic == x_s) continue;
 
     ReducedRowVector& row_k = lookup(basic);
-    if(row_k.has(x_s)){
-      row_k.substitute(*row_s);
-    }
+    Assert(row_k.has(x_s));
+
+    row_k.substitute(*row_s);
   }
+  Assert(getColumn(x_s).size() == 1);
+  Assert(getRowCount(x_s) == 1);
 }
+
 void Tableau::printTableau(){
   Debug("tableau") << "Tableau::d_activeRows"  << endl;
 

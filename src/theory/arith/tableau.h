@@ -37,6 +37,10 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+typedef ArithVarSet Column;
+
+typedef std::vector<Column> ColumnMatrix;
+
 class Tableau {
 private:
 
@@ -47,6 +51,7 @@ private:
   ArithVarSet d_basicVariables;
 
   std::vector<uint32_t> d_rowCount;
+  ColumnMatrix d_columnMatrix;
 
 public:
   /**
@@ -55,7 +60,8 @@ public:
   Tableau() :
     d_rowsTable(),
     d_basicVariables(),
-    d_rowCount()
+    d_rowCount(),
+    d_columnMatrix()
   {}
   ~Tableau();
 
@@ -67,6 +73,16 @@ public:
     d_basicVariables.increaseSize();
     d_rowsTable.push_back(NULL);
     d_rowCount.push_back(0);
+
+    d_columnMatrix.push_back(ArithVarSet());
+
+    //TODO replace with version of ArithVarSet that handles misses as non-entries
+    // not as buffer overflows
+    ColumnMatrix::iterator i = d_columnMatrix.begin(), end = d_columnMatrix.end();
+    for(; i != end; ++i){
+      Column& col = *i;
+      col.increaseSize(d_columnMatrix.size());
+    }
   }
 
   bool isBasic(ArithVar v) const {
@@ -81,6 +97,19 @@ public:
     return d_basicVariables.end();
   }
 
+  const Column& getColumn(ArithVar v){
+    Assert(v < d_columnMatrix.size());
+    return d_columnMatrix[v];
+  }
+
+  Column::iterator beginColumn(ArithVar v){
+    return getColumn(v).begin();
+  }
+  Column::iterator endColumn(ArithVar v){
+    return getColumn(v).end();
+  }
+
+
   ReducedRowVector& lookup(ArithVar var){
     Assert(d_basicVariables.isMember(var));
     Assert(d_rowsTable[var] != NULL);
@@ -90,6 +119,8 @@ public:
 public:
   uint32_t getRowCount(ArithVar x){
     Assert(x < d_rowCount.size());
+    AlwaysAssert(d_rowCount[x] == getColumn(x).size());
+
     return d_rowCount[x];
   }
 

@@ -168,6 +168,37 @@ bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
   return false;
 }
 
+set<ArithVar> tableauAndHasSet(Tableau& tab, ArithVar v){
+  set<ArithVar> has;
+  for(ArithVarSet::iterator basicIter = tab.begin();
+      basicIter != tab.end();
+      ++basicIter){
+    ArithVar basic = *basicIter;
+    ReducedRowVector& row = tab.lookup(basic);
+
+    if(row.has(v)){
+      has.insert(basic);
+    }
+  }
+  return has;
+}
+
+set<ArithVar> columnIteratorSet(Tableau& tab,ArithVar v){
+  set<ArithVar> has;
+  ArithVarSet::iterator basicIter = tab.beginColumn(v);
+  ArithVarSet::iterator endIter = tab.endColumn(v);
+  for(; basicIter != endIter; ++basicIter){
+    ArithVar basic = *basicIter;
+    has.insert(basic);
+  }
+  return has;
+}
+
+
+bool matchingSets(Tableau& tab, ArithVar v){
+  return tableauAndHasSet(tab, v) == columnIteratorSet(tab, v);
+}
+
 void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
   Assert(!d_tableau.isBasic(x_i));
   DeltaRational assignment_x_i = d_partialModel.getAssignment(x_i);
@@ -177,22 +208,21 @@ void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
                  << assignment_x_i << "|-> " << v << endl;
   DeltaRational diff = v - assignment_x_i;
 
-  for(ArithVarSet::iterator basicIter = d_tableau.begin();
-      basicIter != d_tableau.end();
-      ++basicIter){
+  Assert(matchingSets(d_tableau, x_i));
+  ArithVarSet::iterator basicIter = d_tableau.beginColumn(x_i);
+  ArithVarSet::iterator endIter   = d_tableau.endColumn(x_i);
+  for(; basicIter != endIter; ++basicIter){
     ArithVar x_j = *basicIter;
     ReducedRowVector& row_j = d_tableau.lookup(x_j);
 
-    if(row_j.has(x_i)){
-      const Rational& a_ji = row_j.lookup(x_i);
+    Assert(row_j.has(x_i));
+    const Rational& a_ji = row_j.lookup(x_i);
 
-      const DeltaRational& assignment = d_partialModel.getAssignment(x_j);
-      DeltaRational  nAssignment = assignment+(diff * a_ji);
-      d_partialModel.setAssignment(x_j, nAssignment);
+    const DeltaRational& assignment = d_partialModel.getAssignment(x_j);
+    DeltaRational  nAssignment = assignment+(diff * a_ji);
+    d_partialModel.setAssignment(x_j, nAssignment);
 
-      d_queue.enqueueIfInconsistent(x_j);
-      //checkBasicVariable(x_j);
-    }
+    d_queue.enqueueIfInconsistent(x_j);
   }
 
   d_partialModel.setAssignment(x_i, v);
@@ -250,12 +280,21 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
   DeltaRational tmp = d_partialModel.getAssignment(x_j) + theta;
   d_partialModel.setAssignment(x_j, tmp);
 
-  ArithVarSet::iterator basicIter = d_tableau.begin(), end = d_tableau.end();
-  for(; basicIter != end; ++basicIter){
+
+  Assert(matchingSets(d_tableau, x_j));
+  ArithVarSet::iterator basicIter = d_tableau.beginColumn(x_j);
+  ArithVarSet::iterator endIter   = d_tableau.endColumn(x_j);
+  for(; basicIter != endIter; ++basicIter){
+
+  //ArithVarSet::iterator basicIter = d_tableau.begin(), end = d_tableau.end();
+  //for(; basicIter != end; ++basicIter){
     ArithVar x_k = *basicIter;
     ReducedRowVector& row_k = d_tableau.lookup(x_k);
 
-    if(x_k != x_i && row_k.has(x_j)){
+    Assert(row_k.has(x_j));
+
+    //if(x_k != x_i && row_k.has(x_j)){
+    if(x_k != x_i ){
       const Rational& a_kj = row_k.lookup(x_j);
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);

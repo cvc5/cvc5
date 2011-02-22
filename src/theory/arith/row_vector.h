@@ -6,6 +6,7 @@
 #define __CVC4__THEORY__ARITH__ROW_VECTOR_H
 
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar_set.h"
 #include "util/rational.h"
 #include <vector>
 
@@ -52,7 +53,9 @@ public:
                     ArithVarContainsSet& contains,
                     const VarCoeffArray& other,
                     const Rational& c,
-                    std::vector<uint32_t>& count);
+                    std::vector<uint32_t>& count,
+                    std::vector<ArithVarSet>& columnMatrix,
+                    ArithVar basic);
 
 protected:
   /**
@@ -61,6 +64,9 @@ protected:
    *  0 != getCoefficient(arr[i]) for all i.
    */
   static bool noZeroCoefficients(const VarCoeffArray& arr);
+
+  /** Debugging code.*/
+  bool matchingCounts() const;
 
   /**
    * Invariants:
@@ -76,6 +82,7 @@ protected:
   ArithVarContainsSet d_contains;
 
   std::vector<uint32_t>& d_rowCount;
+  std::vector<ArithVarSet>& d_columnMatrix;
 
   NonZeroIterator lower_bound(ArithVar x_j) const{
     return std::lower_bound(d_entries.begin(), d_entries.end(), make_pair(x_j,0), cmp);
@@ -87,7 +94,8 @@ public:
 
   RowVector(const std::vector< ArithVar >& variables,
             const std::vector< Rational >& coefficients,
-            std::vector<uint32_t>& counts);
+            std::vector<uint32_t>& counts,
+            std::vector<ArithVarSet>& columnMatrix);
 
   ~RowVector();
 
@@ -135,7 +143,7 @@ public:
    * Updates the current row to be the sum of itself and
    * another vector times c (c != 0).
    */
-  void addRowTimesConstant(const Rational& c, const RowVector& other);
+  void addRowTimesConstant(const Rational& c, const RowVector& other, ArithVar basic);
 
   void printRow();
 
@@ -176,7 +184,8 @@ public:
   ReducedRowVector(ArithVar basic,
                    const std::vector< ArithVar >& variables,
                    const std::vector< Rational >& coefficients,
-                   std::vector<uint32_t>& count);
+                   std::vector<uint32_t>& count,
+                   std::vector<ArithVarSet>& columnMatrix);
 
   ~ReducedRowVector();
 

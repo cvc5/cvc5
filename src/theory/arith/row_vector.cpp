@@ -29,6 +29,18 @@ RowVector::~RowVector(){
     Assert(d_rowCount[v] >= 1);
     --(d_rowCount[v]);
   }
+
+  Assert(matchingCounts());
+}
+
+bool RowVector::matchingCounts() const{
+  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
+    ArithVar v = getArithVar(*i);
+    if(d_columnMatrix[v].size() != d_rowCount[v]){
+      return false;
+    }
+  }
+  return true;
 }
 
 bool RowVector::noZeroCoefficients(const VarCoeffArray& arr){
@@ -61,8 +73,9 @@ void RowVector::zip(const std::vector< ArithVar >& variables,
 
 RowVector::RowVector(const std::vector< ArithVar >& variables,
                      const std::vector< Rational >& coefficients,
-                     std::vector<uint32_t>& counts):
-  d_rowCount(counts)
+                     std::vector<uint32_t>& counts,
+                     std::vector<ArithVarSet>& cm):
+  d_rowCount(counts), d_columnMatrix(cm)
 {
   zip(variables, coefficients, d_entries);
 
@@ -94,7 +107,9 @@ void RowVector::merge(VarCoeffArray& arr,
                       ArithVarContainsSet& contains,
                       const VarCoeffArray& other,
                       const Rational& c,
-                      std::vector<uint32_t>& counts){
+                      std::vector<uint32_t>& counts,
+                      std::vector<ArithVarSet>& columnMatrix,
+                      ArithVar basic){
   VarCoeffArray copy = arr;
   arr.clear();
 
@@ -109,7 +124,11 @@ void RowVector::merge(VarCoeffArray& arr,
       arr.push_back(*curr1);
       ++curr1;
     }else if(getArithVar(*curr1) > getArithVar(*curr2)){
+
       ++counts[getArithVar(*curr2)];
+      if(basic != ARITHVAR_SENTINEL){
+        columnMatrix[getArithVar(*curr2)].add(basic);
+      }
 
       addArithVar(contains, getArithVar(*curr2));
       arr.push_back( make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
@@ -118,12 +137,15 @@ void RowVector::merge(VarCoeffArray& arr,
       Rational res = getCoefficient(*curr1) + c * getCoefficient(*curr2);
       if(res != 0){
         //The variable is not new so the count stays the same
-        //bug: ++counts[getArithVar(*curr2)];
 
         arr.push_back(make_pair(getArithVar(*curr1), res));
       }else{
         removeArithVar(contains, getArithVar(*curr2));
+
         --counts[getArithVar(*curr2)];
+        if(basic != ARITHVAR_SENTINEL){
+          columnMatrix[getArithVar(*curr2)].remove(basic);
+        }
       }
       ++curr1;
       ++curr2;
@@ -135,6 +157,9 @@ void RowVector::merge(VarCoeffArray& arr,
   }
   while(curr2 != end2){
     ++counts[getArithVar(*curr2)];
+    if(basic != ARITHVAR_SENTINEL){
+      columnMatrix[getArithVar(*curr2)].add(basic);
+    }
 
     addArithVar(contains, getArithVar(*curr2));
 
@@ -151,10 +176,10 @@ void RowVector::multiply(const Rational& c){
   }
 }
 
-void RowVector::addRowTimesConstant(const Rational& c, const RowVector& other){
+void RowVector::addRowTimesConstant(const Rational& c, const RowVector& other, ArithVar basic){
   Assert(c != 0);
 
-  merge(d_entries, d_contains, other.d_entries, c, d_rowCount);
+  merge(d_entries, d_contains, other.d_entries, c, d_rowCount, d_columnMatrix, basic);
 }
 
 void RowVector::printRow(){
@@ -165,18 +190,27 @@ void RowVector::printRow(){
   Debug("row::print") << std::endl;
 }
 
+
 ReducedRowVector::ReducedRowVector(ArithVar basic,
                                    const std::vector<ArithVar>& variables,
                                    const std::vector<Rational>& coefficients,
-                                   std::vector<uint32_t>& count):
-  RowVector(variables, coefficients, count), d_basic(basic){
+                                   std::vector<uint32_t>& count,
+                                   std::vector<ArithVarSet>& columnMatrix):
+  RowVector(variables, coefficients, count, columnMatrix), d_basic(basic){
 
+
+  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
+    //basic is not yet in d_entries
+    Assert(getArithVar(*i) != d_basic);
+    d_columnMatrix[getArithVar(*i)].add(d_basic);
+  }
 
   VarCoeffArray justBasic;
   justBasic.push_back(make_pair(basic, Rational(-1)));
 
-  merge(d_entries, d_contains, justBasic, Rational(1), d_rowCount);
+  merge(d_entries, d_contains, justBasic, Rational(1), d_rowCount, d_columnMatrix, d_basic);
 
+  Assert(matchingCounts());
   Assert(wellFormed());
   Assert(d_rowCount[d_basic] == 1);
 }
@@ -190,10 +224,12 @@ void ReducedRowVector::substitute(const ReducedRowVector& row_s){
   Rational a_rs = lookup(x_s);
   Assert(a_rs != 0);
 
-  addRowTimesConstant(a_rs, row_s);
+  addRowTimesConstant(a_rs, row_s, basic());
+
 
   Assert(!has(x_s));
   Assert(wellFormed());
+  Assert(matchingCounts());
   Assert(d_rowCount[basic()] == 1);
 }
 
@@ -202,8 +238,15 @@ void ReducedRowVector::pivot(ArithVar x_j){
   Assert(basic() != x_j);
   Rational negInverseA_rs = -(lookup(x_j).inverse());
   multiply(negInverseA_rs);
+
+  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
+    d_columnMatrix[getArithVar(*i)].remove(d_basic);
+    d_columnMatrix[getArithVar(*i)].add(x_j);
+  }
+
   d_basic = x_j;
 
+  Assert(matchingCounts());
   Assert(wellFormed());
   //The invariant Assert(d_rowCount[basic()] == 1); does not hold.
   //This is because the pivot is within the row first then
@@ -249,4 +292,12 @@ ReducedRowVector::~ReducedRowVector(){
   //This executes before the super classes destructor RowVector,
   // which will set this to 0.
   Assert(d_rowCount[basic()] == 1);
+
+  NonZeroIterator curr = beginNonZero();
+  NonZeroIterator end = endNonZero();
+  for(;curr != end; ++curr){
+    ArithVar v = getArithVar(*curr);
+    Assert(d_rowCount[v] >= 1);
+    d_columnMatrix[v].remove(basic());
+  }
 }
