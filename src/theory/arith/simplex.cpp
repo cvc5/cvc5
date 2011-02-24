@@ -342,7 +342,7 @@ ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i){
   ArithVar slack = ARITHVAR_SENTINEL;
   uint32_t numRows = std::numeric_limits<uint32_t>::max();
 
-  bool pivotStage = d_queue.usingGriggioRule();
+  bool pivotStage = d_queue.inDifferenceMode();
 
   for(ReducedRowVector::NonZeroIterator nbi = row_i.beginNonZero(), end = row_i.endNonZero();
       nbi != end; ++nbi){
@@ -410,10 +410,10 @@ Node SimplexDecisionProcedure::selectInitialConflict() {
   TimerStat::CodeTimer codeTimer(d_statistics.d_selectInitialConflictTime);
 
   int conflictChanges = 0;
-  ArithPriorityQueue::GriggioPQueue::const_iterator i = d_queue.queueAsListBegin();
-  ArithPriorityQueue::GriggioPQueue::const_iterator end = d_queue.queueAsListEnd();
+  ArithPriorityQueue::const_iterator i = d_queue.begin();
+  ArithPriorityQueue::const_iterator end = d_queue.end();
   for(; i != end; ++i){
-    ArithVar x_i = (*i).variable();
+    ArithVar x_i = *i;
 
     if(d_tableau.isBasic(x_i)){
       Node possibleConflict = checkBasicForConflict(x_i);
@@ -441,6 +441,8 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   d_foundAConflict = false;
   d_pivotsSinceConflict = 0;
 
+  d_queue.transitionToDifferenceMode();
+
   Node possibleConflict = Node::null();
   if(d_queue.size() > 1){
     possibleConflict = selectInitialConflict();
@@ -450,7 +452,7 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   }
 
   if(!d_queue.empty() && possibleConflict.isNull()){
-    d_queue.useBlandQueue();
+    d_queue.transitionToVariableOrderMode();
     possibleConflict = searchForFeasibleSolution<false>(0);
   }
 
@@ -460,10 +462,11 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   // means that the assignment we can always empty these queues.
   d_queue.clear();
 
-  if(!d_queue.usingGriggioRule()){
-    d_queue.useGriggioQueue();
-  }
-  Assert(d_queue.usingGriggioRule());
+  Assert(!d_queue.inCollectionMode());
+  d_queue.transitionToCollectionMode();
+
+
+  Assert(d_queue.inCollectionMode());
 
   return possibleConflict;
 }

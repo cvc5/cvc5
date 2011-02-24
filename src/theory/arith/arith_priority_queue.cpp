@@ -1,6 +1,8 @@
 
 #include "theory/arith/arith_priority_queue.h"
 
+#include <algorithm>
+
 using namespace std;
 
 using namespace CVC4;
@@ -10,17 +12,19 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
 ArithPriorityQueue::ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tableau):
-  d_partialModel(pm), d_tableau(tableau), d_usingGriggioRule(true), d_ZERO_DELTA(0,0)
+  d_partialModel(pm), d_tableau(tableau), d_modeInUse(Collection), d_ZERO_DELTA(0,0)
 {}
 
 ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
+  AlwaysAssert(!inCollectionMode());
+
   Debug("arith_update") << "popInconsistentBasicVariable()" << endl;
 
-  if(usingGriggioRule()){
-    while(!d_griggioRuleQueue.empty()){
-      ArithVar var = d_griggioRuleQueue.front().variable();
-      pop_heap(d_griggioRuleQueue.begin(), d_griggioRuleQueue.end());
-      d_griggioRuleQueue.pop_back();
+  if(inDifferenceMode()){
+    while(!d_diffQueue.empty()){
+      ArithVar var = d_diffQueue.front().variable();
+      pop_heap(d_diffQueue.begin(), d_diffQueue.end());
+      d_diffQueue.pop_back();
       Debug("arith_update") << "possiblyInconsistentGriggio var" << var << endl;
       if(basicAndInconsistent(var)){
         return var;
@@ -28,12 +32,12 @@ ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
     }
   }else{
     Debug("arith_update") << "possiblyInconsistent.size()"
-                          << d_possiblyInconsistent.size() << endl;
+                          << d_varOrderQueue.size() << endl;
 
-    while(!d_possiblyInconsistent.empty()){
-      ArithVar var = d_possiblyInconsistent.front();
-      pop_heap(d_possiblyInconsistent.begin(), d_possiblyInconsistent.end(), std::greater<ArithVar>());
-      d_possiblyInconsistent.pop_back();
+    while(!d_varOrderQueue.empty()){
+      ArithVar var = d_varOrderQueue.front();
+      pop_heap(d_varOrderQueue.begin(), d_varOrderQueue.end(), std::greater<ArithVar>());
+      d_varOrderQueue.pop_back();
 
       Debug("arith_update") << "possiblyInconsistent var" << var << endl;
       if(basicAndInconsistent(var)){
@@ -44,67 +48,108 @@ ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
   return ARITHVAR_SENTINEL;
 }
 
+ArithPriorityQueue::VarDRatPair ArithPriorityQueue::computeDiff(ArithVar basic){
+  Assert(basicAndInconsistent(basic));
+  const DeltaRational& beta = d_partialModel.getAssignment(basic);
+  DeltaRational diff = d_partialModel.belowLowerBound(basic,beta,true) ?
+    d_partialModel.getLowerBound(basic) - beta:
+    beta - d_partialModel.getUpperBound(basic);
+
+  Assert(d_ZERO_DELTA < diff);
+  return VarDRatPair(basic,diff);
+}
+
 void ArithPriorityQueue::enqueueIfInconsistent(ArithVar basic){
   Assert(d_tableau.isBasic(basic));
+
   if(basicAndInconsistent(basic)){
-    if( usingGriggioRule() ){
-      const DeltaRational& beta = d_partialModel.getAssignment(basic);
-      DeltaRational diff = d_partialModel.belowLowerBound(basic,beta,true) ?
-        d_partialModel.getLowerBound(basic) - beta:
-        beta - d_partialModel.getUpperBound(basic);
-
-      Assert(d_ZERO_DELTA < diff);
-      d_griggioRuleQueue.push_back(VarDRatPair(basic,diff));
-      push_heap(d_griggioRuleQueue.begin(), d_griggioRuleQueue.end());
-
-    }else{
-      d_possiblyInconsistent.push_back(basic);
-      push_heap(d_possiblyInconsistent.begin(), d_possiblyInconsistent.end(), std::greater<ArithVar>());
+    switch(d_modeInUse){
+    case Collection:
+      d_candidates.push_back(basic);
+      break;
+    case VariableOrder:
+      d_varOrderQueue.push_back(basic);
+      push_heap(d_varOrderQueue.begin(), d_varOrderQueue.end(), std::greater<ArithVar>());
+    case Difference:
+      d_diffQueue.push_back(computeDiff(basic));
+      push_heap(d_diffQueue.begin(), d_diffQueue.end());
+      break;
+    default:
+      Unreachable();
     }
   }
 }
 
-ArithPriorityQueue::GriggioPQueue::const_iterator ArithPriorityQueue::queueAsListBegin() const{
-  Assert(usingGriggioRule());
-  return d_griggioRuleQueue.begin();
-}
-ArithPriorityQueue::GriggioPQueue::const_iterator ArithPriorityQueue::queueAsListEnd() const{
-  Assert(usingGriggioRule());
-  return d_griggioRuleQueue.end();
+void ArithPriorityQueue::transitionToDifferenceMode() {
+  Assert(inCollectionMode());
+  Assert(d_varOrderQueue.empty());
+  Assert(d_diffQueue.empty());
+
+  ArithVarArray::const_iterator i = d_candidates.begin(), end = d_candidates.end();
+  for(; i != end; ++i){
+    ArithVar var = *i;
+    if(basicAndInconsistent(var)){
+      d_diffQueue.push_back(computeDiff(var));
+    }
+  }
+  make_heap(d_diffQueue.begin(), d_diffQueue.end());
+  d_candidates.clear();
+  d_modeInUse = Difference;
+
+  Assert(inDifferenceMode());
+  Assert(d_varOrderQueue.empty());
+  Assert(d_candidates.empty());
 }
 
+void ArithPriorityQueue::transitionToVariableOrderMode() {
+  Assert(inDifferenceMode());
+  Assert(d_varOrderQueue.empty());
+  Assert(d_candidates.empty());
 
-void ArithPriorityQueue::useGriggioQueue(){
-  Assert(!usingGriggioRule());
-  Assert(d_possiblyInconsistent.empty());
-  Assert(d_griggioRuleQueue.empty());
-  d_usingGriggioRule = true;
-}
-
-void ArithPriorityQueue::useBlandQueue(){
-  Assert(usingGriggioRule());
-  Assert(d_possiblyInconsistent.empty());
-  for(GriggioPQueue::const_iterator i = d_griggioRuleQueue.begin(), end = d_griggioRuleQueue.end(); i != end; ++i){
+  DifferenceArray::const_iterator i = d_diffQueue.begin(), end = d_diffQueue.end();
+  for(; i != end; ++i){
     ArithVar var = (*i).variable();
     if(basicAndInconsistent(var)){
-      d_possiblyInconsistent.push_back(var);
+      d_varOrderQueue.push_back(var);
     }
   }
-  d_griggioRuleQueue.clear();
-  make_heap(d_possiblyInconsistent.begin(), d_possiblyInconsistent.end(), std::greater<ArithVar>());
-  d_usingGriggioRule = false;
+  make_heap(d_varOrderQueue.begin(), d_varOrderQueue.end(), std::greater<ArithVar>());
+  d_diffQueue.clear();
+  d_modeInUse = VariableOrder;
 
-  Assert(d_griggioRuleQueue.empty());
-  Assert(!usingGriggioRule());
+  Assert(inVariableOrderMode());
+  Assert(d_diffQueue.empty());
+  Assert(d_candidates.empty());
 }
 
+void ArithPriorityQueue::transitionToCollectionMode() {
+  Assert(inDifferenceMode() || inVariableOrderMode());
+  Assert(d_diffQueue.empty());
+  Assert(d_candidates.empty());
+  Assert(d_varOrderQueue.empty());
+
+  d_modeInUse = Collection;
+}
 
 void ArithPriorityQueue::clear(){
-  if(usingGriggioRule()  && !d_griggioRuleQueue.empty()){
-    d_griggioRuleQueue.clear();
-  }else if(!d_possiblyInconsistent.empty()) {
-    d_possiblyInconsistent.clear();
+  switch(d_modeInUse){
+  case Collection:
+    d_candidates.clear();
+    break;
+  case VariableOrder:
+    if(!d_varOrderQueue.empty()) {
+      d_varOrderQueue.clear();
+    }
+    break;
+  case Difference:
+    if(!d_diffQueue.empty()){
+      d_diffQueue.clear();
+    }
+    break;
+  default:
+    Unreachable();
   }
-  Assert(d_possiblyInconsistent.empty());
-  Assert(d_griggioRuleQueue.empty());
+  Assert(d_candidates.empty());
+  Assert(d_varOrderQueue.empty());
+  Assert(d_diffQueue.empty());
 }
