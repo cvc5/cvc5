@@ -84,7 +84,6 @@ bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_
     }
   }else{
     d_queue.enqueueIfInconsistent(x_i);
-    //checkBasicVariable(x_i);
   }
 
   return false;
@@ -285,15 +284,10 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
   ArithVarSet::iterator basicIter = d_tableau.beginColumn(x_j);
   ArithVarSet::iterator endIter   = d_tableau.endColumn(x_j);
   for(; basicIter != endIter; ++basicIter){
-
-  //ArithVarSet::iterator basicIter = d_tableau.begin(), end = d_tableau.end();
-  //for(; basicIter != end; ++basicIter){
     ArithVar x_k = *basicIter;
     ReducedRowVector& row_k = d_tableau.lookup(x_k);
 
     Assert(row_k.has(x_j));
-
-    //if(x_k != x_i && row_k.has(x_j)){
     if(x_k != x_i ){
       const Rational& a_kj = row_k.lookup(x_j);
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
@@ -415,27 +409,24 @@ Node SimplexDecisionProcedure::selectInitialConflict() {
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_selectInitialConflictTime);
 
-  vector<VarDRatPair>  init;
-  d_queue.dumpQueueIntoVector(init);
-
   int conflictChanges = 0;
-  vector<VarDRatPair>::iterator i=init.begin(), end=init.end();
+  ArithPriorityQueue::GriggioPQueue::const_iterator i = d_queue.queueAsListBegin();
+  ArithPriorityQueue::GriggioPQueue::const_iterator end = d_queue.queueAsListEnd();
   for(; i != end; ++i){
-    ArithVar x_i = (*i).first;
+    ArithVar x_i = (*i).variable();
 
-    Node possibleConflict = checkBasicForConflict(x_i);
-    if(!possibleConflict.isNull()){
-      Node better = betterConflict(bestConflict, possibleConflict);
+    if(d_tableau.isBasic(x_i)){
+      Node possibleConflict = checkBasicForConflict(x_i);
+      if(!possibleConflict.isNull()){
+        Node better = betterConflict(bestConflict, possibleConflict);
 
-      if(better != bestConflict){
-        ++conflictChanges;
+        if(better != bestConflict){
+          ++conflictChanges;
+        }
+        bestConflict = better;
+        ++(d_statistics.d_statEarlyConflicts);
       }
-      bestConflict = better;
-      ++(d_statistics.d_statEarlyConflicts);
     }
-  }
-  if(bestConflict.isNull()){
-    d_queue.enqueueTrustedVector(init);
   }
 
   if(conflictChanges > 1) ++(d_statistics.d_statEarlyConflictImprovements);
@@ -458,7 +449,7 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
     possibleConflict = searchForFeasibleSolution<true>(d_numVariables + 1);
   }
 
-  if(possibleConflict.isNull()){
+  if(!d_queue.empty() && possibleConflict.isNull()){
     d_queue.useBlandQueue();
     possibleConflict = searchForFeasibleSolution<false>(0);
   }
@@ -499,16 +490,12 @@ Node SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic){
 //corresponds to Check() in dM06
 template <bool limitIterations>
 Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingIterations){
-
   Debug("arith") << "updateInconsistentVars" << endl;
-
-  //uint32_t iteratationNum = 0;
 
   while(!limitIterations || remainingIterations > 0){
     if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
 
     ArithVar x_i = d_queue.popInconsistentBasicVariable();
-    //selectSmallestInconsistentVar<useGriggioQueue>();
     Debug("arith::update::select") << "selectSmallestInconsistentVar()=" << x_i << endl;
     if(x_i == ARITHVAR_SENTINEL){
       Debug("arith_update") << "No inconsistent variables" << endl;
@@ -545,11 +532,9 @@ Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
       return earlyConflict;
     }
   }
-  if(remainingIterations == 0 && limitIterations){
-    return Node::null();
-  }
+  AlwaysAssert(limitIterations && remainingIterations == 0);
 
-  Unreachable();
+  return Node::null();
 }
 
 

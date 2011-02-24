@@ -9,27 +9,39 @@
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
 
-#include <queue>
+
+#include <vector>
+#include <algorithm>
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-typedef std::pair<ArithVar, DeltaRational> VarDRatPair;
-
-struct VarDRatPairCompare{
-  inline bool operator()(const VarDRatPair& a, const VarDRatPair& b){
-    return a.second > b.second;
-  }
-};
-
-typedef std::priority_queue<VarDRatPair, std::vector<VarDRatPair>, VarDRatPairCompare> GriggioPQueue;
-
-typedef std::priority_queue<ArithVar, vector<ArithVar>, std::greater<ArithVar> > PQueue;
-
 
 class ArithPriorityQueue {
 private:
+  class VarDRatPair {
+    ArithVar d_variable;
+    DeltaRational d_orderBy;
+  public:
+    VarDRatPair(ArithVar var, const DeltaRational& dr):
+      d_variable(var), d_orderBy(dr)
+    { }
+
+    ArithVar variable() const {
+      return d_variable;
+    }
+
+    bool operator<(const VarDRatPair& other){
+      return d_orderBy > other.d_orderBy;
+    }
+  };
+
+public:
+  typedef std::vector<VarDRatPair> GriggioPQueue;
+private:
+  typedef std::vector<ArithVar> PQueue;
+
   /**
    * Priority Queue of the basic variables that may be inconsistent.
    * Variables are ordered according to which violates its bound the most.
@@ -66,16 +78,19 @@ private:
    */
   bool d_usingGriggioRule;
 
+  /** Storage of Delta Rational 0 */
+  DeltaRational d_ZERO_DELTA;
+
 public:
+
   ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tableau);
 
   ArithVar popInconsistentBasicVariable();
 
   void enqueueIfInconsistent(ArithVar basic);
 
-  void enqueueTrustedVector(const vector<VarDRatPair>& trusted);
-
-  void dumpQueueIntoVector(vector<VarDRatPair>& target);
+  GriggioPQueue::const_iterator queueAsListBegin() const;
+  GriggioPQueue::const_iterator queueAsListEnd() const;
 
   inline bool basicAndInconsistent(ArithVar var) const{
     return d_tableau.isBasic(var)

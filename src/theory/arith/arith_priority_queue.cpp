@@ -10,7 +10,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
 ArithPriorityQueue::ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tableau):
-  d_partialModel(pm), d_tableau(tableau), d_usingGriggioRule(true)
+  d_partialModel(pm), d_tableau(tableau), d_usingGriggioRule(true), d_ZERO_DELTA(0,0)
 {}
 
 ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
@@ -18,8 +18,9 @@ ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
 
   if(usingGriggioRule()){
     while(!d_griggioRuleQueue.empty()){
-      ArithVar var = d_griggioRuleQueue.top().first;
-      d_griggioRuleQueue.pop();
+      ArithVar var = d_griggioRuleQueue.front().variable();
+      pop_heap(d_griggioRuleQueue.begin(), d_griggioRuleQueue.end());
+      d_griggioRuleQueue.pop_back();
       Debug("arith_update") << "possiblyInconsistentGriggio var" << var << endl;
       if(basicAndInconsistent(var)){
         return var;
@@ -30,8 +31,10 @@ ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
                           << d_possiblyInconsistent.size() << endl;
 
     while(!d_possiblyInconsistent.empty()){
-      ArithVar var = d_possiblyInconsistent.top();
-      d_possiblyInconsistent.pop();
+      ArithVar var = d_possiblyInconsistent.front();
+      pop_heap(d_possiblyInconsistent.begin(), d_possiblyInconsistent.end(), std::greater<ArithVar>());
+      d_possiblyInconsistent.pop_back();
+
       Debug("arith_update") << "possiblyInconsistent var" << var << endl;
       if(basicAndInconsistent(var)){
         return var;
@@ -49,32 +52,25 @@ void ArithPriorityQueue::enqueueIfInconsistent(ArithVar basic){
       DeltaRational diff = d_partialModel.belowLowerBound(basic,beta,true) ?
         d_partialModel.getLowerBound(basic) - beta:
         beta - d_partialModel.getUpperBound(basic);
-      d_griggioRuleQueue.push(make_pair(basic,diff));
+
+      Assert(d_ZERO_DELTA < diff);
+      d_griggioRuleQueue.push_back(VarDRatPair(basic,diff));
+      push_heap(d_griggioRuleQueue.begin(), d_griggioRuleQueue.end());
+
     }else{
-      d_possiblyInconsistent.push(basic);
+      d_possiblyInconsistent.push_back(basic);
+      push_heap(d_possiblyInconsistent.begin(), d_possiblyInconsistent.end(), std::greater<ArithVar>());
     }
   }
 }
 
-
-void ArithPriorityQueue::enqueueTrustedVector(const vector<VarDRatPair>& trusted){
+ArithPriorityQueue::GriggioPQueue::const_iterator ArithPriorityQueue::queueAsListBegin() const{
   Assert(usingGriggioRule());
-  Assert(empty());
-
-  d_griggioRuleQueue = GriggioPQueue(trusted.begin(), trusted.end());
-  Assert(size() == trusted.size());
+  return d_griggioRuleQueue.begin();
 }
-
-
-void ArithPriorityQueue::dumpQueueIntoVector(vector<VarDRatPair>& target){
+ArithPriorityQueue::GriggioPQueue::const_iterator ArithPriorityQueue::queueAsListEnd() const{
   Assert(usingGriggioRule());
-  while( !d_griggioRuleQueue.empty()){
-    ArithVar var = d_griggioRuleQueue.top().first;
-    if(basicAndInconsistent(var)){
-      target.push_back( d_griggioRuleQueue.top());
-    }
-    d_griggioRuleQueue.pop();
-  }
+  return d_griggioRuleQueue.end();
 }
 
 
@@ -87,13 +83,15 @@ void ArithPriorityQueue::useGriggioQueue(){
 
 void ArithPriorityQueue::useBlandQueue(){
   Assert(usingGriggioRule());
-  while(!d_griggioRuleQueue.empty()){
-    ArithVar var = d_griggioRuleQueue.top().first;
+  Assert(d_possiblyInconsistent.empty());
+  for(GriggioPQueue::const_iterator i = d_griggioRuleQueue.begin(), end = d_griggioRuleQueue.end(); i != end; ++i){
+    ArithVar var = (*i).variable();
     if(basicAndInconsistent(var)){
-      d_possiblyInconsistent.push(var);
+      d_possiblyInconsistent.push_back(var);
     }
-    d_griggioRuleQueue.pop();
   }
+  d_griggioRuleQueue.clear();
+  make_heap(d_possiblyInconsistent.begin(), d_possiblyInconsistent.end(), std::greater<ArithVar>());
   d_usingGriggioRule = false;
 
   Assert(d_griggioRuleQueue.empty());
@@ -103,9 +101,9 @@ void ArithPriorityQueue::useBlandQueue(){
 
 void ArithPriorityQueue::clear(){
   if(usingGriggioRule()  && !d_griggioRuleQueue.empty()){
-    d_griggioRuleQueue = GriggioPQueue();
+    d_griggioRuleQueue.clear();
   }else if(!d_possiblyInconsistent.empty()) {
-    d_possiblyInconsistent = PQueue();
+    d_possiblyInconsistent.clear();
   }
   Assert(d_possiblyInconsistent.empty());
   Assert(d_griggioRuleQueue.empty());
