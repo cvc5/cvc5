@@ -15,10 +15,10 @@ ArithPriorityQueue::ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tab
   d_partialModel(pm), d_tableau(tableau), d_modeInUse(Collection), d_ZERO_DELTA(0,0)
 {}
 
-ArithVar ArithPriorityQueue::popInconsistentBasicVariable(){
+ArithVar ArithPriorityQueue::dequeueInconsistentBasicVariable(){
   AlwaysAssert(!inCollectionMode());
 
-  Debug("arith_update") << "popInconsistentBasicVariable()" << endl;
+  Debug("arith_update") << "dequeueInconsistentBasicVariable()" << endl;
 
   if(inDifferenceMode()){
     while(!d_diffQueue.empty()){

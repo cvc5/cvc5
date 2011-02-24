@@ -108,7 +108,9 @@ public:
 private:
   template <bool limitIterations> Node searchForFeasibleSolution(uint32_t maxIterations);
 
-  Node selectInitialConflict();
+  enum SearchPeriod {BeforeDiffSearch, AfterDiffSearch, DuringVarOrderSearch};
+
+  Node findConflictOnTheQueue(SearchPeriod period);
 
 private:
   /**
@@ -117,16 +119,22 @@ private:
    * in the tableau that can "take up the slack" to let x_i satisfy its bounds.
    * This returns TNode::null() if none exists.
    *
+   * If first is true, return the first ArithVar in the row to satisfy these conditions.
+   * If first is false, return the ArithVar with the smallest row count.
+   *
    * More formally one of the following conditions must be satisfied:
    * -  above && a_ij < 0 && assignment(x_j) < upperbound(x_j)
    * -  above && a_ij > 0 && assignment(x_j) > lowerbound(x_j)
    * - !above && a_ij > 0 && assignment(x_j) < upperbound(x_j)
    * - !above && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
    */
-  template <bool above>  ArithVar selectSlack(ArithVar x_i);
-
-  ArithVar selectSlackBelow(ArithVar x_i) { return selectSlack<false>(x_i); }
-  ArithVar selectSlackAbove(ArithVar x_i) { return selectSlack<true>(x_i);  }
+  template <bool above>  ArithVar selectSlack(ArithVar x_i, bool first);
+  ArithVar selectSlackBelow(ArithVar x_i, bool first) {
+    return selectSlack<false>(x_i, first);
+  }
+  ArithVar selectSlackAbove(ArithVar x_i, bool first) {
+    return selectSlack<true>(x_i, first);
+  }
   /**
    * Returns the smallest basic variable whose assignment is not consistent
    * with its upper and lower bounds.
@@ -166,9 +174,6 @@ private:
    */
   Node checkBasicForConflict(ArithVar b);
 
-  bool d_foundAConflict; // This field is used for statistics keeping ONLY!
-  unsigned d_pivotsSinceConflict; // This field is used for statistics keeping ONLY!
-
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
   public:
@@ -176,11 +181,13 @@ private:
 
     IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
     IntStat d_statUpdateConflicts;
-    IntStat d_statEarlyConflicts, d_statEarlyConflictImprovements;
 
-    TimerStat d_selectInitialConflictTime;
+    TimerStat d_findConflictOnTheQueueTime;
 
-    IntStat d_pivotsAfterConflict, d_checksWithWastefulPivots;
+    IntStat d_attemptBeforeDiffSearch, d_successBeforeDiffSearch;
+    IntStat d_attemptAfterDiffSearch, d_successAfterDiffSearch;
+    IntStat d_attemptDuringVarOrderSearch, d_successDuringVarOrderSearch;
+
     TimerStat d_pivotTime;
 
     AverageStat d_avgNumRowsNotContainingOnUpdate;

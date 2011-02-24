@@ -116,7 +116,7 @@ public:
 
   ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tableau);
 
-  ArithVar popInconsistentBasicVariable();
+  ArithVar dequeueInconsistentBasicVariable();
 
   void enqueueIfInconsistent(ArithVar basic);
 
