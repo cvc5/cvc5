@@ -27,6 +27,7 @@
 #include "expr/node.h"
 #include "context/cdo.h"
 #include "util/output.h"
+#include "util/stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,6 +47,12 @@ struct BitSizeTraits {
   /** Number of bits we use for the trigger id */
   static const size_t trigger_id_bits = 24;
 
+  /** Number of bits we use for the function ids */
+  static const size_t function_id_bits = 8;
+  /** Number of bits we use for the function arguments count */
+  static const size_t function_arguments_count_bits = 16;
+  /** Number of bits we use for the index into the arguments memory */
+  static const size_t function_arguments_index_bits = 24;
 };
 
 class EqualityNode {
@@ -61,22 +68,26 @@ public:
   /** The next equality node in this class */
   size_t d_nextId : BitSizeTraits::id_bits;
 
+  /** Is this node a function application */
+  size_t d_isFunction : 1;
+
 public:
 
   /**
    * Creates a new node, which is in a list of it's own.
    */
   EqualityNode(size_t nodeId = BitSizeTraits::id_null)
-  : d_size(1), d_findId(nodeId), d_nextId(nodeId) {}
+  : d_size(1), d_findId(nodeId), d_nextId(nodeId), d_isFunction(0) {}
 
   /** Initialize the equality node */
-  inline void init(size_t nodeId) {
+  inline void init(size_t nodeId, bool isFunction) {
     d_size = 1;
     d_findId = d_nextId = nodeId;
+    d_isFunction = isFunction;
   }
 
   /**
-   * Returns the next node in the class circural list.
+   * Returns the next node in the class circular list.
    */
   inline size_t getNext() const {
     return d_nextId;
@@ -114,9 +125,103 @@ public:
   inline void setFind(size_t findId) { d_findId = findId; }
 };
 
+/**
+ * FunctionNode class represents the information related to a function node. It has an id, number of children
+ * and the
+ */
+class FunctionNode {
 
-template <typename OwnerClass, typename NotifyClass>
+  /** Is the function associative */
+  size_t d_isAssociative  : 1;
+  /** The id of the function */
+  size_t d_functionId     : BitSizeTraits::function_id_bits;
+  /** Number of children */
+  size_t d_argumentsCount : BitSizeTraits::function_arguments_count_bits;
+  /** Index of the start of the arguments in the children array */
+  size_t d_argumentsIndex : BitSizeTraits::function_arguments_index_bits;
+
+public:
+
+  FunctionNode(size_t functionId = 0, size_t argumentsCount = 0, size_t argumentsIndex = 0, bool associative = false)
+  : d_isAssociative(associative), d_functionId(functionId), d_argumentsCount(argumentsCount), d_argumentsIndex(argumentsIndex)
+  {}
+
+  void init(size_t functionId, size_t argumentsCount, size_t argumentsIndex, bool associative) {
+    d_functionId = functionId;
+    d_argumentsCount = argumentsCount;
+    d_argumentsIndex = argumentsIndex;
+    d_isAssociative = associative;
+  }
+
+  /** Check if the function is associative */
+  bool isAssociative() const { return d_isAssociative; }
+
+  /** Get the function id */
+  size_t getFunctionId() const { return d_functionId; }
+
+  /** Get the number of arguments */
+  size_t getArgumentsCount() const { return d_argumentsCount; }
+
+  /** Get the infex of the first argument in the arguments memory */
+  size_t getArgumentsIndex() const { return d_argumentsIndex; }
+
+};
+
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
 class EqualityEngine {
+
+public:
+
+  /**
+   * Basic information about a function.
+   */
+  struct FunctionInfo {
+    /** Name of the function */
+    std::string name;
+    /** Is the function associative */
+    bool isAssociative;
+
+    FunctionInfo(std::string name, bool isAssociative)
+    : name(name), isAssociative(isAssociative) {}
+  };
+
+  /** Statistics about the equality engine instance */
+  struct Statistics {
+    /** Total number of merges */
+    IntStat mergesCount;
+    /** Number of terms managed by the system */
+    IntStat termsCount;
+    /** Number of function terms managed by the system */
+    IntStat functionTermsCount;
+    /** Number of distince functions managed by the system */
+    IntStat functionsCount;
+    /** Number of times we performed a backtrack */
+    IntStat backtracksCount;
+
+    Statistics(std::string name)
+    : mergesCount(name + "::mergesCount", 0),
+      termsCount(name + "::termsCount", 0),
+      functionTermsCount(name + "functionTermsCoutn", 0),
+      functionsCount(name + "::functionsCount", 0),
+      backtracksCount(name + "::backtracksCount", 0)
+    {
+      StatisticsRegistry::registerStat(&mergesCount);
+      StatisticsRegistry::registerStat(&termsCount);
+      StatisticsRegistry::registerStat(&functionTermsCount);
+      StatisticsRegistry::registerStat(&functionsCount);
+      StatisticsRegistry::registerStat(&backtracksCount);
+    }
+
+    ~Statistics() {
+      StatisticsRegistry::unregisterStat(&mergesCount);
+      StatisticsRegistry::unregisterStat(&termsCount);
+      StatisticsRegistry::unregisterStat(&functionTermsCount);
+      StatisticsRegistry::unregisterStat(&functionsCount);
+      StatisticsRegistry::unregisterStat(&backtracksCount);
+    }
+  };
+
+private:
 
   /** The class to notify when a representative changes for a term */
   NotifyClass d_notify;
@@ -133,8 +238,11 @@ class EqualityEngine {
   /** Number of asserted equalities we have so far */
   context::CDO<size_t> d_assertedEqualitiesCount;
 
-  /** Number of functions in the system */
-  context::CDO<size_t> d_functionsCount;
+  /** Map from ids to functional representations */
+  std::vector<FunctionNode> d_functionNodes;
+
+  /** Functions in the system */
+  std::vector<FunctionInfo> d_functions;
 
   /**
    * We keep a list of asserted equalities. Not among original terms, but
@@ -248,23 +356,26 @@ class EqualityEngine {
 
   /**
    * Trigger lists per node. The begin id changes as we merge, but the end always points to
-   * the acutal end of the triggers for this node.
+   * the actual end of the triggers for this node.
    */
   std::vector<size_t> d_nodeTriggers;
 
   /**
-   * Adds the trigger with triggerId to the begining of the trigger list of the node with id nodeId.
+   * Adds the trigger with triggerId to the beginning of the trigger list of the node with id nodeId.
    */
   inline void addTriggerToList(size_t nodeId, size_t triggerId);
+
+  /** Statistics */
+  Statistics d_stats;
 
 public:
 
   /**
-   * Initialize the equalty engine, given the owning class. This will initialize the notifier with
+   * Initialize the equality engine, given the owning class. This will initialize the notifier with
    * the owner information.
    */
-  EqualityEngine(OwnerClass& owner, context::Context* context)
-  : d_notify(owner), d_assertedEqualitiesCount(context, 0), d_functionsCount(context, 0) {
+  EqualityEngine(OwnerClass& owner, context::Context* context, std::string name)
+  : d_notify(owner), d_assertedEqualitiesCount(context, 0), d_stats(name) {
     Debug("equality") << "EqualityEdge::EqualityEdge(): id_null = " << BitSizeTraits::id_null <<
         ", trigger_id_null = " << BitSizeTraits::trigger_id_null << std::endl;
   }
@@ -273,6 +384,11 @@ public:
    * Adds a term to the term database. Returns the internal id of the term.
    */
   size_t addTerm(TNode t);
+
+  /**
+   * Adds a term that is an application of a function symbol to the databas. Returns the internal id of the term.
+   */
+  size_t addFunctionApplication(size_t funcionId, const std::vector<TNode>& arguments);
 
   /**
    * Check whether the node is already in the database.
@@ -308,19 +424,30 @@ public:
   size_t addTrigger(TNode t1, TNode t2);
 
   /**
-   * Adds a new function to the equality engine. The funcions are not of fixed arity!
+   * Adds a new function to the equality engine. The funcions are not of fixed arity and no typechecking is performed!
+   * Associative functions allow for normalization, i.e. f(f(x, y), z) = f(x, f(y, z)) = f(x, y, z).
+   * @associative should be true if the function is associative and you want this to be handled by the engine
    */
-  inline size_t newFunction() { d_functionsCount = d_functionsCount + 1; return d_functionsCount; }
+  inline size_t newFunction(std::string name, bool associative) {
+    Assert(use_functions);
+    Assert(!associative || enable_associative);
+    ++ d_stats.functionsCount;
+    size_t id = d_functions.size();
+    d_functions.push_back(FunctionInfo(name, associative));
+    return id;
+  }
 
 };
 
-template <typename OwnerClass, typename NotifyClass>
-size_t EqualityEngine<OwnerClass, NotifyClass>::addTerm(TNode t) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+size_t EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::addTerm(TNode t) {
 
   Debug("equality") << "EqualityEngine::addTerm(" << t << ")" << std::endl;
 
   // If term already added, retrurn it's id
   if (hasTerm(t)) return getNodeId(t);
+
+  ++ d_stats.termsCount;
 
   // Register the new id of the term
   size_t newId = d_nodes.size();
@@ -335,35 +462,69 @@ size_t EqualityEngine<OwnerClass, NotifyClass>::addTerm(TNode t) {
   if (d_equalityNodes.size() <= newId) {
     d_equalityNodes.resize(newId + 100);
   }
-  d_equalityNodes[newId].init(newId);
+  d_equalityNodes[newId].init(newId, false);
   // Return the id of the term
   return newId;
 }
 
-template <typename OwnerClass, typename NotifyClass>
-bool EqualityEngine<OwnerClass, NotifyClass>::hasTerm(TNode t) const {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+size_t EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::addFunctionApplication(size_t functionId, const std::vector<TNode>& arguments) {
+
+  Debug("equality") << "EqualityEngine::addFunctionApplication(" << d_functions[functionId].name << ":" << arguments.size() << ")" << std::endl;
+
+  ++ d_stats.functionTermsCount;
+  ++ d_stats.termsCount;
+
+  // Register the new id of the term
+  size_t newId = d_nodes.size();
+  // Add the node to it's position
+  d_nodes.push_back(Node());
+  // Add the trigger list for this node
+  d_nodeTriggers.push_back(BitSizeTraits::trigger_id_null);
+  // Add it to the equality graph
+  d_equalityGraph.push_back(BitSizeTraits::id_null);
+  // Add the equality node to the nodes
+  if (d_equalityNodes.size() <= newId) {
+    d_equalityNodes.resize(newId + 100);
+  }
+  d_equalityNodes[newId].init(newId, true);
+  // Add the function application to the function nodes
+  if (d_functionNodes.size() <= newId) {
+    d_functionNodes.resize(newId + 100);
+  }
+  // Initialize the function node
+  size_t argumentsIndex;
+  d_functionNodes[newId].init(functionId, arguments.size(), argumentsIndex, d_functions[functionId].isAssociative);
+
+  // Return the id of the term
+  return newId;
+
+}
+
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+bool EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::hasTerm(TNode t) const {
   return d_nodeIds.find(t) != d_nodeIds.end();
 }
 
-template <typename OwnerClass, typename NotifyClass>
-size_t EqualityEngine<OwnerClass, NotifyClass>::getNodeId(TNode node) const {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+size_t EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::getNodeId(TNode node) const {
   Assert(hasTerm(node));
   return (*d_nodeIds.find(node)).second;
 }
 
-template <typename OwnerClass, typename NotifyClass>
-EqualityNode& EqualityEngine<OwnerClass, NotifyClass>::getEqualityNode(TNode t) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+EqualityNode& EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::getEqualityNode(TNode t) {
   return getEqualityNode(getNodeId(t));
 }
 
-template <typename OwnerClass, typename NotifyClass>
-EqualityNode& EqualityEngine<OwnerClass, NotifyClass>::getEqualityNode(size_t nodeId) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+EqualityNode& EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::getEqualityNode(size_t nodeId) {
   Assert(nodeId < d_equalityNodes.size());
   return d_equalityNodes[nodeId];
 }
 
-template <typename OwnerClass, typename NotifyClass>
-bool EqualityEngine<OwnerClass, NotifyClass>::addEquality(TNode t1, TNode t2) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+bool EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::addEquality(TNode t1, TNode t2) {
 
   Debug("equality") << "EqualityEngine::addEquality(" << t1 << "," << t2 << ")" << std::endl;
 
@@ -416,8 +577,8 @@ bool EqualityEngine<OwnerClass, NotifyClass>::addEquality(TNode t1, TNode t2) {
   return true;
 }
 
-template <typename OwnerClass, typename NotifyClass>
-TNode EqualityEngine<OwnerClass, NotifyClass>::getRepresentative(TNode t) const {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+TNode EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::getRepresentative(TNode t) const {
 
   Debug("equality") << "EqualityEngine::getRepresentative(" << t << ")" << std::endl;
 
@@ -432,8 +593,8 @@ TNode EqualityEngine<OwnerClass, NotifyClass>::getRepresentative(TNode t) const 
   return d_nodes[representativeId];
 }
 
-template <typename OwnerClass, typename NotifyClass>
-bool EqualityEngine<OwnerClass, NotifyClass>::areEqual(TNode t1, TNode t2) const {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+bool EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::areEqual(TNode t1, TNode t2) const {
   Debug("equality") << "EqualityEngine::areEqual(" << t1 << "," << t2 << ")" << std::endl;
 
   Assert(hasTerm(t1));
@@ -449,12 +610,14 @@ bool EqualityEngine<OwnerClass, NotifyClass>::areEqual(TNode t1, TNode t2) const
   return rep1 == rep2;
 }
 
-template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::merge(EqualityNode& class1, EqualityNode& class2, std::vector<size_t>& triggers) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+void EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::merge(EqualityNode& class1, EqualityNode& class2, std::vector<size_t>& triggers) {
 
   Debug("equality") << "EqualityEngine::merge(" << class1.getFind() << "," << class2.getFind() << ")" << std::endl;
 
   Assert(triggers.empty());
+
+  ++ d_stats.mergesCount;
 
   size_t class1Id = class1.getFind();
   size_t class2Id = class2.getFind();
@@ -497,8 +660,8 @@ void EqualityEngine<OwnerClass, NotifyClass>::merge(EqualityNode& class1, Equali
   class1.merge<true>(class2);
 }
 
-template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::undoMerge(EqualityNode& class1, EqualityNode& class2, size_t class2Id) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+void EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::undoMerge(EqualityNode& class1, EqualityNode& class2, size_t class2Id) {
 
   Debug("equality") << "EqualityEngine::undoMerge(" << class1.getFind() << "," << class2Id << ")" << std::endl;
 
@@ -529,11 +692,13 @@ void EqualityEngine<OwnerClass, NotifyClass>::undoMerge(EqualityNode& class1, Eq
 
 }
 
-template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::backtrack() {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+void EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::backtrack() {
 
   // If we need to backtrack then do it
   if (d_assertedEqualitiesCount < d_assertedEqualities.size()) {
+
+    ++ d_stats.backtracksCount;
 
     Debug("equality") << "EqualityEngine::backtrack(): nodes" << std::endl;
 
@@ -560,8 +725,8 @@ void EqualityEngine<OwnerClass, NotifyClass>::backtrack() {
 
 }
 
-template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::addGraphEdge(size_t t1, size_t t2) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+void EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::addGraphEdge(size_t t1, size_t t2) {
   Debug("equality") << "EqualityEngine::addGraphEdge(" << d_nodes[t1] << "," << d_nodes[t2] << ")" << std::endl;
   size_t edge = d_equalityEdges.size();
   d_equalityEdges.push_back(EqualityEdge(t2, d_equalityGraph[t1]));
@@ -570,8 +735,8 @@ void EqualityEngine<OwnerClass, NotifyClass>::addGraphEdge(size_t t1, size_t t2)
   d_equalityGraph[t2] = edge | 1;
 }
 
-template <typename OwnerClass, typename NotifyClass>
-void EqualityEngine<OwnerClass, NotifyClass>::getExplanation(TNode t1, TNode t2, std::vector<TNode>& equalities) const {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+void EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::getExplanation(TNode t1, TNode t2, std::vector<TNode>& equalities) const {
   Assert(equalities.empty());
   Assert(t1 != t2);
   Assert(getRepresentative(t1) == getRepresentative(t2));
@@ -651,8 +816,8 @@ void EqualityEngine<OwnerClass, NotifyClass>::getExplanation(TNode t1, TNode t2,
   }
 }
 
-template <typename OwnerClass, typename NotifyClass>
-size_t EqualityEngine<OwnerClass, NotifyClass>::addTrigger(TNode t1, TNode t2) {
+template <typename OwnerClass, typename NotifyClass, bool use_functions, bool enable_associative>
+size_t EqualityEngine<OwnerClass, NotifyClass, use_functions, enable_associative>::addTrigger(TNode t1, TNode t2) {
 
   Debug("equality") << "EqualityEngine::addTrigger(" << t1 << "," << t2 << ")" << std::endl;
 

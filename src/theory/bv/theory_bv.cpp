@@ -72,19 +72,13 @@ void TheoryBV::check(Effort e) {
       // We need to check this as the equality trigger might have been true when we made it
       TNode equality = assertion[0];
 
-      // Slice the equality
-      std::vector<Node> lhsSlices, rhsSlices;
-      d_sliceManager.addEquality(equality[0], equality[1], lhsSlices, rhsSlices);
-      Assert(lhsSlices.size() == rhsSlices.size());
-
-      for (int i = 0, i_end = lhsSlices.size(); i != i_end; ++ i) {
-        if (d_eqEngine.areEqual(lhsSlices[i], rhsSlices[i])) {
-          vector<TNode> assertions;
-          d_eqEngine.getExplanation(lhsSlices[i], rhsSlices[i], assertions);
-          assertions.push_back(assertion);
-          d_out->conflict(mkAnd(assertions));
-          return;
-        }
+      // No need to slice the equality, the whole thing *should* be deduced
+      if (d_eqEngine.areEqual(equality[0], equality[1])) {
+        vector<TNode> assertions;
+        d_eqEngine.getExplanation(equality[0], equality[1], assertions);
+        assertions.push_back(assertion);
+        d_out->conflict(mkAnd(assertions));
+        return;
       }
       break;
     }

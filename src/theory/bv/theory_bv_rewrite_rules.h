@@ -80,7 +80,7 @@ class RewriteRule {
 
     /** Constructor */
     RuleStatistics()
-    : d_ruleApplications(getStatName("theory::bv::count"), 0) {
+    : d_ruleApplications(getStatName("theory::bv::RewriteRules::count"), 0) {
       StatisticsRegistry::registerStat(&d_ruleApplications);
     }
 

@@ -46,7 +46,7 @@ public:
     }
   };
 
-  typedef EqualityEngine<TheoryBV, EqualityNotify> BvEqualityEngine;
+  typedef EqualityEngine<TheoryBV, EqualityNotify, true, true> BvEqualityEngine;
 
 private:
 
@@ -69,7 +69,7 @@ private:
 public:
 
   TheoryBV(context::Context* c, OutputChannel& out) :
-    Theory(THEORY_BV, c, out), d_eqEngine(*this, c), d_sliceManager(*this), d_assertions(c) {
+    Theory(THEORY_BV, c, out), d_eqEngine(*this, c, "theory::bv::EqualityEngine"), d_sliceManager(*this, c), d_assertions(c) {
   }
 
   BvEqualityEngine& getEqualityEngine() {
