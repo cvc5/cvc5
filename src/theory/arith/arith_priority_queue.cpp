@@ -70,6 +70,7 @@ void ArithPriorityQueue::enqueueIfInconsistent(ArithVar basic){
     case VariableOrder:
       d_varOrderQueue.push_back(basic);
       push_heap(d_varOrderQueue.begin(), d_varOrderQueue.end(), std::greater<ArithVar>());
+      break;
     case Difference:
       d_diffQueue.push_back(computeDiff(basic));
       push_heap(d_diffQueue.begin(), d_diffQueue.end());
@@ -84,6 +85,8 @@ void ArithPriorityQueue::transitionToDifferenceMode() {
   Assert(inCollectionMode());
   Assert(d_varOrderQueue.empty());
   Assert(d_diffQueue.empty());
+
+  Debug("arith::priorityqueue") << "transitionToDifferenceMode()" << endl;
 
   ArithVarArray::const_iterator i = d_candidates.begin(), end = d_candidates.end();
   for(; i != end; ++i){
@@ -106,6 +109,8 @@ void ArithPriorityQueue::transitionToVariableOrderMode() {
   Assert(d_varOrderQueue.empty());
   Assert(d_candidates.empty());
 
+  Debug("arith::priorityqueue") << "transitionToVariableOrderMode()" << endl;
+
   DifferenceArray::const_iterator i = d_diffQueue.begin(), end = d_diffQueue.end();
   for(; i != end; ++i){
     ArithVar var = (*i).variable();
@@ -127,6 +132,8 @@ void ArithPriorityQueue::transitionToCollectionMode() {
   Assert(d_diffQueue.empty());
   Assert(d_candidates.empty());
   Assert(d_varOrderQueue.empty());
+
+  Debug("arith::priorityqueue") << "transitionToCollectionMode()" << endl;
 
   d_modeInUse = Collection;
 }

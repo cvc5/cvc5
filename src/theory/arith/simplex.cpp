@@ -429,6 +429,11 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   if(d_queue.empty()){
     return Node::null();
   }
+  static unsigned int instance = 0;
+
+  ++instance;
+  Debug("arith::updateInconsistentVars") << "begin updateInconsistentVars() "
+                                         << instance << endl;
 
   d_queue.transitionToDifferenceMode();
 
@@ -458,6 +463,9 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
 
 
   Assert(d_queue.inCollectionMode());
+
+  Debug("arith::updateInconsistentVars") << "end updateInconsistentVars() "
+                                         << instance << endl;
 
   return possibleConflict;
 }
