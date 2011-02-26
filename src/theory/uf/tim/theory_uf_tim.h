@@ -20,7 +20,6 @@
  **  (http://portal.acm.org/ft_gateway.cfm?id=322198&type=pdf)
  ** This has been extended to work in a context-dependent way.
  ** This interacts heavily with the data-structures given in ecdata.h .
- **
  **/
 
 #include "cvc4_private.h"
@@ -151,7 +150,7 @@ public:
    * Overloads Node getValue(TNode n); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  Node getValue(TNode n, TheoryEngine* engine) {
+  Node getValue(TNode n, Valuation* valuation) {
     Unimplemented("TheoryUFTim doesn't support model generation");
   }
 

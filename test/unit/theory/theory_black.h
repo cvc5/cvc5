@@ -142,7 +142,7 @@ public:
   void preRegisterTerm(TNode n) {}
   void propagate(Effort level) {}
   void explain(TNode n, Effort level) {}
-  Node getValue(TNode n, TheoryEngine* engine) { return Node::null(); }
+  Node getValue(TNode n, Valuation* valuation) { return Node::null(); }
   string identify() const { return "DummyTheory"; }
 };
 

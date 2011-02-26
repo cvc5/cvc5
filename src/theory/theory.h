@@ -36,6 +36,10 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
+  class Valuation;
+}/* CVC4::theory namespace */
+
+namespace theory {
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -322,7 +326,8 @@ public:
    * if you *know* that you are responsible handle the Node you're
    * asking for; other theories can use your types, so be careful
    * here!  To be safe, it's best to delegate back to the
-   * TheoryEngine.
+   * TheoryEngine (by way of the Valuation proxy object, which avoids
+   * direct dependence on TheoryEngine).
    *
    * Usually, you need to handle at least the two cases of EQUAL and
    * VARIABLE---EQUAL in case a value of yours is on the LHS of an
@@ -337,7 +342,7 @@ public:
    * and suspect this situation is the case, return Node::null()
    * rather than throwing an exception.
    */
-  virtual Node getValue(TNode n, TheoryEngine* engine) = 0;
+  virtual Node getValue(TNode n, Valuation* valuation) = 0;
 
   /**
    * The theory should only add (via .operator<< or .append()) to the

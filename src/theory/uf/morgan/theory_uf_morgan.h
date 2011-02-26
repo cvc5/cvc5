@@ -214,7 +214,7 @@ public:
    * Overloads Node getValue(TNode n); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  Node getValue(TNode n, TheoryEngine* engine);
+  Node getValue(TNode n, Valuation* valuation);
 
   std::string identify() const { return std::string("TheoryUFMorgan"); }
 

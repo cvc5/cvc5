@@ -18,13 +18,13 @@
 
 #include "theory/theory.h"
 #include "theory/booleans/theory_bool.h"
-#include "theory/theory_engine.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-Node TheoryBool::getValue(TNode n, TheoryEngine* engine) {
+Node TheoryBool::getValue(TNode n, Valuation* valuation) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -38,14 +38,14 @@ Node TheoryBool::getValue(TNode n, TheoryEngine* engine) {
     Unreachable();
 
   case kind::NOT: // 1 arg
-    return nodeManager->mkConst(! engine->getValue(n[0]).getConst<bool>());
+    return nodeManager->mkConst(! valuation->getValue(n[0]).getConst<bool>());
 
   case kind::AND: { // 2+ args
     for(TNode::iterator i = n.begin(),
             iend = n.end();
           i != iend;
           ++i) {
-      if(! engine->getValue(*i).getConst<bool>()) {
+      if(! valuation->getValue(*i).getConst<bool>()) {
         return nodeManager->mkConst(false);
       }
     }
@@ -53,19 +53,19 @@ Node TheoryBool::getValue(TNode n, TheoryEngine* engine) {
   }
 
   case kind::IFF: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<bool>() ==
-                                 engine->getValue(n[1]).getConst<bool>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<bool>() ==
+                                 valuation->getValue(n[1]).getConst<bool>() );
 
   case kind::IMPLIES: // 2 args
-    return nodeManager->mkConst( (! engine->getValue(n[0]).getConst<bool>()) ||
-                                 engine->getValue(n[1]).getConst<bool>() );
+    return nodeManager->mkConst( (! valuation->getValue(n[0]).getConst<bool>()) ||
+                                 valuation->getValue(n[1]).getConst<bool>() );
 
   case kind::OR: { // 2+ args
     for(TNode::iterator i = n.begin(),
             iend = n.end();
           i != iend;
           ++i) {
-      if(engine->getValue(*i).getConst<bool>()) {
+      if(valuation->getValue(*i).getConst<bool>()) {
         return nodeManager->mkConst(true);
       }
     }
@@ -73,16 +73,16 @@ Node TheoryBool::getValue(TNode n, TheoryEngine* engine) {
   }
 
   case kind::XOR: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<bool>() !=
-                                 engine->getValue(n[1]).getConst<bool>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<bool>() !=
+                                 valuation->getValue(n[1]).getConst<bool>() );
 
   case kind::ITE: // 3 args
     // all ITEs should be gone except (bool,bool,bool) ones
     Assert( n[1].getType() == nodeManager->booleanType() &&
             n[2].getType() == nodeManager->booleanType() );
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<bool>() ?
-                                 engine->getValue(n[1]).getConst<bool>() :
-                                 engine->getValue(n[2]).getConst<bool>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<bool>() ?
+                                 valuation->getValue(n[1]).getConst<bool>() :
+                                 valuation->getValue(n[2]).getConst<bool>() );
 
   default:
     Unhandled(n.getKind());

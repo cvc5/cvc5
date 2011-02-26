@@ -22,7 +22,7 @@
 #include "expr/metakind.h"
 #include "expr/node_builder.h"
 
-#include "theory/theory_engine.h"
+#include "theory/valuation.h"
 
 #include "util/rational.h"
 #include "util/integer.h"
@@ -567,7 +567,7 @@ void TheoryArith::propagate(Effort e) {
   // }
 }
 
-Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
+Node TheoryArith::getValue(TNode n, Valuation* valuation) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -578,7 +578,7 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
       Node eq = d_removedRows.find(var)->second;
       Assert(n == eq[0]);
       Node rhs = eq[1];
-      return getValue(rhs, engine);
+      return getValue(rhs, valuation);
     }
 
     DeltaRational drat = d_partialModel.getAssignment(var);
@@ -591,7 +591,7 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
 
   case kind::EQUAL: // 2 args
     return nodeManager->
-      mkConst( engine->getValue(n[0]) == engine->getValue(n[1]) );
+      mkConst( valuation->getValue(n[0]) == valuation->getValue(n[1]) );
 
   case kind::PLUS: { // 2+ args
     Rational value = d_constants.d_ZERO;
@@ -599,7 +599,7 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
             iend = n.end();
           i != iend;
           ++i) {
-      value += engine->getValue(*i).getConst<Rational>();
+      value += valuation->getValue(*i).getConst<Rational>();
     }
     return nodeManager->mkConst(value);
   }
@@ -610,7 +610,7 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
             iend = n.end();
           i != iend;
           ++i) {
-      value *= engine->getValue(*i).getConst<Rational>();
+      value *= valuation->getValue(*i).getConst<Rational>();
     }
     return nodeManager->mkConst(value);
   }
@@ -624,24 +624,24 @@ Node TheoryArith::getValue(TNode n, TheoryEngine* engine) {
     Unreachable();
 
   case kind::DIVISION: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() /
-                                 engine->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() /
+                                 valuation->getValue(n[1]).getConst<Rational>() );
 
   case kind::LT: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() <
-                                 engine->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() <
+                                 valuation->getValue(n[1]).getConst<Rational>() );
 
   case kind::LEQ: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() <=
-                                 engine->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() <=
+                                 valuation->getValue(n[1]).getConst<Rational>() );
 
   case kind::GT: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() >
-                                 engine->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() >
+                                 valuation->getValue(n[1]).getConst<Rational>() );
 
   case kind::GEQ: // 2 args
-    return nodeManager->mkConst( engine->getValue(n[0]).getConst<Rational>() >=
-                                 engine->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() >=
+                                 valuation->getValue(n[1]).getConst<Rational>() );
 
   default:
     Unhandled(n.getKind());

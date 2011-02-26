@@ -88,7 +88,7 @@ public:
 
   void explain(TNode n) { }
 
-  Node getValue(TNode n, TheoryEngine* engine);
+  Node getValue(TNode n, Valuation* valuation);
 
   std::string identify() const { return std::string("TheoryBV"); }
 };/* class TheoryBV */

@@ -28,6 +28,7 @@
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
+#include "theory/valuation.h"
 #include "theory/rewriter.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
@@ -211,7 +212,7 @@ public:
   void check(Theory::Effort) { Unimplemented(); }
   void propagate(Theory::Effort) { Unimplemented(); }
   void explain(TNode, Theory::Effort) { Unimplemented(); }
-  Node getValue(TNode n, TheoryEngine* engine) { return Node::null(); }
+  Node getValue(TNode n, Valuation* valuation) { return Node::null(); }
 };/* class FakeTheory */
 
 

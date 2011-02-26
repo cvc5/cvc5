@@ -17,7 +17,7 @@
  **/
 
 #include "theory/builtin/theory_builtin.h"
-#include "theory/theory_engine.h"
+#include "theory/valuation.h"
 #include "expr/kind.h"
 
 using namespace std;
@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-Node TheoryBuiltin::getValue(TNode n, TheoryEngine* engine) {
+Node TheoryBuiltin::getValue(TNode n, Valuation* valuation) {
   switch(n.getKind()) {
 
   case kind::VARIABLE:
@@ -39,7 +39,7 @@ Node TheoryBuiltin::getValue(TNode n, TheoryEngine* engine) {
     Assert(n[0].getKind() == kind::TUPLE &&
            n[1].getKind() == kind::TUPLE);
     return NodeManager::currentNM()->
-      mkConst( getValue(n[0], engine) == getValue(n[1], engine) );
+      mkConst( getValue(n[0], valuation) == getValue(n[1], valuation) );
   }
 
   case kind::TUPLE: { // 2+ args
@@ -48,14 +48,14 @@ Node TheoryBuiltin::getValue(TNode n, TheoryEngine* engine) {
           iend = n.end();
         i != iend;
         ++i) {
-      nb << engine->getValue(*i);
+      nb << valuation->getValue(*i);
     }
     return Node(nb);
   }
 
   default:
     // all other "builtins" should have been rewritten away or handled
-    // by theory engine, or handled elsewhere.
+    // by the valuation, or handled elsewhere.
     Unhandled(n.getKind());
   }
 }

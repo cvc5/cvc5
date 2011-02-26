@@ -43,7 +43,7 @@ public:
     Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
   }
 
-  Node getValue(TNode n, TheoryEngine* engine);
+  Node getValue(TNode n, Valuation* valuation);
 
   std::string identify() const { return std::string("TheoryBool"); }
 };

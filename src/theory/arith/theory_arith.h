@@ -152,7 +152,7 @@ public:
 
   void notifyEq(TNode lhs, TNode rhs);
 
-  Node getValue(TNode n, TheoryEngine* engine);
+  Node getValue(TNode n, Valuation* valuation);
 
   void shutdown(){ }
 

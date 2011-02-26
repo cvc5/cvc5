@@ -43,7 +43,7 @@ public:
   void check(Effort e);
   void propagate(Effort e) { }
   void explain(TNode n) { }
-  Node getValue(TNode n, TheoryEngine* engine);
+  Node getValue(TNode n, Valuation* valuation);
   void shutdown() { }
   std::string identify() const { return std::string("TheoryArrays"); }
 };/* class TheoryArrays */

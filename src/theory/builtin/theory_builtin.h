@@ -31,7 +31,7 @@ class TheoryBuiltin : public Theory {
 public:
   TheoryBuiltin(context::Context* c, OutputChannel& out) :
     Theory(THEORY_BUILTIN, c, out) {}
-  Node getValue(TNode n, TheoryEngine* engine);
+  Node getValue(TNode n, Valuation* valuation);
   std::string identify() const { return std::string("TheoryBuiltin"); }
 };/* class TheoryBuiltin */
 

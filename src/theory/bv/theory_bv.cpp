@@ -20,7 +20,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 
-#include "theory/theory_engine.h"
+#include "theory/valuation.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -115,7 +115,7 @@ bool TheoryBV::triggerEquality(size_t triggerId) {
   return true;
 }
 
-Node TheoryBV::getValue(TNode n, TheoryEngine* engine) {
+Node TheoryBV::getValue(TNode n, Valuation* valuation) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -125,7 +125,7 @@ Node TheoryBV::getValue(TNode n, TheoryEngine* engine) {
 
   case kind::EQUAL: // 2 args
     return nodeManager->
-      mkConst( engine->getValue(n[0]) == engine->getValue(n[1]) );
+      mkConst( valuation->getValue(n[0]) == valuation->getValue(n[1]) );
 
   default:
     Unhandled(n.getKind());
