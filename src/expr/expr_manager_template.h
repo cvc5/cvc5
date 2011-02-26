@@ -41,6 +41,7 @@ class Expr;
 class SmtEngine;
 class NodeManager;
 class Options;
+class IntStat;
 
 namespace context {
   class Context;
@@ -53,6 +54,9 @@ private:
 
   /** The internal node manager */
   NodeManager* d_nodeManager;
+
+  /** Counts of expressions created of a given kind */
+  IntStat* d_exprStatistics[kind::LAST_KIND];
 
   /**
    * Returns the internal node manager.  This should only be used by

@@ -20,6 +20,7 @@
 #include "expr/expr_manager.h"
 #include "context/context.h"
 #include "util/options.h"
+#include "util/stats.h"
 
 ${includes}
 
@@ -28,6 +29,21 @@ ${includes}
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
 #line 31 "${template}"
+
+#ifdef CVC4_STATISTICS_ON
+  #define INC_STAT(kind) \
+  { \
+    if (d_exprStatistics[kind] == NULL) { \
+      stringstream statName; \
+      statName << "CVC4::expr::count" << kind; \
+      d_exprStatistics[kind] = new IntStat(statName.str(), 0); \
+      StatisticsRegistry::registerStat(d_exprStatistics[kind]); \
+    } \
+    ++ *(d_exprStatistics[kind]); \
+  } 
+#else 
+  #define INC_STAT(kind)
+#endif
 
 using namespace std;
 using namespace CVC4::context;
@@ -38,16 +54,34 @@ namespace CVC4 {
 ExprManager::ExprManager() :
   d_ctxt(new Context),
   d_nodeManager(new NodeManager(d_ctxt)) {
+#ifdef CVC4_STATISTICS_ON   
+  for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
+    d_exprStatistics[i] = NULL;
+  }
+#endif
 }
 
 ExprManager::ExprManager(const Options& options) :
   d_ctxt(new Context),
   d_nodeManager(new NodeManager(d_ctxt, options)) {
+#ifdef CVC4_STATISTICS_ON   
+  for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
+    d_exprStatistics[i] = NULL;
+  }
+#endif
 }
 
 ExprManager::~ExprManager() {
   delete d_nodeManager;
   delete d_ctxt;
+#ifdef CVC4_STATISTICS_ON   
+  for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
+    if (d_exprStatistics[i] != NULL) {
+      StatisticsRegistry::unregisterStat(d_exprStatistics[i]);
+      delete d_exprStatistics[i];
+    }
+  }
+#endif
 }
 
 BooleanType ExprManager::booleanType() const {
@@ -71,7 +105,7 @@ IntegerType ExprManager::integerType() const {
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
-  const unsigned n = 1;
+  const unsigned n = 1; 
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -79,6 +113,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
+    INC_STAT(kind);
     return Expr(this, d_nodeManager->mkNodePtr(kind, child1.getNode()));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(this, &e);
@@ -94,6 +129,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
+    INC_STAT(kind);
     return Expr(this, d_nodeManager->mkNodePtr(kind,
                                                child1.getNode(),
                                                child2.getNode()));
@@ -112,6 +148,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
+    INC_STAT(kind);
     return Expr(this, d_nodeManager->mkNodePtr(kind,
                                                child1.getNode(),
                                                child2.getNode(),
@@ -131,6 +168,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
+    INC_STAT(kind);
     return Expr(this, d_nodeManager->mkNodePtr(kind,
                                                child1.getNode(),
                                                child2.getNode(),
@@ -152,6 +190,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
                 minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
+    INC_STAT(kind);
     return Expr(this, d_nodeManager->mkNodePtr(kind,
                                                child1.getNode(),
                                                child2.getNode(),
@@ -181,6 +220,7 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
     ++it;
   }
   try {
+    INC_STAT(kind);
     return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(this, &e);
@@ -206,6 +246,7 @@ Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
     ++it;
   }
   try {
+    INC_STAT(kind);
     return Expr(this,d_nodeManager->mkNodePtr(opExpr.getNode(), nodes));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(this, &e);
