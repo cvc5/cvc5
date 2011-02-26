@@ -7,10 +7,10 @@ using namespace CVC4::theory::arith;
 
 using namespace std;
 
-bool RowVector::isSorted(const VarCoeffArray& arr, bool strictlySorted) {
+bool ReducedRowVector::isSorted(const VarCoeffArray& arr, bool strictlySorted) {
   if(arr.size() >= 2){
-    NonZeroIterator curr = arr.begin();
-    NonZeroIterator end = arr.end();
+    const_iterator curr = arr.begin();
+    const_iterator end = arr.end();
     ArithVar prev = getArithVar(*curr);
     ++curr;
     for(;curr != end; ++curr){
@@ -23,20 +23,26 @@ bool RowVector::isSorted(const VarCoeffArray& arr, bool strictlySorted) {
   return true;
 }
 
-RowVector::~RowVector(){
-  NonZeroIterator curr = beginNonZero();
-  NonZeroIterator end = endNonZero();
-  for(;curr != end; ++curr){
+ReducedRowVector::~ReducedRowVector(){
+  //This executes before the super classes destructor RowVector,
+  // which will set this to 0.
+  Assert(d_rowCount[basic()] == 1);
+
+  const_iterator curr = begin();
+  const_iterator endEntries = end();
+  for(;curr != endEntries; ++curr){
     ArithVar v = getArithVar(*curr);
     Assert(d_rowCount[v] >= 1);
+    d_columnMatrix[v].remove(basic());
     --(d_rowCount[v]);
   }
 
   Assert(matchingCounts());
 }
 
-bool RowVector::matchingCounts() const{
-  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
+
+bool ReducedRowVector::matchingCounts() const{
+  for(const_iterator i=begin(), endEntries=end(); i != endEntries; ++i){
     ArithVar v = getArithVar(*i);
     if(d_columnMatrix[v].size() != d_rowCount[v]){
       return false;
@@ -45,18 +51,18 @@ bool RowVector::matchingCounts() const{
   return true;
 }
 
-bool RowVector::noZeroCoefficients(const VarCoeffArray& arr){
-  for(NonZeroIterator curr = arr.begin(), end = arr.end();
-      curr != end; ++curr){
+bool ReducedRowVector::noZeroCoefficients(const VarCoeffArray& arr){
+  for(const_iterator curr = arr.begin(), endEntries = arr.end();
+      curr != endEntries; ++curr){
     const Rational& coeff = getCoefficient(*curr);
     if(coeff == 0) return false;
   }
   return true;
 }
 
-void RowVector::zip(const std::vector< ArithVar >& variables,
-                    const std::vector< Rational >& coefficients,
-                    VarCoeffArray& output){
+void ReducedRowVector::zip(const std::vector< ArithVar >& variables,
+                           const std::vector< Rational >& coefficients,
+                           VarCoeffArray& output){
 
   Assert(coefficients.size() == variables.size() );
 
@@ -72,81 +78,56 @@ void RowVector::zip(const std::vector< ArithVar >& variables,
   }
 }
 
-
-RowVector::RowVector(const std::vector< ArithVar >& variables,
-                     const std::vector< Rational >& coefficients,
-                     std::vector<uint32_t>& counts,
-                     std::vector<ArithVarSet>& cm):
-  d_rowCount(counts), d_columnMatrix(cm)
-{
-  zip(variables, coefficients, d_entries);
-
-  std::sort(d_entries.begin(), d_entries.end(), cmp);
-
-  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
-    ++d_rowCount[getArithVar(*i)];
-    addArithVar(d_contains, getArithVar(*i));
-  }
-
-  Assert(isSorted(d_entries, true));
-  Assert(noZeroCoefficients(d_entries));
-}
-
-void RowVector::addArithVar(ArithVarContainsSet& contains, ArithVar v){
+void ReducedRowVector::addArithVar(ArithVarContainsSet& contains, ArithVar v){
   if(v >= contains.size()){
     contains.resize(v+1, false);
   }
   contains[v] = true;
 }
 
-void RowVector::removeArithVar(ArithVarContainsSet& contains, ArithVar v){
+void ReducedRowVector::removeArithVar(ArithVarContainsSet& contains, ArithVar v){
   Assert(v < contains.size());
   Assert(contains[v]);
   contains[v] = false;
 }
 
-void RowVector::merge(VarCoeffArray& arr,
-                      ArithVarContainsSet& contains,
-                      const VarCoeffArray& other,
-                      const Rational& c,
-                      std::vector<uint32_t>& counts,
-                      std::vector<ArithVarSet>& columnMatrix,
-                      ArithVar basic){
-  VarCoeffArray copy = arr;
-  arr.clear();
+void ReducedRowVector::merge(const VarCoeffArray& other,
+                             const Rational& c){
+  VarCoeffArray copy = d_entries;
+  d_entries.clear();
 
   iterator curr1 = copy.begin();
   iterator end1 = copy.end();
 
-  NonZeroIterator curr2 = other.begin();
-  NonZeroIterator end2 = other.end();
+  const_iterator curr2 = other.begin();
+  const_iterator end2 = other.end();
 
   while(curr1 != end1 && curr2 != end2){
     if(getArithVar(*curr1) < getArithVar(*curr2)){
-      arr.push_back(*curr1);
+      d_entries.push_back(*curr1);
       ++curr1;
     }else if(getArithVar(*curr1) > getArithVar(*curr2)){
 
-      ++counts[getArithVar(*curr2)];
-      if(basic != ARITHVAR_SENTINEL){
-        columnMatrix[getArithVar(*curr2)].add(basic);
+      ++d_rowCount[getArithVar(*curr2)];
+      if(d_basic != ARITHVAR_SENTINEL){
+        d_columnMatrix[getArithVar(*curr2)].add(d_basic);
       }
 
-      addArithVar(contains, getArithVar(*curr2));
-      arr.push_back( make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
+      addArithVar(d_contains, getArithVar(*curr2));
+      d_entries.push_back( make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
       ++curr2;
     }else{
       Rational res = getCoefficient(*curr1) + c * getCoefficient(*curr2);
       if(res != 0){
         //The variable is not new so the count stays the same
 
-        arr.push_back(make_pair(getArithVar(*curr1), res));
+        d_entries.push_back(make_pair(getArithVar(*curr1), res));
       }else{
-        removeArithVar(contains, getArithVar(*curr2));
+        removeArithVar(d_contains, getArithVar(*curr2));
 
-        --counts[getArithVar(*curr2)];
-        if(basic != ARITHVAR_SENTINEL){
-          columnMatrix[getArithVar(*curr2)].remove(basic);
+        --d_rowCount[getArithVar(*curr2)];
+        if(d_basic != ARITHVAR_SENTINEL){
+          d_columnMatrix[getArithVar(*curr2)].remove(d_basic);
         }
       }
       ++curr1;
@@ -154,23 +135,23 @@ void RowVector::merge(VarCoeffArray& arr,
     }
   }
   while(curr1 != end1){
-    arr.push_back(*curr1);
+    d_entries.push_back(*curr1);
     ++curr1;
   }
   while(curr2 != end2){
-    ++counts[getArithVar(*curr2)];
-    if(basic != ARITHVAR_SENTINEL){
-      columnMatrix[getArithVar(*curr2)].add(basic);
+    ++d_rowCount[getArithVar(*curr2)];
+    if(d_basic != ARITHVAR_SENTINEL){
+      d_columnMatrix[getArithVar(*curr2)].add(d_basic);
     }
 
-    addArithVar(contains, getArithVar(*curr2));
+    addArithVar(d_contains, getArithVar(*curr2));
 
-    arr.push_back(make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
+    d_entries.push_back(make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
     ++curr2;
   }
 }
 
-void RowVector::multiply(const Rational& c){
+void ReducedRowVector::multiply(const Rational& c){
   Assert(c != 0);
 
   for(iterator i = d_entries.begin(), end = d_entries.end(); i != end; ++i){
@@ -178,14 +159,14 @@ void RowVector::multiply(const Rational& c){
   }
 }
 
-void RowVector::addRowTimesConstant(const Rational& c, const RowVector& other, ArithVar basic){
+void ReducedRowVector::addRowTimesConstant(const Rational& c, const ReducedRowVector& other){
   Assert(c != 0);
 
-  merge(d_entries, d_contains, other.d_entries, c, d_rowCount, d_columnMatrix, basic);
+  merge(other.d_entries, c);
 }
 
-void RowVector::printRow(){
-  for(NonZeroIterator i = beginNonZero(); i != endNonZero(); ++i){
+void ReducedRowVector::printRow(){
+  for(const_iterator i = begin(); i != end(); ++i){
     ArithVar nb = getArithVar(*i);
     Debug("row::print") << "{" << nb << "," << getCoefficient(*i) << "}";
   }
@@ -196,21 +177,23 @@ void RowVector::printRow(){
 ReducedRowVector::ReducedRowVector(ArithVar basic,
                                    const std::vector<ArithVar>& variables,
                                    const std::vector<Rational>& coefficients,
-                                   std::vector<uint32_t>& count,
-                                   std::vector<ArithVarSet>& columnMatrix):
-  RowVector(variables, coefficients, count, columnMatrix), d_basic(basic){
+                                   std::vector<uint32_t>& counts,
+                                   std::vector<ArithVarSet>& cm):
+  d_basic(basic), d_rowCount(counts),  d_columnMatrix(cm)
+{
+  zip(variables, coefficients, d_entries);
+  d_entries.push_back(make_pair(basic, Rational(-1)));
 
+  std::sort(d_entries.begin(), d_entries.end(), cmp);
 
-  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
-    //basic is not yet in d_entries
-    Assert(getArithVar(*i) != d_basic);
+  for(const_iterator i=begin(), endEntries=end(); i != endEntries; ++i){
+    ++d_rowCount[getArithVar(*i)];
+    addArithVar(d_contains, getArithVar(*i));
     d_columnMatrix[getArithVar(*i)].add(d_basic);
   }
 
-  VarCoeffArray justBasic;
-  justBasic.push_back(make_pair(basic, Rational(-1)));
-
-  merge(d_entries, d_contains, justBasic, Rational(1), d_rowCount, d_columnMatrix, d_basic);
+  Assert(isSorted(d_entries, true));
+  Assert(noZeroCoefficients(d_entries));
 
   Assert(matchingCounts());
   Assert(wellFormed());
@@ -226,7 +209,7 @@ void ReducedRowVector::substitute(const ReducedRowVector& row_s){
   Rational a_rs = lookup(x_s);
   Assert(a_rs != 0);
 
-  addRowTimesConstant(a_rs, row_s, basic());
+  addRowTimesConstant(a_rs, row_s);
 
 
   Assert(!has(x_s));
@@ -241,7 +224,7 @@ void ReducedRowVector::pivot(ArithVar x_j){
   Rational negInverseA_rs = -(lookup(x_j).inverse());
   multiply(negInverseA_rs);
 
-  for(NonZeroIterator i=beginNonZero(), end=endNonZero(); i != end; ++i){
+  for(const_iterator i=begin(), endEntries=end(); i != endEntries; ++i){
     d_columnMatrix[getArithVar(*i)].remove(d_basic);
     d_columnMatrix[getArithVar(*i)].add(x_j);
   }
@@ -264,7 +247,7 @@ Node ReducedRowVector::asEquality(const ArithVarToNodeMap& map) const{
   if(size() > 2){
     NodeBuilder<> sumBuilder(PLUS);
 
-    for(NonZeroIterator i = beginNonZero(); i != endNonZero(); ++i){
+    for(const_iterator i = begin(); i != end(); ++i){
       ArithVar nb = getArithVar(*i);
       if(nb == basic()) continue;
       Node var = (map.find(nb))->second;
@@ -276,7 +259,7 @@ Node ReducedRowVector::asEquality(const ArithVarToNodeMap& map) const{
     sum = sumBuilder;
   }else{
     Assert(size() == 2);
-    NonZeroIterator i = beginNonZero();
+    const_iterator i = begin();
     if(getArithVar(*i) == basic()){
       ++i;
     }
@@ -289,17 +272,3 @@ Node ReducedRowVector::asEquality(const ArithVarToNodeMap& map) const{
   return NodeBuilder<2>(EQUAL) << basicVar << sum;
 }
 
-
-ReducedRowVector::~ReducedRowVector(){
-  //This executes before the super classes destructor RowVector,
-  // which will set this to 0.
-  Assert(d_rowCount[basic()] == 1);
-
-  NonZeroIterator curr = beginNonZero();
-  NonZeroIterator end = endNonZero();
-  for(;curr != end; ++curr){
-    ArithVar v = getArithVar(*curr);
-    Assert(d_rowCount[v] >= 1);
-    d_columnMatrix[v].remove(basic());
-  }
-}

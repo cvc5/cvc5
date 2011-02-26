@@ -253,8 +253,8 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
   if(Debug.isOn("arith::pivotAndUpdate")){
     Debug("arith::pivotAndUpdate") << "x_i " << "|->" << x_j << endl;
     ReducedRowVector& row_k = d_tableau.lookup(x_i);
-    for(ReducedRowVector::NonZeroIterator varIter = row_k.beginNonZero();
-        varIter != row_k.endNonZero();
+    for(ReducedRowVector::const_iterator varIter = row_k.begin();
+        varIter != row_k.end();
         ++varIter){
 
       ArithVar var = varIter->first;
@@ -332,7 +332,7 @@ ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i, bool first){
 
   bool pivotStage = !first;
 
-  for(ReducedRowVector::NonZeroIterator nbi = row_i.beginNonZero(), end = row_i.endNonZero();
+  for(ReducedRowVector::const_iterator nbi = row_i.begin(), end = row_i.end();
       nbi != end; ++nbi){
     ArithVar nonbasic = getArithVar(*nbi);
     if(nonbasic == x_i) continue;
@@ -494,7 +494,7 @@ template <bool limitIterations>
 Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingIterations){
   Debug("arith") << "updateInconsistentVars" << endl;
 
-  static const uint32_t CHECK_PERIOD = 1000;
+  static const uint32_t CHECK_PERIOD = 100;
 
   while(!limitIterations || remainingIterations > 0){
     if(Debug.isOn("paranoid:check_tableau")){ checkTableau(); }
@@ -536,12 +536,12 @@ Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
       return earlyConflict;
     }
     //Once every CHECK_PERIOD examine the entire queue for conflicts
-    // if(!limitIterations && remainingIterations % CHECK_PERIOD == 0){
-    //   Node earlyConflict = findConflictOnTheQueue(DuringVarOrderSearch);
-    //   if(!earlyConflict.isNull()){
-    //     return earlyConflict;
-    //   }
-    // }
+    if(!limitIterations && remainingIterations % CHECK_PERIOD == 0){
+      Node earlyConflict = findConflictOnTheQueue(DuringVarOrderSearch);
+      if(!earlyConflict.isNull()){
+        return earlyConflict;
+      }
+    }
   }
   AlwaysAssert(limitIterations && remainingIterations == 0);
 
@@ -563,8 +563,7 @@ Node SimplexDecisionProcedure::generateConflictAbove(ArithVar conflictVar){
 
   nb << bound;
 
-  typedef ReducedRowVector::NonZeroIterator RowIterator;
-  RowIterator nbi = row_i.beginNonZero(), end = row_i.endNonZero();
+  ReducedRowVector::const_iterator nbi = row_i.begin(), end = row_i.end();
 
   for(; nbi != end; ++nbi){
     ArithVar nonbasic = getArithVar(*nbi);
@@ -604,8 +603,8 @@ Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
                  << " " << bound << endl;
   nb << bound;
 
-  typedef ReducedRowVector::NonZeroIterator RowIterator;
-  RowIterator nbi = row_i.beginNonZero(), end = row_i.endNonZero();
+
+  ReducedRowVector::const_iterator nbi = row_i.begin(), end = row_i.end();
   for(; nbi != end; ++nbi){
     ArithVar nonbasic = getArithVar(*nbi);
     if(nonbasic == conflictVar) continue;
@@ -642,7 +641,7 @@ DeltaRational SimplexDecisionProcedure::computeRowValue(ArithVar x, bool useSafe
   DeltaRational sum = d_constants.d_ZERO_DELTA;
 
   ReducedRowVector& row = d_tableau.lookup(x);
-  for(ReducedRowVector::NonZeroIterator i = row.beginNonZero(), end = row.endNonZero();
+  for(ReducedRowVector::const_iterator i = row.begin(), end = row.end();
       i != end;++i){
     ArithVar nonbasic = getArithVar(*i);
     if(nonbasic == row.basic()) continue;
@@ -669,8 +668,8 @@ void SimplexDecisionProcedure::checkTableau(){
     ReducedRowVector& row_k = d_tableau.lookup(basic);
     DeltaRational sum;
     Debug("paranoid:check_tableau") << "starting row" << basic << endl;
-    for(ReducedRowVector::NonZeroIterator nonbasicIter = row_k.beginNonZero();
-        nonbasicIter != row_k.endNonZero();
+    for(ReducedRowVector::const_iterator nonbasicIter = row_k.begin();
+        nonbasicIter != row_k.end();
         ++nonbasicIter){
       ArithVar nonbasic = nonbasicIter->first;
       if(basic == nonbasic) continue;
