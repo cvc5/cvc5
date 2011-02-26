@@ -34,7 +34,7 @@ bool RewriteRule<ConcatFlatten>::applies(Node node) {
 template<>
 Node RewriteRule<ConcatFlatten>::apply(Node node) {
   NodeBuilder<> result(kind::BITVECTOR_CONCAT);
-  vector<Node> processing_stack;
+  std::vector<Node> processing_stack;
   processing_stack.push_back(node);
   while (!processing_stack.empty()) {
     Node current = processing_stack.back();
@@ -57,7 +57,7 @@ bool RewriteRule<ConcatExtractMerge>::applies(Node node) {
 
 template<>
 Node RewriteRule<ConcatExtractMerge>::apply(Node node) {
-  vector<Node> mergedExtracts;
+  std::vector<Node> mergedExtracts;
 
   Node current = node[0];
   bool mergeStarted = false;
@@ -115,7 +115,7 @@ bool RewriteRule<ConcatConstantMerge>::applies(Node node) {
 
 template<>
 Node RewriteRule<ConcatConstantMerge>::apply(Node node) {
-  vector<Node> mergedConstants;
+  std::vector<Node> mergedConstants;
   for (unsigned i = 0, end = node.getNumChildren(); i < end;) {
     if (node[i].getKind() != kind::CONST_BITVECTOR) {
       // If not a constant, just add it
@@ -187,7 +187,7 @@ Node RewriteRule<ExtractConcat>::apply(Node node) {
   int extract_high = utils::getExtractHigh(node);
   int extract_low = utils::getExtractLow(node);
 
-  vector<Node> resultChildren;
+  std::vector<Node> resultChildren;
 
   Node concat = node[0];
   for (int i = concat.getNumChildren() - 1; i >= 0 && extract_high >= 0; i--) {

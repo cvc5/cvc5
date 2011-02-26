@@ -306,7 +306,7 @@ public:
    * String representation of a set.
    */
   std::string toString(reference_type set) {
-    stringstream out;
+    std::stringstream out;
     print(out, set);
     return out.str();
   }

@@ -328,7 +328,7 @@ bool SliceManager<TheoryBitvector>::isSliced(TNode node) const {
 template <class TheoryBitvector>
 inline void SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& sliced) {
 
-  Debug("slicing") << "SliceManager::slice(" << node << ")" << endl;
+  Debug("slicing") << "SliceManager::slice(" << node << ")" << std::endl;
 
   Assert(!isSliced(node));
 
@@ -343,7 +343,7 @@ inline void SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
 
   // Get the base term slice set
   set_collection::reference_type nodeSliceSet = d_nodeSlicing[nodeBase];
-  Debug("slicing") << "SliceManager::slice(" << node << "): current: " << d_setCollection.toString(nodeSliceSet) << endl;
+  Debug("slicing") << "SliceManager::slice(" << node << "): current: " << d_setCollection.toString(nodeSliceSet) << std::endl;
   std::vector<size_t> slicePoints;
   d_setCollection.getElements(nodeSliceSet, low + 1, high - 1, slicePoints);
 

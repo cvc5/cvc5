@@ -27,6 +27,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
+using namespace std;
+
 void TheoryBV::preRegisterTerm(TNode node) {
 
   Debug("bitvector") << "TheoryBV::preRegister(" << node << ")" << std::endl;

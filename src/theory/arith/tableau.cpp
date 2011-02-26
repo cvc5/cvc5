@@ -24,6 +24,8 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
+using namespace std;
+
 Tableau::~Tableau(){
   while(!d_basicVariables.empty()){
     ArithVar curr = *(d_basicVariables.begin());

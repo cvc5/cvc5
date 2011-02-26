@@ -20,8 +20,6 @@
 #ifndef __CVC4__CONFIGURATION_PRIVATE_H
 #define __CVC4__CONFIGURATION_PRIVATE_H
 
-using namespace std;
-
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG

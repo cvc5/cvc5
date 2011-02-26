@@ -1,3 +1,22 @@
+/*********************                                                        */
+/*! \file theory_bool_rewriter.cpp
+ ** \verbatim
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 #include <algorithm>
 #include "theory/booleans/theory_bool_rewriter.h"
 
@@ -66,7 +85,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   return RewriteResponse(REWRITE_DONE, n);
 }
 
-}
-}
-}
-
+}/* CVC4::theory::booleans namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

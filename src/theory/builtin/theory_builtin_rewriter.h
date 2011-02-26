@@ -1,11 +1,26 @@
-/*
- * theory_builtin_rewriter.h
- *
- *  Created on: Dec 21, 2010
- *      Author: dejan
- */
+/*********************                                                        */
+/*! \file theory_builtin_rewriter.h
+ ** \verbatim
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
 
-#pragma once
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#define __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -41,8 +56,10 @@ public:
   static inline void init() {}
   static inline void shutdown() {}
 
-};
+};/* class TheoryBuiltinRewriter */
 
-}
-}
-}
+}/* CVC4::theory::builtin namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */

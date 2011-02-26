@@ -85,7 +85,7 @@ protected:
   std::vector<ArithVarSet>& d_columnMatrix;
 
   NonZeroIterator lower_bound(ArithVar x_j) const{
-    return std::lower_bound(d_entries.begin(), d_entries.end(), make_pair(x_j,0), cmp);
+    return std::lower_bound(d_entries.begin(), d_entries.end(), std::make_pair(x_j,0), cmp);
   }
 
   typedef VarCoeffArray::iterator iterator;
@@ -120,7 +120,7 @@ public:
 private:
   /** Debugging code. */
   bool hasInEntries(ArithVar x_j) const {
-    return std::binary_search(d_entries.begin(), d_entries.end(), make_pair(x_j,0), cmp);
+    return std::binary_search(d_entries.begin(), d_entries.end(), std::make_pair(x_j,0), cmp);
   }
 public:
 

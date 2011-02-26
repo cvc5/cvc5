@@ -105,23 +105,23 @@ inline TNode UnionFind<NodeType, NodeHash>::debugFind(TNode n) const {
 
 template <class NodeType, class NodeHash>
 inline TNode UnionFind<NodeType, NodeHash>::find(TNode n) {
-  Trace("ufuf") << "UFUF find of " << n << endl;
+  Trace("ufuf") << "UFUF find of " << n << std::endl;
   typename MapType::iterator i = d_map.find(n);
   if(i == d_map.end()) {
-    Trace("ufuf") << "UFUF   it is rep" << endl;
+    Trace("ufuf") << "UFUF   it is rep" << std::endl;
     return n;
   } else {
-    Trace("ufuf") << "UFUF   not rep: par is " << (*i).second << endl;
-    pair<TNode, TNode> pr = *i;
+    Trace("ufuf") << "UFUF   not rep: par is " << (*i).second << std::endl;
+    std::pair<TNode, TNode> pr = *i;
     // our iterator is invalidated by the recursive call to find(),
     // since it mutates the map
     TNode p = find(pr.second);
     if(p == pr.second) {
       return p;
     }
-    d_trace.push_back(make_pair(n, pr.second));
+    d_trace.push_back(std::make_pair(n, pr.second));
     d_offset = d_trace.size();
-    Trace("ufuf") << "UFUF   setting canon of " << n << " : " << p << " @ " << d_trace.size() << endl;
+    Trace("ufuf") << "UFUF   setting canon of " << n << " : " << p << " @ " << d_trace.size() << std::endl;
     pr.second = p;
     d_map.insert(pr);
     return p;
@@ -133,9 +133,9 @@ inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
   Assert(d_map.find(n) == d_map.end());
   Assert(d_map.find(newParent) == d_map.end());
   if(n != newParent) {
-    Trace("ufuf") << "UFUF setting canon of " << n << " : " << newParent << " @ " << d_trace.size() << endl;
+    Trace("ufuf") << "UFUF setting canon of " << n << " : " << newParent << " @ " << d_trace.size() << std::endl;
     d_map[n] = newParent;
-    d_trace.push_back(make_pair(n, TNode::null()));
+    d_trace.push_back(std::make_pair(n, TNode::null()));
     d_offset = d_trace.size();
   }
 }

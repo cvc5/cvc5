@@ -3,7 +3,9 @@
 
 using namespace CVC4;
 using namespace CVC4::theory;
-using namespace CVC4::theory::arith ;
+using namespace CVC4::theory::arith;
+
+using namespace std;
 
 bool RowVector::isSorted(const VarCoeffArray& arr, bool strictlySorted) {
   if(arr.size() >= 2){

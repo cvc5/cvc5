@@ -197,13 +197,13 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
     } else {
         // Lemma
         vec<Lit> assigned_lits;
-        Debug("minisat::lemmas") << "Asserting lemma with " << ps.size() << " literals." << endl;
+        Debug("minisat::lemmas") << "Asserting lemma with " << ps.size() << " literals." << std::endl;
         bool lemmaSatisfied = false;
         for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
           if (ps[i] == ~p) {
             // We don't add clauses that represent splits directly, they are decision literals
             // so they will get decided upon and sent to the theory
-            Debug("minisat::lemmas") << "Lemma is a tautology." << endl;
+            Debug("minisat::lemmas") << "Lemma is a tautology." << std::endl;
             return true;
           }
           if (value(ps[i]) == l_Undef) {
@@ -216,7 +216,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
             p = ps[i];
             if (value(p) == l_True) lemmaSatisfied = true;
             assigned_lits.push(p);
-            Debug("minisat::lemmas") << proxy->getNode(p) << " has value " << value(p) << endl;
+            Debug("minisat::lemmas") << proxy->getNode(p) << " has value " << value(p) << std::endl;
           }
         }
         Assert(j >= 1 || lemmaSatisfied, "You are asserting a falsified lemma, produce a conflict instead!");
@@ -232,7 +232,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
           }
         }
         if (value(ps[1]) != l_Undef && max_level != -1) {
-          swap(ps[1], ps[max_level_j]);
+          std::swap(ps[1], ps[max_level_j]);
         }
         ps.shrink(i - j);
     }
@@ -249,7 +249,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
         clauses.push(cr);
 	attachClause(cr);
         if (propagate_first_literal) {
-          Debug("minisat::lemmas") << "Lemma propagating: " << (theory[var(ps[0])] ? proxy->getNode(ps[0]).toString() : "bool") << endl;
+          Debug("minisat::lemmas") << "Lemma propagating: " << (theory[var(ps[0])] ? proxy->getNode(ps[0]).toString() : "bool") << std::endl;
           lemma_propagated_literals.push(ps[0]);
           lemma_propagated_reasons.push(cr);
           propagating_lemmas.push(cr);
@@ -915,11 +915,11 @@ lbool Solver::search(int nof_conflicts)
         // If we have more assertions from lemmas, we continue
         if (problem_extended) {
 
-          Debug("minisat::lemmas") << "Problem extended with lemmas, adding propagations." << endl;
+          Debug("minisat::lemmas") << "Problem extended with lemmas, adding propagations." << std::endl;
 
           for (int i = 0, i_end = lemma_propagated_literals.size(); i < i_end; ++ i) {
             if (value(var(lemma_propagated_literals[i])) == l_Undef) {
-              Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << endl;
+              Debug("minisat::lemmas") << "Lemma propagating: " << proxy->getNode(lemma_propagated_literals[i]) << std::endl;
               uncheckedEnqueue(lemma_propagated_literals[i], lemma_propagated_reasons[i]);
             }
           }
@@ -1080,7 +1080,7 @@ static double luby(double y, int x){
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
-    Debug("minisat") << "nvars = " << nVars() << endl;
+    Debug("minisat") << "nvars = " << nVars() << std::endl;
 
     in_solve = true;
 
@@ -1123,7 +1123,7 @@ lbool Solver::solve_()
         model.growTo(nVars());
         for (int i = 0; i < nVars(); i++) {
           model[i] = value(i);
-          Debug("minisat") << i << " = " << model[i] << endl;
+          Debug("minisat") << i << " = " << model[i] << std::endl;
         }
     }else if (status == l_False && conflict.size() == 0)
         ok = false;
