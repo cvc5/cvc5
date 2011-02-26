@@ -55,7 +55,8 @@ private:
   /** The internal node manager */
   NodeManager* d_nodeManager;
 
-  /** Counts of expressions created of a given kind */
+  /** Counts of expressions and variables created of a given kind */
+  IntStat* d_exprStatisticsVars[LAST_TYPE + 1];
   IntStat* d_exprStatistics[kind::LAST_KIND];
 
   /**

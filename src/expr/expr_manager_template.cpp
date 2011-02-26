@@ -35,14 +35,31 @@ ${includes}
   { \
     if (d_exprStatistics[kind] == NULL) { \
       stringstream statName; \
-      statName << "CVC4::expr::count" << kind; \
+      statName << "expr::ExprManager::" << kind; \
       d_exprStatistics[kind] = new IntStat(statName.str(), 0); \
       StatisticsRegistry::registerStat(d_exprStatistics[kind]); \
     } \
     ++ *(d_exprStatistics[kind]); \
-  } 
+  }
+  #define INC_STAT_VAR(type) \
+  { \
+    TypeNode* typeNode = Type::getTypeNode(type); \
+    TypeConstant type = typeNode->getKind() == kind::TYPE_CONSTANT ? typeNode->getConst<TypeConstant>() : LAST_TYPE; \
+    if (d_exprStatisticsVars[type] == NULL) { \
+      stringstream statName; \
+      if (type == LAST_TYPE) { \
+        statName << "expr::ExprManager::VARIABLE:Parametrized type"; \
+      } else { \
+        statName << "expr::ExprManager::VARIABLE:" << type; \
+      } \
+      d_exprStatisticsVars[type] = new IntStat(statName.str(), 0); \
+      StatisticsRegistry::registerStat(d_exprStatisticsVars[type]); \
+    } \
+    ++ *(d_exprStatisticsVars[type]); \
+  }
 #else 
   #define INC_STAT(kind)
+  #define INC_STAT_VAR(type)
 #endif
 
 using namespace std;
@@ -58,13 +75,19 @@ ExprManager::ExprManager() :
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     d_exprStatistics[i] = NULL;
   }
+  for (unsigned i = 0; i < LAST_TYPE; ++ i) {
+    d_exprStatisticsVars[i] = NULL;
+  }
 #endif
 }
 
 ExprManager::ExprManager(const Options& options) :
   d_ctxt(new Context),
   d_nodeManager(new NodeManager(d_ctxt, options)) {
-#ifdef CVC4_STATISTICS_ON   
+#ifdef CVC4_STATISTICS_ON  
+  for (unsigned i = 0; i < LAST_TYPE; ++ i) {
+    d_exprStatisticsVars[i] = NULL;
+  }
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     d_exprStatistics[i] = NULL;
   }
@@ -79,6 +102,12 @@ ExprManager::~ExprManager() {
     if (d_exprStatistics[i] != NULL) {
       StatisticsRegistry::unregisterStat(d_exprStatistics[i]);
       delete d_exprStatistics[i];
+    }
+  }
+  for (unsigned i = 0; i < LAST_TYPE; ++ i) {
+    if (d_exprStatisticsVars[i] != NULL) {
+      StatisticsRegistry::unregisterStat(d_exprStatisticsVars[i]);
+      delete d_exprStatisticsVars[i];
     }
   }
 #endif
@@ -363,11 +392,13 @@ Expr ExprManager::mkVar(const std::string& name, const Type& type) {
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
+  INC_STAT_VAR(type);
   return Expr(this, n);
 }
 
 Expr ExprManager::mkVar(const Type& type) {
   NodeManagerScope nms(d_nodeManager);
+  INC_STAT_VAR(type);
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode));
 }
 
