@@ -41,8 +41,10 @@ namespace arith {
  * The queue begins in Collection mode.
  */
 class ArithPriorityQueue {
-private:
+public:
+  enum PivotRule {MINIMUM, BREAK_TIES, MAXIMUM};
 
+private:
   class VarDRatPair {
   private:
     ArithVar d_variable;
@@ -56,14 +58,38 @@ private:
       return d_variable;
     }
 
-    bool operator<(const VarDRatPair& other){
-      return d_orderBy > other.d_orderBy;
+    static bool minimumRule(const VarDRatPair& a, const VarDRatPair& b){
+      return a.d_orderBy > b.d_orderBy;
+    }
+    static bool maximumRule(const VarDRatPair& a, const VarDRatPair& b){
+      return a.d_orderBy < b.d_orderBy;
+    }
+
+    static bool breakTiesRules(const VarDRatPair& a, const VarDRatPair& b){
+      const Rational& nonInfA = a.d_orderBy.getNoninfinitesimalPart();
+      const Rational& nonInfB = b.d_orderBy.getNoninfinitesimalPart();
+      int cmpNonInf = nonInfA.cmp(nonInfB);
+      if(cmpNonInf == 0){
+        const Rational& infA = a.d_orderBy.getInfinitesimalPart();
+        const Rational& infB = b.d_orderBy.getInfinitesimalPart();
+        int cmpInf = infA.cmp(infB);
+        if(cmpInf == 0){
+          return a.d_variable > b.d_variable;
+        }else{
+          return cmpInf > 0;
+        }
+      }else{
+        return cmpNonInf > 0;
+      }
+
+      return a.d_orderBy > b.d_orderBy;
     }
   };
 
   typedef std::vector<VarDRatPair> DifferenceArray;
   typedef std::vector<ArithVar> ArithVarArray;
 
+  PivotRule d_pivotRule;
 
   /**
    * An unordered array with no heap structure for use during collection mode.
@@ -115,6 +141,9 @@ private:
 public:
 
   ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tableau);
+
+  /** precondition: !inDifferenceMode() */
+  void setPivotRule(PivotRule rule);
 
   ArithVar dequeueInconsistentBasicVariable();
 

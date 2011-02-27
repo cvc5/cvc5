@@ -135,6 +135,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt, const Options& opts) :
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
   d_valuation(this),
+  d_opts(opts),
   d_statistics() {
 
   Rewriter::init();

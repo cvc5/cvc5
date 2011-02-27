@@ -12,8 +12,18 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
 ArithPriorityQueue::ArithPriorityQueue(ArithPartialModel& pm, const Tableau& tableau):
-  d_partialModel(pm), d_tableau(tableau), d_modeInUse(Collection), d_ZERO_DELTA(0,0)
+  d_pivotRule(MINIMUM),
+  d_partialModel(pm),
+  d_tableau(tableau),
+  d_modeInUse(Collection),
+  d_ZERO_DELTA(0,0)
 {}
+
+void ArithPriorityQueue::setPivotRule(PivotRule rule){
+  Assert(!inDifferenceMode());
+  Debug("arith::setPivotRule") << "setting pivot rule " << rule << endl;
+  d_pivotRule = rule;
+}
 
 ArithVar ArithPriorityQueue::dequeueInconsistentBasicVariable(){
   AlwaysAssert(!inCollectionMode());
@@ -23,7 +33,17 @@ ArithVar ArithPriorityQueue::dequeueInconsistentBasicVariable(){
   if(inDifferenceMode()){
     while(!d_diffQueue.empty()){
       ArithVar var = d_diffQueue.front().variable();
-      pop_heap(d_diffQueue.begin(), d_diffQueue.end());
+      switch(d_pivotRule){
+      case MINIMUM:
+        pop_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::minimumRule);
+        break;
+      case BREAK_TIES:
+        pop_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::breakTiesRules);
+        break;
+      case MAXIMUM:
+        pop_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::maximumRule);
+        break;
+      }
       d_diffQueue.pop_back();
       Debug("arith_update") << "possiblyInconsistentGriggio var" << var << endl;
       if(basicAndInconsistent(var)){
@@ -73,7 +93,17 @@ void ArithPriorityQueue::enqueueIfInconsistent(ArithVar basic){
       break;
     case Difference:
       d_diffQueue.push_back(computeDiff(basic));
-      push_heap(d_diffQueue.begin(), d_diffQueue.end());
+      switch(d_pivotRule){
+      case MINIMUM:
+        push_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::minimumRule);
+        break;
+      case BREAK_TIES:
+        push_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::breakTiesRules);
+        break;
+      case MAXIMUM:
+        push_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::maximumRule);
+        break;
+      }
       break;
     default:
       Unreachable();
@@ -95,7 +125,19 @@ void ArithPriorityQueue::transitionToDifferenceMode() {
       d_diffQueue.push_back(computeDiff(var));
     }
   }
-  make_heap(d_diffQueue.begin(), d_diffQueue.end());
+
+  switch(d_pivotRule){
+  case MINIMUM:
+    make_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::minimumRule);
+    break;
+  case BREAK_TIES:
+    make_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::breakTiesRules);
+    break;
+  case MAXIMUM:
+    make_heap(d_diffQueue.begin(), d_diffQueue.end(), VarDRatPair::maximumRule);
+    break;
+  }
+
   d_candidates.clear();
   d_modeInUse = Difference;
 

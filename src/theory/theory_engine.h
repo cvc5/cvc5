@@ -154,6 +154,8 @@ class TheoryEngine {
    */
   Node removeITEs(TNode t);
 
+  const Options& d_opts;
+
 public:
 
   /**
@@ -174,6 +176,8 @@ public:
     TheoryClass* theory = new TheoryClass(d_context, d_theoryOut);
     d_theoryTable[theory->getId()] = theory;
     d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
+
+    theory->notifyOptions(d_opts);
   }
 
   SharedTermManager* getSharedTermManager() {

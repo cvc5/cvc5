@@ -27,6 +27,7 @@
 #include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
+#include "util/options.h"
 
 #include <string>
 #include <iostream>
@@ -94,6 +95,8 @@ protected:
     d_factsHead(ctxt, 0),
     d_out(&out) {
   }
+
+
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -375,6 +378,8 @@ public:
    * etc..)
    */
   virtual std::string identify() const = 0;
+
+  virtual void notifyOptions(const Options& opt) {}
 
   //
   // CODE INVARIANT CHECKING (used only with CVC4_ASSERTIONS)

@@ -120,7 +120,8 @@ enum OptionValue {
   NO_TYPE_CHECKING,
   LAZY_TYPE_CHECKING,
   EAGER_TYPE_CHECKING,
-  INCREMENTAL
+  INCREMENTAL,
+  PIVOT_RULE
 };/* enum OptionValue */
 
 /**
@@ -177,6 +178,7 @@ static struct option cmdlineOptions[] = {
   { "lazy-type-checking", no_argument, NULL, LAZY_TYPE_CHECKING},
   { "eager-type-checking", no_argument, NULL, EAGER_TYPE_CHECKING},
   { "incremental", no_argument, NULL, INCREMENTAL},
+  { "pivot-rule" , required_argument, NULL, PIVOT_RULE  },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -372,6 +374,28 @@ throw(OptionException) {
 
     case INCREMENTAL:
       incrementalSolving = true;
+      break;
+
+    case PIVOT_RULE:
+      if(!strcmp(optarg, "min")) {
+        pivotRule = MINIMUM;
+        break;
+      } else if(!strcmp(optarg, "min-break-ties")) {
+        pivotRule = BREAK_TIES;
+        break;
+      } else if(!strcmp(optarg, "max")) {
+        pivotRule = MAXIMUM;
+        break;
+      } else if(!strcmp(optarg, "help")) {
+        printf("Pivot rules available:\n");
+        printf("min\n");
+        printf("min-break-ties\n");
+        printf("max\n");
+        exit(1);
+      } else {
+        throw OptionException(string("unknown option for --pivot-rule: `") +
+                              optarg + "'.  Try --pivot-rule help.");
+      }
       break;
 
     case SHOW_CONFIG:

@@ -129,6 +129,10 @@ struct CVC4_PUBLIC Options {
   /** Whether incemental solving (push/pop) */
   bool incrementalSolving;
 
+
+  typedef enum { MINIMUM, BREAK_TIES, MAXIMUM } ArithPivotRule;
+  ArithPivotRule pivotRule;
+
   Options() :
     binary_name(),
     statistics(false),
@@ -151,7 +155,9 @@ struct CVC4_PUBLIC Options {
     produceAssignments(false),
     typeChecking(DO_SEMANTIC_CHECKS_BY_DEFAULT),
     earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT),
-    incrementalSolving(false) {
+    incrementalSolving(false),
+    pivotRule(MINIMUM)
+    {
   }
 
   /** 

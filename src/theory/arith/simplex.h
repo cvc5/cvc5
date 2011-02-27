@@ -12,6 +12,8 @@
 #include "theory/arith/partial_model.h"
 #include "theory/output_channel.h"
 
+#include "util/options.h"
+
 #include "util/stats.h"
 
 #include <queue>
@@ -150,6 +152,22 @@ private:
   Node generateConflictBelow(ArithVar conflictVar);
 
 public:
+  void notifyOptions(const Options& opt){
+    switch(opt.pivotRule){
+    case Options::MINIMUM:
+      d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
+      break;
+    case Options::BREAK_TIES:
+      d_queue.setPivotRule(ArithPriorityQueue::BREAK_TIES);
+      break;
+    case Options::MAXIMUM:
+      d_queue.setPivotRule(ArithPriorityQueue::MAXIMUM);
+      break;
+    default:
+      Unhandled(opt.pivotRule);
+    }
+  }
+
   /**
    * Checks to make sure the assignment is consistent with the tableau.
    * This code is for debugging.

@@ -162,6 +162,9 @@ public:
 
   std::string identify() const { return std::string("TheoryArith"); }
 
+  void notifyOptions(const Options& opt) {
+    d_simplex.notifyOptions(opt);
+  }
 private:
 
   ArithVar determineLeftVariable(TNode assertion, Kind simpleKind);
