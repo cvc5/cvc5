@@ -91,20 +91,29 @@ void ReducedRowVector::removeArithVar(ArithVarContainsSet& contains, ArithVar v)
   contains[v] = false;
 }
 
-void ReducedRowVector::merge(const VarCoeffArray& other,
-                             const Rational& c){
-  VarCoeffArray copy = d_entries;
-  d_entries.clear();
+void ReducedRowVector::multiply(const Rational& c){
+  Assert(c != 0);
 
-  iterator curr1 = copy.begin();
-  iterator end1 = copy.end();
+  for(iterator i = d_entries.begin(), end = d_entries.end(); i != end; ++i){
+    getCoefficient(*i) *= c;
+  }
+}
 
-  const_iterator curr2 = other.begin();
-  const_iterator end2 = other.end();
+void ReducedRowVector::addRowTimesConstant(const Rational& c, const ReducedRowVector& other){
+  Assert(c != 0);
+  Assert(d_buffer.empty());
+
+  d_buffer.reserve(other.d_entries.size());
+
+  iterator curr1 = d_entries.begin();
+  iterator end1 = d_entries.end();
+
+  const_iterator curr2 = other.d_entries.begin();
+  const_iterator end2 = other.d_entries.end();
 
   while(curr1 != end1 && curr2 != end2){
     if(getArithVar(*curr1) < getArithVar(*curr2)){
-      d_entries.push_back(*curr1);
+      d_buffer.push_back(*curr1);
       ++curr1;
     }else if(getArithVar(*curr1) > getArithVar(*curr2)){
 
@@ -114,14 +123,14 @@ void ReducedRowVector::merge(const VarCoeffArray& other,
       }
 
       addArithVar(d_contains, getArithVar(*curr2));
-      d_entries.push_back( make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
+      d_buffer.push_back( make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
       ++curr2;
     }else{
       Rational res = getCoefficient(*curr1) + c * getCoefficient(*curr2);
       if(res != 0){
         //The variable is not new so the count stays the same
 
-        d_entries.push_back(make_pair(getArithVar(*curr1), res));
+        d_buffer.push_back(make_pair(getArithVar(*curr1), res));
       }else{
         removeArithVar(d_contains, getArithVar(*curr2));
 
@@ -135,7 +144,7 @@ void ReducedRowVector::merge(const VarCoeffArray& other,
     }
   }
   while(curr1 != end1){
-    d_entries.push_back(*curr1);
+    d_buffer.push_back(*curr1);
     ++curr1;
   }
   while(curr2 != end2){
@@ -146,23 +155,14 @@ void ReducedRowVector::merge(const VarCoeffArray& other,
 
     addArithVar(d_contains, getArithVar(*curr2));
 
-    d_entries.push_back(make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
+    d_buffer.push_back(make_pair(getArithVar(*curr2), c * getCoefficient(*curr2)));
     ++curr2;
   }
-}
 
-void ReducedRowVector::multiply(const Rational& c){
-  Assert(c != 0);
+  d_buffer.swap(d_entries);
+  d_buffer.clear();
 
-  for(iterator i = d_entries.begin(), end = d_entries.end(); i != end; ++i){
-    getCoefficient(*i) *= c;
-  }
-}
-
-void ReducedRowVector::addRowTimesConstant(const Rational& c, const ReducedRowVector& other){
-  Assert(c != 0);
-
-  merge(other.d_entries, c);
+  Assert(d_buffer.empty());
 }
 
 void ReducedRowVector::printRow(){

@@ -35,9 +35,8 @@ public:
   typedef std::vector<VarCoeffPair> VarCoeffArray;
   typedef VarCoeffArray::const_iterator const_iterator;
 
-  typedef std::vector<bool> ArithVarContainsSet;
-
 private:
+  typedef std::vector<bool> ArithVarContainsSet;
   typedef VarCoeffArray::iterator iterator;
 
   /**
@@ -46,6 +45,11 @@ private:
    * - noZeroCoefficients(d_entries)
    */
   VarCoeffArray d_entries;
+
+  /**
+   * Buffer for d_entries to reduce allocations by addRowTimesConstant.
+   */
+  VarCoeffArray d_buffer;
 
   /**
    * The basic variable associated with the row.
@@ -74,6 +78,7 @@ public:
 
   ~ReducedRowVector();
 
+  /** Returns the basic variable.*/
   ArithVar basic() const{
     Assert(basicIsSet());
     return d_basic;
@@ -84,7 +89,7 @@ public:
     return d_entries.size();
   }
 
-  //Iterates over the nonzero entries in the Vector
+  /** Iterates over the nonzero entries in the vector. */
   const_iterator begin() const { return d_entries.begin(); }
   const_iterator end() const { return d_entries.end(); }
 
@@ -107,22 +112,25 @@ public:
     return getCoefficient(*lb);
   }
 
-  /** Multiplies the coefficients of the RowVector by c (where c != 0). */
-  void multiply(const Rational& c);
 
-  /**
-   * \sum(this->entries) += c * (\sum(other.d_entries) )
-   *
-   * Updates the current row to be the sum of itself and
-   * another vector times c (c != 0).
-   */
-  void addRowTimesConstant(const Rational& c, const ReducedRowVector& other);
-
+  /** Prints the row to the buffer Debug("row::print"). */
   void printRow();
 
-
+  /**
+   * Changes the basic variable to x_j.
+   * Precondition: has(x_j)
+   */
   void pivot(ArithVar x_j);
 
+  /**
+   * Replaces other.basic() in the current row using the other row.
+   * This assumes the other row represents an equality equal to zero.
+   *
+   *   \sum(this->entries) -= this->lookup(other.basic()) * (\sum(other.d_entries))
+   * Precondition:
+   *  has(other.basic())
+   *  basic != other.basic()
+   */
   void substitute(const ReducedRowVector& other);
 
   /**
@@ -133,6 +141,19 @@ public:
   Node asEquality(const ArithVarToNodeMap& map) const;
 
 private:
+
+  /**
+   * \sum(this->entries) += c * (\sum(other.d_entries) )
+   *
+   * Updates the current row to be the sum of itself and
+   * another vector times c (c != 0).
+   */
+  void addRowTimesConstant(const Rational& c, const ReducedRowVector& other);
+
+
+  /** Multiplies the coefficients of the RowVector by c (where c != 0). */
+  void multiply(const Rational& c);
+
   /**
    * Adds v to d_contains.
    * This may resize d_contains.
@@ -157,8 +178,6 @@ private:
   static void zip(const std::vector< ArithVar >& variables,
                   const std::vector< Rational >& coefficients,
                   VarCoeffArray& output);
-
-  void merge(const VarCoeffArray& other, const Rational& c);
 
   /**
    * Debugging code.
