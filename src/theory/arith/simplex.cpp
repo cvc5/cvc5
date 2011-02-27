@@ -257,8 +257,8 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
         varIter != row_k.end();
         ++varIter){
 
-      ArithVar var = varIter->first;
-      const Rational& coeff = varIter->second;
+      ArithVar var = (*varIter).getArithVar();
+      const Rational& coeff = (*varIter).getCoefficient();
       DeltaRational beta = d_partialModel.getAssignment(var);
       Debug("arith::pivotAndUpdate") << var << beta << coeff;
       if(d_partialModel.hasLowerBound(var)){
@@ -334,10 +334,10 @@ ArithVar SimplexDecisionProcedure::selectSlack(ArithVar x_i, bool first){
 
   for(ReducedRowVector::const_iterator nbi = row_i.begin(), end = row_i.end();
       nbi != end; ++nbi){
-    ArithVar nonbasic = getArithVar(*nbi);
+    ArithVar nonbasic = (*nbi).getArithVar();
     if(nonbasic == x_i) continue;
 
-    const Rational& a_ij = nbi->second;
+    const Rational& a_ij = (*nbi).getCoefficient();
     int cmp = a_ij.cmp(d_constants.d_ZERO);
     if(above){ // beta(x_i) > u_i
       if( cmp < 0 && d_partialModel.strictlyBelowUpperBound(nonbasic)){
@@ -566,10 +566,10 @@ Node SimplexDecisionProcedure::generateConflictAbove(ArithVar conflictVar){
   ReducedRowVector::const_iterator nbi = row_i.begin(), end = row_i.end();
 
   for(; nbi != end; ++nbi){
-    ArithVar nonbasic = getArithVar(*nbi);
+    ArithVar nonbasic = (*nbi).getArithVar();
     if(nonbasic == conflictVar) continue;
 
-    const Rational& a_ij = nbi->second;
+    const Rational& a_ij = (*nbi).getCoefficient();
 
     Assert(a_ij != d_constants.d_ZERO);
 
@@ -606,10 +606,10 @@ Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
 
   ReducedRowVector::const_iterator nbi = row_i.begin(), end = row_i.end();
   for(; nbi != end; ++nbi){
-    ArithVar nonbasic = getArithVar(*nbi);
+    ArithVar nonbasic = (*nbi).getArithVar();
     if(nonbasic == conflictVar) continue;
 
-    const Rational& a_ij = nbi->second;
+    const Rational& a_ij = (*nbi).getCoefficient();
 
     Assert(a_ij != d_constants.d_ZERO);
 
@@ -643,9 +643,9 @@ DeltaRational SimplexDecisionProcedure::computeRowValue(ArithVar x, bool useSafe
   ReducedRowVector& row = d_tableau.lookup(x);
   for(ReducedRowVector::const_iterator i = row.begin(), end = row.end();
       i != end;++i){
-    ArithVar nonbasic = getArithVar(*i);
+    ArithVar nonbasic = (*i).getArithVar();
     if(nonbasic == row.basic()) continue;
-    const Rational& coeff = getCoefficient(*i);
+    const Rational& coeff = (*i).getCoefficient();
 
     const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic, useSafe);
     sum = sum + (assignment * coeff);
@@ -671,10 +671,10 @@ void SimplexDecisionProcedure::checkTableau(){
     for(ReducedRowVector::const_iterator nonbasicIter = row_k.begin();
         nonbasicIter != row_k.end();
         ++nonbasicIter){
-      ArithVar nonbasic = nonbasicIter->first;
+      ArithVar nonbasic = (*nonbasicIter).getArithVar();
       if(basic == nonbasic) continue;
 
-      const Rational& coeff = nonbasicIter->second;
+      const Rational& coeff = (*nonbasicIter).getCoefficient();
       DeltaRational beta = d_partialModel.getAssignment(nonbasic);
       Debug("paranoid:check_tableau") << nonbasic << beta << coeff<<endl;
       sum = sum + (beta*coeff);

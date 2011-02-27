@@ -14,15 +14,26 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-typedef std::pair<ArithVar, Rational> VarCoeffPair;
+class VarCoeffPair {
+private:
+  ArithVar d_variable;
+  Rational d_coeff;
 
-inline ArithVar getArithVar(const VarCoeffPair& v) { return v.first; }
-inline Rational& getCoefficient(VarCoeffPair& v) { return v.second; }
-inline const Rational& getCoefficient(const VarCoeffPair& v) { return v.second; }
+public:
+  VarCoeffPair(ArithVar v, const Rational& q): d_variable(v), d_coeff(q) {}
 
-inline bool cmp(const VarCoeffPair& a, const VarCoeffPair& b){
-  return getArithVar(a) < getArithVar(b);
-}
+  ArithVar getArithVar() const { return d_variable; }
+  Rational& getCoefficient() { return d_coeff; }
+  const Rational& getCoefficient() const { return d_coeff; }
+
+  bool operator<(const VarCoeffPair& other) const{
+    return getArithVar() < other.getArithVar();
+  }
+
+  static bool variableLess(const VarCoeffPair& a, const VarCoeffPair& b){
+    return a < b;
+  }
+};
 
 /**
  * ReducedRowVector is a sparse vector representation that represents the
@@ -109,7 +120,7 @@ public:
     Assert(has(x_j));
     Assert(hasInEntries(x_j));
     const_iterator lb = lower_bound(x_j);
-    return getCoefficient(*lb);
+    return (*lb).getCoefficient();
   }
 
 
@@ -190,7 +201,7 @@ private:
   bool matchingCounts() const;
 
   const_iterator lower_bound(ArithVar x_j) const{
-    return std::lower_bound(d_entries.begin(), d_entries.end(), std::make_pair(x_j,0), cmp);
+    return std::lower_bound(d_entries.begin(), d_entries.end(), VarCoeffPair(x_j, 0));
   }
 
   /** Debugging code */
@@ -207,7 +218,7 @@ private:
 
   /** Debugging code. */
   bool hasInEntries(ArithVar x_j) const {
-    return std::binary_search(d_entries.begin(), d_entries.end(), std::make_pair(x_j,0), cmp);
+    return std::binary_search(d_entries.begin(), d_entries.end(), VarCoeffPair(x_j,0));
   }
 
 }; /* class ReducedRowVector */
