@@ -65,7 +65,7 @@ rewriter_tables.h: rewriter_tables_template.h mkrewriter @top_builddir@/src/theo
 theory_traits.h: theory_traits_template.h mktheorytraits @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
 	$(AM_V_at)chmod +x @srcdir@/mktheorytraits
 	$(AM_V_at)$(am__mv) $@ $@~ 2>/dev/null || true
-	$(AM_V_GEN)(@srcdir@//mktheorytraits \
+	$(AM_V_GEN)(@srcdir@/mktheorytraits \
 		$< \
 		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)

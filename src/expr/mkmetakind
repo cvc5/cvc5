@@ -2,7 +2,7 @@
 #
 # mkmetakind
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010  The CVC4 Project
+# Copyright (c) 2010-2011  The CVC4 Project
 #
 # The purpose of this script is to create metakind.h from a template
 # and a list of theory kinds.
@@ -17,7 +17,7 @@
 # Output is to standard out.
 #
 
-copyright=2010
+copyright=2010-2011
 
 cat <<EOF
 /*********************                                                        */
@@ -83,21 +83,25 @@ function theory {
 function properties {
   # properties prop*
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function endtheory {
   # endtheory
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function rewriter {
   # rewriter class header
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function sort {
   # sort TYPE ["comment"]
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function variable {

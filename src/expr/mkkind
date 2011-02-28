@@ -2,7 +2,7 @@
 #
 # mkkind
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010  The CVC4 Project
+# Copyright (c) 2010-2011  The CVC4 Project
 #
 # The purpose of this script is to create kind.h from a template and a
 # list of theory kinds.
@@ -14,7 +14,7 @@
 # Output is to standard out.
 #
 
-copyright=2010
+copyright=2010-2011
 
 cat <<EOF
 /*********************                                                        */
@@ -41,7 +41,7 @@ kind_to_theory_id=
 
 type_constant_descriptions=
 type_constant_list=
-type_constant_to_theory_id= 
+type_constant_to_theory_id=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -71,10 +71,10 @@ function theory {
   elif ! expr "$2" : '\(::CVC4::theory::*\)' >/dev/null; then
     echo "$kf:$lineno: warning: theory class not under ::CVC4::theory namespace" >&2
   fi
-  
+
   theory_id="$1"
-  theory_enum="$1, 
-    ${theory_enum}" 
+  theory_enum="$1,
+    ${theory_enum}"
   theory_descriptions="${theory_descriptions}    case ${theory_id}: out << \"${theory_id}\"; break;
 "
 }
@@ -82,23 +82,24 @@ function theory {
 function properties {
   # rewriter class header
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function endtheory {
   # endtheory
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function rewriter {
   # properties prop*
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function sort {
   # sort TYPE ["comment"]
-  
   lineno=${BASH_LINENO[0]}
-  
   check_theory_seen
   register_sort "$1" "$2"
 }
@@ -142,13 +143,13 @@ function constant {
 function register_sort {
   id=$1
   comment=$2
-  
+
   type_constant_list="${type_constant_list}   ${id}, /**< ${comment} */
 "
   type_constant_descriptions="${type_constant_descriptions}   case $id:  out << \"${comment}\"; break;
 "
   type_constant_to_theory_id="${type_constant_to_theory_id}   case $id: return $theory_id; break;
-" 
+"
 }
 
 function register_kind {

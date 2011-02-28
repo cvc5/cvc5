@@ -2,23 +2,23 @@
 #
 # mkrewriter
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010  The CVC4 Project
+# Copyright (c) 2010-2011  The CVC4 Project
 #
-# The purpose of this script is to create kind.h from a template and a
-# list of theory kinds.
+# The purpose of this script is to create rewriter_tables.h from a template
+# and a list of theory kinds.
 #
 # Invocation:
 #
-#   mkkind template-file theory-kind-files...
+#   mkrewriter template-file theory-kind-files...
 #
 # Output is to standard out.
 #
 
-copyright=2010
+copyright=2010-2011
 
 cat <<EOF
 /*********************                                                        */
-/** kind.h
+/** rewriter_tables.h
  **
  ** Copyright $copyright  The AcSys Group, New York University, and as below.
  **
@@ -79,18 +79,20 @@ function theory {
 function properties {
   # properties prop*
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function endtheory {
   # endtheory
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function rewriter {
   # rewriter class header
   class="$1" 
   header="$2"
-  
+
   rewriter_includes="${rewriter_includes}#include \"$header\"
 "
   rewrite_init="${rewrite_init}   ${class}::init();
@@ -113,32 +115,50 @@ function rewriter {
 "
 
   lineno=${BASH_LINENO[0]}
-  
+  check_theory_seen
 }
 
 function sort {
   # sort TYPE ["comment"]  
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function variable {
   # variable K ["comment"]
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function operator {
   # operator K #children ["comment"]
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function parameterized {
   # parameterized K1 K2 #children ["comment"]
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function constant {
   # constant K T Hasher header ["comment"]
   lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
+function check_theory_seen {
+  if ! $seen_theory; then
+    echo "$kf:$lineno: error: no \"theory\" declaration found (it has to be first)" >&2
+    exit 1
+  fi
+}
+
+function check_builtin_theory_seen {
+  if ! $seen_theory_builtin; then
+    echo "$me: warning: no declaration for the builtin theory found" >&2
+  fi
 }
 
 while [ $# -gt 0 ]; do

@@ -2,19 +2,19 @@
 #
 # mktheorytraits
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010  The CVC4 Project
+# Copyright (c) 2010-2011  The CVC4 Project
 #
-# The purpose of this script is to create kind.h from a template and a
-# list of theory kinds.
+# The purpose of this script is to create theory_traits.h from a template
+# and a list of theory kinds.
 #
 # Invocation:
 #
-#   mkkind template-file theory-kind-files...
+#   mktheorytraits template-file theory-kind-files...
 #
 # Output is to standard out.
 #
 
-copyright=2010
+copyright=2010-2011
 
 cat <<EOF
 /*********************                                                        */
@@ -51,7 +51,7 @@ theory_polite="false"
 
 rewriter_class=
 rewriter_header=
-  
+
 theory_id=
 theory_class=
 
@@ -80,10 +80,10 @@ function theory {
   elif ! expr "$2" : '\(::CVC4::theory::*\)' >/dev/null; then
     echo "$kf:$lineno: warning: theory class not under ::CVC4::theory namespace" >&2
   fi
-  
+
   theory_id="$1"
   theory_class="$2"
-  
+
   theory_includes="${theory_includes}#include \"$3\"
 "
   theory_for_each_macro="${theory_for_each_macro} CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::${theory_id}) \\
@@ -93,28 +93,30 @@ function theory {
 function rewriter {
   # rewriter class header
   lineno=${BASH_LINENO[0]}
-  
+  check_theory_seen
+
   rewriter_class="$1"
   rewriter_header="$2"
-  
+
   theory_includes="${theory_includes}#include \"$2\"
 "
-
 }
 
 function endtheory {
   # endtheory
-  
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+
   theory_traits="${theory_traits}
 template<>
 struct TheoryTraits<${theory_id}> {
     typedef ${theory_class} theory_class;
     typedef ${rewriter_class} rewriter_class;
-    
+
     static const bool isStableInfinite = ${theory_stable_infinite};
     static const bool isFinite = ${theory_finite};
     static const bool isPolite = ${theory_polite};
-    
+
     static const bool hasCheck = ${theory_has_check};
     static const bool hasPropagate = ${theory_has_propagate};
     static const bool hasStaticLearning = ${theory_has_static_learning};
@@ -133,10 +135,10 @@ struct TheoryTraits<${theory_id}> {
 
   rewriter_class=
   rewriter_header=
-  
+
   theory_id=
   theory_class=
-  
+
   lineno=${BASH_LINENO[0]}
 }
 
@@ -144,10 +146,11 @@ struct TheoryTraits<${theory_id}> {
 function properties {
   # properties property*
   lineno=${BASH_LINENO[0]}
-  while (( $# )); 
+  check_theory_seen
+  while (( $# ));
   do
     property="$1"
-    case "$property" in 
+    case "$property" in
        finite) theory_finite="true";;
        stable-infinite) theory_stable_infinite="true";;
        polite) theory_polite="true";;
@@ -157,50 +160,40 @@ function properties {
        presolve) theory_has_presolve="true";
     esac
     shift
-  done;  
+  done
 }
 
 function sort {
   # sort TYPE ["comment"]
-  
   lineno=${BASH_LINENO[0]}
-  
   check_theory_seen
   register_sort "$1" "$2"
 }
 
 function variable {
   # variable K ["comment"]
-
   lineno=${BASH_LINENO[0]}
-
   check_theory_seen
   register_kind "$1" 0 "$2"
 }
 
 function operator {
   # operator K #children ["comment"]
-
   lineno=${BASH_LINENO[0]}
-
   check_theory_seen
   register_kind "$1" "$2" "$3"
 }
 
 function parameterized {
   # parameterized K1 K2 #children ["comment"]
-
   lineno=${BASH_LINENO[0]}
-
   check_theory_seen
   register_kind "$1" "$3" "$4"
 }
 
 function constant {
   # constant K T Hasher header ["comment"]
-
   lineno=${BASH_LINENO[0]}
-
   check_theory_seen
   register_kind "$1" 0 "$5"
 }
@@ -209,7 +202,7 @@ function register_sort {
   id=$1
   comment=$2
   type_constant_to_theory_id="${type_constant_to_theory_id}   case $id: return $theory_id; break;
-" 
+"
 }
 
 function register_kind {
