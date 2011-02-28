@@ -181,8 +181,16 @@ class CongruenceClosure {
   AverageStat d_explanationLength;/**< average explanation length */
   IntStat d_newSkolemVars;/**< new vars created */
 
-  static inline bool isCongruenceOperator(Kind k) {
-    return isInCongruenceOperatorList<CongruenceOperatorList>(k);
+  static inline bool isCongruenceOperator(TNode n) {
+    // For the datatypes theory, we've removed the invariant that
+    // parameterized kinds must have at least one argument.  Consider
+    // (CONSTRUCTOR nil) for instance.  So, n here can be an operator
+    // that's normally checked for congruence (like CONSTRUCTOR) but
+    // shouldn't be treated as a congruence operator if it only has an
+    // operator and no children (like CONSTRUCTOR nil), since we can
+    // treat that as a simple variable.
+    return n.getNumChildren() > 0 &&
+      isInCongruenceOperatorList<CongruenceOperatorList>(n.getKind());
   }
 
 public:
@@ -225,8 +233,8 @@ public:
     Assert(inputEq.getKind() == kind::EQUAL ||
            inputEq.getKind() == kind::IFF);
     NodeBuilder<> eqb(inputEq.getKind());
-    if(isCongruenceOperator(inputEq[1].getKind()) &&
-       !isCongruenceOperator(inputEq[0].getKind())) {
+    if(isCongruenceOperator(inputEq[1]) &&
+       !isCongruenceOperator(inputEq[0])) {
       eqb << flatten(inputEq[1]) << inputEq[0];
     } else {
       eqb << flatten(inputEq[0]) << replace(flatten(inputEq[1]));
@@ -239,7 +247,7 @@ private:
   void addEq(TNode eq, TNode inputEq);
 
   Node flatten(TNode t) {
-    if(isCongruenceOperator(t.getKind())) {
+    if(isCongruenceOperator(t)) {
       NodeBuilder<> appb(t.getKind());
       Assert(replace(flatten(t.getOperator())) == t.getOperator(),
              "CongruenceClosure:: bad state: higher-order term ??");
@@ -256,7 +264,7 @@ private:
   }
 
   Node replace(TNode t) {
-    if(isCongruenceOperator(t.getKind())) {
+    if(isCongruenceOperator(t)) {
       EqMap::iterator i = d_eqMap.find(t);
       if(i == d_eqMap.end()) {
         ++d_newSkolemVars;
@@ -502,7 +510,7 @@ void CongruenceClosure<OutputChannel, CongruenceOperatorList>::addEq(TNode eq, T
   }
   Assert(eq.getKind() == kind::EQUAL ||
          eq.getKind() == kind::IFF);
-  Assert(!isCongruenceOperator(eq[1].getKind()));
+  Assert(!isCongruenceOperator(eq[1]));
   if(areCongruent(eq[0], eq[1])) {
     Trace("cc") << "CC -- redundant, ignoring...\n";
     return;
@@ -517,7 +525,7 @@ void CongruenceClosure<OutputChannel, CongruenceOperatorList>::addEq(TNode eq, T
   // change from paper: do this whether or not s, t are applications
   Trace("cc:detail") << "CC        propagating the eq" << std::endl;
 
-  if(!isCongruenceOperator(s.getKind())) {
+  if(!isCongruenceOperator(s)) {
     // s, t are constants
     propagate(eq);
   } else {
@@ -549,7 +557,7 @@ template <class OutputChannel, class CongruenceOperatorList>
 Node CongruenceClosure<OutputChannel, CongruenceOperatorList>::buildRepresentativesOfApply(TNode apply,
                                                               Kind kindToBuild)
   throw(AssertionException) {
-  Assert(isCongruenceOperator(apply.getKind()));
+  Assert(isCongruenceOperator(apply));
   NodeBuilder<> argspb(kindToBuild);
   Assert(find(apply.getOperator()) == apply.getOperator(),
          "CongruenceClosure:: bad state: "
@@ -606,8 +614,8 @@ void CongruenceClosure<OutputChannel, CongruenceOperatorList>::propagate(TNode s
       a = e[0][1];
       b = e[1][1];
 
-      Assert(!isCongruenceOperator(a.getKind()));
-      Assert(!isCongruenceOperator(b.getKind()));
+      Assert(!isCongruenceOperator(a));
+      Assert(!isCongruenceOperator(b));
 
       Trace("cc") << "                 ( " << a << " , " << b << " )" << std::endl;
     }
@@ -705,11 +713,11 @@ void CongruenceClosure<OutputChannel, CongruenceOperatorList>::propagate(TNode s
                    eq.getKind() == kind::IFF);
             // change from paper
             // use list elts can have form (apply c..) = x  OR  x = (apply c..)
-            Assert(isCongruenceOperator(eq[0].getKind()) ||
-                   isCongruenceOperator(eq[1].getKind()));
+            Assert(isCongruenceOperator(eq[0]) ||
+                   isCongruenceOperator(eq[1]));
             // do for each side that is an application
             for(int side = 0; side <= 1; ++side) {
-              if(!isCongruenceOperator(eq[side].getKind())) {
+              if(!isCongruenceOperator(eq[side])) {
                 continue;
               }
 
@@ -778,8 +786,8 @@ void CongruenceClosure<OutputChannel, CongruenceOperatorList>::merge(TNode ec1, 
   Trace("cc") << "CC             to " << ec2 << std::endl;
 
   /* can now be applications
-  Assert(!isCongruenceOperator(ec1.getKind()));
-  Assert(!isCongruenceOperator(ec2.getKind()));
+  Assert(!isCongruenceOperator(ec1));
+  Assert(!isCongruenceOperator(ec2));
   */
 
   Assert(find(ec1) != ec2);
@@ -838,7 +846,7 @@ template <class OutputChannel, class CongruenceOperatorList>
 Node CongruenceClosure<OutputChannel, CongruenceOperatorList>::normalize(TNode t) const
   throw(AssertionException) {
   Trace("cc:detail") << "normalize " << t << std::endl;
-  if(!isCongruenceOperator(t.getKind())) {// t is a constant
+  if(!isCongruenceOperator(t)) {// t is a constant
     t = find(t);
     Trace("cc:detail") << "  find " << t << std::endl;
     return t;
@@ -851,12 +859,12 @@ Node CongruenceClosure<OutputChannel, CongruenceOperatorList>::normalize(TNode t
       apb << t.getOperator();
     }
     Node n;
-    bool allConstants = (!isCongruenceOperator(n.getKind()));
+    bool allConstants = (!isCongruenceOperator(n));
     for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
       TNode c = *i;
       n = normalize(c);
       apb << n;
-      allConstants = (allConstants && !isCongruenceOperator(n.getKind()));
+      allConstants = (allConstants && !isCongruenceOperator(n));
     }
 
     Node ap = apb;
@@ -866,8 +874,8 @@ Node CongruenceClosure<OutputChannel, CongruenceOperatorList>::normalize(TNode t
     if(allConstants && !theLookup.isNull()) {
       Assert(theLookup.getKind() == kind::EQUAL ||
              theLookup.getKind() == kind::IFF);
-      Assert(isCongruenceOperator(theLookup[0].getKind()));
-      Assert(!isCongruenceOperator(theLookup[1].getKind()));
+      Assert(isCongruenceOperator(theLookup[0]));
+      Assert(!isCongruenceOperator(theLookup[1]));
       return find(theLookup[1]);
     } else {
       NodeBuilder<> fa(t.getKind());
@@ -914,10 +922,10 @@ void CongruenceClosure<OutputChannel, CongruenceOperatorList>::explainAlongPath(
       Assert(e.getKind() == kind::TUPLE);
       pf.push_back(e[0]);
       pf.push_back(e[1]);
-      Assert(isCongruenceOperator(e[0][0].getKind()));
-      Assert(!isCongruenceOperator(e[0][1].getKind()));
-      Assert(isCongruenceOperator(e[1][0].getKind()));
-      Assert(!isCongruenceOperator(e[1][1].getKind()));
+      Assert(isCongruenceOperator(e[0][0]));
+      Assert(!isCongruenceOperator(e[0][1]));
+      Assert(isCongruenceOperator(e[1][0]));
+      Assert(!isCongruenceOperator(e[1][1]));
       Assert(e[0][0].getNumChildren() == e[1][0].getNumChildren());
       Assert(e[0][0].getOperator() == e[1][0].getOperator(),
              "CongruenceClosure:: bad state: function symbols should be equal");
@@ -969,10 +977,10 @@ Node CongruenceClosure<OutputChannel, CongruenceOperatorList>::explain(Node a, N
                                      "that aren't congruent");
   }
 
-  if(isCongruenceOperator(a.getKind())) {
+  if(isCongruenceOperator(a)) {
     a = replace(flatten(a));
   }
-  if(isCongruenceOperator(b.getKind())) {
+  if(isCongruenceOperator(b)) {
     b = replace(flatten(b));
   }
 
