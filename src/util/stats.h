@@ -11,10 +11,11 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Statistics utility classes
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** Statistics utility classes, including classes for holding (and referring
+ ** to) statistics, the statistics registry, and some other associated
+ ** classes.
  **/
 
 #include "cvc4_public.h"
@@ -34,7 +35,6 @@
 
 namespace CVC4 {
 
-
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
 #else
@@ -43,51 +43,113 @@ namespace CVC4 {
 
 class CVC4_PUBLIC Stat;
 
+/**
+ * The main statistics registry.  This registry maintains the list of
+ * currently active statistics and is able to "flush" them all.
+ *
+ * The statistics registry is only used statically; one does not
+ * construct a statistics registry.
+ */
 class CVC4_PUBLIC StatisticsRegistry {
 private:
+  /** A helper class for comparing two statistics */
   struct StatCmp {
     inline bool operator()(const Stat* s1, const Stat* s2) const;
   };/* class StatisticsRegistry::StatCmp */
 
+  /** A type for a set of statistics */
   typedef std::set< Stat*, StatCmp > StatSet;
+
+  /** The set of currently active statistics */
   static StatSet d_registeredStats;
+
+  /** Private default constructor undefined (no construction permitted). */
+  StatisticsRegistry() CVC4_UNDEFINED;
+  /** Private copy constructor undefined (no copy permitted). */
+  StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
 
 public:
 
+  /** An iterator type over a set of statistics */
   typedef StatSet::const_iterator const_iterator;
 
+  /** Flush all statistics to the given output stream. */
   static void flushStatistics(std::ostream& out);
 
+  /** Register a new statistic, making it active. */
   static inline void registerStat(Stat* s) throw(AssertionException);
+
+  /** Unregister an active statistic, making it inactive. */
   static inline void unregisterStat(Stat* s) throw(AssertionException);
 
+  /**
+   * Get an iterator to the beginning of the range of the set of active
+   * (registered) statistics.
+   */
   static inline const_iterator begin() {
     return d_registeredStats.begin();
   }
+
+  /**
+   * Get an iterator to the end of the range of the set of active
+   * (registered) statistics.
+   */
   static inline const_iterator end() {
     return d_registeredStats.end();
   }
+
 };/* class StatisticsRegistry */
 
 
+/**
+ * The base class for all statistics.
+ *
+ * This base class keeps the name of the statistic and declares two (pure)
+ * virtual functionss flushInformation() and getValue().  Derived classes
+ * must implement these functions and pass their name to the base class
+ * constructor.
+ *
+ * This class also (statically) maintains the delimiter used to separate
+ * the name and the value when statistics are output.
+ */
 class CVC4_PUBLIC Stat {
 private:
+  /** The name of this statistic */
   std::string d_name;
 
+  /**
+   * The delimiter between name and value to use when outputting a
+   * statistic.
+   */
   static std::string s_delim;
 
 public:
 
-  Stat(const std::string& s) throw(CVC4::AssertionException) :
-    d_name(s) {
+  /**
+   * Construct a statistic with the given name.  Debug builds of CVC4
+   * will throw an assertion exception if the given name contains the
+   * statistic delimiter string.
+   */
+  Stat(const std::string& name) throw(CVC4::AssertionException) :
+    d_name(name) {
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(d_name.find(s_delim) == std::string::npos);
     }
   }
+
+  /** Destruct a statistic.  This base-class version does nothing. */
   virtual ~Stat() {}
 
+  /**
+   * Flush the value of this statistic to an output stream.  Should
+   * finish the output with an end-of-line character.
+   */
   virtual void flushInformation(std::ostream& out) const = 0;
 
+  /**
+   * Flush the name,value pair of this statistic to an output stream.
+   * Uses the statistic delimiter string between name and value.
+   */
   void flushStat(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
       out << d_name << s_delim;
@@ -95,11 +157,14 @@ public:
     }
   }
 
+  /** Get the name of this statistic. */
   const std::string& getName() const {
     return d_name;
   }
 
+  /** Get the value of this statistic as a string. */
   virtual std::string getValue() const = 0;
+
 };/* class Stat */
 
 inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
@@ -126,70 +191,122 @@ inline void StatisticsRegistry::unregisterStat(Stat* s)
 
 
 /**
- * class T must have stream insertion operation defined.
- * std::ostream& operator<<(std::ostream&, const T&);
+ * A class to represent a "read-only" data statistic of type T.  Adds to
+ * the Stat base class the pure virtual function getData(), which returns
+ * type T, along with an implementation of getValue(), which converts the
+ * type T to a string using an existing stream insertion operator defined
+ * on T, and flushInformation(), which outputs the statistic value to an
+ * output stream (using the same existing stream insertion operator).
+ *
+ * Template class T must have stream insertion operation defined:
+ * std::ostream& operator<<(std::ostream&, const T&)
  */
 template <class T>
 class ReadOnlyDataStat : public Stat {
 public:
+  /** The "payload" type of this data statistic (that is, T). */
   typedef T payload_t;
 
-  ReadOnlyDataStat(const std::string& s) :
-    Stat(s) {
+  /** Construct a read-only data statistic with the given name. */
+  ReadOnlyDataStat(const std::string& name) :
+    Stat(name) {
   }
 
+  /** Get the value of the statistic. */
   virtual const T& getData() const = 0;
 
+  /** Flush the value of the statistic to the given output stream. */
   void flushInformation(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
       out << getData();
     }
   }
 
+  /** Get the value of the statistic as a string. */
   std::string getValue() const {
     std::stringstream ss;
     ss << getData();
     return ss.str();
   }
+
 };/* class DataStat<T> */
 
 
+/**
+ * A data statistic class.  This class extends a read-only data statistic
+ * with assignment (the statistic can be set as well as read).  This class
+ * adds to the read-only case a pure virtual function setData(), thus
+ * providing the basic interface for a data statistic: getData() to get the
+ * statistic value, and setData() to set it.
+ *
+ * As with the read-only data statistic class, template class T must have
+ * stream insertion operation defined:
+ * std::ostream& operator<<(std::ostream&, const T&)
+ */
 template <class T>
 class DataStat : public ReadOnlyDataStat<T> {
 public:
-  DataStat(const std::string& s) :
-    ReadOnlyDataStat<T>(s) {
+
+  /** Construct a data statistic with the given name. */
+  DataStat(const std::string& name) :
+    ReadOnlyDataStat<T>(name) {
   }
 
+  /** Set the data statistic. */
   virtual void setData(const T&) = 0;
 
 };/* class DataStat<T> */
 
 
-/** T must have an assignment operator=(). */
+/**
+ * A data statistic that references a data cell of type T,
+ * implementing getData() by referencing that memory cell, and
+ * setData() by reassigning the statistic to point to the new
+ * data cell.  The referenced data cell is kept as a const
+ * reference, meaning the referenced data is never actually
+ * modified by this class (it must be externally modified for
+ * a reference statistic to make sense).  A common use for
+ * this type of statistic is to output a statistic that is kept
+ * outside the statistics package (for example, one that's kept
+ * by a theory implementation for internal heuristic purposes,
+ * which is important to keep even if statistics are turned off).
+ *
+ * Template class T must have an assignment operator=().
+ */
 template <class T>
 class ReferenceStat : public DataStat<T> {
 private:
+  /** The referenced data cell */
   const T* d_data;
 
 public:
-  ReferenceStat(const std::string& s) :
-    DataStat<T>(s),
+  /**
+   * Construct a reference stat with the given name and a reference
+   * to NULL.
+   */
+  ReferenceStat(const std::string& name) :
+    DataStat<T>(name),
     d_data(NULL) {
   }
 
-  ReferenceStat(const std::string& s, const T& data) :
-    DataStat<T>(s),
+  /**
+   * Construct a reference stat with the given name and a reference to
+   * the given data.
+   */
+  ReferenceStat(const std::string& name, const T& data) :
+    DataStat<T>(name),
     d_data(NULL) {
     setData(data);
   }
 
+  /** Set this reference statistic to refer to the given data cell. */
   void setData(const T& t) {
     if(__CVC4_USE_STATISTICS) {
       d_data = &t;
     }
   }
 
+  /** Get the value of the referenced data cell. */
   const T& getData() const {
     if(__CVC4_USE_STATISTICS) {
       return *d_data;
@@ -197,28 +314,37 @@ public:
       Unreachable();
     }
   }
+
 };/* class ReferenceStat<T> */
 
 
-/** T must have an operator=() and a copy constructor. */
+/**
+ * A data statistic that keeps a T and sets it with setData().
+ *
+ * Template class T must have an operator=() and a copy constructor.
+ */
 template <class T>
 class BackedStat : public DataStat<T> {
 protected:
+  /** The internally-kept statistic value */
   T d_data;
 
 public:
 
-  BackedStat(const std::string& s, const T& init) :
-    DataStat<T>(s),
+  /** Construct a backed statistic with the given name and initial value. */
+  BackedStat(const std::string& name, const T& init) :
+    DataStat<T>(name),
     d_data(init) {
   }
 
+  /** Set the underlying data value to the given value. */
   void setData(const T& t) {
     if(__CVC4_USE_STATISTICS) {
       d_data = t;
     }
   }
 
+  /** Identical to setData(). */
   BackedStat<T>& operator=(const T& t) {
     if(__CVC4_USE_STATISTICS) {
       d_data = t;
@@ -226,6 +352,7 @@ public:
     return *this;
   }
 
+  /** Get the underlying data value. */
   const T& getData() const {
     if(__CVC4_USE_STATISTICS) {
       return d_data;
@@ -233,6 +360,7 @@ public:
       Unreachable();
     }
   }
+
 };/* class BackedStat<T> */
 
 
@@ -261,11 +389,16 @@ class WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
 
 public:
 
-  WrappedStat(const std::string& s, const ReadOnlyDataStat<T>& stat) :
-    ReadOnlyDataStat<T>(s),
+  /**
+   * Construct a wrapped statistic with the given name that wraps the
+   * given statistic.
+   */
+  WrappedStat(const std::string& name, const ReadOnlyDataStat<T>& stat) :
+    ReadOnlyDataStat<T>(name),
     d_stat(stat) {
   }
 
+  /** Get the data of the underlying (wrapped) statistic. */
   const T& getData() const {
     if(__CVC4_USE_STATISTICS) {
       return d_stat.getData();
@@ -273,16 +406,27 @@ public:
       Unreachable();
     }
   }
+
 };/* class WrappedStat<T> */
 
 
+/**
+ * A backed integer-valued (64-bit signed) statistic.
+ * This doesn't functionally differ from its base class BackedStat<int64_t>,
+ * except for adding convenience functions for dealing with integers.
+ */
 class IntStat : public BackedStat<int64_t> {
 public:
 
-  IntStat(const std::string& s, int64_t init) :
-    BackedStat<int64_t>(s, init) {
+  /**
+   * Construct an integer-valued statistic with the given name and
+   * initial value.
+   */
+  IntStat(const std::string& name, int64_t init) :
+    BackedStat<int64_t>(name, init) {
   }
 
+  /** Increment the underlying integer statistic. */
   IntStat& operator++() {
     if(__CVC4_USE_STATISTICS) {
       ++d_data;
@@ -290,6 +434,7 @@ public:
     return *this;
   }
 
+  /** Increment the underlying integer statistic by the given amount. */
   IntStat& operator+=(int64_t val) {
     if(__CVC4_USE_STATISTICS) {
       d_data+= val;
@@ -297,6 +442,7 @@ public:
     return *this;
   }
 
+  /** Keep the maximum of the current statistic value and the given one. */
   void maxAssign(int64_t val) {
     if(__CVC4_USE_STATISTICS) {
       if(d_data < val) {
@@ -305,6 +451,7 @@ public:
     }
   }
 
+  /** Keep the minimum of the current statistic value and the given one. */
   void minAssign(int64_t val) {
     if(__CVC4_USE_STATISTICS) {
       if(d_data > val) {
@@ -312,6 +459,7 @@ public:
       }
     }
   }
+
 };/* class IntStat */
 
 
@@ -321,29 +469,43 @@ public:
  * where e_i is an entry added by an addEntry(e_i) call.
  * The value is initially always 0.
  * (This is to avoid making parsers confused.)
+ *
+ * A call to setData() will change the running average but not reset the
+ * running count, so should generally be avoided.  Call addEntry() to add
+ * an entry to the average calculation.
  */
 class AverageStat : public BackedStat<double> {
 private:
-  uint32_t n;
+  /**
+   * The number of accumulations of the running average that we
+   * have seen so far.
+   */
+  uint32_t d_count;
 
 public:
-  AverageStat(const std::string& s) :
-    BackedStat<double>(s, 0.0 ), n(0) {
+  /** Construct an average statistic with the given name. */
+  AverageStat(const std::string& name) :
+    BackedStat<double>(name, 0.0), d_count(0) {
   }
 
-  void addEntry(double e){
+  /** Add an entry to the running-average calculation. */
+  void addEntry(double e) {
     if(__CVC4_USE_STATISTICS) {
-      double oldSum = n*getData();
-      ++n;
+      double oldSum = d_count * getData();
+      ++d_count;
       double newSum = oldSum + e;
-      setData(newSum / n);
+      setData(newSum / d_count);
     }
   }
 
 };/* class AverageStat */
 
 
-// some utility functions for ::timespec
+/****************************************************************************/
+/* Some utility functions for ::timespec                                    */
+/****************************************************************************/
+
+/** Compute the sum of two timespecs. */
 inline ::timespec& operator+=(::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
@@ -360,6 +522,8 @@ inline ::timespec& operator+=(::timespec& a, const ::timespec& b) {
   a.tv_nsec = nsec;
   return a;
 }
+
+/** Compute the difference of two timespecs. */
 inline ::timespec& operator-=(::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
@@ -376,40 +540,58 @@ inline ::timespec& operator-=(::timespec& a, const ::timespec& b) {
   a.tv_nsec = nsec;
   return a;
 }
+
+/** Add two timespecs. */
 inline ::timespec operator+(const ::timespec& a, const ::timespec& b) {
   ::timespec result = a;
   return result += b;
 }
+
+/** Subtract two timespecs. */
 inline ::timespec operator-(const ::timespec& a, const ::timespec& b) {
   ::timespec result = a;
   return result -= b;
 }
+
+/** Compare two timespecs for equality. */
 inline bool operator==(const ::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
 }
+
+/** Compare two timespecs for disequality. */
 inline bool operator!=(const ::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   return !(a == b);
 }
+
+/** Compare two timespecs, returning true iff a < b. */
 inline bool operator<(const ::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   return a.tv_sec < b.tv_sec ||
     (a.tv_sec == b.tv_sec && a.tv_nsec < b.tv_nsec);
 }
+
+/** Compare two timespecs, returning true iff a > b. */
 inline bool operator>(const ::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   return a.tv_sec > b.tv_sec ||
     (a.tv_sec == b.tv_sec && a.tv_nsec > b.tv_nsec);
 }
+
+/** Compare two timespecs, returning true iff a <= b. */
 inline bool operator<=(const ::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   return !(a > b);
 }
+
+/** Compare two timespecs, returning true iff a >= b. */
 inline bool operator>=(const ::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   return !(a < b);
 }
+
+/** Output a timespec on an output stream. */
 inline std::ostream& operator<<(std::ostream& os, const ::timespec& t) {
   // assumes t.tv_nsec is in range
   return os << t.tv_sec << "."
@@ -420,11 +602,15 @@ inline std::ostream& operator<<(std::ostream& os, const ::timespec& t) {
 /**
  * A timer statistic.  The timer can be started and stopped
  * arbitrarily, like a stopwatch; the value of the statistic at the
- * end is the accummulated time.
+ * end is the accumulated time over all (start,stop) pairs.
  */
 class TimerStat : public BackedStat< ::timespec > {
+
   // strange: timespec isn't placed in 'std' namespace ?!
+  /** The last start time of this timer */
   ::timespec d_start;
+
+  /** Whether this timer is currently running */
   bool d_running;
 
 public:
@@ -451,11 +637,19 @@ public:
     }
   };/* class TimerStat::CodeTimer */
 
-  TimerStat(const std::string& s) :
-    BackedStat< ::timespec >(s, ::timespec()),
+  /**
+   * Construct a timer statistic with the given name.  Newly-constructed
+   * timers have a 0.0 value and are not running.
+   */
+  TimerStat(const std::string& name) :
+    BackedStat< ::timespec >(name, ::timespec()),
     d_running(false) {
+    /* ::timespec is POD and so may not be initialized to zero;
+     * here, ensure it is */
+    d_data.tv_sec = d_data.tv_nsec = 0;
   }
 
+  /** Start the timer. */
   void start() {
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(!d_running);
@@ -464,6 +658,10 @@ public:
     }
   }
 
+  /**
+   * Stop the timer and update the statistic value with the
+   * accumulated time.
+   */
   void stop() {
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(d_running);
@@ -473,7 +671,9 @@ public:
       d_running = false;
     }
   }
+
 };/* class TimerStat */
+
 
 /**
  * To use a statistic, you need to declare it, initialize it in your

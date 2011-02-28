@@ -95,9 +95,10 @@ public:
     TS_ASSERT_EQUALS(sstr.str(), "0.00000000");
 
     sTimer.start();
-    TS_ASSERT_EQUALS(timespec(), sTimer.getData());
+    timespec zero = { 0, 0 };
+    TS_ASSERT_EQUALS(zero, sTimer.getData());
     sTimer.stop();
-    TS_ASSERT_LESS_THAN(timespec(), sTimer.getData());
+    TS_ASSERT_LESS_THAN(zero, sTimer.getData());
   }
 
 };
