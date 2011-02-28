@@ -11,10 +11,10 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief #inclusion of this file marks a header as private and generates a
+ ** \brief #-inclusion of this file marks a header as private and generates a
  ** warning when the file is included improperly.
  **
- ** #inclusion of this file marks a header as private and generates a
+ ** #-inclusion of this file marks a header as private and generates a
  ** warning when the file is included improperly.
  **/
 

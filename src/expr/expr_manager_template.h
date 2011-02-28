@@ -96,7 +96,7 @@ public:
    * @param options the earlyTypeChecking field is used to configure
    * whether to do at Expr creation time.
    */
-  explicit ExprManager(const Options&);
+  explicit ExprManager(const Options& options);
 
   /**
    * Destroys the expression manager. No will be deallocated at this point, so
