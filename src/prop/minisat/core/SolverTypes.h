@@ -238,6 +238,8 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
 
     void reloc(CRef& cr, ClauseAllocator& to)
     {
+        if (cr == CRef_Lazy) return;
+
         Clause& c = operator[](cr);
         
         if (c.reloced()) { cr = c.relocation(); return; }
