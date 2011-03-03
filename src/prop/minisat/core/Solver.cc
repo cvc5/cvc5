@@ -1256,7 +1256,7 @@ void Solver::relocAll(ClauseAllocator& to)
     for (int i = 0; i < lemma_propagated_reasons.size(); i ++)
       ca.reloc(lemma_propagated_reasons[i], to);
     for (int i = 0; i < propagating_lemmas.size(); i ++)
-      ca.reloc(lemma_propagated_reasons[i], to);
+      ca.reloc(propagating_lemmas[i], to);
 }
 
 
