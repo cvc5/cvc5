@@ -63,7 +63,12 @@ public:
     d_rowCount(),
     d_columnMatrix()
   {}
+
+  /** Copy constructor. */
+  Tableau(const Tableau& tab);
   ~Tableau();
+
+  Tableau& operator=(const Tableau& tab);
 
   size_t getNumRows() const {
     return d_basicVariables.size();
@@ -116,7 +121,6 @@ public:
     return *(d_rowsTable[var]);
   }
 
-public:
   uint32_t getRowCount(ArithVar x){
     Assert(x < d_rowCount.size());
     AlwaysAssert(d_rowCount[x] == getColumn(x).size());
@@ -150,6 +154,14 @@ public:
   void printTableau();
 
   ReducedRowVector* removeRow(ArithVar basic);
+
+
+private:
+  /** Copies the datastructures in tab to this.*/
+  void internalCopy(const Tableau& tab);
+
+  /** Clears the structures in the tableau. */
+  void clear();
 };
 
 }; /* namespace arith  */

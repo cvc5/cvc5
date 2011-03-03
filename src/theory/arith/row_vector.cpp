@@ -304,3 +304,13 @@ Node ReducedRowVector::asEquality(const ArithVarToNodeMap& map) const{
 */
 }
 
+void ReducedRowVector::enqueueNonBasicVariablesAndCoefficients(std::vector< ArithVar >& variables,std::vector< Rational >& coefficients) const{
+  for(const_iterator i=begin(), endEntries=end(); i != endEntries; ++i){
+    ArithVar var = (*i).getArithVar();
+    const Rational& q = (*i).getCoefficient();
+    if(var != basic()){
+      variables.push_back(var);
+      coefficients.push_back(q);
+    }
+  }
+}

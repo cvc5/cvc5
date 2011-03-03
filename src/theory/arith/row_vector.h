@@ -86,8 +86,10 @@ public:
                    const std::vector< Rational >& coefficients,
                    std::vector<uint32_t>& count,
                    std::vector<ArithVarSet>& columnMatrix);
-
   ~ReducedRowVector();
+
+  void enqueueNonBasicVariablesAndCoefficients(std::vector< ArithVar >& variables,
+                                               std::vector< Rational >& coefficients) const;
 
   /** Returns the basic variable.*/
   ArithVar basic() const{

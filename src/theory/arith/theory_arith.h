@@ -71,15 +71,6 @@ private:
    */
   std::map<ArithVar, Node> d_removedRows;
 
-  /**
-   * Priority Queue of the basic variables that may be inconsistent.
-   *
-   * This is required to contain at least 1 instance of every inconsistent
-   * basic variable. This is only required to be a superset though so its
-   * contents must be checked to still be basic and inconsistent.
-   */
-  std::priority_queue<ArithVar> d_possiblyInconsistent;
-
   /** Stores system wide constants to avoid unnessecary reconstruction. */
   ArithConstants d_constants;
 
@@ -157,7 +148,7 @@ public:
   void shutdown(){ }
 
   void presolve();
-
+  void notifyRestart();
   void staticLearning(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

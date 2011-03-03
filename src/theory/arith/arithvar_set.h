@@ -63,6 +63,11 @@ public:
     return d_posVector.size();
   }
 
+  void clear(){
+    d_list.clear();
+    d_posVector.clear();
+  }
+
   void increaseSize(ArithVar max){
     Assert(max >= allocated());
     d_posVector.resize(max+1, ARITHVAR_SENTINEL);
