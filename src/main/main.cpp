@@ -181,7 +181,7 @@ int runCvc4(int argc, char* argv[]) {
   const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
 
   ReferenceStat< const char* > s_statFilename("filename", filename);
-  StatisticsRegistry::registerStat(&s_statFilename);
+  RegisterStatistic statFilenameReg(&s_statFilename);
 
   if(options.inputLanguage == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
@@ -273,14 +273,11 @@ int runCvc4(int argc, char* argv[]) {
 #endif
 
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
-  StatisticsRegistry::registerStat(&s_statSatResult);
+  RegisterStatistic statSatResultReg(&s_statSatResult);
 
   if(options.statistics) {
     StatisticsRegistry::flushStatistics(*options.err);
   }
-
-  StatisticsRegistry::unregisterStat(&s_statSatResult);
-  StatisticsRegistry::unregisterStat(&s_statFilename);
 
   return returnValue;
 }

@@ -703,6 +703,26 @@ public:
     }                                                                   \
   } _StatField
 
+/**
+ * Resource-acquisition-is-initialization idiom for statistics
+ * registry.  Useful for stack-based statistics (like in the driver).
+ * Generally, for statistics kept in a member field of class, it's
+ * better to use the above KEEP_STATISTIC(), which does declaration of
+ * the member, construction of the statistic, and
+ * registration/unregistration.  This RAII class only does
+ * registration and unregistration.
+ */
+class RegisterStatistic {
+  Stat* d_stat;
+public:
+  RegisterStatistic(Stat* stat) : d_stat(stat) {
+    StatisticsRegistry::registerStat(d_stat);
+  }
+  ~RegisterStatistic() {
+    StatisticsRegistry::unregisterStat(d_stat);
+  }
+};/* class RegisterStatistic */
+
 #undef __CVC4_USE_STATISTICS
 
 }/* CVC4 namespace */
