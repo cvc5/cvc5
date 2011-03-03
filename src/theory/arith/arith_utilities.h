@@ -224,6 +224,18 @@ struct RightHandRationalLT
   }
 };
 
+inline Node negateConjunctionAsClause(TNode conjunction){
+  Assert(conjunction.getKind() == kind::AND);
+  NodeBuilder<> orBuilder(kind::OR);
+
+  for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
+    TNode child = *i;
+    Node negatedChild = NodeBuilder<1>(kind::NOT)<<(child);
+    orBuilder << negatedChild;
+  }
+  return orBuilder;
+}
+
 }; /* namesapce arith */
 }; /* namespace theory */
 }; /* namespace CVC4 */

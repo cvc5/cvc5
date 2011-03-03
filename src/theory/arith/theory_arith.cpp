@@ -556,7 +556,12 @@ void TheoryArith::explain(TNode n) {
 }
 
 void TheoryArith::propagate(Effort e) {
-
+  if(quickCheckOrMore(e)){
+    while(d_simplex.hasMoreLemmas()){
+      Node lemma = d_simplex.popLemma();
+      d_out->lemma(lemma);
+    }
+  }
   // if(quickCheckOrMore(e)){
   //   std::vector<Node> implied = d_propagator.getImpliedLiterals();
   //   for(std::vector<Node>::iterator i = implied.begin();

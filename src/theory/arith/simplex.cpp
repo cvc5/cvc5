@@ -22,6 +22,7 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_successAfterDiffSearch("theory::arith::successAfterDiffSearch",0),
   d_attemptDuringVarOrderSearch("theory::arith::attemptDuringVarOrderSearch",0),
   d_successDuringVarOrderSearch("theory::arith::successDuringVarOrderSearch",0),
+  d_delayedConflicts("theory::arith::delayedConflicts",0),
   d_pivotTime("theory::arith::pivotTime"),
   d_avgNumRowsNotContainingOnUpdate("theory::arith::avgNumRowsNotContainingOnUpdate"),
   d_avgNumRowsNotContainingOnPivot("theory::arith::avgNumRowsNotContainingOnPivot")
@@ -40,6 +41,8 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_successAfterDiffSearch);
   StatisticsRegistry::registerStat(&d_attemptDuringVarOrderSearch);
   StatisticsRegistry::registerStat(&d_successDuringVarOrderSearch);
+
+  StatisticsRegistry::registerStat(&d_delayedConflicts);
 
   StatisticsRegistry::registerStat(&d_pivotTime);
 
@@ -63,6 +66,7 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_attemptDuringVarOrderSearch);
   StatisticsRegistry::unregisterStat(&d_successDuringVarOrderSearch);
 
+  StatisticsRegistry::unregisterStat(&d_delayedConflicts);
   StatisticsRegistry::unregisterStat(&d_pivotTime);
 
   StatisticsRegistry::unregisterStat(&d_avgNumRowsNotContainingOnUpdate);
@@ -401,7 +405,7 @@ Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type) {
   case DuringVarOrderSearch: ++(d_statistics.d_attemptDuringVarOrderSearch); break;
   }
 
-  Node bestConflict = Node::null();
+  Node firstConflict = Node::null();
   ArithPriorityQueue::const_iterator i = d_queue.begin();
   ArithPriorityQueue::const_iterator end = d_queue.end();
   for(; i != end; ++i){
@@ -410,19 +414,22 @@ Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type) {
     if(d_tableau.isBasic(x_i)){
       Node possibleConflict = checkBasicForConflict(x_i);
       if(!possibleConflict.isNull()){
-
-        bestConflict = betterConflict(bestConflict, possibleConflict);
+        if(firstConflict.isNull()){
+          firstConflict = possibleConflict;
+        }else{
+          delayConflictAsLemma(possibleConflict);
+        }
       }
     }
   }
-  if(!bestConflict.isNull()){
+  if(!firstConflict.isNull()){
     switch(type){
     case BeforeDiffSearch:     ++(d_statistics.d_successBeforeDiffSearch); break;
     case AfterDiffSearch:      ++(d_statistics.d_successAfterDiffSearch); break;
     case DuringVarOrderSearch: ++(d_statistics.d_successDuringVarOrderSearch); break;
     }
   }
-  return bestConflict;
+  return firstConflict;
 }
 
 Node SimplexDecisionProcedure::updateInconsistentVars(){
