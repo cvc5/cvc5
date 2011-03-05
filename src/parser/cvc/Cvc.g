@@ -107,22 +107,41 @@ parseCommand returns [CVC4::Command* cmd]
 command returns [CVC4::Command* cmd = 0]
 @init {
   Expr f;
+  SExpr sexpr;
+  std::string s;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f);   }
   | QUERY_TOK formula[f] SEMICOLON { cmd = new QueryCommand(f);    }
   | CHECKSAT_TOK formula[f] SEMICOLON { cmd = new CheckSatCommand(f); }
   | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(MK_CONST(true)); }
+  | OPTION_TOK STRING_LITERAL symbolicExpr[sexpr] SEMICOLON
+    { cmd = new SetOptionCommand(AntlrInput::tokenText($STRING_LITERAL), sexpr); }
   | PUSH_TOK SEMICOLON { cmd = new PushCommand(); }
   | POP_TOK SEMICOLON { cmd = new PopCommand(); }
   | declaration[cmd]
   | EOF
   ;
 
+symbolicExpr[CVC4::SExpr& sexpr]
+@declarations {
+  std::vector<SExpr> children;
+}
+  : INTEGER_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
+  | DECIMAL_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
+  | STRING_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
+  | IDENTIFIER
+    { sexpr = SExpr(AntlrInput::tokenText($IDENTIFIER)); }
+  | LPAREN (symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN
+    { sexpr = SExpr(children); }
+  ;
+
 /**
  * Match a declaration
  */
-
 declaration[CVC4::Command*& cmd]
 @init {
   std::vector<std::string> ids;
@@ -233,7 +252,7 @@ formula[CVC4::Expr& formula]
 @init {
   Debug("parser-extra") << "formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  :  iffFormula[formula]
+  : letBinding[formula]
   ;
 
 /**
@@ -247,6 +266,40 @@ formulaList[std::vector<CVC4::Expr>& formulas]
     ( COMMA formula[f]
       { formulas.push_back(f); }
     )*
+  ;
+
+/**
+ * Matches a LET binding
+ */
+letBinding[CVC4::Expr& f]
+@init {
+}
+  : LET_TOK
+    { PARSER_STATE->pushScope(); }
+    letDecls
+    IN_TOK letBinding[f]
+    { PARSER_STATE->popScope(); }
+  | iffFormula[f]
+  ;
+
+/**
+ * Matches (and defines) LET declarations in order.  Note this implements
+ * sequential-let (think "let*") rather than simultaneous-let.
+ */
+letDecls
+  : letDecl (COMMA letDecl)*
+  ;
+
+/**
+ * Matches (and defines) a single LET declaration.
+ */
+letDecl
+@init {
+  Expr e;
+  std::string name;
+}
+  : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
+    { PARSER_STATE->defineVar(name, e); }
   ;
 
 /**
@@ -390,11 +443,39 @@ multTerm[CVC4::Expr& f]
   Kind op;
   Debug("parser-extra") << "multiplication term: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : unaryTerm[f]
+  : expTerm[f]
     ( ( STAR_TOK { op = CVC4::kind::MULT; }
       | DIV_TOK { op = CVC4::kind::DIVISION; } ) 
-      unaryTerm[e]
+      expTerm[e]
       { f = MK_EXPR(op, f, e); }
+    )*
+  ;
+
+/**
+ * Parses an exponential term (left-associative).
+ * NOTE that the exponent must be a nonnegative integer constant
+ * (for now).
+ */
+expTerm[CVC4::Expr& f]
+@init {
+  Expr e;
+  Debug("parser-extra") << "exponential term: " << AntlrInput::tokenText(LT(1)) << std::endl;
+}
+  : unaryTerm[f]
+    ( EXP_TOK INTEGER_LITERAL
+      { Integer n = AntlrInput::tokenToInteger($INTEGER_LITERAL);
+        if(n == 0) {
+          f = MK_CONST( Integer(1) );
+        } else if(n == 1) {
+          /* f remains the same */
+        } else {
+          std::vector<Expr> v;
+          for(Integer i = 0; i < n; i = i + 1) {
+            v.push_back(f);
+          }
+          f = MK_EXPR(CVC4::kind::MULT, v);
+        }
+      }
     )*
   ;
 
@@ -429,7 +510,7 @@ unaryTerm[CVC4::Expr& f]
   | TRUE_TOK  { f = MK_CONST(true); }
   | FALSE_TOK { f = MK_CONST(false); }
 
-  | NUMERAL_TOK { f = MK_CONST( AntlrInput::tokenToInteger($NUMERAL_TOK) ); }
+  | INTEGER_LITERAL { f = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
 
   | /* variable */
     identifier[name,CHECK_DECLARED,SYM_VARIABLE]
@@ -494,8 +575,11 @@ ELSE_TOK : 'ELSE';
 ENDIF_TOK : 'ENDIF';
 FALSE_TOK : 'FALSE';
 IF_TOK : 'IF';
+IN_TOK : 'IN';
 INT_TOK : 'INT';
+LET_TOK : 'LET';
 NOT_TOK : 'NOT';
+OPTION_TOK : 'OPTION';
 OR_TOK : 'OR';
 POPTO_TOK : 'POPTO';
 POP_TOK : 'POP';
@@ -521,6 +605,7 @@ SEMICOLON : ';';
 ARROW_TOK : '->';
 DIV_TOK : '/';
 EQUAL_TOK : '=';
+EXP_TOK : '^';
 GT_TOK : '>';
 GEQ_TOK : '>=';
 IFF_TOK : '<=>';
@@ -538,9 +623,20 @@ STAR_TOK : '*';
 IDENTIFIER : ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*;
 
 /**
- * Matches a numeral from the input (non-empty sequence of digits).
+ * Matches an integer literal.
  */
-NUMERAL_TOK: (DIGIT)+;
+INTEGER_LITERAL: DIGIT+;
+
+/**
+ * Matches a decimal literal.
+ */
+DECIMAL_LITERAL: DIGIT+ '.' DIGIT+;
+
+/**
+ * Matches a double quoted string literal. Escaping is supported, and
+ * escape character '\' has to be escaped.
+ */
+STRING_LITERAL: '"' (ESCAPE | ~('"'|'\\'))* '"';
 
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').
@@ -561,4 +657,9 @@ WHITESPACE : (' ' | '\t' | '\f' | '\r' | '\n')+ { SKIP();; };
  * Matches the comments and ignores them
  */
 COMMENT : '%' (~('\n' | '\r'))* { SKIP();; };
+
+/**
+ * Matches an allowed escaped character.
+ */
+fragment ESCAPE : '\\' ('"' | '\\' | 'n' | 't' | 'r');
 

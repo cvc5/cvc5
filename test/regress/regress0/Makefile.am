@@ -41,6 +41,7 @@ CVC_TESTS = \
 	boolean-prec.cvc \
 	hole6.cvc \
 	ite.cvc \
+	let.cvc \
 	logops.01.cvc \
 	logops.02.cvc \
 	logops.03.cvc \
