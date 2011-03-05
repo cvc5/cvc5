@@ -25,7 +25,6 @@ namespace arith {
 class SimplexDecisionProcedure {
 private:
 
-
   /** Stores system wide constants to avoid unnessecary reconstruction. */
   const ArithConstants& d_constants;
 
@@ -62,7 +61,6 @@ public:
 
 
 public:
-
   /**
    * Assert*(n, orig) takes an bound n that is implied by orig.
    * and asserts that as a new bound if it is tighter than the current bound
@@ -96,6 +94,42 @@ private:
    */
   void pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v);
 
+private:
+  /**
+   * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
+   * and 2 ArithVar variables and returns one of the ArithVar variables potentially
+   * using the internals of the SimplexDecisionProcedure.
+   *
+   * Both ArithVar must be non-basic in d_tableau.
+   */
+  typedef ArithVar (*PreferenceFunction)(const SimplexDecisionProcedure&, ArithVar, ArithVar);
+
+  /**
+   * minVarOrder is a PreferenceFunction for selecting the smaller of the 2 ArithVars.
+   * This PreferenceFunction is used during the VarOrder stage of
+   * updateInconsistentVars.
+   */
+  static ArithVar minVarOrder(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
+
+  /**
+   * minRowCount is a PreferenceFunction for selecting the variable with the smaller
+   * row count in the tableau.
+   *
+   * This is a hueristic rule and should not be used
+   * during the VarOrder stage of updateInconsistentVars.
+   */
+  static ArithVar minRowCount(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
+  /**
+   * minBoundAndRowCount is a PreferenceFunction for preferring a variable
+   * without an asserted bound over variables with an asserted bound.
+   * If both have bounds or both do not have bounds,
+   * the rule falls back to minRowCount(...).
+   *
+   * This is a hueristic rule and should not be used
+   * during the VarOrder stage of updateInconsistentVars.
+   */
+  static ArithVar minBoundAndRowCount(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
+
 public:
   /**
    * Tries to update the assignments of variables such that all of the
@@ -114,34 +148,32 @@ public:
    */
   Node updateInconsistentVars();
 private:
-  template <bool limitIterations> Node searchForFeasibleSolution(uint32_t maxIterations);
+  template <PreferenceFunction> Node searchForFeasibleSolution(uint32_t maxIterations);
 
   enum SearchPeriod {BeforeDiffSearch, AfterDiffSearch, DuringVarOrderSearch};
 
   Node findConflictOnTheQueue(SearchPeriod period);
 
-private:
+
   /**
    * Given the basic variable x_i,
    * this function finds the smallest nonbasic variable x_j in the row of x_i
    * in the tableau that can "take up the slack" to let x_i satisfy its bounds.
-   * This returns TNode::null() if none exists.
-   *
-   * If first is true, return the first ArithVar in the row to satisfy these conditions.
-   * If first is false, return the ArithVar with the smallest row count.
+   * This returns ARITHVAR_SENTINEL if none exists.
    *
    * More formally one of the following conditions must be satisfied:
    * -  above && a_ij < 0 && assignment(x_j) < upperbound(x_j)
    * -  above && a_ij > 0 && assignment(x_j) > lowerbound(x_j)
    * - !above && a_ij > 0 && assignment(x_j) < upperbound(x_j)
    * - !above && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
+   *
    */
-  template <bool above>  ArithVar selectSlack(ArithVar x_i, bool first);
-  ArithVar selectSlackBelow(ArithVar x_i, bool first) {
-    return selectSlack<false>(x_i, first);
+  template <bool above, PreferenceFunction>  ArithVar selectSlack(ArithVar x_i);
+  template <PreferenceFunction pf> ArithVar selectSlackBelow(ArithVar x_i) {
+    return selectSlack<false, pf>(x_i);
   }
-  ArithVar selectSlackAbove(ArithVar x_i, bool first) {
-    return selectSlack<true>(x_i, first);
+  template <PreferenceFunction pf> ArithVar selectSlackAbove(ArithVar x_i) {
+    return selectSlack<true, pf>(x_i);
   }
   /**
    * Returns the smallest basic variable whose assignment is not consistent
@@ -174,6 +206,8 @@ public:
     }
   }
 
+
+public:
   /**
    * Checks to make sure the assignment is consistent with the tableau.
    * This code is for debugging.
