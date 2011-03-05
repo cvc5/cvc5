@@ -76,7 +76,7 @@ private:
   ArithVarContainsSet d_contains;
 
   std::vector<uint32_t>& d_rowCount;
-  std::vector<ArithVarSet>& d_columnMatrix;
+  std::vector<PermissiveBackArithVarSet>& d_columnMatrix;
 
 
 public:
@@ -85,7 +85,7 @@ public:
                    const std::vector< ArithVar >& variables,
                    const std::vector< Rational >& coefficients,
                    std::vector<uint32_t>& count,
-                   std::vector<ArithVarSet>& columnMatrix);
+                   std::vector< PermissiveBackArithVarSet >& columnMatrix);
   ~ReducedRowVector();
 
   void enqueueNonBasicVariablesAndCoefficients(std::vector< ArithVar >& variables,

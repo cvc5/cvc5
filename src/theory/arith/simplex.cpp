@@ -198,8 +198,8 @@ set<ArithVar> tableauAndHasSet(Tableau& tab, ArithVar v){
 
 set<ArithVar> columnIteratorSet(Tableau& tab,ArithVar v){
   set<ArithVar> has;
-  ArithVarSet::iterator basicIter = tab.beginColumn(v);
-  ArithVarSet::iterator endIter = tab.endColumn(v);
+  Column::iterator basicIter = tab.beginColumn(v);
+  Column::iterator endIter = tab.endColumn(v);
   for(; basicIter != endIter; ++basicIter){
     ArithVar basic = *basicIter;
     has.insert(basic);
@@ -222,8 +222,8 @@ void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
   DeltaRational diff = v - assignment_x_i;
 
   Assert(matchingSets(d_tableau, x_i));
-  ArithVarSet::iterator basicIter = d_tableau.beginColumn(x_i);
-  ArithVarSet::iterator endIter   = d_tableau.endColumn(x_i);
+  Column::iterator basicIter = d_tableau.beginColumn(x_i);
+  Column::iterator endIter   = d_tableau.endColumn(x_i);
   for(; basicIter != endIter; ++basicIter){
     ArithVar x_j = *basicIter;
     ReducedRowVector& row_j = d_tableau.lookup(x_j);
@@ -295,8 +295,8 @@ void SimplexDecisionProcedure::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaR
 
 
   Assert(matchingSets(d_tableau, x_j));
-  ArithVarSet::iterator basicIter = d_tableau.beginColumn(x_j);
-  ArithVarSet::iterator endIter   = d_tableau.endColumn(x_j);
+  Column::iterator basicIter = d_tableau.beginColumn(x_j);
+  Column::iterator endIter   = d_tableau.endColumn(x_j);
   for(; basicIter != endIter; ++basicIter){
     ArithVar x_k = *basicIter;
     ReducedRowVector& row_k = d_tableau.lookup(x_k);

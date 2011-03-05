@@ -182,7 +182,7 @@ ReducedRowVector::ReducedRowVector(ArithVar basic,
                                    const std::vector<ArithVar>& variables,
                                    const std::vector<Rational>& coefficients,
                                    std::vector<uint32_t>& counts,
-                                   std::vector<ArithVarSet>& cm):
+                                   std::vector<PermissiveBackArithVarSet>& cm):
   d_basic(basic), d_rowCount(counts),  d_columnMatrix(cm)
 {
   zip(variables, coefficients, d_entries);

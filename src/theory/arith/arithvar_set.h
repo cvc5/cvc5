@@ -32,11 +32,20 @@ namespace arith {
  * This is an abstraction of a set of ArithVars.
  * This class is designed to provide constant time insertion, deletion, and element_of
  * and fast iteration.
- * The cost of doing this is that it takes O(M) where M is the total number
- * of ArithVars in memory.
+ *
+ * ArithVarSets come in 2 varieties ArithVarSet, and PermissiveBackArithVarSet.
+ * The default ArithVarSet assumes that there is no knowledge assumed about ArithVars
+ * that are greater than allocated(). Asking isMember() of such an ArithVar
+ * is an assertion failure. The cost of doing this is that it takes O(M)
+ * where M is the total number of ArithVars in memory.
+ *
+ * PermissiveBackArithVarSet means that all ArithVars are implicitly not in the set,
+ * and any ArithVar past the end of d_posVector is not in the set.
+ * A permissiveBack allows for less memory to be consumed on average.
+ *
  */
-
-class ArithVarSet {
+template <bool permissiveBack>
+class ArithVarSetImpl {
 public:
   typedef std::vector<ArithVar> VarList;
 private:
@@ -50,7 +59,7 @@ private:
 public:
   typedef VarList::const_iterator iterator;
 
-  ArithVarSet() :  d_list(), d_posVector() {}
+  ArithVarSetImpl() :  d_list(), d_posVector() {}
 
   size_t size() const {
     return d_list.size();
@@ -78,13 +87,17 @@ public:
   }
 
   bool isMember(ArithVar x) const{
-    Assert(x <  allocated());
-    return d_posVector[x] != ARITHVAR_SENTINEL;
+    if(permissiveBack && x >=  allocated()){
+      return false;
+    }else{
+      Assert(x <  allocated());
+      return d_posVector[x] != ARITHVAR_SENTINEL;
+    }
   }
 
   /** Invalidates iterators */
   void init(ArithVar x, bool val) {
-    Assert(x >= size());
+    Assert(x >= allocated());
     increaseSize(x);
     if(val){
       add(x);
@@ -94,6 +107,9 @@ public:
   /** Invalidates iterators */
   void add(ArithVar x){
     Assert(!isMember(x));
+    if(permissiveBack && x >=  allocated()){
+      increaseSize(x);
+    }
     d_posVector[x] = size();
     d_list.push_back(x);
   }
@@ -138,6 +154,9 @@ public:
     d_posVector[x] = size() - 1;
   }
 };
+
+typedef ArithVarSetImpl<false> ArithVarSet;
+typedef ArithVarSetImpl<true> PermissiveBackArithVarSet;
 
 }; /* namespace arith */
 }; /* namespace theory */

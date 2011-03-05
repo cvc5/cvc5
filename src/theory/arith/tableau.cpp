@@ -36,7 +36,7 @@ void Tableau::internalCopy(const Tableau& tab){
   Debug("tableau::copy") << "tableau copy "<< N << endl;
 
   if(N > 1){
-    d_columnMatrix.insert(d_columnMatrix.end(), N, ArithVarSet());
+    d_columnMatrix.insert(d_columnMatrix.end(), N, Column());
     d_rowsTable.insert(d_rowsTable.end(), N, NULL);
     d_basicVariables.increaseSize(N-1);
 
@@ -155,7 +155,7 @@ void Tableau::pivot(ArithVar x_r, ArithVar x_s){
 
   row_s->pivot(x_s);
 
-  ArithVarSet::VarList copy(getColumn(x_s).getList());
+  Column::VarList copy(getColumn(x_s).getList());
   vector<ArithVar>::iterator basicIter = copy.begin(), endIter = copy.end();
 
   for(; basicIter != endIter; ++basicIter){

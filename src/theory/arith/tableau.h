@@ -37,7 +37,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-typedef ArithVarSet Column;
+typedef PermissiveBackArithVarSet Column;
 
 typedef std::vector<Column> ColumnMatrix;
 
@@ -79,15 +79,15 @@ public:
     d_rowsTable.push_back(NULL);
     d_rowCount.push_back(0);
 
-    d_columnMatrix.push_back(ArithVarSet());
+    d_columnMatrix.push_back(PermissiveBackArithVarSet());
 
     //TODO replace with version of ArithVarSet that handles misses as non-entries
     // not as buffer overflows
-    ColumnMatrix::iterator i = d_columnMatrix.begin(), end = d_columnMatrix.end();
-    for(; i != end; ++i){
-      Column& col = *i;
-      col.increaseSize(d_columnMatrix.size());
-    }
+    // ColumnMatrix::iterator i = d_columnMatrix.begin(), end = d_columnMatrix.end();
+    // for(; i != end; ++i){
+    //   Column& col = *i;
+    //   col.increaseSize(d_columnMatrix.size());
+    // }
   }
 
   bool isBasic(ArithVar v) const {
