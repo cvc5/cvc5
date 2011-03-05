@@ -166,7 +166,7 @@ public:
   }
 
 
-  int sgn() {
+  int sgn() const {
     return mpq_sgn(d_value.get_mpq_t());
   }
 

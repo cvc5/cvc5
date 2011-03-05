@@ -181,16 +181,15 @@ public:
   }
 
 
-  int sgn() {
-    cln::cl_RA sign = cln::signum(d_value);
-    if(sign == 0)
-      return 0;
-    else if(sign == -1)
-      return -1;
-    else if(sign == 1)
+  int sgn() const {
+    if(cln::zerop(d_value)){
+       return 0;
+    }else if(cln::minusp(d_value)){
+       return -1;
+    }else{
+      Assert(cln::plusp(d_value));
       return 1;
-    else
-      Unreachable();
+    }
   }
 
   Rational& operator=(const Rational& x){
