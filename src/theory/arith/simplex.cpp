@@ -453,7 +453,7 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
     possibleConflict = findConflictOnTheQueue(BeforeDiffSearch);
   }
   if(possibleConflict.isNull()){
-    possibleConflict = searchForFeasibleSolution<minRowCount>(d_numVariables + 1);
+    possibleConflict = searchForFeasibleSolution<minBoundAndRowCount>(d_numVariables + 1);
   }
   if(d_queue.size() > 1 && possibleConflict.isNull()){
     possibleConflict = findConflictOnTheQueue(AfterDiffSearch);
