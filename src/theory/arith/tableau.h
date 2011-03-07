@@ -156,7 +156,37 @@ public:
   ReducedRowVector* removeRow(ArithVar basic);
 
 
+  /**
+   * Let s = numNonZeroEntries(), n = getNumRows(), and m = d_columnMatrix.size().
+   * When n >= 1,
+   *   densityMeasure() := s / (n*m - n**2 + n)
+   *                    := s / (n *(m - n + 1))
+   * When n = 0, densityMeasure() := 1
+   */
+  double densityMeasure() const{
+    Assert(numNonZeroEntriesByRow() == numNonZeroEntries());
+    uint32_t n = getNumRows();
+    if(n == 0){
+      return 1.0;
+    }else {
+      uint32_t s = numNonZeroEntries();
+      uint32_t m = d_columnMatrix.size();
+      uint32_t divisor = (n *(m - n + 1));
+
+      Assert(n >= 1);
+      Assert(m >= n);
+      Assert(divisor > 0);
+      Assert(divisor >= s);
+
+      return (double(s)) / divisor;
+    }
+  }
+
 private:
+
+  uint32_t numNonZeroEntries() const;
+  uint32_t numNonZeroEntriesByRow() const;
+
   /** Copies the datastructures in tab to this.*/
   void internalCopy(const Tableau& tab);
 

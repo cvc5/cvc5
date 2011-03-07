@@ -45,11 +45,14 @@ void Tableau::internalCopy(const Tableau& tab){
     d_rowCount.insert(d_rowCount.end(), N, 0);
   }
 
+  ColumnMatrix::const_iterator otherIter = tab.d_columnMatrix.begin();
   ColumnMatrix::iterator i_colIter = d_columnMatrix.begin();
   ColumnMatrix::iterator end_colIter = d_columnMatrix.end();
-  for(; i_colIter != end_colIter; ++i_colIter){
+  for(; i_colIter != end_colIter; ++i_colIter, ++otherIter){
+    Assert(otherIter != tab.d_columnMatrix.end());
     Column& col = *i_colIter;
-    col.increaseSize(d_columnMatrix.size());
+    const Column& otherCol = *otherIter;
+    col.increaseSize(otherCol.allocated());
   }
 
   ArithVarSet::iterator i_basicIter = tab.d_basicVariables.begin();
@@ -182,4 +185,25 @@ void Tableau::printTableau(){
       row_k->printRow();
     }
   }
+}
+
+uint32_t Tableau::numNonZeroEntries() const {
+  uint32_t colSum = 0;
+  ColumnMatrix::const_iterator i = d_columnMatrix.begin(), end = d_columnMatrix.end();
+  for(; i != end; ++i){
+    const Column& col = *i;
+    colSum += col.size();
+  }
+  return colSum;
+}
+
+uint32_t Tableau::numNonZeroEntriesByRow() const {
+  uint32_t rowSum = 0;
+  ArithVarSet::iterator i = d_basicVariables.begin(), end = d_basicVariables.end();
+  for(; i != end; ++i){
+    ArithVar basic = *i;
+    const ReducedRowVector& row = *(d_rowsTable[basic]);
+    rowSum += row.size();
+  }
+  return rowSum;
 }
