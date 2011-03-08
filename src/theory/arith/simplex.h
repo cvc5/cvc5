@@ -150,9 +150,9 @@ public:
 private:
   template <PreferenceFunction> Node searchForFeasibleSolution(uint32_t maxIterations);
 
-  enum SearchPeriod {BeforeDiffSearch, AfterDiffSearch, DuringVarOrderSearch};
+  enum SearchPeriod {BeforeDiffSearch, DuringDiffSearch, AfterDiffSearch, DuringVarOrderSearch};
 
-  Node findConflictOnTheQueue(SearchPeriod period);
+  Node findConflictOnTheQueue(SearchPeriod period, bool returnFirst = true);
 
 
   /**
@@ -270,6 +270,7 @@ private:
 
     IntStat d_attemptBeforeDiffSearch, d_successBeforeDiffSearch;
     IntStat d_attemptAfterDiffSearch, d_successAfterDiffSearch;
+    IntStat d_attemptDuringDiffSearch, d_successDuringDiffSearch;
     IntStat d_attemptDuringVarOrderSearch, d_successDuringVarOrderSearch;
 
     IntStat d_delayedConflicts;

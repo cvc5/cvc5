@@ -9,6 +9,11 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
+static const bool LATE_COMER = true;
+static const bool s_CHECK_AFTER_PIVOT = true;
+static const uint32_t DIFF_CHECK_PERIOD = 20;
+static const uint32_t VARORDER_CHECK_PERIOD = 100;
+
 SimplexDecisionProcedure::Statistics::Statistics():
   d_statPivots("theory::arith::pivots",0),
   d_statUpdates("theory::arith::updates",0),
@@ -20,6 +25,8 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_successBeforeDiffSearch("theory::arith::successBeforeDiffSearch",0),
   d_attemptAfterDiffSearch("theory::arith::attemptAfterDiffSearch",0),
   d_successAfterDiffSearch("theory::arith::successAfterDiffSearch",0),
+  d_attemptDuringDiffSearch("theory::arith::attemptDuringDiffSearch",0),
+  d_successDuringDiffSearch("theory::arith::successDuringDiffSearch",0),
   d_attemptDuringVarOrderSearch("theory::arith::attemptDuringVarOrderSearch",0),
   d_successDuringVarOrderSearch("theory::arith::successDuringVarOrderSearch",0),
   d_delayedConflicts("theory::arith::delayedConflicts",0),
@@ -39,6 +46,8 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_successBeforeDiffSearch);
   StatisticsRegistry::registerStat(&d_attemptAfterDiffSearch);
   StatisticsRegistry::registerStat(&d_successAfterDiffSearch);
+  StatisticsRegistry::registerStat(&d_attemptDuringDiffSearch);
+  StatisticsRegistry::registerStat(&d_successDuringDiffSearch);
   StatisticsRegistry::registerStat(&d_attemptDuringVarOrderSearch);
   StatisticsRegistry::registerStat(&d_successDuringVarOrderSearch);
 
@@ -63,6 +72,8 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_successBeforeDiffSearch);
   StatisticsRegistry::unregisterStat(&d_attemptAfterDiffSearch);
   StatisticsRegistry::unregisterStat(&d_successAfterDiffSearch);
+  StatisticsRegistry::unregisterStat(&d_attemptDuringDiffSearch);
+  StatisticsRegistry::unregisterStat(&d_successDuringDiffSearch);
   StatisticsRegistry::unregisterStat(&d_attemptDuringVarOrderSearch);
   StatisticsRegistry::unregisterStat(&d_successDuringVarOrderSearch);
 
@@ -399,15 +410,17 @@ Node betterConflict(TNode x, TNode y){
   else return y;
 }
 
-Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type) {
+Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type, bool returnFirst) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_findConflictOnTheQueueTime);
 
   switch(type){
   case BeforeDiffSearch:     ++(d_statistics.d_attemptBeforeDiffSearch); break;
+  case DuringDiffSearch:     ++(d_statistics.d_attemptDuringDiffSearch); break;
   case AfterDiffSearch:      ++(d_statistics.d_attemptAfterDiffSearch); break;
   case DuringVarOrderSearch: ++(d_statistics.d_attemptDuringVarOrderSearch); break;
   }
 
+  bool success = false;
   Node firstConflict = Node::null();
   ArithPriorityQueue::const_iterator i = d_queue.begin();
   ArithPriorityQueue::const_iterator end = d_queue.end();
@@ -417,7 +430,8 @@ Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type) {
     if(d_tableau.isBasic(x_i)){
       Node possibleConflict = checkBasicForConflict(x_i);
       if(!possibleConflict.isNull()){
-        if(firstConflict.isNull()){
+        success = true;
+        if(returnFirst && firstConflict.isNull()){
           firstConflict = possibleConflict;
         }else{
           delayConflictAsLemma(possibleConflict);
@@ -425,9 +439,10 @@ Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type) {
       }
     }
   }
-  if(!firstConflict.isNull()){
+  if(success){
     switch(type){
     case BeforeDiffSearch:     ++(d_statistics.d_successBeforeDiffSearch); break;
+    case DuringDiffSearch:     ++(d_statistics.d_successDuringDiffSearch); break;
     case AfterDiffSearch:      ++(d_statistics.d_successAfterDiffSearch); break;
     case DuringVarOrderSearch: ++(d_statistics.d_successDuringVarOrderSearch); break;
     }
@@ -442,7 +457,6 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   static unsigned int instance = 0;
   ++instance;
 
-  static const uint32_t CHECK_PERIOD = 100;
   Debug("arith::updateInconsistentVars") << "begin updateInconsistentVars() "
                                          << instance << endl;
 
@@ -453,16 +467,37 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
     possibleConflict = findConflictOnTheQueue(BeforeDiffSearch);
   }
   if(possibleConflict.isNull()){
+    uint32_t pivotsSoFar = 0;
     possibleConflict = searchForFeasibleSolution<minBoundAndRowCount>(d_numVariables + 1);
+    while(!d_queue.empty() &&
+          possibleConflict.isNull() &&
+          pivotsSoFar <= d_numVariables + 1){
+      possibleConflict = searchForFeasibleSolution<minBoundAndRowCount>(DIFF_CHECK_PERIOD);
+      pivotsSoFar += DIFF_CHECK_PERIOD;
+      //Once every CHECK_PERIOD examine the entire queue for conflicts
+      if(possibleConflict.isNull()){
+        possibleConflict = findConflictOnTheQueue(DuringDiffSearch);
+      }
+    }
   }
-  if(d_queue.size() > 1 && possibleConflict.isNull()){
-    possibleConflict = findConflictOnTheQueue(AfterDiffSearch);
+
+  if(LATE_COMER){
+    if(d_queue.size() > 1 && possibleConflict.isNull()){
+      possibleConflict = findConflictOnTheQueue(AfterDiffSearch);
+    }else if (d_queue.size() > 1){
+      findConflictOnTheQueue(AfterDiffSearch, false);
+    }
+  }else{
+    if(d_queue.size() > 1 && possibleConflict.isNull()){
+      possibleConflict = findConflictOnTheQueue(AfterDiffSearch);
+    }
   }
+
   if(!d_queue.empty() && possibleConflict.isNull()){
     d_queue.transitionToVariableOrderMode();
 
     while(!d_queue.empty() && possibleConflict.isNull()){
-      possibleConflict = searchForFeasibleSolution<minVarOrder>(CHECK_PERIOD);
+      possibleConflict = searchForFeasibleSolution<minVarOrder>(VARORDER_CHECK_PERIOD);
 
       //Once every CHECK_PERIOD examine the entire queue for conflicts
       if(possibleConflict.isNull()){
@@ -549,9 +584,11 @@ Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
     }
     Assert(x_j != ARITHVAR_SENTINEL);
     //Check to see if we already have a conflict with x_j to prevent wasteful work
-    Node earlyConflict = checkBasicForConflict(x_j);
-    if(!earlyConflict.isNull()){
-      return earlyConflict;
+    if(s_CHECK_AFTER_PIVOT){
+      Node earlyConflict = checkBasicForConflict(x_j);
+      if(!earlyConflict.isNull()){
+        return earlyConflict;
+      }
     }
   }
   Assert(remainingIterations == 0);
