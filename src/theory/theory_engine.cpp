@@ -52,6 +52,8 @@ typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
 }/* CVC4::theory namespace */
 
 void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
+  TimerStat::CodeTimer codeTimer(d_newFactTimer);
+
   //FIXME: Assert(fact.isLiteral(), "expected literal");
   if (fact.getKind() == kind::NOT) {
     // No need to register negations - only atoms

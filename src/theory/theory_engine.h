@@ -74,6 +74,11 @@ class TheoryEngine {
      */
     std::vector<TNode> d_propagatedLiterals;
 
+    /** Time spent in newFact() (largely spent doing term registration) */
+    KEEP_STATISTIC(TimerStat,
+                   d_newFactTimer,
+                   "theory::newFactTimer");
+
   public:
 
     EngineOutputChannel(TheoryEngine* engine, context::Context* context) :

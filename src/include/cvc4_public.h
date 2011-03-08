@@ -68,13 +68,16 @@
 
 #ifdef __GNUC__
 #  define CVC4_UNUSED __attribute__((unused))
+#  define CVC4_NORETURN __attribute__ ((noreturn))
+#  define CVC4_CONST_FUNCTION __attribute__ ((const))
 #else /* ! __GNUC__ */
 #  define CVC4_UNUSED
+#  define CVC4_NORETURN
+#  define CVC4_CONST_FUNCTION
 #endif /* __GNUC__ */
 
 #define EXPECT_TRUE(x) __builtin_expect( (x), true )
 #define EXPECT_FALSE(x) __builtin_expect( (x), false )
-#define CVC4_NORETURN __attribute__ ((noreturn))
 
 #ifndef NULL
 #  define NULL ((void*) 0)

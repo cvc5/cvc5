@@ -509,16 +509,20 @@ public:
 inline ::timespec& operator+=(::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
+  Assert(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec);
+  Assert(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec);
   a.tv_sec += b.tv_sec;
   long nsec = a.tv_nsec + b.tv_nsec;
-  while(nsec < 0) {
+  Assert(nsec >= 0);
+  if(nsec < 0) {
     nsec += nsec_per_sec;
-    ++a.tv_sec;
-  }
-  while(nsec >= nsec_per_sec) {
-    nsec -= nsec_per_sec;
     --a.tv_sec;
   }
+  if(nsec >= nsec_per_sec) {
+    nsec -= nsec_per_sec;
+    ++a.tv_sec;
+  }
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -527,16 +531,19 @@ inline ::timespec& operator+=(::timespec& a, const ::timespec& b) {
 inline ::timespec& operator-=(::timespec& a, const ::timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
+  Assert(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec);
+  Assert(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec);
   a.tv_sec -= b.tv_sec;
   long nsec = a.tv_nsec - b.tv_nsec;
-  while(nsec < 0) {
+  if(nsec < 0) {
     nsec += nsec_per_sec;
-    ++a.tv_sec;
-  }
-  while(nsec >= nsec_per_sec) {
-    nsec -= nsec_per_sec;
     --a.tv_sec;
   }
+  if(nsec >= nsec_per_sec) {
+    nsec -= nsec_per_sec;
+    ++a.tv_sec;
+  }
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
