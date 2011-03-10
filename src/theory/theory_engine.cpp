@@ -310,6 +310,12 @@ Node TheoryEngine::removeITEs(TNode node) {
   }
   vector<Node> newChildren;
   bool somethingChanged = false;
+  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    // Make sure to push operator or it will be missing in new
+    // (reformed) node.  This was crashing on the very simple input
+    // "(f (ite c 0 1))"
+    newChildren.push_back(node.getOperator());
+  }
   for(TNode::const_iterator it = node.begin(), end = node.end();
       it != end;
       ++it) {
