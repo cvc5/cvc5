@@ -54,7 +54,7 @@ void AssertionException::construct(const char* header, const char* extra,
     if(size < n) {
       va_list args_copy;
       va_copy(args_copy, args);
-      size += vsnprintf(buf + size, n - size, fmt, args);
+      size += vsnprintf(buf + size, n - size, fmt, args_copy);
       va_end(args_copy);
 
       if(size < n) {
