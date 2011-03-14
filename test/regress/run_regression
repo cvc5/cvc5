@@ -47,7 +47,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
-    tmpbenchmark=`mktemp -t cvc4_benchmark.XXXXXXXXXX`.smt
+    gettemp tmpbenchmark cvc4_benchmark.$$.XXXXXXXXXX.smt
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -78,7 +78,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
-    tmpbenchmark=`mktemp -t cvc4_benchmark.XXXXXXXXXX`.smt2
+    gettemp tmpbenchmark cvc4_benchmark.$$.XXXXXXXXXX.smt2
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -111,11 +111,24 @@ else
   error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2"
 fi
 
-expoutfile=`mktemp -t cvc4_expect_stdout.XXXXXXXXXX`
-experrfile=`mktemp -t cvc4_expect_stderr.XXXXXXXXXX`
-outfile=`mktemp -t cvc4_stdout.XXXXXXXXXX`
-errfile=`mktemp -t cvc4_stderr.XXXXXXXXXX`
-exitstatusfile=`mktemp -t cvc4_exitstatus.XXXXXXXXXX`
+# gettemp() and its associated tempfiles[] array are intended to never
+# allow a temporary file to leak---the trap ensures that when this script
+# exits, whether via a regular exit or an -INT or other signal, the
+# temp files are deleted.
+declare -ax tempfiles
+trap -- 'test ${#tempfiles[@]} -gt 0 && rm -vf "${tempfiles[@]}"' EXIT
+function gettemp {
+  temp="`mktemp -t "$2"`"
+  tempfiles[${#tempfiles[@]}]="$temp"
+  eval "$1"="$temp"
+}
+
+gettemp expoutfile cvc4_expect_stdout.$$.XXXXXXXXXX
+gettemp experrfile cvc4_expect_stderr.$$.XXXXXXXXXX
+gettemp outfile cvc4_stdout.$$.XXXXXXXXXX
+gettemp errfile cvc4_stderr.$$.XXXXXXXXXX
+gettemp exitstatusfile cvc4_exitstatus.$$.XXXXXXXXXX
+
 if [ -z "$expected_output" ]; then
   # in case expected stdout output is empty, make sure we don't differ
   # by a newline, which we would if we echo "" >"$expoutfile"
@@ -149,13 +162,6 @@ diffexit=$?
 diffserr=`diff -u "$experrfile" "$errfile"`
 diffexiterr=$?
 exit_status=`cat "$exitstatusfile"`
-
-rm -f "$expoutfile"
-rm -f "$experrfile"
-rm -f "$outfile"
-rm -f "$errfile"
-rm -f "$exitstatusfile"
-test -n "$tmpbenchmark" && rm -f "$tmpbenchmark"
 
 exitcode=0
 if [ $diffexit -ne 0 ]; then
