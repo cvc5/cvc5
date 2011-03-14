@@ -114,6 +114,7 @@ typedef ::CVC4::kind::metakind::MetaKind_t MetaKind;
  */
 static inline MetaKind metaKindOf(Kind k) {
   static const MetaKind metaKinds[] = {
+    metakind::INVALID, /* UNDEFINED_KIND */
     metakind::INVALID, /* NULL_EXPR */
 ${metakind_kinds}
     metakind::INVALID /* LAST_KIND */
@@ -121,7 +122,10 @@ ${metakind_kinds}
 
   Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
 
-  return metaKinds[k];
+  // We've asserted that k >= NULL_EXPR (which is 0), but we still
+  // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
+  // emits warnings for non-assertion builds, since the check isn't done.
+  return metaKinds[k + 1];
 }/* metaKindOf(k) */
 
 /**
