@@ -173,8 +173,23 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 
-# determine whether to use CLN or GMP.
-# we do this here so it can affect the build directory
+# Whether to compile with google profiling tools
+cvc4_use_google_perftools=0
+AC_ARG_WITH(
+    [google_perftools],
+    AS_HELP_STRING(
+        [--with-google-perftools],
+        [use Google Performance Tools]
+    ),
+    [if test "$withval" != no; then
+        cvc4_use_google_perftools=1
+     fi
+    ]
+)
+
+if test $cvc4_use_google_perftools = 1; then
+  LIBS="${LIBS:+$LIBS } -ltcmalloc -lpthread "
+fi
 
 # [chris 8/24/2010] The user *must* specify --with-cln to get CLN
 # (and, thus, opt in to the GPL dependency).
