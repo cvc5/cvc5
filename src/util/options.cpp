@@ -416,6 +416,11 @@ throw(OptionException) {
       printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");
       printf("profiling  : %s\n", Configuration::isProfilingBuild() ? "yes" : "no");
       printf("competition: %s\n", Configuration::isCompetitionBuild() ? "yes" : "no");
+      printf("\n");
+      printf("cudd       : %s\n", Configuration::isBuiltWithCudd() ? "yes" : "no");
+      printf("cln        : %s\n", Configuration::isBuiltWithCln() ? "yes" : "no");
+      printf("gmp        : %s\n", Configuration::isBuiltWithGmp() ? "yes" : "no");
+      printf("tls        : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
       exit(0);
 
     case '?':

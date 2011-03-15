@@ -61,6 +61,7 @@ public:
     TIMEOUT,
     MEMOUT,
     NO_STATUS,
+    UNSUPPORTED,
     OTHER,
     UNKNOWN_REASON
   };

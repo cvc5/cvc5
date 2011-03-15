@@ -27,9 +27,25 @@ given are minimum versions; more recent versions should be compatible.
 
 GNU C and C++ (gcc and g++), reasonably recent versions
 GNU Make
-GMP v4.2
-libantlr3c v3.2
-Optional: CLN v1.3
+GMP v4.2 (GNU Multi-Precision arithmetic library)
+libantlr3c v3.2 (ANTLR parser generator)
+Optional: CLN v1.3 (Class Library for Numbers)
+Optional: CUDD v2.4.2 (Colorado University Decision Diagram package)
+
+CUDD, if desired, must be installed in a special manner.  The default
+distribution from vlsi.colorado.edu doesn't build shared objects,
+and names things that make it difficult to compose software
+dependences (e.g. a "libutil" is distributed).  So we packaged our
+own version of cudd that changes only its build process, making it
+play nicely with libtool and packaging all the various cudd libraries
+into just a few.  This version must be used for cvc4, and is available
+from the CVC4 apt repository by dropping the following line into your
+/etc/apt/sources.list:
+
+  deb http://goedel.cims.nyu.edu/cvc4-builds/debian unstable/
+
+The debian source package "cudd", available from the same repository,
+includes a diff of all changes made to cudd makefiles.
 
 *** Build dependencies
 

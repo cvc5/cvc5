@@ -3,7 +3,12 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-noinst_LTLIBRARIES = libutil.la
+noinst_LTLIBRARIES = libutil.la libutilcudd.la
+
+# libutilcudd.la is a separate library so that we can pass separate
+# compiler flags
+libutilcudd_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) @CUDD_CPPFLAGS@
+libutilcudd_la_LIBADD = @CUDD_LDFLAGS@
 
 libutil_la_SOURCES = \
 	Assert.h \
@@ -34,6 +39,11 @@ libutil_la_SOURCES = \
 	dynamic_array.h \
 	language.h \
 	triple.h
+libutil_la_LIBADD = \
+	@builddir@/libutilcudd.la
+libutilcudd_la_SOURCES = \
+	propositional_query.h \
+	propositional_query.cpp
 
 BUILT_SOURCES = \
 	rational.h \

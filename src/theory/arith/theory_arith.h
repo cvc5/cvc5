@@ -237,6 +237,9 @@ private:
     IntStat d_permanentlyRemovedVariables;
     TimerStat d_presolveTime;
 
+    IntStat d_miplibtrickApplications;
+    AverageStat d_avgNumMiplibtrickValues;
+
     BackedStat<double> d_initialTableauDensity;
     AverageStat d_avgTableauDensityAtRestart;
     IntStat d_tableauResets;

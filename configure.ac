@@ -662,6 +662,49 @@ AC_SEARCH_LIBS([clock_gettime], [rt],
                           [Defined to 1 if clock_gettime() is supported by the platform.])],
                [AC_LIBOBJ([clock_gettime])])
 
+AC_ARG_WITH([cudd-dir],
+  [AS_HELP_STRING([--with-cudd-dir=DIR], [path to cudd installation])],
+  [CUDD_DIR="$withval"])
+if test -z "$CUDD_DIR"; then
+  CUDD_DIR=/usr
+fi
+AC_MSG_CHECKING([for cudd includes under $CUDD_DIR])
+CUDD_CPPFLAGS=
+CUDD_LDFLAGS=
+cvc4cudd=no
+result="not found"
+for cuddinc in "$CUDD_DIR/include" "$CUDD_DIR/include/cudd" "$CUDD_DIR"; do
+  if test -r "$cuddinc/cudd.h"; then
+    dnl TODO - should do a TRY_COMPILE instead
+    CUDD_CPPFLAGS="\"-I$cuddinc\""
+    result="$cuddinc"
+    cvc4cudd=yes
+    break
+  fi
+done
+AC_MSG_RESULT([$result])
+if test $cvc4cudd = yes; then
+  AC_MSG_CHECKING([for cudd libraries under $CUDD_DIR])
+  cvc4cudd=no
+  result="not found"
+  for cuddlib in "$CUDD_DIR/lib" "$CUDD_DIR/lib/cudd" "$CUDD_DIR"; do
+    if test -r "$cuddlib/libcuddxx.la"; then
+      dnl TODO - should do a TRY_LINK instead, that has the extra benefit
+      dnl of making sure both shared & static work
+      CUDD_LDFLAGS="\"-L$cuddlib\" -lcuddxx"
+      result="$cuddlib"
+      cvc4cudd=yes
+      break
+    fi
+  done
+  AC_MSG_RESULT([$result]);
+  if test $cvc4cudd = yes; then
+    AC_DEFINE_UNQUOTED(CVC4_CUDD, [], [Defined if using the CU Decision Diagram package (cudd).])
+  fi
+fi
+AC_SUBST([CUDD_CPPFLAGS])
+AC_SUBST([CUDD_LDFLAGS])
+
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
 

@@ -43,6 +43,8 @@ namespace CVC4 {
 
 class CVC4_PUBLIC Stat;
 
+inline std::ostream& operator<<(std::ostream& os, const ::timespec& t);
+
 /**
  * The main statistics registry.  This registry maintains the list of
  * currently active statistics and is able to "flush" them all.

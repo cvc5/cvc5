@@ -2,7 +2,7 @@
 #
 # get-authors
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2009, 2010  The CVC4 Project
+# Copyright (c) 2009, 2010, 2011  The CVC4 Project
 #
 # usage: get-authors [ files... ]
 #

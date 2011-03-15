@@ -34,6 +34,8 @@ class NodeManager;
 class ExprManager;
 class TypeNode;
 
+class SmtEngine;
+
 template <bool ref_count>
 class NodeTemplate;
 
@@ -69,7 +71,6 @@ std::ostream& operator<<(std::ostream& out, const Type& t) CVC4_PUBLIC;
 class CVC4_PUBLIC Type {
 
   friend class SmtEngine;
-  friend class SmtEnginePrivate;
   friend class ExprManager;
   friend class TypeNode;
   friend class TypeHashStrategy;

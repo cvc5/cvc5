@@ -530,7 +530,7 @@ Result SmtEngine::query(const BoolExpr& e) {
   d_queryMade = true;
   ensureBoolean(e);// ensure expr is type-checked at this point
   internalPush();
-  SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
+  smt::SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
   Result r = check().asValidityResult();
   internalPop();
   d_status = r;
@@ -547,7 +547,7 @@ Result SmtEngine::assertFormula(const BoolExpr& e) {
   if(d_assertionList != NULL) {
     d_assertionList->push_back(e);
   }
-  SmtEnginePrivate::addFormula(*this, e.getNode());
+  smt::SmtEnginePrivate::addFormula(*this, e.getNode());
   return quickCheck().asValidityResult();
 }
 
@@ -589,7 +589,7 @@ Expr SmtEngine::getValue(const Expr& e)
 
   NodeManagerScope nms(d_nodeManager);
   Node eNode = e.getNode();
-  Node n = SmtEnginePrivate::preprocess(*this, eNode);
+  Node n = smt::SmtEnginePrivate::preprocess(*this, eNode);
 
   Debug("smt") << "--- getting value of " << n << endl;
   Node resultNode = d_theoryEngine->getValue(n);
@@ -655,7 +655,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
       ++i) {
     Assert((*i).getType() == boolType);
 
-    Node n = SmtEnginePrivate::preprocess(*this, *i);
+    Node n = smt::SmtEnginePrivate::preprocess(*this, *i);
 
     Debug("smt") << "--- getting value of " << n << endl;
     Node resultNode = d_theoryEngine->getValue(n);

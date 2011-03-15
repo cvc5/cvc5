@@ -1,3 +1,10 @@
+# -*-makefile-*-
+#
+# This makefile is the _source_ directory's makefile, and is static,
+# not generated.  Makefile.am is the automake makefile for the build
+# top-level (its corresponding Makefile.in is here, too, but the
+# corresponding Makefile is under builds/$arch/$buildid.
+#
 builddir = builds
 
 .PHONY: _default_build_ all

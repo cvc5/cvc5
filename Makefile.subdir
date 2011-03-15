@@ -1,4 +1,10 @@
 # -*-makefile-*-
+#
+# This makefile is included from source directories in order to
+# trigger a build in the corresponding build directory.
+#
+# See src/Makefile for an example.
+#
 include $(topdir)/builds/current
 builddir = $(topdir)/builds/$(CURRENT_BUILD)/$(srcdir)
 unittestdir = $(topdir)/builds/$(CURRENT_BUILD)/test/unit

@@ -96,6 +96,10 @@ bool Configuration::isBuiltWithCln() {
   return IS_CLN_BUILD;
 }
 
+bool Configuration::isBuiltWithCudd() {
+  return IS_CUDD_BUILD;
+}
+
 bool Configuration::isBuiltWithTlsSupport() {
   return USING_TLS;
 }

@@ -70,6 +70,12 @@ namespace CVC4 {
 #  define IS_COMPETITION_BUILD false
 #endif /* CVC4_COMPETITION_MODE */
 
+#ifdef CVC4_CUDD
+#  define IS_CUDD_BUILD true
+#else /* CVC4_CUDD */
+#  define IS_CUDD_BUILD false
+#endif /* CVC4_CUDD */
+
 #ifdef CVC4_GMP_IMP
 #  define IS_GMP_BUILD true
 #else /* CVC4_GMP_IMP */
@@ -90,7 +96,7 @@ namespace CVC4 {
 
 #define CVC4_ABOUT_STRING string("\
 This is CVC4 version " CVC4_RELEASE_STRING "\n\n\
-Copyright (C) 2009, 2010\n\
+Copyright (C) 2009, 2010, 2011\n\
   The ACSys Group\n\
   Courant Institute of Mathematical Sciences\n\
   New York University\n\
