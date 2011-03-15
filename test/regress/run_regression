@@ -32,6 +32,18 @@ if ! [ -r "$benchmark" ]; then
   error "\`$benchmark' doesn't exist or isn't readable" >&2
 fi
 
+# gettemp() and its associated tempfiles[] array are intended to never
+# allow a temporary file to leak---the trap ensures that when this script
+# exits, whether via a regular exit or an -INT or other signal, the
+# temp files are deleted.
+declare -a tempfiles
+trap -- 'test ${#tempfiles[@]} -gt 0 && rm -f "${tempfiles[@]}"' EXIT
+function gettemp {
+  local temp="`mktemp -t "$2"`"
+  tempfiles[${#tempfiles[@]}]="$temp"
+  eval "$1"="$temp"
+}
+
 tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   if test -e "$benchmark.expect"; then
@@ -47,7 +59,10 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
-    gettemp tmpbenchmark cvc4_benchmark.$$.XXXXXXXXXX.smt
+    # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
+    # this frustrates our auto-language-detection, so add explicit --lang
+    gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
+    command_line="${command_line:+ $command_line}--lang=smt"
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -78,7 +93,10 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
-    gettemp tmpbenchmark cvc4_benchmark.$$.XXXXXXXXXX.smt2
+    # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
+    # this frustrates our auto-language-detection, so add explicit --lang
+    gettemp tmpbenchmark cvc4_benchmark.smt2.$$.XXXXXXXXXX
+    command_line="${command_line:+ $command_line}--lang=smt2"
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -110,18 +128,6 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
 else
   error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2"
 fi
-
-# gettemp() and its associated tempfiles[] array are intended to never
-# allow a temporary file to leak---the trap ensures that when this script
-# exits, whether via a regular exit or an -INT or other signal, the
-# temp files are deleted.
-declare -ax tempfiles
-trap -- 'test ${#tempfiles[@]} -gt 0 && rm -vf "${tempfiles[@]}"' EXIT
-function gettemp {
-  temp="`mktemp -t "$2"`"
-  tempfiles[${#tempfiles[@]}]="$temp"
-  eval "$1"="$temp"
-}
 
 gettemp expoutfile cvc4_expect_stdout.$$.XXXXXXXXXX
 gettemp experrfile cvc4_expect_stderr.$$.XXXXXXXXXX
