@@ -933,17 +933,23 @@ lbool Solver::search(int nof_conflicts)
 
         CRef confl = propagate(check_type);
         if (confl != CRef_Undef){
-            // CONFLICT
-            conflicts++; conflictC++;
-            if (decisionLevel() == 0) return l_False;
-
-	    // Clear the propagated literals
+            // Clear the propagated literals
             lemma_propagated_literals.clear();
             lemma_propagated_reasons.clear();
+
+            // CONFLICT
+            int max_level = 0;
+            do {
+              conflicts++; conflictC++;
+              if (decisionLevel() == 0) return l_False;
 			
-            learnt_clause.clear();
-            int max_level = analyze(confl, learnt_clause, backtrack_level);
-            cancelUntil(backtrack_level);
+              learnt_clause.clear();
+              max_level = std::max(max_level, analyze(confl, learnt_clause, backtrack_level));
+              cancelUntil(backtrack_level);
+
+              // It might have happened that we have repropagated a literal that is actually learnt_clause[0]
+              // so we must go into conflict resolition again
+            } while (value(learnt_clause[0]) != l_Undef);
 
             if (learnt_clause.size() == 1){
                 uncheckedEnqueue(learnt_clause[0]);
