@@ -291,28 +291,40 @@ void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
     if(isTaut == Result(Result::VALID)){
       Debug("arith::miplib") << var << " found a tautology!"<< endl;
 
-      vector<Rational>::iterator minIter, maxIter;
-      minIter = std::min_element(valueCollection.begin(), valueCollection.end());
-      maxIter = std::max_element(valueCollection.begin(), valueCollection.end());
-
-      Assert(minIter != valueCollection.end());
-      Assert(maxIter != valueCollection.end());
-
-      const Rational& min = *minIter;
-      const Rational& max = *maxIter;
+      set<Rational> values(valueCollection.begin(), valueCollection.end());
+      const Rational& min = *(values.begin());
+      const Rational& max = *(values.rbegin());
 
       Debug("arith::miplib") << "min: " << min << endl;
       Debug("arith::miplib") << "max: " << max << endl;
 
       Assert(min <= max);
-
       ++(d_statistics.d_miplibtrickApplications);
-      (d_statistics.d_avgNumMiplibtrickValues).addEntry(valueCollection.size());
+      (d_statistics.d_avgNumMiplibtrickValues).addEntry(values.size());
 
       Node nGeqMin = NodeBuilder<2>(GEQ) << var << mkRationalNode(min);
       Node nLeqMax = NodeBuilder<2>(LEQ) << var << mkRationalNode(max);
       Debug("arith::miplib") << nGeqMin << nLeqMax << endl;
       learned << nGeqMin << nLeqMax;
+      set<Rational>::iterator valuesIter = values.begin();
+      set<Rational>::iterator valuesEnd = values.end();
+      set<Rational>::iterator valuesPrev = valuesIter;
+      ++valuesIter;
+      for(; valuesIter != valuesEnd; valuesPrev = valuesIter, ++valuesIter){
+        const Rational& prev = *valuesPrev;
+        const Rational& curr = *valuesIter;
+        Assert(prev < curr);
+
+        //The interval (last,curr) can be excluded:
+        //(not (and (> var prev) (< var curr))
+        //<=> (or (not (> var prev)) (not (< var curr)))
+        //<=> (or (<= var prev) (>= var curr))
+        Node leqPrev = NodeBuilder<2>(LEQ) << var << mkRationalNode(prev);
+        Node geqCurr = NodeBuilder<2>(GEQ) << var << mkRationalNode(curr);
+        Node excludedMiddle =  NodeBuilder<2>(OR) << leqPrev << geqCurr;
+        Debug("arith::miplib") << excludedMiddle << endl;
+        learned << excludedMiddle;
+      }
     }
   }
 }
