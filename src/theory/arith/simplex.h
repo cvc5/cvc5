@@ -15,7 +15,7 @@
 
 #include "util/stats.h"
 
-#include <vector>
+#include <queue>
 
 namespace CVC4 {
 namespace theory {
@@ -35,8 +35,7 @@ private:
 
   ArithVar d_numVariables;
 
-  std::vector<Node> d_delayedLemmas;
-  uint32_t d_delayedLemmasPos;
+  std::queue<Node> d_delayedLemmas;
 
   Rational d_ZERO;
 
@@ -48,7 +47,6 @@ public:
     d_queue(pm, tableau),
     d_numVariables(0),
     d_delayedLemmas(),
-    d_delayedLemmasPos(0),
     d_ZERO(0)
   {}
 
@@ -219,20 +217,20 @@ public:
 
   /** Returns true if the simplex procedure has more delayed lemmas in its queue.*/
   bool hasMoreLemmas() const {
-    return d_delayedLemmasPos < d_delayedLemmas.size();
+    return !d_delayedLemmas.empty();
   }
   /** Returns the next delayed lemmas on the queue.*/
   Node popLemma(){
     Assert(hasMoreLemmas());
-    Node lemma = d_delayedLemmas[d_delayedLemmasPos];
-    ++d_delayedLemmasPos;
+    Node lemma = d_delayedLemmas.front();
+    d_delayedLemmas.pop();
     return lemma;
   }
 
 private:
   /** Adds a lemma to the queue. */
   void pushLemma(Node lemma){
-    d_delayedLemmas.push_back(lemma);
+    d_delayedLemmas.push(lemma);
     ++(d_statistics.d_delayedConflicts);
   }
 
