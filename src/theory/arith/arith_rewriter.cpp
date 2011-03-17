@@ -30,8 +30,6 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
-arith::ArithConstants* ArithRewriter::s_constants = NULL;
-
 bool isVariable(TNode t){
   return t.getMetaKind() == kind::metakind::VARIABLE;
 }
@@ -52,7 +50,11 @@ RewriteResponse ArithRewriter::rewriteVariable(TNode t){
 RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
   Assert(t.getKind()== kind::MINUS);
 
-  if(t[0] == t[1]) return RewriteResponse(REWRITE_DONE, s_constants->d_ZERO_NODE);
+  if(t[0] == t[1]){
+    Rational zero(0);
+    Node zeroNode  = mkRationalNode(zero);
+    return RewriteResponse(REWRITE_DONE, zeroNode);
+  }
 
   Node noMinus = makeSubtractionNode(t[0],t[1]);
   if(pre){
@@ -121,17 +123,19 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode t){
   // Rewrite multiplications with a 0 argument and to 0
   Integer intZero;
 
+  Rational qZero(0);
+
   for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
     if((*i).getKind() == kind::CONST_RATIONAL) {
-      if((*i).getConst<Rational>() == s_constants->d_ZERO) {
-        return RewriteResponse(REWRITE_DONE, s_constants->d_ZERO_NODE);
+      if((*i).getConst<Rational>() == qZero) {
+        return RewriteResponse(REWRITE_DONE, mkRationalNode(qZero));
       }
     } else if((*i).getKind() == kind::CONST_INTEGER) {
       if((*i).getConst<Integer>() == intZero) {
         if(t.getType().isInteger()) {
           return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(intZero));
         } else {
-          return RewriteResponse(REWRITE_DONE, s_constants->d_ZERO_NODE);
+          return RewriteResponse(REWRITE_DONE, mkRationalNode(qZero));
         }
       }
     }
@@ -222,7 +226,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   }else{
     //Transform this to: (left - right) |><| 0
     Node diff = makeSubtractionNode(left, right);
-    Node reduction = NodeManager::currentNM()->mkNode(atom.getKind(), diff, s_constants->d_ZERO_NODE);
+    Rational qZero(0);
+    Node reduction = NodeManager::currentNM()->mkNode(atom.getKind(), diff, mkRationalNode(qZero));
     return RewriteResponse(REWRITE_AGAIN_FULL, reduction);
   }
 }
@@ -246,7 +251,8 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
 
     //Transform this to: (left - right) |><| 0
     Node diff = makeSubtractionNode(left, right);
-    reduction = currNM->mkNode(atom.getKind(), diff, s_constants->d_ZERO_NODE);
+    Rational qZero(0);
+    reduction = currNM->mkNode(atom.getKind(), diff, mkRationalNode(qZero));
   }
 
   if(reduction.getKind() == kind::GT){
@@ -291,7 +297,8 @@ RewriteResponse ArithRewriter::preRewrite(TNode t){
 }
 
 Node ArithRewriter::makeUnaryMinusNode(TNode n){
-  return NodeManager::currentNM()->mkNode(kind::MULT,s_constants->d_NEGATIVE_ONE_NODE,n);
+  Rational qNegOne(-1);
+  return NodeManager::currentNM()->mkNode(kind::MULT, mkRationalNode(qNegOne),n);
 }
 
 Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
@@ -311,7 +318,7 @@ RewriteResponse ArithRewriter::rewriteDivByConstant(TNode t, bool pre){
 
   const Rational& den = right.getConst<Rational>();
 
-  Assert(den != s_constants->d_ZERO);
+  Assert(den != Rational(0));
 
   Rational div = den.inverse();
 

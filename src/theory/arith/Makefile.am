@@ -9,10 +9,11 @@ libarith_la_SOURCES = \
 	theory_arith_type_rules.h \
 	arith_rewriter.h \
 	arith_rewriter.cpp \
+	arith_static_learner.h \
+	arith_static_learner.cpp \
 	normal_form.h\
 	normal_form.cpp \
 	arith_utilities.h \
-	arith_constants.h \
 	delta_rational.h \
 	delta_rational.cpp \
 	partial_model.h \

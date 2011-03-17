@@ -25,9 +25,6 @@ namespace arith {
 class SimplexDecisionProcedure {
 private:
 
-  /** Stores system wide constants to avoid unnessecary reconstruction. */
-  const ArithConstants& d_constants;
-
   /**
    * Manages information about the assignment and upper and lower bounds on
    * variables.
@@ -44,23 +41,22 @@ private:
   std::vector<Node> d_delayedLemmas;
   uint32_t d_delayedLemmasPos;
 
+  Rational d_ZERO;
+
 public:
-  SimplexDecisionProcedure(const ArithConstants& constants,
-                           ArithPartialModel& pm,
+  SimplexDecisionProcedure(ArithPartialModel& pm,
                            OutputChannel* out,
                            Tableau& tableau) :
-    d_constants(constants),
     d_partialModel(pm),
     d_out(out),
     d_tableau(tableau),
     d_queue(pm, tableau),
     d_numVariables(0),
     d_delayedLemmas(),
-    d_delayedLemmasPos(0)
+    d_delayedLemmasPos(0),
+    d_ZERO(0)
   {}
 
-
-public:
   /**
    * Assert*(n, orig) takes an bound n that is implied by orig.
    * and asserts that as a new bound if it is tighter than the current bound

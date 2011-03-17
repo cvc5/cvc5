@@ -618,7 +618,7 @@ Node SimplexDecisionProcedure::generateConflictAbove(ArithVar conflictVar){
     if(nonbasic == conflictVar) continue;
 
     const Rational& a_ij = (*nbi).getCoefficient();
-    Assert(a_ij != d_constants.d_ZERO);
+    Assert(a_ij != d_ZERO);
 
     int sgn = a_ij.sgn();
     Assert(sgn != 0);
@@ -662,7 +662,7 @@ Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
     const Rational& a_ij = (*nbi).getCoefficient();
 
     int sgn = a_ij.sgn();
-    Assert(a_ij != d_constants.d_ZERO);
+    Assert(a_ij != d_ZERO);
     Assert(sgn != 0);
 
     if(sgn < 0){
@@ -691,7 +691,7 @@ Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
  */
 DeltaRational SimplexDecisionProcedure::computeRowValue(ArithVar x, bool useSafe){
   Assert(d_tableau.isBasic(x));
-  DeltaRational sum = d_constants.d_ZERO_DELTA;
+  DeltaRational sum(0);
 
   ReducedRowVector& row = d_tableau.lookup(x);
   for(ReducedRowVector::const_iterator i = row.begin(), end = row.end();

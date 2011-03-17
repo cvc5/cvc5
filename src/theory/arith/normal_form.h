@@ -26,7 +26,6 @@
 #include "expr/node_self_iterator.h"
 #include "util/rational.h"
 #include "theory/theory.h"
-#include "theory/arith/arith_constants.h"
 #include "theory/arith/arith_utilities.h"
 
 #include <list>
