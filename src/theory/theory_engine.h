@@ -109,6 +109,8 @@ class TheoryEngine {
 
     void lemma(TNode node, bool)
       throw(theory::Interrupted, AssertionException) {
+      Debug("theory") << "EngineOutputChannel::lemma("
+                      << node << ")" << std::endl;
       ++(d_engine->d_statistics.d_statLemma);
       d_engine->newLemma(node);
     }
