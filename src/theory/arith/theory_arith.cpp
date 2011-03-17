@@ -66,7 +66,7 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
   d_tableauResetDensity(2.0),
   d_tableauResetPeriod(10),
   d_propagator(c, out),
-  d_simplex(d_partialModel, d_out, d_tableau),
+  d_simplex(d_partialModel, d_tableau),
   d_DELTA_ZERO(0),
   d_statistics()
 {}
@@ -308,16 +308,14 @@ DeltaRational determineRightConstant(TNode assertion, Kind simpleKind){
   return DeltaRational(noninf, inf);
 }
 
-void TheoryArith::disequalityConflict(TNode eq, TNode lb, TNode ub){
-
+Node TheoryArith::disequalityConflict(TNode eq, TNode lb, TNode ub){
   NodeBuilder<3> conflict(kind::AND);
   conflict << eq << lb << ub;
   ++(d_statistics.d_statDisequalityConflicts);
-  d_out->conflict((TNode)conflict);
-
+  return conflict;
 }
 
-bool TheoryArith::assertionCases(TNode assertion){
+Node TheoryArith::assertionCases(TNode assertion){
   Kind simpKind = simplifiedKind(assertion);
   Assert(simpKind != UNDEFINED_KIND);
   ArithVar x_i = determineLeftVariable(assertion, simpKind);
@@ -331,18 +329,18 @@ bool TheoryArith::assertionCases(TNode assertion){
     if (d_partialModel.hasLowerBound(x_i) && d_partialModel.getLowerBound(x_i) == c_i) {
       Node diseq = assertion[0].eqNode(assertion[1]).notNode();
       if (d_diseq.find(diseq) != d_diseq.end()) {
-        disequalityConflict(diseq, d_partialModel.getLowerConstraint(x_i) , assertion);
-        return true;
+        Node lb = d_partialModel.getLowerConstraint(x_i);
+        return disequalityConflict(diseq, lb , assertion);
       }
     }
   case LT:
-    return d_simplex.AssertUpper(x_i, c_i, assertion);
+    return  d_simplex.AssertUpper(x_i, c_i, assertion);
   case GEQ:
     if (d_partialModel.hasUpperBound(x_i) && d_partialModel.getUpperBound(x_i) == c_i) {
       Node diseq = assertion[0].eqNode(assertion[1]).notNode();
       if (d_diseq.find(diseq) != d_diseq.end()) {
-        disequalityConflict(diseq, assertion, d_partialModel.getUpperConstraint(x_i));
-        return true;
+        Node ub = d_partialModel.getUpperConstraint(x_i);
+        return disequalityConflict(diseq, assertion, ub);
       }
     }
   case GT:
@@ -366,14 +364,13 @@ bool TheoryArith::assertionCases(TNode assertion){
           d_partialModel.getUpperBound(lhsVar) == rhsValue) {
         Node lb = d_partialModel.getLowerConstraint(lhsVar);
         Node ub = d_partialModel.getUpperConstraint(lhsVar);
-        disequalityConflict(assertion, lb, ub);
-        return true;
+        return disequalityConflict(assertion, lb, ub);
       }
     }
-    return false;
+    return Node::null();
   default:
     Unreachable();
-    return false;
+    return Node::null();
   }
 }
 
@@ -385,10 +382,11 @@ void TheoryArith::check(Effort effortLevel){
   while(!done()){
 
     Node assertion = get();
-    bool conflictDuringAnAssert = assertionCases(assertion);
+    Node possibleConflict = assertionCases(assertion);
 
-    if(conflictDuringAnAssert){
+    if(!possibleConflict.isNull()){
       d_partialModel.revertAssignmentChanges();
+      d_out->conflict(possibleConflict);
       return;
     }
   }

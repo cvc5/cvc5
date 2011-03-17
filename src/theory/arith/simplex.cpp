@@ -85,19 +85,19 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
 }
 
 /* procedure AssertLower( x_i >= c_i ) */
-bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode original){
+Node SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode original){
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
 
   if(d_partialModel.belowLowerBound(x_i, c_i, false)){
-    return false; //sat
+    return Node::null();
   }
   if(d_partialModel.aboveUpperBound(x_i, c_i, true)){
     Node ubc = d_partialModel.getUpperConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, ubc, original);
-    d_out->conflict(conflict);
+    //d_out->conflict(conflict);
     Debug("arith") << "AssertLower conflict " << conflict << endl;
     ++(d_statistics.d_statAssertLowerConflicts);
-    return true;
+    return conflict;
   }
 
   d_partialModel.setLowerConstraint(x_i,original);
@@ -111,24 +111,28 @@ bool SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_
     d_queue.enqueueIfInconsistent(x_i);
   }
 
-  return false;
+  if(Debug.isOn("model")) { d_partialModel.printModel(x_i); }
+
+  return Node::null();
 }
 
 /* procedure AssertUpper( x_i <= c_i) */
-bool SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode original){
+Node SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
 
   if(d_partialModel.aboveUpperBound(x_i, c_i, false) ){ // \upperbound(x_i) <= c_i
-    return false; //sat
+    //return false; //sat
+    return Node::null();
   }
   if(d_partialModel.belowLowerBound(x_i, c_i, true)){// \lowerbound(x_i) > c_i
     Node lbc = d_partialModel.getLowerConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
     Debug("arith") << "AssertUpper conflict " << conflict << endl;
     ++(d_statistics.d_statAssertUpperConflicts);
-    d_out->conflict(conflict);
-    return true;
+    //d_out->conflict(conflict);
+    return conflict;
+    //return true;
   }
 
   d_partialModel.setUpperConstraint(x_i,original);
@@ -141,13 +145,16 @@ bool SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_
   }else{
     d_queue.enqueueIfInconsistent(x_i);
   }
-  d_partialModel.printModel(x_i);
-  return false;
+
+  if(Debug.isOn("model")) { d_partialModel.printModel(x_i); }
+
+  return Node::null();
+  //return false;
 }
 
 
 /* procedure AssertLower( x_i == c_i ) */
-bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode original){
+Node SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
 
@@ -155,23 +162,26 @@ bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
   // This can happen if both c_i <= x_i and x_i <= c_i are in the system.
   if(d_partialModel.belowLowerBound(x_i, c_i, false) &&
      d_partialModel.aboveUpperBound(x_i, c_i, false)){
-    return false; //sat
+    //return false; //sat
+    return Node::null();
   }
 
   if(d_partialModel.aboveUpperBound(x_i, c_i, true)){
     Node ubc = d_partialModel.getUpperConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, ubc, original);
-    d_out->conflict(conflict);
+    //d_out->conflict(conflict);
     Debug("arith") << "AssertLower conflict " << conflict << endl;
-    return true;
+    //return true;
+    return conflict;
   }
 
   if(d_partialModel.belowLowerBound(x_i, c_i, true)){
     Node lbc = d_partialModel.getLowerConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
     Debug("arith") << "AssertUpper conflict " << conflict << endl;
-    d_out->conflict(conflict);
-    return true;
+    //d_out->conflict(conflict);
+    //return true;
+    return conflict;
   }
 
   d_partialModel.setLowerConstraint(x_i,original);
@@ -189,7 +199,8 @@ bool SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
     //checkBasicVariable(x_i);
   }
 
-  return false;
+  //return false;
+  return Node::null();
 }
 
 set<ArithVar> tableauAndHasSet(Tableau& tab, ArithVar v){

@@ -203,14 +203,15 @@ private:
 
   /**
    * Handles the case splitting for check() for a new assertion.
-   * returns true if their is a conflict.
+   * Returns a conflict if one was found.
+   * Returns Node::null if no conflict was found.
    */
-  bool assertionCases(TNode assertion);
+  Node assertionCases(TNode assertion);
 
   /**
    * This is used for reporting conflicts caused by disequalities during assertionCases.
    */
-  void disequalityConflict(TNode eq, TNode lb, TNode ub);
+  Node disequalityConflict(TNode eq, TNode lb, TNode ub);
 
   /**
    * Returns the basic variable with the shorted row containg a non-basic variable.

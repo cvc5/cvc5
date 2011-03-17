@@ -10,7 +10,6 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
-#include "theory/output_channel.h"
 
 #include "util/options.h"
 
@@ -31,8 +30,6 @@ private:
    */
   ArithPartialModel& d_partialModel;
 
-  OutputChannel* d_out;
-
   Tableau& d_tableau;
   ArithPriorityQueue d_queue;
 
@@ -45,10 +42,8 @@ private:
 
 public:
   SimplexDecisionProcedure(ArithPartialModel& pm,
-                           OutputChannel* out,
                            Tableau& tableau) :
     d_partialModel(pm),
-    d_out(out),
     d_tableau(tableau),
     d_queue(pm, tableau),
     d_numVariables(0),
@@ -61,20 +56,20 @@ public:
    * Assert*(n, orig) takes an bound n that is implied by orig.
    * and asserts that as a new bound if it is tighter than the current bound
    * and updates the value of a basic variable if needed.
-   * If this new bound is in conflict with the other bound,
-   * a conflict is created and asserted to the output channel.
    *
-   * orig must be an atom in the SAT solver so that it can be used for
+   * orig must be a literal in the SAT solver so that it can be used for
    * conflict analysis.
    *
-   * n is of the form (x =?= c) where x is a variable,
-   * c is a constant and =?= is either LT, LEQ, EQ, GEQ, or GT.
+   * x is the variable getting the new bound,
+   * c is the value of the new bound.
    *
-   * returns true if a conflict was asserted.
+   * If this new bound is in conflict with the other bound,
+   * a node describing this conflict is returned.
+   * If this new bound is not in conflict, Node::null() is returned.
    */
-  bool AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode orig);
-  bool AssertUpper(ArithVar x_i, const DeltaRational& c_i, TNode orig);
-  bool AssertEquality(ArithVar x_i, const DeltaRational& c_i, TNode orig);
+  Node AssertLower(ArithVar x, const DeltaRational& c, TNode orig);
+  Node AssertUpper(ArithVar x, const DeltaRational& c, TNode orig);
+  Node AssertEquality(ArithVar x, const DeltaRational& c, TNode orig);
 
 private:
   /**
