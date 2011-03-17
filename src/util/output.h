@@ -134,9 +134,19 @@ extern NullC nullCvc4Stream CVC4_PUBLIC;
 
 class CVC4_PUBLIC CVC4ostream {
   std::ostream* d_os;
+  // Current indentation
+  unsigned d_indent;
+
+  std::ostream& (*d_endl)(std::ostream&);
+
 public:
   CVC4ostream() : d_os(NULL) {}
-  CVC4ostream(std::ostream* os) : d_os(os) {}
+  CVC4ostream(std::ostream* os) : d_os(os), d_indent(0) {
+    d_endl = &std::endl;
+  }
+
+  void pushIndent() { d_indent ++; };
+  void popIndent()  { if (d_indent > 0) -- d_indent; }
 
   void flush() {
     if(d_os != NULL) {
@@ -160,6 +170,11 @@ public:
     if(d_os != NULL) {
       d_os = &(*d_os << pf);
     }
+    if (pf == d_endl) {
+      for (unsigned i = 0; i < d_indent; ++ i) {
+        d_os = &(*d_os << '\t');
+      }
+    }
     return *this;
   }
   CVC4ostream& operator<<(std::ios& (*pf)(std::ios&)) {
@@ -174,8 +189,22 @@ public:
     }
     return *this;
   }
-
+  CVC4ostream& operator<<(CVC4ostream& (*pf)(CVC4ostream&)) {
+    return pf(*this);
+  }
 };/* class CVC4ostream */
+
+inline CVC4ostream& push(CVC4ostream& stream)
+{
+  stream.pushIndent();
+  return stream;
+}
+
+inline CVC4ostream& pop(CVC4ostream& stream)
+{
+  stream.popIndent();
+  return stream;
+}
 
 /** The debug output class */
 class CVC4_PUBLIC DebugC {
