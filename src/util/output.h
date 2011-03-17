@@ -169,10 +169,11 @@ public:
   CVC4ostream& operator<<(std::ostream& (*pf)(std::ostream&)) {
     if(d_os != NULL) {
       d_os = &(*d_os << pf);
-    }
-    if (pf == d_endl) {
-      for (unsigned i = 0; i < d_indent; ++ i) {
-        d_os = &(*d_os << '\t');
+
+      if (pf == d_endl) {
+        for (unsigned i = 0; i < d_indent; ++ i) {
+          d_os = &(*d_os << '\t');
+        }
       }
     }
     return *this;
