@@ -212,13 +212,19 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
 
 
 void ArithStaticLearner::postProcess(NodeBuilder<>& learned){
+  vector<TNode> keys;
+  VarToNodeSetMap::iterator mipIter = d_miplibTrick.begin();
+  VarToNodeSetMap::iterator endMipLibTrick = d_miplibTrick.end();
+  for(; mipIter != endMipLibTrick; ++mipIter){
+    keys.push_back(mipIter->first);
+  }
 
   // == 3-FINITE VALUE SET ==
-  VarToNodeSetMap::iterator i = d_miplibTrick.begin();
-  VarToNodeSetMap::iterator endMipLibTrick = d_miplibTrick.end();
-  for(; i != endMipLibTrick; ++i){
-    TNode var = i->first;
-    const set<Node>& imps = i->second;
+  vector<TNode>::iterator keyIter = keys.begin();
+  vector<TNode>::iterator endKeys = keys.end();
+  for(; keyIter != endKeys; ++keyIter){
+    TNode var = *keyIter;
+    const set<Node>& imps = d_miplibTrick[var];
 
     Assert(!imps.empty());
     vector<Node> conditions;
@@ -253,6 +259,7 @@ void ArithStaticLearner::postProcess(NodeBuilder<>& learned){
     Result isTaut = PropositionalQuery::isTautology(possibleTaut);
     if(isTaut == Result(Result::VALID)){
       miplibTrick(var, values, learned);
+      d_miplibTrick.erase(var);
     }
   }
 }
