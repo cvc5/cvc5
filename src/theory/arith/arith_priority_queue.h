@@ -9,6 +9,7 @@
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
 
+#include "util/stats.h"
 
 #include <vector>
 
@@ -115,6 +116,8 @@ private:
    * Effectively this means that this must be a min-heap.
    */
   ArithVarArray d_varOrderQueue;
+
+  PermissiveBackArithVarSet d_varSet;
 
   /**
    * Reference to the arithmetic partial model for checking if a variable
@@ -272,6 +275,23 @@ public:
         Unreachable();
     }
   }
+
+private:
+  class Statistics {
+  public:
+    IntStat d_enqueues;
+    IntStat d_enqueuesCollection;
+    IntStat d_enqueuesDiffMode;
+    IntStat d_enqueuesVarOrderMode;
+
+    IntStat d_enqueuesCollectionDuplicates;
+    IntStat d_enqueuesVarOrderModeDuplicates;
+
+    Statistics();
+    ~Statistics();
+  };
+
+  Statistics d_statistics;
 };
 
 
