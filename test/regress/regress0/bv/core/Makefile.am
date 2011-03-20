@@ -62,8 +62,9 @@ TESTS =	\
 	slice-17.smt \
 	slice-18.smt \
 	slice-19.smt \
-	slice-20.smt
-	
+	slice-20.smt \
+	ext_con_004_001_1024.smt 
+		
 EXTRA_DIST = $(TESTS)
 
 # synonyms for "check"

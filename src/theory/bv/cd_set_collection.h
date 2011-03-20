@@ -40,10 +40,19 @@ class BacktrackableSetCollection {
   /** Backtrackable number of nodes that have been inserted */
   context::CDO<unsigned> d_nodesInserted;
 
+  /** Check if the reference is valid in the current context */
+  inline bool isValid(reference_type set) const {
+    return d_nodesInserted == d_memory.size() && (set == null || set < d_memory.size());
+  }
+
   /** Backtrack */
   void backtrack() {
     while (d_nodesInserted < d_memory.size()) {
       const tree_entry_type& node = d_memory.back();
+
+      Debug("cd_set_collection") << "BacktrackableSetCollection::backtrack(): removing " << node.getValue()
+                                 << " from " << internalToString(getRoot(d_memory.size()-1)) << std::endl;
+
       if (node.hasParent()) {
         if (node.isLeft()) {
           d_memory[node.getParent()].removeLeft();
@@ -64,7 +73,7 @@ class BacktrackableSetCollection {
    */
   reference_type newElement(const value_type& value, reference_type left, reference_type right, reference_type parent, bool isLeft) {
     reference_type index = d_memory.size();
-    d_memory.push_back(tree_entry_type(value, left, right, value, isLeft));
+    d_memory.push_back(tree_entry_type(value, left, right, parent, isLeft));
     d_nodesInserted = d_nodesInserted + 1;
     return index;
   }
@@ -91,6 +100,7 @@ class BacktrackableSetCollection {
    */
   reference_type max(reference_type set) const {
     Assert(set != null);
+    Assert(isValid(set));
     while (d_memory[set].hasRight()) {
       set = d_memory[set].getRight();
     }
@@ -102,11 +112,53 @@ class BacktrackableSetCollection {
    */
   reference_type min(reference_type set) const {
     Assert(set != null);
+    Assert(isValid(set));
     while (d_memory[set].hasLeft()) {
       set = d_memory[set].getLeft();
     }
     return set;
   }
+
+  /**
+   * REturns the root of the tree
+   */
+  reference_type getRoot(reference_type set) const {
+    // We don't check validity as this is used in backtracking
+    while (set != null && d_memory[set].hasParent()) {
+      Assert(set > d_memory[set].getParent());
+      set = d_memory[set].getParent();
+    }
+    return set;
+  }
+
+  /**
+   * Print the list of elements to the output.
+   */
+  void internalPrint(std::ostream& out, reference_type set) const {
+    if (set == null) {
+      return;
+    }
+    const tree_entry_type& current = d_memory[set];
+    if (current.hasLeft()) {
+      internalPrint(out, current.getLeft());
+      out << ",";
+    }
+    out << current.getValue();
+    if (current.hasRight()) {
+      out << ",";
+      internalPrint(out, current.getRight());
+    }
+  }
+
+  /**
+   * String representation of a set.
+   */
+  std::string internalToString(reference_type set) const {
+    std::stringstream out;
+    internalPrint(out, set);
+    return out.str();
+  }
+
 
 public:
 
@@ -118,6 +170,20 @@ public:
     return d_memory.size();
   }
 
+  size_t size(reference_type set) const {
+    backtrack();
+    Assert(isValid(set));
+    if (set == null) return 0;
+    size_t n = 1;
+    if (d_memory[set].hasLeft()) {
+      n += size(d_memory[set].getLeft());
+    }
+    if (d_memory[set].hasRight()) {
+      n += size(d_memory[set].getRight());
+    }
+    return n;
+  }
+
   reference_type newSet(const value_type& value) {
     backtrack();
     return newElement(value, null, null, null, false);
@@ -125,6 +191,7 @@ public:
 
   void insert(reference_type& root, const value_type& value) {
     backtrack();
+    Assert(isValid(root));
     if (root == null) {
       root = newSet(value);
       return;
@@ -133,20 +200,24 @@ public:
     reference_type parent = null;
     reference_type current = root;
     while (true) {
-      parent = current;
+      Assert(isValid(current));
       if (value < d_memory[current].getValue()) {
         if (d_memory[current].hasLeft()) {
+          parent = current;
           current = d_memory[current].getLeft();
         } else {
-          d_memory[current].setLeft(newElement(value, null, null, parent, true));
+          d_memory[current].setLeft(newElement(value, null, null, current, true));
+          Assert(d_memory[current].hasLeft());
           return;
         }
       } else {
-        Assert(value != d_memory[root].getValue());
+        Assert(value != d_memory[current].getValue());
         if (d_memory[current].hasRight()) {
+          parent = current;
           current = d_memory[current].getRight();
         } else {
-          d_memory[parent].setRight(newElement(value, null, null, parent, false));
+          d_memory[current].setRight(newElement(value, null, null, current, false));
+          Assert(d_memory[current].hasRight());
           return;
         }
       }
@@ -158,6 +229,7 @@ public:
    */
   const_value_reference maxElement(reference_type set) const {
     Assert(set != null);
+    Assert(isValid(set));
     backtrack();
     return d_memory[max(set)].getValue();
   }
@@ -167,6 +239,7 @@ public:
    */
   const_value_reference minElement(reference_type set) const {
     Assert(set != null);
+    Assert(isValid(set));
     backtrack();
     return d_memory[min(set)].getValue();
   }
@@ -176,6 +249,7 @@ public:
    */
   const_value_reference prev(reference_type set, const_value_reference value) {
     backtrack();
+    Assert(isValid(set));
 
     const_value_reference candidate_value;
     bool candidate_found = false;
@@ -202,6 +276,7 @@ public:
 
   const_value_reference next(reference_type set, const_value_reference value) {
     backtrack();
+    Assert(isValid(set));
 
     const_value_reference candidate_value;
     bool candidate_found = false;
@@ -232,6 +307,8 @@ public:
   unsigned count(reference_type set, const_value_reference lowerBound, const_value_reference upperBound) const {
     Assert(lowerBound <= upperBound);
     backtrack();
+    Assert(isValid(set));
+
     // Empty set no elements
     if (set == null) {
       return 0;
@@ -260,6 +337,7 @@ public:
    */
   bool contains(reference_type set, const_value_reference value) const {
     backtrack();
+    Assert(isValid(set));
     return count(set, value, value) > 0;
   }
 
@@ -270,6 +348,7 @@ public:
   void getElements(reference_type set, const_value_reference lowerBound, const_value_reference upperBound, std::vector<value_type>& output) const {
     Assert(lowerBound <= upperBound);
     backtrack();
+    Assert(isValid(set));
 
     Debug("set_collection") << "BacktrackableSetCollection::getElements(" << toString(set) << "," << lowerBound << "," << upperBound << ")" << std::endl;
 
@@ -298,6 +377,8 @@ public:
    */
   void print(std::ostream& out, reference_type set) const {
     backtrack();
+    Assert(isValid(set));
+
     if (set == null) {
       return;
     }
@@ -317,6 +398,9 @@ public:
    * String representation of a set.
    */
   std::string toString(reference_type set) const {
+    backtrack();
+    Assert(isValid(set));
+
     std::stringstream out;
     print(out, set);
     return out.str();

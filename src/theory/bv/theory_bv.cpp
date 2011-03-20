@@ -89,11 +89,39 @@ void TheoryBV::check(Effort e) {
         assumptions.insert(assertion);
         d_out->conflict(mkConjunction(assumptions));
         return;
+      } else {
+        d_disequalities.push_back(assertion);
       }
       break;
     }
     default:
       Unhandled();
+    }
+  }
+
+  if (fullEffort(e)) {
+
+    Debug("bitvector") << "TheoryBV::check(" << e << "): checking dis-equalities" << std::endl;
+
+    for (unsigned i = 0, i_end = d_disequalities.size(); i < i_end; ++ i) {
+
+      Debug("bitvector") << "TheoryBV::check(" << e << "): checking " << d_disequalities[i] << std::endl;
+
+      TNode equality = d_disequalities[i][0];
+      // Assumptions
+      std::set<TNode> assumptions;
+      Node lhsNormalized = d_eqEngine.normalize(equality[0], assumptions);
+      Node rhsNormalized = d_eqEngine.normalize(equality[1], assumptions);
+
+      Debug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
+
+      // No need to slice the equality, the whole thing *should* be deduced
+      if (lhsNormalized == rhsNormalized) {
+        Debug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
+        assumptions.insert(d_disequalities[i]);
+        d_out->conflict(mkConjunction(assumptions));
+        return;
+      }
     }
   }
 }

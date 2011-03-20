@@ -122,7 +122,7 @@ public:
   typedef context::BacktrackableSetCollection<std::vector<slice_point>, slice_point, set_reference> set_collection;
 
   /** The map type from nodes to their references */
-  typedef std::map<Node, set_reference> slicing_map;
+  typedef context::CDMap<Node, set_reference, NodeHashFunction> slicing_map;
 
   /** The equality engine theory of bit-vectors is using */
   typedef typename TheoryBitvector::BvEqualityEngine EqualityEngine;
@@ -150,7 +150,11 @@ private:
 public:
 
   SliceManager(TheoryBitvector& theoryBitvector, context::Context* context)
-  : d_theoryBitvector(theoryBitvector), d_equalityEngine(theoryBitvector.getEqualityEngine()), d_setCollection(context) {
+  : d_theoryBitvector(theoryBitvector),
+    d_equalityEngine(theoryBitvector.getEqualityEngine()),
+    d_setCollection(context),
+    d_nodeSlicing(context)
+  {
   }
 
   /**
@@ -206,68 +210,6 @@ private:
    */
   inline bool addSlice(Node term, unsigned slicePoint);
 };
-
-
-template <class TheoryBitvector>
-bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
-  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ")" << std::endl;
-
-  bool ok = true;
-
-  int low  = node.getKind() == kind::BITVECTOR_EXTRACT ? utils::getExtractLow(node) : 0;
-  int high = node.getKind() == kind::BITVECTOR_EXTRACT ? utils::getExtractHigh(node) + 1: utils::getSize(node);
-  slicePoint += low;
-
-  TNode nodeBase = baseTerm(node);
-
-  set_reference sliceSet;
-  slicing_map::iterator find = d_nodeSlicing.find(nodeBase);
-  if (find == d_nodeSlicing.end()) {
-    sliceSet = d_nodeSlicing[nodeBase] = d_setCollection.newSet(slicePoint);
-    d_setCollection.insert(sliceSet, low);
-    d_setCollection.insert(sliceSet, high);
-  } else {
-    sliceSet = find->second;
-  }
-
-  // What are the points surrounding the new slice point
-  int prev = d_setCollection.prev(sliceSet, slicePoint);
-  int next = d_setCollection.next(sliceSet, slicePoint);
-
-  // Add the slice to the set
-  d_setCollection.insert(sliceSet, slicePoint);
-  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << "): current set " << d_setCollection.toString(sliceSet) << std::endl;
-
-  // Add the terms and the equality to the equality engine
-  Node t1 = utils::mkExtract(nodeBase, next - 1, slicePoint);
-  Node t2 = utils::mkExtract(nodeBase, slicePoint - 1, prev);
-  Node nodeSlice = (next == high && prev == low) ? node : utils::mkExtract(nodeBase, next - 1, prev);
-  Node concat = utils::mkConcat(t1, t2);
-
-  d_equalityEngine.addTerm(t1);
-  d_equalityEngine.addTerm(t2);
-  d_equalityEngine.addTerm(nodeSlice);
-  d_equalityEngine.addTerm(concat);
-
-  // We are free to add this slice, unless the slice has a representative that's already a concat
-  TNode nodeSliceRepresentative = d_equalityEngine.getRepresentative(nodeSlice);
-  if (nodeSliceRepresentative.getKind() != kind::BITVECTOR_CONCAT) {
-    // Add the slice to the equality engine
-    ok = d_equalityEngine.addEquality(nodeSlice, concat, utils::mkTrue());
-  } else {
-    // If the representative is a concat, we must solve it
-    // There is no need do add nodeSlice = concat as we will solve the representative of nodeSlice
-    std::set<TNode> assumptions;
-    std::vector<TNode> equalities;
-    d_equalityEngine.getExplanation(nodeSlice, nodeSliceRepresentative, equalities);
-    assumptions.insert(equalities.begin(), equalities.end());
-    ok = solveEquality(nodeSliceRepresentative, concat, assumptions);
-  }
-
-  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ") => " << d_setCollection.toString(d_nodeSlicing[nodeBase]) << std::endl;
-
-  return ok;
-}
 
 template <class TheoryBitvector>
 bool SliceManager<TheoryBitvector>::solveEquality(TNode lhs, TNode rhs) {
@@ -541,16 +483,80 @@ bool SliceManager<TheoryBitvector>::isSliced(TNode node) const {
     if (find == d_nodeSlicing.end()) {
       result = nodeKind != kind::BITVECTOR_EXTRACT;
     } else {
+      set_reference sliceSet = (*find).second;
+      Assert(d_setCollection.size(sliceSet) >= 2);
       // The term is not sliced if one of the borders is not in the slice set or
       // there is a point between the borders      
       result = 
-	d_setCollection.contains(find->second, low) && d_setCollection.contains(find->second, high + 1) &&
-        (low == high || d_setCollection.count(find->second, low + 1, high) == 0);
+	d_setCollection.contains(sliceSet, low) && d_setCollection.contains(sliceSet, high + 1) &&
+        (low == high || d_setCollection.count(sliceSet, low + 1, high) == 0);
     }
   }
 
   Debug("slicing") << "SliceManager::isSliced(" << node << ") => " << (result ? "true" : "false") << std::endl;
   return result;
+}
+
+template <class TheoryBitvector>
+bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
+  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ")" << std::endl;
+
+  bool ok = true;
+
+  int low  = node.getKind() == kind::BITVECTOR_EXTRACT ? utils::getExtractLow(node) : 0;
+  int high = node.getKind() == kind::BITVECTOR_EXTRACT ? utils::getExtractHigh(node) + 1: utils::getSize(node);
+  slicePoint += low;
+
+  TNode nodeBase = baseTerm(node);
+
+  set_reference sliceSet;
+  slicing_map::iterator find = d_nodeSlicing.find(nodeBase);
+  if (find == d_nodeSlicing.end()) {
+    d_nodeSlicing[nodeBase] = sliceSet = d_setCollection.newSet(0);
+    d_setCollection.insert(sliceSet, utils::getSize(nodeBase));
+  } else {
+    sliceSet = (*find).second;
+  }
+
+  Assert(d_setCollection.size(sliceSet) >= 2);
+
+  // What are the points surrounding the new slice point
+  int prev = d_setCollection.prev(sliceSet, slicePoint);
+  int next = d_setCollection.next(sliceSet, slicePoint);
+
+  // Add the slice to the set
+  d_setCollection.insert(sliceSet, slicePoint);
+  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << "): current set " << d_setCollection.toString(sliceSet) << std::endl;
+
+  // Add the terms and the equality to the equality engine
+  Node t1 = utils::mkExtract(nodeBase, next - 1, slicePoint);
+  Node t2 = utils::mkExtract(nodeBase, slicePoint - 1, prev);
+  Node nodeSlice = (next == high && prev == low) ? node : utils::mkExtract(nodeBase, next - 1, prev);
+  Node concat = utils::mkConcat(t1, t2);
+
+  d_equalityEngine.addTerm(t1);
+  d_equalityEngine.addTerm(t2);
+  d_equalityEngine.addTerm(nodeSlice);
+  d_equalityEngine.addTerm(concat);
+
+  // We are free to add this slice, unless the slice has a representative that's already a concat
+  TNode nodeSliceRepresentative = d_equalityEngine.getRepresentative(nodeSlice);
+  if (nodeSliceRepresentative.getKind() != kind::BITVECTOR_CONCAT) {
+    // Add the slice to the equality engine
+    ok = d_equalityEngine.addEquality(nodeSlice, concat, utils::mkTrue());
+  } else {
+    // If the representative is a concat, we must solve it
+    // There is no need do add nodeSlice = concat as we will solve the representative of nodeSlice
+    std::set<TNode> assumptions;
+    std::vector<TNode> equalities;
+    d_equalityEngine.getExplanation(nodeSlice, nodeSliceRepresentative, equalities);
+    assumptions.insert(equalities.begin(), equalities.end());
+    ok = solveEquality(nodeSliceRepresentative, concat, assumptions);
+  }
+
+  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ") => " << d_setCollection.toString(d_nodeSlicing[nodeBase]) << std::endl;
+
+  return ok;
 }
 
 template <class TheoryBitvector>
@@ -572,17 +578,18 @@ inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
   Assert(nodeBase.getKind() != kind::CONST_BITVECTOR);
 
   // The nodes slice set
-  set_collection::reference_type nodeSliceSet;
+  set_reference nodeSliceSet;
 
   // Find the current one or construct it
   slicing_map::iterator findSliceSet = d_nodeSlicing.find(nodeBase);
   if (findSliceSet == d_nodeSlicing.end()) {
-    nodeSliceSet = d_setCollection.newSet(utils::getSize(nodeBase));
-    d_setCollection.insert(nodeSliceSet, 0);
-    d_nodeSlicing[nodeBase] = nodeSliceSet;
+    d_nodeSlicing[nodeBase] = nodeSliceSet = d_setCollection.newSet(0);
+    d_setCollection.insert(nodeSliceSet, utils::getSize(nodeBase));
   } else {
     nodeSliceSet = d_nodeSlicing[nodeBase];
   }
+
+  Assert(d_setCollection.size(nodeSliceSet) >= 2);
 
   Debug("slicing") << "SliceManager::slice(" << node << "): current: " << d_setCollection.toString(nodeSliceSet) << std::endl;
   std::vector<size_t> slicePoints;
