@@ -41,7 +41,27 @@ TESTS =	\
 	equality-00.smt \
 	equality-01.smt \
 	equality-02.smt \
-	bv_eq_diamond10.smt
+	bv_eq_diamond10.smt \
+	slice-01.smt \
+	slice-02.smt \
+	slice-03.smt \
+	slice-04.smt \
+	slice-05.smt \
+	slice-06.smt \
+	slice-07.smt \
+	slice-08.smt \
+	slice-09.smt \
+	slice-10.smt \
+	slice-11.smt \
+	slice-12.smt \
+	slice-13.smt \
+	slice-14.smt \
+	slice-15.smt \
+	slice-16.smt \
+	slice-17.smt \
+	slice-18.smt \
+	slice-19.smt \
+	slice-20.smt
 	
 EXTRA_DIST = $(TESTS)
 

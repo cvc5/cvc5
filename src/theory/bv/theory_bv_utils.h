@@ -19,7 +19,9 @@
 
 #pragma once 
 
+#include <set>
 #include <vector>
+#include <sstream>
 #include "expr/node_manager.h"
 
 namespace CVC4 {
@@ -51,6 +53,10 @@ inline Node mkAnd(std::vector<TNode>& children) {
   return NodeManager::currentNM()->mkNode(kind::AND, children);
 }
 
+inline Node mkAnd(std::vector<Node>& children) {
+  return NodeManager::currentNM()->mkNode(kind::AND, children);
+}
+
 inline Node mkExtract(TNode node, unsigned high, unsigned low) {
   Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
   std::vector<Node> children;
@@ -65,10 +71,92 @@ inline Node mkConcat(std::vector<Node>& children) {
     return children[0];
 }
 
+inline Node mkConcat(TNode t1, TNode t2) {
+    return NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT, t1, t2);
+}
+
+
 inline Node mkConst(const BitVector& value) {
   return NodeManager::currentNM()->mkConst<BitVector>(value);
 }
 
+inline void getConjuncts(TNode node, std::set<TNode>& conjuncts) {
+  if (node.getKind() != kind::AND) {
+    conjuncts.insert(node);
+  } else {
+    for (unsigned i = 0; i < node.getNumChildren(); ++ i) {
+      getConjuncts(node[i], conjuncts);
+    }
+  }
+}
+
+inline Node mkConjunction(const std::set<TNode> nodes) {
+  std::set<TNode> expandedNodes;
+
+  std::set<TNode>::const_iterator it = nodes.begin();
+  std::set<TNode>::const_iterator it_end = nodes.end();
+  while (it != it_end) {
+    TNode current = *it;
+    if (current != mkTrue()) {
+      Assert(current != mkFalse());
+      if (current.getKind() == kind::AND) {
+        getConjuncts(current, expandedNodes);
+      } else {
+        expandedNodes.insert(current);
+      }
+    }
+    ++ it;
+  }
+
+  Assert(expandedNodes.size() > 0);
+  if (expandedNodes.size() == 1) {
+    return *expandedNodes.begin();
+  }
+
+  NodeBuilder<> conjunction(kind::AND);
+
+  it = expandedNodes.begin();
+  it_end = expandedNodes.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}
+
+// Turn a set into a string
+inline std::string setToString(const std::set<TNode>& nodeSet) {
+  std::stringstream out;
+  out << "[";
+  std::set<TNode>::const_iterator it = nodeSet.begin();
+  std::set<TNode>::const_iterator it_end = nodeSet.end();
+  bool first = true;
+  while (it != it_end) {
+    if (!first) {
+      out << ",";
+    }
+    first = false;
+    out << *it;
+    ++ it;
+  }
+  out << "]";
+  return out.str();
+}
+
+// Turn a vector into a string
+inline std::string vectorToString(const std::vector<Node>& nodes) {
+  std::stringstream out;
+  out << "[";
+  for (unsigned i = 0; i < nodes.size(); ++ i) {
+    if (i > 0) {
+      out << ",";
+    }
+    out << nodes[i];
+  }
+  out << "]";
+  return out.str();
+}
 
 }
 }

@@ -98,7 +98,7 @@ public:
     return BitVector(d_size + other.d_size, (d_value * Integer(2).pow(other.d_size)) + other.d_value);
   }
 
-  BitVector extract(unsigned high, unsigned low) {
+  BitVector extract(unsigned high, unsigned low) const {
     return BitVector(high - low + 1, (d_value % (Integer(2).pow(high + 1))) / Integer(2).pow(low));
   }
 

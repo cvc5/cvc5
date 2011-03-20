@@ -35,7 +35,17 @@ void TheoryBV::preRegisterTerm(TNode node) {
 
   if (node.getKind() == kind::EQUAL) {
     d_eqEngine.addTerm(node[0]);
+    if (node[0].getKind() == kind::BITVECTOR_CONCAT) {
+      for (unsigned i = 0, i_end = node[0].getNumChildren(); i < i_end; ++ i) {
+        d_eqEngine.addTerm(node[0][i]);
+      }
+    }
     d_eqEngine.addTerm(node[1]);
+    if (node[1].getKind() == kind::BITVECTOR_CONCAT) {
+      for (unsigned i = 0, i_end = node[1].getNumChildren(); i < i_end; ++ i) {
+        d_eqEngine.addTerm(node[1][i]);
+      }
+    }
     size_t triggerId = d_eqEngine.addTrigger(node[0], node[1]);
     Assert(triggerId == d_triggers.size());
     d_triggers.push_back(node);
@@ -57,29 +67,27 @@ void TheoryBV::check(Effort e) {
     // Do the right stuff
     switch (assertion.getKind()) {
     case kind::EQUAL: {
-
-      // Slice the equality
-      std::vector<Node> lhsSlices, rhsSlices;
-      d_sliceManager.addEquality(assertion[0], assertion[1], lhsSlices, rhsSlices);
-      Assert(lhsSlices.size() == rhsSlices.size());
-
-      // Add the equality to the equality engine
-      for (int i = 0, i_end = lhsSlices.size(); i != i_end; ++ i) {
-        bool ok = d_eqEngine.addEquality(lhsSlices[i], rhsSlices[i]);
-        if (!ok) return;
-      }
+      // Slice and solve the equality
+      bool ok = d_sliceManager.solveEquality(assertion[0], assertion[1]);
+      if (!ok) return;
       break;
     }
     case kind::NOT: {
       // We need to check this as the equality trigger might have been true when we made it
       TNode equality = assertion[0];
 
+      // Assumptions
+      std::set<TNode> assumptions;
+      Node lhsNormalized = d_eqEngine.normalize(equality[0], assumptions);
+      Node rhsNormalized = d_eqEngine.normalize(equality[1], assumptions);
+
+      Debug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
+      
       // No need to slice the equality, the whole thing *should* be deduced
-      if (d_eqEngine.areEqual(equality[0], equality[1])) {
-        vector<TNode> assertions;
-        d_eqEngine.getExplanation(equality[0], equality[1], assertions);
-        assertions.push_back(assertion);
-        d_out->conflict(mkAnd(assertions));
+      if (lhsNormalized == rhsNormalized) {
+        Debug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
+        assumptions.insert(assertion);
+        d_out->conflict(mkConjunction(assumptions));
         return;
       }
       break;

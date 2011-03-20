@@ -51,12 +51,12 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
       break;
     case kind::BITVECTOR_EXTRACT:
       result = LinearRewriteStrategy<
-                  // Extract over a constant gives a constant
-                  RewriteRule<ExtractConstant>,
-                  // Extract over an extract is simplified to one extract
-                  RewriteRule<ExtractExtract>,
                   // Extract over a concatenation is distributed to the appropriate concatenations
                   RewriteRule<ExtractConcat>,
+                  // Extract over a constant gives a constant
+                  RewriteRule<ExtractConstant>,
+                  // We could get another extract over extract
+                  RewriteRule<ExtractExtract>,
                   // At this point only Extract-Whole could apply
                   RewriteRule<ExtractWhole>
                 >::apply(node);

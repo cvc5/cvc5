@@ -123,28 +123,30 @@ public:
     return newElement(value, null, null, null, false);
   }
 
-  void insert(memory_type& memory, reference_type root, const value_type& value) {
+  void insert(reference_type& root, const value_type& value) {
     backtrack();
     if (root == null) {
-      return newSet(value);
+      root = newSet(value);
+      return;
     }
     // We already have a set, find the spot
     reference_type parent = null;
+    reference_type current = root;
     while (true) {
-      parent = root;
-      if (value < d_memory[root].value) {
-        root = d_memory[root].left;
-        if (root == null) {
-          root = newElement(value, null, null, parent, true);
-          d_memory[parent].left = root;
+      parent = current;
+      if (value < d_memory[current].getValue()) {
+        if (d_memory[current].hasLeft()) {
+          current = d_memory[current].getLeft();
+        } else {
+          d_memory[current].setLeft(newElement(value, null, null, parent, true));
           return;
         }
       } else {
-        Assert(value != d_memory[root].value);
-        root = d_memory[root].right;
-        if (root == null) {
-          root = newElement(value, null, null, parent, false);
-          d_memory[parent].right = root;
+        Assert(value != d_memory[root].getValue());
+        if (d_memory[current].hasRight()) {
+          current = d_memory[current].getRight();
+        } else {
+          d_memory[parent].setRight(newElement(value, null, null, parent, false));
           return;
         }
       }
@@ -174,49 +176,55 @@ public:
    */
   const_value_reference prev(reference_type set, const_value_reference value) {
     backtrack();
-    // Get the node of this value
-    reference_type node_ref = find(set, value);
-    Assert(node_ref != null);
-    const tree_entry_type& node = d_memory[node_ref];
-    // For a left node, we know that it is smaller than all the parents and the parents other children
-    // The smaller node must then be the max of the left subtree
-    if (!node.hasParent() || node.isLeft()) {
-      return maxElement(node.getLeft());
-    }
-    // For a right node, we know that it is bigger than the parent. But, we also know that the left subtree
-    // is also bigger than the parent
-    else {
-      if (node.hasLeft()) {
-        return maxElement(node.getLeft());
+
+    const_value_reference candidate_value;
+    bool candidate_found = false;
+
+    // Find the biggest node smaleer than value (it must exist)
+    while (set != null) {
+      Debug("set_collection") << "BacktrackableSetCollection::getPrev(" << toString(set) << "," << value << ")" << std::endl;
+      const tree_entry_type& node = d_memory[set];
+      if (node.getValue() >= value) {
+        // If the node is bigger than the value, we need a smaller one
+        set = node.getLeft();
       } else {
-        Assert(node.hasParent());
-        return d_memory[node.getParent()].getValue();
+        // The node is smaller than the value
+        candidate_found = true;
+        candidate_value = node.getValue();
+        // There might be a bigger one
+        set = node.getRight();
       }
     }
+
+    Assert(candidate_found);
+    return candidate_value;
   }
 
   const_value_reference next(reference_type set, const_value_reference value) {
     backtrack();
-    // Get the node of this value
-    reference_type node_ref = find(set, value);
-    Assert(node_ref != null);
-    const tree_entry_type& node = d_memory[node_ref];
-    // For a right node, we know that it is bigger than all the parents and the parents other children
-    // The bigger node must then be the min of the right subtree
-    if (!node.hasParent() || node.isRight()) {
-      return minElement(node.getRight());
-    }
-    // For a left node, we know that it is smaller than the parent. But, we also know that the right subtree
-    // is also smaller than the parent
-    else {
-      if (node.hasRight()) {
-        return minElement(node.getRight());
+
+    const_value_reference candidate_value;
+    bool candidate_found = false;
+
+    // Find the smallest node bigger than value (it must exist)
+    while (set != null) {
+      Debug("set_collection") << "BacktrackableSetCollection::getNext(" << toString(set) << "," << value << ")" << std::endl;
+      const tree_entry_type& node = d_memory[set];
+      if (node.getValue() <= value) {
+        // If the node is smaller than the value, we need a bigger one
+        set = node.getRight();
       } else {
-        Assert(node.hasParent());
-        return d_memory[node.getParent()].getValue();
+        // The node is bigger than the value
+        candidate_found = true;
+        candidate_value = node.getValue();
+        // There might be a smaller one
+        set = node.getLeft();
       }
     }
-  }
+
+    Assert(candidate_found);
+    return candidate_value;
+}
 
   /**
    * Count the number of elements in the given bounds.
@@ -262,6 +270,9 @@ public:
   void getElements(reference_type set, const_value_reference lowerBound, const_value_reference upperBound, std::vector<value_type>& output) const {
     Assert(lowerBound <= upperBound);
     backtrack();
+
+    Debug("set_collection") << "BacktrackableSetCollection::getElements(" << toString(set) << "," << lowerBound << "," << upperBound << ")" << std::endl;
+
     // Empty set no elements
     if (set == null) {
       return;
@@ -277,7 +288,7 @@ public:
       output.push_back(current.getValue());
     }
     // Right child (bigger elements)
-    if (current.getValue() <= upperBound) {
+    if (current.getValue() < upperBound) {
       getElements(current.getRight(), lowerBound, upperBound, output);
     }
   }
@@ -285,7 +296,7 @@ public:
   /**
    * Print the list of elements to the output.
    */
-  void print(std::ostream& out, reference_type set) {
+  void print(std::ostream& out, reference_type set) const {
     backtrack();
     if (set == null) {
       return;
@@ -305,7 +316,7 @@ public:
   /**
    * String representation of a set.
    */
-  std::string toString(reference_type set) {
+  std::string toString(reference_type set) const {
     std::stringstream out;
     print(out, set);
     return out.str();
