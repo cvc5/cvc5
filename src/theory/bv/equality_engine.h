@@ -23,6 +23,7 @@
 
 #include <vector>
 #include <ext/hash_map>
+#include <sstream>
 
 #include "expr/node.h"
 #include "context/cdo.h"
@@ -215,6 +216,11 @@ private:
    * of one of the edges you can reconstruct the original equality.
    */
   std::vector<EqualityEdge> d_equalityEdges;
+
+  /**
+   * Returns the string representation of the edges.
+   */
+  std::string edgesToString(size_t edgeId) const;
 
   /**
    * Reasons for equalities.
@@ -643,6 +649,21 @@ void EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::addGraphEdge
 }
 
 template <typename OwnerClass, typename NotifyClass, typename UnionFindPreferences>
+std::string EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::edgesToString(size_t edgeId) const {
+  std::stringstream out;
+  bool first = true;
+  while (edgeId != BitSizeTraits::id_null) {
+    const EqualityEdge& edge = d_equalityEdges[edgeId];
+    if (!first) out << ",";
+    out << d_nodes[edge.getNodeId()];
+    edgeId = edge.getNext();
+    first = false;
+  }
+  return out.str();
+}
+
+
+template <typename OwnerClass, typename NotifyClass, typename UnionFindPreferences>
 void EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::getExplanation(TNode t1, TNode t2, std::vector<TNode>& equalities) const {
   Assert(equalities.empty());
   Assert(t1 != t2);
@@ -675,6 +696,8 @@ void EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::getExplanati
     // Go through the equality edges of this node
     size_t currentEdge = d_equalityGraph[currentNode];
 
+    Debug("equality") << "EqualityEngine::getExplanation(): edges =  " << edgesToString(currentEdge) << std::endl;
+
     while (currentEdge != BitSizeTraits::id_null) {
       // Get the edge
       const EqualityEdge& edge = d_equalityEdges[currentEdge];
@@ -698,13 +721,13 @@ void EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::getExplanati
             // Go to the previous
             currentEdge = bfsQueue[currentIndex].edgeId;
             currentIndex = bfsQueue[currentIndex].previousIndex;
-        } while (currentEdge != BitSizeTraits::id_null);
+          } while (currentEdge != BitSizeTraits::id_null);
 
-        // Done
-        return;
-      }
+          // Done
+          return;
+        }
 
-      // Push to the visitation queue if it's not the backward edge 
+        // Push to the visitation queue if it's not the backward edge
         bfsQueue.push_back(BfsData(edge.getNodeId(), currentEdge, currentIndex));
       }
       
