@@ -688,7 +688,7 @@ void EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::getExplanati
     Assert(currentIndex < bfsQueue.size());
 
     // The next node to visit
-    BfsData& current = bfsQueue[currentIndex];
+    BfsData current = bfsQueue[currentIndex];
     size_t currentNode = current.nodeId;
 
     Debug("equality") << "EqualityEngine::getExplanation(): currentNode =  " << d_nodes[currentNode] << std::endl;
