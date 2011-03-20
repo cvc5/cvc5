@@ -321,7 +321,8 @@ public:
   inline bool hasTerm(TNode t) const;
 
   /**
-   * Adds an equality t1 = t2 to the database. Returns false if any of the triggers failed.
+   * Adds an equality t1 = t2 to the database. Returns false if any of the triggers failed, or a
+   * conflict was introduced.
    */
   bool addEquality(TNode t1, TNode t2, Node reason);
 
@@ -436,6 +437,13 @@ bool EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::addEquality(
 
   // If already the same, we're done
   if (t1classId == t2classId) return true;
+
+  // Check for constants
+  if (d_nodes[t1classId].getMetaKind() == kind::metakind::CONSTANT &&
+      d_nodes[t2classId].getMetaKind() == kind::metakind::CONSTANT) {
+    d_notify.conflict(reason);
+    return false;
+  }
 
   // Get the nodes of the representatives
   EqualityNode& node1 = getEqualityNode(t1classId);

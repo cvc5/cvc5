@@ -1,0 +1,6 @@
+x,y:BITVECTOR(1);
+ASSERT(x = 0bin0);
+ASSERT(y = 0bin1);
+ASSERT(x = y);
+CHECKSAT;
+

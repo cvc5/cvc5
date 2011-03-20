@@ -44,6 +44,9 @@ public:
     bool operator () (size_t triggerId) {
       return d_theoryBV.triggerEquality(triggerId);
     }
+    void conflict(Node explanation) {
+      d_theoryBV.d_out->conflict(explanation);
+    }
   };
 
   struct BVEqualitySettings {
