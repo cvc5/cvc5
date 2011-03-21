@@ -45,7 +45,9 @@ public:
       return d_theoryBV.triggerEquality(triggerId);
     }
     void conflict(Node explanation) {
-      d_theoryBV.d_out->conflict(explanation);
+      std::set<TNode> assumptions;
+      utils::getConjuncts(explanation, assumptions);
+      d_theoryBV.d_out->conflict(utils::mkConjunction(assumptions));
     }
   };
 
@@ -119,7 +121,7 @@ public:
 
   void propagate(Effort e) { }
 
-  void explain(TNode n) { }
+  void explain(TNode n);
 
   Node getValue(TNode n, Valuation* valuation);
 

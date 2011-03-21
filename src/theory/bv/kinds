@@ -6,7 +6,7 @@
 
 theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
 
-properties finite check  
+properties finite check propagate
 
 rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 

@@ -64,7 +64,12 @@ TESTS =	\
 	slice-19.smt \
 	slice-20.smt \
 	ext_con_004_001_1024.smt \
-	a78test0002.smt
+	a78test0002.smt \
+	a95test0002.smt \
+	bitvec0.smt \
+	bitvec2.smt \
+	bitvec3.smt \
+	bitvec5.smt 
 			
 EXTRA_DIST = $(TESTS)
 

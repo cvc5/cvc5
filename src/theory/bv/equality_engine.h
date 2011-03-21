@@ -30,6 +30,7 @@
 #include "util/output.h"
 #include "util/stats.h"
 #include "theory/rewriter.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -447,7 +448,11 @@ bool EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::addEquality(
   // Check for constants
   if (d_nodes[t1classId].getMetaKind() == kind::metakind::CONSTANT &&
       d_nodes[t2classId].getMetaKind() == kind::metakind::CONSTANT) {
-    d_notify.conflict(reason);
+    std::vector<TNode> reasons;
+    getExplanation(t1, d_nodes[t1classId], reasons);
+    getExplanation(t2, d_nodes[t2classId], reasons);
+    reasons.push_back(reason);
+    d_notify.conflict(utils::mkAnd(reasons));
     return false;
   }
 
@@ -665,11 +670,12 @@ std::string EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::edges
 
 template <typename OwnerClass, typename NotifyClass, typename UnionFindPreferences>
 void EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::getExplanation(TNode t1, TNode t2, std::vector<TNode>& equalities) const {
-  Assert(equalities.empty());
-  Assert(t1 != t2);
   Assert(getRepresentative(t1) == getRepresentative(t2));
 
   Debug("equality") << "EqualityEngine::getExplanation(" << t1 << "," << t2 << ")" << std::endl;
+
+  // If the nodes are the same, we're done
+  if (t1 == t2) return;
 
   const_cast<EqualityEngine*>(this)->backtrack();
 

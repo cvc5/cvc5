@@ -50,7 +50,11 @@ inline Node mkFalse() {
 }
 
 inline Node mkAnd(std::vector<TNode>& children) {
-  return NodeManager::currentNM()->mkNode(kind::AND, children);
+  if (children.size() > 1) {
+    return NodeManager::currentNM()->mkNode(kind::AND, children);
+  } else {
+    return children[0];
+  }
 }
 
 inline Node mkAnd(std::vector<Node>& children) {
@@ -89,6 +93,13 @@ inline void getConjuncts(TNode node, std::set<TNode>& conjuncts) {
     }
   }
 }
+
+inline void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts) {
+  for (unsigned i = 0, i_end = nodes.size(); i < i_end; ++ i) {
+    getConjuncts(nodes[i], conjuncts);
+  }
+}
+
 
 inline Node mkConjunction(const std::set<TNode> nodes) {
   std::set<TNode> expandedNodes;

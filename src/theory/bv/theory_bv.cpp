@@ -139,10 +139,12 @@ bool TheoryBV::triggerEquality(size_t triggerId) {
   // If we have a negation asserted, we have a confict
   if (d_assertions.contains(equality.notNode())) {
 
-    vector<TNode> assertions;
-    d_eqEngine.getExplanation(equality[0], equality[1], assertions);
-    assertions.push_back(equality.notNode());
-    d_out->conflict(mkAnd(assertions));
+    std::vector<TNode> explanation;
+    d_eqEngine.getExplanation(equality[0], equality[1], explanation);
+    std::set<TNode> assumptions;
+    assumptions.insert(equality.notNode());
+    utils::getConjuncts(explanation, assumptions);
+    d_out->conflict(utils::mkConjunction(assumptions));
 
     return false;
   }
@@ -168,4 +170,17 @@ Node TheoryBV::getValue(TNode n, Valuation* valuation) {
   default:
     Unhandled(n.getKind());
   }
+}
+
+void TheoryBV::explain(TNode node) {
+  Debug("bitvector") << "TheoryBV::explain(" << node << ")" << std::endl;
+  if(node.getKind() == kind::EQUAL) {
+    std::vector<TNode> reasons;
+    d_eqEngine.getExplanation(node[0], node[1], reasons);
+    std::set<TNode> simpleReasons;
+    utils::getConjuncts(reasons, simpleReasons);
+    d_out->explanation(utils::mkConjunction(simpleReasons));
+    return;
+  }
+  Unreachable();
 }
