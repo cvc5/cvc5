@@ -31,7 +31,7 @@ using namespace std;
 
 void TheoryBV::preRegisterTerm(TNode node) {
 
-  Debug("bitvector") << "TheoryBV::preRegister(" << node << ")" << std::endl;
+  BVDebug("bitvector") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
   if (node.getKind() == kind::EQUAL) {
     d_eqEngine.addTerm(node[0]);
@@ -54,7 +54,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
 
 void TheoryBV::check(Effort e) {
 
-  Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
+  BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
 
   while(!done()) {
 
@@ -62,7 +62,7 @@ void TheoryBV::check(Effort e) {
     TNode assertion = get();
     d_assertions.insert(assertion);
 
-    Debug("bitvector") << "TheoryBV::check(" << e << "): asserting: " << assertion << std::endl;
+    BVDebug("bitvector") << "TheoryBV::check(" << e << "): asserting: " << assertion << std::endl;
 
     // Do the right stuff
     switch (assertion.getKind()) {
@@ -81,11 +81,11 @@ void TheoryBV::check(Effort e) {
       Node lhsNormalized = d_eqEngine.normalize(equality[0], assumptions);
       Node rhsNormalized = d_eqEngine.normalize(equality[1], assumptions);
 
-      Debug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
+      BVDebug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
       
       // No need to slice the equality, the whole thing *should* be deduced
       if (lhsNormalized == rhsNormalized) {
-        Debug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
+        BVDebug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
         assumptions.insert(assertion);
         d_out->conflict(mkConjunction(assumptions));
         return;
@@ -101,11 +101,11 @@ void TheoryBV::check(Effort e) {
 
   if (fullEffort(e)) {
 
-    Debug("bitvector") << "TheoryBV::check(" << e << "): checking dis-equalities" << std::endl;
+    BVDebug("bitvector") << "TheoryBV::check(" << e << "): checking dis-equalities" << std::endl;
 
     for (unsigned i = 0, i_end = d_disequalities.size(); i < i_end; ++ i) {
 
-      Debug("bitvector") << "TheoryBV::check(" << e << "): checking " << d_disequalities[i] << std::endl;
+      BVDebug("bitvector") << "TheoryBV::check(" << e << "): checking " << d_disequalities[i] << std::endl;
 
       TNode equality = d_disequalities[i][0];
       // Assumptions
@@ -113,11 +113,11 @@ void TheoryBV::check(Effort e) {
       Node lhsNormalized = d_eqEngine.normalize(equality[0], assumptions);
       Node rhsNormalized = d_eqEngine.normalize(equality[1], assumptions);
 
-      Debug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
+      BVDebug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
 
       // No need to slice the equality, the whole thing *should* be deduced
       if (lhsNormalized == rhsNormalized) {
-        Debug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
+        BVDebug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
         assumptions.insert(d_disequalities[i]);
         d_out->conflict(mkConjunction(assumptions));
         return;
@@ -127,9 +127,9 @@ void TheoryBV::check(Effort e) {
 }
 
 bool TheoryBV::triggerEquality(size_t triggerId) {
-  Debug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << ")" << std::endl;
+  BVDebug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << ")" << std::endl;
   Assert(triggerId < d_triggers.size());
-  Debug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << "): " << d_triggers[triggerId] << std::endl;
+  BVDebug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << "): " << d_triggers[triggerId] << std::endl;
 
   TNode equality = d_triggers[triggerId];
 
@@ -173,7 +173,7 @@ Node TheoryBV::getValue(TNode n, Valuation* valuation) {
 }
 
 void TheoryBV::explain(TNode node) {
-  Debug("bitvector") << "TheoryBV::explain(" << node << ")" << std::endl;
+  BVDebug("bitvector") << "TheoryBV::explain(" << node << ")" << std::endl;
   if(node.getKind() == kind::EQUAL) {
     std::vector<TNode> reasons;
     d_eqEngine.getExplanation(node[0], node[1], reasons);

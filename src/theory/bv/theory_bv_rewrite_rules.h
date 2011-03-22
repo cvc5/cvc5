@@ -23,6 +23,7 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "util/stats.h"
+#include "theory/bv/theory_bv_utils.h"
 #include <sstream>
 
 namespace CVC4 {
@@ -118,11 +119,11 @@ public:
   template<bool checkApplies>
   static inline Node run(Node node) {
     if (!checkApplies || applies(node)) {
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
+      BVDebug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
       ++ s_statictics->d_ruleApplications;
       Node result = apply(node);
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
+      BVDebug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
       return result;
     } else {
       return node;

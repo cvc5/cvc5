@@ -222,7 +222,7 @@ bool SliceManager<TheoryBitvector>::solveEquality(TNode lhs, TNode rhs) {
 template <class TheoryBitvector>
 bool SliceManager<TheoryBitvector>::solveEquality(TNode lhs, TNode rhs, const std::set<TNode>& assumptions) {
 
-  Debug("slicing") << "SliceMagager::solveEquality(" << lhs << "," << rhs << "," << utils::setToString(assumptions) << ")" << push << std::endl;
+  BVDebug("slicing") << "SliceMagager::solveEquality(" << lhs << "," << rhs << "," << utils::setToString(assumptions) << ")" << push << std::endl;
 
   bool ok;
 
@@ -249,7 +249,7 @@ bool SliceManager<TheoryBitvector>::solveEquality(TNode lhs, TNode rhs, const st
   // Slice the individual terms to align them
   ok = sliceAndSolve(lhsTerms, rhsTerms, assumptions);
 
-  Debug("slicing") << "SliceMagager::solveEquality(" << lhs << "," << rhs << "," << utils::setToString(assumptions) << ")" << pop << std::endl;
+  BVDebug("slicing") << "SliceMagager::solveEquality(" << lhs << "," << rhs << "," << utils::setToString(assumptions) << ")" << pop << std::endl;
 
   return ok;
 }
@@ -259,27 +259,27 @@ template <class TheoryBitvector>
 bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::vector<Node>& rhs, const std::set<TNode>& assumptions)
 {
 
-  Debug("slicing") << "SliceManager::sliceAndSolve()" << std::endl;
+  BVDebug("slicing") << "SliceManager::sliceAndSolve()" << std::endl;
 
   // Go through the work-list, solve and align
   while (!lhs.empty()) {
 
     Assert(!rhs.empty());
 
-    Debug("slicing") << "SliceManager::sliceAndSolve(): lhs " << utils::vectorToString(lhs) << std::endl;
-    Debug("slicing") << "SliceManager::sliceAndSolve(): rhs " << utils::vectorToString(rhs) << std::endl;
+    BVDebug("slicing") << "SliceManager::sliceAndSolve(): lhs " << utils::vectorToString(lhs) << std::endl;
+    BVDebug("slicing") << "SliceManager::sliceAndSolve(): rhs " << utils::vectorToString(rhs) << std::endl;
 
     // The terms that we need to slice
     Node lhsTerm = lhs.back();
     Node rhsTerm = rhs.back();
 
-    Debug("slicing") << "SliceManager::sliceAndSolve(): " << lhsTerm << " : " << rhsTerm << std::endl;
+    BVDebug("slicing") << "SliceManager::sliceAndSolve(): " << lhsTerm << " : " << rhsTerm << std::endl;
 
     // If the terms are not sliced wrt the current slicing, we have them sliced
     lhs.pop_back();
     if (!isSliced(lhsTerm)) {
       if (!slice(lhsTerm, lhs)) return false;
-      Debug("slicing") << "SliceManager::sliceAndSolve(): lhs sliced" << std::endl;
+      BVDebug("slicing") << "SliceManager::sliceAndSolve(): lhs sliced" << std::endl;
       continue;
     }
     rhs.pop_back();
@@ -287,11 +287,11 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
       if (!slice(rhsTerm, rhs)) return false;
       // We also need to put lhs back
       lhs.push_back(lhsTerm);
-      Debug("slicing") << "SliceManager::sliceAndSolve(): rhs sliced" << std::endl;
+      BVDebug("slicing") << "SliceManager::sliceAndSolve(): rhs sliced" << std::endl;
       continue;
     }
 
-    Debug("slicing") << "SliceManager::sliceAndSolve(): both lhs and rhs sliced already" << std::endl;
+    BVDebug("slicing") << "SliceManager::sliceAndSolve(): both lhs and rhs sliced already" << std::endl;
 
     // The solving concatenation
     std::vector<Node> concatTerms;
@@ -322,7 +322,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
       SOLVING_FOR_RHS
     } solvingFor = sizeDifference < 0 || lhsTerm.getKind() == kind::CONST_BITVECTOR ? SOLVING_FOR_RHS : SOLVING_FOR_LHS;
 
-    Debug("slicing") << "SliceManager::sliceAndSolve(): " << (solvingFor == SOLVING_FOR_LHS ? "solving for LHS" : "solving for RHS") << std::endl;
+    BVDebug("slicing") << "SliceManager::sliceAndSolve(): " << (solvingFor == SOLVING_FOR_LHS ? "solving for LHS" : "solving for RHS") << std::endl;
 
     // When we slice in order to align, we might have to reslice the one we are solving for
     bool reslice = false;
@@ -404,7 +404,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
     Assert(sizeDifference == 0);
 
     Node concat = utils::mkConcat(concatTerms);
-    Debug("slicing") << "SliceManager::sliceAndSolve(): concatenation " << concat << std::endl;
+    BVDebug("slicing") << "SliceManager::sliceAndSolve(): concatenation " << concat << std::endl;
 
     // We have them equal size now. If the base term of the one we are solving is solved into a
     // non-trivial concatenation already, we have to normalize. A concatenation is non-trivial if
@@ -423,7 +423,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
         if (!ok) return false;
       } else {
         // We're fine, just add the equality
-        Debug("slicing") << "SliceManager::sliceAndSolve(): adding " << lhsTerm << " = " << concat << " " << utils::setToString(assumptions) << std::endl;
+        BVDebug("slicing") << "SliceManager::sliceAndSolve(): adding " << lhsTerm << " = " << concat << " " << utils::setToString(assumptions) << std::endl;
         d_equalityEngine.addTerm(concat);
         bool ok = d_equalityEngine.addEquality(lhsTerm, concat, utils::mkConjunction(assumptions));
         if (!ok) return false;
@@ -443,7 +443,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
         if (!ok) return false;
       } else {
         // We're fine, just add the equality
-        Debug("slicing") << "SliceManager::sliceAndSolve(): adding " << rhsTerm << " = " << concat << utils::setToString(assumptions) << std::endl;
+        BVDebug("slicing") << "SliceManager::sliceAndSolve(): adding " << rhsTerm << " = " << concat << utils::setToString(assumptions) << std::endl;
         d_equalityEngine.addTerm(concat);
         bool ok = d_equalityEngine.addEquality(rhsTerm, concat, utils::mkConjunction(assumptions));
         if (!ok) return false;
@@ -459,7 +459,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
 template <class TheoryBitvector>
 bool SliceManager<TheoryBitvector>::isSliced(TNode node) const {
 
-  Debug("slicing") << "SliceManager::isSliced(" << node << ")" << std::endl;
+  BVDebug("slicing") << "SliceManager::isSliced(" << node << ")" << std::endl;
 
   bool result = false;
 
@@ -493,13 +493,13 @@ bool SliceManager<TheoryBitvector>::isSliced(TNode node) const {
     }
   }
 
-  Debug("slicing") << "SliceManager::isSliced(" << node << ") => " << (result ? "true" : "false") << std::endl;
+  BVDebug("slicing") << "SliceManager::isSliced(" << node << ") => " << (result ? "true" : "false") << std::endl;
   return result;
 }
 
 template <class TheoryBitvector>
 bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
-  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ")" << std::endl;
+  BVDebug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ")" << std::endl;
 
   bool ok = true;
 
@@ -526,7 +526,7 @@ bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
 
   // Add the slice to the set
   d_setCollection.insert(sliceSet, slicePoint);
-  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << "): current set " << d_setCollection.toString(sliceSet) << std::endl;
+  BVDebug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << "): current set " << d_setCollection.toString(sliceSet) << std::endl;
 
   // Add the terms and the equality to the equality engine
   Node t1 = utils::mkExtract(nodeBase, next - 1, slicePoint);
@@ -554,7 +554,7 @@ bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
     ok = solveEquality(nodeSliceRepresentative, concat, assumptions);
   }
 
-  Debug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ") => " << d_setCollection.toString(d_nodeSlicing[nodeBase]) << std::endl;
+  BVDebug("slicing") << "SliceMagager::addSlice(" << node << "," << slicePoint << ") => " << d_setCollection.toString(d_nodeSlicing[nodeBase]) << std::endl;
 
   return ok;
 }
@@ -562,15 +562,15 @@ bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
 template <class TheoryBitvector>
 inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& sliced) {
 
-  Debug("slicing") << "SliceManager::slice(" << node << ")" << std::endl;
+  BVDebug("slicing") << "SliceManager::slice(" << node << ")" << std::endl;
 
   Assert(!isSliced(node));
 
   // The indices of the beginning and (one past) end
   unsigned high = node.getKind() == kind::BITVECTOR_EXTRACT ? utils::getExtractHigh(node) + 1 : utils::getSize(node);
   unsigned low  = node.getKind() == kind::BITVECTOR_EXTRACT ? utils::getExtractLow(node) : 0;
-  Debug("slicing") << "SliceManager::slice(" << node << "): low: " << low << std::endl;
-  Debug("slicing") << "SliceManager::slice(" << node << "): high: " << high << std::endl;
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): low: " << low << std::endl;
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): high: " << high << std::endl;
 
   // Get the base term
   TNode nodeBase = baseTerm(node);
@@ -591,7 +591,7 @@ inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
 
   Assert(d_setCollection.size(nodeSliceSet) >= 2);
 
-  Debug("slicing") << "SliceManager::slice(" << node << "): current: " << d_setCollection.toString(nodeSliceSet) << std::endl;
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): current: " << d_setCollection.toString(nodeSliceSet) << std::endl;
   std::vector<size_t> slicePoints;
   if (low + 1 < high) {
     d_setCollection.getElements(nodeSliceSet, low + 1, high - 1, slicePoints);
@@ -601,9 +601,9 @@ inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
   // and generate the slices [i_0:low-1][low:i_1-1] [i_1:i2] ... [i_{n-1}:high-1][high:i_n-1]. They are in reverse order,
   // as they should be
   size_t i_0 = low == 0 ? 0 : d_setCollection.prev(nodeSliceSet, low + 1);
-  Debug("slicing") << "SliceManager::slice(" << node << "): i_0: " << i_0 << std::endl;
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): i_0: " << i_0 << std::endl;
   size_t i_n = high == utils::getSize(nodeBase) ? high: d_setCollection.next(nodeSliceSet, high - 1);
-  Debug("slicing") << "SliceManager::slice(" << node << "): i_n: " << i_n << std::endl;
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): i_n: " << i_n << std::endl;
 
   // Add the new points to the slice set (they might be there already)
   if (high < i_n) {
@@ -611,13 +611,13 @@ inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
   }
   // Construct the actuall slicing
   if (slicePoints.size() > 0) {
-    Debug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, slicePoints[0] - 1, low) << std::endl;
+    BVDebug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, slicePoints[0] - 1, low) << std::endl;
     sliced.push_back(utils::mkExtract(nodeBase, slicePoints[0] - 1, low));
     for (unsigned i = 1; i < slicePoints.size(); ++ i) {
-      Debug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, slicePoints[i] - 1, slicePoints[i-1])<< std::endl;
+      BVDebug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, slicePoints[i] - 1, slicePoints[i-1])<< std::endl;
       sliced.push_back(utils::mkExtract(nodeBase, slicePoints[i] - 1, slicePoints[i-1]));
     }
-    Debug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, high-1, slicePoints.back()) << std::endl;
+    BVDebug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, high-1, slicePoints.back()) << std::endl;
     sliced.push_back(utils::mkExtract(nodeBase, high-1, slicePoints.back()));
   } else {
     sliced.push_back(utils::mkExtract(nodeBase, high - 1, low));

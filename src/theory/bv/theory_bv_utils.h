@@ -24,6 +24,12 @@
 #include <sstream>
 #include "expr/node_manager.h"
 
+#ifdef CVC4_DEBUG
+#define BVDebug(x) Debug(x)
+#else
+#define BVDebug(x) if (false) Debug(x)
+#endif
+
 namespace CVC4 {
 namespace theory {
 namespace bv {

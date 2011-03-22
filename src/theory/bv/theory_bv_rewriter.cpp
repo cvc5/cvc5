@@ -28,7 +28,7 @@ using namespace CVC4::theory::bv;
 
 RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
 
-  Debug("bitvector") << "TheoryBV::postRewrite(" << node << ")" << std::endl;
+  BVDebug("bitvector") << "TheoryBV::postRewrite(" << node << ")" << std::endl;
 
   Node result;
 
@@ -79,7 +79,7 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
     }
   }
 
-  Debug("bitvector") << "TheoryBV::postRewrite(" << node << ") => " << result << std::endl;
+  BVDebug("bitvector") << "TheoryBV::postRewrite(" << node << ") => " << result << std::endl;
 
   return RewriteResponse(REWRITE_DONE, result);
 }
