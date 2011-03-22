@@ -9,10 +9,10 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
-static const bool LATE_COMER = true;
-static const bool s_CHECK_AFTER_PIVOT = true;
-static const uint32_t DIFF_CHECK_PERIOD = 20;
-static const uint32_t VARORDER_CHECK_PERIOD = 100;
+
+static const uint32_t NUM_CHECKS = 10;
+static const bool CHECK_AFTER_PIVOT = true;
+static const uint32_t VARORDER_CHECK_PERIOD = 200;
 
 SimplexDecisionProcedure::Statistics::Statistics():
   d_statPivots("theory::arith::pivots",0),
@@ -21,14 +21,16 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
   d_statUpdateConflicts("theory::arith::UpdateConflicts", 0),
   d_findConflictOnTheQueueTime("theory::arith::findConflictOnTheQueueTime"),
-  d_attemptBeforeDiffSearch("theory::arith::attemptBeforeDiffSearch",0),
-  d_successBeforeDiffSearch("theory::arith::successBeforeDiffSearch",0),
-  d_attemptAfterDiffSearch("theory::arith::attemptAfterDiffSearch",0),
-  d_successAfterDiffSearch("theory::arith::successAfterDiffSearch",0),
-  d_attemptDuringDiffSearch("theory::arith::attemptDuringDiffSearch",0),
-  d_successDuringDiffSearch("theory::arith::successDuringDiffSearch",0),
-  d_attemptDuringVarOrderSearch("theory::arith::attemptDuringVarOrderSearch",0),
-  d_successDuringVarOrderSearch("theory::arith::successDuringVarOrderSearch",0),
+  d_attemptBeforeDiffSearch("theory::arith::qi::BeforeDiffSearch::attempt",0),
+  d_successBeforeDiffSearch("theory::arith::qi::BeforeDiffSearch::success",0),
+  d_attemptAfterDiffSearch("theory::arith::qi::AfterDiffSearch::attempt",0),
+  d_successAfterDiffSearch("theory::arith::qi::AfterDiffSearch::success",0),
+  d_attemptDuringDiffSearch("theory::arith::qi::DuringDiffSearch::attempt",0),
+  d_successDuringDiffSearch("theory::arith::qi::DuringDiffSearch::success",0),
+  d_attemptDuringVarOrderSearch("theory::arith::qi::DuringVarOrderSearch::attempt",0),
+  d_successDuringVarOrderSearch("theory::arith::qi::DuringVarOrderSearch::success",0),
+  d_attemptAfterVarOrderSearch("theory::arith::qi::AfterVarOrderSearch::attempt",0),
+  d_successAfterVarOrderSearch("theory::arith::qi::AfterVarOrderSearch::success",0),
   d_delayedConflicts("theory::arith::delayedConflicts",0),
   d_pivotTime("theory::arith::pivotTime"),
   d_avgNumRowsNotContainingOnUpdate("theory::arith::avgNumRowsNotContainingOnUpdate"),
@@ -50,6 +52,8 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_successDuringDiffSearch);
   StatisticsRegistry::registerStat(&d_attemptDuringVarOrderSearch);
   StatisticsRegistry::registerStat(&d_successDuringVarOrderSearch);
+  StatisticsRegistry::registerStat(&d_attemptAfterVarOrderSearch);
+  StatisticsRegistry::registerStat(&d_successAfterVarOrderSearch);
 
   StatisticsRegistry::registerStat(&d_delayedConflicts);
 
@@ -76,6 +80,8 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_successDuringDiffSearch);
   StatisticsRegistry::unregisterStat(&d_attemptDuringVarOrderSearch);
   StatisticsRegistry::unregisterStat(&d_successDuringVarOrderSearch);
+  StatisticsRegistry::unregisterStat(&d_attemptAfterVarOrderSearch);
+  StatisticsRegistry::unregisterStat(&d_successAfterVarOrderSearch);
 
   StatisticsRegistry::unregisterStat(&d_delayedConflicts);
   StatisticsRegistry::unregisterStat(&d_pivotTime);
@@ -429,6 +435,7 @@ Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type, bool re
   case DuringDiffSearch:     ++(d_statistics.d_attemptDuringDiffSearch); break;
   case AfterDiffSearch:      ++(d_statistics.d_attemptAfterDiffSearch); break;
   case DuringVarOrderSearch: ++(d_statistics.d_attemptDuringVarOrderSearch); break;
+  case AfterVarOrderSearch:  ++(d_statistics.d_attemptAfterVarOrderSearch); break;
   }
 
   bool success = false;
@@ -456,6 +463,7 @@ Node SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type, bool re
     case DuringDiffSearch:     ++(d_statistics.d_successDuringDiffSearch); break;
     case AfterDiffSearch:      ++(d_statistics.d_successAfterDiffSearch); break;
     case DuringVarOrderSearch: ++(d_statistics.d_successDuringVarOrderSearch); break;
+    case AfterVarOrderSearch:  ++(d_statistics.d_successAfterVarOrderSearch); break;
     }
   }
   return firstConflict;
@@ -478,29 +486,21 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
     possibleConflict = findConflictOnTheQueue(BeforeDiffSearch);
   }
   if(possibleConflict.isNull()){
-    uint32_t pivotsSoFar = 0;
-    possibleConflict = searchForFeasibleSolution<minBoundAndRowCount>(d_numVariables + 1);
+    uint32_t numHueristicPivots = d_numVariables + 1;
+    uint32_t pivotsRemaining = numHueristicPivots;
+    uint32_t pivotsPerCheck = (numHueristicPivots/NUM_CHECKS) + (NUM_CHECKS-1);
     while(!d_queue.empty() &&
           possibleConflict.isNull() &&
-          pivotsSoFar <= d_numVariables + 1){
-      possibleConflict = searchForFeasibleSolution<minBoundAndRowCount>(DIFF_CHECK_PERIOD);
-      pivotsSoFar += DIFF_CHECK_PERIOD;
+          pivotsRemaining > 0){
+      uint32_t pivotsToDo = min(pivotsPerCheck, pivotsRemaining);
+      possibleConflict = searchForFeasibleSolution<minBoundAndRowCount>(pivotsToDo);
+      pivotsRemaining -= pivotsToDo;
       //Once every CHECK_PERIOD examine the entire queue for conflicts
       if(possibleConflict.isNull()){
         possibleConflict = findConflictOnTheQueue(DuringDiffSearch);
+      }else{
+        findConflictOnTheQueue(AfterDiffSearch, false);
       }
-    }
-  }
-
-  if(LATE_COMER){
-    if(d_queue.size() > 1 && possibleConflict.isNull()){
-      possibleConflict = findConflictOnTheQueue(AfterDiffSearch);
-    }else if (d_queue.size() > 1){
-      findConflictOnTheQueue(AfterDiffSearch, false);
-    }
-  }else{
-    if(d_queue.size() > 1 && possibleConflict.isNull()){
-      possibleConflict = findConflictOnTheQueue(AfterDiffSearch);
     }
   }
 
@@ -513,6 +513,8 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
       //Once every CHECK_PERIOD examine the entire queue for conflicts
       if(possibleConflict.isNull()){
         possibleConflict = findConflictOnTheQueue(DuringVarOrderSearch);
+      }else{
+        findConflictOnTheQueue(AfterVarOrderSearch, false);
       }
     }
   }
@@ -595,7 +597,7 @@ Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
     }
     Assert(x_j != ARITHVAR_SENTINEL);
     //Check to see if we already have a conflict with x_j to prevent wasteful work
-    if(s_CHECK_AFTER_PIVOT){
+    if(CHECK_AFTER_PIVOT){
       Node earlyConflict = checkBasicForConflict(x_j);
       if(!earlyConflict.isNull()){
         return earlyConflict;
