@@ -476,7 +476,11 @@ public:
    * Returns an iterator pointing to the first item in the list.
    */
   const_iterator begin() const {
-    return const_iterator(&d_headSegment, 0);
+    // This looks curious, but we have to make sure that begin() == end()
+    // for an empty list, and begin() == (head,0) for a nonempty one.
+    // Since the segment spill-over is implemented in
+    // iterator::operator++(), let's reuse it. */
+    return ++const_iterator(&d_headSegment, -1);
   }
 
   /**

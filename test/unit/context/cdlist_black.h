@@ -25,12 +25,15 @@
 
 #include "memory.h"
 
+#include "util/exception.h"
 #include "context/context.h"
 #include "context/cdlist.h"
+#include "context/cdlist_context_memory.h"
 
 using namespace std;
 using namespace CVC4::context;
 using namespace CVC4::test;
+using namespace CVC4;
 
 struct DtorSensitiveObject {
   bool& d_dtorCalled;
@@ -131,6 +134,17 @@ public:
     TS_ASSERT_EQUALS(alsoFlipToTrue, true);
     TS_ASSERT_EQUALS(shouldAlsoRemainFalse, false);
     TS_ASSERT_EQUALS(aThirdFalse, false);
+  }
+
+  void testEmptyIterators() {
+    CDList<int>* list1 = new(true) CDList<int>(d_context);
+    CDList< int, ContextMemoryAllocator<int> >* list2 =
+      new(d_context->getCMM())
+        CDList< int, ContextMemoryAllocator<int> >(true, d_context, false,
+                                                   ContextMemoryAllocator<int>(d_context->getCMM()));
+    TS_ASSERT_EQUALS(list1->begin(), list1->end());
+    TS_ASSERT_EQUALS(list2->begin(), list2->end());
+    list1->deleteSelf();
   }
 
   /* setrlimit() totally broken on Mac OS X */
