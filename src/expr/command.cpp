@@ -345,9 +345,9 @@ void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setInfo(":status", status);
     //d_result = "success";
-  } catch(ModalException& m) {
+  } catch(ModalException&) {
     d_result = "error";
-  } catch(BadOptionException& bo) {
+  } catch(BadOptionException&) {
     // should not happen
     d_result = "error";
   }
@@ -367,7 +367,7 @@ void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setLogic(d_logic);
     //d_result = "success";
-  } catch(ModalException& m) {
+  } catch(ModalException&) {
     d_result = "error";
   }
 }
@@ -387,9 +387,9 @@ void SetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setInfo(d_flag, d_sexpr);
     //d_result = "success";
-  } catch(ModalException& m) {
+  } catch(ModalException&) {
     d_result = "error";
-  } catch(BadOptionException& bo) {
+  } catch(BadOptionException&) {
     d_result = "unsupported";
   }
 }
@@ -419,7 +419,7 @@ void GetInfoCommand::invoke(SmtEngine* smtEngine) {
     stringstream ss;
     ss << smtEngine->getInfo(d_flag);
     d_result = ss.str();
-  } catch(BadOptionException& bo) {
+  } catch(BadOptionException&) {
     d_result = "unsupported";
   }
 }
@@ -449,9 +449,9 @@ void SetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setOption(d_flag, d_sexpr);
     //d_result = "success";
-  } catch(ModalException& m) {
+  } catch(ModalException&) {
     d_result = "error";
-  } catch(BadOptionException& bo) {
+  } catch(BadOptionException&) {
     d_result = "unsupported";
   }
 }
@@ -479,7 +479,7 @@ GetOptionCommand::GetOptionCommand(std::string flag) :
 void GetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getOption(d_flag).getValue();
-  } catch(BadOptionException& bo) {
+  } catch(BadOptionException&) {
     d_result = "unsupported";
   }
 }

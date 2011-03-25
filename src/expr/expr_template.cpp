@@ -74,7 +74,7 @@ TypeCheckingException::~TypeCheckingException() throw () {
 
 std::string TypeCheckingException::toString() const {
   std::stringstream ss;
-  ss << "Error type-checking " << d_expr << ": " << d_msg;
+  ss << "Error type-checking " << d_expr << ": " << d_msg << std::endl << *d_expr;
   return ss.str();
 }
 

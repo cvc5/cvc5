@@ -144,7 +144,7 @@ private:
   SimplexDecisionProcedure d_simplex;
 
 public:
-  TheoryArith(context::Context* c, OutputChannel& out);
+  TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation);
   ~TheoryArith();
 
   /**
@@ -161,7 +161,7 @@ public:
 
   void notifyEq(TNode lhs, TNode rhs);
 
-  Node getValue(TNode n, Valuation* valuation);
+  Node getValue(TNode n);
 
   void shutdown(){ }
 

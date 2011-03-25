@@ -103,8 +103,8 @@ private:
 
 public:
 
-  TheoryBV(context::Context* c, OutputChannel& out) :
-    Theory(THEORY_BV, c, out), d_eqEngine(*this, c, "theory::bv::EqualityEngine"), d_sliceManager(*this, c), d_assertions(c), d_disequalities(c) {
+  TheoryBV(context::Context* c, OutputChannel& out, Valuation valuation) :
+    Theory(THEORY_BV, c, out, valuation), d_eqEngine(*this, c, "theory::bv::EqualityEngine"), d_sliceManager(*this, c), d_assertions(c), d_disequalities(c) {
   }
 
   BvEqualityEngine& getEqualityEngine() {
@@ -123,7 +123,7 @@ public:
 
   void explain(TNode n);
 
-  Node getValue(TNode n, Valuation* valuation);
+  Node getValue(TNode n);
 
   std::string identify() const { return std::string("TheoryBV"); }
 };/* class TheoryBV */

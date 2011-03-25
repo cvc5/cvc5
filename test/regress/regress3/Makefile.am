@@ -25,7 +25,7 @@ EXTRA_DIST = $(TESTS)
 #EXTRA_DIST += \
 #	error.cvc
 
-# synonyms for "check"
+# synonyms for "checK" in this directory
 .PHONY: regress regress3 test
 regress regress3 test: check
 

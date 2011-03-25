@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-Node TheoryBuiltin::getValue(TNode n, Valuation* valuation) {
+Node TheoryBuiltin::getValue(TNode n) {
   switch(n.getKind()) {
 
   case kind::VARIABLE:
@@ -39,7 +39,7 @@ Node TheoryBuiltin::getValue(TNode n, Valuation* valuation) {
     Assert(n[0].getKind() == kind::TUPLE &&
            n[1].getKind() == kind::TUPLE);
     return NodeManager::currentNM()->
-      mkConst( getValue(n[0], valuation) == getValue(n[1], valuation) );
+      mkConst( getValue(n[0]) == getValue(n[1]) );
   }
 
   case kind::TUPLE: { // 2+ args
@@ -48,7 +48,7 @@ Node TheoryBuiltin::getValue(TNode n, Valuation* valuation) {
           iend = n.end();
         i != iend;
         ++i) {
-      nb << valuation->getValue(*i);
+      nb << d_valuation.getValue(*i);
     }
     return Node(nb);
   }

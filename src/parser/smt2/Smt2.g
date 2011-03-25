@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters, taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -27,7 +27,7 @@ options {
 @header {
 /**
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -321,6 +321,7 @@ term[CVC4::Expr& expr]
 @init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind;
+  Expr op;
   std::string name;
   std::vector<Expr> args;
   SExpr sexpr;
@@ -356,18 +357,27 @@ term[CVC4::Expr& expr]
   | /* A non-built-in function application */
     LPAREN_TOK
     functionName[name,CHECK_DECLARED]
-    { args.push_back(Expr()); }
-    termList[args,expr] RPAREN_TOK
     { PARSER_STATE->checkFunction(name);
       const bool isDefinedFunction =
         PARSER_STATE->isDefinedFunction(name);
-      expr = isDefinedFunction ?
-        PARSER_STATE->getFunction(name) :
-        PARSER_STATE->getVariable(name);
-      args[0] = expr;
-      expr = MK_EXPR(isDefinedFunction ?
-                     CVC4::kind::APPLY :
-                     CVC4::kind::APPLY_UF, args); }
+      if(isDefinedFunction) {
+        expr = PARSER_STATE->getFunction(name);
+        kind = CVC4::kind::APPLY;
+      } else {
+        expr = PARSER_STATE->getVariable(name);
+        kind = CVC4::kind::APPLY_UF;
+      }
+      args.push_back(expr);
+    }
+    termList[args,expr] RPAREN_TOK
+    { Debug("parser") << "args has size " << args.size() << std::endl << "expr is " << expr << std::endl;
+      for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+        Debug("parser") << "++ " << *i << std::endl;
+      expr = MK_EXPR(kind, args); }
+
+  | /* An indexed function application */
+    LPAREN_TOK indexedFunctionName[op] termList[args,expr] RPAREN_TOK
+    { expr = MK_EXPR(op, args); }
 
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
@@ -421,16 +431,59 @@ term[CVC4::Expr& expr]
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
 
+  | LPAREN_TOK INDEX_TOK bvLit=SYMBOL size=INTEGER_LITERAL RPAREN_TOK
+    { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
+        expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
+      } else {
+        PARSER_STATE->parseError("Unexpected symbol `" + AntlrInput::tokenText($bvLit) + "'");
+      }
+    }
+
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
-      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL,2);
+      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       expr = MK_CONST( BitVector(hexString, 16) ); }
 
   | BINARY_LITERAL
     { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
-      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL,2);
+      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       expr = MK_CONST( BitVector(binString, 2) ); }
     // NOTE: Theory constants go here
+  ;
+
+/**
+ * Matches a bit-vector operator (the ones parametrized by numbers)
+ */
+indexedFunctionName[CVC4::Expr& op]
+  : LPAREN_TOK INDEX_TOK
+    ( 'extract' n1=INTEGER_LITERAL n2=INTEGER_LITERAL
+      { op = MK_CONST(BitVectorExtract(AntlrInput::tokenToUnsigned($n1),
+                                       AntlrInput::tokenToUnsigned($n2))); }
+    | 'repeat' n=INTEGER_LITERAL
+      { op = MK_CONST(BitVectorRepeat(AntlrInput::tokenToUnsigned($n))); }
+    | 'zero_extend' n=INTEGER_LITERAL
+      { op = MK_CONST(BitVectorZeroExtend(AntlrInput::tokenToUnsigned($n))); }
+    | 'sign_extend' n=INTEGER_LITERAL
+      { op = MK_CONST(BitVectorSignExtend(AntlrInput::tokenToUnsigned($n))); }
+    | 'rotate_left' n=INTEGER_LITERAL
+      { op = MK_CONST(BitVectorRotateLeft(AntlrInput::tokenToUnsigned($n))); }
+    | 'rotate_right' n=INTEGER_LITERAL
+      { op = MK_CONST(BitVectorRotateRight(AntlrInput::tokenToUnsigned($n))); }
+    | badIndexedFunctionName
+   )
+    RPAREN_TOK
+  ;
+
+/**
+ * Matches an erroneous indexed function name (and args) for better
+ * error reporting.
+ */
+badIndexedFunctionName
+@declarations {
+  std::string name;
+}
+  : symbol[name,CHECK_NONE,SYM_VARIABLE] INTEGER_LITERAL+
+      { PARSER_STATE->parseError(std::string("Unknown indexed function `") + name + "'"); }
   ;
 
 /**
@@ -472,8 +525,40 @@ builtinOp[CVC4::Kind& kind]
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
+
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
+
+  | CONCAT_TOK   { $kind = CVC4::kind::BITVECTOR_CONCAT; }
+  | BVNOT_TOK   { $kind = CVC4::kind::BITVECTOR_NOT; }
+  | BVAND_TOK   { $kind = CVC4::kind::BITVECTOR_AND; }
+  | BVOR_TOK   { $kind = CVC4::kind::BITVECTOR_OR; }
+  | BVNEG_TOK   { $kind = CVC4::kind::BITVECTOR_NEG; }
+  | BVADD_TOK   { $kind = CVC4::kind::BITVECTOR_PLUS; }
+  | BVMUL_TOK   { $kind = CVC4::kind::BITVECTOR_MULT; }
+  | BVUDIV_TOK   { $kind = CVC4::kind::BITVECTOR_UDIV; }
+  | BVUREM_TOK   { $kind = CVC4::kind::BITVECTOR_UREM; }
+  | BVSHL_TOK     { $kind = CVC4::kind::BITVECTOR_SHL; }
+  | BVLSHR_TOK     { $kind = CVC4::kind::BITVECTOR_LSHR; }
+  | BVULT_TOK     { $kind = CVC4::kind::BITVECTOR_ULT; }
+  | BVNAND_TOK     { $kind = CVC4::kind::BITVECTOR_NAND; }
+  | BVNOR_TOK     { $kind = CVC4::kind::BITVECTOR_NOR; }
+  | BVXOR_TOK     { $kind = CVC4::kind::BITVECTOR_XOR; }
+  | BVXNOR_TOK     { $kind = CVC4::kind::BITVECTOR_XNOR; }
+  | BVCOMP_TOK     { $kind = CVC4::kind::BITVECTOR_COMP; }
+  | BVSUB_TOK     { $kind = CVC4::kind::BITVECTOR_SUB; }
+  | BVSDIV_TOK     { $kind = CVC4::kind::BITVECTOR_SDIV; }
+  | BVSREM_TOK     { $kind = CVC4::kind::BITVECTOR_SREM; }
+  | BVSMOD_TOK     { $kind = CVC4::kind::BITVECTOR_SMOD; }
+  | BVASHR_TOK     { $kind = CVC4::kind::BITVECTOR_ASHR; }
+  | BVULE_TOK     { $kind = CVC4::kind::BITVECTOR_ULE; }
+  | BVUGT_TOK     { $kind = CVC4::kind::BITVECTOR_UGT; }
+  | BVUGE_TOK     { $kind = CVC4::kind::BITVECTOR_UGE; }
+  | BVSLT_TOK     { $kind = CVC4::kind::BITVECTOR_SLT; }
+  | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
+  | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
+  | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
+
   // NOTE: Theory operators go here
   ;
 
@@ -534,9 +619,21 @@ sortSymbol[CVC4::Type& t]
 @declarations {
   std::string name;
   std::vector<CVC4::Type> args;
+  std::vector<uint64_t> numerals;
 }
   : sortName[name,CHECK_NONE]
   	{ t = PARSER_STATE->getSort(name); }
+  | LPAREN_TOK INDEX_TOK symbol[name,CHECK_NONE,SYM_SORT] nonemptyNumeralList[numerals] RPAREN_TOK
+    {
+      if( name == "BitVec" ) {
+        if( numerals.size() != 1 ) {
+          PARSER_STATE->parseError("Illegal bitvector type.");
+        }
+        t = EXPR_MANAGER->mkBitVectorType(numerals.front());
+      } else {
+        Unhandled(name);
+      }
+    }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
     {
       if( name == "Array" ) {
@@ -580,6 +677,16 @@ symbol[std::string& id,
       PARSER_STATE->checkDeclaration(id, check, type); }
   ;
 
+/**
+ * Matches a nonempty list of numerals.
+ * @param numerals the (empty) vector to house the numerals.
+ */
+nonemptyNumeralList[std::vector<uint64_t>& numerals]
+  : ( INTEGER_LITERAL
+      { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
+    )+
+  ;
+
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
 CHECKSAT_TOK : 'check-sat';
@@ -596,6 +703,7 @@ LET_TOK : 'let';
 ATTRIBUTE_TOK : '!';
 LPAREN_TOK : '(';
 RPAREN_TOK : ')';
+INDEX_TOK : '_';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
 GET_INFO_TOK : 'get-info';
@@ -631,6 +739,36 @@ STORE_TOK         : 'store';
 TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 
+CONCAT_TOK : 'concat';
+BVNOT_TOK : 'bvnot';
+BVAND_TOK : 'bvand';
+BVOR_TOK : 'bvor';
+BVNEG_TOK : 'bvneg';
+BVADD_TOK : 'bvadd';
+BVMUL_TOK : 'bvmul';
+BVUDIV_TOK : 'bvudiv';
+BVUREM_TOK : 'bvurem';
+BVSHL_TOK : 'bvshl';
+BVLSHR_TOK : 'bvlshr';
+BVULT_TOK : 'bvult';
+BVNAND_TOK : 'bvnand';
+BVNOR_TOK : 'bvnor';
+BVXOR_TOK : 'bvxor';
+BVXNOR_TOK : 'bvxnor';
+BVCOMP_TOK : 'bvcomp';
+BVSUB_TOK : 'bvsub';
+BVSDIV_TOK : 'bvsdiv';
+BVSREM_TOK : 'bvsrem';
+BVSMOD_TOK : 'bvsmod';
+BVASHR_TOK : 'bvashr';
+BVULE_TOK : 'bvule';
+BVUGT_TOK : 'bvugt';
+BVUGE_TOK : 'bvuge';
+BVSLT_TOK : 'bvslt';
+BVSLE_TOK : 'bvsle';
+BVSGT_TOK : 'bvsgt';
+BVSGE_TOK : 'bvsge';
+
 /**
  * Matches a symbol from the input. A symbol is a "simple" symbol or a
  * sequence of printable ASCII characters that starts and ends with | and
@@ -651,10 +789,12 @@ KEYWORD
 
 /** Matches a "simple" symbol: a non-empty sequence of letters, digits and
  * the characters + - / * = % ? ! . $ ~ & ^ < > @ that does not start with a
- * digit.
+ * digit, and is not the special reserved symbol '_'.
  */
 fragment SIMPLE_SYMBOL
-  : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)*
+  : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)+
+  | ALPHA
+  | SYMBOL_CHAR_NOUNDERSCORE
   ;
 
 /**
@@ -703,14 +843,14 @@ DECIMAL_LITERAL
 /**
  * Matches a hexadecimal constant.
  */
- HEX_LITERAL
+HEX_LITERAL
   : '#x' HEX_DIGIT+
   ;
 
 /**
  * Matches a binary constant.
  */
- BINARY_LITERAL
+BINARY_LITERAL
   : '#b' ('0' | '1')+
   ;
 
@@ -729,7 +869,6 @@ STRING_LITERAL
 COMMENT
   : ';' (~('\n' | '\r'))* { SKIP(); }
   ;
-
 
 /**
  * Matches any letter ('a'-'z' and 'A'-'Z').
@@ -750,9 +889,13 @@ fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 /**
  * Matches the characters that may appear in a "symbol" (i.e., an identifier)
  */
-fragment SYMBOL_CHAR
-  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '_' | '~'
+fragment SYMBOL_CHAR_NOUNDERSCORE
+  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '~'
   | '&' | '^' | '<' | '>' | '@'
+  ;
+
+fragment SYMBOL_CHAR
+  : SYMBOL_CHAR_NOUNDERSCORE | '_'
   ;
 
 /**

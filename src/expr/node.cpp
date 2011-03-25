@@ -37,7 +37,7 @@ TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() throw () {
 
 string TypeCheckingExceptionPrivate::toString() const {
   stringstream ss;
-  ss << "Error type-checking " << d_node << ": " << d_msg;
+  ss << "Error type-checking " << d_node << ": " << d_msg << std::endl << *d_node;
   return ss.str();
 }
 

@@ -2,15 +2,15 @@ SUBDIRS = unit system regress .
 
 MAKEFLAGS = -k
 
-.PHONY: units regress regress0 regress1 regress2 regress3
-units regress regress0 regress1 regress2 regress3:
+.PHONY: units systemtests regress regress0 regress1 regress2 regress3
+units systemtests regress regress0 regress1 regress2 regress3:
 	@$(MAKE) check-pre; \
 	for dir in $(SUBDIRS); do \
 		test $$dir = . || (cd $$dir && $(MAKE) $(AM_MAKEFLAGS) $@); \
 	done; \
 	$(MAKE) check-local
 
-# synonyms for "check"
+# synonyms for "checK" in this directory
 .PHONY: test
 test: check
 
@@ -36,6 +36,9 @@ check-local:
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std; \
 	if test -s "unit/test-suite.log"; then :; else \
 		echo "$${red}Unit tests did not run; maybe there were compilation problems ?$$std"; \
+        fi; \
+	if test -s "system/test-suite.log"; then :; else \
+		echo "$${red}System tests did not run; maybe there were compilation problems ?$$std"; \
         fi; \
 	for dir in $(subdirs_to_check); do \
 		log=$$dir/test-suite.log; \

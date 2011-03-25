@@ -107,8 +107,8 @@ class FakeTheory : public Theory {
   // static std::deque<RewriteItem> s_expected;
 
 public:
-  FakeTheory(context::Context* ctxt, OutputChannel& out) :
-    Theory(theoryId, ctxt, out)
+  FakeTheory(context::Context* ctxt, OutputChannel& out, Valuation valuation) :
+    Theory(theoryId, ctxt, out, valuation)
   { }
 
   /** Register an expected rewrite call */
@@ -212,7 +212,7 @@ public:
   void check(Theory::Effort) { Unimplemented(); }
   void propagate(Theory::Effort) { Unimplemented(); }
   void explain(TNode, Theory::Effort) { Unimplemented(); }
-  Node getValue(TNode n, Valuation* valuation) { return Node::null(); }
+  Node getValue(TNode n) { return Node::null(); }
 };/* class FakeTheory */
 
 

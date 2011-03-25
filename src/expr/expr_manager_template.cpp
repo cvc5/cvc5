@@ -115,22 +115,22 @@ ExprManager::~ExprManager() {
 
 BooleanType ExprManager::booleanType() const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->booleanType()));
+  return BooleanType(Type(d_nodeManager, new TypeNode(d_nodeManager->booleanType())));
 }
 
 KindType ExprManager::kindType() const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->kindType()));
+  return KindType(Type(d_nodeManager, new TypeNode(d_nodeManager->kindType())));
 }
 
 RealType ExprManager::realType() const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->realType()));
+  return RealType(Type(d_nodeManager, new TypeNode(d_nodeManager->realType())));
 }
 
 IntegerType ExprManager::integerType() const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->integerType()));
+  return IntegerType(Type(d_nodeManager, new TypeNode(d_nodeManager->integerType())));
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
@@ -285,7 +285,7 @@ Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
 /** Make a function type from domain to range. */
 FunctionType ExprManager::mkFunctionType(const Type& domain, const Type& range) {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(*domain.d_typeNode, *range.d_typeNode)));
+  return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(*domain.d_typeNode, *range.d_typeNode))));
 }
 
 /** Make a function type with input types from argTypes. */
@@ -296,7 +296,7 @@ FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, cons
   for (unsigned i = 0, i_end = argTypes.size(); i < i_end; ++ i) {
     argTypeNodes.push_back(*argTypes[i].d_typeNode);
   }
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(argTypeNodes, *range.d_typeNode)));
+  return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(argTypeNodes, *range.d_typeNode))));
 }
 
 FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
@@ -306,7 +306,7 @@ FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
   for (unsigned i = 0, i_end = sorts.size(); i < i_end; ++ i) {
      sortNodes.push_back(*sorts[i].d_typeNode);
   }
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(sortNodes)));
+  return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(sortNodes))));
 }
 
 FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
@@ -316,7 +316,7 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   for (unsigned i = 0, i_end = sorts.size(); i < i_end; ++ i) {
      sortNodes.push_back(*sorts[i].d_typeNode);
   }
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkPredicateType(sortNodes)));
+  return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkPredicateType(sortNodes))));
 }
 
 TupleType ExprManager::mkTupleType(const std::vector<Type>& types) {
@@ -326,29 +326,29 @@ TupleType ExprManager::mkTupleType(const std::vector<Type>& types) {
   for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
      typeNodes.push_back(*types[i].d_typeNode);
   }
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes)));
+  return TupleType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes))));
 }
 
 BitVectorType ExprManager::mkBitVectorType(unsigned size) const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkBitVectorType(size)));
+  return BitVectorType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkBitVectorType(size))));
 }
 
 ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkArrayType(*indexType.d_typeNode, *constituentType.d_typeNode)));
+  return ArrayType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkArrayType(*indexType.d_typeNode, *constituentType.d_typeNode))));
 }
 
 SortType ExprManager::mkSort(const std::string& name) const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name)));
+  return SortType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name))));
 }
 
 SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
                                                    size_t arity) const {
   NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager,
-              new TypeNode(d_nodeManager->mkSortConstructor(name, arity)));
+  return SortConstructorType(Type(d_nodeManager,
+              new TypeNode(d_nodeManager->mkSortConstructor(name, arity))));
 }
 
 /**

@@ -497,6 +497,15 @@ protected:
 public:
 
   /**
+   * Disable delete: objects allocated with new(ContextMemorymanager) should
+   * never be deleted.  Objects allocated with new(bool) should be deleted by
+   * calling deleteSelf().
+   */
+  static void operator delete(void* pMem) {
+    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+  }
+
+  /**
    * operator new using ContextMemoryManager (common case used by
    * subclasses during save()).  No delete is required for memory
    * allocated this way, since it is automatically released when the
@@ -571,15 +580,6 @@ public:
     Debug("context") << "deleteSelf(" << this << ")" << std::endl;
     this->~ContextObj();
     ::operator delete(this);
-  }
-
-  /**
-   * Disable delete: objects allocated with new(ContextMemorymanager) should
-   * never be deleted.  Objects allocated with new(bool) should be deleted by
-   * calling deleteSelf().
-   */
-  static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
   }
 
 };/* class ContextObj */

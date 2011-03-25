@@ -85,12 +85,10 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUFTim(context::Context* c, OutputChannel& out);
+  TheoryUFTim(context::Context* c, OutputChannel& out, Valuation valuation);
 
   /** Destructor for the TheoryUF object. */
   ~TheoryUFTim();
-
-
 
   /**
    * Registers a previously unseen [in this context] node n.
@@ -150,7 +148,7 @@ public:
    * Overloads Node getValue(TNode n); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  Node getValue(TNode n, Valuation* valuation) {
+  Node getValue(TNode n) {
     Unimplemented("TheoryUFTim doesn't support model generation");
   }
 

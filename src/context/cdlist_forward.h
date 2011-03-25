@@ -37,7 +37,7 @@
 #include <memory>
 
 namespace __gnu_cxx {
-  template <class Key> class hash;
+  template <class Key> struct hash;
 }/* __gnu_cxx namespace */
 
 namespace CVC4 {

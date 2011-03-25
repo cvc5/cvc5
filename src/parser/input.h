@@ -94,10 +94,11 @@ class CVC4_PUBLIC Input {
   InputStream *d_inputStream;
 
   /* Since we own d_inputStream and it needs to be freed, we need to prevent
-   * copy construction and assignment.
+   * copy construction and assignment.  Mark them private and do not define
+   * them.
    */
-  Input(const Input& input) { Unimplemented("Copy constructor for Input."); }
-  Input& operator=(const Input& input) { Unimplemented("operator= for Input."); }
+  Input(const Input& input) CVC4_UNUSED;
+  Input& operator=(const Input& input) CVC4_UNUSED;
 
 public:
 

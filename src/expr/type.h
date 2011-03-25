@@ -73,7 +73,7 @@ class CVC4_PUBLIC Type {
   friend class SmtEngine;
   friend class ExprManager;
   friend class TypeNode;
-  friend class TypeHashStrategy;
+  friend struct TypeHashStrategy;
   friend std::ostream& operator<<(std::ostream& out, const Type& t);
 
 protected:

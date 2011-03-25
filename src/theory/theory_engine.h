@@ -151,12 +151,6 @@ class TheoryEngine {
   context::CDO<bool> d_incomplete;
 
   /**
-   * A "valuation proxy" for this TheoryEngine.  Used only in getValue()
-   * for decoupled Theory-to-TheoryEngine communication.
-   */
-  theory::Valuation d_valuation;
-
-  /**
    * Replace ITE forms in a node.
    */
   Node removeITEs(TNode t);
@@ -180,7 +174,7 @@ public:
    */
   template <class TheoryClass>
   void addTheory() {
-    TheoryClass* theory = new TheoryClass(d_context, d_theoryOut);
+    TheoryClass* theory = new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
     d_theoryTable[theory->getId()] = theory;
     d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
 
@@ -257,6 +251,12 @@ public:
    */
   inline void assertFact(TNode node) {
     Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
+
+    // Mark it as asserted in this context
+    //
+    // [MGD] removed for now, this appears to have a nontrivial
+    // performance penalty
+    // node.setAttribute(theory::Asserted(), true);
 
     // Get the atom
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;

@@ -31,8 +31,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 using namespace CVC4::theory::uf::morgan;
 
-TheoryUFMorgan::TheoryUFMorgan(Context* ctxt, OutputChannel& out) :
-  TheoryUF(ctxt, out),
+TheoryUFMorgan::TheoryUFMorgan(Context* ctxt, OutputChannel& out, Valuation valuation) :
+  TheoryUF(ctxt, out, valuation),
   d_assertions(ctxt),
   d_ccChannel(this),
   d_cc(ctxt, &d_ccChannel),
@@ -567,7 +567,7 @@ void TheoryUFMorgan::notifyRestart() {
   Debug("uf") << "uf: end notifyDecisionLevelZero()" << endl;
 }
 
-Node TheoryUFMorgan::getValue(TNode n, Valuation* valuation) {
+Node TheoryUFMorgan::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -585,7 +585,7 @@ Node TheoryUFMorgan::getValue(TNode n, Valuation* valuation) {
 
   case kind::EQUAL: // 2 args
     return nodeManager->
-      mkConst( valuation->getValue(n[0]) == valuation->getValue(n[1]) );
+      mkConst( d_valuation.getValue(n[0]) == d_valuation.getValue(n[1]) );
 
   default:
     Unhandled(n.getKind());

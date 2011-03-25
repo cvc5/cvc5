@@ -7,8 +7,8 @@ ACLOCAL_AMFLAGS = -I config
 
 SUBDIRS = src test contrib
 
-.PHONY: units regress regress0 regress1 regress2 regress3
-regress regress0 regress1 regress2 regress3: all
+.PHONY: units systemtests regress regress0 regress1 regress2 regress3
+systemtests regress regress0 regress1 regress2 regress3: all
 	(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 units: all
 	(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1

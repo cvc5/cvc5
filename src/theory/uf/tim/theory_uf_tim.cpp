@@ -27,8 +27,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 using namespace CVC4::theory::uf::tim;
 
-TheoryUFTim::TheoryUFTim(Context* c, OutputChannel& out) :
-  TheoryUF(c, out),
+TheoryUFTim::TheoryUFTim(Context* c, OutputChannel& out, Valuation valuation) :
+  TheoryUF(c, out, valuation),
   d_assertions(c),
   d_pending(c),
   d_currentPendingIdx(c,0),

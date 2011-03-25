@@ -36,18 +36,18 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-/** Tag for the "registerTerm()-has-been-called" flag on Nodes */
-struct Registered {};
-/** The "registerTerm()-has-been-called" flag on Nodes */
-typedef CVC4::expr::CDAttribute<Registered, bool> RegisteredAttr;
-
 namespace theory {
 
-struct PreRegisteredTag {};
-typedef expr::Attribute<PreRegisteredTag, bool> PreRegistered;
+/** Tag for the "registerTerm()-has-been-called" flag on Nodes */
+struct RegisteredAttrTag {};
+/** The "registerTerm()-has-been-called" flag on Nodes */
+typedef CVC4::expr::CDAttribute<RegisteredAttrTag, bool> RegisteredAttr;
 
-struct IteRewriteTag {};
-typedef expr::Attribute<IteRewriteTag, Node> IteRewriteAttr;
+struct PreRegisteredAttrTag {};
+typedef expr::Attribute<PreRegisteredAttrTag, bool> PreRegistered;
+
+struct IteRewriteAttrTag {};
+typedef expr::Attribute<IteRewriteAttrTag, Node> IteRewriteAttr;
 
 }/* CVC4::theory namespace */
 
@@ -136,7 +136,6 @@ TheoryEngine::TheoryEngine(context::Context* ctxt, const Options& opts) :
   d_theoryRegistration(opts.theoryRegistration),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
-  d_valuation(this),
   d_opts(opts),
   d_statistics() {
 
@@ -347,7 +346,7 @@ Node TheoryEngine::getValue(TNode node) {
   }
 
   // otherwise ask the theory-in-charge
-  return theoryOf(node)->getValue(node, &d_valuation);
+  return theoryOf(node)->getValue(node);
 }/* TheoryEngine::getValue(TNode node) */
 
 bool TheoryEngine::presolve() {

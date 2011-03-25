@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/attribute.h"
+#include "theory/valuation.h"
 #include "theory/output_channel.h"
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -37,10 +38,11 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
-  class Valuation;
-}/* CVC4::theory namespace */
 
-namespace theory {
+/** Tag for the "newFact()-has-been-called-in-this-context" flag on Nodes */
+struct AssertedAttrTag {};
+/** The "newFact()-has-been-called-in-this-context" flag on Nodes */
+typedef CVC4::expr::CDAttribute<AssertedAttrTag, bool> Asserted;
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -88,15 +90,14 @@ protected:
   /**
    * Construct a Theory.
    */
-  Theory(TheoryId id, context::Context* ctxt, OutputChannel& out) throw() :
+  Theory(TheoryId id, context::Context* ctxt, OutputChannel& out, Valuation valuation) throw() :
     d_id(id),
     d_context(ctxt),
     d_facts(ctxt),
     d_factsHead(ctxt, 0),
-    d_out(&out) {
+    d_out(&out),
+    d_valuation(valuation) {
   }
-
-
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -114,10 +115,11 @@ protected:
    */
   OutputChannel* d_out;
 
-  /** Tag for the "preRegisterTerm()-has-been-called" flag on Nodes */
-  struct PreRegistered {};
-  /** The "preRegisterTerm()-has-been-called" flag on Nodes */
-  typedef CVC4::expr::Attribute<PreRegistered, bool> PreRegisteredAttr;
+  /**
+   * The valuation proxy for the Theory to communicate back with the
+   * theory engine (and other theories).
+   */
+  Valuation d_valuation;
 
   /**
    * Returns the next atom in the assertFact() queue.  Guarantees that
@@ -133,6 +135,26 @@ protected:
                     << "(" << d_facts.size() << " left)" << std::endl;
     d_out->newFact(fact);
     return fact;
+  }
+
+  /**
+   * Provides access to the facts queue, primarily intended for theory
+   * debugging purposes.
+   *
+   * @return the iterator to the beginning of the fact queue
+   */
+  context::CDList<Node>::const_iterator facts_begin() const {
+    return d_facts.begin();
+  }
+
+  /**
+   * Provides access to the facts queue, primarily intended for theory
+   * debugging purposes.
+   *
+   * @return the iterator to the end of the fact queue
+   */
+  context::CDList<Node>::const_iterator facts_end() const {
+    return d_facts.end();
   }
 
 public:
@@ -345,7 +367,7 @@ public:
    * and suspect this situation is the case, return Node::null()
    * rather than throwing an exception.
    */
-  virtual Node getValue(TNode n, Valuation* valuation) {
+  virtual Node getValue(TNode n) {
     Unimplemented("Theory %s doesn't support Theory::getValue interface",
                   identify().c_str());
     return Node::null();

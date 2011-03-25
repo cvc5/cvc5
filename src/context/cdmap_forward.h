@@ -29,7 +29,7 @@
 #define __CVC4__CONTEXT__CDMAP_FORWARD_H
 
 namespace __gnu_cxx {
-  template <class Key> class hash;
+  template <class Key> struct hash;
 }/* __gnu_cxx namespace */
 
 namespace CVC4 {

@@ -12,13 +12,13 @@ regress3: regress0 regress1 regress2
 regress0 regress1 regress2 regress3:
 	-cd $@ && $(MAKE) check
 
-# synonyms for "check"
+# synonyms for "checK" in this directory in this directory
 .PHONY: regress test
 regress test: check
 
 # no-ops here
-.PHONY: units
-units:
+.PHONY: units systemtests
+units systemtests:
 
 EXTRA_DIST = \
 	run_regression \

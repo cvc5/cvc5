@@ -55,8 +55,8 @@ using namespace CVC4::theory::arith;
 struct SlackAttrID;
 typedef expr::Attribute<SlackAttrID, Node> Slack;
 
-TheoryArith::TheoryArith(context::Context* c, OutputChannel& out) :
-  Theory(THEORY_ARITH, c, out),
+TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation) :
+  Theory(THEORY_ARITH, c, out, valuation),
   d_partialModel(c),
   d_userVariables(),
   d_diseq(c),
@@ -497,7 +497,7 @@ void TheoryArith::propagate(Effort e) {
   }
 }
 
-Node TheoryArith::getValue(TNode n, Valuation* valuation) {
+Node TheoryArith::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -508,7 +508,7 @@ Node TheoryArith::getValue(TNode n, Valuation* valuation) {
       Node eq = d_removedRows.find(var)->second;
       Assert(n == eq[0]);
       Node rhs = eq[1];
-      return getValue(rhs, valuation);
+      return getValue(rhs);
     }
 
     DeltaRational drat = d_partialModel.getAssignment(var);
@@ -521,7 +521,7 @@ Node TheoryArith::getValue(TNode n, Valuation* valuation) {
 
   case kind::EQUAL: // 2 args
     return nodeManager->
-      mkConst( valuation->getValue(n[0]) == valuation->getValue(n[1]) );
+      mkConst( d_valuation.getValue(n[0]) == d_valuation.getValue(n[1]) );
 
   case kind::PLUS: { // 2+ args
     Rational value(0);
@@ -529,7 +529,7 @@ Node TheoryArith::getValue(TNode n, Valuation* valuation) {
             iend = n.end();
           i != iend;
           ++i) {
-      value += valuation->getValue(*i).getConst<Rational>();
+      value += d_valuation.getValue(*i).getConst<Rational>();
     }
     return nodeManager->mkConst(value);
   }
@@ -540,7 +540,7 @@ Node TheoryArith::getValue(TNode n, Valuation* valuation) {
             iend = n.end();
           i != iend;
           ++i) {
-      value *= valuation->getValue(*i).getConst<Rational>();
+      value *= d_valuation.getValue(*i).getConst<Rational>();
     }
     return nodeManager->mkConst(value);
   }
@@ -554,24 +554,24 @@ Node TheoryArith::getValue(TNode n, Valuation* valuation) {
     Unreachable();
 
   case kind::DIVISION: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() /
-                                 valuation->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() /
+                                 d_valuation.getValue(n[1]).getConst<Rational>() );
 
   case kind::LT: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() <
-                                 valuation->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() <
+                                 d_valuation.getValue(n[1]).getConst<Rational>() );
 
   case kind::LEQ: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() <=
-                                 valuation->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() <=
+                                 d_valuation.getValue(n[1]).getConst<Rational>() );
 
   case kind::GT: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() >
-                                 valuation->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() >
+                                 d_valuation.getValue(n[1]).getConst<Rational>() );
 
   case kind::GEQ: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<Rational>() >=
-                                 valuation->getValue(n[1]).getConst<Rational>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() >=
+                                 d_valuation.getValue(n[1]).getConst<Rational>() );
 
   default:
     Unhandled(n.getKind());

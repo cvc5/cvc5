@@ -31,7 +31,7 @@ namespace arrays {
 
 class TheoryArrays : public Theory {
 public:
-  TheoryArrays(context::Context* c, OutputChannel& out);
+  TheoryArrays(context::Context* c, OutputChannel& out, Valuation valuation);
   ~TheoryArrays();
   void preRegisterTerm(TNode n) { }
   void registerTerm(TNode n) { }
@@ -43,7 +43,7 @@ public:
   void check(Effort e);
   void propagate(Effort e) { }
   void explain(TNode n) { }
-  Node getValue(TNode n, Valuation* valuation);
+  Node getValue(TNode n);
   void shutdown() { }
   std::string identify() const { return std::string("TheoryArrays"); }
 };/* class TheoryArrays */

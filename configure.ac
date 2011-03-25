@@ -491,6 +491,9 @@ AC_MSG_RESULT([$enable_assertions])
 
 if test "$enable_assertions" = yes; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_ASSERTIONS"
+else
+  # turn off regular C assert() also
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DNDEBUG"
 fi
 
 AC_MSG_CHECKING([whether to do a traceable build of CVC4])

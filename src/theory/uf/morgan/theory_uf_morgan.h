@@ -132,7 +132,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUFMorgan(context::Context* ctxt, OutputChannel& out);
+  TheoryUFMorgan(context::Context* ctxt, OutputChannel& out, Valuation valuation);
 
   /** Destructor for UF theory, cleans up memory and statistics. */
   ~TheoryUFMorgan();
@@ -214,7 +214,7 @@ public:
    * Overloads Node getValue(TNode n); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  Node getValue(TNode n, Valuation* valuation);
+  Node getValue(TNode n);
 
   std::string identify() const { return std::string("TheoryUFMorgan"); }
 

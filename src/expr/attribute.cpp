@@ -37,8 +37,7 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   deleteFromTable(d_strings, nv);
   deleteFromTable(d_ptrs, nv);
 
-  // FIXME CD-bools in optimized table
-  deleteFromTable(d_cdbools, nv);
+  d_cdbools.erase(nv);
   deleteFromTable(d_cdints, nv);
   deleteFromTable(d_cdtnodes, nv);
   deleteFromTable(d_cdnodes, nv);
@@ -55,7 +54,6 @@ void AttributeManager::deleteAllAttributes() {
   deleteAllFromTable(d_strings);
   deleteAllFromTable(d_ptrs);
 
-  // FIXME CD-bools in optimized table
   d_cdbools.clear();
   d_cdints.clear();
   d_cdtnodes.clear();
@@ -63,7 +61,6 @@ void AttributeManager::deleteAllAttributes() {
   d_cdstrings.clear();
   d_cdptrs.clear();
 }
-
 
 }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */

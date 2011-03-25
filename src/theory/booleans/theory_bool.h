@@ -30,8 +30,8 @@ namespace booleans {
 
 class TheoryBool : public Theory {
 public:
-  TheoryBool(context::Context* c, OutputChannel& out) :
-    Theory(THEORY_BOOL, c, out) {
+  TheoryBool(context::Context* c, OutputChannel& out, Valuation valuation) :
+    Theory(THEORY_BOOL, c, out, valuation) {
   }
 
   void preRegisterTerm(TNode n) {
@@ -43,7 +43,7 @@ public:
     Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
   }
 
-  Node getValue(TNode n, Valuation* valuation);
+  Node getValue(TNode n);
 
   std::string identify() const { return std::string("TheoryBool"); }
 };

@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class AllRewriteRules;
+struct AllRewriteRules;
 
 class TheoryBVRewriter {
 

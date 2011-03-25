@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arrays;
 
 
-TheoryArrays::TheoryArrays(Context* c, OutputChannel& out) :
-  Theory(THEORY_ARRAY, c, out)
+TheoryArrays::TheoryArrays(Context* c, OutputChannel& out, Valuation valuation) :
+  Theory(THEORY_ARRAY, c, out, valuation)
 {
 }
 
@@ -60,7 +60,7 @@ void TheoryArrays::check(Effort e) {
   Debug("arrays") << "TheoryArrays::check(): done" << endl;
 }
 
-Node TheoryArrays::getValue(TNode n, Valuation* valuation) {
+Node TheoryArrays::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -70,7 +70,7 @@ Node TheoryArrays::getValue(TNode n, Valuation* valuation) {
 
   case kind::EQUAL: // 2 args
     return nodeManager->
-      mkConst( valuation->getValue(n[0]) == valuation->getValue(n[1]) );
+      mkConst( d_valuation.getValue(n[0]) == d_valuation.getValue(n[1]) );
 
   default:
     Unhandled(n.getKind());

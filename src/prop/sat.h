@@ -53,12 +53,13 @@ class CnfStream;
 /** Type of the SAT variables */
 typedef Minisat::Var SatVariable;
 
-/** Type of the Sat literals */
+/** Type of the SAT literals */
 typedef Minisat::Lit SatLiteral;
 
 /** Type of the SAT clauses */
 typedef Minisat::vec<SatLiteral> SatClause;
 
+/** Type of a SAT variable assignment (T, F, unknown) */
 typedef Minisat::lbool SatLiteralValue;
 
 /**

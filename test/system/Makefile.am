@@ -1,5 +1,7 @@
 TESTS_ENVIRONMENT =
-TESTS =
+TESTS = \
+	boilerplate \
+	ouroborous
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
@@ -28,20 +30,43 @@ else
 system_LINK = $(CXXLINK)
 endif
 
+AM_CPPFLAGS = \
+	-I. \
+	"-I@top_srcdir@/src/include" \
+	"-I@top_srcdir@/lib" \
+	"-I@top_srcdir@/src" \
+	"-I@top_builddir@/src" \
+	"-I@top_srcdir@/src/prop/minisat" \
+	-D __STDC_LIMIT_MACROS \
+	-D __STDC_FORMAT_MACROS \
+	$(TEST_CPPFLAGS)
+LIBADD = \
+	@abs_top_builddir@/src/parser/libcvc4parser.la \
+	@abs_top_builddir@/src/libcvc4.la
+
 # WHEN SYSTEM TESTS ARE ADDED, BUILD LIKE THIS:
-# system_test: system_test.cpp
-# 	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@.lo $<
-# 	$(AM_V_CXXLD)$(system_LINK) $(AM_LDFLAGS) $@.lo
+$(TESTS:%=%.lo): %.lo: %.cpp
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $+
+$(TESTS): %: %.lo $(LIBADD)
+	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $<
+
+# trick automake into setting LTCXXCOMPILE, CXXLINK, etc.
+if CVC4_FALSE
+noinst_LTLIBRARIES = libdummy.la
+nodist_libdummy_la_SOURCES = ouroborous.cpp
+libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
+endif
 
 # rebuild tests if a library changes
-$(TESTS):: $(TEST_DEPS)
+#$(TESTS):: $(TEST_DEPS)
 
+MAKEFLAGS = -k
 export VERBOSE = 1
 
-# synonyms for "check"
-.PHONY: test
-test: check
+# synonyms for "checK" in this directory in this directory
+.PHONY: test systemtests
+test systemtests: check
 
 # no-ops here
-.PHONY: units regress regress0 regress1 regress2 regress3s
+.PHONY: units regress regress0 regress1 regress2 regress3
 units regress regress0 regress1 regress2 regress3:

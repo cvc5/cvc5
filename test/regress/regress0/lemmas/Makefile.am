@@ -21,7 +21,7 @@ TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS)
 
-# synonyms for "check"
+# synonyms for "checK" in this directory
 .PHONY: regress regress0 test
 regress regress0 test: check
 

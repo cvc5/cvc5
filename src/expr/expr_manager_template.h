@@ -40,7 +40,7 @@ namespace CVC4 {
 class Expr;
 class SmtEngine;
 class NodeManager;
-class Options;
+struct Options;
 class IntStat;
 
 namespace context {

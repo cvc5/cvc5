@@ -16,8 +16,10 @@
  ** Convenience class for scoping variable and type declarations.
  **/
 
-#ifndef DECLARATION_SCOPE_H
-#define DECLARATION_SCOPE_H
+#include "cvc4_public.h"
+
+#ifndef __CVC4__DECLARATION_SCOPE_H
+#define __CVC4__DECLARATION_SCOPE_H
 
 #include <vector>
 #include <utility>
@@ -182,4 +184,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* DECLARATION_SCOPE_H */
+#endif /* __CVC4__DECLARATION_SCOPE_H */

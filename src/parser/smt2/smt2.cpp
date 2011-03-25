@@ -82,6 +82,9 @@ void Smt2::addTheory(Theory theory) {
     addArithmeticOperators();
     break;
 
+  case THEORY_BITVECTORS:
+    break;
+
   default:
     Unhandled(theory);
   }
@@ -134,6 +137,10 @@ void Smt2::setLogic(const std::string& name) {
     addOperator(kind::APPLY_UF);
     break;
 
+  case Smt::QF_BV:
+    addTheory(THEORY_BITVECTORS);
+    break;
+
   case Smt::AUFLIA:
   case Smt::AUFLIRA:
   case Smt::AUFNIRA:
@@ -141,7 +148,6 @@ void Smt2::setLogic(const std::string& name) {
   case Smt::UFNIA:
   case Smt::QF_AUFBV:
   case Smt::QF_AUFLIA:
-  case Smt::QF_BV:
     Unhandled(name);
   }
 }

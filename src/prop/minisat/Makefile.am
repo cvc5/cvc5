@@ -3,7 +3,7 @@ AM_CPPFLAGS = \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \               	
 	-I@srcdir@/ -I@srcdir@/../.. -I@builddir@/../.. -I@srcdir@/../../include
-AM_CXXFLAGS = -Wall -Wno-parentheses -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) -DNDEBUG
+AM_CXXFLAGS = -Wall -Wno-parentheses -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = libminisat.la
 libminisat_la_SOURCES = \

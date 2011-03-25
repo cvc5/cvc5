@@ -153,11 +153,11 @@ namespace attr {
  * to value_type using our specialized hash function for these pairs.
  */
 template <class value_type>
-struct AttrHash :
+class AttrHash :
     public __gnu_cxx::hash_map<std::pair<uint64_t, NodeValue*>,
                                value_type,
                                AttrHashStrategy> {
-};
+};/* class AttrHash<> */
 
 /**
  * In the case of Boolean-valued attributes we have a special
@@ -205,7 +205,7 @@ class AttrHash<bool> :
     operator bool() const {
       return (d_word & (1 << d_bit)) ? true : false;
     }
-  };
+  };/* class AttrHash<bool>::BitAccessor */
 
   /**
    * A (somewhat degenerate) iterator over boolean-valued attributes.
@@ -239,7 +239,7 @@ class AttrHash<bool> :
     bool operator==(const BitIterator& b) {
       return d_entry == b.d_entry && d_bit == b.d_bit;
     }
-  };
+  };/* class AttrHash<bool>::BitIterator */
 
   /**
    * A (somewhat degenerate) const_iterator over boolean-valued
@@ -274,7 +274,7 @@ class AttrHash<bool> :
     bool operator==(const ConstBitIterator& b) {
       return d_entry == b.d_entry && d_bit == b.d_bit;
     }
-  };
+  };/* class AttrHash<bool>::ConstBitIterator */
 
 public:
 
@@ -374,7 +374,226 @@ public:
                    value_type,
                    AttrHashStrategy>(ctxt) {
   }
-};
+};/* class CDAttrHash<> */
+
+/**
+ * In the case of Boolean-valued attributes we have a special
+ * "CDAttrHash<bool>" to pack bits together in words.
+ */
+template <>
+class CDAttrHash<bool> :
+    protected context::CDMap<NodeValue*,
+                             uint64_t,
+                             AttrHashBoolStrategy> {
+
+  /** A "super" type, like in Java, for easy reference below. */
+  typedef context::CDMap<NodeValue*, uint64_t, AttrHashBoolStrategy> super;
+
+  /**
+   * BitAccessor allows us to return a bit "by reference."  Of course,
+   * we don't require bit-addressibility supported by the system, we
+   * do it with a complex type.
+   */
+  class BitAccessor {
+
+    super& d_map;
+
+    NodeValue* d_key;
+
+    uint64_t d_word;
+
+    unsigned d_bit;
+
+  public:
+
+    BitAccessor(super& map, NodeValue* key, uint64_t word, unsigned bit) :
+      d_map(map),
+      d_key(key),
+      d_word(word),
+      d_bit(bit) {
+      Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor(%p, %p, %lx, %u)\n", &map, key, word, bit);
+    }
+
+    BitAccessor& operator=(bool b) {
+      if(b) {
+        // set the bit
+        d_word |= (1 << d_bit);
+        d_map.insert(d_key, d_word);
+        Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::set(%p, %p, %lx, %u)\n", &d_map, d_key, d_word, d_bit);
+      } else {
+        // clear the bit
+        d_word &= ~(1 << d_bit);
+        d_map.insert(d_key, d_word);
+        Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::clr(%p, %p, %lx, %u)\n", &d_map, d_key, d_word, d_bit);
+      }
+
+      return *this;
+    }
+
+    operator bool() const {
+      Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::toBool(%p, %p, %lx, %u)\n", &d_map, d_key, d_word, d_bit);
+      return (d_word & (1 << d_bit)) ? true : false;
+    }
+  };/* class CDAttrHash<bool>::BitAccessor */
+
+  /**
+   * A (somewhat degenerate) iterator over boolean-valued attributes.
+   * This iterator doesn't support anything except comparison and
+   * dereference.  It's intended just for the result of find() on the
+   * table.
+   */
+  class BitIterator {
+
+    super* d_map;
+
+    std::pair<NodeValue* const, uint64_t>* d_entry;
+
+    unsigned d_bit;
+
+  public:
+
+    BitIterator() :
+      d_map(NULL),
+      d_entry(NULL),
+      d_bit(0) {
+    }
+
+    BitIterator(super& map, std::pair<NodeValue* const, uint64_t>& entry, unsigned bit) :
+      d_map(&map),
+      d_entry(&entry),
+      d_bit(bit) {
+    }
+
+    std::pair<NodeValue* const, BitAccessor> operator*() {
+      return std::make_pair(d_entry->first,
+                            BitAccessor(*d_map, d_entry->first, d_entry->second, d_bit));
+    }
+
+    bool operator==(const BitIterator& b) {
+      return d_entry == b.d_entry && d_bit == b.d_bit;
+    }
+  };/* class CDAttrHash<bool>::BitIterator */
+
+  /**
+   * A (somewhat degenerate) const_iterator over boolean-valued
+   * attributes.  This const_iterator doesn't support anything except
+   * comparison and dereference.  It's intended just for the result of
+   * find() on the table.
+   */
+  class ConstBitIterator {
+
+    const std::pair<NodeValue* const, uint64_t> d_entry;
+
+    unsigned d_bit;
+
+  public:
+
+    ConstBitIterator() :
+      d_entry(),
+      d_bit(0) {
+    }
+
+    ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
+                     unsigned bit) :
+      d_entry(entry),
+      d_bit(bit) {
+    }
+
+    std::pair<NodeValue* const, bool> operator*() {
+      return std::make_pair(d_entry.first,
+                            (d_entry.second & (1 << d_bit)) ? true : false);
+    }
+
+    bool operator==(const ConstBitIterator& b) {
+      return d_entry == b.d_entry && d_bit == b.d_bit;
+    }
+  };/* class CDAttrHash<bool>::ConstBitIterator */
+
+  /* remove non-permitted operations */
+  CDAttrHash(const CDAttrHash<bool>&) CVC4_UNDEFINED;
+  CDAttrHash<bool>& operator=(const CDAttrHash<bool>&) CVC4_UNDEFINED;
+
+public:
+
+  CDAttrHash(context::Context* context) : super(context) { }
+
+  typedef std::pair<uint64_t, NodeValue*> key_type;
+  typedef bool data_type;
+  typedef std::pair<const key_type, data_type> value_type;
+
+  /** an iterator type; see above for limitations */
+  typedef BitIterator iterator;
+  /** a const_iterator type; see above for limitations */
+  typedef ConstBitIterator const_iterator;
+
+  /**
+   * Find the boolean value in the hash table.  Returns something ==
+   * end() if not found.
+   */
+  /*BitIterator find(const std::pair<uint64_t, NodeValue*>& k) {
+    super::iterator i = super::find(k.second);
+    if(i == super::end()) {
+      return BitIterator();
+    }
+    Debug.printf("cdboolattr",
+                 "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
+                 &(*i).second,
+                 (unsigned long long)((*i).second),
+                 unsigned(k.first));
+    return BitIterator(*i, k.first);
+  }*/
+
+  /** The "off the end" iterator */
+  BitIterator end() {
+    return BitIterator();
+  }
+
+  /**
+   * Find the boolean value in the hash table.  Returns something ==
+   * end() if not found.
+   */
+  ConstBitIterator find(const std::pair<uint64_t, NodeValue*>& k) const {
+    super::const_iterator i = super::find(k.second);
+    if(i == super::end()) {
+      return ConstBitIterator();
+    }
+    Debug.printf("cdboolattr",
+                 "underlying word at address looks like 0x%016llx, bit is %u\n",
+                 (unsigned long long)((*i).second),
+                 unsigned(k.first));
+    return ConstBitIterator(*i, k.first);
+  }
+
+  /** The "off the end" const_iterator */
+  ConstBitIterator end() const {
+    return ConstBitIterator();
+  }
+
+  /**
+   * Access the hash table using the underlying operator[].  Inserts
+   * the key into the table (associated to default value) if it's not
+   * already there.
+   */
+  BitAccessor operator[](const std::pair<uint64_t, NodeValue*>& k) {
+    uint64_t word = super::operator[](k.second);
+    return BitAccessor(*this, k.second, word, k.first);
+  }
+
+  /**
+   * Delete all flags from the given node.
+   */
+  void erase(NodeValue* nv) {
+    super::obliterate(nv);
+  }
+
+  /**
+   * Clear the hash table.
+   */
+  void clear() {
+    super::clear();
+  }
+
+};/* class CDAttrHash<bool> */
 
 }/* CVC4::expr::attr namespace */
 

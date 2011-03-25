@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-Node TheoryBool::getValue(TNode n, Valuation* valuation) {
+Node TheoryBool::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
   switch(n.getKind()) {
@@ -38,14 +38,14 @@ Node TheoryBool::getValue(TNode n, Valuation* valuation) {
     Unreachable();
 
   case kind::NOT: // 1 arg
-    return nodeManager->mkConst(! valuation->getValue(n[0]).getConst<bool>());
+    return nodeManager->mkConst(! d_valuation.getValue(n[0]).getConst<bool>());
 
   case kind::AND: { // 2+ args
     for(TNode::iterator i = n.begin(),
             iend = n.end();
           i != iend;
           ++i) {
-      if(! valuation->getValue(*i).getConst<bool>()) {
+      if(! d_valuation.getValue(*i).getConst<bool>()) {
         return nodeManager->mkConst(false);
       }
     }
@@ -53,19 +53,19 @@ Node TheoryBool::getValue(TNode n, Valuation* valuation) {
   }
 
   case kind::IFF: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<bool>() ==
-                                 valuation->getValue(n[1]).getConst<bool>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<bool>() ==
+                                 d_valuation.getValue(n[1]).getConst<bool>() );
 
   case kind::IMPLIES: // 2 args
-    return nodeManager->mkConst( (! valuation->getValue(n[0]).getConst<bool>()) ||
-                                 valuation->getValue(n[1]).getConst<bool>() );
+    return nodeManager->mkConst( (! d_valuation.getValue(n[0]).getConst<bool>()) ||
+                                 d_valuation.getValue(n[1]).getConst<bool>() );
 
   case kind::OR: { // 2+ args
     for(TNode::iterator i = n.begin(),
             iend = n.end();
           i != iend;
           ++i) {
-      if(valuation->getValue(*i).getConst<bool>()) {
+      if(d_valuation.getValue(*i).getConst<bool>()) {
         return nodeManager->mkConst(true);
       }
     }
@@ -73,16 +73,16 @@ Node TheoryBool::getValue(TNode n, Valuation* valuation) {
   }
 
   case kind::XOR: // 2 args
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<bool>() !=
-                                 valuation->getValue(n[1]).getConst<bool>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<bool>() !=
+                                 d_valuation.getValue(n[1]).getConst<bool>() );
 
   case kind::ITE: // 3 args
     // all ITEs should be gone except (bool,bool,bool) ones
     Assert( n[1].getType() == nodeManager->booleanType() &&
             n[2].getType() == nodeManager->booleanType() );
-    return nodeManager->mkConst( valuation->getValue(n[0]).getConst<bool>() ?
-                                 valuation->getValue(n[1]).getConst<bool>() :
-                                 valuation->getValue(n[2]).getConst<bool>() );
+    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<bool>() ?
+                                 d_valuation.getValue(n[1]).getConst<bool>() :
+                                 d_valuation.getValue(n[2]).getConst<bool>() );
 
   default:
     Unhandled(n.getKind());

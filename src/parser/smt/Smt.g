@@ -595,7 +595,7 @@ ROTATE_LEFT_TOK   : 'rotate_left';
 ROTATE_RIGHT_TOK  : 'rotate_right';
 
 /**
- * Mathces a bit-vector constant of the form bv123
+ * Matches a bit-vector constant of the form bv123
  */
 BITVECTOR_BV_CONST
   : 'bv' DIGIT+
