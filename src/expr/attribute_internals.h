@@ -411,7 +411,7 @@ class CDAttrHash<bool> :
       d_key(key),
       d_word(word),
       d_bit(bit) {
-      Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor(%p, %p, %lx, %u)\n", &map, key, word, bit);
+      Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor(%p, %p, %llx, %u)\n", &map, key, word, bit);
     }
 
     BitAccessor& operator=(bool b) {
@@ -419,19 +419,19 @@ class CDAttrHash<bool> :
         // set the bit
         d_word |= (1 << d_bit);
         d_map.insert(d_key, d_word);
-        Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::set(%p, %p, %lx, %u)\n", &d_map, d_key, d_word, d_bit);
+        Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::set(%p, %p, %llx, %u)\n", &d_map, d_key, d_word, d_bit);
       } else {
         // clear the bit
         d_word &= ~(1 << d_bit);
         d_map.insert(d_key, d_word);
-        Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::clr(%p, %p, %lx, %u)\n", &d_map, d_key, d_word, d_bit);
+        Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::clr(%p, %p, %llx, %u)\n", &d_map, d_key, d_word, d_bit);
       }
 
       return *this;
     }
 
     operator bool() const {
-      Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::toBool(%p, %p, %lx, %u)\n", &d_map, d_key, d_word, d_bit);
+      Debug.printf("cdboolattr", "CDAttrHash<bool>::BitAccessor::toBool(%p, %p, %llx, %u)\n", &d_map, d_key, d_word, d_bit);
       return (d_word & (1 << d_bit)) ? true : false;
     }
   };/* class CDAttrHash<bool>::BitAccessor */

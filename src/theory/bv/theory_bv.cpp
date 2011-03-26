@@ -56,11 +56,18 @@ void TheoryBV::check(Effort e) {
 
   BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
 
-  while(!done()) {
-
+  // Get all the assertions
+  std::vector<TNode> assertionsList;
+  while (!done()) {
     // Get the assertion
     TNode assertion = get();
     d_assertions.insert(assertion);
+    assertionsList.push_back(assertion);
+  }
+
+  for (unsigned i = 0; i < assertionsList.size(); ++ i) {
+
+    TNode assertion = assertionsList[i];
 
     BVDebug("bitvector") << "TheoryBV::check(" << e << "): asserting: " << assertion << std::endl;
 
