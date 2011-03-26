@@ -104,7 +104,7 @@ endif
 EXTRA_DIST += \
 	error.cvc
 
-# synonyms for "checK" in this directory
+# synonyms for "check" in this directory
 .PHONY: regress regress0 test
 regress regress0 test: check
 

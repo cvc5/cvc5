@@ -12,7 +12,7 @@ regress3: regress0 regress1 regress2
 regress0 regress1 regress2 regress3:
 	-cd $@ && $(MAKE) check
 
-# synonyms for "checK" in this directory in this directory
+# synonyms for "check" in this directory in this directory
 .PHONY: regress test
 regress test: check
 

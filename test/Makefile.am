@@ -10,7 +10,7 @@ units systemtests regress regress0 regress1 regress2 regress3:
 	done; \
 	$(MAKE) check-local
 
-# synonyms for "checK" in this directory
+# synonyms for "check" in this directory
 .PHONY: test
 test: check
 

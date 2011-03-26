@@ -172,7 +172,7 @@ nodist_libdummy_la_SOURCES = expr/node_black.cpp
 libdummy_la_LIBADD = @abs_top_builddir@/src/libcvc4.la
 endif
 
-# synonyms for "checK" in this directory in this directory
+# synonyms for "check" in this directory in this directory
 .PHONY: units test
 units test: check
 

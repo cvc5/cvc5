@@ -63,7 +63,7 @@ endif
 MAKEFLAGS = -k
 export VERBOSE = 1
 
-# synonyms for "checK" in this directory in this directory
+# synonyms for "check" in this directory in this directory
 .PHONY: test systemtests
 test systemtests: check
 
