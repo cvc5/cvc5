@@ -26,20 +26,20 @@
 #if defined _WIN32 || defined __CYGWIN__
 #  ifdef BUILDING_DLL
 #    ifdef __GNUC__
-#      define CVC4_PUBLIC __attribute__((dllexport))
+#      define CVC4_PUBLIC __attribute__((__dllexport__))
 #    else /* ! __GNUC__ */
 #      define CVC4_PUBLIC __declspec(dllexport)
 #    endif /* __GNUC__ */
 #  else /* BUILDING_DLL */
 #    ifdef __GNUC__
-#      define CVC4_PUBLIC __attribute__((dllimport))
+#      define CVC4_PUBLIC __attribute__((__dllimport__))
 #    else /* ! __GNUC__ */
 #      define CVC4_PUBLIC __declspec(dllimport)
 #    endif /* __GNUC__ */
 #  endif /* BUILDING_DLL */
 #else /* !( defined _WIN32 || defined __CYGWIN__ ) */
 #  if __GNUC__ >= 4
-#    define CVC4_PUBLIC __attribute__ ((visibility("default")))
+#    define CVC4_PUBLIC __attribute__ ((__visibility__("default")))
 #  else /* !( __GNUC__ >= 4 ) */
 #    define CVC4_PUBLIC
 #  endif /* __GNUC__ >= 4 */
@@ -58,7 +58,7 @@
 #ifdef __GNUC__
 #  if __GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 3 )
      /* error function attribute only exists in GCC >= 4.3.0 */
-#    define CVC4_UNDEFINED __attribute__((error("this function intentionally undefined")))
+#    define CVC4_UNDEFINED __attribute__((__error__("this function intentionally undefined")))
 #  else /* GCC < 4.3.0 */
 #    define CVC4_UNDEFINED
 #  endif /* GCC >= 4.3.0 */
@@ -67,13 +67,15 @@
 #endif /* __GNUC__ */
 
 #ifdef __GNUC__
-#  define CVC4_UNUSED __attribute__((unused))
-#  define CVC4_NORETURN __attribute__ ((noreturn))
-#  define CVC4_CONST_FUNCTION __attribute__ ((const))
+#  define CVC4_UNUSED __attribute__((__unused__))
+#  define CVC4_NORETURN __attribute__ ((__noreturn__))
+#  define CVC4_CONST_FUNCTION __attribute__ ((__const__))
+#  define CVC4_PURE_FUNCTION __attribute__ ((__pure__))
 #else /* ! __GNUC__ */
 #  define CVC4_UNUSED
 #  define CVC4_NORETURN
 #  define CVC4_CONST_FUNCTION
+#  define CVC4_PURE_FUNCTION
 #endif /* __GNUC__ */
 
 #define EXPECT_TRUE(x) __builtin_expect( (x), true )
