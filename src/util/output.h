@@ -275,7 +275,7 @@ extern DebugC DebugChannel CVC4_PUBLIC;
 #ifdef CVC4_DEBUG
 #  define Debug DebugChannel
 #else /* CVC4_DEBUG */
-#  define Debug __cvc4_true() ? debugNullCvc4Stream : DebugChannel
+#  define Debug CVC4::__cvc4_true() ? CVC4::debugNullCvc4Stream : CVC4::DebugChannel
 #endif /* CVC4_DEBUG */
 
 /** The warning output singleton */
@@ -292,7 +292,7 @@ extern TraceC TraceChannel CVC4_PUBLIC;
 #ifdef CVC4_TRACING
 #  define Trace TraceChannel
 #else /* CVC4_TRACING */
-#  define Trace __cvc4_true() ? debugNullCvc4Stream : TraceChannel
+#  define Trace CVC4::__cvc4_true() ? CVC4::debugNullCvc4Stream : CVC4::TraceChannel
 #endif /* CVC4_TRACING */
 
 // Disallow e.g. !Debug("foo").isOn() forms
