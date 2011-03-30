@@ -26,8 +26,6 @@ libarith_la_SOURCES = \
 	arith_priority_queue.cpp \
 	simplex.h \
 	simplex.cpp \
-	row_vector.h \
-	row_vector.cpp \
 	unate_propagator.h \
 	unate_propagator.cpp \
 	theory_arith.h \

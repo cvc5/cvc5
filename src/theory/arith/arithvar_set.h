@@ -57,7 +57,7 @@ private:
   std::vector<unsigned> d_posVector;
 
 public:
-  typedef VarList::const_iterator iterator;
+  typedef VarList::const_iterator const_iterator;
 
   ArithVarSetImpl() :  d_list(), d_posVector() {}
 
@@ -114,8 +114,8 @@ public:
     d_list.push_back(x);
   }
 
-  iterator begin() const{ return d_list.begin(); }
-  iterator end() const{ return d_list.end(); }
+  const_iterator begin() const{ return d_list.begin(); }
+  const_iterator end() const{ return d_list.end(); }
 
   const VarList& getList() const{
     return d_list;

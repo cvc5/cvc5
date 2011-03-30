@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <set>
 #include <ctime>
+#include <vector>
 
 #include "util/Assert.h"
 #include "lib/clock_gettime.h"
@@ -502,6 +503,49 @@ public:
 
 };/* class AverageStat */
 
+template <class T>
+class ListStat : public Stat{
+private:
+  typedef std::vector<T> List;
+  List d_list;
+public:
+
+  /**
+   * Construct an integer-valued statistic with the given name and
+   * initial value.
+   */
+  ListStat(const std::string& name) : Stat(name) {}
+  ~ListStat() {}
+
+  void flushInformation(std::ostream& out) const{
+    if(__CVC4_USE_STATISTICS) {
+      typename List::const_iterator i = d_list.begin(), end =  d_list.end();
+      out << "[";
+      if(i != end){
+        out << *i;
+        ++i;
+        for(; i != end; ++i){
+          out << ", " << *i;
+        }
+      }
+      out << "]";
+    }
+  }
+
+  ListStat& operator<<(const T& val){
+    if(__CVC4_USE_STATISTICS) {
+      d_list.push_back(val);
+    }
+    return (*this);
+  }
+
+  std::string getValue() const {
+    std::stringstream ss;
+    flushInformation(ss);
+    return ss.str();
+  }
+
+};/* class ListStat */
 
 /****************************************************************************/
 /* Some utility functions for ::timespec                                    */
