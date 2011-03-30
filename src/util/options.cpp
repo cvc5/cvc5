@@ -67,6 +67,7 @@ static const string optionsDescription = "\
    --produce-models       support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
    --lazy-definition-expansion expand define-fun lazily\n\
+   --rewrite-arithmetic-equalities rewrite (= x y) to (and (<= x y) (>= x y)) in arithmetic \n\
    --incremental          enable incremental solving\n";
 
 static const string languageDescription = "\
@@ -121,7 +122,8 @@ enum OptionValue {
   LAZY_TYPE_CHECKING,
   EAGER_TYPE_CHECKING,
   INCREMENTAL,
-  PIVOT_RULE
+  PIVOT_RULE,
+  REWRITE_ARITHMETIC_EQUALITIES
 };/* enum OptionValue */
 
 /**
@@ -179,6 +181,7 @@ static struct option cmdlineOptions[] = {
   { "eager-type-checking", no_argument, NULL, EAGER_TYPE_CHECKING},
   { "incremental", no_argument, NULL, INCREMENTAL},
   { "pivot-rule" , required_argument, NULL, PIVOT_RULE  },
+  { "rewrite-arithmetic-equalities" , no_argument, NULL, REWRITE_ARITHMETIC_EQUALITIES},
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -376,6 +379,10 @@ throw(OptionException) {
       incrementalSolving = true;
       break;
 
+    case REWRITE_ARITHMETIC_EQUALITIES:
+      rewriteArithEqualities = true;
+      break;
+
     case PIVOT_RULE:
       if(!strcmp(optarg, "min")) {
         pivotRule = MINIMUM;
@@ -437,5 +444,7 @@ throw(OptionException) {
 
   return optind;
 }
+
+bool Options::rewriteArithEqualities = false;
 
 }/* CVC4 namespace */
