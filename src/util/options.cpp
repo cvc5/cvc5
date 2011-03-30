@@ -40,6 +40,45 @@ using namespace CVC4;
 
 namespace CVC4 {
 
+#ifdef CVC4_DEBUG
+#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
+#else /* CVC4_DEBUG */
+#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT false
+#endif /* CVC4_DEBUG */
+
+#if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
+#else /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
+#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
+#endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
+
+Options::Options() :
+  binary_name(),
+  statistics(false),
+  in(&std::cin),
+  out(&std::cout),
+  err(&std::cerr),
+  verbosity(0),
+  inputLanguage(language::input::LANG_AUTO),
+  uf_implementation(MORGAN),
+  parseOnly(false),
+  semanticChecks(DO_SEMANTIC_CHECKS_BY_DEFAULT),
+  theoryRegistration(true),
+  memoryMap(false),
+  strictParsing(false),
+  lazyDefinitionExpansion(false),
+  interactive(false),
+  interactiveSetByUser(false),
+  segvNoSpin(false),
+  produceModels(false),
+  produceAssignments(false),
+  typeChecking(DO_SEMANTIC_CHECKS_BY_DEFAULT),
+  earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT),
+  incrementalSolving(false),
+  pivotRule(MINIMUM)
+{
+}
+
 static const string optionsDescription = "\
    --lang | -L            force input language (default is `auto'; see --lang help)\n\
    --version | -V         identify this CVC4 binary\n\
@@ -446,5 +485,9 @@ throw(OptionException) {
 }
 
 bool Options::rewriteArithEqualities = false;
+
+
+#undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
+#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 }/* CVC4 namespace */

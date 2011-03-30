@@ -21,18 +21,6 @@
 #ifndef __CVC4__OPTIONS_H
 #define __CVC4__OPTIONS_H
 
-#ifdef CVC4_DEBUG
-#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
-#else /* CVC4_DEBUG */
-#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT false
-#endif /* CVC4_DEBUG */
-
-#if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
-#else /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
-#  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
-#endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
-
 #include <iostream>
 #include <string>
 
@@ -134,34 +122,9 @@ struct CVC4_PUBLIC Options {
   typedef enum { MINIMUM, BREAK_TIES, MAXIMUM } ArithPivotRule;
   ArithPivotRule pivotRule;
 
-  Options() :
-    binary_name(),
-    statistics(false),
-    in(&std::cin),
-    out(&std::cout),
-    err(&std::cerr),
-    verbosity(0),
-    inputLanguage(language::input::LANG_AUTO),
-    uf_implementation(MORGAN),
-    parseOnly(false),
-    semanticChecks(DO_SEMANTIC_CHECKS_BY_DEFAULT),
-    theoryRegistration(true),
-    memoryMap(false),
-    strictParsing(false),
-    lazyDefinitionExpansion(false),
-    interactive(false),
-    interactiveSetByUser(false),
-    segvNoSpin(false),
-    produceModels(false),
-    produceAssignments(false),
-    typeChecking(DO_SEMANTIC_CHECKS_BY_DEFAULT),
-    earlyTypeChecking(USE_EARLY_TYPE_CHECKING_BY_DEFAULT),
-    incrementalSolving(false),
-    pivotRule(MINIMUM)
-    {
-  }
+  Options();
 
-  /** 
+  /**
    * Get a description of the command-line flags accepted by
    * parseOptions.  The returned string will be escaped so that it is
    * suitable as an argument to printf. */
@@ -194,8 +157,5 @@ inline std::ostream& operator<<(std::ostream& out,
 }
 
 }/* CVC4 namespace */
-
-#undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
-#undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 #endif /* __CVC4__OPTIONS_H */
