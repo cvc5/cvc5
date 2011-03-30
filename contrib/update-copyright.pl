@@ -4,16 +4,19 @@
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
 # Copyright (c) 2009, 2010, 2011  The CVC4 Project
 #
-# usage: update-copyright [ files/directories... ]
+# usage: update-copyright [-m] [files/directories...]
 #
 # This script goes through a source directory rewriting the top bits of
 # source files to match a template (inline, below).  For files with no
 # top comment, it adds a fresh one.
 #
-# usage: contrib/update-copyright.pl [dirs...]
-# if dirs... are unspecified, the script scans its own parent directory's
-# "src" directory.  Since it lives in contrib/ in the CVC4 source tree,
-# that means src/ in the CVC4 source tree.
+# if no files/directories are unspecified, the script scans its own
+# parent directory's "src" directory.  Since it lives in contrib/ in
+# the CVC4 source tree, that means src/ in the CVC4 source tree.
+#
+# If -m is specified as the first argument, all files and directories
+# are scanned, but only ones modifed in the current working directory
+# are modified (i.e., those that have status M in "svn status").
 #
 # It ignores any file/directory not starting with [a-zA-Z]
 # (so, this includes . and .., vi swaps, .svn meta-info,
@@ -61,6 +64,14 @@ use Fcntl ':mode';
 
 my $dir = $0;
 $dir =~ s,/[^/]+/*$,,;
+
+# whether we ONLY process files with svn status "M"
+my $modonly = 0;
+
+if($#ARGV >= 0 && $ARGV[0] eq '-m') {
+  $modonly = 1;
+  shift;
+}
 
 my @searchdirs = ();
 if($#ARGV == -1) {
@@ -112,8 +123,9 @@ while($#searchdirs >= 0) {
 
 sub handleFile {
   my ($srcdir, $file) = @_;
-  next if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g)$/);
-  next if ($srcdir.'/'.$file) =~ /$excluded_paths/;
+  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g)$/);
+  return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
+  return if $modonly  &&`svn status "$srcdir/$file" 2>/dev/null` !~ /^M/;
   print "$srcdir/$file...";
   my $infile = $srcdir.'/'.$file;
   my $outfile = $srcdir.'/#'.$file.'.tmp';

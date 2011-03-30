@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -219,6 +219,31 @@ public:
 
   }
 
+  static int expensiveFunction() {
+    // this represents an expensive function that should NOT be called
+    // when debugging/tracing is turned off
+    TS_FAIL("a function was evaluated under Debug() or Trace() when it should not have been");
+    return 0;
+  }
+
+  void testEvaluationOffWhenItsSupposedToBe() {
+    Trace.on("foo");
+#ifndef CVC4_TRACING
+    TS_ASSERT( !( Trace.isOn("foo") ) );
+    Trace("foo") << expensiveFunction() << endl;
+#else /* CVC4_TRACING */
+    TS_ASSERT( Trace.isOn("foo") );
+#endif /* CVC4_TRACING */
+
+    Debug.on("foo");
+#ifndef CVC4_DEBUG
+    TS_ASSERT( !( Debug.isOn("foo") ) );
+    Debug("foo") << expensiveFunction() << endl;
+#else /* CVC4_DEBUG */
+    TS_ASSERT( Debug.isOn("foo") );
+#endif /* CVC4_DEBUG */
+  }
+
   void testSimplePrint() {
 
 #ifdef CVC4_MUZZLE
@@ -260,11 +285,11 @@ public:
 #else /* CVC4_MUZZLE */
 
     Debug.off("yo");
-    Debug("yo", "foobar");
+    Debug("yo") << "foobar";
     TS_ASSERT_EQUALS(d_debugStream.str(), string());
     d_debugStream.str("");
     Debug.on("yo");
-    Debug("yo", "baz foo");
+    Debug("yo") << "baz foo";
 #  ifdef CVC4_DEBUG
     TS_ASSERT_EQUALS(d_debugStream.str(), string("baz foo"));
 #  else /* CVC4_DEBUG */
@@ -273,11 +298,11 @@ public:
     d_debugStream.str("");
 
     Trace.off("yo");
-    Trace("yo", "foobar");
+    Trace("yo") << "foobar";
     TS_ASSERT_EQUALS(d_traceStream.str(), string());
     d_traceStream.str("");
     Trace.on("yo");
-    Trace("yo", "baz foo");
+    Trace("yo") << "baz foo";
 #  ifdef CVC4_TRACING
     TS_ASSERT_EQUALS(d_traceStream.str(), string("baz foo"));
 #  else /* CVC4_TRACING */
@@ -285,19 +310,19 @@ public:
 #  endif /* CVC4_TRACING */
     d_traceStream.str("");
 
-    Warning("baz foo");
+    Warning() << "baz foo";
     TS_ASSERT_EQUALS(d_warningStream.str(), string("baz foo"));
     d_warningStream.str("");
 
-    Chat("baz foo");
+    Chat() << "baz foo";
     TS_ASSERT_EQUALS(d_chatStream.str(), string("baz foo"));
     d_chatStream.str("");
 
-    Message("baz foo");
+    Message() << "baz foo";
     TS_ASSERT_EQUALS(d_messageStream.str(), string("baz foo"));
     d_messageStream.str("");
 
-    Notice("baz foo");
+    Notice() << "baz foo";
     TS_ASSERT_EQUALS(d_noticeStream.str(), string("baz foo"));
     d_noticeStream.str("");
 

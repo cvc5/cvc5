@@ -266,7 +266,7 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseType type)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
-    CVC4::Debug("minisat") << "Solver::attachClause(" << c << ")" << std::endl;
+    Debug("minisat") << "Solver::attachClause(" << c << ")" << std::endl;
     Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
@@ -276,7 +276,7 @@ void Solver::attachClause(CRef cr) {
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
-    CVC4::Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
+    Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
     
     if (strict){
@@ -294,7 +294,7 @@ void Solver::detachClause(CRef cr, bool strict) {
 
 void Solver::removeClause(CRef cr) {
     Clause& c = ca[cr];
-    CVC4::Debug("minisat") << "Solver::removeClause(" << c << ")" << std::endl;
+    Debug("minisat") << "Solver::removeClause(" << c << ")" << std::endl;
     detachClause(cr);
     // Don't leave pointers to free'd memory!
     if (locked(c)) vardata[var(c[0])].reason = CRef_Undef;

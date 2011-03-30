@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
- ** Minor contributors (to current version): barrett, dejan, cconway
+ ** Minor contributors (to current version): cconway, dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -160,21 +160,21 @@ public:
     Node b = d_nm->mkVar(*d_booleanType);
     Node c = d_nm->mkVar(*d_booleanType);
 
-    Debug("cdboolattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
     d_ctxt->push(); // level 1
 
     // test that all boolean flags are FALSE to start
-    Debug("cdboolattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdboolattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
     // test that they all HAVE the boolean attributes
@@ -184,96 +184,96 @@ public:
 
     // test two-arg version of hasAttribute()
     bool bb = false;
-    Debug("cdboolattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag1cd(), bb));
     TS_ASSERT(! bb);
-    Debug("cdboolattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(b.getAttribute(TestFlag1cd(), bb));
     TS_ASSERT(! bb);
-    Debug("cdboolattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(c.getAttribute(TestFlag1cd(), bb));
     TS_ASSERT(! bb);
 
     // setting boolean flags
-    Debug("cdboolattr", "set flag 1 on a to T\n");
+    Debug("cdboolattr") << "set flag 1 on a to T\n";
     a.setAttribute(TestFlag1cd(), true);
-    Debug("cdboolattr", "set flag 1 on b to F\n");
+    Debug("cdboolattr") << "set flag 1 on b to F\n";
     b.setAttribute(TestFlag1cd(), false);
-    Debug("cdboolattr", "set flag 1 on c to F\n");
+    Debug("cdboolattr") << "set flag 1 on c to F\n";
     c.setAttribute(TestFlag1cd(), false);
 
-    Debug("cdbootattr", "get flag 1 on a (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
     d_ctxt->push(); // level 2
 
-    Debug("cdbootattr", "get flag 1 on a (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    Debug("cdbootattr", "set flag 1 on a to F\n");
+    Debug("cdboolattr") << "set flag 1 on a to F\n";
     a.setAttribute(TestFlag1cd(), false);
-    Debug("cdbootattr", "set flag 1 on b to T\n");
+    Debug("cdboolattr") << "set flag 1 on b to T\n";
     b.setAttribute(TestFlag1cd(), true);
 
-    Debug("cdbootattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
     d_ctxt->push(); // level 3
 
-    Debug("cdbootattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    Debug("cdbootattr", "set flag 1 on c to T\n");
+    Debug("cdboolattr") << "set flag 1 on c to T\n";
     c.setAttribute(TestFlag1cd(), true);
 
-    Debug("cdbootattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be T)\n";
     TS_ASSERT(c.getAttribute(TestFlag1cd()));
 
     d_ctxt->pop(); // level 2
 
-    Debug("cdbootattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
     d_ctxt->pop(); // level 1
 
-    Debug("cdbootattr", "get flag 1 on a (should be T)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
     d_ctxt->pop(); // level 0
 
-    Debug("cdbootattr", "get flag 1 on a (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on b (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1cd()));
-    Debug("cdbootattr", "get flag 1 on c (should be F)\n");
+    Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
 #ifdef CVC4_ASSERTIONS
@@ -294,49 +294,49 @@ public:
     c.setAttribute(VarNameAttr(), "c");
 
     // test that all boolean flags are FALSE to start
-    Debug("boolattr", "get flag 1 on a (should be F)\n");
+    Debug("boolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1()));
-    Debug("boolattr", "get flag 1 on b (should be F)\n");
+    Debug("boolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1()));
-    Debug("boolattr", "get flag 1 on c (should be F)\n");
+    Debug("boolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1()));
-    Debug("boolattr", "get flag 1 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 1 on unnamed (should be F)\n";
     TS_ASSERT(! unnamed.getAttribute(TestFlag1()));
 
-    Debug("boolattr", "get flag 2 on a (should be F)\n");
+    Debug("boolattr") << "get flag 2 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag2()));
-    Debug("boolattr", "get flag 2 on b (should be F)\n");
+    Debug("boolattr") << "get flag 2 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag2()));
-    Debug("boolattr", "get flag 2 on c (should be F)\n");
+    Debug("boolattr") << "get flag 2 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag2()));
-    Debug("boolattr", "get flag 2 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 2 on unnamed (should be F)\n";
     TS_ASSERT(! unnamed.getAttribute(TestFlag2()));
 
-    Debug("boolattr", "get flag 3 on a (should be F)\n");
+    Debug("boolattr") << "get flag 3 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag3()));
-    Debug("boolattr", "get flag 3 on b (should be F)\n");
+    Debug("boolattr") << "get flag 3 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag3()));
-    Debug("boolattr", "get flag 3 on c (should be F)\n");
+    Debug("boolattr") << "get flag 3 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag3()));
-    Debug("boolattr", "get flag 3 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 3 on unnamed (should be F)\n";
     TS_ASSERT(! unnamed.getAttribute(TestFlag3()));
 
-    Debug("boolattr", "get flag 4 on a (should be F)\n");
+    Debug("boolattr") << "get flag 4 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag4()));
-    Debug("boolattr", "get flag 4 on b (should be F)\n");
+    Debug("boolattr") << "get flag 4 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag4()));
-    Debug("boolattr", "get flag 4 on c (should be F)\n");
+    Debug("boolattr") << "get flag 4 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag4()));
-    Debug("boolattr", "get flag 4 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 4 on unnamed (should be F)\n";
     TS_ASSERT(! unnamed.getAttribute(TestFlag4()));
 
-    Debug("boolattr", "get flag 5 on a (should be F)\n");
+    Debug("boolattr") << "get flag 5 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag5()));
-    Debug("boolattr", "get flag 5 on b (should be F)\n");
+    Debug("boolattr") << "get flag 5 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag5()));
-    Debug("boolattr", "get flag 5 on c (should be F)\n");
+    Debug("boolattr") << "get flag 5 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag5()));
-    Debug("boolattr", "get flag 5 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 5 on unnamed (should be F)\n";
     TS_ASSERT(! unnamed.getAttribute(TestFlag5()));
 
     // test that they all HAVE the boolean attributes
@@ -367,115 +367,115 @@ public:
 
     // test two-arg version of hasAttribute()
     bool bb;
-    Debug("boolattr", "get flag 1 on a (should be F)\n");
+    Debug("boolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 1 on b (should be F)\n");
+    Debug("boolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(b.getAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 1 on c (should be F)\n");
+    Debug("boolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(c.getAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 1 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 1 on unnamed (should be F)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
 
-    Debug("boolattr", "get flag 2 on a (should be F)\n");
+    Debug("boolattr") << "get flag 2 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 2 on b (should be F)\n");
+    Debug("boolattr") << "get flag 2 on b (should be F)\n";
     TS_ASSERT(b.getAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 2 on c (should be F)\n");
+    Debug("boolattr") << "get flag 2 on c (should be F)\n";
     TS_ASSERT(c.getAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 2 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 2 on unnamed (should be F)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag2(), bb));
     TS_ASSERT(! bb);
 
-    Debug("boolattr", "get flag 3 on a (should be F)\n");
+    Debug("boolattr") << "get flag 3 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 3 on b (should be F)\n");
+    Debug("boolattr") << "get flag 3 on b (should be F)\n";
     TS_ASSERT(b.getAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 3 on c (should be F)\n");
+    Debug("boolattr") << "get flag 3 on c (should be F)\n";
     TS_ASSERT(c.getAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 3 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 3 on unnamed (should be F)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag3(), bb));
     TS_ASSERT(! bb);
 
-    Debug("boolattr", "get flag 4 on a (should be F)\n");
+    Debug("boolattr") << "get flag 4 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 4 on b (should be F)\n");
+    Debug("boolattr") << "get flag 4 on b (should be F)\n";
     TS_ASSERT(b.getAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 4 on c (should be F)\n");
+    Debug("boolattr") << "get flag 4 on c (should be F)\n";
     TS_ASSERT(c.getAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 4 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 4 on unnamed (should be F)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag4(), bb));
     TS_ASSERT(! bb);
 
-    Debug("boolattr", "get flag 5 on a (should be F)\n");
+    Debug("boolattr") << "get flag 5 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 5 on b (should be F)\n");
+    Debug("boolattr") << "get flag 5 on b (should be F)\n";
     TS_ASSERT(b.getAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 5 on c (should be F)\n");
+    Debug("boolattr") << "get flag 5 on c (should be F)\n";
     TS_ASSERT(c.getAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
-    Debug("boolattr", "get flag 5 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 5 on unnamed (should be F)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag5(), bb));
     TS_ASSERT(! bb);
 
     // setting boolean flags
-    Debug("boolattr", "set flag 1 on a to T\n");
+    Debug("boolattr") << "set flag 1 on a to T\n";
     a.setAttribute(TestFlag1(), true);
-    Debug("boolattr", "set flag 1 on b to F\n");
+    Debug("boolattr") << "set flag 1 on b to F\n";
     b.setAttribute(TestFlag1(), false);
-    Debug("boolattr", "set flag 1 on c to F\n");
+    Debug("boolattr") << "set flag 1 on c to F\n";
     c.setAttribute(TestFlag1(), false);
-    Debug("boolattr", "set flag 1 on unnamed to T\n");
+    Debug("boolattr") << "set flag 1 on unnamed to T\n";
     unnamed.setAttribute(TestFlag1(), true);
 
-    Debug("boolattr", "set flag 2 on a to F\n");
+    Debug("boolattr") << "set flag 2 on a to F\n";
     a.setAttribute(TestFlag2(), false);
-    Debug("boolattr", "set flag 2 on b to T\n");
+    Debug("boolattr") << "set flag 2 on b to T\n";
     b.setAttribute(TestFlag2(), true);
-    Debug("boolattr", "set flag 2 on c to T\n");
+    Debug("boolattr") << "set flag 2 on c to T\n";
     c.setAttribute(TestFlag2(), true);
-    Debug("boolattr", "set flag 2 on unnamed to F\n");
+    Debug("boolattr") << "set flag 2 on unnamed to F\n";
     unnamed.setAttribute(TestFlag2(), false);
 
-    Debug("boolattr", "set flag 3 on a to T\n");
+    Debug("boolattr") << "set flag 3 on a to T\n";
     a.setAttribute(TestFlag3(), true);
-    Debug("boolattr", "set flag 3 on b to T\n");
+    Debug("boolattr") << "set flag 3 on b to T\n";
     b.setAttribute(TestFlag3(), true);
-    Debug("boolattr", "set flag 3 on c to T\n");
+    Debug("boolattr") << "set flag 3 on c to T\n";
     c.setAttribute(TestFlag3(), true);
-    Debug("boolattr", "set flag 3 on unnamed to T\n");
+    Debug("boolattr") << "set flag 3 on unnamed to T\n";
     unnamed.setAttribute(TestFlag3(), true);
 
-    Debug("boolattr", "set flag 4 on a to T\n");
+    Debug("boolattr") << "set flag 4 on a to T\n";
     a.setAttribute(TestFlag4(), true);
-    Debug("boolattr", "set flag 4 on b to T\n");
+    Debug("boolattr") << "set flag 4 on b to T\n";
     b.setAttribute(TestFlag4(), true);
-    Debug("boolattr", "set flag 4 on c to T\n");
+    Debug("boolattr") << "set flag 4 on c to T\n";
     c.setAttribute(TestFlag4(), true);
-    Debug("boolattr", "set flag 4 on unnamed to T\n");
+    Debug("boolattr") << "set flag 4 on unnamed to T\n";
     unnamed.setAttribute(TestFlag4(), true);
 
-    Debug("boolattr", "set flag 5 on a to T\n");
+    Debug("boolattr") << "set flag 5 on a to T\n";
     a.setAttribute(TestFlag5(), true);
-    Debug("boolattr", "set flag 5 on b to T\n");
+    Debug("boolattr") << "set flag 5 on b to T\n";
     b.setAttribute(TestFlag5(), true);
-    Debug("boolattr", "set flag 5 on c to F\n");
+    Debug("boolattr") << "set flag 5 on c to F\n";
     c.setAttribute(TestFlag5(), false);
-    Debug("boolattr", "set flag 5 on unnamed to T\n");
+    Debug("boolattr") << "set flag 5 on unnamed to T\n";
     unnamed.setAttribute(TestFlag5(), true);
 
     TS_ASSERT(a.getAttribute(VarNameAttr()) == "a");
@@ -510,49 +510,49 @@ public:
     TS_ASSERT(! c.hasAttribute(TestStringAttr2()));
     TS_ASSERT(! unnamed.hasAttribute(TestStringAttr2()));
 
-    Debug("boolattr", "get flag 1 on a (should be T)\n");
+    Debug("boolattr") << "get flag 1 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag1()));
-    Debug("boolattr", "get flag 1 on b (should be F)\n");
+    Debug("boolattr") << "get flag 1 on b (should be F)\n";
     TS_ASSERT(! b.getAttribute(TestFlag1()));
-    Debug("boolattr", "get flag 1 on c (should be F)\n");
+    Debug("boolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1()));
-    Debug("boolattr", "get flag 1 on unnamed (should be T)\n");
+    Debug("boolattr") << "get flag 1 on unnamed (should be T)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag1()));
 
-    Debug("boolattr", "get flag 2 on a (should be F)\n");
+    Debug("boolattr") << "get flag 2 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag2()));
-    Debug("boolattr", "get flag 2 on b (should be T)\n");
+    Debug("boolattr") << "get flag 2 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag2()));
-    Debug("boolattr", "get flag 2 on c (should be T)\n");
+    Debug("boolattr") << "get flag 2 on c (should be T)\n";
     TS_ASSERT(c.getAttribute(TestFlag2()));
-    Debug("boolattr", "get flag 2 on unnamed (should be F)\n");
+    Debug("boolattr") << "get flag 2 on unnamed (should be F)\n";
     TS_ASSERT(! unnamed.getAttribute(TestFlag2()));
 
-    Debug("boolattr", "get flag 3 on a (should be T)\n");
+    Debug("boolattr") << "get flag 3 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag3()));
-    Debug("boolattr", "get flag 3 on b (should be T)\n");
+    Debug("boolattr") << "get flag 3 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag3()));
-    Debug("boolattr", "get flag 3 on c (should be T)\n");
+    Debug("boolattr") << "get flag 3 on c (should be T)\n";
     TS_ASSERT(c.getAttribute(TestFlag3()));
-    Debug("boolattr", "get flag 3 on unnamed (should be T)\n");
+    Debug("boolattr") << "get flag 3 on unnamed (should be T)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag3()));
 
-    Debug("boolattr", "get flag 4 on a (should be T)\n");
+    Debug("boolattr") << "get flag 4 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag4()));
-    Debug("boolattr", "get flag 4 on b (should be T)\n");
+    Debug("boolattr") << "get flag 4 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag4()));
-    Debug("boolattr", "get flag 4 on c (should be T)\n");
+    Debug("boolattr") << "get flag 4 on c (should be T)\n";
     TS_ASSERT(c.getAttribute(TestFlag4()));
-    Debug("boolattr", "get flag 4 on unnamed (should be T)\n");
+    Debug("boolattr") << "get flag 4 on unnamed (should be T)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag4()));
 
-    Debug("boolattr", "get flag 5 on a (should be T)\n");
+    Debug("boolattr") << "get flag 5 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag5()));
-    Debug("boolattr", "get flag 5 on b (should be T)\n");
+    Debug("boolattr") << "get flag 5 on b (should be T)\n";
     TS_ASSERT(b.getAttribute(TestFlag5()));
-    Debug("boolattr", "get flag 5 on c (should be F)\n");
+    Debug("boolattr") << "get flag 5 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag5()));
-    Debug("boolattr", "get flag 5 on unnamed (should be T)\n");
+    Debug("boolattr") << "get flag 5 on unnamed (should be T)\n";
     TS_ASSERT(unnamed.getAttribute(TestFlag5()));
 
     a.setAttribute(TestStringAttr1(), "foo");

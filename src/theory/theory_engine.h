@@ -2,10 +2,10 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: dejan, taking
+ ** Major contributors: taking, dejan
  ** Minor contributors (to current version): cconway, barrett
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -188,6 +188,13 @@ public:
   void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
+  }
+
+  /**
+   * Get a pointer to the underlying propositional engine.
+   */
+  prop::PropEngine* getPropEngine() const {
+    return d_propEngine;
   }
 
   /**

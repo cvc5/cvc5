@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -34,109 +34,115 @@ NullC nullCvc4Stream CVC4_PUBLIC;
 
 #ifndef CVC4_MUZZLE
 
-#ifdef CVC4_DEBUG
-DebugC Debug CVC4_PUBLIC (&cout);
-#else /* CVC4_DEBUG */
-NullDebugC Debug CVC4_PUBLIC;
-#endif /* CVC4_DEBUG */
-
+DebugC DebugChannel CVC4_PUBLIC (&cout);
 WarningC Warning CVC4_PUBLIC (&cerr);
 MessageC Message CVC4_PUBLIC (&cout);
 NoticeC Notice CVC4_PUBLIC (&cout);
 ChatC Chat CVC4_PUBLIC (&cout);
+TraceC TraceChannel CVC4_PUBLIC (&cout);
 
-#ifdef CVC4_TRACING
-TraceC Trace CVC4_PUBLIC (&cout);
-#else /* CVC4_TRACING */
-NullDebugC Trace CVC4_PUBLIC;
-#endif /* CVC4_TRACING */
-
-void DebugC::printf(const char* tag, const char* fmt, ...) {
-  if(d_tags.find(string(tag)) != d_tags.end()) {
-    // chop off output after 1024 bytes
-    char buf[1024];
-    va_list vl;
-    va_start(vl, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, vl);
-    va_end(vl);
-    *d_os << buf;
+int DebugC::printf(const char* tag, const char* fmt, ...) {
+  if(d_tags.find(string(tag)) == d_tags.end()) {
+    return 0;
   }
-}
 
-void DebugC::printf(std::string tag, const char* fmt, ...) {
-  if(d_tags.find(tag) != d_tags.end()) {
-    // chop off output after 1024 bytes
-    char buf[1024];
-    va_list vl;
-    va_start(vl, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, vl);
-    va_end(vl);
-    *d_os << buf;
-  }
-}
-
-void WarningC::printf(const char* fmt, ...) {
   // chop off output after 1024 bytes
   char buf[1024];
   va_list vl;
   va_start(vl, fmt);
-  vsnprintf(buf, sizeof(buf), fmt, vl);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
   va_end(vl);
   *d_os << buf;
+  return retval;
 }
 
-void MessageC::printf(const char* fmt, ...) {
-  // chop off output after 1024 bytes
-  char buf[1024];
-  va_list vl;
-  va_start(vl, fmt);
-  vsnprintf(buf, sizeof(buf), fmt, vl);
-  va_end(vl);
-  *d_os << buf;
-}
-
-void NoticeC::printf(const char* fmt, ...) {
-  // chop off output after 1024 bytes
-  char buf[1024];
-  va_list vl;
-  va_start(vl, fmt);
-  vsnprintf(buf, sizeof(buf), fmt, vl);
-  va_end(vl);
-  *d_os << buf;
-}
-
-void ChatC::printf(const char* fmt, ...) {
-  // chop off output after 1024 bytes
-  char buf[1024];
-  va_list vl;
-  va_start(vl, fmt);
-  vsnprintf(buf, sizeof(buf), fmt, vl);
-  va_end(vl);
-  *d_os << buf;
-}
-
-void TraceC::printf(const char* tag, const char* fmt, ...) {
-  if(d_tags.find(string(tag)) != d_tags.end()) {
-    // chop off output after 1024 bytes
-    char buf[1024];
-    va_list vl;
-    va_start(vl, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, vl);
-    va_end(vl);
-    *d_os << buf;
+int DebugC::printf(std::string tag, const char* fmt, ...) {
+  if(d_tags.find(tag) == d_tags.end()) {
+    return 0;
   }
+
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
 }
 
-void TraceC::printf(std::string tag, const char* fmt, ...) {
-  if(d_tags.find(tag) != d_tags.end()) {
-    // chop off output after 1024 bytes
-    char buf[1024];
-    va_list vl;
-    va_start(vl, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, vl);
-    va_end(vl);
-    *d_os << buf;
+int WarningC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
+}
+
+int MessageC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
+}
+
+int NoticeC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
+}
+
+int ChatC::printf(const char* fmt, ...) {
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
+}
+
+int TraceC::printf(const char* tag, const char* fmt, ...) {
+  if(d_tags.find(string(tag)) == d_tags.end()) {
+    return 0;
   }
+
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
+}
+
+int TraceC::printf(std::string tag, const char* fmt, ...) {
+  if(d_tags.find(tag) == d_tags.end()) {
+    return 0;
+  }
+
+  // chop off output after 1024 bytes
+  char buf[1024];
+  va_list vl;
+  va_start(vl, fmt);
+  int retval = vsnprintf(buf, sizeof(buf), fmt, vl);
+  va_end(vl);
+  *d_os << buf;
+  return retval;
 }
 
 #else /* ! CVC4_MUZZLE */

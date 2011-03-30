@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
- ** Minor contributors (to current version): cconway
+ ** Minor contributors (to current version): cconway, taking, dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -58,78 +58,6 @@ extern null_streambuf null_sb;
 /** A null output stream singleton */
 extern std::ostream null_os CVC4_PUBLIC;
 
-class CVC4_PUBLIC NullCVC4ostream {
-public:
-  void flush() {}
-  bool isConnected() { return false; }
-  operator std::ostream&() { return null_os; }
-
-  template <class T>
-  NullCVC4ostream& operator<<(T const& t) { return *this; }
-
-  // support manipulators, endl, etc..
-  NullCVC4ostream& operator<<(std::ostream& (*pf)(std::ostream&)) { return *this; }
-  NullCVC4ostream& operator<<(std::ios& (*pf)(std::ios&)) { return *this; }
-  NullCVC4ostream& operator<<(std::ios_base& (*pf)(std::ios_base&)) { return *this; }
-};/* class NullCVC4ostream */
-
-/**
- * Same shape as DebugC/TraceC, but does nothing; designed for
- * compilation of muzzled builds.  None of these should ever be called
- * in muzzled builds, but we offer this to the compiler so it doesn't complain.
- */
-class CVC4_PUBLIC NullDebugC {
-public:
-  NullDebugC() {}
-  NullDebugC(std::ostream* os) {}
-
-  void operator()(const char* tag, const char*) {}
-  void operator()(const char* tag, std::string) {}
-  void operator()(std::string tag, const char*) {}
-  void operator()(std::string tag, std::string) {}
-
-  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {}
-  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {}
-
-  NullCVC4ostream operator()(const char* tag) { return NullCVC4ostream(); }
-  NullCVC4ostream operator()(std::string tag) { return NullCVC4ostream(); }
-
-  void on (const char* tag) {}
-  void on (std::string tag) {}
-  void off(const char* tag) {}
-  void off(std::string tag) {}
-
-  bool isOn(const char* tag) { return false; }
-  bool isOn(std::string tag) { return false; }
-
-  void setStream(std::ostream& os) {}
-  std::ostream& getStream() { return null_os; }
-};/* class NullDebugC */
-
-/**
- * Same shape as WarningC/etc., but does nothing; designed for
- * compilation of muzzled builds.  None of these should ever be called
- * in muzzled builds, but we offer this to the compiler so it doesn't
- * complain. */
-class CVC4_PUBLIC NullC {
-public:
-  NullC() {}
-  NullC(std::ostream* os) {}
-
-  void operator()(const char*) {}
-  void operator()(std::string) {}
-
-  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3))) {}
-
-  NullCVC4ostream operator()() { return NullCVC4ostream(); }
-
-  void setStream(std::ostream& os) {}
-  std::ostream& getStream() { return null_os; }
-};/* class NullC */
-
-extern NullDebugC debugNullCvc4Stream CVC4_PUBLIC;
-extern NullC nullCvc4Stream CVC4_PUBLIC;
-
 #ifndef CVC4_MUZZLE
 
 class CVC4_PUBLIC CVC4ostream {
@@ -141,11 +69,11 @@ class CVC4_PUBLIC CVC4ostream {
 
 public:
   CVC4ostream() : d_os(NULL) {}
-  CVC4ostream(std::ostream* os) : d_os(os), d_indent(0) {
+  explicit CVC4ostream(std::ostream* os) : d_os(os), d_indent(0) {
     d_endl = &std::endl;
   }
 
-  void pushIndent() { d_indent ++; };
+  void pushIndent() { d_indent ++; }
   void popIndent()  { if (d_indent > 0) -- d_indent; }
 
   void flush() {
@@ -195,14 +123,12 @@ public:
   }
 };/* class CVC4ostream */
 
-inline CVC4ostream& push(CVC4ostream& stream)
-{
+inline CVC4ostream& push(CVC4ostream& stream) {
   stream.pushIndent();
   return stream;
 }
 
-inline CVC4ostream& pop(CVC4ostream& stream)
-{
+inline CVC4ostream& pop(CVC4ostream& stream) {
   stream.popIndent();
   return stream;
 }
@@ -213,34 +139,10 @@ class CVC4_PUBLIC DebugC {
   std::ostream* d_os;
 
 public:
-  DebugC(std::ostream* os) : d_os(os) {}
+  explicit DebugC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* tag, const char* s) {
-    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void operator()(const char* tag, const std::string& s) {
-    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void operator()(const std::string& tag, const char* s) {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void operator()(const std::string& tag, const std::string& s) {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
   CVC4ostream operator()(const char* tag) {
     if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
@@ -256,21 +158,16 @@ public:
       return CVC4ostream();
     }
   }
-  /**
-   * The "Yeting option" - this allows use of Debug() without a tag
-   * for temporary (file-only) debugging.
-   */
-  CVC4ostream operator()();
 
-  void on (const char* tag) { d_tags.insert(std::string(tag)); }
-  void on (std::string tag) { d_tags.insert(tag);              }
-  void off(const char* tag) { d_tags.erase (std::string(tag)); }
-  void off(std::string tag) { d_tags.erase (tag);              }
+  bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
+  bool on (std::string tag) { d_tags.insert(tag); return true; }
+  bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
+  bool off(std::string tag) { d_tags.erase (tag); return false; }
 
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
-  void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class DebugC */
 
@@ -279,16 +176,13 @@ class CVC4_PUBLIC WarningC {
   std::ostream* d_os;
 
 public:
-  WarningC(std::ostream* os) : d_os(os) {}
+  explicit WarningC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* s) { *d_os << s; }
-  void operator()(std::string s) { *d_os << s; }
-
-  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class WarningC */
 
@@ -297,16 +191,13 @@ class CVC4_PUBLIC MessageC {
   std::ostream* d_os;
 
 public:
-  MessageC(std::ostream* os) : d_os(os) {}
+  explicit MessageC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* s) { *d_os << s; }
-  void operator()(std::string s) { *d_os << s; }
-
-  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class MessageC */
 
@@ -315,16 +206,13 @@ class CVC4_PUBLIC NoticeC {
   std::ostream* d_os;
 
 public:
-  NoticeC(std::ostream* os) : d_os(os) {}
+  explicit NoticeC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* s) { *d_os << s; }
-  void operator()(std::string s) { *d_os << s; }
-
-  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class NoticeC */
 
@@ -333,16 +221,13 @@ class CVC4_PUBLIC ChatC {
   std::ostream* d_os;
 
 public:
-  ChatC(std::ostream* os) : d_os(os) {}
+  explicit ChatC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* s) { *d_os << s; }
-  void operator()(std::string s) { *d_os << s; }
-
-  void printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
+  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
 
   CVC4ostream operator()() { return CVC4ostream(d_os); }
 
-  void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class ChatC */
 
@@ -352,34 +237,10 @@ class CVC4_PUBLIC TraceC {
   std::set<std::string> d_tags;
 
 public:
-  TraceC(std::ostream* os) : d_os(os) {}
+  explicit TraceC(std::ostream* os) : d_os(os) {}
 
-  void operator()(const char* tag, const char* s) {
-    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void operator()(const char* tag, const std::string& s) {
-    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void operator()(const std::string& tag, const char* s) {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void operator()(const std::string& tag, const std::string& s) {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      *d_os << s;
-    }
-  }
-
-  void printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-  void printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
   CVC4ostream operator()(const char* tag) {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
@@ -397,23 +258,24 @@ public:
     }
   }
 
-  void on (const char* tag) { d_tags.insert(std::string(tag)); };
-  void on (std::string tag) { d_tags.insert(tag);              };
-  void off(const char* tag) { d_tags.erase (std::string(tag)); };
-  void off(std::string tag) { d_tags.erase (tag);              };
+  bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
+  bool on (std::string tag) { d_tags.insert(tag); return true; }
+  bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
+  bool off(std::string tag) { d_tags.erase (tag); return false; }
 
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
 
-  void setStream(std::ostream& os) { d_os = &os; }
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class TraceC */
 
 /** The debug output singleton */
+extern DebugC DebugChannel CVC4_PUBLIC;
 #ifdef CVC4_DEBUG
-extern DebugC Debug CVC4_PUBLIC;
+#  define Debug DebugChannel
 #else /* CVC4_DEBUG */
-extern NullDebugC Debug CVC4_PUBLIC;
+#  define Debug __cvc4_true() ? debugNullCvc4Stream : DebugChannel
 #endif /* CVC4_DEBUG */
 
 /** The warning output singleton */
@@ -426,11 +288,25 @@ extern NoticeC Notice CVC4_PUBLIC;
 extern ChatC Chat CVC4_PUBLIC;
 
 /** The trace output singleton */
+extern TraceC TraceChannel CVC4_PUBLIC;
 #ifdef CVC4_TRACING
-extern TraceC Trace CVC4_PUBLIC;
+#  define Trace TraceChannel
 #else /* CVC4_TRACING */
-extern NullDebugC Trace CVC4_PUBLIC;
+#  define Trace __cvc4_true() ? debugNullCvc4Stream : TraceChannel
 #endif /* CVC4_TRACING */
+
+// Disallow e.g. !Debug("foo").isOn() forms
+// because the ! will apply before the ? .
+// If a compiler error has directed you here,
+// just parenthesize it e.g. !(Debug("foo").isOn())
+class __cvc4_true {
+  void operator!() CVC4_UNUSED;
+  void operator~() CVC4_UNUSED;
+  void operator-() CVC4_UNUSED;
+  void operator+() CVC4_UNUSED;
+public:
+  inline operator bool() { return true; }
+};/* __cvc4_true */
 
 #ifdef CVC4_DEBUG
 
@@ -549,15 +425,65 @@ extern NullDebugC Trace CVC4_PUBLIC;
 
 #endif /* ! CVC4_MUZZLE */
 
-// don't use debugTagIsOn() anymore, use Debug.isOn()
-inline bool debugTagIsOn(std::string tag) __attribute__((__deprecated__));
-inline bool debugTagIsOn(std::string tag) {
-#if defined(CVC4_DEBUG) && !defined(CVC4_MUZZLE)
-  return Debug.isOn(tag);
-#else /* CVC4_DEBUG && !CVC4_MUZZLE */
-  return false;
-#endif /* CVC4_DEBUG && !CVC4_MUZZLE */
-}/* debugTagIsOn() */
+/**
+ * Same shape as DebugC/TraceC, but does nothing; designed for
+ * compilation of non-debug/non-trace builds.  None of these should ever be called
+ * in such builds, but we offer this to the compiler so it doesn't complain.
+ */
+class CVC4_PUBLIC NullDebugC {
+public:
+/*
+  NullDebugC() {}
+  NullDebugC(std::ostream* os) {}
+
+  void operator()(const char* tag, const char*) {}
+  void operator()(const char* tag, std::string) {}
+  void operator()(std::string tag, const char*) {}
+  void operator()(std::string tag, std::string) {}
+
+  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {}
+  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4))) {}
+
+  std::ostream& operator()(const char* tag) { return null_os; }
+  std::ostream& operator()(std::string tag) { return null_os; }
+
+  void on (const char* tag) {}
+  void on (std::string tag) {}
+  void off(const char* tag) {}
+  void off(std::string tag) {}
+
+  bool isOn(const char* tag) { return false; }
+  bool isOn(std::string tag) { return false; }
+
+  void setStream(std::ostream& os) {}
+  std::ostream& getStream() { return null_os; }
+
+*/
+  operator bool() { return false; }
+  operator CVC4ostream() { return CVC4ostream(); }
+  operator std::ostream&() { return null_os; }
+};/* class NullDebugC */
+
+/**
+ * Same shape as WarningC/etc., but does nothing; designed for
+ * compilation of muzzled builds.  None of these should ever be called
+ * in muzzled builds, but we offer this to the compiler so it doesn't
+ * complain. */
+class CVC4_PUBLIC NullC {
+public:
+  NullC() {}
+  NullC(std::ostream* os) {}
+
+  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3))) { return 0; }
+
+  std::ostream& operator()() { return null_os; }
+
+  std::ostream& setStream(std::ostream& os) { return null_os; }
+  std::ostream& getStream() { return null_os; }
+};/* class NullC */
+
+extern NullDebugC debugNullCvc4Stream CVC4_PUBLIC;
+extern NullC nullCvc4Stream CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

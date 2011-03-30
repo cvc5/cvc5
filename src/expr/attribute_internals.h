@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): taking, dejan, cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -445,44 +445,6 @@ class CDAttrHash<bool> :
   };/* class CDAttrHash<bool>::BitAccessor */
 
   /**
-   * A (somewhat degenerate) iterator over boolean-valued attributes.
-   * This iterator doesn't support anything except comparison and
-   * dereference.  It's intended just for the result of find() on the
-   * table.
-   */
-  class BitIterator {
-
-    super* d_map;
-
-    std::pair<NodeValue* const, uint64_t>* d_entry;
-
-    unsigned d_bit;
-
-  public:
-
-    BitIterator() :
-      d_map(NULL),
-      d_entry(NULL),
-      d_bit(0) {
-    }
-
-    BitIterator(super& map, std::pair<NodeValue* const, uint64_t>& entry, unsigned bit) :
-      d_map(&map),
-      d_entry(&entry),
-      d_bit(bit) {
-    }
-
-    std::pair<NodeValue* const, BitAccessor> operator*() {
-      return std::make_pair(d_entry->first,
-                            BitAccessor(*d_map, d_entry->first, d_entry->second, d_bit));
-    }
-
-    bool operator==(const BitIterator& b) {
-      return d_entry == b.d_entry && d_bit == b.d_bit;
-    }
-  };/* class CDAttrHash<bool>::BitIterator */
-
-  /**
    * A (somewhat degenerate) const_iterator over boolean-valued
    * attributes.  This const_iterator doesn't support anything except
    * comparison and dereference.  It's intended just for the result of
@@ -530,31 +492,9 @@ public:
   typedef std::pair<const key_type, data_type> value_type;
 
   /** an iterator type; see above for limitations */
-  typedef BitIterator iterator;
+  typedef ConstBitIterator iterator;
   /** a const_iterator type; see above for limitations */
   typedef ConstBitIterator const_iterator;
-
-  /**
-   * Find the boolean value in the hash table.  Returns something ==
-   * end() if not found.
-   */
-  /*BitIterator find(const std::pair<uint64_t, NodeValue*>& k) {
-    super::iterator i = super::find(k.second);
-    if(i == super::end()) {
-      return BitIterator();
-    }
-    Debug.printf("cdboolattr",
-                 "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
-                 &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
-    return BitIterator(*i, k.first);
-  }*/
-
-  /** The "off the end" iterator */
-  BitIterator end() {
-    return BitIterator();
-  }
 
   /**
    * Find the boolean value in the hash table.  Returns something ==
@@ -588,14 +528,19 @@ public:
   }
 
   /**
-   * Delete all flags from the given node.
+   * Delete all flags from the given node.  Simply calls superclass's
+   * obliterate().  Note this removes all attributes at all context
+   * levels for this NodeValue!  This is important when the NodeValue
+   * is no longer referenced and is being collected, but otherwise
+   * it probably isn't useful to do this.
    */
   void erase(NodeValue* nv) {
     super::obliterate(nv);
   }
 
   /**
-   * Clear the hash table.
+   * Clear the hash table.  This simply exposes the protected superclass
+   * version of clear() to clients.
    */
   void clear() {
     super::clear();
