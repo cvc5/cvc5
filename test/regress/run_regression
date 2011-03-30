@@ -62,7 +62,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
     # this frustrates our auto-language-detection, so add explicit --lang
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
-    command_line="${command_line:+ $command_line}--lang=smt"
+    command_line="${command_line:+$command_line }--lang=smt"
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -96,7 +96,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
     # this frustrates our auto-language-detection, so add explicit --lang
     gettemp tmpbenchmark cvc4_benchmark.smt2.$$.XXXXXXXXXX
-    command_line="${command_line:+ $command_line}--lang=smt2"
+    command_line="${command_line:+$command_line }--lang=smt2"
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"

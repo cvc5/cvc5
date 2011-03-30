@@ -52,7 +52,6 @@ CVC_TESTS = \
 	test9.cvc \
 	test11.cvc \
 	uf20-03.cvc \
-	uf20-03.tim.cvc \
 	wiki.01.cvc \
 	wiki.02.cvc \
 	wiki.03.cvc \

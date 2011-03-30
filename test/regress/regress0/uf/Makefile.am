@@ -12,6 +12,7 @@ TESTS =	\
 	euf_simp06.smt \
 	euf_simp08.smt \
 	euf_simp09.smt \
+	euf_simp09.tim.smt \
 	euf_simp10.smt \
 	euf_simp11.smt \
 	euf_simp12.smt \
