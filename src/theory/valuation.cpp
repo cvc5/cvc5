@@ -29,7 +29,13 @@ Node Valuation::getValue(TNode n) {
 
 Node Valuation::getSatValue(TNode n) {
   if(n.getKind() == kind::NOT) {
-    return NodeManager::currentNM()->mkConst(! d_engine->getPropEngine()->getValue(n[0]).getConst<bool>());
+    Node atomRes = d_engine->getPropEngine()->getValue(n[0]);
+    if(atomRes.getKind() == kind::CONST_BOOLEAN){
+      return NodeManager::currentNM()->mkConst(!atomRes.getConst<bool>());
+    }else{
+      Assert(atomRes.isNull());
+      return atomRes;
+    }
   } else {
     return d_engine->getPropEngine()->getValue(n);
   }

@@ -232,7 +232,11 @@ public:
 
   void setCnfStream(CnfStream* cnfStream);
 
+  /** Call value() during the search.*/
   SatLiteralValue value(SatLiteral l);
+
+  /** Call value() when the search is done.*/
+  SatLiteralValue modelValue(SatLiteral l);
 
   int getLevel() const;
 
@@ -294,6 +298,10 @@ inline SatVariable SatSolver::newVar(bool theoryAtom) {
 }
 
 inline SatLiteralValue SatSolver::value(SatLiteral l) {
+  return d_minisat->value(l);
+}
+
+inline SatLiteralValue SatSolver::modelValue(SatLiteral l) {
   return d_minisat->modelValue(l);
 }
 
