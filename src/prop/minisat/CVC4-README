@@ -13,7 +13,7 @@ the trunk.
 The PropEngine then uses the following
 
 // Create the sat solver (this is the proxy, which will create minisat)
-d_satSolver = new SatSolver(this, d_theoryEngine, d_context, d_options);
+d_satSolver = new SatSolver(this, d_theoryEngine, d_context);
 // Add some clauses
 d_cnfStream->convertAndAssert(node);
 // Check for satisfiabilty 

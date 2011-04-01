@@ -21,6 +21,7 @@
 #include "expr/declaration_scope.h"
 #include "expr/expr.h"
 #include "expr/type.h"
+#include "expr/expr_manager_scope.h"
 #include "context/cdmap.h"
 #include "context/cdset.h"
 #include "context/context.h"
@@ -48,11 +49,15 @@ DeclarationScope::~DeclarationScope() {
   delete d_context;
 }
 
-void DeclarationScope::bind(const std::string& name, Expr obj) throw() {
+void DeclarationScope::bind(const std::string& name, Expr obj) throw(AssertionException) {
+  CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
+  ExprManagerScope ems(obj);
   d_exprMap->insert(name, obj);
 }
 
-void DeclarationScope::bindDefinedFunction(const std::string& name, Expr obj) throw() {
+void DeclarationScope::bindDefinedFunction(const std::string& name, Expr obj) throw(AssertionException) {
+  CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
+  ExprManagerScope ems(obj);
   d_exprMap->insert(name, obj);
   d_functions->insert(obj);
 }

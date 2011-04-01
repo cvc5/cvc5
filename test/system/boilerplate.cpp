@@ -30,7 +30,7 @@ using namespace std;
 int main() {
   ExprManager em;
   Options opts;
-  SmtEngine smt(&em, opts);
+  SmtEngine smt(&em);
   Result r = smt.query(em.mkConst(true));
 
   return r == Result::VALID ? 0 : 1;

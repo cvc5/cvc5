@@ -255,3 +255,21 @@ void ArithPriorityQueue::clear(){
   Assert(d_varOrderQueue.empty());
   Assert(d_diffQueue.empty());
 }
+
+std::ostream& CVC4::theory::arith::operator<<(std::ostream& out, ArithPriorityQueue::PivotRule rule) {
+  switch(rule) {
+  case ArithPriorityQueue::MINIMUM:
+    out << "MINIMUM";
+    break;
+  case ArithPriorityQueue::BREAK_TIES:
+    out << "BREAK_TIES";
+    break;
+  case ArithPriorityQueue::MAXIMUM:
+    out << "MAXIMUM";
+    break;
+  default:
+    out << "PivotRule!UNKNOWN";
+  }
+
+  return out;
+}

@@ -68,7 +68,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
     d_engine->getSharedTermManager()->addEq(fact);
   }
 
-  if(d_engine->d_theoryRegistration && !fact.getAttribute(RegisteredAttr())) {
+  if(Options::current()->theoryRegistration && !fact.getAttribute(RegisteredAttr())) {
     list<TNode> toReg;
     toReg.push_back(fact);
 
@@ -126,17 +126,15 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
         d_engine->theoryOf(n)->registerTerm(n);
       }
     }
-  }/* d_engine->d_theoryRegistration && !fact.getAttribute(RegisteredAttr()) */
+  }/* Options::current()->theoryRegistration && !fact.getAttribute(RegisteredAttr()) */
 }
 
-TheoryEngine::TheoryEngine(context::Context* ctxt, const Options& opts) :
+TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_propEngine(NULL),
   d_context(ctxt),
   d_theoryOut(this, ctxt),
-  d_theoryRegistration(opts.theoryRegistration),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
-  d_opts(opts),
   d_statistics() {
 
   Rewriter::init();

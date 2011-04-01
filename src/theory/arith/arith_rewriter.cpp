@@ -261,7 +261,7 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
   }else if(reduction.getKind() == kind::LT){
     Node geq = currNM->mkNode(kind::GEQ, reduction[0], reduction[1]);
     reduction = currNM->mkNode(kind::NOT, geq);
-  }else if( Options::rewriteArithEqualities && reduction.getKind() == kind::EQUAL){
+  }else if( Options::current()->rewriteArithEqualities && reduction.getKind() == kind::EQUAL){
     Node geq = currNM->mkNode(kind::GEQ, reduction[0], reduction[1]);
     Node leq = currNM->mkNode(kind::LEQ, reduction[0], reduction[1]);
     reduction = currNM->mkNode(kind::AND, geq, leq);

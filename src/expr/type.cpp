@@ -69,7 +69,7 @@ bool Type::isNull() const {
 }
 
 Type& Type::operator=(const Type& t) {
-  NodeManagerScope nms(d_nodeManager);
+  NodeManagerScope nms(t.d_nodeManager);
   if(this != &t) {
     *d_typeNode = *t.d_typeNode;
     d_nodeManager = t.d_nodeManager;

@@ -242,8 +242,7 @@ public:
     d_nullChannel = new FakeOutputChannel;
 
     // create the TheoryEngine
-    Options options;
-    d_theoryEngine = new TheoryEngine(d_ctxt, options);
+    d_theoryEngine = new TheoryEngine(d_ctxt);
 
     d_theoryEngine->addTheory< FakeTheory<THEORY_BUILTIN> >();
     d_theoryEngine->addTheory< FakeTheory<THEORY_BOOL> >();

@@ -48,7 +48,21 @@ public:
     d_numVariables(0),
     d_delayedLemmas(),
     d_ZERO(0)
-  {}
+  {
+    switch(Options::ArithPivotRule rule = Options::current()->pivotRule) {
+    case Options::MINIMUM:
+      d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
+      break;
+    case Options::BREAK_TIES:
+      d_queue.setPivotRule(ArithPriorityQueue::BREAK_TIES);
+      break;
+    case Options::MAXIMUM:
+      d_queue.setPivotRule(ArithPriorityQueue::MAXIMUM);
+      break;
+    default:
+      Unhandled(rule);
+    }
+  }
 
   /**
    * Assert*(n, orig) takes an bound n that is implied by orig.
@@ -177,24 +191,6 @@ private:
    */
   Node generateConflictAbove(ArithVar conflictVar);
   Node generateConflictBelow(ArithVar conflictVar);
-
-public:
-  void notifyOptions(const Options& opt){
-    switch(opt.pivotRule){
-    case Options::MINIMUM:
-      d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
-      break;
-    case Options::BREAK_TIES:
-      d_queue.setPivotRule(ArithPriorityQueue::BREAK_TIES);
-      break;
-    case Options::MAXIMUM:
-      d_queue.setPivotRule(ArithPriorityQueue::MAXIMUM);
-      break;
-    default:
-      Unhandled(opt.pivotRule);
-    }
-  }
-
 
 public:
   /**

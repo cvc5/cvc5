@@ -155,14 +155,12 @@ class TheoryEngine {
    */
   Node removeITEs(TNode t);
 
-  const Options& d_opts;
-
 public:
 
   /**
    * Construct a theory engine.
    */
-  TheoryEngine(context::Context* ctxt, const Options& opts);
+  TheoryEngine(context::Context* ctxt);
 
   /**
    * Destroy a theory engine.
@@ -177,8 +175,6 @@ public:
     TheoryClass* theory = new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
     d_theoryTable[theory->getId()] = theory;
     d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
-
-    theory->notifyOptions(d_opts);
   }
 
   SharedTermManager* getSharedTermManager() {

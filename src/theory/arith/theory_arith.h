@@ -171,9 +171,6 @@ public:
 
   std::string identify() const { return std::string("TheoryArith"); }
 
-  void notifyOptions(const Options& opt) {
-    d_simplex.notifyOptions(opt);
-  }
 private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;

@@ -42,6 +42,8 @@ namespace CVC4 {
 #  define __CVC4_USE_STATISTICS false
 #endif
 
+class ExprManager;
+
 class CVC4_PUBLIC Stat;
 
 inline std::ostream& operator<<(std::ostream& os, const ::timespec& t);
@@ -49,9 +51,6 @@ inline std::ostream& operator<<(std::ostream& os, const ::timespec& t);
 /**
  * The main statistics registry.  This registry maintains the list of
  * currently active statistics and is able to "flush" them all.
- *
- * The statistics registry is only used statically; one does not
- * construct a statistics registry.
  */
 class CVC4_PUBLIC StatisticsRegistry {
 private:
@@ -64,42 +63,42 @@ private:
   typedef std::set< Stat*, StatCmp > StatSet;
 
   /** The set of currently active statistics */
-  static StatSet d_registeredStats;
+  StatSet d_registeredStats;
 
-  /** Private default constructor undefined (no construction permitted). */
-  StatisticsRegistry() CVC4_UNDEFINED;
   /** Private copy constructor undefined (no copy permitted). */
   StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
 
 public:
 
+  /** Construct a statistics registry */
+  StatisticsRegistry() { }
+
   /** An iterator type over a set of statistics */
   typedef StatSet::const_iterator const_iterator;
 
+  /** Get a pointer to the current statistics registry */
+  static StatisticsRegistry* current();
+
   /** Flush all statistics to the given output stream. */
-  static void flushStatistics(std::ostream& out);
+  void flushStatistics(std::ostream& out);
 
   /** Register a new statistic, making it active. */
-  static inline void registerStat(Stat* s) throw(AssertionException);
+  static void registerStat(Stat* s) throw(AssertionException);
 
   /** Unregister an active statistic, making it inactive. */
-  static inline void unregisterStat(Stat* s) throw(AssertionException);
+  static void unregisterStat(Stat* s) throw(AssertionException);
 
   /**
    * Get an iterator to the beginning of the range of the set of active
    * (registered) statistics.
    */
-  static inline const_iterator begin() {
-    return d_registeredStats.begin();
-  }
+  static const_iterator begin();
 
   /**
    * Get an iterator to the end of the range of the set of active
    * (registered) statistics.
    */
-  static inline const_iterator end() {
-    return d_registeredStats.end();
-  }
+  static const_iterator end();
 
 };/* class StatisticsRegistry */
 
@@ -174,24 +173,6 @@ inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
                                                     const Stat* s2) const {
   return s1->getName() < s2->getName();
 }
-
-inline void StatisticsRegistry::registerStat(Stat* s)
-  throw(AssertionException) {
-  if(__CVC4_USE_STATISTICS) {
-    AlwaysAssert(d_registeredStats.find(s) == d_registeredStats.end());
-    d_registeredStats.insert(s);
-  }
-}/* StatisticsRegistry::registerStat() */
-
-
-inline void StatisticsRegistry::unregisterStat(Stat* s)
-  throw(AssertionException) {
-  if(__CVC4_USE_STATISTICS) {
-    AlwaysAssert(d_registeredStats.find(s) != d_registeredStats.end());
-    d_registeredStats.erase(s);
-  }
-}/* StatisticsRegistry::unregisterStat() */
-
 
 /**
  * A class to represent a "read-only" data statistic of type T.  Adds to
@@ -766,14 +747,20 @@ public:
  * registration and unregistration.
  */
 class RegisterStatistic {
+  ExprManager* d_em;
   Stat* d_stat;
 public:
   RegisterStatistic(Stat* stat) : d_stat(stat) {
+    Assert(StatisticsRegistry::current() != NULL,
+           "You need to specify an expression manager "
+           "on which to set the statistic");
     StatisticsRegistry::registerStat(d_stat);
   }
-  ~RegisterStatistic() {
-    StatisticsRegistry::unregisterStat(d_stat);
-  }
+
+  RegisterStatistic(ExprManager& em, Stat* stat);
+
+  ~RegisterStatistic();
+
 };/* class RegisterStatistic */
 
 #undef __CVC4_USE_STATISTICS

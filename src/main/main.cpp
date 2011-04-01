@@ -51,7 +51,8 @@ void doCommand(SmtEngine&, Command*);
 void printUsage();
 
 namespace CVC4 {
-  namespace main {/* Global options variable */
+  namespace main {
+    /** Global options variable */
     Options options;
 
     /** Full argv[0] */
@@ -59,6 +60,9 @@ namespace CVC4 {
 
     /** Just the basename component of argv[0] */
     const char *progName;
+
+    /** A pointer to the StatisticsRegistry (the signal handlers need it) */
+    CVC4::StatisticsRegistry* pStatistics;
   }
 }
 
@@ -104,8 +108,8 @@ int main(int argc, char* argv[]) {
     *options.out << "unknown" << endl;
 #endif
     *options.err << "CVC4 Error:" << endl << e << endl;
-    if(options.statistics) {
-      StatisticsRegistry::flushStatistics(*options.err);
+    if(options.statistics && pStatistics != NULL) {
+      pStatistics->flushStatistics(*options.err);
     }
     exit(1);
   } catch(bad_alloc) {
@@ -113,8 +117,8 @@ int main(int argc, char* argv[]) {
     *options.out << "unknown" << endl;
 #endif
     *options.err << "CVC4 ran out of memory." << endl;
-    if(options.statistics) {
-      StatisticsRegistry::flushStatistics(*options.err);
+    if(options.statistics && pStatistics != NULL) {
+      pStatistics->flushStatistics(*options.err);
     }
     exit(1);
   } catch(...) {
@@ -171,35 +175,6 @@ int runCvc4(int argc, char* argv[]) {
     options.interactive = inputFromStdin && isatty(fileno(stdin));
   }
 
-  // Create the expression manager
-  ExprManager exprMgr(options);
-
-  // Create the SmtEngine
-  SmtEngine smt(&exprMgr, options);
-
-  // Auto-detect input language by filename extension
-  const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
-
-  ReferenceStat< const char* > s_statFilename("filename", filename);
-  RegisterStatistic statFilenameReg(&s_statFilename);
-
-  if(options.inputLanguage == language::input::LANG_AUTO) {
-    if( inputFromStdin ) {
-      // We can't do any fancy detection on stdin
-      options.inputLanguage = language::input::LANG_CVC4;
-    } else {
-      unsigned len = strlen(filename);
-      if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        options.inputLanguage = language::input::LANG_SMTLIB_V2;
-      } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        options.inputLanguage = language::input::LANG_SMTLIB;
-      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
-                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        options.inputLanguage = language::input::LANG_CVC4;
-      }
-    }
-  }
-
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
     Debug.setStream(CVC4::null_os);
@@ -219,7 +194,41 @@ int runCvc4(int argc, char* argv[]) {
       Message.setStream(CVC4::null_os);
       Warning.setStream(CVC4::null_os);
     }
+  }
 
+  // Create the expression manager
+  ExprManager exprMgr(options);
+
+  // Create the SmtEngine
+  SmtEngine smt(&exprMgr);
+
+  // signal handlers need access
+  pStatistics = smt.getStatisticsRegistry();
+
+  // Auto-detect input language by filename extension
+  const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
+
+  ReferenceStat< const char* > s_statFilename("filename", filename);
+  RegisterStatistic statFilenameReg(exprMgr, &s_statFilename);
+
+  if(options.inputLanguage == language::input::LANG_AUTO) {
+    if( inputFromStdin ) {
+      // We can't do any fancy detection on stdin
+      options.inputLanguage = language::input::LANG_CVC4;
+    } else {
+      unsigned len = strlen(filename);
+      if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
+        options.inputLanguage = language::input::LANG_SMTLIB_V2;
+      } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
+        options.inputLanguage = language::input::LANG_SMTLIB;
+      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
+                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
+        options.inputLanguage = language::input::LANG_CVC4;
+      }
+    }
+  }
+
+  if(!Configuration::isMuzzledBuild()) {
     OutputLanguage language = language::toOutputLanguage(options.inputLanguage);
     Debug.getStream() << Expr::setlanguage(language);
     Trace.getStream() << Expr::setlanguage(language);
@@ -228,7 +237,6 @@ int runCvc4(int argc, char* argv[]) {
     Message.getStream() << Expr::setlanguage(language);
     Warning.getStream() << Expr::setlanguage(language);
   }
-
 
   // Parse and execute commands until we are done
   Command* cmd;
@@ -273,10 +281,10 @@ int runCvc4(int argc, char* argv[]) {
 #endif
 
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
-  RegisterStatistic statSatResultReg(&s_statSatResult);
+  RegisterStatistic statSatResultReg(exprMgr, &s_statSatResult);
 
   if(options.statistics) {
-    StatisticsRegistry::flushStatistics(*options.err);
+    smt.getStatisticsRegistry()->flushStatistics(*options.err);
   }
 
   return returnValue;

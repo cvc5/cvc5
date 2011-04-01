@@ -21,6 +21,7 @@
 
 #include "util/options.h"
 #include "util/exception.h"
+#include "util/stats.h"
 #include "cvc4autoconfig.h"
 
 #ifndef __CVC4__MAIN__MAIN_H
@@ -31,10 +32,13 @@ namespace CVC4 {
 namespace main {
 
 /** Full argv[0] */
-extern const char *progPath;
+extern const char* progPath;
 
 /** Just the basename component of argv[0] */
-extern const char *progName;
+extern const char* progName;
+
+/** A reference to the StatisticsRegistry for use by the signal handlers */
+extern CVC4::StatisticsRegistry* pStatistics;
 
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.

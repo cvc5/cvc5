@@ -120,28 +120,17 @@ public:
 
 using namespace CVC4::smt;
 
-SmtEngine::SmtEngine(ExprManager* em) throw() :
-  d_exprManager(em) {
-  Options opts;
-  init(opts);
-}
-
-SmtEngine::SmtEngine(ExprManager* em, const Options& opts) throw() :
-  d_exprManager(em){
-  init(opts);
-}
-
-void SmtEngine::init(const Options& opts) throw() {
-  d_context = d_exprManager->getContext();
-  d_userContext = new Context();
-
-  d_nodeManager = d_exprManager->getNodeManager();
+SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
+  d_context(em->getContext()),
+  d_userContext(new Context()),
+  d_exprManager(em),
+  d_nodeManager(d_exprManager->getNodeManager()) {
 
   NodeManagerScope nms(d_nodeManager);
 
   // We have mutual dependancy here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, opts);
+  d_theoryEngine = new TheoryEngine(d_context);
 
   // Add the theories
   d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>();
@@ -149,7 +138,7 @@ void SmtEngine::init(const Options& opts) throw() {
   d_theoryEngine->addTheory<theory::arith::TheoryArith>();
   d_theoryEngine->addTheory<theory::arrays::TheoryArrays>();
   d_theoryEngine->addTheory<theory::bv::TheoryBV>();
-  switch(opts.uf_implementation) {
+  switch(Options::current()->uf_implementation) {
   case Options::TIM:
     d_theoryEngine->addTheory<theory::uf::tim::TheoryUFTim>();
     break;
@@ -157,30 +146,22 @@ void SmtEngine::init(const Options& opts) throw() {
     d_theoryEngine->addTheory<theory::uf::morgan::TheoryUFMorgan>();
     break;
   default:
-    Unhandled(opts.uf_implementation);
+    Unhandled(Options::current()->uf_implementation);
   }
 
-  d_propEngine = new PropEngine(d_theoryEngine, d_context, opts);
+  d_propEngine = new PropEngine(d_theoryEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
 
   d_assertionList = NULL;
-  d_interactive = opts.interactive;
-  if(d_interactive) {
+  if(Options::current()->interactive) {
     d_assertionList = new(true) AssertionList(d_userContext);
   }
 
   d_assignments = NULL;
   d_haveAdditions = false;
   d_queryMade = false;
-
-  d_typeChecking = opts.typeChecking;
-  d_lazyDefinitionExpansion = opts.lazyDefinitionExpansion;
-  d_produceModels = opts.produceModels;
-  d_produceAssignments = opts.produceAssignments;
-
-  d_incrementalSolving = opts.incrementalSolving;
 }
 
 void SmtEngine::shutdown() {
@@ -354,7 +335,7 @@ void SmtEngine::defineFunction(Expr func,
                                Expr formula) {
   Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
   NodeManagerScope nms(d_nodeManager);
-  Type formulaType = formula.getType(d_typeChecking);// type check body
+  Type formulaType = formula.getType(Options::current()->typeChecking);// type check body
   Type funcType = func.getType();
   Type rangeType = funcType.isFunction() ?
     FunctionType(funcType).getRangeType() : funcType;
@@ -445,7 +426,7 @@ Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode in)
   throw(NoSuchFunctionException, AssertionException) {
 
   Node n;
-  if(!smt.d_lazyDefinitionExpansion) {
+  if(!Options::current()->lazyDefinitionExpansion) {
     Debug("expand") << "have: " << n << endl;
     n = expandDefinitions(smt, in);
     Debug("expand") << "made: " << n << endl;
@@ -486,7 +467,7 @@ void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
 }
 
 void SmtEngine::ensureBoolean(const BoolExpr& e) {
-  Type type = e.getType(d_typeChecking);
+  Type type = e.getType(Options::current()->typeChecking);
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
     stringstream ss;
@@ -501,7 +482,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT checkSat(" << e << ")" << endl;
-  if(d_queryMade && !d_incrementalSolving) {
+  if(d_queryMade && !Options::current()->incrementalSolving) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
                          "(try --incremental)");
@@ -522,7 +503,7 @@ Result SmtEngine::query(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT query(" << e << ")" << endl;
-  if(d_queryMade && !d_incrementalSolving) {
+  if(d_queryMade && !Options::current()->incrementalSolving) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
                          "(try --incremental)");
@@ -554,7 +535,7 @@ Result SmtEngine::assertFormula(const BoolExpr& e) {
 Expr SmtEngine::simplify(const Expr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  if( d_typeChecking ) {
+  if( Options::current()->typeChecking ) {
     e.getType(true);// ensure expr is type-checked at this point
   }
   Debug("smt") << "SMT simplify(" << e << ")" << endl;
@@ -566,9 +547,9 @@ Expr SmtEngine::simplify(const Expr& e) {
 Expr SmtEngine::getValue(const Expr& e)
   throw(ModalException, AssertionException) {
   Assert(e.getExprManager() == d_exprManager);
-  Type type = e.getType(d_typeChecking);// ensure expr is type-checked at this point
+  Type type = e.getType(Options::current()->typeChecking);// ensure expr is type-checked at this point
   Debug("smt") << "SMT getValue(" << e << ")" << endl;
-  if(!d_produceModels) {
+  if(!Options::current()->produceModels) {
     const char* msg =
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
@@ -601,7 +582,7 @@ Expr SmtEngine::getValue(const Expr& e)
 
 bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
   NodeManagerScope nms(d_nodeManager);
-  Type type = e.getType(d_typeChecking);
+  Type type = e.getType(Options::current()->typeChecking);
   // must be Boolean
   CheckArgument( type.isBoolean(), e,
                  "expected Boolean-typed variable or function application "
@@ -615,7 +596,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
                    n.getMetaKind() == kind::metakind::VARIABLE ), e,
                  "expected variable or defined-function application "
                  "in addToAssignment(),\ngot %s", e.toString().c_str() );
-  if(!d_produceAssignments) {
+  if(!Options::current()->produceAssignments) {
     return false;
   }
   if(d_assignments == NULL) {
@@ -628,7 +609,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
 
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
   Debug("smt") << "SMT getAssignment()" << endl;
-  if(!d_produceAssignments) {
+  if(!Options::current()->produceAssignments) {
     const char* msg =
       "Cannot get the current assignment when "
       "produce-assignments option is off.";
@@ -680,7 +661,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
   Debug("smt") << "SMT getAssertions()" << endl;
-  if(!d_interactive) {
+  if(!Options::current()->interactive) {
     const char* msg =
       "Cannot query the current assertion list when not in interactive mode.";
     throw ModalException(msg);
@@ -692,7 +673,7 @@ vector<Expr> SmtEngine::getAssertions()
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT push()" << endl;
-  if(!d_incrementalSolving) {
+  if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot push when not solving incrementally (use --incremental)");
   }
   d_userLevels.push_back(d_userContext->getLevel());
@@ -704,7 +685,7 @@ void SmtEngine::push() {
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT pop()" << endl;
-  if(!d_incrementalSolving) {
+  if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
   }
   AlwaysAssert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
@@ -729,6 +710,10 @@ void SmtEngine::internalPush() {
   Debug("smt") << "internalPush()" << endl;
   d_userContext->push();
   d_propEngine->push();
+}
+
+StatisticsRegistry* SmtEngine::getStatisticsRegistry() const {
+  return d_exprManager->d_nodeManager->getStatisticsRegistry();
 }
 
 }/* CVC4 namespace */

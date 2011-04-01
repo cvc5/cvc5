@@ -294,6 +294,7 @@ private:
   Statistics d_statistics;
 };
 
+std::ostream& operator<<(std::ostream& out, ArithPriorityQueue::PivotRule rule);
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

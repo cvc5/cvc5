@@ -405,11 +405,6 @@ public:
    */
   virtual std::string identify() const = 0;
 
-  /**
-   * Notify the theory of the current set of options.
-   */
-  virtual void notifyOptions(const Options& opt) { }
-
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level);

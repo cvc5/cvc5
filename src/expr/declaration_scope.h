@@ -77,7 +77,7 @@ public:
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
    */
-  void bind(const std::string& name, Expr obj) throw();
+  void bind(const std::string& name, Expr obj) throw(AssertionException);
 
   /**
    * Bind a function body to a name in the current scope.  If
@@ -90,7 +90,7 @@ public:
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
    */
-  void bindDefinedFunction(const std::string& name, Expr obj) throw();
+  void bindDefinedFunction(const std::string& name, Expr obj) throw(AssertionException);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>

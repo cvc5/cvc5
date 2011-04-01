@@ -48,9 +48,6 @@ class PropEngine {
    */
   bool d_inCheckSat;
 
-  /** The global options */
-  //const Options d_options;
-
   /** The theory engine we will be using */
   TheoryEngine *d_theoryEngine;
 
@@ -72,7 +69,7 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*, context::Context*, const Options&);
+  PropEngine(TheoryEngine*, context::Context*);
 
   /**
    * Destructor.

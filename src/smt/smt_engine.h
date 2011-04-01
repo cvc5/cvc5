@@ -49,6 +49,8 @@ class NodeHashFunction;
 
 class TheoryEngine;
 
+class StatisticsRegistry;
+
 namespace context {
   class Context;
 }/* CVC4::context namespace */
@@ -139,43 +141,10 @@ class CVC4_PUBLIC SmtEngine {
    */
   bool d_queryMade;
 
-  /** 
-   * Whether or not to type check input expressions.
-   */
-  bool d_typeChecking;
-
-  /**
-   * Whether we're being used in an interactive setting.
-   */
-  bool d_interactive;
-
-  /**
-   * Whether we expand function definitions lazily.
-   */
-  bool d_lazyDefinitionExpansion;
-
-  /**
-   * Whether getValue() is enabled.
-   */
-  bool d_produceModels;
-
-  /**
-   * Whether getAssignment() is enabled.
-   */
-  bool d_produceAssignments;
-
-  /**
-   * Whether multiple queries can be made, and also push/pop is enabled.
-   */
-  bool d_incrementalSolving;
-
   /**
    * Most recent result of last checkSat/query or (set-info :status).
    */
   Result d_status;
-
-  /** Called by the constructors to setup fields. */
-  void init(const Options& opts) throw();
 
   /**
    * This is called by the destructor, just before destroying the
@@ -215,12 +184,7 @@ public:
   /**
    * Construct an SmtEngine with the given expression manager.
    */
-  SmtEngine(ExprManager* em) throw();
-
-  /**
-   * Construct an SmtEngine with the given expression manager and user options.
-   */
-  SmtEngine(ExprManager* em, const Options& opts) throw();
+  SmtEngine(ExprManager* em) throw(AssertionException);
 
   /**
    * Destruct the SMT engine.
@@ -336,12 +300,10 @@ public:
    */
   void pop();
 
-  /** Enable type checking. Forces a type check on any Expr parameter
-      to an SmtEngine method. */
-  void enableTypeChecking() { d_typeChecking = true; }
-
-  /** Disable type checking. */
-  void disableTypeChecking() { d_typeChecking = false; }
+  /**
+   * Permit access to the underlying StatisticsRegistry.
+   */
+  StatisticsRegistry* getStatisticsRegistry() const;
 
 };/* class SmtEngine */
 

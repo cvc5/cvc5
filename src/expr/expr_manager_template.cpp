@@ -95,9 +95,8 @@ ExprManager::ExprManager(const Options& options) :
 }
 
 ExprManager::~ExprManager() {
-  delete d_nodeManager;
-  delete d_ctxt;
 #ifdef CVC4_STATISTICS_ON   
+  NodeManagerScope nms(d_nodeManager);
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     if (d_exprStatistics[i] != NULL) {
       StatisticsRegistry::unregisterStat(d_exprStatistics[i]);
@@ -111,6 +110,8 @@ ExprManager::~ExprManager() {
     }
   }
 #endif
+  delete d_nodeManager;
+  delete d_ctxt;
 }
 
 BooleanType ExprManager::booleanType() const {

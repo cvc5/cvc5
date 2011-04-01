@@ -658,17 +658,12 @@ private:
   expr::NodeValue* constructNV();
   expr::NodeValue* constructNV() const;
 
-  inline void maybeCheckType(const TNode n) const {
-    /* force an immediate type check, if early type checking is
-       enabled and the current node isn't a variable or constant */
-    if( d_nm->d_earlyTypeChecking ) {
-      kind::MetaKind mk = n.getMetaKind();
-      if( mk != kind::metakind::VARIABLE 
-          && mk != kind::metakind::CONSTANT ) {
-        d_nm->getType(n, true);
-      }
-    }
-  }
+#ifdef CVC4_DEBUG
+  void maybeCheckType(const TNode n) const
+    throw(TypeCheckingExceptionPrivate, AssertionException);
+#else /* CVC4_DEBUG */
+  inline void maybeCheckType(const TNode n) const throw() { }
+#endif /* CVC4_DEBUG */
 
 public:
 
@@ -716,6 +711,7 @@ public:
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "util/options.h"
 
 namespace CVC4 {
 
@@ -1239,6 +1235,22 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
     (*i)->inc();
   }
 }
+
+#ifdef CVC4_DEBUG
+template <unsigned nchild_thresh>
+inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
+    throw(TypeCheckingExceptionPrivate, AssertionException) {
+  /* force an immediate type check, if early type checking is
+     enabled and the current node isn't a variable or constant */
+  if( d_nm->getOptions()->earlyTypeChecking ) {
+    kind::MetaKind mk = n.getMetaKind();
+    if( mk != kind::metakind::VARIABLE 
+        && mk != kind::metakind::CONSTANT ) {
+      d_nm->getType(n, true);
+    }
+  }
+}
+#endif /* CVC4_DEBUG */
 
 }/* CVC4 namespace */
 
