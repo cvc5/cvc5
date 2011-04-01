@@ -42,7 +42,7 @@ namespace CVC4 {
 #  define __CVC4_USE_STATISTICS false
 #endif
 
-class ExprManager;
+class CVC4_PUBLIC ExprManager;
 
 class CVC4_PUBLIC Stat;
 
@@ -186,7 +186,7 @@ inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
  * std::ostream& operator<<(std::ostream&, const T&)
  */
 template <class T>
-class ReadOnlyDataStat : public Stat {
+class CVC4_PUBLIC ReadOnlyDataStat : public Stat {
 public:
   /** The "payload" type of this data statistic (that is, T). */
   typedef T payload_t;
@@ -228,7 +228,7 @@ public:
  * std::ostream& operator<<(std::ostream&, const T&)
  */
 template <class T>
-class DataStat : public ReadOnlyDataStat<T> {
+class CVC4_PUBLIC DataStat : public ReadOnlyDataStat<T> {
 public:
 
   /** Construct a data statistic with the given name. */
@@ -258,7 +258,7 @@ public:
  * Template class T must have an assignment operator=().
  */
 template <class T>
-class ReferenceStat : public DataStat<T> {
+class CVC4_PUBLIC ReferenceStat : public DataStat<T> {
 private:
   /** The referenced data cell */
   const T* d_data;
@@ -308,7 +308,7 @@ public:
  * Template class T must have an operator=() and a copy constructor.
  */
 template <class T>
-class BackedStat : public DataStat<T> {
+class CVC4_PUBLIC BackedStat : public DataStat<T> {
 protected:
   /** The internally-kept statistic value */
   T d_data;
@@ -361,7 +361,7 @@ public:
  * giving it a globally unique name.
  */
 template <class Stat>
-class WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
+class CVC4_PUBLIC WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
   typedef typename Stat::payload_t T;
 
   const ReadOnlyDataStat<T>& d_stat;
@@ -399,7 +399,7 @@ public:
  * This doesn't functionally differ from its base class BackedStat<int64_t>,
  * except for adding convenience functions for dealing with integers.
  */
-class IntStat : public BackedStat<int64_t> {
+class CVC4_PUBLIC IntStat : public BackedStat<int64_t> {
 public:
 
   /**
@@ -458,7 +458,7 @@ public:
  * running count, so should generally be avoided.  Call addEntry() to add
  * an entry to the average calculation.
  */
-class AverageStat : public BackedStat<double> {
+class CVC4_PUBLIC AverageStat : public BackedStat<double> {
 private:
   /**
    * The number of accumulations of the running average that we
@@ -485,7 +485,7 @@ public:
 };/* class AverageStat */
 
 template <class T>
-class ListStat : public Stat{
+class CVC4_PUBLIC ListStat : public Stat{
 private:
   typedef std::vector<T> List;
   List d_list;
@@ -638,7 +638,7 @@ inline std::ostream& operator<<(std::ostream& os, const ::timespec& t) {
  * arbitrarily, like a stopwatch; the value of the statistic at the
  * end is the accumulated time over all (start,stop) pairs.
  */
-class TimerStat : public BackedStat< ::timespec > {
+class CVC4_PUBLIC TimerStat : public BackedStat< ::timespec > {
 
   // strange: timespec isn't placed in 'std' namespace ?!
   /** The last start time of this timer */
@@ -746,7 +746,7 @@ public:
  * registration/unregistration.  This RAII class only does
  * registration and unregistration.
  */
-class RegisterStatistic {
+class CVC4_PUBLIC RegisterStatistic {
   ExprManager* d_em;
   Stat* d_stat;
 public:
