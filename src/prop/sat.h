@@ -231,7 +231,7 @@ public:
   /** Call value() during the search.*/
   SatLiteralValue value(SatLiteral l);
 
-  /** Call value() when the search is done.*/
+  /** Call modelValue() when the search is done.*/
   SatLiteralValue modelValue(SatLiteral l);
 
   int getLevel() const;
