@@ -173,24 +173,6 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 
-# Whether to compile with google profiling tools
-cvc4_use_google_perftools=0
-AC_ARG_WITH(
-    [google_perftools],
-    AS_HELP_STRING(
-        [--with-google-perftools],
-        [use Google Performance Tools]
-    ),
-    [if test "$withval" != no; then
-        cvc4_use_google_perftools=1
-     fi
-    ]
-)
-
-if test $cvc4_use_google_perftools = 1; then
-  LIBS="${LIBS:+$LIBS } -ltcmalloc -lpthread "
-fi
-
 # [chris 8/24/2010] The user *must* specify --with-cln to get CLN
 # (and, thus, opt in to the GPL dependency).
 
@@ -722,6 +704,28 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 #AC_TYPE_UINT64_T
 #AC_TYPE_SIZE_T
 
+# Whether to compile with google profiling tools
+cvc4_use_google_perftools=0
+AC_ARG_WITH(
+    [google_perftools],
+    AS_HELP_STRING(
+        [--with-google-perftools],
+        [use Google Performance Tools]
+    ),
+    [if test "$withval" != no; then
+        cvc4_use_google_perftools=1
+     fi
+    ]
+)
+
+AC_MSG_CHECKING([whether to link in google perftools libraries])
+if test $cvc4_use_google_perftools = 1; then
+  AC_MSG_RESULT([yes])
+  AC_CHECK_LIB([tcmalloc], [MallocExtension_GetAllocatedSize], , [AC_MSG_ERROR([cannot link google-perftools test program])], [-lpthread])
+else
+  AC_MSG_RESULT([no (user didn't request it)])
+fi
+
 # Check for availability of TLS support (e.g. __thread storage class)
 AC_MSG_CHECKING([whether to use compiler-supported TLS if available])
 AC_ARG_ENABLE([tls], AS_HELP_STRING([--disable-tls], [don't use compiler-native TLS]))
@@ -881,6 +885,7 @@ MP library   : $mplibrary
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
 CFLAGS       : $CFLAGS
+LIBS         : $LIBS
 LDFLAGS      : $LDFLAGS
 
 libcvc4 version      : $CVC4_LIBRARY_VERSION
