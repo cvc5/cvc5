@@ -569,7 +569,7 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool lemma, bool negated)
 // not unit, except for the direct assertions. This allows us to remove the
 // clauses later when they are not needed anymore (lemmas for example).
 void TseitinCnfStream::convertAndAssert(TNode node, bool lemma, bool negated) {
-  Debug("cnf") << "convertAndAssert(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+  Debug("cnf") << "convertAndAssert(" << node << ", lemma = " << lemma << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_assertingLemma = lemma;
   switch(node.getKind()) {
   case AND:

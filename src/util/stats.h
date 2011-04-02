@@ -42,7 +42,7 @@ namespace CVC4 {
 #  define __CVC4_USE_STATISTICS false
 #endif
 
-class CVC4_PUBLIC ExprManager;
+class ExprManager;
 
 class CVC4_PUBLIC Stat;
 
