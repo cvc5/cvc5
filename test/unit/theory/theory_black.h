@@ -289,4 +289,15 @@ public:
 
     TS_ASSERT_EQUALS(&oc, &theOtherChannel);
   }
+
+  void testOutputChannel() {
+    Node n = atom0.orNode(atom1);
+    d_outputChannel.lemma(n);
+    d_outputChannel.split(atom0);
+    Node s = atom0.orNode(atom0.notNode());
+    TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);
+    TS_ASSERT_EQUALS(d_outputChannel.d_callHistory[0], make_pair(LEMMA, n));
+    TS_ASSERT_EQUALS(d_outputChannel.d_callHistory[1], make_pair(LEMMA, s));
+    d_outputChannel.d_callHistory.clear();
+  }
 };

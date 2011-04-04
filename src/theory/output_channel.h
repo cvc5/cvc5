@@ -99,6 +99,18 @@ public:
     throw(Interrupted, AssertionException) = 0;
 
   /**
+   * Request a split on a new theory atom.  This is equivalent to
+   * calling lemma({OR n (NOT n)}).
+   *
+   * @param n - a theory atom; must be of Boolean type
+   * @param safe - whether it is safe to be interrupted
+   */
+  void split(TNode n, bool safe = false)
+    throw(Interrupted, TypeCheckingExceptionPrivate, AssertionException) {
+    lemma(n.orNode(n.notNode()));
+  }
+
+  /**
    * Provide an explanation in response to an explanation request.
    *
    * @param n - an explanation

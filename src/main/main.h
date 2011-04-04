@@ -47,6 +47,7 @@ extern CVC4::StatisticsRegistry* pStatistics;
  */
 extern bool segvNoSpin;
 
+/** The options currently in play */
 extern Options options;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */

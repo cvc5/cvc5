@@ -72,7 +72,7 @@ namespace expr {
 #endif /* sum != 64 */
 
 /**
- * This is an NodeValue.
+ * This is a NodeValue.
  */
 class NodeValue {
 
