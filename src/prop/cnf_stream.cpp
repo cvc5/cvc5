@@ -21,6 +21,7 @@
 #include "sat.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "theory/theory_engine.h"
 #include "expr/node.h"
 #include "util/Assert.h"
 #include "util/output.h"
@@ -33,8 +34,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatInputInterface *satSolver) :
-  d_satSolver(satSolver) {
+CnfStream::CnfStream(SatInputInterface *satSolver, theory::Registrar reg) :
+  d_satSolver(satSolver), d_registrar(reg) {
 }
 
 void CnfStream::recordTranslation(TNode node) {
@@ -45,8 +46,9 @@ void CnfStream::recordTranslation(TNode node) {
   }
 }
 
-TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver) :
-  CnfStream(satSolver) {
+
+TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar reg) :
+  CnfStream(satSolver, reg) {
 }
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
@@ -114,6 +116,12 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
 
   // Here, you can have it
   Debug("cnf") << "newLiteral(" << node << ") => " << lit << endl;
+  // have to keep track of this, because with the call to preRegister(),
+  // the cnf stream is re-entrant!
+  bool wasAssertingLemma = d_assertingLemma;
+  d_registrar.preRegister(node);
+  d_assertingLemma = wasAssertingLemma;
+
   return lit;
 }
 
@@ -147,7 +155,7 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
 SatLiteral CnfStream::getLiteral(TNode node) {
   TranslationCache::iterator find = d_translationCache.find(node);
-  Assert(find != d_translationCache.end(), "Literal not in the CNF Cache: %s", node.toString().c_str());
+  Assert(find != d_translationCache.end(), "Literal not in the CNF Cache: %s\n", node.toString().c_str());
   SatLiteral literal = find->second.literal;
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;

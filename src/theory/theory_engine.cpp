@@ -162,13 +162,15 @@ struct preprocess_stack_element {
 };
 
 Node TheoryEngine::preprocess(TNode node) {
-
   // Remove ITEs and rewrite the node
   Node preprocessed = Rewriter::rewrite(removeITEs(node));
+  return preprocessed;
+}
 
+void TheoryEngine::preRegister(TNode preprocessed) {
   // If we are pre-registered already we are done
   if (preprocessed.getAttribute(PreRegistered())) {
-    return preprocessed;
+    return;
   }
 
   // Do a topological sort of the subexpressions and preregister them
@@ -223,8 +225,6 @@ Node TheoryEngine::preprocess(TNode node) {
       }
     }
   }
-
-  return preprocessed;
 }
 
 /**

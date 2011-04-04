@@ -19,6 +19,7 @@ libtheory_la_SOURCES = \
 	shared_term_manager.cpp \
 	shared_data.h \
 	shared_data.cpp \
+	registrar.h \
 	rewriter.h \
 	rewriter_attributes.h \
 	rewriter.cpp \

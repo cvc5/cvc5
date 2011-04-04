@@ -21,6 +21,7 @@
 #include "sat.h"
 
 #include "theory/theory_engine.h"
+#include "theory/registrar.h"
 #include "util/Assert.h"
 #include "util/options.h"
 #include "util/output.h"
@@ -62,7 +63,8 @@ PropEngine::PropEngine(TheoryEngine* te, Context* context) :
   d_context(context) {
   Debug("prop") << "Constructing the PropEngine" << endl;
   d_satSolver = new SatSolver(this, d_theoryEngine, d_context);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
+  theory::Registrar reg(d_theoryEngine);
+  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, reg);
   d_satSolver->setCnfStream(d_cnfStream);
 }
 

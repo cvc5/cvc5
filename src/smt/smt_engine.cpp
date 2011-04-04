@@ -463,7 +463,8 @@ void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
   throw(NoSuchFunctionException, AssertionException) {
   Debug("smt") << "push_back assertion " << n << endl;
   smt.d_haveAdditions = true;
-  smt.d_propEngine->assertFormula(SmtEnginePrivate::preprocess(smt, n));
+  Node node = SmtEnginePrivate::preprocess(smt, n);
+  smt.d_propEngine->assertFormula(node);
 }
 
 void SmtEngine::ensureBoolean(const BoolExpr& e) {

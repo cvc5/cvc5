@@ -30,6 +30,7 @@
 #include "prop/prop_engine.h"
 #include "prop/sat.h"
 #include "smt/smt_engine.h"
+#include "theory/registrar.h"
 
 using namespace CVC4;
 using namespace CVC4::context;
@@ -91,7 +92,7 @@ void setUp() {
   d_context = new Context;
   d_nodeManager = new NodeManager(d_context);
   d_satSolver = new FakeSatSolver;
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver);
+  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, theory::Registrar());
 }
 
 void tearDown() {
