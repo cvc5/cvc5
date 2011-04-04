@@ -159,8 +159,6 @@ public:
 
 
     d_arith->check(d_level);
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 0u);
-
     d_arith->propagate(d_level);
 
     Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
@@ -198,9 +196,6 @@ public:
 
 
     d_arith->check(d_level);
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 0u);
-
-    d_arith->propagate(d_level);
 
     Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
     Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
@@ -235,8 +230,6 @@ public:
 
 
     d_arith->check(d_level);
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 0u);
-
     d_arith->propagate(d_level);
 
     Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
@@ -253,30 +246,5 @@ public:
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
-  }
-
-  void testConflict() {
-    Node x = d_nm->mkVar(*d_realType);
-    Node c0 = d_nm->mkConst<Rational>(d_zero);
-    Node c1 = d_nm->mkConst<Rational>(d_one);
-
-    Node leq0 = d_nm->mkNode(LEQ, x, c0);
-    Node leq1 = d_nm->mkNode(LEQ, x, c1);
-    Node gt1 =  d_nm->mkNode(NOT, leq1);
-
-    fakeTheoryEnginePreprocess(leq0);
-    fakeTheoryEnginePreprocess(leq1);
-
-    d_arith->assertFact(leq0);
-    d_arith->assertFact(gt1);
-
-    d_arith->check(d_level);
-
-
-    Node conf =  d_nm->mkNode(AND, leq0, gt1);
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 1u);
-
-    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), CONFLICT);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), conf);
   }
 };

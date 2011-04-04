@@ -30,8 +30,8 @@ using namespace CVC4::kind;
 
 using namespace std;
 
-ArithUnatePropagator::ArithUnatePropagator(context::Context* cxt) :
-  d_orderedListMap()
+ArithUnatePropagator::ArithUnatePropagator(context::Context* cxt, OutputChannel& out) :
+  d_arithOut(out), d_orderedListMap()
 { }
 
 bool ArithUnatePropagator::leftIsSetup(TNode left){
@@ -393,5 +393,5 @@ void ArithUnatePropagator::addImplication(TNode a, TNode b){
   Debug("arith-propagate") << "ArithUnatePropagator::addImplication";
   Debug("arith-propagate") << "(" << a << ", " << b <<")" << endl;
 
-  addLemma(imp);
+  d_arithOut.lemma(imp);
 }

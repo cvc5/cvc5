@@ -66,7 +66,7 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valu
   d_presolveHasBeenCalled(false),
   d_tableauResetDensity(1.6),
   d_tableauResetPeriod(10),
-  d_propagator(c),
+  d_propagator(c, out),
   d_simplex(d_partialModel, d_tableau),
   d_DELTA_ZERO(0),
   d_statistics()
@@ -86,9 +86,7 @@ TheoryArith::Statistics::Statistics():
   //d_tableauSizeHistory("theory::arith::tableauSizeHistory"),
   d_currSetToSmaller("theory::arith::currSetToSmaller", 0),
   d_smallerSetToCurr("theory::arith::smallerSetToCurr", 0),
-  d_restartTimer("theory::arith::restartTimer"),
-  d_diseqSplitCalls("theory::arith::diseqSplitCalls", 0),
-  d_diseqSplitTimer("theory::arith::diseqSplitTimer")
+  d_restartTimer("theory::arith::restartTimer")
 {
   StatisticsRegistry::registerStat(&d_statUserVariables);
   StatisticsRegistry::registerStat(&d_statSlackVariables);
@@ -105,9 +103,6 @@ TheoryArith::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_currSetToSmaller);
   StatisticsRegistry::registerStat(&d_smallerSetToCurr);
   StatisticsRegistry::registerStat(&d_restartTimer);
-
-  StatisticsRegistry::registerStat(&d_diseqSplitCalls);
-  StatisticsRegistry::registerStat(&d_diseqSplitTimer);
 }
 
 TheoryArith::Statistics::~Statistics(){
@@ -126,9 +121,6 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_currSetToSmaller);
   StatisticsRegistry::unregisterStat(&d_smallerSetToCurr);
   StatisticsRegistry::unregisterStat(&d_restartTimer);
-
-  StatisticsRegistry::unregisterStat(&d_diseqSplitCalls);
-  StatisticsRegistry::unregisterStat(&d_diseqSplitTimer);
 }
 
 void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
@@ -176,15 +168,21 @@ void TheoryArith::preRegisterTerm(TNode n) {
     setupInitialValue(varN);
   }
 
-  if(n.getKind() == PLUS){
-    Assert(!n.hasAttribute(Slack()));
-    setupSlack(n);
-  }
-
   if(isRelationOperator(k)){
     Assert(Comparison::isNormalAtom(n));
-    Assert(n[0].getKind() != PLUS || (n[0]).hasAttribute(Slack()) );
+
+
     d_propagator.addAtom(n);
+
+    TNode left  = n[0];
+    TNode right = n[1];
+    if(left.getKind() == PLUS){
+      //We may need to introduce a slack variable.
+      Assert(left.getNumChildren() >= 2);
+      if(!left.hasAttribute(Slack())){
+        setupSlack(left);
+      }
+    }
   }
   Debug("arith_preregister") << "end arith::preRegisterTerm("<< n <<")"<< endl;
 }
@@ -421,9 +419,6 @@ void TheoryArith::check(Effort effortLevel){
 }
 
 void TheoryArith::splitDisequalities(){
-  TimerStat::CodeTimer codeTimer(d_statistics.d_diseqSplitTimer);
-  ++(d_statistics.d_diseqSplitCalls);
-
   context::CDSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
   context::CDSet<Node, NodeHashFunction>::iterator it_end = d_diseq.end();
   for(; it != it_end; ++ it) {
@@ -498,11 +493,6 @@ void TheoryArith::explain(TNode n) {
 }
 
 void TheoryArith::propagate(Effort e) {
-  while(d_propagator.hasMoreLemmas()){
-    Node lemma = d_propagator.getNextLemma();
-    d_out->lemma(lemma);
-  }
-
   if(quickCheckOrMore(e)){
     while(d_simplex.hasMoreLemmas()){
       Node lemma = d_simplex.popLemma();

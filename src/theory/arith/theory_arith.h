@@ -255,9 +255,6 @@ private:
     IntStat d_smallerSetToCurr;
     TimerStat d_restartTimer;
 
-    IntStat d_diseqSplitCalls;
-    TimerStat d_diseqSplitTimer;
-
     Statistics();
     ~Statistics();
   };

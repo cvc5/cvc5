@@ -55,7 +55,6 @@
 #include "theory/arith/ordered_set.h"
 
 #include <ext/hash_map>
-#include <queue>
 
 namespace CVC4 {
 namespace theory {
@@ -63,9 +62,11 @@ namespace arith {
 
 class ArithUnatePropagator {
 private:
-  typedef std::queue<Node> LemmaQueue;
-  /** Unate implication queue */
-  LemmaQueue d_lemmas;
+  /**
+   * OutputChannel for the theory of arithmetic.
+   * The propagator uses this to pass implications back to the SAT solver.
+   */
+  OutputChannel& d_arithOut;
 
   struct OrderedSetTriple {
     OrderedSet d_leqSet;
@@ -78,7 +79,7 @@ private:
   NodeToOrderedSetMap d_orderedListMap;
 
 public:
-  ArithUnatePropagator(context::Context* cxt);
+  ArithUnatePropagator(context::Context* cxt, OutputChannel& arith);
 
   /**
    * Adds an atom to the propagator.
@@ -89,19 +90,7 @@ public:
   /** Returns true if v has been added as a left hand side in an atom */
   bool hasAnyAtoms(TNode v);
 
-  bool hasMoreLemmas() const { return !d_lemmas.empty(); }
-
-  Node getNextLemma() {
-    Node lemma = d_lemmas.front();
-    d_lemmas.pop();
-    return lemma;
-  }
 private:
-  void addLemma(Node lemma) {
-    d_lemmas.push(lemma);
-  }
-
-
   OrderedSetTriple& getOrderedSetTriple(TNode left);
   OrderedSet& getEqSet(TNode left);
   OrderedSet& getLeqSet(TNode left);
