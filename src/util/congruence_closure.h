@@ -146,7 +146,7 @@ class CongruenceClosure {
   typedef context::CDMap<TNode, UseList*, TNodeHashFunction> UseLists;
   typedef context::CDMap<Node, Node, NodeHashFunction> LookupMap;
 
-  typedef context::CDMap<TNode, Node, NodeHashFunction> EqMap;
+  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> EqMap;
 
   typedef context::CDMap<Node, Node, NodeHashFunction> ProofMap;
   typedef context::CDMap<Node, Node, NodeHashFunction> ProofLabel;
@@ -164,6 +164,7 @@ class CongruenceClosure {
   LookupMap d_lookup;
 
   EqMap d_eqMap;
+  context::CDSet<TNode, TNodeHashFunction> d_added;
 
   ProofMap d_proof;
   ProofLabel d_proofLabel;
@@ -203,7 +204,7 @@ public:
     d_classList(ctxt),
     d_useList(ctxt),
     d_lookup(ctxt),
-    d_eqMap(ctxt),
+    d_added(ctxt),
     d_proof(ctxt),
     d_proofLabel(ctxt),
     d_proofRewrite(ctxt),
@@ -270,10 +271,16 @@ private:
         ++d_newSkolemVars;
         Node v = NodeManager::currentNM()->mkSkolem(t.getType());
         addEq(NodeManager::currentNM()->mkNode(t.getType().isBoolean() ? kind::IFF : kind::EQUAL, t, v), TNode::null());
-        d_eqMap.insert(t, v);
+        d_added.insert(v);
+        d_eqMap[t] = v;
         return v;
       } else {
-        return (*i).second;
+        TNode v = (*i).second;
+        if(!d_added.contains(v)) {
+          addEq(NodeManager::currentNM()->mkNode(t.getType().isBoolean() ? kind::IFF : kind::EQUAL, t, v), TNode::null());
+          d_added.insert(v);
+        }
+        return v;
       }
     } else {
       return t;
