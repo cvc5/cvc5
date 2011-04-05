@@ -270,10 +270,9 @@ inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
   // Setup the verbosity
   d_minisat->verbosity = (Options::current()->verbosity > 0) ? 1 : -1;
 
-  // No random choices
-  if(Debug.isOn("no_rnd_decisions")) {
-    d_minisat->random_var_freq = 0;
-  }
+  // Setup the random decision parameters
+  d_minisat->random_var_freq = Options::current()->satRandomFreq;
+  d_minisat->random_seed = Options::current()->satRandomSeed;
 
   d_statistics.init(d_minisat);
 }

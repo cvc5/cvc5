@@ -131,6 +131,19 @@ struct CVC4_PUBLIC Options {
   /** Whether to rewrite equalities in arithmetic theory */
   bool rewriteArithEqualities;
 
+
+  /**
+   * Frequency for the sat solver to make random decisions.
+   * Should be between 0 and 1.
+   */
+  double satRandomFreq;
+
+  /**
+   * Seed for Minisat's random decision procedure.
+   * If this is 0, no random decisions will occur.
+   **/
+  double satRandomSeed;
+
   /** The pivot rule for arithmetic */
   typedef enum { MINIMUM, BREAK_TIES, MAXIMUM } ArithPivotRule;
   ArithPivotRule pivotRule;
