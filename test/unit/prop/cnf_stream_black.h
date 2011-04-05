@@ -32,6 +32,13 @@
 #include "smt/smt_engine.h"
 #include "theory/registrar.h"
 
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
+
+#include "theory/builtin/theory_builtin.h"
+#include "theory/booleans/theory_bool.h"
+#include "theory/arith/theory_arith.h"
+
 using namespace CVC4;
 using namespace CVC4::context;
 using namespace CVC4::prop;
@@ -78,28 +85,44 @@ public:
 
 class CnfStreamBlack : public CxxTest::TestSuite {
   /** The SAT solver proxy */
-  FakeSatSolver *d_satSolver;
+  FakeSatSolver* d_satSolver;
+
+  /** The theory engine */
+  TheoryEngine* d_theoryEngine;
+
+  /** The output channel */
+  theory::OutputChannel* d_outputChannel;
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
 
+  /** The context */
   Context* d_context;
 
-  /* ExprManager *d_exprManager; */
-  NodeManager *d_nodeManager;
+  /** The node manager */
+  NodeManager* d_nodeManager;
 
 void setUp() {
   d_context = new Context;
   d_nodeManager = new NodeManager(d_context);
+  NodeManagerScope nms(d_nodeManager);
   d_satSolver = new FakeSatSolver;
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, theory::Registrar());
+  d_theoryEngine = new TheoryEngine(d_context);
+  d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>();
+  d_theoryEngine->addTheory<theory::booleans::TheoryBool>();
+  d_theoryEngine->addTheory<theory::arith::TheoryArith>();
+  theory::Registrar registrar(d_theoryEngine);
+  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, registrar);
 }
 
 void tearDown() {
   NodeManagerScope nms(d_nodeManager);
   delete d_cnfStream;
+  d_theoryEngine->shutdown();
+  delete d_theoryEngine;
   delete d_satSolver;
   delete d_nodeManager;
+  delete d_context;
 }
 
 public:

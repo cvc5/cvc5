@@ -137,6 +137,10 @@ TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_incomplete(ctxt, false),
   d_statistics() {
 
+  for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
+    d_theoryTable[theoryId] = NULL;
+  }
+
   Rewriter::init();
 
   d_sharedTermManager = new SharedTermManager(this, ctxt);
@@ -145,8 +149,8 @@ TheoryEngine::TheoryEngine(context::Context* ctxt) :
 TheoryEngine::~TheoryEngine() {
   Assert(d_hasShutDown);
 
-  for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++ theoryId) {
-    if (d_theoryTable[theoryId]) {
+  for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
+    if(d_theoryTable[theoryId]) {
       delete d_theoryTable[theoryId];
     }
   }

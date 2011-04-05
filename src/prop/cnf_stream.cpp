@@ -5,7 +5,7 @@
  ** Major contributors: dejan
  ** Minor contributors (to current version): cconway, mdeters
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -34,8 +34,8 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-CnfStream::CnfStream(SatInputInterface *satSolver, theory::Registrar reg) :
-  d_satSolver(satSolver), d_registrar(reg) {
+CnfStream::CnfStream(SatInputInterface *satSolver, theory::Registrar registrar) :
+  d_satSolver(satSolver), d_registrar(registrar) {
 }
 
 void CnfStream::recordTranslation(TNode node) {
@@ -47,8 +47,8 @@ void CnfStream::recordTranslation(TNode node) {
 }
 
 
-TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar reg) :
-  CnfStream(satSolver, reg) {
+TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar registrar) :
+  CnfStream(satSolver, registrar) {
 }
 
 void CnfStream::assertClause(TNode node, SatClause& c) {

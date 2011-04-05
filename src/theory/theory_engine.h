@@ -85,7 +85,7 @@ class TheoryEngine {
       d_engine(engine),
       d_context(context),
       d_conflictNode(context),
-      d_explanationNode(context){
+      d_explanationNode(context) {
     }
 
     void newFact(TNode n);
@@ -212,8 +212,8 @@ public:
     d_hasShutDown = true;
 
     // Shutdown all the theories
-    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++ theoryId) {
-      if (d_theoryTable[theoryId]) {
+    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
+      if(d_theoryTable[theoryId]) {
         d_theoryTable[theoryId]->shutdown();
       }
     }

@@ -2,10 +2,10 @@
 /*! \file cnf_stream.h
  ** \verbatim
  ** Original author: taking
- ** Major contributors: dejan
- ** Minor contributors (to current version): mdeters, cconway
+ ** Major contributors: mdeters, dejan
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -71,6 +71,7 @@ private:
 
 protected:
 
+  /** The "registrar" for pre-registration of terms */
   theory::Registrar d_registrar;
 
   /** Top level nodes that we translated */
@@ -180,7 +181,7 @@ public:
    * set of clauses and sends them to the given sat solver.
    * @param satSolver the sat solver to use
    */
-  CnfStream(SatInputInterface* satSolver, theory::Registrar r);
+  CnfStream(SatInputInterface* satSolver, theory::Registrar registrar);
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -255,7 +256,7 @@ public:
    * Constructs the stream to use the given sat solver.
    * @param satSolver the sat solver to use
    */
-  TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar reg);
+  TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar registrar);
 
 private:
 
