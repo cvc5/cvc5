@@ -38,7 +38,7 @@ public:
     d_engine(engine) {
   }
 
-  Node getValue(TNode n);
+  Node getValue(TNode n) const;
 
   /**
    * Get the current SAT assignment to the node n.
@@ -48,7 +48,7 @@ public:
    *
    * @return Node::null() if no current assignment; otherwise true or false.
    */
-  Node getSatValue(TNode n);
+  Node getSatValue(TNode n) const;
 
 };/* class Valuation */
 
