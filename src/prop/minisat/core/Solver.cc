@@ -630,7 +630,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)));
     trail.push_(p);
-    if (theory[var(p)] && from != CRef_Lazy) {
+    if (theory[var(p)]) {
       // Enqueue to the theory
       proxy->enqueueTheoryLiteral(p);
     }
