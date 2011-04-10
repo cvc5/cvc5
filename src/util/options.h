@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: cconway
- ** Minor contributors (to current version): dejan
+ ** Minor contributors (to current version): dejan, taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -22,6 +22,7 @@
 #define __CVC4__OPTIONS_H
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 #include "util/exception.h"
@@ -29,6 +30,8 @@
 #include "util/tls.h"
 
 namespace CVC4 {
+
+class ExprStream;
 
 /** Class representing an option-parsing exception. */
 class OptionException : public CVC4::Exception {
@@ -128,9 +131,17 @@ struct CVC4_PUBLIC Options {
   /** Whether incemental solving (push/pop) */
   bool incrementalSolving;
 
+  /** Replay file to use (for decisions); empty if no replay file. */
+  std::string replayFilename;
+
+  /** Replay stream to use (for decisions); NULL if no replay file. */
+  ExprStream* replayStream;
+
+  /** Log to write replay instructions to; NULL if not logging. */
+  std::ostream* replayLog;
+
   /** Whether to rewrite equalities in arithmetic theory */
   bool rewriteArithEqualities;
-
 
   /**
    * Frequency for the sat solver to make random decisions.

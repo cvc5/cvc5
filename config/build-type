@@ -52,7 +52,7 @@ while [ $# -gt 0 ]; do
 done
 
 build_type_suffix=
-for arg in cln staticbinary optimized debugsymbols statistics assertions tracing muzzle coverage profiling; do
+for arg in cln staticbinary optimized debugsymbols statistics replay assertions tracing muzzle coverage profiling; do
   if eval [ -n '"${'$arg'+set}"' ]; then
     if eval [ '"${'$arg'}"' -eq 0 ]; then
       build_type_suffix=$build_type_suffix-no$arg

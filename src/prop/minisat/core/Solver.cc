@@ -395,6 +395,13 @@ void Solver::popTrail() {
 
 Lit Solver::pickBranchLit()
 {
+#ifdef CVC4_REPLAY
+    Lit nextLit = proxy->getNextReplayDecision();
+    if (nextLit != lit_Undef) {
+      return nextLit;
+    }
+#endif /* CVC4_REPLAY */
+
     Var next = var_Undef;
 
     // Random decision:
@@ -1051,6 +1058,10 @@ lbool Solver::search(int nof_conflicts)
                     check_type = CHECK_WITHOUTH_PROPAGATION_FINAL;
                     continue;
                 }
+
+#ifdef CVC4_REPLAY
+                proxy->logDecision(next);
+#endif /* CVC4_REPLAY */
             }
 
             // Increase decision level and enqueue 'next'

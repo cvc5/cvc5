@@ -32,6 +32,6 @@ submission:
 	if [ ! -e configure ]; then ./autogen.sh; fi
 	./configure competition --disable-shared --enable-static-binary
 	$(MAKE)
-	mkdir -p cvc4-smtcomp-2010
-	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2010/run
-	tar cfz cvc4-smtcomp-2010.tgz cvc4-smtcomp-2010
+	mkdir -p cvc4-smtcomp-2011
+	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2011/run
+	tar cfz cvc4-smtcomp-2011.tgz cvc4-smtcomp-2011

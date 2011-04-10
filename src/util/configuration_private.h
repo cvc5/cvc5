@@ -2,10 +2,10 @@
 /*! \file configuration_private.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: cconway, acsys
- ** Minor contributors (to current version): none
+ ** Major contributors: acsys
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -33,6 +33,12 @@ namespace CVC4 {
 #else /* CVC4_STATISTICS_ON */
 #  define IS_STATISTICS_BUILD false
 #endif /* CVC4_STATISTICS_ON */
+
+#ifdef CVC4_REPLAY
+#  define IS_REPLAY_BUILD true
+#else /* CVC4_REPLAY */
+#  define IS_REPLAY_BUILD false
+#endif /* CVC4_REPLAY */
 
 #ifdef CVC4_TRACING
 #  define IS_TRACING_BUILD true

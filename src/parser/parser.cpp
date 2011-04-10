@@ -2,10 +2,10 @@
 /*! \file parser.cpp
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: mdeters, cconway
+ ** Major contributors: cconway, mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -42,6 +42,8 @@ namespace parser {
 Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode) :
   d_exprManager(exprManager),
   d_input(input),
+  d_declScopeAllocated(),
+  d_declScope(&d_declScopeAllocated),
   d_done(false),
   d_checksEnabled(true),
   d_strictMode(strictMode) {
@@ -54,7 +56,7 @@ Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   switch( type ) {
 
   case SYM_VARIABLE: // Functions share var namespace
-    return d_declScope.lookup(name);
+    return d_declScope->lookup(name);
 
   default:
     Unhandled(type);
@@ -80,14 +82,14 @@ Parser::getType(const std::string& var_name,
 
 Type Parser::getSort(const std::string& name) {
   Assert( isDeclared(name, SYM_SORT) );
-  Type t = d_declScope.lookupType(name);
+  Type t = d_declScope->lookupType(name);
   return t;
 }
 
 Type Parser::getSort(const std::string& name,
                      const std::vector<Type>& params) {
   Assert( isDeclared(name, SYM_SORT) );
-  Type t = d_declScope.lookupType(name, params);
+  Type t = d_declScope->lookupType(name, params);
   return t;
 }
 
@@ -105,7 +107,7 @@ bool Parser::isFunction(const std::string& name) {
 bool Parser::isDefinedFunction(const std::string& name) {
   // more permissive in type than isFunction(), because defined
   // functions can be zero-ary and declared functions cannot.
-  return d_declScope.isBoundDefinedFunction(name);
+  return d_declScope->isBoundDefinedFunction(name);
 }
 
 /* Returns true if name is bound to a function returning boolean. */
@@ -141,19 +143,19 @@ Parser::mkVars(const std::vector<std::string> names,
 
 void
 Parser::defineVar(const std::string& name, const Expr& val) {
-  d_declScope.bind(name, val);
+  d_declScope->bind(name, val);
   Assert( isDeclared(name) );
 }
 
 void
 Parser::defineFunction(const std::string& name, const Expr& val) {
-  d_declScope.bindDefinedFunction(name, val);
+  d_declScope->bindDefinedFunction(name, val);
   Assert( isDeclared(name) );
 }
 
 void
 Parser::defineType(const std::string& name, const Type& type) {
-  d_declScope.bindType(name, type);
+  d_declScope->bindType(name, type);
   Assert( isDeclared(name, SYM_SORT) );
 }
 
@@ -161,7 +163,7 @@ void
 Parser::defineType(const std::string& name,
                    const std::vector<Type>& params,
                    const Type& type) {
-  d_declScope.bindType(name, params, type);
+  d_declScope->bindType(name, params, type);
   Assert( isDeclared(name, SYM_SORT) );
 }
 
@@ -210,9 +212,9 @@ Parser::mkSorts(const std::vector<std::string>& names) {
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
-    return d_declScope.isBound(name);
+    return d_declScope->isBound(name);
   case SYM_SORT:
-    return d_declScope.isBoundType(name);
+    return d_declScope->isBoundType(name);
   default:
     Unhandled(type);
   }

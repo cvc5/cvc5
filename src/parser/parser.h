@@ -2,10 +2,10 @@
 /*! \file parser.h
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): dejan, mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -25,16 +25,17 @@
 #include <set>
 #include <list>
 
-#include "input.h"
-#include "parser_exception.h"
+#include "parser/input.h"
+#include "parser/parser_exception.h"
+#include "expr/expr.h"
 #include "expr/declaration_scope.h"
 #include "expr/kind.h"
+#include "expr/expr_stream.h"
 
 namespace CVC4 {
 
 // Forward declarations
 class BooleanType;
-class Expr;
 class ExprManager;
 class Command;
 class FunctionType;
@@ -106,8 +107,19 @@ class CVC4_PUBLIC Parser {
   /** The input that we're parsing. */
   Input *d_input;
 
-  /** The symbol table */
-  DeclarationScope d_declScope;
+  /**
+   * The declaration scope that is "owned" by this parser.  May or
+   * may not be the current declaration scope in use.
+   */
+  DeclarationScope d_declScopeAllocated;
+
+  /**
+   * This current symbol table used by this parser.  Initially points
+   * to d_declScopeAllocated, but can be changed (making this parser
+   * delegate its definitions and lookups to another parser).
+   * See useDeclarationsFrom().
+   */
+  DeclarationScope* d_declScope;
 
   /** The name of the input file. */
 //  std::string d_filename;
@@ -361,12 +373,60 @@ public:
     d_input->parseError(msg);
   }
 
-  inline void pushScope() { d_declScope.pushScope(); }
-  inline void popScope() { d_declScope.popScope(); }
-}; // class Parser
+  inline void pushScope() { d_declScope->pushScope(); }
+  inline void popScope() { d_declScope->popScope(); }
 
-} // namespace parser
+  /**
+   * Set the current symbol table used by this parser.
+   * From now on, this parser will perform its definitions and
+   * lookups in the declaration scope of the "parser" argument
+   * (but doesn't re-delegate if the other parser's declaration scope
+   * changes later).  A NULL argument restores this parser's
+   * "primordial" declaration scope assigned at its creation.  Calling
+   * p->useDeclarationsFrom(p) is a no-op.
+   *
+   * This feature is useful when e.g. reading out-of-band expression data:
+   * 1. Parsing --replay log files produced with --replay-log.
+   * 2. Perhaps a multi-query benchmark file is being single-stepped
+   *    with intervening queries on stdin that must reference
+   *
+   * However, the feature must be used carefully.  Pushes and pops
+   * should be performed with the correct current declaration scope.
+   * Care must be taken to match up declaration scopes, of course;
+   * If variables in the deferred-to parser go out of scope, the
+   * secondary parser will give errors that they are undeclared.
+   * Also, an outer-scope variable shadowed by an inner-scope one of
+   * the same name may be temporarily inaccessible.
+   *
+   * In short, caveat emptor.
+   */
+  void useDeclarationsFrom(Parser* parser) {
+    if(parser == NULL) {
+      d_declScope = &d_declScopeAllocated;
+    } else {
+      d_declScope = parser->d_declScope;
+    }
+  }
 
-} // namespace CVC4
+  /**
+   * An expression stream interface for a parser.  This stream simply
+   * pulls expressions from the given Parser object.
+   *
+   * Here, the ExprStream base class allows a Parser (from the parser
+   * library) and core components of CVC4 (in the core library) to
+   * communicate without polluting the public interface or having them
+   * reach into private (undocumented) interfaces.
+   */
+  class ExprStream : public CVC4::ExprStream {
+    Parser* d_parser;
+  public:
+    ExprStream(Parser* parser) : d_parser(parser) {}
+    ~ExprStream() { delete d_parser; }
+    Expr nextExpr() { return d_parser->nextExpression(); }
+  };/* class Parser::ExprStream */
+};/* class Parser */
+
+}/* CVC4::parser namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__PARSER__PARSER_STATE_H */

@@ -1,5 +1,5 @@
-CVC4 is copyright (C) 2009, 2010 the ACSys research group at the Courant
-Institute for Mathematical Sciences, New York University.
+CVC4 is copyright (C) 2009, 2010, 2011 the ACSys research group at the
+Courant Institute for Mathematical Sciences, New York University.
 All rights reserved.
 
 CVC4 is open-source; distribution is under the terms of the modified BSD
@@ -20,7 +20,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 04 Mar 2010 20:46:40 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Fri, 04 Feb 2011 14:56:41 -0500
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
 See src/sat/minisat.  Its copyright:

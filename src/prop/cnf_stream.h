@@ -180,6 +180,7 @@ public:
    * Constructs a CnfStream that sends constructs an equi-satisfiable
    * set of clauses and sends them to the given sat solver.
    * @param satSolver the sat solver to use
+   * @param registrar the entity that takes care of preregistration of Nodes
    */
   CnfStream(SatInputInterface* satSolver, theory::Registrar registrar);
 
@@ -255,6 +256,7 @@ public:
   /**
    * Constructs the stream to use the given sat solver.
    * @param satSolver the sat solver to use
+   * @param registrar the entity that takes care of pre-registration of Nodes
    */
   TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar registrar);
 

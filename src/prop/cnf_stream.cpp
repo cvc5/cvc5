@@ -31,11 +31,18 @@
 using namespace std;
 using namespace CVC4::kind;
 
+#ifdef CVC4_REPLAY
+#  define CVC4_USE_REPLAY true
+#else /* CVC4_REPLAY */
+#  define CVC4_USE_REPLAY false
+#endif /* CVC4_REPLAY */
+
 namespace CVC4 {
 namespace prop {
 
 CnfStream::CnfStream(SatInputInterface *satSolver, theory::Registrar registrar) :
-  d_satSolver(satSolver), d_registrar(registrar) {
+  d_satSolver(satSolver),
+  d_registrar(registrar) {
 }
 
 void CnfStream::recordTranslation(TNode node) {
@@ -45,7 +52,6 @@ void CnfStream::recordTranslation(TNode node) {
     d_translationTrail.push_back(stripNot(node));
   }
 }
-
 
 TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar registrar) :
   CnfStream(satSolver, registrar) {
@@ -88,7 +94,7 @@ bool CnfStream::hasLiteral(TNode n) const {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
-  Debug("cnf") << "newLiteral(" << node << ")" << endl;
+  Debug("cnf") << "newLiteral(" << node << ", " << theoryLiteral << ")" << endl;
 
   // Get the literal for this node
   SatLiteral lit;
@@ -108,14 +114,16 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
   d_translationCache[node].level = level;
   d_translationCache[node.notNode()].level = level;
 
-  // If it's a theory literal, store it for back queries
-  if (theoryLiteral) {
+  // If it's a theory literal, need to store it for back queries
+  if ( theoryLiteral ||
+       ( CVC4_USE_REPLAY && Options::current()->replayLog != NULL ) ) {
     d_nodeCache[lit] = node;
     d_nodeCache[~lit] = node.notNode();
   }
 
   // Here, you can have it
   Debug("cnf") << "newLiteral(" << node << ") => " << lit << endl;
+
   // have to keep track of this, because with the call to preRegister(),
   // the cnf stream is re-entrant!
   bool wasAssertingLemma = d_assertingLemma;
@@ -155,6 +163,7 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
 SatLiteral CnfStream::getLiteral(TNode node) {
   TranslationCache::iterator find = d_translationCache.find(node);
+  Assert(!node.isNull(), "CnfStream: can't getLiteral() of null node");
   Assert(find != d_translationCache.end(), "Literal not in the CNF Cache: %s\n", node.toString().c_str());
   SatLiteral literal = find->second.literal;
   Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;

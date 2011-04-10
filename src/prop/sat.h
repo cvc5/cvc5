@@ -5,7 +5,7 @@
  ** Major contributors: taking, cconway, dejan
  ** Minor contributors (to current version): barrett
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -250,14 +250,19 @@ public:
 
   void notifyRestart();
 
+  SatLiteral getNextReplayDecision();
+
+  void logDecision(SatLiteral lit);
+
 };/* class SatSolver */
 
 /* Functions that delegate to the concrete SAT solver. */
 
 #ifdef __CVC4_USE_MINISAT
 
-inline SatSolver::SatSolver(PropEngine* propEngine, TheoryEngine* theoryEngine,
-                     context::Context* context) :
+inline SatSolver::SatSolver(PropEngine* propEngine,
+                            TheoryEngine* theoryEngine,
+                            context::Context* context) :
   d_propEngine(propEngine),
   d_cnfStream(NULL),
   d_theoryEngine(theoryEngine),

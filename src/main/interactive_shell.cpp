@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -40,7 +40,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
    ParserBuilder parserBuilder(exprManager,INPUT_FILENAME,options);
    /* Create parser with bogus input. */
    d_parser = parserBuilder.withStringInput("").build();
-}
+}/* InteractiveShell::InteractiveShell() */
 
 
 Command* InteractiveShell::readCommand() {
@@ -139,6 +139,7 @@ Command* InteractiveShell::readCommand() {
   // d_lastParser = parser;
 
   return cmd_seq;
-}
+}/* InteractiveShell::readCommand() */
 
-} // CVC4 namespace
+}/* CVC4 namespace */
+

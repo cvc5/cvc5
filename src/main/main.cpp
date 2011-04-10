@@ -2,10 +2,10 @@
 /*! \file main.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: taking, cconway
- ** Minor contributors (to current version): barrett, dejan
+ ** Major contributors: cconway
+ ** Minor contributors (to current version): barrett, dejan, taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -228,20 +228,60 @@ int runCvc4(int argc, char* argv[]) {
     }
   }
 
-  if(!Configuration::isMuzzledBuild()) {
-    OutputLanguage language = language::toOutputLanguage(options.inputLanguage);
-    Debug.getStream() << Expr::setlanguage(language);
-    Trace.getStream() << Expr::setlanguage(language);
-    Notice.getStream() << Expr::setlanguage(language);
-    Chat.getStream() << Expr::setlanguage(language);
-    Message.getStream() << Expr::setlanguage(language);
-    Warning.getStream() << Expr::setlanguage(language);
+  OutputLanguage outLang = language::toOutputLanguage(options.inputLanguage);
+  // Determine which messages to show based on smtcomp_mode and verbosity
+  if(Configuration::isMuzzledBuild()) {
+    Debug.setStream(CVC4::null_os);
+    Trace.setStream(CVC4::null_os);
+    Notice.setStream(CVC4::null_os);
+    Chat.setStream(CVC4::null_os);
+    Message.setStream(CVC4::null_os);
+    Warning.setStream(CVC4::null_os);
+  } else {
+    if(options.verbosity < 2) {
+      Chat.setStream(CVC4::null_os);
+    }
+    if(options.verbosity < 1) {
+      Notice.setStream(CVC4::null_os);
+    }
+    if(options.verbosity < 0) {
+      Message.setStream(CVC4::null_os);
+      Warning.setStream(CVC4::null_os);
+    }
+
+    Debug.getStream() << Expr::setlanguage(outLang);
+    Trace.getStream() << Expr::setlanguage(outLang);
+    Notice.getStream() << Expr::setlanguage(outLang);
+    Chat.getStream() << Expr::setlanguage(outLang);
+    Message.getStream() << Expr::setlanguage(outLang);
+    Warning.getStream() << Expr::setlanguage(outLang);
+  }
+
+  Parser* replayParser = NULL;
+  if( options.replayFilename != "" ) {
+    ParserBuilder replayParserBuilder(exprMgr, options.replayFilename, options);
+
+    if( options.replayFilename == "-") {
+      if( inputFromStdin ) {
+        throw OptionException("Replay file and input file can't both be stdin.");
+      }
+      replayParserBuilder.withStreamInput(cin);
+    }
+    replayParser = replayParserBuilder.build();
+    options.replayStream = new Parser::ExprStream(replayParser);
+  }
+  if( options.replayLog != NULL ) {
+    *options.replayLog << Expr::setlanguage(outLang) << Expr::setdepth(-1);
   }
 
   // Parse and execute commands until we are done
   Command* cmd;
   if( options.interactive ) {
-    InteractiveShell shell(exprMgr,options);
+    InteractiveShell shell(exprMgr, options);
+    if(replayParser != NULL) {
+      // have the replay parser use the declarations input interactively
+      replayParser->useDeclarationsFrom(shell.getParser());
+    }
     while((cmd = shell.readCommand())) {
       doCommand(smt,cmd);
       delete cmd;
@@ -255,12 +295,22 @@ int runCvc4(int argc, char* argv[]) {
     }
 
     Parser *parser = parserBuilder.build();
+    if(replayParser != NULL) {
+      // have the replay parser use the file's declarations
+      replayParser->useDeclarationsFrom(parser);
+    }
     while((cmd = parser->nextCommand())) {
       doCommand(smt, cmd);
       delete cmd;
     }
     // Remove the parser
     delete parser;
+  }
+
+  if( options.replayStream != NULL ) {
+    // this deletes the expression parser too
+    delete options.replayStream;
+    options.replayStream = NULL;
   }
 
   string result = smt.getInfo(":status").getValue();

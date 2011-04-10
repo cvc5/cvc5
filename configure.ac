@@ -90,7 +90,7 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}"; then
+if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -157,6 +157,13 @@ if test -n "${enable_statistics+set}"; then
     btargs="$btargs statistics"
   else
     btargs="$btargs nostatistics"
+  fi
+fi
+if test -n "${enable_replay+set}"; then
+  if test "$enable_replay" = yes; then
+    btargs="$btargs replay"
+  else
+    btargs="$btargs noreplay"
   fi
 fi
 AC_MSG_RESULT([$with_build])
@@ -333,6 +340,7 @@ case "$with_build" in
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
+    if test -z "${enable_replay+set}"       ; then enable_replay=no                 ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -346,6 +354,7 @@ case "$with_build" in
     if test -z "${enable_optimized+set}"    ; then enable_optimized=no              ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
+    if test -z "${enable_replay+set}"       ; then enable_replay=yes                ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -360,6 +369,7 @@ case "$with_build" in
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=yes         ; fi
     if test -z "${enable_statistics+set}"   ; then enable_statistics=yes            ; fi
+    if test -z "${enable_replay+set}"       ; then enable_replay=yes                ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=yes            ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
@@ -374,6 +384,7 @@ case "$with_build" in
     if test -z "${enable_optimized+set}"    ; then enable_optimized=yes             ; fi
     if test -z "${enable_debug_symbols+set}"; then enable_debug_symbols=no          ; fi
     if test -z "${enable_statistics+set}"   ; then enable_statistics=no             ; fi
+    if test -z "${enable_replay+set}"       ; then enable_replay=no                 ; fi
     if test -z "${enable_assertions+set}"   ; then enable_assertions=no             ; fi
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
@@ -457,6 +468,22 @@ AC_MSG_RESULT([$enable_statistics])
 
 if test "$enable_statistics" = yes; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_STATISTICS_ON"
+fi
+
+AC_MSG_CHECKING([whether the replay feature should be turned on in libcvc4])
+
+AC_ARG_ENABLE([replay],
+  [AS_HELP_STRING([--disable-replay],
+     [turn off the replay feature in libcvc4])])
+
+if test -z "${enable_replay+set}"; then
+  enable_replay=yes
+fi
+
+AC_MSG_RESULT([$enable_replay])
+
+if test "$enable_replay" = yes; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_REPLAY"
 fi
 
 AC_MSG_CHECKING([whether to include assertions in build])
@@ -869,6 +896,7 @@ Build ID     : $build_type
 Optimized    : $optimized
 Debug symbols: $enable_debug_symbols
 Statistics   : $enable_statistics
+Replay       : $enable_replay
 Assertions   : $enable_assertions
 Tracing      : $enable_tracing
 Muzzle       : $enable_muzzle
