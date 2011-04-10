@@ -721,7 +721,8 @@ AC_ARG_WITH(
 AC_MSG_CHECKING([whether to link in google perftools libraries])
 if test $cvc4_use_google_perftools = 1; then
   AC_MSG_RESULT([yes])
-  AC_CHECK_LIB([tcmalloc], [MallocExtension_GetAllocatedSize], , [AC_MSG_ERROR([cannot link google-perftools test program])], [-lpthread])
+  AC_CHECK_LIB([tcmalloc], [MallocExtension_GetAllocatedSize], , [AC_MSG_ERROR([cannot link google-perftools test program with -ltcmalloc])], [-lpthread])
+  AC_CHECK_LIB([profiler], [ProfilerStart], , [AC_MSG_ERROR([cannot link google-perftools test program with -lprofiler])], [-lpthread])
 else
   AC_MSG_RESULT([no (user didn't request it)])
 fi

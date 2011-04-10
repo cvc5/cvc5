@@ -1,3 +1,22 @@
+/*********************                                                        */
+/*! \file rewriter_tables_template.h
+ ** \verbatim
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief Rewriter tables for various theories
+ **
+ ** This file contains template code for the rewriter tables that are generated
+ ** from the Theory kinds files.
+ **/
+
 #pragma once
 
 #include "theory/rewriter.h"
@@ -56,7 +75,6 @@ ${post_rewrite_set_cache}
   }
 }
 
-
 void Rewriter::init() {
 ${rewrite_init}
 }
@@ -65,5 +83,5 @@ void Rewriter::shutdown() {
 ${rewrite_shutdown}
 }
 
-}
-}
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
