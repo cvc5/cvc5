@@ -107,8 +107,9 @@ public:
   TransitiveClosure(context::Context* context) : d_context(context) {}
   ~TransitiveClosure();
 
-  /* Add an edge from node i to node j.  Return true if successful, false if this edge would create a cycle */
+  /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
   bool addEdge(unsigned i, unsigned j);
+  void debugPrintMatrix();
 };
 
 }/* CVC4 namespace */

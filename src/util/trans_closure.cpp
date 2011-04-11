@@ -18,6 +18,7 @@
 
 
 #include "util/trans_closure.h"
+#include "util/Assert.h"
 
 
 using namespace std;
@@ -29,28 +30,63 @@ namespace CVC4 {
 TransitiveClosure::~TransitiveClosure() {
   unsigned i;
   for (i = 0; i < adjMatrix.size(); ++i) {
-    adjMatrix[i]->deleteSelf();
+    if (adjMatrix[i]) {
+      adjMatrix[i]->deleteSelf();
+    }
   }
 }
 
 
 bool TransitiveClosure::addEdge(unsigned i, unsigned j)
 {
-  if (adjMatrix.size() > j && adjMatrix[j]->read(i)) {
-    return false;
+  // Check for loops
+  Assert(i != j, "Cannot add self-loop");
+  if (adjMatrix.size() > j && adjMatrix[j] != NULL && adjMatrix[j]->read(i)) {
+    return true;
   }
-  while (i >= adjMatrix.size()) {
-    adjMatrix.push_back(new (true) CDBV(d_context));
+
+  // Grow matrix if necessary
+  unsigned maxSize = ((i > j) ? i : j) + 1;
+  while (maxSize > adjMatrix.size()) {
+    adjMatrix.push_back(NULL);
+  }
+
+  // Add edge from i to j and everything j can reach
+  if (adjMatrix[i] == NULL) {
+    adjMatrix[i] = new (true) CDBV(d_context);
   }
   adjMatrix[i]->write(j);
+  if (adjMatrix[j] != NULL) {
+    adjMatrix[i]->merge(adjMatrix[j]);
+  }
+
+  // Add edges from everything that can reach i to j and everything that j can reach
   unsigned k;
   for (k = 0; k < adjMatrix.size(); ++k) {
-    if (adjMatrix[k]->read(i)) {
+    if (adjMatrix[k] != NULL && adjMatrix[k]->read(i)) {
       adjMatrix[k]->write(j);
-      adjMatrix[k]->merge(adjMatrix[j]);
+      if (adjMatrix[j] != NULL) {
+        adjMatrix[k]->merge(adjMatrix[j]);
+      }
     }
   }
-  return true;
+
+  return false;
+}
+
+
+void TransitiveClosure::debugPrintMatrix()
+{
+  unsigned i,j;
+  for (i = 0; i < adjMatrix.size(); ++i) {
+    for (j = 0; j < adjMatrix.size(); ++j) {
+      if (adjMatrix[i] != NULL && adjMatrix[i]->read(j)) {
+        cout << "1 ";
+      }
+      else cout << "0 ";
+    }
+    cout << endl;
+  }      
 }
 
 

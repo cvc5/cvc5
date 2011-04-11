@@ -42,6 +42,7 @@ UNIT_TESTS = \
 	util/rational_black \
 	util/rational_white \
 	util/stats_black \
+	util/trans_closure_black \
 	main/interactive_shell_black
 
 export VERBOSE = 1
