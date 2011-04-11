@@ -71,6 +71,8 @@ TESTS =	\
 	bitvec3.smt \
 	bitvec5.smt
 
+EXTRA_DIST = $(TESTS)
+
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test
 regress regress0 test: check

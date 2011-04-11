@@ -22,6 +22,7 @@ TEST_DEPS = \
 	$(TEST_DEPS_NODIST)
 
 EXTRA_DIST = \
+	$(TESTS:%=%.cpp) \
 	$(TEST_DEPS_DIST)
 
 if STATIC_BINARY
