@@ -10,6 +10,13 @@ noinst_LTLIBRARIES = libutil.la libutilcudd.la
 libutilcudd_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) @CUDD_CPPFLAGS@
 libutilcudd_la_LIBADD = @CUDD_LDFLAGS@
 
+# Do not list built sources (like integer.h, rational.h, and tls.h) here!
+# Rather, list them under BUILT_SOURCES, and their .in versions under
+# EXTRA_DIST.  Otherwise, they're packaged up in the tarball, which is
+# no good---they belong in the configured builds/ directory.  If they
+# end up in the source directory, they build the cvc4 that was
+# configured at the time of the "make dist", which (1) may not be the
+# configuration that the user wants, and (2) might cause link errors.
 libutil_la_SOURCES = \
 	Assert.h \
 	Assert.cpp \
@@ -29,8 +36,6 @@ libutil_la_SOURCES = \
 	configuration.h \
 	configuration_private.h \
 	configuration.cpp \
-	rational.h \
-	integer.h \
 	bitvector.h \
 	gmp_util.h \
 	sexpr.h \
