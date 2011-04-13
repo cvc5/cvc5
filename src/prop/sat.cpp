@@ -116,8 +116,8 @@ SatLiteral SatSolver::getNextReplayDecision() {
       return d_cnfStream->getLiteral(e);
     }
   }
-  return Minisat::lit_Undef;
 #endif /* CVC4_REPLAY */
+  return Minisat::lit_Undef;
 }
 
 void SatSolver::logDecision(SatLiteral lit) {
