@@ -82,6 +82,9 @@ protected:
   /** True if we are currently solving. */
   bool in_solve;
 
+  /** The variable representing Boolean true value */
+  Lit false_literal;
+
 public:
 
     // Constructor/Destructor:

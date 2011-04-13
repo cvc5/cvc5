@@ -67,6 +67,12 @@ SimpSolver::SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* con
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(0, dummy);
     remove_satisfied      = false;
+
+    // Add the true literal immediately
+    Var true_variable = newVar(false, false, false);
+    setFrozen(true_variable, true);
+    false_literal = mkLit(true_variable, true);
+    uncheckedEnqueue(~false_literal, CRef_Undef);
 }
 
 
