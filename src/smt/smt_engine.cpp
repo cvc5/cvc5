@@ -19,6 +19,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <ext/hash_map>
 
 #include "context/cdlist.h"
 #include "context/cdset.h"
@@ -36,6 +37,7 @@
 #include "util/exception.h"
 #include "util/options.h"
 #include "util/output.h"
+#include "util/hash.h"
 #include "theory/builtin/theory_builtin.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/uf/theory_uf.h"
@@ -112,7 +114,8 @@ public:
   /**
    * Expand definitions in n.
    */
-  static Node expandDefinitions(SmtEngine& smt, TNode n)
+  static Node expandDefinitions(SmtEngine& smt, TNode n,
+                                hash_map<TNode, Node, TNodeHashFunction>& cache)
     throw(NoSuchFunctionException, AssertionException);
 };/* class SmtEnginePrivate */
 
@@ -364,8 +367,22 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
-Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n)
+Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n,
+                                         hash_map<TNode, Node, TNodeHashFunction>& cache)
   throw(NoSuchFunctionException, AssertionException) {
+
+  if(n.getKind() != kind::APPLY && n.getNumChildren() == 0) {
+    // don't bother putting in the cache
+    return n;
+  }
+
+  // maybe it's in the cache
+  hash_map<TNode, Node, TNodeHashFunction>::iterator cacheHit = cache.find(n);
+  if(cacheHit != cache.end()) {
+    return (*cacheHit).second;
+  }
+
+  // otherwise expand it
   if(n.getKind() == kind::APPLY) {
     TNode func = n.getOperator();
     SmtEngine::DefinedFunctionMap::const_iterator i =
@@ -398,10 +415,9 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n)
                                   n.begin(), n.end());
     Debug("expand") << "made : " << instance << endl;
 
-    Node expanded = expandDefinitions(smt, instance);
+    Node expanded = expandDefinitions(smt, instance, cache);
+    cache[n] = expanded;
     return expanded;
-  } else if(n.getNumChildren() == 0) {
-    return n;
   } else {
     Debug("expand") << "cons : " << n << endl;
     NodeBuilder<> nb(n.getKind());
@@ -413,11 +429,12 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n)
           iend = n.end();
         i != iend;
         ++i) {
-      Node expanded = expandDefinitions(smt, *i);
+      Node expanded = expandDefinitions(smt, *i, cache);
       Debug("expand") << "exchld: " << expanded << endl;
       nb << expanded;
     }
     Node node = nb;
+    cache[n] = node;
     return node;
   }
 }
@@ -428,7 +445,8 @@ Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode in)
   Node n;
   if(!Options::current()->lazyDefinitionExpansion) {
     Debug("expand") << "have: " << n << endl;
-    n = expandDefinitions(smt, in);
+    hash_map<TNode, Node, TNodeHashFunction> cache;
+    n = expandDefinitions(smt, in, cache);
     Debug("expand") << "made: " << n << endl;
   } else {
     n = in;
