@@ -405,16 +405,22 @@ comparisonFormula[CVC4::Expr& f]
 @init {
   Expr e;
   Kind op;
+  bool negate;
   Debug("parser-extra") << "predicate formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : plusTerm[f]
-    ( ( EQUAL_TOK { op = CVC4::kind::EQUAL; }
-      | GT_TOK { op = CVC4::kind::GT; }
-      | GEQ_TOK { op = CVC4::kind::GEQ; } 
-      | LT_TOK { op = CVC4::kind::LT; }
-      | LEQ_TOK { op = CVC4::kind::LEQ; }) 
+    ( ( EQUAL_TOK { op = CVC4::kind::EQUAL; negate = false; }
+      | DISEQUAL_TOK { op = CVC4::kind::EQUAL; negate = true; }
+      | GT_TOK { op = CVC4::kind::GT; negate = false; }
+      | GEQ_TOK { op = CVC4::kind::GEQ; negate = false; } 
+      | LT_TOK { op = CVC4::kind::LT; negate = false; }
+      | LEQ_TOK { op = CVC4::kind::LEQ; negate = false; }) 
       plusTerm[e]
-      { f = MK_EXPR(op, f, e); }
+      { f = MK_EXPR(op, f, e);
+        if(negate) {
+          f = MK_EXPR(CVC4::kind::NOT, f);
+        }
+      }
     )?
   ;
 
@@ -605,6 +611,7 @@ SEMICOLON : ';';
 ARROW_TOK : '->';
 DIV_TOK : '/';
 EQUAL_TOK : '=';
+DISEQUAL_TOK : '/=';
 EXP_TOK : '^';
 GT_TOK : '>';
 GEQ_TOK : '>=';
