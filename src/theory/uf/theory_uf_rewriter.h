@@ -51,6 +51,11 @@ public:
   }
 
   static RewriteResponse preRewrite(TNode node) {
+    if(node.getKind() == kind::EQUAL || node.getKind() == kind::IFF) {
+      if(node[0] == node[1]) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+      }
+    }
     return RewriteResponse(REWRITE_DONE, node);
   }
 

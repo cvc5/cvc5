@@ -74,6 +74,11 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       }
       break;
     }
+    case kind::CONST_BOOLEAN:
+      // the default would print "1" or "0" for bool, that's not correct
+      // for our purposes
+      out << (n.getConst<bool>() ? "true" : "false");
+      break;
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant

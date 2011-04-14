@@ -28,6 +28,7 @@ namespace CVC4 {
 namespace prop {
 
 void SatSolver::theoryCheck(theory::Theory::Effort effort, SatClause& conflict) {
+  Assert(conflict.size() == 0);
   // Try theory propagation
   bool ok = d_theoryEngine->check(effort);
   // If in conflict construct the conflict clause
@@ -35,15 +36,22 @@ void SatSolver::theoryCheck(theory::Theory::Effort effort, SatClause& conflict) 
     // We have a conflict, get it
     Node conflictNode = d_theoryEngine->getConflict();
     Debug("prop") << "SatSolver::theoryCheck() => conflict: " << conflictNode << std::endl;
-    // Go through the literals and construct the conflict clause
-    Node::const_iterator literal_it = conflictNode.begin();
-    Node::const_iterator literal_end = conflictNode.end();
-    while (literal_it != literal_end) {
+    if(conflictNode.getKind() == kind::AND) {
+      // Go through the literals and construct the conflict clause
+      Node::const_iterator literal_it = conflictNode.begin();
+      Node::const_iterator literal_end = conflictNode.end();
+      while (literal_it != literal_end) {
+        // Get the literal corresponding to the node
+        SatLiteral l = d_cnfStream->getLiteral(*literal_it);
+        // Add the negation to the conflict clause and continue
+        conflict.push(~l);
+        literal_it ++;
+      }
+    } else { // unit conflict
       // Get the literal corresponding to the node
-      SatLiteral l = d_cnfStream->getLiteral(*literal_it);
-      // Add the negation to the conflict clause and continue
+      SatLiteral l = d_cnfStream->getLiteral(conflictNode);
+      // construct the unit conflict clause
       conflict.push(~l);
-      literal_it ++;
     }
   }
 }

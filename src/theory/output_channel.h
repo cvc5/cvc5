@@ -72,7 +72,9 @@ public:
    * @param n - a conflict at the current decision level.  This should
    * be an AND-kinded node of literals that are TRUE in the current
    * assignment and are in conflict (i.e., at least one must be
-   * assigned false).
+   * assigned false), or else a literal by itself (in the case of a
+   * unit conflict) which is assigned TRUE (and T-conflicting) in the
+   * current assignment.
    *
    * @param safe - whether it is safe to be interrupted
    */
