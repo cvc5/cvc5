@@ -103,8 +103,7 @@ Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bo
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-{
-}
+{}
 
 
 Solver::~Solver()
@@ -711,29 +710,22 @@ CRef Solver::theoryCheck(CVC4::theory::Theory::Effort effort)
   proxy->theoryCheck(effort, clause);
   int clause_size = clause.size();
   if(clause_size > 0) {
-    // Do some normalization
-    sort(clause);
-    // Find the max level of the conflict and normalize the clause
+    // Find the max level of the conflict
     int max_level = 0;
     int max_intro_level = 0;
-    int i, j = 0;
-    Lit p = lit_Undef;
-    for (i = 0; i < clause_size; ++i) {
-      if (clause[i] == p) continue;
+    for (int i = 0; i < clause_size; ++i) {
       Var v = var(clause[i]);
       int current_level = level(v);
       int current_intro_level = intro_level(v);
       Debug("minisat") << "Literal: " << clause[i] << " with reason " << reason(v) << " at level " << current_level << std::endl;
-      Assert(value(clause[i]) == l_False, "Got an non-true literal in conflict!");
+      Assert(value(clause[i]) != l_Undef, "Got an unassigned literal in conflict!");
       if (current_level > max_level) max_level = current_level;
       if (current_intro_level > max_intro_level) max_intro_level = current_intro_level;
-      p = clause[j ++] = clause[i];
     }
-    clause.shrink(i - j);
-    // If there is only one literal add an extra false literal
-    if (clause.size() == 1) {
-      Debug("unit-conflicts") << "Unit conflict!" << proxy->getNode(clause[0]) << std::endl;
-      clause.push(false_literal);
+    // Unit conflict, we just duplicate the first literal
+    if (clause_size == 1) {
+      clause.push(clause[0]);
+      Debug("unit-conflict") << "Unit conflict" << proxy->getNode(clause[0]) << std::endl;
     }
     // If smaller than the decision level then pop back so we can analyse
     Debug("minisat") << "Max-level is " << max_level << " in decision level " << decisionLevel() << std::endl;
