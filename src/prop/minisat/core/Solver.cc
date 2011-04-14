@@ -717,7 +717,7 @@ CRef Solver::theoryCheck(CVC4::theory::Theory::Effort effort)
     int max_level = 0;
     int max_intro_level = 0;
     int i, j = 0;
-    Lit p;
+    Lit p = lit_Undef;
     for (i = 0; i < clause_size; ++i) {
       if (clause[i] == p) continue;
       Var v = var(clause[i]);
