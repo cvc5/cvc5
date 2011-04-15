@@ -80,8 +80,12 @@ private:
   /** ExprManagerScope reaches in to get the NodeManager */
   friend class ExprManagerScope;
 
-  // undefined, private copy constructor (disallow copy)
+  /** NodeManager reaches in to get the NodeManager */
+  friend class NodeManager;
+
+  // undefined, private copy constructor and assignment op (disallow copy)
   ExprManager(const ExprManager&) CVC4_UNDEFINED;
+  ExprManager& operator=(const ExprManager&) CVC4_UNDEFINED;
 
 public:
 

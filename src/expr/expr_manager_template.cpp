@@ -57,7 +57,7 @@ ${includes}
     } \
     ++ *(d_exprStatisticsVars[type]); \
   }
-#else 
+#else
   #define INC_STAT(kind)
   #define INC_STAT_VAR(type)
 #endif
@@ -70,8 +70,8 @@ namespace CVC4 {
 
 ExprManager::ExprManager() :
   d_ctxt(new Context),
-  d_nodeManager(new NodeManager(d_ctxt)) {
-#ifdef CVC4_STATISTICS_ON   
+  d_nodeManager(new NodeManager(d_ctxt, this)) {
+#ifdef CVC4_STATISTICS_ON
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     d_exprStatistics[i] = NULL;
   }
@@ -83,8 +83,8 @@ ExprManager::ExprManager() :
 
 ExprManager::ExprManager(const Options& options) :
   d_ctxt(new Context),
-  d_nodeManager(new NodeManager(d_ctxt, options)) {
-#ifdef CVC4_STATISTICS_ON  
+  d_nodeManager(new NodeManager(d_ctxt, this, options)) {
+#ifdef CVC4_STATISTICS_ON
   for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
     d_exprStatisticsVars[i] = NULL;
   }
@@ -95,7 +95,7 @@ ExprManager::ExprManager(const Options& options) :
 }
 
 ExprManager::~ExprManager() {
-#ifdef CVC4_STATISTICS_ON   
+#ifdef CVC4_STATISTICS_ON
   NodeManagerScope nms(d_nodeManager);
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     if (d_exprStatistics[i] != NULL) {
@@ -135,7 +135,7 @@ IntegerType ExprManager::integerType() const {
 }
 
 Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
-  const unsigned n = 1; 
+  const unsigned n = 1;
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",

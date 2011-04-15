@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "expr/expr.h"
+#include "expr/expr_manager.h"
 
 #ifndef __CVC4__NODE_MANAGER_H
 #define __CVC4__NODE_MANAGER_H
@@ -85,6 +86,9 @@ class NodeManager {
   NodeValuePool d_nodeValuePool;
 
   expr::attr::AttributeManager d_attrManager;
+
+  /** The associated ExprManager */
+  ExprManager* d_exprManager;
 
   /**
    * The node value we're currently freeing.  This unique node value
@@ -250,8 +254,8 @@ class NodeManager {
 
 public:
 
-  explicit NodeManager(context::Context* ctxt);
-  explicit NodeManager(context::Context* ctxt, const Options& options);
+  explicit NodeManager(context::Context* ctxt, ExprManager* exprManager);
+  explicit NodeManager(context::Context* ctxt, ExprManager* exprManager, const Options& options);
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */
@@ -578,7 +582,39 @@ public:
    */
   TypeNode getType(TNode n, bool check = false)
     throw (TypeCheckingExceptionPrivate, AssertionException);
-};
+
+  /**
+   * Convert a node to an expression.  Uses the ExprManager
+   * associated to this NodeManager.
+   */
+  inline Expr toExpr(TNode n);
+
+  /**
+   * Convert an expression to a node.
+   */
+  static inline Node fromExpr(const Expr& e);
+
+  /**
+   * Convert a node manager to an expression manager.
+   */
+  inline ExprManager* toExprManager();
+
+  /**
+   * Convert an expression manager to a node manager.
+   */
+  static inline NodeManager* fromExprManager(ExprManager* exprManager);
+
+  /**
+   * Convert a type node to a type.
+   */
+  inline Type toType(TypeNode tn);
+
+  /**
+   * Convert a type to a type node.
+   */
+  static inline TypeNode fromType(Type t);
+
+};/* class NodeManager */
 
 /**
  * This class changes the "current" thread-global
@@ -780,6 +816,30 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
          "NodeValue is not in the pool!");
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
+}
+
+inline Expr NodeManager::toExpr(TNode n) {
+  return Expr(d_exprManager, new Node(n));
+}
+
+inline Node NodeManager::fromExpr(const Expr& e) {
+  return e.getNode();
+}
+
+inline ExprManager* NodeManager::toExprManager() {
+  return d_exprManager;
+}
+
+inline NodeManager* NodeManager::fromExprManager(ExprManager* exprManager) {
+  return exprManager->getNodeManager();
+}
+
+inline Type NodeManager::toType(TypeNode tn) {
+  return Type(this, new TypeNode(tn));
+}
+
+inline TypeNode NodeManager::fromType(Type t) {
+  return *Type::getTypeNode(t);
 }
 
 }/* CVC4 namespace */

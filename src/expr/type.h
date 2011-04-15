@@ -72,6 +72,7 @@ class CVC4_PUBLIC Type {
 
   friend class SmtEngine;
   friend class ExprManager;
+  friend class NodeManager;
   friend class TypeNode;
   friend struct TypeHashStrategy;
   friend std::ostream& operator<<(std::ostream& out, const Type& t);
@@ -139,6 +140,11 @@ public:
    */
   Type substitute(const std::vector<Type>& types,
                   const std::vector<Type>& replacements) const;
+
+  /**
+   * Get this type's ExprManager.
+   */
+  ExprManager* getExprManager() const;
 
   /**
    * Assignment operator.

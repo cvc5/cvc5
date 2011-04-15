@@ -84,23 +84,27 @@ struct NVReclaim {
   }
 };
 
-NodeManager::NodeManager(context::Context* ctxt) :
+NodeManager::NodeManager(context::Context* ctxt,
+                         ExprManager* exprManager) :
   d_optionsAllocated(new Options()),
   d_options(d_optionsAllocated),
   d_statisticsRegistry(new StatisticsRegistry()),
   d_attrManager(ctxt),
+  d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false) {
   init();
 }
 
 
-NodeManager::NodeManager(context::Context* ctxt, 
+NodeManager::NodeManager(context::Context* ctxt,
+                         ExprManager* exprManager,
                          const Options& options) :
   d_optionsAllocated(NULL),
   d_options(&options),
   d_statisticsRegistry(new StatisticsRegistry()),
   d_attrManager(ctxt),
+  d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false) {
   init();
@@ -444,6 +448,15 @@ TypeNode NodeManager::computeType(TNode n, bool check)
 
 TypeNode NodeManager::getType(TNode n, bool check)
   throw (TypeCheckingExceptionPrivate, AssertionException) {
+  // Many theories' type checkers call Node::getType() directly.
+  // This is incorrect, since "this" might not be the caller's
+  // curent node manager.  Rather than force the individual typecheckers
+  // not to do this (by policy, which would be imperfect and lead
+  // to hard-to-find bugs, which it has in the past), we just
+  // set this node manager to be current for the duration of this
+  // check.
+  NodeManagerScope nms(this);
+
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
