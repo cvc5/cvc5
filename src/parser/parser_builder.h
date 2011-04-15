@@ -64,7 +64,7 @@ class CVC4_PUBLIC ParserBuilder {
   std::istream *d_streamInput;
 
   /** The expression manager */
-  ExprManager& d_exprManager;
+  ExprManager* d_exprManager;
 
   /** Should semantic checks be enabled during parsing? */
   bool d_checksEnabled;
@@ -75,14 +75,14 @@ class CVC4_PUBLIC ParserBuilder {
   /** Should we memory-map a file input? */
   bool d_mmap;
 
-  void init(ExprManager& exprManager, const std::string& filename);
+  void init(ExprManager* exprManager, const std::string& filename);
 
 public:
 
   /** Create a parser builder using the given ExprManager and filename. */
-  ParserBuilder(ExprManager& exprManager, const std::string& filename);
+  ParserBuilder(ExprManager* exprManager, const std::string& filename);
 
-  ParserBuilder(ExprManager& exprManager, const std::string& filename,
+  ParserBuilder(ExprManager* exprManager, const std::string& filename,
                 const Options& options);
 
   /** Build the parser, using the current settings. */
@@ -92,7 +92,7 @@ public:
   ParserBuilder& withChecks(bool flag = true);
 
   /** Set the ExprManager to use with the parser. */
-  ParserBuilder& withExprManager(ExprManager& exprManager);
+  ParserBuilder& withExprManager(ExprManager* exprManager);
 
   /** Set the parser to read a file for its input. (Default) */
   ParserBuilder& withFileInput();

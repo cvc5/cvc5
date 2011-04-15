@@ -259,7 +259,7 @@ int runCvc4(int argc, char* argv[]) {
 
   Parser* replayParser = NULL;
   if( options.replayFilename != "" ) {
-    ParserBuilder replayParserBuilder(exprMgr, options.replayFilename, options);
+    ParserBuilder replayParserBuilder(&exprMgr, options.replayFilename, options);
 
     if( options.replayFilename == "-") {
       if( inputFromStdin ) {
@@ -288,7 +288,7 @@ int runCvc4(int argc, char* argv[]) {
     }
   } else {
     ParserBuilder parserBuilder =
-      ParserBuilder(exprMgr, filename, options);
+      ParserBuilder(&exprMgr, filename, options);
 
     if( inputFromStdin ) {
       parserBuilder.withStreamInput(cin);
