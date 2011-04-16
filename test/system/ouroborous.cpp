@@ -74,7 +74,7 @@ string translate(Parser* parser, string in, InputLanguage inlang, OutputLanguage
 int runTest() {
   ExprManager em;
   Parser* parser =
-    ParserBuilder(em, "internal-buffer")
+    ParserBuilder(&em, "internal-buffer")
       .withStringInput(declarations)
       .withInputLanguage(input::LANG_SMTLIB_V2)
       .build();
