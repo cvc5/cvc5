@@ -108,7 +108,7 @@ public:
 
   void setUp() {
     d_context = new Context;
-    d_nm = new NodeManager(d_context);
+    d_nm = new NodeManager(d_context, NULL);
     d_scope = new NodeManagerScope(d_nm);
     d_out = new MyOutputChannel(d_context, d_nm);
     d_cc = new CongruenceClosure<MyOutputChannel, CongruenceOperator<kind::APPLY_UF> >(d_context, d_out);

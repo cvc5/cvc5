@@ -104,7 +104,7 @@ class CnfStreamBlack : public CxxTest::TestSuite {
 
 void setUp() {
   d_context = new Context;
-  d_nodeManager = new NodeManager(d_context);
+  d_nodeManager = new NodeManager(d_context, NULL);
   NodeManagerScope nms(d_nodeManager);
   d_satSolver = new FakeSatSolver;
   d_theoryEngine = new TheoryEngine(d_context);

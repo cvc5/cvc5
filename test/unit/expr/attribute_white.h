@@ -70,7 +70,7 @@ public:
 
   void setUp() {
     d_ctxt = new Context;
-    d_nm = new NodeManager(d_ctxt);
+    d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
 
     d_booleanType = new TypeNode(d_nm->booleanType());

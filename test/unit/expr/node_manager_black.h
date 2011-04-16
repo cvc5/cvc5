@@ -42,7 +42,7 @@ public:
 
   void setUp() {
     d_context = new Context;
-    d_nodeManager = new NodeManager(d_context);
+    d_nodeManager = new NodeManager(d_context, NULL);
     d_scope = new NodeManagerScope(d_nodeManager);
   }
 

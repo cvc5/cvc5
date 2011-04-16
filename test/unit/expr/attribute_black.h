@@ -45,7 +45,7 @@ public:
 
   void setUp() {
     d_ctxt = new Context;
-    d_nodeManager = new NodeManager(d_ctxt);
+    d_nodeManager = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nodeManager);
   }
 

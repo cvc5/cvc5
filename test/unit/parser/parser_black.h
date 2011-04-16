@@ -67,7 +67,7 @@ protected:
 //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
 //        istringstream stream(goodInputs[i]);
         Parser *parser =
-          ParserBuilder(*d_exprManager,"test")
+          ParserBuilder(d_exprManager,"test")
             .withStringInput(goodInput)
             .withInputLanguage(d_lang)
             .build();
@@ -94,7 +94,7 @@ protected:
 //      Debug.on("parser");
 
     Parser *parser =
-      ParserBuilder(*d_exprManager,"test")
+      ParserBuilder(d_exprManager,"test")
         .withStringInput(badInput)
         .withInputLanguage(d_lang)
         .withStrictMode(strictMode)
@@ -116,7 +116,7 @@ protected:
 //        istringstream stream(context + goodBooleanExprs[i]);
 
         Parser *parser =
-          ParserBuilder(*d_exprManager,"test")
+          ParserBuilder(d_exprManager,"test")
             .withStringInput(goodExpr)
             .withInputLanguage(d_lang)
             .build();
@@ -153,7 +153,7 @@ protected:
 //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
       Parser *parser =
-        ParserBuilder(*d_exprManager,"test")
+        ParserBuilder(d_exprManager,"test")
           .withStringInput(badExpr)
           .withInputLanguage(d_lang)
           .withStrictMode(strictMode)
