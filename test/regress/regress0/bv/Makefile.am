@@ -14,12 +14,13 @@ SMT_TESTS =
 SMT2_TESTS = 
 
 # Regression tests for PL inputs
-CVC_TESTS = 
+CVC_TESTS = bvsimple.cvc
 
 # Regression tests derived from bug reports
 BUG_TESTS = 
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	test00.smt
 

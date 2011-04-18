@@ -144,13 +144,36 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
 
     return;
   } else if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    out << n.getOperator();
-    if(n.getNumChildren() > 0) {
-      out << '(';
-      if(n.getNumChildren() > 1) {
-        copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, ", "));
+    switch(n.getKind()) {
+    case kind::BITVECTOR_EXTRACT:
+      out << n[0] << n.getOperator().getConst<BitVectorExtract>();
+      break;
+    case kind::BITVECTOR_REPEAT:
+      out << "BVREPEAT(" << n[0] << "," << n.getOperator() << ')';
+      break;
+    case kind::BITVECTOR_ZERO_EXTEND:
+      out << "BVZEROEXTEND(" << n[0] << "," << n.getOperator() << ')';
+      break;
+    case kind::BITVECTOR_SIGN_EXTEND:
+      out << "SX(" << n[0] << "," << n.getOperator() << ')';
+      break;
+    case kind::BITVECTOR_ROTATE_LEFT:
+      out << "BVROTL(" << n[0] << "," << n.getOperator() << ')';
+      break;
+    case kind::BITVECTOR_ROTATE_RIGHT:
+      out << "BVROTR(" << n[0] << "," << n.getOperator() << ')';
+      break;
+
+
+    default:
+      out << n.getOperator();
+      if(n.getNumChildren() > 0) {
+        out << '(';
+        if(n.getNumChildren() > 1) {
+          copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, ", "));
+        }
+        out << n[n.getNumChildren() - 1] << ')';
       }
-      out << n[n.getNumChildren() - 1] << ')';
     }
     return;
   } else if(n.getMetaKind() == kind::metakind::OPERATOR) {
@@ -218,10 +241,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
     case kind::BITVECTOR_SGT:
     case kind::BITVECTOR_SGE:
       out << n.getOperator() << '(' << n[0] << ',' << n[1] << ')';
-      break;
-
-    case kind::BITVECTOR_EXTRACT:
-      out << n[0] << '[' << n.getOperator().getConst<BitVectorExtract>() << ']';
       break;
 
     default:

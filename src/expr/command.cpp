@@ -155,9 +155,7 @@ void QueryCommand::printResult(std::ostream& out) const {
 }
 
 void QueryCommand::toStream(std::ostream& out) const {
-  out << "Query(";
-  d_expr.printAst(out, 0);
-  out << ")";
+  out << "Query(" << d_expr << ')';
 }
 
 /* class CommandSequence */

@@ -597,7 +597,7 @@ arrayType[CVC4::Type& t]
   Type t2;
 }
   : baseType[t]
-  | ARRAY_TOK baseType[t] OF_TOK baseType[t2]
+  | ARRAY_TOK bitvectorType[t] OF_TOK bitvectorType[t2]
     { t = EXPR_MANAGER->mkArrayType(t, t2); }
   ;
 
@@ -927,10 +927,14 @@ bvUminusTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_LSHR, f, f2); }
   | SX_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
     { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      f = MK_EXPR(MK_CONST(BitVectorSignExtend(k)), f); }
+      unsigned n = BitVectorType(f.getType()).getSize();
+      // sign extension in TheoryBitVector is defined as in SMT-LIBv2
+      f = MK_EXPR(MK_CONST(BitVectorSignExtend(k - n)), f); }
   | BVZEROEXTEND_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
     { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      f = MK_EXPR(MK_CONST(BitVectorSignExtend(k)), f); }
+      unsigned n = BitVectorType(f.getType()).getSize();
+      // also zero extension
+      f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k - n)), f); }
   | BVREPEAT_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
     { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
       f = MK_EXPR(MK_CONST(BitVectorRepeat(k)), f); }
@@ -945,14 +949,19 @@ bvUminusTerm[CVC4::Expr& f]
 
 bvShiftTerm[CVC4::Expr& f]
 @init {
-  std::vector<CVC4::Expr> expressions;
-  std::vector<unsigned> operators;
-  unsigned op;
+  bool left = false;
 }
   : bvComparison[f]
-    ( ( LEFTSHIFT_TOK | RIGHTSHIFT_TOK) INTEGER_LITERAL
+    ( (LEFTSHIFT_TOK { left = true; } | RIGHTSHIFT_TOK) INTEGER_LITERAL
       { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-        f = MK_EXPR(MK_CONST(BitVectorRotateLeft(k)), f); }
+        if(left) {
+          f = MK_EXPR(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
+        } else {
+          unsigned n = BitVectorType(f.getType()).getSize();
+          f = MK_EXPR(kind::BITVECTOR_CONCAT, MK_CONST(BitVector(k)),
+                      MK_EXPR(MK_CONST(BitVectorExtract(n - 1, k)), f));
+        }
+      }
     )?
   ;
 
