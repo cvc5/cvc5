@@ -48,8 +48,8 @@ private:
 
   context::CDVector<DeltaRational> d_upperBound;
   context::CDVector<DeltaRational> d_lowerBound;
-  context::CDVector<TNode> d_upperConstraint;
-  context::CDVector<TNode> d_lowerConstraint;
+  context::CDVector<Node> d_upperConstraint;
+  context::CDVector<Node> d_lowerConstraint;
 
   bool d_deltaIsSafe;
   Rational d_delta;
@@ -68,10 +68,10 @@ public:
     d_hasSafeAssignment(),
     d_assignment(),
     d_safeAssignment(),
-    d_upperBound(c, false),
-    d_lowerBound(c, false),
-    d_upperConstraint(c,false),
-    d_lowerConstraint(c,false),
+    d_upperBound(c, true),
+    d_lowerBound(c, true),
+    d_upperConstraint(c,true),
+    d_lowerConstraint(c,true),
     d_deltaIsSafe(false),
     d_delta(-1,1),
     d_history()
@@ -114,16 +114,31 @@ public:
 
 
   /**
-   * x <= l
+   * x >= l
    * ? c < l
    */
   bool belowLowerBound(ArithVar x, const DeltaRational& c, bool strict);
 
   /**
    * x <= u
-   * ? c < u
+   * ? c > u
    */
   bool aboveUpperBound(ArithVar x, const DeltaRational& c, bool strict);
+
+  bool equalsLowerBound(ArithVar x, const DeltaRational& c);
+  bool equalsUpperBound(ArithVar x, const DeltaRational& c);
+
+  /**
+   * x <= u
+   * ? c < u
+   */
+  bool strictlyBelowUpperBound(ArithVar x, const DeltaRational& c);
+
+  /**
+   * x <= u
+   * ? c < u
+   */
+  bool strictlyAboveLowerBound(ArithVar x, const DeltaRational& c);
 
   bool strictlyBelowUpperBound(ArithVar x);
   bool strictlyAboveLowerBound(ArithVar x);

@@ -184,6 +184,21 @@ bool ArithPartialModel::belowLowerBound(ArithVar x, const DeltaRational& c, bool
   }
 }
 
+bool ArithPartialModel::equalsLowerBound(ArithVar x, const DeltaRational& c){
+  if(!hasLowerBound(x)){
+    return false;
+  }else{
+    return c == d_lowerBound[x];
+  }
+}
+bool ArithPartialModel::equalsUpperBound(ArithVar x, const DeltaRational& c){
+  if(!hasUpperBound(x)){
+    return false;
+  }else{
+    return c == d_upperBound[x];
+  }
+}
+
 bool ArithPartialModel::aboveUpperBound(ArithVar x, const DeltaRational& c, bool strict){
   if(!hasUpperBound(x)){
     // u = \intfy
@@ -214,6 +229,30 @@ bool ArithPartialModel::strictlyAboveLowerBound(ArithVar x){
     return true;
   }
   return  d_lowerBound[x] < d_assignment[x];
+}
+
+/**
+ * x <= u
+ * ? c < u
+ */
+bool ArithPartialModel::strictlyBelowUpperBound(ArithVar x, const DeltaRational& c){
+  Assert(inMaps(x));
+  if(!hasUpperBound(x)){ // u = \infty
+    return true;
+  }
+  return c < d_upperBound[x];
+}
+
+/**
+ * x <= u
+ * ? c < u
+ */
+bool ArithPartialModel::strictlyAboveLowerBound(ArithVar x, const DeltaRational& c){
+  Assert(inMaps(x));
+  if(!hasLowerBound(x)){ // l = -\infty
+    return true;
+  }
+  return  d_lowerBound[x] < c;
 }
 
 bool ArithPartialModel::assignmentIsConsistent(ArithVar x){

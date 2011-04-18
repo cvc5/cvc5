@@ -11,6 +11,9 @@ libarith_la_SOURCES = \
 	arith_rewriter.cpp \
 	arith_static_learner.h \
 	arith_static_learner.cpp \
+	arith_prop_manager.h \
+	arith_prop_manager.cpp \
+	arithvar_node_map.h \
 	normal_form.h\
 	normal_form.cpp \
 	arith_utilities.h \

@@ -68,15 +68,14 @@ private:
    */
   OutputChannel& d_arithOut;
 
-  struct OrderedSetTriple {
-    OrderedSet d_leqSet;
-    OrderedSet d_eqSet;
-    OrderedSet d_geqSet;
+  struct VariablesSets {
+    BoundValueSet d_boundValueSet;
+    EqualValueSet d_eqValueSet;
   };
 
   /** TODO: justify making this a TNode. */
-  typedef __gnu_cxx::hash_map<Node, OrderedSetTriple, NodeHashFunction> NodeToOrderedSetMap;
-  NodeToOrderedSetMap d_orderedListMap;
+  typedef __gnu_cxx::hash_map<TNode, VariablesSets, NodeHashFunction> NodeToSetsMap;
+  NodeToSetsMap d_setsMap;
 
 public:
   ArithUnatePropagator(context::Context* cxt, OutputChannel& arith);
@@ -88,20 +87,30 @@ public:
   void addAtom(TNode atom);
 
   /** Returns true if v has been added as a left hand side in an atom */
-  bool hasAnyAtoms(TNode v);
+  bool hasAnyAtoms(TNode v) const;
+
+  bool containsLiteral(TNode lit) const;
+  bool containsAtom(TNode atom) const;
+  bool containsEquality(TNode atom) const;
+  bool containsLeq(TNode atom) const;
+  bool containsGeq(TNode atom) const;
+
+
 
 private:
-  OrderedSetTriple& getOrderedSetTriple(TNode left);
-  OrderedSet& getEqSet(TNode left);
-  OrderedSet& getLeqSet(TNode left);
-  OrderedSet& getGeqSet(TNode left);
+  VariablesSets& getVariablesSets(TNode left);
+  BoundValueSet& getBoundValueSet(TNode left);
+  EqualValueSet& getEqualValueSet(TNode left);
 
+  const VariablesSets& getVariablesSets(TNode left) const;
+  const BoundValueSet& getBoundValueSet(TNode left) const;
+  const EqualValueSet& getEqualValueSet(TNode left) const;
 
   /** Sends an implication (=> a b) to the PropEngine via d_arithOut. */
   void addImplication(TNode a, TNode b);
 
   /** Check to make sure an lhs has been properly set-up. */
-  bool leftIsSetup(TNode left);
+  bool leftIsSetup(TNode left) const;
 
   /** Initializes the lists associated with a unique lhs. */
   void setupLefthand(TNode left);
@@ -123,18 +132,30 @@ private:
    * of all of the special casing and C++ iterator manipulation required.
    */
 
-  void addImplicationsUsingEqualityAndEqualityList(TNode eq, OrderedSet& eqSet);
-  void addImplicationsUsingEqualityAndLeqList(TNode eq, OrderedSet& leqSet);
-  void addImplicationsUsingEqualityAndGeqList(TNode eq, OrderedSet& geqSet);
+  void addImplicationsUsingEqualityAndEqualityValues(TNode eq);
+  void addImplicationsUsingEqualityAndBoundValues(TNode eq);
 
-  void addImplicationsUsingLeqAndEqualityList(TNode leq, OrderedSet& eqSet);
-  void addImplicationsUsingLeqAndLeqList(TNode leq, OrderedSet& leqSet);
-  void addImplicationsUsingLeqAndGeqList(TNode leq, OrderedSet& geqSet);
+  void addImplicationsUsingLeqAndEqualityValues(TNode leq);
+  void addImplicationsUsingLeqAndBoundValues(TNode leq);
 
-  void addImplicationsUsingGeqAndEqualityList(TNode geq, OrderedSet& eqSet);
-  void addImplicationsUsingGeqAndLeqList(TNode geq, OrderedSet& leqSet);
-  void addImplicationsUsingGeqAndGeqList(TNode geq, OrderedSet& geqSet);
+  void addImplicationsUsingGeqAndEqualityValues(TNode geq);
+  void addImplicationsUsingGeqAndBoundValues(TNode geq);
 
+  bool hasBoundValueEntry(TNode n);
+
+  Node getImpliedUpperBoundUsingLeq(TNode leq, bool weaker) const;
+  Node getImpliedUpperBoundUsingLT(TNode lt, bool weaker) const;
+
+  Node getImpliedLowerBoundUsingGeq(TNode geq, bool weaker) const;
+  Node getImpliedLowerBoundUsingGT(TNode gt, bool weaker) const;
+
+public:
+  Node getBestImpliedUpperBound(TNode upperBound) const;
+  Node getBestImpliedLowerBound(TNode lowerBound) const;
+
+
+  Node getWeakerImpliedUpperBound(TNode upperBound) const;
+  Node getWeakerImpliedLowerBound(TNode lowerBound) const;
 };
 
 }/* CVC4::theory::arith namespace */

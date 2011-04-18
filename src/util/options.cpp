@@ -81,6 +81,7 @@ Options::Options() :
   replayStream(NULL),
   replayLog(NULL),
   rewriteArithEqualities(false),
+  arithPropagation(false),
   satRandomFreq(0.0),
   satRandomSeed(91648253), //Minisat's default value
   pivotRule(MINIMUM)
@@ -120,6 +121,7 @@ static const string optionsDescription = "\
    --random-freq=P        sets the frequency of random decisions in the sat solver(P=0.0 by default)\n\
    --random-seed=S        sets the random seed for the sat solver\n\
    --rewrite-arithmetic-equalities rewrite (= x y) to (and (<= x y) (>= x y)) in arithmetic\n\
+   --enable-arithmetic-propagation turns on arithmetic propagation\n \
    --incremental          enable incremental solving\n";
 
 static const string languageDescription = "\
@@ -179,7 +181,8 @@ enum OptionValue {
   PIVOT_RULE,
   RANDOM_FREQUENCY,
   RANDOM_SEED,
-  REWRITE_ARITHMETIC_EQUALITIES
+  REWRITE_ARITHMETIC_EQUALITIES,
+  ARITHMETIC_PROPAGATION
 };/* enum OptionValue */
 
 /**
@@ -247,6 +250,7 @@ static struct option cmdlineOptions[] = {
   { "random-freq" , required_argument, NULL, RANDOM_FREQUENCY  },
   { "random-seed" , required_argument, NULL, RANDOM_SEED  },
   { "rewrite-arithmetic-equalities", no_argument, NULL, REWRITE_ARITHMETIC_EQUALITIES },
+  { "enable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -475,6 +479,10 @@ throw(OptionException) {
 
     case REWRITE_ARITHMETIC_EQUALITIES:
       rewriteArithEqualities = true;
+      break;
+
+    case ARITHMETIC_PROPAGATION:
+      arithPropagation = true;
       break;
 
     case RANDOM_SEED:

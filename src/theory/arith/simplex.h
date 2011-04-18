@@ -10,6 +10,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
+#include "theory/arith/arith_prop_manager.h"
 
 #include "util/options.h"
 
@@ -33,36 +34,23 @@ private:
   Tableau& d_tableau;
   ArithPriorityQueue d_queue;
 
+  ArithPropManager& d_propManager;
+
   ArithVar d_numVariables;
 
   std::queue<Node> d_delayedLemmas;
 
+  PermissiveBackArithVarSet d_updatedBounds;
+  PermissiveBackArithVarSet d_candidateBasics;
+
   Rational d_ZERO;
+  DeltaRational d_DELTA_ZERO;
 
 public:
-  SimplexDecisionProcedure(ArithPartialModel& pm,
-                           Tableau& tableau) :
-    d_partialModel(pm),
-    d_tableau(tableau),
-    d_queue(pm, tableau),
-    d_numVariables(0),
-    d_delayedLemmas(),
-    d_ZERO(0)
-  {
-    switch(Options::ArithPivotRule rule = Options::current()->pivotRule) {
-    case Options::MINIMUM:
-      d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
-      break;
-    case Options::BREAK_TIES:
-      d_queue.setPivotRule(ArithPriorityQueue::BREAK_TIES);
-      break;
-    case Options::MAXIMUM:
-      d_queue.setPivotRule(ArithPriorityQueue::MAXIMUM);
-      break;
-    default:
-      Unhandled(rule);
-    }
-  }
+  SimplexDecisionProcedure(ArithPropManager& propManager,
+                           ArithPartialModel& pm,
+                           Tableau& tableau);
+
 
   /**
    * Assert*(n, orig) takes an bound n that is implied by orig.
@@ -165,18 +153,18 @@ private:
    * This returns ARITHVAR_SENTINEL if none exists.
    *
    * More formally one of the following conditions must be satisfied:
-   * -  above && a_ij < 0 && assignment(x_j) < upperbound(x_j)
-   * -  above && a_ij > 0 && assignment(x_j) > lowerbound(x_j)
-   * - !above && a_ij > 0 && assignment(x_j) < upperbound(x_j)
-   * - !above && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
+   * -  lowerBound && a_ij < 0 && assignment(x_j) < upperbound(x_j)
+   * -  lowerBound && a_ij > 0 && assignment(x_j) > lowerbound(x_j)
+   * - !lowerBound && a_ij > 0 && assignment(x_j) < upperbound(x_j)
+   * - !lowerBound && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
    *
    */
-  template <bool above, PreferenceFunction>  ArithVar selectSlack(ArithVar x_i);
-  template <PreferenceFunction pf> ArithVar selectSlackBelow(ArithVar x_i) {
-    return selectSlack<false, pf>(x_i);
-  }
-  template <PreferenceFunction pf> ArithVar selectSlackAbove(ArithVar x_i) {
+  template <bool lowerBound, PreferenceFunction>  ArithVar selectSlack(ArithVar x_i);
+  template <PreferenceFunction pf> ArithVar selectSlackLowerBound(ArithVar x_i) {
     return selectSlack<true, pf>(x_i);
+  }
+  template <PreferenceFunction pf> ArithVar selectSlackUpperBound(ArithVar x_i) {
+    return selectSlack<false, pf>(x_i);
   }
   /**
    * Returns the smallest basic variable whose assignment is not consistent
@@ -184,13 +172,30 @@ private:
    */
   ArithVar selectSmallestInconsistentVar();
 
+
+  /**
+   * Exports either the explanation of an upperbound or a lower bound
+   * of the basic variable basic, using the non-basic variables in the row.
+   */
+  template <bool upperBound>
+  void explainNonbasics(ArithVar basic, NodeBuilder<>& output);
+  void explainNonbasicsLowerBound(ArithVar basic, NodeBuilder<>& output){
+    explainNonbasics<false>(basic, output);
+  }
+  void explainNonbasicsUpperBound(ArithVar basic, NodeBuilder<>& output){
+    explainNonbasics<true>(basic, output);
+  }
+
+  Node deduceUpperBound(ArithVar basicVar);
+  Node deduceLowerBound(ArithVar basicVar);
+
   /**
    * Given a non-basic variable that is know to not be updatable
    * to a consistent value, construct and return a conflict.
    * Follows section 4.2 in the CAV06 paper.
    */
-  Node generateConflictAbove(ArithVar conflictVar);
-  Node generateConflictBelow(ArithVar conflictVar);
+  Node generateConflictAboveUpperBound(ArithVar conflictVar);
+  Node generateConflictBelowLowerBound(ArithVar conflictVar);
 
 public:
   /**
@@ -210,6 +215,11 @@ public:
    */
   DeltaRational computeRowValue(ArithVar x, bool useSafe);
 
+  bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
+  void clearUpdates(){
+    d_updatedBounds.purge();
+  }
+  void propagateCandidates();
 
   void increaseMax() {d_numVariables++;}
 
@@ -234,7 +244,7 @@ private:
 
   /** Adds a conflict as a lemma to the queue. */
   void delayConflictAsLemma(Node conflict){
-    Node negatedConflict = negateConjunctionAsClause(conflict);
+   Node negatedConflict = negateConjunctionAsClause(conflict);
     pushLemma(negatedConflict);
   }
 
@@ -254,6 +264,36 @@ private:
    */
   Node checkBasicForConflict(ArithVar b);
 
+  Node weakenConflict(bool aboveUpper, ArithVar basicVar);
+  TNode weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic);
+
+  void propagateCandidate(ArithVar basic);
+  bool propagateCandidateBound(ArithVar basic, bool upperBound);
+
+  inline bool propagateCandidateLowerBound(ArithVar basic){
+    return propagateCandidateBound(basic, false);
+  }
+  inline bool propagateCandidateUpperBound(ArithVar basic){
+    return propagateCandidateBound(basic, true);
+  }
+
+  bool hasBounds(ArithVar basic, bool upperBound);
+  bool hasLowerBounds(ArithVar basic){
+    return hasBounds(basic, false);
+  }
+  bool hasUpperBounds(ArithVar basic){
+    return hasBounds(basic, true);
+  }
+  DeltaRational computeBound(ArithVar basic, bool upperBound);
+
+  inline DeltaRational computeLowerBound(ArithVar basic){
+    return computeBound(basic, false);
+  }
+  inline DeltaRational computeUpperBound(ArithVar basic){
+    return computeBound(basic, true);
+  }
+
+
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
   public:
@@ -269,6 +309,12 @@ private:
     IntStat d_attemptDuringDiffSearch, d_successDuringDiffSearch;
     IntStat d_attemptDuringVarOrderSearch, d_successDuringVarOrderSearch;
     IntStat d_attemptAfterVarOrderSearch, d_successAfterVarOrderSearch;
+
+    IntStat d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
+    TimerStat d_weakenTime;
+
+    TimerStat d_boundComputationTime;
+    IntStat d_boundComputations, d_boundPropagations;
 
     IntStat d_delayedConflicts;
 

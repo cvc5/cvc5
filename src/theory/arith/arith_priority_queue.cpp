@@ -160,7 +160,7 @@ void ArithPriorityQueue::transitionToDifferenceMode() {
   Assert(d_diffQueue.empty());
 
   Debug("arith::priorityqueue") << "transitionToDifferenceMode()" << endl;
-  d_varSet.clear();
+  d_varSet.purge();
 
   ArithVarArray::const_iterator i = d_candidates.begin(), end = d_candidates.end();
   for(; i != end; ++i){
@@ -232,18 +232,18 @@ void ArithPriorityQueue::clear(){
   switch(d_modeInUse){
   case Collection:
     d_candidates.clear();
-    d_varSet.clear();
+    d_varSet.purge();
     break;
   case VariableOrder:
     if(!d_varOrderQueue.empty()) {
       d_varOrderQueue.clear();
-      d_varSet.clear();
+      d_varSet.purge();
     }
     break;
   case Difference:
     if(!d_diffQueue.empty()){
       d_diffQueue.clear();
-      d_varSet.clear();
+      d_varSet.purge();
     }
     break;
   default:

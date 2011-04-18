@@ -31,36 +31,47 @@ using namespace CVC4::kind;
 using namespace std;
 
 ArithUnatePropagator::ArithUnatePropagator(context::Context* cxt, OutputChannel& out) :
-  d_arithOut(out), d_orderedListMap()
+  d_arithOut(out), d_setsMap()
 { }
 
-bool ArithUnatePropagator::leftIsSetup(TNode left){
-  return d_orderedListMap.find(left) != d_orderedListMap.end();
+bool ArithUnatePropagator::leftIsSetup(TNode left) const{
+  return d_setsMap.find(left) != d_setsMap.end();
 }
 
-ArithUnatePropagator::OrderedSetTriple& ArithUnatePropagator::getOrderedSetTriple(TNode left){
+const ArithUnatePropagator::VariablesSets& ArithUnatePropagator::getVariablesSets(TNode left) const{
   Assert(leftIsSetup(left));
-  return d_orderedListMap[left];
+  NodeToSetsMap::const_iterator i = d_setsMap.find(left);
+  return i->second;
+}
+ArithUnatePropagator::VariablesSets& ArithUnatePropagator::getVariablesSets(TNode left){
+  Assert(leftIsSetup(left));
+  NodeToSetsMap::iterator i = d_setsMap.find(left);
+  return i->second;
+}
+EqualValueSet& ArithUnatePropagator::getEqualValueSet(TNode left){
+  Assert(leftIsSetup(left));
+  return getVariablesSets(left).d_eqValueSet;
 }
 
-OrderedSet& ArithUnatePropagator::getEqSet(TNode left){
+const EqualValueSet& ArithUnatePropagator::getEqualValueSet(TNode left) const{
   Assert(leftIsSetup(left));
-  return getOrderedSetTriple(left).d_eqSet;
-}
-OrderedSet& ArithUnatePropagator::getLeqSet(TNode left){
-  Assert(leftIsSetup(left));
-  return getOrderedSetTriple(left).d_leqSet;
-}
-OrderedSet& ArithUnatePropagator::getGeqSet(TNode left){
-  Assert(leftIsSetup(left));
-  return getOrderedSetTriple(left).d_geqSet;
+  return getVariablesSets(left).d_eqValueSet;
 }
 
-bool ArithUnatePropagator::hasAnyAtoms(TNode v){
+BoundValueSet& ArithUnatePropagator::getBoundValueSet(TNode left){
+  Assert(leftIsSetup(left));
+  return getVariablesSets(left).d_boundValueSet;
+}
+
+const BoundValueSet& ArithUnatePropagator::getBoundValueSet(TNode left) const{
+  Assert(leftIsSetup(left));
+  return getVariablesSets(left).d_boundValueSet;
+}
+
+bool ArithUnatePropagator::hasAnyAtoms(TNode v) const{
   Assert(!leftIsSetup(v)
-         || !(getEqSet(v)).empty()
-         || !(getLeqSet(v)).empty()
-         || !(getGeqSet(v)).empty());
+         || !(getEqualValueSet(v)).empty()
+         || !(getBoundValueSet(v)).empty());
 
   return leftIsSetup(v);
 }
@@ -68,7 +79,58 @@ bool ArithUnatePropagator::hasAnyAtoms(TNode v){
 void ArithUnatePropagator::setupLefthand(TNode left){
   Assert(!leftIsSetup(left));
 
-  d_orderedListMap[left] = OrderedSetTriple();
+  d_setsMap[left] = VariablesSets();
+}
+
+bool ArithUnatePropagator::containsLiteral(TNode lit) const{
+  switch(lit.getKind()){
+  case NOT: return containsAtom(lit[0]);
+  default: return containsAtom(lit);
+  }
+}
+
+bool ArithUnatePropagator::containsAtom(TNode atom) const{
+  switch(atom.getKind()){
+  case EQUAL: return containsEquality(atom);
+  case LEQ: return containsLeq(atom);
+  case GEQ: return containsGeq(atom);
+  default:
+    Unreachable();
+  }
+}
+
+bool ArithUnatePropagator::containsEquality(TNode atom) const{
+  TNode left = atom[0];
+  const EqualValueSet& eqSet = getEqualValueSet(left);
+  return eqSet.find(atom) != eqSet.end();
+}
+
+bool ArithUnatePropagator::containsLeq(TNode atom) const{
+  TNode left = atom[0];
+  const Rational& value = rightHandRational(atom);
+
+  const BoundValueSet& bvSet = getBoundValueSet(left);
+  BoundValueSet::const_iterator i = bvSet.find(value);
+  if(i == bvSet.end()){
+    return false;
+  }else{
+    const BoundValueEntry& entry = i->second;
+    return entry.hasLeq();
+  }
+}
+
+bool ArithUnatePropagator::containsGeq(TNode atom) const{
+  TNode left = atom[0];
+  const Rational& value = rightHandRational(atom);
+
+  const BoundValueSet& bvSet = getBoundValueSet(left);
+  BoundValueSet::const_iterator i = bvSet.find(value);
+  if(i == bvSet.end()){
+    return false;
+  }else{
+    const BoundValueEntry& entry = i->second;
+    return entry.hasGeq();
+  }
 }
 
 void ArithUnatePropagator::addAtom(TNode atom){
@@ -79,44 +141,59 @@ void ArithUnatePropagator::addAtom(TNode atom){
     setupLefthand(left);
   }
 
-  OrderedSet& eqSet = getEqSet(left);
-  OrderedSet& leqSet = getLeqSet(left);
-  OrderedSet& geqSet = getGeqSet(left);
+  const Rational& value = rightHandRational(atom);
 
   switch(atom.getKind()){
   case EQUAL:
     {
-      pair<OrderedSet::iterator, bool> res = eqSet.insert(atom);
+      Assert(!containsEquality(atom));
+      addImplicationsUsingEqualityAndEqualityValues(atom);
+      addImplicationsUsingEqualityAndBoundValues(atom);
+
+      pair<EqualValueSet::iterator, bool> res = getEqualValueSet(left).insert(atom);
       Assert(res.second);
-      addImplicationsUsingEqualityAndEqualityList(atom, eqSet);
-      addImplicationsUsingEqualityAndLeqList(atom, leqSet);
-      addImplicationsUsingEqualityAndGeqList(atom, geqSet);
       break;
     }
   case LEQ:
     {
-      pair<OrderedSet::iterator, bool> res = leqSet.insert(atom);
-      Assert(res.second);
+      addImplicationsUsingLeqAndEqualityValues(atom);
+      addImplicationsUsingLeqAndBoundValues(atom);
 
-      addImplicationsUsingLeqAndEqualityList(atom, eqSet);
-      addImplicationsUsingLeqAndLeqList(atom, leqSet);
-      addImplicationsUsingLeqAndGeqList(atom, geqSet);
+      BoundValueSet& bvSet = getBoundValueSet(left);
+      if(hasBoundValueEntry(atom)){
+        BoundValueSet::iterator i = bvSet.find(value);
+        BoundValueEntry& inSet = i->second;
+        inSet.addLeq(atom);
+      }else{
+        bvSet.insert(make_pair(value, BoundValueEntry::mkFromLeq(atom)));
+      }
       break;
     }
   case GEQ:
     {
-      pair<OrderedSet::iterator, bool> res = geqSet.insert(atom);
-      Assert(res.second);
+      addImplicationsUsingGeqAndEqualityValues(atom);
+      addImplicationsUsingGeqAndBoundValues(atom);
 
-      addImplicationsUsingGeqAndEqualityList(atom, eqSet);
-      addImplicationsUsingGeqAndLeqList(atom, leqSet);
-      addImplicationsUsingGeqAndGeqList(atom, geqSet);
-
+      BoundValueSet& bvSet = getBoundValueSet(left);
+      if(hasBoundValueEntry(atom)){
+        BoundValueSet::iterator i = bvSet.find(value);
+        BoundValueEntry& inSet = i->second;
+        inSet.addGeq(atom);
+      }else{
+        bvSet.insert(make_pair(value, BoundValueEntry::mkFromGeq(atom)));
+      }
       break;
     }
   default:
     Unreachable();
   }
+}
+
+bool ArithUnatePropagator::hasBoundValueEntry(TNode atom){
+  TNode left = atom[0];
+  const Rational& value = rightHandRational(atom);
+  BoundValueSet& bvSet = getBoundValueSet(left);
+  return bvSet.find(value) != bvSet.end();
 }
 
 bool rightHandRationalIsEqual(TNode a, TNode b){
@@ -135,162 +212,146 @@ bool rightHandRationalIsLT(TNode a, TNode b){
   return RightHandRationalLT()(a,b);
 }
 
-//void addImplicationsUsingEqualityAndEqualityList(TNode eq, OrderedSet* eqSet);
-
-void ArithUnatePropagator::addImplicationsUsingEqualityAndEqualityList(TNode atom, OrderedSet& eqSet){
+void ArithUnatePropagator::addImplicationsUsingEqualityAndEqualityValues(TNode atom){
   Assert(atom.getKind() == EQUAL);
-  OrderedSet::iterator eqPos = eqSet.find(atom);
-  Assert(eqPos != eqSet.end());
-  Assert(*eqPos == atom);
+  TNode left = atom[0];
+  EqualValueSet& eqSet = getEqualValueSet(left);
 
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
-  for(OrderedSet::iterator eqIter = eqSet.begin();
-      eqIter != eqSet.end(); ++eqIter){
-    if(eqIter == eqPos) continue;
+
+  for(EqualValueSet::iterator eqIter = eqSet.begin(), endIter = eqSet.end();
+      eqIter != endIter; ++eqIter){
     TNode eq = *eqIter;
-    Assert(!rightHandRationalIsEqual(eq, atom));
+    Assert(eq != atom);
     addImplication(eq, negation);
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingEqualityAndLeqList(TNode atom, OrderedSet& leqSet){
+// if weaker, do not return an equivalent node
+// if strict, get the strongest bound implied by  (< x value)
+// if !strict, get the strongest bound implied by  (<= x value)
+Node getUpperBound(const BoundValueSet& bvSet, const Rational& value, bool strict, bool weaker){
+  BoundValueSet::const_iterator bv = bvSet.lower_bound(value);
+  if(bv == bvSet.end()){
+    return Node::null();
+  }
 
-  Assert(atom.getKind() == EQUAL);
-  Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
-
-  OrderedSet::iterator leqIter = leqSet.lower_bound(atom);
-  if(leqIter != leqSet.end()){
-    TNode lowerBound = *leqIter;
-    if(rightHandRationalIsEqual(atom, lowerBound)){
-      addImplication(atom, lowerBound);  // x=b /\ b = b' => x <= b'
-      if(leqIter != leqSet.begin()){
-        --leqIter;
-        Assert(rightHandRationalIsLT(*leqIter, atom));
-        addImplication(*leqIter, negation); // x=b /\ b > b' => x > b'
-      }
-    }else{
-      //probably wrong
-      Assert(rightHandRationalIsLT(atom, lowerBound));
-      addImplication(atom, lowerBound);// x=b /\ b < b' => x <= b'
-
-      if(leqIter != leqSet.begin()){
-        --leqIter;
-        Assert(rightHandRationalIsLT(*leqIter, atom));
-        addImplication(*leqIter, negation);// x=b /\ b > b' => x > b'
-      }
+  if((bv->second).getValue() == value){
+    const BoundValueEntry& entry = bv->second;
+    if(strict && entry.hasGeq() && !weaker){
+      return NodeBuilder<1>(NOT) << entry.getGeq();
+    }else if(entry.hasLeq() && (strict || !weaker)){
+      return entry.getLeq();
     }
-  }else if(leqIter != leqSet.begin()){
-    --leqIter;
-    TNode strictlyLessThan = *leqIter;
-    Assert(rightHandRationalIsLT(strictlyLessThan, atom));
-    addImplication(*leqIter, negation); // x=b /\ b < b' => x <= b'
+  }
+  ++bv;
+  if(bv == bvSet.end()){
+    return Node::null();
+  }
+  Assert(bv->second.getValue() > value);
+  const BoundValueEntry& entry = bv->second;
+  if(entry.hasGeq()){
+    return NodeBuilder<1>(NOT) << entry.getGeq();
   }else{
-    Assert(leqSet.empty());
+    Assert(entry.hasLeq());
+    return entry.getLeq();
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingEqualityAndGeqList(TNode atom, OrderedSet& geqSet){
 
-  Assert(atom.getKind() == EQUAL);
-  Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
 
-  OrderedSet::iterator geqIter = geqSet.lower_bound(atom);
-  if(geqIter != geqSet.end()){
-    TNode lowerBound = *geqIter;
-    if(rightHandRationalIsEqual(atom, lowerBound)){
-      addImplication(atom, lowerBound);  // x=b /\ b = b' => x >= b'
-      ++geqIter;
-      if(geqIter != geqSet.end()){ // x=b /\ b < b' => x < b'
-        TNode strictlyGt = *geqIter;
-        Assert(rightHandRationalIsLT( atom, strictlyGt ));
-        addImplication(strictlyGt, negation);
-      }
-    }else{
-      Assert(rightHandRationalIsLT(atom, lowerBound));
-      addImplication(lowerBound, negation);// x=b /\ b < b' => x < b'
-      if(geqIter != geqSet.begin()){
-        --geqIter;
-        TNode strictlyLessThan = *geqIter;
-        Assert(rightHandRationalIsLT(strictlyLessThan, atom));
-        addImplication(atom, strictlyLessThan);// x=b /\ b > b' => x >= b'
-      }
-    }
-  }else if(geqIter != geqSet.begin()){
-    --geqIter;
-    TNode strictlyLT = *geqIter;
-    Assert(rightHandRationalIsLT(strictlyLT, atom));
-    addImplication(atom, strictlyLT);// x=b /\ b > b' => x >= b'
+
+// if weaker, do not return an equivalent node
+// if strict, get the strongest bound implied by  (> x value)
+// if !strict, get the strongest bound implied by  (>= x value)
+Node getLowerBound(const BoundValueSet& bvSet, const Rational& value, bool strict, bool weaker){
+  static int time = 0;
+  ++time;
+
+  if(bvSet.empty()){
+    return Node::null();
+  }
+  Debug("getLowerBound") << "getLowerBound" << bvSet.size() << " " << value << " " << strict << weaker << endl;
+
+  BoundValueSet::const_iterator bv = bvSet.lower_bound(value);
+  if(bv == bvSet.end()){
+    Debug("getLowerBound") << "got end " << value << " " << (bvSet.rbegin()->second).getValue() << endl;
+    Assert(value > (bvSet.rbegin()->second).getValue());
   }else{
-    Assert(geqSet.empty());
+    Debug("getLowerBound") << value << ", " << bv->second.getValue() << endl;
+    Assert(value <= bv->second.getValue());
+  }
+
+  if(bv != bvSet.end() && (bv->second).getValue() == value){
+    const BoundValueEntry& entry = bv->second;
+    Debug("getLowerBound") << entry.hasLeq() << entry.hasGeq() << endl;
+    if(strict && entry.hasLeq() && !weaker){
+      return NodeBuilder<1>(NOT) << entry.getLeq();
+    }else if(entry.hasGeq() && (strict || !weaker)){
+      return entry.getGeq();
+    }
+  }
+  if(bv == bvSet.begin()){
+    return Node::null();
+  }else{
+    --bv;
+    // (and (>= x v) (>= v v')) then (> x v')
+    Assert(bv->second.getValue() < value);
+    const BoundValueEntry& entry = bv->second;
+    if(entry.hasLeq()){
+      return NodeBuilder<1>(NOT) << entry.getLeq();
+    }else{
+      Assert(entry.hasGeq());
+      return entry.getGeq();
+    }
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingLeqAndLeqList(TNode atom, OrderedSet& leqSet)
+void ArithUnatePropagator::addImplicationsUsingEqualityAndBoundValues(TNode atom){
+  Assert(atom.getKind() == EQUAL);
+  Node left = atom[0];
+
+  const Rational& value = rightHandRational(atom);
+
+  BoundValueSet& bvSet = getBoundValueSet(left);
+  Node ub = getUpperBound(bvSet, value, false, false);
+  Node lb = getLowerBound(bvSet, value, false, false);
+
+  if(!ub.isNull()){
+    addImplication(atom, ub);
+  }
+
+  if(!lb.isNull()){
+    addImplication(atom, lb);
+  }
+}
+
+void ArithUnatePropagator::addImplicationsUsingLeqAndBoundValues(TNode atom)
 {
   Assert(atom.getKind() == LEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
 
-  OrderedSet::iterator atomPos = leqSet.find(atom);
-  Assert(atomPos != leqSet.end());
-  Assert(*atomPos == atom);
+  Node ub = getImpliedUpperBoundUsingLeq(atom, false);
+  Node lb = getImpliedLowerBoundUsingGT(negation, false);
 
-  if(atomPos != leqSet.begin()){
-    --atomPos;
-    TNode beforeLeq = *atomPos;
-    Assert(rightHandRationalIsLT(beforeLeq, atom));
-    addImplication(beforeLeq, atom);// x<=b' /\ b' < b => x <= b
-    ++atomPos;
+  if(!ub.isNull()){
+    addImplication(atom, ub);
   }
-  ++atomPos;
-  if(atomPos != leqSet.end()){
-    TNode afterLeq = *atomPos;
-    Assert(rightHandRationalIsLT(atom, afterLeq));
-    addImplication(atom, afterLeq);// x<=b /\ b < b' => x <= b'
-  }
-}
-void ArithUnatePropagator::addImplicationsUsingLeqAndGeqList(TNode atom, OrderedSet& geqSet) {
 
-  Assert(atom.getKind() == LEQ);
-  Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
-
-  OrderedSet::iterator geqIter = geqSet.lower_bound(atom);
-  if(geqIter != geqSet.end()){
-    TNode lowerBound = *geqIter;
-    if(rightHandRationalIsEqual(atom, lowerBound)){
-      Assert(rightHandRationalIsEqual(atom, lowerBound));
-      addImplication(negation, lowerBound);// (x > b) => (x >= b)
-      ++geqIter;
-      if(geqIter != geqSet.end()){
-        TNode next = *geqIter;
-        Assert(rightHandRationalIsLT(atom, next));
-        addImplication(next, negation);// x>=b' /\ b' > b => x > b
-      }
-    }else{
-      Assert(rightHandRationalIsLT(atom, lowerBound));
-      addImplication(lowerBound, negation);// x>=b' /\ b' > b => x > b
-      if(geqIter != geqSet.begin()){
-        --geqIter;
-        TNode prev = *geqIter;
-        Assert(rightHandRationalIsLT(prev, atom));
-        addImplication(negation, prev);// (x>b /\ b > b') => x >= b'
-      }
-    }
-  }else if(geqIter != geqSet.begin()){
-    --geqIter;
-    TNode strictlyLT = *geqIter;
-    Assert(rightHandRationalIsLT(strictlyLT, atom));
-    addImplication(negation, strictlyLT);// (x>b /\ b > b') => x >= b'
-  }else{
-    Assert(geqSet.empty());
+  if(!lb.isNull()){
+    addImplication(negation, lb);
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingLeqAndEqualityList(TNode atom, OrderedSet& eqSet) {
+void ArithUnatePropagator::addImplicationsUsingLeqAndEqualityValues(TNode atom) {
   Assert(atom.getKind() == LEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
+
+  TNode left = atom[0];
+  EqualValueSet& eqSet = getEqualValueSet(left);
 
   //TODO Improve this later
-  for(OrderedSet::iterator eqIter = eqSet.begin(); eqIter != eqSet.end(); ++eqIter){
+  for(EqualValueSet::iterator eqIter = eqSet.begin(); eqIter != eqSet.end(); ++eqIter){
     TNode eq = *eqIter;
     if(rightHandRationalIsEqual(atom, eq)){
       // (x = b' /\ b = b') =>  x <= b
@@ -306,73 +367,30 @@ void ArithUnatePropagator::addImplicationsUsingLeqAndEqualityList(TNode atom, Or
 }
 
 
-void ArithUnatePropagator::addImplicationsUsingGeqAndGeqList(TNode atom, OrderedSet& geqSet){
+void ArithUnatePropagator::addImplicationsUsingGeqAndBoundValues(TNode atom){
   Assert(atom.getKind() == GEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
 
-  OrderedSet::iterator atomPos = geqSet.find(atom);
-  Assert(atomPos != geqSet.end());
-  Assert(*atomPos == atom);
+  Node lb = getImpliedLowerBoundUsingGeq(atom, false); //What is implied by (>= left value)
+  Node ub = getImpliedUpperBoundUsingLT(negation, false);
 
-  if(atomPos != geqSet.begin()){
-    --atomPos;
-    TNode beforeGeq = *atomPos;
-    Assert(rightHandRationalIsLT(beforeGeq, atom));
-    addImplication(atom, beforeGeq);// x>=b /\ b > b' => x >= b'
-    ++atomPos;
+  if(!lb.isNull()){
+    addImplication(atom, lb);
   }
-  ++atomPos;
-  if(atomPos != geqSet.end()){
-    TNode afterGeq = *atomPos;
-    Assert(rightHandRationalIsLT(atom, afterGeq));
-    addImplication(afterGeq, atom);// x>=b' /\ b' > b => x >= b
+
+  if(!ub.isNull()){
+    addImplication(negation, ub);
   }
 }
-
-void ArithUnatePropagator::addImplicationsUsingGeqAndLeqList(TNode atom, OrderedSet& leqSet){
-
-  Assert(atom.getKind() == GEQ);
-  Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
-
-  OrderedSet::iterator leqIter = leqSet.lower_bound(atom);
-  if(leqIter != leqSet.end()){
-    TNode lowerBound = *leqIter;
-    if(rightHandRationalIsEqual(atom, lowerBound)){
-      Assert(rightHandRationalIsEqual(atom, lowerBound));
-      addImplication(negation, lowerBound);// (x < b) => (x <= b)
-
-      if(leqIter != leqSet.begin()){
-        --leqIter;
-        TNode prev = *leqIter;
-        Assert(rightHandRationalIsLT(prev, atom));
-        addImplication(prev, negation);// x<=b' /\ b' < b => x < b
-      }
-    }else{
-      Assert(rightHandRationalIsLT(atom, lowerBound));
-      addImplication(negation, lowerBound);// (x < b /\ b < b') => x <= b'
-      ++leqIter;
-      if(leqIter != leqSet.end()){
-        TNode next = *leqIter;
-        Assert(rightHandRationalIsLT(atom, next));
-        addImplication(negation, next);// (x < b /\ b < b') => x <= b'
-      }
-    }
-  }else if(leqIter != leqSet.begin()){
-    --leqIter;
-    TNode strictlyLT = *leqIter;
-    Assert(rightHandRationalIsLT(strictlyLT, atom));
-    addImplication(strictlyLT, negation);// (x <= b' /\ b' < b) => x < b
-  }else{
-    Assert(leqSet.empty());
-  }
-}
-void ArithUnatePropagator::addImplicationsUsingGeqAndEqualityList(TNode atom, OrderedSet& eqSet){
+void ArithUnatePropagator::addImplicationsUsingGeqAndEqualityValues(TNode atom){
 
   Assert(atom.getKind() == GEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
+  Node left = atom[0];
+  EqualValueSet& eqSet = getEqualValueSet(left);
 
   //TODO Improve this later
-  for(OrderedSet::iterator eqIter = eqSet.begin(); eqIter != eqSet.end(); ++eqIter){
+  for(EqualValueSet::iterator eqIter = eqSet.begin(); eqIter != eqSet.end(); ++eqIter){
     TNode eq = *eqIter;
     if(rightHandRationalIsEqual(atom, eq)){
       // (x = b' /\ b = b') =>  x >= b
@@ -390,8 +408,132 @@ void ArithUnatePropagator::addImplicationsUsingGeqAndEqualityList(TNode atom, Or
 void ArithUnatePropagator::addImplication(TNode a, TNode b){
   Node imp = NodeBuilder<2>(IMPLIES) << a << b;
 
-  Debug("arith-propagate") << "ArithUnatePropagator::addImplication";
-  Debug("arith-propagate") << "(" << a << ", " << b <<")" << endl;
+  Debug("arith::unate") << "ArithUnatePropagator::addImplication"
+                        << "(" << a << ", " << b <<")" << endl;
 
   d_arithOut.lemma(imp);
+}
+
+
+Node ArithUnatePropagator::getImpliedUpperBoundUsingLeq(TNode leq, bool weaker) const {
+  Assert(leq.getKind() == LEQ);
+  Node left = leq[0];
+
+  if(!leftIsSetup(left)) return Node::null();
+
+  const Rational& value = rightHandRational(leq);
+  const BoundValueSet& bvSet = getBoundValueSet(left);
+
+  Node ub = getUpperBound(bvSet, value, false, weaker);
+  return ub;
+}
+
+Node ArithUnatePropagator::getImpliedUpperBoundUsingLT(TNode lt, bool weaker) const {
+  Assert(lt.getKind() == NOT && lt[0].getKind() == GEQ);
+  Node atom = lt[0];
+  Node left = atom[0];
+
+  if(!leftIsSetup(left)) return Node::null();
+
+  const Rational& value = rightHandRational(atom);
+  const BoundValueSet& bvSet = getBoundValueSet(left);
+
+  return getUpperBound(bvSet, value, true, weaker);
+}
+
+Node ArithUnatePropagator::getBestImpliedUpperBound(TNode upperBound) const {
+  Node result = Node::null();
+  if(upperBound.getKind() == LEQ ){
+    result = getImpliedUpperBoundUsingLeq(upperBound, false);
+  }else if(upperBound.getKind() == NOT && upperBound[0].getKind() == GEQ){
+    result = getImpliedUpperBoundUsingLT(upperBound, false);
+  }else if(upperBound.getKind() == LT){
+    Node geq = NodeBuilder<2>(GEQ) << upperBound[0] << upperBound[1];
+    Node lt = NodeBuilder<1>(NOT) << geq;
+    result = getImpliedUpperBoundUsingLT(lt, false);
+  }else{
+    Unreachable();
+  }
+
+  Debug("arith::unate") << upperBound <<" -> " << result << std::endl;
+  return result;
+}
+
+Node ArithUnatePropagator::getWeakerImpliedUpperBound(TNode upperBound) const {
+  Node result = Node::null();
+  if(upperBound.getKind() == LEQ ){
+    result = getImpliedUpperBoundUsingLeq(upperBound, true);
+  }else if(upperBound.getKind() == NOT && upperBound[0].getKind() == GEQ){
+    result = getImpliedUpperBoundUsingLT(upperBound, true);
+  }else if(upperBound.getKind() == LT){
+    Node geq = NodeBuilder<2>(GEQ) << upperBound[0] << upperBound[1];
+    Node lt = NodeBuilder<1>(NOT) << geq;
+    result = getImpliedUpperBoundUsingLT(lt, true);
+  }else{
+    Unreachable();
+  }
+  Assert(upperBound != result);
+  Debug("arith::unate") << upperBound <<" -> " << result << std::endl;
+  return result;
+}
+
+Node ArithUnatePropagator::getImpliedLowerBoundUsingGT(TNode gt, bool weaker) const {
+  Assert(gt.getKind() == NOT && gt[0].getKind() == LEQ);
+  Node atom = gt[0];
+  Node left = atom[0];
+
+  if(!leftIsSetup(left)) return Node::null();
+
+  const Rational& value = rightHandRational(atom);
+  const BoundValueSet& bvSet = getBoundValueSet(left);
+
+  return getLowerBound(bvSet, value, true, weaker);
+}
+
+Node ArithUnatePropagator::getImpliedLowerBoundUsingGeq(TNode geq, bool weaker) const {
+  Assert(geq.getKind() == GEQ);
+  Node left = geq[0];
+
+  if(!leftIsSetup(left)) return Node::null();
+
+  const Rational& value = rightHandRational(geq);
+  const BoundValueSet& bvSet = getBoundValueSet(left);
+
+  return getLowerBound(bvSet, value, false, weaker);
+}
+
+Node ArithUnatePropagator::getBestImpliedLowerBound(TNode lowerBound) const {
+  Node result = Node::null();
+  if(lowerBound.getKind() == GEQ ){
+    result = getImpliedLowerBoundUsingGeq(lowerBound, false);
+  }else if(lowerBound.getKind() == NOT && lowerBound[0].getKind() == LEQ){
+    result = getImpliedLowerBoundUsingGT(lowerBound, false);
+  }else if(lowerBound.getKind() == GT){
+    Node leq = NodeBuilder<2>(LEQ)<<lowerBound[0]<< lowerBound[1];
+    Node gt = NodeBuilder<1>(NOT) << leq;
+    result = getImpliedLowerBoundUsingGT(gt, false);
+  }else{
+    Unreachable();
+  }
+  Debug("arith::unate") << lowerBound <<" -> " << result << std::endl;
+  return result;
+}
+
+Node ArithUnatePropagator::getWeakerImpliedLowerBound(TNode lowerBound) const {
+  Node result = Node::null();
+  if(lowerBound.getKind() == GEQ ){
+    result = getImpliedLowerBoundUsingGeq(lowerBound, true);
+  }else if(lowerBound.getKind() == NOT && lowerBound[0].getKind() == LEQ){
+    result = getImpliedLowerBoundUsingGT(lowerBound, true);
+  }else if(lowerBound.getKind() == GT){
+    Node leq = NodeBuilder<2>(LEQ)<<lowerBound[0]<< lowerBound[1];
+    Node gt = NodeBuilder<1>(NOT) << leq;
+    result = getImpliedLowerBoundUsingGT(gt, true);
+  }else{
+    Unreachable();
+  }
+  Assert(result != lowerBound);
+
+  Debug("arith::unate") << lowerBound <<" -> " << result << std::endl;
+  return result;
 }

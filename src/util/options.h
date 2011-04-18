@@ -143,6 +143,9 @@ struct CVC4_PUBLIC Options {
   /** Whether to rewrite equalities in arithmetic theory */
   bool rewriteArithEqualities;
 
+  /** Turn on and of arithmetic propagation. */
+  bool arithPropagation;
+
   /**
    * Frequency for the sat solver to make random decisions.
    * Should be between 0 and 1.

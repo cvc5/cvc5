@@ -26,6 +26,8 @@
 
 #include "util/rational.h"
 #include "util/integer.h"
+#include "util/boolean_simplification.h"
+
 
 #include "theory/rewriter.h"
 
@@ -40,6 +42,7 @@
 
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/arith_prop_manager.h"
 
 #include <stdint.h>
 
@@ -54,7 +57,7 @@ using namespace CVC4::theory::arith;
 static const uint32_t RESET_START = 2;
 
 struct SlackAttrID;
-typedef expr::Attribute<SlackAttrID, Node> Slack;
+typedef expr::Attribute<SlackAttrID, bool> Slack;
 
 TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation) :
   Theory(THEORY_ARITH, c, out, valuation),
@@ -67,7 +70,8 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valu
   d_tableauResetDensity(1.6),
   d_tableauResetPeriod(10),
   d_propagator(c, out),
-  d_simplex(d_partialModel, d_tableau),
+  d_propManager(c, d_arithvarNodeMap, d_propagator, valuation),
+  d_simplex(d_propManager, d_partialModel, d_tableau),
   d_DELTA_ZERO(0),
   d_statistics()
 {}
@@ -171,6 +175,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
   if(isRelationOperator(k)){
     Assert(Comparison::isNormalAtom(n));
 
+    //cout << n << endl;
 
     d_propagator.addAtom(n);
 
@@ -179,7 +184,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
     if(left.getKind() == PLUS){
       //We may need to introduce a slack variable.
       Assert(left.getNumChildren() >= 2);
-      if(!left.hasAttribute(Slack())){
+      if(!left.getAttribute(Slack())){
         setupSlack(left);
       }
     }
@@ -189,15 +194,15 @@ void TheoryArith::preRegisterTerm(TNode n) {
 
 
 ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
-  Assert(isLeaf(x));
-  Assert(!hasArithVar(x));
+  Assert(isLeaf(x) || x.getKind() == PLUS);
+  Assert(!d_arithvarNodeMap.hasArithVar(x));
 
   ArithVar varX = d_variables.size();
   d_variables.push_back(Node(x));
 
   d_simplex.increaseMax();
 
-  setArithVar(x,varX);
+  d_arithvarNodeMap.setArithVar(x,varX);
 
   d_userVariables.init(varX, !basic);
   d_tableau.increaseSize();
@@ -218,9 +223,9 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
     Debug("rewriter") << "should be var: " << n << endl;
 
     Assert(isLeaf(n));
-    Assert(hasArithVar(n));
+    Assert(d_arithvarNodeMap.hasArithVar(n));
 
-    ArithVar av = asArithVar(n);
+    ArithVar av = d_arithvarNodeMap.asArithVar(n);
 
     coeffs.push_back(constant.getValue());
     variables.push_back(av);
@@ -228,13 +233,12 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
 }
 
 void TheoryArith::setupSlack(TNode left){
+  Assert(!left.getAttribute(Slack()));
 
   ++(d_statistics.d_statSlackVariables);
-  TypeNode real_type = NodeManager::currentNM()->realType();
-  Node slack = NodeManager::currentNM()->mkVar(real_type);
-  left.setAttribute(Slack(), slack);
+  left.setAttribute(Slack(), true);
 
-  ArithVar varSlack = requestArithVar(slack, true);
+  ArithVar varSlack = requestArithVar(left, true);
 
   Polynomial polyLeft = Polynomial::parsePolynomial(left);
 
@@ -273,44 +277,18 @@ void TheoryArith::registerTerm(TNode tn){
   Debug("arith") << "registerTerm(" << tn << ")" << endl;
 }
 
-template <bool selectLeft>
-TNode getSide(TNode assertion, Kind simpleKind){
-  switch(simpleKind){
-  case LT:
-  case GT:
-  case DISTINCT:
-    return selectLeft ? (assertion[0])[0] : (assertion[0])[1];
-  case LEQ:
-  case GEQ:
-  case EQUAL:
-    return selectLeft ? assertion[0] : assertion[1];
-  default:
-    Unreachable();
-    return TNode::null();
-  }
-}
 
 ArithVar TheoryArith::determineLeftVariable(TNode assertion, Kind simpleKind){
   TNode left = getSide<true>(assertion, simpleKind);
 
   if(isLeaf(left)){
-    return asArithVar(left);
+    return d_arithvarNodeMap.asArithVar(left);
   }else{
     Assert(left.hasAttribute(Slack()));
-    TNode slack = left.getAttribute(Slack());
-    return asArithVar(slack);
+    return d_arithvarNodeMap.asArithVar(left);
   }
 }
 
-DeltaRational determineRightConstant(TNode assertion, Kind simpleKind){
-  TNode right = getSide<false>(assertion, simpleKind);
-
-  Assert(right.getKind() == CONST_RATIONAL);
-  const Rational& noninf = right.getConst<Rational>();
-
-  Rational inf = Rational(Integer(deltaCoeff(simpleKind)));
-  return DeltaRational(noninf, inf);
-}
 
 Node TheoryArith::disequalityConflict(TNode eq, TNode lb, TNode ub){
   NodeBuilder<3> conflict(kind::AND);
@@ -390,19 +368,28 @@ void TheoryArith::check(Effort effortLevel){
 
     if(!possibleConflict.isNull()){
       d_partialModel.revertAssignmentChanges();
+      //Node simpleConflict  = BooleanSimplification::simplifyConflict(possibleConflict);
+
+      Debug("arith::conflict") << "conflict   " << possibleConflict << endl;
+
+      d_simplex.clearUpdates();
       d_out->conflict(possibleConflict);
       return;
     }
   }
 
-  if(Debug.isOn("arith::print_assertions") && fullEffort(effortLevel)) {
+  if(Debug.isOn("arith::print_assertions")) {
     debugPrintAssertions();
   }
 
   Node possibleConflict = d_simplex.updateInconsistentVars();
   if(possibleConflict != Node::null()){
-
     d_partialModel.revertAssignmentChanges();
+    d_simplex.clearUpdates();
+
+    //Node simpleConflict  = BooleanSimplification::simplifyConflict(possibleConflict);
+
+    Debug("arith::conflict") << "conflict   " << possibleConflict << endl;
 
     d_out->conflict(possibleConflict);
   }else{
@@ -489,14 +476,137 @@ void TheoryArith::debugPrintModel(){
   }
 }
 
-void TheoryArith::explain(TNode n) {
+/*
+bool TheoryArith::isImpliedUpperBound(ArithVar var, Node exp){
+  Node varAsNode = asNode(var);
+  const DeltaRational& ub = d_partialModel.getUpperBound(var);
+  Assert(ub.getInfinitesimalPart() <= 0 );
+  Kind kind = ub.getInfinitesimalPart() < 0 ? LT : LEQ;
+  Node ubAsNode = NodeBuilder<2>(kind) << varAsNode << mkRationalNode(ub.getNoninfinitesimalPart());
+  Node bestImplied = d_propagator.getBestImpliedUpperBound(ubAsNode);
+
+  return bestImplied == exp;
 }
+
+bool TheoryArith::isImpliedLowerBound(ArithVar var, Node exp){
+  Node varAsNode = asNode(var);
+  const DeltaRational& lb = d_partialModel.getLowerBound(var);
+  Assert(lb.getInfinitesimalPart() >= 0 );
+  Kind kind = lb.getInfinitesimalPart() > 0 ? GT : GEQ;
+  Node lbAsIneq = NodeBuilder<2>(kind) << varAsNode << mkRationalNode(lb.getNoninfinitesimalPart());
+  Node bestImplied = d_propagator.getBestImpliedLowerBound(lbAsIneq);
+  return bestImplied == exp;
+}
+*/
+
+void TheoryArith::explain(TNode n) {
+  Debug("explain") << "explain @" << getContext()->getLevel() << ": " << n << endl;
+  //Assert(n.hasAttribute(Propagated()));
+
+  //NodeBuilder<> explainBuilder(AND);
+  //internalExplain(n,explainBuilder);
+  Assert(d_propManager.isPropagated(n));
+  Node explanation = d_propManager.explain(n);
+  //Node flatExplanation = BooleanSimplification::simplifyConflict(explanation);
+
+  d_out->explanation(explanation, true);
+}
+/*
+void TheoryArith::internalExplain(TNode n, NodeBuilder<>& explainBuilder){
+  Assert(n.hasAttribute(Propagated()));
+  Node bound = n.getAttribute(Propagated());
+
+  AlwaysAssert(bound.getKind() == kind::AND);
+
+  for(Node::iterator i = bound.begin(), end = bound.end(); i != end; ++i){
+    Node lit = *i;
+    if(lit.hasAttribute(Propagated())){
+      cout << "hoop the sadjklasdj" << endl;
+      internalExplain(lit, explainBuilder);
+    }else{
+      explainBuilder << lit;
+    }
+  }
+}
+*/
+/*
+static const bool EXPORT_LEMMA_INSTEAD_OF_PROPAGATE = false;
+void TheoryArith::propagateArithVar(bool upperbound, ArithVar var ){
+  Node varAsNode = asNode(var);
+  const DeltaRational& b = upperbound ?
+    d_partialModel.getUpperBound(var) : d_partialModel.getLowerBound(var);
+
+  Assert((!upperbound) || (b.getInfinitesimalPart() <= 0) );
+  Assert(upperbound || (b.getInfinitesimalPart() >= 0) );
+  Kind kind;
+  if(upperbound){
+    kind = b.getInfinitesimalPart() < 0 ? LT : LEQ;
+  } else{
+    kind = b.getInfinitesimalPart() > 0 ? GT : GEQ;
+  }
+
+  Node bAsNode = NodeBuilder<2>(kind) << varAsNode
+                                      << mkRationalNode(b.getNoninfinitesimalPart());
+
+  Node bestImplied = upperbound ?
+    d_propagator.getBestImpliedUpperBound(bAsNode):
+    d_propagator.getBestImpliedLowerBound(bAsNode);
+
+  if(!bestImplied.isNull()){
+    Node satValue = d_valuation.getSatValue(bestImplied);
+    if(satValue.isNull()){
+
+      Node reason = upperbound ?
+        d_partialModel.getUpperConstraint(var) :
+        d_partialModel.getLowerConstraint(var);
+
+      //cout << getContext()->getLevel() << " " << bestImplied << " " << reason  << endl;
+      if(EXPORT_LEMMA_INSTEAD_OF_PROPAGATE){
+        Node lemma = NodeBuilder<2>(IMPLIES) << reason
+                                             << bestImplied;
+
+        //Temporary
+        Node clause = BooleanSimplification::simplifyHornClause(lemma);
+        d_out->lemma(clause);
+      }else{
+        Assert(!bestImplied.hasAttribute(Propagated()));
+        bestImplied.setAttribute(Propagated(), reason);
+        d_reasons.push_back(reason);
+        d_out->propagate(bestImplied);
+      }
+    }else{
+      Assert(!satValue.isNull());
+      Assert(satValue.getKind() == CONST_BOOLEAN);
+      Assert(satValue.getConst<bool>());
+    }
+  }
+}
+*/
 
 void TheoryArith::propagate(Effort e) {
   if(quickCheckOrMore(e)){
-    while(d_simplex.hasMoreLemmas()){
-      Node lemma = d_simplex.popLemma();
-      d_out->lemma(lemma);
+    bool propagated = false;
+    if(Options::current()->arithPropagation && d_simplex.hasAnyUpdates()){
+      d_simplex.propagateCandidates();
+    }else{
+      d_simplex.clearUpdates();
+    }
+
+    while(d_propManager.hasMorePropagations()){
+      TNode toProp = d_propManager.getPropagation();
+      Node satValue = d_valuation.getSatValue(toProp);
+      AlwaysAssert(satValue.isNull());
+      TNode exp = d_propManager.explain(toProp);
+      propagated = true;
+      d_out->propagate(toProp);
+    }
+
+    if(!propagated){
+      //Opportunistically export previous conflicts
+      while(d_simplex.hasMoreLemmas()){
+        Node lemma = d_simplex.popLemma();
+        d_out->lemma(lemma);
+      }
     }
   }
 }
@@ -506,7 +616,7 @@ Node TheoryArith::getValue(TNode n) {
 
   switch(n.getKind()) {
   case kind::VARIABLE: {
-    ArithVar var = asArithVar(n);
+    ArithVar var = d_arithvarNodeMap.asArithVar(n);
 
     if(d_removedRows.find(var) != d_removedRows.end()){
       Node eq = d_removedRows.find(var)->second;
@@ -634,7 +744,7 @@ void TheoryArith::notifyRestart(){
 bool TheoryArith::entireStateIsConsistent(){
   typedef std::vector<Node>::const_iterator VarIter;
   for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
-    ArithVar var = asArithVar(*i);
+    ArithVar var = d_arithvarNodeMap.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
       cerr << "Assignment is not consistent for " << var << *i << endl;
@@ -669,7 +779,7 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
     Assert(!noRow);
 
     //remove the row from the tableau
-    Node eq =  d_tableau.rowAsEquality(v, d_arithVarToNodeMap);
+    Node eq =  d_tableau.rowAsEquality(v, d_arithvarNodeMap.getArithVarToNodeMap());
     d_tableau.removeRow(v);
 
     if(Debug.isOn("tableau")) d_tableau.printTableau();
@@ -681,8 +791,8 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
     d_removedRows[v] = eq;
   }
 
-  Debug("arith::permanentlyRemoveVariable") << "Permanently removed variable "
-                                            << v << ":" << asNode(v) << endl;
+  Debug("arith::permanentlyRemoveVariable") << "Permanently removed variable " << v
+                                            << ":" << d_arithvarNodeMap.asNode(v) <<endl;
   ++(d_statistics.d_permanentlyRemovedVariables);
 }
 
@@ -692,7 +802,7 @@ void TheoryArith::presolve(){
   typedef std::vector<Node>::const_iterator VarIter;
   for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
     Node variableNode = *i;
-    ArithVar var = asArithVar(variableNode);
+    ArithVar var = d_arithvarNodeMap.asArithVar(variableNode);
     if(d_userVariables.isMember(var) && !d_propagator.hasAnyAtoms(variableNode)){
       //The user variable is unconstrained.
       //Remove this variable permanently

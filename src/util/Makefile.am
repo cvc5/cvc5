@@ -47,7 +47,9 @@ libutil_la_SOURCES = \
 	language.h \
 	triple.h \
 	trans_closure.h \
-	trans_closure.cpp
+	trans_closure.cpp \
+	boolean_simplification.h
+
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la
 libutilcudd_la_SOURCES = \

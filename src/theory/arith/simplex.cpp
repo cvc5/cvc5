@@ -14,6 +14,33 @@ static const uint32_t NUM_CHECKS = 10;
 static const bool CHECK_AFTER_PIVOT = true;
 static const uint32_t VARORDER_CHECK_PERIOD = 200;
 
+SimplexDecisionProcedure::SimplexDecisionProcedure(ArithPropManager& propManager,
+                                                   ArithPartialModel& pm,
+                                                   Tableau& tableau) :
+  d_partialModel(pm),
+  d_tableau(tableau),
+  d_queue(pm, tableau),
+  d_propManager(propManager),
+  d_numVariables(0),
+  d_delayedLemmas(),
+  d_ZERO(0),
+  d_DELTA_ZERO(0,0)
+{
+  switch(Options::ArithPivotRule rule = Options::current()->pivotRule) {
+  case Options::MINIMUM:
+    d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
+    break;
+  case Options::BREAK_TIES:
+    d_queue.setPivotRule(ArithPriorityQueue::BREAK_TIES);
+    break;
+  case Options::MAXIMUM:
+    d_queue.setPivotRule(ArithPriorityQueue::MAXIMUM);
+    break;
+  default:
+    Unhandled(rule);
+  }
+}
+
 SimplexDecisionProcedure::Statistics::Statistics():
   d_statPivots("theory::arith::pivots",0),
   d_statUpdates("theory::arith::updates",0),
@@ -31,6 +58,13 @@ SimplexDecisionProcedure::Statistics::Statistics():
   d_successDuringVarOrderSearch("theory::arith::qi::DuringVarOrderSearch::success",0),
   d_attemptAfterVarOrderSearch("theory::arith::qi::AfterVarOrderSearch::attempt",0),
   d_successAfterVarOrderSearch("theory::arith::qi::AfterVarOrderSearch::success",0),
+  d_weakeningAttempts("theory::arith::weakening::attempts",0),
+  d_weakeningSuccesses("theory::arith::weakening::success",0),
+  d_weakenings("theory::arith::weakening::total",0),
+  d_weakenTime("theory::arith::weakening::time"),
+  d_boundComputationTime("theory::arith::bound::time"),
+  d_boundComputations("theory::arith::bound::boundComputations",0),
+  d_boundPropagations("theory::arith::bound::boundPropagations",0),
   d_delayedConflicts("theory::arith::delayedConflicts",0),
   d_pivotTime("theory::arith::pivotTime"),
   d_avgNumRowsNotContainingOnUpdate("theory::arith::avgNumRowsNotContainingOnUpdate"),
@@ -54,6 +88,15 @@ SimplexDecisionProcedure::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_successDuringVarOrderSearch);
   StatisticsRegistry::registerStat(&d_attemptAfterVarOrderSearch);
   StatisticsRegistry::registerStat(&d_successAfterVarOrderSearch);
+
+  StatisticsRegistry::registerStat(&d_weakeningAttempts);
+  StatisticsRegistry::registerStat(&d_weakeningSuccesses);
+  StatisticsRegistry::registerStat(&d_weakenings);
+  StatisticsRegistry::registerStat(&d_weakenTime);
+
+  StatisticsRegistry::registerStat(&d_boundComputationTime);
+  StatisticsRegistry::registerStat(&d_boundComputations);
+  StatisticsRegistry::registerStat(&d_boundPropagations);
 
   StatisticsRegistry::registerStat(&d_delayedConflicts);
 
@@ -83,6 +126,15 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_attemptAfterVarOrderSearch);
   StatisticsRegistry::unregisterStat(&d_successAfterVarOrderSearch);
 
+  StatisticsRegistry::unregisterStat(&d_weakeningAttempts);
+  StatisticsRegistry::unregisterStat(&d_weakeningSuccesses);
+  StatisticsRegistry::unregisterStat(&d_weakenings);
+  StatisticsRegistry::unregisterStat(&d_weakenTime);
+
+  StatisticsRegistry::unregisterStat(&d_boundComputationTime);
+  StatisticsRegistry::unregisterStat(&d_boundComputations);
+  StatisticsRegistry::unregisterStat(&d_boundPropagations);
+
   StatisticsRegistry::unregisterStat(&d_delayedConflicts);
   StatisticsRegistry::unregisterStat(&d_pivotTime);
 
@@ -94,9 +146,21 @@ SimplexDecisionProcedure::Statistics::~Statistics(){
 Node SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_i, TNode original){
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(d_partialModel.belowLowerBound(x_i, c_i, false)){
+  if(d_partialModel.belowLowerBound(x_i, c_i, true)){
     return Node::null();
   }
+  // if(d_partialModel.equalsLowerBound(x_i, c_i) && original.getKind() != AND){
+  //   TNode prevConstraint =  d_partialModel.getLowerConstraint(x_i);
+  //   if(prevConstraint.getKind() == EQUAL){
+  //     return Node::null();
+  //   }else{
+  //     Debug("beat::ya") << x_i << " "<< c_i << original << prevConstraint << endl;
+  //     Assert(prevConstraint.getKind() == AND);
+  //     d_partialModel.setLowerConstraint(x_i,original);
+  //     return Node::null();
+  //   }
+  // }
+
   if(d_partialModel.aboveUpperBound(x_i, c_i, true)){
     Node ubc = d_partialModel.getUpperConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, ubc, original);
@@ -108,6 +172,8 @@ Node SimplexDecisionProcedure::AssertLower(ArithVar x_i, const DeltaRational& c_
 
   d_partialModel.setLowerConstraint(x_i,original);
   d_partialModel.setLowerBound(x_i, c_i);
+
+  d_updatedBounds.softAdd(x_i);
 
   if(!d_tableau.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) < c_i){
@@ -127,22 +193,33 @@ Node SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(d_partialModel.aboveUpperBound(x_i, c_i, false) ){ // \upperbound(x_i) <= c_i
-    //return false; //sat
-    return Node::null();
+  if(d_partialModel.aboveUpperBound(x_i, c_i, true) ){ // \upperbound(x_i) <= c_i
+    return Node::null(); //sat
   }
+
+  // if(d_partialModel.equalsUpperBound(x_i, c_i) && original.getKind() != AND){
+  //   TNode prevConstraint = d_partialModel.getUpperConstraint(x_i);
+  //   if(prevConstraint.getKind() == EQUAL){
+  //     return Node::null();
+  //   }else{
+  //     Debug("beat::ya") << x_i << " "<< c_i << original << prevConstraint  << endl;
+  //     Assert(prevConstraint.getKind() == AND);
+  //     d_partialModel.setUpperConstraint(x_i,original);
+  //     return Node::null();
+  //   }
+  // }
   if(d_partialModel.belowLowerBound(x_i, c_i, true)){// \lowerbound(x_i) > c_i
     Node lbc = d_partialModel.getLowerConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
     Debug("arith") << "AssertUpper conflict " << conflict << endl;
     ++(d_statistics.d_statAssertUpperConflicts);
-    //d_out->conflict(conflict);
     return conflict;
-    //return true;
   }
 
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
+
+  d_updatedBounds.softAdd(x_i);
 
   if(!d_tableau.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) > c_i){
@@ -155,7 +232,6 @@ Node SimplexDecisionProcedure::AssertUpper(ArithVar x_i, const DeltaRational& c_
   if(Debug.isOn("model")) { d_partialModel.printModel(x_i); }
 
   return Node::null();
-  //return false;
 }
 
 
@@ -168,16 +244,13 @@ Node SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
   // This can happen if both c_i <= x_i and x_i <= c_i are in the system.
   if(d_partialModel.belowLowerBound(x_i, c_i, false) &&
      d_partialModel.aboveUpperBound(x_i, c_i, false)){
-    //return false; //sat
-    return Node::null();
+    return Node::null(); //sat
   }
 
   if(d_partialModel.aboveUpperBound(x_i, c_i, true)){
     Node ubc = d_partialModel.getUpperConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, ubc, original);
-    //d_out->conflict(conflict);
     Debug("arith") << "AssertLower conflict " << conflict << endl;
-    //return true;
     return conflict;
   }
 
@@ -185,8 +258,6 @@ Node SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
     Node lbc = d_partialModel.getLowerConstraint(x_i);
     Node conflict =  NodeManager::currentNM()->mkNode(AND, lbc, original);
     Debug("arith") << "AssertUpper conflict " << conflict << endl;
-    //d_out->conflict(conflict);
-    //return true;
     return conflict;
   }
 
@@ -196,51 +267,17 @@ Node SimplexDecisionProcedure::AssertEquality(ArithVar x_i, const DeltaRational&
   d_partialModel.setUpperConstraint(x_i,original);
   d_partialModel.setUpperBound(x_i, c_i);
 
+  d_updatedBounds.softAdd(x_i);
+
   if(!d_tableau.isBasic(x_i)){
     if(!(d_partialModel.getAssignment(x_i) == c_i)){
       update(x_i, c_i);
     }
   }else{
     d_queue.enqueueIfInconsistent(x_i);
-    //checkBasicVariable(x_i);
   }
-
-  //return false;
   return Node::null();
 }
-
-// set<ArithVar> tableauAndHasSet(Tableau& tab, ArithVar v){
-//   set<ArithVar> has;
-//   for(ArithVarSet::const_iterator basicIter = tab.beginBasic();
-//       basicIter != tab.endBasic();
-//       ++basicIter){
-//     ArithVar basic = *basicIter;
-//     ReducedRowVector& row = tab.lookup(basic);
-
-//     if(row.has(v)){
-//       has.insert(basic);
-//     }
-//   }
-//   return has;
-// }
-
-// set<ArithVar> columnIteratorSet(Tableau& tab,ArithVar v){
-//   set<ArithVar> has;
-//   Column::iterator basicIter = tab.beginColumn(v);
-//   Column::iterator endIter = tab.endColumn(v);
-//   for(; basicIter != endIter; ++basicIter){
-//     ArithVar basic = *basicIter;
-//     has.insert(basic);
-//   }
-//   return has;
-// }
-
-
-/*
-bool matchingSets(Tableau& tab, ArithVar v){
-  return tableauAndHasSet(tab, v) == columnIteratorSet(tab, v);
-}
-*/
 
 void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
   Assert(!d_tableau.isBasic(x_i));
@@ -278,6 +315,116 @@ void SimplexDecisionProcedure::update(ArithVar x_i, const DeltaRational& v){
   (d_statistics.d_avgNumRowsNotContainingOnUpdate).addEntry(difference);
   if(Debug.isOn("paranoid:check_tableau")){  debugCheckTableau(); }
 }
+
+
+bool SimplexDecisionProcedure::propagateCandidateBound(ArithVar basic, bool upperBound){
+
+  DeltaRational bound = upperBound ?
+    computeUpperBound(basic):
+    computeLowerBound(basic);
+
+  if((upperBound && d_partialModel.strictlyBelowUpperBound(basic, bound)) ||
+     (!upperBound && d_partialModel.strictlyAboveLowerBound(basic, bound))){
+    Node bestImplied = upperBound ?
+      d_propManager.getBestImpliedUpperBound(basic, bound):
+      d_propManager.getBestImpliedLowerBound(basic, bound);
+
+    if(!bestImplied.isNull()){
+      bool asserted = d_propManager.isAsserted(bestImplied);
+      bool propagated = d_propManager.isPropagated(bestImplied);
+      if( !asserted && !propagated){
+
+        NodeBuilder<> nb(kind::AND);
+        if(upperBound){
+          explainNonbasicsUpperBound(basic, nb);
+        }else{
+          explainNonbasicsLowerBound(basic, nb);
+        }
+        Node explanation = nb;
+        d_propManager.propagate(bestImplied, explanation);
+        return true;
+      }else{
+        Debug("arith::prop") << basic << " " << asserted << " " << propagated << endl;
+      }
+    }
+  }
+  return false;
+}
+
+
+bool SimplexDecisionProcedure::hasBounds(ArithVar basic, bool upperBound){
+  for(Tableau::RowIterator iter = d_tableau.rowIterator(basic); !iter.atEnd(); ++iter){
+    const TableauEntry& entry = *iter;
+
+    ArithVar var = entry.getColVar();
+    if(var == basic) continue;
+    int sgn = entry.getCoefficient().sgn();
+    if(upperBound){
+      if( (sgn < 0 && !d_partialModel.hasLowerBound(var)) ||
+          (sgn > 0 && !d_partialModel.hasUpperBound(var))){
+        return false;
+      }
+    }else{
+      if( (sgn < 0 && !d_partialModel.hasUpperBound(var)) ||
+          (sgn > 0 && !d_partialModel.hasLowerBound(var))){
+        return false;
+      }
+    }
+  }
+  return true;
+}
+void SimplexDecisionProcedure::propagateCandidate(ArithVar basic){
+  bool success = false;
+  if(d_partialModel.strictlyAboveLowerBound(basic) &&
+     (!d_partialModel.hasLowerBound(basic) || d_propManager.hasStrongerLowerBound(d_partialModel.getLowerConstraint(basic))) &&
+     hasLowerBounds(basic)){
+    ++d_statistics.d_boundComputations;
+    success |= propagateCandidateLowerBound(basic);
+  }
+  if(d_partialModel.strictlyBelowUpperBound(basic) &&
+     (!d_partialModel.hasUpperBound(basic) || d_propManager.hasStrongerUpperBound(d_partialModel.getUpperConstraint(basic))) &&
+     hasUpperBounds(basic)){
+    ++d_statistics.d_boundComputations;
+    success |= propagateCandidateUpperBound(basic);
+  }
+  if(success){
+    ++d_statistics.d_boundPropagations;
+  }
+}
+
+void SimplexDecisionProcedure::propagateCandidates(){
+  TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
+
+  Assert(d_candidateBasics.empty());
+
+  if(d_updatedBounds.empty()){ return; }
+
+  PermissiveBackArithVarSet::const_iterator i = d_updatedBounds.begin();
+  PermissiveBackArithVarSet::const_iterator end = d_updatedBounds.end();
+  for(; i != end; ++i){
+    ArithVar var = *i;
+    if(d_tableau.isBasic(var)){
+      d_candidateBasics.softAdd(var);
+    }else{
+      Tableau::ColIterator basicIter = d_tableau.colIterator(var);
+      for(; !basicIter.atEnd(); ++basicIter){
+        const TableauEntry& entry = *basicIter;
+        ArithVar rowVar = entry.getRowVar();
+        Assert(entry.getColVar() == var);
+        Assert(d_tableau.isBasic(rowVar));
+        d_candidateBasics.softAdd(rowVar);
+      }
+    }
+  }
+  d_updatedBounds.purge();
+
+  while(!d_candidateBasics.empty()){
+    ArithVar candidate = d_candidateBasics.pop_back();
+    Assert(d_tableau.isBasic(candidate));
+    propagateCandidate(candidate);
+  }
+}
+
 
 void SimplexDecisionProcedure::debugPivotSimplex(ArithVar x_i, ArithVar x_j){
   Debug("arith::simplex:row") << "debugRowSimplex("
@@ -545,14 +692,14 @@ Node SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic){
   const DeltaRational& beta = d_partialModel.getAssignment(basic);
 
   if(d_partialModel.belowLowerBound(basic, beta, true)){
-    ArithVar x_j = selectSlackBelow<minVarOrder>(basic);
+    ArithVar x_j = selectSlackUpperBound<minVarOrder>(basic);
     if(x_j == ARITHVAR_SENTINEL ){
-      return generateConflictBelow(basic);
+      return generateConflictBelowLowerBound(basic);
     }
   }else if(d_partialModel.aboveUpperBound(basic, beta, true)){
-    ArithVar x_j = selectSlackAbove<minVarOrder>(basic);
+    ArithVar x_j = selectSlackLowerBound<minVarOrder>(basic);
     if(x_j == ARITHVAR_SENTINEL ){
-      return generateConflictAbove(basic);
+      return generateConflictAboveUpperBound(basic);
     }
   }
   return Node::null();
@@ -580,30 +727,43 @@ Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
     ArithVar x_j = ARITHVAR_SENTINEL;
 
     if(d_partialModel.belowLowerBound(x_i, beta_i, true)){
-      x_j = selectSlackBelow<pf>(x_i);
+      x_j = selectSlackUpperBound<pf>(x_i);
       if(x_j == ARITHVAR_SENTINEL ){
         ++(d_statistics.d_statUpdateConflicts);
-        return generateConflictBelow(x_i); //unsat
+        return generateConflictBelowLowerBound(x_i); //unsat
       }
       DeltaRational l_i = d_partialModel.getLowerBound(x_i);
       pivotAndUpdate(x_i, x_j, l_i);
 
     }else if(d_partialModel.aboveUpperBound(x_i, beta_i, true)){
-      x_j = selectSlackAbove<pf>(x_i);
+      x_j = selectSlackLowerBound<pf>(x_i);
       if(x_j == ARITHVAR_SENTINEL ){
         ++(d_statistics.d_statUpdateConflicts);
-        return generateConflictAbove(x_i); //unsat
+        return generateConflictAboveUpperBound(x_i); //unsat
       }
       DeltaRational u_i = d_partialModel.getUpperBound(x_i);
       pivotAndUpdate(x_i, x_j, u_i);
     }
     Assert(x_j != ARITHVAR_SENTINEL);
+
     //Check to see if we already have a conflict with x_j to prevent wasteful work
     if(CHECK_AFTER_PIVOT){
-      Node earlyConflict = checkBasicForConflict(x_j);
-      if(!earlyConflict.isNull()){
-        return earlyConflict;
+      Node possibleConflict = checkBasicForConflict(x_j);
+      if(!possibleConflict.isNull()){
+        return possibleConflict;
       }
+      // if(selectSlackUpperBound<pf>(x_j) == ARITHVAR_SENTINEL){
+      //   Node possibleConflict  = deduceUpperBound(x_j);
+      //   if(!possibleConflict.isNull()){
+      //     return possibleConflict;
+      //   }
+      // }
+      // if(selectSlackLowerBound<pf>(x_j) == ARITHVAR_SENTINEL){
+      //   Node possibleConflict  = deduceLowerBound(x_j);
+      //   if(!possibleConflict.isNull()){
+      //     return possibleConflict;
+      //   }
+      // }
     }
   }
   Assert(remainingIterations == 0);
@@ -611,91 +771,287 @@ Node SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
   return Node::null();
 }
 
+template <bool upperBound>
+void SimplexDecisionProcedure::explainNonbasics(ArithVar basic, NodeBuilder<>& output){
+  Assert(d_tableau.isBasic(basic));
 
-Node SimplexDecisionProcedure::generateConflictAbove(ArithVar conflictVar){
+  Debug("arith::explainNonbasics") << "SimplexDecisionProcedure::explainNonbasics("
+                                   << basic <<") start" << endl;
 
-  NodeBuilder<> nb(kind::AND);
-  TNode bound = d_partialModel.getUpperConstraint(conflictVar);
 
-  Debug("arith")  << "generateConflictAbove "
-                  << "conflictVar " << conflictVar
-                  << " " << d_partialModel.getAssignment(conflictVar)
-                  << " " << bound << endl;
-
-  nb << bound;
-
-  Tableau::RowIterator iter = d_tableau.rowIterator(conflictVar);
+  Tableau::RowIterator iter = d_tableau.rowIterator(basic);
   for(; !iter.atEnd(); ++iter){
     const TableauEntry& entry = *iter;
     ArithVar nonbasic = entry.getColVar();
-    if(nonbasic == conflictVar) continue;
+    if(nonbasic == basic) continue;
 
     const Rational& a_ij = entry.getCoefficient();
     Assert(a_ij != d_ZERO);
+    TNode bound = TNode::null();
 
     int sgn = a_ij.sgn();
     Assert(sgn != 0);
-    if(sgn < 0){
-      bound =  d_partialModel.getUpperConstraint(nonbasic);
-      Debug("arith") << "below 0 " << nonbasic << " "
-                     << d_partialModel.getAssignment(nonbasic)
-                     << " " << bound << endl;
-      nb << bound;
+    if(upperBound){
+      if(sgn < 0){
+        bound = d_partialModel.getLowerConstraint(nonbasic);
+      }else{
+        Assert(sgn > 0);
+        bound = d_partialModel.getUpperConstraint(nonbasic);
+      }
     }else{
-      Assert(sgn > 0);
-      bound =  d_partialModel.getLowerConstraint(nonbasic);
-      Debug("arith") << " above 0 " << nonbasic << " "
-                     << d_partialModel.getAssignment(nonbasic)
-                     << " " << bound << endl;
-      nb << bound;
+      if(sgn < 0){
+        bound =  d_partialModel.getUpperConstraint(nonbasic);
+      }else{
+        Assert(sgn > 0);
+        bound =  d_partialModel.getLowerConstraint(nonbasic);
+      }
     }
+    Assert(!bound.isNull());
+    Debug("arith::explainNonbasics") << "\t" << nonbasic << " " << sgn << " " << bound
+                                     << endl;
+    output << bound;
   }
-  Node conflict = nb;
+  Debug("arith::explainNonbasics") << "SimplexDecisionProcedure::explainNonbasics("
+                                   << basic << ") done" << endl;
+}
+
+
+TNode SimplexDecisionProcedure::weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic){
+
+  int sgn = coeff.sgn();
+  bool ub = aboveUpper?(sgn < 0) : (sgn > 0);
+  TNode exp = ub ?
+    d_partialModel.getUpperConstraint(v) :
+    d_partialModel.getLowerConstraint(v);
+  DeltaRational bound = ub?
+    d_partialModel.getUpperBound(v) :
+    d_partialModel.getLowerBound(v);
+
+  bool weakened;
+  do{
+    weakened = false;
+
+    Node weaker = ub?
+      d_propManager.strictlyWeakerAssertedUpperBound(v, bound):
+      d_propManager.strictlyWeakerAssertedLowerBound(v, bound);
+
+    if(!weaker.isNull()){
+      DeltaRational weakerBound = asDeltaRational(weaker);
+
+      DeltaRational diff = aboveUpper ? bound - weakerBound : weakerBound - bound;
+      //if var == basic,
+      //  if aboveUpper, weakerBound > bound, multiply by -1
+      //  if !aboveUpper, weakerBound < bound, multiply by -1
+      diff = diff * coeff;
+      if(surplus > diff){
+        ++d_statistics.d_weakenings;
+        weakened = true;
+        anyWeakening = true;
+        surplus = surplus - diff;
+
+        Debug("weak") << "found:" << endl;
+        if(v == basic){
+          Debug("weak") << "  basic: ";
+        }
+        Debug("weak") << "  " << surplus << " "<< diff  << endl
+                      << "  " << bound << exp << endl
+                      << "  " << weakerBound << weaker << endl;
+
+        if(exp.getKind() == AND){
+          Debug("weak") << "VICTORY" << endl;
+        }
+
+        Assert(diff > d_DELTA_ZERO);
+        exp = weaker;
+        bound = weakerBound;
+      }
+    }
+  }while(weakened);
+
+  if(exp.getKind() == AND){
+    Debug("weak") << "boo: " << exp << endl;
+  }
+  return exp;
+}
+
+Node SimplexDecisionProcedure::weakenConflict(bool aboveUpper, ArithVar basicVar){
+  TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
+
+  const DeltaRational& assignment = d_partialModel.getAssignment(basicVar);
+  DeltaRational surplus;
+  if(aboveUpper){
+    Assert(d_partialModel.hasUpperBound(basicVar));
+    Assert(assignment > d_partialModel.getUpperBound(basicVar));
+    surplus = assignment - d_partialModel.getUpperBound(basicVar);
+  }else{
+    Assert(d_partialModel.hasLowerBound(basicVar));
+    Assert(assignment < d_partialModel.getLowerBound(basicVar));
+    surplus = d_partialModel.getLowerBound(basicVar) - assignment;
+  }
+
+  NodeBuilder<> conflict(kind::AND);
+  bool anyWeakenings = false;
+  for(Tableau::RowIterator i = d_tableau.rowIterator(basicVar); !i.atEnd(); ++i){
+    const TableauEntry& entry = *i;
+    ArithVar v = entry.getColVar();
+    const Rational& coeff = entry.getCoefficient();
+    conflict << weakestExplanation(aboveUpper, surplus, v, coeff, anyWeakenings, basicVar);
+  }
+  ++d_statistics.d_weakeningAttempts;
+  if(anyWeakenings){
+    ++d_statistics.d_weakeningSuccesses;
+  }
   return conflict;
 }
 
-Node SimplexDecisionProcedure::generateConflictBelow(ArithVar conflictVar){
-  NodeBuilder<> nb(kind::AND);
-  TNode bound = d_partialModel.getLowerConstraint(conflictVar);
 
-  Debug("arith") << "generateConflictBelow "
-                 << "conflictVar " << conflictVar
-                 << d_partialModel.getAssignment(conflictVar) << " "
-                 << " " << bound << endl;
-  nb << bound;
+// Node SimplexDecisionProcedure::weakenLowerBoundConflict(ArithVar basicVar){
+//   TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
 
+//   bool anyWeakenings = false;
+//   const DeltaRational& assignment = d_partialModel.getAssignment(basicVar);
+//   Assert(d_partialModel.hasLowerBound(basicVar));
+//   Assert(assignment < d_partialModel.getLowerBound(basicVar));
 
-  Tableau::RowIterator iter = d_tableau.rowIterator(conflictVar);
-  for(; !iter.atEnd(); ++iter){
-    const TableauEntry& entry = *iter;
-    ArithVar nonbasic = entry.getColVar();
-    if(nonbasic == conflictVar) continue;
+//   DeltaRational surplus = d_partialModel.getLowerBound(basicVar) - assignment;
 
-    const Rational& a_ij = entry.getCoefficient();
+//   vector<WeakeningElem> weakeningElements;
+//   queue<uint32_t> potentialWeakingings;
+//   for(Tableau::RowIterator i = d_tableau.rowIterator(basicVar); !i.atEnd(); ++i){
+//     const TableauEntry& entry = *i;
+//     ArithVar v = entry.getColVar();
+//     const Rational& coeff = entry.getCoefficient();
 
-    int sgn = a_ij.sgn();
-    Assert(a_ij != d_ZERO);
-    Assert(sgn != 0);
+//     int sgn = coeff.sgn();
+//     bool ub = (sgn > 0);
+//     Node exp = ub ?
+//       d_partialModel.getUpperConstraint(v) :
+//       d_partialModel.getLowerConstraint(v);
+//     DeltaRational bound = ub?
+//       d_partialModel.getUpperBound(v) :
+//       d_partialModel.getLowerBound(v);
+//     potentialWeakingings.push(weakeningElements.size());
+//     weakeningElements.push_back(WeakeningElem(v, &coeff, ub, bound, exp));
+//   }
 
-    if(sgn < 0){
-      TNode bound = d_partialModel.getLowerConstraint(nonbasic);
-      Debug("arith") << "Lower "<< nonbasic << " "
-                     << d_partialModel.getAssignment(nonbasic) << " "
-                     << bound << endl;
+//   vector<Node> conflict;
 
-      nb << bound;
-    }else{
-      Assert(sgn > 0);
-      TNode bound = d_partialModel.getUpperConstraint(nonbasic);
-      Debug("arith") << "Upper "<< nonbasic << " "
-                     << d_partialModel.getAssignment(nonbasic) << " "
-                     << bound << endl;
+//   Debug("weak") << "weakenLowerBoundConflict" << endl;
+//   while(!potentialWeakingings.empty()){
+//     uint32_t pos = potentialWeakingings.front();
+//     potentialWeakingings.pop();
 
-      nb << bound;
-    }
-  }
-  Node conflict (nb.constructNode());
-  return conflict;
+//     WeakeningElem& curr = weakeningElements[pos];
+
+//     Node weaker = curr.upperBound?
+//       d_propManager.strictlyWeakerAssertedUpperBound(curr.var, curr.bound):
+//       d_propManager.strictlyWeakerAssertedLowerBound(curr.var, curr.bound);
+
+//     bool weakened = false;
+//     if(!weaker.isNull()){
+//       DeltaRational weakerBound = asDeltaRational(weaker);
+//       DeltaRational diff = weakerBound -  curr.bound;
+//       //if var == basic, weakerBound < curr.bound
+//       // multiply by -1
+//       diff = diff * (*curr.coeff);
+
+//       if(surplus > diff){
+//         ++d_statistics.d_weakenings;
+//         anyWeakenings = true;
+//         weakened = true;
+//         surplus = surplus - diff;
+
+//         Debug("weak") << "found:" << endl;
+//         if(curr.var == basicVar){
+//           Debug("weak") << "  basic: ";
+//         }
+//         Debug("weak") << "  " << surplus << " "<< diff  << endl
+//                       << "  " << curr.bound << weakerBound << endl
+//                       << "  " << curr.explanation << weaker << endl;
+
+//         if(curr.explanation.getKind() == AND){
+//           Debug("weak") << "VICTORY" << endl;
+//         }
+
+//         Assert(diff > d_DELTA_ZERO);
+//         curr.explanation = weaker;
+//         curr.bound = weakerBound;
+//       }
+//     }
+
+//     if(weakened){
+//       potentialWeakingings.push(pos);
+//     }else{
+//       if(curr.explanation.getKind() == AND){
+//         Debug("weak") << "boo: " << curr.explanation << endl;
+//       }
+//       conflict.push_back(curr.explanation);
+//     }
+//   }
+
+//   ++d_statistics.d_weakeningAttempts;
+//   if(anyWeakenings){
+//     ++d_statistics.d_weakeningSuccesses;
+//   }
+
+//   NodeBuilder<> nb(AND);
+//   nb.append(conflict);
+//   return nb;
+// }
+
+// Node SimplexDecisionProcedure::deduceUpperBound(ArithVar basicVar){
+//   Assert(d_tableau.isBasic(basicVar));
+//   Assert(selectSlackUpperBound<minVarOrder>(basicVar) == ARITHVAR_SENTINEL);
+
+//   const DeltaRational& assignment = d_partialModel.getAssignment(basicVar);
+
+//   Assert(assignment.getInfinitesimalPart() <= 0);
+
+//   if(d_partialModel.strictlyBelowUpperBound(basicVar, assignment)){
+//     NodeBuilder<> nb(kind::AND);
+//     explainNonbasicsUpperBound(basicVar, nb);
+//     Node explanation = maybeUnaryConvert(nb);
+//     Debug("waka-waka") << basicVar << " ub " << assignment << " "<< explanation << endl;
+//     Node res = AssertUpper(basicVar, assignment, explanation);
+//     if(res.isNull()){
+//       d_propManager.propagateArithVar(true, basicVar, assignment, explanation);
+//     }
+//     return res;
+//   }else{
+//     return Node::null();
+//   }
+// }
+
+// Node SimplexDecisionProcedure::deduceLowerBound(ArithVar basicVar){
+//   Assert(d_tableau.isBasic(basicVar));
+//   Assert(selectSlackLowerBound<minVarOrder>(basicVar) == ARITHVAR_SENTINEL);
+//   const DeltaRational& assignment = d_partialModel.getAssignment(basicVar);
+
+//   if(Debug.isOn("paranoid:check_tableau")){ debugCheckTableau(); }
+
+//   Assert(assignment.getInfinitesimalPart() >= 0);
+
+//   if(d_partialModel.strictlyAboveLowerBound(basicVar, assignment)){
+//     NodeBuilder<> nb(kind::AND);
+//     explainNonbasicsLowerBound(basicVar, nb);
+//     Node explanation = maybeUnaryConvert(nb);
+//     Debug("waka-waka") << basicVar << " lb " << assignment << " "<< explanation << endl;
+//     Node res = AssertLower(basicVar, assignment, explanation);
+//     if(res.isNull()){
+//       d_propManager.propagateArithVar(false, basicVar, assignment, explanation);
+//     }
+//     return res;
+//   }else{
+//     return Node::null();
+//   }
+// }
+
+Node SimplexDecisionProcedure::generateConflictAboveUpperBound(ArithVar conflictVar){
+  return weakenConflict(true, conflictVar);
+}
+
+Node SimplexDecisionProcedure::generateConflictBelowLowerBound(ArithVar conflictVar){
+  return weakenConflict(false, conflictVar);
 }
 
 /**
@@ -713,6 +1069,26 @@ DeltaRational SimplexDecisionProcedure::computeRowValue(ArithVar x, bool useSafe
 
     const DeltaRational& assignment = d_partialModel.getAssignment(nonbasic, useSafe);
     sum = sum + (assignment * coeff);
+  }
+  return sum;
+}
+
+DeltaRational SimplexDecisionProcedure::computeBound(ArithVar basic, bool upperBound){
+  DeltaRational sum(0,0);
+  for(Tableau::RowIterator i = d_tableau.rowIterator(basic); !i.atEnd(); ++i){
+    const TableauEntry& entry = (*i);
+    ArithVar nonbasic = entry.getColVar();
+    if(nonbasic == basic) continue;
+    const Rational& coeff =  entry.getCoefficient();
+    int sgn = coeff.sgn();
+    bool ub = upperBound ? (sgn > 0) : (sgn < 0);
+
+    const DeltaRational& bound = ub ?
+      d_partialModel.getUpperBound(nonbasic):
+      d_partialModel.getLowerBound(nonbasic);
+
+    DeltaRational diff = bound * coeff;
+    sum = sum + diff;
   }
   return sum;
 }

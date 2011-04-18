@@ -150,6 +150,8 @@ public:
     Node leq1 = d_nm->mkNode(LEQ, x, c1);
     Node geq1 = d_nm->mkNode(GEQ, x, c1);
     Node lt1 = d_nm->mkNode(NOT, geq1);
+    Node gt0 = d_nm->mkNode(NOT, leq0);
+    Node gt1 = d_nm->mkNode(NOT, leq1);
 
     fakeTheoryEnginePreprocess(leq0);
     fakeTheoryEnginePreprocess(leq1);
@@ -161,20 +163,20 @@ public:
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
-    Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
+    Node gt1ThenGt0  = NodeBuilder<2>(IMPLIES) << gt1 << gt0;
+    Node geq1ThenGt0  = NodeBuilder<2>(IMPLIES) << geq1 << gt0;
     Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
-    Node leq0ThenLt1  = NodeBuilder<2>(IMPLIES) << leq0 << lt1;
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq0ThenLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), gt1ThenGt0);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1ThenLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), geq1ThenGt0);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), lt1ThenLeq1);
   }
 
 
@@ -187,6 +189,8 @@ public:
     Node leq1 = d_nm->mkNode(LEQ, x, c1);
     Node geq1 = d_nm->mkNode(GEQ, x, c1);
     Node lt1 = d_nm->mkNode(NOT, geq1);
+    Node gt0 = d_nm->mkNode(NOT, leq0);
+    Node gt1 = d_nm->mkNode(NOT, leq1);
 
     fakeTheoryEnginePreprocess(leq0);
     fakeTheoryEnginePreprocess(leq1);
@@ -197,20 +201,20 @@ public:
 
     d_arith->check(d_level);
 
-    Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
+    Node gt1ThenGt0  = NodeBuilder<2>(IMPLIES) << gt1 << gt0;
+    Node geq1ThenGt0  = NodeBuilder<2>(IMPLIES) << geq1 << gt0;
     Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
-    Node leq0ThenLt1  = NodeBuilder<2>(IMPLIES) << leq0 << lt1;
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq0ThenLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), gt1ThenGt0);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1ThenLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), geq1ThenGt0);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), lt1ThenLeq1);
   }
   void testTPLeq1() {
     Node x = d_nm->mkVar(*d_realType);
@@ -221,6 +225,8 @@ public:
     Node leq1 = d_nm->mkNode(LEQ, x, c1);
     Node geq1 = d_nm->mkNode(GEQ, x, c1);
     Node lt1 = d_nm->mkNode(NOT, geq1);
+    Node gt0 = d_nm->mkNode(NOT, leq0);
+    Node gt1 = d_nm->mkNode(NOT, leq1);
 
     fakeTheoryEnginePreprocess(leq0);
     fakeTheoryEnginePreprocess(leq1);
@@ -232,19 +238,19 @@ public:
     d_arith->check(d_level);
     d_arith->propagate(d_level);
 
-    Node leq0ThenLeq1 = NodeBuilder<2>(IMPLIES) << leq0 << (leq1);
+    Node gt1ThenGt0  = NodeBuilder<2>(IMPLIES) << gt1 << gt0;
+    Node geq1ThenGt0  = NodeBuilder<2>(IMPLIES) << geq1 << gt0;
     Node lt1ThenLeq1  = NodeBuilder<2>(IMPLIES) << lt1 << leq1;
-    Node leq0ThenLt1  = NodeBuilder<2>(IMPLIES) << leq0 << lt1;
 
     TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), leq0ThenLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), gt1ThenGt0);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), lt1ThenLeq1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), geq1ThenGt0);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), LEMMA);
-    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq0ThenLt1);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), lt1ThenLeq1);
   }
 };

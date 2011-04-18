@@ -103,6 +103,8 @@ class TheoryEngine {
 
     void propagate(TNode lit, bool)
       throw(theory::Interrupted, AssertionException) {
+      Debug("theory") << "EngineOutputChannel::propagate("
+                      << lit << ")" << std::endl;
       d_propagatedLiterals.push_back(lit);
       ++(d_engine->d_statistics.d_statPropagate);
     }
@@ -117,6 +119,8 @@ class TheoryEngine {
 
     void explanation(TNode explanationNode, bool)
       throw(theory::Interrupted, AssertionException) {
+      Debug("theory") << "EngineOutputChannel::explanation("
+                      << explanationNode << ")" << std::endl;
       d_explanationNode = explanationNode;
       ++(d_engine->d_statistics.d_statExplanation);
     }

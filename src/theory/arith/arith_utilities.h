@@ -25,6 +25,7 @@
 #include "util/rational.h"
 #include "expr/node.h"
 #include "expr/attribute.h"
+#include "theory/arith/delta_rational.h"
 #include <vector>
 #include <stdint.h>
 #include <limits>
@@ -204,6 +205,38 @@ inline int deltaCoeff(Kind k){
   }
 }
 
+template <bool selectLeft>
+inline TNode getSide(TNode assertion, Kind simpleKind){
+  switch(simpleKind){
+  case kind::LT:
+  case kind::GT:
+  case kind::DISTINCT:
+    return selectLeft ? (assertion[0])[0] : (assertion[0])[1];
+  case kind::LEQ:
+  case kind::GEQ:
+  case kind::EQUAL:
+    return selectLeft ? assertion[0] : assertion[1];
+  default:
+    Unreachable();
+    return TNode::null();
+  }
+}
+
+inline DeltaRational determineRightConstant(TNode assertion, Kind simpleKind){
+  TNode right = getSide<false>(assertion, simpleKind);
+
+  Assert(right.getKind() == kind::CONST_RATIONAL);
+  const Rational& noninf = right.getConst<Rational>();
+
+  Rational inf = Rational(Integer(deltaCoeff(simpleKind)));
+  return DeltaRational(noninf, inf);
+}
+
+inline DeltaRational asDeltaRational(TNode n){
+  Kind simp = simplifiedKind(n);
+  return determineRightConstant(n, simp);
+}
+
  /**
   * Takes two nodes with exactly 2 children,
   * the second child of both are of kind CONST_RATIONAL,
@@ -234,6 +267,19 @@ inline Node negateConjunctionAsClause(TNode conjunction){
     orBuilder << negatedChild;
   }
   return orBuilder;
+}
+
+inline Node maybeUnaryConvert(NodeBuilder<>& builder){
+  Assert(builder.getKind() == kind::OR ||
+         builder.getKind() == kind::AND ||
+         builder.getKind() == kind::PLUS ||
+         builder.getKind() == kind::MULT);
+  Assert(builder.getNumChildren() >= 1);
+  if(builder.getNumChildren() == 1){
+    return builder[0];
+  }else{
+    return builder;
+  }
 }
 
 }; /* namesapce arith */
