@@ -99,6 +99,39 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       case kind::GEQ: out << ">="; break;
       case kind::IMPLIES: out << "=>"; break;
       case kind::IFF: out << "<=>"; break;
+
+        // names are slightly different than the kind
+      case kind::BITVECTOR_PLUS: out << "BVPLUS"; break;
+      case kind::BITVECTOR_SUB: out << "BVSUB"; break;
+      case kind::BITVECTOR_XOR: out << "BVXOR"; break;
+      case kind::BITVECTOR_NAND: out << "BVNAND"; break;
+      case kind::BITVECTOR_NOR: out << "BVNOR"; break;
+      case kind::BITVECTOR_XNOR: out << "BVXNOR"; break;
+      case kind::BITVECTOR_COMP: out << "BVCOMP"; break;
+      case kind::BITVECTOR_MULT: out << "BVMULT"; break;
+      case kind::BITVECTOR_UDIV: out << "BVUDIV"; break;
+      case kind::BITVECTOR_UREM: out << "BVUREM"; break;
+      case kind::BITVECTOR_SDIV: out << "BVSDIV"; break;
+      case kind::BITVECTOR_SREM: out << "BVSREM"; break;
+      case kind::BITVECTOR_SMOD: out << "BVSMOD"; break;
+      case kind::BITVECTOR_SHL: out << "BVSHL"; break;
+      case kind::BITVECTOR_LSHR: out << "BVLSHR"; break;
+      case kind::BITVECTOR_ASHR: out << "BVASHR"; break;
+      case kind::BITVECTOR_ULT: out << "BVLT"; break;
+      case kind::BITVECTOR_ULE: out << "BVLE"; break;
+      case kind::BITVECTOR_UGT: out << "BVGT"; break;
+      case kind::BITVECTOR_UGE: out << "BVGE"; break;
+      case kind::BITVECTOR_SLT: out << "BVSLT"; break;
+      case kind::BITVECTOR_SLE: out << "BVSLE"; break;
+      case kind::BITVECTOR_SGT: out << "BVSGT"; break;
+      case kind::BITVECTOR_SGE: out << "BVSGE"; break;
+      case kind::BITVECTOR_NEG: out << "BVUMINUS"; break;
+
+      case kind::BITVECTOR_NOT: out << "~"; break;
+      case kind::BITVECTOR_AND: out << "&"; break;
+      case kind::BITVECTOR_OR: out << "|"; break;
+      case kind::BITVECTOR_CONCAT: out << "@"; break;
+
       default:
         out << k;
       }
@@ -157,6 +190,38 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
 
     case kind::ITE:
       out << "IF " << n[0] << " THEN " << n[1] << " ELSE " << n[2];
+      break;
+
+    // these are prefix
+    case kind::BITVECTOR_PLUS:
+    case kind::BITVECTOR_SUB:
+    case kind::BITVECTOR_XOR:
+    case kind::BITVECTOR_NAND:
+    case kind::BITVECTOR_NOR:
+    case kind::BITVECTOR_XNOR:
+    case kind::BITVECTOR_COMP:
+    case kind::BITVECTOR_MULT:
+    case kind::BITVECTOR_UDIV:
+    case kind::BITVECTOR_UREM:
+    case kind::BITVECTOR_SDIV:
+    case kind::BITVECTOR_SREM:
+    case kind::BITVECTOR_SMOD:
+    case kind::BITVECTOR_SHL:
+    case kind::BITVECTOR_LSHR:
+    case kind::BITVECTOR_ASHR:
+    case kind::BITVECTOR_ULT:
+    case kind::BITVECTOR_ULE:
+    case kind::BITVECTOR_UGT:
+    case kind::BITVECTOR_UGE:
+    case kind::BITVECTOR_SLT:
+    case kind::BITVECTOR_SLE:
+    case kind::BITVECTOR_SGT:
+    case kind::BITVECTOR_SGE:
+      out << n.getOperator() << '(' << n[0] << ',' << n[1] << ')';
+      break;
+
+    case kind::BITVECTOR_EXTRACT:
+      out << n[0] << '[' << n.getOperator().getConst<BitVectorExtract>() << ']';
       break;
 
     default:

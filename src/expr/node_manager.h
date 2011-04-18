@@ -303,7 +303,35 @@ public:
   template <bool ref_count>
   Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
-  /** Create a node by applying an operator to the children */
+  /** Create a node (with no children) by operator. */
+  Node mkNode(TNode opNode);
+  Node* mkNodePtr(TNode opNode);
+
+  /** Create a node with one child by operator. */
+  Node mkNode(TNode opNode, TNode child1);
+  Node* mkNodePtr(TNode opNode, TNode child1);
+
+  /** Create a node with two children by operator. */
+  Node mkNode(TNode opNode, TNode child1, TNode child2);
+  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2);
+
+  /** Create a node with three children by operator. */
+  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3);
+  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2, TNode child3);
+
+  /** Create a node with four children by operator. */
+  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
+              TNode child4);
+  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2, TNode child3,
+              TNode child4);
+
+  /** Create a node with five children by operator. */
+  Node mkNode(TNode opNode, TNode child1, TNode child2, TNode child3,
+              TNode child4, TNode child5);
+  Node* mkNodePtr(TNode opNode, TNode child1, TNode child2, TNode child3,
+              TNode child4, TNode child5);
+
+  /** Create a node by applying an operator to the children. */
   template <bool ref_count>
   Node mkNode(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
   template <bool ref_count>
@@ -1021,6 +1049,85 @@ inline Node* NodeManager::mkNodePtr(Kind kind,
   return nb.constructNodePtr();
 }
 
+// for operators
+inline Node NodeManager::mkNode(TNode opNode) {
+  NodeBuilder<1> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode;
+  return nb.constructNode();
+}
+
+inline Node* NodeManager::mkNodePtr(TNode opNode) {
+  NodeBuilder<1> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode;
+  return nb.constructNodePtr();
+}
+
+inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
+  NodeBuilder<2> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1;
+  return nb.constructNode();
+}
+
+inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1) {
+  NodeBuilder<2> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1;
+  return nb.constructNodePtr();
+}
+
+inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
+  NodeBuilder<3> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2;
+  return nb.constructNode();
+}
+
+inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2) {
+  NodeBuilder<3> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2;
+  return nb.constructNodePtr();
+}
+
+inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
+                                TNode child3) {
+  NodeBuilder<4> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2 << child3;
+  return nb.constructNode();
+}
+
+inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
+                                TNode child3) {
+  NodeBuilder<4> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2 << child3;
+  return nb.constructNodePtr();
+}
+
+inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
+                                TNode child3, TNode child4) {
+  NodeBuilder<5> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2 << child3 << child4;
+  return nb.constructNode();
+}
+
+inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
+                                TNode child3, TNode child4) {
+  NodeBuilder<5> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2 << child3 << child4;
+  return nb.constructNodePtr();
+}
+
+inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
+                                TNode child3, TNode child4, TNode child5) {
+  NodeBuilder<6> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2 << child3 << child4 << child5;
+  return nb.constructNode();
+}
+
+inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
+                                    TNode child3, TNode child4, TNode child5) {
+  NodeBuilder<6> nb(this, kind::operatorKindToKind(opNode.getKind()));
+  nb << opNode << child1 << child2 << child3 << child4 << child5;
+  return nb.constructNodePtr();
+}
+
 // N-ary version for operators
 template <bool ref_count>
 inline Node NodeManager::mkNode(TNode opNode,
@@ -1034,8 +1141,8 @@ inline Node NodeManager::mkNode(TNode opNode,
 
 template <bool ref_count>
 inline Node* NodeManager::mkNodePtr(TNode opNode,
-                                const std::vector<NodeTemplate<ref_count> >&
-                                children) {
+                                    const std::vector<NodeTemplate<ref_count> >&
+                                    children) {
   NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
   nb << opNode;
   nb.append(children);

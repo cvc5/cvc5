@@ -448,6 +448,7 @@ term[CVC4::Expr& expr]
     { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       expr = MK_CONST( BitVector(binString, 2) ); }
+
     // NOTE: Theory constants go here
   ;
 

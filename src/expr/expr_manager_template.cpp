@@ -136,8 +136,8 @@ IntegerType ExprManager::integerType() const {
   return IntegerType(Type(d_nodeManager, new TypeNode(d_nodeManager->integerType())));
 }
 
-Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
-  const unsigned n = 1;
+Expr ExprManager::mkExpr(Kind kind, Expr child1) {
+  const unsigned n = 1 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -152,8 +152,8 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1) {
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
-  const unsigned n = 2;
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
+  const unsigned n = 2 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -170,9 +170,9 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2) {
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
-                         const Expr& child3) {
-  const unsigned n = 3;
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
+                         Expr child3) {
+  const unsigned n = 3 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -190,9 +190,9 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
-                         const Expr& child3, const Expr& child4) {
-  const unsigned n = 4;
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
+                         Expr child3, Expr child4) {
+  const unsigned n = 4 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -211,10 +211,10 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
-                         const Expr& child3, const Expr& child4,
-                         const Expr& child5) {
-  const unsigned n = 5;
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
+                         Expr child3, Expr child4,
+                         Expr child5) {
+  const unsigned n = 5 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -235,7 +235,7 @@ Expr ExprManager::mkExpr(Kind kind, const Expr& child1, const Expr& child2,
 }
 
 Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
-  const unsigned n = children.size();
+  const unsigned n = children.size() - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -259,9 +259,141 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
   }
 }
 
+Expr ExprManager::mkExpr(Expr opExpr) {
+  const unsigned n = 0;
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::mkExpr(Expr opExpr, Expr child1) {
+  const unsigned n = 1;
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(), child1.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2) {
+  const unsigned n = 2;
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(),
+                                               child1.getNode(),
+                                               child2.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3) {
+  const unsigned n = 3;
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(),
+                                               child1.getNode(),
+                                               child2.getNode(),
+                                               child3.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
+                         Expr child4) {
+  const unsigned n = 4;
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(),
+                                               child1.getNode(),
+                                               child2.getNode(),
+                                               child3.getNode(),
+                                               child4.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
+                         Expr child4, Expr child5) {
+  const unsigned n = 5;
+  Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(opExpr.getNode(),
+                                               child1.getNode(),
+                                               child2.getNode(),
+                                               child3.getNode(),
+                                               child4.getNode(),
+                                               child5.getNode()));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
 Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
   const unsigned n = children.size();
   Kind kind = kind::operatorKindToKind(opExpr.getKind());
+  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+                "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -286,13 +418,13 @@ Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
 }
 
 /** Make a function type from domain to range. */
-FunctionType ExprManager::mkFunctionType(const Type& domain, const Type& range) {
+FunctionType ExprManager::mkFunctionType(Type domain, Type range) {
   NodeManagerScope nms(d_nodeManager);
   return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkFunctionType(*domain.d_typeNode, *range.d_typeNode))));
 }
 
 /** Make a function type with input types from argTypes. */
-FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, const Type& range) {
+FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, Type range) {
   NodeManagerScope nms(d_nodeManager);
   Assert( argTypes.size() >= 1 );
   std::vector<TypeNode> argTypeNodes;
@@ -436,7 +568,7 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * @param check whether we should check the type as we compute it
  * (default: false)
  */
-Type ExprManager::getType(const Expr& e, bool check) throw (TypeCheckingException) {
+Type ExprManager::getType(Expr e, bool check) throw (TypeCheckingException) {
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
@@ -448,7 +580,7 @@ Type ExprManager::getType(const Expr& e, bool check) throw (TypeCheckingExceptio
   return t;
 }
 
-Expr ExprManager::mkVar(const std::string& name, const Type& type) {
+Expr ExprManager::mkVar(const std::string& name, Type type) {
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
@@ -456,7 +588,7 @@ Expr ExprManager::mkVar(const std::string& name, const Type& type) {
   return Expr(this, n);
 }
 
-Expr ExprManager::mkVar(const Type& type) {
+Expr ExprManager::mkVar(Type type) {
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type);
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode));

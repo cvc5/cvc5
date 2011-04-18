@@ -127,7 +127,7 @@ public:
    * @param child1 kind the kind of expression
    * @return the expression
    */
-  Expr mkExpr(Kind kind, const Expr& child1);
+  Expr mkExpr(Kind kind, Expr child1);
 
   /**
    * Make a binary expression of a given kind (AND, PLUS, ...).
@@ -136,7 +136,7 @@ public:
    * @param child2 the second child of the new expression
    * @return the expression
    */
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2);
+  Expr mkExpr(Kind kind, Expr child1, Expr child2);
 
   /**
    * Make a 3-ary expression of a given kind (AND, PLUS, ...).
@@ -146,8 +146,7 @@ public:
    * @param child3 the third child of the new expression
    * @return the expression
    */
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2,
-              const Expr& child3);
+  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3);
 
   /**
    * Make a 4-ary expression of a given kind (AND, PLUS, ...).
@@ -158,8 +157,7 @@ public:
    * @param child4 the fourth child of the new expression
    * @return the expression
    */
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2,
-              const Expr& child3, const Expr& child4);
+  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4);
 
   /**
    * Make a 5-ary expression of a given kind (AND, PLUS, ...).
@@ -171,11 +169,13 @@ public:
    * @param child5 the fifth child of the new expression
    * @return the expression
    */
-  Expr mkExpr(Kind kind, const Expr& child1, const Expr& child2,
-              const Expr& child3, const Expr& child4, const Expr& child5);
+  Expr mkExpr(Kind kind, Expr child1, Expr child2, Expr child3, Expr child4,
+              Expr child5);
 
   /**
-   * Make an n-ary expression of given kind given a vector of it's children
+   * Make an n-ary expression of given kind given a vector of its
+   * children
+   *
    * @param kind the kind of expression to build
    * @param children the subexpressions
    * @return the n-ary expression
@@ -183,8 +183,73 @@ public:
   Expr mkExpr(Kind kind, const std::vector<Expr>& children);
 
   /**
-   * Make an n-ary expression of given tre operator to appply and a vector of
-   * it's children
+   * Make a nullary parameterized expression with the given operator.
+   *
+   * @param opExpr the operator expression
+   * @return the nullary expression
+   */
+  Expr mkExpr(Expr opExpr);
+
+  /**
+   * Make a unary parameterized expression with the given operator.
+   *
+   * @param opExpr the operator expression
+   * @param child1 the subexpression
+   * @return the unary expression
+   */
+  Expr mkExpr(Expr opExpr, Expr child1);
+
+  /**
+   * Make a binary parameterized expression with the given operator.
+   *
+   * @param opExpr the operator expression
+   * @param child1 the first subexpression
+   * @param child2 the second subexpression
+   * @return the binary expression
+   */
+  Expr mkExpr(Expr opExpr, Expr child1, Expr child2);
+
+  /**
+   * Make a ternary parameterized expression with the given operator.
+   *
+   * @param opExpr the operator expression
+   * @param child1 the first subexpression
+   * @param child2 the second subexpression
+   * @param child3 the third subexpression
+   * @return the ternary expression
+   */
+  Expr mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3);
+
+  /**
+   * Make a quaternary parameterized expression with the given operator.
+   *
+   * @param opExpr the operator expression
+   * @param child1 the first subexpression
+   * @param child2 the second subexpression
+   * @param child3 the third subexpression
+   * @param child4 the fourth subexpression
+   * @return the quaternary expression
+   */
+  Expr mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3, Expr child4);
+
+  /**
+   * Make a quinary parameterized expression with the given operator.
+   *
+   * @param opExpr the operator expression
+   * @param child1 the first subexpression
+   * @param child2 the second subexpression
+   * @param child3 the third subexpression
+   * @param child4 the fourth subexpression
+   * @param child5 the fifth subexpression
+   * @return the quinary expression
+   */
+  Expr mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3, Expr child4,
+              Expr child5);
+
+  /**
+   * Make an n-ary expression of given operator to apply and a vector
+   * of its children
+   *
    * @param opExpr the operator expression
    * @param children the subexpressions
    * @return the n-ary expression
@@ -210,13 +275,13 @@ public:
 
 
   /** Make a function type from domain to range. */
-  FunctionType mkFunctionType(const Type& domain, const Type& range);
+  FunctionType mkFunctionType(Type domain, Type range);
 
   /**
    * Make a function type with input types from argTypes.
    * <code>argTypes</code> must have at least one element.
    */
-  FunctionType mkFunctionType(const std::vector<Type>& argTypes, const Type& range);
+  FunctionType mkFunctionType(const std::vector<Type>& argTypes, Type range);
 
   /**
    * Make a function type with input types from
@@ -279,12 +344,12 @@ public:
                                         size_t arity) const;
 
   /** Get the type of an expression */
-  Type getType(const Expr& e, bool check = false)
+  Type getType(Expr e, bool check = false)
     throw (TypeCheckingException);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar(const std::string& name, const Type& type);
-  Expr mkVar(const Type& type);
+  Expr mkVar(const std::string& name, Type type);
+  Expr mkVar(Type type);
 
   /** Returns the minimum arity of the given kind. */
   static unsigned minArity(Kind kind);

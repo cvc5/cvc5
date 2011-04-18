@@ -54,6 +54,10 @@ public:
     cout << nat << std::endl;
     DatatypeType natType = d_em->mkDatatypeType(nat);
     cout << natType << std::endl;
+
+    Expr ctor = natType.getDatatype()[1].getConstructor();
+    Expr apply = d_em->mkExpr(kind::APPLY_CONSTRUCTOR, ctor);
+    cout << apply << std::endl;
   }
 
   void testTree() {
