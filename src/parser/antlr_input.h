@@ -219,6 +219,10 @@ inline std::string AntlrInput::getUnparsedText() {
 
 
 inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
+  if( token->type == ANTLR3_TOKEN_EOF ) {
+    return "<<EOF>>";
+  }
+
   ANTLR3_MARKER start = token->getStartIndex(token);
   ANTLR3_MARKER end = token->getStopIndex(token);
   /* start and end are boundary pointers. The text is a string
