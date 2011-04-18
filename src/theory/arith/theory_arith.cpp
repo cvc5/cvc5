@@ -368,10 +368,7 @@ void TheoryArith::check(Effort effortLevel){
 
     if(!possibleConflict.isNull()){
       d_partialModel.revertAssignmentChanges();
-      //Node simpleConflict  = BooleanSimplification::simplifyConflict(possibleConflict);
-
       Debug("arith::conflict") << "conflict   " << possibleConflict << endl;
-
       d_simplex.clearUpdates();
       d_out->conflict(possibleConflict);
       return;
@@ -386,9 +383,6 @@ void TheoryArith::check(Effort effortLevel){
   if(possibleConflict != Node::null()){
     d_partialModel.revertAssignmentChanges();
     d_simplex.clearUpdates();
-
-    //Node simpleConflict  = BooleanSimplification::simplifyConflict(possibleConflict);
-
     Debug("arith::conflict") << "conflict   " << possibleConflict << endl;
 
     d_out->conflict(possibleConflict);
@@ -424,16 +418,6 @@ void TheoryArith::splitDisequalities(){
       Node ltNode = NodeBuilder<2>(kind::LT) << lhs << rhs;
       Node gtNode = NodeBuilder<2>(kind::GT) << lhs << rhs;
       Node lemma = NodeBuilder<3>(OR) << eq << ltNode << gtNode;
-
-      // // < => !>
-      // Node imp1 = NodeBuilder<2>(kind::IMPLIES) << ltNode << gtNode.notNode();
-      // // < => !=
-      // Node imp2 = NodeBuilder<2>(kind::IMPLIES) << ltNode << eq.notNode();
-      // // > => !=
-      // Node imp3 = NodeBuilder<2>(kind::IMPLIES) << gtNode << eq.notNode();
-      // // All the implication
-      // Node impClosure = NodeBuilder<3>(kind::AND) << imp1 << imp2 << imp3;
-
       ++(d_statistics.d_statDisequalitySplits);
       d_out->lemma(lemma);
     }
@@ -476,112 +460,13 @@ void TheoryArith::debugPrintModel(){
   }
 }
 
-/*
-bool TheoryArith::isImpliedUpperBound(ArithVar var, Node exp){
-  Node varAsNode = asNode(var);
-  const DeltaRational& ub = d_partialModel.getUpperBound(var);
-  Assert(ub.getInfinitesimalPart() <= 0 );
-  Kind kind = ub.getInfinitesimalPart() < 0 ? LT : LEQ;
-  Node ubAsNode = NodeBuilder<2>(kind) << varAsNode << mkRationalNode(ub.getNoninfinitesimalPart());
-  Node bestImplied = d_propagator.getBestImpliedUpperBound(ubAsNode);
-
-  return bestImplied == exp;
-}
-
-bool TheoryArith::isImpliedLowerBound(ArithVar var, Node exp){
-  Node varAsNode = asNode(var);
-  const DeltaRational& lb = d_partialModel.getLowerBound(var);
-  Assert(lb.getInfinitesimalPart() >= 0 );
-  Kind kind = lb.getInfinitesimalPart() > 0 ? GT : GEQ;
-  Node lbAsIneq = NodeBuilder<2>(kind) << varAsNode << mkRationalNode(lb.getNoninfinitesimalPart());
-  Node bestImplied = d_propagator.getBestImpliedLowerBound(lbAsIneq);
-  return bestImplied == exp;
-}
-*/
-
 void TheoryArith::explain(TNode n) {
   Debug("explain") << "explain @" << getContext()->getLevel() << ": " << n << endl;
-  //Assert(n.hasAttribute(Propagated()));
 
-  //NodeBuilder<> explainBuilder(AND);
-  //internalExplain(n,explainBuilder);
   Assert(d_propManager.isPropagated(n));
   Node explanation = d_propManager.explain(n);
-  //Node flatExplanation = BooleanSimplification::simplifyConflict(explanation);
-
   d_out->explanation(explanation, true);
 }
-/*
-void TheoryArith::internalExplain(TNode n, NodeBuilder<>& explainBuilder){
-  Assert(n.hasAttribute(Propagated()));
-  Node bound = n.getAttribute(Propagated());
-
-  AlwaysAssert(bound.getKind() == kind::AND);
-
-  for(Node::iterator i = bound.begin(), end = bound.end(); i != end; ++i){
-    Node lit = *i;
-    if(lit.hasAttribute(Propagated())){
-      cout << "hoop the sadjklasdj" << endl;
-      internalExplain(lit, explainBuilder);
-    }else{
-      explainBuilder << lit;
-    }
-  }
-}
-*/
-/*
-static const bool EXPORT_LEMMA_INSTEAD_OF_PROPAGATE = false;
-void TheoryArith::propagateArithVar(bool upperbound, ArithVar var ){
-  Node varAsNode = asNode(var);
-  const DeltaRational& b = upperbound ?
-    d_partialModel.getUpperBound(var) : d_partialModel.getLowerBound(var);
-
-  Assert((!upperbound) || (b.getInfinitesimalPart() <= 0) );
-  Assert(upperbound || (b.getInfinitesimalPart() >= 0) );
-  Kind kind;
-  if(upperbound){
-    kind = b.getInfinitesimalPart() < 0 ? LT : LEQ;
-  } else{
-    kind = b.getInfinitesimalPart() > 0 ? GT : GEQ;
-  }
-
-  Node bAsNode = NodeBuilder<2>(kind) << varAsNode
-                                      << mkRationalNode(b.getNoninfinitesimalPart());
-
-  Node bestImplied = upperbound ?
-    d_propagator.getBestImpliedUpperBound(bAsNode):
-    d_propagator.getBestImpliedLowerBound(bAsNode);
-
-  if(!bestImplied.isNull()){
-    Node satValue = d_valuation.getSatValue(bestImplied);
-    if(satValue.isNull()){
-
-      Node reason = upperbound ?
-        d_partialModel.getUpperConstraint(var) :
-        d_partialModel.getLowerConstraint(var);
-
-      //cout << getContext()->getLevel() << " " << bestImplied << " " << reason  << endl;
-      if(EXPORT_LEMMA_INSTEAD_OF_PROPAGATE){
-        Node lemma = NodeBuilder<2>(IMPLIES) << reason
-                                             << bestImplied;
-
-        //Temporary
-        Node clause = BooleanSimplification::simplifyHornClause(lemma);
-        d_out->lemma(clause);
-      }else{
-        Assert(!bestImplied.hasAttribute(Propagated()));
-        bestImplied.setAttribute(Propagated(), reason);
-        d_reasons.push_back(reason);
-        d_out->propagate(bestImplied);
-      }
-    }else{
-      Assert(!satValue.isNull());
-      Assert(satValue.getKind() == CONST_BOOLEAN);
-      Assert(satValue.getConst<bool>());
-    }
-  }
-}
-*/
 
 void TheoryArith::propagate(Effort e) {
   if(quickCheckOrMore(e)){
@@ -701,19 +586,7 @@ void TheoryArith::notifyRestart(){
   if(Debug.isOn("paranoid:check_tableau")){ d_simplex.debugCheckTableau(); }
 
   ++d_restartsCounter;
-  /*
-  if(d_restartsCounter % d_tableauResetPeriod == 0){
-    double currentDensity = d_tableau.densityMeasure();
-    d_statistics.d_avgTableauDensityAtRestart.addEntry(currentDensity);
-    if(currentDensity >= d_tableauResetDensity * d_initialDensity){
 
-      ++d_statistics.d_tableauResets;
-      d_tableauResetPeriod += s_TABLEAU_RESET_INCREMENT;
-      d_tableauResetDensity += .2;
-      d_tableau = d_initialTableau;
-    }
-  }
-  */
   static const bool debugResetPolicy = false;
 
   uint32_t currSize = d_tableau.size();

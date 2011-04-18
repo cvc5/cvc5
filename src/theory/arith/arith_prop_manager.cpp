@@ -90,14 +90,6 @@ Node ArithPropManager::getBestImpliedUpperBound(ArithVar v, const DeltaRational&
   return d_propagator.getBestImpliedUpperBound(bound);
 }
 
-bool ArithPropManager::hasStrongerLowerBound(TNode n) const{
-  bool haveAcompilerWarning;
-  return true;
-}
-bool ArithPropManager::hasStrongerUpperBound(TNode n) const{
-  return true;
-}
-
 Node ArithPropManager::boundAsNode(bool upperbound, ArithVar var, const DeltaRational& b) const {
   Assert((!upperbound) || (b.getInfinitesimalPart() <= 0) );
   Assert(upperbound || (b.getInfinitesimalPart() >= 0) );
