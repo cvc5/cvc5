@@ -1,0 +1,10 @@
+% EXPECT: invalid
+% EXIT: 10
+DATATYPE
+   TypeGeneric = generic
+END;
+
+f: TypeGeneric -> INT;
+a: TypeGeneric;
+
+QUERY(f(a) = 0);

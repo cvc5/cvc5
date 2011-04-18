@@ -72,8 +72,7 @@ Expr Parser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Type
-Parser::getType(const std::string& var_name,
+Type Parser::getType(const std::string& var_name,
                      SymbolType type) {
   Assert( isDeclared(var_name, type) );
   Type t = getSymbol(var_name, type).getType();
@@ -98,9 +97,15 @@ bool Parser::isBoolean(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
 }
 
-/* Returns true if name is bound to a function. */
-bool Parser::isFunction(const std::string& name) {
-  return isDeclared(name, SYM_VARIABLE) && getType(name).isFunction();
+/* Returns true if name is bound to a function-like thing (function,
+ * constructor, tester, or selector). */
+bool Parser::isFunctionLike(const std::string& name) {
+  if(!isDeclared(name, SYM_VARIABLE)) {
+    return false;
+  }
+  Type type = getType(name);
+  return type.isFunction() || type.isConstructor() ||
+    type.isTester() || type.isSelector();
 }
 
 /* Returns true if name is bound to a defined function. */
@@ -200,11 +205,58 @@ Parser::mkSortConstructor(const std::string& name, size_t arity) {
   return type;
 }
 
-const std::vector<Type>
+std::vector<Type>
 Parser::mkSorts(const std::vector<std::string>& names) {
   std::vector<Type> types;
   for(unsigned i = 0; i < names.size(); ++i) {
     types.push_back(mkSort(names[i]));
+  }
+  return types;
+}
+
+std::vector<DatatypeType>
+Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
+  std::vector<DatatypeType> types =
+    d_exprManager->mkMutualDatatypeTypes(datatypes);
+  Assert(datatypes.size() == types.size());
+  for(unsigned i = 0; i < datatypes.size(); ++i) {
+    DatatypeType t = types[i];
+    const Datatype& dt = t.getDatatype();
+    Debug("parser-idt") << "define " << dt.getName() << " as " << t << std::endl;
+    defineType(dt.getName(), t);
+    for(Datatype::const_iterator j = dt.begin(),
+          j_end = dt.end();
+        j != j_end;
+        ++j) {
+      const Datatype::Constructor& ctor = *j;
+      Expr::printtypes::Scope pts(Debug("parser-idt"), true);
+      Expr constructor = ctor.getConstructor();
+      Debug("parser-idt") << "+ define " << constructor << std::endl;
+      string constructorName = constructor.toString();
+      if(isDeclared(constructorName, SYM_VARIABLE)) {
+        throw ParserException(constructorName + " already declared");
+      }
+      defineVar(constructorName, constructor);
+      Expr tester = ctor.getTester();
+      Debug("parser-idt") << "+ define " << tester << std::endl;
+      string testerName = tester.toString();
+      if(isDeclared(testerName, SYM_VARIABLE)) {
+        throw ParserException(testerName + " already declared");
+      }
+      defineVar(testerName, tester);
+      for(Datatype::Constructor::const_iterator k = ctor.begin(),
+            k_end = ctor.end();
+          k != k_end;
+          ++k) {
+        Expr selector = (*k).getSelector();
+        Debug("parser-idt") << "+++ define " << selector << std::endl;
+        string selectorName = selector.toString();
+        if(isDeclared(selectorName, SYM_VARIABLE)) {
+          throw ParserException(selectorName + " already declared");
+        }
+        defineVar(selectorName, selector);
+      }
+    }
   }
   return types;
 }
@@ -249,10 +301,10 @@ void Parser::checkDeclaration(const std::string& varName,
   }
 }
 
-void Parser::checkFunction(const std::string& name)
+void Parser::checkFunctionLike(const std::string& name)
   throw (ParserException) {
-  if( d_checksEnabled && !isFunction(name) ) {
-    parseError("Expecting function symbol, found '" + name + "'");
+  if( d_checksEnabled && !isFunctionLike(name) ) {
+    parseError("Expecting function-like symbol, found '" + name + "'");
   }
 }
 

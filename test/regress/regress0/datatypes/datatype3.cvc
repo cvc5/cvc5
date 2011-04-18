@@ -1,0 +1,11 @@
+% EXPECT: valid
+% EXIT: 20
+
+DATATYPE
+  tree = node(left : tree, right : tree) | leaf
+END;
+
+x : tree;
+z : tree;
+
+QUERY NOT (left(left(left(left(left(left(left(left(left(left(z)))))))))) = x AND is_node(z) AND z = x);

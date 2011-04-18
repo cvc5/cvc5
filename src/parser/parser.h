@@ -263,7 +263,7 @@ public:
    * @throws ParserException if checks are enabled and name is not
    * bound to a function
    */
-  void checkFunction(const std::string& name) throw (ParserException);
+  void checkFunctionLike(const std::string& name) throw (ParserException);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
@@ -337,8 +337,13 @@ public:
   /**
    * Creates new sorts with the given names (all of arity 0).
    */
-  const std::vector<Type>
-  mkSorts(const std::vector<std::string>& names);
+  std::vector<Type> mkSorts(const std::vector<std::string>& names);
+
+  /**
+   * Create sorts of mutually-recursive datatypes.
+   */
+  std::vector<DatatypeType>
+  mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes);
 
   /**
    * Add an operator to the current legal set.
@@ -357,8 +362,8 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is the symbol bound to a function? */
-  bool isFunction(const std::string& name);
+  /** Is the symbol bound to a function (or function-like thing)? */
+  bool isFunctionLike(const std::string& name);
 
   /** Is the symbol bound to a defined function? */
   bool isDefinedFunction(const std::string& name);

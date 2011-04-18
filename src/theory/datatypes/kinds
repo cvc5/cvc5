@@ -1,0 +1,34 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_DATATYPES ::CVC4::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
+
+properties check presolve
+
+rewriter ::CVC4::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
+
+# constructor type has a list of selector types followed by a return type
+operator CONSTRUCTOR_TYPE 1: "constructor"
+
+# selector type has domain type and a range type
+operator SELECTOR_TYPE 2 "selector"
+
+# tester type has a constructor type
+operator TESTER_TYPE 1 "tester"
+
+parameterized APPLY_CONSTRUCTOR CONSTRUCTOR_TYPE 0: "constructor application"
+
+parameterized APPLY_SELECTOR SELECTOR_TYPE 1: "selector application"
+
+parameterized APPLY_TESTER TESTER_TYPE 1: "tester application"
+
+constant DATATYPE_TYPE \
+    ::CVC4::Datatype \
+    "::CVC4::DatatypeHashStrategy" \
+    "util/datatype.h" \
+    "datatype type"
+
+endtheory

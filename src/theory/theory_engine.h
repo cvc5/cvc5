@@ -265,7 +265,7 @@ public:
     // Get the atom
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
 
-    // Again, eqaulity is a special case
+    // Again, equality is a special case
     if (atom.getKind() == kind::EQUAL) {
       theory::TheoryId theoryLHS = theory::Theory::theoryOf(atom[0]);
       Debug("theory") << "asserting " << node << " to " << theoryLHS << std::endl;

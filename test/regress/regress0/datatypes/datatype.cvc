@@ -1,0 +1,8 @@
+% EXPECT: invalid
+% EXIT: 10
+
+DATATYPE nat = succ(pred : nat) | zero END;
+
+x : nat;
+
+QUERY (NOT is_succ(x) AND NOT is_zero(x));

@@ -74,7 +74,7 @@ function theory {
 
   theory_id="$1"
   theory_enum="$1,
-    ${theory_enum}"
+  ${theory_enum}"
   theory_descriptions="${theory_descriptions}    case ${theory_id}: out << \"${theory_id}\"; break;
 "
 }

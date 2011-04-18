@@ -2,10 +2,10 @@
 /*! \file Cvc.g
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): dejan, mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -37,7 +37,7 @@ options {
 
 @lexer::includes {
 /** This suppresses warnings about the redefinition of token symbols between different
-  * parsers. The redefinitions should be harmless as long as no client: (a) #include's 
+  * parsers. The redefinitions should be harmless as long as no client: (a) #include's
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
 #pragma GCC system_header
 
@@ -56,6 +56,26 @@ options {
 namespace CVC4 {
   class Expr;
 }/* CVC4 namespace */
+
+namespace CVC4 {
+  namespace parser {
+    namespace cvc {
+      /**
+       * This class is just here to get around an unfortunate bit of Antlr.
+       * We use strings below as return values from rules, which require
+       * them to be constructible by a uintptr_t.  So we derive the string
+       * class to provide just such a conversion.
+       */
+      class mystring : public std::string {
+      public:
+        mystring(const std::string& s) : std::string(s) {}
+        mystring(uintptr_t) : std::string() {}
+        mystring() : std::string() {}
+      };/* class mystring */
+    }/* CVC4::parser::cvc namespace */
+  }/* CVC4::parser namespace */
+}/* CVC4 namespace */
+
 }
 
 @parser::postinclude {
@@ -72,7 +92,7 @@ using namespace CVC4::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
-#undef PARSER_STATE 
+#undef PARSER_STATE
 #define PARSER_STATE ((Parser*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
@@ -109,6 +129,8 @@ command returns [CVC4::Command* cmd = 0]
   Expr f;
   SExpr sexpr;
   std::string s;
+  Type t;
+  std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f);   }
@@ -119,6 +141,13 @@ command returns [CVC4::Command* cmd = 0]
     { cmd = new SetOptionCommand(AntlrInput::tokenText($STRING_LITERAL), sexpr); }
   | PUSH_TOK SEMICOLON { cmd = new PushCommand(); }
   | POP_TOK SEMICOLON { cmd = new PopCommand(); }
+    // Datatypes can be mututally-recursive if they're in the same
+    // definition block, separated by a comma.  So we parse everything
+    // and then ask the ExprManager to resolve everything in one go.
+  | DATATYPE_TOK datatypeDef[dts]
+    ( COMMA datatypeDef[dts] )*
+    END_TOK SEMICOLON
+    { cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   | declaration[cmd]
   | EOF
   ;
@@ -159,8 +188,8 @@ declType[CVC4::Type& t, std::vector<std::string>& idList]
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : /* A sort declaration (e.g., "T : TYPE") */
-    TYPE_TOK 
-    { PARSER_STATE->mkSorts(idList); 
+    TYPE_TOK
+    { PARSER_STATE->mkSorts(idList);
       t = EXPR_MANAGER->kindType(); }
   | /* A variable declaration */
     type[t] { PARSER_STATE->mkVars(idList,t); }
@@ -179,7 +208,7 @@ type[CVC4::Type& t]
   : /* Simple type */
     baseType[t]
   | /* Single-parameter function type */
-    baseType[t] ARROW_TOK baseType[t2] 
+    baseType[t] ARROW_TOK baseType[t2]
     { t = EXPR_MANAGER->mkFunctionType(t,t2); }
   | /* Multi-parameter function type */
     LPAREN baseType[t]
@@ -218,34 +247,62 @@ identifier[std::string& id,
   ;
 
 /**
- * Matches a type.
- * TODO: parse more types
+ * Matches a type (which MUST be already declared).
+ *
+ * @return the type identifier
  */
 baseType[CVC4::Type& t]
-@init {
-  std::string id;
-  Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
-}
-  : BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
-  | INT_TOK { t = EXPR_MANAGER->integerType(); }
-  | REAL_TOK { t = EXPR_MANAGER->realType(); }
-  | typeSymbol[t]
+  : maybeUndefinedBaseType[t,CHECK_DECLARED]
   ;
 
 /**
- * Matches a type identifier
+ * Matches a type (which may not be declared yet).  Returns the
+ * identifier.  If the type is declared, returns the Type in the 't'
+ * parameter; otherwise a null Type is returned in 't'.  If 'check' is
+ * CHECK_DECLARED and the type is not declared, an exception is
+ * thrown.
+ *
+ * @return the type identifier
+ *
+ * @TODO parse more types
  */
-typeSymbol[CVC4::Type& t]
+maybeUndefinedBaseType[CVC4::Type& t,
+                       CVC4::parser::DeclarationCheck check] returns [CVC4::parser::cvc::mystring id]
 @init {
-  std::string id;
+  Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  AssertArgument(check == CHECK_DECLARED || check == CHECK_NONE,
+                 check, "CVC parser: can't use CHECK_UNDECLARED with maybeUndefinedBaseType[]");
+}
+  : BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); id = AntlrInput::tokenText($BOOLEAN_TOK); }
+  | INT_TOK { t = EXPR_MANAGER->integerType(); id = AntlrInput::tokenText($INT_TOK); }
+  | REAL_TOK { t = EXPR_MANAGER->realType(); id = AntlrInput::tokenText($REAL_TOK); }
+  | typeSymbol[t,check]
+    { id = $typeSymbol.id; }
+  ;
+
+/**
+ * Matches a type identifier.  Returns the identifier.  If the type is
+ * declared, returns the Type in the 't' parameter; otherwise a null
+ * Type is returned in 't'.  If 'check' is CHECK_DECLARED and the type
+ * is not declared, an exception is thrown.
+ *
+ * @return the type identifier
+ */
+typeSymbol[CVC4::Type& t,
+           CVC4::parser::DeclarationCheck check] returns [CVC4::parser::cvc::mystring id]
+@init {
   Debug("parser-extra") << "type symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : identifier[id,CHECK_DECLARED,SYM_SORT]
-    { t = PARSER_STATE->getSort(id); }
+  : identifier[id,check,SYM_SORT]
+    { bool isNew = (check == CHECK_UNDECLARED || check == CHECK_NONE) &&
+                   !PARSER_STATE->isDeclared(id, SYM_SORT);
+      t = isNew ? Type() : PARSER_STATE->getSort(id);
+    }
   ;
 
 /**
  * Matches a CVC4 formula.
+ *
  * @return the expression representing the formula
  */
 formula[CVC4::Expr& formula]
@@ -311,7 +368,7 @@ iffFormula[CVC4::Expr& f]
   Debug("parser-extra") << "<=> formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : impliesFormula[f]
-    ( IFF_TOK 
+    ( IFF_TOK
     	iffFormula[e]
         { f = MK_EXPR(CVC4::kind::IFF, f, e); }
     )?
@@ -371,7 +428,7 @@ andFormula[CVC4::Expr& f]
   std::vector<Expr> exprs;
   Debug("parser-extra") << "AND Formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : notFormula[f] 
+  : notFormula[f]
     ( AND_TOK { exprs.push_back(f); }
       notFormula[f] { exprs.push_back(f); } )*
     {
@@ -412,9 +469,9 @@ comparisonFormula[CVC4::Expr& f]
     ( ( EQUAL_TOK { op = CVC4::kind::EQUAL; negate = false; }
       | DISEQUAL_TOK { op = CVC4::kind::EQUAL; negate = true; }
       | GT_TOK { op = CVC4::kind::GT; negate = false; }
-      | GEQ_TOK { op = CVC4::kind::GEQ; negate = false; } 
+      | GEQ_TOK { op = CVC4::kind::GEQ; negate = false; }
       | LT_TOK { op = CVC4::kind::LT; negate = false; }
-      | LEQ_TOK { op = CVC4::kind::LEQ; negate = false; }) 
+      | LEQ_TOK { op = CVC4::kind::LEQ; negate = false; })
       plusTerm[e]
       { f = MK_EXPR(op, f, e);
         if(negate) {
@@ -424,7 +481,7 @@ comparisonFormula[CVC4::Expr& f]
     )?
   ;
 
-/** Parses a plus/minus term (left-associative). 
+/** Parses a plus/minus term (left-associative).
     TODO: This won't take advantage of n-ary PLUS's. */
 plusTerm[CVC4::Expr& f]
 @init {
@@ -435,13 +492,13 @@ plusTerm[CVC4::Expr& f]
 }
   : multTerm[f]
     ( ( PLUS_TOK { op = CVC4::kind::PLUS; }
-      | MINUS_TOK { op = CVC4::kind::MINUS; } ) 
+      | MINUS_TOK { op = CVC4::kind::MINUS; } )
       multTerm[e]
       { f = MK_EXPR(op, f, e); }
     )*
   ;
 
-/** Parses a multiply/divide term (left-associative). 
+/** Parses a multiply/divide term (left-associative).
     TODO: This won't take advantage of n-ary MULT's. */
 multTerm[CVC4::Expr& f]
 @init {
@@ -451,7 +508,7 @@ multTerm[CVC4::Expr& f]
 }
   : expTerm[f]
     ( ( STAR_TOK { op = CVC4::kind::MULT; }
-      | DIV_TOK { op = CVC4::kind::DIVISION; } ) 
+      | DIV_TOK { op = CVC4::kind::DIVISION; } )
       expTerm[e]
       { f = MK_EXPR(op, f, e); }
     )*
@@ -494,18 +551,29 @@ unaryTerm[CVC4::Expr& f]
   std::vector<Expr> args;
   Debug("parser-extra") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : /* function application */
-    // { isFunction(AntlrInput::tokenText(LT(1))) }?
+  : /* function/constructor application */
     functionSymbol[f]
     { args.push_back( f ); }
     LPAREN formulaList[args] RPAREN
     // TODO: check arity
-    { f = MK_EXPR(CVC4::kind::APPLY_UF, args); }
+    { Type t = f.getType();
+      if( t.isFunction() ) {
+        f = MK_EXPR(CVC4::kind::APPLY_UF, args);
+      } else if( t.isConstructor() ) {
+        Debug("parser-idt") << "apply constructor: " << name.c_str() << " " << args.size() << std::endl;
+        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
+      } else if( t.isSelector() ) {
+        Debug("parser-idt") << "apply selector: " << name.c_str() << " " << args.size() << std::endl;
+        f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
+      } else if( t.isTester() ) {
+        Debug("parser-idt") << "apply tester: " << name.c_str() << " " << args.size() << std::endl;
+        f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
+      }
+    }
 
   | /* if-then-else */
     iteTerm[f]
 
-    
   | /* Unary minus */
     MINUS_TOK unaryTerm[f] { f = MK_EXPR(CVC4::kind::UMINUS, f); }
 
@@ -517,10 +585,17 @@ unaryTerm[CVC4::Expr& f]
   | FALSE_TOK { f = MK_CONST(false); }
 
   | INTEGER_LITERAL { f = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
+  | DECIMAL_LITERAL { f = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
 
   | /* variable */
     identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { f = PARSER_STATE->getVariable(name); }
+    { f = PARSER_STATE->getVariable(name);
+      // datatypes: 0-ary constructors
+      if( PARSER_STATE->getType(name).isConstructor() ){
+        args.push_back( f );
+        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
+      }
+    }
   ;
 
 /**
@@ -546,7 +621,7 @@ iteElseTerm[CVC4::Expr& f]
   std::vector<Expr> args;
   Debug("parser-extra") << "else: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : ELSE_TOK formula[f] 
+  : ELSE_TOK formula[f]
   | ELSEIF_TOK iteCondition = formula[f] { args.push_back(f); }
     THEN_TOK iteThen = formula[f] { args.push_back(f); }
     iteElse = iteElseTerm[f] { args.push_back(f); }
@@ -564,10 +639,65 @@ functionSymbol[CVC4::Expr& f]
   std::string name;
 }
   : identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { PARSER_STATE->checkFunction(name);
+    { PARSER_STATE->checkFunctionLike(name);
       f = PARSER_STATE->getVariable(name); }
   ;
 
+/**
+ * Parses a datatype definition
+ */
+datatypeDef[std::vector<CVC4::Datatype>& datatypes]
+@init {
+  std::string id;
+}
+  : identifier[id,CHECK_UNDECLARED,SYM_SORT]
+    { datatypes.push_back(Datatype(id)); }
+    EQUAL_TOK constructorDef[datatypes.back()]
+    ( BAR_TOK constructorDef[datatypes.back()] )*
+  ;
+
+/**
+ * Parses a constructor defintion for type
+ */
+constructorDef[CVC4::Datatype& type]
+@init {
+  std::string id;
+  CVC4::Datatype::Constructor* ctor;
+}
+  : identifier[id,CHECK_UNDECLARED,SYM_SORT]
+    {
+      // make the tester
+      std::string testerId("is_");
+      testerId.append(id);
+      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
+      ctor = new CVC4::Datatype::Constructor(id, testerId);
+    }
+    ( LPAREN
+      selector[*ctor]
+      ( COMMA selector[*ctor] )*
+      RPAREN
+    )?
+    { // make the constructor
+      type.addConstructor(*ctor);
+      Debug("parser-idt") << "constructor: " << id.c_str() << std::endl;
+      delete ctor;
+    }
+  ;
+
+selector[CVC4::Datatype::Constructor& ctor]
+@init {
+  std::string id;
+  Type type;
+}
+  : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON maybeUndefinedBaseType[type,CHECK_NONE]
+    { if(type.isNull()) {
+        ctor.addArg(id, Datatype::UnresolvedType($maybeUndefinedBaseType.id));
+      } else {
+        ctor.addArg(id, type);
+      }
+      Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
+    }
+  ;
 
 // Keywords
 
@@ -597,6 +727,16 @@ THEN_TOK : 'THEN';
 TRUE_TOK : 'TRUE';
 TYPE_TOK : 'TYPE';
 XOR_TOK : 'XOR';
+
+DATATYPE_TOK : 'DATATYPE';
+END_TOK : 'END';
+BAR_TOK : '|';
+
+ARRAY_TOK : 'ARRAY';
+OF_TOK : 'OF';
+WITH_TOK : 'WITH';
+
+BITVECTOR_TOK : 'BITVECTOR';
 
 // Symbols
 

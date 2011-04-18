@@ -5,7 +5,7 @@
  ** Major contributors: cconway, dejan
  ** Minor contributors (to current version): acsys, taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -55,8 +55,8 @@ namespace attr {
   struct SortArityTag {};
 }/* CVC4::expr::attr namespace */
 
-typedef expr::Attribute<attr::VarNameTag, std::string> VarNameAttr;
-typedef expr::Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
+typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
+typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 
 }/* CVC4::expr namespace */
 
@@ -542,6 +542,15 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
+  /** Make a type representing a constructor with the given parameterization */
+  TypeNode mkConstructorType(const Datatype::Constructor& constructor, TypeNode range);
+
+  /** Make a type representing a selector with the given parameterization */
+  inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
+
+  /** Make a type representing a tester with given parameterization */
+  inline TypeNode mkTesterType(TypeNode domain);
+
   /** Make a new (anonymous) sort of arity 0. */
   inline TypeNode mkSort();
 
@@ -794,6 +803,14 @@ inline TypeNode NodeManager::mkBitVectorType(unsigned size) {
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                                          TypeNode constituentType) {
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
+}
+
+inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
+  return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
+}
+
+inline TypeNode NodeManager::mkTesterType(TypeNode domain) {
+  return mkTypeNode(kind::TESTER_TYPE, domain );
 }
 
 inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {

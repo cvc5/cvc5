@@ -2,10 +2,10 @@
 /*! \file theory_engine.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: barrett
- ** Minor contributors (to current version): cconway, taking
+ ** Major contributors: taking, barrett, dejan
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -166,6 +166,11 @@ struct preprocess_stack_element {
 };
 
 Node TheoryEngine::preprocess(TNode node) {
+  // Make sure the node is type-checked first (some rewrites depend on
+  // typechecking having succeeded to be safe).
+  if(Options::current()->typeChecking) {
+    node.getType(true);
+  }
   // Remove ITEs and rewrite the node
   Node preprocessed = Rewriter::rewrite(removeITEs(node));
   return preprocessed;
@@ -300,7 +305,7 @@ Node TheoryEngine::removeITEs(TNode node) {
 
       Debug("ite") << "removeITEs([" << node.getId() << "," << node << "," << nodeType << "])"
                    << "->"
-                   << "["<<newAssertion.getId() << "," << newAssertion << "]"
+                   << "[" << newAssertion.getId() << "," << newAssertion << "]"
                    << endl;
 
       Node preprocessed = preprocess(newAssertion);

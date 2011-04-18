@@ -813,7 +813,7 @@ namespace CVC4 {
 
 // for hash_maps, hash_sets..
 struct NodeHashFunction {
-  size_t operator()(const CVC4::Node& node) const {
+  size_t operator()(CVC4::Node node) const {
     return (size_t) node.getId();
   }
 };/* struct NodeHashFunction */

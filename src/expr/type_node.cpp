@@ -5,7 +5,7 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -76,28 +76,38 @@ TypeNode TypeNode::getArrayConstituentType() const {
   return (*this)[1];
 }
 
-/** Is this a function type? */
+TypeNode TypeNode::getConstructorReturnType() const {
+  Assert(isConstructor());
+  return (*this)[getNumChildren()-1];
+}
+
 bool TypeNode::isFunction() const {
   return getKind() == kind::FUNCTION_TYPE;
 }
 
-/** Is this a predicate type? NOTE: all predicate types are also
-    function types. */
 bool TypeNode::isPredicate() const {
   return isFunction() && getRangeType().isBoolean();
 }
 
-vector<TypeNode> TypeNode::getArgTypes() const {
-  Assert(isFunction());
+std::vector<TypeNode> TypeNode::getArgTypes() const {
   vector<TypeNode> args;
-  for(unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
-    args.push_back((*this)[i]);
+  if(isTester()) {
+    Assert(getNumChildren() == 1);
+    args.push_back((*this)[0]);
+  } else {
+    Assert(isFunction() || isConstructor() || isSelector());
+    for(unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
+      args.push_back((*this)[i]);
+    }
   }
   return args;
 }
 
 TypeNode TypeNode::getRangeType() const {
-  Assert(isFunction());
+  if(isTester()) {
+    return NodeManager::currentNM()->booleanType();
+  }
+  Assert(isFunction() || isConstructor() || isSelector());
   return (*this)[getNumChildren()-1];
 }
 
@@ -135,6 +145,26 @@ bool TypeNode::isKind() const {
 /** Is this a bit-vector type */
 bool TypeNode::isBitVector() const {
   return getKind() == kind::BITVECTOR_TYPE;
+}
+
+/** Is this a datatype type */
+bool TypeNode::isDatatype() const {
+  return getKind() == kind::DATATYPE_TYPE;
+}
+
+/** Is this a constructor type */
+bool TypeNode::isConstructor() const {
+  return getKind() == kind::CONSTRUCTOR_TYPE;
+}
+
+/** Is this a selector type */
+bool TypeNode::isSelector() const {
+  return getKind() == kind::SELECTOR_TYPE;
+}
+
+/** Is this a tester type */
+bool TypeNode::isTester() const {
+  return getKind() == kind::TESTER_TYPE;
 }
 
 /** Is this a bit-vector type of size <code>size</code> */

@@ -5,7 +5,7 @@
  ** Major contributors: mdeters, dejan
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -36,6 +36,8 @@ class TypeNode;
 
 class SmtEngine;
 
+class Datatype;
+
 template <bool ref_count>
 class NodeTemplate;
 
@@ -44,6 +46,10 @@ class IntegerType;
 class RealType;
 class BitVectorType;
 class ArrayType;
+class DatatypeType;
+class ConstructorType;
+class SelectorType;
+class TesterType;
 class FunctionType;
 class TupleType;
 class KindType;
@@ -52,10 +58,10 @@ class SortConstructorType;
 class Type;
 
 /** Strategy for hashing Types */
-struct CVC4_PUBLIC TypeHashStrategy {
+struct CVC4_PUBLIC TypeHashFunction {
   /** Return a hash code for type t */
-  static size_t hash(const CVC4::Type& t);
-};/* struct TypeHashStrategy */
+  size_t operator()(const CVC4::Type& t);
+};/* struct TypeHashFunction */
 
 /**
  * Output operator for types
@@ -259,6 +265,54 @@ public:
   operator ArrayType() const throw(AssertionException);
 
   /**
+   * Is this a datatype type?
+   * @return true if the type is a datatype type
+   */
+  bool isDatatype() const;
+
+  /**
+   * Cast this type to a datatype type
+   * @return the DatatypeType
+   */
+  operator DatatypeType() const throw(AssertionException);
+
+  /**
+   * Is this a constructor type?
+   * @return true if the type is a constructor type
+   */
+  bool isConstructor() const;
+
+  /**
+   * Cast this type to a constructor type
+   * @return the ConstructorType
+   */
+  operator ConstructorType() const throw(AssertionException);
+
+  /**
+   * Is this a selector type?
+   * @return true if the type is a selector type
+   */
+  bool isSelector() const;
+
+  /**
+   * Cast this type to a selector type
+   * @return the SelectorType
+   */
+  operator SelectorType() const throw(AssertionException);
+
+  /**
+   * Is this a tester type?
+   * @return true if the type is a tester type
+   */
+  bool isTester() const;
+
+  /**
+   * Cast this type to a tester type
+   * @return the TesterType
+   */
+  operator TesterType() const throw(AssertionException);
+
+  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
@@ -448,6 +502,78 @@ public:
    */
   unsigned getSize() const;
 };/* class BitVectorType */
+
+
+/**
+ * Class encapsulating the datatype type
+ */
+class CVC4_PUBLIC DatatypeType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  DatatypeType(const Type& type) throw(AssertionException);
+
+  /** Get the underlying datatype */
+  const Datatype& getDatatype() const;
+
+};/* class DatatypeType */
+
+
+/**
+ * Class encapsulating the constructor type
+ */
+class CVC4_PUBLIC ConstructorType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  ConstructorType(const Type& type) throw(AssertionException);
+
+  /** Get the return type */
+  Type getReturnType() const;
+
+};/* class ConstructorType */
+
+
+/**
+ * Class encapsulating the Selector type
+ */
+class CVC4_PUBLIC SelectorType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  SelectorType(const Type& type) throw(AssertionException);
+
+  /** Get the domain type for this selector (the datatype type) */
+  DatatypeType getDomain() const;
+
+  /** Get the range type for this selector (the field type) */
+  Type getRangeType() const;
+
+};/* class SelectorType */
+
+/**
+ * Class encapsulating the Tester type
+ */
+class CVC4_PUBLIC TesterType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  TesterType(const Type& type) throw(AssertionException);
+
+  /** Get the type that this tester tests (the datatype type) */
+  DatatypeType getDomain() const;
+
+  /**
+   * Get the range type for this tester (included for sake of
+   * interface completeness), but doesn't give useful information).
+   */
+  BooleanType getRangeType() const;
+
+};/* class TesterType */
 
 }/* CVC4 namespace */
 

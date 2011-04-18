@@ -5,7 +5,7 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): taking, cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -241,20 +241,40 @@ public:
    */
   TupleType mkTupleType(const std::vector<Type>& types);
 
-  /** Make a type representing a bit-vector of the given size */
+  /** Make a type representing a bit-vector of the given size. */
   BitVectorType mkBitVectorType(unsigned size) const;
 
-  /** Make the type of arrays with the given parameterization */
+  /** Make the type of arrays with the given parameterization. */
   ArrayType mkArrayType(Type indexType, Type constituentType) const;
+
+  /** Make a type representing the given datatype. */
+  DatatypeType mkDatatypeType(const Datatype& datatype);
+
+  /**
+   * Make a set of types representing the given datatypes, which may be
+   * mutually recursive.
+   */
+  std::vector<DatatypeType> mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes);
+
+  /**
+   * Make a type representing a constructor with the given parameterization.
+   */
+  ConstructorType mkConstructorType(const Datatype::Constructor& constructor, Type range) const;
+
+  /** Make a type representing a selector with the given parameterization. */
+  SelectorType mkSelectorType(Type domain, Type range) const;
+
+  /** Make a type representing a tester with the given parameterization. */
+  TesterType mkTesterType(Type domain) const;
 
   /** Make a new sort with the given name. */
   SortType mkSort(const std::string& name) const;
 
-  /** Make a new sort from a constructor */
+  /** Make a new sort from a constructor. */
   SortType mkSort(SortConstructorType constructor,
                   const std::vector<TypeNode>& children) const;
 
-  /** Make a sort constructor from a name and arity */
+  /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
                                         size_t arity) const;
 

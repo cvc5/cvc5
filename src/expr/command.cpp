@@ -2,10 +2,10 @@
 /*! \file command.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): none
+ ** Major contributors: none
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -496,6 +496,35 @@ void GetOptionCommand::printResult(std::ostream& out) const {
 
 void GetOptionCommand::toStream(std::ostream& out) const {
   out << "GetOption(" << d_flag << ")";
+}
+
+/* class DatatypeDeclarationCommand */
+
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(const DatatypeType& datatype) :
+  d_datatypes() {
+  d_datatypes.push_back(datatype);
+  Debug("datatypes") << "Create datatype command." << endl;
+}
+
+DatatypeDeclarationCommand::DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes) :
+  d_datatypes(datatypes) {
+  Debug("datatypes") << "Create datatype command." << endl;
+}
+
+void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) {
+  Debug("datatypes") << "Invoke datatype command." << endl;
+  //smtEngine->addDatatypeDefinitions(d_datatype);
+}
+
+void DatatypeDeclarationCommand::toStream(std::ostream& out) const {
+  out << "DatatypeDeclarationCommand([";
+  for(vector<DatatypeType>::const_iterator i = d_datatypes.begin(),
+        i_end = d_datatypes.end();
+      i != i_end;
+      ++i) {
+    out << *i << ";" << endl;
+  }
+  out << "])";
 }
 
 /* output stream insertion operator for benchmark statuses */

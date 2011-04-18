@@ -18,6 +18,13 @@
 
 #include "cvc4_public.h"
 
+// putting the constant-payload #includes up here allows circularity
+// (some of them may require a completely-defined Expr type).  This
+// way, those #includes can forward-declare some stuff to get Expr's
+// getConst<> template instantiations correct, and then #include
+// "expr.h" safely, then go on to completely declare their own stuff.
+${includes}
+
 #ifndef __CVC4__EXPR_H
 #define __CVC4__EXPR_H
 
@@ -28,13 +35,11 @@
 #include "util/exception.h"
 #include "util/language.h"
 
-${includes}
-
 // This is a hack, but an important one: if there's an error, the
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 38 "${template}"
+#line 43 "${template}"
 
 namespace CVC4 {
 
@@ -576,6 +581,31 @@ public:
   static inline void setDepth(std::ostream& out, long depth) {
     out.iword(s_iosIndex) = depth;
   }
+
+  /**
+   * Set the expression depth on the output stream for the current
+   * stack scope.  This makes sure the old depth is reset on the stream
+   * after normal OR exceptional exit from the scope, using the RAII
+   * C++ idiom.
+   */
+  class Scope {
+    std::ostream& d_out;
+    long d_oldDepth;
+
+  public:
+
+    inline Scope(std::ostream& out, long depth) :
+      d_out(out),
+      d_oldDepth(ExprSetDepth::getDepth(out)) {
+      ExprSetDepth::setDepth(out, depth);
+    }
+
+    inline ~Scope() {
+      ExprSetDepth::setDepth(d_out, d_oldDepth);
+    }
+
+  };/* class ExprSetDepth::Scope */
+
 };/* class ExprSetDepth */
 
 /**
@@ -621,6 +651,31 @@ public:
   static inline void setPrintTypes(std::ostream& out, bool printTypes) {
     out.iword(s_iosIndex) = printTypes;
   }
+
+  /**
+   * Set the print-types state on the output stream for the current
+   * stack scope.  This makes sure the old state is reset on the
+   * stream after normal OR exceptional exit from the scope, using the
+   * RAII C++ idiom.
+   */
+  class Scope {
+    std::ostream& d_out;
+    bool d_oldPrintTypes;
+
+  public:
+
+    inline Scope(std::ostream& out, bool printTypes) :
+      d_out(out),
+      d_oldPrintTypes(ExprPrintTypes::getPrintTypes(out)) {
+      ExprPrintTypes::setPrintTypes(out, printTypes);
+    }
+
+    inline ~Scope() {
+      ExprPrintTypes::setPrintTypes(d_out, d_oldPrintTypes);
+    }
+
+  };/* class ExprPrintTypes::Scope */
+
 };/* class ExprPrintTypes */
 
 /**
@@ -668,13 +723,38 @@ public:
     // (offset by one to detect whether default has been set yet)
     out.iword(s_iosIndex) = int(l) + 1;
   }
+
+  /**
+   * Set a language on the output stream for the current stack scope.
+   * This makes sure the old language is reset on the stream after
+   * normal OR exceptional exit from the scope, using the RAII C++
+   * idiom.
+   */
+  class Scope {
+    std::ostream& d_out;
+    OutputLanguage d_oldLanguage;
+
+  public:
+
+    inline Scope(std::ostream& out, OutputLanguage language) :
+      d_out(out),
+      d_oldLanguage(ExprSetLanguage::getLanguage(out)) {
+      ExprSetLanguage::setLanguage(out, language);
+    }
+
+    inline ~Scope() {
+      ExprSetLanguage::setLanguage(d_out, d_oldLanguage);
+    }
+
+  };/* class ExprSetLanguage::Scope */
+
 };/* class ExprSetLanguage */
 
 }/* CVC4::expr namespace */
 
 ${getConst_instantiations}
 
-#line 676 "${template}"
+#line 682 "${template}"
 
 namespace expr {
 

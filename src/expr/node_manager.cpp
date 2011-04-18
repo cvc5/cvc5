@@ -2,10 +2,10 @@
 /*! \file node_manager.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: cconway, dejan
- ** Minor contributors (to current version): acsys, taking
+ ** Major contributors: cconway
+ ** Minor contributors (to current version): acsys, taking, dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -26,6 +26,7 @@
 #include "theory/arith/theory_arith_type_rules.h"
 #include "theory/arrays/theory_arrays_type_rules.h"
 #include "theory/bv/theory_bv_type_rules.h"
+#include "theory/datatypes/theory_datatypes_type_rules.h"
 
 #include "util/Assert.h"
 #include "util/options.h"
@@ -434,6 +435,15 @@ TypeNode NodeManager::computeType(TNode n, bool check)
   case kind::BITVECTOR_SIGN_EXTEND:
     typeNode = CVC4::theory::bv::BitVectorExtendTypeRule::computeType(this, n, check);
     break;
+  case kind::APPLY_CONSTRUCTOR:
+    typeNode = CVC4::theory::datatypes::DatatypeConstructorTypeRule::computeType(this, n, check);
+    break;
+  case kind::APPLY_SELECTOR:
+    typeNode = CVC4::theory::datatypes::DatatypeSelectorTypeRule::computeType(this, n, check);
+    break;
+  case kind::APPLY_TESTER:
+    typeNode = CVC4::theory::datatypes::DatatypeTesterTypeRule::computeType(this, n, check);
+    break;
   default:
     Debug("getType") << "FAILURE" << std::endl;
     Unhandled(n.getKind());
@@ -507,6 +517,22 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << "type of " << n << " is " << typeNode << std::endl;
   return typeNode;
+}
+
+TypeNode NodeManager::mkConstructorType(const Datatype::Constructor& constructor, TypeNode range) {
+  std::vector<TypeNode> sorts;
+  Debug("datatypes") << "ctor name: " << constructor.getName() << std::endl;
+  for(Datatype::Constructor::const_iterator i = constructor.begin();
+      i != constructor.end();
+      ++i) {
+    Debug("datatypes") << *(*i).getSelector().getType().d_typeNode << std::endl;
+    TypeNode sort = (*(*i).getSelector().getType().d_typeNode)[1];
+    Debug("datatypes") << "ctor sort: " << sort << std::endl;
+    sorts.push_back(sort);
+  }
+  Debug("datatypes") << "ctor range: " << range << std::endl;
+  sorts.push_back(range);
+  return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
 }/* CVC4 namespace */

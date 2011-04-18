@@ -33,6 +33,7 @@ UNIT_TESTS = \
 	context/cdvector_black \
 	util/assert_white \
 	util/bitvector_black \
+	util/datatype_black \
 	util/configuration_black \
 	util/congruence_closure_white \
 	util/output_black \
