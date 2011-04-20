@@ -29,6 +29,7 @@
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/output.h"
+#include "util/options.h"
 #include "util/Assert.h"
 #include "parser/cvc/cvc_input.h"
 #include "parser/smt/smt_input.h"
@@ -39,14 +40,15 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace parser {
 
-Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode) :
+Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   d_exprManager(exprManager),
   d_input(input),
   d_declScopeAllocated(),
   d_declScope(&d_declScopeAllocated),
   d_done(false),
   d_checksEnabled(true),
-  d_strictMode(strictMode) {
+  d_strictMode(strictMode),
+  d_parseOnly(parseOnly) {
   d_input->setParser(*this);
 }
 
@@ -136,7 +138,7 @@ Parser::mkFunction(const std::string& name, const Type& type) {
   return expr;
 }
 
-const std::vector<Expr>
+std::vector<Expr>
 Parser::mkVars(const std::vector<std::string> names,
                const Type& type) {
   std::vector<Expr> vars;
@@ -188,7 +190,7 @@ Parser::defineParameterizedType(const std::string& name,
   defineType(name, params, type);
 }
 
-Type
+SortType
 Parser::mkSort(const std::string& name) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Type type = d_exprManager->mkSort(name);
@@ -196,34 +198,54 @@ Parser::mkSort(const std::string& name) {
   return type;
 }
 
-Type
+SortConstructorType
 Parser::mkSortConstructor(const std::string& name, size_t arity) {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  Type type = d_exprManager->mkSortConstructor(name, arity);
+  SortConstructorType type = d_exprManager->mkSortConstructor(name, arity);
   defineType(name, vector<Type>(arity), type);
   return type;
 }
 
-std::vector<Type>
+std::vector<SortType>
 Parser::mkSorts(const std::vector<std::string>& names) {
-  std::vector<Type> types;
+  std::vector<SortType> types;
   for(unsigned i = 0; i < names.size(); ++i) {
     types.push_back(mkSort(names[i]));
   }
   return types;
 }
 
+SortType Parser::mkUnresolvedType(const std::string& name) {
+  SortType unresolved = mkSort(name);
+  d_unresolved.insert(unresolved);
+  return unresolved;
+}
+
+bool Parser::isUnresolvedType(const std::string& name) {
+  if(!isDeclared(name, SYM_SORT)) {
+    return false;
+  }
+  return d_unresolved.find(getSort(name)) != d_unresolved.end();
+}
+
 std::vector<DatatypeType>
 Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
+
   std::vector<DatatypeType> types =
-    d_exprManager->mkMutualDatatypeTypes(datatypes);
+    d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
+
   Assert(datatypes.size() == types.size());
+
   for(unsigned i = 0; i < datatypes.size(); ++i) {
     DatatypeType t = types[i];
     const Datatype& dt = t.getDatatype();
-    Debug("parser-idt") << "define " << dt.getName() << " as " << t << std::endl;
-    defineType(dt.getName(), t);
+    const std::string& name = dt.getName();
+    Debug("parser-idt") << "define " << name << " as " << t << std::endl;
+    if(isDeclared(name, SYM_SORT)) {
+      throw ParserException(name + " already declared");
+    }
+    defineType(name, t);
     for(Datatype::const_iterator j = dt.begin(),
           j_end = dt.end();
         j != j_end;
@@ -258,6 +280,12 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
       }
     }
   }
+
+  // These are no longer used, and the ExprManager would have
+  // complained of a bad substitution if anything is left unresolved.
+  // Clear out the set.
+  d_unresolved.clear();
+
   return types;
 }
 
@@ -273,9 +301,9 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
 }
 
 void Parser::checkDeclaration(const std::string& varName,
-                                   DeclarationCheck check,
-                                   SymbolType type)
-    throw (ParserException) {
+                              DeclarationCheck check,
+                              SymbolType type)
+    throw(ParserException) {
   if(!d_checksEnabled) {
     return;
   }
@@ -283,13 +311,13 @@ void Parser::checkDeclaration(const std::string& varName,
   switch(check) {
   case CHECK_DECLARED:
     if( !isDeclared(varName, type) ) {
-      parseError("Symbol " + varName + " not declared");
+      parseError("Symbol " + varName + " not declared as a " + (type == SYM_VARIABLE ? "variable" : "type"));
     }
     break;
 
   case CHECK_UNDECLARED:
     if( isDeclared(varName, type) ) {
-      parseError("Symbol " + varName + " previously declared");
+      parseError("Symbol " + varName + " previously declared as a " + (type == SYM_VARIABLE ? "variable" : "type"));
     }
     break;
 
@@ -301,21 +329,20 @@ void Parser::checkDeclaration(const std::string& varName,
   }
 }
 
-void Parser::checkFunctionLike(const std::string& name)
-  throw (ParserException) {
-  if( d_checksEnabled && !isFunctionLike(name) ) {
+void Parser::checkFunctionLike(const std::string& name) throw(ParserException) {
+  if(d_checksEnabled && !isFunctionLike(name)) {
     parseError("Expecting function-like symbol, found '" + name + "'");
   }
 }
 
-void Parser::checkArity(Kind kind, unsigned int numArgs)
-  throw (ParserException) {
+void Parser::checkArity(Kind kind, unsigned numArgs)
+  throw(ParserException) {
   if(!d_checksEnabled) {
     return;
   }
 
-  unsigned int min = d_exprManager->minArity(kind);
-  unsigned int max = d_exprManager->maxArity(kind);
+  unsigned min = d_exprManager->minArity(kind);
+  unsigned max = d_exprManager->maxArity(kind);
 
   if( numArgs < min || numArgs > max ) {
     stringstream ss;
@@ -331,7 +358,7 @@ void Parser::checkArity(Kind kind, unsigned int numArgs)
   }
 }
 
-void Parser::checkOperator(Kind kind, unsigned int numArgs) throw (ParserException) {
+void Parser::checkOperator(Kind kind, unsigned numArgs) throw(ParserException) {
   if( d_strictMode && d_logicOperators.find(kind) == d_logicOperators.end() ) {
     parseError( "Operator is not defined in the current logic: " + kindToString(kind) );
   }
@@ -371,7 +398,11 @@ Command* Parser::nextCommand() throw(ParserException) {
       } catch(Exception& e) {
         setDone();
         stringstream ss;
-        ss << e;
+        // set the language of the stream, otherwise if it contains
+        // Exprs or Types it prints in the AST language
+        OutputLanguage outlang =
+          language::toOutputLanguage(d_input->getLanguage());
+        ss << Expr::setlanguage(outlang) << e;
         parseError( ss.str() );
       }
     }

@@ -673,8 +673,8 @@ symbol[std::string& id,
   : SYMBOL
     { id = AntlrInput::tokenText($SYMBOL);
       Debug("parser") << "symbol: " << id
-                      << " check? " << toString(check)
-                      << " type? " << toString(type) << std::endl;
+                      << " check? " << check
+                      << " type? " << type << std::endl;
       PARSER_STATE->checkDeclaration(id, check, type); }
   ;
 

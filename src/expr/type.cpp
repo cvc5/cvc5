@@ -69,10 +69,26 @@ bool Type::isNull() const {
 }
 
 Type& Type::operator=(const Type& t) {
-  NodeManagerScope nms(t.d_nodeManager);
+  Assert(d_typeNode != NULL, "Unexpected NULL typenode pointer!");
+  Assert(t.d_typeNode != NULL, "Unexpected NULL typenode pointer!");
+
   if(this != &t) {
-    *d_typeNode = *t.d_typeNode;
-    d_nodeManager = t.d_nodeManager;
+    if(d_nodeManager == t.d_nodeManager) {
+      NodeManagerScope nms(d_nodeManager);
+      *d_typeNode = *t.d_typeNode;
+    } else {
+      // This happens more than you think---every time you set to or
+      // from the null Type.  It's tricky because each node manager
+      // must be in play at the right time.
+
+      NodeManagerScope nms1(d_nodeManager);
+      *d_typeNode = TypeNode::null();
+
+      NodeManagerScope nms2(t.d_nodeManager);
+      *d_typeNode = *t.d_typeNode;
+
+      d_nodeManager = t.d_nodeManager;
+    }
   }
   return *this;
 }
@@ -83,6 +99,10 @@ bool Type::operator==(const Type& t) const {
 
 bool Type::operator!=(const Type& t) const {
   return *d_typeNode != *t.d_typeNode;
+}
+
+bool Type::operator<(const Type& t) const {
+  return *d_typeNode < *t.d_typeNode;
 }
 
 Type Type::substitute(const Type& type, const Type& replacement) const {
@@ -466,6 +486,22 @@ Type ArrayType::getConstituentType() const {
 
 Type ConstructorType::getReturnType() const {
   return makeType(d_typeNode->getConstructorReturnType());
+}
+
+size_t ConstructorType::getArity() const {
+  return d_typeNode->getNumChildren() - 1;
+}
+
+std::vector<Type> ConstructorType::getArgTypes() const {
+  NodeManagerScope nms(d_nodeManager);
+  vector<Type> args;
+  vector<TypeNode> argNodes = d_typeNode->getArgTypes();
+  vector<TypeNode>::iterator it = argNodes.begin();
+  vector<TypeNode>::iterator it_end = argNodes.end();
+  for(; it != it_end; ++ it) {
+    args.push_back(makeType(*it));
+  }
+  return args;
 }
 
 const Datatype& DatatypeType::getDatatype() const {

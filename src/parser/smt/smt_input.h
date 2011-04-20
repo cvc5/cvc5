@@ -55,6 +55,11 @@ public:
   /** Destructor. Frees the lexer and the parser. */
   ~SmtInput();
 
+  /** Get the language that this Input is reading. */
+  InputLanguage getLanguage() const throw() {
+    return language::input::LANG_SMTLIB;
+  }
+
 protected:
 
   /**
@@ -63,7 +68,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() 
+  Command* parseCommand()
     throw(ParserException, TypeCheckingException, AssertionException);
 
   /**
@@ -72,7 +77,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() 
+  Expr parseExpr()
     throw(ParserException, TypeCheckingException, AssertionException);
 
 private:

@@ -371,6 +371,19 @@ public:
   bool isFunction() const;
 
   /**
+   * Is this a function-LIKE type?  Function-like things
+   * (e.g. datatype selectors) that aren't actually functions ARE
+   * considered functions, here.  The main point is that this is used
+   * to avoid anything higher-order: anything function-like cannot be
+   * the argument or return value for anything else function-like.
+   *
+   * Arrays are explicitly *not* function-like for the purposes of
+   * this test.  However, functions still cannot contain anything
+   * function-like.
+   */
+  bool isFunctionLike() const;
+
+  /**
    * Get the argument types of a function, datatype constructor,
    * datatype selector, or datatype tester.
    */
@@ -383,9 +396,9 @@ public:
   TypeNode getRangeType() const;
 
   /**
-   * Is this a predicate type?
-   * NOTE: all predicate types are also function types (so datatype
-   * testers are not considered "predicates" for the purpose of this function).
+   * Is this a predicate type?  NOTE: all predicate types are also
+   * function types (so datatype testers are NOT considered
+   * "predicates" for the purpose of this function).
    */
   bool isPredicate() const;
 
@@ -451,7 +464,8 @@ private:
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   n.toStream(out,
              Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out));
+             Node::printtypes::getPrintTypes(out),
+             Node::setlanguage::getLanguage(out));
   return out;
 }
 

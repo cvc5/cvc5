@@ -474,8 +474,8 @@ identifier[std::string& id,
   : IDENTIFIER
     { id = AntlrInput::tokenText($IDENTIFIER);
       Debug("parser") << "identifier: " << id
-                      << " check? " << toString(check)
-                      << " type? " << toString(type) << std::endl;
+                      << " check? " << check
+                      << " type? " << type << std::endl;
       PARSER_STATE->checkDeclaration(id, check, type); }
   ;
 
@@ -489,7 +489,7 @@ let_identifier[std::string& id,
   : LET_IDENTIFIER
     { id = AntlrInput::tokenText($LET_IDENTIFIER);
       Debug("parser") << "let_identifier: " << id
-                      << " check? " << toString(check) << std::endl;
+                      << " check? " << check << std::endl;
       PARSER_STATE->checkDeclaration(id, check, SYM_VARIABLE); }
   ;
 
@@ -503,7 +503,7 @@ flet_identifier[std::string& id,
   : FLET_IDENTIFIER
     { id = AntlrInput::tokenText($FLET_IDENTIFIER);
       Debug("parser") << "flet_identifier: " << id
-                      << " check? " << toString(check) << std::endl;
+                      << " check? " << check << std::endl;
       PARSER_STATE->checkDeclaration(id, check); }
   ;
 

@@ -2,8 +2,8 @@
 /*! \file type_node.cpp
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: mdeters
- ** Minor contributors (to current version): taking
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -83,6 +83,14 @@ TypeNode TypeNode::getConstructorReturnType() const {
 
 bool TypeNode::isFunction() const {
   return getKind() == kind::FUNCTION_TYPE;
+}
+
+bool TypeNode::isFunctionLike() const {
+  return
+    getKind() == kind::FUNCTION_TYPE ||
+    getKind() == kind::CONSTRUCTOR_TYPE ||
+    getKind() == kind::SELECTOR_TYPE ||
+    getKind() == kind::TESTER_TYPE;
 }
 
 bool TypeNode::isPredicate() const {

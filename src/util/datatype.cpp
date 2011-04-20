@@ -62,18 +62,23 @@ size_t Datatype::indexOf(Expr item) {
 }
 
 void Datatype::resolve(ExprManager* em,
-                       const std::map<std::string, DatatypeType>& resolutions)
+                       const std::map<std::string, DatatypeType>& resolutions,
+                       const std::vector<Type>& placeholders,
+                       const std::vector<Type>& replacements)
   throw(AssertionException, DatatypeResolutionException) {
 
-  CheckArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
+  AssertArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
   CheckArgument(!d_resolved, "cannot resolve a Datatype twice");
-  CheckArgument(resolutions.find(d_name) != resolutions.end(), "Datatype::resolve(): resolutions doesn't contain me!");
+  AssertArgument(resolutions.find(d_name) != resolutions.end(),
+                "Datatype::resolve(): resolutions doesn't contain me!");
+  AssertArgument(placeholders.size() == replacements.size(), placeholders,
+                "placeholders and replacements must be the same size");
   DatatypeType self = (*resolutions.find(d_name)).second;
-  CheckArgument(&self.getDatatype() == this, "Datatype::resolve(): resolutions doesn't contain me!");
+  AssertArgument(&self.getDatatype() == this, "Datatype::resolve(): resolutions doesn't contain me!");
   d_resolved = true;
   size_t index = 0;
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    (*i).resolve(em, self, resolutions);
+    (*i).resolve(em, self, resolutions, placeholders, replacements);
     Assert((*i).isResolved());
     Node::fromExpr((*i).d_constructor).setAttribute(DatatypeIndexAttr(), index);
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
@@ -167,9 +172,11 @@ const Datatype::Constructor& Datatype::operator[](size_t index) const {
 }
 
 void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
-                                    const std::map<std::string, DatatypeType>& resolutions)
+                                    const std::map<std::string, DatatypeType>& resolutions,
+                                    const std::vector<Type>& placeholders,
+                                    const std::vector<Type>& replacements)
   throw(AssertionException, DatatypeResolutionException) {
-  CheckArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
+  AssertArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
   CheckArgument(!isResolved(),
                 "cannot resolve a Datatype constructor twice; "
                 "perhaps the same constructor was added twice, "
@@ -177,6 +184,7 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
   size_t index = 0;
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
     if((*i).d_selector.isNull()) {
+      // the unresolved type wasn't created here; do name resolution
       string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
       (*i).d_name.resize((*i).d_name.find('\0'));
       if(typeName == "") {
@@ -194,7 +202,13 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
         }
       }
     } else {
-      (*i).d_selector = em->mkVar((*i).d_name, em->mkSelectorType(self, (*i).d_selector.getType()));
+      // the type for the selector already exists; may need
+      // complex-type substitution
+      Type range = (*i).d_selector.getType();
+      if(!placeholders.empty()) {
+        range = range.substitute(placeholders, replacements);
+      }
+      (*i).d_selector = em->mkVar((*i).d_name, em->mkSelectorType(self, range));
     }
     Node::fromExpr((*i).d_selector).setAttribute(DatatypeIndexAttr(), index++);
     (*i).d_resolved = true;
@@ -204,7 +218,9 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
 
   // Set constructor/tester last, since Constructor::isResolved()
   // returns true when d_tester is not the null Expr.  If something
-  // fails above, we want Constuctor::isResolved() to remain "false"
+  // fails above, we want Constuctor::isResolved() to remain "false".
+  // Further, mkConstructorType() iterates over the selectors, so
+  // should get the results of any resolutions we did above.
   d_tester = em->mkVar(d_name.substr(d_name.find('\0') + 1), em->mkTesterType(self));
   d_name.resize(d_name.find('\0'));
   d_constructor = em->mkVar(d_name, em->mkConstructorType(*this, self));
@@ -302,6 +318,8 @@ bool Datatype::Constructor::Arg::isUnresolvedSelf() const throw() {
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
+static const int s_printDatatypeNamesOnly = std::ios_base::xalloc();
+
 std::string Datatype::Constructor::Arg::getSelectorTypeName() const {
   Type t;
   if(isResolved()) {
@@ -315,10 +333,35 @@ std::string Datatype::Constructor::Arg::getSelectorTypeName() const {
     }
   }
 
-  return t.isDatatype() ? DatatypeType(t).getDatatype().getName() : t.toString();
+  // Unfortunately, in the case of complex selector types, we can
+  // enter nontrivial recursion here.  Make sure that doesn't happen.
+  stringstream ss;
+  ss << Expr::setlanguage(language::output::LANG_CVC4);
+  ss.iword(s_printDatatypeNamesOnly) = 1;
+  t.toStream(ss);
+  return ss.str();
 }
 
 std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
+  // These datatype things are recursive!  Be very careful not to
+  // print an infinite chain of them.
+  long& printNameOnly = os.iword(s_printDatatypeNamesOnly);
+  Debug("datatypes") << "printNameOnly is " << printNameOnly << std::endl;
+  if(printNameOnly) {
+    return os << dt.getName();
+  }
+
+  class Scope {
+    long& d_ref;
+    long d_oldValue;
+  public:
+    Scope(long& ref, long value) : d_ref(ref), d_oldValue(ref) { d_ref = value; }
+    ~Scope() { d_ref = d_oldValue; }
+  } scope(printNameOnly, 1);
+  // when scope is destructed, the value pops back
+
+  Debug("datatypes") << "printNameOnly is now " << printNameOnly << std::endl;
+
   // can only output datatypes in the CVC4 native language
   Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
 

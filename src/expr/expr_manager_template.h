@@ -72,6 +72,11 @@ private:
   context::Context* getContext() const;
 
   /**
+   * Check some things about a newly-created DatatypeType.
+   */
+  void checkResolvedDatatype(DatatypeType dtt) const;
+
+  /**
    * SmtEngine will use all the internals, so it will grab the
    * NodeManager.
    */
@@ -319,7 +324,41 @@ public:
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes);
+  std::vector<DatatypeType>
+  mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes);
+
+  /**
+   * Make a set of types representing the given datatypes, which may
+   * be mutually recursive.  unresolvedTypes is a set of SortTypes
+   * that were used as placeholders in the Datatypes for the Datatypes
+   * of the same name.  This is just a more complicated version of the
+   * above mkMutualDatatypeTypes() function, but is required to handle
+   * complex types.
+   *
+   * For example, unresolvedTypes might contain the single sort "list"
+   * (with that name reported from SortType::getName()).  The
+   * datatypes list might have the single datatype
+   *
+   *   DATATYPE
+   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
+   *   END;
+   *
+   * To represent the Type of the array, the user had to create a
+   * placeholder type (an uninterpreted sort) to stand for "list" in
+   * the type of "car".  It is this placeholder sort that should be
+   * passed in unresolvedTypes.  If the datatype was of the simpler
+   * form:
+   *
+   *   DATATYPE
+   *     list = cons(car:list, cdr:list) | nil;
+   *   END;
+   *
+   * then no complicated Type needs to be created, and the above,
+   * simpler form of mkMutualDatatypeTypes() is enough.
+   */
+  std::vector<DatatypeType>
+  mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
+                        const std::set<SortType>& unresolvedTypes);
 
   /**
    * Make a type representing a constructor with the given parameterization.

@@ -185,8 +185,7 @@ public:
     unsigned extendAmount = n.getKind() == kind::BITVECTOR_SIGN_EXTEND ?
         (unsigned) n.getOperator().getConst<BitVectorSignExtend>() :
         (unsigned) n.getOperator().getConst<BitVectorZeroExtend>();
-
-    return nodeManager->mkBitVectorType(extendAmount +  t.getBitVectorSize());
+    return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());
   }
 };
 

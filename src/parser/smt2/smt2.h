@@ -2,10 +2,10 @@
 /*! \file smt2.h
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -48,7 +48,7 @@ private:
   Smt::Logic d_logic;
 
 protected:
-  Smt2(ExprManager* exprManager, Input* input, bool strictMode = false);
+  Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
 
 public:
   /**

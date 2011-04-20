@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -78,7 +78,7 @@ private:
   Logic d_logic;
 
 protected:
-  Smt(ExprManager* exprManager, Input* input, bool strictMode = false);
+  Smt(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
 
 public:
   /**

@@ -102,7 +102,7 @@ void TheoryBV::check(Effort e) {
       break;
     }
     default:
-      Unhandled();
+      Unhandled(assertion.getKind());
     }
   }
 

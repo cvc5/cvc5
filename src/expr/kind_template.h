@@ -2,10 +2,10 @@
 /*! \file kind_template.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: dejan
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -95,7 +95,7 @@ struct KindHashStrategy {
  * The enumeration for the built-in atomic types.
  */
 enum TypeConstant {
-  ${type_constant_list}
+${type_constant_list}
   LAST_TYPE
 };/* enum TypeConstant */
 
@@ -110,7 +110,7 @@ struct TypeConstantHashStrategy {
 
 inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
-  ${type_constant_descriptions}
+${type_constant_descriptions}
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -121,13 +121,13 @@ inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
 namespace theory {
 
 enum TheoryId {
-  ${theory_enum}
+${theory_enum}
   THEORY_LAST
 };
 
 inline std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
   switch(theoryId) {
-  ${theory_descriptions}
+${theory_descriptions}
   default:
     out << "UNKNOWN_THEORY";
     break;
@@ -136,18 +136,18 @@ inline std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
 }
 
 inline TheoryId kindToTheoryId(::CVC4::Kind k) {
-  switch (k) {
-    ${kind_to_theory_id}
+  switch(k) {
+${kind_to_theory_id}
   default:
-    Unreachable();
+    Unhandled(k);
   }
 }
 
 inline TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {
-  switch (typeConstant) {
-    ${type_constant_to_theory_id}
+  switch(typeConstant) {
+${type_constant_to_theory_id}
   default:
-    Unreachable();
+    Unhandled(typeConstant);
   }
 }
 

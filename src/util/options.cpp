@@ -121,7 +121,7 @@ static const string optionsDescription = "\
    --random-freq=P        sets the frequency of random decisions in the sat solver(P=0.0 by default)\n\
    --random-seed=S        sets the random seed for the sat solver\n\
    --rewrite-arithmetic-equalities rewrite (= x y) to (and (<= x y) (>= x y)) in arithmetic\n\
-   --enable-arithmetic-propagation turns on arithmetic propagation\n \
+   --enable-arithmetic-propagation turns on arithmetic propagation\n\
    --incremental          enable incremental solving\n";
 
 static const string languageDescription = "\

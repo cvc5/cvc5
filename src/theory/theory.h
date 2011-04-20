@@ -2,10 +2,10 @@
 /*! \file theory.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): dejan, taking, barrett
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): taking, barrett
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -59,10 +59,10 @@ private:
 
   friend class ::CVC4::TheoryEngine;
 
-  /**
-   * Disallow default construction.
-   */
-  Theory();
+  // Disallow default construction, copy, assignment.
+  Theory() CVC4_UNUSED;
+  Theory(const Theory&) CVC4_UNUSED;
+  Theory& operator=(const Theory&) CVC4_UNUSED;
 
   /**
    * A unique integer identifying the theory

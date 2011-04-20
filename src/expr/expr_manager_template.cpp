@@ -475,45 +475,135 @@ ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
 }
 
 DatatypeType ExprManager::mkDatatypeType(const Datatype& datatype) {
-  NodeManagerScope nms(d_nodeManager);
-  TypeNode* typeNode = new TypeNode(d_nodeManager->mkTypeConst(datatype));
-  Type type(d_nodeManager, typeNode);
-  DatatypeType dtt(type);
-  const Datatype& dt = typeNode->getConst<Datatype>();
-  if(!dt.isResolved()) {
-    std::map<std::string, DatatypeType> resolutions;
-    resolutions.insert(std::make_pair(datatype.getName(), dtt));
-    const_cast<Datatype&>(dt).resolve(this, resolutions);
-  }
-  return dtt;
+  // Not worth a special implementation; this doesn't need to be fast
+  // code anyway..
+  vector<Datatype> datatypes;
+  datatypes.push_back(datatype);
+  vector<DatatypeType> result = mkMutualDatatypeTypes(datatypes);
+  Assert(result.size() == 1);
+  return result.front();
 }
 
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
+std::vector<DatatypeType>
+ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
+  return mkMutualDatatypeTypes(datatypes, set<SortType>());
+}
+
+std::vector<DatatypeType>
+ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
+                                   const std::set<SortType>& unresolvedTypes) {
   NodeManagerScope nms(d_nodeManager);
-  std::map<std::string, DatatypeType> resolutions;
+  std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
-  for(std::vector<Datatype>::const_iterator i = datatypes.begin(), i_end = datatypes.end();
+
+  // First do some sanity checks, set up the final Type to be used for
+  // each datatype, and set up the "named resolutions" used to handle
+  // simple self- and mutual-recursion, for example in the definition
+  // "nat = succ(pred:nat) | zero", a named resolution can handle the
+  // pred selector.
+  for(std::vector<Datatype>::const_iterator i = datatypes.begin(),
+        i_end = datatypes.end();
       i != i_end;
       ++i) {
     TypeNode* typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
     Type type(d_nodeManager, typeNode);
     DatatypeType dtt(type);
-    CheckArgument(resolutions.find((*i).getName()) == resolutions.end(),
+    CheckArgument(nameResolutions.find((*i).getName()) == nameResolutions.end(),
                   datatypes,
-                  "cannot construct two datatypes at the same time with the same name `%s'",
+                  "cannot construct two datatypes at the same time "
+                  "with the same name `%s'",
                   (*i).getName().c_str());
-    resolutions.insert(std::make_pair((*i).getName(), dtt));
+    nameResolutions.insert(std::make_pair((*i).getName(), dtt));
     dtts.push_back(dtt);
   }
-  for(std::vector<DatatypeType>::iterator i = dtts.begin(), i_end = dtts.end();
+
+  // Second, set up the type substitution map for complex type
+  // resolution (e.g. if "list" is the type we're defining, and it has
+  // a selector of type "ARRAY INT OF list", this can't be taken care
+  // of using the named resolutions that we set up above.  A
+  // preliminary array type was set up, and now needs to have "list"
+  // substituted in it for the correct type.
+  //
+  // @TODO get rid of named resolutions altogether and handle
+  // everything with these resolutions?
+  std::vector<Type> placeholders;// to hold the "unresolved placeholders"
+  std::vector<Type> replacements;// to hold our final, resolved types
+  for(std::set<SortType>::const_iterator i = unresolvedTypes.begin(),
+        i_end = unresolvedTypes.end();
+      i != i_end;
+      ++i) {
+    std::string name = (*i).getName();
+    std::map<std::string, DatatypeType>::const_iterator resolver =
+      nameResolutions.find(name);
+    CheckArgument(resolver != nameResolutions.end(),
+                  unresolvedTypes,
+                  "cannot resolve type `%s'; it's not among "
+                  "the datatypes being defined", name.c_str());
+    // We will instruct the Datatype to substitute "*i" (the
+    // unresolved SortType used as a placeholder in complex types)
+    // with "(*resolver).second" (the DatatypeType we created in the
+    // first step, above).
+    placeholders.push_back(*i);
+    replacements.push_back((*resolver).second);
+  }
+
+  // Lastly, perform the final resolutions and checks.
+  for(std::vector<DatatypeType>::iterator i = dtts.begin(),
+        i_end = dtts.end();
       i != i_end;
       ++i) {
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
-      const_cast<Datatype&>(dt).resolve(this, resolutions);
+      const_cast<Datatype&>(dt).resolve(this, nameResolutions,
+                                        placeholders, replacements);
+    }
+
+    // Now run some checks, including a check to make sure that no
+    // selector is function-valued.
+    checkResolvedDatatype(*i);
+  }
+
+  return dtts;
+}
+
+void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
+  const Datatype& dt = dtt.getDatatype();
+
+  AssertArgument(dt.isResolved(), dtt, "datatype should have been resolved");
+
+  // for all constructors...
+  for(Datatype::const_iterator i = dt.begin(), i_end = dt.end();
+      i != i_end;
+      ++i) {
+    const Datatype::Constructor& c = *i;
+    Type testerType CVC4_UNUSED = c.getTester().getType();
+    Assert(c.isResolved() &&
+           testerType.isTester() &&
+           TesterType(testerType).getDomain() == dtt &&
+           TesterType(testerType).getRangeType() == booleanType(),
+           "malformed tester in datatype post-resolution");
+    Type ctorType CVC4_UNUSED = c.getConstructor().getType();
+    Assert(ctorType.isConstructor() &&
+           ConstructorType(ctorType).getArity() == c.getNumArgs() &&
+           ConstructorType(ctorType).getReturnType() == dtt,
+           "malformed constructor in datatype post-resolution");
+    // for all selectors...
+    for(Datatype::Constructor::const_iterator j = c.begin(), j_end = c.end();
+        j != j_end;
+        ++j) {
+      const Datatype::Constructor::Arg& a = *j;
+      Type selectorType = a.getSelector().getType();
+      Assert(a.isResolved() &&
+             selectorType.isSelector() &&
+             SelectorType(selectorType).getDomain() == dtt,
+             "malformed selector in datatype post-resolution");
+      // This next one's a "hard" check, performed in non-debug builds
+      // as well; the other ones should all be guaranteed by the
+      // CVC4::Datatype class, but this actually needs to be checked.
+      AlwaysAssert(!SelectorType(selectorType).getRangeType().d_typeNode->isFunctionLike(),
+                   "cannot put function-like things in datatypes");
     }
   }
-  return dtts;
 }
 
 ConstructorType ExprManager::mkConstructorType(const Datatype::Constructor& constructor, Type range) const {

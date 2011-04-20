@@ -155,6 +155,7 @@ public:
        * only permitted after resolution.
        */
       Expr getSelector() const;
+
       /**
        * Get the name of the type of this constructor argument
        * (Datatype field).  Can be used for not-yet-resolved Datatypes
@@ -183,7 +184,9 @@ public:
     std::vector<Arg> d_args;
 
     void resolve(ExprManager* em, DatatypeType self,
-                 const std::map<std::string, DatatypeType>& resolutions)
+                 const std::map<std::string, DatatypeType>& resolutions,
+                 const std::vector<Type>& placeholders,
+                 const std::vector<Type>& replacements)
       throw(AssertionException, DatatypeResolutionException);
     friend class Datatype;
 
@@ -277,7 +280,9 @@ private:
    * will fail after a call to resolve().
    */
   void resolve(ExprManager* em,
-               const std::map<std::string, DatatypeType>& resolutions)
+               const std::map<std::string, DatatypeType>& resolutions,
+               const std::vector<Type>& placeholders,
+               const std::vector<Type>& replacements)
     throw(AssertionException, DatatypeResolutionException);
   friend class ExprManager;// for access to resolve()
 

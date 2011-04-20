@@ -64,6 +64,11 @@ public:
   /** Destructor. Frees the lexer and the parser. */
   virtual ~Smt2Input();
 
+  /** Get the language that this Input is reading. */
+  InputLanguage getLanguage() const throw() {
+    return language::input::LANG_SMTLIB_V2;
+  }
+
 protected:
 
   /**

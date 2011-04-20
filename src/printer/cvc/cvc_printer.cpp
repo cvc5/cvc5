@@ -85,6 +85,24 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
       break;
     }
+    case kind::TYPE_CONSTANT:
+      switch(TypeConstant tc = n.getConst<TypeConstant>()) {
+      case REAL_TYPE:
+        out << "REAL";
+        break;
+      case INTEGER_TYPE:
+        out << "INT";
+        break;
+      case BOOLEAN_TYPE:
+        out << "BOOLEAN";
+        break;
+      case KIND_TYPE:
+        out << "TYPE";
+        break;
+      default:
+        Unhandled(tc);
+      }
+      break;
     case kind::BUILTIN:
       switch(Kind k = n.getConst<Kind>()) {
       case kind::EQUAL: out << '='; break;

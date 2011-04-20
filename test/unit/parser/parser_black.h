@@ -214,6 +214,8 @@ public:
     tryGoodInput("CHECKSAT 0bin0000 /= 0hex7;");
     tryGoodInput("%% nothing but a comment");
     tryGoodInput("% a comment\nASSERT TRUE; %a command\n% another comment");
+    tryGoodInput("a : BOOLEAN; a: BOOLEAN;"); // double decl, but compatible
+    tryGoodInput("a : INT = 5; a: INT;"); // decl after define, compatible
   }
 
   void testBadCvc4Inputs() {
@@ -225,8 +227,11 @@ public:
     tryBadInput("0x : INT;"); // 0x isn't an identifier
     tryBadInput("a, b : BOOLEAN\nQUERY (a => b) AND a => b;"); // no semicolon after decl
     tryBadInput("ASSERT 0bin012 /= 0hex0;"); // bad binary literal
-    tryBadInput("a : BOOLEAN; a: BOOLEAN;"); // double decl
     tryBadInput("a, b: BOOLEAN; QUERY a(b);"); // non-function used as function
+    tryBadInput("a : BOOLEAN; a: INT;"); // double decl, incompatible
+    tryBadInput("A : TYPE; A: TYPE;"); // types can't be double-declared
+    tryBadInput("a : INT; a: INT = 5;"); // can't define after decl
+    tryBadInput("a : INT = 5; a: BOOLEAN;"); // decl w/ incompatible type
   }
 
   void testGoodCvc4Exprs() {

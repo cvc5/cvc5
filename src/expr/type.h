@@ -174,6 +174,11 @@ public:
   bool operator!=(const Type& t) const;
 
   /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator<(const Type& t) const;
+
+  /**
    * Is this the Boolean type?
    * @return true if the type is a Boolean type
    */
@@ -532,6 +537,12 @@ public:
 
   /** Get the return type */
   Type getReturnType() const;
+
+  /** Get the argument types */
+  std::vector<Type> getArgTypes() const;
+
+  /** Get the number of constructor arguments */
+  size_t getArity() const;
 
 };/* class ConstructorType */
 

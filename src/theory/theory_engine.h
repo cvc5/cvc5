@@ -172,11 +172,13 @@ public:
   ~TheoryEngine();
 
   /**
-   * Adds a theory. Only one theory per theoryId can be present, so if there is another theory it will be deleted.
+   * Adds a theory. Only one theory per theoryId can be present, so if
+   * there is another theory it will be deleted.
    */
   template <class TheoryClass>
   void addTheory() {
-    TheoryClass* theory = new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
+    TheoryClass* theory =
+      new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
     d_theoryTable[theory->getId()] = theory;
     d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
   }

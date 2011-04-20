@@ -720,7 +720,7 @@ public:
   }
 
   /**
-   * Converst this node into a string representation and sends it to the
+   * Converts this node into a string representation and sends it to the
    * given stream
    *
    * @param out the stream to serialize this node to
@@ -790,6 +790,7 @@ public:
 
 /**
  * Serializes a given node to the given stream.
+ *
  * @param out the output stream to use
  * @param n the node to output to the stream
  * @return the stream

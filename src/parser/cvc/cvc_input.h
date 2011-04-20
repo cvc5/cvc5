@@ -53,6 +53,11 @@ public:
   /** Destructor. Frees the lexer and the parser. */
   ~CvcInput();
 
+  /** Get the language that this Input is reading. */
+  InputLanguage getLanguage() const throw() {
+    return language::input::LANG_CVC4;
+  }
+
 protected:
 
   /** Parse a command from the input. Returns <code>NULL</code> if there is

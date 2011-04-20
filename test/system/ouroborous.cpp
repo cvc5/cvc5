@@ -88,11 +88,15 @@ int runTest() {
   AlwaysAssert(parser->done(), "parser should be done");
 
   string instr = "(= (f (f y)) x)";
+  cout << "starting with: " << instr << endl;
   string smt2 = translate(parser, instr, input::LANG_SMTLIB_V2, output::LANG_SMTLIB_V2);
+  cout << "in SMT2      : " << smt2 << endl;
   string smt1 = translate(parser, smt2, input::LANG_SMTLIB_V2, output::LANG_SMTLIB);
-  //string cvc = translate(parser, smt1, input::LANG_SMTLIB, output::LANG_CVC4);
-  //string out = translate(parser, cvc, input::LANG_CVC4, output::LANG_SMTLIB_V2);
-  string out = smt1;
+  cout << "in SMT1      : " << smt1 << endl;
+  string cvc = translate(parser, smt1, input::LANG_SMTLIB, output::LANG_CVC4);
+  cout << "in CVC       : " << cvc << endl;
+  string out = translate(parser, cvc, input::LANG_CVC4, output::LANG_SMTLIB_V2);
+  cout << "back to SMT2 : " << out << endl;
 
   AlwaysAssert(out == smt2, "differences in output");
 

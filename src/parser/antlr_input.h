@@ -54,10 +54,10 @@ class AntlrInputStream : public InputStream {
                    bool fileIsTemporary = false);
 
   /* This is private and unimplemented, because you should never use it. */
-  AntlrInputStream(const AntlrInputStream& inputStream);
+  AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNUSED;
 
   /* This is private and unimplemented, because you should never use it. */
-  AntlrInputStream& operator=(const AntlrInputStream& inputStream);
+  AntlrInputStream& operator=(const AntlrInputStream& inputStream) CVC4_UNUSED;
 
 public:
 
@@ -178,6 +178,7 @@ public:
   /** Get a bitvector constant from the text of the number and the size token */
   static BitVector tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size);
 
+  /** Retrieve the remaining text in this input. */
   std::string getUnparsedText();
 
 protected:

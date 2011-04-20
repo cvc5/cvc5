@@ -8,19 +8,19 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 
 # Regression tests for SMT inputs
-SMT_TESTS = 
+SMT_TESTS =
 
 # Regression tests for SMT2 inputs
-SMT2_TESTS = 
+SMT2_TESTS =
 
 # Regression tests for PL inputs
 CVC_TESTS = bvsimple.cvc
 
 # Regression tests derived from bug reports
-BUG_TESTS = 
+BUG_TESTS =
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
-	test00.smt
-
+	test00.smt \
+	bvcomp.smt

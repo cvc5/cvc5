@@ -19,8 +19,13 @@
 grammar Cvc;
 
 options {
-  language = 'C';                  // C output for antlr
-//  defaultErrorHandler = false;      // Skip the default error handling, just break with exceptions
+  // C output for antlr
+  language = 'C';
+
+  // Skip the default error handling, just break with exceptions
+  // defaultErrorHandler = false;
+
+  // Only lookahead of <= k requested (disable for LL* parsing)
   k = 2;
 }
 
@@ -61,8 +66,13 @@ tokens {
   OF_TOK = 'OF';
   WITH_TOK = 'WITH';
 
+  SUBTYPE_TOK = 'SUBTYPE';
+
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
+  PATTERN_TOK = 'PATTERN';
+
+  LAMBDA = 'LAMBDA';
 
   // Symbols
 
@@ -77,6 +87,7 @@ tokens {
   SEMICOLON = ';';
   BAR = '|';
   DOT = '.';
+  DOTDOT = '..';
 
   SQHASH = '[#';
   HASHSQ = '#]';
@@ -104,8 +115,6 @@ tokens {
   INTDIV_TOK = 'DIV';
   FLOOR_TOK = 'FLOOR';
 
-  //IS_INTEGER_TOK = 'IS_INTEGER';
-
   // Bitvectors
 
   BITVECTOR_TOK = 'BITVECTOR';
@@ -131,9 +140,10 @@ tokens {
   BVCOMP_TOK = 'BVCOMP';
   BVXNOR_TOK = 'BVXNOR';
   CONCAT_TOK = '@';
-  BVTOINT_TOK = 'BVTOINT';
-  INTTOBV_TOK = 'INTTOBV';
-  BOOLEXTRACT_TOK = 'BOOLEXTRACT';
+  //BVTOINT_TOK = 'BVTOINT';
+  //INTTOBV_TOK = 'INTTOBV';
+  //BOOLEXTRACT_TOK = 'BOOLEXTRACT';
+  //IS_INTEGER_TOK = 'IS_INTEGER';
   BVLT_TOK = 'BVLT';
   BVGT_TOK = 'BVGT';
   BVLE_TOK = 'BVLE';
@@ -461,11 +471,15 @@ command returns [CVC4::Command* cmd = 0]
     // Datatypes can be mututally-recursive if they're in the same
     // definition block, separated by a comma.  So we parse everything
     // and then ask the ExprManager to resolve everything in one go.
-  | DATATYPE_TOK datatypeDef[dts]
+  | DATATYPE_TOK
+    { /* open a scope to keep the UnresolvedTypes contained */
+      PARSER_STATE->pushScope(); }
+    datatypeDef[dts]
     ( COMMA datatypeDef[dts] )*
     END_TOK SEMICOLON
-    { cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
-  | declaration[cmd]
+    { PARSER_STATE->popScope();
+      cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+  | toplevelDeclaration[cmd]
   | EOF
   ;
 
@@ -486,73 +500,158 @@ symbolicExpr[CVC4::SExpr& sexpr]
   ;
 
 /**
- * Match a declaration
+ * Match a top-level declaration.
  */
-declaration[CVC4::Command*& cmd]
+toplevelDeclaration[CVC4::Command*& cmd]
 @init {
   std::vector<std::string> ids;
   Type t;
   Debug("parser-extra") << "declaration: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : // FIXME: These could be type or function declarations, if that matters.
-    identifierList[ids, CHECK_UNDECLARED, SYM_VARIABLE] COLON declType[t, ids] SEMICOLON
-    { cmd = new DeclarationCommand(ids, t); }
+  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
+    ( declareVariables[t,ids,true] { cmd = new DeclarationCommand(ids, t); }
+    | declareTypes[ids] { cmd = new DeclarationCommand(ids, EXPR_MANAGER->kindType()); } ) SEMICOLON
   ;
 
-/** Match the right-hand side of a declaration. Returns the type. */
-declType[CVC4::Type& t, std::vector<std::string>& idList]
+/**
+ * A bound variable declaration.
+ */
+boundVarDecl[std::vector<std::string>& ids, CVC4::Type& t]
+  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON declareVariables[t,ids,false]
+  ;
+
+/**
+ * A series of bound variable declarations.
+ */
+boundVarDecls
 @init {
-  Expr f;
-  Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  std::vector<std::string> ids;
+  Type t;
 }
-  : /* A sort declaration (e.g., "T : TYPE") */
-    TYPE_TOK
-    { PARSER_STATE->mkSorts(idList);
-      t = EXPR_MANAGER->kindType(); }
-  | /* A type alias */
-    TYPE_TOK EQUAL_TOK type[t]
-    { for(std::vector<std::string>::const_iterator i = idList.begin();
-          i != idList.end();
-          ++i) {
-        PARSER_STATE->defineType(*i, t);
-      }
-      t = EXPR_MANAGER->kindType(); }
-  | /* A variable declaration */
-    type[t] ( EQUAL_TOK formula[f] )?
-    { if(f.isNull()) {
-        PARSER_STATE->mkVars(idList, t);
-      } else {
-        for(std::vector<std::string>::const_iterator i = idList.begin(),
-              i_end = idList.end();
-            i != i_end;
-            ++i) {
-          PARSER_STATE->defineFunction(*i, f);
-        }
+  : boundVarDecl[ids,t] ( COMMA boundVarDecl[ids,t] )*
+  ;
+
+boundVarDeclsReturn[std::vector<CVC4::Expr>& terms,
+                    std::vector<CVC4::Type>& types]
+@init {
+  std::vector<std::string> ids;
+  Type t;
+  terms.clear();
+  types.clear();
+}
+  : boundVarDeclReturn[terms,types] ( COMMA boundVarDeclReturn[terms,types] )*
+  ;
+
+boundVarDeclReturn[std::vector<CVC4::Expr>& terms,
+                   std::vector<CVC4::Type>& types]
+@init {
+  std::vector<std::string> ids;
+  Type t;
+  // NOTE: do not clear the vectors here!
+}
+  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED]
+    { const std::vector<Expr>& vars = PARSER_STATE->mkVars(ids, t);
+      terms.insert(terms.end(), vars.begin(), vars.end());
+      for(unsigned i = 0; i < vars.size(); ++i) {
+        types.push_back(t);
       }
     }
   ;
 
 /**
- * Match the type in a declaration and do the declaration binding.
- * TODO: Actually parse sorts into Type objects.
+ * Match the right-hand-side of a type declaration.  Unlike
+ * declareVariables[] below, don't need to return the Type, since it's
+ * always the KindType (the type of types).  Also don't need toplevel
+ * because type declarations are always top-level, except for
+ * type-lets, which don't use this rule.
  */
-type[CVC4::Type& t]
+declareTypes[const std::vector<std::string>& idList]
 @init {
-  Type t2;
-  std::vector<Type> typeList;
-  Debug("parser-extra") << "type: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Type t;
 }
-  : /* Simple type */
-    bitvectorType[t]
-  | /* Single-parameter function type */
-    baseType[t] ARROW_TOK baseType[t2]
-    { t = EXPR_MANAGER->mkFunctionType(t, t2); }
-  | /* Multi-parameter function type */
-    LPAREN baseType[t]
-    { typeList.push_back(t); }
-    ( COMMA baseType[t] { typeList.push_back(t); } )*
-    RPAREN ARROW_TOK baseType[t]
-    { t = EXPR_MANAGER->mkFunctionType(typeList, t); }
+    /* A sort declaration (e.g., "T : TYPE") */
+  : TYPE_TOK
+    { for(std::vector<std::string>::const_iterator i = idList.begin();
+          i != idList.end();
+          ++i) {
+        // Don't allow a type variable to clash with a previously
+        // declared type variable, however a type variable and a
+        // non-type variable can clash unambiguously.  Break from CVC3
+        // behavior here.
+        PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_SORT);
+      }
+      PARSER_STATE->mkSorts(idList);
+    }
+
+    /* A type alias "T : TYPE = foo..." */
+  | TYPE_TOK EQUAL_TOK type[t,CHECK_DECLARED]
+    { for(std::vector<std::string>::const_iterator i = idList.begin();
+          i != idList.end();
+          ++i) {
+        PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_SORT);
+        PARSER_STATE->defineType(*i, t);
+      }
+    }
+  ;
+
+/**
+ * Match the right-hand side of a variable declaration.  Returns the
+ * type.  Some IDs might have been declared previously, and are not
+ * re-declared if topLevel is true (CVC allows re-declaration if the
+ * types are compatible---if they aren't compatible, an error is
+ * thrown).  Also if topLevel is true, variable definitions are
+ * permitted.
+ */
+declareVariables[CVC4::Type& t, const std::vector<std::string>& idList, bool topLevel]
+@init {
+  Expr f;
+  Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
+}
+    /* A variable declaration (or definition) */
+  : type[t,CHECK_DECLARED] ( EQUAL_TOK formula[f] )?
+    { if(f.isNull()) {
+        Debug("parser") << "working on " << idList.front() << " : " << t << std::endl;
+        // CVC language allows redeclaration of variables if types are the same
+        for(std::vector<std::string>::const_iterator i = idList.begin(),
+              i_end = idList.end();
+            i != i_end;
+            ++i) {
+          if(PARSER_STATE->isDeclared(*i, SYM_VARIABLE)) {
+            Type oldType = PARSER_STATE->getType(*i);
+            Debug("parser") << "  " << *i << " was declared previously "
+                            << "with type " << oldType << std::endl;
+            if(oldType != t) {
+              std::stringstream ss;
+              ss << Expr::setlanguage(language::output::LANG_CVC4)
+                 << "incompatible type for `" << *i << "':" << std::endl
+                 << "  old type: " << oldType << std::endl
+                 << "  new type: " << t << std::endl;
+              PARSER_STATE->parseError(ss.str());
+            } else {
+              Debug("parser") << "  types " << t << " and " << oldType
+                              << " are compatible" << std::endl;
+            }
+          } else {
+            Debug("parser") << "  " << *i << " not declared" << std::endl;
+            PARSER_STATE->mkVar(*i, t);
+          }
+        }
+      } else {
+        if(!topLevel) {
+          // must be top-level; doesn't make sense to write something
+          // like e.g. FORALL(x:INT = 4): [...]
+          PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
+        }
+        Debug("parser") << "made " << idList.front() << " = " << f << std::endl;
+        for(std::vector<std::string>::const_iterator i = idList.begin(),
+              i_end = idList.end();
+            i != i_end;
+            ++i) {
+          PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
+          PARSER_STATE->defineFunction(*i, f);
+        }
+      }
+    }
   ;
 
 /**
@@ -566,9 +665,10 @@ identifierList[std::vector<std::string>& idList,
                CVC4::parser::SymbolType type]
 @init {
   std::string id;
+  idList.clear();
 }
   : identifier[id,check,type] { idList.push_back(id); }
-    (COMMA identifier[id,check,type] { idList.push_back(id); })*
+    ( COMMA identifier[id,check,type] { idList.push_back(id); } )*
   ;
 
 
@@ -584,53 +684,145 @@ identifier[std::string& id,
   ;
 
 /**
- * Matches a bitvector type.
+ * Match the type in a declaration and do the declaration binding.
  */
-bitvectorType[CVC4::Type& t]
-  : arrayType[t]
-  | BITVECTOR_TOK LPAREN INTEGER_LITERAL RPAREN
-    { t = EXPR_MANAGER->mkBitVectorType(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
-  ;
-
-arrayType[CVC4::Type& t]
+type[CVC4::Type& t,
+     CVC4::parser::DeclarationCheck check]
 @init {
   Type t2;
+  bool lhs;
+  std::vector<Type> args;
 }
-  : baseType[t]
-  | ARRAY_TOK bitvectorType[t] OF_TOK bitvectorType[t2]
-    { t = EXPR_MANAGER->mkArrayType(t, t2); }
+    /* a type, possibly a function */
+  : restrictedTypePossiblyFunctionLHS[t,check,lhs]
+    { if(lhs) {
+        Assert(t.isTuple());
+        args = TupleType(t).getTypes();
+      } else {
+        args.push_back(t);
+      }
+      Debug("parser") << "type: " << t << std::endl;
+    }
+    ( ARROW_TOK type[t2,check] { args.push_back(t2); } )?
+    { if(t2.isNull()) {
+        if(lhs) {
+          PARSER_STATE->parseError("improperly-placed type list; expected `->' after to define a function; or else maybe these parentheses were meant to be square brackets, to define a tuple type?");
+        }
+      } else {
+        t = EXPR_MANAGER->mkFunctionType(args);
+      }
+    }
+
+    /* type-lets: typeLetDecl defines the types, we just manage the
+     * scopes here.  NOTE that LET in the CVC language is always
+     * sequential! */
+  | LET_TOK { PARSER_STATE->pushScope(); }
+    typeLetDecl[check] ( COMMA typeLetDecl[check] )* IN_TOK type[t,check]
+    { PARSER_STATE->popScope(); }
   ;
 
-/**
- * Matches a type (which MUST be already declared).
- *
- * @return the type identifier
- */
-baseType[CVC4::Type& t]
-  : maybeUndefinedBaseType[t,CHECK_DECLARED]
-  ;
-
-/**
- * Matches a type (which may not be declared yet).  Returns the
- * identifier.  If the type is declared, returns the Type in the 't'
- * parameter; otherwise a null Type is returned in 't'.  If 'check' is
- * CHECK_DECLARED and the type is not declared, an exception is
- * thrown.
- *
- * @return the type identifier in 't', and the id (where applicable) in 'id'
- */
-maybeUndefinedBaseType[CVC4::Type& t,
-                       CVC4::parser::DeclarationCheck check] returns [CVC4::parser::cvc::mystring id]
+// A restrictedType is one that is not a "bare" function type (it can
+// be enclosed in parentheses) and is not a type list.  To support the
+// syntax
+//
+//   f : (nat, nat) -> nat;
+//
+// we have to permit restrictedTypes to be type lists (as on the LHS
+// there).  The "type" rule above uses restictedTypePossiblyFunctionLHS
+// directly in order to implement that; this rule allows a type list to
+// parse but then issues an error.
+restrictedType[CVC4::Type& t,
+               CVC4::parser::DeclarationCheck check]
 @init {
-  Debug("parser-extra") << "base type: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  AssertArgument(check == CHECK_DECLARED || check == CHECK_NONE,
-                 check, "CVC parser: can't use CHECK_UNDECLARED with maybeUndefinedBaseType[]");
+  bool lhs;
 }
-  : BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); id = AntlrInput::tokenText($BOOLEAN_TOK); }
-  | INT_TOK { t = EXPR_MANAGER->integerType(); id = AntlrInput::tokenText($INT_TOK); }
-  | REAL_TOK { t = EXPR_MANAGER->realType(); id = AntlrInput::tokenText($REAL_TOK); }
-  | typeSymbol[t,check]
-    { id = $typeSymbol.id; }
+  : restrictedTypePossiblyFunctionLHS[t,check,lhs]
+    { if(lhs) { PARSER_STATE->parseError("improperly-placed type list; maybe these parentheses were meant to be square brackets, to define a tuple type?"); } }
+  ;
+
+/**
+ * lhs is set to "true" on output if we have a list of types, so an
+ * ARROW must follow.  An ARROW can always follow; lhs means it MUST.
+ */
+restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
+                                  CVC4::parser::DeclarationCheck check,
+                                  bool& lhs]
+@init {
+  Type t2;
+  Expr f;
+  std::string id;
+  std::vector<Type> types;
+  lhs = false;
+}
+    /* named types */
+  : identifier[id,check,SYM_SORT]
+    { if(check == CHECK_DECLARED ||
+         PARSER_STATE->isDeclared(id, SYM_SORT)) {
+        t = PARSER_STATE->getSort(id);
+      } else {
+        t = PARSER_STATE->mkUnresolvedType(id);
+      }
+    }
+
+    /* array types */
+  | ARRAY_TOK restrictedType[t,check] OF_TOK restrictedType[t2,check]
+    { t = EXPR_MANAGER->mkArrayType(t, t2); }
+
+    /* subtypes */
+  | SUBTYPE_TOK LPAREN formula[f] ( COMMA formula[f] )? RPAREN
+    { PARSER_STATE->unimplementedFeature("subtypes not supported yet");
+      t = Type(); }
+
+    /* subrange types */
+  | LBRACKET bound DOTDOT bound RBRACKET
+    { PARSER_STATE->unimplementedFeature("subranges not supported yet");
+      t = Type(); }
+
+    /* tuple types / old-style function types */
+  | LBRACKET type[t,check] { types.push_back(t); }
+    ( COMMA type[t,check] { types.push_back(t); } )* RBRACKET
+    { if(types.size() == 1) {
+        if(types.front().isFunction()) {
+          // old style function syntax [ T -> U ]
+          PARSER_STATE->parseError("old-style function type syntax not supported anymore; please use the new syntax");
+        } else {
+          PARSER_STATE->parseError("I'm not sure what you're trying to do here; tuples must have > 1 type");
+        }
+      } else {
+        // tuple type [ T, U, V... ]
+        t = EXPR_MANAGER->mkTupleType(types);
+      }
+    }
+
+    /* record types */
+  | SQHASH identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check]
+    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] )* HASHSQ
+    { PARSER_STATE->unimplementedFeature("records not supported yet");
+      t = Type(); }
+
+    /* bitvector types */
+  | BITVECTOR_TOK LPAREN k=numeral RPAREN
+    { t = EXPR_MANAGER->mkBitVectorType(k); }
+
+    /* basic types */
+  | BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
+  | REAL_TOK { t = EXPR_MANAGER->realType(); }
+  | INT_TOK { t = EXPR_MANAGER->integerType(); }
+
+    /* Parenthesized general type, or the lhs of an ARROW (a list of
+     * types).  These two things are combined to avoid conflicts in
+     * parsing. */
+  | LPAREN type[t,check] { types.push_back(t); }
+    ( COMMA type[t,check] { lhs = true; types.push_back(t); } )* RPAREN
+    { if(lhs) { t = EXPR_MANAGER->mkTupleType(types); }
+      // if !lhs, t is already set up correctly, nothing to do..
+    }
+  ;
+
+bound
+  : '_'
+  | numeral
+  | MINUS_TOK numeral
   ;
 
 /**
@@ -653,51 +845,82 @@ typeSymbol[CVC4::Type& t,
     }
   ;
 
+typeLetDecl[CVC4::parser::DeclarationCheck check]
+@init {
+  Type t;
+  std::string id;
+}
+  : identifier[id,CHECK_NONE,SYM_SORT] (COLON TYPE_TOK)? EQUAL_TOK restrictedType[t,check]
+    { PARSER_STATE->defineType(id, t); }
+  ;
+
 /**
- * Matches a CVC4 formula.
+ * Matches a CVC4 expression.  Formulas and terms are not really
+ * distinguished during parsing; please ignore the naming of the
+ * grammar rules.
  *
- * @return the expression representing the formula
+ * @return the expression representing the formula/term
  */
-formula[CVC4::Expr& formula]
+formula[CVC4::Expr& f]
 @init {
   Debug("parser-extra") << "formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  std::vector<std::string> ids;
+  std::vector<Expr> terms;
+  std::vector<Type> types;
+  Type t;
 }
-  : letBinding[formula]
-  ;
+    /* quantifiers */
+  : FORALL_TOK { PARSER_STATE->pushScope(); } LPAREN
+    boundVarDecl[ids,t] (COMMA boundVarDecl[ids,t])* RPAREN
+    COLON instantiationPatterns? formula[f]
+    { PARSER_STATE->popScope();
+      PARSER_STATE->unimplementedFeature("quantifiers not supported yet");
+      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
+    }
+  | EXISTS_TOK { PARSER_STATE->pushScope(); } LPAREN
+    boundVarDecl[ids,t] (COMMA boundVarDecl[ids,t])* RPAREN
+    COLON instantiationPatterns? formula[f]
+    { PARSER_STATE->popScope();
+      PARSER_STATE->unimplementedFeature("quantifiers not supported yet");
+      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
+    }
 
-/**
- * Matches a comma-separated list of formulas
- */
-formulaList[std::vector<CVC4::Expr>& formulas]
-@init {
-  Expr f;
-}
-  : formula[f] { formulas.push_back(f); }
-    ( COMMA formula[f]
-      { formulas.push_back(f); }
-    )*
-  ;
+    /* lets: letDecl defines the variables and functionss, we just
+     * manage the scopes here.  NOTE that LET in the CVC language is
+     * always sequential! */
+  | LET_TOK { PARSER_STATE->pushScope(); }
+    letDecl ( COMMA letDecl )*
+    IN_TOK formula[f] { PARSER_STATE->popScope(); }
 
-/**
- * Matches a LET binding
- */
-letBinding[CVC4::Expr& f]
-@init {
-}
-  : LET_TOK
-    { PARSER_STATE->pushScope(); }
-    letDecls
-    IN_TOK letBinding[f]
-    { PARSER_STATE->popScope(); }
+    /* lambda */
+  | LAMBDA { PARSER_STATE->pushScope(); } LPAREN
+    boundVarDeclsReturn[terms,types]
+    RPAREN COLON formula[f]
+    { PARSER_STATE->popScope();
+      Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
+      Expr func = PARSER_STATE->mkFunction("anonymous", t);
+      Command* cmd = new DefineFunctionCommand(func, terms, f);
+      PARSER_STATE->preemptCommand(cmd);
+      f = func;
+    }
+
+    /* array literals */
+  | ARRAY_TOK { PARSER_STATE->pushScope(); } LPAREN
+    boundVarDecl[ids,t] RPAREN COLON formula[f]
+    { PARSER_STATE->popScope();
+      PARSER_STATE->unimplementedFeature("array literals not supported yet");
+      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()));
+    }
+
+    /* everything else */
   | booleanFormula[f]
   ;
 
-/**
- * Matches (and defines) LET declarations in order.  Note this implements
- * sequential-let (think "let*") rather than simultaneous-let.
- */
-letDecls
-  : letDecl (COMMA letDecl)*
+instantiationPatterns
+@init {
+  Expr f;
+}
+  : ( PATTERN_TOK LPAREN formula[f] (COMMA formula[f])* RPAREN COLON )+
   ;
 
 /**
@@ -709,7 +932,12 @@ letDecl
   std::string name;
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
-    { PARSER_STATE->defineVar(name, e); }
+    { Debug("parser") << Expr::setlanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
+      PARSER_STATE->defineVar(name, e);
+      Debug("parser") << "LET[" << PARSER_STATE->getDeclarationLevel() << "]: "
+                      << name << std::endl
+                      << " ==>" << " " << e << std::endl;
+    }
   ;
 
 booleanFormula[CVC4::Expr& f]
@@ -724,17 +952,22 @@ booleanFormula[CVC4::Expr& f]
         --notCount;
         f = EXPR_MANAGER->mkExpr(kind::NOT, f);
       }
-      expressions.push_back(f); }
+      expressions.push_back(f);
+      Assert(notCount == 0);
+    }
     ( booleanBinop[op] ( NOT_TOK { ++notCount; } )* comparison[f]
-      { operators.push_back(op);
-        while(notCount > 0) {
+      { while(notCount > 0) {
           --notCount;
           f = EXPR_MANAGER->mkExpr(kind::NOT, f);
         }
+        operators.push_back(op);
+#       warning cannot do NOT FORALL or TRUE AND FORALL, or..
         expressions.push_back(f);
+        Assert(notCount == 0);
       }
     )*
-    { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
+    { Assert(notCount == 0);
+      f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
   ;
 
 booleanBinop[unsigned& op]
@@ -812,9 +1045,8 @@ uminusTerm[CVC4::Expr& f]
 @init {
   unsigned minusCount = 0;
 }
-  : /* Unary minus */
-//    (MINUS_TOK { ++minusCount; })* concatBitwiseTerm[f]
-    (MINUS_TOK { ++minusCount; })+ concatBitwiseTerm[f]
+    /* Unary minus */
+  : (MINUS_TOK { ++minusCount; })+ concatBitwiseTerm[f]
     { while(minusCount > 0) { --minusCount; f = MK_EXPR(CVC4::kind::UMINUS, f); } }
   | concatBitwiseTerm[f]
   ;
@@ -844,8 +1076,8 @@ bitwiseXorTerm[CVC4::Expr& f]
 @init {
   Expr f2;
 }
-  : /* BV xor */
-    BVXOR_TOK LPAREN formula[f] COMMA formula[f] RPAREN
+    /* BV xor */
+  : BVXOR_TOK LPAREN formula[f] COMMA formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_XOR, f, f2); }
   | BVNAND_TOK LPAREN formula[f] COMMA formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NAND, f, f2); }
@@ -858,8 +1090,8 @@ bitwiseXorTerm[CVC4::Expr& f]
   | bvNegTerm[f]
   ;
 bvNegTerm[CVC4::Expr& f]
-  : /* BV neg */
-    BVNEG_TOK bvNegTerm[f]
+    /* BV neg */
+  : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
   | bvUminusTerm[f]
   ;
@@ -867,14 +1099,15 @@ bvUminusTerm[CVC4::Expr& f]
 @init {
   Expr f2;
 }
-  : /* BV unary minus */
-    BVUMINUS_TOK LPAREN formula[f] RPAREN
+    /* BV unary minus */
+  : BVUMINUS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NEG, f); }
-  | BVPLUS_TOK LPAREN INTEGER_LITERAL COMMA formula[f]
+    /* BV addition */
+  | BVPLUS_TOK LPAREN k=numeral COMMA formula[f]
     ( COMMA formula[f2] { f = MK_EXPR(CVC4::kind::BITVECTOR_PLUS, f, f2); } )+ RPAREN
     { unsigned size = BitVectorType(f.getType()).getSize();
-      unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
       if(k == 0) {
+#       warning cannot do BVPLUS(...)[i:j]
         PARSER_STATE->parseError("BVPLUS(k,_,_,...) must have k > 0");
       }
       if(k > size) {
@@ -883,9 +1116,9 @@ bvUminusTerm[CVC4::Expr& f]
         f = MK_EXPR(MK_CONST(BitVectorExtract(0, k - 1)), f);
       }
     }
-  | BVSUB_TOK LPAREN INTEGER_LITERAL COMMA formula[f] COMMA formula[f2] RPAREN
+    /* BV subtraction */
+  | BVSUB_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SUB, f, f2);
-      unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
       if(k == 0) {
         PARSER_STATE->parseError("BVSUB(k,_,_) must have k > 0");
       }
@@ -896,9 +1129,9 @@ bvUminusTerm[CVC4::Expr& f]
         f = MK_EXPR(MK_CONST(BitVectorExtract(0, k - 1)), f);
       }
     }
-  | BVMULT_TOK LPAREN INTEGER_LITERAL COMMA formula[f] COMMA formula[f2] RPAREN
+    /* BV multiplication */
+  | BVMULT_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
     { MK_EXPR(CVC4::kind::BITVECTOR_MULT, f, f2);
-      unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
       if(k == 0) {
         PARSER_STATE->parseError("BVMULT(k,_,_) must have k > 0");
       }
@@ -909,41 +1142,56 @@ bvUminusTerm[CVC4::Expr& f]
         f = MK_EXPR(MK_CONST(BitVectorExtract(0, k - 1)), f);
       }
     }
+    /* BV unsigned division */
   | BVUDIV_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_UDIV, f, f2); }
+    /* BV signed division */
   | BVSDIV_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SDIV, f, f2); }
+    /* BV unsigned remainder */
   | BVUREM_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_UREM, f, f2); }
+    /* BV signed remainder */
   | BVSREM_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SREM, f, f2); }
+    /* BV signed modulo */
   | BVSMOD_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SMOD, f, f2); }
+    /* BV left shift */
   | BVSHL_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SHL, f, f2); }
+    /* BV arithmetic right shift */
   | BVASHR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_ASHR, f, f2); }
+    /* BV logical left shift */
   | BVLSHR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_LSHR, f, f2); }
-  | SX_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
-    { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      unsigned n = BitVectorType(f.getType()).getSize();
-      // sign extension in TheoryBitVector is defined as in SMT-LIBv2
+    /* BV sign extension */
+  | SX_TOK LPAREN formula[f] COMMA k=numeral RPAREN
+    { unsigned n = BitVectorType(f.getType()).getSize();
+      // Sign extension in TheoryBitVector is defined as in SMT-LIBv2
+      // which is different than in the CVC language
+      // SX(BITVECTOR(k), n) in CVC language extends to n bits
+      // In SMT-LIBv2, such a thing expands to k + n bits
       f = MK_EXPR(MK_CONST(BitVectorSignExtend(k - n)), f); }
-  | BVZEROEXTEND_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
-    { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      unsigned n = BitVectorType(f.getType()).getSize();
-      // also zero extension
-      f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k - n)), f); }
-  | BVREPEAT_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
-    { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      f = MK_EXPR(MK_CONST(BitVectorRepeat(k)), f); }
-  | BVROTR_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
-    { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      f = MK_EXPR(MK_CONST(BitVectorSignExtend(k)), f); }
-  | BVROTL_TOK LPAREN formula[f] COMMA INTEGER_LITERAL RPAREN
-    { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
-      f = MK_EXPR(MK_CONST(BitVectorRotateLeft(k)), f); }
+    /* BV zero extension */
+  | BVZEROEXTEND_TOK LPAREN formula[f] COMMA k=numeral RPAREN
+    { unsigned n = BitVectorType(f.getType()).getSize();
+      // Zero extension in TheoryBitVector is defined as in SMT-LIBv2
+      // which is the same as in CVC3, but different than SX!
+      // SX(BITVECTOR(k), n) in CVC language extends to n bits
+      // BVZEROEXTEND(BITVECTOR(k), n) in CVC language extends to k + n bits
+      f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f); }
+    /* BV repeat operation */
+  | BVREPEAT_TOK LPAREN formula[f] COMMA k=numeral RPAREN
+    { f = MK_EXPR(MK_CONST(BitVectorRepeat(k)), f); }
+    /* BV rotate right */
+  | BVROTR_TOK LPAREN formula[f] COMMA k=numeral RPAREN
+    { f = MK_EXPR(MK_CONST(BitVectorSignExtend(k)), f); }
+    /* BV rotate left */
+  | BVROTL_TOK LPAREN formula[f] COMMA k=numeral RPAREN
+    { f = MK_EXPR(MK_CONST(BitVectorRotateLeft(k)), f); }
+    /* left and right shifting with << and >>, or something else */
   | bvShiftTerm[f]
   ;
 
@@ -952,8 +1200,9 @@ bvShiftTerm[CVC4::Expr& f]
   bool left = false;
 }
   : bvComparison[f]
-    ( (LEFTSHIFT_TOK { left = true; } | RIGHTSHIFT_TOK) INTEGER_LITERAL
-      { unsigned k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
+    ( (LEFTSHIFT_TOK { left = true; } | RIGHTSHIFT_TOK) k=numeral
+      { // Defined in:
+        // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
         if(left) {
           f = MK_EXPR(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
         } else {
@@ -969,8 +1218,8 @@ bvComparison[CVC4::Expr& f]
 @init {
   Expr f2;
 }
-  : /* BV comparison */
-    BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+    /* BV comparisons */
+  : BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_ULT, f, f2); }
   | BVLE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_ULE, f, f2); }
@@ -999,16 +1248,15 @@ selectExtractTerm[CVC4::Expr& f]
   Expr f2;
   bool extract;
 }
-  : /* array select / bitvector extract */
-    simpleTerm[f]
+    /* array select / bitvector extract */
+  : simpleTerm[f]
     ( { extract = false; }
-      LBRACKET formula[f2] ( COLON INTEGER_LITERAL { extract = true; } )? RBRACKET
+      LBRACKET formula[f2] ( COLON k2=numeral { extract = true; } )? RBRACKET
       { if(extract) {
           if(f2.getKind() != kind::CONST_INTEGER) {
-            PARSER_STATE->parseError("bitvector extraction requires [INTEGER_LITERAL:INTEGER_LITERAL] range");
+            PARSER_STATE->parseError("bitvector extraction requires [numeral:numeral] range");
           }
           unsigned k1 = f2.getConst<Integer>().getLong();
-          unsigned k2 = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
           f = MK_EXPR(MK_CONST(BitVectorExtract(k1, k2)), f);
         } else {
           f = MK_EXPR(CVC4::kind::SELECT, f, f2);
@@ -1025,37 +1273,63 @@ simpleTerm[CVC4::Expr& f]
   std::vector<Expr> args;
   Debug("parser-extra") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : /* function/constructor application */
-    functionSymbol[f]
-    { args.push_back( f ); }
-    LPAREN formulaList[args] RPAREN
+    /* function/constructor application */
+  : identifier[name,CHECK_DECLARED,SYM_VARIABLE]
+    { Debug("parser") << " at level " << PARSER_STATE->getDeclarationLevel() << std::endl;
+      Debug("parser") << " isFunction " << PARSER_STATE->isFunctionLike(name) << std::endl;
+      Debug("parser") << " isDefinedFunction " << PARSER_STATE->isDefinedFunction(name) << std::endl;
+      Debug("parser") << " name " << name << std::endl;
+      Debug("parser") << " isDeclared " << PARSER_STATE->isDeclared(name) << std::endl;
+      Debug("parser") << " getType " << PARSER_STATE->getType(name) << std::endl;
+      PARSER_STATE->checkFunctionLike(name);
+      f = PARSER_STATE->getVariable(name);
+      args.push_back(f);
+    }
+    LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f] { args.push_back(f); } )* RPAREN
     // TODO: check arity
-    { Type t = f.getType();
-      if( t.isFunction() ) {
+    { Type t = args.front().getType();
+      Debug("parser") << "type is " << t << std::endl;
+      Debug("parser") << "expr is " << args.front() << std::endl;
+      if(PARSER_STATE->isDefinedFunction(name)) {
+        f = MK_EXPR(CVC4::kind::APPLY, args);
+      } else if(t.isFunction()) {
         f = MK_EXPR(CVC4::kind::APPLY_UF, args);
-      } else if( t.isConstructor() ) {
+      } else if(t.isConstructor()) {
         Debug("parser-idt") << "apply constructor: " << name.c_str() << " " << args.size() << std::endl;
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
-      } else if( t.isSelector() ) {
+      } else if(t.isSelector()) {
         Debug("parser-idt") << "apply selector: " << name.c_str() << " " << args.size() << std::endl;
         f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
-      } else if( t.isTester() ) {
+      } else if(t.isTester()) {
         Debug("parser-idt") << "apply tester: " << name.c_str() << " " << args.size() << std::endl;
         f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
+      } else {
+        Unhandled(t);
       }
     }
 
-  | /* if-then-else */
-    iteTerm[f]
+    /* if-then-else */
+  | iteTerm[f]
 
-  | /* parenthesized sub-formula */
-    LPAREN formula[f] RPAREN
+    /* parenthesized sub-formula / tuple literals */
+  | LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f] { args.push_back(f); } )* RPAREN
+    { if(args.size() > 1) {
+        /* If args has elements, we must be a tuple literal.
+         * Otherwise, f is already the sub-formula, and
+         * there's nothing to do */
+        f = EXPR_MANAGER->mkExpr(kind::TUPLE, args);
+      }
+    }
 
-    /* constants */
+    /* boolean literals */
   | TRUE_TOK  { f = MK_CONST(true); }
   | FALSE_TOK { f = MK_CONST(false); }
+    /* arithmetic literals */
   | INTEGER_LITERAL { f = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
   | DECIMAL_LITERAL { f = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
+    /* bitvector literals */
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 4);
@@ -1064,16 +1338,31 @@ simpleTerm[CVC4::Expr& f]
     { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
       f = MK_CONST( BitVector(binString, 2) ); }
+    /* record literals */
+  | PARENHASH recordEntry (COMMA recordEntry)+ HASHPAREN
+    { PARSER_STATE->unimplementedFeature("records not implemented yet");
+      f = Expr(); }
 
-  | /* variable */
-    identifier[name,CHECK_DECLARED,SYM_VARIABLE]
+    /* variable / zero-ary constructor application */
+  | identifier[name,CHECK_DECLARED,SYM_VARIABLE]
     { f = PARSER_STATE->getVariable(name);
-      // datatypes: 0-ary constructors
-      if( PARSER_STATE->getType(name).isConstructor() ){
-        args.push_back( f );
+      // datatypes: zero-ary constructors
+      if(PARSER_STATE->getType(name).isConstructor()) {
+        args.push_back(f);
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
       }
     }
+  ;
+
+/**
+ * Matches an entry in a record literal.
+ */
+recordEntry
+@init {
+  std::string id;
+  Expr f;
+}
+  : identifier[id,CHECK_DECLARED,SYM_VARIABLE] ASSIGN_TOK formula[f]
   ;
 
 /**
@@ -1107,29 +1396,19 @@ iteElseTerm[CVC4::Expr& f]
   ;
 
 /**
- * Parses a function symbol (an identifier).
- * @param what kind of check to perform on the id
- * @return the predicate symol
- */
-functionSymbol[CVC4::Expr& f]
-@init {
-  Debug("parser-extra") << "function symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  std::string name;
-}
-  : identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { PARSER_STATE->checkFunctionLike(name);
-      f = PARSER_STATE->getVariable(name); }
-  ;
-
-/**
  * Parses a datatype definition
  */
 datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 @init {
   std::string id;
 }
-  : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    { datatypes.push_back(Datatype(id)); }
+  : identifier[id,CHECK_NONE,SYM_SORT]
+    { datatypes.push_back(Datatype(id));
+      if(!PARSER_STATE->isUnresolvedType(id)) {
+        // if not unresolved, must be undeclared
+        PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
+      }
+    }
     EQUAL_TOK constructorDef[datatypes.back()]
     ( BAR constructorDef[datatypes.back()] )*
   ;
@@ -1165,19 +1444,15 @@ constructorDef[CVC4::Datatype& type]
 selector[CVC4::Datatype::Constructor& ctor]
 @init {
   std::string id;
-  Type type;
+  Type t;
 }
-  : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON
-    maybeUndefinedBaseType[type,CHECK_NONE]
-    // TODO: this doesn't permit datatype fields of ARRAY or BITVECTOR
-    // type.  This will be problematic, since, after all, you could
-    // have something nasty like this:
-    //
-    //   DATATYPE list = cons(car:ARRAY list OF list, cdr:list) | nil END;
-    { if(type.isNull()) {
-        ctor.addArg(id, Datatype::UnresolvedType($maybeUndefinedBaseType.id));
+  : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
+    { if(t.isNull()) {
+#       warning FIXME datatypes
+        //std::pair<Type, std::string> unresolved = PARSER_STATE->newUnresolvedType();
+        //ctor.addArg(id, Datatype::UnresolvedType(unresolved.second);
       } else {
-        ctor.addArg(id, type);
+        ctor.addArg(id, t);
       }
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
@@ -1193,6 +1468,17 @@ IDENTIFIER : ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*;
  * Matches an integer literal.
  */
 INTEGER_LITERAL: DIGIT+;
+
+/**
+ * Same as an integer literal converted to an unsigned int, but
+ * slightly more convenient AND works around a strange ANTLR bug (?)
+ * in the BVPLUS/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
+ * returning a reference to the wrong token?!
+ */
+numeral returns [unsigned k]
+  : INTEGER_LITERAL
+    { $k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL); }
+  ;
 
 /**
  * Matches a decimal literal.
@@ -1245,4 +1531,3 @@ COMMENT : '%' (~('\n' | '\r'))* { SKIP();; };
  * Matches an allowed escaped character.
  */
 fragment ESCAPE : '\\' ('"' | '\\' | 'n' | 't' | 'r');
-

@@ -2,10 +2,10 @@
 /*! \file smt2.cpp
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -24,8 +24,8 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode) :
-  Parser(exprManager,input,strictMode),
+Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
+  Parser(exprManager,input,strictMode,parseOnly),
   d_logicSet(false) {
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);

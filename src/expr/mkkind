@@ -73,9 +73,9 @@ function theory {
   fi
 
   theory_id="$1"
-  theory_enum="$1,
-  ${theory_enum}"
-  theory_descriptions="${theory_descriptions}    case ${theory_id}: out << \"${theory_id}\"; break;
+  theory_enum="${theory_enum}  $1,
+"
+  theory_descriptions="${theory_descriptions}  case ${theory_id}: out << \"${theory_id}\"; break;
 "
 }
 
@@ -144,11 +144,11 @@ function register_sort {
   id=$1
   comment=$2
 
-  type_constant_list="${type_constant_list}   ${id}, /**< ${comment} */
+  type_constant_list="${type_constant_list}  ${id}, /**< ${comment} */
 "
-  type_constant_descriptions="${type_constant_descriptions}   case $id:  out << \"${comment}\"; break;
+  type_constant_descriptions="${type_constant_descriptions}  case $id:  out << \"${comment}\"; break;
 "
-  type_constant_to_theory_id="${type_constant_to_theory_id}   case $id: return $theory_id; break;
+  type_constant_to_theory_id="${type_constant_to_theory_id}  case $id: return $theory_id; break;
 "
 }
 
@@ -161,7 +161,7 @@ function register_kind {
 "
   kind_printers="${kind_printers}  case $r: out << \"$r\"; break;
 "
-  kind_to_theory_id="${kind_to_theory_id}   case kind::$r: return $theory_id; break;
+  kind_to_theory_id="${kind_to_theory_id}  case kind::$r: return $theory_id; break;
 "
 }
 

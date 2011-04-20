@@ -2,10 +2,10 @@
 /*! \file parser_builder.h
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -75,6 +75,10 @@ class CVC4_PUBLIC ParserBuilder {
   /** Should we memory-map a file input? */
   bool d_mmap;
 
+  /** Are we parsing only? */
+  bool d_parseOnly;
+
+  /** Initialize this parser builder */
   void init(ExprManager* exprManager, const std::string& filename);
 
 public:
@@ -97,24 +101,50 @@ public:
   /** Set the parser to read a file for its input. (Default) */
   ParserBuilder& withFileInput();
 
-  /** Set the filename for use by the parser. If file input is used,
+  /**
+   * Set the filename for use by the parser. If file input is used,
    * this file will be opened and read by the parser. Otherwise, the
    * filename string (possibly a non-existent path) will only be used
-   * in error messages. */
+   * in error messages.
+   */
   ParserBuilder& withFilename(const std::string& filename);
 
-  /** Set the input language to be used by the parser. (Default:
-      LANG_AUTO). */
+  /**
+   * Set the input language to be used by the parser.
+   *
+   * (Default: LANG_AUTO)
+   */
   ParserBuilder& withInputLanguage(InputLanguage lang);
 
-  /** Should the parser memory-map its input? This is only relevant if
-   * the parser will have a file input. (Default: no) */
+  /**
+   * Should the parser memory-map its input? This is only relevant if
+   * the parser will have a file input.
+   *
+   * (Default: no)
+   */
   ParserBuilder& withMmap(bool flag = true);
+
+  /**
+   * Are we only parsing, or doing something with the resulting
+   * commands and expressions?  This setting affects whether the
+   * parser will raise certain errors about unimplemented features,
+   * even if there isn't a parsing error, because the result of the
+   * parse would otherwise be an incorrect parse tree and the error
+   * would go undetected.  This is specifically for circumstances
+   * where the parser is ahead of the functionality present elsewhere
+   * in CVC4 (such as quantifiers, subtypes, records, etc. in the CVC
+   * language parser).
+   */
+  ParserBuilder& withParseOnly(bool flag = true);
 
   /** Derive settings from the given options. */
   ParserBuilder& withOptions(const Options& options);
 
-  /** Should the parser use strict mode? (Default: no) */
+  /**
+   * Should the parser use strict mode?
+   *
+   * (Default: no)
+   */
   ParserBuilder& withStrictMode(bool flag = true);
 
   /** Set the parser to use the given stream for its input. */

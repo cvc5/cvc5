@@ -2,10 +2,10 @@
 /*! \file parser_builder.cpp
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -57,6 +57,7 @@ void ParserBuilder::init(ExprManager* exprManager,
   d_checksEnabled = true;
   d_strictMode = false;
   d_mmap = false;
+  d_parseOnly = false;
 }
 
 Parser *ParserBuilder::build() 
@@ -81,13 +82,13 @@ Parser *ParserBuilder::build()
   Parser *parser = NULL;
   switch(d_lang) {
   case language::input::LANG_SMTLIB:
-    parser = new Smt(d_exprManager, input, d_strictMode);
+    parser = new Smt(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
   case language::input::LANG_SMTLIB_V2:
-    parser = new Smt2(d_exprManager, input, d_strictMode);
+    parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
   default:
-    parser = new Parser(d_exprManager, input, d_strictMode);
+    parser = new Parser(d_exprManager, input, d_strictMode, d_parseOnly);
   }
 
   if( d_checksEnabled ) {
@@ -124,9 +125,13 @@ ParserBuilder& ParserBuilder::withInputLanguage(InputLanguage lang) {
   return *this;
 }
 
-
 ParserBuilder& ParserBuilder::withMmap(bool flag) {
   d_mmap = flag;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
+  d_parseOnly = flag;
   return *this;
 }
 
@@ -135,7 +140,8 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
     withInputLanguage(options.inputLanguage)
       .withMmap(options.memoryMap)
       .withChecks(options.semanticChecks)
-      .withStrictMode(options.strictParsing);
+      .withStrictMode(options.strictParsing)
+      .withParseOnly(options.parseOnly);
   }
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
