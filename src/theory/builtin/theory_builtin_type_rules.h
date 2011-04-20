@@ -48,9 +48,15 @@ class ApplyTypeRule {
         TNode::iterator argument_it = n.begin();
         TNode::iterator argument_it_end = n.end();
         TypeNode::iterator argument_type_it = fType.begin();
-        for(; argument_it != argument_it_end; ++argument_it) {
+        for(; argument_it != argument_it_end; ++argument_it, ++argument_type_it) {
           if((*argument_it).getType() != *argument_type_it) {
-            throw TypeCheckingExceptionPrivate(n, "argument types do not match the function type");
+            std::stringstream ss;
+            ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage));
+            ss << "argument types do not match the function type:\n"
+               << "argument:  " << *argument_it << "\n"
+               << "has type:  " << (*argument_it).getType() << "\n"
+               << "not equal: " << *argument_type_it;
+            throw TypeCheckingExceptionPrivate(n, ss.str());
           }
         }
       } else {
@@ -75,6 +81,7 @@ class EqualityTypeRule {
 
       if ( lhsType != rhsType ) {
         std::stringstream ss;
+        ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage));
         ss << "Types do not match in equation ";
         ss << "[" << lhsType << "<>" << rhsType << "]";
 

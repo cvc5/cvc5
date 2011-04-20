@@ -134,6 +134,12 @@ public:
   bool isBoundDefinedFunction(const std::string& name) const throw();
 
   /**
+   * Check whether an Expr was bound to a function (i.e., was the
+   * second arg to bindDefinedFunction()).
+   */
+  bool isBoundDefinedFunction(Expr func) const throw();
+
+  /**
    * Check whether a name is bound to a type (or type constructor).
    *
    * @param name the identifier to check.

@@ -200,6 +200,7 @@ public:
 
   void testGoodCvc4Inputs() {
     tryGoodInput(""); // empty string is OK
+    tryGoodInput(";"); // no command is OK
     tryGoodInput("ASSERT TRUE;");
     tryGoodInput("QUERY TRUE;");
     tryGoodInput("CHECKSAT FALSE;");
@@ -219,7 +220,6 @@ public:
   }
 
   void testBadCvc4Inputs() {
-    tryBadInput(";"); // no command
     tryBadInput("ASSERT;"); // no args
     tryBadInput("QUERY");
     tryBadInput("CHECKSAT");

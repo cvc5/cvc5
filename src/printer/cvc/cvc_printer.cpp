@@ -198,11 +198,22 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
     case kind::FUNCTION_TYPE:
     case kind::CONSTRUCTOR_TYPE:
     case kind::SELECTOR_TYPE:
-    case kind::TESTER_TYPE:
-      if(n.getNumChildren() > 0) {
-        copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, " -> "));
-        out << n[n.getNumChildren() - 1];
+      if(n.getNumChildren() > 2) {
+        out << '(';
+        for(unsigned i = 0; i < n.getNumChildren() - 2; ++i) {
+          out << n[i] << ", ";
+        }
+        out << n[n.getNumChildren() - 2]
+            << ") -> " << n[n.getNumChildren() - 1];
+      } else if(n.getNumChildren() == 2) {
+        out << n[0] << " -> " << n[1];
+      } else {
+        Assert(n.getNumChildren() == 1);
+        out << n[0];
       }
+      break;
+    case kind::TESTER_TYPE:
+      out << n[0] << " -> BOOLEAN";
       break;
 
     case kind::ARRAY_TYPE:
@@ -264,6 +275,14 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
     case kind::BITVECTOR_SGE:
       out << n.getOperator() << '(' << n[0] << ',' << n[1] << ')';
       break;
+
+    // N-ary infix
+    case kind::BITVECTOR_CONCAT:
+      out << '(';
+      for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
+        cout << n[i] << ' ' << n.getOperator();
+      }
+      out << n[n.getNumChildren() - 1] << ')';
 
     default:
       if(k == kind::NOT && n[0].getKind() == kind::EQUAL) {

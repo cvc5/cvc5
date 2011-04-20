@@ -125,8 +125,8 @@ class CVC4_PUBLIC Parser {
    */
   DeclarationScope* d_declScope;
 
-  /** The name of the input file. */
-//  std::string d_filename;
+  /** How many anonymous functions we've created. */
+  size_t d_anonymousFunctionCount;
 
   /** Are we done */
   bool d_done;
@@ -322,6 +322,13 @@ public:
   /** Create a new CVC4 function expression of the given type. */
   Expr mkFunction(const std::string& name, const Type& type);
 
+  /**
+   * Create a new CVC4 function expression of the given type,
+   * appending a unique index to its name.  (That's the ONLY
+   * difference between mkAnonymousFunction() and mkFunction()).
+   */
+  Expr mkAnonymousFunction(const std::string& prefix, const Type& type);
+
   /** Create a new variable definition (e.g., from a let binding). */
   void defineVar(const std::string& name, const Expr& val);
 
@@ -393,6 +400,9 @@ public:
 
   /** Is the symbol bound to a defined function? */
   bool isDefinedFunction(const std::string& name);
+
+  /** Is the Expr a defined function? */
+  bool isDefinedFunction(Expr func);
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);

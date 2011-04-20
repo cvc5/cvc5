@@ -45,6 +45,7 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
   d_input(input),
   d_declScopeAllocated(),
   d_declScope(&d_declScopeAllocated),
+  d_anonymousFunctionCount(0),
   d_done(false),
   d_checksEnabled(true),
   d_strictMode(strictMode),
@@ -117,6 +118,13 @@ bool Parser::isDefinedFunction(const std::string& name) {
   return d_declScope->isBoundDefinedFunction(name);
 }
 
+/* Returns true if the Expr is a defined function. */
+bool Parser::isDefinedFunction(Expr func) {
+  // more permissive in type than isFunction(), because defined
+  // functions can be zero-ary and declared functions cannot.
+  return d_declScope->isBoundDefinedFunction(func);
+}
+
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isPredicate();
@@ -136,6 +144,13 @@ Parser::mkFunction(const std::string& name, const Type& type) {
   Expr expr = d_exprManager->mkVar(name, type);
   defineFunction(name, expr);
   return expr;
+}
+
+Expr
+Parser::mkAnonymousFunction(const std::string& prefix, const Type& type) {
+  stringstream name;
+  name << prefix << ':' << ++d_anonymousFunctionCount;
+  return mkFunction(name.str(), type);
 }
 
 std::vector<Expr>

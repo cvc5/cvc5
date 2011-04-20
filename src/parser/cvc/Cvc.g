@@ -88,6 +88,7 @@ tokens {
   BAR = '|';
   DOT = '.';
   DOTDOT = '..';
+  UNDERSCORE = '_';
 
   SQHASH = '[#';
   HASHSQ = '#]';
@@ -349,6 +350,14 @@ Expr createPrecedenceTree(ExprManager* em,
   return e;
 }
 
+/** Add n NOTs to the front of e and return the result. */
+Expr addNots(ExprManager* em, size_t n, Expr e) {
+  while(n-- > 0) {
+    e = em->mkExpr(kind::NOT, e);
+  }
+  return e;
+}
+
 }/* @parser::members */
 
 @header {
@@ -480,6 +489,7 @@ command returns [CVC4::Command* cmd = 0]
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   | toplevelDeclaration[cmd]
+  | SEMICOLON c=command { $cmd = c; }
   | EOF
   ;
 
@@ -710,7 +720,6 @@ type[CVC4::Type& t,
       } else {
         args.push_back(t);
       }
-      Debug("parser") << "type: " << t << std::endl;
     }
     ( ARROW_TOK type[t2,check] { args.push_back(t2); } )?
     { if(t2.isNull()) {
@@ -783,9 +792,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
       t = Type(); }
 
     /* subrange types */
-  | LBRACKET bound DOTDOT bound RBRACKET
+/* parsing not working -- some kind of conflict betw [0..1] and 0.0
+  | bounds
     { PARSER_STATE->unimplementedFeature("subranges not supported yet");
       t = Type(); }
+*/
 
     /* tuple types / old-style function types */
   | LBRACKET type[t,check] { types.push_back(t); }
@@ -828,12 +839,6 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
   ;
 
-bound
-  : '_'
-  | numeral
-  | MINUS_TOK numeral
-  ;
-
 /**
  * Matches a type identifier.  Returns the identifier.  If the type is
  * declared, returns the Type in the 't' parameter; otherwise a null
@@ -873,6 +878,52 @@ typeLetDecl[CVC4::parser::DeclarationCheck check]
 formula[CVC4::Expr& f]
 @init {
   Debug("parser-extra") << "formula: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Expr f2;
+  std::vector<CVC4::Expr> expressions;
+  std::vector<unsigned> operators;
+  unsigned op;
+}
+  : n=nots
+    ( prefixFormula[f]
+      { f = addNots(EXPR_MANAGER, n, f); }
+    | comparison[f]
+      { f = addNots(EXPR_MANAGER, n, f);
+        expressions.push_back(f);
+      }
+      i=morecomparisons[expressions,operators]?
+      { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
+    )
+  ;
+
+morecomparisons[std::vector<CVC4::Expr>& expressions,
+                std::vector<unsigned>& operators] returns [size_t i]
+@init {
+  unsigned op;
+  Expr f;
+  $i = expressions.size();
+}
+  : booleanBinop[op] { operators.push_back(op); }
+    n=nots
+    ( prefixFormula[f]
+      { expressions.push_back(addNots(EXPR_MANAGER, n, f)); }
+    | comparison[f]
+      { f = addNots(EXPR_MANAGER, n, f);
+        expressions.push_back(f);
+      }
+      inner=morecomparisons[expressions,operators]?
+    )
+  ;
+
+/** Matches 0 or more NOTs. */
+nots returns [size_t n]
+@init {
+  $n = 0;
+}
+  : ( NOT_TOK { ++$n; } )*
+  ;
+
+prefixFormula[CVC4::Expr& f]
+@init {
   std::vector<std::string> ids;
   std::vector<Expr> terms;
   std::vector<Type> types;
@@ -894,20 +945,20 @@ formula[CVC4::Expr& f]
       f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
     }
 
-    /* lets: letDecl defines the variables and functionss, we just
+   /* lets: letDecl defines the variables and functionss, we just
      * manage the scopes here.  NOTE that LET in the CVC language is
      * always sequential! */
   | LET_TOK { PARSER_STATE->pushScope(); }
     letDecl ( COMMA letDecl )*
     IN_TOK formula[f] { PARSER_STATE->popScope(); }
 
-    /* lambda */
+   /* lambda */
   | LAMBDA { PARSER_STATE->pushScope(); } LPAREN
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
-      Expr func = PARSER_STATE->mkFunction("anonymous", t);
+      Expr func = PARSER_STATE->mkAnonymousFunction("lambda", t);
       Command* cmd = new DefineFunctionCommand(func, terms, f);
       PARSER_STATE->preemptCommand(cmd);
       f = func;
@@ -920,9 +971,6 @@ formula[CVC4::Expr& f]
       PARSER_STATE->unimplementedFeature("array literals not supported yet");
       f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()));
     }
-
-    /* everything else */
-  | booleanFormula[f]
   ;
 
 instantiationPatterns
@@ -947,36 +995,6 @@ letDecl
                       << name << std::endl
                       << " ==>" << " " << e << std::endl;
     }
-  ;
-
-booleanFormula[CVC4::Expr& f]
-@init {
-  std::vector<CVC4::Expr> expressions;
-  std::vector<unsigned> operators;
-  unsigned op;
-  unsigned notCount = 0;
-}
-  : ( NOT_TOK { ++notCount; } )* comparison[f]
-    { while(notCount > 0) {
-        --notCount;
-        f = EXPR_MANAGER->mkExpr(kind::NOT, f);
-      }
-      expressions.push_back(f);
-      Assert(notCount == 0);
-    }
-    ( booleanBinop[op] ( NOT_TOK { ++notCount; } )* comparison[f]
-      { while(notCount > 0) {
-          --notCount;
-          f = EXPR_MANAGER->mkExpr(kind::NOT, f);
-        }
-        operators.push_back(op);
-#       warning cannot do NOT FORALL or TRUE AND FORALL, or..
-        expressions.push_back(f);
-        Assert(notCount == 0);
-      }
-    )*
-    { Assert(notCount == 0);
-      f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
   ;
 
 booleanBinop[unsigned& op]
@@ -1089,17 +1107,19 @@ bvNegTerm[CVC4::Expr& f]
   ;
 
 /**
- * Parses an array select / bitvector extract / bitvector shift.
- * These are all parsed the same way because they are all effectively
- * post-fix operators and can continue piling onto an expression.
- * Array selects and bitvector extracts even share similar syntax with
- * their use of [ square brackets ], so we left-factor as much out as
- * possible to make ANTLR happy.
+ * Parses an array select / bitvector extract / bitvector shift /
+ * function or constructor application.  These are all parsed the same
+ * way because they are all effectively post-fix operators and can
+ * continue piling onto an expression.  Array selects and bitvector
+ * extracts even share similar syntax with their use of [ square
+ * brackets ], so we left-factor as much out as possible to make ANTLR
+ * happy.
  */
 selectExtractShift[CVC4::Expr& f]
 @init {
   Expr f2;
   bool extract, left;
+  std::vector<Expr> args;
 }
   : bvTerm[f]
     ( /* array select / bitvector extract */
@@ -1115,6 +1135,8 @@ selectExtractShift[CVC4::Expr& f]
           f = MK_EXPR(CVC4::kind::SELECT, f, f2);
         }
       }
+
+      /* left- or right-shift */
     | ( LEFTSHIFT_TOK { left = true; }
       | RIGHTSHIFT_TOK { left = false; } ) k=numeral
       { // Defined in:
@@ -1127,6 +1149,29 @@ selectExtractShift[CVC4::Expr& f]
                       MK_EXPR(MK_CONST(BitVectorExtract(n - 1, k)), f));
         }
       }
+
+      /* function/constructor application */
+    | LPAREN { args.push_back(f); }
+      formula[f] { args.push_back(f); }
+      ( COMMA formula[f] { args.push_back(f); } )* RPAREN
+      // TODO: check arity
+      { Type t = args.front().getType();
+        Debug("parser") << "type is " << t << std::endl;
+        Debug("parser") << "expr is " << args.front() << std::endl;
+        if(PARSER_STATE->isDefinedFunction(args.front())) {
+          f = MK_EXPR(CVC4::kind::APPLY, args);
+        } else if(t.isFunction()) {
+          f = MK_EXPR(CVC4::kind::APPLY_UF, args);
+        } else if(t.isConstructor()) {
+          f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
+        } else if(t.isSelector()) {
+          f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
+        } else if(t.isTester()) {
+          f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
+        } else {
+          Unhandled(t);
+        }
+      }
     )*
   ;
 
@@ -1135,15 +1180,15 @@ bvTerm[CVC4::Expr& f]
   Expr f2;
 }
     /* BV xor */
-  : BVXOR_TOK LPAREN formula[f] COMMA formula[f] RPAREN
+  : BVXOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_XOR, f, f2); }
-  | BVNAND_TOK LPAREN formula[f] COMMA formula[f] RPAREN
+  | BVNAND_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NAND, f, f2); }
-  | BVNOR_TOK LPAREN formula[f] COMMA formula[f] RPAREN
+  | BVNOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOR, f, f2); }
-  | BVCOMP_TOK LPAREN formula[f] COMMA formula[f] RPAREN
+  | BVCOMP_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_COMP, f, f2); }
-  | BVXNOR_TOK LPAREN formula[f] COMMA formula[f] RPAREN
+  | BVXNOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_XNOR, f, f2); }
 
     /* BV unary minus */
@@ -1159,7 +1204,7 @@ bvTerm[CVC4::Expr& f]
       if(k > size) {
         f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f);
       } else if(k < size) {
-        f = MK_EXPR(MK_CONST(BitVectorExtract(0, k - 1)), f);
+        f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);
       }
     }
     /* BV subtraction */
@@ -1172,12 +1217,12 @@ bvTerm[CVC4::Expr& f]
       if(k > size) {
         f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f);
       } else if(k < size) {
-        f = MK_EXPR(MK_CONST(BitVectorExtract(0, k - 1)), f);
+        f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);
       }
     }
     /* BV multiplication */
   | BVMULT_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
-    { MK_EXPR(CVC4::kind::BITVECTOR_MULT, f, f2);
+    { f = MK_EXPR(CVC4::kind::BITVECTOR_MULT, f, f2);
       if(k == 0) {
         PARSER_STATE->parseError("BVMULT(k,_,_) must have k > 0");
       }
@@ -1185,7 +1230,7 @@ bvTerm[CVC4::Expr& f]
       if(k > size) {
         f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f);
       } else if(k < size) {
-        f = MK_EXPR(MK_CONST(BitVectorExtract(0, k - 1)), f);
+        f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);
       }
     }
     /* BV unsigned division */
@@ -1271,44 +1316,8 @@ simpleTerm[CVC4::Expr& f]
   std::vector<Expr> args;
   Debug("parser-extra") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-    /* function/constructor application */
-  : identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { Debug("parser") << " at level " << PARSER_STATE->getDeclarationLevel() << std::endl;
-      Debug("parser") << " isFunction " << PARSER_STATE->isFunctionLike(name) << std::endl;
-      Debug("parser") << " isDefinedFunction " << PARSER_STATE->isDefinedFunction(name) << std::endl;
-      Debug("parser") << " name " << name << std::endl;
-      Debug("parser") << " isDeclared " << PARSER_STATE->isDeclared(name) << std::endl;
-      Debug("parser") << " getType " << PARSER_STATE->getType(name) << std::endl;
-      PARSER_STATE->checkFunctionLike(name);
-      f = PARSER_STATE->getVariable(name);
-      args.push_back(f);
-    }
-    LPAREN formula[f] { args.push_back(f); }
-    ( COMMA formula[f] { args.push_back(f); } )* RPAREN
-    // TODO: check arity
-    { Type t = args.front().getType();
-      Debug("parser") << "type is " << t << std::endl;
-      Debug("parser") << "expr is " << args.front() << std::endl;
-      if(PARSER_STATE->isDefinedFunction(name)) {
-        f = MK_EXPR(CVC4::kind::APPLY, args);
-      } else if(t.isFunction()) {
-        f = MK_EXPR(CVC4::kind::APPLY_UF, args);
-      } else if(t.isConstructor()) {
-        Debug("parser-idt") << "apply constructor: " << name.c_str() << " " << args.size() << std::endl;
-        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
-      } else if(t.isSelector()) {
-        Debug("parser-idt") << "apply selector: " << name.c_str() << " " << args.size() << std::endl;
-        f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, args);
-      } else if(t.isTester()) {
-        Debug("parser-idt") << "apply tester: " << name.c_str() << " " << args.size() << std::endl;
-        f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
-      } else {
-        Unhandled(t);
-      }
-    }
-
     /* if-then-else */
-  | iteTerm[f]
+  : iteTerm[f]
 
     /* parenthesized sub-formula / tuple literals */
   | LPAREN formula[f] { args.push_back(f); }
@@ -1345,9 +1354,11 @@ simpleTerm[CVC4::Expr& f]
   | identifier[name,CHECK_DECLARED,SYM_VARIABLE]
     { f = PARSER_STATE->getVariable(name);
       // datatypes: zero-ary constructors
-      if(PARSER_STATE->getType(name).isConstructor()) {
-        args.push_back(f);
-        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, args);
+      Type t = PARSER_STATE->getType(name);
+      if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
+        // don't require parentheses, immediately turn it into an
+        // apply
+        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, f);
       }
     }
   ;
@@ -1475,7 +1486,7 @@ numeral returns [unsigned k]
 /**
  * Matches a decimal literal.
  */
-DECIMAL_LITERAL: DIGIT+ '.' DIGIT+;
+DECIMAL_LITERAL: DIGIT+ DOT DIGIT+;
 
 /**
  * Matches a hexadecimal constant.

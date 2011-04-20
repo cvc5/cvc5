@@ -72,6 +72,10 @@ bool DeclarationScope::isBoundDefinedFunction(const std::string& name) const thr
   return found != d_exprMap->end() && d_functions->contains((*found).second);
 }
 
+bool DeclarationScope::isBoundDefinedFunction(Expr func) const throw() {
+  return d_functions->contains(func);
+}
+
 Expr DeclarationScope::lookup(const std::string& name) const throw(AssertionException) {
   return (*d_exprMap->find(name)).second;
 }

@@ -127,6 +127,7 @@ int runTest() {
 
   runTestString("(= (f (f y)) x)");
   runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", input::LANG_CVC4);
+  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]", input::LANG_CVC4);
   runTestString("a[x][y] = a[y][x]", input::LANG_CVC4);
 
   delete psr;
