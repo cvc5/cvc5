@@ -23,4 +23,4 @@ TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
 	test00.smt \
-	bvcomp.smt
+	bvcomp.cvc

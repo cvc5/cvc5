@@ -80,9 +80,14 @@ public:
    */
   NodeTemplate<true> getNode() const;
 
-  /** Returns the message corresponding to the type-checking failure */
-  std::string toString() const;
-};
+  /**
+   * Returns the message corresponding to the type-checking failure.
+   * We prefer toStream() to toString() because that keeps the expr-depth
+   * and expr-language settings present in the stream.
+   */
+  void toStream(std::ostream& out) const;
+
+};/* class TypeCheckingExceptionPrivate */
 
 /**
  * \typedef NodeTemplate<true> Node;

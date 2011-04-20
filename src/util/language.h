@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -138,12 +138,29 @@ typedef language::output::Language OutputLanguage;
 
 namespace language {
 
+inline InputLanguage toInputLanguage(OutputLanguage language) {
+  switch(language) {
+  case output::LANG_SMTLIB:
+  case output::LANG_SMTLIB_V2:
+  case output::LANG_CVC4:
+    // these entries directly correspond (by design)
+    return InputLanguage(int(language));
+
+  default: {
+    std::stringstream ss;
+    ss << "Cannot map output language `" << language
+       << "' to an input language.";
+    throw CVC4::Exception(ss.str());
+  }
+  }/* switch(language) */
+}/* toInputLanguage() */
+
 inline OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
   case input::LANG_SMTLIB:
   case input::LANG_SMTLIB_V2:
   case input::LANG_CVC4:
-    // these entries correspond
+    // these entries directly correspond (by design)
     return OutputLanguage(int(language));
 
   default: {

@@ -182,7 +182,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       out << "BVROTR(" << n[0] << "," << n.getOperator() << ')';
       break;
 
-
     default:
       out << n.getOperator();
       if(n.getNumChildren() > 0) {
@@ -233,15 +232,20 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       out << "IF " << n[0] << " THEN " << n[1] << " ELSE " << n[2];
       break;
 
-    // these are prefix
+    // these are prefix and have an extra size 'k' as first argument
     case kind::BITVECTOR_PLUS:
     case kind::BITVECTOR_SUB:
+    case kind::BITVECTOR_MULT:
+      out << n.getOperator() << '(' << n.getType().getBitVectorSize() << ','
+          << n[0] << ',' << n[1] << ')';
+      break;
+
+    // these are prefix
     case kind::BITVECTOR_XOR:
     case kind::BITVECTOR_NAND:
     case kind::BITVECTOR_NOR:
     case kind::BITVECTOR_XNOR:
     case kind::BITVECTOR_COMP:
-    case kind::BITVECTOR_MULT:
     case kind::BITVECTOR_UDIV:
     case kind::BITVECTOR_UREM:
     case kind::BITVECTOR_SDIV:
@@ -267,7 +271,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
         out << n[0][0] << " /= " << n[0][1];
       } else if(n.getNumChildren() == 2) {
         // infix operator
-        out << n[0] << ' ' << n.getOperator() << ' ' << n[1];
+        out << '(' << n[0] << ' ' << n.getOperator() << ' ' << n[1] << ')';
+      } else if(k == kind::BITVECTOR_NOT) {
+        // precedence on ~ is a little unexpected; add parens
+        out << "(~(" << n[0] << "))";
       } else {
         // prefix operator
         out << n.getOperator() << ' ';

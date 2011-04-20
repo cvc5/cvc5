@@ -5,7 +5,7 @@
  ** Major contributors: cconway
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -31,6 +31,9 @@ struct ArraySelectTypeRule {
     Assert(n.getKind() == kind::SELECT);
     TypeNode arrayType = n[0].getType(check);
     if( check ) {
+      if(!arrayType.isArray()) {
+        throw TypeCheckingExceptionPrivate(n, "array select operating on non-array");
+      }
       TypeNode indexType = n[1].getType(check);
       if(arrayType.getArrayIndexType() != indexType) {
         throw TypeCheckingExceptionPrivate(n, "array select not indexed with correct type for array");
@@ -46,6 +49,9 @@ struct ArrayStoreTypeRule {
     Assert(n.getKind() == kind::STORE);
     TypeNode arrayType = n[0].getType(check);
     if( check ) {
+      if(!arrayType.isArray()) {
+        throw TypeCheckingExceptionPrivate(n, "array store operating on non-array");
+      }
       TypeNode indexType = n[1].getType(check);
       TypeNode valueType = n[2].getType(check);
       if(arrayType.getArrayIndexType() != indexType) {

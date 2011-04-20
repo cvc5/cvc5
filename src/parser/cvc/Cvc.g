@@ -460,8 +460,8 @@ command returns [CVC4::Command* cmd = 0]
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f);   }
-  | QUERY_TOK formula[f] SEMICOLON { cmd = new QueryCommand(f);    }
+  : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f); }
+  | QUERY_TOK formula[f] SEMICOLON { cmd = new QueryCommand(f); }
   | CHECKSAT_TOK formula[f] SEMICOLON { cmd = new CheckSatCommand(f); }
   | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(MK_CONST(true)); }
   | OPTION_TOK STRING_LITERAL symbolicExpr[sexpr] SEMICOLON
@@ -684,7 +684,16 @@ identifier[std::string& id,
   ;
 
 /**
- * Match the type in a declaration and do the declaration binding.
+ * Match the type in a declaration and do the declaration binding.  If
+ * "check" is CHECK_NONE, then identifiers occurring in the type need
+ * not exist!  They are created as "unresolved" types and linked up in
+ * a type-substitution pass.  Right now, only datatype definitions are
+ * supported in this way (since type names can occur without any
+ * forward-declaration in CVC language datatype definitions, we have
+ * to create types for them on-the-fly).  Before passing CHECK_NONE
+ * you really should have a clear idea of WHY you need to parse that
+ * way; then you should trace through Parser::mkMutualDatatypeType()
+ * to figure out just what you're in for.
  */
 type[CVC4::Type& t,
      CVC4::parser::DeclarationCheck check]
@@ -1059,8 +1068,8 @@ concatBitwiseTerm[CVC4::Expr& f]
   std::vector<unsigned> operators;
   unsigned op;
 }
-  : bitwiseXorTerm[f] { expressions.push_back(f); }
-    ( concatBitwiseBinop[op] bitwiseXorTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
+  : bvNegTerm[f] { expressions.push_back(f); }
+    ( concatBitwiseBinop[op] bvNegTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
     { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
   ;
 concatBitwiseBinop[unsigned& op]
@@ -1072,7 +1081,56 @@ concatBitwiseBinop[unsigned& op]
   | BVAND_TOK
   ;
 
-bitwiseXorTerm[CVC4::Expr& f]
+bvNegTerm[CVC4::Expr& f]
+    /* BV neg */
+  : BVNEG_TOK bvNegTerm[f]
+    { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
+  | selectExtractShift[f]
+  ;
+
+/**
+ * Parses an array select / bitvector extract / bitvector shift.
+ * These are all parsed the same way because they are all effectively
+ * post-fix operators and can continue piling onto an expression.
+ * Array selects and bitvector extracts even share similar syntax with
+ * their use of [ square brackets ], so we left-factor as much out as
+ * possible to make ANTLR happy.
+ */
+selectExtractShift[CVC4::Expr& f]
+@init {
+  Expr f2;
+  bool extract, left;
+}
+  : bvTerm[f]
+    ( /* array select / bitvector extract */
+      LBRACKET
+        ( formula[f2] { extract = false; }
+        | k1=numeral COLON k2=numeral { extract = true; } )
+      RBRACKET
+      { if(extract) {
+          /* bitvector extract */
+          f = MK_EXPR(MK_CONST(BitVectorExtract(k1, k2)), f);
+        } else {
+          /* array select */
+          f = MK_EXPR(CVC4::kind::SELECT, f, f2);
+        }
+      }
+    | ( LEFTSHIFT_TOK { left = true; }
+      | RIGHTSHIFT_TOK { left = false; } ) k=numeral
+      { // Defined in:
+        // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
+        if(left) {
+          f = MK_EXPR(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
+        } else {
+          unsigned n = BitVectorType(f.getType()).getSize();
+          f = MK_EXPR(kind::BITVECTOR_CONCAT, MK_CONST(BitVector(k)),
+                      MK_EXPR(MK_CONST(BitVectorExtract(n - 1, k)), f));
+        }
+      }
+    )*
+  ;
+
+bvTerm[CVC4::Expr& f]
 @init {
   Expr f2;
 }
@@ -1087,27 +1145,15 @@ bitwiseXorTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_COMP, f, f2); }
   | BVXNOR_TOK LPAREN formula[f] COMMA formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_XNOR, f, f2); }
-  | bvNegTerm[f]
-  ;
-bvNegTerm[CVC4::Expr& f]
-    /* BV neg */
-  : BVNEG_TOK bvNegTerm[f]
-    { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | bvUminusTerm[f]
-  ;
-bvUminusTerm[CVC4::Expr& f]
-@init {
-  Expr f2;
-}
+
     /* BV unary minus */
-  : BVUMINUS_TOK LPAREN formula[f] RPAREN
+  | BVUMINUS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NEG, f); }
     /* BV addition */
   | BVPLUS_TOK LPAREN k=numeral COMMA formula[f]
     ( COMMA formula[f2] { f = MK_EXPR(CVC4::kind::BITVECTOR_PLUS, f, f2); } )+ RPAREN
     { unsigned size = BitVectorType(f.getType()).getSize();
       if(k == 0) {
-#       warning cannot do BVPLUS(...)[i:j]
         PARSER_STATE->parseError("BVPLUS(k,_,_,...) must have k > 0");
       }
       if(k > size) {
@@ -1191,35 +1237,9 @@ bvUminusTerm[CVC4::Expr& f]
     /* BV rotate left */
   | BVROTL_TOK LPAREN formula[f] COMMA k=numeral RPAREN
     { f = MK_EXPR(MK_CONST(BitVectorRotateLeft(k)), f); }
-    /* left and right shifting with << and >>, or something else */
-  | bvShiftTerm[f]
-  ;
 
-bvShiftTerm[CVC4::Expr& f]
-@init {
-  bool left = false;
-}
-  : bvComparison[f]
-    ( (LEFTSHIFT_TOK { left = true; } | RIGHTSHIFT_TOK) k=numeral
-      { // Defined in:
-        // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
-        if(left) {
-          f = MK_EXPR(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
-        } else {
-          unsigned n = BitVectorType(f.getType()).getSize();
-          f = MK_EXPR(kind::BITVECTOR_CONCAT, MK_CONST(BitVector(k)),
-                      MK_EXPR(MK_CONST(BitVectorExtract(n - 1, k)), f));
-        }
-      }
-    )?
-  ;
-
-bvComparison[CVC4::Expr& f]
-@init {
-  Expr f2;
-}
     /* BV comparisons */
-  : BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+  | BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_ULT, f, f2); }
   | BVLE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_ULE, f, f2); }
@@ -1235,35 +1255,13 @@ bvComparison[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SGT, f, f2); }
   | BVSGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SGE, f, f2); }
+
   /*
   | IS_INTEGER_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_IS_INTEGER, f); }
   */
-  | selectExtractTerm[f]
-  ;
 
-/** Parses an array select. */
-selectExtractTerm[CVC4::Expr& f]
-@init {
-  Expr f2;
-  bool extract;
-}
-    /* array select / bitvector extract */
-  : simpleTerm[f]
-    ( { extract = false; }
-      LBRACKET formula[f2] ( COLON k2=numeral { extract = true; } )? RBRACKET
-      { if(extract) {
-          if(f2.getKind() != kind::CONST_INTEGER) {
-            PARSER_STATE->parseError("bitvector extraction requires [numeral:numeral] range");
-          }
-          unsigned k1 = f2.getConst<Integer>().getLong();
-          f = MK_EXPR(MK_CONST(BitVectorExtract(k1, k2)), f);
-        } else {
-          f = MK_EXPR(CVC4::kind::SELECT, f, f2);
-        }
-      }
-    )*
-
+  | simpleTerm[f]
   ;
 
 /** Parses a simple term. */
@@ -1447,13 +1445,7 @@ selector[CVC4::Datatype::Constructor& ctor]
   Type t;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
-    { if(t.isNull()) {
-#       warning FIXME datatypes
-        //std::pair<Type, std::string> unresolved = PARSER_STATE->newUnresolvedType();
-        //ctor.addArg(id, Datatype::UnresolvedType(unresolved.second);
-      } else {
-        ctor.addArg(id, t);
-      }
+    { ctor.addArg(id, t);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }
   ;

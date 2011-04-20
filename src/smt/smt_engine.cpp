@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
- ** Minor contributors (to current version): taking, cconway
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -346,7 +346,8 @@ void SmtEngine::defineFunction(Expr func,
     FunctionType(funcType).getRangeType() : funcType;
   if(formulaType != rangeType) {
     stringstream ss;
-    ss << "Defined function's declared type does not match that of body\n"
+    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
+       << "Defined function's declared type does not match that of body\n"
        << "The function  : " << func << "\n"
        << "Its range type: " << rangeType << "\n"
        << "The body      : " << formula << "\n"
@@ -474,9 +475,11 @@ Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode in)
     // theory could still create a new expression that isn't
     // well-typed, and we don't want the C++ runtime to abort our
     // process without any error notice.
-    InternalError("A bad expression was produced.  "
-                  "Original exception follows:\n%s",
-                  tcep.toString().c_str());
+    stringstream ss;
+    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
+       << "A bad expression was produced.  Original exception follows:\n"
+       << tcep;
+    InternalError(ss.str().c_str());
   }
 }
 
@@ -503,9 +506,11 @@ void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
     // theory could still create a new expression that isn't
     // well-typed, and we don't want the C++ runtime to abort our
     // process without any error notice.
-    InternalError("A bad expression was produced.  "
-                  "Original exception follows:\n%s",
-                  tcep.toString().c_str());
+    stringstream ss;
+    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
+       << "A bad expression was produced.  Original exception follows:\n"
+       << tcep;
+    InternalError(ss.str().c_str());
   }
 }
 
@@ -514,7 +519,8 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) {
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
     stringstream ss;
-    ss << "Expected " << boolType << "\n"
+    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
+       << "Expected " << boolType << "\n"
        << "The assertion : " << e << "\n"
        << "Its type      : " << type;
     throw TypeCheckingException(e, ss.str());
