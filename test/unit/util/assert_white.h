@@ -60,7 +60,8 @@ public:
       // we don't want to match on the entire string, because it may
       // have an absolute path to the unit test binary, line number
       // info, etc.
-      const char* theString = e.toString().c_str();
+      std::string s = e.toString();
+      const char* theString = s.c_str();
       const char* firstPart =
         "Assertion failure\nvoid AssertWhite::testReallyLongAssert()\n";
       string lastPartStr = "\n\n  false\n" + msg;
@@ -84,7 +85,8 @@ public:
       // we don't want to match on the entire string, because it may
       // have an absolute path to the unit test binary, line number
       // info, etc.
-      const char* theString = e.toString().c_str();
+      std::string s = e.toString();
+      const char* theString = s.c_str();
       const char* firstPart =
         "Assertion failure\nvoid AssertWhite::testReallyLongAssert()\n";
       string lastPartStr = "\n\n  false\n" + string(200, 'x') + " " +
