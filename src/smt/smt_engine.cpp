@@ -596,6 +596,7 @@ Expr SmtEngine::simplify(const Expr& e) {
 Expr SmtEngine::getValue(const Expr& e)
   throw(ModalException, AssertionException) {
   Assert(e.getExprManager() == d_exprManager);
+  NodeManagerScope nms(d_nodeManager);
   Type type = e.getType(Options::current()->typeChecking);// ensure expr is type-checked at this point
   Debug("smt") << "SMT getValue(" << e << ")" << endl;
   if(!Options::current()->produceModels) {
