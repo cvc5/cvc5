@@ -618,7 +618,6 @@ Expr SmtEngine::getValue(const Expr& e)
     throw ModalException(msg);
   }
 
-  NodeManagerScope nms(d_nodeManager);
   Node eNode = e.getNode();
   Node n = smt::SmtEnginePrivate::preprocess(*this, eNode);
 
@@ -710,6 +709,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
 
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
   Debug("smt") << "SMT getAssertions()" << endl;
   if(!Options::current()->interactive) {
     const char* msg =
