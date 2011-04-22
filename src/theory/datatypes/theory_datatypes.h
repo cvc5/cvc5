@@ -82,7 +82,6 @@ private:
   //Type getType( TypeNode t );
   int getConstructorIndex( TypeNode t, Node c );
   int getTesterIndex( TypeNode t, Node c );
-  bool isDatatype( TypeNode t ) { return d_cons.find( t )!=d_cons.end(); }
   void checkFiniteWellFounded();
 
   /**

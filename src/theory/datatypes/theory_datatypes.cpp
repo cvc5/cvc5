@@ -78,19 +78,20 @@ void TheoryDatatypes::checkFiniteWellFounded() {
       changed = false;
       for( it = d_cons.begin(); it != d_cons.end(); ++it ) {
         TypeNode t = it->first;
-        Debug("datatypes-finite") << "check " << t << endl;
+        Debug("datatypes-finite") << "Check type " << t << endl;
         bool typeFinite = true;
         for( itc = it->second.begin(); itc != it->second.end(); ++itc ) {
           Node cn = *itc;
           TypeNode ct = cn.getType();
-          Debug("datatypes-finite") << " check cons " << ct << endl;
+          Debug("datatypes-finite") << "Check cons " << ct << endl;
           if( !d_cons_finite[cn] ) {
             int c;
             for( c=0; c<(int)ct.getNumChildren()-1; c++ ) {
               Debug("datatypes-finite") << "  check sel " << c << " of " << ct << ": " << endl << ct[c] << endl;
               TypeNode ts = ct[c];
               Debug("datatypes") << "  check : " << ts << endl;
-              if( !isDatatype( ts ) || !d_finite[ ts ] ) {
+              if( !ts.isDatatype() || !d_finite[ ts ] ) {
+                //fix?  this assumes all non-datatype sorts are infinite
                 break;
               }
             }
@@ -109,7 +110,7 @@ void TheoryDatatypes::checkFiniteWellFounded() {
               Debug("datatypes") << ct[c] << endl;
               TypeNode ts = ct[c];
               Debug("datatypes") << "  check : " << ts << endl;
-              if( isDatatype( ts ) && !d_wellFounded[ ts ] ) {
+              if( ts.isDatatype() && !d_wellFounded[ ts ] ) {
                 break;
               }
             }
@@ -131,10 +132,11 @@ void TheoryDatatypes::checkFiniteWellFounded() {
               children.push_back( cn );
               for( int c=0; c<(int)ct.getNumChildren()-1; c++ ) {
                 TypeNode ts = ct[c];
-                if( isDatatype( ts ) ) {
+                if( ts.isDatatype() ) {
                   children.push_back( d_distinguishTerms[ts] );
                 } else {
-                  nm->mkVar( ts );
+                  //fix?  this should be a ground term
+                  children.push_back( nm->mkVar( ts ) );
                 }
               }
               Node dgt = nm->mkNode( APPLY_CONSTRUCTOR, children );
@@ -158,8 +160,8 @@ void TheoryDatatypes::checkFiniteWellFounded() {
     for( itb=d_wellFounded.begin(); itb != d_wellFounded.end(); ++itb ) {
       Debug("datatypes-finite") << itb->first << " is ";
       Debug("datatypes-finite") << ( itb->second ? "" : "not ") << "well founded." << endl;
-      if( !itb->second && isDatatype( itb->first ) ) {
-        //throw exception?
+      if( !itb->second && itb->first.isDatatype() ) {
+        //todo: throw exception
       }
     }
     requiresCheckFiniteWellFounded = false;
@@ -273,6 +275,7 @@ void TheoryDatatypes::check(Effort e) {
     }
   }
   while(!done()) {
+    checkFiniteWellFounded();
     Node assertion = get();
     if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
       cout << "*** TheoryDatatypes::check(): " << assertion << endl;
@@ -302,7 +305,6 @@ void TheoryDatatypes::check(Effort e) {
               Node a = assertion[0][0];
               Node b = assertion[0][1];
               addDisequality(assertion[0]);
-              Debug("datatypes") << "hello." << endl;
               d_cc.addTerm(a);
               d_cc.addTerm(b);
               if(Debug.isOn("datatypes")) {
@@ -852,6 +854,7 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
 
 Node TheoryDatatypes::collapseSelector( TNode t, bool useContext ) {
   if( t.getKind() == APPLY_SELECTOR ) {
+    checkFiniteWellFounded();
     //collapse constructor
     TypeNode typ = t[0].getType();
     Node sel = t.getOperator();
