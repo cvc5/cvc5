@@ -131,7 +131,7 @@ tokens {
   PARENHASH = '(#';
   HASHPAREN = '#)';
 
-  DOT = '.';
+  //DOT = '.';
   DOTDOT = '..';
 
   // Operators
@@ -215,7 +215,7 @@ bool isRightToLeft(int type) {
 int getOperatorPrecedence(int type) {
   switch(type) {
   case BITVECTOR_TOK: return 1;
-  case DOT:
+  //case DOT:
   case LPAREN:
   case LBRACE: return 2;
   case LBRACKET: return 3;
@@ -1418,7 +1418,7 @@ postfixTerm[CVC4::Expr& f]
       }
 
       /* record / tuple select */
-    | DOT
+    /*| DOT
       ( identifier[id,CHECK_NONE,SYM_VARIABLE]
         { UNSUPPORTED("record select not implemented yet");
           f = Expr(); }
@@ -1428,7 +1428,7 @@ postfixTerm[CVC4::Expr& f]
           // that's ok for now, once a TUPLE_SELECT operator exists,
           // that will do any necessary type checking
           f = EXPR_MANAGER->mkVar(TupleType(f.getType()).getTypes()[k]); }
-      )
+      )*/
     )*
     typeAscription[f]?
   ;
@@ -1596,7 +1596,7 @@ simpleTerm[CVC4::Expr& f]
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
-  | (INTEGER_LITERAL DOT DIGIT)=> r=decimal_literal { f = MK_CONST(r); }
+  | DECIMAL_LITERAL { f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL
@@ -1769,9 +1769,8 @@ INTEGER_LITERAL
 /**
  * Matches a decimal literal.
  */
-decimal_literal returns [CVC4::Rational r]
-  : k=(INTEGER_LITERAL '.' DIGIT+)
-    { $r = AntlrInput::tokenToRational($k); }
+DECIMAL_LITERAL
+  : INTEGER_LITERAL '.' DIGIT+
   ;
 
 /**

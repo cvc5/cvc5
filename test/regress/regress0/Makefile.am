@@ -38,7 +38,6 @@ SMT2_TESTS = \
 
 # Regression tests for PL inputs
 CVC_TESTS = \
-	subranges.cvc \
 	boolean-prec.cvc \
 	hole6.cvc \
 	ite.cvc \
@@ -103,6 +102,7 @@ endif
 
 # and make sure to distribute it
 EXTRA_DIST += \
+	subranges.cvc \
 	error.cvc
 
 # synonyms for "check" in this directory
