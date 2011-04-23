@@ -7,6 +7,11 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) -Wno-unused-f
 AM_CFLAGS = $(AM_CXXFLAGS)
 CC=$(CXX)
 
+ANTLR_OPTS =
+
+# hide this included makefile from automake
+@mk_include@ @srcdir@/../Makefile.antlr_tracing
+
 noinst_LTLIBRARIES = libparsersmt2.la
 
 ANTLR_TOKEN_STUFF = \
@@ -46,7 +51,7 @@ maintainer-clean-local:
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
 @srcdir@/generated/Smt2Lexer.h: Smt2.g @srcdir@/stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
-	$(AM_V_GEN)$(ANTLR) -o "@srcdir@/generated" "@srcdir@/Smt2.g"
+	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -o "@srcdir@/generated" "@srcdir@/Smt2.g"
 
 # These don't actually depend on SmtLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules

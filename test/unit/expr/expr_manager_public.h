@@ -46,7 +46,7 @@ private:
       worklist.pop_back();
       if( current.getKind() == kind ) {
         for( unsigned int i = 0; i < current.getNumChildren(); ++i ) {
-          worklist.push_back( current.getChild(i) );
+          worklist.push_back( current[i] );
         }
       } else {
         childrenFound++;

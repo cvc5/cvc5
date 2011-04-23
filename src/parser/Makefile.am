@@ -53,7 +53,8 @@ libcvc4parser_la_SOURCES = \
 	parser.cpp \
 	parser_builder.h \
 	parser_builder.cpp \
-	parser_exception.h
+	parser_exception.h \
+	antlr_tracing.h
 
 libcvc4parser_noinst_la_SOURCES = \
 	antlr_input.h \
@@ -71,5 +72,8 @@ libcvc4parser_noinst_la_SOURCES = \
 	parser.cpp \
 	parser_builder.h \
 	parser_builder.cpp \
-	parser_exception.h
+	parser_exception.h \
+	antlr_tracing.h
 
+EXTRA_DIST = \
+	Makefile.antlr_tracing

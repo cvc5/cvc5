@@ -289,19 +289,31 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
         // collapse NOT-over-EQUAL
         out << n[0][0] << " /= " << n[0][1];
       } else if(n.getNumChildren() == 2) {
-        // infix operator
+        // infix binary operator
         out << '(' << n[0] << ' ' << n.getOperator() << ' ' << n[1] << ')';
+      } else if(n.getKind() == kind::AND ||
+                n.getKind() == kind::OR) {
+        // infix N-ary operator
+        TNode::iterator i = n.begin();
+        out << '(' << *i++;
+        while(i != n.end()) {
+          out << ' ' << n.getOperator() << ' ' << *i++;
+        }
+        out << ')';
       } else if(k == kind::BITVECTOR_NOT) {
         // precedence on ~ is a little unexpected; add parens
         out << "(~(" << n[0] << "))";
       } else {
-        // prefix operator
-        out << n.getOperator() << ' ';
-        if(n.getNumChildren() > 0) {
+        // prefix N-ary operator for N != 2
+        if(n.getNumChildren() == 0) {
+          // no parens or spaces
+          out << n.getOperator();
+        } else {
+          out << '(' << n.getOperator() << ' ';
           if(n.getNumChildren() > 1) {
             copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, " "));
           }
-          out << n[n.getNumChildren() - 1];
+          out << n[n.getNumChildren() - 1] << ')';
         }
       }
     }

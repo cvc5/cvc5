@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -385,7 +385,8 @@ dbgLA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 static ANTLR3_MARKER
 mark	(pANTLR3_INT_STREAM is)
 {
-  Unreachable();
+  is->lastMarker = is->index(is);
+  return  is->lastMarker;
 }
 
 /// As per mark() but with a call to tell the debugger we are doing this
@@ -435,7 +436,7 @@ rewindLast	(pANTLR3_INT_STREAM is)
 static void		    
 rewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 {
-  Unreachable();
+    is->seek(is, (ANTLR3_UINT32)(marker));
 }
 static void		    
 dbgRewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
@@ -446,7 +447,13 @@ dbgRewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 static void		    
 seek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 {
-    Unreachable();
+    pANTLR3_COMMON_TOKEN_STREAM cts;
+    pANTLR3_TOKEN_STREAM        ts;
+
+    ts      = (pANTLR3_TOKEN_STREAM)        is->super;
+    cts     = (pANTLR3_COMMON_TOKEN_STREAM) ts->super;
+
+    cts->p  = (ANTLR3_UINT32)index;
 }
 static void		    
 dbgSeek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)

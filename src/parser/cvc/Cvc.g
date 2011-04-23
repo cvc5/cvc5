@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Parser for CVC-LIB input language.
+ ** \brief Parser for CVC presentation input language
  **
- ** Parser for CVC-LIB input language.
+ ** Parser for CVC input language.
  **/
 
 grammar Cvc;
@@ -26,16 +26,63 @@ options {
   // defaultErrorHandler = false;
 
   // Only lookahead of <= k requested (disable for LL* parsing)
-  k = 2;
-}
+  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // If you change this k, change it also in cvc_input.cpp !
+  k = 3;
+}/* options */
 
 tokens {
-  // Keywords
+  /* commands */
+
+  ASSERT_TOK = 'ASSERT';
+  QUERY_TOK = 'QUERY';
+  CHECKSAT_TOK = 'CHECKSAT';
+  OPTION_TOK = 'OPTION';
+  PUSH_TOK = 'PUSH';
+  POP_TOK = 'POP';
+  POPTO_TOK = 'POPTO';
+  PUSH_SCOPE_TOK = 'PUSH_SCOPE';
+  POP_SCOPE_TOK = 'POP_SCOPE';
+  POPTO_SCOPE_TOK = 'POPTO_SCOPE';
+  RESET_TOK = 'RESET';
+  DATATYPE_TOK = 'DATATYPE';
+  END_TOK = 'END';
+  CONTEXT_TOK = 'CONTEXT';
+  FORGET_TOK = 'FORGET';
+  GET_TYPE_TOK = 'GET_TYPE';
+  CHECK_TYPE_TOK = 'CHECK_TYPE';
+  GET_CHILD_TOK = 'GET_CHILD';
+  GET_OP_TOK = 'GET_OP';
+  SUBSTITUTE_TOK = 'SUBSTITUTE';
+  DBG_TOK = 'DBG';
+  TRACE_TOK = 'TRACE';
+  UNTRACE_TOK = 'UNTRACE';
+  HELP_TOK = 'HELP';
+  TRANSFORM_TOK = 'TRANSFORM';
+  PRINT_TOK = 'PRINT';
+  PRINT_TYPE_TOK = 'PRINT_TYPE';
+  CALL_TOK = 'CALL';
+  ECHO_TOK = 'ECHO';
+  INCLUDE_TOK = 'INCLUDE';
+  DUMP_PROOF_TOK = 'DUMP_PROOF';
+  DUMP_ASSUMPTIONS_TOK = 'DUMP_ASSUMPTIONS';
+  DUMP_SIG_TOK = 'DUMP_SIG';
+  DUMP_TCC_TOK = 'DUMP_TCC';
+  DUMP_TCC_ASSUMPTIONS_TOK = 'DUMP_TCC_ASSUMPTIONS';
+  DUMP_TCC_PROOF_TOK = 'DUMP_TCC_PROOF';
+  DUMP_CLOSURE_TOK = 'DUMP_CLOSURE';
+  DUMP_CLOSURE_PROOF_TOK = 'DUMP_CLOSURE_PROOF';
+  WHERE_TOK = 'WHERE';
+  ASSERTIONS_TOK = 'ASSERTIONS';
+  ASSUMPTIONS_TOK = 'ASSUMPTIONS';
+  COUNTEREXAMPLE_TOK = 'COUNTEREXAMPLE';
+  COUNTERMODEL_TOK = 'COUNTERMODEL';
+  ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
+
+  /* operators */
 
   AND_TOK = 'AND';
-  ASSERT_TOK = 'ASSERT';
   BOOLEAN_TOK = 'BOOLEAN';
-  CHECKSAT_TOK = 'CHECKSAT';
   ECHO_TOK = 'ECHO';
   ELSEIF_TOK = 'ELSIF';
   ELSE_TOK = 'ELSE';
@@ -46,21 +93,12 @@ tokens {
   INT_TOK = 'INT';
   LET_TOK = 'LET';
   NOT_TOK = 'NOT';
-  OPTION_TOK = 'OPTION';
   OR_TOK = 'OR';
-  POPTO_TOK = 'POPTO';
-  POP_TOK = 'POP';
-  PRINT_TOK = 'PRINT';
-  PUSH_TOK = 'PUSH';
-  QUERY_TOK = 'QUERY';
   REAL_TOK = 'REAL';
   THEN_TOK = 'THEN';
   TRUE_TOK = 'TRUE';
   TYPE_TOK = 'TYPE';
   XOR_TOK = 'XOR';
-
-  DATATYPE_TOK = 'DATATYPE';
-  END_TOK = 'END';
 
   ARRAY_TOK = 'ARRAY';
   OF_TOK = 'OF';
@@ -86,14 +124,15 @@ tokens {
   RBRACKET = ']';
   SEMICOLON = ';';
   BAR = '|';
-  DOT = '.';
-  DOTDOT = '..';
   UNDERSCORE = '_';
 
   SQHASH = '[#';
   HASHSQ = '#]';
   PARENHASH = '(#';
   HASHPAREN = '#)';
+
+  DOT = '.';
+  DOTDOT = '..';
 
   // Operators
 
@@ -158,7 +197,7 @@ tokens {
   BVSGT_TOK = 'BVSGT';
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
-}
+}/* tokens */
 
 @parser::members {
 
@@ -171,7 +210,7 @@ bool isRightToLeft(int type) {
   case IMPLIES_TOK: return true;
   default: return false;
   }
-}
+}/* isRightToLeft() */
 
 int getOperatorPrecedence(int type) {
   switch(type) {
@@ -247,7 +286,7 @@ int getOperatorPrecedence(int type) {
   default:
     Unhandled(CvcParserTokenNames[type]);
   }
-}
+}/* getOperatorPrecedence() */
 
 Kind getOperatorKind(int type, bool& negate) {
   negate = false;
@@ -276,7 +315,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case DIV_TOK: return kind::DIVISION;
   case EXP_TOK: Unhandled(CvcParserTokenNames[type]);
 
-    // concatBitwiseBinop
+    // bvBinop
   case CONCAT_TOK: return kind::BITVECTOR_CONCAT;
   case BAR: return kind::BITVECTOR_OR;
   case BVAND_TOK: return kind::BITVECTOR_AND;
@@ -284,7 +323,7 @@ Kind getOperatorKind(int type, bool& negate) {
   default:
     Unhandled(CvcParserTokenNames[type]);
   }
-}
+}/* getOperatorKind() */
 
 unsigned findPivot(const std::vector<unsigned>& operators,
                    unsigned startIndex, unsigned stopIndex) {
@@ -305,7 +344,7 @@ unsigned findPivot(const std::vector<unsigned>& operators,
     }
   }
   return pivot;
-}
+}/* findPivot() */
 
 Expr createPrecedenceTree(ExprManager* em,
                           const std::vector<CVC4::Expr>& expressions,
@@ -327,7 +366,7 @@ Expr createPrecedenceTree(ExprManager* em,
                       createPrecedenceTree(em, expressions, operators, startIndex, pivot),
                       createPrecedenceTree(em, expressions, operators, pivot + 1, stopIndex));
   return negate ? em->mkExpr(kind::NOT, e) : e;
-}
+}/* createPrecedenceTree() recursive variant */
 
 Expr createPrecedenceTree(ExprManager* em,
                           const std::vector<CVC4::Expr>& expressions,
@@ -348,7 +387,7 @@ Expr createPrecedenceTree(ExprManager* em,
     Debug("prec") << "=> " << e << std::endl;
   }
   return e;
-}
+}/* createPrecedenceTree() base variant */
 
 /** Add n NOTs to the front of e and return the result. */
 Expr addNots(ExprManager* em, size_t n, Expr e) {
@@ -356,22 +395,23 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
     e = em->mkExpr(kind::NOT, e);
   }
   return e;
-}
+}/* addNots() */
 
 }/* @parser::members */
 
 @header {
 /**
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **/
-}
+}/* @header */
 
 @lexer::includes {
+
 /** This suppresses warnings about the redefinition of token symbols between different
   * parsers. The redefinitions should be harmless as long as no client: (a) #include's
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
@@ -383,11 +423,20 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
  * Otherwise, we have to let the lexer detect the encoding at runtime.
  */
 #define ANTLR3_INLINE_INPUT_ASCII
-}
+
+#include "parser/antlr_tracing.h"
+#include "util/integer.h"
+#include "parser/antlr_input.h"
+#include "parser/parser.h"
+
+}/* @lexer::includes */
 
 @parser::includes {
+
 #include "expr/command.h"
 #include "parser/parser.h"
+#include "util/subrange_bound.h"
+#include "parser/antlr_tracing.h"
 
 namespace CVC4 {
   class Expr;
@@ -402,26 +451,54 @@ namespace CVC4 {
        * them to be constructible by a uintptr_t.  So we derive the string
        * class to provide just such a conversion.
        */
-      class mystring : public std::string {
+      class myString : public std::string {
       public:
-        mystring(const std::string& s) : std::string(s) {}
-        mystring(uintptr_t) : std::string() {}
-        mystring() : std::string() {}
-      };/* class mystring */
+        myString(const std::string& s) : std::string(s) {}
+        myString(uintptr_t) : std::string() {}
+        myString() : std::string() {}
+      };/* class myString */
+
+      /**
+       * Just exists to give us the uintptr_t construction that
+       * ANTLR requires.
+       */
+      class mySubrangeBound : public CVC4::SubrangeBound {
+      public:
+        mySubrangeBound() : CVC4::SubrangeBound() {}
+        mySubrangeBound(uintptr_t) : CVC4::SubrangeBound() {}
+        mySubrangeBound(const Integer& i) : CVC4::SubrangeBound(i) {}
+        mySubrangeBound(const SubrangeBound& b) : CVC4::SubrangeBound(b) {}
+      };/* class mySubrangeBound */
     }/* CVC4::parser::cvc namespace */
   }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-}
+}/* @parser::includes */
 
 @parser::postinclude {
+
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "util/output.h"
+
 #include <vector>
+
+#define REPEAT_COMMAND(k, CommandCtor)                      \
+  ({                                                        \
+    unsigned __k = (k);                                     \
+    (__k <= 1)                                              \
+      ? (Command*) new CommandCtor                          \
+      : ({                                                  \
+          CommandSequence* __seq = new CommandSequence();   \
+          while(__k-- > 0) {                                \
+            __seq->addCommand(new CommandCtor);             \
+          }                                                 \
+          (Command*) __seq;                                 \
+        });                                                 \
+  })
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -436,8 +513,9 @@ using namespace CVC4::parser;
 #define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
-}
+#define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
+}/* @parser::postinclude */
 
 /**
  * Parses an expression.
@@ -453,30 +531,78 @@ parseExpr returns [CVC4::Expr expr]
  * @return the command of the benchmark
  */
 parseCommand returns [CVC4::Command* cmd]
-  : c = command { $cmd = c; }
+  : c=command { $cmd = c; }
+  | EOF { $cmd = NULL; }
   ;
 
 /**
  * Matches a command of the input. If a declaration, it will return an empty
  * command.
  */
-command returns [CVC4::Command* cmd = 0]
+command returns [CVC4::Command* cmd = NULL]
+  : ( mainCommand[cmd] SEMICOLON
+    | SEMICOLON
+    | LET_TOK { PARSER_STATE->pushScope(); }
+      typeOrVarLetDecl[CHECK_DECLARED] ( COMMA typeOrVarLetDecl[CHECK_DECLARED] )*
+      IN_TOK c=command
+      { $cmd = c;
+        PARSER_STATE->popScope();
+      }
+    )
+    { if($cmd == NULL) {
+        cmd = new EmptyCommand();
+      }
+    }
+  ;
+
+typeOrVarLetDecl[CVC4::parser::DeclarationCheck check]
+options { backtrack = true; }
+  : letDecl | typeLetDecl[check]
+  ;
+
+mainCommand[CVC4::Command*& cmd]
 @init {
   Expr f;
   SExpr sexpr;
-  std::string s;
+  std::string id;
   Type t;
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  std::string s;
+  k = 0;
 }
-  : ASSERT_TOK formula[f] SEMICOLON { cmd = new AssertCommand(f); }
-  | QUERY_TOK formula[f] SEMICOLON { cmd = new QueryCommand(f); }
-  | CHECKSAT_TOK formula[f] SEMICOLON { cmd = new CheckSatCommand(f); }
-  | CHECKSAT_TOK SEMICOLON { cmd = new CheckSatCommand(MK_CONST(true)); }
-  | OPTION_TOK STRING_LITERAL symbolicExpr[sexpr] SEMICOLON
-    { cmd = new SetOptionCommand(AntlrInput::tokenText($STRING_LITERAL), sexpr); }
-  | PUSH_TOK SEMICOLON { cmd = new PushCommand(); }
-  | POP_TOK SEMICOLON { cmd = new PopCommand(); }
+    /* our bread & butter */
+  : ASSERT_TOK formula[f] { cmd = new AssertCommand(f); }
+
+  | QUERY_TOK formula[f] { cmd = new QueryCommand(f); }
+  | CHECKSAT_TOK formula[f] { cmd = new CheckSatCommand(f); }
+  | CHECKSAT_TOK { cmd = new CheckSatCommand(MK_CONST(true)); }
+
+    /* options */
+  | OPTION_TOK
+    ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+    symbolicExpr[sexpr]
+    { cmd = new SetOptionCommand(s, sexpr); }
+
+    /* push / pop */
+  | PUSH_TOK k=numeral?
+    { cmd = REPEAT_COMMAND(k, PushCommand()); }
+  | POP_TOK k=numeral?
+    { cmd = REPEAT_COMMAND(k, PopCommand()); }
+  | POPTO_TOK k=numeral?
+    { UNSUPPORTED("POPTO command"); }
+
+    /* push / pop scopes */
+  | PUSH_SCOPE_TOK k=numeral?
+    { UNSUPPORTED("PUSH_SCOPE command"); }
+  | POP_SCOPE_TOK k=numeral?
+    { UNSUPPORTED("POP_SCOPE command"); }
+  | POPTO_SCOPE_TOK k=numeral?
+    { UNSUPPORTED("POPTO_SCOPE command"); }
+
+  | RESET_TOK
+    { UNSUPPORTED("RESET command"); }
+
     // Datatypes can be mututally-recursive if they're in the same
     // definition block, separated by a comma.  So we parse everything
     // and then ask the ExprManager to resolve everything in one go.
@@ -485,24 +611,117 @@ command returns [CVC4::Command* cmd = 0]
       PARSER_STATE->pushScope(); }
     datatypeDef[dts]
     ( COMMA datatypeDef[dts] )*
-    END_TOK SEMICOLON
+    END_TOK
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+
+  | CONTEXT_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { UNSUPPORTED("CONTEXT command"); }
+    | { UNSUPPORTED("CONTEXT command"); }
+    )
+
+  | FORGET_TOK identifier[id,CHECK_NONE,SYM_VARIABLE]
+    { UNSUPPORTED("FORGET command"); }
+
+  | GET_TYPE_TOK formula[f]
+    { UNSUPPORTED("GET_TYPE command"); }
+
+  | CHECK_TYPE_TOK formula[f] COLON type[t,CHECK_DECLARED]
+    { UNSUPPORTED("CHECK_TYPE command"); }
+
+  | GET_CHILD_TOK formula[f] k=numeral
+    { UNSUPPORTED("GET_CHILD command"); }
+
+  | GET_OP_TOK formula[f]
+    { UNSUPPORTED("GET_OP command"); }
+
+  | SUBSTITUTE_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK
+    formula[f] LBRACKET identifier[id,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK formula[f] RBRACKET
+    { UNSUPPORTED("SUBSTITUTE command"); }
+
+    /* Like the --debug command line option, DBG turns on both tracing
+     * and debugging. */
+  | DBG_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { Debug.on(s); Trace.on(s); }
+    | { Message() << "Please specify what to debug." << std::endl; }
+    )
+
+  | TRACE_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { Trace.on(s); }
+    | { Message() << "Please specify something to trace." << std::endl; }
+    )
+  | UNTRACE_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { Trace.off(s); }
+    | { Message() << "Please specify something to untrace." << std::endl; }
+    )
+
+  | HELP_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { Message() << "No help available for `" << s << "'." << std::endl; }
+    | { Message() << "Please use --help at the command line for help." << std::endl; }
+    )
+
+  | TRANSFORM_TOK formula[f]
+    { UNSUPPORTED("TRANSFORM command"); }
+
+  | PRINT_TOK formula[f]
+    { UNSUPPORTED("PRINT command"); }
+  | PRINT_TYPE_TOK type[t,CHECK_DECLARED]
+    { UNSUPPORTED("PRINT_TYPE command"); }
+
+  | CALL_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] formula[f]
+    { UNSUPPORTED("CALL command"); }
+
+  | ECHO_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { CVC4::Message() << s << std::endl; }
+    | { CVC4::Message() << std::endl; }
+    )
+
+  | INCLUDE_TOK
+    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
+      { UNSUPPORTED("INCLUDE command"); }
+    | { PARSER_STATE->parseError("No filename given to INCLUDE command"); }
+    )
+
+  | ( DUMP_PROOF_TOK
+    | DUMP_ASSUMPTIONS_TOK
+    | DUMP_SIG_TOK
+    | DUMP_TCC_TOK
+    | DUMP_TCC_ASSUMPTIONS_TOK
+    | DUMP_TCC_PROOF_TOK
+    | DUMP_CLOSURE_TOK
+    | DUMP_CLOSURE_PROOF_TOK
+    ) { UNSUPPORTED("DUMP* command"); }
+
+    /* these are all synonyms */
+  | ( WHERE_TOK | ASSERTIONS_TOK | ASSUMPTIONS_TOK )
+    { cmd = new GetAssertionsCommand(); }
+
+  | COUNTEREXAMPLE_TOK
+    { UNSUPPORTED("COUNTEREXAMPLE command"); }
+  | COUNTERMODEL_TOK
+    { UNSUPPORTED("COUNTERMODEL command"); }
+
+  | ARITH_VAR_ORDER_TOK LPAREN formula[f] ( COMMA formula[f] )* RPAREN
+    { UNSUPPORTED("ARITH_VAR_ORDER command"); }
+
   | toplevelDeclaration[cmd]
-  | SEMICOLON c=command { $cmd = c; }
-  | EOF
   ;
 
 symbolicExpr[CVC4::SExpr& sexpr]
 @declarations {
   std::vector<SExpr> children;
+  std::string s;
 }
-  : INTEGER_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
-  | DECIMAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
-  | STRING_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
+  : INTEGER_LITERAL ('.' DIGIT+)?
+    { sexpr = SExpr((const char*)$symbolicExpr.text->chars); }
+  | str[s]
+    { sexpr = SExpr(s); }
   | IDENTIFIER
     { sexpr = SExpr(AntlrInput::tokenText($IDENTIFIER)); }
   | LPAREN (symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN
@@ -520,7 +739,7 @@ toplevelDeclaration[CVC4::Command*& cmd]
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
     ( declareVariables[t,ids,true] { cmd = new DeclarationCommand(ids, t); }
-    | declareTypes[ids] { cmd = new DeclarationCommand(ids, EXPR_MANAGER->kindType()); } ) SEMICOLON
+    | declareTypes[ids] { cmd = new DeclarationCommand(ids, EXPR_MANAGER->kindType()); } )
   ;
 
 /**
@@ -681,7 +900,6 @@ identifierList[std::vector<std::string>& idList,
     ( COMMA identifier[id,check,type] { idList.push_back(id); } )*
   ;
 
-
 /**
  * Matches an identifier and returns a string.
  */
@@ -774,6 +992,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
 }
     /* named types */
   : identifier[id,check,SYM_SORT]
+    parameterization[check]?
     { if(check == CHECK_DECLARED ||
          PARSER_STATE->isDeclared(id, SYM_SORT)) {
         t = PARSER_STATE->getSort(id);
@@ -788,15 +1007,23 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
 
     /* subtypes */
   | SUBTYPE_TOK LPAREN formula[f] ( COMMA formula[f] )? RPAREN
-    { PARSER_STATE->unimplementedFeature("subtypes not supported yet");
+    { UNSUPPORTED("subtypes not supported yet");
       t = Type(); }
 
     /* subrange types */
-/* parsing not working -- some kind of conflict betw [0..1] and 0.0
-  | bounds
-    { PARSER_STATE->unimplementedFeature("subranges not supported yet");
+  | LBRACKET k1=bound DOTDOT k2=bound RBRACKET
+    { std::stringstream ss;
+      ss << "subranges not supported yet: [" << k1 << ":" << k2 << ']';
+      UNSUPPORTED(ss.str());
+      if(k1.hasBound() && k2.hasBound() &&
+         k1.getBound() > k2.getBound()) {
+        ss.str("");
+        ss << "Subrange [" << k1.getBound() << ".." << k2.getBound()
+           << "] inappropriate: range must be nonempty!";
+        PARSER_STATE->parseError(ss.str());
+      }
+      Debug("subranges") << ss.str() << std::endl;
       t = Type(); }
-*/
 
     /* tuple types / old-style function types */
   | LBRACKET type[t,check] { types.push_back(t); }
@@ -817,7 +1044,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     /* record types */
   | SQHASH identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check]
     ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] )* HASHSQ
-    { PARSER_STATE->unimplementedFeature("records not supported yet");
+    { UNSUPPORTED("records not supported yet");
       t = Type(); }
 
     /* bitvector types */
@@ -839,25 +1066,18 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
   ;
 
-/**
- * Matches a type identifier.  Returns the identifier.  If the type is
- * declared, returns the Type in the 't' parameter; otherwise a null
- * Type is returned in 't'.  If 'check' is CHECK_DECLARED and the type
- * is not declared, an exception is thrown.
- *
- * @return the type identifier
- */
-typeSymbol[CVC4::Type& t,
-           CVC4::parser::DeclarationCheck check] returns [CVC4::parser::cvc::mystring id]
+parameterization[CVC4::parser::DeclarationCheck check]
 @init {
-  Debug("parser-extra") << "type symbol: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Type t;
 }
-  : identifier[id,check,SYM_SORT]
-    { bool isNew = (check == CHECK_UNDECLARED || check == CHECK_NONE) &&
-                   !PARSER_STATE->isDeclared(id, SYM_SORT);
-      t = isNew ? Type() : PARSER_STATE->getSort(id);
-    }
+  : LBRACKET restrictedType[t,check] ( COMMA restrictedType[t,check] )* RBRACKET
+    { UNSUPPORTED("parameterized types not yet supported"); }
   ;
+
+bound returns [CVC4::parser::cvc::mySubrangeBound bound]
+  : UNDERSCORE { $bound = SubrangeBound(); }
+  | k=integer { $bound = SubrangeBound(k); }
+;
 
 typeLetDecl[CVC4::parser::DeclarationCheck check]
 @init {
@@ -934,14 +1154,14 @@ prefixFormula[CVC4::Expr& f]
     boundVarDecl[ids,t] (COMMA boundVarDecl[ids,t])* RPAREN
     COLON instantiationPatterns? formula[f]
     { PARSER_STATE->popScope();
-      PARSER_STATE->unimplementedFeature("quantifiers not supported yet");
+      UNSUPPORTED("quantifiers not supported yet");
       f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
     }
   | EXISTS_TOK { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t] (COMMA boundVarDecl[ids,t])* RPAREN
     COLON instantiationPatterns? formula[f]
     { PARSER_STATE->popScope();
-      PARSER_STATE->unimplementedFeature("quantifiers not supported yet");
+      UNSUPPORTED("quantifiers not supported yet");
       f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
     }
 
@@ -968,7 +1188,7 @@ prefixFormula[CVC4::Expr& f]
   | ARRAY_TOK { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t] RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
-      PARSER_STATE->unimplementedFeature("array literals not supported yet");
+      UNSUPPORTED("array literals not supported yet");
       f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()));
     }
   ;
@@ -1055,16 +1275,40 @@ arithmeticBinop[unsigned& op]
   | EXP_TOK
   ;
 
-/** Parses an array store term. */
+/** Parses an array assignment term. */
 storeTerm[CVC4::Expr& f]
+  : uminusTerm[f]
+    ( WITH_TOK arrayStore[f] ( COMMA arrayStore[f] )* )*
+  ;
+
+/**
+ * Parses just part of the array assignment (and constructs
+ * the store terms).
+ */
+arrayStore[CVC4::Expr& f]
 @init {
   Expr f2, f3;
+  std::vector<Expr> dims;
 }
-  : uminusTerm[f] ( WITH_TOK
-    LBRACKET formula[f2] RBRACKET ASSIGN_TOK uminusTerm[f3]
-    { f = MK_EXPR(CVC4::kind::STORE, f, f2, f3); }
-    ( COMMA LBRACKET formula[f2] RBRACKET ASSIGN_TOK uminusTerm[f3]
-      { f = MK_EXPR(CVC4::kind::STORE, f, f2, f3); } )* )*
+  : ( LBRACKET formula[f2] { dims.push_back(f2); } RBRACKET )+
+    ASSIGN_TOK uminusTerm[f3]
+    { Assert(dims.size() >= 1);
+      // these loops are a bit complicated; they're only used for the
+      // multidimensional ...WITH [a][b] :=... syntax
+      for(unsigned i = 0; i < dims.size() - 1; ++i) {
+        f = MK_EXPR(CVC4::kind::SELECT, f, dims[i]);
+      }
+      // a[i][j][k] := v  turns into
+      // store(a, i, store(a[i], j, store(a[i][j], k, v)))
+      for(unsigned i = dims.size() - 1; i > 0; --i) {
+        f3 = MK_EXPR(CVC4::kind::STORE, f, dims[i], f3);
+        // strip off one layer of the select
+        f = f[0];
+      }
+
+      // outermost wrapping
+      f = MK_EXPR(CVC4::kind::STORE, f, dims[0], f3);
+    }
   ;
 
 /** Parses a unary minus term. */
@@ -1073,29 +1317,28 @@ uminusTerm[CVC4::Expr& f]
   unsigned minusCount = 0;
 }
     /* Unary minus */
-  : (MINUS_TOK { ++minusCount; })+ concatBitwiseTerm[f]
+  : (MINUS_TOK { ++minusCount; })+ bvBinaryOpTerm[f]
     { while(minusCount > 0) { --minusCount; f = MK_EXPR(CVC4::kind::UMINUS, f); } }
-  | concatBitwiseTerm[f]
+  | bvBinaryOpTerm[f]
   ;
 
-/** Parses bitvectors. */
-
-concatBitwiseTerm[CVC4::Expr& f]
+/** Parses bitvectors.  Starts with binary operators @, &, and |. */
+bvBinaryOpTerm[CVC4::Expr& f]
 @init {
   std::vector<CVC4::Expr> expressions;
   std::vector<unsigned> operators;
   unsigned op;
 }
   : bvNegTerm[f] { expressions.push_back(f); }
-    ( concatBitwiseBinop[op] bvNegTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
+    ( bvBinop[op] bvNegTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
     { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
   ;
-concatBitwiseBinop[unsigned& op]
+bvBinop[unsigned& op]
 @init {
   op = LT(1)->getType(LT(1));
 }
   : CONCAT_TOK
-  | BAR
+  | BAR // bitwise OR
   | BVAND_TOK
   ;
 
@@ -1103,7 +1346,7 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | selectExtractShift[f]
+  | postfixTerm[f]
   ;
 
 /**
@@ -1115,11 +1358,12 @@ bvNegTerm[CVC4::Expr& f]
  * brackets ], so we left-factor as much out as possible to make ANTLR
  * happy.
  */
-selectExtractShift[CVC4::Expr& f]
+postfixTerm[CVC4::Expr& f]
 @init {
   Expr f2;
   bool extract, left;
   std::vector<Expr> args;
+  std::string id;
 }
   : bvTerm[f]
     ( /* array select / bitvector extract */
@@ -1172,7 +1416,21 @@ selectExtractShift[CVC4::Expr& f]
           Unhandled(t);
         }
       }
+
+      /* record / tuple select */
+    | DOT
+      ( identifier[id,CHECK_NONE,SYM_VARIABLE]
+        { UNSUPPORTED("record select not implemented yet");
+          f = Expr(); }
+      | k=numeral
+        { UNSUPPORTED("tuple select not implemented yet");
+          // This will assert-fail if k too big or f not a tuple
+          // that's ok for now, once a TUPLE_SELECT operator exists,
+          // that will do any necessary type checking
+          f = EXPR_MANAGER->mkVar(TupleType(f.getType()).getTypes()[k]); }
+      )
     )*
+    typeAscription[f]?
   ;
 
 bvTerm[CVC4::Expr& f]
@@ -1315,6 +1573,7 @@ simpleTerm[CVC4::Expr& f]
   std::string name;
   std::vector<Expr> args;
   Debug("parser-extra") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
+  Type t;
 }
     /* if-then-else */
   : iteTerm[f]
@@ -1334,8 +1593,11 @@ simpleTerm[CVC4::Expr& f]
   | TRUE_TOK  { f = MK_CONST(true); }
   | FALSE_TOK { f = MK_CONST(false); }
     /* arithmetic literals */
-  | INTEGER_LITERAL { f = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
-  | DECIMAL_LITERAL { f = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
+    /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
+     * This is a rational constant!  Otherwise the parser interprets it as a tuple
+     * selector! */
+  | (INTEGER_LITERAL DOT DIGIT)=> r=decimal_literal { f = MK_CONST(r); }
+  | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
@@ -1347,18 +1609,39 @@ simpleTerm[CVC4::Expr& f]
       f = MK_CONST( BitVector(binString, 2) ); }
     /* record literals */
   | PARENHASH recordEntry (COMMA recordEntry)+ HASHPAREN
-    { PARSER_STATE->unimplementedFeature("records not implemented yet");
+    { UNSUPPORTED("records not implemented yet");
       f = Expr(); }
 
     /* variable / zero-ary constructor application */
   | identifier[name,CHECK_DECLARED,SYM_VARIABLE]
-    { f = PARSER_STATE->getVariable(name);
-      // datatypes: zero-ary constructors
-      Type t = PARSER_STATE->getType(name);
-      if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
-        // don't require parentheses, immediately turn it into an
-        // apply
+    /* ascriptions will be required for parameterized zero-ary constructors */
+    { f = PARSER_STATE->getVariable(name); }
+    { // datatypes: zero-ary constructors
+      Type t2 = PARSER_STATE->getType(name);
+      if(t2.isConstructor() && ConstructorType(t2).getArity() == 0) {
+        // don't require parentheses, immediately turn it into an apply
         f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, f);
+      }
+    }
+  ;
+
+/**
+ * Matches (and performs) a type ascription.
+ * The f arg is the term to check (it is an input-only argument).
+ */
+typeAscription[const CVC4::Expr& f]
+@init {
+  Type t;
+}
+  : COLON COLON type[t,CHECK_DECLARED]
+    { if(f.getType() != t) {
+        std::stringstream ss;
+        ss << Expr::setlanguage(language::output::LANG_CVC4)
+           << "type ascription not satisfied\n"
+           << "term:     " << f << '\n'
+           << "has type: " << f.getType() << '\n'
+           << "ascribed: " << t;
+        PARSER_STATE->parseError(ss.str());
       }
     }
   ;
@@ -1409,9 +1692,16 @@ iteElseTerm[CVC4::Expr& f]
  */
 datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 @init {
-  std::string id;
+  std::string id, id2;
 }
+    /* This really needs to be CHECK_NONE, or mutually-recursive datatypes
+     * won't work, because this type will already be "defined" as an
+     * unresolved type; don't worry, we check below. */
   : identifier[id,CHECK_NONE,SYM_SORT]
+    ( LBRACKET identifier[id2,CHECK_NONE,SYM_SORT]
+      ( COMMA identifier[id2,CHECK_NONE,SYM_SORT] )* RBRACKET
+      { UNSUPPORTED("parameterized datatypes not yet supported"); }
+    )?
     { datatypes.push_back(Datatype(id));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
@@ -1453,7 +1743,7 @@ constructorDef[CVC4::Datatype& type]
 selector[CVC4::Datatype::Constructor& ctor]
 @init {
   std::string id;
-  Type t;
+  Type t, t2;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT] COLON type[t,CHECK_NONE]
     { ctor.addArg(id, t);
@@ -1465,12 +1755,24 @@ selector[CVC4::Datatype::Constructor& ctor]
  * Matches an identifier from the input. An identifier is a sequence of letters,
  * digits and "_", "'", "." symbols, starting with a letter.
  */
-IDENTIFIER : ALPHA (ALPHA | DIGIT | '_' | '\'' | '.')*;
+IDENTIFIER : (ALPHA | '_') (ALPHA | DIGIT | '_' | '\'' | '\\' | '?' | '$' | '~')*;
 
 /**
  * Matches an integer literal.
  */
-INTEGER_LITERAL: DIGIT+;
+INTEGER_LITERAL
+  : ( '0'
+    | '1'..'9' DIGIT*
+    )
+  ;
+
+/**
+ * Matches a decimal literal.
+ */
+decimal_literal returns [CVC4::Rational r]
+  : k=(INTEGER_LITERAL '.' DIGIT+)
+    { $r = AntlrInput::tokenToRational($k); }
+  ;
 
 /**
  * Same as an integer literal converted to an unsigned int, but
@@ -1484,9 +1786,25 @@ numeral returns [unsigned k]
   ;
 
 /**
- * Matches a decimal literal.
+ * Similar to numeral but for arbitrary-precision, signed integer.
  */
-DECIMAL_LITERAL: DIGIT+ DOT DIGIT+;
+integer returns [CVC4::Integer k]
+  : INTEGER_LITERAL
+    { $k = AntlrInput::tokenToInteger($INTEGER_LITERAL); }
+  | MINUS_TOK INTEGER_LITERAL
+    { $k = -AntlrInput::tokenToInteger($INTEGER_LITERAL); }
+  ;
+
+/**
+ * Similar to numeral but for strings.
+ */
+str[std::string& s]
+  : STRING_LITERAL
+    { s = AntlrInput::tokenText($STRING_LITERAL);
+      /* strip off the quotes */
+      s = s.substr(1, s.size() - 2);
+    }
+  ;
 
 /**
  * Matches a hexadecimal constant.
@@ -1514,21 +1832,24 @@ STRING_LITERAL: '"' (ESCAPE | ~('"'|'\\'))* '"';
 fragment ALPHA : 'a'..'z' | 'A'..'Z';
 
 /**
- * Matches the digits (0-9)
+ * Matches the decimal digits (0-9)
  */
 fragment DIGIT : '0'..'9';
 
+/**
+ * Matches the hexidecimal digits (0-9, a-f, A-F)
+ */
 fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 
 /**
  * Matches and skips whitespace in the input and ignores it.
  */
-WHITESPACE : (' ' | '\t' | '\f' | '\r' | '\n')+ { SKIP();; };
+WHITESPACE : (' ' | '\t' | '\f' | '\r' | '\n')+ { SKIP(); };
 
 /**
  * Matches the comments and ignores them
  */
-COMMENT : '%' (~('\n' | '\r'))* { SKIP();; };
+COMMENT : '%' (~('\n' | '\r'))* { SKIP(); };
 
 /**
  * Matches an allowed escaped character.

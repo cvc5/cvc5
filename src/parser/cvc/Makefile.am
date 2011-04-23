@@ -7,6 +7,11 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) -Wno-unused-f
 CC=$(CXX)
 AM_CFLAGS = $(AM_CXXFLAGS)
 
+ANTLR_OPTS =
+
+# hide this included makefile from automake
+@mk_include@ @srcdir@/../Makefile.antlr_tracing
+
 noinst_LTLIBRARIES = libparsercvc.la
 
 ANTLR_TOKEN_STUFF = \
@@ -30,7 +35,9 @@ libparsercvc_la_SOURCES = \
 
 BUILT_SOURCES = $(ANTLR_STUFF) @srcdir@/stamp-generated
 
-EXTRA_DIST = @srcdir@/stamp-generated
+EXTRA_DIST = \
+	@srcdir@/stamp-generated \
+	README
 
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
@@ -44,7 +51,7 @@ maintainer-clean-local:
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
 @srcdir@/generated/CvcLexer.h: Cvc.g @srcdir@/stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
-	$(AM_V_GEN)$(ANTLR) -o "@srcdir@/generated" "@srcdir@/Cvc.g"
+	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -o "@srcdir@/generated" "@srcdir@/Cvc.g"
 
 # These don't actually depend on CvcLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules

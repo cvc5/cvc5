@@ -1,0 +1,98 @@
+Notes on CVC4's CVC language parser.
+
+This language parser attempts to maintain some backward compatibility
+with previous versions of the language.  However, as the language
+evolves, new features need to be supported, and deprecated,
+difficult-to-maintain, or grammar-conflicting syntax and features
+need to be removed.
+
+In order to support our users, we have tried to parse what CVC3 could
+and (at least) offer an error when a feature is unavailable or
+unimplemented.  But this is not always possible.  Please report a
+bug if a particular discrepancy between CVC3 and CVC4 handling of
+the CVC language is a concern to you; we may be able to add a
+compatibility mode, or at least offer better warnings or errors.
+
+Below is a list of the known differences between CVC3's and CVC4's
+version of the CVC language.  This is the list of differences in
+language design and parsing ONLY.  The featureset of CVC4 is
+rapidly expanding, but does not match CVC3's breadth yet.  However,
+CVC4 should tell you of an unimplemented feature if you try to use
+it (rather than giving a cryptic parse or assertion error).
+
+* CVC4 does not add the current assumptions to the scope after
+  SAT/INVALID responses like CVC3 did.
+
+* CVC4 no longer supports the "old" function syntax:
+
+    f : [INT -> INT];
+
+  This syntax was deprecated in CVC3, and will no longer be
+  supported.  Functions are now written as follows:
+
+    unary : INT -> INT;
+    binary : (INT, INT) -> INT;
+    ternary : (INT, INT, INT) -> INT;
+
+* QUERY and CHECKSAT do not add their argument to the current
+  list of assertions like CVC3 did.
+
+* CVC4 allows datatypes to hold complex types that contain self-
+  or mutual references.  For example,
+
+    DATATYPE tree = node(children:ARRAY INT OF tree) | leaf(data:INT) END;
+
+  is permissible in CVC4 but not in CVC3.
+
+* CVC4 supports parameterized types in datatype definitions, e.g.
+
+    DATATYPE list[T] = cons(car:T) | nil END;
+
+  You can then declare "x : list[INT];" or "x : list[list[INT]];",
+  for example.
+
+* CVC4 supports type ascriptions, e.g.
+
+    U : TYPE;
+    f : INT -> U;
+    QUERY f(5) : U = f(6);
+    QUERY f(5) : U = f(6) : U;
+    QUERY ( f(5) = f(6) ) : BOOLEAN;
+    QUERY f(5) : U = f(6) : U : BOOLEAN;
+
+  You probably won't need it that much, but it can be handy for
+  debugging.  If a term (or formula) isn't the same type as its
+  ascription, and it cannot be "up-casted" safely, an error is
+  immediately generated at parse time.  Sometimes this up-cast is
+  necessary; consider the "nil" constructor of list[T] above.
+  To use "nil," you must cast it to something:
+
+    DATATYPE Item = Carrots | Butter | Milk | Bread END;
+    groceries : list[Item] = cons(Butter, cons(Bread, nil:list[INT]));
+
+* CVC4 supports stronger distinction between type and variable names.
+  This means that CVC4 may allow you to declare things that CVC3 does
+  not:
+
+    a : TYPE;
+    a : INT; % CVC3 complains
+    a : a; % CVC4 complains, `a' cannot both be INT and `a'
+    b : a; % No problem, `a' is both the type of `b', and an INT
+
+* CVC4 supports a command-level LET syntax, e.g.:
+
+    LET double = LAMBDA(x:INT) : 2*x IN
+      QUERY double(5) = 10;
+
+  It works for types also, and mixes of the two:
+
+    LET x = INT, y = 5, z = x IN
+      w : x = y;
+    QUERY y = 5; % error: y undefined
+    QUERY w = 5; % valid
+
+  The scope of such a LET is exactly one command (until a semicolon).
+  (It would conflict with POP_SCOPE if it lasted longer.)
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 20 Apr 2011 18:32:32 -0400
+

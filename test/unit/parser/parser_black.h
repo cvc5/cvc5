@@ -27,6 +27,7 @@
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
 #include "expr/command.h"
+#include "util/options.h"
 #include "util/output.h"
 #include "util/language.h"
 
@@ -40,6 +41,8 @@ class ParserBlack {
   ExprManager *d_exprManager;
 
 protected:
+  Options d_options;
+
   /* Set up declaration context for expr inputs */
   virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
@@ -69,6 +72,7 @@ protected:
         Parser *parser =
           ParserBuilder(d_exprManager,"test")
             .withStringInput(goodInput)
+            .withOptions(d_options)
             .withInputLanguage(d_lang)
             .build();
         TS_ASSERT( !parser->done() );
@@ -96,6 +100,7 @@ protected:
     Parser *parser =
       ParserBuilder(d_exprManager,"test")
         .withStringInput(badInput)
+        .withOptions(d_options)
         .withInputLanguage(d_lang)
         .withStrictMode(strictMode)
         .build();
@@ -118,6 +123,7 @@ protected:
         Parser *parser =
           ParserBuilder(d_exprManager,"test")
             .withStringInput(goodExpr)
+            .withOptions(d_options)
             .withInputLanguage(d_lang)
             .build();
 
@@ -155,6 +161,7 @@ protected:
       Parser *parser =
         ParserBuilder(d_exprManager,"test")
           .withStringInput(badExpr)
+          .withOptions(d_options)
           .withInputLanguage(d_lang)
           .withStrictMode(strictMode)
           .build();
@@ -177,6 +184,7 @@ protected:
 
   void setUp() {
     d_exprManager = new ExprManager;
+    d_options.parseOnly = true;
   }
 
   void tearDown() {
@@ -217,6 +225,14 @@ public:
     tryGoodInput("% a comment\nASSERT TRUE; %a command\n% another comment");
     tryGoodInput("a : BOOLEAN; a: BOOLEAN;"); // double decl, but compatible
     tryGoodInput("a : INT = 5; a: INT;"); // decl after define, compatible
+    tryGoodInput("a : TYPE; a : INT;"); // ok, sort and variable symbol spaces distinct
+    tryGoodInput("a : TYPE; a : INT; b : a;"); // ok except a is both INT and sort `a'
+    tryGoodInput("a : [0..0]; b : [-5..5]; c : [-1..1]; d : [ _ .._];"); // subranges
+    tryGoodInput("a : [ _..1]; b : [_.. 0]; c :[_..-1];");
+    tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
+    tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) END;");
+    tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+    tryGoodInput("DATATYPE trex = Foo | Bar END; DATATYPE tree = node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
   }
 
   void testBadCvc4Inputs() {
@@ -232,6 +248,14 @@ public:
     tryBadInput("A : TYPE; A: TYPE;"); // types can't be double-declared
     tryBadInput("a : INT; a: INT = 5;"); // can't define after decl
     tryBadInput("a : INT = 5; a: BOOLEAN;"); // decl w/ incompatible type
+    tryBadInput("a : TYPE; a : INT; a : a;"); // ok except a is both INT and sort `a'
+    tryBadInput("a : [1..-1];"); // bad subrange
+    tryBadInput("a : [0. .0];"); // bad subrange
+    tryBadInput("a : [..0];"); // bad subrange
+    tryBadInput("a : [0.0];"); // bad subrange
+    tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list = nil | cons(car:INT,cdr:list) END;");
+    tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list2 = nil END;");
+    tryBadInput("DATATYPE tree = node(data:(list,list,ARRAY trex OF list)), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
   }
 
   void testGoodCvc4Exprs() {

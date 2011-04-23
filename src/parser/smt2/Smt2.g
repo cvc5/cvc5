@@ -19,8 +19,15 @@
 grammar Smt2;
 
 options {
-  language = 'C'; // C output for antlr
-  //defaultErrorHandler = false; // Skip the default error handling, just break with exceptions
+  // C output for antlr
+  language = 'C';
+
+  // Skip the default error handling, just break with exceptions
+  // defaultErrorHandler = false;
+
+  // Only lookahead of <= k requested (disable for LL* parsing)
+  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // If you change this k, change it also in smt2_input.cpp !
   k = 2;
 }
 
@@ -50,6 +57,8 @@ options {
  * Otherwise, we have to let the lexer detect the encoding at runtime.
  */
 #define ANTLR3_INLINE_INPUT_ASCII
+
+#include "parser/antlr_tracing.h"
 }
 
 @lexer::postinclude {
@@ -57,6 +66,7 @@ options {
 
 #include "parser/smt2/smt2.h"
 #include "parser/antlr_input.h"
+#include "parser/antlr_tracing.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;

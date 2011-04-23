@@ -28,9 +28,9 @@
 namespace CVC4 {
 namespace parser {
 
-/* Use lookahead=2 */
+/* Use lookahead=3 */
 CvcInput::CvcInput(AntlrInputStream& inputStream) :
-  AntlrInput(inputStream,2) {
+  AntlrInput(inputStream,6) {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 

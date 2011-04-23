@@ -434,7 +434,7 @@ public:
    */
   inline void unimplementedFeature(const std::string& msg) throw(ParserException) {
     if(!d_parseOnly) {
-      parseError(msg);
+      parseError("Unimplemented feature: " + msg);
     }
   }
 

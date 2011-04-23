@@ -273,7 +273,7 @@ public:
 /** The debug output singleton */
 extern DebugC DebugChannel CVC4_PUBLIC;
 #ifdef CVC4_DEBUG
-#  define Debug DebugChannel
+#  define Debug CVC4::DebugChannel
 #else /* CVC4_DEBUG */
 #  define Debug CVC4::__cvc4_true() ? CVC4::debugNullCvc4Stream : CVC4::DebugChannel
 #endif /* CVC4_DEBUG */
@@ -290,7 +290,7 @@ extern ChatC Chat CVC4_PUBLIC;
 /** The trace output singleton */
 extern TraceC TraceChannel CVC4_PUBLIC;
 #ifdef CVC4_TRACING
-#  define Trace TraceChannel
+#  define Trace CVC4::TraceChannel
 #else /* CVC4_TRACING */
 #  define Trace CVC4::__cvc4_true() ? CVC4::debugNullCvc4Stream : CVC4::TraceChannel
 #endif /* CVC4_TRACING */

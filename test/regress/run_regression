@@ -114,12 +114,13 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
-  expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
+  expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
     error "cannot determine expected output of \`$benchmark': " \
           "please use \`% EXPECT:' and/or \`% EXPECT-ERROR:' gestures"
   fi
+  expected_output=$(echo "$expected_output" | sed 's,^% EXPECT: ,,;s,\r,,')
   expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | sed 's,^% EXIT: ,,;s,\r,,'`
   if [ -z "$expected_exit_status" ]; then
     error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"

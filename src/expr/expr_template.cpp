@@ -188,11 +188,11 @@ size_t Expr::getNumChildren() const {
   return d_node->getNumChildren();
 }
 
-Expr Expr::getChild(unsigned int i) const {
+Expr Expr::operator[](unsigned i) const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   Assert(i >= 0 && i < d_node->getNumChildren(), "Child index out of bounds");
-  return Expr(d_exprManager,new Node((*d_node)[i]));
+  return Expr(d_exprManager, new Node((*d_node)[i]));
 }
 
 bool Expr::hasOperator() const {
