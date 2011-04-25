@@ -300,11 +300,25 @@ public:
     unsigned long ul = numeric_limits<unsigned long>::max();
     Integer i(ul);
     TS_ASSERT(i.getUnsignedLong() == ul);
+#if defined(CVC4_ASSERTIONS) || defined(CVC4_CLN_IMP)
+    // CLN comes with exceptions built-in, and in assertion-enabled
+    // GMP builds, we check it
     TS_ASSERT_THROWS_ANYTHING(i.getLong());
+#else /* CVC4_ASSERTIONS || CVC4_CLN_IMP */
+    // otherwise we look for the expected overflow; if it doesn't
+    // happen, something's fishy...
+    TS_ASSERT( Integer(i.getLong()) != i );
+#endif /* CVC4_ASSERTIONS || CVC4_CLN_IMP */
     unsigned long ulplus1 = ul + 1;
     TS_ASSERT(ulplus1 == 0);
     i = i + 1;
+#if defined(CVC4_ASSERTIONS) || defined(CVC4_CLN_IMP)
+    // again, CLN || assertions will throw...
     TS_ASSERT_THROWS_ANYTHING(i.getUnsignedLong());
+#else /* CVC4_ASSERTIONS || CVC4_CLN_IMP */
+    // otherwise expect the overflow
+    TS_ASSERT( Integer(i.getUnsignedLong()) != i );
+#endif /* CVC4_ASSERTIONS || CVC4_CLN_IMP */
   }
 
   void testTestBit() {
