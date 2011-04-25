@@ -15,6 +15,7 @@ operator ARRAY_TYPE 2 "array type"
 cardinality ARRAY_TYPE \
     "::CVC4::theory::arrays::CardinalityComputer::computeCardinality(%TYPE%)" \
     "theory/arrays/theory_arrays_type_rules.h"
+well-founded ARRAY_TYPE false
 
 # select a i  is  a[i]
 operator SELECT 2 "array select"

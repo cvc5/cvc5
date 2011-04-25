@@ -56,7 +56,7 @@ private:
   /** map from selectors to the constructors they are for */
   std::map<Node, Node > d_sel_cons;
   /**  the distinguished ground term for each type */
-  std::map<TypeNode, Node > d_distinguishTerms;
+  //std::map<TypeNode, Node > d_distinguishTerms;
   /** finite datatypes/constructor */
   std::map< TypeNode, bool > d_finite;
   std::map< Node, bool > d_cons_finite;

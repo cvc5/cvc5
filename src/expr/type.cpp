@@ -73,6 +73,16 @@ Cardinality Type::getCardinality() const {
   return d_typeNode->getCardinality();
 }
 
+bool Type::isWellFounded() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isWellFounded();
+}
+
+Expr Type::mkGroundTerm() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->mkGroundTerm().toExpr();
+}
+
 Type& Type::operator=(const Type& t) {
   Assert(d_typeNode != NULL, "Unexpected NULL typenode pointer!");
   Assert(t.d_typeNode != NULL, "Unexpected NULL typenode pointer!");
@@ -489,8 +499,8 @@ Type ArrayType::getConstituentType() const {
   return makeType(d_typeNode->getArrayConstituentType());
 }
 
-Type ConstructorType::getReturnType() const {
-  return makeType(d_typeNode->getConstructorReturnType());
+DatatypeType ConstructorType::getRangeType() const {
+  return DatatypeType(makeType(d_typeNode->getConstructorRangeType()));
 }
 
 size_t ConstructorType::getArity() const {

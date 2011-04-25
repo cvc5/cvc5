@@ -31,7 +31,7 @@
 
 #include <sstream>
 
-${type_cardinalities_includes}
+${type_properties_includes}
 
 #line 37 "${template}"
 
@@ -80,6 +80,68 @@ ${type_cardinalities}
   }
   }
 }/* getCardinality(TypeNode) */
+
+inline bool isWellFounded(TypeConstant tc) {
+  switch(tc) {
+${type_constant_wellfoundednesses}
+#line 88 "${template}"
+  default: {
+    std::stringstream ss;
+    ss << "No well-foundedness status known for type constant: " << tc;
+    InternalError(ss.str());
+  }
+  }
+}/* isWellFounded(TypeConstant) */
+
+inline bool isWellFounded(TypeNode typeNode) {
+  AssertArgument(!typeNode.isNull(), typeNode);
+  switch(Kind k = typeNode.getKind()) {
+  case TYPE_CONSTANT:
+    return isWellFounded(typeNode.getConst<TypeConstant>());
+${type_wellfoundednesses}
+#line 103 "${template}"
+  default: {
+    std::stringstream ss;
+    ss << Expr::setlanguage(language::toOutputLanguage
+                            ( Options::current()->inputLanguage ));
+    ss << "A theory kinds file did not provide a well-foundedness "
+       << "or well-foundedness computer for type:\n" << typeNode
+       << "\nof kind " << k;
+    InternalError(ss.str());
+  }
+  }
+}/* isWellFounded(TypeNode) */
+
+inline Node mkGroundTerm(TypeConstant tc) {
+  switch(tc) {
+${type_constant_groundterms}
+#line 119 "${template}"
+  default: {
+    std::stringstream ss;
+    ss << "No ground term known for type constant: " << tc;
+    InternalError(ss.str());
+  }
+  }
+}/* mkGroundTerm(TypeConstant) */
+
+inline Node mkGroundTerm(TypeNode typeNode) {
+  AssertArgument(!typeNode.isNull(), typeNode);
+  switch(Kind k = typeNode.getKind()) {
+  case TYPE_CONSTANT:
+    return mkGroundTerm(typeNode.getConst<TypeConstant>());
+${type_groundterms}
+#line 134 "${template}"
+  default: {
+    std::stringstream ss;
+    ss << Expr::setlanguage(language::toOutputLanguage
+                            ( Options::current()->inputLanguage ));
+    ss << "A theory kinds file did not provide a ground term "
+       << "or ground term computer for type:\n" << typeNode
+       << "\nof kind " << k;
+    InternalError(ss.str());
+  }
+  }
+}/* mkGroundTerm(TypeNode) */
 
 }/* CVC4::kind namespace */
 }/* CVC4 namespace */

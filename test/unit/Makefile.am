@@ -48,6 +48,7 @@ UNIT_TESTS = \
 	util/boolean_simplification_black \
 	util/subrange_bound_white \
 	util/cardinality_public \
+	util/recursion_breaker_black \
 	main/interactive_shell_black
 
 export VERBOSE = 1

@@ -122,7 +122,7 @@
 #     For consistency, constants taking a non-void payload should
 #     start with "CONST_", but this is not enforced.
 #
-#   sort K cardinality ["comment"]
+#   sort K cardinality [well-founded ground-term header | not-well-founded] ["comment"]
 #
 #     This creates a kind K that represents a sort (a "type constant").
 #     These kinds of types are "atomic" types; if you need to describe
@@ -137,6 +137,13 @@
 #     finite), or Cardinality::INTEGERS if the sort has the same
 #     cardinality as the integers, or Cardinality::REALS if the sort
 #     has the same cardinality as the reals.
+#
+#     If the sort is well-founded (i.e., there exist ground terms),
+#     then the argument should be the string "well-founded"; if not,
+#     it should be the string "not-well-founded".  If well-founded,
+#     two extra arguments immediately follow---a C++ expression that
+#     constructs a ground term (as a Node), and the header that must
+#     be #included for that expression to compile.
 #
 #     For consistency, sorts should end with "_TYPE", but this is not
 #     enforced.
@@ -168,6 +175,15 @@
 #           ::CVC4::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
 #           "theory/foo/theory_foo_type_rules.h"
 #
+#   well-founded K wellfoundedness-computer ground-term-computer [header]
+#
+#     Analogous to the "cardinality" command above, the well-founded
+#     command provides a well-foundedness computer for the type.  A
+#     ground term computer is required unless the
+#     wellfoundedness-computer is the constant "false".  The ground
+#     term computer should return a Node, and it should return the
+#     same Node each time for a given type (although usually it's only
+#     ever called once anyway since the result is cached).
 #
 #
 # Lines may be broken with a backslash between arguments; for example:
@@ -207,7 +223,10 @@ properties stable-infinite
 # Rewriter responisble for all the terms of the theory
 rewriter ::CVC4::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
 
-sort BUILTIN_OPERATOR_TYPE Cardinality::INTEGERS "Built in type for built in operators"
+sort BUILTIN_OPERATOR_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "Built in type for built in operators"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -235,11 +254,16 @@ constant TYPE_CONSTANT \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
 cardinality FUNCTION_TYPE \
-    "::CVC4::theory::builtin::FunctionCardinality::computeCardinality(%TYPE%)" \
+    "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
+well-founded FUNCTION_TYPE false
 operator TUPLE_TYPE 2: "tuple type"
 cardinality TUPLE_TYPE \
-    "::CVC4::theory::builtin::TupleCardinality::computeCardinality(%TYPE%)" \
+    "::CVC4::theory::builtin::TupleProperties::computeCardinality(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+well-founded TUPLE_TYPE \
+    "::CVC4::theory::builtin::TupleProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::builtin::TupleProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
 endtheory

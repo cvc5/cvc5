@@ -99,8 +99,17 @@ public:
  */
 class CVC4_PUBLIC Datatype {
 public:
-  static const Datatype& datatypeOf(Expr item);
-  static size_t indexOf(Expr item);
+  /**
+   * Get the datatype of a constructor, selector, or tester operator.
+   */
+  static const Datatype& datatypeOf(Expr item) CVC4_PUBLIC;
+
+  /**
+   * Get the index of a constructor or tester in its datatype, or the
+   * index of a selector in its constructor.  (Zero is always the
+   * first index.)
+   */
+  static size_t indexOf(Expr item) CVC4_PUBLIC;
 
   /**
    * A holder type (used in calls to Datatype::Constructor::addArg())
@@ -244,6 +253,33 @@ public:
     inline size_t getNumArgs() const throw();
 
     /**
+     * Return the cardinality of this constructor (the product of the
+     * cardinalities of its arguments).
+     */
+    Cardinality getCardinality() const throw(AssertionException);
+
+    /**
+     * Return true iff this constructor is finite (it is nullary or
+     * each of its argument types are finite).  This function can
+     * only be called for resolved constructors.
+     */
+    bool isFinite() const throw(AssertionException);
+
+    /**
+     * Return true iff this constructor is well-founded (there exist
+     * ground terms).  The constructor must be resolved or an
+     * exception is thrown.
+     */
+    bool isWellFounded() const throw(AssertionException);
+
+    /**
+     * Construct and return a ground term of this constructor.  The
+     * constructor must be both resolved and well-founded, or else an
+     * exception is thrown.
+     */
+    Expr mkGroundTerm() const throw(AssertionException);
+
+    /**
      * Returns true iff this Datatype constructor has already been
      * resolved.
      */
@@ -272,6 +308,7 @@ private:
   std::string d_name;
   std::vector<Constructor> d_constructors;
   bool d_resolved;
+  Type d_self;
 
   /**
    * Datatypes refer to themselves, recursively, and we have a
@@ -301,6 +338,40 @@ public:
   inline std::string getName() const throw();
   /** Get the number of constructors (so far) for this Datatype. */
   inline size_t getNumConstructors() const throw();
+
+  /**
+   * Return the cardinality of this datatype (the sum of the
+   * cardinalities of its constructors).  The Datatype must be
+   * resolved.
+   */
+  Cardinality getCardinality() const throw(AssertionException);
+
+  /**
+   * Return  true iff this  Datatype is  finite (all  constructors are
+   * finite,  i.e., there  are finitely  many ground  terms).   If the
+   * datatype is  not well-founded, this function  returns false.  The
+   * Datatype must be resolved or an exception is thrown.
+   */
+  bool isFinite() const throw(AssertionException);
+
+  /**
+   * Return true iff this datatype is well-founded (there exist ground
+   * terms).  The Datatype must be resolved or an exception is thrown.
+   */
+  bool isWellFounded() const throw(AssertionException);
+
+  /**
+   * Construct and return a ground term of this Datatype.  The
+   * Datatype must be both resolved and well-founded, or else an
+   * exception is thrown.
+   */
+  Expr mkGroundTerm() const throw(AssertionException);
+
+  /**
+   * Get the DatatypeType associated to this Datatype.  Can only be
+   * called post-resolution.
+   */
+  DatatypeType getDatatypeType() const throw(AssertionException);
 
   /**
    * Return true iff the two Datatypes are the same.
@@ -372,7 +443,8 @@ inline std::string Datatype::UnresolvedType::getName() const throw() {
 inline Datatype::Datatype(std::string name) :
   d_name(name),
   d_constructors(),
-  d_resolved(false) {
+  d_resolved(false),
+  d_self() {
 }
 
 inline std::string Datatype::getName() const throw() {

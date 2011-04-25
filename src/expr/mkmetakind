@@ -100,13 +100,19 @@ function rewriter {
 }
 
 function sort {
-  # sort TYPE cardinality ["comment"]
+  # sort TYPE cardinality [well-founded ground-term header | not-well-founded] ["comment"]
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 }
 
 function cardinality {
   # cardinality TYPE cardinality-computer [header]
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
+function well-founded {
+  # well-founded TYPE wellfoundedness-computer [header]
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 }

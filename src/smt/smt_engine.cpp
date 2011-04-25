@@ -508,7 +508,7 @@ void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
     // process without any error notice.
     stringstream ss;
     ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
-       << "A bad expression was produced.  Original exception follows:\n"
+       << "A bad expression was produced internally.  Original exception follows:\n"
        << tcep;
     InternalError(ss.str().c_str());
   }

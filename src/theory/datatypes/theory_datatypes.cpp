@@ -66,7 +66,7 @@ void TheoryDatatypes::checkFiniteWellFounded() {
     vector<Node>::iterator itc;
     // for each datatype...
     for( it = d_cons.begin(); it != d_cons.end(); ++it ) {
-      d_distinguishTerms[it->first] = Node::null();
+      //d_distinguishTerms[it->first] = Node::null();
       d_finite[it->first] = false;
       d_wellFounded[it->first] = false;
       // for each ctor of that datatype...
@@ -137,15 +137,15 @@ void TheoryDatatypes::checkFiniteWellFounded() {
               for( int c=0; c<(int)ct.getNumChildren()-1; c++ ) {
                 TypeNode ts = ct[c];
                 if( ts.isDatatype() ) {
-                  children.push_back( d_distinguishTerms[ts] );
+                  //children.push_back( d_distinguishTerms[ts] );
                 } else {
                   //fix?  this should be a ground term
                   children.push_back( nm->mkVar( ts ) );
                 }
               }
-              Node dgt = nm->mkNode( APPLY_CONSTRUCTOR, children );
-              Debug("datatypes-finite") << "set distinguished ground term " << t << " to " << dgt << endl;
-              d_distinguishTerms[t] = dgt;
+              //Node dgt = nm->mkNode( APPLY_CONSTRUCTOR, children );
+              //Debug("datatypes-finite") << "set distinguished ground term " << t << " to " << dgt << endl;
+              //d_distinguishTerms[t] = dgt;
             }
           }
         }
@@ -882,8 +882,8 @@ Node TheoryDatatypes::collapseSelector( TNode t, bool useContext ) {
       } else {
         Debug("datatypes") << "Applied selector " << t << " to wrong constructor " << endl;
         Debug("datatypes") << "Return distinguished term ";
-        Debug("datatypes") << d_distinguishTerms[ selType[1] ] << " of type " << selType[1] << endl;
-        retNode = d_distinguishTerms[ selType[1] ];
+        Debug("datatypes") << selType[1].mkGroundTerm() << " of type " << selType[1] << endl;
+        retNode = selType[1].mkGroundTerm();
       }
       if( useContext ) {
         Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
@@ -900,7 +900,7 @@ Node TheoryDatatypes::collapseSelector( TNode t, bool useContext ) {
         checkTester( tester, false );
         if( !d_conflict.isNull() ) {
           Debug("datatypes") << "Applied selector " << t << " to provably wrong constructor." << endl;
-          retNode = d_distinguishTerms[ selType[1] ];
+          retNode = selType[1].mkGroundTerm();
 
           Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
           NodeBuilder<> nb(kind::AND);

@@ -51,6 +51,14 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
+bool TypeNode::isWellFounded() const {
+  return kind::isWellFounded(*this);
+}
+
+Node TypeNode::mkGroundTerm() const {
+  return kind::mkGroundTerm(*this);
+}
+
 bool TypeNode::isBoolean() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == BOOLEAN_TYPE;
@@ -81,7 +89,7 @@ TypeNode TypeNode::getArrayConstituentType() const {
   return (*this)[1];
 }
 
-TypeNode TypeNode::getConstructorReturnType() const {
+TypeNode TypeNode::getConstructorRangeType() const {
   Assert(isConstructor());
   return (*this)[getNumChildren()-1];
 }

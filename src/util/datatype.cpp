@@ -23,7 +23,10 @@
 #include "util/datatype.h"
 #include "expr/type.h"
 #include "expr/expr_manager.h"
+#include "expr/expr_manager_scope.h"
+#include "expr/node_manager.h"
 #include "expr/node.h"
+#include "util/recursion_breaker.h"
 
 using namespace std;
 
@@ -32,10 +35,20 @@ namespace CVC4 {
 namespace expr {
   namespace attr {
     struct DatatypeIndexTag {};
-  }
-}
+    struct DatatypeFiniteTag {};
+    struct DatatypeWellFoundedTag {};
+    struct DatatypeFiniteComputedTag {};
+    struct DatatypeWellFoundedComputedTag {};
+    struct DatatypeGroundTermTag {};
+  }/* CVC4::expr::attr namespace */
+}/* CVC4::expr namespace */
 
 typedef expr::Attribute<expr::attr::DatatypeIndexTag, uint64_t> DatatypeIndexAttr;
+typedef expr::Attribute<expr::attr::DatatypeFiniteTag, bool> DatatypeFiniteAttr;
+typedef expr::Attribute<expr::attr::DatatypeWellFoundedTag, bool> DatatypeWellFoundedAttr;
+typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFiniteComputedAttr;
+typedef expr::Attribute<expr::attr::DatatypeWellFoundedComputedTag, bool> DatatypeWellFoundedComputedAttr;
+typedef expr::Attribute<expr::attr::DatatypeGroundTermTag, Node> DatatypeGroundTermAttr;
 
 const Datatype& Datatype::datatypeOf(Expr item) {
   TypeNode t = Node::fromExpr(item).getType();
@@ -73,6 +86,7 @@ void Datatype::resolve(ExprManager* em,
                 "Datatype::resolve(): resolutions doesn't contain me!");
   AssertArgument(placeholders.size() == replacements.size(), placeholders,
                 "placeholders and replacements must be the same size");
+  CheckArgument(getNumConstructors() > 0, *this, "cannot resolve a Datatype that has no constructors");
   DatatypeType self = (*resolutions.find(d_name)).second;
   AssertArgument(&self.getDatatype() == this, "Datatype::resolve(): resolutions doesn't contain me!");
   d_resolved = true;
@@ -83,6 +97,7 @@ void Datatype::resolve(ExprManager* em,
     Node::fromExpr((*i).d_constructor).setAttribute(DatatypeIndexAttr(), index);
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
   }
+  d_self = self;
   Assert(index == getNumConstructors());
 }
 
@@ -90,6 +105,166 @@ void Datatype::addConstructor(const Constructor& c) {
   CheckArgument(!d_resolved, this,
                 "cannot add a constructor to a finalized Datatype");
   d_constructors.push_back(c);
+}
+
+Cardinality Datatype::getCardinality() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  RecursionBreaker<const Datatype*> breaker(__PRETTY_FUNCTION__, this);
+  if(breaker.isRecursion()) {
+    return Cardinality::INTEGERS;
+  }
+  Cardinality c = 0;
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    c += (*i).getCardinality();
+  }
+  return c;
+}
+
+bool Datatype::isFinite() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_self);
+
+  TypeNode self = TypeNode::fromType(d_self);
+
+  // is this already in the cache ?
+  if(self.getAttribute(DatatypeFiniteComputedAttr())) {
+    return self.getAttribute(DatatypeFiniteAttr());
+  }
+
+  Cardinality c = 0;
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    if(! (*i).isFinite()) {
+      self.setAttribute(DatatypeFiniteComputedAttr(), true);
+      self.setAttribute(DatatypeFiniteAttr(), false);
+      return false;
+    }
+  }
+  self.setAttribute(DatatypeFiniteComputedAttr(), true);
+  self.setAttribute(DatatypeFiniteAttr(), true);
+  return true;
+}
+
+bool Datatype::isWellFounded() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_self);
+
+  TypeNode self = TypeNode::fromType(d_self);
+
+  // is this already in the cache ?
+  if(self.getAttribute(DatatypeWellFoundedComputedAttr())) {
+    return self.getAttribute(DatatypeWellFoundedAttr());
+  }
+
+  RecursionBreaker<const Datatype*> breaker(__PRETTY_FUNCTION__, this);
+  if(breaker.isRecursion()) {
+    // This *path* is cyclic, so may not be well-founded.  The
+    // datatype itself might still be well-founded, though (we'll find
+    // the well-foundedness along another path).
+    return false;
+  }
+
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    if((*i).isWellFounded()) {
+      self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
+      self.setAttribute(DatatypeWellFoundedAttr(), true);
+      return true;
+    }
+  }
+
+  self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
+  self.setAttribute(DatatypeWellFoundedAttr(), false);
+  return false;
+}
+
+Expr Datatype::mkGroundTerm() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype is not yet resolved");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_self);
+
+  TypeNode self = TypeNode::fromType(d_self);
+
+  // is this already in the cache ?
+  Expr groundTerm = self.getAttribute(DatatypeGroundTermAttr()).toExpr();
+  if(!groundTerm.isNull()) {
+    Debug("datatypes") << "\nin cache: " << d_self << " => " << groundTerm << std::endl;
+    return groundTerm;
+  } else {
+    Debug("datatypes") << "\nNOT in cache: " << d_self << std::endl;
+  }
+
+  // look for a nullary ctor and use that
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    // prefer the nullary constructor
+    if((*i).getNumArgs() == 0) {
+      groundTerm = (*i).getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, (*i).getConstructor());
+      self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
+      Debug("datatypes") << "constructed nullary: " << getName() << " => " << groundTerm << std::endl;
+      return groundTerm;
+    }
+  }
+
+  // No ctors are nullary, but we can't just use the first ctor
+  // because that might recurse!  In fact, since this datatype is
+  // well-founded by assumption, we know that at least one constructor
+  // doesn't contain a self-reference.  We search for that one and use
+  // it to construct the ground term, as that is often a simpler
+  // ground term (e.g. in a tree datatype, something like "(leaf 0)"
+  // is simpler than "(node (leaf 0) (leaf 0))".
+  //
+  // Of course this check doesn't always work, if the self-reference
+  // is through other Datatypes (or other non-Datatype types), but it
+  // does simplify a common case.  It requires a bit of extra work,
+  // but since we cache the results of these, it only happens once,
+  // ever, per Datatype.
+  //
+  // If the datatype is not actually well-founded, something below
+  // will throw an exception.
+  for(const_iterator i = begin(), i_end = end();
+      i != i_end;
+      ++i) {
+    Constructor::const_iterator j = (*i).begin(), j_end = (*i).end();
+    for(; j != j_end; ++j) {
+      SelectorType stype((*j).getSelector().getType());
+      if(stype.getDomain() == stype.getRangeType()) {
+        Debug("datatypes") << "self-reference, skip " << getName() << "::" << (*i).getName() << std::endl;
+        // the constructor contains a direct self-reference
+        break;
+      }
+    }
+
+    if(j == j_end && (*i).isWellFounded()) {
+      groundTerm = (*i).mkGroundTerm();
+      // Constructor::mkGroundTerm() doesn't ever return null when
+      // called from the outside.  But in recursive invocations, it
+      // can: say you have dt = a(one:dt) | b(two:INT), and you ask
+      // the "a" constructor for a ground term.  It asks "dt" for a
+      // ground term, which in turn asks the "a" constructor for a
+      // ground term!  Thus, even though "a" is a well-founded
+      // constructor, it cannot construct a ground-term by itself.  We
+      // have to skip past it, and we do that with a
+      // RecursionBreaker<> in Constructor::mkGroundTerm().  In the
+      // case of recursion, it returns null.
+      if(!groundTerm.isNull()) {
+        // we found a ground-term-constructing constructor!
+        self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
+        Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
+        return groundTerm;
+      }
+    }
+  }
+  // if we get all the way here, we aren't well-founded
+  CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+}
+
+DatatypeType Datatype::getDatatypeType() const throw(AssertionException) {
+  CheckArgument(isResolved(), *this, "Datatype must be resolved to get its DatatypeType");
+  Assert(!d_self.isNull());
+  return DatatypeType(d_self);
 }
 
 bool Datatype::operator==(const Datatype& other) const throw() {
@@ -279,13 +454,129 @@ std::string Datatype::Constructor::getName() const throw() {
 }
 
 Expr Datatype::Constructor::getConstructor() const {
-  CheckArgument(isResolved(), this, "this datatype constructor not yet resolved");
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_constructor;
 }
 
 Expr Datatype::Constructor::getTester() const {
-  CheckArgument(isResolved(), this, "this datatype constructor not yet resolved");
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_tester;
+}
+
+Cardinality Datatype::Constructor::getCardinality() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+
+  Cardinality c = 1;
+
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    c *= SelectorType((*i).getSelector().getType()).getRangeType().getCardinality();
+  }
+
+  return c;
+}
+
+bool Datatype::Constructor::isFinite() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_constructor);
+
+  TNode self = Node::fromExpr(d_constructor);
+
+  // is this already in the cache ?
+  if(self.getAttribute(DatatypeFiniteComputedAttr())) {
+    return self.getAttribute(DatatypeFiniteAttr());
+  }
+
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    if(! SelectorType((*i).getSelector().getType()).getRangeType().getCardinality().isFinite()) {
+      self.setAttribute(DatatypeFiniteComputedAttr(), true);
+      self.setAttribute(DatatypeFiniteAttr(), false);
+      return false;
+    }
+  }
+
+  self.setAttribute(DatatypeFiniteComputedAttr(), true);
+  self.setAttribute(DatatypeFiniteAttr(), true);
+  return true;
+}
+
+bool Datatype::Constructor::isWellFounded() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_constructor);
+
+  TNode self = Node::fromExpr(d_constructor);
+
+  // is this already in the cache ?
+  if(self.getAttribute(DatatypeWellFoundedComputedAttr())) {
+    return self.getAttribute(DatatypeWellFoundedAttr());
+  }
+
+  RecursionBreaker<const Datatype::Constructor*> breaker(__PRETTY_FUNCTION__, this);
+  if(breaker.isRecursion()) {
+    // This *path* is cyclic, sso may not be well-founded.  The
+    // constructor itself might still be well-founded, though (we'll
+    // find the well-foundedness along another path).
+    return false;
+  }
+
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    if(! SelectorType((*i).getSelector().getType()).getRangeType().isWellFounded()) {
+      /* FIXME - we can't cache a negative result here, because a
+         Datatype might tell us it's not well founded along this
+         *path*, due to recursion, when it really is well-founded.
+         This should be fixed by creating private functions to do the
+         recursion here, and leaving the (public-facing)
+         isWellFounded() call as the base of that recursion.  Then we
+         can distinguish the cases.
+      */
+      /*
+      self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
+      self.setAttribute(DatatypeWellFoundedAttr(), false);
+      */
+      return false;
+    }
+  }
+
+  self.setAttribute(DatatypeWellFoundedComputedAttr(), true);
+  self.setAttribute(DatatypeWellFoundedAttr(), true);
+  return true;
+}
+
+Expr Datatype::Constructor::mkGroundTerm() const throw(AssertionException) {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(d_constructor);
+
+  TNode self = Node::fromExpr(d_constructor);
+
+  // is this already in the cache ?
+  Expr groundTerm = self.getAttribute(DatatypeGroundTermAttr()).toExpr();
+  if(!groundTerm.isNull()) {
+    return groundTerm;
+  }
+
+  RecursionBreaker<const Datatype::Constructor*> breaker(__PRETTY_FUNCTION__, this);
+  if(breaker.isRecursion()) {
+    // Recursive path, we should skip and go to the next constructor;
+    // see lengthy comments in Datatype::mkGroundTerm().
+    return Expr();
+  }
+
+  std::vector<Expr> groundTerms;
+  groundTerms.push_back(getConstructor());
+
+  // for each selector, get a ground term
+  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    groundTerms.push_back(SelectorType((*i).getSelector().getType()).getRangeType().mkGroundTerm());
+  }
+
+  groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
+  self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
+  return groundTerm;
 }
 
 const Datatype::Constructor::Arg& Datatype::Constructor::operator[](size_t index) const {
@@ -346,7 +637,7 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
   // These datatype things are recursive!  Be very careful not to
   // print an infinite chain of them.
   long& printNameOnly = os.iword(s_printDatatypeNamesOnly);
-  Debug("datatypes") << "printNameOnly is " << printNameOnly << std::endl;
+  Debug("datatypes-output") << "printNameOnly is " << printNameOnly << std::endl;
   if(printNameOnly) {
     return os << dt.getName();
   }
@@ -360,7 +651,7 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
   } scope(printNameOnly, 1);
   // when scope is destructed, the value pops back
 
-  Debug("datatypes") << "printNameOnly is now " << printNameOnly << std::endl;
+  Debug("datatypes-output") << "printNameOnly is now " << printNameOnly << std::endl;
 
   // can only output datatypes in the CVC4 native language
   Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);

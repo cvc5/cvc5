@@ -22,8 +22,17 @@
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
 namespace CVC4 {
+
+namespace expr {
+  namespace attr {
+    struct DatatypeConstructorTypeGroundTermTag {};
+  }/* CVC4::expr::attr namespace */
+}/* CVC4::expr namespace */
+
 namespace theory {
 namespace datatypes {
+
+typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node> GroundTermAttr;
 
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -47,7 +56,7 @@ struct DatatypeConstructorTypeRule {
         }
       }
     }
-    return consType.getConstructorReturnType();
+    return consType.getConstructorRangeType();
   }
 };/* struct DatatypeConstructorTypeRule */
 
@@ -91,6 +100,61 @@ struct DatatypeTesterTypeRule {
   }
 };/* struct DatatypeSelectorTypeRule */
 
+struct ConstructorProperties {
+  inline static Cardinality computeCardinality(TypeNode type) {
+    // Constructors aren't exactly functions, they're like
+    // parameterized ground terms.  So the cardinality is more like
+    // that of a tuple than that of a function.
+    AssertArgument(type.isConstructor(), type);
+    Cardinality c = 1;
+    for(unsigned i = 0, i_end = type.getNumChildren(); i < i_end - 1; ++i) {
+      c *= type[i].getCardinality();
+    }
+    return c;
+  }
+
+  inline static bool isWellFounded(TypeNode type) {
+    // Constructors aren't exactly functions, they're like
+    // parameterized ground terms.  So the wellfoundedness is more
+    // like that of a tuple than that of a function.
+    AssertArgument(type.isConstructor(), type);
+    for(unsigned i = 0, i_end = type.getNumChildren(); i < i_end - 1; ++i) {
+      if(!type[i].isWellFounded()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  inline static Node mkGroundTerm(TypeNode type) {
+    AssertArgument(type.isConstructor(), type);
+
+    // is this already in the cache ?
+    Node groundTerm = type.getAttribute(GroundTermAttr());
+    if(!groundTerm.isNull()) {
+      return groundTerm;
+    }
+
+    // This is a bit tricky; Constructors have a unique index within
+    // their datatype, but Constructor *types* do not; multiple
+    // Constructors within the same Datatype could share the same
+    // type.  So we scan through the datatype to find one that
+    // matches.
+    const Datatype& dt = type[type.getNumChildren() - 1].getConst<Datatype>();
+    for(Datatype::const_iterator i = dt.begin(),
+          i_end = dt.end();
+        i != i_end;
+        ++i) {
+      if(TypeNode::fromType((*i).getConstructor().getType()) == type) {
+        groundTerm = Node::fromExpr((*i).mkGroundTerm());
+        type.setAttribute(GroundTermAttr(), groundTerm);
+        return groundTerm;
+      }
+    }
+
+    InternalError("couldn't find a matching constructor?!");
+  }
+};/* struct ConstructorProperties */
 
 }/* CVC4::theory::datatypes namespace */
 }/* CVC4::theory namespace */

@@ -585,7 +585,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
     Type ctorType CVC4_UNUSED = c.getConstructor().getType();
     Assert(ctorType.isConstructor() &&
            ConstructorType(ctorType).getArity() == c.getNumArgs() &&
-           ConstructorType(ctorType).getReturnType() == dtt,
+           ConstructorType(ctorType).getRangeType() == dtt,
            "malformed constructor in datatype post-resolution");
     // for all selectors...
     for(Datatype::Constructor::const_iterator j = c.begin(), j_end = c.end();

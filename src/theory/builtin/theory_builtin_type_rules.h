@@ -128,10 +128,13 @@ public:
   }
 };/* class TupleTypeRule */
 
-class FunctionCardinality {
+class FunctionProperties {
 public:
   inline static Cardinality computeCardinality(TypeNode type) {
-    Assert(type.getKind() == kind::FUNCTION_TYPE);
+    // Don't assert this; allow other theories to use this cardinality
+    // computation.
+    //
+    // Assert(type.getKind() == kind::FUNCTION_TYPE);
 
     Cardinality argsCard(1);
     // get the largest cardinality of function arguments/return type
@@ -143,12 +146,15 @@ public:
 
     return valueCard ^ argsCard;
   }
-};/* class FuctionCardinality */
+};/* class FuctionProperties */
 
-class TupleCardinality {
+class TupleProperties {
 public:
   inline static Cardinality computeCardinality(TypeNode type) {
-    Assert(type.getKind() == kind::TUPLE_TYPE);
+    // Don't assert this; allow other theories to use this cardinality
+    // computation.
+    //
+    // Assert(type.getKind() == kind::TUPLE_TYPE);
 
     Cardinality card(1);
     for(TypeNode::iterator i = type.begin(),
@@ -160,7 +166,39 @@ public:
 
     return card;
   }
-};/* class TupleCardinality */
+
+  inline static bool isWellFounded(TypeNode type) {
+    // Don't assert this; allow other theories to use this
+    // wellfoundedness computation.
+    //
+    // Assert(type.getKind() == kind::TUPLE_TYPE);
+
+    for(TypeNode::iterator i = type.begin(),
+          i_end = type.end();
+        i != i_end;
+        ++i) {
+      if(! (*i).isWellFounded()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  inline static Node mkGroundTerm(TypeNode type) {
+    Assert(type.getKind() == kind::TUPLE_TYPE);
+
+    std::vector<Node> children;
+    for(TypeNode::iterator i = type.begin(),
+          i_end = type.end();
+        i != i_end;
+        ++i) {
+      children.push_back((*i).mkGroundTerm());
+    }
+
+    return NodeManager::currentNM()->mkNode(kind::TUPLE, children);
+  }
+};/* class TupleProperties */
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

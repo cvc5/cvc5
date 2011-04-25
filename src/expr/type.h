@@ -33,6 +33,7 @@ namespace CVC4 {
 
 class NodeManager;
 class ExprManager;
+class Expr;
 class TypeNode;
 
 class SmtEngine;
@@ -141,6 +142,18 @@ public:
    * Return the cardinality of this type.
    */
   Cardinality getCardinality() const;
+
+  /**
+   * Is this a well-founded type?  (I.e., do there exist ground
+   * terms?)
+   */
+  bool isWellFounded() const;
+
+  /**
+   * Construct and return a ground term for this Type.  Throws an
+   * exception if this type is not well-founded.
+   */
+  Expr mkGroundTerm() const;
 
   /**
    * Substitution of Types.
@@ -541,8 +554,8 @@ public:
   /** Construct from the base type */
   ConstructorType(const Type& type) throw(AssertionException);
 
-  /** Get the return type */
-  Type getReturnType() const;
+  /** Get the range type */
+  DatatypeType getRangeType() const;
 
   /** Get the argument types */
   std::vector<Type> getArgTypes() const;

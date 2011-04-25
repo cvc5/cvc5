@@ -10,7 +10,12 @@ properties finite
 
 rewriter ::CVC4::theory::booleans::TheoryBoolRewriter "theory/booleans/theory_bool_rewriter.h"
 
-sort BOOLEAN_TYPE 2 "Boolean type"
+sort BOOLEAN_TYPE \
+    2 \
+    well-founded \
+        "NodeManager::currentNM()->mkConst(false)" \
+        "expr/node_manager.h" \
+    "Boolean type"
 
 constant CONST_BOOLEAN \
     bool \

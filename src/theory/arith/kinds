@@ -18,8 +18,18 @@ operator MINUS 2 "arithmetic binary subtraction operator"
 operator UMINUS 1 "arithmetic unary negation"
 operator DIVISION 2 "arithmetic division"
 
-sort REAL_TYPE Cardinality::REALS "Real type"
-sort INTEGER_TYPE Cardinality::INTEGERS "Integer type"
+sort REAL_TYPE \
+    Cardinality::REALS \
+    well-founded \
+        "NodeManager::currentNM()->mkConst(Rational(0))" \
+        "expr/node_manager.h" \
+    "Real type"
+sort INTEGER_TYPE \
+    Cardinality::INTEGERS \
+    well-founded \
+        "NodeManager::currentNM()->mkConst(Integer(0))" \
+        "expr/node_manager.h" \
+    "Integer type"
 
 constant CONST_RATIONAL \
     ::CVC4::Rational \

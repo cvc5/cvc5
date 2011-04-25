@@ -47,6 +47,7 @@ libutil_la_SOURCES = \
 	language.h \
 	language.cpp \
 	triple.h \
+	recursion_breaker.h \
 	subrange_bound.h \
 	cardinality.h \
 	cardinality.cpp \

@@ -63,7 +63,11 @@ type_constant_list=
 type_constant_to_theory_id=
 type_cardinalities=
 type_constant_cardinalities=
-type_cardinalities_includes=
+type_wellfoundednesses=
+type_constant_wellfoundednesses=
+type_groundterms=
+type_constant_groundterms=
+type_properties_includes=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -121,10 +125,24 @@ function rewriter {
 }
 
 function sort {
-  # sort TYPE cardinality ["comment"]
+  # sort TYPE cardinality [well-founded ground-term header | not-well-founded] ["comment"]
   lineno=${BASH_LINENO[0]}
   check_theory_seen
-  register_sort "$1" "$2" "$3"
+  if [ "$3" = well-founded ]; then
+    wf=true
+    groundterm="$4"
+    header="$5"
+    comment="$6"
+  elif [ "$3" = not-well-founded ]; then
+    wf=false
+    groundterm=
+    header=
+    comment="$4"
+  else
+    echo "$kf:$lineno: expected third argument to be \"well-founded\" or \"not-well-founded\"" >&2
+    exit 1
+  fi
+  register_sort "$1" "$2" "$wf" "$groundterm" "$header" "$comment"
 }
 
 function cardinality {
@@ -132,6 +150,13 @@ function cardinality {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   register_cardinality "$1" "$2" "$3"
+}
+
+function well-founded {
+  # well-founded TYPE wellfoundedness-computer groundterm-computer [header]
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+  register_wellfoundedness "$1" "$2" "$3" "$4"
 }
 
 function variable {
@@ -173,7 +198,10 @@ function constant {
 function register_sort {
   id=$1
   cardinality=$2
-  comment=$3
+  wellfoundedness=$3
+  groundterm=$4
+  header=$5
+  comment=$6
 
   type_constant_list="${type_constant_list}  ${id}, /**< ${comment} */
 "
@@ -184,6 +212,23 @@ function register_sort {
   type_constant_cardinalities="${type_constant_cardinalities}#line $lineno \"$kf\"
   case $id: return Cardinality($cardinality);
 "
+  type_constant_wellfoundednesses="${type_constant_wellfoundednesses}#line $lineno \"$kf\"
+  case $id: return $wellfoundedness;
+"
+  if [ -n "$groundterm" ]; then
+    type_constant_groundterms="${type_constant_groundterms}#line $lineno \"$kf\"
+  case $id: return $groundterm;
+"
+    if [ -n "$header" ]; then
+      type_properties_includes="${type_properties_includes}#line $lineno \"$kf\"
+#include \"$header\"
+"
+    fi
+  else
+    type_constant_groundterms="${type_constant_groundterms}#line $lineno \"$kf\"
+  case $id: Unhandled(tc);
+"
+  fi
 }
 
 function register_cardinality {
@@ -195,7 +240,46 @@ function register_cardinality {
   case $id: return $cardinality_computer;
 "
   if [ -n "$header" ]; then
-    type_cardinalities_includes="${type_cardinalities_includes}#line $lineno \"$kf\"
+    type_properties_includes="${type_properties_includes}#line $lineno \"$kf\"
+#include \"$header\"
+"
+  fi
+}
+
+function register_wellfoundedness {
+  id=$1
+  wellfoundedness_computer=$(sed 's,%TYPE%,typeNode,g' <<<"$2")
+  groundterm_computer=$(sed 's,%TYPE%,typeNode,g' <<<"$3")
+  header=$4
+
+  # "false" is a special well-foundedness computer that doesn't
+  # require an associated groundterm-computer; anything else does
+  if [ "$wellfoundedness_computer" != false ]; then
+    if [ -z "$groundterm_computer" ]; then
+      echo "$kf:$lineno: ground-term computer missing in command \"well-founded\"" >&2
+      exit 1
+    fi
+  else
+    if [ -n "$groundterm_computer" ]; then
+      echo "$kf:$lineno: ground-term computer specified for not-well-founded type" >&2
+      exit 1
+    fi
+  fi
+
+  type_wellfoundednesses="${type_wellfoundednesses}#line $lineno \"$kf\"
+  case $id: return $wellfoundedness_computer;
+"
+  if [ -n "$groundterm_computer" ]; then
+    type_groundterms="${type_groundterms}#line $lineno \"$kf\"
+  case $id: return $groundterm_computer;
+"
+  else
+    type_groundterms="${type_groundterms}#line $lineno \"$kf\"
+  case $id: Unhandled(typeNode);
+"
+  fi
+  if [ -n "$header" ]; then
+    type_properties_includes="${type_properties_includes}#line $lineno \"$kf\"
 #include \"$header\"
 "
   fi
@@ -272,7 +356,11 @@ for var in \
     type_constant_to_theory_id \
     type_cardinalities \
     type_constant_cardinalities \
-    type_cardinalities_includes \
+    type_wellfoundednesses \
+    type_constant_wellfoundednesses \
+    type_groundterms \
+    type_constant_groundterms \
+    type_properties_includes \
     theory_descriptions \
     template \
     ; do

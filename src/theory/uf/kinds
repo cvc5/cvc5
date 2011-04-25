@@ -13,7 +13,10 @@ rewriter ::CVC4::theory::uf::TheoryUfRewriter "theory/uf/theory_uf_rewriter.h"
 
 # Justified because we can have an unbounded-but-finite number of
 # sorts.  Assuming we have |Z| is probably ok for now..
-sort KIND_TYPE Cardinality::INTEGERS "Uninterpreted Sort"
+sort KIND_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "Uninterpreted Sort"
 
 parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"
 
@@ -23,5 +26,6 @@ parameterized SORT_TYPE SORT_TAG 0: "sort type"
 # enough (for now) ?  Once we support quantifiers, maybe reconsider
 # this..
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
+well-founded SORT_TYPE false
 
 endtheory
