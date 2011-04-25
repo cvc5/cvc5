@@ -221,6 +221,16 @@ public:
     va_end(args);
   }
 
+  InternalErrorException(const char* function, const char* file, unsigned line,
+                         std::string fmt, ...) :
+    AssertionException() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Internal error detected", "",
+              function, file, line, fmt.c_str(), args);
+    va_end(args);
+  }
+
 };/* class InternalErrorException */
 
 #ifdef CVC4_DEBUG

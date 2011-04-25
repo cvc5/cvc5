@@ -25,6 +25,7 @@
 #include <string>
 #include <iostream>
 
+#include "util/Assert.h"
 #include "util/gmp_util.h"
 
 namespace CVC4 {
@@ -84,7 +85,7 @@ public:
     return d_value == y.d_value;
   }
 
-  Integer operator-() const{
+  Integer operator-() const {
     return Integer(-(d_value));
   }
 
@@ -110,22 +111,44 @@ public:
   }
 
 
-  Integer operator+(const Integer& y) const{
+  Integer operator+(const Integer& y) const {
     return Integer( d_value + y.d_value );
+  }
+  Integer& operator+=(const Integer& y) {
+    d_value += y.d_value;
+    return *this;
   }
 
   Integer operator-(const Integer& y) const {
     return Integer( d_value - y.d_value );
   }
+  Integer& operator-=(const Integer& y) {
+    d_value -= y.d_value;
+    return *this;
+  }
 
   Integer operator*(const Integer& y) const {
     return Integer( d_value * y.d_value );
   }
+  Integer& operator*=(const Integer& y) {
+    d_value *= y.d_value;
+    return *this;
+  }
+
   Integer operator/(const Integer& y) const {
     return Integer( d_value / y.d_value );
   }
+  Integer& operator/=(const Integer& y) {
+    d_value /= y.d_value;
+    return *this;
+  }
+
   Integer operator%(const Integer& y) const {
     return Integer( d_value % y.d_value );
+  }
+  Integer& operator%=(const Integer& y) {
+    d_value %= y.d_value;
+    return *this;
   }
 
   /** Raise this Integer to the power <code>exp</code>.
@@ -144,8 +167,22 @@ public:
 
   //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-  long getLong() const { return d_value.get_si(); }
-  unsigned long getUnsignedLong() const {return d_value.get_ui(); }
+  long getLong() const {
+    long si = d_value.get_si();
+#ifdef CVC4_ASSERTIONS
+    // ensure there wasn't overflow
+    Assert(mpz_cmp_si(d_value.get_mpz_t(), si) == 0);
+#endif /* CVC4_ASSERTIONS */
+    return si;
+  }
+  unsigned long getUnsignedLong() const {
+    unsigned long ui = d_value.get_ui();
+#ifdef CVC4_ASSERTIONS
+    // ensure there wasn't overflow
+    Assert(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0);
+#endif /* CVC4_ASSERTIONS */
+    return ui;
+  }
 
   /**
    * Computes the hash of the node from the first word of the

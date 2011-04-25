@@ -11,10 +11,12 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief A template for the theory_traits.h header, defining various
+ ** (static) aspects of theories
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** This file is a template for the theory_traits.h header, defining
+ ** various (static) aspects of theories, combined with the theory
+ ** kinds files to produce the final header.
  **/
 
 #pragma once

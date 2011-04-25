@@ -34,15 +34,6 @@ public:
     Theory(THEORY_BOOL, c, out, valuation) {
   }
 
-  void preRegisterTerm(TNode n) {
-    Debug("bool") << "bool: begin preRegisterTerm(" << n << ")" << std::endl;
-    Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
-  }
-  void registerTerm(TNode n) {
-    Debug("bool") << "bool: begin preRegisterTerm(" << n << ")" << std::endl;
-    Debug("bool") << "bool: end preRegisterTerm(" << n << ")" << std::endl;
-  }
-
   Node getValue(TNode n);
 
   std::string identify() const { return std::string("TheoryBool"); }

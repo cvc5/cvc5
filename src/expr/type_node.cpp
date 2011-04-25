@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/type_node.h"
+#include "expr/type_properties.h"
 
 using namespace std;
 
@@ -44,6 +45,10 @@ TypeNode TypeNode::substitute(const TypeNode& type,
     }
   }
   return nb.constructTypeNode();
+}
+
+Cardinality TypeNode::getCardinality() const {
+  return kind::getCardinality(*this);
 }
 
 bool TypeNode::isBoolean() const {

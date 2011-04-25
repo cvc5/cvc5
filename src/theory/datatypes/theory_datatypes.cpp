@@ -64,10 +64,12 @@ void TheoryDatatypes::checkFiniteWellFounded() {
     //check well-founded and finite, create distinguished ground terms
     map<TypeNode, vector<Node> >::iterator it;
     vector<Node>::iterator itc;
+    // for each datatype...
     for( it = d_cons.begin(); it != d_cons.end(); ++it ) {
       d_distinguishTerms[it->first] = Node::null();
       d_finite[it->first] = false;
       d_wellFounded[it->first] = false;
+      // for each ctor of that datatype...
       for( itc = it->second.begin(); itc != it->second.end(); ++itc ) {
         d_cons_finite[*itc] = false;
         d_cons_wellFounded[*itc] = false;
@@ -76,10 +78,12 @@ void TheoryDatatypes::checkFiniteWellFounded() {
     bool changed;
     do{
       changed = false;
+      // for each datatype...
       for( it = d_cons.begin(); it != d_cons.end(); ++it ) {
         TypeNode t = it->first;
         Debug("datatypes-finite") << "Check type " << t << endl;
         bool typeFinite = true;
+        // for each ctor of that datatype...
         for( itc = it->second.begin(); itc != it->second.end(); ++itc ) {
           Node cn = *itc;
           TypeNode ct = cn.getType();

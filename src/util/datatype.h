@@ -150,6 +150,7 @@ public:
 
       /** Get the name of this constructor argument. */
       std::string getName() const throw();
+
       /**
        * Get the selector for this constructor argument; this call is
        * only permitted after resolution.
@@ -203,12 +204,14 @@ public:
      * to this Datatype constructor.
      */
     void addArg(std::string selectorName, Type selectorType);
+
     /**
      * Add an argument (i.e., a data field) of the given name to this
      * Datatype constructor that refers to an as-yet-unresolved
      * Datatype (which may be mutually-recursive).
      */
     void addArg(std::string selectorName, Datatype::UnresolvedType selectorType);
+
     /**
      * Add a self-referential (i.e., a data field) of the given name
      * to this Datatype constructor that refers to the enclosing

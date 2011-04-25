@@ -278,7 +278,6 @@ public:
    */
   Expr mkAssociative(Kind kind, const std::vector<Expr>& children);
 
-
   /** Make a function type from domain to range. */
   FunctionType mkFunctionType(Type domain, Type range);
 

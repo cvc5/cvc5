@@ -6,12 +6,58 @@
 # The first non-blank, non-comment line in this file must be a theory
 # declaration:
 #
-#   theory [builtin] T header
+#   theory ID T header
 #
-# The special tag "builtin" declares that this is the builtin theory.
-# There can be only one and it should be processed first.
+#     Thereafter, ID is bound to your theory.  It becomes part of an
+#     enumeration that identifies all theories.  If your theory has
+#     several, distinct implementations, they still all share a kinds
+#     file, a theory ID, all the defined kinds/operators/types for the
+#     theory, typechecker, etc.  They should also share a base class
+#     (that's the T above).  The header is the header for this base
+#     class.
 #
-# There are four basic commands for declaring kinds:
+# The very end of this file should end with:
+#
+#   endtheory
+#
+# There are several basic commands:
+#
+#   properties PROPERTIES...
+#
+#     This command declares properties of the theory.  It can occur
+#     more than once, in which case the effect is additive.
+#
+#     The current set of properties and their meanings are:
+#
+#       finite            the theory is finite
+#       stable-infinite   the theory is stably infinite
+#       polite            the theory is polite
+#
+#       check             the theory supports the check() function
+#       propagate         the theory supports propagate() (and explain())
+#       staticLearning    the theory supports staticLearning()
+#       registerTerm      the theory supports registerTerm()
+#       notifyRestart     the theory supports notifyRestart()
+#       presolve          the theory supports presolve()
+#
+#     In the case of the "theory-supports-function" properties, you
+#     need to declare these for your theory or the functions will not
+#     be called!  This is used to speed up the core where functionality
+#     is not needed.
+#
+#   rewriter T header
+#
+#     This declares a rewriter class T for your theory, declared in
+#     header.  Your rewriter class provides four functions:
+#
+#       static void init();
+#       static void shutdown();
+#       static RewriteResponse preRewrite(TNode node);
+#       static RewriteResponse postRewrite(TNode node);
+#
+#     ...BUT please note that init() and shutdown() may be removed in
+#     future, so if possible, do not rely on them being called (and
+#     implement them as a no-op).
 #
 #   variable K ["comment"]
 #
@@ -76,6 +122,54 @@
 #     For consistency, constants taking a non-void payload should
 #     start with "CONST_", but this is not enforced.
 #
+#   sort K cardinality ["comment"]
+#
+#     This creates a kind K that represents a sort (a "type constant").
+#     These kinds of types are "atomic" types; if you need to describe
+#     a complex type that takes type arguments (like arrays), use
+#     "operator"; if you need to describe one that takes "constant"
+#     arguments (like bitvectors), use "constant", and if you invent
+#     one that takes both, you could try "parameterized".  In those
+#     cases, you'll want to provide a cardinality separately for your
+#     type.
+#
+#     The cardinality argument is a nonnegative number (if the sort is
+#     finite), or Cardinality::INTEGERS if the sort has the same
+#     cardinality as the integers, or Cardinality::REALS if the sort
+#     has the same cardinality as the reals.
+#
+#     For consistency, sorts should end with "_TYPE", but this is not
+#     enforced.
+#
+#   cardinality K cardinality-computer [header]
+#
+#     This command does not define a kind; the kind K needs to be
+#     defined by one of the other commands above.  This command just
+#     provides a cardinality for types of kind K.  The
+#     "cardinality-computer" is a C++ expression that will yield a
+#     Cardinality for the type.  In that expression, the sequence of
+#     characters "%TYPE%" will be rewritten with a variable containing
+#     a TypeNode of kind K.  The optional "header" argument is an
+#     include file necessary to compile the cardinality-computer
+#     expression.
+#
+#     If the cardinality need not be computed per-type (i.e., it's the
+#     same for all types of kind K, but the "sort" gesture above could
+#     not be used---in which case it doesn't already have a registered
+#     cardinality), you can simply construct a Cardinality temporary.
+#     For example:
+#
+#       cardinality MY_TYPE Cardinality(Cardinality::INTEGERS)
+#
+#     If not, you might opt to use a computer; a common place to put it
+#     is with your type checker:
+#
+#       cardinality MY_TYPE \
+#           ::CVC4::theory::foo::TheoryFoo::CardinalityComputer(%TYPE%) \
+#           "theory/foo/theory_foo_type_rules.h"
+#
+#
+#
 # Lines may be broken with a backslash between arguments; for example:
 #
 #     constant CONST_INT \
@@ -108,12 +202,12 @@
 
 theory THEORY_BUILTIN ::CVC4::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
 
-properties stable-infinite  
+properties stable-infinite
 
 # Rewriter responisble for all the terms of the theory
 rewriter ::CVC4::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
 
-sort BUILTIN_OPERATOR_TYPE "Built in type for built in operators"
+sort BUILTIN_OPERATOR_TYPE Cardinality::INTEGERS "Built in type for built in operators"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -140,6 +234,12 @@ constant TYPE_CONSTANT \
     "expr/kind.h" \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
+cardinality FUNCTION_TYPE \
+    "::CVC4::theory::builtin::FunctionCardinality::computeCardinality(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
 operator TUPLE_TYPE 2: "tuple type"
+cardinality TUPLE_TYPE \
+    "::CVC4::theory::builtin::TupleCardinality::computeCardinality(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
 
 endtheory

@@ -42,7 +42,9 @@ theory_for_each_macro="#define CVC4_FOR_EACH_THEORY \\
 
 theory_has_check="false"
 theory_has_propagate="false"
-theory_has_static_learning="false"
+theory_has_staticLearning="false"
+theory_has_registerTerm="false"
+theory_has_notifyRestart="false"
 theory_has_presolve="false"
 
 theory_stable_infinite="false"
@@ -62,6 +64,11 @@ function theory {
   # theory T header
 
   lineno=${BASH_LINENO[0]}
+
+  if $seen_theory; then
+    echo "$kf:$lineno: theory declaration can only appear once" >&2
+    exit 1;
+  fi
 
   # this script doesn't care about the theory class information, but
   # makes does make sure it's there
@@ -84,7 +91,8 @@ function theory {
   theory_id="$1"
   theory_class="$2"
 
-  theory_includes="${theory_includes}#include \"$3\"
+  theory_header="$3"
+  theory_includes="${theory_includes}#include \"$theory_header\"
 "
   theory_for_each_macro="${theory_for_each_macro} CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::${theory_id}) \\
 "
@@ -107,6 +115,8 @@ function endtheory {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 
+  seen_endtheory=true
+
   theory_traits="${theory_traits}
 template<>
 struct TheoryTraits<${theory_id}> {
@@ -119,14 +129,34 @@ struct TheoryTraits<${theory_id}> {
 
     static const bool hasCheck = ${theory_has_check};
     static const bool hasPropagate = ${theory_has_propagate};
-    static const bool hasStaticLearning = ${theory_has_static_learning};
+    static const bool hasStaticLearning = ${theory_has_staticLearning};
+    static const bool hasRegisterTerm = ${theory_has_registerTerm};
+    static const bool hasNotifyRestart = ${theory_has_staticLearning};
     static const bool hasPresolve = ${theory_has_presolve};
 };
 "
 
+  # warnings about theory content and properties
+  dir="$(dirname "$kf")/../../"
+  if [ -e "$dir/$theory_header" ]; then
+    for function in check propagate staticLearning registerTerm notifyRestart presolve; do
+      if eval "\$theory_has_$function"; then
+        grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' ||
+          echo "$kf: warning: $theory_class has property \"$function\" in its kinds file but doesn't appear to declare the function" >&2
+      else
+        grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' &&
+          echo "$kf: warning: $theory_class does not have property \"$function\" in its kinds file but appears to declare the function" >&2
+      fi
+    done
+  else
+    echo "$me: warning: theory header \"$theory_header\" does not exist or is unreadable" >&2
+  fi
+
   theory_has_check="false"
   theory_has_propagate="false"
-  theory_has_static_learning="false"
+  theory_has_staticLearning="false"
+  theory_has_registerTerm="false"
+  theory_has_notifyRestart="false"
   theory_has_presolve="false"
 
   theory_stable_infinite="false"
@@ -156,18 +186,27 @@ function properties {
        polite) theory_polite="true";;
        check) theory_has_check="true";;
        propagate) theory_has_propagate="true";;
-       staticLearning) theory_has_static_learning="true";;
-       presolve) theory_has_presolve="true";
+       staticLearning) theory_has_staticLearning="true";;
+       presolve) theory_has_presolve="true";;
+       registerTerm) theory_has_registerTerm="true";;
+       notifyRestart) theory_has_notifyRestart="true";;
+       *) echo "$kf:$lineno: error: unknown theory property \"$property\"" >&2; exit 1;;
     esac
     shift
   done
 }
 
 function sort {
-  # sort TYPE ["comment"]
+  # sort TYPE cardinality ["comment"]
   lineno=${BASH_LINENO[0]}
   check_theory_seen
-  register_sort "$1" "$2"
+  register_sort "$1" "$2" "$3"
+}
+
+function cardinality {
+  # cardinality TYPE cardinality-computer [header]
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function variable {
@@ -200,7 +239,8 @@ function constant {
 
 function register_sort {
   id=$1
-  comment=$2
+  cardinality=$2
+  comment=$3
   type_constant_to_theory_id="${type_constant_to_theory_id}   case $id: return $theory_id; break;
 "
 }
@@ -214,6 +254,10 @@ function register_kind {
 }
 
 function check_theory_seen {
+  if $seen_endtheory; then
+    echo "$kf:$lineno: error: command after \"endtheory\" declaration (endtheory has to be last)" >&2
+    exit 1
+  fi
   if ! $seen_theory; then
     echo "$kf:$lineno: error: no \"theory\" declaration found (it has to be first)" >&2
     exit 1
@@ -229,23 +273,34 @@ function check_builtin_theory_seen {
 while [ $# -gt 0 ]; do
   kf=$1
   seen_theory=false
+  seen_endtheory=false
   b=$(basename $(dirname "$kf"))
-  kind_decls="${kind_decls}
-  /* from $b */
-"
-  kind_printers="${kind_printers}
-  /* from $b */
-"
   source "$kf"
-  check_theory_seen
+  if ! $seen_theory; then
+    echo "$kf: error: no theory content found in file!" >&2
+    exit 1
+  fi
+  if ! $seen_endtheory; then
+    echo "$kf:$lineno: error: no \"endtheory\" declaration found (it is required at the end)" >&2
+    exit 1
+  fi
   shift
 done
 check_builtin_theory_seen
 
 ## output
 
+# generate warnings about incorrect #line annotations in templates
+nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
+  awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
+
 text=$(cat "$template")
-for var in theory_traits theory_for_each_macro theory_includes; do
+for var in \
+    theory_traits \
+    theory_for_each_macro \
+    theory_includes \
+    template \
+    ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error=`expr "$text" : '.*\${\([^}]*\)}.*'`

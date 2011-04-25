@@ -40,6 +40,15 @@ public:
   TheoryUF(context::Context* ctxt, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_UF, ctxt, out, valuation) { }
 
+  // We declare these here (even though it's not terribly useful) for
+  // documentation reasons, and to keep mktheorytraits from issuing a
+  // spurious warning.
+  virtual void check(Effort) = 0;
+  virtual void propagate(Effort) {}
+  virtual void staticLearning(TNode in, NodeBuilder<>& learned) {}
+  virtual void notifyRestart() {}
+  virtual void presolve() {}
+
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

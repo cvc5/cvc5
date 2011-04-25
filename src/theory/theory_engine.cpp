@@ -117,7 +117,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
        * twice. */
       // FIXME when ExprSets are online, use one of those to avoid
       // duplicates in the above?
-      // Actually, that doesn't work because you have to make sure 
+      // Actually, that doesn't work because you have to make sure
       // that the *last* occurrence is the one that gets processed first @CB
       // This could be a big performance problem though because it requires
       // traversing a DAG as a tree and that can really blow up @CB
@@ -132,6 +132,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
 TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_propEngine(NULL),
   d_context(ctxt),
+  d_activeTheories(0),
   d_theoryOut(this, ctxt),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
@@ -139,6 +140,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt) :
 
   for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
     d_theoryTable[theoryId] = NULL;
+    d_theoryIsActive[theoryId] = false;
   }
 
   Rewriter::init();
@@ -150,7 +152,7 @@ TheoryEngine::~TheoryEngine() {
   Assert(d_hasShutDown);
 
   for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
-    if(d_theoryTable[theoryId]) {
+    if(d_theoryTable[theoryId] != NULL) {
       delete d_theoryTable[theoryId];
     }
   }
@@ -163,7 +165,7 @@ struct preprocess_stack_element {
   bool children_added;
   preprocess_stack_element(TNode node)
   : node(node), children_added(false) {}
-};
+};/* struct preprocess_stack_element */
 
 Node TheoryEngine::preprocess(TNode node) {
   // Make sure the node is type-checked first (some rewrites depend on
@@ -198,24 +200,29 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         if (current.getKind() == kind::EQUAL) {
           TheoryId theoryLHS = Theory::theoryOf(current[0]);
           Debug("register") << "preregistering " << current << " with " << theoryLHS << std::endl;
+          markActive(theoryLHS);
           d_theoryTable[theoryLHS]->preRegisterTerm(current);
 //          TheoryId theoryRHS = Theory::theoryOf(current[1]);
 //          if (theoryLHS != theoryRHS) {
+//            markActive(theoryRHS);
 //            d_theoryTable[theoryRHS]->preRegisterTerm(current);
 //            Debug("register") << "preregistering " << current << " with " << theoryRHS << std::endl;
 //          }
 //          TheoryId typeTheory = Theory::theoryOf(current[0].getType());
 //          if (typeTheory != theoryLHS && typeTheory != theoryRHS) {
+//            markActive(typeTheory);
 //            d_theoryTable[typeTheory]->preRegisterTerm(current);
 //            Debug("register") << "preregistering " << current << " with " << typeTheory << std::endl;
 //          }
         } else {
           TheoryId theory = Theory::theoryOf(current);
           Debug("register") << "preregistering " << current << " with " << theory << std::endl;
+          markActive(theory);
           d_theoryTable[theory]->preRegisterTerm(current);
           TheoryId typeTheory = Theory::theoryOf(current.getType());
           if (theory != typeTheory) {
             Debug("register") << "preregistering " << current << " with " << typeTheory << std::endl;
+            markActive(typeTheory);
             d_theoryTable[typeTheory]->preRegisterTerm(current);
           }
         }
@@ -248,7 +255,7 @@ bool TheoryEngine::check(theory::Theory::Effort effort) {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasCheck) { \
+  if (theory::TheoryTraits<THEORY>::hasCheck && d_theoryIsActive[THEORY]) { \
      reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->check(effort); \
      if (!d_theoryOut.d_conflictNode.get().isNull()) { \
        return false; \
@@ -271,7 +278,7 @@ void TheoryEngine::propagate() {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasPropagate) { \
+  if (theory::TheoryTraits<THEORY>::hasPropagate && d_theoryIsActive[THEORY]) { \
       reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->propagate(theory::Theory::FULL_EFFORT); \
   }
 
@@ -359,13 +366,22 @@ Node TheoryEngine::getValue(TNode node) {
 bool TheoryEngine::presolve() {
   d_theoryOut.d_conflictNode = Node::null();
   d_theoryOut.d_propagatedLiterals.clear();
+
   try {
-    for(unsigned i = 0; i < THEORY_LAST; ++ i) {
-        d_theoryTable[i]->presolve();
-        if(!d_theoryOut.d_conflictNode.get().isNull()) {
-          return true;
-	}
-     }
+    // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+    if (theory::TheoryTraits<THEORY>::hasPresolve && d_theoryIsActive[THEORY]) { \
+      reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->presolve(); \
+      if(!d_theoryOut.d_conflictNode.get().isNull()) { \
+        return true; \
+      } \
+    }
+
+    // Presolve for each theory using the statement above
+    CVC4_FOR_EACH_THEORY
   } catch(const theory::Interrupted&) {
     Debug("theory") << "TheoryEngine::presolve() => interrupted" << endl;
   }
@@ -375,20 +391,37 @@ bool TheoryEngine::presolve() {
 
 
 void TheoryEngine::notifyRestart() {
-  for(unsigned i = 0; i < THEORY_LAST; ++ i) {
-    if (d_theoryTable[i]) {
-      d_theoryTable[i]->notifyRestart();
-    }
+  // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+  if (theory::TheoryTraits<THEORY>::hasNotifyRestart && d_theoryIsActive[THEORY]) { \
+    reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->notifyRestart(); \
   }
+
+  // notify each theory using the statement above
+  CVC4_FOR_EACH_THEORY
 }
 
-
 void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
-  for(unsigned i = 0; i < THEORY_LAST; ++ i) {
-    if (d_theoryTable[i]) {
-      d_theoryTable[i]->staticLearning(in, learned);
-    }
+  // NOTE that we don't look at d_theoryIsActive[] here.  First of
+  // all, we haven't done any pre-registration yet, so we don't know
+  // which theories are active.  Second, let's give each theory a shot
+  // at doing something with the input formula, even if it wouldn't
+  // otherwise be active.
+
+  // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+  if (theory::TheoryTraits<THEORY>::hasStaticLearning) { \
+    reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->staticLearning(in, learned); \
   }
+
+  // notify each theory using the statement above
+  CVC4_FOR_EACH_THEORY
 }
 
 

@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Theory of arrays.
+ ** \brief Typing and cardinality rules for the theory of arrays
  **
- ** Theory of arrays.
+ ** Typing and cardinality rules for the theory of arrays.
  **/
 
 #include "cvc4_private.h"
@@ -64,6 +64,17 @@ struct ArrayStoreTypeRule {
     return arrayType;
   }
 };/* struct ArrayStoreTypeRule */
+
+struct CardinalityComputer {
+  inline static Cardinality computeCardinality(TypeNode type) {
+    Assert(type.getKind() == kind::ARRAY_TYPE);
+
+    Cardinality indexCard = type[0].getCardinality();
+    Cardinality valueCard = type[1].getCardinality();
+
+    return valueCard ^ indexCard;
+  }
+};/* struct CardinalityComputer */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */

@@ -6,7 +6,8 @@
 
 theory THEORY_ARITH ::CVC4::theory::arith::TheoryArith "theory/arith/theory_arith.h"
 
-properties stable-infinite check propagate staticLearning presolve 
+properties stable-infinite
+properties check propagate staticLearning presolve notifyRestart
 
 rewriter ::CVC4::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 
@@ -17,8 +18,8 @@ operator MINUS 2 "arithmetic binary subtraction operator"
 operator UMINUS 1 "arithmetic unary negation"
 operator DIVISION 2 "arithmetic division"
 
-sort REAL_TYPE "Real type"
-sort INTEGER_TYPE "Integer type"
+sort REAL_TYPE Cardinality::REALS "Real type"
+sort INTEGER_TYPE Cardinality::INTEGERS "Integer type"
 
 constant CONST_RATIONAL \
     ::CVC4::Rational \

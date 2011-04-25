@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief The theory engine.
+ ** \brief The theory engine
  **
  ** The theory engine.
  **/
@@ -51,8 +51,22 @@ class TheoryEngine {
   /** Our context */
   context::Context* d_context;
 
-  /** A table of from theory ifs to theory pointers */
+  /** A table of from theory IDs to theory pointers */
   theory::Theory* d_theoryTable[theory::THEORY_LAST];
+
+  /**
+   * A bitmap of theories that are "active" for the current run.  We
+   * mark a theory active when we firt see a term or type belonging to
+   * it.  This is important because we can optimize for single-theory
+   * runs (no sharing), can reduce the cost of walking the DAG on
+   * registration, etc.
+   */
+  bool d_theoryIsActive[theory::THEORY_LAST];
+
+  /**
+   * The count of active theories in the d_theoryIsActive bitmap.
+   */
+  size_t d_activeTheories;
 
   /**
    * An output channel for Theory that passes messages
@@ -159,6 +173,17 @@ class TheoryEngine {
    */
   Node removeITEs(TNode t);
 
+  /**
+   * Mark a theory active if it's not already.
+   */
+  void markActive(theory::TheoryId th) {
+    if(!d_theoryIsActive[th]) {
+      d_theoryIsActive[th] = true;
+      ++d_activeTheories;
+      Notice() << "Theory " << th << " has been activated." << std::endl;
+    }
+  }
+
 public:
 
   /**
@@ -249,7 +274,7 @@ public:
 
   /**
    * Preprocess a node.  This involves theory-specific rewriting, then
-   * calling preRegisterTerm() on what's left over.
+   * calling preRegister() on what's left over.
    * @param n the node to preprocess
    */
   Node preprocess(TNode n);

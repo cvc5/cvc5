@@ -34,14 +34,14 @@ public:
   TheoryArrays(context::Context* c, OutputChannel& out, Valuation valuation);
   ~TheoryArrays();
   void preRegisterTerm(TNode n) { }
-  void registerTerm(TNode n) { }
+  //void registerTerm(TNode n) { }
 
-  void presolve() { }
+  //void presolve() { }
 
   void addSharedTerm(TNode t);
   void notifyEq(TNode lhs, TNode rhs);
   void check(Effort e);
-  void propagate(Effort e) { }
+  //void propagate(Effort e) { }
   void explain(TNode n) { }
   Node getValue(TNode n);
   void shutdown() { }

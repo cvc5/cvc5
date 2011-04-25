@@ -6,7 +6,8 @@
 
 theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
 
-properties finite check propagate
+properties finite
+properties check propagate
 
 rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 
@@ -15,6 +16,9 @@ constant BITVECTOR_TYPE \
 	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSize >" \
 	"util/bitvector.h" \
 	"bit-vector type"
+cardinality BITVECTOR_TYPE \
+	"::CVC4::theory::bv::CardinalityComputer::computeCardinality(%TYPE%)" \
+	"theory/bv/theory_bv_type_rules.h"
 
 constant CONST_BITVECTOR \
     ::CVC4::BitVector \

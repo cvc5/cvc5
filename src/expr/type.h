@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include "util/Assert.h"
+#include "util/cardinality.h"
 
 namespace CVC4 {
 
@@ -135,6 +136,11 @@ public:
    * @return true if type is null
    */
   bool isNull() const;
+
+  /**
+   * Return the cardinality of this type.
+   */
+  Cardinality getCardinality() const;
 
   /**
    * Substitution of Types.

@@ -142,24 +142,44 @@ public:
   }
 
 
-  Integer operator+(const Integer& y) const{
+  Integer operator+(const Integer& y) const {
     return Integer( d_value + y.d_value );
+  }
+  Integer& operator+=(const Integer& y) {
+    d_value += y.d_value;
+    return *this;
   }
 
   Integer operator-(const Integer& y) const {
     return Integer( d_value - y.d_value );
   }
+  Integer& operator-=(const Integer& y) {
+    d_value -= y.d_value;
+    return *this;
+  }
 
   Integer operator*(const Integer& y) const {
     return Integer( d_value * y.d_value );
+  }
+  Integer& operator*=(const Integer& y) {
+    d_value *= y.d_value;
+    return *this;
   }
 
   Integer operator/(const Integer& y) const {
     return Integer( cln::floor1(d_value, y.d_value) );
   }
+  Integer& operator/=(const Integer& y) {
+    d_value = cln::floor1(d_value, y.d_value);
+    return *this;
+  }
 
   Integer operator%(const Integer& y) const {
     return Integer( cln::floor2(d_value, y.d_value).remainder );
+  }
+  Integer& operator%=(const Integer& y) {
+    d_value = cln::floor2(d_value, y.d_value).remainder;
+    return *this;
   }
 
   /** Raise this Integer to the power <code>exp</code>.
@@ -208,8 +228,15 @@ public:
 
   //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-  long getLong() const { return cln::cl_I_to_long(d_value); }
-  unsigned long getUnsignedLong() const {return cln::cl_I_to_ulong(d_value); }
+  long getLong() const {
+    // supposed to throw if not representable in type "long"
+    return cln::cl_I_to_long(d_value);
+  }
+
+  unsigned long getUnsignedLong() const {
+    // supposed to throw if not representable in type "unsigned long"
+    return cln::cl_I_to_ulong(d_value);
+  }
 
   /**
    * Computes the hash of the node from the first word of the

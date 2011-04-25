@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Template for the Node kind header.
+ ** \brief Template for the Node kind header
  **
  ** Template for the Node kind header.
  **/

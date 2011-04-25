@@ -1361,7 +1361,7 @@ bvNegTerm[CVC4::Expr& f]
 postfixTerm[CVC4::Expr& f]
 @init {
   Expr f2;
-  bool extract, left;
+  bool extract = false, left = false;
   std::vector<Expr> args;
   std::string id;
 }
@@ -1718,7 +1718,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
-  CVC4::Datatype::Constructor* ctor;
+  CVC4::Datatype::Constructor* ctor = NULL;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
     {

@@ -45,8 +45,11 @@ libutil_la_SOURCES = \
 	stats.cpp \
 	dynamic_array.h \
 	language.h \
+	language.cpp \
 	triple.h \
 	subrange_bound.h \
+	cardinality.h \
+	cardinality.cpp \
 	trans_closure.h \
 	trans_closure.cpp \
 	boolean_simplification.h \

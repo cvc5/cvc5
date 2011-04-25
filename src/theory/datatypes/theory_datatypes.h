@@ -152,15 +152,11 @@ public:
       addDatatypeDefinitions(type);
     }
   }
-  void registerTerm(TNode n) { }
-
   void presolve();
 
   void addSharedTerm(TNode t);
   void notifyEq(TNode lhs, TNode rhs);
   void check(Effort e);
-  void propagate(Effort e) { }
-  void explain(TNode n, Effort e) { }
   Node getValue(TNode n);
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }

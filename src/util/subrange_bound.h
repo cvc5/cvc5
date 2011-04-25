@@ -33,7 +33,7 @@ namespace CVC4 {
  * an infinite bound).  For example, the CVC language subrange [-5.._]
  * has a lower bound of -5 and an infinite upper bound.
  */
-class SubrangeBound {
+class CVC4_PUBLIC SubrangeBound {
   bool d_nobound;
   Integer d_bound;
 
@@ -77,6 +77,9 @@ public:
   }
 
 };/* class SubrangeBound */
+
+inline std::ostream&
+operator<<(std::ostream& out, const SubrangeBound& bound) throw() CVC4_PUBLIC;
 
 inline std::ostream&
 operator<<(std::ostream& out, const SubrangeBound& bound) throw() {

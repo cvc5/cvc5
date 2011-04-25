@@ -18,6 +18,7 @@
 
 #include <cxxtest/TestSuite.h>
 #include <sstream>
+#include <limits>
 
 #include "util/integer.h"
 
@@ -293,6 +294,17 @@ public:
     TS_ASSERT_EQUALS( Integer(16), Integer(-2).pow(4) );
     TS_ASSERT_EQUALS( Integer(1000), Integer(10).pow(3) );
     TS_ASSERT_EQUALS( Integer(-1000), Integer(-10).pow(3) );
+  }
+
+  void testOverlyLong() {
+    unsigned long ul = numeric_limits<unsigned long>::max();
+    Integer i(ul);
+    TS_ASSERT(i.getUnsignedLong() == ul);
+    TS_ASSERT_THROWS_ANYTHING(i.getLong());
+    unsigned long ulplus1 = ul + 1;
+    TS_ASSERT(ulplus1 == 0);
+    i = i + 1;
+    TS_ASSERT_THROWS_ANYTHING(i.getUnsignedLong());
   }
 
   void testTestBit() {

@@ -90,6 +90,7 @@ function endtheory {
   # endtheory
   lineno=${BASH_LINENO[0]}
   check_theory_seen
+  seen_endtheory=true
 }
 
 function rewriter {
@@ -99,7 +100,13 @@ function rewriter {
 }
 
 function sort {
-  # sort TYPE ["comment"]
+  # sort TYPE cardinality ["comment"]
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
+function cardinality {
+  # cardinality TYPE cardinality-computer [header]
   lineno=${BASH_LINENO[0]}
   check_theory_seen
 }
@@ -287,6 +294,10 @@ function primitive_type {
 }
 
 function check_theory_seen {
+  if $seen_endtheory; then
+    echo "$kf:$lineno: error: command after \"endtheory\" declaration (endtheory has to be last)" >&2
+    exit 1
+  fi
   if ! $seen_theory; then
     echo "$kf:$lineno: error: no \"theory\" declaration found (it has to be first)" >&2
     exit 1
@@ -302,6 +313,7 @@ function check_builtin_theory_seen {
 while [ $# -gt 0 ]; do
   kf=$1
   seen_theory=false
+  seen_endtheory=false
   b=$(basename $(dirname "$kf"))
   metakind_kinds="${metakind_kinds}
     /* from $b */
@@ -310,12 +322,23 @@ while [ $# -gt 0 ]; do
     /* from $b */
 "
   source "$kf"
-  check_theory_seen
+  if ! $seen_theory; then
+    echo "$kf: error: no theory content found in file!" >&2
+    exit 1
+  fi
+  if ! $seen_endtheory; then
+    echo "$kf:$lineno: error: no \"endtheory\" declaration found (it is required at the end)" >&2
+    exit 1
+  fi
   shift
 done
 check_builtin_theory_seen
 
 ## output
+
+# generate warnings about incorrect #line annotations in templates
+nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
+  awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
 
 text=$(cat "$template")
 for var in \
@@ -328,7 +351,9 @@ for var in \
     metakind_constDeleters \
     metakind_ubchildren \
     metakind_lbchildren \
-    metakind_operatorKinds; do
+    metakind_operatorKinds \
+    template \
+    ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error=`expr "$text" : '.*\${\([^}]*\)}.*'`

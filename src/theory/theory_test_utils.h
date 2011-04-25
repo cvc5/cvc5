@@ -11,16 +11,12 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Common utilities for testing theories
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** Common utilities for testing theories.
  **/
 
-
-
 #include "cvc4_public.h"
-
 
 #ifndef __CVC4__THEORY__THEORY_TEST_UTILS_H
 #define __CVC4__THEORY__ITHEORY_TEST_UTILS_H
@@ -48,7 +44,7 @@ enum OutputChannelCallType {
   AUG_LEMMA,
   LEMMA,
   EXPLANATION
-};
+};/* enum OutputChannelCallType */
 
 }/* CVC4::theory namespace */
 
@@ -121,9 +117,11 @@ public:
   }
 
 private:
+
   void push(OutputChannelCallType call, TNode n) {
-    d_callHistory.push_back(std::make_pair(call,n));
+    d_callHistory.push_back(std::make_pair(call, n));
   }
+
 };/* class TestOutputChannel */
 
 }/* CVC4::theory namespace */

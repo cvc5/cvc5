@@ -113,11 +113,11 @@ public:
 
   void preRegisterTerm(TNode n);
 
-  void registerTerm(TNode n) { }
+  //void registerTerm(TNode n) { }
 
   void check(Effort e);
 
-  void presolve() { }
+  //void presolve() { }
 
   void propagate(Effort e) { }
 

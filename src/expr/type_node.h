@@ -32,6 +32,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/Assert.h"
+#include "util/cardinality.h"
 
 namespace CVC4 {
 
@@ -341,6 +342,13 @@ public:
   bool isNull() const {
     return d_nv == &expr::NodeValue::s_null;
   }
+
+  /**
+   * Returns the cardinality of this type.
+   *
+   * @return a finite or infinite cardinality
+   */
+  Cardinality getCardinality() const;
 
   /** Is this the Boolean type? */
   bool isBoolean() const;

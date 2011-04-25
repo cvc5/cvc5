@@ -68,6 +68,11 @@ bool Type::isNull() const {
   return d_typeNode->isNull();
 }
 
+Cardinality Type::getCardinality() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getCardinality();
+}
+
 Type& Type::operator=(const Type& t) {
   Assert(d_typeNode != NULL, "Unexpected NULL typenode pointer!");
   Assert(t.d_typeNode != NULL, "Unexpected NULL typenode pointer!");

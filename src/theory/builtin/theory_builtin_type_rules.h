@@ -128,6 +128,39 @@ public:
   }
 };/* class TupleTypeRule */
 
+class FunctionCardinality {
+public:
+  inline static Cardinality computeCardinality(TypeNode type) {
+    Assert(type.getKind() == kind::FUNCTION_TYPE);
+
+    Cardinality argsCard(1);
+    // get the largest cardinality of function arguments/return type
+    for(unsigned i = 0, i_end = type.getNumChildren() - 1; i < i_end; ++i) {
+      argsCard *= type[i].getCardinality();
+    }
+
+    Cardinality valueCard = type[type.getNumChildren() - 1].getCardinality();
+
+    return valueCard ^ argsCard;
+  }
+};/* class FuctionCardinality */
+
+class TupleCardinality {
+public:
+  inline static Cardinality computeCardinality(TypeNode type) {
+    Assert(type.getKind() == kind::TUPLE_TYPE);
+
+    Cardinality card(1);
+    for(TypeNode::iterator i = type.begin(),
+          i_end = type.end();
+        i != i_end;
+        ++i) {
+      card *= (*i).getCardinality();
+    }
+
+    return card;
+  }
+};/* class TupleCardinality */
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

@@ -111,6 +111,8 @@ endif
 
 check test units regress: all
 	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
+units%:
+	(cd $(CURRENT_BUILD)/test && $(MAKE) units TEST_PREFIX=$(subst units:,,$@))
 regress%: all
 	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 
