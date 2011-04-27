@@ -26,6 +26,7 @@
 #include "util/datatype.h"
 #include "theory/datatypes/union_find.h"
 #include "util/hash.h"
+#include "util/trans_closure.h"
 
 #include <ext/hash_set>
 #include <iostream>
@@ -45,8 +46,10 @@ private:
 
   std::hash_set<TypeNode, TypeNodeHashFunction> d_addedDatatypes;
 
-  context::CDList<Node> d_currAsserts;
-  context::CDList<Node> d_currEqualities;
+  //context::CDList<Node> d_currAsserts;
+  //context::CDList<Node> d_currEqualities;
+
+  //TODO: the following 4 maps can be eliminated
   /** a list of types with the list of constructors for that type */
   std::map<TypeNode, std::vector<Node> > d_cons;
   /** a list of types with the list of constructors for that type */
@@ -55,16 +58,7 @@ private:
   std::map<Node, std::vector<Node> > d_sels;
   /** map from selectors to the constructors they are for */
   std::map<Node, Node > d_sel_cons;
-  /**  the distinguished ground term for each type */
-  //std::map<TypeNode, Node > d_distinguishTerms;
-  /** finite datatypes/constructor */
-  std::map< TypeNode, bool > d_finite;
-  std::map< Node, bool > d_cons_finite;
-  /** well founded datatypes/constructor */
-  std::map< TypeNode, bool > d_wellFounded;
-  std::map< Node, bool > d_cons_wellFounded;
-  /** whether we need to check finite and well foundedness */
-  bool requiresCheckFiniteWellFounded;
+
   /** map from equalties and the equalities they are derived from */
   context::CDMap< Node, Node, NodeHashFunction > d_drv_map;
   /** equalities that are axioms */
@@ -79,10 +73,10 @@ private:
   EqListsN d_equivalence_class;
   /** map from terms to whether they have been instantiated */
   BoolMap d_inst_map;
-  //Type getType( TypeNode t );
-  int getConstructorIndex( TypeNode t, Node c );
-  int getTesterIndex( TypeNode t, Node c );
-  void checkFiniteWellFounded();
+  /** transitive closure to record equivalence/subterm relation.  */
+  TransitiveClosureNode d_cycle_check;
+  /** check whether constructor is finite */
+  bool isConstructorFinite( Node cons );
 
   /**
    * map from terms to testers asserted for that term
@@ -141,6 +135,9 @@ private:
    * conflict to get the actual explanation)
    */
   Node d_conflict;
+  /**
+   * information for delayed merging (is this necessary?)
+   */
   bool d_noMerge;
   std::vector< std::vector< std::pair< Node, Node > > > d_merge_pending;
 public:
@@ -185,16 +182,15 @@ private:
   void addDerivedEquality(TNode eq, TNode jeq);
   void addEquality(TNode eq);
   void registerEqualityForPropagation(TNode eq);
+
   void convertDerived(Node n, NodeBuilder<>& nb);
   void throwConflict();
-
   void checkCycles();
   bool searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        NodeBuilder<>& explanation );
   bool checkClash( Node n1, Node n2, NodeBuilder<>& explanation );
-  static bool checkClashSimple( Node n1, Node n2 );
-  friend class DatatypesRewriter;// for access to checkClashSimple();
+  friend class DatatypesRewriter;// for access to checkTrivialTester();
 };/* class TheoryDatatypes */
 
 inline TNode TheoryDatatypes::find(TNode a) {

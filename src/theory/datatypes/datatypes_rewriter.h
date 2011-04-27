@@ -35,10 +35,6 @@ public:
   static RewriteResponse postRewrite(TNode in) {
     Debug("datatypes-rewrite") << "post-rewriting " << in << std::endl;
 
-    /*
-    checkFiniteWellFounded();
-    */
-
     if(in.getKind() == kind::APPLY_TESTER) {
       if(in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
         bool result = TheoryDatatypes::checkTrivialTester(in);
@@ -81,9 +77,10 @@ public:
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       } else {
         Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Would rewrite trivial selector " << in
-                                   << " but ctor doesn't match stor"
-                                   << std::endl;
+                                   << "Rewrite trivial selector " << in
+                                   << " to distinguished ground term "
+                                   << in.getType().mkGroundTerm() << std::endl;
+        return RewriteResponse(REWRITE_DONE,in.getType().mkGroundTerm() );
       }
     }
 
@@ -92,7 +89,7 @@ public:
                              NodeManager::currentNM()->mkConst(true));
     }
     if(in.getKind() == kind::EQUAL &&
-       TheoryDatatypes::checkClashSimple(in[0], in[1])) {
+       checkClash(in[0], in[1])) {
       return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(false));
     }
@@ -107,6 +104,23 @@ public:
 
   static inline void init() {}
   static inline void shutdown() {}
+
+  static bool checkClash( Node n1, Node n2 ) {
+    if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
+      if( n1.getOperator() != n2.getOperator() ) {
+        return true;
+      } else {
+        Assert( n1.getNumChildren() == n2.getNumChildren() );
+        for( int i=0; i<(int)n1.getNumChildren(); i++ ) {
+          if( checkClash( n1[i], n2[i] ) ) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
 
 };/* class DatatypesRewriter */
 

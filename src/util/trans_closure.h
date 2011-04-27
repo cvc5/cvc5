@@ -20,6 +20,8 @@
 #define __CVC4__UTIL__TRANSITIVE_CLOSURE_H
 
 #include "context/context.h"
+#include "expr/node.h"
+#include <map>
 
 namespace CVC4 {
 
@@ -105,11 +107,29 @@ class TransitiveClosure {
 
 public:
   TransitiveClosure(context::Context* context) : d_context(context) {}
-  ~TransitiveClosure();
+  virtual ~TransitiveClosure();
 
   /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
   bool addEdge(unsigned i, unsigned j);
   void debugPrintMatrix();
+};
+
+/**
+ * Transitive closure module for nodes in CVC4.
+ *
+ */
+class TransitiveClosureNode : public TransitiveClosure{
+  static unsigned d_counter;
+  std::map< Node, unsigned > nodeMap;
+  unsigned getId( Node i );
+public:
+  TransitiveClosureNode(context::Context* context) : TransitiveClosure(context) {}
+  ~TransitiveClosureNode(){}
+
+  /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
+  bool addEdgeNode(Node i, Node j) {
+    return addEdge( getId( i ), getId( j ) );
+  }
 };
 
 }/* CVC4 namespace */

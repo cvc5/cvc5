@@ -89,5 +89,17 @@ void TransitiveClosure::debugPrintMatrix()
   }      
 }
 
+unsigned TransitiveClosureNode::d_counter = 0;
+
+unsigned TransitiveClosureNode::getId( Node i ){
+  std::map< Node, unsigned >::iterator it = nodeMap.find( i );
+  if( it==nodeMap.end() ){
+    nodeMap[i] = d_counter;
+    d_counter++;
+    return d_counter-1;
+  }
+  return it->second;
+}
+
 
 }/* CVC4 namespace */
