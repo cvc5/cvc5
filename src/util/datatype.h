@@ -147,6 +147,8 @@ public:
 
       std::string d_name;
       Expr d_selector;
+      /** the constructor associated with this selector */
+      Expr d_constructor;
       bool d_resolved;
 
       explicit Arg(std::string name, Expr selector);
@@ -165,6 +167,12 @@ public:
        * only permitted after resolution.
        */
       Expr getSelector() const;
+
+      /**
+       * Get the associated constructor for this constructor argument; this call is
+       * only permitted after resolution.
+       */
+      Expr getConstructor() const;
 
       /**
        * Get the name of the type of this constructor argument

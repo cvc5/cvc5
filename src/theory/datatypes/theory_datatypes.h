@@ -44,20 +44,9 @@ private:
   typedef context::CDMap<Node, EqListN*, NodeHashFunction> EqListsN;
   typedef context::CDMap< Node, bool, NodeHashFunction > BoolMap;
 
-  std::hash_set<TypeNode, TypeNodeHashFunction> d_addedDatatypes;
-
-  //context::CDList<Node> d_currAsserts;
-  //context::CDList<Node> d_currEqualities;
-
-  //TODO: the following 4 maps can be eliminated
-  /** a list of types with the list of constructors for that type */
-  std::map<TypeNode, std::vector<Node> > d_cons;
-  /** a list of types with the list of constructors for that type */
-  std::map<TypeNode, std::vector<Node> > d_testers;
-  /** a list of constructors with the list of selectors */
-  std::map<Node, std::vector<Node> > d_sels;
-  /** map from selectors to the constructors they are for */
-  std::map<Node, Node > d_sel_cons;
+  /** for debugging */
+  context::CDList<Node> d_currAsserts;
+  context::CDList<Node> d_currEqualities;
 
   /** map from equalties and the equalities they are derived from */
   context::CDMap< Node, Node, NodeHashFunction > d_drv_map;
@@ -75,8 +64,12 @@ private:
   BoolMap d_inst_map;
   /** transitive closure to record equivalence/subterm relation.  */
   TransitiveClosureNode d_cycle_check;
-  /** check whether constructor is finite */
-  bool isConstructorFinite( Node cons );
+  /** has seen cycle */
+  context::CDO< bool > d_hasSeenCycle;
+  /** get the constructor for the node */
+  const Datatype::Constructor& getConstructor( Node cons );
+  /** get the constructor for the selector */
+  Node getConstructorForSelector( Node sel );
 
   /**
    * map from terms to testers asserted for that term
@@ -140,15 +133,11 @@ private:
    */
   bool d_noMerge;
   std::vector< std::vector< std::pair< Node, Node > > > d_merge_pending;
+  bool d_inCheck;
 public:
   TheoryDatatypes(context::Context* c, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
-  void preRegisterTerm(TNode n) {
-    TypeNode type = n.getType();
-    if(type.getKind() == kind::DATATYPE_TYPE) {
-      addDatatypeDefinitions(type);
-    }
-  }
+  void preRegisterTerm(TNode n);
   void presolve();
 
   void addSharedTerm(TNode t);
@@ -158,30 +147,26 @@ public:
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
 
-  void addDatatypeDefinitions(TypeNode dttn);
-
 private:
   /* Helper methods */
   void checkTester( Node assertion, bool doAdd = true );
-  static bool checkTrivialTester(Node assertion);
+  bool checkTrivialTester(Node assertion);
   void checkInstantiate( Node t );
   Node getPossibleCons( Node t, bool checkInst = false );
   Node collapseSelector( TNode t, bool useContext = false );
   void updateSelectors( Node a );
-  void collectTerms( TNode t );
   void addTermToLabels( Node t );
   void initializeEqClass( Node t );
+  void collectTerms( Node n );
 
   /* from uf_morgan */
   void merge(TNode a, TNode b);
   inline TNode find(TNode a);
   inline TNode debugFind(TNode a) const;
   void appendToDiseqList(TNode of, TNode eq);
-  void appendToEqList(TNode of, TNode eq);
   void addDisequality(TNode eq);
   void addDerivedEquality(TNode eq, TNode jeq);
   void addEquality(TNode eq);
-  void registerEqualityForPropagation(TNode eq);
 
   void convertDerived(Node n, NodeBuilder<>& nb);
   void throwConflict();
@@ -189,8 +174,6 @@ private:
   bool searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        NodeBuilder<>& explanation );
-  bool checkClash( Node n1, Node n2, NodeBuilder<>& explanation );
-  friend class DatatypesRewriter;// for access to checkTrivialTester();
 };/* class TheoryDatatypes */
 
 inline TNode TheoryDatatypes::find(TNode a) {

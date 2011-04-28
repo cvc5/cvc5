@@ -399,6 +399,10 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
   d_tester = em->mkVar(d_name.substr(d_name.find('\0') + 1), em->mkTesterType(self));
   d_name.resize(d_name.find('\0'));
   d_constructor = em->mkVar(d_name, em->mkConstructorType(*this, self));
+  //associate constructor with all selectors
+  for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    (*i).d_constructor = d_constructor;
+  }
 }
 
 Datatype::Constructor::Constructor(std::string name, std::string tester) :
@@ -603,6 +607,12 @@ std::string Datatype::Constructor::Arg::getName() const throw() {
 Expr Datatype::Constructor::Arg::getSelector() const {
   CheckArgument(isResolved(), this, "cannot get a selector for an unresolved datatype constructor");
   return d_selector;
+}
+
+Expr Datatype::Constructor::Arg::getConstructor() const {
+  CheckArgument(isResolved(), this, 
+                "cannot get a associated constructor for argument of an unresolved datatype constructor");
+  return d_constructor;
 }
 
 bool Datatype::Constructor::Arg::isUnresolvedSelf() const throw() {

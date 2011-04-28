@@ -74,6 +74,14 @@ bool TransitiveClosure::addEdge(unsigned i, unsigned j)
   return false;
 }
 
+bool TransitiveClosure::isConnected(unsigned i, unsigned j)
+{
+  if( i>=adjMatrix.size() || j>adjMatrix.size() ){
+    return false;
+  }else{
+    return adjMatrix[i] != NULL && adjMatrix[i]->read(j);
+  }
+}
 
 void TransitiveClosure::debugPrintMatrix()
 {
@@ -89,16 +97,24 @@ void TransitiveClosure::debugPrintMatrix()
   }      
 }
 
-unsigned TransitiveClosureNode::d_counter = 0;
-
 unsigned TransitiveClosureNode::getId( Node i ){
-  std::map< Node, unsigned >::iterator it = nodeMap.find( i );
+  context::CDMap< Node, unsigned, NodeHashFunction >::iterator it = nodeMap.find( i );
   if( it==nodeMap.end() ){
-    nodeMap[i] = d_counter;
-    d_counter++;
-    return d_counter-1;
+    unsigned c = d_counter.get();
+    nodeMap[i] = c;
+    d_counter.set( c + 1 );
+    return c;
   }
-  return it->second;
+  return (*it).second;
+}
+
+void TransitiveClosureNode::debugPrint(){
+  for( int i=0; i<(int)currEdges.size(); i++ ){
+    cout << "currEdges[ " << i << " ] = " 
+         << currEdges[i].first << " -> " << currEdges[i].second;
+         //<< "(" << getId( currEdges[i].first ) << " -> " << getId( currEdges[i].second ) << ")";
+    cout << std::endl;
+  }
 }
 
 

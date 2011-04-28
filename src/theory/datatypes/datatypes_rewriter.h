@@ -22,7 +22,6 @@
 #define __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
 #include "theory/rewriter.h"
-#include "theory/datatypes/theory_datatypes.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,7 +36,7 @@ public:
 
     if(in.getKind() == kind::APPLY_TESTER) {
       if(in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
-        bool result = TheoryDatatypes::checkTrivialTester(in);
+        bool result = Datatype::indexOf(in.getOperator().toExpr()) == Datatype::indexOf(in[0].getOperator().toExpr());
         Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial tester " << in
                                    << " " << result << std::endl;

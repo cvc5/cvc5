@@ -23,6 +23,10 @@
 #include "expr/node.h"
 #include <map>
 
+#include "context/cdlist.h"
+#include "context/cdmap.h"
+#include "context/cdo.h"
+
 namespace CVC4 {
 
 /*
@@ -65,14 +69,14 @@ public:
   }
 
   bool read(unsigned index) {
-    if (index < 64) return (d_data & (unsigned(1) << index)) != 0;
+    if (index < 64) return (d_data & (uint64_t(1) << index)) != 0;
     else if (d_next == NULL) return false;
     else return d_next->read(index - 64);
   }
 
   void write(unsigned index) {
     if (index < 64) {
-      unsigned mask = unsigned(1) << index;
+      unsigned mask = uint64_t(1) << index;
       if ((d_data & mask) != 0) return;
       makeCurrent();
       d_data = d_data | mask;
@@ -111,6 +115,8 @@ public:
 
   /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
   bool addEdge(unsigned i, unsigned j);
+  /** whether node i is connected to node j */
+  bool isConnected(unsigned i, unsigned j);
   void debugPrintMatrix();
 };
 
@@ -119,17 +125,26 @@ public:
  *
  */
 class TransitiveClosureNode : public TransitiveClosure{
-  static unsigned d_counter;
-  std::map< Node, unsigned > nodeMap;
+  context::CDO< unsigned > d_counter;
+  context::CDMap< Node, unsigned, NodeHashFunction > nodeMap;
   unsigned getId( Node i );
+  //for debugging
+  context::CDList< std::pair< Node, Node > > currEdges;
 public:
-  TransitiveClosureNode(context::Context* context) : TransitiveClosure(context) {}
+  TransitiveClosureNode(context::Context* context) : 
+    TransitiveClosure(context), d_counter( context, 0 ), nodeMap( context ), currEdges(context) {}
   ~TransitiveClosureNode(){}
 
   /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
   bool addEdgeNode(Node i, Node j) {
+    currEdges.push_back( std::pair< Node, Node >( i, j ) );
     return addEdge( getId( i ), getId( j ) );
   }
+  /** whether node i is connected to node j */
+  bool isConnectedNode(Node i, Node j) {
+    return isConnected( getId( i ), getId( j ) );
+  }
+  void debugPrint();
 };
 
 }/* CVC4 namespace */
