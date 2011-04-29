@@ -27,6 +27,7 @@
 #include "theory/datatypes/union_find.h"
 #include "util/hash.h"
 #include "util/trans_closure.h"
+#include "theory/datatypes/explanation_manager.h"
 
 #include <ext/hash_set>
 #include <iostream>
@@ -48,10 +49,6 @@ private:
   context::CDList<Node> d_currAsserts;
   context::CDList<Node> d_currEqualities;
 
-  /** map from equalties and the equalities they are derived from */
-  context::CDMap< Node, Node, NodeHashFunction > d_drv_map;
-  /** equalities that are axioms */
-  BoolMap d_axioms;
   /** list of all selectors */
   BoolMap d_selectors;
   /** list of all representatives */
@@ -74,7 +71,8 @@ private:
   /**
    * map from terms to testers asserted for that term
    * for each t, this is either a list of equations of the form
-   *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t ), each of which are unique testers,
+   *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t ), each of which are unique testers
+   *   and n is less than the number of possible constructors for t,
    * or a list of equations of the form
    *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t )  followed by
    *   is_[constructor_(n+1)]( t ), each of which is a unique tester.
@@ -120,20 +118,19 @@ private:
    * */
   EqLists d_disequalities;
 
-  /** List of all (potential) equalities to be propagated. */
-  EqLists d_equalities;
-
-  /**
-   * stores the conflicting disequality (still need to call construct
-   * conflict to get the actual explanation)
-   */
-  Node d_conflict;
   /**
    * information for delayed merging (is this necessary?)
    */
   bool d_noMerge;
   std::vector< std::vector< std::pair< Node, Node > > > d_merge_pending;
   bool d_inCheck;
+
+  /**
+   * explanation manager
+   */
+  ExplanationManager d_em;
+  CongruenceClosureExplainer<CongruenceChannel, CONGRUENCE_OPERATORS_2 (kind::APPLY_CONSTRUCTOR, kind::APPLY_SELECTOR)> d_cce;
+
 public:
   TheoryDatatypes(context::Context* c, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
@@ -149,32 +146,33 @@ public:
 
 private:
   /* Helper methods */
-  void checkTester( Node assertion, bool doAdd = true );
-  bool checkTrivialTester(Node assertion);
+  bool checkTester( Node assertion, Node& conflict, unsigned& r );
+  void addTester( Node assertion );
   void checkInstantiate( Node t );
-  Node getPossibleCons( Node t, bool checkInst = false );
-  Node collapseSelector( TNode t, bool useContext = false );
+  Node collapseSelector( Node t );
   void updateSelectors( Node a );
   void addTermToLabels( Node t );
   void initializeEqClass( Node t );
   void collectTerms( Node n );
+  bool hasConflict();
 
   /* from uf_morgan */
   void merge(TNode a, TNode b);
-  inline TNode find(TNode a);
+  inline TNode find(TNode a); 
   inline TNode debugFind(TNode a) const;
   void appendToDiseqList(TNode of, TNode eq);
   void addDisequality(TNode eq);
-  void addDerivedEquality(TNode eq, TNode jeq);
   void addEquality(TNode eq);
 
-  void convertDerived(Node n, NodeBuilder<>& nb);
-  void throwConflict();
   void checkCycles();
   bool searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        NodeBuilder<>& explanation );
 };/* class TheoryDatatypes */
+
+inline bool TheoryDatatypes::hasConflict() { 
+  return d_em.hasConflict(); 
+}
 
 inline TNode TheoryDatatypes::find(TNode a) {
   return d_unionFind.find(a);
