@@ -19,7 +19,26 @@ cvc4_LDADD = \
 	libmain.a \
 	../parser/libcvc4parser.la \
 	../libcvc4.la \
-	../lib/libreplacements.la
+	../lib/libreplacements.la \
+	$(READLINE_LDFLAGS)
+
+BUILT_SOURCES = \
+	$(TOKENS_FILES)
+
+TOKENS_FILES = \
+	cvc_tokens.h \
+	smt_tokens.h \
+	smt2_tokens.h
+
+cvc_tokens.h: @srcdir@/../parser/cvc/Cvc.g
+	$(AM_V_GEN)grep "'[a-zA-Z][a-zA-Z0-9][a-zA-Z0-9]*'" $^ | sed 's/.*'\''\([a-zA-Z0-9]\+\)'\''.*/"\1",/' | sort -u >$@
+smt_tokens.h: @srcdir@/../parser/smt/Smt.g
+	$(AM_V_GEN)grep "'[a-zA-Z][a-zA-Z0-9][a-zA-Z0-9]*'" $^ | sed 's/.*'\''\([a-zA-Z0-9]\+\)'\''.*/"\1",/' | sort -u >$@
+smt2_tokens.h: @srcdir@/../parser/smt2/Smt2.g
+	$(AM_V_GEN)grep "'[a-zA-Z][a-zA-Z0-9][a-zA-Z0-9]*'" $^ | sed 's/.*'\''\([a-zA-Z0-9]\+\)'\''.*/"\1",/' | sort -u >$@
+
+clean-local:
+	rm -f $(BUILT_SOURCES)
 
 if STATIC_BINARY
 cvc4_LINK = $(CXXLINK) -all-static

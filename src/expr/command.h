@@ -108,6 +108,8 @@ protected:
 public:
   DeclarationCommand(const std::string& id, Type t);
   DeclarationCommand(const std::vector<std::string>& ids, Type t);
+  const std::vector<std::string>& getDeclaredSymbols() const;
+  Type getDeclaredType() const;
   void toStream(std::ostream& out) const;
 };/* class DeclarationCommand */
 
@@ -275,6 +277,12 @@ public:
   void invoke(SmtEngine* smtEngine);
   void toStream(std::ostream& out) const;
 };/* class DatatypeDeclarationCommand */
+
+class CVC4_PUBLIC QuitCommand : public EmptyCommand {
+public:
+  QuitCommand();
+  void toStream(std::ostream& out) const;
+};/* class QuitCommand */
 
 class CVC4_PUBLIC CommandSequence : public Command {
 private:

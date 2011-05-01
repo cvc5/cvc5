@@ -37,6 +37,8 @@ class CVC4_PUBLIC InteractiveShell {
   std::ostream& d_out;
   parser::Parser* d_parser;
   const InputLanguage d_language;
+  bool d_quit;
+  bool d_usingReadline;
 
   static const std::string INPUT_FILENAME;
 

@@ -300,7 +300,7 @@ command returns [CVC4::Command* cmd]
       }
     }
   | EXIT_TOK
-    { cmd = NULL; }
+    { cmd = new QuitCommand; }
   ;
 
 symbolicExpr[CVC4::SExpr& sexpr]
