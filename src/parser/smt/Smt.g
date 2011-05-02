@@ -598,7 +598,6 @@ XOR_TOK           : 'xor';
 
 // Bitvector tokens
 BITVECTOR_TOK     : 'BitVec';
-BV_TOK            : 'bv';
 CONCAT_TOK        : 'concat';
 EXTRACT_TOK       : 'extract';
 BVAND_TOK         : 'bvand';
@@ -678,7 +677,7 @@ FLET_IDENTIFIER
  */
 USER_VALUE
   :   '{'
-      ( ~('{' | '}') )*
+      ( '\\{' | '\\}' | ~('{' | '}') )*
     '}'
   ;
 
