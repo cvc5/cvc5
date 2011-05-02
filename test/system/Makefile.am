@@ -40,6 +40,7 @@ AM_CPPFLAGS = \
 	"-I@top_srcdir@/src/prop/minisat" \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \
+	-D __BUILDING_CVC4_SYSTEM_TEST \
 	$(TEST_CPPFLAGS)
 LIBADD = \
 	@abs_top_builddir@/src/parser/libcvc4parser.la \
