@@ -9,6 +9,7 @@ using namespace CVC4::theory::datatypes;
 
 void ProofManager::setExplanation( Node n, Node jn, unsigned r ) 
 { 
+  Assert( n!=jn );
   d_exp[n] = std::pair< Node, unsigned >( jn, r ); 
 }
 
@@ -35,7 +36,7 @@ void ExplanationManager::process( Node n, NodeBuilder<>& nb, ProofManager* pm )
         if( r.d_e ){
           Debug("emanager") << "Em::process: Consult externally for " << n << std::endl;
           exp = r.d_e->explain( n, pm );
-          //trivial case, r says that n is an input
+          //trivial case, explainer says that n is an input
           if( exp==n ){
             r.d_isInput = true;
           }

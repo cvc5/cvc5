@@ -89,11 +89,11 @@ void TransitiveClosure::debugPrintMatrix()
   for (i = 0; i < adjMatrix.size(); ++i) {
     for (j = 0; j < adjMatrix.size(); ++j) {
       if (adjMatrix[i] != NULL && adjMatrix[i]->read(j)) {
-        cout << "1 ";
+        Debug("trans-closure") << "1 ";
       }
-      else cout << "0 ";
+      else Debug("trans-closure") << "0 ";
     }
-    cout << endl;
+    Debug("trans-closure") << endl;
   }      
 }
 
@@ -110,10 +110,9 @@ unsigned TransitiveClosureNode::getId( Node i ){
 
 void TransitiveClosureNode::debugPrint(){
   for( int i=0; i<(int)currEdges.size(); i++ ){
-    cout << "currEdges[ " << i << " ] = " 
-         << currEdges[i].first << " -> " << currEdges[i].second;
-         //<< "(" << getId( currEdges[i].first ) << " -> " << getId( currEdges[i].second ) << ")";
-    cout << std::endl;
+    Debug("trans-closure") << "currEdges[ " << i << " ] = " 
+                           << currEdges[i].first << " -> " << currEdges[i].second;
+    Debug("trans-closure") << std::endl;
   }
 }
 

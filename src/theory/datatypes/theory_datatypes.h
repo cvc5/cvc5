@@ -72,7 +72,7 @@ private:
    * map from terms to testers asserted for that term
    * for each t, this is either a list of equations of the form
    *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t ), each of which are unique testers
-   *   and n is less than the number of possible constructors for t,
+   *   and n is less than the number of possible constructors for t minus one,
    * or a list of equations of the form
    *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t )  followed by
    *   is_[constructor_(n+1)]( t ), each of which is a unique tester.

@@ -111,10 +111,10 @@ public:
           application or rule ri, i.e. applying proof rule ri to jni derives ni.
       - If pm->getEffort() = STANDARD, then for each ( ni, jni, ri ), 
           jni is the (at least informal) justification for ni.
-      - Return value should be a conjunction of nodes n'1...n'k, where each n'i occurs 
+      - Return value should be a (possibly empty) conjunction of nodes n'1...n'k, where each n'i occurs 
           (as a conjunct) in jn1...jnk, but not in n1...nk.  
-          For each of these literals n'i, assert( n'i ) was called previously,
-      - either pm->setExplanation( n, ... ) is called, or n is the return value
+          For each of these literals n'i, assert( n'i ) was called.
+      - either pm->setExplanation( n, ... ) is called, or n is the return value.
   */
   virtual Node explain( Node n, ProofManager* pm ) = 0;
 };
@@ -179,7 +179,7 @@ public:
   bool hasNode( Node n ) { return d_drv_map.find( n )!=d_drv_map.end(); }
   /** n is explained */
   bool hasConflict() { return d_hasConflict.get() || hasNode( NodeManager::currentNM()->mkConst(false) ); }
-  /** jn is why n is true, by reason r */
+  /** jn is why n is true, by rule r */
   void addNode( Node n, Node jn, unsigned r = 0 ) { 
     if( !hasNode( n ) ){
       Assert( n!=jn );

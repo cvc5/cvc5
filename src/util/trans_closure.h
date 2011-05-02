@@ -76,7 +76,7 @@ public:
 
   void write(unsigned index) {
     if (index < 64) {
-      unsigned mask = uint64_t(1) << index;
+      uint64_t mask = uint64_t(1) << index;
       if ((d_data & mask) != 0) return;
       makeCurrent();
       d_data = d_data | mask;
@@ -127,7 +127,6 @@ public:
 class TransitiveClosureNode : public TransitiveClosure{
   context::CDO< unsigned > d_counter;
   context::CDMap< Node, unsigned, NodeHashFunction > nodeMap;
-  unsigned getId( Node i );
   //for debugging
   context::CDList< std::pair< Node, Node > > currEdges;
 public:
@@ -135,7 +134,9 @@ public:
     TransitiveClosure(context), d_counter( context, 0 ), nodeMap( context ), currEdges(context) {}
   ~TransitiveClosureNode(){}
 
-  /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
+  /** get id for node */
+  unsigned getId( Node i );
+  /** Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
   bool addEdgeNode(Node i, Node j) {
     currEdges.push_back( std::pair< Node, Node >( i, j ) );
     return addEdge( getId( i ), getId( j ) );

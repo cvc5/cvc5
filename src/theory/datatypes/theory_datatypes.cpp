@@ -25,8 +25,6 @@
 
 #include <map>
 
-//#define USE_TRANSITIVE_CLOSURE
-
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -78,8 +76,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c, OutputChannel& out, Valuation valua
 
   ////bug test for transitive closure
   //TransitiveClosure tc( c );
-  //Debug("datatypes-tc") << "1 -> 0 : " << tc.addEdge( 1, 0 ) << std::endl;
-  //Debug("datatypes-tc") << "32 -> 1 : " << tc.addEdge( 32, 1 ) << std::endl;
+  //Debug("datatypes-tc") << "33 -> 32 : " << tc.addEdge( 33, 32 ) << std::endl;
+  //Debug("datatypes-tc") << "32 -> 33 : " << tc.addEdge( 32, 33 ) << std::endl;
   //tc.debugPrintMatrix();
 }
 
@@ -206,6 +204,7 @@ void TheoryDatatypes::check(Effort e) {
     d_inCheck = false;
     if( hasConflict() ) {
       Debug("datatypes-conflict") << "Constructing conflict..." << endl;
+      Debug("datatypes-conflict") << d_cc << std::endl;
       Node conflict = d_em.getConflict();
       if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") || 
           Debug.isOn("datatypes-cycles") || Debug.isOn("datatypes-conflict") ){
@@ -215,6 +214,7 @@ void TheoryDatatypes::check(Effort e) {
       //  conflict = NodeManager::currentNM()->mkNode(kind::AND, conflict, conflict);
       //}
       d_out->conflict( conflict, false );
+      //Assert( false );
       return;
     }
   }
@@ -406,7 +406,7 @@ void TheoryDatatypes::addTester( Node assertion ){
       if( hasConflict() ) {
         return;
       }
-      //test all selectors whose arguments are in the equivalence class of tRep
+      //update all selectors whose arguments are in the equivalence class of tRep
       updateSelectors( tRep );
     }
   }else if( !conflict.isNull() ){
@@ -517,7 +517,7 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
   if( a == b) {
     return;
   }
-  Debug("datatypes-cycles") << "Merge "<< a << " " << b << endl;
+  Debug("datatypes") << "Merge "<< a << " " << b << endl;
 
   // make "a" the one with shorter diseqList
   EqLists::iterator deq_ia = d_disequalities.find(a);
@@ -568,10 +568,10 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
   d_unionFind.setCanon(a, b);
   d_reps[a] = false;
   d_reps[b] = true;
-#ifdef USE_TRANSITIVE_CLOSURE
+  //add this to the transitive closure module
   bool result = d_cycle_check.addEdgeNode( a, b );
   d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
-#endif
+
 
   //merge equivalence classes
   initializeEqClass( a );
@@ -647,30 +647,23 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
     }
   }
 
-  //Debug("datatypes-debug") << "Done clash" << endl;
-#ifdef USE_TRANSITIVE_CLOSURE
   Debug("datatypes-cycles") << "Equal " << a << " -> " << b << " " << d_hasSeenCycle.get() << endl;
   if( d_hasSeenCycle.get() ){
     checkCycles();
     if( hasConflict() ){
       return;
     }
-  }else{
-    checkCycles();
-    if( hasConflict() ){
-      for( int i=0; i<(int)d_currEqualities.size(); i++ ) {
-        Debug("datatypes-cycles") << "currEqualities[" << i << "] = " << d_currEqualities[i] << endl;
-      }
-      d_cycle_check.debugPrint();
-      Assert( false );
-    }
   }
-#else
-  checkCycles();
-  if( hasConflict() ){
-    return;
-  }
-#endif
+  //else{
+  //  checkCycles();
+  //  if( hasConflict() ){
+  //    for( int i=0; i<(int)d_currEqualities.size(); i++ ) {
+  //      Debug("datatypes-cycles") << "currEqualities[" << i << "] = " << d_currEqualities[i] << endl;
+  //    }
+  //    d_cycle_check.debugPrint();
+  //    Assert( false );
+  //  }
+  //}
   Debug("datatypes-debug") << "Done cycles" << endl;
 
   //merge selector lists
@@ -814,6 +807,7 @@ void TheoryDatatypes::updateSelectors( Node a ) {
         if( b != s[0] ) {
           Node t = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, s.getOperator(), b );
           d_cc.addTerm( t );
+          collectTerms( t );
         }
         s = collapseSelector( s );
         if( hasConflict() ) {
@@ -866,52 +860,45 @@ void TheoryDatatypes::collectTerms( Node n ) {
     collectTerms( n[i] );
   }
   if( n.getKind() == APPLY_CONSTRUCTOR ){
-#ifdef USE_TRANSITIVE_CLOSURE
     for( int i=0; i<(int)n.getNumChildren(); i++ ) {
       Debug("datatypes-cycles") << "Subterm " << n << " -> " << n[i] << endl;
       bool result = d_cycle_check.addEdgeNode( n, n[i] );
-      //if( result ){
-      //  for( int i=0; i<(int)d_currEqualities.size(); i++ ) {
-      //    Debug("datatypes-cycles") << "currEqualities[" << i << "] = " << d_currEqualities[i] << endl;
-      //  }
-      //  d_cycle_check.debugPrint();
-      //}
       Assert( !result );    //this should not create any new cycles (relevant terms should have been recorded before)
     }
-#endif
-  }
-  if( n.getKind() == APPLY_SELECTOR ) {
-    if( d_selectors.find( n ) == d_selectors.end() ) {
-      Debug("datatypes") << "  Found selector " << n << endl;
-      d_selectors[ n ] = true;
-      d_cc.addTerm( n );
-      Node tmp = find( n[0] );
-      checkInstantiate( tmp );
+  }else{
+    if( n.getKind() == APPLY_SELECTOR ) {
+      if( d_selectors.find( n ) == d_selectors.end() ) {
+        Debug("datatypes") << "  Found selector " << n << endl;
+        d_selectors[ n ] = true;
+        d_cc.addTerm( n );
+        Node tmp = find( n[0] );
+        checkInstantiate( tmp );
 
-      Node s = n;
-      if( tmp != n[0] ) {
-        s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, n.getOperator(), tmp );
-      }
-      s = collapseSelector( s );
-      if( s.getKind() == APPLY_SELECTOR ) {
-        //add selector to selector eq list
-        Debug("datatypes") << "  Add selector to list " << tmp << " " << n << endl;
-        EqListsN::iterator sel_i = d_selector_eq.find( tmp );
-        EqListN* sel;
-        if( sel_i == d_selector_eq.end() ) {
-          sel = new(getContext()->getCMM()) EqListN(true, getContext(), false,
-                                            ContextMemoryAllocator<Node>(getContext()->getCMM()));
-          d_selector_eq.insertDataFromContextMemory(tmp, sel);
-        } else {
-          sel = (*sel_i).second;
+        Node s = n;
+        if( tmp != n[0] ) {
+          s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, n.getOperator(), tmp );
         }
-        sel->push_back( s );
-      } else {
-        Debug("datatypes") << "  collapsed selector to " << s << endl;
+        s = collapseSelector( s );
+        if( s.getKind() == APPLY_SELECTOR ) {
+          //add selector to selector eq list
+          Debug("datatypes") << "  Add selector to list " << tmp << " " << n << endl;
+          EqListsN::iterator sel_i = d_selector_eq.find( tmp );
+          EqListN* sel;
+          if( sel_i == d_selector_eq.end() ) {
+            sel = new(getContext()->getCMM()) EqListN(true, getContext(), false,
+                                              ContextMemoryAllocator<Node>(getContext()->getCMM()));
+            d_selector_eq.insertDataFromContextMemory(tmp, sel);
+          } else {
+            sel = (*sel_i).second;
+          }
+          sel->push_back( s );
+        } else {
+          Debug("datatypes") << "  collapsed selector to " << s << endl;
+        }
       }
     }
+    addTermToLabels( n );
   }
-  addTermToLabels( n );
 }
 
 void TheoryDatatypes::appendToDiseqList(TNode of, TNode eq) {
@@ -1021,11 +1008,11 @@ bool TheoryDatatypes::searchForCycle( Node n, Node on,
       if( visited.find( nn ) == visited.end() ) {
         visited[nn] = true;
         if( nn == on || searchForCycle( nn, on, visited, explanation ) ) {
-          if( !d_cycle_check.isConnectedNode( n, n[i] ) ){
+          if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, n[i] ) ){
             Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << n[i] << "!!!!" << std::endl;
           }
           if( nn != n[i] ) {
-            if( !d_cycle_check.isConnectedNode( n[i], nn ) ){
+            if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n[i], nn ) ){
               Debug("datatypes-cycles") << "Cycle equality: " << n[i] << " is not -> " << nn << "!!!!" << std::endl;
             }
             Node ccEq = NodeManager::currentNM()->mkNode( EQUAL, nn, n[i] );
