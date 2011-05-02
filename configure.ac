@@ -903,14 +903,16 @@ Replay       : $enable_replay
 Assertions   : $enable_assertions
 Tracing      : $enable_tracing
 Muzzle       : $enable_muzzle
+
+Unit tests   : $support_unit_tests
 gcov support : $enable_coverage
 gprof support: $enable_profiling
-Unit tests   : $support_unit_tests
+Readline     : $with_readline
+TLS support  : $CVC4_TLS
 
 Static libs  : $enable_static
 Shared libs  : $enable_shared
 Static binary: $enable_static_binary
-TLS support  : $CVC4_TLS
 
 MP library   : $mplibrary
 

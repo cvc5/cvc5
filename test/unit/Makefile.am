@@ -133,7 +133,7 @@ $(WHITE_TESTS:%=%.lo): %_white.lo: @abs_builddir@/%_white.cpp
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -c -o $@ $<
 
 $(WHITE_TESTS): %_white: %_white.lo $(AM_LIBADD_WHITE)
-	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_WHITE) $(AM_LDFLAGS_WHITE) $<
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_WHITE) $(AM_LDFLAGS) $(AM_LDFLAGS_WHITE) $<
 
 $(BLACK_TESTS:%=%.lo): %_black.lo: @abs_builddir@/%_black.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
@@ -144,7 +144,7 @@ $(BLACK_TESTS:%=%.lo): %_black.lo: @abs_builddir@/%_black.cpp
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_BLACK) -c -o $@ $<
 
 $(BLACK_TESTS): %_black: %_black.lo $(AM_LIBADD_BLACK)
-	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_BLACK) $(AM_LDFLAGS_BLACK) $<
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_BLACK) $(AM_LDFLAGS) $(AM_LDFLAGS_BLACK) $<
 
 $(PUBLIC_TESTS:%=%.lo): %_public.lo: @abs_builddir@/%_public.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
@@ -155,7 +155,7 @@ $(PUBLIC_TESTS:%=%.lo): %_public.lo: @abs_builddir@/%_public.cpp
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) $(AM_CXXFLAGS_PUBLIC) -c -o $@ $<
 
 $(PUBLIC_TESTS): %_public: %_public.lo $(AM_LIBADD_PUBLIC)
-	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_PUBLIC) $(AM_LDFLAGS_PUBLIC) $<
+	$(AM_V_CXXLD)$(unit_LINK) $(AM_LIBADD_PUBLIC) $(AM_LDFLAGS) $(AM_LDFLAGS_PUBLIC) $<
 
 else
 
