@@ -68,7 +68,6 @@ TESTS =	\
 	a95test0002.smt \
 	bitvec0.smt \
 	bitvec2.smt \
-	bitvec3.smt \
 	bitvec5.smt
 
 EXTRA_DIST = $(TESTS)
