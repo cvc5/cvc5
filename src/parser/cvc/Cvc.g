@@ -433,6 +433,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 @parser::includes {
 
+#include <stdint.h>
 #include "expr/command.h"
 #include "parser/parser.h"
 #include "util/subrange_bound.h"
@@ -440,9 +441,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 namespace CVC4 {
   class Expr;
-}/* CVC4 namespace */
 
-namespace CVC4 {
   namespace parser {
     namespace cvc {
       /**
@@ -469,6 +468,17 @@ namespace CVC4 {
         mySubrangeBound(const Integer& i) : CVC4::SubrangeBound(i) {}
         mySubrangeBound(const SubrangeBound& b) : CVC4::SubrangeBound(b) {}
       };/* class mySubrangeBound */
+
+      /**
+       * Just exists to give us the uintptr_t construction that
+       * ANTLR requires.
+       */
+      struct myExpr : public CVC4::Expr {
+        myExpr() : CVC4::Expr() {}
+        myExpr(uintptr_t) : CVC4::Expr() {}
+        myExpr(const Expr& e) : CVC4::Expr(e) {}
+        myExpr(const myExpr& e) : CVC4::Expr(e) {}
+      };/* struct myExpr */
     }/* CVC4::parser::cvc namespace */
   }/* CVC4::parser namespace */
 }/* CVC4 namespace */
@@ -521,7 +531,7 @@ using namespace CVC4::parser;
  * Parses an expression.
  * @return the parsed expression
  */
-parseExpr returns [CVC4::Expr expr]
+parseExpr returns [CVC4::parser::cvc::myExpr expr]
   : formula[expr]
   | EOF
   ;

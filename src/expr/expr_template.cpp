@@ -95,13 +95,6 @@ Expr::Expr(const Expr& e) :
   d_exprManager(e.d_exprManager) {
 }
 
-Expr::Expr(uintptr_t n) :
-  d_node(new Node),
-  d_exprManager(NULL) {
-
-  AlwaysAssert(n == 0);
-}
-
 Expr::~Expr() {
   ExprManagerScope ems(*this);
   delete d_node;

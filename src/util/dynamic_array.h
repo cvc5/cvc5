@@ -38,7 +38,7 @@ private:
 
   void grow(){
     bool empty = (d_arr == NULL);
-    d_allocated = empty ? d_allocated = 15 : d_allocated * 2 + 1;
+    d_allocated = empty ? 15 : d_allocated * 2 + 1;
     unsigned allocSize = sizeof(T) * d_allocated;
     T* tmpList = (T*) (empty ? malloc(allocSize) :realloc(d_arr, allocSize));
     if(tmpList == NULL) {

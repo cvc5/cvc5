@@ -112,14 +112,6 @@ protected:
 
 public:
 
-  /**
-   * Initialize from an integer. Fails if the integer is not 0.
-   * NOTE: This is here purely to support the auto-initialization
-   * behavior of the ANTLR3 C backend. Should be removed if future
-   * versions of ANTLR fix the problem.
-   */
-  Type(uintptr_t n);
-
   /** Force a virtual destructor for safety. */
   virtual ~Type();
 

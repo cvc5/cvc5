@@ -130,7 +130,7 @@ Command* InteractiveShell::readCommand() {
     throw ParserException("Interactive input broken.");
   }
 
-  char* lineBuf;
+  char* lineBuf = NULL;
   string input;
   stringbuf sb;
   string line;
@@ -138,12 +138,12 @@ Command* InteractiveShell::readCommand() {
   /* Prompt the user for input. */
   if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-  lineBuf = ::readline("CVC4> ");
-  if(lineBuf != NULL && lineBuf[0] != '\0') {
-    ::add_history(lineBuf);
-  }
-  line = lineBuf == NULL ? "" : lineBuf;
-  free(lineBuf);
+    lineBuf = ::readline("CVC4> ");
+    if(lineBuf != NULL && lineBuf[0] != '\0') {
+      ::add_history(lineBuf);
+    }
+    line = lineBuf == NULL ? "" : lineBuf;
+    free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
   } else {
     d_out << "CVC4> " << flush;

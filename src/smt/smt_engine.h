@@ -35,6 +35,7 @@
 #include "util/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
+#include "util/stats.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -178,6 +179,14 @@ class CVC4_PUBLIC SmtEngine {
   void internalPop();
 
   friend class ::CVC4::smt::SmtEnginePrivate;
+
+  // === STATISTICS ===
+  /** time spent in definition-expansion */
+  TimerStat d_definitionExpansionTime;
+  /** time spent in non-clausal simplification */
+  TimerStat d_nonclausalSimplificationTime;
+  /** time spent in static learning */
+  TimerStat d_staticLearningTime;
 
 public:
 

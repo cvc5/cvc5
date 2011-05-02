@@ -29,7 +29,7 @@ options {
   // Note that CVC4's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in smt_input.cpp !
   k = 2;
-}
+}/* options */
 
 @header {
 /**
@@ -40,7 +40,7 @@ options {
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **/
-}
+}/* @header */
 
 @lexer::includes {
 /** This suppresses warnings about the redefinition of token symbols between
@@ -58,19 +58,50 @@ options {
 #define ANTLR3_INLINE_INPUT_ASCII
 
 #include "parser/antlr_tracing.h"
-}
+}/* @lexer::includes */
 
 @parser::includes {
+
+#include <stdint.h>
+
 #include "expr/command.h"
 #include "parser/parser.h"
 #include "parser/antlr_tracing.h"
 
 namespace CVC4 {
   class Expr;
+
+  namespace parser {
+    namespace smt {
+      /**
+       * Just exists to provide the uintptr_t constructor that ANTLR
+       * requires.
+       */
+      struct myExpr : public CVC4::Expr {
+        myExpr() : CVC4::Expr() {}
+        myExpr(void*) : CVC4::Expr() {}
+        myExpr(const Expr& e) : CVC4::Expr(e) {}
+        myExpr(const myExpr& e) : CVC4::Expr(e) {}
+      };/* struct myExpr */
+
+      /**
+       * Just exists to provide the uintptr_t constructor that ANTLR
+       * requires.
+       */
+      struct myType : public CVC4::Type {
+        myType() : CVC4::Type() {}
+        myType(void*) : CVC4::Type() {}
+        myType(const Type& t) : CVC4::Type(t) {}
+        myType(const myType& t) : CVC4::Type(t) {}
+      };/* struct myType */
+    }/* CVC4::parser::smt namespace */
+  }/* CVC4::parser namespace */
 }/* CVC4 namespace */
-}
+
+}/* @parser::includes */
 
 @parser::postinclude {
+
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -96,14 +127,14 @@ using namespace CVC4::parser;
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 
-}
+}/* @parser::postinclude */
 
 
 /**
  * Parses an expression.
  * @return the parsed expression
  */
-parseExpr returns [CVC4::Expr expr]
+parseExpr returns [CVC4::parser::smt::myExpr expr]
   : annotatedFormula[expr]
   | EOF
   ;
@@ -445,7 +476,7 @@ sortName[std::string& name, CVC4::parser::DeclarationCheck check]
   : identifier[name,check,SYM_SORT]
   ;
 
-sortSymbol returns [CVC4::Type t]
+sortSymbol returns [CVC4::parser::smt::myType t]
 @declarations {
   std::string name;
 }

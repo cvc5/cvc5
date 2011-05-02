@@ -53,12 +53,6 @@ Type::Type() :
   d_nodeManager(NULL) {
 }
 
-Type::Type(uintptr_t n) :
-  d_typeNode(new TypeNode),
-  d_nodeManager(NULL) {
-  AlwaysAssert(n == 0);
-}
-
 Type::Type(const Type& t) :
   d_typeNode(new TypeNode(*t.d_typeNode)),
   d_nodeManager(t.d_nodeManager) {

@@ -29,7 +29,7 @@ options {
   // Note that CVC4's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in smt2_input.cpp !
   k = 2;
-}
+}/* options */
 
 @header {
 /**
@@ -40,7 +40,7 @@ options {
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **/
-}
+}/* @header */
 
 @lexer::includes {
 
@@ -59,7 +59,8 @@ options {
 #define ANTLR3_INLINE_INPUT_ASCII
 
 #include "parser/antlr_tracing.h"
-}
+
+}/* @lexer::includes */
 
 @lexer::postinclude {
 #include <stdint.h>
@@ -73,7 +74,7 @@ using namespace CVC4::parser;
 
 #undef PARSER_STATE
 #define PARSER_STATE ((Smt2*)LEXER->super)
-}
+}/* @lexer::postinclude */
 
 @parser::includes {
 #include "expr/command.h"
@@ -81,10 +82,27 @@ using namespace CVC4::parser;
 
 namespace CVC4 {
   class Expr;
+
+  namespace parser {
+    namespace smt2 {
+      /**
+       * Just exists to provide the uintptr_t constructor that ANTLR
+       * requires.
+       */
+      struct myExpr : public CVC4::Expr {
+        myExpr() : CVC4::Expr() {}
+        myExpr(void*) : CVC4::Expr() {}
+        myExpr(const Expr& e) : CVC4::Expr(e) {}
+        myExpr(const myExpr& e) : CVC4::Expr(e) {}
+      };/* struct myExpr */
+    }/* CVC4::parser::smt2 namespace */
+  }/* CVC4::parser namespace */
 }/* CVC4 namespace */
-}
+
+}/* @parser::includes */
 
 @parser::postinclude {
+
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type.h"
@@ -110,13 +128,13 @@ using namespace CVC4::parser;
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 
-}
+}/* parser::postinclude */
 
 /**
  * Parses an expression.
  * @return the parsed expression, or the Null Expr if we've reached the end of the input
  */
-parseExpr returns [CVC4::Expr expr]
+parseExpr returns [CVC4::parser::smt2::myExpr expr]
   : term[expr]
   | EOF
   ;
