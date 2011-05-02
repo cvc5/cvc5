@@ -106,7 +106,6 @@ inline void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts) 
   }
 }
 
-
 inline Node mkConjunction(const std::set<TNode> nodes) {
   std::set<TNode> expandedNodes;
 
@@ -115,12 +114,8 @@ inline Node mkConjunction(const std::set<TNode> nodes) {
   while (it != it_end) {
     TNode current = *it;
     if (current != mkTrue()) {
-      Assert(current != mkFalse());
-      if (current.getKind() == kind::AND) {
-        getConjuncts(current, expandedNodes);
-      } else {
-        expandedNodes.insert(current);
-      }
+      Assert(current.getKind() == kind::EQUAL || (current.getKind() == kind::NOT && current[0].getKind() == kind::EQUAL));
+      expandedNodes.insert(current);
     }
     ++ it;
   }

@@ -46,15 +46,18 @@ void TheoryBV::preRegisterTerm(TNode node) {
         d_eqEngine.addTerm(node[1][i]);
       }
     }
-    size_t triggerId = d_eqEngine.addTrigger(node[0], node[1]);
-    Assert(triggerId == d_triggers.size());
-    d_triggers.push_back(node);
+
+    d_normalization[node] = new Normalization(d_context, node);
   }
 }
 
 void TheoryBV::check(Effort e) {
 
   BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
+
+  // Normalization iterators
+  NormalizationMap::iterator it = d_normalization.begin();
+  NormalizationMap::iterator it_end = d_normalization.end();
 
   // Get all the assertions
   std::vector<TNode> assertionsList;
@@ -64,6 +67,8 @@ void TheoryBV::check(Effort e) {
     d_assertions.insert(assertion);
     assertionsList.push_back(assertion);
   }
+
+  bool normalizeEqualities = false;
 
   for (unsigned i = 0; i < assertionsList.size(); ++ i) {
 
@@ -77,27 +82,23 @@ void TheoryBV::check(Effort e) {
       // Slice and solve the equality
       bool ok = d_sliceManager.solveEquality(assertion[0], assertion[1]);
       if (!ok) return;
+      // Normalize all equalities
+      normalizeEqualities = true;
+      it = d_normalization.begin();
+      it = d_normalization.end();
       break;
     }
     case kind::NOT: {
-      // We need to check this as the equality trigger might have been true when we made it
-      TNode equality = assertion[0];
-
-      // Assumptions
-      std::set<TNode> assumptions;
-      Node lhsNormalized = d_eqEngine.normalize(equality[0], assumptions);
-      Node rhsNormalized = d_eqEngine.normalize(equality[1], assumptions);
-
-      BVDebug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
-      
-      // No need to slice the equality, the whole thing *should* be deduced
-      if (lhsNormalized == rhsNormalized) {
-        BVDebug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
-        assumptions.insert(assertion);
-        d_out->conflict(mkConjunction(assumptions));
-        return;
-      } else {
-        d_disequalities.push_back(assertion);
+      if (!normalizeEqualities) {
+        // We still need to check this dis-equality, as it might have been pre-registered just now
+        // so we didn't have a chance to propagate
+        it = d_normalization.find(assertion[0]);
+        if (it->second->assumptions.size() == 1) {
+          // Just normalize this equality
+          normalizeEqualities = true;
+          it_end = it;
+          it_end ++;
+        }
       }
       break;
     }
@@ -106,28 +107,70 @@ void TheoryBV::check(Effort e) {
     }
   }
 
-  if (fullEffort(e)) {
+  if (normalizeEqualities) {
 
-    BVDebug("bitvector") << "TheoryBV::check(" << e << "): checking dis-equalities" << std::endl;
+    BVDebug("bitvector") << "Checking for propagations" << std::endl;
+  
+    NormalizationMap::iterator it = d_normalization.begin();
+    NormalizationMap::iterator it_end = d_normalization.end();
+    for(; it != it_end; ++ it) {
 
-    for (unsigned i = 0, i_end = d_disequalities.size(); i < i_end; ++ i) {
+      TNode equality = it->first;
+      BVDebug("bitvector") << "Checking " << equality << std::endl;
+      Normalization& normalization = *it->second;
+      
+      // If asserted, we don't care
+      if (d_assertions.find(equality) != d_assertions.end()) continue; 
 
-      BVDebug("bitvector") << "TheoryBV::check(" << e << "): checking " << d_disequalities[i] << std::endl;
-
-      TNode equality = d_disequalities[i][0];
       // Assumptions
-      std::set<TNode> assumptions;
-      Node lhsNormalized = d_eqEngine.normalize(equality[0], assumptions);
-      Node rhsNormalized = d_eqEngine.normalize(equality[1], assumptions);
+      std::set<TNode> assumptions; 
+      TNode lhs = normalization.equalities.back()[0];
+      TNode rhs = normalization.equalities.back()[1];
+      // If already satisfied, do nothing
+      if (lhs == rhs) continue;
+
+      Node lhsNormalized = d_eqEngine.normalize(lhs, assumptions);
+      Node rhsNormalized = d_eqEngine.normalize(rhs, assumptions);
+
+      if (lhsNormalized == lhs && rhsNormalized == rhs) continue;
+
+      normalization.equalities.push_back(lhsNormalized.eqNode(rhsNormalized));
+      normalization.assumptions.push_back(assumptions);
+
+      BVDebug("bitvector") << "Adding normalization " << lhsNormalized.eqNode(rhsNormalized) << std::endl;
+      BVDebug("bitvector") << "       assumptions   " << setToString(assumptions) << std::endl;
+
 
       BVDebug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
 
-      // No need to slice the equality, the whole thing *should* be deduced
-      if (lhsNormalized == rhsNormalized) {
-        BVDebug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
-        assumptions.insert(d_disequalities[i]);
-        d_out->conflict(mkConjunction(assumptions));
-        return;
+      // If both are equal we can propagate
+      bool propagate = lhsNormalized == rhsNormalized;
+      // otherwise if both are constants, we propagate negation (if not already there)
+      bool propagateNegation = !propagate &&
+          lhsNormalized.getKind() == kind::CONST_BITVECTOR && rhsNormalized.getKind() == kind::CONST_BITVECTOR
+          && d_assertions.find(equality.notNode()) == d_assertions.end();
+          ;
+      if (propagate || propagateNegation) {
+        Node implied = propagate        ? Node(equality)     : equality.notNode() ;
+        Node impliedNegated = propagate ? equality.notNode() : Node(equality)     ;
+        // If the negation of what's implied has been asserted, we are in conflict
+        if (d_assertions.find(impliedNegated) != d_assertions.end()) {
+          BVDebug("bitvector") << "TheoryBV::check(" << e << "): conflict with " << utils::setToString(assumptions) << std::endl;
+          // Construct the assumptions
+          for (unsigned i = 0; i < normalization.assumptions.size(); ++ i) {
+            assumptions.insert(normalization.assumptions[i].begin(), normalization.assumptions[i].end());
+          }
+          // Make the conflict
+          assumptions.insert(impliedNegated);
+          d_out->conflict(mkConjunction(assumptions));
+          return;
+        }
+        // Otherwise we propagate the implication
+        else {
+          BVDebug("bitvector") << "TheoryBV::check(" << e << "): propagating " << implied << std::endl;
+          d_out->propagate(implied);
+          d_assertions.insert(implied);
+        }
       }
     }
   }
@@ -137,6 +180,8 @@ bool TheoryBV::triggerEquality(size_t triggerId) {
   BVDebug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << ")" << std::endl;
   Assert(triggerId < d_triggers.size());
   BVDebug("bitvector") << "TheoryBV::triggerEquality(" << triggerId << "): " << d_triggers[triggerId] << std::endl;
+
+  return true;
 
   TNode equality = d_triggers[triggerId];
 
@@ -181,13 +226,17 @@ Node TheoryBV::getValue(TNode n) {
 
 void TheoryBV::explain(TNode node) {
   BVDebug("bitvector") << "TheoryBV::explain(" << node << ")" << std::endl;
-  if(node.getKind() == kind::EQUAL) {
-    std::vector<TNode> reasons;
-    d_eqEngine.getExplanation(node[0], node[1], reasons);
-    std::set<TNode> simpleReasons;
-    utils::getConjuncts(reasons, simpleReasons);
-    d_out->explanation(utils::mkConjunction(simpleReasons));
-    return;
+
+  TNode equality = node.getKind() == kind::NOT ? node[0] : node;
+  Assert(equality.getKind() == kind::EQUAL);
+
+  context::CDList< set<TNode> >& vec = d_normalization[equality]->assumptions;
+  std::set<TNode> assumptions;
+  for (unsigned i = 0; i < vec.size(); ++ i) {
+    BVDebug("bitvector") << "Adding normalization " << d_normalization[equality]->equalities[i] << std::endl;
+    BVDebug("bitvector") << "       assumptions   " << setToString(d_normalization[equality]->assumptions[i]) << std::endl;
+    assumptions.insert(vec[i].begin(), vec[i].end());
   }
-  Unreachable();
+  d_out->explanation(utils::mkConjunction(assumptions));
+  return;
 }

@@ -301,18 +301,20 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
 
     // We slice constants immediately
     if (sizeDifference > 0 && lhsTerm.getKind() == kind::CONST_BITVECTOR) {
-      BitVector low  = lhsTerm.getConst<BitVector>().extract(utils::getSize(rhsTerm) - 1, 0);
-      BitVector high = lhsTerm.getConst<BitVector>().extract(utils::getSize(lhsTerm) - 1, utils::getSize(rhsTerm));
-      lhs.push_back(utils::mkConst(low));
-      lhs.push_back(utils::mkConst(high));
+      Node low  = utils::mkConst(lhsTerm.getConst<BitVector>().extract(sizeDifference - 1, 0));
+      Node high = utils::mkConst(lhsTerm.getConst<BitVector>().extract(utils::getSize(lhsTerm) - 1, sizeDifference));
+      d_equalityEngine.addTerm(low); d_equalityEngine.addTerm(high);
+      lhs.push_back(low);
+      lhs.push_back(high);
       rhs.push_back(rhsTerm);
       continue;
     }
     if (sizeDifference < 0 && rhsTerm.getKind() == kind::CONST_BITVECTOR) {
-      BitVector low  = rhsTerm.getConst<BitVector>().extract(utils::getSize(lhsTerm) - 1, 0);
-      BitVector high = rhsTerm.getConst<BitVector>().extract(utils::getSize(rhsTerm) - 1, utils::getSize(lhsTerm));
-      rhs.push_back(utils::mkConst(low));
-      rhs.push_back(utils::mkConst(high));
+      Node low  = utils::mkConst(rhsTerm.getConst<BitVector>().extract(-sizeDifference - 1, 0));
+      Node high = utils::mkConst(rhsTerm.getConst<BitVector>().extract(utils::getSize(rhsTerm) - 1, -sizeDifference));
+      d_equalityEngine.addTerm(low); d_equalityEngine.addTerm(high);
+      rhs.push_back(low);
+      rhs.push_back(high);
       lhs.push_back(lhsTerm);
       continue;
     }
@@ -418,7 +420,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
         std::vector<TNode> explanation;
         d_equalityEngine.getExplanation(lhsTerm, lhsTermRepresentative, explanation);
         std::set<TNode> additionalAssumptions(assumptions);
-        additionalAssumptions.insert(explanation.begin(), explanation.end());
+        utils::getConjuncts(explanation, additionalAssumptions);
         bool ok = solveEquality(lhsTermRepresentative, concat, additionalAssumptions);
         if (!ok) return false;
       } else {
@@ -438,7 +440,7 @@ bool SliceManager<TheoryBitvector>::sliceAndSolve(std::vector<Node>& lhs, std::v
         std::vector<TNode> explanation;
         d_equalityEngine.getExplanation(rhsTerm, rhsTermRepresentative, explanation);
         std::set<TNode> additionalAssumptions(assumptions);
-        additionalAssumptions.insert(explanation.begin(), explanation.end());
+        utils::getConjuncts(explanation, additionalAssumptions);
         bool ok = solveEquality(rhsTermRepresentative, concat, additionalAssumptions);
         if (!ok) return false;
       } else {
@@ -509,6 +511,8 @@ bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
 
   TNode nodeBase = baseTerm(node);
 
+  Assert(nodeBase.getKind() != kind::CONST_BITVECTOR);
+
   set_reference sliceSet;
   slicing_map::iterator find = d_nodeSlicing.find(nodeBase);
   if (find == d_nodeSlicing.end()) {
@@ -550,7 +554,7 @@ bool SliceManager<TheoryBitvector>::addSlice(Node node, unsigned slicePoint) {
     std::set<TNode> assumptions;
     std::vector<TNode> equalities;
     d_equalityEngine.getExplanation(nodeSlice, nodeSliceRepresentative, equalities);
-    assumptions.insert(equalities.begin(), equalities.end());
+    utils::getConjuncts(equalities, assumptions);
     ok = solveEquality(nodeSliceRepresentative, concat, assumptions);
   }
 
@@ -592,23 +596,32 @@ inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
   Assert(d_setCollection.size(nodeSliceSet) >= 2);
 
   BVDebug("slicing") << "SliceManager::slice(" << node << "): current: " << d_setCollection.toString(nodeSliceSet) << std::endl;
+  
+  // Go through all the points i_0 <= low < i_1 < ... < i_{n-1} < high <= i_n from the slice set
+  // and generate the slices [i_0:low-1][low:i_1-1] [i_1:i2] ... [i_{n-1}:high-1][high:i_n-1]. They are in reverse order,
+  // as they should be
+  
+  // The high bound already in the slicing
+  size_t i_n = high == utils::getSize(nodeBase) ? high: d_setCollection.next(nodeSliceSet, high - 1);
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): i_n: " << i_n << std::endl;  
+  // Add the new point to the slice set (they might be there already)
+  if (high < i_n) {
+    if (!addSlice(nodeBase, high)) return false;
+  }
+  // The low bound already in the slicing (slicing might have changed after adding high)
+  size_t i_0 = low == 0 ? 0 : d_setCollection.prev(nodeSliceSet, low + 1);
+  BVDebug("slicing") << "SliceManager::slice(" << node << "): i_0: " << i_0 << std::endl;
+  // Add the new points to the slice set (they might be there already)
+  if (i_0 < low) {
+    if (!addSlice(nodeBase, low)) return false;
+  }
+
+  // Get the slice points
   std::vector<size_t> slicePoints;
   if (low + 1 < high) {
     d_setCollection.getElements(nodeSliceSet, low + 1, high - 1, slicePoints);
   }
- 
-  // Go through all the points i_0 <= low < i_1 < ... < i_{n-1} < high <= i_n from the slice set
-  // and generate the slices [i_0:low-1][low:i_1-1] [i_1:i2] ... [i_{n-1}:high-1][high:i_n-1]. They are in reverse order,
-  // as they should be
-  size_t i_0 = low == 0 ? 0 : d_setCollection.prev(nodeSliceSet, low + 1);
-  BVDebug("slicing") << "SliceManager::slice(" << node << "): i_0: " << i_0 << std::endl;
-  size_t i_n = high == utils::getSize(nodeBase) ? high: d_setCollection.next(nodeSliceSet, high - 1);
-  BVDebug("slicing") << "SliceManager::slice(" << node << "): i_n: " << i_n << std::endl;
 
-  // Add the new points to the slice set (they might be there already)
-  if (high < i_n) {
-    if (!addSlice(nodeBase, high)) return false;
-  }
   // Construct the actuall slicing
   if (slicePoints.size() > 0) {
     BVDebug("slicing") << "SliceManager::slice(" << node << "): adding" << utils::mkExtract(nodeBase, slicePoints[0] - 1, low) << std::endl;
@@ -622,11 +635,7 @@ inline bool SliceManager<TheoryBitvector>::slice(TNode node, std::vector<Node>& 
   } else {
     sliced.push_back(utils::mkExtract(nodeBase, high - 1, low));
   }
-  // Add the new points to the slice set (they might be there already)
-  if (i_0 < low) {
-    if (!addSlice(nodeBase, low)) return false;
-  }
-
+  
   return true;
 }
 

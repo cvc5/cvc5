@@ -812,7 +812,7 @@ Node EqualityEngine<OwnerClass, NotifyClass, UnionFindPreferences>::normalizeWit
   if (node != result) {
     std::vector<TNode> equalities;
     getExplanation(result, node, equalities);
-    assumptions.insert(equalities.begin(), equalities.end());
+    utils::getConjuncts(equalities, assumptions);
   }
 
   // If asked, substitute the children with their representatives

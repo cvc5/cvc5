@@ -252,7 +252,7 @@ public:
     backtrack();
     Assert(isValid(set));
 
-    const_value_reference candidate_value;
+    const_value_reference candidate_value = value_type();
     bool candidate_found = false;
 
     // Find the biggest node smaleer than value (it must exist)
@@ -279,7 +279,7 @@ public:
     backtrack();
     Assert(isValid(set));
 
-    const_value_reference candidate_value;
+    const_value_reference candidate_value = value_type();
     bool candidate_found = false;
 
     // Find the smallest node bigger than value (it must exist)

@@ -24,6 +24,7 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdset.h"
+#include "context/cdlist.h"
 #include "theory/bv/equality_engine.h"
 #include "theory/bv/slice_manager.h"
 
@@ -82,7 +83,6 @@ public:
 
 private:
 
-
   /** Equality reasoning engine */
   BvEqualityEngine d_eqEngine;
 
@@ -91,6 +91,9 @@ private:
 
   /** Equality triggers indexed by ids from the equality manager */
   std::vector<Node> d_triggers;
+  
+  /** The context we are using */
+  context::Context* d_context;
 
   /** The asserted stuff */
   context::CDSet<TNode, TNodeHashFunction> d_assertions;
@@ -98,13 +101,36 @@ private:
   /** Asserted dis-equalities */
   context::CDList<TNode> d_disequalities;
 
+  struct Normalization {
+    context::CDList<Node> equalities;
+    context::CDList< std::set<TNode> > assumptions;
+    Normalization(context::Context* c, TNode eq)
+    : equalities(c), assumptions(c) {
+      equalities.push_back(eq);
+      assumptions.push_back(std::set<TNode>());
+    }
+  };
+
+  /** Map from equalities to their noramlization information */
+  typedef __gnu_cxx::hash_map<TNode, Normalization*, TNodeHashFunction> NormalizationMap;
+  NormalizationMap d_normalization;
+
   /** Called by the equality managere on triggers */
   bool triggerEquality(size_t triggerId);
 
+  Node d_true;
+
 public:
 
-  TheoryBV(context::Context* c, OutputChannel& out, Valuation valuation) :
-    Theory(THEORY_BV, c, out, valuation), d_eqEngine(*this, c, "theory::bv::EqualityEngine"), d_sliceManager(*this, c), d_assertions(c), d_disequalities(c) {
+  TheoryBV(context::Context* c, OutputChannel& out, Valuation valuation)
+  : Theory(THEORY_BV, c, out, valuation), 
+    d_eqEngine(*this, c, "theory::bv::EqualityEngine"), 
+    d_sliceManager(*this, c), 
+    d_context(c),
+    d_assertions(c), 
+    d_disequalities(c)
+  {
+    d_true = utils::mkTrue();
   }
 
   BvEqualityEngine& getEqualityEngine() {
