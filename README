@@ -31,6 +31,7 @@ GMP v4.2 (GNU Multi-Precision arithmetic library)
 libantlr3c v3.2 (ANTLR parser generator)
 Optional: CLN v1.3 (Class Library for Numbers)
 Optional: CUDD v2.4.2 (Colorado University Decision Diagram package)
+Optional: GNU Readline library (for an improved interactive experience)
 
 CUDD, if desired, must be installed in a special manner.  The default
 distribution from vlsi.colorado.edu doesn't build shared objects,

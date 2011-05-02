@@ -20,7 +20,7 @@ else
                [if test "$with_readline" != check; then
                   AC_MSG_FAILURE([cannot find libreadline!])
                 fi], -lncurses)
-  if [ -z "$READLINE_LDFLAGS" ]; then with_readline=no; else with_readline=yes; fi
+  if test -z "$READLINE_LDFLAGS"; then with_readline=no; else with_readline=yes; fi
 fi
 ])# CVC4_CHECK_FOR_READLINE
 
