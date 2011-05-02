@@ -17,10 +17,20 @@ SMT2_TESTS =
 CVC_TESTS = bvsimple.cvc
 
 # Regression tests derived from bug reports
-BUG_TESTS =
+BUG_TESTS = \
+	bug260a.smt \
+	bug260b.smt
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
 	test00.smt \
 	bvcomp.cvc
+
+# synonyms for "check" in this directory
+.PHONY: regress regress0 test
+regress regress0 test: check
+
+# do nothing in this subdir
+.PHONY: regress1 regress2 regress3
+regress1 regress2 regress3:
