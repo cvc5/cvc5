@@ -688,8 +688,8 @@ mainCommand[CVC4::Command*& cmd]
 
   | ECHO_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-      { CVC4::Message() << s << std::endl; }
-    | { CVC4::Message() << std::endl; }
+      { Message() << s << std::endl; }
+    | { Message() << std::endl; }
     )
 
   | INCLUDE_TOK
