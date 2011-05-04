@@ -67,7 +67,7 @@ void SharedTermManager::addTerm(TNode n, Theory* parent, Theory* child) {
   uint64_t bothTags = parentTag | childTag;
 
   // Create or update the SharedData for n
-  SharedData* pData;
+  SharedData* pData = NULL;
   if(n.getAttribute(SharedAttr(), pData)) {
     // The attribute already exists, just update it if necessary
     uint64_t tags = pData->getTheories();
@@ -121,8 +121,8 @@ void SharedTermManager::addEq(TNode eq, Theory* thReason) {
   TNode x = eq[0];
   TNode y = eq[1];
 
-  SharedData* pDataX;
-  SharedData* pDataY;
+  SharedData* pDataX = NULL;
+  SharedData* pDataY = NULL;
 
   // Grab the SharedData for each side of the equality, create if necessary
   if(!x.getAttribute(SharedAttr(), pDataX)) {

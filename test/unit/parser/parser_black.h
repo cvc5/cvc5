@@ -190,9 +190,9 @@ protected:
   void tearDown() {
     delete d_exprManager;
   }
-};
+};/* class ParserBlack */
 
-class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack  {
+class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
 
 public:
@@ -236,6 +236,8 @@ public:
   }
 
   void testBadCvc4Inputs() {
+// competition builds don't do any checking
+#ifndef CVC4_COMPETITION_MODE
     tryBadInput("ASSERT;"); // no args
     tryBadInput("QUERY");
     tryBadInput("CHECKSAT");
@@ -256,6 +258,7 @@ public:
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list = nil | cons(car:INT,cdr:list) END;");
     tryBadInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE list2 = nil END;");
     tryBadInput("DATATYPE tree = node(data:(list,list,ARRAY trex OF list)), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+#endif /* ! CVC4_COMPETITION_MODE */
   }
 
   void testGoodCvc4Exprs() {
@@ -267,14 +270,17 @@ public:
   }
 
   void testBadCvc4Exprs() {
+// competition builds don't do any checking
+#ifndef CVC4_COMPETITION_MODE
     tryBadInput("a AND"); // wrong arity
     tryBadInput("AND(a,b)"); // not infix
     tryBadInput("(OR (AND a b) c)"); // not infix
     tryBadInput("a IMPLIES b"); // should be =>
     tryBadInput("a NOT b"); // wrong arity, not infix
     tryBadInput("a and b"); // wrong case
+#endif /* ! CVC4_COMPETITION_MODE */
   }
-};
+};/* class Cvc4ParserTest */
 
 class SmtParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
@@ -304,11 +310,14 @@ public:
   }
 
   void testBadSmtInputs() {
+// competition builds don't do any checking
+#ifndef CVC4_COMPETITION_MODE
     tryBadInput("(benchmark foo)"); // empty benchmark is not OK
     tryBadInput("(benchmark bar :assumption)"); // no args
     tryBadInput("(benchmark bar :formula)");
     tryBadInput("(benchmark baz :extrapreds ( (a) (a) ) )"); // double decl
     tryBadInput("(benchmark zub :extrasorts (a) :extrapreds (p a))"); // (p a) needs parens
+#endif /* ! CVC4_COMPETITION_MODE */
   }
 
   void testGoodSmtExprs() {
@@ -325,6 +334,8 @@ public:
   }
 
   void testBadSmtExprs() {
+// competition builds don't do any checking
+#ifndef CVC4_COMPETITION_MODE
     tryBadExpr("(and)"); // wrong arity
     tryBadExpr("(and a b"); // no closing paren
     tryBadExpr("(a and b)"); // infix
@@ -336,8 +347,9 @@ public:
     tryBadExpr("(a b)"); // using non-function as function
     tryBadExpr(".5"); // rational constants must have integer prefix
     tryBadExpr("1."); // rational constants must have fractional suffix
+#endif /* ! CVC4_COMPETITION_MODE */
   }
-};
+};/* class SmtParserTest */
 
 class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
@@ -381,6 +393,8 @@ public:
   }
 
   void testBadSmt2Inputs() {
+// competition builds don't do any checking
+#ifndef CVC4_COMPETITION_MODE
     tryBadInput("(assert)"); // no args
     tryBadInput("(set-info :notes |Symbols can't contain the | character|)");
     tryBadInput("(set-logic QF_UF) (check-sat true)"); // shouldn't have an arg
@@ -390,6 +404,7 @@ public:
     // strict mode
     tryBadInput("(assert true)", true); // no set-logic, core theory symbol "true" undefined
     tryBadInput("(declare-fun p Bool)", true); // core theory symbol "Bool" undefined
+#endif /* ! CVC4_COMPETITION_MODE */
   }
 
   void testGoodSmt2Exprs() {
@@ -408,6 +423,8 @@ public:
   }
 
   void testBadSmt2Exprs() {
+// competition builds don't do any checking
+#ifndef CVC4_COMPETITION_MODE
     tryBadExpr("(and)"); // wrong arity
     tryBadExpr("(and a b"); // no closing paren
     tryBadExpr("(a and b)"); // infix
@@ -430,5 +447,6 @@ public:
     tryBadExpr("(and a)", true); // no unary and's
     tryBadExpr("(or a)", true);  // no unary or's
     tryBadExpr("(* 5 01)", true); // '01' is not a valid integer constant
+#endif /* ! CVC4_COMPETITION_MODE */
   }
-};
+};/* class Smt2ParserTest */

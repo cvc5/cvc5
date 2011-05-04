@@ -11,14 +11,14 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Output utility classes and functions.
+ ** \brief Output utility classes and functions
  **
  ** Output utility classes and functions.
  **/
 
-#include <iostream>
-
 #include "util/output.h"
+
+#include <iostream>
 
 using namespace std;
 
@@ -29,17 +29,18 @@ namespace CVC4 {
 null_streambuf null_sb;
 ostream null_os(&null_sb);
 
-NullDebugC debugNullCvc4Stream CVC4_PUBLIC;
 NullC nullCvc4Stream CVC4_PUBLIC;
+
+DebugC DebugChannel CVC4_PUBLIC (&cout);
+WarningC WarningChannel CVC4_PUBLIC (&cerr);
+MessageC MessageChannel CVC4_PUBLIC (&cout);
+NoticeC NoticeChannel CVC4_PUBLIC (&cout);
+ChatC ChatChannel CVC4_PUBLIC (&cout);
+TraceC TraceChannel CVC4_PUBLIC (&cout);
 
 #ifndef CVC4_MUZZLE
 
-DebugC DebugChannel CVC4_PUBLIC (&cout);
-WarningC Warning CVC4_PUBLIC (&cerr);
-MessageC Message CVC4_PUBLIC (&cout);
-NoticeC Notice CVC4_PUBLIC (&cout);
-ChatC Chat CVC4_PUBLIC (&cout);
-TraceC TraceChannel CVC4_PUBLIC (&cout);
+#  ifdef CVC4_DEBUG
 
 int DebugC::printf(const char* tag, const char* fmt, ...) {
   if(d_tags.find(string(tag)) == d_tags.end()) {
@@ -70,6 +71,8 @@ int DebugC::printf(std::string tag, const char* fmt, ...) {
   *d_os << buf;
   return retval;
 }
+
+#  endif /* CVC4_DEBUG */
 
 int WarningC::printf(const char* fmt, ...) {
   // chop off output after 1024 bytes
@@ -115,6 +118,8 @@ int ChatC::printf(const char* fmt, ...) {
   return retval;
 }
 
+#  ifdef CVC4_TRACING
+
 int TraceC::printf(const char* tag, const char* fmt, ...) {
   if(d_tags.find(string(tag)) == d_tags.end()) {
     return 0;
@@ -145,14 +150,7 @@ int TraceC::printf(std::string tag, const char* fmt, ...) {
   return retval;
 }
 
-#else /* ! CVC4_MUZZLE */
-
-NullDebugC Debug CVC4_PUBLIC;
-NullC Warning CVC4_PUBLIC;
-NullC Message CVC4_PUBLIC;
-NullC Notice CVC4_PUBLIC;
-NullC Chat CVC4_PUBLIC;
-NullDebugC Trace CVC4_PUBLIC;
+#  endif /* CVC4_TRACING */
 
 #endif /* ! CVC4_MUZZLE */
 

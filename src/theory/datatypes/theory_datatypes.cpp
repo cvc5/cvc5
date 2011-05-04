@@ -387,11 +387,11 @@ void TheoryDatatypes::addTester( Node assertion ){
         unsigned int testerIndex = -1;
         for( unsigned int i=0; i<possibleCons.size(); i++ ) {
           if( possibleCons[i] ){
-            Assert( testerIndex==-1 );
+            Assert( testerIndex==unsigned(-1) );
             testerIndex = i;
           }
         }
-        Assert( testerIndex!=-1 );
+        Assert( testerIndex!=unsigned(-1) );
         assertionRep = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[testerIndex].getTester() ), tRep );
         Node exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
         d_em.addNode( assertionRep, exp, Reason::idt_texhaust );
@@ -862,7 +862,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
   if( n.getKind() == APPLY_CONSTRUCTOR ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ) {
       Debug("datatypes-cycles") << "Subterm " << n << " -> " << n[i] << endl;
-      bool result = d_cycle_check.addEdgeNode( n, n[i] );
+      bool result CVC4_UNUSED = d_cycle_check.addEdgeNode( n, n[i] );
       Assert( !result );    //this should not create any new cycles (relevant terms should have been recorded before)
     }
   }else{

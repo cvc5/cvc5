@@ -219,29 +219,72 @@ public:
 
   }
 
-  static int expensiveFunction() {
+  static int failure() {
     // this represents an expensive function that should NOT be called
     // when debugging/tracing is turned off
-    TS_FAIL("a function was evaluated under Debug() or Trace() when it should not have been");
+    TS_FAIL("a function was evaluated under an output operation when it should not have been");
     return 0;
   }
 
-  void testEvaluationOffWhenItsSupposedToBe() {
-    Trace.on("foo");
-#ifndef CVC4_TRACING
-    TS_ASSERT( !( Trace.isOn("foo") ) );
-    Trace("foo") << expensiveFunction() << endl;
-#else /* CVC4_TRACING */
-    TS_ASSERT( Trace.isOn("foo") );
-#endif /* CVC4_TRACING */
-
+  void testEvaluationOffWhenItIsSupposedToBe() {
     Debug.on("foo");
 #ifndef CVC4_DEBUG
     TS_ASSERT( !( Debug.isOn("foo") ) );
-    Debug("foo") << expensiveFunction() << endl;
-#else /* CVC4_DEBUG */
+    Debug("foo") << failure() << endl;
+    Debug.printf("foo", "%d\n", failure());
+#else /* ! CVC4_DEBUG */
     TS_ASSERT( Debug.isOn("foo") );
-#endif /* CVC4_DEBUG */
+#endif /* ! CVC4_DEBUG */
+    Debug.off("foo");
+    //Debug("foo") << failure() << endl;
+    //Debug.printf("foo", "%d\n", failure());
+
+    Trace.on("foo");
+#ifndef CVC4_TRACING
+    TS_ASSERT( !( Trace.isOn("foo") ) );
+    Trace("foo") << failure() << endl;
+    Trace.printf("foo", "%d\n", failure());
+#else /* ! CVC4_TRACING */
+    TS_ASSERT( Trace.isOn("foo") );
+#endif /* ! CVC4_TRACING */
+    Trace.off("foo");
+    //Trace("foo") << failure() << endl;
+    //Trace.printf("foo", "%d\n", failure());
+
+#ifdef CVC4_MUZZLE
+    TS_ASSERT( !( Debug.isOn("foo") ) );
+    TS_ASSERT( !( Trace.isOn("foo") ) );
+    TS_ASSERT( !( Warning.isOn() ) );
+    TS_ASSERT( !( Message.isOn() ) );
+    TS_ASSERT( !( Notice.isOn() ) );
+    TS_ASSERT( !( Chat.isOn() ) );
+
+    cout << "debug" << std::endl;
+    Debug("foo") << failure() << endl;
+    cout << "trace" << std::endl;
+    Trace("foo") << failure() << endl;
+    cout << "warning" << std::endl;
+    Warning() << failure() << endl;
+    cout << "message" << std::endl;
+    Message() << failure() << endl;
+    cout << "notice" << std::endl;
+    Notice() << failure() << endl;
+    cout << "chat" << std::endl;
+    Chat() << failure() << endl;
+
+    cout << "debug:printf" << std::endl;
+    Debug.printf("foo", "%d\n", failure());
+    cout << "trace:printf" << std::endl;
+    Trace.printf("foo", "%d\n", failure());
+    cout << "warning:printf" << std::endl;
+    Warning.printf("%d\n", failure());
+    cout << "message:printf" << std::endl;
+    Message.printf("%d\n", failure());
+    cout << "notice:printf" << std::endl;
+    Notice.printf("%d\n", failure());
+    cout << "chat:printf" << std::endl;
+    Chat.printf("%d\n", failure());
+#endif /* CVC4_MUZZLE */
   }
 
   void testSimplePrint() {
@@ -249,36 +292,36 @@ public:
 #ifdef CVC4_MUZZLE
 
     Debug.off("yo");
-    Debug("yo", "foobar");
+    Debug("yo") << "foobar";
     TS_ASSERT_EQUALS(d_debugStream.str(), string());
     d_debugStream.str("");
     Debug.on("yo");
-    Debug("yo", "baz foo");
+    Debug("yo") << "baz foo";
     TS_ASSERT_EQUALS(d_debugStream.str(), string());
     d_debugStream.str("");
 
     Trace.off("yo");
-    Trace("yo", "foobar");
+    Trace("yo") << "foobar";
     TS_ASSERT_EQUALS(d_traceStream.str(), string());
     d_traceStream.str("");
     Trace.on("yo");
-    Trace("yo", "baz foo");
+    Trace("yo") << "baz foo";
     TS_ASSERT_EQUALS(d_traceStream.str(), string());
     d_traceStream.str("");
 
-    Warning("baz foo");
+    Warning() << "baz foo";
     TS_ASSERT_EQUALS(d_warningStream.str(), string());
     d_warningStream.str("");
 
-    Chat("baz foo");
+    Chat() << "baz foo";
     TS_ASSERT_EQUALS(d_chatStream.str(), string());
     d_chatStream.str("");
 
-    Message("baz foo");
+    Message() << "baz foo";
     TS_ASSERT_EQUALS(d_messageStream.str(), string());
     d_messageStream.str("");
 
-    Notice("baz foo");
+    Notice() << "baz foo";
     TS_ASSERT_EQUALS(d_noticeStream.str(), string());
     d_noticeStream.str("");
 
