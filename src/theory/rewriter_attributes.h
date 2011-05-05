@@ -1,9 +1,20 @@
-/*
- * rewriter_attributes.h
- *
- *  Created on: Dec 27, 2010
- *      Author: dejan
- */
+/*********************                                                        */
+/*! \file rewriter_attributes.h
+ ** \verbatim
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief Rewriter attributes
+ **
+ ** Rewriter attributes.
+ **/
 
 #pragma once
 
@@ -79,8 +90,7 @@ struct RewriteAttibute {
       node.setAttribute(post_rewrite(), cache);
     }
   }
-};
+};/* struct RewriteAttribute */
 
-} // Namespace CVC4
-} // Namespace theory
-
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

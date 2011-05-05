@@ -31,6 +31,9 @@ ostream null_os(&null_sb);
 
 NullC nullCvc4Stream CVC4_PUBLIC;
 
+const std::string CVC4ostream::s_tab = "  ";
+const int CVC4ostream::s_indentIosIndex = ios_base::xalloc();
+
 DebugC DebugChannel CVC4_PUBLIC (&cout);
 WarningC WarningChannel CVC4_PUBLIC (&cerr);
 MessageC MessageChannel CVC4_PUBLIC (&cout);

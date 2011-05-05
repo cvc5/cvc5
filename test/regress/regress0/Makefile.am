@@ -20,6 +20,8 @@ SMT_TESTS = \
 	ite_real_valid.smt \
 	let.smt \
 	let2.smt \
+	simplification_bug.smt \
+	simplification_bug2.smt \
 	simple.smt \
 	simple2.smt \
 	simple-lra.smt \

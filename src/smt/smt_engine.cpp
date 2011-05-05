@@ -11,13 +11,14 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief The main entry point into the CVC4 library's SMT interface.
+ ** \brief The main entry point into the CVC4 library's SMT interface
  **
  ** The main entry point into the CVC4 library's SMT interface.
  **/
 
 #include <vector>
 #include <string>
+#include <utility>
 #include <sstream>
 #include <ext/hash_map>
 
@@ -33,11 +34,13 @@
 #include "smt/no_such_function_exception.h"
 #include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
+#include "util/boolean_simplification.h"
 #include "util/configuration.h"
 #include "util/exception.h"
 #include "util/options.h"
 #include "util/output.h"
 #include "util/hash.h"
+#include "theory/substitutions.h"
 #include "theory/builtin/theory_builtin.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/uf/theory_uf.h"
@@ -47,7 +50,6 @@
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/datatypes/theory_datatypes.h"
-
 
 using namespace std;
 using namespace CVC4;
@@ -96,27 +98,66 @@ public:
  * of method calls.
  */
 class SmtEnginePrivate {
-public:
+  SmtEngine& d_smt;
+
+  vector<Node> d_assertionsToSimplify;
+  vector<Node> d_assertionsToPushToSat;
+
+  theory::Substitutions d_topLevelSubstitutions;
 
   /**
-   * Pre-process a Node.  This is expected to be highly-variable,
-   * with a lot of "source-level configurability" to add multiple
-   * passes over the Node.
+   * Adjust the currently "withheld" assertions for the current
+   * Options scope's SimplificationMode if purge is false, or push
+   * them all out to the prop layer if purge is true.
    */
-  static Node preprocess(SmtEngine& smt, TNode n)
+  void adjustAssertions(bool purge = false);
+
+public:
+
+  SmtEnginePrivate(SmtEngine& smt) : d_smt(smt) { }
+
+  /**
+   * Push withheld assertions out to the propositional layer, if any.
+   */
+  void pushAssertions() {
+    Trace("smt") << "SMT pushing all withheld assertions" << endl;
+
+    adjustAssertions(true);
+    Assert(d_assertionsToSimplify.empty());
+    Assert(d_assertionsToPushToSat.empty());
+
+    Trace("smt") << "SMT done pushing all withheld assertions" << endl;
+  }
+
+  /**
+   * Perform non-clausal simplification of a Node.  This involves
+   * Theory implementations, but does NOT involve the SAT solver in
+   * any way.
+   */
+  Node simplify(TNode n, bool noPersist = false)
     throw(NoSuchFunctionException, AssertionException);
 
   /**
-   * Adds a formula to the current context.
+   * Perform preprocessing of a Node.  This involves ITE removal and
+   * Theory-specific rewriting, but NO action by the SAT solver.
    */
-  static void addFormula(SmtEngine& smt, TNode n)
+  Node preprocess(TNode n)
+    throw(AssertionException);
+
+  /**
+   * Adds a formula to the current context.  Action here depends on
+   * the SimplificationMode (in the current Options scope); the
+   * formula might be pushed out to the propositional layer
+   * immediately, or it might be simplified and kept, or it might not
+   * even be simplified.
+   */
+  void addFormula(TNode n)
     throw(NoSuchFunctionException, AssertionException);
 
   /**
    * Expand definitions in n.
    */
-  static Node expandDefinitions(SmtEngine& smt, TNode n,
-                                hash_map<TNode, Node, TNodeHashFunction>& cache)
+  Node expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHashFunction>& cache)
     throw(NoSuchFunctionException, AssertionException);
 };/* class SmtEnginePrivate */
 
@@ -129,6 +170,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_userContext(new Context()),
   d_exprManager(em),
   d_nodeManager(d_exprManager->getNodeManager()),
+  d_private(new smt::SmtEnginePrivate(*this)),
   d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
   d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
   d_staticLearningTime("smt::SmtEngine::staticLearningTime") {
@@ -215,7 +257,7 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
-  Debug("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
+  Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(key == ":name" ||
      key == ":source" ||
      key == ":category" ||
@@ -241,7 +283,7 @@ void SmtEngine::setInfo(const std::string& key, const SExpr& value)
 
 SExpr SmtEngine::getInfo(const std::string& key) const
   throw(BadOptionException) {
-  Debug("smt") << "SMT getInfo(" << key << ")" << endl;
+  Trace("smt") << "SMT getInfo(" << key << ")" << endl;
   if(key == ":all-statistics") {
     vector<SExpr> stats;
     for(StatisticsRegistry::const_iterator i = StatisticsRegistry::begin();
@@ -279,7 +321,7 @@ SExpr SmtEngine::getInfo(const std::string& key) const
 
 void SmtEngine::setOption(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
-  Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
+  Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if(key == ":print-success") {
     throw BadOptionException();
@@ -318,7 +360,7 @@ void SmtEngine::setOption(const std::string& key, const SExpr& value)
 
 SExpr SmtEngine::getOption(const std::string& key) const
   throw(BadOptionException) {
-  Debug("smt") << "SMT getOption(" << key << ")" << endl;
+  Trace("smt") << "SMT getOption(" << key << ")" << endl;
   if(key == ":print-success") {
     return SExpr("true");
   } else if(key == ":expand-definitions") {
@@ -349,7 +391,7 @@ SExpr SmtEngine::getOption(const std::string& key) const
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
                                Expr formula) {
-  Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
+  Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   NodeManagerScope nms(d_nodeManager);
   Type formulaType = formula.getType(Options::current()->typeChecking);// type check body
   Type funcType = func.getType();
@@ -381,7 +423,7 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
-Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n,
+Node SmtEnginePrivate::expandDefinitions(TNode n,
                                          hash_map<TNode, Node, TNodeHashFunction>& cache)
   throw(NoSuchFunctionException, AssertionException) {
 
@@ -393,14 +435,15 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n,
   // maybe it's in the cache
   hash_map<TNode, Node, TNodeHashFunction>::iterator cacheHit = cache.find(n);
   if(cacheHit != cache.end()) {
-    return (*cacheHit).second;
+    TNode ret = (*cacheHit).second;
+    return ret.isNull() ? n : ret;
   }
 
   // otherwise expand it
   if(n.getKind() == kind::APPLY) {
     TNode func = n.getOperator();
     SmtEngine::DefinedFunctionMap::const_iterator i =
-      smt.d_definedFunctions->find(func);
+      d_smt.d_definedFunctions->find(func);
     DefinedFunction def = (*i).second;
     vector<Node> formals = def.getFormals();
 
@@ -409,9 +452,11 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n,
       Debug("expand") << " func: " << func << endl;
       string name = func.getAttribute(expr::VarNameAttr());
       Debug("expand") << "     : \"" << name << "\"" << endl;
-      if(i == smt.d_definedFunctions->end()) {
-        throw NoSuchFunctionException(Expr(smt.d_exprManager, new Node(func)));
-      }
+    }
+    if(i == d_smt.d_definedFunctions->end()) {
+      throw NoSuchFunctionException(Expr(d_smt.d_exprManager, new Node(func)));
+    }
+    if(Debug.isOn("expand")) {
       Debug("expand") << " defn: " << def.getFunction() << endl
                       << "       [";
       if(formals.size() > 0) {
@@ -429,8 +474,8 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n,
                                   n.begin(), n.end());
     Debug("expand") << "made : " << instance << endl;
 
-    Node expanded = expandDefinitions(smt, instance, cache);
-    cache[n] = expanded;
+    Node expanded = this->expandDefinitions(instance, cache);
+    cache[n] = (n == expanded ? Node::null() : expanded);
     return expanded;
   } else {
     Debug("expand") << "cons : " << n << endl;
@@ -443,47 +488,126 @@ Node SmtEnginePrivate::expandDefinitions(SmtEngine& smt, TNode n,
           iend = n.end();
         i != iend;
         ++i) {
-      Node expanded = expandDefinitions(smt, *i, cache);
+      Node expanded = this->expandDefinitions(*i, cache);
       Debug("expand") << "exchld: " << expanded << endl;
       nb << expanded;
     }
     Node node = nb;
-    cache[n] = node;
+    cache[n] = n == node ? Node::null() : node;
     return node;
   }
 }
 
-Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode in)
+Node SmtEnginePrivate::simplify(TNode in, bool noPersist)
   throw(NoSuchFunctionException, AssertionException) {
-
   try {
     Node n;
+
     if(!Options::current()->lazyDefinitionExpansion) {
-      TimerStat::CodeTimer codeTimer(smt.d_definitionExpansionTime);
-      //Chat() << "Expanding definitions: " << in << endl;
+      TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
+      Chat() << "Expanding definitions: " << in << endl;
       Debug("expand") << "have: " << n << endl;
       hash_map<TNode, Node, TNodeHashFunction> cache;
-      n = expandDefinitions(smt, in, cache);
+      n = this->expandDefinitions(in, cache);
       Debug("expand") << "made: " << n << endl;
     } else {
       n = in;
     }
 
+    if(Options::current()->simplificationStyle == Options::NO_SIMPLIFICATION_STYLE) {
+      Chat() << "Not doing nonclausal simplification (by user request)" << endl;
+    } else {
+      if(Options::current()->simplificationStyle == Options::AGGRESSIVE_SIMPLIFICATION_STYLE) {
+        Unimplemented("can't do aggressive nonclausal simplification yet");
+      }
+      Chat() << "Simplifying (non-clausally): " << n << endl;
+      TimerStat::CodeTimer codeTimer(d_smt.d_nonclausalSimplificationTime);
+      Trace("smt-simplify") << "simplifying: " << n << endl;
+      n = n.substitute(d_topLevelSubstitutions.begin(), d_topLevelSubstitutions.end());
+      size_t oldSize = d_topLevelSubstitutions.size();
+      n = d_smt.d_theoryEngine->simplify(n, d_topLevelSubstitutions);
+      if(n.getKind() != kind::AND && d_topLevelSubstitutions.size() > oldSize) {
+        Debug("smt-simplify") << "new top level substitutions not incorporated "
+                              << "into assertion ("
+                              << (d_topLevelSubstitutions.size() - oldSize)
+                              << "):" << endl;
+        NodeBuilder<> b(kind::AND);
+        b << n;
+        for(size_t i = oldSize; i < d_topLevelSubstitutions.size(); ++i) {
+          Debug("smt-simplify") << "  " << d_topLevelSubstitutions[i] << endl;
+          TNode x = d_topLevelSubstitutions[i].first;
+          TNode y = d_topLevelSubstitutions[i].second;
+          if(x.getType().isBoolean()) {
+            if(x.getMetaKind() == kind::metakind::CONSTANT) {
+              if(y.getMetaKind() == kind::metakind::CONSTANT) {
+                if(x == y) {
+                  b << d_smt.d_nodeManager->mkConst(true);
+                } else {
+                  b << d_smt.d_nodeManager->mkConst(false);
+                }
+              } else {
+                if(x.getConst<bool>()) {
+                  b << y;
+                } else {
+                  b << BooleanSimplification::negate(y);
+                }
+              }
+            } else if(y.getMetaKind() == kind::metakind::CONSTANT) {
+              if(y.getConst<bool>()) {
+                b << x;
+              } else {
+                b << BooleanSimplification::negate(x);
+              }
+            } else {
+              b << x.iffNode(y);
+            }
+          } else {
+            b << x.eqNode(y);
+          }
+        }
+        n = b;
+        n = BooleanSimplification::simplifyConflict(n);
+      }
+      Trace("smt-simplify") << "+++++++ got: " << n << endl;
+      if(noPersist) {
+        d_topLevelSubstitutions.resize(oldSize);
+      }
+    }
+
     // For now, don't re-statically-learn from learned facts; this could
     // be useful though (e.g., theory T1 could learn something further
     // from something learned previously by T2).
-    //Chat() << "Performing static learning: " << n << endl;
-    TimerStat::CodeTimer codeTimer(smt.d_staticLearningTime);
+    Chat() << "Performing static learning: " << n << endl;
+    TimerStat::CodeTimer codeTimer(d_smt.d_staticLearningTime);
     NodeBuilder<> learned(kind::AND);
     learned << n;
-    smt.d_theoryEngine->staticLearning(n, learned);
+    d_smt.d_theoryEngine->staticLearning(n, learned);
     if(learned.getNumChildren() == 1) {
       learned.clear();
     } else {
       n = learned;
     }
 
-    return smt.d_theoryEngine->preprocess(n);
+    return n;
+
+  } catch(TypeCheckingExceptionPrivate& tcep) {
+    // Calls to this function should have already weeded out any
+    // typechecking exceptions via (e.g.) ensureBoolean().  But a
+    // theory could still create a new expression that isn't
+    // well-typed, and we don't want the C++ runtime to abort our
+    // process without any error notice.
+    stringstream ss;
+    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
+       << "A bad expression was produced.  Original exception follows:\n"
+       << tcep;
+    InternalError(ss.str().c_str());
+  }
+}
+
+Node SmtEnginePrivate::preprocess(TNode in) throw(AssertionException) {
+  try {
+    Chat() << "Preprocessing / rewriting: " << in << endl;
+    return d_smt.d_theoryEngine->preprocess(in);
   } catch(TypeCheckingExceptionPrivate& tcep) {
     // Calls to this function should have already weeded out any
     // typechecking exceptions via (e.g.) ensureBoolean().  But a
@@ -499,34 +623,75 @@ Node SmtEnginePrivate::preprocess(SmtEngine& smt, TNode in)
 }
 
 Result SmtEngine::check() {
-  Debug("smt") << "SMT check()" << endl;
+  Trace("smt") << "SMT check()" << endl;
+
+  // make sure the prop layer has all assertions
+  d_private->pushAssertions();
+
   return d_propEngine->checkSat();
 }
 
 Result SmtEngine::quickCheck() {
-  Debug("smt") << "SMT quickCheck()" << endl;
+  Trace("smt") << "SMT quickCheck()" << endl;
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
-void SmtEnginePrivate::addFormula(SmtEngine& smt, TNode n)
-  throw(NoSuchFunctionException, AssertionException) {
-  try {
-    Debug("smt") << "push_back assertion " << n << endl;
-    smt.d_haveAdditions = true;
-    Node node = SmtEnginePrivate::preprocess(smt, n);
-    smt.d_propEngine->assertFormula(node);
-  } catch(TypeCheckingExceptionPrivate& tcep) {
-    // Calls to this function should have already weeded out any
-    // typechecking exceptions via (e.g.) ensureBoolean().  But a
-    // theory could still create a new expression that isn't
-    // well-typed, and we don't want the C++ runtime to abort our
-    // process without any error notice.
-    stringstream ss;
-    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
-       << "A bad expression was produced internally.  Original exception follows:\n"
-       << tcep;
-    InternalError(ss.str().c_str());
+void SmtEnginePrivate::adjustAssertions(bool purge) {
+
+  // If the "purge" argument is true, we ignore the mode and push all
+  // assertions out to the propositional layer (by pretending we're in
+  // INCREMENTAL mode).
+
+  Options::SimplificationMode mode =
+    purge ? Options::INCREMENTAL_MODE : Options::current()->simplificationMode;
+
+  Trace("smt") << "SMT processing assertion lists in " << mode << " mode" << endl;
+
+  if(mode == Options::BATCH_MODE) {
+    // nothing to do in batch mode until pushAssertions() is called
+  } else if(mode == Options::INCREMENTAL_LAZY_SAT_MODE ||
+            mode == Options::INCREMENTAL_MODE) {
+    // make sure d_assertionsToSimplify is cleared out, and everything
+    // is on d_assertionsToPushToSat
+
+    for(vector<Node>::iterator i = d_assertionsToSimplify.begin(),
+          i_end = d_assertionsToSimplify.end();
+        i != i_end;
+        ++i) {
+      Trace("smt") << "SMT simplifying " << *i << endl;
+      d_assertionsToPushToSat.push_back(this->simplify(*i));
+    }
+    d_assertionsToSimplify.clear();
+
+    if(mode == Options::INCREMENTAL_MODE) {
+      // make sure the d_assertionsToPushToSat queue is also cleared out
+
+      for(vector<Node>::iterator i = d_assertionsToPushToSat.begin(),
+            i_end = d_assertionsToPushToSat.end();
+          i != i_end;
+          ++i) {
+        Trace("smt") << "SMT preprocessing " << *i << endl;
+        Node n = this->preprocess(*i);
+        Trace("smt") << "SMT pushing to MiniSat " << n << endl;
+
+        Chat() << "Pushing to MiniSat: " << n << endl;
+        d_smt.d_propEngine->assertFormula(n);
+      }
+      d_assertionsToPushToSat.clear();
+    }
+  } else {
+    Unhandled(mode);
   }
+}
+
+void SmtEnginePrivate::addFormula(TNode n)
+  throw(NoSuchFunctionException, AssertionException) {
+
+  Trace("smt") << "push_back assertion " << n << endl;
+  d_smt.d_haveAdditions = true;
+
+  d_assertionsToSimplify.push_back(n);
+  adjustAssertions();
 }
 
 void SmtEngine::ensureBoolean(const BoolExpr& e) {
@@ -545,7 +710,7 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) {
 Result SmtEngine::checkSat(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT checkSat(" << e << ")" << endl;
+  Trace("smt") << "SMT checkSat(" << e << ")" << endl;
   if(d_queryMade && !Options::current()->incrementalSolving) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
@@ -554,19 +719,19 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
   d_queryMade = true;
   ensureBoolean(e);// ensure expr is type-checked at this point
   internalPush();
-  SmtEnginePrivate::addFormula(*this, e.getNode());
+  d_private->addFormula(e.getNode());
   Result r = check().asSatisfiabilityResult();
   internalPop();
   d_status = r;
   d_haveAdditions = false;
-  Debug("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
+  Trace("smt") << "SMT checkSat(" << e << ") ==> " << r << endl;
   return r;
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT query(" << e << ")" << endl;
+  Trace("smt") << "SMT query(" << e << ")" << endl;
   if(d_queryMade && !Options::current()->incrementalSolving) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
@@ -575,24 +740,24 @@ Result SmtEngine::query(const BoolExpr& e) {
   d_queryMade = true;
   ensureBoolean(e);// ensure expr is type-checked at this point
   internalPush();
-  smt::SmtEnginePrivate::addFormula(*this, e.getNode().notNode());
+  d_private->addFormula(e.getNode().notNode());
   Result r = check().asValidityResult();
   internalPop();
   d_status = r;
   d_haveAdditions = false;
-  Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
+  Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
   return r;
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT assertFormula(" << e << ")" << endl;
+  Trace("smt") << "SMT assertFormula(" << e << ")" << endl;
   ensureBoolean(e);// type check node
   if(d_assertionList != NULL) {
     d_assertionList->push_back(e);
   }
-  smt::SmtEnginePrivate::addFormula(*this, e.getNode());
+  d_private->addFormula(e.getNode());
   return quickCheck().asValidityResult();
 }
 
@@ -602,10 +767,8 @@ Expr SmtEngine::simplify(const Expr& e) {
   if( Options::current()->typeChecking ) {
     e.getType(true);// ensure expr is type-checked at this point
   }
-  Debug("smt") << "SMT simplify(" << e << ")" << endl;
-  // probably want to do an addFormula(), to get preprocessing, static
-  // learning, definition expansion...
-  Unimplemented();
+  Trace("smt") << "SMT simplify(" << e << ")" << endl;
+  return BooleanSimplification::simplify(d_private->simplify(e, true)).toExpr();
 }
 
 Expr SmtEngine::getValue(const Expr& e)
@@ -613,7 +776,7 @@ Expr SmtEngine::getValue(const Expr& e)
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
   Type type = e.getType(Options::current()->typeChecking);// ensure expr is type-checked at this point
-  Debug("smt") << "SMT getValue(" << e << ")" << endl;
+  Trace("smt") << "SMT getValue(" << e << ")" << endl;
   if(!Options::current()->produceModels) {
     const char* msg =
       "Cannot get value when produce-models options is off.";
@@ -634,9 +797,9 @@ Expr SmtEngine::getValue(const Expr& e)
   }
 
   Node eNode = e.getNode();
-  Node n = smt::SmtEnginePrivate::preprocess(*this, eNode);
+  Node n = d_private->preprocess(eNode);// theory rewriting
 
-  Debug("smt") << "--- getting value of " << n << endl;
+  Trace("smt") << "--- getting value of " << n << endl;
   Node resultNode = d_theoryEngine->getValue(n);
 
   // type-check the result we got
@@ -672,7 +835,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
 }
 
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
-  Debug("smt") << "SMT getAssignment()" << endl;
+  Trace("smt") << "SMT getAssignment()" << endl;
   if(!Options::current()->produceAssignments) {
     const char* msg =
       "Cannot get the current assignment when "
@@ -700,9 +863,9 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
       ++i) {
     Assert((*i).getType() == boolType);
 
-    Node n = smt::SmtEnginePrivate::preprocess(*this, *i);
+    Node n = d_private->preprocess(*i);// theory rewriting
 
-    Debug("smt") << "--- getting value of " << n << endl;
+    Trace("smt") << "--- getting value of " << n << endl;
     Node resultNode = d_theoryEngine->getValue(n);
 
     // type-check the result we got
@@ -725,7 +888,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT getAssertions()" << endl;
+  Trace("smt") << "SMT getAssertions()" << endl;
   if(!Options::current()->interactive) {
     const char* msg =
       "Cannot query the current assertion list when not in interactive mode.";
@@ -737,7 +900,7 @@ vector<Expr> SmtEngine::getAssertions()
 
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT push()" << endl;
+  Trace("smt") << "SMT push()" << endl;
   if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot push when not solving incrementally (use --incremental)");
   }
@@ -749,7 +912,7 @@ void SmtEngine::push() {
 
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT pop()" << endl;
+  Trace("smt") << "SMT pop()" << endl;
   if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
   }
@@ -766,13 +929,13 @@ void SmtEngine::pop() {
 }
 
 void SmtEngine::internalPop() {
-  Debug("smt") << "internalPop()" << endl;
+  Trace("smt") << "internalPop()" << endl;
   d_propEngine->pop();
   d_userContext->pop();
 }
 
 void SmtEngine::internalPush() {
-  Debug("smt") << "internalPush()" << endl;
+  Trace("smt") << "internalPush()" << endl;
   d_userContext->push();
   d_propEngine->push();
 }

@@ -24,6 +24,7 @@
 #define __CVC4__THEORY__VALUATION_H
 
 #include "expr/node.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 
@@ -49,6 +50,20 @@ public:
    * @return Node::null() if no current assignment; otherwise true or false.
    */
   Node getSatValue(TNode n) const;
+
+  /**
+   * Simplify a node.  Intended to be used by a theory's simplify()
+   * function to simplify subterms (TheoryEngine will cache the
+   * results and make sure that the request is directed to the correct
+   * theory).
+   */
+  Node simplify(TNode in, Substitutions& outSubstitutions);
+
+  /**
+   * Rewrite a node.  Intended to be used by a theory to have the
+   * TheoryEngine fully rewrite a node.
+   */
+  Node rewrite(TNode in);
 
 };/* class Valuation */
 

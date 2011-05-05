@@ -69,6 +69,8 @@ Options::Options() :
   memoryMap(false),
   strictParsing(false),
   lazyDefinitionExpansion(false),
+  simplificationMode(INCREMENTAL_MODE),
+  simplificationStyle(NO_SIMPLIFICATION_STYLE),
   interactive(false),
   interactiveSetByUser(false),
   segvNoSpin(false),
@@ -83,7 +85,7 @@ Options::Options() :
   rewriteArithEqualities(false),
   arithPropagation(false),
   satRandomFreq(0.0),
-  satRandomSeed(91648253), //Minisat's default value
+  satRandomSeed(91648253),// Minisat's default value
   pivotRule(MINIMUM)
 {
 }
@@ -102,10 +104,10 @@ static const string optionsDescription = "\
    --no-checking          disable ALL semantic checks, including type checks\n\
    --no-theory-registration disable theory reg (not safe for some theories)\n\
    --strict-parsing       fail on non-conformant inputs (SMT2 only)\n\
-   --verbose | -v         increase verbosity (repeatable)\n\
-   --quiet | -q           decrease verbosity (repeatable)\n\
-   --trace | -t           tracing for something (e.g. --trace pushpop)\n\
-   --debug | -d           debugging for something (e.g. --debug arith), implies -t\n\
+   --verbose | -v         increase verbosity (may be repeated)\n\
+   --quiet | -q           decrease verbosity (may be repeated)\n\
+   --trace | -t           trace something (e.g. -t pushpop), can repeat\n\
+   --debug | -d           debug something (e.g. -d arith), can repeat\n\
    --stats                give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
    --print-expr-types     print types with variables when printing exprs\n\
@@ -115,8 +117,9 @@ static const string optionsDescription = "\
    --produce-models       support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
    --lazy-definition-expansion expand define-fun lazily\n\
-   --replay file          replay decisions from file\n\
-   --replay-log file      log decisions and propagations to file\n\
+   --simplification=MODE  choose simplification mode, see --simplification=help\n\
+   --replay=file          replay decisions from file\n\
+   --replay-log=file      log decisions and propagations to file\n\
    --pivot-rule=RULE      change the pivot rule (see --pivot-rule help)\n\
    --random-freq=P        sets the frequency of random decisions in the sat solver(P=0.0 by default)\n\
    --random-seed=S        sets the random seed for the sat solver\n\
@@ -132,14 +135,42 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2 | smtlib2 SMT-LIB format 2.0\n\
 ";
 
+static const string simplificationHelp = "\
+Simplification modes currently supported by the --simplification option:\n\
+\n\
+batch\n\
++ save up all ASSERTions; run nonclausal simplification and clausal\n\
+  (MiniSat) propagation for all of them only after reaching a querying command\n\
+  (CHECKSAT or QUERY or predicate SUBTYPE declaration)\n\
+\n\
+incremental (default)\n\
++ run nonclausal simplification and clausal propagation at each ASSERT\n\
+  (and at CHECKSAT/QUERY/SUBTYPE)\n\
+\n\
+incremental-lazy-sat\n\
++ run nonclausal simplification at each ASSERT, but delay clausification of\n\
+  ASSERT until reaching a CHECKSAT/QUERY/SUBTYPE, then clausify them all\n\
+\n\
+You can also specify the level of aggressiveness for the simplification\n\
+(by repeating the --simplification option):\n\
+\n\
+toplevel (default)\n\
++ apply toplevel simplifications (things known true/false at outer level\n\
+  only)\n\
+\n\
+aggressive\n\
++ do aggressive, local simplification across the entire formula\n\
+\n\
+none\n\
++ do not perform nonclausal simplification\n\
+";
+
 string Options::getDescription() const {
   return optionsDescription;
 }
 
 void Options::printUsage(const std::string msg, std::ostream& out) {
   out << msg << optionsDescription << endl << flush;
-  // printf(usage + options.getDescription(), options.binary_name.c_str());
-  //     printf(usage, binary_name.c_str());
 }
 
 void Options::printLanguageHelp(std::ostream& out) {
@@ -155,7 +186,7 @@ void Options::printLanguageHelp(std::ostream& out) {
  * any collision.
  */
 enum OptionValue {
-  SMTCOMP = 256, /* no clash with char options */
+  SMTCOMP = 256, /* avoid clashing with char options */
   STATS,
   SEGV_NOSPIN,
   PARSE_ONLY,
@@ -168,6 +199,7 @@ enum OptionValue {
   PRINT_EXPR_TYPES,
   UF_THEORY,
   LAZY_DEFINITION_EXPANSION,
+  SIMPLIFICATION_MODE,
   INTERACTIVE,
   NO_INTERACTIVE,
   PRODUCE_MODELS,
@@ -231,6 +263,7 @@ static struct option cmdlineOptions[] = {
   { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
   { "uf"         , required_argument, NULL, UF_THEORY   },
   { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
+  { "simplification", required_argument, NULL, SIMPLIFICATION_MODE },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, PRODUCE_MODELS },
@@ -397,8 +430,8 @@ throw(OptionException) {
           uf_implementation = Options::MORGAN;
         } else if(!strcmp(optarg, "help")) {
           printf("UF implementations available:\n");
-          printf("tim\n");
-          printf("morgan\n");
+          printf("  tim\n");
+          printf("  morgan\n");
           exit(1);
         } else {
           throw OptionException(string("unknown option for --uf: `") +
@@ -409,6 +442,28 @@ throw(OptionException) {
 
     case LAZY_DEFINITION_EXPANSION:
       lazyDefinitionExpansion = true;
+      break;
+
+    case SIMPLIFICATION_MODE:
+      if(!strcmp(optarg, "batch")) {
+        simplificationMode = BATCH_MODE;
+      } else if(!strcmp(optarg, "incremental")) {
+        simplificationMode = INCREMENTAL_MODE;
+      } else if(!strcmp(optarg, "incremental-lazy-sat")) {
+        simplificationMode = INCREMENTAL_LAZY_SAT_MODE;
+      } else if(!strcmp(optarg, "aggressive")) {
+        simplificationStyle = AGGRESSIVE_SIMPLIFICATION_STYLE;
+      } else if(!strcmp(optarg, "toplevel")) {
+        simplificationStyle = TOPLEVEL_SIMPLIFICATION_STYLE;
+      } else if(!strcmp(optarg, "none")) {
+        simplificationStyle = NO_SIMPLIFICATION_STYLE;
+      } else if(!strcmp(optarg, "help")) {
+        puts(simplificationHelp.c_str());
+        exit(1);
+      } else {
+        throw OptionException(string("unknown option for --simplification: `") +
+                              optarg + "'.  Try --simplification help.");
+      }
       break;
 
     case INTERACTIVE:
@@ -545,14 +600,12 @@ throw(OptionException) {
       printf("tls        : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
       exit(0);
 
-    case '?':
-      throw OptionException(string("can't understand option `") + argv[optind - 1] + "'");
-
     case ':':
       throw OptionException(string("option `") + argv[optind - 1] + "' missing its required argument");
 
+    case '?':
     default:
-      throw OptionException(string("can't understand option:") + argv[optind - 1] + "'");
+      throw OptionException(string("can't understand option `") + argv[optind - 1] + "'");
     }
 
   }

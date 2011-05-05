@@ -676,7 +676,7 @@ mainCommand[CVC4::Command*& cmd]
     )
 
   | TRANSFORM_TOK formula[f]
-    { UNSUPPORTED("TRANSFORM command"); }
+    { cmd = new SimplifyCommand(f); }
 
   | PRINT_TOK formula[f]
     { UNSUPPORTED("PRINT command"); }
@@ -1428,6 +1428,9 @@ postfixTerm[CVC4::Expr& f]
       }
 
       /* record / tuple select */
+    // FIXME - clash in lexer between tuple-select and real; can
+    // resolve with syntactic predicate in ANTLR 3.3, but broken in
+    // 3.2 ?
     /*| DOT
       ( identifier[id,CHECK_NONE,SYM_VARIABLE]
         { UNSUPPORTED("record select not implemented yet");

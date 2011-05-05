@@ -101,7 +101,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::NOT: out << "not "; break;
   case kind::AND: out << "and "; break;
   case kind::IFF: out << "iff "; break;
-  case kind::IMPLIES: out << "implies "; break;
+  case kind::IMPLIES: out << "=> "; break;
   case kind::OR: out << "or "; break;
   case kind::XOR: out << "xor "; break;
   case kind::ITE: out << "ite "; break;

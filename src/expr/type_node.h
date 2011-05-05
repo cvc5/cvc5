@@ -48,6 +48,17 @@ namespace expr {
  */
 class TypeNode {
 
+public:
+
+  // for hash_maps, hash_sets..
+  struct HashFunction {
+    size_t operator()(TypeNode node) const {
+      return (size_t) node.getId();
+    }
+  };/* struct HashFunction */
+
+private:
+
   /**
    * The NodeValue has access to the private constructors, so that the
    * iterators can can create new types.
@@ -78,6 +89,22 @@ class TypeNode {
    * @param ev the expression value to assign
    */
   void assignNodeValue(expr::NodeValue* ev);
+
+  /**
+   * Cache-aware, recursive version of substitute() used by the public
+   * member function with a similar signature.
+   */
+  TypeNode substitute(const TypeNode& type, const TypeNode& replacement,
+                      std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const;
+
+  /**
+   * Cache-aware, recursive version of substitute() used by the public
+   * member function with a similar signature.
+   */
+  template <class Iterator1, class Iterator2>
+  TypeNode substitute(Iterator1 typesBegin, Iterator1 typesEnd,
+                      Iterator2 replacementsBegin, Iterator2 replacementsEnd,
+                      std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const;
 
 public:
 
@@ -114,16 +141,16 @@ public:
   /**
    * Substitution of TypeNodes.
    */
-  TypeNode substitute(const TypeNode& type, const TypeNode& replacement) const;
+  inline TypeNode
+  substitute(const TypeNode& type, const TypeNode& replacement) const;
 
   /**
    * Simultaneous substitution of TypeNodes.
    */
   template <class Iterator1, class Iterator2>
-  TypeNode substitute(Iterator1 typesBegin,
-                      Iterator1 typesEnd,
-                      Iterator2 replacementsBegin,
-                      Iterator2 replacementsEnd) const;
+  inline TypeNode
+  substitute(Iterator1 typesBegin, Iterator1 typesEnd,
+             Iterator2 replacementsBegin, Iterator2 replacementsEnd) const;
 
   /**
    * Structural comparison operator for expressions.
@@ -504,12 +531,7 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
-// for hash_maps, hash_sets..
-struct TypeNodeHashFunction {
-  size_t operator()(TypeNode node) const {
-    return (size_t) node.getId();
-  }
-};/* struct TypeNodeHashFunction */
+typedef TypeNode::HashFunction TypeNodeHashFunction;
 
 }/* CVC4 namespace */
 
@@ -527,17 +549,46 @@ inline TypeNode TypeNode::fromType(const Type& t) {
   return NodeManager::fromType(t);
 }
 
+inline TypeNode
+TypeNode::substitute(const TypeNode& type,
+                     const TypeNode& replacement) const {
+  std::hash_map<TypeNode, TypeNode, HashFunction> cache;
+  return substitute(type, replacement, cache);
+}
+
+template <class Iterator1, class Iterator2>
+inline TypeNode
+TypeNode::substitute(Iterator1 typesBegin,
+                     Iterator1 typesEnd,
+                     Iterator2 replacementsBegin,
+                     Iterator2 replacementsEnd) const {
+  std::hash_map<TypeNode, TypeNode, HashFunction> cache;
+  return substitute(typesBegin, typesEnd,
+                    replacementsBegin, replacementsEnd, cache);
+}
+
 template <class Iterator1, class Iterator2>
 TypeNode TypeNode::substitute(Iterator1 typesBegin,
                               Iterator1 typesEnd,
                               Iterator2 replacementsBegin,
-                              Iterator2 replacementsEnd) const {
+                              Iterator2 replacementsEnd,
+                              std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const {
+  // in cache?
+  std::hash_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  if(i != cache.end()) {
+    return (*i).second;
+  }
+
+  // otherwise compute
   Assert( typesEnd - typesBegin == replacementsEnd - replacementsBegin,
           "Substitution iterator ranges must be equal size" );
   Iterator1 j = find(typesBegin, typesEnd, *this);
   if(j != typesEnd) {
-    return *(replacementsBegin + (j - typesBegin));
+    TypeNode tn = *(replacementsBegin + (j - typesBegin));
+    cache[*this] = tn;
+    return tn;
   } else if(getNumChildren() == 0) {
+    cache[*this] = *this;
     return *this;
   } else {
     NodeBuilder<> nb(getKind());
@@ -550,9 +601,11 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
         i != iend;
         ++i) {
       nb << (*i).substitute(typesBegin, typesEnd,
-                            replacementsBegin, replacementsEnd);
+                            replacementsBegin, replacementsEnd, cache);
     }
-    return nb.constructTypeNode();
+    TypeNode tn = nb.constructTypeNode();
+    cache[*this] = tn;
+    return tn;
   }
 }
 

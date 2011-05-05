@@ -149,6 +149,7 @@ public:
 
   void presolve();
   void notifyRestart();
+  Node simplify(TNode in, std::vector< std::pair<Node, Node> >& outSubstitutions);
   void staticLearning(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
@@ -234,6 +235,7 @@ private:
     IntStat d_statUserVariables, d_statSlackVariables;
     IntStat d_statDisequalitySplits;
     IntStat d_statDisequalityConflicts;
+    TimerStat d_simplifyTimer;
     TimerStat d_staticLearningTimer;
 
     IntStat d_permanentlyRemovedVariables;

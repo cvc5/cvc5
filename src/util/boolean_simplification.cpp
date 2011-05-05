@@ -20,7 +20,7 @@
 
 namespace CVC4 {
 
-void
+bool
 BooleanSimplification::push_back_associative_commute_recursive
     (Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
     throw(AssertionException) {
@@ -28,17 +28,40 @@ BooleanSimplification::push_back_associative_commute_recursive
   for(; i != end; ++i){
     Node child = *i;
     if(child.getKind() == k){
-      push_back_associative_commute_recursive(child, buffer, k, notK, negateNode);
+      if(! push_back_associative_commute_recursive(child, buffer, k, notK, negateNode)) {
+        return false;
+      }
     }else if(child.getKind() == kind::NOT && child[0].getKind() == notK){
-      push_back_associative_commute_recursive(child, buffer, notK, k, !negateNode);
+      if(! push_back_associative_commute_recursive(child[0], buffer, notK, k, !negateNode)) {
+        return false;
+      }
     }else{
       if(negateNode){
-        buffer.push_back(negate(child));
+        if(child.getMetaKind() == kind::metakind::CONSTANT) {
+          if((k == kind::AND && child.getConst<bool>()) ||
+             (k == kind::OR && !child.getConst<bool>())) {
+            buffer.clear();
+            buffer.push_back(negate(child));
+            return false;
+          }
+        } else {
+          buffer.push_back(negate(child));
+        }
       }else{
-        buffer.push_back(child);
+        if(child.getMetaKind() == kind::metakind::CONSTANT) {
+          if((k == kind::OR && child.getConst<bool>()) ||
+             (k == kind::AND && !child.getConst<bool>())) {
+            buffer.clear();
+            buffer.push_back(child);
+            return false;
+          }
+        } else {
+          buffer.push_back(child);
+        }
       }
     }
   }
+  return true;
 }/* BooleanSimplification::push_back_associative_commute_recursive() */
 
 }/* CVC4 namespace */

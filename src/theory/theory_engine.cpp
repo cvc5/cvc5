@@ -420,9 +420,40 @@ void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
     reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->staticLearning(in, learned); \
   }
 
-  // notify each theory using the statement above
+  // static learning for each theory using the statement above
   CVC4_FOR_EACH_THEORY
 }
 
+Node TheoryEngine::simplify(TNode in, theory::Substitutions& outSubstitutions) {
+  SimplifyCache::Scope cache(d_simplifyCache, in);
+  if(cache) {
+    outSubstitutions.insert(outSubstitutions.end(),
+                            cache.get().second.begin(),
+                            cache.get().second.end());
+    return cache.get().first;
+  }
+
+  size_t prevSize = outSubstitutions.size();
+
+  TNode atom = in.getKind() == kind::NOT ? in[0] : in;
+
+  theory::Theory* theory = theoryOf(atom);
+
+  Debug("simplify") << push << "simplifying " << in << " to " << theory->identify() << std::endl;
+  Node n = theory->simplify(in, outSubstitutions);
+  Debug("simplify") << "got from " << theory->identify() << " : " << n << std::endl << pop;
+
+  atom = n.getKind() == kind::NOT ? n[0] : n;
+
+  if(atom.getKind() == kind::EQUAL) {
+    theory::TheoryId typeTheory = theory::Theory::theoryOf(atom[0].getType());
+    Debug("simplify") << push << "simplifying " << n << " to " << typeTheory << std::endl;
+    n = d_theoryTable[typeTheory]->simplify(n, outSubstitutions);
+    Debug("simplify") << "got from " << d_theoryTable[typeTheory]->identify() << " : " << n << std::endl << pop;
+  }
+
+  cache(std::make_pair(n, theory::Substitutions(outSubstitutions.begin() + prevSize, outSubstitutions.end())));
+  return n;
+}
 
 }/* CVC4 namespace */

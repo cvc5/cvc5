@@ -1244,7 +1244,7 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
      enabled and the current node isn't a variable or constant */
   if( d_nm->getOptions()->earlyTypeChecking ) {
     kind::MetaKind mk = n.getMetaKind();
-    if( mk != kind::metakind::VARIABLE 
+    if( mk != kind::metakind::VARIABLE
         && mk != kind::metakind::CONSTANT ) {
       d_nm->getType(n, true);
     }

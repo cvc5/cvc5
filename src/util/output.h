@@ -21,6 +21,7 @@
 #ifndef __CVC4__OUTPUT_H
 #define __CVC4__OUTPUT_H
 
+#include <ios>
 #include <iostream>
 #include <string>
 #include <cstdio>
@@ -59,20 +60,42 @@ extern null_streambuf null_sb;
 extern std::ostream null_os CVC4_PUBLIC;
 
 class CVC4_PUBLIC CVC4ostream {
-  std::ostream* d_os;
-  // Current indentation
-  unsigned d_indent;
+  static const std::string s_tab;
+  static const int s_indentIosIndex;
 
-  std::ostream& (*d_endl)(std::ostream&);
+  /** The underlying ostream */
+  std::ostream* d_os;
+  /** Are we in the first column? */
+  bool d_firstColumn;
+
+  /** The endl manipulator (why do we need to keep this?) */
+  std::ostream& (*const d_endl)(std::ostream&);
 
 public:
-  CVC4ostream() : d_os(NULL) {}
-  explicit CVC4ostream(std::ostream* os) : d_os(os), d_indent(0) {
-    d_endl = &std::endl;
+  CVC4ostream() :
+    d_os(NULL),
+    d_firstColumn(false),
+    d_endl(&std::endl) {
+  }
+  explicit CVC4ostream(std::ostream* os) :
+    d_os(os),
+    d_firstColumn(true),
+    d_endl(&std::endl) {
   }
 
-  void pushIndent() { d_indent ++; }
-  void popIndent()  { if (d_indent > 0) -- d_indent; }
+  void pushIndent() {
+    if(d_os != NULL) {
+      ++d_os->iword(s_indentIosIndex);
+    }
+  }
+  void popIndent() {
+    if(d_os != NULL) {
+      long& indent = d_os->iword(s_indentIosIndex);
+      if(indent > 0) {
+        --indent;
+      }
+    }
+  }
 
   CVC4ostream& flush() {
     if(d_os != NULL) {
@@ -87,6 +110,13 @@ public:
   template <class T>
   CVC4ostream& operator<<(T const& t) {
     if(d_os != NULL) {
+      if(d_firstColumn) {
+        d_firstColumn = false;
+        long indent = d_os->iword(s_indentIosIndex);
+        for(long i = 0; i < indent; ++ i) {
+          d_os = &(*d_os << s_tab);
+        }
+      }
       d_os = &(*d_os << t);
     }
     return *this;
@@ -97,10 +127,8 @@ public:
     if(d_os != NULL) {
       d_os = &(*d_os << pf);
 
-      if (pf == d_endl) {
-        for (unsigned i = 0; i < d_indent; ++ i) {
-          d_os = &(*d_os << '\t');
-        }
+      if(pf == d_endl) {
+        d_firstColumn = true;
       }
     }
     return *this;
@@ -451,6 +479,27 @@ public:
 };/* class NullC */
 
 extern NullC nullCvc4Stream CVC4_PUBLIC;
+
+/**
+ * Pushes an indentation level on construction, pop on destruction.
+ * Useful for tracing recursive functions especially, but also can be
+ * used for clearly separating different phases of an algorithm,
+ * or iterations of a loop, or... etc.
+ */
+class IndentedScope {
+  CVC4ostream d_out;
+public:
+  inline IndentedScope(CVC4ostream out);
+  inline ~IndentedScope();
+};/* class IndentedScope */
+
+#ifdef CVC4_DEBUG
+inline IndentedScope::IndentedScope(CVC4ostream out) : d_out(out) { d_out << push; }
+inline IndentedScope::~IndentedScope() { d_out << pop; }
+#else /* CVC4_DEBUG */
+inline IndentedScope::IndentedScope(CVC4ostream out) {}
+inline IndentedScope::~IndentedScope() {}
+#endif /* CVC4_DEBUG */
 
 }/* CVC4 namespace */
 

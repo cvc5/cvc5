@@ -131,7 +131,7 @@ struct TheoryTraits<${theory_id}> {
     static const bool hasPropagate = ${theory_has_propagate};
     static const bool hasStaticLearning = ${theory_has_staticLearning};
     static const bool hasRegisterTerm = ${theory_has_registerTerm};
-    static const bool hasNotifyRestart = ${theory_has_staticLearning};
+    static const bool hasNotifyRestart = ${theory_has_notifyRestart};
     static const bool hasPresolve = ${theory_has_presolve};
 };
 "

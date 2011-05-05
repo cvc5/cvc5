@@ -279,6 +279,28 @@ void DefineNamedFunctionCommand::toStream(std::ostream& out) const {
   out << " )";
 }
 
+/* class Simplify */
+
+SimplifyCommand::SimplifyCommand(Expr term) :
+  d_term(term) {
+}
+
+void SimplifyCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->simplify(d_term);
+}
+
+Expr SimplifyCommand::getResult() const {
+  return d_result;
+}
+
+void SimplifyCommand::printResult(std::ostream& out) const {
+  out << d_result << endl;
+}
+
+void SimplifyCommand::toStream(std::ostream& out) const {
+  out << "Simplify( << " << d_term << " >> )";
+}
+
 /* class GetValueCommand */
 
 GetValueCommand::GetValueCommand(Expr term) :

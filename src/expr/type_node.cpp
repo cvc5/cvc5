@@ -28,7 +28,15 @@ namespace CVC4 {
 TypeNode TypeNode::s_null( &expr::NodeValue::s_null );
 
 TypeNode TypeNode::substitute(const TypeNode& type,
-                              const TypeNode& replacement) const {
+                              const TypeNode& replacement,
+                              std::hash_map<TypeNode, TypeNode, HashFunction>& cache) const {
+  // in cache?
+  std::hash_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  if(i != cache.end()) {
+    return (*i).second;
+  }
+
+  // otherwise compute
   NodeBuilder<> nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
@@ -44,7 +52,11 @@ TypeNode TypeNode::substitute(const TypeNode& type,
       (*i).substitute(type, replacement);
     }
   }
-  return nb.constructTypeNode();
+
+  // put in cache
+  TypeNode tn = nb.constructTypeNode();
+  cache[*this] = tn;
+  return tn;
 }
 
 Cardinality TypeNode::getCardinality() const {

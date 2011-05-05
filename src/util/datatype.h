@@ -427,6 +427,24 @@ struct CVC4_PUBLIC DatatypeHashStrategy {
   }
 };/* struct DatatypeHashStrategy */
 
+/**
+ * A hash function for Datatypes.  Needed to store them in hash sets
+ * and hash maps.
+ */
+struct CVC4_PUBLIC DatatypeHashFunction {
+  inline size_t operator()(const Datatype& dt) const {
+    return StringHashFunction()(dt.getName());
+  }
+  inline size_t operator()(const Datatype* dt) const {
+    return StringHashFunction()(dt->getName());
+  }
+  inline size_t operator()(const Datatype::Constructor& dtc) const {
+    return StringHashFunction()(dtc.getName());
+  }
+  inline size_t operator()(const Datatype::Constructor* dtc) const {
+    return StringHashFunction()(dtc->getName());
+  }
+};/* struct DatatypeHashFunction */
 
 // FUNCTION DECLARATIONS FOR OUTPUT STREAMS
 

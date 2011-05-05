@@ -83,6 +83,7 @@ TheoryArith::Statistics::Statistics():
   d_statSlackVariables("theory::arith::SlackVariables", 0),
   d_statDisequalitySplits("theory::arith::DisequalitySplits", 0),
   d_statDisequalityConflicts("theory::arith::DisequalityConflicts", 0),
+  d_simplifyTimer("theory::arith::simplifyTimer"),
   d_staticLearningTimer("theory::arith::staticLearningTimer"),
   d_permanentlyRemovedVariables("theory::arith::permanentlyRemovedVariables", 0),
   d_presolveTime("theory::arith::presolveTime"),
@@ -96,6 +97,7 @@ TheoryArith::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_statSlackVariables);
   StatisticsRegistry::registerStat(&d_statDisequalitySplits);
   StatisticsRegistry::registerStat(&d_statDisequalityConflicts);
+  StatisticsRegistry::registerStat(&d_simplifyTimer);
   StatisticsRegistry::registerStat(&d_staticLearningTimer);
 
   StatisticsRegistry::registerStat(&d_permanentlyRemovedVariables);
@@ -114,6 +116,7 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_statSlackVariables);
   StatisticsRegistry::unregisterStat(&d_statDisequalitySplits);
   StatisticsRegistry::unregisterStat(&d_statDisequalityConflicts);
+  StatisticsRegistry::unregisterStat(&d_simplifyTimer);
   StatisticsRegistry::unregisterStat(&d_staticLearningTimer);
 
   StatisticsRegistry::unregisterStat(&d_permanentlyRemovedVariables);
@@ -125,6 +128,12 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_currSetToSmaller);
   StatisticsRegistry::unregisterStat(&d_smallerSetToCurr);
   StatisticsRegistry::unregisterStat(&d_restartTimer);
+}
+
+Node TheoryArith::simplify(TNode in, std::vector< std::pair<Node, Node> >& outSubstitutions) {
+  TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
+  Trace("simplify:arith") << "arith-simplifying: " << in << endl;
+  return d_valuation.rewrite(in);
 }
 
 void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {

@@ -1,9 +1,20 @@
-/*
- * rewriter.h
- *
- *  Created on: Dec 13, 2010
- *      Author: dejan
- */
+/*********************                                                        */
+/*! \file rewriter.h
+ ** \verbatim
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief The Rewriter class
+ **
+ ** The Rewriter class.
+ **/
 
 #pragma once
 
@@ -13,11 +24,15 @@
 namespace CVC4 {
 namespace theory {
 
+/**
+ * Theory rewriters signal whether more rewriting is needed (or not)
+ * by using a member of this enumeration.  See RewriteResponse, below.
+ */
 enum RewriteStatus {
   REWRITE_DONE,
   REWRITE_AGAIN,
   REWRITE_AGAIN_FULL
-};
+};/* enum RewriteStatus */
 
 /**
  * Instances of this class serve as response codes from
@@ -29,9 +44,13 @@ enum RewriteStatus {
 struct RewriteResponse {
   const RewriteStatus status;
   const Node node;
-  RewriteResponse(RewriteStatus status, Node node) : status(status), node(node) {}
-};
+  RewriteResponse(RewriteStatus status, Node node) :
+    status(status), node(node) {}
+};/* struct RewriteResponse */
 
+/**
+ * The main rewriter class.  All functionality is static.
+ */
 class Rewriter {
 
   /** Returns the appropriate cache for a node */
@@ -41,21 +60,28 @@ class Rewriter {
   static Node getPostRewriteCache(theory::TheoryId theoryId, TNode node);
 
   /** Sets the appropriate cache for a node */
-  static void setPreRewriteCache(theory::TheoryId theoryId, TNode node, TNode cache);
+  static void setPreRewriteCache(theory::TheoryId theoryId,
+                                 TNode node, TNode cache);
 
   /** Sets the appropriate cache for a node */
-  static void setPostRewriteCache(theory::TheoryId theoryId, TNode node, TNode cache);
+  static void setPostRewriteCache(theory::TheoryId theoryId,
+                                  TNode node, TNode cache);
+
+  // disable construction of rewriters; all functionality is static
+  Rewriter() CVC4_UNUSED;
+  Rewriter(const Rewriter&) CVC4_UNUSED;
 
 public:
 
-  /** Calls the pre rewrite for the given theory */
+  /** Calls the pre-rewriter for the given theory */
   static RewriteResponse callPreRewrite(theory::TheoryId theoryId, TNode node);
 
-  /** Calls the post rewrite for the given theory */
+  /** Calls the post-rewriter for the given theory */
   static RewriteResponse callPostRewrite(theory::TheoryId theoryId, TNode node);
 
   /**
-   * Rewrites the node using theoryOf to determine which rewriter to use on the node.
+   * Rewrites the node using theoryOf() to determine which rewriter to
+   * use on the node.
    */
   static Node rewrite(Node node);
 
@@ -65,7 +91,7 @@ public:
   static Node rewriteTo(theory::TheoryId theoryId, Node node);
 
   /**
-   * Should be called before the rewriter get's used for the first time.
+   * Should be called before the rewriter gets used for the first time.
    */
   static void init();
 
@@ -73,7 +99,7 @@ public:
    * Should be called to clean up any state.
    */
   static void shutdown();
-};
+};/* class Rewriter */
 
-} // Namesapce theory
-} // Namespace CVC4
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

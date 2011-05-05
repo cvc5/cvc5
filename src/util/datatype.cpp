@@ -109,7 +109,7 @@ void Datatype::addConstructor(const Constructor& c) {
 
 Cardinality Datatype::getCardinality() const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  RecursionBreaker<const Datatype*> breaker(__PRETTY_FUNCTION__, this);
+  RecursionBreaker<const Datatype*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
   if(breaker.isRecursion()) {
     return Cardinality::INTEGERS;
   }
@@ -159,7 +159,7 @@ bool Datatype::isWellFounded() const throw(AssertionException) {
     return self.getAttribute(DatatypeWellFoundedAttr());
   }
 
-  RecursionBreaker<const Datatype*> breaker(__PRETTY_FUNCTION__, this);
+  RecursionBreaker<const Datatype*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
   if(breaker.isRecursion()) {
     // This *path* is cyclic, so may not be well-founded.  The
     // datatype itself might still be well-founded, though (we'll find
@@ -518,7 +518,7 @@ bool Datatype::Constructor::isWellFounded() const throw(AssertionException) {
     return self.getAttribute(DatatypeWellFoundedAttr());
   }
 
-  RecursionBreaker<const Datatype::Constructor*> breaker(__PRETTY_FUNCTION__, this);
+  RecursionBreaker<const Datatype::Constructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
   if(breaker.isRecursion()) {
     // This *path* is cyclic, sso may not be well-founded.  The
     // constructor itself might still be well-founded, though (we'll
@@ -563,7 +563,7 @@ Expr Datatype::Constructor::mkGroundTerm() const throw(AssertionException) {
     return groundTerm;
   }
 
-  RecursionBreaker<const Datatype::Constructor*> breaker(__PRETTY_FUNCTION__, this);
+  RecursionBreaker<const Datatype::Constructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
   if(breaker.isRecursion()) {
     // Recursive path, we should skip and go to the next constructor;
     // see lengthy comments in Datatype::mkGroundTerm().

@@ -22,15 +22,20 @@
 #define __CVC4__THEORY_ENGINE_H
 
 #include <deque>
+#include <vector>
+#include <utility>
 
 #include "expr/node.h"
 #include "prop/prop_engine.h"
 #include "theory/shared_term_manager.h"
 #include "theory/theory.h"
 #include "theory/rewriter.h"
+#include "theory/substitutions.h"
 #include "theory/valuation.h"
 #include "util/options.h"
 #include "util/stats.h"
+#include "util/hash.h"
+#include "util/cache.h"
 
 namespace CVC4 {
 
@@ -67,6 +72,16 @@ class TheoryEngine {
    * The count of active theories in the d_theoryIsActive bitmap.
    */
   size_t d_activeTheories;
+
+  /**
+   * The type of the simplification cache.
+   */
+  typedef Cache<Node, std::pair<Node, theory::Substitutions>, NodeHashFunction> SimplifyCache;
+
+  /**
+   * A cache for simplification.
+   */
+  SimplifyCache d_simplifyCache;
 
   /**
    * An output channel for Theory that passes messages
@@ -273,11 +288,17 @@ public:
   }
 
   /**
-   * Preprocess a node.  This involves theory-specific rewriting, then
-   * calling preRegister() on what's left over.
+   * Preprocess a node.  This involves ITE removal and theory-specific
+   * rewriting.
+   *
    * @param n the node to preprocess
    */
   Node preprocess(TNode n);
+
+  /**
+   * Preregister a Theory atom with the responsible theory (or
+   * theories).
+   */
   void preRegister(TNode preprocessed);
 
   /**
@@ -325,10 +346,16 @@ public:
   bool check(theory::Theory::Effort effort);
 
   /**
-   * Calls staticLearning() on all active theories, accumulating their
+   * Calls staticLearning() on all theories, accumulating their
    * combined contributions in the "learned" builder.
    */
   void staticLearning(TNode in, NodeBuilder<>& learned);
+
+  /**
+   * Calls simplify() on all theories, accumulating their combined
+   * contributions in the "outSubstitutions" vector.
+   */
+  Node simplify(TNode in, theory::Substitutions& outSubstitutions);
 
   /**
    * Calls presolve() on all active theories and returns true

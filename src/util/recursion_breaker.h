@@ -79,10 +79,9 @@
 
 namespace CVC4 {
 
-template <class T>
+template <class T, class Hasher = std::hash<T> >
 class RecursionBreaker {
-  //typedef std::hash_set<T> Set;
-  typedef std::set<T> Set;
+  typedef std::hash_set<T, Hasher> Set;
   typedef std::map<std::string, Set> Map;
   static CVC4_THREADLOCAL(Map*) s_maps;
 
@@ -92,6 +91,7 @@ class RecursionBreaker {
   bool d_recursion;
 
 public:
+  /** Mark that item has been seen for tag. */
   RecursionBreaker(std::string tag, const T& item) :
     d_tag(tag),
     d_item(item) {
@@ -107,6 +107,7 @@ public:
     }
   }
 
+  /** Clean up the seen trail. */
   ~RecursionBreaker() {
     Assert(s_maps->find(d_tag) != s_maps->end());
     if(!d_recursion) {
@@ -119,14 +120,15 @@ public:
     }
   }
 
+  /** Return true iff recursion has been detected. */
   bool isRecursion() const throw() {
     return d_recursion;
   }
 
 };/* class RecursionBreaker<T> */
 
-template <class T>
-CVC4_THREADLOCAL(typename RecursionBreaker<T>::Map*) RecursionBreaker<T>::s_maps;
+template <class T, class Hasher>
+CVC4_THREADLOCAL(typename RecursionBreaker<T, Hasher>::Map*) RecursionBreaker<T, Hasher>::s_maps;
 
 }/* CVC4 namespace */
 

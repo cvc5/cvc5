@@ -39,9 +39,9 @@ class BooleanSimplification {
   BooleanSimplification() CVC4_UNUSED;
   BooleanSimplification(const BooleanSimplification&) CVC4_UNUSED;
 
-  static void push_back_associative_commute_recursive
+  static bool push_back_associative_commute_recursive
     (Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
-    throw(AssertionException);
+    throw(AssertionException) CVC4_WARN_UNUSED_RESULT;
 
 public:
 
@@ -80,6 +80,10 @@ public:
 
     removeDuplicates(buffer);
 
+    if(buffer.size() == 1) {
+      return buffer[0];
+    }
+
     NodeBuilder<> nb(kind::AND);
     nb.append(buffer);
     return nb;
@@ -99,6 +103,11 @@ public:
     push_back_associative_commute(orNode, buffer, kind::OR, kind::AND);
 
     removeDuplicates(buffer);
+
+    Assert(buffer.size() > 0);
+    if(buffer.size() == 1) {
+      return buffer[0];
+    }
 
     NodeBuilder<> nb(kind::OR);
     nb.append(buffer);
@@ -138,10 +147,14 @@ public:
    * @param k the kind to collapse (should equal the kind of node n)
    * @param notK the "negation" of kind k (e.g. OR's negation is AND),
    * or kind::UNDEFINED_KIND if none.
+   * @param negateChildren true if the children of the resulting node
+   * (that is, the elements in buffer) should all be negated; you want
+   * this if e.g. you're simplifying the (OR...) in (NOT (OR...)),
+   * intending to make the result an AND.
    */
   static inline void
   push_back_associative_commute(Node n, std::vector<Node>& buffer,
-                                Kind k, Kind notK)
+                                Kind k, Kind notK, bool negateChildren = false)
       throw(AssertionException) {
     AssertArgument(buffer.empty(), buffer);
     AssertArgument(!n.isNull(), n);
@@ -150,7 +163,13 @@ public:
     AssertArgument(n.getKind() == k, n,
                    "expected node to have kind %s", kindToString(k).c_str());
 
-    push_back_associative_commute_recursive(n, buffer, k, notK, false);
+    bool b CVC4_UNUSED =
+      push_back_associative_commute_recursive(n, buffer, k, notK, false);
+
+    if(buffer.size() == 0) {
+      // all the TRUEs for an AND (resp FALSEs for an OR) were simplified away
+      buffer.push_back(NodeManager::currentNM()->mkConst(k == kind::AND ? true : false));
+    }
   }/* push_back_associative_commute() */
 
   /**
@@ -168,10 +187,33 @@ public:
       base = base[0];
       polarity = !polarity;
     }
+    if(n.getMetaKind() == kind::metakind::CONSTANT) {
+      return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
+    }
     if(polarity){
       return base.notNode();
     }else{
       return base;
+    }
+  }
+
+  /**
+   * Simplify an OR, AND, or IMPLIES.  This function is the identity
+   * for all other kinds.
+   */
+  inline static Node simplify(TNode n) throw(AssertionException) {
+    switch(n.getKind()) {
+    case kind::AND:
+      return simplifyConflict(n);
+
+    case kind::OR:
+      return simplifyClause(n);
+
+    case kind::IMPLIES:
+      return simplifyHornClause(n);
+
+    default:
+      return n;
     }
   }
 

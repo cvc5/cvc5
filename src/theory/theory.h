@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/attribute.h"
 #include "theory/valuation.h"
+#include "theory/substitutions.h"
 #include "theory/output_channel.h"
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -159,6 +160,9 @@ protected:
 
 public:
 
+  /**
+   * Return the ID of the theory responsible for the given type.
+   */
   static inline TheoryId theoryOf(TypeNode typeNode) {
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
       return typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
@@ -168,10 +172,11 @@ public:
   }
 
   /**
-   * Returns the theory responsible for the node.
+   * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
-    if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
+    if (node.getMetaKind() == kind::metakind::VARIABLE ||
+        node.getMetaKind() == kind::metakind::CONSTANT) {
       // Constants, variables, 0-ary constructors
       return theoryOf(node.getType());
     } else {
@@ -374,11 +379,27 @@ public:
   }
 
   /**
-   * The theory should only add (via .operator<< or .append()) to the
-   * "learned" builder.  It is a conjunction to add to the formula at
+   * Statically learn from assertion "in," which has been asserted
+   * true at the top level.  The theory should only add (via
+   * ::operator<< or ::append()) to the "learned" builder---it should
+   * *never* clear it.  It is a conjunction to add to the formula at
    * the top-level and may contain other theories' contributions.
    */
   virtual void staticLearning(TNode in, NodeBuilder<>& learned) { }
+
+  /**
+   * Simplify a node in a theory-specific way.  The node is a theory
+   * operation or its negation, or an equality between theory-typed
+   * terms or its negation.  Add to "outSubstitutions" any
+   * replacements you want to make for the entire subterm; if you add
+   * [x,y] to the vector, the enclosing Boolean formula (call it
+   * "phi") will be replaced with (AND phi[x->y] (x = y)).  Use
+   * Valuation::simplify() to simplify subterms (it maintains a cache
+   * and dispatches to the appropriate theory).
+   */
+  virtual Node simplify(TNode in, Substitutions& outSubstitutions) {
+    return in;
+  }
 
   /**
    * A Theory is called with presolve exactly one time per user

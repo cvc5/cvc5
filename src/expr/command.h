@@ -164,6 +164,19 @@ public:
   void toStream(std::ostream& out) const;
 };/* class QueryCommand */
 
+// this is TRANSFORM in the CVC presentation language
+class CVC4_PUBLIC SimplifyCommand : public Command {
+protected:
+  Expr d_term;
+  Expr d_result;
+public:
+  SimplifyCommand(Expr term);
+  void invoke(SmtEngine* smtEngine);
+  Expr getResult() const;
+  void printResult(std::ostream& out) const;
+  void toStream(std::ostream& out) const;
+};/* class SimplifyCommand */
+
 class CVC4_PUBLIC GetValueCommand : public Command {
 protected:
   Expr d_term;

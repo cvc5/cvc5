@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Main driver for CVC4 executable.
+ ** \brief Main driver for CVC4 executable
  **
  ** Main driver for CVC4 executable.
  **/

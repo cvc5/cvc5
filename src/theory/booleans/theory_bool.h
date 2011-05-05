@@ -5,13 +5,13 @@
  ** Major contributors: taking
  ** Minor contributors (to current version): barrett
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief The theory of booleans.
+ ** \brief The theory of booleans
  **
  ** The theory of booleans.
  **/
@@ -36,8 +36,10 @@ public:
 
   Node getValue(TNode n);
 
+  Node simplify(TNode in, Substitutions& outSubstitutions);
+
   std::string identify() const { return std::string("TheoryBool"); }
-};
+};/* class TheoryBool */
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

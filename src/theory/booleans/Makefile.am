@@ -10,6 +10,8 @@ libbooleans_la_SOURCES = \
 	theory_bool.cpp \
 	theory_bool_type_rules.h \
 	theory_bool_rewriter.h \
-	theory_bool_rewriter.cpp	
+	theory_bool_rewriter.cpp \
+	circuit_propagator.h \
+	circuit_propagator.cpp
 
 EXTRA_DIST = kinds

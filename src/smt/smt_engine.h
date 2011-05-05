@@ -148,6 +148,11 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
+   * A private utility class to SmtEngine.
+   */
+  smt::SmtEnginePrivate* d_private;
+
+  /**
    * This is called by the destructor, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues
@@ -260,8 +265,10 @@ public:
   Result checkSat(const BoolExpr& e);
 
   /**
-   * Simplify a formula without doing "much" work.  Requires assist
-   * from the SAT Engine.
+   * Simplify a formula without doing "much" work.  Does not involve
+   * the SAT Engine in the simplification, but uses the current
+   * assertions and the current partial model, if one has been
+   * constructed.
    *
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
