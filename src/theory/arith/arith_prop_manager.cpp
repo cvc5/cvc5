@@ -24,23 +24,6 @@ bool ArithPropManager::isAsserted(TNode n) const{
   }
 }
 
-// Node ArithPropManager::strictlyWeakerAssertedUpperBound(TNode n) const{
-//   Node weaker = n;
-//   do {
-//     weaker = d_propagator.getWeakerImpliedUpperBound(weaker);
-//   }while(!weaker.isNull() && !isAsserted(weaker));
-//   Assert(weaker != n);
-//   return weaker;
-// }
-
-// Node ArithPropManager::strictlyWeakerAssertedLowerBound(TNode n) const{
-//   Node weaker = n;
-//   do {
-//     weaker = d_propagator.getWeakerImpliedLowerBound(weaker);
-//   }while(!weaker.isNull() && !isAsserted(weaker));
-//   Assert(weaker != n);
-//   return weaker;
-// }
 
 Node ArithPropManager::strictlyWeakerAssertedUpperBound(ArithVar v, const DeltaRational& b) const{
   Node bound = boundAsNode(true, v, b);
