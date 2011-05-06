@@ -16,7 +16,18 @@ TESTS =	\
 	datatype13.cvc \
 	mutually-recursive.cvc \
 	rewriter.cvc \
-	typed_v1l50016-simp.cvc
+	typed_v1l50016-simp.cvc \
+	typed_v10l30054.cvc \
+	typed_v1l80005.cvc \
+	typed_v2l30079.cvc \
+	typed_v3l20092.cvc \
+	typed_v5l30069.cvc \
+	v10l40099.cvc \
+	v1l20009.cvc \
+	v2l40025.cvc \
+	v3l60006.cvc \
+	v5l30058.cvc
+
 
 EXTRA_DIST = $(TESTS)
 
