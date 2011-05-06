@@ -33,17 +33,20 @@ void ExplanationManager::process( Node n, NodeBuilder<>& nb, ProofManager* pm )
       Node exp;
       if( it!=d_drv_map.end() ){
         r = (*it).second;
-        if( r.d_e ){
-          Debug("emanager") << "Em::process: Consult externally for " << n << std::endl;
-          exp = r.d_e->explain( n, pm );
-          //trivial case, explainer says that n is an input
-          if( exp==n ){
-            r.d_isInput = true;
+        if( !r.d_isInput ){
+          if( r.d_e ){
+
+            Debug("emanager") << "Em::process: Consult externally for " << n << std::endl;
+            exp = r.d_e->explain( n, pm );
+            //trivial case, explainer says that n is an input
+            if( exp==n ){
+              r.d_isInput = true;
+            }
+          }else{
+            exp = r.d_node;
+            pm->setExplanation( n, exp, r.d_reason );
+            if( exp.isNull() ) Debug("emanager") << "Em::process: " << n << " is an axiom, reason = " << r.d_reason << endl;
           }
-        }else if( !r.d_isInput ){
-          exp = r.d_node;
-          pm->setExplanation( n, exp, r.d_reason );
-          if( exp.isNull() ) Debug("emanager") << "Em::process: " << n << " is an axiom, reason = " << r.d_reason << endl;
         }
       }
 

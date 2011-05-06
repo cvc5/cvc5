@@ -69,16 +69,9 @@ TheoryDatatypes::TheoryDatatypes(Context* c, OutputChannel& out, Valuation valua
   d_cc(c, &d_ccChannel),
   d_unionFind(c),
   d_disequalities(c),
-  d_noMerge(false),
-  d_inCheck(false),
   d_em(c),
   d_cce(&d_cc){
 
-  ////bug test for transitive closure
-  //TransitiveClosure tc( c );
-  //Debug("datatypes-tc") << "33 -> 32 : " << tc.addEdge( 33, 32 ) << std::endl;
-  //Debug("datatypes-tc") << "32 -> 33 : " << tc.addEdge( 32, 33 ) << std::endl;
-  //tc.debugPrintMatrix();
 }
 
 
@@ -133,7 +126,7 @@ void TheoryDatatypes::check(Effort e) {
     }
 
     //clear from the derived map
-    d_inCheck = true;
+    d_checkMap.clear();
     collectTerms( assertion );
     if( !hasConflict() ){
       if( d_em.hasNode( assertion ) ){
@@ -200,8 +193,22 @@ void TheoryDatatypes::check(Effort e) {
         }
       }
     }
-    Debug("datatypes-debug-pf") << "Done check " << assertion << " " << hasConflict() << std::endl;
-    d_inCheck = false;
+    //rules to check for collapse, instantiate
+    while( !hasConflict() && !d_checkMap.empty() ){
+      std::map< Node, bool > temp;
+      temp = d_checkMap;
+      d_checkMap.clear();
+      std::map< Node, bool >::iterator i;
+      for( i = temp.begin(); i != temp.end(); i++ ){
+        Node n = find( i->first );
+        if( temp.find( n )==temp.end() || temp[n] ){
+          if( !hasConflict() ) checkInstantiateEqClass( n );
+          if( !hasConflict() ) updateSelectors( n );
+          temp[n] = false;
+        }
+      }
+    }
+    //if there is now a conflict
     if( hasConflict() ) {
       Debug("datatypes-conflict") << "Constructing conflict..." << endl;
       Debug("datatypes-conflict") << d_cc << std::endl;
@@ -214,7 +221,6 @@ void TheoryDatatypes::check(Effort e) {
       //  conflict = NodeManager::currentNM()->mkNode(kind::AND, conflict, conflict);
       //}
       d_out->conflict( conflict, false );
-      //Assert( false );
       return;
     }
   }
@@ -224,14 +230,13 @@ void TheoryDatatypes::check(Effort e) {
     //do splitting
     for( EqLists::iterator i = d_labels.begin(); i != d_labels.end(); i++ ) {
       Node sf = find( (*i).first );
-      if( sf == (*i).first || sf.getKind() != APPLY_CONSTRUCTOR ) {
+      if( sf.getKind() != APPLY_CONSTRUCTOR ) {
         addTermToLabels( sf );
         EqList* lbl = (sf == (*i).first) ? (*i).second : (*d_labels.find( sf )).second;
         Debug("datatypes-split") << "Check for splitting " << (*i).first
                                  << ", label size = " << lbl->size() << endl;
-        if( lbl->empty() || (*lbl)[ lbl->size()-1 ].getKind() == NOT ) {
-          TypeNode typ = sf.getType();
-          const Datatype& dt = ((DatatypeType)typ.toType()).getDatatype();
+        if( lbl->empty() || (*lbl)[ lbl->size()-1 ].getKind() == NOT ) {    //there are more than 1 possible constructors for sf
+          const Datatype& dt = ((DatatypeType)(sf.getType()).toType()).getDatatype();
           vector< bool > possibleCons;
           possibleCons.resize( dt.getNumConstructors(), true );
           for( EqList::const_iterator j = lbl->begin(); j != lbl->end(); j++ ) {
@@ -247,7 +252,6 @@ void TheoryDatatypes::check(Effort e) {
               for( unsigned int k=0; k<dt[ j ].getNumArgs(); k++ ) {
                 Node s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( dt[j][k].getSelector() ), sf );
                 if( d_selectors.find( s ) != d_selectors.end() ) {
-                  Debug("datatypes") << "  getPosCons: found selector " << s << endl;
                   foundSel = true;
                   break;
                 }
@@ -255,7 +259,7 @@ void TheoryDatatypes::check(Effort e) {
             }
           }
           if( !foundSel ){
-            for( unsigned int j=0; j<(int)possibleCons.size(); j++ ) {
+            for( unsigned int j=0; j<possibleCons.size(); j++ ) {
               if( possibleCons[j] && !dt[ j ].isFinite() ) {
                 Debug("datatypes") << "Did not find selector for " << sf
                                   << " and " << dt[ j ].getConstructor() << " is not finite." << endl;
@@ -278,6 +282,7 @@ void TheoryDatatypes::check(Effort e) {
         }
       } else {
         Debug("datatypes-split") << (*i).first << " is " << sf << endl;
+        Assert( sf != (*i).first );
       }
     }
   }
@@ -289,7 +294,6 @@ void TheoryDatatypes::check(Effort e) {
 bool TheoryDatatypes::checkTester( Node assertion, Node& conflict, unsigned& r ){
   Debug("datatypes") << "Check tester " << assertion << endl;
 
-  //preprocess the tester
   Node tassertion = ( assertion.getKind() == NOT ) ? assertion[0] : assertion;
   Assert( find( tassertion[0] ) == tassertion[0] );
 
@@ -305,41 +309,33 @@ bool TheoryDatatypes::checkTester( Node assertion, Node& conflict, unsigned& r )
   }
 
   addTermToLabels( tassertion[0] );
-  EqLists::iterator lbl_i = d_labels.find( tassertion[0] );
-  EqList* lbl = (*lbl_i).second;
-  Assert( !lbl->empty() || lbl->begin()==lbl->end() );
+  EqList* lbl = (*d_labels.find( tassertion[0] )).second;
   //check if empty label (no possible constructors for term)
-  bool redundant = false;
   for( EqList::const_iterator i = lbl->begin(); i != lbl->end(); i++ ) {
     Node leqn = (*i);
     if( leqn.getKind() == kind::NOT ) {
       if( leqn[0].getOperator() == tassertion.getOperator() ) {
-        if( assertion.getKind() == NOT ) {
-          redundant = true;
-        } else {
+        if( assertion.getKind() != NOT ) {
           conflict = NodeManager::currentNM()->mkNode( AND, leqn, assertion );
           r = Reason::contradiction;
           Debug("datatypes") << "Contradictory labels " << conflict << endl;
-          return false;
         }
-        break;
+        return false;
       }
     }else{
       if( (leqn.getOperator() == tassertion.getOperator()) == (assertion.getKind() == NOT) ) {
         conflict = NodeManager::currentNM()->mkNode( AND, leqn, assertion );
         r = Reason::idt_tclash;
         Debug("datatypes") << "Contradictory labels(2) " << conflict << endl;
-        return false;
       }
-      redundant = true;
-      break;
+      return false;
     }
   }
-  return !redundant;
+  return true;
 }
 
 void TheoryDatatypes::addTester( Node assertion ){
-  Debug("datatypes") << "Add tester " << assertion << endl;
+  Debug("datatypes") << "addTester " << assertion << endl;
 
   //preprocess the tester
   Node tassertion = ( assertion.getKind() == NOT ) ? assertion[0] : assertion;
@@ -352,15 +348,24 @@ void TheoryDatatypes::addTester( Node assertion ){
   tRep = find( tRep );
   //add label instead for the representative (if it is different)
   if( tRep != tassertion[0] ) {
-    tassertionRep = NodeManager::currentNM()->mkNode( APPLY_TESTER, tassertion.getOperator(), tRep );
-    assertionRep = ( assertion.getKind() == NOT ) ? tassertionRep.notNode() : tassertionRep;
-    //add explanation
-    Node ccEq = NodeManager::currentNM()->mkNode( EQUAL, tRep, tassertion[0] );
-    d_em.addNode( ccEq, &d_cce );
-    NodeBuilder<> nb2(kind::AND);
-    nb2 << assertion << ccEq;
-    Node expl = nb2;
-    d_em.addNode( assertionRep, expl, Reason::idt_tcong );
+    //explanation is trivial (do not add to labels)
+    if( tRep.getKind()==APPLY_CONSTRUCTOR && assertion.getKind()== kind::APPLY_TESTER &&
+        Datatype::indexOf(assertion.getOperator().toExpr())==Datatype::indexOf(tRep.getOperator().toExpr()) ){
+      tassertionRep = NodeManager::currentNM()->mkNode( APPLY_TESTER, tassertion.getOperator(), tRep );
+      assertionRep = tassertionRep;
+      d_em.addNodeAxiom( assertionRep, Reason::idt_taxiom );
+      return;
+    }else{
+      tassertionRep = NodeManager::currentNM()->mkNode( APPLY_TESTER, tassertion.getOperator(), tRep );
+      assertionRep = ( assertion.getKind() == NOT ) ? tassertionRep.notNode() : tassertionRep;
+      //add explanation
+      Node ccEq = NodeManager::currentNM()->mkNode( EQUAL, tRep, tassertion[0] );
+      d_em.addNode( ccEq, &d_cce );
+      NodeBuilder<> nb2(kind::AND);
+      nb2 << assertion << ccEq;
+      Node expl = nb2;
+      d_em.addNode( assertionRep, expl, Reason::idt_tcong );
+    }
   }else{
     tassertionRep = tassertion;
     assertionRep = assertion;
@@ -369,10 +374,11 @@ void TheoryDatatypes::addTester( Node assertion ){
   Node conflict;
   unsigned r;
   if( checkTester( assertionRep, conflict, r ) ){
+    //it is not redundant/contradictory, add it to labels
     EqLists::iterator lbl_i = d_labels.find( tRep );
     EqList* lbl = (*lbl_i).second;
     lbl->push_back( assertionRep );
-    Debug("datatypes") << "Add to labels " << lbl->size() << endl;
+    Debug("datatypes") << "Add to labels " << assertionRep << endl;
     if( assertionRep.getKind()==NOT ){
       const Datatype& dt = Datatype::datatypeOf( tassertion.getOperator().toExpr() );
       //we can conclude the final one
@@ -384,15 +390,14 @@ void TheoryDatatypes::addTester( Node assertion ){
           possibleCons[ Datatype::indexOf( (*i)[0].getOperator().toExpr() ) ] = false;
           nb << (*i);
         }
-        unsigned int testerIndex = -1;
-        for( unsigned int i=0; i<possibleCons.size(); i++ ) {
+        int testerIndex = -1;
+        for( int i=0; i<(int)possibleCons.size(); i++ ) {
           if( possibleCons[i] ){
-            Assert( testerIndex==unsigned(-1) );
             testerIndex = i;
           }
         }
-        Assert( testerIndex!=unsigned(-1) );
-        assertionRep = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[testerIndex].getTester() ), tRep );
+        Assert( testerIndex!=-1 );
+        assertionRep = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[unsigned(testerIndex)].getTester() ), tRep );
         Node exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
         d_em.addNode( assertionRep, exp, Reason::idt_texhaust );
         addTester( assertionRep );    //add stronger statement
@@ -400,89 +405,203 @@ void TheoryDatatypes::addTester( Node assertion ){
       }
     }
     if( assertionRep.getKind()==APPLY_TESTER ){
-      //we have concluded that tRep must be a particular tester
-      //test all nodes in the equivalence class of tRep for instantiation
-      checkInstantiate( tRep );
-      if( hasConflict() ) {
-        return;
-      }
-      //update all selectors whose arguments are in the equivalence class of tRep
-      updateSelectors( tRep );
+      d_checkMap[ tRep ] = true;
     }
   }else if( !conflict.isNull() ){
     d_em.addNodeConflict( conflict, r );
   }
 }
 
-void TheoryDatatypes::checkInstantiate( Node t ) {
-  Debug("datatypes") << "TheoryDatatypes::checkInstantiate() " << t << endl;
+//if only one constructor remaining for t, this function will return it
+Node TheoryDatatypes::getInstantiateCons( Node t ){
+  if( t.getKind() != APPLY_CONSTRUCTOR ){
+    Assert( t == find( t ) );
+    addTermToLabels( t );
+    EqLists::iterator lbl_i = d_labels.find( t );
+    if( lbl_i!=d_labels.end() ) {
+      EqList* lbl = (*lbl_i).second;
+      if( !lbl->empty() && (*lbl)[ lbl->size()-1 ].getKind() != NOT ) {
+        const Datatype& dt = ((DatatypeType)(t.getType()).toType()).getDatatype();
+        size_t testerIndex = Datatype::indexOf( (*lbl)[ lbl->size()-1 ].getOperator().toExpr() );
+        return Node::fromExpr( dt[ testerIndex ].getConstructor() );
+      }
+    }
+  }
+  return Node::null();
+}
+
+void TheoryDatatypes::checkInstantiateEqClass( Node t ) {
+  Debug("datatypes") << "TheoryDatatypes::checkInstantiateEqClass() " << t << endl;
   Assert( t == find( t ) );
 
   //if labels were created for t, and t has not been instantiated
-  if( t.getKind() != APPLY_CONSTRUCTOR ) {
+  Node cons = getInstantiateCons( t );
+  if( !cons.isNull() ){
     //for each term in equivalance class
     initializeEqClass( t );
-    TypeNode typ = t.getType();
     EqListN* eqc = (*d_equivalence_class.find( t )).second;
     for( EqListN::const_iterator iter = eqc->begin(); iter != eqc->end(); iter++ ) {
       Node te = *iter;
       Assert( find( te ) == t );
-      //if term has not yet been instantiated
-      if( d_inst_map.find( te ) == d_inst_map.end() ) {
-        EqLists::iterator lbl_i = d_labels.find( t );
-        if( lbl_i!=d_labels.end() ) {
-          EqList* lbl = (*lbl_i).second;
-          //check there is one remaining constructor
-          const Datatype& dt = ((DatatypeType)typ.toType()).getDatatype();
-          Node cons;
-          if( !lbl->empty() && (*lbl)[ lbl->size()-1 ].getKind() != NOT ) {
-            size_t testerIndex = Datatype::indexOf( (*lbl)[ lbl->size()-1 ].getOperator().toExpr() );
-            Node cons = Node::fromExpr( dt[ testerIndex ].getConstructor() );
-            const Datatype::Constructor& cn = Datatype::datatypeOf( cons.toExpr() )[ Datatype::indexOf( cons.toExpr() ) ];
+      if( checkInstantiate( te, cons ) ){
+        return;
+      }
+    }
+  }
+}
 
-            //only one constructor possible for term (label is singleton), apply instantiation rule
-            //find if selectors have been applied to t
-            vector< Node > selectorVals;
-            selectorVals.push_back( cons );
-            bool foundSel = false;
-            for( unsigned int i=0; i<cn.getNumArgs(); i++ ) {
-              Node s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( cn[i].getSelector() ), te );
-              if( d_selectors.find( s ) != d_selectors.end() ) {
-                foundSel = true;
-                s = find( s );
-              }
-              selectorVals.push_back( s );
-            }
-            if( cn.isFinite() || foundSel ) {
-              d_inst_map[ te ] = true;
-              //instantiate, add equality
-              Node val = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, selectorVals );
-              if( find( val ) != find( te ) ) {
-                collectTerms( val );
-                NodeBuilder<> nb(kind::AND);
-                nb << (*lbl)[ lbl->size()-1 ];
-                for( unsigned int i=0; i<cn.getNumArgs(); i++ ) {
-                  Node s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( cn[i].getSelector() ), te );
-                  if( selectorVals[i+1]!=s ){
-                    Node ccEq = NodeManager::currentNM()->mkNode( EQUAL, selectorVals[i+1], s );
-                    d_em.addNode( ccEq, &d_cce );
-                    nb << ccEq;
-                  }else{
-                    //reflexive for s, if we want fined grained
-                  }
-                }
-                Node jeq = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
-                Node newEq = NodeManager::currentNM()->mkNode( EQUAL, val, te );
-                Debug("datatypes") << "Instantiate Equal: " << newEq << "." << endl;
-                d_em.addNode( newEq, jeq, Reason::idt_inst );
-                addEquality( newEq );
-                return;
-              }
-            } else {
-              Debug("datatypes") << "infinite constructor, no selectors " << cons << endl;
-            }
+//pre condition: find( te ) has been proven to be the constructor cons
+//that is, is_[cons]( find( te ) ) is stored in d_labels
+bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
+{
+  Debug("datatypes") << "TheoryDatatypes::checkInstantiate() " << te << endl;
+  //if term has not yet been instantiated
+  if( d_inst_map.find( te ) == d_inst_map.end() ) {
+    //find if selectors have been applied to t
+    vector< Node > selectorVals;
+    selectorVals.push_back( cons );
+    bool foundSel = false;
+    const Datatype::Constructor& cn = getConstructor( cons );
+    for( unsigned int i=0; i<cn.getNumArgs(); i++ ) {
+      Node s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( cn[i].getSelector() ), te );
+      if( d_selectors.find( s ) != d_selectors.end() ) {
+        foundSel = true;
+        s = find( s );
+      }
+      selectorVals.push_back( s );
+    }
+    if( cn.isFinite() || foundSel ) {
+      d_inst_map[ te ] = true;
+      //instantiate, add equality
+      Node val = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, selectorVals );
+      if( find( val ) != find( te ) ) {
+        //build explaination
+        NodeBuilder<> nb(kind::AND);
+        //explanation for tester
+        Node t = find( te );
+        addTermToLabels( t );
+        Assert( d_labels.find( t )!=d_labels.end() );
+        EqList* lbl = (*d_labels.find( t )).second;
+        nb << (*lbl)[ lbl->size()-1 ];    //this should be changed to be tester for te, not t for fine-grained
+        //explanation for arguments
+        for( unsigned int i=0; i<cn.getNumArgs(); i++ ) {
+          Node s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( cn[i].getSelector() ), te );
+          if( selectorVals[i+1]!=s ){
+            Node ccEq = NodeManager::currentNM()->mkNode( EQUAL, selectorVals[i+1], s );
+            d_em.addNode( ccEq, &d_cce );
+            nb << ccEq;
+          }else{
+            //reflexive for s, if we want idt_inst to be fined grained
+            //Node eq = NodeManager::currentNM()->mkNode( EQUAL, s, s );
+            //d_em.addNodeAxiom( s, Reason::refl );
           }
         }
+        Node jeq = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
+        Node newEq = NodeManager::currentNM()->mkNode( EQUAL, val, te );
+        Debug("datatypes") << "Instantiate: " << newEq << "." << endl;
+        d_em.addNode( newEq, jeq, Reason::idt_inst_coarse );
+        //collect terms of instantiation term
+        collectTerms( val, false );
+        //add equality for the instantiation
+        addEquality( newEq );
+        return true;
+      }
+    } else {
+      Debug("datatypes") << "Do not Instantiate: infinite constructor, no selectors " << cons << endl;
+    }
+  }else{
+    Debug("datatypes") << "Do not Instantiate: " << te << " already instantiated" << endl;
+  }
+  return false;
+}
+
+bool TheoryDatatypes::collapseSelector( Node t ) {
+  if( !hasConflict() && t.getKind() == APPLY_SELECTOR ) {
+    //collapse constructor
+    TypeNode typ = t[0].getType();
+    Node sel = t.getOperator();
+    TypeNode selType = sel.getType();
+    Node cons = getConstructorForSelector( sel );
+    const Datatype::Constructor& cn = getConstructor( cons );
+    Node tmp = find( t[0] );
+    Node retNode = t;
+    if( tmp.getKind() == APPLY_CONSTRUCTOR ) {
+      if( tmp.getOperator() == cons ) {
+        Debug("datatypes") << "Applied selector " << t << " to correct constructor." << endl;
+        retNode = tmp[ Datatype::indexOf( sel.toExpr() ) ];
+      } else {
+        Debug("datatypes") << "Applied selector " << t << " to wrong constructor." << endl;
+        retNode = selType[1].mkGroundTerm();
+      }
+      if( tmp!=t[0] ){
+        t = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, t.getOperator(), tmp );
+      }
+      Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
+      d_em.addNodeAxiom( neq, Reason::idt_collapse );
+      Debug("datatypes") << "Add collapse equality " << neq << endl;
+      addEquality( neq );
+      return true;
+    } else {
+      //see whether we can prove that the selector is applied to the wrong tester
+      Node tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), tmp );
+      Node conflict;
+      unsigned r;
+      checkTester( tester, conflict, r );
+      if( !conflict.isNull() ) {
+        Debug("datatypes") << "Applied selector " << t << " to provably wrong constructor." << endl;
+        //conflict is c ^ tester, where conflict => false, but we want to say c => ~tester
+        //must remove tester from conflict
+        if( conflict.getKind()==kind::AND ){
+          NodeBuilder<> jt(kind::AND);
+          for( int i=0; i<(int)conflict.getNumChildren(); i++ ){
+            if( conflict[i]!=tester ){
+              jt << conflict[i];
+            }
+          }
+          conflict = ( jt.getNumChildren()==1 ) ? jt.getChild( 0 ) : jt;
+        }else{
+          Assert( conflict==tester );
+          conflict = Node::null();
+        }
+        if( conflict!=tester.notNode() ){
+          d_em.addNode( tester.notNode(), conflict, r );    //note that application of r is non-standard (TODO: fix)
+        }
+
+        if( tmp != t[0] ) {
+          Node teq = NodeManager::currentNM()->mkNode( EQUAL, tmp, t[0] );
+          d_em.addNode( teq, &d_cce );
+          Node exp = NodeManager::currentNM()->mkNode( AND, tester.notNode(), teq );
+          tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), t[0] );
+          d_em.addNode( tester.notNode(), exp, Reason::idt_tcong );
+        }
+        retNode = selType[1].mkGroundTerm();
+        Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
+
+        d_em.addNode( neq, tester.notNode(), Reason::idt_collapse2 );
+        addEquality( neq );
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+//this function will test if each selector whose argument is in the equivalence class of "a" can be collapsed
+void TheoryDatatypes::updateSelectors( Node a ) {
+  Debug("datatypes") << "updateSelectors: " << a << endl;
+  EqListsN::iterator sel_a_i = d_selector_eq.find( a );
+  if( sel_a_i != d_selector_eq.end() ) {
+    EqListN* sel_a = (*sel_a_i).second;
+    for( EqListN::const_iterator i = sel_a->begin(); i != sel_a->end(); i++ ) {
+      Node s = (*i);
+      //if a is still a representative, and s has not yet been collapsed
+      if( find( a )==a && !d_selectors[s] ){
+        Assert( s.getKind()==APPLY_SELECTOR && find( s[0] ) == a );
+        if( a != s[0] ) {
+          s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, s.getOperator(), a );
+          collectTerms( s, false );
+        }
+        d_selectors[s] = collapseSelector( s );
       }
     }
   }
@@ -490,23 +609,19 @@ void TheoryDatatypes::checkInstantiate( Node t ) {
 
 Node TheoryDatatypes::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
-
   switch(n.getKind()) {
-
   case kind::VARIABLE:
     Unhandled(kind::VARIABLE);
-
   case kind::EQUAL: // 2 args
     return nodeManager->
       mkConst( d_valuation.getValue(n[0]) == d_valuation.getValue(n[1]) );
-
   default:
     Unhandled(n.getKind());
   }
 }
 
 void TheoryDatatypes::merge(TNode a, TNode b) {
-  if( d_noMerge ) {
+  if( !d_merge_pending.empty() ) {
     //Debug("datatypes") << "Append to merge pending list " << d_merge_pending.size() << endl;
     d_merge_pending[d_merge_pending.size()-1].push_back( pair< Node, Node >( a, b ) );
     return;
@@ -563,23 +678,65 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
   }
   Debug("datatypes-debug") << "Done clash" << endl;
 
-  Debug("datatypes-debug-pf") << "Set canon: "<< a << " " << b << endl;
+  Debug("datatypes-ae") << "Set canon: "<< a << " " << b << endl;
   // b becomes the canon of a
   d_unionFind.setCanon(a, b);
   d_reps[a] = false;
   d_reps[b] = true;
+
   //add this to the transitive closure module
   bool result = d_cycle_check.addEdgeNode( a, b );
   d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
-
+  Debug("datatypes-cycles") << "Equal " << a << " -> " << b << " " << d_hasSeenCycle.get() << endl;
+  if( d_hasSeenCycle.get() ){
+    checkCycles();
+    if( hasConflict() ){
+      return;
+    }
+  }
+  //else{
+  //  checkCycles();
+  //  if( hasConflict() ){
+  //    for( int i=0; i<(int)d_currEqualities.size(); i++ ) {
+  //      Debug("datatypes-cycles") << "currEqualities[" << i << "] = " << d_currEqualities[i] << endl;
+  //    }
+  //    d_cycle_check.debugPrint();
+  //    Assert( false );
+  //  }
+  //}
+  Debug("datatypes-debug") << "Done cycles" << endl;
 
   //merge equivalence classes
-  initializeEqClass( a );
   initializeEqClass( b );
-  EqListN* eqc_a = (*d_equivalence_class.find( a )).second;
   EqListN* eqc_b = (*d_equivalence_class.find( b )).second;
-  for( EqListN::const_iterator i = eqc_a->begin(); i != eqc_a->end(); i++ ) {
-    eqc_b->push_back( *i );
+  EqListsN::iterator eqc_a_i = d_equivalence_class.find( a );
+  if( eqc_a_i!=d_equivalence_class.end() ){
+    EqListN* eqc_a = (*eqc_a_i).second;
+    for( EqListN::const_iterator i = eqc_a->begin(); i != eqc_a->end(); i++ ) {
+      eqc_b->push_back( *i );
+    }
+  }else{
+    eqc_b->push_back( a );
+  }
+  //merge selector lists
+  EqListsN::iterator sel_a_i = d_selector_eq.find( a );
+  if( sel_a_i != d_selector_eq.end() ) {
+    EqListsN::iterator sel_b_i = d_selector_eq.find( b );
+    EqListN* sel_b;
+    if( sel_b_i == d_selector_eq.end() ) {
+      sel_b = new(getContext()->getCMM()) EqListN(true, getContext(), false,
+                                          ContextMemoryAllocator<Node>(getContext()->getCMM()));
+      d_selector_eq.insertDataFromContextMemory(b, sel_b);
+    } else {
+      sel_b = (*sel_b_i).second;
+    }
+    EqListN* sel_a = (*sel_a_i).second;
+    for( EqListN::const_iterator i = sel_a->begin(); i != sel_a->end(); i++ ) {
+      sel_b->push_back( *i );
+    }
+    if( !sel_a->empty() ){
+      d_checkMap[ b ] = true;
+    }
   }
 
   deq_ia = d_disequalities.find(a);
@@ -647,42 +804,14 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
     }
   }
 
-  Debug("datatypes-cycles") << "Equal " << a << " -> " << b << " " << d_hasSeenCycle.get() << endl;
-  if( d_hasSeenCycle.get() ){
-    checkCycles();
-    if( hasConflict() ){
-      return;
-    }
-  }
-  //else{
-  //  checkCycles();
-  //  if( hasConflict() ){
-  //    for( int i=0; i<(int)d_currEqualities.size(); i++ ) {
-  //      Debug("datatypes-cycles") << "currEqualities[" << i << "] = " << d_currEqualities[i] << endl;
-  //    }
-  //    d_cycle_check.debugPrint();
-  //    Assert( false );
-  //  }
-  //}
-  Debug("datatypes-debug") << "Done cycles" << endl;
-
-  //merge selector lists
-  updateSelectors( a );
-  if( hasConflict() ){
-    return;
-  }
-  Debug("datatypes-debug") << "Done collapse" << endl;
-
   //merge labels
   EqLists::iterator lbl_i = d_labels.find( a );
   if(lbl_i != d_labels.end()) {
     EqList* lbl = (*lbl_i).second;
-    if( !lbl->empty() ) {
-      for( EqList::const_iterator i = lbl->begin(); i != lbl->end(); i++ ) {
-        addTester( *i );
-        if( hasConflict() ) {
-          return;
-        }
+    for( EqList::const_iterator i = lbl->begin(); i != lbl->end(); i++ ) {
+      addTester( *i );
+      if( hasConflict() ) {
+        return;
       }
     }
   }
@@ -699,128 +828,14 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
         d_em.addNode( ccEq, &d_cce );
         d_em.addNode( newEq, ccEq, Reason::idt_unify );
         addEquality( newEq );
+        if( hasConflict() ) {
+          return;
+        }
       }
     }
   }
 
   Debug("datatypes-debug") << "merge(): Done" << endl;
-}
-
-Node TheoryDatatypes::collapseSelector( Node t ) {
-  if( !hasConflict() && t.getKind() == APPLY_SELECTOR ) {
-    //collapse constructor
-    TypeNode typ = t[0].getType();
-    Node sel = t.getOperator();
-    TypeNode selType = sel.getType();
-    Node cons = getConstructorForSelector( sel );
-    const Datatype::Constructor& cn = getConstructor( cons );
-    Node tmp = find( t[0] );
-    Node retNode = t;
-    if( tmp.getKind() == APPLY_CONSTRUCTOR ) {
-      if( tmp.getOperator() == cons ) {
-        size_t selIndex = Datatype::indexOf( sel.toExpr() );
-        Debug("datatypes") << "Applied selector " << t << " to correct constructor, index = " << selIndex << endl;
-        Debug("datatypes") << "Return " << tmp[selIndex] << endl;
-        retNode = tmp[selIndex];
-      } else {
-        Debug("datatypes") << "Applied selector " << t << " to wrong constructor " << endl;
-        Debug("datatypes") << "Return distinguished term ";
-        Debug("datatypes") << selType[1].mkGroundTerm() << " of type " << selType[1] << endl;
-        retNode = selType[1].mkGroundTerm();
-      }
-      if( tmp!=t[0] ){
-        t = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, t.getOperator(), tmp );
-      }
-      Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
-      d_em.addNodeAxiom( neq, Reason::idt_collapse );
-      Debug("datatypes") << "Collapse selector " << neq << endl;
-      addEquality( neq );
-    } else {
-      //see whether we can prove that the selector is applied to the wrong tester
-      Node tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), tmp );
-      Node conflict;
-      unsigned r;
-      checkTester( tester, conflict, r );
-      if( !conflict.isNull() ) {
-        Debug("datatypes") << "Applied selector " << t << " to provably wrong constructor." << endl;
-        // conflict = c ^ tester, conflict => false
-        // want to say c => ~tester
-        //must remove tester from conflict
-        if( conflict.getKind()==kind::AND ){
-          NodeBuilder<> jt(kind::AND);
-          for( int i=0; i<(int)conflict.getNumChildren(); i++ ){
-            if( conflict[i]!=tester ){
-              jt << conflict[i];
-            }
-          }
-          conflict = ( jt.getNumChildren()==1 ) ? jt.getChild( 0 ) : jt;
-        }else if( conflict==tester ){
-          conflict = Node::null();
-        }
-        if( conflict!=tester.notNode() ){
-          d_em.addNode( tester.notNode(), conflict, r );
-        }
-
-        if( tmp != t[0] ) {
-          Node teq = NodeManager::currentNM()->mkNode( EQUAL, tmp, t[0] );
-          d_em.addNode( teq, &d_cce );
-          Node exp = NodeManager::currentNM()->mkNode( AND, tester.notNode(), teq );
-          tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), t[0] );
-          d_em.addNode( tester.notNode(), exp, Reason::idt_tcong );
-        }
-        retNode = selType[1].mkGroundTerm();
-        Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
-
-        d_em.addNode( neq, tester.notNode(), Reason::idt_collapse2 );
-        addEquality( neq );
-      }
-    }
-    return retNode;
-  }
-  return t;
-}
-
-void TheoryDatatypes::updateSelectors( Node a ) {
-  EqListsN::iterator sel_a_i = d_selector_eq.find( a );
-  if( sel_a_i != d_selector_eq.end() ) {
-    EqListN* sel_a = (*sel_a_i).second;
-    Debug("datatypes") << a << " has " << sel_a->size() << " selectors" << endl;
-    if( !sel_a->empty() ) {
-      EqListN* sel_b = NULL;
-      for( EqListN::const_iterator i = sel_a->begin(); i != sel_a->end(); i++ ) {
-        Node s = (*i);
-        Node b = find( a );
-        if( b != a ) {
-          EqListsN::iterator sel_b_i = d_selector_eq.find( b );
-          if( sel_b_i == d_selector_eq.end() ) {
-            sel_b = new(getContext()->getCMM()) EqListN(true, getContext(), false,
-                                                  ContextMemoryAllocator<Node>(getContext()->getCMM()));
-            d_selector_eq.insertDataFromContextMemory(b, sel_b);
-          } else {
-            sel_b = (*sel_b_i).second;
-          }
-          a = b;
-        }
-        //Debug("datatypes") << "Merge selector " << s << " into " << b
-        //Debug("datatypes") << ", find is " << find( s[0] ) << endl;
-        Assert( s.getKind() == APPLY_SELECTOR && find( s[0] ) == b );
-        if( b != s[0] ) {
-          Node t = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, s.getOperator(), b );
-          d_cc.addTerm( t );
-          collectTerms( t );
-        }
-        s = collapseSelector( s );
-        if( hasConflict() ) {
-          return;
-        }
-        if( sel_b && s.getKind() == APPLY_SELECTOR ) {
-          sel_b->push_back( s );
-        }
-      }
-    }
-  } else {
-    Debug("datatypes") << a << " has no selectors" << endl;
-  }
 }
 
 void TheoryDatatypes::addTermToLabels( Node t ) {
@@ -855,9 +870,11 @@ void TheoryDatatypes::initializeEqClass( Node t ) {
   }
 }
 
-void TheoryDatatypes::collectTerms( Node n ) {
-  for( int i=0; i<(int)n.getNumChildren(); i++ ) {
-    collectTerms( n[i] );
+void TheoryDatatypes::collectTerms( Node n, bool recurse ) {
+  if( recurse ){
+    for( int i=0; i<(int)n.getNumChildren(); i++ ) {
+      collectTerms( n[i] );
+    }
   }
   if( n.getKind() == APPLY_CONSTRUCTOR ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ) {
@@ -866,41 +883,30 @@ void TheoryDatatypes::collectTerms( Node n ) {
       Assert( !result );    //this should not create any new cycles (relevant terms should have been recorded before)
     }
   }else{
-    if( n.getKind() == APPLY_SELECTOR ) {
-      if( d_selectors.find( n ) == d_selectors.end() ) {
-        Debug("datatypes") << "  Found selector " << n << endl;
-        d_selectors[ n ] = true;
-        d_cc.addTerm( n );
-        Node tmp = find( n[0] );
-        checkInstantiate( tmp );
+    if( n.getKind() == APPLY_SELECTOR && d_selectors.find( n ) == d_selectors.end() ) {
+      Debug("datatypes") << "  Found selector " << n << endl;
+      d_selectors[ n ] = false;
+      d_cc.addTerm( n );
+      Node tmp = find( n[0] );
+      d_checkMap[ tmp ] = true;
 
-        Node s = n;
-        if( tmp != n[0] ) {
-          s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, n.getOperator(), tmp );
-        }
-        s = collapseSelector( s );
-        if( s.getKind() == APPLY_SELECTOR ) {
-          //add selector to selector eq list
-          Debug("datatypes") << "  Add selector to list " << tmp << " " << n << endl;
-          EqListsN::iterator sel_i = d_selector_eq.find( tmp );
-          EqListN* sel;
-          if( sel_i == d_selector_eq.end() ) {
-            sel = new(getContext()->getCMM()) EqListN(true, getContext(), false,
-                                              ContextMemoryAllocator<Node>(getContext()->getCMM()));
-            d_selector_eq.insertDataFromContextMemory(tmp, sel);
-          } else {
-            sel = (*sel_i).second;
-          }
-          sel->push_back( s );
-        } else {
-          Debug("datatypes") << "  collapsed selector to " << s << endl;
-        }
+      //add selector to selector eq list
+      Debug("datatypes") << "  Add selector to list " << tmp << " " << n << endl;
+      EqListsN::iterator sel_i = d_selector_eq.find( tmp );
+      EqListN* sel;
+      if( sel_i == d_selector_eq.end() ) {
+        sel = new(getContext()->getCMM()) EqListN(true, getContext(), false,
+                                          ContextMemoryAllocator<Node>(getContext()->getCMM()));
+        d_selector_eq.insertDataFromContextMemory(tmp, sel);
+      } else {
+        sel = (*sel_i).second;
       }
+      sel->push_back( n );
     }
     addTermToLabels( n );
   }
 }
-
+ 
 void TheoryDatatypes::appendToDiseqList(TNode of, TNode eq) {
   Debug("datatypes") << "appending " << eq << endl
               << "  to diseq list of " << of << endl;
@@ -922,51 +928,62 @@ void TheoryDatatypes::appendToDiseqList(TNode of, TNode eq) {
   //}
 }
 
-#define DELAY_MERGE
-
 void TheoryDatatypes::addEquality(TNode eq) {
   Assert(eq.getKind() == kind::EQUAL ||
          eq.getKind() == kind::IFF);
-  if( find( eq[0] ) != find( eq[1] ) ) {
+  if( !hasConflict() && find( eq[0] ) != find( eq[1] ) ) {
     Debug("datatypes") << "Add equality " << eq << "." << endl;
     Debug("datatypes-debug-pf") << "Add equality " << eq << "." << endl;
-
+#if 1    //for delayed merging
     //setup merge pending list
-#ifdef DELAY_MERGE
     d_merge_pending.push_back( vector< pair< Node, Node > >() );
-    bool prevNoMerge = d_noMerge;
-    d_noMerge = true;
-#endif
 
+    d_cce.assert(eq);
     d_cc.addTerm(eq[0]);
     d_cc.addTerm(eq[1]);
-    d_cce.assert(eq);
-    if( Debug.isOn("datatypes") || Debug.isOn("datatypes-cycles") ){
-      d_currEqualities.push_back(eq);
-    }
 
-#ifdef DELAY_MERGE
     //record which nodes are waiting to be merged
-    d_noMerge = prevNoMerge;
     vector< pair< Node, Node > > mp;
     mp.insert( mp.begin(), 
                d_merge_pending[d_merge_pending.size()-1].begin(), 
                d_merge_pending[d_merge_pending.size()-1].end() );
     d_merge_pending.pop_back();
-#endif
 
     //merge original nodes
     if( !hasConflict() ) {
       merge( eq[0], eq[1] );
+    }else{
+      Debug("datatypes-debug-pf") << "Forget merge " << eq << std::endl;
     }
-#ifdef DELAY_MERGE
     //merge nodes waiting to be merged
     for( int i=0; i<(int)mp.size(); i++ ) {
       if( !hasConflict() ) {
         merge( mp[i].first, mp[i].second );
+      }else{
+        Debug("datatypes-debug-pf") << "Forget merge " << mp[i].first << " " << mp[i].second << std::endl;
       }
     }
+#elif 0
+    Debug("datatypes-ae") << "Add equality " << eq << "." << endl;
+    Debug("datatypes-ae") << "   Find is " << find( eq[0] ) << " = " << find( eq[1] ) << std::endl;
+    //merge original nodes
+    merge( eq[0], eq[1] );
+    d_cce.assert(eq);
+    d_cc.addTerm(eq[0]);
+    d_cc.addTerm(eq[1]);
+#else
+    Debug("datatypes-ae") << "Add equality " << eq << "." << endl;
+    Debug("datatypes-ae") << "   Find is " << find( eq[0] ) << " = " << find( eq[1] ) << std::endl;
+    merge( eq[0], eq[1] );
+    if( !hasConflict() ){
+      d_cce.assert(eq);
+      d_cc.addTerm(eq[0]);
+      d_cc.addTerm(eq[1]);
+    }
 #endif
+    if( Debug.isOn("datatypes") || Debug.isOn("datatypes-cycles") ){
+      d_currEqualities.push_back(eq);
+    }
   }
 }
 
@@ -988,7 +1005,7 @@ void TheoryDatatypes::checkCycles() {
       NodeBuilder<> explanation(kind::AND);
       if( searchForCycle( (*i).first, (*i).first, visited, explanation ) ) {
         Node cCycle = explanation.getNumChildren() == 1 ? explanation.getChild( 0 ) : explanation;
-        d_em.addNodeConflict( cCycle, Reason::idt_cycle );
+        d_em.addNodeConflict( cCycle, Reason::idt_cycle_coarse );
         Debug("datatypes") << "Detected cycle for " << (*i).first << endl;
         Debug("datatypes") << "Conflict is " << cCycle << endl;
         return;

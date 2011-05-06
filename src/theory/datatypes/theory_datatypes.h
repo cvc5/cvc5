@@ -49,15 +49,16 @@ private:
   context::CDList<Node> d_currAsserts;
   context::CDList<Node> d_currEqualities;
 
-  /** list of all selectors */
+  /** keeps track of all selectors we care about, value is whether they have been collapsed */
   BoolMap d_selectors;
-  /** list of all representatives */
+  /** keeps track of which nodes are representatives */
   BoolMap d_reps;
-  /** map from nodes to a list of selectors whose arguments are in the equivalence class of that node */
+  /** map from (representative) nodes to a list of selectors whose arguments are 
+      in the equivalence class of that node */
   EqListsN d_selector_eq;
-  /** map from node representatives to list of nodes in their eq class */
+  /** map from (representative) nodes to list of nodes in their eq class */
   EqListsN d_equivalence_class;
-  /** map from terms to whether they have been instantiated */
+  /** map from nodes to whether they have been instantiated */
   BoolMap d_inst_map;
   /** transitive closure to record equivalence/subterm relation.  */
   TransitiveClosureNode d_cycle_check;
@@ -69,7 +70,7 @@ private:
   Node getConstructorForSelector( Node sel );
 
   /**
-   * map from terms to testers asserted for that term
+   * map from (representative) nodes to testers that hold for that node
    * for each t, this is either a list of equations of the form
    *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t ), each of which are unique testers
    *   and n is less than the number of possible constructors for t minus one,
@@ -121,14 +122,21 @@ private:
   /**
    * information for delayed merging (is this necessary?)
    */
-  bool d_noMerge;
   std::vector< std::vector< std::pair< Node, Node > > > d_merge_pending;
-  bool d_inCheck;
+
+  /**
+   * Terms that currently need to be checked for collapse/instantiation rules
+   */
+  std::map< Node, bool > d_checkMap;
 
   /**
    * explanation manager
    */
   ExplanationManager d_em;
+
+  /**
+   * explanation manager for the congruence closure module
+   */
   CongruenceClosureExplainer<CongruenceChannel, CONGRUENCE_OPERATORS_2 (kind::APPLY_CONSTRUCTOR, kind::APPLY_SELECTOR)> d_cce;
 
 public:
@@ -148,12 +156,14 @@ private:
   /* Helper methods */
   bool checkTester( Node assertion, Node& conflict, unsigned& r );
   void addTester( Node assertion );
-  void checkInstantiate( Node t );
-  Node collapseSelector( Node t );
+  Node getInstantiateCons( Node t );
+  void checkInstantiateEqClass( Node t );
+  bool checkInstantiate( Node te, Node cons );
+  bool collapseSelector( Node t );
   void updateSelectors( Node a );
   void addTermToLabels( Node t );
   void initializeEqClass( Node t );
-  void collectTerms( Node n );
+  void collectTerms( Node n, bool recurse = true );
   bool hasConflict();
 
   /* from uf_morgan */

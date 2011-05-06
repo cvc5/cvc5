@@ -47,9 +47,11 @@ public:
 
     cc_coarse,
 
+    //coarse rules for idt
+    idt_cycle_coarse,
+    idt_inst_coarse,
     //unification rules
     idt_unify,
-    idt_cycle,
     idt_clash,
     //tester rules
     idt_taxiom,
@@ -133,12 +135,12 @@ public:
   ~CongruenceClosureExplainer(){}
   /** assert that n is true */
   void assert( Node n ){
-    Assert( n.getKind() == kind::EQUAL );
+    Assert( n.getKind() == kind::EQUAL || n.getKind() == kind::IFF );
     d_cc->addEquality( n );
   }
   /** get the explanation for n */
   Node explain( Node n, ProofManager* pm ){
-    Assert( n.getKind() == kind::EQUAL );
+    Assert( n.getKind() == kind::EQUAL || n.getKind() == kind::IFF );
     if( pm->getEffort()==ProofManager::FULL_EFFORT ){
       //unsupported
       Assert( false );
