@@ -851,7 +851,8 @@ void TheoryDatatypes::addTermToLabels( Node t ) {
         const Datatype& dt = ((DatatypeType)(t.getType()).toType()).getDatatype();
         if( dt.getNumConstructors()==1 ){
           Node tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[0].getTester() ), t );
-          addTester( tester );
+          lbl->push_back( tester );
+          d_checkMap[ t ] = true;
           d_em.addNodeAxiom( tester, Reason::idt_texhaust );
         }
         d_labels.insertDataFromContextMemory(tmp, lbl);

@@ -357,7 +357,7 @@ public:
    */
   std::vector<DatatypeType>
   mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
-                        const std::set<SortType>& unresolvedTypes);
+                        const std::set<Type>& unresolvedTypes);
 
   /**
    * Make a type representing a constructor with the given parameterization.

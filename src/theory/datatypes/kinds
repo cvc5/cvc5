@@ -53,4 +53,13 @@ well-founded DATATYPE_TYPE \
     "%TYPE%.getConst<Datatype>().mkGroundTerm()" \
     "util/datatype.h"
 
+operator PARAMETRIC_DATATYPE 1: "parametric datatype"
+cardinality PARAMETRIC_DATATYPE \
+    "DatatypeType(%TYPE%.toType()).getDatatype().getCardinality()" \
+    "util/datatype.h"
+well-founded PARAMETRIC_DATATYPE\
+    "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
+    "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm()" \
+    "util/datatype.h"
+    
 endtheory

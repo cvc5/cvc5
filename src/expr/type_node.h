@@ -452,6 +452,11 @@ public:
   std::vector<TypeNode> getArgTypes() const;
 
   /**
+   * Get the paramater types of a parameterized datatype.
+   */
+  std::vector<TypeNode> getParamTypes() const;
+
+  /**
    * Get the range type (i.e., the type of the result) of a function,
    * datatype constructor, datatype selector, or datatype tester.
    */
@@ -478,6 +483,9 @@ public:
 
   /** Is this a datatype type */
   bool isDatatype() const;
+
+  /** Is this a parameterized datatype type */
+  bool isParametricDatatype() const;
 
   /** Is this a constructor type */
   bool isConstructor() const;

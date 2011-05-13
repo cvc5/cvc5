@@ -1002,12 +1002,27 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
 }
     /* named types */
   : identifier[id,check,SYM_SORT]
-    parameterization[check]?
-    { if(check == CHECK_DECLARED ||
+    parameterization[check,types]?
+    { 
+      if(check == CHECK_DECLARED ||
          PARSER_STATE->isDeclared(id, SYM_SORT)) {
-        t = PARSER_STATE->getSort(id);
+        Debug("parser-param") << "param: getSort " << id << " " << types.size() << " " << PARSER_STATE->getArity( id ) 
+                              << " " << PARSER_STATE->isDeclared(id, SYM_SORT) << std::endl;
+        if( types.size()>0 ){
+          t = PARSER_STATE->getSort(id, types);
+        }else{
+          t = PARSER_STATE->getSort(id);
+        }
       } else {
-        t = PARSER_STATE->mkUnresolvedType(id);
+        if( types.empty() ){
+          t = PARSER_STATE->mkUnresolvedType(id);
+          Debug("parser-param") << "param: make unres type " << id << std::endl;
+        }else{
+          t = PARSER_STATE->mkUnresolvedTypeConstructor(id,types);
+          t = SortConstructorType(t).instantiate( types );
+          Debug("parser-param") << "param: make unres param type " << id << " " << types.size() << " " 
+                                << PARSER_STATE->getArity( id ) << std::endl;
+        }
       }
     }
 
@@ -1076,12 +1091,13 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
   ;
 
-parameterization[CVC4::parser::DeclarationCheck check]
+parameterization[CVC4::parser::DeclarationCheck check, 
+                 std::vector<CVC4::Type>& params]
 @init {
   Type t;
 }
-  : LBRACKET restrictedType[t,check] ( COMMA restrictedType[t,check] )* RBRACKET
-    { UNSUPPORTED("parameterized types not yet supported"); }
+  : LBRACKET restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); }
+    ( COMMA restrictedType[t,check] { Debug("parser-param") << "t = " << t << std::endl; params.push_back( t ); } )* RBRACKET
   ;
 
 bound returns [CVC4::parser::cvc::mySubrangeBound bound]
@@ -1267,6 +1283,7 @@ term[CVC4::Expr& f]
   std::vector<CVC4::Expr> expressions;
   std::vector<unsigned> operators;
   unsigned op;
+  Type t;
 }
   : storeTerm[f] { expressions.push_back(f); }
     ( arithmeticBinop[op] storeTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
@@ -1374,6 +1391,7 @@ postfixTerm[CVC4::Expr& f]
   bool extract = false, left = false;
   std::vector<Expr> args;
   std::string id;
+  Type t;
 }
   : bvTerm[f]
     ( /* array select / bitvector extract */
@@ -1443,7 +1461,9 @@ postfixTerm[CVC4::Expr& f]
           f = EXPR_MANAGER->mkVar(TupleType(f.getType()).getTypes()[k]); }
       )*/
     )*
-    typeAscription[f]?
+    (typeAscription[f, t] 
+     { //f = MK_EXPR(CVC4::kind::APPLY_TYPE_ANNOTATION, MK_CONST(t), f); 
+     } )? 
   ;
 
 bvTerm[CVC4::Expr& f]
@@ -1642,20 +1662,19 @@ simpleTerm[CVC4::Expr& f]
  * Matches (and performs) a type ascription.
  * The f arg is the term to check (it is an input-only argument).
  */
-typeAscription[const CVC4::Expr& f]
+typeAscription[const CVC4::Expr& f, CVC4::Type& t]
 @init {
-  Type t;
 }
   : COLON COLON type[t,CHECK_DECLARED]
-    { if(f.getType() != t) {
-        std::stringstream ss;
-        ss << Expr::setlanguage(language::output::LANG_CVC4)
-           << "type ascription not satisfied\n"
-           << "term:     " << f << '\n'
-           << "has type: " << f.getType() << '\n'
-           << "ascribed: " << t;
-        PARSER_STATE->parseError(ss.str());
-      }
+    { //if(f.getType() != t) {
+      //  std::stringstream ss;
+      //  ss << Expr::setlanguage(language::output::LANG_CVC4)
+      //     << "type ascription not satisfied\n"
+      //     << "term:     " << f << '\n'
+      //     << "has type: " << f.getType() << '\n'
+      //     << "ascribed: " << t;
+      //  PARSER_STATE->parseError(ss.str());
+      //}
     }
   ;
 
@@ -1706,16 +1725,23 @@ iteElseTerm[CVC4::Expr& f]
 datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 @init {
   std::string id, id2;
+  Type t;
+  std::vector< Type > params;
 }
     /* This really needs to be CHECK_NONE, or mutually-recursive datatypes
      * won't work, because this type will already be "defined" as an
      * unresolved type; don't worry, we check below. */
-  : identifier[id,CHECK_NONE,SYM_SORT]
-    ( LBRACKET identifier[id2,CHECK_NONE,SYM_SORT]
-      ( COMMA identifier[id2,CHECK_NONE,SYM_SORT] )* RBRACKET
-      { UNSUPPORTED("parameterized datatypes not yet supported"); }
+  : identifier[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
+    ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] { 
+        t = PARSER_STATE->mkSort(id2);
+        params.push_back( t ); 
+      }
+      ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] { 
+        t = PARSER_STATE->mkSort(id2);
+        params.push_back( t ); } 
+      )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(id));
+    { datatypes.push_back(Datatype(id,params));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -1723,6 +1749,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
     }
     EQUAL_TOK constructorDef[datatypes.back()]
     ( BAR constructorDef[datatypes.back()] )*
+    { PARSER_STATE->popScope(); }
   ;
 
 /**

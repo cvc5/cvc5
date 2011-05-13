@@ -225,7 +225,7 @@ Type::operator DatatypeType() const throw(AssertionException) {
 /** Is this the Datatype type? */
 bool Type::isDatatype() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isDatatype();
+  return d_typeNode->isDatatype() || d_typeNode->isParametricDatatype();
 }
 
 /** Cast to a Constructor type */
@@ -388,6 +388,18 @@ string SortType::getName() const {
   return d_typeNode->getAttribute(expr::VarNameAttr());
 }
 
+bool SortType::isParameterized() const
+{
+  return false;
+}
+
+/** Get the parameter types */
+std::vector<Type> SortType::getParamTypes() const
+{
+  vector<Type> params;
+  return params;
+}
+
 string SortConstructorType::getName() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getAttribute(expr::VarNameAttr());
@@ -514,7 +526,48 @@ std::vector<Type> ConstructorType::getArgTypes() const {
 }
 
 const Datatype& DatatypeType::getDatatype() const {
-  return d_typeNode->getConst<Datatype>();
+  if( d_typeNode->isParametricDatatype() ){
+    Assert( (*d_typeNode)[0].getKind()==kind::DATATYPE_TYPE );
+    const Datatype& dt = (*d_typeNode)[0].getConst<Datatype>();
+    return dt;
+  }else{
+    return d_typeNode->getConst<Datatype>();
+  }
+}
+
+bool DatatypeType::isParametric() const {
+  return d_typeNode->isParametricDatatype();
+}
+
+size_t DatatypeType::getArity() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getNumChildren() - 1;
+}
+
+std::vector<Type> DatatypeType::getParamTypes() const{
+  NodeManagerScope nms(d_nodeManager);
+  vector<Type> params;
+  vector<TypeNode> paramNodes = d_typeNode->getParamTypes();
+  vector<TypeNode>::iterator it = paramNodes.begin();
+  vector<TypeNode>::iterator it_end = paramNodes.end();
+  for(; it != it_end; ++ it) {
+    params.push_back(makeType(*it));
+  }
+  return params;
+}
+
+DatatypeType DatatypeType::instantiate(const std::vector<Type>& params) const {
+  NodeManagerScope nms(d_nodeManager);
+  TypeNode cons = d_nodeManager->mkTypeConst( getDatatype() );
+  vector<TypeNode> paramsNodes;
+  paramsNodes.push_back( cons );
+  for(vector<Type>::const_iterator i = params.begin(),
+        iend = params.end();
+      i != iend;
+      ++i) {
+    paramsNodes.push_back(*getTypeNode(*i));
+  }
+  return DatatypeType(makeType(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE,paramsNodes)));
 }
 
 DatatypeType SelectorType::getDomain() const {

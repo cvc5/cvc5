@@ -144,7 +144,10 @@ Type DeclarationScope::lookupType(const std::string& name,
     Debug("sort") << "instance is  " << instantiation << endl;
 
     return instantiation;
-  } else {
+  }else if( p.second.isDatatype() ){
+    Assert( DatatypeType( p.second ).isParametric() );
+    return DatatypeType(p.second).instantiate(params);
+  }else {
     if(Debug.isOn("sort")) {
       Debug("sort") << "instantiating using a sort substitution" << endl;
       Debug("sort") << "have formals [";
@@ -165,6 +168,11 @@ Type DeclarationScope::lookupType(const std::string& name,
 
     return instantiation;
   }
+}
+
+size_t DeclarationScope::lookupArity( const std::string& name ){
+  pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
+  return p.first.size();
 }
 
 void DeclarationScope::popScope() throw(ScopeException) {

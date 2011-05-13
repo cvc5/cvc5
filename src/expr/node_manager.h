@@ -53,10 +53,12 @@ namespace expr {
 namespace attr {
   struct VarNameTag {};
   struct SortArityTag {};
+  struct DatatypeTag {};
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
+typedef Attribute<attr::SortArityTag, void*> DatatypeAttr;
 
 }/* CVC4::expr namespace */
 
@@ -1187,7 +1189,6 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
                                         const std::vector<TypeNode>& children) {
   return NodeBuilder<>(this, kind).append(children).constructTypeNode();
 }
-
 
 inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
   Node n = mkVar(type);

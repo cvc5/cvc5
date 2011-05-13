@@ -32,6 +32,70 @@ namespace expr {
 namespace theory {
 namespace datatypes {
 
+class Matcher
+{
+private:
+  std::vector< TypeNode > d_types;
+  std::vector< TypeNode > d_match;
+public:
+  Matcher(){}
+  Matcher( DatatypeType dt ){
+    std::vector< Type > argTypes = dt.getParamTypes();
+    addTypes( argTypes );
+  }
+  ~Matcher(){}
+
+  void addType( Type t ){
+    d_types.push_back( TypeNode::fromType( t ) );
+    d_match.push_back( TypeNode::null() );
+  }
+  void addTypes( std::vector< Type > types ){
+    for( int i=0; i<(int)types.size(); i++ ){
+      addType( types[i] );
+    }
+  }
+
+  bool doMatching( TypeNode base, TypeNode match ){
+    std::vector< TypeNode >::iterator i = std::find( d_types.begin(), d_types.end(), base );
+    if( i!=d_types.end() ){
+      int index = i - d_types.begin();
+      if( !d_match[index].isNull() && d_match[index]!=match ){
+        return false;
+      }else{
+        d_match[ i - d_types.begin() ] = match;
+        return true;
+      }
+    }else if( base==match ){
+      return true;
+    }else if( base.getKind()!=match.getKind() || base.getNumChildren()!=match.getNumChildren() ){
+      return false;
+    }else{
+      for( int i=0; i<(int)base.getNumChildren(); i++ ){
+        if( !doMatching( base[i], match[i] ) ){
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
+  TypeNode getMatch( unsigned int i ){ return d_match[i]; }
+  void getTypes( std::vector<Type>& types ) { 
+    types.clear();
+    for( int i=0; i<(int)d_match.size(); i++ ){
+      types.push_back( d_types[i].toType() );
+    }
+  }
+  void getMatches( std::vector<Type>& types ) { 
+    types.clear();
+    for( int i=0; i<(int)d_match.size(); i++ ){
+      Assert( !d_match[i].isNull() ); //verify that all types have been set
+      types.push_back( d_match[i].toType() );
+    }
+  }
+};
+
+
 typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node> GroundTermAttr;
 
 struct DatatypeConstructorTypeRule {
@@ -39,24 +103,43 @@ struct DatatypeConstructorTypeRule {
     throw(TypeCheckingExceptionPrivate) {
     Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
     TypeNode consType = n.getOperator().getType(check);
-    if(check) {
-      Debug("typecheck-idt") << "typecheck cons: " << n << " " << n.getNumChildren() << std::endl;
-      Debug("typecheck-idt") << "cons type: " << consType << " " << consType.getNumChildren() << std::endl;
-      if(n.getNumChildren() != consType.getNumChildren() - 1) {
-        throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the constructor type");
-      }
-      TNode::iterator child_it = n.begin();
-      TNode::iterator child_it_end = n.end();
-      TypeNode::iterator tchild_it = consType.begin();
+    Type t = consType.getConstructorRangeType().toType();
+    Assert( t.isDatatype() );
+    DatatypeType dt = DatatypeType(t);
+    TNode::iterator child_it = n.begin();
+    TNode::iterator child_it_end = n.end();
+    TypeNode::iterator tchild_it = consType.begin();
+    if( ( dt.isParametric() || check ) && n.getNumChildren() != consType.getNumChildren() - 1 ){
+      throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the constructor type");
+    }
+    if( dt.isParametric() ){
+      Debug("typecheck-idt") << "typecheck parameterized datatype " << n << std::endl;
+      Matcher m( dt );
       for(; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
-        Debug("typecheck-idt") << "typecheck cons arg: " << childType << " " << (*tchild_it) << std::endl;
-        if(childType != *tchild_it) {
-          throw TypeCheckingExceptionPrivate(n, "bad type for constructor argument");
+        if( !m.doMatching( *tchild_it, childType ) ){
+          throw TypeCheckingExceptionPrivate(n, "matching failed for parameterized constructor");
         }
       }
+      std::vector< Type > instTypes;
+      m.getMatches( instTypes );
+      TypeNode range = TypeNode::fromType( dt.instantiate( instTypes ) );
+      Debug("typecheck-idt") << "Return " << range << std::endl;
+      return range;
+    }else{
+      if(check) {
+        Debug("typecheck-idt") << "typecheck cons: " << n << " " << n.getNumChildren() << std::endl;
+        Debug("typecheck-idt") << "cons type: " << consType << " " << consType.getNumChildren() << std::endl;
+        for(; child_it != child_it_end; ++child_it, ++tchild_it) {
+          TypeNode childType = (*child_it).getType(check);
+          Debug("typecheck-idt") << "typecheck cons arg: " << childType << " " << (*tchild_it) << std::endl;
+          if(childType != *tchild_it) {
+            throw TypeCheckingExceptionPrivate(n, "bad type for constructor argument");
+          }
+        }
+      }
+      return consType.getConstructorRangeType();
     }
-    return consType.getConstructorRangeType();
   }
 };/* struct DatatypeConstructorTypeRule */
 
@@ -65,18 +148,38 @@ struct DatatypeSelectorTypeRule {
     throw(TypeCheckingExceptionPrivate) {
     Assert(n.getKind() == kind::APPLY_SELECTOR);
     TypeNode selType = n.getOperator().getType(check);
-    Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
-    Debug("typecheck-idt") << "sel type: " << selType << std::endl;
-    if(check) {
-      if(n.getNumChildren() != 1) {
-        throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the selector type");
-      }
-      TypeNode childType = n[0].getType(check);
-      if(selType[0] != childType) {
-        throw TypeCheckingExceptionPrivate(n, "bad type for selector argument");
-      }
+    Type t = selType[0].toType();
+    Assert( t.isDatatype() );
+    DatatypeType dt = DatatypeType(t);
+    if( ( dt.isParametric() || check ) && n.getNumChildren() != 1 ){
+      throw TypeCheckingExceptionPrivate(n, "number of arguments does not match the selector type");
     }
-    return selType[1];
+    if( dt.isParametric() ){
+      Debug("typecheck-idt") << "typecheck parameterized sel: " << n << std::endl;
+      Matcher m( dt );
+      TypeNode childType = n[0].getType(check);
+      if( !m.doMatching( selType[0], childType ) ){
+        throw TypeCheckingExceptionPrivate(n, "matching failed for selector argument of parameterized datatype");
+      }
+      std::vector< Type > types, matches;
+      m.getTypes( types );
+      m.getMatches( matches );
+      Type range = selType[1].toType();
+      range = range.substitute( types, matches );
+      Debug("typecheck-idt") << "Return " << range << std::endl;
+      return TypeNode::fromType( range );
+    }else{
+      if(check) {
+        Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
+        Debug("typecheck-idt") << "sel type: " << selType << std::endl;
+        TypeNode childType = n[0].getType(check);
+        if(selType[0] != childType) {
+          Debug("typecheck-idt") << "ERROR: " << selType[0].getKind() << " " << childType.getKind() << std::endl;
+          throw TypeCheckingExceptionPrivate(n, "bad type for selector argument");
+        }
+      }
+      return selType[1];
+    }
   }
 };/* struct DatatypeSelectorTypeRule */
 
@@ -90,10 +193,21 @@ struct DatatypeTesterTypeRule {
       }
       TypeNode testType = n.getOperator().getType(check);
       TypeNode childType = n[0].getType(check);
-      Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
-      Debug("typecheck-idt") << "test type: " << testType << std::endl;
-      if(testType[0] != childType) {
-        throw TypeCheckingExceptionPrivate(n, "bad type for tester argument");
+      Type t = testType[0].toType();
+      Assert( t.isDatatype() );
+      DatatypeType dt = DatatypeType(t);
+      if( dt.isParametric() ){
+        Debug("typecheck-idt") << "typecheck parameterized tester: " << n << std::endl;
+        Matcher m( dt );
+        if( !m.doMatching( testType[0], childType ) ){
+          throw TypeCheckingExceptionPrivate(n, "matching failed for tester argument of parameterized datatype");
+        }
+      }else{
+        Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
+        Debug("typecheck-idt") << "test type: " << testType << std::endl;
+        if(testType[0] != childType) {
+          throw TypeCheckingExceptionPrivate(n, "bad type for tester argument");
+        }
       }
     }
     return nodeManager->booleanType();
@@ -140,7 +254,8 @@ struct ConstructorProperties {
     // Constructors within the same Datatype could share the same
     // type.  So we scan through the datatype to find one that
     // matches.
-    const Datatype& dt = type[type.getNumChildren() - 1].getConst<Datatype>();
+    //const Datatype& dt = type[type.getNumChildren() - 1].getConst<Datatype>();
+    const Datatype& dt = DatatypeType(type[type.getNumChildren() - 1].toType()).getDatatype();
     for(Datatype::const_iterator i = dt.begin(),
           i_end = dt.end();
         i != i_end;

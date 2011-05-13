@@ -175,6 +175,11 @@ public:
                   const std::vector<Type>& params) const throw(AssertionException);
 
   /**
+   * Lookup the arity of a bound parameterized type.
+   */
+  size_t lookupArity( const std::string& name );
+
+  /**
    * Pop a scope level. Deletes all bindings since the last call to
    * <code>pushScope</code>. Calls to <code>pushScope</code> and
    * <code>popScope</code> must be "properly nested." I.e., a call to

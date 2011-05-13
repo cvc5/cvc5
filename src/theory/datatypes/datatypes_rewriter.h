@@ -43,7 +43,8 @@ public:
         return RewriteResponse(REWRITE_DONE,
                                NodeManager::currentNM()->mkConst(result));
       } else {
-        const Datatype& dt = in[0].getType().getConst<Datatype>();
+        //const Datatype& dt = in[0].getType().getConst<Datatype>();
+        const Datatype& dt = DatatypeType(in[0].getType().toType()).getDatatype();
         if(dt.getNumConstructors() == 1) {
           // only one constructor, so it must be
           Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "

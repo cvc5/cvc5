@@ -136,6 +136,15 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
   return args;
 }
 
+std::vector<TypeNode> TypeNode::getParamTypes() const {
+  vector<TypeNode> params;
+  Assert( isParametricDatatype() );
+  for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
+    params.push_back((*this)[i]);
+  }
+  return params;
+}
+
 TypeNode TypeNode::getRangeType() const {
   if(isTester()) {
     return NodeManager::currentNM()->booleanType();
@@ -183,6 +192,11 @@ bool TypeNode::isBitVector() const {
 /** Is this a datatype type */
 bool TypeNode::isDatatype() const {
   return getKind() == kind::DATATYPE_TYPE;
+}
+
+/** Is this a datatype type */
+bool TypeNode::isParametricDatatype() const {
+  return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
 /** Is this a constructor type */

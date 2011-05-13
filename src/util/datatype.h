@@ -175,6 +175,12 @@ public:
       Expr getConstructor() const;
 
       /**
+       * Get the selector for this constructor argument; this call is
+       * only permitted after resolution.
+       */
+      Type getSelectorType() const;
+
+      /**
        * Get the name of the type of this constructor argument
        * (Datatype field).  Can be used for not-yet-resolved Datatypes
        * (in which case the name of the unresolved type, or "[self]"
@@ -204,10 +210,16 @@ public:
     void resolve(ExprManager* em, DatatypeType self,
                  const std::map<std::string, DatatypeType>& resolutions,
                  const std::vector<Type>& placeholders,
-                 const std::vector<Type>& replacements)
+                 const std::vector<Type>& replacements,
+                 const std::vector< SortConstructorType >& paramTypes,
+                 const std::vector< DatatypeType >& paramReplacements)
       throw(AssertionException, DatatypeResolutionException);
     friend class Datatype;
 
+    /** */
+    Type doParametricSubstitution( Type range, 
+                                   const std::vector< SortConstructorType >& paramTypes, 
+                                   const std::vector< DatatypeType >& paramReplacements );
   public:
     /**
      * Create a new Datatype constructor with the given name for the
@@ -314,6 +326,7 @@ public:
 
 private:
   std::string d_name;
+  std::vector<Type> d_params;
   std::vector<Constructor> d_constructors;
   bool d_resolved;
   Type d_self;
@@ -330,14 +343,16 @@ private:
   void resolve(ExprManager* em,
                const std::map<std::string, DatatypeType>& resolutions,
                const std::vector<Type>& placeholders,
-               const std::vector<Type>& replacements)
+               const std::vector<Type>& replacements,
+               const std::vector< SortConstructorType >& paramTypes,
+               const std::vector< DatatypeType >& paramReplacements)
     throw(AssertionException, DatatypeResolutionException);
   friend class ExprManager;// for access to resolve()
 
 public:
 
   /** Create a new Datatype of the given name. */
-  inline explicit Datatype(std::string name);
+  inline explicit Datatype(std::string name, std::vector<Type>& params);
 
   /** Add a constructor to this Datatype. */
   void addConstructor(const Constructor& c);
@@ -346,6 +361,11 @@ public:
   inline std::string getName() const throw();
   /** Get the number of constructors (so far) for this Datatype. */
   inline size_t getNumConstructors() const throw();
+
+  /** Get the nubmer of parameters */
+  inline size_t getNumParameters() const throw();
+  /** Get parameter */
+  inline Type getParameter( unsigned int i ) const;
 
   /**
    * Return the cardinality of this datatype (the sum of the
@@ -380,6 +400,12 @@ public:
    * called post-resolution.
    */
   DatatypeType getDatatypeType() const throw(AssertionException);
+
+  /**
+   * Get the DatatypeType associated to this (parameterized) Datatype.  Can only be
+   * called post-resolution.
+   */
+  DatatypeType getDatatypeType(const std::vector<Type>& params) const throw(AssertionException);
 
   /**
    * Return true iff the two Datatypes are the same.
@@ -466,8 +492,9 @@ inline std::string Datatype::UnresolvedType::getName() const throw() {
   return d_name;
 }
 
-inline Datatype::Datatype(std::string name) :
+inline Datatype::Datatype(std::string name, std::vector<Type>& params) :
   d_name(name),
+  d_params(params),
   d_constructors(),
   d_resolved(false),
   d_self() {
@@ -479,6 +506,14 @@ inline std::string Datatype::getName() const throw() {
 
 inline size_t Datatype::getNumConstructors() const throw() {
   return d_constructors.size();
+}
+
+inline size_t Datatype::getNumParameters() const throw() {
+  return d_params.size();
+}
+
+inline Type Datatype::getParameter( unsigned int i ) const {
+  return d_params[i];
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

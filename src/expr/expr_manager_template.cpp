@@ -486,12 +486,12 @@ DatatypeType ExprManager::mkDatatypeType(const Datatype& datatype) {
 
 std::vector<DatatypeType>
 ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
-  return mkMutualDatatypeTypes(datatypes, set<SortType>());
+  return mkMutualDatatypeTypes(datatypes, set<Type>());
 }
 
 std::vector<DatatypeType>
 ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
-                                   const std::set<SortType>& unresolvedTypes) {
+                                   const std::set<Type>& unresolvedTypes) {
   NodeManagerScope nms(d_nodeManager);
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
@@ -505,7 +505,18 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
         i_end = datatypes.end();
       i != i_end;
       ++i) {
-    TypeNode* typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
+    TypeNode* typeNode;
+    if( (*i).getNumParameters()==0 ){
+      typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
+    }else{
+      TypeNode cons = d_nodeManager->mkTypeConst(*i);
+      std::vector< TypeNode > params;
+      params.push_back( cons );
+      for( unsigned int ip=0; ip<(*i).getNumParameters(); ip++ ){
+        params.push_back( TypeNode::fromType( (*i).getParameter( ip ) ) );
+      }
+      typeNode = new TypeNode( d_nodeManager->mkTypeNode( kind::PARAMETRIC_DATATYPE, params ) );
+    }
     Type type(d_nodeManager, typeNode);
     DatatypeType dtt(type);
     CheckArgument(nameResolutions.find((*i).getName()) == nameResolutions.end(),
@@ -526,13 +537,21 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
   //
   // @TODO get rid of named resolutions altogether and handle
   // everything with these resolutions?
+  std::vector< SortConstructorType > paramTypes;
+  std::vector< DatatypeType > paramReplacements;
   std::vector<Type> placeholders;// to hold the "unresolved placeholders"
   std::vector<Type> replacements;// to hold our final, resolved types
-  for(std::set<SortType>::const_iterator i = unresolvedTypes.begin(),
+  for(std::set<Type>::const_iterator i = unresolvedTypes.begin(),
         i_end = unresolvedTypes.end();
       i != i_end;
       ++i) {
-    std::string name = (*i).getName();
+    std::string name;
+    if( (*i).isSort() ){
+      name = SortType(*i).getName();
+    }else{
+      Assert( (*i).isSortConstructor() );
+      name = SortConstructorType(*i).getName();
+    }
     std::map<std::string, DatatypeType>::const_iterator resolver =
       nameResolutions.find(name);
     CheckArgument(resolver != nameResolutions.end(),
@@ -543,8 +562,14 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the DatatypeType we created in the
     // first step, above).
-    placeholders.push_back(*i);
-    replacements.push_back((*resolver).second);
+    if( (*i).isSort() ){
+      placeholders.push_back(*i);
+      replacements.push_back( (*resolver).second );
+    }else{
+      Assert( (*i).isSortConstructor() );
+      paramTypes.push_back( SortConstructorType(*i) );
+      paramReplacements.push_back( (*resolver).second );
+    }
   }
 
   // Lastly, perform the final resolutions and checks.
@@ -555,7 +580,8 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
       const_cast<Datatype&>(dt).resolve(this, nameResolutions,
-                                        placeholders, replacements);
+                                        placeholders, replacements,
+                                        paramTypes, paramReplacements);
     }
 
     // Now run some checks, including a check to make sure that no

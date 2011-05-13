@@ -95,6 +95,11 @@ Type Parser::getSort(const std::string& name,
   return t;
 }
 
+size_t Parser::getArity(const std::string& sort_name){
+  Assert( isDeclared(sort_name, SYM_SORT) );
+  return d_declScope->lookupArity(sort_name);
+}
+
 /* Returns true if name is bound to a boolean variable. */
 bool Parser::isBoolean(const std::string& name) {
   return isDeclared(name, SYM_VARIABLE) && getType(name).isBoolean();
@@ -237,6 +242,24 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
   return unresolved;
 }
 
+SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name, 
+                                                        size_t arity)
+{
+  SortConstructorType unresolved = mkSortConstructor(name,arity);
+  d_unresolved.insert(unresolved);
+  return unresolved;
+}
+SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name, 
+                                                        const std::vector<Type>& params){
+  Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size() << ")"
+                  << std::endl;
+  SortConstructorType unresolved = d_exprManager->mkSortConstructor(name, params.size());
+  defineType(name, params, unresolved);
+  Type t = getSort( name, params );
+  d_unresolved.insert(unresolved);
+  return unresolved;
+}
+
 bool Parser::isUnresolvedType(const std::string& name) {
   if(!isDeclared(name, SYM_SORT)) {
     return false;
@@ -260,7 +283,12 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
     if(isDeclared(name, SYM_SORT)) {
       throw ParserException(name + " already declared");
     }
-    defineType(name, t);
+    if( t.isParametric() ){
+      std::vector< Type > paramTypes = t.getParamTypes();
+      defineType(name, paramTypes, t );
+    }else{
+      defineType(name, t);
+    }
     for(Datatype::const_iterator j = dt.begin(),
           j_end = dt.end();
         j != j_end;
