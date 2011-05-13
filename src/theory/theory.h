@@ -86,6 +86,12 @@ private:
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
 
+  /**
+   * Whether the last retrieved fact via get() was a shared term fact
+   * or not.
+   */
+  bool d_wasSharedTermFact;
+
 protected:
 
   /**
@@ -96,6 +102,7 @@ protected:
     d_context(ctxt),
     d_facts(ctxt),
     d_factsHead(ctxt, 0),
+    d_wasSharedTermFact(false),
     d_out(&out),
     d_valuation(valuation) {
   }
@@ -131,11 +138,24 @@ protected:
   TNode get() {
     Assert( !done(), "Theory::get() called with assertion queue empty!" );
     TNode fact = d_facts[d_factsHead];
+    d_wasSharedTermFact = false;
     d_factsHead = d_factsHead + 1;
     Debug("theory") << "Theory::get() => " << fact
                     << "(" << d_facts.size() << " left)" << std::endl;
     d_out->newFact(fact);
     return fact;
+  }
+
+  /**
+   * Returns whether the last fact retrieved by get() was a shared
+   * term fact.
+   *
+   * @return true if the fact just retrieved via get() was a shared
+   * term fact, false if the fact just retrieved was a "normal channel"
+   * fact.
+   */
+  bool isSharedTermFact() const throw() {
+    return d_wasSharedTermFact;
   }
 
   /**

@@ -42,10 +42,14 @@ class CVC4_PUBLIC Cardinality {
   /** Cardinality of the reals */
   static const Integer s_realCard;
 
+  /** A representation for unknown cardinality */
+  static const Integer s_unknownCard;
+
   /**
-   * In the case of finite cardinality, this is >= 0, and is equal to
-   * the cardinality.  If infinite, it is < 0, and is Beth[|card|-1].
+   * In the case of finite cardinality, this is > 0, and is equal to
+   * the cardinality+1.  If infinite, it is < 0, and is Beth[|card|-1].
    * That is, "-1" means Beth 0 == |Z|, "-2" means Beth 1 == |R|, etc.
+   * If this field is 0, the cardinality is unknown.
    */
   Integer d_card;
 
@@ -57,11 +61,14 @@ public:
   /** The cardinality of the set of real numbers. */
   static const Cardinality REALS;
 
+  /** The unknown cardinality */
+  static const Cardinality UNKNOWN;
+
   /**
    * Representation for a Beth number, used only to construct
    * Cardinality objects.
    */
-  class Beth {
+  class CVC4_PUBLIC Beth {
     Integer d_index;
 
   public:
@@ -77,6 +84,15 @@ public:
   };/* class Cardinality::Beth */
 
   /**
+   * Representation for an unknown cardinality.
+   */
+  class CVC4_PUBLIC Unknown {
+  public:
+    Unknown() throw() {}
+    ~Unknown() throw() {}
+  };/* class Cardinality::Unknown */
+
+  /**
    * Construct a finite cardinality equal to the integer argument.
    * The argument must be nonnegative.  If we change this to an
    * "unsigned" argument to enforce the restriction, we mask some
@@ -85,6 +101,7 @@ public:
   Cardinality(long card) : d_card(card) {
     CheckArgument(card >= 0, card,
                   "Cardinality must be a nonnegative integer, not %ld.", card);
+    d_card += 1;
     Assert(isFinite());
   }
 
@@ -96,6 +113,7 @@ public:
     CheckArgument(card >= 0, card,
                   "Cardinality must be a nonnegative integer, not %s.",
                   card.toString().c_str());
+    d_card += 1;
     Assert(isFinite());
   }
 
@@ -106,9 +124,20 @@ public:
     Assert(!isFinite());
   }
 
+  /**
+   * Construct an unknown cardinality.
+   */
+  Cardinality(Unknown) : d_card(0) {
+  }
+
+  /** Returns true iff this cardinality is unknown. */
+  bool isUnknown() const throw() {
+    return d_card == 0;
+  }
+
   /** Returns true iff this cardinality is finite. */
   bool isFinite() const throw() {
-    return d_card >= 0;
+    return d_card > 0;
   }
 
   /**
@@ -116,7 +145,7 @@ public:
    * infinite.
    */
   bool isCountable() const throw() {
-    return d_card >= s_intCard;
+    return isFinite() || d_card == s_intCard;
   }
 
   /**
@@ -124,9 +153,9 @@ public:
    * cardinality.  (If this cardinality is infinite, this function
    * throws an IllegalArgumentException.)
    */
-  const Integer& getFiniteCardinality() const throw(IllegalArgumentException) {
+  Integer getFiniteCardinality() const throw(IllegalArgumentException) {
     CheckArgument(isFinite(), *this, "This cardinality is not finite.");
-    return d_card;
+    return d_card - 1;
   }
 
   /**
@@ -135,7 +164,8 @@ public:
    * IllegalArgumentException.)
    */
   Integer getBethNumber() const throw(IllegalArgumentException) {
-    CheckArgument(!isFinite(), *this, "This cardinality is not infinite.");
+    CheckArgument(!isFinite() && !isUnknown(), *this,
+                  "This cardinality is not infinite (or is unknown).");
     return -d_card - 1;
   }
 
@@ -174,20 +204,21 @@ public:
 
   /** Test for equality between cardinalities. */
   bool operator==(const Cardinality& c) const throw() {
-    return d_card == c.d_card;
+    return !isUnknown() && d_card == c.d_card;
   }
 
   /** Test for disequality between cardinalities. */
   bool operator!=(const Cardinality& c) const throw() {
-    return !(*this == c);
+    return !isUnknown() && !c.isUnknown() && d_card != c.d_card;
   }
 
   /** Test whether this cardinality is less than another. */
   bool operator<(const Cardinality& c) const throw() {
     return
-      ( isFinite() && !c.isFinite() ) ||
-      ( isFinite() && c.isFinite() && d_card < c.d_card ) ||
-      ( !isFinite() && !c.isFinite() && d_card > c.d_card );
+      !isUnknown() && !c.isUnknown() &&
+      ( ( isFinite() && !c.isFinite() ) ||
+        ( isFinite() && c.isFinite() && d_card < c.d_card ) ||
+        ( !isFinite() && !c.isFinite() && d_card > c.d_card ) );
   }
 
   /**
@@ -195,12 +226,12 @@ public:
    * another.
    */
   bool operator<=(const Cardinality& c) const throw() {
-    return *this < c || *this == c;
+    return !isUnknown() && !c.isUnknown() && (*this < c || *this == c);
   }
 
   /** Test whether this cardinality is greater than another. */
   bool operator>(const Cardinality& c) const throw() {
-    return !(*this <= c);
+    return !isUnknown() && !c.isUnknown() && !(*this <= c);
   }
 
   /**
@@ -208,7 +239,7 @@ public:
    * another.
    */
   bool operator>=(const Cardinality& c) const throw() {
-    return !(*this < c);
+    return !isUnknown() && !c.isUnknown() && !(*this < c);
   }
 
   /**

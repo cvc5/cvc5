@@ -20,15 +20,24 @@
 
 namespace CVC4 {
 
+const Integer Cardinality::s_unknownCard(0);
 const Integer Cardinality::s_intCard(-1);
 const Integer Cardinality::s_realCard(-2);
 
 const Cardinality Cardinality::INTEGERS(Cardinality::Beth(0));
 const Cardinality Cardinality::REALS(Cardinality::Beth(1));
+const Cardinality Cardinality::UNKNOWN((Cardinality::Unknown()));
 
 Cardinality& Cardinality::operator+=(const Cardinality& c) throw() {
+  if(isUnknown()) {
+    return *this;
+  } else if(c.isUnknown()) {
+    d_card = s_unknownCard;
+    return *this;
+  }
+
   if(isFinite() && c.isFinite()) {
-    d_card += c.d_card;
+    d_card += c.d_card - 1;
     return *this;
   }
   if(*this >= c) {
@@ -40,6 +49,13 @@ Cardinality& Cardinality::operator+=(const Cardinality& c) throw() {
 
 /** Assigning multiplication of this cardinality with another. */
 Cardinality& Cardinality::operator*=(const Cardinality& c) throw() {
+  if(isUnknown()) {
+    return *this;
+  } else if(c.isUnknown()) {
+    d_card = s_unknownCard;
+    return *this;
+  }
+
   if(*this == 0 || c == 0) {
     return *this = 0;
   } else if(!isFinite() || !c.isFinite()) {
@@ -49,7 +65,9 @@ Cardinality& Cardinality::operator*=(const Cardinality& c) throw() {
       return *this = c;
     }
   } else {
-    d_card *= c.d_card;
+    d_card -= 1;
+    d_card *= c.d_card - 1;
+    d_card += 1;
     return *this;
   }
 }
@@ -57,9 +75,16 @@ Cardinality& Cardinality::operator*=(const Cardinality& c) throw() {
 /** Assigning exponentiation of this cardinality with another. */
 Cardinality& Cardinality::operator^=(const Cardinality& c)
   throw(IllegalArgumentException) {
+  if(isUnknown()) {
+    return *this;
+  } else if(c.isUnknown()) {
+    d_card = s_unknownCard;
+    return *this;
+  }
+
   if(c == 0) {
     // (anything) ^ 0 == 1
-    d_card = 1;
+    d_card = 2;// remember +1 for finite cardinalities
     return *this;
   } else if(*this == 0) {
     // 0 ^ (>= 1) == 0
@@ -75,7 +100,7 @@ Cardinality& Cardinality::operator^=(const Cardinality& c)
     //
     // Note: can throw an assertion if c is too big for
     // exponentiation
-    d_card = d_card.pow(c.d_card.getUnsignedLong());
+    d_card = (d_card - 1).pow(c.d_card.getUnsignedLong() - 1) + 1;
     return *this;
   } else if(!isFinite() && c.isFinite()) {
     // inf ^ finite == inf
@@ -102,18 +127,17 @@ std::string Cardinality::toString() const throw() {
 }
 
 
-std::ostream& operator<<(std::ostream& out,
-                                Cardinality::Beth b)
-  throw() {
+std::ostream& operator<<(std::ostream& out, Cardinality::Beth b) throw() {
   out << "beth[" << b.getNumber() << ']';
 
   return out;
 }
 
 
-std::ostream& operator<<(std::ostream& out, const Cardinality& c)
-  throw() {
-  if(c.isFinite()) {
+std::ostream& operator<<(std::ostream& out, const Cardinality& c) throw() {
+  if(c.isUnknown()) {
+    out << "Cardinality::UNKNOWN";
+  } else if(c.isFinite()) {
     out << c.getFiniteCardinality();
   } else {
     out << Cardinality::Beth(c.getBethNumber());

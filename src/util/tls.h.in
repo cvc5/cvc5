@@ -143,6 +143,56 @@ public:
   }
 };/* class ThreadLocal<T> */
 
+template <class T>
+class ThreadLocal<T*> : public ThreadLocalImpl<T*, sizeof(T*) <= sizeof(void*)> {
+  typedef ThreadLocalImpl<T*, sizeof(T*) <= sizeof(void*)> super;
+
+public:
+  ThreadLocal() : super() {}
+  ThreadLocal(T* t) : super(t) {}
+  ThreadLocal(const ThreadLocal<T*>& tl) : super(tl) {}
+
+  ThreadLocal<T*>& operator=(T* t) {
+    return static_cast< ThreadLocal<T*>& >(super::operator=(t));
+  }
+  ThreadLocal<T*>& operator=(const ThreadLocal<T*>& tl) {
+    return static_cast< ThreadLocal<T*>& >(super::operator=(tl));
+  }
+  // special operators for pointers
+  T& operator*() {
+    return *static_cast<T*>(*this);
+  }
+  const T& operator*() const {
+    return *static_cast<const T*>(*this);
+  }
+  T* operator->() {
+    return static_cast<T*>(*this);
+  }
+  const T* operator->() const {
+    return static_cast<const T*>(*this);
+  }
+  T* operator++() {
+    T* p = *this;
+    *this = ++p;
+    return p;
+  }
+  T* operator++(int) {
+    T* p = *this;
+    *this = p + 1;
+    return p;
+  }
+  T* operator--() {
+    T* p = *this;
+    *this = --p;
+    return p;
+  }
+  T* operator--(int) {
+    T* p = *this;
+    *this = p - 1;
+    return p;
+  }
+};/* class ThreadLocal<T*> */
+
 }/* CVC4 namespace */
 
 #endif /* @CVC4_TLS_SUPPORTED@ */
