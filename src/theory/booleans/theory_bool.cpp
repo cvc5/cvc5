@@ -100,7 +100,7 @@ Node TheoryBool::getValue(TNode n) {
 static void
 findAtoms(TNode in, vector<TNode>& atoms,
           hash_map<TNode, vector<TNode>, TNodeHashFunction>& backEdges) {
-  Kind k = in.getKind();
+  Kind k CVC4_UNUSED = in.getKind();
   Assert(kindToTheoryId(k) == THEORY_BOOL);
 
   stack< pair<TNode, TNode::iterator> > trail;
