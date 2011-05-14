@@ -352,6 +352,12 @@ private:
 public:
 
   /** Create a new Datatype of the given name. */
+  inline explicit Datatype(std::string name);
+
+  /**
+   * Create a new Datatype of the given name, with the given
+   * parameterization.
+   */
   inline explicit Datatype(std::string name, std::vector<Type>& params);
 
   /** Add a constructor to this Datatype. */
@@ -492,6 +498,14 @@ inline Datatype::UnresolvedType::UnresolvedType(std::string name) :
 
 inline std::string Datatype::UnresolvedType::getName() const throw() {
   return d_name;
+}
+
+inline Datatype::Datatype(std::string name) :
+  d_name(name),
+  d_params(),
+  d_constructors(),
+  d_resolved(false),
+  d_self() {
 }
 
 inline Datatype::Datatype(std::string name, std::vector<Type>& params) :
