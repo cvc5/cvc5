@@ -61,5 +61,13 @@ well-founded PARAMETRIC_DATATYPE\
     "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
     "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm()" \
     "util/datatype.h"
-    
+
+parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
+    "type ascription, for nullary, parameteric datatype constructors"
+constant ASCRIPTION_TYPE \
+    ::CVC4::AscriptionType \
+    ::CVC4::AscriptionTypeHashStrategy \
+    "util/ascription_type.h" \
+    "a type parameter for type ascription"
+
 endtheory

@@ -32,8 +32,7 @@ namespace expr {
 namespace theory {
 namespace datatypes {
 
-class Matcher
-{
+class Matcher {
 private:
   std::vector< TypeNode > d_types;
   std::vector< TypeNode > d_match;

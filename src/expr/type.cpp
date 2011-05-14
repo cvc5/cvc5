@@ -222,7 +222,7 @@ Type::operator DatatypeType() const throw(AssertionException) {
   return DatatypeType(*this);
 }
 
-/** Is this the Datatype type? */
+/** Is this a datatype type? */
 bool Type::isDatatype() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isDatatype() || d_typeNode->isParametricDatatype();
@@ -388,14 +388,12 @@ string SortType::getName() const {
   return d_typeNode->getAttribute(expr::VarNameAttr());
 }
 
-bool SortType::isParameterized() const
-{
+bool SortType::isParameterized() const {
   return false;
 }
 
 /** Get the parameter types */
-std::vector<Type> SortType::getParamTypes() const
-{
+std::vector<Type> SortType::getParamTypes() const {
   vector<Type> params;
   return params;
 }
@@ -526,11 +524,11 @@ std::vector<Type> ConstructorType::getArgTypes() const {
 }
 
 const Datatype& DatatypeType::getDatatype() const {
-  if( d_typeNode->isParametricDatatype() ){
-    Assert( (*d_typeNode)[0].getKind()==kind::DATATYPE_TYPE );
+  if( d_typeNode->isParametricDatatype() ) {
+    Assert( (*d_typeNode)[0].getKind() == kind::DATATYPE_TYPE );
     const Datatype& dt = (*d_typeNode)[0].getConst<Datatype>();
     return dt;
-  }else{
+  } else {
     return d_typeNode->getConst<Datatype>();
   }
 }
@@ -544,13 +542,13 @@ size_t DatatypeType::getArity() const {
   return d_typeNode->getNumChildren() - 1;
 }
 
-std::vector<Type> DatatypeType::getParamTypes() const{
+std::vector<Type> DatatypeType::getParamTypes() const {
   NodeManagerScope nms(d_nodeManager);
   vector<Type> params;
   vector<TypeNode> paramNodes = d_typeNode->getParamTypes();
   vector<TypeNode>::iterator it = paramNodes.begin();
   vector<TypeNode>::iterator it_end = paramNodes.end();
-  for(; it != it_end; ++ it) {
+  for(; it != it_end; ++it) {
     params.push_back(makeType(*it));
   }
   return params;

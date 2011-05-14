@@ -37,6 +37,7 @@ libutil_la_SOURCES = \
 	configuration_private.h \
 	configuration.cpp \
 	bitvector.h \
+	ascription_type.h \
 	datatype.h \
 	datatype.cpp \
 	gmp_util.h \

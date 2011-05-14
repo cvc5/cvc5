@@ -177,7 +177,7 @@ public:
   /**
    * Lookup the arity of a bound parameterized type.
    */
-  size_t lookupArity( const std::string& name );
+  size_t lookupArity(const std::string& name);
 
   /**
    * Pop a scope level. Deletes all bindings since the last call to

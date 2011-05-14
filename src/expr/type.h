@@ -470,11 +470,12 @@ public:
   /** Get the name of the sort */
   std::string getName() const;
 
-  /** is parameterized */
+  /** Is this type parameterized? */
   bool isParameterized() const;
 
   /** Get the parameter types */
   std::vector<Type> getParamTypes() const;
+
 };/* class SortType */
 
 /**
@@ -539,7 +540,7 @@ public:
   /** Get the underlying datatype */
   const Datatype& getDatatype() const;
 
-  /** is parameterized */
+  /** Is this this datatype parametric? */
   bool isParametric() const;
 
   /** Get the parameter types */

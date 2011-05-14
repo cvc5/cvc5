@@ -452,7 +452,8 @@ public:
   std::vector<TypeNode> getArgTypes() const;
 
   /**
-   * Get the paramater types of a parameterized datatype.
+   * Get the paramater types of a parameterized datatype.  Fails an
+   * assertion if this type is not a parametric datatype.
    */
   std::vector<TypeNode> getParamTypes() const;
 

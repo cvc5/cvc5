@@ -242,15 +242,17 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
   return unresolved;
 }
 
-SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name, 
-                                                        size_t arity)
-{
+SortConstructorType
+Parser::mkUnresolvedTypeConstructor(const std::string& name, 
+                                    size_t arity) {
   SortConstructorType unresolved = mkSortConstructor(name,arity);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
-SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name, 
-                                                        const std::vector<Type>& params){
+
+SortConstructorType
+Parser::mkUnresolvedTypeConstructor(const std::string& name, 
+                                    const std::vector<Type>& params) {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size() << ")"
                   << std::endl;
   SortConstructorType unresolved = d_exprManager->mkSortConstructor(name, params.size());
@@ -283,10 +285,10 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
     if(isDeclared(name, SYM_SORT)) {
       throw ParserException(name + " already declared");
     }
-    if( t.isParametric() ){
+    if( t.isParametric() ) {
       std::vector< Type > paramTypes = t.getParamTypes();
       defineType(name, paramTypes, t );
-    }else{
+    } else {
       defineType(name, t);
     }
     for(Datatype::const_iterator j = dt.begin(),

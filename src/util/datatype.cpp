@@ -54,15 +54,13 @@ const Datatype& Datatype::datatypeOf(Expr item) {
   TypeNode t = Node::fromExpr(item).getType();
   switch(t.getKind()) {
   case kind::CONSTRUCTOR_TYPE:
-    //return t[t.getNumChildren() - 1].getConst<Datatype>();
     return DatatypeType(t[t.getNumChildren() - 1].toType()).getDatatype();
   case kind::SELECTOR_TYPE:
   case kind::TESTER_TYPE:
-    //return t[0].getConst<Datatype>();
     return DatatypeType(t[0].toType()).getDatatype();
   default:
     Unhandled("arg must be a datatype constructor, selector, or tester");
-  } 
+  }
 }
 
 size_t Datatype::indexOf(Expr item) {
@@ -84,7 +82,6 @@ void Datatype::resolve(ExprManager* em,
                        const std::vector< DatatypeType >& paramReplacements)
   throw(AssertionException, DatatypeResolutionException) {
 
-  //cout << "resolve " << *this << "..." << std::endl;
   AssertArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
   CheckArgument(!d_resolved, "cannot resolve a Datatype twice");
   AssertArgument(resolutions.find(d_name) != resolutions.end(),
@@ -104,8 +101,6 @@ void Datatype::resolve(ExprManager* em,
   }
   d_self = self;
   Assert(index == getNumConstructors());
-
-  //cout << "done resolve " << *this << std::endl;
 }
 
 void Datatype::addConstructor(const Constructor& c) {
@@ -274,7 +269,8 @@ DatatypeType Datatype::getDatatypeType() const throw(AssertionException) {
   return DatatypeType(d_self);
 }
 
-DatatypeType Datatype::getDatatypeType(const std::vector<Type>& params) const throw(AssertionException) {
+DatatypeType Datatype::getDatatypeType(const std::vector<Type>& params)
+  const throw(AssertionException) {
   CheckArgument(isResolved(), *this, "Datatype must be resolved to get its DatatypeType");
   Assert(!d_self.isNull() && DatatypeType(d_self).isParametric());
   return DatatypeType(d_self).instantiate(params);
@@ -367,8 +363,6 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
                                     const std::vector< DatatypeType >& paramReplacements)
   throw(AssertionException, DatatypeResolutionException) {
 
-  //cout << "resolve " << *this << "..." << std::endl;
-
   AssertArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
   CheckArgument(!isResolved(),
                 "cannot resolve a Datatype constructor twice; "
@@ -401,7 +395,7 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
       if(!placeholders.empty()) {
         range = range.substitute(placeholders, replacements);
       }
-      if(!paramTypes.empty() ){
+      if(!paramTypes.empty() ) {
         range = doParametricSubstitution( range, paramTypes, paramReplacements );
       }
       (*i).d_selector = em->mkVar((*i).d_name, em->mkSelectorType(self, range));
@@ -424,13 +418,11 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
     (*i).d_constructor = d_constructor;
   }
-
-  //cout << "done resolve " << *this << std::endl;
 }
 
-Type Datatype::Constructor::doParametricSubstitution( Type range, 
-                                  const std::vector< SortConstructorType >& paramTypes, 
-                                  const std::vector< DatatypeType >& paramReplacements ){
+Type Datatype::Constructor::doParametricSubstitution( Type range,
+                                  const std::vector< SortConstructorType >& paramTypes,
+                                  const std::vector< DatatypeType >& paramReplacements ) {
   TypeNode typn = TypeNode::fromType( range );
   if(typn.getNumChildren() == 0) {
     return range;
@@ -441,16 +433,16 @@ Type Datatype::Constructor::doParametricSubstitution( Type range,
       origChildren.push_back( (*i).toType() );
       children.push_back( doParametricSubstitution( (*i).toType(), paramTypes, paramReplacements ) );
     }
-    for( int i=0; i<(int)paramTypes.size(); i++ ){
-      if( paramTypes[i].getArity()==origChildren.size() ){
+    for( int i=0; i<(int)paramTypes.size(); i++ ) {
+      if( paramTypes[i].getArity()==origChildren.size() ) {
         Type tn = paramTypes[i].instantiate( origChildren );
-        if( range==tn ){
+        if( range==tn ) {
           return paramReplacements[i].instantiate( children );
         }
       }
     }
     NodeBuilder<> nb(typn.getKind());
-    for( int i=0; i<(int)children.size(); i++ ){
+    for( int i=0; i<(int)children.size(); i++ ) {
       nb << TypeNode::fromType( children[i] );
     }
     return nb.constructTypeNode().toType();
@@ -662,12 +654,12 @@ Expr Datatype::Constructor::Arg::getSelector() const {
 }
 
 Expr Datatype::Constructor::Arg::getConstructor() const {
-  CheckArgument(isResolved(), this, 
+  CheckArgument(isResolved(), this,
                 "cannot get a associated constructor for argument of an unresolved datatype constructor");
   return d_constructor;
 }
 
-Type Datatype::Constructor::Arg::getSelectorType() const{
+Type Datatype::Constructor::Arg::getSelectorType() const {
   return getSelector().getType();
 }
 

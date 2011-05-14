@@ -506,16 +506,17 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
       i != i_end;
       ++i) {
     TypeNode* typeNode;
-    if( (*i).getNumParameters()==0 ){
+    if( (*i).getNumParameters() == 0 ) {
       typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
-    }else{
+    } else {
       TypeNode cons = d_nodeManager->mkTypeConst(*i);
       std::vector< TypeNode > params;
       params.push_back( cons );
-      for( unsigned int ip=0; ip<(*i).getNumParameters(); ip++ ){
+      for( unsigned int ip = 0; ip < (*i).getNumParameters(); ++ip ) {
         params.push_back( TypeNode::fromType( (*i).getParameter( ip ) ) );
       }
-      typeNode = new TypeNode( d_nodeManager->mkTypeNode( kind::PARAMETRIC_DATATYPE, params ) );
+
+      typeNode = new TypeNode(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE, params));
     }
     Type type(d_nodeManager, typeNode);
     DatatypeType dtt(type);
@@ -546,9 +547,9 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
       i != i_end;
       ++i) {
     std::string name;
-    if( (*i).isSort() ){
+    if( (*i).isSort() ) {
       name = SortType(*i).getName();
-    }else{
+    } else {
       Assert( (*i).isSortConstructor() );
       name = SortConstructorType(*i).getName();
     }
@@ -562,10 +563,10 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the DatatypeType we created in the
     // first step, above).
-    if( (*i).isSort() ){
+    if( (*i).isSort() ) {
       placeholders.push_back(*i);
       replacements.push_back( (*resolver).second );
-    }else{
+    } else {
       Assert( (*i).isSortConstructor() );
       paramTypes.push_back( SortConstructorType(*i) );
       paramReplacements.push_back( (*resolver).second );

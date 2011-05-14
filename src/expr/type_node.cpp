@@ -138,7 +138,7 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
 
 std::vector<TypeNode> TypeNode::getParamTypes() const {
   vector<TypeNode> params;
-  Assert( isParametricDatatype() );
+  Assert(isParametricDatatype());
   for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
     params.push_back((*this)[i]);
   }
@@ -194,7 +194,7 @@ bool TypeNode::isDatatype() const {
   return getKind() == kind::DATATYPE_TYPE;
 }
 
-/** Is this a datatype type */
+/** Is this a parametric datatype type */
 bool TypeNode::isParametricDatatype() const {
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
