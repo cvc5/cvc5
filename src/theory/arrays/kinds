@@ -7,7 +7,7 @@
 theory THEORY_ARRAY ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
 
 properties polite stable-infinite
-properties check
+properties check propagate presolve
 
 rewriter ::CVC4::theory::arrays::TheoryArraysRewriter "theory/arrays/theory_arrays_rewriter.h"
 

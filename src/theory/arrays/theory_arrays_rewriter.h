@@ -32,11 +32,60 @@ class TheoryArraysRewriter {
 
 public:
 
-  static inline RewriteResponse postRewrite(TNode node) {
+  static RewriteResponse postRewrite(TNode node) {
+    Debug("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
+    if(node.getKind() == kind::EQUAL || node.getKind() == kind::IFF) {
+      if(node[0] == node[1]) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+      }
+      // checks for RoW axiom: (select ( store a i v) i) = v and rewrites it
+      // to true
+      if(node[0].getKind()==kind::SELECT) {
+        TNode a = node[0][0];
+        TNode j = node[0][1];
+        if(a.getKind()==kind::STORE) {
+          TNode b = a[0];
+          TNode i = a[1];
+          TNode v = a[2];
+          if(v == node[1] && i == j) {
+            Debug("arrays-postrewrite") << "Arrays::postRewrite true" << std::endl;
+            return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+          }
+        }
+      }
+
+      if (node[0] > node[1]) {
+        Node newNode = NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
+        // If we've switched theories, we need to rewrite again (TODO: THIS IS HACK, once theories accept eq, change)
+        if (Theory::theoryOf(newNode[0]) != Theory::theoryOf(newNode[1])) {
+          return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
+        } else {
+          return RewriteResponse(REWRITE_DONE, newNode);
+        }
+      }
+    }
+    // FIXME: would it be better to move in preRewrite?
+    // if yes don't need the above case
+    if (node.getKind()==kind::SELECT) {
+      // we are rewriting (select (store a i v) i) to v
+      TNode a = node[0];
+      TNode i = node[1];
+      if(a.getKind() == kind::STORE) {
+        TNode b = a[0];
+        TNode j = a[1];
+        TNode v = a[2];
+        if(i==j) {
+          Debug("arrays-postrewrite") << "Arrays::postrewrite to " << v << std::endl;
+          return RewriteResponse(REWRITE_AGAIN_FULL, v);
+        }
+      }
+    }
+
     return RewriteResponse(REWRITE_DONE, node);
   }
 
   static inline RewriteResponse preRewrite(TNode node) {
+    Debug("arrays-prerewrite") << "Arrays::preRewrite " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 

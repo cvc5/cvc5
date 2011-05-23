@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <utility>
 #include <stdint.h>
 
 #include "expr/type.h"
@@ -876,6 +877,15 @@ struct TNodeHashFunction {
     return (size_t) node.getId();
   }
 };/* struct TNodeHashFunction */
+
+struct TNodePairHashFunction {
+  size_t operator()(const std::pair<CVC4::TNode, CVC4::TNode>& pair ) const {
+    TNode n1 = pair.first;
+    TNode n2 = pair.second;
+
+    return (size_t) (n1.getId() * 0x9e3779b9 + n2.getId());
+  }
+};/* struct TNodePairHashFunction */
 
 template <bool ref_count>
 inline size_t NodeTemplate<ref_count>::getNumChildren() const {

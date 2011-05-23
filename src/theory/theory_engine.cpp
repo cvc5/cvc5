@@ -123,7 +123,11 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
       // traversing a DAG as a tree and that can really blow up @CB
       if(! n.getAttribute(RegisteredAttr())) {
         n.setAttribute(RegisteredAttr(), true);
-        d_engine->theoryOf(n)->registerTerm(n);
+        if (n.getKind() == kind::EQUAL) {
+          d_engine->theoryOf(n[0])->registerTerm(n);
+        } else {
+          d_engine->theoryOf(n)->registerTerm(n);
+        }
       }
     }
   }/* Options::current()->theoryRegistration && !fact.getAttribute(RegisteredAttr()) */
@@ -198,10 +202,13 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         current.setAttribute(PreRegistered(), true);
         // Register this node
         if (current.getKind() == kind::EQUAL) {
-          TheoryId theoryLHS = Theory::theoryOf(current[0]);
-          Debug("register") << "preregistering " << current << " with " << theoryLHS << std::endl;
-          markActive(theoryLHS);
-          d_theoryTable[theoryLHS]->preRegisterTerm(current);
+          if(d_logic == "QF_AX") {
+            d_theoryTable[theory::THEORY_ARRAY]->preRegisterTerm(current);
+          } else {
+            TheoryId theoryLHS = Theory::theoryOf(current[0]);
+            Debug("register") << "preregistering " << current << " with " << theoryLHS << std::endl;
+            markActive(theoryLHS);
+            d_theoryTable[theoryLHS]->preRegisterTerm(current);
 //          TheoryId theoryRHS = Theory::theoryOf(current[1]);
 //          if (theoryLHS != theoryRHS) {
 //            markActive(theoryRHS);
@@ -214,6 +221,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
 //            d_theoryTable[typeTheory]->preRegisterTerm(current);
 //            Debug("register") << "preregistering " << current << " with " << typeTheory << std::endl;
 //          }
+          }
         } else {
           TheoryId theory = Theory::theoryOf(current);
           Debug("register") << "preregistering " << current << " with " << theory << std::endl;

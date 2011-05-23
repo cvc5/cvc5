@@ -200,19 +200,17 @@ class TheoryEngine {
   }
 
 public:
+  /** The logic of the problem */
+  std::string d_logic;
 
-  /**
-   * Construct a theory engine.
-   */
+  /** Constructs a theory engine */
   TheoryEngine(context::Context* ctxt);
 
-  /**
-   * Destroy a theory engine.
-   */
+  /** Destroys a theory engine */
   ~TheoryEngine();
 
   /**
-   * Adds a theory. Only one theory per theoryId can be present, so if
+   * Adds a theory. Only one theory per TheoryId can be present, so if
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
@@ -306,7 +304,7 @@ public:
    * @param node the assertion
    */
   inline void assertFact(TNode node) {
-    Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
+    Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl<<d_logic<<std::endl;
 
     // Mark it as asserted in this context
     //
@@ -319,9 +317,13 @@ public:
 
     // Again, equality is a special case
     if (atom.getKind() == kind::EQUAL) {
-      theory::TheoryId theoryLHS = theory::Theory::theoryOf(atom[0]);
-      Debug("theory") << "asserting " << node << " to " << theoryLHS << std::endl;
-      d_theoryTable[theoryLHS]->assertFact(node);
+      if(d_logic == "QF_AX") {
+        //Debug("theory")<< "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays \n";
+        d_theoryTable[theory::THEORY_ARRAY]->assertFact(node);
+      } else {
+        theory::TheoryId theoryLHS = theory::Theory::theoryOf(atom[0]);
+        Debug("theory") << "asserting " << node << " to " << theoryLHS << std::endl;
+        d_theoryTable[theoryLHS]->assertFact(node);
 //      theory::TheoryId theoryRHS = theory::Theory::theoryOf(atom[1]);
 //      if (theoryLHS != theoryRHS) {
 //        Debug("theory") << "asserting " << node << " to " << theoryRHS << std::endl;
@@ -332,6 +334,7 @@ public:
 //        Debug("theory") << "asserting " << node << " to " << typeTheory << std::endl;
 //        d_theoryTable[typeTheory]->assertFact(node);
 //      }
+      }
     } else {
       theory::Theory* theory = theoryOf(atom);
       Debug("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
@@ -398,7 +401,12 @@ public:
     d_theoryOut.d_explanationNode = Node::null();
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
     if (atom.getKind() == kind::EQUAL) {
-      theoryOf(atom[0])->explain(node);
+      if(d_logic == "QF_AX") {
+        //Debug("theory")<< "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays \n";
+        d_theoryTable[theory::THEORY_ARRAY]->explain(node);
+      } else {
+        theoryOf(atom[0])->explain(node);
+      }
     } else {
       theoryOf(atom)->explain(node);
     }
@@ -417,8 +425,7 @@ private:
       d_statPropagate("theory::propagate", 0),
       d_statLemma("theory::lemma", 0),
       d_statAugLemma("theory::aug_lemma", 0),
-      d_statExplanation("theory::explanation", 0)
-    {
+      d_statExplanation("theory::explanation", 0) {
       StatisticsRegistry::registerStat(&d_statConflicts);
       StatisticsRegistry::registerStat(&d_statPropagate);
       StatisticsRegistry::registerStat(&d_statLemma);
@@ -433,7 +440,7 @@ private:
       StatisticsRegistry::unregisterStat(&d_statAugLemma);
       StatisticsRegistry::unregisterStat(&d_statExplanation);
     }
-  };
+  };/* class TheoryEngine::Statistics */
   Statistics d_statistics;
 
 };/* class TheoryEngine */

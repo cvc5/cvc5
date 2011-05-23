@@ -20,6 +20,7 @@ libutilcudd_la_LIBADD = @CUDD_LDFLAGS@
 libutil_la_SOURCES = \
 	Assert.h \
 	Assert.cpp \
+	backtrackable.h \
 	Makefile.am \
 	Makefile.in \
 	congruence_closure.h \
@@ -47,7 +48,7 @@ libutil_la_SOURCES = \
 	dynamic_array.h \
 	language.h \
 	language.cpp \
-	triple.h \
+	ntuple.h \
 	recursion_breaker.h \
 	subrange_bound.h \
 	cardinality.h \

@@ -446,6 +446,24 @@ public:
 
 };/* class IntStat */
 
+template <class T>
+class SizeStat : public Stat {
+private:
+  const T& d_sized;
+public:
+  SizeStat(const std::string&name, const T& sized) :
+    Stat(name), d_sized(sized) {}
+  ~SizeStat() {}
+
+  void flushInformation(std::ostream& out) const {
+    out<< d_sized.size();
+  }
+  std::string getValue() const {
+    std::stringstream ss;
+    flushInformation(ss);
+    return ss.str();
+  }
+};/* class SizeStat */
 
 /**
  * The value for an AverageStat is the running average of (e1, e_2, ..., e_n),

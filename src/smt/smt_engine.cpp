@@ -253,6 +253,7 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
     throw ModalException("logic already set");
   }
   d_logic = s;
+  d_theoryEngine->d_logic = s;
 }
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
