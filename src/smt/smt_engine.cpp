@@ -87,7 +87,7 @@ public:
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
  * the SmtEngine class, so that smt_engine.h doesn't
- * #include "expr/node.h", which is a private CVC4 header (and can lead
+ * include "expr/node.h", which is a private CVC4 header (and can lead
  * to linking errors due to the improper inlining of non-visible symbols
  * into user code!).
  *

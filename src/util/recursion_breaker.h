@@ -18,6 +18,7 @@
  ** A breadcrumb trail is left, and a function can query the breaker
  ** to see if recursion has occurred.  For example:
  **
+ ** @code
  **   int foo(int x) {
  **     RecursionBreaker<int> breaker("foo", x);
  **     if(breaker.isRecursion()) {
@@ -33,6 +34,7 @@
  **     cout << "x == " << x << ", y == " << y << " ==> " << z << endl;
  **     return z;
  **   }
+ ** @endcode
  **
  ** Recursion occurs after a while in this example, and the recursion
  ** is broken by the RecursionBreaker.

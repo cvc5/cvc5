@@ -164,12 +164,17 @@ class CVC4_PUBLIC Parser {
 
 protected:
   /**
-   * Create a parser state. NOTE: The parser takes "ownership" of the given
+   * Create a parser state.
+   *
+   * @attention The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
    * @param exprManager the expression manager to use when creating expressions
    * @param input the parser input
    * @param strictMode whether to incorporate strict(er) compliance checks
+   * @param parseOnly whether we are parsing only (and therefore certain checks
+   * need not be performed, like those about unimplemented features, @see
+   * unimplementedFeature())
    */
   Parser(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
 

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file transitive_closure.h
+/*! \file trans_closure.h
  ** \verbatim
  ** Original author: barrett
  ** Major contributors: none

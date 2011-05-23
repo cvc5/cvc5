@@ -6,7 +6,8 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 
 # Regression tests for SMT inputs
-SMT_TESTS = pb_real_10_0100_10_10.smt \
+SMT_TESTS = \
+	pb_real_10_0100_10_10.smt \
 	pb_real_10_0100_10_11.smt \
 	pb_real_10_0100_10_15.smt \
 	pb_real_10_0100_10_16.smt \
@@ -14,7 +15,6 @@ SMT_TESTS = pb_real_10_0100_10_10.smt \
 	pb_real_10_0200_10_22.smt \
 	pb_real_10_0200_10_26.smt \
 	pb_real_10_0200_10_29.smt
-	
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS =
@@ -26,6 +26,10 @@ CVC_TESTS =
 BUG_TESTS = 
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
+
+# Necessary to get automake's attention when splitting TESTS into
+# SMT_TESTS, SMT2_TESTS, etc..
+EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

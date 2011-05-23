@@ -40,22 +40,22 @@ public:
   /**
    * Returns whether a node q is propositionally satisfiable.
    *
-   * @params q Node to be checked for satisfiability.
-   * @params e A number representing the effort to use between 0 (minimum effort),
+   * @param q Node to be checked for satisfiability.
+   * @param e A number representing the effort to use between 0 (minimum effort),
    *  and 1 (maximum effort).
-   * @precondition q is a ground formula.
-   * @precondition effort is between 0 and 1.
+   * @pre q is a ground formula.
+   * @pre effort is between 0 and 1.
    */
   static Result isSatisfiable(TNode q);
 
   /**
    * Returns whether a node q is a propositional tautology.
    *
-   * @params q Node to be checked for satisfiability.
-   * @params e A number representing the effort to use between 0 (minimum effort),
+   * @param q Node to be checked for satisfiability.
+   * @param e A number representing the effort to use between 0 (minimum effort),
    *  and 1 (maximum effort).
-   * @precondition q is a ground formula.
-   * @precondition effort is between 0 and 1.
+   * @pre q is a ground formula.
+   * @pre effort is between 0 and 1.
    */
   static Result isTautology(TNode q);
 

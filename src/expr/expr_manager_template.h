@@ -394,7 +394,7 @@ public:
 
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
-};
+};/* class ExprManager */
 
 ${mkConst_instantiations}
 
