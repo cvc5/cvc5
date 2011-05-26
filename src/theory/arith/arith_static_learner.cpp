@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file arith_rewriter.cpp
+/*! \file arith_static_learner.cpp
  ** \verbatim
  ** Original author: taking
  ** Major contributors: dejan
@@ -36,6 +36,7 @@ using namespace CVC4::theory::arith;
 
 ArithStaticLearner::ArithStaticLearner():
   d_miplibTrick(),
+  d_miplibTrickKeys(),
   d_statistics()
 {}
 
@@ -106,6 +107,7 @@ void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
 
 void ArithStaticLearner::clear(){
   d_miplibTrick.clear();
+  d_miplibTrickKeys.clear();
 }
 
 
@@ -136,6 +138,7 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
         TNode var = n[1][0];
         if(d_miplibTrick.find(var)  == d_miplibTrick.end()){
           d_miplibTrick.insert(make_pair(var, set<Node>()));
+          d_miplibTrickKeys.push_back(var);
         }
         d_miplibTrick[var].insert(n);
         Debug("arith::miplib") << "insert " << var  << " const " << n << endl;
@@ -212,17 +215,10 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
 
 
 void ArithStaticLearner::postProcess(NodeBuilder<>& learned){
-  vector<TNode> keys;
-  VarToNodeSetMap::iterator mipIter = d_miplibTrick.begin();
-  VarToNodeSetMap::iterator endMipLibTrick = d_miplibTrick.end();
-  for(; mipIter != endMipLibTrick; ++mipIter){
-    keys.push_back(mipIter->first);
-  }
-
   // == 3-FINITE VALUE SET ==
-  vector<TNode>::iterator keyIter = keys.begin();
-  vector<TNode>::iterator endKeys = keys.end();
-  for(; keyIter != endKeys; ++keyIter){
+  list<TNode>::iterator keyIter = d_miplibTrickKeys.begin();
+  list<TNode>::iterator endKeys = d_miplibTrickKeys.end();
+  while(keyIter != endKeys) {
     TNode var = *keyIter;
     const set<Node>& imps = d_miplibTrick[var];
 
@@ -260,6 +256,18 @@ void ArithStaticLearner::postProcess(NodeBuilder<>& learned){
     if(isTaut == Result(Result::VALID)){
       miplibTrick(var, values, learned);
       d_miplibTrick.erase(var);
+      // also have to erase from keys list
+      if(keyIter == endKeys) {
+        // last element is special: exit loop
+        d_miplibTrickKeys.erase(keyIter);
+        break;
+      } else {
+        // non-last element: make sure iterator is incremented before erase
+        list<TNode>::iterator eraseIter = keyIter++;
+        d_miplibTrickKeys.erase(eraseIter);
+      }
+    } else {
+      ++keyIter;
     }
   }
 }
