@@ -28,7 +28,7 @@ libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
 # as a C library, which messes up exception handling support)
 nodist_EXTRA_libcvc4_noinst_la_SOURCES = dummy.cpp
 nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
-libcvc4_noinst_la_SOURCES =
+libcvc4_noinst_la_SOURCES = subversion_versioninfo.cpp
 libcvc4_la_SOURCES = subversion_versioninfo.cpp
 libcvc4_la_LIBADD = \
 	@builddir@/util/libutil.la \
