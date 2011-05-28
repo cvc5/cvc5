@@ -35,6 +35,12 @@ class CVC4_PUBLIC Configuration {
   /** Private default ctor: Disallow construction of this class */
   Configuration();
 
+  // these constants are filled in by the build system
+  static const bool IS_SUBVERSION_BUILD;
+  static const char* const SUBVERSION_BRANCH_NAME;
+  static const unsigned SUBVERSION_REVISION;
+  static const bool SUBVERSION_HAS_MODIFICATIONS;
+
 public:
 
   static std::string getName();
@@ -76,7 +82,13 @@ public:
   static bool isBuiltWithCudd();
 
   static bool isBuiltWithTlsSupport();
-};
+
+  static bool isSubversionBuild();
+  static const char* getSubversionBranchName();
+  static unsigned getSubversionRevision();
+  static bool hasSubversionModifications();
+
+};/* class Configuration */
 
 }/* CVC4 namespace */
 

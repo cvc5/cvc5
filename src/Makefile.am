@@ -29,7 +29,7 @@ libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
 nodist_EXTRA_libcvc4_noinst_la_SOURCES = dummy.cpp
 nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_noinst_la_SOURCES =
-libcvc4_la_SOURCES =
+libcvc4_la_SOURCES = subversion_versioninfo.cpp
 libcvc4_la_LIBADD = \
 	@builddir@/util/libutil.la \
 	@builddir@/expr/libexpr.la \
@@ -60,6 +60,32 @@ EXTRA_DIST = \
 publicheaders = \
 	include/cvc4_public.h \
 	include/cvc4parser_public.h
+
+subversion_versioninfo.cpp: svninfo
+	$(AM_V_GEN)( \
+	  if test -s svninfo; then \
+	    issvn=true; \
+	    branch=`grep '^URL: ' svninfo | sed 's,.*/cvc4/,,'`; \
+	    rev=`grep '^Revision: ' svninfo | awk '{print$$2}'`; \
+	    mods=`grep '^Modifications: ' svninfo | awk '{print$$2}'`; \
+	  else \
+	    issvn=false; \
+	    branch=unknown; \
+	    rev=0; \
+	    mods=false; \
+	  fi; \
+	  echo "#include \"util/configuration.h\""; \
+	  echo "const bool ::CVC4::Configuration::IS_SUBVERSION_BUILD = $$issvn;"; \
+	  echo "const char* const ::CVC4::Configuration::SUBVERSION_BRANCH_NAME = \"$$branch\";"; \
+	  echo "const unsigned ::CVC4::Configuration::SUBVERSION_REVISION = $$rev;"; \
+	  echo "const bool ::CVC4::Configuration::SUBVERSION_HAS_MODIFICATIONS = $$mods;"; \
+	) >"$@"
+svninfo: svninfo.tmp
+	$(AM_V_GEN)diff -q svninfo.tmp svninfo &>/dev/null || mv svninfo.tmp svninfo || true
+# .PHONY ensures it's always rebuilt
+.PHONY: svninfo.tmp
+svninfo.tmp:
+	$(AM_V_GEN)(cd "$(top_srcdir)" && svn info && echo "Modifications: `test -z \"\`svn status -q\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
 
 install-data-local: $(publicheaders)
 	$(mkinstalldirs) $(DESTDIR)$(prefix)$(includedir)/cvc4

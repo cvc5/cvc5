@@ -108,4 +108,20 @@ bool Configuration::isBuiltWithTlsSupport() {
   return USING_TLS;
 }
 
+bool Configuration::isSubversionBuild() {
+  return IS_SUBVERSION_BUILD;
+}
+
+const char* Configuration::getSubversionBranchName() {
+  return SUBVERSION_BRANCH_NAME;
+}
+
+unsigned Configuration::getSubversionRevision() {
+  return SUBVERSION_REVISION;
+}
+
+bool Configuration::hasSubversionModifications() {
+  return SUBVERSION_HAS_MODIFICATIONS;
+}
+
 }/* CVC4 namespace */

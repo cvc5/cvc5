@@ -278,6 +278,19 @@ int runCvc4(int argc, char* argv[]) {
   Command* cmd;
   if( options.interactive ) {
     InteractiveShell shell(exprMgr, options);
+    Message() << Configuration::getPackageName()
+              << " " << Configuration::getVersionString();
+    if(Configuration::isSubversionBuild()) {
+      Message() << " [subversion " << Configuration::getSubversionBranchName()
+                << " r" << Configuration::getSubversionRevision()
+                << (Configuration::hasSubversionModifications() ?
+                    " (with modifications)" : "")
+                << "]";
+    }
+    Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+              << " assertions:"
+              << (Configuration::isAssertionBuild() ? "on" : "off")
+              << endl;
     if(replayParser != NULL) {
       // have the replay parser use the declarations input interactively
       replayParser->useDeclarationsFrom(shell.getParser());

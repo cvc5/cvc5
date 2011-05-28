@@ -578,6 +578,15 @@ throw(OptionException) {
       fputs(Configuration::about().c_str(), stdout);
       printf("\n");
       printf("version    : %s\n", Configuration::getVersionString().c_str());
+      if(Configuration::isSubversionBuild()) {
+        printf("subversion : yes [%s r%u%s]\n",
+               Configuration::getSubversionBranchName(),
+               Configuration::getSubversionRevision(),
+               Configuration::hasSubversionModifications() ?
+                 " (with modifications)" : "");
+      } else {
+        printf("subversion : %s\n", Configuration::isSubversionBuild() ? "yes" : "no");
+      }
       printf("\n");
       printf("library    : %u.%u.%u\n",
              Configuration::getVersionMajor(),
