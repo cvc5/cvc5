@@ -14,6 +14,8 @@ libarith_la_SOURCES = \
 	arith_prop_manager.h \
 	arith_prop_manager.cpp \
 	arithvar_node_map.h \
+	atom_database.h \
+	atom_database.cpp \
 	normal_form.h\
 	normal_form.cpp \
 	arith_utilities.h \
@@ -29,8 +31,6 @@ libarith_la_SOURCES = \
 	arith_priority_queue.cpp \
 	simplex.h \
 	simplex.cpp \
-	unate_propagator.h \
-	unate_propagator.cpp \
 	theory_arith.h \
 	theory_arith.cpp
 

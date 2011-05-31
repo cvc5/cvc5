@@ -6,7 +6,7 @@
 #include "theory/valuation.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar_node_map.h"
-#include "theory/arith/unate_propagator.h"
+#include "theory/arith/atom_database.h"
 #include "theory/arith/delta_rational.h"
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -51,7 +51,7 @@ public:
     d_reasons.push_back(reason);
     d_propagated.push_back(n);
 
-    //std::cout << n  << std::endl << "<="<< reason<< std::endl;
+    Debug("ArithPropManager") << n  << std::endl << "<="<< reason<< std::endl;
   }
 
   bool hasMorePropagations() const {
@@ -76,15 +76,15 @@ public:
 class ArithPropManager : public PropManager {
 private:
   const ArithVarNodeMap& d_arithvarNodeMap;
-  const ArithUnatePropagator& d_propagator;
+  const ArithAtomDatabase& d_atomDatabase;
   Valuation d_valuation;
 
 public:
   ArithPropManager(context::Context* c,
                    const ArithVarNodeMap& map,
-                   const ArithUnatePropagator& prop,
+                   const ArithAtomDatabase& db,
                    Valuation v):
-    PropManager(c), d_arithvarNodeMap(map), d_propagator(prop), d_valuation(v)
+    PropManager(c), d_arithvarNodeMap(map), d_atomDatabase(db), d_valuation(v)
   {}
 
   /**
@@ -99,10 +99,10 @@ public:
   Node boundAsNode(bool upperbound, ArithVar var, const DeltaRational& b) const;
 
   Node strictlyWeakerLowerBound(TNode n) const{
-    return d_propagator.getWeakerImpliedLowerBound(n);
+    return d_atomDatabase.getWeakerImpliedLowerBound(n);
   }
   Node strictlyWeakerUpperBound(TNode n) const{
-    return d_propagator.getWeakerImpliedUpperBound(n);
+    return d_atomDatabase.getWeakerImpliedUpperBound(n);
   }
 
   Node strictlyWeakerAssertedUpperBound(ArithVar v, const DeltaRational& b) const;
@@ -113,7 +113,7 @@ public:
   Node getBestImpliedUpperBound(ArithVar v, const DeltaRational& b) const;
 
   bool containsLiteral(TNode n) const {
-    return d_propagator.containsLiteral(n);
+    return d_atomDatabase.containsLiteral(n);
   }
 
 private:

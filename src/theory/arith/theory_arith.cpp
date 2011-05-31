@@ -38,7 +38,7 @@
 #include "theory/arith/arithvar_set.h"
 
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/unate_propagator.h"
+#include "theory/arith/atom_database.h"
 
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/normal_form.h"
@@ -66,11 +66,11 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valu
   d_diseq(c),
   d_tableau(),
   d_restartsCounter(0),
-  d_presolveHasBeenCalled(false),
+  d_rowHasBeenAdded(false),
   d_tableauResetDensity(1.6),
   d_tableauResetPeriod(10),
-  d_propagator(c, out),
-  d_propManager(c, d_arithvarNodeMap, d_propagator, valuation),
+  d_atomDatabase(c, out),
+  d_propManager(c, d_arithvarNodeMap, d_atomDatabase, valuation),
   d_simplex(d_propManager, d_partialModel, d_tableau),
   d_DELTA_ZERO(0),
   d_statistics()
@@ -169,6 +169,18 @@ void TheoryArith::preRegisterTerm(TNode n) {
   Debug("arith_preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
   Kind k = n.getKind();
 
+  /* BREADCRUMB: I am using this bool to compile time enable testing for arbitrary equalities. */
+  static bool turnOffEqualityPreRegister = false;
+  if(turnOffEqualityPreRegister){
+    if(k == LEQ || k == LT || k == GT || k == GEQ){
+      TNode left = n[0];
+      delayedSetupPolynomial(left);
+
+      d_atomDatabase.addAtom(n);
+    }
+    return;
+  }
+
   bool isStrictlyVarList = k == kind::MULT && VarList::isMember(n);
 
   if(isStrictlyVarList){
@@ -184,9 +196,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
   if(isRelationOperator(k)){
     Assert(Comparison::isNormalAtom(n));
 
-    //cout << n << endl;
-
-    d_propagator.addAtom(n);
+    d_atomDatabase.addAtom(n);
 
     TNode left  = n[0];
     TNode right = n[1];
@@ -247,6 +257,8 @@ void TheoryArith::setupSlack(TNode left){
   ++(d_statistics.d_statSlackVariables);
   left.setAttribute(Slack(), true);
 
+  d_rowHasBeenAdded = true;
+
   ArithVar varSlack = requestArithVar(left, true);
 
   Polynomial polyLeft = Polynomial::parsePolynomial(left);
@@ -306,15 +318,86 @@ Node TheoryArith::disequalityConflict(TNode eq, TNode lb, TNode ub){
   return conflict;
 }
 
+void TheoryArith::delayedSetupMonomial(const Monomial& mono){
+
+  Debug("arith::delay") << "delayedSetupMonomial(" << mono.getNode() << ")" << endl;
+
+  Assert(!mono.isConstant());
+  VarList vl = mono.getVarList();
+  
+  if(!d_arithvarNodeMap.hasArithVar(vl.getNode())){
+    for(VarList::iterator i = vl.begin(), end = vl.end(); i != end; ++i){
+      Variable var = *i;
+      Node n = var.getNode();
+      
+      ++(d_statistics.d_statUserVariables);
+      ArithVar varN = requestArithVar(n,false);
+      setupInitialValue(varN);
+    }
+
+    if(!vl.singleton()){
+      d_out->setIncomplete();
+
+      Node n = vl.getNode();
+      ++(d_statistics.d_statUserVariables);
+      ArithVar varN = requestArithVar(n,false);
+      setupInitialValue(varN);
+    }
+  }
+}
+
+void TheoryArith::delayedSetupPolynomial(TNode polynomial){
+  Debug("arith::delay") << "delayedSetupPolynomial(" << polynomial << ")" << endl;
+
+  Assert(Polynomial::isMember(polynomial));
+  // if d_nodeMap.hasArithVar() all of the variables and it are setup
+  if(!d_arithvarNodeMap.hasArithVar(polynomial)){
+    Polynomial poly = Polynomial::parsePolynomial(polynomial);
+    Assert(!poly.containsConstant());
+    for(Polynomial::iterator i = poly.begin(), end = poly.end(); i != end; ++i){
+      Monomial mono = *i;
+      delayedSetupMonomial(mono);
+    }
+
+    if(polynomial.getKind() == PLUS){
+      Assert(!polynomial.getAttribute(Slack()),
+	     "Polynomial has slack attribute but not does not have arithvar");
+      setupSlack(polynomial);
+    }
+  }
+}
+
+void TheoryArith::delayedSetupEquality(TNode equality){
+  Debug("arith::delay") << "delayedSetupEquality(" << equality << ")" << endl;
+  
+  Assert(equality.getKind() == EQUAL);
+
+  TNode left = equality[0];
+  delayedSetupPolynomial(left);
+}
+
+bool TheoryArith::canSafelyAvoidEqualitySetup(TNode equality){
+  Assert(equality.getKind() == EQUAL);
+  return d_arithvarNodeMap.hasArithVar(equality[0]);
+}
+
 Node TheoryArith::assertionCases(TNode assertion){
   Kind simpKind = simplifiedKind(assertion);
   Assert(simpKind != UNDEFINED_KIND);
+  if(simpKind == EQUAL || simpKind == DISTINCT){
+    Node eq = (simpKind == DISTINCT) ? assertion[0] : assertion;
+ 
+    if(!canSafelyAvoidEqualitySetup(eq)){
+      delayedSetupEquality(eq);
+    }
+  }
+
   ArithVar x_i = determineLeftVariable(assertion, simpKind);
   DeltaRational c_i = determineRightConstant(assertion, simpKind);
 
-  Debug("arith_assertions") << "arith assertion(" << assertion
-                            << " \\-> "
-                            <<x_i<<" "<< simpKind <<" "<< c_i << ")" << std::endl;
+  Debug("arith::assertions") << "arith assertion(" << assertion
+			     << " \\-> "
+			     <<x_i<<" "<< simpKind <<" "<< c_i << ")" << std::endl;
   switch(simpKind){
   case LEQ:
     if (d_partialModel.hasLowerBound(x_i) && d_partialModel.getLowerBound(x_i) == c_i) {
@@ -601,18 +684,18 @@ void TheoryArith::notifyRestart(){
   uint32_t currSize = d_tableau.size();
   uint32_t copySize = d_smallTableauCopy.size();
 
-  //d_statistics.d_tableauSizeHistory << currSize;
   if(debugResetPolicy){
     cout << "curr " << currSize << " copy " << copySize << endl;
   }
-  if(d_presolveHasBeenCalled && copySize == 0 && currSize > 0){
+  if(d_rowHasBeenAdded){
     if(debugResetPolicy){
-      cout << "initial copy " << d_restartsCounter << endl;
+      cout << "row has been added must copy " << d_restartsCounter << endl;
     }
-    d_smallTableauCopy = d_tableau; // The initial copy
+    d_smallTableauCopy = d_tableau;
+    d_rowHasBeenAdded = false;
   }
 
-  if(d_presolveHasBeenCalled && d_restartsCounter >= RESET_START){
+  if(!d_rowHasBeenAdded && d_restartsCounter >= RESET_START){
     if(copySize >= currSize * 1.1 ){
       ++d_statistics.d_smallerSetToCurr;
       d_smallTableauCopy = d_tableau;
@@ -643,6 +726,8 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
   // 3) v is non-basic and is not contained in a row
   //  It appears that this can happen after other variables have been removed!
   //  Tread carefullty with this one.
+
+  Assert(Options::current()->variableRemovalEnabled);
 
   bool noRow = false;
 
@@ -681,14 +766,27 @@ void TheoryArith::permanentlyRemoveVariable(ArithVar v){
 void TheoryArith::presolve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_presolveTime);
 
-  typedef std::vector<Node>::const_iterator VarIter;
-  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
-    Node variableNode = *i;
-    ArithVar var = d_arithvarNodeMap.asArithVar(variableNode);
-    if(d_userVariables.isMember(var) && !d_propagator.hasAnyAtoms(variableNode)){
-      //The user variable is unconstrained.
-      //Remove this variable permanently
-      permanentlyRemoveVariable(var);
+  /* BREADCRUMB : Turn this on for QF_LRA/QF_RDL problems.
+   *
+   * The big problem for adding things back is that if they are readded they may
+   * need to be assigned an initial value at ALL context values.
+   * This is unsupported with our current datastructures.
+   *
+   * A better solution is to KNOW when the permantent removal is safe.
+   * This is true for single query QF_LRA/QF_RDL problems.
+   * Maybe a mechanism to ask "the sharing manager"
+   * if this variable/row can be used in sharing?
+   */
+  if(Options::current()->variableRemovalEnabled){
+    typedef std::vector<Node>::const_iterator VarIter;
+    for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
+      Node variableNode = *i;
+      ArithVar var = d_arithvarNodeMap.asArithVar(variableNode);
+      if(d_userVariables.isMember(var) && !d_atomDatabase.hasAnyAtoms(variableNode)){
+	//The user variable is unconstrained.
+	//Remove this variable permanently
+	permanentlyRemoveVariable(var);
+      }
     }
   }
 
@@ -700,7 +798,5 @@ void TheoryArith::presolve(){
   Debug("arith::presolve") << "TheoryArith::presolve #" << (callCount++) << endl;
 
   learner.clear();
-
-  d_presolveHasBeenCalled = true;
   check(FULL_EFFORT);
 }

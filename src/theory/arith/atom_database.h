@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file unate_propagator.h
+/*! \file atom_database.h
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none
@@ -11,24 +11,26 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief ArithUnatePropagator constructs implications of the form
+ ** \brief ArithAtomDatabase keeps a database of the arithmetic atoms.
+ ** Importantly, ArithAtomDatabase also handles unate propagations,
+ ** i.e. it constructs implications of the form
  ** "if x < c and c < b, then x < b" (where c and b are constants).
  **
- ** ArithUnatePropagator detects unate implications amongst the atoms
+ ** ArithAtomDatabase detects unate implications amongst the atoms
  ** associated with the theory of arithmetic and informs the SAT solver of the
  ** implication. A unate implication is an implication of the form:
  **   "if x < c and c < b, then x < b" (where c and b are constants).
  ** Unate implications are always 2-SAT clauses.
- ** ArithUnatePropagator sends the implications to the SAT solver in an
+ ** ArithAtomDatabase sends the implications to the SAT solver in an
  ** online fashion.
  ** This means that atoms may be added during solving or before.
  **
- ** ArithUnatePropagator maintains sorted lists containing all atoms associated
+ ** ArithAtomDatabase maintains sorted lists containing all atoms associated
  ** for each unique left hand side, the "x" in the inequality "x < c".
  ** The lists are sorted by the value of the right hand side which must be a
  ** rational constant.
  **
- ** ArithUnatePropagator tries to send out a minimal number of additional
+ ** ArithAtomDatabase tries to send out a minimal number of additional
  ** lemmas per atom added.  Let (x < a), (x < b), (x < c) be arithmetic atoms s.t.
  ** a < b < c.
  ** If the the order of adding the atoms is (x < a), (x < b), and (x < c), then
@@ -45,8 +47,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_PROPAGATOR_H
-#define __CVC4__THEORY__ARITH__ARITH_PROPAGATOR_H
+#ifndef __CVC4__THEORY__ARITH__ARITH_ATOM_DATABASE_H
+#define __CVC4__THEORY__ARITH__ARITH_ATOM_DATABASE_H
 
 #include "expr/node.h"
 #include "context/context.h"
@@ -60,7 +62,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class ArithUnatePropagator {
+class ArithAtomDatabase {
 private:
   /**
    * OutputChannel for the theory of arithmetic.
@@ -73,12 +75,11 @@ private:
     EqualValueSet d_eqValueSet;
   };
 
-  /** TODO: justify making this a TNode. */
   typedef __gnu_cxx::hash_map<TNode, VariablesSets, NodeHashFunction> NodeToSetsMap;
   NodeToSetsMap d_setsMap;
 
 public:
-  ArithUnatePropagator(context::Context* cxt, OutputChannel& arith);
+  ArithAtomDatabase(context::Context* cxt, OutputChannel& arith);
 
   /**
    * Adds an atom to the propagator.
@@ -118,7 +119,7 @@ private:
 
   /**
    * The addImplicationsUsingKAndJList(...)
-   * functions are the work horses of ArithUnatePropagator.
+   * functions are the work horses of the unate part of ArithAtomDatabase.
    * These take an atom of the kind K that has just been added
    * to its associated list, and the ordered list of Js associated with the lhs,
    * and uses these to deduce unate implications.
@@ -162,4 +163,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__THEORY_ARITH_H */
+#endif /* __CVC4__THEORY__ARITH__ARITH_ATOM_DATABASE_H */

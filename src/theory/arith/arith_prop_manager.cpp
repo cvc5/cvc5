@@ -34,10 +34,10 @@ Node ArithPropManager::strictlyWeakerAssertedUpperBound(ArithVar v, const DeltaR
   Node weaker = bound;
   do {
     if(largeEpsilon){
-      weaker = d_propagator.getBestImpliedUpperBound(weaker);
+      weaker = d_atomDatabase.getBestImpliedUpperBound(weaker);
       largeEpsilon = false;
     }else{
-      weaker = d_propagator.getWeakerImpliedUpperBound(weaker);
+      weaker = d_atomDatabase.getWeakerImpliedUpperBound(weaker);
     }
   }while(!weaker.isNull() && !isAsserted(weaker));
   return weaker;
@@ -54,10 +54,10 @@ Node ArithPropManager::strictlyWeakerAssertedLowerBound(ArithVar v, const DeltaR
   Debug("ArithPropManager") << bound << b << endl;
   do {
     if(largeEpsilon){
-      weaker = d_propagator.getBestImpliedLowerBound(weaker);
+      weaker = d_atomDatabase.getBestImpliedLowerBound(weaker);
       largeEpsilon = false;
     }else{
-      weaker = d_propagator.getWeakerImpliedLowerBound(weaker);
+      weaker = d_atomDatabase.getWeakerImpliedLowerBound(weaker);
     }
   }while(!weaker.isNull() && !isAsserted(weaker));
   Debug("ArithPropManager") << "res: " << weaker << endl;
@@ -66,11 +66,11 @@ Node ArithPropManager::strictlyWeakerAssertedLowerBound(ArithVar v, const DeltaR
 
 Node ArithPropManager::getBestImpliedLowerBound(ArithVar v, const DeltaRational& b) const{
   Node bound = boundAsNode(false, v, b);
-  return d_propagator.getBestImpliedLowerBound(bound);
+  return d_atomDatabase.getBestImpliedLowerBound(bound);
 }
 Node ArithPropManager::getBestImpliedUpperBound(ArithVar v, const DeltaRational& b) const{
   Node bound = boundAsNode(true, v, b);
-  return d_propagator.getBestImpliedUpperBound(bound);
+  return d_atomDatabase.getBestImpliedUpperBound(bound);
 }
 
 Node ArithPropManager::boundAsNode(bool upperbound, ArithVar var, const DeltaRational& b) const {
@@ -106,8 +106,8 @@ bool ArithPropManager::propagateArithVar(bool upperbound, ArithVar var, const De
   Node bAsNode = boundAsNode(upperbound, var ,b);
 
   Node bestImplied = upperbound ?
-    d_propagator.getBestImpliedUpperBound(bAsNode):
-    d_propagator.getBestImpliedLowerBound(bAsNode);
+    d_atomDatabase.getBestImpliedUpperBound(bAsNode):
+    d_atomDatabase.getBestImpliedLowerBound(bAsNode);
 
   Debug("ArithPropManager") << upperbound <<","<< var <<","<< b <<","<< reason << endl
                             << bestImplied << endl;

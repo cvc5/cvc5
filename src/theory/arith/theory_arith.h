@@ -33,7 +33,7 @@
 #include "theory/arith/tableau.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/unate_propagator.h"
+#include "theory/arith/atom_database.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_prop_manager.h"
@@ -108,7 +108,7 @@ private:
    * If d >= s_TABLEAU_RESET_DENSITY * d_initialDensity, the tableau
    * is set to d_initialTableau.
    */
-  bool d_presolveHasBeenCalled;
+  bool d_rowHasBeenAdded;
   double d_tableauResetDensity;
   uint32_t d_tableauResetPeriod;
   static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;
@@ -119,10 +119,16 @@ private:
    */
   Tableau d_smallTableauCopy;
 
-  ArithUnatePropagator d_propagator;
+  /**
+   * The atom database keeps track of the atoms that have been preregistered.
+   * Used to add unate propagations.
+   */
+  ArithAtomDatabase d_atomDatabase;
 
+  /** This manager keeps track of information needed to propagate. */
   ArithPropManager d_propManager;
 
+  /** This implements the Simplex decision procedure. */
   SimplexDecisionProcedure d_simplex;
 
 public:
@@ -183,6 +189,20 @@ private:
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);
 
+  /**
+   * Performs *permanent* static setup for equalities that have not been
+   * preregistered.
+   * Currently these MUST be introduced by combination.
+   */
+  void delayedSetupEquality(TNode equality);
+  
+  void delayedSetupPolynomial(TNode polynomial);
+  void delayedSetupMonomial(const Monomial& mono);
+
+  /**
+   * Performs a check to see if it is definitely true that setup can be avoided.
+   */
+  bool canSafelyAvoidEqualitySetup(TNode equality);
 
   /**
    * Handles the case splitting for check() for a new assertion.

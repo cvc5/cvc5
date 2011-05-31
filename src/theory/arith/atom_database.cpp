@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file unate_propagator.cpp
+/*! \file atom_database.cpp
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none
@@ -17,7 +17,7 @@
  ** \todo document this file
  **/
 
-#include "theory/arith/unate_propagator.h"
+#include "theory/arith/atom_database.h"
 #include "theory/arith/arith_utilities.h"
 
 #include <list>
@@ -30,45 +30,45 @@ using namespace CVC4::kind;
 
 using namespace std;
 
-ArithUnatePropagator::ArithUnatePropagator(context::Context* cxt, OutputChannel& out) :
+ArithAtomDatabase::ArithAtomDatabase(context::Context* cxt, OutputChannel& out) :
   d_arithOut(out), d_setsMap()
 { }
 
-bool ArithUnatePropagator::leftIsSetup(TNode left) const{
+bool ArithAtomDatabase::leftIsSetup(TNode left) const{
   return d_setsMap.find(left) != d_setsMap.end();
 }
 
-const ArithUnatePropagator::VariablesSets& ArithUnatePropagator::getVariablesSets(TNode left) const{
+const ArithAtomDatabase::VariablesSets& ArithAtomDatabase::getVariablesSets(TNode left) const{
   Assert(leftIsSetup(left));
   NodeToSetsMap::const_iterator i = d_setsMap.find(left);
   return i->second;
 }
-ArithUnatePropagator::VariablesSets& ArithUnatePropagator::getVariablesSets(TNode left){
+ArithAtomDatabase::VariablesSets& ArithAtomDatabase::getVariablesSets(TNode left){
   Assert(leftIsSetup(left));
   NodeToSetsMap::iterator i = d_setsMap.find(left);
   return i->second;
 }
-EqualValueSet& ArithUnatePropagator::getEqualValueSet(TNode left){
+EqualValueSet& ArithAtomDatabase::getEqualValueSet(TNode left){
   Assert(leftIsSetup(left));
   return getVariablesSets(left).d_eqValueSet;
 }
 
-const EqualValueSet& ArithUnatePropagator::getEqualValueSet(TNode left) const{
+const EqualValueSet& ArithAtomDatabase::getEqualValueSet(TNode left) const{
   Assert(leftIsSetup(left));
   return getVariablesSets(left).d_eqValueSet;
 }
 
-BoundValueSet& ArithUnatePropagator::getBoundValueSet(TNode left){
+BoundValueSet& ArithAtomDatabase::getBoundValueSet(TNode left){
   Assert(leftIsSetup(left));
   return getVariablesSets(left).d_boundValueSet;
 }
 
-const BoundValueSet& ArithUnatePropagator::getBoundValueSet(TNode left) const{
+const BoundValueSet& ArithAtomDatabase::getBoundValueSet(TNode left) const{
   Assert(leftIsSetup(left));
   return getVariablesSets(left).d_boundValueSet;
 }
 
-bool ArithUnatePropagator::hasAnyAtoms(TNode v) const{
+bool ArithAtomDatabase::hasAnyAtoms(TNode v) const{
   Assert(!leftIsSetup(v)
          || !(getEqualValueSet(v)).empty()
          || !(getBoundValueSet(v)).empty());
@@ -76,20 +76,20 @@ bool ArithUnatePropagator::hasAnyAtoms(TNode v) const{
   return leftIsSetup(v);
 }
 
-void ArithUnatePropagator::setupLefthand(TNode left){
+void ArithAtomDatabase::setupLefthand(TNode left){
   Assert(!leftIsSetup(left));
 
   d_setsMap[left] = VariablesSets();
 }
 
-bool ArithUnatePropagator::containsLiteral(TNode lit) const{
+bool ArithAtomDatabase::containsLiteral(TNode lit) const{
   switch(lit.getKind()){
   case NOT: return containsAtom(lit[0]);
   default: return containsAtom(lit);
   }
 }
 
-bool ArithUnatePropagator::containsAtom(TNode atom) const{
+bool ArithAtomDatabase::containsAtom(TNode atom) const{
   switch(atom.getKind()){
   case EQUAL: return containsEquality(atom);
   case LEQ: return containsLeq(atom);
@@ -99,13 +99,13 @@ bool ArithUnatePropagator::containsAtom(TNode atom) const{
   }
 }
 
-bool ArithUnatePropagator::containsEquality(TNode atom) const{
+bool ArithAtomDatabase::containsEquality(TNode atom) const{
   TNode left = atom[0];
   const EqualValueSet& eqSet = getEqualValueSet(left);
   return eqSet.find(atom) != eqSet.end();
 }
 
-bool ArithUnatePropagator::containsLeq(TNode atom) const{
+bool ArithAtomDatabase::containsLeq(TNode atom) const{
   TNode left = atom[0];
   const Rational& value = rightHandRational(atom);
 
@@ -119,7 +119,7 @@ bool ArithUnatePropagator::containsLeq(TNode atom) const{
   }
 }
 
-bool ArithUnatePropagator::containsGeq(TNode atom) const{
+bool ArithAtomDatabase::containsGeq(TNode atom) const{
   TNode left = atom[0];
   const Rational& value = rightHandRational(atom);
 
@@ -133,7 +133,7 @@ bool ArithUnatePropagator::containsGeq(TNode atom) const{
   }
 }
 
-void ArithUnatePropagator::addAtom(TNode atom){
+void ArithAtomDatabase::addAtom(TNode atom){
   TNode left  = atom[0];
   TNode right = atom[1];
 
@@ -189,7 +189,7 @@ void ArithUnatePropagator::addAtom(TNode atom){
   }
 }
 
-bool ArithUnatePropagator::hasBoundValueEntry(TNode atom){
+bool ArithAtomDatabase::hasBoundValueEntry(TNode atom){
   TNode left = atom[0];
   const Rational& value = rightHandRational(atom);
   BoundValueSet& bvSet = getBoundValueSet(left);
@@ -212,7 +212,7 @@ bool rightHandRationalIsLT(TNode a, TNode b){
   return RightHandRationalLT()(a,b);
 }
 
-void ArithUnatePropagator::addImplicationsUsingEqualityAndEqualityValues(TNode atom){
+void ArithAtomDatabase::addImplicationsUsingEqualityAndEqualityValues(TNode atom){
   Assert(atom.getKind() == EQUAL);
   TNode left = atom[0];
   EqualValueSet& eqSet = getEqualValueSet(left);
@@ -307,7 +307,7 @@ Node getLowerBound(const BoundValueSet& bvSet, const Rational& value, bool stric
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingEqualityAndBoundValues(TNode atom){
+void ArithAtomDatabase::addImplicationsUsingEqualityAndBoundValues(TNode atom){
   Assert(atom.getKind() == EQUAL);
   Node left = atom[0];
 
@@ -326,7 +326,7 @@ void ArithUnatePropagator::addImplicationsUsingEqualityAndBoundValues(TNode atom
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingLeqAndBoundValues(TNode atom)
+void ArithAtomDatabase::addImplicationsUsingLeqAndBoundValues(TNode atom)
 {
   Assert(atom.getKind() == LEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
@@ -343,7 +343,7 @@ void ArithUnatePropagator::addImplicationsUsingLeqAndBoundValues(TNode atom)
   }
 }
 
-void ArithUnatePropagator::addImplicationsUsingLeqAndEqualityValues(TNode atom) {
+void ArithAtomDatabase::addImplicationsUsingLeqAndEqualityValues(TNode atom) {
   Assert(atom.getKind() == LEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
 
@@ -367,7 +367,7 @@ void ArithUnatePropagator::addImplicationsUsingLeqAndEqualityValues(TNode atom) 
 }
 
 
-void ArithUnatePropagator::addImplicationsUsingGeqAndBoundValues(TNode atom){
+void ArithAtomDatabase::addImplicationsUsingGeqAndBoundValues(TNode atom){
   Assert(atom.getKind() == GEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
 
@@ -382,7 +382,7 @@ void ArithUnatePropagator::addImplicationsUsingGeqAndBoundValues(TNode atom){
     addImplication(negation, ub);
   }
 }
-void ArithUnatePropagator::addImplicationsUsingGeqAndEqualityValues(TNode atom){
+void ArithAtomDatabase::addImplicationsUsingGeqAndEqualityValues(TNode atom){
 
   Assert(atom.getKind() == GEQ);
   Node negation = NodeManager::currentNM()->mkNode(NOT, atom);
@@ -405,17 +405,17 @@ void ArithUnatePropagator::addImplicationsUsingGeqAndEqualityValues(TNode atom){
   }
 }
 
-void ArithUnatePropagator::addImplication(TNode a, TNode b){
+void ArithAtomDatabase::addImplication(TNode a, TNode b){
   Node imp = NodeBuilder<2>(IMPLIES) << a << b;
 
-  Debug("arith::unate") << "ArithUnatePropagator::addImplication"
+  Debug("arith::unate") << "ArithAtomDatabase::addImplication"
                         << "(" << a << ", " << b <<")" << endl;
 
   d_arithOut.lemma(imp);
 }
 
 
-Node ArithUnatePropagator::getImpliedUpperBoundUsingLeq(TNode leq, bool weaker) const {
+Node ArithAtomDatabase::getImpliedUpperBoundUsingLeq(TNode leq, bool weaker) const {
   Assert(leq.getKind() == LEQ);
   Node left = leq[0];
 
@@ -428,7 +428,7 @@ Node ArithUnatePropagator::getImpliedUpperBoundUsingLeq(TNode leq, bool weaker) 
   return ub;
 }
 
-Node ArithUnatePropagator::getImpliedUpperBoundUsingLT(TNode lt, bool weaker) const {
+Node ArithAtomDatabase::getImpliedUpperBoundUsingLT(TNode lt, bool weaker) const {
   Assert(lt.getKind() == NOT && lt[0].getKind() == GEQ);
   Node atom = lt[0];
   Node left = atom[0];
@@ -441,7 +441,7 @@ Node ArithUnatePropagator::getImpliedUpperBoundUsingLT(TNode lt, bool weaker) co
   return getUpperBound(bvSet, value, true, weaker);
 }
 
-Node ArithUnatePropagator::getBestImpliedUpperBound(TNode upperBound) const {
+Node ArithAtomDatabase::getBestImpliedUpperBound(TNode upperBound) const {
   Node result = Node::null();
   if(upperBound.getKind() == LEQ ){
     result = getImpliedUpperBoundUsingLeq(upperBound, false);
@@ -459,7 +459,7 @@ Node ArithUnatePropagator::getBestImpliedUpperBound(TNode upperBound) const {
   return result;
 }
 
-Node ArithUnatePropagator::getWeakerImpliedUpperBound(TNode upperBound) const {
+Node ArithAtomDatabase::getWeakerImpliedUpperBound(TNode upperBound) const {
   Node result = Node::null();
   if(upperBound.getKind() == LEQ ){
     result = getImpliedUpperBoundUsingLeq(upperBound, true);
@@ -477,7 +477,7 @@ Node ArithUnatePropagator::getWeakerImpliedUpperBound(TNode upperBound) const {
   return result;
 }
 
-Node ArithUnatePropagator::getImpliedLowerBoundUsingGT(TNode gt, bool weaker) const {
+Node ArithAtomDatabase::getImpliedLowerBoundUsingGT(TNode gt, bool weaker) const {
   Assert(gt.getKind() == NOT && gt[0].getKind() == LEQ);
   Node atom = gt[0];
   Node left = atom[0];
@@ -490,7 +490,7 @@ Node ArithUnatePropagator::getImpliedLowerBoundUsingGT(TNode gt, bool weaker) co
   return getLowerBound(bvSet, value, true, weaker);
 }
 
-Node ArithUnatePropagator::getImpliedLowerBoundUsingGeq(TNode geq, bool weaker) const {
+Node ArithAtomDatabase::getImpliedLowerBoundUsingGeq(TNode geq, bool weaker) const {
   Assert(geq.getKind() == GEQ);
   Node left = geq[0];
 
@@ -502,7 +502,7 @@ Node ArithUnatePropagator::getImpliedLowerBoundUsingGeq(TNode geq, bool weaker) 
   return getLowerBound(bvSet, value, false, weaker);
 }
 
-Node ArithUnatePropagator::getBestImpliedLowerBound(TNode lowerBound) const {
+Node ArithAtomDatabase::getBestImpliedLowerBound(TNode lowerBound) const {
   Node result = Node::null();
   if(lowerBound.getKind() == GEQ ){
     result = getImpliedLowerBoundUsingGeq(lowerBound, false);
@@ -519,7 +519,7 @@ Node ArithUnatePropagator::getBestImpliedLowerBound(TNode lowerBound) const {
   return result;
 }
 
-Node ArithUnatePropagator::getWeakerImpliedLowerBound(TNode lowerBound) const {
+Node ArithAtomDatabase::getWeakerImpliedLowerBound(TNode lowerBound) const {
   Node result = Node::null();
   if(lowerBound.getKind() == GEQ ){
     result = getImpliedLowerBoundUsingGeq(lowerBound, true);

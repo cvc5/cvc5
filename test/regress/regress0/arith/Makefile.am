@@ -8,6 +8,7 @@ TESTS =	\
 	arith.02.cvc \
 	arith.03.cvc \
 	delta-minimized-row-vector-bug.smt \
+	fuzz_3-eq.smt \
 	leq.01.smt \
 	miplibtrick.smt
 
