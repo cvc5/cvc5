@@ -209,8 +209,9 @@ bool TypeNode::isInstantiatedDatatype() const {
   }
   const Datatype& dt = (*this)[0].getConst<Datatype>();
   unsigned n = dt.getNumParameters();
+  Assert(n < getNumChildren());
   for(unsigned i = 0; i < n; ++i) {
-    if(TypeNode::fromType(dt.getParameter(i)) == (*this)[n + 1]) {
+    if(TypeNode::fromType(dt.getParameter(i)) == (*this)[i + 1]) {
       return false;
     }
   }

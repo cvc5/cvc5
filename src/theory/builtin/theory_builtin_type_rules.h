@@ -82,8 +82,10 @@ class EqualityTypeRule {
       if ( lhsType != rhsType ) {
         std::stringstream ss;
         ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage));
-        ss << "Types do not match in equation ";
-        ss << "[" << lhsType << "<>" << rhsType << "]";
+        ss << "Types do not match in equation:" << std::endl;
+        ss << "Equation: " << n << std::endl;
+        ss << "Type 1: " << lhsType << std::endl;
+        ss << "Type 2: " << rhsType << std::endl;
 
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
