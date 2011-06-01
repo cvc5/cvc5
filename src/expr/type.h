@@ -540,8 +540,21 @@ public:
   /** Get the underlying datatype */
   const Datatype& getDatatype() const;
 
-  /** Is this this datatype parametric? */
+  /** Is this datatype parametric? */
   bool isParametric() const;
+
+  /**
+   * Has this datatype been fully instantiated ?
+   *
+   * @return true if this datatype is not parametric or, if it is, it
+   * has been fully instantiated
+   */
+  bool isInstantiated() const;
+
+  /**
+   * Has this datatype been instantiated for parameter N ?
+   */
+  bool isParameterInstantiated(unsigned n) const;
 
   /** Get the parameter types */
   std::vector<Type> getParamTypes() const;

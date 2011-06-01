@@ -369,7 +369,7 @@ public:
   /** Get the number of constructors (so far) for this Datatype. */
   inline size_t getNumConstructors() const throw();
 
-  /** Get the nubmer of parameters */
+  /** Get the nubmer of type parameters */
   inline size_t getNumParameters() const throw();
 
   /** Get parameter */

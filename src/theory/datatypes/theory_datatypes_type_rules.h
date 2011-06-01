@@ -41,6 +41,13 @@ public:
   Matcher( DatatypeType dt ){
     std::vector< Type > argTypes = dt.getParamTypes();
     addTypes( argTypes );
+    Debug("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
+    for(unsigned i = 0; i < argTypes.size(); ++i) {
+      if(dt.isParameterInstantiated(i)) {
+        Debug("typecheck-idt") << "++ instantiate param " << i << " : " << d_types[i] << std::endl;
+        d_match[i] = d_types[i];
+      }
+    }
   }
   ~Matcher(){}
 
@@ -55,9 +62,11 @@ public:
   }
 
   bool doMatching( TypeNode base, TypeNode match ){
+    Debug("typecheck-idt") << "doMatching() : " << base << " : " << match << std::endl;
     std::vector< TypeNode >::iterator i = std::find( d_types.begin(), d_types.end(), base );
     if( i!=d_types.end() ){
       int index = i - d_types.begin();
+      Debug("typecheck-idt") << "++ match on " << index << " : " << d_match[index] << std::endl;
       if( !d_match[index].isNull() && d_match[index]!=match ){
         return false;
       }else{
@@ -79,20 +88,23 @@ public:
   }
 
   TypeNode getMatch( unsigned int i ){ return d_match[i]; }
-  void getTypes( std::vector<Type>& types ) { 
+  void getTypes( std::vector<Type>& types ) {
     types.clear();
     for( int i=0; i<(int)d_match.size(); i++ ){
       types.push_back( d_types[i].toType() );
     }
   }
-  void getMatches( std::vector<Type>& types ) { 
+  void getMatches( std::vector<Type>& types ) {
     types.clear();
     for( int i=0; i<(int)d_match.size(); i++ ){
-      Assert( !d_match[i].isNull() ); //verify that all types have been set
-      types.push_back( d_match[i].toType() );
+      if(d_match[i].isNull()) {
+        types.push_back( d_types[i].toType() );
+      } else {
+        types.push_back( d_match[i].toType() );
+      }
     }
   }
-};
+};/* class Matcher */
 
 
 typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node> GroundTermAttr;
@@ -157,6 +169,9 @@ struct DatatypeSelectorTypeRule {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n << std::endl;
       Matcher m( dt );
       TypeNode childType = n[0].getType(check);
+      if(! childType.isInstantiatedDatatype()) {
+        throw TypeCheckingExceptionPrivate(n, "Datatype type not fully instantiated");
+      }
       if( !m.doMatching( selType[0], childType ) ){
         throw TypeCheckingExceptionPrivate(n, "matching failed for selector argument of parameterized datatype");
       }
@@ -211,7 +226,36 @@ struct DatatypeTesterTypeRule {
     }
     return nodeManager->booleanType();
   }
-};/* struct DatatypeSelectorTypeRule */
+};/* struct DatatypeTesterTypeRule */
+
+struct DatatypeAscriptionTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw(TypeCheckingExceptionPrivate) {
+    Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
+    Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
+    TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
+    if(check) {
+      TypeNode childType = n[0].getType(check);
+      if(!t.getKind() == kind::DATATYPE_TYPE) {
+        throw TypeCheckingExceptionPrivate(n, "bad type for datatype type ascription");
+      }
+      DatatypeType dt = DatatypeType(childType.toType());
+      if( dt.isParametric() ){
+        Debug("typecheck-idt") << "typecheck parameterized ascription: " << n << std::endl;
+        Matcher m( dt );
+        if( !m.doMatching( childType, t ) ){
+          throw TypeCheckingExceptionPrivate(n, "matching failed for type ascription argument of parameterized datatype");
+        }
+      }else{
+        Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
+        if(t != childType) {
+          throw TypeCheckingExceptionPrivate(n, "bad type for type ascription argument");
+        }
+      }
+    }
+    return t;
+  }
+};/* struct DatatypeAscriptionTypeRule */
 
 struct ConstructorProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

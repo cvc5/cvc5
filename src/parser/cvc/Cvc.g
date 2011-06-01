@@ -1461,9 +1461,16 @@ postfixTerm[CVC4::Expr& f]
           f = EXPR_MANAGER->mkVar(TupleType(f.getType()).getTypes()[k]); }
       )*/
     )*
-    (typeAscription[f, t] 
-     { //f = MK_EXPR(CVC4::kind::APPLY_TYPE_ANNOTATION, MK_CONST(t), f); 
-     } )? 
+    ( typeAscription[f, t]
+      { if(t.isDatatype()) {
+          f = MK_EXPR(CVC4::kind::APPLY_TYPE_ASCRIPTION, MK_CONST(AscriptionType(t)), f);
+        } else {
+          if(f.getType() != t) {
+            PARSER_STATE->parseError("Type ascription not satisfied.");
+          }
+        }
+      }
+    )?
   ;
 
 bvTerm[CVC4::Expr& f]
@@ -1666,16 +1673,6 @@ typeAscription[const CVC4::Expr& f, CVC4::Type& t]
 @init {
 }
   : COLON COLON type[t,CHECK_DECLARED]
-    { //if(f.getType() != t) {
-      //  std::stringstream ss;
-      //  ss << Expr::setlanguage(language::output::LANG_CVC4)
-      //     << "type ascription not satisfied\n"
-      //     << "term:     " << f << '\n'
-      //     << "has type: " << f.getType() << '\n'
-      //     << "ascribed: " << t;
-      //  PARSER_STATE->parseError(ss.str());
-      //}
-    }
   ;
 
 /**

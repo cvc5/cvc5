@@ -199,6 +199,32 @@ bool TypeNode::isParametricDatatype() const {
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
+/** Is this an instantiated datatype type */
+bool TypeNode::isInstantiatedDatatype() const {
+  if(getKind() == kind::DATATYPE_TYPE) {
+    return true;
+  }
+  if(getKind() != kind::PARAMETRIC_DATATYPE) {
+    return false;
+  }
+  const Datatype& dt = (*this)[0].getConst<Datatype>();
+  unsigned n = dt.getNumParameters();
+  for(unsigned i = 0; i < n; ++i) {
+    if(TypeNode::fromType(dt.getParameter(i)) == (*this)[n + 1]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Is this an instantiated datatype parameter */
+bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
+  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
+  const Datatype& dt = (*this)[0].getConst<Datatype>();
+  AssertArgument(n < dt.getNumParameters(), *this);
+  return TypeNode::fromType(dt.getParameter(n)) != (*this)[n + 1];
+}
+
 /** Is this a constructor type */
 bool TypeNode::isConstructor() const {
   return getKind() == kind::CONSTRUCTOR_TYPE;

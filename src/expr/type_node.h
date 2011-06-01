@@ -488,6 +488,12 @@ public:
   /** Is this a parameterized datatype type */
   bool isParametricDatatype() const;
 
+  /** Is this a fully instantiated datatype type */
+  bool isInstantiatedDatatype() const;
+
+  /** Is this an instantiated datatype parameter */
+  bool isParameterInstantiatedDatatype(unsigned n) const;
+
   /** Is this a constructor type */
   bool isConstructor() const;
 

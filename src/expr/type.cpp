@@ -537,6 +537,14 @@ bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
 }
 
+bool DatatypeType::isInstantiated() const {
+  return d_typeNode->isInstantiatedDatatype();
+}
+
+bool DatatypeType::isParameterInstantiated(unsigned n) const {
+  return d_typeNode->isParameterInstantiatedDatatype(n);
+}
+
 size_t DatatypeType::getArity() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getNumChildren() - 1;
