@@ -50,7 +50,7 @@ cardinality DATATYPE_TYPE \
     "util/datatype.h"
 well-founded DATATYPE_TYPE \
     "%TYPE%.getConst<Datatype>().isWellFounded()" \
-    "%TYPE%.getConst<Datatype>().mkGroundTerm()" \
+    "%TYPE%.getConst<Datatype>().mkGroundTerm(%TYPE%.toType())" \
     "util/datatype.h"
 
 operator PARAMETRIC_DATATYPE 1: "parametric datatype"
@@ -59,7 +59,7 @@ cardinality PARAMETRIC_DATATYPE \
     "util/datatype.h"
 well-founded PARAMETRIC_DATATYPE\
     "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
-    "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm()" \
+    "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm(%TYPE%.toType())" \
     "util/datatype.h"
 
 parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \

@@ -182,7 +182,7 @@ bool Datatype::isWellFounded() const throw(AssertionException) {
   return false;
 }
 
-Expr Datatype::mkGroundTerm() const throw(AssertionException) {
+Expr Datatype::mkGroundTerm( Type t ) const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
 
   // we're using some internals, so we have to set up this library context
@@ -194,73 +194,78 @@ Expr Datatype::mkGroundTerm() const throw(AssertionException) {
   Expr groundTerm = self.getAttribute(DatatypeGroundTermAttr()).toExpr();
   if(!groundTerm.isNull()) {
     Debug("datatypes") << "\nin cache: " << d_self << " => " << groundTerm << std::endl;
-    return groundTerm;
   } else {
     Debug("datatypes") << "\nNOT in cache: " << d_self << std::endl;
-  }
-
-  // look for a nullary ctor and use that
-  for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    // prefer the nullary constructor
-    if((*i).getNumArgs() == 0) {
-      groundTerm = (*i).getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, (*i).getConstructor());
-      self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
-      Debug("datatypes") << "constructed nullary: " << getName() << " => " << groundTerm << std::endl;
-      return groundTerm;
-    }
-  }
-
-  // No ctors are nullary, but we can't just use the first ctor
-  // because that might recurse!  In fact, since this datatype is
-  // well-founded by assumption, we know that at least one constructor
-  // doesn't contain a self-reference.  We search for that one and use
-  // it to construct the ground term, as that is often a simpler
-  // ground term (e.g. in a tree datatype, something like "(leaf 0)"
-  // is simpler than "(node (leaf 0) (leaf 0))".
-  //
-  // Of course this check doesn't always work, if the self-reference
-  // is through other Datatypes (or other non-Datatype types), but it
-  // does simplify a common case.  It requires a bit of extra work,
-  // but since we cache the results of these, it only happens once,
-  // ever, per Datatype.
-  //
-  // If the datatype is not actually well-founded, something below
-  // will throw an exception.
-  for(const_iterator i = begin(), i_end = end();
-      i != i_end;
-      ++i) {
-    Constructor::const_iterator j = (*i).begin(), j_end = (*i).end();
-    for(; j != j_end; ++j) {
-      SelectorType stype((*j).getSelector().getType());
-      if(stype.getDomain() == stype.getRangeType()) {
-        Debug("datatypes") << "self-reference, skip " << getName() << "::" << (*i).getName() << std::endl;
-        // the constructor contains a direct self-reference
-        break;
-      }
-    }
-
-    if(j == j_end && (*i).isWellFounded()) {
-      groundTerm = (*i).mkGroundTerm();
-      // Constructor::mkGroundTerm() doesn't ever return null when
-      // called from the outside.  But in recursive invocations, it
-      // can: say you have dt = a(one:dt) | b(two:INT), and you ask
-      // the "a" constructor for a ground term.  It asks "dt" for a
-      // ground term, which in turn asks the "a" constructor for a
-      // ground term!  Thus, even though "a" is a well-founded
-      // constructor, it cannot construct a ground-term by itself.  We
-      // have to skip past it, and we do that with a
-      // RecursionBreaker<> in Constructor::mkGroundTerm().  In the
-      // case of recursion, it returns null.
-      if(!groundTerm.isNull()) {
-        // we found a ground-term-constructing constructor!
+    // look for a nullary ctor and use that
+    for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+      // prefer the nullary constructor
+      if( groundTerm.isNull() && (*i).getNumArgs() == 0) {
+        groundTerm = (*i).getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, (*i).getConstructor());
         self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
-        Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
-        return groundTerm;
+        Debug("datatypes-gt") << "constructed nullary: " << getName() << " => " << groundTerm << std::endl;
+      }
+    }
+    // No ctors are nullary, but we can't just use the first ctor
+    // because that might recurse!  In fact, since this datatype is
+    // well-founded by assumption, we know that at least one constructor
+    // doesn't contain a self-reference.  We search for that one and use
+    // it to construct the ground term, as that is often a simpler
+    // ground term (e.g. in a tree datatype, something like "(leaf 0)"
+    // is simpler than "(node (leaf 0) (leaf 0))".
+    //
+    // Of course this check doesn't always work, if the self-reference
+    // is through other Datatypes (or other non-Datatype types), but it
+    // does simplify a common case.  It requires a bit of extra work,
+    // but since we cache the results of these, it only happens once,
+    // ever, per Datatype.
+    //
+    // If the datatype is not actually well-founded, something below
+    // will throw an exception.
+    for(const_iterator i = begin(), i_end = end();
+        i != i_end;
+        ++i) {
+      if( groundTerm.isNull() ){
+        Constructor::const_iterator j = (*i).begin(), j_end = (*i).end();
+        for(; j != j_end; ++j) {
+          SelectorType stype((*j).getSelector().getType());
+          if(stype.getDomain() == stype.getRangeType()) {
+            Debug("datatypes") << "self-reference, skip " << getName() << "::" << (*i).getName() << std::endl;
+            // the constructor contains a direct self-reference
+            break;
+          }
+        }
+
+        if(j == j_end && (*i).isWellFounded()) {
+          groundTerm = (*i).mkGroundTerm( t );
+          // Constructor::mkGroundTerm() doesn't ever return null when
+          // called from the outside.  But in recursive invocations, it
+          // can: say you have dt = a(one:dt) | b(two:INT), and you ask
+          // the "a" constructor for a ground term.  It asks "dt" for a
+          // ground term, which in turn asks the "a" constructor for a
+          // ground term!  Thus, even though "a" is a well-founded
+          // constructor, it cannot construct a ground-term by itself.  We
+          // have to skip past it, and we do that with a
+          // RecursionBreaker<> in Constructor::mkGroundTerm().  In the
+          // case of recursion, it returns null.
+          if(!groundTerm.isNull()) {
+            // we found a ground-term-constructing constructor!
+            self.setAttribute(DatatypeGroundTermAttr(), groundTerm);
+            Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
+          }
+        }
       }
     }
   }
-  // if we get all the way here, we aren't well-founded
-  CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+  if( groundTerm.isNull() ){
+    // if we get all the way here, we aren't well-founded
+    CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+  }else{
+    if( t!=groundTerm.getType() ){
+      groundTerm = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
+                                                    NodeManager::currentNM()->mkConst(AscriptionType(t)), groundTerm).toExpr();
+    }
+    return groundTerm;
+  }
 }
 
 DatatypeType Datatype::getDatatypeType() const throw(AssertionException) {
@@ -593,9 +598,10 @@ bool Datatype::Constructor::isWellFounded() const throw(AssertionException) {
   return true;
 }
 
-Expr Datatype::Constructor::mkGroundTerm() const throw(AssertionException) {
+Expr Datatype::Constructor::mkGroundTerm( Type t ) const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
+  Debug("datatypes-gt") << "mkGroundTerm " << t << std::endl;
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
 
@@ -618,8 +624,18 @@ Expr Datatype::Constructor::mkGroundTerm() const throw(AssertionException) {
   groundTerms.push_back(getConstructor());
 
   // for each selector, get a ground term
+  Assert( t.isDatatype() );
+  std::vector< Type > instTypes; 
+  std::vector< Type > paramTypes = DatatypeType(t).getDatatype().getParameters();
+  if( DatatypeType(t).isParametric() ){
+    instTypes = DatatypeType(t).getParamTypes();
+  }
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
-    groundTerms.push_back(SelectorType((*i).getSelector().getType()).getRangeType().mkGroundTerm());
+    Type selType = SelectorType((*i).getSelector().getType()).getRangeType();
+    if( DatatypeType(t).isParametric() ){
+      selType = selType.substitute( paramTypes, instTypes );
+    }
+    groundTerms.push_back(selType.mkGroundTerm());
   }
 
   groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);

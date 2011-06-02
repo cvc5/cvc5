@@ -75,11 +75,18 @@ public:
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       } else {
+        TNode gt = in.getType().mkGroundTerm();
+        TypeNode gtt = gt.getType();
+        Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
+        if( !gtt.isInstantiatedDatatype() ){
+          gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
+                                                NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+        }
         Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial selector " << in
                                    << " to distinguished ground term "
                                    << in.getType().mkGroundTerm() << std::endl;
-        return RewriteResponse(REWRITE_DONE,in.getType().mkGroundTerm() );
+        return RewriteResponse(REWRITE_DONE,gt );
       }
     }
 

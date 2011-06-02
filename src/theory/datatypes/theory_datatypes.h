@@ -178,6 +178,7 @@ private:
   bool searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        NodeBuilder<>& explanation );
+  Node doTypeAscription( Node t, TypeNode typ );
 };/* class TheoryDatatypes */
 
 inline bool TheoryDatatypes::hasConflict() { 

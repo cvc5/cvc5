@@ -78,8 +78,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == colorsType);
+                           << "  is " << (*i).mkGroundTerm( colorsType ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( colorsType ).getType() == colorsType);
     }
   }
 
@@ -115,8 +115,8 @@ public:
       Debug("datatypes") << "checking " << (*i).getName() << endl;
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == natType);
+                           << "  is " << (*i).mkGroundTerm( natType ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( natType ).getType() == natType);
     }
   }
 
@@ -150,8 +150,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == treeType);
+                           << "  is " << (*i).mkGroundTerm( treeType ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( treeType ).getType() == treeType);
     }
   }
 
@@ -184,8 +184,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == listType);
+                           << "  is " << (*i).mkGroundTerm( listType ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( listType ).getType() == listType);
     }
   }
 
@@ -218,8 +218,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == listType);
+                           << "  is " << (*i).mkGroundTerm( listType ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( listType ).getType() == listType);
     }
   }
 
@@ -252,8 +252,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == listType);
+                           << "  is " << (*i).mkGroundTerm( listType ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( listType ).getType() == listType);
     }
   }
 
@@ -317,8 +317,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == dtts[0]);
+                           << "  is " << (*i).mkGroundTerm( dtts[0] ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( dtts[0] ).getType() == dtts[0]);
     }
 
     TS_ASSERT(! dtts[1].getDatatype().isFinite());
@@ -334,8 +334,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == dtts[1]);
+                           << "  is " << (*i).mkGroundTerm( dtts[1] ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( dtts[1] ).getType() == dtts[1]);
     }
 
     // add another constructor to list datatype resulting in an
@@ -365,8 +365,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == dtts2[0]);
+                           << "  is " << (*i).mkGroundTerm( dtts2[0] ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( dtts2[0] ).getType() == dtts2[0]);
     }
 
     TS_ASSERT(! dtts2[1].getDatatype().isFinite());
@@ -382,8 +382,8 @@ public:
         ++i) {
       TS_ASSERT((*i).isWellFounded());
       Debug("groundterms") << "ground term of " << *i << endl
-                           << "  is " << (*i).mkGroundTerm() << endl;
-      TS_ASSERT((*i).mkGroundTerm().getType() == dtts2[1]);
+                           << "  is " << (*i).mkGroundTerm( dtts2[1] ) << endl;
+      TS_ASSERT((*i).mkGroundTerm( dtts2[1] ).getType() == dtts2[1]);
     }
   }
 
@@ -403,14 +403,14 @@ public:
     TS_ASSERT(treeType.getDatatype().getCardinality() == Cardinality::INTEGERS);
     TS_ASSERT(! treeType.getDatatype().isWellFounded());
     TS_ASSERT_THROWS_ANYTHING( treeType.mkGroundTerm() );
-    TS_ASSERT_THROWS_ANYTHING( treeType.getDatatype().mkGroundTerm() );
+    TS_ASSERT_THROWS_ANYTHING( treeType.getDatatype().mkGroundTerm( treeType ) );
     // all ctors should be not-well-founded either
     for(Datatype::const_iterator i = treeType.getDatatype().begin(),
           i_end = treeType.getDatatype().end();
         i != i_end;
         ++i) {
       TS_ASSERT(! (*i).isWellFounded());
-      TS_ASSERT_THROWS_ANYTHING( (*i).mkGroundTerm() );
+      TS_ASSERT_THROWS_ANYTHING( (*i).mkGroundTerm( treeType ) );
     }
   }
 

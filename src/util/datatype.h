@@ -297,7 +297,7 @@ public:
      * constructor must be both resolved and well-founded, or else an
      * exception is thrown.
      */
-    Expr mkGroundTerm() const throw(AssertionException);
+    Expr mkGroundTerm( Type t ) const throw(AssertionException);
 
     /**
      * Returns true iff this Datatype constructor has already been
@@ -375,6 +375,9 @@ public:
   /** Get parameter */
   inline Type getParameter( unsigned int i ) const;
 
+  /** Get parameters */
+  inline std::vector<Type> getParameters() const;
+
   /**
    * Return the cardinality of this datatype (the sum of the
    * cardinalities of its constructors).  The Datatype must be
@@ -401,7 +404,7 @@ public:
    * Datatype must be both resolved and well-founded, or else an
    * exception is thrown.
    */
-  Expr mkGroundTerm() const throw(AssertionException);
+  Expr mkGroundTerm( Type t ) const throw(AssertionException);
 
   /**
    * Get the DatatypeType associated to this Datatype.  Can only be
@@ -530,6 +533,10 @@ inline size_t Datatype::getNumParameters() const throw() {
 
 inline Type Datatype::getParameter( unsigned int i ) const {
   return d_params[i];
+}
+
+inline std::vector<Type> Datatype::getParameters() const {
+  return d_params;
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

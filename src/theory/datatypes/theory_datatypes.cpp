@@ -474,6 +474,7 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
       d_inst_map[ te ] = true;
       //instantiate, add equality
       Node val = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, selectorVals );
+      val = doTypeAscription( val, te.getType() );      //IDT-param
       if( find( val ) != find( te ) ) {
         //build explaination
         NodeBuilder<> nb(kind::AND);
@@ -518,6 +519,7 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
 bool TheoryDatatypes::collapseSelector( Node t ) {
   if( !hasConflict() && t.getKind() == APPLY_SELECTOR ) {
     //collapse constructor
+    TypeNode retTyp = t.getType(); 
     TypeNode typ = t[0].getType();
     Node sel = t.getOperator();
     TypeNode selType = sel.getType();
@@ -531,7 +533,8 @@ bool TheoryDatatypes::collapseSelector( Node t ) {
         retNode = tmp[ Datatype::indexOf( sel.toExpr() ) ];
       } else {
         Debug("datatypes") << "Applied selector " << t << " to wrong constructor." << endl;
-        retNode = selType[1].mkGroundTerm();
+        retNode = doTypeAscription( retTyp.mkGroundTerm(), selType[1] );    //IDT-param
+        //retNode = selType[1].mkGroundTerm();
       }
       if( tmp!=t[0] ){
         t = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, t.getOperator(), tmp );
@@ -548,7 +551,7 @@ bool TheoryDatatypes::collapseSelector( Node t ) {
       unsigned r;
       checkTester( tester, conflict, r );
       if( !conflict.isNull() ) {
-        Debug("datatypes") << "Applied selector " << t << " to provably wrong constructor." << endl;
+        Debug("datatypes") << "Applied selector " << t << " to provably wrong constructor. " << retTyp << endl;
         //conflict is c ^ tester, where conflict => false, but we want to say c => ~tester
         //must remove tester from conflict
         if( conflict.getKind()==kind::AND ){
@@ -574,7 +577,8 @@ bool TheoryDatatypes::collapseSelector( Node t ) {
           tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), t[0] );
           d_em.addNode( tester.notNode(), exp, Reason::idt_tcong );
         }
-        retNode = selType[1].mkGroundTerm();
+        retNode = doTypeAscription( retTyp.mkGroundTerm(), retTyp );    //IDT-param
+        //retNode = selType[1].mkGroundTerm();
         Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
 
         d_em.addNode( neq, tester.notNode(), Reason::idt_collapse2 );
@@ -1043,4 +1047,15 @@ bool TheoryDatatypes::searchForCycle( Node n, Node on,
     }
   }
   return false;
+}
+
+Node TheoryDatatypes::doTypeAscription( Node t, TypeNode typ )
+{
+  TypeNode tt = t.getType();
+  if( (tt.isDatatype() || tt.isParametricDatatype()) && !tt.isInstantiatedDatatype() ){
+    return NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
+                                            NodeManager::currentNM()->mkConst(AscriptionType(typ.toType())), t);
+  }else{
+    return t;
+  }
 }

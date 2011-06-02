@@ -304,7 +304,7 @@ struct ConstructorProperties {
         i != i_end;
         ++i) {
       if(TypeNode::fromType((*i).getConstructor().getType()) == type) {
-        groundTerm = Node::fromExpr((*i).mkGroundTerm());
+        groundTerm = Node::fromExpr((*i).mkGroundTerm( type.toType() ));
         type.setAttribute(GroundTermAttr(), groundTerm);
         return groundTerm;
       }
