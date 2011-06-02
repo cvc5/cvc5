@@ -184,7 +184,7 @@ endif
 units test: check
 
 # no-ops here
-.PHONY: regress regress0 regress1 regress2 regress3
+.PHONY: systemtests regress regress0 regress1 regress2 regress3
 regress regress0 regress1 regress2 regress3:
 
 if HAVE_CXXTESTGEN
