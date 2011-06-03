@@ -30,6 +30,7 @@ ${includes}
 
 #include <string>
 #include <iostream>
+#include <iterator>
 #include <stdint.h>
 
 #include "util/exception.h"
@@ -39,7 +40,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 43 "${template}"
+#line 44 "${template}"
 
 namespace CVC4 {
 
@@ -260,6 +261,46 @@ public:
    * @return the child
    */
   Expr operator[](unsigned i) const;
+
+  /**
+   * Returns the children of this Expr.
+   */
+  std::vector<Expr> getChildren() const {
+    return std::vector<Expr>(begin(), end());
+  }
+
+  /**
+   * Iterator type for the children of an Expr.
+   */
+  class const_iterator : public std::iterator<std::input_iterator_tag, Expr> {
+    void* d_iterator;
+    explicit const_iterator(void*);
+
+    friend class Expr;// to access void* constructor
+
+  public:
+    const_iterator();
+    const_iterator(const const_iterator& it);
+    const_iterator& operator=(const const_iterator& it);
+    ~const_iterator();
+    bool operator==(const const_iterator& it) const;
+    bool operator!=(const const_iterator& it) const {
+      return !(*this == it);
+    }
+    const_iterator& operator++();
+    const_iterator operator++(int);
+    Expr operator*() const;
+  };/* class Expr::const_iterator */
+
+  /**
+   * Returns an iterator to the first child of this Expr.
+   */
+  const_iterator begin() const;
+
+  /**
+   * Returns an iterator to one-off-the-last child of this Expr.
+   */
+  const_iterator end() const;
 
   /**
    * Check if this is an expression that has an operator.
@@ -750,7 +791,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 754 "${template}"
+#line 795 "${template}"
 
 namespace expr {
 

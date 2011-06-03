@@ -21,6 +21,8 @@
 #ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
+#include "util/matcher.h"
+
 namespace CVC4 {
 
 namespace expr {
@@ -31,81 +33,6 @@ namespace expr {
 
 namespace theory {
 namespace datatypes {
-
-class Matcher {
-private:
-  std::vector< TypeNode > d_types;
-  std::vector< TypeNode > d_match;
-public:
-  Matcher(){}
-  Matcher( DatatypeType dt ){
-    std::vector< Type > argTypes = dt.getParamTypes();
-    addTypes( argTypes );
-    Debug("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
-    for(unsigned i = 0; i < argTypes.size(); ++i) {
-      if(dt.isParameterInstantiated(i)) {
-        Debug("typecheck-idt") << "++ instantiate param " << i << " : " << d_types[i] << std::endl;
-        d_match[i] = d_types[i];
-      }
-    }
-  }
-  ~Matcher(){}
-
-  void addType( Type t ){
-    d_types.push_back( TypeNode::fromType( t ) );
-    d_match.push_back( TypeNode::null() );
-  }
-  void addTypes( std::vector< Type > types ){
-    for( int i=0; i<(int)types.size(); i++ ){
-      addType( types[i] );
-    }
-  }
-
-  bool doMatching( TypeNode base, TypeNode match ){
-    Debug("typecheck-idt") << "doMatching() : " << base << " : " << match << std::endl;
-    std::vector< TypeNode >::iterator i = std::find( d_types.begin(), d_types.end(), base );
-    if( i!=d_types.end() ){
-      int index = i - d_types.begin();
-      Debug("typecheck-idt") << "++ match on " << index << " : " << d_match[index] << std::endl;
-      if( !d_match[index].isNull() && d_match[index]!=match ){
-        return false;
-      }else{
-        d_match[ i - d_types.begin() ] = match;
-        return true;
-      }
-    }else if( base==match ){
-      return true;
-    }else if( base.getKind()!=match.getKind() || base.getNumChildren()!=match.getNumChildren() ){
-      return false;
-    }else{
-      for( int i=0; i<(int)base.getNumChildren(); i++ ){
-        if( !doMatching( base[i], match[i] ) ){
-          return false;
-        }
-      }
-      return true;
-    }
-  }
-
-  TypeNode getMatch( unsigned int i ){ return d_match[i]; }
-  void getTypes( std::vector<Type>& types ) {
-    types.clear();
-    for( int i=0; i<(int)d_match.size(); i++ ){
-      types.push_back( d_types[i].toType() );
-    }
-  }
-  void getMatches( std::vector<Type>& types ) {
-    types.clear();
-    for( int i=0; i<(int)d_match.size(); i++ ){
-      if(d_match[i].isNull()) {
-        types.push_back( d_types[i].toType() );
-      } else {
-        types.push_back( d_match[i].toType() );
-      }
-    }
-  }
-};/* class Matcher */
-
 
 typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node> GroundTermAttr;
 

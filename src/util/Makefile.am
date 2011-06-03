@@ -41,6 +41,7 @@ libutil_la_SOURCES = \
 	ascription_type.h \
 	datatype.h \
 	datatype.cpp \
+	matcher.h \
 	gmp_util.h \
 	sexpr.h \
 	stats.h \

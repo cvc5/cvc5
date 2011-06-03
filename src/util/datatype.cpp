@@ -27,6 +27,7 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "util/recursion_breaker.h"
+#include "util/matcher.h"
 
 using namespace std;
 
@@ -261,7 +262,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(AssertionException) {
     CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
   }else{
     if( t!=groundTerm.getType() ){
-      groundTerm = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
+      groundTerm = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
                                                     NodeManager::currentNM()->mkConst(AscriptionType(t)), groundTerm).toExpr();
     }
     return groundTerm;
@@ -511,6 +512,19 @@ Expr Datatype::Constructor::getConstructor() const {
   return d_constructor;
 }
 
+Type Datatype::Constructor::getSpecializedConstructorType(Type returnType) const {
+  CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  const Datatype& dt = Datatype::datatypeOf(d_constructor);
+  CheckArgument(dt.isParametric(), this, "this datatype constructor is not yet resolved");
+  DatatypeType dtt = DatatypeType(dt.d_self);
+  Matcher m(dtt);
+  m.doMatching( TypeNode::fromType(dtt), TypeNode::fromType(returnType) );
+  vector<Type> subst;
+  m.getMatches(subst);
+  vector<Type> params = dt.getParameters();
+  return d_constructor.getType().substitute(subst, params);
+}
+
 Expr Datatype::Constructor::getTester() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_tester;
@@ -625,9 +639,10 @@ Expr Datatype::Constructor::mkGroundTerm( Type t ) const throw(AssertionExceptio
 
   // for each selector, get a ground term
   Assert( t.isDatatype() );
-  std::vector< Type > instTypes; 
-  std::vector< Type > paramTypes = DatatypeType(t).getDatatype().getParameters();
+  std::vector< Type > instTypes;
+  std::vector< Type > paramTypes;
   if( DatatypeType(t).isParametric() ){
+    paramTypes = DatatypeType(t).getDatatype().getParameters();
     instTypes = DatatypeType(t).getParamTypes();
   }
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {

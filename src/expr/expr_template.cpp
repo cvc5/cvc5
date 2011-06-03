@@ -208,6 +208,62 @@ Type Expr::getType(bool check) const throw (TypeCheckingException) {
   return d_exprManager->getType(*this, check);
 }
 
+Expr::const_iterator::const_iterator() :
+  d_iterator(NULL) {
+}
+Expr::const_iterator::const_iterator(void* v) :
+  d_iterator(v) {
+}
+Expr::const_iterator::const_iterator(const const_iterator& it) {
+  if(it.d_iterator == NULL) {
+    d_iterator = NULL;
+  } else {
+    d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
+  }
+}
+Expr::const_iterator& Expr::const_iterator::operator=(const const_iterator& it) {
+  if(d_iterator != NULL) {
+    delete reinterpret_cast<Node::iterator*>(d_iterator);
+  }
+  d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
+  return *this;
+}
+Expr::const_iterator::~const_iterator() {
+  if(d_iterator != NULL) {
+    delete reinterpret_cast<Node::iterator*>(d_iterator);
+  }
+}
+bool Expr::const_iterator::operator==(const const_iterator& it) const {
+  if(d_iterator == NULL || it.d_iterator == NULL) {
+    return false;
+  }
+  return *reinterpret_cast<Node::iterator*>(d_iterator) ==
+    *reinterpret_cast<Node::iterator*>(it.d_iterator);
+}
+Expr::const_iterator& Expr::const_iterator::operator++() {
+  Assert(d_iterator != NULL);
+  ++*reinterpret_cast<Node::iterator*>(d_iterator);
+  return *this;
+}
+Expr::const_iterator Expr::const_iterator::operator++(int) {
+  Assert(d_iterator != NULL);
+  const_iterator it = *this;
+  ++*reinterpret_cast<Node::iterator*>(d_iterator);
+  return it;
+}
+Expr Expr::const_iterator::operator*() const {
+  Assert(d_iterator != NULL);
+  return (**reinterpret_cast<Node::iterator*>(d_iterator)).toExpr();
+}
+
+Expr::const_iterator Expr::begin() const {
+  return Expr::const_iterator(new Node::iterator(d_node->begin()));
+}
+
+Expr::const_iterator Expr::end() const {
+  return Expr::const_iterator(new Node::iterator(d_node->end()));
+}
+
 std::string Expr::toString() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
