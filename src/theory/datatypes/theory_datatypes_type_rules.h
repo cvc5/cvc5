@@ -163,22 +163,33 @@ struct DatatypeAscriptionTypeRule {
     TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
     if(check) {
       TypeNode childType = n[0].getType(check);
-      if(!t.getKind() == kind::DATATYPE_TYPE) {
-        throw TypeCheckingExceptionPrivate(n, "bad type for datatype type ascription");
+      //if(!t.getKind() == kind::DATATYPE_TYPE) {
+      //  throw TypeCheckingExceptionPrivate(n, "bad type for datatype type ascription");
+      //}
+      //DatatypeType dt = DatatypeType(childType.toType());
+      //if( dt.isParametric() ){
+      //  Debug("typecheck-idt") << "typecheck parameterized ascription: " << n << std::endl;
+      //  Matcher m( dt );
+      //  if( !m.doMatching( childType, t ) ){
+      //    throw TypeCheckingExceptionPrivate(n, "matching failed for type ascription argument of parameterized datatype");
+      //  }
+      //}else{
+      //  Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
+      //  if(t != childType) {
+      //    throw TypeCheckingExceptionPrivate(n, "bad type for type ascription argument");
+      //  }
+      //}
+
+      Matcher m;
+      if( childType.getKind() == kind::CONSTRUCTOR_TYPE ){
+        m.addTypesFromDatatype( ConstructorType(childType.toType()).getRangeType() );
+      }else if( childType.getKind() == kind::DATATYPE_TYPE ){
+        m.addTypesFromDatatype( DatatypeType(childType.toType()) );
       }
-      DatatypeType dt = DatatypeType(childType.toType());
-      if( dt.isParametric() ){
-        Debug("typecheck-idt") << "typecheck parameterized ascription: " << n << std::endl;
-        Matcher m( dt );
-        if( !m.doMatching( childType, t ) ){
-          throw TypeCheckingExceptionPrivate(n, "matching failed for type ascription argument of parameterized datatype");
-        }
-      }else{
-        Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
-        if(t != childType) {
-          throw TypeCheckingExceptionPrivate(n, "bad type for type ascription argument");
-        }
+      if( !m.doMatching( childType, t ) ){
+        throw TypeCheckingExceptionPrivate(n, "matching failed for type ascription argument of parameterized datatype");
       }
+
     }
     return t;
   }

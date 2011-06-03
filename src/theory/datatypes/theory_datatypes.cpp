@@ -120,7 +120,7 @@ void TheoryDatatypes::check(Effort e) {
   while(!done()) {
     Node assertion = get();
     if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") || Debug.isOn("datatypes-cycles")
-        || Debug.isOn("datatypes-debug-pf") ) {
+        || Debug.isOn("datatypes-debug-pf") || Debug.isOn("datatypes-conflict") ) {
       cout << "*** TheoryDatatypes::check(): " << assertion << endl;
       d_currAsserts.push_back( assertion );
     }
@@ -211,7 +211,10 @@ void TheoryDatatypes::check(Effort e) {
     //if there is now a conflict
     if( hasConflict() ) {
       Debug("datatypes-conflict") << "Constructing conflict..." << endl;
-      Debug("datatypes-conflict") << d_cc << std::endl;
+      for( int i=0; i<(int)d_currAsserts.size(); i++ ) {
+        Debug("datatypes-conflict") << "currAsserts[" << i << "] = " << d_currAsserts[i] << endl;
+      }
+      //Debug("datatypes-conflict") << d_cc << std::endl;
       Node conflict = d_em.getConflict();
       if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") || 
           Debug.isOn("datatypes-cycles") || Debug.isOn("datatypes-conflict") ){
@@ -472,9 +475,19 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
     }
     if( cn.isFinite() || foundSel ) {
       d_inst_map[ te ] = true;
-      //instantiate, add equality
       Node val = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, selectorVals );
-      val = doTypeAscription( val, te.getType() );      //IDT-param
+      //instantiate, add equality
+      if( val.getType()!=te.getType() ){ //IDT-param
+        Assert( Datatype::datatypeOf( cons.toExpr() ).isParametric() );
+        Debug("datatypes-gt") << "Inst: ambiguous type for " << cons << ", ascribe to " << te.getType() << std::endl;
+        const Datatype::Constructor& dtc = Datatype::datatypeOf(cons.toExpr())[Datatype::indexOf(cons.toExpr())];
+        Debug("datatypes-gt") << "constructor is " << dtc << std::endl;
+        Type tspec = dtc.getSpecializedConstructorType(te.getType().toType());
+        Debug("datatypes-gt") << "tpec is " << tspec << std::endl;
+        selectorVals[0] = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
+                                            NodeManager::currentNM()->mkConst(AscriptionType(tspec)), cons);
+        val = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, selectorVals );
+      }
       if( find( val ) != find( te ) ) {
         //build explaination
         NodeBuilder<> nb(kind::AND);
@@ -533,8 +546,7 @@ bool TheoryDatatypes::collapseSelector( Node t ) {
         retNode = tmp[ Datatype::indexOf( sel.toExpr() ) ];
       } else {
         Debug("datatypes") << "Applied selector " << t << " to wrong constructor." << endl;
-        retNode = doTypeAscription( retTyp.mkGroundTerm(), selType[1] );    //IDT-param
-        //retNode = selType[1].mkGroundTerm();
+        retNode = retTyp.mkGroundTerm();    //IDT-param
       }
       if( tmp!=t[0] ){
         t = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, t.getOperator(), tmp );
@@ -577,8 +589,7 @@ bool TheoryDatatypes::collapseSelector( Node t ) {
           tester = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), t[0] );
           d_em.addNode( tester.notNode(), exp, Reason::idt_tcong );
         }
-        retNode = doTypeAscription( retTyp.mkGroundTerm(), retTyp );    //IDT-param
-        //retNode = selType[1].mkGroundTerm();
+        retNode = retTyp.mkGroundTerm();    //IDT-param
         Node neq = NodeManager::currentNM()->mkNode( EQUAL, retNode, t );
 
         d_em.addNode( neq, tester.notNode(), Reason::idt_collapse2 );
@@ -1047,15 +1058,4 @@ bool TheoryDatatypes::searchForCycle( Node n, Node on,
     }
   }
   return false;
-}
-
-Node TheoryDatatypes::doTypeAscription( Node t, TypeNode typ )
-{
-  TypeNode tt = t.getType();
-  if( (tt.isDatatype() || tt.isParametricDatatype()) && !tt.isInstantiatedDatatype() ){
-    return NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
-                                            NodeManager::currentNM()->mkConst(AscriptionType(typ.toType())), t);
-  }else{
-    return t;
-  }
 }

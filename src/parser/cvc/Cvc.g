@@ -1467,7 +1467,7 @@ postfixTerm[CVC4::Expr& f]
           Expr e = f.getOperator();
           const Datatype::Constructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
           v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(t))), f.getOperator()[0] ));
+                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(t))), f.getOperator() ));
           v.insert(v.end(), f.begin(), f.end());
           f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
         } else {
