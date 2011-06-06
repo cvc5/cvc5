@@ -1,3 +1,4 @@
+/*********************                                                        */
 /*! \file backtrackable.h
  ** \verbatim
  ** Original author: lianah
@@ -12,26 +13,26 @@
  **
  ** \brief Contains a backtrackable list
  **
- **
+ ** Contains a backtrackable list.
  **/
 
 #include "cvc4_private.h"
+
 #ifndef __CVC4__UTIL__BACKTRACKABLE_H
 #define __CVC4__UTIL__BACKTRACKABLE_H
-
 
 #include <cstdlib>
 #include <vector>
 #include "context/cdo.h"
 
-namespace CVC4{
+namespace CVC4 {
 
 template <class T> class List;
 template <class T> class List_iterator;
 template <class T> class Backtracker;
 
 template <class T>
-class ListNode{
+class ListNode {
 private:
   T data;
   ListNode<T>* next;
@@ -45,10 +46,10 @@ private:
 
   friend class List<T>;
   friend class List_iterator<T>;
-}; /*class ListNode */
+};/* class ListNode<T> */
 
 template <class T>
-class List_iterator: public std::iterator <std::forward_iterator_tag, T> {
+class List_iterator : public std::iterator <std::forward_iterator_tag, T> {
   friend class List<T>;
 
 public:
@@ -56,17 +57,20 @@ public:
   List_iterator<T>& operator++();
   List_iterator<T> operator++(int);
   bool operator!=(const List_iterator<T> & other) const;
+
 private:
   const ListNode<T>* pointee;
   List_iterator(const ListNode<T>* p) : pointee(p) {}
 
-}; /* class List_iterator */
+};/* class List_iterator<T> */
 
-template <class T> const T& List_iterator<T>::operator*() {
+template <class T>
+const T& List_iterator<T>::operator*() {
   return pointee->data;
 }
 
-template <class T> List_iterator<T>& List_iterator<T>::operator++() {
+template <class T>
+List_iterator<T>& List_iterator<T>::operator++() {
   Assert(pointee != NULL);
   pointee = pointee->next;
   while(pointee != NULL && pointee->empty ) {
@@ -75,19 +79,22 @@ template <class T> List_iterator<T>& List_iterator<T>::operator++() {
   return *this;
 }
 
-template <class T> List_iterator<T> List_iterator<T>::operator++(int) {
+template <class T>
+List_iterator<T> List_iterator<T>::operator++(int) {
   List_iterator<T> it = *this;
   ++*this;
   return it;
 }
 
-template <class T> bool List_iterator<T>::operator!=(const List_iterator<T>& other) const {
+template <class T>
+bool List_iterator<T>::operator!=(const List_iterator<T>& other) const {
   return (this->pointee != other.pointee);
 }
 
 // !! for the backtracking to work the lists must be allocated on the heap
 // therefore the hashmap from TNode to List<TNode> should store pointers!
-template <class T> class List {
+template <class T>
+class List {
   ListNode<T>* head;
   ListNode<T>* tail;
   ListNode<T>* ptr_to_head;
@@ -96,7 +103,7 @@ template <class T> class List {
   List (const List&) {}
 public:
   List(Backtracker<T>* b) : ptr_to_head(NULL), uninitialized(true), bck(b) {
-    head = tail = (ListNode<T>*)calloc(1,sizeof(ListNode<T>*));
+    head = tail = (ListNode<T>*)calloc(1,sizeof(ListNode<T>));
     head->next = NULL;
     head->empty = true;
   }
@@ -128,7 +135,7 @@ public:
   }
   void concat(List<T>* other);
   void unconcat(List<T>* other);
-}; /* class List */
+};/* class List */
 
 template <class T>
 void List<T>::append (const T& d) {
@@ -174,7 +181,8 @@ void List<T>::unconcat(List<T>* other) {
 
 /* Backtrackable Table */
 
-template <class T> class Backtracker {
+template <class T>
+class Backtracker {
   friend class List<T>;
   std::vector<std::pair<List<T>*,List<T>*> > undo_stack;
 
@@ -187,7 +195,7 @@ public:
   Backtracker(context::Context* c) : undo_stack(), curr_level(0), pop_level(c, 0) {}
   ~Backtracker() {}
 
-}; /*class Backtrackable */
+};/* class Backtrackable */
 
 template <class T>  void Backtracker<T>::notifyConcat(List<T>* a, List<T>* b) {
   curr_level++;
@@ -210,5 +218,7 @@ template <class T> void Backtracker<T>::checkConsistency() {
   }
   Assert(curr_level == pop_level);
 }
-} /* CVC4 namespace */
+
+}/* CVC4 namespace */
+
 #endif /* __CVC4__UTIL__BACKTRACKABLE_H */

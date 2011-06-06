@@ -577,7 +577,7 @@ public:
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
-    Debug("context") << "deleteSelf(" << this << ")" << std::endl;
+    Debug("context") << "deleteSelf(" << this << ") " << typeid(*this).name() << std::endl;
     this->~ContextObj();
     ::operator delete(this);
   }

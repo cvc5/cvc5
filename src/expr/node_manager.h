@@ -185,10 +185,13 @@ class NodeManager {
 
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
-    Debug("gc") << "zombifying node value " << nv
-                << " [" << nv->d_id << "]: " << *nv
-                << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
-                << std::endl;
+    if(Debug.isOn("gc")) {
+      Debug("gc") << "zombifying node value " << nv
+                  << " [" << nv->d_id << "]: ";
+      nv->printAst(Debug("gc"));
+      Debug("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
+                  << std::endl;
+    }
     d_zombies.insert(nv);// FIXME multithreading
 
     if(!d_inReclaimZombies) {// FIXME multithreading
@@ -1269,8 +1272,12 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
   new (&nv->d_children) T(val);
 
   poolInsert(nv);
-  Debug("gc") << "creating node value " << nv
-              << " [" << nv->d_id << "]: " << *nv << "\n";
+  if(Debug.isOn("gc")) {
+    Debug("gc") << "creating node value " << nv
+                << " [" << nv->d_id << "]: ";
+    nv->printAst(Debug("gc"));
+    Debug("gc") << std::endl;
+  }
 
   return NodeClass(nv);
 }

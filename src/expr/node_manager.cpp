@@ -202,8 +202,12 @@ void NodeManager::reclaimZombies() {
 
     // collect ONLY IF still zero
     if(nv->d_rc == 0) {
-      Debug("gc") << "deleting node value " << nv
-                  << " [" << nv->d_id << "]: " << *nv << "\n";
+      if(Debug.isOn("gc")) {
+        Debug("gc") << "deleting node value " << nv
+                    << " [" << nv->d_id << "]: ";
+        nv->printAst(Debug("gc"));
+        Debug("gc") << std::endl;
+      }
 
       // remove from the pool
       kind::MetaKind mk = nv->getMetaKind();

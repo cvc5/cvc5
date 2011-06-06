@@ -32,7 +32,8 @@ StatisticsRegistry* StatisticsRegistry::current() {
 void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& registeredStats = NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats;
-  AlwaysAssert(registeredStats.find(s) == registeredStats.end());
+  AlwaysAssert(registeredStats.find(s) == registeredStats.end(),
+               "Statistic `%s' was already registered with this registry.", s->getName().c_str());
   registeredStats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat() */
@@ -40,7 +41,8 @@ void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
 void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& registeredStats = NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats;
-  AlwaysAssert(registeredStats.find(s) != registeredStats.end());
+  AlwaysAssert(registeredStats.find(s) != registeredStats.end(),
+               "Statistic `%s' was not registered with this registry.", s->getName().c_str());
   registeredStats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat() */

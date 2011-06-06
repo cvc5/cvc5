@@ -900,8 +900,12 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
     nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
     nv->d_rc = 0;
     setUsed();
-    Debug("gc") << "creating node value " << nv
-                << " [" << nv->d_id << "]: " << *nv << "\n";
+    if(Debug.isOn("gc")) {
+      Debug("gc") << "creating node value " << nv
+                  << " [" << nv->d_id << "]: ";
+      nv->printAst(Debug("gc"));
+      Debug("gc") << std::endl;
+    }
     return nv;
   }
 
@@ -982,8 +986,12 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
 
       //poolNv = nv;
       d_nm->poolInsert(nv);
-      Debug("gc") << "creating node value " << nv
-                  << " [" << nv->d_id << "]: " << *nv << "\n";
+      if(Debug.isOn("gc")) {
+        Debug("gc") << "creating node value " << nv
+                    << " [" << nv->d_id << "]: ";
+        nv->printAst(Debug("gc"));
+        Debug("gc") << std::endl;
+      }
       return nv;
     }
   } else {
