@@ -26,6 +26,7 @@
 #include <cstring>
 #include <vector>
 #include <new>
+#include <typeinfo>
 
 #include "context/context_mm.h"
 #include "util/Assert.h"
