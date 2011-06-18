@@ -629,17 +629,24 @@ fi
 CXXTESTGEN=
 AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
 if test -z "$CXXTESTGEN"; then
-  AC_MSG_NOTICE([unit tests disabled, cxxtestgen.pl not found.])
+  AC_PATH_PROG(CXXTESTGEN, cxxtestgen.py, [], [$CXXTEST:$PATH])
+fi
+if test -z "$CXXTESTGEN"; then
+  AC_MSG_NOTICE([unit tests disabled, neither cxxtestgen.pl nor cxxtestgen.py found.])
 elif test -z "$CXXTEST"; then
   CXXTEST=`dirname "$CXXTESTGEN"`
   AC_MSG_CHECKING([for location of CxxTest headers])
   if test -e "$CXXTEST/cxxtest/TestRunner.h"; then
     AC_MSG_RESULT([$CXXTEST])
   else
-    AC_MSG_RESULT([not found])
-    AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
-    CXXTESTGEN=
-    CXXTEST=
+    if test -e "/usr/include/cxxtest/TestRunner.h"; then
+      AC_MSG_RESULT([/usr/include])
+    else
+      AC_MSG_RESULT([not found])
+      AC_MSG_WARN([unit tests disabled, CxxTest headers not found.])
+      CXXTESTGEN=
+      CXXTEST=
+    fi
   fi
 fi
 

@@ -7,9 +7,8 @@
 #
 builddir = builds
 
-.PHONY: _default_build_ all
-_default_build_: all
-all %:
+.PHONY: all
+all .DEFAULT:
 	@if test -d $(builddir); then \
 		echo cd $(builddir); \
 		cd $(builddir); \

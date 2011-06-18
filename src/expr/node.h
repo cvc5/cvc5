@@ -612,7 +612,7 @@ public:
 
   public:
     typedef NodeTemplate<ref_count> value_type;
-    typedef ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef NodeTemplate<ref_count>* pointer;
     typedef NodeTemplate<ref_count>& reference;
 

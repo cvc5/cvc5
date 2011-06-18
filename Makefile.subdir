@@ -10,9 +10,8 @@ builddir = $(topdir)/builds/$(CURRENT_BUILD)/$(srcdir)
 unittestdir = $(topdir)/builds/$(CURRENT_BUILD)/test/unit
 unittestprefix = $(srcdir:src/%=%)
 
-.PHONY: _default_build_ all
-_default_build_: all
-all %:
+.PHONY: all
+all .DEFAULT:
 	@if test -e $(builddir); then \
 		echo cd $(builddir); \
 		cd $(builddir); \
@@ -27,8 +26,8 @@ all %:
 .PHONY: check units
 ifeq ($(srcdir:test/%=test),test)
 # under the test/ directory, additional subtargets
-.PHONY: regress regress0 regress1 regress2 regress3
-check units regress regress0 regress1 regress2 regress3:
+.PHONY: systemtests regress regress0 regress1 regress2 regress3
+check units systemtests regress regress0 regress1 regress2 regress3:
 	@if test -e $(builddir); then \
 		echo cd $(builddir); \
 		cd $(builddir); \
