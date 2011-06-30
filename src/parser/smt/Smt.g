@@ -218,6 +218,10 @@ annotatedFormula[CVC4::Expr& expr]
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
         expr = EXPR_MANAGER->mkAssociative(kind,args);
+      } else if(!PARSER_STATE->strictModeEnabled() &&
+                kind == CVC4::kind::MINUS && args.size() == 1) {
+        /* Special fix-up for unary minus improperly used in some benchmarks */
+        expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
       } else {
         PARSER_STATE->checkArity(kind, args.size());
         expr = MK_EXPR(kind, args);

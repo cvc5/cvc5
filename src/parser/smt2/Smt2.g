@@ -765,7 +765,7 @@ POUND_TOK         : '#';
 SELECT_TOK        : 'select';
 STAR_TOK          : '*';
 STORE_TOK         : 'store';
-TILDE_TOK         : '~';
+// TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
 
 CONCAT_TOK : 'concat';
