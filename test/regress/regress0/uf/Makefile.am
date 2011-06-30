@@ -12,7 +12,6 @@ TESTS =	\
 	euf_simp06.smt \
 	euf_simp08.smt \
 	euf_simp09.smt \
-	euf_simp09.tim.smt \
 	euf_simp10.smt \
 	euf_simp11.smt \
 	euf_simp12.smt \
@@ -30,7 +29,8 @@ TESTS =	\
 	simple.03.cvc \
 	simple.04.cvc
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	euf_simp09.tim.smt
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

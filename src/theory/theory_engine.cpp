@@ -68,7 +68,9 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
     d_engine->getSharedTermManager()->addEq(fact);
   }
 
-  if(Options::current()->theoryRegistration && !fact.getAttribute(RegisteredAttr())) {
+  if(Options::current()->theoryRegistration &&
+     !fact.getAttribute(RegisteredAttr()) &&
+     d_engine->d_needRegistration) {
     list<TNode> toReg;
     toReg.push_back(fact);
 
@@ -137,6 +139,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_propEngine(NULL),
   d_context(ctxt),
   d_activeTheories(0),
+  d_needRegistration(false),
   d_theoryOut(this, ctxt),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
@@ -272,7 +275,7 @@ bool TheoryEngine::check(theory::Theory::Effort effort) {
 
   // Do the checking
   try {
-    CVC4_FOR_EACH_THEORY
+    CVC4_FOR_EACH_THEORY;
   } catch(const theory::Interrupted&) {
     Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
   }
@@ -291,7 +294,7 @@ void TheoryEngine::propagate() {
   }
 
   // Propagate for each theory using the statement above
-  CVC4_FOR_EACH_THEORY
+  CVC4_FOR_EACH_THEORY;
 }
 
 /* Our goal is to tease out any ITE's sitting under a theory operator. */
@@ -389,7 +392,7 @@ bool TheoryEngine::presolve() {
     }
 
     // Presolve for each theory using the statement above
-    CVC4_FOR_EACH_THEORY
+    CVC4_FOR_EACH_THEORY;
   } catch(const theory::Interrupted&) {
     Debug("theory") << "TheoryEngine::presolve() => interrupted" << endl;
   }
@@ -409,7 +412,7 @@ void TheoryEngine::notifyRestart() {
   }
 
   // notify each theory using the statement above
-  CVC4_FOR_EACH_THEORY
+  CVC4_FOR_EACH_THEORY;
 }
 
 void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
@@ -429,7 +432,23 @@ void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
   }
 
   // static learning for each theory using the statement above
-  CVC4_FOR_EACH_THEORY
+  CVC4_FOR_EACH_THEORY;
+}
+
+bool TheoryEngine::hasRegisterTerm(TheoryId th) const {
+  switch(th) {
+  // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+  case THEORY: \
+    return theory::TheoryTraits<THEORY>::hasRegisterTerm;
+
+    CVC4_FOR_EACH_THEORY
+  default:
+    Unhandled(th);
+  }
 }
 
 Node TheoryEngine::simplify(TNode in, theory::Substitutions& outSubstitutions) {

@@ -292,12 +292,7 @@ void TheoryArith::setupInitialValue(ArithVar x){
     d_partialModel.setAssignment(x,assignment);
   }
   Debug("arithgc") << "setupVariable("<<x<<")"<<std::endl;
-};
-
-void TheoryArith::registerTerm(TNode tn){
-  Debug("arith") << "registerTerm(" << tn << ")" << endl;
 }
-
 
 ArithVar TheoryArith::determineLeftVariable(TNode assertion, Kind simpleKind){
   TNode left = getSide<true>(assertion, simpleKind);

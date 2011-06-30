@@ -133,7 +133,7 @@ struct TheoryTraits<${theory_id}> {
     static const bool hasRegisterTerm = ${theory_has_registerTerm};
     static const bool hasNotifyRestart = ${theory_has_notifyRestart};
     static const bool hasPresolve = ${theory_has_presolve};
-};
+};/* struct TheoryTraits<${theory_id}> */
 "
 
   # warnings about theory content and properties

@@ -34,6 +34,11 @@ TheoryUFTim::TheoryUFTim(Context* c, OutputChannel& out, Valuation valuation) :
   d_currentPendingIdx(c,0),
   d_disequality(c),
   d_registered(c) {
+  Warning() << "NOTE:" << std::endl
+            << "NOTE: currently the 'Tim' UF solver is broken," << std::endl
+            << "NOTE: since its registerTerm() function is never" << std::endl
+            << "NOTE: called." << std::endl
+            << "NOTE:" << std::endl;
 }
 
 TheoryUFTim::~TheoryUFTim() {

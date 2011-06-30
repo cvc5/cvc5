@@ -74,6 +74,13 @@ class TheoryEngine {
   size_t d_activeTheories;
 
   /**
+   * Need the registration infrastructure when theory sharing is on
+   * (>=2 active theories) or when the sole active theory has
+   * requested it.
+   */
+  bool d_needRegistration;
+
+  /**
    * The type of the simplification cache.
    */
   typedef Cache<Node, std::pair<Node, theory::Substitutions>, NodeHashFunction> SimplifyCache;
@@ -194,10 +201,21 @@ class TheoryEngine {
   void markActive(theory::TheoryId th) {
     if(!d_theoryIsActive[th]) {
       d_theoryIsActive[th] = true;
-      ++d_activeTheories;
-      Notice() << "Theory " << th << " has been activated." << std::endl;
+      if(th != theory::THEORY_BUILTIN && th != theory::THEORY_BOOL) {
+        if(++d_activeTheories == 1) {
+          // theory requests registration
+          d_needRegistration = hasRegisterTerm(th);
+        } else {
+          // need it for sharing
+          d_needRegistration = true;
+        }
+      }
+      Notice() << "Theory " << th << " has been activated (registration is "
+               << (d_needRegistration ? "on" : "off") << ")." << std::endl;
     }
   }
+
+  bool hasRegisterTerm(theory::TheoryId th) const;
 
 public:
   /** The logic of the problem */

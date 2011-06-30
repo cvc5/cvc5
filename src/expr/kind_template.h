@@ -62,6 +62,8 @@ ${kind_printers}
   return out;
 }
 
+#line 66 "${template}"
+
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
  * the arguments. */

@@ -140,9 +140,6 @@ public:
    */
   void preRegisterTerm(TNode n);
 
-  /** CD setup for a node. Currently does nothing. */
-  void registerTerm(TNode n);
-
   void check(Effort e);
   void propagate(Effort e);
   void explain(TNode n);
