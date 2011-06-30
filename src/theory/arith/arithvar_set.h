@@ -179,6 +179,151 @@ public:
 typedef ArithVarSetImpl<false> ArithVarSet;
 typedef ArithVarSetImpl<true> PermissiveBackArithVarSet;
 
+
+/**
+ * ArithVarMultiset
+ */
+class ArithVarMultiset {
+public:
+  typedef std::vector<ArithVar> VarList;
+private:
+  //List of the ArithVars in the multi set.
+  VarList d_list;
+
+  //Each ArithVar in the set is mapped to its position in d_list.
+  //Each ArithVar not in the set is mapped to ARITHVAR_SENTINEL
+  std::vector<unsigned> d_posVector;
+
+  //Count of the number of elements in the array
+  std::vector<unsigned> d_counts;
+
+public:
+  typedef VarList::const_iterator const_iterator;
+
+  ArithVarMultiset() :  d_list(), d_posVector() {}
+
+  size_t size() const {
+    return d_list.size();
+  }
+
+  bool empty() const {
+    return d_list.empty();
+  }
+
+  size_t allocated() const {
+    Assert(d_posVector.size() == d_counts.size());
+    return d_posVector.size();
+  }
+
+  void purge() {
+    for(VarList::const_iterator i=d_list.begin(), endIter=d_list.end(); i!= endIter; ++i){
+      d_posVector[*i] = ARITHVAR_SENTINEL;
+      d_counts[*i] = 0;
+    }
+    d_list.clear();
+    Assert(empty());
+  }
+
+  void increaseSize(ArithVar max){
+    Assert(max >= allocated());
+    d_posVector.resize(max+1, ARITHVAR_SENTINEL);
+    d_counts.resize(max+1, 0);
+  }
+
+  void increaseSize(){
+    increaseSize(allocated());
+  }
+
+  bool isMember(ArithVar x) const{
+    if( x >=  allocated()){
+      return false;
+    }else{
+      Assert(x <  allocated());
+      return d_posVector[x] != ARITHVAR_SENTINEL;
+    }
+  }
+
+  /** Invalidates iterators */
+  /* void init(ArithVar x, bool val) { */
+  /*   Assert(x >= allocated()); */
+  /*   increaseSize(x); */
+  /*   if(val){ */
+  /*     add(x); */
+  /*   } */
+  /* } */
+
+  /**
+   * Invalidates iterators.
+   */
+  void addMultiset(ArithVar x){
+    if( x >=  allocated()){
+      increaseSize(x);
+    }
+    if(d_counts[x] == 0){
+      d_posVector[x] = size();
+      d_list.push_back(x);
+    }
+    d_counts[x]++;
+  }
+
+  unsigned count(ArithVar x){
+    if( x >=  allocated()){
+      return 0;
+    }else{
+      return d_counts[x];
+    }
+  }
+
+  const_iterator begin() const{ return d_list.begin(); }
+  const_iterator end() const{ return d_list.end(); }
+
+  const VarList& getList() const{
+    return d_list;
+  }
+
+  /** Invalidates iterators */
+  void remove(ArithVar x){
+    Assert(isMember(x));
+    swapToBack(x);
+    Assert(d_list.back() == x);
+    pop_back();
+  }
+
+  ArithVar pop_back() {
+    Assert(!empty());
+    ArithVar atBack = d_list.back();
+    d_posVector[atBack] = ARITHVAR_SENTINEL;
+    d_counts[atBack] = 0;
+    d_list.pop_back();
+    return atBack;
+  }
+
+ private:
+
+  /** This should be true of all x < allocated() after every operation. */
+  bool wellFormed(ArithVar x){
+    if(d_posVector[x] == ARITHVAR_SENTINEL){
+      return true;
+    }else{
+      return d_list[d_posVector[x]] == x;
+    }
+  }
+
+  /** Swaps a member x to the back of d_list. */
+  void swapToBack(ArithVar x){
+    Assert(isMember(x));
+
+    unsigned currentPos = d_posVector[x];
+    ArithVar atBack = d_list.back();
+
+    d_list[currentPos] = atBack;
+    d_posVector[atBack] = currentPos;
+
+    d_list[size() - 1] = x;
+    d_posVector[x] = size() - 1;
+  }
+};
+
 }; /* namespace arith */
 }; /* namespace theory */
 }; /* namespace CVC4 */
