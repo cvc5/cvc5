@@ -281,11 +281,7 @@ int runCvc4(int argc, char* argv[]) {
     Message() << Configuration::getPackageName()
               << " " << Configuration::getVersionString();
     if(Configuration::isSubversionBuild()) {
-      Message() << " [subversion " << Configuration::getSubversionBranchName()
-                << " r" << Configuration::getSubversionRevision()
-                << (Configuration::hasSubversionModifications() ?
-                    " (with modifications)" : "")
-                << "]";
+      Message() << " [" << Configuration::getSubversionId() << "]";
     }
     Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
               << " assertions:"

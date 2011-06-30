@@ -96,9 +96,11 @@ public:
     /* default size tests */
     NodeBuilder<> def;
     TS_ASSERT_EQUALS(def.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(def.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(def.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(def.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(def.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(def.begin(), AssertionException);
+    TS_ASSERT_THROWS(def.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> spec(specKind);
     TS_ASSERT_EQUALS(spec.getKind(), specKind);
@@ -108,9 +110,11 @@ public:
 
     NodeBuilder<> from_nm(d_nm);
     TS_ASSERT_EQUALS(from_nm.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(from_nm.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(from_nm.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(from_nm.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(from_nm.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(from_nm.begin(), AssertionException);
+    TS_ASSERT_THROWS(from_nm.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> from_nm_kind(d_nm, specKind);
     TS_ASSERT_EQUALS(from_nm_kind.getKind(), specKind);
@@ -122,9 +126,11 @@ public:
 
     NodeBuilder<K> ws;
     TS_ASSERT_EQUALS(ws.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(ws.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(ws.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(ws.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(ws.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(ws.begin(), AssertionException);
+    TS_ASSERT_THROWS(ws.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> ws_kind(specKind);
     TS_ASSERT_EQUALS(ws_kind.getKind(), specKind);
@@ -134,9 +140,11 @@ public:
 
     NodeBuilder<K> ws_from_nm(d_nm);
     TS_ASSERT_EQUALS(ws_from_nm.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(ws_from_nm.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(ws_from_nm.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(ws_from_nm.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(ws_from_nm.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(ws_from_nm.begin(), AssertionException);
+    TS_ASSERT_THROWS(ws_from_nm.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> ws_from_nm_kind(d_nm, specKind);
     TS_ASSERT_EQUALS(ws_from_nm_kind.getKind(), specKind);
@@ -153,27 +161,35 @@ public:
 
     NodeBuilder<> copy(def);
     TS_ASSERT_EQUALS(copy.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(copy.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(copy.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(copy.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(copy.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(copy.begin(), AssertionException);
+    TS_ASSERT_THROWS(copy.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> cp_ws(ws);
     TS_ASSERT_EQUALS(cp_ws.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(cp_ws.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(cp_ws.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(cp_ws.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(cp_ws.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(cp_ws.begin(), AssertionException);
+    TS_ASSERT_THROWS(cp_ws.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K-10> cp_from_larger(ws);
     TS_ASSERT_EQUALS(cp_from_larger.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(cp_from_larger.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(cp_from_larger.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(cp_from_larger.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(cp_from_larger.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(cp_from_larger.begin(), AssertionException);
+    TS_ASSERT_THROWS(cp_from_larger.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K+10> cp_from_smaller(ws);
     TS_ASSERT_EQUALS(cp_from_smaller.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(cp_from_smaller.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(cp_from_smaller.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(cp_from_smaller.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(cp_from_smaller.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(cp_from_smaller.begin(), AssertionException);
+    TS_ASSERT_THROWS(cp_from_smaller.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
   }
 
   void testDestructor() {
@@ -284,7 +300,9 @@ public:
     Node x( d_nm->mkVar( *d_integerType ) );
 
     NodeBuilder<> nb;
-    TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
     nb << PLUS << x << x;
 
     TS_ASSERT_EQUALS(nb.getNumChildren(), 2u);
@@ -294,7 +312,9 @@ public:
 
     Node n = nb;// avoid warning on clear()
     nb.clear();
-    TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
     nb.clear(PLUS);
     TS_ASSERT_EQUALS(nb.getNumChildren(), 0u);
     nb << x << x << x;
@@ -368,9 +388,11 @@ public:
     NodeBuilder<> nb;
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(nb.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(nb.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(nb.begin(), AssertionException);
+    TS_ASSERT_THROWS(nb.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     nb << specKind;
     push_back(nb, K);
@@ -383,9 +405,11 @@ public:
     nb.clear();
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(nb.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(nb.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(nb.begin(), AssertionException);
+    TS_ASSERT_THROWS(nb.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
 
     nb << specKind;
     push_back(nb, K);
@@ -406,9 +430,11 @@ public:
     nb.clear();
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
-    TS_ASSERT_THROWS(nb.getNumChildren(), IllegalArgumentException);
-    TS_ASSERT_THROWS(nb.begin(), IllegalArgumentException);
-    TS_ASSERT_THROWS(nb.end(), IllegalArgumentException);
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(nb.begin(), AssertionException);
+    TS_ASSERT_THROWS(nb.end(), AssertionException);
+#endif /* CVC4_ASSERTIONS */
   }
 
   void testStreamInsertionKind() {

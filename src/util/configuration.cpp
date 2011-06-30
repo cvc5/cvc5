@@ -19,6 +19,7 @@
  **/
 
 #include <string>
+#include <sstream>
 
 #include "util/configuration.h"
 #include "util/configuration_private.h"
@@ -122,6 +123,17 @@ unsigned Configuration::getSubversionRevision() {
 
 bool Configuration::hasSubversionModifications() {
   return SUBVERSION_HAS_MODIFICATIONS;
+}
+
+string Configuration::getSubversionId() {
+  if(! isSubversionBuild()) {
+    return "";
+  }
+
+  stringstream ss;
+  ss << "subversion " << getSubversionBranchName() << " r" << getSubversionRevision()
+     << ( ::CVC4::Configuration::hasSubversionModifications() ? " (with modifications)" : "" );
+  return ss.str();
 }
 
 }/* CVC4 namespace */

@@ -459,9 +459,9 @@ public:
   inline const_iterator begin() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    CheckArgument(getKind() != kind::UNDEFINED_KIND,
-                  "Iterators over NodeBuilder<> are undefined "
-                  "until a Kind is set");
+    Assert(getKind() != kind::UNDEFINED_KIND,
+           "Iterators over NodeBuilder<> are undefined "
+           "until a Kind is set");
     return d_nv->begin< NodeTemplate<true> >();
   }
 
@@ -469,9 +469,9 @@ public:
   inline const_iterator end() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    CheckArgument(getKind() != kind::UNDEFINED_KIND,
-                  "Iterators over NodeBuilder<> are undefined "
-                  "until a Kind is set");
+    Assert(getKind() != kind::UNDEFINED_KIND,
+           "Iterators over NodeBuilder<> are undefined "
+           "until a Kind is set");
     return d_nv->end< NodeTemplate<true> >();
   }
 
@@ -486,9 +486,9 @@ public:
   inline kind::MetaKind getMetaKind() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    CheckArgument(getKind() != kind::UNDEFINED_KIND,
-                  "The metakind of a NodeBuilder<> is undefined "
-                  "until a Kind is set");
+    Assert(getKind() != kind::UNDEFINED_KIND,
+           "The metakind of a NodeBuilder<> is undefined "
+           "until a Kind is set");
     return d_nv->getMetaKind();
   }
 
@@ -496,19 +496,40 @@ public:
   inline unsigned getNumChildren() const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    CheckArgument(getKind() != kind::UNDEFINED_KIND,
-                  "The number of children of a NodeBuilder<> is undefined "
-                  "until a Kind is set");
+    Assert(getKind() != kind::UNDEFINED_KIND,
+           "The number of children of a NodeBuilder<> is undefined "
+           "until a Kind is set");
     return d_nv->getNumChildren();
   }
 
-  /** Access to children of this Node-under-construction. */
+  /**
+   * Access to the operator of this Node-under-construction.  Only
+   * allowed if this NodeBuilder is unused, and has a defined kind
+   * that is of PARAMETERIZED metakind.
+   */
+  inline Node getOperator() const {
+    Assert(!isUsed(), "NodeBuilder is one-shot only; "
+           "attempt to access it after conversion");
+    Assert(getKind() != kind::UNDEFINED_KIND,
+           "NodeBuilder<> operator access is not permitted "
+           "until a Kind is set");
+    Assert(getMetaKind() == kind::metakind::PARAMETERIZED,
+           "NodeBuilder<> operator access is only permitted "
+           "on parameterized kinds, not `%s'",
+           kind::kindToString(getKind()).c_str());
+    return Node(d_nv->getOperator());
+  }
+
+  /**
+   * Access to children of this Node-under-construction.  Only allowed
+   * if this NodeBuilder is unused and has a defined kind.
+   */
   inline Node getChild(int i) const {
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
-    CheckArgument(getKind() != kind::UNDEFINED_KIND,
-                  "NodeBuilder<> child access is not permitted "
-                  "until a Kind is set");
+    Assert(getKind() != kind::UNDEFINED_KIND,
+           "NodeBuilder<> child access is not permitted "
+           "until a Kind is set");
     Assert(i >= 0 && unsigned(i) < d_nv->getNumChildren(),
            "index out of range for NodeBuilder::getChild()");
     return Node(d_nv->getChild(i));

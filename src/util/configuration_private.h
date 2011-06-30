@@ -20,6 +20,9 @@
 #ifndef __CVC4__CONFIGURATION_PRIVATE_H
 #define __CVC4__CONFIGURATION_PRIVATE_H
 
+#include <string>
+#include "util/configuration.h"
+
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
@@ -100,14 +103,18 @@ namespace CVC4 {
 #  define USING_TLS false
 #endif /* TLS */
 
-#define CVC4_ABOUT_STRING string("\
-This is CVC4 version " CVC4_RELEASE_STRING "\n\n\
+#define CVC4_ABOUT_STRING ( ::std::string("\
+This is CVC4 version " CVC4_RELEASE_STRING ) + \
+    ( ::CVC4::Configuration::isSubversionBuild() \
+        ? ( ::std::string(" [") + ::CVC4::Configuration::getSubversionId() + "]" ) \
+        : ::std::string("") \
+    ) + "\n\n\
 Copyright (C) 2009, 2010, 2011\n\
   The ACSys Group\n\
   Courant Institute of Mathematical Sciences\n\
   New York University\n\
-  New York, NY  10012  USA\n\n") + \
-    (IS_CLN_BUILD ? "\
+  New York, NY  10012  USA\n\n" + \
+    ( IS_CLN_BUILD ? "\
 This CVC4 library uses CLN as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\
 However, CLN, the Class Library for Numbers, is covered by the GPL.  Thus\n\
@@ -116,7 +123,7 @@ consult the CVC4 documentation for instructions about building a version\n\
 of CVC4 that links against GMP, and can be used in such applications.\n" : \
 "This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\n\
-THIS SOFTWARE PROVIDED AS-IS, WITHOUT ANY WARRANTIES. USE IT AT YOUR OWN RISK.\n")
+THIS SOFTWARE PROVIDED AS-IS, WITHOUT ANY WARRANTIES. USE IT AT YOUR OWN RISK.\n" ) )
 
 }/* CVC4 namespace */
 

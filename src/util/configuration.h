@@ -87,6 +87,7 @@ public:
   static const char* getSubversionBranchName();
   static unsigned getSubversionRevision();
   static bool hasSubversionModifications();
+  static std::string getSubversionId();
 
 };/* class Configuration */
 
