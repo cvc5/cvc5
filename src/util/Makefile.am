@@ -59,7 +59,9 @@ libutil_la_SOURCES = \
 	trans_closure.h \
 	trans_closure.cpp \
 	boolean_simplification.h \
-	boolean_simplification.cpp
+	boolean_simplification.cpp \
+	ite_removal.h \
+	ite_removal.cpp
 
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la

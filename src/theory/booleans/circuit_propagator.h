@@ -33,6 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
+
 /**
  * The main purpose of the CircuitPropagator class is to maintain the
  * state of the circuit for subsequent calls to propagate(), so that
@@ -40,104 +41,103 @@ namespace booleans {
  * circuit isn't propagated twice, etc.
  */
 class CircuitPropagator {
-  const std::vector<TNode>& d_atoms;
-  const std::hash_map<TNode, std::vector<TNode>, TNodeHashFunction>& d_backEdges;
 
-  class ConflictException : Exception {
-  public:
-    ConflictException() : Exception("A conflict was found in the CircuitPropagator") {
-    }
-  };/* class ConflictException */
-
-  enum {
-    ASSIGNMENT_MASK = 1,
-    IS_ASSIGNED_MASK = 2,
-    IS_PROPAGATED_FORWARD_MASK = 4,
-    IS_PROPAGATED_BACKWARD_MASK = 8
-  };/* enum */
+public:
 
   /**
-   * For each Node we care about, we have a 4-bit state:
-   *   Bit 0 (ASSIGNMENT_MASK) is set to indicate the current assignment
-   *   Bit 1 (IS_ASSIGNED_MASK) is set if a value is assigned
-   *   Bit 2 (IS_PROPAGATED_FORWARD) is set to indicate it's been propagated forward
-   *   Bit 2 (IS_PROPAGATED_BACKWARD) is set to indicate it's been propagated backward
+   * Value of a particular node
    */
-  std::hash_map<TNode, unsigned, TNodeHashFunction> d_state;
+  enum AssignmentStatus {
+    /** Node is currently unassigned */
+    UNASSIGNED = 0,
+    /** Node is assigned to true */
+    ASSIGNED_TO_TRUE,
+    /** Node is assigned to false */
+    ASSIGNED_TO_FALSE,
+  };
 
-  /** Assign Node in circuit with the value and add it to the changed vector; note conflicts. */
-  void assign(TNode n, bool b, std::vector<TNode>& changed) {
-    if(n.getMetaKind() == kind::metakind::CONSTANT) {
-      bool c = n.getConst<bool>();
-      if(c != b) {
-        Debug("circuit-prop") << "while assigning(" << b << "): " << n
-                              << ", constant conflict" << std::endl;
-        throw ConflictException();
-      } else {
-        Debug("circuit-prop") << "assigning(" << b << "): " << n
-                              << ", nothing to do" << std::endl;
+  /** Invert a set value */
+  static inline AssignmentStatus neg(AssignmentStatus value) {
+    Assert(value != UNASSIGNED);
+    if (value == ASSIGNED_TO_TRUE) return ASSIGNED_TO_FALSE;
+    else return ASSIGNED_TO_TRUE;
+  }
+
+private:
+
+  /** Back edges from nodes to where they are used */
+  typedef std::hash_map<TNode, std::vector<TNode>, TNodeHashFunction> BackEdgesMap;
+  BackEdgesMap d_backEdges;
+
+  /** The propagation queue */
+  std::vector<TNode> d_propagationQueue;
+
+  /** Are we in conflict */
+  bool d_conflict;
+
+  /** Map of substitutions */
+  std::vector<Node>& d_learnedLiterals;
+
+  /** Nodes that have been attached already (computed forward edges for) */
+  // All the nodes we've visited so far
+  std::hash_set<TNode, TNodeHashFunction> d_seen;
+
+  /**
+   * Assignment status of each node.
+   */
+  typedef std::hash_map<TNode, AssignmentStatus, TNodeHashFunction> AssignmentMap;
+  AssignmentMap d_state;
+
+  /**
+   * Assign Node in circuit with the value and add it to the queue; note conflicts.
+   */
+  void assignAndEnqueue(TNode n, bool value) {
+
+    Debug("circuit-prop") << "CircuitPropagator::assign(" << n << ", " << (value ? "true" : "false") << ")" << std::endl;
+
+    if (n.getKind() == kind::CONST_BOOLEAN) {
+      // Assigning a constant to the opposite value is dumb
+      if (value != n.getConst<bool>()) {
+        d_conflict = true;
+        return;
       }
-      return;
     }
-    unsigned& state = d_state[n];
-    if((state & IS_ASSIGNED_MASK) != 0) {// if assigned already
-      if(((state & ASSIGNMENT_MASK) != 0) != b) {// conflict
-        Debug("circuit-prop") << "while assigning(" << b << "): " << n
-                              << ", got conflicting assignment(" << assignment(n) << "): "
-                              << n << std::endl;
-        throw ConflictException();
-      } else {
-        Debug("circuit-prop") << "already assigned(" << b << "): " << n << std::endl;
+
+    // Get the current assignement
+    AssignmentStatus state = d_state[n];
+
+    if(state != UNASSIGNED) {
+      // If the node is already assigned we might have a conflict
+      if(value != (state == ASSIGNED_TO_TRUE)) {
+        d_conflict = true;
       }
-    } else {// if unassigned
-      Debug("circuit-prop") << "assigning(" << b << "): " << n << std::endl;
-      state |= IS_ASSIGNED_MASK | (b ? ASSIGNMENT_MASK : 0);
-      changed.push_back(n);
+    } else {
+      // If unassigned, mark it as assigned
+      d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
+      // Add for further propagation
+      d_propagationQueue.push_back(n);
     }
   }
-  /** True iff Node is assigned in circuit (either true or false). */
-  bool isAssigned(TNode n) {
-    return (d_state[n] & IS_ASSIGNED_MASK) != 0;
-  }
+
   /** True iff Node is assigned in circuit (either true or false). */
   bool isAssigned(TNode n) const {
-    std::hash_map<TNode, unsigned, TNodeHashFunction>::const_iterator i = d_state.find(n);
-    return i != d_state.end() && ((*i).second & IS_ASSIGNED_MASK) != 0;
+    AssignmentMap::const_iterator i = d_state.find(n);
+    return i != d_state.end() && ((*i).second != UNASSIGNED);
   }
-  /** True iff Node is assigned in circuit with the value given. */
-  bool isAssignedTo(TNode n, bool b) {
-    unsigned state = d_state[n];
-    return (state & IS_ASSIGNED_MASK) &&
-      (state & ASSIGNMENT_MASK) == (b ? ASSIGNMENT_MASK : 0);
+
+  /** True iff Node is assigned to the value. */
+  bool isAssignedTo(TNode n, bool value) const {
+    AssignmentMap::const_iterator i = d_state.find(n);
+    if (i == d_state.end()) return false;
+    if (value && ((*i).second == ASSIGNED_TO_TRUE)) return true;
+    if (!value && ((*i).second == ASSIGNED_TO_FALSE)) return true;
+    return false;
   }
-  /** True iff Node is assigned in circuit (either true or false). */
-  bool isAssignedTo(TNode n, bool b) const {
-    std::hash_map<TNode, unsigned, TNodeHashFunction>::const_iterator i = d_state.find(n);
-    return i != d_state.end() &&
-      ((*i).second & IS_ASSIGNED_MASK) &&
-      ((*i).second & ASSIGNMENT_MASK) == (b ? ASSIGNMENT_MASK : 0);
-  }
+
   /** Get Node assignment in circuit.  Assert-fails if Node is unassigned. */
-  bool assignment(TNode n) {
-    unsigned state = d_state[n];
-    Assert((state & IS_ASSIGNED_MASK) != 0);
-    return (state & ASSIGNMENT_MASK) != 0;
-  }
-  /** Has this node already been propagated forward? */
-  bool isPropagatedForward(TNode n) {
-    return (d_state[n] & IS_PROPAGATED_FORWARD_MASK) != 0;
-  }
-  /** Has this node already been propagated backward? */
-  bool isPropagatedBackward(TNode n) {
-    return (d_state[n] & IS_PROPAGATED_BACKWARD_MASK) != 0;
-  }
-  /** Mark this node as already having been propagated forward. */
-  void setPropagatedForward(TNode n) {
-    d_state[n] |= IS_PROPAGATED_FORWARD_MASK;
-  }
-  /** Mark this node as already having been propagated backward. */
-  void setPropagatedBackward(TNode n) {
-    d_state[n] |= IS_PROPAGATED_BACKWARD_MASK;
+  bool getAssignment(TNode n) const {
+    Assert(d_state.find(n) != d_state.end() && d_state.find(n)->second != UNASSIGNED);
+    return d_state.find(n)->second == ASSIGNED_TO_TRUE;
   }
 
   /** Predicate for use in STL functions. */
@@ -169,33 +169,52 @@ class CircuitPropagator {
   };/* class IsAssignedTo */
 
   /**
-   * Propagate new information (in = polarity) forward in circuit to
+   * Compute the map from nodes to the nodes that use it.
+   */
+  void computeBackEdges(TNode node);
+
+  /**
+   * Propagate new information forward in circuit to
    * the parents of "in".
    */
-  void propagateForward(TNode in, bool polarity, std::vector<TNode>& newFacts);
+  void propagateForward(TNode child, bool assignment);
+
   /**
-   * Propagate new information (in = polarity) backward in circuit to
+   * Propagate new information backward in circuit to
    * the children of "in".
    */
-  void propagateBackward(TNode in, bool polarity, std::vector<TNode>& newFacts);
+  void propagateBackward(TNode parent, bool assignment);
+
+  /** Whether to perform forward propagation */
+  bool d_forwardPropagation;
+  /** Whether to perform backward propagation */
+  bool d_backwardPropagation;
+  /** Whether to perform expensive propagations */
+  bool d_expensivePropagation;
 
 public:
   /**
    * Construct a new CircuitPropagator with the given atoms and backEdges.
    */
-  CircuitPropagator(const std::vector<TNode>& atoms, const std::hash_map<TNode, std::vector<TNode>, TNodeHashFunction>& backEdges)
-    : d_atoms(atoms),
-      d_backEdges(backEdges) {
+  CircuitPropagator(std::vector<Node>& outLearnedLiterals, bool enableForward = true, bool enableBackward = true, bool enableExpensive = true) :
+    d_conflict(false),
+    d_learnedLiterals(outLearnedLiterals),
+    d_forwardPropagation(enableForward),
+    d_backwardPropagation(enableBackward),
+    d_expensivePropagation(enableExpensive)
+  {
   }
 
+  /** Assert for propagation */
+  void assert(TNode assertion);
+
   /**
-   * Propagate new information (in == polarity) through the circuit
-   * propagator.  New information discovered by the propagator are put
-   * in the (output-only) newFacts vector.
+   * Propagate through the asserted circuit propagator. New information discovered by the propagator
+   * are put in the subsitutions vector used in construction.
    *
    * @return true iff conflict found
    */
-  bool propagate(TNode in, bool polarity, std::vector<Node>& newFacts) CVC4_WARN_UNUSED_RESULT;
+  bool propagate() CVC4_WARN_UNUSED_RESULT;
 
 };/* class CircuitPropagator */
 

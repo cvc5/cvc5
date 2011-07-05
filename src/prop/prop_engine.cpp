@@ -81,7 +81,7 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false);
+  d_cnfStream->convertAndAssert(d_theoryEngine->preprocess(node), false, false);
 }
 
 void PropEngine::assertLemma(TNode node) {
@@ -92,7 +92,6 @@ void PropEngine::assertLemma(TNode node) {
   // Assert as removable
   d_cnfStream->convertAndAssert(node, true, false);
 }
-
 
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::TranslationCache& transCache =

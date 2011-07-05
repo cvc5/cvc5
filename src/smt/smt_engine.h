@@ -132,7 +132,7 @@ class CVC4_PUBLIC SmtEngine {
    * since the last checkSat/query (and therefore we're not responsible
    * for an assignment).
    */
-  bool d_haveAdditions;
+  bool d_problemExtended;
 
   /**
    * Whether or not a query() or checkSat() has already been made through

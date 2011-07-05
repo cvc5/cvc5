@@ -152,7 +152,8 @@ public:
 
   void presolve();
   void notifyRestart();
-  Node simplify(TNode in, std::vector< std::pair<Node, Node> >& outSubstitutions);
+  SolveStatus solve(TNode in, SubstitutionMap& outSubstitutions);
+  Node preprocess(TNode atom);
   void staticLearning(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

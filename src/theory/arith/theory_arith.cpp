@@ -130,10 +130,82 @@ TheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_restartTimer);
 }
 
-Node TheoryArith::simplify(TNode in, std::vector< std::pair<Node, Node> >& outSubstitutions) {
+Node TheoryArith::preprocess(TNode atom) {
+  if (atom.getKind() == kind::EQUAL) {
+    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+    return Rewriter::rewrite(leq.andNode(geq));
+  } else {
+    return atom;
+  }
+}
+
+Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutions) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
-  Trace("simplify:arith") << "arith-simplifying: " << in << endl;
-  return d_valuation.rewrite(in);
+  Debug("simplify") << "TheoryArith::solve(" << in << ")" << endl;
+
+  // Solve equalities
+  Rational minConstant = 0;
+  Node minMonomial;
+  Node minVar;
+  unsigned nVars = 0;
+  if (in.getKind() == kind::EQUAL) {
+    Assert(in[1].getKind() == kind::CONST_RATIONAL);
+    // Find the variable with the smallest coefficient
+    Polynomial p = Polynomial::parsePolynomial(in[0]);
+    Polynomial::iterator it = p.begin(), it_end = p.end();
+    for (; it != it_end; ++ it) {
+      Monomial m = *it;
+      // Skip the constant
+      if (m.isConstant()) continue;
+      // This is a ''variable''
+      nVars ++;
+      // Skip the non-linear stuff
+      if (!m.getVarList().singleton()) continue;
+      // Get the minimal one
+      Rational constant = m.getConstant().getValue();
+      Rational absSconstant = constant > 0 ? constant : -constant;
+      if (minVar.isNull() || absSconstant < minConstant) {
+        Node var = m.getVarList().getNode();
+        if (var.getKind() == kind::VARIABLE) {
+          minVar = var;
+          minMonomial = m.getNode();
+          minConstant = constant;
+        }
+      }
+    }
+
+    // Solve for variable
+    if (!minVar.isNull()) {
+      // ax + p = c -> (ax + p) -ax - c = -ax
+      Node eliminateVar = NodeManager::currentNM()->mkNode(kind::MINUS, in[0], minMonomial);
+      if (in[1].getConst<Rational>() != 0) {
+        eliminateVar = NodeManager::currentNM()->mkNode(kind::MINUS, eliminateVar, in[1]);
+      }
+      // x = (p - ax - c) * -1/a
+      eliminateVar = NodeManager::currentNM()->mkNode(kind::MULT, eliminateVar, mkRationalNode(- minConstant.inverse()));
+      // Add the substitution
+      outSubstitutions.addSubstitution(minVar, Rewriter::rewrite(eliminateVar));
+      return SOLVE_STATUS_SOLVED;
+    }
+  }
+
+  // If a relation, remember the bound
+  switch(in.getKind()) {
+  case kind::LEQ:
+  case kind::LT:
+  case kind::GEQ:
+  case kind::GT:
+    if (in[0].getKind() == kind::VARIABLE) {
+      learner.addBound(in);
+    }
+    break;
+  default:
+    // Do nothing
+    break;
+  }
+
+  return SOLVE_STATUS_UNSOLVED;
 }
 
 void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {

@@ -234,6 +234,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
 
 RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
   Assert(isAtom(atom));
+
   NodeManager* currNM = NodeManager::currentNM();
 
   if(atom.getKind() == kind::EQUAL) {
@@ -244,7 +245,7 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
 
   Node reduction = atom;
 
-  if(atom[1].getMetaKind() != kind::metakind::CONSTANT){
+  if(atom[1].getMetaKind() != kind::metakind::CONSTANT) {
     // left |><| right
     TNode left = atom[0];
     TNode right = atom[1];

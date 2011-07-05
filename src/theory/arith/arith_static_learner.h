@@ -44,9 +44,18 @@ private:
   VarToNodeSetMap d_miplibTrick;
   std::list<TNode> d_miplibTrickKeys;
 
+  /**
+   * Map from a node to it's minimum and maximum.
+   */
+  typedef __gnu_cxx::hash_map<Node, DeltaRational, NodeHashFunction> NodeToMinMaxMap;
+  NodeToMinMaxMap d_minMap;
+  NodeToMinMaxMap d_maxMap;
+
 public:
   ArithStaticLearner();
   void staticLearning(TNode n, NodeBuilder<>& learned);
+
+  void addBound(TNode n);
 
   void clear();
 

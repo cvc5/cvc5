@@ -19,6 +19,7 @@
 #include "theory/booleans/circuit_propagator.h"
 #include "util/utility.h"
 
+#include <stack>
 #include <vector>
 #include <algorithm>
 
@@ -28,353 +29,363 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-void CircuitPropagator::propagateBackward(TNode in, bool polarity, vector<TNode>& changed) {
-  if(!isPropagatedBackward(in)) {
-    Debug("circuit-prop") << push << "propagateBackward(" << polarity << "): " << in << endl;
-    setPropagatedBackward(in);
-    // backward rules
-    switch(Kind k = in.getKind()) {
+void CircuitPropagator::assert(TNode assertion) 
+{
+  if (assertion.getKind() == kind::AND) {
+    for (unsigned i = 0; i < assertion.getNumChildren(); ++ i) {
+      assert(assertion[i]);  
+    }
+  } else {
+    // Analyze the assertion for back-edges and all that
+    computeBackEdges(assertion);
+    // Assign the given assertion to true
+    assignAndEnqueue(assertion, true);
+  }
+}
+
+void CircuitPropagator::computeBackEdges(TNode node) {
+
+  Debug("circuit-prop") << "CircuitPropagator::computeBackEdges(" << node << ")" << endl;
+
+  // Vector of nodes to visit
+  vector<TNode> toVisit;
+
+  // Start with the top node
+  if (d_seen.find(node) == d_seen.end()) {
+    toVisit.push_back(node);
+    d_seen.insert(node);
+  }
+
+  // Initialize the back-edges for the root, so we don't have a special case
+  d_backEdges[node];
+
+  // Go through the visit list
+  for (unsigned i = 0; i < toVisit.size(); ++ i) {
+    // Node we need to visit
+    TNode current = toVisit[i];
+    Debug("circuit-prop") << "CircuitPropagator::computeBackEdges(): processing " << current << endl;
+    Assert(d_seen.find(current) != d_seen.end());
+
+    // If this not an atom visit all the children and compute the back edges
+    if (Theory::theoryOf(current) == THEORY_BOOL) {
+      for (unsigned child = 0, child_end = current.getNumChildren(); child < child_end; ++ child) {
+        TNode childNode = current[child];
+        // Add the back edge
+        d_backEdges[childNode].push_back(current);
+        // Add to the queue if not seen yet
+        if (d_seen.find(childNode) == d_seen.end()) {
+          toVisit.push_back(childNode);
+          d_seen.insert(childNode);
+        }
+      }
+    }
+  }
+}
+
+void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
+
+  Debug("circuit-prop") << "CircuitPropagator::propagateBackward(" << parent << ", " << parentAssignment << ")" << endl;
+
+  // backward rules
+  switch(parent.getKind()) {
+  case kind::AND:
+    if (parentAssignment) {
+      // AND = TRUE: forall children c, assign(c = TRUE)
+      for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
+        assignAndEnqueue(*i, true);
+      }
+    } else {
+      // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
+      TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
+      if (holdout != parent.end()) {
+        assignAndEnqueue(*holdout, false);
+      }
+    }
+    break;
+  case kind::OR:
+    if (parentAssignment) {
+      // OR = TRUE: if all children BUT ONE == FALSE, assign(c = TRUE)
+      TNode::iterator holdout = find_if_unique(parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
+      if (holdout != parent.end()) {
+        assignAndEnqueue(*holdout, true);
+      }
+    } else {
+      // OR = FALSE: forall children c, assign(c = FALSE)
+      for(TNode::iterator i = parent.begin(), i_end = parent.end(); i != i_end; ++i) {
+        assignAndEnqueue(*i, false);
+      }
+    }
+    break;
+  case kind::NOT:
+    // NOT = b: assign(c = !b)
+    assignAndEnqueue(parent[0], !parentAssignment);
+    break;
+  case kind::ITE:
+    if (isAssignedTo(parent[0], true)) {
+      // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
+      assignAndEnqueue(parent[1], parentAssignment);
+    } else if (isAssignedTo(parent[0], false)) {
+      // ITE c x y = v: if c is assigned and FALSE, assign(y = v)
+      assignAndEnqueue(parent[2], parentAssignment);
+    } else if (isAssigned(parent[1]) && isAssigned(parent[2])) {
+      if (getAssignment(parent[1]) == parentAssignment && getAssignment(parent[2]) != parentAssignment) {
+        // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
+        assignAndEnqueue(parent[0], true);
+      } else if (getAssignment(parent[1]) != parentAssignment && getAssignment(parent[2]) == parentAssignment) {
+        // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v, assign(c = FALSE)
+        assignAndEnqueue(parent[0], false);
+      }
+    }
+    break;
+  case kind::IFF:
+    if (parentAssignment) {
+      // IFF x y = TRUE: if x [resp y] is assigned, assign(y = x.assignment [resp x = y.assignment])
+      if (isAssigned(parent[0])) {
+        assignAndEnqueue(parent[1], getAssignment(parent[0]));
+      } else if (isAssigned(parent[1])) {
+        assignAndEnqueue(parent[0], getAssignment(parent[1]));
+      }
+    } else {
+      // IFF x y = FALSE: if x [resp y] is assigned, assign(y = !x.assignment [resp x = !y.assignment])
+      if (isAssigned(parent[0])) {
+        assignAndEnqueue(parent[1], !getAssignment(parent[0]));
+      } else if (isAssigned(parent[1])) {
+        assignAndEnqueue(parent[0], !getAssignment(parent[1]));
+      }
+    }
+    break;
+  case kind::IMPLIES:
+    if (parentAssignment) {
+      if (isAssignedTo(parent[0], true)) {
+        // IMPLIES x y = TRUE, and x == TRUE: assign(y = TRUE)
+        assignAndEnqueue(parent[1], true);
+      }
+      if (isAssignedTo(parent[1], false)) {
+        // IMPLIES x y = TRUE, and y == FALSE: assign(x = FALSE)
+        assignAndEnqueue(parent[0], false);
+      }
+    } else {
+      // IMPLIES x y = FALSE: assign(x = TRUE) and assign(y = FALSE)
+      assignAndEnqueue(parent[0], true);
+      assignAndEnqueue(parent[1], false);
+    }
+    break;
+  case kind::XOR:
+    if (parentAssignment) {
+      if (isAssigned(parent[0])) {
+        // XOR x y = TRUE, and x assigned, assign(y = !assignment(x))
+        assignAndEnqueue(parent[1], !getAssignment(parent[0]));
+      } else if (isAssigned(parent[1])) {
+        // XOR x y = TRUE, and y assigned, assign(x = !assignment(y))
+        assignAndEnqueue(parent[0], !getAssignment(parent[1]));
+      }
+    } else {
+      if (isAssigned(parent[0])) {
+        // XOR x y = FALSE, and x assigned, assign(y = assignment(x))
+        assignAndEnqueue(parent[1], getAssignment(parent[0]));
+      } else if (isAssigned(parent[1])) {
+        // XOR x y = FALSE, and y assigned, assign(x = assignment(y))
+        assignAndEnqueue(parent[0], getAssignment(parent[1]));
+      }
+    }
+    break;
+  default:
+    Unhandled();
+  }
+}
+
+
+void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
+
+  // The assignment we have
+  Debug("circuit-prop") << "CircuitPropagator::propagateForward(" << child << ", " << childAssignment << ")" << endl;
+
+  // Get the back any nodes where this is child
+  const vector<TNode>& parents = d_backEdges.find(child)->second;
+
+  // Go through the parents and see if there is anything to propagate
+  vector<TNode>::const_iterator parent_it = parents.begin();
+  vector<TNode>::const_iterator parent_it_end = parents.end();
+  for(; parent_it != parent_it_end && !d_conflict; ++ parent_it) {
+    // The current parent of the child
+    TNode parent = *parent_it;
+    Assert(parent.hasSubterm(child));
+
+    // Forward rules
+    switch(parent.getKind()) {
     case kind::AND:
-      if(polarity) {
-        // AND = TRUE: forall children c, assign(c = TRUE)
-        for(TNode::iterator i = in.begin(), i_end = in.end(); i != i_end; ++i) {
-          Debug("circuit-prop") << "bAND1" << endl;
-          assign(*i, true, changed);
+      if (childAssignment) {
+        TNode::iterator holdout;
+        holdout = find_if (parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
+        if (holdout == parent.end()) { // all children are assigned TRUE
+          // AND ...(x=TRUE)...: if all children now assigned to TRUE, assign(AND = TRUE)
+          assignAndEnqueue(parent, true);
+        } else if (isAssignedTo(parent, false)) {// the AND is FALSE
+          // is the holdout unique ?
+          TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, true)));
+          if (other == parent.end()) { // the holdout is unique
+            // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and AND == FALSE, assign(last_holdout = FALSE)
+            assignAndEnqueue(*holdout, false);
+          }
         }
       } else {
-        // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
-        TNode::iterator holdout = find_if_unique(in.begin(), in.end(), not1(IsAssignedTo(*this, true)));
-        if(holdout != in.end()) {
-          Debug("circuit-prop") << "bAND2" << endl;
-          assign(*holdout, false, changed);
-        }
+        // AND ...(x=FALSE)...: assign(AND = FALSE)
+        assignAndEnqueue(parent, false);
       }
       break;
     case kind::OR:
-      if(polarity) {
-        // OR = TRUE: if all children BUT ONE == FALSE, assign(c = TRUE)
-        TNode::iterator holdout = find_if_unique(in.begin(), in.end(), not1(IsAssignedTo(*this, false)));
-        if(holdout != in.end()) {
-          Debug("circuit-prop") << "bOR1" << endl;
-          assign(*holdout, true, changed);
-        }
+      if (childAssignment) {
+        // OR ...(x=TRUE)...: assign(OR = TRUE)
+        assignAndEnqueue(parent, true);
       } else {
-        // OR = FALSE: forall children c, assign(c = FALSE)
-        for(TNode::iterator i = in.begin(), i_end = in.end(); i != i_end; ++i) {
-          Debug("circuit-prop") << "bOR2" << endl;
-          assign(*i, false, changed);
+        TNode::iterator holdout;
+        holdout = find_if (parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
+        if (holdout == parent.end()) { // all children are assigned FALSE
+          // OR ...(x=FALSE)...: if all children now assigned to FALSE, assign(OR = FALSE)
+          assignAndEnqueue(parent, false);
+        } else if (isAssignedTo(parent, true)) {// the OR is TRUE
+          // is the holdout unique ?
+          TNode::iterator other = find_if (holdout + 1, parent.end(), not1(IsAssignedTo(*this, false)));
+          if (other == parent.end()) { // the holdout is unique
+            // OR ...(x=FALSE)...: if all children BUT ONE now assigned to FALSE, and OR == TRUE, assign(last_holdout = TRUE)
+            assignAndEnqueue(*holdout, true);
+          }
         }
       }
       break;
+
     case kind::NOT:
-      // NOT = b: assign(c = !b)
-      Debug("circuit-prop") << "bNOT" << endl;
-      assign(in[0], !polarity, changed);
+      // NOT (x=b): assign(NOT = !b)
+      assignAndEnqueue(parent, !childAssignment);
       break;
+
     case kind::ITE:
-      if(isAssignedTo(in[0], true)) {
-        // ITE c x y = v: if c is assigned and TRUE, assign(x = v)
-        Debug("circuit-prop") << "bITE1" << endl;
-        assign(in[1], polarity, changed);
-      } else if(isAssignedTo(in[0], false)) {
-        // ITE c x y = v: if c is assigned and FALSE, assign(y = v)
-        Debug("circuit-prop") << "bITE2" << endl;
-        assign(in[2], polarity, changed);
-      } else if(isAssigned(in[1]) && isAssigned(in[2])) {
-        if(assignment(in[1]) == polarity && assignment(in[2]) != polarity) {
-          // ITE c x y = v: if c is unassigned, x and y are assigned, x==v and y!=v, assign(c = TRUE)
-          Debug("circuit-prop") << "bITE3" << endl;
-          assign(in[0], true, changed);
-        } else if(assignment(in[1]) == !polarity && assignment(in[2]) == polarity) {
-          // ITE c x y = v: if c is unassigned, x and y are assigned, x!=v and y==v, assign(c = FALSE)
-          Debug("circuit-prop") << "bITE4" << endl;
-          assign(in[0], true, changed);
+      if (child == parent[0]) {
+        if (childAssignment) {
+          if (isAssigned(parent[1])) {
+            // ITE (c=TRUE) x y: if x is assigned, assign(ITE = x.assignment)
+            assignAndEnqueue(parent, getAssignment(parent[1]));
+          }
+        } else {
+          if (isAssigned(parent[2])) {
+            // ITE (c=FALSE) x y: if y is assigned, assign(ITE = y.assignment)
+            assignAndEnqueue(parent, getAssignment(parent[2]));
+          }
+        }
+      }
+      if (child == parent[1]) {
+        if (isAssignedTo(parent[0], true)) {
+          // ITE c (x=v) y: if c is assigned and TRUE, assign(ITE = v)
+          assignAndEnqueue(parent, childAssignment);
+        }
+      }
+      if (child == parent[2]) {
+        Assert(child == parent[2]);
+        if (isAssignedTo(parent[0], false)) {
+          // ITE c x (y=v): if c is assigned and FALSE, assign(ITE = v)
+          assignAndEnqueue(parent, childAssignment);
         }
       }
       break;
     case kind::IFF:
-      if(polarity) {
-        // IFF x y = TRUE: if x [resp y] is assigned, assign(y = x.assignment [resp x = y.assignment])
-        if(isAssigned(in[0])) {
-          assign(in[1], assignment(in[0]), changed);
-          Debug("circuit-prop") << "bIFF1" << endl;
-        } else if(isAssigned(in[1])) {
-          Debug("circuit-prop") << "bIFF2" << endl;
-          assign(in[0], assignment(in[1]), changed);
-        }
+      if (isAssigned(parent[0]) && isAssigned(parent[1])) {
+        // IFF x y: if x or y is assigned, assign(IFF = (x.assignment <=> y.assignment))
+        assignAndEnqueue(parent, getAssignment(parent[0]) == getAssignment(parent[1]));
       } else {
-        // IFF x y = FALSE: if x [resp y] is assigned, assign(y = !x.assignment [resp x = !y.assignment])
-        if(isAssigned(in[0])) {
-          Debug("circuit-prop") << "bIFF3" << endl;
-          assign(in[1], !assignment(in[0]), changed);
-        } else if(isAssigned(in[1])) {
-          Debug("circuit-prop") << "bIFF4" << endl;
-          assign(in[0], !assignment(in[1]), changed);
+        if (isAssigned(parent)) {
+          if (child == parent[0]) {
+            if (getAssignment(parent)) {
+              // IFF (x = b) y: if IFF is assigned to TRUE, assign(y = b)
+              assignAndEnqueue(parent[1], childAssignment);
+            } else {
+              // IFF (x = b) y: if IFF is assigned to FALSE, assign(y = !b)
+              assignAndEnqueue(parent[1], !childAssignment);
+            }
+          } else {
+            Assert(child == parent[1]);
+            if (getAssignment(parent)) {
+              // IFF x y = b: if IFF is assigned to TRUE, assign(x = b)
+              assignAndEnqueue(parent[0], childAssignment);
+            } else {
+              // IFF x y = b y: if IFF is assigned to TRUE, assign(x = !b)
+              assignAndEnqueue(parent[0], !childAssignment);
+            }
+          }
         }
       }
       break;
     case kind::IMPLIES:
-      if(polarity) {
-        if(isAssignedTo(in[0], true)) {
-          // IMPLIES x y = TRUE, and x == TRUE: assign(y = TRUE)
-          Debug("circuit-prop") << "bIMPLIES1" << endl;
-          assign(in[1], true, changed);
-        }
-        if(isAssignedTo(in[1], false)) {
-          // IMPLIES x y = TRUE, and y == FALSE: assign(x = FALSE)
-          Debug("circuit-prop") << "bIMPLIES2" << endl;
-          assign(in[0], false, changed);
-        }
+      if (isAssigned(parent[0]) && isAssigned(parent[1])) {
+        // IMPLIES (x=v1) (y=v2): assign(IMPLIES = (!v1 || v2))
+        assignAndEnqueue(parent, !getAssignment(parent[0]) || getAssignment(parent[1]));
       } else {
-        // IMPLIES x y = FALSE: assign(x = TRUE) and assign(y = FALSE)
-        Debug("circuit-prop") << "bIMPLIES3" << endl;
-        assign(in[0], true, changed);
-        assign(in[1], false, changed);
+        if (child == parent[0] && childAssignment && isAssignedTo(parent, true)) {
+          // IMPLIES (x=TRUE) y [with IMPLIES == TRUE]: assign(y = TRUE)
+          assignAndEnqueue(parent[1], true);
+        }
+        if (child == parent[1] && !childAssignment && isAssignedTo(parent, true)) {
+          // IMPLIES x (y=FALSE) [with IMPLIES == TRUE]: assign(x = FALSE)
+          assignAndEnqueue(parent[0], false);
+        }
+        // Note that IMPLIES == FALSE doesn't need any cases here
+        // because if that assignment has been done, we've already
+        // propagated all the children (in back-propagation).
       }
       break;
     case kind::XOR:
-      if(polarity) {
-        if(isAssigned(in[0])) {
-          // XOR x y = TRUE, and x assigned, assign(y = !assignment(x))
-          Debug("circuit-prop") << "bXOR1" << endl;
-          assign(in[1], !assignment(in[0]), changed);
-        } else if(isAssigned(in[1])) {
-          // XOR x y = TRUE, and y assigned, assign(x = !assignment(y))
-          Debug("circuit-prop") << "bXOR2" << endl;
-          assign(in[0], !assignment(in[1]), changed);
-        }
-      } else {
-        if(isAssigned(in[0])) {
-          // XOR x y = FALSE, and x assigned, assign(y = assignment(x))
-          Debug("circuit-prop") << "bXOR3" << endl;
-          assign(in[1], assignment(in[0]), changed);
-        } else if(isAssigned(in[1])) {
-          // XOR x y = FALSE, and y assigned, assign(x = assignment(y))
-          Debug("circuit-prop") << "bXOR4" << endl;
-          assign(in[0], assignment(in[1]), changed);
+      if (isAssigned(parent)) {
+        if (child == parent[0]) {
+          // XOR (x=v) y [with XOR assigned], assign(y = (v ^ XOR)
+          assignAndEnqueue(parent[1], childAssignment != getAssignment(parent));
+        } else {
+          Assert(child == parent[1]);
+          // XOR x (y=v) [with XOR assigned], assign(x = (v ^ XOR))
+          assignAndEnqueue(parent[0], childAssignment != getAssignment(parent));
         }
       }
-      break;
-    case kind::CONST_BOOLEAN:
-      // nothing to do
+      if (isAssigned(parent[0]) && isAssigned(parent[1])) {
+        assignAndEnqueue(parent, getAssignment(parent[0]) != getAssignment(parent[1]));
+      }
       break;
     default:
-      Unhandled(k);
-    }
-    Debug("circuit-prop") << pop;
-  }
-}
-
-
-void CircuitPropagator::propagateForward(TNode child, bool polarity, vector<TNode>& changed) {
-  if(!isPropagatedForward(child)) {
-    IndentedScope(Debug("circuit-prop"));
-    Debug("circuit-prop") << "propagateForward (" << polarity << "): " << child << endl;
-    std::hash_map<TNode, std::vector<TNode>, TNodeHashFunction>::const_iterator iter = d_backEdges.find(child);
-    if(d_backEdges.find(child) == d_backEdges.end()) {
-      Debug("circuit-prop") << "no backedges, must be ROOT?: " << child << endl;
-      return;
-    }
-    const vector<TNode>& uses = (*iter).second;
-    setPropagatedForward(child);
-    for(vector<TNode>::const_iterator useIter = uses.begin(), useIter_end = uses.end(); useIter != useIter_end; ++useIter) {
-      TNode in = *useIter; // this is the outer node
-      Debug("circuit-prop") << "considering use: " << in << endl;
-      IndentedScope(Debug("circuit-prop"));
-      // forward rules
-      switch(Kind k = in.getKind()) {
-      case kind::AND:
-        if(polarity) {
-          TNode::iterator holdout;
-          holdout = find_if(in.begin(), in.end(), not1(IsAssignedTo(*this, true)));
-          if(holdout == in.end()) { // all children are assigned TRUE
-            // AND ...(x=TRUE)...: if all children now assigned to TRUE, assign(AND = TRUE)
-            Debug("circuit-prop") << "fAND1" << endl;
-            assign(in, true, changed);
-          } else if(isAssignedTo(in, false)) {// the AND is FALSE
-            // is the holdout unique ?
-            TNode::iterator other = find_if(holdout, in.end(), not1(IsAssignedTo(*this, true)));
-            if(other == in.end()) { // the holdout is unique
-              // AND ...(x=TRUE)...: if all children BUT ONE now assigned to TRUE, and AND == FALSE, assign(last_holdout = FALSE)
-              Debug("circuit-prop") << "fAND2" << endl;
-              assign(*holdout, false, changed);
-            }
-          }
-        } else {
-          // AND ...(x=FALSE)...: assign(AND = FALSE)
-          Debug("circuit-prop") << "fAND3" << endl;
-          assign(in, false, changed);
-        }
-        break;
-      case kind::OR:
-        if(polarity) {
-          // OR ...(x=TRUE)...: assign(OR = TRUE)
-          Debug("circuit-prop") << "fOR1" << endl;
-          assign(in, true, changed);
-        } else {
-          TNode::iterator holdout;
-          holdout = find_if(in.begin(), in.end(), not1(IsAssignedTo(*this, false)));
-          if(holdout == in.end()) { // all children are assigned FALSE
-            // OR ...(x=FALSE)...: if all children now assigned to FALSE, assign(OR = FALSE)
-            Debug("circuit-prop") << "fOR2" << endl;
-            assign(in, false, changed);
-          } else if(isAssignedTo(in, true)) {// the OR is TRUE
-            // is the holdout unique ?
-            TNode::iterator other = find_if(holdout, in.end(), not1(IsAssignedTo(*this, false)));
-            if(other == in.end()) { // the holdout is unique
-              // OR ...(x=FALSE)...: if all children BUT ONE now assigned to FALSE, and OR == TRUE, assign(last_holdout = TRUE)
-              Debug("circuit-prop") << "fOR3" << endl;
-              assign(*holdout, true, changed);
-            }
-          }
-        }
-        break;
-
-      case kind::NOT:
-        // NOT (x=b): assign(NOT = !b)
-        Debug("circuit-prop") << "fNOT" << endl;
-        assign(in, !polarity, changed);
-        break;
-      case kind::ITE:
-        if(child == in[0]) {
-          if(polarity) {
-            if(isAssigned(in[1])) {
-              // ITE (c=TRUE) x y: if x is assigned, assign(ITE = x.assignment)
-              Debug("circuit-prop") << "fITE1" << endl;
-              assign(in, assignment(in[1]), changed);
-            }
-          } else {
-            if(isAssigned(in[2])) {
-              // ITE (c=FALSE) x y: if y is assigned, assign(ITE = y.assignment)
-              Debug("circuit-prop") << "fITE2" << endl;
-              assign(in, assignment(in[2]), changed);
-            }
-          }
-        } else if(child == in[1]) {
-          if(isAssignedTo(in[0], true)) {
-            // ITE c (x=v) y: if c is assigned and TRUE, assign(ITE = v)
-            Debug("circuit-prop") << "fITE3" << endl;
-            assign(in, assignment(in[1]), changed);
-          }
-        } else {
-          Assert(child == in[2]);
-          if(isAssignedTo(in[0], false)) {
-            // ITE c x (y=v): if c is assigned and FALSE, assign(ITE = v)
-            Debug("circuit-prop") << "fITE4" << endl;
-            assign(in, assignment(in[2]), changed);
-          }
-        }
-        break;
-      case kind::IFF:
-        if(child == in[0]) {
-          if(isAssigned(in[1])) {
-            // IFF (x=b) y: if y is assigned, assign(IFF = (x.assignment <=> y.assignment))
-            Debug("circuit-prop") << "fIFF1" << endl;
-            assign(in, assignment(in[0]) == assignment(in[1]), changed);
-          } else if(isAssigned(in)) {
-            // IFF (x=b) y: if IFF is assigned, assign(y = (b <=> IFF.assignment))
-            Debug("circuit-prop") << "fIFF2" << endl;
-            assign(in[1], polarity == assignment(in), changed);
-          }
-        } else {
-          Assert(child == in[1]);
-          if(isAssigned(in[0])) {
-            // IFF x (y=b): if x is assigned, assign(IFF = (x.assignment <=> y.assignment))
-            Debug("circuit-prop") << "fIFF3" << endl;
-            assign(in, assignment(in[0]) == assignment(in[1]), changed);
-          } else if(isAssigned(in)) {
-            // IFF x (y=b): if IFF is assigned, assign(x = (b <=> IFF.assignment))
-            Debug("circuit-prop") << "fIFF4" << endl;
-            assign(in[0], polarity == assignment(in), changed);
-          }
-        }
-        break;
-      case kind::IMPLIES:
-        if(isAssigned(in[0]) && isAssigned(in[1])) {
-          // IMPLIES (x=v1) (y=v2): assign(IMPLIES = (!v1 || v2))
-          assign(in, !assignment(in[0]) || assignment(in[1]), changed);
-          Debug("circuit-prop") << "fIMPLIES1" << endl;
-        } else {
-          if(child == in[0] && assignment(in[0]) && isAssignedTo(in, true)) {
-            // IMPLIES (x=TRUE) y [with IMPLIES == TRUE]: assign(y = TRUE)
-            Debug("circuit-prop") << "fIMPLIES2" << endl;
-            assign(in[1], true, changed);
-          }
-          if(child == in[1] && !assignment(in[1]) && isAssignedTo(in, true)) {
-            // IMPLIES x (y=FALSE) [with IMPLIES == TRUE]: assign(x = FALSE)
-            Debug("circuit-prop") << "fIMPLIES3" << endl;
-            assign(in[0], false, changed);
-          }
-          // Note that IMPLIES == FALSE doesn't need any cases here
-          // because if that assignment has been done, we've already
-          // propagated all the children (in back-propagation).
-        }
-        break;
-      case kind::XOR:
-        if(isAssigned(in)) {
-          if(child == in[0]) {
-            // XOR (x=v) y [with XOR assigned], assign(y = (v ^ XOR)
-            Debug("circuit-prop") << "fXOR1" << endl;
-            assign(in[1], polarity ^ assignment(in), changed);
-          } else {
-            Assert(child == in[1]);
-            // XOR x (y=v) [with XOR assigned], assign(x = (v ^ XOR))
-            Debug("circuit-prop") << "fXOR2" << endl;
-            assign(in[0], polarity ^ assignment(in), changed);
-          }
-        }
-        if( (child == in[0] && isAssigned(in[1])) ||
-            (child == in[1] && isAssigned(in[0])) ) {
-          // XOR (x=v) y [with y assigned], assign(XOR = (v ^ assignment(y))
-          // XOR x (y=v) [with x assigned], assign(XOR = (assignment(x) ^ v)
-          Debug("circuit-prop") << "fXOR3" << endl;
-          assign(in, assignment(in[0]) ^ assignment(in[1]), changed);
-        }
-        break;
-      case kind::CONST_BOOLEAN:
-        InternalError("Forward-propagating a constant Boolean value makes no sense");
-      default:
-        Unhandled(k);
-      }
+      Unhandled();
     }
   }
 }
 
+bool CircuitPropagator::propagate() {
 
-bool CircuitPropagator::propagate(TNode in, bool polarity, vector<Node>& newFacts) {
-  try {
-    vector<TNode> changed;
+  Debug("circuit-prop") << "CircuitPropagator::propagate()" << std::endl;
 
-    Assert(kindToTheoryId(in.getKind()) == THEORY_BOOL);
+  for(unsigned i = 0; i < d_propagationQueue.size() && !d_conflict; ++ i) {
 
-    Debug("circuit-prop") << "B: " << (polarity ? "" : "~") << in << endl;
-    propagateBackward(in, polarity, changed);
-    Debug("circuit-prop") << "F: " << (polarity ? "" : "~") << in << endl;
-    propagateForward(in, polarity, changed);
+    // The current node we are propagating
+    TNode current = d_propagationQueue[i];
+    Debug("circuit-prop") << "CircuitPropagator::propagate(): processing " << current << std::endl;
+    bool assignment = getAssignment(current);
+    Debug("circuit-prop") << "CircuitPropagator::propagate(): assigned to " << (assignment ? "true" : "false") << std::endl;
 
-    while(!changed.empty()) {
-      vector<TNode> worklist;
-      worklist.swap(changed);
+    // Is this an atom
+    bool atom = Theory::theoryOf(current) != THEORY_BOOL || current.getMetaKind() == kind::metakind::VARIABLE;
 
-      for(vector<TNode>::iterator i = worklist.begin(), i_end = worklist.end(); i != i_end; ++i) {
-        if(kindToTheoryId((*i).getKind()) != THEORY_BOOL) {
-          if(assignment(*i)) {
-            newFacts.push_back(*i);
-          } else {
-            newFacts.push_back((*i).notNode());
-          }
-        } else {
-          Debug("circuit-prop") << "B: " << (isAssignedTo(*i, true) ? "" : "~") << *i << endl;
-          propagateBackward(*i, assignment(*i), changed);
-          Debug("circuit-prop") << "F: " << (isAssignedTo(*i, true) ? "" : "~") << *i << endl;
-          propagateForward(*i, assignment(*i), changed);
-        }
-      }
+    // If an atom, add to the list for simplification
+    if (atom) {
+      Debug("circuit-prop") << "CircuitPropagator::propagate(): adding to learned: " << (assignment ? (Node)current : current.notNode()) << std::endl;
+      d_learnedLiterals.push_back(assignment ? (Node)current : current.notNode());
     }
-  } catch(ConflictException& ce) {
-    return true;
+
+    // Propagate this value to the children (if not an atom or a constant)
+    if (d_backwardPropagation && !atom && !current.isConst()) {
+      propagateBackward(current, assignment);
+    }
+    // Propagate this value to the parents
+    if (d_forwardPropagation) {
+      propagateForward(current, assignment);
+    }
   }
-  return false;
+
+  // No conflict
+  return d_conflict;
 }
 
 }/* CVC4::theory::booleans namespace */

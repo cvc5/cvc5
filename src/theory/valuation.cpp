@@ -41,13 +41,5 @@ Node Valuation::getSatValue(TNode n) const{
   }
 }
 
-Node Valuation::simplify(TNode in, Substitutions& outSubstitutions) {
-  return d_engine->simplify(in, outSubstitutions);
-}
-
-Node Valuation::rewrite(TNode in) {
-  return d_engine->preprocess(in);
-}
-
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

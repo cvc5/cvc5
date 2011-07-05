@@ -29,6 +29,8 @@
 #include "theory/rewriter.h"
 #include "theory/theory_traits.h"
 
+#include "util/ite_removal.h"
+
 using namespace std;
 
 using namespace CVC4;
@@ -45,9 +47,6 @@ typedef CVC4::expr::CDAttribute<RegisteredAttrTag, bool> RegisteredAttr;
 
 struct PreRegisteredAttrTag {};
 typedef expr::Attribute<PreRegisteredAttrTag, bool> PreRegistered;
-
-struct IteRewriteAttrTag {};
-typedef expr::Attribute<IteRewriteAttrTag, Node> IteRewriteAttr;
 
 }/* CVC4::theory namespace */
 
@@ -125,11 +124,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
       // traversing a DAG as a tree and that can really blow up @CB
       if(! n.getAttribute(RegisteredAttr())) {
         n.setAttribute(RegisteredAttr(), true);
-        if (n.getKind() == kind::EQUAL) {
-          d_engine->theoryOf(n[0])->registerTerm(n);
-        } else {
-          d_engine->theoryOf(n)->registerTerm(n);
-        }
+        d_engine->theoryOf(n)->registerTerm(n);
       }
     }
   }/* Options::current()->theoryRegistration && !fact.getAttribute(RegisteredAttr()) */
@@ -167,23 +162,12 @@ TheoryEngine::~TheoryEngine() {
   delete d_sharedTermManager;
 }
 
-struct preprocess_stack_element {
+struct preregister_stack_element {
   TNode node;
   bool children_added;
-  preprocess_stack_element(TNode node)
+  preregister_stack_element(TNode node)
   : node(node), children_added(false) {}
 };/* struct preprocess_stack_element */
-
-Node TheoryEngine::preprocess(TNode node) {
-  // Make sure the node is type-checked first (some rewrites depend on
-  // typechecking having succeeded to be safe).
-  if(Options::current()->typeChecking) {
-    node.getType(true);
-  }
-  // Remove ITEs and rewrite the node
-  Node preprocessed = Rewriter::rewrite(removeITEs(node));
-  return preprocessed;
-}
 
 void TheoryEngine::preRegister(TNode preprocessed) {
   // If we are pre-registered already we are done
@@ -192,10 +176,10 @@ void TheoryEngine::preRegister(TNode preprocessed) {
   }
 
   // Do a topological sort of the subexpressions and preregister them
-  vector<preprocess_stack_element> toVisit;
+  vector<preregister_stack_element> toVisit;
   toVisit.push_back((TNode) preprocessed);
   while (!toVisit.empty()) {
-    preprocess_stack_element& stackHead = toVisit.back();
+    preregister_stack_element& stackHead = toVisit.back();
     // The current node we are processing
     TNode current = stackHead.node;
     // If we already added all the children its time to register or just pop from the stack
@@ -208,22 +192,11 @@ void TheoryEngine::preRegister(TNode preprocessed) {
           if(d_logic == "QF_AX") {
             d_theoryTable[theory::THEORY_ARRAY]->preRegisterTerm(current);
           } else {
-            TheoryId theoryLHS = Theory::theoryOf(current[0]);
+            Theory* theory = theoryOf(current);
+            TheoryId theoryLHS = theory->getId();
             Debug("register") << "preregistering " << current << " with " << theoryLHS << std::endl;
             markActive(theoryLHS);
-            d_theoryTable[theoryLHS]->preRegisterTerm(current);
-//          TheoryId theoryRHS = Theory::theoryOf(current[1]);
-//          if (theoryLHS != theoryRHS) {
-//            markActive(theoryRHS);
-//            d_theoryTable[theoryRHS]->preRegisterTerm(current);
-//            Debug("register") << "preregistering " << current << " with " << theoryRHS << std::endl;
-//          }
-//          TheoryId typeTheory = Theory::theoryOf(current[0].getType());
-//          if (typeTheory != theoryLHS && typeTheory != theoryRHS) {
-//            markActive(typeTheory);
-//            d_theoryTable[typeTheory]->preRegisterTerm(current);
-//            Debug("register") << "preregistering " << current << " with " << typeTheory << std::endl;
-//          }
+            theory->preRegisterTerm(current);
           }
         } else {
           TheoryId theory = Theory::theoryOf(current);
@@ -296,68 +269,6 @@ void TheoryEngine::propagate() {
   // Propagate for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
 }
-
-/* Our goal is to tease out any ITE's sitting under a theory operator. */
-Node TheoryEngine::removeITEs(TNode node) {
-  Debug("ite") << "removeITEs(" << node << ")" << endl;
-
-  /* The result may be cached already */
-  Node cachedRewrite;
-  NodeManager *nodeManager = NodeManager::currentNM();
-  if(nodeManager->getAttribute(node, theory::IteRewriteAttr(), cachedRewrite)) {
-    Debug("ite") << "removeITEs: in-cache: " << cachedRewrite << endl;
-    return cachedRewrite.isNull() ? Node(node) : cachedRewrite;
-  }
-
-  if(node.getKind() == kind::ITE){
-    Assert( node.getNumChildren() == 3 );
-    TypeNode nodeType = node.getType();
-    if(!nodeType.isBoolean()){
-      Node skolem = nodeManager->mkVar(nodeType);
-      Node newAssertion =
-        nodeManager->mkNode(kind::ITE,
-                            node[0],
-                            nodeManager->mkNode(kind::EQUAL, skolem, node[1]),
-                            nodeManager->mkNode(kind::EQUAL, skolem, node[2]));
-      nodeManager->setAttribute(node, theory::IteRewriteAttr(), skolem);
-
-      Debug("ite") << "removeITEs([" << node.getId() << "," << node << "," << nodeType << "])"
-                   << "->"
-                   << "[" << newAssertion.getId() << "," << newAssertion << "]"
-                   << endl;
-
-      Node preprocessed = preprocess(newAssertion);
-      d_propEngine->assertFormula(preprocessed);
-
-      return skolem;
-    }
-  }
-  vector<Node> newChildren;
-  bool somethingChanged = false;
-  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    // Make sure to push operator or it will be missing in new
-    // (reformed) node.  This was crashing on the very simple input
-    // "(f (ite c 0 1))"
-    newChildren.push_back(node.getOperator());
-  }
-  for(TNode::const_iterator it = node.begin(), end = node.end();
-      it != end;
-      ++it) {
-    Node newChild = removeITEs(*it);
-    somethingChanged |= (newChild != *it);
-    newChildren.push_back(newChild);
-  }
-
-  if(somethingChanged) {
-    cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
-    nodeManager->setAttribute(node, theory::IteRewriteAttr(), cachedRewrite);
-    return cachedRewrite;
-  } else {
-    nodeManager->setAttribute(node, theory::IteRewriteAttr(), Node::null());
-    return node;
-  }
-}
-
 
 Node TheoryEngine::getValue(TNode node) {
   kind::MetaKind metakind = node.getMetaKind();
@@ -451,36 +362,91 @@ bool TheoryEngine::hasRegisterTerm(TheoryId th) const {
   }
 }
 
-Node TheoryEngine::simplify(TNode in, theory::Substitutions& outSubstitutions) {
-  SimplifyCache::Scope cache(d_simplifyCache, in);
-  if(cache) {
-    outSubstitutions.insert(outSubstitutions.end(),
-                            cache.get().second.begin(),
-                            cache.get().second.end());
-    return cache.get().first;
-  }
-
-  size_t prevSize = outSubstitutions.size();
-
-  TNode atom = in.getKind() == kind::NOT ? in[0] : in;
-
-  theory::Theory* theory = theoryOf(atom);
-
-  Debug("simplify") << push << "simplifying " << in << " to " << theory->identify() << std::endl;
-  Node n = theory->simplify(in, outSubstitutions);
-  Debug("simplify") << "got from " << theory->identify() << " : " << n << std::endl << pop;
-
-  atom = n.getKind() == kind::NOT ? n[0] : n;
-
-  if(atom.getKind() == kind::EQUAL) {
-    theory::TheoryId typeTheory = theory::Theory::theoryOf(atom[0].getType());
-    Debug("simplify") << push << "simplifying " << n << " to " << typeTheory << std::endl;
-    n = d_theoryTable[typeTheory]->simplify(n, outSubstitutions);
-    Debug("simplify") << "got from " << d_theoryTable[typeTheory]->identify() << " : " << n << std::endl << pop;
-  }
-
-  cache(std::make_pair(n, theory::Substitutions(outSubstitutions.begin() + prevSize, outSubstitutions.end())));
-  return n;
+theory::Theory::SolveStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitionOut) {
+  TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
+  Debug("theory") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << std::endl;
+  Theory::SolveStatus solveStatus = theoryOf(atom)->solve(literal, substitionOut);
+  Debug("theory") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << std::endl;
+  return solveStatus;
 }
+
+struct preprocess_stack_element {
+  TNode node;
+  bool children_added;
+  preprocess_stack_element(TNode node)
+  : node(node), children_added(false) {}
+};/* struct preprocess_stack_element */
+
+
+Node TheoryEngine::preprocess(TNode assertion) {
+
+  Debug("theory") << "TheoryEngine::preprocess(" << assertion << ")" << std::endl;
+
+    // Do a topological sort of the subexpressions and substitute them
+  vector<preprocess_stack_element> toVisit;
+  toVisit.push_back(assertion);
+
+  while (!toVisit.empty())
+  {
+    // The current node we are processing
+    preprocess_stack_element& stackHead = toVisit.back();
+    TNode current = stackHead.node;
+
+    Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): processing " << current << std::endl;
+
+    // If node already in the cache we're done, pop from the stack
+    NodeMap::iterator find = d_atomPreprocessingCache.find(current);
+    if (find != d_atomPreprocessingCache.end()) {
+      toVisit.pop_back();
+      continue;
+    }
+
+    // If this is an atom, we preprocess it with the theory
+    if (Theory::theoryOf(current) != THEORY_BOOL) {
+      d_atomPreprocessingCache[current] = theoryOf(current)->preprocess(current);
+      continue;
+    }
+
+    // Not yet substituted, so process
+    if (stackHead.children_added) {
+      // Children have been processed, so substitute
+      NodeBuilder<> builder(current.getKind());
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        builder << current.getOperator();
+      }
+      for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
+        Assert(d_atomPreprocessingCache.find(current[i]) != d_atomPreprocessingCache.end());
+        builder << d_atomPreprocessingCache[current[i]];
+      }
+      // Mark the substitution and continue
+      Node result = builder;
+      Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): setting " << current << " -> " << result << std::endl;
+      d_atomPreprocessingCache[current] = result;
+      toVisit.pop_back();
+    } else {
+      // Mark that we have added the children if any
+      if (current.getNumChildren() > 0) {
+        stackHead.children_added = true;
+        // We need to add the children
+        for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
+          TNode childNode = *child_it;
+          NodeMap::iterator childFind = d_atomPreprocessingCache.find(childNode);
+          if (childFind == d_atomPreprocessingCache.end()) {
+            toVisit.push_back(childNode);
+          }
+        }
+      } else {
+        // No children, so we're done
+        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << assertion << "): setting " << current << " -> " << current << std::endl;
+        d_atomPreprocessingCache[current] = current;
+        toVisit.pop_back();
+      }
+    }
+  }
+
+  // Return the substituted version
+  return d_atomPreprocessingCache[assertion];
+}
+
 
 }/* CVC4 namespace */

@@ -36,7 +36,7 @@ public:
 
   Node getValue(TNode n);
 
-  Node simplify(TNode in, Substitutions& outSubstitutions);
+  SolveStatus solve(TNode in, SubstitutionMap& outSubstitutions);
 
   std::string identify() const { return std::string("TheoryBool"); }
 };/* class TheoryBool */

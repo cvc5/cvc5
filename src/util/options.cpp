@@ -69,7 +69,7 @@ Options::Options() :
   memoryMap(false),
   strictParsing(false),
   lazyDefinitionExpansion(false),
-  simplificationMode(INCREMENTAL_MODE),
+  simplificationMode(SIMPLIFICATION_MODE_BATCH),
   simplificationStyle(NO_SIMPLIFICATION_STYLE),
   interactive(false),
   interactiveSetByUser(false),
@@ -142,18 +142,14 @@ Languages currently supported as arguments to the -L / --lang option:\n\
 static const string simplificationHelp = "\
 Simplification modes currently supported by the --simplification option:\n\
 \n\
-batch\n\
+batch (default) \n\
 + save up all ASSERTions; run nonclausal simplification and clausal\n\
   (MiniSat) propagation for all of them only after reaching a querying command\n\
   (CHECKSAT or QUERY or predicate SUBTYPE declaration)\n\
 \n\
-incremental (default)\n\
+incremental\n\
 + run nonclausal simplification and clausal propagation at each ASSERT\n\
   (and at CHECKSAT/QUERY/SUBTYPE)\n\
-\n\
-incremental-lazy-sat\n\
-+ run nonclausal simplification at each ASSERT, but delay clausification of\n\
-  ASSERT until reaching a CHECKSAT/QUERY/SUBTYPE, then clausify them all\n\
 \n\
 You can also specify the level of aggressiveness for the simplification\n\
 (by repeating the --simplification option):\n\
@@ -454,11 +450,9 @@ throw(OptionException) {
 
     case SIMPLIFICATION_MODE:
       if(!strcmp(optarg, "batch")) {
-        simplificationMode = BATCH_MODE;
+        simplificationMode = SIMPLIFICATION_MODE_BATCH;
       } else if(!strcmp(optarg, "incremental")) {
-        simplificationMode = INCREMENTAL_MODE;
-      } else if(!strcmp(optarg, "incremental-lazy-sat")) {
-        simplificationMode = INCREMENTAL_LAZY_SAT_MODE;
+        simplificationMode = SIMPLIFICATION_MODE_INCREMENTAL;
       } else if(!strcmp(optarg, "aggressive")) {
         simplificationStyle = AGGRESSIVE_SIMPLIFICATION_STYLE;
       } else if(!strcmp(optarg, "toplevel")) {

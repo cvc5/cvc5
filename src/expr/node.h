@@ -827,6 +827,11 @@ public:
    */
   inline void printAst(std::ostream& out, int indent = 0) const;
 
+  /**
+   * Check if the node has a subterm t.
+   */
+  inline bool hasSubterm(NodeTemplate<false> t, bool strict = false) const;
+
   NodeTemplate<true> eqNode(const NodeTemplate& right) const;
 
   NodeTemplate<true> notNode() const;
@@ -1231,7 +1236,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
     if(*i == node) {
       nb << replacement;
     } else {
-      (*i).substitute(node, replacement, cache);
+      nb << (*i).substitute(node, replacement, cache);
     }
   }
 
@@ -1357,6 +1362,38 @@ inline Expr NodeTemplate<ref_count>::toExpr() {
 template <>
 inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
   return NodeManager::fromExpr(e);
+}
+
+template<bool ref_count>
+bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) const {
+  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+
+  if (!strict && *this == t) {
+    return true;
+  }
+
+  node_set visited;
+  std::vector<TNode> toProcess;
+
+  toProcess.push_back(*this);
+
+  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+    TNode current = toProcess[i];
+    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
+      TNode child = current[j];
+      if (child == t) {
+        return true;
+      }
+      if (visited.find(child) != visited.end()) {
+        continue;
+      } else {
+        visited.insert(child);
+        toProcess.push_back(child);
+      }
+    }
+  }
+
+  return false;
 }
 
 #ifdef CVC4_DEBUG

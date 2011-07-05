@@ -121,14 +121,15 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
     d_nodeCache[~lit] = node.notNode();
   }
 
+  // If a theory literal, we pre-register it
+  if (theoryLiteral) {
+    bool backup = d_assertingLemma;
+    d_registrar.preRegister(node);
+    d_assertingLemma = backup;
+  }
+
   // Here, you can have it
   Debug("cnf") << "newLiteral(" << node << ") => " << lit << endl;
-
-  // have to keep track of this, because with the call to preRegister(),
-  // the cnf stream is re-entrant!
-  bool wasAssertingLemma = d_assertingLemma;
-  d_registrar.preRegister(node);
-  d_assertingLemma = wasAssertingLemma;
 
   return lit;
 }

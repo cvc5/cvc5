@@ -36,7 +36,31 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     if (n[0].getKind() == kind::NOT) return RewriteResponse(REWRITE_AGAIN, n[0][0]);
     break;
   }
-  case kind::IFF: {
+  case kind::OR: {
+    if (n.getNumChildren() == 2) {
+      if (n[0] == tt || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
+      if (n[0] == ff) return RewriteResponse(REWRITE_AGAIN, n[1]);
+      if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    }
+    break;
+  }
+  case kind::AND: {
+    if (n.getNumChildren() == 2) {
+      if (n[0] == ff || n[1] == ff) return RewriteResponse(REWRITE_DONE, ff);
+      if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
+      if (n[1] == tt) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    }
+    break;
+  }
+  case kind::IMPLIES: {
+    if (n[0] == ff || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
+    if (n[0] == tt && n[0] == ff) return RewriteResponse(REWRITE_DONE, ff);
+    if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
+    if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+    break;
+  }
+  case kind::IFF:
+  case kind::EQUAL: {
     // rewrite simple cases of IFF
     if(n[0] == tt) {
       // IFF true x
@@ -62,10 +86,35 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     break;
   }
+  case kind::XOR: {
+    // rewrite simple cases of XOR
+    if(n[0] == tt) {
+      // XOR true x
+      return RewriteResponse(REWRITE_AGAIN, n[1].notNode());
+    } else if(n[1] == tt) {
+      // XCR x true
+      return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+    } else if(n[0] == ff) {
+      // XOR false x
+      return RewriteResponse(REWRITE_AGAIN, n[1]);
+    } else if(n[1] == ff) {
+      // XOR x false
+      return RewriteResponse(REWRITE_AGAIN, n[0]);
+    } else if(n[0] == n[1]) {
+      // XOR x x
+      return RewriteResponse(REWRITE_DONE, ff);
+    } else if(n[0].getKind() == kind::NOT && n[0][0] == n[1]) {
+      // XOR (NOT x) x
+      return RewriteResponse(REWRITE_DONE, tt);
+    } else if(n[1].getKind() == kind::NOT && n[1][0] == n[0]) {
+      // XOR x (NOT x)
+      return RewriteResponse(REWRITE_DONE, tt);
+    }
+    break;
+  }
   case kind::ITE: {
     // non-Boolean-valued ITEs should have been removed in place of
     // a variable
-    Assert(n.getType().isBoolean());
     // rewrite simple cases of ITE
     if(n[0] == tt) {
       // ITE true x y

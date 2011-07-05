@@ -141,7 +141,7 @@ protected:
     d_wasSharedTermFact = false;
     d_factsHead = d_factsHead + 1;
     Debug("theory") << "Theory::get() => " << fact
-                    << "(" << d_facts.size() << " left)" << std::endl;
+                    << " (" << d_facts.size() << " left)" << std::endl;
     d_out->newFact(fact);
     return fact;
   }
@@ -407,19 +407,43 @@ public:
    */
   virtual void staticLearning(TNode in, NodeBuilder<>& learned) { }
 
+  enum SolveStatus {
+    /** Atom has been solved  */
+    SOLVE_STATUS_SOLVED,
+    /** Atom has not been solved */
+    SOLVE_STATUS_UNSOLVED,
+    /** Atom is inconsistent */
+    SOLVE_STATUS_CONFLICT
+  };
+
   /**
-   * Simplify a node in a theory-specific way.  The node is a theory
-   * operation or its negation, or an equality between theory-typed
-   * terms or its negation.  Add to "outSubstitutions" any
-   * replacements you want to make for the entire subterm; if you add
-   * [x,y] to the vector, the enclosing Boolean formula (call it
-   * "phi") will be replaced with (AND phi[x->y] (x = y)).  Use
-   * Valuation::simplify() to simplify subterms (it maintains a cache
-   * and dispatches to the appropriate theory).
+   * Given a literal, add the solved substitutions to the map, if any.
+   * The method should return true if the literal can be safely removed.
    */
-  virtual Node simplify(TNode in, Substitutions& outSubstitutions) {
-    return in;
+  virtual SolveStatus solve(TNode in, SubstitutionMap& outSubstitutions) {
+    if (in.getKind() == kind::EQUAL) {
+      if (in[0].getMetaKind() == kind::metakind::VARIABLE && !in[1].hasSubterm(in[0])) {
+        outSubstitutions.addSubstitution(in[0], in[1]);
+        return SOLVE_STATUS_SOLVED;
+      }
+      if (in[1].getMetaKind() == kind::metakind::VARIABLE && !in[0].hasSubterm(in[1])) {
+        outSubstitutions.addSubstitution(in[1], in[0]);
+      }
+      if (in[0].getMetaKind() == kind::metakind::CONSTANT && in[1].getMetaKind() == kind::metakind::CONSTANT) {
+        if (in[0] != in[1]) {
+          return SOLVE_STATUS_CONFLICT;
+        }
+      }
+    }
+
+    return SOLVE_STATUS_UNSOLVED;
   }
+
+  /**
+   * Given an atom of the theory, that comes from the input formula, this is method can rewrite the atom
+   * into an equivalent form. This is only called just before an input atom to the engine.
+   */
+  virtual Node preprocess(TNode atom) { return atom; }
 
   /**
    * A Theory is called with presolve exactly one time per user
@@ -455,6 +479,20 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level);
 inline std::ostream& operator<<(std::ostream& out,
                                 const CVC4::theory::Theory& theory) {
   return out << theory.identify();
+}
+
+inline std::ostream& operator << (std::ostream& out, theory::Theory::SolveStatus status) {
+  switch (status) {
+  case theory::Theory::SOLVE_STATUS_SOLVED:
+    out << "SOLVE_STATUS_SOLVED"; break;
+  case theory::Theory::SOLVE_STATUS_UNSOLVED:
+    out << "SOLVE_STATUS_UNSOLVED"; break;
+  case theory::Theory::SOLVE_STATUS_CONFLICT:
+    out << "SOLVE_STATUS_CONFLICT"; break;
+  default:
+    Unhandled();
+  }
+  return out;
 }
 
 }/* CVC4 namespace */

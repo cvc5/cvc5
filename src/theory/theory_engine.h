@@ -29,6 +29,7 @@
 #include "prop/prop_engine.h"
 #include "theory/shared_term_manager.h"
 #include "theory/theory.h"
+#include "theory/substitutions.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/valuation.h"
@@ -36,6 +37,7 @@
 #include "util/stats.h"
 #include "util/hash.h"
 #include "util/cache.h"
+#include "util/ite_removal.h"
 
 namespace CVC4 {
 
@@ -81,14 +83,10 @@ class TheoryEngine {
   bool d_needRegistration;
 
   /**
-   * The type of the simplification cache.
+   * Cache from proprocessing of atoms.
    */
-  typedef Cache<Node, std::pair<Node, theory::Substitutions>, NodeHashFunction> SimplifyCache;
-
-  /**
-   * A cache for simplification.
-   */
-  SimplifyCache d_simplifyCache;
+  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  NodeMap d_atomPreprocessingCache;
 
   /**
    * An output channel for Theory that passes messages
@@ -191,11 +189,6 @@ class TheoryEngine {
   context::CDO<bool> d_incomplete;
 
   /**
-   * Replace ITE forms in a node.
-   */
-  Node removeITEs(TNode t);
-
-  /**
    * Mark a theory active if it's not already.
    */
   void markActive(theory::TheoryId th) {
@@ -256,6 +249,12 @@ public:
   }
 
   /**
+   * Runs theory specific preprocesssing on the non-Boolean parts of the formula.
+   * This is only called on input assertions, after ITEs have been removed.
+   */
+  Node preprocess(TNode node);
+
+  /**
    * Return whether or not we are incomplete (in the current context).
    */
   bool isIncomplete() {
@@ -290,7 +289,11 @@ public:
    * of built-in type.
    */
   inline theory::Theory* theoryOf(TNode node) {
-    return d_theoryTable[theory::Theory::theoryOf(node)];
+    if (node.getKind() == kind::EQUAL) {
+      return d_theoryTable[theory::Theory::theoryOf(node[0])];
+    } else {
+      return d_theoryTable[theory::Theory::theoryOf(node)];
+    }
   }
 
   /**
@@ -304,18 +307,24 @@ public:
   }
 
   /**
-   * Preprocess a node.  This involves ITE removal and theory-specific
-   * rewriting.
-   *
-   * @param n the node to preprocess
+   * Solve the given literal with a theory that owns it.
    */
-  Node preprocess(TNode n);
+  theory::Theory::SolveStatus solve(TNode literal, theory::SubstitutionMap& substitionOut);
 
   /**
    * Preregister a Theory atom with the responsible theory (or
    * theories).
    */
   void preRegister(TNode preprocessed);
+
+  /**
+   * Call the theories to perform one last rewrite on the theory atoms
+   * if they wish. This last rewrite is only performed on the input atoms.
+   * At this point it is ensured that atoms do not contain any Boolean
+   * strucure, i.e. there is no ITE nodes in them.
+   *
+   */
+  Node preCheckRewrite(TNode node);
 
   /**
    * Assert the formula to the appropriate theory.
@@ -339,19 +348,9 @@ public:
         //Debug("theory")<< "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays \n";
         d_theoryTable[theory::THEORY_ARRAY]->assertFact(node);
       } else {
-        theory::TheoryId theoryLHS = theory::Theory::theoryOf(atom[0]);
-        Debug("theory") << "asserting " << node << " to " << theoryLHS << std::endl;
-        d_theoryTable[theoryLHS]->assertFact(node);
-//      theory::TheoryId theoryRHS = theory::Theory::theoryOf(atom[1]);
-//      if (theoryLHS != theoryRHS) {
-//        Debug("theory") << "asserting " << node << " to " << theoryRHS << std::endl;
-//        d_theoryTable[theoryRHS]->assertFact(node);
-//      }
-//      theory::TheoryId typeTheory = theory::Theory::theoryOf(atom[0].getType());
-//      if (typeTheory!= theoryLHS && typeTheory != theoryRHS) {
-//        Debug("theory") << "asserting " << node << " to " << typeTheory << std::endl;
-//        d_theoryTable[typeTheory]->assertFact(node);
-//      }
+        theory::Theory* theory = theoryOf(atom);
+        Debug("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
+        theory->assertFact(node);
       }
     } else {
       theory::Theory* theory = theoryOf(atom);
@@ -373,12 +372,6 @@ public:
   void staticLearning(TNode in, NodeBuilder<>& learned);
 
   /**
-   * Calls simplify() on all theories, accumulating their combined
-   * contributions in the "outSubstitutions" vector.
-   */
-  Node simplify(TNode in, theory::Substitutions& outSubstitutions);
-
-  /**
    * Calls presolve() on all active theories and returns true
    * if one of the theories discovers a conflict.
    */
@@ -398,7 +391,13 @@ public:
   }
 
   inline void newLemma(TNode node) {
-    d_propEngine->assertLemma(preprocess(node));
+    // Remove the ITEs and assert to prop engine
+    std::vector<Node> additionalLemmas;
+    additionalLemmas.push_back(node);
+    RemoveITE::run(additionalLemmas);
+    for (unsigned i = 0; i < additionalLemmas.size(); ++ i) {
+      d_propEngine->assertLemma(theory::Rewriter::rewrite(additionalLemmas[i]));
+    }
   }
 
   /**

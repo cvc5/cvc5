@@ -247,6 +247,12 @@ TypeNode NodeManager::computeType(TNode n, bool check)
 
   // Infer the type
   switch(n.getKind()) {
+  case kind::VARIABLE:
+    typeNode = getAttribute(n, TypeAttr());
+    break;
+  case kind::SKOLEM:
+    typeNode = getAttribute(n, TypeAttr());
+    break;
   case kind::BUILTIN:
     typeNode = builtinOperatorType();
     break;

@@ -51,20 +51,6 @@ public:
    */
   Node getSatValue(TNode n) const;
 
-  /**
-   * Simplify a node.  Intended to be used by a theory's simplify()
-   * function to simplify subterms (TheoryEngine will cache the
-   * results and make sure that the request is directed to the correct
-   * theory).
-   */
-  Node simplify(TNode in, Substitutions& outSubstitutions);
-
-  /**
-   * Rewrite a node.  Intended to be used by a theory to have the
-   * TheoryEngine fully rewrite a node.
-   */
-  Node rewrite(TNode in);
-
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

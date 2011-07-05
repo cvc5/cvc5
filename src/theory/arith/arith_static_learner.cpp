@@ -112,7 +112,7 @@ void ArithStaticLearner::clear(){
 
 
 void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue){
-  Debug("arith::static") << "===================== looking at" << n << endl;
+  Debug("arith::static") << "===================== looking at " << n << endl;
 
   switch(n.getKind()){
   case ITE:
@@ -121,8 +121,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
       iteMinMax(n, learned);
     }
 
-    if((n[1].getKind() == CONST_RATIONAL || n[1].getKind() == CONST_INTEGER) &&
-       (n[2].getKind() == CONST_RATIONAL || n[2].getKind() == CONST_INTEGER)) {
+    if((d_minMap.find(n[1]) != d_minMap.end() && d_minMap.find(n[2]) != d_minMap.end()) ||
+       (d_maxMap.find(n[1]) != d_maxMap.end() && d_maxMap.find(n[2]) != d_maxMap.end())) {
       iteConstant(n, learned);
     }
     break;
@@ -144,6 +144,12 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
         Debug("arith::miplib") << "insert " << var  << " const " << n << endl;
       }
     }
+    break;
+  case CONST_RATIONAL:
+  case CONST_INTEGER:
+    // Mark constants as minmax
+    d_minMap[n] = coerceToRational(n);
+    d_maxMap[n] = coerceToRational(n);
     break;
   default: // Do nothing
     break;
@@ -198,19 +204,42 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
 
 void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
   Assert(n.getKind() == ITE);
-  Assert(n[1].getKind() == CONST_RATIONAL || n[1].getKind() == CONST_INTEGER );
-  Assert(n[2].getKind() == CONST_RATIONAL || n[2].getKind() == CONST_INTEGER );
 
-  Rational t = coerceToRational(n[1]);
-  Rational e = coerceToRational(n[2]);
-  TNode min = (t <= e) ? n[1] : n[2];
-  TNode max = (t >= e) ? n[1] : n[2];
+  Debug("arith::static") << "iteConstant(" << n << ")" << endl;
 
-  Node nGeqMin = NodeBuilder<2>(GEQ) << n << min;
-  Node nLeqMax = NodeBuilder<2>(LEQ) << n << max;
-  Debug("arith::static") << n << " iteConstant"  << nGeqMin << nLeqMax << endl;
-  learned << nGeqMin << nLeqMax;
-  ++(d_statistics.d_iteConstantApplications);
+  if (d_minMap.find(n[1]) != d_minMap.end() && d_minMap.find(n[2]) != d_minMap.end()) {
+    DeltaRational min = std::min(d_minMap[n[1]], d_minMap[n[2]]);
+    NodeToMinMaxMap::iterator minFind = d_minMap.find(n);
+    if (minFind == d_minMap.end() || minFind->second < min) {
+      d_minMap[n] = min;
+      Node nGeqMin;
+      if (min.getInfinitesimalPart() == 0) {
+        nGeqMin = NodeBuilder<2>(kind::GEQ) << n << mkRationalNode(min.getNoninfinitesimalPart());
+      } else {
+        nGeqMin = NodeBuilder<2>(kind::GT) << n << mkRationalNode(min.getNoninfinitesimalPart());
+      }
+      learned << nGeqMin;
+      Debug("arith::static") << n << " iteConstant"  << nGeqMin << endl;
+      ++(d_statistics.d_iteConstantApplications);
+    }
+  }
+
+  if (d_maxMap.find(n[1]) != d_maxMap.end() && d_maxMap.find(n[2]) != d_maxMap.end()) {
+    DeltaRational max = std::max(d_maxMap[n[1]], d_maxMap[n[2]]);
+    NodeToMinMaxMap::iterator maxFind = d_maxMap.find(n);
+    if (maxFind == d_maxMap.end() || maxFind->second > max) {
+      d_maxMap[n] = max;
+      Node nLeqMax;
+      if (max.getInfinitesimalPart() == 0) {
+        nLeqMax = NodeBuilder<2>(kind::LEQ) << n << mkRationalNode(max.getNoninfinitesimalPart());
+      } else {
+        nLeqMax = NodeBuilder<2>(kind::LT) << n << mkRationalNode(max.getNoninfinitesimalPart());
+      }
+      learned << nLeqMax;
+      Debug("arith::static") << n << " iteConstant"  << nLeqMax << endl;
+      ++(d_statistics.d_iteConstantApplications);
+    }
+  }
 }
 
 
@@ -309,5 +338,36 @@ void ArithStaticLearner::miplibTrick(TNode var, set<Rational>& values, NodeBuild
     Node excludedMiddle =  NodeBuilder<2>(OR) << leqPrev << geqCurr;
     Debug("arith::miplib") << excludedMiddle << endl;
     learned << excludedMiddle;
+  }
+}
+
+void ArithStaticLearner::addBound(TNode n) {
+
+  NodeToMinMaxMap::iterator minFind = d_minMap.find(n[0]);
+  NodeToMinMaxMap::iterator maxFind = d_maxMap.find(n[0]);
+
+  Rational constant = coerceToRational(n[1]);
+  DeltaRational bound = constant;
+
+  switch(n.getKind()) {
+  case kind::LT:
+    bound = DeltaRational(constant, -1);
+  case kind::LEQ:
+    if (maxFind == d_maxMap.end() || maxFind->second > bound) {
+      d_maxMap[n[0]] = bound;
+      Debug("arith::static") << "adding bound " << n << endl;
+    }
+    break;
+  case kind::GT:
+    bound = DeltaRational(constant, 1);
+  case kind::GEQ:
+    if (minFind == d_minMap.end() || minFind->second < bound) {
+      d_minMap[n[0]] = bound;
+      Debug("arith::static") << "adding bound " << n << endl;
+    }
+    break;
+  default:
+    // nothing else
+    break;
   }
 }

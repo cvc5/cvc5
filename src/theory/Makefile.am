@@ -24,6 +24,7 @@ libtheory_la_SOURCES = \
 	rewriter_attributes.h \
 	rewriter.cpp \
 	substitutions.h \
+	substitutions.cpp \
 	valuation.h \
 	valuation.cpp
 

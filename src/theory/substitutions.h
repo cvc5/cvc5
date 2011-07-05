@@ -34,7 +34,59 @@ namespace theory {
  * Valuation::simplify().  This is in its own header to avoid circular
  * dependences between those three.
  */
-typedef std::vector< std::pair<Node, Node> > Substitutions;
+class SubstitutionMap {
+
+public:
+
+  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+
+private:
+
+  /** The variables, in order of addition */
+  NodeMap d_substitutions;
+
+  /** Cache of the already performed substitutions */
+  NodeMap d_substitutionCache;
+
+  /** Has the cache been invalidated */
+  bool d_cacheInvalidated;
+
+  /** Internaal method that performs substitution */
+  Node internalSubstitute(TNode t, NodeMap& substitutionCache);
+
+public:
+
+  SubstitutionMap(): d_cacheInvalidated(true) {}
+
+  /**
+   * Adds a substitution from x to t
+   */
+  void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
+
+
+  /**
+   * Apply the substitutions to the node.
+   */
+  Node apply(TNode t);
+
+  /**
+   * Apply the substitutions to the node.
+   */
+  Node apply(TNode t) const {
+    return const_cast<SubstitutionMap*>(this)->apply(t);
+  }
+
+  /**
+   * Print to the output stream
+   */
+  void print(std::ostream& out) const;
+
+};
+
+inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subst) {
+  subst.print(out);
+  return out;
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -143,8 +143,6 @@ public:
 
   void check(Effort e);
 
-  //void presolve() { }
-
   void propagate(Effort e) { }
 
   void explain(TNode n);

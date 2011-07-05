@@ -106,10 +106,12 @@ struct CVC4_PUBLIC Options {
 
   /** Enumeration of simplification modes (when to simplify). */
   typedef enum {
-    BATCH_MODE,
-    INCREMENTAL_MODE,
-    INCREMENTAL_LAZY_SAT_MODE
+    /** Simplify the assertions as they come in */
+    SIMPLIFICATION_MODE_INCREMENTAL,
+    /** Simplify the assertions all together once a check is requested */
+    SIMPLIFICATION_MODE_BATCH
   } SimplificationMode;
+
   /** When to perform nonclausal simplifications. */
   SimplificationMode simplificationMode;
 
@@ -241,14 +243,11 @@ inline std::ostream& operator<<(std::ostream& out,
 inline std::ostream& operator<<(std::ostream& out,
                                 Options::SimplificationMode mode) {
   switch(mode) {
-  case Options::BATCH_MODE:
-    out << "BATCH_MODE";
+  case Options::SIMPLIFICATION_MODE_BATCH:
+    out << "SIMPLIFICATION_MODE_BATCH";
     break;
-  case Options::INCREMENTAL_MODE:
-    out << "INCREMENTAL_MODE";
-    break;
-  case Options::INCREMENTAL_LAZY_SAT_MODE:
-    out << "INCREMENTAL_LAZY_SAT_MODE";
+  case Options::SIMPLIFICATION_MODE_INCREMENTAL:
+    out << "SIMPLIFICATION_MODE_INCREMENTAL";
     break;
   default:
     out << "SimplificationMode:UNKNOWN![" << unsigned(mode) << "]";
