@@ -565,14 +565,19 @@ int Solver::litRedundant(Lit p, uint32_t abstract_levels)
     int top = analyze_toclear.size();
     int max_level = 0;
     while (analyze_stack.size() > 0){
-        assert(reason(var(analyze_stack.last())) != CRef_Undef);
-        Clause& c = ca[reason(var(analyze_stack.last()))]; analyze_stack.pop();
+        CRef c_reason = reason(var(analyze_stack.last()));
+        assert(c_reason != CRef_Undef);
+        Clause& c = ca[c_reason];
+        int c_size = c.size();
+        analyze_stack.pop();
         if (c.level() > max_level) {
             max_level = c.level();
         }
 
-        for (int i = 1; i < c.size(); i++){
-            Lit p  = c[i];
+        // Since calling reason might relocate to resize, c is not necesserily the right reference, we must
+        // use the allocator each time
+        for (int i = 1; i < c_size; i++){
+            Lit p  = ca[c_reason][i];
             if (!seen[var(p)] && level(var(p)) > 0){
                 if (reason(var(p)) != CRef_Undef && (abstractLevel(var(p)) & abstract_levels) != 0){
                     seen[var(p)] = 1;

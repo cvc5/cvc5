@@ -184,9 +184,12 @@ Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutio
       }
       // x = (p - ax - c) * -1/a
       eliminateVar = NodeManager::currentNM()->mkNode(kind::MULT, eliminateVar, mkRationalNode(- minConstant.inverse()));
-      // Add the substitution
-      outSubstitutions.addSubstitution(minVar, Rewriter::rewrite(eliminateVar));
-      return SOLVE_STATUS_SOLVED;
+      // Add the substitution if not recursive
+      Node rewritten = Rewriter::rewrite(eliminateVar);
+      if (!rewritten.hasSubterm(minVar)) {
+        outSubstitutions.addSubstitution(minVar, Rewriter::rewrite(eliminateVar));
+        return SOLVE_STATUS_SOLVED;
+      }
     }
   }
 
