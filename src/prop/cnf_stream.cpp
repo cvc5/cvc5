@@ -560,7 +560,7 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool lemma, bool negated)
   SatLiteral q = toCNF(node[1], negated);
   SatLiteral r = toCNF(node[2], negated);
   // Construct the clauses:
-  // (p => q) and (!p => r) and (!q => !p) and (!r => p)
+  // (p => q) and (!p => r)
   SatClause clause1(2);
   clause1[0] = ~p;
   clause1[1] = q;
@@ -569,14 +569,6 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool lemma, bool negated)
   clause2[0] = p;
   clause2[1] = r;
   assertClause(node, clause2);
-  SatClause clause3(2);
-  clause3[0] = q;
-  clause3[1] = ~p;
-  assertClause(node, clause3);
-  SatClause clause4(2);
-  clause4[0] = r;
-  clause4[1] = p;
-  assertClause(node, clause4);
 
   recordTranslation(node[0]);
   recordTranslation(node[1]);
