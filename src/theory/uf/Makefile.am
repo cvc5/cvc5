@@ -13,7 +13,9 @@ libuf_la_SOURCES = \
 	theory_uf.h \
 	theory_uf.cpp \
 	theory_uf_type_rules.h \
-	theory_uf_rewriter.h
+	theory_uf_rewriter.h \
+	equality_engine.h \
+	equality_engine_impl.h
 
 libuf_la_LIBADD = \
 	@builddir@/tim/libuftim.la \

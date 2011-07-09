@@ -12,6 +12,7 @@ UNIT_TESTS = \
 	expr/node_white \
 	expr/node_black \
 	expr/kind_black \
+	expr/kind_map_black \
 	expr/node_builder_black \
 	expr/node_manager_black \
 	expr/node_manager_white \
