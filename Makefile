@@ -32,5 +32,9 @@ submission:
 	./configure competition --disable-shared --enable-static-binary
 	$(MAKE)
 	mkdir -p cvc4-smtcomp-2011
-	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2011/run
-	tar cfz cvc4-smtcomp-2011.tgz cvc4-smtcomp-2011
+	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2011/cvc4
+	strip cvc4-smtcomp-2011/cvc4
+	( echo '#!/bin/sh'; \
+	  echo 'exec ./cvc4 -L smt2 --no-interactive' ) > cvc4-smtcomp-2011/run
+	chmod 755 cvc4-smtcomp-2011/run
+	tar cf cvc4-smtcomp-2011.tar cvc4-smtcomp-2011
