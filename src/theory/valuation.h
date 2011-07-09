@@ -51,6 +51,11 @@ public:
    */
   Node getSatValue(TNode n) const;
 
+  /**
+   * Returns true if the node has a sat value. If yes value is set to it's value.
+   */
+  bool hasSatValue(TNode n, bool& value) const;
+
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

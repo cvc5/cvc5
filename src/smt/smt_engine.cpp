@@ -45,8 +45,6 @@
 #include "theory/booleans/theory_bool.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/morgan/theory_uf_morgan.h"
-#include "theory/uf/tim/theory_uf_tim.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/bv/theory_bv.h"
@@ -199,16 +197,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_theoryEngine->addTheory<theory::arrays::TheoryArrays>();
   d_theoryEngine->addTheory<theory::bv::TheoryBV>();
   d_theoryEngine->addTheory<theory::datatypes::TheoryDatatypes>();
-  switch(Options::current()->uf_implementation) {
-  case Options::TIM:
-    d_theoryEngine->addTheory<theory::uf::tim::TheoryUFTim>();
-    break;
-  case Options::MORGAN:
-    d_theoryEngine->addTheory<theory::uf::morgan::TheoryUFMorgan>();
-    break;
-  default:
-    Unhandled(Options::current()->uf_implementation);
-  }
+  d_theoryEngine->addTheory<theory::uf::TheoryUF>();
 
   d_propEngine = new PropEngine(d_theoryEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);

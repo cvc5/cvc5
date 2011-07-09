@@ -154,6 +154,24 @@ Node PropEngine::getValue(TNode node) {
   }
 }
 
+bool PropEngine::hasValue(TNode node, bool& value) {
+  Assert(node.getType().isBoolean());
+  SatLiteral lit = d_cnfStream->getLiteral(node);
+
+  SatLiteralValue v = d_satSolver->value(lit);
+  if(v == l_True) {
+    value = true;
+    return true;
+  } else if(v == l_False) {
+    value = false;
+    return true;
+  } else {
+    Assert(v == l_Undef);
+    return false;
+  }
+}
+
+
 void PropEngine::push() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   d_satSolver->push();

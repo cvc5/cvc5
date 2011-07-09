@@ -11,6 +11,7 @@ nodist_EXTRA_libuf_la_SOURCES = \
 
 libuf_la_SOURCES = \
 	theory_uf.h \
+	theory_uf.cpp \
 	theory_uf_type_rules.h \
 	theory_uf_rewriter.h
 
