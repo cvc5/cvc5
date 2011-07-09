@@ -474,9 +474,9 @@ std::string EqualityEngine<NotifyClass>::edgesToString(EqualityEdgeId edgeId) co
 
 template <typename NotifyClass>
 void EqualityEngine<NotifyClass>::getExplanation(TNode t1, TNode t2, std::vector<TNode>& equalities) const {
-  Assert(getRepresentative(t1) == getRepresentative(t2));
-
   Debug("equality") << "EqualityEngine::getExplanation(" << t1 << "," << t2 << ")" << std::endl;
+
+  Assert(getRepresentative(t1) == getRepresentative(t2));
 
   // Backtrack if necessary
   const_cast<EqualityEngine*>(this)->backtrack();
