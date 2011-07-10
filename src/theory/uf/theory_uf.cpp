@@ -62,6 +62,7 @@ void TheoryUF::check(Effort level) {
       break;
     case kind::APPLY_UF:
       d_equalityEngine.addEquality(assertion, d_true, assertion);
+      break;
     case kind::NOT:
       if (assertion[0].getKind() == kind::APPLY_UF) {
         d_equalityEngine.addEquality(assertion[0], d_false, assertion);
