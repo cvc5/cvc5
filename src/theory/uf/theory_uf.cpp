@@ -97,15 +97,20 @@ void TheoryUF::propagate(Effort level) {
       if (!d_valuation.hasSatValue(literal, satValue)) {
         d_out->propagate(literal);
       } else {
-        std::vector<TNode> assumptions;
-        if (literal != d_false) {
-          TNode negatedLiteral = literal.getKind() == kind::NOT ? literal[0] : (TNode) literal.notNode();
-          assumptions.push_back(negatedLiteral);
+        if (!satValue) {
+          Debug("uf") << "TheoryUF::propagate(): in conflict" << std::endl;
+          std::vector<TNode> assumptions;
+          if (literal != d_false) {
+            TNode negatedLiteral = literal.getKind() == kind::NOT ? literal[0] : (TNode) literal.notNode();
+            assumptions.push_back(negatedLiteral);
+          }
+          explain(literal, assumptions);
+          d_conflictNode = mkAnd(assumptions);
+          d_conflict = true;
+          break;
+        } else {
+          Debug("uf") << "TheoryUF::propagate(): already asserted" << std::endl;
         }
-        explain(literal, assumptions);
-        d_conflictNode = mkAnd(assumptions);
-        d_conflict = true;
-        break;
       }
     }
   }
