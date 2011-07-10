@@ -187,9 +187,7 @@ public:
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
       return typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     } else {
-      TheoryId id = kindToTheoryId(typeNode.getKind());
-      if (id == theory::THEORY_UF) id = theory::THEORY_ARRAY;
-      return id;
+      return kindToTheoryId(typeNode.getKind());
     }
   }
 
