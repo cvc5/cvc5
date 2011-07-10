@@ -65,6 +65,16 @@ void TheoryUF::check(Effort level) {
     case kind::NOT:
       if (assertion[0].getKind() == kind::APPLY_UF) {
         d_equalityEngine.addEquality(assertion[0], d_false, assertion);
+      } else {
+        // disequality
+        TNode equality = assertion[0];
+        if (d_equalityEngine.getRepresentative(equality[0]) == d_equalityEngine.getRepresentative(equality[1])) {
+          std::vector<TNode> assumptions;
+          assumptions.push_back(assertion);
+          explain(equality, assumptions);
+          d_conflictNode = mkAnd(assumptions);
+          d_conflict = true;
+        }
       }
       break;
     default:
