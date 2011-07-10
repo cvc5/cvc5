@@ -75,7 +75,7 @@ Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bo
 
     // Parameters (the rest):
     //
-  , learntsize_factor((double)1/(double)3), learntsize_inc(1.1)
+  , learntsize_factor(1), learntsize_inc(1.5)
 
     // Parameters (experimental):
     //
