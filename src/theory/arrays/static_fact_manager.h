@@ -75,7 +75,7 @@ public:
 };/* class StaticFactManager<> */
 
 inline TNode StaticFactManager::debugFind(TNode n) const {
-  typename MapType::const_iterator i = d_map.find(n);
+  MapType::const_iterator i = d_map.find(n);
   if(i == d_map.end()) {
     return n;
   } else {
@@ -85,7 +85,7 @@ inline TNode StaticFactManager::debugFind(TNode n) const {
 
 inline TNode StaticFactManager::find(TNode n) {
   Trace("arraysuf") << "arraysUF find of " << n << std::endl;
-  typename MapType::iterator i = d_map.find(n);
+  MapType::iterator i = d_map.find(n);
   if(i == d_map.end()) {
     Trace("arraysuf") << "arraysUF   it is rep" << std::endl;
     return n;
