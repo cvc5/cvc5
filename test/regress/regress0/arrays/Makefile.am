@@ -10,7 +10,18 @@ TESTS =	\
 	arrays3.smt2 \
 	arrays4.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	incorrect1.smt \
+	incorrect2.smt \
+	incorrect3.smt \
+	incorrect4.smt \
+	incorrect5.smt \
+	incorrect6.smt \
+	incorrect7.smt \
+	incorrect8.smt \
+	incorrect9.smt \
+	incorrect10.smt \
+	incorrect11.smt
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
