@@ -141,7 +141,7 @@ protected:
     d_wasSharedTermFact = false;
     d_factsHead = d_factsHead + 1;
     Debug("theory") << "Theory::get() => " << fact
-                    << " (" << d_facts.size() << " left)" << std::endl;
+                    << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
     d_out->newFact(fact);
     return fact;
   }

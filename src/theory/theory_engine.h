@@ -355,7 +355,7 @@ public:
    * @param node the assertion
    */
   inline void assertFact(TNode node) {
-    Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl<<d_logic<<std::endl;
+    Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
 
     // Mark it as asserted in this context
     //
@@ -369,7 +369,7 @@ public:
     // Again, equality is a special case
     if (atom.getKind() == kind::EQUAL) {
       if(d_logic == "QF_AX") {
-        //Debug("theory")<< "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays \n";
+        Debug("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
         d_theoryTable[theory::THEORY_ARRAY]->assertFact(node);
       } else {
         theory::Theory* theory = theoryOf(atom);
@@ -443,7 +443,7 @@ public:
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
     if (atom.getKind() == kind::EQUAL) {
       if(d_logic == "QF_AX") {
-        //Debug("theory")<< "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays \n";
+        Debug("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
         d_theoryTable[theory::THEORY_ARRAY]->explain(node);
       } else {
         theoryOf(atom[0])->explain(node);
