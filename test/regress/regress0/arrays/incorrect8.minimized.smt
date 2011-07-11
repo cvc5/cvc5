@@ -4,7 +4,7 @@
 :extrafuns ((v3 Index))
 :extrafuns ((v5 Element))
 :extrafuns ((v1 Array))
-:status unknown
+:status unsat
 :formula
 (let (?n1 (store v1 v4 v5))
 (let (?n2 (select ?n1 v3))
