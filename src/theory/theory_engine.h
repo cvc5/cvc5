@@ -290,10 +290,22 @@ public:
    */
   inline theory::Theory* theoryOf(TNode node) {
     if (node.getKind() == kind::EQUAL) {
-      return d_theoryTable[theory::Theory::theoryOf(node[0])];
+      return d_theoryTable[theoryIdOf(node[0])];
     } else {
-      return d_theoryTable[theory::Theory::theoryOf(node)];
+      return d_theoryTable[theoryIdOf(node)];
     }
+  }
+
+  /**
+   * Wrapper for theory::Theory::theoryOf() that implements the
+   * array/EUF hack.
+   */
+  inline theory::TheoryId theoryIdOf(TNode node) {
+    theory::TheoryId id = theory::Theory::theoryOf(node);
+    if(d_logic == "QF_AX" && id == theory::THEORY_UF) {
+      id = theory::THEORY_ARRAY;
+    }
+    return id;
   }
 
   /**
@@ -303,7 +315,19 @@ public:
    * of built-in type.
    */
   inline theory::Theory* theoryOf(const TypeNode& typeNode) {
-    return d_theoryTable[theory::Theory::theoryOf(typeNode)];
+    return d_theoryTable[theoryIdOf(typeNode)];
+  }
+
+  /**
+   * Wrapper for theory::Theory::theoryOf() that implements the
+   * array/EUF hack.
+   */
+  inline theory::TheoryId theoryIdOf(const TypeNode& typeNode) {
+    theory::TheoryId id = theory::Theory::theoryOf(typeNode);
+    if(d_logic == "QF_AX" && id == theory::THEORY_UF) {
+      id = theory::THEORY_ARRAY;
+    }
+    return id;
   }
 
   /**

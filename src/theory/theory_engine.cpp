@@ -182,7 +182,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
     preregister_stack_element& stackHead = toVisit.back();
     // The current node we are processing
     TNode current = stackHead.node;
-    // If we already added all the children its time to register or just pop from the stack
+    // If we already added all the children its time to register or just
+    // pop from the stack
     if (stackHead.children_added || current.getAttribute(PreRegistered())) {
       if (!current.getAttribute(PreRegistered())) {
         // Mark it as registered
@@ -194,18 +195,21 @@ void TheoryEngine::preRegister(TNode preprocessed) {
           } else {
             Theory* theory = theoryOf(current);
             TheoryId theoryLHS = theory->getId();
-            Debug("register") << "preregistering " << current << " with " << theoryLHS << std::endl;
+            Debug("register") << "preregistering " << current
+                              << " with " << theoryLHS << std::endl;
             markActive(theoryLHS);
             theory->preRegisterTerm(current);
           }
         } else {
-          TheoryId theory = Theory::theoryOf(current);
-          Debug("register") << "preregistering " << current << " with " << theory << std::endl;
+          TheoryId theory = theoryIdOf(current);
+          Debug("register") << "preregistering " << current
+                            << " with " << theory << std::endl;
           markActive(theory);
           d_theoryTable[theory]->preRegisterTerm(current);
-          TheoryId typeTheory = Theory::theoryOf(current.getType());
+          TheoryId typeTheory = theoryIdOf(current.getType());
           if (theory != typeTheory) {
-            Debug("register") << "preregistering " << current << " with " << typeTheory << std::endl;
+            Debug("register") << "preregistering " << current
+                              << " with " << typeTheory << std::endl;
             markActive(typeTheory);
             d_theoryTable[typeTheory]->preRegisterTerm(current);
           }
@@ -408,7 +412,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
     }
 
     // If this is an atom, we preprocess it with the theory
-    if (Theory::theoryOf(current) != THEORY_BOOL) {
+    if (theoryIdOf(current) != THEORY_BOOL) {
       d_atomPreprocessingCache[current] = theoryOf(current)->preprocess(current);
       continue;
     }

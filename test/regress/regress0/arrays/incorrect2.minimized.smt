@@ -3,7 +3,7 @@
 :extrafuns ((v3 Index))
 :extrafuns ((v4 Index))
 :extrafuns ((v2 Index))
-:status unknown
+:status unsat
 :formula
 (flet ($n1 true)
 (flet ($n2 (= v4 v3))
