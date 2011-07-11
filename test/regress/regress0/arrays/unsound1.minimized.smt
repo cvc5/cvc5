@@ -4,7 +4,7 @@
 :extrafuns ((v0 Array))
 :extrafuns ((v3 Element))
 :extrafuns ((v1 Index))
-:status unknown
+:status sat
 :formula
 (flet ($n1 true)
 (let (?n2 (select v0 v2))

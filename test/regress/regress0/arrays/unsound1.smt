@@ -1,6 +1,6 @@
 (benchmark fuzzsmt
 :logic QF_AX
-:status unknown
+:status sat
 :extrafuns ((v0 Array))
 :extrafuns ((v1 Index))
 :extrafuns ((v2 Index))
