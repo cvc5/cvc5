@@ -13,6 +13,7 @@ TESTS =	\
 EXTRA_DIST = $(TESTS) \
 	incorrect1.smt \
 	incorrect2.smt \
+	incorrect2.minimized.smt \
 	incorrect3.smt \
 	incorrect4.smt \
 	incorrect5.smt \
