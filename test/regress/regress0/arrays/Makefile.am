@@ -21,11 +21,11 @@ TESTS =	\
 	incorrect8.minimized.smt \
 	incorrect9.smt \
 	incorrect10.smt \
-	incorrect11.smt \
+	incorrect11.smt
+
+EXTRA_DIST = $(TESTS) \
 	unsound1.smt \
 	unsound1.minimized.smt
-
-EXTRA_DIST = $(TESTS)
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
