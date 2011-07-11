@@ -41,6 +41,11 @@ public:
 
   Node getValue(TNode n) const;
 
+  /*
+   * Return true if n has an associated SAT literal
+   */
+  bool isSatLiteral(TNode n) const;
+
   /**
    * Get the current SAT assignment to the node n.
    *

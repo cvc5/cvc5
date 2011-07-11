@@ -42,13 +42,50 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if (n[0] == ff) return RewriteResponse(REWRITE_AGAIN, n[1]);
       if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, n[0]);
     }
+    else {
+      bool done = true;
+      TNode::iterator i = n.begin(), iend = n.end();
+      for(; i != iend; ++i) {
+        if (*i == tt) return RewriteResponse(REWRITE_DONE, tt);
+        if (*i == ff) done = false;
+      }
+      if (!done) {
+        NodeBuilder<> nb(kind::OR);
+        for(i = n.begin(); i != iend; ++i) {
+          if (*i != ff) nb << *i;
+        }
+        if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, ff);
+        if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
+        return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
+      }
+    }
     break;
   }
   case kind::AND: {
+    //TODO: Why REWRITE_AGAIN here?
     if (n.getNumChildren() == 2) {
       if (n[0] == ff || n[1] == ff) return RewriteResponse(REWRITE_DONE, ff);
       if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
       if (n[1] == tt) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    }
+    else {
+      bool done = true;
+      TNode::iterator i = n.begin(), iend = n.end();
+      for(; i != iend; ++i) {
+        if (*i == ff) return RewriteResponse(REWRITE_DONE, ff);
+        if (*i == tt) done = false;
+      }
+      if (!done) {
+        NodeBuilder<> nb(kind::AND);
+        for(i = n.begin(); i != iend; ++i) {
+          if (*i != tt) {
+            nb << *i;
+          }
+        }
+        if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, tt);
+        if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
+        return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
+      }
     }
     break;
   }

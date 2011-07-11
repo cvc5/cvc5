@@ -27,6 +27,10 @@ Node Valuation::getValue(TNode n) const {
   return d_engine->getValue(n);
 }
 
+bool Valuation::isSatLiteral(TNode n) const {
+  return d_engine->getPropEngine()->isSatLiteral(n);
+}
+
 bool Valuation::hasSatValue(TNode n, bool& value) const {
   return d_engine->getPropEngine()->hasValue(n, value);
 }

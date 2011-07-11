@@ -147,14 +147,6 @@ protected:
   bool isTranslated(TNode node) const;
 
   /**
-   * Returns true if the node has an assigned literal (it might not be translated).
-   * Caches the pair of the node and the literal corresponding to the
-   * translation.
-   * @param node the node
-   */
-  bool hasLiteral(TNode node) const;
-
-  /**
    * Acquires a new variable from the SAT solver to represent the node
    * and inserts the necessary data it into the mapping tables.
    * @param node a formula
@@ -206,6 +198,14 @@ public:
    * @return the actual node
    */
   TNode getNode(const SatLiteral& literal);
+
+  /**
+   * Returns true if the node has an assigned literal (it might not be translated).
+   * Caches the pair of the node and the literal corresponding to the
+   * translation.
+   * @param node the node
+   */
+  bool hasLiteral(TNode node) const;
 
   /**
    * Returns the literal that represents the given node in the SAT CNF

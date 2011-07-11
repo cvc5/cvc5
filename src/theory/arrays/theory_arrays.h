@@ -29,6 +29,7 @@
 #include "util/ntuple.h"
 #include "util/stats.h"
 #include "util/backtrackable.h"
+#include "theory/arrays/static_fact_manager.h"
 
 #include <iostream>
 #include <map>
@@ -112,6 +113,18 @@ private:
    */
   CongruenceClosure<CongruenceChannel, CONGRUENCE_OPERATORS_1
                                  (kind::SELECT)> d_cc;
+
+  /**
+   * (Temporary) fact manager for preprocessing - eventually handle this with
+   * something more standard (like congruence closure module)
+   */
+  StaticFactManager d_staticFactManager;
+
+  /**
+   * Cache for proprocessing of atoms.
+   */
+  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  NodeMap d_ppCache;
 
   /**
    * Union find for storing the equalities.
@@ -347,6 +360,8 @@ private:
 
   bool d_donePreregister;
 
+  Node preprocessTerm(TNode term);
+  Node recursivePreprocessTerm(TNode term);
 
 public:
   TheoryArrays(context::Context* c, OutputChannel& out, Valuation valuation);
@@ -464,6 +479,8 @@ public:
   void explain(TNode n);
 
   Node getValue(TNode n);
+  SolveStatus solve(TNode in, SubstitutionMap& outSubstitutions);
+  Node preprocess(TNode atom);
   void shutdown() { }
   std::string identify() const { return std::string("TheoryArrays"); }
 

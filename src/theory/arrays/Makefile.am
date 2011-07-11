@@ -13,6 +13,8 @@ libarrays_la_SOURCES = \
 	union_find.h \
 	union_find.cpp \
 	array_info.h \
-	array_info.cpp
+	array_info.cpp \
+	static_fact_manager.h \
+	static_fact_manager.cpp
 
 EXTRA_DIST = kinds

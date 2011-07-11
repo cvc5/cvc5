@@ -45,12 +45,9 @@ public:
   T2 second;
   T3 third;
   T4 fourth;
-  quad(const T1& t1, const T2& t2, const T3& t3, const T4& t4) {
-    first = t1;
-    second = t2;
-    third = t3;
-    fourth = t4;
-  }
+  quad(const T1& t1, const T2& t2, const T3& t3, const T4& t4)
+    : first(t1), second(t2), third(t3), fourth(t4)
+  { }
 };/* class quad<> */
 
 template <class T1, class T2, class T3, class T4>
