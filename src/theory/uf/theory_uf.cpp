@@ -67,7 +67,7 @@ void TheoryUF::check(Effort level) {
       if (assertion[0].getKind() == kind::APPLY_UF) {
         d_equalityEngine.addEquality(assertion[0], d_false, assertion);
       } else {
-        // disequality
+        // Disequality check
         TNode equality = assertion[0];
         if (d_equalityEngine.getRepresentative(equality[0]) == d_equalityEngine.getRepresentative(equality[1])) {
           std::vector<TNode> assumptions;
@@ -76,6 +76,8 @@ void TheoryUF::check(Effort level) {
           d_conflictNode = mkAnd(assumptions);
           d_conflict = true;
         }
+        // Assert the dis-equality
+        d_equalityEngine.addEquality(assertion[0], d_false, assertion);
       }
       break;
     default:
@@ -136,8 +138,11 @@ void TheoryUF::preRegisterTerm(TNode node) {
     // Add the terms
     d_equalityEngine.addTerm(node[0]);
     d_equalityEngine.addTerm(node[1]);
-    // Add the trigger
+    // Add the trigger for equality
     d_equalityEngine.addTriggerEquality(node[0], node[1], node);
+	// Add the disequality terms and triggers
+	d_equalityEngine.addTerm(node);
+	d_equalityEngine.addTriggerEquality(node, d_false, node.notNode());
     break;
   case kind::APPLY_UF:
     // Function applications/predicates

@@ -103,6 +103,7 @@ public:
   {
     // The kinds we are treating as function application in congruence
     d_equalityEngine.addFunctionKind(kind::APPLY_UF);
+    d_equalityEngine.addFunctionKind(kind::EQUAL);
 
     // The boolean constants
     d_true = NodeManager::currentNM()->mkConst<bool>(true);
