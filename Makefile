@@ -27,14 +27,16 @@ test: check
 .PHONY: doc
 doc: doc-builds
 
+YEAR := $(shell date +%Y)
 submission:
 	if [ ! -e configure ]; then ./autogen.sh; fi
-	./configure competition --disable-shared --enable-static-binary
+	./configure competition --disable-shared --enable-static-binary --with-cln
 	$(MAKE)
-	mkdir -p cvc4-smtcomp-2011
-	cp -p $(top_builddir)/bin/cvc4 cvc4-smtcomp-2011/cvc4
-	strip cvc4-smtcomp-2011/cvc4
+	strip builds/bin/cvc4
+	$(MAKE) regress1
+	mkdir -p cvc4-smtcomp-$(YEAR)
+	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./cvc4 -L smt2 --no-interactive' ) > cvc4-smtcomp-2011/run
-	chmod 755 cvc4-smtcomp-2011/run
-	tar cf cvc4-smtcomp-2011.tar cvc4-smtcomp-2011
+	  echo 'exec ./cvc4 -L smt2 --no-interactive' ) > cvc4-smtcomp-$(YEAR)/run
+	chmod 755 cvc4-smtcomp-$(YEAR)/run
+	tar cf cvc4-smtcomp-$(YEAR).tar cvc4-smtcomp-$(YEAR)
