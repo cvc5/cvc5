@@ -62,7 +62,8 @@ public:
   virtual void invoke(SmtEngine* smtEngine) = 0;
   virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
   virtual ~Command() {};
-  virtual void toStream(std::ostream&) const = 0;
+  virtual void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+                        OutputLanguage language = language::output::LANG_AST) const;
   std::string toString() const;
   virtual void printResult(std::ostream& out) const;
 };/* class Command */
@@ -77,7 +78,7 @@ protected:
 public:
   EmptyCommand(std::string name = "");
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  std::string getName() const { return d_name; }
 };/* class EmptyCommand */
 
 class CVC4_PUBLIC AssertCommand : public Command {
@@ -86,19 +87,17 @@ protected:
 public:
   AssertCommand(const BoolExpr& e);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  BoolExpr getExpr() const { return d_expr; }
 };/* class AssertCommand */
 
 class CVC4_PUBLIC PushCommand : public Command {
 public:
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
 };/* class PushCommand */
 
 class CVC4_PUBLIC PopCommand : public Command {
 public:
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
 };/* class PopCommand */
 
 class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
@@ -110,7 +109,6 @@ public:
   DeclarationCommand(const std::vector<std::string>& ids, Type t);
   const std::vector<std::string>& getDeclaredSymbols() const;
   Type getDeclaredType() const;
-  void toStream(std::ostream& out) const;
 };/* class DeclarationCommand */
 
 class CVC4_PUBLIC DefineFunctionCommand : public Command {
@@ -123,7 +121,9 @@ public:
                         const std::vector<Expr>& formals,
                         Expr formula);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  Expr getFunction() const { return d_func; }
+  const std::vector<Expr>& getFormals() const { return d_formals; }
+  Expr getFormula() const { return d_formula; }
 };/* class DefineFunctionCommand */
 
 /**
@@ -137,7 +137,6 @@ public:
                              const std::vector<Expr>& formals,
                              Expr formula);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
 };/* class DefineNamedFunctionCommand */
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
@@ -147,9 +146,9 @@ protected:
 public:
   CheckSatCommand(const BoolExpr& expr);
   void invoke(SmtEngine* smtEngine);
+  BoolExpr getExpr() const { return d_expr; }
   Result getResult() const;
   void printResult(std::ostream& out) const;
-  void toStream(std::ostream& out) const;
 };/* class CheckSatCommand */
 
 class CVC4_PUBLIC QueryCommand : public Command {
@@ -159,9 +158,9 @@ protected:
 public:
   QueryCommand(const BoolExpr& e);
   void invoke(SmtEngine* smtEngine);
+  BoolExpr getExpr() const { return d_expr; }
   Result getResult() const;
   void printResult(std::ostream& out) const;
-  void toStream(std::ostream& out) const;
 };/* class QueryCommand */
 
 // this is TRANSFORM in the CVC presentation language
@@ -172,9 +171,9 @@ protected:
 public:
   SimplifyCommand(Expr term);
   void invoke(SmtEngine* smtEngine);
+  Expr getTerm() const { return d_term; }
   Expr getResult() const;
   void printResult(std::ostream& out) const;
-  void toStream(std::ostream& out) const;
 };/* class SimplifyCommand */
 
 class CVC4_PUBLIC GetValueCommand : public Command {
@@ -184,9 +183,9 @@ protected:
 public:
   GetValueCommand(Expr term);
   void invoke(SmtEngine* smtEngine);
+  Expr getTerm() const { return d_term; }
   Expr getResult() const;
   void printResult(std::ostream& out) const;
-  void toStream(std::ostream& out) const;
 };/* class GetValueCommand */
 
 class CVC4_PUBLIC GetAssignmentCommand : public Command {
@@ -197,7 +196,6 @@ public:
   void invoke(SmtEngine* smtEngine);
   SExpr getResult() const;
   void printResult(std::ostream& out) const;
-  void toStream(std::ostream& out) const;
 };/* class GetAssignmentCommand */
 
 class CVC4_PUBLIC GetAssertionsCommand : public Command {
@@ -208,7 +206,6 @@ public:
   void invoke(SmtEngine* smtEngine);
   std::string getResult() const;
   void printResult(std::ostream& out) const;
-  void toStream(std::ostream& out) const;
 };/* class GetAssertionsCommand */
 
 class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command {
@@ -218,7 +215,7 @@ protected:
 public:
   SetBenchmarkStatusCommand(BenchmarkStatus status);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  BenchmarkStatus getStatus() const { return d_status; }
 };/* class SetBenchmarkStatusCommand */
 
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
@@ -228,7 +225,7 @@ protected:
 public:
   SetBenchmarkLogicCommand(std::string logic);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  std::string getLogic() const { return d_logic; }
 };/* class SetBenchmarkLogicCommand */
 
 class CVC4_PUBLIC SetInfoCommand : public Command {
@@ -239,7 +236,8 @@ protected:
 public:
   SetInfoCommand(std::string flag, SExpr& sexpr);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  std::string getFlag() const { return d_flag; }
+  SExpr getSExpr() const { return d_sexpr; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class SetInfoCommand */
@@ -251,7 +249,7 @@ protected:
 public:
   GetInfoCommand(std::string flag);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  std::string getFlag() const { return d_flag; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class GetInfoCommand */
@@ -264,7 +262,8 @@ protected:
 public:
   SetOptionCommand(std::string flag, SExpr& sexpr);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  std::string getFlag() const { return d_flag; }
+  SExpr getSExpr() const { return d_sexpr; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class SetOptionCommand */
@@ -276,7 +275,7 @@ protected:
 public:
   GetOptionCommand(std::string flag);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  std::string getFlag() const { return d_flag; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class GetOptionCommand */
@@ -288,13 +287,12 @@ public:
   DatatypeDeclarationCommand(const DatatypeType& datatype);
   DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
   void invoke(SmtEngine* smtEngine);
-  void toStream(std::ostream& out) const;
+  const std::vector<DatatypeType>& getDatatypes() const { return d_datatypes; }
 };/* class DatatypeDeclarationCommand */
 
 class CVC4_PUBLIC QuitCommand : public EmptyCommand {
 public:
   QuitCommand();
-  void toStream(std::ostream& out) const;
 };/* class QuitCommand */
 
 class CVC4_PUBLIC CommandSequence : public Command {
@@ -309,7 +307,6 @@ public:
   void invoke(SmtEngine* smtEngine);
   void invoke(SmtEngine* smtEngine, std::ostream& out);
   void addCommand(Command* cmd);
-  void toStream(std::ostream& out) const;
 
   typedef std::vector<Command*>::iterator iterator;
   typedef std::vector<Command*>::const_iterator const_iterator;

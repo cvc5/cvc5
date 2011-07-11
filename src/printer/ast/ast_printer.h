@@ -32,6 +32,7 @@ namespace ast {
 class AstPrinter : public CVC4::Printer {
 public:
   void toStream(std::ostream& out, TNode n, int toDepth, bool types) const;
+  void toStream(std::ostream& out, const Command* c, int toDepth, bool types) const;
 };/* class AstPrinter */
 
 }/* CVC4::printer::ast namespace */

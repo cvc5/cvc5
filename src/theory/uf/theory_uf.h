@@ -27,6 +27,7 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/symmetry_breaker.h"
 
 #include "context/cdo.h"
 #include "context/cdset.h"
@@ -87,6 +88,9 @@ private:
   /** True node for predicates = false */
   Node d_false;
 
+  /** Symmetry analyzer */
+  SymmetryBreaker d_symb;
+
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
@@ -113,11 +117,12 @@ public:
   void preRegisterTerm(TNode term);
   void explain(TNode n);
 
+  void staticLearning(TNode in, NodeBuilder<>& learned);
+  void presolve();
+
   std::string identify() const {
     return "THEORY_UF";
   }
-
-  void staticLearning(TNode in, NodeBuilder<>& learned);
 
 };/* class TheoryUF */
 

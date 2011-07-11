@@ -17,9 +17,15 @@
  **/
 
 #include "printer/cvc/cvc_printer.h"
-#include "util/language.h"
+#include "expr/expr.h" // for ExprSetDepth etc..
+#include "util/language.h" // for LANG_AST
+#include "expr/node_manager.h" // for VarNameAttr
+#include "expr/command.h"
 
 #include <iostream>
+#include <vector>
+#include <string>
+#include <typeinfo>
 #include <algorithm>
 #include <iterator>
 
@@ -324,7 +330,166 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
 
 }/* CvcPrinter::toStream() */
 
+template <class T>
+static bool tryToStream(std::ostream& out, const Command* c);
+
+void CvcPrinter::toStream(std::ostream& out, const Command* c,
+                           int toDepth, bool types) const {
+  expr::ExprSetDepth::Scope sdScope(out, toDepth);
+  expr::ExprPrintTypes::Scope ptScope(out, types);
+
+  if(tryToStream<AssertCommand>(out, c) ||
+     tryToStream<PushCommand>(out, c) ||
+     tryToStream<PopCommand>(out, c) ||
+     tryToStream<CheckSatCommand>(out, c) ||
+     tryToStream<QueryCommand>(out, c) ||
+     tryToStream<QuitCommand>(out, c) ||
+     tryToStream<CommandSequence>(out, c) ||
+     tryToStream<DeclarationCommand>(out, c) ||
+     tryToStream<DefineFunctionCommand>(out, c) ||
+     tryToStream<DefineNamedFunctionCommand>(out, c) ||
+     tryToStream<SimplifyCommand>(out, c) ||
+     tryToStream<GetValueCommand>(out, c) ||
+     tryToStream<GetAssignmentCommand>(out, c) ||
+     tryToStream<GetAssertionsCommand>(out, c) ||
+     tryToStream<SetBenchmarkStatusCommand>(out, c) ||
+     tryToStream<SetBenchmarkLogicCommand>(out, c) ||
+     tryToStream<SetInfoCommand>(out, c) ||
+     tryToStream<GetInfoCommand>(out, c) ||
+     tryToStream<SetOptionCommand>(out, c) ||
+     tryToStream<GetOptionCommand>(out, c) ||
+     tryToStream<DatatypeDeclarationCommand>(out, c)) {
+    return;
+  }
+
+  Unhandled("don't know how to print this command in CVC's presentation language: %s", c->toString().c_str());
+
+}/* CvcPrinter::toStream() */
+
+static void toStream(std::ostream& out, const AssertCommand* c) {
+  out << "ASSERT " << c->getExpr() << ";";
+}
+
+static void toStream(std::ostream& out, const PushCommand* c) {
+  out << "PUSH;";
+}
+
+static void toStream(std::ostream& out, const PopCommand* c) {
+  out << "POP;";
+}
+
+static void toStream(std::ostream& out, const CheckSatCommand* c) {
+  BoolExpr e = c->getExpr();
+  if(!e.isNull()) {
+    out << "CHECKSAT " << e << ";";
+  }
+  out << "CHECKSAT;";
+}
+
+static void toStream(std::ostream& out, const QueryCommand* c) {
+  out << "QUERY " << c->getExpr() << ";";
+}
+
+static void toStream(std::ostream& out, const QuitCommand* c) {
+  Unhandled("quit command");
+}
+
+static void toStream(std::ostream& out, const CommandSequence* c) {
+  for(CommandSequence::const_iterator i = c->begin();
+      i != c->end();
+      ++i) {
+    out << *i << endl;
+  }
+}
+
+static void toStream(std::ostream& out, const DeclarationCommand* c) {
+  const vector<string>& declaredSymbols = c->getDeclaredSymbols();
+  Type declaredType = c->getDeclaredType();
+  Assert(declaredSymbols.size() > 0);
+  copy( declaredSymbols.begin(), declaredSymbols.end() - 1,
+        ostream_iterator<string>(out, ", ") );
+  out << declaredSymbols.back();
+  out << " : " << declaredType << ";";
+}
+
+static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
+  Expr func = c->getFunction();
+  const vector<Expr>& formals = c->getFormals();
+  Expr formula = c->getFormula();
+  out << func << " : " << func.getType() << " = LAMBDA(";
+  vector<Expr>::const_iterator i = formals.begin();
+  while(i != formals.end()) {
+    out << (*i) << ":" << (*i).getType();
+    if(++i != formals.end()) {
+      out << ", ";
+    }
+  }
+  out << "): " << formula << ";";
+}
+
+static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) {
+  toStream(out, static_cast<const DefineFunctionCommand*>(c));
+}
+
+static void toStream(std::ostream& out, const SimplifyCommand* c) {
+  out << "TRANSFORM " << c->getTerm() << ";";
+}
+
+static void toStream(std::ostream& out, const GetValueCommand* c) {
+  out << "% (get-value " << c->getTerm() << ")";
+}
+
+static void toStream(std::ostream& out, const GetAssignmentCommand* c) {
+  out << "% (get-assignment)";
+}
+
+static void toStream(std::ostream& out, const GetAssertionsCommand* c) {
+  out << "% (get-assertions)";
+}
+
+static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) {
+  out << "% (set-info :status " << c->getStatus() << ")";
+}
+
+static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) {
+  out << "% (set-logic " << c->getLogic() << ")";
+}
+
+static void toStream(std::ostream& out, const SetInfoCommand* c) {
+  out << "% (set-info " << c->getFlag() << " " << c->getSExpr() << ")";
+}
+
+static void toStream(std::ostream& out, const GetInfoCommand* c) {
+  out << "% (get-info " << c->getFlag() << ")";
+}
+
+static void toStream(std::ostream& out, const SetOptionCommand* c) {
+  out << "% (set-option " << c->getFlag() << " " << c->getSExpr() << ")";
+}
+
+static void toStream(std::ostream& out, const GetOptionCommand* c) {
+  out << "% (get-option " << c->getFlag() << ")";
+}
+
+static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) {
+  const vector<DatatypeType>& datatypes = c->getDatatypes();
+  for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
+        i_end = datatypes.end();
+      i != i_end;
+      ++i) {
+    out << *i;
+  }
+}
+
+template <class T>
+static bool tryToStream(std::ostream& out, const Command* c) {
+  if(typeid(*c) == typeid(T)) {
+    toStream(out, dynamic_cast<const T*>(c));
+    return true;
+  }
+  return false;
+}
+
 }/* CVC4::printer::cvc namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
-

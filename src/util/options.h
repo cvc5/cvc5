@@ -89,6 +89,9 @@ struct CVC4_PUBLIC Options {
   /** Should we exit after parsing? */
   bool parseOnly;
 
+  /** Should we exit after preprocessing? */
+  bool preprocessOnly;
+
   /** Should the parser do semantic checks? */
   bool semanticChecks;
 
@@ -193,6 +196,12 @@ struct CVC4_PUBLIC Options {
    * The maximum row length that arithmetic will use for propagation.
    */
   uint16_t arithPropagateMaxLength;
+
+  /**
+   * Whether to do the symmetry-breaking preprocessing in UF as
+   * described by Deharbe et al. in CADE 2011 (on by default).
+   */
+  bool ufSymmetryBreaker;
 
   Options();
 

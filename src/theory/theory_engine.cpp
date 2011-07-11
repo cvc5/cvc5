@@ -286,6 +286,12 @@ Node TheoryEngine::getValue(TNode node) {
 }/* TheoryEngine::getValue(TNode node) */
 
 bool TheoryEngine::presolve() {
+  // NOTE that we don't look at d_theoryIsActive[] here.  First of
+  // all, we haven't done any pre-registration yet, so we don't know
+  // which theories are active.  Second, let's give each theory a shot
+  // at doing something with the input formula, even if it wouldn't
+  // otherwise be active.
+
   d_theoryOut.d_conflictNode = Node::null();
   d_theoryOut.d_propagatedLiterals.clear();
 
@@ -295,7 +301,7 @@ bool TheoryEngine::presolve() {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    if (theory::TheoryTraits<THEORY>::hasPresolve && d_theoryIsActive[THEORY]) { \
+    if (theory::TheoryTraits<THEORY>::hasPresolve) { \
       reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->presolve(); \
       if(!d_theoryOut.d_conflictNode.get().isNull()) { \
         return true; \

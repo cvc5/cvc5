@@ -88,7 +88,8 @@ Options::Options() :
   satRandomSeed(91648253),// Minisat's default value
   pivotRule(MINIMUM),
   arithPivotThreshold(16),
-  arithPropagateMaxLength(16)
+  arithPropagateMaxLength(16),
+  ufSymmetryBreaker(true)
 {
 }
 
@@ -97,6 +98,7 @@ static const string optionsDescription = "\
    --version | -V         identify this CVC4 binary\n\
    --help | -h            this command line reference\n\
    --parse-only           exit after parsing input\n\
+   --preprocess-only      exit after parsing preprocessing input (and dump preprocessed assertions, unless -q)\n\
    --mmap                 memory map file input\n\
    --show-config          show CVC4 static configuration\n\
    --segv-nospin          don't spin on segfault waiting for gdb\n\
@@ -129,6 +131,7 @@ static const string optionsDescription = "\
    --random-seed=S        sets the random seed for the sat solver\n\
    --disable-variable-removal enable permanent removal of variables in arithmetic (UNSAFE! experts only)\n\
    --disable-arithmetic-propagation turns on arithmetic propagation\n\
+   --disable-symmetry-breaker turns off UF symmetry breaker (Deharbe et al., CADE 2011)\n\
    --incremental          enable incremental solving\n";
 
 static const string languageDescription = "\
@@ -190,6 +193,7 @@ enum OptionValue {
   STATS,
   SEGV_NOSPIN,
   PARSE_ONLY,
+  PREPROCESS_ONLY,
   NO_CHECKING,
   NO_THEORY_REGISTRATION,
   USE_MMAP,
@@ -216,7 +220,8 @@ enum OptionValue {
   ARITHMETIC_VARIABLE_REMOVAL,
   ARITHMETIC_PROPAGATION,
   ARITHMETIC_PIVOT_THRESHOLD,
-  ARITHMETIC_PROP_MAX_LENGTH
+  ARITHMETIC_PROP_MAX_LENGTH,
+  DISABLE_SYMMETRY_BREAKER
 };/* enum OptionValue */
 
 /**
@@ -259,6 +264,7 @@ static struct option cmdlineOptions[] = {
   { "about"      , no_argument      , NULL, 'V'         },
   { "lang"       , required_argument, NULL, 'L'         },
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
+  { "preprocess-only", no_argument  , NULL, PREPROCESS_ONLY  },
   { "mmap"       , no_argument      , NULL, USE_MMAP    },
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
@@ -288,6 +294,7 @@ static struct option cmdlineOptions[] = {
   { "random-seed" , required_argument, NULL, RANDOM_SEED  },
   { "disable-variable-removal", no_argument, NULL, ARITHMETIC_VARIABLE_REMOVAL },
   { "disable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
+  { "disable-symmetry-breaker", no_argument, NULL, DISABLE_SYMMETRY_BREAKER },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -383,6 +390,10 @@ throw(OptionException) {
 
     case PARSE_ONLY:
       parseOnly = true;
+      break;
+
+    case PREPROCESS_ONLY:
+      preprocessOnly = true;
       break;
 
     case NO_THEORY_REGISTRATION:
@@ -540,6 +551,10 @@ throw(OptionException) {
 
     case ARITHMETIC_PROPAGATION:
       arithPropagation = false;
+      break;
+
+    case DISABLE_SYMMETRY_BREAKER:
+      ufSymmetryBreaker = false;
       break;
 
     case RANDOM_SEED:

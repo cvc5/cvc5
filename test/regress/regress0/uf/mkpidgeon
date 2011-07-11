@@ -1,0 +1,44 @@
+#!/bin/bash
+# Simple pidgeon-hole problem generator in SMT-LIBv2
+# (c) 2011 Morgan Deters <mdeters@cs.nyu.edu>
+# 2011 July 7
+
+if [ $# -ne 1 ]; then
+  echo "usage: $(basename "$0") size" >&2
+  exit 1
+fi
+
+N=$1
+
+echo "(set-logic QF_UF)"
+echo "(declare-sort U 0)"
+
+i=1; while [ $i -le $N ]; do
+  echo "(declare-fun p_$i () U)"
+  let ++i
+done
+
+i=1; while [ $i -le $(($N-1)) ]; do
+  echo "(declare-fun h_$i () U)"
+  let ++i
+done
+
+i=1; while [ $i -le $(($N-1)) ]; do
+  j=$(($i+1)); while [ $j -le $N ]; do
+    echo "(assert (not (= p_$i p_$j)))"
+    let ++j
+  done
+  let ++i
+done
+
+i=1; while [ $i -le $N ]; do
+  echo -n "(assert (or"
+  j=1; while [ $j -le $(($N-1)) ]; do
+    echo -n " (= p_$i h_$j)"
+    let ++j
+  done
+  echo "))"
+  let ++i
+done
+
+echo "(check-sat)"

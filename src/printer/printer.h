@@ -23,6 +23,7 @@
 
 #include "util/language.h"
 #include "expr/node.h"
+#include "expr/command.h"
 
 namespace CVC4 {
 
@@ -44,6 +45,10 @@ public:
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n,
+                        int toDepth, bool types) const = 0;
+
+  /** Write a Command out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const Command* c,
                         int toDepth, bool types) const = 0;
 };/* class Printer */
 

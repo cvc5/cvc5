@@ -20,6 +20,7 @@
 #include "theory/valuation.h"
 #include "expr/kind.h"
 #include "util/congruence_closure.h"
+#include "theory/uf/symmetry_breaker.h"
 
 #include <map>
 
@@ -559,6 +560,15 @@ void TheoryUFMorgan::presolve() {
   TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
   Debug("uf") << "uf: begin presolve()" << endl;
+  if(Options::current()->ufSymmetryBreaker) {
+    vector<Node> newClauses;
+    d_symb.apply(newClauses);
+    for(vector<Node>::const_iterator i = newClauses.begin();
+        i != newClauses.end();
+        ++i) {
+      d_out->lemma(*i);
+    }
+  }
   Debug("uf") << "uf: end presolve()" << endl;
 }
 
@@ -698,6 +708,10 @@ void TheoryUFMorgan::staticLearning(TNode n, NodeBuilder<>& learned) {
         Debug("diamonds") << "+ C fails" << endl;
       }
     }
+  }
+
+  if(Options::current()->ufSymmetryBreaker) {
+    d_symb.assertFormula(n);
   }
 }
 
