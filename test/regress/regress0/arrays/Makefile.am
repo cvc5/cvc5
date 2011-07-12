@@ -24,8 +24,8 @@ TESTS =	\
 	incorrect11.smt
 
 EXTRA_DIST = $(TESTS) \
-	unsound1.smt \
-	unsound1.minimized.smt
+	bug272.smt \
+	bug272.minimized.smt
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
