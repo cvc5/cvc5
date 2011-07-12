@@ -260,7 +260,7 @@ private:
 
 
   bool alreadyAddedRow(TNode a, TNode b, TNode i, TNode j) {
-    //Debug("arrays-lem")<<"alreadyAddedRow check for "<<a<<" "<<b<<" "<<i<<" "<<j<<"\n";
+    //Trace("arrays-lem")<<"alreadyAddedRow check for "<<a<<" "<<b<<" "<<i<<" "<<j<<"\n";
     std::hash_set<quad<TNode, TNode, TNode, TNode>, TNodeQuadHashFunction >::const_iterator it = d_RowAlreadyAdded.begin();
     a = find(a);
     b = find(b);
@@ -274,7 +274,7 @@ private:
       TNode i_ = find((*it).third);
       TNode j_ = find((*it).fourth);
       if( a == a_ && b == b_ && i==i_ && j==j_) {
-        //Debug("arrays-lem")<<"alreadyAddedRow found "<<a_<<" "<<b_<<" "<<i_<<" "<<j_<<"\n";
+        //Trace("arrays-lem")<<"alreadyAddedRow found "<<a_<<" "<<b_<<" "<<i_<<" "<<j_<<"\n";
         return true;
       }
     }
@@ -384,25 +384,25 @@ public:
    */
   void preRegisterTerm(TNode n) {
     //TimerStat::CodeTimer codeTimer(d_preregisterTimer);
-    Debug("arrays-preregister")<<"Arrays::preRegisterTerm "<<n<<"\n";
+    Trace("arrays-preregister")<<"Arrays::preRegisterTerm "<<n<<"\n";
     //TODO: check non-linear arrays with an AlwaysAssert!!!
     //if(n.getType().isArray())
 
     switch(n.getKind()) {
     case kind::EQUAL:
       // stores the seen atoms for propagation
-      Debug("arrays-preregister")<<"atom "<<n<<"\n";
+      Trace("arrays-preregister")<<"atom "<<n<<"\n";
       d_atoms.insert(n);
       // add to proper equality lists
       addEq(n);
       break;
     case kind::SELECT:
-      //Debug("arrays-preregister")<<"at level "<<getContext()->getLevel()<<"\n";
+      //Trace("arrays-preregister")<<"at level "<<getContext()->getLevel()<<"\n";
       d_infoMap.addIndex(n[0], n[1]);
       checkRowForIndex(n[1], find(n[0]));
-      //Debug("arrays-preregister")<<"n[0] \n";
+      //Trace("arrays-preregister")<<"n[0] \n";
       //d_infoMap.getInfo(n[0])->print();
-      //Debug("arrays-preregister")<<"find(n[0]) \n";
+      //Trace("arrays-preregister")<<"find(n[0]) \n";
       //d_infoMap.getInfo(find(n[0]))->print();
       break;
 
@@ -428,16 +428,16 @@ public:
       break;
     }
     default:
-      Debug("darrays")<<"Arrays::preRegisterTerm non-array term. \n";
+      Trace("darrays")<<"Arrays::preRegisterTerm non-array term. \n";
     }
   }
 
   //void registerTerm(TNode n) {
-  //  Debug("arrays-register")<<"Arrays::registerTerm "<<n<<"\n";
+  //  Trace("arrays-register")<<"Arrays::registerTerm "<<n<<"\n";
   //}
 
   void presolve() {
-    Debug("arrays")<<"Presolving \n";
+    Trace("arrays")<<"Presolving \n";
     d_donePreregister = true;
   }
 
@@ -447,7 +447,7 @@ public:
 
   void propagate(Effort e) {
 
-    Debug("arrays-prop")<<"Propagating \n";
+    Trace("arrays-prop")<<"Propagating \n";
 
     context::CDList<TNode>::const_iterator it = d_prop_queue.begin();
     /*
@@ -466,10 +466,10 @@ public:
     for(; it!= d_atoms.end(); it++) {
       TNode eq = *it;
       Assert(eq.getKind()==kind::EQUAL);
-      Debug("arrays-prop")<<"value of "<<eq<<" ";
-      Debug("arrays-prop")<<d_valuation.getSatValue(eq);
+      Trace("arrays-prop")<<"value of "<<eq<<" ";
+      Trace("arrays-prop")<<d_valuation.getSatValue(eq);
       if(find(eq[0]) == find(eq[1])) {
-        Debug("arrays-prop")<<" eq \n";
+        Trace("arrays-prop")<<" eq \n";
         ++d_numProp;
       }
     }

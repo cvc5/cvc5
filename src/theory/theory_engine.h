@@ -126,7 +126,7 @@ class TheoryEngine {
 
     void conflict(TNode conflictNode, bool safe)
       throw(theory::Interrupted, AssertionException) {
-      Debug("theory") << "EngineOutputChannel::conflict("
+      Trace("theory") << "EngineOutputChannel::conflict("
                       << conflictNode << ")" << std::endl;
       d_conflictNode = conflictNode;
       ++(d_engine->d_statistics.d_statConflicts);
@@ -137,7 +137,7 @@ class TheoryEngine {
 
     void propagate(TNode lit, bool)
       throw(theory::Interrupted, AssertionException) {
-      Debug("theory") << "EngineOutputChannel::propagate("
+      Trace("theory") << "EngineOutputChannel::propagate("
                       << lit << ")" << std::endl;
       d_propagatedLiterals.push_back(lit);
       ++(d_engine->d_statistics.d_statPropagate);
@@ -145,7 +145,7 @@ class TheoryEngine {
 
     void lemma(TNode node, bool)
       throw(theory::Interrupted, AssertionException) {
-      Debug("theory") << "EngineOutputChannel::lemma("
+      Trace("theory") << "EngineOutputChannel::lemma("
                       << node << ")" << std::endl;
       ++(d_engine->d_statistics.d_statLemma);
       d_engine->newLemma(node);
@@ -153,7 +153,7 @@ class TheoryEngine {
 
     void explanation(TNode explanationNode, bool)
       throw(theory::Interrupted, AssertionException) {
-      Debug("theory") << "EngineOutputChannel::explanation("
+      Trace("theory") << "EngineOutputChannel::explanation("
                       << explanationNode << ")" << std::endl;
       d_explanationNode = explanationNode;
       ++(d_engine->d_statistics.d_statExplanation);
@@ -355,7 +355,7 @@ public:
    * @param node the assertion
    */
   inline void assertFact(TNode node) {
-    Debug("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
+    Trace("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
 
     // Mark it as asserted in this context
     //
@@ -369,16 +369,16 @@ public:
     // Again, equality is a special case
     if (atom.getKind() == kind::EQUAL) {
       if(d_logic == "QF_AX") {
-        Debug("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
+        Trace("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
         d_theoryTable[theory::THEORY_ARRAY]->assertFact(node);
       } else {
         theory::Theory* theory = theoryOf(atom);
-        Debug("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
+        Trace("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
         theory->assertFact(node);
       }
     } else {
       theory::Theory* theory = theoryOf(atom);
-      Debug("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
+      Trace("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
       theory->assertFact(node);
     }
   }
@@ -443,7 +443,7 @@ public:
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
     if (atom.getKind() == kind::EQUAL) {
       if(d_logic == "QF_AX") {
-        Debug("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
+        Trace("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
         d_theoryTable[theory::THEORY_ARRAY]->explain(node);
       } else {
         theoryOf(atom[0])->explain(node);

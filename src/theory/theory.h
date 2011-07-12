@@ -140,7 +140,7 @@ protected:
     TNode fact = d_facts[d_factsHead];
     d_wasSharedTermFact = false;
     d_factsHead = d_factsHead + 1;
-    Debug("theory") << "Theory::get() => " << fact
+    Trace("theory") << "Theory::get() => " << fact
                     << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
     d_out->newFact(fact);
     return fact;
@@ -312,7 +312,7 @@ public:
    * Assert a fact in the current context.
    */
   void assertFact(TNode node) {
-    Debug("theory") << "Theory::assertFact(" << node << ")" << std::endl;
+    Trace("theory") << "Theory::assertFact(" << node << ")" << std::endl;
     d_facts.push_back(node);
   }
 

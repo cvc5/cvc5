@@ -73,7 +73,7 @@ void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
     list<TNode> toReg;
     toReg.push_back(fact);
 
-    Debug("theory") << "Theory::get(): registering new atom" << endl;
+    Trace("theory") << "Theory::get(): registering new atom" << endl;
 
     /* Essentially this is doing a breadth-first numbering of
      * non-registered subterms with children.  Any non-registered
@@ -195,20 +195,20 @@ void TheoryEngine::preRegister(TNode preprocessed) {
           } else {
             Theory* theory = theoryOf(current);
             TheoryId theoryLHS = theory->getId();
-            Debug("register") << "preregistering " << current
+            Trace("register") << "preregistering " << current
                               << " with " << theoryLHS << std::endl;
             markActive(theoryLHS);
             theory->preRegisterTerm(current);
           }
         } else {
           TheoryId theory = theoryIdOf(current);
-          Debug("register") << "preregistering " << current
+          Trace("register") << "preregistering " << current
                             << " with " << theory << std::endl;
           markActive(theory);
           d_theoryTable[theory]->preRegisterTerm(current);
           TheoryId typeTheory = theoryIdOf(current.getType());
           if (theory != typeTheory) {
-            Debug("register") << "preregistering " << current
+            Trace("register") << "preregistering " << current
                               << " with " << typeTheory << std::endl;
             markActive(typeTheory);
             d_theoryTable[typeTheory]->preRegisterTerm(current);
@@ -254,7 +254,7 @@ bool TheoryEngine::check(theory::Theory::Effort effort) {
   try {
     CVC4_FOR_EACH_THEORY;
   } catch(const theory::Interrupted&) {
-    Debug("theory") << "TheoryEngine::check() => conflict" << std::endl;
+    Trace("theory") << "TheoryEngine::check() => conflict" << std::endl;
   }
 
   return true;
@@ -315,7 +315,7 @@ bool TheoryEngine::presolve() {
     // Presolve for each theory using the statement above
     CVC4_FOR_EACH_THEORY;
   } catch(const theory::Interrupted&) {
-    Debug("theory") << "TheoryEngine::presolve() => interrupted" << endl;
+    Trace("theory") << "TheoryEngine::presolve() => interrupted" << endl;
   }
   // return whether we have a conflict
   return !d_theoryOut.d_conflictNode.get().isNull();
@@ -374,9 +374,9 @@ bool TheoryEngine::hasRegisterTerm(TheoryId th) const {
 
 theory::Theory::SolveStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitionOut) {
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
-  Debug("theory") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << std::endl;
+  Trace("theory") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << std::endl;
   Theory::SolveStatus solveStatus = theoryOf(atom)->solve(literal, substitionOut);
-  Debug("theory") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << std::endl;
+  Trace("theory") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << std::endl;
   return solveStatus;
 }
 
@@ -390,7 +390,7 @@ struct preprocess_stack_element {
 
 Node TheoryEngine::preprocess(TNode assertion) {
 
-  Debug("theory") << "TheoryEngine::preprocess(" << assertion << ")" << std::endl;
+  Trace("theory") << "TheoryEngine::preprocess(" << assertion << ")" << std::endl;
 
     // Do a topological sort of the subexpressions and substitute them
   vector<preprocess_stack_element> toVisit;

@@ -85,11 +85,11 @@ public:
    */
   void print() const {
     Assert(indices != NULL && stores!= NULL); // && equals != NULL);
-    Debug("arrays-info")<<"  indices   ";
+    Trace("arrays-info")<<"  indices   ";
     printList(indices);
-    Debug("arrays-info")<<"  stores ";
+    Trace("arrays-info")<<"  stores ";
     printList(stores);
-    Debug("arrays-info")<<"  in_stores ";
+    Trace("arrays-info")<<"  in_stores ";
     printList(in_stores);
   }
 };

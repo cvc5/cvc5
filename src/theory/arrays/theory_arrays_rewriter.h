@@ -33,7 +33,7 @@ class TheoryArraysRewriter {
 public:
 
   static RewriteResponse postRewrite(TNode node) {
-    Debug("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
+    Trace("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
         // select(store(a,i,v),i) = v
@@ -85,7 +85,7 @@ public:
   }
 
   static inline RewriteResponse preRewrite(TNode node) {
-    Debug("arrays-prerewrite") << "Arrays::preRewrite " << node << std::endl;
+    Trace("arrays-prerewrite") << "Arrays::preRewrite " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 

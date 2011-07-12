@@ -34,20 +34,20 @@ bool inList(const CTNodeList* l, const TNode el) {
 
 void printList (CTNodeList* list) {
   CTNodeList::const_iterator it = list->begin();
-  Debug("arrays-info")<<"   [ ";
+  Trace("arrays-info")<<"   [ ";
   for(; it != list->end(); it++ ) {
-    Debug("arrays-info")<<(*it)<<" ";
+    Trace("arrays-info")<<(*it)<<" ";
   }
-  Debug("arrays-info")<<"] \n";
+  Trace("arrays-info")<<"] \n";
 }
 
 void printList (List<TNode>* list) {
   List<TNode>::const_iterator it = list->begin();
-  Debug("arrays-info")<<"   [ ";
+  Trace("arrays-info")<<"   [ ";
   for(; it != list->end(); it++ ) {
-    Debug("arrays-info")<<(*it)<<" ";
+    Trace("arrays-info")<<(*it)<<" ";
   }
-  Debug("arrays-info")<<"] \n";
+  Trace("arrays-info")<<"] \n";
 }
 
 void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
@@ -67,7 +67,7 @@ void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
 void ArrayInfo::addIndex(const Node a, const TNode i) {
   Assert(a.getType().isArray());
   Assert(!i.getType().isArray()); // temporary for flat arrays
-  Debug("arrays-ind")<<"Arrays::addIndex "<<a<<"["<<i<<"]\n";
+  Trace("arrays-ind")<<"Arrays::addIndex "<<a<<"["<<i<<"]\n";
   List<TNode>* temp_indices;
   Info* temp_info;
 
@@ -84,7 +84,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
     temp_indices = (*it).second->indices;
     temp_indices->append(i);
   }
-  if(Debug.isOn("arrays-ind")) {
+  if(Trace.isOn("arrays-ind")) {
     printList((*(info_map.find(a))).second->indices);
   }
 
@@ -115,7 +115,7 @@ void ArrayInfo::addStore(const Node a, const TNode st){
 
 
 void ArrayInfo::addInStore(const TNode a, const TNode b){
-  Debug("arrays-addinstore")<<"Arrays::addInStore "<<a<<" ~ "<<b<<"\n";
+  Trace("arrays-addinstore")<<"Arrays::addInStore "<<a<<" ~ "<<b<<"\n";
   Assert(a.getType().isArray());
   Assert(b.getType().isArray());
 
@@ -182,20 +182,20 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
   TimerStat::CodeTimer codeTimer(d_mergeInfoTimer);
   ++d_callsMergeInfo;
 
-  Debug("arrays-mergei")<<"Arrays::mergeInfo merging "<<a<<"\n";
-  Debug("arrays-mergei")<<"                      and "<<b<<"\n";
+  Trace("arrays-mergei")<<"Arrays::mergeInfo merging "<<a<<"\n";
+  Trace("arrays-mergei")<<"                      and "<<b<<"\n";
 
   CNodeInfoMap::iterator ita = info_map.find(a);
   CNodeInfoMap::iterator itb = info_map.find(b);
 
   if(ita != info_map.end()) {
-    Debug("arrays-mergei")<<"Arrays::mergeInfo info "<<a<<"\n";
-    if(Debug.isOn("arrays-mergei"))
+    Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<a<<"\n";
+    if(Trace.isOn("arrays-mergei"))
       (*ita).second->print();
 
     if(itb != info_map.end()) {
-      Debug("arrays-mergei")<<"Arrays::mergeInfo info "<<b<<"\n";
-      if(Debug.isOn("arrays-mergei"))
+      Trace("arrays-mergei")<<"Arrays::mergeInfo info "<<b<<"\n";
+      if(Trace.isOn("arrays-mergei"))
         (*itb).second->print();
 
       List<TNode>* lista_i = (*ita).second->indices;
@@ -241,9 +241,9 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
     }
 
   } else {
-    Debug("arrays-mergei")<<" First element has no info \n";
+    Trace("arrays-mergei")<<" First element has no info \n";
     if(itb != info_map.end()) {
-      Debug("arrays-mergei")<<" adding second element's info \n";
+      Trace("arrays-mergei")<<" adding second element's info \n";
       (*itb).second->print();
 
       List<TNode>* listb_i = (*itb).second->indices;
@@ -258,11 +258,11 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
       info_map[a] = temp_info;
 
     } else {
-    Debug("arrays-mergei")<<" Second element has no info \n";
+    Trace("arrays-mergei")<<" Second element has no info \n";
     }
 
    }
-  Debug("arrays-mergei")<<"Arrays::mergeInfo done \n";
+  Trace("arrays-mergei")<<"Arrays::mergeInfo done \n";
 
 }
 

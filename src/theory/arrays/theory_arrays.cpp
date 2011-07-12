@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -76,7 +76,7 @@ TheoryArrays::~TheoryArrays() {
 
 
 void TheoryArrays::addSharedTerm(TNode t) {
-  Debug("arrays") << "Arrays::addSharedTerm(): "
+  Trace("arrays") << "Arrays::addSharedTerm(): "
                   << t << endl;
 }
 
@@ -85,7 +85,7 @@ void TheoryArrays::notifyEq(TNode lhs, TNode rhs) {
 }
 
 void TheoryArrays::notifyCongruent(TNode a, TNode b) {
-  Debug("arrays") << "Arrays::notifyCongruent(): "
+  Trace("arrays") << "Arrays::notifyCongruent(): "
        << a << " = " << b << endl;
   if(!d_conflict.isNull()) {
     return;
@@ -103,10 +103,10 @@ void TheoryArrays::check(Effort e) {
    return;
   }
 
-  Debug("arrays") <<"Arrays::start check ";
+  Trace("arrays") <<"Arrays::start check ";
   while(!done()) {
     Node assertion = get();
-    Debug("arrays") << "Arrays::check(): " << assertion << endl;
+    Trace("arrays") << "Arrays::check(): " << assertion << endl;
 
     switch(assertion.getKind()) {
     case kind::EQUAL:
@@ -143,6 +143,7 @@ void TheoryArrays::check(Effort e) {
       }
       else if(find(a) == find(b)) {
         Node conflict = constructConflict(assertion[0]);
+        d_conflict = Node::null();
         d_out->conflict(conflict, false);
         return;
         }
@@ -162,10 +163,10 @@ void TheoryArrays::check(Effort e) {
     // generate the lemmas on the worklist
     //while(!d_RowQueue.empty() || ! d_extQueue.empty()) {
     dischargeLemmas();
-    Debug("arrays-lem")<<"Arrays::discharged lemmas "<<d_RowQueue.size()<<"\n";
+    Trace("arrays-lem")<<"Arrays::discharged lemmas "<<d_RowQueue.size()<<"\n";
     //}
   }
-  Debug("arrays") << "Arrays::check(): done" << endl;
+  Trace("arrays") << "Arrays::check(): done" << endl;
 }
 
 Node TheoryArrays::getValue(TNode n) {
@@ -390,7 +391,7 @@ Node TheoryArrays::preprocess(TNode atom) {
 void TheoryArrays::merge(TNode a, TNode b) {
   Assert(d_conflict.isNull());
 
-  Debug("arrays-merge")<<"Arrays::merge() " << a <<" and " <<b <<endl;
+  Trace("arrays-merge")<<"Arrays::merge() " << a <<" and " <<b <<endl;
 
   /*
    * take care of the congruence closure part
@@ -546,7 +547,7 @@ bool TheoryArrays::isNonLinear(TNode a) {
 }
 
 bool TheoryArrays::isAxiom(TNode t1, TNode t2) {
-  Debug("arrays-axiom")<<"Arrays::isAxiom start "<<t1<<" = "<<t2<<"\n";
+  Trace("arrays-axiom")<<"Arrays::isAxiom start "<<t1<<" = "<<t2<<"\n";
   if(t1.getKind() == kind::SELECT) {
     TNode a = t1[0];
     TNode i = t1[1];
@@ -556,7 +557,7 @@ bool TheoryArrays::isAxiom(TNode t1, TNode t2) {
       TNode j = a[1];
       TNode v = a[2];
       if(i == j && v == t2) {
-        Debug("arrays-axiom")<<"Arrays::isAxiom true\n";
+        Trace("arrays-axiom")<<"Arrays::isAxiom true\n";
         return true;
       }
     }
@@ -566,8 +567,8 @@ bool TheoryArrays::isAxiom(TNode t1, TNode t2) {
 
 
 Node TheoryArrays::constructConflict(TNode diseq) {
-  Debug("arrays") << "arrays: begin constructConflict()" << endl;
-  Debug("arrays") << "arrays:   using diseq == " << diseq << endl;
+  Trace("arrays") << "arrays: begin constructConflict()" << endl;
+  Trace("arrays") << "arrays:   using diseq == " << diseq << endl;
 
   // returns the reason the two terms are equal
   Node explanation = d_cc.explain(diseq[0], diseq[1]);
@@ -594,7 +595,7 @@ Node TheoryArrays::constructConflict(TNode diseq) {
 
   nb<<diseq.notNode();
   Node conflict = nb;
-  Debug("arrays") << "conflict constructed : " << conflict << endl;
+  Trace("arrays") << "conflict constructed : " << conflict << endl;
   return conflict;
 }
 
@@ -665,7 +666,7 @@ void TheoryArrays::addDiseq(TNode diseq) {
 }
 
 void TheoryArrays::appendToDiseqList(TNode of, TNode eq) {
-  Debug("arrays") << "appending " << eq << endl
+  Trace("arrays") << "appending " << eq << endl
               << "  to diseq list of " << of << endl;
   Assert(eq.getKind() == kind::EQUAL ||
          eq.getKind() == kind::IFF);
@@ -688,7 +689,6 @@ void TheoryArrays::appendToDiseqList(TNode of, TNode eq) {
  * Iterates through the indices of a and stores of b and checks if any new
  * Row lemmas need to be instantiated.
  */
-
 bool TheoryArrays::isRedundandRowLemma(TNode a, TNode b, TNode i, TNode j) {
   Assert(a.getType().isArray());
   Assert(b.getType().isArray());
@@ -707,61 +707,78 @@ bool TheoryArrays::isRedundantInContext(TNode a, TNode b, TNode i, TNode j) {
   Node bj = nm->mkNode(kind::SELECT, b, j);
 
   if(find(i) == find(j) || find(aj) == find(bj)) {
-    //Debug("arrays-lem")<<"isRedundantInContext valid "<<a<<" "<<b<<" "<<i<<" "<<j<<"\n";
-    checkRowForIndex(j,b); // why am i doing this?
-    checkRowForIndex(i,a);
+    Trace("arrays") << "isRedundantInContext valid "
+                    << a << " " << b << " " << i << " " << j << endl;
+    checkRowForIndex(j, b); // why am i doing this?
+    checkRowForIndex(i, a);
     return true;
   }
-  Node literal1 = Rewriter::rewrite(i.eqNode(j));
+  Trace("arrays") << "isRedundantInContext " << a << endl
+                  << "isRedundantInContext " << b << endl
+                  << "isRedundantInContext " << i << endl
+                  << "isRedundantInContext " << j << endl;
+  Node ieqj = i.eqNode(j);
+  Node literal1 = Rewriter::rewrite(ieqj);
   bool hasValue1, satValue1;
   Node ff = nm->mkConst<bool>(false);
   Node tt = nm->mkConst<bool>(true);
   if (literal1 == ff) {
     hasValue1 = true;
     satValue1 = false;
-  }
-  else if (literal1 == tt) {
+  } else if (literal1 == tt) {
     hasValue1 = true;
     satValue1 = true;
+  } else {
+    hasValue1 = (d_valuation.isSatLiteral(literal1) && d_valuation.hasSatValue(literal1, satValue1));
   }
-  else hasValue1 = (d_valuation.isSatLiteral(literal1) && d_valuation.hasSatValue(literal1, satValue1));
   if (hasValue1) {
-    if (satValue1) return true;
-    Node literal2 = Rewriter::rewrite(aj.eqNode(bj));
+    if (satValue1) {
+      Trace("arrays") << "isRedundantInContext returning, hasValue1 && satValue1" << endl;
+      return true;
+    }
+    Node ajeqbj = aj.eqNode(bj);
+    Node literal2 = Rewriter::rewrite(ajeqbj);
     bool hasValue2, satValue2;
     if (literal2 == ff) {
       hasValue2 = true;
       satValue2 = false;
-    }
-    else if (literal2 == tt) {
+    } else if (literal2 == tt) {
       hasValue2 = true;
       satValue2 = true;
+    } else {
+      hasValue2 = (d_valuation.isSatLiteral(literal2) && d_valuation.hasSatValue(literal2, satValue2));
     }
-    else hasValue2 = (d_valuation.isSatLiteral(literal2) && d_valuation.hasSatValue(literal2, satValue2));
     if (hasValue2) {
-      if (satValue2) return true;
+      if (satValue2) {
+        Trace("arrays") << "isRedundantInContext returning, hasValue2 && satValue2" << endl;
+        return true;
+      }
       // conflict
       Assert(!satValue1 && !satValue2);
       Assert(literal1.getKind() == kind::EQUAL && literal2.getKind() == kind::EQUAL);
       NodeBuilder<2> nb(kind::AND);
-      literal1 = areDisequal(literal1[0],literal1[1]);
-      literal2 = areDisequal(literal2[0],literal2[1]);
+      //literal1 = areDisequal(literal1[0], literal1[1]);
+      //literal2 = areDisequal(literal2[0], literal2[1]);
       Assert(!literal1.isNull() && !literal2.isNull());
       nb << literal1.notNode() << literal2.notNode();
       literal1 = nb;
+      d_conflict = Node::null();
       d_out->conflict(literal1, false);
+      Trace("arrays") << "TheoryArrays::isRedundantInContext() "
+                      << "conflict via lemma: " << literal1 << endl;
       return true;
     }
   }
-  if(alreadyAddedRow(a,b,i,j)) {
-   // Debug("arrays-lem")<<"isRedundantInContext already added "<<a<<" "<<b<<" "<<i<<" "<<j<<"\n";
+  if(alreadyAddedRow(a, b, i, j)) {
+    Trace("arrays") << "isRedundantInContext already added "
+                    << a << " " << b << " " << i << " " << j << endl;
     return true;
   }
   return false;
 }
 
 TNode TheoryArrays::areDisequal(TNode a, TNode b) {
-  Debug("arrays-prop")<<"Arrays::areDisequal "<<a<<" "<<b<<"\n";
+  Trace("arrays-prop") << "Arrays::areDisequal " << a << " " << b << "\n";
 
   a = find(a);
   b = find(b);
@@ -770,7 +787,7 @@ TNode TheoryArrays::areDisequal(TNode a, TNode b) {
   if(it!= d_disequalities.end()) {
     CTNodeListAlloc::const_iterator i = (*it).second->begin();
     for( ; i!= (*it).second->end(); i++) {
-      Debug("arrays-prop")<<"   "<<*i<<"\n";
+      Trace("arrays-prop") << "   " << *i << "\n";
       TNode s = (*i)[0];
       TNode t = (*i)[1];
 
@@ -791,12 +808,12 @@ TNode TheoryArrays::areDisequal(TNode a, TNode b) {
 
     }
   }
-  Debug("arrays-prop")<<"    not disequal \n";
+  Trace("arrays-prop") << "    not disequal \n";
   return TNode::null();
 }
 
 bool TheoryArrays::propagateFromRow(TNode a, TNode b, TNode i, TNode j) {
-  Debug("arrays-prop")<<"Arrays::propagateFromRow "<<a<<" "<<b<<" "<<i<<" "<<j<<"\n";
+  Trace("arrays-prop")<<"Arrays::propagateFromRow "<<a<<" "<<b<<" "<<i<<" "<<j<<"\n";
 
   NodeManager* nm = NodeManager::currentNM();
   Node aj = nm->mkNode(kind::SELECT, a, j);
@@ -816,7 +833,7 @@ bool TheoryArrays::propagateFromRow(TNode a, TNode b, TNode i, TNode j) {
     // check if the current context implies that (NOT i = j)
     if(diseq != TNode::null()) {
       // if it's unassigned
-      Debug("arrays-prop")<<"satValue "<<d_valuation.getSatValue(eq_aj_bj).isNull();
+      Trace("arrays-prop")<<"satValue "<<d_valuation.getSatValue(eq_aj_bj).isNull();
       if(d_valuation.getSatValue(eq_aj_bj).isNull()) {
         d_out->propagate(eq_aj_bj);
         ++d_numProp;
@@ -848,14 +865,14 @@ bool TheoryArrays::propagateFromRow(TNode a, TNode b, TNode i, TNode j) {
     }
   }
 
-  Debug("arrays-prop")<<"Arrays::propagateFromRow no prop \n";
+  Trace("arrays-prop")<<"Arrays::propagateFromRow no prop \n";
   return false;
 }
 
 void TheoryArrays::explain(TNode n) {
 
 
-  Debug("arrays")<<"Arrays::explain start for "<<n<<"\n";
+  Trace("arrays")<<"Arrays::explain start for "<<n<<"\n";
   ++d_numExplain;
 
   Assert(n.getKind()==kind::EQUAL);
@@ -938,17 +955,17 @@ void TheoryArrays::explain(TNode n) {
   nb << diseq;
   Node reason = nb;
   d_out->explanation(reason);
-  Debug("arrays")<<"explanation "<< reason<<" done \n";
+  Trace("arrays")<<"explanation "<< reason<<" done \n";
   */
 }
 
 void TheoryArrays::checkRowLemmas(TNode a, TNode b) {
 
-  Debug("arrays-crl")<<"Arrays::checkLemmas begin \n"<<a<<"\n";
-  if(Debug.isOn("arrays-crl"))
+  Trace("arrays-crl")<<"Arrays::checkLemmas begin \n"<<a<<"\n";
+  if(Trace.isOn("arrays-crl"))
     d_infoMap.getInfo(a)->print();
-  Debug("arrays-crl")<<"  ------------  and "<<b<<"\n";
-  if(Debug.isOn("arrays-crl"))
+  Trace("arrays-crl")<<"  ------------  and "<<b<<"\n";
+  if(Trace.isOn("arrays-crl"))
     d_infoMap.getInfo(b)->print();
 
   List<TNode>* i_a = d_infoMap.getIndices(a);
@@ -995,7 +1012,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b) {
     }
   }
 
-  Debug("arrays-crl")<<"Arrays::checkLemmas done.\n";
+  Trace("arrays-crl")<<"Arrays::checkLemmas done.\n";
 }
 
 /**
@@ -1018,7 +1035,7 @@ inline void TheoryArrays::addRowLemma(TNode a, TNode b, TNode i, TNode j) {
 
 
 
- Debug("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
+ Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
  d_RowAlreadyAdded.insert(make_quad(a,b,i,j));
  d_out->lemma(lem);
  ++d_numRow;
@@ -1032,10 +1049,10 @@ inline void TheoryArrays::addRowLemma(TNode a, TNode b, TNode i, TNode j) {
  * store(a _ _ )
  */
 void TheoryArrays::checkRowForIndex(TNode i, TNode a) {
-  Debug("arrays-cri")<<"Arrays::checkRowForIndex "<<a<<"\n";
-  Debug("arrays-cri")<<"                   index "<<i<<"\n";
+  Trace("arrays-cri")<<"Arrays::checkRowForIndex "<<a<<"\n";
+  Trace("arrays-cri")<<"                   index "<<i<<"\n";
 
-  if(Debug.isOn("arrays-cri")) {
+  if(Trace.isOn("arrays-cri")) {
     d_infoMap.getInfo(a)->print();
   }
   Assert(a.getType().isArray());
@@ -1048,9 +1065,9 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a) {
     TNode store = *it;
     Assert(store.getKind()==kind::STORE);
     TNode j = store[1];
-    //Debug("arrays-lem")<<"Arrays::checkRowForIndex ("<<store<<", "<<store[0]<<", "<<j<<", "<<i<<")\n";
+    //Trace("arrays-lem")<<"Arrays::checkRowForIndex ("<<store<<", "<<store[0]<<", "<<j<<", "<<i<<")\n";
     if(!isRedundandRowLemma(store, store[0], j, i)) {
-      //Debug("arrays-lem")<<"Arrays::checkRowForIndex ("<<store<<", "<<store[0]<<", "<<j<<", "<<i<<")\n";
+      //Trace("arrays-lem")<<"Arrays::checkRowForIndex ("<<store<<", "<<store[0]<<", "<<j<<", "<<i<<")\n";
       queueRowLemma(store, store[0], j, i);
     }
   }
@@ -1060,9 +1077,9 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a) {
     TNode instore = *it;
     Assert(instore.getKind()==kind::STORE);
     TNode j = instore[1];
-    //Debug("arrays-lem")<<"Arrays::checkRowForIndex ("<<instore<<", "<<instore[0]<<", "<<j<<", "<<i<<")\n";
+    //Trace("arrays-lem")<<"Arrays::checkRowForIndex ("<<instore<<", "<<instore[0]<<", "<<j<<", "<<i<<")\n";
     if(!isRedundandRowLemma(instore, instore[0], j, i)) {
-      //Debug("arrays-lem")<<"Arrays::checkRowForIndex ("<<instore<<", "<<instore[0]<<", "<<j<<", "<<i<<")\n";
+      //Trace("arrays-lem")<<"Arrays::checkRowForIndex ("<<instore<<", "<<instore[0]<<", "<<j<<", "<<i<<")\n";
       queueRowLemma(instore, instore[0], j, i);
     }
   }
@@ -1071,9 +1088,9 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a) {
 
 
 void TheoryArrays::checkStore(TNode a) {
-  Debug("arrays-cri")<<"Arrays::checkStore "<<a<<"\n";
+  Trace("arrays-cri")<<"Arrays::checkStore "<<a<<"\n";
 
-  if(Debug.isOn("arrays-cri")) {
+  if(Trace.isOn("arrays-cri")) {
     d_infoMap.getInfo(a)->print();
   }
   Assert(a.getType().isArray());
@@ -1088,7 +1105,7 @@ void TheoryArrays::checkStore(TNode a) {
     TNode j = *it;
 
     if(!isRedundandRowLemma(a, b, i, j)) {
-      //Debug("arrays-lem")<<"Arrays::checkRowStore ("<<a<<", "<<b<<", "<<i<<", "<<j<<")\n";
+      //Trace("arrays-lem")<<"Arrays::checkRowStore ("<<a<<", "<<b<<", "<<i<<", "<<j<<")\n";
       queueRowLemma(a,b,i,j);
     }
   }
@@ -1116,8 +1133,8 @@ inline void TheoryArrays::addExtLemma(TNode a, TNode b) {
  Assert(a.getType().isArray());
  Assert(b.getType().isArray());
 
- Debug("arrays-cle")<<"Arrays::checkExtLemmas "<<a<<" \n";
- Debug("arrays-cle")<<"                   and "<<b<<" \n";
+ Trace("arrays-cle")<<"Arrays::checkExtLemmas "<<a<<" \n";
+ Trace("arrays-cle")<<"                   and "<<b<<" \n";
 
 
  if(   d_extAlreadyAdded.count(make_pair(a, b)) == 0
@@ -1131,13 +1148,13 @@ inline void TheoryArrays::addExtLemma(TNode a, TNode b) {
    Node neq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, ak, bk));
    Node lem = nm->mkNode(kind::OR, eq, neq);
 
-   Debug("arrays-lem")<<"Arrays::addExtLemma "<<lem<<"\n";
+   Trace("arrays-lem")<<"Arrays::addExtLemma "<<lem<<"\n";
    d_extAlreadyAdded.insert(make_pair(a,b));
    d_out->lemma(lem);
    ++d_numExt;
    return;
  }
- Debug("arrays-cle")<<"Arrays::checkExtLemmas lemma already generated. \n";
+ Trace("arrays-cle")<<"Arrays::checkExtLemmas lemma already generated. \n";
 
 }
 

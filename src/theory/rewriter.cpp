@@ -64,7 +64,7 @@ Node Rewriter::rewrite(Node node) {
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
-  Debug("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;
+  Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;
 
   // Put the node on the stack in order to start the "recursive" rewrite
   vector<RewriteStackElement> rewriteStack;
@@ -76,7 +76,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
     // Get the top of the recursion stack
     RewriteStackElement& rewriteStackTop = rewriteStack.back();
 
-    Debug("rewriter") << "Rewriter::rewriting: " << (TheoryId) rewriteStackTop.theoryId << "," << rewriteStackTop.node << std::endl;
+    Trace("rewriter") << "Rewriter::rewriting: " << (TheoryId) rewriteStackTop.theoryId << "," << rewriteStackTop.node << std::endl;
 
     // Before rewriting children we need to do a pre-rewrite of the node
     if (rewriteStackTop.nextChild == 0) {
