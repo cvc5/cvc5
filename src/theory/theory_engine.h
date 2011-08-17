@@ -98,7 +98,7 @@ class TheoryEngine {
 
     TheoryEngine* d_engine;
     context::Context* d_context;
-    context::CDO<Node> d_conflictNode;
+    context::CDO<bool> d_inConflict;
     context::CDO<Node> d_explanationNode;
 
     /**
@@ -113,12 +113,29 @@ class TheoryEngine {
                    d_newFactTimer,
                    "theory::newFactTimer");
 
+    /**
+     * Check if the node is in conflict for debug purposes
+     */
+    bool isProperConflict(TNode conflictNode) {
+      bool value;
+      if (conflictNode.getKind() == kind::AND) {
+        for (unsigned i = 0; i < conflictNode.getNumChildren(); ++ i) {
+          if (!d_engine->getPropEngine()->hasValue(conflictNode[i], value)) return false;
+          if (!value) return false;
+        }
+      } else {
+        if (!d_engine->getPropEngine()->hasValue(conflictNode, value)) return false;
+        return value;
+      }
+      return true;
+    }
+
   public:
 
     EngineOutputChannel(TheoryEngine* engine, context::Context* context) :
       d_engine(engine),
       d_context(context),
-      d_conflictNode(context),
+      d_inConflict(context, false),
       d_explanationNode(context) {
     }
 
@@ -126,10 +143,15 @@ class TheoryEngine {
 
     void conflict(TNode conflictNode, bool safe)
       throw(theory::Interrupted, AssertionException) {
-      Trace("theory") << "EngineOutputChannel::conflict("
-                      << conflictNode << ")" << std::endl;
-      d_conflictNode = conflictNode;
+      Trace("theory") << "EngineOutputChannel::conflict(" << conflictNode << ")" << std::endl;
+      d_inConflict = true;
+
       ++(d_engine->d_statistics.d_statConflicts);
+
+      // Construct the lemma (note that no CNF caching should happen as all the literals already exists)
+      Assert(isProperConflict(conflictNode));
+      d_engine->newLemma(conflictNode, true, true);
+
       if(safe) {
         throw theory::Interrupted();
       }
@@ -143,12 +165,13 @@ class TheoryEngine {
       ++(d_engine->d_statistics.d_statPropagate);
     }
 
-    void lemma(TNode node, bool)
+    void lemma(TNode node, bool removable = false)
       throw(theory::Interrupted, AssertionException) {
       Trace("theory") << "EngineOutputChannel::lemma("
                       << node << ")" << std::endl;
       ++(d_engine->d_statistics.d_statLemma);
-      d_engine->newLemma(node);
+
+      d_engine->newLemma(node, false, removable);
     }
 
     void explanation(TNode explanationNode, bool)
@@ -387,7 +410,7 @@ public:
    * Check all (currently-active) theories for conflicts.
    * @param effort the effort level to use
    */
-  bool check(theory::Theory::Effort effort);
+  void check(theory::Theory::Effort effort);
 
   /**
    * Calls staticLearning() on all theories, accumulating their
@@ -414,21 +437,15 @@ public:
     d_theoryOut.d_propagatedLiterals.clear();
   }
 
-  inline void newLemma(TNode node) {
+  inline void newLemma(TNode node, bool negated, bool removable) {
     // Remove the ITEs and assert to prop engine
     std::vector<Node> additionalLemmas;
     additionalLemmas.push_back(node);
     RemoveITE::run(additionalLemmas);
-    for (unsigned i = 0; i < additionalLemmas.size(); ++ i) {
-      d_propEngine->assertLemma(theory::Rewriter::rewrite(additionalLemmas[i]));
+    d_propEngine->assertLemma(theory::Rewriter::rewrite(additionalLemmas[0]), negated, removable);
+    for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
+      d_propEngine->assertLemma(theory::Rewriter::rewrite(additionalLemmas[i]), false, removable);
     }
-  }
-
-  /**
-   * Returns the last conflict (if any).
-   */
-  inline Node getConflict() {
-    return d_theoryOut.d_conflictNode;
   }
 
   void propagate();

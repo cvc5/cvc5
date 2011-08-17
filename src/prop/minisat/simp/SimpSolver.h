@@ -47,12 +47,12 @@ class SimpSolver : public Solver {
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false);
-    bool    addClause (const vec<Lit>& ps, ClauseType type);
-    bool    addEmptyClause(ClauseType type);                  // Add the empty clause to the solver.
-    bool    addClause (Lit p, ClauseType type);               // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, ClauseType type);        // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, ClauseType type); // Add a ternary clause to the solver.
-    bool    addClause_(vec<Lit>& ps, ClauseType type);
+    bool    addClause (const vec<Lit>& ps, bool removable);
+    bool    addEmptyClause(bool removable);                  // Add the empty clause to the solver.
+    bool    addClause (Lit p, bool removable);               // Add a unit clause to the solver.
+    bool    addClause (Lit p, Lit q, bool removable);        // Add a binary clause to the solver.
+    bool    addClause (Lit p, Lit q, Lit r, bool removable); // Add a ternary clause to the solver.
+    bool    addClause_(vec<Lit>& ps, bool removable);
     bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
 
     // Variable mode:
@@ -181,11 +181,11 @@ inline void SimpSolver::updateElimHeap(Var v) {
         elim_heap.update(v); }
 
 
-inline bool SimpSolver::addClause    (const vec<Lit>& ps, ClauseType type)    { ps.copyTo(add_tmp); return addClause_(add_tmp, type); }
-inline bool SimpSolver::addEmptyClause(ClauseType type)                       { add_tmp.clear(); return addClause_(add_tmp, type); }
-inline bool SimpSolver::addClause    (Lit p, ClauseType type)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, type); }
-inline bool SimpSolver::addClause    (Lit p, Lit q, ClauseType type)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, type); }
-inline bool SimpSolver::addClause    (Lit p, Lit q, Lit r, ClauseType type)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, type); }
+inline bool SimpSolver::addClause    (const vec<Lit>& ps, bool removable)    { ps.copyTo(add_tmp); return addClause_(add_tmp, removable); }
+inline bool SimpSolver::addEmptyClause(bool removable)                       { add_tmp.clear(); return addClause_(add_tmp, removable); }
+inline bool SimpSolver::addClause    (Lit p, bool removable)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, removable); }
+inline bool SimpSolver::addClause    (Lit p, Lit q, bool removable)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable); }
+inline bool SimpSolver::addClause    (Lit p, Lit q, Lit r, bool removable)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable); }
 inline void SimpSolver::setFrozen    (Var v, bool b) { frozen[v] = (char)b; if (use_simplification && !b) { updateElimHeap(v); } }
 
 inline bool SimpSolver::solve        (                     bool do_simp, bool turn_off_simp)  { budgetOff(); assumptions.clear(); return solve_(do_simp, turn_off_simp) == l_True; }

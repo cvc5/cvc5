@@ -101,7 +101,7 @@ public:
   /** Virtual destructor to make g++ happy */
   virtual ~SatInputInterface() { }
   /** Assert a clause in the solver. */
-  virtual void addClause(SatClause& clause, bool lemma) = 0;
+  virtual void addClause(SatClause& clause, bool removable) = 0;
   /** Create a new boolean variable in the solver. */
   virtual SatVariable newVar(bool theoryAtom = false) = 0;
   /** Get the current decision level of the solver */
@@ -212,11 +212,11 @@ public:
 
   bool solve();
 
-  void addClause(SatClause& clause, bool lemma);
+  void addClause(SatClause& clause, bool removable);
 
   SatVariable newVar(bool theoryAtom = false);
 
-  void theoryCheck(theory::Theory::Effort effort, SatClause& conflict);
+  void theoryCheck(theory::Theory::Effort effort);
 
   void explainPropagation(SatLiteral l, SatClause& explanation);
 
@@ -290,8 +290,8 @@ inline bool SatSolver::solve() {
   return d_minisat->solve();
 }
 
-inline void SatSolver::addClause(SatClause& clause, bool lemma) {
-  d_minisat->addClause(clause, lemma ? Minisat::Solver::CLAUSE_LEMMA : Minisat::Solver::CLAUSE_PROBLEM);
+inline void SatSolver::addClause(SatClause& clause, bool removable) {
+  d_minisat->addClause(clause, removable);
 }
 
 inline SatVariable SatSolver::newVar(bool theoryAtom) {

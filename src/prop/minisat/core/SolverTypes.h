@@ -124,7 +124,7 @@ typedef RegionAllocator<uint32_t>::Ref CRef;
 class Clause {
     struct {
         unsigned mark      : 2;
-        unsigned learnt    : 1;
+        unsigned removable : 1;
         unsigned has_extra : 1;
         unsigned reloced   : 1;
         unsigned size      : 27;
@@ -135,9 +135,9 @@ class Clause {
 
     // NOTE: This constructor cannot be used directly (doesn't allocate enough memory).
     template<class V>
-    Clause(const V& ps, bool use_extra, bool learnt, int level) {
+    Clause(const V& ps, bool use_extra, bool removable, int level) {
         header.mark      = 0;
-        header.learnt    = learnt;
+        header.removable = removable;
         header.has_extra = use_extra;
         header.reloced   = 0;
         header.size      = ps.size();
@@ -147,7 +147,7 @@ class Clause {
             data[i].lit = ps[i];
 
         if (header.has_extra){
-            if (header.learnt)
+            if (header.removable)
                 data[header.size].act = 0; 
             else 
                 calcAbstraction(); }
@@ -166,7 +166,7 @@ public:
     int          size        ()      const   { return header.size; }
     void         shrink      (int i)         { assert(i <= size()); if (header.has_extra) data[header.size-i] = data[header.size]; header.size -= i; }
     void         pop         ()              { shrink(1); }
-    bool         learnt      ()      const   { return header.learnt; }
+    bool         removable   ()      const   { return header.removable; }
     bool         has_extra   ()      const   { return header.has_extra; }
     uint32_t     mark        ()      const   { return header.mark; }
     void         mark        (uint32_t m)    { header.mark = m; }
@@ -211,14 +211,14 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::moveTo(to); }
 
     template<class Lits>
-    CRef alloc(int level, const Lits& ps, bool learnt = false)
+    CRef alloc(int level, const Lits& ps, bool removable = false)
     {
         assert(sizeof(Lit)      == sizeof(uint32_t));
         assert(sizeof(float)    == sizeof(uint32_t));
-        bool use_extra = learnt | extra_clause_field;
+        bool use_extra = removable | extra_clause_field;
 
         CRef cid = RegionAllocator<uint32_t>::alloc(clauseWord32Size(ps.size(), use_extra));
-        new (lea(cid)) Clause(ps, use_extra, learnt, level);
+        new (lea(cid)) Clause(ps, use_extra, removable, level);
 
         return cid;
     }
@@ -244,13 +244,13 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         
         if (c.reloced()) { cr = c.relocation(); return; }
         
-        cr = to.alloc(c.level(), c, c.learnt());
+        cr = to.alloc(c.level(), c, c.removable());
         c.relocate(cr);
         
         // Copy extra data-fields: 
         // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
         to[cr].mark(c.mark());
-        if (to[cr].learnt())         to[cr].activity() = c.activity();
+        if (to[cr].removable())         to[cr].activity() = c.activity();
         else if (to[cr].has_extra()) to[cr].calcAbstraction();
     }
 };
@@ -380,7 +380,7 @@ inline Lit Clause::subsumes(const Clause& other) const
 
     //if (other.size() < size() || (extra.abst & ~other.extra.abst) != 0)
     //if (other.size() < size() || (!learnt() && !other.learnt() && (extra.abst & ~other.extra.abst) != 0))
-    assert(!header.learnt);   assert(!other.header.learnt);
+    assert(!header.removable);   assert(!other.header.removable);
     assert(header.has_extra); assert(other.header.has_extra);
     if (other.header.size < header.size || (data[header.size].abs & ~other.data[other.header.size].abs) != 0)
         return lit_Error;

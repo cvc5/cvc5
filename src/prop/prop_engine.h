@@ -99,7 +99,7 @@ public:
    *
    * @param node the formula to assert
    */
-  void assertLemma(TNode node);
+  void assertLemma(TNode node, bool negated, bool removable);
 
   /**
    * Checks the current context for satisfiability.

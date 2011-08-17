@@ -77,9 +77,6 @@ protected:
   /** Top level nodes that we translated */
   std::vector<TNode> d_translationTrail;
 
-  /** Nodes belonging to asserted lemmas */
-  std::vector<Node> d_lemmas;
-
   /** Remove nots from the node */
   TNode stripNot(TNode node) {
     while (node.getKind() == kind::NOT) {
@@ -102,11 +99,11 @@ protected:
   void undoTranslate(TNode node, int level);
 
   /**
-   * Are we asserting a lemma (true) or a permanent clause (false).
+   * Are we asserting a removable clause (true) or a permanent clause (false).
    * This is set at the begining of convertAndAssert so that it doesn't
    * need to be passed on over the stack.
    */
-  bool d_assertingLemma;
+  bool d_removable;
 
   /**
    * Asserts the given clause to the sat solver.
@@ -187,10 +184,10 @@ public:
   /**
    * Converts and asserts a formula.
    * @param node node to convert and assert
-   * @param lemma whether the sat solver can choose to remove the clauses
+   * @param removable whether the sat solver can choose to remove the clauses
    * @param negated wheather we are asserting the node negated
    */
-  virtual void convertAndAssert(TNode node, bool lemma, bool negated = false) = 0;
+  virtual void convertAndAssert(TNode node, bool removable, bool negated) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -248,10 +245,10 @@ public:
   /**
    * Convert a given formula to CNF and assert it to the SAT solver.
    * @param node the formula to assert
-   * @param lemma is this a lemma that is erasable
+   * @param removable is this something that can be erased
    * @param negated true if negated
    */
-  void convertAndAssert(TNode node, bool lemma, bool negated = false);
+  void convertAndAssert(TNode node, bool removable, bool negated);
 
   /**
    * Constructs the stream to use the given sat solver.
@@ -261,6 +258,11 @@ public:
   TseitinCnfStream(SatInputInterface* satSolver, theory::Registrar registrar);
 
 private:
+
+  /**
+   * Same as above, except that removable is rememebered.
+   */
+  void convertAndAssert(TNode node, bool negated);
 
   // Each of these formulas handles takes care of a Node of each Kind.
   //
@@ -280,12 +282,12 @@ private:
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
-  void convertAndAssertAnd(TNode node, bool lemma, bool negated);
-  void convertAndAssertOr(TNode node, bool lemma, bool negated);
-  void convertAndAssertXor(TNode node, bool lemma, bool negated);
-  void convertAndAssertIff(TNode node, bool lemma, bool negated);
-  void convertAndAssertImplies(TNode node, bool lemma, bool negated);
-  void convertAndAssertIte(TNode node, bool lemma, bool negated);
+  void convertAndAssertAnd(TNode node, bool negated);
+  void convertAndAssertOr(TNode node, bool negated);
+  void convertAndAssertXor(TNode node, bool negated);
+  void convertAndAssertIff(TNode node, bool negated);
+  void convertAndAssertImplies(TNode node, bool negated);
+  void convertAndAssertIte(TNode node, bool negated);
 
   /**
    * Transforms the node into CNF recursively.

@@ -65,22 +65,17 @@ protected:
   /** Do we allow incremental solving */
   bool enable_incremental;  
 
-  /** Did the problem get extended in the meantime (i.e. by adding a lemma) */
-  bool problem_extended;   
-
   /** Literals propagated by lemmas */
-  vec<Lit> lemma_propagated_literals; 
-  /** Reasons of literals propagated by lemmas */
-  vec<CRef> lemma_propagated_reasons; 
-  /** Lemmas that propagated something, we need to recheck them after backtracking */
-  vec<CRef> propagating_lemmas;
-  vec<int> propagating_lemmas_lim;
+  vec< vec<Lit> > lemmas;
+
+  /** Is the lemma removable */
+  vec<bool> lemmas_removable;
 
   /** Shrink 'cs' to contain only clauses below given level */
   void removeClausesAboveLevel(vec<CRef>& cs, int level); 
 
   /** True if we are currently solving. */
-  bool in_solve;
+  bool minisat_busy;
 
 public:
 
@@ -93,15 +88,34 @@ public:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false); // Add a new variable with parameters specifying variable mode.
 
-    // Types of clauses
-    enum ClauseType {
-      // Clauses defined by the problem
-      CLAUSE_PROBLEM,
-      // Lemma clauses added by the theories
-      CLAUSE_LEMMA,
-      // Conflict clauses
-      CLAUSE_CONFLICT
+    // Less than for literals in a lemma
+    struct lemma_lt {
+        Solver& solver;
+        lemma_lt(Solver& solver) : solver(solver) {}
+        bool operator () (Lit x, Lit y) {
+          lbool x_value = solver.value(x);
+          lbool y_value = solver.value(y);
+          // Two unassigned literals are sorted arbitrarily
+          if (x_value == l_Undef && y_value == l_Undef) {
+            return x < y;
+          }
+          // Unassigned literals are put to front
+          if (x_value == l_Undef) return true;
+          if (y_value == l_Undef) return false;
+          // Literals of the same value are sorted by decreasing levels
+          if (x_value == y_value) {
+            return solver.trail_index(var(x)) > solver.trail_index(var(y));
+          } else {
+            // True literals go up front
+            if (x_value == l_True) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        }
     };
+
 
     // CVC4 context push/pop
     void          push                     ();
@@ -110,12 +124,12 @@ public:
     void unregisterVar(Lit lit); // Unregister the literal (set assertion level to -1)
     void renewVar(Lit lit, int level = -1); // Register the literal (set assertion level to the given level, or current level if -1)
 
-    bool    addClause (const vec<Lit>& ps, ClauseType type);                     // Add a clause to the solver. 
-    bool    addEmptyClause(ClauseType type);                                     // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p, ClauseType type);                                  // Add a unit clause to the solver. 
-    bool    addClause (Lit p, Lit q, ClauseType type);                           // Add a binary clause to the solver. 
-    bool    addClause (Lit p, Lit q, Lit r, ClauseType type);                    // Add a ternary clause to the solver. 
-    bool    addClause_(      vec<Lit>& ps, ClauseType type);                     // Add a clause to the solver without making superflous internal copy. Will
+    bool    addClause (const vec<Lit>& ps, bool removable);                     // Add a clause to the solver.
+    bool    addEmptyClause(bool removable);                                     // Add the empty clause, making the solver contradictory.
+    bool    addClause (Lit p, bool removable);                                  // Add a unit clause to the solver.
+    bool    addClause (Lit p, Lit q, bool removable);                           // Add a binary clause to the solver.
+    bool    addClause (Lit p, Lit q, Lit r, bool removable);                    // Add a ternary clause to the solver.
+    bool    addClause_(      vec<Lit>& ps, bool removable);                     // Add a clause to the solver without making superflous internal copy. Will
                                                                                  // change the passed vector 'ps'.
 
     // Solving:
@@ -207,8 +221,8 @@ protected:
 
     // Helper structures:
     //
-    struct VarData { CRef reason; int level; int intro_level; };
-    static inline VarData mkVarData(CRef cr, int l, int intro_l){ VarData d = {cr, l, intro_l}; return d; }
+    struct VarData { CRef reason; int level; int intro_level; int trail_index; };
+    static inline VarData mkVarData(CRef cr, int l, int intro_l, int trail_i){ VarData d = {cr, l, intro_l, trail_i}; return d; }
 
     struct Watcher {
         CRef cref;
@@ -233,28 +247,28 @@ protected:
 
     // Solver state:
     //
-    bool                ok;               // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
-    vec<CRef>           clauses;          // List of problem clauses.
-    vec<CRef>           learnts;          // List of learnt clauses.
-    double              cla_inc;          // Amount to bump next clause with.
-    vec<double>         activity;         // A heuristic measurement of the activity of a variable.
-    double              var_inc;          // Amount to bump next variable with.
+    bool                ok;                 // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
+    vec<CRef>           clauses_persistent; // List of problem clauses.
+    vec<CRef>           clauses_removable;  // List of learnt clauses.
+    double              cla_inc;            // Amount to bump next clause with.
+    vec<double>         activity;           // A heuristic measurement of the activity of a variable.
+    double              var_inc;            // Amount to bump next variable with.
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
-                        watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
-    vec<lbool>          assigns;          // The current assignments.
-    vec<char>           polarity;         // The preferred polarity of each variable.
-    vec<char>           decision;         // Declares if a variable is eligible for selection in the decision heuristic.
-    vec<Lit>            trail;            // Assignment stack; stores all assigments made in the order they were made.
-    vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
-    vec<int>            trail_user_lim;   // Separator indices for different user push levels in 'trail'.
-    vec<VarData>        vardata;          // Stores reason and level for each variable.
-    int                 qhead;            // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
-    int                 simpDB_assigns;   // Number of top-level assignments since last execution of 'simplify()'.
-    int64_t             simpDB_props;     // Remaining number of propagations that must be made before next execution of 'simplify()'.
-    vec<Lit>            assumptions;      // Current set of assumptions provided to solve by the user.
-    Heap<VarOrderLt>    order_heap;       // A priority queue of variables ordered with respect to the variable activity.
-    double              progress_estimate;// Set by 'search()'.
-    bool                remove_satisfied; // Indicates whether possibly inefficient linear scan for satisfied clauses should be performed in 'simplify'.
+                        watches;            // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
+    vec<lbool>          assigns;            // The current assignments.
+    vec<char>           polarity;           // The preferred polarity of each variable.
+    vec<char>           decision;           // Declares if a variable is eligible for selection in the decision heuristic.
+    vec<Lit>            trail;              // Assignment stack; stores all assigments made in the order they were made.
+    vec<int>            trail_lim;          // Separator indices for different decision levels in 'trail'.
+    vec<int>            trail_user_lim;     // Separator indices for different user push levels in 'trail'.
+    vec<VarData>        vardata;            // Stores reason and level for each variable.
+    int                 qhead;              // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
+    int                 simpDB_assigns;     // Number of top-level assignments since last execution of 'simplify()'.
+    int64_t             simpDB_props;       // Remaining number of propagations that must be made before next execution of 'simplify()'.
+    vec<Lit>            assumptions;        // Current set of assumptions provided to solve by the user.
+    Heap<VarOrderLt>    order_heap;         // A priority queue of variables ordered with respect to the variable activity.
+    double              progress_estimate;  // Set by 'search()'.
+    bool                remove_satisfied;   // Indicates whether possibly inefficient linear scan for satisfied clauses should be performed in 'simplify'.
 
     ClauseAllocator     ca;
 
@@ -297,10 +311,10 @@ protected:
     bool     enqueue          (Lit p, CRef from = CRef_Undef);                         // Test if fact 'p' contradicts current state, enqueue otherwise.
     CRef     propagate        (TheoryCheckType type);                                  // Perform Boolean and Theory. Returns possibly conflicting clause.
     CRef     propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
-    bool     propagateTheory  ();                                                      // Perform Theory propagation. Return true if any literals were asserted.
-    CRef     theoryCheck      (CVC4::theory::Theory::Effort effort);                   // Perform a theory satisfiability check. Returns possibly conflicting clause.
-    void     cancelUntil      (int level, bool re_propagate = true);                   // Backtrack until a certain level.
-    CRef     rePropagate      (int level);                                             // Re-propagate on lemmas, returns a concflict clause if it introduces a conflict
+    void     propagateTheory  ();                                                      // Perform Theory propagation.
+    void     theoryCheck      (CVC4::theory::Theory::Effort effort);                   // Perform a theory satisfiability check. Adds lemmas.
+    CRef     updateLemmas     ();                                                      // Add the lemmas, backtraking if necessary and return a conflict if there is one
+    void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     void     popTrail         ();                                                      // Backtrack the trail to the previous push position
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
@@ -333,10 +347,14 @@ protected:
     //
     int      decisionLevel    ()      const; // Gives the current decisionlevel.
     uint32_t abstractLevel    (Var x) const; // Used to represent an abstraction of sets of decision levels.
-    CRef     reason           (Var x) const;
-    bool     hasReason        (Var x) const; // Does the variable have a reason
+    CRef     reason           (Var x); // Get the reason of the variable (non const as it might create the explanation on the fly)
+    bool     hasReasonClause  (Var x) const; // Does the variable have a reason
+    bool     isPropagated     (Var x) const; // Does the variable have a propagated variables
+    bool     isPropagatedBy   (Var x, const Clause& c) const; // Is the value of the variable propagated by the clause Clause C
+
     int      level            (Var x) const;
     int      intro_level      (Var x) const; // Level at which this variable was introduced
+    int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
     bool     withinBudget     ()      const;
 
@@ -360,11 +378,17 @@ protected:
 //=================================================================================================
 // Implementation of inline methods:
 
-inline bool Solver::hasReason(Var x) const { return vardata[x].reason != CRef_Undef && vardata[x].reason != CRef_Lazy; }
+inline bool Solver::hasReasonClause(Var x) const { return vardata[x].reason != CRef_Undef && vardata[x].reason != CRef_Lazy; }
+
+inline bool Solver::isPropagated(Var x) const { return vardata[x].reason != CRef_Undef; }
+
+inline bool Solver::isPropagatedBy(Var x, const Clause& c) const { return vardata[x].reason != CRef_Undef && vardata[x].reason != CRef_Lazy && ca.lea(vardata[var(c[0])].reason) == &c; }
 
 inline int  Solver::level (Var x) const { return vardata[x].level; }
 
 inline int  Solver::intro_level(Var x) const { return vardata[x].intro_level; }
+
+inline int  Solver::trail_index(Var x) const { return vardata[x].trail_index; }
 
 inline void Solver::insertVarOrder(Var x) {
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
@@ -386,8 +410,8 @@ inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
         if ( (c.activity() += cla_inc) > 1e20 ) {
             // Rescale:
-            for (int i = 0; i < learnts.size(); i++)
-                ca[learnts[i]].activity() *= 1e-20;
+            for (int i = 0; i < clauses_removable.size(); i++)
+                ca[clauses_removable[i]].activity() *= 1e-20;
             cla_inc *= 1e-20; } }
 
 inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
@@ -397,13 +421,13 @@ inline void Solver::checkGarbage(double gf){
 
 // NOTE: enqueue does not set the ok flag! (only public methods do)
 inline bool     Solver::enqueue         (Lit p, CRef from)      { return value(p) != l_Undef ? value(p) != l_False : (uncheckedEnqueue(p, from), true); }
-inline bool     Solver::addClause       (const vec<Lit>& ps, ClauseType type)    { ps.copyTo(add_tmp); return addClause_(add_tmp, type); }
-inline bool     Solver::addEmptyClause  (ClauseType type)                        { add_tmp.clear(); return addClause_(add_tmp, type); }
-inline bool     Solver::addClause       (Lit p, ClauseType type)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, type); }
-inline bool     Solver::addClause       (Lit p, Lit q, ClauseType type)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, type); }
-inline bool     Solver::addClause       (Lit p, Lit q, Lit r, ClauseType type)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, type); }
-inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && ca.lea(reason(var(c[0]))) == &c; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); propagating_lemmas_lim.push(propagating_lemmas.size()); context->push(); }
+inline bool     Solver::addClause       (const vec<Lit>& ps, bool removable)    { ps.copyTo(add_tmp); return addClause_(add_tmp, removable); }
+inline bool     Solver::addEmptyClause  (bool removable)                        { add_tmp.clear(); return addClause_(add_tmp, removable); }
+inline bool     Solver::addClause       (Lit p, bool removable)                 { add_tmp.clear(); add_tmp.push(p); return addClause_(add_tmp, removable); }
+inline bool     Solver::addClause       (Lit p, Lit q, bool removable)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable); }
+inline bool     Solver::addClause       (Lit p, Lit q, Lit r, bool removable)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable); }
+inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && isPropagatedBy(var(c[0]), c); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); context->push(); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
@@ -412,8 +436,8 @@ inline lbool    Solver::value         (Lit p) const   { return assigns[var(p)] ^
 inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
 inline lbool    Solver::modelValue    (Lit p) const   { return model[var(p)] ^ sign(p); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }
-inline int      Solver::nClauses      ()      const   { return clauses.size(); }
-inline int      Solver::nLearnts      ()      const   { return learnts.size(); }
+inline int      Solver::nClauses      ()      const   { return clauses_persistent.size(); }
+inline int      Solver::nLearnts      ()      const   { return clauses_removable.size(); }
 inline int      Solver::nVars         ()      const   { return vardata.size(); }
 inline int      Solver::nFreeVars     ()      const   { return (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
 inline void     Solver::setPolarity   (Var v, bool b) { polarity[v] = b; }
