@@ -201,7 +201,7 @@ public:
 };
 
 template <typename NotifyClass>
-class EqualityEngine {
+class EqualityEngine : public context::ContextNotifyObj {
 
 public:
 
@@ -213,26 +213,21 @@ public:
     IntStat termsCount;
     /** Number of function terms managed by the system */
     IntStat functionTermsCount;
-    /** Number of times we performed a backtrack */
-    IntStat backtracksCount;
 
     Statistics(std::string name)
     : mergesCount(name + "::mergesCount", 0),
       termsCount(name + "::termsCount", 0),
-      functionTermsCount(name + "::functionTermsCount", 0),
-      backtracksCount(name + "::backtracksCount", 0)
+      functionTermsCount(name + "::functionTermsCount", 0)
     {
       StatisticsRegistry::registerStat(&mergesCount);
       StatisticsRegistry::registerStat(&termsCount);
       StatisticsRegistry::registerStat(&functionTermsCount);
-      StatisticsRegistry::registerStat(&backtracksCount);
     }
 
     ~Statistics() {
       StatisticsRegistry::unregisterStat(&mergesCount);
       StatisticsRegistry::unregisterStat(&termsCount);
       StatisticsRegistry::unregisterStat(&functionTermsCount);
-      StatisticsRegistry::unregisterStat(&backtracksCount);
     }
   };
 
@@ -375,7 +370,13 @@ private:
   EqualityNode& getEqualityNode(TNode node);
 
   /** Returns the equality node of the given node */
+  const EqualityNode& getEqualityNode(TNode node) const;
+
+  /** Returns the equality node of the given node */
   EqualityNode& getEqualityNode(EqualityNodeId nodeId);
+
+  /** Returns the equality node of the given node */
+  const EqualityNode& getEqualityNode(EqualityNodeId nodeId) const;
 
   /** Returns the id of the node */
   EqualityNodeId getNodeId(TNode node) const;
@@ -470,8 +471,8 @@ private:
   /** Enqueue to the propagation queue */
   void enqueue(const MergeCandidate& candidate);
 
-  /** Do the propagation (if check is on, congruences are checked again) */
-  void propagate(bool check);
+  /** Do the propagation */
+  void propagate();
 
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
@@ -483,7 +484,7 @@ private:
   /**
    * Print the equality graph.
    */
-  void debugPrintGraph();
+  void debugPrintGraph() const;
 
 public:
 
@@ -492,10 +493,22 @@ public:
    * the owner information.
    */
   EqualityEngine(NotifyClass& notify, context::Context* context, std::string name)
-  : d_notify(notify), d_assertedEqualitiesCount(context, 0), d_stats(name) {
+  : ContextNotifyObj(context), d_notify(notify), d_assertedEqualitiesCount(context, 0), d_stats(name) {
     Debug("equality") << "EqualityEdge::EqualityEngine(): id_null = " << +null_id << std::endl;
     Debug("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
     Debug("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
+  }
+
+  /**
+   * Just a destructor.
+   */
+  virtual ~EqualityEngine() throw(AssertionException) {}
+
+  /**
+   * This method gets called on backtracks from the context manager.
+   */
+  void notify() {
+    backtrack();
   }
 
   /**
