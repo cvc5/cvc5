@@ -61,7 +61,8 @@ libutil_la_SOURCES = \
 	boolean_simplification.h \
 	boolean_simplification.cpp \
 	ite_removal.h \
-	ite_removal.cpp
+	ite_removal.cpp \
+	node_visitor.h
 
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la

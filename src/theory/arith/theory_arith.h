@@ -240,7 +240,7 @@ private:
 
   void asVectors(Polynomial& p,
                  std::vector<Rational>& coeffs,
-                 std::vector<ArithVar>& variables) const;
+                 std::vector<ArithVar>& variables);
 
   /** Routine for debugging. Print the assertions the theory is aware of. */
   void debugPrintAssertions();

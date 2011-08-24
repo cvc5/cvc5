@@ -233,9 +233,10 @@ class TheoryEngine {
 
   bool hasRegisterTerm(theory::TheoryId th) const;
 
-public:
   /** The logic of the problem */
   std::string d_logic;
+
+public:
 
   /** Constructs a theory engine */
   TheoryEngine(context::Context* ctxt);
@@ -249,11 +250,15 @@ public:
    */
   template <class TheoryClass>
   void addTheory() {
-    TheoryClass* theory =
-      new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
+    TheoryClass* theory = new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
     d_theoryTable[theory->getId()] = theory;
     d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
   }
+
+  /**
+   * Set's the logic (smt-lib format). All theory specific setup/hacks should go in here.
+   */
+  void setLogic(std::string logic);
 
   SharedTermManager* getSharedTermManager() {
     return d_sharedTermManager;
@@ -312,45 +317,7 @@ public:
    * of built-in type.
    */
   inline theory::Theory* theoryOf(TNode node) {
-    if (node.getKind() == kind::EQUAL) {
-      return d_theoryTable[theoryIdOf(node[0])];
-    } else {
-      return d_theoryTable[theoryIdOf(node)];
-    }
-  }
-
-  /**
-   * Wrapper for theory::Theory::theoryOf() that implements the
-   * array/EUF hack.
-   */
-  inline theory::TheoryId theoryIdOf(TNode node) {
-    theory::TheoryId id = theory::Theory::theoryOf(node);
-    if(d_logic == "QF_AX" && id == theory::THEORY_UF) {
-      id = theory::THEORY_ARRAY;
-    }
-    return id;
-  }
-
-  /**
-   * Get the theory associated to a given Node.
-   *
-   * @returns the theory, or NULL if the TNode is
-   * of built-in type.
-   */
-  inline theory::Theory* theoryOf(const TypeNode& typeNode) {
-    return d_theoryTable[theoryIdOf(typeNode)];
-  }
-
-  /**
-   * Wrapper for theory::Theory::theoryOf() that implements the
-   * array/EUF hack.
-   */
-  inline theory::TheoryId theoryIdOf(const TypeNode& typeNode) {
-    theory::TheoryId id = theory::Theory::theoryOf(typeNode);
-    if(d_logic == "QF_AX" && id == theory::THEORY_UF) {
-      id = theory::THEORY_ARRAY;
-    }
-    return id;
+    return d_theoryTable[theory::Theory::theoryOf(node)];
   }
 
   /**
@@ -380,30 +347,12 @@ public:
   inline void assertFact(TNode node) {
     Trace("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
 
-    // Mark it as asserted in this context
-    //
-    // [MGD] removed for now, this appears to have a nontrivial
-    // performance penalty
-    // node.setAttribute(theory::Asserted(), true);
-
     // Get the atom
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
 
-    // Again, equality is a special case
-    if (atom.getKind() == kind::EQUAL) {
-      if(d_logic == "QF_AX") {
-        Trace("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
-        d_theoryTable[theory::THEORY_ARRAY]->assertFact(node);
-      } else {
-        theory::Theory* theory = theoryOf(atom);
-        Trace("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
-        theory->assertFact(node);
-      }
-    } else {
-      theory::Theory* theory = theoryOf(atom);
-      Trace("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
-      theory->assertFact(node);
-    }
+    theory::Theory* theory = theoryOf(atom);
+    Trace("theory") << "asserting " << node << " to " << theory->getId() << std::endl;
+    theory->assertFact(node);
   }
 
   /**
@@ -458,16 +407,7 @@ public:
   inline Node getExplanation(TNode node) {
     d_theoryOut.d_explanationNode = Node::null();
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
-    if (atom.getKind() == kind::EQUAL) {
-      if(d_logic == "QF_AX") {
-        Trace("theory") << "TheoryEngine::assertFact QF_AX logic; everything goes to Arrays" << std::endl;
-        d_theoryTable[theory::THEORY_ARRAY]->explain(node);
-      } else {
-        theoryOf(atom[0])->explain(node);
-      }
-    } else {
-      theoryOf(atom)->explain(node);
-    }
+    theoryOf(atom)->explain(node);
     Assert(!d_theoryOut.d_explanationNode.get().isNull());
     return d_theoryOut.d_explanationNode;
   }
@@ -500,6 +440,52 @@ private:
     }
   };/* class TheoryEngine::Statistics */
   Statistics d_statistics;
+
+  ///////////////////////////
+  // Visitors
+  ///////////////////////////
+
+  /**
+   * Visitor that calls the apropriate theory to preregister the term.
+   */
+  class PreRegisterVisitor {
+
+    /** The engine */
+    TheoryEngine& d_engine;
+
+  public:
+
+    PreRegisterVisitor(TheoryEngine& engine): d_engine(engine) {}
+
+    void operator () (TNode current) {
+      // Get the theory of the term and pre-register it with the owning theory
+      theory::TheoryId currentTheoryId = theory::Theory::theoryOf(current);
+      Debug("register") << "preregistering " << current << " with " << currentTheoryId << std::endl;
+      d_engine.markActive(currentTheoryId);
+      theory::Theory* currentTheory = d_engine.theoryOf(current);
+      currentTheory->preRegisterTerm(current);
+    }
+  };
+
+  /**
+   * Visitor that calls the apropriate theory to preregister the term.
+   */
+  class RegisterVisitor {
+
+    /** The engine */
+    TheoryEngine& d_engine;
+
+  public:
+
+    RegisterVisitor(TheoryEngine& engine): d_engine(engine) {}
+
+    void operator () (TNode current) {
+      // Register this node to it's theory
+      theory::Theory* currentTheory = d_engine.theoryOf(current);
+      Debug("register") << "registering " << current << " with " << currentTheory->getId() << std::endl;
+      currentTheory->registerTerm(current);
+    }
+  };
 
 };/* class TheoryEngine */
 

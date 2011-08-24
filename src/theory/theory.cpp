@@ -26,6 +26,9 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 
+/** Default value for the uninterpreted sorts is the UF theory */
+TheoryId Theory::d_uninterpretedSortOwner = THEORY_UF;
+
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
   case Theory::MIN_EFFORT:

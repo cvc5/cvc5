@@ -40,11 +40,6 @@ class TheoryEngine;
 
 namespace theory {
 
-/** Tag for the "newFact()-has-been-called-in-this-context" flag on Nodes */
-struct AssertedAttrTag {};
-/** The "newFact()-has-been-called-in-this-context" flag on Nodes */
-typedef CVC4::expr::CDAttribute<AssertedAttrTag, bool> Asserted;
-
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
  *
@@ -178,31 +173,51 @@ protected:
     return d_facts.end();
   }
 
+  /**
+   * The theory that owns the uninterpreted sort.
+   */
+  static TheoryId d_uninterpretedSortOwner;
+
 public:
 
   /**
    * Return the ID of the theory responsible for the given type.
    */
   static inline TheoryId theoryOf(TypeNode typeNode) {
+    TheoryId id;
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
-      return typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
+      id = typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     } else {
-      return kindToTheoryId(typeNode.getKind());
+      id = kindToTheoryId(typeNode.getKind());
     }
+    if (id == THEORY_BUILTIN) {
+      return d_uninterpretedSortOwner;
+    }
+    return id;
   }
+
 
   /**
    * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
-    if (node.getMetaKind() == kind::metakind::VARIABLE ||
-        node.getMetaKind() == kind::metakind::CONSTANT) {
-      // Constants, variables, 0-ary constructors
+    // Constants, variables, 0-ary constructors
+    if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
       return theoryOf(node.getType());
-    } else {
-      // Regular nodes
-      return kindToTheoryId(node.getKind());
     }
+    // Equality is owned by the theory that owns the domain
+    if (node.getKind() == kind::EQUAL) {
+      return theoryOf(node[0].getType());
+    }
+    // Regular nodes are owned by the kind
+    return kindToTheoryId(node.getKind());
+  }
+
+  /**
+   * Set the owner of the uninterpreted sort.
+   */
+  static void setUninterpretedSortOwner(TheoryId theory) {
+    d_uninterpretedSortOwner = theory;
   }
 
   /**

@@ -249,7 +249,12 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
     throw ModalException("logic already set");
   }
   d_logic = s;
-  d_theoryEngine->d_logic = s;
+  d_theoryEngine->setLogic(s);
+
+  // If in arrays, set the UF handler to arrays
+  if (s == "QF_AX") {
+    theory::Theory::setUninterpretedSortOwner(theory::THEORY_ARRAY);
+  }
 }
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
