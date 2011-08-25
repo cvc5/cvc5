@@ -126,13 +126,9 @@ public:
     TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
 
     lastId = attr::LastAttributeId<bool, true>::s_id;
-    TS_ASSERT_LESS_THAN(theory::Asserted::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag1cd::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag2cd::s_id, lastId);
-    TS_ASSERT_DIFFERS(theory::Asserted::s_id, TestFlag1cd::s_id);
-    TS_ASSERT_DIFFERS(theory::Asserted::s_id, TestFlag2cd::s_id);
     TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
-    cout << "A: " << theory::Asserted::s_id << endl;
     cout << "1: " << TestFlag1cd::s_id << endl;
     cout << "2: " << TestFlag2cd::s_id << endl;
 

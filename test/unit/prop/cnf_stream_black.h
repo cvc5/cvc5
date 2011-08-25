@@ -189,21 +189,22 @@ void testImplies() {
   TS_ASSERT( d_satSolver->addClauseCalled() );
 }
 
-void testIte() {
-  NodeManagerScope nms(d_nodeManager);
-  d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(
-          kind::EQUAL,
-          d_nodeManager->mkNode(
-              kind::ITE,
-              d_nodeManager->mkVar(d_nodeManager->booleanType()),
-              d_nodeManager->mkVar(d_nodeManager->integerType()),
-              d_nodeManager->mkVar(d_nodeManager->integerType())
-          ),
-          d_nodeManager->mkVar(d_nodeManager->integerType())
-                            ), false, false);
-
-}
+// ITEs should be removed before going to CNF
+//void testIte() {
+//  NodeManagerScope nms(d_nodeManager);
+//  d_cnfStream->convertAndAssert(
+//      d_nodeManager->mkNode(
+//          kind::EQUAL,
+//          d_nodeManager->mkNode(
+//              kind::ITE,
+//              d_nodeManager->mkVar(d_nodeManager->booleanType()),
+//              d_nodeManager->mkVar(d_nodeManager->integerType()),
+//              d_nodeManager->mkVar(d_nodeManager->integerType())
+//          ),
+//          d_nodeManager->mkVar(d_nodeManager->integerType())
+//                            ), false, false);
+//
+//}
 
 void testNot() {
   NodeManagerScope nms(d_nodeManager);
