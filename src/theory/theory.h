@@ -137,7 +137,6 @@ protected:
     d_factsHead = d_factsHead + 1;
     Trace("theory") << "Theory::get() => " << fact
                     << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
-    d_out->newFact(fact);
     return fact;
   }
 
@@ -311,19 +310,6 @@ public:
   virtual void preRegisterTerm(TNode) { }
 
   /**
-   * Register a term.
-   *
-   * When get() is called to get the next thing off the theory queue,
-   * setup() is called on its subterms (in TheoryEngine).  Then setup()
-   * is called on this node.
-   *
-   * This is done in a "context escape" -- that is, at context level 0.
-   * setup() MUST NOT MODIFY context-dependent objects that it hasn't
-   * itself just created.
-   */
-  virtual void registerTerm(TNode) { }
-
-  /**
    * Assert a fact in the current context.
    */
   void assertFact(TNode node) {
@@ -485,6 +471,35 @@ public:
    * etc..)
    */
   virtual std::string identify() const = 0;
+
+  /** A set of theories */
+  typedef uint32_t Set;
+
+  /** Add the theory to the set. If no set specified, just returns a singleton set */
+  static inline Set setInsert(TheoryId theory, Set set = 0) {
+    return set | (1 << theory);
+  }
+
+  /** Check if the set containt the theory */
+  static inline bool setContains(TheoryId theory, Set set) {
+    return set & (1 << theory);
+  }
+
+  static inline Set setUnion(Set a, Set b) {
+    return a | b;
+  }
+
+  static inline std::string setToString(theory::Theory::Set theorySet) {
+    std::stringstream ss;
+    ss << "[";
+    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
+      if (theory::Theory::setContains((theory::TheoryId)theoryId, theorySet)) {
+        ss << (theory::TheoryId) theoryId << " ";
+      }
+    }
+    ss << "]";
+    return ss.str();
+  }
 
 };/* class Theory */
 

@@ -28,7 +28,7 @@ namespace CVC4 {
 /**
  * Traverses the nodes topologically and call the visitor when all the children have been visited.
  */
-template<typename Visitor, typename VisitedAttribute>
+template<typename Visitor>
 class NodeVisitor {
 
 public:
@@ -39,35 +39,37 @@ public:
   struct stack_element {
     /** The node to be visited */
     TNode node;
+    /** The parent of the node */
+    TNode parent;
+    /** Have the children been queued up for visitation */
     bool children_added;
-    stack_element(TNode node)
-    : node(node), children_added(false) {}
+    stack_element(TNode node, TNode parent)
+    : node(node), parent(parent), children_added(false) {}
   };/* struct preprocess_stack_element */
 
   /**
    * Performs the traversal.
    */
-  static void run(Visitor visitor, TNode node) {
-    // If the node has been visited already, we're done
-    if (node.getAttribute(VisitedAttribute())) {
-      return;
-    }
+  static void run(Visitor& visitor, TNode node) {
+
+    // Notify of a start
+    visitor.start(node);
+
     // Do a topological sort of the subexpressions and preregister them
     std::vector<stack_element> toVisit;
-    toVisit.push_back((TNode) node);
+    toVisit.push_back(stack_element(node, node));
     while (!toVisit.empty()) {
       stack_element& stackHead = toVisit.back();
       // The current node we are processing
       TNode current = stackHead.node;
+      TNode parent = stackHead.parent;
 
-      if (current.getAttribute(VisitedAttribute())) {
+      if (visitor.alreadyVisited(current, parent)) {
         // If already visited, we're done
         toVisit.pop_back();
       } else if (stackHead.children_added) {
-        // If children have been processed, we can visit the current
-        current.setAttribute(VisitedAttribute(), true);
         // Call the visitor
-        visitor(current);
+        visitor.visit(current, parent);
         // Done with this node, remove from the stack
         toVisit.pop_back();
       } else {
@@ -76,13 +78,15 @@ public:
         // We need to add the children
         for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
           TNode childNode = *child_it;
-          if (!childNode.getAttribute(VisitedAttribute())) {
-            toVisit.push_back(childNode);
+          if (!visitor.alreadyVisited(childNode, current)) {
+            toVisit.push_back(stack_element(childNode, current));
           }
         }
       }
     }
 
+    // Notify that we're done
+    visitor.done(node);
   }
 
 };

@@ -54,12 +54,6 @@ public:
   }
 
   /**
-   * Notify the OutputChannel that a new fact has been received by
-   * the theory.
-   */
-  virtual void newFact(TNode n) { }
-
-  /**
    * With safePoint(), the theory signals that it is at a safe point
    * and can be interrupted.
    */

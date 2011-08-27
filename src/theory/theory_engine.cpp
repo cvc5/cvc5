@@ -37,43 +37,23 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::theory;
 
-/** Tag for the "registerTerm()-has-been-called" flag on Nodes */
-struct RegisteredAttrTag {};
-/** The "registerTerm()-has-been-called" flag on Nodes */
-typedef expr::CDAttribute<RegisteredAttrTag, bool> RegisteredAttr;
-
 /** Tag for the "preregisterTerm()-has-benn-called" flag on nodes */
 struct PreRegisteredAttrTag {};
 /** The "preregisterTerm()-has-been-called" flag on Nodes */
-typedef expr::Attribute<PreRegisteredAttrTag, bool> PreRegisteredAttr;
-
-void TheoryEngine::EngineOutputChannel::newFact(TNode fact) {
-  TimerStat::CodeTimer codeTimer(d_newFactTimer);
-
-  if (fact.getKind() == kind::NOT) {
-    // No need to register negations - only atoms
-    fact = fact[0];
-  }
-
-  if(Options::current()->theoryRegistration && !fact.getAttribute(RegisteredAttr()) && d_engine->d_needRegistration) {
-    RegisterVisitor visitor(*d_engine);
-    NodeVisitor<RegisterVisitor, RegisteredAttr>::run(visitor, fact);
-  }
-}
+typedef expr::Attribute<PreRegisteredAttrTag, Theory::Set> PreRegisteredAttr;
 
 TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_propEngine(NULL),
   d_context(ctxt),
   d_activeTheories(0),
-  d_needRegistration(false),
   d_theoryOut(this, ctxt),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
-  d_statistics() {
+  d_statistics(),
+  d_preRegistrationVisitor(*this) {
 
   for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
     d_theoryTable[theoryId] = NULL;
-    d_theoryIsActive[theoryId] = false;
   }
 
   Rewriter::init();
@@ -107,8 +87,7 @@ struct preregister_stack_element {
 };/* struct preprocess_stack_element */
 
 void TheoryEngine::preRegister(TNode preprocessed) {
-  PreRegisterVisitor visitor(*this);
-  NodeVisitor<PreRegisterVisitor, PreRegisteredAttr>::run(visitor, preprocessed);
+  NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
 }
 
 /**
@@ -123,7 +102,7 @@ void TheoryEngine::check(theory::Theory::Effort effort) {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasCheck && d_theoryIsActive[THEORY]) { \
+  if (theory::TheoryTraits<THEORY>::hasCheck && isActive(THEORY)) { \
      reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->check(effort); \
      if (d_theoryOut.d_inConflict) { \
        return; \
@@ -144,7 +123,7 @@ void TheoryEngine::propagate() {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasPropagate && d_theoryIsActive[THEORY]) { \
+  if (theory::TheoryTraits<THEORY>::hasPropagate && isActive(THEORY)) { \
       reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->propagate(theory::Theory::FULL_EFFORT); \
   }
 
@@ -205,7 +184,7 @@ void TheoryEngine::notifyRestart() {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasNotifyRestart && d_theoryIsActive[THEORY]) { \
+  if (theory::TheoryTraits<THEORY>::hasNotifyRestart && isActive(THEORY)) { \
     reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->notifyRestart(); \
   }
 
@@ -231,22 +210,6 @@ void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
 
   // static learning for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
-}
-
-bool TheoryEngine::hasRegisterTerm(TheoryId th) const {
-  switch(th) {
-  // Definition of the statement that is to be run by every theory
-#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
-#undef CVC4_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  case THEORY: \
-    return theory::TheoryTraits<THEORY>::hasRegisterTerm;
-
-    CVC4_FOR_EACH_THEORY
-  default:
-    Unhandled(th);
-  }
 }
 
 theory::Theory::SolveStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitionOut) {

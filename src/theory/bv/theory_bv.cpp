@@ -138,7 +138,7 @@ void TheoryBV::check(Effort e) {
       normalization.assumptions.push_back(assumptions);
 
       BVDebug("bitvector") << "Adding normalization " << lhsNormalized.eqNode(rhsNormalized) << std::endl;
-      BVDebug("bitvector") << "       assumptions   " << setToString(assumptions) << std::endl;
+      BVDebug("bitvector") << "       assumptions   " << utils::setToString(assumptions) << std::endl;
 
 
       BVDebug("bitvector") << "TheoryBV::check(" << e << "): normalizes to " << lhsNormalized << " = " << rhsNormalized << std::endl;
@@ -234,7 +234,7 @@ void TheoryBV::explain(TNode node) {
   std::set<TNode> assumptions;
   for (unsigned i = 0; i < vec.size(); ++ i) {
     BVDebug("bitvector") << "Adding normalization " << d_normalization[equality]->equalities[i] << std::endl;
-    BVDebug("bitvector") << "       assumptions   " << setToString(d_normalization[equality]->assumptions[i]) << std::endl;
+    BVDebug("bitvector") << "       assumptions   " << utils::setToString(d_normalization[equality]->assumptions[i]) << std::endl;
     assumptions.insert(vec[i].begin(), vec[i].end());
   }
   d_out->explanation(utils::mkConjunction(assumptions));
