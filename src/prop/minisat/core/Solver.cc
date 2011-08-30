@@ -579,6 +579,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 CRef Solver::propagate(TheoryCheckType type)
 {
     CRef confl = CRef_Undef;
+    recheck = false;
 
     ScopedBool scoped_bool(minisat_busy, true);
 
@@ -597,6 +598,7 @@ CRef Solver::propagate(TheoryCheckType type)
       theoryCheck(CVC4::theory::Theory::FULL_EFFORT);
       // If there are lemmas (or conflicts) update them
       if (lemmas.size() > 0) {
+        recheck = true;
         return updateLemmas();
       }
     }
@@ -913,6 +915,9 @@ lbool Solver::search(int nof_conflicts)
               // Unless a lemma has added more stuff to the queues
               if (!order_heap.empty() || qhead < trail.size()) {
                 check_type = CHECK_WITH_PROPAGATION_STANDARD;
+                continue;
+              } else if (recheck) {
+                // There some additional stuff added, so we go for another full-check
                 continue;
               } else {
                 // Yes, we're truly satisfiable

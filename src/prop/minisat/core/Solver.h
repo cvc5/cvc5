@@ -71,6 +71,9 @@ protected:
   /** Is the lemma removable */
   vec<bool> lemmas_removable;
 
+  /** Do a another check if FULL_EFFORT was the last one */
+  bool recheck;
+
   /** Shrink 'cs' to contain only clauses below given level */
   void removeClausesAboveLevel(vec<CRef>& cs, int level); 
 
