@@ -514,8 +514,8 @@ public:
     }
 
     // Dereference operators.
-    std::pair<const Key, Data> operator*() const {
-      return std::pair<const Key, Data>(d_it->getKey(), d_it->get());
+    std::pair<const Key, const Data> operator*() const {
+      return std::pair<const Key, const Data>(d_it->getKey(), d_it->get());
     }
 
     // Prefix increment
