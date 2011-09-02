@@ -148,6 +148,11 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
 
     setDecisionVar(v, dvar);
 
+    // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
+    if (theoryAtom) {
+      variables_to_register.push(VarIntroInfo(v, decisionLevel()));
+    }
+
     return v;
 }
 
@@ -295,6 +300,13 @@ void Solver::cancelUntil(int level) {
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
+
+        // Register variables that have not been registered yet
+        int currentLevel = decisionLevel();
+        for(int i = variables_to_register.size() - 1; i >= 0 && variables_to_register[i].level > currentLevel; --i) {
+          variables_to_register[i].level = currentLevel;
+          proxy->variableNotify(variables_to_register[i].var);
+        }
     }
 }
 

@@ -80,12 +80,23 @@ protected:
   /** True if we are currently solving. */
   bool minisat_busy;
 
+  // Information about registration of variables
+  struct VarIntroInfo {
+    Var var;
+    int level;
+    VarIntroInfo(Var var, int level)
+    : var(var), level(level) {}
+  };
+
+  /** Variables to re-register with theory solvers on backtracks */
+  vec<VarIntroInfo> variables_to_register;
+
 public:
 
     // Constructor/Destructor:
     //
     Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental = false);
-    CVC4_PUBLIC ~Solver();
+    CVC4_PUBLIC virtual ~Solver();
 
     // Problem specification:
     //

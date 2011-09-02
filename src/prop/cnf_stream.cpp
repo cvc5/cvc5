@@ -98,7 +98,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
   SatLiteral lit;
   if (!hasLiteral(node)) {
     // If no literal, well make one
-    lit = Minisat::mkLit(d_satSolver->newVar(theoryLiteral));
+    lit = variableToLiteral(d_satSolver->newVar(theoryLiteral));
     d_translationCache[node].literal = lit;
     d_translationCache[node.notNode()].literal = ~lit;
   } else {
@@ -411,6 +411,7 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
         //Node atomic = handleNonAtomicNode(node);
         //return isCached(atomic) ? lookupInCache(atomic) : convertAtom(atomic);
       }
+      break;
     }
   }
 

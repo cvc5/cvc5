@@ -100,7 +100,7 @@ public:
   /**
    * Creates a new node, which is in a list of it's own.
    */
-  UseListNode(EqualityNodeId nodeId, UseListNodeId nextId)
+  UseListNode(EqualityNodeId nodeId = null_id, UseListNodeId nextId = null_uselist_id)
   : d_applicationId(nodeId), d_nextUseListNodeId(nextId) {}
 
   /**
@@ -198,6 +198,15 @@ public:
     d_useList = newUseId;
   }
 
+  /**
+   * For backtracking: remove the first element from the uselist and pop the memory.
+   */
+  template<typename memory_class>
+  void removeTopFromUseList(memory_class& memory) {
+    Assert ((int)d_useList == (int)memory.size() - 1);
+    d_useList = memory.back().getNext();
+    memory.pop_back();
+  }
 };
 
 template <typename NotifyClass>
@@ -241,7 +250,7 @@ public:
     bool operator == (const FunctionApplication& other) const {
       return a == other.a && b == other.b;
     }
-    bool isApplication() {
+    bool isApplication() const {
       return a != null_id && b != null_id;
     }
   };
@@ -278,17 +287,23 @@ private:
   /** Map from ids to the nodes */
   std::vector<TNode> d_nodes;
 
-  /** Map from ids to the nodes */
+  /** A context-dependents count of nodes */
+  context::CDO<size_t> d_nodesCount;
+
+  /** Map from ids to the applications */
   std::vector<FunctionApplication> d_applications;
 
   /** Map from ids to the equality nodes */
   std::vector<EqualityNode> d_equalityNodes;
 
+  /** Number of asserted equalities we have so far */
+  context::CDO<size_t> d_assertedEqualitiesCount;
+
   /** Memory for the use-list nodes */
   std::vector<UseListNode> d_useListNodes;
 
-  /** Number of asserted equalities we have so far */
-  context::CDO<size_t> d_assertedEqualitiesCount;
+  /** Context dependent size of the use-list memory */
+  context::CDO<size_t> d_useListNodeSize;
 
   /**
    * We keep a list of asserted equalities. Not among original terms, but
@@ -415,12 +430,12 @@ private:
     /** Next trigger for class 1 */
     TriggerId nextTrigger;
 
-    Trigger(EqualityNodeId classId, TriggerId nextTrigger)
+    Trigger(EqualityNodeId classId = null_id, TriggerId nextTrigger = null_trigger)
     : classId(classId), nextTrigger(nextTrigger) {}
   };
 
   /**
-   * Vector of triggers (persistent and not-backtrackable). Triggers come in pairs for an
+   * Vector of triggers. Triggers come in pairs for an
    * equality trigger (t1, t2): one at position 2k for t1, and one at position 2k + 1 for t2. When
    * updating triggers we always know where the other one is (^1).
    */
@@ -430,6 +445,11 @@ private:
    * Vector of original equalities of the triggers.
    */
   std::vector<TNode> d_equalityTriggersOriginal;
+
+  /**
+   * Context dependent count of triggers
+   */
+  context::CDO<size_t> d_equalityTriggersCount;
 
   /**
    * Trigger lists per node. The begin id changes as we merge, but the end always points to
@@ -493,7 +513,14 @@ public:
    * the owner information.
    */
   EqualityEngine(NotifyClass& notify, context::Context* context, std::string name)
-  : ContextNotifyObj(context), d_notify(notify), d_assertedEqualitiesCount(context, 0), d_stats(name) {
+  : ContextNotifyObj(context),
+    d_notify(notify),
+    d_nodesCount(context, 0),
+    d_assertedEqualitiesCount(context, 0),
+    d_useListNodeSize(context, 0),
+    d_equalityTriggersCount(context, 0),
+    d_stats(name)
+  {
     Debug("equality") << "EqualityEdge::EqualityEngine(): id_null = " << +null_id << std::endl;
     Debug("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
     Debug("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;

@@ -89,6 +89,7 @@ Parser *ParserBuilder::build()
     break;
   default:
     parser = new Parser(d_exprManager, input, d_strictMode, d_parseOnly);
+    break;
   }
 
   if( d_checksEnabled ) {

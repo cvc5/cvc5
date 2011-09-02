@@ -480,7 +480,7 @@ public:
     return set | (1 << theory);
   }
 
-  /** Check if the set containt the theory */
+  /** Check if the set contains the theory */
   static inline bool setContains(TheoryId theory, Set set) {
     return set & (1 << theory);
   }

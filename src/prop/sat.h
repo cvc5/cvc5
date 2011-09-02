@@ -70,6 +70,10 @@ inline SatVariable literalToVariable(SatLiteral lit) {
   return Minisat::var(lit);
 }
 
+inline SatLiteral variableToLiteral(SatVariable var) {
+  return Minisat::mkLit(var);
+}
+
 inline bool literalSign(SatLiteral lit) {
   return Minisat::sign(lit);
 }
@@ -208,7 +212,7 @@ public:
             TheoryEngine* theoryEngine,
             context::Context* context);
 
-  ~SatSolver();
+  virtual ~SatSolver();
 
   bool solve();
 
@@ -241,6 +245,11 @@ public:
   void pop();
 
   void removeClausesAboveLevel(int level);
+
+  /**
+   * Notifies of a new variable at a decision level.
+   */
+  void variableNotify(SatVariable var);
 
   void unregisterVar(SatLiteral lit);
 

@@ -133,7 +133,7 @@ private:
 
 public:
   TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation);
-  ~TheoryArith();
+  virtual ~TheoryArith();
 
   /**
    * Does non-context dependent setup for a node connected to a theory.

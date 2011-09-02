@@ -51,7 +51,7 @@ public:
   CvcInput(AntlrInputStream& inputStream);
 
   /** Destructor. Frees the lexer and the parser. */
-  ~CvcInput();
+  virtual ~CvcInput();
 
   /** Get the language that this Input is reading. */
   InputLanguage getLanguage() const throw() {

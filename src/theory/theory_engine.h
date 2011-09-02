@@ -441,7 +441,7 @@ private:
     /**
      * Cache from proprocessing of atoms.
      */
-    typedef std::hash_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
+    typedef context::CDMap<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
     TNodeVisitedMap d_visited;
 
     /**
@@ -453,14 +453,14 @@ private:
       std::stringstream ss;
       TNodeVisitedMap::const_iterator it = d_visited.begin();
       for (; it != d_visited.end(); ++ it) {
-        ss << it->first << ": " << theory::Theory::setToString(it->second) << std::endl;
+        ss << (*it).first << ": " << theory::Theory::setToString((*it).second) << std::endl;
       }
       return ss.str();
     }
 
   public:
 
-    PreRegisterVisitor(TheoryEngine& engine): d_engine(engine), d_theories(0) {}
+    PreRegisterVisitor(TheoryEngine& engine, context::Context* context): d_engine(engine), d_visited(context), d_theories(0){}
 
     bool alreadyVisited(TNode current, TNode parent) {
 
@@ -476,21 +476,18 @@ private:
         return false;
       }
 
+      Theory::Set theories = (*find).second;
+
       TheoryId currentTheoryId = Theory::theoryOf(current);
-      if (Theory::setContains(currentTheoryId, find->second)) {
+      TheoryId parentTheoryId  = Theory::theoryOf(parent);
+
+      if (Theory::setContains(currentTheoryId, theories)) {
         // The current theory has already visited it, so now it depends on the parent
-        TheoryId parentTheoryId = Theory::theoryOf(parent);
-        if (parentTheoryId == currentTheoryId) {
-          // If it's the same theory, we've visited it already
-          Debug("register::internal") << "2:true" << std::endl;
-          return true;
-        }
-        // If not the same theory, we might have visited it, just check
-        Debug("register::internal") << (Theory::setContains(parentTheoryId, find->second) ? "3:true" : "3:false") << std::endl;
-        return Theory::setContains(parentTheoryId, find->second);
+        Debug("register::internal") << (Theory::setContains(parentTheoryId, theories) ? "2:true" : "2:false") << std::endl;
+        return Theory::setContains(parentTheoryId, theories);
       } else {
         // If the current theory is not registered, it still needs to be visited
-        Debug("register::internal") << "4:false" << std::endl;
+        Debug("register::internal") << "2:false" << std::endl;
         return false;
       }
     }
@@ -506,44 +503,21 @@ private:
       TheoryId currentTheoryId = Theory::theoryOf(current);
       TheoryId parentTheoryId  = Theory::theoryOf(parent);
 
-      if (currentTheoryId == parentTheoryId) {
-        // If it's the same theory we just add it
-        TNodeVisitedMap::iterator find = d_visited.find(current);
-        if (find == d_visited.end()) {
-          d_visited[current] = Theory::setInsert(currentTheoryId);
-        } else {
-          find->second = Theory::setInsert(currentTheoryId, find->second);
-        }
-        // Visit it
+      Theory::Set theories = d_visited[current];
+      Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(theories) << std::endl;
+      if (!Theory::setContains(currentTheoryId, theories)) {
+        d_visited[current] = theories = Theory::setInsert(currentTheoryId, theories);
         d_engine.theoryOf(currentTheoryId)->preRegisterTerm(current);
-        // Mark the theory as active
         d_theories = Theory::setInsert(currentTheoryId, d_theories);
-      } else {
-        // If two theories, one might have visited it already
-        // If it's the same theory we just add it
-        TNodeVisitedMap::iterator find = d_visited.find(current);
-        if (find == d_visited.end()) {
-          // If not in the map at all, we just add both
-          d_visited[current] = Theory::setInsert(parentTheoryId, Theory::setInsert(currentTheoryId));
-          // And visit both
-          d_engine.theoryOf(currentTheoryId)->preRegisterTerm(current);
-          d_engine.theoryOf(parentTheoryId)->preRegisterTerm(current);
-          // Mark both theories as active
-          d_theories = Theory::setInsert(currentTheoryId, d_theories);
-          d_theories = Theory::setInsert(parentTheoryId, d_theories);
-        } else {
-          if (!Theory::setContains(currentTheoryId, find->second)) {
-            find->second = Theory::setInsert(currentTheoryId, find->second);
-            d_engine.theoryOf(currentTheoryId)->preRegisterTerm(current);
-            d_theories = Theory::setInsert(currentTheoryId, d_theories);
-          }
-          if (!Theory::setContains(parentTheoryId, find->second)) {
-            find->second = Theory::setInsert(parentTheoryId, find->second);
-            d_engine.theoryOf(parentTheoryId)->preRegisterTerm(current);
-            d_theories = Theory::setInsert(parentTheoryId, d_theories);
-          }
-        }
+        Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << currentTheoryId << std::endl;
       }
+      if (!Theory::setContains(parentTheoryId, theories)) {
+        d_visited[current] = theories = Theory::setInsert(parentTheoryId, theories);
+        d_engine.theoryOf(parentTheoryId)->preRegisterTerm(current);
+        d_theories = Theory::setInsert(parentTheoryId, d_theories);
+        Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
+      }
+      Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): now registered with " << Theory::setToString(theories) << std::endl;
 
       Assert(d_visited.find(current) != d_visited.end());
       Assert(alreadyVisited(current, parent));

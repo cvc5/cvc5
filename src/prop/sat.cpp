@@ -27,6 +27,10 @@
 namespace CVC4 {
 namespace prop {
 
+void SatSolver::variableNotify(SatVariable var) {
+  d_theoryEngine->preRegister(getNode(variableToLiteral(var)));
+}
+
 void SatSolver::theoryCheck(theory::Theory::Effort effort) {
   d_theoryEngine->check(effort);
 }

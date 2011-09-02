@@ -41,19 +41,20 @@ EqualityNodeId EqualityEngine<NotifyClass>::newApplicationNode(TNode original, E
 
   // Get another id for this
   EqualityNodeId funId = newNode(original, true);
-  FunctionApplication fun(t1, t2);
-  d_applications[funId] = fun;
-
-  // The function application we're creating
+    // The function application we're creating
   EqualityNodeId t1ClassId = getEqualityNode(t1).getFind();
   EqualityNodeId t2ClassId = getEqualityNode(t2).getFind();
   FunctionApplication funNormalized(t1ClassId, t2ClassId);
+
+  // We add the normalized version, the term needs to be re-added on each backtrack
+  d_applications[funId] = funNormalized;
 
   // Add the lookup data, if it's not already there
   typename ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
   if (find == d_applicationLookup.end()) {
     // When we backtrack, if the lookup is not there anymore, we'll add it again
     Debug("equality") << "EqualityEngine::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): no lookup, setting up" << std::endl;
+    // Mark the normalization to the lookup
     d_applicationLookup[funNormalized] = funId;
   } else {
     // If it's there, we need to merge these two
@@ -65,6 +66,7 @@ EqualityNodeId EqualityEngine<NotifyClass>::newApplicationNode(TNode original, E
   // Add to the use lists
   d_equalityNodes[t1].usedIn(funId, d_useListNodes);
   d_equalityNodes[t2].usedIn(funId, d_useListNodes);
+  d_useListNodeSize = d_useListNodes.size();
 
   // Return the new id
   Debug("equality") << "EqualityEngine::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ") => " << funId << std::endl;
@@ -92,6 +94,9 @@ EqualityNodeId EqualityEngine<NotifyClass>::newNode(TNode node, bool isApplicati
   d_equalityGraph.push_back(+null_edge);
   // Add the equality node to the nodes
   d_equalityNodes.push_back(EqualityNode(newId));
+
+  // Increase the counters
+  d_nodesCount = d_nodesCount + 1;
 
   Debug("equality") << "EqualityEngine::newNode(" << node << ", " << (isApplication ? "function" : "regular") << ") => " << newId << std::endl;
 
@@ -433,6 +438,37 @@ void EqualityEngine<NotifyClass>::backtrack() {
 
     d_equalityEdges.resize(2 * d_assertedEqualitiesCount);
   }
+
+  if (d_nodes.size() > d_nodesCount) {
+    // Go down the nodes, check the application nodes and remove them from use-lists
+    for(int i = d_nodes.size() - 1, i_end = (int)d_nodesCount; i >= i_end; ++ i) {
+      // Remove from the node -> id map
+      d_nodeIds.erase(d_nodes[i]);
+
+      const FunctionApplication& app = d_applications[i];
+      if (app.isApplication()) {
+        // Remove from the applications map
+        d_applicationLookup.erase(app);
+        // Remove b from use-list
+        getEqualityNode(app.b).removeTopFromUseList(d_useListNodes);
+        // Remove a from use-list
+        getEqualityNode(app.a).removeTopFromUseList(d_useListNodes);
+      }
+    }
+
+    // Now get rid of the nodes and the rest
+    d_nodes.resize(d_nodesCount);
+    d_applications.resize(d_nodesCount);
+    d_nodeTriggers.resize(d_nodesCount);
+    d_equalityGraph.resize(d_nodesCount);
+    d_equalityNodes.resize(d_nodesCount);
+    d_useListNodes.resize(d_useListNodeSize);
+  }
+
+  if (d_equalityTriggers.size() > d_equalityTriggersCount) {
+    d_equalityTriggers.resize(d_equalityTriggersCount);
+    d_equalityTriggersOriginal.resize(d_equalityTriggersCount);
+  }
 }
 
 template <typename NotifyClass>
@@ -600,6 +636,9 @@ void EqualityEngine<NotifyClass>::addTriggerEquality(TNode t1, TNode t2, TNode t
   d_equalityTriggersOriginal.push_back(trigger);
   d_equalityTriggers.push_back(Trigger(t2classId, t2TriggerId));
   d_equalityTriggersOriginal.push_back(trigger);
+
+  // Update the counters
+  d_equalityTriggersCount = d_equalityTriggersCount + 2;
 
   // Add the trigger to the trigger graph
   d_nodeTriggers[t1Id] = t1NewTriggerId;

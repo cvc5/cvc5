@@ -50,7 +50,7 @@ TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
   d_statistics(),
-  d_preRegistrationVisitor(*this) {
+  d_preRegistrationVisitor(*this, ctxt) {
 
   for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
     d_theoryTable[theoryId] = NULL;

@@ -153,6 +153,7 @@ void TheoryUF::preRegisterTerm(TNode node) {
       d_equalityEngine.addTriggerEquality(node, d_true, node);
       d_equalityEngine.addTriggerEquality(node, d_false, node.notNode());
     }
+    break;
   default:
     // Variables etc
     d_equalityEngine.addTerm(node);
