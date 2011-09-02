@@ -22,8 +22,9 @@ do
       # regexp `\?' not supported on Mac OS X
       ac_option_build=`expr "$ac_option" : '\([[^-]]*\)-\{0,1\}'`
       ac_cvc4_build_profile_set=yes
+      as_me=configure
       AC_MSG_NOTICE([CVC4: building profile $ac_option_build])
-      for x in optimized statistics replay assertions tracing muzzle coverage profiling; do
+      for x in optimized statistics replay assertions tracing dumping muzzle coverage profiling; do
         if expr "$ac_option" : '.*-no'$x'$' >/dev/null || expr "$ac_option" : '.*-no'$x'-' >/dev/null; then
           eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--disable-$x\""'
         fi

@@ -94,6 +94,18 @@ function endtheory {
   seen_endtheory=true
 }
 
+function typechecker {
+  # typechecker header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
+function typerule {
+  # typerule OPERATOR typechecking-class
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
 function rewriter {
   # rewriter class header
   class="$1"

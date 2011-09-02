@@ -5,11 +5,14 @@
 #
 
 theory THEORY_UF ::CVC4::theory::uf::TheoryUF "theory/uf/theory_uf.h"
+typechecker "theory/uf/theory_uf_type_rules.h"
 
 properties stable-infinite
-properties check propagate staticLearning presolve notifyRestart
+properties check propagate staticLearning presolve
 
 rewriter ::CVC4::theory::uf::TheoryUfRewriter "theory/uf/theory_uf_rewriter.h"
 parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"
+
+typerule APPLY_UF ::CVC4::theory::uf::UfTypeRule
 
 endtheory

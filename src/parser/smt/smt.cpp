@@ -2,8 +2,8 @@
 /*! \file smt.cpp
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): dejan, mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -20,6 +20,7 @@ namespace std {
 }
 
 #include "expr/type.h"
+#include "expr/command.h"
 #include "parser/parser.h"
 #include "parser/smt/smt.h"
 
@@ -80,6 +81,10 @@ void Smt::addTheory(Theory theory) {
   case THEORY_ARRAYS_EX: {
     Type indexType = mkSort("Index");
     Type elementType = mkSort("Element");
+    DeclarationSequence* seq = new DeclarationSequence();
+    seq->addCommand(new DeclareTypeCommand("Index", 0, indexType));
+    seq->addCommand(new DeclareTypeCommand("Element", 0, elementType));
+    preemptCommand(seq);
 
     defineType("Array", getExprManager()->mkArrayType(indexType,elementType));
 
@@ -88,9 +93,11 @@ void Smt::addTheory(Theory theory) {
     break;
   }
 
-  case THEORY_EMPTY:
-    mkSort("U");
+  case THEORY_EMPTY: {
+    Type sort = mkSort("U");
+    preemptCommand(new DeclareTypeCommand("U", 0, sort));
     break;
+  }
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());

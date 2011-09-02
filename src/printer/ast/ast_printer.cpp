@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -112,9 +112,12 @@ void AstPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
+     tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
-     tryToStream<DeclarationCommand>(out, c) ||
+     tryToStream<DeclareFunctionCommand>(out, c) ||
      tryToStream<DefineFunctionCommand>(out, c) ||
+     tryToStream<DeclareTypeCommand>(out, c) ||
+     tryToStream<DefineTypeCommand>(out, c) ||
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
@@ -126,7 +129,8 @@ void AstPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<GetInfoCommand>(out, c) ||
      tryToStream<SetOptionCommand>(out, c) ||
      tryToStream<GetOptionCommand>(out, c) ||
-     tryToStream<DatatypeDeclarationCommand>(out, c)) {
+     tryToStream<DatatypeDeclarationCommand>(out, c) ||
+     tryToStream<CommentCommand>(out, c)) {
     return;
   }
 
@@ -167,6 +171,16 @@ static void toStream(std::ostream& out, const QuitCommand* c) {
   out << "Quit()";
 }
 
+static void toStream(std::ostream& out, const DeclarationSequence* c) {
+  out << "DeclarationSequence[" << endl;
+  for(CommandSequence::const_iterator i = c->begin();
+      i != c->end();
+      ++i) {
+    out << *i << endl;
+  }
+  out << "]";
+}
+
 static void toStream(std::ostream& out, const CommandSequence* c) {
   out << "CommandSequence[" << endl;
   for(CommandSequence::const_iterator i = c->begin();
@@ -177,13 +191,8 @@ static void toStream(std::ostream& out, const CommandSequence* c) {
   out << "]";
 }
 
-static void toStream(std::ostream& out, const DeclarationCommand* c) {
-  const vector<string>& declaredSymbols = c->getDeclaredSymbols();
-  out << "Declare([";
-  copy( declaredSymbols.begin(), declaredSymbols.end() - 1,
-        ostream_iterator<string>(out, ", ") );
-  out << declaredSymbols.back();
-  out << "])";
+static void toStream(std::ostream& out, const DeclareFunctionCommand* c) {
+  out << "Declare(" << c->getSymbol() << "," << c->getType() << ")";
 }
 
 static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
@@ -197,6 +206,22 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
     out << formals.back();
   }
   out << "], << " << formula << " >> )";
+}
+
+static void toStream(std::ostream& out, const DeclareTypeCommand* c) {
+  out << "DeclareType(" << c->getSymbol() << "," << c->getArity() << ","
+      << c->getType() << ")";
+}
+
+static void toStream(std::ostream& out, const DefineTypeCommand* c) {
+  const vector<Type>& params = c->getParameters();
+  out << "DefineType(" << c->getSymbol() << ",[";
+  if(params.size() > 0) {
+    copy( params.begin(), params.end() - 1,
+          ostream_iterator<Type>(out, ", ") );
+    out << params.back();
+  }
+  out << "]," << c->getType() << ")";
 }
 
 static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) {
@@ -250,6 +275,10 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) {
     out << *i << ";" << endl;
   }
   out << "])";
+}
+
+static void toStream(std::ostream& out, const CommentCommand* c) {
+  out << "CommentCommand([" << c->getComment() << "])";
 }
 
 template <class T>

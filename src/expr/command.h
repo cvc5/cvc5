@@ -2,8 +2,8 @@
 /*! \file command.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): cconway
+ ** Major contributors: none
+ ** Minor contributors (to current version): cconway, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -59,26 +59,31 @@ std::ostream& operator<<(std::ostream& out,
 
 class CVC4_PUBLIC Command {
 public:
+  virtual ~Command() {}
+
   virtual void invoke(SmtEngine* smtEngine) = 0;
   virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
-  virtual ~Command() {};
+
   virtual void toStream(std::ostream& out, int toDepth = -1, bool types = false,
                         OutputLanguage language = language::output::LANG_AST) const;
+
   std::string toString() const;
+
   virtual void printResult(std::ostream& out) const;
+
 };/* class Command */
 
 /**
- * EmptyCommands (and its subclasses) are the residue of a command
- * after the parser handles them (and there's nothing left to do).
+ * EmptyCommands are the residue of a command after the parser handles
+ * them (and there's nothing left to do).
  */
 class CVC4_PUBLIC EmptyCommand : public Command {
 protected:
   std::string d_name;
 public:
   EmptyCommand(std::string name = "");
+  std::string getName() const;
   void invoke(SmtEngine* smtEngine);
-  std::string getName() const { return d_name; }
 };/* class EmptyCommand */
 
 class CVC4_PUBLIC AssertCommand : public Command {
@@ -86,8 +91,8 @@ protected:
   BoolExpr d_expr;
 public:
   AssertCommand(const BoolExpr& e);
+  BoolExpr getExpr() const;
   void invoke(SmtEngine* smtEngine);
-  BoolExpr getExpr() const { return d_expr; }
 };/* class AssertCommand */
 
 class CVC4_PUBLIC PushCommand : public Command {
@@ -100,30 +105,59 @@ public:
   void invoke(SmtEngine* smtEngine);
 };/* class PopCommand */
 
-class CVC4_PUBLIC DeclarationCommand : public EmptyCommand {
+class CVC4_PUBLIC DeclarationDefinitionCommand : public Command {
 protected:
-  std::vector<std::string> d_declaredSymbols;
+  std::string d_symbol;
+public:
+  DeclarationDefinitionCommand(const std::string& id);
+  std::string getSymbol() const;
+};/* class DeclarationDefinitionCommand */
+
+class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand {
+protected:
   Type d_type;
 public:
-  DeclarationCommand(const std::string& id, Type t);
-  DeclarationCommand(const std::vector<std::string>& ids, Type t);
-  const std::vector<std::string>& getDeclaredSymbols() const;
-  Type getDeclaredType() const;
-};/* class DeclarationCommand */
+  DeclareFunctionCommand(const std::string& id, Type type);
+  Type getType() const;
+  void invoke(SmtEngine* smtEngine);
+};/* class DeclareFunctionCommand */
 
-class CVC4_PUBLIC DefineFunctionCommand : public Command {
+class CVC4_PUBLIC DeclareTypeCommand : public DeclarationDefinitionCommand {
+protected:
+  size_t d_arity;
+  Type d_type;
+public:
+  DeclareTypeCommand(const std::string& id, size_t arity, Type t);
+  size_t getArity() const;
+  Type getType() const;
+  void invoke(SmtEngine* smtEngine);
+};/* class DeclareTypeCommand */
+
+class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand {
+protected:
+  std::vector<Type> d_params;
+  Type d_type;
+public:
+  DefineTypeCommand(const std::string& id, Type t);
+  DefineTypeCommand(const std::string& id, const std::vector<Type>& params, Type t);
+  const std::vector<Type>& getParameters() const;
+  Type getType() const;
+  void invoke(SmtEngine* smtEngine);
+};/* class DefineTypeCommand */
+
+class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand {
 protected:
   Expr d_func;
   std::vector<Expr> d_formals;
   Expr d_formula;
 public:
-  DefineFunctionCommand(Expr func,
-                        const std::vector<Expr>& formals,
-                        Expr formula);
+  DefineFunctionCommand(const std::string& id, Expr func, Expr formula);
+  DefineFunctionCommand(const std::string& id, Expr func,
+                        const std::vector<Expr>& formals, Expr formula);
+  Expr getFunction() const;
+  const std::vector<Expr>& getFormals() const;
+  Expr getFormula() const;
   void invoke(SmtEngine* smtEngine);
-  Expr getFunction() const { return d_func; }
-  const std::vector<Expr>& getFormals() const { return d_formals; }
-  Expr getFormula() const { return d_formula; }
 };/* class DefineFunctionCommand */
 
 /**
@@ -133,9 +167,8 @@ public:
  */
 class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand {
 public:
-  DefineNamedFunctionCommand(Expr func,
-                             const std::vector<Expr>& formals,
-                             Expr formula);
+  DefineNamedFunctionCommand(const std::string& id, Expr func,
+                             const std::vector<Expr>& formals, Expr formula);
   void invoke(SmtEngine* smtEngine);
 };/* class DefineNamedFunctionCommand */
 
@@ -144,9 +177,10 @@ protected:
   BoolExpr d_expr;
   Result d_result;
 public:
+  CheckSatCommand();
   CheckSatCommand(const BoolExpr& expr);
+  BoolExpr getExpr() const;
   void invoke(SmtEngine* smtEngine);
-  BoolExpr getExpr() const { return d_expr; }
   Result getResult() const;
   void printResult(std::ostream& out) const;
 };/* class CheckSatCommand */
@@ -157,8 +191,8 @@ protected:
   Result d_result;
 public:
   QueryCommand(const BoolExpr& e);
+  BoolExpr getExpr() const;
   void invoke(SmtEngine* smtEngine);
-  BoolExpr getExpr() const { return d_expr; }
   Result getResult() const;
   void printResult(std::ostream& out) const;
 };/* class QueryCommand */
@@ -170,8 +204,8 @@ protected:
   Expr d_result;
 public:
   SimplifyCommand(Expr term);
+  Expr getTerm() const;
   void invoke(SmtEngine* smtEngine);
-  Expr getTerm() const { return d_term; }
   Expr getResult() const;
   void printResult(std::ostream& out) const;
 };/* class SimplifyCommand */
@@ -182,8 +216,8 @@ protected:
   Expr d_result;
 public:
   GetValueCommand(Expr term);
+  Expr getTerm() const;
   void invoke(SmtEngine* smtEngine);
-  Expr getTerm() const { return d_term; }
   Expr getResult() const;
   void printResult(std::ostream& out) const;
 };/* class GetValueCommand */
@@ -214,8 +248,8 @@ protected:
   BenchmarkStatus d_status;
 public:
   SetBenchmarkStatusCommand(BenchmarkStatus status);
+  BenchmarkStatus getStatus() const;
   void invoke(SmtEngine* smtEngine);
-  BenchmarkStatus getStatus() const { return d_status; }
 };/* class SetBenchmarkStatusCommand */
 
 class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command {
@@ -224,8 +258,8 @@ protected:
   std::string d_logic;
 public:
   SetBenchmarkLogicCommand(std::string logic);
+  std::string getLogic() const;
   void invoke(SmtEngine* smtEngine);
-  std::string getLogic() const { return d_logic; }
 };/* class SetBenchmarkLogicCommand */
 
 class CVC4_PUBLIC SetInfoCommand : public Command {
@@ -234,10 +268,10 @@ protected:
   SExpr d_sexpr;
   std::string d_result;
 public:
-  SetInfoCommand(std::string flag, SExpr& sexpr);
+  SetInfoCommand(std::string flag, const SExpr& sexpr);
+  std::string getFlag() const;
+  SExpr getSExpr() const;
   void invoke(SmtEngine* smtEngine);
-  std::string getFlag() const { return d_flag; }
-  SExpr getSExpr() const { return d_sexpr; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class SetInfoCommand */
@@ -248,8 +282,8 @@ protected:
   std::string d_result;
 public:
   GetInfoCommand(std::string flag);
+  std::string getFlag() const;
   void invoke(SmtEngine* smtEngine);
-  std::string getFlag() const { return d_flag; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class GetInfoCommand */
@@ -260,10 +294,10 @@ protected:
   SExpr d_sexpr;
   std::string d_result;
 public:
-  SetOptionCommand(std::string flag, SExpr& sexpr);
+  SetOptionCommand(std::string flag, const SExpr& sexpr);
+  std::string getFlag() const;
+  SExpr getSExpr() const;
   void invoke(SmtEngine* smtEngine);
-  std::string getFlag() const { return d_flag; }
-  SExpr getSExpr() const { return d_sexpr; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class SetOptionCommand */
@@ -274,8 +308,8 @@ protected:
   std::string d_result;
 public:
   GetOptionCommand(std::string flag);
+  std::string getFlag() const;
   void invoke(SmtEngine* smtEngine);
-  std::string getFlag() const { return d_flag; }
   std::string getResult() const;
   void printResult(std::ostream& out) const;
 };/* class GetOptionCommand */
@@ -286,14 +320,23 @@ private:
 public:
   DatatypeDeclarationCommand(const DatatypeType& datatype);
   DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes);
+  const std::vector<DatatypeType>& getDatatypes() const;
   void invoke(SmtEngine* smtEngine);
-  const std::vector<DatatypeType>& getDatatypes() const { return d_datatypes; }
 };/* class DatatypeDeclarationCommand */
 
-class CVC4_PUBLIC QuitCommand : public EmptyCommand {
+class CVC4_PUBLIC QuitCommand : public Command {
 public:
   QuitCommand();
+  void invoke(SmtEngine* smtEngine);
 };/* class QuitCommand */
+
+class CVC4_PUBLIC CommentCommand : public Command {
+  std::string d_comment;
+public:
+  CommentCommand(std::string comment);
+  std::string getComment() const;
+  void invoke(SmtEngine* smtEngine);
+};/* class CommentCommand */
 
 class CVC4_PUBLIC CommandSequence : public Command {
 private:
@@ -304,19 +347,26 @@ private:
 public:
   CommandSequence();
   ~CommandSequence();
+
+  void addCommand(Command* cmd);
+
   void invoke(SmtEngine* smtEngine);
   void invoke(SmtEngine* smtEngine, std::ostream& out);
-  void addCommand(Command* cmd);
 
   typedef std::vector<Command*>::iterator iterator;
   typedef std::vector<Command*>::const_iterator const_iterator;
 
-  const_iterator begin() const { return d_commandSequence.begin(); }
-  const_iterator end() const { return d_commandSequence.end(); }
+  const_iterator begin() const;
+  const_iterator end() const;
 
-  iterator begin() { return d_commandSequence.begin(); }
-  iterator end() { return d_commandSequence.end(); }
+  iterator begin();
+  iterator end();
+
 };/* class CommandSequence */
+
+class CVC4_PUBLIC DeclarationSequence : public CommandSequence {
+public:
+};/* class DeclarationSequence */
 
 }/* CVC4 namespace */
 

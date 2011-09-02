@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan
+ ** Minor contributors (to current version): dejan, ajreynol
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -64,6 +64,7 @@ tokens {
   PRINT_TYPE_TOK = 'PRINT_TYPE';
   CALL_TOK = 'CALL';
   ECHO_TOK = 'ECHO';
+  EXIT_TOK = 'EXIT';
   INCLUDE_TOK = 'INCLUDE';
   DUMP_PROOF_TOK = 'DUMP_PROOF';
   DUMP_ASSUMPTIONS_TOK = 'DUMP_ASSUMPTIONS';
@@ -84,7 +85,6 @@ tokens {
 
   AND_TOK = 'AND';
   BOOLEAN_TOK = 'BOOLEAN';
-  ECHO_TOK = 'ECHO';
   ELSEIF_TOK = 'ELSIF';
   ELSE_TOK = 'ELSE';
   ENDIF_TOK = 'ENDIF';
@@ -448,38 +448,39 @@ namespace CVC4 {
       /**
        * This class is just here to get around an unfortunate bit of Antlr.
        * We use strings below as return values from rules, which require
-       * them to be constructible by a uintptr_t.  So we derive the string
+       * them to be constructible by a void*.  So we derive the string
        * class to provide just such a conversion.
        */
       class myString : public std::string {
       public:
         myString(const std::string& s) : std::string(s) {}
-        myString(uintptr_t) : std::string() {}
+        myString(void*) : std::string() {}
         myString() : std::string() {}
       };/* class myString */
 
       /**
-       * Just exists to give us the uintptr_t construction that
+       * Just exists to give us the void* construction that
        * ANTLR requires.
        */
       class mySubrangeBound : public CVC4::SubrangeBound {
       public:
         mySubrangeBound() : CVC4::SubrangeBound() {}
-        mySubrangeBound(uintptr_t) : CVC4::SubrangeBound() {}
+        mySubrangeBound(void*) : CVC4::SubrangeBound() {}
         mySubrangeBound(const Integer& i) : CVC4::SubrangeBound(i) {}
         mySubrangeBound(const SubrangeBound& b) : CVC4::SubrangeBound(b) {}
       };/* class mySubrangeBound */
 
       /**
-       * Just exists to give us the uintptr_t construction that
+       * Just exists to give us the void* construction that
        * ANTLR requires.
        */
       struct myExpr : public CVC4::Expr {
         myExpr() : CVC4::Expr() {}
-        myExpr(uintptr_t) : CVC4::Expr() {}
+        myExpr(void*) : CVC4::Expr() {}
         myExpr(const Expr& e) : CVC4::Expr(e) {}
         myExpr(const myExpr& e) : CVC4::Expr(e) {}
       };/* struct myExpr */
+
     }/* CVC4::parser::cvc namespace */
   }/* CVC4::parser namespace */
 }/* CVC4 namespace */
@@ -532,7 +533,7 @@ using namespace CVC4::parser;
  * Parses an expression.
  * @return the parsed expression
  */
-parseExpr returns [CVC4::parser::cvc::myExpr expr]
+parseExpr returns [CVC4::Expr expr = CVC4::Expr()]
   : formula[expr]
   | EOF
   ;
@@ -541,7 +542,7 @@ parseExpr returns [CVC4::parser::cvc::myExpr expr]
  * Parses a command (the whole benchmark)
  * @return the command of the benchmark
  */
-parseCommand returns [CVC4::Command* cmd]
+parseCommand returns [CVC4::Command* cmd = NULL]
   : c=command { $cmd = c; }
   | EOF { $cmd = NULL; }
   ;
@@ -580,7 +581,6 @@ mainCommand[CVC4::Command*& cmd]
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
-  k = 0;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd = new AssertCommand(f); }
@@ -696,6 +696,9 @@ mainCommand[CVC4::Command*& cmd]
     | { Message() << std::endl; }
     )
 
+  | EXIT_TOK
+    { cmd = new QuitCommand(); }
+
   | INCLUDE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { UNSUPPORTED("INCLUDE command"); }
@@ -752,15 +755,15 @@ toplevelDeclaration[CVC4::Command*& cmd]
   Debug("parser-extra") << "declaration: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON
-    ( declareVariables[t,ids,true] { cmd = new DeclarationCommand(ids, t); }
-    | declareTypes[ids] { cmd = new DeclarationCommand(ids, EXPR_MANAGER->kindType()); } )
+    ( declareVariables[cmd,t,ids,true]
+    | declareTypes[cmd,ids] )
   ;
 
 /**
  * A bound variable declaration.
  */
 boundVarDecl[std::vector<std::string>& ids, CVC4::Type& t]
-  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON declareVariables[t,ids,false]
+  : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON declareVariables[*(Command**)NULL,t,ids,false]
   ;
 
 /**
@@ -808,13 +811,14 @@ boundVarDeclReturn[std::vector<CVC4::Expr>& terms,
  * because type declarations are always top-level, except for
  * type-lets, which don't use this rule.
  */
-declareTypes[const std::vector<std::string>& idList]
+declareTypes[CVC4::Command*& cmd, const std::vector<std::string>& idList]
 @init {
   Type t;
 }
     /* A sort declaration (e.g., "T : TYPE") */
   : TYPE_TOK
-    { for(std::vector<std::string>::const_iterator i = idList.begin();
+    { DeclarationSequence* seq = new DeclarationSequence();
+      for(std::vector<std::string>::const_iterator i = idList.begin();
           i != idList.end();
           ++i) {
         // Don't allow a type variable to clash with a previously
@@ -822,8 +826,11 @@ declareTypes[const std::vector<std::string>& idList]
         // non-type variable can clash unambiguously.  Break from CVC3
         // behavior here.
         PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_SORT);
+        Type sort = PARSER_STATE->mkSort(*i);
+        Command* decl = new DeclareTypeCommand(*i, 0, sort);
+        seq->addCommand(decl);
       }
-      PARSER_STATE->mkSorts(idList);
+      cmd = seq;
     }
 
     /* A type alias "T : TYPE = foo..." */
@@ -843,16 +850,20 @@ declareTypes[const std::vector<std::string>& idList]
  * re-declared if topLevel is true (CVC allows re-declaration if the
  * types are compatible---if they aren't compatible, an error is
  * thrown).  Also if topLevel is true, variable definitions are
- * permitted.
+ * permitted and "cmd" is output.
  */
-declareVariables[CVC4::Type& t, const std::vector<std::string>& idList, bool topLevel]
+declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::string>& idList, bool topLevel]
 @init {
   Expr f;
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
     /* A variable declaration (or definition) */
   : type[t,CHECK_DECLARED] ( EQUAL_TOK formula[f] )?
-    { if(f.isNull()) {
+    { DeclarationSequence* seq = NULL;
+      if(topLevel) {
+        cmd = seq = new DeclarationSequence();
+      }
+      if(f.isNull()) {
         Debug("parser") << "working on " << idList.front() << " : " << t << std::endl;
         // CVC language allows redeclaration of variables if types are the same
         for(std::vector<std::string>::const_iterator i = idList.begin(),
@@ -877,6 +888,10 @@ declareVariables[CVC4::Type& t, const std::vector<std::string>& idList, bool top
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             PARSER_STATE->mkVar(*i, t);
+            if(topLevel) {
+              Command* decl = new DeclareFunctionCommand(*i, t);
+              seq->addCommand(decl);
+            }
           }
         }
       } else {
@@ -892,6 +907,8 @@ declareVariables[CVC4::Type& t, const std::vector<std::string>& idList, bool top
             ++i) {
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           PARSER_STATE->defineFunction(*i, f);
+          Command* decl = new DefineFunctionCommand(*i, Expr(), f);
+          seq->addCommand(decl);
         }
       }
     }
@@ -1007,10 +1024,10 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     /* named types */
   : identifier[id,check,SYM_SORT]
     parameterization[check,types]?
-    { 
+    {
       if(check == CHECK_DECLARED ||
          PARSER_STATE->isDeclared(id, SYM_SORT)) {
-        Debug("parser-param") << "param: getSort " << id << " " << types.size() << " " << PARSER_STATE->getArity( id ) 
+        Debug("parser-param") << "param: getSort " << id << " " << types.size() << " " << PARSER_STATE->getArity( id )
                               << " " << PARSER_STATE->isDeclared(id, SYM_SORT) << std::endl;
         if( types.size()>0 ){
           t = PARSER_STATE->getSort(id, types);
@@ -1024,7 +1041,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
         }else{
           t = PARSER_STATE->mkUnresolvedTypeConstructor(id,types);
           t = SortConstructorType(t).instantiate( types );
-          Debug("parser-param") << "param: make unres param type " << id << " " << types.size() << " " 
+          Debug("parser-param") << "param: make unres param type " << id << " " << types.size() << " "
                                 << PARSER_STATE->getArity( id ) << std::endl;
         }
       }
@@ -1095,7 +1112,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
   ;
 
-parameterization[CVC4::parser::DeclarationCheck check, 
+parameterization[CVC4::parser::DeclarationCheck check,
                  std::vector<CVC4::Type>& params]
 @init {
   Type t;
@@ -1146,7 +1163,7 @@ formula[CVC4::Expr& f]
   ;
 
 morecomparisons[std::vector<CVC4::Expr>& expressions,
-                std::vector<unsigned>& operators] returns [size_t i]
+                std::vector<unsigned>& operators] returns [size_t i = 0]
 @init {
   unsigned op;
   Expr f;
@@ -1165,10 +1182,7 @@ morecomparisons[std::vector<CVC4::Expr>& expressions,
   ;
 
 /** Matches 0 or more NOTs. */
-nots returns [size_t n]
-@init {
-  $n = 0;
-}
+nots returns [size_t n = 0]
   : ( NOT_TOK { ++$n; } )*
   ;
 
@@ -1208,8 +1222,9 @@ prefixFormula[CVC4::Expr& f]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
-      Expr func = PARSER_STATE->mkAnonymousFunction("lambda", t);
-      Command* cmd = new DefineFunctionCommand(func, terms, f);
+      std::string name = "lambda";
+      Expr func = PARSER_STATE->mkAnonymousFunction(name, t);
+      Command* cmd = new DefineFunctionCommand(name, func, terms, f);
       PARSER_STATE->preemptCommand(cmd);
       f = func;
     }
@@ -1735,17 +1750,18 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
   Type t;
   std::vector< Type > params;
 }
-    /* This really needs to be CHECK_NONE, or mutually-recursive datatypes
-     * won't work, because this type will already be "defined" as an
-     * unresolved type; don't worry, we check below. */
+    /* This really needs to be CHECK_NONE, or mutually-recursive
+     * datatypes won't work, because this type will already be
+     * "defined" as an unresolved type; don't worry, we check
+     * below. */
   : identifier[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
-    ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] { 
+    ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
         t = PARSER_STATE->mkSort(id2);
-        params.push_back( t ); 
+        params.push_back( t );
       }
-      ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] { 
+      ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
         t = PARSER_STATE->mkSort(id2);
-        params.push_back( t ); } 
+        params.push_back( t ); }
       )* RBRACKET
     )?
     { datatypes.push_back(Datatype(id,params));
@@ -1768,8 +1784,7 @@ constructorDef[CVC4::Datatype& type]
   CVC4::Datatype::Constructor* ctor = NULL;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    {
-      // make the tester
+    { // make the tester
       std::string testerId("is_");
       testerId.append(id);
       PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
@@ -1826,7 +1841,7 @@ DECIMAL_LITERAL
  * in the BVPLUS/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
  * returning a reference to the wrong token?!
  */
-numeral returns [unsigned k]
+numeral returns [unsigned k = 0]
   : INTEGER_LITERAL
     { $k = AntlrInput::tokenToUnsigned($INTEGER_LITERAL); }
   ;
@@ -1834,7 +1849,7 @@ numeral returns [unsigned k]
 /**
  * Similar to numeral but for arbitrary-precision, signed integer.
  */
-integer returns [CVC4::Integer k]
+integer returns [CVC4::Integer k = 0]
   : INTEGER_LITERAL
     { $k = AntlrInput::tokenToInteger($INTEGER_LITERAL); }
   | MINUS_TOK INTEGER_LITERAL

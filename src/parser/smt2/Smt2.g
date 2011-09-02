@@ -143,7 +143,7 @@ parseExpr returns [CVC4::parser::smt2::myExpr expr]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [CVC4::Command* cmd]
+parseCommand returns [CVC4::Command* cmd = NULL]
   : LPAREN_TOK c = command RPAREN_TOK { $cmd = c; }
   | EOF { $cmd = 0; }
   ;
@@ -151,7 +151,7 @@ parseCommand returns [CVC4::Command* cmd]
 /**
  * Parse the internal portion of the command, ignoring the surrounding parentheses.
  */
-command returns [CVC4::Command* cmd]
+command returns [CVC4::Command* cmd = NULL]
 @declarations {
   std::string name;
   std::vector<std::string> names;
@@ -192,11 +192,11 @@ command returns [CVC4::Command* cmd]
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
-        PARSER_STATE->mkSort(name);
-        $cmd = new DeclarationCommand(name, EXPR_MANAGER->kindType());
+        Type type = PARSER_STATE->mkSort(name);
+        $cmd = new DeclareTypeCommand(name, 0, type);
       } else {
-        PARSER_STATE->mkSortConstructor(name, arity);
-        $cmd = new DeclarationCommand(name, EXPR_MANAGER->kindType());
+        Type type = PARSER_STATE->mkSortConstructor(name, arity);
+        $cmd = new DeclareTypeCommand(name, arity, type);
       }
     }
   | /* sort definition */
@@ -216,7 +216,7 @@ command returns [CVC4::Command* cmd]
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
       PARSER_STATE->defineParameterizedType(name, sorts, t);
-      $cmd = new EmptyCommand;
+      $cmd = new DefineTypeCommand(name, sorts, t);
     }
   | /* function declaration */
     DECLARE_FUN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -227,7 +227,7 @@ command returns [CVC4::Command* cmd]
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       PARSER_STATE->mkVar(name, t);
-      $cmd = new DeclarationCommand(name,t); }
+      $cmd = new DeclareFunctionCommand(name, t); }
   | /* function definition */
     DEFINE_FUN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
@@ -259,10 +259,16 @@ command returns [CVC4::Command* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       Expr func = PARSER_STATE->mkFunction(name, t);
-      $cmd = new DefineFunctionCommand(func, terms, expr);
+      $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
   | /* value query */
-    GET_VALUE_TOK LPAREN_TOK termList[terms,expr] RPAREN_TOK
+    ( GET_VALUE_TOK |
+      EVAL_TOK
+      { if(PARSER_STATE->strictModeEnabled()) {
+          PARSER_STATE->parseError("Strict compliance mode doesn't recognize \"eval\".  Maybe you want (get-value...)?");
+        }
+      } )
+    LPAREN_TOK termList[terms,expr] RPAREN_TOK
     { if(terms.size() == 1) {
         $cmd = new GetValueCommand(terms[0]);
       } else {
@@ -289,36 +295,86 @@ command returns [CVC4::Command* cmd]
     GET_ASSERTIONS_TOK
     { cmd = new GetAssertionsCommand; }
   | /* push */
-    PUSH_TOK k=INTEGER_LITERAL
-    { unsigned n = AntlrInput::tokenToUnsigned(k);
-      if(n == 0) {
-        cmd = new EmptyCommand;
-      } else if(n == 1) {
-        cmd = new PushCommand;
-      } else {
-        CommandSequence* seq = new CommandSequence;
-        do {
-          seq->addCommand(new PushCommand);
-        } while(--n > 0);
-        cmd = seq;
+    PUSH_TOK
+    ( k=INTEGER_LITERAL
+      { unsigned n = AntlrInput::tokenToUnsigned(k);
+        if(n == 0) {
+          cmd = new EmptyCommand;
+        } else if(n == 1) {
+          cmd = new PushCommand;
+        } else {
+          CommandSequence* seq = new CommandSequence;
+          do {
+            seq->addCommand(new PushCommand);
+          } while(--n > 0);
+          cmd = seq;
+        }
       }
-    }
-  | POP_TOK k=INTEGER_LITERAL
-    { unsigned n = AntlrInput::tokenToUnsigned(k);
-      if(n == 0) {
-        cmd = new EmptyCommand;
-      } else if(n == 1) {
-        cmd = new PopCommand;
-      } else {
-        CommandSequence* seq = new CommandSequence;
-        do {
-          seq->addCommand(new PopCommand);
-        } while(--n > 0);
-        cmd = seq;
+    | { if(PARSER_STATE->strictModeEnabled()) {
+          PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to PUSH.  Maybe you want (push 1)?");
+        } else {
+          cmd = new PushCommand;
+        }
+      } )
+  | POP_TOK
+    ( k=INTEGER_LITERAL
+      { unsigned n = AntlrInput::tokenToUnsigned(k);
+        if(n == 0) {
+          cmd = new EmptyCommand;
+        } else if(n == 1) {
+          cmd = new PopCommand;
+        } else {
+          CommandSequence* seq = new CommandSequence;
+          do {
+            seq->addCommand(new PopCommand);
+          } while(--n > 0);
+          cmd = seq;
+        }
       }
-    }
+    | { if(PARSER_STATE->strictModeEnabled()) {
+          PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to POP.  Maybe you want (pop 1)?");
+        } else {
+          cmd = new PopCommand;
+        }
+      } )
   | EXIT_TOK
     { cmd = new QuitCommand; }
+
+    /* CVC4-extended SMT-LIBv2 commands */
+  | extendedCommand[cmd]
+    { if(PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("Extended commands are not permitted while operating in strict compliance mode.");
+      }
+    }
+  ;
+
+extendedCommand[CVC4::Command*& cmd]
+@declarations {
+  std::vector<CVC4::Datatype> dts;
+  Expr e;
+}
+    /* Z3's extended SMT-LIBv2 set of commands syntax */
+  : DECLARE_DATATYPES_TOK
+    { /* open a scope to keep the UnresolvedTypes contained */
+      PARSER_STATE->pushScope(); }
+    LPAREN_TOK ( LPAREN_TOK datatypeDef[dts] RPAREN_TOK )+ RPAREN_TOK
+    { PARSER_STATE->popScope();
+      cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+
+    
+  | DECLARE_SORTS_TOK
+  | DECLARE_FUNS_TOK
+  | DECLARE_PREDS_TOK
+  | DEFINE_TOK
+  | DEFINE_SORTS_TOK
+  | DECLARE_CONST_TOK
+    
+  | SIMPLIFY_TOK term[e]
+    { cmd = new SimplifyCommand(e); }
+  | ECHO_TOK
+    ( STRING_LITERAL
+      { Message() << AntlrInput::tokenText($STRING_LITERAL) << std::endl; }
+    | { Message() << std::endl; } )
   ;
 
 symbolicExpr[CVC4::SExpr& sexpr]
@@ -441,7 +497,7 @@ term[CVC4::Expr& expr]
         Expr func = PARSER_STATE->mkFunction(name, expr.getType());
         // bind name to expr with define-fun
         Command* c =
-          new DefineNamedFunctionCommand(func, std::vector<Expr>(), expr);
+          new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
         PARSER_STATE->preemptCommand(c);
       } else {
         std::stringstream ss;
@@ -716,6 +772,73 @@ nonemptyNumeralList[std::vector<uint64_t>& numerals]
     )+
   ;
 
+/**
+ * Parses a datatype definition
+ */
+datatypeDef[std::vector<CVC4::Datatype>& datatypes]
+@init {
+  std::string id, id2;
+  Type t;
+  std::vector< Type > params;
+}
+    /* This really needs to be CHECK_NONE, or mutually-recursive
+     * datatypes won't work, because this type will already be
+     * "defined" as an unresolved type; don't worry, we check
+     * below. */
+  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
+    ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
+        t = PARSER_STATE->mkSort(id2);
+        params.push_back( t );
+      }
+      ( symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
+        t = PARSER_STATE->mkSort(id2);
+        params.push_back( t ); }
+      )* ']'
+    )?
+    { datatypes.push_back(Datatype(id,params));
+      if(!PARSER_STATE->isUnresolvedType(id)) {
+        // if not unresolved, must be undeclared
+        PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
+      }
+    }
+    ( LPAREN_TOK constructorDef[datatypes.back()] RPAREN_TOK )+
+    { PARSER_STATE->popScope(); }
+  ;
+
+/**
+ * Parses a constructor defintion for type
+ */
+constructorDef[CVC4::Datatype& type]
+@init {
+  std::string id;
+  CVC4::Datatype::Constructor* ctor = NULL;
+}
+  : symbol[id,CHECK_UNDECLARED,SYM_SORT]
+    { // make the tester
+      std::string testerId("is_");
+      testerId.append(id);
+      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
+      ctor = new CVC4::Datatype::Constructor(id, testerId);
+    }
+    ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
+    { // make the constructor
+      type.addConstructor(*ctor);
+      Debug("parser-idt") << "constructor: " << id.c_str() << std::endl;
+      delete ctor;
+    }
+  ;
+
+selector[CVC4::Datatype::Constructor& ctor]
+@init {
+  std::string id;
+  Type t, t2;
+}
+  : symbol[id,CHECK_UNDECLARED,SYM_SORT] sortSymbol[t]
+    { ctor.addArg(id, t);
+      Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
+    }
+  ;
+
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
 CHECKSAT_TOK : 'check-sat';
@@ -741,6 +864,18 @@ GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 
+// extended commands
+DECLARE_DATATYPES_TOK : 'declare-datatypes';
+DECLARE_SORTS_TOK : 'declare-sorts';
+DECLARE_FUNS_TOK : 'declare-funs';
+DECLARE_PREDS_TOK : 'declare-preds';
+DEFINE_TOK : 'define';
+DEFINE_SORTS_TOK : 'define-sorts';
+DECLARE_CONST_TOK : 'declare-const';
+SIMPLIFY_TOK : 'simplify';
+EVAL_TOK : 'eval';
+ECHO_TOK : 'echo';
+
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';
 AND_TOK           : 'and';
@@ -759,7 +894,6 @@ MINUS_TOK         : '-';
 NOT_TOK           : 'not';
 OR_TOK            : 'or';
 PERCENT_TOK       : '%';
-PIPE_TOK          : '|';
 PLUS_TOK          : '+';
 POUND_TOK         : '#';
 SELECT_TOK        : 'select';

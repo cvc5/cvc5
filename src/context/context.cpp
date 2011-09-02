@@ -5,7 +5,7 @@
  ** Major contributors: barrett
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -78,8 +78,10 @@ void Context::pop() {
   // Notify the (pre-pop) ContextNotifyObj objects
   ContextNotifyObj* pCNO = d_pCNOpre;
   while(pCNO != NULL) {
+    // pre-store the "next" pointer in case pCNO deletes itself on notify()
+    ContextNotifyObj* next = pCNO->d_pCNOnext;
     pCNO->notify();
-    pCNO = pCNO->d_pCNOnext;
+    pCNO = next;
   }
 
   // Grab the top Scope
@@ -97,8 +99,10 @@ void Context::pop() {
   // Notify the (post-pop) ContextNotifyObj objects
   pCNO = d_pCNOpost;
   while(pCNO != NULL) {
+    // pre-store the "next" pointer in case pCNO deletes itself on notify()
+    ContextNotifyObj* next = pCNO->d_pCNOnext;
     pCNO->notify();
-    pCNO = pCNO->d_pCNOnext;
+    pCNO = next;
   }
 
   Trace("pushpop") << std::string(2 * getLevel(), ' ') << "} Pop [to "
@@ -135,6 +139,7 @@ void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
 
 void ContextObj::update() throw(AssertionException) {
   Debug("context") << "before update(" << this << "):" << std::endl
+                   << "context is " << getContext() << std::endl
                    << *getContext() << std::endl;
 
   // Call save() to save the information in the current object
@@ -203,6 +208,7 @@ ContextObj* ContextObj::restoreAndContinue() throw(AssertionException) {
     // Assert(d_pScope == d_pScope->getContext()->getBottomScope(),
     //        "Expected bottom scope");
 
+    Debug("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
 
     // Nothing else to do
@@ -261,22 +267,28 @@ void ContextObj::destroy() throw(AssertionException) {
 
 
 ContextObj::ContextObj(Context* pContext) :
-  d_pContextObjRestore(NULL) {
+  d_pScope(NULL),
+  d_pContextObjRestore(NULL),
+  d_pContextObjNext(NULL),
+  d_ppContextObjPrev(NULL) {
 
   Assert(pContext != NULL, "NULL context pointer");
 
-  Debug("context") << "create new ContextObj(" << this << ")" << std::endl;
+  Debug("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
   d_pScope = pContext->getBottomScope();
   d_pScope->addToChain(this);
 }
 
 
 ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
-  d_pContextObjRestore(NULL) {
+  d_pScope(NULL),
+  d_pContextObjRestore(NULL),
+  d_pContextObjNext(NULL),
+  d_ppContextObjPrev(NULL) {
 
   Assert(pContext != NULL, "NULL context pointer");
 
-  Debug("context") << "create new ContextObj(" << this << ")" << std::endl;
+  Debug("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
   if(allocatedInCMM) {
     d_pScope = pContext->getTopScope();
   } else {
@@ -326,12 +338,15 @@ std::ostream& operator<<(std::ostream& out,
 
 std::ostream& operator<<(std::ostream& out,
                          const Scope& scope) throw(AssertionException) {
-  out << "Scope " << scope.d_level << ":";
+  out << "Scope " << scope.d_level << " [" << &scope << "]:";
   ContextObj* pContextObj = scope.d_pContextObjList;
   Assert(pContextObj == NULL ||
          pContextObj->prev() == &scope.d_pContextObjList);
   while(pContextObj != NULL) {
     out << " <--> " << pContextObj;
+    if(pContextObj->d_pScope != &scope) {
+      out << " XXX bad scope" << std::endl;
+    }
     Assert(pContextObj->d_pScope == &scope);
     Assert(pContextObj->next() == NULL ||
            pContextObj->next()->prev() == &pContextObj->next());

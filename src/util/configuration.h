@@ -53,6 +53,8 @@ public:
 
   static bool isTracingBuild();
 
+  static bool isDumpingBuild();
+
   static bool isMuzzledBuild();
 
   static bool isAssertionBuild();
@@ -72,6 +74,8 @@ public:
   static unsigned getVersionMinor();
 
   static unsigned getVersionRelease();
+
+  static std::string getVersionExtra();
 
   static std::string about();
 

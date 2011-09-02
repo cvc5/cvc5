@@ -235,9 +235,7 @@ public:
 
 #ifdef CVC4_DEBUG
 
-#ifdef CVC4_DEBUG
 extern CVC4_THREADLOCAL_PUBLIC(const char*) s_debugLastException;
-#endif /* CVC4_DEBUG */
 
 /**
  * Special assertion failure handling in debug mode; in non-debug
@@ -259,9 +257,9 @@ void debugAssertionFailed(const AssertionException& thisException,
     do {                                                                \
       if(EXPECT_FALSE( ! (cond) )) {                                    \
         /* save the last assertion failure */                           \
-        const char* lastException = s_debugLastException;               \
-        CVC4::AssertionException exception(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
-        CVC4::debugAssertionFailed(exception, lastException);                 \
+        const char* lastException = ::CVC4::s_debugLastException;       \
+        ::CVC4::AssertionException exception(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+        ::CVC4::debugAssertionFailed(exception, lastException);         \
       }                                                                 \
     } while(0)
 
@@ -271,27 +269,27 @@ void debugAssertionFailed(const AssertionException& thisException,
 #  define AlwaysAssert(cond, msg...)                                    \
      do {                                                               \
        if(EXPECT_FALSE( ! (cond) )) {                                   \
-         throw CVC4::AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+         throw ::CVC4::AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
        }                                                                \
      } while(0)
 #endif /* CVC4_DEBUG */
 
 #define Unreachable(msg...) \
-  throw CVC4::UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw ::CVC4::UnreachableCodeException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define Unhandled(msg...) \
-  throw CVC4::UnhandledCaseException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw ::CVC4::UnhandledCaseException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define Unimplemented(msg...) \
-  throw CVC4::UnimplementedOperationException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw ::CVC4::UnimplementedOperationException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define InternalError(msg...) \
-  throw CVC4::InternalErrorException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw ::CVC4::InternalErrorException(__PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define IllegalArgument(arg, msg...) \
-  throw CVC4::IllegalArgumentException(#arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
+  throw ::CVC4::IllegalArgumentException(#arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg)
 #define CheckArgument(cond, arg, msg...)         \
   AlwaysAssertArgument(cond, arg, ## msg)
 #define AlwaysAssertArgument(cond, arg, msg...)  \
   do { \
     if(EXPECT_FALSE( ! (cond) )) { \
-      throw CVC4::IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
+      throw ::CVC4::IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
     } \
   } while(0)
 

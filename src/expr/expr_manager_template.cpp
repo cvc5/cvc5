@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: cconway, mdeters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): ajreynol
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -114,6 +114,10 @@ ExprManager::~ExprManager() {
 #endif
   delete d_nodeManager;
   delete d_ctxt;
+}
+
+const Options* ExprManager::getOptions() const {
+  return d_nodeManager->getOptions();
 }
 
 BooleanType ExprManager::booleanType() const {

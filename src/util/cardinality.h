@@ -22,6 +22,11 @@
 #ifndef __CVC4__CARDINALITY_H
 #define __CVC4__CARDINALITY_H
 
+#if SWIG
+%include "util/integer.h"
+%include "util/Assert.h"
+#endif /* SWIG */
+
 #include <iostream>
 #include <utility>
 
@@ -138,6 +143,11 @@ public:
   /** Returns true iff this cardinality is finite. */
   bool isFinite() const throw() {
     return d_card > 0;
+  }
+
+  /** Returns true iff this cardinality is infinite. */
+  bool isInfinite() const throw() {
+    return d_card < 0;
   }
 
   /**

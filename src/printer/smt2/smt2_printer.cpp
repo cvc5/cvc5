@@ -23,6 +23,8 @@
 #include <string>
 #include <typeinfo>
 
+#include "util/boolean_simplification.h"
+
 using namespace std;
 
 namespace CVC4 {
@@ -64,6 +66,17 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   // constant
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
+    case kind::TYPE_CONSTANT:
+      switch(n.getConst<TypeConstant>()) {
+      case BOOLEAN_TYPE: out << "Boolean"; break;
+      case REAL_TYPE: out << "Real"; break;
+      case INTEGER_TYPE: out << "Int"; break;
+      default:
+        // fall back on whatever operator<< does on underlying type; we
+        // might luck out and be SMT-LIB v2 compliant
+        kind::metakind::NodeValueConstPrinter::toStream(out, n);
+      }
+      break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().size << ")";
       break;
@@ -91,11 +104,20 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     return;
   }
 
+  if(n.getKind() == kind::SORT_TYPE) {
+    std::string name;
+    if(n.getAttribute(expr::VarNameAttr(), name)) {
+      out << name;
+      return;
+    }
+  }
+
   bool stillNeedToPrintParams = true;
   // operator
   out << '(';
   switch(n.getKind()) {
     // builtin theory
+  case kind::APPLY: break;
   case kind::EQUAL: out << "= "; break;
   case kind::DISTINCT: out << "distinct "; break;
   case kind::TUPLE: break;
@@ -111,7 +133,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     // uf theory
   case kind::APPLY_UF: break;
-  case kind::SORT_TYPE: break;
 
     // arith theory
   case kind::PLUS: out << "+ "; break;
@@ -127,6 +148,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // arrays theory
   case kind::SELECT: out << "select "; break;
   case kind::STORE: out << "store "; break;
+  case kind::ARRAY_TYPE: out << "Array "; break;
 
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; break;
@@ -253,8 +275,10 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
-     tryToStream<DeclarationCommand>(out, c) ||
+     tryToStream<DeclareFunctionCommand>(out, c) ||
      tryToStream<DefineFunctionCommand>(out, c) ||
+     tryToStream<DeclareTypeCommand>(out, c) ||
+     tryToStream<DefineTypeCommand>(out, c) ||
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
@@ -266,7 +290,8 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetInfoCommand>(out, c) ||
      tryToStream<SetOptionCommand>(out, c) ||
      tryToStream<GetOptionCommand>(out, c) ||
-     tryToStream<DatatypeDeclarationCommand>(out, c)) {
+     tryToStream<DatatypeDeclarationCommand>(out, c) ||
+     tryToStream<CommentCommand>(out, c)) {
     return;
   }
 
@@ -289,13 +314,25 @@ static void toStream(std::ostream& out, const PopCommand* c) {
 static void toStream(std::ostream& out, const CheckSatCommand* c) {
   BoolExpr e = c->getExpr();
   if(!e.isNull()) {
-    out << "(assert " << e << ")";
+    out << PushCommand() << endl
+        << AssertCommand(e) << endl
+        << CheckSatCommand() << endl
+        << PopCommand() << endl;
+  } else {
+    out << "(check-sat)";
   }
-  out << "(check-sat)";
 }
 
 static void toStream(std::ostream& out, const QueryCommand* c) {
-  Unhandled("query command");
+  BoolExpr e = c->getExpr();
+  if(!e.isNull()) {
+    out << PushCommand() << endl
+        << AssertCommand(BooleanSimplification::negate(e)) << endl
+        << CheckSatCommand() << endl
+        << PopCommand() << endl;
+  } else {
+    out << "(check-sat)";
+  }
 }
 
 static void toStream(std::ostream& out, const QuitCommand* c) {
@@ -310,26 +347,21 @@ static void toStream(std::ostream& out, const CommandSequence* c) {
   }
 }
 
-static void toStream(std::ostream& out, const DeclarationCommand* c) {
-  const vector<string>& declaredSymbols = c->getDeclaredSymbols();
-  Type declaredType = c->getDeclaredType();
-  for(vector<string>::const_iterator i = declaredSymbols.begin();
-      i != declaredSymbols.end();
-      ++i) {
-    if(declaredType.isFunction()) {
-      FunctionType ft = declaredType;
-      out << "(declare-fun " << *i << " (";
-      const vector<Type> argTypes = ft.getArgTypes();
-      if(argTypes.size() > 0) {
-        copy( argTypes.begin(), argTypes.end() - 1,
-              ostream_iterator<Type>(out, " ") );
-        out << argTypes.back();
-      }
-      out << ") " << ft.getRangeType() << ")";
-    } else {
-      out << "(declare-fun " << *i << " () " << declaredType << ")";
+static void toStream(std::ostream& out, const DeclareFunctionCommand* c) {
+  Type type = c->getType();
+  out << "(declare-fun " << c->getSymbol() << " (";
+  if(type.isFunction()) {
+    FunctionType ft = type;
+    const vector<Type> argTypes = ft.getArgTypes();
+    if(argTypes.size() > 0) {
+      copy( argTypes.begin(), argTypes.end() - 1,
+            ostream_iterator<Type>(out, " ") );
+      out << argTypes.back();
     }
+    type = ft.getRangeType();
   }
+
+  out << ") " << type << ")";
 }
 
 static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
@@ -337,12 +369,32 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
   const vector<Expr>& formals = c->getFormals();
   Expr formula = c->getFormula();
   out << "(define-fun " << func << " (";
-  for(vector<Expr>::const_iterator i = formals.begin();
-      i != formals.end();
-      ++i) {
+  vector<Expr>::const_iterator i = formals.begin();
+  for(;;) {
     out << "(" << (*i) << " " << (*i).getType() << ")";
+    ++i;
+    if(i != formals.end()) {
+      out << " ";
+    } else {
+      break;
+    }
   }
   out << ") " << FunctionType(func.getType()).getRangeType() << " " << formula << ")";
+}
+
+static void toStream(std::ostream& out, const DeclareTypeCommand* c) {
+  out << "(declare-sort " << c->getSymbol() << " " << c->getArity() << ")";
+}
+
+static void toStream(std::ostream& out, const DefineTypeCommand* c) {
+  const vector<Type>& params = c->getParameters();
+  out << "(define-sort " << c->getSymbol() << " (";
+  if(params.size() > 0) {
+    copy( params.begin(), params.end() - 1,
+          ostream_iterator<Type>(out, " ") );
+    out << params.back();
+  }
+  out << ") " << c->getType() << ")";
 }
 
 static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) {
@@ -404,6 +456,10 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) {
   }
   out << "])";
   Unhandled("datatype declaration command");
+}
+
+static void toStream(std::ostream& out, const CommentCommand* c) {
+  out << "(set-info :notes \"" << c->getComment() << "\")";
 }
 
 template <class T>

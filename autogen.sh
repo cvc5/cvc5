@@ -287,9 +287,9 @@ if [ "x$AUTOCONF_OPTIONS" = "x" ] ; then
     AUTOCONF_OPTIONS="-f"
 fi
 if [ "x$AUTOMAKE_OPTIONS" = "x" ] ; then
-    AUTOMAKE_OPTIONS="-a -c -f"
+    AUTOMAKE_OPTIONS="-a -c -f -Wno-portability"
 fi
-ALT_AUTOMAKE_OPTIONS="-a -c"
+ALT_AUTOMAKE_OPTIONS="-a -c -Wno-portability"
 if [ "x$LIBTOOLIZE_OPTIONS" = "x" ] ; then
     LIBTOOLIZE_OPTIONS="--automake -c -f"
 fi

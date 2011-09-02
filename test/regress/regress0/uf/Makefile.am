@@ -22,6 +22,7 @@ TESTS =	\
 	eq_diamond23.smt \
 	NEQ016_size5_reduced2a.smt \
 	NEQ016_size5_reduced2b.smt \
+	ccredesign-fuzz.smt \
 	dead_dnd002.smt \
 	iso_brn001.smt \
 	gensys_brn001.smt2 \
@@ -31,7 +32,6 @@ TESTS =	\
 	simple.04.cvc
 
 EXTRA_DIST = $(TESTS) \
-	euf_simp09.tim.smt \
 	mkpidgeon
 
 #if CVC4_BUILD_PROFILE_COMPETITION

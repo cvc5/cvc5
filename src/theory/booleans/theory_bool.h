@@ -2,8 +2,8 @@
 /*! \file theory_bool.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: taking
- ** Minor contributors (to current version): barrett
+ ** Major contributors: none
+ ** Minor contributors (to current version): dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences

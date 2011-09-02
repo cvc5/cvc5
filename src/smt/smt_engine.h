@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -22,6 +22,26 @@
 #define __CVC4__SMT_ENGINE_H
 
 #include <vector>
+
+#if SWIG
+%include "cvc4_public.h"
+%include "util/rational.h"
+%include "util/exception.h"
+%include "expr/kind.h"
+%include "util/integer.h"
+%include "util/cardinality.h"
+%include "util/sexpr.h"
+%include "util/language.h"
+%include "expr/type.h"
+%include "expr/expr.h"
+%include "expr/expr_manager.h"
+%{
+#include "util/integer.h"
+#include "expr/expr_manager.h"
+#include "expr/type.h"
+#include "expr/expr.h"
+%}
+#endif
 
 #include "context/cdlist_forward.h"
 #include "context/cdmap_forward.h"
@@ -253,16 +273,17 @@ public:
   Result assertFormula(const BoolExpr& e);
 
   /**
-   * Add a formula to the current context and call check().  Returns
-   * true iff consistent.
+   * Check validity of an expression with respect to the current set
+   * of assertions by asserting the query expression's negation and
+   * calling check().  Returns valid, invalid, or unknown result.
    */
   Result query(const BoolExpr& e);
 
   /**
-   * Add a formula to the current context and call check().  Returns
-   * true iff consistent.
+   * Assert a formula (if provided) to the current context and call
+   * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const BoolExpr& e);
+  Result checkSat(const BoolExpr& e = BoolExpr());
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -305,6 +326,11 @@ public:
    * SmtEngine is set to operate interactively.
    */
   std::vector<Expr> getAssertions() throw(ModalException, AssertionException);
+
+  /**
+   * Get the current context level.
+   */
+  size_t getStackLevel() const;
 
   /**
    * Push a user-level context.

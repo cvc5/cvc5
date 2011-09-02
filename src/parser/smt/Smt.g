@@ -2,7 +2,7 @@
 /*! \file Smt.g
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: mdeters, dejan
+ ** Major contributors: dejan, mdeters
  ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -143,7 +143,7 @@ parseExpr returns [CVC4::parser::smt::myExpr expr]
  * Parses a command (the whole benchmark)
  * @return the command of the benchmark
  */
-parseCommand returns [CVC4::Command* cmd]
+parseCommand returns [CVC4::Command* cmd = NULL]
   : b = benchmark { $cmd = b; }
   ;
 
@@ -151,7 +151,7 @@ parseCommand returns [CVC4::Command* cmd]
  * Matches the whole SMT-LIB benchmark.
  * @return the sequence command containing the whole problem
  */
-benchmark returns [CVC4::Command* cmd]
+benchmark returns [CVC4::Command* cmd = NULL]
   : LPAREN_TOK BENCHMARK_TOK IDENTIFIER c = benchAttributes RPAREN_TOK
   	{ $cmd = c; }
   | EOF { $cmd = 0; }
@@ -162,7 +162,7 @@ benchmark returns [CVC4::Command* cmd]
  * command sequence.
  * @return the command sequence
  */
-benchAttributes returns [CVC4::CommandSequence* cmd_seq]
+benchAttributes returns [CVC4::CommandSequence* cmd_seq = NULL]
 @init {
   cmd_seq = new CommandSequence();
 }
@@ -174,26 +174,42 @@ benchAttributes returns [CVC4::CommandSequence* cmd_seq]
  * a corresponding command
  * @return a command corresponding to the attribute
  */
-benchAttribute returns [CVC4::Command* smt_command]
+benchAttribute returns [CVC4::Command* smt_command = NULL]
 @declarations {
   std::string name;
   BenchmarkStatus b_status;
   Expr expr;
+  Command* c;
 }
   : LOGIC_TOK identifier[name,CHECK_NONE,SYM_VARIABLE]
-    { PARSER_STATE->setLogic(name);
-      smt_command = new SetBenchmarkLogicCommand(name);   }
+    { PARSER_STATE->preemptCommand(new SetBenchmarkLogicCommand(name));
+      PARSER_STATE->setLogic(name);
+      smt_command = new EmptyCommand();
+    }
   | ASSUMPTION_TOK annotatedFormula[expr]
-    { smt_command = new AssertCommand(expr);   }
+    { smt_command = new AssertCommand(expr); }
   | FORMULA_TOK annotatedFormula[expr]
     { smt_command = new CheckSatCommand(expr); }
   | STATUS_TOK status[b_status]
     { smt_command = new SetBenchmarkStatusCommand(b_status); }
-  | EXTRAFUNS_TOK LPAREN_TOK (functionDeclaration)+ RPAREN_TOK
-  | EXTRAPREDS_TOK LPAREN_TOK (predicateDeclaration)+ RPAREN_TOK
-  | EXTRASORTS_TOK LPAREN_TOK sortDeclaration+ RPAREN_TOK
+  | EXTRAFUNS_TOK LPAREN_TOK
+    ( { smt_command = new CommandSequence(); }
+      functionDeclaration[c]
+      { ((CommandSequence*) smt_command)->addCommand(c); }
+    )+ RPAREN_TOK
+  | EXTRAPREDS_TOK LPAREN_TOK
+    ( { smt_command = new CommandSequence(); }
+      predicateDeclaration[c]
+      { ((CommandSequence*) smt_command)->addCommand(c); }
+    )+ RPAREN_TOK
+  | EXTRASORTS_TOK LPAREN_TOK
+    ( { smt_command = new CommandSequence(); }
+      sortDeclaration[c]
+      { ((CommandSequence*) smt_command)->addCommand(c); }
+    )+ RPAREN_TOK
   | NOTES_TOK STRING_LITERAL
-  | annotation
+    { smt_command = new CommentCommand(AntlrInput::tokenText($STRING_LITERAL)); }
+  | annotation[smt_command]
   ;
 
 /**
@@ -417,11 +433,12 @@ functionSymbol[CVC4::Expr& fun]
 /**
  * Matches an attribute name from the input (:attribute_name).
  */
-attribute
+attribute[std::string& s]
   :  ATTR_IDENTIFIER
+    { s = AntlrInput::tokenText($ATTR_IDENTIFIER); }
   ;
 
-functionDeclaration
+functionDeclaration[CVC4::Command*& smt_command]
 @declarations {
   std::string name;
   std::vector<Type> sorts;
@@ -435,13 +452,15 @@ functionDeclaration
       } else {
         t = EXPR_MANAGER->mkFunctionType(sorts);
       }
-      PARSER_STATE->mkVar(name, t); }
+      PARSER_STATE->mkVar(name, t);
+      smt_command = new DeclareFunctionCommand(name, t);
+    }
   ;
 
 /**
  * Matches the declaration of a predicate and declares it
  */
-predicateDeclaration
+predicateDeclaration[CVC4::Command*& smt_command]
 @declarations {
   std::string name;
   std::vector<Type> p_sorts;
@@ -453,16 +472,20 @@ predicateDeclaration
       } else {
         t = EXPR_MANAGER->mkPredicateType(p_sorts);
       }
-      PARSER_STATE->mkVar(name, t); }
+      PARSER_STATE->mkVar(name, t);
+      smt_command = new DeclareFunctionCommand(name, t);
+    }
   ;
 
-sortDeclaration
+sortDeclaration[CVC4::Command*& smt_command]
 @declarations {
   std::string name;
 }
   : sortName[name,CHECK_UNDECLARED]
     { Debug("parser") << "sort decl: '" << name << "'" << std::endl;
-      PARSER_STATE->mkSort(name); }
+      Type type = PARSER_STATE->mkSort(name);
+      smt_command = new DeclareTypeCommand(name, 0, type);
+    }
   ;
 
 /**
@@ -503,8 +526,19 @@ status[ CVC4::BenchmarkStatus& status ]
 /**
  * Matches an annotation, which is an attribute name, with an optional user
  */
-annotation
-  : attribute (USER_VALUE)?
+annotation[CVC4::Command*& smt_command]
+@init {
+  std::string key;
+  smt_command = NULL;
+}
+  : attribute[key]
+    ( USER_VALUE
+      { smt_command = new SetInfoCommand(key, AntlrInput::tokenText($USER_VALUE)); }
+    )?
+    { if(smt_command == NULL) {
+        smt_command = new EmptyCommand(std::string("annotation: ") + key);
+      }
+    }
   ;
 
 /**
@@ -676,21 +710,20 @@ FLET_IDENTIFIER
   ;
 
 /**
- * Matches the value of user-defined annotations or attributes. The only constraint imposed on a user-defined value is that it start with
- * an open brace and end with closed brace.
+ * Matches the value of user-defined annotations or attributes. The
+ * only constraint imposed on a user-defined value is that it start
+ * with an open brace and end with closed brace.
  */
 USER_VALUE
-  :   '{'
-      ( '\\{' | '\\}' | ~('{' | '}') )*
-    '}'
+  : '{' ( '\\{' | '\\}' | ~('{' | '}') )* '}'
   ;
-
 
 /**
  * Matches and skips whitespace in the input.
  */
 WHITESPACE
-  :  (' ' | '\t' | '\f' | '\r' | '\n')+             { SKIP();; }
+  : (' ' | '\t' | '\f' | '\r' | '\n')+
+    { SKIP(); }
   ;
 
 /**
@@ -716,7 +749,8 @@ STRING_LITERAL
  * Matches the comments and ignores them
  */
 COMMENT
-  : ';' (~('\n' | '\r'))*                    { SKIP();; }
+  : ';' (~('\n' | '\r'))*
+    { SKIP(); }
   ;
 
 

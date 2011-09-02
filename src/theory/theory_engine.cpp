@@ -2,8 +2,8 @@
 /*! \file theory_engine.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: taking, barrett, dejan
- ** Minor contributors (to current version): cconway
+ ** Major contributors: barrett, dejan
+ ** Minor contributors (to current version): cconway, taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -37,18 +37,18 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::theory;
 
-/** Tag for the "preregisterTerm()-has-benn-called" flag on nodes */
-struct PreRegisteredAttrTag {};
-/** The "preregisterTerm()-has-been-called" flag on Nodes */
-typedef expr::Attribute<PreRegisteredAttrTag, Theory::Set> PreRegisteredAttr;
-
 TheoryEngine::TheoryEngine(context::Context* ctxt) :
   d_propEngine(NULL),
   d_context(ctxt),
   d_activeTheories(0),
+  d_atomPreprocessingCache(),
+  d_possiblePropagations(),
+  d_hasPropagated(ctxt),
   d_theoryOut(this, ctxt),
+  d_sharedTermManager(NULL),
   d_hasShutDown(false),
   d_incomplete(ctxt, false),
+  d_logic(""),
   d_statistics(),
   d_preRegistrationVisitor(*this, ctxt) {
 
@@ -87,6 +87,10 @@ struct preregister_stack_element {
 };/* struct preprocess_stack_element */
 
 void TheoryEngine::preRegister(TNode preprocessed) {
+  if(Dump.isOn("missed-t-propagations")) {
+    d_possiblePropagations.push_back(preprocessed);
+  }
+
   NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
 }
 
@@ -112,8 +116,14 @@ void TheoryEngine::check(theory::Theory::Effort effort) {
   // Do the checking
   try {
     CVC4_FOR_EACH_THEORY;
+
+    if(Dump.isOn("missed-t-conflicts")) {
+      Dump("missed-t-conflicts")
+        << CommentCommand("Completeness check for T-conflicts; expect sat") << endl
+        << CheckSatCommand() << endl;
+    }
   } catch(const theory::Interrupted&) {
-    Trace("theory") << "TheoryEngine::check() => conflict" << std::endl;
+    Trace("theory") << "TheoryEngine::check() => conflict" << endl;
   }
 }
 
@@ -124,11 +134,54 @@ void TheoryEngine::propagate() {
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
   if (theory::TheoryTraits<THEORY>::hasPropagate && isActive(THEORY)) { \
-      reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->propagate(theory::Theory::FULL_EFFORT); \
+    reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(d_theoryTable[THEORY])->propagate(theory::Theory::FULL_EFFORT); \
   }
 
   // Propagate for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
+
+  if(Dump.isOn("missed-t-propagations")) {
+    for(vector<TNode>::iterator i = d_possiblePropagations.begin();
+        i != d_possiblePropagations.end();
+        ++i) {
+      if(d_hasPropagated.find(*i) == d_hasPropagated.end()) {
+        Dump("missed-t-propagations")
+          << CommentCommand("Completeness check for T-propagations; expect invalid") << endl
+          << QueryCommand((*i).toExpr()) << endl;
+      }
+    }
+  }
+}
+
+Node TheoryEngine::getExplanation(TNode node, theory::Theory* theory) {
+  theory->explain(node);
+  if(Dump.isOn("t-explanations")) {
+    Dump("t-explanations")
+      << CommentCommand(string("theory explanation from ") +
+                        theory->identify() + ": expect valid") << endl
+      << QueryCommand(d_theoryOut.d_explanationNode.get().impNode(node).toExpr())
+      << endl;
+  }
+  Assert(properExplanation(node, d_theoryOut.d_explanationNode.get()));
+  return d_theoryOut.d_explanationNode;
+}
+
+bool TheoryEngine::properConflict(TNode conflict) const {
+  Assert(!conflict.isNull());
+#warning fixme
+  return true;
+}
+
+bool TheoryEngine::properPropagation(TNode lit) const {
+  Assert(!lit.isNull());
+#warning fixme
+  return true;
+}
+
+bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
+  Assert(!node.isNull() && !expl.isNull());
+#warning fixme
+  return true;
 }
 
 Node TheoryEngine::getValue(TNode node) {
@@ -212,11 +265,27 @@ void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
   CVC4_FOR_EACH_THEORY;
 }
 
+void TheoryEngine::shutdown() {
+  // Set this first; if a Theory shutdown() throws an exception,
+  // at least the destruction of the TheoryEngine won't confound
+  // matters.
+  d_hasShutDown = true;
+
+  // Shutdown all the theories
+  for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
+    if(d_theoryTable[theoryId]) {
+      d_theoryTable[theoryId]->shutdown();
+    }
+  }
+
+  theory::Rewriter::shutdown();
+}
+
 theory::Theory::SolveStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitionOut) {
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
-  Trace("theory") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << std::endl;
+  Trace("theory") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
   Theory::SolveStatus solveStatus = theoryOf(atom)->solve(literal, substitionOut);
-  Trace("theory") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << std::endl;
+  Trace("theory") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
 
@@ -230,9 +299,9 @@ struct preprocess_stack_element {
 
 Node TheoryEngine::preprocess(TNode assertion) {
 
-  Trace("theory") << "TheoryEngine::preprocess(" << assertion << ")" << std::endl;
+  Trace("theory") << "TheoryEngine::preprocess(" << assertion << ")" << endl;
 
-    // Do a topological sort of the subexpressions and substitute them
+  // Do a topological sort of the subexpressions and substitute them
   vector<preprocess_stack_element> toVisit;
   toVisit.push_back(assertion);
 
@@ -242,7 +311,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
     preprocess_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.node;
 
-    Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): processing " << current << std::endl;
+    Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeMap::iterator find = d_atomPreprocessingCache.find(current);
@@ -270,7 +339,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
       }
       // Mark the substitution and continue
       Node result = builder;
-      Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): setting " << current << " -> " << result << std::endl;
+      Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): setting " << current << " -> " << result << endl;
       d_atomPreprocessingCache[current] = result;
       toVisit.pop_back();
     } else {
@@ -287,7 +356,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
         }
       } else {
         // No children, so we're done
-        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << assertion << "): setting " << current << " -> " << current << std::endl;
+        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << assertion << "): setting " << current << " -> " << current << endl;
         d_atomPreprocessingCache[current] = current;
         toVisit.pop_back();
       }

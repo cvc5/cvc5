@@ -21,15 +21,19 @@
 #include "expr/expr_manager_scope.h"
 #include "util/Assert.h"
 
+#include <iterator>
+#include <utility>
+
 ${includes}
 
 // This is a hack, but an important one: if there's an error, the
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 31 "${template}"
+#line 34 "${template}"
 
 using namespace CVC4::kind;
+using namespace std;
 
 namespace CVC4 {
 
@@ -73,7 +77,7 @@ TypeCheckingException::~TypeCheckingException() throw () {
 }
 
 void TypeCheckingException::toStream(std::ostream& os) const {
-  os << "Error type-checking " << d_expr << ": " << d_msg << std::endl << *d_expr;
+  os << "Error type-checking " << d_expr << ": " << d_msg << endl << *d_expr;
 }
 
 Expr TypeCheckingException::getExpression() const {
@@ -208,6 +212,59 @@ Type Expr::getType(bool check) const throw (TypeCheckingException) {
   return d_exprManager->getType(*this, check);
 }
 
+Expr Expr::substitute(Expr e, Expr replacement) const {
+  return Expr(d_exprManager, new Node(d_node->substitute(TNode(*e.d_node), TNode(*replacement.d_node))));
+}
+
+template <class Iterator>
+class NodeIteratorAdaptor : public std::iterator<std::input_iterator_tag, Node> {
+  Iterator d_iterator;
+public:
+  NodeIteratorAdaptor(Iterator i) : d_iterator(i) {
+  }
+  NodeIteratorAdaptor& operator++() { ++d_iterator; return *this; }
+  NodeIteratorAdaptor operator++(int) { NodeIteratorAdaptor i(d_iterator); ++d_iterator; return i; }
+  bool operator==(NodeIteratorAdaptor i) { return d_iterator == i.d_iterator; }
+  bool operator!=(NodeIteratorAdaptor i) { return !(*this == i); }
+  Node operator*() { return Node::fromExpr(*d_iterator); }
+};/* class NodeIteratorAdaptor */
+
+template <class Iterator>
+static inline NodeIteratorAdaptor<Iterator> mkNodeIteratorAdaptor(Iterator i) {
+  return NodeIteratorAdaptor<Iterator>(i);
+}
+
+Expr Expr::substitute(const std::vector<Expr> exes,
+                      const std::vector<Expr>& replacements) const {
+  return Expr(d_exprManager,
+              new Node(d_node->substitute(mkNodeIteratorAdaptor(exes.begin()),
+                                          mkNodeIteratorAdaptor(exes.end()),
+                                          mkNodeIteratorAdaptor(replacements.begin()),
+                                          mkNodeIteratorAdaptor(replacements.end()))));
+}
+
+template <class Iterator>
+class NodePairIteratorAdaptor : public std::iterator<std::input_iterator_tag, pair<Node, Node> > {
+  Iterator d_iterator;
+public:
+  NodePairIteratorAdaptor(Iterator i) : d_iterator(i) {
+  }
+  NodePairIteratorAdaptor& operator++() { ++d_iterator; return *this; }
+  NodePairIteratorAdaptor operator++(int) { NodePairIteratorAdaptor i(d_iterator); ++d_iterator; return i; }
+  bool operator==(NodePairIteratorAdaptor i) { return d_iterator == i.d_iterator; }
+  bool operator!=(NodePairIteratorAdaptor i) { return !(*this == i); }
+  pair<Node, Node> operator*() { return make_pair(Node::fromExpr((*d_iterator).first), Node::fromExpr((*d_iterator).second)); }
+};/* class NodePairIteratorAdaptor */
+
+template <class Iterator>
+static inline NodePairIteratorAdaptor<Iterator> mkNodePairIteratorAdaptor(Iterator i) {
+  return NodePairIteratorAdaptor<Iterator>(i);
+}
+
+Expr Expr::substitute(const std::hash_map<Expr, Expr, ExprHashFunction> map) const {
+  return Expr(d_exprManager, new Node(d_node->substitute(mkNodePairIteratorAdaptor(map.begin()), mkNodePairIteratorAdaptor(map.end()))));
+}
+
 Expr::const_iterator::const_iterator() :
   d_iterator(NULL) {
 }
@@ -278,6 +335,12 @@ bool Expr::isNull() const {
 
 Expr::operator bool() const {
   return !isNull();
+}
+
+bool Expr::isVariable() const {
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->getMetaKind() == kind::metakind::VARIABLE;
 }
 
 bool Expr::isConst() const {

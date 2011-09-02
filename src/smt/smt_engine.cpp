@@ -70,7 +70,7 @@ namespace smt {
  */
 class DefinedFunction {
   Node d_func;
-  std::vector<Node> d_formals;
+  vector<Node> d_formals;
   Node d_formula;
 public:
   DefinedFunction() {}
@@ -114,7 +114,7 @@ class SmtEnginePrivate {
   theory::SubstitutionMap d_topLevelSubstitutions;
 
   /**
-   * Runs the nonslausal solver and tries to solve all the assigned
+   * Runs the nonclausal solver and tries to solve all the assigned
    * theory literals.
    */
   void nonClausalSimplify();
@@ -215,6 +215,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
 }
 
 void SmtEngine::shutdown() {
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << QuitCommand() << endl;
+  }
   d_propEngine->shutdown();
   d_theoryEngine->shutdown();
 }
@@ -248,6 +251,9 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
   if(d_logic != "") {
     throw ModalException("logic already set");
   }
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << SetBenchmarkLogicCommand(s) << endl;
+  }
   d_logic = s;
   d_theoryEngine->setLogic(s);
 
@@ -259,7 +265,10 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
-  Debug("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
+  Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << SetInfoCommand(key, value) << endl;
+  }
   if(key == ":name" ||
      key == ":source" ||
      key == ":category" ||
@@ -285,7 +294,7 @@ void SmtEngine::setInfo(const std::string& key, const SExpr& value)
 
 SExpr SmtEngine::getInfo(const std::string& key) const
   throw(BadOptionException) {
-  Debug("smt") << "SMT getInfo(" << key << ")" << endl;
+  Trace("smt") << "SMT getInfo(" << key << ")" << endl;
   if(key == ":all-statistics") {
     vector<SExpr> stats;
     for(StatisticsRegistry::const_iterator i = StatisticsRegistry::begin();
@@ -323,7 +332,10 @@ SExpr SmtEngine::getInfo(const std::string& key) const
 
 void SmtEngine::setOption(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
-  Debug("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
+  Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << SetOptionCommand(key, value) << endl;
+  }
 
   if(key == ":print-success") {
     throw BadOptionException();
@@ -362,7 +374,10 @@ void SmtEngine::setOption(const std::string& key, const SExpr& value)
 
 SExpr SmtEngine::getOption(const std::string& key) const
   throw(BadOptionException) {
-  Debug("smt") << "SMT getOption(" << key << ")" << endl;
+  Trace("smt") << "SMT getOption(" << key << ")" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetOptionCommand(key) << endl;
+  }
   if(key == ":print-success") {
     return SExpr("true");
   } else if(key == ":expand-definitions") {
@@ -393,9 +408,21 @@ SExpr SmtEngine::getOption(const std::string& key) const
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
                                Expr formula) {
-  Debug("smt") << "SMT defineFunction(" << func << ")" << endl;
+  Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
+  /*
+  if(Dump.isOn("declarations")) {
+    stringstream ss;
+    ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump("declarations")))
+       << func;
+    Dump("declarations") << DefineFunctionCommand(ss.str(), func, formals, formula)
+                         << endl;
+  }
+  */
   NodeManagerScope nms(d_nodeManager);
-  Type formulaType = formula.getType(Options::current()->typeChecking);// type check body
+
+  // type check body
+  Type formulaType = formula.getType(Options::current()->typeChecking);
+
   Type funcType = func.getType();
   Type rangeType = funcType.isFunction() ?
     FunctionType(funcType).getRangeType() : funcType;
@@ -501,7 +528,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHas
 
 
 void SmtEnginePrivate::removeITEs() {
-  Debug("simplify") << "SmtEnginePrivate::removeITEs()" << std::endl;
+  Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
 
   // Remove all of the ITE occurances and normalize
   RemoveITE::run(d_assertionsToCheck);
@@ -514,7 +541,7 @@ void SmtEnginePrivate::staticLearning() {
 
   TimerStat::CodeTimer staticLearningTimer(d_smt.d_staticLearningTime);
 
-  Debug("simplify") << "SmtEnginePrivate::staticLearning()" << std::endl;
+  Trace("simplify") << "SmtEnginePrivate::staticLearning()" << endl;
 
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
 
@@ -533,28 +560,32 @@ void SmtEnginePrivate::nonClausalSimplify() {
 
   TimerStat::CodeTimer nonclauselTimer(d_smt.d_nonclausalSimplificationTime);
 
-  Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << std::endl;
+  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
 
   // Apply the substitutions we already have, and normalize
-  Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): applying substitutions" << std::endl;
+  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                    << "applying substitutions" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-    d_assertionsToPreprocess[i] = theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
+    d_assertionsToPreprocess[i] =
+      theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
   }
 
   d_nonClausalLearnedLiterals.clear();
-  bool goNuts = Options::current()->simplificationStyle == Options::AGGRESSIVE_SIMPLIFICATION_STYLE;
-  booleans::CircuitPropagator propagator(d_nonClausalLearnedLiterals, true, true, goNuts);
+  booleans::CircuitPropagator propagator(d_nonClausalLearnedLiterals, true, true);
 
   // Assert all the assertions to the propagator
-  Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): asserting to propagator" << std::endl;
+  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                    << "asserting to propagator" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     propagator.assert(d_assertionsToPreprocess[i]);
   }
 
-  Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): propagating" << std::endl;
+  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                    << "propagating" << endl;
   if (propagator.propagate()) {
     // If in conflict, just return false
-    Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): conflict in non-clausal propagation" << std::endl;
+    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                      << "conflict in non-clausal propagation" << endl;
     d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
     return;
   } else {
@@ -562,7 +593,8 @@ void SmtEnginePrivate::nonClausalSimplify() {
     unsigned j = 0;
     for(unsigned i = 0, i_end = d_nonClausalLearnedLiterals.size(); i < i_end; ++ i) {
       // Simplify the literal we learned wrt previous substitutions
-      Node learnedLiteral = theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_nonClausalLearnedLiterals[i]));
+      Node learnedLiteral =
+        theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_nonClausalLearnedLiterals[i]));
       // It might just simplify to a constant
       if (learnedLiteral.isConst()) {
         if (learnedLiteral.getConst<bool>()) {
@@ -570,23 +602,30 @@ void SmtEnginePrivate::nonClausalSimplify() {
           continue;
         } else {
           // If the learned literal simplifies to false, we're in conflict
-          Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): conflict with " << d_nonClausalLearnedLiterals[i] << std::endl;
+          Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                            << "conflict with "
+                            << d_nonClausalLearnedLiterals[i] << endl;
           d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
           return;
         }
       }
       // Solve it with the corresponding theory
-      Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): solving " << learnedLiteral << std::endl;
-      Theory::SolveStatus solveStatus = d_smt.d_theoryEngine->solve(learnedLiteral, d_topLevelSubstitutions);
+      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                        << "solving " << learnedLiteral << endl;
+      Theory::SolveStatus solveStatus =
+        d_smt.d_theoryEngine->solve(learnedLiteral, d_topLevelSubstitutions);
       switch (solveStatus) {
       case Theory::SOLVE_STATUS_CONFLICT:
         // If in conflict, we return false
-        Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): conflict while solving " << learnedLiteral << std::endl;
+        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                          << "conflict while solving "
+                          << learnedLiteral << endl;
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
         return;
       case Theory::SOLVE_STATUS_SOLVED:
         // The literal should rewrite to true
-        Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): solved " << learnedLiteral << std::endl;
+        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                          << "solved " << learnedLiteral << endl;
         Assert(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(learnedLiteral)).isConst());
         break;
       default:
@@ -601,38 +640,53 @@ void SmtEnginePrivate::nonClausalSimplify() {
 
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
     d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_nonClausalLearnedLiterals[i])));
-    Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): non-clausal learned : " << d_assertionsToCheck.back() << std::endl;
+    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                      << "non-clausal learned : "
+                      << d_assertionsToCheck.back() << endl;
   }
   d_nonClausalLearnedLiterals.clear();
 
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i])));
-    Debug("simplify") << "SmtEnginePrivate::nonClausalSimplify(): non-clausal preprocessed: " << d_assertionsToCheck.back() << std::endl;
+    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                      << "non-clausal preprocessed: "
+                      << d_assertionsToCheck.back() << endl;
   }
   d_assertionsToPreprocess.clear();
 }
 
-void SmtEnginePrivate::simplifyAssertions() throw(NoSuchFunctionException, AssertionException) {
+void SmtEnginePrivate::simplifyAssertions()
+  throw(NoSuchFunctionException, AssertionException) {
   try {
 
-    Debug("simplify") << "SmtEnginePrivate::simplify()" << std::endl;
+    Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
     if(!Options::current()->lazyDefinitionExpansion) {
-      Debug("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << std::endl;
+      Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
       TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
       hash_map<TNode, Node, TNodeHashFunction> cache;
       for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-        d_assertionsToPreprocess[i] = expandDefinitions(d_assertionsToPreprocess[i], cache);
+        d_assertionsToPreprocess[i] =
+          expandDefinitions(d_assertionsToPreprocess[i], cache);
       }
     }
 
-    // Perform the non-clausal simplification
-    Debug("simplify") << "SmtEnginePrivate::simplify(): performing non-clausal simplification" << std::endl;
-    nonClausalSimplify();
+    if(Options::current()->simplificationMode != Options::SIMPLIFICATION_MODE_NONE) {
+      // Perform non-clausal simplification
+      Trace("simplify") << "SmtEnginePrivate::simplify(): "
+                        << "performing non-clausal simplification" << endl;
+      nonClausalSimplify();
+    } else {
+      Assert(d_assertionsToCheck.empty());
+      d_assertionsToCheck.swap(d_assertionsToPreprocess);
+    }
 
-    // Perform static learning
-    Debug("simplify") << "SmtEnginePrivate::simplify(): performing static learning" << std::endl;
-    staticLearning();
+    if(Options::current()->doStaticLearning) {
+      // Perform static learning
+      Trace("simplify") << "SmtEnginePrivate::simplify(): "
+                        << "performing static learning" << endl;
+      staticLearning();
+    }
 
     // Remove ITEs
     removeITEs();
@@ -652,38 +706,34 @@ void SmtEnginePrivate::simplifyAssertions() throw(NoSuchFunctionException, Asser
 }
 
 Result SmtEngine::check() {
-  Debug("smt") << "SmtEngine::check()" << endl;
+  Trace("smt") << "SmtEngine::check()" << endl;
 
   // make sure the prop layer has all assertions
-  Debug("smt") << "SmtEngine::check(): processing assertion" << endl;
+  Trace("smt") << "SmtEngine::check(): processing assertion" << endl;
   d_private->processAssertions();
 
-  Debug("smt") << "SmtEngine::check(): running check" << endl;
+  Trace("smt") << "SmtEngine::check(): running check" << endl;
   return d_propEngine->checkSat();
 }
 
 Result SmtEngine::quickCheck() {
-  Debug("smt") << "SMT quickCheck()" << endl;
+  Trace("smt") << "SMT quickCheck()" << endl;
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
 void SmtEnginePrivate::processAssertions() {
 
-  Debug("smt") << "SmtEnginePrivate::processAssertions()" << endl;
+  Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
   // Simplify the assertions
   simplifyAssertions();
 
-  if(Options::current()->preprocessOnly) {
-    if(Message.isOn()) {
-      // Push the formula to the Message() stream
-      for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-        expr::ExprSetDepth::Scope sdScope(Message.getStream(), -1);
-        Message() << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr())) << endl;
-      }
+  if(Dump.isOn("assertions")) {
+    // Push the simplified assertions to the dump output stream
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+      Dump("assertions")
+        << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr())) << endl;
     }
-    // We still call into SAT below so that we can output theory
-    // contributions that come from presolve().
   }
 
   // Push the formula to SAT
@@ -693,9 +743,10 @@ void SmtEnginePrivate::processAssertions() {
   d_assertionsToCheck.clear();
 }
 
-void SmtEnginePrivate::addFormula(TNode n) throw(NoSuchFunctionException, AssertionException) {
+void SmtEnginePrivate::addFormula(TNode n)
+  throw(NoSuchFunctionException, AssertionException) {
 
-  Debug("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
+  Trace("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
 
   // Add the normalized formula to the queue
   d_assertionsToPreprocess.push_back(theory::Rewriter::rewrite(n));
@@ -721,31 +772,43 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) {
 
 Result SmtEngine::checkSat(const BoolExpr& e) {
 
-  Assert(e.getExprManager() == d_exprManager);
+  Assert(e.isNull() || e.getExprManager() == d_exprManager);
 
   NodeManagerScope nms(d_nodeManager);
 
-  Debug("smt") << "SmtEngine::checkSat(" << e << ")" << endl;
+  Trace("smt") << "SmtEngine::checkSat(" << e << ")" << endl;
 
   if(d_queryMade && !Options::current()->incrementalSolving) {
-    throw ModalException("Cannot make multiple queries unless incremental solving is enabled (try --incremental)");
+    throw ModalException("Cannot make multiple queries unless "
+                         "incremental solving is enabled "
+                         "(try --incremental)");
   }
 
-  // Enuser that the expression is Boolean
-  ensureBoolean(e);
+  // Ensure that the expression is type-checked at this point, and Boolean
+  if(!e.isNull()) {
+    ensureBoolean(e);
+  }
 
   // Push the context
   internalPush();
 
-  // Add the
+  // Note that a query has been made
   d_queryMade = true;
 
   // Add the formula
-  d_problemExtended = true;
-  d_private->addFormula(e.getNode());
+  if(!e.isNull()) {
+    d_problemExtended = true;
+    d_private->addFormula(e.getNode());
+  }
 
   // Run the check
   Result r = check().asSatisfiabilityResult();
+
+  // Dump the query if requested
+  if(Dump.isOn("benchmark")) {
+    // the expr already got dumped out if assertion-dumping is on
+    Dump("benchmark") << CheckSatCommand() << endl;
+  }
 
   // Pop the context
   internalPop();
@@ -755,36 +818,65 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
 
   d_problemExtended = false;
 
-  Debug("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
+  Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
 
   return r;
 }
 
 Result SmtEngine::query(const BoolExpr& e) {
+
+  Assert(!e.isNull());
   Assert(e.getExprManager() == d_exprManager);
+
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT query(" << e << ")" << endl;
+
+  Trace("smt") << "SMT query(" << e << ")" << endl;
+
   if(d_queryMade && !Options::current()->incrementalSolving) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
                          "(try --incremental)");
   }
-  d_queryMade = true;
-  ensureBoolean(e);// ensure expr is type-checked at this point
+
+  // Ensure that the expression is type-checked at this point, and Boolean
+  ensureBoolean(e);
+
+  // Push the context
   internalPush();
+
+  // Note that a query has been made
+  d_queryMade = true;
+
+  // Add the formula
+  d_problemExtended = true;
   d_private->addFormula(e.getNode().notNode());
+
+  // Run the check
   Result r = check().asValidityResult();
+
+  // Dump the query if requested
+  if(Dump.isOn("benchmark")) {
+    // the expr already got dumped out if assertion-dumping is on
+    Dump("benchmark") << CheckSatCommand() << endl;
+  }
+
+  // Pop the context
   internalPop();
+
+  // Remember the status
   d_status = r;
+
   d_problemExtended = false;
-  Debug("smt") << "SMT query(" << e << ") ==> " << r << endl;
+
+  Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
+
   return r;
 }
 
 Result SmtEngine::assertFormula(const BoolExpr& e) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SmtEngine::assertFormula(" << e << ")" << endl;
+  Trace("smt") << "SmtEngine::assertFormula(" << e << ")" << endl;
   ensureBoolean(e);
   if(d_assertionList != NULL) {
     d_assertionList->push_back(e);
@@ -799,7 +891,10 @@ Expr SmtEngine::simplify(const Expr& e) {
   if( Options::current()->typeChecking ) {
     e.getType(true);// ensure expr is type-checked at this point
   }
-  Debug("smt") << "SMT simplify(" << e << ")" << endl;
+  Trace("smt") << "SMT simplify(" << e << ")" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << SimplifyCommand(e) << endl;
+  }
   return d_private->applySubstitutions(e).toExpr();
 }
 
@@ -807,8 +902,14 @@ Expr SmtEngine::getValue(const Expr& e)
   throw(ModalException, AssertionException) {
   Assert(e.getExprManager() == d_exprManager);
   NodeManagerScope nms(d_nodeManager);
-  Type type = e.getType(Options::current()->typeChecking);// ensure expr is type-checked at this point
-  Debug("smt") << "SMT getValue(" << e << ")" << endl;
+
+  // ensure expr is type-checked at this point
+  Type type = e.getType(Options::current()->typeChecking);
+
+  Trace("smt") << "SMT getValue(" << e << ")" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetValueCommand(e) << endl;
+  }
   if(!Options::current()->produceModels) {
     const char* msg =
       "Cannot get value when produce-models options is off.";
@@ -831,7 +932,7 @@ Expr SmtEngine::getValue(const Expr& e)
   // Normalize for the theories
   Node n = theory::Rewriter::rewrite(e.getNode());
 
-  Debug("smt") << "--- getting value of " << n << endl;
+  Trace("smt") << "--- getting value of " << n << endl;
   Node resultNode = d_theoryEngine->getValue(n);
 
   // type-check the result we got
@@ -867,7 +968,10 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
 }
 
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
-  Debug("smt") << "SMT getAssignment()" << endl;
+  Trace("smt") << "SMT getAssignment()" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetAssignmentCommand() << endl;
+  }
   if(!Options::current()->produceAssignments) {
     const char* msg =
       "Cannot get the current assignment when "
@@ -898,7 +1002,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
     // Normalize
     Node n = theory::Rewriter::rewrite(*i);
 
-    Debug("smt") << "--- getting value of " << n << endl;
+    Trace("smt") << "--- getting value of " << n << endl;
     Node resultNode = d_theoryEngine->getValue(n);
 
     // type-check the result we got
@@ -920,8 +1024,11 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
 
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetAssertionsCommand() << endl;
+  }
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT getAssertions()" << endl;
+  Trace("smt") << "SMT getAssertions()" << endl;
   if(!Options::current()->interactive) {
     const char* msg =
       "Cannot query the current assertion list when not in interactive mode.";
@@ -931,21 +1038,33 @@ vector<Expr> SmtEngine::getAssertions()
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
+size_t SmtEngine::getStackLevel() const {
+  NodeManagerScope nms(d_nodeManager);
+  Trace("smt") << "SMT getStackLevel()" << endl;
+  return d_context->getLevel();
+}
+
 void SmtEngine::push() {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT push()" << endl;
+  Trace("smt") << "SMT push()" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << PushCommand() << endl;
+  }
   if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot push when not solving incrementally (use --incremental)");
   }
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
-  Debug("userpushpop") << "SmtEngine: pushed to level "
+  Trace("userpushpop") << "SmtEngine: pushed to level "
                        << d_userContext->getLevel() << endl;
 }
 
 void SmtEngine::pop() {
   NodeManagerScope nms(d_nodeManager);
-  Debug("smt") << "SMT pop()" << endl;
+  Trace("smt") << "SMT pop()" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << PopCommand() << endl;
+  }
   if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
   }
@@ -955,21 +1074,23 @@ void SmtEngine::pop() {
   }
   d_userLevels.pop_back();
 
-  Debug("userpushpop") << "SmtEngine: popped to level "
+  Trace("userpushpop") << "SmtEngine: popped to level "
                        << d_userContext->getLevel() << endl;
   // FIXME: should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
 void SmtEngine::internalPop() {
-  Debug("smt") << "internalPop()" << endl;
+  Trace("smt") << "internalPop()" << endl;
   d_propEngine->pop();
   d_userContext->pop();
 }
 
 void SmtEngine::internalPush() {
-  Debug("smt") << "internalPush()" << endl;
-  // TODO: this is the right thing to do, but needs serious thinking to keep completeness
+  Trace("smt") << "internalPush()" << endl;
+  // TODO: this is the right thing to do, but needs serious thinking
+  // to keep completeness
+  //
   // d_private->processAssertions();
   d_userContext->push();
   d_propEngine->push();

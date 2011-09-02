@@ -2,8 +2,8 @@
 /*! \file cnf_stream.cpp
  ** \verbatim
  ** Original author: taking
- ** Major contributors: dejan
- ** Minor contributors (to current version): cconway, mdeters
+ ** Major contributors: mdeters, dejan
+ ** Minor contributors (to current version): cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -18,13 +18,15 @@
  ** of given an equisatisfiable stream of assertions to PropEngine.
  **/
 
-#include "sat.h"
+#include "prop/sat.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
 #include "expr/node.h"
 #include "util/Assert.h"
 #include "util/output.h"
+#include "expr/command.h"
+#include "expr/expr.h"
 
 #include <queue>
 
@@ -57,6 +59,21 @@ TseitinCnfStream::TseitinCnfStream(SatInputInterface* satSolver, theory::Registr
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << endl;
+  if(Dump.isOn("clauses")) {
+    if(Message.isOn()) {
+      if(c.size() == 1) {
+        Message() << AssertCommand(BoolExpr(getNode(c[0]).toExpr())) << endl;
+      } else {
+        Assert(c.size() > 1);
+        NodeBuilder<> b(kind::OR);
+        for(int i = 0; i < c.size(); ++i) {
+          b << getNode(c[i]);
+        }
+        Node n = b;
+        Message() << AssertCommand(BoolExpr(n.toExpr())) << endl;
+      }
+    }
+  }
   d_satSolver->addClause(c, d_removable);
 }
 
@@ -114,7 +131,8 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
 
   // If it's a theory literal, need to store it for back queries
   if ( theoryLiteral ||
-       ( CVC4_USE_REPLAY && Options::current()->replayLog != NULL ) ) {
+       ( CVC4_USE_REPLAY && Options::current()->replayLog != NULL ) ||
+       Dump.isOn("clauses") ) {
     d_nodeCache[lit] = node;
     d_nodeCache[~lit] = node.notNode();
   }
@@ -580,6 +598,15 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool removable, bool negated
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
   Debug("cnf") << "convertAndAssert(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+
+  if(hasLiteral(node)) {
+    Debug("cnf") << "==> fortunate literal detected!" << endl;
+    ++d_fortunateLiterals;
+    SatLiteral lit = getLiteral(node);
+    //d_satSolver->renewVar(lit);
+    assertClause(node, negated ? ~lit : lit);
+  }
+
   switch(node.getKind()) {
   case AND:
     convertAndAssertAnd(node, negated);

@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters, dejan
- ** Minor contributors (to current version): cconway
+ ** Minor contributors (to current version): barrett, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -76,6 +76,24 @@ protected:
 
   /** Top level nodes that we translated */
   std::vector<TNode> d_translationTrail;
+
+  /**
+   * How many literals were already mapped at the top-level when we
+   * tried to convertAndAssert() something.  This
+   * achieves early detection of units and leads to fewer
+   * clauses.  It's motivated by the following pattern:
+   *
+   *   ASSERT  BIG FORMULA => x
+   *   (and then later...)
+   *   ASSERT  BIG FORMULA
+   *
+   * With the first assert, BIG FORMULA is clausified, and a literal
+   * is assigned for the top level so that the final clause for the
+   * implication is "lit => x".  But without "fortunate literal
+   * detection," when BIG FORMULA is later asserted, it is clausified
+   * separately, and "lit" is never asserted as a unit clause.
+   */
+  KEEP_STATISTIC(IntStat, d_fortunateLiterals, "prop::CnfStream::fortunateLiterals", 0);
 
   /** Remove nots from the node */
   TNode stripNot(TNode node) {

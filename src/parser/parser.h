@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan
+ ** Minor contributors (to current version): dejan, ajreynol
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -366,11 +366,6 @@ public:
    * Creates a new sort constructor with the given name and arity.
    */
   SortConstructorType mkSortConstructor(const std::string& name, size_t arity);
-
-  /**
-   * Creates new sorts with the given names (all of arity 0).
-   */
-  std::vector<SortType> mkSorts(const std::vector<std::string>& names);
 
   /**
    * Creates a new "unresolved type," used only during parsing.

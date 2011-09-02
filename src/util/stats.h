@@ -5,7 +5,7 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -32,7 +32,6 @@
 #include <vector>
 
 #include "util/Assert.h"
-#include "lib/clock_gettime.h"
 
 namespace CVC4 {
 
@@ -702,27 +701,13 @@ public:
   }
 
   /** Start the timer. */
-  void start() {
-    if(__CVC4_USE_STATISTICS) {
-      AlwaysAssert(!d_running);
-      clock_gettime(CLOCK_MONOTONIC, &d_start);
-      d_running = true;
-    }
-  }
+  void start();
 
   /**
    * Stop the timer and update the statistic value with the
    * accumulated time.
    */
-  void stop() {
-    if(__CVC4_USE_STATISTICS) {
-      AlwaysAssert(d_running);
-      ::timespec end;
-      clock_gettime(CLOCK_MONOTONIC, &end);
-      d_data += end - d_start;
-      d_running = false;
-    }
-  }
+  void stop();
 
 };/* class TimerStat */
 

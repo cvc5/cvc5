@@ -5,6 +5,7 @@
 #
 
 theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
+typechecker "theory/bv/theory_bv_type_rules.h"
 
 properties finite
 properties check propagate
@@ -98,5 +99,48 @@ parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-
 parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-extend"
 parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left"
 parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right"
+
+typerule CONST_BITVECTOR ::CVC4::theory::bv::BitVectorConstantTypeRule
+
+typerule BITVECTOR_AND ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_OR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_XOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NOT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NAND ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_XNOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+
+typerule BITVECTOR_COMP ::CVC4::theory::bv::BitVectorCompRule
+
+typerule BITVECTOR_MULT ::CVC4::theory::bv::BitVectorArithRule
+typerule BITVECTOR_PLUS ::CVC4::theory::bv::BitVectorArithRule
+typerule BITVECTOR_SUB ::CVC4::theory::bv::BitVectorArithRule
+typerule BITVECTOR_NEG ::CVC4::theory::bv::BitVectorArithRule
+
+typerule BITVECTOR_UDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_UREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SMOD ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SHL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_LSHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ASHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ROTATE_LEFT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ROTATE_RIGHT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+
+typerule BITVECTOR_ULT ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_ULE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_UGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_UGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SLT ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SLE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+
+typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
+typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatRule
+typerule BITVECTOR_REPEAT ::CVC4::theory::bv::BitVectorRepeatTypeRule
+typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
+typerule BITVECTOR_SIGN_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
 
 endtheory

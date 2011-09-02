@@ -2,8 +2,8 @@
 /*! \file valuation.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Major contributors: taking
+ ** Minor contributors (to current version): barrett, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -31,22 +31,22 @@ bool Valuation::isSatLiteral(TNode n) const {
   return d_engine->getPropEngine()->isSatLiteral(n);
 }
 
-bool Valuation::hasSatValue(TNode n, bool& value) const {
-  return d_engine->getPropEngine()->hasValue(n, value);
-}
-
-Node Valuation::getSatValue(TNode n) const{
+Node Valuation::getSatValue(TNode n) const {
   if(n.getKind() == kind::NOT) {
     Node atomRes = d_engine->getPropEngine()->getValue(n[0]);
-    if(atomRes.getKind() == kind::CONST_BOOLEAN){
+    if(atomRes.getKind() == kind::CONST_BOOLEAN) {
       return NodeManager::currentNM()->mkConst(!atomRes.getConst<bool>());
-    }else{
+    } else {
       Assert(atomRes.isNull());
       return atomRes;
     }
   } else {
     return d_engine->getPropEngine()->getValue(n);
   }
+}
+
+bool Valuation::hasSatValue(TNode n, bool& value) const {
+  return d_engine->getPropEngine()->hasValue(n, value);
 }
 
 }/* CVC4::theory namespace */

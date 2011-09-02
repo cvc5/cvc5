@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
- ** Minor contributors (to current version): cconway, taking, dejan
+ ** Minor contributors (to current version): taking, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -190,6 +190,7 @@ public:
   bool on (std::string tag) { d_tags.insert(tag); return true; }
   bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
   bool off(std::string tag) { d_tags.erase (tag); return false; }
+  bool off()                { d_tags.clear(); return false; }
 
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
@@ -297,6 +298,7 @@ public:
   bool on (std::string tag) { d_tags.insert(tag); return true; }
   bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
   bool off(std::string tag) { d_tags.erase (tag); return false; }
+  bool off()                { d_tags.clear(); return false; }
 
   bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
   bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
@@ -304,6 +306,51 @@ public:
   std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
   std::ostream& getStream() { return *d_os; }
 };/* class TraceC */
+
+/** The dump output class */
+class CVC4_PUBLIC DumpC {
+  std::set<std::string> d_tags;
+  std::ostream* d_os;
+
+public:
+  /**
+   * A copy of cout for use by the dumper.  This is important because
+   * it has different settings (e.g., the expr printing depth is always
+   * unlimited). */
+  static std::ostream dump_cout;
+
+  explicit DumpC(std::ostream* os) : d_os(os) {}
+
+  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
+
+  CVC4ostream operator()(const char* tag) {
+    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
+      return CVC4ostream(d_os);
+    } else {
+      return CVC4ostream();
+    }
+  }
+  CVC4ostream operator()(std::string tag) {
+    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
+      return CVC4ostream(d_os);
+    } else {
+      return CVC4ostream();
+    }
+  }
+
+  bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
+  bool on (std::string tag) { d_tags.insert(tag); return true; }
+  bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
+  bool off(std::string tag) { d_tags.erase (tag); return false; }
+  bool off()                { d_tags.clear(); return false; }
+
+  bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
+  bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
+
+  std::ostream& setStream(std::ostream& os) { d_os = &os; return os; }
+  std::ostream& getStream() { return *d_os; }
+};/* class DumpC */
 
 /** The debug output singleton */
 extern DebugC DebugChannel CVC4_PUBLIC;
@@ -317,6 +364,8 @@ extern NoticeC NoticeChannel CVC4_PUBLIC;
 extern ChatC ChatChannel CVC4_PUBLIC;
 /** The trace output singleton */
 extern TraceC TraceChannel CVC4_PUBLIC;
+/** The dump output singleton */
+extern DumpC DumpChannel CVC4_PUBLIC;
 
 #ifdef CVC4_MUZZLE
 
@@ -326,6 +375,7 @@ extern TraceC TraceChannel CVC4_PUBLIC;
 #  define Notice ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::NoticeChannel
 #  define Chat ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::ChatChannel
 #  define Trace ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::TraceChannel
+#  define Dump ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DumpChannel
 
 inline int DebugC::printf(const char* tag, const char* fmt, ...) { return 0; }
 inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
@@ -335,6 +385,8 @@ inline int NoticeC::printf(const char* fmt, ...) { return 0; }
 inline int ChatC::printf(const char* fmt, ...) { return 0; }
 inline int TraceC::printf(const char* tag, const char* fmt, ...) { return 0; }
 inline int TraceC::printf(std::string tag, const char* fmt, ...) { return 0; }
+inline int DumpC::printf(const char* tag, const char* fmt, ...) { return 0; }
+inline int DumpC::printf(std::string tag, const char* fmt, ...) { return 0; }
 
 #else /* CVC4_MUZZLE */
 
@@ -356,6 +408,13 @@ inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
 inline int TraceC::printf(const char* tag, const char* fmt, ...) { return 0; }
 inline int TraceC::printf(std::string tag, const char* fmt, ...) { return 0; }
 #  endif /* CVC4_TRACING */
+#  ifdef CVC4_DUMPING
+#    define Dump ::CVC4::DumpChannel
+#  else /* CVC4_DUMPING */
+#    define Dump ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DumpChannel
+inline int DumpC::printf(const char* tag, const char* fmt, ...) { return 0; }
+inline int DumpC::printf(std::string tag, const char* fmt, ...) { return 0; }
+#  endif /* CVC4_DUMPING */
 
 #endif /* CVC4_MUZZLE */
 

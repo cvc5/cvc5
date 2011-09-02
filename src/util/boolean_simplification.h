@@ -2,7 +2,7 @@
 /*! \file boolean_simplification.h
  ** \verbatim
  ** Original author: taking
- ** Major contributors: none
+ ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -195,6 +195,16 @@ public:
     }else{
       return base;
     }
+  }
+
+  /**
+   * Negates an Expr, doing all the double-negation elimination that's
+   * possible.
+   *
+   * @param e the Expr to negate (cannot be the null Expr)
+   */
+  static Expr negate(Expr e) throw(AssertionException) {
+    return negate(Node::fromExpr(e)).toExpr();
   }
 
   /**

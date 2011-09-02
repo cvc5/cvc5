@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -71,12 +71,14 @@
 #  define CVC4_NORETURN __attribute__ ((__noreturn__))
 #  define CVC4_CONST_FUNCTION __attribute__ ((__const__))
 #  define CVC4_PURE_FUNCTION __attribute__ ((__pure__))
+#  define CVC4_DEPRECATED __attribute__ ((__deprecated__))
 #  define CVC4_WARN_UNUSED_RESULT __attribute__ ((__warn_unused_result__))
 #else /* ! __GNUC__ */
 #  define CVC4_UNUSED
 #  define CVC4_NORETURN
 #  define CVC4_CONST_FUNCTION
 #  define CVC4_PURE_FUNCTION
+#  define CVC4_DEPRECATED
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 

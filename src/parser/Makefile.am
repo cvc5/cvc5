@@ -20,7 +20,9 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 SUBDIRS = smt smt2 cvc
 
 nobase_lib_LTLIBRARIES = libcvc4parser.la
+if HAVE_CXXTESTGEN
 noinst_LTLIBRARIES = libcvc4parser_noinst.la
+endif
 
 libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS) \
 	-version-info $(LIBCVC4PARSER_VERSION)

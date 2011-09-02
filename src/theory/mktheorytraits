@@ -43,7 +43,6 @@ theory_for_each_macro="#define CVC4_FOR_EACH_THEORY \\
 theory_has_check="false"
 theory_has_propagate="false"
 theory_has_staticLearning="false"
-theory_has_registerTerm="false"
 theory_has_notifyRestart="false"
 theory_has_presolve="false"
 
@@ -130,7 +129,6 @@ struct TheoryTraits<${theory_id}> {
     static const bool hasCheck = ${theory_has_check};
     static const bool hasPropagate = ${theory_has_propagate};
     static const bool hasStaticLearning = ${theory_has_staticLearning};
-    static const bool hasRegisterTerm = ${theory_has_registerTerm};
     static const bool hasNotifyRestart = ${theory_has_notifyRestart};
     static const bool hasPresolve = ${theory_has_presolve};
 };/* struct TheoryTraits<${theory_id}> */
@@ -139,7 +137,7 @@ struct TheoryTraits<${theory_id}> {
   # warnings about theory content and properties
   dir="$(dirname "$kf")/../../"
   if [ -e "$dir/$theory_header" ]; then
-    for function in check propagate staticLearning registerTerm notifyRestart presolve; do
+    for function in check propagate staticLearning notifyRestart presolve; do
       if eval "\$theory_has_$function"; then
         grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' ||
           echo "$kf: warning: $theory_class has property \"$function\" in its kinds file but doesn't appear to declare the function" >&2
@@ -155,7 +153,6 @@ struct TheoryTraits<${theory_id}> {
   theory_has_check="false"
   theory_has_propagate="false"
   theory_has_staticLearning="false"
-  theory_has_registerTerm="false"
   theory_has_notifyRestart="false"
   theory_has_presolve="false"
 
@@ -172,6 +169,17 @@ struct TheoryTraits<${theory_id}> {
   lineno=${BASH_LINENO[0]}
 }
 
+function typechecker {
+  # typechecker header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
+function typerule {
+  # typerule OPERATOR typechecking-class
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
 
 function properties {
   # properties property*
@@ -188,7 +196,6 @@ function properties {
        propagate) theory_has_propagate="true";;
        staticLearning) theory_has_staticLearning="true";;
        presolve) theory_has_presolve="true";;
-       registerTerm) theory_has_registerTerm="true";;
        notifyRestart) theory_has_notifyRestart="true";;
        *) echo "$kf:$lineno: error: unknown theory property \"$property\"" >&2; exit 1;;
     esac

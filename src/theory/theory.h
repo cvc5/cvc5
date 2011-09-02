@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/attribute.h"
+#include "expr/command.h"
 #include "theory/valuation.h"
 #include "theory/substitutions.h"
 #include "theory/output_channel.h"
@@ -125,10 +126,9 @@ protected:
   Valuation d_valuation;
 
   /**
-   * Returns the next atom in the assertFact() queue.  Guarantees that
-   * registerTerm() has been called on the theory specific subterms.
+   * Returns the next atom in the assertFact() queue.
    *
-   * @return the next atom in the assertFact() queue.
+   * @return the next atom in the assertFact() queue
    */
   TNode get() {
     Assert( !done(), "Theory::get() called with assertion queue empty!" );
@@ -136,7 +136,11 @@ protected:
     d_wasSharedTermFact = false;
     d_factsHead = d_factsHead + 1;
     Trace("theory") << "Theory::get() => " << fact
-                    << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
+                    << " (" << d_facts.size() - d_factsHead << " left)"
+                    << std::endl;
+    if(Dump.isOn("state")) {
+      Dump("state") << AssertCommand(fact.toExpr()) << std::endl;
+    }
     return fact;
   }
 

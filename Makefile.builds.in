@@ -31,6 +31,9 @@ libdir = @libdir@
 abs_builddir = @abs_builddir@
 distdir = @PACKAGE@-@VERSION@
 
+# Are we building the libcvc4compat library ?
+CVC4_BUILD_LIBCOMPAT = @CVC4_BUILD_LIBCOMPAT@
+
 # Are we building static/dynamic libraries/binaries?  One or the other can be
 # on, or both.
 BUILDING_STATIC = @BUILDING_STATIC@
@@ -41,7 +44,7 @@ STATIC_BINARY = @STATIC_BINARY@
 _default_build_: all
 all:
 #	build the current build profile
-	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
 #	set up builds/$(CURRENT_BUILD)/...prefix.../bin
 #	and builds/$(CURRENT_BUILD)/...prefix.../lib
 	$(mkinstalldirs) "$(CURRENT_BUILD)$(bindir)" "$(CURRENT_BUILD)$(libdir)"
@@ -53,6 +56,12 @@ all:
 	$(CURRENT_BUILD)/libtool --mode=install install -v \
 		$(CURRENT_BUILD)/src/parser/libcvc4parser.la \
 		"$(abs_builddir)$(libdir)"
+ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
+#	install libcvc4compat
+	$(CURRENT_BUILD)/libtool --mode=install install -v \
+		$(CURRENT_BUILD)/src/compat/libcvc4compat.la \
+		"$(abs_builddir)$(libdir)"
+endif
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink
 #	the handling with empty $relink_command is a hack for Mac OS
@@ -85,6 +94,10 @@ endif
 	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la "`pwd`$(libdir)"
 #	install libcvc4parser
 	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
+ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
+#	install libcvc4compat
+	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/compat/libcvc4compat.la "`pwd`$(libdir)"
+endif
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink
 #	the handling with empty $relink_command is a hack for Mac OS
@@ -109,31 +122,31 @@ endif
 	test -e lib || ln -sfv ".$(libdir)" lib
 	test -e bin || ln -sfv ".$(bindir)" bin
 
-check test units regress: all
-	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
+check test units systemtests regress: all
+	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 units%:
-	(cd $(CURRENT_BUILD)/test && $(MAKE) units TEST_PREFIX=$(subst units:,,$@))
+	+(cd $(CURRENT_BUILD)/test && $(MAKE) units TEST_PREFIX=$(subst units:,,$@))
 regress%: all
-	(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
+	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 
 dist:
-	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
 	$(install_sh) \
 		$(CURRENT_BUILD)/$(distdir).tar.gz \
 		"`pwd`"
 
 TAGS tags:
-	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
 	ln -sf $(CURRENT_BUILD)/TAGS .
 
 .PHONY: TAGS tags
 
 .PHONY: doc-builds doc-prereq
 doc-builds: doc-prereq
-	(cd $(CURRENT_BUILD) && $(MAKE) doxygen-doc)
+	+(cd $(CURRENT_BUILD) && $(MAKE) doxygen-doc)
 doc-prereq:
-	(cd $(CURRENT_BUILD) && for dir in `find . -name Makefile | xargs grep -l BUILT_SOURCES`; do (cd `dirname "$$dir"`; (cat Makefile; echo 'doc-prereq: $$(BUILT_SOURCES)') | make -f- doc-prereq); done)
+	+(cd $(CURRENT_BUILD) && for dir in `find . -name Makefile | xargs grep -l BUILT_SOURCES`; do (cd `dirname "$$dir"`; (cat Makefile; echo 'doc-prereq: $$(BUILT_SOURCES)') | $(MAKE) -f- doc-prereq); done)
 
 # any other target than the default doesn't do the extra stuff above
 %:
-	(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	+(cd $(CURRENT_BUILD) && $(MAKE) $@)

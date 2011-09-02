@@ -2,10 +2,10 @@
 /*! \file theory_bv_type_rules.h
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: cconway
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters, cconway
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing

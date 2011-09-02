@@ -107,6 +107,25 @@ function endtheory {
   seen_endtheory=true
 }
 
+function typechecker {
+  # typechecker header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+  typechecker_includes="${typechecker_includes}
+#include \"$1\""
+}
+
+function typerule {
+  # typerule OPERATOR typechecking-class
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+  typerules="${typerules}
+  case kind::$1:
+    typeNode = $2::computeType(nodeManager, n, check);
+    break;
+"
+}
+
 function sort {
   # sort TYPE cardinality [well-founded ground-term header | not-well-founded] ["comment"]
   lineno=${BASH_LINENO[0]}
@@ -225,6 +244,8 @@ for var in \
     getConst_implementations \
     mkConst_instantiations \
     mkConst_implementations \
+    typechecker_includes \
+    typerules \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done

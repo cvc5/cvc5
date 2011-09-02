@@ -1,0 +1,186 @@
+#!/bin/bash
+#
+# usage: cut-release [-n] version-designation [make-args...]
+#
+
+function isthatright {
+  echo -n "Does that look right? [y/n] "
+  while read yn; do
+    if [ "$yn" = y -o "$yn" = Y -o "$yn" = yes -o "$yn" = YES -o "$yn" = Yes ]; then
+      break
+    elif [ "$yn" = n -o "$yn" = N -o "$yn" = no -o "$yn" = NO -o "$yn" = No ]; then
+      echo "Aborting as per user request." >&2
+      exit 1
+    else
+      echo -n "[y/n] "
+    fi
+  done
+}
+
+if [ "$1" = -n ]; then
+  dryrun=true
+  shift
+else
+  dryrun=false
+fi
+
+if [ $# -lt 1 ]; then
+  echo "Usage: $(basename "$0") [-n] version-designation [make-args...]" >&2
+  echo "-n does a dry run (i.e., do sanity checks and build but don't touch the repository)"
+  exit 1
+fi
+
+if ! [ -e src/expr/node.h -a -e .svn ]; then
+  echo "$(basename "$0"): ERROR: you should run this from the top-level of a CVC4 subversion working directory" >&2
+  exit 1
+fi
+
+version="$1"
+shift
+
+if echo "$version" | grep '[^a-zA-Z0-9_.+(){}^%#-]' &>/dev/null; then
+  echo "$(basename "$0"): ERROR: version designation \`$version' contains illegal characters" >&2
+  exit 1
+fi
+
+vs=($(echo "$version" | sed 's,^\([0-9]*\)\.\([0-9]*\)\(\.\([0-9]*\)\)\?\(.*\),\1 \2 \4 \5,'))
+major=${vs[0]}
+minor=${vs[1]}
+release=${vs[2]-0}
+extra=${vs[3]}
+echo
+echo "Major  : $major"
+echo "Minor  : $minor"
+echo "Release: $release"
+echo "Extra  : $extra"
+echo
+version="$major.$minor"
+if [ "$release" != 0 ]; then
+  version="$version.$release"
+fi
+version="$version$extra"
+echo "Version: $version"
+echo
+isthatright
+
+if ! svn ls "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version" 2>&1 >/dev/null | grep non-existent >/dev/null; then
+  echo "$(basename "$0"): ERROR: subversion repo already contains a release \`$version'" >&2
+  $dryrun || exit 1
+fi
+
+if $dryrun; then
+  if [ -n "$(svn status -q configure.ac)" ]; then
+    echo "$(basename "$0"): ERROR: in dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry" >&2
+    exit 1
+  fi
+elif [ -n "$(svn status -q)" ]; then
+  echo "$(basename "$0"): ERROR: \"svn status\" indicates there are local modifications; please commit first" >&2
+  exit 1
+fi
+
+root="$(svn info | grep "^Repository Root: https://subversive.cims.nyu.edu/.*" | cut -f3 -d' ')"
+if [ -z "$root" ]; then
+  echo "$(basename "$0"): ERROR: can't get repository root URL" 2>&1
+  $dryrun || exit 1
+fi
+
+if [ `svn -uq status | wc -l` -ne 1 ]; then
+  echo "$(basename "$0"): ERROR: this working directory isn't up to date" 2>&1
+  $dryrun || exit 1
+fi
+
+if ! grep '^m4_define(_CVC4_MAJOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
+   ! grep '^m4_define(_CVC4_MINOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
+   ! grep '^m4_define(_CVC4_RELEASE,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
+   ! grep '^m4_define(_CVC4_EXTRAVERSION,  *\[.*\] *)' configure.ac &>/dev/null; then
+  echo "$(basename "$0"): ERROR: cannot locate the version info lines of configure.ac" >&2
+  $dryrun || exit 1
+fi
+perl -pi -e 's/^m4_define\(_CVC4_MAJOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MAJOR, ${1}'"$major"'$2)/;
+             s/^m4_define\(_CVC4_MINOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MINOR, ${1}'"$minor"'$2)/;
+             s/^m4_define\(_CVC4_RELEASE, ( *)[0-9]+( *)\)/m4_define(_CVC4_RELEASE, ${1}'"$release"'$2)/;
+             s/^m4_define\(_CVC4_EXTRAVERSION, ( *)\[.*\]( *)\)/m4_define(_CVC4_EXTRAVERSION, $1\['"$extra"'\]$2)/' configure.ac
+
+trap 'echo; echo; echo "Aborting in error."; svn revert configure.ac; echo' EXIT
+
+echo
+echo 'Made the following change to configure.ac:'
+echo
+svn diff configure.ac
+echo
+isthatright
+
+if ! grep '^m4_define(_CVC4_MAJOR,  *'"$major"' *)' configure.ac &>/dev/null ||
+   ! grep '^m4_define(_CVC4_MINOR,  *'"$minor"' *)' configure.ac &>/dev/null ||
+   ! grep '^m4_define(_CVC4_RELEASE,  *'"$release"' *)' configure.ac &>/dev/null ||
+   ! grep '^m4_define(_CVC4_EXTRAVERSION,  *\['"$extra"'\] *)' configure.ac &>/dev/null; then
+  echo "$(basename "$0"): INTERNAL ERROR: cannot find the modified version info lines in configure.ac, bailing..." >&2
+  exit 1
+fi
+if [ -z "$(svn status -q configure.ac)" ]; then
+  echo "$(basename "$0"): INTERNAL ERROR: \"svn status\" indicates there are no local modifications to configure.ac; I expected the ones I just made!" >&2
+  exit 1
+fi
+
+if ! $SHELL -c '\
+	version="'$version'"; \
+	set -ex; \
+	./autogen.sh; \
+	mkdir "release-$version"; \
+	cd "release-$version"; \
+	../configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-cudd --with-readline; \
+	make dist "$@"; \
+	tar xf "cvc4-$version.tar.gz"; \
+	cd "cvc4-$version"; \
+	./configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-cudd --with-readline; \
+	make check "$@"; \
+	make distcheck "$@"; \
+'; then
+  exit 1
+fi
+
+if ! [ -e release-$version/cvc4-$version.tar.gz ]; then
+  echo "$(basename "$0"): INTERNAL ERROR: cannot find the distribution tarball I just built" >&2
+  exit 1
+fi
+if ! [ -e release-$version/src/main/cvc4 ]; then
+  echo "$(basename "$0"): INTERNAL ERROR: cannot find the binary I just built" >&2
+  exit 1
+fi
+
+echo
+echo 'This release of CVC4 will identify itself as:'
+echo
+release-$version/src/main/cvc4 --version
+echo
+isthatright
+
+echo
+echo 'This binary release of CVC4 will identify itself as being configured like this:'
+echo
+release-$version/src/main/cvc4 --show-config
+echo
+isthatright
+
+echo
+echo "Signing tarball..."
+cp -p "release-$version/cvc4-$version.tar.gz" .
+gpg -b --armor "cvc4-$version.tar.gz"
+
+echo
+echo "Signing binary..."
+cp -p "release-$version/src/main/cvc4" "cvc4-$version"
+gpg -b --armor "cvc4-$version"
+
+echo
+echo "About to run: svn commit -m \"Cutting release $version.\""
+isthatright
+$dryrun || svn commit -m "Cutting release $version."
+
+echo
+echo "About to run: svn copy -m \"Cutting release $version.\" \"$root\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version\""
+isthatright
+$dryrun || svn copy -m "Cutting release $version." "$root" "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version"
+
+trap '' EXIT
+

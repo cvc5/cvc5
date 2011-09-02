@@ -2,8 +2,8 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: taking, dejan
- ** Minor contributors (to current version): cconway, barrett
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): cconway, barrett, taking
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -26,7 +26,9 @@
 #include <utility>
 
 #include "expr/node.h"
+#include "expr/command.h"
 #include "prop/prop_engine.h"
+#include "context/cdset.h"
 #include "theory/shared_term_manager.h"
 #include "theory/theory.h"
 #include "theory/substitutions.h"
@@ -77,6 +79,19 @@ class TheoryEngine {
   NodeMap d_atomPreprocessingCache;
 
   /**
+   * Used for "missed-t-propagations" dumping mode only.  A set of all
+   * theory-propagable literals.
+   */
+  std::vector<TNode> d_possiblePropagations;
+
+  /**
+   * Used for "missed-t-propagations" dumping mode only.  A
+   * context-dependent set of those theory-propagable literals that
+   * have been propagated.
+   */
+  context::CDSet<TNode, TNodeHashFunction> d_hasPropagated;
+
+  /**
    * An output channel for Theory that passes messages
    * back to a TheoryEngine.
    */
@@ -122,13 +137,16 @@ class TheoryEngine {
       d_explanationNode(context) {
     }
 
-    void newFact(TNode n);
-
     void conflict(TNode conflictNode, bool safe)
       throw(theory::Interrupted, AssertionException) {
       Trace("theory") << "EngineOutputChannel::conflict(" << conflictNode << ")" << std::endl;
       d_inConflict = true;
 
+      if(Dump.isOn("t-conflicts")) {
+        Dump("t-conflicts") << CommentCommand("theory conflict: expect unsat") << std::endl
+                            << CheckSatCommand(conflictNode.toExpr()) << std::endl;
+      }
+      Assert(d_engine->properConflict(conflictNode));
       ++(d_engine->d_statistics.d_statConflicts);
 
       // Construct the lemma (note that no CNF caching should happen as all the literals already exists)
@@ -144,6 +162,15 @@ class TheoryEngine {
       throw(theory::Interrupted, AssertionException) {
       Trace("theory") << "EngineOutputChannel::propagate("
                       << lit << ")" << std::endl;
+      if(Dump.isOn("t-propagations")) {
+        Dump("t-propagations")
+          << CommentCommand("negation of theory propagation: expect valid") << std::endl
+          << QueryCommand(lit.toExpr()) << std::endl;
+      }
+      if(Dump.isOn("missed-t-propagations")) {
+        d_engine->d_hasPropagated.insert(lit);
+      }
+      Assert(d_engine->properPropagation(lit));
       d_propagatedLiterals.push_back(lit);
       ++(d_engine->d_statistics.d_statPropagate);
     }
@@ -152,6 +179,10 @@ class TheoryEngine {
       throw(theory::Interrupted, TypeCheckingExceptionPrivate, AssertionException) {
       Trace("theory") << "EngineOutputChannel::lemma("
                       << node << ")" << std::endl;
+      if(Dump.isOn("t-lemmas")) {
+        Dump("t-lemmas") << CommentCommand("theory lemma: expect valid") << std::endl
+                         << QueryCommand(node.toExpr()) << std::endl;
+      }
       ++(d_engine->d_statistics.d_statLemma);
 
       d_engine->newLemma(node, false, removable);
@@ -161,12 +192,12 @@ class TheoryEngine {
       throw(theory::Interrupted, AssertionException) {
       Trace("theory") << "EngineOutputChannel::explanation("
                       << explanationNode << ")" << std::endl;
+      // handle dumping of explanations elsewhere..
       d_explanationNode = explanationNode;
       ++(d_engine->d_statistics.d_statExplanation);
     }
 
-    void setIncomplete()
-      throw(theory::Interrupted, AssertionException) {
+    void setIncomplete() throw(theory::Interrupted, AssertionException) {
       d_engine->d_incomplete = true;
     }
   };/* class EngineOutputChannel */
@@ -175,12 +206,6 @@ class TheoryEngine {
 
   /** Pointer to Shared Term Manager */
   SharedTermManager* d_sharedTermManager;
-
-  /**
-   * Whether or not theory registration is on.  May not be safe to
-   * turn off with some theories.
-   */
-  bool d_theoryRegistration;
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -224,14 +249,15 @@ public:
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  void addTheory() {
+  inline void addTheory() {
     TheoryClass* theory = new TheoryClass(d_context, d_theoryOut, theory::Valuation(this));
     d_theoryTable[theory->getId()] = theory;
     d_sharedTermManager->registerTheory(static_cast<TheoryClass*>(theory));
   }
 
   /**
-   * Set's the logic (smt-lib format). All theory specific setup/hacks should go in here.
+   * Sets the logic (SMT-LIB format).  All theory specific setup/hacks
+   * should go in here.
    */
   void setLogic(std::string logic);
 
@@ -239,7 +265,7 @@ public:
     return d_sharedTermManager;
   }
 
-  void setPropEngine(prop::PropEngine* propEngine) {
+  inline void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
   }
@@ -247,7 +273,7 @@ public:
   /**
    * Get a pointer to the underlying propositional engine.
    */
-  prop::PropEngine* getPropEngine() const {
+  inline prop::PropEngine* getPropEngine() const {
     return d_propEngine;
   }
 
@@ -260,7 +286,7 @@ public:
   /**
    * Return whether or not we are incomplete (in the current context).
    */
-  bool isIncomplete() {
+  inline bool isIncomplete() {
     return d_incomplete;
   }
 
@@ -269,21 +295,7 @@ public:
    * destruction.  It is important because there are destruction
    * ordering issues between PropEngine and Theory.
    */
-  void shutdown() {
-    // Set this first; if a Theory shutdown() throws an exception,
-    // at least the destruction of the TheoryEngine won't confound
-    // matters.
-    d_hasShutDown = true;
-
-    // Shutdown all the theories
-    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
-      if(d_theoryTable[theoryId]) {
-        d_theoryTable[theoryId]->shutdown();
-      }
-    }
-
-    theory::Rewriter::shutdown();
-  }
+  void shutdown();
 
   /**
    * Get the theory associated to a given Node.
@@ -367,7 +379,7 @@ public:
     return d_theoryOut.d_propagatedLiterals;
   }
 
-  void clearPropagatedLiterals() {
+  inline void clearPropagatedLiterals() {
     d_theoryOut.d_propagatedLiterals.clear();
   }
 
@@ -384,16 +396,25 @@ public:
 
   void propagate();
 
-  inline Node getExplanation(TNode node, theory::Theory* theory) {
-    theory->explain(node);
-    return d_theoryOut.d_explanationNode;
-  }
+  Node getExplanation(TNode node, theory::Theory* theory);
+
+  bool properConflict(TNode conflict) const;
+  bool properPropagation(TNode lit) const;
+  bool properExplanation(TNode node, TNode expl) const;
 
   inline Node getExplanation(TNode node) {
     d_theoryOut.d_explanationNode = Node::null();
     TNode atom = node.getKind() == kind::NOT ? node[0] : node;
     theoryOf(atom)->explain(node);
     Assert(!d_theoryOut.d_explanationNode.get().isNull());
+    if(Dump.isOn("t-explanations")) {
+      Dump("t-explanations")
+        << CommentCommand(std::string("theory explanation from ") +
+                          theoryOf(atom)->identify() + ": expect valid") << std::endl
+        << QueryCommand(d_theoryOut.d_explanationNode.get().impNode(node).toExpr())
+        << std::endl;
+    }
+    Assert(properExplanation(node, d_theoryOut.d_explanationNode.get()));
     return d_theoryOut.d_explanationNode;
   }
 

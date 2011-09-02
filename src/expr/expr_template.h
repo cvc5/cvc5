@@ -35,12 +35,13 @@ ${includes}
 
 #include "util/exception.h"
 #include "util/language.h"
+#include "util/hash.h"
 
 // This is a hack, but an important one: if there's an error, the
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 44 "${template}"
+#line 45 "${template}"
 
 namespace CVC4 {
 
@@ -120,6 +121,11 @@ std::ostream& operator<<(std::ostream& out,
  * @return the stream
  */
 std::ostream& operator<<(std::ostream& out, const Expr& e) CVC4_PUBLIC;
+
+// for hash_maps, hash_sets..
+struct ExprHashFunction {
+  size_t operator()(CVC4::Expr e) const;
+};/* struct ExprHashFunction */
 
 /**
  * Class encapsulating CVC4 expressions and methods for constructing new
@@ -344,6 +350,22 @@ public:
   Type getType(bool check = false) const throw (TypeCheckingException);
 
   /**
+   * Substitute "replacement" in for "e".
+   */
+  Expr substitute(Expr e, Expr replacement) const;
+
+  /**
+   * Substitute "replacements" in for "exes".
+   */
+  Expr substitute(const std::vector<Expr> exes,
+                  const std::vector<Expr>& replacements) const;
+
+  /**
+   * Substitute pairs of (ex,replacement) from the given map.
+   */
+  Expr substitute(const std::hash_map<Expr, Expr, ExprHashFunction> map) const;
+
+  /**
    * Returns the string representation of the expression.
    * @return a string representation of the expression
    */
@@ -365,18 +387,28 @@ public:
 
   /**
    * Check if this is a null expression.
+   *
    * @return true if a null expression
    */
   bool isNull() const;
 
   /**
    * Check if this is a null expression.
+   *
    * @return true if NOT a null expression
    */
   operator bool() const;
 
   /**
+   * Check if this is an expression representing a variable.
+   *
+   * @return true if a variable expression
+   */
+  bool isVariable() const;
+
+  /**
    * Check if this is an expression representing a constant.
+   *
    * @return true if a constant expression
    */
   bool isConst() const;
@@ -541,7 +573,7 @@ public:
 
   /**
    * Make a Boolean if-then-else expression using this expression as the
-   * condition, and given the then and else parts
+   * condition, and given the then and else parts.
    * @param then_e the then branch expression
    * @param else_e the else branch expression
    * @return the if-then-else expression
@@ -550,13 +582,14 @@ public:
 
   /**
    * Make a term if-then-else expression using this expression as the
-   * condition, and given the then and else parts
+   * condition, and given the then and else parts.
    * @param then_e the then branch expression
    * @param else_e the else branch expression
    * @return the if-then-else expression
    */
   Expr iteExpr(const Expr& then_e, const Expr& else_e) const;
-};
+
+};/* class BoolExpr */
 
 namespace expr {
 
@@ -791,7 +824,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 795 "${template}"
+#line 828 "${template}"
 
 namespace expr {
 
@@ -839,12 +872,9 @@ inline std::ostream& operator<<(std::ostream& out, ExprSetLanguage l) {
 
 }/* CVC4::expr namespace */
 
-// for hash_maps, hash_sets..
-struct ExprHashFunction {
-  size_t operator()(CVC4::Expr e) const {
-    return (size_t) e.getId();
-  }
-};/* struct ExprHashFunction */
+inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
+  return (size_t) e.getId();
+}
 
 }/* CVC4 namespace */
 

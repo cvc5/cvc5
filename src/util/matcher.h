@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file matcher.h
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: none
+ ** Original author: mdeters
+ ** Major contributors: ajreynol
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)

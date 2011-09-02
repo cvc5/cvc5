@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: mdeters
- ** Minor contributors (to current version): taking, cconway
+ ** Minor contributors (to current version): ajreynol, taking, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -113,6 +113,9 @@ public:
    * manager and are left-over are bad.
    */
   ~ExprManager();
+
+  /** Get this node manager's options */
+  const Options* getOptions() const;
 
   /** Get the type for booleans */
   BooleanType booleanType() const;

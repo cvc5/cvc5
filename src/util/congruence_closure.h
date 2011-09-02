@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -34,7 +34,7 @@
 #include "context/cdset.h"
 #include "context/cdlist_context_memory.h"
 #include "util/exception.h"
-#include "theory/uf/morgan/stacking_map.h"
+#include "context/stacking_map.h"
 #include "util/stats.h"
 
 namespace CVC4 {
@@ -66,11 +66,11 @@ struct CongruenceOperator {
   typedef Tail_ Tail;
 };/* class CongruenceOperator<> */
 
-#define CONGRUENCE_OPERATORS_1(kind1) CongruenceOperator<kind1, EndOfCongruenceOpList>
-#define CONGRUENCE_OPERATORS_2(kind1, kind2) CongruenceOperator<kind1, CONGRUENCE_OPERATORS_1(kind2)>
-#define CONGRUENCE_OPERATORS_3(kind1, kind2, kind3) CongruenceOperator<kind1, CONGRUENCE_OPERATORS_2(kind2, kind3)>
-#define CONGRUENCE_OPERATORS_4(kind1, kind2, kind3, kind4) CongruenceOperator<kind1, CONGRUENCE_OPERATORS_3(kind2, kind3, kind4)>
-#define CONGRUENCE_OPERATORS_5(kind1, kind2, kind3, kind4, kind5) CongruenceOperator<kind1, CONGRUENCE_OPERATORS_4(kind2, kind3, kind4, kind5)>
+#define CONGRUENCE_OPERATORS_1(kind1) ::CVC4::CongruenceOperator<kind1, ::CVC4::EndOfCongruenceOpList>
+#define CONGRUENCE_OPERATORS_2(kind1, kind2) ::CVC4::CongruenceOperator<kind1, CONGRUENCE_OPERATORS_1(kind2)>
+#define CONGRUENCE_OPERATORS_3(kind1, kind2, kind3) ::CVC4::CongruenceOperator<kind1, CONGRUENCE_OPERATORS_2(kind2, kind3)>
+#define CONGRUENCE_OPERATORS_4(kind1, kind2, kind3, kind4) ::CVC4::CongruenceOperator<kind1, CONGRUENCE_OPERATORS_3(kind2, kind3, kind4)>
+#define CONGRUENCE_OPERATORS_5(kind1, kind2, kind3, kind4, kind5) ::CVC4::CongruenceOperator<kind1, CONGRUENCE_OPERATORS_4(kind2, kind3, kind4, kind5)>
 
 /**
  * Returns true if the kind k is registered as a congruence operator
@@ -139,7 +139,7 @@ class CongruenceClosure {
   OutputChannel* d_out;
 
   // typedef all of these so that iterators are easy to define
-  typedef theory::uf::morgan::StackingMap<Node, NodeHashFunction> RepresentativeMap;
+  typedef context::StackingMap<Node, Node, NodeHashFunction> RepresentativeMap;
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > ClassList;
   typedef context::CDMap<Node, ClassList*, NodeHashFunction> ClassLists;
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > UseList;
@@ -270,6 +270,7 @@ private:
       if(i == d_eqMap.end()) {
         ++d_newSkolemVars;
         Node v = NodeManager::currentNM()->mkSkolem(t.getType());
+        Debug("cc") << "CC made skolem " << v << std::endl;
         addEq(NodeManager::currentNM()->mkNode(t.getType().isBoolean() ? kind::IFF : kind::EQUAL, t, v), TNode::null());
         d_added.insert(v);
         d_eqMap[t] = v;
@@ -333,7 +334,7 @@ private:
    * Find the EC representative for a term t in the current context.
    */
   inline TNode find(TNode t) const throw(AssertionException) {
-    TNode rep1 = d_representative.find(t);
+    TNode rep1 = d_representative[t];
     return rep1.isNull() ? t : rep1;
   }
 
@@ -1087,7 +1088,6 @@ std::ostream& operator<<(std::ostream& out,
 
   return out;
 }
-
 
 }/* CVC4 namespace */
 

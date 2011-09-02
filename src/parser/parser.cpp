@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: cconway, mdeters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): ajreynol
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -227,15 +227,6 @@ Parser::mkSortConstructor(const std::string& name, size_t arity) {
   return type;
 }
 
-std::vector<SortType>
-Parser::mkSorts(const std::vector<std::string>& names) {
-  std::vector<SortType> types;
-  for(unsigned i = 0; i < names.size(); ++i) {
-    types.push_back(mkSort(names[i]));
-  }
-  return types;
-}
-
 SortType Parser::mkUnresolvedType(const std::string& name) {
   SortType unresolved = mkSort(name);
   d_unresolved.insert(unresolved);
@@ -243,7 +234,7 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
 }
 
 SortConstructorType
-Parser::mkUnresolvedTypeConstructor(const std::string& name, 
+Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                     size_t arity) {
   SortConstructorType unresolved = mkSortConstructor(name,arity);
   d_unresolved.insert(unresolved);
@@ -251,7 +242,7 @@ Parser::mkUnresolvedTypeConstructor(const std::string& name,
 }
 
 SortConstructorType
-Parser::mkUnresolvedTypeConstructor(const std::string& name, 
+Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                     const std::vector<Type>& params) {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size() << ")"
                   << std::endl;
@@ -356,13 +347,15 @@ void Parser::checkDeclaration(const std::string& varName,
   switch(check) {
   case CHECK_DECLARED:
     if( !isDeclared(varName, type) ) {
-      parseError("Symbol " + varName + " not declared as a " + (type == SYM_VARIABLE ? "variable" : "type"));
+      parseError("Symbol " + varName + " not declared as a " +
+                 (type == SYM_VARIABLE ? "variable" : "type"));
     }
     break;
 
   case CHECK_UNDECLARED:
     if( isDeclared(varName, type) ) {
-      parseError("Symbol " + varName + " previously declared as a " + (type == SYM_VARIABLE ? "variable" : "type"));
+      parseError("Symbol " + varName + " previously declared as a " +
+                 (type == SYM_VARIABLE ? "variable" : "type"));
     }
     break;
 

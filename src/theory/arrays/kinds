@@ -5,6 +5,7 @@
 #
 
 theory THEORY_ARRAY ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
+typechecker "theory/arrays/theory_arrays_type_rules.h"
 
 properties polite stable-infinite
 properties check propagate presolve
@@ -22,5 +23,8 @@ operator SELECT 2 "array select"
 
 # store a i e  is  a[i] <= e
 operator STORE 3 "array store"
+
+typerule SELECT ::CVC4::theory::arrays::ArraySelectTypeRule
+typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
 
 endtheory

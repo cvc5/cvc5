@@ -86,6 +86,9 @@ namespace output {
 enum CVC4_PUBLIC Language {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
+  /** Match the output language to the input language */
+  LANG_AUTO = -1,
+
   // COMMON INPUT AND OUTPUT LANGUAGES HAVE ENUM VALUES IN [0,9]
   // AND SHOULD CORRESPOND IN PLACEMENT WITH INPUTLANGUAGE
   //

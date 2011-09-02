@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): barrett
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -40,22 +40,7 @@ class CDO : public ContextObj {
    */
   T d_data;
 
-  /**
-   * Implementation of mandatory ContextObj method save: simply copies the
-   * current data to a copy using the copy constructor.  Memory is allocated
-   * using the ContextMemoryManager.
-   */
-  virtual ContextObj* save(ContextMemoryManager* pCMM) {
-    return new(pCMM) CDO<T>(*this);
-  }
-
-  /**
-   * Implementation of mandatory ContextObj method restore: simply copies the
-   * saved data back from the saved copy using operator= for T.
-   */
-  virtual void restore(ContextObj* pContextObj) {
-    d_data = ((CDO<T>*) pContextObj)->d_data;
-  }
+protected:
 
   /**
    * Copy constructor - it's private to ensure it is only used by save().
@@ -66,7 +51,29 @@ class CDO : public ContextObj {
   /**
    * operator= for CDO is private to ensure CDO object is not copied.
    */
-  CDO<T>& operator=(const CDO<T>& cdo);
+  CDO<T>& operator=(const CDO<T>& cdo) CVC4_UNUSED;
+
+  /**
+   * Implementation of mandatory ContextObj method save: simply copies the
+   * current data to a copy using the copy constructor.  Memory is allocated
+   * using the ContextMemoryManager.
+   */
+  virtual ContextObj* save(ContextMemoryManager* pCMM) {
+    Debug("context") << "save cdo " << this << " (value " << get() << ")";
+    ContextObj* p = new(pCMM) CDO<T>(*this);
+    Debug("context") << " to " << p << std::endl;
+    return p;
+  }
+
+  /**
+   * Implementation of mandatory ContextObj method restore: simply copies the
+   * saved data back from the saved copy using operator= for T.
+   */
+  virtual void restore(ContextObj* pContextObj) {
+    //Debug("context") << "restore cdo " << this << " from " << get();
+    d_data = ((CDO<T>*) pContextObj)->d_data;
+    //Debug("context") << " to " << get() << std::endl;
+  }
 
 public:
 
@@ -75,7 +82,8 @@ public:
    * value of d_data.
    */
   CDO(Context* context) :
-    ContextObj(context) {
+    ContextObj(context),
+    d_data(T()) {
   }
 
   /**
@@ -90,7 +98,8 @@ public:
    * allocating contextual objects with non-standard allocators."
    */
   CDO(bool allocatedInCMM, Context* context) :
-    ContextObj(allocatedInCMM, context) {
+    ContextObj(allocatedInCMM, context),
+    d_data(T()) {
   }
 
   /**
@@ -100,7 +109,8 @@ public:
    * is assigned by the default constructor for T
    */
   CDO(Context* context, const T& data) :
-    ContextObj(context) {
+    ContextObj(context),
+    d_data(T()) {
     makeCurrent();
     d_data = data;
   }
@@ -119,7 +129,8 @@ public:
    * allocating contextual objects with non-standard allocators."
    */
   CDO(bool allocatedInCMM, Context* context, const T& data) :
-    ContextObj(allocatedInCMM, context) {
+    ContextObj(allocatedInCMM, context),
+    d_data(T()) {
     makeCurrent();
     d_data = data;
   }

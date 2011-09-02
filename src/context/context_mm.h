@@ -5,7 +5,7 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -161,10 +161,11 @@ public:
   };
 
   ContextMemoryAllocator(ContextMemoryManager* mm) throw() : d_mm(mm) {}
-  ContextMemoryAllocator(const ContextMemoryAllocator& alloc) throw() : d_mm(alloc.d_mm) {}
+  template <class U>
+  ContextMemoryAllocator(const ContextMemoryAllocator<U>& alloc) throw() : d_mm(alloc.getCMM()) {}
   ~ContextMemoryAllocator() throw() {}
 
-  ContextMemoryManager* getCMM() { return d_mm; }
+  ContextMemoryManager* getCMM() const { return d_mm; }
   T* address(T& v) const { return &v; }
   T const* address(T const& v) const { return &v; }
   size_t max_size() const throw() {

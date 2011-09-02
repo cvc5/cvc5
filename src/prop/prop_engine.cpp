@@ -2,8 +2,8 @@
 /*! \file prop_engine.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: taking, cconway, dejan
- ** Minor contributors (to current version): none
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): barrett, taking, cconway
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -90,14 +90,10 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
-  if(Options::current()->preprocessOnly) {
-    if(Message.isOn()) {
-      // If "preprocess only" mode is in effect, the lemmas we get
-      // here are due to theory reasoning during preprocessing.  So
-      // push the lemma to the Message() stream.
-      expr::ExprSetDepth::Scope sdScope(Message.getStream(), -1);
-      Message() << AssertCommand(BoolExpr(node.toExpr())) << endl;
-    }
+  if(!d_inCheckSat && Dump.isOn("learned")) {
+    Dump("learned") << AssertCommand(BoolExpr(node.toExpr())) << endl;
+  } else if(Dump.isOn("lemmas")) {
+    Dump("lemmas") << AssertCommand(BoolExpr(node.toExpr())) << endl;
   }
 
   //TODO This comment is now false

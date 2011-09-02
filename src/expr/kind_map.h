@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file kind_map.h
  ** \verbatim
- ** Original author: mdeters
+ ** Original author: dejan
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.

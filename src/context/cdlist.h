@@ -3,17 +3,18 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
- ** Minor contributors (to current version): barrett, taking
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Context-dependent list class.
+ ** \brief Context-dependent list class (only supports append)
  **
- ** Context-dependent list class.
+ ** Context-dependent list class.  This list only supports appending
+ ** to the list; on backtrack, the list is simply shortened.
  **/
 
 #include "cvc4_private.h"

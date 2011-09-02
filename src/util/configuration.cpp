@@ -49,6 +49,10 @@ bool Configuration::isTracingBuild() {
   return IS_TRACING_BUILD;
 }
 
+bool Configuration::isDumpingBuild() {
+  return IS_DUMPING_BUILD;
+}
+
 bool Configuration::isMuzzledBuild() {
   return IS_MUZZLED_BUILD;
 }
@@ -89,7 +93,11 @@ unsigned Configuration::getVersionRelease() {
   return CVC4_RELEASE;
 }
 
-string Configuration::about() {
+std::string Configuration::getVersionExtra() {
+  return CVC4_EXTRAVERSION;
+}
+
+std::string Configuration::about() {
   return CVC4_ABOUT_STRING;
 }
 

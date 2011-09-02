@@ -2,7 +2,7 @@
 /*! \file ite_removal.cpp
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: none
+ ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -11,19 +11,21 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Representation of cardinality
+ ** \brief Removal of term ITEs
  **
- ** Simple class to represent a cardinality; used by the CVC4 type system
- ** give the cardinality of sorts.
+ ** Removal of term ITEs.
  **/
 
 #include <vector>
 
 #include "util/ite_removal.h"
 #include "theory/rewriter.h"
+#include "expr/command.h"
 
 using namespace CVC4;
 using namespace std;
+
+namespace CVC4 {
 
 struct IteRewriteAttrTag {};
 typedef expr::Attribute<IteRewriteAttrTag, Node> IteRewriteAttr;
@@ -34,8 +36,7 @@ void RemoveITE::run(std::vector<Node>& output) {
   }
 }
 
-Node RemoveITE::run(TNode node, std::vector<Node>& output)
-{
+Node RemoveITE::run(TNode node, std::vector<Node>& output) {
   // Current node
   Debug("ite") << "removeITEs(" << node << ")" << endl;
 
@@ -54,8 +55,18 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output)
       // Make the skolem to represent the ITE
       Node skolem = nodeManager->mkVar(nodeType);
 
+      if(Dump.isOn("declarations")) {
+        stringstream kss;
+        kss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump("declarations"))) << skolem;
+        string ks = kss.str();
+        Dump("declarations") << CommentCommand(ks + " is a variable introduced due to term-level ITE removal") << endl
+                             << DeclareFunctionCommand(ks, nodeType.toType()) << endl;
+      }
+
       // The new assertion
-      Node newAssertion = nodeManager->mkNode(kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+      Node newAssertion =
+        nodeManager->mkNode(kind::ITE, node[0], skolem.eqNode(node[1]),
+                            skolem.eqNode(node[2]));
       Debug("ite") << "removeITEs(" << node << ") => " << newAssertion << endl;
 
       // Attach the skolem
@@ -91,4 +102,6 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output)
     nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
     return node;
   }
-};
+}
+
+}/* CVC4 namespace */

@@ -9,9 +9,9 @@ SUBDIRS = src test contrib
 
 .PHONY: units systemtests regress regress0 regress1 regress2 regress3
 systemtests regress regress0 regress1 regress2 regress3: all
-	(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
+	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 units: all
-	(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
+	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 
 LCOV = lcov
 GENHTML = genhtml
@@ -29,7 +29,7 @@ if COVERAGE_ENABLED
 # work...)
 lcov: all
 	$(LCOV) -z -d .
-	$(MAKE) check -C test/unit
+	+$(MAKE) check -C test/unit
 	$(LCOV) -c -d . -t cvc4_units -o cvc4-coverage-full.info
 	$(LCOV) -o cvc4-coverage.info -r cvc4-coverage-full.info $(LCOV_EXCLUDES)
 	mkdir -p "@top_srcdir@/html"
@@ -40,7 +40,7 @@ lcov: all
 
 lcov-all: all
 	$(LCOV) -z -d .
-	$(MAKE) check -C test
+	+$(MAKE) check -C test
 	$(LCOV) -c -d . -t cvc4_units -o cvc4-coverage-full.info
 	$(LCOV) -o cvc4-coverage.info -r cvc4-coverage-full.info $(LCOV_EXCLUDES)
 	mkdir -p "@top_srcdir@/html"
@@ -53,7 +53,7 @@ lcov-all: all
 # modules/test-types; unfortunately lcov 1.8 directory paths
 # are broken(?) or at least different than 1.7
 lcov18: all
-	@for testtype in public black white; do \
+	+@for testtype in public black white; do \
 		echo; echo "=== Collecting coverage data from $$testtype unit tests ==="; \
 		echo $(LCOV) -z -d .; \
 		$(LCOV) -z -d . || exit 1; \
@@ -90,6 +90,18 @@ EXTRA_DIST = \
 	Makefile.subdir \
 	config/build-type \
 	config/mkbuilddir \
-	config/doxygen.cfg
+	config/doxygen.cfg \
+	doc/cvc4.1.in \
+	doc/cvc4.5.in \
+	doc/libcvc4.3.in \
+	doc/libcvc4parser.3.in \
+	doc/libcvc4compat.3.in
+man_MANS = \
+	doc/cvc4.1 \
+	doc/cvc4.5 \
+	doc/libcvc4.3 \
+	doc/libcvc4parser.3 \
+	doc/libcvc4compat.3
+
 dist-hook:
 	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"

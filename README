@@ -1,6 +1,6 @@
-This is a prerelease version of CVC4; distribution is restricted.
+This is a prerelease version of CVC4.
 
-For a suggestion of editing CVC4 code with emacs, see README.emacs.
+*** Quick-start instructions
 
 To build, you'll need reasonably new automake, autoconf, and libtool
 installed (see below). Execute,
@@ -33,19 +33,32 @@ Optional: CLN v1.3 (Class Library for Numbers)
 Optional: CUDD v2.4.2 (Colorado University Decision Diagram package)
 Optional: GNU Readline library (for an improved interactive experience)
 
-CUDD, if desired, must be installed in a special manner.  The default
-distribution from vlsi.colorado.edu doesn't build shared objects,
-and names things that make it difficult to compose software
-dependences (e.g. a "libutil" is distributed).  So we packaged our
-own version of cudd that changes only its build process, making it
-play nicely with libtool and packaging all the various cudd libraries
-into just a few.  This version must be used for cvc4, and is available
-from the CVC4 apt repository by dropping the following line into your
-/etc/apt/sources.list:
+CUDD, if desired, must be installed delicately.  The CVC4 configure
+script attempts to auto-detect the locations and names of CUDD headers
+and libraries the way that the Fedora RPMs install them, the way that
+our NYU-provided Debian packages install them, and the way they exist
+when you download and build the CUDD sources directly.  If you install
+from Fedora RPMs or our Debian packages (remember, you need the C++
+development package for CVC4), the process should be completely
+automatic, since the libraries and headers are installed in a standard
+location.  If you download the sources yourself, you need to build
+them in a special way.  Fortunately, the "contrib/build-cudd-with-libtool.sh"
+script in the CVC4 source tree does exactly what you need: it patches
+the CUDD makefiles to use libtool, builds the libtool libraries, then
+reverses the patch to leave the makefiles as they were.  Once you
+run this script on an unpacked CUDD 2.4.2 source distribution, then
+CVC4's configure script should pick up the libraries if you provide
+--with-cudd-dir=/PATH/TO/CUDD/SOURCES.
+
+If you want to force linking to CUDD, provide --with-cudd to the
+configure script; this makes it a hard requirement rather than an
+optional add-on.
+
+The NYU-provided Debian packaging of CUDD 2.4.2 is here:
 
   deb http://goedel.cims.nyu.edu/cvc4-builds/debian unstable/
 
-The debian source package "cudd", available from the same repository,
+The Debian source package "cudd", available from the same repository,
 includes a diff of all changes made to cudd makefiles.
 
 *** Build dependencies
@@ -57,4 +70,8 @@ Automake v1.11
 Autoconf v2.61 
 Libtool v2.2
 ANTLR3 v3.2
+
+*** Emacs mode
+
+For a suggestion of editing CVC4 code with emacs, see README.emacs.
 

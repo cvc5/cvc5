@@ -1,0 +1,199 @@
+.\" Process this file with
+.\" groff -man -Tascii cvc4.1
+.\"
+.TH CVC4 1 "@MAN_DATE@" "CVC4 release @VERSION@" "User Manuals"
+.SH NAME
+cvc4 \- an automated theorem prover
+.SH SYNOPSIS
+.B cvc4 [
+.I options
+.B ] [
+.I file
+.B ]
+.SH DESCRIPTION
+.B cvc4
+is an automated theorem prover for first-order formulas with respect
+to background theories of interest.
+
+With
+.I file
+, commands are read from
+.I file
+and executed.  CVC4 supports the SMT-LIB (versions 1.2 and 2.0) input
+format, as well as its own native \(lqpresentation language\(rq (see
+.BR cvc4 (5)
+), which is similar in many respects to CVC3's presentation language,
+but not identical.
+
+If
+.I file
+is unspecified, standard input is read (and the
+.B CVC4
+presentation language is assumed).  If
+.I file
+is unspecified and
+.B CVC4
+is connected to a terminal, interactive mode is assumed.
+
+.SH OPTIONS
+.IP "--lang=LANG | -L LANG"
+force input language (default is \(lqauto\(rq; see --lang help)
+.IP --output-lang=LANG
+force output language (default is \(lqauto\(rq; see --output-lang help)
+.IP "--version | -V"
+identify this CVC4 binary
+.IP "--help | -h"
+this command line reference
+.IP --parse-only
+exit after parsing input
+.IP --preprocess-only
+exit after preprocessing (useful with --stats or --dump)
+.IP --dump=MODE
+dump preprocessed assertions, T-propagations, etc., see --dump=help
+.IP --dump-to=FILE
+all dumping goes to FILE (instead of stdout)
+.IP --mmap
+memory map file input
+.IP --show-config
+show CVC4 static configuration
+.IP --segv-nospin
+don't spin on segfault waiting for gdb
+.IP --lazy-type-checking
+type check expressions only when necessary (default)
+.IP --eager-type-checking
+type check expressions immediately on creation (debug builds only)
+.IP --no-type-checking
+never type check expressions
+.IP --no-checking
+disable ALL semantic checks, including type checks
+.IP --no-theory-registration
+disable theory reg (not safe for some theories)
+.IP --strict-parsing
+fail on non-conformant inputs (SMT2 only)
+.IP "--verbose | -v"
+increase verbosity (may be repeated)
+.IP "--quiet | -q"
+decrease verbosity (may be repeated)
+.IP "--trace=FLAG | -t FLAG"
+trace something (e.g. -t pushpop), can repeat
+.IP "--debug=FLAG | -d FLAG"
+debug something (e.g. -d arith), can repeat
+.IP --stats
+give statistics on exit
+.IP --default-expr-depth=N
+print exprs to depth N (0 == default, -1 == no limit)
+.IP --print-expr-types
+print types with variables when printing exprs
+.IP --interactive
+run interactively
+.IP --no-interactive
+do not run interactively
+.IP --produce-models
+support the get-value command
+.IP --produce-assignments
+support the get-assignment command
+.IP --lazy-definition-expansion
+expand define-fun lazily
+.IP --simplification=MODE
+choose simplification mode, see --simplification=help
+.IP --no-static-learning
+turn off static learning (e.g. diamond-breaking)
+.IP --replay=file
+replay decisions from file
+.IP --replay-log=file
+log decisions and propagations to file
+.IP --pivot-rule=RULE
+change the pivot rule (see --pivot-rule help)
+.IP --pivot-threshold=N
+sets the number of heuristic pivots per variable per simplex instance
+.IP --prop-row-length=N
+sets the maximum row length to be used in propagation
+.IP --random-freq=P
+sets the frequency of random decisions in the sat solver(P=0.0 by default)
+.IP --random-seed=S
+sets the random seed for the sat solver
+.IP --disable-variable-removal
+enable permanent removal of variables in arithmetic (UNSAFE! experts only)
+.IP --disable-arithmetic-propagation
+turns on arithmetic propagation
+.IP --disable-symmetry-breaker
+turns off UF symmetry breaker (Deharbe et al., CADE 2011)
+.IP --incremental
+enable incremental solving
+
+.\".SH FILES
+.\".SH ENVIRONMENT
+.SH DIAGNOSTICS
+.B CVC4
+reports all syntactic and semantic errors on standard error.
+.SH HISTORY
+The
+.B CVC4
+effort is the culmination of fifteen years of theorem proving
+research, starting with the
+.I Stanford Validity Checker (SVC)
+in 1996.
+
+SVC's successor, the
+.I Cooperating Validity Checker (CVC),
+had a more optimized internal design, produced proofs, used the
+.I Chaff
+SAT solver, and featured a number of usability
+enhancements.  Its name comes from the cooperative nature of
+decision procedures in Nelson-Oppen theory combination,
+which share amongst each other equalities between shared terms.
+
+CVC Lite, first made available in 2003, was a rewrite of CVC
+that attempted to make CVC
+more flexible (hence the \(lqlite\(rq) while extending the feature set:
+CVCLite supported quantifiers where its predecessors did not.
+CVC3 was a major overhaul of portions of CVC Lite: it added
+better decision procedure implementations, added support for using
+MiniSat in the core, and had generally better performance.
+
+CVC4 is the new version, the fifth generation of this validity
+checker line that is now celebrating fifteen years of heritage.
+It represents a complete re-evaluation of
+the core architecture to be both performant and to serve as a cutting-edge research vehicle
+for the next several years.  Rather than taking CVC3
+and redesigning problem parts, we've taken a clean-room approach,
+starting from scratch.  Before using any designs from CVC3, we have
+thoroughly scrutinized, vetted, and updated them.  Many parts of CVC4
+bear only a superficial resemblance, if any, to their correspondent in CVC3.
+
+However, CVC4 is fundamentally similar to CVC3 and many other
+modern SMT solvers: it is a DPLL(
+.I T
+) solver,
+with a SAT solver at its core and a delegation path to different decision
+procedure implementations, each in charge of solving formulas in some
+background theory.
+
+The re-evaluation and ground-up rewrite was necessitated, we felt, by
+the performance characteristics of CVC3.  CVC3 has many useful
+features, but some core aspects of the design led to high memory use, and
+the use of heavyweight computation (where more nimble engineering
+approaches could suffice) makes CVC3 a much slower prover than other tools.
+As these designs are central to CVC3, a new version was preferable to a
+selective re-engineering, which would have ballooned in short order.
+.SH VERSION
+This manual page refers to
+.B CVC4
+version @VERSION@.
+.SH BUGS
+A Bugzilla for the CVC4 project is maintained at
+.BR http://goedel.cs.nyu.edu/bugzilla3/ .
+.SH AUTHORS
+.B CVC4
+is developed by a team of researchers at New York University
+and the University of Iowa.
+See the AUTHORS file in the distribution for a full list of
+contributors.
+.SH "SEE ALSO"
+.BR libcvc4 (3),
+.BR libcvc4parser (3),
+.BR libcvc4compat (3)
+
+Additionally, the CVC4 wiki contains useful information about the
+design and internals of CVC4.  It is maintained at
+.BR http://goedel.cs.nyu.edu/wiki/ .

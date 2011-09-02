@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Multi-precision rational constants.
+ ** \brief A multi-precision rational constant
  **
- ** Multi-precision rational constants.
+ ** A multi-precision rational constant.
  **/
 
 // this is used to avoid a public header dependence on cvc4autoconfig.h
@@ -26,8 +26,14 @@
 
 #ifdef CVC4_CLN_IMP
 #  include "util/rational_cln_imp.h"
+#  if SWIG
+     %include "util/rational_cln_imp.h"
+#  endif /* SWIG */
 #endif /* CVC4_CLN_IMP */
 
 #ifdef CVC4_GMP_IMP
 #  include "util/rational_gmp_imp.h"
+#  if SWIG
+     %include "util/rational_gmp_imp.h"
+#  endif /* SWIG */
 #endif /* CVC4_GMP_IMP */

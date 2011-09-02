@@ -2,7 +2,7 @@
 /*! \file options.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: taking, cconway
+ ** Major contributors: cconway, taking
  ** Minor contributors (to current version): barrett, dejan
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -62,15 +62,16 @@ Options::Options() :
   err(&std::cerr),
   verbosity(0),
   inputLanguage(language::input::LANG_AUTO),
-  uf_implementation(MORGAN),
+  outputLanguage(language::output::LANG_AUTO),
   parseOnly(false),
+  preprocessOnly(false),
   semanticChecks(DO_SEMANTIC_CHECKS_BY_DEFAULT),
   theoryRegistration(true),
   memoryMap(false),
   strictParsing(false),
   lazyDefinitionExpansion(false),
   simplificationMode(SIMPLIFICATION_MODE_BATCH),
-  simplificationStyle(NO_SIMPLIFICATION_STYLE),
+  doStaticLearning(true),
   interactive(false),
   interactiveSetByUser(false),
   segvNoSpin(false),
@@ -95,10 +96,13 @@ Options::Options() :
 
 static const string optionsDescription = "\
    --lang | -L            force input language (default is `auto'; see --lang help)\n\
+   --output-lang          force output language (default is `auto'; see --lang help)\n\
    --version | -V         identify this CVC4 binary\n\
    --help | -h            this command line reference\n\
    --parse-only           exit after parsing input\n\
-   --preprocess-only      exit after parsing preprocessing input (and dump preprocessed assertions, unless -q)\n\
+   --preprocess-only      exit after preprocessing (useful with --stats or --dump)\n\
+   --dump=MODE            dump preprocessed assertions, T-propagations, etc., see --dump=help\n\
+   --dump-to=FILE         all dumping goes to FILE (instead of stdout)\n\
    --mmap                 memory map file input\n\
    --show-config          show CVC4 static configuration\n\
    --segv-nospin          don't spin on segfault waiting for gdb\n\
@@ -115,13 +119,13 @@ static const string optionsDescription = "\
    --stats                give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
    --print-expr-types     print types with variables when printing exprs\n\
-   --uf=morgan|tim        select uninterpreted function theory implementation\n\
    --interactive          run interactively\n\
    --no-interactive       do not run interactively\n\
    --produce-models       support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
    --lazy-definition-expansion expand define-fun lazily\n\
    --simplification=MODE  choose simplification mode, see --simplification=help\n\
+   --no-static-learning   turn off static learning (e.g. diamond-breaking)\n\
    --replay=file          replay decisions from file\n\
    --replay-log=file      log decisions and propagations to file\n\
    --pivot-rule=RULE      change the pivot rule (see --pivot-rule help)\n\
@@ -140,6 +144,13 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   pl | cvc4      CVC4 presentation language\n\
   smt | smtlib   SMT-LIB format 1.2\n\
   smt2 | smtlib2 SMT-LIB format 2.0\n\
+\n\
+Languages currently supported as arguments to the --output-lang option:\n\
+  auto           match the output language to the input language\n\
+  pl | cvc4      CVC4 presentation language\n\
+  smt | smtlib   SMT-LIB format 1.2\n\
+  smt2 | smtlib2 SMT-LIB format 2.0\n\
+  ast            internal format (simple syntax-tree language)\n\
 ";
 
 static const string simplificationHelp = "\
@@ -154,18 +165,74 @@ incremental\n\
 + run nonclausal simplification and clausal propagation at each ASSERT\n\
   (and at CHECKSAT/QUERY/SUBTYPE)\n\
 \n\
-You can also specify the level of aggressiveness for the simplification\n\
-(by repeating the --simplification option):\n\
-\n\
-toplevel (default)\n\
-+ apply toplevel simplifications (things known true/false at outer level\n\
-  only)\n\
-\n\
-aggressive\n\
-+ do aggressive, local simplification across the entire formula\n\
-\n\
 none\n\
 + do not perform nonclausal simplification\n\
+";
+
+static const string dumpHelp = "\
+Dump modes currently supported by the --dump option:\n\
+\n\
+benchmark\n\
++ Dump the benchmark structure (set-logic, push/pop, queries, etc.), but\n\
+  does not include any declarations or assertions.  Implied by all following\n\
+  modes.\n\
+\n\
+declarations\n\
++ Dump declarations.  Implied by all following modes.\n\
+\n\
+assertions\n\
++ Output the assertions after non-clausal simplification and static\n\
+  learning phases, but before presolve-time T-lemmas arrive.  If\n\
+  non-clausal simplification and static learning are off\n\
+  (--simplification=none --no-static-learning), the output\n\
+  will closely resemble the input (with term-level ITEs removed).\n\
+\n\
+learned\n\
++ Output the assertions after non-clausal simplification, static\n\
+  learning, and presolve-time T-lemmas.  This should include all eager\n\
+  T-lemmas (in the form provided by the theory, which my or may not be\n\
+  clausal).  Also includes level-0 BCP done by Minisat.\n\
+\n\
+clauses\n\
++ Do all the preprocessing outlined above, and dump the CNF-converted\n\
+  output\n\
+\n\
+state\n\
++ Dump all contextual assertions (e.g., SAT decisions, propagations..).\n\
+  Implied by all \"stateful\" modes below and conflicts with all\n\
+  non-stateful modes below.\n\
+\n\
+t-conflicts [non-stateful]\n\
++ Output correctness queries for all theory conflicts\n\
+\n\
+missed-t-conflicts [stateful]\n\
++ Output completeness queries for theory conflicts\n\
+\n\
+t-propagations [stateful]\n\
++ Output correctness queries for all theory propagations\n\
+\n\
+missed-t-propagations [stateful]\n\
++ Output completeness queries for theory propagations (LARGE and EXPENSIVE)\n\
+\n\
+t-lemmas [non-stateful]\n\
++ Output correctness queries for all theory lemmas\n\
+\n\
+t-explanations [non-stateful]\n\
++ Output correctness queries for all theory explanations\n\
+\n\
+Dump modes can be combined with multiple uses of --dump.  Generally you want\n\
+one from the assertions category (either asertions, learned, or clauses), and\n\
+perhaps one or more stateful or non-stateful modes for checking correctness\n\
+and completeness of decision procedure implementations.  Stateful modes dump\n\
+the contextual assertions made by the core solver (all decisions and propagations\n\
+as assertions; that affects the validity of the resulting correctness and\n\
+completeness queries, so of course stateful and non-stateful modes cannot\n\
+be mixed in the same run.\n\
+\n\
+The --output-language option controls the language used for dumping, and\n\
+this allows you to connect CVC4 to another solver implementation via a UNIX\n\
+pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
+to a file.\n\
 ";
 
 string Options::getDescription() const {
@@ -192,8 +259,11 @@ enum OptionValue {
   SMTCOMP = 256, /* avoid clashing with char options */
   STATS,
   SEGV_NOSPIN,
+  OUTPUT_LANGUAGE,
   PARSE_ONLY,
   PREPROCESS_ONLY,
+  DUMP,
+  DUMP_TO,
   NO_CHECKING,
   NO_THEORY_REGISTRATION,
   USE_MMAP,
@@ -204,6 +274,7 @@ enum OptionValue {
   UF_THEORY,
   LAZY_DEFINITION_EXPANSION,
   SIMPLIFICATION_MODE,
+  NO_STATIC_LEARNING,
   INTERACTIVE,
   NO_INTERACTIVE,
   PRODUCE_MODELS,
@@ -263,8 +334,11 @@ static struct option cmdlineOptions[] = {
   { "version"    , no_argument      , NULL, 'V'         },
   { "about"      , no_argument      , NULL, 'V'         },
   { "lang"       , required_argument, NULL, 'L'         },
+  { "output-lang", required_argument, NULL, OUTPUT_LANGUAGE },
   { "parse-only" , no_argument      , NULL, PARSE_ONLY  },
-  { "preprocess-only", no_argument  , NULL, PREPROCESS_ONLY  },
+  { "preprocess-only", no_argument      , NULL, PREPROCESS_ONLY },
+  { "dump"       , required_argument, NULL, DUMP        },
+  { "dump-to"    , required_argument, NULL, DUMP_TO     },
   { "mmap"       , no_argument      , NULL, USE_MMAP    },
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
@@ -272,6 +346,7 @@ static struct option cmdlineOptions[] = {
   { "uf"         , required_argument, NULL, UF_THEORY   },
   { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
   { "simplification", required_argument, NULL, SIMPLIFICATION_MODE },
+  { "no-static-learning", no_argument, NULL, NO_STATIC_LEARNING },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, PRODUCE_MODELS },
@@ -371,6 +446,32 @@ throw(OptionException) {
       languageHelp = true;
       break;
 
+    case OUTPUT_LANGUAGE:
+      if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
+        outputLanguage = language::output::LANG_CVC4;
+        break;
+      } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
+        outputLanguage = language::output::LANG_SMTLIB;
+        break;
+      } else if(!strcmp(optarg, "smtlib2") || !strcmp(optarg, "smt2")) {
+        outputLanguage = language::output::LANG_SMTLIB_V2;
+        break;
+      } else if(!strcmp(optarg, "ast")) {
+        outputLanguage = language::output::LANG_AST;
+        break;
+      } else if(!strcmp(optarg, "auto")) {
+        outputLanguage = language::output::LANG_AUTO;
+        break;
+      }
+
+      if(strcmp(optarg, "help")) {
+        throw OptionException(string("unknown language for --output-lang: `") +
+                              optarg + "'.  Try --output-lang help.");
+      }
+
+      languageHelp = true;
+      break;
+
     case 't':
       Trace.on(optarg);
       break;
@@ -394,6 +495,87 @@ throw(OptionException) {
 
     case PREPROCESS_ONLY:
       preprocessOnly = true;
+      break;
+
+    case DUMP: {
+#ifdef CVC4_DUMPING
+      char* tokstr = optarg;
+      char* toksave;
+      while((optarg = strtok_r(tokstr, ",", &toksave)) != NULL) {
+        tokstr = NULL;
+        if(!strcmp(optarg, "benchmark")) {
+        } else if(!strcmp(optarg, "declarations")) {
+        } else if(!strcmp(optarg, "assertions")) {
+        } else if(!strcmp(optarg, "learned")) {
+        } else if(!strcmp(optarg, "clauses")) {
+        } else if(!strcmp(optarg, "t-conflicts") ||
+                  !strcmp(optarg, "t-lemmas") ||
+                  !strcmp(optarg, "t-explanations")) {
+          // These are "non-state-dumping" modes.  If state (SAT decisions,
+          // propagations, etc.) is dumped, it will interfere with the validity
+          // of these generated queries.
+          if(Dump.isOn("state")) {
+            throw OptionException(string("dump option `") + optarg +
+                                  "' conflicts with a previous, "
+                                  "state-dumping dump option.  You cannot "
+                                  "mix stateful and non-stateful dumping modes; "
+                                  "see --dump help.");
+          } else {
+            Dump.on("no-permit-state");
+          }
+        } else if(!strcmp(optarg, "state") ||
+                  !strcmp(optarg, "missed-t-conflicts") ||
+                  !strcmp(optarg, "t-propagations") ||
+                  !strcmp(optarg, "missed-t-propagations")) {
+          // These are "state-dumping" modes.  If state (SAT decisions,
+          // propagations, etc.) is not dumped, it will interfere with the
+          // validity of these generated queries.
+          if(Dump.isOn("no-permit-state")) {
+            throw OptionException(string("dump option `") + optarg +
+                                  "' conflicts with a previous, "
+                                  "non-state-dumping dump option.  You cannot "
+                                  "mix stateful and non-stateful dumping modes; "
+                                  "see --dump help.");
+          } else {
+            Dump.on("state");
+          }
+        } else if(!strcmp(optarg, "help")) {
+          puts(dumpHelp.c_str());
+          exit(1);
+        } else {
+          throw OptionException(string("unknown option for --dump: `") +
+                                optarg + "'.  Try --dump help.");
+        }
+
+        Dump.on(optarg);
+        Dump.on("benchmark");
+        if(strcmp(optarg, "benchmark")) {
+          Dump.on("declarations");
+        }
+      }
+#else /* CVC4_DUMPING */
+      throw OptionException("The dumping feature was disabled in this build of CVC4.");
+#endif /* CVC4_DUMPING */
+      break;
+    }
+
+    case DUMP_TO: {
+#ifdef CVC4_DUMPING
+      if(optarg == NULL || *optarg == '\0') {
+        throw OptionException(string("Bad file name for --dump-to"));
+      } else if(!strcmp(optarg, "-")) {
+        Dump.setStream(DumpC::dump_cout);
+      } else {
+        ostream* dumpTo = new ofstream(optarg, ofstream::out | ofstream::trunc);
+        if(!*dumpTo) {
+          throw OptionException(string("Cannot open dump-to file (maybe it exists): `") + optarg + "'");
+        }
+        Dump.setStream(*dumpTo);
+      }
+#else /* CVC4_DUMPING */
+      throw OptionException("The dumping feature was disabled in this build of CVC4.");
+#endif /* CVC4_DUMPING */
+    }
       break;
 
     case NO_THEORY_REGISTRATION:
@@ -437,24 +619,6 @@ throw(OptionException) {
       }
       break;
 
-    case UF_THEORY:
-      {
-        if(!strcmp(optarg, "tim")) {
-          uf_implementation = Options::TIM;
-        } else if(!strcmp(optarg, "morgan")) {
-          uf_implementation = Options::MORGAN;
-        } else if(!strcmp(optarg, "help")) {
-          printf("UF implementations available:\n");
-          printf("  tim\n");
-          printf("  morgan\n");
-          exit(1);
-        } else {
-          throw OptionException(string("unknown option for --uf: `") +
-                                optarg + "'.  Try --uf help.");
-        }
-      }
-      break;
-
     case LAZY_DEFINITION_EXPANSION:
       lazyDefinitionExpansion = true;
       break;
@@ -464,12 +628,8 @@ throw(OptionException) {
         simplificationMode = SIMPLIFICATION_MODE_BATCH;
       } else if(!strcmp(optarg, "incremental")) {
         simplificationMode = SIMPLIFICATION_MODE_INCREMENTAL;
-      } else if(!strcmp(optarg, "aggressive")) {
-        simplificationStyle = AGGRESSIVE_SIMPLIFICATION_STYLE;
-      } else if(!strcmp(optarg, "toplevel")) {
-        simplificationStyle = TOPLEVEL_SIMPLIFICATION_STYLE;
       } else if(!strcmp(optarg, "none")) {
-        simplificationStyle = NO_SIMPLIFICATION_STYLE;
+        simplificationMode = SIMPLIFICATION_MODE_NONE;
       } else if(!strcmp(optarg, "help")) {
         puts(simplificationHelp.c_str());
         exit(1);
@@ -477,6 +637,10 @@ throw(OptionException) {
         throw OptionException(string("unknown option for --simplification: `") +
                               optarg + "'.  Try --simplification help.");
       }
+      break;
+
+    case NO_STATIC_LEARNING:
+      doStaticLearning = false;
       break;
 
     case INTERACTIVE:
@@ -622,6 +786,7 @@ throw(OptionException) {
       printf("statistics : %s\n", Configuration::isStatisticsBuild() ? "yes" : "no");
       printf("replay     : %s\n", Configuration::isReplayBuild() ? "yes" : "no");
       printf("tracing    : %s\n", Configuration::isTracingBuild() ? "yes" : "no");
+      printf("dumping    : %s\n", Configuration::isDumpingBuild() ? "yes" : "no");
       printf("muzzled    : %s\n", Configuration::isMuzzledBuild() ? "yes" : "no");
       printf("assertions : %s\n", Configuration::isAssertionBuild() ? "yes" : "no");
       printf("coverage   : %s\n", Configuration::isCoverageBuild() ? "yes" : "no");

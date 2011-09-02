@@ -20,9 +20,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <math.h>
 
+#include <iostream>
+
 #include "mtl/Sort.h"
 #include "core/Solver.h"
+
 #include "prop/sat.h"
+#include "util/output.h"
+#include "expr/command.h"
 
 using namespace Minisat;
 using namespace CVC4;
@@ -287,10 +292,16 @@ bool Solver::satisfied(const Clause& c) const {
 // Revert to the state at given level (keeping all assignment at 'level' but not beyond).
 //
 void Solver::cancelUntil(int level) {
+    Debug("minisat") << "minisat::cancelUntil(" << level << std::endl;
+
     if (decisionLevel() > level){
         // Pop the SMT context
-        for (int l = trail_lim.size() - level; l > 0; --l)
+        for (int l = trail_lim.size() - level; l > 0; --l) {
           context->pop();
+          if(Dump.isOn("state")) {
+            Dump("state") << PopCommand() << std::endl;
+          }
+        }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;

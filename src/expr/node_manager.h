@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A manager for Nodes.
+ ** \brief A manager for Nodes
  **
  ** A manager for Nodes.
  **
@@ -48,6 +48,8 @@ class StatisticsRegistry;
 
 namespace expr {
 
+class TypeChecker;
+
 // Definition of an attribute for the variable name.
 // TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
@@ -64,6 +66,7 @@ class NodeManager {
   template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
   friend class NodeManagerScope;
   friend class expr::NodeValue;
+  friend class expr::TypeChecker;
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -249,9 +252,6 @@ class NodeManager {
 
   // undefined private copy constructor (disallow copy)
   NodeManager(const NodeManager&) CVC4_UNDEFINED;
-
-  TypeNode computeType(TNode n, bool check = false)
-    throw (TypeCheckingExceptionPrivate, AssertionException);
 
   void init();
 

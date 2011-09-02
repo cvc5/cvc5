@@ -5,6 +5,7 @@
 #
 
 theory THEORY_BOOL ::CVC4::theory::booleans::TheoryBool "theory/booleans/theory_bool.h"
+typechecker "theory/booleans/theory_bool_type_rules.h"
 
 properties finite
 
@@ -30,5 +31,15 @@ operator IMPLIES 2 "logical implication"
 operator OR 2: "logical or"
 operator XOR 2 "exclusive or"
 operator ITE 3 "if-then-else"
+
+typerule CONST_BOOLEAN ::CVC4::theory::boolean::BooleanTypeRule
+
+typerule NOT ::CVC4::theory::boolean::BooleanTypeRule
+typerule AND ::CVC4::theory::boolean::BooleanTypeRule
+typerule IFF ::CVC4::theory::boolean::BooleanTypeRule
+typerule IMPLIES ::CVC4::theory::boolean::BooleanTypeRule
+typerule OR ::CVC4::theory::boolean::BooleanTypeRule
+typerule XOR ::CVC4::theory::boolean::BooleanTypeRule
+typerule ITE ::CVC4::theory::boolean::IteTypeRule
 
 endtheory

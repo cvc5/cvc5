@@ -78,6 +78,10 @@ EmptyCommand::EmptyCommand(std::string name) :
   d_name(name) {
 }
 
+std::string EmptyCommand::getName() const {
+  return d_name;
+}
+
 void EmptyCommand::invoke(SmtEngine* smtEngine) {
   /* empty commands have no implementation */
 }
@@ -86,6 +90,10 @@ void EmptyCommand::invoke(SmtEngine* smtEngine) {
 
 AssertCommand::AssertCommand(const BoolExpr& e) :
   d_expr(e) {
+}
+
+BoolExpr AssertCommand::getExpr() const {
+  return d_expr;
 }
 
 void AssertCommand::invoke(SmtEngine* smtEngine) {
@@ -106,8 +114,16 @@ void PopCommand::invoke(SmtEngine* smtEngine) {
 
 /* class CheckSatCommand */
 
+CheckSatCommand::CheckSatCommand() :
+  d_expr() {
+}
+
 CheckSatCommand::CheckSatCommand(const BoolExpr& expr) :
   d_expr(expr) {
+}
+
+BoolExpr CheckSatCommand::getExpr() const {
+  return d_expr;
 }
 
 void CheckSatCommand::invoke(SmtEngine* smtEngine) {
@@ -128,6 +144,10 @@ QueryCommand::QueryCommand(const BoolExpr& e) :
   d_expr(e) {
 }
 
+BoolExpr QueryCommand::getExpr() const {
+  return d_expr;
+}
+
 void QueryCommand::invoke(SmtEngine* smtEngine) {
   d_result = smtEngine->query(d_expr);
 }
@@ -143,6 +163,23 @@ void QueryCommand::printResult(std::ostream& out) const {
 /* class QuitCommand */
 
 QuitCommand::QuitCommand() {
+}
+
+void QuitCommand::invoke(SmtEngine* smtEngine) {
+  Dump("benchmark") << *this;
+}
+
+/* class CommentCommand */
+
+CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {
+}
+
+std::string CommentCommand::getComment() const {
+  return d_comment;
+}
+
+void CommentCommand::invoke(SmtEngine* smtEngine) {
+  Dump("benchmark") << *this;
 }
 
 /* class CommandSequence */
@@ -175,51 +212,150 @@ void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out) {
   }
 }
 
-/* class DeclarationCommand */
+CommandSequence::const_iterator CommandSequence::begin() const {
+  return d_commandSequence.begin();
+}
 
-DeclarationCommand::DeclarationCommand(const std::string& id, Type t) :
+CommandSequence::const_iterator CommandSequence::end() const {
+  return d_commandSequence.end();
+}
+
+CommandSequence::iterator CommandSequence::begin() {
+  return d_commandSequence.begin();
+}
+
+CommandSequence::iterator CommandSequence::end() {
+  return d_commandSequence.end();
+}
+
+/* class DeclarationSequenceCommand */
+
+/* class DeclarationDefinitionCommand */
+
+DeclarationDefinitionCommand::DeclarationDefinitionCommand(const std::string& id) :
+  d_symbol(id) {
+}
+
+std::string DeclarationDefinitionCommand::getSymbol() const {
+  return d_symbol;
+}
+
+/* class DeclareFunctionCommand */
+
+DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id, Type t) :
+  DeclarationDefinitionCommand(id),
   d_type(t) {
-  d_declaredSymbols.push_back(id);
 }
 
-DeclarationCommand::DeclarationCommand(const std::vector<std::string>& ids, Type t) :
-  d_declaredSymbols(ids),
-  d_type(t) {
-}
-
-const std::vector<std::string>& DeclarationCommand::getDeclaredSymbols() const {
-  return d_declaredSymbols;
-}
-
-Type DeclarationCommand::getDeclaredType() const {
+Type DeclareFunctionCommand::getType() const {
   return d_type;
+}
+
+void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) {
+  Dump("declarations") << *this << endl;
+}
+
+/* class DeclareTypeCommand */
+
+DeclareTypeCommand::DeclareTypeCommand(const std::string& id, size_t arity, Type t) :
+  DeclarationDefinitionCommand(id),
+  d_arity(arity),
+  d_type(t) {
+}
+
+size_t DeclareTypeCommand::getArity() const {
+  return d_arity;
+}
+
+Type DeclareTypeCommand::getType() const {
+  return d_type;
+}
+
+void DeclareTypeCommand::invoke(SmtEngine* smtEngine) {
+  Dump("declarations") << *this << endl;
+}
+
+/* class DefineTypeCommand */
+
+DefineTypeCommand::DefineTypeCommand(const std::string& id,
+                                     Type t) :
+  DeclarationDefinitionCommand(id),
+  d_params(),
+  d_type(t) {
+}
+
+DefineTypeCommand::DefineTypeCommand(const std::string& id,
+                                     const std::vector<Type>& params,
+                                     Type t) :
+  DeclarationDefinitionCommand(id),
+  d_params(params),
+  d_type(t) {
+}
+
+const std::vector<Type>& DefineTypeCommand::getParameters() const {
+  return d_params;
+}
+
+Type DefineTypeCommand::getType() const {
+  return d_type;
+}
+
+void DefineTypeCommand::invoke(SmtEngine* smtEngine) {
+  Dump("declarations") << *this << endl;
 }
 
 /* class DefineFunctionCommand */
 
-DefineFunctionCommand::DefineFunctionCommand(Expr func,
+DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
+                                             Expr func,
+                                             Expr formula) :
+  DeclarationDefinitionCommand(id),
+  d_func(func),
+  d_formals(),
+  d_formula(formula) {
+}
+
+DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
+                                             Expr func,
                                              const std::vector<Expr>& formals,
                                              Expr formula) :
+  DeclarationDefinitionCommand(id),
   d_func(func),
   d_formals(formals),
   d_formula(formula) {
 }
 
-void DefineFunctionCommand::invoke(SmtEngine* smtEngine) {
-  smtEngine->defineFunction(d_func, d_formals, d_formula);
+Expr DefineFunctionCommand::getFunction() const {
+  return d_func;
 }
 
-/* class DefineFunctionCommand */
+const std::vector<Expr>& DefineFunctionCommand::getFormals() const {
+  return d_formals;
+}
 
-DefineNamedFunctionCommand::DefineNamedFunctionCommand(Expr func,
+Expr DefineFunctionCommand::getFormula() const {
+  return d_formula;
+}
+
+void DefineFunctionCommand::invoke(SmtEngine* smtEngine) {
+  Dump("declarations") << *this << endl;
+  if(!d_func.isNull()) {
+    smtEngine->defineFunction(d_func, d_formals, d_formula);
+  }
+}
+
+/* class DefineNamedFunctionCommand */
+
+DefineNamedFunctionCommand::DefineNamedFunctionCommand(const std::string& id,
+                                                       Expr func,
                                                        const std::vector<Expr>& formals,
                                                        Expr formula) :
-  DefineFunctionCommand(func, formals, formula) {
+  DefineFunctionCommand(id, func, formals, formula) {
 }
 
 void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine) {
   this->DefineFunctionCommand::invoke(smtEngine);
-  if(d_func.getType().isBoolean()) {
+  if(!d_func.isNull() && d_func.getType().isBoolean()) {
     smtEngine->addToAssignment(d_func.getExprManager()->mkExpr(kind::APPLY,
                                                                d_func));
   }
@@ -229,6 +365,10 @@ void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine) {
 
 SimplifyCommand::SimplifyCommand(Expr term) :
   d_term(term) {
+}
+
+Expr SimplifyCommand::getTerm() const {
+  return d_term;
 }
 
 void SimplifyCommand::invoke(SmtEngine* smtEngine) {
@@ -247,6 +387,10 @@ void SimplifyCommand::printResult(std::ostream& out) const {
 
 GetValueCommand::GetValueCommand(Expr term) :
   d_term(term) {
+}
+
+Expr GetValueCommand::getTerm() const {
+  return d_term;
 }
 
 void GetValueCommand::invoke(SmtEngine* smtEngine) {
@@ -305,6 +449,10 @@ SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status) :
   d_status(status) {
 }
 
+BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const {
+  return d_status;
+}
+
 void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) {
   stringstream ss;
   ss << d_status;
@@ -326,6 +474,10 @@ SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic) :
   d_logic(logic) {
 }
 
+std::string SetBenchmarkLogicCommand::getLogic() const {
+  return d_logic;
+}
+
 void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) {
   try {
     smtEngine->setLogic(d_logic);
@@ -337,9 +489,17 @@ void SetBenchmarkLogicCommand::invoke(SmtEngine* smtEngine) {
 
 /* class SetInfoCommand */
 
-SetInfoCommand::SetInfoCommand(std::string flag, SExpr& sexpr) :
+SetInfoCommand::SetInfoCommand(std::string flag, const SExpr& sexpr) :
   d_flag(flag),
   d_sexpr(sexpr) {
+}
+
+std::string SetInfoCommand::getFlag() const {
+  return d_flag;
+}
+
+SExpr SetInfoCommand::getSExpr() const {
+  return d_sexpr;
 }
 
 void SetInfoCommand::invoke(SmtEngine* smtEngine) {
@@ -369,6 +529,10 @@ GetInfoCommand::GetInfoCommand(std::string flag) :
   d_flag(flag) {
 }
 
+std::string GetInfoCommand::getFlag() const {
+  return d_flag;
+}
+
 void GetInfoCommand::invoke(SmtEngine* smtEngine) {
   try {
     stringstream ss;
@@ -391,9 +555,17 @@ void GetInfoCommand::printResult(std::ostream& out) const {
 
 /* class SetOptionCommand */
 
-SetOptionCommand::SetOptionCommand(std::string flag, SExpr& sexpr) :
+SetOptionCommand::SetOptionCommand(std::string flag, const SExpr& sexpr) :
   d_flag(flag),
   d_sexpr(sexpr) {
+}
+
+std::string SetOptionCommand::getFlag() const {
+  return d_flag;
+}
+
+SExpr SetOptionCommand::getSExpr() const {
+  return d_sexpr;
 }
 
 void SetOptionCommand::invoke(SmtEngine* smtEngine) {
@@ -423,6 +595,10 @@ GetOptionCommand::GetOptionCommand(std::string flag) :
   d_flag(flag) {
 }
 
+std::string GetOptionCommand::getFlag() const {
+  return d_flag;
+}
+
 void GetOptionCommand::invoke(SmtEngine* smtEngine) {
   try {
     d_result = smtEngine->getOption(d_flag).getValue();
@@ -446,17 +622,19 @@ void GetOptionCommand::printResult(std::ostream& out) const {
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(const DatatypeType& datatype) :
   d_datatypes() {
   d_datatypes.push_back(datatype);
-  Debug("datatypes") << "Create datatype command." << endl;
 }
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(const std::vector<DatatypeType>& datatypes) :
   d_datatypes(datatypes) {
-  Debug("datatypes") << "Create datatype command." << endl;
+}
+
+const std::vector<DatatypeType>&
+DatatypeDeclarationCommand::getDatatypes() const {
+  return d_datatypes;
 }
 
 void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) {
-  Debug("datatypes") << "Invoke datatype command." << endl;
-  //smtEngine->addDatatypeDefinitions(d_datatype);
+  Dump("declarations") << *this << endl;
 }
 
 /* output stream insertion operator for benchmark statuses */

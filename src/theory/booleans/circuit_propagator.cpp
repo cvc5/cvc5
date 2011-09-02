@@ -2,7 +2,7 @@
 /*! \file circuit_propagator.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: dejan
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -29,11 +29,11 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-void CircuitPropagator::assert(TNode assertion) 
+void CircuitPropagator::assert(TNode assertion)
 {
   if (assertion.getKind() == kind::AND) {
     for (unsigned i = 0; i < assertion.getNumChildren(); ++ i) {
-      assert(assertion[i]);  
+      assert(assertion[i]);
     }
   } else {
     // Analyze the assertion for back-edges and all that

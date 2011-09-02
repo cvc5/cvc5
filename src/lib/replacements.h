@@ -16,8 +16,6 @@
  ** Common header for replacement function sources.
  **/
 
-#include "cvc4_public.h"
-
 #ifndef __CVC4__LIB__REPLACEMENTS_H
 #define __CVC4__LIB__REPLACEMENTS_H
 

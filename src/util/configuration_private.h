@@ -49,6 +49,12 @@ namespace CVC4 {
 #  define IS_TRACING_BUILD false
 #endif /* CVC4_TRACING */
 
+#ifdef CVC4_DUMPING
+#  define IS_DUMPING_BUILD true
+#else /* CVC4_DUMPING */
+#  define IS_DUMPING_BUILD false
+#endif /* CVC4_DUMPING */
+
 #ifdef CVC4_MUZZLE
 #  define IS_MUZZLED_BUILD true
 #else /* CVC4_MUZZLE */

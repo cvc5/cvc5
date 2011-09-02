@@ -8,7 +8,7 @@ noinst_LTLIBRARIES = libutil.la libutilcudd.la
 # libutilcudd.la is a separate library so that we can pass separate
 # compiler flags
 libutilcudd_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) @CUDD_CPPFLAGS@
-libutilcudd_la_LIBADD = @CUDD_LDFLAGS@
+libutilcudd_la_LIBADD = @CUDD_LDFLAGS@ @CUDD_LIBS@
 
 # Do not list built sources (like integer.h, rational.h, and tls.h) here!
 # Rather, list them under BUILT_SOURCES, and their .in versions under

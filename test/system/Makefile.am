@@ -2,10 +2,14 @@ TESTS_ENVIRONMENT =
 TESTS = \
 	boilerplate \
 	ouroborous
+#	cvc3_main.cpp
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
-TEST_DEPS_DIST =
+TEST_DEPS_DIST = \
+	cvc3_main.cpp \
+	cvc3_george.h \
+	cvc3_george.cpp
 
 # Make-level dependencies; these don't go in the source distribution
 # but should trigger a re-compile of all unit tests.  Libraries are
@@ -15,7 +19,9 @@ TEST_DEPS_DIST =
 # changes made in the header files.
 TEST_DEPS_NODIST = \
 	$(abs_top_builddir)/src/libcvc4.la \
-	$(abs_top_builddir)/src/parser/libcvc4parser.la
+	$(abs_top_builddir)/src/parser/libcvc4parser.la \
+	$(abs_top_builddir)/src/compat/libcvc4compat.la \
+	cvc3_george.lo
 
 TEST_DEPS = \
 	$(TEST_DEPS_DIST) \
@@ -43,6 +49,7 @@ AM_CPPFLAGS = \
 	-D __BUILDING_CVC4_SYSTEM_TEST \
 	$(TEST_CPPFLAGS)
 LIBADD = \
+	@abs_top_builddir@/src/compat/libcvc4compat.la \
 	@abs_top_builddir@/src/parser/libcvc4parser.la \
 	@abs_top_builddir@/src/libcvc4.la
 
@@ -51,6 +58,8 @@ $(TESTS:%=%.lo): %.lo: %.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $+
 $(TESTS): %: %.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $<
+cvc3_main: cvc3_george.lo $(LIBADD)
+	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $+
 
 # trick automake into setting LTCXXCOMPILE, CXXLINK, etc.
 if CVC4_FALSE

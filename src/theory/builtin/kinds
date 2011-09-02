@@ -36,7 +36,6 @@
 #       check             the theory supports the check() function
 #       propagate         the theory supports propagate() (and explain())
 #       staticLearning    the theory supports staticLearning()
-#       registerTerm      the theory supports registerTerm()
 #       notifyRestart     the theory supports notifyRestart()
 #       presolve          the theory supports presolve()
 #
@@ -58,6 +57,12 @@
 #     ...BUT please note that init() and shutdown() may be removed in
 #     future, so if possible, do not rely on them being called (and
 #     implement them as a no-op).
+#
+#   typechecker header
+#
+#     Declare that this theory's typechecker class is defined in the
+#     given header.  (#include'd by the TypeChecker class in the expr
+#     package.)
 #
 #   variable K ["comment"]
 #
@@ -121,6 +126,19 @@
 #
 #     For consistency, constants taking a non-void payload should
 #     start with "CONST_", but this is not enforced.
+#
+#   typerule K typechecker-class
+#
+#     Declares that a (previously-declared) kind K is typechecked by
+#     the typechecker-class.  This class should be defined by the
+#     header given to the "typechecker" command, above.  The
+#     typechecker-class is used this way by the main TypeChecker code:
+#
+#       typechecker-class::computeType(NodeManager* nm, TNode n, bool check)
+#
+#     It returns TypeNode.  It should compute the type of n and return it,
+#     and if "check" is true, should actually perform type checking instead
+#     of simply type computation.
 #
 #   sort K cardinality [well-founded ground-term header | not-well-founded] ["comment"]
 #
@@ -217,6 +235,7 @@
 #
 
 theory THEORY_BUILTIN ::CVC4::theory::builtin::TheoryBuiltin "theory/builtin/theory_builtin.h"
+typechecker "theory/builtin/theory_builtin_type_rules.h"
 
 properties stable-infinite
 
@@ -281,5 +300,10 @@ well-founded TUPLE_TYPE \
     "::CVC4::theory::builtin::TupleProperties::isWellFounded(%TYPE%)" \
     "::CVC4::theory::builtin::TupleProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
+
+typerule APPLY ::CVC4::theory::builtin::ApplyTypeRule
+typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
+typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
+typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
 
 endtheory

@@ -5,6 +5,7 @@
 #
 
 theory THEORY_DATATYPES ::CVC4::theory::datatypes::TheoryDatatypes "theory/datatypes/theory_datatypes.h"
+typechecker "theory/datatypes/theory_datatypes_type_rules.h"
 
 properties check presolve
 
@@ -69,5 +70,10 @@ constant ASCRIPTION_TYPE \
     ::CVC4::AscriptionTypeHashStrategy \
     "util/ascription_type.h" \
     "a type parameter for type ascription"
+
+typerule APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
+typerule APPLY_SELECTOR ::CVC4::theory::datatypes::DatatypeSelectorTypeRule
+typerule APPLY_TESTER ::CVC4::theory::datatypes::DatatypeTesterTypeRule
+typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionTypeRule
 
 endtheory

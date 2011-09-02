@@ -2,8 +2,8 @@
 /*! \file interactive_shell.cpp
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -237,11 +237,14 @@ Command* InteractiveShell::readCommand() {
         break;
       } else {
 #if HAVE_LIBREADLINE
-        DeclarationCommand* dcmd =
-          dynamic_cast<DeclarationCommand*>(cmd);
-        if(dcmd != NULL) {
-          const vector<string>& ids = dcmd->getDeclaredSymbols();
-          s_declarations.insert(ids.begin(), ids.end());
+        if(dynamic_cast<DeclareFunctionCommand*>(cmd) != NULL) {
+          s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
+        } else if(dynamic_cast<DefineFunctionCommand*>(cmd) != NULL) {
+          s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
+        } else if(dynamic_cast<DeclareTypeCommand*>(cmd) != NULL) {
+          s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
+        } else if(dynamic_cast<DefineTypeCommand*>(cmd) != NULL) {
+          s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
         }
 #endif /* HAVE_LIBREADLINE */
       }

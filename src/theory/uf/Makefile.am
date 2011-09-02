@@ -5,10 +5,6 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 noinst_LTLIBRARIES = libuf.la
 
-# force automake to link using g++
-nodist_EXTRA_libuf_la_SOURCES = \
-	dummy.cpp
-
 libuf_la_SOURCES = \
 	theory_uf.h \
 	theory_uf.cpp \
@@ -18,11 +14,5 @@ libuf_la_SOURCES = \
 	equality_engine_impl.h \
 	symmetry_breaker.h \
 	symmetry_breaker.cpp
-
-libuf_la_LIBADD = \
-	@builddir@/tim/libuftim.la \
-	@builddir@/morgan/libufmorgan.la
-
-SUBDIRS = tim morgan
 
 EXTRA_DIST = kinds
