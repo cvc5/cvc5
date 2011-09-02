@@ -182,7 +182,8 @@ public:
     return *this;
   }
 
-  /** Raise this Integer to the power <code>exp</code>.
+  /**
+   * Raise this Integer to the power <code>exp</code>.
    *
    * @param exp the exponent
    */
@@ -195,6 +196,21 @@ public:
     }else{
       Unimplemented();
     }
+  }
+
+  /**
+   * Return the greatest common divisor of this integer with another.
+   */
+  Integer gcd(const Integer& y) const {
+    cln::cl_I result = cln::gcd(d_value, y.d_value);
+    return Integer(result);
+  }
+
+  /**
+   * Return the absolute value of this integer.
+   */
+  Integer abs() const {
+    return d_value >= 0 ? *this : -*this;
   }
 
   std::string toString(int base = 10) const{

@@ -143,7 +143,7 @@ inline bool evaluateConstantPredicate(Kind k, const Rational& left, const Ration
 }
 
 /**
- * Returns the appropraite coefficient for the infinitesimal given the kind
+ * Returns the appropriate coefficient for the infinitesimal given the kind
  * for an arithmetic atom inorder to represent strict inequalities as inequalities.
  *   x < c  becomes  x <= c + (-1) * \delta
  *   x > c  becomes  x >= x + ( 1) * \delta

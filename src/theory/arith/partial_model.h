@@ -86,7 +86,7 @@ public:
   /* Initializes a variable to a safe value.*/
   void initialize(ArithVar x, const DeltaRational& r);
 
-  /* Gets the last assignment to a variable that is known to be conistent. */
+  /* Gets the last assignment to a variable that is known to be consistent. */
   const DeltaRational& getSafeAssignment(ArithVar x) const;
   const DeltaRational& getAssignment(ArithVar x, bool safe) const;
 
@@ -183,14 +183,12 @@ private:
     return 0 <= x && x < d_mapSize;
   }
 
-};
+};/* class ArithPartialModel */
 
 
-
-
-}; /* namesapce arith */
-}; /* namespace theory */
-}; /* namespace CVC4 */
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 
 

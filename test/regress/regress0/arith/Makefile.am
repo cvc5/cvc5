@@ -1,4 +1,7 @@
+SUBDIRS = . integers
+
 TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/src/main/cvc4
+MAKEFLAGS = -k
 
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,

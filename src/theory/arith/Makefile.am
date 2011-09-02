@@ -32,7 +32,9 @@ libarith_la_SOURCES = \
 	simplex.h \
 	simplex.cpp \
 	theory_arith.h \
-	theory_arith.cpp
+	theory_arith.cpp \
+	dio_solver.h \
+	dio_solver.cpp
 
 EXTRA_DIST = \
 	kinds

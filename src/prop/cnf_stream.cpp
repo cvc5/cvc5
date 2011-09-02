@@ -146,7 +146,7 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
   Assert(!isTranslated(node), "atom already mapped!");
 
-  bool theoryLiteral = node.getKind() != kind::VARIABLE;
+  bool theoryLiteral = node.getKind() != kind::VARIABLE && !node.getType().isPseudoboolean();
   SatLiteral lit = newLiteral(node, theoryLiteral);
 
   if(node.getKind() == kind::CONST_BOOLEAN) {
@@ -396,9 +396,8 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
       break;
     case EQUAL:
       if(node[0].getType().isBoolean()) {
-        // should have an IFF instead
-        Unreachable("= Bool Bool  shouldn't be possible ?!");
-        //nodeLit = handleIff(node[0].iffNode(node[1]));
+        // normally this is an IFF, but EQUAL is possible with pseudobooleans
+        nodeLit = handleIff(node[0].iffNode(node[1]));
       } else {
         nodeLit = convertAtom(node);
       }

@@ -202,6 +202,19 @@ Type::operator RealType() const throw(AssertionException) {
   return RealType(*this);
 }
 
+/** Is this the pseudoboolean type? */
+bool Type::isPseudoboolean() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isPseudoboolean();
+}
+
+/** Cast to a pseudoboolean type */
+Type::operator PseudobooleanType() const throw(AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isPseudoboolean());
+  return PseudobooleanType(*this);
+}
+
 /** Is this the bit-vector type? */
 bool Type::isBitVector() const {
   NodeManagerScope nms(d_nodeManager);
@@ -433,6 +446,11 @@ IntegerType::IntegerType(const Type& t) throw(AssertionException) :
 RealType::RealType(const Type& t) throw(AssertionException) :
   Type(t) {
   Assert(isReal());
+}
+
+PseudobooleanType::PseudobooleanType(const Type& t) throw(AssertionException) :
+  Type(t) {
+  Assert(isPseudoboolean());
 }
 
 BitVectorType::BitVectorType(const Type& t) throw(AssertionException) :

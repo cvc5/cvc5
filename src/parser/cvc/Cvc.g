@@ -53,6 +53,7 @@ tokens {
   CHECK_TYPE_TOK = 'CHECK_TYPE';
   GET_CHILD_TOK = 'GET_CHILD';
   GET_OP_TOK = 'GET_OP';
+  GET_VALUE_TOK = 'GET_VALUE';
   SUBSTITUTE_TOK = 'SUBSTITUTE';
   DBG_TOK = 'DBG';
   TRACE_TOK = 'TRACE';
@@ -645,6 +646,9 @@ mainCommand[CVC4::Command*& cmd]
 
   | GET_OP_TOK formula[f]
     { UNSUPPORTED("GET_OP command"); }
+
+  | GET_VALUE_TOK formula[f]
+    { cmd = new GetValueCommand(f); }
 
   | SUBSTITUTE_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK
     formula[f] LBRACKET identifier[id,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK formula[f] RBRACKET

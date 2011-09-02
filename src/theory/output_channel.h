@@ -92,7 +92,7 @@ public:
    * @param safe - whether it is safe to be interrupted
    */
   virtual void lemma(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) = 0;
+    throw(Interrupted, TypeCheckingExceptionPrivate, AssertionException) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to

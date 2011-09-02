@@ -53,14 +53,18 @@ public:
   void addLeq(TNode leq){
     Assert(leq.getKind() == kind::LEQ);
     Assert(rightHandRational(leq) == getValue());
-    Assert(!hasLeq());
+    // [MGD] With context-dependent pre-registration, we could get the
+    // same one twice
+    Assert(!hasLeq() || d_leq == leq);
     d_leq = leq;
   }
 
   void addGeq(TNode geq){
     Assert(geq.getKind() == kind::GEQ);
     Assert(rightHandRational(geq) == getValue());
-    Assert(!hasGeq());
+    // [MGD] With context-dependent pre-registration, we could get the
+    // same one twice
+    Assert(!hasGeq() || d_geq == geq);
     d_geq = geq;
   }
 

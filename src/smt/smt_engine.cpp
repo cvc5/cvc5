@@ -618,7 +618,7 @@ void SmtEnginePrivate::simplifyAssertions() throw(NoSuchFunctionException, Asser
     Debug("simplify") << "SmtEnginePrivate::simplify()" << std::endl;
 
     if(!Options::current()->lazyDefinitionExpansion) {
-      Debug("simplify") << "SmtEnginePrivate::simplify(): exanding definitions" << std::endl;
+      Debug("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << std::endl;
       TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
       hash_map<TNode, Node, TNodeHashFunction> cache;
       for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {

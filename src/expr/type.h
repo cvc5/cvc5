@@ -46,6 +46,7 @@ class NodeTemplate;
 class BooleanType;
 class IntegerType;
 class RealType;
+class PseudobooleanType;
 class BitVectorType;
 class ArrayType;
 class DatatypeType;
@@ -224,6 +225,18 @@ public:
    * @return the RealType
    */
   operator RealType() const throw(AssertionException);
+
+  /**
+   * Is this the pseudoboolean type?
+   * @return true if the type is the pseudoboolean type
+   */
+  bool isPseudoboolean() const;
+
+  /**
+   * Cast this type to a pseudoboolean type
+   * @return the PseudobooleanType
+   */
+  operator PseudobooleanType() const throw(AssertionException);
 
   /**
    * Is this the bit-vector type?
@@ -408,6 +421,17 @@ public:
   /** Construct from the base type */
   RealType(const Type& type) throw(AssertionException);
 };/* class RealType */
+
+/**
+ * Singleton class encapsulating the pseudoboolean type.
+ */
+class CVC4_PUBLIC PseudobooleanType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  PseudobooleanType(const Type& type) throw(AssertionException);
+};/* class PseudobooleanType */
 
 /**
  * Class encapsulating a function type.

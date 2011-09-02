@@ -413,6 +413,9 @@ public:
   /** Is this the Real type? */
   bool isReal() const;
 
+  /** Is this the Pseudoboolean type? */
+  bool isPseudoboolean() const;
+
   /** Is this an array type? */
   bool isArray() const;
 

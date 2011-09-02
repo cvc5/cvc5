@@ -151,7 +151,7 @@ public:
    * Returns the value of denominator of the Rational.
    * Note that this makes a deep copy of the denominator.
    */
-  Integer getDenominator() const{
+  Integer getDenominator() const {
     return Integer(d_value.get_den());
   }
 
@@ -165,9 +165,20 @@ public:
     return mpq_cmp(d_value.get_mpq_t(), x.d_value.get_mpq_t());
   }
 
-
   int sgn() const {
     return mpq_sgn(d_value.get_mpq_t());
+  }
+
+  Integer floor() const {
+    mpz_class q;
+    mpz_fdiv_q(q.get_mpz_t(), d_value.get_num_mpz_t(), d_value.get_den_mpz_t());
+    return Integer(q);
+  }
+
+  Integer ceiling() const {
+    mpz_class q;
+    mpz_cdiv_q(q.get_mpz_t(), d_value.get_num_mpz_t(), d_value.get_den_mpz_t());
+    return Integer(q);
   }
 
   Rational& operator=(const Rational& x){
@@ -203,9 +214,6 @@ public:
   bool operator>=(const Rational& y) const {
     return d_value >= y.d_value;
   }
-
-
-  
 
   Rational operator+(const Rational& y) const{
     return Rational( d_value + y.d_value );

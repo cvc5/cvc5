@@ -224,10 +224,10 @@ private:
   class Iterator {
   private:
     EntryID d_curr;
-    TableauEntryManager& d_entryManager;
+    const TableauEntryManager& d_entryManager;
 
   public:
-    Iterator(EntryID start, TableauEntryManager& manager) :
+    Iterator(EntryID start, const TableauEntryManager& manager) :
       d_curr(start), d_entryManager(manager)
     {}
 
@@ -244,7 +244,7 @@ private:
 
     Iterator& operator++(){
       Assert(!atEnd());
-      TableauEntry& entry = d_entryManager.get(d_curr);
+      const TableauEntry& entry = d_entryManager.get(d_curr);
       d_curr = isRowIterator ? entry.getNextRowID() : entry.getNextColID();
       return *this;
     }
@@ -288,13 +288,13 @@ public:
     return d_basicVariables.end();
   }
 
-  RowIterator rowIterator(ArithVar v){
+  RowIterator rowIterator(ArithVar v) const {
     Assert(v < d_rowHeads.size());
     EntryID head = d_rowHeads[v];
     return RowIterator(head, d_entryManager);
   }
 
-  ColIterator colIterator(ArithVar v){
+  ColIterator colIterator(ArithVar v) const {
     Assert(v < d_colHeads.size());
     EntryID head = d_colHeads[v];
     return ColIterator(head, d_entryManager);
@@ -350,9 +350,9 @@ public:
   /**
    * Prints the contents of the Tableau to Debug("tableau::print")
    */
-  void printTableau();
-  void printRow(ArithVar basic);
-  void printEntry(const TableauEntry& entry);
+  void printTableau() const;
+  void printRow(ArithVar basic) const;
+  void printEntry(const TableauEntry& entry) const;
 
 
 private:

@@ -23,6 +23,7 @@
 
 #include <utility>
 #include <vector>
+#include <algorithm>
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -74,6 +75,25 @@ public:
    */
   Node apply(TNode t) const {
     return const_cast<SubstitutionMap*>(this)->apply(t);
+  }
+
+  /**
+   * Clear out the accumulated substitutions, resetting this
+   * SubstitutionMap to the way it was when first constructed.
+   */
+  void clear() {
+    d_substitutions.clear();
+    d_substitutionCache.clear();
+    d_cacheInvalidated = true;
+  }
+
+  /**
+   * Swap the contents of this SubstitutionMap with those of another.
+   */
+  void swap(SubstitutionMap& map) {
+    d_substitutions.swap(map.d_substitutions);
+    d_substitutionCache.swap(map.d_substitutionCache);
+    std::swap(d_cacheInvalidated, map.d_cacheInvalidated);
   }
 
   /**

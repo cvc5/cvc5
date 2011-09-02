@@ -73,18 +73,26 @@ Node TypeNode::mkGroundTerm() const {
 
 bool TypeNode::isBoolean() const {
   return getKind() == kind::TYPE_CONSTANT &&
-    getConst<TypeConstant>() == BOOLEAN_TYPE;
+    ( getConst<TypeConstant>() == BOOLEAN_TYPE ||
+      getConst<TypeConstant>() == PSEUDOBOOLEAN_TYPE );
 }
 
 bool TypeNode::isInteger() const {
   return getKind() == kind::TYPE_CONSTANT &&
-    getConst<TypeConstant>() == INTEGER_TYPE;
+    ( getConst<TypeConstant>() == INTEGER_TYPE ||
+      getConst<TypeConstant>() == PSEUDOBOOLEAN_TYPE );
 }
 
 bool TypeNode::isReal() const {
-  return getKind() == kind::TYPE_CONSTANT
-    && ( getConst<TypeConstant>() == REAL_TYPE ||
-         getConst<TypeConstant>() == INTEGER_TYPE );
+  return getKind() == kind::TYPE_CONSTANT &&
+    ( getConst<TypeConstant>() == REAL_TYPE ||
+      getConst<TypeConstant>() == INTEGER_TYPE ||
+      getConst<TypeConstant>() == PSEUDOBOOLEAN_TYPE );
+}
+
+bool TypeNode::isPseudoboolean() const {
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == PSEUDOBOOLEAN_TYPE;
 }
 
 bool TypeNode::isArray() const {

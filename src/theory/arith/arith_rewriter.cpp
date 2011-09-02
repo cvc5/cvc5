@@ -182,7 +182,6 @@ RewriteResponse ArithRewriter::postRewriteAtomConstantRHS(TNode t){
   TNode left  = t[0];
   TNode right = t[1];
 
-
   Comparison cmp = Comparison::mkComparison(t.getKind(), Polynomial::parsePolynomial(left), Constant(right));
 
   if(cmp.isBoolean()){

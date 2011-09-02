@@ -61,10 +61,13 @@ typedef expr::Attribute<SlackAttrID, bool> Slack;
 
 TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation) :
   Theory(THEORY_ARITH, c, out, valuation),
+  learner(d_pbSubstitutions),
+  d_nextIntegerCheckVar(0),
   d_partialModel(c),
   d_userVariables(),
   d_diseq(c),
   d_tableau(),
+  d_diosolver(c, d_tableau, d_partialModel),
   d_restartsCounter(0),
   d_rowHasBeenAdded(false),
   d_tableauResetDensity(1.6),
@@ -131,13 +134,26 @@ TheoryArith::Statistics::~Statistics(){
 }
 
 Node TheoryArith::preprocess(TNode atom) {
-  if (atom.getKind() == kind::EQUAL) {
-    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-    return Rewriter::rewrite(leq.andNode(geq));
-  } else {
-    return atom;
+  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+
+  Node a = d_pbSubstitutions.apply(atom);
+
+  if (a != atom) {
+    Debug("pb") << "arith::preprocess() : after pb substitutions: " << a << endl;
+    a = Rewriter::rewrite(a);
+    Debug("pb") << "arith::preprocess() : after pb substitutions and rewriting: " << a << endl;
+    Debug("arith::preprocess") << "arith::preprocess() : after pb substitutions and rewriting: " << a << endl;
   }
+
+  if (a.getKind() == kind::EQUAL) {
+    Node leq = NodeBuilder<2>(kind::LEQ) << a[0] << a[1];
+    Node geq = NodeBuilder<2>(kind::GEQ) << a[0] << a[1];
+    Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+    Debug("arith::preprocess") << "arith::preprocess() : returning " << rewritten << endl;
+    return rewritten;
+  }
+
+  return a;
 }
 
 Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutions) {
@@ -187,8 +203,16 @@ Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutio
       // Add the substitution if not recursive
       Node rewritten = Rewriter::rewrite(eliminateVar);
       if (!rewritten.hasSubterm(minVar)) {
-        outSubstitutions.addSubstitution(minVar, Rewriter::rewrite(eliminateVar));
-        return SOLVE_STATUS_SOLVED;
+        Node elim = Rewriter::rewrite(eliminateVar);
+        if (!minVar.getType().isInteger() || elim.getType().isInteger()) {
+          // cannot eliminate integers here unless we know the resulting
+          // substitution is integral
+          Debug("simplify") << "TheoryArith::solve(): substitution " << minVar << " |-> " << elim << endl;
+          outSubstitutions.addSubstitution(minVar, elim);
+          return SOLVE_STATUS_SOLVED;
+        } else {
+          Debug("simplify") << "TheoryArith::solve(): can't substitute b/c it's integer: " << minVar << ":" << minVar.getType() << " |-> " << elim << ":" << elim.getType() << endl;
+        }
       }
     }
   }
@@ -199,7 +223,7 @@ Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutio
   case kind::LT:
   case kind::GEQ:
   case kind::GT:
-    if (in[0].getKind() == kind::VARIABLE) {
+    if (in[0].getMetaKind() == kind::metakind::VARIABLE) {
       learner.addBound(in);
     }
     break;
@@ -290,16 +314,19 @@ void TheoryArith::preRegisterTerm(TNode n) {
       } 
     }
   }
-  Debug("arith_preregister") << "end arith::preRegisterTerm("<< n <<")"<< endl;
+  Debug("arith_preregister") << "end arith::preRegisterTerm(" << n <<")" << endl;
 }
 
 
 ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
   Assert(isLeaf(x) || x.getKind() == PLUS);
   Assert(!d_arithvarNodeMap.hasArithVar(x));
+  Assert(x.getType().isReal());// real or integer
 
   ArithVar varX = d_variables.size();
   d_variables.push_back(Node(x));
+  Debug("integers") << "isInteger[[" << x << "]]: " << x.getType().isInteger() << endl;
+  d_integerVars.push_back(x.getType().isPseudoboolean() ? 2 : (x.getType().isInteger() ? 1 : 0));
 
   d_simplex.increaseMax();
 
@@ -569,6 +596,129 @@ void TheoryArith::check(Effort effortLevel){
       splitDisequalities();
     }
   }
+
+  if(fullEffort(effortLevel) && d_integerVars.size() > 0) {
+    const ArithVar rrEnd = d_nextIntegerCheckVar;
+    do {
+      ArithVar v = d_nextIntegerCheckVar;
+      short type = d_integerVars[v];
+      if(type > 0) { // integer
+        const DeltaRational& d = d_partialModel.getAssignment(v);
+        const Rational& r = d.getNoninfinitesimalPart();
+        const Rational& i = d.getInfinitesimalPart();
+        Trace("integers") << "integers: assignment to [[" << d_arithvarNodeMap.asNode(v) << "]] is " << r << "[" << i << "]" << endl;
+        if(type == 2) {
+          // pseudoboolean
+          if(r.getDenominator() == 1 && i.getNumerator() == 0 &&
+             (r.getNumerator() == 0 || r.getNumerator() == 1)) {
+            // already pseudoboolean; skip
+            continue;
+          }
+
+          TNode var = d_arithvarNodeMap.asNode(v);
+          Node zero = NodeManager::currentNM()->mkConst(Integer(0));
+          Node one = NodeManager::currentNM()->mkConst(Integer(1));
+          Node eq0 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, zero));
+          Node eq1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, one));
+          Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq0, eq1);
+          Trace("pb") << "pseudobooleans: branch & bound: " << lem << endl;
+          Trace("integers") << "pseudobooleans: branch & bound: " << lem << endl;
+          //d_out->lemma(lem);
+        }
+        if(r.getDenominator() == 1 && i.getNumerator() == 0) {
+          // already an integer assignment; skip
+          continue;
+        }
+
+        // otherwise, try the Diophantine equation solver
+        //bool result = d_diosolver.solve();
+        //Debug("integers") << "the dio solver returned " << (result ? "true" : "false") << endl;
+
+        // branch and bound
+        if(r.getDenominator() == 1) {
+          // r is an integer, but the infinitesimal might not be
+          if(i.getNumerator() < 0) {
+            // lemma: v <= r - 1 || v >= r
+
+            TNode var = d_arithvarNodeMap.asNode(v);
+            Node nrMinus1 = NodeManager::currentNM()->mkConst(r - 1);
+            Node nr = NodeManager::currentNM()->mkConst(r);
+            Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nrMinus1));
+            Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nr));
+
+            Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+            Trace("integers") << "integers: branch & bound: " << lem << endl;
+            if(d_valuation.isSatLiteral(lem[0])) {
+              Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+            } else {
+              Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+            }
+            if(d_valuation.isSatLiteral(lem[1])) {
+              Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+            } else {
+              Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+            }
+            d_out->lemma(lem);
+
+            // split only on one var
+            break;
+          } else if(i.getNumerator() > 0) {
+            // lemma: v <= r || v >= r + 1
+
+            TNode var = d_arithvarNodeMap.asNode(v);
+            Node nr = NodeManager::currentNM()->mkConst(r);
+            Node nrPlus1 = NodeManager::currentNM()->mkConst(r + 1);
+            Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nr));
+            Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nrPlus1));
+
+            Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+            Trace("integers") << "integers: branch & bound: " << lem << endl;
+            if(d_valuation.isSatLiteral(lem[0])) {
+              Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+            } else {
+              Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+            }
+            if(d_valuation.isSatLiteral(lem[1])) {
+              Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+            } else {
+              Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+            }
+            d_out->lemma(lem);
+
+            // split only on one var
+            break;
+          } else {
+            Unreachable();
+          }
+        } else {
+          // lemma: v <= floor(r) || v >= ceil(r)
+
+          TNode var = d_arithvarNodeMap.asNode(v);
+          Node floor = NodeManager::currentNM()->mkConst(r.floor());
+          Node ceiling = NodeManager::currentNM()->mkConst(r.ceiling());
+          Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, floor));
+          Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, ceiling));
+
+          Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+          Trace("integers") << "integers: branch & bound: " << lem << endl;
+          if(d_valuation.isSatLiteral(lem[0])) {
+            Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+          } else {
+            Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+          }
+          if(d_valuation.isSatLiteral(lem[1])) {
+            Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+          } else {
+            Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+          }
+          d_out->lemma(lem);
+
+          // split only on one var
+          break;
+        }
+      }// if(arithvar is integer-typed)
+    } while((d_nextIntegerCheckVar = (1 + d_nextIntegerCheckVar == d_variables.size() ? 0 : 1 + d_nextIntegerCheckVar)) != rrEnd);
+  }// if(full effort)
 
   if(Debug.isOn("paranoid:check_tableau")){ d_simplex.debugCheckTableau(); }
   if(Debug.isOn("arith::print_model")) { debugPrintModel(); }
@@ -866,7 +1016,9 @@ void TheoryArith::presolve(){
     for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
       Node variableNode = *i;
       ArithVar var = d_arithvarNodeMap.asArithVar(variableNode);
-      if(d_userVariables.isMember(var) && !d_atomDatabase.hasAnyAtoms(variableNode)){
+      if(d_userVariables.isMember(var) &&
+         !d_atomDatabase.hasAnyAtoms(variableNode) &&
+         !variableNode.getType().isInteger()){
 	//The user variable is unconstrained.
 	//Remove this variable permanently
 	permanentlyRemoveVariable(var);

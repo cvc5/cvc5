@@ -90,7 +90,7 @@ class EqualityTypeRule {
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
 
-      if ( lhsType == booleanType ) {
+      if ( lhsType == booleanType && rhsType == booleanType ) {
         throw TypeCheckingExceptionPrivate(n, "equality between two boolean terms (use IFF instead)");
       }
     }

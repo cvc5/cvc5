@@ -151,7 +151,8 @@ public:
     return *this;
   }
 
-  /** Raise this Integer to the power <code>exp</code>.
+  /**
+   * Raise this Integer to the power <code>exp</code>.
    *
    * @param exp the exponent
    */
@@ -159,6 +160,22 @@ public:
     mpz_class result;
     mpz_pow_ui(result.get_mpz_t(),d_value.get_mpz_t(),exp);
     return Integer( result );
+  }
+
+  /**
+   * Return the greatest common divisor of this integer with another.
+   */
+  Integer gcd(const Integer& y) const {
+    mpz_class result;
+    mpz_gcd(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer(result);
+  }
+
+  /**
+   * Return the absolute value of this integer.
+   */
+  Integer abs() const {
+    return d_value >= 0 ? *this : -*this;
   }
 
   std::string toString(int base = 10) const{

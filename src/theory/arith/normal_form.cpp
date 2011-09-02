@@ -254,6 +254,58 @@ Comparison Comparison::parseNormalForm(TNode n) {
   }
 }
 
+bool Comparison::pbComparison(Kind k, TNode left, const Rational& right, bool& result) {
+  AssertArgument(left.getType().isPseudoboolean(), left);
+  switch(k) {
+  case kind::LT:
+    if(right > 1) {
+      result = true;
+      return true;
+    } else if(right <= 0) {
+      result = false;
+      return true;
+    }
+    break;
+  case kind::LEQ:
+    if(right >= 1) {
+      result = true;
+      return true;
+    } else if(right < 0) {
+      result = false;
+      return true;
+    }
+    break;
+  case kind::EQUAL:
+    if(right != 0 && right != 1) {
+      result = false;
+      return true;
+    }
+    break;
+  case kind::GEQ:
+    if(right > 1) {
+      result = false;
+      return true;
+    } else if(right <= 0) {
+      result = true;
+      return true;
+    }
+    break;
+  case kind::GT:
+    if(right >= 1) {
+      result = false;
+      return true;
+    } else if(right < 0) {
+      result = true;
+      return true;
+    }
+    break;
+  default:
+    CheckArgument(false, k, "Bad comparison operator ?!");
+  }
+
+  return false;
+}
+
 Comparison Comparison::mkComparison(Kind k, const Polynomial& left, const Constant& right) {
   Assert(isRelationOperator(k));
   if(left.isConstant()) {
@@ -261,9 +313,16 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& left, const Consta
     const Rational& rConst = right.getNode().getConst<Rational>();
     bool res = evaluateConstantPredicate(k, lConst, rConst);
     return Comparison(res);
-  } else {
-    return Comparison(toNode(k, left, right), k, left, right);
   }
+
+  if(left.getNode().getType().isPseudoboolean()) {
+    bool result;
+    if(pbComparison(k, left.getNode(), right.getNode().getConst<Rational>(), result)) {
+      return Comparison(result);
+    }
+  }
+
+  return Comparison(toNode(k, left, right), k, left, right);
 }
 
 Comparison Comparison::addConstant(const Constant& constant) const {

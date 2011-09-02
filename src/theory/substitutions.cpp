@@ -161,5 +161,5 @@ void SubstitutionMap::print(ostream& out) const {
   }
 }
 
-}
-}
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

@@ -102,6 +102,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       case BOOLEAN_TYPE:
         out << "BOOLEAN";
         break;
+      case PSEUDOBOOLEAN_TYPE:
+        out << "PSEUDOBOOLEAN";
+        break;
       case KIND_TYPE:
         out << "TYPE";
         break;

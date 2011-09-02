@@ -192,6 +192,14 @@ public:
     }
   }
 
+  Integer floor() const {
+    return Integer(cln::floor1(d_value));
+  }
+
+  Integer ceiling() const {
+    return Integer(cln::ceiling1(d_value));
+  }
+
   Rational& operator=(const Rational& x){
     if(this == &x) return *this;
     d_value = x.d_value;
@@ -225,9 +233,6 @@ public:
   bool operator>=(const Rational& y) const {
     return d_value >= y.d_value;
   }
-
-
-  
 
   Rational operator+(const Rational& y) const{
     return Rational( d_value + y.d_value );

@@ -115,7 +115,7 @@ void Tableau::setColumnUnused(ArithVar v){
     ++colIter;
   }
 }
-void Tableau::printTableau(){
+void Tableau::printTableau() const {
   Debug("tableau") << "Tableau::d_activeRows"  << endl;
 
   ArithVarSet::const_iterator basicIter = beginBasic(), endIter = endBasic();
@@ -125,7 +125,7 @@ void Tableau::printTableau(){
   }
 }
 
-void Tableau::printRow(ArithVar basic){
+void Tableau::printRow(ArithVar basic) const {
   Debug("tableau") << "{" << basic << ":";
   for(RowIterator entryIter = rowIterator(basic); !entryIter.atEnd(); ++entryIter){
     const TableauEntry& entry = *entryIter;
@@ -135,7 +135,7 @@ void Tableau::printRow(ArithVar basic){
   Debug("tableau") << "}" << endl;
 }
 
-void Tableau::printEntry(const TableauEntry& entry){
+void Tableau::printEntry(const TableauEntry& entry) const {
   Debug("tableau") << entry.getColVar() << "*" << entry.getCoefficient();
 }
 
