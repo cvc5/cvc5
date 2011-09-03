@@ -390,7 +390,6 @@ void EqualityEngine<NotifyClass>::undoMerge(EqualityNode& class1, EqualityNode& 
       EqualityNodeId bNormalized = getEqualityNode(fun.b).getFind();
       FunctionApplication funNormalized(aNormalized, bNormalized);
       typename ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
-      Assert(find != d_applicationLookup.end());
       // If the id doesn't exist, we'll set it
       if (find == d_applicationLookup.end()) {
         d_applicationLookup[funNormalized] = funId;
@@ -524,7 +523,7 @@ void EqualityEngine<NotifyClass>::getExplanation(EqualityNodeId t1Id, EqualityNo
   if (t1Id == t2Id) return;
 
   if (Debug.isOn("equality::internal")) {
-    const_cast<EqualityEngine*>(this)->debugPrintGraph();
+    debugPrintGraph();
   }
 
   // Queue for the BFS containing nodes
