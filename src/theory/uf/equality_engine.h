@@ -284,8 +284,8 @@ private:
    */
   ApplicationIdsMap d_applicationLookup;
 
-  /** Map from ids to the nodes */
-  std::vector<TNode> d_nodes;
+  /** Map from ids to the nodes (these need to be nodes as we pick-up the opreators) */
+  std::vector<Node> d_nodes;
 
   /** A context-dependents count of nodes */
   context::CDO<size_t> d_nodesCount;
@@ -301,9 +301,6 @@ private:
 
   /** Memory for the use-list nodes */
   std::vector<UseListNode> d_useListNodes;
-
-  /** Context dependent size of the use-list memory */
-  context::CDO<size_t> d_useListNodeSize;
 
   /**
    * We keep a list of asserted equalities. Not among original terms, but
@@ -444,7 +441,7 @@ private:
   /**
    * Vector of original equalities of the triggers.
    */
-  std::vector<TNode> d_equalityTriggersOriginal;
+  std::vector<Node> d_equalityTriggersOriginal;
 
   /**
    * Context dependent count of triggers
@@ -497,7 +494,7 @@ private:
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
-   * else. TODO: mark the phantom equalities (skolems).
+   * else. 
    */
   void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities) const;
 
@@ -517,7 +514,6 @@ public:
     d_notify(notify),
     d_nodesCount(context, 0),
     d_assertedEqualitiesCount(context, 0),
-    d_useListNodeSize(context, 0),
     d_equalityTriggersCount(context, 0),
     d_stats(name)
   {

@@ -64,9 +64,8 @@ EqualityNodeId EqualityEngine<NotifyClass>::newApplicationNode(TNode original, E
   }
 
   // Add to the use lists
-  d_equalityNodes[t1].usedIn(funId, d_useListNodes);
-  d_equalityNodes[t2].usedIn(funId, d_useListNodes);
-  d_useListNodeSize = d_useListNodes.size();
+  d_equalityNodes[t1ClassId].usedIn(funId, d_useListNodes);
+  d_equalityNodes[t2ClassId].usedIn(funId, d_useListNodes);
 
   // Return the new id
   Debug("equality") << "EqualityEngine::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ") => " << funId << std::endl;
@@ -438,10 +437,22 @@ void EqualityEngine<NotifyClass>::backtrack() {
     d_equalityEdges.resize(2 * d_assertedEqualitiesCount);
   }
 
+  if (d_equalityTriggers.size() > d_equalityTriggersCount) {
+    // Unlink the triggers from the lists
+    for (int i = d_equalityTriggers.size() - 1, i_end = d_equalityTriggersCount; i >= i_end; -- i) {
+    	const Trigger& trigger = d_equalityTriggers[i];
+    	d_nodeTriggers[trigger.classId] = trigger.nextTrigger;
+    }
+    // Get rid of the triggers 
+    d_equalityTriggers.resize(d_equalityTriggersCount);
+    d_equalityTriggersOriginal.resize(d_equalityTriggersCount);
+  }
+
   if (d_nodes.size() > d_nodesCount) {
     // Go down the nodes, check the application nodes and remove them from use-lists
-    for(int i = d_nodes.size() - 1, i_end = (int)d_nodesCount; i >= i_end; ++ i) {
+    for(int i = d_nodes.size() - 1, i_end = (int)d_nodesCount; i >= i_end; -- i) {
       // Remove from the node -> id map
+      Debug("equality") << "EqualityEngine::backtrack(): removing node " << d_nodes[i] << std::endl;
       d_nodeIds.erase(d_nodes[i]);
 
       const FunctionApplication& app = d_applications[i];
@@ -461,12 +472,6 @@ void EqualityEngine<NotifyClass>::backtrack() {
     d_nodeTriggers.resize(d_nodesCount);
     d_equalityGraph.resize(d_nodesCount);
     d_equalityNodes.resize(d_nodesCount);
-    d_useListNodes.resize(d_useListNodeSize);
-  }
-
-  if (d_equalityTriggers.size() > d_equalityTriggersCount) {
-    d_equalityTriggers.resize(d_equalityTriggersCount);
-    d_equalityTriggersOriginal.resize(d_equalityTriggersCount);
   }
 }
 
@@ -640,8 +645,8 @@ void EqualityEngine<NotifyClass>::addTriggerEquality(TNode t1, TNode t2, TNode t
   d_equalityTriggersCount = d_equalityTriggersCount + 2;
 
   // Add the trigger to the trigger graph
-  d_nodeTriggers[t1Id] = t1NewTriggerId;
-  d_nodeTriggers[t2Id] = t2NewTriggerId;
+  d_nodeTriggers[t1classId] = t1NewTriggerId;
+  d_nodeTriggers[t2classId] = t2NewTriggerId;
 
   // If the trigger is already on, we propagate
   if (t1classId == t2classId) {

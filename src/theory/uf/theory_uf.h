@@ -37,7 +37,6 @@ namespace theory {
 namespace uf {
 
 class TheoryUF : public Theory {
-
 public:
 
   class NotifyClass {
@@ -80,7 +79,11 @@ private:
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
   /** Literals to propagate */
-  std::vector<TNode> d_literalsToPropagate;
+  context::CDList<TNode> d_literalsToPropagate;
+
+  /** Index of the next literal to propagate */
+  context::CDO<unsigned> d_literalsToPropagateIndex;
+
 
   /** True node for predicates = true */
   Node d_true;
@@ -99,7 +102,9 @@ public:
     d_notify(*this),
     d_equalityEngine(d_notify, ctxt, "theory::uf::TheoryUF"),
     d_knownFacts(ctxt),
-    d_conflict(ctxt, false)
+    d_conflict(ctxt, false),
+    d_literalsToPropagate(ctxt),
+    d_literalsToPropagateIndex(ctxt, 0)
   {
     // The kinds we are treating as function application in congruence
     d_equalityEngine.addFunctionKind(kind::APPLY_UF);

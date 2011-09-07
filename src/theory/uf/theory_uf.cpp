@@ -89,7 +89,6 @@ void TheoryUF::check(Effort level) {
   if (d_conflict) {
     Debug("uf") << "TheoryUF::check(): conflict " << d_conflictNode << std::endl;
     d_out->conflict(d_conflictNode);
-    d_literalsToPropagate.clear();
   }
 
   // Otherwise we propagate in order to detect a weird conflict like
@@ -103,8 +102,8 @@ void TheoryUF::check(Effort level) {
 void TheoryUF::propagate(Effort level) {
   Debug("uf") << "TheoryUF::propagate()" << std::endl;
   if (!d_conflict) {
-    for (unsigned i = 0; i < d_literalsToPropagate.size(); ++ i) {
-      TNode literal = d_literalsToPropagate[i];
+    for (; d_literalsToPropagateIndex < d_literalsToPropagate.size(); d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
+      TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
       Debug("uf") << "TheoryUF::propagate(): propagating " << literal << std::endl;
       bool satValue;
       if (!d_valuation.hasSatValue(literal, satValue)) {
@@ -127,7 +126,6 @@ void TheoryUF::propagate(Effort level) {
       }
     }
   }
-  d_literalsToPropagate.clear();
 }
 
 void TheoryUF::preRegisterTerm(TNode node) {
