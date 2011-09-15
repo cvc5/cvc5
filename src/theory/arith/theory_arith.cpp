@@ -286,13 +286,13 @@ void TheoryArith::preRegisterTerm(TNode n) {
     d_out->setIncomplete();
   }
 
-  if(Variable::isMember(n) || isStrictlyVarList){
+  if((Variable::isMember(n) || isStrictlyVarList) && !d_arithvarNodeMap.hasArithVar(n)){
     ++(d_statistics.d_statUserVariables);
     ArithVar varN = requestArithVar(n,false);
     setupInitialValue(varN);
   }
 
-  if(isRelationOperator(k)){
+  if(isRelationOperator(k) && (!d_atomDatabase.leftIsSetup(n[0]) || !d_atomDatabase.containsAtom(n))) {
     Assert(Comparison::isNormalAtom(n));
 
     d_atomDatabase.addAtom(n);

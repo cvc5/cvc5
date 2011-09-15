@@ -96,9 +96,11 @@ public:
   bool containsLeq(TNode atom) const;
   bool containsGeq(TNode atom) const;
 
-
+  /** Check to make sure an lhs has been properly set-up. */
+  bool leftIsSetup(TNode left) const;
 
 private:
+
   VariablesSets& getVariablesSets(TNode left);
   BoundValueSet& getBoundValueSet(TNode left);
   EqualValueSet& getEqualValueSet(TNode left);
@@ -109,9 +111,6 @@ private:
 
   /** Sends an implication (=> a b) to the PropEngine via d_arithOut. */
   void addImplication(TNode a, TNode b);
-
-  /** Check to make sure an lhs has been properly set-up. */
-  bool leftIsSetup(TNode left) const;
 
   /** Initializes the lists associated with a unique lhs. */
   void setupLefthand(TNode left);
