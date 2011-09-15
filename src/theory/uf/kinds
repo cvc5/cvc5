@@ -7,7 +7,7 @@
 theory THEORY_UF ::CVC4::theory::uf::TheoryUF "theory/uf/theory_uf.h"
 typechecker "theory/uf/theory_uf_type_rules.h"
 
-properties stable-infinite
+properties stable-infinite parametric
 properties check propagate staticLearning presolve
 
 rewriter ::CVC4::theory::uf::TheoryUfRewriter "theory/uf/theory_uf_rewriter.h"

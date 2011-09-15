@@ -226,8 +226,6 @@ public:
 
   void theoryPropagate(std::vector<SatLiteral>& output);
 
-  void clearPropagatedLiterals();
-
   void enqueueTheoryLiteral(const SatLiteral& l);
 
   void setCnfStream(CnfStream* cnfStream);

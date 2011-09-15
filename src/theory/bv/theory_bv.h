@@ -145,7 +145,7 @@ public:
 
   void propagate(Effort e) { }
 
-  void explain(TNode n);
+  Node explain(TNode n);
 
   Node getValue(TNode n);
 

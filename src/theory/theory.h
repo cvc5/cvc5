@@ -42,6 +42,37 @@ class TheoryEngine;
 namespace theory {
 
 /**
+ * The status of an equality in the current context.
+ */
+enum EqualityStatus {
+  /** The eqaulity is known to be true */
+  EQUALITY_TRUE,
+  /** The equality is known to be false */
+  EQUALITY_FALSE,
+  /** The equality is not known, but is true in the current model */
+  EQUALITY_TRUE_IN_MODEL,
+  /** The equality is not known, but is false in the current model */
+  EQUALITY_FALSE_IN_MODEL,
+  /** The equality is completely unknown */
+  EQUALITY_UNKNOWN
+};
+
+/**
+ * A pair of terms a theory cares about.
+ */
+struct CarePair {
+  TNode a, b;
+  TheoryId theory;
+  CarePair(TNode a, TNode b, TheoryId theory) 
+  : a(a), b(b), theory(theory) {}
+};
+
+/**
+ * A set of care pairs.
+ */
+typedef std::vector<CarePair> CareGraph;
+
+/**
  * Base class for T-solvers.  Abstract DPLL(T).
  *
  * This is essentially an interface class.  The TheoryEngine has
@@ -62,7 +93,7 @@ private:
   Theory& operator=(const Theory&) CVC4_UNUSED;
 
   /**
-   * A unique integer identifying the theory
+   * An integer identifying the type of the theory
    */
   TheoryId d_id;
 
@@ -77,18 +108,27 @@ private:
    * These can not be TNodes as some atoms (such as equalities) are sent
    * across theories without being stored in a global map.
    */
-  context::CDList<Node> d_facts;
+  context::CDList<TNode> d_facts;
 
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
 
   /**
-   * Whether the last retrieved fact via get() was a shared term fact
-   * or not.
+   * Add shared term to the theory.
    */
-  bool d_wasSharedTermFact;
+  void addSharedTermInternal(TNode node);
+
+  /**
+   * Indices for splitting on the shared terms.
+   */
+  context::CDO<unsigned> d_sharedTermsIndex;
 
 protected:
+
+  /** 
+   * A list of shared terms that the theory has.
+   */
+  context::CDList<TNode> d_sharedTerms;
 
   /**
    * Construct a Theory.
@@ -98,9 +138,11 @@ protected:
     d_context(ctxt),
     d_facts(ctxt),
     d_factsHead(ctxt, 0),
-    d_wasSharedTermFact(false),
+    d_sharedTermsIndex(ctxt, 0),
+    d_sharedTerms(ctxt),
     d_out(&out),
-    d_valuation(valuation) {
+    d_valuation(valuation)
+  {
   }
 
   /**
@@ -126,34 +168,22 @@ protected:
   Valuation d_valuation;
 
   /**
-   * Returns the next atom in the assertFact() queue.
+   * Returns the next assertion in the assertFact() queue.
    *
-   * @return the next atom in the assertFact() queue
+   * @return the next assertion in the assertFact() queue
    */
   TNode get() {
-    Assert( !done(), "Theory::get() called with assertion queue empty!" );
+    Assert( !done(), "Theory`() called with assertion queue empty!" );
+
+    // Get the assertion
     TNode fact = d_facts[d_factsHead];
-    d_wasSharedTermFact = false;
     d_factsHead = d_factsHead + 1;
-    Trace("theory") << "Theory::get() => " << fact
-                    << " (" << d_facts.size() - d_factsHead << " left)"
-                    << std::endl;
+    Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
     if(Dump.isOn("state")) {
       Dump("state") << AssertCommand(fact.toExpr()) << std::endl;
     }
+        
     return fact;
-  }
-
-  /**
-   * Returns whether the last fact retrieved by get() was a shared
-   * term fact.
-   *
-   * @return true if the fact just retrieved via get() was a shared
-   * term fact, false if the fact just retrieved was a "normal channel"
-   * fact.
-   */
-  bool isSharedTermFact() const throw() {
-    return d_wasSharedTermFact;
   }
 
   /**
@@ -162,7 +192,7 @@ protected:
    *
    * @return the iterator to the beginning of the fact queue
    */
-  context::CDList<Node>::const_iterator facts_begin() const {
+  context::CDList<TNode>::const_iterator facts_begin() const {
     return d_facts.begin();
   }
 
@@ -172,7 +202,7 @@ protected:
    *
    * @return the iterator to the end of the fact queue
    */
-  context::CDList<Node>::const_iterator facts_end() const {
+  context::CDList<TNode>::const_iterator facts_end() const {
     return d_facts.end();
   }
 
@@ -263,7 +293,8 @@ public:
     MIN_EFFORT = 0,
     QUICK_CHECK = 10,
     STANDARD = 50,
-    FULL_EFFORT = 100
+    FULL_EFFORT = 100,
+    COMBINATION = 150
   };/* enum Effort */
 
   // simple, useful predicates for effort values
@@ -278,7 +309,9 @@ public:
   static inline bool standardEffortOnly(Effort e) CVC4_CONST_FUNCTION
     { return e >= STANDARD && e <  FULL_EFFORT; }
   static inline bool fullEffort(Effort e) CVC4_CONST_FUNCTION
-    { return e >= FULL_EFFORT; }
+    { return e == FULL_EFFORT; }
+  static inline bool combination(Effort e) CVC4_CONST_FUNCTION 
+    { return e == COMBINATION; }
 
   /**
    * Get the id for this Theory.
@@ -316,9 +349,9 @@ public:
   /**
    * Assert a fact in the current context.
    */
-  void assertFact(TNode node) {
-    Trace("theory") << "Theory::assertFact(" << node << ")" << std::endl;
-    d_facts.push_back(node);
+  void assertFact(TNode assertion) {
+    Trace("theory") << "Theory<" << getId() << ">::assertFact(" << assertion << ")" << std::endl;
+    d_facts.push_back(assertion);
   }
 
   /**
@@ -326,6 +359,18 @@ public:
    * be considered a "shared term" by this theory
    */
   virtual void addSharedTerm(TNode n) { }
+
+  /**
+   * The function should compute the care graph over the shared terms.
+   * The default function returns all the pairs among the shared variables.
+   */
+  virtual void computeCareGraph(CareGraph& careGraph);
+
+  /**
+   * Return the status of two terms in the current context. Should be implemented in 
+   * sub-theories to enable more efficient theory-combination.
+   */
+  virtual EqualityStatus equalityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
 
   /**
    * This method is called by the shared term manager when a shared
@@ -358,10 +403,9 @@ public:
 
   /**
    * Return an explanation for the literal represented by parameter n
-   * (which was previously propagated by this theory).  Report
-   * explanations to an output channel.
+   * (which was previously propagated by this theory).
    */
-  virtual void explain(TNode n) {
+  virtual Node explain(TNode n) {
     Unimplemented("Theory %s propagated a node but doesn't implement the "
                   "Theory::explain() interface!", identify().c_str());
   }
@@ -481,6 +525,9 @@ public:
   /** A set of theories */
   typedef uint32_t Set;
 
+  /** A set of all theories */
+  static const Set AllTheories = (1 << theory::THEORY_LAST) - 1;
+
   /** Add the theory to the set. If no set specified, just returns a singleton set */
   static inline Set setInsert(TheoryId theory, Set set = 0) {
     return set | (1 << theory);
@@ -491,8 +538,21 @@ public:
     return set & (1 << theory);
   }
 
+  static inline Set setComplement(Set a) {
+    return (~a) & AllTheories;
+  }
+
+  static inline Set setIntersection(Set a, Set b) {
+    return a & b;
+  } 
+
   static inline Set setUnion(Set a, Set b) {
     return a | b;
+  }
+
+  /** a - b  */
+  static inline Set setDifference(Set a, Set b) {
+    return ((~b) & AllTheories) & a;
   }
 
   static inline std::string setToString(theory::Theory::Set theorySet) {

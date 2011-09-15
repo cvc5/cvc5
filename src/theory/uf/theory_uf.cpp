@@ -224,11 +224,11 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_equalityEngine.getExplanation(lhs, rhs, assumptions);
 }
 
-void TheoryUF::explain(TNode literal) {
+Node TheoryUF::explain(TNode literal) {
   Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   explain(literal, assumptions);
-  d_out->explanation(mkAnd(assumptions));
+  return mkAnd(assumptions);
 }
 
 void TheoryUF::presolve() {

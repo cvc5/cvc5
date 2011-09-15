@@ -45,5 +45,35 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   return os;
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
+void Theory::addSharedTermInternal(TNode n) {
+  Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
+  d_sharedTerms.push_back(n);
+  addSharedTerm(n);
+}
+
+void Theory::computeCareGraph(CareGraph& careGraph) {
+  for (; d_sharedTermsIndex < d_sharedTerms.size(); d_sharedTermsIndex = d_sharedTermsIndex + 1) {
+    TNode a = d_sharedTerms[d_sharedTermsIndex];
+    TypeNode aType = a.getType();
+    for (unsigned i = 0; i < d_sharedTermsIndex; ++ i) {
+      TNode b = d_sharedTerms[i];
+      if (b.getType() != aType) {
+        // We don't care about the terms of different types
+        continue;
+      }
+      switch (equalityStatus(a, b)) {
+      case EQUALITY_TRUE:
+      case EQUALITY_FALSE:
+  	// If we know about it, we should have propagated it, so we can skip
+  	break;
+      default:
+  	// Let's split on it
+  	careGraph.push_back(CarePair(a, b, getId()));
+  	break;
+      }
+    }  
+  }
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -665,12 +665,10 @@ CRef Solver::propagate(TheoryCheckType type)
 void Solver::propagateTheory() {
   std::vector<Lit> propagatedLiterals;
   proxy->theoryPropagate(propagatedLiterals);
-  const unsigned i_end = propagatedLiterals.size();
-  for (unsigned i = 0; i < i_end; ++ i) {
+  for (unsigned i = 0, i_end = propagatedLiterals.size(); i < i_end; ++ i) {
     Debug("minisat") << "Theory propagated: " << propagatedLiterals[i] << std::endl;
     uncheckedEnqueue(propagatedLiterals[i], CRef_Lazy);
   }
-  proxy->clearPropagatedLiterals();
 }
 
 /*_________________________________________________________________________________________________

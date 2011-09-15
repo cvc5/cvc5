@@ -49,6 +49,7 @@ theory_has_presolve="false"
 theory_stable_infinite="false"
 theory_finite="false"
 theory_polite="false"
+theory_parametric="false"
 
 rewriter_class=
 rewriter_header=
@@ -125,6 +126,7 @@ struct TheoryTraits<${theory_id}> {
     static const bool isStableInfinite = ${theory_stable_infinite};
     static const bool isFinite = ${theory_finite};
     static const bool isPolite = ${theory_polite};
+    static const bool isParametric = ${theory_parametric};
 
     static const bool hasCheck = ${theory_has_check};
     static const bool hasPropagate = ${theory_has_propagate};
@@ -159,6 +161,7 @@ struct TheoryTraits<${theory_id}> {
   theory_stable_infinite="false"
   theory_finite="false"
   theory_polite="false"
+  theory_parametric="false"
 
   rewriter_class=
   rewriter_header=
@@ -191,6 +194,7 @@ function properties {
     case "$property" in
        finite) theory_finite="true";;
        stable-infinite) theory_stable_infinite="true";;
+       parametric) theory_parametric="true";;
        polite) theory_polite="true";;
        check) theory_has_check="true";;
        propagate) theory_has_propagate="true";;

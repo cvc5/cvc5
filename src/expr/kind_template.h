@@ -127,6 +127,12 @@ ${theory_enum}
   THEORY_LAST
 };
 
+const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
+
+inline TheoryId& operator ++ (TheoryId& id) {
+  return id = static_cast<TheoryId>(((int)id) + 1);
+}
+
 inline std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
   switch(theoryId) {
 ${theory_descriptions}

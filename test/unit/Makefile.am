@@ -1,12 +1,11 @@
 # All unit tests
 UNIT_TESTS = \
-	theory/shared_term_manager_black \
 	theory/theory_engine_white \
 	theory/theory_black \
 	theory/theory_arith_white \
 	theory/union_find_black \
 	expr/expr_public \
-        expr/expr_manager_public \
+	expr/expr_manager_public \
 	expr/node_white \
 	expr/node_black \
 	expr/kind_black \

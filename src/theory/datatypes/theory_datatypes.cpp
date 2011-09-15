@@ -223,7 +223,7 @@ void TheoryDatatypes::check(Effort e) {
       //if( conflict.getKind()!=kind::AND ){
       //  conflict = NodeManager::currentNM()->mkNode(kind::AND, conflict, conflict);
       //}
-      d_out->conflict( conflict, false );
+      d_out->conflict(conflict);
       return;
     }
   }

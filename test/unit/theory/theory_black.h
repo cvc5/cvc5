@@ -52,32 +52,23 @@ public:
 
   void safePoint() throw(Interrupted, AssertionException) {}
 
-  void conflict(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) {
+  void conflict(TNode n)
+    throw(AssertionException) {
     push(CONFLICT, n);
   }
 
-  void propagate(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) {
+  void propagate(TNode n)
+    throw(AssertionException) {
     push(PROPAGATE, n);
   }
 
-  void lemma(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) {
+  void lemma(TNode n, bool removable)
+    throw(AssertionException) {
     push(LEMMA, n);
-  }
-  void augmentingLemma(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) {
-    Unreachable();
-  }
-
-  void explanation(TNode n, bool safe = false)
-    throw(Interrupted, AssertionException) {
-    push(EXPLANATION, n);
   }
 
   void setIncomplete()
-    throw(Interrupted, AssertionException) {
+    throw(AssertionException) {
     Unreachable();
   }
 
@@ -292,7 +283,7 @@ public:
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n);
+    d_outputChannel.lemma(n, false);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);

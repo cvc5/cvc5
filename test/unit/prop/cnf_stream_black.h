@@ -108,9 +108,9 @@ void setUp() {
   NodeManagerScope nms(d_nodeManager);
   d_satSolver = new FakeSatSolver;
   d_theoryEngine = new TheoryEngine(d_context);
-  d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>();
-  d_theoryEngine->addTheory<theory::booleans::TheoryBool>();
-  d_theoryEngine->addTheory<theory::arith::TheoryArith>();
+  d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>(theory::THEORY_BUILTIN);
+  d_theoryEngine->addTheory<theory::booleans::TheoryBool>(theory::THEORY_BOOL);
+  d_theoryEngine->addTheory<theory::arith::TheoryArith>(theory::THEORY_ARITH);
   theory::Registrar registrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, registrar);
 }

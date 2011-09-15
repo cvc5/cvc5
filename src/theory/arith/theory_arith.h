@@ -173,7 +173,7 @@ public:
 
   void check(Effort e);
   void propagate(Effort e);
-  void explain(TNode n);
+  Node explain(TNode n);
 
   void notifyEq(TNode lhs, TNode rhs);
 

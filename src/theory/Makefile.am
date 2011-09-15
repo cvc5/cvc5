@@ -15,10 +15,6 @@ libtheory_la_SOURCES = \
 	theory_test_utils.h \
 	theory.h \
 	theory.cpp \
-	shared_term_manager.h \
-	shared_term_manager.cpp \
-	shared_data.h \
-	shared_data.cpp \
 	registrar.h \
 	rewriter.h \
 	rewriter_attributes.h \
@@ -26,7 +22,11 @@ libtheory_la_SOURCES = \
 	substitutions.h \
 	substitutions.cpp \
 	valuation.h \
-	valuation.cpp
+	valuation.cpp \
+	shared_terms_database.h \
+	shared_terms_database.cpp \
+	term_registration_visitor.h \
+	term_registration_visitor.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

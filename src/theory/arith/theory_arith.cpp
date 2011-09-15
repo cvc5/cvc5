@@ -786,12 +786,10 @@ void TheoryArith::debugPrintModel(){
   }
 }
 
-void TheoryArith::explain(TNode n) {
+Node TheoryArith::explain(TNode n) {
   Debug("explain") << "explain @" << getContext()->getLevel() << ": " << n << endl;
-
   Assert(d_propManager.isPropagated(n));
-  Node explanation = d_propManager.explain(n);
-  d_out->explanation(explanation, true);
+  return d_propManager.explain(n);
 }
 
 void TheoryArith::propagate(Effort e) {

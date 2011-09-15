@@ -50,7 +50,7 @@ public:
   /**
    * Performs the traversal.
    */
-  static void run(Visitor& visitor, TNode node) {
+  static typename Visitor::return_type run(Visitor& visitor, TNode node) {
 
     // Notify of a start
     visitor.start(node);
@@ -86,7 +86,7 @@ public:
     }
 
     // Notify that we're done
-    visitor.done(node);
+    return visitor.done(node);
   }
 
 };

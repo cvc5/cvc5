@@ -121,7 +121,7 @@ public:
   void check(Effort);
   void propagate(Effort);
   void preRegisterTerm(TNode term);
-  void explain(TNode n);
+  Node explain(TNode n);
 
   void staticLearning(TNode in, NodeBuilder<>& learned);
   void presolve();

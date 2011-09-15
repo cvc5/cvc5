@@ -224,7 +224,7 @@ Node TheoryBV::getValue(TNode n) {
   }
 }
 
-void TheoryBV::explain(TNode node) {
+Node TheoryBV::explain(TNode node) {
   BVDebug("bitvector") << "TheoryBV::explain(" << node << ")" << std::endl;
 
   TNode equality = node.getKind() == kind::NOT ? node[0] : node;
@@ -237,6 +237,5 @@ void TheoryBV::explain(TNode node) {
     BVDebug("bitvector") << "       assumptions   " << utils::setToString(d_normalization[equality]->assumptions[i]) << std::endl;
     assumptions.insert(vec[i].begin(), vec[i].end());
   }
-  d_out->explanation(utils::mkConjunction(assumptions));
-  return;
+  return utils::mkConjunction(assumptions);
 }
