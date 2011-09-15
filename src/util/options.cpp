@@ -32,6 +32,7 @@
 #include "util/language.h"
 #include "util/options.h"
 #include "util/output.h"
+#include "util/debug_tags.h"
 
 #include "cvc4autoconfig.h"
 
@@ -116,6 +117,7 @@ static const string optionsDescription = "\
    --quiet | -q           decrease verbosity (may be repeated)\n\
    --trace | -t           trace something (e.g. -t pushpop), can repeat\n\
    --debug | -d           debug something (e.g. -d arith), can repeat\n\
+   --show-debug-tags      show all avalable tags for debug tracing\n\
    --stats                give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
    --print-expr-types     print types with variables when printing exprs\n\
@@ -267,6 +269,7 @@ enum OptionValue {
   NO_CHECKING,
   NO_THEORY_REGISTRATION,
   USE_MMAP,
+  SHOW_DEBUG_TAGS,
   SHOW_CONFIG,
   STRICT_PARSING,
   DEFAULT_EXPR_DEPTH,
@@ -328,6 +331,7 @@ static struct option cmdlineOptions[] = {
   { "stats"      , no_argument      , NULL, STATS       },
   { "no-checking", no_argument      , NULL, NO_CHECKING },
   { "no-theory-registration", no_argument, NULL, NO_THEORY_REGISTRATION },
+  { "show-debug-tags", no_argument, NULL, SHOW_DEBUG_TAGS },
   { "show-config", no_argument      , NULL, SHOW_CONFIG },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "help"       , no_argument      , NULL, 'h'         },
@@ -761,6 +765,20 @@ throw(OptionException) {
 
     case ARITHMETIC_PROP_MAX_LENGTH:
       arithPropagateMaxLength = atoi(optarg);
+      break;
+
+    case SHOW_DEBUG_TAGS:
+      printf("available tags:");
+      if (Configuration::isTracingBuild()) {
+        unsigned nTags = sizeof(debug_tags) / sizeof(debug_tags[0]);
+        for (unsigned i = 0; i < nTags; ++ i) {
+          printf(" %s", debug_tags[i]);
+        }
+        printf("\n");
+      } else {
+        printf(" not available in this build");
+      }
+      exit(0);
       break;
 
     case SHOW_CONFIG:

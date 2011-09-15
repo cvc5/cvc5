@@ -75,7 +75,29 @@ libutilcudd_la_SOURCES = \
 BUILT_SOURCES = \
 	rational.h \
 	integer.h \
-	tls.h
+	tls.h \
+	debug_tags.h
+
+debug_tags.h: debug_tags
+	$(AM_V_GEN)( \
+	echo 'const char* debug_tags[] = {'; \
+	first=1; \
+	for tag in `cat debug_tags`; \
+	do \
+	    if [ $$first -eq 1 ]; then first=0; else echo ','; fi; \
+		echo -n "\"$$tag\""; \
+	done; \
+	echo; \
+	echo '};' \
+	) >"$@"
+	
+debug_tags:
+	$(AM_V_GEN)\
+	grep 'Debug(\".*\")' `find @srcdir@/../ -name "*.cpp" -or -name "*.h" -or -name "*.cc" -or -name "*.g"` | \
+	sed s/'.*Debug(\"'//g | sed s/'\".*'//g | sort | uniq >"$@"
+
+.PHONY: debug_tags
+
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \
