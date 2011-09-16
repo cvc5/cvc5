@@ -381,7 +381,7 @@ CLFlag::CLFlag(const char* s, const std::string& help, bool display) :
   d_data.s = new string(s);
 }
 
-CLFlag::CLFlag(const std::vector<std::pair<std::string,bool> >& sv,
+CLFlag::CLFlag(const std::vector<std::pair<string,bool> >& sv,
                const std::string& help, bool display) :
   d_tp(CLFLAG_STRVEC) {
   d_data.sv = new vector<pair<string, bool> >(sv);
@@ -487,13 +487,13 @@ CLFlag& CLFlag::operator=(const char* s) {
   return *this;
 }
 
-CLFlag& CLFlag::operator=(const std::pair<std::string, bool>& p) {
+CLFlag& CLFlag::operator=(const std::pair<string, bool>& p) {
   CheckArgument(d_tp == CLFLAG_STRVEC, this);
   d_data.sv->push_back(p);
   return *this;
 }
 
-CLFlag& CLFlag::operator=(const std::vector<std::pair<std::string, bool> >& sv) {
+CLFlag& CLFlag::operator=(const std::vector<std::pair<string, bool> >& sv) {
   CheckArgument(d_tp == CLFLAG_STRVEC, this);
   *d_data.sv = sv;
   return *this;
@@ -526,7 +526,7 @@ const std::string& CLFlag::getString() const {
   return *d_data.s;
 }
 
-const std::vector<std::pair<std::string, bool> >& CLFlag::getStrVec() const {
+const std::vector<std::pair<string, bool> >& CLFlag::getStrVec() const {
   CheckArgument(d_tp == CLFLAG_STRVEC, this);
   return *d_data.sv;
 }
@@ -593,14 +593,14 @@ void CLFlags::setFlag(const std::string& name, const char* s) {
   (*i).second = s;
 }
 
-void CLFlags::setFlag(const std::string& name, const std::pair<std::string, bool>& p) {
+void CLFlags::setFlag(const std::string& name, const std::pair<string, bool>& p) {
   FlagMap::iterator i = d_map.find(name);
   CheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
   (*i).second = p;
 }
 
 void CLFlags::setFlag(const std::string& name,
-                      const std::vector<std::pair<std::string, bool> >& sv) {
+                      const std::vector<std::pair<string, bool> >& sv) {
   FlagMap::iterator i = d_map.find(name);
   CheckArgument(i != d_map.end(), name, "No command-line flag by that name, or not supported.");
   (*i).second = sv;
@@ -608,14 +608,20 @@ void CLFlags::setFlag(const std::string& name,
 
 ValidityChecker::ValidityChecker() :
   d_clflags(new CLFlags()),
-  d_em(),
-  d_smt(&d_em) {
+  d_options() {
+  d_options.incrementalSolving = true;
+#warning fixme other options from clflags ??
+  d_em = new CVC4::ExprManager(d_options);
+  d_smt = new CVC4::SmtEngine(d_em);
 }
 
 ValidityChecker::ValidityChecker(const CLFlags& clflags) :
   d_clflags(new CLFlags(clflags)),
-  d_em(),
-  d_smt(&d_em) {
+  d_options() {
+  d_options.incrementalSolving = true;
+#warning fixme other options from clflags ??
+  d_em = new CVC4::ExprManager(d_options);
+  d_smt = new CVC4::SmtEngine(d_em);
 }
 
 ValidityChecker::~ValidityChecker() {
@@ -864,15 +870,15 @@ ValidityChecker* ValidityChecker::create() {
 }
 
 Type ValidityChecker::boolType() {
-  return d_em.booleanType();
+  return d_em->booleanType();
 }
 
 Type ValidityChecker::realType() {
-  return d_em.realType();
+  return d_em->realType();
 }
 
 Type ValidityChecker::intType() {
-  return d_em.integerType();
+  return d_em->integerType();
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
@@ -887,7 +893,7 @@ Type ValidityChecker::tupleType(const Type& type0, const Type& type1) {
   vector<CVC4::Type> types;
   types.push_back(type0);
   types.push_back(type1);
-  return d_em.mkTupleType(types);
+  return d_em->mkTupleType(types);
 }
 
 Type ValidityChecker::tupleType(const Type& type0, const Type& type1, const Type& type2) {
@@ -895,13 +901,13 @@ Type ValidityChecker::tupleType(const Type& type0, const Type& type1, const Type
   types.push_back(type0);
   types.push_back(type1);
   types.push_back(type2);
-  return d_em.mkTupleType(types);
+  return d_em->mkTupleType(types);
 }
 
 Type ValidityChecker::tupleType(const std::vector<Type>& types) {
   const vector<CVC4::Type>& v =
     *reinterpret_cast<const vector<CVC4::Type>*>(&types);
-  return Type(d_em.mkTupleType(v));
+  return Type(d_em->mkTupleType(v));
 }
 
 Type ValidityChecker::recordType(const std::string& field, const Type& type) {
@@ -947,26 +953,26 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
 }
 
 Type ValidityChecker::arrayType(const Type& typeIndex, const Type& typeData) {
-  return d_em.mkArrayType(typeIndex, typeData);
+  return d_em->mkArrayType(typeIndex, typeData);
 }
 
 Type ValidityChecker::bitvecType(int n) {
   CheckArgument(n >= 0, n, "cannot construct a bitvector type of negative size");
-  return d_em.mkBitVectorType(n);
+  return d_em->mkBitVectorType(n);
 }
 
 Type ValidityChecker::funType(const Type& typeDom, const Type& typeRan) {
-  return d_em.mkFunctionType(typeDom, typeRan);
+  return d_em->mkFunctionType(typeDom, typeRan);
 }
 
 Type ValidityChecker::funType(const std::vector<Type>& typeDom, const Type& typeRan) {
   const vector<CVC4::Type>& dom =
     *reinterpret_cast<const vector<CVC4::Type>*>(&typeDom);
-  return Type(d_em.mkFunctionType(dom, typeRan));
+  return Type(d_em->mkFunctionType(dom, typeRan));
 }
 
 Type ValidityChecker::createType(const std::string& typeName) {
-  return d_em.mkSort(typeName);
+  return d_em->mkSort(typeName);
 }
 
 Type ValidityChecker::createType(const std::string& typeName, const Type& def) {
@@ -978,11 +984,11 @@ Type ValidityChecker::lookupType(const std::string& typeName) {
 }
 
 ExprManager* ValidityChecker::getEM() {
-  return &d_em;
+  return d_em;
 }
 
 Expr ValidityChecker::varExpr(const std::string& name, const Type& type) {
-  return d_em.mkVar(name, type);
+  return d_em->mkVar(name, type);
 }
 
 Expr ValidityChecker::varExpr(const std::string& name, const Type& type,
@@ -995,16 +1001,16 @@ Expr ValidityChecker::lookupVar(const std::string& name, Type* type) {
 }
 
 Type ValidityChecker::getType(const Expr& e) {
-  return d_em.getType(e);
+  return d_em->getType(e);
 }
 
 Type ValidityChecker::getBaseType(const Expr& e) {
-  Type t = d_em.getType(e);
-  return t.isInteger() ? Type(d_em.realType()) : t;
+  Type t = d_em->getType(e);
+  return t.isInteger() ? Type(d_em->realType()) : t;
 }
 
 Type ValidityChecker::getBaseType(const Type& t) {
-  return t.isInteger() ? Type(d_em.realType()) : t;
+  return t.isInteger() ? Type(d_em->realType()) : t;
 }
 
 Expr ValidityChecker::getTypePred(const Type&t, const Expr& e) {
@@ -1061,7 +1067,7 @@ void ValidityChecker::printExpr(const Expr& e) {
 void ValidityChecker::printExpr(const Expr& e, std::ostream& os) {
   Expr::setdepth::Scope sd(os, -1);
   Expr::printtypes::Scope pt(os, false);
-  Expr::setlanguage::Scope sl(os, d_em.getOptions()->outputLanguage);
+  Expr::setlanguage::Scope sl(os, d_em->getOptions()->outputLanguage);
   os << e;
 }
 
@@ -1090,62 +1096,62 @@ Expr ValidityChecker::exprFromString(const std::string& e) {
 }
 
 Expr ValidityChecker::trueExpr() {
-  return d_em.mkConst(true);
+  return d_em->mkConst(true);
 }
 
 Expr ValidityChecker::falseExpr() {
-  return d_em.mkConst(false);
+  return d_em->mkConst(false);
 }
 
 Expr ValidityChecker::notExpr(const Expr& child) {
-  return d_em.mkExpr(CVC4::kind::NOT, child);
+  return d_em->mkExpr(CVC4::kind::NOT, child);
 }
 
 Expr ValidityChecker::andExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::AND, left, right);
+  return d_em->mkExpr(CVC4::kind::AND, left, right);
 }
 
 Expr ValidityChecker::andExpr(const std::vector<Expr>& children) {
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em.mkExpr(CVC4::kind::AND, v);
+  return d_em->mkExpr(CVC4::kind::AND, v);
 }
 
 Expr ValidityChecker::orExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::OR, left, right);
+  return d_em->mkExpr(CVC4::kind::OR, left, right);
 }
 
 Expr ValidityChecker::orExpr(const std::vector<Expr>& children) {
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em.mkExpr(CVC4::kind::OR, v);
+  return d_em->mkExpr(CVC4::kind::OR, v);
 }
 
 Expr ValidityChecker::impliesExpr(const Expr& hyp, const Expr& conc) {
-  return d_em.mkExpr(CVC4::kind::IMPLIES, hyp, conc);
+  return d_em->mkExpr(CVC4::kind::IMPLIES, hyp, conc);
 }
 
 Expr ValidityChecker::iffExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::IFF, left, right);
+  return d_em->mkExpr(CVC4::kind::IFF, left, right);
 }
 
 Expr ValidityChecker::eqExpr(const Expr& child0, const Expr& child1) {
-  return d_em.mkExpr(CVC4::kind::EQUAL, child0, child1);
+  return d_em->mkExpr(CVC4::kind::EQUAL, child0, child1);
 }
 
 Expr ValidityChecker::iteExpr(const Expr& ifpart, const Expr& thenpart,
                               const Expr& elsepart) {
-  return d_em.mkExpr(CVC4::kind::ITE, ifpart, thenpart, elsepart);
+  return d_em->mkExpr(CVC4::kind::ITE, ifpart, thenpart, elsepart);
 }
 
 Expr ValidityChecker::distinctExpr(const std::vector<Expr>& children) {
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em.mkExpr(CVC4::kind::DISTINCT, v);
+  return d_em->mkExpr(CVC4::kind::DISTINCT, v);
 }
 
 Op ValidityChecker::createOp(const std::string& name, const Type& type) {
-  return d_em.mkVar(name, type);
+  return d_em->mkVar(name, type);
 }
 
 Op ValidityChecker::createOp(const std::string& name, const Type& type,
@@ -1158,23 +1164,23 @@ Op ValidityChecker::lookupOp(const std::string& name, Type* type) {
 }
 
 Expr ValidityChecker::funExpr(const Op& op, const Expr& child) {
-  return d_em.mkExpr(CVC4::kind::APPLY_UF, op, child);
+  return d_em->mkExpr(CVC4::kind::APPLY_UF, op, child);
 }
 
 Expr ValidityChecker::funExpr(const Op& op, const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::APPLY_UF, op, left, right);
+  return d_em->mkExpr(CVC4::kind::APPLY_UF, op, left, right);
 }
 
 Expr ValidityChecker::funExpr(const Op& op, const Expr& child0,
                               const Expr& child1, const Expr& child2) {
-  return d_em.mkExpr(CVC4::kind::APPLY_UF, op, child0, child1, child2);
+  return d_em->mkExpr(CVC4::kind::APPLY_UF, op, child0, child1, child2);
 }
 
 Expr ValidityChecker::funExpr(const Op& op, const std::vector<Expr>& children) {
   vector<CVC4::Expr> opkids;
   opkids.push_back(op);
   opkids.insert(opkids.end(), children.begin(), children.end());
-  return d_em.mkExpr(CVC4::kind::APPLY_UF, opkids);
+  return d_em->mkExpr(CVC4::kind::APPLY_UF, opkids);
 }
 
 bool ValidityChecker::addPairToArithOrder(const Expr& smaller, const Expr& bigger) {
@@ -1182,62 +1188,62 @@ bool ValidityChecker::addPairToArithOrder(const Expr& smaller, const Expr& bigge
 }
 
 Expr ValidityChecker::ratExpr(int n, int d) {
-  return d_em.mkConst(Rational(n, d));
+  return d_em->mkConst(Rational(n, d));
 }
 
 Expr ValidityChecker::ratExpr(const std::string& n, const std::string& d, int base) {
-  return d_em.mkConst(Rational(n + '/' + d, base));
+  return d_em->mkConst(Rational(n + '/' + d, base));
 }
 
 Expr ValidityChecker::ratExpr(const std::string& n, int base) {
-  return d_em.mkConst(Rational(n, base));
+  return d_em->mkConst(Rational(n, base));
 }
 
 Expr ValidityChecker::uminusExpr(const Expr& child) {
-  return d_em.mkExpr(CVC4::kind::UMINUS, child);
+  return d_em->mkExpr(CVC4::kind::UMINUS, child);
 }
 
 Expr ValidityChecker::plusExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::PLUS, left, right);
+  return d_em->mkExpr(CVC4::kind::PLUS, left, right);
 }
 
 Expr ValidityChecker::plusExpr(const std::vector<Expr>& children) {
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em.mkExpr(CVC4::kind::PLUS, v);
+  return d_em->mkExpr(CVC4::kind::PLUS, v);
 }
 
 Expr ValidityChecker::minusExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::MINUS, left, right);
+  return d_em->mkExpr(CVC4::kind::MINUS, left, right);
 }
 
 Expr ValidityChecker::multExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::MULT, left, right);
+  return d_em->mkExpr(CVC4::kind::MULT, left, right);
 }
 
 Expr ValidityChecker::powExpr(const Expr& x, const Expr& n) {
-  return d_em.mkExpr(CVC4::kind::POW, x, n);
+  return d_em->mkExpr(CVC4::kind::POW, x, n);
 }
 
 Expr ValidityChecker::divideExpr(const Expr& numerator,
                                  const Expr& denominator) {
-  return d_em.mkExpr(CVC4::kind::DIVISION, numerator, denominator);
+  return d_em->mkExpr(CVC4::kind::DIVISION, numerator, denominator);
 }
 
 Expr ValidityChecker::ltExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::LT, left, right);
+  return d_em->mkExpr(CVC4::kind::LT, left, right);
 }
 
 Expr ValidityChecker::leExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::LEQ, left, right);
+  return d_em->mkExpr(CVC4::kind::LEQ, left, right);
 }
 
 Expr ValidityChecker::gtExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::GT, left, right);
+  return d_em->mkExpr(CVC4::kind::GT, left, right);
 }
 
 Expr ValidityChecker::geExpr(const Expr& left, const Expr& right) {
-  return d_em.mkExpr(CVC4::kind::GEQ, left, right);
+  return d_em->mkExpr(CVC4::kind::GEQ, left, right);
 }
 
 Expr ValidityChecker::recordExpr(const std::string& field, const Expr& expr) {
@@ -1270,16 +1276,16 @@ Expr ValidityChecker::recUpdateExpr(const Expr& record, const std::string& field
 }
 
 Expr ValidityChecker::readExpr(const Expr& array, const Expr& index) {
-  return d_em.mkExpr(CVC4::kind::SELECT, array, index);
+  return d_em->mkExpr(CVC4::kind::SELECT, array, index);
 }
 
 Expr ValidityChecker::writeExpr(const Expr& array, const Expr& index,
                                 const Expr& newValue) {
-  return d_em.mkExpr(CVC4::kind::STORE, array, index, newValue);
+  return d_em->mkExpr(CVC4::kind::STORE, array, index, newValue);
 }
 
 Expr ValidityChecker::newBVConstExpr(const std::string& s, int base) {
-  return d_em.mkConst(CVC4::BitVector(s, base));
+  return d_em->mkConst(CVC4::BitVector(s, base));
 }
 
 Expr ValidityChecker::newBVConstExpr(const std::vector<bool>& bits) {
@@ -1288,7 +1294,7 @@ Expr ValidityChecker::newBVConstExpr(const std::vector<bool>& bits) {
     value *= 2;
     value += *i ? 1 : 0;
   }
-  return d_em.mkConst(CVC4::BitVector(bits.size(), value));
+  return d_em->mkConst(CVC4::BitVector(bits.size(), value));
 }
 
 Expr ValidityChecker::newBVConstExpr(const Rational& r, int len) {
@@ -1321,13 +1327,13 @@ Expr ValidityChecker::newBVConstExpr(const Rational& r, int len) {
 Expr ValidityChecker::newConcatExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only concat a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only concat a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_CONCAT, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_CONCAT, t1, t2);
 }
 
 Expr ValidityChecker::newConcatExpr(const std::vector<Expr>& kids) {
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&kids);
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_CONCAT, v);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_CONCAT, v);
 }
 
 Expr ValidityChecker::newBVExtractExpr(const Expr& e, int hi, int low) {
@@ -1335,20 +1341,20 @@ Expr ValidityChecker::newBVExtractExpr(const Expr& e, int hi, int low) {
   CheckArgument(hi >= low, hi, "extraction [%d:%d] is bad; possibly inverted?", hi, low);
   CheckArgument(low >= 0, low, "extraction [%d:%d] is bad (negative)", hi, low);
   CheckArgument(CVC4::BitVectorType(e.getType()).getSize() > unsigned(hi), hi, "bitvector is of size %u, extraction [%d:%d] is off-the-end", CVC4::BitVectorType(e.getType()).getSize(), hi, low);
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_EXTRACT,
-                     d_em.mkConst(CVC4::BitVectorExtract(hi, low)), e);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_EXTRACT,
+                     d_em->mkConst(CVC4::BitVectorExtract(hi, low)), e);
 }
 
 Expr ValidityChecker::newBVNegExpr(const Expr& t1) {
   // CVC3's BVNEG => SMT-LIBv2 bvnot
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvneg a bitvector, not a `%s'", t1.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_NOT, t1);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_NOT, t1);
 }
 
 Expr ValidityChecker::newBVAndExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvand a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvand a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_AND, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_AND, t1, t2);
 }
 
 Expr ValidityChecker::newBVAndExpr(const std::vector<Expr>& kids) {
@@ -1359,7 +1365,7 @@ Expr ValidityChecker::newBVAndExpr(const std::vector<Expr>& kids) {
 Expr ValidityChecker::newBVOrExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvor a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvor a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_OR, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_OR, t1, t2);
 }
 
 Expr ValidityChecker::newBVOrExpr(const std::vector<Expr>& kids) {
@@ -1370,7 +1376,7 @@ Expr ValidityChecker::newBVOrExpr(const std::vector<Expr>& kids) {
 Expr ValidityChecker::newBVXorExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvxor a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvxor a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_XOR, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_XOR, t1, t2);
 }
 
 Expr ValidityChecker::newBVXorExpr(const std::vector<Expr>& kids) {
@@ -1381,7 +1387,7 @@ Expr ValidityChecker::newBVXorExpr(const std::vector<Expr>& kids) {
 Expr ValidityChecker::newBVXnorExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvxnor a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvxnor a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_XNOR, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_XNOR, t1, t2);
 }
 
 Expr ValidityChecker::newBVXnorExpr(const std::vector<Expr>& kids) {
@@ -1392,63 +1398,63 @@ Expr ValidityChecker::newBVXnorExpr(const std::vector<Expr>& kids) {
 Expr ValidityChecker::newBVNandExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvnand a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvnand a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_NAND, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_NAND, t1, t2);
 }
 
 Expr ValidityChecker::newBVNorExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvnor a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvnor a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_NOR, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_NOR, t1, t2);
 }
 
 Expr ValidityChecker::newBVCompExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvcomp a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvcomp a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_COMP, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_COMP, t1, t2);
 }
 
 Expr ValidityChecker::newBVLTExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvlt a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvlt a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_ULT, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_ULT, t1, t2);
 }
 
 Expr ValidityChecker::newBVLEExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvle a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvle a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_ULE, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_ULE, t1, t2);
 }
 
 Expr ValidityChecker::newBVSLTExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvslt a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvslt a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SLT, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SLT, t1, t2);
 }
 
 Expr ValidityChecker::newBVSLEExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvsle a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvsle a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SLE, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SLE, t1, t2);
 }
 
 Expr ValidityChecker::newSXExpr(const Expr& t1, int len) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only sx a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(len >= 0, len, "must sx by a positive integer");
   CheckArgument(unsigned(len) >= CVC4::BitVectorType(t1.getType()).getSize(), len, "cannot sx by something smaller than the bitvector (%d < %u)", len, CVC4::BitVectorType(t1.getType()).getSize());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SIGN_EXTEND,
-                     d_em.mkConst(CVC4::BitVectorSignExtend(len)), t1);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SIGN_EXTEND,
+                     d_em->mkConst(CVC4::BitVectorSignExtend(len)), t1);
 }
 
 Expr ValidityChecker::newBVUminusExpr(const Expr& t1) {
   // CVC3's BVUMINUS => SMT-LIBv2 bvneg
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvuminus a bitvector, not a `%s'", t1.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_NEG, t1);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_NEG, t1);
 }
 
 Expr ValidityChecker::newBVSubExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvsub a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvsub by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SUB, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SUB, t1, t2);
 }
 
 Expr ValidityChecker::newBVPlusExpr(int numbits, const std::vector<Expr>& k) {
@@ -1459,7 +1465,7 @@ Expr ValidityChecker::newBVPlusExpr(int numbits, const std::vector<Expr>& k) {
 Expr ValidityChecker::newBVPlusExpr(int numbits, const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvplus a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvplus a bitvector, not a `%s'", t2.getType().toString().c_str());
-  Expr e = d_em.mkExpr(CVC4::kind::BITVECTOR_PLUS, t1, t2);
+  Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_PLUS, t1, t2);
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
   CheckArgument(numbits > 0, numbits,
                 "argument must be positive integer, not %u", numbits);
@@ -1472,7 +1478,7 @@ Expr ValidityChecker::newBVPlusExpr(int numbits, const Expr& t1, const Expr& t2)
 Expr ValidityChecker::newBVMultExpr(int numbits, const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvmult a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvmult by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  Expr e = d_em.mkExpr(CVC4::kind::BITVECTOR_MULT, t1, t2);
+  Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_MULT, t1, t2);
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
   CheckArgument(numbits > 0, numbits,
                 "argument must be positive integer, not %u", numbits);
@@ -1485,31 +1491,31 @@ Expr ValidityChecker::newBVMultExpr(int numbits, const Expr& t1, const Expr& t2)
 Expr ValidityChecker::newBVUDivExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvudiv a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvudiv by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_UDIV, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_UDIV, t1, t2);
 }
 
 Expr ValidityChecker::newBVURemExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvurem a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvurem by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_UREM, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_UREM, t1, t2);
 }
 
 Expr ValidityChecker::newBVSDivExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvsdiv a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvsdiv by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SDIV, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SDIV, t1, t2);
 }
 
 Expr ValidityChecker::newBVSRemExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvsrem a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvsrem by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SREM, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SREM, t1, t2);
 }
 
 Expr ValidityChecker::newBVSModExpr(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvsmod a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvsmod by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SMOD, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SMOD, t1, t2);
 }
 
 Expr ValidityChecker::newFixedLeftShiftExpr(const Expr& t1, int r) {
@@ -1517,14 +1523,14 @@ Expr ValidityChecker::newFixedLeftShiftExpr(const Expr& t1, int r) {
   CheckArgument(r >= 0, r, "left shift amount must be >= 0 (you passed %d)", r);
   // Defined in:
   // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_CONCAT, t1, d_em.mkConst(CVC4::BitVector(r)));
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_CONCAT, t1, d_em->mkConst(CVC4::BitVector(r)));
 }
 
 Expr ValidityChecker::newFixedConstWidthLeftShiftExpr(const Expr& t1, int r) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(r >= 0, r, "const-width left shift amount must be >= 0 (you passed %d)", r);
   // just turn it into a BVSHL
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SHL, t1, d_em.mkConst(CVC4::BitVector(CVC4::BitVectorType(t1.getType()).getSize(), unsigned(r))));
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SHL, t1, d_em->mkConst(CVC4::BitVector(CVC4::BitVectorType(t1.getType()).getSize(), unsigned(r))));
 }
 
 Expr ValidityChecker::newFixedRightShiftExpr(const Expr& t1, int r) {
@@ -1533,25 +1539,25 @@ Expr ValidityChecker::newFixedRightShiftExpr(const Expr& t1, int r) {
   // Defined in:
   // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
   // Should be equivalent to a BVLSHR; just turn it into that.
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_LSHR, t1, d_em.mkConst(CVC4::BitVector(CVC4::BitVectorType(t1.getType()).getSize(), unsigned(r))));
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_LSHR, t1, d_em->mkConst(CVC4::BitVector(CVC4::BitVectorType(t1.getType()).getSize(), unsigned(r))));
 }
 
 Expr ValidityChecker::newBVSHL(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only right-shift by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_SHL, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_SHL, t1, t2);
 }
 
 Expr ValidityChecker::newBVLSHR(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only right-shift by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_LSHR, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_LSHR, t1, t2);
 }
 
 Expr ValidityChecker::newBVASHR(const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only right-shift a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only right-shift by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  return d_em.mkExpr(CVC4::kind::BITVECTOR_ASHR, t1, t2);
+  return d_em->mkExpr(CVC4::kind::BITVECTOR_ASHR, t1, t2);
 }
 
 Rational ValidityChecker::computeBVConst(const Expr& e) {
@@ -1561,7 +1567,7 @@ Rational ValidityChecker::computeBVConst(const Expr& e) {
 Expr ValidityChecker::tupleExpr(const std::vector<Expr>& exprs) {
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&exprs);
-  return d_em.mkExpr(CVC4::kind::TUPLE, v);
+  return d_em->mkExpr(CVC4::kind::TUPLE, v);
 }
 
 Expr ValidityChecker::tupleSelectExpr(const Expr& tuple, int index) {
@@ -1652,7 +1658,7 @@ void ValidityChecker::setTimeLimit(unsigned limit) {
 }
 
 void ValidityChecker::assertFormula(const Expr& e) {
-  d_smt.assertFormula(CVC4::BoolExpr(e));
+  d_smt->assertFormula(CVC4::BoolExpr(e));
 }
 
 void ValidityChecker::registerAtom(const Expr& e) {
@@ -1664,7 +1670,7 @@ Expr ValidityChecker::getImpliedLiteral() {
 }
 
 Expr ValidityChecker::simplify(const Expr& e) {
-  return d_smt.simplify(e);
+  return d_smt->simplify(e);
 }
 
 static QueryResult cvc4resultToCvc3result(CVC4::Result r) {
@@ -1688,11 +1694,11 @@ static QueryResult cvc4resultToCvc3result(CVC4::Result r) {
 }
 
 QueryResult ValidityChecker::query(const Expr& e) {
-  return cvc4resultToCvc3result(d_smt.query(CVC4::BoolExpr(e)));
+  return cvc4resultToCvc3result(d_smt->query(CVC4::BoolExpr(e)));
 }
 
 QueryResult ValidityChecker::checkUnsat(const Expr& e) {
-  return cvc4resultToCvc3result(d_smt.checkSat(CVC4::BoolExpr(e)));
+  return cvc4resultToCvc3result(d_smt->checkSat(CVC4::BoolExpr(e)));
 }
 
 QueryResult ValidityChecker::checkContinue() {
@@ -1709,7 +1715,7 @@ void ValidityChecker::returnFromCheck() {
 
 void ValidityChecker::getUserAssumptions(std::vector<Expr>& assumptions) {
   CheckArgument(assumptions.empty(), assumptions, "assumptions arg must be empty");
-  vector<CVC4::Expr> v = d_smt.getAssertions();
+  vector<CVC4::Expr> v = d_smt->getAssertions();
   assumptions.swap(*reinterpret_cast<vector<Expr>*>(&v));
 }
 
@@ -1743,8 +1749,8 @@ QueryResult ValidityChecker::tryModelGeneration() {
 }
 
 FormulaValue ValidityChecker::value(const Expr& e) {
-  CheckArgument(e.getType() == d_em.booleanType(), e, "argument must be a formula");
-  return d_smt.getValue(e).getConst<bool>() ? TRUE_VAL : FALSE_VAL;
+  CheckArgument(e.getType() == d_em->booleanType(), e, "argument must be a formula");
+  return d_smt->getValue(e).getConst<bool>() ? TRUE_VAL : FALSE_VAL;
 }
 
 bool ValidityChecker::inconsistent(std::vector<Expr>& assumptions) {
@@ -1788,25 +1794,25 @@ Proof ValidityChecker::getProofClosure() {
 }
 
 int ValidityChecker::stackLevel() {
-  return d_smt.getStackLevel();
+  return d_smt->getStackLevel();
 }
 
 void ValidityChecker::push() {
-  d_smt.push();
+  d_smt->push();
 }
 
 void ValidityChecker::pop() {
-  d_smt.pop();
+  d_smt->pop();
 }
 
 void ValidityChecker::popto(int stackLevel) {
   CheckArgument(stackLevel >= 0, stackLevel,
                 "Cannot pop to a negative stack level %u", stackLevel);
-  CheckArgument(unsigned(stackLevel) <= d_smt.getStackLevel(), stackLevel,
+  CheckArgument(unsigned(stackLevel) <= d_smt->getStackLevel(), stackLevel,
                 "Cannot pop to a level higher than the current one!  "
                 "At level %u, user requested level %d",
-                d_smt.getStackLevel(), stackLevel);
-  while(unsigned(stackLevel) < d_smt.getStackLevel()) {
+                d_smt->getStackLevel(), stackLevel);
+  while(unsigned(stackLevel) < d_smt->getStackLevel()) {
     pop();
   }
 }
@@ -1839,12 +1845,12 @@ void ValidityChecker::logAnnotation(const Expr& annot) {
   Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
-static void doCommands(CVC4::parser::Parser* parser, CVC4::SmtEngine& smt, CVC4::Options& opts) {
+static void doCommands(CVC4::parser::Parser* parser, CVC4::SmtEngine* smt, CVC4::Options& opts) {
   while(CVC4::Command* cmd = parser->nextCommand()) {
     if(opts.verbosity >= 0) {
-      cmd->invoke(&smt, *opts.out);
+      cmd->invoke(smt, *opts.out);
     } else {
-      cmd->invoke(&smt);
+      cmd->invoke(smt);
     }
     delete cmd;
   }
@@ -1854,10 +1860,10 @@ void ValidityChecker::loadFile(const std::string& fileName,
                                InputLanguage lang,
                                bool interactive,
                                bool calledFromParser) {
-  CVC4::Options opts = *d_em.getOptions();
+  CVC4::Options opts = *d_em->getOptions();
   opts.inputLanguage = lang;
   opts.interactive = interactive;
-  CVC4::parser::ParserBuilder parserBuilder(&d_em, fileName, opts);
+  CVC4::parser::ParserBuilder parserBuilder(d_em, fileName, opts);
   CVC4::parser::Parser* parser = parserBuilder.build();
   doCommands(parser, d_smt, opts);
   delete parser;
@@ -1866,21 +1872,21 @@ void ValidityChecker::loadFile(const std::string& fileName,
 void ValidityChecker::loadFile(std::istream& is,
                                InputLanguage lang,
                                bool interactive) {
-  CVC4::Options opts = *d_em.getOptions();
+  CVC4::Options opts = *d_em->getOptions();
   opts.inputLanguage = lang;
   opts.interactive = interactive;
-  CVC4::parser::ParserBuilder parserBuilder(&d_em, "[stream]", opts);
+  CVC4::parser::ParserBuilder parserBuilder(d_em, "[stream]", opts);
   CVC4::parser::Parser* parser = parserBuilder.withStreamInput(is).build();
   doCommands(parser, d_smt, opts);
   delete parser;
 }
 
 Statistics& ValidityChecker::getStatistics() {
-  return *d_smt.getStatisticsRegistry();
+  return *d_smt->getStatisticsRegistry();
 }
 
 void ValidityChecker::printStatistics() {
-  Message() << d_smt.getStatisticsRegistry();
+  Message() << d_smt->getStatisticsRegistry();
 }
 
 }/* CVC3 namespace */

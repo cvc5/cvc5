@@ -2,7 +2,7 @@ TESTS_ENVIRONMENT =
 TESTS = \
 	boilerplate \
 	ouroborous
-#	cvc3_main.cpp
+#	cvc3_main
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution

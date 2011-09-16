@@ -66,13 +66,13 @@
 
 // some #defines that CVC3 exported to userspace :(
 #ifdef CVC4_DEBUG
-#  define DebugAssert(cond, ...) Assert(cond, "CVC3-style assertion failed");
+#  define DebugAssert(cond, str) Assert((cond), "CVC3-style assertion failed: %s", std::string(str).c_str());
 #  define IF_DEBUG(x) x
 #else
 #  define DebugAssert(...)
 #  define IF_DEBUG(x)
 #endif
-#define FatalAssert(cond, ...) AlwaysAssert(cond, "CVC3-style assertion failed");
+#define FatalAssert(cond, str) AlwaysAssert((cond), "CVC3-style assertion failed: %s", std::string(str).c_str());
 
 //class CInterface;
 
@@ -443,8 +443,9 @@ std::ostream& operator<<(std::ostream& out, FormulaValue fv);
 class CVC4_PUBLIC ValidityChecker {
 
   CLFlags* d_clflags;
-  CVC4::ExprManager d_em;
-  CVC4::SmtEngine d_smt;
+  CVC4::Options d_options;
+  CVC4::ExprManager* d_em;
+  CVC4::SmtEngine* d_smt;
 
   ValidityChecker(const CLFlags& clflags);
 

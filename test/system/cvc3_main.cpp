@@ -52,7 +52,7 @@ int exitStatus;
 
 
 // Check whether e is valid
-bool check(ValidityChecker* vc, Expr e, bool verbose=true)
+bool check(ValidityChecker* vc, Expr e, bool verbose=false)
 {
   if(verbose) {
     cout << "Query: ";
@@ -2090,12 +2090,12 @@ int main(int argc, char** argv)
   cout << "Running API test, regress level = " << regressLevel << endl;
   exitStatus = 0;
   try {
-    cout << "\n}\ntest26(): {" << endl;
-    test26();
-    cout << "\ntest(): {" << endl;
-    test();
-    cout << "\n}\ntest1(): {" << endl;
-    test1();
+    //cout << "\n}\ntest26(): {" << endl;
+    //test26();
+    //cout << "\ntest(): {" << endl;
+    //test();
+    //cout << "\n}\ntest1(): {" << endl;
+    //test1();
     cout << "\n}\n\ntest2(): {" << endl;
     test2();
     cout << "\n}\n\ntest3(): {" << endl;
@@ -2106,8 +2106,8 @@ int main(int argc, char** argv)
       cout << "\n}\n\ntest5(): {" << endl;
       test5();
     }
-    cout << "\n}\n\ntest6(): {" << endl;
-    test6();
+    //cout << "\n}\n\ntest6(): {" << endl;
+    //test6();
     cout << "\n}\n\ntest7(): {" << endl;
     test7();
     cout << "\n}\n\ntest8(): {" << endl;
