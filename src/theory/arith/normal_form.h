@@ -62,7 +62,7 @@ namespace arith {
  *
  * monomial := constant | var_list | (* constant' var_list')
  *   where
- *     constant' \not\in {0,1}
+ *     \f$ constant' \not\in {0,1} \f$
  *
  * polynomial := monomial' | (+ [monomial])
  *   where

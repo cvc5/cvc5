@@ -19,13 +19,13 @@
  **
  ** From the paper:
  **
- ** <pre>
+ ** <pre>\f[
  **   P := guess_permutations(phi)
  **   foreach {c_0, ..., c_n} \in P do
  **     if invariant_by_permutations(phi, {c_0, ..., c_n}) then
  **       T := select_terms(phi, {c_0, ..., c_n})
  **       cts := \empty
- **       while T != \empty && |cts| <= n do
+ **       while T != \empty \land |cts| <= n do
  **         t := select_most_promising_term(T, phi)
  **         T := T \ {t}
  **         cts := cts \cup used_in(t, {c_0, ..., c_n})
@@ -38,7 +38,7 @@
  **     end
  **   end
  **   return phi
- ** </pre>
+ ** \f]</pre>
  **/
 
 #include "cvc4_private.h"

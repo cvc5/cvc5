@@ -98,6 +98,8 @@ public:
    * than the (SAT and SMT) level at which it was asserted.
    *
    * @param node the formula to assert
+   * @param negated whether the node should be considered to be negated at the top level (or not)
+   * @param removable whether this lemma can be quietly removed based on an activity heuristic (or not)
    */
   void assertLemma(TNode node, bool negated, bool removable);
 

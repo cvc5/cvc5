@@ -314,7 +314,7 @@ public:
   /**
    * Adds a row to the tableau.
    * The new row is equivalent to:
-   *   basicVar = \sum_i coeffs[i] * variables[i]
+   *   basicVar = \f$\sum_i\f$ coeffs[i] * variables[i]
    * preconditions:
    *   basicVar is already declared to be basic
    *   basicVar does not have a row associated with it in the tableau.

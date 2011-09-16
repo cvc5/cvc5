@@ -41,8 +41,6 @@ public:
    * Returns whether a node q is propositionally satisfiable.
    *
    * @param q Node to be checked for satisfiability.
-   * @param e A number representing the effort to use between 0 (minimum effort),
-   *  and 1 (maximum effort).
    * @pre q is a ground formula.
    * @pre effort is between 0 and 1.
    */
@@ -52,8 +50,6 @@ public:
    * Returns whether a node q is a propositional tautology.
    *
    * @param q Node to be checked for satisfiability.
-   * @param e A number representing the effort to use between 0 (minimum effort),
-   *  and 1 (maximum effort).
    * @pre q is a ground formula.
    * @pre effort is between 0 and 1.
    */

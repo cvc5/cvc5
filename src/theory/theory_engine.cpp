@@ -491,7 +491,7 @@ void TheoryEngine::assertFact(TNode node)
   }
 }
 
-void TheoryEngine::propagate(TNode literal, TheoryId theory) {
+void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
       
   Debug("theory") << "EngineOutputChannel::propagate(" << literal << ")" << std::endl;
       

@@ -69,7 +69,7 @@ namespace attr {
  * convert "attribute value types" into "table value types" and back
  * again.
  *
- * Each instantiation <T> is expected to have three members:
+ * Each instantiation < T > is expected to have three members:
  *
  *   typename table_value_type
  *

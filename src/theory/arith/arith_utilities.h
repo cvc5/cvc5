@@ -89,7 +89,7 @@ inline Node coerceToRationalNode(TNode constant){
 
 
 
-/** is k \in {LT, LEQ, EQ, GEQ, GT} */
+/** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
 inline bool isRelationOperator(Kind k){
   using namespace kind;
 
@@ -145,8 +145,8 @@ inline bool evaluateConstantPredicate(Kind k, const Rational& left, const Ration
 /**
  * Returns the appropriate coefficient for the infinitesimal given the kind
  * for an arithmetic atom inorder to represent strict inequalities as inequalities.
- *   x < c  becomes  x <= c + (-1) * \delta
- *   x > c  becomes  x >= x + ( 1) * \delta
+ *   x < c  becomes  x <= c + (-1) * \f$ \delta \f$
+ *   x > c  becomes  x >= x + ( 1) * \f$ \delta \f$
  * Non-strict inequalities have a coefficient of zero.
  */
 inline int deltaCoeff(Kind k){
