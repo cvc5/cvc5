@@ -291,7 +291,8 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<SetOptionCommand>(out, c) ||
      tryToStream<GetOptionCommand>(out, c) ||
      tryToStream<DatatypeDeclarationCommand>(out, c) ||
-     tryToStream<CommentCommand>(out, c)) {
+     tryToStream<CommentCommand>(out, c) ||
+     tryToStream<EmptyCommand>(out, c)) {
     return;
   }
 
@@ -460,6 +461,9 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) {
 
 static void toStream(std::ostream& out, const CommentCommand* c) {
   out << "(set-info :notes \"" << c->getComment() << "\")";
+}
+
+static void toStream(std::ostream& out, const EmptyCommand* c) {
 }
 
 template <class T>
