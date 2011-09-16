@@ -4,6 +4,7 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = builtin booleans uf arith arrays bv datatypes
+DIST_SUBDIRS = $(SUBDIRS) example
 
 noinst_LTLIBRARIES = libtheory.la
 
