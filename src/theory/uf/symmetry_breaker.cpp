@@ -24,7 +24,7 @@
  **   foreach \f$ {c_0, ..., c_n} \in P \f$ do
  **     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
  **       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
- **       cts := \f$ \empty \f$
+ **       cts := \f$ \emptyset \f$
  **       while T != \f$ \empty \wedge |cts| <= n \f$ do
  **         \f$ t := select\_most\_promising\_term(T, \phi) \f$
  **         \f$ T := T \setminus {t} \f$
