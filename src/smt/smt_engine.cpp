@@ -409,7 +409,6 @@ void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
                                Expr formula) {
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
-  /*
   if(Dump.isOn("declarations")) {
     stringstream ss;
     ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump("declarations")))
@@ -417,7 +416,6 @@ void SmtEngine::defineFunction(Expr func,
     Dump("declarations") << DefineFunctionCommand(ss.str(), func, formals, formula)
                          << endl;
   }
-  */
   NodeManagerScope nms(d_nodeManager);
 
   // type check body

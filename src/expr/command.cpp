@@ -338,7 +338,7 @@ Expr DefineFunctionCommand::getFormula() const {
 }
 
 void DefineFunctionCommand::invoke(SmtEngine* smtEngine) {
-  Dump("declarations") << *this << endl;
+  //Dump("declarations") << *this << endl; -- done by SmtEngine
   if(!d_func.isNull()) {
     smtEngine->defineFunction(d_func, d_formals, d_formula);
   }
