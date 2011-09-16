@@ -170,6 +170,12 @@ sub handleFile {
     print $OUT " **\n";
     while(my $line = <$IN>) {
       last if $line =~ /^ \*\*\s*$/;
+      if($line =~ /\*\//) {
+        print $OUT " ** [[ Add lengthier description here ]]\n";
+        print $OUT " ** \\todo document this file\n";
+        print $OUT $line;
+        last;
+      }
     }
   } else {
     my $line = $_;
