@@ -19,26 +19,26 @@
  **
  ** From the paper:
  **
- ** <pre>\f[
- **   P := guess_permutations(phi)
- **   foreach {c_0, ..., c_n} \in P do
- **     if invariant_by_permutations(phi, {c_0, ..., c_n}) then
- **       T := select_terms(phi, {c_0, ..., c_n})
- **       cts := \empty
- **       while T != \empty \land |cts| <= n do
- **         t := select_most_promising_term(T, phi)
- **         T := T \ {t}
- **         cts := cts \cup used_in(t, {c_0, ..., c_n})
- **         let c \in {c_0, ..., c_n} \ cts
- **         cts := cts \cup {c}
- **         if cts != {c_0, ..., c_n} then
- **           phi := phi /\ ( \vee_{c_i \in cts} t = c_i )
+ ** <pre>
+ **   \f$ P := guess\_permutations(\phi) \f$
+ **   foreach \f$ {c_0, ..., c_n} \in P \f$ do
+ **     if \f$ invariant\_by\_permutations(\phi, {c_0, ..., c_n}) \f$ then
+ **       T := \f$ select\_terms(\phi, {c_0, ..., c_n}) \f$
+ **       cts := \f$ \empty \f$
+ **       while T != \f$ \empty \wedge |cts| <= n \f$ do
+ **         \f$ t := select\_most\_promising\_term(T, \phi) \f$
+ **         \f$ T := T \setminus {t} \f$
+ **         cts := cts \f$ \cup used\_in(t, {c_0, ..., c_n}) \f$
+ **         let \f$ c \in {c_0, ..., c_n} \setminus cts \f$
+ **         cts := cts \f$ \cup {c} \f$
+ **         if cts != \f$ {c_0, ..., c_n} \f$ then
+ **           \f$ \phi := \phi \wedge ( \vee_{c_i \in cts} t = c_i ) \f$
  **         end
  **       end
  **     end
  **   end
- **   return phi
- ** \f]</pre>
+ **   return \f$ \phi \f$
+ ** </pre>
  **/
 
 #include "theory/uf/symmetry_breaker.h"
