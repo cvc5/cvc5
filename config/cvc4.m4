@@ -54,7 +54,7 @@ do
       done
       ac_option="--with-build=$ac_option_build"
   esac
-  eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"$ac_option\""'
+  eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }'\'\$ac_option\'\"
 done
 eval set x $ac_cvc4_rewritten_args
 shift

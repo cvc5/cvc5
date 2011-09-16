@@ -53,7 +53,7 @@ CVC4_BINDINGS_LIBRARY_VERSION=0:0:0
 # we save it.  (We can't do our build profile stuff here, or it's not
 # included in the output... autoconf overrides us on the orderings of
 # some things.)
-config_cmdline="$@"
+config_cmdline=("$@")
 
 # remember if the user set these explicitly (or whether autoconf does)
 user_specified_enable_or_disable_static=${enable_static+yes}
@@ -310,8 +310,8 @@ elif test "$CVC4_CONFIGURE_AT_TOP_LEVEL" = yes; then
   $as_echo "cd builds/$target/$build_type"
   cd "builds/$target/$build_type"
   CVC4_CONFIGURE_IN_BUILDS=yes; export CVC4_CONFIGURE_IN_BUILDS
-  $as_echo "../../../configure $config_cmdline"
-  `pwd`/../../../configure $config_cmdline
+  echo "../../../configure ${config_cmdline[[@]]}"
+  `pwd`/../../../configure "${config_cmdline[[@]]}"
   exitval=$?
   cd ../../..
   if test $exitval -eq 0; then
@@ -830,6 +830,9 @@ AC_SUBST(BUILDING_STATIC)
 AC_SUBST(STATIC_BINARY)
 AM_CONDITIONAL([STATIC_BINARY], [test "$enable_static_binary" = yes])
 AM_CONDITIONAL([COVERAGE_ENABLED], [test "$enable_coverage" = yes])
+
+AM_CONDITIONAL([CVC4_DEBUG], [test "$with_build" = debug])
+AM_CONDITIONAL([CVC4_TRACING], [test "$enable_tracing" = yes])
 
 AC_SUBST(CVC4_LIBRARY_VERSION)
 AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)
