@@ -25,6 +25,14 @@
 #include "util/configuration_private.h"
 #include "cvc4autoconfig.h"
 
+#ifdef CVC4_DEBUG
+#  include "util/Debug_tags.h"
+#endif /* CVC4_DEBUG */
+
+#ifdef CVC4_TRACING
+#  include "util/Trace_tags.h"
+#endif /* CVC4_TRACING */
+
 using namespace std;
 
 namespace CVC4 {
@@ -115,6 +123,38 @@ bool Configuration::isBuiltWithCudd() {
 
 bool Configuration::isBuiltWithTlsSupport() {
   return USING_TLS;
+}
+
+unsigned Configuration::getNumDebugTags() {
+#if CVC4_DEBUG
+  return sizeof(Debug_tags) / sizeof(Debug_tags[0]);
+#else /* CVC4_DEBUG */
+  return 0;
+#endif /* CVC4_DEBUG */
+}
+
+char const* const* Configuration::getDebugTags() {
+#if CVC4_DEBUG
+  return Debug_tags;
+#else /* CVC4_DEBUG */
+  return NULL;
+#endif /* CVC4_DEBUG */
+}
+
+unsigned Configuration::getNumTraceTags() {
+#if CVC4_TRACING
+  return sizeof(Trace_tags) / sizeof(Trace_tags[0]);
+#else /* CVC4_TRACING */
+  return 0;
+#endif /* CVC4_TRACING */
+}
+
+char const* const* Configuration::getTraceTags() {
+#if CVC4_TRACING
+  return Trace_tags;
+#else /* CVC4_TRACING */
+  return NULL;
+#endif /* CVC4_TRACING */
 }
 
 bool Configuration::isSubversionBuild() {

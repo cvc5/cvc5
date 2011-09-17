@@ -78,9 +78,11 @@ subversion_versioninfo.cpp: svninfo
 	  echo "const unsigned ::CVC4::Configuration::SUBVERSION_REVISION = $$rev;"; \
 	  echo "const bool ::CVC4::Configuration::SUBVERSION_HAS_MODIFICATIONS = $$mods;"; \
 	) >"$@"
+# This .tmp business is to keep from having to re-compile options.cpp
+# (and then re-link the libraries) if nothing has changed.
 svninfo: svninfo.tmp
 	$(AM_V_GEN)diff -q svninfo.tmp svninfo &>/dev/null || mv svninfo.tmp svninfo || true
-# .PHONY ensures it's always rebuilt
+# .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
 .PHONY: svninfo.tmp
 svninfo.tmp:
 	$(AM_V_GEN)(cd "$(top_srcdir)" && svn info && echo "Modifications: `test -z \"\`svn status -q\`\" && echo false || echo true`") >"$@" 2>/dev/null || true

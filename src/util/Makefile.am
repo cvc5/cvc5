@@ -75,14 +75,31 @@ libutilcudd_la_SOURCES = \
 BUILT_SOURCES = \
 	rational.h \
 	integer.h \
-	tls.h \
-	debug_tags.h
+	tls.h
+if CVC4_DEBUG
+# listing Debug_tags too ensures that make doesn't auto-remove it
+# after building (if it does, we don't get the "cached" effect with
+# the .tmp files below, and we have to re-compile and re-link each
+# time, even when there are no changes).
+BUILT_SOURCES += \
+	Debug_tags.h \
+	Debug_tags
+endif
+if CVC4_TRACING
+# listing Trace_tags too ensures that make doesn't auto-remove it
+# after building (if it does, we don't get the "cached" effect with
+# the .tmp files below, and we have to re-compile and re-link each
+# time, even when there are no changes).
+BUILT_SOURCES += \
+	Trace_tags.h \
+	Trace_tags
+endif
 
-debug_tags.h: debug_tags
+%_tags.h: %_tags
 	$(AM_V_GEN)( \
-	echo 'const char* debug_tags[] = {'; \
+	echo 'static char const *const $^[] = {'; \
 	first=1; \
-	for tag in `cat debug_tags`; \
+	for tag in `cat $^`; \
 	do \
 	    if [ $$first -eq 1 ]; then first=0; else echo ','; fi; \
 		echo -n "\"$$tag\""; \
@@ -90,14 +107,19 @@ debug_tags.h: debug_tags
 	echo; \
 	echo '};' \
 	) >"$@"
-	
-debug_tags:
+
+# This .tmp business is to keep from having to re-compile options.cpp
+# (and then re-link the libraries) if nothing has changed.
+%_tags: %_tags.tmp
 	$(AM_V_GEN)\
-	grep 'Debug(\".*\")' `find @srcdir@/../ -name "*.cpp" -or -name "*.h" -or -name "*.cc" -or -name "*.g"` | \
-	sed s/'.*Debug(\"'//g | sed s/'\".*'//g | sort | uniq >"$@"
-
-.PHONY: debug_tags
-
+	diff -q "$^" "$@" &>/dev/null || mv "$^" "$@" || true
+# .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
+.PHONY: Debug_tags.tmp Trace_tags.tmp
+Debug_tags.tmp Trace_tags.tmp:
+	$(AM_V_GEN)\
+	grep '\<$(@:_tags.tmp=) *( *\".*\" *)' \
+		`find @srcdir@/../ -name "*.cpp" -or -name "*.h" -or -name "*.cc" -or -name "*.g"` | \
+	sed 's/.*\<$(@:_tags.tmp=) *( *\"\([^"]*\)\".*/\1/g' | sort | uniq >"$@"
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \

@@ -87,6 +87,12 @@ public:
 
   static bool isBuiltWithTlsSupport();
 
+  static unsigned getNumDebugTags();
+  static char const* const* getDebugTags();
+
+  static unsigned getNumTraceTags();
+  static char const* const* getTraceTags();
+
   static bool isSubversionBuild();
   static const char* getSubversionBranchName();
   static unsigned getSubversionRevision();

@@ -32,7 +32,6 @@
 #include "util/language.h"
 #include "util/options.h"
 #include "util/output.h"
-#include "util/debug_tags.h"
 
 #include "cvc4autoconfig.h"
 
@@ -117,7 +116,8 @@ static const string optionsDescription = "\
    --quiet | -q           decrease verbosity (may be repeated)\n\
    --trace | -t           trace something (e.g. -t pushpop), can repeat\n\
    --debug | -d           debug something (e.g. -d arith), can repeat\n\
-   --show-debug-tags      show all avalable tags for debug tracing\n\
+   --show-debug-tags      show all avalable tags for debugging\n\
+   --show-trace-tags      show all avalable tags for tracing\n\
    --stats                give statistics on exit\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
    --print-expr-types     print types with variables when printing exprs\n\
@@ -270,6 +270,7 @@ enum OptionValue {
   NO_THEORY_REGISTRATION,
   USE_MMAP,
   SHOW_DEBUG_TAGS,
+  SHOW_TRACE_TAGS,
   SHOW_CONFIG,
   STRICT_PARSING,
   DEFAULT_EXPR_DEPTH,
@@ -331,7 +332,8 @@ static struct option cmdlineOptions[] = {
   { "stats"      , no_argument      , NULL, STATS       },
   { "no-checking", no_argument      , NULL, NO_CHECKING },
   { "no-theory-registration", no_argument, NULL, NO_THEORY_REGISTRATION },
-  { "show-debug-tags", no_argument, NULL, SHOW_DEBUG_TAGS },
+  { "show-debug-tags", no_argument  , NULL, SHOW_DEBUG_TAGS },
+  { "show-trace-tags", no_argument  , NULL, SHOW_TRACE_TAGS },
   { "show-config", no_argument      , NULL, SHOW_CONFIG },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "help"       , no_argument      , NULL, 'h'         },
@@ -768,15 +770,31 @@ throw(OptionException) {
       break;
 
     case SHOW_DEBUG_TAGS:
-      printf("available tags:");
-      if (Configuration::isTracingBuild()) {
-        unsigned nTags = sizeof(debug_tags) / sizeof(debug_tags[0]);
-        for (unsigned i = 0; i < nTags; ++ i) {
-          printf(" %s", debug_tags[i]);
+      if(Configuration::isDebugBuild()) {
+        printf("available tags:");
+        unsigned ntags = Configuration::getNumDebugTags();
+        char const* const* tags = Configuration::getDebugTags();
+        for(unsigned i = 0; i < ntags; ++ i) {
+          printf(" %s", tags[i]);
         }
         printf("\n");
       } else {
-        printf(" not available in this build");
+        throw OptionException("debug tags not available in non-debug build");
+      }
+      exit(0);
+      break;
+
+    case SHOW_TRACE_TAGS:
+      if(Configuration::isTracingBuild()) {
+        printf("available tags:");
+        unsigned ntags = Configuration::getNumTraceTags();
+        char const* const* tags = Configuration::getTraceTags();
+        for (unsigned i = 0; i < ntags; ++ i) {
+          printf(" %s", tags[i]);
+        }
+        printf("\n");
+      } else {
+        throw OptionException("trace tags not available in non-tracing build");
       }
       exit(0);
       break;
