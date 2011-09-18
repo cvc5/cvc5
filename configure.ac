@@ -43,10 +43,25 @@ CVC4_RELEASE_STRING=_CVC4_RELEASE_STRING
 # For guidance on when to change the version number, refer to the
 # developer's guide.
 
-CVC4_LIBRARY_VERSION=0:0:0
-CVC4_PARSER_LIBRARY_VERSION=0:0:0
-CVC4_COMPAT_LIBRARY_VERSION=0:0:0
-CVC4_BINDINGS_LIBRARY_VERSION=0:0:0
+m4_define([library_version], [m4_esyscmd([grep -F "$(grep -v '^#' library_versions | awk '{print$][1}' | sed 's,\\,\\\\\\,g' | (while read r; do if echo "]_CVC4_RELEASE_STRING[" | grep -q "^$r\$"; then echo "$r"; exit; fi; done; echo NO_MATCH_FOUND)) " library_versions | awk 'BEGIN {FS=":";OFS=":";RS=" "} /^$1:/ {print$][2,$][3,$][4}' | head -1])])
+
+m4_define(_CVC4_LIBRARY_VERSION, library_version([libcvc4]))dnl
+m4_define(_CVC4_PARSER_LIBRARY_VERSION, library_version([libcvc4parser]))dnl
+m4_define(_CVC4_COMPAT_LIBRARY_VERSION, library_version([libcvc4compat]))dnl
+m4_define(_CVC4_BINDINGS_LIBRARY_VERSION, library_version([libcvc4bindings]))dnl
+
+m4_define([fatal_error], [m4_errprint(__program__:__file__:__line__[: fatal error: $*
+])m4_exit(1)])dnl
+
+m4_ifblank(_CVC4_LIBRARY_VERSION,[fatal_error([no CVC4_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
+m4_ifblank(_CVC4_PARSER_LIBRARY_VERSION,[fatal_error([no CVC4_PARSER_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
+m4_ifblank(_CVC4_COMPAT_LIBRARY_VERSION,[fatal_error([no CVC4_COMPAT_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
+m4_ifblank(_CVC4_BINDINGS_LIBRARY_VERSION,[fatal_error([no CVC4_BINDINGS_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
+
+CVC4_LIBRARY_VERSION=_CVC4_LIBRARY_VERSION
+CVC4_PARSER_LIBRARY_VERSION=_CVC4_PARSER_LIBRARY_VERSION
+CVC4_COMPAT_LIBRARY_VERSION=_CVC4_COMPAT_LIBRARY_VERSION
+CVC4_BINDINGS_LIBRARY_VERSION=_CVC4_BINDINGS_LIBRARY_VERSION
 
 # Using the AC_CANONICAL_* macros destroy the command line you get
 # from $@, which we want later for determining the build profile.  So
@@ -891,7 +906,7 @@ AC_SUBST(MAN_DATE)
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib lib src test -name Makefile.am | sort | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib src test -name Makefile.am | sort | sed 's,\.am$,,'])
 )
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])

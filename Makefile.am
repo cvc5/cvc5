@@ -88,6 +88,7 @@ endif
 EXTRA_DIST = \
 	Makefile.builds.in \
 	Makefile.subdir \
+	library_versions \
 	config/build-type \
 	config/mkbuilddir \
 	config/doxygen.cfg \

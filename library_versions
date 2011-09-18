@@ -1,0 +1,12 @@
+# Format is CVC4-RELEASE-VERSION-REGEXP (LIBRARY:VERSION)*
+#
+# This file contains library version release information.
+# Lines are matched while processing configure.ac (and generating
+# the configure script) using the CVC4_RELEASE_STRING.  Lines are
+# matched on the regexp in the first column, with only the first
+# matching line counting.  The library versions following, one per
+# column, are then used.  If there are no matching lines, an error
+# is raised and the configure script is not generated.
+#
+0\..* libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
+1\.0 libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
