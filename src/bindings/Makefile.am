@@ -61,7 +61,7 @@ $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.d: @srcdir@/.
 # .PHONY so they get rebuilt each time
 .PHONY: .swig_deps $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
 .swig_deps: $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
-	$(AM_V_GEN)cat $+ >$@
+	$(AM_V_GEN)cat $+ </dev/null >$@
 @mk_include@ .swig_deps
 
 clean-local:; rm -fr $(patsubst %.cpp,%,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
