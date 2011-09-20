@@ -58,7 +58,7 @@ else
         c++) AC_MSG_RESULT([C++ is built by default]);;
         java)
           JAVA_INCLUDES="-I/usr/lib/jvm/java-6-sun-1.6.0.26/include -I/usr/lib/jvm/java-6-sun-1.6.0.26/include/linux"
-          cvc4_build_java_binding=yes
+          cvc4_build_java_bindings=yes
           AC_MSG_RESULT([Java support will be built]);;
         csharp)
           binding_error=yes

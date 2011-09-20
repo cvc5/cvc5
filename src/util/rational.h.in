@@ -26,14 +26,8 @@
 
 #ifdef CVC4_CLN_IMP
 #  include "util/rational_cln_imp.h"
-#  if SWIG
-     %include "util/rational_cln_imp.h"
-#  endif /* SWIG */
 #endif /* CVC4_CLN_IMP */
 
 #ifdef CVC4_GMP_IMP
 #  include "util/rational_gmp_imp.h"
-#  if SWIG
-     %include "util/rational_gmp_imp.h"
-#  endif /* SWIG */
 #endif /* CVC4_GMP_IMP */

@@ -11,3 +11,9 @@ libsmt_la_SOURCES = \
 	modal_exception.h \
 	bad_option_exception.h \
 	no_such_function_exception.h
+
+EXTRA_DIST = \
+	bad_option_exception.i \
+	no_such_function_exception.i \
+	modal_exception.i \
+	smt_engine.i

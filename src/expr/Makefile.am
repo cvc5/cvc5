@@ -52,7 +52,13 @@ EXTRA_DIST = \
 	type_checker_template.cpp \
 	mkkind \
 	mkmetakind \
-	mkexpr
+	mkexpr \
+	expr_manager.i \
+	declaration_scope.i \
+	command.i \
+	type.i \
+	kind.i \
+	expr.i
 
 BUILT_SOURCES = \
 	kind.h \

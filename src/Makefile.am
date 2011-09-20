@@ -17,7 +17,7 @@ AM_CPPFLAGS = \
 	-I@srcdir@/include -I@srcdir@ -I@builddir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib expr util context theory prop smt printer bindings . parser compat main
+SUBDIRS = lib expr util context theory prop smt printer . parser compat bindings main
 
 lib_LTLIBRARIES = libcvc4.la
 if HAVE_CXXTESTGEN
@@ -57,7 +57,8 @@ EXTRA_DIST = \
 	include/cvc4parser_private.h \
 	include/cvc4parser_public.h \
 	include/cvc4_private.h \
-	include/cvc4_public.h
+	include/cvc4_public.h \
+	cvc4.i
 
 subversion_versioninfo.cpp: svninfo
 	$(AM_V_GEN)( \

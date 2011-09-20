@@ -114,6 +114,18 @@ bool Type::operator<(const Type& t) const {
   return *d_typeNode < *t.d_typeNode;
 }
 
+bool Type::operator<=(const Type& t) const {
+  return *d_typeNode <= *t.d_typeNode;
+}
+
+bool Type::operator>(const Type& t) const {
+  return *d_typeNode > *t.d_typeNode;
+}
+
+bool Type::operator>=(const Type& t) const {
+  return *d_typeNode >= *t.d_typeNode;
+}
+
 Type Type::substitute(const Type& type, const Type& replacement) const {
   NodeManagerScope nms(d_nodeManager);
   return makeType(d_typeNode->substitute(*type.d_typeNode,
@@ -610,7 +622,7 @@ BooleanType TesterType::getRangeType() const {
   return BooleanType(makeType(d_nodeManager->booleanType()));
 }
 
-size_t TypeHashFunction::operator()(const Type& t) {
+size_t TypeHashFunction::operator()(const Type& t) const {
   return TypeNodeHashFunction()(NodeManager::fromType(t));
 }
 

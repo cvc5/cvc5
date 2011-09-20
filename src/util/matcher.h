@@ -16,7 +16,7 @@
  ** A class representing a type matcher.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef __CVC4__MATCHER_H
 #define __CVC4__MATCHER_H

@@ -239,6 +239,11 @@ public:
     return (*this);
   }
 
+  Rational& operator/=(const Rational& y){
+    d_value /= y.d_value;
+    return (*this);
+  }
+
   /** Returns a string representing the rational in the given base. */
   std::string toString(int base = 10) const {
     return d_value.get_str(base);

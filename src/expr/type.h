@@ -63,7 +63,7 @@ class Type;
 /** Strategy for hashing Types */
 struct CVC4_PUBLIC TypeHashFunction {
   /** Return a hash code for type t */
-  size_t operator()(const CVC4::Type& t);
+  size_t operator()(const CVC4::Type& t) const;
 };/* struct TypeHashFunction */
 
 /**
@@ -84,7 +84,7 @@ class CVC4_PUBLIC Type {
   friend class NodeManager;
   friend class TypeNode;
   friend struct TypeHashStrategy;
-  friend std::ostream& operator<<(std::ostream& out, const Type& t);
+  friend std::ostream& CVC4::operator<<(std::ostream& out, const Type& t);
 
 protected:
 
@@ -189,6 +189,21 @@ public:
    * An ordering on Types so they can be stored in maps, etc.
    */
   bool operator<(const Type& t) const;
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator<=(const Type& t) const;
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator>(const Type& t) const;
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator>=(const Type& t) const;
 
   /**
    * Is this the Boolean type?

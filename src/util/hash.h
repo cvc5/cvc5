@@ -22,6 +22,9 @@
 #ifndef __CVC4__HASH_H
 #define __CVC4__HASH_H
 
+// in case it's not been declared as a namespace yet
+namespace __gnu_cxx {}
+
 #include <ext/hash_map>
 namespace std { using namespace __gnu_cxx; }
 

@@ -22,11 +22,6 @@
 #ifndef __CVC4__CARDINALITY_H
 #define __CVC4__CARDINALITY_H
 
-#if SWIG
-%include "util/integer.h"
-%include "util/Assert.h"
-#endif /* SWIG */
-
 #include <iostream>
 #include <utility>
 

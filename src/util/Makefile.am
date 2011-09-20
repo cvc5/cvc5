@@ -139,4 +139,24 @@ EXTRA_DIST = \
 	rational_gmp_imp.cpp \
 	rational.h.in \
 	integer.h.in \
-	tls.h.in
+	tls.h.in \
+	integer.i \
+	stats.i \
+	bool.i \
+	sexpr.i \
+	datatype.i \
+	output.i \
+	cardinality.i \
+	result.i \
+	configuration.i \
+	Assert.i \
+	bitvector.i \
+	subrange_bound.i \
+	exception.i \
+	language.i \
+	array.i \
+	options.i \
+	ascription_type.i \
+	rational.i \
+	pseudoboolean.i \
+	hash.i

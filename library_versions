@@ -1,4 +1,7 @@
-# Format is CVC4-RELEASE-VERSION-REGEXP (LIBRARY:VERSION)*
+# library_versions
+#
+# Format is:
+#   CVC4-RELEASE-VERSION-REGEXP (LIBRARY:VERSION)*
 #
 # This file contains library version release information.
 # Lines are matched while processing configure.ac (and generating
@@ -7,6 +10,15 @@
 # matching line counting.  The library versions following, one per
 # column, are then used.  If there are no matching lines, an error
 # is raised and the configure script is not generated.
+#
+# When a new CVC4 release is cut, this library_versions file should
+# be extended to provide library version information for that
+# release.  PLEASE DON'T REMOVE LINES (or edit historical lines)
+# from this file unless they are truly in error and the release
+# wasn't made with that erroneous information; this file should
+# ultimately provide a nice historical log of the mapping between
+# CVC4 release numbers and the corresponding interface version
+# information of libraries.
 #
 0\..* libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
 1\.0 libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
