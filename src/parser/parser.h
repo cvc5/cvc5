@@ -53,12 +53,13 @@ enum DeclarationCheck {
   CHECK_UNDECLARED,
   /** Don't check anything */
   CHECK_NONE
-};
+};/* enum DeclarationCheck */
 
 /**
  * Returns a string representation of the given object (for
  * debugging).
  */
+inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
   switch(check) {
   case CHECK_NONE:
@@ -80,12 +81,13 @@ enum SymbolType {
   SYM_VARIABLE,
   /** Sorts */
   SYM_SORT
-};
+};/* enum SymbolType */
 
 /**
  * Returns a string representation of the given object (for
  * debugging).
  */
+inline std::ostream& operator<<(std::ostream& out, SymbolType type) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:

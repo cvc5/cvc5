@@ -835,6 +835,30 @@ else
   AC_MSG_RESULT([no (user didn't request it)])
 fi
 
+# Java
+AC_ARG_VAR(JAVA, [Java interpreter (used when testing Java interface)])
+AC_ARG_VAR(JAVAC, [Java compiler (used when building and testing Java interface)])
+AC_ARG_VAR(JAR, [Jar archiver (used when building Java interface)])
+if test "$cvc4_build_java_bindings"; then
+  dnl AM_PROG_GCJ
+  if test -z "$JAVA"; then
+    AC_CHECK_PROGS(JAVA, java, java, [])
+  else
+    AC_CHECK_PROG(JAVA, "$JAVA", "$JAVA", [])
+  fi
+  if test -z "$JAVAC"; then
+    AC_CHECK_PROGS(JAVAC, javac gcj, javac, [])
+    if test "$JAVAC" = gcj; then JAVAC='gcj -C'; fi
+  else
+    AC_CHECK_PROG(JAVAC, "$JAVAC", "$JAVAC", [])
+  fi
+  if test -z "$JAR"; then
+    AC_CHECK_PROGS(JAR, jar, jar, [])
+  else
+    AC_CHECK_PROG(JAR, "$JAR", "$JAR", [])
+  fi
+fi
+
 # Prepare configure output
 
 if test "$enable_shared" = yes; then BUILDING_SHARED=1; else BUILDING_SHARED=0; fi

@@ -1,15 +1,23 @@
 TESTS_ENVIRONMENT =
+TEST_EXTENSIONS = .class
 TESTS = \
 	boilerplate \
 	ouroborous
 #	cvc3_main
+
+if CVC4_LANGUAGE_BINDING_JAVA
+TESTS += CVC4JavaTest.class
+endif
+
+CLASS_LOG_COMPILER = @srcdir@/run_java_test $(JAVA) -classpath .:@abs_top_builddir@/src/bindings/cvc4.jar -Djava.library.path=$(abs_top_builddir)/src/bindings/.libs:$(abs_top_builddir)/src/.libs
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
 TEST_DEPS_DIST = \
 	cvc3_main.cpp \
 	cvc3_george.h \
-	cvc3_george.cpp
+	cvc3_george.cpp \
+	CVC4JavaTest.java
 
 # Make-level dependencies; these don't go in the source distribution
 # but should trigger a re-compile of all unit tests.  Libraries are
@@ -54,12 +62,25 @@ LIBADD = \
 	@abs_top_builddir@/src/libcvc4.la
 
 # WHEN SYSTEM TESTS ARE ADDED, BUILD LIKE THIS:
-$(TESTS:%=%.lo): %.lo: %.cpp
+$(filter-out %.class.lo,$(TESTS:%=%.lo)): %.lo: %.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $+
-$(TESTS): %: %.lo $(LIBADD)
+$(filter-out %.class,$(TESTS)): %: %.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $<
 cvc3_main: cvc3_george.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $+
+CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/cvc4.jar @abs_top_builddir@/src/bindings/libcvc4bindings_java.la
+	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/cvc4.jar -d $(builddir) $<
+#CVC4JavaTest: CVC4JavaTest.class
+#	$(AM_V_GEN)( \
+#	echo "#!/bin/bash"; \
+#	echo "exec $(JAVA) -classpath @abs_top_builddir@/src/bindings/cvc4.jar -Djava.library.path=@abs_top_builddir@/src/bindings/.libs CVC4JavaTest"; \
+#	) >$@; \
+#	chmod +x $@
+
+# for silent automake rules
+AM_V_JAVAC = $(am__v_JAVAC_$(V))
+am__v_JAVAC_ = $(am__v_JAVAC_$(AM_DEFAULT_VERBOSITY))
+am__v_JAVAC_0 = @echo "  JAVAC " $@;
 
 # trick automake into setting LTCXXCOMPILE, CXXLINK, etc.
 if CVC4_FALSE

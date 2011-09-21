@@ -212,7 +212,7 @@ public:
     return ss.str();
   }
 
-};/* class DataStat<T> */
+};/* class ReadOnlyDataStat<T> */
 
 
 /**

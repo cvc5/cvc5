@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "input.h"
+#include "parser/input.h"
 
 #include "util/language.h"
 

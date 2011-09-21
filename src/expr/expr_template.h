@@ -506,7 +506,7 @@ protected:
   friend class ExprManager;
   friend class NodeManager;
   friend class TypeCheckingException;
-  friend std::ostream& operator<<(std::ostream& out, const Expr& e);
+  friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
   template <bool ref_count> friend class NodeTemplate;
 
 };/* class Expr */

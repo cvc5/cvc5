@@ -1,20 +1,33 @@
 %import "bindings/swig.h"
 
-%module cvc4
-%nspace;
+%module CVC4
+// nspace completely broken with Java packaging
+//%nspace;
 
 %{
-namespace CVC4 {}
+namespace CVC4 { class Exception; }
 using namespace CVC4;
 %}
 
+%exception {
+  try {
+    $action
+  } catch(CVC4::Exception& e) {
+    ::std::cerr << e << ::std::endl;
+    jclass clazz = jenv->FindClass("java/lang/RuntimeException");
+    jenv->ThrowNew(clazz, e.toString().c_str());
+  }
+}
+
+%include "std_string.i" // map std::string to java.lang.String
+
 %include "util/integer.i"
 %include "util/rational.i"
+%include "util/stats.i"
 %include "util/exception.i"
 %include "util/language.i"
 %include "util/options.i"
 %include "util/cardinality.i"
-%include "util/stats.i"
 %include "util/bool.i"
 %include "util/sexpr.i"
 %include "util/datatype.i"
@@ -40,3 +53,5 @@ using namespace CVC4;
 %include "smt/bad_option_exception.i"
 %include "smt/no_such_function_exception.i"
 %include "smt/modal_exception.i"
+
+%include "parser/cvc4parser.i"

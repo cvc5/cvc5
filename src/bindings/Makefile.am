@@ -1,3 +1,17 @@
+# LIBCVC4BINDINGS_VERSION (-version-info) is in the form current:revision:age
+#
+# current -
+#   increment if interfaces have been added, removed or changed
+# revision -
+#   increment if source code has changed
+#   set to zero if current is incremented
+# age -
+#   increment if interfaces have been added
+#   set to zero if interfaces have been removed
+#   or changed
+#
+LIBCVC4BINDINGS_VERSION = @CVC4_BINDINGS_LIBRARY_VERSION@
+
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4BINDINGSLIB \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
@@ -8,6 +22,11 @@ data_DATA =
 if CVC4_LANGUAGE_BINDING_JAVA
 lib_LTLIBRARIES += libcvc4bindings_java.la
 data_DATA += cvc4.jar
+libcvc4bindings_java_la_LDFLAGS = \
+	-version-info $(LIBCVC4BINDINGS_VERSION)
+libcvc4bindings_java_la_LIBADD = \
+	-L@builddir@/.. -lcvc4 \
+	-L@builddir@/../parser -lcvc4parser
 endif
 #	cvc4bindings_csharp.so \
 #	cvc4bindings_perl.so \
@@ -18,13 +37,13 @@ endif
 #	cvc4bindings_tcl.so
 
 nodist_libcvc4bindings_java_la_SOURCES = java.cpp
-#nodist_cvc4bindings_csharp_so_SOURCES = csharp.cpp
-#nodist_cvc4bindings_perl_so_SOURCES = perl.cpp
-#nodist_cvc4bindings_php_so_SOURCES = php.cpp
-#nodist_cvc4bindings_python_so_SOURCES = python.cpp
-#nodist_cvc4bindings_ocaml_so_SOURCES = ocaml.cpp
-#nodist_cvc4bindings_ruby_so_SOURCES = ruby.cpp
-#nodist_cvc4bindings_tcl_so_SOURCES = tcl.cpp
+nodist_libcvc4bindings_csharp_la_SOURCES = csharp.cpp
+nodist_libcvc4bindings_perl_la_SOURCES = perl.cpp
+nodist_libcvc4bindings_php_la_SOURCES = php.cpp
+nodist_libcvc4bindings_python_la_SOURCES = python.cpp
+nodist_libcvc4bindings_ocaml_la_SOURCES = ocaml.cpp
+nodist_libcvc4bindings_ruby_la_SOURCES = ruby.cpp
+nodist_libcvc4bindings_tcl_la_SOURCES = tcl.cpp
 
 BUILT_SOURCES = \
 	java.cpp \
@@ -42,8 +61,16 @@ CLEANFILES = \
 	$(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))) \
 	cvc4.jar
 
-java.lo: java.cpp; $(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_INCLUDES) -o $@ $<
-cvc4.jar: java.cpp; $(AM_V_GEN)jar cf $@ -C java .
+java.lo: java.cpp
+	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_INCLUDES) -o $@ $<
+cvc4.jar: java.cpp
+	$(AM_V_GEN) \
+	(cd java; \
+	rm -fr classes; \
+	mkdir -p classes; \
+	$(JAVAC) -classpath . -d classes `find . -name '*.java'`; \
+	cd classes); \
+	$(JAR) cf $@ -C java/classes .
 java.cpp:
 csharp.cpp:
 perl.cpp:
@@ -54,10 +81,10 @@ ruby.cpp:
 tcl.cpp:
 $(patsubst %,%.cpp,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.cpp: @srcdir@/../cvc4.i
 	$(AM_V_at)mkdir -p $(patsubst %.cpp,%,$@)
-	$(AM_V_GEN)$(SWIG) -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -module cvc4 -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) -package edu.nyu.acsys -o $@ $<
+	$(AM_V_GEN)$(SWIG) -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) -package edu.nyu.acsys.CVC4 -o $@ $<
 
 $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.d: @srcdir@/../cvc4.i
-	$(AM_V_GEN)$(SWIG) -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -module cvc4 -c++ -MM -o $(patsubst %.d,%.cpp,$@) $<
+	$(AM_V_GEN)$(SWIG) -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -c++ -MM -o $(patsubst %.d,%.cpp,$@) $<
 # .PHONY so they get rebuilt each time
 .PHONY: .swig_deps $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
 .swig_deps: $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))

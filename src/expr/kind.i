@@ -8,4 +8,6 @@
 
 %ignore CVC4::theory::operator++(TheoryId&);
 
+%rename(Kind) CVC4::kind::Kind_t;
+
 %include "expr/kind.h"

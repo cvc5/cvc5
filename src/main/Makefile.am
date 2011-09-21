@@ -17,9 +17,9 @@ libmain_a_SOURCES = \
 cvc4_SOURCES =
 cvc4_LDADD = \
 	libmain.a \
-	../parser/libcvc4parser.la \
-	../libcvc4.la \
-	../lib/libreplacements.la \
+	@builddir@/../parser/libcvc4parser.la \
+	@builddir@/../libcvc4.la \
+	@builddir@/../lib/libreplacements.la \
 	$(READLINE_LDFLAGS)
 
 BUILT_SOURCES = \
