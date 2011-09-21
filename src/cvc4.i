@@ -19,7 +19,15 @@ using namespace CVC4;
   }
 }
 
-%include "std_string.i" // map std::string to java.lang.String
+// This is unfortunate, but seems to be necessary; if we leave NULL
+// defined, swig will expand it to "(void*) 0", and some of swig's
+// helper functions won't compile properly.
+#undef NULL
+
+%include "java/typemaps.i" // primitive pointers and references
+%include "java/std_string.i" // map std::string to java.lang.String
+%include "java/arrays_java.i" // C arrays to Java arrays
+%include "java/various.i" // map char** to java.lang.String[]
 
 %include "util/integer.i"
 %include "util/rational.i"

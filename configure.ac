@@ -839,6 +839,7 @@ fi
 AC_ARG_VAR(JAVA, [Java interpreter (used when testing Java interface)])
 AC_ARG_VAR(JAVAC, [Java compiler (used when building and testing Java interface)])
 AC_ARG_VAR(JAR, [Jar archiver (used when building Java interface)])
+AC_ARG_VAR(JAVA_INCLUDES, [flags to pass to C compiler when building JNI libraries])
 if test "$cvc4_build_java_bindings"; then
   dnl AM_PROG_GCJ
   if test -z "$JAVA"; then

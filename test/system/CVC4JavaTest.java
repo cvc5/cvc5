@@ -6,6 +6,7 @@ import edu.nyu.acsys.CVC4.Expr;
 import edu.nyu.acsys.CVC4.Type;
 import edu.nyu.acsys.CVC4.BoolExpr;
 import edu.nyu.acsys.CVC4.Kind;
+import edu.nyu.acsys.CVC4.Result;
 import edu.nyu.acsys.CVC4.Configuration;
 
 //import edu.nyu.acsys.CVC4.Exception;
@@ -18,29 +19,32 @@ public class CVC4JavaTest {
     try {
       System.loadLibrary("cvc4bindings_java");
 
-      CVC4.getDebugChannel().on("current");
+      //CVC4.getDebugChannel().on("current");
 
-System.out.println(Configuration.about());
-System.out.println("constructing");
+      System.out.println(Configuration.about());
+
+      String[] tags = Configuration.getDebugTags();
+      System.out.print("available debug tags:");
+      for(int i = 0; i < tags.length; ++i) {
+        System.out.print(" " + tags[i]);
+      }
+      System.out.println();
 
       ExprManager em = new ExprManager();
       SmtEngine smt = new SmtEngine(em);
 
-System.out.println("getting type");
       Type t = em.booleanType();
-System.out.println("making vars");
       Expr a = em.mkVar("a", em.booleanType());
       Expr b = em.mkVar("b", em.booleanType());
-System.out.println("making sausage");
-      BoolExpr e = new BoolExpr(em.mkExpr(Kind.AND, a, b));
+      BoolExpr e = new BoolExpr(em.mkExpr(Kind.AND, a, b, new BoolExpr(a).notExpr()));
+      System.out.println("==> " + e);
 
-System.out.println("about to check");
-
-      System.out.println(smt.checkSat(e));
+      Result r = smt.checkSat(e);
+      boolean correct = r.isSat() == Result.Sat.UNSAT;
 
       System.out.println(smt.getStatisticsRegistry());
 
-      System.exit(1);
+      System.exit(correct ? 0 : 1);
     } catch(Exception e) {
       System.err.println(e);
       System.exit(1);

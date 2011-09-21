@@ -97,15 +97,12 @@ endif
 
 %_tags.h: %_tags
 	$(AM_V_GEN)( \
-	echo 'static char const *const $^[] = {'; \
-	first=1; \
-	for tag in `cat $^`; \
-	do \
-	    if [ $$first -eq 1 ]; then first=0; else echo ','; fi; \
-		echo -n "\"$$tag\""; \
-	done; \
-	echo; \
-	echo '};' \
+	  echo 'static char const* const $^[] = {'; \
+	  for tag in `cat $^`; do \
+	    echo "\"$$tag\","; \
+	  done; \
+	  echo 'NULL'; \
+	  echo '};' \
 	) >"$@"
 
 # This .tmp business is to keep from having to re-compile options.cpp

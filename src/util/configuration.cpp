@@ -137,7 +137,8 @@ char const* const* Configuration::getDebugTags() {
 #if CVC4_DEBUG
   return Debug_tags;
 #else /* CVC4_DEBUG */
-  return NULL;
+  static char const* no_tags[] = { NULL };
+  return no_tags;
 #endif /* CVC4_DEBUG */
 }
 
@@ -153,7 +154,8 @@ char const* const* Configuration::getTraceTags() {
 #if CVC4_TRACING
   return Trace_tags;
 #else /* CVC4_TRACING */
-  return NULL;
+  static char const* no_tags[] = { NULL };
+  return no_tags;
 #endif /* CVC4_TRACING */
 }
 
