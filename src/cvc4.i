@@ -1,13 +1,44 @@
 %import "bindings/swig.h"
+%include "stdint.i"
+%include "stl.i"
 
 %module CVC4
 // nspace completely broken with Java packaging
 //%nspace;
 
+namespace std {
+  class istream;
+  class ostream;
+  template <class T> class set {};
+  template <class K, class V, class H> class hash_map {};
+}
+
 %{
-namespace CVC4 { class Exception; }
+namespace CVC4 {}
 using namespace CVC4;
+
+#include <iostream>
+#include <vector>
+#include <set>
+#include <string>
+#include <ext/hash_map>
+
+#include "util/sexpr.h"
+#include "util/exception.h"
+#include "expr/type.h"
+#include "expr/expr.h"
+#include "util/datatype.h"
+#include "expr/command.h"
 %}
+
+%template(vectorCommandPtr) std::vector< CVC4::Command* >;
+%template(vectorType) std::vector< CVC4::Type >;
+%template(vectorExpr) std::vector< CVC4::Expr >;
+%template(vectorDatatypeType) std::vector< CVC4::DatatypeType >;
+%template(vectorSExpr) std::vector< CVC4::SExpr >;
+%template(vectorString) std::vector< std::string >;
+%template(setType) std::set< CVC4::Type >;
+%template(hashmapExpr) std::hash_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
 %exception {
   try {
@@ -38,7 +69,6 @@ using namespace CVC4;
 %include "util/cardinality.i"
 %include "util/bool.i"
 %include "util/sexpr.i"
-%include "util/datatype.i"
 %include "util/output.i"
 %include "util/result.i"
 %include "util/configuration.i"
@@ -46,16 +76,19 @@ using namespace CVC4;
 %include "util/bitvector.i"
 %include "util/subrange_bound.i"
 %include "util/array.i"
-%include "util/ascription_type.i"
 %include "util/pseudoboolean.i"
 %include "util/hash.i"
 
+%include "expr/type.i"
+%include "util/ascription_type.i"
+%include "util/datatype.i"
+
+%include "expr/kind.i"
+%include "expr/expr.i"
 %include "expr/command.i"
 %include "expr/declaration_scope.i"
-%include "expr/kind.i"
-%include "expr/type.i"
-%include "expr/expr.i"
 %include "expr/expr_manager.i"
+%include "expr/expr_stream.i"
 
 %include "smt/smt_engine.i"
 %include "smt/bad_option_exception.i"

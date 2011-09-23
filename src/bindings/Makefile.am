@@ -81,7 +81,7 @@ ruby.cpp:
 tcl.cpp:
 $(patsubst %,%.cpp,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.cpp: @srcdir@/../cvc4.i
 	$(AM_V_at)mkdir -p $(patsubst %.cpp,%,$@)
-	$(AM_V_GEN)$(SWIG) -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) -package edu.nyu.acsys.CVC4 -o $@ $<
+	$(AM_V_GEN)$(SWIG) -Wall -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) -package edu.nyu.acsys.CVC4 -o $@ $<
 
 $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.d: @srcdir@/../cvc4.i
 	$(AM_V_GEN)$(SWIG) -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -c++ -MM -o $(patsubst %.d,%.cpp,$@) $<

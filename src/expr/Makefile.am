@@ -53,6 +53,7 @@ EXTRA_DIST = \
 	mkkind \
 	mkmetakind \
 	mkexpr \
+	expr_stream.i \
 	expr_manager.i \
 	declaration_scope.i \
 	command.i \

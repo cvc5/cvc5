@@ -1,6 +1,24 @@
 %{
 #include "util/datatype.h"
+namespace CVC4 {
+//typedef CVC4::Datatype::Constructor DatatypeConstructor;
+}
 %}
+
+namespace CVC4 {
+%rename(DatatypeConstructor) CVC4::Datatype::Constructor;
+//%rename(DatatypeConstructor) CVC4::Constructor;
+}
+
+%extend std::vector< CVC4::Datatype > {
+  %ignore vector(size_type);
+};
+%template(vectorDatatype) std::vector< CVC4::Datatype >;
+
+%extend std::vector< CVC4::Datatype::Constructor > {
+  %ignore vector(size_type);
+};
+%template(vectorDatatypeConstructor) std::vector< CVC4::Datatype::Constructor >;
 
 %rename(equals) CVC4::Datatype::operator==(const Datatype&) const;
 %ignore CVC4::Datatype::operator!=(const Datatype&) const;
@@ -18,5 +36,6 @@
 %ignore CVC4::operator<<(std::ostream&, const Datatype&);
 %ignore CVC4::operator<<(std::ostream&, const Datatype::Constructor&);
 %ignore CVC4::operator<<(std::ostream&, const Datatype::Constructor::Arg&);
+
 
 %include "util/datatype.h"

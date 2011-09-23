@@ -376,10 +376,6 @@ public:
   /** Make a new sort with the given name. */
   SortType mkSort(const std::string& name) const;
 
-  /** Make a new sort from a constructor. */
-  SortType mkSort(SortConstructorType constructor,
-                  const std::vector<TypeNode>& children) const;
-
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
                                         size_t arity) const;

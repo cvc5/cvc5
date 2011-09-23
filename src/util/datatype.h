@@ -326,9 +326,9 @@ public:
   };/* class Datatype::Constructor */
 
   /** The type for iterators over constructors. */
-  typedef std::vector<Constructor>::iterator iterator;
+  typedef typename std::vector<Constructor>::iterator iterator;
   /** The (const) type for iterators over constructors. */
-  typedef std::vector<Constructor>::const_iterator const_iterator;
+  typedef typename std::vector<Constructor>::const_iterator const_iterator;
 
 private:
   std::string d_name;
@@ -448,13 +448,13 @@ public:
   inline bool isResolved() const throw();
 
   /** Get the beginning iterator over Constructors. */
-  inline iterator begin() throw();
+  inline std::vector<Constructor>::iterator begin() throw();
   /** Get the ending iterator over Constructors. */
-  inline iterator end() throw();
+  inline std::vector<Constructor>::iterator end() throw();
   /** Get the beginning const_iterator over Constructors. */
-  inline const_iterator begin() const throw();
+  inline std::vector<Constructor>::const_iterator begin() const throw();
   /** Get the ending const_iterator over Constructors. */
-  inline const_iterator end() const throw();
+  inline std::vector<Constructor>::const_iterator end() const throw();
 
   /** Get the ith Constructor. */
   const Constructor& operator[](size_t index) const;
