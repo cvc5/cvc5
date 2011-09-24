@@ -21,7 +21,7 @@ SUBDIRS = lib expr util context theory prop smt printer . parser compat bindings
 
 lib_LTLIBRARIES = libcvc4.la
 if HAVE_CXXTESTGEN
-noinst_LTLIBRARIES = libcvc4_noinst.la
+check_LTLIBRARIES = libcvc4_noinst.la
 endif
 
 libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)

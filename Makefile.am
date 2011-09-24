@@ -10,7 +10,10 @@ SUBDIRS = src test contrib
 .PHONY: units systemtests regress regress0 regress1 regress2 regress3
 systemtests regress regress0 regress1 regress2 regress3: all
 	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
+# We descend into "src" with the "check" target here to ensure that
+# the test prerequisites are all built.
 units: all
+	(cd src && $(MAKE) $(AM_MAKEFLAGS) check)
 	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 
 LCOV = lcov
@@ -29,6 +32,7 @@ if COVERAGE_ENABLED
 # work...)
 lcov: all
 	$(LCOV) -z -d .
+	$(MAKE) check -C src
 	+$(MAKE) check -C test/unit
 	$(LCOV) -c -d . -t cvc4_units -o cvc4-coverage-full.info
 	$(LCOV) -o cvc4-coverage.info -r cvc4-coverage-full.info $(LCOV_EXCLUDES)
@@ -40,6 +44,7 @@ lcov: all
 
 lcov-all: all
 	$(LCOV) -z -d .
+	$(MAKE) check -C src
 	+$(MAKE) check -C test
 	$(LCOV) -c -d . -t cvc4_units -o cvc4-coverage-full.info
 	$(LCOV) -o cvc4-coverage.info -r cvc4-coverage-full.info $(LCOV_EXCLUDES)
@@ -57,6 +62,8 @@ lcov18: all
 		echo; echo "=== Collecting coverage data from $$testtype unit tests ==="; \
 		echo $(LCOV) -z -d .; \
 		$(LCOV) -z -d . || exit 1; \
+		echo $(MAKE) check -C src || exit 1; \
+		$(MAKE) check -C src || exit 1; \
 		echo $(MAKE) check -C test/unit TEST_SUFFIX=_$$testtype || exit 1; \
 		$(MAKE) check -C test/unit TEST_SUFFIX=_$$testtype || exit 1; \
 		echo $(LCOV) -c -d . -t $$testtype -o cvc4-coverage-$$testtype-full.info || exit 1; \
