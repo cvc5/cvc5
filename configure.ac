@@ -745,6 +745,20 @@ if test -n "$CXXTEST"; then
   fi
 fi
 
+AC_ARG_VAR(PYTHON, [PYTHON interpreter (used for building legacy Java library interface)])
+
+if test -z "$PYTHON"; then
+  AC_CHECK_PROGS(PYTHON, python, python, [])
+else
+  AC_CHECK_PROG(PYTHON, "$PYTHON", "$PYTHON", [])
+fi
+
+if test -z "$PYTHON"; then
+  AC_MSG_WARN([python not found, cannot build libcvc4compat_java (the legacy Java interface).])
+  CXXTESTGEN=
+  CXXTEST=
+fi
+
 # Checks for libraries.
 AC_CHECK_LIB(z, gzread, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
@@ -838,6 +852,7 @@ fi
 # Java
 AC_ARG_VAR(JAVA, [Java interpreter (used when testing Java interface)])
 AC_ARG_VAR(JAVAC, [Java compiler (used when building and testing Java interface)])
+AC_ARG_VAR(JAVAH, [Java compiler (used when building and testing Java interface)])
 AC_ARG_VAR(JAR, [Jar archiver (used when building Java interface)])
 AC_ARG_VAR(JAVA_INCLUDES, [flags to pass to C compiler when building JNI libraries])
 if test "$cvc4_build_java_bindings"; then
@@ -852,6 +867,11 @@ if test "$cvc4_build_java_bindings"; then
     if test "$JAVAC" = gcj; then JAVAC='gcj -C'; fi
   else
     AC_CHECK_PROG(JAVAC, "$JAVAC", "$JAVAC", [])
+  fi
+  if test -z "$JAVAH"; then
+    AC_CHECK_PROGS(JAVAH, javah gcjh, javah, [])
+  else
+    AC_CHECK_PROG(JAVAH, "$JAVAH", "$JAVAH", [])
   fi
   if test -z "$JAR"; then
     AC_CHECK_PROGS(JAR, jar, jar, [])

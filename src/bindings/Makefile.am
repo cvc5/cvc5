@@ -17,6 +17,8 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
 AM_CXXFLAGS = -Wall $(FLAG_VISIBILITY_HIDDEN)
 
+SUBDIRS = . compat
+
 lib_LTLIBRARIES =
 data_DATA =
 if CVC4_LANGUAGE_BINDING_JAVA
