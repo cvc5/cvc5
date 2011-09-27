@@ -21,7 +21,7 @@ if CVC4_BUILD_LIBCOMPAT
 
 lib_LTLIBRARIES = libcvc4compat.la
 if HAVE_CXXTESTGEN
-noinst_LTLIBRARIES = libcvc4compat_noinst.la
+check_LTLIBRARIES = libcvc4compat_noinst.la
 endif
 
 libcvc4compat_la_LDFLAGS = \
@@ -48,6 +48,7 @@ libcvc4compat_noinst_la_SOURCES = \
 else
 
 EXTRA_DIST = \
+	cvc3_kinds.h \
 	cvc3_compat.h \
 	cvc3_compat.cpp
 

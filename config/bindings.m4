@@ -2,7 +2,7 @@
 # -----------------------
 # Supported language bindings for CVC4.
 AC_DEFUN([CVC4_SUPPORTED_BINDINGS],
-[java,csharp,perl,php,python,ruby,tcl,ocaml])
+[c,java,csharp,perl,php,python,ruby,tcl,ocaml])
 
 # CVC4_CHECK_BINDINGS(DEFAULT_BINDINGS_LIST)
 # ------------------------------------------
@@ -33,7 +33,7 @@ if test "$noswig" = yes; then
   fi
 else
   if test -z "$SWIG"; then
-    AC_CHECK_PROGS(SWIG, swig, swig, [])
+    AC_CHECK_PROGS(SWIG, [swig swig2.0], swig, [])
   else
     AC_CHECK_PROG(SWIG, "$SWIG", "$SWIG", [])
   fi
@@ -54,7 +54,11 @@ else
       binding_error=no
       AC_MSG_CHECKING([for availability of $binding binding])
       case "$binding" in
-        c++) AC_MSG_RESULT([C++ is built by default]);;
+        c++)
+          AC_MSG_RESULT([C++ is built by default]);;
+        c)
+          cvc4_build_c_bindings=yes
+          AC_MSG_RESULT([C support will be built]);;
         java)
           cvc4_build_java_bindings=yes
           AC_MSG_RESULT([Java support will be built]);;

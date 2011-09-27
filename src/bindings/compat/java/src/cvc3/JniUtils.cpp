@@ -19,7 +19,7 @@ namespace Java_cvc3_JniUtils {
 
   /// Embedding of c++ objects in java objects
 
-  Embedded* unembed(JNIEnv* env, jobject jobj) {
+  /*Embedded* unembed(JNIEnv* env, jobject jobj) {
     Embedded* embedded = (Embedded*) env->GetDirectBufferAddress(jobj);
     DebugAssert(embedded != NULL, "JniUtils::unembed: embedded object is NULL");
     return embedded;
@@ -29,7 +29,7 @@ namespace Java_cvc3_JniUtils {
     Embedded* embedded = unembed(env, jobj);
     DebugAssert(embedded != NULL, "JniUtils::deleteEmbedded: embedded object is NULL");
     delete embedded;
-  }
+  }*/
 
 
 
@@ -73,16 +73,20 @@ namespace Java_cvc3_JniUtils {
     }
     
     DebugAssert(false, "JniUtils::toJava(FormulaValue): unreachable");
+    return toJava(env, "UNDEFINED");
   }
 
   jstring toJava(JNIEnv* env, CVC3::InputLanguage lang) {
     switch (lang) {
     case PRESENTATION_LANG: return toJava(env, "PRESENTATION");
     case SMTLIB_LANG: return toJava(env, "SMTLIB");
-    case LISP_LANG: return toJava(env, "LISP");
+    case SMTLIB_V2_LANG: return toJava(env, "SMTLIB_V2");
+    //case LISP_LANG: return toJava(env, "LISP");
+    default: /* fall through */;
     }
     
     DebugAssert(false, "JniUtils::toJava(InputLanguage): unreachable");
+    return toJava(env, "UNDEFINED");
   }
 
   InputLanguage toCppInputLanguage(JNIEnv* env, const string& lang) {
@@ -90,11 +94,16 @@ namespace Java_cvc3_JniUtils {
       return PRESENTATION_LANG;
     } else if (lang.compare("SMTLIB") == 0) {
       return SMTLIB_LANG;
+    } else if (lang.compare("SMTLIB_V2") == 0) {
+      return SMTLIB_V2_LANG;
+    /*
     } else if (lang.compare("LISP") == 0) {
       return LISP_LANG;
+    */
     }
     
     DebugAssert(false, "JniUtils::toCpp(InputLanguage): unreachable");
+    return CVC4::language::input::LANG_MAX;
   }
 
   void toJava(JNIEnv* env, const Exception& e) {
@@ -161,7 +170,7 @@ namespace Java_cvc3_JniUtils {
 	env->FindClass("java/lang/String"),
 	env->NewStringUTF(""));
 
-    for(int i = 0; i < v.size(); ++i) {
+    for(unsigned i = 0; i < v.size(); ++i) {
       env->SetObjectArrayElement(jarray, i, toJava(env, v[i]));
     }
 

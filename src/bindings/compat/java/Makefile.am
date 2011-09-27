@@ -27,7 +27,7 @@ data_DATA += cvc4compat.jar
 libcvc4bindings_java_compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4bindings_java_compat_la_LIBADD = \
-	-L@builddir@/../compat -lcvc4compat
+	-L@builddir@/../../../compat -lcvc4compat
 
 endif
 
@@ -68,7 +68,7 @@ SRC_CPP_FILES = JniUtils.cpp
 # all cpp files (to compile)
 CPP_FILES = $(SRC_CPP_FILES) $(JNI_CPP_FILES)
 
-nodist_libcvc4bindings_java_compat_la_SOURCES = $(CPP_FILES)
+libcvc4bindings_java_compat_la_SOURCES = $(CPP_FILES)
 
 HEADER_FILES = JniUtils.h
 PYTHON_FILES = run_all.py run_tests.py create_impl.py

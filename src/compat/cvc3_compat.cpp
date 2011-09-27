@@ -265,11 +265,11 @@ size_t Expr::hash() const {
 }
 
 bool Expr::isFalse() const {
-  return getKind() == CVC4::kind::CONST_BOOLEAN && !getConst<bool>();
+  return getKind() == CVC4::kind::CONST_BOOLEAN && getConst<bool>() == false;
 }
 
 bool Expr::isTrue() const {
-  return getKind() == CVC4::kind::CONST_BOOLEAN && getConst<bool>();
+  return getKind() == CVC4::kind::CONST_BOOLEAN && getConst<bool>() == true;
 }
 
 bool Expr::isBoolConst() const {
@@ -278,6 +278,26 @@ bool Expr::isBoolConst() const {
 
 bool Expr::isVar() const {
   return isVariable();
+}
+
+bool Expr::isString() const {
+  return false;
+}
+
+bool Expr::isApply() const {
+  return hasOperator();
+}
+
+bool Expr::isTheorem() const {
+  return false;
+}
+
+bool Expr::isConstant() const {
+  return isConst();
+}
+
+bool Expr::isRawList() const {
+  return false;
 }
 
 bool Expr::isEq() const {
@@ -318,6 +338,28 @@ bool Expr::isRational() const {
 
 bool Expr::isSkolem() const {
   return getKind() == CVC4::kind::SKOLEM;
+}
+
+Op Expr::mkOp() const {
+  return *this;
+}
+
+Op Expr::getOp() const {
+  return getOperator();
+}
+
+Expr Expr::getOpExpr() const {
+  return getOperator();
+}
+
+int Expr::getOpKind() const {
+  Expr op = getOperator();
+  int k = op.getKind();
+  return k == BUILTIN ? getKind() : k;
+}
+
+Expr Expr::getExpr() const {
+  return *this;
 }
 
 std::vector< std::vector<Expr> > Expr::getTriggers() const {
@@ -1887,6 +1929,24 @@ Statistics& ValidityChecker::getStatistics() {
 
 void ValidityChecker::printStatistics() {
   Message() << d_smt->getStatisticsRegistry();
+}
+
+int compare(const Expr& e1, const Expr& e2) {
+  // Quick equality check (operator== is implemented independently
+  // and more efficiently)
+  if(e1 == e2) return 0;
+
+  if(e1.isNull()) return -1;
+  if(e2.isNull()) return 1;
+
+  // Both are non-Null.  Check for constant
+  bool e1c = e1.isConstant();
+  if (e1c != e2.isConstant()) {
+    return e1c ? -1 : 1;
+  }
+
+  // Compare the indices
+  return (e1.getIndex() < e2.getIndex())? -1 : 1;
 }
 
 }/* CVC3 namespace */

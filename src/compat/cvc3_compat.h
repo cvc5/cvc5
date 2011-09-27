@@ -228,8 +228,8 @@ class Proof {};
 
 using CVC4::ExprManager;
 using CVC4::InputLanguage;
-using CVC4::Rational;
 using CVC4::Integer;
+using CVC4::Rational;
 using CVC4::Exception;
 using CVC4::Cardinality;
 using namespace CVC4::kind;
@@ -299,6 +299,9 @@ public:
 
 };/* class CVC3::Type */
 
+class Expr;
+typedef Expr Op;
+
 /**
  * Expr class for CVC3 compatibility layer.
  *
@@ -341,6 +344,11 @@ public:
   bool isTrue() const;
   bool isBoolConst() const;
   bool isVar() const;
+  bool isString() const;
+  bool isApply() const;
+  bool isTheorem() const;
+  bool isConstant() const;
+  bool isRawList() const;
 
   bool isEq() const;
   bool isNot() const;
@@ -353,6 +361,14 @@ public:
 
   bool isRational() const;
   bool isSkolem() const;
+
+  Rational getRational() const;
+
+  Op mkOp() const;
+  Op getOp() const;
+  Expr getOpExpr() const;
+  int getOpKind() const;
+  Expr getExpr() const;// since people are used to doing getOp().getExpr() in CVC3
 
   //! Get the manual triggers of the closure Expr
   std::vector< std::vector<Expr> > getTriggers() const;
@@ -389,7 +405,6 @@ public:
 
 };/* class CVC3::Expr */
 
-typedef Expr Op;
 typedef CVC4::StatisticsRegistry Statistics;
 
 #define PRESENTATION_LANG ::CVC4::language::input::LANG_CVC4
@@ -1459,6 +1474,9 @@ template <class T>
 void ExprHashMap<T>::insert(Expr a, Expr b) {
   (*this)[a] = b;
 }
+
+// Comparison (the way that CVC3 does it)
+int compare(const Expr& e1, const Expr& e2);
 
 }/* CVC3 namespace */
 
