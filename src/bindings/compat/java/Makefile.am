@@ -112,51 +112,15 @@ SRC_CPP_FILES = src/cvc3/JniUtils.cpp
 # all cpp files (to compile)
 CPP_FILES = $(SRC_CPP_FILES) $(JNI_CPP_FILES)
 
-dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) $(IMPL_FILES)
+dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) $(IMPL_FILES) include/cvc3/JniUtils.h
 nodist_libcvc4bindings_java_compat_la_SOURCES = $(JNI_CPP_FILES)
 BUILT_SOURCES = $(JNI_CPP_FILES)
 
-EXTRA_DIST =
+EXTRA_DIST = \
 	formula_value.h \
 	create_impl.py \
 	Cvc3_manifest \
-	src/cvc3/JniUtils.java \
-	src/cvc3/Cvc3Exception.java \
-	src/cvc3/TypecheckException.java \
-	src/cvc3/SoundException.java \
-	src/cvc3/EvalException.java \
-	src/cvc3/CLException.java \
-	src/cvc3/ParserException.java \
-	src/cvc3/SmtlibException.java \
-	src/cvc3/DebugException.java \
-	src/cvc3/Embedded.java \
-	src/cvc3/EmbeddedManager.java \
-	src/cvc3/InputLanguage.java \
-	src/cvc3/QueryResult.java \
-	src/cvc3/SatResult.java \
-	src/cvc3/FormulaValue.java \
-	src/cvc3/Expr.java \
-	src/cvc3/ExprMut.java \
-	src/cvc3/ExprManager.java \
-	src/cvc3/ExprManagerMut.java \
-	src/cvc3/Type.java \
-	src/cvc3/TypeMut.java \
-	src/cvc3/Op.java \
-	src/cvc3/OpMut.java \
-	src/cvc3/Rational.java \
-	src/cvc3/RationalMut.java \
-	src/cvc3/Theorem.java \
-	src/cvc3/TheoremMut.java \
-	src/cvc3/Proof.java \
-	src/cvc3/ProofMut.java \
-	src/cvc3/Context.java \
-	src/cvc3/ContextMut.java \
-	src/cvc3/Flag.java \
-	src/cvc3/Flags.java \
-	src/cvc3/FlagsMut.java \
-	src/cvc3/Statistics.java \
-	src/cvc3/StatisticsMut.java \
-	src/cvc3/ValidityChecker.java
+	$(JAVA_FILES:%=src/cvc3/%.java)
 
 # compile each cpp file
 $(JNI_CPP_FILES): %.cpp: src/cvc3/%_impl.cpp $(builddir)/cvc3/%.h include/cvc3/JniUtils.h
