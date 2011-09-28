@@ -326,9 +326,9 @@ public:
   };/* class Datatype::Constructor */
 
   /** The type for iterators over constructors. */
-  typedef typename std::vector<Constructor>::iterator iterator;
+  typedef std::vector<Constructor>::iterator iterator;
   /** The (const) type for iterators over constructors. */
-  typedef typename std::vector<Constructor>::const_iterator const_iterator;
+  typedef std::vector<Constructor>::const_iterator const_iterator;
 
 private:
   std::string d_name;
