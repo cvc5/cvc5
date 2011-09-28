@@ -32,7 +32,7 @@ namespace CVC4 {
 
 class Rational;
 
-class Integer {
+class CVC4_PUBLIC Integer {
 private:
   /**
    * Stores the value of the rational is stored in a C++ GMP integer class.
