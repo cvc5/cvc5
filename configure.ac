@@ -652,6 +652,9 @@ fi
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 
+CVC4_CXX_OPTION([-Wno-conversion-null], [WNO_CONVERSION_NULL])
+AC_SUBST([WNO_CONVERSION_NULL])
+
 # Doxygen configuration
 AC_ARG_ENABLE([internals-documentation],
   [AS_HELP_STRING([--enable-internals-documentation],

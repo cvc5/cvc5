@@ -86,3 +86,19 @@ AC_DEFUN([CVC4_CONFIG_FILE_ONLY_IF_CHANGED], [
 AC_CONFIG_FILES([$1.tmp:$1.in],
                 CVC4_COPY_IF_CHANGED([$1.tmp],[$1]))
 ])# CVC4_CONFIG_FILE_ONLY_IF_CHANGED
+
+# CVC4_CXX_OPTION(OPTION, VAR)
+# ----------------------------
+# Run $(CXX) $(CPPFLAGS) $(CXXFLAGS) OPTION and see if the compiler
+# likes it.  If so, add OPTION to shellvar VAR.
+AC_DEFUN([CVC4_CXX_OPTION], [
+AC_MSG_CHECKING([whether $CXX supports $1])
+cvc4_save_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $1"
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE([int main() { return 0; }],
+                  [AC_MSG_RESULT([yes]); $2='$1'],
+                  [AC_MSG_RESULT([no])])
+AC_LANG_POP([C++])
+CXXFLAGS="$cvc4_save_CXXFLAGS"
+])# CVC4_CXX_OPTION
