@@ -57,6 +57,8 @@ BUILT_SOURCES = \
 	ruby.cpp \
 	tcl.cpp
 
+EXTRA_DIST = swig.h
+
 CLEANFILES = \
 	$(BUILT_SOURCES) \
         .swig_deps \

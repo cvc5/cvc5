@@ -35,15 +35,43 @@ endif
 # java files of the library wrapper
 LIB_FILES = \
 	JniUtils \
-	Cvc3Exception TypecheckException SoundException EvalException \
-	CLException ParserException SmtlibException DebugException \
-	Embedded EmbeddedManager \
-	InputLanguage QueryResult SatResult FormulaValue \
-	Expr ExprMut ExprManager ExprManagerMut \
-	Type TypeMut Op OpMut Rational RationalMut \
-	Theorem TheoremMut Proof ProofMut Context ContextMut \
-	Flag Flags FlagsMut \
-	Statistics StatisticsMut ValidityChecker
+	Cvc3Exception \
+	TypecheckException \
+	SoundException \
+	EvalException \
+	CLException \
+	ParserException \
+	SmtlibException \
+	DebugException \
+	Embedded \
+	EmbeddedManager \
+	InputLanguage \
+	QueryResult \
+	SatResult \
+	FormulaValue \
+	Expr \
+	ExprMut \
+	ExprManager \
+	ExprManagerMut \
+	Type \
+	TypeMut \
+	Op \
+	OpMut \
+	Rational \
+	RationalMut \
+	Theorem \
+	TheoremMut \
+	Proof \
+	ProofMut \
+	Context \
+	ContextMut \
+	Flag \
+	Flags \
+	FlagsMut \
+	Statistics \
+	StatisticsMut \
+	ValidityChecker
+
 # java files of the test program
 TEST_FILES = Test
 # java files of the stand alone program
@@ -53,35 +81,91 @@ JAVA_FILES = $(LIB_FILES) $(TEST_FILES) $(PROG_FILES)
 # jni files of the library wrapper
 JNI_FILES = \
 	EmbeddedManager \
-	Expr ExprMut ExprManager \
-	Type TypeMut Op OpMut Rational RationalMut \
-	Theorem TheoremMut Proof ProofMut Context ContextMut \
-	Flag Flags FlagsMut \
-	Statistics StatisticsMut ValidityChecker
+	Expr \
+	ExprMut \
+	ExprManager \
+	Type \
+	TypeMut \
+	Op \
+	OpMut \
+	Rational \
+	RationalMut \
+	Theorem \
+	TheoremMut \
+	Proof \
+	ProofMut \
+	Context \
+	ContextMut \
+	Flag \
+	Flags \
+	FlagsMut \
+	Statistics \
+	StatisticsMut \
+	ValidityChecker
 
 # stub files
-IMPL_FILES = $(addsuffix _impl.cpp,$(JNI_FILES))
+IMPL_FILES = $(patsubst %,src/cvc3/%_impl.cpp,$(JNI_FILES))
 # generated files
 JNI_CPP_FILES = $(patsubst %,%.cpp,$(JNI_FILES))
 # non-generated files
-SRC_CPP_FILES = JniUtils.cpp 
+SRC_CPP_FILES = src/cvc3/JniUtils.cpp
 # all cpp files (to compile)
 CPP_FILES = $(SRC_CPP_FILES) $(JNI_CPP_FILES)
 
-libcvc4bindings_java_compat_la_SOURCES = $(CPP_FILES)
+dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) $(IMPL_FILES)
+nodist_libcvc4bindings_java_compat_la_SOURCES = $(JNI_CPP_FILES)
+BUILT_SOURCES = $(JNI_CPP_FILES)
 
-HEADER_FILES = JniUtils.h
-PYTHON_FILES = run_all.py run_tests.py create_impl.py
-MANIFEST_FILES = Cvc3_manifest Test_manifest
+EXTRA_DIST =
+	formula_value.h \
+	create_impl.py \
+	Cvc3_manifest \
+	src/cvc3/JniUtils.java \
+	src/cvc3/Cvc3Exception.java \
+	src/cvc3/TypecheckException.java \
+	src/cvc3/SoundException.java \
+	src/cvc3/EvalException.java \
+	src/cvc3/CLException.java \
+	src/cvc3/ParserException.java \
+	src/cvc3/SmtlibException.java \
+	src/cvc3/DebugException.java \
+	src/cvc3/Embedded.java \
+	src/cvc3/EmbeddedManager.java \
+	src/cvc3/InputLanguage.java \
+	src/cvc3/QueryResult.java \
+	src/cvc3/SatResult.java \
+	src/cvc3/FormulaValue.java \
+	src/cvc3/Expr.java \
+	src/cvc3/ExprMut.java \
+	src/cvc3/ExprManager.java \
+	src/cvc3/ExprManagerMut.java \
+	src/cvc3/Type.java \
+	src/cvc3/TypeMut.java \
+	src/cvc3/Op.java \
+	src/cvc3/OpMut.java \
+	src/cvc3/Rational.java \
+	src/cvc3/RationalMut.java \
+	src/cvc3/Theorem.java \
+	src/cvc3/TheoremMut.java \
+	src/cvc3/Proof.java \
+	src/cvc3/ProofMut.java \
+	src/cvc3/Context.java \
+	src/cvc3/ContextMut.java \
+	src/cvc3/Flag.java \
+	src/cvc3/Flags.java \
+	src/cvc3/FlagsMut.java \
+	src/cvc3/Statistics.java \
+	src/cvc3/StatisticsMut.java \
+	src/cvc3/ValidityChecker.java
 
 # compile each cpp file
-$(JNI_CPP_FILES): %.cpp: %_impl.cpp $(builddir)%.h JniUtils.h
-	$(AM_V_GEN)$(PYTHON) ./create_impl.py \
-		$(HEADER_PATH)/$(PACKAGE)/$*.h \
-		$(SOURCE_PATH)/$(PACKAGE)/$*_impl.cpp \
-		$(SOURCE_PATH)/$(PACKAGE)/$*.cpp
+$(JNI_CPP_FILES): %.cpp: src/cvc3/%_impl.cpp $(builddir)/cvc3/%.h include/cvc3/JniUtils.h
+	$(AM_V_GEN)$(PYTHON) $(srcdir)/create_impl.py \
+		cvc3/$*.h \
+		$(srcdir)/src/cvc3/$*_impl.cpp \
+		$*.cpp
 
-$(SRC_CPP_FILES:.cpp=.lo): %.lo: src/cvc3/%.cpp .headers
+JniUtils.lo: src/cvc3/JniUtils.cpp .headers
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_INCLUDES) -I . -o $@ $<
 
 $(LIB_FILES:%=classes/cvc3/%.class): .classes

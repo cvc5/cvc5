@@ -19,6 +19,8 @@
  */
 /*****************************************************************************/
 
+#include "cvc4_public.h"
+
 #ifndef _cvc3__include__c_interface_h_
 #define _cvc3__include__c_interface_h_
 

@@ -39,6 +39,7 @@ libutil_la_SOURCES = \
 	configuration.cpp \
 	bitvector.h \
 	ascription_type.h \
+	array.h \
 	datatype.h \
 	datatype.cpp \
 	matcher.h \

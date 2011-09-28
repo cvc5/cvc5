@@ -80,4 +80,9 @@ libcvc4parser_noinst_la_SOURCES = \
 	antlr_tracing.h
 
 EXTRA_DIST = \
-	Makefile.antlr_tracing
+	Makefile.antlr_tracing \
+	cvc4parser.i \
+	input.i \
+	parser_builder.i \
+	parser_exception.i \
+	parser.i
