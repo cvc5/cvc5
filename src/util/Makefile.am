@@ -114,9 +114,9 @@ endif
 .PHONY: Debug_tags.tmp Trace_tags.tmp
 Debug_tags.tmp Trace_tags.tmp:
 	$(AM_V_GEN)\
-	grep '\<$(@:_tags.tmp=) *( *\".*\" *)' \
+	grep '[^a-zA-Z0-9_]$(@:_tags.tmp=) *( *\".*\" *)' \
 		`find @srcdir@/../ -name "*.cpp" -or -name "*.h" -or -name "*.cc" -or -name "*.g"` | \
-	sed 's/.*\<$(@:_tags.tmp=) *( *\"\([^"]*\)\".*/\1/g' | sort | uniq >"$@"
+	sed 's/.*[^a-zA-Z0-9_]$(@:_tags.tmp=) *( *\"\([^"]*\)\".*/\1/g' | sort | uniq >"$@"
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \
