@@ -17,6 +17,7 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
 
 #include "context/context.h"
 #include "context/cdvector.h"

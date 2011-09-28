@@ -17,6 +17,7 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
 
 #include "expr/node.h"
 #include "expr/attribute.h"
@@ -399,10 +400,10 @@ private:
   uint32_t debugCountColLength(ArithVar var);
   uint32_t debugCountRowLength(ArithVar var);
 
-};
+};/* class Tableau */
 
-}; /* namespace arith  */
-}; /* namespace theory */
-}; /* namespace CVC4   */
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__ARITH__TABLEAU_H */

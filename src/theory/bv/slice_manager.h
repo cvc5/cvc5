@@ -24,6 +24,8 @@
  *      Author: dejan
  */
 
+#include "cvc4_private.h"
+
 #pragma once
 
 #include "context/cdo.h"

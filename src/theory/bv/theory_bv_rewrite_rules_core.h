@@ -17,6 +17,8 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
 #include "theory/bv/theory_bv_rewrite_rules.h"

@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "cvc4_private.h"
+
 #include <iostream>
 #include "context/cdo.h"
 #include "theory/bv/theory_bv_utils.h"

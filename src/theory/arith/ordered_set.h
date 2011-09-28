@@ -17,6 +17,11 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__ARITH__ORDERED_SET_H
+#define __CVC4__THEORY__ARITH__ORDERED_SET_H
+
 #include <map>
 #include <set>
 #include "expr/kind.h"
@@ -114,3 +119,5 @@ typedef std::set<TNode, RightHandRationalLT> EqualValueSet;
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__ARITH__ORDERED_SET_H */

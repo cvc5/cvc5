@@ -16,6 +16,8 @@
  ** Removal of term ITEs.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
 #include <vector>

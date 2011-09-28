@@ -16,6 +16,8 @@
  ** The Rewriter class.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
 #include "expr/node.h"
