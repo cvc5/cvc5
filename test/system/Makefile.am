@@ -17,7 +17,8 @@ TEST_DEPS_DIST = \
 	cvc3_main.cpp \
 	cvc3_george.h \
 	cvc3_george.cpp \
-	CVC4JavaTest.java
+	CVC4JavaTest.java \
+	run_java_test
 
 # Make-level dependencies; these don't go in the source distribution
 # but should trigger a re-compile of all unit tests.  Libraries are
