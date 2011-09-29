@@ -140,7 +140,7 @@ private:
   CongruenceClosureExplainer<CongruenceChannel, CONGRUENCE_OPERATORS_2 (kind::APPLY_CONSTRUCTOR, kind::APPLY_SELECTOR)> d_cce;
 
 public:
-  TheoryDatatypes(context::Context* c, OutputChannel& out, Valuation valuation);
+  TheoryDatatypes(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
   ~TheoryDatatypes();
   void preRegisterTerm(TNode n);
   void presolve();

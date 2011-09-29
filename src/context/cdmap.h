@@ -364,6 +364,10 @@ public:
     return d_map.size();
   }
 
+  bool empty() const {
+    return d_map.empty();
+  }
+
   size_t count(const Key& k) const {
     return d_map.count(k);
   }

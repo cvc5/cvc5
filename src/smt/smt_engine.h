@@ -54,6 +54,7 @@ class StatisticsRegistry;
 
 namespace context {
   class Context;
+  class UserContext;
 }/* CVC4::context namespace */
 
 namespace prop {
@@ -99,7 +100,7 @@ class CVC4_PUBLIC SmtEngine {
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
   /** User level context */
-  context::Context* d_userContext;
+  context::UserContext* d_userContext;
 
   /** Our expression manager */
   ExprManager* d_exprManager;

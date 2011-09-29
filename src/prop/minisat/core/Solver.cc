@@ -1100,7 +1100,7 @@ lbool Solver::solve_()
         ok = false;
 
     // Cancel the trail downto previous push
-    popTrail();
+    //popTrail();
 
     return status;
 }

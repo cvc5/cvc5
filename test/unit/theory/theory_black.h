@@ -95,8 +95,8 @@ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, OutputChannel& out, Valuation valuation) :
-    Theory(theory::THEORY_BUILTIN, ctxt, out, valuation) {
+  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation) :
+    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation) {
   }
 
   void registerTerm(TNode n) {
@@ -135,11 +135,12 @@ public:
   void explain(TNode n, Effort level) {}
   Node getValue(TNode n) { return Node::null(); }
   string identify() const { return "DummyTheory"; }
-};
+};/* class DummyTheory */
 
 class TheoryBlack : public CxxTest::TestSuite {
 
   Context* d_ctxt;
+  UserContext* d_uctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
 
@@ -153,10 +154,11 @@ class TheoryBlack : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_ctxt = new Context;
+    d_ctxt = new Context();
+    d_uctxt = new UserContext();
     d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
-    d_dummy = new DummyTheory(d_ctxt, d_outputChannel, Valuation(NULL));
+    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL));
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
@@ -168,6 +170,7 @@ public:
     delete d_dummy;
     delete d_scope;
     delete d_nm;
+    delete d_uctxt;
     delete d_ctxt;
   }
 

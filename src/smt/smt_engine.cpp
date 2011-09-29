@@ -101,7 +101,7 @@ public:
 class SmtEnginePrivate {
   SmtEngine& d_smt;
 
-  /** The assertions yet to be preprecessed */
+  /** The assertions yet to be preprocessed */
   vector<Node> d_assertionsToPreprocess;
 
   /** Learned literals */
@@ -138,7 +138,10 @@ class SmtEnginePrivate {
 
 public:
 
-  SmtEnginePrivate(SmtEngine& smt) : d_smt(smt) { }
+  SmtEnginePrivate(SmtEngine& smt) :
+    d_smt(smt),
+    d_topLevelSubstitutions(smt.d_userContext) {
+  }
 
   Node applySubstitutions(TNode node) const {
     return Rewriter::rewrite(d_topLevelSubstitutions.apply(node));
@@ -172,7 +175,7 @@ using namespace CVC4::smt;
 
 SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_context(em->getContext()),
-  d_userContext(new Context()),
+  d_userContext(new UserContext()),
   d_exprManager(em),
   d_nodeManager(d_exprManager->getNodeManager()),
   d_private(new smt::SmtEnginePrivate(*this)),
@@ -186,9 +189,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
   StatisticsRegistry::registerStat(&d_staticLearningTime);
 
-  // We have mutual dependancy here, so we add the prop engine to the theory
+  // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context);
+  d_theoryEngine = new TheoryEngine(d_context, d_userContext);
 
   // Add the theories
   d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>(theory::THEORY_BUILTIN);
@@ -927,8 +930,11 @@ Expr SmtEngine::getValue(const Expr& e)
     throw ModalException(msg);
   }
 
+  // Apply what was learned from preprocessing
+  Node n = d_private->applySubstitutions(e.getNode());
+
   // Normalize for the theories
-  Node n = theory::Rewriter::rewrite(e.getNode());
+  n = theory::Rewriter::rewrite(n);
 
   Trace("smt") << "--- getting value of " << n << endl;
   Node resultNode = d_theoryEngine->getValue(n);

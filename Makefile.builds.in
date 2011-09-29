@@ -127,7 +127,7 @@ endif
 check test units:
 	(cd $(CURRENT_BUILD)/src && $(MAKE) check)
 	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
-systemtests regress:
+systemtests regress: all
 	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 units%:
 	(cd $(CURRENT_BUILD)/src && $(MAKE) check)

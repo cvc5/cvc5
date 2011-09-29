@@ -18,6 +18,7 @@
  **/
 
 #include <iostream>
+#include <cstdlib>
 #include <vector>
 #include <string>
 #include <set>
@@ -92,23 +93,38 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
   if(d_in == cin) {
     ::rl_readline_name = "CVC4";
     ::rl_completion_entry_function = commandGenerator;
+    ::using_history();
 
     switch(OutputLanguage lang = toOutputLanguage(d_language)) {
     case output::LANG_CVC4:
+      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
       commandsBegin = cvc_commands;
       commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
       break;
     case output::LANG_SMTLIB:
+      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib";
       commandsBegin = smt_commands;
       commandsEnd = smt_commands + sizeof(smt_commands) / sizeof(*smt_commands);
       break;
     case output::LANG_SMTLIB_V2:
+      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
       commandsBegin = smt2_commands;
       commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
       break;
     default: Unhandled(lang);
     }
     d_usingReadline = true;
+    int err = ::read_history(d_historyFilename.c_str());
+    ::stifle_history(s_historyLimit);
+    if(Notice.isOn()) {
+      if(err == 0) {
+        Notice() << "Read " << ::history_length << " lines of history from "
+                 << d_historyFilename << std::endl;
+      } else {
+        Notice() << "Could not read history from " << d_historyFilename
+                 << ": " << strerror(err) << std::endl;
+      }
+    }
   } else {
     d_usingReadline = false;
   }
@@ -117,6 +133,16 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
 #endif /* HAVE_LIBREADLINE */
 }/* InteractiveShell::InteractiveShell() */
 
+InteractiveShell::~InteractiveShell() {
+  int err = ::write_history(d_historyFilename.c_str());
+  if(err == 0) {
+    Notice() << "Wrote " << ::history_length << " lines of history to "
+             << d_historyFilename << std::endl;
+  } else {
+    Notice() << "Could not write history to " << d_historyFilename
+             << ": " << strerror(err) << std::endl;
+  }
+}
 
 Command* InteractiveShell::readCommand() {
   /* Don't do anything if the input is closed or if we've seen a

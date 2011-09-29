@@ -122,8 +122,8 @@ private:
 
 public:
 
-  TheoryBV(context::Context* c, OutputChannel& out, Valuation valuation)
-  : Theory(THEORY_BV, c, out, valuation), 
+  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation)
+  : Theory(THEORY_BV, c, u, out, valuation), 
     d_eqEngine(*this, c, "theory::bv::EqualityEngine"), 
     d_sliceManager(*this, c), 
     d_context(c),

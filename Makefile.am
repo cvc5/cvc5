@@ -12,7 +12,7 @@ systemtests regress regress0 regress1 regress2 regress3: all
 	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 # We descend into "src" with the "check" target here to ensure that
 # the test prerequisites are all built.
-units: all
+units:
 	(cd src && $(MAKE) $(AM_MAKEFLAGS) check)
 	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
 

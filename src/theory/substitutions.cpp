@@ -67,7 +67,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeMap& substitutionCache) {
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
         Assert(substitutionCache.find(current[i]) != substitutionCache.end());
-        builder << substitutionCache[current[i]];
+        builder << Node(substitutionCache[current[i]]);
       }
       // Mark the substitution and continue
       Node result = builder;
@@ -104,14 +104,14 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache) {
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
   // Temporary substitution cache
-  NodeMap tempCache;
+  NodeMap tempCache(d_context);
   tempCache[x] = t;
 
   // Put in the new substitutions into the old ones
   NodeMap::iterator it = d_substitutions.begin();
   NodeMap::iterator it_end = d_substitutions.end();
   for(; it != it_end; ++ it) {
-    it->second = internalSubstitute(it->second, tempCache);
+    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
   }
 
   // Put the new substitution in
@@ -123,11 +123,12 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache) {
   }
 }
 
-bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
+static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
+static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
   SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
   SubstitutionMap::NodeMap::const_iterator it_end = substitutions.end();
   for (; it != it_end; ++ it) {
-    if (node.hasSubterm(it->first)) {
+    if (node.hasSubterm((*it).first)) {
       return false;
     }
   }
@@ -140,7 +141,12 @@ Node SubstitutionMap::apply(TNode t) {
 
   // Setup the cache
   if (d_cacheInvalidated) {
-    d_substitutionCache = d_substitutions;
+    SubstitutionMap::NodeMap::const_iterator it = d_substitutions.begin();
+    SubstitutionMap::NodeMap::const_iterator it_end = d_substitutions.end();
+    d_substitutionCache.clear();
+    for (; it != it_end; ++ it) {
+      d_substitutionCache[(*it).first] = (*it).second;
+    }
     d_cacheInvalidated = false;
   }
 
@@ -157,7 +163,7 @@ void SubstitutionMap::print(ostream& out) const {
   NodeMap::const_iterator it = d_substitutions.begin();
   NodeMap::const_iterator it_end = d_substitutions.end();
   for (; it != it_end; ++ it) {
-    out << it->first << " -> " << it->second << endl;
+    out << (*it).first << " -> " << (*it).second << endl;
   }
 }
 

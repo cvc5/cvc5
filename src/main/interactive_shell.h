@@ -40,10 +40,18 @@ class CVC4_PUBLIC InteractiveShell {
   bool d_quit;
   bool d_usingReadline;
 
+  std::string d_historyFilename;
+
   static const std::string INPUT_FILENAME;
+  static const unsigned s_historyLimit = 500;
 
 public:
   InteractiveShell(ExprManager& exprManager, const Options& options);
+
+  /**
+   * Close out the interactive session.
+   */
+  ~InteractiveShell();
 
   /**
    * Read a command from the interactive shell. This will read as

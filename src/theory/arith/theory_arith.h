@@ -163,7 +163,7 @@ private:
   SimplexDecisionProcedure d_simplex;
 
 public:
-  TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation);
+  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
 
   /**

@@ -103,6 +103,11 @@ private:
   context::Context* d_context;
 
   /**
+   * The user context for the Theory.
+   */
+  context::UserContext* d_userContext;
+
+  /**
    * The assertFact() queue.
    *
    * These can not be TNodes as some atoms (such as equalities) are sent
@@ -133,13 +138,15 @@ protected:
   /**
    * Construct a Theory.
    */
-  Theory(TheoryId id, context::Context* ctxt, OutputChannel& out, Valuation valuation) throw() :
+  Theory(TheoryId id, context::Context* context, context::UserContext* userContext,
+         OutputChannel& out, Valuation valuation) throw() :
     d_id(id),
-    d_context(ctxt),
-    d_facts(ctxt),
-    d_factsHead(ctxt, 0),
-    d_sharedTermsIndex(ctxt, 0),
-    d_sharedTerms(ctxt),
+    d_context(context),
+    d_userContext(userContext),
+    d_facts(context),
+    d_factsHead(context, 0),
+    d_sharedTermsIndex(context, 0),
+    d_sharedTerms(context),
     d_out(&out),
     d_valuation(valuation)
   {
@@ -325,6 +332,13 @@ public:
    */
   context::Context* getContext() const {
     return d_context;
+  }
+
+  /**
+   * Get the context associated to this Theory.
+   */
+  context::UserContext* getUserContext() const {
+    return d_userContext;
   }
 
   /**

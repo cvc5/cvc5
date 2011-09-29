@@ -364,7 +364,7 @@ private:
   Node recursivePreprocessTerm(TNode term);
 
 public:
-  TheoryArrays(context::Context* c, OutputChannel& out, Valuation valuation);
+  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
   ~TheoryArrays();
 
   /**

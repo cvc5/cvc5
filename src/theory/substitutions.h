@@ -24,7 +24,11 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
+
 #include "expr/node.h"
+#include "context/context.h"
+#include "context/cdo.h"
+#include "context/cdmap.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,16 +36,21 @@ namespace theory {
 /**
  * The type for the Substitutions mapping output by
  * Theory::simplify(), TheoryEngine::simplify(), and
- * Valuation::simplify().  This is in its own header to avoid circular
- * dependences between those three.
+ * Valuation::simplify().  This is in its own header to
+ * avoid circular dependences between those three.
+ *
+ * This map is context-dependent.
  */
 class SubstitutionMap {
 
 public:
 
-  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDMap<Node, Node, NodeHashFunction> NodeMap;
 
 private:
+
+  /** The context within which this SubstitutionMap was constructed. */
+  context::Context* d_context;
 
   /** The variables, in order of addition */
   NodeMap d_substitutions;
@@ -50,14 +59,19 @@ private:
   NodeMap d_substitutionCache;
 
   /** Has the cache been invalidated */
-  bool d_cacheInvalidated;
+  context::CDO<bool> d_cacheInvalidated;
 
-  /** Internaal method that performs substitution */
+  /** Internal method that performs substitution */
   Node internalSubstitute(TNode t, NodeMap& substitutionCache);
 
 public:
 
-  SubstitutionMap(): d_cacheInvalidated(true) {}
+  SubstitutionMap(context::Context* context) :
+    d_context(context),
+    d_substitutions(context),
+    d_substitutionCache(context),
+    d_cacheInvalidated(context) {
+  }
 
   /**
    * Adds a substitution from x to t
@@ -77,24 +91,11 @@ public:
     return const_cast<SubstitutionMap*>(this)->apply(t);
   }
 
-  /**
-   * Clear out the accumulated substitutions, resetting this
-   * SubstitutionMap to the way it was when first constructed.
-   */
-  void clear() {
-    d_substitutions.clear();
-    d_substitutionCache.clear();
-    d_cacheInvalidated = true;
-  }
-
-  /**
-   * Swap the contents of this SubstitutionMap with those of another.
-   */
-  void swap(SubstitutionMap& map) {
-    d_substitutions.swap(map.d_substitutions);
-    d_substitutionCache.swap(map.d_substitutionCache);
-    std::swap(d_cacheInvalidated, map.d_cacheInvalidated);
-  }
+  // NOTE [MGD]: removed clear() and swap() from the interface
+  // when this data structure became context-dependent
+  // because they weren't used---and it's not clear how they
+  // should // best interact with cache invalidation on context
+  // pops.
 
   /**
    * Print to the output stream

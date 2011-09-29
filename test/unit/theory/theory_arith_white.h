@@ -43,6 +43,7 @@ using namespace std;
 class TheoryArithWhite : public CxxTest::TestSuite {
 
   Context* d_ctxt;
+  UserContext* d_uctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
 
@@ -92,11 +93,12 @@ public:
   }
 
   void setUp() {
-    d_ctxt = new Context;
+    d_ctxt = new Context();
+    d_uctxt = new UserContext();
     d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
     d_outputChannel.clear();
-    d_arith = new TheoryArith(d_ctxt, d_outputChannel, Valuation(NULL));
+    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL));
 
     preregistered = new std::set<Node>();
 
@@ -115,6 +117,7 @@ public:
     d_outputChannel.clear();
     delete d_scope;
     delete d_nm;
+    delete d_uctxt;
     delete d_ctxt;
   }
 

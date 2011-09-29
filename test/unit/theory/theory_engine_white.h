@@ -104,8 +104,8 @@ class FakeTheory : public Theory {
   // static std::deque<RewriteItem> s_expected;
 
 public:
-  FakeTheory(context::Context* ctxt, OutputChannel& out, Valuation valuation) :
-    Theory(theoryId, ctxt, out, valuation)
+  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation) :
+    Theory(theoryId, ctxt, uctxt, out, valuation)
   { }
 
   /** Register an expected rewrite call */
@@ -222,6 +222,7 @@ public:
  */
 class TheoryEngineWhite : public CxxTest::TestSuite {
   Context* d_ctxt;
+  UserContext* d_uctxt;
 
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
@@ -231,15 +232,16 @@ class TheoryEngineWhite : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_ctxt = new Context;
+    d_ctxt = new Context();
+    d_uctxt = new UserContext();
 
     d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
 
-    d_nullChannel = new FakeOutputChannel;
+    d_nullChannel = new FakeOutputChannel();
 
     // create the TheoryEngine
-    d_theoryEngine = new TheoryEngine(d_ctxt);
+    d_theoryEngine = new TheoryEngine(d_ctxt, d_uctxt);
 
     d_theoryEngine->addTheory< FakeTheory<THEORY_BUILTIN> >(THEORY_BUILTIN);
     d_theoryEngine->addTheory< FakeTheory<THEORY_BOOL> >(THEORY_BOOL);
@@ -260,6 +262,7 @@ public:
     delete d_scope;
     delete d_nm;
 
+    delete d_uctxt;
     delete d_ctxt;
   }
 

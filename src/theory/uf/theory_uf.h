@@ -97,14 +97,14 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* ctxt, OutputChannel& out, Valuation valuation):
-    Theory(THEORY_UF, ctxt, out, valuation),
+  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation):
+    Theory(THEORY_UF, c, u, out, valuation),
     d_notify(*this),
-    d_equalityEngine(d_notify, ctxt, "theory::uf::TheoryUF"),
-    d_knownFacts(ctxt),
-    d_conflict(ctxt, false),
-    d_literalsToPropagate(ctxt),
-    d_literalsToPropagateIndex(ctxt, 0)
+    d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
+    d_knownFacts(c),
+    d_conflict(c, false),
+    d_literalsToPropagate(c),
+    d_literalsToPropagateIndex(c, 0)
   {
     // The kinds we are treating as function application in congruence
     d_equalityEngine.addFunctionKind(kind::APPLY_UF);

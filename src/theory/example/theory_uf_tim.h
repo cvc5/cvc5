@@ -43,7 +43,7 @@ namespace theory {
 namespace uf {
 namespace tim {
 
-class TheoryUFTim : public TheoryUF {
+class TheoryUFTim : public Theory {
 
 private:
 
@@ -85,7 +85,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUFTim(context::Context* c, OutputChannel& out, Valuation valuation);
+  TheoryUFTim(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
 
   /** Destructor for the TheoryUF object. */
   ~TheoryUFTim();

@@ -59,8 +59,8 @@ static const uint32_t RESET_START = 2;
 struct SlackAttrID;
 typedef expr::Attribute<SlackAttrID, bool> Slack;
 
-TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valuation) :
-  Theory(THEORY_ARITH, c, out, valuation),
+TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
+  Theory(THEORY_ARITH, c, u, out, valuation),
   learner(d_pbSubstitutions),
   d_nextIntegerCheckVar(0),
   d_partialModel(c),
@@ -68,6 +68,7 @@ TheoryArith::TheoryArith(context::Context* c, OutputChannel& out, Valuation valu
   d_diseq(c),
   d_tableau(),
   d_diosolver(c, d_tableau, d_partialModel),
+  d_pbSubstitutions(u),
   d_restartsCounter(0),
   d_rowHasBeenAdded(false),
   d_tableauResetDensity(1.6),

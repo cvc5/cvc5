@@ -95,6 +95,10 @@ class Context {
   friend std::ostream&
   operator<<(std::ostream&, const Context&) throw(AssertionException);
 
+  // disable copy, assignment
+  Context(const Context&) CVC4_UNUSED;
+  Context& operator=(const Context&) CVC4_UNUSED;
+
 public:
   /**
    * Constructor: create ContextMemoryManager and initial Scope
@@ -152,6 +156,22 @@ public:
   void addNotifyObjPost(ContextNotifyObj* pCNO);
 
 };/* class Context */
+
+
+/**
+ * A UserContext is different from a Context only because it's used for
+ * different purposes---so separating the two types gives type errors where
+ * appropriate.
+ */
+class UserContext : public Context {
+private:
+  // disable copy, assignment
+  UserContext(const UserContext&) CVC4_UNUSED;
+  UserContext& operator=(const UserContext&) CVC4_UNUSED;
+public:
+  UserContext() {}
+};/* class UserContext */
+
 
 /**
  * Conceptually, a Scope encapsulates that portion of the context that
