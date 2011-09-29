@@ -161,3 +161,19 @@ EXTRA_DIST = \
 	rational.i \
 	pseudoboolean.i \
 	hash.i
+
+MOSTLYCLEANFILES = \
+	Debug_tags \
+	Trace_tags \
+	Debug_tags.tmp \
+	Trace_tags.tmp \
+	Debug_tags.h \
+	Trace_tags.h
+
+DISTCLEANFILES = \
+	integer.h.tmp \
+	rational.h.tmp \
+	tls.h.tmp \
+	integer.h \
+	rational.h \
+	tls.h

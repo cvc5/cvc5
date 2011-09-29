@@ -15,5 +15,7 @@ EXTRA_DIST = \
 	clock_gettime.c \
 	clock_gettime.h
 
+CLEANFILES = empty.c
+
 # empty.c hack -- need *some* source file so that library make rules are built
 empty.c:; touch empty.c

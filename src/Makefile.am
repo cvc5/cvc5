@@ -53,6 +53,11 @@ libcvc4_noinst_la_LIBADD = \
 	@builddir@/theory/libtheory.la \
 	@builddir@/lib/libreplacements.la
 
+CLEANFILES = \
+	subversion_versioninfo.cpp \
+	svninfo.tmp \
+	svninfo
+
 EXTRA_DIST = \
 	include/cvc4parser_private.h \
 	include/cvc4parser_public.h \

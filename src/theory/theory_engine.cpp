@@ -275,13 +275,13 @@ bool TheoryEngine::properConflict(TNode conflict) const {
 
 bool TheoryEngine::properPropagation(TNode lit) const {
   Assert(!lit.isNull());
-#warning fixme
+#warning implement TheoryEngine::properPropagation()
   return true;
 }
 
 bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
   Assert(!node.isNull() && !expl.isNull());
-#warning fixme
+#warning implement TheoryEngine::properExplanation()
   return true;
 }
 

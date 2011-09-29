@@ -39,6 +39,7 @@ endif
 #	cvc4bindings_tcl.so
 
 nodist_libcvc4bindings_java_la_SOURCES = java.cpp
+libcvc4bindings_java_la_CXXFLAGS = -fno-strict-aliasing
 nodist_libcvc4bindings_csharp_la_SOURCES = csharp.cpp
 nodist_libcvc4bindings_perl_la_SOURCES = perl.cpp
 nodist_libcvc4bindings_php_la_SOURCES = php.cpp
@@ -47,7 +48,7 @@ nodist_libcvc4bindings_ocaml_la_SOURCES = ocaml.cpp
 nodist_libcvc4bindings_ruby_la_SOURCES = ruby.cpp
 nodist_libcvc4bindings_tcl_la_SOURCES = tcl.cpp
 
-BUILT_SOURCES = \
+CLEANFILES = \
 	java.cpp \
 	csharp.cpp \
 	perl.cpp \
@@ -59,8 +60,7 @@ BUILT_SOURCES = \
 
 EXTRA_DIST = swig.h
 
-CLEANFILES = \
-	$(BUILT_SOURCES) \
+MOSTLYCLEANFILES = \
         .swig_deps \
 	$(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))) \
 	cvc4.jar

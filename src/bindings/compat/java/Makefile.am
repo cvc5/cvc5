@@ -147,4 +147,4 @@ cvc4compat.jar: $(LIB_FILES:%=classes/cvc3/%.class)
 
 clean-local:
 	rm -fr classes cvc3
-CLEANFILES = .cvc3dir .classes .headers cvc4compat.jar
+MOSTLYCLEANFILES = .cvc3dir .classes .headers cvc4compat.jar $(JNI_CPP_FILES)
