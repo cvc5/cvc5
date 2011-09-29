@@ -216,8 +216,18 @@ struct CVC4_PUBLIC Options {
   /**
    * Initialize the options based on the given command-line arguments.
    */
-  int parseOptions(int argc, char* argv[])
-    throw(OptionException);
+  int parseOptions(int argc, char* argv[]) throw(OptionException);
+
+  /**
+   * Set the output language based on the given string.
+   */
+  void setOutputLanguage(const char* str) throw(OptionException);
+
+  /**
+   * Set the input language based on the given string.
+   */
+  void setInputLanguage(const char* str) throw(OptionException);
+
 };/* struct Options */
 
 inline std::ostream& operator<<(std::ostream& out,

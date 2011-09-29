@@ -393,33 +393,29 @@ throw(OptionException) {
   }
   binary_name = string(progName);
 
-  // The strange string in this call is the short option string.  The
+  // The strange string in this call is the short option string.  An
   // initial '+' means that option processing stops as soon as a
-  // non-option argument is encountered.  The initial ':' indicates
-  // that getopt_long() should return ':' instead of '?' for a missing
-  // option argument.  Then, each letter is a valid short option for
-  // getopt_long(), and if it's encountered, getopt_long() returns
-  // that character.  A ':' after an option character means an
-  // argument is required; two colons indicates an argument is
-  // optional; no colons indicate an argument is not permitted.
-  // cmdlineOptions specifies all the long-options and the return
-  // value for getopt_long() should they be encountered.
+  // non-option argument is encountered (it is not present, by design).
+  // The initial ':' indicates that getopt_long() should return ':'
+  // instead of '?' for a missing option argument.  Then, each letter
+  // is a valid short option for getopt_long(), and if it's encountered,
+  // getopt_long() returns that character.  A ':' after an option
+  // character means an argument is required; two colons indicates an
+  // argument is optional; no colons indicate an argument is not
+  // permitted.  cmdlineOptions specifies all the long-options and the
+  // return value for getopt_long() should they be encountered.
   while((c = getopt_long(argc, argv,
-                         "+:hVvqL:d:t:",
+                         ":hVvqL:d:t:",
                          cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
     case 'h':
       help = true;
       break;
-      // options.printUsage(usage);
-      // exit(1);
 
     case 'V':
       version = true;
       break;
-      // fputs(Configuration::about().c_str(), stdout);
-      // exit(0);
 
     case 'v':
       ++verbosity;
@@ -430,52 +426,11 @@ throw(OptionException) {
       break;
 
     case 'L':
-      if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
-        inputLanguage = language::input::LANG_CVC4;
-        break;
-      } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
-        inputLanguage = language::input::LANG_SMTLIB;
-        break;
-      } else if(!strcmp(optarg, "smtlib2") || !strcmp(optarg, "smt2")) {
-        inputLanguage = language::input::LANG_SMTLIB_V2;
-        break;
-      } else if(!strcmp(optarg, "auto")) {
-        inputLanguage = language::input::LANG_AUTO;
-        break;
-      }
-
-      if(strcmp(optarg, "help")) {
-        throw OptionException(string("unknown language for --lang: `") +
-                              optarg + "'.  Try --lang help.");
-      }
-
-      languageHelp = true;
+      setInputLanguage(optarg);
       break;
 
     case OUTPUT_LANGUAGE:
-      if(!strcmp(optarg, "cvc4") || !strcmp(optarg, "pl")) {
-        outputLanguage = language::output::LANG_CVC4;
-        break;
-      } else if(!strcmp(optarg, "smtlib") || !strcmp(optarg, "smt")) {
-        outputLanguage = language::output::LANG_SMTLIB;
-        break;
-      } else if(!strcmp(optarg, "smtlib2") || !strcmp(optarg, "smt2")) {
-        outputLanguage = language::output::LANG_SMTLIB_V2;
-        break;
-      } else if(!strcmp(optarg, "ast")) {
-        outputLanguage = language::output::LANG_AST;
-        break;
-      } else if(!strcmp(optarg, "auto")) {
-        outputLanguage = language::output::LANG_AUTO;
-        break;
-      }
-
-      if(strcmp(optarg, "help")) {
-        throw OptionException(string("unknown language for --output-lang: `") +
-                              optarg + "'.  Try --output-lang help.");
-      }
-
-      languageHelp = true;
+      setOutputLanguage(optarg);
       break;
 
     case 't':
@@ -842,10 +797,58 @@ throw(OptionException) {
     default:
       throw OptionException(string("can't understand option `") + argv[optind - 1] + "'");
     }
-
   }
 
   return optind;
+}
+
+void Options::setOutputLanguage(const char* str) throw(OptionException) {
+  if(!strcmp(str, "cvc4") || !strcmp(str, "pl")) {
+    outputLanguage = language::output::LANG_CVC4;
+    return;
+  } else if(!strcmp(str, "smtlib") || !strcmp(str, "smt")) {
+    outputLanguage = language::output::LANG_SMTLIB;
+    return;
+  } else if(!strcmp(str, "smtlib2") || !strcmp(str, "smt2")) {
+    outputLanguage = language::output::LANG_SMTLIB_V2;
+    return;
+  } else if(!strcmp(str, "ast")) {
+    outputLanguage = language::output::LANG_AST;
+    return;
+  } else if(!strcmp(str, "auto")) {
+    outputLanguage = language::output::LANG_AUTO;
+    return;
+  }
+
+  if(strcmp(str, "help")) {
+    throw OptionException(string("unknown language for --output-lang: `") +
+                          str + "'.  Try --output-lang help.");
+  }
+
+  languageHelp = true;
+}
+
+void Options::setInputLanguage(const char* str) throw(OptionException) {
+  if(!strcmp(str, "cvc4") || !strcmp(str, "pl") || !strcmp(str, "presentation")) {
+    inputLanguage = language::input::LANG_CVC4;
+    return;
+  } else if(!strcmp(str, "smtlib") || !strcmp(str, "smt")) {
+    inputLanguage = language::input::LANG_SMTLIB;
+    return;
+  } else if(!strcmp(str, "smtlib2") || !strcmp(str, "smt2")) {
+    inputLanguage = language::input::LANG_SMTLIB_V2;
+    return;
+  } else if(!strcmp(str, "auto")) {
+    inputLanguage = language::input::LANG_AUTO;
+    return;
+  }
+
+  if(strcmp(str, "help")) {
+    throw OptionException(string("unknown language for --lang: `") +
+                          str + "'.  Try --lang help.");
+  }
+
+  languageHelp = true;
 }
 
 std::ostream& operator<<(std::ostream& out, Options::ArithPivotRule rule) {

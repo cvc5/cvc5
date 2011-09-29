@@ -464,6 +464,8 @@ class CVC4_PUBLIC ValidityChecker {
 
   ValidityChecker(const CLFlags& clflags);
 
+  void setUpOptions(CVC4::Options& options, const CLFlags& clflags);
+
 public:
   //! Constructor
   ValidityChecker();

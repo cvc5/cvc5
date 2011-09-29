@@ -648,11 +648,30 @@ void CLFlags::setFlag(const std::string& name,
   (*i).second = sv;
 }
 
+void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflags) {
+  // always incremental and model-producing in CVC3 compatibility mode
+  options.incrementalSolving = true;
+  options.produceModels = true;
+
+  options.statistics = clflags["stats"].getBool();
+  options.satRandomSeed = double(clflags["seed"].getInt());
+  options.interactive = clflags["interactive"].getBool();
+  if(options.interactive) {
+    options.interactiveSetByUser = true;
+  }
+  options.parseOnly = clflags["parse-only"].getBool();
+  options.setInputLanguage(clflags["lang"].getString().c_str());
+  if(clflags["output-lang"].getString() == "") {
+    options.outputLanguage = CVC4::language::toOutputLanguage(options.inputLanguage);
+  } else {
+    options.setOutputLanguage(clflags["output-lang"].getString().c_str());
+  }
+}
+
 ValidityChecker::ValidityChecker() :
   d_clflags(new CLFlags()),
   d_options() {
-  d_options.incrementalSolving = true;
-#warning fixme other options from clflags ??
+  setUpOptions(d_options, *d_clflags);
   d_em = new CVC4::ExprManager(d_options);
   d_smt = new CVC4::SmtEngine(d_em);
 }
@@ -660,8 +679,7 @@ ValidityChecker::ValidityChecker() :
 ValidityChecker::ValidityChecker(const CLFlags& clflags) :
   d_clflags(new CLFlags(clflags)),
   d_options() {
-  d_options.incrementalSolving = true;
-#warning fixme other options from clflags ??
+  setUpOptions(d_options, *d_clflags);
   d_em = new CVC4::ExprManager(d_options);
   d_smt = new CVC4::SmtEngine(d_em);
 }
@@ -696,7 +714,7 @@ CLFlags ValidityChecker::createFlags() {
   flags.addFlag("version",CLFlag(true, "print version information and exit"));
   flags.addFlag("interactive", CLFlag(false, "Interactive mode"));
   flags.addFlag("stats", CLFlag(false, "Print run-time statistics"));
-  flags.addFlag("seed", CLFlag(1, "Set the seed for random sequence"));
+  flags.addFlag("seed", CLFlag(91648253, "Set the seed for random sequence"));
   flags.addFlag("printResults", CLFlag(true, "Print results of interactive commands."));
   flags.addFlag("dump-log", CLFlag("", "Dump API call log in CVC3 input "
                                    "format to given file "
@@ -1905,6 +1923,7 @@ void ValidityChecker::loadFile(const std::string& fileName,
   CVC4::Options opts = *d_em->getOptions();
   opts.inputLanguage = lang;
   opts.interactive = interactive;
+  opts.interactiveSetByUser = true;
   CVC4::parser::ParserBuilder parserBuilder(d_em, fileName, opts);
   CVC4::parser::Parser* parser = parserBuilder.build();
   doCommands(parser, d_smt, opts);
@@ -1917,6 +1936,7 @@ void ValidityChecker::loadFile(std::istream& is,
   CVC4::Options opts = *d_em->getOptions();
   opts.inputLanguage = lang;
   opts.interactive = interactive;
+  opts.interactiveSetByUser = true;
   CVC4::parser::ParserBuilder parserBuilder(d_em, "[stream]", opts);
   CVC4::parser::Parser* parser = parserBuilder.withStreamInput(is).build();
   doCommands(parser, d_smt, opts);
