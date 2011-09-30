@@ -662,24 +662,50 @@ void CnfStream::removeClausesAboveLevel(int level) {
 }
 
 void CnfStream::undoTranslate(TNode node, int level) {
+  Debug("cnf") << "undoTranslate(): " << node << " (level " << level << ")" << endl;
+
+  TranslationCache::iterator it = d_translationCache.find(node);
+
+  // If not in translation cache, done (the parent was an atom)
+  if (it == d_translationCache.end()) {
+    Debug("cnf") << "                 ==> not in cache, ignore" << endl;
+    return;
+  }
+
   // Get the translation information
-  TranslationInfo& infoPos = d_translationCache.find(node)->second;
+  TranslationInfo& infoPos = (*it).second;
+
   // If already untranslated, we are done
-  if (infoPos.level == -1) return;
+  if (infoPos.level == -1) {
+    Debug("cnf") << "                 ==> already untranslated, ignore" << endl;
+    return;
+  }
+
   // If under the given level we're also done
-  if (infoPos.level <= level) return;
+  if (infoPos.level <= level) {
+    Debug("cnf") << "                 ==> level too low, ignore" << endl;
+    return;
+  }
+
+  Debug("cnf") << "                 ==> untranslating" << endl;
+
   // Untranslate
   infoPos.level = -1;
+
   // Untranslate the negation node
   // If not a not node, unregister it from sat and untranslate the negation
   if (node.getKind() != kind::NOT) {
     // Unregister the literal from SAT
     SatLiteral lit = getLiteral(node);
     d_satSolver->unregisterVar(lit);
+    Debug("cnf") << "                 ==> untranslating negation, too" << endl;
     // Untranslate the negation
-    TranslationInfo& infoNeg = d_translationCache.find(node.notNode())->second;
+    it = d_translationCache.find(node.notNode());
+    Assert(it != d_translationCache.end());
+    TranslationInfo& infoNeg = (*it).second;
     infoNeg.level = -1;
   }
+
   // undoTranslate the children
   TNode::iterator child = node.begin();
   TNode::iterator child_end = node.end();
@@ -687,6 +713,8 @@ void CnfStream::undoTranslate(TNode node, int level) {
     undoTranslate(*child, level);
     ++ child;
   }
+
+  Debug("cnf") << "undoTranslate(): finished untranslating " << node << " (level " << level << ")" << endl;
 }
 
 void CnfStream::moveToBaseLevel(TNode node) {
