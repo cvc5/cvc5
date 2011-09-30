@@ -143,7 +143,7 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
     watches  .init(mkLit(v, false));
     watches  .init(mkLit(v, true ));
     assigns  .push(l_Undef);
-    vardata  .push(mkVarData(CRef_Undef, 0, assertionLevel, 0));
+    vardata  .push(mkVarData(CRef_Undef, 0, assertionLevel, -1));
     activity .push(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen     .push(0);
     polarity .push(sign);
@@ -157,6 +157,8 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
     if (theoryAtom) {
       variables_to_register.push(VarIntroInfo(v, decisionLevel()));
     }
+
+    Debug("minisat") << "new var " << v << std::endl;
 
     return v;
 }
@@ -173,7 +175,7 @@ CRef Solver::reason(Var x) {
     // Get the explanation from the theory
     SatClause explanation;
     proxy->explainPropagation(l, explanation);
-    
+
     // Sort the literals by trail index level
     lemma_lt lt(*this);
     sort(explanation, lt);
@@ -245,19 +247,20 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
-    Debug("minisat") << "Solver::attachClause(" << c << ")" << std::endl;
+    Debug("minisat") << "Solver::attachClause(" << c << "): level " << c.level() << std::endl;
     Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
     if (c.removable()) learnts_literals += c.size();
-    else            clauses_literals += c.size(); }
+    else            clauses_literals += c.size();
+}
 
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
     Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
-    
+
     if (strict){
         remove(watches[~c[0]], Watcher(cr, c[1]));
         remove(watches[~c[1]], Watcher(cr, c[0]));
@@ -277,7 +280,7 @@ void Solver::removeClause(CRef cr) {
     detachClause(cr);
     // Don't leave pointers to free'd memory!
     if (locked(c)) vardata[var(c[0])].reason = CRef_Undef;
-    c.mark(1); 
+    c.mark(1);
     ca.free(cr);
 }
 
@@ -292,7 +295,7 @@ bool Solver::satisfied(const Clause& c) const {
 // Revert to the state at given level (keeping all assignment at 'level' but not beyond).
 //
 void Solver::cancelUntil(int level) {
-    Debug("minisat") << "minisat::cancelUntil(" << level << std::endl;
+    Debug("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
     if (decisionLevel() > level){
         // Pop the SMT context
@@ -307,7 +310,8 @@ void Solver::cancelUntil(int level) {
             assigns [x] = l_Undef;
             if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
                 polarity[x] = sign(trail[c]);
-            insertVarOrder(x); }
+            insertVarOrder(x);
+        }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
@@ -322,21 +326,7 @@ void Solver::cancelUntil(int level) {
 }
 
 void Solver::popTrail() {
-  // If we're not incremental, just pop until level 0
-  if (!enable_incremental) {
-    cancelUntil(0);
-  } else {
-    // Otherwise pop until the last recorded level 0 trail index
-    int target_size = trail_user_lim.last();
-    for (int c = trail.size()-1; c >= target_size; c--){
-      Var      x  = var(trail[c]);
-      assigns [x] = l_Undef;
-      if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
-        polarity[x] = sign(trail[c]);
-      insertVarOrder(x); }
-    qhead = target_size;
-    trail.shrink(trail.size() - target_size);
-  }
+  cancelUntil(0);
 }
 
 //=================================================================================================
@@ -588,6 +578,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
 void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
+    Debug("minisat") << "unchecked enqueue of " << p << " (" << trail_index(var(p)) << ") trail size is " << trail.size() << " cap is " << trail.capacity() << std::endl;
     assert(value(p) == l_Undef);
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail.size());
@@ -812,11 +803,15 @@ void Solver::removeClausesAboveLevel(vec<CRef>& cs, int level)
     int i, j;
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
-        if (c.level() > level)
+        if (c.level() > level) {
+            Debug("minisat") << "removeClausesAboveLevel(" << level << "): removing level-" << c.level() << " clause: " << c << std::endl;
             removeClause(cs[i]);
-        else
+        } else {
+            Debug("minisat") << "removeClausesAboveLevel(" << level << "): leaving level-" << c.level() << " clause: " << c << std::endl;
             cs[j++] = cs[i];
+        }
     }
+    Debug("minisat") << "removeClausesAboveLevel(" << level << "): removed " << i - j << " clauses in all, left " << j << std::endl;
     cs.shrink(i - j);
 }
 
@@ -1099,9 +1094,6 @@ lbool Solver::solve_()
     }else if (status == l_False && conflict.size() == 0)
         ok = false;
 
-    // Cancel the trail downto previous push
-    //popTrail();
-
     return status;
 }
 
@@ -1237,38 +1229,42 @@ void Solver::garbageCollect()
 
 void Solver::push()
 {
-  if (enable_incremental) {
-    ++ assertionLevel;
-    trail_user_lim.push(trail.size());
-  }
+  assert(enable_incremental);
+
+  Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
+  ++assertionLevel;
 }
 
 void Solver::pop()
 {
-  if (enable_incremental) {
-    -- assertionLevel;
-    // Remove all the clauses asserted (and implied) above the new base level
-    removeClausesAboveLevel(clauses_removable, assertionLevel);
-    removeClausesAboveLevel(clauses_persistent, assertionLevel);
+  assert(enable_incremental);
 
-    // Pop the user trail size
-    popTrail();
-    trail_user_lim.pop();
+  --assertionLevel;
 
-    // Notify the cnf
-    proxy->removeClausesAboveLevel(assertionLevel);
-  }
+  Debug("minisat") << "in user pop, reducing assertion level to " << assertionLevel << " and removing clauses above this from db" << std::endl;
+
+  // Remove all the clauses asserted (and implied) above the new base level
+  removeClausesAboveLevel(clauses_removable, assertionLevel);
+  removeClausesAboveLevel(clauses_persistent, assertionLevel);
+
+  // Pop the user trail size
+  popTrail();
+
+  // Notify the cnf
+  proxy->removeClausesAboveLevel(assertionLevel);
 }
 
 void Solver::unregisterVar(Lit lit) {
+  Debug("minisat") << "unregisterVar " << lit << std::endl;
   Var v = var(lit);
   vardata[v].intro_level = -1;
   setDecisionVar(v, false);
 }
 
 void Solver::renewVar(Lit lit, int level) {
+  Debug("minisat") << "renewVar " << lit << " " << level << std::endl;
   Var v = var(lit);
-  vardata[v].intro_level = level == -1 ? getAssertionLevel() : level;
+  vardata[v].intro_level = (level == -1 ? getAssertionLevel() : level);
   setDecisionVar(v, true);
 }
 
@@ -1300,6 +1296,7 @@ CRef Solver::updateLemmas() {
     sort(lemma, lt);
     // See if the lemma propagates something
     if (lemma.size() == 1 || value(lemma[1]) == l_False) {
+      Debug("minisat::lemmas") << "found unit " << lemma.size() << std::endl;
       // This lemma propagates, see which level we need to backtrack to
       int currentBacktrackLevel = lemma.size() == 1 ? 0 : level(var(lemma[1]));
       // Even if the first literal is true, we should propagate it at this level (unless it's set at a lower level)
@@ -1337,7 +1334,7 @@ CRef Solver::updateLemmas() {
       attachClause(lemma_ref);
     }
 
-    // If the lemma is propagating enqueue it's literal (or set the conflict)
+    // If the lemma is propagating enqueue its literal (or set the conflict)
     if (conflict == CRef_Undef && value(lemma[0]) != l_True) {
       if (lemma.size() == 1 || (value(lemma[1]) == l_False && trail_index(var(lemma[1])) < backtrack_index)) {
         if (value(lemma[0]) == l_False) {
@@ -1358,7 +1355,12 @@ CRef Solver::updateLemmas() {
 //          	} 
 //			Debug("minisat::lemmas") << std::endl; 
 //          }
+          Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;
           uncheckedEnqueue(lemma[0], lemma_ref);
+          if(assertionLevel > 0) {
+            // remember to unset it on user pop
+            Debug("minisat") << "got new unit (survived downward during updateLemmas()) " << lemma[0] << " at assertion level " << assertionLevel << std::endl;
+          }
         }
       }
     }

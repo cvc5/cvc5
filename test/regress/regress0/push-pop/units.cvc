@@ -1,0 +1,20 @@
+% COMMAND-LINE: --incremental
+x, y: BOOLEAN;
+ASSERT x OR y;
+% EXPECT: sat
+CHECKSAT;
+PUSH;
+  ASSERT NOT x;
+% EXPECT: sat
+  CHECKSAT;
+  PUSH;
+    ASSERT NOT y;
+% EXPECT: unsat
+    CHECKSAT;
+  POP;
+% EXPECT: sat
+  CHECKSAT;
+POP;
+% EXPECT: sat
+CHECKSAT;
+% EXIT: 10

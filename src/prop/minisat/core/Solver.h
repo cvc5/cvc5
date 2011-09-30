@@ -278,7 +278,6 @@ protected:
     vec<char>           decision;           // Declares if a variable is eligible for selection in the decision heuristic.
     vec<Lit>            trail;              // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;          // Separator indices for different decision levels in 'trail'.
-    vec<int>            trail_user_lim;     // Separator indices for different user push levels in 'trail'.
     vec<VarData>        vardata;            // Stores reason and level for each variable.
     int                 qhead;              // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
     int                 simpDB_assigns;     // Number of top-level assignments since last execution of 'simplify()'.

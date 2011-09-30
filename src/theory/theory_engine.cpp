@@ -199,7 +199,7 @@ void TheoryEngine::combineTheories() {
 
   CVC4_FOR_EACH_THEORY;
     
-  // Now add splitters for the ones we are interested in 
+  // Now add splitters for the ones we are interested in
   for (unsigned i = 0; i < careGraph.size(); ++ i) {
     const CarePair& carePair = careGraph[i];
 
