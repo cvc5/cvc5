@@ -123,7 +123,7 @@ static const string optionsDescription = "\
    --print-expr-types     print types with variables when printing exprs\n\
    --interactive          run interactively\n\
    --no-interactive       do not run interactively\n\
-   --produce-models       support the get-value command\n\
+   --produce-models | -m  support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
    --lazy-definition-expansion expand define-fun lazily\n\
    --simplification=MODE  choose simplification mode, see --simplification=help\n\
@@ -138,7 +138,7 @@ static const string optionsDescription = "\
    --disable-variable-removal enable permanent removal of variables in arithmetic (UNSAFE! experts only)\n\
    --disable-arithmetic-propagation turns on arithmetic propagation\n\
    --disable-symmetry-breaker turns off UF symmetry breaker (Deharbe et al., CADE 2011)\n\
-   --incremental          enable incremental solving\n";
+   --incremental | -i     enable incremental solving\n";
 
 static const string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
@@ -281,12 +281,10 @@ enum OptionValue {
   NO_STATIC_LEARNING,
   INTERACTIVE,
   NO_INTERACTIVE,
-  PRODUCE_MODELS,
   PRODUCE_ASSIGNMENTS,
   NO_TYPE_CHECKING,
   LAZY_TYPE_CHECKING,
   EAGER_TYPE_CHECKING,
-  INCREMENTAL,
   REPLAY,
   REPLAY_LOG,
   PIVOT_RULE,
@@ -355,19 +353,14 @@ static struct option cmdlineOptions[] = {
   { "no-static-learning", no_argument, NULL, NO_STATIC_LEARNING },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
-  { "produce-models", no_argument   , NULL, PRODUCE_MODELS },
+  { "produce-models", no_argument   , NULL, 'm' },
   { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS },
   { "no-type-checking", no_argument , NULL, NO_TYPE_CHECKING },
   { "lazy-type-checking", no_argument, NULL, LAZY_TYPE_CHECKING },
   { "eager-type-checking", no_argument, NULL, EAGER_TYPE_CHECKING },
-  { "incremental", no_argument      , NULL, INCREMENTAL },
+  { "incremental", no_argument      , NULL, 'i' },
   { "replay"     , required_argument, NULL, REPLAY      },
   { "replay-log" , required_argument, NULL, REPLAY_LOG  },
-  { "produce-models", no_argument   , NULL, PRODUCE_MODELS },
-  { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS },
-  { "no-type-checking", no_argument, NULL, NO_TYPE_CHECKING },
-  { "lazy-type-checking", no_argument, NULL, LAZY_TYPE_CHECKING },
-  { "eager-type-checking", no_argument, NULL, EAGER_TYPE_CHECKING },
   { "pivot-rule" , required_argument, NULL, PIVOT_RULE  },
   { "pivot-threshold" , required_argument, NULL, ARITHMETIC_PIVOT_THRESHOLD  },
   { "prop-row-length" , required_argument, NULL, ARITHMETIC_PROP_MAX_LENGTH  },
@@ -405,7 +398,7 @@ throw(OptionException) {
   // permitted.  cmdlineOptions specifies all the long-options and the
   // return value for getopt_long() should they be encountered.
   while((c = getopt_long(argc, argv,
-                         ":hVvqL:d:t:",
+                         ":himVvqL:d:t:",
                          cmdlineOptions, NULL)) != -1) {
     switch(c) {
 
@@ -614,7 +607,7 @@ throw(OptionException) {
       interactiveSetByUser = true;
       break;
 
-    case PRODUCE_MODELS:
+    case 'm':
       produceModels = true;
       break;
 
@@ -637,7 +630,7 @@ throw(OptionException) {
       earlyTypeChecking = true;
       break;
 
-    case INCREMENTAL:
+    case 'i':
       incrementalSolving = true;
       break;
 

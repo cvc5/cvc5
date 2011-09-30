@@ -15,7 +15,7 @@ LIBCVC4BINDINGS_VERSION = @CVC4_BINDINGS_LIBRARY_VERSION@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4BINDINGSLIB \
 	-I@srcdir@/../../../include -I@srcdir@/../../.. -I@builddir@/../../.. -I@builddir@/cvc3
-AM_CXXFLAGS = -Wall $(FLAG_VISIBILITY_HIDDEN)
+AM_CXXFLAGS = -Wall
 
 lib_LTLIBRARIES =
 data_DATA =

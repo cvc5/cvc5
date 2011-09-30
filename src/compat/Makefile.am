@@ -15,7 +15,7 @@ LIBCVC4COMPAT_VERSION = @CVC4_COMPAT_LIBRARY_VERSION@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4COMPATLIB \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
-AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
 if CVC4_BUILD_LIBCOMPAT
 
@@ -40,10 +40,12 @@ libcvc4compat_noinst_la_LIBADD = \
 libcvc4compat_la_SOURCES = \
 	cvc3_compat.h \
 	cvc3_compat.cpp
+libcvc4compat_la_CXXFLAGS = -fno-strict-aliasing
 
 libcvc4compat_noinst_la_SOURCES = \
 	cvc3_compat.h \
 	cvc3_compat.cpp
+libcvc4compat_noinst_la_CXXFLAGS = -fno-strict-aliasing
 
 else
 

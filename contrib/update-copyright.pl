@@ -33,9 +33,7 @@
 #
 
 my $excluded_directories = '^(minisat|CVS|generated)$';
-# re-include bounded_token_buffer.{h,cpp}
-#my $excluded_paths = '^(src/parser/bounded_token_buffer\.(h|cpp))|(src/parser/antlr_input_imports.cpp)$';
-my $excluded_paths = '^src/parser/antlr_input_imports.cpp$';
+my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*)$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
@@ -135,7 +133,7 @@ while($#searchdirs >= 0) {
 
 sub handleFile {
   my ($srcdir, $file) = @_;
-  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g)$/);
+  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java)$/);
   return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
   return if $modonly  &&`svn status "$srcdir/$file" 2>/dev/null` !~ /^M/;
   print "$srcdir/$file...";

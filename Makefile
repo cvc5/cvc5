@@ -27,6 +27,10 @@ test: check
 .PHONY: doc
 doc: doc-builds
 
+.PHONY: examples
+examples: all
+	(cd examples && $(MAKE) $(AM_MAKEFLAGS))
+
 YEAR := $(shell date +%Y)
 submission:
 	if [ ! -e configure ]; then ./autogen.sh; fi

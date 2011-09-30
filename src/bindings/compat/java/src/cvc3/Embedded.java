@@ -12,7 +12,7 @@ public abstract class Embedded {
 
     // load jni c++ library
     static {
-    	System.loadLibrary("cvc3jni");
+        System.loadLibrary("cvc4bindings_java_compat");
 
 	/*
 	// for debugging: stop here by waiting for a key press,

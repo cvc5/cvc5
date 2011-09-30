@@ -1,0 +1,12 @@
+These are examples of how to use CVC4 with each of its in-memory, library
+interfaces.  They are essentially "hello world" examples, and do not
+fully demonstrate the interfaces, but function as a starting point to
+using simple expressions and solving functionality through each library.
+
+These examples are built as a separate step.  After building CVC4, you
+can make the examples by running "make" from inside the examples
+directory.  With the default configuration, you'll find them in
+builds/examples in the top-level source directory (if you configured
+your own build directory, you'll find them there).
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Fri, 30 Sep 2011 16:19:46 -0400

@@ -63,6 +63,7 @@ EXTRA_DIST = \
 	include/cvc4parser_public.h \
 	include/cvc4_private.h \
 	include/cvc4_public.h \
+	include/cvc4.h \
 	cvc4.i
 
 subversion_versioninfo.cpp: svninfo
@@ -94,7 +95,8 @@ svninfo.tmp:
 	$(AM_V_GEN)(cd "$(top_srcdir)" && svn info && echo "Modifications: `test -z \"\`svn status -q\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
 
 install-data-local:
-	(echo include/cvc4_public.h; \
+	(echo include/cvc4.h; \
+	 echo include/cvc4_public.h; \
 	 find * -name '*.h' | \
 		xargs grep -l '^# *include  *"cvc4.*_public\.h"'; \
 	(cd "$(srcdir)" && find * -name '*.h' | \
@@ -115,7 +117,8 @@ install-data-local:
 	done
 
 uninstall-local:
-	-(echo include/cvc4_public.h; \
+	-(echo include/cvc4.h; \
+	  echo include/cvc4_public.h; \
 	  find * -name '*.h' | \
 		xargs grep -l '^# *include  *"cvc4.*_public\.h"'; \
 	(cd "$(srcdir)" && find * -name '*.h' | \

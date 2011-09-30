@@ -954,7 +954,7 @@ AC_SUBST(MAN_DATE)
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib src test -name Makefile.am | sort | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib src test examples -name Makefile.am | sort | sed 's,\.am$,,'])
 )
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
