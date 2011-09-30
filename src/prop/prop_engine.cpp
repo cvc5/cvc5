@@ -167,7 +167,7 @@ Node PropEngine::getValue(TNode node) {
 }
 
 bool PropEngine::isSatLiteral(TNode node) {
-  return d_cnfStream->hasLiteral(node);
+  return d_cnfStream->hasEverHadLiteral(node);
 }
 
 bool PropEngine::hasValue(TNode node, bool& value) {

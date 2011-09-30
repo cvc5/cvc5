@@ -1,0 +1,8 @@
+% COMMAND-LINE: --simplification=incremental
+x, y: BOOLEAN;
+ASSERT x OR y;
+ASSERT NOT x;
+ASSERT NOT y;
+% EXPECT: unsat
+CHECKSAT;
+% EXIT: 20

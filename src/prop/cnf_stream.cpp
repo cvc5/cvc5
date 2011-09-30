@@ -103,9 +103,14 @@ bool CnfStream::isTranslated(TNode n) const {
   return find != d_translationCache.end() && find->second.level >= 0;
 }
 
-bool CnfStream::hasLiteral(TNode n) const {
+bool CnfStream::hasEverHadLiteral(TNode n) const {
   TranslationCache::const_iterator find = d_translationCache.find(n);
   return find != d_translationCache.end();
+}
+
+bool CnfStream::currentlyHasLiteral(TNode n) const {
+  TranslationCache::const_iterator find = d_translationCache.find(n);
+  return find != d_translationCache.end() && (*find).second.level != -1;
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
@@ -113,7 +118,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
 
   // Get the literal for this node
   SatLiteral lit;
-  if (!hasLiteral(node)) {
+  if (!hasEverHadLiteral(node)) {
     // If no literal, well make one
     lit = variableToLiteral(d_satSolver->newVar(theoryLiteral));
     d_translationCache[node].literal = lit;
@@ -599,13 +604,16 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool removable, bool negated
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
   Debug("cnf") << "convertAndAssert(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
-  if(hasLiteral(node)) {
+  /*
+  if(currentlyHasLiteral(node)) {
     Debug("cnf") << "==> fortunate literal detected!" << endl;
     ++d_fortunateLiterals;
     SatLiteral lit = getLiteral(node);
     //d_satSolver->renewVar(lit);
     assertClause(node, negated ? ~lit : lit);
+    return;
   }
+  */
 
   switch(node.getKind()) {
   case AND:

@@ -137,7 +137,7 @@ class CVC4_PUBLIC SmtEngine {
 
   /**
    * Whether or not a query() or checkSat() has already been made through
-   * this SmtEngine.  If true, and d_incrementalSolving is false, then
+   * this SmtEngine.  If true, and incrementalSolving is false, then
    * attempting an additional query() or checkSat() will fail with a
    * ModalException.
    */

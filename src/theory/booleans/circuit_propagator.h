@@ -28,6 +28,9 @@
 #include "context/context.h"
 #include "util/hash.h"
 #include "expr/node.h"
+#include "context/cdset.h"
+#include "context/cdmap.h"
+#include "context/cdo.h"
 
 namespace CVC4 {
 namespace theory {
@@ -72,20 +75,50 @@ private:
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
 
+  /** A context-notify object that clears out stale data. */
+  template <class T>
+  class DataClearer : context::ContextNotifyObj {
+    T& d_data;
+  public:
+    DataClearer(context::Context* context, T& data) :
+      context::ContextNotifyObj(context),
+      d_data(data) {
+    }
+
+    void notify() {
+      Trace("circuit-prop") << "CircuitPropagator::DataClearer: clearing data "
+                            << "(size was " << d_data.size() << ")" << std::endl;
+      d_data.clear();
+    }
+  };/* class DataClearer<T> */
+
+  /**
+   * We have a propagation queue "clearer" object for when the user
+   * context pops.  Normally the propagation queue should be empty,
+   * but this keeps us safe in case there's still some rubbish around
+   * on the queue.
+   */
+  DataClearer< std::vector<TNode> > d_propagationQueueClearer;
+
   /** Are we in conflict */
-  bool d_conflict;
+  context::CDO<bool> d_conflict;
 
   /** Map of substitutions */
   std::vector<Node>& d_learnedLiterals;
 
+  /**
+   * Similar data clearer for learned literals.
+   */
+  DataClearer< std::vector<Node> > d_learnedLiteralClearer;
+
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
-  std::hash_set<TNode, TNodeHashFunction> d_seen;
+  context::CDSet<TNode, TNodeHashFunction> d_seen;
 
   /**
    * Assignment status of each node.
    */
-  typedef std::hash_map<TNode, AssignmentStatus, TNodeHashFunction> AssignmentMap;
+  typedef context::CDMap<TNode, AssignmentStatus, TNodeHashFunction> AssignmentMap;
   AssignmentMap d_state;
 
   /**
@@ -93,7 +126,7 @@ private:
    */
   void assignAndEnqueue(TNode n, bool value) {
 
-    Debug("circuit-prop") << "CircuitPropagator::assign(" << n << ", " << (value ? "true" : "false") << ")" << std::endl;
+    Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", " << (value ? "true" : "false") << ")" << std::endl;
 
     if (n.getKind() == kind::CONST_BOOLEAN) {
       // Assigning a constant to the opposite value is dumb
@@ -136,8 +169,9 @@ private:
 
   /** Get Node assignment in circuit.  Assert-fails if Node is unassigned. */
   bool getAssignment(TNode n) const {
-    Assert(d_state.find(n) != d_state.end() && d_state.find(n)->second != UNASSIGNED);
-    return d_state.find(n)->second == ASSIGNED_TO_TRUE;
+    AssignmentMap::iterator i = d_state.find(n);
+    Assert(i != d_state.end() && (*i).second != UNASSIGNED);
+    return (*i).second == ASSIGNED_TO_TRUE;
   }
 
   /** Predicate for use in STL functions. */
@@ -186,17 +220,25 @@ private:
   void propagateBackward(TNode parent, bool assignment);
 
   /** Whether to perform forward propagation */
-  bool d_forwardPropagation;
+  const bool d_forwardPropagation;
+
   /** Whether to perform backward propagation */
-  bool d_backwardPropagation;
+  const bool d_backwardPropagation;
 
 public:
   /**
-   * Construct a new CircuitPropagator with the given atoms and backEdges.
+   * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(std::vector<Node>& outLearnedLiterals, bool enableForward = true, bool enableBackward = true) :
-    d_conflict(false),
+  CircuitPropagator(context::Context* context, std::vector<Node>& outLearnedLiterals,
+                    bool enableForward = true, bool enableBackward = true) :
+    d_backEdges(),
+    d_propagationQueue(),
+    d_propagationQueueClearer(context, d_propagationQueue),
+    d_conflict(context, false),
     d_learnedLiterals(outLearnedLiterals),
+    d_learnedLiteralClearer(context, outLearnedLiterals),
+    d_seen(context),
+    d_state(context),
     d_forwardPropagation(enableForward),
     d_backwardPropagation(enableBackward) {
   }

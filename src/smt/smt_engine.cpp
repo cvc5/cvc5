@@ -107,6 +107,9 @@ class SmtEnginePrivate {
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
 
+  /** A circuit propagator for non-clausal propositional deduction */
+  booleans::CircuitPropagator d_propagator;
+
   /** Assertions to push to sat */
   vector<Node> d_assertionsToCheck;
 
@@ -140,6 +143,8 @@ public:
 
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
+    d_nonClausalLearnedLiterals(),
+    d_propagator(smt.d_userContext, d_nonClausalLearnedLiterals, true, true),
     d_topLevelSubstitutions(smt.d_userContext) {
   }
 
@@ -244,6 +249,8 @@ SmtEngine::~SmtEngine() {
   StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
   StatisticsRegistry::unregisterStat(&d_staticLearningTime);
 
+  // Deletion order error: circuit propagator has some unsafe TNodes ?!
+  // delete d_private;
   delete d_userContext;
 
   delete d_theoryEngine;
@@ -559,7 +566,7 @@ void SmtEnginePrivate::staticLearning() {
 
 void SmtEnginePrivate::nonClausalSimplify() {
 
-  TimerStat::CodeTimer nonclauselTimer(d_smt.d_nonclausalSimplificationTime);
+  TimerStat::CodeTimer nonclausalTimer(d_smt.d_nonclausalSimplificationTime);
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
 
@@ -571,19 +578,16 @@ void SmtEnginePrivate::nonClausalSimplify() {
       theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
   }
 
-  d_nonClausalLearnedLiterals.clear();
-  booleans::CircuitPropagator propagator(d_nonClausalLearnedLiterals, true, true);
-
   // Assert all the assertions to the propagator
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "asserting to propagator" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-    propagator.assert(d_assertionsToPreprocess[i]);
+    d_propagator.assert(d_assertionsToPreprocess[i]);
   }
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "propagating" << endl;
-  if (propagator.propagate()) {
+  if (d_propagator.propagate()) {
     // If in conflict, just return false
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "conflict in non-clausal propagation" << endl;
@@ -1082,22 +1086,25 @@ void SmtEngine::pop() {
                        << d_userContext->getLevel() << endl;
   // FIXME: should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
-}
-
-void SmtEngine::internalPop() {
-  Trace("smt") << "internalPop()" << endl;
-  d_propEngine->pop();
-  d_userContext->pop();
+  // Still, we want the right exit status after any final sequence
+  // of pops... hm.
 }
 
 void SmtEngine::internalPush() {
-  Trace("smt") << "internalPush()" << endl;
-  // TODO: this is the right thing to do, but needs serious thinking
-  // to keep completeness
-  //
-  // d_private->processAssertions();
-  d_userContext->push();
-  d_propEngine->push();
+  Trace("smt") << "SmtEngine::internalPush()" << endl;
+  if(Options::current()->incrementalSolving) {
+    d_private->processAssertions();
+    d_userContext->push();
+    d_propEngine->push();
+  }
+}
+
+void SmtEngine::internalPop() {
+  Trace("smt") << "SmtEngine::internalPop()" << endl;
+  if(Options::current()->incrementalSolving) {
+    d_propEngine->pop();
+    d_userContext->pop();
+  }
 }
 
 StatisticsRegistry* SmtEngine::getStatisticsRegistry() const {

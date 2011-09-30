@@ -215,12 +215,16 @@ public:
   TNode getNode(const SatLiteral& literal);
 
   /**
-   * Returns true if the node has an assigned literal (it might not be translated).
-   * Caches the pair of the node and the literal corresponding to the
-   * translation.
+   * Returns true iff the node has an assigned literal (it might not be translated).
    * @param node the node
    */
-  bool hasLiteral(TNode node) const;
+  bool hasEverHadLiteral(TNode node) const;
+
+  /**
+   * Returns true iff the node has an assigned literal and it's translated.
+   * @param node the node
+   */
+  bool currentlyHasLiteral(TNode node) const;
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
