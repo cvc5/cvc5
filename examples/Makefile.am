@@ -49,6 +49,11 @@ SimpleVC.class: SimpleVC.java
 SimpleVCCompat.class: SimpleVCCompat.java
 	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../src/bindings/compat/java/cvc4compat.jar" -d "@builddir@" $<
 
+EXTRA_DIST = \
+	SimpleVC.java \
+	SimpleVCCompat.java \
+	README
+
 if STATIC_BINARY
 simple_vc_cxx_LINK = $(CXXLINK) -all-static
 simple_vc_compat_cxx_LINK = $(CXXLINK) -all-static
