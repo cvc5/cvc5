@@ -1148,11 +1148,31 @@ Type ValidityChecker::importType(const Type& t) {
 }
 
 void ValidityChecker::cmdsFromString(const std::string& s, InputLanguage lang) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  std::stringstream ss(s, std::stringstream::in);
+  return loadFile(ss, lang, false);
 }
 
-Expr ValidityChecker::exprFromString(const std::string& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+Expr ValidityChecker::exprFromString(const std::string& s, InputLanguage lang) {
+  std::stringstream ss;
+
+  if( lang != PRESENTATION_LANG && lang != SMTLIB_V2_LANG ) {
+    ss << lang;
+    throw Exception("Unsupported language in exprFromString: " + ss.str());
+  }
+
+  CVC4::parser::Parser* p = CVC4::parser::ParserBuilder(d_em, "<internal>").withStringInput(s).withInputLanguage(lang).build();
+  Expr dummy = p->nextExpression();
+  if( dummy.isNull() ) {
+    throw CVC4::parser::ParserException("Parser result is null: '" + s + "'");
+  }
+  //DebugAssert(dummy.getKind() == RAW_LIST, "Expected list expression");
+  //DebugAssert(dummy.arity() == 2, "Expected two children");
+
+  Expr e = parseExpr(dummy[1]);
+
+  delete p;
+
+  return e;
 }
 
 Expr ValidityChecker::trueExpr() {

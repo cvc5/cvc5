@@ -747,7 +747,11 @@ public:
                               InputLanguage lang = PRESENTATION_LANG);
 
   //! Parse an expression from a presentation language string
-  virtual Expr exprFromString(const std::string& e);
+  /*! Only PRESENTATION_LANG and SMTLIB_V2_LANG are supported. Any other
+   *  value for lang will raise an exception.
+   */
+  virtual Expr exprFromString(const std::string& e,
+                              InputLanguage lang = PRESENTATION_LANG);
 
   /*@}*/ // End of General Expr Methods
 
