@@ -8,7 +8,24 @@ namespace CVC4 {
     enum SymbolType;
     %ignore operator<<(std::ostream&, DeclarationCheck);
     %ignore operator<<(std::ostream&, SymbolType);
+
+  class ParserExprStream : public CVC4::ExprStream {
+    Parser* d_parser;
+  public:
+    ExprStream(Parser* parser) : d_parser(parser) {}
+    ~ExprStream() { delete d_parser; }
+    Expr nextExpr() { return d_parser->nextExpression(); }
+  };/* class Parser::ExprStream */
+
   }/* namespace CVC4::parser */
 }/* namespace CVC4 */
 
 %include "parser/parser.h"
+
+%{
+namespace CVC4 {
+  namespace parser {
+    typedef CVC4::parser::Parser::ExprStream ParserExprStream;
+  }
+}
+%}

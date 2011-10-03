@@ -40,6 +40,13 @@ using namespace CVC4;
 %template(setType) std::set< CVC4::Type >;
 %template(hashmapExpr) std::hash_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
+// This is unfortunate, but seems to be necessary; if we leave NULL
+// defined, swig will expand it to "(void*) 0", and some of swig's
+// helper functions won't compile properly.
+#undef NULL
+
+#ifdef SWIGJAVA
+
 %exception {
   try {
     $action
@@ -50,15 +57,12 @@ using namespace CVC4;
   }
 }
 
-// This is unfortunate, but seems to be necessary; if we leave NULL
-// defined, swig will expand it to "(void*) 0", and some of swig's
-// helper functions won't compile properly.
-#undef NULL
-
 %include "java/typemaps.i" // primitive pointers and references
 %include "java/std_string.i" // map std::string to java.lang.String
 %include "java/arrays_java.i" // C arrays to Java arrays
 %include "java/various.i" // map char** to java.lang.String[]
+
+#endif /* SWIGJAVA */
 
 %include "util/integer.i"
 %include "util/rational.i"

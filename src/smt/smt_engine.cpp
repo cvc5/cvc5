@@ -574,14 +574,17 @@ void SmtEnginePrivate::nonClausalSimplify() {
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "applying substitutions" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    Trace("simplify") << "applying to " << d_assertionsToPreprocess[i] << std::endl;
     d_assertionsToPreprocess[i] =
       theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
+    Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << std::endl;
   }
 
   // Assert all the assertions to the propagator
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "asserting to propagator" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): asserting " << d_assertionsToPreprocess[i] << std::endl;
     d_propagator.assert(d_assertionsToPreprocess[i]);
   }
 
@@ -591,6 +594,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
     // If in conflict, just return false
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "conflict in non-clausal propagation" << endl;
+    d_assertionsToPreprocess.clear();
     d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
     return;
   } else {
@@ -610,6 +614,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
           Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                             << "conflict with "
                             << d_nonClausalLearnedLiterals[i] << endl;
+          d_assertionsToPreprocess.clear();
           d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
           return;
         }
@@ -625,6 +630,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                           << "conflict while solving "
                           << learnedLiteral << endl;
+        d_assertionsToPreprocess.clear();
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
         return;
       case Theory::SOLVE_STATUS_SOLVED:

@@ -221,7 +221,6 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
     // Fit to size
     ps.shrink(i - j);
 
-
     // If we are in solve or decision level > 0
     if (minisat_busy || decisionLevel() > 0) {
       lemmas.push();
@@ -232,8 +231,15 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
       if (ps.size() == 0) {
           return ok = false;
       } else if (ps.size() == 1) {
-        uncheckedEnqueue(ps[0]);
-        return ok = (propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) == CRef_Undef);
+        if(assigns[var(ps[0])] == l_Undef) {
+          uncheckedEnqueue(ps[0]);
+          if(assertionLevel > 0) {
+            // remember to unset it on user pop
+            Debug("minisat") << "got new unit " << ps[0] << " at assertion level " << assertionLevel << std::endl;
+            trail_user.push(ps[0]);
+          }
+          return ok = (propagate(CHECK_WITHOUTH_PROPAGATION_QUICK) == CRef_Undef);
+        } else return ok;
       } else {
         CRef cr = ca.alloc(assertionLevel, ps, false);
         clauses_persistent.push(cr);
@@ -307,10 +313,13 @@ void Solver::cancelUntil(int level) {
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
-            assigns [x] = l_Undef;
-            if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
+            if(intro_level(x) != -1) {// might be unregistered
+              assigns [x] = l_Undef;
+              vardata[x].trail_index = -1;
+              if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
                 polarity[x] = sign(trail[c]);
-            insertVarOrder(x);
+              insertVarOrder(x);
+            }
         }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
@@ -581,8 +590,16 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     Debug("minisat") << "unchecked enqueue of " << p << " (" << trail_index(var(p)) << ") trail size is " << trail.size() << " cap is " << trail.capacity() << std::endl;
     assert(value(p) == l_Undef);
     assigns[var(p)] = lbool(!sign(p));
-    vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail.size());
-    trail.push_(p);
+    if(trail_index(var(p)) != -1) {
+      // This var is already represented in the trail, presumably from
+      // an earlier incarnation as a unit clause (it has been
+      // unregistered and renewed since then)
+      vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail_index(var(p)));
+      trail[trail_index(var(p))] = p;
+    } else {
+      vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail.size());
+      trail.push_(p);
+    }
     if (theory[var(p)]) {
       // Enqueue to the theory
       proxy->enqueueTheoryLiteral(p);
@@ -1050,6 +1067,8 @@ lbool Solver::solve_()
 
     ScopedBool scoped_bool(minisat_busy, true);
 
+    popTrail();
+
     model.clear();
     conflict.clear();
     if (!ok){
@@ -1231,13 +1250,18 @@ void Solver::push()
 {
   assert(enable_incremental);
 
-  Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
+  popTrail();
   ++assertionLevel;
+  Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
+  trail_user.push(lit_Undef);
+  trail_ok.push(ok);
 }
 
 void Solver::pop()
 {
   assert(enable_incremental);
+
+  popTrail();
 
   --assertionLevel;
 
@@ -1247,8 +1271,26 @@ void Solver::pop()
   removeClausesAboveLevel(clauses_removable, assertionLevel);
   removeClausesAboveLevel(clauses_persistent, assertionLevel);
 
-  // Pop the user trail size
-  popTrail();
+  Debug("minisat") << "in user pop, at " << trail_lim.size() << " : " << assertionLevel << std::endl;
+
+  // Unset any units learned or added at this level
+  Debug("minisat") << "in user pop, unsetting level units for level " << assertionLevel << std::endl;
+  while(trail_user.last() != lit_Undef) {
+    Lit l = trail_user.last();
+    Debug("minisat") << "== unassigning " << l << std::endl;
+    Var      x  = var(l);
+    assigns [x] = l_Undef;
+    if (phase_saving >= 1)
+      polarity[x] = sign(l);
+    insertVarOrder(x);
+    trail_user.pop();
+  }
+  trail_user.pop();
+  ok = trail_ok.last();
+  trail_ok.pop();
+  Debug("minisat") << "in user pop, done unsetting level units" << std::endl;
+
+  Debug("minisat") << "about to removeClausesAboveLevel(" << assertionLevel << ") in CNF" << std::endl;
 
   // Notify the cnf
   proxy->removeClausesAboveLevel(assertionLevel);
@@ -1357,9 +1399,11 @@ CRef Solver::updateLemmas() {
 //          }
           Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;
           uncheckedEnqueue(lemma[0], lemma_ref);
-          if(assertionLevel > 0) {
+          if(lemma.size() == 1 && assertionLevel > 0) {
+            assert(decisionLevel() == 0);
             // remember to unset it on user pop
             Debug("minisat") << "got new unit (survived downward during updateLemmas()) " << lemma[0] << " at assertion level " << assertionLevel << std::endl;
+            trail_user.push(lemma[0]);
           }
         }
       }

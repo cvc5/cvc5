@@ -21,8 +21,8 @@ AC_ARG_WITH([swig],
   [AS_HELP_STRING([--with-swig=BINARY], [path to swig binary])],
   [if test "$withval" = no; then noswig=yes; else SWIG="$withval"; fi])
 AC_ARG_ENABLE([language-bindings],
-  [AS_HELP_STRING([--enable-language-bindings=][CVC4_SUPPORTED_BINDINGS], [specify language bindings to build])],
-  [cvc4_check_for_bindings=no; if test "$enableval" = no; then try_bindings=; else try_bindings="$enableval"; fi],
+  [AS_HELP_STRING([--enable-language-bindings=][CVC4_SUPPORTED_BINDINGS][ | all], [specify language bindings to build])],
+  [if test "$enableval" = yes; then cvc4_check_for_bindings=yes; try_bindings='$1'; else cvc4_check_for_bindings=no; if test "$enableval" = no; then try_bindings=; else try_bindings="$enableval"; fi; fi],
   [cvc4_check_for_bindings=yes; try_bindings=])
 CVC4_LANGUAGE_BINDINGS=
 if test "$noswig" = yes; then
@@ -44,12 +44,18 @@ else
     fi
   else
     AC_MSG_CHECKING([for requested user language bindings])
-    if test "$cvc4_check_for_bindings" = yes; then
-      try_bindings='$1'
-    else
-      try_bindings=$(echo "$try_bindings" | sed 's/,/ /g')
+    if test "$try_bindings" = all; then
+      try_bindings='CVC4_SUPPORTED_BINDINGS'
     fi
-    AC_MSG_RESULT([$try_bindings])
+    try_bindings=$(echo "$try_bindings" | sed 's/,/ /g')
+    if test -z "$try_bindings"; then
+      AC_MSG_RESULT([none])
+    else
+      AC_MSG_RESULT([$try_bindings])
+    fi
+    cvc4_save_CPPFLAGS="$CPPFLAGS"
+    cvc4_save_CXXFLAGS="$CXXFLAGS"
+    AC_LANG_PUSH([C++])
     for binding in $try_bindings; do
       binding_error=no
       AC_MSG_CHECKING([for availability of $binding binding])
@@ -60,35 +66,58 @@ else
           cvc4_build_c_bindings=yes
           AC_MSG_RESULT([C support will be built]);;
         java)
-          cvc4_build_java_bindings=yes
-          AC_MSG_RESULT([Java support will be built]);;
+          AC_MSG_RESULT([Java support will be built])
+          AC_ARG_VAR(JAVA_CPPFLAGS, [flags to pass to compiler when building Java bindings])
+          CPPFLAGS="$CPPFLAGS $JAVA_CPPFLAGS"
+          AC_CHECK_HEADER([jni.h], [cvc4_build_java_bindings=yes], [binding_error=yes])
+          ;;
         csharp)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          cvc4_build_csharp_bindings=yes
+          AC_MSG_RESULT([[C# support will be built]]);;
         perl)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          AC_MSG_RESULT([perl support will be built])
+          AC_ARG_VAR(PERL_CPPFLAGS, [flags to pass to compiler when building perl bindings])
+          CPPFLAGS="$CPPFLAGS $PERL_CPPFLAGS"
+          AC_CHECK_HEADER([EXTERN.h], [cvc4_build_perl_bindings=yes], [binding_error=yes])
+          ;;
         php)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          AC_MSG_RESULT([php support will be built])
+          AC_ARG_VAR(PHP_CPPFLAGS, [flags to pass to compiler when building PHP bindings])
+          CPPFLAGS="$CPPFLAGS $PHP_CPPFLAGS"
+          AC_CHECK_HEADER([zend.h], [cvc4_build_php_bindings=yes], [binding_error=yes])
+          ;;
         python)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          AC_MSG_RESULT([python support will be built])
+          AC_ARG_VAR(PYTHON_CPPFLAGS, [flags to pass to compiler when building Python bindings])
+          CPPFLAGS="$CPPFLAGS $PYTHON_CPPFLAGS"
+          AC_CHECK_HEADER([Python.h], [cvc4_build_python_bindings=yes], [binding_error=yes])
+          ;;
         ruby)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          AC_MSG_RESULT([ruby support will be built])
+          AC_ARG_VAR(RUBY_CPPFLAGS, [flags to pass to compiler when building ruby bindings])
+          CPPFLAGS="$CPPFLAGS $RUBY_CPPFLAGS"
+          AC_CHECK_HEADER([ruby.h], [cvc4_build_ruby_bindings=yes], [binding_error=yes])
+          ;;
         tcl)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          cvc4_build_tcl_bindings=yes
+          AC_MSG_RESULT([tcl support will be built]);;
         ocaml)
-          binding_error=yes
-          AC_MSG_RESULT([$binding not supported yet]);;
+          cvc4_build_ocaml_bindings=yes
+          AC_MSG_RESULT([OCaml support will be built]);;
         *) AC_MSG_RESULT([unknown binding]); binding_error=yes;;
       esac
-      if test "$binding_error" = yes -a "$cvc4_check_for_bindings" = no; then
-        AC_MSG_ERROR([Language binding \`$binding' requested by user, but it cannot be built.])
+      if test "$binding_error" = yes; then
+        if test "$cvc4_check_for_bindings" = no; then
+          AC_MSG_ERROR([Language binding \`$binding' requested by user, but it cannot be built.])
+        else
+          AC_MSG_WARN([Language binding \`$binding' cannot be built.])
+        fi
+      else
+        CVC4_LANGUAGE_BINDINGS="${CVC4_LANGUAGE_BINDINGS:+$CVC4_LANGUAGE_BINDINGS }$binding"
       fi
-      CVC4_LANGUAGE_BINDINGS="${CVC4_LANGUAGE_BINDINGS:+$CVC4_LANGUAGE_BINDINGS }$binding"
+      AC_LANG_POP([C++])
+      CXXFLAGS="$cvc4_save_CXXFLAGS"
+      CPPFLAGS="$cvc4_save_CPPFLAGS"
     done
   fi
 fi

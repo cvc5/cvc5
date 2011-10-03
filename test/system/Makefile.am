@@ -71,12 +71,6 @@ cvc3_main: cvc3_george.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $+
 CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/cvc4.jar @abs_top_builddir@/src/bindings/libcvc4bindings_java.la
 	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/cvc4.jar -d $(builddir) $<
-#CVC4JavaTest: CVC4JavaTest.class
-#	$(AM_V_GEN)( \
-#	echo "#!/bin/bash"; \
-#	echo "exec $(JAVA) -classpath @abs_top_builddir@/src/bindings/cvc4.jar -Djava.library.path=@abs_top_builddir@/src/bindings/.libs CVC4JavaTest"; \
-#	) >$@; \
-#	chmod +x $@
 
 # for silent automake rules
 AM_V_JAVAC = $(am__v_JAVAC_$(V))
