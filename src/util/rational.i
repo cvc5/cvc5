@@ -6,6 +6,7 @@
 %ignore CVC4::Rational::Rational(unsigned int);
 %ignore CVC4::Rational::Rational(int, int);
 %ignore CVC4::Rational::Rational(unsigned int, unsigned int);
+%ignore CVC4::Rational::Rational(const std::string&);
 
 %rename(assign) CVC4::Rational::operator=(const Rational&);
 %rename(equals) CVC4::Rational::operator==(const Rational&) const;

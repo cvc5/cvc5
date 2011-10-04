@@ -136,7 +136,7 @@ python.lo: python.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(PYTHON_CPPFLAGS) -o $@ $<
 python.cpp:
 ocaml.cpp:
-python.lo: ruby.cpp
+ruby.lo: ruby.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(RUBY_CPPFLAGS) -o $@ $<
 ruby.cpp:
 tcl.cpp:

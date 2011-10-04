@@ -45,8 +45,6 @@ class ExprManager;
 
 class CVC4_PUBLIC Stat;
 
-inline std::ostream& operator<<(std::ostream& os, const timespec& t);
-
 /**
  * The main statistics registry.  This registry maintains the list of
  * currently active statistics and is able to "flush" them all.
@@ -643,12 +641,14 @@ inline bool operator>=(const timespec& a, const timespec& b) {
 }
 
 /** Output a timespec on an output stream. */
+inline std::ostream& operator<<(std::ostream& os, const timespec& t) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& os, const timespec& t) {
   // assumes t.tv_nsec is in range
   return os << t.tv_sec << "."
             << std::setfill('0') << std::setw(8) << std::right << t.tv_nsec;
 }
 
+class CVC4_PUBLIC CodeTimer;
 
 /**
  * A timer statistic.  The timer can be started and stopped
@@ -666,27 +666,7 @@ class CVC4_PUBLIC TimerStat : public BackedStat< timespec > {
 
 public:
 
-  /**
-   * Utility class to make it easier to call stop() at the end of a
-   * code block.  When constructed, it starts the timer.  When
-   * destructed, it stops the timer.
-   */
-  class CodeTimer {
-    TimerStat& d_timer;
-
-    /** Private copy constructor undefined (no copy permitted). */
-    CodeTimer(const CodeTimer& timer) CVC4_UNDEFINED;
-    /** Private assignment operator undefined (no copy permitted). */
-    CodeTimer& operator=(const CodeTimer& timer) CVC4_UNDEFINED;
-
-  public:
-    CodeTimer(TimerStat& timer) : d_timer(timer) {
-      d_timer.start();
-    }
-    ~CodeTimer() {
-      d_timer.stop();
-    }
-  };/* class TimerStat::CodeTimer */
+  typedef CVC4::CodeTimer CodeTimer;
 
   /**
    * Construct a timer statistic with the given name.  Newly-constructed
@@ -710,6 +690,29 @@ public:
   void stop();
 
 };/* class TimerStat */
+
+
+/**
+ * Utility class to make it easier to call stop() at the end of a
+ * code block.  When constructed, it starts the timer.  When
+ * destructed, it stops the timer.
+ */
+class CVC4_PUBLIC CodeTimer {
+  TimerStat& d_timer;
+
+  /** Private copy constructor undefined (no copy permitted). */
+  CodeTimer(const CodeTimer& timer) CVC4_UNDEFINED;
+  /** Private assignment operator undefined (no copy permitted). */
+  CodeTimer& operator=(const CodeTimer& timer) CVC4_UNDEFINED;
+
+public:
+  CodeTimer(TimerStat& timer) : d_timer(timer) {
+    d_timer.start();
+  }
+  ~CodeTimer() {
+    d_timer.stop();
+  }
+};/* class CodeTimer */
 
 
 /**

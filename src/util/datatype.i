@@ -1,8 +1,5 @@
 %{
 #include "util/datatype.h"
-namespace CVC4 {
-//typedef CVC4::Datatype::Constructor DatatypeConstructor;
-}
 %}
 
 namespace CVC4 {
@@ -32,6 +29,11 @@ namespace CVC4 {
 %ignore CVC4::DatatypeHashFunction::operator()(const Datatype*) const;
 %rename(apply) CVC4::DatatypeHashFunction::operator()(const Datatype::Constructor&) const;
 %ignore CVC4::DatatypeHashFunction::operator()(const Datatype::Constructor*) const;
+
+%rename(beginConst) CVC4::Constructor::begin() const;
+%rename(endConst) CVC4::Constructor::end() const;
+
+%rename(getArg) CVC4::Constructor::operator[](size_t) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Datatype&);
 %ignore CVC4::operator<<(std::ostream&, const Datatype::Constructor&);
@@ -226,7 +228,6 @@ namespace CVC4 {
     const Arg& operator[](size_t index) const;
 
   };/* class Datatype::Constructor */
-}
 
   class SelfType {
   };/* class Datatype::SelfType */
@@ -245,6 +246,7 @@ namespace CVC4 {
     inline UnresolvedType(std::string name);
     inline std::string getName() const throw();
   };/* class Datatype::UnresolvedType */
+}
 
 %{
 namespace CVC4 {

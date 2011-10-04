@@ -4,6 +4,7 @@
 
 %ignore CVC4::Integer::Integer(int);
 %ignore CVC4::Integer::Integer(unsigned int);
+%ignore CVC4::Integer::Integer(const std::string&);
 
 %rename(assign) CVC4::Integer::operator=(const Integer&);
 %rename(equals) CVC4::Integer::operator==(const Integer&) const;

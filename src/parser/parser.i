@@ -12,8 +12,8 @@ namespace CVC4 {
   class ParserExprStream : public CVC4::ExprStream {
     Parser* d_parser;
   public:
-    ExprStream(Parser* parser) : d_parser(parser) {}
-    ~ExprStream() { delete d_parser; }
+    ParserExprStream(Parser* parser) : d_parser(parser) {}
+    ~ParserExprStream() { delete d_parser; }
     Expr nextExpr() { return d_parser->nextExpression(); }
   };/* class Parser::ExprStream */
 

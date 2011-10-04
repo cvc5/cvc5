@@ -596,10 +596,10 @@ mainCommand[CVC4::Command*& cmd]
     { cmd = new SetOptionCommand(s, sexpr); }
 
     /* push / pop */
-  | PUSH_TOK k=numeral?
-    { cmd = REPEAT_COMMAND(k, PushCommand()); }
-  | POP_TOK k=numeral?
-    { cmd = REPEAT_COMMAND(k, PopCommand()); }
+  | PUSH_TOK ( k=numeral { cmd = REPEAT_COMMAND(k, PushCommand()); }
+               | { cmd = new PushCommand(); } )
+  | POP_TOK ( k=numeral { cmd = REPEAT_COMMAND(k, PopCommand()); }
+              | { cmd = new PopCommand(); } )
   | POPTO_TOK k=numeral?
     { UNSUPPORTED("POPTO command"); }
 
