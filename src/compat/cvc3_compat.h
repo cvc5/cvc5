@@ -60,6 +60,8 @@
 #include "util/exception.h"
 #include "util/hash.h"
 
+#include "parser/parser.h"
+
 #include <stdlib.h>
 #include <map>
 #include <utility>
@@ -462,6 +464,7 @@ class CVC4_PUBLIC ValidityChecker {
   CVC4::Options d_options;
   CVC4::ExprManager* d_em;
   CVC4::SmtEngine* d_smt;
+  CVC4::parser::Parser* d_parserContext;
 
   ValidityChecker(const CLFlags& clflags);
 

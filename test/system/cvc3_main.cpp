@@ -124,7 +124,7 @@ void test ()
      Expr f2 = vc->funExpr(f, e);
      Expr f3 = vc->funExpr(f, f2);
 
-     DebugAssert(e != f2 && e != f3, "Refcount problems");
+     FatalAssert(e != f2 && e != f3, "Refcount problems");
 
      Expr x (vc->boundVarExpr ("x", "0", it));//x0:int
      vector<Expr> xs;
@@ -160,11 +160,11 @@ void test1()
   try {
 
     IF_DEBUG(bool b =) check(vc, vc->trueExpr());
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     vc->push();
     IF_DEBUG(b =) check(vc, vc->falseExpr());
-    DebugAssert(!b, "Should be invalid");
+    FatalAssert(!b, "Should be invalid");
     vc->pop();          
 
     // Check p OR ~p
@@ -173,7 +173,7 @@ void test1()
     Expr e = vc->orExpr(p, vc->notExpr(p));
 
     IF_DEBUG(b =) check(vc, e);
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     // Check x = y -> f(x) = f(y)
 
@@ -187,7 +187,7 @@ void test1()
 
     e = vc->impliesExpr(vc->eqExpr(x,y),vc->eqExpr(fx, fy));
     IF_DEBUG(b =) check(vc, e);
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     // Check f(x) = f(y) -> x = y
 
@@ -195,7 +195,7 @@ void test1()
     IF_DEBUG(int scopeLevel = vc->scopeLevel();)
     vc->push();
     IF_DEBUG(b =) check(vc, e);
-    DebugAssert(!b, "Should be invalid");
+    FatalAssert(!b, "Should be invalid");
 
     // Get counter-example
     
@@ -211,7 +211,7 @@ void test1()
     // Reset to initial scope
     cout << "Resetting" << endl;
     vc->pop();
-    DebugAssert(scopeLevel == vc->scopeLevel(), "scope error");
+    FatalAssert(scopeLevel == vc->scopeLevel(), "scope error");
     cout << "Scope level: " << vc->scopeLevel() << endl << endl;
 
     // Check w = x & x = y & y = z & f(x) = f(y) & x = 1 & z = 2
@@ -231,7 +231,7 @@ void test1()
     cout << endl << "simplify(w) = ";
     vc->printExpr(vc->simplify(w));
     cout << endl;
-    DebugAssert(vc->simplify(w)==vc->ratExpr(1), "Expected simplify(w) = 1");
+    FatalAssert(vc->simplify(w)==vc->ratExpr(1), "Expected simplify(w) = 1");
 
     newAssertion(vc, vc->eqExpr(z, vc->ratExpr(2)));
     assertions.clear();
@@ -247,7 +247,7 @@ void test1()
     
     cout << "simplify(w) = ";
     vc->printExpr(vc->simplify(w));
-    DebugAssert(vc->simplify(w)==w, "Expected simplify(w) = w");
+    FatalAssert(vc->simplify(w)==w, "Expected simplify(w) = w");
     cout << endl;
     
     assertions.clear();
@@ -275,10 +275,10 @@ void test2()
     vc->assertFormula(c.eqExpr(vc->ratExpr(0)) || c.eqExpr(vc->ratExpr(1)));
 
     IF_DEBUG(bool b =) check(vc, vc->leExpr(bexpr, vc->ratExpr(10)));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     IF_DEBUG(b =) check(vc, vc->falseExpr());
-    DebugAssert(!b, "Should be invalid");
+    FatalAssert(!b, "Should be invalid");
     vc->returnFromCheck();
 
     // Check x = y -> g(x,y) = g(y,x)
@@ -299,7 +299,7 @@ void test2()
 
     Expr e = vc->impliesExpr(vc->eqExpr(x,y),vc->eqExpr(gxy, gyx));
     IF_DEBUG(b =) check(vc, e);
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     Op h = vc->createOp("h", realxreal2real);
 
@@ -308,7 +308,7 @@ void test2()
 
     e = vc->impliesExpr(vc->eqExpr(x,y),vc->eqExpr(hxy, hyx));
     IF_DEBUG(b =) check(vc, e);
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
   } catch(const Exception& e) {
     exitStatus = 1;
@@ -803,7 +803,7 @@ void test8() {
     Expr witness;
     try {
       Type t = vc->subtypeType(lambda, witness);
-      DebugAssert(false, "Typechecking exception expected");
+      FatalAssert(false, "Typechecking exception expected");
     } catch(const TypecheckException&) {
       // fall through
     }
@@ -1063,14 +1063,14 @@ void test11()
     cout << "Assert x = y" << endl;
     vc->assertFormula(xeqy);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==3,"Implied literal error 0");
+    FatalAssert(c==3,"Implied literal error 0");
 
     cout << "Push" << endl;
     vc->push();
     cout << "Assert x /= z" << endl;
     vc->assertFormula(!xeqz);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==4,"Implied literal error 1");
+    FatalAssert(c==4,"Implied literal error 1");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1079,7 +1079,7 @@ void test11()
     cout << "Assert y /= z" << endl;
     vc->assertFormula(!yeqz);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==4,"Implied literal error 2");
+    FatalAssert(c==4,"Implied literal error 2");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1088,7 +1088,7 @@ void test11()
     cout << "Assert p(x)" << endl;
     vc->assertFormula(px);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==2,"Implied literal error 3");
+    FatalAssert(c==2,"Implied literal error 3");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1097,7 +1097,7 @@ void test11()
     cout << "Assert p(y)" << endl;
     vc->assertFormula(py);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==2,"Implied literal error 4");
+    FatalAssert(c==2,"Implied literal error 4");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1109,7 +1109,7 @@ void test11()
     cout << "Assert y = x" << endl;
     vc->assertFormula(yeqx);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==3,"Implied literal error 5");
+    FatalAssert(c==3,"Implied literal error 5");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1118,11 +1118,11 @@ void test11()
     cout << "Assert p(x)" << endl;
     vc->assertFormula(px);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==1,"Implied literal error 6");
+    FatalAssert(c==1,"Implied literal error 6");
     cout << "Assert x = y" << endl;
     vc->assertFormula(xeqy);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==4,"Implied literal error 7");
+    FatalAssert(c==4,"Implied literal error 7");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1131,11 +1131,11 @@ void test11()
     cout << "Assert NOT p(x)" << endl;
     vc->assertFormula(!px);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==1,"Implied literal error 8");
+    FatalAssert(c==1,"Implied literal error 8");
     cout << "Assert x = y" << endl;
     vc->assertFormula(xeqy);
     c = printImpliedLiterals(vc);
-    DebugAssert(c==4,"Implied literal error 9");
+    FatalAssert(c==4,"Implied literal error 9");
     cout << "Pop" << endl;
     vc->pop();
 
@@ -1160,8 +1160,8 @@ void test12()
     Expr exprObj_trueID = vc->trueExpr();
     Expr exprObj_falseID = vc->notExpr(vc->trueExpr());
     vc->popto(initial_layer);
-    DebugAssert(vc->scopeLevel() == initial_scope, "Expected no change");
-    DebugAssert(vc->stackLevel() == initial_layer, "Expected no change");
+    FatalAssert(vc->scopeLevel() == initial_scope, "Expected no change");
+    FatalAssert(vc->stackLevel() == initial_layer, "Expected no change");
     // TODO: what happens if we push and then popscope?
   } catch(const Exception& e) {
     exitStatus = 1;
@@ -1380,7 +1380,7 @@ void test16()  {
     cout << "Scope level: " << vc->scopeLevel() << endl;
     cout << "Counter-example:" << endl;
     vc->getCounterExample(assertions);
-    DebugAssert(assertions.size() > 0, "Expected non-empty counter-example");
+    FatalAssert(assertions.size() > 0, "Expected non-empty counter-example");
     for (unsigned i = 0; i < assertions.size(); ++i) {
       vc->printExpr(assertions[i]);
     }
@@ -1396,7 +1396,7 @@ void test16()  {
       for(; it!= end; it++) {
 	Expr eq;
 	if(it->first.getType().isBool()) {
-	  DebugAssert((it->second).isBoolConst(),
+	  FatalAssert((it->second).isBoolConst(),
 		      "Bad variable assignement: e = "+(it->first).toString()
 		      +"\n\n val = "+(it->second).toString());
 	  if((it->second).isTrue())
@@ -1431,7 +1431,7 @@ void test17()  {
       types.push_back(vc->stringExpr("list"));
 
       Type badList = vc->dataType("list", "cons", selectors, types);
-      DebugAssert(false, "Typechecking exception expected");
+      FatalAssert(false, "Typechecking exception expected");
     } catch(const TypecheckException&) {
       // fall through
     }
@@ -1461,7 +1461,7 @@ void test17()  {
 
       Expr sel = vc->datatypeSelExpr("car", cons);
       IF_DEBUG(bool b =) check(vc, vc->eqExpr(sel, x));
-      DebugAssert(b, "Should be valid");
+      FatalAssert(b, "Should be valid");
 
     }
     delete vc;
@@ -1494,7 +1494,7 @@ void test17()  {
       types[0][0].push_back(vc->stringExpr("list1"));
 
       vc->dataType(names, constructors, selectors, types, returnTypes);
-      DebugAssert(false, "Typechecking exception expected");
+      FatalAssert(false, "Typechecking exception expected");
     } catch(const TypecheckException&) {
       // fall through
     }
@@ -1553,7 +1553,7 @@ void test17()  {
       Expr cons1_2 = vc->datatypeConsExpr("cons1", args);
 
       IF_DEBUG(bool b =) check(vc, vc->impliesExpr(hyp, vc->eqExpr(z, cons1_2)));
-      DebugAssert(b, "Should be valid");
+      FatalAssert(b, "Should be valid");
 
     }
     delete vc;
@@ -1578,7 +1578,7 @@ void test17()  {
       args.push_back(!vc->eqExpr(x,z));
 
       IF_DEBUG(bool b =) check(vc, !vc->andExpr(args));
-      DebugAssert(b, "Should be valid");
+      FatalAssert(b, "Should be valid");
 
     }
   } catch(const Exception& e) {
@@ -1648,7 +1648,7 @@ void test18()
     vc->push();
     try {
       check(vc, vc->notExpr(vc->eqExpr(zero, null)));
-      DebugAssert(false, "Should have caught tcc exception");
+      FatalAssert(false, "Should have caught tcc exception");
     } catch(const TypecheckException&) { }
 
     vc->pop();
@@ -1658,16 +1658,16 @@ void test18()
     vc->push();
     try {
       check(vc, spxeqx);
-      DebugAssert(false, "Should have caught tcc exception");
+      FatalAssert(false, "Should have caught tcc exception");
     } catch(const TypecheckException&) { }
 
     vc->pop();
     bool b = check(vc, vc->impliesExpr(vc->datatypeTestExpr("succ", x), spxeqx));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     b = check(vc, vc->orExpr(vc->datatypeTestExpr("zero", x),
                              vc->datatypeTestExpr("succ", x)));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     Expr y = vc->varExpr("y", nat);
     Expr xeqy = vc->eqExpr(x, y);
@@ -1679,16 +1679,16 @@ void test18()
     Expr sy = vc->datatypeConsExpr("succ", args);
     Expr sxeqsy = vc->eqExpr(sx,sy);
     b = check(vc, vc->impliesExpr(xeqy, sxeqsy));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     b = check(vc, vc->notExpr(vc->eqExpr(sx, zero)));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     b = check(vc, vc->impliesExpr(sxeqsy, xeqy));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     b = check(vc, vc->notExpr(vc->eqExpr(sx, x)));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
   } catch(const Exception& e) {
     exitStatus = 1;
@@ -1737,7 +1737,7 @@ void test19()
   
     IF_DEBUG(bool Succ =) vc->query(Q);
 
-    DebugAssert(Succ, "Expected valid formula");
+    FatalAssert(Succ, "Expected valid formula");
 
   } catch(const Exception& e) {
     exitStatus = 1;
@@ -1788,7 +1788,7 @@ void test20()  {
 
     vc->dataType(names, constructors, selectors, types, returnTypes);
 
-    DebugAssert(returnTypes[0].card() == CARD_FINITE, "Expected finite");
+    FatalAssert(returnTypes[0].card() == CARD_FINITE, "Expected finite");
     Unsigned size = returnTypes[0].sizeFinite();
     Unsigned i = 0;
     for (; i < size; ++i) {
@@ -1814,32 +1814,32 @@ void test21()  {
     Expr x2 = vc->exprFromString("x");
     cout << "x1: " << x1;
     cout << "\nx2: " << x2;
-    DebugAssert(x1 == x2, "Expected x1 == x2");
+    FatalAssert(x1 == x2, "Expected x1 == x2");
 
     Expr y1 = vc->varExpr("y",t);
     Expr y2 = vc->exprFromString("y");
     cout << "\ny1: " << y1;
     cout << "\ny2: " << y2;
-    DebugAssert(y1 == y2, "Expected y1 == y2");
+    FatalAssert(y1 == y2, "Expected y1 == y2");
 
     Expr a1 = vc->gtExpr(x1,vc->ratExpr(0,1));
     Expr a2 = vc->exprFromString("x > 0");
     cout << "\na1: " << a1;
     cout << "\na2: " << a2;
-    DebugAssert(a1 == a2, "Expected a1 == a2");
+    FatalAssert(a1 == a2, "Expected a1 == a2");
 
     Expr b1 = vc->ltExpr(x1,y1);
     Expr b2 = vc->exprFromString ("x < y");
     cout << "\nb1: " << b1;
     cout << "\nb2: " << b2;
-    DebugAssert(b1 == b2, "Expected b1 == b2");
+    FatalAssert(b1 == b2, "Expected b1 == b2");
 
     Expr e1 = a1 && b1;
     Expr e2 = vc->exprFromString("x > 0 AND x < y");
 
     cout << "\ne1: " << e1;
     cout << "\ne2: " << e2;
-    DebugAssert(e1 == e2, "Expected e1 == e2");
+    FatalAssert(e1 == e2, "Expected e1 == e2");
   } catch(const Exception& e) {
     exitStatus = 1;
     cout << "*** Exception caught in test21(): \n" << e << endl;
@@ -1867,56 +1867,56 @@ void test22() {
     patternvv.push_back(patternv);
 
     vc->setTriggers(p,patternv);
-    DebugAssert( eqExprVecVecs(p.getTriggers(), patternvv),
+    FatalAssert( eqExprVecVecs(p.getTriggers(), patternvv),
                  "Expected p.getTriggers() == patternvv: " + p.toString() );
 
     vc->setTriggers(p,patternvv);
 
-    DebugAssert( eqExprVecVecs(p.getTriggers(), patternvv),
+    FatalAssert( eqExprVecVecs(p.getTriggers(), patternvv),
                  "Expected p.getTriggers() == patternvv: " + p.toString() );
 
     // [chris 10/4/2009] Not sure why, but this fails
 
     // Expr q(vc->exprFromString("FORALL (x:INT) : PATTERN (f(x)) : x < f(x)"));
 
-    // DebugAssert( eqExprVecVecs(q.getTriggers(), patternvv),
+    // FatalAssert( eqExprVecVecs(q.getTriggers(), patternvv),
     //              "Expected q.getTriggers() == patternvv"  + q.toString());
 
     vector<Expr> vars;
     vars.push_back(x);
     Expr r(vc->forallExpr( vars, vc->ltExpr(x,fx), patternvv ));
 
-    DebugAssert( eqExprVecVecs(r.getTriggers(), patternvv),
+    FatalAssert( eqExprVecVecs(r.getTriggers(), patternvv),
                  "Expected r.getTriggers() == patternvv: " + r.toString() );
 
     Expr s(vc->exprFromString("FORALL (x:INT) : x > f(x)"));
     vc->setTrigger(s,fx);
     
     std::vector<std::vector<Expr> > trigsvv = s.getTriggers();
-    DebugAssert( trigsvv.size() == 1, 
+    FatalAssert( trigsvv.size() == 1, 
                  "Expected s.getTriggers().size() == 1: " + trigsvv.size() );
 
     std::vector<Expr> trigsv = trigsvv[0];
-    DebugAssert( trigsv.size() == 1, 
+    FatalAssert( trigsv.size() == 1, 
                  "Expected s.getTriggers()[0].size() == 1: "
                  + trigsv.size() );
 
-    DebugAssert( trigsv[0] == fx, 
+    FatalAssert( trigsv[0] == fx, 
                  "Expected s.getTriggers()[0][0] == fx: "
                  + (trigsv[0].toString()) );
 
     Expr t(vc->exprFromString("FORALL (x:INT) : x > f(x)"));
     vc->setMultiTrigger(t,patternv);
     trigsvv = t.getTriggers();
-    DebugAssert( trigsvv.size() == 1,
+    FatalAssert( trigsvv.size() == 1,
                  "Expected t.getTriggers().size() == 1: " + trigsvv.size() );
 
     trigsv = trigsvv[0];
-    DebugAssert( trigsv.size() == 1,
+    FatalAssert( trigsv.size() == 1,
                  "Expected t.getTriggers()[0].size() == 1: "
                  + trigsv.size() );
 
-    DebugAssert( trigsv[0] == fx,
+    FatalAssert( trigsv[0] == fx,
                  "Expected t.getTriggers()[0][0] == fx: "
                  + (trigsv[0].toString()) );
   } catch(const Exception& e) {
@@ -1953,7 +1953,7 @@ void test23() {
     Expr u(s.substExpr(oldExprs,newExprs));
     cout << "u=" << u << "\n";
 
-    DebugAssert( t == u, "Expected t==u" );
+    FatalAssert( t == u, "Expected t==u" );
   } catch(const Exception& e) {
     exitStatus = 1;
     cout << "*** Exception caught in test23(): \n" << e << endl;
@@ -1978,19 +1978,19 @@ void test24() {
     cout << p  << "\n";
 
     vector<vector<Expr> > pTriggers(p.getTriggers());
-    DebugAssert( pTriggers.size() == 1, 
+    FatalAssert( pTriggers.size() == 1, 
                  "Expected one trigger set. Found: " + 
                  int2string(pTriggers.size()));
-    DebugAssert( pTriggers[0].size() == 1, 
+    FatalAssert( pTriggers[0].size() == 1, 
                  "Expected one trigger. Found: " +
                  int2string( pTriggers[0].size()));
     /* We can't check that the trigger == ax, because x will have
      * been replaced with a bvar
      */
-    DebugAssert( pTriggers[0][0].getKind() == READ,
+    FatalAssert( pTriggers[0][0].getKind() == READ,
                  "Expected READ expression. Found: " +
                  pTriggers[0][0].getKind());
-    DebugAssert( pTriggers[0][0][0] == a,
+    FatalAssert( pTriggers[0][0][0] == a,
                  "Expected read on array: " + a.toString() +
                  "\nFound: " + pTriggers[0][0][0].toString() );
 
@@ -2005,16 +2005,16 @@ void test24() {
     cout << q << "\n";
 
     vector<vector<Expr> > qTriggers(q.getTriggers());
-    DebugAssert( qTriggers.size() == 1, 
+    FatalAssert( qTriggers.size() == 1, 
                  "Expected one trigger set. Found: " + 
                  int2string(qTriggers.size()));
-    DebugAssert( qTriggers[0].size() == 1, 
+    FatalAssert( qTriggers[0].size() == 1, 
                  "Expected one trigger. Found: " +
                  int2string( qTriggers[0].size()));
-    DebugAssert( qTriggers[0][0].getKind() == READ,
+    FatalAssert( qTriggers[0][0].getKind() == READ,
                  "Expected READ expression. Found: " +
                  qTriggers[0][0].getKind());
-    DebugAssert( qTriggers[0][0][0] == aPrime,
+    FatalAssert( qTriggers[0][0][0] == aPrime,
                  "Expected read on array: " + aPrime.toString() +
                  "\nFound: " + qTriggers[0][0][0].toString() );
   } catch(const Exception& e) {
@@ -2041,7 +2041,7 @@ void test25() {
     Expr w = vc->ratExpr(-1,10);
     cout << "-1 over 10 (ints): " << w << endl;
 
-    DebugAssert(x == y && y == z && z == w, "Error in rational constants");
+    FatalAssert(x == y && y == z && z == w, "Error in rational constants");
 
   } catch(const Exception& e) {
     exitStatus = 1;
@@ -2063,17 +2063,17 @@ void test26() {
     Expr e2 = vc->newBVSHL(x, vc->newBVConstExpr(16, 32));
 
     bool b = check(vc, vc->eqExpr(e1, e2));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     e1 = vc->newFixedRightShiftExpr(x, 16);
     e2 = vc->newBVLSHR(x, vc->newBVConstExpr(16, 32));
 
     b = check(vc, vc->eqExpr(e1, e2));
-    DebugAssert(b, "Should be valid");
+    FatalAssert(b, "Should be valid");
 
     e2 = vc->newBVASHR(x, vc->newBVConstExpr(16, 32));
     b = check(vc, vc->eqExpr(e1, e2));
-    DebugAssert(!b, "Should be invalid");
+    FatalAssert(!b, "Should be invalid");
 
   } catch(const Exception& e) {
     exitStatus = 1;

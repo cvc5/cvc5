@@ -473,7 +473,8 @@ public:
    * This feature is useful when e.g. reading out-of-band expression data:
    * 1. Parsing --replay log files produced with --replay-log.
    * 2. Perhaps a multi-query benchmark file is being single-stepped
-   *    with intervening queries on stdin that must reference
+   *    with intervening queries on stdin that must reference the same
+   *    declaration scope(s).
    *
    * However, the feature must be used carefully.  Pushes and pops
    * should be performed with the correct current declaration scope.
