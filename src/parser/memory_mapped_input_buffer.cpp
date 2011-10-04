@@ -61,7 +61,11 @@ pANTLR3_INPUT_STREAM MemoryMappedInputBufferNew(const std::string& filename) {
   // Call the common 8 bit ASCII input stream handler
   // Initializer type thingy doobry function.
   //
+#if CVC4_ANTLR3_OLD_INPUT_STREAM
   antlr3AsciiSetupStream(input, ANTLR3_CHARSTREAM);
+#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+  antlr38BitSetupStream(input);
+#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
 
   // Now we can set up the file name
   //

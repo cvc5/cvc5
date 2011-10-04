@@ -81,6 +81,47 @@ AC_DEFUN([AC_LIB_ANTLR],[
     )
   done
 
+  AC_MSG_CHECKING([for presence of older antlr3AsciiFileStreamNew()])
+  AC_LINK_IFELSE(
+    [
+      #include <antlr3.h>
+
+      int main() {
+        pANTLR3_UINT8 fName = (pANTLR3_UINT8)"foo";
+        pANTLR3_INPUT_STREAM input = antlr3AsciiFileStreamNew(fName);
+        return 0;
+      }
+    ],
+    [
+      AC_MSG_RESULT([found it (must be antlr3 3.2 or similar)])
+      CVC4_ANTLR3_OLD_INPUT_STREAM=0
+    ],
+        [
+          AC_MSG_RESULT(failed)
+          AC_MSG_CHECKING([for presence of newer antlr3FileStreamNew()])
+          AC_LINK_IFELSE(
+            [
+              #include <antlr3.h>
+
+              int main() {
+                pANTLR3_UINT8 fName = (pANTLR3_UINT8)"foo";
+                pANTLR3_INPUT_STREAM input = antlr3FileStreamNew(fName, ANTLR3_ENC_8BIT);
+                return 0;
+              }
+            ],
+            [
+              AC_MSG_RESULT([found it (must be antlr3 3.4 or similar)])
+              CVC4_ANTLR3_OLD_INPUT_STREAM=0
+            ],
+                [
+                  AC_MSG_ERROR([cannot figure out how to create an antlr3 input stream, bailing..])
+                ]
+          )
+        ]
+  )
+
+  AC_DEFINE_UNQUOTED(CVC4_ANTLR3_OLD_INPUT_STREAM, [$CVC4_ANTLR3_OLD_INPUT_STREAM], [Defined to 1 if we have libantlr3c v3.2 or equivalent.])
+
   # Return the old compile variables and pop the language.
   LIBS="$OLD_LIBS"
   CPPFLAGS="$OLD_CPPFLAGS"
