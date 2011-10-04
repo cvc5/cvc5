@@ -29,6 +29,7 @@
 #include "context/context.h"
 #include "context/cdo.h"
 #include "context/cdmap.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,6 +50,8 @@ public:
 
 private:
 
+  typedef std::hash_map<Node, Node, NodeHashFunction> NodeCache;
+
   /** The context within which this SubstitutionMap was constructed. */
   context::Context* d_context;
 
@@ -56,28 +59,49 @@ private:
   NodeMap d_substitutions;
 
   /** Cache of the already performed substitutions */
-  NodeMap d_substitutionCache;
+  NodeCache d_substitutionCache;
 
-  /** Has the cache been invalidated */
-  context::CDO<bool> d_cacheInvalidated;
+  /** Has the cache been invalidated? */
+  bool d_cacheInvalidated;
 
   /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeMap& substitutionCache);
+  Node internalSubstitute(TNode t, NodeCache& substitutionCache);
+
+  /** Helper class to invalidate cache on user pop */
+  class CacheInvalidator : public context::ContextNotifyObj {
+    bool& d_cacheInvalidated;
+
+  public:
+    CacheInvalidator(context::Context* context, bool& cacheInvalidated) :
+      context::ContextNotifyObj(context),
+      d_cacheInvalidated(cacheInvalidated) {
+    }
+
+    void notify() {
+      d_cacheInvalidated = true;
+    }
+  };/* class SubstitutionMap::CacheInvalidator */
+
+  /**
+   * This object is notified on user pop and marks the SubstitutionMap's
+   * cache as invalidated.
+   */
+  CacheInvalidator d_cacheInvalidator;
 
 public:
 
   SubstitutionMap(context::Context* context) :
     d_context(context),
     d_substitutions(context),
-    d_substitutionCache(context),
-    d_cacheInvalidated(context) {
+    d_substitutionCache(),
+    d_cacheInvalidated(false),
+    d_cacheInvalidator(context, d_cacheInvalidated) {
   }
 
   /**
    * Adds a substitution from x to t
    */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
-
 
   /**
    * Apply the substitutions to the node.

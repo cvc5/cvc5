@@ -11,7 +11,8 @@ MAKEFLAGS = -k
 CVC_TESTS = \
 	test.00.cvc \
 	test.01.cvc \
-	units.cvc
+	units.cvc \
+	incremental-subst-bug.cvc
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
