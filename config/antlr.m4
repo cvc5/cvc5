@@ -64,8 +64,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
         #include <antlr3.h>
 
         int main() {
-          pANTLR3_UINT8 fName = (pANTLR3_UINT8)"foo";
-          pANTLR3_INPUT_STREAM input = antlr3AsciiFileStreamNew(fName);
+          pANTLR3_STRING_FACTORY factory = antlr3StringFactoryNew(ANTLR3_ENC_8BIT);
           return 0;
         }
       ],
