@@ -428,6 +428,7 @@ typedef enum QueryResult {
 } QueryResult;
 
 std::ostream& operator<<(std::ostream& out, QueryResult qr);
+std::string QueryResultToString(QueryResult query_result);
 
 /*****************************************************************************/
 /*

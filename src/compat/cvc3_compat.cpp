@@ -67,6 +67,12 @@ std::ostream& operator<<(std::ostream& out, QueryResult qr) {
   return out;
 }
 
+std::string QueryResultToString(QueryResult qr) {
+  stringstream sstr;
+  sstr << qr;
+  return sstr.str();
+}
+
 std::ostream& operator<<(std::ostream& out, FormulaValue fv) {
   switch(fv) {
   case TRUE_VAL: out << "TRUE_VAL"; break;
