@@ -64,7 +64,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
         #include <antlr3.h>
 
         int main() {
-          pANTLR3_STRING_FACTORY factory = antlr3StringFactoryNew(ANTLR3_ENC_8BIT);
+          pANTLR3_TOKEN_FACTORY factory = antlr3TokenFactoryNew((pANTLR3_INPUT_STREAM) NULL);
           return 0;
         }
       ],
