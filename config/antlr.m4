@@ -94,7 +94,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
     ],
     [
       AC_MSG_RESULT([found it (must be antlr3 3.2 or similar)])
-      CVC4_ANTLR3_OLD_INPUT_STREAM=0
+      CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_ANTLR3_OLD_INPUT_STREAM"
     ],
         [
           AC_MSG_RESULT(failed)
@@ -111,7 +111,6 @@ AC_DEFUN([AC_LIB_ANTLR],[
             ],
             [
               AC_MSG_RESULT([found it (must be antlr3 3.4 or similar)])
-              CVC4_ANTLR3_OLD_INPUT_STREAM=0
             ],
                 [
                   AC_MSG_ERROR([cannot figure out how to create an antlr3 input stream, bailing..])
@@ -119,8 +118,6 @@ AC_DEFUN([AC_LIB_ANTLR],[
           )
         ]
   )
-
-  AC_DEFINE_UNQUOTED(CVC4_ANTLR3_OLD_INPUT_STREAM, [$CVC4_ANTLR3_OLD_INPUT_STREAM], [Defined to 1 if we have libantlr3c v3.2 or equivalent.])
 
   # Return the old compile variables and pop the language.
   LIBS="$OLD_LIBS"

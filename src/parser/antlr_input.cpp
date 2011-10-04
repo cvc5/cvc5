@@ -69,7 +69,7 @@ AntlrInputStream::newFileInputStream(const std::string& name,
     input = MemoryMappedInputBufferNew(name);
   } else {
     // libantlr3c v3.2 isn't source-compatible with v3.4
-#if CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
     input = antlr3AsciiFileStreamNew((pANTLR3_UINT8) name.c_str());
 #else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
     input = antlr3FileStreamNew((pANTLR3_UINT8) name.c_str(), ANTLR3_ENC_8BIT);
@@ -117,7 +117,7 @@ AntlrInputStream::newStreamInputStream(std::istream& input,
   }
 
   /* Create an ANTLR input backed by the buffer. */
-#if CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
   pANTLR3_INPUT_STREAM inputStream =
       antlr3NewAsciiStringInPlaceStream((pANTLR3_UINT8) basep,
                                         cp - basep,
@@ -143,7 +143,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
   char* inputStr = strdup(input.c_str());
   char* nameStr = strdup(name.c_str());
   AlwaysAssert( inputStr!=NULL && nameStr!=NULL );
-#if CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
   pANTLR3_INPUT_STREAM inputStream =
       antlr3NewAsciiStringInPlaceStream((pANTLR3_UINT8) inputStr,
                                         input.size(),
