@@ -134,6 +134,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
 }/* InteractiveShell::InteractiveShell() */
 
 InteractiveShell::~InteractiveShell() {
+#if HAVE_LIBREADLINE
   int err = ::write_history(d_historyFilename.c_str());
   if(err == 0) {
     Notice() << "Wrote " << ::history_length << " lines of history to "
@@ -142,6 +143,7 @@ InteractiveShell::~InteractiveShell() {
     Notice() << "Could not write history to " << d_historyFilename
              << ": " << strerror(err) << std::endl;
   }
+#endif /* HAVE_LIBREADLINE */
 }
 
 Command* InteractiveShell::readCommand() {
