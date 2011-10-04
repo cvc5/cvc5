@@ -278,8 +278,8 @@ annotatedFormula[CVC4::Expr& expr]
     { PARSER_STATE->popScope(); }
 
     /* constants */
-  | TRUE_TOK          { expr = MK_CONST(true); }
-  | FALSE_TOK         { expr = MK_CONST(false); }
+  | TRUE_TOK          { expr = MK_CONST(bool(true)); }
+  | FALSE_TOK         { expr = MK_CONST(bool(false)); }
   | NUMERAL_TOK
     { expr = MK_CONST( AntlrInput::tokenToInteger($NUMERAL_TOK) ); }
   | RATIONAL_TOK

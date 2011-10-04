@@ -290,7 +290,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new AssertCommand(expr); }
   | /* checksat */
     CHECKSAT_TOK
-    { cmd = new CheckSatCommand(MK_CONST(true)); }
+    { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
   | /* get-assertions */
     GET_ASSERTIONS_TOK
     { cmd = new GetAssertionsCommand; }

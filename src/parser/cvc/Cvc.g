@@ -587,7 +587,7 @@ mainCommand[CVC4::Command*& cmd]
 
   | QUERY_TOK formula[f] { cmd = new QueryCommand(f); }
   | CHECKSAT_TOK formula[f] { cmd = new CheckSatCommand(f); }
-  | CHECKSAT_TOK { cmd = new CheckSatCommand(MK_CONST(true)); }
+  | CHECKSAT_TOK { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
 
     /* options */
   | OPTION_TOK
@@ -1655,8 +1655,8 @@ simpleTerm[CVC4::Expr& f]
     }
 
     /* boolean literals */
-  | TRUE_TOK  { f = MK_CONST(true); }
-  | FALSE_TOK { f = MK_CONST(false); }
+  | TRUE_TOK  { f = MK_CONST(bool(true)); }
+  | FALSE_TOK { f = MK_CONST(bool(false)); }
     /* arithmetic literals */
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
