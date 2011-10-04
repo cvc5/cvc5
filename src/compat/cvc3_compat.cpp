@@ -1907,23 +1907,35 @@ void ValidityChecker::popto(int stackLevel) {
 }
 
 int ValidityChecker::scopeLevel() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  return d_parserContext->getDeclarationLevel();
 }
 
 void ValidityChecker::pushScope() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  d_parserContext->pushScope();
 }
 
 void ValidityChecker::popScope() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  d_parserContext->popScope();
 }
 
 void ValidityChecker::poptoScope(int scopeLevel) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  CheckArgument(scopeLevel >= 0, scopeLevel,
+                "Cannot pop to a negative scope level %u", scopeLevel);
+  CheckArgument(unsigned(scopeLevel) <= d_parserContext->getDeclarationLevel(),
+                scopeLevel,
+                "Cannot pop to a scope level higher than the current one!  "
+                "At scope level %u, user requested scope level %d",
+                d_parserContext->getDeclarationLevel(), scopeLevel);
+  CheckArgument(scopeLevel <= d_parserContext->getDeclarationLevel(),
+                scopeLevel,
+                "Cannot pop to a higher scope level");
+  while(unsigned(scopeLevel) < d_parserContext->getDeclarationLevel()) {
+    popScope();
+  }
 }
 
 Context* ValidityChecker::getCurrentContext() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  Unimplemented("Contexts are not part of the public interface of CVC4");
 }
 
 void ValidityChecker::reset() {
