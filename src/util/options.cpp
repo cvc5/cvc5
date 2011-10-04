@@ -83,7 +83,7 @@ Options::Options() :
   replayFilename(""),
   replayStream(NULL),
   replayLog(NULL),
-  variableRemovalEnabled(true),
+  variableRemovalEnabled(false),
   arithPropagation(true),
   satRandomFreq(0.0),
   satRandomSeed(91648253),// Minisat's default value
@@ -139,6 +139,8 @@ static const string optionsDescription = "\
    --disable-arithmetic-propagation turns on arithmetic propagation\n\
    --disable-symmetry-breaker turns off UF symmetry breaker (Deharbe et al., CADE 2011)\n\
    --incremental | -i     enable incremental solving\n";
+
+#warning "Change CL options as --disable-variable-removal cannot do anything currently."
 
 static const string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
