@@ -19,6 +19,7 @@
 #include "expr/node.h"
 #include "theory/valuation.h"
 #include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -47,6 +48,16 @@ Node Valuation::getSatValue(TNode n) const {
 
 bool Valuation::hasSatValue(TNode n, bool& value) const {
   return d_engine->getPropEngine()->hasValue(n, value);
+}
+
+Node Valuation::ensureLiteral(TNode n) {
+  Debug("ensureLiteral") << "rewriting: " << n << std::endl;
+  Node rewritten = Rewriter::rewrite(n);
+  Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
+  Node preprocessed = d_engine->preprocess(rewritten);
+  Debug("ensureLiteral") << "preproced: " << preprocessed << std::endl;
+  d_engine->getPropEngine()->ensureLiteral(preprocessed);
+  return preprocessed;
 }
 
 }/* CVC4::theory namespace */

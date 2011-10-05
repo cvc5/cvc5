@@ -45,52 +45,89 @@ Node TheoryBool::getValue(TNode n) {
     // should be handled by IFF
     Unreachable();
 
-  case kind::NOT: // 1 arg
-    return nodeManager->mkConst(! d_valuation.getValue(n[0]).getConst<bool>());
+  case kind::NOT: { // 1 arg
+    Node v = d_valuation.getValue(n[0]);
+    return v.isNull() ? Node::null() : nodeManager->mkConst(! v.getConst<bool>());
+  }
 
   case kind::AND: { // 2+ args
+    bool foundNull = false;
     for(TNode::iterator i = n.begin(),
             iend = n.end();
           i != iend;
           ++i) {
-      if(! d_valuation.getValue(*i).getConst<bool>()) {
+      Node v = d_valuation.getValue(*i);
+      if(v.isNull()) {
+        foundNull = true;
+      } else if(! v.getConst<bool>()) {
         return nodeManager->mkConst(false);
       }
     }
-    return nodeManager->mkConst(true);
+    return foundNull ? Node::null() : nodeManager->mkConst(true);
   }
 
-  case kind::IFF: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<bool>() ==
-                                 d_valuation.getValue(n[1]).getConst<bool>() );
+  case kind::IFF: { // 2 args
+    Node v0 = d_valuation.getValue(n[0]);
+    Node v1 = d_valuation.getValue(n[1]);
+    if(v0.isNull() || v1.isNull()) {
+      return Node::null();
+    }
+    return nodeManager->mkConst( v0.getConst<bool>() == v1.getConst<bool>() );
+  }
 
-  case kind::IMPLIES: // 2 args
-    return nodeManager->mkConst( (! d_valuation.getValue(n[0]).getConst<bool>()) ||
-                                 d_valuation.getValue(n[1]).getConst<bool>() );
+  case kind::IMPLIES: { // 2 args
+    Node v0 = d_valuation.getValue(n[0]);
+    Node v1 = d_valuation.getValue(n[1]);
+    if(v0.isNull() && v1.isNull()) {
+      return Node::null();
+    }
+    bool value = false;
+    if(! v0.isNull()) {
+      value = value || (! v0.getConst<bool>());
+    }
+    if(! v1.isNull()) {
+      value = value || v1.getConst<bool>();
+    }
+    return nodeManager->mkConst(value);
+  }
 
   case kind::OR: { // 2+ args
+    bool foundNull = false;
     for(TNode::iterator i = n.begin(),
             iend = n.end();
           i != iend;
           ++i) {
-      if(d_valuation.getValue(*i).getConst<bool>()) {
+      Node v = d_valuation.getValue(*i);
+      if(v.isNull()) {
+        foundNull = true;
+      } else if(v.getConst<bool>()) {
         return nodeManager->mkConst(true);
       }
     }
-    return nodeManager->mkConst(false);
+    return foundNull ? Node::null() : nodeManager->mkConst(false);
   }
 
-  case kind::XOR: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<bool>() !=
-                                 d_valuation.getValue(n[1]).getConst<bool>() );
+  case kind::XOR: { // 2 args
+    Node v0 = d_valuation.getValue(n[0]);
+    Node v1 = d_valuation.getValue(n[1]);
+    if(v0.isNull() || v1.isNull()) {
+      return Node::null();
+    }
+    return nodeManager->mkConst( v0.getConst<bool>() != v1.getConst<bool>() );
+  }
 
-  case kind::ITE: // 3 args
+  case kind::ITE: { // 3 args
     // all ITEs should be gone except (bool,bool,bool) ones
     Assert( n[1].getType() == nodeManager->booleanType() &&
             n[2].getType() == nodeManager->booleanType() );
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<bool>() ?
-                                 d_valuation.getValue(n[1]).getConst<bool>() :
-                                 d_valuation.getValue(n[2]).getConst<bool>() );
+    Node v0 = d_valuation.getValue(n[0]);
+    Node v1 = d_valuation.getValue(n[1]);
+    Node v2 = d_valuation.getValue(n[2]);
+    if(v0.isNull()) {
+      return v1 == v2 ? v1 : Node::null();
+    }
+    return nodeManager->mkConst( v0.getConst<bool>() ? v1.getConst<bool>() : v2.getConst<bool>() );
+  }
 
   default:
     Unhandled(n.getKind());

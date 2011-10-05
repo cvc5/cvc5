@@ -61,15 +61,13 @@ public:
   /** Cache of what literals have been registered to a node. */
   typedef __gnu_cxx::hash_map<Node, TranslationInfo, NodeHashFunction> TranslationCache;
 
-private:
+protected:
 
   /** The SAT solver we will be using */
   SatInputInterface *d_satSolver;
 
   TranslationCache d_translationCache;
   NodeCache d_nodeCache;
-
-protected:
 
   /** The "registrar" for pre-registration of terms */
   theory::Registrar d_registrar;
@@ -155,13 +153,6 @@ protected:
   void assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c);
 
   /**
-   * Returns true if the node has been cached in the translation cache.
-   * @param node the node
-   * @return true if the node has been cached
-   */
-  bool isTranslated(TNode node) const;
-
-  /**
    * Acquires a new variable from the SAT solver to represent the node
    * and inserts the necessary data it into the mapping tables.
    * @param node a formula
@@ -203,7 +194,7 @@ public:
    * Converts and asserts a formula.
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
-   * @param negated wheather we are asserting the node negated
+   * @param negated whether we are asserting the node negated
    */
   virtual void convertAndAssert(TNode node, bool removable, bool negated) = 0;
 
@@ -215,16 +206,26 @@ public:
   TNode getNode(const SatLiteral& literal);
 
   /**
+   * Returns true if the node has been cached in the translation cache.
+   * @param node the node
+   * @return true if the node has been cached
+   */
+  bool isTranslated(TNode node) const;
+
+  /**
    * Returns true iff the node has an assigned literal (it might not be translated).
    * @param node the node
    */
-  bool hasEverHadLiteral(TNode node) const;
+  bool hasLiteral(TNode node) const;
 
   /**
-   * Returns true iff the node has an assigned literal and it's translated.
-   * @param node the node
+   * Ensure that the given node will have a designated SAT literal
+   * that is definitionally equal to it.  The result of this function
+   * is that the Node can be queried via getSatValue().  Essentially,
+   * this is like a "convert-but-don't-assert" version of
+   * convertAndAssert().
    */
-  bool currentlyHasLiteral(TNode node) const;
+  virtual void ensureLiteral(TNode n) = 0;
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
@@ -318,6 +319,8 @@ private:
    * @return the literal representing the root of the formula
    */
   SatLiteral toCNF(TNode node, bool negated = false);
+
+  void ensureLiteral(TNode n);
 
 };/* class TseitinCnfStream */
 

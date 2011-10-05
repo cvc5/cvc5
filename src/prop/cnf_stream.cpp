@@ -22,6 +22,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/theory.h"
 #include "expr/node.h"
 #include "util/Assert.h"
 #include "util/output.h"
@@ -100,17 +101,59 @@ void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral 
 
 bool CnfStream::isTranslated(TNode n) const {
   TranslationCache::const_iterator find = d_translationCache.find(n);
-  return find != d_translationCache.end() && find->second.level >= 0;
+  return find != d_translationCache.end() && (*find).second.level >= 0;
 }
 
-bool CnfStream::hasEverHadLiteral(TNode n) const {
+bool CnfStream::hasLiteral(TNode n) const {
   TranslationCache::const_iterator find = d_translationCache.find(n);
   return find != d_translationCache.end();
 }
 
-bool CnfStream::currentlyHasLiteral(TNode n) const {
-  TranslationCache::const_iterator find = d_translationCache.find(n);
-  return find != d_translationCache.end() && (*find).second.level != -1;
+void TseitinCnfStream::ensureLiteral(TNode n) {
+  if(hasLiteral(n)) {
+    // Already a literal!
+    SatLiteral lit = getLiteral(n);
+    NodeCache::iterator i = d_nodeCache.find(lit);
+    if(i == d_nodeCache.end()) {
+      // Store backward-mappings
+      d_nodeCache[lit] = n;
+      d_nodeCache[~lit] = n.notNode();
+    }
+    return;
+  }
+
+  CheckArgument(n.getType().isBoolean(), n,
+                "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
+                "got node: %s\n"
+                "its type: %s\n",
+                n.toString().c_str(),
+                n.getType().toString().c_str());
+
+  bool negated = false;
+  SatLiteral lit;
+
+  if(n.getKind() == kind::NOT) {
+    negated = true;
+    n = n[0];
+  }
+
+  if( theory::Theory::theoryOf(n) == theory::THEORY_BOOL &&
+      n.getMetaKind() != kind::metakind::VARIABLE ) {
+    // If we were called with something other than a theory atom (or
+    // Boolean variable), we get a SatLiteral that is definitionally
+    // equal to it.
+    lit = toCNF(n, false);
+
+    // Store backward-mappings
+    d_nodeCache[lit] = n;
+    d_nodeCache[~lit] = n.notNode();
+  } else {
+    // We have a theory atom or variable.
+    lit = convertAtom(n);
+  }
+
+  Assert(hasLiteral(n) && getNode(lit) == n);
+  Debug("ensureLiteral") << "CnfStream::ensureLiteral(): out lit is " << lit << std::endl;
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
@@ -118,7 +161,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
 
   // Get the literal for this node
   SatLiteral lit;
-  if (!hasEverHadLiteral(node)) {
+  if (!hasLiteral(node)) {
     // If no literal, well make one
     lit = variableToLiteral(d_satSolver->newVar(theoryLiteral));
     d_translationCache[node].literal = lit;
@@ -605,7 +648,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
   Debug("cnf") << "convertAndAssert(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   /*
-  if(currentlyHasLiteral(node)) {
+  if(isTranslated(node)) {
     Debug("cnf") << "==> fortunate literal detected!" << endl;
     ++d_fortunateLiterals;
     SatLiteral lit = getLiteral(node);
@@ -739,7 +782,6 @@ void CnfStream::moveToBaseLevel(TNode node) {
     moveToBaseLevel(*child);
     ++ child;
   }
-
 }
 
 }/* CVC4::prop namespace */

@@ -298,6 +298,7 @@ Node TheoryEngine::getValue(TNode node) {
 
   // otherwise ask the theory-in-charge
   return theoryOf(node)->getValue(node);
+
 }/* TheoryEngine::getValue(TNode node) */
 
 bool TheoryEngine::presolve() {

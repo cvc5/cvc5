@@ -69,6 +69,17 @@ public:
    */
   bool hasSatValue(TNode n, bool& value) const;
 
+  /**
+   * Ensure that the given node will have a designated SAT literal
+   * that is definitionally equal to it.  The result of this function
+   * is a Node that can be queried via getSatValue().
+   *
+   * @return the actual node that's been "literalized," which may
+   * differ from the input due to theory-rewriting and preprocessing,
+   * as well as CNF conversion
+   */
+  Node ensureLiteral(TNode n) CVC4_WARN_UNUSED_RESULT;
+
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

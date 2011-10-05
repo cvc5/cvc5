@@ -167,7 +167,7 @@ Node PropEngine::getValue(TNode node) {
 }
 
 bool PropEngine::isSatLiteral(TNode node) {
-  return d_cnfStream->hasEverHadLiteral(node);
+  return d_cnfStream->hasLiteral(node);
 }
 
 bool PropEngine::hasValue(TNode node, bool& value) {
@@ -187,6 +187,9 @@ bool PropEngine::hasValue(TNode node, bool& value) {
   }
 }
 
+void PropEngine::ensureLiteral(TNode n) {
+  d_cnfStream->ensureLiteral(n);
+}
 
 void PropEngine::push() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
