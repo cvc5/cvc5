@@ -52,11 +52,6 @@ class NodeManager;
 template <bool ref_count>
 class NodeTemplate;
 
-// For some reason these are instantiated with different visibility in different modules??
-// Fix by making their instantiations explicit, here.
-template <> CVC4ostream& CVC4ostream::operator<<(NodeTemplate<false> const& t) CVC4_PUBLIC;
-template <> CVC4ostream& CVC4ostream::operator<<(NodeTemplate<true> const& t) CVC4_PUBLIC;
-
 /**
  * Exception thrown during the type-checking phase, it can be
  * thrown by node.getType().
