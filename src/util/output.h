@@ -112,19 +112,7 @@ public:
   operator std::ostream&() { return isConnected() ? *d_os : null_os; }
 
   template <class T>
-  CVC4ostream& operator<<(T const& t) {
-    if(d_os != NULL) {
-      if(d_firstColumn) {
-        d_firstColumn = false;
-        long indent = d_os->iword(s_indentIosIndex);
-        for(long i = 0; i < indent; ++ i) {
-          d_os = &(*d_os << s_tab);
-        }
-      }
-      d_os = &(*d_os << t);
-    }
-    return *this;
-  }
+  CVC4ostream& operator<<(T const& t) CVC4_PUBLIC;
 
   // support manipulators, endl, etc..
   CVC4ostream& operator<<(std::ostream& (*pf)(std::ostream&)) {
@@ -162,6 +150,21 @@ inline CVC4ostream& push(CVC4ostream& stream) {
 inline CVC4ostream& pop(CVC4ostream& stream) {
   stream.popIndent();
   return stream;
+}
+
+template <class T>
+CVC4ostream& CVC4ostream::operator<<(T const& t) {
+  if(d_os != NULL) {
+    if(d_firstColumn) {
+      d_firstColumn = false;
+      long indent = d_os->iword(s_indentIosIndex);
+      for(long i = 0; i < indent; ++i) {
+        d_os = &(*d_os << s_tab);
+      }
+    }
+    d_os = &(*d_os << t);
+  }
+  return *this;
 }
 
 /** The debug output class */
