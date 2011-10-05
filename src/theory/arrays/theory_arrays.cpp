@@ -384,7 +384,7 @@ Node TheoryArrays::recursivePreprocessTerm(TNode term) {
 
 Node TheoryArrays::preprocess(TNode atom) {
   if (d_donePreregister) return atom;
-  Assert(atom.getKind() == kind::EQUAL);
+  Assert(atom.getKind() == kind::EQUAL, "expected EQUAL, got %s", atom.toString().c_str());
   return recursivePreprocessTerm(atom);
 }
 

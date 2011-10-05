@@ -20,6 +20,7 @@
 %ignore CVC4::operator<<(std::ostream&, const Cardinality&);
 %ignore CVC4::operator<<(std::ostream&, Cardinality::Beth);
 
+namespace CVC4 {
   class Beth {
     Integer d_index;
 
@@ -40,6 +41,7 @@
     Unknown() throw() {}
     ~Unknown() throw() {}
   };/* class Cardinality::Unknown */
+}
 
 %include "util/cardinality.h"
 

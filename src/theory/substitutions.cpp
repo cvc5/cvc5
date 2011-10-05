@@ -155,18 +155,6 @@ Node SubstitutionMap::apply(TNode t) {
     Debug("substitution") << "-- reset the cache" << std::endl;
   }
 
-  SubstitutionMap::NodeMap::const_iterator it = d_substitutions.begin();
-  SubstitutionMap::NodeMap::const_iterator it_end = d_substitutions.end();
-  for (; it != it_end; ++ it) {
-    Debug("substitution") << "substs has ( " << (*it).first << " => " << (*it).second << " )" << std::endl;
-  }
-
-  SubstitutionMap::NodeCache::const_iterator iit = d_substitutionCache.begin();
-  SubstitutionMap::NodeCache::const_iterator iit_end = d_substitutionCache.end();
-  for (; iit != iit_end; ++ iit) {
-    Debug("substitution") << "CACHE has ( " << (*iit).first << " => " << (*iit).second << " )" << std::endl;
-  }
-
   // Perform the substitution
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << std::endl;

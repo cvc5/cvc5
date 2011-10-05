@@ -40,6 +40,7 @@ namespace CVC4 {
 %ignore CVC4::operator<<(std::ostream&, const Datatype::Constructor::Arg&);
 
 %feature("valuewrapper") CVC4::Datatype::UnresolvedType;
+%feature("valuewrapper") CVC4::Datatype::Constructor;
 
 %include "util/datatype.h"
 

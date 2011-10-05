@@ -14,6 +14,12 @@ namespace std {
 }
 
 %{
+// Perl's headers define "seed" to Perl_seed, which breaks
+// gmpxx.h; undo the damage for our CVC4 module.
+#ifdef SWIGPERL
+#  undef seed
+#endif /* SWIGPERL */
+
 namespace CVC4 {}
 using namespace CVC4;
 
