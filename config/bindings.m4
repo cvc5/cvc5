@@ -23,7 +23,7 @@ AC_ARG_WITH([swig],
 AC_ARG_ENABLE([language-bindings],
   [AS_HELP_STRING([--enable-language-bindings=][CVC4_SUPPORTED_BINDINGS][ | all], [specify language bindings to build])],
   [if test "$enableval" = yes; then cvc4_check_for_bindings=yes; try_bindings='$1'; else cvc4_check_for_bindings=no; if test "$enableval" = no; then try_bindings=; else try_bindings="$enableval"; fi; fi],
-  [cvc4_check_for_bindings=yes; try_bindings=])
+  [cvc4_check_for_bindings=no; try_bindings=])
 CVC4_LANGUAGE_BINDINGS=
 if test "$noswig" = yes; then
   AC_MSG_WARN([use of swig disabled by user.])

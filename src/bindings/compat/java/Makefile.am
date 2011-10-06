@@ -19,6 +19,7 @@ AM_CXXFLAGS = -Wall
 
 lib_LTLIBRARIES =
 data_DATA =
+BUILT_SOURCES =
 
 if CVC4_LANGUAGE_BINDING_JAVA
 
@@ -28,6 +29,7 @@ libcvc4bindings_java_compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4bindings_java_compat_la_LIBADD = \
 	-L@builddir@/../../../compat -lcvc4compat
+BUILT_SOURCES += $(JNI_CPP_FILES)
 
 endif
 
@@ -114,7 +116,6 @@ CPP_FILES = $(SRC_CPP_FILES) $(JNI_CPP_FILES)
 
 dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) $(IMPL_FILES) include/cvc3/JniUtils.h
 nodist_libcvc4bindings_java_compat_la_SOURCES = $(JNI_CPP_FILES)
-BUILT_SOURCES = $(JNI_CPP_FILES)
 
 EXTRA_DIST = \
 	formula_value.h \
