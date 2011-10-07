@@ -64,6 +64,12 @@ public:
     Expr apply = d_em->mkExpr(kind::APPLY_CONSTRUCTOR, ctor);
     Debug("datatypes") << apply << std::endl;
 
+    const Datatype& colorsDT = colorsType.getDatatype();
+    TS_ASSERT(colorsDT.getConstructor("blue") == ctor);
+    TS_ASSERT(colorsDT["blue"].getConstructor() == ctor);
+    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"), IllegalArgumentException);
+    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException);
+
     TS_ASSERT(colorsType.getDatatype().isFinite());
     TS_ASSERT(colorsType.getDatatype().getCardinality() == 4);
     TS_ASSERT(ctor.getType().getCardinality() == 1);
@@ -136,6 +142,11 @@ public:
     Debug("datatypes") << tree << std::endl;
     DatatypeType treeType = d_em->mkDatatypeType(tree);
     Debug("datatypes") << treeType << std::endl;
+
+    Expr ctor = treeType.getDatatype()[1].getConstructor();
+    TS_ASSERT(treeType.getConstructor("leaf") == ctor);
+    TS_ASSERT(treeType.getConstructor("leaf") == ctor);
+    TS_ASSERT_THROWS(treeType.getConstructor("leff"), IllegalArgumentException);
 
     TS_ASSERT(! treeType.getDatatype().isFinite());
     TS_ASSERT(treeType.getDatatype().getCardinality() == Cardinality::INTEGERS);

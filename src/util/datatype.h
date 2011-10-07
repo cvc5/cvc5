@@ -223,6 +223,14 @@ public:
   public:
     /**
      * Create a new Datatype constructor with the given name for the
+     * constructor and the same name (prefixed with "is_") for the
+     * tester.  The actual constructor and tester aren't created until
+     * resolution time.
+     */
+    explicit Constructor(std::string name);
+
+    /**
+     * Create a new Datatype constructor with the given name for the
      * constructor and the given name for the tester.  The actual
      * constructor and tester aren't created until resolution time.
      */
@@ -257,16 +265,19 @@ public:
 
     /** Get the name of this Datatype constructor. */
     std::string getName() const throw();
+
     /**
      * Get the constructor operator of this Datatype constructor.  The
      * Datatype must be resolved.
      */
     Expr getConstructor() const;
+
     /**
      * Get the tester operator of this Datatype constructor.  The
      * Datatype must be resolved.
      */
     Expr getTester() const;
+
     /**
      * Get the number of arguments (so far) of this Datatype constructor.
      */
@@ -322,6 +333,21 @@ public:
 
     /** Get the ith Constructor arg. */
     const Arg& operator[](size_t index) const;
+
+    /**
+     * Get the Constructor arg named.  This is a linear search
+     * through the arguments, so in the case of multiple,
+     * similarly-named arguments, the first is returned.
+     */
+    const Arg& operator[](std::string name) const;
+
+    /**
+     * Get the selector named.  This is a linear search
+     * through the arguments, so in the case of multiple,
+     * similarly-named arguments, the selector for the first
+     * is returned.
+     */
+    Expr getSelector(std::string name) const;
 
   };/* class Datatype::Constructor */
 
@@ -458,6 +484,19 @@ public:
 
   /** Get the ith Constructor. */
   const Constructor& operator[](size_t index) const;
+
+  /**
+   * Get the Constructor named.  This is a linear search
+   * through the constructors, so in the case of multiple,
+   * similarly-named constructors, the first is returned.
+   */
+  const Constructor& operator[](std::string name) const;
+
+  /**
+   * Get the constructor operator for the named constructor.
+   * This Datatype must be resolved.
+   */
+  Expr getConstructor(std::string name) const;
 
 };/* class Datatype */
 

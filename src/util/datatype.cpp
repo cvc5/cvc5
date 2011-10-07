@@ -364,6 +364,19 @@ const Datatype::Constructor& Datatype::operator[](size_t index) const {
   return d_constructors[index];
 }
 
+const Datatype::Constructor& Datatype::operator[](std::string name) const {
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if((*i).getName() == name) {
+      return *i;
+    }
+  }
+  CheckArgument(false, name, "No such constructor `%s' of datatype `%s'", name.c_str(), d_name.c_str());
+}
+
+Expr Datatype::getConstructor(std::string name) const {
+  return (*this)[name].getConstructor();
+}
+
 void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
                                     const std::map<std::string, DatatypeType>& resolutions,
                                     const std::vector<Type>& placeholders,
@@ -672,6 +685,19 @@ Expr Datatype::Constructor::mkGroundTerm( Type t ) const throw(AssertionExceptio
 const Datatype::Constructor::Arg& Datatype::Constructor::operator[](size_t index) const {
   CheckArgument(index < getNumArgs(), index, "index out of bounds");
   return d_args[index];
+}
+
+const Datatype::Constructor::Arg& Datatype::Constructor::operator[](std::string name) const {
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if((*i).getName() == name) {
+      return *i;
+    }
+  }
+  CheckArgument(false, name, "No such arg `%s' of constructor `%s'", name.c_str(), d_name.c_str());
+}
+
+Expr Datatype::Constructor::getSelector(std::string name) const {
+  return (*this)[name].getSelector();
 }
 
 Datatype::Constructor::Arg::Arg(std::string name, Expr selector) :

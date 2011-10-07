@@ -567,6 +567,10 @@ bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
 }
 
+Expr DatatypeType::getConstructor(std::string name) const {
+  return getDatatype().getConstructor(name);
+}
+
 bool DatatypeType::isInstantiated() const {
   return d_typeNode->isInstantiatedDatatype();
 }
