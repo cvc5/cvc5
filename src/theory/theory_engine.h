@@ -209,6 +209,11 @@ class TheoryEngine {
     void setIncomplete() throw(AssertionException) {
       d_engine->setIncomplete(d_theory);
     }
+
+    void spendResource() throw() {
+      d_engine->spendResource();
+    }
+
   };/* class EngineOutputChannel */
 
   /**
@@ -223,7 +228,7 @@ class TheoryEngine {
 
   void conflict(TNode conflict) {
 
-    Assert(properConflict(conflict));
+    Assert(properConflict(conflict), "not a proper conflict: %s", conflict.toString().c_str());
 
     // Mark that we are in conflict
     d_inConflict = true;
@@ -254,6 +259,13 @@ class TheoryEngine {
    */
   void setIncomplete(theory::TheoryId theory) {
     d_incomplete = true;
+  }
+
+  /**
+   * "Spend" a resource during a search or preprocessing.
+   */
+  void spendResource() throw() {
+    d_propEngine->spendResource();
   }
 
   /**

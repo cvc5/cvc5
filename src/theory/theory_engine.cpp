@@ -100,6 +100,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
  */
 void TheoryEngine::check(Theory::Effort effort) {
 
+  d_propEngine->checkTime();
+
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
@@ -263,20 +265,38 @@ bool TheoryEngine::properConflict(TNode conflict) const {
   bool value;
   if (conflict.getKind() == kind::AND) {
     for (unsigned i = 0; i < conflict.getNumChildren(); ++ i) {
-      if (!getPropEngine()->hasValue(conflict[i], value)) return false;
-      if (!value) return false;
+      if (! getPropEngine()->hasValue(conflict[i], value)) {
+        Debug("properConflict") << "Bad conflict is due to unassigned atom: "
+                                << conflict[i] << endl;
+        return false;
+      }
+      if (! value) {
+        Debug("properConflict") << "Bad conflict is due to false atom: "
+                                << conflict[i] << endl;
+        return false;
+      }
     }
   } else {
-    if (!getPropEngine()->hasValue(conflict, value)) return false;
-    return value;
+    if (! getPropEngine()->hasValue(conflict, value)) {
+      Debug("properConflict") << "Bad conflict is due to unassigned atom: "
+                              << conflict << endl;
+      return false;
+    }
+    if(! value) {
+      Debug("properConflict") << "Bad conflict is due to false atom: "
+                              << conflict << endl;
+      return false;
+    }
   }
   return true;
 }
 
 bool TheoryEngine::properPropagation(TNode lit) const {
-  Assert(!lit.isNull());
-#warning implement TheoryEngine::properPropagation()
-  return true;
+  if(!getPropEngine()->isTranslatedSatLiteral(lit)) {
+    return false;
+  }
+  bool b;
+  return !getPropEngine()->hasValue(lit, b);
 }
 
 bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
@@ -471,6 +491,8 @@ void TheoryEngine::assertFact(TNode node)
 {
   Trace("theory") << "TheoryEngine::assertFact(" << node << ")" << std::endl;
 
+  d_propEngine->checkTime();
+
   // Get the atom
   TNode atom = node.getKind() == kind::NOT ? node[0] : node;
 
@@ -497,6 +519,8 @@ void TheoryEngine::assertFact(TNode node)
 void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
       
   Debug("theory") << "EngineOutputChannel::propagate(" << literal << ")" << std::endl;
+
+  d_propEngine->checkTime();
       
   if(Dump.isOn("t-propagations")) {
     Dump("t-propagations") << CommentCommand("negation of theory propagation: expect valid") << std::endl

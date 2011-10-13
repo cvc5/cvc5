@@ -55,10 +55,18 @@ Result::Result(const std::string& instr) :
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = TIMEOUT;
+  } else if(s == "resourceout") {
+    d_which = TYPE_SAT;
+    d_sat = SAT_UNKNOWN;
+    d_unknownExplanation = RESOURCEOUT;
   } else if(s == "memout") {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
     d_unknownExplanation = MEMOUT;
+  } else if(s == "interrupted") {
+    d_which = TYPE_SAT;
+    d_sat = SAT_UNKNOWN;
+    d_unknownExplanation = INTERRUPTED;
   } else if(s.size() >= 7 && s.compare(0, 7, "unknown") == 0) {
     d_which = TYPE_SAT;
     d_sat = SAT_UNKNOWN;
@@ -169,8 +177,11 @@ ostream& operator<<(ostream& out,
   case Result::REQUIRES_FULL_CHECK: out << "REQUIRES_FULL_CHECK"; break;
   case Result::INCOMPLETE: out << "INCOMPLETE"; break;
   case Result::TIMEOUT: out << "TIMEOUT"; break;
+  case Result::RESOURCEOUT: out << "RESOURCEOUT"; break;
   case Result::MEMOUT: out << "MEMOUT"; break;
+  case Result::INTERRUPTED: out << "INTERRUPTED"; break;
   case Result::NO_STATUS: out << "NO_STATUS"; break;
+  case Result::UNSUPPORTED: out << "UNSUPPORTED"; break;
   case Result::OTHER: out << "OTHER"; break;
   case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
   default: Unhandled(e);

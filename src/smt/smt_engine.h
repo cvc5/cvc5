@@ -104,7 +104,7 @@ class CVC4_PUBLIC SmtEngine {
 
   /** Our expression manager */
   ExprManager* d_exprManager;
-  /** Out internal expression/node manager */
+  /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
   /** The decision engine */
   TheoryEngine* d_theoryEngine;
@@ -142,6 +142,20 @@ class CVC4_PUBLIC SmtEngine {
    * ModalException.
    */
   bool d_queryMade;
+
+  /** A user-imposed cumulative time budget, in milliseconds.  0 = no limit. */
+  unsigned long d_timeBudgetCumulative;
+  /** A user-imposed per-call time budget, in milliseconds.  0 = no limit. */
+  unsigned long d_timeBudgetPerCall;
+  /** A user-imposed cumulative resource budget.  0 = no limit. */
+  unsigned long d_resourceBudgetCumulative;
+  /** A user-imposed per-call resource budget.  0 = no limit. */
+  unsigned long d_resourceBudgetPerCall;
+
+  /** The number of milliseconds used by this SmtEngine since its inception. */
+  unsigned long d_cumulativeTimeUsed;
+  /** The amount of resource used by this SmtEngine since its inception. */
+  unsigned long d_cumulativeResourceUsed;
 
   /**
    * Most recent result of last checkSat/query or (set-info :status).
@@ -322,6 +336,104 @@ public:
    * Pop a user-level context.  Throws an exception if nothing to pop.
    */
   void pop();
+
+  /**
+   * Interrupt a running query.  This can be called from another thread
+   * or from a signal handler.  Throws a ModalException if the SmtEngine
+   * isn't currently in a query.
+   */
+  void interrupt() throw(ModalException);
+
+  /**
+   * Set a resource limit for SmtEngine operations.  This is like a time
+   * limit, but it's deterministic so that reproducible results can be
+   * obtained.  However, please note that it may not be deterministic
+   * between different versions of CVC4, or even the same version on
+   * different platforms.
+   *
+   * A cumulative and non-cumulative (per-call) resource limit can be
+   * set at the same time.  A call to setResourceLimit() with
+   * cumulative==true replaces any cumulative resource limit currently
+   * in effect; a call with cumulative==false replaces any per-call
+   * resource limit currently in effect.  Time limits can be set in
+   * addition to resource limits; the SmtEngine obeys both.  That means
+   * that up to four independent limits can control the SmtEngine
+   * at the same time.
+   *
+   * When an SmtEngine is first created, it has no time or resource
+   * limits.
+   *
+   * Currently, these limits only cause the SmtEngine to stop what its
+   * doing when the limit expires (or very shortly thereafter); no
+   * heuristics are altered by the limits or the threat of them expiring.
+   * We reserve the right to change this in the future.
+   *
+   * @param units the resource limit, or 0 for no limit
+   * @param cumulative whether this resource limit is to be a cumulative
+   * resource limit for all remaining calls into the SmtEngine (true), or
+   * whether it's a per-call resource limit (false); the default is false
+   */
+  void setResourceLimit(unsigned long units, bool cumulative = false);
+
+  /**
+   * Set a time limit for SmtEngine operations.
+   *
+   * A cumulative and non-cumulative (per-call) time limit can be
+   * set at the same time.  A call to setTimeLimit() with
+   * cumulative==true replaces any cumulative time limit currently
+   * in effect; a call with cumulative==false replaces any per-call
+   * time limit currently in effect.  Resource limits can be set in
+   * addition to time limits; the SmtEngine obeys both.  That means
+   * that up to four independent limits can control the SmtEngine
+   * at the same time.
+   *
+   * Note that the cumulative timer only ticks away when one of the
+   * SmtEngine's workhorse functions (things like assertFormula(),
+   * query(), checkSat(), and simplify()) are running.  Between calls,
+   * the timer is still.
+   *
+   * When an SmtEngine is first created, it has no time or resource
+   * limits.
+   *
+   * Currently, these limits only cause the SmtEngine to stop what its
+   * doing when the limit expires (or very shortly thereafter); no
+   * heuristics are altered by the limits or the threat of them expiring.
+   * We reserve the right to change this in the future.
+   *
+   * @param millis the time limit in milliseconds, or 0 for no limit
+   * @param cumulative whether this time limit is to be a cumulative
+   * time limit for all remaining calls into the SmtEngine (true), or
+   * whether it's a per-call time limit (false); the default is false
+   */
+  void setTimeLimit(unsigned long millis, bool cumulative = false);
+
+  /**
+   * Get the current resource usage count for this SmtEngine.  This
+   * function can be used to ascertain reasonable values to pass as
+   * resource limits to setResourceLimit().
+   */
+  unsigned long getResourceUsage() const;
+
+  /**
+   * Get the current millisecond count for this SmtEngine.
+   */
+  unsigned long getTimeUsage() const;
+
+  /**
+   * Get the remaining resources that can be consumed by this SmtEngine
+   * according to the currently-set cumulative resource limit.  If there
+   * is not a cumulative resource limit set, this function throws a
+   * ModalException.
+   */
+  unsigned long getResourceRemaining() const throw(ModalException);
+
+  /**
+   * Get the remaining number of milliseconds that can be consumed by
+   * this SmtEngine according to the currently-set cumulative time limit.
+   * If there is not a cumulative resource limit set, this function
+   * throws a ModalException.
+   */
+  unsigned long getTimeRemaining() const throw(ModalException);
 
   /**
    * Permit access to the underlying StatisticsRegistry.

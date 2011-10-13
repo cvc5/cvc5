@@ -105,6 +105,20 @@ public:
    */
   virtual void setIncomplete() throw(AssertionException) = 0;
 
+  /**
+   * "Spend" a "resource."  The meaning is specific to the context in
+   * which the theory is operating, and may even be ignored.  The
+   * intended meaning is that if the user has set a limit on the "units
+   * of resource" that can be expended in a search, and that limit is
+   * exceeded, then the search is terminated.  Note that the check for
+   * termination occurs in the main search loop, so while theories
+   * should call OutputChannel::spendResource() during particularly
+   * long-running operations, they cannot rely on resource() to break
+   * out of infinite or intractable computations.
+   */
+  virtual void spendResource() throw() {
+  }
+
 };/* class OutputChannel */
 
 }/* CVC4::theory namespace */

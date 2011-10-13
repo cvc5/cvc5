@@ -129,6 +129,16 @@ struct CVC4_PUBLIC Options {
    */
   bool interactiveSetByUser;
 
+  /** Per-query resource limit. */
+  unsigned long perCallResourceLimit;
+  /** Cumulative resource limit. */
+  unsigned long cumulativeResourceLimit;
+
+  /** Per-query time limit in milliseconds. */
+  unsigned long perCallMillisecondLimit;
+  /** Cumulative time limit in milliseconds. */
+  unsigned long cumulativeMillisecondLimit;
+
   /** Whether we should "spin" on a SIG_SEGV. */
   bool segvNoSpin;
 

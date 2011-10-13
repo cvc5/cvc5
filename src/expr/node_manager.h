@@ -1191,7 +1191,7 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
 
 inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
                                         TypeNode child2, TypeNode child3) {
-  return (NodeBuilder<3>(this, kind) << child1 << child2 << child3).constructTypeNode();;
+  return (NodeBuilder<3>(this, kind) << child1 << child2 << child3).constructTypeNode();
 }
 
 // N-ary version for types

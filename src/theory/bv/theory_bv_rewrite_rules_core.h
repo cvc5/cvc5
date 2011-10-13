@@ -277,7 +277,7 @@ bool RewriteRule<ReflexivityEq>::applies(Node node) {
 template<>
 Node RewriteRule<ReflexivityEq>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<ReflexivityEq>(" << node << ")" << std::endl;
-  return node[1].eqNode(node[0]);;
+  return node[1].eqNode(node[0]);
 }
 
 }

@@ -62,7 +62,12 @@ public:
 PropEngine::PropEngine(TheoryEngine* te, Context* context) :
   d_inCheckSat(false),
   d_theoryEngine(te),
-  d_context(context) {
+  d_context(context),
+  d_satSolver(NULL),
+  d_cnfStream(NULL),
+  d_satTimer(*this),
+  d_interrupted(false) {
+
   Debug("prop") << "Constructing the PropEngine" << endl;
 
   d_satSolver = new SatSolver(this, d_theoryEngine, d_context);
@@ -121,7 +126,7 @@ void PropEngine::printSatisfyingAssignment(){
   }
 }
 
-Result PropEngine::checkSat() {
+Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
@@ -133,22 +138,37 @@ Result PropEngine::checkSat() {
   d_theoryEngine->presolve();
 
   if(Options::current()->preprocessOnly) {
+    millis = resource = 0;
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
 
-  // Check the problem
-  bool result = d_satSolver->solve();
+  // Set the timer
+  d_satTimer.set(millis);
 
-  if( result && Debug.isOn("prop") ) {
+  // Reset the interrupted flag
+  d_interrupted = false;
+
+  // Check the problem
+  SatLiteralValue result = d_satSolver->solve(resource);
+
+  millis = d_satTimer.elapsed();
+
+  if( result == l_Undef ) {
+    Result::UnknownExplanation why =
+      d_satTimer.expired() ? Result::TIMEOUT :
+        (d_interrupted ? Result::INTERRUPTED : Result::RESOURCEOUT);
+    return Result(Result::SAT_UNKNOWN, why);
+  }
+
+  if( result == l_True && Debug.isOn("prop") ) {
     printSatisfyingAssignment();
   }
 
-  Debug("prop") << "PropEngine::checkSat() => "
-                << (result ? "true" : "false") << endl;
-  if(result && d_theoryEngine->isIncomplete()) {
+  Debug("prop") << "PropEngine::checkSat() => " << result << endl;
+  if(result == l_True && d_theoryEngine->isIncomplete()) {
     return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
   }
-  return Result(result ? Result::SAT : Result::UNSAT);
+  return Result(result == l_True ? Result::SAT : Result::UNSAT);
 }
 
 Node PropEngine::getValue(TNode node) {
@@ -168,6 +188,10 @@ Node PropEngine::getValue(TNode node) {
 
 bool PropEngine::isSatLiteral(TNode node) {
   return d_cnfStream->hasLiteral(node);
+}
+
+bool PropEngine::isTranslatedSatLiteral(TNode node) {
+  return d_cnfStream->isTranslated(node);
 }
 
 bool PropEngine::hasValue(TNode node, bool& value) {
@@ -201,6 +225,21 @@ void PropEngine::pop() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
+}
+
+void PropEngine::interrupt() throw(ModalException) {
+  if(! d_inCheckSat) {
+    throw ModalException("SAT solver is not currently solving anything; "
+                         "cannot interrupt it");
+  }
+
+  d_interrupted = true;
+  d_satSolver->interrupt();
+  Debug("prop") << "interrupt()" << endl;
+}
+
+void PropEngine::spendResource() throw() {
+  // TODO implement me
 }
 
 }/* CVC4::prop namespace */

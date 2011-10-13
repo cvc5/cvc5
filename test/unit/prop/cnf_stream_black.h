@@ -81,6 +81,8 @@ public:
   void renewVar(SatLiteral lit, int level = -1) {
   }
 
+  void interrupt() {
+  }
 };
 
 class CnfStreamBlack : public CxxTest::TestSuite {

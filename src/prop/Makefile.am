@@ -12,6 +12,7 @@ libprop_la_SOURCES = \
 	prop_engine.h \
 	sat.h \
 	sat.cpp \
+	sat_timer.h \
 	cnf_stream.h \
 	cnf_stream.cpp
 

@@ -180,9 +180,25 @@ using namespace CVC4::smt;
 
 SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_context(em->getContext()),
+  d_userLevels(),
   d_userContext(new UserContext()),
   d_exprManager(em),
   d_nodeManager(d_exprManager->getNodeManager()),
+  d_theoryEngine(NULL),
+  d_propEngine(NULL),
+  d_definedFunctions(NULL),
+  d_assertionList(NULL),
+  d_assignments(NULL),
+  d_logic(""),
+  d_problemExtended(false),
+  d_queryMade(false),
+  d_timeBudgetCumulative(0),
+  d_timeBudgetPerCall(0),
+  d_resourceBudgetCumulative(0),
+  d_resourceBudgetPerCall(0),
+  d_cumulativeTimeUsed(0),
+  d_cumulativeResourceUsed(0),
+  d_status(),
   d_private(new smt::SmtEnginePrivate(*this)),
   d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
   d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
@@ -212,14 +228,22 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
 
-  d_assertionList = NULL;
   if(Options::current()->interactive) {
     d_assertionList = new(true) AssertionList(d_userContext);
   }
 
-  d_assignments = NULL;
-  d_problemExtended = false;
-  d_queryMade = false;
+  if(Options::current()->perCallResourceLimit != 0) {
+    setResourceLimit(Options::current()->perCallResourceLimit, false);
+  }
+  if(Options::current()->cumulativeResourceLimit != 0) {
+    setResourceLimit(Options::current()->cumulativeResourceLimit, true);
+  }
+  if(Options::current()->perCallMillisecondLimit != 0) {
+    setTimeLimit(Options::current()->perCallMillisecondLimit, false);
+  }
+  if(Options::current()->cumulativeMillisecondLimit != 0) {
+    setTimeLimit(Options::current()->cumulativeMillisecondLimit, true);
+  }
 }
 
 void SmtEngine::shutdown() {
@@ -719,12 +743,44 @@ void SmtEnginePrivate::simplifyAssertions()
 Result SmtEngine::check() {
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  // make sure the prop layer has all assertions
-  Trace("smt") << "SmtEngine::check(): processing assertion" << endl;
+  // Make sure the prop layer has all of the assertions
+  Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
 
+  unsigned long millis = 0;
+  if(d_timeBudgetCumulative != 0) {
+    millis = getTimeRemaining();
+    if(millis == 0) {
+      return Result(Result::VALIDITY_UNKNOWN, Result::TIMEOUT);
+    }
+  }
+  if(d_timeBudgetPerCall != 0 && (millis == 0 || d_timeBudgetPerCall < millis)) {
+    millis = d_timeBudgetPerCall;
+  }
+
+  unsigned long resource = 0;
+  if(d_resourceBudgetCumulative != 0) {
+    resource = getResourceRemaining();
+    if(resource == 0) {
+      return Result(Result::VALIDITY_UNKNOWN, Result::RESOURCEOUT);
+    }
+  }
+  if(d_resourceBudgetPerCall != 0 && (resource == 0 || d_resourceBudgetPerCall < resource)) {
+    resource = d_resourceBudgetPerCall;
+  }
+
   Trace("smt") << "SmtEngine::check(): running check" << endl;
-  return d_propEngine->checkSat();
+  Result result = d_propEngine->checkSat(millis, resource);
+
+  // PropEngine::checkSat() returns the actual amount used in these
+  // variables.
+  d_cumulativeTimeUsed += millis;
+  d_cumulativeResourceUsed += resource;
+
+  Trace("limit") << "SmtEngine::check(): cumulative millis " << d_cumulativeTimeUsed
+                 << ", conflicts " << d_cumulativeResourceUsed << std::endl;
+
+  return result;
 }
 
 Result SmtEngine::quickCheck() {
@@ -1082,6 +1138,9 @@ void SmtEngine::pop() {
   if(!Options::current()->incrementalSolving) {
     throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
   }
+  if(d_userContext->getLevel() == 0) {
+    throw ModalException("Cannot pop beyond the first user frame");
+  }
   AlwaysAssert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
   while (d_userLevels.back() < d_userContext->getLevel()) {
     internalPop();
@@ -1111,6 +1170,56 @@ void SmtEngine::internalPop() {
     d_propEngine->pop();
     d_userContext->pop();
   }
+}
+
+void SmtEngine::interrupt() throw(ModalException) {
+  d_propEngine->interrupt();
+}
+
+void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
+  if(cumulative) {
+    Trace("limit") << "SmtEngine: setting cumulative resource limit to " << units << std::endl;
+    d_resourceBudgetCumulative = (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
+  } else {
+    Trace("limit") << "SmtEngine: setting per-call resource limit to " << units << std::endl;
+    d_resourceBudgetPerCall = units;
+  }
+}
+
+void SmtEngine::setTimeLimit(unsigned long millis, bool cumulative) {
+  if(cumulative) {
+    Trace("limit") << "SmtEngine: setting cumulative time limit to " << millis << " ms" << std::endl;
+    d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
+  } else {
+    Trace("limit") << "SmtEngine: setting per-call time limit to " << millis << " ms" << std::endl;
+    d_timeBudgetPerCall = millis;
+  }
+}
+
+unsigned long SmtEngine::getResourceUsage() const {
+  return d_cumulativeResourceUsed;
+}
+
+unsigned long SmtEngine::getTimeUsage() const {
+  return d_cumulativeTimeUsed;
+}
+
+unsigned long SmtEngine::getResourceRemaining() const throw(ModalException) {
+  if(d_resourceBudgetCumulative == 0) {
+    throw ModalException("No cumulative resource limit is currently set");
+  }
+
+  return d_resourceBudgetCumulative <= d_cumulativeResourceUsed ? 0 :
+    d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+}
+
+unsigned long SmtEngine::getTimeRemaining() const throw(ModalException) {
+  if(d_timeBudgetCumulative == 0) {
+    throw ModalException("No cumulative time limit is currently set");
+  }
+
+  return d_timeBudgetCumulative <= d_cumulativeTimeUsed ? 0 :
+    d_timeBudgetCumulative - d_cumulativeTimeUsed;
 }
 
 StatisticsRegistry* SmtEngine::getStatisticsRegistry() const {
