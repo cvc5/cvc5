@@ -62,6 +62,11 @@ Node Rewriter::rewrite(Node node) {
   return rewriteTo(theory::Theory::theoryOf(node), node);
 }
 
+Node Rewriter::rewriteEquality(theory::TheoryId theoryId, TNode node) {
+  Trace("rewriter") << "Rewriter::rewriteEquality(" << theoryId << "," << node << ")"<< std::endl;
+  return Rewriter::callRewriteEquality(theoryId, node);
+}
+
 Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
   Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;

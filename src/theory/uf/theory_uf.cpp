@@ -50,34 +50,38 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 void TheoryUF::check(Effort level) {
 
-  while (!done() && !d_conflict) {
+  while (!done() && !d_conflict) 
+  {
     // Get all the assertions
-    TNode assertion = get();
-    Debug("uf") << "TheoryUF::check(): processing " << assertion << std::endl;
+    Assertion assertion = get();
+    TNode fact = assertion.assertion;
 
-    // Fo the work
-    switch (assertion.getKind()) {
+    Debug("uf") << "TheoryUF::check(): processing " << fact << std::endl;
+
+    // If the assertion doesn't have a literal, it's a shared equality, so we set it up
+    if (!assertion.isPreregistered) {
+      Debug("uf") << "TheoryUF::check(): shared equality, setting up " << fact << std::endl;
+      if (fact.getKind() == kind::NOT) {
+        preRegisterTerm(fact[0]);
+      } else {
+        preRegisterTerm(fact);
+      }
+    }
+
+    // Do the work
+    switch (fact.getKind()) {
     case kind::EQUAL:
-      d_equalityEngine.addEquality(assertion[0], assertion[1], assertion);
+      d_equalityEngine.addEquality(fact[0], fact[1], fact);
       break;
     case kind::APPLY_UF:
-      d_equalityEngine.addEquality(assertion, d_true, assertion);
+      d_equalityEngine.addEquality(fact, d_true, fact);
       break;
     case kind::NOT:
-      if (assertion[0].getKind() == kind::APPLY_UF) {
-        d_equalityEngine.addEquality(assertion[0], d_false, assertion);
+      if (fact[0].getKind() == kind::APPLY_UF) {
+        d_equalityEngine.addEquality(fact[0], d_false, fact);
       } else {
-        // Disequality check
-        TNode equality = assertion[0];
-        if (d_equalityEngine.getRepresentative(equality[0]) == d_equalityEngine.getRepresentative(equality[1])) {
-          std::vector<TNode> assumptions;
-          assumptions.push_back(assertion);
-          explain(equality, assumptions);
-          d_conflictNode = mkAnd(assumptions);
-          d_conflict = true;
-        }
         // Assert the dis-equality
-        d_equalityEngine.addEquality(assertion[0], d_false, assertion);
+        d_equalityEngine.addDisequality(fact[0][0], fact[0][1], fact);
       }
       break;
     default:
@@ -138,9 +142,7 @@ void TheoryUF::preRegisterTerm(TNode node) {
     d_equalityEngine.addTerm(node[1]);
     // Add the trigger for equality
     d_equalityEngine.addTriggerEquality(node[0], node[1], node);
-	// Add the disequality terms and triggers
-	d_equalityEngine.addTerm(node);
-	d_equalityEngine.addTriggerEquality(node, d_false, node.notNode());
+    d_equalityEngine.addTriggerDisequality(node[0], node[1], node.notNode());
     break;
   case kind::APPLY_UF:
     // Function applications/predicates
@@ -151,6 +153,8 @@ void TheoryUF::preRegisterTerm(TNode node) {
       d_equalityEngine.addTriggerEquality(node, d_true, node);
       d_equalityEngine.addTriggerEquality(node, d_false, node.notNode());
     }
+    // Remember the function and predicate terms
+    d_functionsTerms.push_back(node);
     break;
   default:
     // Variables etc
@@ -357,5 +361,96 @@ void TheoryUF::staticLearning(TNode n, NodeBuilder<>& learned) {
 
   if(Options::current()->ufSymmetryBreaker) {
     d_symb.assertFormula(n);
+  }
+}
+
+EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
+  if (d_equalityEngine.areEqual(a, b)) {
+    // The terms are implied to be equal
+    return EQUALITY_TRUE;
+  }
+  if (d_equalityEngine.areDisequal(a, b)) {
+    // The rems are implied to be dis-equal
+    return EQUALITY_FALSE;
+  }
+  // All other terms we interpret as dis-equal in the model
+  return EQUALITY_FALSE_IN_MODEL;
+}
+
+void TheoryUF::addSharedTerm(TNode t) {
+  Debug("uf::sharing") << "TheoryUF::addSharedTerm(" << t << ")" << std::endl;
+  d_equalityEngine.addTriggerTerm(t);
+}
+
+void TheoryUF::computeCareGraph(CareGraph& careGraph) {
+
+  if (d_sharedTerms.size() > 0) {
+
+    std::vector<CarePair> currentPairs;
+
+    // Go through the function terms and see if there are any to split on
+    unsigned functionTerms = d_functionsTerms.size();
+    for (unsigned i = 0; i < functionTerms; ++ i) {
+      TNode f1 = d_functionsTerms[i];
+      Node op = f1.getOperator();
+      for (unsigned j = i + 1; j < functionTerms; ++ j) {
+
+        TNode f2 = d_functionsTerms[j];
+
+        // If the operators are not the same, we can skip this pair
+        if (f2.getOperator() != op) {
+          continue;
+        }
+
+        Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
+
+        // If the terms are already known to be equal, we are also in good shape
+        if (d_equalityEngine.areEqual(f1, f2)) {
+          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): equal, skipping" << std::endl;
+          continue;
+        }
+
+        // We have two functions f(x1, ..., xn) and f(y1, ..., yn) no known to be equal
+        // We split on the argument pairs that are are not known, unless there is some
+        // argument pair that is already dis-equal.
+        bool somePairIsDisequal = false;
+        currentPairs.clear();
+        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
+
+          TNode x = f1[k];
+          TNode y = f2[k];
+
+          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking arguments " << x << " and " << y << std::endl;
+
+          EqualityStatus eqStatusUf = getEqualityStatus(x, y);
+
+          if (eqStatusUf == EQUALITY_FALSE) {
+            // Mark that there is a dis-equal pair and break
+            somePairIsDisequal = true;
+            Debug("uf::sharing") << "TheoryUf::computeCareGraph(): disequal, disregarding all" << std::endl;
+            break;
+          }
+
+	    	  if (!d_equalityEngine.isTriggerTerm(x) || !d_equalityEngine.isTriggerTerm(y)) {
+	    	    // Not connected to shared terms, we don't care
+	    	    continue;
+	    	  }
+
+          if (eqStatusUf == EQUALITY_TRUE) {
+            // We don't neeed this one
+            Debug("uf::sharing") << "TheoryUf::computeCareGraph(): equal" << std::endl;
+            continue;
+          }
+
+          // Otherwise, we need to figure it out
+          Debug("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
+          currentPairs.push_back(CarePair(x, y, THEORY_UF));
+        }
+
+        if (!somePairIsDisequal) {
+          careGraph.insert(careGraph.end(), currentPairs.begin(), currentPairs.end());
+        }
+      }
+    }
   }
 }

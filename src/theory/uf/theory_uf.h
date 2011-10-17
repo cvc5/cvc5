@@ -44,10 +44,16 @@ public:
   public:
     NotifyClass(TheoryUF& uf): d_uf(uf) {}
 
-    bool notifyEquality(TNode reason) {
-      Debug("uf") << "NotifyClass::notifyEquality(" << reason << ")" << std::endl;
+    bool notify(TNode propagation) {
+      Debug("uf") << "NotifyClass::notify(" << propagation << ")" << std::endl;
       // Just forward to uf
-      return d_uf.propagate(reason);
+      return d_uf.propagate(propagation);
+    }
+    
+    void notify(TNode t1, TNode t2) {
+      Debug("uf") << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
+      Node equality = Rewriter::rewriteEquality(theory::THEORY_UF, t1.eqNode(t2));
+      d_uf.propagate(equality);
     }
   };
 
@@ -58,9 +64,6 @@ private:
 
   /** Equaltity engine */
   EqualityEngine<NotifyClass> d_equalityEngine;
-
-  /** All the literals known to be true */
-  context::CDSet<TNode, TNodeHashFunction> d_knownFacts;
 
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
@@ -79,11 +82,13 @@ private:
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
   /** Literals to propagate */
-  context::CDList<TNode> d_literalsToPropagate;
+  context::CDList<Node> d_literalsToPropagate;
 
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
+  /** All the function terms that the theory has seen */
+  context::CDList<TNode> d_functionsTerms;
 
   /** True node for predicates = true */
   Node d_true;
@@ -101,10 +106,10 @@ public:
     Theory(THEORY_UF, c, u, out, valuation),
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
-    d_knownFacts(c),
     d_conflict(c, false),
     d_literalsToPropagate(c),
-    d_literalsToPropagateIndex(c, 0)
+    d_literalsToPropagateIndex(c, 0),
+    d_functionsTerms(c)
   {
     // The kinds we are treating as function application in congruence
     d_equalityEngine.addFunctionKind(kind::APPLY_UF);
@@ -125,6 +130,11 @@ public:
 
   void staticLearning(TNode in, NodeBuilder<>& learned);
   void presolve();
+
+  void addSharedTerm(TNode n);
+  void computeCareGraph(CareGraph& careGraph);
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   std::string identify() const {
     return "THEORY_UF";

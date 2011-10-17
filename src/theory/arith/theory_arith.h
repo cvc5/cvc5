@@ -189,6 +189,8 @@ public:
 
   std::string identify() const { return std::string("TheoryArith"); }
 
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+
 private:
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;

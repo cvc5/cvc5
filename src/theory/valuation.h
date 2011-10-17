@@ -32,6 +32,32 @@ class TheoryEngine;
 
 namespace theory {
 
+/**
+ * The status of an equality in the current context.
+ */
+enum EqualityStatus {
+  /** The equality is known to be true, and has been propagated */
+  EQUALITY_TRUE_AND_PROPAGATED,
+  /** The equality is known to be true and has been propagated */
+  EQUALITY_FALSE_AND_PROPAGATED,
+  /** The equality is known to be true */
+  EQUALITY_TRUE,
+  /** The equality is known to be false */
+  EQUALITY_FALSE,
+  /** The equality is not known, but is true in the current model */
+  EQUALITY_TRUE_IN_MODEL,
+  /** The equality is not known, but is false in the current model */
+  EQUALITY_FALSE_IN_MODEL,
+  /** The equality is completely unknown */
+  EQUALITY_UNKNOWN
+};
+
+/**
+ * Returns true if the two statuses are compatible, i.e. bot TRUE
+ * or both FALSE (regardles of inmodel/propagation).
+ */
+bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2);
+
 class Valuation {
   TheoryEngine* d_engine;
 public:
@@ -68,6 +94,12 @@ public:
    * argument is unmodified.
    */
   bool hasSatValue(TNode n, bool& value) const;
+
+  /**
+   * Returns the equality status of the two terms, from the theory that owns the domain type.
+   * The types of a and b must be the same.
+   */
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   /**
    * Ensure that the given node will have a designated SAT literal

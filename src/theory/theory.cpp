@@ -61,9 +61,9 @@ void Theory::computeCareGraph(CareGraph& careGraph) {
         // We don't care about the terms of different types
         continue;
       }
-      switch (equalityStatus(a, b)) {
-      case EQUALITY_TRUE:
-      case EQUALITY_FALSE:
+      switch (getEqualityStatus(a, b)) {
+      case EQUALITY_TRUE_AND_PROPAGATED:
+      case EQUALITY_FALSE_AND_PROPAGATED:
   	// If we know about it, we should have propagated it, so we can skip
   	break;
       default:

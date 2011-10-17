@@ -128,7 +128,7 @@ public:
     Node leq = d_nm->mkNode(LEQ, x, c);
     fakeTheoryEnginePreprocess(leq);
 
-    d_arith->assertFact(leq);
+    d_arith->assertFact(leq, true);
 
     d_arith->check(d_level);
 
@@ -160,7 +160,7 @@ public:
     fakeTheoryEnginePreprocess(leq1);
     fakeTheoryEnginePreprocess(geq1);
 
-    d_arith->assertFact(lt1);
+    d_arith->assertFact(lt1, true);
 
 
     d_arith->check(d_level);
@@ -199,7 +199,7 @@ public:
     fakeTheoryEnginePreprocess(leq1);
     fakeTheoryEnginePreprocess(geq1);
 
-    d_arith->assertFact(leq0);
+    d_arith->assertFact(leq0, true);
 
 
     d_arith->check(d_level);
@@ -235,7 +235,7 @@ public:
     fakeTheoryEnginePreprocess(leq1);
     fakeTheoryEnginePreprocess(geq1);
 
-    d_arith->assertFact(leq1);
+    d_arith->assertFact(leq1, true);
 
 
     d_arith->check(d_level);

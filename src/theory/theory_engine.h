@@ -96,7 +96,7 @@ class TheoryEngine {
    * runs (no sharing), can reduce the cost of walking the DAG on
    * registration, etc.
    */
-  theory::Theory::Set d_activeTheories;
+  context::CDO<theory::Theory::Set> d_activeTheories;
 
   /**
    * The database of shared terms.
@@ -191,7 +191,7 @@ class TheoryEngine {
     void conflict(TNode conflictNode) throw(AssertionException) {
       Trace("theory") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
       ++ d_statistics.conflicts;
-      d_engine->conflict(conflictNode);
+      d_engine->conflict(conflictNode, d_theory);
     }
 
     void propagate(TNode literal) throw(AssertionException) {
@@ -226,21 +226,26 @@ class TheoryEngine {
    */
   context::CDO<bool> d_inConflict;
 
-  void conflict(TNode conflict) {
+  /**
+   * Does the context contain terms shared among multiple theories.
+   */
+  context::CDO<bool> d_sharedTermsExist;
 
-    Assert(properConflict(conflict), "not a proper conflict: %s", conflict.toString().c_str());
+  /**
+   * Explain the equality literals and push all the explaining literals into the builder. All
+   * the non-equality literals are pushed to the builder.
+   */
+  void explainEqualities(theory::TheoryId theoryId, TNode literals, NodeBuilder<>& builder);
 
-    // Mark that we are in conflict
-    d_inConflict = true;
+  /**
+   * Same as above, but just for single equalities.
+   */
+  void explainEquality(theory::TheoryId theoryId, TNode eqLiteral, NodeBuilder<>& builder);
 
-    if(Dump.isOn("t-conflicts")) {
-      Dump("t-conflicts") << CommentCommand("theory conflict: expect unsat") << std::endl
-                          << CheckSatCommand(conflict.toExpr()) << std::endl;
-    }
-
-    // Construct the lemma (note that no CNF caching should happen as all the literals already exists)
-    lemma(conflict, true, false);
-  }
+  /**
+   * Called by the theories to notify of a conflict.
+   */
+  void conflict(TNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -282,15 +287,20 @@ class TheoryEngine {
     NodeTheoryPair toExplain;
     
     SharedEquality(TNode assertion, TNode original, theory::TheoryId sendingTheory, theory::TheoryId receivingTheory)
-    : toAssert(assertion, sendingTheory),
-      toExplain(original, receivingTheory)
+    : toAssert(assertion, receivingTheory),
+      toExplain(original, sendingTheory)
     { }
   };
   
   /**
+   * Map from equalities asserted to a theory, to the theory that can explain them. 
+   */
+  typedef context::CDMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction> SharedAssertionsMap;
+  
+  /**
    * A map from asserted facts to where they came from (for explanations).
    */
-  context::CDMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction> d_sharedAssertions;
+  SharedAssertionsMap d_sharedAssertions;
 
   /**
    * Assert a shared equalities propagated by theories.
@@ -480,23 +490,11 @@ public:
     }
   }
 
-  Node getExplanation(TNode node, theory::Theory* theory);
-
   bool properConflict(TNode conflict) const;
   bool properPropagation(TNode lit) const;
   bool properExplanation(TNode node, TNode expl) const;
 
-  inline Node getExplanation(TNode node) {
-    TNode atom = node.getKind() == kind::NOT ? node[0] : node;
-    Node explanation = theoryOf(atom)->explain(node);
-    Assert(!explanation.isNull());
-    if(Dump.isOn("t-explanations")) {
-      Dump("t-explanations") << CommentCommand(std::string("theory explanation from ") + theoryOf(atom)->identify() + ": expect valid") << std::endl
-        << QueryCommand(explanation.impNode(node).toExpr()) << std::endl;
-    }
-    Assert(properExplanation(node, explanation));
-    return explanation;
-  }
+  Node getExplanation(TNode node);
 
   Node getValue(TNode node);
 
@@ -521,6 +519,12 @@ public:
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) {
     return d_theoryTable[theoryId];
   }
+
+  /**
+   * Returns the equality status of the two terms, from the theory that owns the domain type.
+   * The types of a and b must be the same.
+   */
+  theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
 
 private:
 

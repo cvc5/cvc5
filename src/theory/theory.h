@@ -42,19 +42,31 @@ class TheoryEngine;
 namespace theory {
 
 /**
- * The status of an equality in the current context.
+ * Information about an assertion for the theories.
  */
-enum EqualityStatus {
-  /** The eqaulity is known to be true */
-  EQUALITY_TRUE,
-  /** The equality is known to be false */
-  EQUALITY_FALSE,
-  /** The equality is not known, but is true in the current model */
-  EQUALITY_TRUE_IN_MODEL,
-  /** The equality is not known, but is false in the current model */
-  EQUALITY_FALSE_IN_MODEL,
-  /** The equality is completely unknown */
-  EQUALITY_UNKNOWN
+struct Assertion {
+
+  /** The assertion */
+  Node assertion;
+  /** Has this assertion been preregistered with this theory */
+  bool isPreregistered;
+
+  Assertion(TNode assertion, bool isPreregistered)
+  : assertion(assertion), isPreregistered(isPreregistered) {}
+
+  /**
+   * Convert the assertion to a TNode.
+   */
+  operator TNode () const {
+    return assertion;
+  }
+
+  /**
+   * Convert the assertion to a Node.
+   */
+  operator Node () const {
+    return assertion;
+  }
 };
 
 /**
@@ -113,7 +125,7 @@ private:
    * These can not be TNodes as some atoms (such as equalities) are sent
    * across theories without being stored in a global map.
    */
-  context::CDList<TNode> d_facts;
+  context::CDList<Assertion> d_facts;
 
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
@@ -179,15 +191,15 @@ protected:
    *
    * @return the next assertion in the assertFact() queue
    */
-  TNode get() {
+  Assertion get() {
     Assert( !done(), "Theory`() called with assertion queue empty!" );
 
     // Get the assertion
-    TNode fact = d_facts[d_factsHead];
+    Assertion fact = d_facts[d_factsHead];
     d_factsHead = d_factsHead + 1;
     Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
     if(Dump.isOn("state")) {
-      Dump("state") << AssertCommand(fact.toExpr()) << std::endl;
+      Dump("state") << AssertCommand(fact.assertion.toExpr()) << std::endl;
     }
         
     return fact;
@@ -199,7 +211,7 @@ protected:
    *
    * @return the iterator to the beginning of the fact queue
    */
-  context::CDList<TNode>::const_iterator facts_begin() const {
+  context::CDList<Assertion>::const_iterator facts_begin() const {
     return d_facts.begin();
   }
 
@@ -209,7 +221,7 @@ protected:
    *
    * @return the iterator to the end of the fact queue
    */
-  context::CDList<TNode>::const_iterator facts_end() const {
+  context::CDList<Assertion>::const_iterator facts_end() const {
     return d_facts.end();
   }
 
@@ -363,9 +375,9 @@ public:
   /**
    * Assert a fact in the current context.
    */
-  void assertFact(TNode assertion) {
-    Trace("theory") << "Theory<" << getId() << ">::assertFact(" << assertion << ")" << std::endl;
-    d_facts.push_back(assertion);
+  void assertFact(TNode assertion, bool isPreregistered) {
+    Trace("theory") << "Theory<" << getId() << ">::assertFact(" << assertion << ", " << (isPreregistered ? "true" : "false") << ")" << std::endl;
+    d_facts.push_back(Assertion(assertion, isPreregistered));
   }
 
   /**
@@ -384,7 +396,7 @@ public:
    * Return the status of two terms in the current context. Should be implemented in 
    * sub-theories to enable more efficient theory-combination.
    */
-  virtual EqualityStatus equalityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
+  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
 
   /**
    * This method is called by the shared term manager when a shared

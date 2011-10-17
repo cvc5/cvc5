@@ -631,6 +631,8 @@ CRef Solver::propagate(TheoryCheckType type)
       if (lemmas.size() > 0) {
         recheck = true;
         return updateLemmas();
+      } else {
+        return confl;
       }
     }
 

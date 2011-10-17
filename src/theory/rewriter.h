@@ -73,7 +73,10 @@ class Rewriter {
   Rewriter() CVC4_UNUSED;
   Rewriter(const Rewriter&) CVC4_UNUSED;
 
-public:
+  /**
+   * Rewrites the node using the given theory rewriter.
+   */
+  static Node rewriteTo(theory::TheoryId theoryId, Node node);
 
   /** Calls the pre-rewriter for the given theory */
   static RewriteResponse callPreRewrite(theory::TheoryId theoryId, TNode node);
@@ -82,15 +85,24 @@ public:
   static RewriteResponse callPostRewrite(theory::TheoryId theoryId, TNode node);
 
   /**
+   * Calls the equality-rewruter for the given theory.
+   */
+  static Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
+
+public:
+
+
+  /**
    * Rewrites the node using theoryOf() to determine which rewriter to
    * use on the node.
    */
   static Node rewrite(Node node);
 
   /**
-   * Rewrites the node using the given theory rewriter.
+   * Rewrite an equality between two terms that are already in normal form, so
+   * that the equality is in theory-normal form.
    */
-  static Node rewriteTo(theory::TheoryId theoryId, Node node);
+  static Node rewriteEquality(theory::TheoryId theoryId, TNode node);
 
   /**
    * Should be called before the rewriter gets used for the first time.

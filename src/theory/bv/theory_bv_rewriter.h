@@ -42,6 +42,10 @@ public:
     return RewriteResponse(REWRITE_DONE, node);
   }
 
+  static inline Node rewriteEquality(TNode node) {
+    return postRewrite(node).node;
+  }
+
   static void init();
   static void shutdown();
 };/* class TheoryBVRewriter */

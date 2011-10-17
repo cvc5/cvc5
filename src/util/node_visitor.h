@@ -55,7 +55,7 @@ public:
     // Notify of a start
     visitor.start(node);
 
-    // Do a topological sort of the subexpressions and preregister them
+    // Do a topological sort of the subexpressions
     std::vector<stack_element> toVisit;
     toVisit.push_back(stack_element(node, node));
     while (!toVisit.empty()) {

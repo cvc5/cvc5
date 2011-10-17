@@ -1,0 +1,10 @@
+% EXPECT: unsat
+% EXIT: 20
+x, y: REAL;
+f: REAL -> REAL;
+
+ASSERT (x <= y);
+ASSERT (y <= x);
+ASSERT NOT (f(x) = f(y));
+
+CHECKSAT;

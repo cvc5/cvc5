@@ -68,12 +68,7 @@ public:
         }
         if (node[0] > node[1]) {
           Node newNode = NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
-          // If we've switched theories, we need to rewrite again (TODO: THIS IS HACK, once theories accept eq, change)
-          if (Theory::theoryOf(newNode[0]) != Theory::theoryOf(newNode[1])) {
-            return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
-          } else {
-            return RewriteResponse(REWRITE_DONE, newNode);
-          }
+          return RewriteResponse(REWRITE_DONE, newNode);
         }
         break;
       }
@@ -87,6 +82,10 @@ public:
   static inline RewriteResponse preRewrite(TNode node) {
     Trace("arrays-prerewrite") << "Arrays::preRewrite " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  static Node rewriteEquality(TNode node) {
+    return postRewrite(node).node;
   }
 
   static inline void init() {}

@@ -141,7 +141,11 @@ public:
    * Creates a new node, which is in a list of it's own.
    */
   EqualityNode(EqualityNodeId nodeId = null_id)
-  : d_size(1), d_findId(nodeId), d_nextId(nodeId), d_useList(null_uselist_id) {}
+  : d_size(1), 
+    d_findId(nodeId), 
+    d_nextId(nodeId), 
+    d_useList(null_uselist_id)
+  {}
 
   /**
    * Retuerns the uselist.
@@ -265,6 +269,12 @@ public:
   };
 
 private:
+
+  /** The context we are using */
+  context::Context* d_context;
+
+  /** Whether to notify or not (temporarily disabled on equality checks) */
+  bool d_performNotify;
 
   /** The class to notify when a representative changes for a term */
   NotifyClass d_notify;
@@ -455,6 +465,21 @@ private:
   std::vector<TriggerId> d_nodeTriggers;
 
   /**
+   * List of terms that are marked as individual triggers.
+   */
+  std::vector<EqualityNodeId> d_individualTriggers;
+
+  /**
+   * Size of the individual triggers list.
+   */
+  context::CDO<unsigned> d_individualTriggersSize;
+
+  /** 
+   * Map from ids to the individual trigger id representative. 
+   */
+  std::vector<EqualityNodeId> d_nodeIndividualTrigger;
+
+  /**
    * Adds the trigger with triggerId to the beginning of the trigger list of the node with id nodeId.
    */
   void addTriggerToList(EqualityNodeId nodeId, TriggerId triggerId);
@@ -503,6 +528,11 @@ private:
    */
   void debugPrintGraph() const;
 
+  /** The true node */
+  Node d_true;
+  /** The false node */
+  Node d_false;
+
 public:
 
   /**
@@ -511,15 +541,20 @@ public:
    */
   EqualityEngine(NotifyClass& notify, context::Context* context, std::string name)
   : ContextNotifyObj(context),
+    d_context(context),
+    d_performNotify(true),
     d_notify(notify),
     d_nodesCount(context, 0),
     d_assertedEqualitiesCount(context, 0),
     d_equalityTriggersCount(context, 0),
+    d_individualTriggersSize(context, 0),
     d_stats(name)
   {
     Debug("equality") << "EqualityEdge::EqualityEngine(): id_null = " << +null_id << std::endl;
     Debug("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
     Debug("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
+    d_true = NodeManager::currentNM()->mkConst<bool>(true);
+    d_false = NodeManager::currentNM()->mkConst<bool>(false);
   }
 
   /**
@@ -561,6 +596,11 @@ public:
   void addEquality(TNode t1, TNode t2, TNode reason);
 
   /**
+   * Adds an dis-equality t1 != t2 to the database.
+   */
+  void addDisequality(TNode t1, TNode t2, TNode reason);
+
+  /**
    * Returns the representative of the term t.
    */
   TNode getRepresentative(TNode t) const;
@@ -578,11 +618,38 @@ public:
   void getExplanation(TNode t1, TNode t2, std::vector<TNode>& equalities) const;
 
   /**
+   * Add term to the trigger terms. The notify class will get notified when two 
+   * trigger terms become equal. Thihs will only happen on trigger term 
+   * representatives.
+   */
+  void addTriggerTerm(TNode t);
+
+  /**
+   * Returns true if t is a trigger term or equal to some other trigger term.
+   */
+  bool isTriggerTerm(TNode t) const;
+
+  /**
    * Adds a notify trigger for equality t1 = t2, i.e. when t1 = t2 the notify will be called with
-   * (t1 = t2).
+   * trigger.
    */
   void addTriggerEquality(TNode t1, TNode t2, TNode trigger);
 
+  /**
+   * Adds a notify trigger for dis-equality t1 != t2, i.e. when t1 != t2 the notify will be called with
+   * trigger.
+   */
+  void addTriggerDisequality(TNode t1, TNode t2, TNode trigger);
+
+  /**
+   * Check whether the two terms are equal.
+   */
+  bool areEqual(TNode t1, TNode t2);
+
+  /**
+   * Check whether the two term are dis-equal.
+   */
+  bool areDisequal(TNode t1, TNode t2);
 };
 
 } // Namespace uf

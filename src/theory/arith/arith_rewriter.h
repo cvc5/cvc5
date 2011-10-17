@@ -63,6 +63,10 @@ public:
 
   static RewriteResponse preRewrite(TNode n);
   static RewriteResponse postRewrite(TNode n);
+  static Node rewriteEquality(TNode equality) {
+    // Arithmetic owns the domain, so this is totally ok
+    return Rewriter::rewrite(equality);
+  }
 
   static void init() { }
 

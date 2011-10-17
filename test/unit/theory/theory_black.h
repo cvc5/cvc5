@@ -214,8 +214,8 @@ public:
   void testDone() {
     TS_ASSERT(d_dummy->doneWrapper());
 
-    d_dummy->assertFact(atom0);
-    d_dummy->assertFact(atom1);
+    d_dummy->assertFact(atom0, true);
+    d_dummy->assertFact(atom1, true);
 
     TS_ASSERT(!d_dummy->doneWrapper());
 
