@@ -26,6 +26,7 @@
 #include "expr/node.h"
 #include "expr/attribute.h"
 #include "theory/arith/delta_rational.h"
+#include "context/cdset.h"
 #include <vector>
 #include <stdint.h>
 #include <limits>
@@ -43,6 +44,10 @@ typedef uint32_t ArithVar;
 //Maps from Nodes -> ArithVars, and vice versa
 typedef __gnu_cxx::hash_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
 typedef __gnu_cxx::hash_map<ArithVar, Node> ArithVarToNodeMap;
+
+//Sets of Nodes
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef context::CDSet<Node, NodeHashFunction> CDNodeSet;
 
 
 inline Node mkRationalNode(const Rational& q){

@@ -58,8 +58,26 @@ namespace arith {
 class TheoryArith : public Theory {
 private:
 
+  /**
+   * The set of atoms that are currently in the context.
+   * This is exactly the union of preregistered atoms and
+   * equalities from sharing.
+   * This is used to reconstruct the rest of arithmetic.
+   */
+  CDNodeSet d_atomsInContext;
+  bool inContextAtom(TNode atom){
+    Assert(isRelationOperator(atom.getKind()));
+    Assert(Comparison::isNormalAtom(atom));
+    return d_atomsInContext.contains(atom);
+  }
+  void addToContext(TNode atom){
+    Assert(isRelationOperator(atom.getKind()));
+    Assert(Comparison::isNormalAtom(atom));
+    d_atomsInContext.insert(atom);
+  }
+
   /** Static learner. */
-  ArithStaticLearner learner;
+  ArithStaticLearner d_learner;
 
   /**
    * List of the variables in the system.
@@ -67,7 +85,26 @@ private:
    */
   std::vector<Node> d_variables;
 
+  /**
+   * The map between arith variables to nodes.
+   */
   ArithVarNodeMap d_arithvarNodeMap;
+
+
+  NodeSet d_setupNodes;
+  bool isSetup(Node n){
+    return d_setupNodes.find(n) != d_setupNodes.end();
+  }
+  void markSetup(Node n){
+    Assert(!isSetup(n));
+    d_setupNodes.insert(n);
+  }
+
+  void setupVariable(const Variable& x);
+  void setupVariableList(const VarList& vl);
+  void setupPolynomial(const Polynomial& poly);
+  void setupAtom(TNode atom, bool addToDatabase);
+
 
   /**
    * List of the types of variables in the system.
@@ -225,10 +262,10 @@ private:
    * preregistered.
    * Currently these MUST be introduced by combination.
    */
-  void delayedSetupEquality(TNode equality);
-  
-  void delayedSetupPolynomial(TNode polynomial);
-  void delayedSetupMonomial(const Monomial& mono);
+  //void delayedSetupEquality(TNode equality);
+
+  //void delayedSetupPolynomial(TNode polynomial);
+  //void delayedSetupMonomial(const Monomial& mono);
 
   /**
    * Performs a check to see if it is definitely true that setup can be avoided.
@@ -271,7 +308,7 @@ private:
   void internalExplain(TNode n, NodeBuilder<>& explainBuilder);
 
 
-  void asVectors(Polynomial& p,
+  void asVectors(const Polynomial& p,
                  std::vector<Rational>& coeffs,
                  std::vector<ArithVar>& variables);
 
@@ -293,7 +330,6 @@ private:
     TimerStat d_presolveTime;
 
     IntStat d_initialTableauSize;
-    //ListStat<uint32_t> d_tableauSizeHistory;
     IntStat d_currSetToSmaller;
     IntStat d_smallerSetToCurr;
     TimerStat d_restartTimer;

@@ -56,12 +56,10 @@ using namespace CVC4::theory::arith;
 
 static const uint32_t RESET_START = 2;
 
-struct SlackAttrID;
-typedef expr::Attribute<SlackAttrID, bool> Slack;
-
 TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
   Theory(THEORY_ARITH, c, u, out, valuation),
-  learner(d_pbSubstitutions),
+  d_atomsInContext(c),
+  d_learner(d_pbSubstitutions),
   d_nextIntegerCheckVar(0),
   d_partialModel(c),
   d_userVariables(),
@@ -92,7 +90,6 @@ TheoryArith::Statistics::Statistics():
   d_permanentlyRemovedVariables("theory::arith::permanentlyRemovedVariables", 0),
   d_presolveTime("theory::arith::presolveTime"),
   d_initialTableauSize("theory::arith::initialTableauSize", 0),
-  //d_tableauSizeHistory("theory::arith::tableauSizeHistory"),
   d_currSetToSmaller("theory::arith::currSetToSmaller", 0),
   d_smallerSetToCurr("theory::arith::smallerSetToCurr", 0),
   d_restartTimer("theory::arith::restartTimer")
@@ -109,7 +106,6 @@ TheoryArith::Statistics::Statistics():
 
 
   StatisticsRegistry::registerStat(&d_initialTableauSize);
-  //StatisticsRegistry::registerStat(&d_tableauSizeHistory);
   StatisticsRegistry::registerStat(&d_currSetToSmaller);
   StatisticsRegistry::registerStat(&d_smallerSetToCurr);
   StatisticsRegistry::registerStat(&d_restartTimer);
@@ -128,7 +124,6 @@ TheoryArith::Statistics::~Statistics(){
 
 
   StatisticsRegistry::unregisterStat(&d_initialTableauSize);
-  //StatisticsRegistry::unregisterStat(&d_tableauSizeHistory);
   StatisticsRegistry::unregisterStat(&d_currSetToSmaller);
   StatisticsRegistry::unregisterStat(&d_smallerSetToCurr);
   StatisticsRegistry::unregisterStat(&d_restartTimer);
@@ -142,15 +137,18 @@ Node TheoryArith::preprocess(TNode atom) {
   if (a != atom) {
     Debug("pb") << "arith::preprocess() : after pb substitutions: " << a << endl;
     a = Rewriter::rewrite(a);
-    Debug("pb") << "arith::preprocess() : after pb substitutions and rewriting: " << a << endl;
-    Debug("arith::preprocess") << "arith::preprocess() : after pb substitutions and rewriting: " << a << endl;
+    Debug("pb") << "arith::preprocess() : after pb substitutions and rewriting: "
+                << a << endl;
+    Debug("arith::preprocess") << "arith::preprocess() :"
+                               << "after pb substitutions and rewriting: " << a << endl;
   }
 
   if (a.getKind() == kind::EQUAL) {
     Node leq = NodeBuilder<2>(kind::LEQ) << a[0] << a[1];
     Node geq = NodeBuilder<2>(kind::GEQ) << a[0] << a[1];
     Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-    Debug("arith::preprocess") << "arith::preprocess() : returning " << rewritten << endl;
+    Debug("arith::preprocess") << "arith::preprocess() : returning "
+                               << rewritten << endl;
     return rewritten;
   }
 
@@ -225,7 +223,7 @@ Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutio
   case kind::GEQ:
   case kind::GT:
     if (in[0].getMetaKind() == kind::metakind::VARIABLE) {
-      learner.addBound(in);
+      d_learner.addBound(in);
     }
     break;
   default:
@@ -239,7 +237,7 @@ Theory::SolveStatus TheoryArith::solve(TNode in, SubstitutionMap& outSubstitutio
 void TheoryArith::staticLearning(TNode n, NodeBuilder<>& learned) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
-  learner.staticLearning(n, learned);
+  d_learner.staticLearning(n, learned);
 }
 
 
@@ -264,58 +262,117 @@ ArithVar TheoryArith::findShortestBasicRow(ArithVar variable){
   return bestBasic;
 }
 
+void TheoryArith::setupVariable(const Variable& x){
+  Node n = x.getNode();
+
+  Assert(!isSetup(n));
+
+  ++(d_statistics.d_statUserVariables);
+  ArithVar varN = requestArithVar(n,false);
+  setupInitialValue(varN);
+
+  markSetup(n);
+}
+
+void TheoryArith::setupVariableList(const VarList& vl){
+  Assert(!vl.empty());
+
+  TNode vlNode = vl.getNode();
+  Assert(!isSetup(vlNode));
+  Assert(!d_arithvarNodeMap.hasArithVar(vlNode));
+
+  for(VarList::iterator i = vl.begin(), end = vl.end(); i != end; ++i){
+    Variable var = *i;
+
+    if(!isSetup(var.getNode())){
+      setupVariable(var);
+    }
+  }
+
+  if(!vl.singleton()){
+    // vl is the product of at least 2 variables
+    // vl : (* v1 v2 ...)
+    d_out->setIncomplete();
+
+    ++(d_statistics.d_statUserVariables);
+    ArithVar av = requestArithVar(vlNode, false);
+    setupInitialValue(av);
+
+    markSetup(vlNode);
+  }
+
+  /* Note:
+   * Only call markSetup if the VarList is not a singleton.
+   * See the comment in setupPolynomail for more.
+   */
+}
+
+void TheoryArith::setupPolynomial(const Polynomial& poly) {
+  Assert(!poly.containsConstant());
+  TNode polyNode = poly.getNode();
+  Assert(!isSetup(polyNode));
+  Assert(!d_arithvarNodeMap.hasArithVar(polyNode));
+
+  for(Polynomial::iterator i = poly.begin(), end = poly.end(); i != end; ++i){
+    Monomial mono = *i;
+    const VarList& vl = mono.getVarList();
+    if(!isSetup(vl.getNode())){
+      setupVariableList(vl);
+    }
+  }
+
+  if(polyNode.getKind() == PLUS){
+    d_rowHasBeenAdded = true;
+
+    vector<ArithVar> variables;
+    vector<Rational> coefficients;
+    asVectors(poly, coefficients, variables);
+
+    ArithVar varSlack = requestArithVar(polyNode, true);
+    d_tableau.addRow(varSlack, coefficients, variables);
+    setupInitialValue(varSlack);
+
+    ++(d_statistics.d_statSlackVariables);
+    markSetup(polyNode);
+  }
+
+  /* Note:
+   * It is worth documenting that polyNode should only be marked as
+   * being setup by this function if it has kind PLUS.
+   * Other kinds will be marked as being setup by lower levels of setup
+   * specifically setupVariableList.
+   */
+}
+
+void TheoryArith::setupAtom(TNode atom, bool addToDatabase) {
+  Assert(isRelationOperator(atom.getKind()));
+  Assert(Comparison::isNormalAtom(atom));
+  Assert(!isSetup(atom));
+
+  Node left = atom[0];
+  if(!isSetup(left)){
+    Polynomial poly = Polynomial::parsePolynomial(left);
+    setupPolynomial(poly);
+  }
+
+  if(addToDatabase){
+    d_atomDatabase.addAtom(atom);
+  }
+
+  markSetup(atom);
+}
 
 void TheoryArith::preRegisterTerm(TNode n) {
-  Debug("arith_preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
-  Kind k = n.getKind();
+  Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
 
-  /* BREADCRUMB: I am using this bool to compile time enable testing for arbitrary equalities. */
-  static bool turnOffEqualityPreRegister = false;
-  if(turnOffEqualityPreRegister){
-    if(k == LEQ || k == LT || k == GT || k == GEQ){
-      TNode left = n[0];
-      delayedSetupPolynomial(left);
-
-      d_atomDatabase.addAtom(n);
+  if(isRelationOperator(n.getKind())){
+    if(!isSetup(n)){
+      setupAtom(n, true);
     }
-    return;
+    addToContext(n);
   }
 
-  bool isStrictlyVarList = k == kind::MULT && VarList::isMember(n);
-
-  if(isStrictlyVarList){
-    d_out->setIncomplete();
-  }
-
-  if((Variable::isMember(n) || isStrictlyVarList) && !d_arithvarNodeMap.hasArithVar(n)){
-    ++(d_statistics.d_statUserVariables);
-    ArithVar varN = requestArithVar(n,false);
-    setupInitialValue(varN);
-  }
-
-  if(isRelationOperator(k) && (!d_atomDatabase.leftIsSetup(n[0]) || !d_atomDatabase.containsAtom(n))) {
-    Assert(Comparison::isNormalAtom(n));
-
-    d_atomDatabase.addAtom(n);
-
-    TNode left  = n[0];
-    TNode right = n[1];
-    if(left.getKind() == PLUS){
-      //We may need to introduce a slack variable.
-      Assert(left.getNumChildren() >= 2);
-      if(!left.getAttribute(Slack())){
-        setupSlack(left);
-      }
-    } else {
-      if (theoryOf(left) != THEORY_ARITH && !d_arithvarNodeMap.hasArithVar(left)) {
-        // The only way not to get it through pre-register is if it's a foreign term
-        ++(d_statistics.d_statUserVariables);
-        ArithVar av = requestArithVar(left, false);
-        setupInitialValue(av);
-      } 
-    }
-  }
-  Debug("arith_preregister") << "end arith::preRegisterTerm(" << n <<")" << endl;
+  Debug("arith::preregister") << "end arith::preRegisterTerm(" << n <<")" << endl;
 }
 
 
@@ -341,7 +398,7 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
   return varX;
 }
 
-void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::vector<ArithVar>& variables) {
+void TheoryArith::asVectors(const Polynomial& p, std::vector<Rational>& coeffs, std::vector<ArithVar>& variables) {
   for(Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i){
     const Monomial& mono = *i;
     const Constant& constant = mono.getConstant();
@@ -354,6 +411,7 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
     Assert(isLeaf(n));
     Assert(theoryOf(n) != THEORY_ARITH || d_arithvarNodeMap.hasArithVar(n));
 
+    Assert(d_arithvarNodeMap.hasArithVar(n));
     ArithVar av;
     if (theoryOf(n) != THEORY_ARITH && !d_arithvarNodeMap.hasArithVar(n)) {
       // The only way not to get it through pre-register is if it's a foreign term
@@ -364,31 +422,33 @@ void TheoryArith::asVectors(Polynomial& p, std::vector<Rational>& coeffs, std::v
       // Otherwise, we already have it's variable
       av = d_arithvarNodeMap.asArithVar(n);
     }
-    
+
     coeffs.push_back(constant.getValue());
     variables.push_back(av);
   }
 }
 
-void TheoryArith::setupSlack(TNode left){
-  Assert(!left.getAttribute(Slack()));
+// void TheoryArith::setupSlack(TNode left){
+//   //Assert(!left.getAttribute(Slack()));
+//   Assert(!isSlack(left));
 
-  ++(d_statistics.d_statSlackVariables);
-  left.setAttribute(Slack(), true);
 
-  d_rowHasBeenAdded = true;
+//   ++(d_statistics.d_statSlackVariables);
+//   left.setAttribute(Slack(), true);
 
-  Polynomial polyLeft = Polynomial::parsePolynomial(left);
+//   d_rowHasBeenAdded = true;
 
-  vector<ArithVar> variables;
-  vector<Rational> coefficients;
+//   Polynomial polyLeft = Polynomial::parsePolynomial(left);
 
-  asVectors(polyLeft, coefficients, variables);
+//   vector<ArithVar> variables;
+//   vector<Rational> coefficients;
 
-  ArithVar varSlack = requestArithVar(left, true);
-  d_tableau.addRow(varSlack, coefficients, variables);
-  setupInitialValue(varSlack);
-}
+//   asVectors(polyLeft, coefficients, variables);
+
+//   ArithVar varSlack = requestArithVar(left, true);
+//   d_tableau.addRow(varSlack, coefficients, variables);
+//   setupInitialValue(varSlack);
+// }
 
 /* Requirements:
  * For basic variables the row must have been added to the tableau.
@@ -408,18 +468,13 @@ void TheoryArith::setupInitialValue(ArithVar x){
     d_partialModel.initialize(x,safeAssignment);
     d_partialModel.setAssignment(x,assignment);
   }
-  Debug("arithgc") << "setupVariable("<<x<<")"<<std::endl;
+  Debug("arith") << "setupVariable("<<x<<")"<<std::endl;
 }
 
 ArithVar TheoryArith::determineLeftVariable(TNode assertion, Kind simpleKind){
   TNode left = getSide<true>(assertion, simpleKind);
 
-  if(isLeaf(left)){
-    return d_arithvarNodeMap.asArithVar(left);
-  }else{
-    Assert(left.hasAttribute(Slack()));
-    return d_arithvarNodeMap.asArithVar(left);
-  }
+  return d_arithvarNodeMap.asArithVar(left);
 }
 
 
@@ -430,63 +485,63 @@ Node TheoryArith::disequalityConflict(TNode eq, TNode lb, TNode ub){
   return conflict;
 }
 
-void TheoryArith::delayedSetupMonomial(const Monomial& mono){
+// void TheoryArith::delayedSetupMonomial(const Monomial& mono){
 
-  Debug("arith::delay") << "delayedSetupMonomial(" << mono.getNode() << ")" << endl;
+//   Debug("arith::delay") << "delayedSetupMonomial(" << mono.getNode() << ")" << endl;
 
-  Assert(!mono.isConstant());
-  VarList vl = mono.getVarList();
+//   Assert(!mono.isConstant());
+//   VarList vl = mono.getVarList();
   
-  if(!d_arithvarNodeMap.hasArithVar(vl.getNode())){
-    for(VarList::iterator i = vl.begin(), end = vl.end(); i != end; ++i){
-      Variable var = *i;
-      Node n = var.getNode();
+//   if(!d_arithvarNodeMap.hasArithVar(vl.getNode())){
+//     for(VarList::iterator i = vl.begin(), end = vl.end(); i != end; ++i){
+//       Variable var = *i;
+//       Node n = var.getNode();
       
-      ++(d_statistics.d_statUserVariables);
-      ArithVar varN = requestArithVar(n,false);
-      setupInitialValue(varN);
-    }
+//       ++(d_statistics.d_statUserVariables);
+//       ArithVar varN = requestArithVar(n,false);
+//       setupInitialValue(varN);
+//     }
 
-    if(!vl.singleton()){
-      d_out->setIncomplete();
+//     if(!vl.singleton()){
+//       d_out->setIncomplete();
 
-      Node n = vl.getNode();
-      ++(d_statistics.d_statUserVariables);
-      ArithVar varN = requestArithVar(n,false);
-      setupInitialValue(varN);
-    }
-  }
-}
+//       Node n = vl.getNode();
+//       ++(d_statistics.d_statUserVariables);
+//       ArithVar varN = requestArithVar(n,false);
+//       setupInitialValue(varN);
+//     }
+//   }
+// }
 
-void TheoryArith::delayedSetupPolynomial(TNode polynomial){
-  Debug("arith::delay") << "delayedSetupPolynomial(" << polynomial << ")" << endl;
+// void TheoryArith::delayedSetupPolynomial(TNode polynomial){
+//   Debug("arith::delay") << "delayedSetupPolynomial(" << polynomial << ")" << endl;
 
-  Assert(Polynomial::isMember(polynomial));
-  // if d_nodeMap.hasArithVar() all of the variables and it are setup
-  if(!d_arithvarNodeMap.hasArithVar(polynomial)){
-    Polynomial poly = Polynomial::parsePolynomial(polynomial);
-    Assert(!poly.containsConstant());
-    for(Polynomial::iterator i = poly.begin(), end = poly.end(); i != end; ++i){
-      Monomial mono = *i;
-      delayedSetupMonomial(mono);
-    }
+//   Assert(Polynomial::isMember(polynomial));
+//   // if d_nodeMap.hasArithVar() all of the variables and it are setup
+//   if(!d_arithvarNodeMap.hasArithVar(polynomial)){
+//     Polynomial poly = Polynomial::parsePolynomial(polynomial);
+//     Assert(!poly.containsConstant());
+//     for(Polynomial::iterator i = poly.begin(), end = poly.end(); i != end; ++i){
+//       Monomial mono = *i;
+//       delayedSetupMonomial(mono);
+//     }
 
-    if(polynomial.getKind() == PLUS){
-      Assert(!polynomial.getAttribute(Slack()),
-	     "Polynomial has slack attribute but not does not have arithvar");
-      setupSlack(polynomial);
-    }
-  }
-}
+//     if(polynomial.getKind() == PLUS){
+//       Assert(!polynomial.getAttribute(Slack()),
+// 	     "Polynomial has slack attribute but not does not have arithvar");
+//       setupSlack(polynomial);
+//     }
+//   }
+// }
 
-void TheoryArith::delayedSetupEquality(TNode equality){
-  Debug("arith::delay") << "delayedSetupEquality(" << equality << ")" << endl;
+// void TheoryArith::delayedSetupEquality(TNode equality){
+//   Debug("arith::delay") << "delayedSetupEquality(" << equality << ")" << endl;
   
-  Assert(equality.getKind() == EQUAL);
+//   Assert(equality.getKind() == EQUAL);
 
-  TNode left = equality[0];
-  delayedSetupPolynomial(left);
-}
+//   TNode left = equality[0];
+//   delayedSetupPolynomial(left);
+// }
 
 bool TheoryArith::canSafelyAvoidEqualitySetup(TNode equality){
   Assert(equality.getKind() == EQUAL);
@@ -498,9 +553,13 @@ Node TheoryArith::assertionCases(TNode assertion){
   Assert(simpKind != UNDEFINED_KIND);
   if(simpKind == EQUAL || simpKind == DISTINCT){
     Node eq = (simpKind == DISTINCT) ? assertion[0] : assertion;
- 
-    if(!canSafelyAvoidEqualitySetup(eq)){
-      delayedSetupEquality(eq);
+
+    if(!isSetup(eq)){
+      //The previous code was equivalent to:
+      setupAtom(eq, false);
+      //We can try:
+      //setupAtom(eq, true);
+      addToContext(eq);
     }
   }
 
@@ -509,7 +568,7 @@ Node TheoryArith::assertionCases(TNode assertion){
 
   Debug("arith::assertions") << "arith assertion(" << assertion
 			     << " \\-> "
-			     <<x_i<<" "<< simpKind <<" "<< c_i << ")" << std::endl;
+			     << x_i<<" "<< simpKind <<" "<< c_i << ")" << std::endl;
   switch(simpKind){
   case LEQ:
     if (d_partialModel.hasLowerBound(x_i) && d_partialModel.getLowerBound(x_i) == c_i) {
@@ -739,9 +798,9 @@ void TheoryArith::splitDisequalities(){
     DeltaRational lhsValue = d_partialModel.getAssignment(lhsVar);
     DeltaRational rhsValue = determineRightConstant(eq, kind::EQUAL);
     if (lhsValue == rhsValue) {
-      Debug("arith_lemma") << "Splitting on " << eq << endl;
-      Debug("arith_lemma") << "LHS value = " << lhsValue << endl;
-      Debug("arith_lemma") << "RHS value = " << rhsValue << endl;
+      Debug("arith::lemma") << "Splitting on " << eq << endl;
+      Debug("arith::lemma") << "LHS value = " << lhsValue << endl;
+      Debug("arith::lemma") << "RHS value = " << rhsValue << endl;
       Node ltNode = NodeBuilder<2>(kind::LT) << lhs << rhs;
       Node gtNode = NodeBuilder<2>(kind::GT) << lhs << rhs;
       Node lemma = NodeBuilder<3>(OR) << eq << ltNode << gtNode;
@@ -804,11 +863,18 @@ void TheoryArith::propagate(Effort e) {
 
     while(d_propManager.hasMorePropagations()){
       TNode toProp = d_propManager.getPropagation();
-      Node satValue = d_valuation.getSatValue(toProp);
-      AlwaysAssert(satValue.isNull());
-      TNode exp = d_propManager.explain(toProp);
-      propagated = true;
-      d_out->propagate(toProp);
+      TNode atom = (toProp.getKind() == kind::NOT) ? toProp[0] : toProp;
+      if(inContextAtom(atom)){
+        Node satValue = d_valuation.getSatValue(toProp);
+        AlwaysAssert(satValue.isNull());
+        propagated = true;
+        d_out->propagate(toProp);
+      }else{
+        //Not clear if this is a good time to do this or not...
+        Debug("arith::propagate") << "Atom is not in context" << toProp << endl;
+        #warning "enable remove atom in database"
+        //d_atomDatabase.removeAtom(atom);
+      }
     }
 
     if(!propagated){
@@ -1032,7 +1098,7 @@ void TheoryArith::presolve(){
   static int callCount = 0;
   Debug("arith::presolve") << "TheoryArith::presolve #" << (callCount++) << endl;
 
-  learner.clear();
+  d_learner.clear();
   check(FULL_EFFORT);
 }
 
