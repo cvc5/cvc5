@@ -20,7 +20,7 @@ cvc4_LDADD = \
 	@builddir@/../parser/libcvc4parser.la \
 	@builddir@/../libcvc4.la \
 	@builddir@/../lib/libreplacements.la \
-	$(READLINE_LDFLAGS)
+	$(READLINE_LIBS)
 
 BUILT_SOURCES = \
 	$(TOKENS_FILES)
