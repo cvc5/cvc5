@@ -40,6 +40,7 @@ std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newL
   logicMap["QF_UF"] = QF_UF;
   logicMap["QF_UFIDL"] = QF_UFIDL;
   logicMap["QF_UFLRA"] = QF_UFLRA;
+  logicMap["QF_UFLIA"] = QF_UFLIA;
   return logicMap;
 }
 

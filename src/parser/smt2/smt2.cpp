@@ -126,11 +126,11 @@ void Smt2::setLogic(const std::string& name) {
     break;
 
   case Smt::QF_UFIDL:
+  case Smt::QF_UFLIA:
     addTheory(THEORY_INTS);
     addOperator(kind::APPLY_UF);
     break;
 
-  case Smt::QF_UFLIA:
   case Smt::QF_UFLRA:
   case Smt::QF_UFNRA:
     addTheory(THEORY_REALS);
