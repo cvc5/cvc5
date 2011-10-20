@@ -42,6 +42,7 @@ public:
     LRA,
     QF_AUFBV,
     QF_AUFLIA,
+    QF_AUFLIRA,
     QF_AX,
     QF_BV,
     QF_IDL,
