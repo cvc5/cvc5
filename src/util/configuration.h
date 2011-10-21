@@ -99,6 +99,8 @@ public:
   static bool hasSubversionModifications();
   static std::string getSubversionId();
 
+  static std::string getCompiler();
+
 };/* class Configuration */
 
 }/* CVC4 namespace */

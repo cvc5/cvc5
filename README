@@ -10,7 +10,15 @@ installed (see below). Execute,
     make
 
 You can then "make install" to install in the prefix you gave to
-the configure script (/usr/local by default).
+the configure script (/usr/local by default).  ** You should run
+"make check" ** before installation to ensure that CVC4 has been
+built correctly.  In particular, GCC version 4.5.1 seems to have a
+bug in the optimizer that results in incorrect behavior (and wrong
+results) in many builds.  This is a known problem for Minisat, and
+since Minisat is at the core of CVC4, a problem for CVC4.  "make check"
+easily detects this problem (by showing a number of FAILed test cases).
+It is ok if the unit tests aren't run as part of "make check", but all
+system tests and regression tests should pass without incident.
 
 To build a source release, use "make dist"; this will include the
 configure script and all the bits of automake/autoconf/libtool that
@@ -27,11 +35,18 @@ given are minimum versions; more recent versions should be compatible.
 
 GNU C and C++ (gcc and g++), reasonably recent versions
 GNU Make
+GNU Bash
 GMP v4.2 (GNU Multi-Precision arithmetic library)
 libantlr3c v3.2 (ANTLR parser generator)
 Optional: CLN v1.3 (Class Library for Numbers)
 Optional: CUDD v2.4.2 (Colorado University Decision Diagram package)
 Optional: GNU Readline library (for an improved interactive experience)
+
+If "make" is non-GNU on your system, make sure to invoke "gmake" (or
+whatever GNU Make is installed as).  If your usual shell is not
+Bash, the configure script should auto-correct this.  If it does not,
+you'll see strange shell syntax errors, and you may need to explicitly
+set SHELL or CONFIG_SHELL to the location of bash on your system.
 
 CUDD, if desired, must be installed delicately.  The CVC4 configure
 script attempts to auto-detect the locations and names of CUDD headers
