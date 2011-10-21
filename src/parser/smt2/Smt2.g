@@ -380,6 +380,7 @@ extendedCommand[CVC4::Command*& cmd]
 symbolicExpr[CVC4::SExpr& sexpr]
 @declarations {
   std::vector<SExpr> children;
+  CVC4::Kind k;
 }
   : INTEGER_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
@@ -389,6 +390,11 @@ symbolicExpr[CVC4::SExpr& sexpr]
     { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
   | SYMBOL
     { sexpr = SExpr(AntlrInput::tokenText($SYMBOL)); }
+  | builtinOp[k]
+    { std::stringstream ss;
+      ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2) << EXPR_MANAGER->mkConst(k);
+      sexpr = SExpr(ss.str());
+    }
   | KEYWORD
     { sexpr = SExpr(AntlrInput::tokenText($KEYWORD)); }
   | LPAREN_TOK
@@ -893,7 +899,7 @@ LESS_THAN_EQUAL_TOK     : '<=';
 MINUS_TOK         : '-';
 NOT_TOK           : 'not';
 OR_TOK            : 'or';
-PERCENT_TOK       : '%';
+// PERCENT_TOK       : '%';
 PLUS_TOK          : '+';
 POUND_TOK         : '#';
 SELECT_TOK        : 'select';

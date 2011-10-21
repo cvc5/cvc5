@@ -31,6 +31,8 @@ namespace CVC4 {
 namespace printer {
 namespace smt2 {
 
+string smtKindString(Kind k);
+
 void printBvParameterizedOp(std::ostream& out, TNode n);
 
 void Smt2Printer::toStream(std::ostream& out, TNode n,
@@ -95,6 +97,27 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       // for our purposes
       out << (n.getConst<bool>() ? "true" : "false");
       break;
+    case kind::BUILTIN:
+      out << smtKindString(n.getConst<Kind>());
+      break;
+    case kind::CONST_INTEGER: {
+      Integer i = n.getConst<Integer>();
+      if(i < 0) {
+        out << "(- " << i << ')';
+      } else {
+        out << i;
+      }
+      break;
+    }
+    case kind::CONST_RATIONAL: {
+      Rational r = n.getConst<Rational>();
+      if(r < 0) {
+        out << "(- " << r << ')';
+      } else {
+        out << r;
+      }
+      break;
+    }
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -105,7 +128,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   }
 
   if(n.getKind() == kind::SORT_TYPE) {
-    std::string name;
+    string name;
     if(n.getAttribute(expr::VarNameAttr(), name)) {
       out << name;
       return;
@@ -115,40 +138,40 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   bool stillNeedToPrintParams = true;
   // operator
   out << '(';
-  switch(n.getKind()) {
+  switch(Kind k = n.getKind()) {
     // builtin theory
   case kind::APPLY: break;
-  case kind::EQUAL: out << "= "; break;
-  case kind::DISTINCT: out << "distinct "; break;
+  case kind::EQUAL:
+  case kind::DISTINCT: out << smtKindString(k) << " "; break;
   case kind::TUPLE: break;
 
     // bool theory
-  case kind::NOT: out << "not "; break;
-  case kind::AND: out << "and "; break;
-  case kind::IFF: out << "iff "; break;
-  case kind::IMPLIES: out << "=> "; break;
-  case kind::OR: out << "or "; break;
-  case kind::XOR: out << "xor "; break;
-  case kind::ITE: out << "ite "; break;
+  case kind::NOT:
+  case kind::AND:
+  case kind::IFF:
+  case kind::IMPLIES:
+  case kind::OR:
+  case kind::XOR:
+  case kind::ITE: out << smtKindString(k) << " "; break;
 
     // uf theory
   case kind::APPLY_UF: break;
 
     // arith theory
-  case kind::PLUS: out << "+ "; break;
-  case kind::MULT: out << "* "; break;
-  case kind::MINUS: out << "- "; break;
-  case kind::UMINUS: out << "- "; break;
-  case kind::DIVISION: out << "/ "; break;
-  case kind::LT: out << "< "; break;
-  case kind::LEQ: out << "<= "; break;
-  case kind::GT: out << "> "; break;
-  case kind::GEQ: out << ">= "; break;
+  case kind::PLUS:
+  case kind::MULT:
+  case kind::MINUS:
+  case kind::UMINUS:
+  case kind::DIVISION:
+  case kind::LT:
+  case kind::LEQ:
+  case kind::GT:
+  case kind::GEQ: out << smtKindString(k) << " "; break;
 
     // arrays theory
-  case kind::SELECT: out << "select "; break;
-  case kind::STORE: out << "store "; break;
-  case kind::ARRAY_TYPE: out << "Array "; break;
+  case kind::SELECT:
+  case kind::STORE:
+  case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; break;
@@ -225,6 +248,87 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   }
   out << ')';
 }/* Smt2Printer::toStream() */
+
+string smtKindString(Kind k) {
+  switch(k) {
+    // builtin theory
+  case kind::APPLY: break;
+  case kind::EQUAL: return "=";
+  case kind::DISTINCT: return "distinct";
+  case kind::TUPLE: break;
+
+    // bool theory
+  case kind::NOT: return "not";
+  case kind::AND: return "and";
+  case kind::IFF: return "=";
+  case kind::IMPLIES: return "=>";
+  case kind::OR: return "or";
+  case kind::XOR: return "xor";
+  case kind::ITE: return "ite";
+
+    // uf theory
+  case kind::APPLY_UF: break;
+
+    // arith theory
+  case kind::PLUS: return "+";
+  case kind::MULT: return "*";
+  case kind::MINUS: return "-";
+  case kind::UMINUS: return "-";
+  case kind::DIVISION: return "/";
+  case kind::LT: return "<";
+  case kind::LEQ: return "<=";
+  case kind::GT: return ">";
+  case kind::GEQ: return ">=";
+
+    // arrays theory
+  case kind::SELECT: return "select";
+  case kind::STORE: return "store";
+  case kind::ARRAY_TYPE: return "Array";
+
+    // bv theory
+  case kind::BITVECTOR_CONCAT: return "concat";
+  case kind::BITVECTOR_AND: return "bvand";
+  case kind::BITVECTOR_OR: return "bvor";
+  case kind::BITVECTOR_XOR: return "bvxor";
+  case kind::BITVECTOR_NOT: return "bvnot";
+  case kind::BITVECTOR_NAND: return "bvnand";
+  case kind::BITVECTOR_NOR: return "bvnor";
+  case kind::BITVECTOR_XNOR: return "bvxnor";
+  case kind::BITVECTOR_COMP: return "bvcomp";
+  case kind::BITVECTOR_MULT: return "bvmul";
+  case kind::BITVECTOR_PLUS: return "bvadd";
+  case kind::BITVECTOR_SUB: return "bvsub";
+  case kind::BITVECTOR_NEG: return "bvneg";
+  case kind::BITVECTOR_UDIV: return "bvudiv";
+  case kind::BITVECTOR_UREM: return "bvurem";
+  case kind::BITVECTOR_SDIV: return "bvsdiv";
+  case kind::BITVECTOR_SREM: return "bvsrem";
+  case kind::BITVECTOR_SMOD: return "bvsmod";
+  case kind::BITVECTOR_SHL: return "bvshl";
+  case kind::BITVECTOR_LSHR: return "bvlshr";
+  case kind::BITVECTOR_ASHR: return "bvashr";
+  case kind::BITVECTOR_ULT: return "bvult";
+  case kind::BITVECTOR_ULE: return "bvule";
+  case kind::BITVECTOR_UGT: return "bvugt";
+  case kind::BITVECTOR_UGE: return "bvuge";
+  case kind::BITVECTOR_SLT: return "bvslt";
+  case kind::BITVECTOR_SLE: return "bvsle";
+  case kind::BITVECTOR_SGT: return "bvsgt";
+  case kind::BITVECTOR_SGE: return "bvsge";
+
+  case kind::BITVECTOR_EXTRACT: return "extract";
+  case kind::BITVECTOR_REPEAT: return "repeat";
+  case kind::BITVECTOR_ZERO_EXTEND: return "zero_extend";
+  case kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
+  case kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
+  case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
+  default:
+    ; /* fall through */
+  }
+
+  // no SMT way to print these
+  return kind::kindToString(k);
+}
 
 void printBvParameterizedOp(std::ostream& out, TNode n) {
   out << "(_ ";
