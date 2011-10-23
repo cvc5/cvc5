@@ -242,6 +242,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
 
 void ArithStaticLearner::replaceWithPseudoboolean(TNode var) {
   AssertArgument(var.getMetaKind() == kind::metakind::VARIABLE, var);
+  // [MGD 10/21/2011] disable pseudobooleans for now (as discussed in today's meeting)
+  /*
   TypeNode pbType = NodeManager::currentNM()->pseudobooleanType();
   Node pbVar = NodeManager::currentNM()->mkVar(string("PB[") + var.toString() + ']', pbType);
   d_pbSubstitutions.addSubstitution(var, pbVar);
@@ -250,6 +252,7 @@ void ArithStaticLearner::replaceWithPseudoboolean(TNode var) {
     Expr::printtypes::Scope pts(Debug("pb"), true);
     Debug("pb") << "will replace " << var << " with " << pbVar << endl;
   }
+  */
 }
 
 void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){

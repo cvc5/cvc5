@@ -200,10 +200,10 @@ class TheoryEngine {
       d_engine->propagate(literal, d_theory);
     }
 
-    void lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
+    unsigned lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
       Trace("theory") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
-      d_engine->lemma(lemma, false, removable);
+      return d_engine->lemma(lemma, false, removable);
     }
 
     void setIncomplete() throw(AssertionException) {
@@ -346,7 +346,7 @@ class TheoryEngine {
   /**
    * Adds a new lemma
    */
-  void lemma(TNode node, bool negated, bool removable) {
+  unsigned lemma(TNode node, bool negated, bool removable) {
 
     if(Dump.isOn("t-lemmas")) {
       Dump("t-lemmas") << CommentCommand("theory lemma: expect valid") << std::endl
@@ -363,6 +363,10 @@ class TheoryEngine {
 
     // Mark that we added some lemmas
     d_lemmasAdded = true;
+
+    // Lemma analysis isn't online yet; this lemma may only live for this
+    // user level.
+    return d_userContext->getLevel();
   }
 
 public:

@@ -62,9 +62,10 @@ public:
     push(PROPAGATE, n);
   }
 
-  void lemma(TNode n, bool removable)
+  unsigned lemma(TNode n, bool removable)
     throw(AssertionException) {
     push(LEMMA, n);
+    return 0;
   }
 
   void setIncomplete()

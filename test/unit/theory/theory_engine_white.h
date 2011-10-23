@@ -54,7 +54,7 @@ class FakeOutputChannel : public OutputChannel {
   void propagate(TNode n) throw(AssertionException) {
     Unimplemented();
   }
-  void lemma(TNode n, bool removable) throw(AssertionException) {
+  unsigned lemma(TNode n, bool removable) throw(AssertionException) {
     Unimplemented();
   }
   void explanation(TNode n) throw(AssertionException) {

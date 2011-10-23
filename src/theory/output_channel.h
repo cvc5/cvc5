@@ -85,8 +85,10 @@ public:
    *
    * @param n - a theory lemma valid at decision level 0
    * @param removable - whether the lemma can be removed at any point
+   * @return the user level at which the lemma resides; it will be
+   * removed when this user level pops
    */
-  virtual void lemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
+  virtual unsigned lemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to

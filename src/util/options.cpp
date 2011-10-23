@@ -139,10 +139,10 @@ static const string optionsDescription = "\
    --disable-arithmetic-propagation turns on arithmetic propagation\n\
    --disable-symmetry-breaker turns off UF symmetry breaker (Deharbe et al., CADE 2011)\n\
    --incremental | -i     enable incremental solving\n\
-   --time-limit=MS        enable time limiting (give milliseconds)\n\
-   --time-limit-per=MS    enable time limiting per query (give milliseconds)\n\
-   --limit=N              enable resource limiting\n\
-   --limit-per=N          enable resource limiting per query\n";
+   --tlimit=MS            enable time limiting (give milliseconds)\n\
+   --tlimit-per=MS        enable time limiting per query (give milliseconds)\n\
+   --rlimit=N             enable resource limiting\n\
+   --rlimit-per=N         enable resource limiting per query\n";
 
 #warning "Change CL options as --disable-variable-removal cannot do anything currently."
 
@@ -303,8 +303,8 @@ enum OptionValue {
   DISABLE_SYMMETRY_BREAKER,
   TIME_LIMIT,
   TIME_LIMIT_PER,
-  LIMIT,
-  LIMIT_PER
+  RESOURCE_LIMIT,
+  RESOURCE_LIMIT_PER
 };/* enum OptionValue */
 
 /**
@@ -379,10 +379,10 @@ static struct option cmdlineOptions[] = {
   { "disable-variable-removal", no_argument, NULL, ARITHMETIC_VARIABLE_REMOVAL },
   { "disable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
   { "disable-symmetry-breaker", no_argument, NULL, DISABLE_SYMMETRY_BREAKER },
-  { "time-limit" , required_argument, NULL, TIME_LIMIT  },
-  { "time-limit-per", required_argument, NULL, TIME_LIMIT_PER },
-  { "limit"      , required_argument, NULL, LIMIT       },
-  { "limit-per"  , required_argument, NULL, LIMIT_PER   },
+  { "tlimit"     , required_argument, NULL, TIME_LIMIT  },
+  { "tlimit-per" , required_argument, NULL, TIME_LIMIT_PER },
+  { "rlimit"     , required_argument, NULL, RESOURCE_LIMIT       },
+  { "rlimit-per" , required_argument, NULL, RESOURCE_LIMIT_PER   },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -707,7 +707,7 @@ throw(OptionException) {
         perCallMillisecondLimit = (unsigned long) i;
       }
       break;
-    case LIMIT:
+    case RESOURCE_LIMIT:
       {
         int i = atoi(optarg);
         if(i < 0) {
@@ -716,7 +716,7 @@ throw(OptionException) {
         cumulativeResourceLimit = (unsigned long) i;
       }
       break;
-    case LIMIT_PER:
+    case RESOURCE_LIMIT_PER:
       {
         int i = atoi(optarg);
         if(i < 0) {
