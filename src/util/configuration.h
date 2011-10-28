@@ -59,6 +59,8 @@ public:
 
   static bool isAssertionBuild();
 
+  static bool isProofBuild(); 
+  
   static bool isCoverageBuild();
 
   static bool isProfilingBuild();

@@ -36,12 +36,14 @@
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/stats.h"
+#include "proof/proof_manager.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
 // PropEngine.
 
 namespace CVC4 {
+
 
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;

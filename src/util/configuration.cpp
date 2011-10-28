@@ -69,6 +69,10 @@ bool Configuration::isAssertionBuild() {
   return IS_ASSERTIONS_BUILD;
 }
 
+bool Configuration::isProofBuild() {
+  return IS_PROOFS_BUILD;
+}
+
 bool Configuration::isCoverageBuild() {
   return IS_COVERAGE_BUILD;
 }

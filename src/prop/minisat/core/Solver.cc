@@ -28,6 +28,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/sat.h"
 #include "util/output.h"
 #include "expr/command.h"
+#include "proof/proof_manager.h"
+#include "proof/sat_proof.h"
 
 using namespace Minisat;
 using namespace CVC4;
@@ -121,7 +123,9 @@ Solver::Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bo
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-{}
+{
+  PROOF(ProofManager::initSatProof(this);)
+}
 
 
 Solver::~Solver()
@@ -233,6 +237,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
       } else if (ps.size() == 1) {
         if(assigns[var(ps[0])] == l_Undef) {
           uncheckedEnqueue(ps[0]);
+          
+          PROOF( ProofManager::getSatProof()->registerUnitClause(ps[0], true); )
+
           if(assertionLevel > 0) {
             // remember to unset it on user pop
             Debug("minisat") << "got new unit " << ps[0] << " at assertion level " << assertionLevel << std::endl;
@@ -244,6 +251,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
         CRef cr = ca.alloc(assertionLevel, ps, false);
         clauses_persistent.push(cr);
 	attachClause(cr);
+        
+        PROOF( ProofManager::getSatProof()->registerClause(cr, true); )
       }
     }
 
@@ -263,6 +272,8 @@ void Solver::attachClause(CRef cr) {
 
 
 void Solver::detachClause(CRef cr, bool strict) {
+    PROOF( ProofManager::getSatProof()->markDeleted(cr); ) 
+
     const Clause& c = ca[cr];
     Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
@@ -401,10 +412,10 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     int max_level = 0; // Maximal level of the resolved clauses
 
+    PROOF( ProofManager::getSatProof()->startResChain(confl); )
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
         Clause& c = ca[confl];
-
         if (c.level() > max_level) {
           max_level = c.level();
         }
@@ -422,6 +433,11 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                     pathC++;
                 else
                     out_learnt.push(q);
+            } else {
+              // FIXME: can we do it lazily if we actually need the proof?
+              if (level(var(q)) == 0) {
+                PROOF( ProofManager::getSatProof()->resolveOutUnit(q); )
+              }
             }
         }
         
@@ -431,6 +447,10 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         confl = reason(var(p));
         seen[var(p)] = 0;
         pathC--;
+        
+        if ( pathC > 0 && confl != CRef_Undef ) {
+          PROOF( ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p)); )
+        }
 
     }while (pathC > 0);
     out_learnt[0] = ~p;
@@ -442,7 +462,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         uint32_t abstract_level = 0;
         for (i = 1; i < out_learnt.size(); i++)
             abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
-
+        
         for (i = j = 1; i < out_learnt.size(); i++) {
             if (reason(var(out_learnt[i])) == CRef_Undef) {
                 out_learnt[j++] = out_learnt[i];
@@ -453,6 +473,8 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 // Literal is not redundant
                 out_learnt[j++] = out_learnt[i];
               } else {
+                //
+                PROOF( ProofManager::getSatProof()->storeLitRedundant(out_learnt[i]); )
                 // Literal is redundant, mark the level of the redundancy derivation
                 if (max_level < red_level) {
                   max_level = red_level;
@@ -809,8 +831,13 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     int i, j;
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
-        if (satisfied(c))
+        if (satisfied(c)) {
+          if (locked(c)) {
+            // store a resolution of the literal c propagated
+            PROOF( ProofManager::getSatProof()->storeUnitResolution(c[0]); )
+          }
             removeClause(cs[i]);
+        }
         else
             cs[j++] = cs[i];
     }
@@ -908,7 +935,10 @@ lbool Solver::search(int nof_conflicts)
 
           conflicts++; conflictC++;
 
-          if (decisionLevel() == 0) return l_False;
+          if (decisionLevel() == 0) {
+            PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
+            return l_False;
+          }
 
             // Analyze the conflict
             learnt_clause.clear();
@@ -918,12 +948,17 @@ lbool Solver::search(int nof_conflicts)
             // Assert the conflict clause and the asserting literal
             if (learnt_clause.size() == 1) {
                 uncheckedEnqueue(learnt_clause[0]);
-            } else {
+
+                PROOF( ProofManager::getSatProof()->endResChain(learnt_clause[0]); )
+
+             } else {
                 CRef cr = ca.alloc(max_level, learnt_clause, true);
                 clauses_removable.push(cr);
                 attachClause(cr);
                 claBumpActivity(ca[cr]);
                 uncheckedEnqueue(learnt_clause[0], cr);
+
+                PROOF( ProofManager::getSatProof()->endResChain(cr); )
             }
 
             varDecayActivity();
@@ -1211,7 +1246,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-                ca.reloc(ws[j].cref, to);
+              ca.reloc(ws[j].cref, to,   NULLPROOF( ProofManager::getSatProof()->getProxy() ));
         }
 
     // All reasons:
@@ -1220,18 +1255,19 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (hasReasonClause(v) && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-            ca.reloc(vardata[v].reason, to);
+          ca.reloc(vardata[v].reason, to, NULLPROOF( ProofManager::getSatProof()->getProxy() ));
     }
-
     // All learnt:
     //
     for (int i = 0; i < clauses_removable.size(); i++)
-        ca.reloc(clauses_removable[i], to);
+      ca.reloc(clauses_removable[i], to,  NULLPROOF( ProofManager::getSatProof()->getProxy() ));
 
     // All original:
     //
     for (int i = 0; i < clauses_persistent.size(); i++)
-        ca.reloc(clauses_persistent[i], to);
+      ca.reloc(clauses_persistent[i], to,  NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+
+      PROOF( ProofManager::getSatProof()->finishUpdateCRef(); )
 }
 
 

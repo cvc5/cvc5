@@ -21,7 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "mtl/Sort.h"
 #include "simp/SimpSolver.h"
 #include "utils/System.h"
-
+#include "proof/proof.h"
 using namespace Minisat;
 using namespace CVC4;
 
@@ -57,7 +57,7 @@ SimpSolver::SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* con
   , asymm_lits         (0)
   , eliminated_vars    (0)
   , elimorder          (1)
-  , use_simplification (!enableIncremental)
+  , use_simplification (!enableIncremental && !PROOF_ON()) // TODO: turn off simplifications if proofs are on initially
   , occurs             (ClauseDeleted(ca))
   , elim_heap          (ElimLt(n_occ))
   , bwdsub_assigns     (0)
@@ -702,10 +702,11 @@ void SimpSolver::relocAll(ClauseAllocator& to)
     //
     for (int i = 0; i < subsumption_queue.size(); i++)
         ca.reloc(subsumption_queue[i], to);
-
+        // TODO reloc now takes the proof form the core solver 
     // Temporary clause:
     //
     ca.reloc(bwdsub_tmpunit, to);
+    // TODO reloc now takes the proof form the core solver 
 }
 
 
@@ -723,4 +724,5 @@ void SimpSolver::garbageCollect()
         printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n", 
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
+    // TODO: proof.finalizeUpdateId(); 
 }

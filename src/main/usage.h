@@ -54,7 +54,8 @@ CVC4 options:\n\
    --no-interactive       do not run interactively\n\
    --produce-models       support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
-   --lazy-definition-expansion expand define-fun lazily\n";
+   --lazy-definition-expansion expand define-fun lazily\n
+   --proof\n";
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

@@ -37,9 +37,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "expr/command.h"
 
 namespace CVC4 {
+class SatProof;
+
 namespace prop {
   class SatSolver;
 }/* CVC4::prop namespace */
+
 }/* CVC4 namespace */
 
 namespace Minisat {
@@ -49,9 +52,9 @@ namespace Minisat {
 
 class Solver {
 
-  /** The only CVC4 entry point to the private solver data */
+  /** The only two CVC4 entry points to the private solver data */
   friend class CVC4::prop::SatSolver;
-
+  friend class CVC4::SatProof; 
 protected:
 
   /** The pointer to the proxy that provides interfaces to the SMT engine */
