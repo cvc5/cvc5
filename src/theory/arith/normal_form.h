@@ -570,10 +570,24 @@ public:
       return true;
     }else if(n.getKind() == kind::PLUS){
       Assert(n.getNumChildren() >= 2);
-      for(Node::iterator curr = n.begin(), end = n.end(); curr != end;++curr){
-        if(!Monomial::isMember(*curr)){
+      Node::iterator currIter = n.begin(), end = n.end();
+      Node prev = *currIter;
+      if(!Monomial::isMember(prev)){
+        return false;
+      }
+
+      Monomial mprev = Monomial::parseMonomial(prev);
+      ++currIter;
+      for(; currIter != end; ++currIter){
+        Node curr = *currIter;
+        if(!Monomial::isMember(curr)){
           return false;
         }
+        Monomial mcurr = Monomial::parseMonomial(curr);
+        if(!(mprev < mcurr)){
+          return false;
+        }
+        mprev = mcurr;
       }
       return true;
     } else {
