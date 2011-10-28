@@ -856,6 +856,10 @@ throw(OptionException) {
     }
   }
 
+  if(incrementalSolving && proof) {
+    throw OptionException(string("The use of --incremental with --proof is not yet supported"));
+  }
+
   return optind;
 }
 

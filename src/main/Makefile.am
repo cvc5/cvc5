@@ -11,7 +11,6 @@ libmain_a_SOURCES = \
 	interactive_shell.cpp \
 	main.h \
 	main.cpp \
-	usage.h \
 	util.cpp
 
 cvc4_SOURCES =

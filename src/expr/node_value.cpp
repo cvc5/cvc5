@@ -39,16 +39,23 @@ NodeValue NodeValue::s_null(0);
 
 string NodeValue::toString() const {
   stringstream ss;
-  toStream(ss);
+  toStream(ss, -1, false, Options::current()->outputLanguage);
   return ss.str();
 }
 
 void NodeValue::toStream(std::ostream& out, int toDepth, bool types,
                          OutputLanguage language) const {
+  // Ensure that this node value is live for the length of this call.
+  // It really breaks things badly if we don't have a nonzero ref
+  // count, even just for printing.
+  RefCountGuard guard(this);
+
   Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, types);
 }
 
 void NodeValue::printAst(std::ostream& out, int ind) const {
+  RefCountGuard guard(this);
+
   indent(out, ind);
   out << '(';
   out << getKind();

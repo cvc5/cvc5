@@ -127,6 +127,7 @@ using namespace CVC4::parser;
 #define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
+#define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
 
@@ -294,6 +295,12 @@ command returns [CVC4::Command* cmd = NULL]
   | /* get-assertions */
     GET_ASSERTIONS_TOK
     { cmd = new GetAssertionsCommand; }
+  | /* get-proof */
+    GET_PROOF_TOK
+    { UNSUPPORTED("get-proof command not yet supported"); }
+  | /* get-unsat-core */
+    GET_UNSAT_CORE_TOK
+    { UNSUPPORTED("unsat cores not yet supported"); }
   | /* push */
     PUSH_TOK
     ( k=INTEGER_LITERAL
@@ -855,6 +862,8 @@ DEFINE_SORT_TOK : 'define-sort';
 GET_VALUE_TOK : 'get-value';
 GET_ASSIGNMENT_TOK : 'get-assignment';
 GET_ASSERTIONS_TOK : 'get-assertions';
+GET_PROOF_TOK : 'get-proof';
+GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
 ITE_TOK : 'ite';
 LET_TOK : 'let';

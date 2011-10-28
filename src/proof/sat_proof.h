@@ -190,7 +190,8 @@ public:
    * Constructs the empty clause resolution from the final conflict
    * 
    * @param conflict 
-   */void finalizeProof(::Minisat::CRef conflict);
+   */
+  void finalizeProof(::Minisat::CRef conflict);
 
   /// clause registration methods 
   ClauseId registerClause(const ::Minisat::CRef clause, bool isInput = false);

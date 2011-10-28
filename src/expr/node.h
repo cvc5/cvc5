@@ -211,7 +211,7 @@ class NodeTemplate {
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
-   * are made on the expression, and should only be used if we know what we 
+   * are made on the expression, and should only be used if we know what we
    * are doing.
    *
    * @param ev the expression value to assign

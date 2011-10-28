@@ -157,6 +157,7 @@
 #ifndef __CVC4__NODE_BUILDER_H
 #define __CVC4__NODE_BUILDER_H
 
+#include <iostream>
 #include <vector>
 #include <cstdlib>
 #include <stdint.h>
@@ -183,6 +184,11 @@ class AndNodeBuilder;
 class OrNodeBuilder;
 class PlusNodeBuilder;
 class MultNodeBuilder;
+
+// Sometimes it's useful for debugging to output a NodeBuilder that
+// isn't yet a Node..
+template <unsigned nchild_thresh>
+std::ostream& operator<<(std::ostream& out, const NodeBuilder<nchild_thresh>& nb);
 
 /**
  * The main template NodeBuilder.
@@ -720,6 +726,10 @@ public:
   // private fields
   template <unsigned N>
   friend class NodeBuilder;
+
+  template <unsigned N>
+  friend std::ostream& operator<<(std::ostream& out, const NodeBuilder<N>& nb);
+
 };/* class NodeBuilder<> */
 
 }/* CVC4 namespace */
@@ -1151,7 +1161,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
      ** allocated "inline" in this NodeBuilder. **/
 
     // Lookup the expression value in the pool we already have
-    expr::NodeValue* poolNv = d_nm->poolLookup(&d_inlineNv);
+    expr::NodeValue* poolNv = d_nm->poolLookup(const_cast<expr::NodeValue*>(&d_inlineNv));
     // If something else is there, we reuse it
     if(poolNv != NULL) {
       /* Subcase (a): The Node under construction already exists in
@@ -1300,6 +1310,11 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
   }
 }
 #endif /* CVC4_DEBUG */
+
+template <unsigned nchild_thresh>
+std::ostream& operator<<(std::ostream& out, const NodeBuilder<nchild_thresh>& nb) {
+  return out << *nb.d_nv;
+}
 
 }/* CVC4 namespace */
 

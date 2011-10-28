@@ -297,6 +297,30 @@ public:
 
 private:
 
+  class RefCountGuard {
+    NodeValue* d_nv;
+  public:
+    RefCountGuard(const NodeValue* nv) :
+      d_nv(const_cast<NodeValue*>(nv)) {
+      // inc()
+      if(EXPECT_TRUE( d_nv->d_rc < MAX_RC )) {
+        ++d_nv->d_rc;
+      }
+    }
+    ~RefCountGuard() {
+      // dec() without marking for deletion: we don't want to garbage
+      // collect this NodeValue if ours is the last reference to it.
+      // E.g., this can happen when debugging code calls the print
+      // routines below.  As RefCountGuards are scoped on the stack,
+      // this should be fine---but not in multithreaded contexts!
+      if(EXPECT_TRUE( d_nv->d_rc < MAX_RC )) {
+        --d_nv->d_rc;
+      }
+    }
+  };/* NodeValue::RefCountGuard */
+
+  friend class RefCountGuard;
+
   /**
    * Indents the given stream a given amount of spaces.
    * @param out the stream to indent
@@ -464,7 +488,8 @@ inline T NodeValue::iterator<T>::operator*() const {
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   nv.toStream(out,
               Node::setdepth::getDepth(out),
-              Node::printtypes::getPrintTypes(out));
+              Node::printtypes::getPrintTypes(out),
+              Node::setlanguage::getLanguage(out));
   return out;
 }
 
