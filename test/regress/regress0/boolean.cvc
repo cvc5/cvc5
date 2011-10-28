@@ -805,3 +805,4 @@ a288 : BOOLEAN =
         ENDIF;
 QUERY a288;
 % EXIT: 20
+% PROOF

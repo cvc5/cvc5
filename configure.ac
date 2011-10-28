@@ -478,7 +478,6 @@ if test "$enable_proof" = yes; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_PROOF"
 fi
 
-
 AC_MSG_CHECKING([whether to optimize libcvc4])
 
 AC_ARG_ENABLE([optimized],
@@ -721,6 +720,24 @@ if test "$CVC4_CONFIGURE_IN_BUILDS" = yes -a -n "$CXXTEST"; then
     *)  CXXTEST="$srcdir/$CXXTEST" ;;
   esac
 fi
+
+AC_ARG_VAR(LFSC, [path to LFSC proof checker])
+AC_ARG_VAR(LFSCARGS, [arguments to pass to LFSC proof checker])
+if test -z "$LFSC"; then
+  AC_CHECK_PROGS(LFSC, lfsc, [], [])
+else
+  AC_CHECK_PROG(LFSC, "$LFSC", [], [])
+fi
+AM_CONDITIONAL([PROOF_REGRESSIONS], [test -n "$LFSC" -a "$enable_proof" = yes])
+if test -z "$LFSC"; then
+  support_proof_tests='no, lfsc proof checker unavailable'
+elif test "$enable_proof" = yes; then
+  support_proof_tests='yes, proof regression tests enabled'
+else
+  support_proof_tests='no, proof generation disabled for this build'
+fi
+AC_SUBST([LFSC])
+AC_SUBST([LFSCARGS])
 
 CXXTESTGEN=
 AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
@@ -1061,6 +1078,7 @@ Dumping      : $enable_dumping
 Muzzle       : $enable_muzzle
 
 Unit tests   : $support_unit_tests
+Proof tests  : $support_proof_tests
 gcov support : $enable_coverage
 gprof support: $enable_profiling
 CUDD         : $cvc4cudd

@@ -5,16 +5,22 @@
 #
 # usage:
 #
-#     run_regression cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
+#     run_regression cvc4-binary [ --proof ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
 #
 # Runs benchmark and checks for correct exit status and output.
 #
 
 prog=`basename "$0"`
 
-if [ $# != 2 ]; then
-  echo "usage: $prog cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
+if [ $# -lt 2 -o $# -gt 3 ]; then
+  echo "usage: $prog cvc4-binary [ --proof ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
   exit 1
+fi
+
+proof=no
+if [ $1 = --proof ]; then
+  proof=yes
+  shift
 fi
 
 cvc4=$1
@@ -47,6 +53,7 @@ function gettemp {
 tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   if test -e "$benchmark.expect"; then
+    expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -54,7 +61,8 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
+  elif grep -q '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
+    expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -63,16 +71,18 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     # this frustrates our auto-language-detection, so add explicit --lang
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
     command_line="${command_line:+$command_line }--lang=smt"
-    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
+    grep -v '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
+    expected_proof=
     expected_output=sat
     expected_exit_status=10
     command_line=
   elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
+    expected_proof=
     expected_output=unsat
     expected_exit_status=20
     command_line=
@@ -81,6 +91,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   if test -e "$benchmark.expect"; then
+    expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -88,7 +99,8 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-  elif grep -q '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
+  elif grep -q '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
+    expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -103,10 +115,12 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *(set-info  *:status  *sat' "$benchmark" &>/dev/null; then
+    expected_proof=
     expected_output=sat
     expected_exit_status=10
     command_line=
   elif grep '^ *(set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
+    expected_proof=
     expected_output=unsat
     expected_exit_status=20
     command_line=
@@ -114,6 +128,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
+  expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -183,8 +198,29 @@ if [ $diffexiterr -ne 0 ]; then
 fi
 
 if [ "$exit_status" != "$expected_exit_status" ]; then
-  echo  "$prog: error: expected exit status \`$expected_exit_status' but got \`$exit_status'"
+  echo "$prog: error: expected exit status \`$expected_exit_status' but got \`$exit_status'"
   exitcode=1
+fi
+
+if [ "$proof" = yes -a "$expected_proof" = yes ]; then
+  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
+  ( cd `dirname "$benchmark"`;
+    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$benchmark"`;
+    echo $? >"$exitstatusfile"
+  ) > "$outfile" 2> "$errfile"
+
+  if [ ! -s "$outfile" ]; then
+    echo "$prog: error: proof generation failed with empty output (stderr follows)"
+    cat "$errfile"
+    exitcode=1
+  else
+    echo running $LFSC "$outfile" [from working dir `dirname "$benchmark"`]
+    if ! $LFSC "$outfile" &> "$errfile"; then
+      echo "$prog: error: proof checker failed (output follows)"
+      cat "$errfile"
+      exitcode=1
+    fi
+  fi
 fi
 
 exit $exitcode

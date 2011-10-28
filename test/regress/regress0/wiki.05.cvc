@@ -3,3 +3,4 @@ a, b, c : BOOLEAN;
 % EXPECT: valid
 QUERY a OR (a AND b) <=> a;
 % EXIT: 20
+% PROOF
