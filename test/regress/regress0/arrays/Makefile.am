@@ -1,4 +1,8 @@
+if PROOF_REGRESSIONS
+TESTS_ENVIRONMENT = LFSC="$(LFSC) $(LFSCARGS)" @srcdir@/../../run_regression --proof @top_builddir@/src/main/cvc4
+else
 TESTS_ENVIRONMENT = @srcdir@/../../run_regression @top_builddir@/src/main/cvc4
+endif
 
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
