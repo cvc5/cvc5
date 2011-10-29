@@ -39,7 +39,11 @@ NodeValue NodeValue::s_null(0);
 
 string NodeValue::toString() const {
   stringstream ss;
-  toStream(ss, -1, false, Options::current()->outputLanguage);
+  OutputLanguage outputLanguage = (this == &s_null) ? language::output::LANG_AST : Options::current()->outputLanguage;
+  toStream(ss, -1, false,
+           outputLanguage == language::output::LANG_AUTO ?
+             language::output::LANG_AST :
+             outputLanguage);
   return ss.str();
 }
 
