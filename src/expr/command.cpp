@@ -423,6 +423,23 @@ void GetAssignmentCommand::printResult(std::ostream& out) const {
   out << d_result << endl;
 }
 
+/* class GetProofCommand */
+
+GetProofCommand::GetProofCommand() {
+}
+
+void GetProofCommand::invoke(SmtEngine* smtEngine) {
+  d_result = smtEngine->getProof();
+}
+
+Proof* GetProofCommand::getResult() const {
+  return d_result;
+}
+
+void GetProofCommand::printResult(std::ostream& out) const {
+  d_result->toStream(out);
+}
+
 /* class GetAssertionsCommand */
 
 GetAssertionsCommand::GetAssertionsCommand() {

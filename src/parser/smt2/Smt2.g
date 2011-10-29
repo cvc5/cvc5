@@ -297,7 +297,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetAssertionsCommand; }
   | /* get-proof */
     GET_PROOF_TOK
-    { UNSUPPORTED("get-proof command not yet supported"); }
+    { cmd = new GetProofCommand; }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK
     { UNSUPPORTED("unsat cores not yet supported"); }

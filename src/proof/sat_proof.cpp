@@ -524,8 +524,9 @@ ClauseId SatProof::resolveUnit(Lit lit) {
   return unit_id; 
 }
 
-void SatProof::printProof() {
+void SatProof::toStream(std::ostream& out) {
   Debug("proof:sat") << "SatProof::printProof\n";
+  Unimplemented("native proof printing not supported yet");
 }
 
 void SatProof::finalizeProof(CRef conflict_ref) {
@@ -543,7 +544,6 @@ void SatProof::finalizeProof(CRef conflict_ref) {
     res->addStep(lit, res_id, !sign(lit)); 
   }
   registerResolution(d_emptyClauseId, res);
-  printProof(); 
 }
 
 /// CRef manager
@@ -693,8 +693,7 @@ void LFSCSatProof::printVariables() {
 }
 
 
-void LFSCSatProof::flush() {
-  ostringstream out;
+void LFSCSatProof::flush(std::ostream& out) {
   out << "(check \n";
   d_paren <<")"; 
   out << d_varSS.str();
@@ -703,11 +702,10 @@ void LFSCSatProof::flush() {
   out << d_lemmaSS.str(); 
   d_paren << "))";
   out << d_paren.str();
-  out << ";"; //to comment out the solver's answer 
-  std::cout << out.str(); 
+  out << "\n";
 }
 
-void LFSCSatProof::printProof() {
+void LFSCSatProof::toStream(std::ostream& out) {
   Debug("proof:sat") << " LFSCSatProof::printProof \n";
 
   // first collect lemmas to print in reverse order
@@ -722,8 +720,7 @@ void LFSCSatProof::printProof() {
 
   printClauses();
   printVariables();
-  flush();
-  
+  flush(out);
 }
 
 } /* CVC4 namespace */

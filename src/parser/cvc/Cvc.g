@@ -705,8 +705,10 @@ mainCommand[CVC4::Command*& cmd]
     | { PARSER_STATE->parseError("No filename given to INCLUDE command"); }
     )
 
-  | ( DUMP_PROOF_TOK
-    | DUMP_ASSUMPTIONS_TOK
+  | DUMP_PROOF_TOK
+    { cmd = new GetProofCommand(); }
+
+  | ( DUMP_ASSUMPTIONS_TOK
     | DUMP_SIG_TOK
     | DUMP_TCC_TOK
     | DUMP_TCC_ASSUMPTIONS_TOK

@@ -28,6 +28,7 @@
 #include "context/cdset_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "util/proof.h"
 #include "smt/bad_option_exception.h"
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
@@ -36,7 +37,6 @@
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/stats.h"
-#include "proof/proof_manager.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -317,6 +317,13 @@ public:
    * operate interactively and produce-assignments is on.
    */
   SExpr getAssignment() throw(ModalException, AssertionException);
+
+  /**
+   * Get the last proof (only if immediately preceded by an UNSAT
+   * or VALID query).  Only permitted if CVC4 was built with proof
+   * support and produce-proofs is on.
+   */
+  Proof* getProof() throw(ModalException, AssertionException);
 
   /**
    * Get the current set of assertions.  Only permitted if the

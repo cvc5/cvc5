@@ -18,6 +18,7 @@
  **/
 
 #include "proof/proof_manager.h"
+#include "util/proof.h"
 #include "proof/sat_proof.h"
 #include "proof/cnf_proof.h"
 #include "util/Assert.h"
@@ -40,7 +41,12 @@ ProofManager* ProofManager::currentPM() {
     proofManager = new ProofManager();
     isInitialized = true; 
     return proofManager; 
-    }
+  }
+}
+
+Proof* ProofManager::getProof() {
+  // for now, this is just the SAT proof
+  return getSatProof();
 }
 
 SatProof* ProofManager::getSatProof() {

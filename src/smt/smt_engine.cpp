@@ -34,6 +34,8 @@
 #include "smt/no_such_function_exception.h"
 #include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
+#include "proof/proof_manager.h"
+#include "util/proof.h"
 #include "util/boolean_simplification.h"
 #include "util/configuration.h"
 #include "util/exception.h"
@@ -987,7 +989,7 @@ Expr SmtEngine::getValue(const Expr& e)
      d_status.asSatisfiabilityResult() != Result::SAT ||
      d_problemExtended) {
     const char* msg =
-      "Cannot get value unless immediately proceded by SAT/INVALID response.";
+      "Cannot get value unless immediately preceded by SAT/INVALID response.";
     throw ModalException(msg);
   }
   if(type.isFunction() || type.isPredicate() ||
@@ -1040,6 +1042,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
 
 SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
   Trace("smt") << "SMT getAssignment()" << endl;
+  NodeManagerScope nms(d_nodeManager);
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssignmentCommand() << endl;
   }
@@ -1053,7 +1056,8 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
      d_status.asSatisfiabilityResult() != Result::SAT ||
      d_problemExtended) {
     const char* msg =
-      "Cannot get value unless immediately proceded by SAT/INVALID response.";
+      "Cannot get the current assignment unless immediately "
+      "preceded by SAT/INVALID response.";
     throw ModalException(msg);
   }
 
@@ -1061,7 +1065,6 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
     return SExpr();
   }
 
-  NodeManagerScope nms(d_nodeManager);
   vector<SExpr> sexprs;
   TypeNode boolType = d_nodeManager->booleanType();
   for(AssignmentSet::const_iterator i = d_assignments->begin(),
@@ -1091,6 +1094,32 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
     sexprs.push_back(v);
   }
   return SExpr(sexprs);
+}
+
+Proof* SmtEngine::getProof() throw(ModalException, AssertionException) {
+  Trace("smt") << "SMT getProof()" << endl;
+  NodeManagerScope nms(d_nodeManager);
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetProofCommand() << endl;
+  }
+#ifdef CVC4_PROOF
+  if(!Options::current()->proof) {
+    const char* msg =
+      "Cannot get a proof when produce-proofs option is off.";
+    throw ModalException(msg);
+  }
+  if(d_status.isNull() ||
+     d_status.asSatisfiabilityResult() != Result::UNSAT ||
+     d_problemExtended) {
+    const char* msg =
+      "Cannot get a proof unless immediately preceded by UNSAT/VALID response.";
+    throw ModalException(msg);
+  }
+
+  return ProofManager::getProof();
+#else /* CVC4_PROOF */
+  throw ModalException("This build of CVC4 doesn't have proof support.");
+#endif /* CVC4_PROOF */
 }
 
 vector<Expr> SmtEngine::getAssertions()

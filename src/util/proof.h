@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file proof.h
  ** \verbatim
- ** Original author: lianah
+ ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
@@ -11,26 +11,26 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Proof manager
+ ** \brief [[ Add one-line brief description here ]]
  **
- ** Proof manager
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
  **/
 
-#ifndef __CVC4__PROOF__PROOF_H
-#define __CVC4__PROOF__PROOF_H
+#include "cvc4_public.h"
 
-#include "util/options.h"
+#ifndef __CVC4__PROOF_H
+#define __CVC4__PROOF_H
 
-#ifdef CVC4_PROOF
-#  define PROOF(x) if(Options::current()->proof) { x; }
-#  define NULLPROOF(x) (Options::current()->proof)? x : NULL
-#  define PROOF_ON() Options::current()->proof
-#else /* CVC4_PROOF */
-#  define PROOF(x)
-#  define NULLPROOF(x) NULL
-#  define PROOF_ON() false
-#endif /* CVC4_PROOF */
+#include <iostream>
 
+namespace CVC4 {
 
+class CVC4_PUBLIC Proof {
+public:
+  virtual void toStream(std::ostream& out) = 0;
+};/* class Proof */
 
-#endif /* __CVC4__PROOF__PROOF_H */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__PROOF_H */

@@ -22,7 +22,7 @@
 #define __CVC4__PROOF_MANAGER_H
 
 #include <iostream> 
-#include "proof.h"
+#include "proof/proof.h"
 
 // forward declarations
 namespace Minisat {
@@ -33,6 +33,7 @@ namespace CVC4 {
 namespace prop {
 class CnfStream;
 }
+class Proof;
 class SatProof;
 class CnfProof;
 
@@ -56,6 +57,7 @@ public:
   static void      initSatProof(Minisat::Solver* solver); 
   static void      initCnfProof(CVC4::prop::CnfStream* cnfStream);
 
+  static Proof* getProof();
   static SatProof* getSatProof();
   static CnfProof* getCnfProof();
 

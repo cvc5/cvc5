@@ -32,6 +32,7 @@ typedef uint32_t CRef;
 }
 
 #include "prop/minisat/core/SolverTypes.h"
+#include "util/proof.h"
 
 namespace std {
 using namespace __gnu_cxx;
@@ -99,7 +100,7 @@ public:
   void updateCRef(::Minisat::CRef oldref, ::Minisat::CRef newref);
 };
 
-class SatProof {
+class SatProof : public Proof {
 protected:
   ::Minisat::Solver*    d_solver;
   // clauses 
@@ -144,8 +145,8 @@ protected:
   ::Minisat::Lit  getUnit(ClauseId id);
   ClauseId      getUnitId(::Minisat::Lit lit); 
   ::Minisat::Clause& getClause(ClauseId id);
-  virtual void printProof();
-  
+  virtual void toStream(std::ostream& out);
+
   bool checkResolution(ClauseId id);
   /** 
    * Constructs a resolution tree that proves lit
@@ -237,7 +238,7 @@ private:
 
   void printVariables();
   void printClauses();
-  void flush();
+  void flush(std::ostream& out);
   
 public:
   LFSCSatProof(::Minisat::Solver* solver, bool checkRes = false):
@@ -249,7 +250,7 @@ public:
     d_seenLemmas(),
     d_seenInput()
   {} 
-  void printProof();  
+  virtual void toStream(std::ostream& out);  
 };
 
 }

@@ -28,6 +28,7 @@ libutil_la_SOURCES = \
 	exception.h \
 	hash.h \
 	bool.h \
+	proof.h \
 	options.h \
 	options.cpp \
 	output.cpp \

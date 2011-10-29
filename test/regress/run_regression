@@ -52,6 +52,8 @@ function gettemp {
 
 tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
+  proof_command=PROOFS-NOT-SUPPORTED-IN-SMTLIB-V1
+  lang=smt
   if test -e "$benchmark.expect"; then
     expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
@@ -68,9 +70,8 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
-    # this frustrates our auto-language-detection, so add explicit --lang
+    # this frustrates our auto-language-detection
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
-    command_line="${command_line:+$command_line }--lang=smt"
     grep -v '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -90,6 +91,8 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
+  proof_command='(get-proof)'
+  lang=smt2
   if test -e "$benchmark.expect"; then
     expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
@@ -106,9 +109,8 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
-    # this frustrates our auto-language-detection, so add explicit --lang
+    # this frustrates our auto-language-detection
     gettemp tmpbenchmark cvc4_benchmark.smt2.$$.XXXXXXXXXX
-    command_line="${command_line:+$command_line }--lang=smt2"
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
@@ -128,6 +130,8 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
+  proof_command='DUMP_PROOF;'
+  lang=cvc4
   expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
@@ -144,6 +148,8 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
 else
   error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2"
 fi
+
+command_line="${command_line:+$command_line }--lang=$lang"
 
 gettemp expoutfile cvc4_expect_stdout.$$.XXXXXXXXXX
 gettemp experrfile cvc4_expect_stderr.$$.XXXXXXXXXX
@@ -203,19 +209,27 @@ if [ "$exit_status" != "$expected_exit_status" ]; then
 fi
 
 if [ "$proof" = yes -a "$expected_proof" = yes ]; then
-  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
-  ( cd `dirname "$benchmark"`;
-    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$benchmark"`;
+  gettemp pfbenchmark cvc4_pfbenchmark.$$.XXXXXXXXXX
+  cp "$benchmark" "$pfbenchmark";
+  echo "$proof_command" >>"$pfbenchmark";
+  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"` [from working dir `dirname "$pfbenchmark"`]
+  ( cd `dirname "$pfbenchmark"`;
+    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"`;
     echo $? >"$exitstatusfile"
   ) > "$outfile" 2> "$errfile"
 
-  if [ ! -s "$outfile" ]; then
+  gettemp pfoutfile cvc4_proof.$$.XXXXXXXXXX
+  diff --unchanged-group-format='' \
+       --old-group-format='' \
+       --new-group-format='%>' \
+       "$expoutfile" "$outfile" > "$pfoutfile"
+  if [ ! -s "$pfoutfile" ]; then
     echo "$prog: error: proof generation failed with empty output (stderr follows)"
     cat "$errfile"
     exitcode=1
   else
-    echo running $LFSC "$outfile" [from working dir `dirname "$benchmark"`]
-    if ! $LFSC "$outfile" &> "$errfile"; then
+    echo running $LFSC "$pfoutfile" [from working dir `dirname "$pfbenchmark"`]
+    if ! $LFSC "$pfoutfile" &> "$errfile"; then
       echo "$prog: error: proof checker failed (output follows)"
       cat "$errfile"
       exitcode=1
