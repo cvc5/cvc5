@@ -171,7 +171,7 @@ public:
   void addResolutionStep(::Minisat::Lit lit, ::Minisat::CRef clause, bool sign);
   /** 
    * Pops the current resolution of the stack and stores it
-   * in the resolution map. Also registers the @param clause. 
+   * in the resolution map. Also registers the 'clause' parameter
    * @param clause the clause the resolution is proving 
    */
   void endResChain(::Minisat::CRef clause);
