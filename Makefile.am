@@ -118,3 +118,6 @@ man_MANS = \
 
 dist-hook:
 	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"
+
+distclean-local:
+	test -z "$(DX_DOCDIR)" || rm -fr "$(DX_DOCDIR)"
