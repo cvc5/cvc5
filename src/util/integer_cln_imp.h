@@ -246,12 +246,14 @@ public:
   //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
 
   long getLong() const {
+    // ensure there isn't overflow
     Assert(d_value <= std::numeric_limits<long>::max());
     Assert(d_value >= std::numeric_limits<long>::min());
     return cln::cl_I_to_long(d_value);
   }
 
   unsigned long getUnsignedLong() const {
+    // ensure there isn't overflow
     Assert(d_value <= std::numeric_limits<unsigned long>::max());
     Assert(d_value >= std::numeric_limits<unsigned long>::min());
     return cln::cl_I_to_ulong(d_value);
