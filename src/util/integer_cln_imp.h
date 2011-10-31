@@ -29,6 +29,7 @@
 #include <cln/integer.h>
 #include <cln/input.h>
 #include <cln/integer_io.h>
+#include <limits>
 
 #include "util/Assert.h"
 
@@ -245,12 +246,14 @@ public:
   //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
 
   long getLong() const {
-    // supposed to throw if not representable in type "long"
+    Assert(d_value <= std::numeric_limits<long>::max());
+    Assert(d_value >= std::numeric_limits<long>::min());
     return cln::cl_I_to_long(d_value);
   }
 
   unsigned long getUnsignedLong() const {
-    // supposed to throw if not representable in type "unsigned long"
+    Assert(d_value <= std::numeric_limits<unsigned long>::max());
+    Assert(d_value >= std::numeric_limits<unsigned long>::min());
     return cln::cl_I_to_ulong(d_value);
   }
 
