@@ -28,6 +28,7 @@ distclean maintainerclean:
 		$(MAKE) $@; \
 	fi
 	test -z "$(builddir)" || rm -fr "$(builddir)"
+	rm -f config.reconfig
 
 # synonyms for "check"
 .PHONY: test
