@@ -17,14 +17,15 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../../../include -I@srcdir@/../../.. -I@builddir@/../../.. -I@builddir@/cvc3
 AM_CXXFLAGS = -Wall
 
+javadatadir = $(datadir)/java
 lib_LTLIBRARIES =
-data_DATA =
+javadata_DATA =
 BUILT_SOURCES =
 
 if CVC4_LANGUAGE_BINDING_JAVA
 
 lib_LTLIBRARIES += libcvc4bindings_java_compat.la
-data_DATA += cvc4compat.jar
+javadata_DATA += cvc4compat.jar
 libcvc4bindings_java_compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4bindings_java_compat_la_LIBADD = \

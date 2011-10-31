@@ -19,11 +19,12 @@ AM_CXXFLAGS = -Wall
 
 SUBDIRS = . compat
 
+javadatadir = $(datadir)/java
 lib_LTLIBRARIES =
-data_DATA =
+javadata_DATA =
 if CVC4_LANGUAGE_BINDING_JAVA
 lib_LTLIBRARIES += libcvc4bindings_java.la
-data_DATA += cvc4.jar
+javadata_DATA += cvc4.jar
 libcvc4bindings_java_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4bindings_java_la_LIBADD = \
