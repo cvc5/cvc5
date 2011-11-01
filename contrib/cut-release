@@ -31,7 +31,7 @@ if [ $# -lt 1 ]; then
 fi
 
 if ! [ -e src/expr/node.h -a -e .svn ]; then
-  echo "$(basename "$0"): ERROR: you should run this from the top-level of a CVC4 subversion working directory" >&2
+  echo "$(basename "$0"): ERROR: You should run this from the top-level of a CVC4 subversion working directory" >&2
   exit 1
 fi
 
@@ -39,7 +39,7 @@ version="$1"
 shift
 
 if echo "$version" | grep '[^a-zA-Z0-9_.+(){}^%#-]' &>/dev/null; then
-  echo "$(basename "$0"): ERROR: version designation \`$version' contains illegal characters" >&2
+  echo "$(basename "$0"): ERROR: Version designation \`$version' contains illegal characters" >&2
   exit 1
 fi
 
@@ -63,14 +63,16 @@ echo "Version: $version"
 echo
 isthatright
 
+echo "Checking whether release \`$version' already exists..."
 if ! svn ls "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version" 2>&1 >/dev/null | grep non-existent >/dev/null; then
-  echo "$(basename "$0"): ERROR: subversion repo already contains a release \`$version'" >&2
+  echo "$(basename "$0"): ERROR: Subversion repo already contains a release \`$version'" >&2
   $dryrun || exit 1
 fi
 
+echo "Checking working directory for local modifications..."
 if $dryrun; then
   if [ -n "$(svn status -q configure.ac)" ]; then
-    echo "$(basename "$0"): ERROR: in dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry" >&2
+    echo "$(basename "$0"): ERROR: In dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry" >&2
     exit 1
   fi
 elif [ -n "$(svn status -q)" ]; then
@@ -80,20 +82,41 @@ fi
 
 root="$(svn info | grep "^Repository Root: https://subversive.cims.nyu.edu/.*" | cut -f3 -d' ')"
 if [ -z "$root" ]; then
-  echo "$(basename "$0"): ERROR: can't get repository root URL" 2>&1
+  echo "$(basename "$0"): ERROR: Can't get repository root URL" 2>&1
   $dryrun || exit 1
 fi
 
+echo "Checking repo for unmerged updates..."
 if [ `svn -uq status | wc -l` -ne 1 ]; then
-  echo "$(basename "$0"): ERROR: this working directory isn't up to date" 2>&1
+  echo "$(basename "$0"): ERROR: This working directory isn't up to date" 2>&1
   $dryrun || exit 1
 fi
 
+echo "Checking sources for broken public headers..."
+suspect_files="\
+$(grep -r --exclude-dir=.svn '^[ \t]*#[ \t]*include[ \t]*"[^/]*"' src |
+  grep -v '"cvc4parser_public\.h"' |
+  grep -v '"cvc4_public\.h"' |
+  grep -v '"cvc4_private\.h"' |
+  grep -v '"cvc4autoconfig\.h"' |
+  grep -v '"cvc4parser_private\.h"' |
+  cut -f1 -d: |
+  sort -u |
+  xargs grep -l '^[ \t]*#[ \t]*include[ \t]*"cvc4.*public\.h"' |
+  xargs echo)"
+if [ -n "$suspect_files" ]; then
+  echo "$(basename "$0"): ERROR: The following publicly-installed headers appear" 2>&1
+  echo "$(basename "$0"): ERROR:   to have relative #includes and may be broken up" 2>&1
+  echo "$(basename "$0"): ERROR:   on install: $suspect_files" 2>&1
+  $dryrun || exit 1
+fi
+
+echo "Adjusting version info lines in configure.ac..."
 if ! grep '^m4_define(_CVC4_MAJOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_MINOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_RELEASE,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_EXTRAVERSION,  *\[.*\] *)' configure.ac &>/dev/null; then
-  echo "$(basename "$0"): ERROR: cannot locate the version info lines of configure.ac" >&2
+  echo "$(basename "$0"): ERROR: Cannot locate the version info lines of configure.ac" >&2
   $dryrun || exit 1
 fi
 perl -pi -e 's/^m4_define\(_CVC4_MAJOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MAJOR, ${1}'"$major"'$2)/;
@@ -114,7 +137,7 @@ if ! grep '^m4_define(_CVC4_MAJOR,  *'"$major"' *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_MINOR,  *'"$minor"' *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_RELEASE,  *'"$release"' *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_EXTRAVERSION,  *\['"$extra"'\] *)' configure.ac &>/dev/null; then
-  echo "$(basename "$0"): INTERNAL ERROR: cannot find the modified version info lines in configure.ac, bailing..." >&2
+  echo "$(basename "$0"): INTERNAL ERROR: Cannot find the modified version info lines in configure.ac, bailing..." >&2
   exit 1
 fi
 if [ -z "$(svn status -q configure.ac)" ]; then
@@ -122,6 +145,7 @@ if [ -z "$(svn status -q configure.ac)" ]; then
   exit 1
 fi
 
+echo "Building and checking distribution \`cvc4-$version'..."
 if ! $SHELL -c '\
 	version="'$version'"; \
 	set -ex; \
@@ -140,11 +164,11 @@ if ! $SHELL -c '\
 fi
 
 if ! [ -e release-$version/cvc4-$version.tar.gz ]; then
-  echo "$(basename "$0"): INTERNAL ERROR: cannot find the distribution tarball I just built" >&2
+  echo "$(basename "$0"): INTERNAL ERROR: Cannot find the distribution tarball I just built" >&2
   exit 1
 fi
 if ! [ -e release-$version/src/main/cvc4 ]; then
-  echo "$(basename "$0"): INTERNAL ERROR: cannot find the binary I just built" >&2
+  echo "$(basename "$0"): INTERNAL ERROR: Cannot find the binary I just built" >&2
   exit 1
 fi
 

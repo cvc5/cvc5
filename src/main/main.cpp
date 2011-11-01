@@ -26,8 +26,8 @@
 #include <unistd.h>
 
 #include "cvc4autoconfig.h"
-#include "main.h"
-#include "interactive_shell.h"
+#include "main/main.h"
+#include "main/interactive_shell.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"

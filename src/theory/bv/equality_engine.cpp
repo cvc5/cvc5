@@ -17,7 +17,7 @@
  ** \todo document this file
  **/
 
-#include "equality_engine.h"
+#include "theory/bv/equality_engine.h"
 
 using namespace CVC4::theory::bv;
 

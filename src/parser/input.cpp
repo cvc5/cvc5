@@ -16,9 +16,9 @@
  ** A super-class for input language parsers
  **/
 
-#include "input.h"
-#include "parser_exception.h"
-#include "parser.h"
+#include "parser/input.h"
+#include "parser/parser_exception.h"
+#include "parser/parser.h"
 
 #include "expr/command.h"
 #include "expr/type.h"

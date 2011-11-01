@@ -18,7 +18,7 @@
 
 #include <antlr3.h>
 
-#include "smt2_input.h"
+#include "parser/smt2/smt2_input.h"
 #include "expr/expr_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"

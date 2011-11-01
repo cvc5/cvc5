@@ -30,7 +30,7 @@
 #include "util/stats.h"
 
 #include "cvc4autoconfig.h"
-#include "main.h"
+#include "main/main.h"
 
 using CVC4::Exception;
 using namespace std;

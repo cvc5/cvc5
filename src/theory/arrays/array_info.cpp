@@ -17,7 +17,7 @@
  **
  **/
 
-#include "array_info.h"
+#include "theory/arrays/array_info.h"
 
 namespace CVC4 {
 namespace theory {

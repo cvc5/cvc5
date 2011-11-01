@@ -17,7 +17,7 @@
  ** \todo document this file
  **/
 
-#include "cnf_proof.h"
+#include "proof/cnf_proof.h"
 using namespace CVC4::prop;
 
 namespace CVC4 {

@@ -21,9 +21,9 @@
 #include <iterator>
 #include <stdint.h>
 
-#include "input.h"
-#include "parser.h"
-#include "parser_exception.h"
+#include "parser/input.h"
+#include "parser/parser.h"
+#include "parser/parser_exception.h"
 #include "expr/command.h"
 #include "expr/expr.h"
 #include "expr/kind.h"

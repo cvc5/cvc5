@@ -21,7 +21,7 @@
 
 
 #include <strings.h>
-#include "c_interface_defs.h"
+#include "bindings/compat/c/c_interface_defs.h"
 #include "compat/cvc3_compat.h"
 //#include "vc.h"
 //#include "command_line_flags.h"

@@ -27,7 +27,7 @@
 
 #include "cvc4autoconfig.h"
 
-#include "interactive_shell.h"
+#include "main/interactive_shell.h"
 
 #include "expr/command.h"
 #include "parser/input.h"
@@ -61,15 +61,15 @@ using __gnu_cxx::stdio_filebuf;
 char* commandGenerator(const char* text, int state);
 
 static const char* const cvc_commands[] = {
-#include "cvc_tokens.h"
+#include "main/cvc_tokens.h"
 };/* cvc_commands */
 
 static const char* const smt_commands[] = {
-#include "smt_tokens.h"
+#include "main/smt_tokens.h"
 };/* smt_commands */
 
 static const char* const smt2_commands[] = {
-#include "smt2_tokens.h"
+#include "main/smt2_tokens.h"
 };/* smt2_commands */
 
 static const char* const* commandsBegin;

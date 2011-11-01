@@ -54,9 +54,9 @@
 #include <antlr3.h>
 #include <sstream>
 
-#include "antlr_input.h"
-#include "parser.h"
-#include "parser_exception.h"
+#include "parser/antlr_input.h"
+#include "parser/parser.h"
+#include "parser/parser_exception.h"
 #include "util/Assert.h"
 
 using namespace std;

@@ -24,7 +24,7 @@
 #include "theory/theory.h"
 #include "theory/arrays/union_find.h"
 #include "util/congruence_closure.h"
-#include "array_info.h"
+#include "theory/arrays/array_info.h"
 #include "util/hash.h"
 #include "util/ntuple.h"
 #include "util/stats.h"

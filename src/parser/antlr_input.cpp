@@ -20,13 +20,13 @@
 #include <antlr3.h>
 #include <stdint.h>
 
-#include "antlr_input.h"
-#include "input.h"
-#include "bounded_token_buffer.h"
-#include "bounded_token_factory.h"
-#include "memory_mapped_input_buffer.h"
-#include "parser_exception.h"
-#include "parser.h"
+#include "parser/antlr_input.h"
+#include "parser/input.h"
+#include "parser/bounded_token_buffer.h"
+#include "parser/bounded_token_factory.h"
+#include "parser/memory_mapped_input_buffer.h"
+#include "parser/parser_exception.h"
+#include "parser/parser.h"
 
 #include "expr/command.h"
 #include "expr/type.h"

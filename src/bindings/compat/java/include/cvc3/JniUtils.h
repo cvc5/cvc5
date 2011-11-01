@@ -5,9 +5,10 @@
 #include <string>
 #include <jni.h>
 #include <typeinfo>
-#include "vcl.h"
-#include "hash_map.h"
-#include "exception.h"
+#include "compat/cvc3_compat.h"
+//#include "vcl.h"
+//#include "hash_map.h"
+//#include "exception.h"
 
 namespace Java_cvc3_JniUtils {
 

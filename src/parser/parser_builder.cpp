@@ -18,9 +18,9 @@
 
 #include <string>
 
-#include "parser_builder.h"
-#include "input.h"
-#include "parser.h"
+#include "parser/parser_builder.h"
+#include "parser/input.h"
+#include "parser/parser.h"
 #include "smt/smt.h"
 #include "smt2/smt2.h"
 

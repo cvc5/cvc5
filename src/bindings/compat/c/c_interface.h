@@ -24,7 +24,7 @@
 #ifndef _cvc3__include__c_interface_h_
 #define _cvc3__include__c_interface_h_
 
-#include "c_interface_defs.h"
+#include "bindings/compat/c/c_interface_defs.h"
 
 //! Flags can be NULL
 VC vc_createValidityChecker(Flags flags);

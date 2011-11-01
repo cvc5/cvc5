@@ -28,9 +28,9 @@
 #include <string>
 #include <vector>
 
-#include "bounded_token_buffer.h"
-#include "parser_exception.h"
-#include "input.h"
+#include "parser/bounded_token_buffer.h"
+#include "parser/parser_exception.h"
+#include "parser/input.h"
 
 #include "util/Assert.h"
 #include "util/bitvector.h"

@@ -19,7 +19,7 @@
 #include <antlr3input.h>
 #include <antlr3commontoken.h>
 #include <antlr3interfaces.h>
-#include "bounded_token_factory.h"
+#include "parser/bounded_token_factory.h"
 
 namespace CVC4 {
 namespace parser {

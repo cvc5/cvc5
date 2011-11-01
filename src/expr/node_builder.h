@@ -151,8 +151,8 @@
 #include "cvc4_private.h"
 
 /* strong dependency; make sure node is included first */
-#include "node.h"
-#include "type_node.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
 
 #ifndef __CVC4__NODE_BUILDER_H
 #define __CVC4__NODE_BUILDER_H
