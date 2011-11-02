@@ -46,9 +46,9 @@ using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::main;
 
-int runCvc4(int argc, char* argv[]);
-void doCommand(SmtEngine&, Command*);
-void printUsage();
+static int runCvc4(int argc, char* argv[]);
+static void doCommand(SmtEngine&, Command*);
+static void printUsage(bool full = false);
 
 namespace CVC4 {
   namespace main {
@@ -66,24 +66,17 @@ namespace CVC4 {
   }
 }
 
-
-// no more % chars in here without being escaped; it's used as a
-// printf() format string
-const string usageMessage = "\
-usage: %s [options] [input-file]\n\
-\n\
-Without an input file, or with `-', CVC4 reads from standard input.\n\
-\n\
-CVC4 options:\n";
-
-void printUsage() {
+static void printUsage(bool full) {
   stringstream ss;
   ss << "usage: " << options.binary_name << " [options] [input-file]" << endl
       << endl
       << "Without an input file, or with `-', CVC4 reads from standard input." << endl
-      << endl
-      << "CVC4 options:" << endl;
-  Options::printUsage( ss.str(), *options.out );
+      << endl;
+  if(full) {
+    Options::printUsage( ss.str(), *options.out );
+  } else {
+    Options::printShortUsage( ss.str(), *options.out );
+  }
 }
 
 /**
@@ -131,7 +124,7 @@ int main(int argc, char* argv[]) {
 }
 
 
-int runCvc4(int argc, char* argv[]) {
+static int runCvc4(int argc, char* argv[]) {
 
   // Initialize the signal handlers
   cvc4_init();
@@ -144,7 +137,7 @@ int runCvc4(int argc, char* argv[]) {
   progName = options.binary_name.c_str();
 
   if( options.help ) {
-    printUsage();
+    printUsage(true);
     exit(1);
   } else if( options.languageHelp ) {
     Options::printLanguageHelp(*options.out);
@@ -357,7 +350,7 @@ int runCvc4(int argc, char* argv[]) {
 }
 
 /** Executes a command. Deletes the command after execution. */
-void doCommand(SmtEngine& smt, Command* cmd) {
+static void doCommand(SmtEngine& smt, Command* cmd) {
   if( options.parseOnly ) {
     return;
   }
