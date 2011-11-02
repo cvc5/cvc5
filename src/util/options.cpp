@@ -638,7 +638,11 @@ throw(OptionException) {
       break;
       
     case PROOF:
+#ifdef CVC4_PROOF
       proof = true;
+#else /* CVC4_PROOF */
+      throw OptionException("This is not a proof-enabled build of CVC4; --proof cannot be used");
+#endif /* CVC4_PROOF */
       break;
       
     case NO_TYPE_CHECKING:
