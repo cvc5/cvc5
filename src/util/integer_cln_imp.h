@@ -247,15 +247,19 @@ public:
 
   long getLong() const {
     // ensure there isn't overflow
-    Assert(d_value <= std::numeric_limits<long>::max());
-    Assert(d_value >= std::numeric_limits<long>::min());
+    AlwaysAssert(d_value <= std::numeric_limits<long>::max(),
+                 "Overflow detected in Integer::getLong()");
+    AlwaysAssert(d_value >= std::numeric_limits<long>::min(),
+                 "Overflow detected in Integer::getLong()");
     return cln::cl_I_to_long(d_value);
   }
 
   unsigned long getUnsignedLong() const {
     // ensure there isn't overflow
-    Assert(d_value <= std::numeric_limits<unsigned long>::max());
-    Assert(d_value >= std::numeric_limits<unsigned long>::min());
+    AlwaysAssert(d_value <= std::numeric_limits<unsigned long>::max(),
+                 "Overflow detected in Integer::getUnsignedLong()");
+    AlwaysAssert(d_value >= std::numeric_limits<unsigned long>::min(),
+                 "Overflow detected in Integer::getUnsignedLong()");
     return cln::cl_I_to_ulong(d_value);
   }
 

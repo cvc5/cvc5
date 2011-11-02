@@ -187,13 +187,15 @@ public:
   long getLong() const {
     long si = d_value.get_si();
     // ensure there wasn't overflow
-    AlwaysAssert(mpz_cmp_si(d_value.get_mpz_t(), si) == 0);
+    AlwaysAssert(mpz_cmp_si(d_value.get_mpz_t(), si) == 0,
+                 "Overflow detected in Integer::getLong()");
     return si;
   }
   unsigned long getUnsignedLong() const {
     unsigned long ui = d_value.get_ui();
     // ensure there wasn't overflow
-    AlwaysAssert(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0);
+    AlwaysAssert(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0,
+                 "Overflow detected in Integer::getUnsignedLong()");
     return ui;
   }
 
