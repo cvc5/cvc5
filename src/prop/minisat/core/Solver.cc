@@ -654,6 +654,7 @@ CRef Solver::propagate(TheoryCheckType type)
         recheck = true;
         return updateLemmas();
       } else {
+        recheck = proxy->theoryNeedCheck();
         return confl;
       }
     }

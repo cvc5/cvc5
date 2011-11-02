@@ -230,6 +230,8 @@ public:
 
   void enqueueTheoryLiteral(const SatLiteral& l);
 
+  bool theoryNeedCheck() const;
+
   void setCnfStream(CnfStream* cnfStream);
 
   /** Call value() during the search.*/

@@ -125,6 +125,10 @@ void TheoryEngine::check(Theory::Effort effort) {
     // Mark the lemmas flag (no lemmas added)
     d_lemmasAdded = false;
 
+    // Mark the output channel unused (if this is FULL_EFFORT, and nothing
+    // is done by the theories, no additional check will be needed)
+    d_outputChannelUsed = false;
+
     while (true) {
 
       Debug("theory") << "TheoryEngine::check(" << effort << "): running check" << std::endl;

@@ -70,6 +70,10 @@ void SatSolver::enqueueTheoryLiteral(const SatLiteral& l) {
   d_theoryEngine->assertFact(literalNode);
 }
 
+bool SatSolver::theoryNeedCheck() const {
+  return d_theoryEngine->needCheck();
+}
+
 void SatSolver::setCnfStream(CnfStream* cnfStream) {
   d_cnfStream = cnfStream;
 }
