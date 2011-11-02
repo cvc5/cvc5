@@ -51,7 +51,7 @@ maintainer-clean-local:
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
 @srcdir@/generated/CvcLexer.h: Cvc.g @srcdir@/stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
-	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -o "@srcdir@/generated" "@srcdir@/Cvc.g"
+	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "@srcdir@/generated" "@srcdir@/Cvc.g"
 
 # These don't actually depend on CvcLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
