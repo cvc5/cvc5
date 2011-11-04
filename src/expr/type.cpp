@@ -227,6 +227,19 @@ Type::operator PseudobooleanType() const throw(AssertionException) {
   return PseudobooleanType(*this);
 }
 
+/** Is this the string type? */
+bool Type::isString() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isString();
+}
+
+/** Cast to a string type */
+Type::operator StringType() const throw(AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isNull() || isString());
+  return StringType(*this);
+}
+
 /** Is this the bit-vector type? */
 bool Type::isBitVector() const {
   NodeManagerScope nms(d_nodeManager);
@@ -463,6 +476,11 @@ RealType::RealType(const Type& t) throw(AssertionException) :
 PseudobooleanType::PseudobooleanType(const Type& t) throw(AssertionException) :
   Type(t) {
   Assert(isNull() || isPseudoboolean());
+}
+
+StringType::StringType(const Type& t) throw(AssertionException) :
+  Type(t) {
+  Assert(isNull() || isString());
 }
 
 BitVectorType::BitVectorType(const Type& t) throw(AssertionException) :

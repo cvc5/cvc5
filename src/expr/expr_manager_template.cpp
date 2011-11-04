@@ -125,6 +125,11 @@ BooleanType ExprManager::booleanType() const {
   return BooleanType(Type(d_nodeManager, new TypeNode(d_nodeManager->booleanType())));
 }
 
+StringType ExprManager::stringType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->stringType())));
+}
+
 KindType ExprManager::kindType() const {
   NodeManagerScope nms(d_nodeManager);
   return KindType(Type(d_nodeManager, new TypeNode(d_nodeManager->kindType())));

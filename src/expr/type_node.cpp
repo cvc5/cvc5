@@ -95,6 +95,11 @@ bool TypeNode::isPseudoboolean() const {
     getConst<TypeConstant>() == PSEUDOBOOLEAN_TYPE;
 }
 
+bool TypeNode::isString() const {
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == STRING_TYPE;
+}
+
 bool TypeNode::isArray() const {
   return getKind() == kind::ARRAY_TYPE;
 }

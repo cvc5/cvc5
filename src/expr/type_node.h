@@ -449,6 +449,9 @@ public:
   /** Is this the Pseudoboolean type? */
   bool isPseudoboolean() const;
 
+  /** Is this the String type? */
+  bool isString() const;
+
   /** Is this an array type? */
   bool isArray() const;
 

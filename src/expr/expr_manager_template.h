@@ -120,6 +120,9 @@ public:
   /** Get the type for booleans */
   BooleanType booleanType() const;
 
+  /** Get the type for strings. */
+  StringType stringType() const;
+
   /** Get the type for sorts. */
   KindType kindType() const;
 

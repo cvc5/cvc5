@@ -102,7 +102,7 @@ Options::Options() :
 static const string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:\n\
    --version | -V         identify this CVC4 binary\n\
-   --help | -h            this command line reference\n\
+   --help | -h            full command line reference\n\
    --lang | -L            force input language (default is `auto'; see --lang help)\n\
    --output-lang          force output language (default is `auto'; see --lang help)\n\
    --verbose | -v         increase verbosity (may be repeated)\n\

@@ -36,6 +36,12 @@ struct StringHashFunction {
   }
 };/* struct StringHashFunction */
 
+struct StringHashStrategy {
+  static size_t hash(const std::string& str) {
+    return std::hash<const char*>()(str.c_str());
+  }
+};/* struct StringHashStrategy */
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__HASH_H */

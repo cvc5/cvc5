@@ -130,6 +130,15 @@ public:
   }
 };/* class TupleTypeRule */
 
+class StringConstantTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    Assert(n.getKind() == kind::CONST_STRING);
+    return nodeManager->stringType();
+  }
+};/* class StringConstantTypeRule */
+
+
 class FunctionProperties {
 public:
   inline static Cardinality computeCardinality(TypeNode type) {
