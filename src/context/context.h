@@ -100,6 +100,50 @@ class Context {
   Context& operator=(const Context&) CVC4_UNUSED;
 
 public:
+
+  /**
+   * A mechanism by which a "scoped" bit of contextual speculation can
+   * be applied.  One might create a Context::ScopedPush in a function
+   * (as a local variable on the stack), then manipulate some
+   * context-dependent data structures in some fashion, speculatively.
+   * When the ScopedPush goes out of scope and is destructed, the
+   * context-dependent data structures will return to their original
+   * state.
+   *
+   * When such speculation occurs in a lexically-scoped manner, like
+   * described above, it is FAR preferable to use ScopedPush than to
+   * call ->push() and ->pop() on the Context directly.  If you do the
+   * latter, it's extremely easy to forget to pop() on exceptional
+   * exit of the function, or if a short-circuited "early" return is
+   * later added to the function, etc.  Further, ScopedPush includes
+   * an assertion that the Context at the end looks like the Context
+   * at the beginning (the topmost Scope pointer should be the same).
+   * This assertion is only an approximate check for correct behavior,
+   * but should catch egregious mismatches of ->push() and ->pop()
+   * while the ScopedPush is being applied---egregious mismatches that
+   * could exist, for example, if a Theory does some speculative
+   * reasoning but accidently gives control back to some other mechanism
+   * which does some speculation which isn't properly scoped inside the
+   * first.
+   */
+  class ScopedPush {
+    Context* const d_context;
+    const Scope* const d_scope;
+  public:
+    ScopedPush(Context* ctxt) :
+      d_context(ctxt),
+      d_scope(d_context->getTopScope()) {
+      d_context->push();
+    }
+    ~ScopedPush() {
+      d_context->pop();
+      AlwaysAssert(d_context->getTopScope() == d_scope,
+                   "Context::ScopedPush observed an uneven Context (at pop, "
+                   "top scope doesn't match what it was at the time the "
+                   "ScopedPush was applied)");
+    }
+  };/* Context::ScopedPush */
+
   /**
    * Constructor: create ContextMemoryManager and initial Scope
    */
