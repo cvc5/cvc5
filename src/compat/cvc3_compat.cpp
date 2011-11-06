@@ -24,6 +24,7 @@
 #include "util/rational.h"
 #include "util/integer.h"
 #include "util/bitvector.h"
+#include "util/hash.h"
 
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -31,10 +32,32 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <iterator>
 
 using namespace std;
 
 namespace CVC3 {
+
+static std::hash_map<Type, Expr, CVC4::TypeHashFunction> s_typeToExpr;
+static std::hash_map<Expr, Type, CVC4::ExprHashFunction> s_exprToType;
+
+static bool typeHasExpr(const Type& t) {
+  std::hash_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
+  return i != s_typeToExpr.end();
+}
+
+static Expr typeToExpr(const Type& t) {
+  std::hash_map<Type, Expr, CVC4::TypeHashFunction>::const_iterator i = s_typeToExpr.find(t);
+  AlwaysAssert(i != s_typeToExpr.end());
+  return (*i).second;
+}
+
+static Type exprToType(const Expr& e) {
+  std::hash_map<Expr, Type, CVC4::ExprHashFunction>::const_iterator i = s_exprToType.find(e);
+  AlwaysAssert(i != s_exprToType.end());
+  return (*i).second;
+}
 
 std::string int2string(int n) {
   std::ostringstream ss;
@@ -139,7 +162,13 @@ Type::Type(const Type& type) :
 }
 
 Expr Type::getExpr() const {
-  Unimplemented();
+  if(typeHasExpr(*this)) {
+    return typeToExpr(*this);
+  }
+  Expr e = getExprManager()->mkVar("compatibility-layer-expr-type", *this);
+  s_typeToExpr[*this] = e;
+  s_exprToType[e] = *this;
+  return e;
 }
 
 int Type::arity() const {
@@ -1003,14 +1032,34 @@ Type ValidityChecker::dataType(const std::string& name,
                                const std::string& constructor,
                                const std::vector<std::string>& selectors,
                                const std::vector<Expr>& types) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  AlwaysAssert(selectors.size() == types.size());
+  vector<string> cv;
+  vector< vector<string> > sv;
+  vector< vector<Expr> > tv;
+  cv.push_back(constructor);
+  sv.push_back(selectors);
+  tv.push_back(types);
+  return dataType(name, cv, sv, tv);
 }
 
 Type ValidityChecker::dataType(const std::string& name,
                                const std::vector<std::string>& constructors,
                                const std::vector<std::vector<std::string> >& selectors,
                                const std::vector<std::vector<Expr> >& types) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  AlwaysAssert(constructors.size() == selectors.size());
+  AlwaysAssert(constructors.size() == types.size());
+  vector<string> nv;
+  vector< vector<string> > cv;
+  vector< vector< vector<string> > > sv;
+  vector< vector< vector<Expr> > > tv;
+  nv.push_back(name);
+  cv.push_back(constructors);
+  sv.push_back(selectors);
+  tv.push_back(types);
+  vector<Type> dtts;
+  dataType(nv, cv, sv, tv, dtts);
+  AlwaysAssert(dtts.size() == 1);
+  return dtts[0];
 }
 
 void ValidityChecker::dataType(const std::vector<std::string>& names,
@@ -1018,7 +1067,55 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
                                const std::vector<std::vector<std::vector<std::string> > >& selectors,
                                const std::vector<std::vector<std::vector<Expr> > >& types,
                                std::vector<Type>& returnTypes) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+
+  AlwaysAssert(names.size() == constructors.size());
+  AlwaysAssert(names.size() == selectors.size());
+  AlwaysAssert(names.size() == types.size());
+  vector<CVC4::Datatype> dv;
+
+  // Set up the datatype specifications.
+  for(unsigned i = 0; i < names.size(); ++i) {
+    CVC4::Datatype dt(names[i]);
+    AlwaysAssert(constructors[i].size() == selectors[i].size());
+    AlwaysAssert(constructors[i].size() == types[i].size());
+    for(unsigned j = 0; j < constructors[i].size(); ++j) {
+      CVC4::Datatype::Constructor ctor(constructors[i][j]);
+      AlwaysAssert(selectors[i][j].size() == types[i][j].size());
+      for(unsigned k = 0; k < selectors[i][j].size(); ++k) {
+        if(types[i][j][k].getType().isString()) {
+          ctor.addArg(selectors[i][j][k], CVC4::Datatype::UnresolvedType(types[i][j][k].getConst<string>()));
+        } else {
+          ctor.addArg(selectors[i][j][k], exprToType(types[i][j][k]));
+        }
+      }
+      dt.addConstructor(ctor);
+    }
+    dv.push_back(dt);
+  }
+
+  // Make the datatypes.
+  vector<CVC4::DatatypeType> dtts = d_em->mkMutualDatatypeTypes(dv);
+
+  // Post-process to register the names of everything with this validity checker.
+  // This is necessary for the compatibility layer because cons/sel operations are
+  // constructed without appealing explicitly to the Datatype they belong to.
+  for(vector<CVC4::DatatypeType>::iterator i = dtts.begin(); i != dtts.end(); ++i) {
+    // For each datatype...
+    const CVC4::Datatype& dt = (*i).getDatatype();
+    for(CVC4::Datatype::const_iterator j = dt.begin(); j != dt.end(); ++j) {
+      // For each constructor, register its name and its selectors names.
+      AlwaysAssert(d_constructors.find((*j).getName()) == d_constructors.end(), "cannot have two constructors with the same name in a ValidityChecker");
+      d_constructors[(*j).getName()] = &dt;
+      for(CVC4::Datatype::Constructor::const_iterator k = (*j).begin(); k != (*j).end(); ++k) {
+        AlwaysAssert(d_selectors.find((*k).getName()) == d_selectors.end(), "cannot have two selectors with the same name in a ValidityChecker");
+        d_selectors[(*k).getName()] = make_pair(&dt, (*j).getName());
+      }
+    }
+  }
+
+  // Copy into the output buffer.
+  returnTypes.clear();
+  copy(dtts.begin(), dtts.end(), back_inserter(returnTypes));
 }
 
 Type ValidityChecker::arrayType(const Type& typeIndex, const Type& typeData) {
@@ -1088,7 +1185,7 @@ Expr ValidityChecker::getTypePred(const Type&t, const Expr& e) {
 }
 
 Expr ValidityChecker::stringExpr(const std::string& str) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  return d_em->mkConst(str);
 }
 
 Expr ValidityChecker::idExpr(const std::string& name) {
@@ -1669,15 +1766,29 @@ Expr ValidityChecker::tupleUpdateExpr(const Expr& tuple, int index,
 }
 
 Expr ValidityChecker::datatypeConsExpr(const std::string& constructor, const std::vector<Expr>& args) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  ConstructorMap::const_iterator i = d_constructors.find(constructor);
+  AlwaysAssert(i != d_constructors.end(), "no such constructor");
+  const CVC4::Datatype& dt = *(*i).second;
+  const CVC4::Datatype::Constructor& ctor = dt[constructor];
+  AlwaysAssert(ctor.getNumArgs() == args.size(), "arity mismatch in constructor application");
+  return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, ctor.getConstructor(), vector<CVC4::Expr>(args.begin(), args.end()));
 }
 
 Expr ValidityChecker::datatypeSelExpr(const std::string& selector, const Expr& arg) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  SelectorMap::const_iterator i = d_selectors.find(selector);
+  AlwaysAssert(i != d_selectors.end(), "no such selector");
+  const CVC4::Datatype& dt = *(*i).second.first;
+  string constructor = (*i).second.second;
+  const CVC4::Datatype::Constructor& ctor = dt[constructor];
+  return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR, ctor.getSelector(selector), arg);
 }
 
 Expr ValidityChecker::datatypeTestExpr(const std::string& constructor, const Expr& arg) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  ConstructorMap::const_iterator i = d_constructors.find(constructor);
+  AlwaysAssert(i != d_constructors.end(), "no such constructor");
+  const CVC4::Datatype& dt = *(*i).second;
+  const CVC4::Datatype::Constructor& ctor = dt[constructor];
+  return d_em->mkExpr(CVC4::kind::APPLY_TESTER, ctor.getTester(), arg);
 }
 
 Expr ValidityChecker::boundVarExpr(const std::string& name, const std::string& uid,
@@ -1799,7 +1910,7 @@ QueryResult ValidityChecker::restart(const Expr& e) {
 }
 
 void ValidityChecker::returnFromCheck() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // CVC4 has this behavior by default
 }
 
 void ValidityChecker::getUserAssumptions(std::vector<Expr>& assumptions) {

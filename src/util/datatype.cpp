@@ -471,6 +471,17 @@ Type Datatype::Constructor::doParametricSubstitution( Type range,
   }
 }
 
+Datatype::Constructor::Constructor(std::string name) :
+  // We don't want to introduce a new data member, because eventually
+  // we're going to be a constant stuffed inside a node.  So we stow
+  // the tester name away inside the constructor name until
+  // resolution.
+  d_name(name + '\0' + "is_" + name), // default tester name is "is_FOO"
+  d_tester(),
+  d_args() {
+  CheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
+}
+
 Datatype::Constructor::Constructor(std::string name, std::string tester) :
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow

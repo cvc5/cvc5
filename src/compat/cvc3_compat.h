@@ -16,7 +16,9 @@
  ** CVC3 compatibility layer for CVC4.  This version was derived from
  ** the following CVS revisions of the following files in CVC3.  If
  ** those files have a later revision, then this file might be out of
- ** date.
+ ** date.  Note that this compatibility layer is not safe for use in
+ ** multithreaded contexts where multiple threads are accessing this
+ ** compatibility layer functionality.
  **
  ** src/include/vc.h 1.36
  ** src/include/expr.h 1.39
@@ -465,6 +467,12 @@ class CVC4_PUBLIC ValidityChecker {
   CVC4::ExprManager* d_em;
   CVC4::SmtEngine* d_smt;
   CVC4::parser::Parser* d_parserContext;
+
+  typedef std::hash_map<std::string, const CVC4::Datatype*, CVC4::StringHashFunction> ConstructorMap;
+  typedef std::hash_map<std::string, std::pair<const CVC4::Datatype*, std::string>, CVC4::StringHashFunction> SelectorMap;
+
+  ConstructorMap d_constructors;
+  SelectorMap d_selectors;
 
   ValidityChecker(const CLFlags& clflags);
 

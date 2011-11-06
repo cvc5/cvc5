@@ -268,6 +268,33 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
   }
 }
 
+Expr ExprManager::mkExpr(Kind kind, Expr child1, const std::vector<Expr>& otherChildren) {
+  const unsigned n = otherChildren.size() - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0) + 1;
+  CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
+                "Exprs with kind %s must have at least %u children and "
+                "at most %u children (the one under construction has %u)",
+                kind::kindToString(kind).c_str(),
+                minArity(kind), maxArity(kind), n);
+
+  NodeManagerScope nms(d_nodeManager);
+
+  vector<Node> nodes;
+  nodes.push_back(child1.getNode());
+
+  vector<Expr>::const_iterator it = otherChildren.begin();
+  vector<Expr>::const_iterator it_end = otherChildren.end();
+  while(it != it_end) {
+    nodes.push_back(it->getNode());
+    ++it;
+  }
+  try {
+    INC_STAT(kind);
+    return Expr(this, d_nodeManager->mkNodePtr(kind, nodes));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
 Expr ExprManager::mkExpr(Expr opExpr) {
   const unsigned n = 0;
   Kind kind = kind::operatorKindToKind(opExpr.getKind());
