@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-// #include <cvc4/compat/cvc3_compat.h>
+// #include <cvc4/compat/cvc3_compat.h> // use this after CVC4 is properly installed
 #include "compat/cvc3_compat.h"
 
 using namespace std;

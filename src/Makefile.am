@@ -137,6 +137,8 @@ uninstall-local:
 		fi; \
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
 		rm -f "$(DESTDIR)$(includedir)/cvc4/$$d"; \
-		rmdir -p "$$(dirname "$(DESTDIR)$(includedir)/cvc4/$$d")" 2>/dev/null; \
 	done
+	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings/compat"
+	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
+	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"

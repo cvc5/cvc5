@@ -173,7 +173,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
   }
 
   // We will translate clauses, so remember the level
-  int level = d_satSolver->getLevel();
+  int level = d_satSolver->getAssertionLevel();
   d_translationCache[node].level = level;
   d_translationCache[node.notNode()].level = level;
 

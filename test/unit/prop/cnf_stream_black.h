@@ -71,7 +71,7 @@ public:
     return d_addClauseCalled;
   }
 
-  int getLevel() const {
+  int getAssertionLevel() const {
     return 0;
   }
 

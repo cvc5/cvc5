@@ -171,7 +171,7 @@ Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
   return Result(result == l_True ? Result::SAT : Result::UNSAT);
 }
 
-Node PropEngine::getValue(TNode node) {
+Node PropEngine::getValue(TNode node) const {
   Assert(node.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
@@ -186,15 +186,15 @@ Node PropEngine::getValue(TNode node) {
   }
 }
 
-bool PropEngine::isSatLiteral(TNode node) {
+bool PropEngine::isSatLiteral(TNode node) const {
   return d_cnfStream->hasLiteral(node);
 }
 
-bool PropEngine::isTranslatedSatLiteral(TNode node) {
+bool PropEngine::isTranslatedSatLiteral(TNode node) const {
   return d_cnfStream->isTranslated(node);
 }
 
-bool PropEngine::hasValue(TNode node, bool& value) {
+bool PropEngine::hasValue(TNode node, bool& value) const {
   Assert(node.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(node);
 

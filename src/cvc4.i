@@ -1,4 +1,5 @@
 %import "bindings/swig.h"
+
 %include "stdint.i"
 %include "stl.i"
 
@@ -19,6 +20,19 @@ namespace std {
 #ifdef SWIGPERL
 #  undef seed
 #endif /* SWIGPERL */
+
+// OCaml's headers define "invalid_argument" and "flush" to
+// caml_invalid_argument and caml_flush, which breaks C++
+// standard headers; undo this damage
+//
+// Unfortunately, this doesn't happen early enough.  swig puts an
+// include <stdexcept> very early, which breaks linking due to a
+// nonexistent std::caml_invalid_argument symbol.. ridiculous!
+//
+#ifdef SWIGOCAML
+#  undef flush
+#  undef invalid_argument
+#endif /* SWIGOCAML */
 
 namespace CVC4 {}
 using namespace CVC4;

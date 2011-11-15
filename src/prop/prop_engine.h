@@ -206,24 +206,24 @@ public:
    * @return mkConst<true>, mkConst<false>, or Node::null() if
    * unassigned.
    */
-  Node getValue(TNode node);
+  Node getValue(TNode node) const;
 
   /**
    * Return true if node has an associated SAT literal.
    */
-  bool isSatLiteral(TNode node);
+  bool isSatLiteral(TNode node) const;
 
   /**
    * Return true if node has an associated SAT literal that is
    * currently translated (i.e., it's relevant to the current
    * user push/pop level).
    */
-  bool isTranslatedSatLiteral(TNode node);
+  bool isTranslatedSatLiteral(TNode node) const;
 
   /**
    * Check if the node has a value and return it if yes.
    */
-  bool hasValue(TNode node, bool& value);
+  bool hasValue(TNode node, bool& value) const;
 
   /**
    * Ensure that the given node will have a designated SAT literal

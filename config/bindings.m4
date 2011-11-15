@@ -72,8 +72,11 @@ else
           AC_CHECK_HEADER([jni.h], [cvc4_build_java_bindings=yes], [binding_error=yes])
           ;;
         csharp)
+          AC_MSG_RESULT([[C# support will be built]])
+          AC_ARG_VAR(CSHARP_CPPFLAGS, [flags to pass to compiler when building C# bindings])
+          CPPFLAGS="$CPPFLAGS $CSHARP_CPPFLAGS"
           cvc4_build_csharp_bindings=yes
-          AC_MSG_RESULT([[C# support will be built]]);;
+          ;;
         perl)
           AC_MSG_RESULT([perl support will be built])
           AC_ARG_VAR(PERL_CPPFLAGS, [flags to pass to compiler when building perl bindings])
@@ -99,11 +102,43 @@ else
           AC_CHECK_HEADER([ruby.h], [cvc4_build_ruby_bindings=yes], [binding_error=yes])
           ;;
         tcl)
+          AC_MSG_RESULT([tcl support will be built])
+          AC_ARG_VAR(TCL_CPPFLAGS, [flags to pass to compiler when building tcl bindings])
+          CPPFLAGS="$CPPFLAGS $TCL_CPPFLAGS"
           cvc4_build_tcl_bindings=yes
-          AC_MSG_RESULT([tcl support will be built]);;
+          ;;
         ocaml)
-          cvc4_build_ocaml_bindings=yes
-          AC_MSG_RESULT([OCaml support will be built]);;
+          AC_MSG_RESULT([OCaml support will be built])
+          AC_ARG_VAR(TCL_CPPFLAGS, [flags to pass to compiler when building OCaml bindings])
+          CPPFLAGS="$CPPFLAGS $OCAML_CPPFLAGS"
+          AC_CHECK_HEADER([caml/misc.h], [cvc4_build_ocaml_bindings=yes], [binding_error=yes])
+          if test "$binding_error" = no; then
+            AC_ARG_VAR(OCAMLC, [OCaml compiler])
+            if test -z "$OCAMLC"; then
+              AC_CHECK_PROGS(OCAMLC, ocamlc, ocamlc, [])
+            else
+              AC_CHECK_PROG(OCAMLC, "$OCAMLC", "$OCAMLC", [])
+            fi
+            AC_ARG_VAR(OCAMLMKTOP, [OCaml runtime-maker])
+            if test -z "$OCAMLMKTOP"; then
+              AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, ocamlmktop, [])
+            else
+              AC_CHECK_PROG(OCAMLMKTOP, "$OCAMLMKTOP", "$OCAMLMKTOP", [])
+            fi
+            AC_ARG_VAR(OCAMLFIND, [OCaml-find binary])
+            if test -z "$OCAMLFIND"; then
+              AC_CHECK_PROGS(OCAMLFIND, ocamlfind, ocamlfind, [])
+            else
+              AC_CHECK_PROG(OCAMLFIND, "$OCAMLFIND", "$OCAMLFIND", [])
+            fi
+            AC_ARG_VAR(CAMLP4O, [camlp4o binary])
+            if test -z "$CAMLP4O"; then
+              AC_CHECK_PROGS(CAMLP4O, camlp4o, camlp4o, [])
+            else
+              AC_CHECK_PROG(CAMLP4O, "$CAMLP4O", "$CAMLP4O", [])
+            fi
+          fi
+          ;;
         *) AC_MSG_RESULT([unknown binding]); binding_error=yes;;
       esac
       if test "$binding_error" = yes; then

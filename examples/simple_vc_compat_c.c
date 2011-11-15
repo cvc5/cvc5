@@ -21,14 +21,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #include <cvc4/compat/c_interface.h>
+/* #include <cvc4/compat/c_interface.h> /* use this after CVC4 is properly installed */
 #include "bindings/compat/c/c_interface.h"
 
 int main() {
   VC vc = vc_createValidityChecker(NULL);
 
-  // Prove that for integers x and y:
-  //   x > 0 AND y > 0  =>  2x + y >= 3
+  /* Prove that for integers x and y:
+   *   x > 0 AND y > 0  =>  2x + y >= 3 */
 
   Type integer = vc_intType(vc);
 
