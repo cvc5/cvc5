@@ -31,11 +31,11 @@ class Pseudoboolean {
 public:
   Pseudoboolean(bool b);
   Pseudoboolean(int i);
-  Pseudoboolean(const Integer& i);
+  Pseudoboolean(const CVC4::Integer& i);
 
   operator bool() const;
   operator int() const;
-  operator Integer() const;
+  operator CVC4::Integer() const;
 
 };/* class Pseudoboolean */
 

@@ -18,17 +18,14 @@
 ###
 ### To run, use something like:
 ###
-###   PYTHONPATH=/dir/containing/CVC4.py:$PYTHONPATH \
-###   python \
-###     -Djava.library.path=/dir/containing/libcvc4bindings_python.so \
-###     SimpleVC
+###   ln -s ../builds/src/bindings/.libs/libcvc4bindings_python.so.0.0.0 _CVC4.so
+###   PYTHONPATH=../builds/src/bindings/python python SimpleVC.py
 ####
 
-from ctypes import cdll
-cdll.LoadLibrary('libcvc4.so')
-cdll.LoadLibrary('libcvc4parser.so')
-cdll.LoadLibrary('libcvc4bindings_python.so')
 import CVC4
+from CVC4 import ExprManager, SmtEngine, Integer, BoolExpr
+
+import sys
 
 def main():
   em = ExprManager()
@@ -43,20 +40,24 @@ def main():
   y = em.mkVar("y", integer)
   zero = em.mkConst(Integer(0))
 
-  x_positive = em.mkExpr(kind.GT, x, zero)
-  y_positive = em.mkExpr(kind.GT, y, zero)
+  x_positive = em.mkExpr(CVC4.GT, x, zero)
+  y_positive = em.mkExpr(CVC4.GT, y, zero)
 
   two = em.mkConst(Integer(2))
-  twox = em.mkExpr(kind.MULT, two, x)
-  twox_plus_y = em.mkExpr(kind.PLUS, twox, y)
+  twox = em.mkExpr(CVC4.MULT, two, x)
+  twox_plus_y = em.mkExpr(CVC4.PLUS, twox, y)
 
   three = em.mkConst(Integer(3))
-  twox_plus_y_geq_3 = em.mkExpr(kind.GEQ, twox_plus_y, three)
+  twox_plus_y_geq_3 = em.mkExpr(CVC4.GEQ, twox_plus_y, three)
 
-  formula = BoolExpr(em.mkExpr(kind.AND, x_positive, y_positive)).impExpr(BoolExpr(twox_plus_y_geq_3))
+  formula = BoolExpr(em.mkExpr(CVC4.AND, x_positive, y_positive)).impExpr(BoolExpr(twox_plus_y_geq_3))
 
-  print "Checking validity of formula " << formula << " with CVC4." << endl
-  print "CVC4 should report VALID." << endl
-  print "Result from CVC4 is: " << smt.query(formula) << endl
+  print "Checking validity of formula " + formula.toString() + " with CVC4."
+  print "CVC4 should report VALID."
+  print "Result from CVC4 is: " + smt.query(formula).toString()
 
   return 0
+
+if __name__ == '__main__':
+  sys.exit(main())
+

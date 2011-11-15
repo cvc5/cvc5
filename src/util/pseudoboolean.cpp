@@ -29,7 +29,7 @@ Pseudoboolean::Pseudoboolean(int i) {
   d_value = (i == 1);
 }
 
-Pseudoboolean::Pseudoboolean(const Integer& i) {
+Pseudoboolean::Pseudoboolean(const CVC4::Integer& i) {
   CheckArgument(i == 0 || i == 1, i);
   d_value = (i == 1);
 }
@@ -42,7 +42,7 @@ Pseudoboolean::operator int() const {
   return d_value ? 1 : 0;
 }
 
-Pseudoboolean::operator Integer() const {
+Pseudoboolean::operator CVC4::Integer() const {
   return d_value ? 1 : 0;
 }
 
