@@ -9,11 +9,13 @@ namespace CVC4 {
 
 %extend std::vector< CVC4::Datatype > {
   %ignore vector(size_type);
+  %ignore resize(size_type);
 };
 %template(vectorDatatype) std::vector< CVC4::Datatype >;
 
 %extend std::vector< CVC4::Datatype::Constructor > {
   %ignore vector(size_type);
+  %ignore resize(size_type);
 };
 %template(vectorDatatypeConstructor) std::vector< CVC4::Datatype::Constructor >;
 

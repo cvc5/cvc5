@@ -51,6 +51,7 @@ SimpleVCCompat.class: SimpleVCCompat.java
 
 EXTRA_DIST = \
 	SimpleVC.java \
+	SimpleVC.py \
 	SimpleVCCompat.java \
 	README
 
