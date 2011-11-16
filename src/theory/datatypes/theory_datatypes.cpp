@@ -854,7 +854,8 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
 }
 
 void TheoryDatatypes::addTermToLabels( Node t ) {
-  if( t.getKind() == VARIABLE || t.getKind() == APPLY_SELECTOR ) {
+  if( ( t.getKind() == VARIABLE || t.getKind() == APPLY_SELECTOR ) &&
+      t.getType().isDatatype() ) {
     Node tmp = find( t );
     if( tmp == t ) {
       //add to labels

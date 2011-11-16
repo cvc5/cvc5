@@ -143,9 +143,9 @@ else
       esac
       if test "$binding_error" = yes; then
         if test "$cvc4_check_for_bindings" = no; then
-          AC_MSG_ERROR([Language binding \`$binding' requested by user, but it cannot be built.])
+          AC_MSG_ERROR([Language binding \`$binding' requested by user, but it cannot be built (the preceding few lines should give an indication why this is).])
         else
-          AC_MSG_WARN([Language binding \`$binding' cannot be built.])
+          AC_MSG_WARN([Language binding \`$binding' cannot be built (the preceding few lines should give an indication why this is).])
         fi
       else
         CVC4_LANGUAGE_BINDINGS="${CVC4_LANGUAGE_BINDINGS:+$CVC4_LANGUAGE_BINDINGS }$binding"

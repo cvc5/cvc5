@@ -31,7 +31,8 @@ TESTS =	\
 	v1l20009.cvc \
 	v2l40025.cvc \
 	v3l60006.cvc \
-	v5l30058.cvc
+	v5l30058.cvc \
+	bug286.cvc
 
 
 EXTRA_DIST = $(TESTS)
