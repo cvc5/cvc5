@@ -120,7 +120,7 @@ MOSTLYCLEANFILES = \
 	$(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))) \
 	cvc4.jar
 
-java.lo: java.cpp
+libcvc4bindings_java_la-java.lo java.lo: java.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_CPPFLAGS) -o $@ $<
 cvc4.jar: java.cpp
 	$(AM_V_GEN) \
