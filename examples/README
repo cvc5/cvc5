@@ -9,4 +9,8 @@ directory.  With the default configuration, you'll find them in
 builds/examples in the top-level source directory (if you configured
 your own build directory, you'll find them there).
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Fri, 30 Sep 2011 16:19:46 -0400
+Many of the examples (python, ocaml, ruby, etc.) do not need to be
+compiled to run.  These are not compiled by "make"---see the comments
+in the files for ideas on how to run them.
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 16 Nov 2011 02:48:19 -0500

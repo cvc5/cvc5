@@ -105,7 +105,7 @@ else
           AC_MSG_RESULT([tcl support will be built])
           AC_ARG_VAR(TCL_CPPFLAGS, [flags to pass to compiler when building tcl bindings])
           CPPFLAGS="$CPPFLAGS $TCL_CPPFLAGS"
-          cvc4_build_tcl_bindings=yes
+          AC_CHECK_HEADER([tcl.h], [cvc4_build_tcl_bindings=yes], [binding_error=yes])
           ;;
         ocaml)
           AC_MSG_RESULT([OCaml support will be built])
