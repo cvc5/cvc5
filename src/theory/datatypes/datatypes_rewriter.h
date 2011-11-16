@@ -67,7 +67,7 @@ public:
       size_t selectorIndex = Datatype::indexOf(selectorExpr);
       size_t constructorIndex = Datatype::indexOf(constructorExpr);
       const Datatype& dt = Datatype::datatypeOf(constructorExpr);
-      const Datatype::Constructor& c = dt[constructorIndex];
+      const DatatypeConstructor& c = dt[constructorIndex];
       if(c.getNumArgs() > selectorIndex &&
          c[selectorIndex].getSelector() == selectorExpr) {
         Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "

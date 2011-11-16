@@ -46,10 +46,10 @@ public:
   void testEnumeration() {
     Datatype colors("colors");
 
-    Datatype::Constructor yellow("yellow", "is_yellow");
-    Datatype::Constructor blue("blue", "is_blue");
-    Datatype::Constructor green("green", "is_green");
-    Datatype::Constructor red("red", "is_red");
+    DatatypeConstructor yellow("yellow", "is_yellow");
+    DatatypeConstructor blue("blue", "is_blue");
+    DatatypeConstructor green("green", "is_green");
+    DatatypeConstructor red("red", "is_red");
 
     colors.addConstructor(yellow);
     colors.addConstructor(blue);
@@ -92,11 +92,11 @@ public:
   void testNat() {
     Datatype nat("nat");
 
-    Datatype::Constructor succ("succ", "is_succ");
-    succ.addArg("pred", Datatype::SelfType());
+    DatatypeConstructor succ("succ", "is_succ");
+    succ.addArg("pred", DatatypeSelfType());
     nat.addConstructor(succ);
 
-    Datatype::Constructor zero("zero", "is_zero");
+    DatatypeConstructor zero("zero", "is_zero");
     nat.addConstructor(zero);
 
     Debug("datatypes") << nat << std::endl;
@@ -130,12 +130,12 @@ public:
     Datatype tree("tree");
     Type integerType = d_em->integerType();
 
-    Datatype::Constructor node("node", "is_node");
-    node.addArg("left", Datatype::SelfType());
-    node.addArg("right", Datatype::SelfType());
+    DatatypeConstructor node("node", "is_node");
+    node.addArg("left", DatatypeSelfType());
+    node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
 
-    Datatype::Constructor leaf("leaf", "is_leaf");
+    DatatypeConstructor leaf("leaf", "is_leaf");
     leaf.addArg("leaf", integerType);
     tree.addConstructor(leaf);
 
@@ -170,12 +170,12 @@ public:
     Datatype list("list");
     Type integerType = d_em->integerType();
 
-    Datatype::Constructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons", "is_cons");
     cons.addArg("car", integerType);
-    cons.addArg("cdr", Datatype::SelfType());
+    cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    Datatype::Constructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil", "is_nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -204,12 +204,12 @@ public:
     Datatype list("list");
     Type realType = d_em->realType();
 
-    Datatype::Constructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons", "is_cons");
     cons.addArg("car", realType);
-    cons.addArg("cdr", Datatype::SelfType());
+    cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    Datatype::Constructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil", "is_nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -238,12 +238,12 @@ public:
     Datatype list("list");
     Type booleanType = d_em->booleanType();
 
-    Datatype::Constructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons", "is_cons");
     cons.addArg("car", booleanType);
-    cons.addArg("cdr", Datatype::SelfType());
+    cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    Datatype::Constructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil", "is_nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -278,24 +278,24 @@ public:
      *   END;
      */
     Datatype tree("tree");
-    Datatype::Constructor node("node", "is_node");
-    node.addArg("left", Datatype::SelfType());
-    node.addArg("right", Datatype::SelfType());
+    DatatypeConstructor node("node", "is_node");
+    node.addArg("left", DatatypeSelfType());
+    node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
 
-    Datatype::Constructor leaf("leaf", "is_leaf");
-    leaf.addArg("leaf", Datatype::UnresolvedType("list"));
+    DatatypeConstructor leaf("leaf", "is_leaf");
+    leaf.addArg("leaf", DatatypeUnresolvedType("list"));
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
 
     Datatype list("list");
-    Datatype::Constructor cons("cons", "is_cons");
-    cons.addArg("car", Datatype::UnresolvedType("tree"));
-    cons.addArg("cdr", Datatype::SelfType());
+    DatatypeConstructor cons("cons", "is_cons");
+    cons.addArg("car", DatatypeUnresolvedType("tree"));
+    cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    Datatype::Constructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil", "is_nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -351,7 +351,7 @@ public:
 
     // add another constructor to list datatype resulting in an
     // "otherNil-list"
-    Datatype::Constructor otherNil("otherNil", "is_otherNil");
+    DatatypeConstructor otherNil("otherNil", "is_otherNil");
     dts[1].addConstructor(otherNil);
 
     // remake the types
@@ -401,9 +401,9 @@ public:
   void testNotSoWellFounded() {
     Datatype tree("tree");
 
-    Datatype::Constructor node("node", "is_node");
-    node.addArg("left", Datatype::SelfType());
-    node.addArg("right", Datatype::SelfType());
+    DatatypeConstructor node("node", "is_node");
+    node.addArg("left", DatatypeSelfType());
+    node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
 
     Debug("datatypes") << tree << std::endl;

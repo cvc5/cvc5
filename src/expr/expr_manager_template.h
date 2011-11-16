@@ -381,7 +381,7 @@ public:
   /**
    * Make a type representing a constructor with the given parameterization.
    */
-  ConstructorType mkConstructorType(const Datatype::Constructor& constructor, Type range) const;
+  ConstructorType mkConstructorType(const DatatypeConstructor& constructor, Type range) const;
 
   /** Make a type representing a selector with the given parameterization. */
   SelectorType mkSelectorType(Type domain, Type range) const;

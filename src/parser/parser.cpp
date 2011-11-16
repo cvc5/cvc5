@@ -286,7 +286,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
           j_end = dt.end();
         j != j_end;
         ++j) {
-      const Datatype::Constructor& ctor = *j;
+      const DatatypeConstructor& ctor = *j;
       Expr::printtypes::Scope pts(Debug("parser-idt"), true);
       Expr constructor = ctor.getConstructor();
       Debug("parser-idt") << "+ define " << constructor << std::endl;
@@ -302,7 +302,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
         throw ParserException(testerName + " already declared");
       }
       defineVar(testerName, tester);
-      for(Datatype::Constructor::const_iterator k = ctor.begin(),
+      for(DatatypeConstructor::const_iterator k = ctor.begin(),
             k_end = ctor.end();
           k != k_end;
           ++k) {

@@ -32,7 +32,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
-const Datatype::Constructor& TheoryDatatypes::getConstructor( Node cons )
+const DatatypeConstructor& TheoryDatatypes::getConstructor( Node cons )
 {
   Expr consExpr = cons.toExpr();
   return Datatype::datatypeOf(consExpr)[ Datatype::indexOf(consExpr) ];
@@ -272,7 +272,7 @@ void TheoryDatatypes::check(Effort e) {
             }
           }
           if( !cons.isNull() ) {
-            const Datatype::Constructor& cn = getConstructor( cons );
+            const DatatypeConstructor& cn = getConstructor( cons );
             Debug("datatypes-split") << "*************Split for possible constructor " << cons << endl;
             Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( cn.getTester() ), (*i).first );
             NodeBuilder<> nb(kind::OR);
@@ -464,7 +464,7 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
     vector< Node > selectorVals;
     selectorVals.push_back( cons );
     bool foundSel = false;
-    const Datatype::Constructor& cn = getConstructor( cons );
+    const DatatypeConstructor& cn = getConstructor( cons );
     for( unsigned int i=0; i<cn.getNumArgs(); i++ ) {
       Node s = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( cn[i].getSelector() ), te );
       if( d_selectors.find( s ) != d_selectors.end() ) {
@@ -480,7 +480,7 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
       if( val.getType()!=te.getType() ){ //IDT-param
         Assert( Datatype::datatypeOf( cons.toExpr() ).isParametric() );
         Debug("datatypes-gt") << "Inst: ambiguous type for " << cons << ", ascribe to " << te.getType() << std::endl;
-        const Datatype::Constructor& dtc = Datatype::datatypeOf(cons.toExpr())[Datatype::indexOf(cons.toExpr())];
+        const DatatypeConstructor& dtc = Datatype::datatypeOf(cons.toExpr())[Datatype::indexOf(cons.toExpr())];
         Debug("datatypes-gt") << "constructor is " << dtc << std::endl;
         Type tspec = dtc.getSpecializedConstructorType(te.getType().toType());
         Debug("datatypes-gt") << "tpec is " << tspec << std::endl;
@@ -537,7 +537,7 @@ bool TheoryDatatypes::collapseSelector( Node t ) {
     Node sel = t.getOperator();
     TypeNode selType = sel.getType();
     Node cons = getConstructorForSelector( sel );
-    const Datatype::Constructor& cn = getConstructor( cons );
+    const DatatypeConstructor& cn = getConstructor( cons );
     Node tmp = find( t[0] );
     Node retNode = t;
     if( tmp.getKind() == APPLY_CONSTRUCTOR ) {

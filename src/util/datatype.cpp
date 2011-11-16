@@ -95,6 +95,8 @@ void Datatype::resolve(ExprManager* em,
                 "Datatype::resolve(): resolutions doesn't contain me!");
   AssertArgument(placeholders.size() == replacements.size(), placeholders,
                 "placeholders and replacements must be the same size");
+  AssertArgument(paramTypes.size() == paramReplacements.size(), paramTypes,
+                "paramTypes and paramReplacements must be the same size");
   CheckArgument(getNumConstructors() > 0, *this, "cannot resolve a Datatype that has no constructors");
   DatatypeType self = (*resolutions.find(d_name)).second;
   AssertArgument(&self.getDatatype() == this, "Datatype::resolve(): resolutions doesn't contain me!");
@@ -110,7 +112,7 @@ void Datatype::resolve(ExprManager* em,
   Assert(index == getNumConstructors());
 }
 
-void Datatype::addConstructor(const Constructor& c) {
+void Datatype::addConstructor(const DatatypeConstructor& c) {
   CheckArgument(!d_resolved, this,
                 "cannot add a constructor to a finalized Datatype");
   d_constructors.push_back(c);
@@ -233,7 +235,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(AssertionException) {
         i != i_end;
         ++i) {
       if( groundTerm.isNull() ){
-        Constructor::const_iterator j = (*i).begin(), j_end = (*i).end();
+        DatatypeConstructor::const_iterator j = (*i).begin(), j_end = (*i).end();
         for(; j != j_end; ++j) {
           SelectorType stype((*j).getSelector().getType());
           if(stype.getDomain() == stype.getRangeType()) {
@@ -245,7 +247,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(AssertionException) {
 
         if(j == j_end && (*i).isWellFounded()) {
           groundTerm = (*i).mkGroundTerm( t );
-          // Constructor::mkGroundTerm() doesn't ever return null when
+          // DatatypeConstructor::mkGroundTerm() doesn't ever return null when
           // called from the outside.  But in recursive invocations, it
           // can: say you have dt = a(one:dt) | b(two:INT), and you ask
           // the "a" constructor for a ground term.  It asks "dt" for a
@@ -253,7 +255,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(AssertionException) {
           // ground term!  Thus, even though "a" is a well-founded
           // constructor, it cannot construct a ground-term by itself.  We
           // have to skip past it, and we do that with a
-          // RecursionBreaker<> in Constructor::mkGroundTerm().  In the
+          // RecursionBreaker<> in DatatypeConstructor::mkGroundTerm().  In the
           // case of recursion, it returns null.
           if(!groundTerm.isNull()) {
             // we found a ground-term-constructing constructor!
@@ -323,7 +325,7 @@ bool Datatype::operator==(const Datatype& other) const throw() {
     if(!(*i).d_tester.isNull() && (*i).d_tester != (*j).d_tester) {
       return false;
     }
-    for(Constructor::const_iterator k = (*i).begin(), l = (*j).begin(); k != (*i).end(); ++k, ++l) {
+    for(DatatypeConstructor::const_iterator k = (*i).begin(), l = (*j).begin(); k != (*i).end(); ++k, ++l) {
       Assert(l != (*j).end());
       if((*k).getName() != (*l).getName()) {
         return false;
@@ -359,12 +361,12 @@ bool Datatype::operator==(const Datatype& other) const throw() {
   return true;
 }
 
-const Datatype::Constructor& Datatype::operator[](size_t index) const {
+const DatatypeConstructor& Datatype::operator[](size_t index) const {
   CheckArgument(index < getNumConstructors(), index, "index out of bounds");
   return d_constructors[index];
 }
 
-const Datatype::Constructor& Datatype::operator[](std::string name) const {
+const DatatypeConstructor& Datatype::operator[](std::string name) const {
   for(const_iterator i = begin(); i != end(); ++i) {
     if((*i).getName() == name) {
       return *i;
@@ -377,12 +379,12 @@ Expr Datatype::getConstructor(std::string name) const {
   return (*this)[name].getConstructor();
 }
 
-void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
-                                    const std::map<std::string, DatatypeType>& resolutions,
-                                    const std::vector<Type>& placeholders,
-                                    const std::vector<Type>& replacements,
-                                    const std::vector< SortConstructorType >& paramTypes,
-                                    const std::vector< DatatypeType >& paramReplacements)
+void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
+                                  const std::map<std::string, DatatypeType>& resolutions,
+                                  const std::vector<Type>& placeholders,
+                                  const std::vector<Type>& replacements,
+                                  const std::vector< SortConstructorType >& paramTypes,
+                                  const std::vector< DatatypeType >& paramReplacements)
   throw(AssertionException, DatatypeResolutionException) {
 
   AssertArgument(em != NULL, "cannot resolve a Datatype with a NULL expression manager");
@@ -428,7 +430,7 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
 
   Assert(index == getNumArgs());
 
-  // Set constructor/tester last, since Constructor::isResolved()
+  // Set constructor/tester last, since DatatypeConstructor::isResolved()
   // returns true when d_tester is not the null Expr.  If something
   // fails above, we want Constuctor::isResolved() to remain "false".
   // Further, mkConstructorType() iterates over the selectors, so
@@ -442,7 +444,7 @@ void Datatype::Constructor::resolve(ExprManager* em, DatatypeType self,
   }
 }
 
-Type Datatype::Constructor::doParametricSubstitution( Type range,
+Type DatatypeConstructor::doParametricSubstitution( Type range,
                                   const std::vector< SortConstructorType >& paramTypes,
                                   const std::vector< DatatypeType >& paramReplacements ) {
   TypeNode typn = TypeNode::fromType( range );
@@ -455,23 +457,23 @@ Type Datatype::Constructor::doParametricSubstitution( Type range,
       origChildren.push_back( (*i).toType() );
       children.push_back( doParametricSubstitution( (*i).toType(), paramTypes, paramReplacements ) );
     }
-    for( int i=0; i<(int)paramTypes.size(); i++ ) {
-      if( paramTypes[i].getArity()==origChildren.size() ) {
+    for( unsigned i = 0; i < paramTypes.size(); ++i ) {
+      if( paramTypes[i].getArity() == origChildren.size() ) {
         Type tn = paramTypes[i].instantiate( origChildren );
-        if( range==tn ) {
+        if( range == tn ) {
           return paramReplacements[i].instantiate( children );
         }
       }
     }
     NodeBuilder<> nb(typn.getKind());
-    for( int i=0; i<(int)children.size(); i++ ) {
+    for( unsigned i = 0; i < children.size(); ++i ) {
       nb << TypeNode::fromType( children[i] );
     }
     return nb.constructTypeNode().toType();
   }
 }
 
-Datatype::Constructor::Constructor(std::string name) :
+DatatypeConstructor::DatatypeConstructor(std::string name) :
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the tester name away inside the constructor name until
@@ -482,7 +484,7 @@ Datatype::Constructor::Constructor(std::string name) :
   CheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
 }
 
-Datatype::Constructor::Constructor(std::string name, std::string tester) :
+DatatypeConstructor::DatatypeConstructor(std::string name, std::string tester) :
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the tester name away inside the constructor name until
@@ -494,7 +496,7 @@ Datatype::Constructor::Constructor(std::string name, std::string tester) :
   CheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
 }
 
-void Datatype::Constructor::addArg(std::string selectorName, Type selectorType) {
+void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the selector type away inside a var until resolution (when we can
@@ -503,30 +505,30 @@ void Datatype::Constructor::addArg(std::string selectorName, Type selectorType) 
   CheckArgument(!selectorType.isNull(), selectorType, "cannot add a null selector type");
   Expr type = selectorType.getExprManager()->mkVar(selectorType);
   Debug("datatypes") << type << endl;
-  d_args.push_back(Arg(selectorName, type));
+  d_args.push_back(DatatypeConstructorArg(selectorName, type));
 }
 
-void Datatype::Constructor::addArg(std::string selectorName, Datatype::UnresolvedType selectorType) {
+void DatatypeConstructor::addArg(std::string selectorName, DatatypeUnresolvedType selectorType) {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the selector type away after a NUL in the name string until
   // resolution (when we can create the proper selector type)
   CheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
   CheckArgument(selectorType.getName() != "", selectorType, "cannot add a null selector type");
-  d_args.push_back(Arg(selectorName + '\0' + selectorType.getName(), Expr()));
+  d_args.push_back(DatatypeConstructorArg(selectorName + '\0' + selectorType.getName(), Expr()));
 }
 
-void Datatype::Constructor::addArg(std::string selectorName, Datatype::SelfType) {
+void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we mark
   // the name string with a NUL to indicate that we have a
   // self-selecting selector until resolution (when we can create the
   // proper selector type)
   CheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
-  d_args.push_back(Arg(selectorName + '\0', Expr()));
+  d_args.push_back(DatatypeConstructorArg(selectorName + '\0', Expr()));
 }
 
-std::string Datatype::Constructor::getName() const throw() {
+std::string DatatypeConstructor::getName() const throw() {
   string name = d_name;
   if(!isResolved()) {
     name.resize(name.find('\0'));
@@ -534,16 +536,16 @@ std::string Datatype::Constructor::getName() const throw() {
   return name;
 }
 
-Expr Datatype::Constructor::getConstructor() const {
+Expr DatatypeConstructor::getConstructor() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_constructor;
 }
 
-Type Datatype::Constructor::getSpecializedConstructorType(Type returnType) const {
+Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   CheckArgument(dt.isParametric(), this, "this datatype constructor is not yet resolved");
-  DatatypeType dtt = DatatypeType(dt.d_self);
+  DatatypeType dtt = dt.getDatatypeType();
   Matcher m(dtt);
   m.doMatching( TypeNode::fromType(dtt), TypeNode::fromType(returnType) );
   vector<Type> subst;
@@ -552,12 +554,12 @@ Type Datatype::Constructor::getSpecializedConstructorType(Type returnType) const
   return d_constructor.getType().substitute(params, subst);
 }
 
-Expr Datatype::Constructor::getTester() const {
+Expr DatatypeConstructor::getTester() const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_tester;
 }
 
-Cardinality Datatype::Constructor::getCardinality() const throw(AssertionException) {
+Cardinality DatatypeConstructor::getCardinality() const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
   Cardinality c = 1;
@@ -569,7 +571,7 @@ Cardinality Datatype::Constructor::getCardinality() const throw(AssertionExcepti
   return c;
 }
 
-bool Datatype::Constructor::isFinite() const throw(AssertionException) {
+bool DatatypeConstructor::isFinite() const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
   // we're using some internals, so we have to set up this library context
@@ -595,7 +597,7 @@ bool Datatype::Constructor::isFinite() const throw(AssertionException) {
   return true;
 }
 
-bool Datatype::Constructor::isWellFounded() const throw(AssertionException) {
+bool DatatypeConstructor::isWellFounded() const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
   // we're using some internals, so we have to set up this library context
@@ -608,7 +610,7 @@ bool Datatype::Constructor::isWellFounded() const throw(AssertionException) {
     return self.getAttribute(DatatypeWellFoundedAttr());
   }
 
-  RecursionBreaker<const Datatype::Constructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
+  RecursionBreaker<const DatatypeConstructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
   if(breaker.isRecursion()) {
     // This *path* is cyclic, sso may not be well-founded.  The
     // constructor itself might still be well-founded, though (we'll
@@ -639,7 +641,7 @@ bool Datatype::Constructor::isWellFounded() const throw(AssertionException) {
   return true;
 }
 
-Expr Datatype::Constructor::mkGroundTerm( Type t ) const throw(AssertionException) {
+Expr DatatypeConstructor::mkGroundTerm( Type t ) const throw(AssertionException) {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
 
   // we're using some internals, so we have to set up this library context
@@ -653,7 +655,7 @@ Expr Datatype::Constructor::mkGroundTerm( Type t ) const throw(AssertionExceptio
     return groundTerm;
   }
 
-  RecursionBreaker<const Datatype::Constructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
+  RecursionBreaker<const DatatypeConstructor*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
   if(breaker.isRecursion()) {
     // Recursive path, we should skip and go to the next constructor;
     // see lengthy comments in Datatype::mkGroundTerm().
@@ -693,12 +695,12 @@ Expr Datatype::Constructor::mkGroundTerm( Type t ) const throw(AssertionExceptio
   return groundTerm;
 }
 
-const Datatype::Constructor::Arg& Datatype::Constructor::operator[](size_t index) const {
+const DatatypeConstructorArg& DatatypeConstructor::operator[](size_t index) const {
   CheckArgument(index < getNumArgs(), index, "index out of bounds");
   return d_args[index];
 }
 
-const Datatype::Constructor::Arg& Datatype::Constructor::operator[](std::string name) const {
+const DatatypeConstructorArg& DatatypeConstructor::operator[](std::string name) const {
   for(const_iterator i = begin(); i != end(); ++i) {
     if((*i).getName() == name) {
       return *i;
@@ -707,18 +709,18 @@ const Datatype::Constructor::Arg& Datatype::Constructor::operator[](std::string 
   CheckArgument(false, name, "No such arg `%s' of constructor `%s'", name.c_str(), d_name.c_str());
 }
 
-Expr Datatype::Constructor::getSelector(std::string name) const {
+Expr DatatypeConstructor::getSelector(std::string name) const {
   return (*this)[name].getSelector();
 }
 
-Datatype::Constructor::Arg::Arg(std::string name, Expr selector) :
+DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
   d_name(name),
   d_selector(selector),
   d_resolved(false) {
   CheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
 }
 
-std::string Datatype::Constructor::Arg::getName() const throw() {
+std::string DatatypeConstructorArg::getName() const throw() {
   string name = d_name;
   const size_t nul = name.find('\0');
   if(nul != string::npos) {
@@ -727,28 +729,28 @@ std::string Datatype::Constructor::Arg::getName() const throw() {
   return name;
 }
 
-Expr Datatype::Constructor::Arg::getSelector() const {
+Expr DatatypeConstructorArg::getSelector() const {
   CheckArgument(isResolved(), this, "cannot get a selector for an unresolved datatype constructor");
   return d_selector;
 }
 
-Expr Datatype::Constructor::Arg::getConstructor() const {
+Expr DatatypeConstructorArg::getConstructor() const {
   CheckArgument(isResolved(), this,
                 "cannot get a associated constructor for argument of an unresolved datatype constructor");
   return d_constructor;
 }
 
-Type Datatype::Constructor::Arg::getSelectorType() const {
+Type DatatypeConstructorArg::getType() const {
   return getSelector().getType();
 }
 
-bool Datatype::Constructor::Arg::isUnresolvedSelf() const throw() {
+bool DatatypeConstructorArg::isUnresolvedSelf() const throw() {
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
 static const int s_printDatatypeNamesOnly = std::ios_base::xalloc();
 
-std::string Datatype::Constructor::Arg::getSelectorTypeName() const {
+std::string DatatypeConstructorArg::getTypeName() const {
   Type t;
   if(isResolved()) {
     t = SelectorType(d_selector.getType()).getRangeType();
@@ -809,13 +811,13 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Datatype::Constructor& ctor) {
+std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
   Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
 
   os << ctor.getName();
 
-  Datatype::Constructor::const_iterator i = ctor.begin(), i_end = ctor.end();
+  DatatypeConstructor::const_iterator i = ctor.begin(), i_end = ctor.end();
   if(i != i_end) {
     os << "(";
     do {
@@ -830,11 +832,11 @@ std::ostream& operator<<(std::ostream& os, const Datatype::Constructor& ctor) {
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Datatype::Constructor::Arg& arg) {
+std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
   // can only output datatypes in the CVC4 native language
   Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
 
-  os << arg.getName() << ": " << arg.getSelectorTypeName();
+  os << arg.getName() << ": " << arg.getTypeName();
 
   return os;
 }

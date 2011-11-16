@@ -1079,11 +1079,11 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
     AlwaysAssert(constructors[i].size() == selectors[i].size());
     AlwaysAssert(constructors[i].size() == types[i].size());
     for(unsigned j = 0; j < constructors[i].size(); ++j) {
-      CVC4::Datatype::Constructor ctor(constructors[i][j]);
+      CVC4::DatatypeConstructor ctor(constructors[i][j]);
       AlwaysAssert(selectors[i][j].size() == types[i][j].size());
       for(unsigned k = 0; k < selectors[i][j].size(); ++k) {
         if(types[i][j][k].getType().isString()) {
-          ctor.addArg(selectors[i][j][k], CVC4::Datatype::UnresolvedType(types[i][j][k].getConst<string>()));
+          ctor.addArg(selectors[i][j][k], CVC4::DatatypeUnresolvedType(types[i][j][k].getConst<string>()));
         } else {
           ctor.addArg(selectors[i][j][k], exprToType(types[i][j][k]));
         }
@@ -1106,7 +1106,7 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
       // For each constructor, register its name and its selectors names.
       AlwaysAssert(d_constructors.find((*j).getName()) == d_constructors.end(), "cannot have two constructors with the same name in a ValidityChecker");
       d_constructors[(*j).getName()] = &dt;
-      for(CVC4::Datatype::Constructor::const_iterator k = (*j).begin(); k != (*j).end(); ++k) {
+      for(CVC4::DatatypeConstructor::const_iterator k = (*j).begin(); k != (*j).end(); ++k) {
         AlwaysAssert(d_selectors.find((*k).getName()) == d_selectors.end(), "cannot have two selectors with the same name in a ValidityChecker");
         d_selectors[(*k).getName()] = make_pair(&dt, (*j).getName());
       }
@@ -1769,7 +1769,7 @@ Expr ValidityChecker::datatypeConsExpr(const std::string& constructor, const std
   ConstructorMap::const_iterator i = d_constructors.find(constructor);
   AlwaysAssert(i != d_constructors.end(), "no such constructor");
   const CVC4::Datatype& dt = *(*i).second;
-  const CVC4::Datatype::Constructor& ctor = dt[constructor];
+  const CVC4::DatatypeConstructor& ctor = dt[constructor];
   AlwaysAssert(ctor.getNumArgs() == args.size(), "arity mismatch in constructor application");
   return d_em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, ctor.getConstructor(), vector<CVC4::Expr>(args.begin(), args.end()));
 }
@@ -1779,7 +1779,7 @@ Expr ValidityChecker::datatypeSelExpr(const std::string& selector, const Expr& a
   AlwaysAssert(i != d_selectors.end(), "no such selector");
   const CVC4::Datatype& dt = *(*i).second.first;
   string constructor = (*i).second.second;
-  const CVC4::Datatype::Constructor& ctor = dt[constructor];
+  const CVC4::DatatypeConstructor& ctor = dt[constructor];
   return d_em->mkExpr(CVC4::kind::APPLY_SELECTOR, ctor.getSelector(selector), arg);
 }
 
@@ -1787,7 +1787,7 @@ Expr ValidityChecker::datatypeTestExpr(const std::string& constructor, const Exp
   ConstructorMap::const_iterator i = d_constructors.find(constructor);
   AlwaysAssert(i != d_constructors.end(), "no such constructor");
   const CVC4::Datatype& dt = *(*i).second;
-  const CVC4::Datatype::Constructor& ctor = dt[constructor];
+  const CVC4::DatatypeConstructor& ctor = dt[constructor];
   return d_em->mkExpr(CVC4::kind::APPLY_TESTER, ctor.getTester(), arg);
 }
 

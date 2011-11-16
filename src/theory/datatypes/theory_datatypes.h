@@ -65,7 +65,7 @@ private:
   /** has seen cycle */
   context::CDO< bool > d_hasSeenCycle;
   /** get the constructor for the node */
-  const Datatype::Constructor& getConstructor( Node cons );
+  const DatatypeConstructor& getConstructor( Node cons );
   /** get the constructor for the selector */
   Node getConstructorForSelector( Node sel );
 

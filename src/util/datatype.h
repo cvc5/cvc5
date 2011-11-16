@@ -53,6 +53,259 @@ public:
 };/* class DatatypeResolutionException */
 
 /**
+ * A holder type (used in calls to DatatypeConstructor::addArg())
+ * to allow a Datatype to refer to itself.  Self-typed fields of
+ * Datatypes will be properly typed when a Type is created for the
+ * Datatype by the ExprManager (which calls Datatype::resolve()).
+ */
+class CVC4_PUBLIC DatatypeSelfType {
+};/* class DatatypeSelfType */
+
+/**
+ * An unresolved type (used in calls to
+ * DatatypeConstructor::addArg()) to allow a Datatype to refer to
+ * itself or to other mutually-recursive Datatypes.  Unresolved-type
+ * fields of Datatypes will be properly typed when a Type is created
+ * for the Datatype by the ExprManager (which calls
+ * Datatype::resolve()).
+ */
+class CVC4_PUBLIC DatatypeUnresolvedType {
+  std::string d_name;
+public:
+  inline DatatypeUnresolvedType(std::string name);
+  inline std::string getName() const throw();
+};/* class DatatypeUnresolvedType */
+
+/**
+ * A Datatype constructor argument (i.e., a Datatype field).
+ */
+class CVC4_PUBLIC DatatypeConstructorArg {
+
+  std::string d_name;
+  Expr d_selector;
+  /** the constructor associated with this selector */
+  Expr d_constructor;
+  bool d_resolved;
+
+  DatatypeConstructorArg(std::string name, Expr selector);
+  friend class DatatypeConstructor;
+  friend class Datatype;
+
+  bool isUnresolvedSelf() const throw();
+
+public:
+
+  /** Get the name of this constructor argument. */
+  std::string getName() const throw();
+
+  /**
+   * Get the selector for this constructor argument; this call is
+   * only permitted after resolution.
+   */
+  Expr getSelector() const;
+
+  /**
+   * Get the associated constructor for this constructor argument;
+   * this call is only permitted after resolution.
+   */
+  Expr getConstructor() const;
+
+  /**
+   * Get the type of the selector for this constructor argument;
+   * this call is only permitted after resolution.
+   */
+  Type getType() const;
+
+  /**
+   * Get the name of the type of this constructor argument
+   * (Datatype field).  Can be used for not-yet-resolved Datatypes
+   * (in which case the name of the unresolved type, or "[self]"
+   * for a self-referential type is returned).
+   */
+  std::string getTypeName() const;
+
+  /**
+   * Returns true iff this constructor argument has been resolved.
+   */
+  bool isResolved() const throw();
+
+};/* class DatatypeConstructorArg */
+
+/**
+ * A constructor for a Datatype.
+ */
+class CVC4_PUBLIC DatatypeConstructor {
+public:
+
+  /** The type for iterators over constructor arguments. */
+  typedef std::vector<DatatypeConstructorArg>::iterator iterator;
+  /** The (const) type for iterators over constructor arguments. */
+  typedef std::vector<DatatypeConstructorArg>::const_iterator const_iterator;
+
+private:
+
+  std::string d_name;
+  Expr d_constructor;
+  Expr d_tester;
+  std::vector<DatatypeConstructorArg> d_args;
+
+  void resolve(ExprManager* em, DatatypeType self,
+               const std::map<std::string, DatatypeType>& resolutions,
+               const std::vector<Type>& placeholders,
+               const std::vector<Type>& replacements,
+               const std::vector< SortConstructorType >& paramTypes,
+               const std::vector< DatatypeType >& paramReplacements)
+    throw(AssertionException, DatatypeResolutionException);
+  friend class Datatype;
+
+  /** @FIXME document this! */
+  Type doParametricSubstitution(Type range,
+                                const std::vector< SortConstructorType >& paramTypes,
+                                const std::vector< DatatypeType >& paramReplacements);
+public:
+  /**
+   * Create a new Datatype constructor with the given name for the
+   * constructor and the same name (prefixed with "is_") for the
+   * tester.  The actual constructor and tester (meaning, the Exprs
+   * representing operators for these entities) aren't created until
+   * resolution time.
+   */
+  explicit DatatypeConstructor(std::string name);
+
+  /**
+   * Create a new Datatype constructor with the given name for the
+   * constructor and the given name for the tester.  The actual
+   * constructor and tester aren't created until resolution time.
+   */
+  DatatypeConstructor(std::string name, std::string tester);
+
+  /**
+   * Add an argument (i.e., a data field) of the given name and type
+   * to this Datatype constructor.  Selector names need not be unique;
+   * they are for convenience and pretty-printing only.
+   */
+  void addArg(std::string selectorName, Type selectorType);
+
+  /**
+   * Add an argument (i.e., a data field) of the given name to this
+   * Datatype constructor that refers to an as-yet-unresolved
+   * Datatype (which may be mutually-recursive).  Selector names need
+   * not be unique; they are for convenience and pretty-printing only.
+   */
+  void addArg(std::string selectorName, DatatypeUnresolvedType selectorType);
+
+  /**
+   * Add a self-referential (i.e., a data field) of the given name
+   * to this Datatype constructor that refers to the enclosing
+   * Datatype.  For example, using the familiar "nat" Datatype, to
+   * create the "pred" field for "succ" constructor, one uses
+   * succ::addArg("pred", DatatypeSelfType())---the actual Type
+   * cannot be passed because the Datatype is still under
+   * construction.  Selector names need not be unique; they are for
+   * convenience and pretty-printing only.
+   *
+   * This is a special case of
+   * DatatypeConstructor::addArg(std::string, DatatypeUnresolvedType).
+   */
+  void addArg(std::string selectorName, DatatypeSelfType);
+
+  /** Get the name of this Datatype constructor. */
+  std::string getName() const throw();
+
+  /**
+   * Get the constructor operator of this Datatype constructor.  The
+   * Datatype must be resolved.
+   */
+  Expr getConstructor() const;
+
+  /**
+   * Get the tester operator of this Datatype constructor.  The
+   * Datatype must be resolved.
+   */
+  Expr getTester() const;
+
+  /**
+   * Get the number of arguments (so far) of this Datatype constructor.
+   */
+  inline size_t getNumArgs() const throw();
+
+  /**
+   * Get the specialized constructor type for a parametric
+   * constructor; this call is only permitted after resolution.
+   * Given a (concrete) returnType, the constructor's concrete
+   * type in this parametric datatype is returned.
+   *
+   * For instance, if the datatype is list[T], with constructor
+   * "cons[T]" of type "T -> list[T] -> list[T]", then calling
+   * this function with "list[int]" will return the concrete
+   * "cons" constructor type for lists of int---namely,
+   * "int -> list[int] -> list[int]".
+   */
+  Type getSpecializedConstructorType(Type returnType) const;
+
+  /**
+   * Return the cardinality of this constructor (the product of the
+   * cardinalities of its arguments).
+   */
+  Cardinality getCardinality() const throw(AssertionException);
+
+  /**
+   * Return true iff this constructor is finite (it is nullary or
+   * each of its argument types are finite).  This function can
+   * only be called for resolved constructors.
+   */
+  bool isFinite() const throw(AssertionException);
+
+  /**
+   * Return true iff this constructor is well-founded (there exist
+   * ground terms).  The constructor must be resolved or an
+   * exception is thrown.
+   */
+  bool isWellFounded() const throw(AssertionException);
+
+  /**
+   * Construct and return a ground term of this constructor.  The
+   * constructor must be both resolved and well-founded, or else an
+   * exception is thrown.
+   */
+  Expr mkGroundTerm( Type t ) const throw(AssertionException);
+
+  /**
+   * Returns true iff this Datatype constructor has already been
+   * resolved.
+   */
+  inline bool isResolved() const throw();
+
+  /** Get the beginning iterator over DatatypeConstructor args. */
+  inline iterator begin() throw();
+  /** Get the ending iterator over DatatypeConstructor args. */
+  inline iterator end() throw();
+  /** Get the beginning const_iterator over DatatypeConstructor args. */
+  inline const_iterator begin() const throw();
+  /** Get the ending const_iterator over DatatypeConstructor args. */
+  inline const_iterator end() const throw();
+
+  /** Get the ith DatatypeConstructor arg. */
+  const DatatypeConstructorArg& operator[](size_t index) const;
+
+  /**
+   * Get the DatatypeConstructor arg named.  This is a linear search
+   * through the arguments, so in the case of multiple,
+   * similarly-named arguments, the first is returned.
+   */
+  const DatatypeConstructorArg& operator[](std::string name) const;
+
+  /**
+   * Get the selector named.  This is a linear search
+   * through the arguments, so in the case of multiple,
+   * similarly-named arguments, the selector for the first
+   * is returned.
+   */
+  Expr getSelector(std::string name) const;
+
+};/* class DatatypeConstructor */
+
+/**
  * The representation of an inductive datatype.
  *
  * This is far more complicated than it first seems.  Consider this
@@ -66,7 +319,7 @@ public:
  * You cannot define "nat" until you have a Type for it, but you
  * cannot have a Type for it until you fill in the type of the "pred"
  * selector, which needs the Type.  So we have a chicken-and-egg
- * problem.  It's even more complicated when we have mutual recusion
+ * problem.  It's even more complicated when we have mutual recursion
  * between datatypes, since the CVC presentation language does not
  * require forward-declarations.  Here, we define trees of lists that
  * contain trees of lists (etc):
@@ -94,8 +347,9 @@ public:
  * on the task of generating its own selectors and testers, for
  * instance.  That means that, after reifying the Datatype with the
  * ExprManager, the parser needs to go through the (now-resolved)
- * Datatype and request ; see src/parser/parser.cpp for how this is
- * done.  For API usage ideas, see test/unit/util/datatype_black.h.
+ * Datatype and request the constructor, selector, and tester terms.
+ * See src/parser/parser.cpp for how this is done.  For API usage
+ * ideas, see test/unit/util/datatype_black.h.
  */
 class CVC4_PUBLIC Datatype {
 public:
@@ -111,255 +365,15 @@ public:
    */
   static size_t indexOf(Expr item) CVC4_PUBLIC;
 
-  /**
-   * A holder type (used in calls to Datatype::Constructor::addArg())
-   * to allow a Datatype to refer to itself.  Self-typed fields of
-   * Datatypes will be properly typed when a Type is created for the
-   * Datatype by the ExprManager (which calls Datatype::resolve()).
-   */
-  class CVC4_PUBLIC SelfType {
-  };/* class Datatype::SelfType */
-
-  /**
-   * An unresolved type (used in calls to
-   * Datatype::Constructor::addArg()) to allow a Datatype to refer to
-   * itself or to other mutually-recursive Datatypes.  Unresolved-type
-   * fields of Datatypes will be properly typed when a Type is created
-   * for the Datatype by the ExprManager (which calls
-   * Datatype::resolve()).
-   */
-  class CVC4_PUBLIC UnresolvedType {
-    std::string d_name;
-  public:
-    inline UnresolvedType(std::string name);
-    inline std::string getName() const throw();
-  };/* class Datatype::UnresolvedType */
-
-  /**
-   * A constructor for a Datatype.
-   */
-  class CVC4_PUBLIC Constructor {
-  public:
-    /**
-     * A Datatype constructor argument (i.e., a Datatype field).
-     */
-    class CVC4_PUBLIC Arg {
-
-      std::string d_name;
-      Expr d_selector;
-      /** the constructor associated with this selector */
-      Expr d_constructor;
-      bool d_resolved;
-
-      explicit Arg(std::string name, Expr selector);
-      friend class Constructor;
-      friend class Datatype;
-
-      bool isUnresolvedSelf() const throw();
-
-    public:
-
-      /** Get the name of this constructor argument. */
-      std::string getName() const throw();
-
-      /**
-       * Get the selector for this constructor argument; this call is
-       * only permitted after resolution.
-       */
-      Expr getSelector() const;
-
-      /**
-       * Get the associated constructor for this constructor argument;
-       * this call is only permitted after resolution.
-       */
-      Expr getConstructor() const;
-
-      /**
-       * Get the selector for this constructor argument; this call is
-       * only permitted after resolution.
-       */
-      Type getSelectorType() const;
-
-      /**
-       * Get the name of the type of this constructor argument
-       * (Datatype field).  Can be used for not-yet-resolved Datatypes
-       * (in which case the name of the unresolved type, or "[self]"
-       * for a self-referential type is returned).
-       */
-      std::string getSelectorTypeName() const;
-
-      /**
-       * Returns true iff this constructor argument has been resolved.
-       */
-      bool isResolved() const throw();
-
-    };/* class Datatype::Constructor::Arg */
-
-    /** The type for iterators over constructor arguments. */
-    typedef std::vector<Arg>::iterator iterator;
-    /** The (const) type for iterators over constructor arguments. */
-    typedef std::vector<Arg>::const_iterator const_iterator;
-
-  private:
-
-    std::string d_name;
-    Expr d_constructor;
-    Expr d_tester;
-    std::vector<Arg> d_args;
-
-    void resolve(ExprManager* em, DatatypeType self,
-                 const std::map<std::string, DatatypeType>& resolutions,
-                 const std::vector<Type>& placeholders,
-                 const std::vector<Type>& replacements,
-                 const std::vector< SortConstructorType >& paramTypes,
-                 const std::vector< DatatypeType >& paramReplacements)
-      throw(AssertionException, DatatypeResolutionException);
-    friend class Datatype;
-
-    /** @FIXME document this! */
-    Type doParametricSubstitution(Type range,
-                                  const std::vector< SortConstructorType >& paramTypes,
-                                  const std::vector< DatatypeType >& paramReplacements);
-  public:
-    /**
-     * Create a new Datatype constructor with the given name for the
-     * constructor and the same name (prefixed with "is_") for the
-     * tester.  The actual constructor and tester aren't created until
-     * resolution time.
-     */
-    explicit Constructor(std::string name);
-
-    /**
-     * Create a new Datatype constructor with the given name for the
-     * constructor and the given name for the tester.  The actual
-     * constructor and tester aren't created until resolution time.
-     */
-    explicit Constructor(std::string name, std::string tester);
-
-    /**
-     * Add an argument (i.e., a data field) of the given name and type
-     * to this Datatype constructor.
-     */
-    void addArg(std::string selectorName, Type selectorType);
-
-    /**
-     * Add an argument (i.e., a data field) of the given name to this
-     * Datatype constructor that refers to an as-yet-unresolved
-     * Datatype (which may be mutually-recursive).
-     */
-    void addArg(std::string selectorName, Datatype::UnresolvedType selectorType);
-
-    /**
-     * Add a self-referential (i.e., a data field) of the given name
-     * to this Datatype constructor that refers to the enclosing
-     * Datatype.  For example, using the familiar "nat" Datatype, to
-     * create the "pred" field for "succ" constructor, one uses
-     * succ::addArg("pred", Datatype::SelfType())---the actual Type
-     * cannot be passed because the Datatype is still under
-     * construction.
-     *
-     * This is a special case of
-     * Constructor::addArg(std::string, Datatype::UnresolvedType).
-     */
-    void addArg(std::string selectorName, Datatype::SelfType);
-
-    /** Get the name of this Datatype constructor. */
-    std::string getName() const throw();
-
-    /**
-     * Get the constructor operator of this Datatype constructor.  The
-     * Datatype must be resolved.
-     */
-    Expr getConstructor() const;
-
-    /**
-     * Get the tester operator of this Datatype constructor.  The
-     * Datatype must be resolved.
-     */
-    Expr getTester() const;
-
-    /**
-     * Get the number of arguments (so far) of this Datatype constructor.
-     */
-    inline size_t getNumArgs() const throw();
-
-    /**
-     * Get the specialized constructor type for a parametric
-     * constructor; this call is only permitted after resolution.
-     */
-    Type getSpecializedConstructorType(Type returnType) const;
-
-    /**
-     * Return the cardinality of this constructor (the product of the
-     * cardinalities of its arguments).
-     */
-    Cardinality getCardinality() const throw(AssertionException);
-
-    /**
-     * Return true iff this constructor is finite (it is nullary or
-     * each of its argument types are finite).  This function can
-     * only be called for resolved constructors.
-     */
-    bool isFinite() const throw(AssertionException);
-
-    /**
-     * Return true iff this constructor is well-founded (there exist
-     * ground terms).  The constructor must be resolved or an
-     * exception is thrown.
-     */
-    bool isWellFounded() const throw(AssertionException);
-
-    /**
-     * Construct and return a ground term of this constructor.  The
-     * constructor must be both resolved and well-founded, or else an
-     * exception is thrown.
-     */
-    Expr mkGroundTerm( Type t ) const throw(AssertionException);
-
-    /**
-     * Returns true iff this Datatype constructor has already been
-     * resolved.
-     */
-    inline bool isResolved() const throw();
-
-    /** Get the beginning iterator over Constructor args. */
-    inline iterator begin() throw();
-    /** Get the ending iterator over Constructor args. */
-    inline iterator end() throw();
-    /** Get the beginning const_iterator over Constructor args. */
-    inline const_iterator begin() const throw();
-    /** Get the ending const_iterator over Constructor args. */
-    inline const_iterator end() const throw();
-
-    /** Get the ith Constructor arg. */
-    const Arg& operator[](size_t index) const;
-
-    /**
-     * Get the Constructor arg named.  This is a linear search
-     * through the arguments, so in the case of multiple,
-     * similarly-named arguments, the first is returned.
-     */
-    const Arg& operator[](std::string name) const;
-
-    /**
-     * Get the selector named.  This is a linear search
-     * through the arguments, so in the case of multiple,
-     * similarly-named arguments, the selector for the first
-     * is returned.
-     */
-    Expr getSelector(std::string name) const;
-
-  };/* class Datatype::Constructor */
-
   /** The type for iterators over constructors. */
-  typedef std::vector<Constructor>::iterator iterator;
+  typedef std::vector<DatatypeConstructor>::iterator iterator;
   /** The (const) type for iterators over constructors. */
-  typedef std::vector<Constructor>::const_iterator const_iterator;
+  typedef std::vector<DatatypeConstructor>::const_iterator const_iterator;
 
 private:
   std::string d_name;
   std::vector<Type> d_params;
-  std::vector<Constructor> d_constructors;
+  std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
 
@@ -368,9 +382,26 @@ private:
    * chicken-and-egg problem.  The DatatypeType around the Datatype
    * cannot exist until the Datatype is finalized, and the Datatype
    * cannot refer to the DatatypeType representing itself until it
-   * exists.  resolve() is called by the ExprManager when a Type.  Has
-   * the effect of freezing the object, too; that is, addConstructor()
-   * will fail after a call to resolve().
+   * exists.  resolve() is called by the ExprManager when a Type is
+   * ultimately requested of the Datatype specification (that is, when
+   * ExprManager::mkDatatypeType() or ExprManager::mkMutualDatatypeTypes()
+   * is called).  Has the effect of freezing the object, too; that is,
+   * addConstructor() will fail after a call to resolve().
+   *
+   * The basic goal of resolution is to assign constructors, selectors,
+   * and testers.  To do this, any UnresolvedType/SelfType references
+   * must be cleared up.  This is the purpose of the "resolutions" map;
+   * it includes any mutually-recursive datatypes that are currently
+   * under resolution.  The four vectors come in two pairs (so, really
+   * they are two maps).  placeholders->replacements give type variables
+   * that should be resolved in the case of parametric datatypes.
+   *
+   * @param em the ExprManager at play
+   * @param resolutions a map of strings to DatatypeTypes currently under resolution
+   * @param placeholders the types in these Datatypes under resolution that must be replaced
+   * @param replacements the corresponding replacements
+   * @param paramTypes the sort constructors in these Datatypes under resolution that must be replaced
+   * @param paramReplacements the corresponding (parametric) DatatypeTypes
    */
   void resolve(ExprManager* em,
                const std::map<std::string, DatatypeType>& resolutions,
@@ -390,10 +421,13 @@ public:
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline explicit Datatype(std::string name, std::vector<Type>& params);
+  inline Datatype(std::string name, std::vector<Type>& params);
 
-  /** Add a constructor to this Datatype. */
-  void addConstructor(const Constructor& c);
+  /**
+   * Add a constructor to this Datatype.  Constructor names need not
+   * be unique; they are for convenience and pretty-printing only.
+   */
+  void addConstructor(const DatatypeConstructor& c);
 
   /** Get the name of this Datatype. */
   inline std::string getName() const throw();
@@ -473,33 +507,36 @@ public:
   /** Return true iff this Datatype has already been resolved. */
   inline bool isResolved() const throw();
 
-  /** Get the beginning iterator over Constructors. */
-  inline std::vector<Constructor>::iterator begin() throw();
-  /** Get the ending iterator over Constructors. */
-  inline std::vector<Constructor>::iterator end() throw();
-  /** Get the beginning const_iterator over Constructors. */
-  inline std::vector<Constructor>::const_iterator begin() const throw();
-  /** Get the ending const_iterator over Constructors. */
-  inline std::vector<Constructor>::const_iterator end() const throw();
+  /** Get the beginning iterator over DatatypeConstructors. */
+  inline std::vector<DatatypeConstructor>::iterator begin() throw();
+  /** Get the ending iterator over DatatypeConstructors. */
+  inline std::vector<DatatypeConstructor>::iterator end() throw();
+  /** Get the beginning const_iterator over DatatypeConstructors. */
+  inline std::vector<DatatypeConstructor>::const_iterator begin() const throw();
+  /** Get the ending const_iterator over DatatypeConstructors. */
+  inline std::vector<DatatypeConstructor>::const_iterator end() const throw();
 
-  /** Get the ith Constructor. */
-  const Constructor& operator[](size_t index) const;
+  /** Get the ith DatatypeConstructor. */
+  const DatatypeConstructor& operator[](size_t index) const;
 
   /**
-   * Get the Constructor named.  This is a linear search
+   * Get the DatatypeConstructor named.  This is a linear search
    * through the constructors, so in the case of multiple,
    * similarly-named constructors, the first is returned.
    */
-  const Constructor& operator[](std::string name) const;
+  const DatatypeConstructor& operator[](std::string name) const;
 
   /**
    * Get the constructor operator for the named constructor.
+   * This is a linear search through the constructors, so in
+   * the case of multiple, similarly-named constructors, the
+   * first is returned.
+   *
    * This Datatype must be resolved.
    */
   Expr getConstructor(std::string name) const;
 
 };/* class Datatype */
-
 
 /**
  * A hash strategy for Datatypes.  Needed because Datatypes are used
@@ -523,10 +560,10 @@ struct CVC4_PUBLIC DatatypeHashFunction {
   inline size_t operator()(const Datatype* dt) const {
     return StringHashFunction()(dt->getName());
   }
-  inline size_t operator()(const Datatype::Constructor& dtc) const {
+  inline size_t operator()(const DatatypeConstructor& dtc) const {
     return StringHashFunction()(dtc.getName());
   }
-  inline size_t operator()(const Datatype::Constructor* dtc) const {
+  inline size_t operator()(const DatatypeConstructor* dtc) const {
     return StringHashFunction()(dtc->getName());
   }
 };/* struct DatatypeHashFunction */
@@ -534,8 +571,8 @@ struct CVC4_PUBLIC DatatypeHashFunction {
 // FUNCTION DECLARATIONS FOR OUTPUT STREAMS
 
 std::ostream& operator<<(std::ostream& os, const Datatype& dt) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& os, const Datatype::Constructor& ctor) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& os, const Datatype::Constructor::Arg& arg) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) CVC4_PUBLIC;
 
 // INLINE FUNCTIONS
 
@@ -543,11 +580,11 @@ inline DatatypeResolutionException::DatatypeResolutionException(std::string msg)
   Exception(msg) {
 }
 
-inline Datatype::UnresolvedType::UnresolvedType(std::string name) :
+inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
   d_name(name) {
 }
 
-inline std::string Datatype::UnresolvedType::getName() const throw() {
+inline std::string DatatypeUnresolvedType::getName() const throw() {
   return d_name;
 }
 
@@ -618,15 +655,15 @@ inline Datatype::const_iterator Datatype::end() const throw() {
   return d_constructors.end();
 }
 
-inline bool Datatype::Constructor::isResolved() const throw() {
+inline bool DatatypeConstructor::isResolved() const throw() {
   return !d_tester.isNull();
 }
 
-inline size_t Datatype::Constructor::getNumArgs() const throw() {
+inline size_t DatatypeConstructor::getNumArgs() const throw() {
   return d_args.size();
 }
 
-inline bool Datatype::Constructor::Arg::isResolved() const throw() {
+inline bool DatatypeConstructorArg::isResolved() const throw() {
   // We could just write:
   //
   //   return !d_selector.isNull() && d_selector.getType().isSelector();
@@ -643,19 +680,19 @@ inline bool Datatype::Constructor::Arg::isResolved() const throw() {
   return d_resolved;
 }
 
-inline Datatype::Constructor::iterator Datatype::Constructor::begin() throw() {
+inline DatatypeConstructor::iterator DatatypeConstructor::begin() throw() {
   return d_args.begin();
 }
 
-inline Datatype::Constructor::iterator Datatype::Constructor::end() throw() {
+inline DatatypeConstructor::iterator DatatypeConstructor::end() throw() {
   return d_args.end();
 }
 
-inline Datatype::Constructor::const_iterator Datatype::Constructor::begin() const throw() {
+inline DatatypeConstructor::const_iterator DatatypeConstructor::begin() const throw() {
   return d_args.begin();
 }
 
-inline Datatype::Constructor::const_iterator Datatype::Constructor::end() const throw() {
+inline DatatypeConstructor::const_iterator DatatypeConstructor::end() const throw() {
   return d_args.end();
 }
 

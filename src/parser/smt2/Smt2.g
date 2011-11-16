@@ -824,14 +824,14 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
 constructorDef[CVC4::Datatype& type]
 @init {
   std::string id;
-  CVC4::Datatype::Constructor* ctor = NULL;
+  CVC4::DatatypeConstructor* ctor = NULL;
 }
   : symbol[id,CHECK_UNDECLARED,SYM_SORT]
     { // make the tester
       std::string testerId("is_");
       testerId.append(id);
       PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
-      ctor = new CVC4::Datatype::Constructor(id, testerId);
+      ctor = new CVC4::DatatypeConstructor(id, testerId);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
     { // make the constructor
@@ -841,7 +841,7 @@ constructorDef[CVC4::Datatype& type]
     }
   ;
 
-selector[CVC4::Datatype::Constructor& ctor]
+selector[CVC4::DatatypeConstructor& ctor]
 @init {
   std::string id;
   Type t, t2;

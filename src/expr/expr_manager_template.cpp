@@ -638,7 +638,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
   for(Datatype::const_iterator i = dt.begin(), i_end = dt.end();
       i != i_end;
       ++i) {
-    const Datatype::Constructor& c = *i;
+    const DatatypeConstructor& c = *i;
     Type testerType CVC4_UNUSED = c.getTester().getType();
     Assert(c.isResolved() &&
            testerType.isTester() &&
@@ -651,10 +651,10 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
            ConstructorType(ctorType).getRangeType() == dtt,
            "malformed constructor in datatype post-resolution");
     // for all selectors...
-    for(Datatype::Constructor::const_iterator j = c.begin(), j_end = c.end();
+    for(DatatypeConstructor::const_iterator j = c.begin(), j_end = c.end();
         j != j_end;
         ++j) {
-      const Datatype::Constructor::Arg& a = *j;
+      const DatatypeConstructorArg& a = *j;
       Type selectorType = a.getSelector().getType();
       Assert(a.isResolved() &&
              selectorType.isSelector() &&
@@ -669,7 +669,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
   }
 }
 
-ConstructorType ExprManager::mkConstructorType(const Datatype::Constructor& constructor, Type range) const {
+ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
   NodeManagerScope nms(d_nodeManager);
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkConstructorType(constructor, *range.d_typeNode)));
 }

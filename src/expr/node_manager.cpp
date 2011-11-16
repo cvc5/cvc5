@@ -298,11 +298,11 @@ TypeNode NodeManager::getType(TNode n, bool check)
   return typeNode;
 }
 
-TypeNode NodeManager::mkConstructorType(const Datatype::Constructor& constructor,
+TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
                                         TypeNode range) {
   std::vector<TypeNode> sorts;
   Debug("datatypes") << "ctor name: " << constructor.getName() << std::endl;
-  for(Datatype::Constructor::const_iterator i = constructor.begin();
+  for(DatatypeConstructor::const_iterator i = constructor.begin();
       i != constructor.end();
       ++i) {
     TypeNode selectorType = *(*i).getSelector().getType().d_typeNode;
