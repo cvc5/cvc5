@@ -31,6 +31,35 @@
 namespace CVC4 {
 
 /**
+ * Representation for a Beth number, used only to construct
+ * Cardinality objects.
+ */
+class CVC4_PUBLIC CardinalityBeth {
+  Integer d_index;
+
+public:
+  CardinalityBeth(const Integer& beth) : d_index(beth) {
+    CheckArgument(beth >= 0, beth,
+                  "Beth index must be a nonnegative integer, not %s.",
+                  beth.toString().c_str());
+  }
+
+  const Integer& getNumber() const throw() {
+    return d_index;
+  }
+
+};/* class CardinalityBeth */
+
+/**
+ * Representation for an unknown cardinality.
+ */
+class CVC4_PUBLIC CardinalityUnknown {
+public:
+  CardinalityUnknown() throw() {}
+  ~CardinalityUnknown() throw() {}
+};/* class CardinalityUnknown */
+
+/**
  * A simple representation of a cardinality.  We store an
  * arbitrary-precision integer for finite cardinalities, and we
  * distinguish infinite cardinalities represented as Beth numbers.
@@ -65,34 +94,6 @@ public:
   static const Cardinality UNKNOWN;
 
   /**
-   * Representation for a Beth number, used only to construct
-   * Cardinality objects.
-   */
-  class CVC4_PUBLIC Beth {
-    Integer d_index;
-
-  public:
-    Beth(const Integer& beth) : d_index(beth) {
-      CheckArgument(beth >= 0, beth,
-                    "Beth index must be a nonnegative integer, not %s.",
-                    beth.toString().c_str());
-    }
-
-    const Integer& getNumber() const throw() {
-      return d_index;
-    }
-  };/* class Cardinality::Beth */
-
-  /**
-   * Representation for an unknown cardinality.
-   */
-  class CVC4_PUBLIC Unknown {
-  public:
-    Unknown() throw() {}
-    ~Unknown() throw() {}
-  };/* class Cardinality::Unknown */
-
-  /**
    * Construct a finite cardinality equal to the integer argument.
    * The argument must be nonnegative.  If we change this to an
    * "unsigned" argument to enforce the restriction, we mask some
@@ -120,14 +121,14 @@ public:
   /**
    * Construct an infinite cardinality equal to the given Beth number.
    */
-  Cardinality(Beth beth) : d_card(-beth.getNumber() - 1) {
+  Cardinality(CardinalityBeth beth) : d_card(-beth.getNumber() - 1) {
     Assert(!isFinite());
   }
 
   /**
    * Construct an unknown cardinality.
    */
-  Cardinality(Unknown) : d_card(0) {
+  Cardinality(CardinalityUnknown) : d_card(0) {
   }
 
   /** Returns true iff this cardinality is unknown. */
@@ -256,7 +257,7 @@ public:
 
 
 /** Print an element of the InfiniteCardinality enumeration. */
-std::ostream& operator<<(std::ostream& out, Cardinality::Beth b)
+std::ostream& operator<<(std::ostream& out, CardinalityBeth b)
   throw() CVC4_PUBLIC;
 
 

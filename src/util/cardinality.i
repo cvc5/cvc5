@@ -2,7 +2,7 @@
 #include "util/cardinality.h"
 %}
 
-%feature("valuewrapper") CVC4::Cardinality::Beth;
+%feature("valuewrapper") CVC4::CardinalityBeth;
 
 %rename(plusAssign) CVC4::Cardinality::operator+=(const Cardinality&);
 %rename(timesAssign) CVC4::Cardinality::operator*=(const Cardinality&);
@@ -18,36 +18,6 @@
 %rename(greaterEqual) CVC4::Cardinality::operator>=(const Cardinality&) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Cardinality&);
-%ignore CVC4::operator<<(std::ostream&, Cardinality::Beth);
-
-namespace CVC4 {
-  class Beth {
-    Integer d_index;
-
-  public:
-    Beth(const Integer& beth) : d_index(beth) {
-      CheckArgument(beth >= 0, beth,
-                    "Beth index must be a nonnegative integer, not %s.",
-                    beth.toString().c_str());
-    }
-
-    const Integer& getNumber() const throw() {
-      return d_index;
-    }
-  };/* class Cardinality::Beth */
-
-  class Unknown {
-  public:
-    Unknown() throw() {}
-    ~Unknown() throw() {}
-  };/* class Cardinality::Unknown */
-}
+%ignore CVC4::operator<<(std::ostream&, CardinalityBeth);
 
 %include "util/cardinality.h"
-
-%{
-namespace CVC4 {
-  typedef CVC4::Cardinality::Beth Beth;
-  typedef CVC4::Cardinality::Unknown Unknown;
-}
-%}

@@ -24,25 +24,29 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <exception>
 
 namespace CVC4 {
 
-class CVC4_PUBLIC Exception {
+class CVC4_PUBLIC Exception : public std::exception {
 protected:
   std::string d_msg;
 
 public:
   // Constructors
-  Exception() : d_msg("Unknown exception") {}
-  Exception(const std::string& msg) : d_msg(msg) {}
-  Exception(const char* msg) : d_msg(msg) {}
+  Exception() throw() : d_msg("Unknown exception") {}
+  Exception(const std::string& msg) throw() : d_msg(msg) {}
+  Exception(const char* msg) throw() : d_msg(msg) {}
 
   // Destructor
   virtual ~Exception() throw() {}
 
   // NON-VIRTUAL METHOD for setting and printing the error message
-  void setMessage(const std::string& msg) { d_msg = msg; }
-  std::string getMessage() const { return d_msg; }
+  void setMessage(const std::string& msg) throw() { d_msg = msg; }
+  std::string getMessage() const throw() { return d_msg; }
+
+  // overridden from base class std::exception
+  virtual const char* what() const throw() { return d_msg.c_str(); }
 
   /**
    * Get this exception as a string.  Note that
@@ -56,7 +60,7 @@ public:
    * toString(), there is no stream, so the parameters are default
    * and you'll get exprs and types printed using the AST language.
    */
-  std::string toString() const {
+  std::string toString() const throw() {
     std::stringstream ss;
     toStream(ss);
     return ss.str();
@@ -67,12 +71,12 @@ public:
    * a derived class, it's recommended that this method print the
    * type of exception before the actual message.
    */
-  virtual void toStream(std::ostream& os) const { os << d_msg; }
+  virtual void toStream(std::ostream& os) const throw() { os << d_msg; }
 
 };/* class Exception */
 
-inline std::ostream& operator<<(std::ostream& os, const Exception& e) CVC4_PUBLIC;
-inline std::ostream& operator<<(std::ostream& os, const Exception& e) {
+inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() {
   e.toStream(os);
   return os;
 }

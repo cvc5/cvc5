@@ -31,12 +31,12 @@ namespace CVC4 {
 namespace printer {
 namespace smt2 {
 
-string smtKindString(Kind k);
+static string smtKindString(Kind k) throw();
 
-void printBvParameterizedOp(std::ostream& out, TNode n);
+static void printBvParameterizedOp(std::ostream& out, TNode n) throw();
 
 void Smt2Printer::toStream(std::ostream& out, TNode n,
-                           int toDepth, bool types) const {
+                           int toDepth, bool types) const throw() {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
     out << "null";
@@ -247,9 +247,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     }
   }
   out << ')';
-}/* Smt2Printer::toStream() */
+}/* Smt2Printer::toStream(TNode) */
 
-string smtKindString(Kind k) {
+static string smtKindString(Kind k) throw() {
   switch(k) {
     // builtin theory
   case kind::APPLY: break;
@@ -330,7 +330,7 @@ string smtKindString(Kind k) {
   return kind::kindToString(k);
 }
 
-void printBvParameterizedOp(std::ostream& out, TNode n) {
+static void printBvParameterizedOp(std::ostream& out, TNode n) throw() {
   out << "(_ ";
   switch(n.getKind()) {
   case kind::BITVECTOR_EXTRACT: {
@@ -359,16 +359,16 @@ void printBvParameterizedOp(std::ostream& out, TNode n) {
         << n.getOperator().getConst<BitVectorRotateRight>().rotateRightAmount;
     break;
   default:
-    Unhandled(n.getKind());
+    out << n.getKind();
   }
   out << ")";
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c);
+static bool tryToStream(std::ostream& out, const Command* c) throw();
 
 void Smt2Printer::toStream(std::ostream& out, const Command* c,
-                           int toDepth, bool types) const {
+                           int toDepth, bool types) const throw() {
   expr::ExprSetDepth::Scope sdScope(out, toDepth);
   expr::ExprPrintTypes::Scope ptScope(out, types);
 
@@ -400,23 +400,40 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
     return;
   }
 
-  Unhandled("don't know how to print this command as SMT-LIBv2: %s", c->toString().c_str());
+  out << "ERROR: don't know how to print a Command of class: "
+      << typeid(*c).name() << endl;
 
-}/* Smt2Printer::toStream() */
+}/* Smt2Printer::toStream(Command*) */
 
-static void toStream(std::ostream& out, const AssertCommand* c) {
+template <class T>
+static bool tryToStream(std::ostream& out, const CommandStatus* s) throw();
+
+void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const throw() {
+
+  if(tryToStream<CommandSuccess>(out, s) ||
+     tryToStream<CommandFailure>(out, s) ||
+     tryToStream<CommandUnsupported>(out, s)) {
+    return;
+  }
+
+  out << "ERROR: don't know how to print a CommandStatus of class: "
+      << typeid(*s).name() << endl;
+
+}/* Smt2Printer::toStream(CommandStatus*) */
+
+static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";
 }
 
-static void toStream(std::ostream& out, const PushCommand* c) {
+static void toStream(std::ostream& out, const PushCommand* c) throw() {
   out << "(push 1)";
 }
 
-static void toStream(std::ostream& out, const PopCommand* c) {
+static void toStream(std::ostream& out, const PopCommand* c) throw() {
   out << "(pop 1)";
 }
 
-static void toStream(std::ostream& out, const CheckSatCommand* c) {
+static void toStream(std::ostream& out, const CheckSatCommand* c) throw() {
   BoolExpr e = c->getExpr();
   if(!e.isNull()) {
     out << PushCommand() << endl
@@ -428,7 +445,7 @@ static void toStream(std::ostream& out, const CheckSatCommand* c) {
   }
 }
 
-static void toStream(std::ostream& out, const QueryCommand* c) {
+static void toStream(std::ostream& out, const QueryCommand* c) throw() {
   BoolExpr e = c->getExpr();
   if(!e.isNull()) {
     out << PushCommand() << endl
@@ -440,11 +457,11 @@ static void toStream(std::ostream& out, const QueryCommand* c) {
   }
 }
 
-static void toStream(std::ostream& out, const QuitCommand* c) {
+static void toStream(std::ostream& out, const QuitCommand* c) throw() {
   out << "(exit)";
 }
 
-static void toStream(std::ostream& out, const CommandSequence* c) {
+static void toStream(std::ostream& out, const CommandSequence* c) throw() {
   for(CommandSequence::const_iterator i = c->begin();
       i != c->end();
       ++i) {
@@ -452,7 +469,7 @@ static void toStream(std::ostream& out, const CommandSequence* c) {
   }
 }
 
-static void toStream(std::ostream& out, const DeclareFunctionCommand* c) {
+static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw() {
   Type type = c->getType();
   out << "(declare-fun " << c->getSymbol() << " (";
   if(type.isFunction()) {
@@ -469,7 +486,7 @@ static void toStream(std::ostream& out, const DeclareFunctionCommand* c) {
   out << ") " << type << ")";
 }
 
-static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
+static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() {
   Expr func = c->getFunction();
   const vector<Expr>& formals = c->getFormals();
   Expr formula = c->getFormula();
@@ -487,11 +504,11 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) {
   out << ") " << FunctionType(func.getType()).getRangeType() << " " << formula << ")";
 }
 
-static void toStream(std::ostream& out, const DeclareTypeCommand* c) {
+static void toStream(std::ostream& out, const DeclareTypeCommand* c) throw() {
   out << "(declare-sort " << c->getSymbol() << " " << c->getArity() << ")";
 }
 
-static void toStream(std::ostream& out, const DefineTypeCommand* c) {
+static void toStream(std::ostream& out, const DefineTypeCommand* c) throw() {
   const vector<Type>& params = c->getParameters();
   out << "(define-sort " << c->getSymbol() << " (";
   if(params.size() > 0) {
@@ -502,55 +519,57 @@ static void toStream(std::ostream& out, const DefineTypeCommand* c) {
   out << ") " << c->getType() << ")";
 }
 
-static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) {
+static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) throw() {
   out << "DefineNamedFunction( ";
   toStream(out, static_cast<const DefineFunctionCommand*>(c));
   out << " )";
-  Unhandled("define named function command");
+
+  out << "ERROR: don't know how to output define-named-function command" << endl;
 }
 
-static void toStream(std::ostream& out, const SimplifyCommand* c) {
+static void toStream(std::ostream& out, const SimplifyCommand* c) throw() {
   out << "Simplify( << " << c->getTerm() << " >> )";
-  Unhandled("simplify command");
+
+  out << "ERROR: don't know how to output simplify command" << endl;
 }
 
-static void toStream(std::ostream& out, const GetValueCommand* c) {
+static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
   out << "(get-value " << c->getTerm() << ")";
 }
 
-static void toStream(std::ostream& out, const GetAssignmentCommand* c) {
+static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {
   out << "(get-assignment)";
 }
 
-static void toStream(std::ostream& out, const GetAssertionsCommand* c) {
+static void toStream(std::ostream& out, const GetAssertionsCommand* c) throw() {
   out << "(get-assertions)";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) {
+static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) throw() {
   out << "(set-info :status " << c->getStatus() << ")";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) {
+static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) throw() {
   out << "(set-logic " << c->getLogic() << ")";
 }
 
-static void toStream(std::ostream& out, const SetInfoCommand* c) {
+static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {
   out << "(set-info " << c->getFlag() << " " << c->getSExpr() << ")";
 }
 
-static void toStream(std::ostream& out, const GetInfoCommand* c) {
+static void toStream(std::ostream& out, const GetInfoCommand* c) throw() {
   out << "(get-info " << c->getFlag() << ")";
 }
 
-static void toStream(std::ostream& out, const SetOptionCommand* c) {
+static void toStream(std::ostream& out, const SetOptionCommand* c) throw() {
   out << "(set-option " << c->getFlag() << " " << c->getSExpr() << ")";
 }
 
-static void toStream(std::ostream& out, const GetOptionCommand* c) {
+static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {
   out << "(get-option " << c->getFlag() << ")";
 }
 
-static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) {
+static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) throw() {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
   out << "DatatypeDeclarationCommand([";
   for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
@@ -560,20 +579,50 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) {
     out << *i << ";" << endl;
   }
   out << "])";
-  Unhandled("datatype declaration command");
+
+  out << "ERROR: don't know how to output datatype declaration command" << endl;
 }
 
-static void toStream(std::ostream& out, const CommentCommand* c) {
+static void toStream(std::ostream& out, const CommentCommand* c) throw() {
   out << "(set-info :notes \"" << c->getComment() << "\")";
 }
 
-static void toStream(std::ostream& out, const EmptyCommand* c) {
+static void toStream(std::ostream& out, const EmptyCommand* c) throw() {
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c) {
+static bool tryToStream(std::ostream& out, const Command* c) throw() {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c));
+    return true;
+  }
+  return false;
+}
+
+static void toStream(std::ostream& out, const CommandSuccess* s) throw() {
+  if(Command::printsuccess::getPrintSuccess(out)) {
+    out << "success" << endl;
+  }
+}
+
+static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {
+  out << "unsupported" << endl;
+}
+
+static void toStream(std::ostream& out, const CommandFailure* s) throw() {
+  string message = s->getMessage();
+  // escape all double-quotes
+  size_t pos;
+  while((pos = message.find('"')) != string::npos) {
+    message = message.replace(pos, 1, "\\\"");
+  }
+  out << "(error \"" << message << "\")" << endl;
+}
+
+template <class T>
+static bool tryToStream(std::ostream& out, const CommandStatus* s) throw() {
+  if(typeid(*s) == typeid(T)) {
+    toStream(out, dynamic_cast<const T*>(s));
     return true;
   }
   return false;

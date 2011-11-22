@@ -1,4 +1,4 @@
-######################                                                        ##
+#! /usr/bin/python
 ##! \file SimpleVC.py
 ### \verbatim
 ### Original author: mdeters
@@ -18,8 +18,9 @@
 ###
 ### To run, use something like:
 ###
-###   ln -s ../builds/src/bindings/.libs/libcvc4bindings_python.so.0.0.0 _CVC4.so
-###   PYTHONPATH=../builds/src/bindings/python python SimpleVC.py
+###   ln -s ../builds/src/bindings/python/CVC4.py CVC4.py
+###   ln -s ../builds/src/bindings/python/.libs/CVC4.so _CVC4.so
+###   ./SimpleVC.py
 ####
 
 import CVC4

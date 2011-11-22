@@ -27,6 +27,7 @@
 #include <getopt.h>
 
 #include "expr/expr.h"
+#include "expr/command.h"
 #include "util/configuration.h"
 #include "util/exception.h"
 #include "util/language.h"
@@ -118,6 +119,8 @@ Most commonly-used CVC4 options:\n\
    --no-interactive       force non-interactive mode\n\
    --produce-models | -m  support the get-value command\n\
    --produce-assignments  support the get-assignment command\n\
+   --print-success        print the \"success\" output required of SMT-LIBv2\n\
+   --smtlib2              SMT-LIBv2 conformance mode (implies other options)\n\
    --proof                turn on proof generation\n\
    --incremental | -i     enable incremental solving\n\
    --tlimit=MS            enable time limiting (give milliseconds)\n\
@@ -306,6 +309,8 @@ enum OptionValue {
   INTERACTIVE,
   NO_INTERACTIVE,
   PRODUCE_ASSIGNMENTS,
+  PRINT_SUCCESS,
+  SMTLIB2,
   PROOF,
   NO_TYPE_CHECKING,
   LAZY_TYPE_CHECKING,
@@ -384,6 +389,8 @@ static struct option cmdlineOptions[] = {
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, 'm' },
   { "produce-assignments", no_argument, NULL, PRODUCE_ASSIGNMENTS },
+  { "print-success", no_argument, NULL, PRINT_SUCCESS },
+  { "smtlib2", no_argument, NULL, SMTLIB2 },
   { "proof", no_argument, NULL, PROOF },
   { "no-type-checking", no_argument , NULL, NO_TYPE_CHECKING },
   { "lazy-type-checking", no_argument, NULL, LAZY_TYPE_CHECKING },
@@ -597,14 +604,12 @@ throw(OptionException) {
       break;
 
     case PRINT_EXPR_TYPES:
-      {
-        Debug.getStream() << Expr::printtypes(true);
-        Trace.getStream() << Expr::printtypes(true);
-        Notice.getStream() << Expr::printtypes(true);
-        Chat.getStream() << Expr::printtypes(true);
-        Message.getStream() << Expr::printtypes(true);
-        Warning.getStream() << Expr::printtypes(true);
-      }
+      Debug.getStream() << Expr::printtypes(true);
+      Trace.getStream() << Expr::printtypes(true);
+      Notice.getStream() << Expr::printtypes(true);
+      Chat.getStream() << Expr::printtypes(true);
+      Message.getStream() << Expr::printtypes(true);
+      Warning.getStream() << Expr::printtypes(true);
       break;
 
     case LAZY_DEFINITION_EXPANSION:
@@ -648,7 +653,27 @@ throw(OptionException) {
     case PRODUCE_ASSIGNMENTS:
       produceAssignments = true;
       break;
-      
+
+    case SMTLIB2: // smtlib v2 compliance mode
+      inputLanguage = language::input::LANG_SMTLIB_V2;
+      outputLanguage = language::output::LANG_SMTLIB_V2;
+      strictParsing = true;
+      // make sure entire expressions are printed on all the non-debug, non-trace streams
+      Notice.getStream() << Expr::setdepth(-1);
+      Chat.getStream() << Expr::setdepth(-1);
+      Message.getStream() << Expr::setdepth(-1);
+      Warning.getStream() << Expr::setdepth(-1);
+      /* intentionally fall through */
+
+    case PRINT_SUCCESS:
+      Debug.getStream() << Command::printsuccess(true);
+      Trace.getStream() << Command::printsuccess(true);
+      Notice.getStream() << Command::printsuccess(true);
+      Chat.getStream() << Command::printsuccess(true);
+      Message.getStream() << Command::printsuccess(true);
+      Warning.getStream() << Command::printsuccess(true);
+      break;
+
     case PROOF:
 #ifdef CVC4_PROOF
       proof = true;

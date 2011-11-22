@@ -30,6 +30,7 @@
 #include <set>
 #include <ctime>
 #include <vector>
+#include <stdint.h>
 
 #include "util/Assert.h"
 
@@ -390,7 +391,6 @@ public:
 
 };/* class WrappedStat<T> */
 
-
 /**
  * A backed integer-valued (64-bit signed) statistic.
  * This doesn't functionally differ from its base class BackedStat<int64_t>,
@@ -655,7 +655,7 @@ class CVC4_PUBLIC CodeTimer;
  * arbitrarily, like a stopwatch; the value of the statistic at the
  * end is the accumulated time over all (start,stop) pairs.
  */
-class CVC4_PUBLIC TimerStat : public BackedStat< timespec > {
+class CVC4_PUBLIC TimerStat : public BackedStat<timespec> {
 
   // strange: timespec isn't placed in 'std' namespace ?!
   /** The last start time of this timer */

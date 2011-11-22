@@ -56,31 +56,28 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
   return out << e.getNode();
 }
 
-TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
-: Exception(t.d_msg), d_expr(new Expr(t.getExpression()))
-  {}
+TypeCheckingException::TypeCheckingException(const TypeCheckingException& t) throw() :
+  Exception(t.d_msg), d_expr(new Expr(t.getExpression())) {
+}
 
-
-TypeCheckingException::TypeCheckingException(const Expr& expr, std::string message)
-: Exception(message), d_expr(new Expr(expr))
-{
+TypeCheckingException::TypeCheckingException(const Expr& expr, std::string message) throw() :
+  Exception(message), d_expr(new Expr(expr)) {
 }
 
 TypeCheckingException::TypeCheckingException(ExprManager* em,
-                                             const TypeCheckingExceptionPrivate* exc)
-: Exception(exc->getMessage()), d_expr(new Expr(em, new Node(exc->getNode())))
-{
+                                             const TypeCheckingExceptionPrivate* exc) throw() :
+  Exception(exc->getMessage()), d_expr(new Expr(em, new Node(exc->getNode()))) {
 }
 
-TypeCheckingException::~TypeCheckingException() throw () {
+TypeCheckingException::~TypeCheckingException() throw() {
   delete d_expr;
 }
 
-void TypeCheckingException::toStream(std::ostream& os) const {
+void TypeCheckingException::toStream(std::ostream& os) const throw() {
   os << "Error type-checking " << d_expr << ": " << d_msg << endl << *d_expr;
 }
 
-Expr TypeCheckingException::getExpression() const {
+Expr TypeCheckingException::getExpression() const throw() {
   return *d_expr;
 }
 

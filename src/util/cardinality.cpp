@@ -24,9 +24,9 @@ const Integer Cardinality::s_unknownCard(0);
 const Integer Cardinality::s_intCard(-1);
 const Integer Cardinality::s_realCard(-2);
 
-const Cardinality Cardinality::INTEGERS(Cardinality::Beth(0));
-const Cardinality Cardinality::REALS(Cardinality::Beth(1));
-const Cardinality Cardinality::UNKNOWN((Cardinality::Unknown()));
+const Cardinality Cardinality::INTEGERS(CardinalityBeth(0));
+const Cardinality Cardinality::REALS(CardinalityBeth(1));
+const Cardinality Cardinality::UNKNOWN((CardinalityUnknown()));
 
 Cardinality& Cardinality::operator+=(const Cardinality& c) throw() {
   if(isUnknown()) {
@@ -127,7 +127,7 @@ std::string Cardinality::toString() const throw() {
 }
 
 
-std::ostream& operator<<(std::ostream& out, Cardinality::Beth b) throw() {
+std::ostream& operator<<(std::ostream& out, CardinalityBeth b) throw() {
   out << "beth[" << b.getNumber() << ']';
 
   return out;
@@ -140,7 +140,7 @@ std::ostream& operator<<(std::ostream& out, const Cardinality& c) throw() {
   } else if(c.isFinite()) {
     out << c.getFiniteCardinality();
   } else {
-    out << Cardinality::Beth(c.getBethNumber());
+    out << CardinalityBeth(c.getBethNumber());
   }
 
   return out;

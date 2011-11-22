@@ -85,8 +85,4 @@
 #define EXPECT_TRUE(x) __builtin_expect( (x), true )
 #define EXPECT_FALSE(x) __builtin_expect( (x), false )
 
-#ifndef NULL
-#  define NULL ((void*) 0)
-#endif
-
 #endif /* __CVC4_PUBLIC_H */

@@ -18,7 +18,7 @@
 ***
 *** To run, use something like:
 ***
-***   LD_LIBRARY_PATH=../builds/src/bindings/.libs \
+***   LD_LIBRARY_PATH=../builds/src/bindings/ocaml/.libs \
 ***     ../builds/src/bindings/cvc4_ocaml_top -I ../builds/src/bindings/ocaml \
 ***     SimpleVC.ml
 ***

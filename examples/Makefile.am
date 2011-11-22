@@ -51,9 +51,13 @@ SimpleVCCompat.class: SimpleVCCompat.java
 
 EXTRA_DIST = \
 	SimpleVC.java \
-	SimpleVC.py \
-	SimpleVC.ml \
 	SimpleVCCompat.java \
+	SimpleVC.ml \
+	SimpleVC.php \
+	SimpleVC.pl \
+	SimpleVC.py \
+	SimpleVC.rb \
+	SimpleVC.tcl \
 	README
 
 if STATIC_BINARY

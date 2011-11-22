@@ -32,11 +32,19 @@ class Printer {
   static Printer* d_printers[language::output::LANG_MAX];
 
   /** Make a Printer for a given OutputLanguage */
-  static Printer* makePrinter(OutputLanguage lang);
+  static Printer* makePrinter(OutputLanguage lang) throw();
+
+  // disallow copy, assignment
+  Printer(const Printer&) CVC4_UNUSED;
+  Printer& operator=(const Printer&) CVC4_UNUSED;
+
+protected:
+  // derived classes can construct, but no one else.
+  Printer() throw() {}
 
 public:
   /** Get the Printer for a given OutputLanguage */
-  static Printer* getPrinter(OutputLanguage lang) {
+  static Printer* getPrinter(OutputLanguage lang) throw() {
     if(d_printers[lang] == NULL) {
       d_printers[lang] = makePrinter(lang);
     }
@@ -45,11 +53,15 @@ public:
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n,
-                        int toDepth, bool types) const = 0;
+                        int toDepth, bool types) const throw() = 0;
 
   /** Write a Command out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Command* c,
-                        int toDepth, bool types) const = 0;
+                        int toDepth, bool types) const throw() = 0;
+
+  /** Write a CommandStatus out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const CommandStatus* s) const throw() = 0;
+
 };/* class Printer */
 
 }/* CVC4 namespace */

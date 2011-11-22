@@ -2,6 +2,14 @@
 #include "util/stats.h"
 %}
 
+namespace CVC4 {
+  template <class T> class CVC4_PUBLIC BackedStat;
+
+  %template(int64_t_BackedStat) BackedStat<int64_t>;
+  %template(double_BackedStat) BackedStat<double>;
+  %template(timespec_BackedStat) BackedStat<timespec>;
+}/* CVC4 namespace */
+
 %ignore CVC4::operator<<(std::ostream&, const timespec&);
 
 %rename(increment) CVC4::IntStat::operator++();
@@ -19,3 +27,4 @@
 %rename(greaterEqual) CVC4::operator>=(const timespec&, const timespec&);
 
 %include "util/stats.h"
+

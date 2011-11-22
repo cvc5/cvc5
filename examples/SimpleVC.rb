@@ -1,4 +1,4 @@
-######################                                                        ##
+#! /usr/bin/ruby
 ##! \file SimpleVC.rb
 ### \verbatim
 ### Original author: mdeters
@@ -18,8 +18,8 @@
 ###
 ### To run, use something like:
 ###
-###   ln -s ../builds/src/bindings/.libs/libcvc4bindings_ruby.so.0.0.0 CVC4.so
-###   ruby SimpleVC.rb
+###   ln -s ../builds/src/bindings/ruby/.libs/CVC4.so CVC4.so
+###   ./SimpleVC.rb
 ####
 
 require 'CVC4'
