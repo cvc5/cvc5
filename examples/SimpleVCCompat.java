@@ -21,7 +21,7 @@
  ** following:
  **
  **   java \
- **     -classpath path/to/cvc4compat.jar \
+ **     -classpath path/to/CVC4compat.jar \
  **     -Djava.library.path=/dir/containing/libcvc4bindings_java_compat.so \
  **     SimpleVCCompat
  **
@@ -30,7 +30,7 @@
  ** you can run this example (after building it with "make") like this:
  **
  **   java \
- **     -classpath builds/examples:builds/src/bindings/compat/java/cvc4compat.jar \
+ **     -classpath builds/examples:builds/src/bindings/compat/java/CVC4compat.jar \
  **     -Djava.library.path=builds/src/bindings/compat/java/.libs \
  **     SimpleVCCompat
  **/

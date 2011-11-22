@@ -19,8 +19,8 @@
  ** following:
  **
  **   java \
- **     -classpath path/to/cvc4.jar \
- **     -Djava.library.path=/dir/containing/libcvc4bindings_java.so \
+ **     -classpath path/to/CVC4.jar \
+ **     -Djava.library.path=/dir/containing/java/CVC4.so \
  **     SimpleVC
  **
  ** For example, if you are building CVC4 without specifying your own
@@ -28,8 +28,8 @@
  ** you can run this example (after building it with "make") like this:
  **
  **   java \
- **     -classpath builds/examples:builds/src/bindings/cvc4.jar \
- **     -Djava.library.path=builds/src/bindings/.libs \
+ **     -classpath builds/examples:builds/src/bindings/CVC4.jar \
+ **     -Djava.library.path=builds/src/bindings/java/.libs \
  **     SimpleVC
  **/
 
@@ -38,7 +38,7 @@ import edu.nyu.acsys.CVC4.Integer;// to override java.lang.Integer name lookup
 
 public class SimpleVC {
   public static void main(String[] args) {
-    System.loadLibrary("cvc4bindings_java");
+    System.loadLibrary("CVC4");
 
     ExprManager em = new ExprManager();
     SmtEngine smt = new SmtEngine(em);

@@ -56,7 +56,7 @@ rubylib_LTLIBRARIES =
 tcllib_LTLIBRARIES =
 if CVC4_LANGUAGE_BINDING_JAVA
 javalib_LTLIBRARIES += java/CVC4.la
-javadata_DATA += cvc4.jar
+javadata_DATA += CVC4.jar
 java_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
@@ -161,11 +161,11 @@ EXTRA_DIST = swig.h
 MOSTLYCLEANFILES = \
         .swig_deps \
 	$(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))) \
-	cvc4.jar
+	CVC4.jar
 
 java_CVC4_la-java.lo java.lo: java.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_CPPFLAGS) -o $@ $<
-cvc4.jar: java.cpp
+CVC4.jar: java.cpp
 	$(AM_V_GEN) \
 	(cd java; \
 	rm -fr classes; \

@@ -45,9 +45,9 @@ simple_vc_compat_c_LDADD = \
 	@builddir@/../src/bindings/compat/c/libcvc4bindings_c_compat.la
 
 SimpleVC.class: SimpleVC.java
-	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../src/bindings/cvc4.jar" -d "@builddir@" $<
+	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../src/bindings/CVC4.jar" -d "@builddir@" $<
 SimpleVCCompat.class: SimpleVCCompat.java
-	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../src/bindings/compat/java/cvc4compat.jar" -d "@builddir@" $<
+	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../src/bindings/compat/java/CVC4compat.jar" -d "@builddir@" $<
 
 EXTRA_DIST = \
 	SimpleVC.java \
