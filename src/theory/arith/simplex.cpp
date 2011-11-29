@@ -339,7 +339,7 @@ bool SimplexDecisionProcedure::propagateCandidateBound(ArithVar basic, bool uppe
           explainNonbasicsLowerBound(basic, nb);
         }
         Node explanation = nb;
-        d_propManager.propagate(bestImplied, explanation);
+        d_propManager.propagate(bestImplied, explanation, false);
         return true;
       }else{
         Debug("arith::prop") << basic << " " << asserted << " " << propagated << endl;

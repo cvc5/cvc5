@@ -27,19 +27,52 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
+
+
+void ArithPartialModel::zeroDifferenceDetected(ArithVar x){
+  Assert(d_dm.isDifferenceSlack(x));
+  Assert(upperBoundIsZero(x));
+  Assert(lowerBoundIsZero(x));
+
+  Node lb = getLowerConstraint(x);
+  Node ub = getUpperConstraint(x);
+  Node reason = lb != ub ? lb.andNode(ub) : lb;
+  d_dm.differenceIsZero(x, reason);
+}
+
 void ArithPartialModel::setUpperBound(ArithVar x, const DeltaRational& r){
   d_deltaIsSafe = false;
 
   Debug("partial_model") << "setUpperBound(" << x << "," << r << ")" << endl;
   d_hasHadABound[x] = true;
   d_upperBound.set(x,r);
+
+  if(d_dm.isDifferenceSlack(x)){
+    int sgn = r.sgn();
+    if(sgn < 0){
+      d_dm.differenceCannotBeZero(x, getUpperConstraint(x));
+    }else if(sgn == 0 && lowerBoundIsZero(x)){
+      zeroDifferenceDetected(x);
+    }
+  }
 }
 
 void ArithPartialModel::setLowerBound(ArithVar x, const DeltaRational& r){
   d_deltaIsSafe = false;
 
+  Debug("partial_model") << "setLowerBound(" << x << "," << r << ")" << endl;
   d_hasHadABound[x] = true;
   d_lowerBound.set(x,r);
+
+
+  if(d_dm.isDifferenceSlack(x)){
+    int sgn = r.sgn();
+    if(sgn > 0){
+      d_dm.differenceCannotBeZero(x, getLowerConstraint(x));
+    }else if(sgn == 0 && upperBoundIsZero(x)){
+      zeroDifferenceDetected(x);
+    }
+  }
 }
 
 void ArithPartialModel::setAssignment(ArithVar x, const DeltaRational& r){

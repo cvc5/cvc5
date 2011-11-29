@@ -135,7 +135,7 @@ bool ArithPropManager::propagateArithVar(bool upperbound, ArithVar var, const De
     bool asserted = isAsserted(bestImplied);
 
     if( !asserted && !isPropagated(bestImplied)){
-      propagate(bestImplied, reason);
+      propagate(bestImplied, reason, false);
       ++d_statistics.d_addedPropagation;
       success = true;
     }else if(!asserted){

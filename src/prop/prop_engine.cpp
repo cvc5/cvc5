@@ -173,6 +173,8 @@ Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
 
 Node PropEngine::getValue(TNode node) const {
   Assert(node.getType().isBoolean());
+  Assert(d_cnfStream->hasLiteral(node));
+
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
   SatLiteralValue v = d_satSolver->value(lit);
@@ -196,6 +198,8 @@ bool PropEngine::isTranslatedSatLiteral(TNode node) const {
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
   Assert(node.getType().isBoolean());
+  Assert(d_cnfStream->hasLiteral(node));
+
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
   SatLiteralValue v = d_satSolver->value(lit);

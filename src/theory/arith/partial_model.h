@@ -26,6 +26,8 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 
+#include "theory/arith/difference_manager.h"
+
 #include <deque>
 
 #ifndef __CVC4__THEORY__ARITH__PARTIAL_MODEL_H
@@ -52,6 +54,7 @@ private:
   context::CDVector<Node> d_upperConstraint;
   context::CDVector<Node> d_lowerConstraint;
 
+
   bool d_deltaIsSafe;
   Rational d_delta;
 
@@ -61,9 +64,11 @@ private:
   typedef std::vector<ArithVar> HistoryList;
   HistoryList d_history;
 
+  DifferenceManager& d_dm;
+
 public:
 
-  ArithPartialModel(context::Context* c):
+  ArithPartialModel(context::Context* c, DifferenceManager& dm):
     d_mapSize(0),
     d_hasHadABound(),
     d_hasSafeAssignment(),
@@ -75,7 +80,8 @@ public:
     d_lowerConstraint(c,true),
     d_deltaIsSafe(false),
     d_delta(-1,1),
-    d_history()
+    d_history(),
+    d_dm(dm)
   { }
 
   void setLowerConstraint(ArithVar x, TNode constraint);
@@ -98,6 +104,18 @@ public:
   void commitAssignmentChanges();
 
 
+  inline bool lowerBoundIsZero(ArithVar x){
+    return hasLowerBound(x) && getLowerBound(x).sgn() == 0;
+  }
+
+  inline bool upperBoundIsZero(ArithVar x){
+    return hasUpperBound(x) && getUpperBound(x).sgn() == 0;
+  }
+
+private:
+  void zeroDifferenceDetected(ArithVar x);
+
+public:
 
 
   void setUpperBound(ArithVar x, const DeltaRational& r);
@@ -112,6 +130,7 @@ public:
   const DeltaRational& getUpperBound(ArithVar x);
   const DeltaRational& getLowerBound(ArithVar x);
   const DeltaRational& getAssignment(ArithVar x) const;
+
 
 
   /**

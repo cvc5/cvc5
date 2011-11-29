@@ -668,6 +668,8 @@ void TheoryEngine::explainEqualities(TheoryId theoryId, TNode literals, NodeBuil
       TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
       if (atom.getKind() == kind::EQUAL) {
         explainEquality(theoryId, literal, builder);
+      } else if(literal.getKind() == kind::AND){
+        explainEqualities(theoryId, literal, builder);
       } else {
         builder << literal;
       }
