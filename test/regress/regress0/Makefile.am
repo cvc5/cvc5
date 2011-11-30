@@ -94,14 +94,14 @@ BUG_TESTS = \
 	bug187.smt2 \
 	bug220.smt2 \
 	bug239.smt \
-	bug288.smt \
 	buggy-ite.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
 	bug216.smt2 \
-	bug216.smt2.expect
+	bug216.smt2.expect \
+	bug288.smt
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
