@@ -1,8 +1,8 @@
 (benchmark delta
-:logic QF_UFLIA
-:extrafuns ((f Int Int))
+:logic QF_LIA
 :extrafuns ((x Int))
+:extrafuns ((y Int))
 :status sat
 :formula
-(not (= x (f 0)))
+(not (<= x y))
 )
