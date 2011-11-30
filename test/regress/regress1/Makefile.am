@@ -17,6 +17,7 @@ TESTS =	bug136.smt \
 	hole7.cvc \
 	hole8.cvc \
 	instance_1444.smt \
+	xs-11-20-5-2-5-3.smt \
 	fuzz_2.smt
 
 EXTRA_DIST = $(TESTS)
