@@ -20,13 +20,35 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/equality_engine_impl.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::uf;
-
 using namespace std;
 
-Node mkAnd(const std::vector<TNode>& conjunctions) {
+namespace CVC4 {
+namespace theory {
+namespace uf {
+
+/** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
+TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
+  Theory(THEORY_UF, c, u, out, valuation),
+  d_notify(*this),
+  d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
+  d_conflict(c, false),
+  d_literalsToPropagate(c),
+  d_literalsToPropagateIndex(c, 0),
+  d_functionsTerms(c)
+{
+  // The kinds we are treating as function application in congruence
+  d_equalityEngine.addFunctionKind(kind::APPLY_UF);
+  d_equalityEngine.addFunctionKind(kind::EQUAL);
+
+  // The boolean constants
+  d_true = NodeManager::currentNM()->mkConst<bool>(true);
+  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_equalityEngine.addTerm(d_true);
+  d_equalityEngine.addTerm(d_false);
+  d_equalityEngine.addTriggerEquality(d_true, d_false, d_false);
+}/* TheoryUF::TheoryUF() */
+
+static Node mkAnd(const std::vector<TNode>& conjunctions) {
   Assert(conjunctions.size() > 0);
 
   std::set<TNode> all;
@@ -46,7 +68,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
   }
 
   return conjunction;
-}
+}/* mkAnd() */
 
 void TheoryUF::check(Effort level) {
 
@@ -101,7 +123,7 @@ void TheoryUF::check(Effort level) {
   // but when f(x) != f(y) is deduced by the sat solver, so it's asserted, and we don't detect the conflict
   // until we go through the propagation list
   propagate(level);
-}
+}/* TheoryUF::check() */
 
 void TheoryUF::propagate(Effort level) {
   Debug("uf") << "TheoryUF::propagate()" << std::endl;
@@ -130,7 +152,7 @@ void TheoryUF::propagate(Effort level) {
       }
     }
   }
-}
+}/* TheoryUF::propagate(Effort) */
 
 void TheoryUF::preRegisterTerm(TNode node) {
   Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
@@ -161,7 +183,7 @@ void TheoryUF::preRegisterTerm(TNode node) {
     d_equalityEngine.addTerm(node);
     break;
   }
-}
+}/* TheoryUF::preRegisterTerm() */
 
 bool TheoryUF::propagate(TNode literal) {
   Debug("uf") << "TheoryUF::propagate(" << literal  << ")" << std::endl;
@@ -200,7 +222,7 @@ bool TheoryUF::propagate(TNode literal) {
   d_literalsToPropagate.push_back(literal);
 
   return true;
-}
+}/* TheoryUF::propagate(TNode) */
 
 void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
   TNode lhs, rhs;
@@ -226,7 +248,7 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
       Unreachable();
   }
   d_equalityEngine.getExplanation(lhs, rhs, assumptions);
-}
+}/* TheoryUF::explain() */
 
 Node TheoryUF::explain(TNode literal) {
   Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
@@ -362,7 +384,7 @@ void TheoryUF::staticLearning(TNode n, NodeBuilder<>& learned) {
   if(Options::current()->ufSymmetryBreaker) {
     d_symb.assertFormula(n);
   }
-}
+}/* TheoryUF::staticLearning() */
 
 EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
   if (d_equalityEngine.areEqual(a, b)) {
@@ -453,4 +475,8 @@ void TheoryUF::computeCareGraph(CareGraph& careGraph) {
       }
     }
   }
-}
+}/* TheoryUF::computeCareGraph() */
+
+}/* CVC4::theory::uf namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

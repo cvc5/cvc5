@@ -102,26 +102,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation):
-    Theory(THEORY_UF, c, u, out, valuation),
-    d_notify(*this),
-    d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
-    d_conflict(c, false),
-    d_literalsToPropagate(c),
-    d_literalsToPropagateIndex(c, 0),
-    d_functionsTerms(c)
-  {
-    // The kinds we are treating as function application in congruence
-    d_equalityEngine.addFunctionKind(kind::APPLY_UF);
-    d_equalityEngine.addFunctionKind(kind::EQUAL);
-
-    // The boolean constants
-    d_true = NodeManager::currentNM()->mkConst<bool>(true);
-    d_false = NodeManager::currentNM()->mkConst<bool>(false);
-    d_equalityEngine.addTerm(d_true);
-    d_equalityEngine.addTerm(d_false);
-    d_equalityEngine.addTriggerEquality(d_true, d_false, d_false);
-  }
+  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
 
   void check(Effort);
   void propagate(Effort);
