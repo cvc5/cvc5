@@ -294,7 +294,7 @@ static int runCvc4(int argc, char* argv[]) {
       replayParser->useDeclarationsFrom(shell.getParser());
     }
     while((cmd = shell.readCommand())) {
-      status = status && doCommand(smt, cmd);
+      status = doCommand(smt, cmd) && status;
       delete cmd;
     }
   } else {
@@ -310,7 +310,7 @@ static int runCvc4(int argc, char* argv[]) {
       replayParser->useDeclarationsFrom(parser);
     }
     while((cmd = parser->nextCommand())) {
-      status = status && doCommand(smt, cmd);
+      status = doCommand(smt, cmd) && status;
       delete cmd;
     }
     // Remove the parser
@@ -370,7 +370,7 @@ static bool doCommand(SmtEngine& smt, Command* cmd) {
     for(CommandSequence::iterator subcmd = seq->begin();
         subcmd != seq->end();
         ++subcmd) {
-      status = status && doCommand(smt, *subcmd);
+      status = doCommand(smt, *subcmd) && status;
     }
   } else {
     if(options.verbosity > 0) {
