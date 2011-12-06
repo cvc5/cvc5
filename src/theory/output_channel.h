@@ -28,6 +28,33 @@ namespace CVC4 {
 namespace theory {
 
 /**
+ * A LemmaStatus, returned from OutputChannel::lemma(), provides information
+ * about the lemma added.  In particular, it contains the T-rewritten lemma
+ * for inspection and the user-level at which the lemma will reside.
+ */
+class LemmaStatus {
+  Node d_rewrittenLemma;
+  unsigned d_level;
+
+public:
+  LemmaStatus(TNode rewrittenLemma, unsigned level) :
+    d_rewrittenLemma(rewrittenLemma),
+    d_level(level) {
+  }
+
+  /** Get the T-rewritten form of the lemma. */
+  TNode getRewrittenLemma() const throw() { return d_rewrittenLemma; }
+
+  /**
+   * Get the user-level at which the lemma resides.  After this user level
+   * is popped, the lemma is un-asserted from the SAT layer.  This level
+   * will be 0 if the lemma didn't reach the SAT layer at all.
+   */
+  unsigned getLevel() const throw() { return d_level; }
+
+};/* class LemmaStatus */
+
+/**
  * Generic "theory output channel" interface.
  */
 class OutputChannel {
@@ -85,10 +112,11 @@ public:
    *
    * @param n - a theory lemma valid at decision level 0
    * @param removable - whether the lemma can be removed at any point
-   * @return the user level at which the lemma resides; it will be
-   * removed when this user level pops
+   * @return the "status" of the lemma, including user level at which
+   * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual unsigned lemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
+  virtual LemmaStatus lemma(TNode n, bool removable = false)
+    throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to
@@ -96,8 +124,9 @@ public:
    *
    * @param n - a theory atom; must be of Boolean type
    */
-  void split(TNode n) throw(TypeCheckingExceptionPrivate, AssertionException) {
-    lemma(n.orNode(n.notNode()));
+  LemmaStatus split(TNode n)
+    throw(TypeCheckingExceptionPrivate, AssertionException) {
+    return lemma(n.orNode(n.notNode()));
   }
 
   /**

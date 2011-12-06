@@ -202,7 +202,7 @@ class TheoryEngine {
       d_engine->propagate(literal, d_theory);
     }
 
-    unsigned lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
+    theory::LemmaStatus lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
       Trace("theory") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
@@ -356,21 +356,23 @@ class TheoryEngine {
   bool d_outputChannelUsed;
 
   /**
-   * Adds a new lemma
+   * Adds a new lemma, returning its status.
    */
-  unsigned lemma(TNode node, bool negated, bool removable) {
-
+  theory::LemmaStatus lemma(TNode node, bool negated, bool removable) {
     if(Dump.isOn("t-lemmas")) {
-      Dump("t-lemmas") << CommentCommand("theory lemma: expect valid") << std::endl
+      Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
+                       << std::endl
                        << QueryCommand(node.toExpr()) << std::endl;
     }
     // Remove the ITEs and assert to prop engine
     std::vector<Node> additionalLemmas;
     additionalLemmas.push_back(node);
     RemoveITE::run(additionalLemmas);
-    d_propEngine->assertLemma(theory::Rewriter::rewrite(additionalLemmas[0]), negated, removable);
+    additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
+    d_propEngine->assertLemma(additionalLemmas[0], negated, removable);
     for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
-      d_propEngine->assertLemma(theory::Rewriter::rewrite(additionalLemmas[i]), false, removable);
+      additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
+      d_propEngine->assertLemma(additionalLemmas[i], false, removable);
     }
 
     // Mark that we added some lemmas
@@ -378,7 +380,9 @@ class TheoryEngine {
 
     // Lemma analysis isn't online yet; this lemma may only live for this
     // user level.
-    return d_userContext->getLevel();
+    Node finalForm =
+      negated ? additionalLemmas[0].notNode() : additionalLemmas[0];
+    return theory::LemmaStatus(finalForm, d_userContext->getLevel());
   }
 
 public:
