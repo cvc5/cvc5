@@ -91,8 +91,13 @@ class RewriteRule {
     }
   };
 
-  /** Statistics about the rule */
-  static RuleStatistics* s_statictics;
+  /* Statistics about the rule */
+  // NOTE: Cannot have static fields like this, or else you can't have
+  // two SmtEngines in the process (the second-to-be-destroyed will
+  // have a dangling pointer and segfault).  If this statistic is needed,
+  // fix the rewriter by making it an instance per-SmtEngine (instead of
+  // static).
+  //static RuleStatistics* s_statistics;
 
   /** Actually apply the rewrite rule */
   static inline Node apply(Node node) {
@@ -102,14 +107,18 @@ class RewriteRule {
 public:
 
   RewriteRule() {
-    if (s_statictics == NULL) {
-      s_statictics = new RuleStatistics();
+    /*
+    if (s_statistics == NULL) {
+      s_statistics = new RuleStatistics();
     }
+    */
   }
 
   ~RewriteRule() {
-    delete s_statictics;
-    s_statictics = NULL;
+    /*
+    delete s_statistics;
+    s_statistics = NULL;
+    */
   }
 
   static inline bool applies(Node node) {
@@ -121,7 +130,7 @@ public:
     if (!checkApplies || applies(node)) {
       BVDebug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
-      ++ s_statictics->d_ruleApplications;
+      //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
       BVDebug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
       return result;
@@ -131,8 +140,10 @@ public:
   }
 };
 
+/*
 template<RewriteRuleId rule>
-typename RewriteRule<rule>::RuleStatistics* RewriteRule<rule>::s_statictics = NULL;
+typename RewriteRule<rule>::RuleStatistics* RewriteRule<rule>::s_statistics = NULL;
+*/
 
 /** Have to list all the rewrite rules to get the statistics out */
 struct AllRewriteRules {
