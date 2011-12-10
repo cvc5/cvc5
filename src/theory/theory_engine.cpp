@@ -573,7 +573,14 @@ void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
     Node normalizedEquality = Rewriter::rewrite(literal);
     if (d_propEngine->isSatLiteral(normalizedEquality)) {
       // If there is a literal, just enqueue it, same as above
-      d_propagatedLiterals.push_back(normalizedEquality);
+      bool value;
+      if (d_propEngine->hasValue(normalizedEquality, value)) {
+        // if we are propagting something that already has a sat value we better be the same
+        Debug("theory") << "literal " << literal << " (" << normalizedEquality << ") propagated by " << theory << " but already has a sat value" << std::endl;
+        Assert((value && (literal.getKind() != kind::NOT)) || (!value && literal.getKind() == kind::NOT));
+      } else {
+        d_propagatedLiterals.push_back(normalizedEquality);
+      }
     }
     // Otherwise, we assert it to all interested theories
     Theory::Set lhsNotified = d_sharedTerms.getNotifiedTheories(atom[0]);
