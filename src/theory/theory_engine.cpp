@@ -230,11 +230,18 @@ void TheoryEngine::combineTheories() {
 
     Node equality = carePair.a.eqNode(carePair.b);
     Node normalizedEquality = Rewriter::rewrite(equality);
+	bool isTrivial = normalizedEquality.getKind() == kind::CONST_BOOLEAN;
+
 
     // If the node has a literal, it has been asserted so we should just check it
     bool value;
-    if (d_propEngine->isSatLiteral(normalizedEquality) && d_propEngine->hasValue(normalizedEquality, value)) {
-      Debug("sharing") << "TheoryEngine::combineTheories(): has a literal " << std::endl;
+    if (isTrivial || (d_propEngine->isSatLiteral(normalizedEquality) && d_propEngine->hasValue(normalizedEquality, value))) {
+      Debug("sharing") << "TheoryEngine::combineTheories(): has a literal or is trivial" << std::endl;
+
+	  if (isTrivial) {
+	    // if the equality is trivial, we assert it back to the theory saying the sat solver should explain
+	    value = normalizedEquality.getConst<bool>();
+	  }
 
       // Normalize the equality to the theory that requested it
       Node toAssert = Rewriter::rewriteEquality(carePair.theory, equality);
