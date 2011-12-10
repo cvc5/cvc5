@@ -590,10 +590,14 @@ void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
         if (Theory::setContains(currentTheory, lhsNotified) && Theory::setContains(currentTheory, rhsNotified)) {
           // Normalize the equality
           Node equality = Rewriter::rewriteEquality(currentTheory, atom);
-          // The assertion
-          Node assertion = negated ? equality.notNode() : equality;
-          // Remember it to assert later
-          d_propagatedEqualities.push_back(SharedEquality(assertion, literal, theory, currentTheory));
+          if (equality.getKind() != kind::CONST_BOOLEAN) {
+            // The assertion
+            Node assertion = negated ? equality.notNode() : equality;
+            // Remember it to assert later
+            d_propagatedEqualities.push_back(SharedEquality(assertion, literal, theory, currentTheory));
+          } else {
+            Assert(negated || equality.getConst<bool>());
+          }
         }
       }
     }
