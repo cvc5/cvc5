@@ -698,9 +698,18 @@ CRef Solver::propagate(TheoryCheckType type)
 void Solver::propagateTheory() {
   std::vector<Lit> propagatedLiterals;
   proxy->theoryPropagate(propagatedLiterals);
+  int oldTrailSize = trail.size();
   for (unsigned i = 0, i_end = propagatedLiterals.size(); i < i_end; ++ i) {
     Debug("minisat") << "Theory propagated: " << propagatedLiterals[i] << std::endl;
-    uncheckedEnqueue(propagatedLiterals[i], CRef_Lazy);
+    // multiple theories can propagate the same literal
+    Lit p = propagatedLiterals[i];
+    if (value(p) == l_Undef) {
+      uncheckedEnqueue(p, CRef_Lazy);
+    } else {
+      // but we check that this is the case and that they agree
+      Assert(trail_index(var(p)) >= oldTrailSize);
+      Assert(value(p) == lbool(!sign(p)));
+    }
   }
 }
 

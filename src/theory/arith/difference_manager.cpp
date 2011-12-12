@@ -33,7 +33,7 @@ void DifferenceManager::explain(TNode literal, std::vector<TNode>& assumptions) 
     default:
       Unreachable();
   }
-  d_ee.getExplanation(lhs, rhs, assumptions);
+  d_ee.explainEquality(lhs, rhs, assumptions);
 }
 
 #warning "Stolen from theory_uf.h verbatim. Generalize me!"

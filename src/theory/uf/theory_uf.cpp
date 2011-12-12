@@ -236,9 +236,16 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
       rhs = d_true;
       break;
     case kind::NOT:
-      lhs = literal[0];
-      rhs = d_false;
-      break;
+      if (literal[0].getKind() == kind::EQUAL) {
+        // Disequalities
+        d_equalityEngine.explainDisequality(literal[0][0], literal[0][1], assumptions);
+        return;
+      } else {
+        // Predicates
+        lhs = literal[0];
+        rhs = d_false;
+        break;
+      }
     case kind::CONST_BOOLEAN:
       // we get to explain true = false, since we set false to be the trigger of this
       lhs = d_true;
@@ -247,8 +254,8 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
     default:
       Unreachable();
   }
-  d_equalityEngine.getExplanation(lhs, rhs, assumptions);
-}/* TheoryUF::explain() */
+  d_equalityEngine.explainEquality(lhs, rhs, assumptions);
+}
 
 Node TheoryUF::explain(TNode literal) {
   Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
