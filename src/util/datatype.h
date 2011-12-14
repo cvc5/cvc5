@@ -158,7 +158,15 @@ private:
     throw(AssertionException, DatatypeResolutionException);
   friend class Datatype;
 
-  /** @FIXME document this! */
+  /** Helper function for resolving parametric datatypes.
+      This replaces instances of the SortConstructorType produced for unresolved
+      parametric datatypes, with the corresponding resolved DatatypeType.  For example, take
+      the parametric definition of a list, list[T] = cons(car : T, cdr : list[T]) | null.
+      If "range" is the unresolved parametric datatype:
+        DATATYPE list = cons(car: SORT_TAG_1, cdr: SORT_TAG_2(SORT_TAG_1)) | null END;,
+      this function will return the resolved type:
+        DATATYPE list = cons(car: SORT_TAG_1, cdr: (list PARAMETERIC_DATATYPE SORT_TAG_1)) | null END;
+    */
   Type doParametricSubstitution(Type range,
                                 const std::vector< SortConstructorType >& paramTypes,
                                 const std::vector< DatatypeType >& paramReplacements);
@@ -350,6 +358,19 @@ public:
  * Datatype and request the constructor, selector, and tester terms.
  * See src/parser/parser.cpp for how this is done.  For API usage
  * ideas, see test/unit/util/datatype_black.h.
+ *
+ * Datatypes may also be defined parametrically, such as this example:
+ *
+ *  DATATYPE
+ *    list[T] = cons(car : T, cdr : list[T]) | null,
+ *    tree = node(children : list[tree]) | leaf
+ *  END;
+ * 
+ * Here, the definition of the parametric datatype list, where T is a type variable.
+ * In other words, this defines a family of types list[C] where C is any concrete
+ * type.  Datatypes can be parameterized over multiple type variables using the
+ * syntax sym[ T1, ..., Tn ] = ...,
+ *
  */
 class CVC4_PUBLIC Datatype {
 public:
