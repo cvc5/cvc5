@@ -570,16 +570,16 @@ void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
     d_propagatedLiterals.push_back(literal);
   } else {
     // Otherwise it might be a shared-term (dis-)equality
-    Node normalizedEquality = Rewriter::rewrite(literal);
-    if (d_propEngine->isSatLiteral(normalizedEquality)) {
+    Node normalizedLiteral = Rewriter::rewrite(literal);
+    if (d_propEngine->isSatLiteral(normalizedLiteral)) {
       // If there is a literal, just enqueue it, same as above
       bool value;
-      if (d_propEngine->hasValue(normalizedEquality, value)) {
+      if (d_propEngine->hasValue(normalizedLiteral, value)) {
         // if we are propagting something that already has a sat value we better be the same
-        Debug("theory") << "literal " << literal << " (" << normalizedEquality << ") propagated by " << theory << " but already has a sat value" << std::endl;
-        Assert((value && (literal.getKind() != kind::NOT)) || (!value && literal.getKind() == kind::NOT));
+        Debug("theory") << "literal " << literal << " (" << normalizedLiteral << ") propagated by " << theory << " but already has a sat value " << (value ? "true" : "false") << std::endl;
+        Assert(value);
       } else {
-        d_propagatedLiterals.push_back(normalizedEquality);
+        d_propagatedLiterals.push_back(normalizedLiteral);
       }
     }
     // Otherwise, we assert it to all interested theories
@@ -708,7 +708,7 @@ void TheoryEngine::explainEquality(TheoryId theoryId, TNode eqLiteral, NodeBuild
   SharedAssertionsMap::iterator find = d_sharedAssertions.find(NodeTheoryPair(eqLiteral, theoryId));
   if (find == d_sharedAssertions.end()) {
     // Not a shared assertion, just add it since it must be SAT literal
-    builder << eqLiteral;
+    builder << Rewriter::rewrite(eqLiteral);
   } else {
     TheoryId explainingTheory = (*find).second.theory;
     if (explainingTheory == theory::THEORY_LAST) {
@@ -721,4 +721,3 @@ void TheoryEngine::explainEquality(TheoryId theoryId, TNode eqLiteral, NodeBuild
     }
   }
 }
-
