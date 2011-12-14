@@ -897,6 +897,7 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
           }
         }
       } else {
+        // f is not null-- meaning this is a definition not a declaration
         if(!topLevel) {
           // must be top-level; doesn't make sense to write something
           // like e.g. FORALL(x:INT = 4): [...]
@@ -908,8 +909,9 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
             i != i_end;
             ++i) {
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
+          Expr func = EXPR_MANAGER->mkVar(*i, f.getType());
           PARSER_STATE->defineFunction(*i, f);
-          Command* decl = new DefineFunctionCommand(*i, Expr(), f);
+          Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
         }
       }

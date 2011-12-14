@@ -484,15 +484,19 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() 
   Expr func = c->getFunction();
   const vector<Expr>& formals = c->getFormals();
   Expr formula = c->getFormula();
-  out << func << " : " << func.getType() << " = LAMBDA(";
-  vector<Expr>::const_iterator i = formals.begin();
-  while(i != formals.end()) {
-    out << (*i) << ":" << (*i).getType();
-    if(++i != formals.end()) {
-      out << ", ";
+  out << func << " : " << func.getType() << " = ";
+  if(formals.size() > 0) {
+    out << "LAMBDA(";
+    vector<Expr>::const_iterator i = formals.begin();
+    while(i != formals.end()) {
+      out << (*i) << ":" << (*i).getType();
+      if(++i != formals.end()) {
+        out << ", ";
+      }
     }
+    out << "): ";
   }
-  out << "): " << formula << ";";
+  out << formula << ";";
 }
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c) throw() {
