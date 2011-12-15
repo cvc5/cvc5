@@ -937,8 +937,10 @@ void TheoryArith::propagate(Effort e) {
             propagated = true;
           }else{
             Node exp = d_differenceManager.explain(toProp);
-            Node lp = flattenAnd(exp.andNode(exp));
-            d_out->conflict(exp);
+            Node lp = flattenAnd(exp.andNode(notNormalized));
+            Debug("arith::propagate") << "propagate conflict" << lp << endl;
+            d_out->conflict(lp);
+
             propagated = true;
             break;
           }
