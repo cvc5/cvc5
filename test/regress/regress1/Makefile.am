@@ -17,8 +17,12 @@ TESTS =	bug136.smt \
 	hole7.cvc \
 	hole8.cvc \
 	instance_1444.smt \
-	xs-11-20-5-2-5-3.smt \
-	fuzz_2.smt
+	fuzz_2.smt \
+	hash_sat_10_09.smt2 \
+	hash_sat_07_17.smt2 \
+	ooo.tag10.smt2 \
+	hash_sat_06_19.smt2 \
+	hash_sat_09_09.smt2
 
 EXTRA_DIST = $(TESTS)
 
