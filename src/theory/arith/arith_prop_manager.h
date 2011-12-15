@@ -31,7 +31,7 @@
 #include "context/cdlist.h"
 #include "context/cdmap.h"
 #include "context/cdo.h"
-
+#include "theory/rewriter.h"
 #include "util/stats.h"
 
 namespace CVC4 {
@@ -42,6 +42,7 @@ class PropManager {
 public:
   struct PropUnit {
     // consequent <= antecedent
+    // i.e. the antecedent is the explanation of the consequent.
     Node consequent;
     Node antecedent;
     bool flag;
@@ -52,10 +53,13 @@ public:
 
 private:
   context::CDList<PropUnit> d_propagated;
-
   context::CDO<uint32_t> d_propagatedPos;
-  typedef context::CDMap<Node, size_t, NodeHashFunction> ExplainMap;
 
+  /* This maps the node a theory engine will request on an explain call to
+   * to its corresponding PropUnit.
+   * This is node is potentially both the consequent or Rewriter::rewrite(consequent).
+   */
+  typedef context::CDMap<Node, size_t, NodeHashFunction> ExplainMap;
   ExplainMap d_explanationMap;
 
   size_t getIndex(TNode n) const {
@@ -86,6 +90,13 @@ public:
   void propagate(TNode n, Node reason, bool flag) {
     Assert(!isPropagated(n));
 
+    if(flag){
+      Node rewritten =  Rewriter::rewrite(n);
+      d_explanationMap.insert(rewritten, d_propagated.size());
+    }else{
+      //If !flag, then the rewriter is idempotent on n.
+      Assert(Rewriter::rewrite(n) == n);
+    }
     d_explanationMap.insert(n, d_propagated.size());
     d_propagated.push_back(PropUnit(n, reason, flag));
 
