@@ -212,7 +212,7 @@ command returns [CVC4::Command* cmd = NULL]
         sorts.push_back(PARSER_STATE->mkSort(*i));
       }
     }
-    sortSymbol[t]
+    sortSymbol[t,CHECK_DECLARED]
     { PARSER_STATE->popScope();
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
@@ -222,7 +222,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* function declaration */
     DECLARE_FUN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortList[sorts] RPAREN_TOK
-    sortSymbol[t]
+    sortSymbol[t,CHECK_DECLARED]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
       if( sorts.size() > 0 ) {
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
@@ -232,7 +232,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* function definition */
     DEFINE_FUN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    sortSymbol[t]
+    sortSymbol[t,CHECK_DECLARED]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define fun: '" << name << "'" << std::endl;
       if( sortedVarNames.size() > 0 ) {
@@ -462,7 +462,16 @@ term[CVC4::Expr& expr]
         kind = CVC4::kind::APPLY;
       } else {
         expr = PARSER_STATE->getVariable(name);
-        kind = CVC4::kind::APPLY_UF;
+        Type t = expr.getType();
+        if( t.isConstructor() ){
+          kind = CVC4::kind::APPLY_CONSTRUCTOR;
+        }else if( t.isSelector() ){
+          kind = CVC4::kind::APPLY_SELECTOR;
+        }else if( t.isTester() ){
+          kind = CVC4::kind::APPLY_TESTER;
+        }else{
+          kind = CVC4::kind::APPLY_UF;
+        }
       }
       args.push_back(expr);
     }
@@ -495,6 +504,11 @@ term[CVC4::Expr& expr]
                        PARSER_STATE->getFunction(name));
       } else {
         expr = PARSER_STATE->getVariable(name);
+        Type t = PARSER_STATE->getType(name);
+        if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
+          // don't require parentheses, immediately turn it into an apply
+          expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
+        }
       }
     }
 
@@ -688,7 +702,7 @@ sortList[std::vector<CVC4::Type>& sorts]
 @declarations {
   Type t;
 }
-  : ( sortSymbol[t] { sorts.push_back(t); } )*
+  : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )*
   ;
 
 /**
@@ -700,7 +714,7 @@ sortedVarList[std::vector<std::pair<std::string, CVC4::Type> >& sortedVars]
   std::string name;
   Type t;
 }
-  : ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] sortSymbol[t] RPAREN_TOK
+  : ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] sortSymbol[t,CHECK_DECLARED] RPAREN_TOK
       { sortedVars.push_back(make_pair(name, t)); }
     )*
   ;
@@ -713,14 +727,20 @@ sortName[std::string& name, CVC4::parser::DeclarationCheck check]
   : symbol[name,check,SYM_SORT]
   ;
 
-sortSymbol[CVC4::Type& t]
+sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
 @declarations {
   std::string name;
   std::vector<CVC4::Type> args;
   std::vector<uint64_t> numerals;
 }
   : sortName[name,CHECK_NONE]
-  	{ t = PARSER_STATE->getSort(name); }
+  	{ 
+  	  if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT) ){ 
+  	    t = PARSER_STATE->getSort(name);                                          
+  	  }else{                                                                    
+  	    t = PARSER_STATE->mkUnresolvedType(name);                                 
+  	  }                                          
+  	}
   | LPAREN_TOK INDEX_TOK symbol[name,CHECK_NONE,SYM_SORT] nonemptyNumeralList[numerals] RPAREN_TOK
     {
       if( name == "BitVec" ) {
@@ -846,7 +866,7 @@ selector[CVC4::DatatypeConstructor& ctor]
   std::string id;
   Type t, t2;
 }
-  : symbol[id,CHECK_UNDECLARED,SYM_SORT] sortSymbol[t]
+  : symbol[id,CHECK_UNDECLARED,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { ctor.addArg(id, t);
       Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
     }

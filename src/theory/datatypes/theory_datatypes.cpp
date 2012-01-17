@@ -43,7 +43,7 @@ Node TheoryDatatypes::getConstructorForSelector( Node sel )
   size_t selIndex = Datatype::indexOf( sel.toExpr() );
   const Datatype& dt = ((DatatypeType)((sel.getType()[0]).toType())).getDatatype();
   for( unsigned i = 0; i<dt.getNumConstructors(); i++ ){
-    if( dt[i].getNumArgs()>selIndex && 
+    if( dt[i].getNumArgs()>selIndex &&
         Node::fromExpr( dt[i][selIndex].getSelector() )==sel ){
       return Node::fromExpr( dt[i].getConstructor() );
     }
@@ -87,7 +87,7 @@ void TheoryDatatypes::addSharedTerm(TNode t) {
 void TheoryDatatypes::notifyEq(TNode lhs, TNode rhs) {
   Debug("datatypes") << "TheoryDatatypes::notifyEq(): "
                      << lhs << " = " << rhs << endl;
-  
+
 }
 
 void TheoryDatatypes::notifyCongruent(TNode lhs, TNode rhs) {
@@ -99,7 +99,7 @@ void TheoryDatatypes::notifyCongruent(TNode lhs, TNode rhs) {
   Debug("datatypes-debug") << "TheoryDatatypes::notifyCongruent(): done." << endl;
 }
 
-void TheoryDatatypes::preRegisterTerm(TNode n) {  
+void TheoryDatatypes::preRegisterTerm(TNode n) {
   Debug("datatypes-prereg") << "TheoryDatatypes::preRegisterTerm() " << n << endl;
 }
 
@@ -216,13 +216,13 @@ void TheoryDatatypes::check(Effort e) {
       }
       //Debug("datatypes-conflict") << d_cc << std::endl;
       Node conflict = d_em.getConflict();
-      if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") || 
+      if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ||
           Debug.isOn("datatypes-cycles") || Debug.isOn("datatypes-conflict") ){
         cout << "Conflict constructed : " << conflict << endl;
       }
-      //if( conflict.getKind()!=kind::AND ){
-      //  conflict = NodeManager::currentNM()->mkNode(kind::AND, conflict, conflict);
-      //}
+      if( conflict.getKind()!=kind::AND ){
+        conflict = NodeManager::currentNM()->mkNode(kind::AND, conflict, conflict);
+      }
       d_out->conflict(conflict);
       return;
     }
@@ -316,6 +316,7 @@ bool TheoryDatatypes::checkTester( Node assertion, Node& conflict, unsigned& r )
   //check if empty label (no possible constructors for term)
   for( EqList::const_iterator i = lbl->begin(); i != lbl->end(); i++ ) {
     Node leqn = (*i);
+    Debug("datatypes-debug") << "checking " << leqn << std::endl;
     if( leqn.getKind() == kind::NOT ) {
       if( leqn[0].getOperator() == tassertion.getOperator() ) {
         if( assertion.getKind() != NOT ) {
@@ -484,7 +485,7 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
         Debug("datatypes-gt") << "constructor is " << dtc << std::endl;
         Type tspec = dtc.getSpecializedConstructorType(te.getType().toType());
         Debug("datatypes-gt") << "tpec is " << tspec << std::endl;
-        selectorVals[0] = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION, 
+        selectorVals[0] = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
                                             NodeManager::currentNM()->mkConst(AscriptionType(tspec)), cons);
         val = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, selectorVals );
       }
@@ -532,7 +533,7 @@ bool TheoryDatatypes::checkInstantiate( Node te, Node cons )
 bool TheoryDatatypes::collapseSelector( Node t ) {
   if( !hasConflict() && t.getKind() == APPLY_SELECTOR ) {
     //collapse constructor
-    TypeNode retTyp = t.getType(); 
+    TypeNode retTyp = t.getType();
     TypeNode typ = t[0].getType();
     Node sel = t.getOperator();
     TypeNode selType = sel.getType();
@@ -683,13 +684,13 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
 
   //check for clash
   NodeBuilder<> explanation(kind::AND);
-  if( a.getKind() == kind::APPLY_CONSTRUCTOR && b.getKind() == kind::APPLY_CONSTRUCTOR 
+  if( a.getKind() == kind::APPLY_CONSTRUCTOR && b.getKind() == kind::APPLY_CONSTRUCTOR
       && a.getOperator()!=b.getOperator() ){
     Node ccEq = NodeManager::currentNM()->mkNode( EQUAL, a, b );
     d_em.addNode( ccEq, &d_cce );
     d_em.addNodeConflict( ccEq, Reason::idt_clash );
     Debug("datatypes") << "Clash " << a << " " << b << endl;
-    return; 
+    return;
   }
   Debug("datatypes-debug") << "Done clash" << endl;
 
@@ -854,8 +855,8 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
 }
 
 void TheoryDatatypes::addTermToLabels( Node t ) {
-  if( ( t.getKind() == VARIABLE || t.getKind() == APPLY_SELECTOR ) &&
-      t.getType().isDatatype() ) {
+  if( t.getType().isDatatype() ) {
+    Debug("datatypes-debug") << "Add term to labels " << t << std::endl;
     Node tmp = find( t );
     if( tmp == t ) {
       //add to labels
@@ -923,7 +924,7 @@ void TheoryDatatypes::collectTerms( Node n, bool recurse ) {
     addTermToLabels( n );
   }
 }
- 
+
 void TheoryDatatypes::appendToDiseqList(TNode of, TNode eq) {
   Debug("datatypes") << "appending " << eq << endl
               << "  to diseq list of " << of << endl;
@@ -961,8 +962,8 @@ void TheoryDatatypes::addEquality(TNode eq) {
 
     //record which nodes are waiting to be merged
     vector< pair< Node, Node > > mp;
-    mp.insert( mp.begin(), 
-               d_merge_pending[d_merge_pending.size()-1].begin(), 
+    mp.insert( mp.begin(),
+               d_merge_pending[d_merge_pending.size()-1].begin(),
                d_merge_pending[d_merge_pending.size()-1].end() );
     d_merge_pending.pop_back();
 
