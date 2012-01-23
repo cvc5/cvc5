@@ -376,7 +376,7 @@ public:
    * Assert a fact in the current context.
    */
   void assertFact(TNode assertion, bool isPreregistered) {
-    Trace("theory") << "Theory<" << getId() << ">::assertFact(" << assertion << ", " << (isPreregistered ? "true" : "false") << ")" << std::endl;
+    Trace("theory") << "Theory<" << getId() << ">::assertFact[" << d_context->getLevel() << "](" << assertion << ", " << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
 
