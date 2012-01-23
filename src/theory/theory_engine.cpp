@@ -630,16 +630,26 @@ Node TheoryEngine::getExplanation(TNode node)
   Node explanation;
 
   // The theory that has explaining to do
-  Theory* theory = theoryOf(atom);
+  Theory* theory;
+
+  //This is true if atom is a shared assertion
+  bool sharedAssertion = false;
+
+  SharedAssertionsMap::iterator find;
+  // "find" will have a value when sharedAssertion is true
   if (d_sharedTermsExist && atom.getKind() == kind::EQUAL) {
-    SharedAssertionsMap::iterator find = d_sharedAssertions.find(NodeTheoryPair(node, theory::THEORY_LAST));
-    if (find == d_sharedAssertions.end()) {
-      theory = theoryOf(atom);
-    }
+    find = d_sharedAssertions.find(NodeTheoryPair(node, theory::THEORY_LAST));
+    sharedAssertion = (find != d_sharedAssertions.end());
   }
 
   // Get the explanation
-  explanation = theory->explain(node);
+  if(sharedAssertion){
+    theory = theoryOf((*find).second.theory);
+    explanation = theory->explain((*find).second.node);
+  } else {
+    theory = theoryOf(atom);
+    explanation = theory->explain(node);
+  }
 
   // Explain any shared equalities that might be in the explanation
   if (d_sharedTermsExist) {
