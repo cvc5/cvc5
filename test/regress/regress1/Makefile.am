@@ -22,7 +22,8 @@ TESTS =	bug136.smt \
 	hash_sat_07_17.smt2 \
 	ooo.tag10.smt2 \
 	hash_sat_06_19.smt2 \
-	hash_sat_09_09.smt2
+	hash_sat_09_09.smt2 \
+	ooo.rf6.smt2
 
 EXTRA_DIST = $(TESTS)
 
