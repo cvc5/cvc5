@@ -132,7 +132,7 @@ $(JNI_CPP_FILES): %.cpp: src/cvc3/%_impl.cpp $(builddir)/cvc3/%.h include/cvc3/J
 		$*.cpp
 
 JniUtils.lo: src/cvc3/JniUtils.cpp .headers
-	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_INCLUDES) -I . -o $@ $<
+	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_INCLUDES) $(JAVA_CPPFLAGS) -I . -o $@ $<
 
 $(LIB_FILES:%=classes/cvc3/%.class): .classes
 .classes:

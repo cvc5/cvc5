@@ -1355,6 +1355,10 @@ public:
   */
   virtual Proof getProof();
 
+  //! Evaluate an expression and return a concrete value in the model
+  /*! If the last query was not invalid, should return NULL expr */
+  virtual Expr getValue(const Expr& e);
+
   //! Returns the TCC of the last assumption or query
   /*! Returns Null if no assumptions or queries were performed. */
   virtual Expr getTCC();

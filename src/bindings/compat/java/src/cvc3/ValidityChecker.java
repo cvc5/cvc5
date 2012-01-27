@@ -383,8 +383,10 @@ public class ValidityChecker extends Embedded {
 	jniGetCounterExample(Object ValidityChecker, boolean inOrder) throws Cvc3Exception;
     private static native Object[]
 	jniGetConcreteModel(Object ValidityChecker) throws Cvc3Exception;
-    private static native String
+    private static native Object
 	jniGetValue(Object ValidityChecker, Object Expr) throws Cvc3Exception;
+    private static native String
+	jniValue(Object ValidityChecker, Object Expr) throws Cvc3Exception;
     private static native boolean
 	jniInconsistent1(Object ValidityChecker) throws Cvc3Exception;
     private static native Object[]
@@ -1591,8 +1593,14 @@ public class ValidityChecker extends Embedded {
 	return JniUtils.embedHashMap(model, Expr.class, Expr.class, embeddedManager());
     }
 
-    public FormulaValue getValue(Expr expr) throws Cvc3Exception {
-	return FormulaValue.get(jniGetValue(embedded(), expr.embedded()));
+    public FormulaValue value(Expr expr) throws Cvc3Exception {
+	return FormulaValue.get(jniValue(embedded(), expr.embedded()));
+    }
+
+    public Expr getValue(Expr expr) throws Cvc3Exception {
+	return new ExprMut(
+	  jniGetValue(embedded(), expr.embedded()),
+	  embeddedManager());
     }
 
     public boolean inconsistent() throws Cvc3Exception {

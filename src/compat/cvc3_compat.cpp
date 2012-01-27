@@ -1950,7 +1950,20 @@ QueryResult ValidityChecker::tryModelGeneration() {
 
 FormulaValue ValidityChecker::value(const Expr& e) {
   CheckArgument(e.getType() == d_em->booleanType(), e, "argument must be a formula");
-  return d_smt->getValue(e).getConst<bool>() ? TRUE_VAL : FALSE_VAL;
+  try {
+    return d_smt->getValue(e).getConst<bool>() ? TRUE_VAL : FALSE_VAL;
+  } catch(CVC4::Exception& e) {
+    return UNKNOWN_VAL;
+  }
+}
+
+Expr ValidityChecker::getValue(const Expr& e) {
+  try {
+    return d_smt->getValue(e);
+  } catch(CVC4::ModalException& e) {
+    // by contract, we return null expr
+    return Expr();
+  }
 }
 
 bool ValidityChecker::inconsistent(std::vector<Expr>& assumptions) {

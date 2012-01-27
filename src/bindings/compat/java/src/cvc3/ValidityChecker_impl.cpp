@@ -733,9 +733,13 @@ vector<Expr> result;
 vc->getCounterExample(result, inOrder);
 return toJavaVCopy(env, result);
 
-DEFINITION: Java_cvc3_ValidityChecker_jniGetValue
+DEFINITION: Java_cvc3_ValidityChecker_jniValue
 jstring m ValidityChecker vc c Expr expr
 return toJava(env, vc->value(*expr));
+
+DEFINITION: Java_cvc3_ValidityChecker_jniGetValue
+jobject m ValidityChecker vc c Expr expr
+return embed_copy(env, vc->getValue(*expr));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniGetConcreteModel
 jobjectArray m ValidityChecker vc
