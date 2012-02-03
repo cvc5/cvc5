@@ -91,9 +91,23 @@ else
           ;;
         python)
           AC_MSG_RESULT([python support will be built])
-          AC_ARG_VAR(PYTHON_CPPFLAGS, [flags to pass to compiler when building Python bindings])
-          CPPFLAGS="$CPPFLAGS $PYTHON_CPPFLAGS"
-          AC_CHECK_HEADER([Python.h], [cvc4_build_python_bindings=yes], [binding_error=yes])
+          AM_PATH_PYTHON([2.5], [cvc4_build_python_bindings=yes], [binding_error=yes])
+          AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
+          AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
+          AS_IF([test -z "$PYTHON_INCLUDE"], [
+            AS_IF([test -z "$PYTHON_CONFIG"], [
+              AC_PATH_PROGS([PYTHON_CONFIG],
+                [python$PYTHON_VERSION-config python-config],
+                [no]
+              )
+              AS_IF([test "$PYTHON_CONFIG" = no], [AC_MSG_ERROR([cannot find python-config for $PYTHON.])])
+             ])
+            AC_MSG_CHECKING([python include flags])
+            AC_SUBST(PYTHON_CXXFLAGS, `$PYTHON_CONFIG --includes`)
+            AC_MSG_RESULT([$PYTHON_CXXFLAGS])
+          ])
+          CPPFLAGS="$CPPFLAGS $PYTHON_CXXFLAGS"
+          AC_CHECK_HEADER([Python.h], [cvc4_build_python_bindings=yes], [binding_error=yes])     
           ;;
         ruby)
           AC_MSG_RESULT([ruby support will be built])

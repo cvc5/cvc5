@@ -95,6 +95,7 @@ phpdata_DATA += php/CVC4.php
 endif
 if CVC4_LANGUAGE_BINDING_PYTHON
 pythonlib_LTLIBRARIES += python/CVC4.la
+python_CVC4_la_CXXFLAGS = $(PYTHON_CXXFLAGS)
 python_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
