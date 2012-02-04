@@ -260,8 +260,9 @@ parameterized SORT_TYPE SORT_TAG 0: "sort type"
 # enough (for now) ?  Once we support quantifiers, maybe reconsider
 # this..
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
-well-founded SORT_TYPE false
-
+well-founded SORT_TYPE \
+    "::CVC4::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
