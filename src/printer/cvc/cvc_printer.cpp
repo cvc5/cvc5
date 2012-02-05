@@ -36,15 +36,21 @@ namespace CVC4 {
 namespace printer {
 namespace cvc {
 
-void CvcPrinter::toStream(std::ostream& out, TNode n,
-                          int toDepth, bool types) const throw() {
+void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, bool bracket) const throw()
+{
+  if (depth == 0) {
+    out << "(...)";
+  } else {
+    depth --;
+  }
+
   // null
   if(n.getKind() == kind::NULL_EXPR) {
     out << "NULL";
     return;
   }
 
-  // variable
+  // variables
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
     string s;
     if(n.getAttribute(expr::VarNameAttr(), s)) {
@@ -62,11 +68,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       out << ":";
       n.getType().toStream(out, -1, false, language::output::LANG_CVC4);
     }
-
     return;
   }
 
-  // constant
+  // constants
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::BITVECTOR_TYPE:
@@ -92,6 +97,16 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
       break;
     }
+    case kind::CONST_INTEGER: {
+      const Integer& num = n.getConst<Integer>();
+      out << num;
+      break;
+    }
+    case kind::CONST_PSEUDOBOOLEAN: {
+      const Pseudoboolean& num = n.getConst<Pseudoboolean>();
+      out << num;
+      break;
+    }
     case kind::TYPE_CONSTANT:
       switch(TypeConstant tc = n.getConst<TypeConstant>()) {
       case REAL_TYPE:
@@ -111,136 +126,154 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
         break;
       default:
         out << tc;
-      }
-      break;
-    case kind::BUILTIN:
-      switch(Kind k = n.getConst<Kind>()) {
-      case kind::EQUAL: out << '='; break;
-      case kind::PLUS: out << '+'; break;
-      case kind::MULT: out << '*'; break;
-      case kind::MINUS:
-      case kind::UMINUS: out << '-'; break;
-      case kind::DIVISION: out << '/'; break;
-      case kind::LT: out << '<'; break;
-      case kind::LEQ: out << "<="; break;
-      case kind::GT: out << '>'; break;
-      case kind::GEQ: out << ">="; break;
-      case kind::IMPLIES: out << "=>"; break;
-      case kind::IFF: out << "<=>"; break;
-
-        // names are slightly different than the kind
-      case kind::BITVECTOR_PLUS: out << "BVPLUS"; break;
-      case kind::BITVECTOR_SUB: out << "BVSUB"; break;
-      case kind::BITVECTOR_XOR: out << "BVXOR"; break;
-      case kind::BITVECTOR_NAND: out << "BVNAND"; break;
-      case kind::BITVECTOR_NOR: out << "BVNOR"; break;
-      case kind::BITVECTOR_XNOR: out << "BVXNOR"; break;
-      case kind::BITVECTOR_COMP: out << "BVCOMP"; break;
-      case kind::BITVECTOR_MULT: out << "BVMULT"; break;
-      case kind::BITVECTOR_UDIV: out << "BVUDIV"; break;
-      case kind::BITVECTOR_UREM: out << "BVUREM"; break;
-      case kind::BITVECTOR_SDIV: out << "BVSDIV"; break;
-      case kind::BITVECTOR_SREM: out << "BVSREM"; break;
-      case kind::BITVECTOR_SMOD: out << "BVSMOD"; break;
-      case kind::BITVECTOR_SHL: out << "BVSHL"; break;
-      case kind::BITVECTOR_LSHR: out << "BVLSHR"; break;
-      case kind::BITVECTOR_ASHR: out << "BVASHR"; break;
-      case kind::BITVECTOR_ULT: out << "BVLT"; break;
-      case kind::BITVECTOR_ULE: out << "BVLE"; break;
-      case kind::BITVECTOR_UGT: out << "BVGT"; break;
-      case kind::BITVECTOR_UGE: out << "BVGE"; break;
-      case kind::BITVECTOR_SLT: out << "BVSLT"; break;
-      case kind::BITVECTOR_SLE: out << "BVSLE"; break;
-      case kind::BITVECTOR_SGT: out << "BVSGT"; break;
-      case kind::BITVECTOR_SGE: out << "BVSGE"; break;
-      case kind::BITVECTOR_NEG: out << "BVUMINUS"; break;
-
-      case kind::BITVECTOR_NOT: out << "~"; break;
-      case kind::BITVECTOR_AND: out << "&"; break;
-      case kind::BITVECTOR_OR: out << "|"; break;
-      case kind::BITVECTOR_CONCAT: out << "@"; break;
-
-      default:
-        out << k;
+        break;
       }
       break;
     default:
-      // fall back on whatever operator<< does on underlying type; we
-      // might luck out and be SMT-LIB v2 compliant
-      kind::metakind::NodeValueConstPrinter::toStream(out, n);
+      Unreachable();
+      break;
     }
-
     return;
-  } else if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    switch(n.getKind()) {
-    case kind::SORT_TYPE: {
-      std::string name;
-      if(n.getAttribute(expr::VarNameAttr(), name)) {
-        out << name;
-      } else {
-        goto default_case;
-      }
-      break;
-    }
-    case kind::BITVECTOR_EXTRACT:
-      out << n[0] << n.getOperator().getConst<BitVectorExtract>();
-      break;
-    case kind::BITVECTOR_REPEAT:
-      out << "BVREPEAT(" << n[0] << "," << n.getOperator() << ')';
-      break;
-    case kind::BITVECTOR_ZERO_EXTEND:
-      out << "BVZEROEXTEND(" << n[0] << "," << n.getOperator() << ')';
-      break;
-    case kind::BITVECTOR_SIGN_EXTEND:
-      out << "SX(" << n[0] << "," << n.getOperator() << ')';
-      break;
-    case kind::BITVECTOR_ROTATE_LEFT:
-      out << "BVROTL(" << n[0] << "," << n.getOperator() << ')';
-      break;
-    case kind::BITVECTOR_ROTATE_RIGHT:
-      out << "BVROTR(" << n[0] << "," << n.getOperator() << ')';
-      break;
+  }
 
-    default:
-    default_case:
-      out << n.getOperator();
-      if(n.getNumChildren() > 0) {
-        out << '(';
-        if(n.getNumChildren() > 1) {
-          copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, ", "));
+  enum OpType {
+    PREFIX,
+    INFIX,
+    POSTFIX
+  } opType;
+
+  stringstream op;       // operation (such as '+')
+
+  switch(n.getKind()) {
+
+    // BUILTIN
+    case kind::EQUAL:
+      op << '=';
+      opType = INFIX;
+      break;
+    case kind::ITE:
+      out << "IF ";
+      toStream(out, n[0], depth, types, true);
+      out << " THEN ";
+      toStream(out, n[1], depth, types, true);
+      out << " ELSE ";
+      toStream(out, n[2], depth, types, true);
+      return;
+      break;
+    case kind::TUPLE_TYPE:
+      out << '[';
+      for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
+        if (i > 0) {
+          out << ", ";
         }
-        out << n[n.getNumChildren() - 1] << ')';
+        toStream(out, n[i], depth, types, false);
       }
-    }
-    return;
-  } else if(n.getMetaKind() == kind::metakind::OPERATOR) {
-    switch(Kind k = n.getKind()) {
+      out << ']';
+      return;
+      break;
+    case kind::TUPLE:
+      // no-op
+      break;
+    case kind::APPLY:
+      toStream(op, n.getOperator(), depth, types, true);
+      break;
+
+    // BOOL
+    case kind::AND:
+      op << "AND";
+      opType = INFIX;
+      break;
+    case kind::OR:
+      op << "OR";
+      opType = INFIX;
+      break;
+    case kind::NOT:
+      op << "NOT";
+      opType = PREFIX;
+      break;
+    case kind::XOR:
+      op << "XOR";
+      opType = INFIX;
+      break;
+    case kind::IFF:
+      op << "<=>";
+      opType = INFIX;
+      break;
+    case kind::IMPLIES:
+      op << "=>";
+      opType = INFIX;
+      break;
+
+    // UF
+    case kind::APPLY_UF:
+      toStream(op, n.getOperator(), depth, types, true);
+      break;
     case kind::FUNCTION_TYPE:
+      if (n.getNumChildren() > 1) {
+        if (n.getNumChildren() > 2) {
+          out << '(';
+        }
+        for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
+          if (i > 0) {
+            out << ", ";
+          }
+          toStream(out, n[i], depth, types, false);
+        }
+        if (n.getNumChildren() > 2) {
+          out << ')';
+        }
+      }
+      out << " -> ";
+      toStream(out, n[n.getNumChildren()-1], depth, types, false);
+      return;
+      break;
+
+    // DATATYPES
+    case kind::APPLY_CONSTRUCTOR:
+    case kind::APPLY_SELECTOR:
+    case kind::APPLY_TESTER:
+      toStream(op, n.getOperator(), depth, types, false);
+      break;
     case kind::CONSTRUCTOR_TYPE:
     case kind::SELECTOR_TYPE:
-      if(n.getNumChildren() > 2) {
-        out << '(';
-        for(unsigned i = 0; i < n.getNumChildren() - 2; ++i) {
-          out << n[i] << ", ";
+      if (n.getNumChildren() > 1) {
+        if (n.getNumChildren() > 2) {
+          out << '(';
         }
-        out << n[n.getNumChildren() - 2]
-            << ") -> " << n[n.getNumChildren() - 1];
-      } else if(n.getNumChildren() == 2) {
-        out << n[0] << " -> " << n[1];
-      } else {
-        Assert(n.getNumChildren() == 1);
-        out << n[0];
+        for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
+          if (i > 0) {
+            out << ", ";
+          }
+          toStream(out, n[i], depth, types, false);
+        }
+        if (n.getNumChildren() > 2) {
+          out << ')';
+        }
       }
+      out << " -> ";
+      toStream(out, n[n.getNumChildren()-1], depth, types, false);
+      return;
       break;
     case kind::TESTER_TYPE:
-      out << n[0] << " -> BOOLEAN";
+      toStream(out, n[0], depth, types, false);
+      out << " -> BOOLEAN";
+      return;
       break;
 
+    // ARRAYS
     case kind::ARRAY_TYPE:
-      out << "ARRAY " << n[0] << " OF " << n[1];
+      out << "ARRAY ";
+      toStream(out, n[0], depth, types, false);
+      out << " OF ";
+      toStream(out, n[1], depth, types, false);
+      return;
       break;
     case kind::SELECT:
-      out << n[0] << '[' << n[1] << ']';
+      toStream(out, n[0], depth, types, false);
+      out << '[';
+      toStream(out, n[0], depth, types, false);
+      out << ']';
+      return;
       break;
     case kind::STORE: {
       stack<TNode> stk;
@@ -248,117 +281,240 @@ void CvcPrinter::toStream(std::ostream& out, TNode n,
       while(stk.top()[0].getKind() == kind::STORE) {
         stk.push(stk.top()[0]);
       }
-      out << '(';
+      if (bracket) {
+        out << '(';
+      }
       TNode x = stk.top();
-      out << x[0] << " WITH [" << x[1] << "] := " << x[2];
+      toStream(out, x[0], depth, types, false);
+      out << " WITH [";
+      toStream(out, x[1], depth, types, false);
+      out << "] := ";
+      toStream(out, x[2], depth, types, false);
       stk.pop();
       while(!stk.empty()) {
         x = stk.top();
-        out << ", [" << x[1] << "] := " << x[2];
+        out << ", [";
+        toStream(out, x[1], depth, types, false);
+        out << "] := ";
+        toStream(out, x[2], depth, types, false);
         stk.pop();
       }
-      out << ')';
-      break;
-    }
-
-    case kind::TUPLE_TYPE:
-      out << '[';
-      copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, ","));
-      out << n[n.getNumChildren() - 1];
-      out << ']';
-      break;
-    case kind::TUPLE:
-      out << "( ";
-      copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, ", "));
-      out << n[n.getNumChildren() - 1];
-      out << " )";
-      break;
-
-    case kind::ITE:
-      out << "IF " << n[0] << " THEN " << n[1] << " ELSE " << n[2];
-      break;
-
-    // these are prefix and have an extra size 'k' as first argument
-    case kind::BITVECTOR_PLUS:
-    case kind::BITVECTOR_SUB:
-    case kind::BITVECTOR_MULT:
-      out << n.getOperator() << '(' << n.getType().getBitVectorSize() << ','
-          << n[0] << ',' << n[1] << ')';
-      break;
-
-    // these are prefix
-    case kind::BITVECTOR_XOR:
-    case kind::BITVECTOR_NAND:
-    case kind::BITVECTOR_NOR:
-    case kind::BITVECTOR_XNOR:
-    case kind::BITVECTOR_COMP:
-    case kind::BITVECTOR_UDIV:
-    case kind::BITVECTOR_UREM:
-    case kind::BITVECTOR_SDIV:
-    case kind::BITVECTOR_SREM:
-    case kind::BITVECTOR_SMOD:
-    case kind::BITVECTOR_SHL:
-    case kind::BITVECTOR_LSHR:
-    case kind::BITVECTOR_ASHR:
-    case kind::BITVECTOR_ULT:
-    case kind::BITVECTOR_ULE:
-    case kind::BITVECTOR_UGT:
-    case kind::BITVECTOR_UGE:
-    case kind::BITVECTOR_SLT:
-    case kind::BITVECTOR_SLE:
-    case kind::BITVECTOR_SGT:
-    case kind::BITVECTOR_SGE:
-      out << n.getOperator() << '(' << n[0] << ',' << n[1] << ')';
-      break;
-
-    // N-ary infix
-    case kind::BITVECTOR_CONCAT:
-      out << '(';
-      for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
-        out << n[i] << ' ' << n.getOperator();
-      }
-      out << n[n.getNumChildren() - 1] << ')';
-
-    default:
-      if(k == kind::NOT && n[0].getKind() == kind::EQUAL) {
-        // collapse NOT-over-EQUAL
-        out << n[0][0] << " /= " << n[0][1];
-      } else if(n.getNumChildren() == 2) {
-        // infix binary operator
-        out << '(' << n[0] << ' ' << n.getOperator() << ' ' << n[1] << ')';
-      } else if(n.getKind() == kind::AND ||
-                n.getKind() == kind::OR ||
-                n.getKind() == kind::PLUS ||
-                n.getKind() == kind::MULT) {
-        // infix N-ary operator
-        TNode::iterator i = n.begin();
-        out << '(' << *i++;
-        while(i != n.end()) {
-          out << ' ' << n.getOperator() << ' ' << *i++;
-        }
+      if (bracket) {
         out << ')';
-      } else if(k == kind::BITVECTOR_NOT) {
-        // precedence on ~ is a little unexpected; add parens
-        out << "(~(" << n[0] << "))";
-      } else {
-        // prefix N-ary operator for N != 2
-        if(n.getNumChildren() == 0) {
-          // no parens or spaces
-          out << n.getOperator();
-        } else {
-          out << '(' << n.getOperator() << ' ';
-          if(n.getNumChildren() > 1) {
-            copy(n.begin(), n.end() - 1, ostream_iterator<TNode>(out, " "));
-          }
-          out << n[n.getNumChildren() - 1] << ')';
-        }
       }
+      return;
+      break;
     }
-    return;
+
+    // ARITHMETIC
+    case kind::PLUS:
+      op << '+';
+      opType = INFIX;
+      break;
+    case kind::MULT:
+      op << '*';
+      opType = INFIX;
+      break;
+    case kind::MINUS:
+      op << '-';
+      opType = INFIX;
+      break;
+    case kind::UMINUS:
+      op << '-';
+      opType = PREFIX;
+      break;
+    case kind::DIVISION:
+      op << '/';
+      opType = INFIX;
+      break;
+    case kind::LT:
+      op << '<';
+      opType = INFIX;
+      break;
+    case kind::LEQ:
+      op << "<=";
+      opType = INFIX;
+      break;
+    case kind::GT:
+      op << '>';
+      opType = INFIX;
+      break;
+    case kind::GEQ:
+      op << ">=";
+      opType = INFIX;
+      break;
+
+    // BITVECTORS
+    case kind::BITVECTOR_PLUS:
+      op << "BVPLUS";
+      break;
+    case kind::BITVECTOR_SUB:
+      op << "BVSUB";
+      break;
+    case kind::BITVECTOR_XOR:
+      op << "BVXOR";
+      break;
+    case kind::BITVECTOR_NAND:
+      op << "BVNAND";
+      break;
+    case kind::BITVECTOR_NOR:
+      op << "BVNOR";
+      break;
+    case kind::BITVECTOR_XNOR:
+      op << "BVXNOR";
+      break;
+    case kind::BITVECTOR_COMP:
+      op << "BVCOMP";
+      break;
+    case kind::BITVECTOR_MULT:
+      op << "BVMULT";
+      break;
+    case kind::BITVECTOR_UDIV:
+      op << "BVUDIV";
+      break;
+    case kind::BITVECTOR_UREM:
+      op << "BVUREM";
+      break;
+    case kind::BITVECTOR_SDIV:
+      op << "BVSDIV";
+      break;
+    case kind::BITVECTOR_SREM:
+      op << "BVSREM";
+      break;
+    case kind::BITVECTOR_SMOD:
+      op << "BVSMOD";
+      break;
+    case kind::BITVECTOR_SHL:
+      op << "BVSHL";
+      break;
+    case kind::BITVECTOR_LSHR:
+      op << "BVLSHR";
+      break;
+    case kind::BITVECTOR_ASHR:
+      op << "BVASHR";
+      break;
+    case kind::BITVECTOR_ULT:
+      op << "BVLT";
+      break;
+    case kind::BITVECTOR_ULE:
+      op << "BVLE";
+      break;
+    case kind::BITVECTOR_UGT:
+      op << "BVGT";
+      break;
+    case kind::BITVECTOR_UGE:
+      op << "BVGE";
+      break;
+    case kind::BITVECTOR_SLT:
+      op << "BVSLT";
+      break;
+    case kind::BITVECTOR_SLE:
+      op << "BVSLE";
+      break;
+    case kind::BITVECTOR_SGT:
+      op << "BVSGT";
+      break;
+    case kind::BITVECTOR_SGE:
+      op << "BVSGE";
+      break;
+    case kind::BITVECTOR_NEG:
+      op << "BVUMINUS";
+      break;
+    case kind::BITVECTOR_NOT:
+      op << "~";
+      break;
+    case kind::BITVECTOR_AND:
+      op << "&";
+      opType = INFIX;
+      break;
+    case kind::BITVECTOR_OR:
+      op << "|";
+      opType = INFIX;
+      break;
+    case kind::BITVECTOR_CONCAT:
+      op << "@";
+      opType = INFIX;
+      break;
+    case kind::BITVECTOR_EXTRACT:
+      op << n.getOperator().getConst<BitVectorExtract>();
+      opType = POSTFIX;
+      break;
+    case kind::BITVECTOR_REPEAT:
+      out << "BVREPEAT(";
+      toStream(out, n[0], depth, types, false);
+      out << ", " << n.getOperator().getConst<BitVectorRepeat>() << ')';
+      return;
+      break;
+    case kind::BITVECTOR_ZERO_EXTEND:
+      out << "BVZEROEXTEND(";
+      toStream(out, n[0], depth, types, false);
+      out << ", " << n.getOperator().getConst<BitVectorZeroExtend>() << ')';
+      return;
+      break;
+    case kind::BITVECTOR_SIGN_EXTEND:
+      out << "SX(";
+      toStream(out, n[0], depth, types, false);
+      out << ", " << n.getOperator().getConst<BitVectorSignExtend>() << ')';
+      return;
+      break;
+    case kind::BITVECTOR_ROTATE_LEFT:
+      out << "BVROTL(";
+      toStream(out, n[0], depth, types, false);
+      out << ", " << n.getOperator().getConst<BitVectorRotateLeft>() << ')';
+      return;
+      break;
+    case kind::BITVECTOR_ROTATE_RIGHT:
+      out << "BVROTR(";
+      toStream(out, n[0], depth, types, false);
+      out << ", " << n.getOperator().getConst<BitVectorRotateRight>() << ')';
+      return;
+      break;
+    default:
+      Unreachable();
+      break;
   }
 
-  // shouldn't ever happen (unless new metakinds are added)
-  Unhandled();
+  switch (opType) {
+  case PREFIX:
+    if (bracket) {
+      out << op.str() << '(';
+    }
+    break;
+  case INFIX:
+    if (bracket) {
+      out << '(';
+    }
+    break;
+  case POSTFIX:
+    break;
+  }
+
+  for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
+    if (i > 0) {
+      if (opType == INFIX) {
+        out << ' ' << op.str() << ' ';
+      } else {
+        out << ", ";
+      }
+    }
+    toStream(out, n[i], depth, types, opType == INFIX);
+  }
+
+  switch (opType) {
+    case PREFIX:
+      if (bracket) {
+        out << ')';
+      }
+      break;
+    case INFIX:
+      if (bracket) {
+        out << ')';
+      }
+      break;
+    case POSTFIX:
+      out << op.str();
+      break;
+  }
 
 }/* CvcPrinter::toStream(TNode) */
 
