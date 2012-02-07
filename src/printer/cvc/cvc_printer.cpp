@@ -130,7 +130,8 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       }
       break;
     default:
-      Unreachable();
+      Warning() << "Constant printing not implemented for the case of " << n.getKind() << endl;
+      out << n.getKind();
       break;
     }
     return;
@@ -177,7 +178,15 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::APPLY:
       toStream(op, n.getOperator(), depth, types, true);
       break;
-
+    case kind::SORT_TYPE:
+    {
+      string name;
+      if(n.getAttribute(expr::VarNameAttr(), name)) {
+        out << name;
+        return;
+      }
+    }
+    break;
     // BOOL
     case kind::AND:
       op << "AND";
@@ -470,7 +479,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       return;
       break;
     default:
-      Unreachable();
+      Warning() << "Kind printing not implemented for the case of " << n.getKind() << endl;
       break;
   }
 
