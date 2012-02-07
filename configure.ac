@@ -829,7 +829,7 @@ AC_LIB_ANTLR
 # build support.  The arg list is the default set if unspecified by
 # the user (the actual built set is the subset that appears to be
 # supported by the build host).
-CVC4_CHECK_BINDINGS([c java])
+CVC4_CHECK_BINDINGS([c java])dnl csharp perl php python ruby tcl ocaml])
 
 # Checks for header files.
 AC_CHECK_HEADERS([getopt.h unistd.h])
