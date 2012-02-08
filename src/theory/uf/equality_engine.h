@@ -268,6 +268,11 @@ public:
     }
   };
 
+  /**
+   * Store the application lookup, with enough information to backtrack
+   */
+  void storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId);
+
 private:
 
   /** The context we are using */
@@ -293,6 +298,12 @@ private:
    * of a and b.
    */
   ApplicationIdsMap d_applicationLookup;
+
+  /** Application lookups in order, so that we can backtrack. */
+  std::vector<FunctionApplication> d_applicationLookups;
+
+  /** Number of application lookups, for backtracking.  */
+  context::CDO<size_t> d_applicationLookupsCount;
 
   /** Map from ids to the nodes (these need to be nodes as we pick-up the opreators) */
   std::vector<Node> d_nodes;
@@ -544,6 +555,7 @@ public:
     d_context(context),
     d_performNotify(true),
     d_notify(notify),
+    d_applicationLookupsCount(context, 0),
     d_nodesCount(context, 0),
     d_assertedEqualitiesCount(context, 0),
     d_equalityTriggersCount(context, 0),
