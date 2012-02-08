@@ -143,6 +143,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     POSTFIX
   } opType;
 
+  //The default operation type is PREFIX
+  opType = PREFIX;
+
   stringstream op;       // operation (such as '+')
 
   switch(n.getKind()) {
@@ -215,8 +218,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
 
     // UF
     case kind::APPLY_UF:
-      toStream(op, n.getOperator(), depth, types, true);
+      toStream(op, n.getOperator(), depth, types, false);
       break;
+
     case kind::FUNCTION_TYPE:
       if (n.getNumChildren() > 1) {
         if (n.getNumChildren() > 2) {
@@ -280,7 +284,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::SELECT:
       toStream(out, n[0], depth, types, false);
       out << '[';
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[1], depth, types, false);
       out << ']';
       return;
       break;
@@ -354,12 +358,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
 
     // BITVECTORS
-    case kind::BITVECTOR_PLUS:
-      op << "BVPLUS";
-      break;
-    case kind::BITVECTOR_SUB:
-      op << "BVSUB";
-      break;
     case kind::BITVECTOR_XOR:
       op << "BVXOR";
       break;
@@ -374,9 +372,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::BITVECTOR_COMP:
       op << "BVCOMP";
-      break;
-    case kind::BITVECTOR_MULT:
-      op << "BVMULT";
       break;
     case kind::BITVECTOR_UDIV:
       op << "BVUDIV";
@@ -444,6 +439,40 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "@";
       opType = INFIX;
       break;
+    case kind::BITVECTOR_PLUS:
+      //This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
+      out << "BVPLUS(";
+      Assert(n.getType().isBitVector());
+      out << BitVectorType(n.getType().toType()).getSize();
+      out << ',';
+      toStream(out, n[0], depth, types, false);
+      out << ',';
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      return;
+      break;
+    case kind::BITVECTOR_SUB:
+      out << "BVSUB(";
+      Assert(n.getType().isBitVector());
+      out << BitVectorType(n.getType().toType()).getSize();
+      out << ',';
+      toStream(out, n[0], depth, types, false);
+      out << ',';
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      return;
+      break;
+    case kind::BITVECTOR_MULT:
+      out << "BVMULT(";
+      Assert(n.getType().isBitVector());
+      out << BitVectorType(n.getType().toType()).getSize();
+      out << ',';
+      toStream(out, n[0], depth, types, false);
+      out << ',';
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      return;
+      break;
     case kind::BITVECTOR_EXTRACT:
       op << n.getOperator().getConst<BitVectorExtract>();
       opType = POSTFIX;
@@ -485,9 +514,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
 
   switch (opType) {
   case PREFIX:
-    if (bracket) {
-      out << op.str() << '(';
-    }
+    out << op.str() << '(';
     break;
   case INFIX:
     if (bracket) {
@@ -495,6 +522,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     }
     break;
   case POSTFIX:
+    out << '(';
     break;
   }
 
@@ -511,9 +539,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
 
   switch (opType) {
     case PREFIX:
-      if (bracket) {
-        out << ')';
-      }
+      out << ')';
       break;
     case INFIX:
       if (bracket) {
@@ -521,7 +547,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       }
       break;
     case POSTFIX:
-      out << op.str();
+      out << ')' << op.str();
       break;
   }
 
