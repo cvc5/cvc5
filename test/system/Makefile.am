@@ -66,9 +66,9 @@ LIBADD = \
 $(filter-out %.class.lo,$(TESTS:%=%.lo)): %.lo: %.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $+
 $(filter-out %.class,$(TESTS)): %: %.lo $(LIBADD)
-	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $<
+	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $<
 cvc3_main: cvc3_george.lo $(LIBADD)
-	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $+
+	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $+
 CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/cvc4.jar @abs_top_builddir@/src/bindings/libcvc4bindings_java.la
 	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/cvc4.jar -d $(builddir) $<
 
