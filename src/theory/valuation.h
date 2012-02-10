@@ -36,9 +36,9 @@ namespace theory {
  * The status of an equality in the current context.
  */
 enum EqualityStatus {
-  /** The equality is known to be true, and has been propagated */
-  EQUALITY_TRUE_AND_PROPAGATED,
   /** The equality is known to be true and has been propagated */
+  EQUALITY_TRUE_AND_PROPAGATED,
+  /** The equality is known to be false and has been propagated */
   EQUALITY_FALSE_AND_PROPAGATED,
   /** The equality is known to be true */
   EQUALITY_TRUE,
