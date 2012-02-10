@@ -6,5 +6,7 @@ EXTRA_DIST = \
 	cvc-mode.el \
 	editing-with-emacs \
 	luby.c \
+	addsourcedir \
+	new-theory \
 	configure-in-place \
 	depgraph

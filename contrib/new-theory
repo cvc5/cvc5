@@ -1,0 +1,329 @@
+#!/bin/sh
+#
+# usage: new-theory theory-directory-name
+#
+
+cd "`dirname "$0"`/.."
+
+if [ ! -e src/theory/theory_engine.h ]; then
+  echo "ERROR: This script doesn't appear to be the contrib/ subdirectory" >&2
+  echo "ERROR: of the CVC4 source tree." >&2
+  exit 1
+fi
+
+if [ $# -ne 1 ]; then
+  echo "usage: new-theory theory-directory-name" >&2
+  echo "e.g.:  new-theory arith" >&2
+  echo "e.g.:  new-theory arrays" >&2
+  echo "e.g.:  new-theory sets" >&2
+  echo >&2
+  echo "This tool will create a new src/theory/<theory-directory-name>" >&2
+  echo "directory and fill in some infrastructural files in that directory." >&2
+  echo "It also will incorporate that directory into the build process." >&2
+  echo "Please refer to the file README.WHATS-NEXT file created in that" >&2
+  echo "directory for tips on what to do next."
+  exit 1
+fi
+
+dir="$1"
+
+if [ -e "src/theory/$dir" ]; then
+  echo "ERROR: Theory \"$dir\" already exists." >&2
+  echo "ERROR: Please choose a new directory name (or move that one aside)." >&2
+  exit 1
+fi
+
+if ! expr "$dir" : '[a-zA-Z][a-zA-Z0-9_]*$' &>/dev/null ||
+   expr "$dir" : '_$' &>/dev/null; then
+  echo "ERROR: \"$dir\" is not a valid theory name." >&2
+  echo "ERROR:" >&2
+  echo "ERROR: Theory names must start with a letter and be composed of" >&2
+  echo "ERROR: letters, numbers, and the underscore (_) character; an" >&2
+  echo "ERROR: underscore cannot be the final character." >&2
+  exit 1
+fi
+
+id="`echo "$dir" | tr a-z A-Z`"
+# convoluted, but should be relatively portable and give a CamelCase
+# representation for a string.  (e.g. "foo_bar" becomes "FooBar")
+camel="`echo "$dir" | awk 'BEGIN { RS="_";ORS="";OFS="" } // {print toupper(substr($1,1,1)),substr($1,2,length($1))} END {print "\n"}'`"
+
+if ! mkdir "src/theory/$dir"; then
+  echo "ERROR: encountered an error creating directory src/theory/$dir" >&2
+  exit 1
+fi
+
+echo "Theory directory: src/theory/$dir"
+echo "Theory id: THEORY_$id"
+echo "Theory class: CVC4::theory::$dir::Theory$camel"
+echo "Theory string: Theory of $dir"
+echo
+
+echo "Creating src/theory/$dir/Makefile..."
+cat > "src/theory/$dir/Makefile" <<EOF
+topdir = ../../..
+srcdir = src/theory/$dir
+
+include \$(topdir)/Makefile.subdir
+EOF
+
+echo "Creating src/theory/$dir/Makefile.am..."
+cat > "src/theory/$dir/Makefile.am" <<EOF
+AM_CPPFLAGS = \\
+	-D__BUILDING_CVC4LIB \\
+	-I@srcdir@/../../include -I@srcdir@/../.. -I@builddir@/../..
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas \$(FLAG_VISIBILITY_HIDDEN)
+
+noinst_LTLIBRARIES = lib$dir.la
+
+lib${dir}_la_SOURCES = \\
+	theory_$dir.h \\
+	theory_$dir.cpp
+
+EXTRA_DIST =
+EOF
+
+echo "Creating src/theory/$dir/kinds..."
+cat > "src/theory/$dir/kinds" <<EOF
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_$id ::CVC4::theory::$dir::Theory$camel "theory/arith/theory_$dir.h"
+typechecker "theory/$dir/theory_${dir}_type_rules.h"
+rewriter ::CVC4::theory::$dir::${camel}Rewriter "theory/$dir/${dir}_rewriter.h"
+
+properties check
+
+# theory content goes here
+# constants...
+# types...
+# operators...
+
+endtheory
+EOF
+
+echo "Creating src/theory/$dir/theory_${dir}_type_rules.h..."
+cat > "src/theory/$dir/theory_${dir}_type_rules.h" <<EOF
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__${id}__THEORY_${id}_TYPE_RULES_H
+#define __CVC4__THEORY__${id}__THEORY_${id}_TYPE_RULES_H
+
+namespace CVC4 {
+namespace theory {
+namespace $dir {
+
+class ${camel}TypeRule {
+public:
+
+  /**
+   * Compute the type for (and optionally typecheck) a term belonging
+   * to the theory of $dir.
+   *
+   * @param check if true, the node's type should be checked as well
+   * as computed.
+   */
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check)
+    throw (TypeCheckingExceptionPrivate) {
+    // implement me!
+  }
+
+};/* class ${camel}TypeRule */
+
+}/* CVC4::theory::$dir namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__${id}__THEORY_${id}_TYPE_RULES_H */
+EOF
+
+echo "Creating src/theory/$dir/theory_${dir}_rewriter.h..."
+cat > "src/theory/$dir/theory_${dir}_rewriter.h" <<EOF
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__${id}__THEORY_${id}_REWRITER_H
+#define __CVC4__THEORY__${id}__THEORY_${id}_REWRITER_H
+
+#include "theory/rewriter.h"
+
+namespace CVC4 {
+namespace theory {
+namespace $dir {
+
+class Theory${camel}Rewriter {
+public:
+
+  /**
+   * Rewrite a node into the normal form for the theory of $dir.
+   * Called in post-order (really reverse-topological order) when
+   * traversing the expression DAG during rewriting.  This is the
+   * main function of the rewriter, and because of the ordering,
+   * it can assume its children are all rewritten already.
+   *
+   * This function can return one of three rewrite response codes
+   * along with the rewritten node:
+   *
+   *   REWRITE_DONE indicates that no more rewriting is needed.
+   *   REWRITE_AGAIN means that the top-level expression should be
+   *     rewritten again, but that its children are in final form.
+   *   REWRITE_AGAIN_FULL means that the entire returned expression
+   *     should be rewritten again (top-down with preRewrite(), then
+   *     bottom-up with postRewrite()).
+   *
+   * Even if this function returns REWRITE_DONE, if the returned
+   * expression belongs to a different theory, it will be fully
+   * rewritten by that theory's rewriter.
+   */
+  static RewriteResponse postRewrite(TNode node) {
+
+    // Implement me!
+
+    // This default implementation
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  /**
+   * Rewrite a node into the normal form for the theory of $dir
+   * in pre-order (really topological order)---meaning that the
+   * children may not be in the normal form.  This is an optimization
+   * for theories with cancelling terms (e.g., 0 * (big-nasty-expression)
+   * in arithmetic rewrites to 0 without the need to look at the big
+   * nasty expression).  Since it's only an optimization, the
+   * implementation here can do nothing.
+   */
+  static RewriteResponse preRewrite(TNode node) {
+    // do nothing
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  /**
+   * Rewrite an equality, in case special handling is required.
+   */
+  static Node rewriteEquality(TNode equality) {
+    // often this will suffice
+    return postRewrite(equality).node;
+  }
+
+  /**
+   * Initialize the rewriter.
+   */
+  static inline void init() {
+    // nothing to do
+  }
+
+  /**
+   * Shut down the rewriter.
+   */
+  static inline void shutdown() {
+    // nothing to do
+  }
+
+};/* class Theory${camel}Rewriter */
+
+}/* CVC4::theory::$dir namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__${id}__THEORY_${id}_REWRITER_H */
+EOF
+
+echo "Creating src/theory/$dir/theory_${dir}.h..."
+cat > "src/theory/$dir/theory_$dir.h" <<EOF
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__${id}__THEORY_${id}_H
+#define __CVC4__THEORY__${id}__THEORY_${id}_H
+
+#include "theory/theory.h"
+
+namespace CVC4 {
+namespace theory {
+namespace $dir {
+
+class Theory$camel : public Theory {
+public:
+
+  /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
+  Theory$camel(context::Context* c,
+               context::UserContext* u,
+               OutputChannel& out,
+               Valuation valuation);
+
+  void check(Effort);
+
+  std::string identify() const {
+    return "THEORY_$id";
+  }
+
+};/* class Theory$camel */
+
+}/* CVC4::theory::$dir namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__${id}__THEORY_${id}_H */
+EOF
+
+echo "Creating src/theory/$dir/theory_${dir}.cpp..."
+cat > "src/theory/$dir/theory_$dir.cpp" <<EOF
+#include "theory/$dir/theory_$dir.h"
+
+using namespace std;
+
+namespace CVC4 {
+namespace theory {
+namespace $dir {
+
+/** Constructs a new instance of Theory$camel w.r.t. the provided contexts. */
+Theory$camel::Theory$camel(context::Context* c,
+                           context::UserContext* u,
+                           OutputChannel& out,
+                           Valuation valuation) :
+  Theory(THEORY_UF, c, u, out, valuation) {
+}/* Theory$camel::Theory$camel() */
+
+void Theory$camel::check(Effort level) {
+
+  while(!done()) {
+    // Get all the assertions
+    Assertion assertion = get();
+    TNode fact = assertion.assertion;
+
+    Debug("$dir") << "Theory$camel::check(): processing " << fact << std::endl;
+
+    // Do the work
+    switch(fact.getKind()) {
+
+    /* cases for all the theory's kinds go here... */
+
+    default:
+      Unimplemented(fact.getKind());
+    }
+  }
+
+}/* Theory$camel::check() */
+
+}/* CVC4::theory::$dir namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+EOF
+
+echo "Adding $dir to src/theory/Makefile.am..."
+if grep -q '^SUBDIRS = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/theory/Makefile.am &>/dev/null; then
+  echo "NOTE: src/theory/Makefile.am already descends into dir $dir"
+else
+  awk '/^SUBDIRS = / {print $0,"'"$dir"'"} !/^SUBDIRS = / {print$0}' src/theory/Makefile.am > src/theory/Makefile.am.new-theory
+  if ! cp -f src/theory/Makefile.am src/theory/Makefile.am~; then
+    echo "ERROR: cannot copy src/theory/Makefile.am !" >&2
+    exit 1
+  fi
+  if ! mv -f src/theory/Makefile.am.new-theory src/theory/Makefile.am; then
+    echo "ERROR: cannot replace src/theory/Makefile.am !" >&2
+    exit 1
+  fi
+fi
+
