@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: acsys
- ** Minor contributors (to current version): cconway
+ ** Minor contributors (to current version): lianah, cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -122,7 +122,7 @@ This is CVC4 version " CVC4_RELEASE_STRING ) + \
         : ::std::string("") \
     ) + "\n\
 compiled with " + ::CVC4::Configuration::getCompiler() + "\n\n\
-Copyright (C) 2009, 2010, 2011\n\
+Copyright (C) 2009, 2010, 2011, 2012\n\
   The ACSys Group\n\
   Courant Institute of Mathematical Sciences\n\
   New York University\n\
