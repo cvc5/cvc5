@@ -9,4 +9,12 @@ EXTRA_DIST = \
 	addsourcedir \
 	new-theory \
 	configure-in-place \
-	depgraph
+	depgraph \
+	theoryskel/kinds \
+	theoryskel/Makefile \
+	theoryskel/Makefile.am \
+	theoryskel/README.WHATS-NEXT \
+	theoryskel/theory_DIR.cpp \
+	theoryskel/theory_DIR.h \
+	theoryskel/theory_DIR_rewriter.h \
+	theoryskel/theory_DIR_type_rules.h

@@ -1,0 +1,21 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_$id ::CVC4::theory::$dir::Theory$camel "theory/$dir/theory_$dir.h"
+typechecker "theory/$dir/theory_$dir_type_rules.h"
+rewriter ::CVC4::theory::$dir::Theory$camelRewriter "theory/$dir/theory_$dir_rewriter.h"
+
+properties check
+
+# Theory content goes here.
+
+# constants...
+
+# types...
+
+# operators...
+
+endtheory
