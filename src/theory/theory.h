@@ -306,7 +306,7 @@ public:
    * equality with one of these values (e.g. if STANDARD xxx) but
    * rather use range checks (or use the helper functions below).
    * Normally we call QUICK_CHECK or STANDARD; at the leaves we call
-   * with MAX_EFFORT.
+   * with FULL_EFFORT.
    */
   enum Effort {
     MIN_EFFORT = 0,

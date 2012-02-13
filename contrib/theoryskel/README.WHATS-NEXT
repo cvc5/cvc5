@@ -16,7 +16,14 @@ Your next steps will likely be:
 and finally:
 
 * to implement a decision procedure for your theory by implementing
-  Theory$camel::check() in theory_$dir.cpp
+  Theory$camel::check() in theory_$dir.cpp. Before writing the actual
+  code, you will need :
+
+  * to determine which datastructures are context dependent and use for them
+    context dependent datastructures (context/cd*.h)
+  * to choose which work will be done at QUICK_CHECK, STANDARD or at
+    FULL_EFFORT.
+
 
 Good luck, and please contact cvc4-devel@cs.nyu.edu for assistance
 should you need it!
