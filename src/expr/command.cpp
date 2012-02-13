@@ -484,9 +484,13 @@ Expr GetValueCommand::getTerm() const throw() {
 }
 
 void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
-  d_result = d_term.getExprManager()->mkExpr(kind::TUPLE, d_term,
-                                             smtEngine->getValue(d_term));
-  d_commandStatus = CommandSuccess::instance();
+  try {
+    d_result = d_term.getExprManager()->mkExpr(kind::TUPLE, d_term,
+                                               smtEngine->getValue(d_term));
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
 }
 
 Expr GetValueCommand::getResult() const throw() {
