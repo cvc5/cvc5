@@ -116,7 +116,7 @@ private:
   void zeroDifferenceDetected(ArithVar x);
 
 public:
-
+  bool boundsAreEqual(ArithVar x);
 
   void setUpperBound(ArithVar x, const DeltaRational& r);
   void setLowerBound(ArithVar x, const DeltaRational& r);

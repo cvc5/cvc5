@@ -28,6 +28,13 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
 
+bool ArithPartialModel::boundsAreEqual(ArithVar x){
+  if(hasLowerBound(x) && hasUpperBound(x)){
+    return d_upperBound[x] == d_lowerBound[x];
+  }else{
+    return false;
+  }
+}
 
 void ArithPartialModel::zeroDifferenceDetected(ArithVar x){
   Assert(d_dm.isDifferenceSlack(x));

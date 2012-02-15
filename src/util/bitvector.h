@@ -91,15 +91,18 @@ public:
   }
 
   BitVector operator ~() const {
+    //is this right? it looks like a no-op?
     return BitVector(d_size, d_value);
   }
 
   BitVector concat (const BitVector& other) const {
-    return BitVector(d_size + other.d_size, (d_value * Integer(2).pow(other.d_size)) + other.d_value);
+    return BitVector(d_size + other.d_size, (d_value.multiplyByPow2(other.d_size)) + other.d_value);
+    //return BitVector(d_size + other.d_size, (d_value * Integer(2).pow(other.d_size)) + other.d_value);
   }
 
   BitVector extract(unsigned high, unsigned low) const {
-    return BitVector(high - low + 1, (d_value % (Integer(2).pow(high + 1))) / Integer(2).pow(low));
+    return BitVector(high - low + 1, d_value.extractBitRange(high - low + 1, low));
+    //return BitVector(high - low + 1, (d_value % (Integer(2).pow(high + 1))) / Integer(2).pow(low));
   }
 
   size_t hash() const {

@@ -12,8 +12,7 @@
  ** information.\endverbatim
  **
  ** \brief Arithmetic theory.
- **
- ** Arithmetic theory.
+ ** ** Arithmetic theory.
  **/
 
 #include "cvc4_private.h"
@@ -58,6 +57,8 @@ namespace arith {
  */
 class TheoryArith : public Theory {
 private:
+
+  bool d_hasDoneWorkSinceCut;
 
   /**
    * The set of atoms that are currently in the context.
@@ -108,10 +109,40 @@ private:
 
 
   /**
-   * List of the types of variables in the system.
-   * "True" means integer, "false" means (non-integer) real.
+   * (For the moment) the type hierarchy goes as:
+   * PsuedoBoolean <: Integer <: Real
+   * The type number of a variable is an integer representing the most specific
+   * type of the variable. The possible values of type number are:
    */
-  std::vector<short> d_integerVars;
+  enum ArithType
+    {
+      ATReal = 0,
+      ATInteger = 1,
+      ATPsuedoBoolean = 2
+   };
+
+  std::vector<ArithType> d_variableTypes;
+  inline ArithType nodeToArithType(TNode x) const {
+    return x.getType().isPseudoboolean() ? ATPsuedoBoolean :
+      (x.getType().isInteger() ? ATInteger : ATReal);
+  }
+
+  /** Returns true if x is of type Integer or PsuedoBoolean. */
+  inline bool isInteger(ArithVar x) const {
+    return d_variableTypes[x] >= ATInteger;
+  }
+  /** Returns true if x is of type PsuedoBoolean. */
+  inline bool isPsuedoBoolean(ArithVar x) const {
+    return d_variableTypes[x] == ATPsuedoBoolean;
+  }
+
+  /** This is the set of variables initially introduced as slack variables. */
+  std::vector<bool> d_slackVars;
+
+  /** Returns true if the variable was initially introduced as a slack variable. */
+  inline bool isSlackVariable(ArithVar x) const{
+    return d_slackVars[x];
+  }
 
   /**
    * On full effort checks (after determining LA(Q) satisfiability), we
@@ -121,6 +152,21 @@ private:
    * round-robin index.
    */
   ArithVar d_nextIntegerCheckVar;
+
+  /**
+   * Queue of Integer variables that are known to be equal to a constant.
+   */
+  context::CDList<ArithVar> d_constantIntegerVariables;
+  /** Iterator over d_constantIntegerVariables. */
+  context::CDO<unsigned int> d_CivIterator;
+
+  Node callDioSolver();
+  Node dioCutting();
+
+  Comparison mkIntegerEqualityFromAssignment(ArithVar v);
+
+  #warning "DO NOT COMMIT TO TRUNK, USE MORE EFFICIENT CHECK INSTEAD"
+  CDArithVarSet d_varsInDioSolver;
 
   /**
    * If ArithVar v maps to the node n in d_removednode,
@@ -134,11 +180,6 @@ private:
    * variables.
    */
   ArithPartialModel d_partialModel;
-
-  /**
-   * Set of ArithVars that were introduced via preregisteration.
-   */
-  ArithVarSet d_userVariables;
 
   /**
    * List of all of the inequalities asserted in the current context.
@@ -246,15 +287,37 @@ private:
    */
   ArithVar determineLeftVariable(TNode assertion, Kind simpleKind);
 
-  /** Splits the disequalities in d_diseq that are violated using lemmas on demand. */
-  void splitDisequalities();
+  /**
+   * Splits the disequalities in d_diseq that are violated using lemmas on demand.
+   * returns true if any lemmas were issued.
+   * returns false if all disequalities are satisified in the current model.
+   */
+  bool splitDisequalities();
+
+
+
+  /**
+   * Looks for the next integer variable without an integer assignment in a round robin fashion.
+   * Changes the value of d_nextIntegerCheckVar.
+   *
+   * If this returns false, d_nextIntegerCheckVar does not have an integer assignment.
+   * If this returns true, all integer variables have an integer assignment.
+   */
+  bool hasIntegerModel();
+
+  /**
+   * Issues branches for non-slack integer variables with non-integer assignments.
+   * Returns a cut for a lemma.
+   * If there is an integer model, this returns Node::null().
+   */
+  Node roundRobinBranch();
 
   /**
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
    * except for setting up the initial.
    */
-  ArithVar requestArithVar(TNode x, bool basic);
+  ArithVar requestArithVar(TNode x, bool slack);
 
   /** Initial (not context dependent) sets up for a variable.*/
   void setupInitialValue(ArithVar x);

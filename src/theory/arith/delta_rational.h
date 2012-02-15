@@ -118,6 +118,38 @@ public:
     return *(this);
   }
 
+  bool isIntegral() const {
+    if(getInfinitesimalPart().sgn() == 0){
+      return getNoninfinitesimalPart().isIntegral();
+    }else{
+      return false;
+    }
+  }
+
+  Integer floor() const {
+    if(getNoninfinitesimalPart().isIntegral()){
+      if(getInfinitesimalPart().sgn() >= 0){
+        return getNoninfinitesimalPart().getNumerator();
+      }else{
+        return getNoninfinitesimalPart().getNumerator() - Integer(1);
+      }
+    }else{
+      return getNoninfinitesimalPart().floor();
+    }
+  }
+
+  Integer ceiling() const {
+    if(getNoninfinitesimalPart().isIntegral()){
+      if(getInfinitesimalPart().sgn() <= 0){
+        return getNoninfinitesimalPart().getNumerator();
+      }else{
+        return getNoninfinitesimalPart().getNumerator() + Integer(1);
+      }
+    }else{
+      return getNoninfinitesimalPart().ceiling();
+    }
+  }
+
   std::string toString() const;
 
 };

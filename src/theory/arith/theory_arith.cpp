@@ -58,14 +58,17 @@ static const uint32_t RESET_START = 2;
 
 TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
   Theory(THEORY_ARITH, c, u, out, valuation),
+  d_hasDoneWorkSinceCut(false),
   d_atomsInContext(c),
   d_learner(d_pbSubstitutions),
   d_nextIntegerCheckVar(0),
+  d_constantIntegerVariables(c),
+  d_CivIterator(c,0),
+  d_varsInDioSolver(c),
   d_partialModel(c, d_differenceManager),
-  d_userVariables(),
   d_diseq(c),
   d_tableau(),
-  d_diosolver(c, d_tableau, d_partialModel),
+  d_diosolver(c),
   d_pbSubstitutions(u),
   d_restartsCounter(0),
   d_rowHasBeenAdded(false),
@@ -405,7 +408,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
 }
 
 
-ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
+ArithVar TheoryArith::requestArithVar(TNode x, bool slack){
   Assert(isLeaf(x) || x.getKind() == PLUS);
   Assert(!d_arithvarNodeMap.hasArithVar(x));
   Assert(x.getType().isReal());// real or integer
@@ -413,13 +416,22 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool basic){
   ArithVar varX = d_variables.size();
   d_variables.push_back(Node(x));
   Debug("integers") << "isInteger[[" << x << "]]: " << x.getType().isInteger() << endl;
-  d_integerVars.push_back(x.getType().isPseudoboolean() ? 2 : (x.getType().isInteger() ? 1 : 0));
+
+  if(slack){
+    //The type computation is not quite accurate for Rationals that are integral.
+    //We'll use the isIntegral check from the polynomial package instead.
+    Polynomial p = Polynomial::parsePolynomial(x);
+    d_variableTypes.push_back(p.isIntegral() ? ATInteger : ATReal);
+  }else{
+    d_variableTypes.push_back(nodeToArithType(x));
+  }
+
+  d_slackVars.push_back(slack);
 
   d_simplex.increaseMax();
 
   d_arithvarNodeMap.setArithVar(x,varX);
 
-  d_userVariables.init(varX, !basic);
   d_tableau.increaseSize();
 
   Debug("arith::arithvar") << x << " |-> " << varX << endl;
@@ -577,11 +589,114 @@ bool TheoryArith::canSafelyAvoidEqualitySetup(TNode equality){
   return d_arithvarNodeMap.hasArithVar(equality[0]);
 }
 
+Comparison TheoryArith::mkIntegerEqualityFromAssignment(ArithVar v){
+  const DeltaRational& beta = d_partialModel.getAssignment(v);
+
+  Assert(beta.isIntegral());
+  Constant betaAsConstant = Constant::mkConstant(beta.floor());
+
+  TNode var = d_arithvarNodeMap.asNode(v);
+  Polynomial varAsPolynomial = Polynomial::parsePolynomial(var);
+  return Comparison::mkComparison(EQUAL, varAsPolynomial, betaAsConstant);
+}
+
+Node TheoryArith::dioCutting(){
+  context::Context::ScopedPush speculativePush(getContext());
+  //DO NOT TOUCH THE OUTPUTSTREAM
+
+  //TODO: Improve this
+  for(ArithVar v = 0, end = d_variables.size(); v != end; ++v){
+    if(isInteger(v)){
+      const DeltaRational& dr = d_partialModel.getAssignment(v);
+      if(d_partialModel.equalsUpperBound(v, dr) || d_partialModel.equalsLowerBound(v, dr)){
+        if(!d_partialModel.boundsAreEqual(v)){
+          // If the bounds are equal this is already in the dioSolver
+          //Add v = dr as a speculation.
+          Comparison eq = mkIntegerEqualityFromAssignment(v);
+          Assert(!eq.isBoolean());
+          d_diosolver.pushInputConstraint(eq, eq.getNode());
+          // It does not matter what the explanation of eq is.
+          // It cannot be used in a conflict
+        }
+      }
+    }
+  }
+
+  SumPair plane = d_diosolver.processEquationsForCut();
+  if(plane.isZero()){
+    return Node::null();
+  }else{
+    Polynomial p = plane.getPolynomial();
+    Constant c = plane.getConstant() * Constant::mkConstant(-1);
+    Integer gcd = p.gcd();
+    Assert(p.isIntegral());
+    Assert(c.isIntegral());
+    Assert(gcd > 1);
+    Assert(!gcd.divides(c.getValue().getNumerator()));
+    Comparison leq = Comparison::mkComparison(LEQ, p, c);
+    Comparison geq = Comparison::mkComparison(GEQ, p, c);
+    Node lemma = NodeManager::currentNM()->mkNode(OR, leq.getNode(), geq.getNode());
+    Node rewrittenLemma = Rewriter::rewrite(lemma);
+    Debug("arith::dio") << "dioCutting found the plane: " << plane.getNode() << endl;
+    Debug("arith::dio") << "resulting in the cut: " << lemma << endl;
+    Debug("arith::dio") << "rewritten " << rewrittenLemma << endl;
+    return rewrittenLemma;
+  }
+}
+
+Node TheoryArith::callDioSolver(){
+  while(d_CivIterator < d_constantIntegerVariables.size()){
+    ArithVar v = d_constantIntegerVariables[d_CivIterator];
+    d_CivIterator = d_CivIterator + 1;
+
+    Debug("arith::dio")  << v << endl;
+
+    Assert(isInteger(v));
+    Assert(d_partialModel.boundsAreEqual(v));
+
+    if(d_varsInDioSolver.find(v) != d_varsInDioSolver.end()){
+      continue;
+    }else{
+      d_varsInDioSolver.insert(v);
+    }
+
+    TNode lb = d_partialModel.getLowerConstraint(v);
+    TNode ub = d_partialModel.getUpperConstraint(v);
+
+    Node orig = Node::null();
+    if(lb == ub){
+      Assert(lb.getKind() == EQUAL);
+      orig = lb;
+    }else{
+      NodeBuilder<> nb(AND);
+      nb << ub << lb;
+      orig = nb;
+    }
+
+    Assert(d_partialModel.assignmentIsConsistent(v));
+
+    Comparison eq = mkIntegerEqualityFromAssignment(v);
+
+    if(eq.isBoolean()){
+      //This can only be a conflict
+      Assert(!eq.getNode().getConst<bool>());
+
+      //This should be handled by the normal form earlier in the case of equality
+      Assert(orig.getKind() != EQUAL);
+      return orig;
+    }else{
+      d_diosolver.pushInputConstraint(eq, orig);
+    }
+  }
+
+  return d_diosolver.processEquationsForConflict();
+}
+
 Node TheoryArith::assertionCases(TNode assertion){
-  Kind simpKind = simplifiedKind(assertion);
-  Assert(simpKind != UNDEFINED_KIND);
-  if(simpKind == EQUAL || simpKind == DISTINCT){
-    Node eq = (simpKind == DISTINCT) ? assertion[0] : assertion;
+  Kind simpleKind = simplifiedKind(assertion);
+  Assert(simpleKind != UNDEFINED_KIND);
+  if(simpleKind == EQUAL || simpleKind == DISTINCT){
+    Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
 
     if(!isSetup(eq)){
       //The previous code was equivalent to:
@@ -592,35 +707,71 @@ Node TheoryArith::assertionCases(TNode assertion){
     }
   }
 
-  ArithVar x_i = determineLeftVariable(assertion, simpKind);
-  DeltaRational c_i = determineRightConstant(assertion, simpKind);
+  ArithVar x_i = determineLeftVariable(assertion, simpleKind);
+  DeltaRational c_i = determineRightConstant(assertion, simpleKind);
+
+  bool tightened = false;
+
+  //If the variable is an integer tighen the constraint.
+  if(isInteger(x_i)){
+    if(simpleKind == LT){
+      tightened = true;
+      c_i = DeltaRational(c_i.floor());
+    }else if(simpleKind == GT){
+      tightened = true;
+      c_i = DeltaRational(c_i.ceiling());
+    }
+  }
 
   Debug("arith::assertions")  << "arith assertion @" << getContext()->getLevel()
                               <<"(" << assertion
 			     << " \\-> "
-			     << x_i<<" "<< simpKind <<" "<< c_i << ")" << std::endl;
-  switch(simpKind){
+			     << x_i<<" "<< simpleKind <<" "<< c_i << ")" << std::endl;
+
+  switch(simpleKind){
   case LEQ:
-    if (d_partialModel.hasLowerBound(x_i) && d_partialModel.getLowerBound(x_i) == c_i) {
-      Node diseq = assertion[0].eqNode(assertion[1]).notNode();
-      if (d_diseq.find(diseq) != d_diseq.end()) {
-        Node lb = d_partialModel.getLowerConstraint(x_i);
-        return disequalityConflict(diseq, lb , assertion);
+  case LT:
+    if(simpleKind == LEQ || (simpleKind == LT && tightened)){
+      if (d_partialModel.hasLowerBound(x_i) && d_partialModel.getLowerBound(x_i) == c_i) {
+        //If equal
+        TNode left  = getSide<false>(assertion, simpleKind);
+        TNode right = getSide<true>(assertion, simpleKind);
+
+        Node diseq = left.eqNode(right).notNode();
+        if (d_diseq.find(diseq) != d_diseq.end()) {
+          Node lb = d_partialModel.getLowerConstraint(x_i);
+          return disequalityConflict(diseq, lb , assertion);
+        }
+
+        if(isInteger(x_i)){
+          d_constantIntegerVariables.push_back(x_i);
+        }
       }
     }
-  case LT:
     return  d_simplex.AssertUpper(x_i, c_i, assertion);
   case GEQ:
-    if (d_partialModel.hasUpperBound(x_i) && d_partialModel.getUpperBound(x_i) == c_i) {
-      Node diseq = assertion[0].eqNode(assertion[1]).notNode();
-      if (d_diseq.find(diseq) != d_diseq.end()) {
-        Node ub = d_partialModel.getUpperConstraint(x_i);
-        return disequalityConflict(diseq, assertion, ub);
+  case GT:
+    if(simpleKind == GEQ || (simpleKind == GT && tightened)){
+      if (d_partialModel.hasUpperBound(x_i) && d_partialModel.getUpperBound(x_i) == c_i) {
+        //If equal
+        TNode left  = getSide<false>(assertion, simpleKind);
+        TNode right = getSide<true>(assertion, simpleKind);
+
+        Node diseq = left.eqNode(right).notNode();
+        if (d_diseq.find(diseq) != d_diseq.end()) {
+          Node ub = d_partialModel.getUpperConstraint(x_i);
+          return disequalityConflict(diseq, assertion, ub);
+        }
+        if(isInteger(x_i)){
+          d_constantIntegerVariables.push_back(x_i);
+        }
       }
     }
-  case GT:
     return d_simplex.AssertLower(x_i, c_i, assertion);
   case EQUAL:
+    if(isInteger(x_i)){
+      d_constantIntegerVariables.push_back(x_i);
+    }
     return d_simplex.AssertEquality(x_i, c_i, assertion);
   case DISTINCT:
     {
@@ -649,11 +800,34 @@ Node TheoryArith::assertionCases(TNode assertion){
   }
 }
 
+/**
+ * Looks for the next integer variable without an integer assignment in a round robin fashion.
+ * Changes the value of d_nextIntegerCheckVar.
+ *
+ * If this returns false, d_nextIntegerCheckVar does not have an integer assignment.
+ * If this returns true, all integer variables have an integer assignment.
+ */
+bool TheoryArith::hasIntegerModel(){
+  if(d_variables.size() > 0){
+    const ArithVar rrEnd = d_nextIntegerCheckVar;
+    do {
+      //Do not include slack variables
+      if(isInteger(d_nextIntegerCheckVar) && !isSlackVariable(d_nextIntegerCheckVar)) { // integer
+        const DeltaRational& d = d_partialModel.getAssignment(d_nextIntegerCheckVar);
+        if(!d.isIntegral()){
+          return false;
+        }
+      }
+    } while((d_nextIntegerCheckVar = (1 + d_nextIntegerCheckVar == d_variables.size() ? 0 : 1 + d_nextIntegerCheckVar)) != rrEnd);
+  }
+  return true;
+}
 
 
 void TheoryArith::check(Effort effortLevel){
   Debug("arith") << "TheoryArith::check begun" << std::endl;
 
+  d_hasDoneWorkSinceCut = d_hasDoneWorkSinceCut || !done();
   while(!done()){
 
     Node assertion = get();
@@ -672,6 +846,7 @@ void TheoryArith::check(Effort effortLevel){
     debugPrintAssertions();
   }
 
+  bool emmittedConflictOrSplit = false;
   Node possibleConflict = d_simplex.updateInconsistentVars();
   if(possibleConflict != Node::null()){
     d_partialModel.revertAssignmentChanges();
@@ -679,146 +854,184 @@ void TheoryArith::check(Effort effortLevel){
     Debug("arith::conflict") << "conflict   " << possibleConflict << endl;
 
     d_out->conflict(possibleConflict);
+    emmittedConflictOrSplit = true;
   }else{
     d_partialModel.commitAssignmentChanges();
-
-    if (fullEffort(effortLevel)) {
-      splitDisequalities();
-    }
   }
 
-  if(fullEffort(effortLevel) && d_integerVars.size() > 0) {
-    const ArithVar rrEnd = d_nextIntegerCheckVar;
-    do {
-      ArithVar v = d_nextIntegerCheckVar;
-      short type = d_integerVars[v];
-      if(type > 0) { // integer
-        const DeltaRational& d = d_partialModel.getAssignment(v);
-        const Rational& r = d.getNoninfinitesimalPart();
-        const Rational& i = d.getInfinitesimalPart();
-        Trace("integers") << "integers: assignment to [[" << d_arithvarNodeMap.asNode(v) << "]] is " << r << "[" << i << "]" << endl;
-        if(type == 2) {
-          // pseudoboolean
-          if(r.getDenominator() == 1 && i.getNumerator() == 0 &&
-             (r.getNumerator() == 0 || r.getNumerator() == 1)) {
-            // already pseudoboolean; skip
-            continue;
-          }
+  if(!emmittedConflictOrSplit && fullEffort(effortLevel)){
+    emmittedConflictOrSplit = splitDisequalities();
+  }
 
-          TNode var = d_arithvarNodeMap.asNode(v);
-          Node zero = NodeManager::currentNM()->mkConst(Integer(0));
-          Node one = NodeManager::currentNM()->mkConst(Integer(1));
-          Node eq0 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, zero));
-          Node eq1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, var, one));
-          Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq0, eq1);
-          Trace("pb") << "pseudobooleans: branch & bound: " << lem << endl;
-          Trace("integers") << "pseudobooleans: branch & bound: " << lem << endl;
-          //d_out->lemma(lem);
-        }
-        if(r.getDenominator() == 1 && i.getNumerator() == 0) {
-          // already an integer assignment; skip
-          continue;
-        }
+  if(!emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()){
 
-        // otherwise, try the Diophantine equation solver
-        //bool result = d_diosolver.solve();
-        //Debug("integers") << "the dio solver returned " << (result ? "true" : "false") << endl;
+    if(!emmittedConflictOrSplit){
+      possibleConflict = callDioSolver();
+      if(possibleConflict != Node::null()){
+        Debug("arith::conflict") << "dio conflict   " << possibleConflict << endl;
+        d_out->conflict(possibleConflict);
+        emmittedConflictOrSplit = true;
+      }
+    }
 
-        // branch and bound
-        if(r.getDenominator() == 1) {
-          // r is an integer, but the infinitesimal might not be
-          if(i.getNumerator() < 0) {
-            // lemma: v <= r - 1 || v >= r
+    if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut){
+      Node possibleLemma = dioCutting();
+      if(!possibleLemma.isNull()){
+        Debug("arith") << "dio cut   " << possibleLemma << endl;
+        emmittedConflictOrSplit = true;
+        d_hasDoneWorkSinceCut = false;
+        d_out->lemma(possibleLemma);
+      }
+    }
 
-            TNode var = d_arithvarNodeMap.asNode(v);
-            Node nrMinus1 = NodeManager::currentNM()->mkConst(r - 1);
-            Node nr = NodeManager::currentNM()->mkConst(r);
-            Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nrMinus1));
-            Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nr));
-
-            Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-            Trace("integers") << "integers: branch & bound: " << lem << endl;
-            if(d_valuation.isSatLiteral(lem[0])) {
-              Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-            } else {
-              Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-            }
-            if(d_valuation.isSatLiteral(lem[1])) {
-              Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-            } else {
-              Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-            }
-            ++(d_statistics.d_externalBranchAndBounds);
-            d_out->lemma(lem);
-
-            // split only on one var
-            break;
-          } else if(i.getNumerator() > 0) {
-            // lemma: v <= r || v >= r + 1
-
-            TNode var = d_arithvarNodeMap.asNode(v);
-            Node nr = NodeManager::currentNM()->mkConst(r);
-            Node nrPlus1 = NodeManager::currentNM()->mkConst(r + 1);
-            Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nr));
-            Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nrPlus1));
-
-            Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-            Trace("integers") << "integers: branch & bound: " << lem << endl;
-            if(d_valuation.isSatLiteral(lem[0])) {
-              Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-            } else {
-              Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-            }
-            if(d_valuation.isSatLiteral(lem[1])) {
-              Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-            } else {
-              Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-            }
-            ++(d_statistics.d_externalBranchAndBounds);
-            d_out->lemma(lem);
-
-            // split only on one var
-            break;
-          } else {
-            Unreachable();
-          }
-        } else {
-          // lemma: v <= floor(r) || v >= ceil(r)
-
-          TNode var = d_arithvarNodeMap.asNode(v);
-          Node floor = NodeManager::currentNM()->mkConst(r.floor());
-          Node ceiling = NodeManager::currentNM()->mkConst(r.ceiling());
-          Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, floor));
-          Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, ceiling));
-
-          Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-          Trace("integers") << "integers: branch & bound: " << lem << endl;
-          if(d_valuation.isSatLiteral(lem[0])) {
-            Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-          } else {
-            Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-          }
-          if(d_valuation.isSatLiteral(lem[1])) {
-            Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-          } else {
-            Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-          }
-          ++(d_statistics.d_externalBranchAndBounds);
-          d_out->lemma(lem);
-
-          // split only on one var
-          break;
-        }
-      }// if(arithvar is integer-typed)
-    } while((d_nextIntegerCheckVar = (1 + d_nextIntegerCheckVar == d_variables.size() ? 0 : 1 + d_nextIntegerCheckVar)) != rrEnd);
-  }// if(full effort)
+    if(!emmittedConflictOrSplit) {
+      Node possibleLemma = roundRobinBranch();
+      if(!possibleLemma.isNull()){
+        ++(d_statistics.d_externalBranchAndBounds);
+        emmittedConflictOrSplit = true;
+        d_out->lemma(possibleLemma);
+      }
+    }
+  }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
 
   if(Debug.isOn("paranoid:check_tableau")){ d_simplex.debugCheckTableau(); }
   if(Debug.isOn("arith::print_model")) { debugPrintModel(); }
   Debug("arith") << "TheoryArith::check end" << std::endl;
 }
 
-void TheoryArith::splitDisequalities(){
+/** Returns true if the roundRobinBranching() issues a lemma. */
+Node TheoryArith::roundRobinBranch(){
+  if(hasIntegerModel()){
+    return Node::null();
+  }else{
+    ArithVar v = d_nextIntegerCheckVar;
+
+    Assert(isInteger(v));
+    Assert(!isSlackVariable(v));
+
+    const DeltaRational& d = d_partialModel.getAssignment(v);
+    const Rational& r = d.getNoninfinitesimalPart();
+    const Rational& i = d.getInfinitesimalPart();
+    Trace("integers") << "integers: assignment to [[" << d_arithvarNodeMap.asNode(v) << "]] is " << r << "[" << i << "]" << endl;
+
+    Assert(! (r.getDenominator() == 1 && i.getNumerator() == 0));
+    Assert(!d.isIntegral());
+
+    TNode var = d_arithvarNodeMap.asNode(v);
+    Integer floor_d = d.floor();
+    Integer ceil_d = d.ceiling();
+
+    Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkIntegerNode(floor_d)));
+    Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkIntegerNode(ceil_d)));
+
+
+    Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+    Trace("integers") << "integers: branch & bound: " << lem << endl;
+    if(d_valuation.isSatLiteral(lem[0])) {
+      Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+    } else {
+      Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+    }
+    if(d_valuation.isSatLiteral(lem[1])) {
+      Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+    } else {
+      Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+    }
+    return lem;
+
+  //   // branch and bound
+  //   if(r.getDenominator() == 1) {
+  //     // r is an integer, but the infinitesimal might not be
+  //     if(i.getNumerator() < 0) {
+  //       // lemma: v <= r - 1 || v >= r
+
+  //       TNode var = d_arithvarNodeMap.asNode(v);
+  //       Node nrMinus1 = NodeManager::currentNM()->mkConst(r - 1);
+  //       Node nr = NodeManager::currentNM()->mkConst(r);
+  //       Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nrMinus1));
+  //       Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nr));
+
+  //       Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+  //       Trace("integers") << "integers: branch & bound: " << lem << endl;
+  //       if(d_valuation.isSatLiteral(lem[0])) {
+  //         Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+  //       } else {
+  //         Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+  //       }
+  //       if(d_valuation.isSatLiteral(lem[1])) {
+  //         Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+  //       } else {
+  //         Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+  //       }
+  //       return lem;
+  //     } else if(i.getNumerator() > 0) {
+  //         // lemma: v <= r || v >= r + 1
+
+  //         TNode var = d_arithvarNodeMap.asNode(v);
+  //         Node nr = NodeManager::currentNM()->mkConst(r);
+  //         Node nrPlus1 = NodeManager::currentNM()->mkConst(r + 1);
+  //         Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nr));
+  //         Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nrPlus1));
+
+  //         Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+  //         Trace("integers") << "integers: branch & bound: " << lem << endl;
+  //         if(d_valuation.isSatLiteral(lem[0])) {
+  //           Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+  //         } else {
+  //           Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+  //         }
+  //         if(d_valuation.isSatLiteral(lem[1])) {
+  //           Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+  //         } else {
+  //           Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+  //         }
+  //         ++(d_statistics.d_externalBranchAndBounds);
+  //         d_out->lemma(lem);
+  //         result = true;
+
+  //         // split only on one var
+  //         break;
+  //       } else {
+  //         Unreachable();
+  //       }
+  //     } else {
+  //       // lemma: v <= floor(r) || v >= ceil(r)
+
+  //       TNode var = d_arithvarNodeMap.asNode(v);
+  //       Node floor = NodeManager::currentNM()->mkConst(r.floor());
+  //       Node ceiling = NodeManager::currentNM()->mkConst(r.ceiling());
+  //       Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, floor));
+  //       Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, ceiling));
+
+  //       Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+  //       Trace("integers") << "integers: branch & bound: " << lem << endl;
+  //       if(d_valuation.isSatLiteral(lem[0])) {
+  //         Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+  //       } else {
+  //         Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+  //       }
+  //       if(d_valuation.isSatLiteral(lem[1])) {
+  //         Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+  //       } else {
+  //         Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+  //       }
+  //       ++(d_statistics.d_externalBranchAndBounds);
+  //       d_out->lemma(lem);
+  //       result = true;
+
+  //       // split only on one var
+  //       break;
+  //     }
+  //   }// if(arithvar is integer-typed)
+  // } while((d_nextIntegerCheckVar = (1 + d_nextIntegerCheckVar == d_variables.size() ? 0 : 1 + d_nextIntegerCheckVar)) != rrEnd);
+
+  // return result;
+  }
+}
+
+bool TheoryArith::splitDisequalities(){
+  bool splitSomething = false;
+
   context::CDSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
   context::CDSet<Node, NodeHashFunction>::iterator it_end = d_diseq.end();
   for(; it != it_end; ++ it) {
@@ -839,8 +1052,10 @@ void TheoryArith::splitDisequalities(){
       Node lemma = NodeBuilder<3>(OR) << eq << ltNode << gtNode;
       ++(d_statistics.d_statDisequalitySplits);
       d_out->lemma(lemma);
+      splitSomething = true;
     }
   }
+  return splitSomething;
 }
 
 /**
@@ -852,12 +1067,12 @@ void TheoryArith::debugPrintAssertions() {
   for (ArithVar i = 0; i < d_variables.size(); ++ i) {
     if (d_partialModel.hasLowerBound(i)) {
       Node lConstr = d_partialModel.getLowerConstraint(i);
-      Debug("arith::print_assertions") << lConstr.toString() << endl;
+      Debug("arith::print_assertions") << lConstr << endl;
     }
 
     if (d_partialModel.hasUpperBound(i)) {
       Node uConstr = d_partialModel.getUpperConstraint(i);
-      Debug("arith::print_assertions") << uConstr.toString() << endl;
+      Debug("arith::print_assertions") << uConstr << endl;
     }
   }
   context::CDSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
@@ -1162,7 +1377,7 @@ void TheoryArith::presolve(){
     for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
       Node variableNode = *i;
       ArithVar var = d_arithvarNodeMap.asArithVar(variableNode);
-      if(d_userVariables.isMember(var) &&
+      if(!isSlackVariable(var) &&
          !d_atomDatabase.hasAnyAtoms(variableNode) &&
          !variableNode.getType().isInteger()){
 	//The user variable is unconstrained.

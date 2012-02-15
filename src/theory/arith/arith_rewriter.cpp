@@ -182,37 +182,43 @@ RewriteResponse ArithRewriter::postRewriteAtomConstantRHS(TNode t){
   TNode left  = t[0];
   TNode right = t[1];
 
-  Comparison cmp = Comparison::mkComparison(t.getKind(), Polynomial::parsePolynomial(left), Constant(right));
+  Comparison cmp = Comparison::mkNormalComparison(t.getKind(), Polynomial::parsePolynomial(left), Constant(right));
 
-  if(cmp.isBoolean()){
-    return RewriteResponse(REWRITE_DONE, cmp.getNode());
-  }
-
-  if(cmp.getLeft().containsConstant()){
-    Monomial constantHead = cmp.getLeft().getHead();
-    Assert(constantHead.isConstant());
-
-    Constant constant = constantHead.getConstant();
-
-    Constant negativeConstantHead = -constant;
-
-    cmp = cmp.addConstant(negativeConstantHead);
-  }
-  Assert(!cmp.getLeft().containsConstant());
-
-  if(!cmp.getLeft().getHead().coefficientIsOne()){
-    Monomial constantHead = cmp.getLeft().getHead();
-    Assert(!constantHead.isConstant());
-    Constant constant = constantHead.getConstant();
-
-    Constant inverse = Constant::mkConstant(constant.getValue().inverse());
-
-    cmp = cmp.multiplyConstant(inverse);
-  }
-  Assert(cmp.getLeft().getHead().coefficientIsOne());
-
-  Assert(cmp.isBoolean() || cmp.isNormalForm());
+  Assert(cmp.isNormalForm());
   return RewriteResponse(REWRITE_DONE, cmp.getNode());
+
+
+  // Comparison cmp = Comparison::mkComparison(t.getKind(), Polynomial::parsePolynomial(left), Constant(right));
+
+  // if(cmp.isBoolean()){
+  //   return RewriteResponse(REWRITE_DONE, cmp.getNode());
+  // }
+
+  // if(cmp.getLeft().containsConstant()){
+  //   Monomial constantHead = cmp.getLeft().getHead();
+  //   Assert(constantHead.isConstant());
+
+  //   Constant constant = constantHead.getConstant();
+
+  //   Constant negativeConstantHead = -constant;
+
+  //   cmp = cmp.addConstant(negativeConstantHead);
+  // }
+  // Assert(!cmp.getLeft().containsConstant());
+
+  // if(!cmp.getLeft().getHead().coefficientIsOne()){
+  //   Monomial constantHead = cmp.getLeft().getHead();
+  //   Assert(!constantHead.isConstant());
+  //   Constant constant = constantHead.getConstant();
+
+  //   Constant inverse = Constant::mkConstant(constant.getValue().inverse());
+
+  //   cmp = cmp.multiplyConstant(inverse);
+  // }
+  // Assert(cmp.getLeft().getHead().coefficientIsOne());
+
+  // Assert(cmp.isBoolean() || cmp.isNormalForm());
+  // return RewriteResponse(REWRITE_DONE, cmp.getNode());
 }
 
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){

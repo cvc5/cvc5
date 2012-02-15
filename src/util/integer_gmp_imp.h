@@ -135,20 +135,82 @@ public:
     return *this;
   }
 
-  Integer operator/(const Integer& y) const {
-    return Integer( d_value / y.d_value );
-  }
-  Integer& operator/=(const Integer& y) {
-    d_value /= y.d_value;
-    return *this;
+  /**
+   * Return this*(2^pow).
+   */
+  Integer multiplyByPow2(uint32_t pow) const{
+    mpz_class result;
+    mpz_mul_2exp(result.get_mpz_t(), d_value.get_mpz_t(), pow);
+    return Integer( result );
   }
 
-  Integer operator%(const Integer& y) const {
-    return Integer( d_value % y.d_value );
+  /** See GMP Documentation. */
+  Integer extractBitRange(uint32_t bitCount, uint32_t low) const {
+    // bitCount = high-low+1
+    uint32_t high = low + bitCount-1;
+    //— Function: void mpz_fdiv_r_2exp (mpz_t r, mpz_t n, mp_bitcnt_t b)
+    mpz_class rem, div;
+    mpz_fdiv_r_2exp(rem.get_mpz_t(), d_value.get_mpz_t(), high+1);
+    mpz_fdiv_q_2exp(div.get_mpz_t(), rem.get_mpz_t(), low);
+
+    return Integer(div);
   }
-  Integer& operator%=(const Integer& y) {
-    d_value %= y.d_value;
-    return *this;
+
+  /**
+   * Returns the floor(this / y)
+   */
+  Integer floorDivideQuotient(const Integer& y) const {
+    mpz_class q;
+    mpz_fdiv_q(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer( q );
+  }
+
+  /**
+   * Returns r == this - floor(this/y)*y
+   */
+  Integer floorDivideRemainder(const Integer& y) const {
+    mpz_class r;
+    mpz_fdiv_r(r.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer( r );
+  }
+
+  /**
+   * Computes a floor quoient and remainder for x divided by y.
+   */
+  static void floorQR(Integer& q, Integer& r, const Integer& x, const Integer& y) {
+    mpz_fdiv_qr(q.d_value.get_mpz_t(), r.d_value.get_mpz_t(), x.d_value.get_mpz_t(), y.d_value.get_mpz_t());
+  }
+
+  /**
+   * Returns the ceil(this / y)
+   */
+  Integer ceilingDivideQuotient(const Integer& y) const {
+    mpz_class q;
+    mpz_cdiv_q(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer( q );
+  }
+
+  /**
+   * Returns the ceil(this / y)
+   */
+  Integer ceilingDivideRemainder(const Integer& y) const {
+    mpz_class r;
+    mpz_cdiv_r(r.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer( r );
+  }
+
+  /**
+   * If y divides *this, then exactQuotient returns (this/y)
+   */
+  Integer exactQuotient(const Integer& y) const {
+    Assert(y.divides(*this));
+    mpz_class q;
+    mpz_divexact(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer( q );
+  }
+
+  int sgn() const {
+    return mpz_sgn(d_value.get_mpz_t());
   }
 
   /**
@@ -169,6 +231,24 @@ public:
     mpz_class result;
     mpz_gcd(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
     return Integer(result);
+  }
+
+  /**
+   * Return the least common multiple of this integer with another.
+   */
+  Integer lcm(const Integer& y) const {
+    mpz_class result;
+    mpz_lcm(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer(result);
+  }
+
+  /**
+   * All non-zero integers z, z.divide(0)
+   * ! zero.divides(zero)
+   */
+  bool divides(const Integer& y) const {
+    int res = mpz_divisible_p(y.d_value.get_mpz_t(), d_value.get_mpz_t());
+    return res != 0;
   }
 
   /**
@@ -216,6 +296,24 @@ public:
   bool testBit(unsigned n) const {
     return mpz_tstbit(d_value.get_mpz_t(), n);
   }
+
+  /**
+   * If x != 0, returns the smallest n s.t. 2^{n-1} <= abs(x) < 2^{n}.
+   * If x == 0, returns 1.
+   */
+  size_t length() const {
+    if(sgn() == 0){
+      return 1;
+    }else{
+      return mpz_sizeinbase(d_value.get_mpz_t(),2);
+    }
+  }
+
+  static void extendedGcd(Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b){
+    //mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, mpz_t a, mpz_t b);
+    mpz_gcdext (g.d_value.get_mpz_t(), s.d_value.get_mpz_t(), t.d_value.get_mpz_t(), a.d_value.get_mpz_t(), b.d_value.get_mpz_t());
+  }
+
 
   friend class CVC4::Rational;
 };/* class Integer */

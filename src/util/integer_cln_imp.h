@@ -167,6 +167,7 @@ public:
     return *this;
   }
 
+  /*
   Integer operator/(const Integer& y) const {
     return Integer( cln::floor1(d_value, y.d_value) );
   }
@@ -181,6 +182,65 @@ public:
   Integer& operator%=(const Integer& y) {
     d_value = cln::floor2(d_value, y.d_value).remainder;
     return *this;
+  }
+  */
+
+  /**
+   * Return this*(2^pow).
+   */
+  Integer multiplyByPow2(uint32_t pow) const {
+    cln::cl_I ipow(pow);
+    return Integer( d_value << ipow);
+  }
+
+  /** See CLN Documentation. */
+  Integer extractBitRange(uint32_t bitCount, uint32_t low) const {
+    cln::cl_byte range(bitCount, low);
+    return Integer(cln::ldb(d_value, range));
+  }
+
+  /**
+   * Returns the floor(this / y)
+   */
+  Integer floorDivideQuotient(const Integer& y) const {
+    return Integer( cln::floor1(d_value, y.d_value) );
+  }
+
+  /**
+   * Returns r == this - floor(this/y)*y
+   */
+  Integer floorDivideRemainder(const Integer& y) const {
+    return Integer( cln::floor2(d_value, y.d_value).remainder );
+  }
+   /**
+   * Computes a floor quoient and remainder for x divided by y.
+   */
+  static void floorQR(Integer& q, Integer& r, const Integer& x, const Integer& y) {
+    cln::cl_I_div_t res = cln::floor2(x.d_value, y.d_value);
+    q.d_value = res.quotient;
+    r.d_value = res.remainder;
+  }
+
+  /**
+   * Returns the ceil(this / y)
+   */
+  Integer ceilingDivideQuotient(const Integer& y) const {
+    return Integer( cln::ceiling1(d_value, y.d_value) );
+  }
+
+  /**
+   * Returns the ceil(this / y)
+   */
+  Integer ceilingDivideRemainder(const Integer& y) const {
+    return Integer( cln::ceiling2(d_value, y.d_value).remainder );
+  }
+
+  /**
+   * If y divides *this, then exactQuotient returns (this/y)
+   */
+  Integer exactQuotient(const Integer& y) const {
+    Assert(y.divides(*this));
+    return Integer( cln::exquo(d_value, y.d_value) );
   }
 
   /**
@@ -205,6 +265,22 @@ public:
   Integer gcd(const Integer& y) const {
     cln::cl_I result = cln::gcd(d_value, y.d_value);
     return Integer(result);
+  }
+
+  /**
+   * Return the least common multiple of this integer with another.
+   */
+  Integer lcm(const Integer& y) const {
+    cln::cl_I result = cln::lcm(d_value, y.d_value);
+    return Integer(result);
+  }
+
+  /**
+   * Return true if *this exactly divides y.
+   */
+  bool divides(const Integer& y) const {
+    cln::cl_I result = cln::rem(y.d_value, d_value);
+    return cln::zerop(result);
   }
 
   /**
@@ -243,6 +319,12 @@ public:
     return output;
   }
 
+  int sgn() const {
+    cln::cl_I sgn = cln::signum(d_value);
+    Assert(sgn == 0 || sgn == -1 || sgn == 1);
+    return cln::cl_I_to_int(sgn);
+  }
+
   //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
 
   long getLong() const {
@@ -279,6 +361,27 @@ public:
    */
   bool testBit(unsigned n) const {
     return cln::logbitp(n, d_value);
+  }
+
+  /**
+   * If x != 0, returns the unique n s.t. 2^{n-1} <= abs(x) < 2^{n}.
+   * If x == 0, returns 1.
+   */
+  size_t length() const {
+    int s = sgn();
+    if(s == 0){
+      return 1;
+    }else if(s < 0){
+      return cln::integer_length(-d_value);
+    }else{
+      return cln::integer_length(d_value);
+    }
+  }
+
+/*   cl_I xgcd (const cl_I& a, const cl_I& b, cl_I* u, cl_I* v) */
+/* This function ("extended gcd") returns the greatest common divisor g of a and b and at the same time the representation of g as an integral linear combination of a and b: u and v with u*a+v*b = g, g >= 0. u and v will be normalized to be of smallest possible absolute value, in the following sense: If a and b are non-zero, and abs(a) != abs(b), u and v will satisfy the inequalities abs(u) <= abs(b)/(2*g), abs(v) <= abs(a)/(2*g). */
+  static void extendedGcd(Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b){    
+    g.d_value = cln::xgcd(a.d_value, b.d_value, &s.d_value, &t.d_value);
   }
 
   friend class CVC4::Rational;

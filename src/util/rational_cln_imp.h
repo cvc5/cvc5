@@ -192,6 +192,18 @@ public:
     }
   }
 
+  Rational abs() const {
+    if(sgn() < 0){
+      return -(*this);
+    }else{
+      return *this;
+    }
+  }
+
+  bool isIntegral() const{
+    return getDenominator() == 1;
+  }
+
   Integer floor() const {
     return Integer(cln::floor1(d_value));
   }

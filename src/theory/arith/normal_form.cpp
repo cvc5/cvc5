@@ -21,9 +21,10 @@
 #include <list>
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+
+namespace CVC4 {
+namespace theory{
+namespace arith {
 
 bool VarList::isSorted(iterator start, iterator end) {
   return __gnu_cxx::is_sorted(start, end);
@@ -131,9 +132,6 @@ Monomial Monomial::operator*(const Monomial& mono) const {
 
 vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
   Assert(isSorted(monos));
-
-  Debug("blah") << "start sumLikeTerms" << std::endl;
-  printList(monos);
   vector<Monomial> outMonomials;
   typedef vector<Monomial>::const_iterator iterator;
   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;) {
@@ -150,9 +148,6 @@ vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
       outMonomials.push_back(nonZero);
     }
   }
-  Debug("blah") << "outmonomials" << std::endl;
-  printList(monos);
-  Debug("blah") << "end sumLikeTerms" << std::endl;
 
   Assert(isStrictlySorted(outMonomials));
   return outMonomials;
@@ -169,8 +164,6 @@ void Monomial::printList(const std::vector<Monomial>& list) {
   }
 }
 Polynomial Polynomial::operator+(const Polynomial& vl) const {
-  this->printList();
-  vl.printList();
 
   std::vector<Monomial> sortedMonos;
   merge_ranges(begin(), end(), vl.begin(), vl.end(), sortedMonos);
@@ -178,7 +171,6 @@ Polynomial Polynomial::operator+(const Polynomial& vl) const {
   std::vector<Monomial> combined = Monomial::sumLikeTerms(sortedMonos);
 
   Polynomial result = mkPolynomial(combined);
-  result.printList();
   return result;
 }
 
@@ -211,9 +203,47 @@ Polynomial Polynomial::operator*(const Polynomial& poly) const {
   return res;
 }
 
+Monomial Polynomial::selectAbsMinimum() const {
+  iterator iter = begin(), myend = end();
+  Assert(iter != myend);
+
+  Monomial min = *iter;
+  ++iter;
+  for(; iter != end(); ++iter){
+    Monomial curr = *iter;
+    if(curr.absLessThan(min)){
+      min = curr;
+    }
+  }
+  return min;
+}
+
+Integer Polynomial::gcd() const {
+  //We'll use the standardization that gcd(0, 0) = 0
+  //So that the gcd of the zero polynomial is gcd{0} = 0
+  Assert(isIntegral());
+  iterator i=begin(), e=end();
+  Assert(i!=e);
+
+  Integer d = (*i).getConstant().getValue().getNumerator().abs();
+  ++i;
+  for(; i!=e; ++i){
+    Integer c = (*i).getConstant().getValue().getNumerator();
+    d = d.gcd(c);
+  }
+  return d;
+}
+
+Integer Polynomial::denominatorLCM() const {
+  Integer tmp(1);
+  for(iterator i=begin(), e=end(); i!=e; ++i){
+    const Constant& c = (*i).getConstant();
+    tmp = tmp.lcm(c.getValue().getDenominator());
+  }
+  return tmp;
+}
 
 Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
-  Assert(!l.isConstant());
   Assert(isRelationOperator(k));
   switch(k) {
   case kind::GEQ:
@@ -306,22 +336,27 @@ bool Comparison::pbComparison(Kind k, TNode left, const Rational& right, bool& r
   return false;
 }
 
+// Comparison Comparison::mkComparison(Kind k, const Polynomial& left, const Constant& right) {
+//   Assert(isRelationOperator(k));
+//   if(left.isConstant()) {
+//     const Rational& lConst =  left.getNode().getConst<Rational>();
+//     const Rational& rConst = right.getNode().getConst<Rational>();
+//     bool res = evaluateConstantPredicate(k, lConst, rConst);
+//     return Comparison(res);
+//   }
+
+//   if(left.getNode().getType().isPseudoboolean()) {
+//     bool result;
+//     if(pbComparison(k, left.getNode(), right.getNode().getConst<Rational>(), result)) {
+//       return Comparison(result);
+//     }
+//   }
+
+//   return Comparison(toNode(k, left, right), k, left, right);
+// }
+
 Comparison Comparison::mkComparison(Kind k, const Polynomial& left, const Constant& right) {
   Assert(isRelationOperator(k));
-  if(left.isConstant()) {
-    const Rational& lConst =  left.getNode().getConst<Rational>();
-    const Rational& rConst = right.getNode().getConst<Rational>();
-    bool res = evaluateConstantPredicate(k, lConst, rConst);
-    return Comparison(res);
-  }
-
-  if(left.getNode().getType().isPseudoboolean()) {
-    bool result;
-    if(pbComparison(k, left.getNode(), right.getNode().getConst<Rational>(), result)) {
-      return Comparison(result);
-    }
-  }
-
   return Comparison(toNode(k, left, right), k, left, right);
 }
 
@@ -334,9 +369,231 @@ Comparison Comparison::addConstant(const Constant& constant) const {
   return mkComparison(oper, newLeft, newRight);
 }
 
+bool Comparison::constantInLefthand() const{
+  return getLeft().containsConstant();
+}
+
+Comparison Comparison::cancelLefthandConstant() const {
+  if(constantInLefthand()){
+    Monomial constantHead = getLeft().getHead();
+    Assert(constantHead.isConstant());
+
+    Constant constant = constantHead.getConstant();
+    Constant negativeConstantHead = -constant;
+    return addConstant(negativeConstantHead);
+  }else{
+    return *this;
+  }
+}
+
 Comparison Comparison::multiplyConstant(const Constant& constant) const {
   Assert(!isBoolean());
   Kind newOper = (constant.getValue() < 0) ? reverseRelationKind(oper) : oper;
 
   return mkComparison(newOper, left*Monomial(constant), right*constant);
 }
+
+Integer Comparison::denominatorLCM() const {
+  // Get the coefficients to be all integers.
+  Integer leftDenominatorLCM = left.denominatorLCM();
+  Integer rightDenominator = right.getValue().getDenominator();
+  Integer denominatorLCM = leftDenominatorLCM.lcm(rightDenominator);
+  Assert(denominatorLCM.sgn() > 0);
+  return denominatorLCM;
+}
+
+Comparison Comparison::multiplyByDenominatorLCM() const{
+  return multiplyConstant(Constant::mkConstant(denominatorLCM()));
+}
+
+Comparison Comparison::normalizeLeadingCoefficientPositive() const {
+  if(getLeft().getHead().getConstant().isNegative()){
+    return multiplyConstant(Constant::mkConstant(-1));
+  }else{
+    return *this;
+  }
+}
+
+bool Comparison::isIntegral() const {
+  return getRight().isIntegral() && getLeft().isIntegral();
+}
+
+bool Comparison::isConstant() const {
+  return getLeft().isConstant();
+}
+
+Comparison Comparison::evaluateConstant() const {
+  Assert(left.isConstant());
+  const Rational& rConst = getRight().getValue();
+  const Rational& lConst = getLeft().getHead().getConstant().getValue();
+  bool res = evaluateConstantPredicate(getKind(), lConst, rConst);
+  return Comparison(res);
+}
+
+Comparison Comparison::divideByLefthandGCD() const {
+  Assert(isIntegral());
+
+  Integer zr = getRight().getValue().getNumerator();
+  Integer gcd = getLeft().gcd();
+  Polynomial newLeft = getLeft().exactDivide(gcd);
+
+  Constant newRight = Constant::mkConstant(Rational(zr,gcd));
+  return mkComparison(getKind(), newLeft, newRight);
+}
+
+Comparison Comparison::divideByLeadingCoefficient() const {
+  //Handle the rational/mixed case
+  Monomial head = getLeft().getHead();
+  Constant leadingCoefficient = head.getConstant();
+  Assert(!leadingCoefficient.isZero());
+
+  Constant inverse = leadingCoefficient.inverse();
+
+  return multiplyConstant(inverse);
+}
+
+Comparison Comparison::tightenIntegralConstraint() const {
+  Assert(getLeft().isIntegral());
+
+  if(getRight().isIntegral()){
+    return *this;
+  }else{
+    switch(getKind()){
+    case kind::EQUAL:
+      //If the gcd of the left hand side does not cleanly divide the right hand side,
+      //this is unsatisfiable in the theory of Integers.
+      return Comparison(false);
+    case kind::GEQ:
+    case kind::GT:
+      {
+        //(>= l (/ n d))
+        //(>= l (ceil (/ n d)))
+        //This also hold for GT as (ceil (/ n d)) > (/ n d)
+        Integer ceilr = getRight().getValue().ceiling();
+        Constant newRight = Constant::mkConstant(ceilr);
+        return Comparison(toNode(kind::GEQ, getLeft(), newRight),kind::GEQ, getLeft(),newRight);
+      }
+    case kind::LEQ:
+    case kind::LT:
+      {
+        //(<= l (/ n d))
+        //(<= l (floor (/ n d)))
+        //This also hold for LT as (floor (/ n d)) < (/ n d)
+        Integer floor = getRight().getValue().floor();
+        Constant newRight = Constant::mkConstant(floor);
+        return Comparison(toNode(kind::LEQ, getLeft(), newRight),kind::LEQ, getLeft(),newRight);
+      }
+    default:
+      Unreachable();
+    }
+  }
+}
+
+bool Comparison::isIntegerNormalForm() const{
+  if(constantInLefthand()){ return false; }
+  else if(getLeft().getHead().getConstant().isNegative()){ return false; }
+  else if(!isIntegral()){ return false; }
+  else {
+    return getLeft().gcd() == 1;
+  }
+}
+bool Comparison::isMixedNormalForm() const {
+  if(constantInLefthand()){ return false; }
+  else if(allIntegralVariables()) { return false; }
+  else{
+    return getLeft().getHead().getConstant().getValue() == 1;
+  }
+}
+
+Comparison Comparison::normalize(Comparison c) {
+  if(c.isConstant()){
+    return c.evaluateConstant();
+  }else{
+    Comparison c0 = c.constantInLefthand() ? c.cancelLefthandConstant() : c;
+    Comparison c1 = c0.normalizeLeadingCoefficientPositive();
+    if(c1.allIntegralVariables()){
+      //All Integer Variable Case
+      Comparison integer0 = c1.multiplyByDenominatorLCM();
+      Comparison integer1 = integer0.divideByLefthandGCD();
+      Comparison integer2 = integer1.tightenIntegralConstraint();
+      Assert(integer2.isBoolean() || integer2.isIntegerNormalForm());
+      return integer2;
+    }else{
+      //Mixed case
+      Comparison mixed = c1.divideByLeadingCoefficient();
+      Assert(mixed.isMixedNormalForm());
+      return mixed;
+    }
+  }
+}
+
+Comparison Comparison::mkNormalComparison(Kind k, const Polynomial& left, const Constant& right) {
+  Comparison cmp = mkComparison(k,left,right);
+  Comparison normalized = cmp.normalize(cmp);
+  Assert(normalized.isNormalForm());
+  return normalized;
+}
+
+Node Polynomial::computeQR(const Polynomial& p, const Integer& div){
+  Assert(p.isIntegral());
+  std::vector<Monomial> q_vec, r_vec;
+  Integer tmp_q, tmp_r;
+  for(iterator iter = p.begin(), pend = p.end(); iter != pend; ++iter){
+    Monomial curr = *iter;
+    VarList vl = curr.getVarList();
+    Constant c = curr.getConstant();
+
+    const Integer& a = c.getValue().getNumerator();
+    Integer::floorQR(tmp_q, tmp_r, a, div);
+    Constant q=Constant::mkConstant(tmp_q);
+    Constant r=Constant::mkConstant(tmp_r);
+    if(!q.isZero()){
+      q_vec.push_back(Monomial::mkMonomial(q, vl));
+    }
+    if(!r.isZero()){
+      r_vec.push_back(Monomial::mkMonomial(r, vl));
+    }
+  }
+
+  Polynomial p_q = Polynomial::mkPolynomial(q_vec);
+  Polynomial p_r = Polynomial::mkPolynomial(r_vec);
+
+  return NodeManager::currentNM()->mkNode(kind::PLUS, p_q.getNode(), p_r.getNode());
+}
+
+Node SumPair::computeQR(const SumPair& sp, const Integer& div){
+  Assert(sp.isIntegral());
+
+  const Integer& constant = sp.getConstant().getValue().getNumerator();
+
+  Integer constant_q, constant_r;
+  Integer::floorQR(constant_q, constant_r, constant, div);
+
+  Node p_qr = Polynomial::computeQR(sp.getPolynomial(), div);
+  Assert(p_qr.getKind() == kind::PLUS);
+  Assert(p_qr.getNumChildren() == 2);
+
+  Polynomial p_q = Polynomial::parsePolynomial(p_qr[0]);
+  Polynomial p_r = Polynomial::parsePolynomial(p_qr[1]);
+
+  SumPair sp_q(p_q, Constant::mkConstant(constant_q));
+  SumPair sp_r(p_r, Constant::mkConstant(constant_r));
+
+  return NodeManager::currentNM()->mkNode(kind::PLUS, sp_q.getNode(), sp_r.getNode());
+}
+
+Constant Polynomial::getCoefficient(const VarList& vl) const{
+  //TODO improve to binary search...
+  for(iterator iter=begin(), myend=end(); iter != myend; ++iter){
+    Monomial m = *iter;
+    VarList curr = m.getVarList();
+    if(curr == vl){
+      return m.getConstant();
+    }
+  }
+  return Constant::mkConstant(0);
+}
+
+} //namespace arith
+} //namespace theory
+} //namespace CVC4
