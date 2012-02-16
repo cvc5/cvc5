@@ -12,13 +12,31 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
+	arith-int-004.cvc \
+	arith-int-007.cvc \
+	arith-int-012.cvc \
+	arith-int-013.cvc \
+	arith-int-022.cvc \
+	arith-int-024.cvc \
+	arith-int-041.cvc \
+	arith-int-042.cvc \
+	arith-int-042.min.cvc \
+	arith-int-047.cvc \
+	arith-int-050.cvc \
+	arith-int-082.cvc \
+	arith-int-084.cvc \
+	arith-int-085.cvc \
+	arith-int-097.cvc
+
+#failing tests
+#	arith-int-048.cvc
+
+EXTRA_DIST = $(TESTS) \
 	arith-int-001.cvc \
 	arith-int-002.cvc \
 	arith-int-003.cvc \
-	arith-int-004.cvc \
 	arith-int-005.cvc \
 	arith-int-006.cvc \
-	arith-int-007.cvc \
 	arith-int-008.cvc \
 	arith-int-009.cvc \
 	arith-int-010.cvc \
@@ -28,24 +46,8 @@ TESTS =	\
 	arith-int-016.cvc \
 	arith-int-017.cvc \
 	arith-int-018.cvc \
-	arith-int-019.cvc 
-
-EXTRA_DIST = $(TESTS) \
-	arith-int-012.cvc \
-	arith-int-013.cvc \
-	arith-int-022.cvc \
-	arith-int-024.cvc \
-	arith-int-041.cvc \
-	arith-int-042.cvc \
-	arith-int-042.min.cvc \
-	arith-int-047.cvc \
-	arith-int-048.cvc \
-	arith-int-050.cvc \
-	arith-int-082.cvc \
-	arith-int-084.cvc \
-	arith-int-085.cvc \
-	arith-int-097.cvc \
-		arith-int-020.cvc \
+	arith-int-019.cvc \
+	arith-int-020.cvc \
 	arith-int-021.cvc \
 	arith-int-023.cvc \
 	arith-int-025.cvc \
@@ -115,7 +117,6 @@ EXTRA_DIST = $(TESTS) \
 	arith-int-098.cvc \
 	arith-int-099.cvc \
 	arith-int-100.cvc
-	
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

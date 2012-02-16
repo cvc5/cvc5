@@ -238,7 +238,7 @@ void DioSolver::enqueueInputConstraints(){
     TrailIndex i = d_inputConstraints[curr].d_trailPos;
     TrailIndex j = applyAllSubstitutionsToIndex(i);
 
-    if(!(triviallySat(j)  || anyCoefficientExceedsMaximum(j))){
+    if(!triviallySat(j)){
       if(triviallyUnsat(j)){
         raiseConflict(j);
       }else{
@@ -247,7 +247,7 @@ void DioSolver::enqueueInputConstraints(){
         if(!inConflict()){
           if(triviallyUnsat(k)){
             raiseConflict(k);
-          }else if(!triviallySat(k)){
+          }else if(!(triviallySat(k) || anyCoefficientExceedsMaximum(k))){
             pushToQueueBack(k);
           }
         }
@@ -772,10 +772,10 @@ void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){
 
       if(triviallyUnsat(nextTI)){
         raiseConflict(nextTI);
-      }else if(!(triviallySat(nextTI) || anyCoefficientExceedsMaximum(nextTI))){
+      }else if(!triviallySat(nextTI)){
         TrailIndex nextNextTI = reduceByGCD(nextTI);
 
-        if(!inConflict()){
+        if(!(inConflict() || anyCoefficientExceedsMaximum(nextNextTI))){
           Assert(queueConditions(nextNextTI));
           d_currentF[writeIter] = nextNextTI;
           ++writeIter;

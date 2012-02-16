@@ -58,6 +58,10 @@ namespace arith {
 class TheoryArith : public Theory {
 private:
 
+  /**
+   * This counter is false if nothing has been done since the last cut.
+   * This is used to break an infinite loop.
+   */
   bool d_hasDoneWorkSinceCut;
 
   /**
@@ -165,7 +169,7 @@ private:
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
-  #warning "DO NOT COMMIT TO TRUNK, USE MORE EFFICIENT CHECK INSTEAD"
+  //TODO Replace with a more efficient check
   CDArithVarSet d_varsInDioSolver;
 
   /**
@@ -325,15 +329,6 @@ private:
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);
 
-  /**
-   * Performs *permanent* static setup for equalities that have not been
-   * preregistered.
-   * Currently these MUST be introduced by combination.
-   */
-  //void delayedSetupEquality(TNode equality);
-
-  //void delayedSetupPolynomial(TNode polynomial);
-  //void delayedSetupMonomial(const Monomial& mono);
 
   /**
    * Performs a check to see if it is definitely true that setup can be avoided.

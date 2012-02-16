@@ -469,28 +469,6 @@ void TheoryArith::asVectors(const Polynomial& p, std::vector<Rational>& coeffs, 
   }
 }
 
-// void TheoryArith::setupSlack(TNode left){
-//   //Assert(!left.getAttribute(Slack()));
-//   Assert(!isSlack(left));
-
-
-//   ++(d_statistics.d_statSlackVariables);
-//   left.setAttribute(Slack(), true);
-
-//   d_rowHasBeenAdded = true;
-
-//   Polynomial polyLeft = Polynomial::parsePolynomial(left);
-
-//   vector<ArithVar> variables;
-//   vector<Rational> coefficients;
-
-//   asVectors(polyLeft, coefficients, variables);
-
-//   ArithVar varSlack = requestArithVar(left, true);
-//   d_tableau.addRow(varSlack, coefficients, variables);
-//   setupInitialValue(varSlack);
-// }
-
 /* Requirements:
  * For basic variables the row must have been added to the tableau.
  */
@@ -525,64 +503,6 @@ Node TheoryArith::disequalityConflict(TNode eq, TNode lb, TNode ub){
   ++(d_statistics.d_statDisequalityConflicts);
   return conflict;
 }
-
-// void TheoryArith::delayedSetupMonomial(const Monomial& mono){
-
-//   Debug("arith::delay") << "delayedSetupMonomial(" << mono.getNode() << ")" << endl;
-
-//   Assert(!mono.isConstant());
-//   VarList vl = mono.getVarList();
-  
-//   if(!d_arithvarNodeMap.hasArithVar(vl.getNode())){
-//     for(VarList::iterator i = vl.begin(), end = vl.end(); i != end; ++i){
-//       Variable var = *i;
-//       Node n = var.getNode();
-      
-//       ++(d_statistics.d_statUserVariables);
-//       ArithVar varN = requestArithVar(n,false);
-//       setupInitialValue(varN);
-//     }
-
-//     if(!vl.singleton()){
-//       d_out->setIncomplete();
-
-//       Node n = vl.getNode();
-//       ++(d_statistics.d_statUserVariables);
-//       ArithVar varN = requestArithVar(n,false);
-//       setupInitialValue(varN);
-//     }
-//   }
-// }
-
-// void TheoryArith::delayedSetupPolynomial(TNode polynomial){
-//   Debug("arith::delay") << "delayedSetupPolynomial(" << polynomial << ")" << endl;
-
-//   Assert(Polynomial::isMember(polynomial));
-//   // if d_nodeMap.hasArithVar() all of the variables and it are setup
-//   if(!d_arithvarNodeMap.hasArithVar(polynomial)){
-//     Polynomial poly = Polynomial::parsePolynomial(polynomial);
-//     Assert(!poly.containsConstant());
-//     for(Polynomial::iterator i = poly.begin(), end = poly.end(); i != end; ++i){
-//       Monomial mono = *i;
-//       delayedSetupMonomial(mono);
-//     }
-
-//     if(polynomial.getKind() == PLUS){
-//       Assert(!polynomial.getAttribute(Slack()),
-// 	     "Polynomial has slack attribute but not does not have arithvar");
-//       setupSlack(polynomial);
-//     }
-//   }
-// }
-
-// void TheoryArith::delayedSetupEquality(TNode equality){
-//   Debug("arith::delay") << "delayedSetupEquality(" << equality << ")" << endl;
-  
-//   Assert(equality.getKind() == EQUAL);
-
-//   TNode left = equality[0];
-//   delayedSetupPolynomial(left);
-// }
 
 bool TheoryArith::canSafelyAvoidEqualitySetup(TNode equality){
   Assert(equality.getKind() == EQUAL);
@@ -865,7 +785,7 @@ void TheoryArith::check(Effort effortLevel){
 
   if(!emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()){
 
-    if(!emmittedConflictOrSplit){
+    if(!emmittedConflictOrSplit && Options::current()->dioSolver){
       possibleConflict = callDioSolver();
       if(possibleConflict != Node::null()){
         Debug("arith::conflict") << "dio conflict   " << possibleConflict << endl;
@@ -874,7 +794,7 @@ void TheoryArith::check(Effort effortLevel){
       }
     }
 
-    if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut){
+    if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut && Options::current()->dioSolver){
       Node possibleLemma = dioCutting();
       if(!possibleLemma.isNull()){
         Debug("arith") << "dio cut   " << possibleLemma << endl;
@@ -938,94 +858,6 @@ Node TheoryArith::roundRobinBranch(){
       Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
     }
     return lem;
-
-  //   // branch and bound
-  //   if(r.getDenominator() == 1) {
-  //     // r is an integer, but the infinitesimal might not be
-  //     if(i.getNumerator() < 0) {
-  //       // lemma: v <= r - 1 || v >= r
-
-  //       TNode var = d_arithvarNodeMap.asNode(v);
-  //       Node nrMinus1 = NodeManager::currentNM()->mkConst(r - 1);
-  //       Node nr = NodeManager::currentNM()->mkConst(r);
-  //       Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nrMinus1));
-  //       Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nr));
-
-  //       Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-  //       Trace("integers") << "integers: branch & bound: " << lem << endl;
-  //       if(d_valuation.isSatLiteral(lem[0])) {
-  //         Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-  //       } else {
-  //         Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-  //       }
-  //       if(d_valuation.isSatLiteral(lem[1])) {
-  //         Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-  //       } else {
-  //         Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-  //       }
-  //       return lem;
-  //     } else if(i.getNumerator() > 0) {
-  //         // lemma: v <= r || v >= r + 1
-
-  //         TNode var = d_arithvarNodeMap.asNode(v);
-  //         Node nr = NodeManager::currentNM()->mkConst(r);
-  //         Node nrPlus1 = NodeManager::currentNM()->mkConst(r + 1);
-  //         Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, nr));
-  //         Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, nrPlus1));
-
-  //         Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-  //         Trace("integers") << "integers: branch & bound: " << lem << endl;
-  //         if(d_valuation.isSatLiteral(lem[0])) {
-  //           Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-  //         } else {
-  //           Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-  //         }
-  //         if(d_valuation.isSatLiteral(lem[1])) {
-  //           Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-  //         } else {
-  //           Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-  //         }
-  //         ++(d_statistics.d_externalBranchAndBounds);
-  //         d_out->lemma(lem);
-  //         result = true;
-
-  //         // split only on one var
-  //         break;
-  //       } else {
-  //         Unreachable();
-  //       }
-  //     } else {
-  //       // lemma: v <= floor(r) || v >= ceil(r)
-
-  //       TNode var = d_arithvarNodeMap.asNode(v);
-  //       Node floor = NodeManager::currentNM()->mkConst(r.floor());
-  //       Node ceiling = NodeManager::currentNM()->mkConst(r.ceiling());
-  //       Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, floor));
-  //       Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, ceiling));
-
-  //       Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-  //       Trace("integers") << "integers: branch & bound: " << lem << endl;
-  //       if(d_valuation.isSatLiteral(lem[0])) {
-  //         Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-  //       } else {
-  //         Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-  //       }
-  //       if(d_valuation.isSatLiteral(lem[1])) {
-  //         Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-  //       } else {
-  //         Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-  //       }
-  //       ++(d_statistics.d_externalBranchAndBounds);
-  //       d_out->lemma(lem);
-  //       result = true;
-
-  //       // split only on one var
-  //       break;
-  //     }
-  //   }// if(arithvar is integer-typed)
-  // } while((d_nextIntegerCheckVar = (1 + d_nextIntegerCheckVar == d_variables.size() ? 0 : 1 + d_nextIntegerCheckVar)) != rrEnd);
-
-  // return result;
   }
 }
 
