@@ -519,6 +519,11 @@ public:
    */
   bool presolve();
 
+   /**
+   * Calls postsolve() on all active theories.
+   */
+  void postsolve();
+
   /**
    * Calls notifyRestart() on all active theories.
    */

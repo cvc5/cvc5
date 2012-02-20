@@ -381,7 +381,29 @@ bool TheoryEngine::presolve() {
   }
   // return whether we have a conflict
   return false;
-}
+}/* TheoryEngine::presolve() */
+
+void TheoryEngine::postsolve() {
+  // NOTE that we don't look at d_theoryIsActive[] here (for symmetry
+  // with presolve()).
+
+  try {
+    // Definition of the statement that is to be run by every theory
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+    if (theory::TheoryTraits<THEORY>::hasPostsolve) { \
+      reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(theoryOf(THEORY))->postsolve(); \
+      Assert(! d_inConflict, "conflict raised during postsolve()"); \
+    }
+
+    // Postsolve for each theory using the statement above
+    CVC4_FOR_EACH_THEORY;
+  } catch(const theory::Interrupted&) {
+    Trace("theory") << "TheoryEngine::postsolve() => interrupted" << endl;
+  }
+}/* TheoryEngine::postsolve() */
 
 
 void TheoryEngine::notifyRestart() {
