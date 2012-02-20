@@ -808,8 +808,6 @@ if test -z "$PYTHON"; then
 fi
 
 # Checks for libraries.
-AC_CHECK_LIB(z, gzread, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
-AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib required, install your distro's zlib-dev package or see www.zlib.net])])
 
 # Check for libreadline (defined in config/readline.m4)
 CVC4_CHECK_FOR_READLINE
