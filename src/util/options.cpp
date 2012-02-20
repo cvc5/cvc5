@@ -96,7 +96,8 @@ Options::Options() :
   pivotRule(MINIMUM),
   arithPivotThreshold(16),
   arithPropagateMaxLength(16),
-  ufSymmetryBreaker(true),
+  ufSymmetryBreaker(false),
+  ufSymmetryBreakerSetByUser(false),
   dioSolver(true)
 {
 }
@@ -158,7 +159,8 @@ Additional CVC4 options:\n\
    --random-seed=S        sets the random seed for the sat solver\n\
    --disable-variable-removal enable permanent removal of variables in arithmetic (UNSAFE! experts only)\n\
    --disable-arithmetic-propagation turns on arithmetic propagation\n\
-   --disable-symmetry-breaker turns off UF symmetry breaker (Deharbe et al., CADE 2011)\n\
+   --enable-symmetry-breaker turns on UF symmetry breaker (Deharbe et al., CADE 2011) [on by default only for QF_UF]\n\
+   --disable-symmetry-breaker turns off UF symmetry breaker\n\
    --disable-dio-solver   turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)\n\
 ";
 
@@ -327,6 +329,7 @@ enum OptionValue {
   ARITHMETIC_PIVOT_THRESHOLD,
   ARITHMETIC_PROP_MAX_LENGTH,
   ARITHMETIC_DIO_SOLVER,
+  ENABLE_SYMMETRY_BREAKER,
   DISABLE_SYMMETRY_BREAKER,
   TIME_LIMIT,
   TIME_LIMIT_PER,
@@ -409,6 +412,7 @@ static struct option cmdlineOptions[] = {
   { "disable-variable-removal", no_argument, NULL, ARITHMETIC_VARIABLE_REMOVAL },
   { "disable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
   { "disable-dio-solver", no_argument, NULL, ARITHMETIC_DIO_SOLVER },
+  { "enable-symmetry-breaker", no_argument, NULL, ENABLE_SYMMETRY_BREAKER },
   { "disable-symmetry-breaker", no_argument, NULL, DISABLE_SYMMETRY_BREAKER },
   { "tlimit"     , required_argument, NULL, TIME_LIMIT  },
   { "tlimit-per" , required_argument, NULL, TIME_LIMIT_PER },
@@ -746,8 +750,13 @@ throw(OptionException) {
       dioSolver = false;
       break;
 
+    case ENABLE_SYMMETRY_BREAKER:
+      ufSymmetryBreaker = true;
+      ufSymmetryBreakerSetByUser = true;
+      break;
     case DISABLE_SYMMETRY_BREAKER:
       ufSymmetryBreaker = false;
+      ufSymmetryBreakerSetByUser = true;
       break;
 
     case TIME_LIMIT:

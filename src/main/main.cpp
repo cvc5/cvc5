@@ -373,6 +373,14 @@ static bool doCommand(SmtEngine& smt, Command* cmd) {
       status = doCommand(smt, *subcmd) && status;
     }
   } else {
+    // by default, symmetry breaker is on only for QF_UF
+    if(! options.ufSymmetryBreakerSetByUser) {
+      SetBenchmarkLogicCommand *logic = dynamic_cast<SetBenchmarkLogicCommand*>(cmd);
+      if(logic != NULL) {
+        options.ufSymmetryBreaker = (logic->getLogic() == "QF_UF");
+      }
+    }
+
     if(options.verbosity > 0) {
       *options.out << "Invoking: " << *cmd << endl;
     }

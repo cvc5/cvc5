@@ -285,17 +285,21 @@ SmtEngine::~SmtEngine() {
 }
 
 void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
+  NodeManagerScope nms(d_nodeManager);
+
   if(d_logic != "") {
     throw ModalException("logic already set");
   }
+
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << SetBenchmarkLogicCommand(s) << endl;
   }
+
   d_logic = s;
   d_theoryEngine->setLogic(s);
 
   // If in arrays, set the UF handler to arrays
-  if (s == "QF_AX") {
+  if(s == "QF_AX") {
     theory::Theory::setUninterpretedSortOwner(theory::THEORY_ARRAY);
   }
 }
