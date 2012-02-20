@@ -50,6 +50,7 @@ libutil_la_SOURCES = \
 	stats.cpp \
 	dynamic_array.h \
 	language.h \
+	lemma_input_channel.h \
 	lemma_output_channel.h \
 	channel.h \
 	channel.cpp \
