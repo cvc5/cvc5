@@ -49,6 +49,12 @@ namespace CVC4 {
 class TypeNode;
 class NodeManager;
 
+namespace expr {
+  namespace pickle {
+    class PicklerPrivate;
+  }/* CVC4::expr::pickle namespace */
+}/* CVC4::expr namespace */
+
 template <bool ref_count>
 class NodeTemplate;
 
@@ -177,6 +183,9 @@ class NodeTemplate {
    */
   friend class expr::NodeValue;
 
+  friend class expr::pickle::PicklerPrivate;
+  friend Node expr::exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
+
   /** A convenient null-valued encapsulated pointer */
   static NodeTemplate s_null;
 
@@ -200,6 +209,7 @@ class NodeTemplate {
 
   friend class NodeTemplate<true>;
   friend class NodeTemplate<false>;
+  friend class TypeNode;
   friend class NodeManager;
 
   template <unsigned nchild_thresh>

@@ -162,6 +162,10 @@ ExprManager* Type::getExprManager() const {
   return d_nodeManager->toExprManager();
 }
 
+Type Type::exportTo(ExprManager* exprManager, ExprManagerMapCollection& vmap) {
+  return ExprManager::exportType(*this, exprManager, vmap);
+}
+
 void Type::toStream(std::ostream& out) const {
   NodeManagerScope nms(d_nodeManager);
   out << *d_typeNode;

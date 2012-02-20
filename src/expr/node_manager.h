@@ -88,6 +88,8 @@ class NodeManager {
 
   NodeValuePool d_nodeValuePool;
 
+  size_t next_id;
+
   expr::attr::AttributeManager d_attrManager;
 
   /** The associated ExprManager */
@@ -503,6 +505,60 @@ public:
                            const AttrKind& attr,
                            const typename AttrKind::value_type& value);
 
+  /**
+   * Retrieve an attribute for a TypeNode.
+   *
+   * @param n the type node
+   * @param attr an instance of the attribute kind to retrieve.
+   * @returns the attribute, if set, or a default-constructed
+   * <code>AttrKind::value_type</code> if not.
+   */
+  template <class AttrKind>
+  inline typename AttrKind::value_type
+  getAttribute(TypeNode n, const AttrKind& attr) const;
+
+  /**
+   * Check whether an attribute is set for a TypeNode.
+   *
+   * @param n the type node
+   * @param attr an instance of the attribute kind to check
+   * @returns <code>true</code> iff <code>attr</code> is set for <code>n</code>.
+   */
+  template <class AttrKind>
+  inline bool hasAttribute(TypeNode n,
+                           const AttrKind& attr) const;
+
+  /**
+   * Check whether an attribute is set for a TypeNode and, if so, retieve
+   * it.
+   *
+   * @param n the type node
+   * @param attr an instance of the attribute kind to check
+   * @param value a reference to an object of the attribute's value type.
+   * <code>value</code> will be set to the value of the attribute, if it is
+   * set for <code>nv</code>; otherwise, it will be set to the default value of
+   * the attribute.
+   * @returns <code>true</code> iff <code>attr</code> is set for <code>n</code>.
+   */
+  template <class AttrKind>
+  inline bool getAttribute(TypeNode n,
+                           const AttrKind& attr,
+                           typename AttrKind::value_type& value) const;
+
+  /**
+   * Set an attribute for a type node.  If the node doesn't have the
+   * attribute, this function assigns one.  If the type node has one,
+   * this overwrites it.
+   *
+   * @param n the type node
+   * @param attr an instance of the attribute kind to set
+   * @param value the value of <code>attr</code> for <code>n</code>
+   */
+  template <class AttrKind>
+  inline void setAttribute(TypeNode n,
+                           const AttrKind& attr,
+                           const typename AttrKind::value_type& value);
+
   /** Get the (singleton) type for Booleans. */
   inline TypeNode booleanType();
 
@@ -762,6 +818,32 @@ NodeManager::setAttribute(TNode n, const AttrKind&,
   d_attrManager.setAttribute(n.d_nv, AttrKind(), value);
 }
 
+template <class AttrKind>
+inline typename AttrKind::value_type
+NodeManager::getAttribute(TypeNode n, const AttrKind&) const {
+  return d_attrManager.getAttribute(n.d_nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::hasAttribute(TypeNode n, const AttrKind&) const {
+  return d_attrManager.hasAttribute(n.d_nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::getAttribute(TypeNode n, const AttrKind&,
+                          typename AttrKind::value_type& ret) const {
+  return d_attrManager.getAttribute(n.d_nv, AttrKind(), ret);
+}
+
+template <class AttrKind>
+inline void
+NodeManager::setAttribute(TypeNode n, const AttrKind&,
+                          const typename AttrKind::value_type& value) {
+  d_attrManager.setAttribute(n.d_nv, AttrKind(), value);
+}
+
 
 /** Get the (singleton) type for booleans. */
 inline TypeNode NodeManager::booleanType() {
@@ -965,7 +1047,7 @@ inline TypeNode NodeManager::mkSort() {
 
 inline TypeNode NodeManager::mkSort(const std::string& name) {
   TypeNode type = mkSort();
-  type.setAttribute(expr::VarNameAttr(), name);
+  setAttribute(type, expr::VarNameAttr(), name);
   return type;
 }
 
@@ -986,7 +1068,7 @@ inline TypeNode NodeManager::mkSort(TypeNode constructor,
   nb << sortTag;
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
-  type.setAttribute(expr::VarNameAttr(), name);
+  setAttribute(type, expr::VarNameAttr(), name);
   return type;
 }
 
@@ -997,8 +1079,8 @@ inline TypeNode NodeManager::mkSortConstructor(const std::string& name,
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
   nb << sortTag;
   TypeNode type = nb.constructTypeNode();
-  type.setAttribute(expr::VarNameAttr(), name);
-  type.setAttribute(expr::SortArityAttr(), arity);
+  setAttribute(type, expr::VarNameAttr(), name);
+  setAttribute(type, expr::SortArityAttr(), arity);
   return type;
 }
 
@@ -1211,37 +1293,37 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 
 inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
   Node n = mkVar(type);
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(expr::VarNameAttr(), name);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, expr::VarNameAttr(), name);
   return n;
 }
 
 inline Node* NodeManager::mkVarPtr(const std::string& name,
                                    const TypeNode& type) {
   Node* n = mkVarPtr(type);
-  n->setAttribute(TypeAttr(), type);
-  n->setAttribute(expr::VarNameAttr(), name);
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, expr::VarNameAttr(), name);
   return n;
 }
 
 inline Node NodeManager::mkVar(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
   return n;
 }
 
 inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
-  n->setAttribute(TypeAttr(), type);
-  n->setAttribute(TypeCheckedAttr(), true);
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
   return n;
 }
 
 inline Node NodeManager::mkSkolem(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::SKOLEM);
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
   return n;
 }
 
@@ -1282,7 +1364,7 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
   nv->d_nchildren = 0;
   nv->d_kind = kind::metakind::ConstantMap<T>::kind;
-  nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+  nv->d_id = next_id++;// FIXME multithreading
   nv->d_rc = 0;
 
   //OwningTheory::mkConst(val);

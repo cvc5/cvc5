@@ -69,6 +69,13 @@ protected:
   TranslationCache d_translationCache;
   NodeCache d_nodeCache;
 
+  /**
+   * True if the lit-to-Node map should be kept for all lits, not just
+   * theory lits.  This is true if e.g. replay logging is on, which
+   * dumps the Nodes corresponding to decision literals.
+   */
+  const bool d_fullLitToNodeMap;
+
   /** The "registrar" for pre-registration of terms */
   theory::Registrar d_registrar;
 
@@ -179,8 +186,10 @@ public:
    * set of clauses and sends them to the given sat solver.
    * @param satSolver the sat solver to use
    * @param registrar the entity that takes care of preregistration of Nodes
+   * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
+   * even for non-theory literals.
    */
-  CnfStream(SatInputInterface* satSolver, theory::Registrar registrar);
+  CnfStream(SatInputInterface* satSolver, theory::Registrar registrar, bool fullLitToNodeMap = false);
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -283,7 +292,7 @@ public:
 private:
 
   /**
-   * Same as above, except that removable is rememebered.
+   * Same as above, except that removable is remembered.
    */
   void convertAndAssert(TNode node, bool negated);
 

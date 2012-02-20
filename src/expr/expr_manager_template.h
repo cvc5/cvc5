@@ -42,6 +42,13 @@ class SmtEngine;
 class NodeManager;
 struct Options;
 class IntStat;
+class ExprManagerMapCollection;
+
+namespace expr {
+  namespace pickle {
+    class Pickler;
+  }/* CVC4::expr::pickle namespace */
+}/* CVC4::expr namespace */
 
 namespace context {
   class Context;
@@ -403,6 +410,11 @@ public:
   // variables are special, because duplicates are permitted
   Expr mkVar(const std::string& name, Type type);
   Expr mkVar(Type type);
+
+  /** Export an expr to a different ExprManager */
+  //static Expr exportExpr(const Expr& e, ExprManager* em);
+  /** Export a type to a different ExprManager */
+  static Type exportType(const Type& t, ExprManager* em, ExprManagerMapCollection& vmap);
 
   /** Returns the minimum arity of the given kind. */
   static unsigned minArity(Kind kind);

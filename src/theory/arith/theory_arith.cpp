@@ -1223,7 +1223,7 @@ void TheoryArith::presolve(){
 
   if(Debug.isOn("paranoid:check_tableau")){ d_simplex.debugCheckTableau(); }
 
-  static int callCount = 0;
+  static CVC4_THREADLOCAL(unsigned) callCount = 0;
   Debug("arith::presolve") << "TheoryArith::presolve #" << (callCount++) << endl;
 
   d_learner.clear();

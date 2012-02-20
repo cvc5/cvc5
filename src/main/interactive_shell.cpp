@@ -85,7 +85,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
   d_out(*options.out),
   d_language(options.inputLanguage),
   d_quit(false) {
-  ParserBuilder parserBuilder(&exprManager,INPUT_FILENAME,options);
+  ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
 

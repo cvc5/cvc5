@@ -49,12 +49,28 @@ namespace CVC4 {
 template <bool ref_count>
 class NodeTemplate;
 
+class NodeManager;
+
 class Expr;
 class ExprManager;
 class SmtEngine;
 class Type;
 class TypeCheckingException;
 class TypeCheckingExceptionPrivate;
+
+namespace expr {
+  namespace pickle {
+    class Pickler;
+  }/* CVC4::expr::pickle namespace */
+}/* CVC4::expr namespace */
+
+namespace prop {
+  class SatSolver;
+}/* CVC4::prop namespace */
+
+class ExprManagerMapCollection;
+
+struct ExprHashFunction;
 
 namespace smt {
   class SmtEnginePrivate;
@@ -64,6 +80,8 @@ namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
   class CVC4_PUBLIC ExprPrintTypes;
   class CVC4_PUBLIC ExprSetLanguage;
+
+  NodeTemplate<true> exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
 }/* CVC4::expr namespace */
 
 /**
@@ -437,6 +455,13 @@ public:
   ExprManager* getExprManager() const;
 
   /**
+   * Maps this Expr into one for a different ExprManager, using
+   * variableMap for the translation and extending it with any new
+   * mappings.
+   */
+  Expr exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+
+  /**
    * IOStream manipulator to set the maximum depth of Exprs when
    * pretty-printing.  -1 means print to any depth.  E.g.:
    *
@@ -510,6 +535,10 @@ protected:
   friend class ExprManager;
   friend class NodeManager;
   friend class TypeCheckingException;
+  friend class expr::pickle::Pickler;
+  friend class prop::SatSolver;
+  friend NodeTemplate<true> expr::exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
+
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
   template <bool ref_count> friend class NodeTemplate;
 
@@ -828,7 +857,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 832 "${template}"
+#line 861 "${template}"
 
 namespace expr {
 

@@ -27,7 +27,11 @@
 
 #include "util/exception.h"
 #include "util/language.h"
+#include "util/lemma_output_channel.h"
+#include "util/lemma_input_channel.h"
 #include "util/tls.h"
+
+#include <vector>
 
 namespace CVC4 {
 
@@ -103,6 +107,9 @@ struct CVC4_PUBLIC Options {
 
   /** Should we expand function definitions lazily? */
   bool lazyDefinitionExpansion;
+
+  /** Parallel Only: Whether the winner is printed at the end or not. */
+  bool printWinner;
 
   /** Enumeration of simplification modes (when to simplify). */
   typedef enum {
@@ -187,6 +194,18 @@ struct CVC4_PUBLIC Options {
    **/
   double satRandomSeed;
 
+  /** Variable activity decay factor for Minisat */
+  double satVarDecay;
+  
+  /** Clause activity decay factor for Minisat */
+  double satClauseDecay;
+
+  /** Base restart interval for Minisat */
+  int satRestartFirst;
+
+  /** Restart interval increase factor for Minisat */
+  double satRestartInc;
+
   /** The pivot rule for arithmetic */
   typedef enum { MINIMUM, BREAK_TIES, MAXIMUM } ArithPivotRule;
   ArithPivotRule pivotRule;
@@ -219,6 +238,28 @@ struct CVC4_PUBLIC Options {
    * in Arith as described by Griggio JSAT 2012 (on by default).
    */
   bool dioSolver;
+
+  /** The output channel to receive notfication events for new lemmas */
+  LemmaOutputChannel* lemmaOutputChannel;
+  LemmaInputChannel* lemmaInputChannel;
+
+  /** Total number of threads */
+  int threads;
+
+  /** Thread configuration (a string to be passed to parseOptions) */
+  std::vector<std::string> threadArgv;
+
+  /** Thread ID, for internal use in case of multi-threaded run */
+  int thread_id;
+
+  /** 
+   * In multi-threaded setting print output of each thread at the
+   * end of run, separated by a divider ("----").
+   **/
+  bool separateOutput;
+
+  /** Filter depending on length of lemma */
+  int sharingFilterByLength;
 
   Options();
 

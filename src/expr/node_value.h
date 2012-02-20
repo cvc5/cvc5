@@ -126,8 +126,6 @@ class NodeValue {
   void inc();
   void dec();
 
-  static size_t next_id;
-
   /**
    * Uninitializing constructor for NodeBuilder's use.
    */

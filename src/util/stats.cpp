@@ -31,6 +31,7 @@
 using namespace CVC4;
 
 std::string Stat::s_delim(",");
+std::string StatisticsRegistry::s_regDelim("::");
 
 StatisticsRegistry* StatisticsRegistry::current() {
   return NodeManager::currentNM()->getStatisticsRegistry();
@@ -45,6 +46,14 @@ void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat() */
 
+void StatisticsRegistry::registerStat_(Stat* s) throw(AssertionException)
+{
+#ifdef CVC4_STATISTICS_ON
+  AlwaysAssert(d_registeredStats.find(s) == d_registeredStats.end());
+  d_registeredStats.insert(s);
+#endif /* CVC4_STATISTICS_ON */
+}/* StatisticsRegistry::registerStat_() */
+
 void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& registeredStats = NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats;
@@ -54,17 +63,33 @@ void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException) {
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat() */
 
-void StatisticsRegistry::flushStatistics(std::ostream& out) {
+void StatisticsRegistry::unregisterStat_(Stat* s) throw(AssertionException) {
+#ifdef CVC4_STATISTICS_ON
+  AlwaysAssert(d_registeredStats.find(s) != d_registeredStats.end());
+  d_registeredStats.erase(s);
+#endif /* CVC4_STATISTICS_ON */
+}/* StatisticsRegistry::unregisterStat_() */
+
+void StatisticsRegistry::flushInformation(std::ostream& out) const {
 #ifdef CVC4_STATISTICS_ON
   for(StatSet::iterator i = d_registeredStats.begin();
       i != d_registeredStats.end();
       ++i) {
     Stat* s = *i;
+    if(d_name != "") {
+      out << d_name << s_regDelim;
+    }
     s->flushStat(out);
     out << std::endl;
   }
 #endif /* CVC4_STATISTICS_ON */
-}/* StatisticsRegistry::flushStatistics() */
+}/* StatisticsRegistry::flushInformation() */
+
+void StatisticsRegistry::flushStat(std::ostream &out) const {;
+#ifdef CVC4_STATISTICS_ON
+  flushInformation(out);
+#endif /* CVC4_STATISTICS_ON */
+}
 
 StatisticsRegistry::const_iterator StatisticsRegistry::begin() {
   return NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats.begin();
@@ -93,16 +118,9 @@ void TimerStat::stop() {
 }/* TimerStat::stop() */
 
 RegisterStatistic::RegisterStatistic(ExprManager& em, Stat* stat) :
-    d_em(&em), d_stat(stat) {
-  ExprManagerScope ems(*d_em);
-  StatisticsRegistry::registerStat(d_stat);
-}/* RegisterStatistic::RegisterStatistic(ExprManager&, Stat*) */
-
-RegisterStatistic::~RegisterStatistic() {
-  if(d_em != NULL) {
-    ExprManagerScope ems(*d_em);
-    StatisticsRegistry::unregisterStat(d_stat);
-  } else {
-    StatisticsRegistry::unregisterStat(d_stat);
-  }
-}/* RegisterStatistic::~RegisterStatistic() */
+  d_reg(NULL),
+  d_stat(stat) {
+  ExprManagerScope ems(em);
+  d_reg = StatisticsRegistry::current();
+  d_reg->registerStat_(d_stat);
+}

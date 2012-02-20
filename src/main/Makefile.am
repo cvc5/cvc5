@@ -4,16 +4,42 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
 bin_PROGRAMS = cvc4
+
 noinst_LIBRARIES = libmain.a
 
 libmain_a_SOURCES = \
 	interactive_shell.h \
 	interactive_shell.cpp \
 	main.h \
-	main.cpp \
 	util.cpp
 
-cvc4_SOURCES =
+if CVC4_HAS_THREADS
+bin_PROGRAMS += pcvc4
+pcvc4_SOURCES = \
+	main.cpp \
+	portfolio.cpp \
+	portfolio.h \
+	driver_portfolio.cpp
+pcvc4_LDADD = \
+	libmain.a \
+	@builddir@/../parser/libcvc4parser.la \
+	@builddir@/../libcvc4.la \
+	@builddir@/../lib/libreplacements.la \
+	$(READLINE_LIBS)
+pcvc4_CPPFLAGS = $(AM_CPPFLAGS) $(BOOST_CPPFLAGS)
+pcvc4_LDADD += $(BOOST_THREAD_LIBS) -lpthread
+pcvc4_LDADD += $(BOOST_THREAD_LDFLAGS)
+
+if STATIC_BINARY
+pcvc4_LINK = $(CXXLINK) -all-static
+else
+pcvc4_LINK = $(CXXLINK)
+endif
+endif
+
+cvc4_SOURCES = \
+	main.cpp \
+	driver.cpp
 cvc4_LDADD = \
 	libmain.a \
 	@builddir@/../parser/libcvc4parser.la \
@@ -44,3 +70,4 @@ cvc4_LINK = $(CXXLINK) -all-static
 else
 cvc4_LINK = $(CXXLINK)
 endif
+

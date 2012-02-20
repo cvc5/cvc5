@@ -60,6 +60,7 @@ getConst_instantiations=
 getConst_implementations=
 mkConst_instantiations=
 mkConst_implementations=
+exportConstant_cases=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -193,6 +194,8 @@ template <> $2 const & Expr::getConst() const {
   return d_node->getConst< $2 >();
 }
 "
+  exportConstant_cases="${exportConstant_cases}
+  case $1: return to->mkConst(n.getConst< $2 >());"
 }
 
 function check_theory_seen {
@@ -244,6 +247,7 @@ for var in \
     getConst_implementations \
     mkConst_instantiations \
     mkConst_implementations \
+    exportConstant_cases \
     typechecker_includes \
     typerules \
     ; do

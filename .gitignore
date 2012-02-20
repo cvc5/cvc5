@@ -25,3 +25,5 @@ generated/
 /lcov/
 .cvc4_config
 config.reconfig
+*.swp
+/debug/

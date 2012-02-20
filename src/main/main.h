@@ -22,6 +22,7 @@
 #include "util/options.h"
 #include "util/exception.h"
 #include "util/stats.h"
+#include "util/tls.h"
 #include "cvc4autoconfig.h"
 
 #ifndef __CVC4__MAIN__MAIN_H
@@ -46,13 +47,17 @@ extern CVC4::StatisticsRegistry* pStatistics;
  */
 extern bool segvNoSpin;
 
-/** The options currently in play */
-extern Options options;
+/** A pointer to the options in play */
+extern CVC4_THREADLOCAL(Options*) pOptions;
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
+
+/** Actual Cvc4 driver functions **/
+int runCvc4(int argc, char* argv[], CVC4::Options&);
+void printUsage(CVC4::Options&, bool full = false);
 
 #endif /* __CVC4__MAIN__MAIN_H */

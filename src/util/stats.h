@@ -2,7 +2,7 @@
 /*! \file stats.h
  ** \verbatim
  ** Original author: taking
- ** Major contributors: mdeters
+ ** Major contributors: mdeters, kshitij
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -47,83 +47,31 @@ class ExprManager;
 class CVC4_PUBLIC Stat;
 
 /**
- * The main statistics registry.  This registry maintains the list of
- * currently active statistics and is able to "flush" them all.
- */
-class CVC4_PUBLIC StatisticsRegistry {
-private:
-  /** A helper class for comparing two statistics */
-  struct StatCmp {
-    inline bool operator()(const Stat* s1, const Stat* s2) const;
-  };/* class StatisticsRegistry::StatCmp */
-
-  /** A type for a set of statistics */
-  typedef std::set< Stat*, StatCmp > StatSet;
-
-  /** The set of currently active statistics */
-  StatSet d_registeredStats;
-
-  /** Private copy constructor undefined (no copy permitted). */
-  StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
-
-public:
-
-  /** Construct a statistics registry */
-  StatisticsRegistry() { }
-
-  /** An iterator type over a set of statistics */
-  typedef StatSet::const_iterator const_iterator;
-
-  /** Get a pointer to the current statistics registry */
-  static StatisticsRegistry* current();
-
-  /** Flush all statistics to the given output stream. */
-  void flushStatistics(std::ostream& out);
-
-  /** Register a new statistic, making it active. */
-  static void registerStat(Stat* s) throw(AssertionException);
-
-  /** Unregister an active statistic, making it inactive. */
-  static void unregisterStat(Stat* s) throw(AssertionException);
-
-  /**
-   * Get an iterator to the beginning of the range of the set of active
-   * (registered) statistics.
-   */
-  static const_iterator begin();
-
-  /**
-   * Get an iterator to the end of the range of the set of active
-   * (registered) statistics.
-   */
-  static const_iterator end();
-
-};/* class StatisticsRegistry */
-
-
-/**
  * The base class for all statistics.
  *
- * This base class keeps the name of the statistic and declares two (pure)
- * virtual functionss flushInformation() and getValue().  Derived classes
- * must implement these functions and pass their name to the base class
- * constructor.
+ * This base class keeps the name of the statistic and declares the (pure)
+ * virtual function flushInformation().  Derived classes must implement
+ * this function and pass their name to the base class constructor.
  *
  * This class also (statically) maintains the delimiter used to separate
  * the name and the value when statistics are output.
  */
 class CVC4_PUBLIC Stat {
 private:
-  /** The name of this statistic */
-  std::string d_name;
-
   /**
    * The delimiter between name and value to use when outputting a
    * statistic.
    */
   static std::string s_delim;
 
+protected:
+  /** The name of this statistic */
+  std::string d_name;
+
 public:
+
+  /** Nullary constructor, does nothing */
+  Stat() { }
 
   /**
    * Construct a statistic with the given name.  Debug builds of CVC4
@@ -149,8 +97,10 @@ public:
   /**
    * Flush the name,value pair of this statistic to an output stream.
    * Uses the statistic delimiter string between name and value.
+   *
+   * May be redefined by a child class
    */
-  void flushStat(std::ostream& out) const {
+  virtual void flushStat(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
       out << d_name << s_delim;
       flushInformation(out);
@@ -163,21 +113,18 @@ public:
   }
 
   /** Get the value of this statistic as a string. */
-  virtual std::string getValue() const = 0;
+  std::string getValue() const {
+    std::stringstream ss;
+    flushInformation(ss);
+    return ss.str();
+  }
 
 };/* class Stat */
-
-inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
-                                                    const Stat* s2) const {
-  return s1->getName() < s2->getName();
-}
 
 /**
  * A class to represent a "read-only" data statistic of type T.  Adds to
  * the Stat base class the pure virtual function getData(), which returns
- * type T, along with an implementation of getValue(), which converts the
- * type T to a string using an existing stream insertion operator defined
- * on T, and flushInformation(), which outputs the statistic value to an
+ * type T, and flushInformation(), which outputs the statistic value to an
  * output stream (using the same existing stream insertion operator).
  *
  * Template class T must have stream insertion operation defined:
@@ -202,13 +149,6 @@ public:
     if(__CVC4_USE_STATISTICS) {
       out << getData();
     }
-  }
-
-  /** Get the value of the statistic as a string. */
-  std::string getValue() const {
-    std::stringstream ss;
-    ss << getData();
-    return ss.str();
   }
 
 };/* class ReadOnlyDataStat<T> */
@@ -480,20 +420,20 @@ private:
    * have seen so far.
    */
   uint32_t d_count;
+  double d_sum;
 
 public:
   /** Construct an average statistic with the given name. */
   AverageStat(const std::string& name) :
-    BackedStat<double>(name, 0.0), d_count(0) {
+    BackedStat<double>(name, 0.0), d_count(0), d_sum(0.0) {
   }
 
   /** Add an entry to the running-average calculation. */
   void addEntry(double e) {
     if(__CVC4_USE_STATISTICS) {
-      double oldSum = d_count * getData();
       ++d_count;
-      double newSum = oldSum + e;
-      setData(newSum / d_count);
+      d_sum += e;
+      setData(d_sum / d_count);
     }
   }
 
@@ -535,13 +475,102 @@ public:
     return (*this);
   }
 
-  std::string getValue() const {
-    std::stringstream ss;
-    flushInformation(ss);
-    return ss.str();
+};/* class ListStat */
+
+/****************************************************************************/
+/* Statistics Registry                                                      */
+/****************************************************************************/
+
+/**
+ * The main statistics registry.  This registry maintains the list of
+ * currently active statistics and is able to "flush" them all.
+ */
+class CVC4_PUBLIC StatisticsRegistry : public Stat {
+private:
+  /** A helper class for comparing two statistics */
+  struct StatCmp {
+    inline bool operator()(const Stat* s1, const Stat* s2) const;
+  };/* class StatisticsRegistry::StatCmp */
+
+  /** A type for a set of statistics */
+  typedef std::set< Stat*, StatCmp > StatSet;
+
+  /** The set of currently active statistics */
+  StatSet d_registeredStats;
+
+  /** Private copy constructor undefined (no copy permitted). */
+  StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
+
+  static std::string s_regDelim;
+public:
+
+  /** Construct an nameless statistics registry */
+  StatisticsRegistry() {}
+
+  /** Construct a statistics registry */
+  StatisticsRegistry(const std::string& name) throw(CVC4::AssertionException) :
+    Stat(name) {
+    if(__CVC4_USE_STATISTICS) {
+      AlwaysAssert(d_name.find(s_regDelim) == std::string::npos);
+    }
   }
 
-};/* class ListStat */
+  /** 
+   * Set the name of this statistic registry, used as prefix during
+   * output.
+   *
+   * TODO: Get rid of this function once we have ability to set the
+   * name of StatisticsRegistry at creation time.
+   */
+  void setName(const std::string& name) {
+    d_name = name;
+  }
+
+  /** An iterator type over a set of statistics */
+  typedef StatSet::const_iterator const_iterator;
+
+  /** Get a pointer to the current statistics registry */
+  static StatisticsRegistry* current();
+
+  /** Flush all statistics to the given output stream. */
+  void flushInformation(std::ostream& out) const;
+
+  /** Obsolete flushStatistics -- use flushInformation */
+  //void flushStatistics(std::ostream& out) const;
+
+  /** Overridden to avoid the name being printed */
+  void flushStat(std::ostream &out) const;
+
+  /** Register a new statistic, making it active. */
+  static void registerStat(Stat* s) throw(AssertionException);
+
+  /** Register a new statistic */
+  void registerStat_(Stat* s) throw(AssertionException);
+
+  /** Unregister an active statistic, making it inactive. */
+  static void unregisterStat(Stat* s) throw(AssertionException);
+
+  /** Unregister a new statistic */
+  void unregisterStat_(Stat* s) throw(AssertionException);
+
+  /**
+   * Get an iterator to the beginning of the range of the set of active
+   * (registered) statistics.
+   */
+  static const_iterator begin();
+
+  /**
+   * Get an iterator to the end of the range of the set of active
+   * (registered) statistics.
+   */
+  static const_iterator end();
+
+};/* class StatisticsRegistry */
+
+inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
+                                                    const Stat* s2) const {
+  return s1->getName() < s2->getName();
+}
 
 /****************************************************************************/
 /* Some utility functions for timespec                                    */
@@ -753,19 +782,30 @@ public:
  * registration and unregistration.
  */
 class CVC4_PUBLIC RegisterStatistic {
-  ExprManager* d_em;
+  StatisticsRegistry* d_reg;
   Stat* d_stat;
 public:
-  RegisterStatistic(Stat* stat) : d_stat(stat) {
-    Assert(StatisticsRegistry::current() != NULL,
-           "You need to specify an expression manager "
-           "on which to set the statistic");
+  RegisterStatistic(Stat* stat) :
+      d_reg(StatisticsRegistry::current()),
+      d_stat(stat) {
+    Assert(d_reg != NULL, "There is no current statistics registry!");
     StatisticsRegistry::registerStat(d_stat);
+  }
+
+  RegisterStatistic(StatisticsRegistry* reg, Stat* stat) :
+    d_reg(reg),
+    d_stat(stat) {
+    Assert(d_reg != NULL,
+           "You need to specify a statistics registry"
+           "on which to set the statistic");
+    d_reg->registerStat_(d_stat);
   }
 
   RegisterStatistic(ExprManager& em, Stat* stat);
 
-  ~RegisterStatistic();
+  ~RegisterStatistic() {
+    d_reg->unregisterStat_(d_stat);
+  }
 
 };/* class RegisterStatistic */
 

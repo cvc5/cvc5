@@ -34,7 +34,7 @@ namespace builtin {
 class ApplyTypeRule {
   public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate) {
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
     TNode f = n.getOperator();
     TypeNode fType = f.getType(check);
     if( !fType.isFunction() && n.getNumChildren() > 0 ) {
@@ -72,7 +72,7 @@ class ApplyTypeRule {
 
 class EqualityTypeRule {
   public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) throw (TypeCheckingExceptionPrivate) {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) throw (TypeCheckingExceptionPrivate, AssertionException) {
     TypeNode booleanType = nodeManager->booleanType();
 
     if( check ) {

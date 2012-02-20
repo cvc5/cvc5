@@ -28,7 +28,7 @@ namespace uf {
 class UfTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate) {
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
     TNode f = n.getOperator();
     TypeNode fType = f.getType(check);
     if( !fType.isFunction() ) {

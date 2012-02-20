@@ -29,7 +29,7 @@ namespace arith {
 class ArithConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate) {
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
     if (n.getKind() == kind::CONST_RATIONAL) return nodeManager->realType();
     return nodeManager->integerType();
   }
@@ -38,7 +38,7 @@ public:
 class ArithOperatorTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate) {
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
     TypeNode integerType = nodeManager->integerType();
     TypeNode realType = nodeManager->realType();
     TNode::iterator child_it = n.begin();
@@ -65,7 +65,7 @@ public:
 class ArithPredicateTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate) {
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
     if( check ) {
       TypeNode integerType = nodeManager->integerType();
       TypeNode realType = nodeManager->realType();

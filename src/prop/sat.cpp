@@ -22,6 +22,7 @@
 #include "prop/sat.h"
 #include "context/context.h"
 #include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 #include "expr/expr_stream.h"
 
 namespace CVC4 {
@@ -89,6 +90,55 @@ TNode SatSolver::getNode(SatLiteral lit) {
 void SatSolver::notifyRestart() {
   d_propEngine->checkTime();
   d_theoryEngine->notifyRestart();
+
+  static uint32_t lemmaCount = 0;
+
+  if(Options::current()->lemmaInputChannel != NULL) {
+    while(Options::current()->lemmaInputChannel->hasNewLemma()) {
+      Debug("shared") << "shared" << std::endl;
+      Expr lemma = Options::current()->lemmaInputChannel->getNewLemma();
+      Node asNode = lemma.getNode();
+      asNode = theory::Rewriter::rewrite(asNode);
+
+      if(d_shared.find(asNode) == d_shared.end()) {
+        d_shared.insert(asNode);
+        if(asNode.getKind() == kind::OR) {
+          ++lemmaCount;
+          if(lemmaCount % 1 == 0) {
+            Debug("shared") << "=) " << asNode << std::endl;
+          }
+          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true);
+        } else {
+          Debug("shared") << "=(" << asNode << std::endl;
+        }
+      } else {
+        Debug("shared") <<"drop shared " << asNode << std::endl;
+      }
+    }
+  }
+}
+
+void SatSolver::notifyNewLemma(SatClause& lemma) {
+  Assert(lemma.size() > 0);
+  if(Options::current()->lemmaOutputChannel != NULL) {
+    if(lemma.size() == 1) {
+      // cannot share units yet
+      //Options::current()->lemmaOutputChannel->notifyNewLemma(d_cnfStream->getNode(lemma[0]).toExpr());
+    } else {
+      NodeBuilder<> b(kind::OR);
+      for(unsigned i = 0, i_end = lemma.size(); i < i_end; ++i) {
+        b << d_cnfStream->getNode(lemma[i]);
+      }
+      Node n = b;
+
+      if(d_shared.find(n) == d_shared.end()) {
+        d_shared.insert(n);
+        Options::current()->lemmaOutputChannel->notifyNewLemma(n.toExpr());
+      } else {
+        Debug("shared") <<"drop new " << n << std::endl;
+      }
+    }
+  }
 }
 
 SatLiteral SatSolver::getNextReplayDecision() {

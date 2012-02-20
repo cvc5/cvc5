@@ -928,7 +928,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
     // reference counts in this case.
     nv->d_nchildren = 0;
     nv->d_kind = d_nv->d_kind;
-    nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+    nv->d_id = d_nm->next_id++;// FIXME multithreading
     nv->d_rc = 0;
     setUsed();
     if(Debug.isOn("gc")) {
@@ -1015,7 +1015,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
       }
       nv->d_nchildren = d_inlineNv.d_nchildren;
       nv->d_kind = d_inlineNv.d_kind;
-      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+      nv->d_id = d_nm->next_id++;// FIXME multithreading
       nv->d_rc = 0;
 
       std::copy(d_inlineNv.d_children,
@@ -1069,7 +1069,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
 
       crop();
       expr::NodeValue* nv = d_nv;
-      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+      nv->d_id = d_nm->next_id++;// FIXME multithreading
       d_nv = &d_inlineNv;
       d_nvMaxChildren = nchild_thresh;
       setUsed();
@@ -1118,7 +1118,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
     // reference counts in this case.
     nv->d_nchildren = 0;
     nv->d_kind = d_nv->d_kind;
-    nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+    nv->d_id = d_nm->next_id++;// FIXME multithreading
     nv->d_rc = 0;
     Debug("gc") << "creating node value " << nv
                 << " [" << nv->d_id << "]: " << *nv << "\n";
@@ -1194,7 +1194,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
       }
       nv->d_nchildren = d_inlineNv.d_nchildren;
       nv->d_kind = d_inlineNv.d_kind;
-      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+      nv->d_id = d_nm->next_id++;// FIXME multithreading
       nv->d_rc = 0;
 
       std::copy(d_inlineNv.d_children,
@@ -1248,7 +1248,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
       }
       nv->d_nchildren = d_nv->d_nchildren;
       nv->d_kind = d_nv->d_kind;
-      nv->d_id = expr::NodeValue::next_id++;// FIXME multithreading
+      nv->d_id = d_nm->next_id++;// FIXME multithreading
       nv->d_rc = 0;
 
       std::copy(d_nv->d_children,

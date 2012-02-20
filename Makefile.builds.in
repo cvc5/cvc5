@@ -30,6 +30,9 @@ bindir = @bindir@
 libdir = @libdir@
 abs_builddir = @abs_builddir@
 distdir = @PACKAGE@-@VERSION@
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+SHELL = @SHELL@
+LIBTOOL = $(CURRENT_BUILD)/libtool
 
 # Are we building the libcvc4compat library ?
 CVC4_BUILD_LIBCOMPAT = @CVC4_BUILD_LIBCOMPAT@
@@ -40,21 +43,56 @@ BUILDING_STATIC = @BUILDING_STATIC@
 BUILDING_SHARED = @BUILDING_SHARED@
 STATIC_BINARY = @STATIC_BINARY@
 
+# @
+AM_V_at = $(am__v_at_$(V))
+am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
+am__v_at_0 = @
+am__v_at_1 =
+# mkinstalldirs (never prefix with @; not a top-level instruction)
+AM_V_mkdir_noat = $(am__v_mkdir_noat_$(V))
+am__v_mkdir_noat_ = $(am__v_mkdir_noat_$(AM_DEFAULT_VERBOSITY))
+am__v_mkdir_noat_0 = $(SHELL) -c 'echo "   MKDIR $$@"; $(mkinstalldirs) "$$@"' bash
+am__v_mkdir_noat_1 = $(mkinstalldirs)
+# mkinstalldirs (can prefix with @)
+AM_V_mkdir = $(am__v_mkdir_$(V))
+am__v_mkdir_ = $(am__v_mkdir_$(AM_DEFAULT_VERBOSITY))
+am__v_mkdir_0 = @$(am__v_mkdir_noat_0)
+am__v_mkdir_1 = $(am__v_mkdir_noat_1)
+# libtool --mode=install install
+AM_V_ltinstall = $(am__v_ltinstall_$(V))
+am__v_ltinstall_ = $(am__v_ltinstall_$(AM_DEFAULT_VERBOSITY))
+am__v_ltinstall_0 = @$(SHELL) -c 'echo "   LTINS $$1"; $(LIBTOOL) --silent --mode=install install "$$@"' bash
+am__v_ltinstall_1 = $(LIBTOOL) --mode=install install
+# install_sh (never prefix with @)
+AM_V_install_sh_noat = $(am__v_install_sh_noat_$(V))
+am__v_install_sh_noat_ = $(am__v_install_sh_noat_$(AM_DEFAULT_VERBOSITY))
+am__v_install_sh_noat_0 = $(SHELL) -c 'echo "   INSTL $$1"; $(install_sh) "$$@"' bash
+am__v_install_sh_noat_1 = $(install_sh)
+# relinking
+AM_V_relink = $(am__v_relink_$(V))
+am__v_relink_ = $(am__v_relink_$(AM_DEFAULT_VERBOSITY))
+am__v_relink_0 = echo "   RELNK"
+am__v_relink_1 = :
+
+# all the binaries that might need to be installed
+# (it's not a fatal error for one/some don't exist in a given build
+# configuration)
+CVC4_BINARIES = cvc4 pcvc4
+
 .PHONY: _default_build_ all
 _default_build_: all
 all:
 #	build the current build profile
-	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	$(AM_V_at)(cd $(CURRENT_BUILD) && $(MAKE) $@)
 #	set up builds/$(CURRENT_BUILD)/...prefix.../bin
 #	and builds/$(CURRENT_BUILD)/...prefix.../lib
-	$(mkinstalldirs) "$(CURRENT_BUILD)$(bindir)" "$(CURRENT_BUILD)$(libdir)"
+	$(AM_V_mkdir) "$(CURRENT_BUILD)$(bindir)"
+	$(AM_V_mkdir) "$(CURRENT_BUILD)$(libdir)"
 #	install libcvc4
-	$(CURRENT_BUILD)/libtool --mode=install install -v \
-		$(CURRENT_BUILD)/src/libcvc4.la \
+	$(AM_V_ltinstall) $(CURRENT_BUILD)/src/libcvc4.la \
 		"$(abs_builddir)$(libdir)"
 #	install libcvc4parser
-	$(CURRENT_BUILD)/libtool --mode=install install -v \
-		$(CURRENT_BUILD)/src/parser/libcvc4parser.la \
+	$(AM_V_ltinstall) $(CURRENT_BUILD)/src/parser/libcvc4parser.la \
 		"$(abs_builddir)$(libdir)"
 ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 #	install libcvc4compat
@@ -65,35 +103,47 @@ endif
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink
 #	the handling with empty $relink_command is a hack for Mac OS
-	thelibdir="$(abs_builddir)$(libdir)"; \
-	progdir="$(abs_builddir)$(bindir)"; file=cvc4; \
-		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
-		if test -z "$$relink_command"; then \
-			$(mkinstalldirs) "$(CURRENT_BUILD)$(bindir)/.libs"; \
-			$(install_sh) \
-				$(CURRENT_BUILD)/src/main/.libs/cvc4 \
-				"$(abs_builddir)$(bindir)/.libs"; \
-			$(install_sh) \
-				$(CURRENT_BUILD)/src/main/cvc4 \
-				"$(abs_builddir)$(bindir)"; \
+	$(AM_V_at)thelibdir="$(abs_builddir)$(libdir)"; \
+	progdir="$(abs_builddir)$(bindir)"; for file in $(CVC4_BINARIES); do \
+		if test -r $(CURRENT_BUILD)/src/main/$$file; then \
+			eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/$$file | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
+			if test -z "$$relink_command"; then \
+				$(AM_V_mkdir_noat) "$(CURRENT_BUILD)$(bindir)/.libs"; \
+				$(AM_V_install_sh_noat) \
+					$(CURRENT_BUILD)/src/main/.libs/$$file \
+					"$(abs_builddir)$(bindir)/.libs"; \
+				$(AM_V_install_sh_noat) \
+					$(CURRENT_BUILD)/src/main/$$file \
+					"$(abs_builddir)$(bindir)"; \
+			else \
+				$(AM_V_relink) "$$file"; eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
+			fi; \
 		else \
-			eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
-		fi
+			rm -f "$(abs_builddir)$(bindir)/$$file"; \
+		fi; \
+	done
 else
 #	if we're building static libs only, just install the driver binary directly
-	$(install_sh) \
-		$(CURRENT_BUILD)/src/main/cvc4 \
-		"$(abs_builddir)$(bindir)"
+	$(AM_V_at)for file in $(CVC4_BINARIES); do \
+		if test -r $(CURRENT_BUILD)/src/main/$$file; then \
+			$(AM_V_install_sh_noat) \
+				$(CURRENT_BUILD)/src/main/$$file \
+				"$(abs_builddir)$(bindir)"; \
+		else \
+			rm -f "$(abs_builddir)$(bindir)/$$file"; \
+		fi; \
+	done
 endif
 #	set up builds/$(CURRENT_BUILD)/bin and builds/$(CURRENT_BUILD)/lib
-	test -e $(CURRENT_BUILD)/lib || ln -sfv "$(abs_builddir)$(libdir)" $(CURRENT_BUILD)/lib
-	test -e $(CURRENT_BUILD)/bin || ln -sfv "$(abs_builddir)$(bindir)" $(CURRENT_BUILD)/bin
+	$(AM_V_at)test -e $(CURRENT_BUILD)/lib || ln -sfv "$(abs_builddir)$(libdir)" $(CURRENT_BUILD)/lib
+	$(AM_V_at)test -e $(CURRENT_BUILD)/bin || ln -sfv "$(abs_builddir)$(bindir)" $(CURRENT_BUILD)/bin
 #	set up builds/...prefix.../bin and builds/...prefix.../lib
-	$(mkinstalldirs) ".$(bindir)" ".$(libdir)"
+	$(AM_V_mkdir) ".$(bindir)"
+	$(AM_V_mkdir) ".$(libdir)"
 #	install libcvc4
-	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/libcvc4.la "`pwd`$(libdir)"
+	$(AM_V_ltinstall) $(CURRENT_BUILD)/src/libcvc4.la "`pwd`$(libdir)"
 #	install libcvc4parser
-	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
+	$(AM_V_ltinstall) $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
 ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 #	install libcvc4compat
 	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/compat/libcvc4compat.la "`pwd`$(libdir)"
@@ -101,26 +151,39 @@ endif
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink
 #	the handling with empty $relink_command is a hack for Mac OS
-	thelibdir="`pwd`$(libdir)"; progdir="`pwd`$(bindir)"; file=cvc4; \
-		eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/cvc4 | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
-		if test -z "$$relink_command"; then \
-			$(mkinstalldirs) ".$(bindir)/.libs"; \
-			$(install_sh) \
-				$(CURRENT_BUILD)/src/main/.libs/cvc4 \
-				"`pwd`$(bindir)/.libs"; \
-			$(install_sh) \
-				$(CURRENT_BUILD)/src/main/cvc4 \
-				"`pwd`$(bindir)"; \
+	$(AM_V_at)thelibdir="`pwd`$(libdir)"; progdir="`pwd`$(bindir)"; for file in $(CVC4_BINARIES); do \
+		if test -r $(CURRENT_BUILD)/src/main/$$file; then \
+			eval `grep '^relink_command=' $(CURRENT_BUILD)/src/main/$$file | sed 's:-Wl,-rpath:-Wl,-rpath -Wl,\\\\$$thelibdir -Wl,-rpath:'`; \
+			if test -z "$$relink_command"; then \
+				$(AM_V_mkdir_noat) ".$(bindir)/.libs"; \
+				$(AM_V_install_sh_noat) \
+					$(CURRENT_BUILD)/src/main/.libs/$$file \
+					"`pwd`$(bindir)/.libs"; \
+				$(AM_V_install_sh_noat) \
+					$(CURRENT_BUILD)/src/main/$$file \
+					"`pwd`$(bindir)"; \
+			else \
+				$(AM_V_relink) "$$file"; eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
+			fi; \
 		else \
-			eval "(cd $(CURRENT_BUILD)/src/main && $$relink_command)"; \
-		fi
+			rm -f "`pwd`$(bindir)/$$file"; \
+		fi; \
+	done
 else
 #	if we're building static libs only, just install the driver binary directly
-	$(install_sh) $(CURRENT_BUILD)/src/main/cvc4 "`pwd`$(bindir)"
+	$(AM_V_at)for file in $(CVC4_BINARIES); do \
+		if test -r $(CURRENT_BUILD)/src/main/$$file; then \
+			$(AM_V_install_sh_noat) \
+				$(CURRENT_BUILD)/src/main/$$file \
+				"`pwd`$(bindir)"; \
+		else \
+			rm -f "`pwd`$(bindir)/$$file"; \
+		fi; \
+	done
 endif
 #	set up builds/bin and builds/lib
-	test -e lib || ln -sfv ".$(libdir)" lib
-	test -e bin || ln -sfv ".$(bindir)" bin
+	$(AM_V_at)test -e lib || ln -sfv ".$(libdir)" lib
+	$(AM_V_at)test -e bin || ln -sfv ".$(bindir)" bin
 	rm -f examples; ln -sf "$(CURRENT_BUILD)/examples" examples
 
 # The descent into "src" with target "check" is to build check

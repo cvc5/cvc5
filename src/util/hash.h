@@ -26,6 +26,22 @@
 namespace __gnu_cxx {}
 
 #include <ext/hash_map>
+
+namespace __gnu_cxx {
+
+#if __WORDSIZE == 32
+// on 32-bit, we need a specialization of hash for 64-bit values
+template <>
+struct hash<uint64_t> {
+  size_t operator()(uint64_t v) const {
+    return v;
+  }
+};/* struct hash<uint64_t> */
+#endif /* 32-bit */
+
+}/* __gnu_cxx namespace */
+
+// hackish: treat hash stuff as if it were in std namespace
 namespace std { using namespace __gnu_cxx; }
 
 namespace CVC4 {

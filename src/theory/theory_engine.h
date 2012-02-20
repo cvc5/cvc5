@@ -364,6 +364,12 @@ class TheoryEngine {
                        << std::endl
                        << QueryCommand(node.toExpr()) << std::endl;
     }
+
+    // Share with other portfolio threads
+    if(Options::current()->lemmaOutputChannel != NULL) {
+      Options::current()->lemmaOutputChannel->notifyNewLemma(node.toExpr());
+    }
+
     // Remove the ITEs and assert to prop engine
     std::vector<Node> additionalLemmas;
     additionalLemmas.push_back(node);
@@ -514,13 +520,13 @@ public:
   void staticLearning(TNode in, NodeBuilder<>& learned);
 
   /**
-   * Calls presolve() on all active theories and returns true
+   * Calls presolve() on all theories and returns true
    * if one of the theories discovers a conflict.
    */
   bool presolve();
 
    /**
-   * Calls postsolve() on all active theories.
+   * Calls postsolve() on all theories.
    */
   void postsolve();
 

@@ -61,7 +61,7 @@ class CVC4_PUBLIC ParserBuilder {
   std::string d_stringInput;
 
   /** The stream input, if any. */
-  std::istream *d_streamInput;
+  std::istream* d_streamInput;
 
   /** The expression manager */
   ExprManager* d_exprManager;

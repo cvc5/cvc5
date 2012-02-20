@@ -229,6 +229,16 @@ public:
   }
 
   /**
+   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these)
+   * have an operator.  "Little-p parameterized" types (like Array),
+   * are OPERATORs, not PARAMETERIZEDs.
+   */
+  inline Node getOperator() const {
+    Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
+    return Node(d_nv->getChild(-1));
+  }
+
+  /**
    * Returns the unique id of this node
    *
    * @return the id

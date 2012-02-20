@@ -84,7 +84,7 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return RewriteResponse(REWRITE_DONE, result);
 }
 
-AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
+CVC4_THREADLOCAL(AllRewriteRules*) TheoryBVRewriter::s_allRules = NULL;
 
 void TheoryBVRewriter::init() {
   s_allRules = new AllRewriteRules;

@@ -455,6 +455,10 @@ public:
    */
   StatisticsRegistry* getStatisticsRegistry() const;
 
+  Result getStatusOfLastCommand() const {
+    return d_status;
+  }
+
 };/* class SmtEngine */
 
 }/* CVC4 namespace */
