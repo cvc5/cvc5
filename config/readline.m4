@@ -15,13 +15,13 @@ else
   fi
   AC_CHECK_LIB([readline], [readline],
                [AC_CHECK_HEADER([readline/readline.h],
-                  [READLINE_LIBS="-lreadline -lncurses"],
+                  [READLINE_LIBS="-lreadline -lncurses -ltermcap -ltinfo"],
                   [if test "$with_readline" != check; then
                      AC_MSG_FAILURE([cannot find libreadline!])
                    fi])],
                [if test "$with_readline" != check; then
                   AC_MSG_FAILURE([cannot find libreadline!])
-                fi], -lncurses)
+                fi], [-lncurses -ltermcap -ltinfo])
   if test -z "$READLINE_LIBS"; then
     with_readline=no
   else
