@@ -311,8 +311,22 @@ private:
   /** A context-dependents count of nodes */
   context::CDO<size_t> d_nodesCount;
 
+  /**
+   * At time of addition a function application can already normalize to something, so
+   * we keep both the original, and the normalized version.
+   */
+  struct FunctionApplicationPair {
+    FunctionApplication original;
+    FunctionApplication normalized;
+    FunctionApplicationPair() {}
+    FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
+    : original(original), normalized(normalized) {}
+    bool isNull() const {
+      return !original.isApplication();
+    }
+  };
   /** Map from ids to the applications */
-  std::vector<FunctionApplication> d_applications;
+  std::vector<FunctionApplicationPair> d_applications;
 
   /** Map from ids to the equality nodes */
   std::vector<EqualityNode> d_equalityNodes;

@@ -133,6 +133,33 @@ void TheoryEngine::check(Theory::Effort effort) {
 
       Debug("theory") << "TheoryEngine::check(" << effort << "): running check" << std::endl;
 
+      if (Debug.isOn("theory::assertions")) {
+        for (unsigned theoryId = 0; theoryId < THEORY_LAST; ++ theoryId) {
+          Theory* theory = d_theoryTable[theoryId];
+          if (theory && Theory::setContains((TheoryId)theoryId, d_activeTheories)) {
+            Debug("theory::assertions") << "--------------------------------------------" << std::endl;
+            Debug("theory::assertions") << "Assertions of " << theory->getId() << ": " << std::endl;
+            context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+            for (unsigned i = 0; it != it_end; ++ it, ++i) {
+                if ((*it).isPreregistered) {
+                  Debug("theory::assertions") << "[" << i << "]: ";
+                } else {
+                  Debug("theory::assertions") << "(" << i << "): ";
+                }
+                Debug("theory::assertions") << (*it).assertion << endl;
+            }
+
+            if (d_sharedTermsExist) {
+              Debug("theory::assertions") << "Shared terms of " << theory->getId() << ": " << std::endl;
+              context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
+              for (unsigned i = 0; it != it_end; ++ it, ++i) {
+                  Debug("theory::assertions") << "[" << i << "]: " << (*it) << endl;
+              }
+            }
+          }
+        }
+      }
+
       // Do the checking
       CVC4_FOR_EACH_THEORY;
 

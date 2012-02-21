@@ -206,26 +206,6 @@ protected:
   }
 
   /**
-   * Provides access to the facts queue, primarily intended for theory
-   * debugging purposes.
-   *
-   * @return the iterator to the beginning of the fact queue
-   */
-  context::CDList<Assertion>::const_iterator facts_begin() const {
-    return d_facts.begin();
-  }
-
-  /**
-   * Provides access to the facts queue, primarily intended for theory
-   * debugging purposes.
-   *
-   * @return the iterator to the end of the fact queue
-   */
-  context::CDList<Assertion>::const_iterator facts_end() const {
-    return d_facts.end();
-  }
-
-  /**
    * The theory that owns the uninterpreted sort.
    */
   static TheoryId d_uninterpretedSortOwner;
@@ -603,6 +583,46 @@ public:
     }
     ss << "]";
     return ss.str();
+  }
+
+  /**
+   * Provides access to the facts queue, primarily intended for theory
+   * debugging purposes.
+   *
+   * @return the iterator to the beginning of the fact queue
+   */
+  context::CDList<Assertion>::const_iterator facts_begin() const {
+    return d_facts.begin();
+  }
+
+  /**
+   * Provides access to the facts queue, primarily intended for theory
+   * debugging purposes.
+   *
+   * @return the iterator to the end of the fact queue
+   */
+  context::CDList<Assertion>::const_iterator facts_end() const {
+    return d_facts.end();
+  }
+
+  /**
+   * Provides access to the shared terms, primarily intended for theory
+   * debugging purposes.
+   *
+   * @return the iterator to the beginning of the shared terms list
+   */
+  context::CDList<TNode>::const_iterator shared_terms_begin() const {
+    return d_sharedTerms.begin();
+  }
+
+  /**
+   * Provides access to the facts queue, primarily intended for theory
+   * debugging purposes.
+   *
+   * @return the iterator to the end of the shared terms list
+   */
+  context::CDList<TNode>::const_iterator shared_terms_end() const {
+    return d_sharedTerms.end();
   }
 
 };/* class Theory */
