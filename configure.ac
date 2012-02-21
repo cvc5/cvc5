@@ -857,17 +857,26 @@ AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
 # look for boost library, but don't make it a fatal error if not found
 cvc4_has_threads=maybe
-BOOST_REQUIRE([], [cvc4_has_threads=no])
-if test $cvc4_has_threads = no; then
-  AC_MSG_WARN([disabling multithreaded support])
-else
-  BOOST_THREADS
-  if test -n "$BOOST_THREAD_LIBS"; then
-    cvc4_has_threads=yes
-  else
+cvc4_must_have_threads=no
+AC_ARG_WITH([portfolio],
+    AS_HELP_STRING([--with-portfolio], [build the multithreaded portfolio version of CVC4 (pcvc4)]),
+    [if test "$withval" = no; then cvc4_has_threads=no; elif test "$withval" = yes; then cvc4_must_have_threads=yes; fi])
+if test $cvc4_has_threads = maybe; then
+  BOOST_REQUIRE([], [cvc4_has_threads=no])
+  if test $cvc4_has_threads = no; then
     AC_MSG_WARN([disabling multithreaded support])
-    cvc4_has_threads=no
+  else
+    BOOST_THREADS
+    if test -n "$BOOST_THREAD_LIBS"; then
+      cvc4_has_threads=yes
+    else
+      AC_MSG_WARN([disabling multithreaded support])
+      cvc4_has_threads=no
+    fi
   fi
+fi
+if test $cvc4_has_threads = no -a $cvc4_must_have_threads = yes; then
+  AC_MSG_ERROR([user gave --with-threads but could not build with threads; maybe boost threading library is missing?])
 fi
 
 # Whether to build compatibility library
