@@ -53,7 +53,6 @@ libutil_la_SOURCES = \
 	lemma_input_channel.h \
 	lemma_output_channel.h \
 	channel.h \
-	channel.cpp \
 	language.cpp \
 	ntuple.h \
 	recursion_breaker.h \

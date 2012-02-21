@@ -1,3 +1,21 @@
+/*********************                                                        */
+/*! \file channel.h
+ ** \verbatim
+ ** Original author: kshitij
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
 
 #ifndef __CVC4__CHANNEL_H
 #define __CVC4__CHANNEL_H
@@ -9,7 +27,6 @@
 #include <boost/call_traits.hpp>
 #include <boost/progress.hpp>
 #include <boost/bind.hpp>
-
 
 namespace CVC4 {
 
@@ -32,15 +49,17 @@ public:
   
   /* */
   virtual bool full() = 0;
-};
+};/* class SharedChannel<T> */
 
 /* 
 This code is from
 
-http://live.boost.org/doc/libs/1_46_1/libs/circular_buffer/doc/circular_buffer.html#boundedbuffer 
+http://live.boost.org/doc/libs/1_46_1/libs/circular_buffer/doc/circular_buffer.html#boundedbuffer
+
+and is covered by the Boost Software License, version 1.0.
 */
 template <typename T>
-class SynchronizedSharedChannel: public SharedChannel<T> {
+class SynchronizedSharedChannel : public SharedChannel<T> {
 public:
   typedef boost::circular_buffer<T> container_type;
   typedef typename container_type::size_type size_type;
@@ -87,10 +106,8 @@ private:
   boost::mutex m_mutex;
   boost::condition m_not_empty;
   boost::condition m_not_full;
-};
+};/* class SynchronizedSharedChannel<T> */
 
 }
 
 #endif /* __CVC4__CHANNEL_H */
-
-

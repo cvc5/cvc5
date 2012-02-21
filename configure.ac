@@ -1129,7 +1129,6 @@ gcov support : $enable_coverage
 gprof support: $enable_profiling
 CUDD         : $cvc4cudd
 Readline     : $with_readline
-TLS support  : $CVC4_TLS
 
 Static libs  : $enable_static
 Shared libs  : $enable_shared
