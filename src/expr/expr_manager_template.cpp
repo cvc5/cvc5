@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Public-facing expression manager interface, implementation.
+ ** \brief Public-facing expression manager interface, implementation
  **
  ** Public-facing expression manager interface, implementation.
  **/

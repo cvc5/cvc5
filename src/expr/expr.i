@@ -22,4 +22,10 @@
 %rename(getChild) CVC4::Expr::operator[](unsigned i) const;
 %ignore CVC4::Expr::operator bool() const;// can just use isNull()
 
+namespace CVC4 {
+  namespace expr {
+    %ignore exportInternal;
+  }/* CVC4::expr namespace */
+}/* CVC4 namespace */
+
 %include "expr/expr.h"

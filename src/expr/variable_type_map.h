@@ -57,7 +57,7 @@ struct CVC4_PUBLIC ExprManagerMapCollection {
   VariableTypeMap d_typeMap;
   VarMap d_to;
   VarMap d_from;
-};
+};/* struct ExprManagerMapCollection */
 
 }/* CVC4 namespace */
 

@@ -31,4 +31,10 @@
 %rename(toSortConstructorType) CVC4::Type::operator SortConstructorType() const;
 %rename(toKindType) CVC4::Type::operator KindType() const;
 
+namespace CVC4 {
+  namespace expr {
+    %ignore exportTypeInternal;
+  }/* CVC4::expr namespace */
+}/* CVC4 namespace */
+
 %include "expr/type.h"
