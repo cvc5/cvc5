@@ -676,6 +676,19 @@ if test "$enable_profiling" = yes; then
   CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }-pg"
 fi
 
+# Check to see if this version/architecture of GNU C++ explicitly
+# instantiates __gnu_cxx::hash<uint64_t> or not.  Some do, some don't.
+# See src/util/hash.h.
+AC_MSG_CHECKING([whether __gnu_cxx::hash<uint64_t> is already specialized])
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE(AC_LANG_SOURCE([
+#include <stdint.h>
+#include <ext/hash_map>
+namespace __gnu_cxx { template<> struct hash<uint64_t> {}; }]),
+                  [AC_MSG_RESULT([no]); CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_NEED_HASH_UINT64_T"],
+                  [AC_MSG_RESULT([yes])])
+AC_LANG_POP([C++])
+
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 

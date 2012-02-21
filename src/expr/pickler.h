@@ -50,7 +50,7 @@ public:
   Pickle();
   Pickle(const Pickle& p);
   ~Pickle();
-  Pickle& operator = (const Pickle& other);
+  Pickle& operator=(const Pickle& other);
 };/* class Pickle */
 
 class CVC4_PUBLIC PicklingException : public Exception {
@@ -116,11 +116,11 @@ public:
 protected:
 
   virtual uint64_t variableToMap(uint64_t x) const
-    throw(AssertionException, PicklingException){
+    throw(AssertionException, PicklingException) {
     VarMap::const_iterator i = d_toMap.find(x);
-    if(i != d_toMap.end()){
+    if(i != d_toMap.end()) {
       return i->second;
-    }else{
+    } else {
       throw PicklingException();
     }
   }
