@@ -261,13 +261,14 @@ fi
 
 
 # BOOST_FIND_LIB([LIB-NAME], [PREFERRED-RT-OPT], [HEADER-NAME], [CXX-TEST],
-#                [CXX-PROLOGUE])
+#                [CXX-PROLOGUE], [ACTION-IF-NOT-FOUND])
 # -------------------------------------------------------------------------
 # Look for the Boost library LIB-NAME (e.g., LIB-NAME = `thread', for
 # libboost_thread).  Check that HEADER-NAME works and check that
 # libboost_LIB-NAME can link with the code CXX-TEST.  The optional argument
 # CXX-PROLOGUE can be used to include some C++ code before the `main'
-# function.
+# function.  If ACTION-IF-NOT-FOUND is given, errors are nonfatal (otherwise
+# they are fatal).
 #
 # Invokes BOOST_FIND_HEADER([HEADER-NAME]) (see above).
 #
@@ -351,7 +352,9 @@ dnl empty because the test file is generated only once above (before we
 dnl start the for loops).
   AC_COMPILE_IFELSE([],
     [ac_objext=do_not_rm_me_plz],
-    [AC_MSG_ERROR([cannot compile a test that uses Boost $1])])
+    [m4_if([$6], [],  [AC_MSG_ERROR([cannot compile a test that uses Boost $1])],
+                      [AC_MSG_NOTICE([cannot compile a test that uses Boost $1])])
+     $6])
   ac_objext=$boost_save_ac_objext
   boost_failed_libs=
 # Don't bother to ident the 6 nested for loops, only the 2 innermost ones
@@ -415,7 +418,9 @@ rm -f conftest.$ac_objext
 ])
 case $Boost_lib in #(
   no) _AC_MSG_LOG_CONFTEST
-    AC_MSG_ERROR([cannot not find the flags to link with Boost $1])
+    m4_if([$6], [],  [AC_MSG_ERROR([cannot find the flags to link with Boost $1])],
+                      [AC_MSG_NOTICE([cannot find the flags to link with Boost $1])])
+    $6
     ;;
 esac
 AC_SUBST(AS_TR_CPP([BOOST_$1_LDFLAGS]), [$Boost_lib_LDFLAGS])
@@ -710,10 +715,11 @@ BOOST_FIND_LIB([unit_test_framework], [$1],
 ])# BOOST_TEST
 
 
-# BOOST_THREADS([PREFERRED-RT-OPT])
-# ---------------------------------
+# BOOST_THREADS([PREFERRED-RT-OPT], [ACTION-IF-NOT-FOUND])
+# --------------------------------------------------------
 # Look for Boost.Thread.  For the documentation of PREFERRED-RT-OPT, see the
-# documentation of BOOST_FIND_LIB above.
+# documentation of BOOST_FIND_LIB above.  If ACTION-IF-NOT-FOUND is given,
+# errors are non-fatal; if it's absent, errors are fatal.
 # FIXME: Provide an alias "BOOST_THREAD".
 AC_DEFUN([BOOST_THREADS],
 [dnl Having the pthread flag is required at least on GCC3 where
@@ -730,7 +736,7 @@ LIBS="$LIBS $boost_cv_pthread_flag"
 #   threading: -pthread (Linux), -pthreads (Solaris) or -mthreads (Mingw32)"
 CPPFLAGS="$CPPFLAGS $boost_cv_pthread_flag"
 BOOST_FIND_LIB([thread], [$1],
-                [boost/thread.hpp], [boost::thread t; boost::mutex m;])
+                [boost/thread.hpp], [boost::thread t; boost::mutex m;], [], [$2])
 BOOST_THREAD_LIBS="$BOOST_THREAD_LIBS $boost_cv_pthread_flag"
 BOOST_CPPFLAGS="$BOOST_CPPFLAGS $boost_cv_pthread_flag"
 LIBS=$boost_threads_save_LIBS

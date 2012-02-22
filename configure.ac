@@ -870,13 +870,9 @@ if test $cvc4_has_threads = maybe; then
   if test $cvc4_has_threads = no; then
     AC_MSG_WARN([disabling multithreaded support])
   else
-    BOOST_THREADS
-    if test -n "$BOOST_THREAD_LIBS"; then
-      cvc4_has_threads=yes
-    else
-      AC_MSG_WARN([disabling multithreaded support])
-      cvc4_has_threads=no
-    fi
+    cvc4_has_threads=yes
+    BOOST_THREADS([], [AC_MSG_WARN([disabling multithreaded support])
+                       cvc4_has_threads=no])
   fi
   LDFLAGS="$cvc4_save_LDFLAGS"
 fi
