@@ -862,6 +862,10 @@ AC_ARG_WITH([portfolio],
     AS_HELP_STRING([--with-portfolio], [build the multithreaded portfolio version of CVC4 (pcvc4)]),
     [if test "$withval" = no; then cvc4_has_threads=no; elif test "$withval" = yes; then cvc4_must_have_threads=yes; fi])
 if test $cvc4_has_threads = maybe; then
+  cvc4_save_LDFLAGS="$LDFLAGS"
+  if test "$enable_static_binary" = yes; then
+    LDFLAGS="-static $LDFLAGS"
+  fi
   BOOST_REQUIRE([], [cvc4_has_threads=no])
   if test $cvc4_has_threads = no; then
     AC_MSG_WARN([disabling multithreaded support])
@@ -874,6 +878,7 @@ if test $cvc4_has_threads = maybe; then
       cvc4_has_threads=no
     fi
   fi
+  LDFLAGS="$cvc4_save_LDFLAGS"
 fi
 if test $cvc4_has_threads = no -a $cvc4_must_have_threads = yes; then
   AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
