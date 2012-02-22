@@ -587,6 +587,10 @@ Node TheoryArith::callDioSolver(){
     if(lb == ub){
       Assert(lb.getKind() == EQUAL);
       orig = lb;
+    }else if(lb.getKind() == EQUAL){
+      orig = lb;
+    }else if(ub.getKind() == EQUAL){
+      orig = ub;
     }else{
       NodeBuilder<> nb(AND);
       nb << ub << lb;
