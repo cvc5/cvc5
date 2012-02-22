@@ -876,7 +876,7 @@ if test $cvc4_has_threads = maybe; then
   fi
 fi
 if test $cvc4_has_threads = no -a $cvc4_must_have_threads = yes; then
-  AC_MSG_ERROR([user gave --with-threads but could not build with threads; maybe boost threading library is missing?])
+  AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
 fi
 
 # Whether to build compatibility library

@@ -74,6 +74,10 @@ ostream& operator<<(ostream& out, const CommandStatus* s) throw() {
 Command::Command() throw() : d_commandStatus(NULL) {
 }
 
+Command::Command(const Command& cmd) {
+  d_commandStatus = (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
+}
+
 Command::~Command() throw() {
   if(d_commandStatus != NULL && d_commandStatus != CommandSuccess::instance()) {
     delete d_commandStatus;

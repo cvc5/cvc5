@@ -621,7 +621,7 @@ Node SimplexDecisionProcedure::updateInconsistentVars(){
   }
 
   static CVC4_THREADLOCAL(unsigned int) instance = 0;
-  ++instance;
+  instance = instance + 1;
   Debug("arith::updateInconsistentVars") << "begin updateInconsistentVars() "
                                          << instance << endl;
 

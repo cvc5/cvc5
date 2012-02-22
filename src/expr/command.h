@@ -158,30 +158,31 @@ public:
   virtual ~CommandStatus() throw() {}
   void toStream(std::ostream& out,
                 OutputLanguage language = language::output::LANG_AST) const throw();
+  virtual CommandStatus& clone() const = 0;
 };/* class CommandStatus */
 
 class CVC4_PUBLIC CommandSuccess : public CommandStatus {
   static const CommandSuccess* s_instance;
 public:
   static const CommandSuccess* instance() throw() { return s_instance; }
+  CommandStatus& clone() const { return const_cast<CommandSuccess&>(*this); }
 };/* class CommandSuccess */
 
 class CVC4_PUBLIC CommandUnsupported : public CommandStatus {
+public:
+  CommandStatus& clone() const { return *new CommandUnsupported(*this); }
 };/* class CommandSuccess */
 
 class CVC4_PUBLIC CommandFailure : public CommandStatus {
   std::string d_message;
 public:
   CommandFailure(std::string message) throw() : d_message(message) {}
+  CommandFailure& clone() const { return *new CommandFailure(*this); }
   ~CommandFailure() throw() {}
   std::string getMessage() const throw() { return d_message; }
 };/* class CommandFailure */
 
 class CVC4_PUBLIC Command {
-  // intentionally not permitted
-  Command(const Command&) CVC4_UNDEFINED;
-  Command& operator=(const Command&) CVC4_UNDEFINED;
-
 protected:
   /**
    * This field contains a command status if the command has been
@@ -197,6 +198,8 @@ public:
   typedef CommandPrintSuccess printsuccess;
 
   Command() throw();
+  Command(const Command& cmd);
+
   virtual ~Command() throw();
 
   virtual void invoke(SmtEngine* smtEngine) throw() = 0;
