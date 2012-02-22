@@ -41,6 +41,7 @@ namespace theory {
 enum OutputChannelCallType {
   CONFLICT,
   PROPAGATE,
+  PROPAGATE_AS_DECISION,
   AUG_LEMMA,
   LEMMA,
   EXPLANATION
@@ -52,6 +53,7 @@ inline std::ostream& operator<<(std::ostream& out, theory::OutputChannelCallType
   switch(type) {
   case theory::CONFLICT: return out << "CONFLICT";
   case theory::PROPAGATE: return out << "PROPAGATE";
+  case theory::PROPAGATE_AS_DECISION: return out << "PROPAGATE_AS_DECISION";
   case theory::AUG_LEMMA: return out << "AUG_LEMMA";
   case theory::LEMMA: return out << "LEMMA";
   case theory::EXPLANATION: return out << "EXPLANATION";
@@ -79,6 +81,11 @@ public:
   void propagate(TNode n)
     throw(AssertionException) {
     push(PROPAGATE, n);
+  }
+
+  void propagateAsDecision(TNode n)
+    throw(AssertionException) {
+    push(PROPAGATE_AS_DECISION, n);
   }
 
   LemmaStatus lemma(TNode n, bool removable) throw(AssertionException) {

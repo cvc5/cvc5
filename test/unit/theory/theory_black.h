@@ -62,6 +62,11 @@ public:
     push(PROPAGATE, n);
   }
 
+  void propagateAsDecision(TNode n)
+    throw(AssertionException) {
+    // ignore
+  }
+
   LemmaStatus lemma(TNode n, bool removable)
     throw(AssertionException) {
     push(LEMMA, n);

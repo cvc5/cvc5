@@ -55,6 +55,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_logic(""),
   d_propagatedLiterals(context),
   d_propagatedLiteralsIndex(context, 0),
+  d_decisionRequests(context),
+  d_decisionRequestsIndex(context, 0),
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms)
 {
@@ -665,13 +667,22 @@ void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   }
 }
 
+void TheoryEngine::propagateAsDecision(TNode literal, theory::TheoryId theory) {
+  Debug("theory") << "EngineOutputChannel::propagateAsDecision(" << literal << ", " << theory << ")" << std::endl;
+
+  d_propEngine->checkTime();
+
+  Assert(d_propEngine->isSatLiteral(literal.getKind() == kind::NOT ? literal[0] : literal), "OutputChannel::propagateAsDecision() requires a SAT literal (or negation of one)");
+
+  d_decisionRequests.push_back(literal);
+}
+
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType() == b.getType());
   return theoryOf(Theory::theoryOf(a.getType()))->getEqualityStatus(a, b);
 }
 
-Node TheoryEngine::getExplanation(TNode node)
-{
+Node TheoryEngine::getExplanation(TNode node) {
   Debug("theory") << "TheoryEngine::getExplanation(" << node << ")" << std::endl;
 
   TNode atom = node.getKind() == kind::NOT ? node[0] : node;

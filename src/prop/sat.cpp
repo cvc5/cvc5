@@ -71,6 +71,11 @@ void SatSolver::enqueueTheoryLiteral(const SatLiteral& l) {
   d_theoryEngine->assertFact(literalNode);
 }
 
+SatLiteral SatSolver::getNextDecisionRequest() {
+  TNode n = d_theoryEngine->getNextDecisionRequest();
+  return n.isNull() ? Minisat::lit_Undef : d_cnfStream->getLiteral(n);
+}
+
 bool SatSolver::theoryNeedCheck() const {
   return d_theoryEngine->needCheck();
 }
