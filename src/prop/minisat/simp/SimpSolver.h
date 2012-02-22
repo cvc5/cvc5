@@ -114,13 +114,14 @@ class SimpSolver : public Solver {
         // TODO: are 64-bit operations here noticably bad on 32-bit platforms? Could use a saturating
         // 32-bit implementation instead then, but this will have to do for now.
         uint64_t cost  (Var x)        const { return (uint64_t)n_occ[toInt(mkLit(x))] * (uint64_t)n_occ[toInt(~mkLit(x))]; }
-        bool operator()(Var x, Var y) const { return cost(x) < cost(y); }
+
+        // old ordering function
+        // bool operator()(Var x, Var y) const { return cost(x) < cost(y); }
         
-        // TODO: investigate this order alternative more.
-        // bool operator()(Var x, Var y) const { 
-        //     int c_x = cost(x);
-        //     int c_y = cost(y);
-        //     return c_x < c_y || c_x == c_y && x < y; }
+         bool operator()(Var x, Var y) const { 
+             int c_x = cost(x);
+             int c_y = cost(y);
+             return c_x < c_y || c_x == c_y && x < y; }
     };
 
     struct ClauseDeleted {
