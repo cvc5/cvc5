@@ -52,7 +52,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_hasShutDown(false),
   d_incomplete(context, false),
   d_sharedAssertions(context),
-  d_logic(""),
   d_propagatedLiterals(context),
   d_propagatedLiteralsIndex(context, 0),
   d_decisionRequests(context),
@@ -76,12 +75,6 @@ TheoryEngine::~TheoryEngine() {
       delete d_theoryOut[theoryId];
     }
   }
-}
-
-void TheoryEngine::setLogic(std::string logic) {
-  Assert(d_logic.empty());
-  // Set the logic
-  d_logic = logic;
 }
 
 void TheoryEngine::preRegister(TNode preprocessed) {

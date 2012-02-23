@@ -208,7 +208,7 @@ protected:
   /**
    * The theory that owns the uninterpreted sort.
    */
-  static TheoryId d_uninterpretedSortOwner;
+  static TheoryId s_uninterpretedSortOwner;
 
 public:
 
@@ -216,6 +216,7 @@ public:
    * Return the ID of the theory responsible for the given type.
    */
   static inline TheoryId theoryOf(TypeNode typeNode) {
+    Trace("theory") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
       id = typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
@@ -223,7 +224,8 @@ public:
       id = kindToTheoryId(typeNode.getKind());
     }
     if (id == THEORY_BUILTIN) {
-      return d_uninterpretedSortOwner;
+      Trace("theory") << "theoryOf(" << typeNode << ") == " << s_uninterpretedSortOwner << std::endl;
+      return s_uninterpretedSortOwner;
     }
     return id;
   }
@@ -233,6 +235,7 @@ public:
    * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
+    Trace("theory") << "theoryOf(" << node << ")" << std::endl;
     // Constants, variables, 0-ary constructors
     if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
       return theoryOf(node.getType());
@@ -249,7 +252,7 @@ public:
    * Set the owner of the uninterpreted sort.
    */
   static void setUninterpretedSortOwner(TheoryId theory) {
-    d_uninterpretedSortOwner = theory;
+    s_uninterpretedSortOwner = theory;
   }
 
   /**

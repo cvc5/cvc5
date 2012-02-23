@@ -323,9 +323,6 @@ class TheoryEngine {
    */
   void assertSharedEqualities();
 
-  /** The logic of the problem */
-  std::string d_logic;
-
   /**
    * Literals that are propagated by the theory. Note that these are TNodes.
    * The theory can only propagate nodes that have an assigned literal in the

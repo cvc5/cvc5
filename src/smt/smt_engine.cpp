@@ -303,12 +303,22 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
     Dump("benchmark") << SetBenchmarkLogicCommand(s) << endl;
   }
 
+  setLogicInternal(s);
+}
+
+void SmtEngine::setLogicInternal(const std::string& s) throw() {
   d_logic = s;
-  d_theoryEngine->setLogic(s);
+
+  // by default, symmetry breaker is on only for QF_UF
+  if(! Options::current()->ufSymmetryBreakerSetByUser) {
+    NodeManager::currentNM()->getOptions()->ufSymmetryBreaker = (s == "QF_UF");
+  }
 
   // If in arrays, set the UF handler to arrays
   if(s == "QF_AX") {
     theory::Theory::setUninterpretedSortOwner(theory::THEORY_ARRAY);
+  } else {
+    theory::Theory::setUninterpretedSortOwner(theory::THEORY_UF);
   }
 }
 
@@ -318,6 +328,24 @@ void SmtEngine::setInfo(const std::string& key, const SExpr& value)
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << SetInfoCommand(key, value) << endl;
   }
+
+  // Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_")
+  if(key.length() > 6) {
+    string prefix = key.substr(0, 6);
+    if(prefix == ":cvc4-" || prefix == ":cvc4_") {
+      string cvc4key = key.substr(6);
+      if(cvc4key == "logic") {
+        if(! value.isAtom()) {
+          throw BadOptionException("argument to (set-info :cvc4-logic ..) must be a string");
+        }
+        d_logic = "";
+        setLogic(value.getValue());
+        return;
+      }
+    }
+  }
+
+  // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
   if(key == ":name" ||
      key == ":source" ||
      key == ":category" ||

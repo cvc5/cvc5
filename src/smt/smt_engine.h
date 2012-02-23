@@ -206,6 +206,11 @@ class CVC4_PUBLIC SmtEngine {
 
   void internalPop();
 
+  /**
+   * Internally handle the setting of a logic.
+   */
+  void setLogicInternal(const std::string& logic) throw();
+
   friend class ::CVC4::smt::SmtEnginePrivate;
 
   // === STATISTICS ===
