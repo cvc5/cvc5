@@ -857,10 +857,8 @@ AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
 # look for boost library, but don't make it a fatal error if not found
 cvc4_has_threads=maybe
-cvc4_must_have_threads=no
 AC_ARG_WITH([portfolio],
-    AS_HELP_STRING([--with-portfolio], [build the multithreaded portfolio version of CVC4 (pcvc4)]),
-    [if test "$withval" = no; then cvc4_has_threads=no; elif test "$withval" = yes; then cvc4_must_have_threads=yes; fi])
+    AS_HELP_STRING([--with-portfolio], [build the multithreaded portfolio version of CVC4 (pcvc4)]))
 if test $cvc4_has_threads = maybe; then
   cvc4_save_LDFLAGS="$LDFLAGS"
   if test "$enable_static_binary" = yes; then
@@ -876,9 +874,16 @@ if test $cvc4_has_threads = maybe; then
   fi
   LDFLAGS="$cvc4_save_LDFLAGS"
 fi
-if test $cvc4_has_threads = no -a $cvc4_must_have_threads = yes; then
-  AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
+if test $cvc4_has_threads = no; then
+  if test $with_portfolio = yes; then
+    AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
+  fi
+  with_portfolio=no
 fi
+if test x$with_portfolio != xyes; then
+  with_portfolio=no
+fi
+AM_CONDITIONAL([CVC4_BUILD_PCVC4], [test "$with_portfolio" = yes])
 
 # Whether to build compatibility library
 CVC4_BUILD_LIBCOMPAT=yes
@@ -1105,6 +1110,9 @@ normally suggest.  For full details of CLN and its license, please visit
 To build CVC4 with GMP instead (which is covered under the more permissive
 LGPL), configure --without-cln.
 
+"
+  if test $with_portfolio = yes; then
+    licensewarn="${licensewarn}
 WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
 WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
 
@@ -1117,6 +1125,7 @@ WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
 WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
 
 "
+  fi
 else
   mplibrary='gmp (LGPL)'
 fi
@@ -1161,6 +1170,7 @@ Bindings     : ${CVC4_LANGUAGE_BINDINGS:-none}
 
 Multithreaded: $support_multithreaded
 TLS support  : $CVC4_TLS_explanation
+Portfolio    : $with_portfolio
 
 MP library   : $mplibrary
 

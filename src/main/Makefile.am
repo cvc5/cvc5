@@ -13,7 +13,7 @@ libmain_a_SOURCES = \
 	main.h \
 	util.cpp
 
-if CVC4_HAS_THREADS
+if CVC4_BUILD_PCVC4
 bin_PROGRAMS += pcvc4
 pcvc4_SOURCES = \
 	main.cpp \
