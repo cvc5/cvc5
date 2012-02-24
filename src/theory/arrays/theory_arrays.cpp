@@ -187,18 +187,18 @@ Node TheoryArrays::getValue(TNode n) {
   }
 }
 
-Theory::SolveStatus TheoryArrays::solve(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArrays::ppAsert(TNode in, SubstitutionMap& outSubstitutions) {
   switch(in.getKind()) {
     case kind::EQUAL:
     {
       d_staticFactManager.addEq(in);
       if (in[0].getMetaKind() == kind::metakind::VARIABLE && !in[1].hasSubterm(in[0])) {
         outSubstitutions.addSubstitution(in[0], in[1]);
-        return SOLVE_STATUS_SOLVED;
+        return PP_ASSERT_STATUS_SOLVED;
       }
       if (in[1].getMetaKind() == kind::metakind::VARIABLE && !in[0].hasSubterm(in[1])) {
         outSubstitutions.addSubstitution(in[1], in[0]);
-        return SOLVE_STATUS_SOLVED;
+        return PP_ASSERT_STATUS_SOLVED;
       }
       break;
     }
@@ -214,7 +214,7 @@ Theory::SolveStatus TheoryArrays::solve(TNode in, SubstitutionMap& outSubstituti
     default:
       break;
   }
-  return SOLVE_STATUS_UNSOLVED;
+  return PP_ASSERT_STATUS_UNSOLVED;
 }
 
 Node TheoryArrays::preprocessTerm(TNode term) {
@@ -382,7 +382,7 @@ Node TheoryArrays::recursivePreprocessTerm(TNode term) {
   return newTerm;
 }
 
-Node TheoryArrays::preprocess(TNode atom) {
+Node TheoryArrays::ppRewrite(TNode atom) {
   if (d_donePreregister) return atom;
   Assert(atom.getKind() == kind::EQUAL, "expected EQUAL, got %s", atom.toString().c_str());
   return recursivePreprocessTerm(atom);

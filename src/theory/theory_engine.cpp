@@ -442,7 +442,7 @@ void TheoryEngine::notifyRestart() {
   CVC4_FOR_EACH_THEORY;
 }
 
-void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
+void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   // NOTE that we don't look at d_theoryIsActive[] here.  First of
   // all, we haven't done any pre-registration yet, so we don't know
   // which theories are active.  Second, let's give each theory a shot
@@ -455,7 +455,7 @@ void TheoryEngine::staticLearning(TNode in, NodeBuilder<>& learned) {
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
   if (theory::TheoryTraits<THEORY>::hasStaticLearning) { \
-    reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(theoryOf(THEORY))->staticLearning(in, learned); \
+    reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(theoryOf(THEORY))->ppStaticLearn(in, learned); \
   }
 
   // static learning for each theory using the statement above
@@ -478,10 +478,10 @@ void TheoryEngine::shutdown() {
   theory::Rewriter::shutdown();
 }
 
-theory::Theory::SolveStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
+theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
-  Theory::SolveStatus solveStatus = theoryOf(atom)->solve(literal, substitutionOut);
+  Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAsert(literal, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
@@ -519,7 +519,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
 
     // If this is an atom, we preprocess it with the theory
     if (Theory::theoryOf(current) != THEORY_BOOL) {
-      d_atomPreprocessingCache[current] = theoryOf(current)->preprocess(current);
+      d_atomPreprocessingCache[current] = theoryOf(current)->ppRewrite(current);
       continue;
     }
 

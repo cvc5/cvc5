@@ -507,7 +507,7 @@ public:
   /**
    * Solve the given literal with a theory that owns it.
    */
-  theory::Theory::SolveStatus solve(TNode literal,
+  theory::Theory::PPAssertStatus solve(TNode literal,
                                     theory::SubstitutionMap& substitutionOut);
 
   /**
@@ -543,10 +543,10 @@ public:
   void combineTheories();
 
   /**
-   * Calls staticLearning() on all theories, accumulating their
+   * Calls ppStaticLearn() on all theories, accumulating their
    * combined contributions in the "learned" builder.
    */
-  void staticLearning(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   /**
    * Calls presolve() on all theories and returns true

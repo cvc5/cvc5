@@ -268,9 +268,9 @@ public:
 
   void presolve();
   void notifyRestart();
-  SolveStatus solve(TNode in, SubstitutionMap& outSubstitutions);
-  Node preprocess(TNode atom);
-  void staticLearning(TNode in, NodeBuilder<>& learned);
+  PPAssertStatus ppAsert(TNode in, SubstitutionMap& outSubstitutions);
+  Node ppRewrite(TNode atom);
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 

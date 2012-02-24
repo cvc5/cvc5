@@ -134,11 +134,11 @@ Node TheoryBool::getValue(TNode n) {
   }
 }
 
-Theory::SolveStatus TheoryBool::solve(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryBool::ppAsert(TNode in, SubstitutionMap& outSubstitutions) {
 
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
     // If we get a false literal, we're in conflict
-    return SOLVE_STATUS_CONFLICT;
+    return PP_ASSERT_STATUS_CONFLICT;
   }
 
   // Add the substitution from the variable to it's value
@@ -146,17 +146,17 @@ Theory::SolveStatus TheoryBool::solve(TNode in, SubstitutionMap& outSubstitution
     if (in[0].getKind() == kind::VARIABLE) {
       outSubstitutions.addSubstitution(in[0], NodeManager::currentNM()->mkConst<bool>(false));
     } else {
-      return SOLVE_STATUS_UNSOLVED;
+      return PP_ASSERT_STATUS_UNSOLVED;
     }
   } else {
     if (in.getKind() == kind::VARIABLE) {
       outSubstitutions.addSubstitution(in, NodeManager::currentNM()->mkConst<bool>(true));
     } else {
-      return SOLVE_STATUS_UNSOLVED;
+      return PP_ASSERT_STATUS_UNSOLVED;
     }
   }
 
-  return SOLVE_STATUS_SOLVED;
+  return PP_ASSERT_STATUS_SOLVED;
 }
 
 

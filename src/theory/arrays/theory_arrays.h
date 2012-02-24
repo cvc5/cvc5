@@ -479,8 +479,8 @@ public:
   Node explain(TNode n);
 
   Node getValue(TNode n);
-  SolveStatus solve(TNode in, SubstitutionMap& outSubstitutions);
-  Node preprocess(TNode atom);
+  PPAssertStatus ppAsert(TNode in, SubstitutionMap& outSubstitutions);
+  Node ppRewrite(TNode atom);
   void shutdown() { }
   std::string identify() const { return std::string("TheoryArrays"); }
 

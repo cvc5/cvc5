@@ -109,7 +109,7 @@ public:
   void preRegisterTerm(TNode term);
   Node explain(TNode n);
 
-  void staticLearning(TNode in, NodeBuilder<>& learned);
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
   void presolve();
 
   void addSharedTerm(TNode n);

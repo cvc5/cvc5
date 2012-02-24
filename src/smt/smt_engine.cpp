@@ -622,7 +622,7 @@ void SmtEnginePrivate::staticLearning() {
 
     NodeBuilder<> learned(kind::AND);
     learned << d_assertionsToCheck[i];
-    d_smt.d_theoryEngine->staticLearning(d_assertionsToCheck[i], learned);
+    d_smt.d_theoryEngine->ppStaticLearn(d_assertionsToCheck[i], learned);
     if(learned.getNumChildren() == 1) {
       learned.clear();
     } else {
@@ -689,10 +689,10 @@ void SmtEnginePrivate::nonClausalSimplify() {
       // Solve it with the corresponding theory
       Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                         << "solving " << learnedLiteral << endl;
-      Theory::SolveStatus solveStatus =
+      Theory::PPAssertStatus solveStatus =
         d_smt.d_theoryEngine->solve(learnedLiteral, d_topLevelSubstitutions);
       switch (solveStatus) {
-      case Theory::SOLVE_STATUS_CONFLICT:
+      case Theory::PP_ASSERT_STATUS_CONFLICT:
         // If in conflict, we return false
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                           << "conflict while solving "
@@ -700,7 +700,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
         d_assertionsToPreprocess.clear();
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
         return;
-      case Theory::SOLVE_STATUS_SOLVED:
+      case Theory::PP_ASSERT_STATUS_SOLVED:
         // The literal should rewrite to true
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                           << "solved " << learnedLiteral << endl;
