@@ -187,7 +187,7 @@ Node TheoryArrays::getValue(TNode n) {
   }
 }
 
-Theory::PPAssertStatus TheoryArrays::ppAsert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   switch(in.getKind()) {
     case kind::EQUAL:
     {

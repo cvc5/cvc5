@@ -167,7 +167,7 @@ Node TheoryArith::ppRewrite(TNode atom) {
   return a;
 }
 
-Theory::PPAssertStatus TheoryArith::ppAsert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   Debug("simplify") << "TheoryArith::solve(" << in << ")" << endl;
 

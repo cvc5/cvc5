@@ -36,7 +36,7 @@ public:
 
   Node getValue(TNode n);
 
-  PPAssertStatus ppAsert(TNode in, SubstitutionMap& outSubstitutions);
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   std::string identify() const { return std::string("TheoryBool"); }
 };/* class TheoryBool */

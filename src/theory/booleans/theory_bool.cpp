@@ -134,7 +134,7 @@ Node TheoryBool::getValue(TNode n) {
   }
 }
 
-Theory::PPAssertStatus TheoryBool::ppAsert(TNode in, SubstitutionMap& outSubstitutions) {
+Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
 
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {
     // If we get a false literal, we're in conflict

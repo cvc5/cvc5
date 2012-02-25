@@ -481,7 +481,7 @@ void TheoryEngine::shutdown() {
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
-  Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAsert(literal, substitutionOut);
+  Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(literal, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }

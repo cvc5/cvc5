@@ -268,7 +268,7 @@ public:
 
   void presolve();
   void notifyRestart();
-  PPAssertStatus ppAsert(TNode in, SubstitutionMap& outSubstitutions);
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   Node ppRewrite(TNode atom);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 

@@ -478,7 +478,7 @@ public:
    * Given a literal, add the solved substitutions to the map, if any.
    * The method should return true if the literal can be safely removed.
    */
-  virtual PPAssertStatus ppAsert(TNode in, SubstitutionMap& outSubstitutions) {
+  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
     if (in.getKind() == kind::EQUAL) {
       if (in[0].getMetaKind() == kind::metakind::VARIABLE && !in[1].hasSubterm(in[0])) {
         outSubstitutions.addSubstitution(in[0], in[1]);
