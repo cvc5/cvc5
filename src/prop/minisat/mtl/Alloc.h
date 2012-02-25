@@ -21,8 +21,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Alloc_h
 #define Minisat_Alloc_h
 
-#include "mtl/XAlloc.h"
-#include "mtl/Vec.h"
+#include "prop/minisat/mtl/XAlloc.h"
+#include "prop/minisat/mtl/Vec.h"
 
 namespace Minisat {
 

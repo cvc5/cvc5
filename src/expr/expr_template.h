@@ -65,7 +65,7 @@ namespace expr {
 }/* CVC4::expr namespace */
 
 namespace prop {
-  class SatSolver;
+  class TheoryProxy;
 }/* CVC4::prop namespace */
 
 class ExprManagerMapCollection;
@@ -536,7 +536,7 @@ protected:
   friend class NodeManager;
   friend class TypeCheckingException;
   friend class expr::pickle::Pickler;
-  friend class prop::SatSolver;
+  friend class prop::TheoryProxy;
   friend NodeTemplate<true> expr::exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
 
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);

@@ -57,6 +57,12 @@ operator BITVECTOR_SLE 2 "bit-vector signed less than or equal"
 operator BITVECTOR_SGT 2 "bit-vector signed greater than"
 operator BITVECTOR_SGE 2 "signed greater than or equal"
 
+constant BITVECTOR_BITOF_OP \
+	::CVC4::BitVectorBitOf \
+	::CVC4::BitVectorBitOfHashStrategy \
+	"util/bitvector.h" \
+	"operator for the bit-vector boolean bit extract"
+
 constant BITVECTOR_EXTRACT_OP \
 	::CVC4::BitVectorExtract \
 	::CVC4::BitVectorExtractHashStrategy \
@@ -93,6 +99,7 @@ constant BITVECTOR_ROTATE_RIGHT_OP \
 	"util/bitvector.h" \
 	"operator for the bit-vector rotate right"
 
+parameterized BITVECTOR_BITOF BITVECTOR_BITOF_OP 1 "bit-vector boolean bit extract"
 parameterized BITVECTOR_EXTRACT BITVECTOR_EXTRACT_OP 1 "bit-vector extract"
 parameterized BITVECTOR_REPEAT BITVECTOR_REPEAT_OP 1 "bit-vector repeat"
 parameterized BITVECTOR_ZERO_EXTEND BITVECTOR_ZERO_EXTEND_OP 1 "bit-vector zero-extend"
@@ -138,6 +145,7 @@ typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
 
 typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
+typerule BITVECTOR_BITOF   ::CVC4::theory::bv::BitVectorBitOfTypeRule
 typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatRule
 typerule BITVECTOR_REPEAT ::CVC4::theory::bv::BitVectorRepeatTypeRule
 typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule

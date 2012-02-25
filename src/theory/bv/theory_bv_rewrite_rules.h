@@ -31,6 +31,7 @@ namespace theory {
 namespace bv {
 
 enum RewriteRuleId {
+  /// core rewrite rules
   EmptyRule,
   ConcatFlatten,
   ConcatExtractMerge,
@@ -42,7 +43,24 @@ enum RewriteRuleId {
   FailEq,
   SimplifyEq,
   ReflexivityEq,
-};
+  /// operator elimination rules
+  UgtToUlt,
+  UgeToUle,
+  SgeToSle,
+  SgtToSlt,
+  RepeatEliminate,
+  RotateLeftEliminate,
+  RotateRightEliminate,
+  NandEliminate,
+  NorEliminate,
+  SdivEliminate,
+  UdivEliminate,
+  SmodEliminate,
+  SremEliminate,
+  ZeroExtendEliminate,
+  // division by zero guards: rewrite a / b as b!=0 => a/b = ...
+  DivZeroGuard
+ };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   switch (ruleId) {
@@ -57,6 +75,20 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case FailEq:              out << "FailEq";              return out;
   case SimplifyEq:          out << "SimplifyEq";          return out;
   case ReflexivityEq:       out << "ReflexivityEq";       return out;
+  case UgtToUlt:            out << "UgtToUlt";            return out;
+  case SgtToSlt:            out << "SgtToSlt";            return out;
+  case UgeToUle:            out << "UgeToUle";            return out;
+  case SgeToSle:            out << "SgeToSle";            return out;
+  case RepeatEliminate:     out << "RepeatEliminate";     return out;
+  case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
+  case RotateRightEliminate:out << "RotateRightEliminate";return out;
+  case NandEliminate:       out << "NandEliminate";       return out;
+  case NorEliminate :       out << "NorEliminate";        return out;
+  case SdivEliminate :      out << "SdivEliminate";       return out;
+  case SremEliminate :      out << "SremEliminate";       return out;
+  case SmodEliminate :      out << "SmodEliminate";       return out;
+  case ZeroExtendEliminate :out << "ZeroExtendEliminate";       return out;
+  case DivZeroGuard :       out << "DivZeroGuard";        return out;
   default:
     Unreachable();
   }
@@ -147,6 +179,7 @@ typename RewriteRule<rule>::RuleStatistics* RewriteRule<rule>::s_statistics = NU
 
 /** Have to list all the rewrite rules to get the statistics out */
 struct AllRewriteRules {
+  
   RewriteRule<EmptyRule>            rule00;
   RewriteRule<ConcatFlatten>        rule01;
   RewriteRule<ConcatExtractMerge>   rule02;
@@ -158,6 +191,20 @@ struct AllRewriteRules {
   RewriteRule<FailEq>               rule08;
   RewriteRule<SimplifyEq>           rule09;
   RewriteRule<ReflexivityEq>        rule10;
+  RewriteRule<UgtToUlt>             rule11;
+  RewriteRule<SgtToSlt>             rule12;
+  RewriteRule<UgeToUle>             rule13;
+  RewriteRule<SgeToSle>             rule14;
+  RewriteRule<RepeatEliminate>      rule17;
+  RewriteRule<RotateLeftEliminate>  rule18;
+  RewriteRule<RotateRightEliminate> rule19;
+  RewriteRule<NandEliminate>        rule20;
+  RewriteRule<NorEliminate>         rule21;
+  RewriteRule<SdivEliminate>        rule22;
+  RewriteRule<SremEliminate>        rule23;
+  RewriteRule<SmodEliminate>        rule24;
+  RewriteRule<DivZeroGuard>         rule25;
+
 };
 
 template<>
@@ -202,7 +249,7 @@ struct ApplyRuleToChildren {
 
 template <
   typename R1,
-  typename R2,
+  typename R2 = RewriteRule<EmptyRule>,
   typename R3 = RewriteRule<EmptyRule>,
   typename R4 = RewriteRule<EmptyRule>,
   typename R5 = RewriteRule<EmptyRule>,

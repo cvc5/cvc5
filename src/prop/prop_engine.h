@@ -27,7 +27,6 @@
 #include "util/options.h"
 #include "util/result.h"
 #include "smt/modal_exception.h"
-
 #include <sys/time.h>
 
 namespace CVC4 {
@@ -37,7 +36,7 @@ class TheoryEngine;
 namespace prop {
 
 class CnfStream;
-class SatSolver;
+class DPLLSatSolverInterface;
 
 class PropEngine;
 
@@ -132,7 +131,7 @@ class PropEngine {
   context::Context* d_context;
 
   /** The SAT solver proxy */
-  SatSolver* d_satSolver;
+  DPLLSatSolverInterface* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;

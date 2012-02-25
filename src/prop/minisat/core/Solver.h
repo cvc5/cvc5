@@ -25,11 +25,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <iostream>
 
-#include "mtl/Vec.h"
-#include "mtl/Heap.h"
-#include "mtl/Alg.h"
-#include "utils/Options.h"
-#include "core/SolverTypes.h"
+#include "prop/minisat/mtl/Vec.h"
+#include "prop/minisat/mtl/Heap.h"
+#include "prop/minisat/mtl/Alg.h"
+#include "prop/minisat/utils/Options.h"
+#include "prop/minisat/core/SolverTypes.h"
 
 #include "context/context.h"
 #include "theory/theory.h"
@@ -40,7 +40,7 @@ namespace CVC4 {
 class SatProof;
 
 namespace prop {
-  class SatSolver;
+  class TheoryProxy;
 }/* CVC4::prop namespace */
 
 }/* CVC4 namespace */
@@ -53,22 +53,22 @@ namespace Minisat {
 class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
-  friend class CVC4::prop::SatSolver;
+  friend class CVC4::prop::TheoryProxy;
   friend class CVC4::SatProof; 
 protected:
 
   /** The pointer to the proxy that provides interfaces to the SMT engine */
-  CVC4::prop::SatSolver* proxy;
+  CVC4::prop::TheoryProxy* proxy;
 
   /** The context from the SMT solver */
   CVC4::context::Context* context;
 
   /** The current assertion level (user) */
   int assertionLevel; 
-
+public:
   /** Returns the current user assertion level */
   int getAssertionLevel() const { return assertionLevel; }
-
+protected:
   /** Do we allow incremental solving */
   bool enable_incremental;  
 
@@ -102,7 +102,7 @@ public:
 
     // Constructor/Destructor:
     //
-    Solver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental = false);
+    Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, bool enableIncremental = false);
     CVC4_PUBLIC virtual ~Solver();
 
     // Problem specification:

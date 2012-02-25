@@ -30,10 +30,10 @@
 #include "prop/prop_engine.h"
 #include "prop/sat.h"
 #include "smt/smt_engine.h"
-#include "theory/registrar.h"
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
+#include "theory/theory_registrar.h"
 
 #include "theory/builtin/theory_builtin.h"
 #include "theory/booleans/theory_bool.h"
@@ -45,7 +45,7 @@ using namespace CVC4::prop;
 using namespace std;
 
 /* This fake class relies on the face that a MiniSat variable is just an int. */
-class FakeSatSolver : public SatInputInterface {
+class FakeSatSolver : public SatSolverInterface {
   SatVariable d_nextVar;
   bool d_addClauseCalled;
 
@@ -83,6 +83,23 @@ public:
 
   void interrupt() {
   }
+  
+  SatLiteralValue solve() {
+    return SatValUnknown;
+  }
+
+  SatLiteralValue solve(long unsigned int& resource) {
+    return SatValUnknown;
+  }
+
+  SatLiteralValue value(SatLiteral l) {
+    return SatValUnknown;
+  }
+
+  SatLiteralValue modelValue(SatLiteral l) {
+    return SatValUnknown;
+  }
+
 };
 
 class CnfStreamBlack : public CxxTest::TestSuite {
@@ -117,8 +134,7 @@ class CnfStreamBlack : public CxxTest::TestSuite {
     d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>(theory::THEORY_BUILTIN);
     d_theoryEngine->addTheory<theory::booleans::TheoryBool>(theory::THEORY_BOOL);
     d_theoryEngine->addTheory<theory::arith::TheoryArith>(theory::THEORY_ARITH);
-    theory::Registrar registrar(d_theoryEngine);
-    d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, registrar);
+    d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, new theory::TheoryRegistrar(d_theoryEngine));
   }
 
   void tearDown() {

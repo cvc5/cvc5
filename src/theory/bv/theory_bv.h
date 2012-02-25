@@ -23,119 +23,42 @@
 
 #include "theory/theory.h"
 #include "context/context.h"
-#include "context/cdset.h"
 #include "context/cdlist.h"
-#include "theory/bv/equality_engine.h"
-#include "theory/bv/slice_manager.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "util/stats.h"
+
+namespace BVMinisat {
+class SimpSolver; 
+}
+
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
+/// forward declarations 
+class Bitblaster;
+
 class TheoryBV : public Theory {
 
 public:
 
-  class EqualityNotify {
-    TheoryBV& d_theoryBV;
-  public:
-    EqualityNotify(TheoryBV& theoryBV)
-    : d_theoryBV(theoryBV) {}
-
-    bool operator () (size_t triggerId) {
-      return d_theoryBV.triggerEquality(triggerId);
-    }
-    void conflict(Node explanation) {
-      std::set<TNode> assumptions;
-      utils::getConjuncts(explanation, assumptions);
-      d_theoryBV.d_out->conflict(utils::mkConjunction(assumptions));
-    }
-  };
-
-  struct BVEqualitySettings {
-    static inline bool descend(TNode node) {
-      return node.getKind() == kind::BITVECTOR_CONCAT || node.getKind() == kind::BITVECTOR_EXTRACT;
-    }
-
-    /** Returns true if node1 has preference to node2 as a representative, otherwise node2 is used */
-    static inline bool mergePreference(TNode node1, unsigned node1size, TNode node2, unsigned node2size) {
-      if (node1.getKind() == kind::CONST_BITVECTOR) {
-        Assert(node2.getKind() != kind::CONST_BITVECTOR);
-        return true;
-      }
-      if (node2.getKind() == kind::CONST_BITVECTOR) {
-        Assert(node1.getKind() != kind::CONST_BITVECTOR);
-        return false;
-      }
-      if (node1.getKind() == kind::BITVECTOR_CONCAT) {
-        Assert(node2.getKind() != kind::BITVECTOR_CONCAT);
-        return true;
-      }
-      if (node2.getKind() == kind::BITVECTOR_CONCAT) {
-        Assert(node1.getKind() != kind::BITVECTOR_CONCAT);
-        return false;
-      }
-      return node2size < node1size;
-    }
-  };
-
-  typedef EqualityEngine<TheoryBV, EqualityNotify, BVEqualitySettings> BvEqualityEngine;
-
 private:
 
-  /** Equality reasoning engine */
-  BvEqualityEngine d_eqEngine;
-
-  /** Slice manager */
-  SliceManager<TheoryBV> d_sliceManager;
-
-  /** Equality triggers indexed by ids from the equality manager */
-  std::vector<Node> d_triggers;
-  
   /** The context we are using */
   context::Context* d_context;
 
   /** The asserted stuff */
-  context::CDSet<TNode, TNodeHashFunction> d_assertions;
-
-  /** Asserted dis-equalities */
-  context::CDList<TNode> d_disequalities;
-
-  struct Normalization {
-    context::CDList<Node> equalities;
-    context::CDList< std::set<TNode> > assumptions;
-    Normalization(context::Context* c, TNode eq)
-    : equalities(c), assumptions(c) {
-      equalities.push_back(eq);
-      assumptions.push_back(std::set<TNode>());
-    }
-  };
-
-  /** Map from equalities to their noramlization information */
-  typedef __gnu_cxx::hash_map<TNode, Normalization*, TNodeHashFunction> NormalizationMap;
-  NormalizationMap d_normalization;
-
-  /** Called by the equality managere on triggers */
-  bool triggerEquality(size_t triggerId);
-
+  context::CDList<TNode> d_assertions;
+  
+  /** Bitblaster */
+  Bitblaster* d_bitblaster; 
   Node d_true;
-
+    
 public:
 
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation)
-  : Theory(THEORY_BV, c, u, out, valuation), 
-    d_eqEngine(*this, c, "theory::bv::EqualityEngine"), 
-    d_sliceManager(*this, c), 
-    d_context(c),
-    d_assertions(c), 
-    d_disequalities(c)
-  {
-    d_true = utils::mkTrue();
-  }
-
-  BvEqualityEngine& getEqualityEngine() {
-    return d_eqEngine;
-  }
+  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
+  ~TheoryBV(); 
 
   void preRegisterTerm(TNode n);
 
@@ -150,6 +73,21 @@ public:
   Node getValue(TNode n);
 
   std::string identify() const { return std::string("TheoryBV"); }
+
+  //Node preprocessTerm(TNode term);
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions); 
+private:
+  
+  class Statistics {
+  public:
+    AverageStat d_avgConflictSize;
+    IntStat     d_solveSubstitutions; 
+    Statistics();
+    ~Statistics(); 
+  }; 
+  
+  Statistics d_statistics;
+  
 };/* class TheoryBV */
 
 }/* CVC4::theory::bv namespace */

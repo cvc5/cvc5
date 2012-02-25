@@ -22,29 +22,30 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__REGISTRAR_H
-#define __CVC4__THEORY__REGISTRAR_H
+#ifndef __CVC4__THEORY__THEORY_REGISTRAR_H
+#define __CVC4__THEORY__THEORY_REGISTRAR_H
 
+#include "prop/registrar.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 
-class Registrar {
+class TheoryRegistrar: public prop::Registrar {
 private:
   TheoryEngine* d_theoryEngine;
 
 public:
 
-  Registrar(TheoryEngine* te) : d_theoryEngine(te) { }
+  TheoryRegistrar(TheoryEngine* te) : d_theoryEngine(te) { }
 
   void preRegister(Node n) {
     d_theoryEngine->preRegister(n);
   }
 
-};/* class Registrar */
+};/* class TheoryRegistrar */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__REGISTRAR_H */
+#endif /* __CVC4__THEORY__THEORY_REGISTRAR_H */

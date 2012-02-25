@@ -39,7 +39,7 @@ public:
   static RewriteResponse postRewrite(TNode node);
 
   static inline RewriteResponse preRewrite(TNode node) {
-    return RewriteResponse(REWRITE_DONE, node);
+    return postRewrite(node);
   }
 
   static inline Node rewriteEquality(TNode node) {

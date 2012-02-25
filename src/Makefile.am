@@ -39,6 +39,7 @@ libcvc4_la_LIBADD = \
 	@builddir@/proof/libproof.la \
 	@builddir@/prop/libprop.la \
 	@builddir@/prop/minisat/libminisat.la \
+	@builddir@/prop/bvminisat/libbvminisat.la \
 	@builddir@/printer/libprinter.la \
 	@builddir@/smt/libsmt.la \
 	@builddir@/theory/libtheory.la \
@@ -50,6 +51,7 @@ libcvc4_noinst_la_LIBADD = \
 	@builddir@/proof/libproof.la \
 	@builddir@/prop/libprop.la \
 	@builddir@/prop/minisat/libminisat.la \
+	@builddir@/prop/bvminisat/libbvminisat.la \
 	@builddir@/printer/libprinter.la \
 	@builddir@/smt/libsmt.la \
 	@builddir@/theory/libtheory.la \

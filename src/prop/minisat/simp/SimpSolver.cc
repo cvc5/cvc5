@@ -18,9 +18,9 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "mtl/Sort.h"
-#include "simp/SimpSolver.h"
-#include "utils/System.h"
+#include "prop/minisat/mtl/Sort.h"
+#include "prop/minisat/simp/SimpSolver.h"
+#include "prop/minisat/utils/System.h"
 #include "proof/proof.h"
 using namespace Minisat;
 using namespace CVC4;
@@ -44,7 +44,7 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 // Constructor/Destructor:
 
 
-SimpSolver::SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental) :
+SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, bool enableIncremental) :
     Solver(proxy, context, enableIncremental)
   , grow               (opt_grow)
   , clause_lim         (opt_clause_lim)

@@ -49,12 +49,24 @@ inline unsigned getSize(TNode node) {
   return node.getType().getBitVectorSize();
 }
 
+// this seems to behave strangely
+inline const Integer& getBit(TNode node, unsigned i) {
+  Assert (0); 
+  Assert (node.getKind() == kind::CONST_BITVECTOR);
+  return node.getConst<BitVector>().extract(i, i).getValue();
+}
+
 inline Node mkTrue() {
   return NodeManager::currentNM()->mkConst<bool>(true);
 }
 
 inline Node mkFalse() {
   return NodeManager::currentNM()->mkConst<bool>(false);
+}
+
+inline Node mkVar(unsigned size) {
+  NodeManager* nm =  NodeManager::currentNM();
+  return nm->mkVar(nm->mkBitVectorType(size)); 
 }
 
 inline Node mkAnd(std::vector<TNode>& children) {
@@ -65,8 +77,43 @@ inline Node mkAnd(std::vector<TNode>& children) {
   }
 }
 
+
+inline Node mkNode(Kind kind, TNode child) {
+  return NodeManager::currentNM()->mkNode(kind, child);
+}
+
+inline Node mkNode(Kind kind, TNode child1, TNode child2) {
+  return NodeManager::currentNM()->mkNode(kind, child1, child2);
+}
+
+inline Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3) {
+  return NodeManager::currentNM()->mkNode(kind, child1, child2, child3);
+}
+
+
+inline Node mkNot(Node child) {
+  return NodeManager::currentNM()->mkNode(kind::NOT, child);
+}
+
+inline Node mkAnd(TNode node1, TNode node2) {
+  return NodeManager::currentNM()->mkNode(kind::AND, node1, node2);
+}
+
+inline Node mkOr(TNode node1, TNode node2) {
+  return NodeManager::currentNM()->mkNode(kind::OR, node1, node2);
+}
+
+inline Node mkXor(TNode node1, TNode node2) {
+  return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
+}
+
+
 inline Node mkAnd(std::vector<Node>& children) {
-  return NodeManager::currentNM()->mkNode(kind::AND, children);
+  if(children.size() > 1) {
+    return NodeManager::currentNM()->mkNode(kind::AND, children);
+  } else {
+    return children[0];
+  }
 }
 
 inline Node mkExtract(TNode node, unsigned high, unsigned low) {
@@ -74,6 +121,12 @@ inline Node mkExtract(TNode node, unsigned high, unsigned low) {
   std::vector<Node> children;
   children.push_back(node);
   return NodeManager::currentNM()->mkNode(extractOp, children);
+}
+
+inline Node mkBitOf(TNode node, unsigned index) {
+  Node bitOfOp = NodeManager::currentNM()->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
+  return NodeManager::currentNM()->mkNode(bitOfOp, node); 
+                                        
 }
 
 inline Node mkConcat(std::vector<Node>& children) {
@@ -87,6 +140,11 @@ inline Node mkConcat(TNode t1, TNode t2) {
     return NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT, t1, t2);
 }
 
+
+inline Node mkConst(unsigned size, unsigned int value) {
+  BitVector val(size, value);
+  return NodeManager::currentNM()->mkConst<BitVector>(val); 
+}
 
 inline Node mkConst(const BitVector& value) {
   return NodeManager::currentNM()->mkConst<BitVector>(value);
@@ -138,6 +196,66 @@ inline Node mkConjunction(const std::set<TNode> nodes) {
 
   return conjunction;
 }
+
+inline bool isBVPredicate(TNode node) {
+  if (node.getKind() == kind::EQUAL ||
+      node.getKind() == kind::BITVECTOR_ULT ||
+      node.getKind() == kind::BITVECTOR_SLT ||
+      node.getKind() == kind::BITVECTOR_UGT ||
+      node.getKind() == kind::BITVECTOR_UGE ||
+      node.getKind() == kind::BITVECTOR_SGT ||
+      node.getKind() == kind::BITVECTOR_SGE ||
+      node.getKind() == kind::BITVECTOR_ULE || 
+      node.getKind() == kind::BITVECTOR_SLE ||
+      ( node.getKind() == kind::NOT && (node[0].getKind() == kind::EQUAL ||
+                                        node[0].getKind() == kind::BITVECTOR_ULT ||
+                                        node[0].getKind() == kind::BITVECTOR_SLT ||
+                                        node[0].getKind() == kind::BITVECTOR_UGT ||
+                                        node[0].getKind() == kind::BITVECTOR_UGE ||
+                                        node[0].getKind() == kind::BITVECTOR_SGT ||
+                                        node[0].getKind() == kind::BITVECTOR_SGE ||
+                                        node[0].getKind() == kind::BITVECTOR_ULE || 
+                                        node[0].getKind() == kind::BITVECTOR_SLE)))
+    {
+      return true; 
+    }
+  else
+    {
+      return false; 
+    }
+}
+
+inline Node mkConjunction(const std::vector<TNode>& nodes) {
+  std::vector<TNode> expandedNodes;
+
+  std::vector<TNode>::const_iterator it = nodes.begin();
+  std::vector<TNode>::const_iterator it_end = nodes.end();
+  while (it != it_end) {
+    TNode current = *it;
+    if (current != mkTrue()) {
+      Assert(isBVPredicate(current));
+      expandedNodes.push_back(current);
+    }
+    ++ it;
+  }
+
+  Assert(expandedNodes.size() > 0);
+  if (expandedNodes.size() == 1) {
+    return *expandedNodes.begin();
+  }
+
+  NodeBuilder<> conjunction(kind::AND);
+
+  it = expandedNodes.begin();
+  it_end = expandedNodes.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}
+
 
 // Turn a set into a string
 inline std::string setToString(const std::set<TNode>& nodeSet) {

@@ -1,0 +1,93 @@
+news for release 936 since 935
+------------------------------
+
+* simple minimal unsatisfiable core (MUS) extractor 'picomus'
+  (example for using 'picosat_mus_assumptions' and 'picosat_coreclause')
+
+* added 'picosat_mus_assumptions'
+
+* added 'picosat_{set_}propagations'
+
+* new 'int' return value for 'picosat_enable_trace_generation' to
+  check for trace code being compiled
+
+news for release 935 since 926
+------------------------------
+
+* added 'picosat_failed_assumptions' (plural)
+
+* new '-A <failedlits>' command line option
+
+* fixed failed assumption issues
+
+* added 'picosat_remove_learned'
+
+* added 'picosat_reset_{phases,scores}'
+
+* added 'picosat_set_less_important_lit'
+
+* added 'picosat_res'
+
+news for release 926 since 846
+------------------------------
+
+* random initial phase (API of 'picosat_set_default_phase' changed)
+
+* fixed accumulative failed assumption (multiple times)
+
+* fixed missing original clause in core generation with assumptions
+
+* fixed debugging code for memory allocation
+
+* shared library in addition to static library
+
+* removed potential UNKNOWN result without decision limit
+
+* added picosat_set_more_important_lit
+
+* added picosat_coreclause
+
+* propagation of binary clauses until completion
+
+* fixed API usage 'assume;sat;sat'
+
+* literals move to front (LMTF) during traversal of visited clauses
+
+* switched from inner/outer to Luby style restart scheduling
+
+* less agressive reduce schedule
+
+* replaced watched literals with head and tail pointers
+
+* add 'picosat_failed_assumption', which allows to avoid tracing and core
+  generation, if one is only interested in assumptions in the core
+
+* fixed a BUG in the generic iterator code of clauses
+  (should rarely happen unless you use a very sophisticated malloc lib)
+
+news for release 846 since 632
+------------------------------
+
+* cleaned up assumption handling (actually removed buggy optimization)
+
+* incremental core generation 
+
+* experimental 'all different constraint' handling as in our FMCAD'08 paper
+
+* new API calls: 
+
+  - picosat_add_ado_lit       (add all different object literal)
+  - picosat_deref_top_level   (deref top level assignment)
+  - picosat_changed           (check whether extension was possible)
+  - picosat_measure_all_calls (per default do not measure adding time)
+  - picosat_set_prefix        (set prefix for messages)
+
+* 64 bit port (and compilation options)
+
+* optional NVSIDS visualization code
+
+* resource controlled failed literal implementation
+
+* disconnect long clauses satisfied at lower decision level
+
+* controlling restarts

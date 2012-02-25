@@ -23,13 +23,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "cvc4_private.h"
 
-#include "mtl/Queue.h"
-#include "core/Solver.h"
+#include "prop/minisat/mtl/Queue.h"
+#include "prop/minisat/core/Solver.h"
 
 
 namespace CVC4 {
 namespace prop {
-  class SatSolver;
+  class TheoryProxy;
 }
 }
 
@@ -41,7 +41,7 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-    SimpSolver(CVC4::prop::SatSolver* proxy, CVC4::context::Context* context, bool enableIncremental = false);
+    SimpSolver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, bool enableIncremental = false);
     CVC4_PUBLIC ~SimpSolver();
 
     // Problem specification:

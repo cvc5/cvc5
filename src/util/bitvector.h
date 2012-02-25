@@ -203,6 +203,33 @@ public:
   }
 };/* class BitVectorExtractHashStrategy */
 
+
+/**
+ * The structure representing the extraction of one Boolean bit. 
+ */
+struct CVC4_PUBLIC BitVectorBitOf {
+  /** The index of the bit */
+  unsigned bitIndex;
+  BitVectorBitOf(unsigned i)
+    : bitIndex(i) {}
+
+  bool operator == (const BitVectorBitOf& other) const {
+    return bitIndex == other.bitIndex; 
+  }
+};/* struct BitVectorBitOf */
+
+/**
+ * Hash function for the BitVectorBitOf objects.
+ */
+class CVC4_PUBLIC BitVectorBitOfHashStrategy {
+public:
+  static size_t hash(const BitVectorBitOf& b) {
+    return b.bitIndex;
+  }
+};/* class BitVectorBitOfHashStrategy */
+
+
+
 struct CVC4_PUBLIC BitVectorSize {
   unsigned size;
   BitVectorSize(unsigned size)
@@ -261,6 +288,13 @@ inline std::ostream& operator <<(std::ostream& os, const BitVectorExtract& bv) C
 inline std::ostream& operator <<(std::ostream& os, const BitVectorExtract& bv) {
   return os << "[" << bv.high << ":" << bv.low << "]";
 }
+
+inline std::ostream& operator <<(std::ostream& os, const BitVectorBitOf& bv) CVC4_PUBLIC;
+inline std::ostream& operator <<(std::ostream& os, const BitVectorBitOf& bv) {
+  return os << "[" << bv.bitIndex << "]";
+}
+
+
 
 }/* CVC4 namespace */
 

@@ -35,6 +35,28 @@ public:
   }
 };
 
+
+class BitVectorBitOfTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate) {
+    
+    if(check) {
+      BitVectorBitOf info = n.getOperator().getConst<BitVectorBitOf>();
+      TypeNode t = n[0].getType(check);
+      
+      if (!t.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+      }
+      if (info.bitIndex >= t.getBitVectorSize()) {
+        throw TypeCheckingExceptionPrivate(n, "extract index is larger than the bitvector size");
+      }
+    }
+    return nodeManager->booleanType(); 
+  }
+};
+
+
 class BitVectorCompRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

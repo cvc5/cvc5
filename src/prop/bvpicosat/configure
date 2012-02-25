@@ -1,0 +1,151 @@
+#!/bin/sh
+
+satcompetition=no
+
+log=no
+debug=no
+optimize=no
+stats=undefined
+trace=undefined
+static=yes
+shared=no
+thirtytwobit=no
+static=no
+
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -l|--log) debug=yes; log=yes;;
+    -g|--debug) debug=yes; optimize=no;;
+    -s|--stats) stats=yes;;
+    -t|--trace) trace=yes;;
+    --no-stats) stats=no;;
+    --no-trace) trace=no;;
+    -32|--32|-m32) thirtytwobit=yes;;
+    -static|--static) static=yes;;
+    -O) debug=no; optimize=yes;;
+    *) cat <<EOF
+usage: ./configure [<option> ...]
+
+where <option> is one of the following:
+
+  -g|--debug           includ debugging code and symbols
+  -l|--log             add low level logging code
+  -s|--stats           include and enable more expensive stats counters
+  -t|--trace           compile with trace generation support (more memory)
+  --no-stats           disable expensive stats
+  --no-trace           enable trace generation (less memory)
+  -32|--32|-m32        compile for 32 bit machine even on 64 bit host
+  -static|--static     only produce static library
+  -shared|--shared     produce shared library as well
+  -O                   optimize a lot and disable trace generation
+EOF
+exit 1
+;;
+  esac
+shift
+done
+
+echo "version ... `cat VERSION`"
+
+if [ $satcompetition = yes ]
+then
+  debug=no
+  optimize=yes
+  stats=no
+  trace=no
+  thirtytwobit=yes
+  static=yes
+  shared=no
+fi
+
+echo "debug ... $debug"
+echo "optimize ... $optimize"
+echo "log ... $log"
+
+if [ $stats = undefined ]
+then
+  if [ $optimize = yes ]
+  then
+    stats=no
+  else
+    stats=yes
+  fi
+fi
+echo "stats ... $stats"
+
+if [ $trace = undefined ]
+then
+  if [ $optimize = yes ]
+  then
+    trace=no
+  else
+    trace=yes
+  fi
+fi
+echo "trace ... $trace"
+
+echo "static ... $static"
+
+echo "shared ... $shared"
+
+[ "X$CC" = X ] && CC=gcc
+
+if [ X"$CFLAGS" = X ]
+then
+  case X"$CC" in
+    *wine*|*mingw*) CFLAGS="-DNGETRUSAGE -DNALLSIGNALS";;
+    *);;
+  esac
+  [ $log = yes ] && CFLAGS="$CFLAGS -DLOGGING"
+  [ $stats = yes ] && CFLAGS="$CFLAGS -DSTATS"
+  [ $trace = yes ] && CFLAGS="$CFLAGS -DTRACE"
+  [ $static = yes ] && CFLAGS="$CFLAGS -static"
+  case X"$CC" in
+    X*gcc*)
+      CFLAGS="$CFLAGS -Wall -Wextra"
+      [ $thirtytwobit = yes ] && CFLAGS="$CFLAGS -m32"
+      if [ $debug = yes ]
+      then
+        CFLAGS="$CFLAGS -g3 -ggdb"
+      else
+	CFLAGS="$CFLAGS -DNDEBUG"
+	if [ $optimize = yes ]
+	then
+	  CFLAGS="$CFLAGS -O3 -fomit-frame-pointer -finline-limit=1000000"
+	else
+	  CFLAGS="$CFLAGS -O2"
+	fi
+      fi
+      ;;
+    *)
+      if [ $debug = yes ]
+      then
+        CFLAGS="$CFLAGS -g"
+      else
+        CFLAGS="$CFLAGS -O"
+      fi
+      ;;
+  esac
+fi
+
+TARGETS="picosat picomus libpicosat.a"
+if [ $shared = yes ]
+then
+  TARGETS="$TARGETS libpicosat.so"
+  CFLAGS="$CFLAGS -fPIC"
+fi
+echo "targets ... $TARGETS"
+
+echo "cc ... $CC"
+
+echo "cflags ... $CFLAGS"
+
+echo -n "makefile ..."
+rm -f makefile
+sed \
+  -e "s,@CC@,$CC," \
+  -e "s,@CFLAGS@,$CFLAGS," \
+  -e "s,@TARGETS@,$TARGETS," \
+makefile.in > makefile
+echo " done"
