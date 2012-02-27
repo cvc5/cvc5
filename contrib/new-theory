@@ -16,12 +16,18 @@ if [ $# -ne 1 ]; then
   echo "e.g.:  new-theory arith" >&2
   echo "e.g.:  new-theory arrays" >&2
   echo "e.g.:  new-theory sets" >&2
+  echo "e.g.:  new-theory rewrite_rules" >&2
   echo >&2
   echo "This tool will create a new src/theory/<theory-directory-name>" >&2
   echo "directory and fill in some infrastructural files in that directory." >&2
   echo "It also will incorporate that directory into the build process." >&2
   echo "Please refer to the file README.WHATS-NEXT file created in that" >&2
   echo "directory for tips on what to do next."
+  echo
+  echo "Theories with multiple words (e.g. \"rewrite_rules\") should have" >&2
+  echo "directories and namespaces separated by an underscore (_).  The" >&2
+  echo "resulting class names created by this script will be in CamelCase" >&2
+  echo "(e.g. RewriteRules) if that convention is followed." >&2
   exit 1
 fi
 
@@ -74,11 +80,26 @@ for file in `ls contrib/theoryskel`; do
 done
 
 echo
-echo "Adding $dir to src/theory/Makefile.am..."
+echo "Adding $dir to SUBDIRS in src/theory/Makefile.am..."
 if grep -q '^SUBDIRS = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/theory/Makefile.am &>/dev/null; then
   echo "NOTE: src/theory/Makefile.am already descends into dir $dir"
 else
   awk '/^SUBDIRS = / {print $0,"'"$dir"'"} !/^SUBDIRS = / {print$0}' src/theory/Makefile.am > src/theory/Makefile.am.new-theory
+  if ! cp -f src/theory/Makefile.am src/theory/Makefile.am~; then
+    echo "ERROR: cannot copy src/theory/Makefile.am !" >&2
+    exit 1
+  fi
+  if ! mv -f src/theory/Makefile.am.new-theory src/theory/Makefile.am; then
+    echo "ERROR: cannot replace src/theory/Makefile.am !" >&2
+    exit 1
+  fi
+fi
+
+echo "Adding lib$theory.la to LIBADD in src/theory/Makefile.am..."
+if grep -q '^	@builddir@/'"$dir"'/lib'"$dir"'\.la\>' src/theory/Makefile.am &>/dev/null; then
+  echo "NOTE: src/theory/Makefile.am already seems to include lib$theory.la"
+else
+  awk '!/^libtheory_la_LIBADD = / {print$0} /^libtheory_la_LIBADD = / {while(/\\ *$/){print $0;getline} print $0,"\\";print "\t@builddir@/'"$dir"'/lib'"$dir"'.la"}' src/theory/Makefile.am > src/theory/Makefile.am.new-theory
   if ! cp -f src/theory/Makefile.am src/theory/Makefile.am~; then
     echo "ERROR: cannot copy src/theory/Makefile.am !" >&2
     exit 1

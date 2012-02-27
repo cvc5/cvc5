@@ -11,7 +11,7 @@ Theory$camel::Theory$camel(context::Context* c,
                            context::UserContext* u,
                            OutputChannel& out,
                            Valuation valuation) :
-  Theory(THEORY_UF, c, u, out, valuation) {
+  Theory(THEORY_$id, c, u, out, valuation) {
 }/* Theory$camel::Theory$camel() */
 
 void Theory$camel::check(Effort level) {

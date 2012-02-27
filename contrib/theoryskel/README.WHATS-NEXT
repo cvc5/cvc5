@@ -24,6 +24,15 @@ and finally:
   * to choose which work will be done at QUICK_CHECK, STANDARD or at
     FULL_EFFORT.
 
+You'll probably find the Developer's wiki useful:
+
+  http://church.cims.nyu.edu/wiki/CVC_Portal
+
+...and in particular the Deverloper's Guide:
+
+  http://church.cims.nyu.edu/wiki/Developer%27s_Guide
+
+which contains coding guidelines for the CVC4 project.
 
 Good luck, and please contact cvc4-devel@cs.nyu.edu for assistance
 should you need it!
