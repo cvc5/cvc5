@@ -6,11 +6,12 @@ namespace theory {
 namespace arith {
 
 DifferenceManager::DifferenceManager(context::Context* c, PropManager& pm)
-  : d_reasons(c),
+  : d_literalsQueue(c),
     d_queue(pm),
     d_notify(*this),
     d_ee(d_notify, c, "theory::arith::DifferenceManager"),
-    d_false(NodeManager::currentNM()->mkConst<bool>(false))
+    d_false(NodeManager::currentNM()->mkConst<bool>(false)),
+    d_hasSharedTerms(c, false)
 {}
 
 void DifferenceManager::propagate(TNode x){
@@ -36,7 +37,6 @@ void DifferenceManager::explain(TNode literal, std::vector<TNode>& assumptions) 
   d_ee.explainEquality(lhs, rhs, assumptions);
 }
 
-#warning "Stolen from theory_uf.h verbatim. Generalize me!"
 Node mkAnd(const std::vector<TNode>& conjunctions) {
   Assert(conjunctions.size() > 0);
 
@@ -75,25 +75,45 @@ void DifferenceManager::addDifference(ArithVar s, Node x, Node y){
   d_differences[s] = Difference(x,y);
 }
 
-void DifferenceManager::differenceIsZero(ArithVar s, TNode reason){
+void DifferenceManager::addAssertionToEqualityEngine(bool eq, ArithVar s, TNode reason){
   Assert(isDifferenceSlack(s));
+
   TNode x = d_differences[s].x;
   TNode y = d_differences[s].y;
 
-  d_reasons.push_back(reason);
-  d_ee.addEquality(x, y, reason);
+  if(eq){
+    d_ee.addEquality(x, y, reason);
+  }else{
+    d_ee.addDisequality(x, y, reason);
+  }
 }
 
-void DifferenceManager::differenceCannotBeZero(ArithVar s, TNode reason){
-  Assert(isDifferenceSlack(s));
-  TNode x = d_differences[s].x;
-  TNode y = d_differences[s].y;
+void DifferenceManager::dequeueLiterals(){
+  Assert(d_hasSharedTerms);
+  while(!d_literalsQueue.empty()){
+    const LiteralsQueueElem& front = d_literalsQueue.dequeue();
 
-  d_reasons.push_back(reason);
-  d_ee.addDisequality(x, y, reason);
+    addAssertionToEqualityEngine(front.d_eq, front.d_var, front.d_reason);
+  }
+}
+
+void DifferenceManager::enableSharedTerms(){
+  Assert(!d_hasSharedTerms);
+  d_hasSharedTerms = true;
+  dequeueLiterals();
+}
+
+void DifferenceManager::assertLiteral(bool eq, ArithVar s, TNode reason){
+  d_literalsQueue.enqueue(LiteralsQueueElem(eq, s, reason));
+  if(d_hasSharedTerms){
+    dequeueLiterals();
+  }
 }
 
 void DifferenceManager::addSharedTerm(Node x){
+  if(!d_hasSharedTerms){
+    enableSharedTerms();
+  }
   d_ee.addTriggerTerm(x);
 }
 
