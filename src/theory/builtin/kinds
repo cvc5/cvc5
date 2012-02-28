@@ -88,9 +88,9 @@
 #     Alternatively, a range can be specified for #children as
 #     "LB:[UB]", LB and UB representing lower and upper bounds on the
 #     number of children (inclusive).  If there is no lower bound, put
-#     a "0".  If there is no upper bound, leave the colon after LB,
-#     but omit UB.  For example, an N-ary operator might be defined
-#     as:
+#     a "1" (operators must have at least one child).  If there is no
+#     upper bound, leave the colon after LB, but omit UB.  For example,
+#     an N-ary operator might be defined as:
 #
 #         operator PLUS 2: "addition on two or more arguments"
 #
@@ -106,9 +106,10 @@
 #     this operator's parameters, and don't include the operator
 #     itself (here, there are only two children "x" and "y").
 #
-#     LB and UB are the same as documented for the operator command.
-#     The first parameter (the function being applied) does not count
-#     as a child.
+#     LB and UB are the same as documented for the operator command,
+#     except that parameterized operators may have zero children.  The
+#     first parameter (the function being applied) does not count as a
+#     child.
 #
 #     For consistency these should start with "APPLY_", but this is
 #     not enforced.
