@@ -169,6 +169,10 @@ public:
     return mpq_sgn(d_value.get_mpq_t());
   }
 
+  bool isZero() const {
+    return sgn() == 0;
+  }
+
   Rational abs() const {
     if(sgn() < 0){
       return -(*this);

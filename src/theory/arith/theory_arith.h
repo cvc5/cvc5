@@ -32,6 +32,7 @@
 #include "theory/arith/tableau.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
+#include "theory/arith/linear_equality.h"
 #include "theory/arith/atom_database.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/arith_static_learner.h"
@@ -180,20 +181,25 @@ private:
   std::map<ArithVar, Node> d_removedRows;
 
   /**
+   * List of all of the inequalities asserted in the current context.
+   */
+  context::CDSet<Node, NodeHashFunction> d_diseq;
+
+  /**
    * Manages information about the assignment and upper and lower bounds on
    * variables.
    */
   ArithPartialModel d_partialModel;
 
   /**
-   * List of all of the inequalities asserted in the current context.
-   */
-  context::CDSet<Node, NodeHashFunction> d_diseq;
-
-  /**
    * The tableau for all of the constraints seen thus far in the system.
    */
   Tableau d_tableau;
+
+  /**
+   * Maintains the relationship between the PartialModel and the Tableau.
+   */
+  LinearEqualityModule d_linEq;
 
   /**
    * A Diophantine equation solver.  Accesses the tableau and partial
@@ -279,6 +285,23 @@ public:
   void addSharedTerm(TNode n);
 
 private:
+
+  class BasicVarModelUpdateCallBack : public ArithVarCallBack{
+  private:
+    SimplexDecisionProcedure& d_simplex;
+
+  public:
+    BasicVarModelUpdateCallBack(SimplexDecisionProcedure& s):
+      d_simplex(s)
+    {}
+
+    void callback(ArithVar x){
+      d_simplex.updateBasic(x);
+    }
+  };
+
+  BasicVarModelUpdateCallBack d_basicVarModelUpdateCallBack;
+
   /** The constant zero. */
   DeltaRational d_DELTA_ZERO;
 
@@ -329,6 +352,45 @@ private:
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);
 
+
+  /**
+   * Assert*(n, orig) takes an bound n that is implied by orig.
+   * and asserts that as a new bound if it is tighter than the current bound
+   * and updates the value of a basic variable if needed.
+   *
+   * orig must be a literal in the SAT solver so that it can be used for
+   * conflict analysis.
+   *
+   * x is the variable getting the new bound,
+   * c is the value of the new bound.
+   *
+   * If this new bound is in conflict with the other bound,
+   * a node describing this conflict is returned.
+   * If this new bound is not in conflict, Node::null() is returned.
+   */
+  Node AssertLower(ArithVar x, DeltaRational& c, TNode orig);
+  Node AssertUpper(ArithVar x, DeltaRational& c, TNode orig);
+  Node AssertEquality(ArithVar x, DeltaRational& c, TNode orig);
+
+  /** Tracks the bounds that were updated in the current round. */
+  PermissiveBackArithVarSet d_updatedBounds;
+
+  /** Tracks the basic variables where propagatation might be possible. */
+  PermissiveBackArithVarSet d_candidateBasics;
+
+  bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
+  void clearUpdates(){ d_updatedBounds.purge(); }
+
+  void propagateCandidates();
+  void propagateCandidate(ArithVar basic);
+  bool propagateCandidateBound(ArithVar basic, bool upperBound);
+
+  inline bool propagateCandidateLowerBound(ArithVar basic){
+    return propagateCandidateBound(basic, false);
+  }
+  inline bool propagateCandidateUpperBound(ArithVar basic){
+    return propagateCandidateBound(basic, true);
+  }
 
   /**
    * Performs a check to see if it is definitely true that setup can be avoided.
@@ -383,6 +445,8 @@ private:
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
   public:
+    IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
+
     IntStat d_statUserVariables, d_statSlackVariables;
     IntStat d_statDisequalitySplits;
     IntStat d_statDisequalityConflicts;
@@ -398,6 +462,9 @@ private:
     IntStat d_currSetToSmaller;
     IntStat d_smallerSetToCurr;
     TimerStat d_restartTimer;
+
+    TimerStat d_boundComputationTime;
+    IntStat d_boundComputations, d_boundPropagations;
 
     Statistics();
     ~Statistics();

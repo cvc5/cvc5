@@ -63,6 +63,15 @@ public:
     }
   }
 
+  int cmp(const DeltaRational& other) const{
+    int cmp = c.cmp(other.c);
+    if(cmp == 0){
+      return k.cmp(other.k);
+    }else{
+      return cmp;
+    }
+  }
+
   DeltaRational operator+(const DeltaRational& other) const{
     CVC4::Rational tmpC = c+other.c;
     CVC4::Rational tmpK = k+other.k;

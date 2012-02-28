@@ -192,6 +192,10 @@ public:
     }
   }
 
+  bool isZero() const {
+    return cln::zerop(d_value);
+  }
+
   Rational abs() const {
     if(sgn() < 0){
       return -(*this);

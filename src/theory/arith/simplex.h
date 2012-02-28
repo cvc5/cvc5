@@ -11,10 +11,37 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief This is an implementation of the Simplex Module for the Simplex for DPLL(T) decision procedure.
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** This implements the Simplex module for the Simpelx for DPLL(T) decision procedure.
+ ** See the Simplex for DPLL(T) technical report for more background.(citation?)
+ ** This shares with the theory a Tableau, and a PartialModel that:
+ **  - satisfies the equalities in the Tableau, and
+ **  - the assignment for the non-basic variables satisfies their bounds.
+ ** This is required to either produce a conflict or satisifying PartialModel.
+ ** Further, we require being told when a basic variable updates its value.
+ **
+ ** During the Simplex search we maintain a queue of variables.
+ ** The queue is required to contain all of the basic variables that voilate their bounds.
+ ** As elimination from the queue is more efficient to be done lazily,
+ ** we do not maintain that the queue of variables needs to be only basic variables or only variables that satisfy their bounds.
+ **
+ ** The simplex procedure roughly follows Alberto's thesis. (citation?)
+ ** There is one round of selecting using a hueristic pivoting rule. (See PreferenceFunction Documentation for the available options.)
+ ** The non-basic variable is the one that appears in the fewest pivots. (Bruno says that Leonardo invented this first.)
+ ** After this, Bland's pivot rule is invoked.
+ **
+ ** During this proccess, we periodically inspect the queue of variables to
+ ** 1) remove now extraneous extries,
+ ** 2) detect conflicts that are "waiting" on the queue but may not be detected by the current queue hueristics, and
+ ** 3) detect multiple conflicts.
+ **
+ ** Conflicts are greedily slackened to use the weakest bounds that still produce the conflict.
+ **
+ ** Extra things tracked atm: (Subject to change at Tim's whims)
+ ** - A superset of all of the newly pivoted variables.
+ ** - A queue of additional conflicts that were discovered by Simplex.
+ **   These are theory valid and are currently turned into lemmas
  **/
 
 
@@ -30,6 +57,7 @@
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/arith_prop_manager.h"
+#include "theory/arith/linear_equality.h"
 
 #include "util/options.h"
 
@@ -44,69 +72,68 @@ namespace arith {
 class SimplexDecisionProcedure {
 private:
 
+  /** Linear equality module. */
+  LinearEqualityModule& d_linEq;
+
   /**
    * Manages information about the assignment and upper and lower bounds on
    * variables.
+   * Partial model matches that in LinearEqualityModule.
    */
   ArithPartialModel& d_partialModel;
 
+  /**
+   * Stores the linear equalities used by Simplex.
+   * Tableau from the LinearEquality module.
+   */
   Tableau& d_tableau;
+
+  /** Contains a superset of the basic variables in violation of their bounds. */
   ArithPriorityQueue d_queue;
 
+  /** A link to the propagation manager. This is used to generate weaker conflicts. */
   ArithPropManager& d_propManager;
 
+  /** Number of variables in the system. This is used for tuning heuristics. */
   ArithVar d_numVariables;
 
   std::queue<Node> d_delayedLemmas;
 
-  PermissiveBackArithVarSet d_updatedBounds;
-  PermissiveBackArithVarSet d_candidateBasics;
-
+  /** Maps a variable to how many times they have been used as a pivot in the simplex search. */
   ArithVarMultiset d_pivotsInRound;
 
-  Rational d_ZERO;
+  /** Stores to the DeltaRational constant 0. */
   DeltaRational d_DELTA_ZERO;
 
 public:
   SimplexDecisionProcedure(ArithPropManager& propManager,
-                           ArithPartialModel& pm,
-                           Tableau& tableau);
-
+                           LinearEqualityModule& linEq);
 
   /**
-   * Assert*(n, orig) takes an bound n that is implied by orig.
-   * and asserts that as a new bound if it is tighter than the current bound
-   * and updates the value of a basic variable if needed.
-   *
-   * orig must be a literal in the SAT solver so that it can be used for
-   * conflict analysis.
-   *
-   * x is the variable getting the new bound,
-   * c is the value of the new bound.
-   *
-   * If this new bound is in conflict with the other bound,
-   * a node describing this conflict is returned.
-   * If this new bound is not in conflict, Node::null() is returned.
+   * This must be called when the value of a basic variable may now voilate one
+   * of its bounds.
    */
-  Node AssertLower(ArithVar x, const DeltaRational& c, TNode orig);
-  Node AssertUpper(ArithVar x, const DeltaRational& c, TNode orig);
-  Node AssertEquality(ArithVar x, const DeltaRational& c, TNode orig);
+  void updateBasic(ArithVar x){
+    d_queue.enqueueIfInconsistent(x);
+  }
+
+  /**
+   * Tries to update the assignments of variables such that all of the
+   * assignments are consistent with their bounds.
+   * This is done by a simplex search through the possible bases of the tableau.
+   *
+   * If all of the variables can be made consistent with their bounds
+   * Node::null() is returned. Otherwise a minimized conflict is returned.
+   *
+   * Tableau pivoting is performed so variables may switch from being basic to
+   * nonbasic and vice versa.
+   *
+   * Corresponds to the "check()" procedure in [Cav06].
+   */
+  Node findModel();
 
 private:
-  /**
-   * Updates the assignment of a nonbasic variable x_i to v.
-   * Also updates the assignment of basic variables accordingly.
-   */
-  void update(ArithVar x_i, const DeltaRational& v);
 
-  /**
-   * Updates the value of a basic variable x_i to v,
-   * and then pivots x_i with the nonbasic variable in its row x_j.
-   * Updates the assignment of the other basic variables accordingly.
-   */
-  void pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v);
-
-private:
   /**
    * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
    * and 2 ArithVar variables and returns one of the ArithVar variables potentially
@@ -119,7 +146,7 @@ private:
   /**
    * minVarOrder is a PreferenceFunction for selecting the smaller of the 2 ArithVars.
    * This PreferenceFunction is used during the VarOrder stage of
-   * updateInconsistentVars.
+   * findModel.
    */
   static ArithVar minVarOrder(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
 
@@ -128,7 +155,7 @@ private:
    * row count in the tableau.
    *
    * This is a hueristic rule and should not be used
-   * during the VarOrder stage of updateInconsistentVars.
+   * during the VarOrder stage of findModel.
    */
   static ArithVar minColLength(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
   /**
@@ -138,27 +165,13 @@ private:
    * the rule falls back to minRowCount(...).
    *
    * This is a hueristic rule and should not be used
-   * during the VarOrder stage of updateInconsistentVars.
+   * during the VarOrder stage of findModel.
    */
   static ArithVar minBoundAndRowCount(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
 
-public:
-  /**
-   * Tries to update the assignments of variables such that all of the
-   * assignments are consistent with their bounds.
-   *
-   * This is done by searching through the tableau.
-   * If all of the variables can be made consistent with their bounds
-   * Node::null() is returned. Otherwise a minimized conflict is returned.
-   *
-   * If a conflict is found, changes to the assignments need to be reverted.
-   *
-   * Tableau pivoting is performed so variables may switch from being basic to
-   * nonbasic and vice versa.
-   *
-   * Corresponds to the "check()" procedure in [Cav06].
-   */
-  Node updateInconsistentVars();
+
+
+
 private:
   Node searchForFeasibleSolution(uint32_t maxIterations);
 
@@ -193,23 +206,6 @@ private:
    */
   ArithVar selectSmallestInconsistentVar();
 
-
-  /**
-   * Exports either the explanation of an upperbound or a lower bound
-   * of the basic variable basic, using the non-basic variables in the row.
-   */
-  template <bool upperBound>
-  void explainNonbasics(ArithVar basic, NodeBuilder<>& output);
-  void explainNonbasicsLowerBound(ArithVar basic, NodeBuilder<>& output){
-    explainNonbasics<false>(basic, output);
-  }
-  void explainNonbasicsUpperBound(ArithVar basic, NodeBuilder<>& output){
-    explainNonbasics<true>(basic, output);
-  }
-
-  Node deduceUpperBound(ArithVar basicVar);
-  Node deduceLowerBound(ArithVar basicVar);
-
   /**
    * Given a non-basic variable that is know to not be updatable
    * to a consistent value, construct and return a conflict.
@@ -219,29 +215,6 @@ private:
   Node generateConflictBelowLowerBound(ArithVar conflictVar);
 
 public:
-  /**
-   * Checks to make sure the assignment is consistent with the tableau.
-   * This code is for debugging.
-   */
-  void debugCheckTableau();
-  void debugPivotSimplex(ArithVar x_i, ArithVar x_j);
-
-
-  /**
-   * Computes the value of a basic variable using the assignments
-   * of the values of the variables in the basic variable's row tableau.
-   * This can compute the value using either:
-   * - the the current assignment (useSafe=false) or
-   * - the safe assignment (useSafe = true).
-   */
-  DeltaRational computeRowValue(ArithVar x, bool useSafe);
-
-  bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
-  void clearUpdates(){
-    d_updatedBounds.purge();
-  }
-  void propagateCandidates();
-
   void increaseMax() {d_numVariables++;}
 
   /** Returns true if the simplex procedure has more delayed lemmas in its queue.*/
@@ -288,39 +261,11 @@ private:
   Node weakenConflict(bool aboveUpper, ArithVar basicVar);
   TNode weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic);
 
-  void propagateCandidate(ArithVar basic);
-  bool propagateCandidateBound(ArithVar basic, bool upperBound);
-
-  inline bool propagateCandidateLowerBound(ArithVar basic){
-    return propagateCandidateBound(basic, false);
-  }
-  inline bool propagateCandidateUpperBound(ArithVar basic){
-    return propagateCandidateBound(basic, true);
-  }
-
-  bool hasBounds(ArithVar basic, bool upperBound);
-  bool hasLowerBounds(ArithVar basic){
-    return hasBounds(basic, false);
-  }
-  bool hasUpperBounds(ArithVar basic){
-    return hasBounds(basic, true);
-  }
-  DeltaRational computeBound(ArithVar basic, bool upperBound);
-
-  inline DeltaRational computeLowerBound(ArithVar basic){
-    return computeBound(basic, false);
-  }
-  inline DeltaRational computeUpperBound(ArithVar basic){
-    return computeBound(basic, true);
-  }
 
 
   /** These fields are designed to be accessable to TheoryArith methods. */
   class Statistics {
   public:
-    IntStat d_statPivots, d_statUpdates;
-
-    IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
     IntStat d_statUpdateConflicts;
 
     TimerStat d_findConflictOnTheQueueTime;
@@ -334,15 +279,8 @@ private:
     IntStat d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
     TimerStat d_weakenTime;
 
-    TimerStat d_boundComputationTime;
-    IntStat d_boundComputations, d_boundPropagations;
 
     IntStat d_delayedConflicts;
-
-    TimerStat d_pivotTime;
-
-    AverageStat d_avgNumRowsNotContainingOnUpdate;
-    AverageStat d_avgNumRowsNotContainingOnPivot;
 
     Statistics();
     ~Statistics();

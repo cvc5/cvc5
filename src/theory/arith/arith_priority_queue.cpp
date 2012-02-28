@@ -118,7 +118,7 @@ ArithVar ArithPriorityQueue::dequeueInconsistentBasicVariable(){
 ArithPriorityQueue::VarDRatPair ArithPriorityQueue::computeDiff(ArithVar basic){
   Assert(basicAndInconsistent(basic));
   const DeltaRational& beta = d_partialModel.getAssignment(basic);
-  DeltaRational diff = d_partialModel.belowLowerBound(basic,beta,true) ?
+  DeltaRational diff = d_partialModel.strictlyLessThanLowerBound(basic,beta) ?
     d_partialModel.getLowerBound(basic) - beta:
     beta - d_partialModel.getUpperBound(basic);
 

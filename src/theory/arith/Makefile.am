@@ -25,6 +25,8 @@ libarith_la_SOURCES = \
 	delta_rational.cpp \
 	partial_model.h \
 	partial_model.cpp \
+	linear_equality.h \
+	linear_equality.cpp \
 	ordered_set.h \
 	arithvar_set.h \
 	tableau.h \

@@ -132,33 +132,52 @@ public:
   const DeltaRational& getAssignment(ArithVar x) const;
 
 
-
-  /**
-   * x >= l
-   * ? c < l
-   */
-  bool belowLowerBound(ArithVar x, const DeltaRational& c, bool strict);
-
-  /**
-   * x <= u
-   * ? c > u
-   */
-  bool aboveUpperBound(ArithVar x, const DeltaRational& c, bool strict);
-
   bool equalsLowerBound(ArithVar x, const DeltaRational& c);
   bool equalsUpperBound(ArithVar x, const DeltaRational& c);
 
   /**
-   * x <= u
-   * ? c < u
+   * If lowerbound > - \infty:
+   *   return getAssignment(x).cmp(getLowerBound(x))
+   * If lowerbound = - \infty:
+   *   return 1
    */
-  bool strictlyBelowUpperBound(ArithVar x, const DeltaRational& c);
+  int cmpToLowerBound(ArithVar x, const DeltaRational& c);
+
+  inline bool strictlyLessThanLowerBound(ArithVar x, const DeltaRational& c){
+    return cmpToLowerBound(x, c) < 0;
+  }
+  inline bool lessThanLowerBound(ArithVar x, const DeltaRational& c){
+    return cmpToLowerBound(x, c) <= 0;
+  }
+
+  inline bool strictlyGreaterThanLowerBound(ArithVar x, const DeltaRational& c){
+    return cmpToLowerBound(x, c) > 0;
+  }
 
   /**
-   * x <= u
-   * ? c < u
+   * If upperbound < \infty:
+   *   return getAssignment(x).cmp(getUpperBound(x))
+   * If upperbound = \infty:
+   *   return -1
    */
-  bool strictlyAboveLowerBound(ArithVar x, const DeltaRational& c);
+  int cmpToUpperBound(ArithVar x, const DeltaRational& c);
+
+  inline bool strictlyLessThanUpperBound(ArithVar x, const DeltaRational& c){
+    return cmpToUpperBound(x, c) < 0;
+  }
+
+  inline bool lessThanUpperBound(ArithVar x, const DeltaRational& c){
+    return cmpToUpperBound(x, c) <= 0;
+  }
+
+  inline bool strictlyGreaterThanUpperBound(ArithVar x, const DeltaRational& c){
+    return cmpToUpperBound(x, c) > 0;
+  }
+
+  inline bool greaterThanUpperBound(ArithVar x, const DeltaRational& c){
+    return cmpToUpperBound(x, c) >= 0;
+  }
+
 
   bool strictlyBelowUpperBound(ArithVar x);
   bool strictlyAboveLowerBound(ArithVar x);

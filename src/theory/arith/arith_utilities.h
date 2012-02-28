@@ -51,6 +51,12 @@ typedef context::CDSet<Node, NodeHashFunction> CDNodeSet;
 
 typedef context::CDSet<ArithVar> CDArithVarSet;
 
+class ArithVarCallBack {
+public:
+  virtual void callback(ArithVar x) = 0;
+};
+
+
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);
