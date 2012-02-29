@@ -275,6 +275,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
     Chat.setStream(CVC4::null_os);
     Message.setStream(CVC4::null_os);
     Warning.setStream(CVC4::null_os);
+    Dump.setStream(CVC4::null_os);
   } else {
     if(options.verbosity < 2) {
       Chat.setStream(CVC4::null_os);
@@ -294,6 +295,9 @@ int runCvc4(int argc, char *argv[], Options& options) {
     Chat.getStream() << Expr::setlanguage(language);
     Message.getStream() << Expr::setlanguage(language);
     Warning.getStream() << Expr::setlanguage(language);
+    Dump.getStream() << Expr::setlanguage(options.outputLanguage)
+                     << Expr::setdepth(-1)
+                     << Expr::printtypes(false);
   }
 
   vector<Options> threadOptions;
