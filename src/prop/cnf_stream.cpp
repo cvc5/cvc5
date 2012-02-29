@@ -68,7 +68,7 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
     } else {
       Assert(c.size() > 1);
       NodeBuilder<> b(kind::OR);
-      for(int i = 0; i < c.size(); ++i) {
+      for(unsigned i = 0; i < c.size(); ++i) {
         b << getNode(c[i]);
       }
       Node n = b;

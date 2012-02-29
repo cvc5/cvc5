@@ -64,6 +64,11 @@ Bitblaster::Bitblaster(context::Context* c) :
     initTermBBStrategies(); 
   }
 
+Bitblaster::~Bitblaster() {
+  delete d_cnfStream;
+  delete d_satSolver; 
+}
+
 
 /** 
  * Bitblasts the atom, assigns it a marker literal, adding it to the SAT solver

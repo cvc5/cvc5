@@ -55,13 +55,13 @@ void inline extractBits(const Bits& b, Bits& dest, unsigned lo, unsigned hi) {
 }
 
 void inline negateBits(const Bits& bits, Bits& negated_bits) {
-  for(int i = 0; i < bits.size(); ++i) {
+  for(unsigned i = 0; i < bits.size(); ++i) {
     negated_bits.push_back(utils::mkNot(bits[i])); 
   }
 }
 
 bool inline isZero(const Bits& bits) {
-  for(int i = 0; i < bits.size(); ++i) {
+  for(unsigned i = 0; i < bits.size(); ++i) {
     if(bits[i] != mkFalse()) {
       return false; 
     }
@@ -323,7 +323,6 @@ void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {
   Assert(node.getKind() == kind::CONST_BITVECTOR);
   Assert(bits.size() == 0);
   
-  NodeManager* nm = NodeManager::currentNM(); 
   for (unsigned i = 0; i < utils::getSize(node); ++i) {
     Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
     if(bit == Integer(0)){
@@ -690,12 +689,12 @@ void DefaultLshrBB (TNode node, Bits& res, Bitblaster* bb) {
   res = a;
   Bits prev_res;
   
-  for(int s = 0; s < b.size(); ++s) {
+  for(unsigned s = 0; s < b.size(); ++s) {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
     prev_res = res; 
     int threshold = pow(2, s); 
-    for(int i = 0; i < a.size(); ++i) {
+    for(unsigned i = 0; i < a.size(); ++i) {
       if (i + threshold >= a.size()) {
         // if b[s] is true then we must have shifted by at least 2^b bits so
         // all bits above 2^s will be 0, otherwise just use previous shift value
@@ -723,12 +722,12 @@ void DefaultAshrBB (TNode node, Bits& res, Bitblaster* bb) {
   TNode sign_bit = a.back();
   Bits prev_res;
 
-  for(int s = 0; s < b.size(); ++s) {
+  for(unsigned s = 0; s < b.size(); ++s) {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
     prev_res = res; 
     int threshold = pow(2, s); 
-    for(int i = 0; i < a.size(); ++i) {
+    for(unsigned i = 0; i < a.size(); ++i) {
       if (i + threshold >= a.size()) {
         // if b[s] is true then we must have shifted by at least 2^b bits so
         // all bits above 2^s will be the sign bit, otherwise just use previous shift value

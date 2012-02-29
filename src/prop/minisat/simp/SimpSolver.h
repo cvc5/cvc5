@@ -121,7 +121,7 @@ class SimpSolver : public Solver {
          bool operator()(Var x, Var y) const { 
              int c_x = cost(x);
              int c_y = cost(y);
-             return c_x < c_y || c_x == c_y && x < y; }
+             return c_x < c_y || (c_x == c_y && x < y); }
     };
 
     struct ClauseDeleted {

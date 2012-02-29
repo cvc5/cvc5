@@ -109,11 +109,7 @@ public:
   
 public:
   Bitblaster(context::Context* c); 
-  ~Bitblaster() {
-    delete d_cnfStream;
-    delete d_satSolver; 
-  }
-  
+  ~Bitblaster();
   void assertToSat(TNode node);
   bool solve();
   void bitblast(TNode node);
