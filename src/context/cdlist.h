@@ -174,20 +174,27 @@ protected:
                     << " data == " << data
                     << " call dtor == " << this->d_callDestructor
                     << " d_list == " << this->d_list << std::endl;
-    if(this->d_callDestructor) {
-      const size_t size = ((CDList<T, Allocator>*)data)->d_size;
-      while(this->d_size != size) {
-        --this->d_size;
-        this->d_allocator.destroy(&this->d_list[this->d_size]);
-      }
-    } else {
-      this->d_size = ((CDList<T, Allocator>*)data)->d_size;
-    }
+    removeLastUntil(((CDList<T, Allocator>*)data)->d_size);
     Debug("cdlist") << "restore " << this
                     << " level " << this->getContext()->getLevel()
                     << " size back to " << this->d_size
                     << " sizeAlloc at " << this->d_sizeAlloc << std::endl;
   }
+
+  /** Remove the elements from the given indices to the last.
+   *  You should use this function only when you know what you do.
+   */
+  inline void removeLastUntil(const size_t size){
+    if(this->d_callDestructor) {
+      while(this->d_size != size) {
+        --this->d_size;
+        this->d_allocator.destroy(&this->d_list[this->d_size]);
+      }
+    } else {
+      this->d_size = size;
+    }
+  }
+
 
 public:
 
