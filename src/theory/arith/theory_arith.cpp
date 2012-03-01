@@ -192,8 +192,8 @@ Node TheoryArith::AssertLower(ArithVar x_i, DeltaRational& c_i, TNode original){
 
     Node diseq = left.eqNode(right).notNode();
     if (d_diseq.find(diseq) != d_diseq.end()) {
-      Node lb = d_partialModel.getLowerConstraint(x_i);
-      return disequalityConflict(diseq, lb , original);
+      Node ub = d_partialModel.getUpperConstraint(x_i);
+      return disequalityConflict(diseq, ub , original);
     }
   }
 
