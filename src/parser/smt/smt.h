@@ -54,7 +54,10 @@ public:
     QF_UF,
     QF_UFIDL,
     QF_UFLIA,
+    QF_UFNIA, // nonstandard
     QF_UFLRA,
+    QF_UFLIRA, // nonstandard
+    QF_UFNIRA, // nonstandard
     QF_UFNRA,
     UFNIA
   };

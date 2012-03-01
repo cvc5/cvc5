@@ -494,10 +494,14 @@ Expr DefineFunctionCommand::getFormula() const throw() {
 
 void DefineFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
   //Dump("declarations") << *this << endl; -- done by SmtEngine
-  if(!d_func.isNull()) {
-    smtEngine->defineFunction(d_func, d_formals, d_formula);
+  try {
+    if(!d_func.isNull()) {
+      smtEngine->defineFunction(d_func, d_formals, d_formula);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
   }
-  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DefineFunctionCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {

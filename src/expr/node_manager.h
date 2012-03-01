@@ -38,6 +38,7 @@
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 #include "context/context.h"
+#include "util/subrange_bound.h"
 #include "util/configuration_private.h"
 #include "util/tls.h"
 #include "util/options.h"
@@ -662,6 +663,31 @@ public:
   inline TypeNode mkSortConstructor(const std::string& name, size_t arity);
 
   /**
+   * Make a predicate subtype type defined by the given LAMBDA
+   * expression.  A TypeCheckingExceptionPrivate can be thrown if
+   * lambda is not a LAMBDA, or is ill-typed, or if CVC4 fails at
+   * proving that the resulting predicate subtype is inhabited.
+   */
+  TypeNode mkPredicateSubtype(Expr lambda)
+    throw(TypeCheckingExceptionPrivate);
+
+  /**
+   * Make a predicate subtype type defined by the given LAMBDA
+   * expression and whose non-emptiness is witnessed by the given
+   * witness.  A TypeCheckingExceptionPrivate can be thrown if lambda
+   * is not a LAMBDA, or is ill-typed, or if the witness is not a
+   * witness or ill-typed.
+   */
+  TypeNode mkPredicateSubtype(Expr lambda, Expr witness)
+    throw(TypeCheckingExceptionPrivate);
+
+  /**
+   * Make an integer subrange type as defined by the argument.
+   */
+  TypeNode mkSubrangeType(const SubrangeBounds& bounds)
+    throw(TypeCheckingExceptionPrivate);
+
+  /**
    * Get the type for the given node and optionally do type checking.
    *
    * Initial type computation will be near-constant time if
@@ -687,7 +713,7 @@ public:
    * (default: false)
    */
   TypeNode getType(TNode n, bool check = false)
-    throw (TypeCheckingExceptionPrivate, AssertionException);
+    throw(TypeCheckingExceptionPrivate, AssertionException);
 
   /**
    * Convert a node to an expression.  Uses the ExprManager
@@ -944,10 +970,15 @@ inline TypeNode NodeManager::mkBitVectorType(unsigned size) {
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                                          TypeNode constituentType) {
-  CheckArgument(!indexType.isFunctionLike(), domain,
+  CheckArgument(!indexType.isNull(), indexType,
+                "unexpected NULL index type");
+  CheckArgument(!constituentType.isNull(), constituentType,
+                "unexpected NULL constituent type");
+  CheckArgument(!indexType.isFunctionLike(), indexType,
                 "cannot index arrays by a function-like type");
-  CheckArgument(!constituentType.isFunctionLike(), domain,
+  CheckArgument(!constituentType.isFunctionLike(), constituentType,
                 "cannot store function-like types in arrays");
+Debug("arrays") << "making array type " << indexType << " " << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
 

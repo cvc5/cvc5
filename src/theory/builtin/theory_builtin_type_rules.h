@@ -227,6 +227,26 @@ public:
   }
 };/* class TupleProperties */
 
+class SubtypeProperties {
+public:
+
+  inline static Cardinality computeCardinality(TypeNode type) {
+    Assert(type.getKind() == kind::SUBTYPE_TYPE);
+    Unimplemented("Computing the cardinality for predicate subtype not yet supported.");
+  }
+
+  inline static bool isWellFounded(TypeNode type) {
+    Assert(type.getKind() == kind::SUBTYPE_TYPE);
+    Unimplemented("Computing the well-foundedness for predicate subtype not yet supported.");
+  }
+
+  inline static Node mkGroundTerm(TypeNode type) {
+    Assert(type.getKind() == kind::SUBTYPE_TYPE);
+    Unimplemented("Constructing a ground term for predicate subtype not yet supported.");
+  }
+
+};/* class SubtypeProperties */
+
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

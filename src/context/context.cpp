@@ -62,7 +62,7 @@ Context::~Context() throw(AssertionException) {
 
 void Context::push() {
   Trace("pushpop") << std::string(2 * getLevel(), ' ') << "Push [to "
-                   << getLevel() + 1 << "] {" << std::endl;
+                   << getLevel() + 1 << "] { " << this << std::endl;
 
   // Create a new memory region
   d_pCMM->push();
@@ -106,7 +106,7 @@ void Context::pop() {
   }
 
   Trace("pushpop") << std::string(2 * getLevel(), ' ') << "} Pop [to "
-                   << getLevel() << "]" << std::endl;
+                   << getLevel() << "] " << this << std::endl;
 }
 
 

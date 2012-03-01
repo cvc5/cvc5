@@ -97,24 +97,33 @@ ExprManager::ExprManager(const Options& options) :
 #endif
 }
 
-ExprManager::~ExprManager() {
-#ifdef CVC4_STATISTICS_ON
+ExprManager::~ExprManager() throw() {
   NodeManagerScope nms(d_nodeManager);
-  for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
-    if (d_exprStatistics[i] != NULL) {
-      StatisticsRegistry::unregisterStat(d_exprStatistics[i]);
-      delete d_exprStatistics[i];
+
+  try {
+
+#ifdef CVC4_STATISTICS_ON
+    for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
+      if (d_exprStatistics[i] != NULL) {
+        StatisticsRegistry::unregisterStat(d_exprStatistics[i]);
+        delete d_exprStatistics[i];
+      }
     }
-  }
-  for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
-    if (d_exprStatisticsVars[i] != NULL) {
-      StatisticsRegistry::unregisterStat(d_exprStatisticsVars[i]);
-      delete d_exprStatisticsVars[i];
+    for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
+      if (d_exprStatisticsVars[i] != NULL) {
+        StatisticsRegistry::unregisterStat(d_exprStatisticsVars[i]);
+        delete d_exprStatisticsVars[i];
+      }
     }
-  }
 #endif
-  delete d_nodeManager;
-  delete d_ctxt;
+
+    delete d_nodeManager;
+    delete d_ctxt;
+
+  } catch(Exception& e) {
+    Warning() << "CVC4 threw an exception during cleanup." << std::endl
+              << e << std::endl;
+  }
 }
 
 const Options* ExprManager::getOptions() const {
@@ -695,6 +704,39 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
   NodeManagerScope nms(d_nodeManager);
   return SortConstructorType(Type(d_nodeManager,
               new TypeNode(d_nodeManager->mkSortConstructor(name, arity))));
+}
+
+Type ExprManager::mkPredicateSubtype(Expr lambda)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    return PredicateSubtype(Type(d_nodeManager,
+                new TypeNode(d_nodeManager->mkPredicateSubtype(lambda))));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Type ExprManager::mkPredicateSubtype(Expr lambda, Expr witness)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    return PredicateSubtype(Type(d_nodeManager,
+                new TypeNode(d_nodeManager->mkPredicateSubtype(lambda, witness))));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Type ExprManager::mkSubrangeType(const SubrangeBounds& bounds)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    return SubrangeType(Type(d_nodeManager,
+                new TypeNode(d_nodeManager->mkSubrangeType(bounds))));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
 }
 
 /**

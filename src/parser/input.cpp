@@ -59,25 +59,26 @@ Input* Input::newFileInput(InputLanguage lang,
                            bool useMmap)
   throw (InputStreamException, AssertionException) {
   AntlrInputStream *inputStream = 
-    AntlrInputStream::newFileInputStream(filename,useMmap);
-  return AntlrInput::newInput(lang,*inputStream);
+    AntlrInputStream::newFileInputStream(filename, useMmap);
+  return AntlrInput::newInput(lang, *inputStream);
 }
 
 Input* Input::newStreamInput(InputLanguage lang, 
                              std::istream& input, 
-                             const std::string& name) 
+                             const std::string& name,
+                             bool lineBuffered)
   throw (InputStreamException, AssertionException) {
   AntlrInputStream *inputStream = 
-    AntlrInputStream::newStreamInputStream(input,name);
-  return AntlrInput::newInput(lang,*inputStream);
+    AntlrInputStream::newStreamInputStream(input, name, lineBuffered);
+  return AntlrInput::newInput(lang, *inputStream);
 }
 
 Input* Input::newStringInput(InputLanguage lang,
                              const std::string& str,
                              const std::string& name)
   throw (InputStreamException, AssertionException) {
-  AntlrInputStream *inputStream = AntlrInputStream::newStringInputStream(str,name);
-  return AntlrInput::newInput(lang,*inputStream);
+  AntlrInputStream *inputStream = AntlrInputStream::newStringInputStream(str, name);
+  return AntlrInput::newInput(lang, *inputStream);
 }
 
 }/* CVC4::parser namespace */

@@ -102,12 +102,12 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-  elif grep -q '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
-    expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
-    expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
-    expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
-    expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
-    command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
+  elif grep -q '^\(%\|;\) \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
+    expected_proof=`grep -q '^[%;] PROOF' "$benchmark" && echo yes`
+    expected_output=`grep '^[%;] EXPECT: ' "$benchmark" | sed 's,^[%;] EXPECT: ,,'`
+    expected_error=`grep '^[%;] EXPECT-ERROR: ' "$benchmark" | sed 's,^[%;] EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^[%;] EXIT: ' "$benchmark" | perl -pe 's,^[%;] EXIT: ,,;s,\r,,'`
+    command_line=`grep '^[%;] COMMAND-LINE: ' "$benchmark" | sed 's,^[%;] COMMAND-LINE: ,,'`
     # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
     # this frustrates our auto-language-detection
     gettemp tmpbenchmark cvc4_benchmark.smt2.$$.XXXXXXXXXX

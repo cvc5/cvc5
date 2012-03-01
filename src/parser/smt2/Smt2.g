@@ -67,7 +67,6 @@ options {
 
 #include "parser/smt2/smt2.h"
 #include "parser/antlr_input.h"
-#include "parser/antlr_tracing.h"
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -79,6 +78,7 @@ using namespace CVC4::parser;
 @parser::includes {
 #include "expr/command.h"
 #include "parser/parser.h"
+#include "parser/antlr_tracing.h"
 
 namespace CVC4 {
   class Expr;
@@ -358,7 +358,12 @@ command returns [CVC4::Command* cmd = NULL]
 extendedCommand[CVC4::Command*& cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
+  Type t;
   Expr e;
+  SExpr sexpr;
+  std::string name;
+  std::vector<std::string> names;
+  std::vector<Type> sorts;
 }
     /* Z3's extended SMT-LIBv2 set of commands syntax */
   : DECLARE_DATATYPES_TOK
@@ -368,33 +373,43 @@ extendedCommand[CVC4::Command*& cmd]
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
 
-    
   | DECLARE_SORTS_TOK
   | DECLARE_FUNS_TOK
+    LPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] nonemptySortList[sorts] RPAREN_TOK )+
+    RPAREN_TOK
   | DECLARE_PREDS_TOK
-  | DEFINE_TOK
+    LPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] sortList[sorts] RPAREN_TOK )+
+    RPAREN_TOK
+  | DEFINE_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] term[e]
   | DEFINE_SORTS_TOK
-  | DECLARE_CONST_TOK
-    
+    LPAREN_TOK
+    ( LPAREN_TOK ( symbol[name,CHECK_UNDECLARED,SYM_SORT] LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK |
+                   symbol[name,CHECK_UNDECLARED,SYM_SORT] symbol[name,CHECK_NONE,SYM_SORT] ) RPAREN_TOK RPAREN_TOK )+
+    RPAREN_TOK
+  | DECLARE_CONST_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] sortSymbol[t,CHECK_DECLARED]
+
   | SIMPLIFY_TOK term[e]
     { cmd = new SimplifyCommand(e); }
   | ECHO_TOK
-    ( STRING_LITERAL
-      { Message() << AntlrInput::tokenText($STRING_LITERAL) << std::endl; }
+    ( simpleSymbolicExpr[sexpr]
+      { Message() << sexpr << std::endl; }
     | { Message() << std::endl; } )
+    { cmd = new EmptyCommand; }
   ;
 
-symbolicExpr[CVC4::SExpr& sexpr]
+simpleSymbolicExpr[CVC4::SExpr& sexpr]
 @declarations {
-  std::vector<SExpr> children;
   CVC4::Kind k;
+  std::string s;
 }
   : INTEGER_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
   | DECIMAL_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
-  | STRING_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($STRING_LITERAL)); }
+  | str[s]
+    { sexpr = SExpr(s); }
   | SYMBOL
     { sexpr = SExpr(AntlrInput::tokenText($SYMBOL)); }
   | builtinOp[k]
@@ -404,6 +419,13 @@ symbolicExpr[CVC4::SExpr& sexpr]
     }
   | KEYWORD
     { sexpr = SExpr(AntlrInput::tokenText($KEYWORD)); }
+  ;
+
+symbolicExpr[CVC4::SExpr& sexpr]
+@declarations {
+  std::vector<SExpr> children;
+}
+  : simpleSymbolicExpr[sexpr]
   | LPAREN_TOK
     (symbolicExpr[sexpr] { children.push_back(sexpr); } )*
   	RPAREN_TOK
@@ -611,6 +633,17 @@ termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
   ;
 
 /**
+ * Matches a string, and strips off the quotes.
+ */
+str[std::string& s]
+  : STRING_LITERAL
+    { s = AntlrInput::tokenText($STRING_LITERAL);
+      /* strip off the quotes */
+      s = s.substr(1, s.size() - 2);
+    }
+  ;
+
+/**
 * Matches a builtin operator symbol and sets kind to its associated Expr kind.
 */
 builtinOp[CVC4::Kind& kind]
@@ -637,6 +670,8 @@ builtinOp[CVC4::Kind& kind]
   | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
   | STAR_TOK     { $kind = CVC4::kind::MULT; }
   | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
+  | INTS_DIV_TOK      { $kind = CVC4::kind::INTS_DIVISION; }
+  | INTS_MOD_TOK      { $kind = CVC4::kind::INTS_MODULUS; }
 
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
@@ -703,6 +738,13 @@ sortList[std::vector<CVC4::Type>& sorts]
   Type t;
 }
   : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )*
+  ;
+
+nonemptySortList[std::vector<CVC4::Type>& sorts]
+@declarations {
+  Type t;
+}
+  : ( sortSymbol[t,CHECK_DECLARED] { sorts.push_back(t); } )+
   ;
 
 /**
@@ -936,6 +978,9 @@ STAR_TOK          : '*';
 STORE_TOK         : 'store';
 // TILDE_TOK         : '~';
 XOR_TOK           : 'xor';
+
+INTS_DIV_TOK : 'div';
+INTS_MOD_TOK : 'mod';
 
 CONCAT_TOK : 'concat';
 BVNOT_TOK : 'bvnot';

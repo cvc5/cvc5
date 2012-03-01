@@ -121,7 +121,8 @@ This is CVC4 version " CVC4_RELEASE_STRING ) + \
         ? ( ::std::string(" [") + ::CVC4::Configuration::getSubversionId() + "]" ) \
         : ::std::string("") \
     ) + "\n\
-compiled with " + ::CVC4::Configuration::getCompiler() + "\n\n\
+compiled with " + ::CVC4::Configuration::getCompiler() + "\n\
+on " + ::CVC4::Configuration::getCompiledDateTime() + "\n\n\
 Copyright (C) 2009, 2010, 2011, 2012\n\
   The ACSys Group\n\
   Courant Institute of Mathematical Sciences\n\

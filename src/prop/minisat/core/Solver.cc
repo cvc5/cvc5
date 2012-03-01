@@ -714,10 +714,11 @@ CRef Solver::propagate(TheoryCheckType type)
 }
 
 void Solver::propagateTheory() {
-
-  SatClause propagatedLiteralsClause; 
+  SatClause propagatedLiteralsClause;
+  // Doesn't actually call propagate(); that's done in theoryCheck() now that combination
+  // is online.  This just incorporates those propagations previously discovered.
   proxy->theoryPropagate(propagatedLiteralsClause);
-  
+
   vec<Lit> propagatedLiterals;
   DPLLMinisatSatSolver::toMinisatClause(propagatedLiteralsClause, propagatedLiterals); 
 
@@ -885,10 +886,22 @@ void Solver::removeClausesAboveLevel(vec<CRef>& cs, int level)
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
         if (c.level() > level) {
-            Debug("minisat") << "removeClausesAboveLevel(" << level << "): removing level-" << c.level() << " clause: " << c << std::endl;
+            if(Debug.isOn("minisat")) {
+              Debug("minisat") << "removeClausesAboveLevel(" << level << "): removing level-" << c.level() << " clause: " << c << ":";
+              for(int i = 0; i < c.size(); ++i) {
+                Debug("minisat") << " " << c[i];
+              }
+              Debug("minisat") << std::endl;
+            }
             removeClause(cs[i]);
         } else {
-            Debug("minisat") << "removeClausesAboveLevel(" << level << "): leaving level-" << c.level() << " clause: " << c << std::endl;
+            if(Debug.isOn("minisat")) {
+              Debug("minisat") << "removeClausesAboveLevel(" << level << "): leaving level-" << c.level() << " clause: " << c << ":";
+              for(int i = 0; i < c.size(); ++i) {
+                Debug("minisat") << " " << c[i];
+              }
+              Debug("minisat") << std::endl;
+            }
             cs[j++] = cs[i];
         }
     }
@@ -1328,16 +1341,25 @@ void Solver::push()
   Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
   trail_user.push(lit_Undef);
   trail_ok.push(ok);
+  trail_user_lim.push(trail.size());
+  assert(trail_user_lim.size() == assertionLevel);
+  Debug("minisat") << "MINISAT PUSH assertionLevel is " << assertionLevel << ", trail.size is " << trail.size() << std::endl;
 }
 
 void Solver::pop()
 {
   assert(enable_incremental);
 
+  Debug("minisat") << "MINISAT POP at level " << decisionLevel() << " (context " << context->getLevel() << "), popping trail..." << std::endl;
   popTrail();
+  Debug("minisat") << "MINISAT POP now at   " << decisionLevel() << " (context " << context->getLevel() << ")" << std::endl;
+ 
+  assert(decisionLevel() == 0);
+  assert(trail_user_lim.size() == assertionLevel);
 
   --assertionLevel;
 
+  Debug("minisat") << "MINISAT POP assertionLevel is now down to " << assertionLevel << ", trail.size is " << trail.size() << ", need to get down to " << trail_user_lim.last() << std::endl;
   Debug("minisat") << "in user pop, reducing assertion level to " << assertionLevel << " and removing clauses above this from db" << std::endl;
 
   // Remove all the clauses asserted (and implied) above the new base level
@@ -1345,6 +1367,23 @@ void Solver::pop()
   removeClausesAboveLevel(clauses_persistent, assertionLevel);
 
   Debug("minisat") << "in user pop, at " << trail_lim.size() << " : " << assertionLevel << std::endl;
+
+  int downto = trail_user_lim.last();
+  while(downto < trail.size()) {
+    Debug("minisat") << "== unassigning " << trail.last() << std::endl;
+    Var      x  = var(trail.last());
+    if(intro_level(x) != -1) {// might be unregistered
+      assigns [x] = l_Undef;
+      vardata[x].trail_index = -1;
+      polarity[x] = sign(trail.last());
+      insertVarOrder(x);
+    }
+    trail.pop();
+  }
+  qhead = trail.size();
+  Debug("minisat") << "MINISAT POP assertionLevel is now down to " << assertionLevel << ", trail.size is " << trail.size() << ", should be at " << trail_user_lim.last() << std::endl;
+  assert(trail_user_lim.last() == qhead);
+  trail_user_lim.pop();
 
   // Unset any units learned or added at this level
   Debug("minisat") << "in user pop, unsetting level units for level " << assertionLevel << std::endl;

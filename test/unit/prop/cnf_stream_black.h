@@ -100,7 +100,11 @@ public:
     return SatValUnknown;
   }
 
-};
+  bool properExplanation(SatLiteral lit, SatLiteral expl) const {
+    return true;
+  }
+
+};/* class FakeSatSolver */
 
 class CnfStreamBlack : public CxxTest::TestSuite {
   /** The SAT solver proxy */

@@ -91,7 +91,7 @@ class TheoryEngine {
 
   /**
    * A bitmap of theories that are "active" for the current run.  We
-   * mark a theory active when we firt see a term or type belonging to
+   * mark a theory active when we first see a term or type belonging to
    * it.  This is important because we can optimize for single-theory
    * runs (no sharing), can reduce the cost of walking the DAG on
    * registration, etc.

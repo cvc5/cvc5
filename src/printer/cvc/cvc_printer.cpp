@@ -94,7 +94,11 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::CONST_RATIONAL: {
       const Rational& rat = n.getConst<Rational>();
-      out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
+      if(rat.getDenominator() == 1) {
+        out << rat.getNumerator();
+      } else {
+        out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
+      }
       break;
     }
     case kind::CONST_INTEGER: {
@@ -107,6 +111,12 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << num;
       break;
     }
+    case kind::SUBRANGE_TYPE:
+      out << '[' << n.getConst<SubrangeBounds>() << ']';
+      break;
+    case kind::SUBTYPE_TYPE:
+      out << "SUBTYPE(" << n.getConst<Predicate>() << ")";
+      break;
     case kind::TYPE_CONSTANT:
       switch(TypeConstant tc = n.getConst<TypeConstant>()) {
       case REAL_TYPE:
@@ -129,6 +139,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
         break;
       }
       break;
+
     default:
       Warning() << "Constant printing not implemented for the case of " << n.getKind() << endl;
       out << n.getKind();
@@ -338,6 +349,14 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::DIVISION:
       op << '/';
+      opType = INFIX;
+      break;
+    case kind::INTS_DIVISION:
+      op << "DIV";
+      opType = INFIX;
+      break;
+    case kind::INTS_MODULUS:
+      op << "MOD";
       opType = INFIX;
       break;
     case kind::LT:

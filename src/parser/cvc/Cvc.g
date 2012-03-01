@@ -132,9 +132,6 @@ tokens {
   PARENHASH = '(#';
   HASHPAREN = '#)';
 
-  //DOT = '.';
-  DOTDOT = '..';
-
   // Operators
 
   ARROW_TOK = '->';
@@ -198,6 +195,12 @@ tokens {
   BVSGT_TOK = 'BVSGT';
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
+
+  // these are parsed by special NUMBER_OR_RANGEOP rule, below
+  DECIMAL_LITERAL;
+  INTEGER_LITERAL;
+  DOT;
+  DOTDOT;
 }/* tokens */
 
 @parser::members {
@@ -312,7 +315,8 @@ Kind getOperatorKind(int type, bool& negate) {
   case PLUS_TOK: return kind::PLUS;
   case MINUS_TOK: return kind::MINUS;
   case STAR_TOK: return kind::MULT;
-  case INTDIV_TOK: Unhandled(CvcParserTokenNames[type]);
+  case INTDIV_TOK: return kind::INTS_DIVISION;
+  case MOD_TOK: return kind::INTS_MODULUS;
   case DIV_TOK: return kind::DIVISION;
   case EXP_TOK: Unhandled(CvcParserTokenNames[type]);
 
@@ -363,9 +367,14 @@ Expr createPrecedenceTree(ExprManager* em,
   unsigned pivot = findPivot(operators, startIndex, stopIndex - 1);
   //Debug("prec") << "pivot[" << startIndex << "," << stopIndex - 1 << "] at " << pivot << std::endl;
   bool negate;
-  Expr e = em->mkExpr(getOperatorKind(operators[pivot], negate),
-                      createPrecedenceTree(em, expressions, operators, startIndex, pivot),
-                      createPrecedenceTree(em, expressions, operators, pivot + 1, stopIndex));
+  Kind k = getOperatorKind(operators[pivot], negate);
+  Expr lhs = createPrecedenceTree(em, expressions, operators, startIndex, pivot);
+  Expr rhs = createPrecedenceTree(em, expressions, operators, pivot + 1, stopIndex);
+  if(k == kind::EQUAL && lhs.getType().isBoolean()) {
+    WarningOnce() << "Warning: converting BOOL = BOOL to BOOL <=> BOOL" << std::endl;
+    k = kind::IFF;
+  }
+  Expr e = em->mkExpr(k, lhs, rhs);
   return negate ? em->mkExpr(kind::NOT, e) : e;
 }/* createPrecedenceTree() recursive variant */
 
@@ -497,6 +506,8 @@ namespace CVC4 {
 #include "util/output.h"
 
 #include <vector>
+#include <string>
+#include <sstream>
 
 #define REPEAT_COMMAND(k, CommandCtor)                      \
   ({                                                        \
@@ -691,8 +702,8 @@ mainCommand[CVC4::Command*& cmd]
     { UNSUPPORTED("CALL command"); }
 
   | ECHO_TOK
-    ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-      { Message() << s << std::endl; }
+    ( simpleSymbolicExpr[sexpr]
+      { Message() << sexpr << std::endl; }
     | { Message() << std::endl; }
     )
 
@@ -732,17 +743,30 @@ mainCommand[CVC4::Command*& cmd]
   | toplevelDeclaration[cmd]
   ;
 
-symbolicExpr[CVC4::SExpr& sexpr]
+simpleSymbolicExpr[CVC4::SExpr& sexpr]
 @declarations {
-  std::vector<SExpr> children;
   std::string s;
+  CVC4::Rational r;
 }
-  : INTEGER_LITERAL ('.' DIGIT+)?
-    { sexpr = SExpr((const char*)$symbolicExpr.text->chars); }
+  : INTEGER_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
+  | DECIMAL_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
+  | HEX_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($HEX_LITERAL)); }
+  | BINARY_LITERAL
+    { sexpr = SExpr(AntlrInput::tokenText($BINARY_LITERAL)); }
   | str[s]
     { sexpr = SExpr(s); }
   | IDENTIFIER
     { sexpr = SExpr(AntlrInput::tokenText($IDENTIFIER)); }
+  ;
+
+symbolicExpr[CVC4::SExpr& sexpr]
+@declarations {
+  std::vector<SExpr> children;
+}
+  : simpleSymbolicExpr[sexpr]
   | LPAREN (symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN
     { sexpr = SExpr(children); }
   ;
@@ -1020,9 +1044,12 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
                                   bool& lhs]
 @init {
   Type t2;
-  Expr f;
+  Expr f, f2;
   std::string id;
   std::vector<Type> types;
+  std::vector< std::pair<std::string, Type> > typeIds;
+  DeclarationScope* declScope;
+  Parser* parser;
   lhs = false;
 }
     /* named types */
@@ -1056,24 +1083,33 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     { t = EXPR_MANAGER->mkArrayType(t, t2); }
 
     /* subtypes */
-  | SUBTYPE_TOK LPAREN formula[f] ( COMMA formula[f] )? RPAREN
-    { UNSUPPORTED("subtypes not supported yet");
-      t = Type(); }
+  | SUBTYPE_TOK LPAREN
+    /* A bit tricky: this LAMBDA expression cannot refer to constants
+     * declared in the outer context.  What follows isn't quite right,
+     * though, since type aliases and function definitions should be
+     * retained in the set of current declarations. */
+    { /*declScope = PARSER_STATE->getDeclarationScope();
+      PARSER_STATE->useDeclarationsFrom(new DeclarationScope());*/ }
+    formula[f] ( COMMA formula[f2] )? RPAREN
+    { /*DeclarationScope* old = PARSER_STATE->getDeclarationScope();
+      PARSER_STATE->useDeclarationsFrom(declScope);
+      delete old;*/
+      t = f2.isNull() ?
+        EXPR_MANAGER->mkPredicateSubtype(f) :
+        EXPR_MANAGER->mkPredicateSubtype(f, f2);
+    }
 
     /* subrange types */
   | LBRACKET k1=bound DOTDOT k2=bound RBRACKET
-    { std::stringstream ss;
-      ss << "subranges not supported yet: [" << k1 << ":" << k2 << ']';
-      UNSUPPORTED(ss.str());
-      if(k1.hasBound() && k2.hasBound() &&
+    { if(k1.hasBound() && k2.hasBound() &&
          k1.getBound() > k2.getBound()) {
-        ss.str("");
+        std::stringstream ss;
         ss << "Subrange [" << k1.getBound() << ".." << k2.getBound()
            << "] inappropriate: range must be nonempty!";
         PARSER_STATE->parseError(ss.str());
       }
-      Debug("subranges") << ss.str() << std::endl;
-      t = Type(); }
+      t = EXPR_MANAGER->mkSubrangeType(SubrangeBounds(k1, k2));
+    }
 
     /* tuple types / old-style function types */
   | LBRACKET type[t,check] { types.push_back(t); }
@@ -1087,15 +1123,14 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
         }
       } else {
         // tuple type [ T, U, V... ]
-        t = EXPR_MANAGER->mkTupleType(types);
+        t = PARSER_STATE->mkTupleType(types);
       }
     }
 
     /* record types */
-  | SQHASH identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check]
-    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] )* HASHSQ
-    { UNSUPPORTED("records not supported yet");
-      t = Type(); }
+  | SQHASH identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
+    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* HASHSQ
+    { t = PARSER_STATE->mkRecordType(typeIds); }
 
     /* bitvector types */
   | BITVECTOR_TOK LPAREN k=numeral RPAREN
@@ -1321,14 +1356,20 @@ arithmeticBinop[unsigned& op]
   | MINUS_TOK
   | STAR_TOK
   | INTDIV_TOK
+  | MOD_TOK
   | DIV_TOK
   | EXP_TOK
   ;
 
-/** Parses an array assignment term. */
+/** Parses an array/tuple/record assignment term. */
 storeTerm[CVC4::Expr& f]
   : uminusTerm[f]
-    ( WITH_TOK arrayStore[f] ( COMMA arrayStore[f] )* )*
+    ( WITH_TOK
+      ( arrayStore[f] ( COMMA arrayStore[f] )*
+      | DOT ( tupleStore[f] ( COMMA DOT tupleStore[f] )*
+            | recordStore[f] ( COMMA DOT recordStore[f] )* ) )
+    | /* nothing */
+    )
   ;
 
 /**
@@ -1358,6 +1399,84 @@ arrayStore[CVC4::Expr& f]
 
       // outermost wrapping
       f = MK_EXPR(CVC4::kind::STORE, f, dims[0], f3);
+    }
+  ;
+
+/**
+ * Parses just part of the tuple assignment (and constructs
+ * the store terms).
+ */
+tupleStore[CVC4::Expr& f]
+@init {
+  Expr f2;
+}
+  : k=numeral ASSIGN_TOK uminusTerm[f2]
+    { 
+      Type t = f.getType();
+      if(! t.isDatatype()) {
+        PARSER_STATE->parseError("tuple-update applied to non-tuple");
+      }
+      Datatype tuple = DatatypeType(f.getType()).getDatatype();
+      if(tuple.getName() != "__cvc4_tuple") {
+        PARSER_STATE->parseError("tuple-update applied to non-tuple");
+      }
+      if(k < tuple[0].getNumArgs()) {
+        std::vector<Expr> args;
+        for(unsigned i = 0; i < tuple[0].getNumArgs(); ++i) {
+          if(i == k) {
+            args.push_back(f2);
+          } else {
+            Expr selectorOp = tuple[0][i].getSelector();
+            Expr select = MK_EXPR(CVC4::kind::APPLY_SELECTOR, selectorOp, f);
+            args.push_back(select);
+          }
+        }
+        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, tuple[0].getConstructor(), args);
+      } else {
+        std::stringstream ss;
+        ss << "tuple is of length " << tuple[0].getNumArgs() << "; cannot update index " << k;
+        PARSER_STATE->parseError(ss.str());
+      }
+    }
+  ;
+
+/**
+ * Parses just part of the record assignment (and constructs
+ * the store terms).
+ */
+recordStore[CVC4::Expr& f]
+@init {
+  std::string id;
+  Expr f2;
+}
+  : identifier[id,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK uminusTerm[f2]
+    { 
+      Type t = f.getType();
+      if(! t.isDatatype()) {
+        PARSER_STATE->parseError("record-update applied to non-record");
+      }
+      Datatype record = DatatypeType(f.getType()).getDatatype();
+      if(record.getName() != "__cvc4_record") {
+        PARSER_STATE->parseError("record-update applied to non-record");
+      }
+      const DatatypeConstructorArg* updateArg;
+      try {
+        updateArg = &record[0][id];
+      } catch(IllegalArgumentException& e) {
+        PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
+      }
+      std::vector<Expr> args;
+      for(unsigned i = 0; i < record[0].getNumArgs(); ++i) {
+        const DatatypeConstructorArg* thisArg = &record[0][i];
+        if(thisArg == updateArg) {
+          args.push_back(f2);
+        } else {
+          Expr selectorOp = record[0][i].getSelector();
+          Expr select = MK_EXPR(CVC4::kind::APPLY_SELECTOR, selectorOp, f);
+          args.push_back(select);
+        }
+      }
+      f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, record[0].getConstructor(), args);
     }
   ;
 
@@ -1469,20 +1588,42 @@ postfixTerm[CVC4::Expr& f]
       }
 
       /* record / tuple select */
-    // FIXME - clash in lexer between tuple-select and real; can
-    // resolve with syntactic predicate in ANTLR 3.3, but broken in
-    // 3.2 ?
-    /*| DOT
+    | DOT
       ( identifier[id,CHECK_NONE,SYM_VARIABLE]
-        { UNSUPPORTED("record select not implemented yet");
-          f = Expr(); }
+        { Type t = f.getType();
+          if(! t.isDatatype()) {
+            PARSER_STATE->parseError("record-select applied to non-record");
+          }
+          Datatype record = DatatypeType(f.getType()).getDatatype();
+          if(record.getName() != "__cvc4_record") {
+            PARSER_STATE->parseError("record-select applied to non-record");
+          }
+          try {
+            Expr selectorOp = record[0][id].getSelector();
+            f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, selectorOp, f);
+          } catch(IllegalArgumentException& e) {
+            PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
+          }
+        }
       | k=numeral
-        { UNSUPPORTED("tuple select not implemented yet");
-          // This will assert-fail if k too big or f not a tuple
-          // that's ok for now, once a TUPLE_SELECT operator exists,
-          // that will do any necessary type checking
-          f = EXPR_MANAGER->mkVar(TupleType(f.getType()).getTypes()[k]); }
-      )*/
+        { Type t = f.getType();
+          if(! t.isDatatype()) {
+            PARSER_STATE->parseError("tuple-select applied to non-tuple");
+          }
+          Datatype tuple = DatatypeType(f.getType()).getDatatype();
+          if(tuple.getName() != "__cvc4_tuple") {
+            PARSER_STATE->parseError("tuple-select applied to non-tuple");
+          }
+          try {
+            Expr selectorOp = tuple[0][k].getSelector();
+            f = MK_EXPR(CVC4::kind::APPLY_SELECTOR, selectorOp, f);
+          } catch(IllegalArgumentException& e) {
+            std::stringstream ss;
+            ss << "tuple is of length " << tuple[0].getNumArgs() << "; cannot access index " << k;
+            PARSER_STATE->parseError(ss.str());
+          }
+        }
+      )
     )*
     ( typeAscription[f, t]
       { if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && t.isDatatype()) {
@@ -1641,6 +1782,8 @@ simpleTerm[CVC4::Expr& f]
 @init {
   std::string name;
   std::vector<Expr> args;
+  std::vector<std::string> names;
+  Expr e;
   Debug("parser-extra") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Type t;
 }
@@ -1654,7 +1797,12 @@ simpleTerm[CVC4::Expr& f]
         /* If args has elements, we must be a tuple literal.
          * Otherwise, f is already the sub-formula, and
          * there's nothing to do */
-        f = EXPR_MANAGER->mkExpr(kind::TUPLE, args);
+        std::vector<Type> types;
+        for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+          types.push_back((*i).getType());
+        }
+        DatatypeType t = PARSER_STATE->mkTupleType(types);
+        f = EXPR_MANAGER->mkExpr(kind::APPLY_CONSTRUCTOR, t.getDatatype()[0].getConstructor(), args);
       }
     }
 
@@ -1677,9 +1825,16 @@ simpleTerm[CVC4::Expr& f]
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
       f = MK_CONST( BitVector(binString, 2) ); }
     /* record literals */
-  | PARENHASH recordEntry (COMMA recordEntry)+ HASHPAREN
-    { UNSUPPORTED("records not implemented yet");
-      f = Expr(); }
+  | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }
+    ( COMMA recordEntry[name,e] { names.push_back(name); args.push_back(e); } )* HASHPAREN
+    { std::vector< std::pair<std::string, Type> > typeIds;
+      Assert(names.size() == args.size());
+      for(unsigned i = 0; i < names.size(); ++i) {
+        typeIds.push_back(std::make_pair(names[i], args[i].getType()));
+      }
+      DatatypeType t = PARSER_STATE->mkRecordType(typeIds);
+      f = EXPR_MANAGER->mkExpr(kind::APPLY_CONSTRUCTOR, t.getDatatype()[0].getConstructor(), args);
+    }
 
     /* variable / zero-ary constructor application */
   | identifier[name,CHECK_DECLARED,SYM_VARIABLE]
@@ -1707,12 +1862,8 @@ typeAscription[const CVC4::Expr& f, CVC4::Type& t]
 /**
  * Matches an entry in a record literal.
  */
-recordEntry
-@init {
-  std::string id;
-  Expr f;
-}
-  : identifier[id,CHECK_DECLARED,SYM_VARIABLE] ASSIGN_TOK formula[f]
+recordEntry[std::string& name, CVC4::Expr& ex]
+  : identifier[name,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK formula[ex]
   ;
 
 /**
@@ -1824,22 +1975,6 @@ selector[CVC4::DatatypeConstructor& ctor]
 IDENTIFIER : (ALPHA | '_') (ALPHA | DIGIT | '_' | '\'' | '\\' | '?' | '$' | '~')*;
 
 /**
- * Matches an integer literal.
- */
-INTEGER_LITERAL
-  : ( '0'
-    | '1'..'9' DIGIT*
-    )
-  ;
-
-/**
- * Matches a decimal literal.
- */
-DECIMAL_LITERAL
-  : INTEGER_LITERAL '.' DIGIT+
-  ;
-
-/**
  * Same as an integer literal converted to an unsigned int, but
  * slightly more convenient AND works around a strange ANTLR bug (?)
  * in the BVPLUS/BVMINUS/BVMULT rules where $INTEGER_LITERAL was
@@ -1900,6 +2035,32 @@ fragment ALPHA : 'a'..'z' | 'A'..'Z';
  * Matches the decimal digits (0-9)
  */
 fragment DIGIT : '0'..'9';
+
+// This rule adapted from http://www.antlr.org/wiki/pages/viewpage.action?pageId=13828121
+// which reportedly comes from Tapestry (http://tapestry.apache.org/tapestry5/)
+//
+// Special rule that uses parsing tricks to identify numbers and ranges; it's all about
+// the dot ('.').
+// Recognizes:
+// '.' as DOT
+// '..' as DOTDOT
+// INTEGER_LITERAL (digit+)
+// DECIMAL_LITERAL (digit* . digit+)
+// Has to watch out for embedded rangeop (i.e. "1..10" is not "1." and ".10").
+//
+// This doesn't ever generate the NUMBER_OR_RANGEOP token, it
+// manipulates the $type inside to return the right token.
+NUMBER_OR_RANGEOP
+  : DIGIT+
+    (
+      { LA(2) != '.' }? => '.' DIGIT* { $type = DECIMAL_LITERAL; }
+      | { $type = INTEGER_LITERAL; }
+    )
+  | '.'
+    ( '.' {$type = DOTDOT; }
+    | {$type = DOT; }
+    )
+  ;
 
 /**
  * Matches the hexidecimal digits (0-9, a-f, A-F)

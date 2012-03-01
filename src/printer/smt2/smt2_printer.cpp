@@ -127,6 +127,19 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     }
 
+    case kind::SUBRANGE_TYPE: {
+      const SubrangeBounds& bounds = n.getConst<SubrangeBounds>();
+      // No way to represent subranges in SMT-LIBv2; this is inspired
+      // by yices format (but isn't identical to it).
+      out << "(subrange " << bounds.lower << ' ' << bounds.upper << ')';
+      break;
+    }
+    case kind::SUBTYPE_TYPE:
+      // No way to represent predicate subtypes in SMT-LIBv2; this is
+      // inspired by yices format (but isn't identical to it).
+      out << "(subtype " << n.getConst<Predicate>() << ')';
+      break;
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant

@@ -325,4 +325,17 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
 
+constant SUBTYPE_TYPE \
+    ::CVC4::Predicate \
+    ::CVC4::PredicateHashStrategy \
+    "util/predicate.h" \
+    "predicate subtype"
+cardinality SUBTYPE_TYPE \
+    "::CVC4::theory::builtin::SubtypeProperties::computeCardinality(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+well-founded SUBTYPE_TYPE \
+    "::CVC4::theory::builtin::SubtypeProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::builtin::SubtypeProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
+
 endtheory

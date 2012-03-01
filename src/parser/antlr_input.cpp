@@ -24,6 +24,7 @@
 #include "parser/input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
+#include "parser/antlr_line_buffered_input.h"
 #include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser_exception.h"
 #include "parser/parser.h"
@@ -60,8 +61,8 @@ pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {
   return d_input;
 }
 
-AntlrInputStream* 
-AntlrInputStream::newFileInputStream(const std::string& name, 
+AntlrInputStream*
+AntlrInputStream::newFileInputStream(const std::string& name,
                                      bool useMmap)
   throw (InputStreamException, AssertionException) {
   pANTLR3_INPUT_STREAM input = NULL;
@@ -81,63 +82,84 @@ AntlrInputStream::newFileInputStream(const std::string& name,
   return new AntlrInputStream( name, input );
 }
 
-AntlrInputStream* 
-AntlrInputStream::newStreamInputStream(std::istream& input, 
-                                       const std::string& name)
+AntlrInputStream*
+AntlrInputStream::newStreamInputStream(std::istream& input,
+                                       const std::string& name,
+                                       bool lineBuffered)
   throw (InputStreamException, AssertionException) {
 
-  // Since these are all NULL on entry, realloc will be called
-  char *basep = NULL, *boundp = NULL, *cp = NULL;
-  /* 64KB seems like a reasonable default size. */
-  size_t bufSize = 0x10000;
+  pANTLR3_INPUT_STREAM inputStream = NULL;
 
-  /* Keep going until we can't go no more. */
-  while( !input.eof() && !input.fail() ) {
+  if(lineBuffered) {
+#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+    inputStream =
+      antlr3LineBufferedStreamNew(input,
+                                  0,
+                                  (pANTLR3_UINT8) strdup(name.c_str()));
+#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+    inputStream =
+      antlr3LineBufferedStreamNew(input,
+                                  ANTLR3_ENC_8BIT,
+                                  (pANTLR3_UINT8) strdup(name.c_str()));
+#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+  } else {
 
-    if( cp == boundp ) {
-      /* We ran out of room in the buffer. Realloc at double the size. */
-      ptrdiff_t offset = cp - basep;
-      basep = (char *) realloc(basep, bufSize);
-      if( basep == NULL ) {
-        throw InputStreamException("Failed buffering input stream: " + name);
+    // Since these are all NULL on entry, realloc will be called
+    char *basep = NULL, *boundp = NULL, *cp = NULL;
+    /* 64KB seems like a reasonable default size. */
+    size_t bufSize = 0x10000;
+
+    /* Keep going until we can't go no more. */
+    while( !input.eof() && !input.fail() ) {
+
+      if( cp == boundp ) {
+        /* We ran out of room in the buffer. Realloc at double the size. */
+        ptrdiff_t offset = cp - basep;
+        basep = (char *) realloc(basep, bufSize);
+        if( basep == NULL ) {
+          throw InputStreamException("Failed buffering input stream: " + name);
+        }
+        cp = basep + offset;
+        boundp = basep + bufSize;
+        bufSize *= 2;
       }
-      cp = basep + offset;
-      boundp = basep + bufSize;
-      bufSize *= 2;
+
+      /* Read as much as we have room for. */
+      input.read( cp, boundp - cp );
+      cp += input.gcount();
     }
 
-    /* Read as much as we have room for. */
-    input.read( cp, boundp - cp );
-    cp += input.gcount();
-  }
+    /* Make sure the fail bit didn't get set. */
+    if( !input.eof() ) {
+      throw InputStreamException("Stream input failed: " + name);
+    }
 
-  /* Make sure the fail bit didn't get set. */
-  if( !input.eof() ) {
-    throw InputStreamException("Stream input failed: " + name);
-  }
-
-  /* Create an ANTLR input backed by the buffer. */
+    /* Create an ANTLR input backed by the buffer. */
 #ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
-  pANTLR3_INPUT_STREAM inputStream =
+    inputStream =
       antlr3NewAsciiStringInPlaceStream((pANTLR3_UINT8) basep,
                                         cp - basep,
                                         (pANTLR3_UINT8) strdup(name.c_str()));
 #else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
-  pANTLR3_INPUT_STREAM inputStream =
+    inputStream =
       antlr3StringStreamNew((pANTLR3_UINT8) basep,
                             ANTLR3_ENC_8BIT,
                             cp - basep,
                             (pANTLR3_UINT8) strdup(name.c_str()));
 #endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
-  if( inputStream==NULL ) {
+
+  }
+
+  if( inputStream == NULL ) {
     throw InputStreamException("Couldn't initialize input: " + name);
   }
+
   return new AntlrInputStream( name, inputStream );
 }
 
 
-AntlrInputStream* 
-AntlrInputStream::newStringInputStream(const std::string& input, 
+AntlrInputStream*
+AntlrInputStream::newStringInputStream(const std::string& input,
                                        const std::string& name)
   throw (InputStreamException, AssertionException) {
   char* inputStr = strdup(input.c_str());
@@ -308,7 +330,6 @@ void AntlrInput::setAntlr3Parser(pANTLR3_PARSER pParser) {
       (void* (*)(ANTLR3_BASE_RECOGNIZER_struct*, ANTLR3_UINT32, ANTLR3_BITSET_LIST_struct*))
       d_parser->rec->mismatch;
 }
-
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

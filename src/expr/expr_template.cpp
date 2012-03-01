@@ -76,7 +76,8 @@ TypeCheckingException::~TypeCheckingException() throw() {
 }
 
 void TypeCheckingException::toStream(std::ostream& os) const throw() {
-  os << "Error type-checking " << d_expr << ": " << d_msg << endl << *d_expr;
+  os << "Error during type checking: " << d_msg << endl
+     << "The ill-typed expression: " << *d_expr;
 }
 
 Expr TypeCheckingException::getExpression() const throw() {

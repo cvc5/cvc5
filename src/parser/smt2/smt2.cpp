@@ -127,6 +127,7 @@ void Smt2::setLogic(const std::string& name) {
 
   case Smt::QF_UFIDL:
   case Smt::QF_UFLIA:
+  case Smt::QF_UFNIA:// nonstandard logic
     addTheory(THEORY_INTS);
     addOperator(kind::APPLY_UF);
     break;
@@ -135,6 +136,13 @@ void Smt2::setLogic(const std::string& name) {
   case Smt::QF_UFNRA:
     addTheory(THEORY_REALS);
     addOperator(kind::APPLY_UF);
+    break;
+
+  case Smt::QF_UFLIRA:// nonstandard logic
+  case Smt::QF_UFNIRA:// nonstandard logic
+    addOperator(kind::APPLY_UF);
+    addTheory(THEORY_INTS);
+    addTheory(THEORY_REALS);
     break;
 
   case Smt::QF_BV:

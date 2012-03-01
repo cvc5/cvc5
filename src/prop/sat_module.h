@@ -152,6 +152,8 @@ public:
 
   virtual void pop() = 0;
 
+  virtual bool properExplanation(SatLiteral lit, SatLiteral expl) const = 0;
+
 }; 
 
 // toodo add ifdef
@@ -179,10 +181,10 @@ public:
   SatLiteralValue value(SatLiteral l);
   SatLiteralValue modelValue(SatLiteral l);
 
-
   void unregisterVar(SatLiteral lit);
   void renewVar(SatLiteral lit, int level = -1);
   int getAssertionLevel() const;
+
 
   // helper methods for converting from the internal Minisat representation
 
@@ -253,6 +255,8 @@ public:
   SatLiteralValue value(SatLiteral l);
 
   SatLiteralValue modelValue(SatLiteral l);
+
+  bool properExplanation(SatLiteral lit, SatLiteral expl) const;
 
   /** Incremental interface */ 
   

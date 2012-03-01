@@ -142,7 +142,7 @@ private:
 
 protected:
 
-  /** 
+  /**
    * A list of shared terms that the theory has.
    */
   context::CDList<TNode> d_sharedTerms;
@@ -210,6 +210,9 @@ protected:
    */
   static TheoryId s_uninterpretedSortOwner;
 
+  void printFacts(std::ostream& os) const;
+
+
 public:
 
   /**
@@ -218,6 +221,9 @@ public:
   static inline TheoryId theoryOf(TypeNode typeNode) {
     Trace("theory") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
+    while (typeNode.isPredicateSubtype()) {
+      typeNode = typeNode.getSubtypeBaseType();
+    }
     if (typeNode.getKind() == kind::TYPE_CONSTANT) {
       id = typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     } else {

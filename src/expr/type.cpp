@@ -103,26 +103,32 @@ Type& Type::operator=(const Type& t) {
 }
 
 bool Type::operator==(const Type& t) const {
+  NodeManagerScope nms(d_nodeManager);
   return *d_typeNode == *t.d_typeNode;
 }
 
 bool Type::operator!=(const Type& t) const {
+  NodeManagerScope nms(d_nodeManager);
   return *d_typeNode != *t.d_typeNode;
 }
 
 bool Type::operator<(const Type& t) const {
+  NodeManagerScope nms(d_nodeManager);
   return *d_typeNode < *t.d_typeNode;
 }
 
 bool Type::operator<=(const Type& t) const {
+  NodeManagerScope nms(d_nodeManager);
   return *d_typeNode <= *t.d_typeNode;
 }
 
 bool Type::operator>(const Type& t) const {
+  NodeManagerScope nms(d_nodeManager);
   return *d_typeNode > *t.d_typeNode;
 }
 
 bool Type::operator>=(const Type& t) const {
+  NodeManagerScope nms(d_nodeManager);
   return *d_typeNode >= *t.d_typeNode;
 }
 
@@ -375,11 +381,37 @@ bool Type::isSortConstructor() const {
   return d_typeNode->isSortConstructor();
 }
 
-/** Cast to a sort type */
+/** Cast to a sort constructor type */
 Type::operator SortConstructorType() const throw(AssertionException) {
   NodeManagerScope nms(d_nodeManager);
   Assert(isNull() || isSortConstructor());
   return SortConstructorType(*this);
+}
+
+/** Is this a predicate subtype */
+bool Type::isPredicateSubtype() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isPredicateSubtype();
+}
+
+/** Cast to a predicate subtype */
+Type::operator PredicateSubtype() const throw(AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isNull() || isPredicateSubtype());
+  return PredicateSubtype(*this);
+}
+
+/** Is this an integer subrange */
+bool Type::isSubrange() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSubrange();
+}
+
+/** Cast to a predicate subtype */
+Type::operator SubrangeType() const throw(AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isNull() || isSubrange());
+  return SubrangeType(*this);
 }
 
 /** Is this a kind type (i.e., the type of a type)? */
@@ -543,6 +575,18 @@ SortConstructorType::SortConstructorType(const Type& t)
   Assert(isNull() || isSortConstructor());
 }
 
+PredicateSubtype::PredicateSubtype(const Type& t)
+  throw(AssertionException) :
+  Type(t) {
+  Assert(isNull() || isPredicateSubtype());
+}
+
+SubrangeType::SubrangeType(const Type& t)
+  throw(AssertionException) :
+  Type(t) {
+  Assert(isNull() || isSubrange());
+}
+
 unsigned BitVectorType::getSize() const {
   return d_typeNode->getBitVectorSize();
 }
@@ -646,6 +690,21 @@ DatatypeType TesterType::getDomain() const {
 
 BooleanType TesterType::getRangeType() const {
   return BooleanType(makeType(d_nodeManager->booleanType()));
+}
+
+Expr PredicateSubtype::getPredicate() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getSubtypePredicate().toExpr();
+}
+
+Type PredicateSubtype::getBaseType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getSubtypeBaseType().toType();
+}
+
+SubrangeBounds SubrangeType::getSubrangeBounds() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getSubrangeBounds();
 }
 
 size_t TypeHashFunction::operator()(const Type& t) const {

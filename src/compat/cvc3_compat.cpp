@@ -25,6 +25,8 @@
 #include "util/integer.h"
 #include "util/bitvector.h"
 #include "util/hash.h"
+#include "util/subrange_bound.h"
+#include "util/predicate.h"
 
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -184,7 +186,7 @@ bool Type::isBool() const {
 }
 
 bool Type::isSubtype() const {
-  return false;
+  return isPredicateSubtype();
 }
 
 Cardinality Type::card() const {
@@ -980,11 +982,21 @@ Type ValidityChecker::intType() {
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
-  Unimplemented("Subranges not supported by CVC4 yet (sorry!)");
+  bool noLowerBound = l.getType().isString() && l.getConst<string>() == "_NEGINF";
+  bool noUpperBound = r.getType().isString() && r.getConst<string>() == "_POSINF";
+  CheckArgument(noLowerBound || l.getKind() == CVC4::kind::CONST_INTEGER, l);
+  CheckArgument(noUpperBound || r.getKind() == CVC4::kind::CONST_INTEGER, r);
+  CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Integer>());
+  CVC4::SubrangeBound br = noUpperBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(r.getConst<Integer>());
+  return d_em->mkSubrangeType(CVC4::SubrangeBounds(bl, br));
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {
-  Unimplemented("Predicate subtyping not supported by CVC4 yet (sorry!)");
+  if(witness.isNull()) {
+    return d_em->mkPredicateSubtype(pred);
+  } else {
+    return d_em->mkPredicateSubtype(pred, witness);
+  }
 }
 
 Type ValidityChecker::tupleType(const Type& type0, const Type& type1) {
@@ -1172,15 +1184,29 @@ Type ValidityChecker::getType(const Expr& e) {
 }
 
 Type ValidityChecker::getBaseType(const Expr& e) {
-  Type t = d_em->getType(e);
-  return t.isInteger() ? Type(d_em->realType()) : t;
+  return getBaseType(e.getType());
 }
 
 Type ValidityChecker::getBaseType(const Type& t) {
-  return t.isInteger() ? Type(d_em->realType()) : t;
+  Type type = t;
+  while(type.isPredicateSubtype()) {
+    type = CVC4::PredicateSubtype(type).getBaseType();
+  }
+  // We might still be a (primitive) subtype.  Check the types that can
+  // form the base of such a type.
+  if(type.isReal()) {
+    return d_em->realType();
+  }
+  Assert(!type.isInteger());// should be handled by Real
+  if(type.isBoolean()) {
+    return d_em->booleanType();
+  }
+  return type;
 }
 
 Expr ValidityChecker::getTypePred(const Type&t, const Expr& e) {
+  // This function appears to be TCC-related---it doesn't just get the pred of a
+  // subtype predicate, but returns a predicate describing the type.
   Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
@@ -1189,42 +1215,52 @@ Expr ValidityChecker::stringExpr(const std::string& str) {
 }
 
 Expr ValidityChecker::idExpr(const std::string& name) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // represent as a string expr, CVC4 doesn't have id exprs
+  return d_em->mkConst(name);
 }
 
 Expr ValidityChecker::listExpr(const std::vector<Expr>& kids) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; make a tuple if two or more
+  CheckArgument(kids.size() > 0, kids);
+  return (kids.size() == 1) ? kids[0] : Expr(d_em->mkExpr(CVC4::kind::TUPLE, vector<CVC4::Expr>(kids.begin(), kids.end())));
 }
 
 Expr ValidityChecker::listExpr(const Expr& e1) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return e1
+  return e1;
 }
 
 Expr ValidityChecker::listExpr(const Expr& e1, const Expr& e2) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return a tuple
+  return d_em->mkExpr(CVC4::kind::TUPLE, e1, e2);
 }
 
 Expr ValidityChecker::listExpr(const Expr& e1, const Expr& e2, const Expr& e3) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return a tuple
+  return d_em->mkExpr(CVC4::kind::TUPLE, e1, e2, e3);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op,
                                const std::vector<Expr>& kids) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return a tuple
+  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), vector<CVC4::Expr>(kids.begin(), kids.end()));
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return a tuple
+  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), e1);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1,
                                const Expr& e2) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return a tuple
+  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), e1, e2);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1,
                                const Expr& e2, const Expr& e3) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // list exprs aren't supported by CVC4; just return a tuple
+  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), e1, e2, e3);
 }
 
 void ValidityChecker::printExpr(const Expr& e) {
@@ -1340,7 +1376,12 @@ Op ValidityChecker::createOp(const std::string& name, const Type& type) {
 
 Op ValidityChecker::createOp(const std::string& name, const Type& type,
                              const Expr& def) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  CheckArgument(def.getType() == type, type,
+      "Type mismatch in ValidityChecker::createOp(): `%s' defined to an "
+      "expression of type %s but ascribed as type %s", name.c_str(),
+      def.getType().toString().c_str(), type.toString().c_str());
+  d_parserContext->defineFunction(name, def);
+  return def;
 }
 
 Op ValidityChecker::lookupOp(const std::string& name, Type* type) {

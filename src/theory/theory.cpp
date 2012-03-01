@@ -76,5 +76,14 @@ void Theory::computeCareGraph(CareGraph& careGraph) {
   }
 }
 
+void Theory::printFacts(std::ostream& os) const {
+  unsigned i, n = d_facts.size();
+  for(i = 0; i < n; i++){
+    const Assertion& a_i = d_facts[i];
+    Node assertion  = a_i;
+    os << d_id << '[' << i << ']' << " " << assertion << endl;
+  }
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

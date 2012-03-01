@@ -66,6 +66,11 @@ Parser* ParserBuilder::build()
   case FILE_INPUT:
     input = Input::newFileInput(d_lang, d_filename, d_mmap);
     break;
+  case LINE_BUFFERED_STREAM_INPUT:
+    AlwaysAssert( d_streamInput != NULL,
+                  "Uninitialized stream input in ParserBuilder::build()" );
+    input = Input::newStreamInput(d_lang, *d_streamInput, d_filename, true);
+    break;
   case STREAM_INPUT:
     AlwaysAssert( d_streamInput != NULL,
                   "Uninitialized stream input in ParserBuilder::build()" );
@@ -151,6 +156,12 @@ ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
 
 ParserBuilder& ParserBuilder::withStreamInput(std::istream& input) {
   d_inputType = STREAM_INPUT;
+  d_streamInput = &input;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withLineBufferedStreamInput(std::istream& input) {
+  d_inputType = LINE_BUFFERED_STREAM_INPUT;
   d_streamInput = &input;
   return *this;
 }

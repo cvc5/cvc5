@@ -308,19 +308,19 @@ setTokenSource	(   pANTLR3_TOKEN_STREAM ts,
 static pANTLR3_STRING	    
 toString    (pANTLR3_TOKEN_STREAM ts)
 {
-  Unreachable();
+  Unimplemented("toString(ts)");
 }
 
 static pANTLR3_STRING
 toStringSS(pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop)
 {
-  Unreachable();
+  Unimplemented("toStringSS(ts, %u, %u)", start, stop);
 }
 
 static pANTLR3_STRING	    
 toStringTT  (pANTLR3_TOKEN_STREAM ts, pANTLR3_COMMON_TOKEN start, pANTLR3_COMMON_TOKEN stop)
 {
-  Unreachable();
+  Unimplemented("toStringTT(ts, %u, %u)", start, stop);
 }
 
 /** Move the input pointer to the next incoming token.  The stream

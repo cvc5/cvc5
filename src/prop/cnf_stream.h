@@ -52,6 +52,7 @@ public:
 
   /** Per node translation information */
   struct TranslationInfo {
+    bool recorded;
     /** The level at which this node was translated (negative if not translated) */
     int level;
     /** The literal of this node */
@@ -109,7 +110,7 @@ protected:
   }
 
   /** Record this translation */
-  void recordTranslation(TNode node);
+  void recordTranslation(TNode node, bool alwaysRecord = false);
 
   /**
    * Moves the node and all of it's parents to level 0.

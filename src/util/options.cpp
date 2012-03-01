@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
+#include <sstream>
 
 #include <getopt.h>
 
@@ -274,10 +275,10 @@ Dump modes can be combined with multiple uses of --dump.  Generally you want\n\
 one from the assertions category (either asertions, learned, or clauses), and\n\
 perhaps one or more stateful or non-stateful modes for checking correctness\n\
 and completeness of decision procedure implementations.  Stateful modes dump\n\
-the contextual assertions made by the core solver (all decisions and propagations\n\
-as assertions; that affects the validity of the resulting correctness and\n\
-completeness queries, so of course stateful and non-stateful modes cannot\n\
-be mixed in the same run.\n\
+the contextual assertions made by the core solver (all decisions and\n\
+propagations as assertions; that affects the validity of the resulting\n\
+correctness and completeness queries, so of course stateful and non-stateful\n\
+modes cannot be mixed in the same run.\n\
 \n\
 The --output-language option controls the language used for dumping, and\n\
 this allows you to connect CVC4 to another solver implementation via a UNIX\n\
@@ -983,7 +984,12 @@ throw(OptionException) {
       break; 
 
     case ':':
-      throw OptionException(string("option `") + argv[optind - 1] + "' missing its required argument");
+      // This can be a long or short option, and the way to get at the name of it is different.
+      if(optopt == 0) { // was a long option
+        throw OptionException(string("option `") + argv[optind - 1] + "' missing its required argument");
+      } else { // was a short option
+        throw OptionException(string("option `-") + char(optopt) + "' missing its required argument");
+      }
 
     case '?':
     default:
@@ -1004,7 +1010,13 @@ throw(OptionException) {
         }
         break;
       }
-      throw OptionException(string("can't understand option `") + argv[optind - 1] + "'");
+
+      // This can be a long or short option, and the way to get at the name of it is different.
+      if(optopt == 0) { // was a long option
+        throw OptionException(string("can't understand option `") + argv[optind - 1] + "'");
+      } else { // was a short option
+        throw OptionException(string("can't understand option `-") + char(optopt) + "'");
+      }
     }
   }
 

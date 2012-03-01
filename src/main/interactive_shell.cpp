@@ -83,7 +83,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
                                    const Options& options) :
   d_in(*options.in),
   d_out(*options.out),
-  d_language(options.inputLanguage),
+  d_options(options),
   d_quit(false) {
   ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
   /* Create parser with bogus input. */
@@ -95,7 +95,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
     ::rl_completion_entry_function = commandGenerator;
     ::using_history();
 
-    switch(OutputLanguage lang = toOutputLanguage(d_language)) {
+    switch(OutputLanguage lang = toOutputLanguage(d_options.inputLanguage)) {
     case output::LANG_CVC4:
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
       commandsBegin = cvc_commands;
@@ -166,7 +166,7 @@ Command* InteractiveShell::readCommand() {
   /* Prompt the user for input. */
   if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-    lineBuf = ::readline("CVC4> ");
+    lineBuf = ::readline(d_options.verbosity >= 0 ? "CVC4> " : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -174,7 +174,9 @@ Command* InteractiveShell::readCommand() {
     free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
   } else {
-    d_out << "CVC4> " << flush;
+    if(d_options.verbosity >= 0) {
+      d_out << "CVC4> " << flush;
+    }
 
     /* Read a line */
     d_in.get(sb,'\n');
@@ -229,7 +231,7 @@ Command* InteractiveShell::readCommand() {
       input[n] = '\n';
       if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-        lineBuf = ::readline("... > ");
+        lineBuf = ::readline(d_options.verbosity >= 0 ? "... > " : "");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -237,7 +239,9 @@ Command* InteractiveShell::readCommand() {
         free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
       } else {
-        d_out << "... > " << flush;
+        if(d_options.verbosity >= 0) {
+          d_out << "... > " << flush;
+        }
 
         /* Read a line */
         d_in.get(sb,'\n');
@@ -250,7 +254,7 @@ Command* InteractiveShell::readCommand() {
     }
   }
 
-  d_parser->setInput(Input::newStringInput(d_language,input,INPUT_FILENAME));
+  d_parser->setInput(Input::newStringInput(d_options.inputLanguage, input, INPUT_FILENAME));
 
   /* There may be more than one command in the input. Build up a
      sequence. */

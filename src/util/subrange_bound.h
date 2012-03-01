@@ -25,6 +25,8 @@
 #include "util/integer.h"
 #include "util/Assert.h"
 
+#include <limits>
+
 namespace CVC4 {
 
 /**
@@ -76,7 +78,131 @@ public:
     return !(*this == b);
   }
 
+  /**
+   * Is this SubrangeBound "less than" another?  For two
+   * SubrangeBounds that "have bounds," this is defined as expected.
+   * For a finite SubrangeBound b1 and a SubrangeBounds b2 without a
+   * bound, b1 < b2 (but note also that b1 > b2).  This strange
+   * behavior is due to the fact that a SubrangeBound without a bound
+   * is the representation for both +infinity and -infinity.
+   */
+  bool operator<(const SubrangeBound& b) const throw() {
+    return (!hasBound() && b.hasBound()) || (hasBound() && !b.hasBound()) ||
+      ( hasBound() && b.hasBound() && getBound() < b.getBound() );
+  }
+
+  /**
+   * Is this SubrangeBound "less than or equal to" another?  For two
+   * SubrangeBounds that "have bounds," this is defined as expected.
+   * For a finite SubrangeBound b1 and a SubrangeBounds b2 without a
+   * bound, b1 < b2 (but note also that b1 > b2).  This strange
+   * behavior is due to the fact that a SubrangeBound without a bound
+   * is the representation for both +infinity and -infinity.
+   */
+  bool operator<=(const SubrangeBound& b) const throw() {
+    return !hasBound() || !b.hasBound() ||
+      ( hasBound() && b.hasBound() && getBound() <= b.getBound() );
+  }
+
+  /**
+   * Is this SubrangeBound "greater than" another?  For two
+   * SubrangeBounds that "have bounds," this is defined as expected.
+   * For a finite SubrangeBound b1 and a SubrangeBounds b2 without a
+   * bound, b1 > b2 (but note also that b1 < b2).  This strange
+   * behavior is due to the fact that a SubrangeBound without a bound
+   * is the representation for both +infinity and -infinity.
+   */
+  bool operator>(const SubrangeBound& b) const throw() {
+    return (!hasBound() && b.hasBound()) || (hasBound() && !b.hasBound()) ||
+      ( hasBound() && b.hasBound() && getBound() < b.getBound() );
+  }
+
+  /**
+   * Is this SubrangeBound "greater than or equal to" another?  For
+   * two SubrangeBounds that "have bounds," this is defined as
+   * expected.  For a finite SubrangeBound b1 and a SubrangeBounds b2
+   * without a bound, b1 > b2 (but note also that b1 < b2).  This
+   * strange behavior is due to the fact that a SubrangeBound without
+   * a bound is the representation for both +infinity and -infinity.
+   */
+  bool operator>=(const SubrangeBound& b) const throw() {
+    return !hasBound() || !b.hasBound() ||
+      ( hasBound() && b.hasBound() && getBound() <= b.getBound() );
+  }
+
 };/* class SubrangeBound */
+
+class CVC4_PUBLIC SubrangeBounds {
+public:
+
+  SubrangeBound lower;
+  SubrangeBound upper;
+
+  SubrangeBounds(const SubrangeBound& l, const SubrangeBound& u) :
+    lower(l),
+    upper(u) {
+    CheckArgument(!l.hasBound() || !u.hasBound() ||
+                  l.getBound() <= u.getBound(),
+                  l, "Bad subrange bounds specified");
+  }
+
+  bool operator==(const SubrangeBounds& bounds) const {
+    return lower == bounds.lower && upper == bounds.upper;
+  }
+
+  bool operator!=(const SubrangeBounds& bounds) const {
+    return !(*this == bounds);
+  }
+
+  /**
+   * Is this pair of SubrangeBounds "less than" (contained inside) the
+   * given pair of SubrangeBounds?  Think of this as a subtype
+   * relation, e.g., [0,2] < [0,3]
+   */
+  bool operator<(const SubrangeBounds& bounds) const {
+    return (lower > bounds.lower && upper <= bounds.upper) ||
+      (lower >= bounds.lower && upper < bounds.upper);
+  }
+
+  /**
+   * Is this pair of SubrangeBounds "less than or equal" (contained
+   * inside) the given pair of SubrangeBounds?  Think of this as a
+   * subtype relation, e.g., [0,2] < [0,3]
+   */
+  bool operator<=(const SubrangeBounds& bounds) const {
+    return lower >= bounds.lower && upper <= bounds.upper;
+  }
+
+  /**
+   * Is this pair of SubrangeBounds "greater than" (does it contain)
+   * the given pair of SubrangeBounds?  Think of this as a supertype
+   * relation, e.g., [0,3] > [0,2]
+   */
+  bool operator>(const SubrangeBounds& bounds) const {
+    return (lower < bounds.lower && upper >= bounds.upper) ||
+      (lower <= bounds.lower && upper > bounds.upper);
+  }
+
+  /**
+   * Is this pair of SubrangeBounds "greater than" (does it contain)
+   * the given pair of SubrangeBounds?  Think of this as a supertype
+   * relation, e.g., [0,3] > [0,2]
+   */
+  bool operator>=(const SubrangeBounds& bounds) const {
+    return lower <= bounds.lower && upper >= bounds.upper;
+  }
+
+};/* class SubrangeBounds */
+
+struct CVC4_PUBLIC SubrangeBoundsHashStrategy {
+  static inline size_t hash(const SubrangeBounds& bounds) {
+    // We use Integer::hash() rather than Integer::getUnsignedLong()
+    // because the latter might overflow and throw an exception
+    size_t l = bounds.lower.hasBound() ? bounds.lower.getBound().hash() : std::numeric_limits<size_t>::max();
+    size_t u = bounds.upper.hasBound() ? bounds.upper.getBound().hash() : std::numeric_limits<size_t>::max();
+    return l + 0x9e3779b9 + (u << 6) + (u >> 2);
+  }
+};/* struct SubrangeBoundsHashStrategy */
 
 inline std::ostream&
 operator<<(std::ostream& out, const SubrangeBound& bound) throw() CVC4_PUBLIC;
@@ -88,6 +214,16 @@ operator<<(std::ostream& out, const SubrangeBound& bound) throw() {
   } else {
     out << '_';
   }
+
+  return out;
+}
+
+inline std::ostream&
+operator<<(std::ostream& out, const SubrangeBounds& bounds) throw() CVC4_PUBLIC;
+
+inline std::ostream&
+operator<<(std::ostream& out, const SubrangeBounds& bounds) throw() {
+  out << bounds.lower << ".." << bounds.upper;
 
   return out;
 }

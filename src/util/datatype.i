@@ -11,6 +11,8 @@
   %ignore to_array();// ocaml
   %ignore vector(size_type);// java/python
   %ignore resize(size_type);// java/python
+  %ignore set(int i, const CVC4::Datatype& x);
+  %ignore to_array();
 };
 %template(vectorDatatype) std::vector< CVC4::Datatype >;
 
@@ -23,6 +25,8 @@
   %ignore to_array();// ocaml
   %ignore vector(size_type);// java/python
   %ignore resize(size_type);// java/python
+  %ignore set(int i, const CVC4::Datatype::Constructor& x);
+  %ignore to_array();
 };
 %template(vectorDatatypeConstructor) std::vector< CVC4::DatatypeConstructor >;
 

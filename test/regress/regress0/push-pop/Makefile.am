@@ -20,6 +20,9 @@ CVC_TESTS = \
 	units.cvc \
 	incremental-subst-bug.cvc
 
+SMT2_TESTS = \
+	tiny_bug.smt2
+
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) 

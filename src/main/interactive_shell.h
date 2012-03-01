@@ -36,7 +36,7 @@ class CVC4_PUBLIC InteractiveShell {
   std::istream& d_in;
   std::ostream& d_out;
   parser::Parser* d_parser;
-  const InputLanguage d_language;
+  const Options& d_options;
   bool d_quit;
   bool d_usingReadline;
 

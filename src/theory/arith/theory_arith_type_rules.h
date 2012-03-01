@@ -21,6 +21,8 @@
 #ifndef __CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 #define __CVC4__THEORY__ARITH__THEORY_ARITH_TYPE_RULES_H
 
+#include "util/subrange_bound.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -33,7 +35,7 @@ public:
     if (n.getKind() == kind::CONST_RATIONAL) return nodeManager->realType();
     return nodeManager->integerType();
   }
-};
+};/* class ArithConstantTypeRule */
 
 class ArithOperatorTypeRule {
 public:
@@ -60,7 +62,7 @@ public:
     }
     return (isInteger ? integerType : realType);
   }
-};
+};/* class ArithOperatorTypeRule */
 
 class ArithPredicateTypeRule {
 public:
@@ -80,7 +82,33 @@ public:
     }
     return nodeManager->booleanType();
   }
-};
+};/* class ArithPredicateTypeRule */
+
+class SubrangeProperties {
+public:
+  inline static Cardinality computeCardinality(TypeNode type) {
+    Assert(type.getKind() == kind::SUBRANGE_TYPE);
+
+    const SubrangeBounds& bounds = type.getConst<SubrangeBounds>();
+    if(!bounds.lower.hasBound() || !bounds.upper.hasBound()) {
+      return Cardinality::INTEGERS;
+    }
+    return Cardinality(bounds.upper.getBound() - bounds.lower.getBound());
+  }
+
+  inline static Node mkGroundTerm(TypeNode type) {
+    Assert(type.getKind() == kind::SUBRANGE_TYPE);
+
+    const SubrangeBounds& bounds = type.getConst<SubrangeBounds>();
+    if(bounds.lower.hasBound()) {
+      return NodeManager::currentNM()->mkConst(bounds.lower.getBound());
+    }
+    if(bounds.upper.hasBound()) {
+      return NodeManager::currentNM()->mkConst(bounds.upper.getBound());
+    }
+    return NodeManager::currentNM()->mkConst(Integer(0));
+  }
+};/* class SubrangeProperties */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

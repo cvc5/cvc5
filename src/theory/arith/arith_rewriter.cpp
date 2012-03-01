@@ -93,6 +93,21 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     return preRewritePlus(t);
   }else if(t.getKind() == kind::MULT){
     return preRewriteMult(t);
+  }else if(t.getKind() == kind::INTS_DIVISION){
+    Integer intOne(1);
+    if(t[1].getKind()== kind::CONST_INTEGER && t[1].getConst<Integer>() == intOne){
+      return RewriteResponse(REWRITE_AGAIN, t[0]);
+    }else{
+      return RewriteResponse(REWRITE_DONE, t);
+    }
+  }else if(t.getKind() == kind::INTS_MODULUS){
+    Integer intOne(1);
+    if(t[1].getKind()== kind::CONST_INTEGER && t[1].getConst<Integer>() == intOne){
+      Integer intZero(0);
+      return RewriteResponse(REWRITE_AGAIN, mkIntegerNode(intZero));
+    }else{
+      return RewriteResponse(REWRITE_DONE, t);
+    }
   }else{
     Unreachable();
   }
@@ -112,6 +127,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     return postRewritePlus(t);
   }else if(t.getKind() == kind::MULT){
     return postRewriteMult(t);
+  }else if(t.getKind() == kind::INTS_DIVISION){
+    return RewriteResponse(REWRITE_DONE, t);
+  }else if(t.getKind() == kind::INTS_MODULUS){
+    return RewriteResponse(REWRITE_DONE, t);
   }else{
     Unreachable();
   }

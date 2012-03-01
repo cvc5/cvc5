@@ -383,6 +383,9 @@ SatLiteralValue DPLLMinisatSatSolver::modelValue(SatLiteral l){
   return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
+bool DPLLMinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const {
+  return true;
+}
 
 /** Incremental interface */ 
   

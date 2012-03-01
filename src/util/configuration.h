@@ -102,6 +102,7 @@ public:
   static std::string getSubversionId();
 
   static std::string getCompiler();
+  static std::string getCompiledDateTime();
 
 };/* class Configuration */
 

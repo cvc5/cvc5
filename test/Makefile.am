@@ -35,6 +35,7 @@ subdirs_to_check = \
 	regress/regress0/arith/integers \
 	regress/regress0/uf \
 	regress/regress0/uflra \
+	regress/regress0/uflia \
 	regress/regress0/bv \
 	regress/regress0/bv/core \
 	regress/regress0/arrays \
@@ -43,6 +44,7 @@ subdirs_to_check = \
 	regress/regress0/push-pop \
 	regress/regress0/precedence \
 	regress/regress0/preprocess \
+	regress/regress0/subtypes \
 	regress/regress1 \
 	regress/regress2 \
 	regress/regress3

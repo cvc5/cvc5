@@ -428,7 +428,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
         withOptions(options);
 
     if( inputFromStdin ) {
-      parserBuilder.withStreamInput(cin);
+      parserBuilder.withLineBufferedStreamInput(cin);
     }
 
     Parser *parser = parserBuilder.build();

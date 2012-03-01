@@ -190,7 +190,7 @@ string Configuration::getSubversionId() {
   return ss.str();
 }
 
-string Configuration::getCompiler() {
+std::string Configuration::getCompiler() {
   stringstream ss;
 #ifdef __GNUC__
   ss << "GCC";
@@ -203,6 +203,10 @@ string Configuration::getCompiler() {
   ss << ", unknown version";
 #endif /* __VERSION__ */
   return ss.str();
+}
+
+std::string Configuration::getCompiledDateTime() {
+  return __DATE__ " " __TIME__;
 }
 
 }/* CVC4 namespace */

@@ -575,8 +575,10 @@ void TheoryEngine::assertFact(TNode node)
   // Get the atom
   TNode atom = node.getKind() == kind::NOT ? node[0] : node;
 
-  // Assert the fact to the apropriate theory
-  theoryOf(atom)->assertFact(node, true);
+  // Assert the fact to the appropriate theory and mark it active
+  Theory* theory = theoryOf(atom);
+  theory->assertFact(node, true);
+  markActive(Theory::setInsert(theory->getId()));
 
   // If any shared terms, notify the theories
   if (d_sharedTerms.hasSharedTerms(atom)) {

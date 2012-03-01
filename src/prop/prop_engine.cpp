@@ -232,6 +232,10 @@ void PropEngine::pop() {
   Debug("prop") << "pop()" << endl;
 }
 
+bool PropEngine::isRunning() const {
+  return d_inCheckSat;
+}
+
 void PropEngine::interrupt() throw(ModalException) {
   if(! d_inCheckSat) {
     throw ModalException("SAT solver is not currently solving anything; "
@@ -245,6 +249,50 @@ void PropEngine::interrupt() throw(ModalException) {
 
 void PropEngine::spendResource() throw() {
   // TODO implement me
+}
+
+bool PropEngine::properExplanation(TNode node, TNode expl) const {
+  if(! d_cnfStream->hasLiteral(node)) {
+    Trace("properExplanation") << "properExplanation(): Failing because node "
+                               << "being explained doesn't have a SAT literal ?!" << std::endl
+                               << "properExplanation(): The node is: " << node << std::endl;
+    return false;
+  }
+
+  SatLiteral nodeLit = d_cnfStream->getLiteral(node);
+
+  for(TNode::kinded_iterator i = expl.begin(kind::AND),
+        i_end = expl.end(kind::AND);
+      i != i_end;
+      ++i) {
+    if(! d_cnfStream->hasLiteral(*i)) {
+      Trace("properExplanation") << "properExplanation(): Failing because one of explanation "
+                                 << "nodes doesn't have a SAT literal" << std::endl
+                                 << "properExplanation(): The explanation node is: " << *i << std::endl;
+      return false;
+    }
+
+    SatLiteral iLit = d_cnfStream->getLiteral(*i);
+
+    if(iLit == nodeLit) {
+      Trace("properExplanation") << "properExplanation(): Failing because the node" << std::endl
+                                 << "properExplanation(): " << node << std::endl
+                                 << "properExplanation(): cannot be made to explain itself!" << std::endl;
+      return false;
+    }
+
+    if(! d_satSolver->properExplanation(nodeLit, iLit)) {
+      Trace("properExplanation") << "properExplanation(): SAT solver told us that node" << std::endl
+                                 << "properExplanation(): " << *i << std::endl
+                                 << "properExplanation(): is not part of a proper explanation node for" << std::endl
+                                 << "properExplanation(): " << node << std::endl
+                                 << "properExplanation(): Perhaps it one of the two isn't assigned or the explanation" << std::endl
+                                 << "properExplanation(): node wasn't propagated before the node being explained" << std::endl;
+      return false;
+    }
+  }
+
+  return true;
 }
 
 }/* CVC4::prop namespace */

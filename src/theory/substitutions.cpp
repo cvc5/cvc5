@@ -173,4 +173,9 @@ void SubstitutionMap::print(ostream& out) const {
 }
 
 }/* CVC4::theory namespace */
+
+std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i) {
+  return out << "[CDMap-iterator]";
+}
+
 }/* CVC4 namespace */

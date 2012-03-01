@@ -54,6 +54,7 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
 }
 
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
+  checkDeclaration(name, CHECK_DECLARED, type);
   Assert( isDeclared(name, type) );
 
   switch( type ) {
@@ -77,12 +78,14 @@ Expr Parser::getFunction(const std::string& name) {
 
 Type Parser::getType(const std::string& var_name,
                      SymbolType type) {
+  checkDeclaration(var_name, CHECK_DECLARED, type);
   Assert( isDeclared(var_name, type) );
   Type t = getSymbol(var_name, type).getType();
   return t;
 }
 
 Type Parser::getSort(const std::string& name) {
+  checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert( isDeclared(name, SYM_SORT) );
   Type t = d_declScope->lookupType(name);
   return t;
@@ -90,12 +93,14 @@ Type Parser::getSort(const std::string& name) {
 
 Type Parser::getSort(const std::string& name,
                      const std::vector<Type>& params) {
+  checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert( isDeclared(name, SYM_SORT) );
   Type t = d_declScope->lookupType(name, params);
   return t;
 }
 
 size_t Parser::getArity(const std::string& sort_name){
+  checkDeclaration(sort_name, CHECK_DECLARED, SYM_SORT);
   Assert( isDeclared(sort_name, SYM_SORT) );
   return d_declScope->lookupArity(sort_name);
 }
@@ -236,7 +241,7 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
 SortConstructorType
 Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                     size_t arity) {
-  SortConstructorType unresolved = mkSortConstructor(name,arity);
+  SortConstructorType unresolved = mkSortConstructor(name, arity);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -323,6 +328,37 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
   d_unresolved.clear();
 
   return types;
+}
+
+DatatypeType Parser::mkRecordType(const std::vector< std::pair<std::string, Type> >& typeIds) {
+  DatatypeType& dtt = d_recordTypes[typeIds];
+  if(dtt.isNull()) {
+    Datatype dt("__cvc4_record");
+Debug("datatypes") << "make new record_ctor" << std::endl;
+    DatatypeConstructor c("__cvc4_record_ctor");
+    for(std::vector< std::pair<std::string, Type> >::const_iterator i = typeIds.begin(); i != typeIds.end(); ++i) {
+      c.addArg((*i).first, (*i).second);
+    }
+    dt.addConstructor(c);
+    dtt = d_exprManager->mkDatatypeType(dt);
+  } else {
+Debug("datatypes") << "use old record_ctor" << std::endl;
+}
+  return dtt;
+}
+
+DatatypeType Parser::mkTupleType(const std::vector<Type>& types) {
+  DatatypeType& dtt = d_tupleTypes[types];
+  if(dtt.isNull()) {
+    Datatype dt("__cvc4_tuple");
+    DatatypeConstructor c("__cvc4_tuple_ctor");
+    for(std::vector<Type>::const_iterator i = types.begin(); i != types.end(); ++i) {
+      c.addArg("__cvc4_tuple_stor", *i);
+    }
+    dt.addConstructor(c);
+    dtt = d_exprManager->mkDatatypeType(dt);
+  }
+  return dtt;
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {

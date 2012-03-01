@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <set>
+#include <utility>
 
 namespace CVC4 {
 
@@ -167,6 +168,20 @@ CVC4ostream& CVC4ostream::operator<<(T const& t) {
   return *this;
 }
 
+/**
+ * Does nothing; designed for compilation of non-debug/non-trace
+ * builds.  None of these should ever be called in such builds, but we
+ * offer this to the compiler so it doesn't complain.
+ */
+class CVC4_PUBLIC NullC {
+public:
+  operator bool() { return false; }
+  operator CVC4ostream() { return CVC4ostream(); }
+  operator std::ostream&() { return null_os; }
+};/* class NullC */
+
+extern NullC nullCvc4Stream CVC4_PUBLIC;
+
 /** The debug output class */
 class CVC4_PUBLIC DebugC {
   std::set<std::string> d_tags;
@@ -208,6 +223,7 @@ public:
 
 /** The warning output class */
 class CVC4_PUBLIC WarningC {
+  std::set< std::pair<const char*, size_t> > d_alreadyWarned;
   std::ostream* d_os;
 
 public:
@@ -221,6 +237,22 @@ public:
   std::ostream& getStream() { return *d_os; }
 
   bool isOn() const { return d_os != &null_os; }
+
+  // This function supports the WarningOnce() macro, which allows you
+  // to easily indicate that a warning should be emitted, but only
+  // once for a given run of CVC4.
+  bool warnOnce(const char* file, size_t line) {
+    std::pair<const char*, size_t> pr = std::make_pair(file, line);
+    if(d_alreadyWarned.find(pr) != d_alreadyWarned.end()) {
+      // signal caller not to warn again
+      return false;
+    }
+
+    // okay warn this time, but don't do it again
+    d_alreadyWarned.insert(pr);
+    return true;
+  }
+
 };/* class WarningC */
 
 /** The message output class */
@@ -378,6 +410,7 @@ extern DumpC DumpChannel CVC4_PUBLIC;
 
 #  define Debug ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DebugChannel
 #  define Warning ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
+#  define WarningOnce ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
 #  define Message ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::MessageChannel
 #  define Notice ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::NoticeChannel
 #  define Chat ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::ChatChannel
@@ -405,6 +438,7 @@ inline int DebugC::printf(const char* tag, const char* fmt, ...) { return 0; }
 inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
 #  endif /* CVC4_DEBUG */
 #  define Warning (! ::CVC4::WarningChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
+#  define WarningOnce (! ::CVC4::WarningChannel.isOn() || ! ::CVC4::WarningChannel.warnOnce(__FILE__,__LINE__)) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
 #  define Message (! ::CVC4::MessageChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::MessageChannel
 #  define Notice (! ::CVC4::NoticeChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::NoticeChannel
 #  define Chat (! ::CVC4::ChatChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::ChatChannel
@@ -531,20 +565,6 @@ public:
 };/* class ScopedTrace */
 
 #endif /* CVC4_TRACING */
-
-/**
- * Does nothing; designed for compilation of non-debug/non-trace
- * builds.  None of these should ever be called in such builds, but we
- * offer this to the compiler so it doesn't complain.
- */
-class CVC4_PUBLIC NullC {
-public:
-  operator bool() { return false; }
-  operator CVC4ostream() { return CVC4ostream(); }
-  operator std::ostream&() { return null_os; }
-};/* class NullC */
-
-extern NullC nullCvc4Stream CVC4_PUBLIC;
 
 /**
  * Pushes an indentation level on construction, pop on destruction.

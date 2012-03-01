@@ -28,6 +28,7 @@
 
 #include "util/Assert.h"
 #include "util/cardinality.h"
+#include "util/subrange_bound.h"
 
 namespace CVC4 {
 
@@ -60,6 +61,8 @@ class TupleType;
 class KindType;
 class SortType;
 class SortConstructorType;
+class PredicateSubtype;
+class SubrangeType;
 class Type;
 
 /** Strategy for hashing Types */
@@ -405,6 +408,30 @@ public:
   operator SortConstructorType() const throw(AssertionException);
 
   /**
+   * Is this a predicate subtype?
+   * @return true if this is a predicate subtype
+   */
+  bool isPredicateSubtype() const;
+
+  /**
+   * Cast this type to a predicate subtype
+   * @return the predicate subtype
+   */
+  operator PredicateSubtype() const throw(AssertionException);
+
+  /**
+   * Is this an integer subrange type?
+   * @return true if this is an integer subrange type
+   */
+  bool isSubrange() const;
+
+  /**
+   * Cast this type to an integer subrange type
+   * @return the integer subrange type
+   */
+  operator SubrangeType() const throw(AssertionException);
+
+  /**
    * Is this a kind type (i.e., the type of a type)?
    * @return true if this is a kind type
    */
@@ -572,6 +599,39 @@ public:
   SortType instantiate(const std::vector<Type>& params) const;
 
 };/* class SortConstructorType */
+
+/**
+ * Class encapsulating a predicate subtype.
+ */
+class CVC4_PUBLIC PredicateSubtype : public Type {
+
+public:
+
+  /** Construct from the base type */
+  PredicateSubtype(const Type& type = Type()) throw(AssertionException);
+
+  /** Get the LAMBDA defining this predicate subtype */
+  Expr getPredicate() const;
+
+  /** Get the base type of this predicate subtype */
+  Type getBaseType() const;
+
+};/* class PredicateSubtype */
+
+/**
+ * Class encapsulating an integer subrange type.
+ */
+class CVC4_PUBLIC SubrangeType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  SubrangeType(const Type& type = Type()) throw(AssertionException);
+
+  /** Get the bounds defining this integer subrange */
+  SubrangeBounds getSubrangeBounds() const;
+
+};/* class SubrangeType */
 
 /**
  * Class encapsulating the kind type (the type of types).
