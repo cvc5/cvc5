@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "expr/attribute.h"
 #include "theory/arith/delta_rational.h"
-#include "context/cdset.h"
+#include "context/cdhashset.h"
 #include <vector>
 #include <stdint.h>
 #include <limits>
@@ -47,9 +47,9 @@ typedef __gnu_cxx::hash_map<ArithVar, Node> ArithVarToNodeMap;
 
 //Sets of Nodes
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef context::CDSet<Node, NodeHashFunction> CDNodeSet;
+typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
 
-typedef context::CDSet<ArithVar> CDArithVarSet;
+typedef context::CDHashSet<ArithVar> CDArithVarSet;
 
 class ArithVarCallBack {
 public:

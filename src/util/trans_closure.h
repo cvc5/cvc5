@@ -26,7 +26,7 @@
 #include <map>
 
 #include "context/cdlist.h"
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "context/cdo.h"
 
 namespace CVC4 {
@@ -128,7 +128,7 @@ public:
  */
 class TransitiveClosureNode : public TransitiveClosure{
   context::CDO< unsigned > d_counter;
-  context::CDMap< Node, unsigned, NodeHashFunction > nodeMap;
+  context::CDHashMap< Node, unsigned, NodeHashFunction > nodeMap;
   //for debugging
   context::CDList< std::pair< Node, Node > > currEdges;
 public:

@@ -27,7 +27,7 @@
 
 #include <ext/hash_map>
 
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace expr {
@@ -365,12 +365,12 @@ public:
  */
 template <class value_type>
 class CDAttrHash :
-    public context::CDMap<std::pair<uint64_t, NodeValue*>,
+    public context::CDHashMap<std::pair<uint64_t, NodeValue*>,
                           value_type,
                           AttrHashStrategy> {
 public:
   CDAttrHash(context::Context* ctxt) :
-    context::CDMap<std::pair<uint64_t, NodeValue*>,
+    context::CDHashMap<std::pair<uint64_t, NodeValue*>,
                    value_type,
                    AttrHashStrategy>(ctxt) {
   }
@@ -382,12 +382,12 @@ public:
  */
 template <>
 class CDAttrHash<bool> :
-    protected context::CDMap<NodeValue*,
+    protected context::CDHashMap<NodeValue*,
                              uint64_t,
                              AttrHashBoolStrategy> {
 
   /** A "super" type, like in Java, for easy reference below. */
-  typedef context::CDMap<NodeValue*, uint64_t, AttrHashBoolStrategy> super;
+  typedef context::CDHashMap<NodeValue*, uint64_t, AttrHashBoolStrategy> super;
 
   /**
    * BitAccessor allows us to return a bit "by reference."  Of course,

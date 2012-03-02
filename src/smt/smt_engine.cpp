@@ -25,7 +25,7 @@
 #include <ext/hash_map>
 
 #include "context/cdlist.h"
-#include "context/cdset.h"
+#include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/command.h"
 #include "expr/expr.h"
@@ -124,7 +124,7 @@ class SmtEnginePrivate {
   theory::SubstitutionMap d_topLevelSubstitutions;
 
   /**
-   * The last substition that the SAT layer was told about.
+   * The last substitution that the SAT layer was told about.
    * In incremental settings, substitutions cannot be performed
    * "backward," only forward.  So SAT needs to be told of all
    * substitutions that are going to be done.  This iterator

@@ -23,7 +23,7 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdlist.h"
-#include "context/cdset.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 
 #include "theory/arith/arith_utilities.h"
@@ -183,7 +183,7 @@ private:
   /**
    * List of all of the inequalities asserted in the current context.
    */
-  context::CDSet<Node, NodeHashFunction> d_diseq;
+  context::CDHashSet<Node, NodeHashFunction> d_diseq;
 
   /**
    * Manages information about the assignment and upper and lower bounds on

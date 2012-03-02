@@ -20,8 +20,8 @@
 #include <sstream>
 
 #include "context/context.h"
-#include "context/cdset.h"
-#include "context/cdmap.h"
+#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/kind.h"
 #include "expr/node_manager.h"
@@ -34,8 +34,8 @@ using namespace std;
 
 
 struct MyOutputChannel {
-  CDSet<Node, NodeHashFunction> d_notifications;
-  CDMap<Node, Node, NodeHashFunction> d_equivalences;
+  CDHashSet<Node, NodeHashFunction> d_notifications;
+  CDHashMap<Node, Node, NodeHashFunction> d_equivalences;
   NodeManager* d_nm;
 
   MyOutputChannel(Context* ctxt, NodeManager* nm) :
@@ -50,7 +50,7 @@ struct MyOutputChannel {
   }
 
   TNode find(TNode n) {
-    CDMap<Node, Node, NodeHashFunction>::iterator i = d_equivalences.find(n);
+    CDHashMap<Node, Node, NodeHashFunction>::iterator i = d_equivalences.find(n);
     if(i == d_equivalences.end()) {
       return n;
     } else {

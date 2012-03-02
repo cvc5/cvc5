@@ -24,53 +24,53 @@
  ** CDMap<> is something of a work in progress at present (26 May
  ** 2010), due to some recent discoveries of problems with its
  ** internal state.  Here are some notes on the internal use of
- ** CDOmaps that may be useful in figuring out this mess:
+ ** CDOhash_maps that may be useful in figuring out this mess:
  **
  **     So you have a CDMap<>.
  **
- **     You insert some (key,value) pairs.  Each allocates a CDOmap<>
+ **     You insert some (key,value) pairs.  Each allocates a CDOhash_map<>
  **     and goes on a doubly-linked list headed by map.d_first and
- **     threaded via cdomap.{d_prev,d_next}.  CDOmaps are constructed
+ **     threaded via CDOhash_map.{d_prev,d_next}.  CDOhash_maps are constructed
  **     with a NULL d_map pointer, but then immediately call
  **     makeCurrent() and set the d_map pointer back to the map.  At
  **     context level 0, this doesn't lead to anything special.  In
- **     higher context levels, this stores away a CDOmap with a NULL
+ **     higher context levels, this stores away a CDOhash_map with a NULL
  **     map pointer at level 0, and a non-NULL map pointer in the
  **     current context level.  (Remember that for later.)
  **
  **     When a key is associated to a new value in a CDMap, its
- **     associated CDOmap calls makeCurrent(), then sets the new
- **     value.  The save object is also a CDOmap (allocated in context
+ **     associated CDOhash_map calls makeCurrent(), then sets the new
+ **     value.  The save object is also a CDOhash_map (allocated in context
  **     memory).
  **
- **     Now, CDOmaps disappear in a variety of ways.
+ **     Now, CDOhash_maps disappear in a variety of ways.
  **
  **     First, you might pop beyond a "modification of the value"
  **     scope level, requiring a re-association of the key to an old
- **     value.  This is easy.  CDOmap::restore() does the work, and
+ **     value.  This is easy.  CDOhash_map::restore() does the work, and
  **     the context memory of the save object is reclaimed as usual.
  **
  **     Second, you might pop beyond a "insert the key" scope level,
  **     requiring that the key be completely removed from the map and
- **     its CDOmap object memory freed.  Here, the CDOmap is restored
+ **     its CDOhash_map object memory freed.  Here, the CDOhash_map is restored
  **     to a "NULL-map" state (see above), signaling it to remove
  **     itself from the map completely and put itself on a "trash
  **     list" for the map.
  **
- **     Third, you might obliterate() the key.  This calls the CDOmap
+ **     Third, you might obliterate() the key.  This calls the CDOhash_map
  **     destructor, which calls destroy(), which does a successive
  **     restore() until level 0.  If the key was in the map since
  **     level 0, the restore() won't remove it, so in that case
- **     obliterate() removes it from the map and frees the CDOmap's
+ **     obliterate() removes it from the map and frees the CDOhash_map's
  **     memory.
  **
- **     Fourth, you might delete the CDMap (calling CDMap::~CDMap()).
+ **     Fourth, you might delete the cdhashmap(calling CDMap::~CDMap()).
  **     This first calls destroy(), as per ContextObj contract, but
- **     CDMap doesn't save/restore itself, so that does nothing at the
+ **     cdhashmapdoesn't save/restore itself, so that does nothing at the
  **     CDMap-level.  Then it empties the trash.  Then, for each
  **     element in the map, it marks it as being "part of a complete
  **     map destruction", which essentially short-circuits
- **     CDOmap::restore() (see CDOmap::restore()), then deallocates
+ **     CDOhash_map::restore() (see CDOhash_map::restore()), then deallocates
  **     it.  Finally it asserts that the trash is empty (which it
  **     should be, since restore() was short-circuited).
  **
@@ -80,8 +80,8 @@
  **
  **     CDMap::emptyTrash() simply goes through and calls
  **     ->deleteSelf() on all elements in the trash.
- **     ContextObj::deleteSelf() calls the CDOmap destructor, then
- **     frees the memory associated to the CDOmap.  CDOmap::~CDOmap()
+ **     ContextObj::deleteSelf() calls the CDOhash_map destructor, then
+ **     frees the memory associated to the CDOhash_map.  CDOhash_map::~CDOhash_map()
  **     calls destroy(), which restores as much as possible.  (Note,
  **     though, that since objects placed on the trash have already
  **     restored to the fullest extent possible, it does nothing.)
@@ -98,7 +98,7 @@
 
 #include "context/context.h"
 #include "util/Assert.h"
-#include "context/cdmap_forward.h"
+#include "context/cdhashmap_forward.h"
 
 namespace CVC4 {
 namespace context {
@@ -106,27 +106,27 @@ namespace context {
 // Auxiliary class: almost the same as CDO (see cdo.h)
 
 template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
-class CDOmap : public ContextObj {
-  friend class CDMap<Key, Data, HashFcn>;
+class CDOhash_map : public ContextObj {
+  friend class CDHashMap<Key, Data, HashFcn>;
 
   Key d_key;
   Data d_data;
-  CDMap<Key, Data, HashFcn>* d_map;
+  CDHashMap<Key, Data, HashFcn>* d_map;
 
-  /** never put this cdmap element on the trash */
+  /** never put this cdhashmapelement on the trash */
   bool d_noTrash;
 
   // Doubly-linked list for keeping track of elements in order of insertion
-  CDOmap* d_prev;
-  CDOmap* d_next;
+  CDOhash_map* d_prev;
+  CDOhash_map* d_next;
 
   virtual ContextObj* save(ContextMemoryManager* pCMM) {
-    return new(pCMM) CDOmap(*this);
+    return new(pCMM) CDOhash_map(*this);
   }
 
   virtual void restore(ContextObj* data) {
     if(d_map != NULL) {
-      CDOmap* p = static_cast<CDOmap*>(data);
+      CDOhash_map* p = static_cast<CDOhash_map*>(data);
       if(p->d_map == NULL) {
         Assert(d_map->d_map.find(d_key) != d_map->d_map.end() &&
                (*d_map->d_map.find(d_key)).second == this);
@@ -163,7 +163,7 @@ class CDOmap : public ContextObj {
   }
 
   /** ensure copy ctor is only called by us */
-  CDOmap(const CDOmap& other) :
+  CDOhash_map(const CDOhash_map& other) :
     ContextObj(other),
     d_key(other.d_key),
     d_data(other.d_data),
@@ -174,8 +174,8 @@ class CDOmap : public ContextObj {
 
 public:
 
-  CDOmap(Context* context,
-         CDMap<Key, Data, HashFcn>* map,
+  CDOhash_map(Context* context,
+         CDHashMap<Key, Data, HashFcn>* map,
 	 const Key& key,
          const Data& data,
          bool atLevelZero = false,
@@ -212,7 +212,7 @@ public:
     }
     d_map = map;
 
-    CDOmap*& first = d_map->d_first;
+    CDOhash_map*& first = d_map->d_first;
     if(first == NULL) {
       first = d_next = d_prev = this;
       Debug("gc") << "add first-elem " << this << " to map " << d_map << std::endl;
@@ -225,7 +225,7 @@ public:
     }
   }
 
-  ~CDOmap() throw(AssertionException) {
+  ~CDOhash_map() throw(AssertionException) {
     destroy();
   }
 
@@ -251,14 +251,14 @@ public:
     return data;
   }
 
-  CDOmap* next() const {
+  CDOhash_map* next() const {
     if(d_next == d_map->d_first) {
       return NULL;
     } else {
       return d_next;
     }
   }
-};/* class CDOmap<> */
+};/* class CDOhash_map<> */
 
 
 /**
@@ -267,12 +267,12 @@ public:
  * defined for the data class, and operator== for the key class.
  */
 template <class Key, class Data, class HashFcn>
-class CDMap : public ContextObj {
+class CDHashMap : public ContextObj {
 
-  typedef CDOmap<Key, Data, HashFcn> Element;
+  typedef CDOhash_map<Key, Data, HashFcn> Element;
   typedef __gnu_cxx::hash_map<Key, Element*, HashFcn> table_type;
 
-  friend class CDOmap<Key, Data, HashFcn>;
+  friend class CDOhash_map<Key, Data, HashFcn>;
 
   table_type d_map;
 
@@ -304,7 +304,7 @@ class CDMap : public ContextObj {
 
 public:
 
-  CDMap(Context* context) :
+  CDHashMap(Context* context) :
     ContextObj(context),
     d_map(),
     d_first(NULL),
@@ -312,14 +312,14 @@ public:
     d_trash() {
   }
 
-  ~CDMap() throw(AssertionException) {
-    Debug("gc") << "cdmap " << this
+  ~CDHashMap() throw(AssertionException) {
+    Debug("gc") << "cdhashmap" << this
                 << " disappearing, destroying..." << std::endl;
     destroy();
-    Debug("gc") << "cdmap " << this
+    Debug("gc") << "cdhashmap" << this
                 << " disappearing, done destroying" << std::endl;
 
-    Debug("gc") << "cdmap " << this << " gone, emptying trash" << std::endl;
+    Debug("gc") << "cdhashmap" << this << " gone, emptying trash" << std::endl;
     emptyTrash();
     Debug("gc") << "done emptying trash for " << this << std::endl;
 
@@ -339,7 +339,7 @@ public:
   }
 
   void clear() throw(AssertionException) {
-    Debug("gc") << "clearing cdmap " << this << ", emptying trash" << std::endl;
+    Debug("gc") << "clearing cdhashmap" << this << ", emptying trash" << std::endl;
     emptyTrash();
     Debug("gc") << "done emptying trash for " << this << std::endl;
 
@@ -464,11 +464,11 @@ public:
     if(i != d_map.end()) {
       Debug("gc") << "key " << k << " obliterated" << std::endl;
       // We can't call ->deleteSelf() here, because it calls the
-      // ContextObj destructor, which calls CDOmap::destroy(), which
-      // restore()'s, which puts the CDOmap on the trash, which causes
+      // ContextObj destructor, which calls CDOhash_map::destroy(), which
+      // restore()'s, which puts the CDOhash_map on the trash, which causes
       // a double-delete.
       (*i).second->~Element();
-      // Writing ...->~CDOmap() in the above is legal (?) but breaks
+      // Writing ...->~CDOhash_map() in the above is legal (?) but breaks
       // g++ 4.1, though later versions have no problem.
 
       typename table_type::iterator j = d_map.find(k);
@@ -575,7 +575,7 @@ public:
 
   iterator find(const Key& k) {
     emptyTrash();
-    return const_cast<const CDMap*>(this)->find(k);
+    return const_cast<const CDHashMap*>(this)->find(k);
   }
 
 };/* class CDMap<> */

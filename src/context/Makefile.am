@@ -16,10 +16,10 @@ libcontext_la_SOURCES = \
 	cdlist_forward.h \
 	cdqueue.h \
 	cdtrail_queue.h \
-	cdmap.h \
-	cdmap_forward.h \
-	cdset.h \
-	cdset_forward.h \
+	cdhashmap.h \
+	cdhashmap_forward.h \
+	cdhashset.h \
+	cdhashset_forward.h \
 	cdcirclist.h \
 	cdcirclist_forward.h \
 	cdvector.h \

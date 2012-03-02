@@ -26,7 +26,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "context/context.h"
 #include "context/cdlist.h"
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "context/cdo.h"
 
 namespace CVC4 {

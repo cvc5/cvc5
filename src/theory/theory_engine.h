@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "expr/command.h"
 #include "prop/prop_engine.h"
-#include "context/cdset.h"
+#include "context/cdhashset.h"
 #include "theory/theory.h"
 #include "theory/substitutions.h"
 #include "theory/rewriter.h"
@@ -121,7 +121,7 @@ class TheoryEngine {
    * context-dependent set of those theory-propagable literals that
    * have been propagated.
    */
-  context::CDSet<TNode, TNodeHashFunction> d_hasPropagated;
+  context::CDHashSet<TNode, TNodeHashFunction> d_hasPropagated;
 
   /**
    * Statistics for a particular theory.
@@ -311,7 +311,7 @@ class TheoryEngine {
   /**
    * Map from equalities asserted to a theory, to the theory that can explain them.
    */
-  typedef context::CDMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction> SharedAssertionsMap;
+  typedef context::CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction> SharedAssertionsMap;
 
   /**
    * A map from asserted facts to where they came from (for explanations).

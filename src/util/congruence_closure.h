@@ -30,8 +30,8 @@
 #include "expr/node.h"
 #include "context/context_mm.h"
 #include "context/cdo.h"
-#include "context/cdmap.h"
-#include "context/cdset.h"
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/cdlist_context_memory.h"
 #include "util/exception.h"
 #include "context/stacking_map.h"
@@ -141,15 +141,15 @@ class CongruenceClosure {
   // typedef all of these so that iterators are easy to define
   typedef context::StackingMap<Node, Node, NodeHashFunction> RepresentativeMap;
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > ClassList;
-  typedef context::CDMap<Node, ClassList*, NodeHashFunction> ClassLists;
+  typedef context::CDHashMap<Node, ClassList*, NodeHashFunction> ClassLists;
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > UseList;
-  typedef context::CDMap<TNode, UseList*, TNodeHashFunction> UseLists;
-  typedef context::CDMap<Node, Node, NodeHashFunction> LookupMap;
+  typedef context::CDHashMap<TNode, UseList*, TNodeHashFunction> UseLists;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> LookupMap;
 
   typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> EqMap;
 
-  typedef context::CDMap<Node, Node, NodeHashFunction> ProofMap;
-  typedef context::CDMap<Node, Node, NodeHashFunction> ProofLabel;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> ProofMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> ProofLabel;
 
   // Simple, NON-context-dependent pending list, union find and "seen
   // set" types for constructing explanations and
@@ -164,7 +164,7 @@ class CongruenceClosure {
   LookupMap d_lookup;
 
   EqMap d_eqMap;
-  context::CDSet<TNode, TNodeHashFunction> d_added;
+  context::CDHashSet<TNode, TNodeHashFunction> d_added;
 
   ProofMap d_proof;
   ProofLabel d_proofLabel;
@@ -175,7 +175,7 @@ class CongruenceClosure {
    * The set of terms we care about (i.e. those that have been given
    * us with addTerm() and their representatives).
    */
-  typedef context::CDSet<TNode, TNodeHashFunction> CareSet;
+  typedef context::CDHashSet<TNode, TNodeHashFunction> CareSet;
   CareSet d_careSet;
 
   // === STATISTICS ===

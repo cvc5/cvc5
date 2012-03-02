@@ -79,7 +79,7 @@ void inline rshift(Bits& bits, unsigned amount) {
 }
 
 void inline lshift(Bits& bits, unsigned amount) {
-  for (int i = bits.size() - 1; i >= amount ; --i) {
+  for (int i = (int)bits.size() - 1; i >= (int)amount ; --i) {
     bits[i] = bits[i-amount]; 
   }
   for(unsigned i = 0; i < amount; ++i) {

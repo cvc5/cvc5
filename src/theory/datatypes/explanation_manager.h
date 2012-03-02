@@ -160,7 +160,7 @@ class ExplanationManager : public Explainer
 {
 private:
   /** map from nodes and the reason for them */
-  context::CDMap< Node, Reason, NodeHashFunction > d_drv_map;
+  context::CDHashMap< Node, Reason, NodeHashFunction > d_drv_map;
   /** has conflict */
   context::CDO< bool > d_hasConflict;
   /** process the reason for node n */

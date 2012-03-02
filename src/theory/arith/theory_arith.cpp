@@ -1030,8 +1030,8 @@ Node TheoryArith::roundRobinBranch(){
 bool TheoryArith::splitDisequalities(){
   bool splitSomething = false;
 
-  context::CDSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
-  context::CDSet<Node, NodeHashFunction>::iterator it_end = d_diseq.end();
+  context::CDHashSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
+  context::CDHashSet<Node, NodeHashFunction>::iterator it_end = d_diseq.end();
   for(; it != it_end; ++ it) {
     TNode eq = (*it)[0];
     Assert(eq.getKind() == kind::EQUAL);
@@ -1073,8 +1073,8 @@ void TheoryArith::debugPrintAssertions() {
       Debug("arith::print_assertions") << uConstr << endl;
     }
   }
-  context::CDSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
-  context::CDSet<Node, NodeHashFunction>::iterator it_end = d_diseq.end();
+  context::CDHashSet<Node, NodeHashFunction>::iterator it = d_diseq.begin();
+  context::CDHashSet<Node, NodeHashFunction>::iterator it_end = d_diseq.end();
   for(; it != it_end; ++ it) {
     Debug("arith::print_assertions") << *it << endl;
   }

@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "context/context.h"
 #include "context/cdo.h"
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "util/hash.h"
 
 namespace CVC4 {
@@ -46,7 +46,7 @@ class SubstitutionMap {
 
 public:
 
-  typedef context::CDMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
   typedef NodeMap::iterator iterator;
   typedef NodeMap::const_iterator const_iterator;

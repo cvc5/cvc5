@@ -35,7 +35,7 @@ namespace __gnu_cxx {
 namespace CVC4 {
   namespace context {
     template <class V, class HashFcn = __gnu_cxx::hash<V> >
-    class CDSet;
+    class CDHashSet;
   }/* CVC4::context namespace */
 }/* CVC4 namespace */
 

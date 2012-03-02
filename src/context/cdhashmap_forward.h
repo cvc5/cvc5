@@ -35,7 +35,7 @@ namespace __gnu_cxx {
 namespace CVC4 {
   namespace context {
     template <class Key, class Data, class HashFcn = __gnu_cxx::hash<Key> >
-    class CDMap;
+    class CDHashMap;
   }/* CVC4::context namespace */
 }/* CVC4 namespace */
 

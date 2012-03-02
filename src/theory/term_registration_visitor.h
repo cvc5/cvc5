@@ -36,7 +36,7 @@ class PreRegisterVisitor {
   /**
    * Map from nodes to the theories that have already seen them.
    */
-  typedef context::CDMap<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
+  typedef context::CDHashMap<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
   TNodeVisitedMap d_visited;
 
   /**

@@ -18,7 +18,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "util/Assert.h"
 
 using namespace std;
@@ -40,7 +40,7 @@ public:
   }
 
   void testUnreachableSaveAndRestore() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     TS_ASSERT_THROWS_NOTHING(map.makeCurrent());
 

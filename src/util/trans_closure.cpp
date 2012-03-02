@@ -98,7 +98,7 @@ void TransitiveClosure::debugPrintMatrix()
 }
 
 unsigned TransitiveClosureNode::getId( Node i ){
-  context::CDMap< Node, unsigned, NodeHashFunction >::iterator it = nodeMap.find( i );
+  context::CDHashMap< Node, unsigned, NodeHashFunction >::iterator it = nodeMap.find( i );
   if( it==nodeMap.end() ){
     unsigned c = d_counter.get();
     nodeMap[i] = c;

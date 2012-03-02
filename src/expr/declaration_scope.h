@@ -28,8 +28,8 @@
 #include "expr/expr.h"
 #include "util/hash.h"
 
-#include "context/cdset_forward.h"
-#include "context/cdmap_forward.h"
+#include "context/cdhashset_forward.h"
+#include "context/cdhashmap_forward.h"
 
 namespace CVC4 {
 
@@ -52,13 +52,13 @@ class CVC4_PUBLIC DeclarationScope {
   context::Context* d_context;
 
   /** A map for expressions. */
-  context::CDMap<std::string, Expr, StringHashFunction> *d_exprMap;
+  context::CDHashMap<std::string, Expr, StringHashFunction> *d_exprMap;
 
   /** A map for types. */
-  context::CDMap<std::string, std::pair<std::vector<Type>, Type>, StringHashFunction> *d_typeMap;
+  context::CDHashMap<std::string, std::pair<std::vector<Type>, Type>, StringHashFunction> *d_typeMap;
 
   /** A set of defined functions. */
-  context::CDSet<Expr, ExprHashFunction> *d_functions;
+  context::CDHashSet<Expr, ExprHashFunction> *d_functions;
 
 public:
   /** Create a declaration scope. */

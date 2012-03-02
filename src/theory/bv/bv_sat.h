@@ -30,7 +30,7 @@
 #include <ext/hash_map>
 
 #include "context/cdo.h"
-#include "context/cdset.h"
+#include "context/cdhashset.h"
 #include "context/cdlist.h"
 
 #include "theory_bv_utils.h"

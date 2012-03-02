@@ -40,10 +40,10 @@ namespace datatypes {
 class TheoryDatatypes : public Theory {
 private:
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > EqList;
-  typedef context::CDMap<Node, EqList*, NodeHashFunction> EqLists;
+  typedef context::CDHashMap<Node, EqList*, NodeHashFunction> EqLists;
   typedef context::CDList<Node, context::ContextMemoryAllocator<Node> > EqListN;
-  typedef context::CDMap<Node, EqListN*, NodeHashFunction> EqListsN;
-  typedef context::CDMap< Node, bool, NodeHashFunction > BoolMap;
+  typedef context::CDHashMap<Node, EqListN*, NodeHashFunction> EqListsN;
+  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
 
   /** for debugging */
   context::CDList<Node> d_currAsserts;

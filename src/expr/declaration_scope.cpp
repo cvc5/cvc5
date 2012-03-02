@@ -22,8 +22,8 @@
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "expr/expr_manager_scope.h"
-#include "context/cdmap.h"
-#include "context/cdset.h"
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/context.h"
 
 #include <string>
@@ -37,9 +37,9 @@ namespace CVC4 {
 
 DeclarationScope::DeclarationScope() :
   d_context(new Context),
-  d_exprMap(new(true) CDMap<std::string, Expr, StringHashFunction>(d_context)),
-  d_typeMap(new(true) CDMap<std::string, pair<vector<Type>, Type>, StringHashFunction>(d_context)),
-  d_functions(new(true) CDSet<Expr, ExprHashFunction>(d_context)) {
+  d_exprMap(new(true) CDHashMap<std::string, Expr, StringHashFunction>(d_context)),
+  d_typeMap(new(true) CDHashMap<std::string, pair<vector<Type>, Type>, StringHashFunction>(d_context)),
+  d_functions(new(true) CDHashSet<Expr, ExprHashFunction>(d_context)) {
 }
 
 DeclarationScope::~DeclarationScope() {
@@ -67,7 +67,7 @@ bool DeclarationScope::isBound(const std::string& name) const throw() {
 }
 
 bool DeclarationScope::isBoundDefinedFunction(const std::string& name) const throw() {
-  CDMap<std::string, Expr, StringHashFunction>::iterator found =
+  CDHashMap<std::string, Expr, StringHashFunction>::iterator found =
     d_exprMap->find(name);
   return found != d_exprMap->end() && d_functions->contains((*found).second);
 }

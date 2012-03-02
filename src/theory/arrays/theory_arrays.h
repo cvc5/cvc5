@@ -152,8 +152,8 @@ private:
 
 
   typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > CTNodeListAlloc;
-  typedef context::CDMap<Node, CTNodeListAlloc*, NodeHashFunction> CNodeTNodesMap;
-  typedef context::CDMap<TNode, List<TNode>*, TNodeHashFunction > EqLists;
+  typedef context::CDHashMap<Node, CTNodeListAlloc*, NodeHashFunction> CNodeTNodesMap;
+  typedef context::CDHashMap<TNode, List<TNode>*, TNodeHashFunction > EqLists;
 
 
   typedef __gnu_cxx::hash_map<TNode, CTNodeList*, TNodeHashFunction> NodeTNodesMap;
@@ -174,7 +174,7 @@ private:
   /** List of disequalities needed to construct explanations for propagated
    * row lemmas */
 
-  context::CDMap<TNode, std::pair<TNode, TNode>, TNodeHashFunction> d_explanations;
+  context::CDHashMap<TNode, std::pair<TNode, TNode>, TNodeHashFunction> d_explanations;
 
   /**
    * stores the conflicting disequality (still need to call construct
@@ -447,9 +447,9 @@ public:
 
   void propagate(Effort e) {
 
-    Trace("arrays-prop")<<"Propagating \n";
+    // Trace("arrays-prop")<<"Propagating \n";
 
-    context::CDList<TNode>::const_iterator it = d_prop_queue.begin();
+    // context::CDList<TNode>::const_iterator it = d_prop_queue.begin();
     /*
     for(; it!= d_prop_queue.end(); it++) {
       TNode eq = *it;

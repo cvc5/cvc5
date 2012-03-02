@@ -18,7 +18,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 
 using namespace std;
@@ -43,7 +43,7 @@ public:
   }
 
   void testSimpleSequence() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     TS_ASSERT(map.find(3) == map.end());
     TS_ASSERT(map.find(5) == map.end());
@@ -188,7 +188,7 @@ public:
   // no intervening find() in this one
   // (under the theory that this could trigger a bug)
   void testSimpleSequenceFewerFinds() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     map.insert(3, 4);
 
@@ -226,7 +226,7 @@ public:
   }
 
   void testObliterate() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     map.insert(3, 4);
 
@@ -357,7 +357,7 @@ public:
   }
 
   void testObliteratePrimordial() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     map.insert(3, 4);
 
@@ -460,7 +460,7 @@ public:
   }
 
   void testObliterateCurrent() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     map.insert(3, 4);
 
@@ -566,7 +566,7 @@ public:
   }
 
   void testInsertAtContextLevelZero() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     map.insert(3, 4);
 
@@ -739,7 +739,7 @@ public:
   }
 
   void testObliterateInsertedAtContextLevelZero() {
-    CDMap<int, int> map(d_context);
+    CDHashMap<int, int> map(d_context);
 
     map.insert(3, 4);
 
@@ -933,7 +933,7 @@ public:
     //Debug.on("gc");
     //Debug.on("context");
 
-    CDMap<int, CDList<myint>*, int_hasher> map(d_context);
+    CDHashMap<int, CDList<myint>*, int_hasher> map(d_context);
 
     CDList<myint> *list1, *list2, *list3, *list4;
 
@@ -1026,7 +1026,7 @@ public:
       d_context->push();
 
       // This re-uses context memory used above.  the map.clear()
-      // triggers an emptyTrash() which fails if the CDOmaps are put
+      // triggers an emptyTrash() which fails if the CDOhash_maps are put
       // in the trash.  (We use insertDataFromContextMemory() above to
       // keep them out of the trash.)
       cout << "allocating\n";
@@ -1059,7 +1059,7 @@ public:
   void testCmmElementsAtLevel0() {
     // this was crashing
 
-    CDMap<int, int*, int_hasher> map(d_context);
+    CDHashMap<int, int*, int_hasher> map(d_context);
     int* a = (int*)d_context->getCMM()->newData(sizeof(int));
     map.insertDataFromContextMemory(1, a);
   }

@@ -47,7 +47,7 @@ void ExplanationManager::process( Node n, NodeBuilder<>& nb, ProofManager* pm )
     }
   }else{
     if( !pm->hasExplained( n ) ){
-      context::CDMap< Node, Reason, NodeHashFunction >::iterator it = d_drv_map.find( n );
+      context::CDHashMap< Node, Reason, NodeHashFunction >::iterator it = d_drv_map.find( n );
       Reason r;
       Node exp;
       if( it!=d_drv_map.end() ){

@@ -22,16 +22,16 @@
 #define __CVC4__CONTEXT__CDSET_H
 
 #include "context/context.h"
-#include "context/cdset_forward.h"
-#include "context/cdmap.h"
+#include "context/cdhashset_forward.h"
+#include "context/cdhashmap.h"
 #include "util/Assert.h"
 
 namespace CVC4 {
 namespace context {
 
 template <class V, class HashFcn>
-class CDSet : protected CDMap<V, V, HashFcn> {
-  typedef CDMap<V, V, HashFcn> super;
+class CDHashSet : protected CDHashMap<V, V, HashFcn> {
+  typedef CDHashMap<V, V, HashFcn> super;
 
 public:
 
@@ -52,7 +52,7 @@ public:
     AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
   }
 
-  CDSet(Context* context) :
+  CDHashSet(Context* context) :
     super(context) {
   }
 

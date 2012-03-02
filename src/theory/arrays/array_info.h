@@ -41,7 +41,7 @@
 #define __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 #include "util/backtrackable.h"
 #include "context/cdlist.h"
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "util/stats.h"
 #include "util/ntuple.h"

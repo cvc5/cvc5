@@ -496,7 +496,7 @@ protected:
    * class-facing interface.  This is a "forced" makeCurrent(), useful
    * for ContextObjs allocated in CMM that need a special "bottom"
    * case when they disappear out of existence (kind of a destructor).
-   * See CDOmap (in cdmap.h) for an example.
+   * See CDOhash_map (in cdhashmap.h) for an example.
    */
   inline void makeSaveRestorePoint() throw(AssertionException);
 

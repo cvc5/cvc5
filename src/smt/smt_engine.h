@@ -24,8 +24,8 @@
 #include <vector>
 
 #include "context/cdlist_forward.h"
-#include "context/cdmap_forward.h"
-#include "context/cdset_forward.h"
+#include "context/cdhashmap_forward.h"
+#include "context/cdhashset_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/proof.h"
@@ -89,12 +89,12 @@ namespace smt {
 class CVC4_PUBLIC SmtEngine {
 
   /** The type of our internal map of defined functions */
-  typedef context::CDMap<Node, smt::DefinedFunction, NodeHashFunction>
+  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
     DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Expr> AssertionList;
   /** The type of our internal assignment set */
-  typedef context::CDSet<Node, NodeHashFunction> AssignmentSet;
+  typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
 
   /** Expr manager context */
   context::Context* d_context;
