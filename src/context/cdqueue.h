@@ -122,7 +122,7 @@ public:
       // Some elements have been enqueued and dequeued in the same
       // context and now the queue is empty we can destruct them.
       CDList<T>::truncateList(d_lastsave);
-      Assert(d_size ==  d_lastsave);
+      Assert(CDList<T>::d_size ==  d_lastsave);
       d_iter = d_lastsave;
     }
   }

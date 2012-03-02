@@ -11,10 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Arith utilities are common inline functions for dealing with nodes.
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** Arith utilities are common functions for dealing with nodes.
  **/
 
 #include "cvc4_private.h"
@@ -23,40 +22,20 @@
 #define __CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 
 #include "util/rational.h"
+#include "util/integer.h"
 #include "expr/node.h"
-#include "expr/attribute.h"
 #include "theory/arith/delta_rational.h"
 #include "context/cdhashset.h"
-#include <vector>
-#include <stdint.h>
-#include <limits>
 #include <ext/hash_map>
+#include <vector>
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-
-typedef uint32_t ArithVar;
-//static const ArithVar ARITHVAR_SENTINEL = std::numeric_limits<ArithVar>::max();
-#define ARITHVAR_SENTINEL std::numeric_limits<ArithVar>::max()
-
-//Maps from Nodes -> ArithVars, and vice versa
-typedef __gnu_cxx::hash_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
-typedef __gnu_cxx::hash_map<ArithVar, Node> ArithVarToNodeMap;
-
 //Sets of Nodes
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
-
-typedef context::CDHashSet<ArithVar> CDArithVarSet;
-
-class ArithVarCallBack {
-public:
-  virtual void callback(ArithVar x) = 0;
-};
-
-
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);
@@ -126,7 +105,7 @@ inline bool isRelationOperator(Kind k){
  * Given a relational kind, k, return the kind k' s.t.
  * swapping the lefthand and righthand side is equivalent.
  *
- * The following equivalence should hold, 
+ * The following equivalence should hold,
  *   (k l r) <=> (k' r l)
  */
 inline Kind reverseRelationKind(Kind k){

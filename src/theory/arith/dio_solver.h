@@ -25,7 +25,6 @@
 
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/arith_utilities.h"
 #include "util/rational.h"
 
 #include "util/stats.h"

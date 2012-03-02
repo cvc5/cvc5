@@ -26,12 +26,13 @@
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
 using namespace CVC4::kind;
 using namespace std;
 
+
+namespace CVC4 {
+namespace theory {
+namespace arith {
 
 bool ArithPropManager::isAsserted(TNode n) const{
   Node satValue = d_valuation.getSatValue(n);
@@ -166,3 +167,7 @@ ArithPropManager::Statistics::~Statistics()
   StatisticsRegistry::unregisterStat(&d_alreadyPropagatedNode);
   StatisticsRegistry::unregisterStat(&d_addedPropagation);
 }
+
+}; /* namesapce arith */
+}; /* namespace theory */
+}; /* namespace CVC4 */

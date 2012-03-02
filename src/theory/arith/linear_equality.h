@@ -33,7 +33,7 @@
 #define __CVC4__THEORY__ARITH__LINEAR_EQUALITY_H
 
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau.h"
 

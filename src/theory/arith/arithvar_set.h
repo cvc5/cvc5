@@ -23,7 +23,10 @@
 #define __CVC4__THEORY__ARITH__ARTIHVAR_SET_H
 
 #include <vector>
-#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
+#include "context/context.h"
+#include "context/cdlist.h"
+
 
 namespace CVC4 {
 namespace theory {
@@ -244,15 +247,6 @@ public:
     }
   }
 
-  /** Invalidates iterators */
-  /* void init(ArithVar x, bool val) { */
-  /*   Assert(x >= allocated()); */
-  /*   increaseSize(x); */
-  /*   if(val){ */
-  /*     add(x); */
-  /*   } */
-  /* } */
-
   /**
    * Invalidates iterators.
    */
@@ -324,6 +318,68 @@ public:
     d_posVector[x] = size() - 1;
   }
 };
+
+class CDArithVarSet {
+private:
+
+  class RemoveIntWrapper{
+  private:
+    ArithVar d_var;
+    ArithVarCallBack& d_onDestruction;
+
+  public:
+    RemoveIntWrapper(ArithVar v, ArithVarCallBack& onDestruction):
+      d_var(v), d_onDestruction(onDestruction)
+    {}
+
+    ~RemoveIntWrapper(){
+      d_onDestruction.callback(d_var);
+    }
+  };
+
+  std::vector<bool> d_set;
+  context::CDList<RemoveIntWrapper> d_list;
+
+  class OnDestruction : public ArithVarCallBack {
+  private:
+    std::vector<bool>& d_set;
+  public:
+    OnDestruction(std::vector<bool>& set):
+      d_set(set)
+    {}
+
+    void callback(ArithVar x){
+      Assert(x < d_set.size());
+      d_set[x] = false;
+    }
+  };
+
+  OnDestruction d_callback;
+
+public:
+  CDArithVarSet(context::Context* c) :
+    d_list(c), d_callback(d_set)
+  { }
+
+  /** This cannot be const as garbage collection is done lazily. */
+  bool contains(ArithVar x) const{
+    if(x < d_set.size()){
+      return d_set[x];
+    }else{
+      return false;
+    }
+  }
+
+  void insert(ArithVar x){
+    Assert(!contains(x));
+    if(x >= d_set.size()){
+      d_set.resize(x+1, false);
+    }
+    d_list.push_back(RemoveIntWrapper(x, d_callback));
+    d_set[x] = true;
+  }
+};
+
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

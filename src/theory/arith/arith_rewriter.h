@@ -11,10 +11,10 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Rewriter for arithmetic.
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** Rewriter for the theory of arithmetic.  This rewrites to the normal form for
+ ** arithmetic. See theory/arith/normal_form.h for more information.
  **/
 
 #include "cvc4_private.h"
@@ -23,9 +23,6 @@
 #define __CVC4__THEORY__ARITH__ARITH_REWRITER_H
 
 #include "theory/theory.h"
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
-
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -33,6 +30,18 @@ namespace theory {
 namespace arith {
 
 class ArithRewriter {
+public:
+
+  static RewriteResponse preRewrite(TNode n);
+  static RewriteResponse postRewrite(TNode n);
+  static Node rewriteEquality(TNode equality) {
+    // Arithmetic owns the domain, so this is totally ok
+    return Rewriter::rewrite(equality);
+  }
+
+  static void init() { }
+
+  static void shutdown() { }
 
 private:
 
@@ -59,24 +68,7 @@ private:
   static RewriteResponse postRewriteAtom(TNode t);
   static RewriteResponse postRewriteAtomConstantRHS(TNode t);
 
-public:
-
-  static RewriteResponse preRewrite(TNode n);
-  static RewriteResponse postRewrite(TNode n);
-  static Node rewriteEquality(TNode equality) {
-    // Arithmetic owns the domain, so this is totally ok
-    return Rewriter::rewrite(equality);
-  }
-
-  static void init() { }
-
-  static void shutdown() { }
-
-private:
-
-  static inline bool isAtom(TNode n) {
-    return arith::isRelationOperator(n.getKind());
-  }
+  static bool isAtom(TNode n);
 
   static inline bool isTerm(TNode n) {
     return !isAtom(n);

@@ -26,12 +26,16 @@
 #include <set>
 #include <stack>
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+namespace CVC4 {
+namespace theory {
+namespace arith {
 
 bool isVariable(TNode t){
   return t.getMetaKind() == kind::metakind::VARIABLE;
+}
+
+bool ArithRewriter::isAtom(TNode n) {
+  return arith::isRelationOperator(n.getKind());
 }
 
 RewriteResponse ArithRewriter::rewriteConstant(TNode t){
@@ -364,3 +368,7 @@ RewriteResponse ArithRewriter::rewriteDivByConstant(TNode t, bool pre){
     return RewriteResponse(REWRITE_AGAIN, mult);
   }
 }
+
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

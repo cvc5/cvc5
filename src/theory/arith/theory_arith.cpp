@@ -47,14 +47,13 @@
 #include <stdint.h>
 
 using namespace std;
-
-using namespace CVC4;
 using namespace CVC4::kind;
 
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+namespace CVC4 {
+namespace theory {
+namespace arith {
 
-static const uint32_t RESET_START = 2;
+const uint32_t RESET_START = 2;
 
 
 TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
@@ -64,8 +63,6 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_learner(d_pbSubstitutions),
   d_nextIntegerCheckVar(0),
   d_constantIntegerVariables(c),
-  d_CivIterator(c,0),
-  d_varsInDioSolver(c),
   d_diseq(c),
   d_partialModel(c, d_differenceManager),
   d_tableau(),
@@ -167,7 +164,7 @@ Node TheoryArith::AssertLower(ArithVar x_i, DeltaRational& c_i, TNode original){
   }
 
   //TODO Relax to less than?
-  if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
+  if(d_partialModel.lessThanLowerBound(x_i, c_i)){
     return Node::null();
   }
 
@@ -225,7 +222,7 @@ Node TheoryArith::AssertUpper(ArithVar x_i, DeltaRational& c_i, TNode original){
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
 
-  if(d_partialModel.strictlyGreaterThanUpperBound(x_i, c_i) ){ // \upperbound(x_i) <= c_i
+  if(d_partialModel.greaterThanUpperBound(x_i, c_i) ){ // \upperbound(x_i) <= c_i
     return Node::null(); //sat
   }
 
@@ -763,20 +760,14 @@ Node TheoryArith::dioCutting(){
 }
 
 Node TheoryArith::callDioSolver(){
-  while(d_CivIterator < d_constantIntegerVariables.size()){
-    ArithVar v = d_constantIntegerVariables[d_CivIterator];
-    d_CivIterator = d_CivIterator + 1;
+  while(!d_constantIntegerVariables.empty()){
+    ArithVar v = d_constantIntegerVariables.front();
+    d_constantIntegerVariables.pop();
 
     Debug("arith::dio")  << v << endl;
 
     Assert(isInteger(v));
     Assert(d_partialModel.boundsAreEqual(v));
-
-    if(d_varsInDioSolver.find(v) != d_varsInDioSolver.end()){
-      continue;
-    }else{
-      d_varsInDioSolver.insert(v);
-    }
 
     TNode lb = d_partialModel.getLowerConstraint(v);
     TNode ub = d_partialModel.getUpperConstraint(v);
@@ -1491,3 +1482,7 @@ void TheoryArith::propagateCandidates(){
     propagateCandidate(candidate);
   }
 }
+
+}; /* namesapce arith */
+}; /* namespace theory */
+}; /* namespace CVC4 */

@@ -22,13 +22,12 @@
 
 #include <list>
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
-
+using namespace std;
 using namespace CVC4::kind;
 
-using namespace std;
+namespace CVC4 {
+namespace theory {
+namespace arith {
 
 ArithAtomDatabase::ArithAtomDatabase(context::Context* cxt, OutputChannel& out) :
   d_arithOut(out), d_setsMap()
@@ -537,3 +536,7 @@ Node ArithAtomDatabase::getWeakerImpliedLowerBound(TNode lowerBound) const {
   Debug("arith::unate") << lowerBound <<" -> " << result << std::endl;
   return result;
 }
+
+}; /* namesapce arith */
+}; /* namespace theory */
+}; /* namespace CVC4 */

@@ -23,7 +23,7 @@
 #define __CVC4__THEORY__ARITH__ARITH_PROP_MANAGER_H
 
 #include "theory/valuation.h"
-#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/atom_database.h"
 #include "theory/arith/delta_rational.h"

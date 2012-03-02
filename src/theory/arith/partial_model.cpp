@@ -23,9 +23,10 @@
 
 using namespace std;
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+namespace CVC4 {
+namespace theory {
+namespace arith {
+
 
 
 bool ArithPartialModel::boundsAreEqual(ArithVar x){
@@ -395,3 +396,7 @@ void ArithPartialModel::computeDelta(){
   }
   d_deltaIsSafe = true;
 }
+
+}; /* namesapce arith */
+}; /* namespace theory */
+}; /* namespace CVC4 */

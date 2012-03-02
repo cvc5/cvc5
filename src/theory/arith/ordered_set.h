@@ -109,13 +109,6 @@ typedef std::map<Rational, BoundValueEntry> BoundValueSet;
 
 typedef std::set<TNode, RightHandRationalLT> EqualValueSet;
 
-// struct SetCleanupStrategy{
-//   static void cleanup(OrderedSet* l){
-//     Debug("arithgc") << "cleaning up  " << l << "\n";
-//     delete l;
-//   }
-// };
-
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

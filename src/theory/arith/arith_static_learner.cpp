@@ -30,11 +30,11 @@
 #include <vector>
 
 using namespace std;
-
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+
+namespace CVC4 {
+namespace theory {
+namespace arith {
 
 
 ArithStaticLearner::ArithStaticLearner(SubstitutionMap& pbSubstitutions) :
@@ -495,3 +495,7 @@ void ArithStaticLearner::addBound(TNode n) {
     break;
   }
 }
+
+}; /* namesapce arith */
+}; /* namespace theory */
+}; /* namespace CVC4 */

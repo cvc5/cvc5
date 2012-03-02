@@ -21,7 +21,7 @@
 
 #include "context/context.h"
 #include "context/cdvector.h"
-#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/arith/delta_rational.h"
 #include "expr/attribute.h"
 #include "expr/node.h"

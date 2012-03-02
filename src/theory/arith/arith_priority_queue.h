@@ -23,7 +23,7 @@
 #ifndef __CVC4__THEORY__ARITH__ARITH_PRIORITY_QUEUE_H
 #define __CVC4__THEORY__ARITH__ARITH_PRIORITY_QUEUE_H
 
-#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/tableau.h"
 #include "theory/arith/partial_model.h"

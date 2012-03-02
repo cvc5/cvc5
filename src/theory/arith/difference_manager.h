@@ -5,7 +5,7 @@
 #ifndef __CVC4__THEORY__ARITH__DIFFERENCE_MANAGER_H
 #define __CVC4__THEORY__ARITH__DIFFERENCE_MANAGER_H
 
-#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
 #include "theory/uf/equality_engine.h"
 #include "context/cdo.h"
 #include "context/cdlist.h"
