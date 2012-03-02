@@ -48,32 +48,6 @@ namespace prop {
 class PropEngine;
 class CnfStream;
 
-/* Definitions of abstract types and conversion functions for SAT interface */
-/*
-inline SatLiteral variableToLiteral(SatVariable var) {
-  return Minisat::mkLit(var);
-}
-
-inline bool literalSign(SatLiteral lit) {
-  return Minisat::sign(lit);
-}
-
-static inline size_t
-hashSatLiteral(const SatLiteral& literal) {
-  return (size_t) Minisat::toInt(literal);
-}
-
-inline std::string stringOfLiteralValue(SatLiteralValue val) {
-  if( val == l_False ) {
-    return "0";
-  } else if (val == l_True ) {
-    return "1";
-  } else { // unknown
-    return "_";
-  }
-}
-*/
-
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
