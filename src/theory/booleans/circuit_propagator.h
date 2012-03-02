@@ -69,7 +69,7 @@ public:
 private:
 
   /** Back edges from nodes to where they are used */
-  typedef std::hash_map<TNode, std::vector<TNode>, TNodeHashFunction> BackEdgesMap;
+  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
   BackEdgesMap d_backEdges;
 
   /** The propagation queue */

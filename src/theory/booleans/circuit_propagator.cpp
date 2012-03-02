@@ -201,11 +201,11 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
   Debug("circuit-prop") << "CircuitPropagator::propagateForward(" << child << ", " << childAssignment << ")" << endl;
 
   // Get the back any nodes where this is child
-  const vector<TNode>& parents = d_backEdges.find(child)->second;
+  const vector<Node>& parents = d_backEdges.find(child)->second;
 
   // Go through the parents and see if there is anything to propagate
-  vector<TNode>::const_iterator parent_it = parents.begin();
-  vector<TNode>::const_iterator parent_it_end = parents.end();
+  vector<Node>::const_iterator parent_it = parents.begin();
+  vector<Node>::const_iterator parent_it_end = parents.end();
   for(; parent_it != parent_it_end && !d_conflict; ++ parent_it) {
     // The current parent of the child
     TNode parent = *parent_it;
