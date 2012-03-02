@@ -10,7 +10,7 @@
 #include "context/cdo.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "context/cdqueue.h"
+#include "context/cdtrail_queue.h"
 #include "util/stats.h"
 #include "theory/arith/arith_prop_manager.h"
 
@@ -62,7 +62,7 @@ private:
   };
 
   /** Stores the queue of assertions. This keeps the Node backing the reasons */
-  context::CDQueue<LiteralsQueueElem> d_literalsQueue;
+  context::CDTrailQueue<LiteralsQueueElem> d_literalsQueue;
   PropManager& d_queue;
 
 

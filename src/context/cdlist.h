@@ -56,13 +56,20 @@ public:
 
 protected:
 
-  static const size_t INITIAL_SIZE = 10;
-  static const size_t GROWTH_FACTOR = 2;
-
   /**
    * d_list is a dynamic array of objects of type T.
    */
   T* d_list;
+
+  /**
+   * Number of objects in d_list
+   */
+  size_t d_size;
+
+private:
+
+  static const size_t INITIAL_SIZE = 10;
+  static const size_t GROWTH_FACTOR = 2;
 
   /**
    * Whether to call the destructor when items are popped from the
@@ -70,11 +77,6 @@ protected:
    * second argument in the constructor to false.
    */
   bool d_callDestructor;
-
-  /**
-   * Number of objects in d_list
-   */
-  size_t d_size;
 
   /**
    * Allocated size of d_list.
@@ -86,6 +88,7 @@ protected:
    */
   Allocator d_allocator;
 
+protected:
   /**
    * Private copy constructor used only by save().  d_list and
    * d_sizeAlloc are not copied: only the base class information and
@@ -94,8 +97,8 @@ protected:
   CDList(const CDList<T, Allocator>& l) :
     ContextObj(l),
     d_list(NULL),
-    d_callDestructor(false),
     d_size(l.d_size),
+    d_callDestructor(false),
     d_sizeAlloc(0),
     d_allocator(l.d_allocator) {
     Debug("cdlist") << "copy ctor: " << this
@@ -103,6 +106,7 @@ protected:
                     << " size " << d_size << std::endl;
   }
 
+private:
   /**
    * Reallocate the array with more space.
    * Throws bad_alloc if memory allocation fails.
@@ -163,6 +167,7 @@ protected:
     return data;
   }
 
+protected:
   /**
    * Implementation of mandatory ContextObj method restore: simply
    * restores the previous size.  Note that the list pointer and the
@@ -174,24 +179,31 @@ protected:
                     << " data == " << data
                     << " call dtor == " << this->d_callDestructor
                     << " d_list == " << this->d_list << std::endl;
-    removeLastUntil(((CDList<T, Allocator>*)data)->d_size);
+    truncateList(((CDList<T, Allocator>*)data)->d_size);
     Debug("cdlist") << "restore " << this
                     << " level " << this->getContext()->getLevel()
                     << " size back to " << this->d_size
                     << " sizeAlloc at " << this->d_sizeAlloc << std::endl;
   }
 
-  /** Remove the elements from the given indices to the last.
-   *  You should use this function only when you know what you do.
+  /**
+   * Given a size parameter smaller than d_size, truncateList()
+   * removes the elements from the end of the list until d_size equals size.
+   *
+   * WARNING! You should only use this function when you know what you are doing.
+   * This is a primitive operation with strange context dependent behavior!
+   * It is up to the user of the function to ensure that the saved d_size values
+   * at lower context levels are less than or equal to size.
    */
-  inline void removeLastUntil(const size_t size){
-    if(this->d_callDestructor) {
-      while(this->d_size != size) {
-        --this->d_size;
-        this->d_allocator.destroy(&this->d_list[this->d_size]);
+  void truncateList(const size_t size){
+    Assert(size <= d_size);
+    if(d_callDestructor) {
+      while(d_size != size) {
+        --d_size;
+        d_allocator.destroy(&d_list[d_size]);
       }
     } else {
-      this->d_size = size;
+      d_size = size;
     }
   }
 
@@ -205,8 +217,8 @@ public:
          const Allocator& alloc = Allocator()) :
     ContextObj(context),
     d_list(NULL),
-    d_callDestructor(callDestructor),
     d_size(0),
+    d_callDestructor(callDestructor),
     d_sizeAlloc(0),
     d_allocator(alloc) {
   }
@@ -218,8 +230,8 @@ public:
          const Allocator& alloc = Allocator()) :
     ContextObj(allocatedInCMM, context),
     d_list(NULL),
-    d_callDestructor(callDestructor),
     d_size(0),
+    d_callDestructor(callDestructor),
     d_sizeAlloc(0),
     d_allocator(alloc) {
   }

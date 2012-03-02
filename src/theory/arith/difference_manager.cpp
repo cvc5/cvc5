@@ -91,7 +91,8 @@ void DifferenceManager::addAssertionToEqualityEngine(bool eq, ArithVar s, TNode 
 void DifferenceManager::dequeueLiterals(){
   Assert(d_hasSharedTerms);
   while(!d_literalsQueue.empty()){
-    const LiteralsQueueElem& front = d_literalsQueue.dequeue();
+    const LiteralsQueueElem& front = d_literalsQueue.front();
+    d_literalsQueue.dequeue();
 
     addAssertionToEqualityEngine(front.d_eq, front.d_var, front.d_reason);
   }
