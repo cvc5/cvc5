@@ -259,6 +259,10 @@ if test $cvc4_use_cln = 1 && test $cvc4_use_gmp = 1; then
   AC_MSG_ERROR([You cannot use both CLN and GMP.  Please pick one.])
 fi
 
+# try GMP, fail if not found; GMP is required for both CLN and for GMP
+# versions of CVC4
+AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
+
 if test $cvc4_use_cln = 1; then
   # [mdeters] The PKG_CHECK_MODULES macro isn't customizable and doesn't fail
   # gracefully.  You can only specify it once for a given library name.  That
@@ -266,7 +270,11 @@ if test $cvc4_use_cln = 1; then
   # PKG_CHECK_MODULES([CLN], ...).  That's why things are so convoluted here,
   # we have to have PKG_CHECK_MODULES _exactly_ once in configure.ac !
   PKG_CHECK_MODULES([CLN], [cln >= 1.2.2],
-    [cvc4_use_cln=1],
+    [cvc4_use_cln=1
+     AC_LANG_PUSH([C++])
+     AC_LINK_IFELSE(AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]]))
+     AC_LANG_POP([C++])
+    ],
     [if test $cvc4_use_cln = 0; then
        # fall back to GMP
        AC_MSG_NOTICE([CLN not installed (or too old) or pkgconfig missing, will use gmp])
@@ -278,8 +286,7 @@ if test $cvc4_use_cln = 1; then
   )
 fi
 if test $cvc4_use_cln = 0; then
-  # try GMP, fail if not found
-  AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
+  # try GMPXX, fail if not found
   AC_CHECK_LIB(gmpxx, __gmpz_init, , [AC_MSG_ERROR([GNU MP C++ library (libgmpxx) not found, see http://gmplib.org/])])
   cvc4_cln_or_gmp=gmp
 else
