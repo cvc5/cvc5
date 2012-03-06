@@ -641,14 +641,14 @@ public:
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
    * else. 
    */
-  void explainEquality(TNode t1, TNode t2, std::vector<TNode>& equalities) const;
+  void explainEquality(TNode t1, TNode t2, std::vector<TNode>& equalities);
 
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
    * else. 
    */
-  void explainDisequality(TNode t1, TNode t2, std::vector<TNode>& equalities) const;
+  void explainDisequality(TNode t1, TNode t2, std::vector<TNode>& equalities);
 
   /**
    * Add term to the trigger terms. The notify class will get notified when two 
