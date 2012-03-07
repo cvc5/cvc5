@@ -77,7 +77,7 @@ protected:
    * the list pointer and the allocated size are not changed.
    */
   void restore(ContextObj* data) {
-    CDQueue<T>* qdata = ((CDQueue<T>*)data);
+    CDQueue<T>* qdata = static_cast<CDQueue<T>*>(data);
     d_iter = qdata->d_iter;
     d_lastsave = qdata->d_lastsave;
     CDList<T>::restore(data);
@@ -96,12 +96,13 @@ public:
 
   /** Returns true if the queue is empty in the current context. */
   bool empty() const{
-    return d_iter >= CDList<T>::d_size;
+    Assert(d_iter <= CDList<T>::d_size);
+    return d_iter == CDList<T>::d_size;
   }
 
   /** Returns the number of elements that have not been dequeued in the context. */
   size_t size() const{
-    return d_iter - CDList<T>::d_size;
+    return CDList<T>::d_size - d_iter;
   }
 
   /** Enqueues an element in the current context. */
@@ -118,7 +119,7 @@ public:
     Assert(!empty(), "Attempting to pop from an empty queue.");
     CDList<T>::makeCurrent();
     d_iter = d_iter + 1;
-    if (d_iter == CDList<T>::d_size && d_lastsave != CDList<T>::d_size) {
+    if (empty() && d_lastsave != CDList<T>::d_size) {
       // Some elements have been enqueued and dequeued in the same
       // context and now the queue is empty we can destruct them.
       CDList<T>::truncateList(d_lastsave);
@@ -128,7 +129,7 @@ public:
   }
 
   /** Returns a reference to the next element on the queue. */
-  const T& front(){
+  const T& front() const{
     Assert(!empty(), "No front in an empty queue.");
     return CDList<T>::d_list[d_iter];
   }
