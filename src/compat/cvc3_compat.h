@@ -82,6 +82,20 @@
 
 namespace CVC3 {
 
+const CVC4::Kind EQ = CVC4::kind::EQUAL;
+const CVC4::Kind LE = CVC4::kind::LEQ;
+const CVC4::Kind GE = CVC4::kind::GEQ;
+const CVC4::Kind DIVIDE = CVC4::kind::DIVISION;
+const CVC4::Kind BVLT = CVC4::kind::BITVECTOR_ULT;
+const CVC4::Kind BVLE = CVC4::kind::BITVECTOR_ULE;
+const CVC4::Kind BVGT = CVC4::kind::BITVECTOR_UGT;
+const CVC4::Kind BVGE = CVC4::kind::BITVECTOR_UGE;
+const CVC4::Kind BVPLUS = CVC4::kind::BITVECTOR_PLUS;
+const CVC4::Kind BVSUB = CVC4::kind::BITVECTOR_SUB;
+const CVC4::Kind BVCONST = CVC4::kind::CONST_BITVECTOR;
+const CVC4::Kind EXTRACT = CVC4::kind::BITVECTOR_EXTRACT;
+const CVC4::Kind CONCAT = CVC4::kind::BITVECTOR_CONCAT;
+
 std::string int2string(int n);
 
 //! Different types of command line flags
@@ -227,10 +241,11 @@ public:
 
 };/* class CLFlags */
 
+class ExprManager;
 class Context;
 class Proof {};
+class Theorem {};
 
-using CVC4::ExprManager;
 using CVC4::InputLanguage;
 using CVC4::Integer;
 using CVC4::Rational;
@@ -318,6 +333,7 @@ public:
   Expr();
   Expr(const Expr& e);
   Expr(const CVC4::Expr& e);
+  Expr(CVC4::Kind k);
 
   // Compound expression constructors
   Expr eqExpr(const Expr& right) const;
@@ -348,11 +364,39 @@ public:
   bool isTrue() const;
   bool isBoolConst() const;
   bool isVar() const;
+  bool isBoundVar() const;
   bool isString() const;
+  bool isSymbol() const;
+  bool isTerm() const;
+  bool isType() const;
+  bool isClosure() const;
+  bool isQuantifier() const;
+  bool isForall() const;
+  bool isExists() const;
+  bool isLambda() const;
   bool isApply() const;
   bool isTheorem() const;
   bool isConstant() const;
   bool isRawList() const;
+
+  bool isAtomic() const;
+  bool isAtomicFormula() const;
+  bool isAbsAtomicFormula() const;
+  bool isLiteral() const;
+  bool isAbsLiteral() const;
+  bool isBoolConnective() const;
+  bool isPropLiteral() const;
+  bool isPropAtom() const;
+
+  const std::string& getName() const;
+  const std::string& getUid() const;
+
+  const std::string& getString() const;
+  const std::vector<Expr>& getVars() const;
+  const Expr& getExistential() const;
+  int getBoundIndex() const;
+  const Expr& getBody() const;
+  const Theorem& getTheorem() const;
 
   bool isEq() const;
   bool isNot() const;
@@ -366,7 +410,7 @@ public:
   bool isRational() const;
   bool isSkolem() const;
 
-  Rational getRational() const;
+  const Rational& getRational() const;
 
   Op mkOp() const;
   Op getOp() const;
@@ -407,7 +451,23 @@ public:
   //! Look up the current type. Do not recursively compute (i.e. may be NULL)
   Type lookupType() const;
 
+  //! Pretty-print the expression
+  void pprint() const;
+  //! Pretty-print without dagifying
+  void pprintnodag() const;
+
 };/* class CVC3::Expr */
+
+bool isArrayLiteral(const Expr&);
+
+class ExprManager : public CVC4::ExprManager {
+public:
+  const std::string& getKindName(int kind);
+  //! Get the input language for printing
+  InputLanguage getInputLang() const;
+  //! Get the output language for printing
+  InputLanguage getOutputLang() const;
+};/* class CVC3::ExprManager */
 
 typedef CVC4::StatisticsRegistry Statistics;
 
@@ -464,7 +524,7 @@ class CVC4_PUBLIC ValidityChecker {
 
   CLFlags* d_clflags;
   CVC4::Options d_options;
-  CVC4::ExprManager* d_em;
+  CVC3::ExprManager* d_em;
   CVC4::SmtEngine* d_smt;
   CVC4::parser::Parser* d_parserContext;
 

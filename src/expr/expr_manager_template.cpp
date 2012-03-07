@@ -463,6 +463,16 @@ Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
   }
 }
 
+bool ExprManager::hasOperator(Kind k) {
+  return NodeManager::hasOperator(k);
+}
+
+Expr ExprManager::operatorOf(Kind k) {
+  NodeManagerScope nms(d_nodeManager);
+
+  return d_nodeManager->operatorOf(k).toExpr();
+}
+
 /** Make a function type from domain to range. */
 FunctionType ExprManager::mkFunctionType(Type domain, Type range) {
   NodeManagerScope nms(d_nodeManager);

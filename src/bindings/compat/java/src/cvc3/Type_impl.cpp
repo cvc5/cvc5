@@ -1,8 +1,8 @@
-INCLUDE: "kinds.h"
-INCLUDE: "type.h"
-INCLUDE: "theory_array.h"
-INCLUDE: "theory_bitvector.h"
-INCLUDE: "theory_datatype.h"
+//INCLUDE: "kinds.h"
+//INCLUDE: "type.h"
+//INCLUDE: "theory_array.h"
+//INCLUDE: "theory_bitvector.h"
+//INCLUDE: "theory_datatype.h"
 
 DEFINITION: Java_cvc3_Type_jniConstr
 jobject c Expr expr

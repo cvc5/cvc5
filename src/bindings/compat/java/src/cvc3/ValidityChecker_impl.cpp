@@ -1,14 +1,14 @@
 INCLUDE: <sstream>
-INCLUDE: <theory_arith.h>
-INCLUDE: <theory_array.h>
+//INCLUDE: <theory_arith.h>
+//INCLUDE: <theory_array.h>
 
 DEFINITION: Java_cvc3_ValidityChecker_jniCreate1
 jobject
-return embed_own<ValidityChecker>(env, VCL::create());
+return embed_own<ValidityChecker>(env, ValidityChecker::create());
 
 DEFINITION: Java_cvc3_ValidityChecker_jniCreate2
 jobject c CLFlags flags
-return embed_own<ValidityChecker>(env, VCL::create(*flags));
+return embed_own<ValidityChecker>(env, ValidityChecker::create(*flags));
 
 
 
@@ -86,11 +86,11 @@ return toJavaVCopy(env, result);
 
 DEFINITION: Java_cvc3_ValidityChecker_jniAnyType
 jobject m ValidityChecker vc
-return embed_copy(env, Type::anyType(vc->getEM()));
+Unimplemented();
 
 DEFINITION: Java_cvc3_ValidityChecker_jniArrayLiteral
 jobject m ValidityChecker vc c Expr indexVar c Expr bodyExpr
-return embed_copy(env, CVC3::arrayLiteral(*indexVar, *bodyExpr));
+Unimplemented();
 
 DEFINITION: Java_cvc3_ValidityChecker_jniArrayType
 jobject m ValidityChecker vc c Type typeIndex c Type typeData

@@ -244,7 +244,7 @@ namespace Java_cvc3_JniUtils {
 
 
   // hash map
-  template <class K, class V> jobjectArray toJavaHCopy(JNIEnv* env, const Hash::hash_map<K, V>& hm) {
+  /*template <class K, class V> jobjectArray toJavaHCopy(JNIEnv* env, const Hash::hash_map<K, V>& hm) {
     jobjectArray jarray = (jobjectArray)
       env->NewObjectArray(
 	hm.size() * 2,
@@ -262,7 +262,7 @@ namespace Java_cvc3_JniUtils {
       ++i;
     }
     return jarray;
-  }
+  }*/
 
   template <class V> jobjectArray toJavaHCopy(JNIEnv* env, const CVC3::ExprMap<V>& hm) {
     jobjectArray jarray = (jobjectArray)

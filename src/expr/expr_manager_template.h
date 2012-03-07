@@ -305,6 +305,19 @@ public:
    */
   Expr mkAssociative(Kind kind, const std::vector<Expr>& children);
 
+  /**
+   * Determine whether Exprs of a particular Kind have operators.
+   * @returns true if Exprs of Kind k have operators.
+   */
+  static bool hasOperator(Kind k);
+
+  /**
+   * Get the (singleton) operator of an OPERATOR-kinded kind.  The
+   * returned Expr e will have kind BUILTIN, and calling
+   * e.getConst<CVC4::Kind>() will yield k.
+   */
+  Expr operatorOf(Kind k);
+
   /** Make a function type from domain to range. */
   FunctionType mkFunctionType(Type domain, Type range);
 

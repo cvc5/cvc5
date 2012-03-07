@@ -27,7 +27,7 @@ using namespace std;
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-CVC4_PUBLIC CVC4_THREADLOCAL(const char*) s_debugLastException = NULL;
+CVC4_THREADLOCAL_PUBLIC(const char*) s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
 
 void AssertionException::construct(const char* header, const char* extra,

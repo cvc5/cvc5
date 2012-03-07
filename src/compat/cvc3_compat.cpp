@@ -225,6 +225,10 @@ Expr::Expr(const Expr& e) : CVC4::Expr(e) {
 Expr::Expr(const CVC4::Expr& e) : CVC4::Expr(e) {
 }
 
+Expr::Expr(const CVC4::Kind k) : CVC4::Expr() {
+  *this = getEM()->operatorOf(k);
+}
+
 Expr Expr::eqExpr(const Expr& right) const {
   return getEM()->mkExpr(CVC4::kind::EQUAL, *this, right);
 }
@@ -321,6 +325,22 @@ bool Expr::isString() const {
   return false;
 }
 
+bool Expr::isBoundVar() const {
+  Unimplemented();
+}
+
+bool Expr::isLambda() const {
+  Unimplemented();
+}
+
+bool Expr::isClosure() const {
+  Unimplemented();
+}
+
+bool Expr::isQuantifier() const {
+  Unimplemented();
+}
+
 bool Expr::isApply() const {
   return hasOperator();
 }
@@ -404,7 +424,7 @@ std::vector< std::vector<Expr> > Expr::getTriggers() const {
 }
 
 ExprManager* Expr::getEM() const {
-  return getExprManager();
+  return reinterpret_cast<ExprManager*>(getExprManager());
 }
 
 std::vector<Expr> Expr::getKids() const {
@@ -709,7 +729,7 @@ ValidityChecker::ValidityChecker() :
   d_clflags(new CLFlags()),
   d_options() {
   setUpOptions(d_options, *d_clflags);
-  d_em = new CVC4::ExprManager(d_options);
+  d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
   d_smt = new CVC4::SmtEngine(d_em);
   d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
 }
@@ -718,7 +738,7 @@ ValidityChecker::ValidityChecker(const CLFlags& clflags) :
   d_clflags(new CLFlags(clflags)),
   d_options() {
   setUpOptions(d_options, *d_clflags);
-  d_em = new CVC4::ExprManager(d_options);
+  d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
   d_smt = new CVC4::SmtEngine(d_em);
   d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
 }

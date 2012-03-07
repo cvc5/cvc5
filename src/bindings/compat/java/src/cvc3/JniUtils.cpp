@@ -19,7 +19,7 @@ namespace Java_cvc3_JniUtils {
 
   /// Embedding of c++ objects in java objects
 
-  /*Embedded* unembed(JNIEnv* env, jobject jobj) {
+  Embedded* unembed(JNIEnv* env, jobject jobj) {
     Embedded* embedded = (Embedded*) env->GetDirectBufferAddress(jobj);
     DebugAssert(embedded != NULL, "JniUtils::unembed: embedded object is NULL");
     return embedded;
@@ -29,7 +29,7 @@ namespace Java_cvc3_JniUtils {
     Embedded* embedded = unembed(env, jobj);
     DebugAssert(embedded != NULL, "JniUtils::deleteEmbedded: embedded object is NULL");
     delete embedded;
-  }*/
+  }
 
 
 

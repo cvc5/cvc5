@@ -1,7 +1,7 @@
-INCLUDE: <expr.h>
-INCLUDE: <theory_array.h>
-INCLUDE: <theory_arith.h>
-INCLUDE: <theory_bitvector.h>
+//INCLUDE: <expr.h>
+//INCLUDE: <theory_array.h>
+//INCLUDE: <theory_arith.h>
+//INCLUDE: <theory_bitvector.h>
 
 DEFINITION: Java_cvc3_Expr_jniEquals
 jboolean c Expr expr1 c Expr expr2
@@ -282,7 +282,7 @@ return expr->arity();
 
 DEFINITION: Java_cvc3_Expr_jniGetKid
 jobject c Expr expr n int i
-return embed_const_ref<Expr>(env, &((*expr)[ji]));
+return embed_copy<Expr>(env, (*expr)[ji]);
 
 DEFINITION: Java_cvc3_Expr_jniGetKids
 jobjectArray c Expr expr

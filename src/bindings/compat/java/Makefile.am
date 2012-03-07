@@ -14,7 +14,8 @@ LIBCVC4BINDINGS_VERSION = @CVC4_BINDINGS_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4BINDINGSLIB \
-	-I@srcdir@/../../../include -I@srcdir@/../../.. -I@builddir@/../../.. -I@builddir@/cvc3
+	-I@srcdir@/../../../include -I@srcdir@/../../.. \
+	-I@srcdir@/include/cvc3 -I@builddir@/../../.. -I@builddir@/cvc3
 AM_CXXFLAGS = -Wall
 
 javadatadir = $(datadir)/java
@@ -25,10 +26,12 @@ BUILT_SOURCES =
 if CVC4_LANGUAGE_BINDING_JAVA
 
 lib_LTLIBRARIES += libcvc4bindings_java_compat.la
-javadata_DATA += cvc4compat.jar
+javadata_DATA += CVC4compat.jar
 libcvc4bindings_java_compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4bindings_java_compat_la_LIBADD = \
+	-L@builddir@/../../.. -lcvc4 \
+	-L@builddir@/../../../parser -lcvc4parser \
 	-L@builddir@/../../../compat -lcvc4compat
 BUILT_SOURCES += $(JNI_CPP_FILES)
 
@@ -37,7 +40,6 @@ endif
 # source files
 # java files of the library wrapper
 LIB_FILES = \
-	JniUtils \
 	Cvc3Exception \
 	TypecheckException \
 	SoundException \
@@ -80,48 +82,44 @@ TEST_FILES = Test
 # java files of the stand alone program
 PROG_FILES = TimeoutHandler Cvc3
 # all java files, library and stand alone
-JAVA_FILES = $(LIB_FILES) $(TEST_FILES) $(PROG_FILES)
-# jni files of the library wrapper
-JNI_FILES = \
-	EmbeddedManager \
-	Expr \
-	ExprMut \
-	ExprManager \
-	Type \
-	TypeMut \
-	Op \
-	OpMut \
-	Rational \
-	RationalMut \
-	Theorem \
-	TheoremMut \
-	Proof \
-	ProofMut \
-	Context \
-	ContextMut \
-	Flag \
-	Flags \
-	FlagsMut \
-	Statistics \
-	StatisticsMut \
-	ValidityChecker
-
-# stub files
-IMPL_FILES = $(patsubst %,src/cvc3/%_impl.cpp,$(JNI_FILES))
+JAVA_FILES = JniUtils $(LIB_FILES) $(TEST_FILES) $(PROG_FILES)
 # generated files
-JNI_CPP_FILES = $(patsubst %,%.cpp,$(JNI_FILES))
+JNI_CPP_FILES = \
+	EmbeddedManager.cpp \
+	Expr.cpp \
+	ExprMut.cpp \
+	ExprManager.cpp \
+	ValidityChecker.cpp
+#	Type.cpp \
+#	TypeMut.cpp \
+#	Op.cpp \
+#	OpMut.cpp \
+#	Rational.cpp \
+#	RationalMut.cpp \
+#	Theorem.cpp \
+#	TheoremMut.cpp \
+#	Proof.cpp \
+#	ProofMut.cpp \
+#	Context.cpp \
+#	ContextMut.cpp \
+#	Flag.cpp \
+#	Flags.cpp \
+#	FlagsMut.cpp \
+#	Statistics.cpp \
+#	StatisticsMut.cpp \
 # non-generated files
 SRC_CPP_FILES = src/cvc3/JniUtils.cpp
 # all cpp files (to compile)
 CPP_FILES = $(SRC_CPP_FILES) $(JNI_CPP_FILES)
 
-dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) $(IMPL_FILES) include/cvc3/JniUtils.h
+dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) include/cvc3/JniUtils.h
 nodist_libcvc4bindings_java_compat_la_SOURCES = $(JNI_CPP_FILES)
 
 EXTRA_DIST = \
 	formula_value.h \
 	create_impl.py \
 	Cvc3_manifest \
+	$(SRC_CPP_FILES:%=src/cvc3/%_impl.cpp) \
 	$(JAVA_FILES:%=src/cvc3/%.java)
 
 # compile each cpp file
@@ -134,7 +132,7 @@ $(JNI_CPP_FILES): %.cpp: src/cvc3/%_impl.cpp $(builddir)/cvc3/%.h include/cvc3/J
 JniUtils.lo: src/cvc3/JniUtils.cpp .headers
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_INCLUDES) $(JAVA_CPPFLAGS) -I . -o $@ $<
 
-$(LIB_FILES:%=classes/cvc3/%.class): .classes
+$(LIB_FILES:%=classes/cvc3/%.class) classes/cvc3/JniUtils.class: .classes
 .classes:
 	$(AM_V_GEN)mkdir -p classes && $(JAVAC) -source 1.4 -sourcepath $(srcdir)/src -d classes $(LIB_FILES:%=$(srcdir)/src/cvc3/%.java)
 	@touch .classes
@@ -144,9 +142,9 @@ $(LIB_FILES:%=cvc3/%.h): %.h: classes/%.class .cvc3dir
 	$(AM_V_GEN)$(JAVAH) -jni -force -classpath classes -o $@ cvc3.$(@:cvc3/%.h=%)
 .cvc3dir:
 	@mkdir -p cvc3 && touch $@
-cvc4compat.jar: $(LIB_FILES:%=classes/cvc3/%.class)
+CVC4compat.jar: $(LIB_FILES:%=classes/cvc3/%.class) classes/cvc3/JniUtils.class
 	$(AM_V_GEN)$(JAR) cf $@ -C classes .
 
 clean-local:
 	rm -fr classes cvc3
-MOSTLYCLEANFILES = .cvc3dir .classes .headers cvc4compat.jar $(JNI_CPP_FILES)
+MOSTLYCLEANFILES = .cvc3dir .classes .headers CVC4compat.jar $(JNI_CPP_FILES)
