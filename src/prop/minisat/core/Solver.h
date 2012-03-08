@@ -303,12 +303,12 @@ protected:
     vec<bool>           theory;           // Is the variable representing a theory atom
 
     enum TheoryCheckType {
-      // Quick check, but don't perform theory propagation
-      CHECK_WITHOUTH_PROPAGATION_QUICK,
-      // Check and perform theory propagation
-      CHECK_WITH_PROPAGATION_STANDARD,
-      // The SAT problem is satisfiable, perform a full theory check
-      CHECK_WITHOUTH_PROPAGATION_FINAL
+      // Quick check, but don't perform theory reasoning
+      CHECK_WITHOUTH_THEORY,
+      // Check and perform theory reasoning
+      CHECK_WITH_THEORY,
+      // The SAT abstraction of the problem is satisfiable, perform a full theory check
+      CHECK_FINAL
     };
 
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is

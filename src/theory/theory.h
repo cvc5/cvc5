@@ -241,7 +241,7 @@ public:
    * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
-    Trace("theory") << "theoryOf(" << node << ")" << std::endl;
+    Trace("theory::internal") << "theoryOf(" << node << ")" << std::endl;
     // Constants, variables, 0-ary constructors
     if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
       return theoryOf(node.getType());
@@ -298,28 +298,29 @@ public:
    * with FULL_EFFORT.
    */
   enum Effort {
-    MIN_EFFORT = 0,
-    QUICK_CHECK = 10,
-    STANDARD = 50,
-    FULL_EFFORT = 100,
-    COMBINATION = 150
+    /**
+     * Standard effort where theory need not do anything
+     */
+    EFFORT_STANDARD = 50,
+    /**
+     * Full effort requires the theory make sure its assertions are satisfiable or not
+     */
+    EFFORT_FULL = 100,
+    /**
+     * Combination effort means that the individual theories are already satisfied, and
+     * it is time to put some effort into propagation of shared term equalities
+     */
+    EFFORT_COMBINATION = 150
   };/* enum Effort */
 
-  // simple, useful predicates for effort values
-  static inline bool minEffortOnly(Effort e) CVC4_CONST_FUNCTION
-    { return e == MIN_EFFORT; }
-  static inline bool quickCheckOrMore(Effort e) CVC4_CONST_FUNCTION
-    { return e >= QUICK_CHECK; }
-  static inline bool quickCheckOnly(Effort e) CVC4_CONST_FUNCTION
-    { return e >= QUICK_CHECK && e <  STANDARD; }
   static inline bool standardEffortOrMore(Effort e) CVC4_CONST_FUNCTION
-    { return e >= STANDARD; }
+    { return e >= EFFORT_STANDARD; }
   static inline bool standardEffortOnly(Effort e) CVC4_CONST_FUNCTION
-    { return e >= STANDARD && e <  FULL_EFFORT; }
+    { return e >= EFFORT_STANDARD && e <  EFFORT_FULL; }
   static inline bool fullEffort(Effort e) CVC4_CONST_FUNCTION
-    { return e == FULL_EFFORT; }
+    { return e == EFFORT_FULL; }
   static inline bool combination(Effort e) CVC4_CONST_FUNCTION 
-    { return e == COMBINATION; }
+    { return e == EFFORT_COMBINATION; }
 
   /**
    * Get the id for this Theory.
@@ -409,12 +410,12 @@ public:
    * - throw an exception
    * - or call get() until done() is true.
    */
-  virtual void check(Effort level = FULL_EFFORT) { }
+  virtual void check(Effort level = EFFORT_FULL) { }
 
   /**
    * T-propagate new literal assignments in the current context.
    */
-  virtual void propagate(Effort level = FULL_EFFORT) { }
+  virtual void propagate(Effort level = EFFORT_FULL) { }
 
   /**
    * Return an explanation for the literal represented by parameter n

@@ -31,14 +31,12 @@ TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
-  case Theory::MIN_EFFORT:
-    os << "MIN_EFFORT"; break;
-  case Theory::QUICK_CHECK:
-    os << "QUICK_CHECK"; break;
-  case Theory::STANDARD:
-    os << "STANDARD"; break;
-  case Theory::FULL_EFFORT:
-    os << "FULL_EFFORT"; break;
+  case Theory::EFFORT_STANDARD:
+    os << "EFFORT_STANDARD"; break;
+  case Theory::EFFORT_FULL:
+    os << "EFFORT_FULL"; break;
+  case Theory::EFFORT_COMBINATION:
+    os << "EFFORT_COMBINATION"; break;
   default:
       Unreachable();
   }

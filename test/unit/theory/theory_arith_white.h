@@ -64,7 +64,7 @@ class TheoryArithWhite : public CxxTest::TestSuite {
 
 public:
 
-  TheoryArithWhite() : d_level(Theory::FULL_EFFORT), d_zero(0), d_one(1), debug(false) {}
+  TheoryArithWhite() : d_level(Theory::EFFORT_FULL), d_zero(0), d_one(1), debug(false) {}
 
   void fakeTheoryEnginePreprocess(TNode inp){
     Node rewrite = inp; //FIXME this needs to enforce that inp is fully rewritten already!

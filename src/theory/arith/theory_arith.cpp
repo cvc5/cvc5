@@ -1109,65 +1109,63 @@ Node flattenAnd(Node n){
 }
 
 void TheoryArith::propagate(Effort e) {
-  if(quickCheckOrMore(e)){
-    bool propagated = false;
-    if(Options::current()->arithPropagation && hasAnyUpdates()){
-      propagateCandidates();
-    }else{
-      clearUpdates();
-    }
+  bool propagated = false;
+  if(Options::current()->arithPropagation && hasAnyUpdates()){
+    propagateCandidates();
+  }else{
+    clearUpdates();
+  }
 
-    while(d_propManager.hasMorePropagations()){
-      const PropManager::PropUnit next = d_propManager.getNextPropagation();
-      bool flag = next.flag;
-      TNode toProp = next.consequent;
+  while(d_propManager.hasMorePropagations()){
+    const PropManager::PropUnit next = d_propManager.getNextPropagation();
+    bool flag = next.flag;
+    TNode toProp = next.consequent;
 
-      TNode atom = (toProp.getKind() == kind::NOT) ? toProp[0] : toProp;
+    TNode atom = (toProp.getKind() == kind::NOT) ? toProp[0] : toProp;
 
-      Debug("arith::propagate") << "propagate  @" << getContext()->getLevel() <<" flag: "<< flag << " " << toProp << endl;
+    Debug("arith::propagate") << "propagate  @" << getContext()->getLevel() <<" flag: "<< flag << " " << toProp << endl;
 
-      if(flag) {
-        //Currently if the flag is set this came from an equality detected by the
-        //equality engine in the the difference manager.
-        if(toProp.getKind() == kind::EQUAL){
-          Node normalized = Rewriter::rewrite(toProp);
-          Node notNormalized = normalized.notNode();
+    if(flag) {
+      //Currently if the flag is set this came from an equality detected by the
+      //equality engine in the the difference manager.
+      if(toProp.getKind() == kind::EQUAL){
+        Node normalized = Rewriter::rewrite(toProp);
+        Node notNormalized = normalized.notNode();
 
-          if(d_diseq.find(notNormalized) == d_diseq.end()){
-            d_out->propagate(toProp);
-            propagated = true;
-          }else{
-            Node exp = d_differenceManager.explain(toProp);
-            Node lp = flattenAnd(exp.andNode(notNormalized));
-            Debug("arith::propagate") << "propagate conflict" <<  lp << endl;
-            d_out->conflict(lp);
-
-            propagated = true;
-            break;
-          }
-        }else{
+        if(d_diseq.find(notNormalized) == d_diseq.end()){
           d_out->propagate(toProp);
           propagated = true;
-        }
-      }else if(inContextAtom(atom)){
-        Node satValue = d_valuation.getSatValue(toProp);
-        AlwaysAssert(satValue.isNull());
-        propagated = true;
-        d_out->propagate(toProp);
-      }else{
-        //Not clear if this is a good time to do this or not...
-        Debug("arith::propagate") << "Atom is not in context" << toProp << endl;
-#warning "enable remove atom in database"
-        //d_atomDatabase.removeAtom(atom);
-      }
-    }
+        }else{
+          Node exp = d_differenceManager.explain(toProp);
+          Node lp = flattenAnd(exp.andNode(notNormalized));
+          Debug("arith::propagate") << "propagate conflict" <<  lp << endl;
+          d_out->conflict(lp);
 
-    if(!propagated){
-      //Opportunistically export previous conflicts
-      while(d_simplex.hasMoreLemmas()){
-        Node lemma = d_simplex.popLemma();
-        d_out->lemma(lemma);
+          propagated = true;
+          break;
+        }
+      }else{
+        d_out->propagate(toProp);
+        propagated = true;
       }
+    }else if(inContextAtom(atom)){
+      Node satValue = d_valuation.getSatValue(toProp);
+      AlwaysAssert(satValue.isNull());
+      propagated = true;
+      d_out->propagate(toProp);
+    }else{
+      //Not clear if this is a good time to do this or not...
+      Debug("arith::propagate") << "Atom is not in context" << toProp << endl;
+#warning "enable remove atom in database"
+      //d_atomDatabase.removeAtom(atom);
+    }
+  }
+
+  if(!propagated){
+    //Opportunistically export previous conflicts
+    while(d_simplex.hasMoreLemmas()){
+      Node lemma = d_simplex.popLemma();
+      d_out->lemma(lemma);
     }
   }
 }
@@ -1387,7 +1385,7 @@ void TheoryArith::presolve(){
   }
 
   d_learner.clear();
-  check(FULL_EFFORT);
+  check(EFFORT_FULL);
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {

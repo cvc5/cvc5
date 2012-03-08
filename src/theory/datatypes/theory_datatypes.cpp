@@ -228,7 +228,7 @@ void TheoryDatatypes::check(Effort e) {
     }
   }
 
-  if( e == FULL_EFFORT ) {
+  if( e == EFFORT_FULL ) {
     Debug("datatypes-split") << "Check for splits " << e << endl;
     //do splitting
     for( EqLists::iterator i = d_labels.begin(); i != d_labels.end(); i++ ) {
