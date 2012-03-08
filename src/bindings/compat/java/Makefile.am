@@ -119,7 +119,7 @@ EXTRA_DIST = \
 	formula_value.h \
 	create_impl.py \
 	Cvc3_manifest \
-	$(SRC_CPP_FILES:%=src/cvc3/%_impl.cpp) \
+	$(JNI_CPP_FILES:%.cpp=src/cvc3/%_impl.cpp) \
 	$(JAVA_FILES:%=src/cvc3/%.java)
 
 # compile each cpp file
