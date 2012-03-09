@@ -322,7 +322,7 @@ void Solver::cancelUntil(int level) {
         for (int l = trail_lim.size() - level; l > 0; --l) {
           context->pop();
           if(Dump.isOn("state")) {
-            Dump("state") << PopCommand() << std::endl;
+            Dump("state") << PopCommand();
           }
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){

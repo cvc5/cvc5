@@ -74,7 +74,7 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << endl;
   if(Dump.isOn("clauses")) {
     if(c.size() == 1) {
-      Dump("clauses") << AssertCommand(BoolExpr(getNode(c[0]).toExpr())) << endl;
+      Dump("clauses") << AssertCommand(BoolExpr(getNode(c[0]).toExpr()));
     } else {
       Assert(c.size() > 1);
       NodeBuilder<> b(kind::OR);
@@ -82,7 +82,7 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
         b << getNode(c[i]);
       }
       Node n = b;
-      Dump("clauses") << AssertCommand(BoolExpr(n.toExpr())) << endl;
+      Dump("clauses") << AssertCommand(BoolExpr(n.toExpr()));
     }
   }
   d_satSolver->addClause(c, d_removable);

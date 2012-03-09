@@ -160,8 +160,8 @@ void TheoryEngine::check(Theory::Effort effort) {
 
       if(Dump.isOn("missed-t-conflicts")) {
         Dump("missed-t-conflicts")
-            << CommentCommand("Completeness check for T-conflicts; expect sat") << endl
-            << CheckSatCommand() << endl;
+            << CommentCommand("Completeness check for T-conflicts; expect sat")
+            << CheckSatCommand();
       }
 
       Debug("theory") << "TheoryEngine::check(" << effort << "): running propagation after the initial check" << std::endl;
@@ -311,8 +311,8 @@ void TheoryEngine::propagate(Theory::Effort effort) {
         ++i) {
       if(d_hasPropagated.find(*i) == d_hasPropagated.end()) {
         Dump("missed-t-propagations")
-          << CommentCommand("Completeness check for T-propagations; expect invalid") << endl
-          << QueryCommand((*i).toExpr()) << endl;
+          << CommentCommand("Completeness check for T-propagations; expect invalid")
+          << QueryCommand((*i).toExpr());
       }
     }
   }
@@ -605,8 +605,8 @@ void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   d_propEngine->checkTime();
 
   if(Dump.isOn("t-propagations")) {
-    Dump("t-propagations") << CommentCommand("negation of theory propagation: expect valid") << std::endl
-                           << QueryCommand(literal.toExpr()) << std::endl;
+    Dump("t-propagations") << CommentCommand("negation of theory propagation: expect valid")
+                           << QueryCommand(literal.toExpr());
   }
   if(Dump.isOn("missed-t-propagations")) {
     d_hasPropagated.insert(literal);
@@ -717,8 +717,8 @@ Node TheoryEngine::getExplanation(TNode node) {
 
   Assert(!explanation.isNull());
   if(Dump.isOn("t-explanations")) {
-    Dump("t-explanations") << CommentCommand(std::string("theory explanation from ") + theoryOf(atom)->identify() + ": expect valid") << std::endl
-      << QueryCommand(explanation.impNode(node).toExpr()) << std::endl;
+    Dump("t-explanations") << CommentCommand(std::string("theory explanation from ") + theoryOf(atom)->identify() + ": expect valid")
+      << QueryCommand(explanation.impNode(node).toExpr());
   }
   Assert(properExplanation(node, explanation));
 
@@ -731,8 +731,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   d_inConflict = true;
 
   if(Dump.isOn("t-conflicts")) {
-    Dump("t-conflicts") << CommentCommand("theory conflict: expect unsat") << std::endl
-                        << CheckSatCommand(conflict.toExpr()) << std::endl;
+    Dump("t-conflicts") << CommentCommand("theory conflict: expect unsat")
+                        << CheckSatCommand(conflict.toExpr());
   }
 
   if (d_sharedTermsExist) {

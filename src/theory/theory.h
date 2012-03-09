@@ -31,6 +31,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "util/options.h"
+#include "util/dump.h"
 
 #include <string>
 #include <iostream>
@@ -199,7 +200,7 @@ protected:
     d_factsHead = d_factsHead + 1;
     Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
     if(Dump.isOn("state")) {
-      Dump("state") << AssertCommand(fact.assertion.toExpr()) << std::endl;
+      Dump("state") << AssertCommand(fact.assertion.toExpr());
     }
         
     return fact;

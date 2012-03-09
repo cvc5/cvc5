@@ -891,6 +891,9 @@ if test x$with_portfolio != xyes; then
   with_portfolio=no
 fi
 AM_CONDITIONAL([CVC4_BUILD_PCVC4], [test "$with_portfolio" = yes])
+if test "$with_portfolio" = yes; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_PORTFOLIO"
+fi
 
 # Whether to build compatibility library
 CVC4_BUILD_LIBCOMPAT=yes

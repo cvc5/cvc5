@@ -1144,15 +1144,7 @@ inline void TheoryArrays::addExtLemma(TNode a, TNode b) {
    NodeManager* nm = NodeManager::currentNM();
    TypeNode ixType = a.getType()[0];
    Node k = nm->mkVar(ixType);
-   if(Dump.isOn("declarations")) {
-     stringstream kss;
-     kss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump("declarations"))) << k;
-     string ks = kss.str();
-     Dump("declarations")
-       << CommentCommand(ks + " is an extensional lemma index variable "
-                         "from the theory of arrays") << endl
-       << DeclareFunctionCommand(ks, ixType.toType()) << endl;
-   }
+   Dump.declareVar(k.toExpr(), "an extensional lemma index variable from the theory of arrays");
    Node eq = nm->mkNode(kind::EQUAL, a, b);
    Node ak = nm->mkNode(kind::SELECT, a, k);
    Node bk = nm->mkNode(kind::SELECT, b, k);

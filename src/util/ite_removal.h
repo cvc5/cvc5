@@ -22,6 +22,7 @@
 
 #include <vector>
 #include "expr/node.h"
+#include "util/dump.h"
 
 namespace CVC4 {
 

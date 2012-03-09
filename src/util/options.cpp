@@ -34,6 +34,7 @@
 #include "util/language.h"
 #include "util/options.h"
 #include "util/output.h"
+#include "util/dump.h"
 
 #include "cvc4autoconfig.h"
 
@@ -609,7 +610,7 @@ throw(OptionException) {
       if(optarg == NULL || *optarg == '\0') {
         throw OptionException(string("Bad file name for --dump-to"));
       } else if(!strcmp(optarg, "-")) {
-        Dump.setStream(DumpC::dump_cout);
+        Dump.setStream(DumpOutC::dump_cout);
       } else {
         ostream* dumpTo = new ofstream(optarg, ofstream::out | ofstream::trunc);
         if(!*dumpTo) {

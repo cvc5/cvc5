@@ -55,13 +55,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output) {
       // Make the skolem to represent the ITE
       Node skolem = nodeManager->mkVar(nodeType);
 
-      if(Dump.isOn("declarations")) {
-        stringstream kss;
-        kss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump("declarations"))) << skolem;
-        string ks = kss.str();
-        Dump("declarations") << CommentCommand(ks + " is a variable introduced due to term-level ITE removal") << endl
-                             << DeclareFunctionCommand(ks, nodeType.toType()) << endl;
-      }
+      Dump.declareVar(skolem.toExpr(), "a variable introduced due to term-level ITE removal");
 
       // The new assertion
       Node newAssertion =

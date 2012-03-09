@@ -97,9 +97,9 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   if(!d_inCheckSat && Dump.isOn("learned")) {
-    Dump("learned") << AssertCommand(BoolExpr(node.toExpr())) << endl;
+    Dump("learned") << AssertCommand(BoolExpr(node.toExpr()));
   } else if(Dump.isOn("lemmas")) {
-    Dump("lemmas") << AssertCommand(BoolExpr(node.toExpr())) << endl;
+    Dump("lemmas") << AssertCommand(BoolExpr(node.toExpr()));
   }
 
   //TODO This comment is now false
