@@ -36,89 +36,89 @@ is unspecified and
 is connected to a terminal, interactive mode is assumed.
 
 .SH OPTIONS
-.IP "--lang=LANG | -L LANG"
-force input language (default is \(lqauto\(rq; see --lang help)
-.IP --output-lang=LANG
-force output language (default is \(lqauto\(rq; see --output-lang help)
-.IP "--version | -V"
+.IP "\-\-lang=LANG | \-L LANG"
+force input language (default is \(lqauto\(rq; see \-\-lang help)
+.IP \-\-output\-lang=LANG
+force output language (default is \(lqauto\(rq; see \-\-output\-lang help)
+.IP "\-\-version | \-V"
 identify this CVC4 binary
-.IP "--help | -h"
+.IP "\-\-help | \-h"
 this command line reference
-.IP --parse-only
+.IP \-\-parse\-only
 exit after parsing input
-.IP --preprocess-only
-exit after preprocessing (useful with --stats or --dump)
-.IP --dump=MODE
-dump preprocessed assertions, T-propagations, etc., see --dump=help
-.IP --dump-to=FILE
+.IP \-\-preprocess\-only
+exit after preprocessing (useful with \-\-stats or \-\-dump)
+.IP \-\-dump=MODE
+dump preprocessed assertions, T\-propagations, etc., see \-\-dump=help
+.IP \-\-dump\-to=FILE
 all dumping goes to FILE (instead of stdout)
-.IP --mmap
+.IP \-\-mmap
 memory map file input
-.IP --show-config
+.IP \-\-show\-config
 show CVC4 static configuration
-.IP --segv-nospin
+.IP \-\-segv\-nospin
 don't spin on segfault waiting for gdb
-.IP --lazy-type-checking
+.IP \-\-lazy\-type\-checking
 type check expressions only when necessary (default)
-.IP --eager-type-checking
+.IP \-\-eager\-type\-checking
 type check expressions immediately on creation (debug builds only)
-.IP --no-type-checking
+.IP \-\-no\-type\-checking
 never type check expressions
-.IP --no-checking
+.IP \-\-no\-checking
 disable ALL semantic checks, including type checks
-.IP --no-theory-registration
+.IP \-\-no\-theory\-registration
 disable theory reg (not safe for some theories)
-.IP --strict-parsing
-fail on non-conformant inputs (SMT2 only)
-.IP "--verbose | -v"
+.IP \-\-strict\-parsing
+fail on non\-conformant inputs (SMT2 only)
+.IP "\-\-verbose | \-v"
 increase verbosity (may be repeated)
-.IP "--quiet | -q"
+.IP "\-\-quiet | \-q"
 decrease verbosity (may be repeated)
-.IP "--trace=FLAG | -t FLAG"
-trace something (e.g. -t pushpop), can repeat
-.IP "--debug=FLAG | -d FLAG"
-debug something (e.g. -d arith), can repeat
-.IP --stats
+.IP "\-\-trace=FLAG | \-t FLAG"
+trace something (e.g. \-t pushpop), can repeat
+.IP "\-\-debug=FLAG | \-d FLAG"
+debug something (e.g. \-d arith), can repeat
+.IP \-\-stats
 give statistics on exit
-.IP --default-expr-depth=N
-print exprs to depth N (0 == default, -1 == no limit)
-.IP --print-expr-types
+.IP \-\-default\-expr\-depth=N
+print exprs to depth N (0 == default, \-1 == no limit)
+.IP \-\-print\-expr\-types
 print types with variables when printing exprs
-.IP --interactive
+.IP \-\-interactive
 run interactively
-.IP --no-interactive
+.IP \-\-no\-interactive
 do not run interactively
-.IP --produce-models
-support the get-value command
-.IP --produce-assignments
-support the get-assignment command
-.IP --lazy-definition-expansion
-expand define-fun lazily
-.IP --simplification=MODE
-choose simplification mode, see --simplification=help
-.IP --no-static-learning
-turn off static learning (e.g. diamond-breaking)
-.IP --replay=file
+.IP \-\-produce\-models
+support the get\-value command
+.IP \-\-produce\-assignments
+support the get\-assignment command
+.IP \-\-lazy\-definition\-expansion
+expand define\-fun lazily
+.IP \-\-simplification=MODE
+choose simplification mode, see \-\-simplification=help
+.IP \-\-no\-static\-learning
+turn off static learning (e.g. diamond\-breaking)
+.IP \-\-replay=file
 replay decisions from file
-.IP --replay-log=file
+.IP \-\-replay\-log=file
 log decisions and propagations to file
-.IP --pivot-rule=RULE
-change the pivot rule (see --pivot-rule help)
-.IP --pivot-threshold=N
+.IP \-\-pivot\-rule=RULE
+change the pivot rule (see \-\-pivot\-rule help)
+.IP \-\-pivot\-threshold=N
 sets the number of heuristic pivots per variable per simplex instance
-.IP --prop-row-length=N
+.IP \-\-prop\-row\-length=N
 sets the maximum row length to be used in propagation
-.IP --random-freq=P
+.IP \-\-random\-freq=P
 sets the frequency of random decisions in the sat solver(P=0.0 by default)
-.IP --random-seed=S
+.IP \-\-random\-seed=S
 sets the random seed for the sat solver
-.IP --disable-variable-removal
+.IP \-\-disable\-variable\-removal
 enable permanent removal of variables in arithmetic (UNSAFE! experts only)
-.IP --disable-arithmetic-propagation
+.IP \-\-disable\-arithmetic\-propagation
 turns on arithmetic propagation
-.IP --disable-symmetry-breaker
+.IP \-\-disable\-symmetry\-breaker
 turns off UF symmetry breaker (Deharbe et al., CADE 2011)
-.IP --incremental
+.IP \-\-incremental
 enable incremental solving
 
 .\".SH FILES

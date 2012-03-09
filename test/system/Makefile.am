@@ -1,9 +1,11 @@
 TESTS_ENVIRONMENT =
 TEST_EXTENSIONS = .class
-TESTS = \
+CPLUSPLUS_TESTS = \
 	boilerplate \
 	ouroborous
 #	cvc3_main
+
+TESTS = $(CPLUSPLUS_TESTS)
 
 if CVC4_LANGUAGE_BINDING_JAVA
 TESTS += CVC4JavaTest.class
@@ -37,7 +39,7 @@ TEST_DEPS = \
 	$(TEST_DEPS_NODIST)
 
 EXTRA_DIST = \
-	$(TESTS:%=%.cpp) \
+	$(CPLUSPLUS_TESTS:%=%.cpp) \
 	$(TEST_DEPS_DIST)
 
 if STATIC_BINARY
