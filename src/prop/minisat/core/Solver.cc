@@ -722,7 +722,7 @@ void Solver::propagateTheory() {
       // but we check that this is the case and that they agree
       Debug("minisat") << "trail_index(var(p)) == " << trail_index(var(p)) << std::endl;
       Assert(trail_index(var(p)) >= oldTrailSize);
-      Assert(value(p) == lbool(!sign(p)));
+      Assert(value(p) == l_True, "a literal was theory-propagated, and so was its negation");
     }
   }
 }
