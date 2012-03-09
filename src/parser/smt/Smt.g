@@ -193,8 +193,8 @@ benchAttribute returns [CVC4::Command* smt_command = NULL]
   | STATUS_TOK status[b_status]
     { smt_command = new SetBenchmarkStatusCommand(b_status); }
   | EXTRAFUNS_TOK LPAREN_TOK
-    ( { smt_command = new CommandSequence(); }
-      functionDeclaration[c]
+    { smt_command = new CommandSequence(); }
+    ( functionDeclaration[c]
       { ((CommandSequence*) smt_command)->addCommand(c); }
     )+ RPAREN_TOK
   | EXTRAPREDS_TOK LPAREN_TOK
