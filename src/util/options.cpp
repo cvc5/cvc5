@@ -78,6 +78,7 @@ Options::Options() :
   lazyDefinitionExpansion(false),
   printWinner(false),
   simplificationMode(SIMPLIFICATION_MODE_BATCH),
+  simplificationModeSetByUser(false),
   doStaticLearning(true),
   interactive(false),
   interactiveSetByUser(false),
@@ -674,10 +675,13 @@ throw(OptionException) {
     case SIMPLIFICATION_MODE:
       if(!strcmp(optarg, "batch")) {
         simplificationMode = SIMPLIFICATION_MODE_BATCH;
+        simplificationModeSetByUser = true;
       } else if(!strcmp(optarg, "incremental")) {
         simplificationMode = SIMPLIFICATION_MODE_INCREMENTAL;
+        simplificationModeSetByUser = true;
       } else if(!strcmp(optarg, "none")) {
         simplificationMode = SIMPLIFICATION_MODE_NONE;
+        simplificationModeSetByUser = true;
       } else if(!strcmp(optarg, "help")) {
         puts(simplificationHelp.c_str());
         exit(1);

@@ -123,6 +123,8 @@ struct CVC4_PUBLIC Options {
 
   /** When/whether to perform nonclausal simplifications. */
   SimplificationMode simplificationMode;
+  /** Whether the user set the nonclausal simplification mode. */
+  bool simplificationModeSetByUser;
 
   /** Whether to perform the static learning pass. */
   bool doStaticLearning;

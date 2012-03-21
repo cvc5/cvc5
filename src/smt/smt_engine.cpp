@@ -362,7 +362,13 @@ void SmtEngine::setLogicInternal(const std::string& s) throw() {
 
   // by default, symmetry breaker is on only for QF_UF
   if(! Options::current()->ufSymmetryBreakerSetByUser) {
+    Trace("smt") << "setting uf symmetry breaker to " << (s == "QF_UF") << std::endl;
     NodeManager::currentNM()->getOptions()->ufSymmetryBreaker = (s == "QF_UF");
+  }
+  // by default, nonclausal simplification is off for QF_SAT
+  if(! Options::current()->simplificationModeSetByUser) {
+    Trace("smt") << "setting simplification mode to <" << s << "> " << (s != "QF_SAT") << std::endl;
+    NodeManager::currentNM()->getOptions()->simplificationMode = (s == "QF_SAT" ? Options::SIMPLIFICATION_MODE_NONE : Options::SIMPLIFICATION_MODE_BATCH);
   }
 
   // If in arrays, set the UF handler to arrays

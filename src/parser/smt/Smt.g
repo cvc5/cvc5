@@ -533,7 +533,14 @@ annotation[CVC4::Command*& smt_command]
 }
   : attribute[key]
     ( USER_VALUE
-      { smt_command = new SetInfoCommand(key, AntlrInput::tokenText($USER_VALUE)); }
+      { std::string value = AntlrInput::tokenText($USER_VALUE);
+        Assert(*value.begin() == '{');
+        Assert(*value.rbegin() == '}');
+        value.erase(value.begin(), value.begin() + 1);
+        value.erase(value.begin(), std::find_if(value.begin(), value.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+        value.erase(value.end() - 1);
+        value.erase(std::find_if(value.rbegin(), value.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), value.end());
+        smt_command = new SetInfoCommand(key, value); }
     )?
     { if(smt_command == NULL) {
         smt_command = new EmptyCommand(std::string("annotation: ") + key);
@@ -715,7 +722,7 @@ FLET_IDENTIFIER
  * with an open brace and end with closed brace.
  */
 USER_VALUE
-  : '{' ( '\\{' | '\\}' | ~('{' | '}') )* '}'
+  : '{' ('\\{' | '\\}' | ~('{' | '}'))* '}'
   ;
 
 /**
