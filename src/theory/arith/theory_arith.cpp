@@ -334,6 +334,17 @@ Node TheoryArith::AssertEquality(ArithVar x_i, DeltaRational& c_i, TNode origina
 
 void TheoryArith::addSharedTerm(TNode n){
   d_differenceManager.addSharedTerm(n);
+  if(!n.isConst() && !isSetup(n)){
+    Polynomial poly = Polynomial::parsePolynomial(n);
+    Polynomial::iterator it = poly.begin();
+    Polynomial::iterator it_end = poly.end();
+    for (; it != it_end; ++ it) {
+      Monomial m = *it;
+      if (!m.isConstant() && !isSetup(m.getVarList().getNode())) {
+        setupVariableList(m.getVarList());
+      }
+    }
+  }
 }
 
 Node TheoryArith::ppRewrite(TNode atom) {
@@ -1170,6 +1181,95 @@ void TheoryArith::propagate(Effort e) {
   }
 }
 
+bool TheoryArith::getDeltaAtomValue(TNode n) {
+
+  switch (n.getKind()) {
+    case kind::EQUAL: // 2 args
+      return getDeltaValue(n[0]) == getDeltaValue(n[1]);
+    case kind::LT: // 2 args
+      return getDeltaValue(n[0]) < getDeltaValue(n[1]);
+    case kind::LEQ: // 2 args
+      return getDeltaValue(n[0]) <= getDeltaValue(n[1]);
+    case kind::GT: // 2 args
+      return getDeltaValue(n[0]) > getDeltaValue(n[1]);
+    case kind::GEQ: // 2 args
+      return getDeltaValue(n[0]) >= getDeltaValue(n[1]);
+    default:
+      Unreachable();
+  }
+}
+
+
+DeltaRational TheoryArith::getDeltaValue(TNode n) {
+
+  Debug("arith::value") << n << std::endl;
+
+  switch(n.getKind()) {
+
+  case kind::CONST_INTEGER:
+    return Rational(n.getConst<Integer>());
+
+  case kind::CONST_RATIONAL:
+    return n.getConst<Rational>();
+
+  case kind::PLUS: { // 2+ args
+    DeltaRational value(0);
+    for(TNode::iterator i = n.begin(),
+            iend = n.end();
+          i != iend;
+          ++i) {
+      value = value + getDeltaValue(*i);
+    }
+    return value;
+  }
+
+  case kind::MULT: { // 2+ args
+    Assert(n.getNumChildren() == 2 && n[0].isConst());
+    DeltaRational value(1);
+    if (n[0].getKind() == kind::CONST_INTEGER) {
+      return getDeltaValue(n[1]) * n[0].getConst<Integer>();
+    }
+    if (n[0].getKind() == kind::CONST_RATIONAL) {
+      return getDeltaValue(n[1]) * n[0].getConst<Rational>();
+    }
+    Unreachable();
+  }
+
+  case kind::MINUS: // 2 args
+    // should have been rewritten
+    Unreachable();
+
+  case kind::UMINUS: // 1 arg
+    // should have been rewritten
+    Unreachable();
+
+  case kind::DIVISION: // 2 args
+    Assert(n[1].isConst());
+    if (n[1].getKind() == kind::CONST_RATIONAL) {
+      return getDeltaValue(n[0]) / n[0].getConst<Rational>();
+    }
+    if (n[1].getKind() == kind::CONST_INTEGER) {
+      return getDeltaValue(n[0]) / n[0].getConst<Integer>();
+    }
+    Unreachable();
+
+
+  default:
+  {
+    ArithVar var = d_arithvarNodeMap.asArithVar(n);
+
+    if(d_removedRows.find(var) != d_removedRows.end()){
+      Node eq = d_removedRows.find(var)->second;
+      Assert(n == eq[0]);
+      Node rhs = eq[1];
+      return getDeltaValue(rhs);
+    }
+
+    return d_partialModel.getAssignment(var);
+  }
+  }
+}
+
 Node TheoryArith::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
@@ -1389,7 +1489,7 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  if (getValue(a) == getValue(b)) {
+  if (getDeltaValue(a) == getDeltaValue(b)) {
     return EQUALITY_TRUE_IN_MODEL;
   } else {
     return EQUALITY_FALSE_IN_MODEL;

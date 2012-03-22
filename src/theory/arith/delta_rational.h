@@ -89,6 +89,18 @@ public:
     return *(this) + (a * negOne);
   }
 
+  DeltaRational operator/(const Rational& a) const{
+    CVC4::Rational tmpC = c/a;
+    CVC4::Rational tmpK = k/a;
+    return DeltaRational(tmpC, tmpK);
+  }
+
+  DeltaRational operator/(const Integer& a) const{
+    CVC4::Rational tmpC = c/a;
+    CVC4::Rational tmpK = k/a;
+    return DeltaRational(tmpC, tmpK);
+  }
+
   bool operator==(const DeltaRational& other) const{
     return (k == other.k) && (c == other.c);
   }

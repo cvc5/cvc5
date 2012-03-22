@@ -488,6 +488,19 @@ void TheoryUF::computeCareGraph() {
           TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x);
           TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y);
 
+          EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
+          switch (eqStatusDomain) {
+          case EQUALITY_FALSE_AND_PROPAGATED:
+          case EQUALITY_FALSE:
+          case EQUALITY_FALSE_IN_MODEL:
+            somePairIsDisequal = true;
+            continue;
+            break;
+          default:
+            break;
+            // nothing
+          }
+
           // Otherwise, we need to figure it out
           Debug("uf::sharing") << "TheoryUf::computeCareGraph(): adding to care-graph" << std::endl;
           currentPairs.push_back(make_pair(x_shared, y_shared));

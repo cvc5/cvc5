@@ -249,6 +249,13 @@ private:
 
   /** This implements the Simplex decision procedure. */
   SimplexDecisionProcedure d_simplex;
+
+  /** Internal model value for the atom */
+  bool getDeltaAtomValue(TNode n);
+
+  /** Internal model value for the node */
+  DeltaRational getDeltaValue(TNode n);
+
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
