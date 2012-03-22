@@ -45,48 +45,48 @@ TheoryBV::~TheoryBV() {
 }
 TheoryBV::Statistics::Statistics():
   d_avgConflictSize("theory::bv::AvgBVConflictSize"),
-  d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0)
+  d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),
+  d_solveTimer("theory::bv::solveTimer")
 {
   StatisticsRegistry::registerStat(&d_avgConflictSize);
   StatisticsRegistry::registerStat(&d_solveSubstitutions);
+  StatisticsRegistry::registerStat(&d_solveTimer); 
 }
 
 TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_avgConflictSize);
   StatisticsRegistry::unregisterStat(&d_solveSubstitutions);
+  StatisticsRegistry::unregisterStat(&d_solveTimer); 
 }
 
 void TheoryBV::preRegisterTerm(TNode node) {
-
   BVDebug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
   //marker literal: bitblast all terms before we start
-  d_bitblaster->bitblast(node); 
+  //d_bitblaster->bitblast(node); 
 }
 
 void TheoryBV::check(Effort e) {
-  BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
-  if (fullEffort(e)) {
-    std::vector<TNode> assertions; 
+  if (fullEffort(e) && !done()) {
+    Trace("bitvector")<< "TheoryBV::check(" << e << ")" << std::endl;
+    std::vector<TNode> assertions;
+      
     while (!done()) {
       TNode assertion = get();
-      Debug("bitvector") << "assertion " << assertion << "\n"; 
-      assertions.push_back(assertion);
+      Trace("bitvector-assertions") << "TheoryBV::check assertion " << assertion << "\n"; 
       d_bitblaster->bitblast(assertion); 
+      d_bitblaster->assertToSat(assertion); 
     }
-    
-    std::vector<TNode>::const_iterator it = assertions.begin();
-    for (; it != assertions.end(); ++it) {
-      d_bitblaster->assertToSat(*it); 
-    }
+
+    TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer); 
     bool res = d_bitblaster->solve();
     if (res == false) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-
       d_statistics.d_avgConflictSize.addEntry(conflictAtoms.size());
       
       Node conflict = mkConjunction(conflictAtoms);
       d_out->conflict(conflict);
+      Trace("bitvector") << "TheoryBV::check returns conflict. \n ";
       return; 
     }
   }

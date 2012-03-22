@@ -135,6 +135,30 @@ public:
     return *this;
   }
 
+  Integer bitwiseOr(const Integer& y) const {
+    mpz_class result;
+    mpz_ior(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer(result);
+  }
+
+  Integer bitwiseAnd(const Integer& y) const {
+    mpz_class result;
+    mpz_and(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer(result);
+  }
+  
+  Integer bitwiseXor(const Integer& y) const {
+    mpz_class result;
+    mpz_xor(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
+    return Integer(result);
+  }
+
+  Integer bitwiseNot() const {
+    mpz_class result;
+    mpz_com(result.get_mpz_t(), d_value.get_mpz_t());
+    return Integer(result);
+  }
+  
   /**
    * Return this*(2^pow).
    */
@@ -144,6 +168,26 @@ public:
     return Integer( result );
   }
 
+  /**
+   * Returns the integer with the binary representation of size bits
+   * extended with amount 1's
+   */
+  Integer oneExtend(uint32_t size, uint32_t amount) const {
+    // check that the size is accurate
+    Assert ((*this) < Integer(1).multiplyByPow2(size));
+    mpz_class res = d_value;
+
+    for (unsigned i = size; i < size + amount; ++i) {
+      mpz_setbit(res.get_mpz_t(), i); 
+    }
+    
+    return Integer(res); 
+  }
+  
+  uint32_t toUnsignedInt() const {
+    return  mpz_get_ui(d_value.get_mpz_t());
+  }
+  
   /** See GMP Documentation. */
   Integer extractBitRange(uint32_t bitCount, uint32_t low) const {
     // bitCount = high-low+1
@@ -175,7 +219,7 @@ public:
   }
 
   /**
-   * Computes a floor quoient and remainder for x divided by y.
+   * Computes a floor quotient and remainder for x divided by y.
    */
   static void floorQR(Integer& q, Integer& r, const Integer& x, const Integer& y) {
     mpz_fdiv_qr(q.d_value.get_mpz_t(), r.d_value.get_mpz_t(), x.d_value.get_mpz_t(), y.d_value.get_mpz_t());
@@ -209,6 +253,25 @@ public:
     return Integer( q );
   }
 
+  /**
+   * Returns y mod 2^exp
+   */
+  Integer modByPow2(uint32_t exp) const {
+    mpz_class res; 
+    mpz_fdiv_r_2exp(res.get_mpz_t(), d_value.get_mpz_t(), exp);
+    return Integer(res);
+  }
+
+  /**
+   * Returns y / 2^exp
+   */
+  Integer divByPow2(uint32_t exp) const {
+    mpz_class res;
+    mpz_fdiv_q_2exp(res.get_mpz_t(), d_value.get_mpz_t(), exp);
+    return Integer(res);
+  }
+
+  
   int sgn() const {
     return mpz_sgn(d_value.get_mpz_t());
   }
@@ -268,14 +331,14 @@ public:
     long si = d_value.get_si();
     // ensure there wasn't overflow
     AlwaysAssert(mpz_cmp_si(d_value.get_mpz_t(), si) == 0,
-                 "Overflow when extracting long from multiprecision integer");
+                 "Overflow detected in Integer::getLong()");
     return si;
   }
   unsigned long getUnsignedLong() const {
     unsigned long ui = d_value.get_ui();
     // ensure there wasn't overflow
     AlwaysAssert(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0,
-                 "Overflow when extracting unsigned long from multiprecision integer");
+                 "Overflow detected in Integer::getUnsignedLong()");
     return ui;
   }
 
@@ -297,6 +360,21 @@ public:
     return mpz_tstbit(d_value.get_mpz_t(), n);
   }
 
+  /**
+   * Returns k if the integer is equal to 2^(k-1)
+   * @return k if the integer is equal to 2^(k-1) and 0 otherwise
+   */
+  unsigned isPow2() const {
+    if (d_value <= 0) return 0;
+    // check that the number of ones in the binary represenation is 1
+    if (mpz_popcount(d_value.get_mpz_t()) == 1) {
+      // return the index of the first one plus 1
+      return mpz_scan1(d_value.get_mpz_t(), 0) + 1;
+    }
+    return 0; 
+  }
+
+  
   /**
    * If x != 0, returns the smallest n s.t. 2^{n-1} <= abs(x) < 2^{n}.
    * If x == 0, returns 1.

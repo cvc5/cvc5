@@ -670,6 +670,7 @@ void SmtEnginePrivate::removeITEs() {
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
     d_assertionsToCheck[i] = theory::Rewriter::rewrite(d_assertionsToCheck[i]);
   }
+  
 }
 
 void SmtEnginePrivate::staticLearning() {

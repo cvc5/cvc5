@@ -55,7 +55,10 @@ MinisatSatSolver::~MinisatSatSolver() {
 void MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Debug("sat::minisat") << "Add clause " << clause <<"\n"; 
   BVMinisat::vec<BVMinisat::Lit> minisat_clause;
-  toMinisatClause(clause, minisat_clause); 
+  toMinisatClause(clause, minisat_clause);
+  // for(unsigned i = 0; i < minisat_clause.size(); ++i) {
+  //   d_minisat->setFrozen(BVMinisat::var(minisat_clause[i]), true); 
+  // }
   d_minisat->addClause(minisat_clause);
 }
 
@@ -102,7 +105,7 @@ SatLiteralValue MinisatSatSolver::solve(const context::CDList<SatLiteral> & assu
   }
   Debug("sat::minisat") <<"\n";
   
- SatLiteralValue result = toSatLiteralValue(d_minisat->solve(assump)); 
+ SatLiteralValue result = toSatLiteralValue(d_minisat->solve(assump));
  return result;
 }
 

@@ -81,7 +81,8 @@ private:
   class Statistics {
   public:
     AverageStat d_avgConflictSize;
-    IntStat     d_solveSubstitutions; 
+    IntStat     d_solveSubstitutions;
+    TimerStat   d_solveTimer;  
     Statistics();
     ~Statistics(); 
   }; 

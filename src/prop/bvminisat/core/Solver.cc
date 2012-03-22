@@ -23,6 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "mtl/Sort.h"
 #include "core/Solver.h"
 #include <iostream>
+#include "util/output.h"
 
 using namespace BVMinisat;
 
@@ -766,6 +767,8 @@ static double luby(double y, int x){
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
+  Debug("bvminisat") <<"BVMinisat::Solving learned clauses " << learnts.size() <<"\n";
+  Debug("bvminisat") <<"BVMinisat::Solving assumptions " << assumptions.size() <<"\n"; 
     model.clear();
     conflict.clear();
     if (!ok) return l_False;
@@ -930,7 +933,7 @@ void Solver::garbageCollect()
     // Initialize the next region to a size corresponding to the estimated utilization degree. This
     // is not precise but should avoid some unnecessary reallocations for the new region:
     ClauseAllocator to(ca.size() - ca.wasted()); 
-
+    Debug("bvminisat") << " BVMinisat::Garbage collection \n"; 
     relocAll(to);
     if (verbosity >= 2)
         printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n", 

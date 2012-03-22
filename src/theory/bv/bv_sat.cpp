@@ -81,6 +81,8 @@ void Bitblaster::bbAtom(TNode node) {
     return; 
   }
 
+  BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
+
   // the bitblasted definition of the atom
   Node atom_bb = d_atomBBStrategies[node.getKind()](node, this);
   // asserting that the atom is true iff the definition holds
@@ -97,7 +99,7 @@ void Bitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
-
+  BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   d_termBBStrategies[node.getKind()] (node, bits,this);
   
   Assert (bits.size() == utils::getSize(node)); 
@@ -115,7 +117,7 @@ void Bitblaster::bbTerm(TNode node, Bits& bits) {
  */
 void Bitblaster::bitblast(TNode node) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_bitblastTimer);
-
+  
   /// strip the not
   if (node.getKind() == kind::NOT) {
     node = node[0];
@@ -123,9 +125,9 @@ void Bitblaster::bitblast(TNode node) {
   
   if (node.getKind() == kind::EQUAL ||
       node.getKind() == kind::BITVECTOR_ULT ||
+      node.getKind() == kind::BITVECTOR_ULE ||
       node.getKind() == kind::BITVECTOR_SLT ||
-      node.getKind() == kind::BITVECTOR_ULE || 
-      node.getKind() == kind::BITVECTOR_SLE )
+      node.getKind() == kind::BITVECTOR_SLE) 
     {
       bbAtom(node); 
     }
@@ -159,7 +161,8 @@ void Bitblaster::assertToSat(TNode lit) {
     atom = lit; 
   }
   
-  Assert (hasBBAtom(atom)); 
+  Assert (hasBBAtom(atom));
+  Node rewr_atom = Rewriter::rewrite(atom); 
   SatLiteral markerLit = d_cnfStream->getLiteral(atom);
 
   if(lit.getKind() == kind::NOT) {
@@ -180,6 +183,7 @@ void Bitblaster::assertToSat(TNode lit) {
  */
  
 bool Bitblaster::solve() {
+  Trace("bitvector") << "Bitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n"; 
   return SatValTrue == d_satSolver->solve(d_assertedAtoms); 
 }
 

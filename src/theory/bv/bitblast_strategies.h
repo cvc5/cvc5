@@ -60,7 +60,8 @@ Node DefaultSgeBB(TNode node, Bitblaster* bb);
 
 /// other modes
 Node AdderUltBB(TNode node, Bitblaster* bb);
-
+Node SltBB(TNode node, Bitblaster* bb);
+Node SleBB(TNode node, Bitblaster* bb); 
 
 
 /** 

@@ -79,7 +79,7 @@ class Bitblaster {
   AtomSet                      d_bitblastedAtoms;
   
   context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
-                                              currently asserted by the DPLL SAT solver. */
+                                                       currently asserted by the DPLL SAT solver. */
 
   /// helper methods
   bool          hasBBAtom(TNode node);    

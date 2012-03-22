@@ -50,6 +50,7 @@ Node RewriteRule<ConcatFlatten>::apply(Node node) {
     }
   }
   Node resultNode = result;
+  BVDebug("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << resultNode << ")" << std::endl;
   return resultNode;
 }
 
@@ -190,7 +191,7 @@ Node RewriteRule<ExtractConstant>::apply(Node node) {
 
 template<>
 bool RewriteRule<ExtractConcat>::applies(Node node) {
-  BVDebug("bv-rewrite") << "RewriteRule<ExtractConcat>(" << node << ")" << std::endl;
+  //BVDebug("bv-rewrite") << "RewriteRule<ExtractConcat>(" << node << ")" << std::endl;
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::BITVECTOR_CONCAT) return false;
   return true;
@@ -245,7 +246,7 @@ Node RewriteRule<ExtractExtract>::apply(Node node) {
 
 template<>
 bool RewriteRule<FailEq>::applies(Node node) {
-  BVDebug("bv-rewrite") << "RewriteRule<FailEq>(" << node << ")" << std::endl;
+  //BVDebug("bv-rewrite") << "RewriteRule<FailEq>(" << node << ")" << std::endl;
   if (node.getKind() != kind::EQUAL) return false;
   if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
   if (node[1].getKind() != kind::CONST_BITVECTOR) return false;
@@ -254,7 +255,7 @@ bool RewriteRule<FailEq>::applies(Node node) {
 
 template<>
 Node RewriteRule<FailEq>::apply(Node node) {
-    return utils::mkFalse();
+  return utils::mkFalse();
 }
 
 template<>

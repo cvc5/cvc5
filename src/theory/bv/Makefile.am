@@ -17,7 +17,10 @@ libbv_la_SOURCES = \
 	theory_bv.cpp \
 	theory_bv_rewrite_rules.h \
 	theory_bv_rewrite_rules_core.h \
-	theory_bv_rewrite_rules_arith.h \
+	theory_bv_rewrite_rules_operator_elimination.h \
+	theory_bv_rewrite_rules_constant_evaluation.h \
+	theory_bv_rewrite_rules_normalization.h \
+	theory_bv_rewrite_rules_simplification.h \
 	theory_bv_type_rules.h \
 	theory_bv_rewriter.h \
 	theory_bv_rewriter.cpp \
