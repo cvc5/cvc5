@@ -194,28 +194,28 @@ class TheoryEngine {
     }
 
     void conflict(TNode conflictNode) throw(AssertionException) {
-      Trace("theory") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
+      Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
       ++ d_statistics.conflicts;
       d_engine->d_outputChannelUsed = true;
       d_engine->conflict(conflictNode, d_theory);
     }
 
     void propagate(TNode literal) throw(AssertionException) {
-      Trace("theory") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
+      Trace("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
       ++ d_statistics.propagations;
       d_engine->d_outputChannelUsed = true;
       d_engine->propagate(literal, d_theory);
     }
 
     void propagateAsDecision(TNode literal) throw(AssertionException) {
-      Trace("theory") << "EngineOutputChannel<" << d_theory << ">::propagateAsDecision(" << literal << ")" << std::endl;
+      Trace("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagateAsDecision(" << literal << ")" << std::endl;
       ++ d_statistics.propagationsAsDecisions;
       d_engine->d_outputChannelUsed = true;
       d_engine->propagateAsDecision(literal, d_theory);
     }
 
     theory::LemmaStatus lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
-      Trace("theory") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
       return d_engine->lemma(lemma, false, removable);
@@ -418,6 +418,9 @@ class TheoryEngine {
       negated ? additionalLemmas[0].notNode() : additionalLemmas[0];
     return theory::LemmaStatus(finalForm, d_userContext->getLevel());
   }
+
+  /** Time spent in theory combination */
+  TimerStat d_combineTheoriesTime;
 
 public:
 

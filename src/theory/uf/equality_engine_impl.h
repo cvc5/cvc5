@@ -886,6 +886,14 @@ bool EqualityEngine<NotifyClass>::isTriggerTerm(TNode t) const {
   return d_nodeIndividualTrigger[classId] != +null_id;
 }
 
+
+template <typename NotifyClass>
+TNode EqualityEngine<NotifyClass>::getTriggerTermRepresentative(TNode t) const {
+  Assert(isTriggerTerm(t));
+  EqualityNodeId classId = getEqualityNode(t).getFind();
+  return d_nodes[d_nodeIndividualTrigger[classId]];
+}
+
 template <typename NotifyClass>
 void EqualityEngine<NotifyClass>::storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId) {
   Assert(d_applicationLookup.find(funNormalized) == d_applicationLookup.end());
@@ -895,6 +903,33 @@ void EqualityEngine<NotifyClass>::storeApplicationLookup(FunctionApplication& fu
   Debug("equality::backtrack") << "d_applicationLookupsCount = " << d_applicationLookupsCount << std::endl;
   Debug("equality::backtrack") << "d_applicationLookups.size() = " << d_applicationLookups.size() << std::endl;
   Assert(d_applicationLookupsCount == d_applicationLookups.size());
+}
+
+template <typename NotifyClass>
+void EqualityEngine<NotifyClass>::getUseListTerms(TNode t, std::set<TNode>& output) {
+  if (hasTerm(t)) {
+    // Get the equivalence class
+    EqualityNodeId classId = getEqualityNode(t).getFind();
+    // Go through the equivalence class and get where t is used in
+    EqualityNodeId currentId = classId;
+    do {
+      // Get the current node
+      EqualityNode& currentNode = getEqualityNode(currentId);
+      // Go through the use-list
+      UseListNodeId currentUseId = currentNode.getUseList();
+      while (currentUseId != null_uselist_id) {
+        // Get the node of the use list
+        UseListNode& useNode = d_useListNodes[currentUseId];
+        // Get the function application
+        EqualityNodeId funId = useNode.getApplicationId();
+        output.insert(d_nodes[funId]);
+        // Go to the next one in the use list
+        currentUseId = useNode.getNext();
+      }
+      // Move to the next node
+      currentId = currentNode.getNext();
+    } while (currentId != classId);
+  }
 }
 
 } // Namespace uf

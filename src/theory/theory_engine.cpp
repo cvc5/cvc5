@@ -56,6 +56,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_propagatedLiteralsIndex(context, 0),
   d_decisionRequests(context),
   d_decisionRequestsIndex(context, 0),
+  d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms)
 {
@@ -64,6 +65,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryOut[theoryId] = NULL;
   }
   Rewriter::init();
+  StatisticsRegistry::registerStat(&d_combineTheoriesTime);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -75,6 +77,8 @@ TheoryEngine::~TheoryEngine() {
       delete d_theoryOut[theoryId];
     }
   }
+
+  StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
 }
 
 void TheoryEngine::preRegister(TNode preprocessed) {
@@ -235,29 +239,30 @@ void TheoryEngine::combineTheories() {
 
   Debug("sharing") << "TheoryEngine::combineTheories()" << std::endl;
 
+  TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
+
   CareGraph careGraph;
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
   if (theory::TheoryTraits<THEORY>::isParametric && isActive(THEORY)) { \
-     CareGraph theoryGraph; \
-     reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(theoryOf(THEORY))->computeCareGraph(theoryGraph); \
-     careGraph.insert(careGraph.end(), theoryGraph.begin(), theoryGraph.end()); \
+     reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(theoryOf(THEORY))->getCareGraph(careGraph); \
   }
 
   CVC4_FOR_EACH_THEORY;
 
   // Now add splitters for the ones we are interested in
-  for (unsigned i = 0; i < careGraph.size(); ++ i) {
-    const CarePair& carePair = careGraph[i];
+  CareGraph::const_iterator care_it = careGraph.begin();
+  CareGraph::const_iterator care_it_end = careGraph.end();
+  for (; care_it != care_it_end; ++ care_it) {
+    const CarePair& carePair = *care_it;
 
     Debug("sharing") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << std::endl;
 
     Node equality = carePair.a.eqNode(carePair.b);
     Node normalizedEquality = Rewriter::rewrite(equality);
-	bool isTrivial = normalizedEquality.getKind() == kind::CONST_BOOLEAN;
-
+    bool isTrivial = normalizedEquality.getKind() == kind::CONST_BOOLEAN;
 
     // If the node has a literal, it has been asserted so we should just check it
     bool value;

@@ -113,7 +113,7 @@ public:
   void presolve();
 
   void addSharedTerm(TNode n);
-  void computeCareGraph(CareGraph& careGraph);
+  void computeCareGraph();
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 

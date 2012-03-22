@@ -31,6 +31,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "util/options.h"
+#include "util/stats.h"
 #include "util/dump.h"
 
 #include <string>
@@ -71,19 +72,36 @@ struct Assertion {
 };
 
 /**
- * A pair of terms a theory cares about.
+ * A (oredered) pair of terms a theory cares about.
  */
 struct CarePair {
+
   TNode a, b;
   TheoryId theory;
+
+public:
+
   CarePair(TNode a, TNode b, TheoryId theory) 
-  : a(a), b(b), theory(theory) {}
+  : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
+
+  bool operator == (const CarePair& other) const {
+    return (theory == other.theory) && (a == other.a) && (b == other.b);
+  }
+
+  bool operator < (const CarePair& other) const {
+    if (theory < other.theory) return true;
+    if (theory > other.theory) return false;
+    if (a < other.a) return true;
+    if (a > other.a) return false;
+    return b < other.b;
+  }
+
 };
 
 /**
  * A set of care pairs.
  */
-typedef std::vector<CarePair> CareGraph;
+typedef std::set<CarePair> CareGraph;
 
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
@@ -141,7 +159,37 @@ private:
    */
   context::CDO<unsigned> d_sharedTermsIndex;
 
+  /**
+   * The care graph the theory will use during combination.
+   */
+  CareGraph* d_careGraph;
+
+  // === STATISTICS ===
+  /** time spent in theory combination */
+  TimerStat d_computeCareGraphTime;
+
+  static std::string statName(TheoryId id, const char* statName) {
+    std::stringstream ss;
+    ss << "theory<" << id << ">::" << statName;
+    return ss.str();
+  }
+
 protected:
+
+  /**
+   * The only method to add suff to the care graph.
+   */
+  void addCarePair(TNode t1, TNode t2) {
+    if (d_careGraph) {
+      d_careGraph->insert(CarePair(t1, t2, d_id));
+    }
+  }
+
+  /**
+   * The function should compute the care graph over the shared terms.
+   * The default function returns all the pairs among the shared variables.
+   */
+  virtual void computeCareGraph();
 
   /**
    * A list of shared terms that the theory has.
@@ -159,10 +207,13 @@ protected:
     d_facts(context),
     d_factsHead(context, 0),
     d_sharedTermsIndex(context, 0),
+    d_careGraph(0),
+    d_computeCareGraphTime(statName(id, "computeCareGraphTime")),
     d_sharedTerms(context),
     d_out(&out),
     d_valuation(valuation)
   {
+    StatisticsRegistry::registerStat(&d_computeCareGraphTime);
   }
 
   /**
@@ -213,14 +264,13 @@ protected:
 
   void printFacts(std::ostream& os) const;
 
-
 public:
 
   /**
    * Return the ID of the theory responsible for the given type.
    */
   static inline TheoryId theoryOf(TypeNode typeNode) {
-    Trace("theory") << "theoryOf(" << typeNode << ")" << std::endl;
+    Trace("theory::internal") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
     while (typeNode.isPredicateSubtype()) {
       typeNode = typeNode.getSubtypeBaseType();
@@ -289,6 +339,7 @@ public:
    * destructor.
    */
   virtual ~Theory() {
+    StatisticsRegistry::unregisterStat(&d_computeCareGraphTime);
   }
 
   /**
@@ -378,10 +429,15 @@ public:
   virtual void addSharedTerm(TNode n) { }
 
   /**
-   * The function should compute the care graph over the shared terms.
-   * The default function returns all the pairs among the shared variables.
+   * Return the current theory care graph. Theories should overload computeCareGraph to do
+   * the actual computation, and use addCarePair to add pairs to the care graph.
    */
-  virtual void computeCareGraph(CareGraph& careGraph);
+  void getCareGraph(CareGraph& careGraph) {
+    TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
+    d_careGraph = &careGraph;
+    computeCareGraph();
+    d_careGraph = NULL;
+  }
 
   /**
    * Return the status of two terms in the current context. Should be implemented in 

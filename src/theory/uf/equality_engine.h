@@ -632,6 +632,11 @@ public:
   TNode getRepresentative(TNode t) const;
 
   /**
+   * Add all the terms where the given term appears in (directly or implicitly).
+   */
+  void getUseListTerms(TNode t, std::set<TNode>& output);
+
+  /**
    * Returns true if the two nodes are in the same class.
    */
   bool areEqual(TNode t1, TNode t2) const;
@@ -661,6 +666,11 @@ public:
    * Returns true if t is a trigger term or equal to some other trigger term.
    */
   bool isTriggerTerm(TNode t) const;
+
+  /**
+   * Returns the representative trigger term (isTriggerTerm(t)) should be true.
+   */
+  TNode getTriggerTermRepresentative(TNode t) const;
 
   /**
    * Adds a notify trigger for equality t1 = t2, i.e. when t1 = t2 the notify will be called with
