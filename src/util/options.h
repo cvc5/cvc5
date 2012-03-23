@@ -178,9 +178,6 @@ struct CVC4_PUBLIC Options {
   /** Log to write replay instructions to; NULL if not logging. */
   std::ostream* replayLog;
 
-  /** Determines whether arithmetic will try to variables. */
-  bool variableRemovalEnabled;
-
   /** Turn on and of arithmetic propagation. */
   bool arithPropagation;
 

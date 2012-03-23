@@ -96,7 +96,6 @@ Options::Options() :
   replayFilename(""),
   replayStream(NULL),
   replayLog(NULL),
-  variableRemovalEnabled(false),
   arithPropagation(true),
   satRandomFreq(0.0),
   satRandomSeed(91648253),// Minisat's default value
@@ -178,7 +177,6 @@ Additional CVC4 options:\n\
    --random-seed=S        sets the random seed for the sat solver\n\
    --restart-int-base=I   sets the base restart interval for the sat solver (I=25 by default)\n\
    --restart-int-inc=F    sets the restart interval increase factor for the sat solver (F=3.0 by default)\n\
-   --disable-variable-removal enable permanent removal of variables in arithmetic (UNSAFE! experts only)\n\
    --disable-arithmetic-propagation turns on arithmetic propagation\n\
    --enable-symmetry-breaker turns on UF symmetry breaker (Deharbe et al., CADE 2011) [on by default only for QF_UF]\n\
    --disable-symmetry-breaker turns off UF symmetry breaker\n\
@@ -189,7 +187,6 @@ Additional CVC4 options:\n\
 ";
 
 
-#warning "Change CL options as --disable-variable-removal cannot do anything currently."
 
 static const string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
@@ -352,7 +349,6 @@ enum OptionValue {
   RANDOM_SEED,
   SAT_RESTART_FIRST,
   SAT_RESTART_INC,
-  ARITHMETIC_VARIABLE_REMOVAL,
   ARITHMETIC_PROPAGATION,
   ARITHMETIC_PIVOT_THRESHOLD,
   ARITHMETIC_PROP_MAX_LENGTH,
@@ -443,7 +439,6 @@ static struct option cmdlineOptions[] = {
   { "restart-int-base", required_argument, NULL, SAT_RESTART_FIRST },
   { "restart-int-inc", required_argument, NULL, SAT_RESTART_INC },
   { "print-winner", no_argument     , NULL, PRINT_WINNER  },
-  { "disable-variable-removal", no_argument, NULL, ARITHMETIC_VARIABLE_REMOVAL },
   { "disable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
   { "disable-dio-solver", no_argument, NULL, ARITHMETIC_DIO_SOLVER },
   { "enable-symmetry-breaker", no_argument, NULL, ENABLE_SYMMETRY_BREAKER },
@@ -787,10 +782,6 @@ throw(OptionException) {
 #else /* CVC4_REPLAY */
       throw OptionException("The replay feature was disabled in this build of CVC4.");
 #endif /* CVC4_REPLAY */
-      break;
-
-    case ARITHMETIC_VARIABLE_REMOVAL:
-      variableRemovalEnabled = false;
       break;
 
     case ARITHMETIC_PROPAGATION:
