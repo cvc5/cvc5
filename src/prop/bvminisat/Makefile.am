@@ -22,7 +22,9 @@ libbvminisat_la_SOURCES = \
 	mtl/Sort.h \
 	mtl/Vec.h \
 	mtl/XAlloc.h \
-	utils/Options.h 
+	utils/Options.h \
+	bvminisat.h \
+	bvminisat.cpp
 
 EXTRA_DIST = \
 	core/Main.cc \

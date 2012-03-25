@@ -1,0 +1,101 @@
+/*********************                                                        */
+/*! \file minisat.h
+ ** \verbatim
+ ** Original author: dejan
+ ** Major contributors:
+ ** Minor contributors (to current version):
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief SAT Solver.
+ **
+ ** Implementation of the minisat for cvc4.
+ **/
+
+#pragma once
+
+#include "prop/sat_solver.h"
+#include "prop/minisat/simp/SimpSolver.h"
+
+namespace CVC4 {
+namespace prop {
+
+class DPLLMinisatSatSolver : public DPLLSatSolverInterface {
+
+  /** The SatSolver used */
+  Minisat::SimpSolver* d_minisat;
+
+
+  /** The SatSolver uses this to communicate with the theories */
+  TheoryProxy* d_theoryProxy;
+
+  /** Context we will be using to synchronzie the sat solver */
+  context::Context* d_context;
+
+  DPLLMinisatSatSolver ();
+
+public:
+
+  ~DPLLMinisatSatSolver();
+  static SatVariable     toSatVariable(Minisat::Var var);
+  static Minisat::Lit    toMinisatLit(SatLiteral lit);
+  static SatLiteral      toSatLiteral(Minisat::Lit lit);
+  static SatLiteralValue toSatLiteralValue(bool res);
+  static SatLiteralValue toSatLiteralValue(Minisat::lbool res);
+
+  static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
+  static void  toSatClause    (Minisat::vec<Minisat::Lit>& clause, SatClause& sat_clause);
+
+  void initialize(context::Context* context, TheoryProxy* theoryProxy);
+
+  void addClause(SatClause& clause, bool removable);
+
+  SatVariable newVar(bool theoryAtom = false);
+
+  SatLiteralValue solve();
+  SatLiteralValue solve(long unsigned int&);
+
+  void interrupt();
+
+  SatLiteralValue value(SatLiteral l);
+
+  SatLiteralValue modelValue(SatLiteral l);
+
+  bool properExplanation(SatLiteral lit, SatLiteral expl) const;
+
+  /** Incremental interface */
+
+  int getAssertionLevel() const;
+
+  void push();
+
+  void pop();
+
+  void unregisterVar(SatLiteral lit);
+
+  void renewVar(SatLiteral lit, int level = -1);
+
+  class Statistics {
+  private:
+    ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
+    ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
+    ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
+    ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
+    ReferenceStat<uint64_t> d_statTotLiterals;
+  public:
+    Statistics();
+    ~Statistics();
+    void init(Minisat::SimpSolver* d_minisat);
+  };
+  Statistics d_statistics;
+
+  friend class SatSolverFactory;
+};
+
+} // prop namespace
+} // cvc4 namespace
+

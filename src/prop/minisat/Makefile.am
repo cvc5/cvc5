@@ -22,7 +22,9 @@ libminisat_la_SOURCES = \
 	mtl/Sort.h \
 	mtl/Vec.h \
 	mtl/XAlloc.h \
-	utils/Options.h 
+	utils/Options.h \
+	minisat.cpp \
+	minisat.h
 
 EXTRA_DIST = \
 	core/Main.cc \

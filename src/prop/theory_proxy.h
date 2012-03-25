@@ -123,41 +123,6 @@ inline TheoryProxy::TheoryProxy(PropEngine* propEngine,
 
 }/* CVC4::prop namespace */
 
-inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
-  out << lit.toString(); 
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, const prop::SatClause& clause) {
-  out << "clause:";
-  for(unsigned i = 0; i < clause.size(); ++i) {
-    out << " " << clause[i];
-  }
-  out << ";";
-  return out;
-}
-
-inline std::ostream& operator <<(std::ostream& out, prop::SatLiteralValue val) {
-  std::string str; 
-  switch(val) {
-  case prop::SatValUnknown:
-    str = "_";
-    break;
-  case prop::SatValTrue:
-    str = "1";
-    break;
-  case prop::SatValFalse:
-    str = "0";
-    break;
-  default:
-    str = "Error";
-    break;
-  }
-
-  out << str;
-  return out;
-}
-
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PROP__SAT_H */

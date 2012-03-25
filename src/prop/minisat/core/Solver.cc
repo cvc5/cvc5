@@ -26,7 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/core/Solver.h"
 
 #include "prop/theory_proxy.h"
-#include "prop/sat_solver.h"
+#include "prop/minisat/minisat.h"
 #include "util/output.h"
 #include "expr/command.h"
 #include "proof/proof_manager.h"
