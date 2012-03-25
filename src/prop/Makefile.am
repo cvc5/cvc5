@@ -11,8 +11,8 @@ libprop_la_SOURCES = \
 	registrar.h \
 	prop_engine.cpp \
 	prop_engine.h \
-	sat.h \
-	sat.cpp \
+	theory_proxy.h \
+	theory_proxy.cpp \
 	cnf_stream.h \
 	cnf_stream.cpp \
 	sat_module.h \

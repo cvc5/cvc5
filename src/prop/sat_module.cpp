@@ -22,7 +22,7 @@
 #include "context/context.h"
 #include "theory/theory_engine.h"
 #include "expr/expr_stream.h"
-#include "prop/sat.h"
+#include "prop/theory_proxy.h"
 
 // DPLLT Minisat
 #include "prop/minisat/simp/SimpSolver.h"

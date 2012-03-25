@@ -28,7 +28,7 @@
 #define __CVC4__PROP__CNF_STREAM_H
 
 #include "expr/node.h"
-#include "prop/sat.h"
+#include "prop/theory_proxy.h"
 #include "prop/registrar.h"
 
 #include <ext/hash_map>

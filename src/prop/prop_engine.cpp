@@ -18,7 +18,7 @@
 
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/sat.h"
+#include "prop/theory_proxy.h"
 #include "prop/sat_module.h"
 
 #include "theory/theory_engine.h"

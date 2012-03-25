@@ -19,7 +19,7 @@
 
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/sat.h"
+#include "prop/theory_proxy.h"
 #include "context/context.h"
 #include "theory/theory_engine.h"
 #include "theory/rewriter.h"

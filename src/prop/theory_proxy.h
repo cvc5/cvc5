@@ -31,14 +31,6 @@
 
 #include "prop/sat_module.h"
 
-#ifdef __CVC4_USE_MINISAT
-
-#include "prop/minisat/core/Solver.h"
-#include "prop/minisat/core/SolverTypes.h"
-#include "prop/minisat/simp/SimpSolver.h"
-
-#endif /* __CVC4_USE_MINISAT */
-
 namespace CVC4 {
 
 class TheoryEngine;
@@ -150,18 +142,21 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatLiteralValue val) {
   switch(val) {
   case prop::SatValUnknown:
     str = "_";
+    break;
   case prop::SatValTrue:
     str = "1";
+    break;
   case prop::SatValFalse:
     str = "0";
+    break;
   default:
-    str = "Error"; 
+    str = "Error";
+    break;
+  }
 
   out << str;
   return out;
 }
-
-} /* prop namespace */
 
 }/* CVC4 namespace */
 

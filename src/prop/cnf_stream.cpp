@@ -27,7 +27,7 @@
 #include "util/output.h"
 #include "expr/command.h"
 #include "expr/expr.h"
-#include "prop/sat.h"
+#include "prop/theory_proxy.h"
 
 #include <queue>
 
