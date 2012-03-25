@@ -21,7 +21,7 @@
 #include "theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "prop/cnf_stream.h"
-#include "prop/sat_module.h"
+#include "prop/sat_solver.h"
 
 using namespace std;
 

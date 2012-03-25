@@ -37,7 +37,7 @@
 #include "util/stats.h"
 #include "bitblast_strategies.h"
 
-#include "prop/sat_module.h"
+#include "prop/sat_solver.h"
 
 namespace CVC4 {
 

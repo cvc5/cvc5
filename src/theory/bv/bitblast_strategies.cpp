@@ -18,7 +18,7 @@
 
 #include "bitblast_strategies.h"
 #include "bv_sat.h"
-#include "prop/sat_module.h"
+#include "prop/sat_solver.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 
 using namespace CVC4::prop; 

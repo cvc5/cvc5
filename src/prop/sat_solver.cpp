@@ -18,7 +18,7 @@
  **/
 
 #include "prop/prop_engine.h"
-#include "prop/sat_module.h"
+#include "prop/sat_solver.h"
 #include "context/context.h"
 #include "theory/theory_engine.h"
 #include "expr/expr_stream.h"

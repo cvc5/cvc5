@@ -15,8 +15,8 @@ libprop_la_SOURCES = \
 	theory_proxy.cpp \
 	cnf_stream.h \
 	cnf_stream.cpp \
-	sat_module.h \
-	sat_module.cpp
+	sat_solver.h \
+	sat_solver.cpp
 
 SUBDIRS = minisat bvminisat
 

@@ -23,7 +23,7 @@
 
 
 #include "expr/node.h"
-#include "prop/sat_module.h"
+#include "prop/sat_solver.h"
 
 namespace CVC4 {
 

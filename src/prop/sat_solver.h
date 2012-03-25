@@ -96,12 +96,10 @@ struct SatLiteralHashFunction {
 
 typedef std::vector<SatLiteral> SatClause;
 
-
-
-class SatSolverInterface {
+class SatSolver {
 public:  
   /** Virtual destructor to make g++ happy */
-  virtual ~SatSolverInterface() { }
+  virtual ~SatSolver() { }
   
   /** Assert a clause in the solver. */
   virtual void addClause(SatClause& clause, bool removable) = 0;
@@ -134,7 +132,7 @@ public:
 };
 
 
-class BVSatSolverInterface: public SatSolverInterface {
+class BVSatSolverInterface: public SatSolver {
 public:
   virtual SatLiteralValue solve(const context::CDList<SatLiteral> & assumptions) = 0;
 
@@ -144,7 +142,7 @@ public:
 }; 
 
 
-class DPLLSatSolverInterface: public SatSolverInterface {
+class DPLLSatSolverInterface: public SatSolver {
 public:
   virtual void initialize(context::Context* context, prop::TheoryProxy* theoryProxy) = 0; 
   
