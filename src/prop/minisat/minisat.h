@@ -69,7 +69,7 @@ public:
 
   /** Incremental interface */
 
-  int getAssertionLevel() const;
+  unsigned getAssertionLevel() const;
 
   void push();
 

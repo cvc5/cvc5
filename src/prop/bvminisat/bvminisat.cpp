@@ -120,7 +120,7 @@ void MinisatSatSolver::renewVar(SatLiteral lit, int level) {
   Unreachable();
 }
 
-int MinisatSatSolver::getAssertionLevel() const {
+unsigned MinisatSatSolver::getAssertionLevel() const {
   // we have no user context implemented so far
   return 0;
 }

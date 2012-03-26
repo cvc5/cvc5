@@ -161,7 +161,7 @@ bool DPLLMinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) co
 
 /** Incremental interface */
 
-int DPLLMinisatSatSolver::getAssertionLevel() const {
+unsigned DPLLMinisatSatSolver::getAssertionLevel() const {
   return d_minisat->getAssertionLevel();
 }
 

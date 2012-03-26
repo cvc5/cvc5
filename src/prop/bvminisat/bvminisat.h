@@ -48,7 +48,7 @@ public:
 
   void unregisterVar(SatLiteral lit);
   void renewVar(SatLiteral lit, int level = -1);
-  int getAssertionLevel() const;
+  unsigned getAssertionLevel() const;
 
 
   // helper methods for converting from the internal Minisat representation
