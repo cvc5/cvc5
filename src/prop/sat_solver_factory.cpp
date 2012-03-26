@@ -17,6 +17,7 @@
  **/
 
 #include "prop/sat_solver_factory.h"
+#include "prop/sat_solver_registry.h"
 #include "prop/minisat/minisat.h"
 #include "prop/bvminisat/bvminisat.h"
 
@@ -31,6 +32,16 @@ DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat() {
   return new DPLLMinisatSatSolver();
 }
 
+SatSolver* SatSolverFactory::create(const char* name) {
+  SatSolverConstructorInterface* constructor = SatSolverRegistry::getConstructor(name);
+  if (constructor) {
+    return constructor->construct();
+  } else {
+    return NULL;
+  }
+}
 
-
+void SatSolverFactory::getSolverIds(std::vector<std::string>& solvers) {
+  SatSolverRegistry::getSolverIds(solvers);
+}
 

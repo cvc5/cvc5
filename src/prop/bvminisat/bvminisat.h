@@ -19,6 +19,7 @@
 #pragma once
 
 #include "prop/sat_solver.h"
+#include "prop/sat_solver_registry.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 
 namespace CVC4 {
@@ -27,8 +28,8 @@ namespace prop {
 class MinisatSatSolver: public BVSatSolverInterface {
   BVMinisat::SimpSolver* d_minisat;
 
-  MinisatSatSolver();
 public:
+  MinisatSatSolver();
   ~MinisatSatSolver();
   void addClause(SatClause& clause, bool removable);
 
@@ -76,8 +77,9 @@ public:
   };
 
   Statistics d_statistics;
-  friend class SatSolverFactory;
 };
+
+template class SatSolverConstructor<MinisatSatSolver>;
 
 }
 }

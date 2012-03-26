@@ -19,6 +19,7 @@
 #pragma once
 
 #include "prop/sat_solver.h"
+#include "prop/sat_solver_registry.h"
 #include "prop/minisat/simp/SimpSolver.h"
 
 namespace CVC4 {
@@ -36,11 +37,11 @@ class DPLLMinisatSatSolver : public DPLLSatSolverInterface {
   /** Context we will be using to synchronzie the sat solver */
   context::Context* d_context;
 
-  DPLLMinisatSatSolver ();
-
 public:
 
+  DPLLMinisatSatSolver ();
   ~DPLLMinisatSatSolver();
+
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(Minisat::Lit lit);
@@ -93,8 +94,9 @@ public:
   };
   Statistics d_statistics;
 
-  friend class SatSolverFactory;
 };
+
+template class SatSolverConstructor<DPLLMinisatSatSolver>;
 
 } // prop namespace
 } // cvc4 namespace

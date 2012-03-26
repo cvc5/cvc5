@@ -20,6 +20,8 @@
 
 #include "cvc4_public.h"
 
+#include <string>
+#include <vector>
 #include "prop/sat_solver.h"
 
 namespace CVC4 {
@@ -27,8 +29,15 @@ namespace prop {
 
 class SatSolverFactory {
 public:
+
   static BVSatSolverInterface* createMinisat();
   static DPLLSatSolverInterface* createDPLLMinisat();
+
+  static SatSolver* create(const char* id);
+
+  /** Get the solver ids that are available */
+  static void getSolverIds(std::vector<std::string>& solvers);
+
 };
 
 }

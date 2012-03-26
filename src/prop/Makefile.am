@@ -17,7 +17,9 @@ libprop_la_SOURCES = \
 	cnf_stream.cpp \
 	sat_solver.h \
 	sat_solver_factory.h \
-	sat_solver_factory.cpp 
+	sat_solver_factory.cpp \
+	sat_solver_registry.h \
+	sat_solver_registry.cpp
 	
 SUBDIRS = minisat bvminisat
 

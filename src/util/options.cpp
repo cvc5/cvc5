@@ -35,6 +35,7 @@
 #include "util/options.h"
 #include "util/output.h"
 #include "util/dump.h"
+#include "prop/sat_solver_factory.h"
 
 #include "cvc4autoconfig.h"
 
@@ -163,6 +164,7 @@ Additional CVC4 options:\n\
    --debug | -d           debug something (e.g. -d arith), can repeat\n\
    --show-debug-tags      show all avalable tags for debugging\n\
    --show-trace-tags      show all avalable tags for tracing\n\
+   --show-sat-solvers     show all available SAT solvers\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
    --print-expr-types     print types with variables when printing exprs\n\
    --lazy-definition-expansion expand define-funs/LAMBDAs lazily\n\
@@ -324,6 +326,7 @@ enum OptionValue {
   USE_MMAP,
   SHOW_DEBUG_TAGS,
   SHOW_TRACE_TAGS,
+  SHOW_SAT_SOLVERS,
   SHOW_CONFIG,
   STRICT_PARSING,
   DEFAULT_EXPR_DEPTH,
@@ -399,6 +402,7 @@ static struct option cmdlineOptions[] = {
   { "no-theory-registration", no_argument, NULL, NO_THEORY_REGISTRATION },
   { "show-debug-tags", no_argument  , NULL, SHOW_DEBUG_TAGS },
   { "show-trace-tags", no_argument  , NULL, SHOW_TRACE_TAGS },
+  { "show-sat-solvers", no_argument  , NULL, SHOW_SAT_SOLVERS },
   { "show-config", no_argument      , NULL, SHOW_CONFIG },
   { "segv-nospin", no_argument      , NULL, SEGV_NOSPIN },
   { "help"       , no_argument      , NULL, 'h'         },
@@ -930,6 +934,21 @@ throw(OptionException) {
       exit(0);
       break;
 
+    case SHOW_SAT_SOLVERS:
+    {
+      vector<string> solvers;
+      prop::SatSolverFactory::getSolverIds(solvers);
+      printf("Available SAT solvers: ");
+      for (unsigned i = 0; i < solvers.size(); ++ i) {
+        if (i > 0) {
+          printf(", ");
+        }
+        printf("%s", solvers[i].c_str());
+      }
+      printf("\n");
+      exit(0);
+      break;
+    }
     case SHOW_CONFIG:
       fputs(Configuration::about().c_str(), stdout);
       printf("\n");

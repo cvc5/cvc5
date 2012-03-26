@@ -21,7 +21,8 @@
 #ifndef __CVC4__PROP__SAT_MODULE_H
 #define __CVC4__PROP__SAT_MODULE_H
 
-#include <stdint.h> 
+#include <string>
+#include <stdint.h>
 #include "util/options.h"
 #include "util/stats.h"
 #include "context/cdlist.h"
@@ -166,7 +167,6 @@ public:
 
   /** Create a new boolean variable in the solver. */
   virtual SatVariable newVar(bool theoryAtom = false) = 0;
-
  
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve() = 0;
