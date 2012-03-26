@@ -28,7 +28,7 @@
 #include "context/context.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/sat.h"
+#include "prop/theory_proxy.h"
 #include "smt/smt_engine.h"
 
 #include "theory/theory.h"
@@ -45,7 +45,7 @@ using namespace CVC4::prop;
 using namespace std;
 
 /* This fake class relies on the face that a MiniSat variable is just an int. */
-class FakeSatSolver : public SatSolverInterface {
+class FakeSatSolver : public SatSolver {
   SatVariable d_nextVar;
   bool d_addClauseCalled;
 
@@ -71,7 +71,7 @@ public:
     return d_addClauseCalled;
   }
 
-  int getAssertionLevel() const {
+  unsigned getAssertionLevel() const {
     return 0;
   }
 
