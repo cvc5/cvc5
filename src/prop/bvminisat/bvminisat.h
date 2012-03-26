@@ -38,13 +38,13 @@ public:
 
   void interrupt();
 
-  SatLiteralValue solve();
-  SatLiteralValue solve(long unsigned int&);
-  SatLiteralValue solve(const context::CDList<SatLiteral> & assumptions);
+  SatValue solve();
+  SatValue solve(long unsigned int&);
+  SatValue solve(const context::CDList<SatLiteral> & assumptions);
   void getUnsatCore(SatClause& unsatCore);
 
-  SatLiteralValue value(SatLiteral l);
-  SatLiteralValue modelValue(SatLiteral l);
+  SatValue value(SatLiteral l);
+  SatValue modelValue(SatLiteral l);
 
   void unregisterVar(SatLiteral lit);
   void renewVar(SatLiteral lit, int level = -1);
@@ -56,8 +56,8 @@ public:
   static SatVariable     toSatVariable(BVMinisat::Var var);
   static BVMinisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(BVMinisat::Lit lit);
-  static SatLiteralValue toSatLiteralValue(bool res);
-  static SatLiteralValue toSatLiteralValue(BVMinisat::lbool res);
+  static SatValue toSatLiteralValue(bool res);
+  static SatValue toSatLiteralValue(BVMinisat::lbool res);
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);
   static void  toSatClause    (BVMinisat::vec<BVMinisat::Lit>& clause, SatClause& sat_clause);

@@ -20,6 +20,7 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "prop/sat_solver.h"
+#include "prop/sat_solver_factory.h"
 
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
@@ -121,7 +122,7 @@ void PropEngine::printSatisfyingAssignment(){
     SatLiteral l = curr.second.literal;
     if(!l.isNegated()) {
       Node n = curr.first;
-      SatLiteralValue value = d_satSolver->modelValue(l);
+      SatValue value = d_satSolver->modelValue(l);
       Debug("prop-value") << "'" << l << "' " << value << " " << n << endl;
     }
   }
@@ -150,26 +151,26 @@ Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
   d_interrupted = false;
 
   // Check the problem
-  SatLiteralValue result = d_satSolver->solve(resource);
+  SatValue result = d_satSolver->solve(resource);
 
   millis = d_satTimer.elapsed();
 
-  if( result == SatValUnknown ) {
+  if( result == SAT_VALUE_UNKNOWN ) {
     Result::UnknownExplanation why =
       d_satTimer.expired() ? Result::TIMEOUT :
         (d_interrupted ? Result::INTERRUPTED : Result::RESOURCEOUT);
     return Result(Result::SAT_UNKNOWN, why);
   }
 
-  if( result == SatValTrue && Debug.isOn("prop") ) {
+  if( result == SAT_VALUE_TRUE && Debug.isOn("prop") ) {
     printSatisfyingAssignment();
   }
 
   Debug("prop") << "PropEngine::checkSat() => " << result << endl;
-  if(result == SatValTrue && d_theoryEngine->isIncomplete()) {
+  if(result == SAT_VALUE_TRUE && d_theoryEngine->isIncomplete()) {
     return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
   }
-  return Result(result == SatValTrue ? Result::SAT : Result::UNSAT);
+  return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
 
 Node PropEngine::getValue(TNode node) const {
@@ -178,13 +179,13 @@ Node PropEngine::getValue(TNode node) const {
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
-  SatLiteralValue v = d_satSolver->value(lit);
-  if(v == SatValTrue) {
+  SatValue v = d_satSolver->value(lit);
+  if(v == SAT_VALUE_TRUE) {
     return NodeManager::currentNM()->mkConst(true);
-  } else if(v == SatValFalse) {
+  } else if(v == SAT_VALUE_FALSE) {
     return NodeManager::currentNM()->mkConst(false);
   } else {
-    Assert(v == SatValUnknown);
+    Assert(v == SAT_VALUE_UNKNOWN);
     return Node::null();
   }
 }
@@ -203,15 +204,15 @@ bool PropEngine::hasValue(TNode node, bool& value) const {
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
-  SatLiteralValue v = d_satSolver->value(lit);
-  if(v == SatValTrue) {
+  SatValue v = d_satSolver->value(lit);
+  if(v == SAT_VALUE_TRUE) {
     value = true;
     return true;
-  } else if(v == SatValFalse) {
+  } else if(v == SAT_VALUE_FALSE) {
     value = false;
     return true;
   } else {
-    Assert(v == SatValUnknown);
+    Assert(v == SAT_VALUE_UNKNOWN);
     return false;
   }
 }

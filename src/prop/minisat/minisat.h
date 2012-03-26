@@ -44,8 +44,8 @@ public:
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
   static SatLiteral      toSatLiteral(Minisat::Lit lit);
-  static SatLiteralValue toSatLiteralValue(bool res);
-  static SatLiteralValue toSatLiteralValue(Minisat::lbool res);
+  static SatValue toSatLiteralValue(bool res);
+  static SatValue toSatLiteralValue(Minisat::lbool res);
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (Minisat::vec<Minisat::Lit>& clause, SatClause& sat_clause);
@@ -56,14 +56,14 @@ public:
 
   SatVariable newVar(bool theoryAtom = false);
 
-  SatLiteralValue solve();
-  SatLiteralValue solve(long unsigned int&);
+  SatValue solve();
+  SatValue solve(long unsigned int&);
 
   void interrupt();
 
-  SatLiteralValue value(SatLiteral l);
+  SatValue value(SatLiteral l);
 
-  SatLiteralValue modelValue(SatLiteral l);
+  SatValue modelValue(SatLiteral l);
 
   bool properExplanation(SatLiteral lit, SatLiteral expl) const;
 

@@ -84,20 +84,20 @@ public:
   void interrupt() {
   }
   
-  SatLiteralValue solve() {
-    return SatValUnknown;
+  SatValue solve() {
+    return SAT_VALUE_UNKNOWN;
   }
 
-  SatLiteralValue solve(long unsigned int& resource) {
-    return SatValUnknown;
+  SatValue solve(long unsigned int& resource) {
+    return SAT_VALUE_UNKNOWN;
   }
 
-  SatLiteralValue value(SatLiteral l) {
-    return SatValUnknown;
+  SatValue value(SatLiteral l) {
+    return SAT_VALUE_UNKNOWN;
   }
 
-  SatLiteralValue modelValue(SatLiteral l) {
-    return SatValUnknown;
+  SatValue modelValue(SatLiteral l) {
+    return SAT_VALUE_UNKNOWN;
   }
 
   bool properExplanation(SatLiteral lit, SatLiteral expl) const {

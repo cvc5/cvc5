@@ -16,7 +16,7 @@
  ** SAT Solver.
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
 #ifndef __CVC4__PROP__SAT_MODULE_H
 #define __CVC4__PROP__SAT_MODULE_H
@@ -31,55 +31,134 @@ namespace prop {
 
 class TheoryProxy; 
 
-enum SatLiteralValue {
-  SatValUnknown,
-  SatValTrue, 
-  SatValFalse 
+/**
+ * Boolean values of the SAT solver.
+ */
+enum SatValue {
+  SAT_VALUE_UNKNOWN,
+  SAT_VALUE_TRUE, 
+  SAT_VALUE_FALSE 
 };
 
+/**
+ * A variable of the SAT solver.
+ */
 typedef uint64_t SatVariable; 
-// special constant
+
+/**
+ * Undefined SAT solver variable.
+ */
 const SatVariable undefSatVariable = SatVariable(-1); 
 
+/**
+ * A SAT literal is a variable or an negated variable.
+ */
 class SatLiteral {
+
+  /**
+   * The value holds the variable and a bit noting if the variable is negated.
+   */
   uint64_t d_value;
+
 public:
-  SatLiteral() :
-    d_value(undefSatVariable)
+
+  /**
+   * Construct an undefined SAT literal.
+   */
+  SatLiteral()
+  : d_value(undefSatVariable)
   {}
   
-  SatLiteral(SatVariable var, bool negated = false) { d_value = var + var + (int)negated; }
-  SatLiteral operator~() {
+  /**
+   * Construct a literal given a possible negated variable.
+   */
+  SatLiteral(SatVariable var, bool negated = false) {
+    d_value = var + var + (int)negated;
+  }
+
+  /**
+   * Returns the variable of the literal.
+   */
+  SatVariable getSatVariable() const {
+    return d_value >> 1;
+  }
+
+  /**
+   * Returns true if the literal is a negated variable.
+   */
+  bool isNegated() const {
+    return d_value & 1;
+  }
+
+  /**
+   * Negate the given literal.
+   */
+  SatLiteral operator ~ () const {
     return SatLiteral(getSatVariable(), !isNegated()); 
   }
-  bool operator==(const SatLiteral& other) const {
+
+  /**
+   * Compare two literals for equality.
+   */
+  bool operator == (const SatLiteral& other) const {
     return d_value == other.d_value; 
   }
-  bool operator!=(const SatLiteral& other) const {
+
+  /**
+   * Compare two literals for dis-equality.
+   */
+  bool operator != (const SatLiteral& other) const {
     return !(*this == other); 
   }
-  std::string toString();
-  bool isNegated() const { return d_value & 1; }
-  size_t toHash() const {return (size_t)d_value; }
-  bool isNull() const { return d_value == (uint64_t)-1; }
-  SatVariable getSatVariable() const {return d_value >> 1; }
-};
 
-// special constant 
-const SatLiteral undefSatLiteral = SatLiteral(undefSatVariable);  
+  /**
+   * Returns a string representation of the literal.
+   */
+  std::string toString() const {
+    std::ostringstream os;
+    os << (isNegated()? "~" : "") << getSatVariable() << " ";
+    return os.str();
+  }
 
+  /**
+   * Returns the hash value of a literal.
+   */
+  size_t hash() const {
+    return (size_t)d_value;
+  }
 
-struct SatLiteralHashFunction {
-  inline size_t operator() (const SatLiteral& literal) const {
-    return literal.toHash();
+  /**
+   * Returns true if the literal is undefined.
+   */
+  bool isNull() const {
+    return getSatVariable() == undefSatVariable;
   }
 };
 
+/**
+ * A constant representing a undefined literal.
+ */
+const SatLiteral undefSatLiteral = SatLiteral(undefSatVariable);  
+
+/**
+ * Helper for hashing the literals.
+ */
+struct SatLiteralHashFunction {
+  inline size_t operator() (const SatLiteral& literal) const {
+    return literal.hash();
+  }
+};
+
+/**
+ * A SAT clause is a vector of literals.
+ */
 typedef std::vector<SatLiteral> SatClause;
 
 class SatSolver {
+
 public:  
-  /** Virtual destructor to make g++ happy */
+
+  /** Virtual destructor */
   virtual ~SatSolver() { }
   
   /** Assert a clause in the solver. */
@@ -90,19 +169,19 @@ public:
 
  
   /** Check the satisfiability of the added clauses */
-  virtual SatLiteralValue solve() = 0;
+  virtual SatValue solve() = 0;
 
   /** Check the satisfiability of the added clauses */
-  virtual SatLiteralValue solve(long unsigned int&) = 0;
+  virtual SatValue solve(long unsigned int&) = 0;
   
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
   /** Call value() during the search.*/
-  virtual SatLiteralValue value(SatLiteral l) = 0;
+  virtual SatValue value(SatLiteral l) = 0;
 
   /** Call modelValue() when the search is done.*/
-  virtual SatLiteralValue modelValue(SatLiteral l) = 0;
+  virtual SatValue modelValue(SatLiteral l) = 0;
 
   virtual void unregisterVar(SatLiteral lit) = 0;
   
@@ -115,7 +194,7 @@ public:
 
 class BVSatSolverInterface: public SatSolver {
 public:
-  virtual SatLiteralValue solve(const context::CDList<SatLiteral> & assumptions) = 0;
+  virtual SatValue solve(const context::CDList<SatLiteral> & assumptions) = 0;
 
   virtual void markUnremovable(SatLiteral lit) = 0;
 
@@ -135,12 +214,6 @@ public:
 
 }; 
 
-class SatSolverFactory {
-public:
-  static  BVSatSolverInterface*      createMinisat();
-  static  DPLLSatSolverInterface*  createDPLLMinisat();
-}; 
-
 }/* prop namespace */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
@@ -157,16 +230,16 @@ inline std::ostream& operator <<(std::ostream& out, const prop::SatClause& claus
   return out;
 }
 
-inline std::ostream& operator <<(std::ostream& out, prop::SatLiteralValue val) {
+inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
   std::string str;
   switch(val) {
-  case prop::SatValUnknown:
+  case prop::SAT_VALUE_UNKNOWN:
     str = "_";
     break;
-  case prop::SatValTrue:
+  case prop::SAT_VALUE_TRUE:
     str = "1";
     break;
-  case prop::SatValFalse:
+  case prop::SAT_VALUE_FALSE:
     str = "0";
     break;
   default:

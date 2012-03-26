@@ -54,11 +54,11 @@ void MinisatSatSolver::interrupt(){
   d_minisat->interrupt();
 }
 
-SatLiteralValue MinisatSatSolver::solve(){
+SatValue MinisatSatSolver::solve(){
   return toSatLiteralValue(d_minisat->solve());
 }
 
-SatLiteralValue MinisatSatSolver::solve(long unsigned int& resource){
+SatValue MinisatSatSolver::solve(long unsigned int& resource){
   Trace("limit") << "MinisatSatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
   if(resource == 0) {
     d_minisat->budgetOff();
@@ -67,14 +67,14 @@ SatLiteralValue MinisatSatSolver::solve(long unsigned int& resource){
   }
   BVMinisat::vec<BVMinisat::Lit> empty;
   unsigned long conflictsBefore = d_minisat->conflicts;
-  SatLiteralValue result = toSatLiteralValue(d_minisat->solveLimited(empty));
+  SatValue result = toSatLiteralValue(d_minisat->solveLimited(empty));
   d_minisat->clearInterrupt();
   resource = d_minisat->conflicts - conflictsBefore;
   Trace("limit") << "<MinisatSatSolver::solve(): it took " << resource << " conflicts" << std::endl;
   return result;
 }
 
-SatLiteralValue MinisatSatSolver::solve(const context::CDList<SatLiteral> & assumptions){
+SatValue MinisatSatSolver::solve(const context::CDList<SatLiteral> & assumptions){
   Debug("sat::minisat") << "Solve with assumptions ";
   context::CDList<SatLiteral>::const_iterator it = assumptions.begin();
   BVMinisat::vec<BVMinisat::Lit> assump;
@@ -85,7 +85,7 @@ SatLiteralValue MinisatSatSolver::solve(const context::CDList<SatLiteral> & assu
   }
   Debug("sat::minisat") <<"\n";
 
- SatLiteralValue result = toSatLiteralValue(d_minisat->solve(assump));
+ SatValue result = toSatLiteralValue(d_minisat->solve(assump));
  return result;
 }
 
@@ -97,14 +97,14 @@ void MinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
   }
 }
 
-SatLiteralValue MinisatSatSolver::value(SatLiteral l){
+SatValue MinisatSatSolver::value(SatLiteral l){
     Unimplemented();
-    return SatValUnknown;
+    return SAT_VALUE_UNKNOWN;
 }
 
-SatLiteralValue MinisatSatSolver::modelValue(SatLiteral l){
+SatValue MinisatSatSolver::modelValue(SatLiteral l){
     Unimplemented();
-    return SatValUnknown;
+    return SAT_VALUE_UNKNOWN;
 }
 
 void MinisatSatSolver::unregisterVar(SatLiteral lit) {
@@ -150,16 +150,16 @@ SatLiteral MinisatSatSolver::toSatLiteral(BVMinisat::Lit lit) {
                     BVMinisat::sign(lit));
 }
 
-SatLiteralValue MinisatSatSolver::toSatLiteralValue(bool res) {
-  if(res) return SatValTrue;
-  else return SatValFalse;
+SatValue MinisatSatSolver::toSatLiteralValue(bool res) {
+  if(res) return SAT_VALUE_TRUE;
+  else return SAT_VALUE_FALSE;
 }
 
-SatLiteralValue MinisatSatSolver::toSatLiteralValue(BVMinisat::lbool res) {
-  if(res == (BVMinisat::lbool((uint8_t)0))) return SatValTrue;
-  if(res == (BVMinisat::lbool((uint8_t)2))) return SatValUnknown;
+SatValue MinisatSatSolver::toSatLiteralValue(BVMinisat::lbool res) {
+  if(res == (BVMinisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
+  if(res == (BVMinisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
   Assert(res == (BVMinisat::lbool((uint8_t)1)));
-  return SatValFalse;
+  return SAT_VALUE_FALSE;
 }
 
 void MinisatSatSolver::toMinisatClause(SatClause& clause,

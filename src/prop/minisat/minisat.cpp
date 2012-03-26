@@ -57,16 +57,16 @@ SatLiteral DPLLMinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
                     Minisat::sign(lit));
 }
 
-SatLiteralValue DPLLMinisatSatSolver::toSatLiteralValue(bool res) {
-  if(res) return SatValTrue;
-  else return SatValFalse;
+SatValue DPLLMinisatSatSolver::toSatLiteralValue(bool res) {
+  if(res) return SAT_VALUE_TRUE;
+  else return SAT_VALUE_FALSE;
 }
 
-SatLiteralValue DPLLMinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
-  if(res == (Minisat::lbool((uint8_t)0))) return SatValTrue;
-  if(res == (Minisat::lbool((uint8_t)2))) return SatValUnknown;
+SatValue DPLLMinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
+  if(res == (Minisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
+  if(res == (Minisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
   Assert(res == (Minisat::lbool((uint8_t)1)));
-  return SatValFalse;
+  return SAT_VALUE_FALSE;
 }
 
 
@@ -121,7 +121,7 @@ SatVariable DPLLMinisatSatSolver::newVar(bool theoryAtom) {
 }
 
 
-SatLiteralValue DPLLMinisatSatSolver::solve(unsigned long& resource) {
+SatValue DPLLMinisatSatSolver::solve(unsigned long& resource) {
   Trace("limit") << "SatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
   if(resource == 0) {
     d_minisat->budgetOff();
@@ -130,14 +130,14 @@ SatLiteralValue DPLLMinisatSatSolver::solve(unsigned long& resource) {
   }
   Minisat::vec<Minisat::Lit> empty;
   unsigned long conflictsBefore = d_minisat->conflicts;
-  SatLiteralValue result = toSatLiteralValue(d_minisat->solveLimited(empty));
+  SatValue result = toSatLiteralValue(d_minisat->solveLimited(empty));
   d_minisat->clearInterrupt();
   resource = d_minisat->conflicts - conflictsBefore;
   Trace("limit") << "SatSolver::solve(): it took " << resource << " conflicts" << std::endl;
   return result;
 }
 
-SatLiteralValue DPLLMinisatSatSolver::solve() {
+SatValue DPLLMinisatSatSolver::solve() {
   d_minisat->budgetOff();
   return toSatLiteralValue(d_minisat->solve());
 }
@@ -147,11 +147,11 @@ void DPLLMinisatSatSolver::interrupt() {
   d_minisat->interrupt();
 }
 
-SatLiteralValue DPLLMinisatSatSolver::value(SatLiteral l) {
+SatValue DPLLMinisatSatSolver::value(SatLiteral l) {
   return toSatLiteralValue(d_minisat->value(toMinisatLit(l)));
 }
 
-SatLiteralValue DPLLMinisatSatSolver::modelValue(SatLiteral l){
+SatValue DPLLMinisatSatSolver::modelValue(SatLiteral l){
   return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
