@@ -108,7 +108,7 @@ public:
   
   virtual void renewVar(SatLiteral lit, int level = -1) = 0;
 
-  virtual int getAssertionLevel() const = 0;
+  virtual unsigned getAssertionLevel() const = 0;
 
 };
 
