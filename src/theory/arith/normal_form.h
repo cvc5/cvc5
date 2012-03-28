@@ -572,6 +572,7 @@ public:
     return coefficientIsOne() || constant.getValue() == -1;
   }
 
+  Monomial operator*(const Constant& c) const;
   Monomial operator*(const Monomial& mono) const;
 
 
@@ -854,7 +855,9 @@ public:
   }
 
   Polynomial operator+(const Polynomial& vl) const;
+  Polynomial operator-(const Polynomial& vl) const;
 
+  Polynomial operator*(const Constant& c) const;
   Polynomial operator*(const Monomial& mono) const;
 
   Polynomial operator*(const Polynomial& poly) const;

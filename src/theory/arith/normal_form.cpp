@@ -122,6 +122,14 @@ Monomial Monomial::parseMonomial(Node n) {
     return Monomial(VarList::parseVarList(n));
   }
 }
+Monomial Monomial::operator*(const Constant& c) const {
+  if(c.isZero()){
+    return mkZero();
+  }else{
+    Constant newConstant = this->getConstant() * c;
+    return Monomial::mkMonomial(newConstant, getVarList());
+  }
+}
 
 Monomial Monomial::operator*(const Monomial& mono) const {
   Constant newConstant = this->getConstant() * mono.getConstant();
@@ -172,6 +180,28 @@ Polynomial Polynomial::operator+(const Polynomial& vl) const {
 
   Polynomial result = mkPolynomial(combined);
   return result;
+}
+
+Polynomial Polynomial::operator-(const Polynomial& vl) const {
+  Constant negOne = Constant::mkConstant(Rational(-1));
+
+  return *this + (vl*negOne);
+}
+
+Polynomial Polynomial::operator*(const Constant& c) const{
+  if(c.isZero()){
+    return Polynomial::mkZero();
+  }else if(c.isOne()){
+    return *this;
+  }else{
+    std::vector<Monomial> newMonos;
+    for(iterator i = this->begin(), end = this->end(); i != end; ++i) {
+      newMonos.push_back((*i)*c);
+    }
+
+    Assert(Monomial::isStrictlySorted(newMonos));
+    return Polynomial::mkPolynomial(newMonos);
+  }
 }
 
 Polynomial Polynomial::operator*(const Monomial& mono) const {
