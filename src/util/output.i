@@ -9,7 +9,7 @@
 // it tries to generate the getters and setters.  For now, just ignore them.
 %ignore CVC4::null_sb;
 %ignore CVC4::null_os;
-%ignore CVC4::DumpC::dump_cout;
+%ignore CVC4::DumpOutC::dump_cout;
 
 %ignore operator<<;
 %ignore on(std::string);
