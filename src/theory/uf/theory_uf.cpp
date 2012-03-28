@@ -397,22 +397,18 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 
 EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
-  Node equality = a.eqNode(b);
-  Node rewrittenEquality = Rewriter::rewrite(equality);
-  if (rewrittenEquality.isConst()) {
-    if (!rewrittenEquality.getConst<bool>()) {
-      return EQUALITY_FALSE;
-    }
-  }
-
+  // Check for equality (simplest)
   if (d_equalityEngine.areEqual(a, b)) {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
   }
+
+  // Check for disequality
   if (d_equalityEngine.areDisequal(a, b)) {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
+
   // All other terms we interpret as dis-equal in the model
   return EQUALITY_FALSE_IN_MODEL;
 }
