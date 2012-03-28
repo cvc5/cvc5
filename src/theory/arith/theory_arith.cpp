@@ -602,7 +602,7 @@ void TheoryArith::preRegisterTerm(TNode n) {
 
   if(isRelationOperator(n.getKind())){
     if(!isSetup(n)){
-      setupAtom(n, true);
+      setupAtom(n, Options::current()->arithPropagation);
     }
     addToContext(n);
   }
