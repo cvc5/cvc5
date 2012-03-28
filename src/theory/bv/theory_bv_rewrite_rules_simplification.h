@@ -558,7 +558,7 @@ Node RewriteRule<UleSelf>::apply(Node node) {
 template<>
 bool RewriteRule<ZeroUle>::applies(Node node) {
   return (node.getKind() == kind::BITVECTOR_ULE &&
-          node[1] == utils::mkConst(BitVector(utils::getSize(node[0]), Integer(0))));
+          node[0] == utils::mkConst(BitVector(utils::getSize(node[0]), Integer(0))));
 }
 
 template<>
