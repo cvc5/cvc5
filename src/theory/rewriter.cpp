@@ -71,6 +71,12 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
   Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;
 
+  // Check if it's been cached already
+  Node cached = getPostRewriteCache(theoryId, node);
+  if (!cached.isNull()) {
+    return cached;
+  }
+
   // Put the node on the stack in order to start the "recursive" rewrite
   vector<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
