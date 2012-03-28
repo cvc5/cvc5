@@ -25,7 +25,7 @@
 namespace CVC4 {
 namespace prop {
 
-class DPLLMinisatSatSolver : public DPLLSatSolverInterface {
+class MinisatSatSolver : public DPLLSatSolverInterface {
 
   /** The SatSolver used */
   Minisat::SimpSolver* d_minisat;
@@ -39,8 +39,8 @@ class DPLLMinisatSatSolver : public DPLLSatSolverInterface {
 
 public:
 
-  DPLLMinisatSatSolver ();
-  ~DPLLMinisatSatSolver();
+  MinisatSatSolver ();
+  ~MinisatSatSolver();
 
   static SatVariable     toSatVariable(Minisat::Var var);
   static Minisat::Lit    toMinisatLit(SatLiteral lit);
@@ -96,7 +96,7 @@ public:
 
 };
 
-template class SatSolverConstructor<DPLLMinisatSatSolver>;
+template class SatSolverConstructor<MinisatSatSolver>;
 
 } // prop namespace
 } // cvc4 namespace

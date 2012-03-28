@@ -25,11 +25,11 @@ using namespace CVC4;
 using namespace prop;
 
 BVSatSolverInterface* SatSolverFactory::createMinisat() {
-  return new MinisatSatSolver();
+  return new BVMinisatSatSolver();
 }
 
 DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat() {
-  return new DPLLMinisatSatSolver();
+  return new MinisatSatSolver();
 }
 
 SatSolver* SatSolverFactory::create(const char* name) {

@@ -24,31 +24,31 @@ using namespace CVC4::prop;
 
 //// DPllMinisatSatSolver
 
-DPLLMinisatSatSolver::DPLLMinisatSatSolver() :
+MinisatSatSolver::MinisatSatSolver() :
   d_minisat(NULL),
   d_theoryProxy(NULL),
   d_context(NULL)
 {}
 
-DPLLMinisatSatSolver::~DPLLMinisatSatSolver() {
+MinisatSatSolver::~MinisatSatSolver() {
   delete d_minisat;
 }
 
-SatVariable DPLLMinisatSatSolver::toSatVariable(Minisat::Var var) {
+SatVariable MinisatSatSolver::toSatVariable(Minisat::Var var) {
   if (var == var_Undef) {
     return undefSatVariable;
   }
   return SatVariable(var);
 }
 
-Minisat::Lit DPLLMinisatSatSolver::toMinisatLit(SatLiteral lit) {
+Minisat::Lit MinisatSatSolver::toMinisatLit(SatLiteral lit) {
   if (lit == undefSatLiteral) {
     return Minisat::lit_Undef;
   }
   return Minisat::mkLit(lit.getSatVariable(), lit.isNegated());
 }
 
-SatLiteral DPLLMinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
+SatLiteral MinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
   if (lit == Minisat::lit_Undef) {
     return undefSatLiteral;
   }
@@ -57,12 +57,12 @@ SatLiteral DPLLMinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
                     Minisat::sign(lit));
 }
 
-SatValue DPLLMinisatSatSolver::toSatLiteralValue(bool res) {
+SatValue MinisatSatSolver::toSatLiteralValue(bool res) {
   if(res) return SAT_VALUE_TRUE;
   else return SAT_VALUE_FALSE;
 }
 
-SatValue DPLLMinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
+SatValue MinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
   if(res == (Minisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (Minisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
   Assert(res == (Minisat::lbool((uint8_t)1)));
@@ -70,7 +70,7 @@ SatValue DPLLMinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
 }
 
 
-void DPLLMinisatSatSolver::toMinisatClause(SatClause& clause,
+void MinisatSatSolver::toMinisatClause(SatClause& clause,
                                            Minisat::vec<Minisat::Lit>& minisat_clause) {
   for (unsigned i = 0; i < clause.size(); ++i) {
     minisat_clause.push(toMinisatLit(clause[i]));
@@ -78,7 +78,7 @@ void DPLLMinisatSatSolver::toMinisatClause(SatClause& clause,
   Assert(clause.size() == (unsigned)minisat_clause.size());
 }
 
-void DPLLMinisatSatSolver::toSatClause(Minisat::vec<Minisat::Lit>& clause,
+void MinisatSatSolver::toSatClause(Minisat::vec<Minisat::Lit>& clause,
                                        SatClause& sat_clause) {
   for (int i = 0; i < clause.size(); ++i) {
     sat_clause.push_back(toSatLiteral(clause[i]));
@@ -87,7 +87,7 @@ void DPLLMinisatSatSolver::toSatClause(Minisat::vec<Minisat::Lit>& clause,
 }
 
 
-void DPLLMinisatSatSolver::initialize(context::Context* context, TheoryProxy* theoryProxy)
+void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theoryProxy)
 {
 
   d_context = context;
@@ -110,18 +110,18 @@ void DPLLMinisatSatSolver::initialize(context::Context* context, TheoryProxy* th
   d_statistics.init(d_minisat);
 }
 
-void DPLLMinisatSatSolver::addClause(SatClause& clause, bool removable) {
+void MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
   d_minisat->addClause(minisat_clause, removable);
 }
 
-SatVariable DPLLMinisatSatSolver::newVar(bool theoryAtom) {
+SatVariable MinisatSatSolver::newVar(bool theoryAtom) {
   return d_minisat->newVar(true, true, theoryAtom);
 }
 
 
-SatValue DPLLMinisatSatSolver::solve(unsigned long& resource) {
+SatValue MinisatSatSolver::solve(unsigned long& resource) {
   Trace("limit") << "SatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
   if(resource == 0) {
     d_minisat->budgetOff();
@@ -137,53 +137,53 @@ SatValue DPLLMinisatSatSolver::solve(unsigned long& resource) {
   return result;
 }
 
-SatValue DPLLMinisatSatSolver::solve() {
+SatValue MinisatSatSolver::solve() {
   d_minisat->budgetOff();
   return toSatLiteralValue(d_minisat->solve());
 }
 
 
-void DPLLMinisatSatSolver::interrupt() {
+void MinisatSatSolver::interrupt() {
   d_minisat->interrupt();
 }
 
-SatValue DPLLMinisatSatSolver::value(SatLiteral l) {
+SatValue MinisatSatSolver::value(SatLiteral l) {
   return toSatLiteralValue(d_minisat->value(toMinisatLit(l)));
 }
 
-SatValue DPLLMinisatSatSolver::modelValue(SatLiteral l){
+SatValue MinisatSatSolver::modelValue(SatLiteral l){
   return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
-bool DPLLMinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const {
+bool MinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const {
   return true;
 }
 
 /** Incremental interface */
 
-unsigned DPLLMinisatSatSolver::getAssertionLevel() const {
+unsigned MinisatSatSolver::getAssertionLevel() const {
   return d_minisat->getAssertionLevel();
 }
 
-void DPLLMinisatSatSolver::push() {
+void MinisatSatSolver::push() {
   d_minisat->push();
 }
 
-void DPLLMinisatSatSolver::pop(){
+void MinisatSatSolver::pop(){
   d_minisat->pop();
 }
 
-void DPLLMinisatSatSolver::unregisterVar(SatLiteral lit) {
+void MinisatSatSolver::unregisterVar(SatLiteral lit) {
   d_minisat->unregisterVar(toMinisatLit(lit));
 }
 
-void DPLLMinisatSatSolver::renewVar(SatLiteral lit, int level) {
+void MinisatSatSolver::renewVar(SatLiteral lit, int level) {
   d_minisat->renewVar(toMinisatLit(lit), level);
 }
 
-/// Statistics for DPLLMinisatSatSolver
+/// Statistics for MinisatSatSolver
 
-DPLLMinisatSatSolver::Statistics::Statistics() :
+MinisatSatSolver::Statistics::Statistics() :
   d_statStarts("sat::starts"),
   d_statDecisions("sat::decisions"),
   d_statRndDecisions("sat::rnd_decisions"),
@@ -204,7 +204,7 @@ DPLLMinisatSatSolver::Statistics::Statistics() :
   StatisticsRegistry::registerStat(&d_statMaxLiterals);
   StatisticsRegistry::registerStat(&d_statTotLiterals);
 }
-DPLLMinisatSatSolver::Statistics::~Statistics() {
+MinisatSatSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_statStarts);
   StatisticsRegistry::unregisterStat(&d_statDecisions);
   StatisticsRegistry::unregisterStat(&d_statRndDecisions);
@@ -215,7 +215,7 @@ DPLLMinisatSatSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_statMaxLiterals);
   StatisticsRegistry::unregisterStat(&d_statTotLiterals);
 }
-void DPLLMinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
+void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
   d_statStarts.setData(d_minisat->starts);
   d_statDecisions.setData(d_minisat->decisions);
   d_statRndDecisions.setData(d_minisat->rnd_decisions);

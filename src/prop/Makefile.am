@@ -16,6 +16,7 @@ libprop_la_SOURCES = \
 	cnf_stream.h \
 	cnf_stream.cpp \
 	sat_solver.h \
+	sat_solver_types.h \	
 	sat_solver_factory.h \
 	sat_solver_factory.cpp \
 	sat_solver_registry.h \

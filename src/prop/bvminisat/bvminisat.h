@@ -25,12 +25,12 @@
 namespace CVC4 {
 namespace prop {
 
-class MinisatSatSolver: public BVSatSolverInterface {
+class BVMinisatSatSolver: public BVSatSolverInterface {
   BVMinisat::SimpSolver* d_minisat;
 
 public:
-  MinisatSatSolver();
-  ~MinisatSatSolver();
+  BVMinisatSatSolver();
+  ~BVMinisatSatSolver();
   void addClause(SatClause& clause, bool removable);
 
   SatVariable newVar(bool theoryAtom = false);
@@ -79,7 +79,7 @@ public:
   Statistics d_statistics;
 };
 
-template class SatSolverConstructor<MinisatSatSolver>;
+template class SatSolverConstructor<BVMinisatSatSolver>;
 
 }
 }

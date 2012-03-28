@@ -22,17 +22,17 @@
 using namespace CVC4;
 using namespace prop;
 
-MinisatSatSolver::MinisatSatSolver() :
+BVMinisatSatSolver::BVMinisatSatSolver() :
   d_minisat(new BVMinisat::SimpSolver())
 {
   d_statistics.init(d_minisat);
 }
 
-MinisatSatSolver::~MinisatSatSolver() {
+BVMinisatSatSolver::~BVMinisatSatSolver() {
   delete d_minisat;
 }
 
-void MinisatSatSolver::addClause(SatClause& clause, bool removable) {
+void BVMinisatSatSolver::addClause(SatClause& clause, bool removable) {
   Debug("sat::minisat") << "Add clause " << clause <<"\n";
   BVMinisat::vec<BVMinisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
@@ -42,23 +42,23 @@ void MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   d_minisat->addClause(minisat_clause);
 }
 
-SatVariable MinisatSatSolver::newVar(bool freeze){
+SatVariable BVMinisatSatSolver::newVar(bool freeze){
   return d_minisat->newVar(true, true, freeze);
 }
 
-void MinisatSatSolver::markUnremovable(SatLiteral lit){
+void BVMinisatSatSolver::markUnremovable(SatLiteral lit){
   d_minisat->setFrozen(BVMinisat::var(toMinisatLit(lit)), true);
 }
 
-void MinisatSatSolver::interrupt(){
+void BVMinisatSatSolver::interrupt(){
   d_minisat->interrupt();
 }
 
-SatValue MinisatSatSolver::solve(){
+SatValue BVMinisatSatSolver::solve(){
   return toSatLiteralValue(d_minisat->solve());
 }
 
-SatValue MinisatSatSolver::solve(long unsigned int& resource){
+SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   Trace("limit") << "MinisatSatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
   if(resource == 0) {
     d_minisat->budgetOff();
@@ -74,7 +74,7 @@ SatValue MinisatSatSolver::solve(long unsigned int& resource){
   return result;
 }
 
-SatValue MinisatSatSolver::solve(const context::CDList<SatLiteral> & assumptions){
+SatValue BVMinisatSatSolver::solve(const context::CDList<SatLiteral> & assumptions){
   Debug("sat::minisat") << "Solve with assumptions ";
   context::CDList<SatLiteral>::const_iterator it = assumptions.begin();
   BVMinisat::vec<BVMinisat::Lit> assump;
@@ -90,58 +90,58 @@ SatValue MinisatSatSolver::solve(const context::CDList<SatLiteral> & assumptions
 }
 
 
-void MinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
+void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
   // TODO add assertion to check the call was after an unsat call
   for (int i = 0; i < d_minisat->conflict.size(); ++i) {
     unsatCore.push_back(toSatLiteral(d_minisat->conflict[i]));
   }
 }
 
-SatValue MinisatSatSolver::value(SatLiteral l){
+SatValue BVMinisatSatSolver::value(SatLiteral l){
     Unimplemented();
     return SAT_VALUE_UNKNOWN;
 }
 
-SatValue MinisatSatSolver::modelValue(SatLiteral l){
+SatValue BVMinisatSatSolver::modelValue(SatLiteral l){
     Unimplemented();
     return SAT_VALUE_UNKNOWN;
 }
 
-void MinisatSatSolver::unregisterVar(SatLiteral lit) {
+void BVMinisatSatSolver::unregisterVar(SatLiteral lit) {
   // this should only be called when user context is implemented
   // in the BVSatSolver
   Unreachable();
 }
 
-void MinisatSatSolver::renewVar(SatLiteral lit, int level) {
+void BVMinisatSatSolver::renewVar(SatLiteral lit, int level) {
   // this should only be called when user context is implemented
   // in the BVSatSolver
 
   Unreachable();
 }
 
-unsigned MinisatSatSolver::getAssertionLevel() const {
+unsigned BVMinisatSatSolver::getAssertionLevel() const {
   // we have no user context implemented so far
   return 0;
 }
 
 // converting from internal Minisat representation
 
-SatVariable MinisatSatSolver::toSatVariable(BVMinisat::Var var) {
+SatVariable BVMinisatSatSolver::toSatVariable(BVMinisat::Var var) {
   if (var == var_Undef) {
     return undefSatVariable;
   }
   return SatVariable(var);
 }
 
-BVMinisat::Lit MinisatSatSolver::toMinisatLit(SatLiteral lit) {
+BVMinisat::Lit BVMinisatSatSolver::toMinisatLit(SatLiteral lit) {
   if (lit == undefSatLiteral) {
     return BVMinisat::lit_Undef;
   }
   return BVMinisat::mkLit(lit.getSatVariable(), lit.isNegated());
 }
 
-SatLiteral MinisatSatSolver::toSatLiteral(BVMinisat::Lit lit) {
+SatLiteral BVMinisatSatSolver::toSatLiteral(BVMinisat::Lit lit) {
   if (lit == BVMinisat::lit_Undef) {
     return undefSatLiteral;
   }
@@ -150,19 +150,19 @@ SatLiteral MinisatSatSolver::toSatLiteral(BVMinisat::Lit lit) {
                     BVMinisat::sign(lit));
 }
 
-SatValue MinisatSatSolver::toSatLiteralValue(bool res) {
+SatValue BVMinisatSatSolver::toSatLiteralValue(bool res) {
   if(res) return SAT_VALUE_TRUE;
   else return SAT_VALUE_FALSE;
 }
 
-SatValue MinisatSatSolver::toSatLiteralValue(BVMinisat::lbool res) {
+SatValue BVMinisatSatSolver::toSatLiteralValue(BVMinisat::lbool res) {
   if(res == (BVMinisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (BVMinisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
   Assert(res == (BVMinisat::lbool((uint8_t)1)));
   return SAT_VALUE_FALSE;
 }
 
-void MinisatSatSolver::toMinisatClause(SatClause& clause,
+void BVMinisatSatSolver::toMinisatClause(SatClause& clause,
                                            BVMinisat::vec<BVMinisat::Lit>& minisat_clause) {
   for (unsigned i = 0; i < clause.size(); ++i) {
     minisat_clause.push(toMinisatLit(clause[i]));
@@ -170,7 +170,7 @@ void MinisatSatSolver::toMinisatClause(SatClause& clause,
   Assert(clause.size() == (unsigned)minisat_clause.size());
 }
 
-void MinisatSatSolver::toSatClause(BVMinisat::vec<BVMinisat::Lit>& clause,
+void BVMinisatSatSolver::toSatClause(BVMinisat::vec<BVMinisat::Lit>& clause,
                                        SatClause& sat_clause) {
   for (int i = 0; i < clause.size(); ++i) {
     sat_clause.push_back(toSatLiteral(clause[i]));
@@ -179,9 +179,9 @@ void MinisatSatSolver::toSatClause(BVMinisat::vec<BVMinisat::Lit>& clause,
 }
 
 
-// Satistics for MinisatSatSolver
+// Satistics for BVMinisatSatSolver
 
-MinisatSatSolver::Statistics::Statistics() :
+BVMinisatSatSolver::Statistics::Statistics() :
   d_statStarts("theory::bv::bvminisat::starts"),
   d_statDecisions("theory::bv::bvminisat::decisions"),
   d_statRndDecisions("theory::bv::bvminisat::rnd_decisions"),
@@ -205,7 +205,7 @@ MinisatSatSolver::Statistics::Statistics() :
   StatisticsRegistry::registerStat(&d_statEliminatedVars);
 }
 
-MinisatSatSolver::Statistics::~Statistics() {
+BVMinisatSatSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_statStarts);
   StatisticsRegistry::unregisterStat(&d_statDecisions);
   StatisticsRegistry::unregisterStat(&d_statRndDecisions);
@@ -218,7 +218,7 @@ MinisatSatSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_statEliminatedVars);
 }
 
-void MinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
+void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
   d_statStarts.setData(minisat->starts);
   d_statDecisions.setData(minisat->decisions);
   d_statRndDecisions.setData(minisat->rnd_decisions);
