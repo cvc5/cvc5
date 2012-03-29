@@ -1,0 +1,70 @@
+*****************************
+   general info
+*****************************
+
+mingw32-w32 is in Debian
+
+http://man.gnusquad.org/i586-mingw32msvc-ar/section-1/en/
+
+64-bit mingw32 build instructions:
+http://www.cadforte.com/wiki/index.php/How_to_build
+
+*****************************
+how to compile zlib on debian mingw32-w32
+*****************************
+make line:
+PATH=/usr/i586-mingw32msvc/bin:$PATH \ 
+make CC=i586-mingw32msvc-gcc AR=i586-mingw32msvc-ar \
+     RC=i586-mingw32msvc-windres
+
+for libz, the last line is:
+i586-mingw32msvc-ar qs libz.a adler32.o \
+    compress.o crc32.o gzio.o uncompr.o \
+    deflate.o trees.o zutil.o inflate.o \
+    infback.o inftrees.o inffast.o
+
+make install PREFIX=/usr/i586-mingw32msvc
+
+*****************************
+how to compile zlib on debian mingw32-w64
+*****************************
+make line:
+PATH=/usr/x86_64-w64-mingw32/bin:$PATH \
+    make CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-ar \
+    RC=x86_64-w64-mingw32-windres
+
+for libz, the last line is:
+x86_64-w64-mingw32-ar qs libz.a adler32.o \
+    compress.o crc32.o gzio.o uncompr.o   \
+    deflate.o trees.o zutil.o inflate.o   \
+    infback.o inftrees.o inffast.o
+
+
+*****************************
+compile minisat -- 32-bit
+*****************************
+
+i586-mingw32msvc-g++ -O3 -fno-tree-pre -march=i586 -DVERSION=\"2.6.0\" -DCROSS_COMPILE  \
+    -I../mtl/ -I../MTRand/ -DUSE_GAUSS \
+    /usr/i586-mingw32msvc/lib/libz.a -fopenmp \
+    Main.cpp SolverDebug.cpp Solver.cpp \
+    ClauseCleaner.cpp SCCFinder.cpp ClauseVivifier.cpp \
+    PackedRow.cpp RestartTypeChooser.cpp MatrixFinder.cpp Gaussian.cpp \
+    VarReplacer.cpp XorFinder.cpp ClauseAllocator.cpp PartHandler.cpp \
+    Subsumer.cpp XorSubsumer.cpp FailedLitSearcher.cpp PartFinder.cpp \
+    StateSaver.cpp UselessBinRemover.cpp SolverMisc.cpp \
+    CompleteDetachReattacher.cpp DimacsParser.cpp SolverConf.cpp \
+    OnlyNonLearntBins.cpp \
+    -o cryptominisat.exe
+
+*****************************
+useful for examining archives:
+*****************************
+
+i586-mingw32msvc-nm libz.a
+i586-mingw32msvc-objdump -G libz.a
+
+*****************************
+Other useful scripts
+*****************************
+./configure --host=x86_64-pc-linux --target=x86_64-pc-mingw32 

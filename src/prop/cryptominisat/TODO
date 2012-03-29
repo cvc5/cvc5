@@ -1,0 +1,3 @@
+* Report all bugs, please using Gforge: https://gforge.inria.fr/tracker/?group_id=1992
+* Make it more C++. There are plenty of areas where this would help
+* Get rid of Vec.h and other STL-like classes

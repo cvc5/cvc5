@@ -1,0 +1,37 @@
+If compiling with Visual C, the CHUNK_LIMIT poses problems.
+Problem is, that VC2008 seems to have a too small default stack, which is not
+big enough. With default command line parameters it will crash.
+The workaround is to give the command line parameter /F. With this you can
+increase the stack to a certain size. Setting it to 2 MB is good enough
+
+ZLIB might also pose problems. If you cannot correctly compile it under
+windows, I suggest you add the -DDISABLE_ZLIB to your compilation flags.
+
+The compilation instruction should finally be:
+
+64-bit version:
+
+cl /openmp /favor:INTEL64 /O2
+/Fecryptominisat64.exe -DVERSION="__DATE__" -DDISABLE_ZLIB /F2097152 /TP
+/EHsc -I. -I../mtl/ -I../MTRand/ Main.cpp Solver.cpp ClauseCleaner.cpp
+PackedRow.cpp RestartTypeChooser.cpp VarReplacer.cpp XorFinder.cpp
+XorSubsumer.cpp Subsumer.cpp PartFinder.cpp PartHandler.cpp
+FailedLitSearcher.cpp ClauseAllocator.cpp UselessBinRemover.cpp
+StateSaver.cpp ClauseVivifier.cpp SolverMisc.cpp SolverDebug.cpp
+CompleteDetachReattacher.cpp DimacsParser.cpp SCCFinder.cpp SolverConf.cpp
+OnlyNonLearntBins.cpp DataSync.cpp MatrixFinder.cpp Gaussian.cpp BothCache.cpp
+
+32-bit version:
+
+cl /O2 /Fecryptominisat32.exe -DVERSION="__DATE__" -DDISABLE_ZLIB /F2097152
+/TP /EHsc -I. -I../mtl/ -I../MTRand/ Main.cpp Solver.cpp ClauseCleaner.cpp
+PackedRow.cpp RestartTypeChooser.cpp VarReplacer.cpp XorFinder.cpp
+XorSubsumer.cpp Subsumer.cpp PartFinder.cpp PartHandler.cpp
+FailedLitSearcher.cpp ClauseAllocator.cpp UselessBinRemover.cpp
+StateSaver.cpp ClauseVivifier.cpp SolverMisc.cpp SolverDebug.cpp
+CompleteDetachReattacher.cpp DimacsParser.cpp SCCFinder.cpp SolverConf.cpp
+OnlyNonLearntBins.cpp DataSync.cpp MatrixFinder.cpp Gaussian.cpp BothCache.cpp
+
+executed from the 'Solver' subdirectory
+
+--- Build instructions by Martin Maurer

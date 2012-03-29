@@ -1,0 +1,32 @@
+Mate Soos <soos.mate@gmail.com> and others
+
+People whose code has been incorporated:
+- Niklas Eén
+- Niklas Sörensson
+- Gilles Audemard
+- Laurent Simon
+- About 3 lines from PrecoSat -- Armin Biere's code
+->> Great thanks to all of the above. They were not
+in any way associated with the development of CryptoMiniSat.
+Please don't blame them or write to them regarding bugs etc.
+
+Special thanks to:
+- the author's professors
+- the gcc compiler team
+- libstdc team
+- Bjarne Stroustrup for C++
+- Karsten Nohl for starting the project
+
+Bug-hunting thanks to:
+- Martin Maurer for helping with Visual C-specific things
+  and reporting on multiple important bugs
+- Vegard Nossum for extensive help with many issues, incl. gcc
+  bug and some latent bugs
+- Trevor Hansen, for fuzztesting the code on millions of problems
+  and reporting on a good number of bugs
+- Vijay Ganesh for finding a lots of bugs
+- Oliver Kullmann for help and ideas with gcc bug hunting
+- Users of STP (Simple Theorem Prover) for their feedback
+- Robert Aston for debugging memory manager-related problems
+- Yuri Pirola for some long-standing bugs
+- and a long list of people for bug reports

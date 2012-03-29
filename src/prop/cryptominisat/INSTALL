@@ -1,0 +1,77 @@
+-----------
+GCC bug
+----------
+Beware, GCC has a bug affecting propagation in CryptoMiniSat:
+
+http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47365
+
+This seems to affect all gcc versions 4.5.x and is latent in
+trunk of upcoming 4.6.0
+
+-----------
+Libraries needed
+-----------
+You will need the following libraries to compile the sources:
+* libz
+
+-----------------
+Building the source
+-----------------
+There are two ways to build the source. With cmake or with autotools.
+I personally use cmake.
+
+------------------
+Building using autotools
+------------------
+$ mkdir build
+$ cd build
+$ ../configure
+$ make
+
+Use like: ./cryptominisat satfile.cnf
+
+If you got your source from the GIT/SVN, then you should do the following
+before doing the above::
+* Install automake, autoconf, libtool
+* Issue 'make -f Makefile.cvs' in the root dir
+
+---------
+Please read help
+---------
+For help, build the program, and issue:
+'./cryptominisat -help'
+
+--------------
+Verbose debug
+-------------
+You can also turn on verbose debugging.
+Simply remove the comment before 
+
+"//#define VERBOSE_DEBUG" 
+in Solver/constants.h and re-compile
+
+When executing:
+
+'./cryptominisat satfile.cnf'
+You will see a LOT of debug info. You should therefore maybe do:
+
+'./cryptominisat satfile.cnf > debuginfo.txt'
+then you can open the 'debuginfo.txt' file from a text editor and have a look
+
+--------------------------
+Windows binary generation
+-------------------------
+It should be possible f you compile under windows
+using Visual C++. Please read the HOWTO_VisualCpp for details
+
+I compile under linux all windows binaries, using gcc that generates 
+windows executables. It works really well. There is a sort-of-howto in 
+the "HOWTO_MinGW32" text file. A short step-by-step is here: 
+
+1) Install gcc that generates windows binaries:
+
+i586-mingw32msvc
+
+2) Install all libraries (libz) 
+
+3) Get "libz" from source and compile as per "HOWTO_MINGW32"
