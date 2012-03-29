@@ -21,8 +21,11 @@
 #include "prop/minisat/minisat.h"
 #include "prop/bvminisat/bvminisat.h"
 
-using namespace CVC4;
-using namespace prop;
+namespace CVC4 {
+namespace prop {
+
+template class SatSolverConstructor<MinisatSatSolver>;
+template class SatSolverConstructor<BVMinisatSatSolver>;
 
 BVSatSolverInterface* SatSolverFactory::createMinisat() {
   return new BVMinisatSatSolver();
@@ -45,3 +48,5 @@ void SatSolverFactory::getSolverIds(std::vector<std::string>& solvers) {
   SatSolverRegistry::getSolverIds(solvers);
 }
 
+} /* namespace CVC4::prop */
+} /* namespace CVC4 */

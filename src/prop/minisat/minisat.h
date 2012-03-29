@@ -96,8 +96,6 @@ public:
 
 };
 
-template class SatSolverConstructor<MinisatSatSolver>;
-
 } // prop namespace
 } // cvc4 namespace
 

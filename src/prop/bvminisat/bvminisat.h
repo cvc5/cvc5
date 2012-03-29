@@ -79,8 +79,6 @@ public:
   Statistics d_statistics;
 };
 
-template class SatSolverConstructor<BVMinisatSatSolver>;
-
 }
 }
 
