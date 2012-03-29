@@ -35,7 +35,9 @@ typedef RewriteResponse (*RewriteFunction) (TNode);
 class TheoryBVRewriter {
   // static CVC4_THREADLOCAL(AllRewriteRules*) s_allRules;
   // static CVC4_THREADLOCAL(TimerStat*) d_rewriteTimer; 
-  static CVC4_THREADLOCAL(RewriteFunction) d_rewriteTable[kind::LAST_KIND];
+
+#warning "TODO: Double check thread safety and make sure the fix compiles on mac."
+  static RewriteFunction d_rewriteTable[kind::LAST_KIND];
 
   static RewriteResponse IdentityRewrite(TNode node);
   static RewriteResponse UndefinedRewrite(TNode node); 

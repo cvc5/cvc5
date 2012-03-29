@@ -33,7 +33,7 @@ using namespace CVC4::theory::bv;
 
 // CVC4_THREADLOCAL(AllRewriteRules*) TheoryBVRewriter::s_allRules = NULL;
 // CVC4_THREADLOCAL(TimerStat*) TheoryBVRewriter::d_rewriteTimer = NULL;
-CVC4_THREADLOCAL(RewriteFunction) TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
+RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;
    // d_rewriteTimer = new TimerStat("theory::bv::rewriteTimer");
