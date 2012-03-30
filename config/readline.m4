@@ -33,8 +33,8 @@ else
       cvc4_save_LDFLAGS="$LDFLAGS"
       LDFLAGS="-static $LDFLAGS"
       LIBS="$READLINE_LIBS $LIBS"
-      AC_LINK_IFELSE(AC_LANG_PROGRAM([#include <readline/readline.h>],
-                                     [readline("")]),
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <readline/readline.h>],
+                                     [readline("")])],
         [ AC_MSG_RESULT([yes, it works])
           with_readline=yes ],
         [ AC_MSG_RESULT([no])

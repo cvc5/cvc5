@@ -96,7 +96,7 @@ AC_MSG_CHECKING([whether $CXX supports $1])
 cvc4_save_CXXFLAGS="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS $1"
 AC_LANG_PUSH([C++])
-AC_COMPILE_IFELSE([int main() { return 0; }],
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { return 0; }])],
                   [AC_MSG_RESULT([yes]); $2='$1'],
                   [AC_MSG_RESULT([no])])
 AC_LANG_POP([C++])

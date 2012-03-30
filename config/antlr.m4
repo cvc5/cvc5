@@ -59,7 +59,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
   do
     CPPFLAGS="$OLD_CPPFLAGS -I$antlr_prefix/include"
     LIBS="$OLD_LIBS -L$antlr_prefix/lib -lantlr3c"
-    AC_LINK_IFELSE(
+    AC_LINK_IFELSE([AC_LANG_SOURCE(
       [
         #include <antlr3.h>
 
@@ -67,7 +67,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
           pANTLR3_TOKEN_FACTORY factory = antlr3TokenFactoryNew((pANTLR3_INPUT_STREAM) NULL);
           return 0;
         }
-      ],
+      ])],
       [
         AC_MSG_RESULT(found in $antlr_prefix)
         ANTLR_INCLUDES="-I$antlr_prefix/include"
@@ -82,7 +82,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
   done
 
   AC_MSG_CHECKING([for presence of older antlr3AsciiFileStreamNew()])
-  AC_LINK_IFELSE(
+  AC_LINK_IFELSE([AC_LANG_SOURCE(
     [
       #include <antlr3.h>
 
@@ -91,7 +91,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
         pANTLR3_INPUT_STREAM input = antlr3AsciiFileStreamNew(fName);
         return 0;
       }
-    ],
+    ])],
     [
       AC_MSG_RESULT([found it (must be antlr3 3.2 or similar)])
       CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_ANTLR3_OLD_INPUT_STREAM"
@@ -99,7 +99,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
         [
           AC_MSG_RESULT(failed)
           AC_MSG_CHECKING([for presence of newer antlr3FileStreamNew()])
-          AC_LINK_IFELSE(
+          AC_LINK_IFELSE([AC_LANG_SOURCE(
             [
               #include <antlr3.h>
 
@@ -108,7 +108,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
                 pANTLR3_INPUT_STREAM input = antlr3FileStreamNew(fName, ANTLR3_ENC_8BIT);
                 return 0;
               }
-            ],
+            ])],
             [
               AC_MSG_RESULT([found it (must be antlr3 3.4 or similar)])
             ],
