@@ -933,9 +933,9 @@ public:
     //Debug.on("gc");
     //Debug.on("context");
 
-    CDHashMap<int, CDList_BE<myint>*, int_hasher> map(d_context);
+    CDHashMap<int, CDList<myint>*, int_hasher> map(d_context);
 
-    CDList_BE<myint> *list1, *list2, *list3, *list4;
+    CDList<myint> *list1, *list2, *list3, *list4;
 
     TS_ASSERT(map.find(1) == map.end());
     TS_ASSERT(map.find(2) == map.end());
@@ -947,10 +947,10 @@ public:
 
       int* x = (int*) d_context->getCMM()->newData(sizeof(int));
 
-      list1 = new(d_context->getCMM()) CDList_BE<myint>(true, d_context);
-      list2 = new(d_context->getCMM()) CDList_BE<myint>(true, d_context);
-      list3 = new(d_context->getCMM()) CDList_BE<myint>(true, d_context);
-      list4 = new(d_context->getCMM()) CDList_BE<myint>(true, d_context);
+      list1 = new(d_context->getCMM()) CDList<myint>(true, d_context);
+      list2 = new(d_context->getCMM()) CDList<myint>(true, d_context);
+      list3 = new(d_context->getCMM()) CDList<myint>(true, d_context);
+      list4 = new(d_context->getCMM()) CDList<myint>(true, d_context);
 
       list1->push_back(1);
       list2->push_back(2);

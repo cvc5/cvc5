@@ -57,12 +57,12 @@ public:
 
   // test at different sizes.  this triggers grow() behavior differently.
   // grow() was completely broken in revision 256
-  void testCDList_BE10() { listTest(10); }
-  void testCDList_BE15() { listTest(15); }
-  void testCDList_BE20() { listTest(20); }
-  void testCDList_BE35() { listTest(35); }
-  void testCDList_BE50() { listTest(50); }
-  void testCDList_BE99() { listTest(99); }
+  void testCDList10() { listTest(10); }
+  void testCDList15() { listTest(15); }
+  void testCDList20() { listTest(20); }
+  void testCDList35() { listTest(35); }
+  void testCDList50() { listTest(50); }
+  void testCDList99() { listTest(99); }
 
   void listTest(int N) {
     listTest(N, true);
@@ -70,7 +70,7 @@ public:
   }
 
   void listTest(int N, bool callDestructor) {
-    CDList_BE<int> list(d_context, callDestructor);
+    CDList<int> list(d_context, callDestructor);
 
     TS_ASSERT(list.empty());
     for(int i = 0; i < N; ++i) {
@@ -79,7 +79,7 @@ public:
       TS_ASSERT(!list.empty());
       TS_ASSERT_EQUALS(list.back(), i);
       int i2 = 0;
-      for(CDList_BE<int>::const_iterator j = list.begin();
+      for(CDList<int>::const_iterator j = list.begin();
           j != list.end();
           ++j) {
         TS_ASSERT_EQUALS(*j, i2++);
@@ -99,8 +99,8 @@ public:
     bool shouldAlsoRemainFalse = false;
     bool aThirdFalse = false;
 
-    CDList_BE<DtorSensitiveObject> listT(d_context, true);
-    CDList_BE<DtorSensitiveObject> listF(d_context, false);
+    CDList<DtorSensitiveObject> listT(d_context, true);
+    CDList<DtorSensitiveObject> listF(d_context, false);
 
     DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
     DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
@@ -136,7 +136,7 @@ public:
   }
 
   void testEmptyIterator() {
-    CDList_BE<int>* list = new(true) CDList_BE<int>(d_context);
+    CDList<int>* list = new(true) CDList<int>(d_context);
     TS_ASSERT_EQUALS(list->begin(), list->end());
     list->deleteSelf();
   }
@@ -149,7 +149,7 @@ public:
 
 #else /* __APPLE__ */
 
-    CDList_BE<unsigned> list(d_context);
+    CDList<unsigned> list(d_context);
     WithLimitedMemory wlm(1);
 
     TS_ASSERT_THROWS({
