@@ -395,8 +395,8 @@ void SmtEngine::setInfo(const std::string& key, const SExpr& value)
         if(! value.isAtom()) {
           throw BadOptionException("argument to (set-info :cvc4-logic ..) must be a string");
         }
-        d_logic = "";
-        setLogic(value.getValue());
+        NodeManagerScope nms(d_nodeManager);
+        setLogicInternal(value.getValue());
         return;
       }
     }
