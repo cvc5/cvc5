@@ -34,9 +34,15 @@
 namespace CVC4 {
 namespace context {
 
+template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
+class CDQueue;
+
 /** We don't define a template with Allocator for the first implementation */
-template <class T>
-class CDQueue : public CDList<T> {
+template <class T, class CleanUp, class Allocator>
+class CDQueue : public CDList<T, CleanUp, Allocator> {
+private:
+  typedef CDList<T, CleanUp, Allocator> ParentType;
+
 protected:
 
   /** Points to the next element in the current context to dequeue. */
@@ -48,8 +54,8 @@ protected:
   /**
    * Private copy constructor used only by save().
    */
-  CDQueue(const CDQueue<T>& l):
-    CDList<T>(l),
+  CDQueue(const CDQueue<T, CleanUp, Allocator>& l):
+    ParentType(l),
     d_iter(l.d_iter),
     d_lastsave(l.d_lastsave) {}
 
@@ -60,7 +66,7 @@ protected:
     ContextObj* data = new(pCMM) CDQueue<T>(*this);
     // We save the d_size in d_lastsave and we should never destruct below this
     // indices before the corresponding restore.
-    d_lastsave = CDList<T>::d_size;
+    d_lastsave = ParentType::d_size;
     Debug("cdqueue") << "save " << this
                      << " at level " << this->getContext()->getLevel()
                      << " size at " << this->d_size
@@ -80,7 +86,7 @@ protected:
     CDQueue<T>* qdata = static_cast<CDQueue<T>*>(data);
     d_iter = qdata->d_iter;
     d_lastsave = qdata->d_lastsave;
-    CDList<T>::restore(data);
+    ParentType::restore(data);
   }
 
 
@@ -88,26 +94,29 @@ protected:
 public:
 
   /** Creates a new CDQueue associated with the current context. */
-  CDQueue(Context* context)
-    : CDList<T>(context),
+  CDQueue(Context* context,
+          bool callDestructor = true,
+          const CleanUp& cleanup = CleanUp(),
+          const Allocator& alloc = Allocator())
+    : ParentType(context, callDestructor, cleanup, alloc),
       d_iter(0),
       d_lastsave(0)
   {}
 
   /** Returns true if the queue is empty in the current context. */
   bool empty() const{
-    Assert(d_iter <= CDList<T>::d_size);
-    return d_iter == CDList<T>::d_size;
+    Assert(d_iter <= ParentType::d_size);
+    return d_iter == ParentType::d_size;
   }
 
   /** Returns the number of elements that have not been dequeued in the context. */
   size_t size() const{
-    return CDList<T>::d_size - d_iter;
+    return ParentType::d_size - d_iter;
   }
 
   /** Enqueues an element in the current context. */
   void push(const T& data){
-    CDList<T>::push_back(data);
+    ParentType::push_back(data);
   }
 
   /**
@@ -117,13 +126,13 @@ public:
    */
   void pop(){
     Assert(!empty(), "Attempting to pop from an empty queue.");
-    CDList<T>::makeCurrent();
+    ParentType::makeCurrent();
     d_iter = d_iter + 1;
-    if (empty() && d_lastsave != CDList<T>::d_size) {
+    if (empty() && d_lastsave != ParentType::d_size) {
       // Some elements have been enqueued and dequeued in the same
       // context and now the queue is empty we can destruct them.
-      CDList<T>::truncateList(d_lastsave);
-      Assert(CDList<T>::d_size ==  d_lastsave);
+      ParentType::truncateList(d_lastsave);
+      Assert(ParentType::d_size ==  d_lastsave);
       d_iter = d_lastsave;
     }
   }
@@ -131,7 +140,7 @@ public:
   /** Returns a reference to the next element on the queue. */
   const T& front() const{
     Assert(!empty(), "No front in an empty queue.");
-    return CDList<T>::d_list[d_iter];
+    return ParentType::d_list[d_iter];
   }
 
   /**
@@ -139,7 +148,7 @@ public:
    */
   const T& back() const {
     Assert(!empty(), "CDQueue::back() called on empty list");
-    return CDList<T>::d_list[CDList<T>::d_size - 1];
+    return ParentType::d_list[ParentType::d_size - 1];
   }
 
 };/* class CDQueue<> */

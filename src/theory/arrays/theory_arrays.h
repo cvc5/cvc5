@@ -151,7 +151,7 @@ private:
   void notifyCongruent(TNode a, TNode b);
 
 
-  typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > CTNodeListAlloc;
+  typedef context::CDChunkList<TNode> CTNodeListAlloc;
   typedef context::CDHashMap<Node, CTNodeListAlloc*, NodeHashFunction> CNodeTNodesMap;
   typedef context::CDHashMap<TNode, List<TNode>*, TNodeHashFunction > EqLists;
 

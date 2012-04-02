@@ -32,7 +32,7 @@
 #include "context/cdo.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "context/cdlist_context_memory.h"
+#include "context/cdchunk_list.h"
 #include "util/exception.h"
 #include "context/stacking_map.h"
 #include "util/stats.h"
@@ -140,9 +140,9 @@ class CongruenceClosure {
 
   // typedef all of these so that iterators are easy to define
   typedef context::StackingMap<Node, Node, NodeHashFunction> RepresentativeMap;
-  typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > ClassList;
+  typedef context::CDChunkList<TNode> ClassList;
   typedef context::CDHashMap<Node, ClassList*, NodeHashFunction> ClassLists;
-  typedef context::CDList<TNode, context::ContextMemoryAllocator<TNode> > UseList;
+  typedef context::CDChunkList<TNode> UseList;
   typedef context::CDHashMap<TNode, UseList*, TNodeHashFunction> UseLists;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> LookupMap;
 

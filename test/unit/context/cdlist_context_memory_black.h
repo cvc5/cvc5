@@ -26,7 +26,7 @@
 #include "memory.h"
 
 #include "context/context.h"
-#include "context/cdlist_context_memory.h"
+#include "context/cdchunk_list.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -55,12 +55,12 @@ public:
 
   // test at different sizes.  this triggers grow() behavior differently.
   // grow() was completely broken in revision 256
-  void testCDList10() { listTest(10); }
-  void testCDList15() { listTest(15); }
-  void testCDList20() { listTest(20); }
-  void testCDList35() { listTest(35); }
-  void testCDList50() { listTest(50); }
-  void testCDList99() { listTest(99); }
+  void testCDChunkList10() { listTest(10); }
+  void testCDChunkList15() { listTest(15); }
+  void testCDChunkList20() { listTest(20); }
+  void testCDChunkList35() { listTest(35); }
+  void testCDChunkList50() { listTest(50); }
+  void testCDChunkList99() { listTest(99); }
 
   void listTest(int N) {
     listTest(N, true);
@@ -68,7 +68,7 @@ public:
   }
 
   void listTest(int N, bool callDestructor) {
-    CDList<int, ContextMemoryAllocator<int> >
+    CDChunkList<int>
       list(d_context, callDestructor, ContextMemoryAllocator<int>(d_context->getCMM()));
 
     TS_ASSERT(list.empty());
@@ -78,7 +78,7 @@ public:
       TS_ASSERT(!list.empty());
       TS_ASSERT_EQUALS(list.back(), i);
       int i2 = 0;
-      for(CDList<int, ContextMemoryAllocator<int> >::const_iterator j = list.begin();
+      for(CDChunkList<int>::const_iterator j = list.begin();
           j != list.end();
           ++j) {
         TS_ASSERT_EQUALS(*j, i2++);
@@ -91,6 +91,14 @@ public:
     }
   }
 
+  void testEmptyIterator() {
+    CDChunkList< int>* list =
+      new(d_context->getCMM())
+        CDChunkList< int >(true, d_context, false,
+                                                   ContextMemoryAllocator<int>(d_context->getCMM()));
+    TS_ASSERT_EQUALS(list->begin(), list->end());
+  }
+
   void testDtorCalled() {
     bool shouldRemainFalse = false;
     bool shouldFlipToTrue = false;
@@ -98,8 +106,8 @@ public:
     bool shouldAlsoRemainFalse = false;
     bool aThirdFalse = false;
 
-    CDList<DtorSensitiveObject, ContextMemoryAllocator<DtorSensitiveObject> > listT(d_context, true, ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
-    CDList<DtorSensitiveObject, ContextMemoryAllocator<DtorSensitiveObject> > listF(d_context, false, ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
+    CDChunkList<DtorSensitiveObject> listT(d_context, true, ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
+    CDChunkList<DtorSensitiveObject> listF(d_context, false, ContextMemoryAllocator<DtorSensitiveObject>(d_context->getCMM()));
 
     DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
     DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
@@ -142,7 +150,7 @@ public:
 
 #else /* __APPLE__ */
 
-    CDList<unsigned, ContextMemoryAllocator<unsigned> > list(d_context);
+    CDChunkList<unsigned> list(d_context);
     WithLimitedMemory wlm(1);
 
     TS_ASSERT_THROWS({

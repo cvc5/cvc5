@@ -41,16 +41,18 @@ namespace __gnu_cxx {
 }/* __gnu_cxx namespace */
 
 namespace CVC4 {
-  namespace context {
-    template <class T>
-    class ContextMemoryAllocator;
+namespace context {
 
-    template <class T, class Allocator = std::allocator<T> >
-    class CDList;
+template <class T>
+class DefaultCleanUp {
+public:
+  inline void operator()(T* t) const{}
+};
 
-    template <class T>
-    class CDList<T, ContextMemoryAllocator<T> >;
-  }/* CVC4::context namespace */
+template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
+class CDList;
+
+}/* CVC4::context namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__CONTEXT__CDLIST_FORWARD_H */

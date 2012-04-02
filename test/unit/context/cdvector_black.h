@@ -68,8 +68,8 @@ public:
 
   void vectorTest(unsigned P, unsigned m){
     for(unsigned g=2; g< P; g++){
-      vectorTest(P, g, m, 1, false);
-      vectorTest(P, g, m, 3, false);
+      vectorTest(P, g, m, 1);
+      vectorTest(P, g, m, 3);
     }
   }
   vector<unsigned> copy(CDVector<unsigned>& v){
@@ -87,8 +87,8 @@ public:
     }
   }
 
-  void vectorTest(unsigned P, unsigned g, unsigned m, unsigned r, bool callDestructor) {
-    CDVector<unsigned> vec(d_context, callDestructor);
+  void vectorTest(unsigned P, unsigned g, unsigned m, unsigned r) {
+    CDVector<unsigned> vec(d_context);
     vector< vector<unsigned> > copies;
 
     copies.push_back( copy(vec) );
