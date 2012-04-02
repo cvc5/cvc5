@@ -12,18 +12,9 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	bmc-galileo-8.smt \
-	bmc-galileo-9.smt \
-	bmc-ibm-10.smt \
-	bmc-ibm-11.smt \
-	bmc-ibm-12.smt \
-	bmc-ibm-13.smt \
-	bmc-ibm-1.smt \
+TESTS =	bmc-ibm-1.smt \
 	bmc-ibm-2.smt \
-	bmc-ibm-3.smt \
-	bmc-ibm-4.smt \
 	bmc-ibm-5.smt \
-	bmc-ibm-6.smt \
 	bmc-ibm-7.smt \
 	friedman_n6_i4.smt \
 	hole9.cvc \
