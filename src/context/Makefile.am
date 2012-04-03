@@ -12,7 +12,7 @@ libcontext_la_SOURCES = \
 	context_mm.h \
 	cdo.h \
 	cdlist.h \
-	cdlist_context_memory.h \
+	cdchunk_list.h \
 	cdlist_forward.h \
 	cdqueue.h \
 	cdtrail_queue.h \
