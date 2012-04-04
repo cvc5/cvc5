@@ -337,9 +337,9 @@ public:
   }
 
   /**
-   Returns k is the integer is equal to 2^k and zero
+   Returns k is the integer is equal to 2^{k-1} and zero
    otherwise
-   @return k if the integer is equal to 2^k and zero otherwise
+   @return k if the integer is equal to 2^{k-1} and zero otherwise
    */
   unsigned isPow2() {
     return d_value.isPow2(); 

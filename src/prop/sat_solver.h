@@ -72,11 +72,20 @@ public:
 
 class BVSatSolverInterface: public SatSolver {
 public:
-  virtual SatValue solve(const context::CDList<SatLiteral> & assumptions) = 0;
 
   virtual void markUnremovable(SatLiteral lit) = 0;
 
   virtual void getUnsatCore(SatClause& unsatCore) = 0; 
+
+  virtual void addMarkerLiteral(SatLiteral lit) = 0; 
+
+  virtual bool getPropagations(std::vector<SatLiteral>& propagations) = 0;
+
+  virtual void explainPropagation(SatLiteral lit, std::vector<SatLiteral>& explanation) = 0;
+
+  virtual SatValue assertAssumption(SatLiteral lit, bool propagate = false) = 0; 
+
+  virtual void popAssumption() = 0;
 }; 
 
 

@@ -27,6 +27,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Alg.h"
 #include "prop/bvminisat/utils/Options.h"
 
+#include "context/cdhashmap.h"
+
+#include <ext/hash_set>
+#include <vector>
 
 namespace BVMinisat {
 
@@ -38,7 +42,7 @@ public:
 
     // Constructor/Destructor:
     //
-    Solver();
+    Solver(CVC4::context::Context* c);
     virtual ~Solver();
 
     // Problem specification:
@@ -63,6 +67,8 @@ public:
     bool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
     bool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
+    lbool   assertAssumption(Lit p, bool propagate);  // Assert a new assumption, start BCP if propagate = true
+    void    popAssumption();                        // Pop an assumption
 
     void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
     void    toDimacs     (const char *file, const vec<Lit>& assumps);
@@ -138,7 +144,20 @@ public:
     uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
     uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 
-     
+    // Bitvector Propagations
+    //
+
+    void addMarkerLiteral(Var var) {
+      marker[var] = 1;
+    }
+
+    __gnu_cxx::hash_set<Var> assumptions_vars; // all the variables that appear in the current assumptions
+    vec<Lit> atom_propagations;         // the atom literals implied by the last call to solve with assumptions
+    vec<int> atom_propagations_lim;     // for backtracking
+
+    bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
+    void setOnlyBCP (bool val) { only_bcp = val;}
+    void explainPropagation(Lit l, std::vector<Lit>& explanation);
 protected:
 
     // Helper structures:
@@ -179,6 +198,7 @@ protected:
                         watches;          // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     vec<lbool>          assigns;          // The current assignments.
     vec<char>           polarity;         // The preferred polarity of each variable.
+    vec<char>           marker;           // Is the variable a marker literal
     vec<char>           decision;         // Declares if a variable is eligible for selection in the decision heuristic.
     vec<Lit>            trail;            // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;        // Separator indices for different decision levels in 'trail'.
@@ -220,10 +240,19 @@ protected:
     bool     enqueue          (Lit p, CRef from = CRef_Undef);                         // Test if fact 'p' contradicts current state, enqueue otherwise.
     CRef     propagate        ();                                                      // Perform unit propagation. Returns possibly conflicting clause.
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
-    void     analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
+
+    enum UIP {
+      UIP_FIRST,
+      UIP_LAST
+    };
+
+    CVC4::context::CDHashMap<Lit, std::vector<Lit>, LitHashFunction> d_explanations;
+
+    void     storeExplanation (Lit p);                                                 // make sure that the explanation of p is cached
+    void     analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip = UIP_FIRST);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
     bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()')
-    lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
+    lbool    search           (int nof_conflicts, UIP uip = UIP_FIRST);                // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
     void     removeSatisfied  (vec<CRef>& cs);                                         // Shrink 'cs' to contain only non-satisfied clauses.
@@ -275,8 +304,8 @@ protected:
 //=================================================================================================
 // Implementation of inline methods:
 
-inline CRef Solver::reason(Var x) const { return vardata[x].reason; }
-inline int  Solver::level (Var x) const { return vardata[x].level; }
+inline CRef Solver::reason(Var x) const { assert(x < vardata.size()); return vardata[x].reason; }
+inline int  Solver::level (Var x) const { assert(x < vardata.size()); return vardata[x].level; }
 
 inline void Solver::insertVarOrder(Var x) {
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
@@ -315,7 +344,7 @@ inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(
 inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && ca.lea(reason(var(c[0]))) == &c; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); atom_propagations_lim.push(atom_propagations.size()); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }

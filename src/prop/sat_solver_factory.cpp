@@ -27,8 +27,8 @@ namespace prop {
 template class SatSolverConstructor<MinisatSatSolver>;
 template class SatSolverConstructor<BVMinisatSatSolver>;
 
-BVSatSolverInterface* SatSolverFactory::createMinisat() {
-  return new BVMinisatSatSolver();
+BVSatSolverInterface* SatSolverFactory::createMinisat(context::Context* mainSatContext) {
+  return new BVMinisatSatSolver(mainSatContext);
 }
 
 DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat() {

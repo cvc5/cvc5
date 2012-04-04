@@ -87,7 +87,9 @@ enum RewriteRuleId {
   EvalRotateLeft,
   EvalRotateRight,
   EvalNeg,
-  
+  EvalSlt,
+  EvalSle,
+
   /// simplification rules
   /// all of these rules decrease formula size
   ShlByConst,
@@ -136,11 +138,25 @@ enum RewriteRuleId {
   ExtractArith,
   ExtractArith2,
   DoubleNeg,
+  NegMult,
+  NegSub,
+  NegPlus,
   NotConcat,
   NotAnd, // not sure why this would help (not done)
   NotOr,  // not sure why this would help (not done)
-  NotXor // not sure why this would help (not done)
+  NotXor, // not sure why this would help (not done)
+  FlattenAssocCommut,
+  PlusCombineLikeTerms,
+  MultSimplify,
+  MultDistribConst,
+  AndSimplify,
+  OrSimplify,
+  XorSimplify,
+
+  // rules to simplify bitblasting
+  BBPlusNeg
  };
+
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   switch (ruleId) {
@@ -183,6 +199,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalAshr :           out << "EvalAshr";            return out;
   case EvalUlt :            out << "EvalUlt";             return out;
   case EvalUle :            out << "EvalUle";             return out;
+  case EvalSlt :            out << "EvalSlt";             return out;
+  case EvalSle :            out << "EvalSle";             return out; 
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;
   case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
@@ -241,6 +259,17 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SignExtendEliminate :            out << "SignExtendEliminate";             return out;
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
+  case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out; 
+  case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
+  case MultSimplify: out << "MultSimplify"; return out;
+  case MultDistribConst: out << "MultDistribConst"; return out;
+  case NegMult : out << "NegMult"; return out;
+  case NegSub : out << "NegSub"; return out;
+  case AndSimplify : out << "AndSimplify"; return out;
+  case OrSimplify : out << "OrSimplify"; return out;
+  case XorSimplify : out << "XorSimplify"; return out;
+  case NegPlus : out << "NegPlus"; return out;
+  case BBPlusNeg : out << "BBPlusNeg"; return out; 
   default:
     Unreachable();
   }
@@ -346,6 +375,8 @@ struct AllRewriteRules {
   RewriteRule<SgtEliminate>             rule12;
   RewriteRule<UgeEliminate>             rule13;
   RewriteRule<SgeEliminate>             rule14;
+  RewriteRule<NegMult>              rule15;
+  RewriteRule<NegSub>               rule16;
   RewriteRule<RepeatEliminate>      rule17;
   RewriteRule<RotateLeftEliminate>  rule18;
   RewriteRule<RotateRightEliminate> rule19;
@@ -359,8 +390,10 @@ struct AllRewriteRules {
   RewriteRule<EvalOr>               rule27;
   RewriteRule<EvalXor>              rule28;
   RewriteRule<EvalNot>              rule29;
+  RewriteRule<EvalSlt>              rule30;
   RewriteRule<EvalMult>             rule31;
   RewriteRule<EvalPlus>             rule32;
+  RewriteRule<XorSimplify>          rule33;
   RewriteRule<EvalUdiv>             rule34;
   RewriteRule<EvalUrem>             rule35;
   RewriteRule<EvalShl>              rule36;
@@ -368,6 +401,7 @@ struct AllRewriteRules {
   RewriteRule<EvalAshr>             rule38;
   RewriteRule<EvalUlt>              rule39;
   RewriteRule<EvalUle>              rule40;
+  RewriteRule<EvalSle>              rule41;
   RewriteRule<EvalExtract>          rule43;
   RewriteRule<EvalSignExtend>       rule44;
   RewriteRule<EvalRotateLeft>       rule45;
@@ -428,14 +462,22 @@ struct AllRewriteRules {
   RewriteRule<SignExtendEliminate> rule101;
   RewriteRule<NotIdemp> rule102;
   RewriteRule<UleSelf> rule103;
+  RewriteRule<FlattenAssocCommut> rule104;
+  RewriteRule<PlusCombineLikeTerms> rule105;
+  RewriteRule<MultSimplify> rule106;
+  RewriteRule<MultDistribConst> rule107;
+  RewriteRule<AndSimplify> rule108;
+  RewriteRule<OrSimplify> rule109;
+  RewriteRule<NegPlus> rule110;
+  RewriteRule<BBPlusNeg> rule111;
 };
 
-template<>
+template<> inline
 bool RewriteRule<EmptyRule>::applies(Node node) {
   return false;
 }
 
-template<>
+template<> inline
 Node RewriteRule<EmptyRule>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
   Unreachable();

@@ -22,8 +22,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "mtl/Sort.h"
 #include "core/Solver.h"
+#include <vector>
 #include <iostream>
 #include "util/output.h"
+#include "util/utility.h"
 
 using namespace BVMinisat;
 
@@ -64,7 +66,7 @@ static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction o
 // Constructor/Destructor:
 
 
-Solver::Solver() :
+Solver::Solver(CVC4::context::Context* c) :
 
     // Parameters (user settable):
     //
@@ -112,6 +114,8 @@ Solver::Solver() :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
+  , only_bcp(false)
+  , d_explanations(c)
 {}
 
 
@@ -134,6 +138,7 @@ Var Solver::newVar(bool sign, bool dvar)
     watches  .init(mkLit(v, true ));
     assigns  .push(l_Undef);
     vardata  .push(mkVarData(CRef_Undef, 0));
+    marker   .push(0);
     //activity .push(0);
     activity .push(rnd_init_act ? drand(random_seed) * 0.00001 : 0);
     seen     .push(0);
@@ -226,13 +231,20 @@ void Solver::cancelUntil(int level) {
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
+            if (marker[x] == 2) marker[x] = 1;
             if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
                 polarity[x] = sign(trail[c]);
             insertVarOrder(x); }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
-    } }
+    }
+
+    if (level < atom_propagations_lim.size()) {
+      atom_propagations.shrink(atom_propagations.size() - atom_propagations_lim[level]);
+      atom_propagations_lim.shrink(atom_propagations_lim.size() - level);
+    }
+}
 
 
 //=================================================================================================
@@ -278,7 +290,7 @@ Lit Solver::pickBranchLit()
 |        rest of literals. There may be others from the same level though.
 |  
 |________________________________________________________________________________________________@*/
-void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
+void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip)
 {
     int pathC = 0;
     Lit p     = lit_Undef;
@@ -288,6 +300,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     out_learnt.push();      // (leave room for the asserting literal)
     int index   = trail.size() - 1;
 
+    bool done = false;
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
         Clause& c = ca[confl];
@@ -315,7 +328,18 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         seen[var(p)] = 0;
         pathC--;
 
-    }while (pathC > 0);
+        switch (uip) {
+        case UIP_FIRST:
+          done = pathC == 0;
+          break;
+        case UIP_LAST:
+          done = confl == CRef_Undef || (pathC == 0 && marker[var(p)] == 2);
+          break;
+        default:
+          Unreachable();
+          break;
+        }
+    } while (!done);
     out_learnt[0] = ~p;
 
     // Simplify conflict clause:
@@ -427,8 +451,10 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
         Var x = var(trail[i]);
         if (seen[x]){
             if (reason(x) == CRef_Undef){
+              if (marker[x] == 2) {
                 assert(level(x) > 0);
                 out_conflict.push(~trail[i]);
+              }
             }else{
                 Clause& c = ca[reason(x)];
                 for (int j = 1; j < c.size(); j++)
@@ -449,8 +475,34 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
+    if (only_bcp && marker[var(p)] == 1 && from != CRef_Undef) {
+      atom_propagations.push(p);
+    }
 }
 
+void Solver::popAssumption() {
+  marker[var(assumptions.last())] = 1;
+  assumptions.pop();
+  conflict.clear();
+  cancelUntil(assumptions.size());
+}
+
+lbool Solver::assertAssumption(Lit p, bool propagate) {
+
+  assert(marker[var(p)] == 1);
+
+  // add to the assumptions
+  assumptions.push(p);
+  conflict.clear();
+
+  // run the propagation
+  if (propagate) {
+    only_bcp = true;
+    return search(-1, UIP_FIRST);
+  } else {
+    return l_True;
+  }
+}
 
 /*_________________________________________________________________________________________________
 |
@@ -628,7 +680,7 @@ bool Solver::simplify()
 |    all variables are decision variables, this means that the clause set is satisfiable. 'l_False'
 |    if the clause set is unsatisfiable. 'l_Undef' if the bound on number of conflicts is reached.
 |________________________________________________________________________________________________@*/
-lbool Solver::search(int nof_conflicts)
+lbool Solver::search(int nof_conflicts, UIP uip)
 {
     assert(ok);
     int         backtrack_level;
@@ -644,17 +696,27 @@ lbool Solver::search(int nof_conflicts)
             if (decisionLevel() == 0) return l_False;
 
             learnt_clause.clear();
-            analyze(confl, learnt_clause, backtrack_level);
+            analyze(confl, learnt_clause, backtrack_level, uip);
             cancelUntil(backtrack_level);
 
+            Lit p = learnt_clause[0];
+            bool assumption = marker[var(p)] == 2;
+
             if (learnt_clause.size() == 1){
-                uncheckedEnqueue(learnt_clause[0]);
+                uncheckedEnqueue(p);
             }else{
                 CRef cr = ca.alloc(learnt_clause, true);
                 learnts.push(cr);
                 attachClause(cr);
                 claBumpActivity(ca[cr]);
-                uncheckedEnqueue(learnt_clause[0], cr);
+                uncheckedEnqueue(p, cr);
+            }
+
+            // if an assumption, we're done
+            if (assumption) {
+              assert(decisionLevel() < assumptions.size());
+              analyzeFinal(p, conflict);
+              return l_False;
             }
 
             varDecayActivity();
@@ -699,12 +761,18 @@ lbool Solver::search(int nof_conflicts)
                     analyzeFinal(~p, conflict);
                     return l_False;
                 }else{
+                    marker[var(p)] = 2;
                     next = p;
                     break;
                 }
             }
 
             if (next == lit_Undef){
+
+                if (only_bcp) {
+                  return l_True;
+                }
+
                 // New variable decision:
                 decisions++;
                 next = pickBranchLit();
@@ -767,10 +835,12 @@ static double luby(double y, int x){
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
-  Debug("bvminisat") <<"BVMinisat::Solving learned clauses " << learnts.size() <<"\n";
-  Debug("bvminisat") <<"BVMinisat::Solving assumptions " << assumptions.size() <<"\n"; 
+    Debug("bvminisat") <<"BVMinisat::Solving learned clauses " << learnts.size() <<"\n";
+    Debug("bvminisat") <<"BVMinisat::Solving assumptions " << assumptions.size() <<"\n";
+
     model.clear();
     conflict.clear();
+
     if (!ok) return l_False;
 
     solves++;
@@ -799,17 +869,54 @@ lbool Solver::solve_()
     if (verbosity >= 1)
         printf("===============================================================================\n");
 
-
     if (status == l_True){
         // Extend & copy model:
-        model.growTo(nVars());
-        for (int i = 0; i < nVars(); i++) model[i] = value(i);
+        // model.growTo(nVars());
+        // for (int i = 0; i < nVars(); i++) model[i] = value(i);
     }else if (status == l_False && conflict.size() == 0)
         ok = false;
 
-    cancelUntil(0);
     return status;
 }
+
+//=================================================================================================
+// Bitvector propagations
+// 
+
+void Solver::storeExplanation(Lit p) {
+}
+
+void Solver::explainPropagation(Lit p, std::vector<Lit>& explanation) {
+  vec<Lit> queue;
+  queue.push(p);
+
+  __gnu_cxx::hash_set<Var> visited;
+  visited.insert(var(p));
+  while(queue.size() > 0) {
+    Lit l = queue.last();
+    assert(value(l) == l_True);
+    queue.pop();
+    if (reason(var(l)) == CRef_Undef) {
+      if (marker[var(l)] == 2) {
+        explanation.push_back(l);
+        visited.insert(var(l));
+      }
+    } else {
+      Clause& c = ca[reason(var(l))];
+      for (int i = 1; i < c.size(); ++i) {
+        if (var(c[i]) >= vardata.size()) {
+          std::cerr << "BOOM" << std::endl;
+        }
+        if (visited.count(var(c[i])) == 0) {
+          queue.push(~c[i]);
+          visited.insert(var(c[i]));
+        }
+      }
+    }
+  }
+}
+
+  
 
 //=================================================================================================
 // Writing CNF to DIMACS:
@@ -872,13 +979,13 @@ void Solver::toDimacs(FILE* f, const vec<Lit>& assumps)
         }
 
     // Assumptions are added as unit clauses:
-    cnt += assumptions.size();
+    cnt += assumps.size();
 
     fprintf(f, "p cnf %d %d\n", max, cnt);
 
-    for (int i = 0; i < assumptions.size(); i++){
-        assert(value(assumptions[i]) != l_False);
-        fprintf(f, "%s%d 0\n", sign(assumptions[i]) ? "-" : "", mapVar(var(assumptions[i]), map, max)+1);
+    for (int i = 0; i < assumps.size(); i++){
+        assert(value(assumps[i]) != l_False);
+        fprintf(f, "%s%d 0\n", sign(assumps[i]) ? "-" : "", mapVar(var(assumps[i]), map, max)+1);
     }
 
     for (int i = 0; i < clauses.size(); i++)
@@ -940,4 +1047,3 @@ void Solver::garbageCollect()
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
-

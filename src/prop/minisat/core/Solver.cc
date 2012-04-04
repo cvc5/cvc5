@@ -195,6 +195,8 @@ CRef Solver::reason(Var x) {
       if (varLevel > explLevel) {
         explLevel = varLevel;
       }
+      Assert(value(explanation[i]) != l_Undef);
+      Assert(i == 0 || trail_index(var(explanation[0])) > trail_index(var(explanation[i])));
     }
 
     // Construct the reason (level 0)

@@ -30,7 +30,7 @@ namespace prop {
 class SatSolverFactory {
 public:
 
-  static BVSatSolverInterface* createMinisat();
+  static BVSatSolverInterface* createMinisat(context::Context* mainSatContext);
   static DPLLSatSolverInterface* createDPLLMinisat();
 
   static SatSolver* create(const char* id);

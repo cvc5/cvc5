@@ -21,16 +21,27 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_registry.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
+#include "context/cdo.h"
 
 namespace CVC4 {
 namespace prop {
 
-class BVMinisatSatSolver: public BVSatSolverInterface {
+class BVMinisatSatSolver: public BVSatSolverInterface, public context::ContextNotifyObj {
   BVMinisat::SimpSolver* d_minisat;
+  unsigned d_solveCount;
+  unsigned d_assertionsCount;
+  context::CDO<unsigned> d_assertionsRealCount;
+  context::CDO<unsigned> d_lastPropagation;
 
 public:
-  BVMinisatSatSolver();
-  ~BVMinisatSatSolver();
+  BVMinisatSatSolver() :
+    ContextNotifyObj(NULL, false),
+    d_assertionsRealCount(NULL, (unsigned)0),
+    d_lastPropagation(NULL, (unsigned)0)
+  { Unreachable(); }
+  BVMinisatSatSolver(context::Context* mainSatContext);
+  ~BVMinisatSatSolver() throw(AssertionException);
+
   void addClause(SatClause& clause, bool removable);
 
   SatVariable newVar(bool theoryAtom = false);
@@ -38,10 +49,11 @@ public:
   void markUnremovable(SatLiteral lit);
 
   void interrupt();
-
+  void notify(); 
+  
   SatValue solve();
   SatValue solve(long unsigned int&);
-  SatValue solve(const context::CDList<SatLiteral> & assumptions);
+  SatValue solve(bool quick_solve);
   void getUnsatCore(SatClause& unsatCore);
 
   SatValue value(SatLiteral l);
@@ -62,6 +74,15 @@ public:
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);
   static void  toSatClause    (BVMinisat::vec<BVMinisat::Lit>& clause, SatClause& sat_clause);
+  void addMarkerLiteral(SatLiteral lit);
+
+  bool getPropagations(std::vector<SatLiteral>& propagations);
+
+  void explainPropagation(SatLiteral lit, std::vector<SatLiteral>& explanation);
+
+  SatValue assertAssumption(SatLiteral lit, bool propagate);
+  
+  void popAssumption();
 
   class Statistics {
   public:
@@ -71,6 +92,8 @@ public:
     ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
     ReferenceStat<uint64_t> d_statTotLiterals;
     ReferenceStat<int> d_statEliminatedVars;
+    IntStat d_statCallsToSolve;
+    BackedStat<double> d_statSolveTime; 
     Statistics();
     ~Statistics();
     void init(BVMinisat::SimpSolver* minisat);

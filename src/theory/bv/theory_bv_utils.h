@@ -79,6 +79,27 @@ inline Node mkAnd(std::vector<TNode>& children) {
   }
 }
 
+inline Node mkSortedNode(Kind kind, std::vector<Node>& children) {
+  Assert (kind == kind::BITVECTOR_PLUS ||
+          kind == kind::BITVECTOR_MULT ||
+          kind == kind::BITVECTOR_AND ||
+          kind == kind::BITVECTOR_OR ||
+          kind == kind::BITVECTOR_XOR);
+
+  if (children.size() == 1) {
+    return children[0]; 
+  }
+  std::sort(children.begin(), children.end());
+  return NodeManager::currentNM()->mkNode(kind, children);
+}
+
+
+inline Node mkNode(Kind kind, std::vector<Node>& children) {
+  if (children.size() == 1) {
+    return children[0]; 
+  }
+  return NodeManager::currentNM()->mkNode(kind, children);
+}
 
 inline Node mkNode(Kind kind, TNode child) {
   return NodeManager::currentNM()->mkNode(kind, child);
@@ -86,6 +107,21 @@ inline Node mkNode(Kind kind, TNode child) {
 
 inline Node mkNode(Kind kind, TNode child1, TNode child2) {
   return NodeManager::currentNM()->mkNode(kind, child1, child2);
+}
+
+
+inline Node mkSortedNode(Kind kind, TNode child1, TNode child2) {
+  Assert (kind == kind::BITVECTOR_PLUS ||
+          kind == kind::BITVECTOR_MULT ||
+          kind == kind::BITVECTOR_AND ||
+          kind == kind::BITVECTOR_OR ||
+          kind == kind::BITVECTOR_XOR);
+  
+  if (child1 < child2) {
+    return NodeManager::currentNM()->mkNode(kind, child1, child2);
+  } else {
+    return NodeManager::currentNM()->mkNode(kind, child2, child1);
+  }
 }
 
 inline Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3) {
@@ -156,8 +192,14 @@ inline Node mkConcat(TNode t1, TNode t2) {
     return NodeManager::currentNM()->mkNode(kind::BITVECTOR_CONCAT, t1, t2);
 }
 
+
+inline BitVector mkBitVectorOnes(unsigned size) {
+  Assert(size > 0); 
+  return BitVector(1, Integer(1)).signExtend(size - 1); 
+}
+
 inline Node mkOnes(unsigned size) {
-  BitVector val = BitVector(1, Integer(1)).signExtend(size-1);
+  BitVector val = mkBitVectorOnes(size); 
   return NodeManager::currentNM()->mkConst<BitVector>(val); 
 }
 
@@ -276,6 +318,7 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
   std::vector<TNode>::const_iterator it_end = nodes.end();
   while (it != it_end) {
     TNode current = *it;
+
     if (current != mkTrue()) {
       Assert(isBVPredicate(current));
       expandedNodes.push_back(current);

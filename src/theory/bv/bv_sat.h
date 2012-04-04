@@ -97,6 +97,8 @@ class Bitblaster {
   void initAtomBBStrategies();
   void initTermBBStrategies(); 
 
+  // returns a node that might be easier to bitblast
+  Node bbOptimize(TNode node); 
   
   void bbAtom(TNode node);
   // division is bitblasted in terms of constraints
@@ -110,17 +112,20 @@ public:
 public:
   Bitblaster(context::Context* c); 
   ~Bitblaster();
-  void assertToSat(TNode node);
-  bool solve();
+  bool assertToSat(TNode node, bool propagate = true);
+  bool solve(bool quick_solve = false);
   void bitblast(TNode node);
   void getConflict(std::vector<TNode>& conflict); 
-
+  void addAtom(TNode atom); 
+  bool getPropagations(std::vector<TNode>& propagations);
+  void explainPropagation(TNode atom, std::vector<Node>& explanation);
 private:
 
   
   class Statistics {
   public:
-    IntStat  d_numTermClauses, d_numAtomClauses;
+    IntStat d_numTermClauses, d_numAtomClauses;
+    IntStat d_numTerms, d_numAtoms; 
     TimerStat d_bitblastTimer;
     Statistics();
     ~Statistics(); 

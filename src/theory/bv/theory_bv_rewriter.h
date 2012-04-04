@@ -30,7 +30,7 @@ namespace theory {
 namespace bv {
 
 struct AllRewriteRules;
-typedef RewriteResponse (*RewriteFunction) (TNode);
+typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
 class TheoryBVRewriter {
   // static CVC4_THREADLOCAL(AllRewriteRules*) s_allRules;
@@ -39,47 +39,47 @@ class TheoryBVRewriter {
 #warning "TODO: Double check thread safety and make sure the fix compiles on mac."
   static RewriteFunction d_rewriteTable[kind::LAST_KIND];
 
-  static RewriteResponse IdentityRewrite(TNode node);
-  static RewriteResponse UndefinedRewrite(TNode node); 
+  static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
+  static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false); 
 
   static void initializeRewrites();
   
-  static RewriteResponse RewriteEqual(TNode node);
-  static RewriteResponse RewriteUlt(TNode node);
-  static RewriteResponse RewriteSlt(TNode node);
-  static RewriteResponse RewriteUle(TNode node);
-  static RewriteResponse RewriteSle(TNode node);
-  static RewriteResponse RewriteUgt(TNode node);
-  static RewriteResponse RewriteSgt(TNode node);
-  static RewriteResponse RewriteUge(TNode node);
-  static RewriteResponse RewriteSge(TNode node);
-  static RewriteResponse RewriteNot(TNode node);
-  static RewriteResponse RewriteConcat(TNode node);
-  static RewriteResponse RewriteAnd(TNode node);
-  static RewriteResponse RewriteOr(TNode node);
-  static RewriteResponse RewriteXnor(TNode node);
-  static RewriteResponse RewriteXor(TNode node);
-  static RewriteResponse RewriteNand(TNode node);
-  static RewriteResponse RewriteNor(TNode node);
-  static RewriteResponse RewriteComp(TNode node);
-  static RewriteResponse RewriteMult(TNode node);
-  static RewriteResponse RewritePlus(TNode node);
-  static RewriteResponse RewriteSub(TNode node);
-  static RewriteResponse RewriteNeg(TNode node);
-  static RewriteResponse RewriteUdiv(TNode node);
-  static RewriteResponse RewriteUrem(TNode node);
-  static RewriteResponse RewriteSmod(TNode node);
-  static RewriteResponse RewriteSdiv(TNode node);
-  static RewriteResponse RewriteSrem(TNode node);
-  static RewriteResponse RewriteShl(TNode node);
-  static RewriteResponse RewriteLshr(TNode node);
-  static RewriteResponse RewriteAshr(TNode node);
-  static RewriteResponse RewriteExtract(TNode node);
-  static RewriteResponse RewriteRepeat(TNode node);
-  static RewriteResponse RewriteZeroExtend(TNode node);
-  static RewriteResponse RewriteSignExtend(TNode node);
-  static RewriteResponse RewriteRotateRight(TNode node);
-  static RewriteResponse RewriteRotateLeft(TNode node);
+ static RewriteResponse RewriteEqual(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUlt(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSlt(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUle(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSle(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUgt(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSgt(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUge(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSge(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteNot(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteConcat(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteAnd(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteOr(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteXnor(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteXor(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteNand(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteNor(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteComp(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteMult(TNode node, bool prerewrite = false);
+  static RewriteResponse RewritePlus(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSub(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteNeg(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUdiv(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUrem(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSmod(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSdiv(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSrem(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteShl(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteLshr(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteAshr(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteExtract(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteRepeat(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteZeroExtend(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSignExtend(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteRotateRight(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
 
 public:
 
