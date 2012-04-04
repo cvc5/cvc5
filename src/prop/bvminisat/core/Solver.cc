@@ -843,6 +843,13 @@ lbool Solver::solve_()
     conflict.clear();
 
     ccmin_mode = 2;
+
+    // reduce the database
+    reduceDB();
+
+    // this is a new search, reset the parameters
+    restart_first = opt_restart_first;
+    restart_inc = opt_restart_inc;
     
     if (!ok) return l_False;
 
