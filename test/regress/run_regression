@@ -5,7 +5,7 @@
 #
 # usage:
 #
-#     run_regression cvc4-binary [ --proof ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
+#     run_regression cvc4-binary [ --proof | --dump ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]
 #
 # Runs benchmark and checks for correct exit status and output.
 #
@@ -13,13 +13,17 @@
 prog=`basename "$0"`
 
 if [ $# -lt 2 -o $# -gt 3 ]; then
-  echo "usage: $prog cvc4-binary [ --proof ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
+  echo "usage: $prog cvc4-binary [ --proof | --dump ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
   exit 1
 fi
 
 proof=no
+dump=no
 if [ $1 = --proof ]; then
   proof=yes
+  shift
+elif [ $1 = --dump ]; then
+  dump=yes
   shift
 fi
 
@@ -179,11 +183,19 @@ if [ -z "$cvc4dirfull" ]; then
 fi
 cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
-echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
-( cd `dirname "$benchmark"`;
-  "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
-  echo $? >"$exitstatusfile"
-) > "$outfile" 2> "$errfile"
+if [ $dump = no ]; then
+  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
+  ( cd `dirname "$benchmark"`;
+    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
+    echo $? >"$exitstatusfile"
+  ) > "$outfile" 2> "$errfile"
+else
+  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` \| $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 - [from working dir `dirname "$benchmark"`]
+  ( cd `dirname "$benchmark"`;
+    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` | $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 -;
+    echo $? >"$exitstatusfile"
+  ) > "$outfile" 2> "$errfile"
+fi
 
 diffs=`diff -u --strip-trailing-cr "$expoutfile" "$outfile"`
 diffexit=$?
