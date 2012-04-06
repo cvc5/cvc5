@@ -73,24 +73,22 @@ void TheoryBV::preRegisterTerm(TNode node) {
 }
 
 void TheoryBV::check(Effort e) {
-  if (e == EFFORT_STANDARD) {
-    BVDebug("bitvector") << "TheoryBV::check " << e << "\n"; 
-    BVDebug("bitvector")<< "TheoryBV::check(" << e << ")" << std::endl;
-    while (!done()) {
-      TNode assertion = get();
-      // make sure we do not assert things we propagated 
-      if (!hasBeenPropagated(assertion)) {
-        BVDebug("bitvector-assertions") << "TheoryBV::check assertion " << assertion << "\n"; 
-        bool ok = d_bitblaster->assertToSat(assertion, true);
-        if (!ok) {
-          std::vector<TNode> conflictAtoms;
-          d_bitblaster->getConflict(conflictAtoms);
-          d_statistics.d_avgConflictSize.addEntry(conflictAtoms.size());
-          Node conflict = mkConjunction(conflictAtoms);
-          d_out->conflict(conflict);
-          BVDebug("bitvector") << "TheoryBV::check returns conflict: " <<conflict <<" \n ";
-          return;
-        }
+  BVDebug("bitvector") << "TheoryBV::check " << e << "\n";
+  BVDebug("bitvector")<< "TheoryBV::check(" << e << ")" << std::endl;
+  while (!done()) {
+    TNode assertion = get();
+    // make sure we do not assert things we propagated
+    if (!hasBeenPropagated(assertion)) {
+      BVDebug("bitvector-assertions") << "TheoryBV::check assertion " << assertion << "\n";
+      bool ok = d_bitblaster->assertToSat(assertion, true);
+      if (!ok) {
+        std::vector<TNode> conflictAtoms;
+        d_bitblaster->getConflict(conflictAtoms);
+        d_statistics.d_avgConflictSize.addEntry(conflictAtoms.size());
+        Node conflict = mkConjunction(conflictAtoms);
+        d_out->conflict(conflict);
+        BVDebug("bitvector") << "TheoryBV::check returns conflict: " <<conflict <<" \n ";
+        return;
       }
     }
   }
