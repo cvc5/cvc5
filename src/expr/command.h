@@ -57,7 +57,7 @@ enum BenchmarkStatus {
   SMT_UNSATISFIABLE,
   /** The status of the benchmark is unknown */
   SMT_UNKNOWN
-};
+};/* enum BenchmarkStatus */
 
 std::ostream& operator<<(std::ostream& out,
                          BenchmarkStatus status) throw() CVC4_PUBLIC;

@@ -536,6 +536,7 @@ annotation[CVC4::Command*& smt_command]
       { std::string value = AntlrInput::tokenText($USER_VALUE);
         Assert(*value.begin() == '{');
         Assert(*value.rbegin() == '}');
+        // trim whitespace
         value.erase(value.begin(), value.begin() + 1);
         value.erase(value.begin(), std::find_if(value.begin(), value.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
         value.erase(value.end() - 1);

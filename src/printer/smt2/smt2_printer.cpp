@@ -427,6 +427,29 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 }/* Smt2Printer::toStream(Command*) */
 
+static void toStream(std::ostream& out, const SExpr& sexpr) throw() {
+  if(sexpr.isInteger()) {
+    out << sexpr.getIntegerValue();
+  } else if(sexpr.isRational()) {
+    out << sexpr.getRationalValue();
+  } else if(sexpr.isString()) {
+    string s = sexpr.getValue();
+    // escape backslash and quote
+    for(size_t i = 0; i < s.length(); ++i) {
+      if(s[i] == '"') {
+        s.replace(i, 1, "\\\"");
+        ++i;
+      } else if(s[i] == '\\') {
+        s.replace(i, 1, "\\\\");
+        ++i;
+      }
+    }
+    out << "\"" << s << "\"";
+  } else {
+    out << sexpr;
+  }
+}
+
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s) throw();
 
@@ -576,7 +599,9 @@ static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) throw
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {
-  out << "(set-info " << c->getFlag() << " " << c->getSExpr() << ")";
+  out << "(set-info " << c->getFlag() << " ";
+  toStream(out, c->getSExpr());
+  out << ")";
 }
 
 static void toStream(std::ostream& out, const GetInfoCommand* c) throw() {
@@ -584,7 +609,9 @@ static void toStream(std::ostream& out, const GetInfoCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const SetOptionCommand* c) throw() {
-  out << "(set-option " << c->getFlag() << " " << c->getSExpr() << ")";
+  out << "(set-option " << c->getFlag() << " ";
+  toStream(out, c->getSExpr());
+  out << ")";
 }
 
 static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {

@@ -405,9 +405,9 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
   std::string s;
 }
   : INTEGER_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
+    { sexpr = SExpr(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
   | DECIMAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
+    { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | str[s]
     { sexpr = SExpr(s); }
   | SYMBOL

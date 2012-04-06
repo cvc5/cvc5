@@ -383,7 +383,15 @@ void SmtEngine::setInfo(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << SetInfoCommand(key, value);
+    if(key == ":status") {
+      std::string s = value.getValue();
+      BenchmarkStatus status =
+        (s == "sat") ? SMT_SATISFIABLE :
+          ((s == "unsat") ? SMT_UNSATISFIABLE : SMT_UNKNOWN);
+      Dump("benchmark") << SetBenchmarkStatusCommand(status);
+    } else {
+      Dump("benchmark") << SetInfoCommand(key, value);
+    }
   }
 
   // Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_")

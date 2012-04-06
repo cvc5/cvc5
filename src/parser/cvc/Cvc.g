@@ -351,7 +351,7 @@ unsigned findPivot(const std::vector<unsigned>& operators,
   return pivot;
 }/* findPivot() */
 
-Expr createPrecedenceTree(ExprManager* em,
+Expr createPrecedenceTree(Parser* parser, ExprManager* em,
                           const std::vector<CVC4::Expr>& expressions,
                           const std::vector<unsigned>& operators,
                           unsigned startIndex, unsigned stopIndex) {
@@ -368,17 +368,20 @@ Expr createPrecedenceTree(ExprManager* em,
   //Debug("prec") << "pivot[" << startIndex << "," << stopIndex - 1 << "] at " << pivot << std::endl;
   bool negate;
   Kind k = getOperatorKind(operators[pivot], negate);
-  Expr lhs = createPrecedenceTree(em, expressions, operators, startIndex, pivot);
-  Expr rhs = createPrecedenceTree(em, expressions, operators, pivot + 1, stopIndex);
+  Expr lhs = createPrecedenceTree(parser, em, expressions, operators, startIndex, pivot);
+  Expr rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
   if(k == kind::EQUAL && lhs.getType().isBoolean()) {
-    WarningOnce() << "Warning: converting BOOL = BOOL to BOOL <=> BOOL" << std::endl;
-    k = kind::IFF;
+    if(parser->strictModeEnabled()) {
+      WarningOnce() << "Warning: in strict parsing mode, will not convert BOOL = BOOL to BOOL <=> BOOL" << std::endl;
+    } else {
+      k = kind::IFF;
+    }
   }
   Expr e = em->mkExpr(k, lhs, rhs);
   return negate ? em->mkExpr(kind::NOT, e) : e;
 }/* createPrecedenceTree() recursive variant */
 
-Expr createPrecedenceTree(ExprManager* em,
+Expr createPrecedenceTree(Parser* parser, ExprManager* em,
                           const std::vector<CVC4::Expr>& expressions,
                           const std::vector<unsigned>& operators) {
   if(Debug.isOn("prec") && operators.size() > 1) {
@@ -391,7 +394,7 @@ Expr createPrecedenceTree(ExprManager* em,
     Debug("prec") << std::endl;
   }
 
-  Expr e = createPrecedenceTree(em, expressions, operators, 0, expressions.size() - 1);
+  Expr e = createPrecedenceTree(parser, em, expressions, operators, 0, expressions.size() - 1);
   if(Debug.isOn("prec") && operators.size() > 1) {
     Expr::setlanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
     Debug("prec") << "=> " << e << std::endl;
@@ -749,9 +752,9 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
   CVC4::Rational r;
 }
   : INTEGER_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($INTEGER_LITERAL)); }
+    { sexpr = SExpr(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
   | DECIMAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($DECIMAL_LITERAL)); }
+    { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | HEX_LITERAL
     { sexpr = SExpr(AntlrInput::tokenText($HEX_LITERAL)); }
   | BINARY_LITERAL
@@ -1197,7 +1200,7 @@ formula[CVC4::Expr& f]
         expressions.push_back(f);
       }
       i=morecomparisons[expressions,operators]?
-      { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
+      { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
     )
   ;
 
@@ -1321,7 +1324,7 @@ comparison[CVC4::Expr& f]
   : term[f] { expressions.push_back(f); }
     ( comparisonBinop[op] term[f]
       { operators.push_back(op); expressions.push_back(f); } )*
-    { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
+    { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
   ;
 
 comparisonBinop[unsigned& op]
@@ -1345,7 +1348,7 @@ term[CVC4::Expr& f]
 }
   : storeTerm[f] { expressions.push_back(f); }
     ( arithmeticBinop[op] storeTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
-    { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
+    { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
   ;
 
 arithmeticBinop[unsigned& op]
@@ -1500,7 +1503,7 @@ bvBinaryOpTerm[CVC4::Expr& f]
 }
   : bvNegTerm[f] { expressions.push_back(f); }
     ( bvBinop[op] bvNegTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
-    { f = createPrecedenceTree(EXPR_MANAGER, expressions, operators); }
+    { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
   ;
 bvBinop[unsigned& op]
 @init {
