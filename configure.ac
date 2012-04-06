@@ -1061,7 +1061,7 @@ AC_SUBST(MAN_DATE)
 AC_CONFIG_FILES([
   Makefile.builds
   Makefile]
-  m4_esyscmd([find contrib src test examples -name Makefile.am | grep -v '^contrib/theoryskel/' | sort | sed 's,\.am$,,'])
+  m4_esyscmd([find contrib src test examples -name Makefile.am | grep -v '^contrib/theoryskel/' | grep -v '^src/prop/cryptominisat/' | sort | sed 's,\.am$,,'])
 )
 
 if test $cvc4_has_threads = yes; then
