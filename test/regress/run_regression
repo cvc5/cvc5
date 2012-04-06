@@ -13,7 +13,7 @@
 prog=`basename "$0"`
 
 if [ $# -lt 2 -o $# -gt 3 ]; then
-  echo "usage: $prog cvc4-binary [ --proof | --dump ] [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
+  echo "usage: $prog [ --proof | --dump ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
   exit 1
 fi
 

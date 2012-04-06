@@ -140,6 +140,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << "(subtype " << n.getConst<Predicate>() << ')';
       break;
 
+    case kind::DATATYPE_TYPE:
+      out << n.getConst<Datatype>().getName();
+      break;
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -159,7 +163,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
   bool stillNeedToPrintParams = true;
   // operator
-  out << '(';
+  if(n.getNumChildren() != 0) out << '(';
   switch(Kind k = n.getKind()) {
     // builtin theory
   case kind::APPLY: break;
@@ -237,6 +241,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     stillNeedToPrintParams = false;
     break;
 
+    // datatypes
+  case kind::APPLY_TESTER:
+  case kind::APPLY_CONSTRUCTOR:
+  case kind::APPLY_SELECTOR:
+    break;
+
   default:
     // fall back on however the kind prints itself; this probably
     // won't be SMT-LIB v2 compliant, but it will be clear from the
@@ -268,7 +278,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << ' ';
     }
   }
-  out << ')';
+  if(n.getNumChildren() != 0) out << ')';
 }/* Smt2Printer::toStream(TNode) */
 
 static string smtKindString(Kind k) throw() {
@@ -534,19 +544,23 @@ static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw()
 static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() {
   Expr func = c->getFunction();
   const vector<Expr>& formals = c->getFormals();
-  Expr formula = c->getFormula();
   out << "(define-fun " << func << " (";
-  vector<Expr>::const_iterator i = formals.begin();
-  for(;;) {
-    out << "(" << (*i) << " " << (*i).getType() << ")";
-    ++i;
-    if(i != formals.end()) {
-      out << " ";
-    } else {
-      break;
+  Type type = func.getType();
+  if(type.isFunction()) {
+    vector<Expr>::const_iterator i = formals.begin();
+    for(;;) {
+      out << "(" << (*i) << " " << (*i).getType() << ")";
+      ++i;
+      if(i != formals.end()) {
+        out << " ";
+      } else {
+        break;
+      }
     }
+    type = FunctionType(type).getRangeType();
   }
-  out << ") " << FunctionType(func.getType()).getRangeType() << " " << formula << ")";
+  Expr formula = c->getFormula();
+  out << ") " << type << " " << formula << ")";
 }
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c) throw() {
@@ -620,16 +634,29 @@ static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) throw() {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
-  out << "DatatypeDeclarationCommand([";
+  out << "(declare-datatypes (";
   for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
         i_end = datatypes.end();
       i != i_end;
       ++i) {
-    out << *i << ";" << endl;
-  }
-  out << "])";
 
-  out << "ERROR: don't know how to output datatype declaration command" << endl;
+    const Datatype & d = i->getDatatype();
+
+    out << "(" << d.getName() << "  ";
+    for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
+        ctor != ctor_end; ++ctor){
+      out << "(" << ctor->getName() << " ";
+
+      for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
+          arg != arg_end; ++arg){
+        out << "(" << arg->getSelector() << " "
+            << static_cast<SelectorType>(arg->getType()).getRangeType() << ")";
+      }
+      out << ") ";
+    }
+    out << ")" << endl;
+  }
+  out << "))";
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c) throw() {

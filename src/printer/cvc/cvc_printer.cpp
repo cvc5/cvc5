@@ -140,6 +140,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       }
       break;
 
+    case kind::DATATYPE_TYPE:
+      out << n.getConst<Datatype>().getName();
+      break;
+
     default:
       Warning() << "Constant printing not implemented for the case of " << n.getKind() << endl;
       out << n.getKind();
