@@ -345,6 +345,11 @@ void TheoryArith::addSharedTerm(TNode n){
 }
 
 Node TheoryArith::ppRewrite(TNode atom) {
+
+  if (!atom.getType().isBoolean()) {
+    return atom;
+  }
+
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   Node a = d_pbSubstitutions.apply(atom);

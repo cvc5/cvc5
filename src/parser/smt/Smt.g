@@ -511,7 +511,13 @@ sortSymbol returns [CVC4::parser::smt::myType t]
   	{ $t = PARSER_STATE->getSort(name); }
   | BITVECTOR_TOK '[' NUMERAL_TOK ']' {
   	$t = EXPR_MANAGER->mkBitVectorType(AntlrInput::tokenToUnsigned($NUMERAL_TOK));
-  }
+    }
+  /* attaching 'Array' to '[' allows us to parse regular 'Array' correctly in
+   * e.g. QF_AX, and also 'Array[m:n]' in e.g. QF_AUFBV */
+  | 'Array[' n1=NUMERAL_TOK ':' n2=NUMERAL_TOK ']' {
+        $t = EXPR_MANAGER->mkArrayType(EXPR_MANAGER->mkBitVectorType(AntlrInput::tokenToUnsigned(n1)),
+                                       EXPR_MANAGER->mkBitVectorType(AntlrInput::tokenToUnsigned(n2)));
+    }
   ;
 
 /**

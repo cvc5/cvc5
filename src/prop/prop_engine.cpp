@@ -86,6 +86,10 @@ PropEngine::~PropEngine() {
   delete d_satSolver;
 }
 
+void PropEngine::processAssertionsStart() {
+  d_theoryEngine->preprocessStart();
+}
+
 void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "assertFormula(" << node << ")" << endl;

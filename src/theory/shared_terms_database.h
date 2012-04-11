@@ -20,6 +20,7 @@
 #include "theory/theory.h"
 #include "context/context.h"
 #include "util/stats.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 
@@ -33,6 +34,10 @@ public:
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
 private:
+
+  Node d_true;
+
+  Node d_false;
 
   /** The context */
   context::Context* d_context;
@@ -59,26 +64,72 @@ private:
   /** Map from term to theories that have already been notified about the shared term */
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
+public:
+  /** Class for notifications about new shared term equalities */
+  class SharedTermsNotifyClass {
+    public:
+      SharedTermsNotifyClass() {}
+      virtual ~SharedTermsNotifyClass() {}
+      virtual void notify(TNode literal, TNode original, theory::TheoryId theory) = 0;
+  };
+
+private:
+  // Instance of class to send shared term notifications to
+  SharedTermsNotifyClass& d_sharedNotify;
+
+  // Type for list of theory, node pairs: theory is theory to be notified,
+  // node is the representative for this equivalence class known to the
+  // theory that will be notified
+  typedef context::CDHashMap<theory::TheoryId, TNode, __gnu_cxx::hash<unsigned> > NotifyList;
+  typedef context::CDHashMap<TNode, NotifyList*, TNodeHashFunction> TermToNotifyList;
+
+  // Map from terms (only valid for reps) to their notify lists
+  // Note that theory, term pairs only need to be in the notify list if the
+  // representative term is not a valid shared term for the theory.
+  TermToNotifyList d_termToNotifyList;
+
+  // List of allocated NotifyList* objects
+  std::vector<NotifyList*> d_allocatedNL;
+
+  // Total number of allocated NotifyList* objects
+  unsigned d_allocatedNLSize;
+
+  // Size of portion of d_allocatedNL that is currently in use
+  context::CDO<unsigned> d_allocatedNLNext;
+
   /** This method removes all the un-necessary stuff from the maps */
   void backtrack();
 
+  // EENotifyClass: template helper class for d_equalityEngine - handles call-backs
+  class EENotifyClass {
+    SharedTermsDatabase& d_sharedTerms;
+  public:
+    EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
+    bool notify(TNode propagation) { return true; }    // Not used
+    void notify(TNode t1, TNode t2) {
+      d_sharedTerms.mergeSharedTerms(t1, t2);
+    }
+  };
+
+  /** The notify class for d_equalityEngine */
+  EENotifyClass d_EENotify;
+
+  /** Equaltity engine */
+  theory::uf::EqualityEngine<EENotifyClass> d_equalityEngine;
+
+  /** Attach a new notify list to an equivalence class representative */
+  NotifyList* getNewNotifyList();
+
+  /** Method called by equalityEngine when a becomes equal to b */
+  void mergeSharedTerms(TNode a, TNode b);
+
+  /** Internal explanation method */
+  void explain(TNode literal, std::vector<TNode>& assumptions);
+
 public:
 
-  SharedTermsDatabase(context::Context* context)
-  : ContextNotifyObj(context),
-    d_context(context), 
-    d_statSharedTerms("theory::shared_terms", 0),
-    d_addedSharedTermsSize(context, 0),
-    d_termsToTheories(context),
-    d_alreadyNotifiedMap(context) 
-  {
-    StatisticsRegistry::registerStat(&d_statSharedTerms);
-  }
-
-  ~SharedTermsDatabase() throw(AssertionException)
-  {
-    StatisticsRegistry::unregisterStat(&d_statSharedTerms);
-  }
+  SharedTermsDatabase(SharedTermsNotifyClass& notify, context::Context* context);
+  ~SharedTermsDatabase() throw(AssertionException);
   
   /**
    * Add a shared term to the database. The shared term is a subterm of the atom and 
@@ -116,6 +167,18 @@ public:
    */
   void markNotified(TNode term, theory::Theory::Set theories);
    
+  bool isShared(TNode term) const {
+    return d_alreadyNotifiedMap.find(term) != d_alreadyNotifiedMap.end();
+  }
+
+  bool areEqual(TNode a, TNode b);
+
+  bool areDisequal(TNode a, TNode b);
+
+  void processSharedLiteral(TNode literal, TNode reason);
+
+  Node explain(TNode literal);
+
   /**
    * This method gets called on backtracks from the context manager.
    */

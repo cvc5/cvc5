@@ -36,11 +36,22 @@ public:
     Trace("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
-        // select(store(a,i,v),i) = v
         TNode store = node[0];
-        if (store.getKind() == kind::STORE &&
-            store[1] == node[1]) {
-          return RewriteResponse(REWRITE_DONE, store[2]);
+        if (store.getKind() == kind::STORE) {
+          // select(store(a,i,v),j)
+          Node eqRewritten = Rewriter::rewrite(store[1].eqNode(node[1]));
+          if (eqRewritten.getKind() == kind::CONST_BOOLEAN) {
+            bool value = eqRewritten.getConst<bool>();
+            if (value) {
+              // select(store(a,i,v),i) = v
+              return RewriteResponse(REWRITE_DONE, store[2]);
+            }
+            else {
+              // select(store(a,i,v),j) = select(a,j) if i /= j
+              Node newNode = NodeManager::currentNM()->mkNode(kind::SELECT, store[0], node[1]);
+              return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
+            }
+          }
         }
         break;
       }
@@ -53,11 +64,25 @@ public:
             value[1] == node[1]) {
           return RewriteResponse(REWRITE_DONE, store);
         }
-        // store(store(a,i,v),i,w) = store(a,i,w)
-        if (store.getKind() == kind::STORE &&
-            store[1] == node[1]) {
-          Node newNode = NodeManager::currentNM()->mkNode(kind::STORE, store[0], store[1], value);
-          return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
+        if (store.getKind() == kind::STORE) {
+          // store(store(a,i,v),j,w)
+          Node eqRewritten = Rewriter::rewrite(store[1].eqNode(node[1]));
+          if (eqRewritten.getKind() == kind::CONST_BOOLEAN) {
+            bool val = eqRewritten.getConst<bool>();
+            NodeManager* nm = NodeManager::currentNM();
+            if (val) {
+              // store(store(a,i,v),i,w) = store(a,i,w)
+              Node newNode = nm->mkNode(kind::STORE, store[0], store[1], value);
+              return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
+            }
+            else if (node[1] < store[1]) {
+              // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
+              //    IF i != j and j comes before i in the ordering
+              Node newNode = nm->mkNode(kind::STORE, store[0], node[1], value);
+              newNode = nm->mkNode(kind::STORE, newNode, store[1], store[2]);
+              return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
+            }
+          }
         }
         break;
       }

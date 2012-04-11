@@ -44,6 +44,9 @@ std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newL
   logicMap["QF_UFLIRA"] = QF_UFLIRA;
   logicMap["QF_UFNIA"] = QF_UFNIA;
   logicMap["QF_UFNIRA"] = QF_UFNIRA;
+  logicMap["QF_ABV"] = QF_ABV;
+  logicMap["QF_AUFBV"] = QF_AUFBV;
+  logicMap["QF_UFNIRA"] = QF_UFNIRA;
   logicMap["QF_AUFLIA"] = QF_AUFLIA;
   logicMap["QF_AUFLIRA"] = QF_AUFLIRA;
   return logicMap;
@@ -188,6 +191,17 @@ void Smt::setLogic(const std::string& name) {
     addTheory(THEORY_BITVECTORS);
     break;
 
+  case QF_ABV:
+    addTheory(THEORY_ARRAYS_EX);
+    addTheory(THEORY_BITVECTORS);
+    break;
+
+  case QF_AUFBV:
+    addUf();
+    addTheory(THEORY_ARRAYS_EX);
+    addTheory(THEORY_BITVECTORS);
+    break;
+
   case QF_AUFLIA:
     addTheory(THEORY_ARRAYS_EX);
     addUf();
@@ -206,7 +220,6 @@ void Smt::setLogic(const std::string& name) {
   case AUFNIRA:
   case LRA:
   case UFNIA:
-  case QF_AUFBV:
     Unhandled(name);
   }
 }

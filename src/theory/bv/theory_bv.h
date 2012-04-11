@@ -27,6 +27,8 @@
 #include "context/cdhashset.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/stats.h"
+#include "theory/uf/equality_engine.h"
+#include "context/cdqueue.h"
 
 namespace BVMinisat {
 class SimpSolver; 
@@ -39,6 +41,12 @@ namespace bv {
 
 /// forward declarations 
 class Bitblaster;
+
+static inline std::string spaces(int level)
+{
+  std::string indentStr(level, ' ');
+  return indentStr;
+}
 
 class TheoryBV : public Theory {
 
@@ -54,11 +62,11 @@ private:
   /** Bitblaster */
   Bitblaster* d_bitblaster; 
   Node d_true;
-
+  Node d_false;
+    
   /** Context dependent set of atoms we already propagated */
   context::CDHashSet<TNode, TNodeHashFunction> d_alreadyPropagatedSet;
 
-  bool hasBeenPropagated(TNode node); 
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
@@ -69,8 +77,6 @@ public:
   //void registerTerm(TNode n) { }
 
   void check(Effort e);
-
-  void propagate(Effort e);
 
   Node explain(TNode n);
 
@@ -92,6 +98,61 @@ private:
   }; 
   
   Statistics d_statistics;
+  
+  // Added by Clark
+  // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
+  class NotifyClass {
+    TheoryBV& d_bv;
+  public:
+    NotifyClass(TheoryBV& uf): d_bv(uf) {}
+
+    bool notify(TNode propagation) {
+      Debug("bitvector") << spaces(d_bv.getContext()->getLevel()) << "NotifyClass::notify(" << propagation << ")" << std::endl;
+      // Just forward to bv
+      return d_bv.propagate(propagation);
+    }
+
+    void notify(TNode t1, TNode t2) {
+      Debug("arrays") << spaces(d_bv.getContext()->getLevel()) << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
+      // Propagate equality between shared terms
+      Node equality = Rewriter::rewriteEquality(theory::THEORY_UF, t1.eqNode(t2));
+      d_bv.propagate(t1.eqNode(t2));
+    }
+  };
+
+  /** The notify class for d_equalityEngine */
+  NotifyClass d_notify;
+
+  /** Equaltity engine */
+  uf::EqualityEngine<NotifyClass> d_equalityEngine;
+
+  // Are we in conflict?
+  context::CDO<bool> d_conflict;
+
+  /** The conflict node */
+  Node d_conflictNode;
+
+  /** Literals to propagate */
+  context::CDList<Node> d_literalsToPropagate;
+
+  /** Index of the next literal to propagate */
+  context::CDO<unsigned> d_literalsToPropagateIndex;
+
+  context::CDQueue<Node> d_toBitBlast;
+
+  /** Should be called to propagate the literal.  */
+  bool propagate(TNode literal);
+
+  /** Explain why this literal is true by adding assumptions */
+  void explain(TNode literal, std::vector<TNode>& assumptions);
+
+  void addSharedTerm(TNode t);
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+
+public:
+
+  void propagate(Effort e);
   
 };/* class TheoryBV */
 

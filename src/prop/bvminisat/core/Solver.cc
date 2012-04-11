@@ -153,7 +153,10 @@ Var Solver::newVar(bool sign, bool dvar)
 
 bool Solver::addClause_(vec<Lit>& ps)
 {
-    assert(decisionLevel() == 0);
+  if (decisionLevel() > 0) {
+    cancelUntil(0);
+  }
+    
     if (!ok) return false;
 
     // Check if clause is satisfied and remove false/duplicate literals:
@@ -500,6 +503,7 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
     only_bcp = true;
     ccmin_mode = 0; 
     lbool result = search(-1, UIP_FIRST);
+    return result; 
   } else {
     return l_True;
   }
@@ -842,14 +846,7 @@ lbool Solver::solve_()
     model.clear();
     conflict.clear();
 
-    ccmin_mode = 2;
-
-    // reduce the database
-    reduceDB();
-
-    // this is a new search, reset the parameters
-    restart_first = opt_restart_first;
-    restart_inc = opt_restart_inc;
+    ccmin_mode = 0;
     
     if (!ok) return l_False;
 

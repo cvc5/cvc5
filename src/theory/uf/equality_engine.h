@@ -558,6 +558,11 @@ private:
   /** The false node */
   Node d_false;
 
+  /**
+   * Adds an equality of terms t1 and t2 to the database.
+   */
+  void addEqualityInternal(TNode t1, TNode t2, TNode reason);
+
 public:
 
   /**
@@ -615,6 +620,11 @@ public:
    * Check whether the node is already in the database.
    */
   bool hasTerm(TNode t) const;
+
+  /**
+   * Adds aa predicate t with given polarity
+   */
+  void addPredicate(TNode t, bool polarity, TNode reason);
 
   /**
    * Adds an equality t1 = t2 to the database.
@@ -693,6 +703,13 @@ public:
    * Check whether the two term are dis-equal.
    */
   bool areDisequal(TNode t1, TNode t2);
+
+  /**
+   * Return the number of nodes in the equivalence class contianing t
+   * Adds t if not already there.
+   */
+  size_t getSize(TNode t);
+
 };
 
 } // Namespace uf

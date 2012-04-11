@@ -30,6 +30,7 @@ public:
   T1 first;
   T2 second;
   T3 third;
+  triple() {}
   triple(const T1& t1, const T2& t2, const T3& t3) :
     first(t1),
     second(t2),
@@ -50,6 +51,7 @@ public:
   T2 second;
   T3 third;
   T4 fourth;
+  quad() {}
   quad(const T1& t1, const T2& t2, const T3& t3, const T4& t4) :
     first(t1),
     second(t2),

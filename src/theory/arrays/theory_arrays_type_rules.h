@@ -65,6 +65,32 @@ struct ArrayStoreTypeRule {
   }
 };/* struct ArrayStoreTypeRule */
 
+struct ArrayTableFunTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::ARR_TABLE_FUN);
+    TypeNode arrayType = n[0].getType(check);
+    if( check ) {
+      if(!arrayType.isArray()) {
+        throw TypeCheckingExceptionPrivate(n, "array table fun arg 0 is non-array");
+      }
+      TypeNode arrType2 = n[1].getType(check);
+      if(!arrayType.isArray()) {
+        throw TypeCheckingExceptionPrivate(n, "array table fun arg 1 is non-array");
+      }
+      TypeNode indexType = n[2].getType(check);
+      if(arrayType.getArrayIndexType() != indexType) {
+        throw TypeCheckingExceptionPrivate(n, "array table fun arg 2 does not match type of array");
+      }
+      indexType = n[3].getType(check);
+      if(arrayType.getArrayIndexType() != indexType) {
+        throw TypeCheckingExceptionPrivate(n, "array table fun arg 3 does not match type of array");
+      }
+    }
+    return arrayType.getArrayIndexType();
+  }
+};/* struct ArrayStoreTypeRule */
+
 struct CardinalityComputer {
   inline static Cardinality computeCardinality(TypeNode type) {
     Assert(type.getKind() == kind::ARRAY_TYPE);

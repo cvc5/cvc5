@@ -1013,6 +1013,8 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
 
+  d_smt.d_propEngine->processAssertionsStart();
+
   // Push the formula to SAT
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
     d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);

@@ -281,7 +281,7 @@ public:
       id = kindToTheoryId(typeNode.getKind());
     }
     if (id == THEORY_BUILTIN) {
-      Trace("theory") << "theoryOf(" << typeNode << ") == " << s_uninterpretedSortOwner << std::endl;
+      Trace("theory::internal") << "theoryOf(" << typeNode << ") == " << s_uninterpretedSortOwner << std::endl;
       return s_uninterpretedSortOwner;
     }
     return id;
@@ -637,7 +637,7 @@ public:
 
   /** a - b  */
   static inline Set setDifference(Set a, Set b) {
-    return ((~b) & AllTheories) & a;
+    return (~b) & a;
   }
 
   static inline std::string setToString(theory::Theory::Set theorySet) {

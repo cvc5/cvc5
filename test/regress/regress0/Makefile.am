@@ -1,4 +1,4 @@
-SUBDIRS = . arith precedence uf uflra uflia bv arrays datatypes lemmas push-pop preprocess
+SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv datatypes lemmas push-pop preprocess
 
 BINARY = cvc4
 if PROOF_REGRESSIONS

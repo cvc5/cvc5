@@ -139,6 +139,20 @@ void ArrayInfo::addInStore(const TNode a, const TNode b){
 };
 
 
+void ArrayInfo::setNonLinear(const TNode a) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->isNonLinear = true;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->isNonLinear = true;
+  }
+  
+}
+
 
 /**
  * Returns the information associated with TNode a
@@ -150,6 +164,15 @@ const Info* ArrayInfo::getInfo(const TNode a) const{
   if(it!= info_map.end())
       return (*it).second;
   return emptyInfo;
+}
+
+const bool ArrayInfo::isNonLinear(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end())
+      return (*it).second->isNonLinear;
+  return false;
 }
 
 List<TNode>* ArrayInfo::getIndices(const TNode a) const{

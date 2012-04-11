@@ -882,7 +882,7 @@ if test $cvc4_has_threads = maybe; then
   LDFLAGS="$cvc4_save_LDFLAGS"
 fi
 if test $cvc4_has_threads = no; then
-  if test $with_portfolio = yes; then
+  if test x$with_portfolio = xyes; then
     AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
   fi
   with_portfolio=no

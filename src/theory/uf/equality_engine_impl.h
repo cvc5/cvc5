@@ -188,9 +188,9 @@ const EqualityNode& EqualityEngine<NotifyClass>::getEqualityNode(EqualityNodeId 
 }
 
 template <typename NotifyClass>
-void EqualityEngine<NotifyClass>::addEquality(TNode t1, TNode t2, TNode reason) {
+void EqualityEngine<NotifyClass>::addEqualityInternal(TNode t1, TNode t2, TNode reason) {
 
-  Debug("equality") << "EqualityEngine::addEquality(" << t1 << "," << t2 << ")" << std::endl;
+  Debug("equality") << "EqualityEngine::addEqualityInternal(" << t1 << "," << t2 << ")" << std::endl;
 
   // Add the terms if they are not already in the database
   addTerm(t1);
@@ -200,7 +200,27 @@ void EqualityEngine<NotifyClass>::addEquality(TNode t1, TNode t2, TNode reason) 
   EqualityNodeId t1Id = getNodeId(t1);
   EqualityNodeId t2Id = getNodeId(t2);
   enqueue(MergeCandidate(t1Id, t2Id, MERGED_THROUGH_EQUALITY, reason));
+
   propagate();
+}
+
+template <typename NotifyClass>
+void EqualityEngine<NotifyClass>::addPredicate(TNode t, bool polarity, TNode reason) {
+
+  Debug("equality") << "EqualityEngine::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
+
+  addEqualityInternal(t, polarity ? d_true : d_false, reason);
+}
+
+template <typename NotifyClass>
+void EqualityEngine<NotifyClass>::addEquality(TNode t1, TNode t2, TNode reason) {
+
+  Debug("equality") << "EqualityEngine::addEquality(" << t1 << "," << t2 << ")" << std::endl;
+
+  addEqualityInternal(t1, t2, reason);
+
+  Node equality = t1.eqNode(t2);
+  addEqualityInternal(equality, d_true, reason);
 }
 
 template <typename NotifyClass>
@@ -209,10 +229,10 @@ void EqualityEngine<NotifyClass>::addDisequality(TNode t1, TNode t2, TNode reaso
   Debug("equality") << "EqualityEngine::addDisequality(" << t1 << "," << t2 << ")" << std::endl;
 
   Node equality1 = t1.eqNode(t2);
-  addEquality(equality1, d_false, reason);
-
+  addEqualityInternal(equality1, d_false, reason);
+ 
   Node equality2 = t2.eqNode(t1);
-  addEquality(equality2, d_false, reason);
+  addEqualityInternal(equality2, d_false, reason);
 }
 
 
@@ -516,9 +536,6 @@ void EqualityEngine<NotifyClass>::explainEquality(TNode t1, TNode t2, std::vecto
   // Don't notify during this check
   ScopedBool turnOfNotify(d_performNotify, false);
 
-  // Push the context, so that we can remove the terms later
-  d_context->push();
-
   // Add the terms (they might not be there)
   addTerm(t1);
   addTerm(t2);
@@ -537,8 +554,6 @@ void EqualityEngine<NotifyClass>::explainEquality(TNode t1, TNode t2, std::vecto
   EqualityNodeId t2Id = getNodeId(t2);
   getExplanation(t1Id, t2Id, equalities);
 
-  // Pop the possible extra information
-  d_context->pop();
 }
 
 template <typename NotifyClass>
@@ -547,9 +562,6 @@ void EqualityEngine<NotifyClass>::explainDisequality(TNode t1, TNode t2, std::ve
 
   // Don't notify during this check
   ScopedBool turnOfNotify(d_performNotify, false);
-
-  // Push the context, so that we can remove the terms later
-  d_context->push();
 
   // Add the terms
   addTerm(t1);
@@ -573,8 +585,6 @@ void EqualityEngine<NotifyClass>::explainDisequality(TNode t1, TNode t2, std::ve
   EqualityNodeId falseId = getNodeId(d_false);
   getExplanation(equalityId, falseId, equalities);
 
-  // Pop the possible extra information
-  d_context->pop();
 }
 
 
@@ -722,6 +732,10 @@ void EqualityEngine<NotifyClass>::addTriggerEquality(TNode t1, TNode t2, TNode t
     }
   }
 
+  if (Debug.isOn("equality::internal")) {
+    debugPrintGraph();
+  }
+
   Debug("equality") << "EqualityEngine::addTrigger(" << t1 << "," << t2 << ") => (" << t1NewTriggerId << ", " << t2NewTriggerId << ")" << std::endl;
 }
 
@@ -809,16 +823,10 @@ bool EqualityEngine<NotifyClass>::areEqual(TNode t1, TNode t2)
   // Don't notify during this check
   ScopedBool turnOfNotify(d_performNotify, false);
 
-  // Push the context, so that we can remove the terms later
-  d_context->push();
-
   // Add the terms
   addTerm(t1);
   addTerm(t2);
   bool equal = getEqualityNode(t1).getFind() == getEqualityNode(t2).getFind();
-
-  // Pop the context (triggers new term removal)
-  d_context->pop();
 
   // Return whether the two terms are equal
   return equal;
@@ -830,9 +838,6 @@ bool EqualityEngine<NotifyClass>::areDisequal(TNode t1, TNode t2)
   // Don't notify during this check
   ScopedBool turnOfNotify(d_performNotify, false);
 
-  // Push the context, so that we can remove the terms later
-  d_context->push();
-
   // Add the terms
   addTerm(t1);
   addTerm(t2);
@@ -841,15 +846,19 @@ bool EqualityEngine<NotifyClass>::areDisequal(TNode t1, TNode t2)
   Node equality = t1.eqNode(t2);
   addTerm(equality);
   if (getEqualityNode(equality).getFind() == getEqualityNode(d_false).getFind()) {
-    d_context->pop();
     return true;
   }
 
-  // Pop the context (triggers new term removal)
-  d_context->pop();
-
   // Return whether the terms are disequal
   return false;
+}
+
+template <typename NotifyClass>
+size_t EqualityEngine<NotifyClass>::getSize(TNode t)
+{
+  // Add the term
+  addTerm(t);
+  return getEqualityNode(getEqualityNode(t).getFind()).getSize();
 }
 
 template <typename NotifyClass>

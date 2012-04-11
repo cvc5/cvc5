@@ -338,7 +338,7 @@ void UndefinedTermBBStrategy(TNode node, Bits& bits, Bitblaster* bb) {
 }
 
 void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
-  Assert (node.getKind() == kind::VARIABLE);
+  //  Assert (node.getKind() == kind::VARIABLE);
   Assert(bits.size() == 0);
   
   for (unsigned i = 0; i < utils::getSize(node); ++i) {

@@ -170,6 +170,11 @@ public:
   void shutdown() { }
 
   /**
+   * Signal that a new round of assertions is ready so we can notify the theory engine
+   */
+  void processAssertionsStart();
+
+  /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert

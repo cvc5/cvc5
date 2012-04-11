@@ -866,6 +866,9 @@ Node RewriteRule<UremPow2>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<UremPow2>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned power = utils::isPow2Const(node[1]) - 1;
+  if (power == 0) {
+    return utils::mkConst(utils::getSize(node), 0);
+  }
   Node extract = utils::mkExtract(a, power - 1, 0);
   Node zeros = utils::mkConst(utils::getSize(node) - power, 0);
   return utils::mkNode(kind::BITVECTOR_CONCAT, zeros, extract); 

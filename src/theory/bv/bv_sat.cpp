@@ -83,6 +83,9 @@ void Bitblaster::bbAtom(TNode node) {
     return; 
   }
 
+  // make sure it is marked as an atom
+  addAtom(node); 
+
   BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   ++d_statistics.d_numAtoms;
   // the bitblasted definition of the atom
@@ -298,12 +301,14 @@ void Bitblaster::initAtomBBStrategies() {
 }
 
 void Bitblaster::initTermBBStrategies() {
+  // Changed this to DefaultVarBB because any foreign kind should be treated as a variable
+  // TODO: check this is OK
   for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
-    d_termBBStrategies[i] = UndefinedTermBBStrategy; 
+    d_termBBStrategies[i] = DefaultVarBB;
   }
   
   /// setting default bb strategies for terms:
-  d_termBBStrategies [ kind::VARIABLE ]               = DefaultVarBB;
+  //  d_termBBStrategies [ kind::VARIABLE ]               = DefaultVarBB;
   d_termBBStrategies [ kind::CONST_BITVECTOR ]        = DefaultConstBB;
   d_termBBStrategies [ kind::BITVECTOR_NOT ]          = DefaultNotBB;
   d_termBBStrategies [ kind::BITVECTOR_CONCAT ]       = DefaultConcatBB;

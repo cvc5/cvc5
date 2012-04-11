@@ -188,12 +188,20 @@ public:
   
   BitVector unsignedDiv (const BitVector& y) const {
     Assert (d_size == y.d_size);
+    // TODO: decide whether we really want these semantics
+    if (y.d_value == 0) {
+      return BitVector(d_size, Integer(0));
+    }
     Assert (d_value >= 0 && y.d_value > 0); 
     return BitVector(d_size, d_value.floorDivideQuotient(y.d_value)); 
   }
 
   BitVector unsignedRem(const BitVector& y) const {
     Assert (d_size == y.d_size);
+    // TODO: decide whether we really want these semantics
+    if (y.d_value == 0) {
+      return BitVector(d_size, Integer(0));
+    }
     Assert (d_value >= 0 && y.d_value > 0); 
     return BitVector(d_size, d_value.floorDivideRemainder(y.d_value)); 
   }

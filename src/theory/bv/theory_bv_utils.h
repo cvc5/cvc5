@@ -344,6 +344,29 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
 }
 
 
+inline Node mkAnd(const std::vector<TNode>& conjunctions) {
+  Assert(conjunctions.size() > 0);
+
+  std::set<TNode> all;
+  all.insert(conjunctions.begin(), conjunctions.end());
+
+  if (all.size() == 1) {
+    // All the same, or just one
+    return conjunctions[0];
+  }
+
+  NodeBuilder<> conjunction(kind::AND);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}/* mkAnd() */
+
+
 // Turn a set into a string
 inline std::string setToString(const std::set<TNode>& nodeSet) {
   std::stringstream out;
