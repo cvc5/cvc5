@@ -34,12 +34,13 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC SExpr {
 
-  enum {
+  enum SexprTypes {
     SEXPR_STRING,
     SEXPR_INTEGER,
     SEXPR_RATIONAL,
     SEXPR_NOT_ATOM
-  } d_atomType;
+  } d_sexprType;
+  friend std::ostream &operator<<(std::ostream&, SexprTypes);
 
   /** The value of an atomic integer-valued S-expression. */
   Integer d_integerValue;
@@ -55,7 +56,7 @@ class CVC4_PUBLIC SExpr {
 
 public:
   SExpr() :
-    d_atomType(SEXPR_STRING),
+    d_sexprType(SEXPR_STRING),
     d_integerValue(0),
     d_rationalValue(0),
     d_stringValue(""),
@@ -63,7 +64,7 @@ public:
   }
 
   SExpr(const Integer& value) :
-    d_atomType(SEXPR_INTEGER),
+    d_sexprType(SEXPR_INTEGER),
     d_integerValue(value),
     d_rationalValue(0),
     d_stringValue(""),
@@ -71,7 +72,7 @@ public:
   }
 
   SExpr(const Rational& value) :
-    d_atomType(SEXPR_RATIONAL),
+    d_sexprType(SEXPR_RATIONAL),
     d_integerValue(0),
     d_rationalValue(value),
     d_stringValue(""),
@@ -79,7 +80,7 @@ public:
   }
 
   SExpr(const std::string& value) :
-    d_atomType(SEXPR_STRING),
+    d_sexprType(SEXPR_STRING),
     d_integerValue(0),
     d_rationalValue(0),
     d_stringValue(value),
@@ -87,7 +88,7 @@ public:
   }
 
   SExpr(const std::vector<SExpr> children) :
-    d_atomType(SEXPR_NOT_ATOM),
+    d_sexprType(SEXPR_NOT_ATOM),
     d_integerValue(0),
     d_rationalValue(0),
     d_stringValue(""),
@@ -132,25 +133,46 @@ public:
 
 };/* class SExpr */
 
+inline std::ostream &operator<<(std::ostream& out, SExpr::SexprTypes type){
+ switch(type){
+ case SExpr::SEXPR_STRING:
+   out << "SEXPR_STRING";
+   break;
+ case SExpr::SEXPR_INTEGER:
+   out << "SEXPR_INTEGER";
+   break;
+ case SExpr::SEXPR_RATIONAL:
+   out << "SEXPR_RATIONAL";
+   break;
+ case SExpr::SEXPR_NOT_ATOM:
+   out << "SEXPR_NOT_ATOM";
+   break;
+ default:
+   Unimplemented();
+   break;
+ }
+ return out;
+}
+
 inline bool SExpr::isAtom() const {
-  return d_atomType != SEXPR_NOT_ATOM;
+  return d_sexprType != SEXPR_NOT_ATOM;
 }
 
 inline bool SExpr::isInteger() const {
-  return d_atomType == SEXPR_INTEGER;
+  return d_sexprType == SEXPR_INTEGER;
 }
 
 inline bool SExpr::isRational() const {
-  return d_atomType == SEXPR_RATIONAL;
+  return d_sexprType == SEXPR_RATIONAL;
 }
 
 inline bool SExpr::isString() const {
-  return d_atomType == SEXPR_STRING;
+  return d_sexprType == SEXPR_STRING;
 }
 
 inline const std::string SExpr::getValue() const {
   AlwaysAssert( isAtom() );
-  switch(d_atomType) {
+  switch(d_sexprType) {
   case SEXPR_INTEGER:
     return d_integerValue.toString();
   case SEXPR_RATIONAL:
@@ -158,7 +180,7 @@ inline const std::string SExpr::getValue() const {
   case SEXPR_STRING:
     return d_stringValue;
   default:
-    Unhandled(d_atomType);
+    Unhandled(d_sexprType);
   }
   return d_stringValue;
 }
