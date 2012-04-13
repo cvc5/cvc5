@@ -24,6 +24,8 @@
 #include <vector>
 #include <string>
 
+#include "util/integer.h"
+#include "util/rational.h"
 #include "util/Assert.h"
 
 namespace CVC4 {
@@ -43,10 +45,10 @@ class CVC4_PUBLIC SExpr {
   friend std::ostream &operator<<(std::ostream&, SexprTypes);
 
   /** The value of an atomic integer-valued S-expression. */
-  Integer d_integerValue;
+  CVC4::Integer d_integerValue;
 
   /** The value of an atomic rational-valued S-expression. */
-  Rational d_rationalValue;
+  CVC4::Rational d_rationalValue;
 
   /** The value of an atomic S-expression. */
   std::string d_stringValue;
@@ -63,7 +65,7 @@ public:
     d_children() {
   }
 
-  SExpr(const Integer& value) :
+  SExpr(const CVC4::Integer& value) :
     d_sexprType(SEXPR_INTEGER),
     d_integerValue(value),
     d_rationalValue(0),
@@ -71,7 +73,7 @@ public:
     d_children() {
   }
 
-  SExpr(const Rational& value) :
+  SExpr(const CVC4::Rational& value) :
     d_sexprType(SEXPR_RATIONAL),
     d_integerValue(0),
     d_rationalValue(value),
@@ -117,13 +119,13 @@ public:
    * Get the integer value of this S-expression. This will cause an
    * error if this S-expression is not an integer.
    */
-  const Integer& getIntegerValue() const;
+  const CVC4::Integer& getIntegerValue() const;
 
   /**
    * Get the rational value of this S-expression. This will cause an
    * error if this S-expression is not a rational.
    */
-  const Rational& getRationalValue() const;
+  const CVC4::Rational& getRationalValue() const;
 
   /**
    * Get the children of this S-expression. This will cause an error
@@ -185,12 +187,12 @@ inline const std::string SExpr::getValue() const {
   return d_stringValue;
 }
 
-inline const Integer& SExpr::getIntegerValue() const {
+inline const CVC4::Integer& SExpr::getIntegerValue() const {
   AlwaysAssert( isInteger() );
   return d_integerValue;
 }
 
-inline const Rational& SExpr::getRationalValue() const {
+inline const CVC4::Rational& SExpr::getRationalValue() const {
   AlwaysAssert( isRational() );
   return d_rationalValue;
 }
