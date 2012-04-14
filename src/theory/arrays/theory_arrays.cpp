@@ -545,6 +545,9 @@ void TheoryArrays::computeCareGraph()
     context::CDHashMap<TNode, bool, TNodeHashFunction>::iterator it1 = d_sharedArrays.begin(), it2, iend = d_sharedArrays.end();
     for (; it1 != iend; ++it1) {
       for (it2 = it1, ++it2; it2 != iend; ++it2) {
+        if ((*it1).first.getType() != (*it2).first.getType()) {
+          continue;
+        }
         EqualityStatus eqStatusArr = getEqualityStatus((*it1).first, (*it2).first);
         if (eqStatusArr != EQUALITY_UNKNOWN) {
           continue;
@@ -578,8 +581,9 @@ void TheoryArrays::computeCareGraph()
 
         if (r1[0] != r2[0]) {
           // If arrays are known to be disequal, or cannot become equal, we can continue
-          if (d_equalityEngine.areDisequal(r1[0], r2[0]) ||
-              (!d_mayEqualEqualityEngine.areEqual(r1[0], r2[0]))) {
+          if (r1[0].getType() != r2[0].getType() ||
+              (!d_mayEqualEqualityEngine.areEqual(r1[0], r2[0])) ||
+              d_equalityEngine.areDisequal(r1[0], r2[0])) {
             Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): arrays can't be equal, skipping" << std::endl;
             continue;
           }
