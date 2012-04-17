@@ -80,9 +80,13 @@ public:
     d_iter = d_iter + 1;
   }
 
-  const T& operator[](size_t index){
+  const T& operator[](size_t index) const{
     Assert(index < d_list.size());
     return d_list[index];
+  }
+
+  size_t size() const{
+    return d_list.size();
   }
 
 };/* class CDTrailQueue<> */

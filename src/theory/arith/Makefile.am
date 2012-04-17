@@ -12,11 +12,10 @@ libarith_la_SOURCES = \
 	arith_rewriter.cpp \
 	arith_static_learner.h \
 	arith_static_learner.cpp \
-	arith_prop_manager.h \
-	arith_prop_manager.cpp \
 	arithvar_node_map.h \
-	atom_database.h \
-	atom_database.cpp \
+	constraint_forward.h \
+	constraint.h \
+	constraint.cpp \
 	difference_manager.h \
 	difference_manager.cpp \
 	normal_form.h\
@@ -28,7 +27,6 @@ libarith_la_SOURCES = \
 	partial_model.cpp \
 	linear_equality.h \
 	linear_equality.cpp \
-	ordered_set.h \
 	arithvar_set.h \
 	tableau.h \
 	tableau.cpp \

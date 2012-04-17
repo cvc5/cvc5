@@ -19,16 +19,18 @@
 
 #include "cvc4_private.h"
 
-#include "context/context.h"
-#include "context/cdvector.h"
-#include "theory/arith/arithvar.h"
-#include "theory/arith/delta_rational.h"
-#include "expr/attribute.h"
 #include "expr/node.h"
 
-#include "theory/arith/difference_manager.h"
+#include "context/context.h"
+#include "context/cdvector.h"
+#include "context/cdo.h"
 
-#include <deque>
+#include "theory/arith/arithvar.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/constraint_forward.h"
+
+
+#include <vector>
 
 #ifndef __CVC4__THEORY__ARITH__PARTIAL_MODEL_H
 #define __CVC4__THEORY__ARITH__PARTIAL_MODEL_H
@@ -41,19 +43,14 @@ class ArithPartialModel {
 private:
 
   unsigned d_mapSize;
+
   //Maps from ArithVar -> T
-
-  std::vector<bool> d_hasHadABound;
-
   std::vector<bool> d_hasSafeAssignment;
   std::vector<DeltaRational> d_assignment;
   std::vector<DeltaRational> d_safeAssignment;
 
-  context::CDVector<DeltaRational> d_upperBound;
-  context::CDVector<DeltaRational> d_lowerBound;
-  context::CDVector<Node> d_upperConstraint;
-  context::CDVector<Node> d_lowerConstraint;
-
+  context::CDVector<Constraint> d_ubc;
+  context::CDVector<Constraint> d_lbc;
 
   bool d_deltaIsSafe;
   Rational d_delta;
@@ -64,30 +61,20 @@ private:
   typedef std::vector<ArithVar> HistoryList;
   HistoryList d_history;
 
-  DifferenceManager& d_dm;
 
 public:
 
-  ArithPartialModel(context::Context* c, DifferenceManager& dm):
-    d_mapSize(0),
-    d_hasHadABound(),
-    d_hasSafeAssignment(),
-    d_assignment(),
-    d_safeAssignment(),
-    d_upperBound(c),
-    d_lowerBound(c),
-    d_upperConstraint(c),
-    d_lowerConstraint(c),
-    d_deltaIsSafe(false),
-    d_delta(-1,1),
-    d_history(),
-    d_dm(dm)
-  { }
+  ArithPartialModel(context::Context* c);
 
-  void setLowerConstraint(ArithVar x, TNode constraint);
-  void setUpperConstraint(ArithVar x, TNode constraint);
-  TNode getLowerConstraint(ArithVar x);
-  TNode getUpperConstraint(ArithVar x);
+  void setLowerBoundConstraint(Constraint lb);
+  void setUpperBoundConstraint(Constraint ub);
+
+  inline Constraint getUpperBoundConstraint(ArithVar x) const{
+    return d_ubc[x];
+  }
+  inline Constraint getLowerBoundConstraint(ArithVar x) const{
+    return d_lbc[x];
+  }
 
 
   /* Initializes a variable to a safe value.*/
@@ -112,14 +99,7 @@ public:
     return hasUpperBound(x) && getUpperBound(x).sgn() == 0;
   }
 
-private:
-  void zeroDifferenceDetected(ArithVar x);
-
-public:
-  bool boundsAreEqual(ArithVar x);
-
-  void setUpperBound(ArithVar x, const DeltaRational& r);
-  void setLowerBound(ArithVar x, const DeltaRational& r);
+  bool boundsAreEqual(ArithVar x) const;
 
   /* Sets an unsafe variable assignment */
   void setAssignment(ArithVar x, const DeltaRational& r);
@@ -127,8 +107,8 @@ public:
 
 
   /** Must know that the bound exists before calling this! */
-  const DeltaRational& getUpperBound(ArithVar x);
-  const DeltaRational& getLowerBound(ArithVar x);
+  const DeltaRational& getUpperBound(ArithVar x) const;
+  const DeltaRational& getLowerBound(ArithVar x) const;
   const DeltaRational& getAssignment(ArithVar x) const;
 
 
@@ -141,61 +121,60 @@ public:
    * If lowerbound = - \infty:
    *   return 1
    */
-  int cmpToLowerBound(ArithVar x, const DeltaRational& c);
+  int cmpToLowerBound(ArithVar x, const DeltaRational& c) const;
 
-  inline bool strictlyLessThanLowerBound(ArithVar x, const DeltaRational& c){
+  inline bool strictlyLessThanLowerBound(ArithVar x, const DeltaRational& c) const{
     return cmpToLowerBound(x, c) < 0;
   }
-  inline bool lessThanLowerBound(ArithVar x, const DeltaRational& c){
+  inline bool lessThanLowerBound(ArithVar x, const DeltaRational& c) const{
     return cmpToLowerBound(x, c) <= 0;
   }
 
-  inline bool strictlyGreaterThanLowerBound(ArithVar x, const DeltaRational& c){
+  inline bool strictlyGreaterThanLowerBound(ArithVar x, const DeltaRational& c) const{
     return cmpToLowerBound(x, c) > 0;
   }
 
+  inline bool greaterThanLowerBound(ArithVar x, const DeltaRational& c) const{
+    return cmpToLowerBound(x, c) >= 0;
+  }
   /**
    * If upperbound < \infty:
    *   return getAssignment(x).cmp(getUpperBound(x))
    * If upperbound = \infty:
    *   return -1
    */
-  int cmpToUpperBound(ArithVar x, const DeltaRational& c);
+  int cmpToUpperBound(ArithVar x, const DeltaRational& c) const;
 
-  inline bool strictlyLessThanUpperBound(ArithVar x, const DeltaRational& c){
+  inline bool strictlyLessThanUpperBound(ArithVar x, const DeltaRational& c) const{
     return cmpToUpperBound(x, c) < 0;
   }
 
-  inline bool lessThanUpperBound(ArithVar x, const DeltaRational& c){
+  inline bool lessThanUpperBound(ArithVar x, const DeltaRational& c) const{
     return cmpToUpperBound(x, c) <= 0;
   }
 
-  inline bool strictlyGreaterThanUpperBound(ArithVar x, const DeltaRational& c){
+  inline bool strictlyGreaterThanUpperBound(ArithVar x, const DeltaRational& c) const{
     return cmpToUpperBound(x, c) > 0;
   }
 
-  inline bool greaterThanUpperBound(ArithVar x, const DeltaRational& c){
+  inline bool greaterThanUpperBound(ArithVar x, const DeltaRational& c) const{
     return cmpToUpperBound(x, c) >= 0;
   }
 
 
-  bool strictlyBelowUpperBound(ArithVar x);
-  bool strictlyAboveLowerBound(ArithVar x);
-  bool assignmentIsConsistent(ArithVar x);
+  bool strictlyBelowUpperBound(ArithVar x) const;
+  bool strictlyAboveLowerBound(ArithVar x) const;
+  bool assignmentIsConsistent(ArithVar x) const;
 
   void printModel(ArithVar x);
 
   /** returns true iff x has both a lower and upper bound. */
-  bool hasEitherBound(ArithVar x);
-  inline bool hasLowerBound(ArithVar x){
-    return !d_lowerConstraint[x].isNull();
+  bool hasEitherBound(ArithVar x) const;
+  inline bool hasLowerBound(ArithVar x) const{
+    return d_lbc[x] != NullConstraint;
   }
-  inline bool hasUpperBound(ArithVar x){
-    return !d_upperConstraint[x].isNull();
-  }
-
-  bool hasEverHadABound(ArithVar var){
-    return d_hasHadABound[var];
+  inline bool hasUpperBound(ArithVar x) const{
+    return d_ubc[x] != NullConstraint;
   }
 
   const Rational& getDelta(){

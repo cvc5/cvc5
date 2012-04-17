@@ -20,6 +20,7 @@
 
 #include "theory/arith/partial_model.h"
 #include "util/output.h"
+#include "theory/arith/constraint.h"
 
 using namespace std;
 
@@ -27,59 +28,23 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+ArithPartialModel::ArithPartialModel(context::Context* c)
+ : d_mapSize(0),
+   d_hasSafeAssignment(),
+   d_assignment(),
+   d_safeAssignment(),
+   d_ubc(c),
+   d_lbc(c),
+   d_deltaIsSafe(false),
+   d_delta(-1,1),
+   d_history()
+{ }
 
-
-bool ArithPartialModel::boundsAreEqual(ArithVar x){
+bool ArithPartialModel::boundsAreEqual(ArithVar x) const{
   if(hasLowerBound(x) && hasUpperBound(x)){
-    return d_upperBound[x] == d_lowerBound[x];
+    return getUpperBound(x) == getLowerBound(x);
   }else{
     return false;
-  }
-}
-
-void ArithPartialModel::zeroDifferenceDetected(ArithVar x){
-  Assert(d_dm.isDifferenceSlack(x));
-  Assert(upperBoundIsZero(x));
-  Assert(lowerBoundIsZero(x));
-
-  Node lb = getLowerConstraint(x);
-  Node ub = getUpperConstraint(x);
-  Node reason = lb != ub ? lb.andNode(ub) : lb;
-  d_dm.differenceIsZero(x, reason);
-}
-
-void ArithPartialModel::setUpperBound(ArithVar x, const DeltaRational& r){
-  d_deltaIsSafe = false;
-
-  Debug("partial_model") << "setUpperBound(" << x << "," << r << ")" << endl;
-  d_hasHadABound[x] = true;
-  d_upperBound.set(x,r);
-
-  if(d_dm.isDifferenceSlack(x)){
-    int sgn = r.sgn();
-    if(sgn < 0){
-      d_dm.differenceCannotBeZero(x, getUpperConstraint(x));
-    }else if(sgn == 0 && lowerBoundIsZero(x)){
-      zeroDifferenceDetected(x);
-    }
-  }
-}
-
-void ArithPartialModel::setLowerBound(ArithVar x, const DeltaRational& r){
-  d_deltaIsSafe = false;
-
-  Debug("partial_model") << "setLowerBound(" << x << "," << r << ")" << endl;
-  d_hasHadABound[x] = true;
-  d_lowerBound.set(x,r);
-
-
-  if(d_dm.isDifferenceSlack(x)){
-    int sgn = r.sgn();
-    if(sgn > 0){
-      d_dm.differenceCannotBeZero(x, getLowerConstraint(x));
-    }else if(sgn == 0 && upperBoundIsZero(x)){
-      zeroDifferenceDetected(x);
-    }
   }
 }
 
@@ -114,14 +79,12 @@ void ArithPartialModel::setAssignment(ArithVar x, const DeltaRational& safe, con
 }
 
 bool ArithPartialModel::equalSizes(){
-  return d_mapSize == d_hasHadABound.size() &&
+  return
     d_mapSize == d_hasSafeAssignment.size() &&
     d_mapSize == d_assignment.size() &&
     d_mapSize == d_safeAssignment.size() &&
-    d_mapSize == d_upperBound.size() &&
-    d_mapSize == d_lowerBound.size() &&
-    d_mapSize == d_upperConstraint.size() &&
-    d_mapSize == d_lowerConstraint.size();
+    d_mapSize == d_ubc.size() &&
+    d_mapSize == d_lbc.size();
 }
 
 void ArithPartialModel::initialize(ArithVar x, const DeltaRational& r){
@@ -129,33 +92,27 @@ void ArithPartialModel::initialize(ArithVar x, const DeltaRational& r){
   Assert(equalSizes());
   ++d_mapSize;
 
-
-  d_hasHadABound.push_back( false );
-
   d_hasSafeAssignment.push_back( false );
   d_assignment.push_back( r );
   d_safeAssignment.push_back( DeltaRational(0) );
 
-  d_upperBound.push_back( DeltaRational(0) );
-  d_lowerBound.push_back( DeltaRational(0) );
-
-  d_upperConstraint.push_back( TNode::null() );
-  d_lowerConstraint.push_back( TNode::null() );
+  d_ubc.push_back(NullConstraint);
+  d_lbc.push_back(NullConstraint);
 }
 
 /** Must know that the bound exists both calling this! */
-const DeltaRational& ArithPartialModel::getUpperBound(ArithVar x) {
+const DeltaRational& ArithPartialModel::getUpperBound(ArithVar x) const {
   Assert(inMaps(x));
   Assert(hasUpperBound(x));
 
-  return d_upperBound[x];
+  return getUpperBoundConstraint(x)->getValue();
 }
 
-const DeltaRational& ArithPartialModel::getLowerBound(ArithVar x) {
+const DeltaRational& ArithPartialModel::getLowerBound(ArithVar x) const {
   Assert(inMaps(x));
   Assert(hasLowerBound(x));
 
-  return d_lowerBound[x];
+  return getLowerBoundConstraint(x)->getValue();
 }
 
 const DeltaRational& ArithPartialModel::getSafeAssignment(ArithVar x) const{
@@ -182,144 +139,93 @@ const DeltaRational& ArithPartialModel::getAssignment(ArithVar x) const{
 }
 
 
-
-void ArithPartialModel::setLowerConstraint(ArithVar x, TNode constraint){
-  Debug("partial_model") << "setLowerConstraint("
-                         << x << ":" << constraint << ")" << endl;
+void ArithPartialModel::setLowerBoundConstraint(Constraint c){
+  AssertArgument(c != NullConstraint, "Cannot set a lower bound to NullConstraint.");
+  AssertArgument(c->isEquality() || c->isLowerBound(),
+                 "Constraint type must be set to an equality or UpperBound.");
+  ArithVar x = c->getVariable();
+  Debug("partial_model") << "setLowerBoundConstraint(" << x << ":" << c << ")" << endl;
   Assert(inMaps(x));
-  d_lowerConstraint.set(x,constraint);
+  Assert(greaterThanLowerBound(x, c->getValue()));
 
+  d_lbc.set(x, c);
 }
 
-void ArithPartialModel::setUpperConstraint(ArithVar x, TNode constraint){
-  Debug("partial_model") << "setUpperConstraint("
-                         << x << ":" << constraint << ")" << endl;
+void ArithPartialModel::setUpperBoundConstraint(Constraint c){
+  AssertArgument(c != NullConstraint, "Cannot set a upper bound to NullConstraint.");
+  AssertArgument(c->isEquality() || c->isUpperBound(),
+                 "Constraint type must be set to an equality or UpperBound.");
+
+  ArithVar x = c->getVariable();
+  Debug("partial_model") << "setUpperBoundConstraint(" << x << ":" << c << ")" << endl;
   Assert(inMaps(x));
-  d_upperConstraint.set(x, constraint);
+  Assert(lessThanUpperBound(x, c->getValue()));
+
+  d_ubc.set(x, c);
 }
 
-TNode ArithPartialModel::getLowerConstraint(ArithVar x){
-  Assert(inMaps(x));
-  Assert(hasLowerBound(x));
-  return d_lowerConstraint[x];
-}
-
-TNode ArithPartialModel::getUpperConstraint(ArithVar x){
-  Assert(inMaps(x));
-  Assert(hasUpperBound(x));
-  return d_upperConstraint[x];
-}
-
-int ArithPartialModel::cmpToLowerBound(ArithVar x, const DeltaRational& c){
+int ArithPartialModel::cmpToLowerBound(ArithVar x, const DeltaRational& c) const{
   if(!hasLowerBound(x)){
     // l = -\intfy
     // ? c < -\infty |-  _|_
     return 1;
   }else{
-    return c.cmp(d_lowerBound[x]);
+    return c.cmp(getLowerBound(x));
   }
 }
 
-int ArithPartialModel::cmpToUpperBound(ArithVar x, const DeltaRational& c){
+int ArithPartialModel::cmpToUpperBound(ArithVar x, const DeltaRational& c) const{
   if(!hasUpperBound(x)){
     //u = \intfy
     // ? c > \infty |-  _|_
     return -1;
   }else{
-    return c.cmp(d_upperBound[x]);
+    return c.cmp(getUpperBound(x));
   }
 }
-
-// bool ArithPartialModel::belowLowerBound(ArithVar x, const DeltaRational& c, bool strict){
-//   if(!hasLowerBound(x)){
-//     // l = -\intfy
-//     // ? c < -\infty |-  _|_
-//     return false;
-//   }
-//   if(strict){
-//     return c < d_lowerBound[x];
-//   }else{
-//     return c <= d_lowerBound[x];
-//   }
-// }
-
-// bool ArithPartialModel::aboveUpperBound(ArithVar x, const DeltaRational& c, bool strict){
-//   if(!hasUpperBound(x)){
-//     // u = \intfy
-//     // ? c > \infty |-  _|_
-//     return false;
-//   }
-//   if(strict){
-//     return c > d_upperBound[x];
-//   }else{
-//     return c >= d_upperBound[x];
-//   }
-// }
 
 bool ArithPartialModel::equalsLowerBound(ArithVar x, const DeltaRational& c){
   if(!hasLowerBound(x)){
     return false;
   }else{
-    return c == d_lowerBound[x];
+    return c == getLowerBound(x);
   }
 }
 bool ArithPartialModel::equalsUpperBound(ArithVar x, const DeltaRational& c){
   if(!hasUpperBound(x)){
     return false;
   }else{
-    return c == d_upperBound[x];
+    return c == getUpperBound(x);
   }
 }
 
-bool ArithPartialModel::hasEitherBound(ArithVar x){
+bool ArithPartialModel::hasEitherBound(ArithVar x) const{
   return hasLowerBound(x) || hasUpperBound(x);
 }
 
-bool ArithPartialModel::strictlyBelowUpperBound(ArithVar x){
+bool ArithPartialModel::strictlyBelowUpperBound(ArithVar x) const{
   Assert(inMaps(x));
   if(!hasUpperBound(x)){ // u = \infty
     return true;
+  }else{
+    return d_assignment[x] < getUpperBound(x);
   }
-  return d_assignment[x] < d_upperBound[x];
 }
 
-bool ArithPartialModel::strictlyAboveLowerBound(ArithVar x){
+bool ArithPartialModel::strictlyAboveLowerBound(ArithVar x) const{
   Assert(inMaps(x));
   if(!hasLowerBound(x)){ // l = -\infty
     return true;
+  }else{
+    return getLowerBound(x) < d_assignment[x];
   }
-  return  d_lowerBound[x] < d_assignment[x];
 }
 
-// /**
-//  * x <= u
-//  * ? c < u
-//  */
-// bool ArithPartialModel::strictlyBelowUpperBound(ArithVar x, const DeltaRational& c){
-//   Assert(inMaps(x));
-//   if(!hasUpperBound(x)){ // u = \infty
-//     return true;
-//   }
-//   return c < d_upperBound[x];
-// }
-
-// /**
-//  * x <= u
-//  * ? c < u
-//  */
-// bool ArithPartialModel::strictlyAboveLowerBound(ArithVar x, const DeltaRational& c){
-//   Assert(inMaps(x));
-//   if(!hasLowerBound(x)){ // l = -\infty
-//     return true;
-//   }
-//   return  d_lowerBound[x] < c;
-// }
-
-bool ArithPartialModel::assignmentIsConsistent(ArithVar x){
+bool ArithPartialModel::assignmentIsConsistent(ArithVar x) const{
   const DeltaRational& beta = getAssignment(x);
 
   //l_i <= beta(x_i) <= u_i
-  return  cmpToLowerBound(x,beta) >= 0 && cmpToUpperBound(x,beta) <= 0;
+  return  greaterThanLowerBound(x,beta) && lessThanUpperBound(x,beta);
 }
 
 
@@ -355,13 +261,13 @@ void ArithPartialModel::printModel(ArithVar x){
     Debug("model") << "no lb ";
   }else{
     Debug("model") << getLowerBound(x) << " ";
-    Debug("model") << getLowerConstraint(x) << " ";
+    Debug("model") << getLowerBoundConstraint(x) << " ";
   }
   if(!hasUpperBound(x)){
     Debug("model") << "no ub ";
   }else{
     Debug("model") << getUpperBound(x) << " ";
-    Debug("model") << getUpperConstraint(x) << " ";
+    Debug("model") << getUpperBoundConstraint(x) << " ";
   }
 }
 

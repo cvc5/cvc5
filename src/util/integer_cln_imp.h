@@ -366,6 +366,18 @@ public:
     return cln::cl_I_to_int(sgn);
   }
 
+  bool isZero() const {
+    return cln::zerop(d_value);
+  }
+
+  bool isOne() const {
+    return d_value == 1;
+  }
+
+  bool isNegativeOne() const {
+    return d_value == -1;
+  }
+
   //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
 
   long getLong() const {

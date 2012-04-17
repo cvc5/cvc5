@@ -168,17 +168,17 @@ inline int deltaCoeff(Kind k){
  * - (NOT (GT left right))    -> LEQ
  * If none of these match, it returns UNDEFINED_KIND.
  */
- inline Kind simplifiedKind(TNode assertion){
-  switch(assertion.getKind()){
+ inline Kind oldSimplifiedKind(TNode literal){
+  switch(literal.getKind()){
   case kind::LT:
   case kind::GT:
   case kind::LEQ:
   case kind::GEQ:
   case kind::EQUAL:
-    return assertion.getKind();
+    return literal.getKind();
   case  kind::NOT:
     {
-      TNode atom = assertion[0];
+      TNode atom = literal[0];
       switch(atom.getKind()){
       case  kind::LEQ: //(not (LEQ x c)) <=> (GT x c)
         return  kind::GT;
@@ -201,57 +201,58 @@ inline int deltaCoeff(Kind k){
   }
 }
 
-template <bool selectLeft>
-inline TNode getSide(TNode assertion, Kind simpleKind){
-  switch(simpleKind){
-  case kind::LT:
-  case kind::GT:
-  case kind::DISTINCT:
-    return selectLeft ? (assertion[0])[0] : (assertion[0])[1];
-  case kind::LEQ:
-  case kind::GEQ:
-  case kind::EQUAL:
-    return selectLeft ? assertion[0] : assertion[1];
-  default:
-    Unreachable();
-    return TNode::null();
-  }
-}
 
-inline DeltaRational determineRightConstant(TNode assertion, Kind simpleKind){
-  TNode right = getSide<false>(assertion, simpleKind);
+// template <bool selectLeft>
+// inline TNode getSide(TNode assertion, Kind simpleKind){
+//   switch(simpleKind){
+//   case kind::LT:
+//   case kind::GT:
+//   case kind::DISTINCT:
+//     return selectLeft ? (assertion[0])[0] : (assertion[0])[1];
+//   case kind::LEQ:
+//   case kind::GEQ:
+//   case kind::EQUAL:
+//     return selectLeft ? assertion[0] : assertion[1];
+//   default:
+//     Unreachable();
+//     return TNode::null();
+//   }
+// }
 
-  Assert(right.getKind() == kind::CONST_RATIONAL);
-  const Rational& noninf = right.getConst<Rational>();
+// inline DeltaRational determineRightConstant(TNode assertion, Kind simpleKind){
+//   TNode right = getSide<false>(assertion, simpleKind);
 
-  Rational inf = Rational(Integer(deltaCoeff(simpleKind)));
-  return DeltaRational(noninf, inf);
-}
+//   Assert(right.getKind() == kind::CONST_RATIONAL);
+//   const Rational& noninf = right.getConst<Rational>();
 
-inline DeltaRational asDeltaRational(TNode n){
-  Kind simp = simplifiedKind(n);
-  return determineRightConstant(n, simp);
-}
+//   Rational inf = Rational(Integer(deltaCoeff(simpleKind)));
+//   return DeltaRational(noninf, inf);
+// }
 
- /**
-  * Takes two nodes with exactly 2 children,
-  * the second child of both are of kind CONST_RATIONAL,
-  * and compares value of the two children.
-  * This is for comparing inequality nodes.
-  *   RightHandRationalLT((<= x 50), (< x 75)) == true
-  */
-struct RightHandRationalLT
-{
-  bool operator()(TNode s1, TNode s2) const
-  {
-    TNode rh1 = s1[1];
-    TNode rh2 = s2[1];
-    const Rational& c1 = rh1.getConst<Rational>();
-    const Rational& c2 = rh2.getConst<Rational>();
-    int cmpRes = c1.cmp(c2);
-    return cmpRes < 0;
-  }
-};
+// inline DeltaRational asDeltaRational(TNode n){
+//   Kind simp = simplifiedKind(n);
+//   return determineRightConstant(n, simp);
+// }
+
+//  /**
+//   * Takes two nodes with exactly 2 children,
+//   * the second child of both are of kind CONST_RATIONAL,
+//   * and compares value of the two children.
+//   * This is for comparing inequality nodes.
+//   *   RightHandRationalLT((<= x 50), (< x 75)) == true
+//   */
+// struct RightHandRationalLT
+// {
+//   bool operator()(TNode s1, TNode s2) const
+//   {
+//     TNode rh1 = s1[1];
+//     TNode rh2 = s2[1];
+//     const Rational& c1 = rh1.getConst<Rational>();
+//     const Rational& c2 = rh2.getConst<Rational>();
+//     int cmpRes = c1.cmp(c2);
+//     return cmpRes < 0;
+//   }
+// };
 
 inline Node negateConjunctionAsClause(TNode conjunction){
   Assert(conjunction.getKind() == kind::AND);
@@ -276,6 +277,24 @@ inline Node maybeUnaryConvert(NodeBuilder<>& builder){
   }else{
     return builder;
   }
+}
+
+inline void flattenAnd(Node n, std::vector<TNode>& out){
+  Assert(n.getKind() == kind::AND);
+  for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
+    Node curr = *i;
+    if(curr.getKind() == kind::AND){
+      flattenAnd(curr, out);
+    }else{
+      out.push_back(curr);
+    }
+  }
+}
+
+inline Node flattenAnd(Node n){
+  std::vector<TNode> out;
+  flattenAnd(n, out);
+  return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
 }; /* namesapce arith */

@@ -384,6 +384,16 @@ public:
     /** Prefix decrement */
     const_iterator& operator--() { --d_it; return *this; }
 
+    /** operator+ */
+    const_iterator operator+(long signed int off) const {
+      return const_iterator(d_it + off);
+    }
+
+    /** operator+ */
+    const_iterator operator+(long unsigned int off) const {
+      return const_iterator(d_it + off);
+    }
+
     // Postfix operations on iterators: requires a Proxy object to
     // hold the intermediate value for dereferencing
     class Proxy {

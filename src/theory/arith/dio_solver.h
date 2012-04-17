@@ -338,22 +338,8 @@ private:
   /** Returns true if the queue of nodes to process is empty. */
   bool queueEmpty() const;
 
-  bool queueConditions(TrailIndex t){
-    /* debugPrintTrail(t); */
-    
-    /* std::cout << !inConflict() << std::endl; */
-    /* std::cout << gcdIsOne(t) << std::endl; */
-    /* std::cout << !debugAnySubstitionApplies(t) << std::endl; */
-    /* std::cout << !triviallySat(t) << std::endl; */
-    /* std::cout << !triviallyUnsat(t) << std::endl; */
+  bool queueConditions(TrailIndex t);
 
-    return
-      !inConflict() &&
-      gcdIsOne(t) &&
-      !debugAnySubstitionApplies(t) &&
-      !triviallySat(t) &&
-      !triviallyUnsat(t);
-  }
 
   void pushToQueueBack(TrailIndex t){
     Assert(queueConditions(t));

@@ -196,6 +196,14 @@ public:
     return cln::zerop(d_value);
   }
 
+  bool isOne() const {
+    return d_value == 1;
+  }
+
+  bool isNegativeOne() const {
+    return d_value == -1;
+  }
+
   Rational abs() const {
     if(sgn() < 0){
       return -(*this);

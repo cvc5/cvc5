@@ -34,13 +34,13 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/linear_equality.h"
-#include "theory/arith/atom_database.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/arith_static_learner.h"
-#include "theory/arith/arith_prop_manager.h"
 #include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/difference_manager.h"
+
+#include "theory/arith/constraint.h"
 
 #include "util/stats.h"
 
@@ -65,24 +65,6 @@ private:
    * This is used to break an infinite loop.
    */
   bool d_hasDoneWorkSinceCut;
-
-  /**
-   * The set of atoms that are currently in the context.
-   * This is exactly the union of preregistered atoms and
-   * equalities from sharing.
-   * This is used to reconstruct the rest of arithmetic.
-   */
-  CDNodeSet d_atomsInContext;
-  bool inContextAtom(TNode atom){
-    Assert(isRelationOperator(atom.getKind()));
-    Assert(Comparison::isNormalAtom(atom));
-    return d_atomsInContext.contains(atom);
-  }
-  void addToContext(TNode atom){
-    Assert(isRelationOperator(atom.getKind()));
-    Assert(Comparison::isNormalAtom(atom));
-    d_atomsInContext.insert(atom);
-  }
 
   /** Static learner. */
   ArithStaticLearner d_learner;
@@ -111,8 +93,20 @@ private:
   void setupVariable(const Variable& x);
   void setupVariableList(const VarList& vl);
   void setupPolynomial(const Polynomial& poly);
-  void setupAtom(TNode atom, bool addToDatabase);
+  void setupAtom(TNode atom);
 
+  class SetupLiteralCallBack : public TNodeCallBack {
+  private:
+    TheoryArith* d_arith;
+  public:
+    SetupLiteralCallBack(TheoryArith* ta) : d_arith(ta){}
+    void operator()(TNode lit){
+      TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
+      if(!d_arith->isSetup(atom)){
+        d_arith->setupAtom(atom);
+      }
+    }
+  } d_setupLiteralCallback;
 
   /**
    * (For the moment) the type hierarchy goes as:
@@ -172,7 +166,9 @@ private:
   /**
    * List of all of the inequalities asserted in the current context.
    */
-  context::CDHashSet<Node, NodeHashFunction> d_diseq;
+  //context::CDHashSet<Node, NodeHashFunction> d_diseq;
+  context::CDQueue<Constraint> d_diseqQueue;
+
 
   /**
    * Manages information about the assignment and upper and lower bounds on
@@ -222,6 +218,23 @@ private:
   uint32_t d_tableauResetPeriod;
   static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;
 
+
+  /** This is only used by simplex at the moment. */
+  context::CDList<Node> d_conflicts;
+  class PushCallBack : public NodeCallBack {
+  private:
+    context::CDList<Node>& d_list;
+  public:
+    PushCallBack(context::CDList<Node>& l)
+    : d_list(l)
+    {}
+    void operator()(Node n){
+      d_list.push_back(n);
+    }
+  };
+  PushCallBack d_conflictCallBack;
+
+
   /**
    * A copy of the tableau immediately after removing variables
    * without bounds in presolve().
@@ -232,16 +245,17 @@ private:
    * The atom database keeps track of the atoms that have been preregistered.
    * Used to add unate propagations.
    */
-  ArithAtomDatabase d_atomDatabase;
-
-  /** This manager keeps track of information needed to propagate. */
-  ArithPropManager d_propManager;
+  //ArithAtomDatabase d_atomDatabase;
 
   /** This keeps track of difference equalities. Mostly for sharing. */
   DifferenceManager d_differenceManager;
 
   /** This implements the Simplex decision procedure. */
   SimplexDecisionProcedure d_simplex;
+
+
+  /** The constraint database associated with the theory. */
+  ConstraintDatabase d_constraintDatabase;
 
   /** Internal model value for the atom */
   bool getDeltaAtomValue(TNode n);
@@ -291,7 +305,7 @@ private:
       d_simplex(s)
     {}
 
-    void callback(ArithVar x){
+    void operator()(ArithVar x){
       d_simplex.updateBasic(x);
     }
   };
@@ -305,10 +319,10 @@ private:
   void propagateArithVar(bool upperbound, ArithVar var );
 
   /**
-   * Using the simpleKind return the ArithVar associated with the
-   * left hand side of assertion.
+   * Using the simpleKind return the ArithVar associated with the assertion.
    */
-  ArithVar determineLeftVariable(TNode assertion, Kind simpleKind);
+  ArithVar determineArithVar(const Polynomial& p) const;
+  ArithVar determineArithVar(TNode assertion) const;
 
   /**
    * Splits the disequalities in d_diseq that are violated using lemmas on demand.
@@ -317,6 +331,8 @@ private:
    */
   bool splitDisequalities();
 
+  /** A Difference variable is known to be 0.*/
+  void zeroDifferenceDetected(ArithVar x);
 
 
   /**
@@ -364,9 +380,10 @@ private:
    * a node describing this conflict is returned.
    * If this new bound is not in conflict, Node::null() is returned.
    */
-  Node AssertLower(ArithVar x, DeltaRational& c, TNode orig);
-  Node AssertUpper(ArithVar x, DeltaRational& c, TNode orig);
-  Node AssertEquality(ArithVar x, DeltaRational& c, TNode orig);
+  Node AssertLower(Constraint constraint);
+  Node AssertUpper(Constraint constraint);
+  Node AssertEquality(Constraint constraint);
+  Node AssertDisequality(Constraint constraint);
 
   /** Tracks the bounds that were updated in the current round. */
   PermissiveBackArithVarSet d_updatedBounds;
@@ -399,11 +416,6 @@ private:
    * Returns Node::null if no conflict was found.
    */
   Node assertionCases(TNode assertion);
-
-  /**
-   * This is used for reporting conflicts caused by disequalities during assertionCases.
-   */
-  Node disequalityConflict(TNode eq, TNode lb, TNode ub);
 
   /**
    * Returns the basic variable with the shorted row containg a non-basic variable.

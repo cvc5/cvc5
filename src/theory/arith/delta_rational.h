@@ -55,12 +55,16 @@ public:
   }
 
   int sgn() const {
-    int x = getNoninfinitesimalPart().sgn();
-    if(x == 0){
-      return getInfinitesimalPart().sgn();
+    int s = getNoninfinitesimalPart().sgn();
+    if(s == 0){
+      return infinitesimalSgn();
     }else{
-      return x;
+      return s;
     }
+  }
+
+  int infinitesimalSgn() const {
+    return getInfinitesimalPart().sgn();
   }
 
   int cmp(const DeltaRational& other) const{

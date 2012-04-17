@@ -78,7 +78,6 @@ void Tableau::pivot(ArithVar oldBasic, ArithVar newBasic){
   Assert(!isBasic(newBasic));
   Assert(mergeBufferIsEmpty());
 
-  //cout << oldBasic << "," << newBasic << endl;
   Debug("tableau") << "Tableau::pivot(" <<  oldBasic <<", " << newBasic <<")"  << endl;
 
   rowPivot(oldBasic, newBasic);

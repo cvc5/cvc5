@@ -26,8 +26,8 @@ namespace theory {
 namespace arith {
 
 /* Explicitly instatiate this function. */
-template void LinearEqualityModule::explainNonbasics<true>(ArithVar basic, NodeBuilder<>& output);
-template void LinearEqualityModule::explainNonbasics<false>(ArithVar basic, NodeBuilder<>& output);
+template void LinearEqualityModule::propagateNonbasics<true>(ArithVar basic, Constraint c);
+template void LinearEqualityModule::propagateNonbasics<false>(ArithVar basic, Constraint c);
 
 LinearEqualityModule::Statistics::Statistics():
   d_statPivots("theory::arith::pivots",0),
@@ -71,7 +71,7 @@ void LinearEqualityModule::update(ArithVar x_i, const DeltaRational& v){
     DeltaRational  nAssignment = assignment+(diff * a_ji);
     d_partialModel.setAssignment(x_j, nAssignment);
 
-    d_basicVariableUpdates.callback(x_j);
+    d_basicVariableUpdates(x_j);
   }
 
   d_partialModel.setAssignment(x_i, v);
@@ -119,7 +119,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRatio
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
 
-      d_basicVariableUpdates.callback(x_k);
+      d_basicVariableUpdates(x_k);
     }
   }
 
@@ -131,7 +131,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRatio
   //(d_statistics.d_avgNumRowsNotContainingOnPivot).addEntry(difference);
   d_tableau.pivot(x_i, x_j);
 
-  d_basicVariableUpdates.callback(x_j);
+  d_basicVariableUpdates(x_j);
 
   if(Debug.isOn("tableau")){
     d_tableau.printTableau();
@@ -255,12 +255,17 @@ bool LinearEqualityModule::hasBounds(ArithVar basic, bool upperBound){
 }
 
 template <bool upperBound>
-void LinearEqualityModule::explainNonbasics(ArithVar basic, NodeBuilder<>& output){
+void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
   Assert(d_tableau.isBasic(basic));
+  Assert(c->getVariable() == basic);
+  Assert(!c->assertedToTheTheory());
+  Assert(c->canBePropagated());
+  Assert(!c->hasProof());
 
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << basic <<") start" << endl;
 
+  vector<Constraint> bounds;
 
   Tableau::RowIterator iter = d_tableau.rowIterator(basic);
   for(; !iter.atEnd(); ++iter){
@@ -269,30 +274,42 @@ void LinearEqualityModule::explainNonbasics(ArithVar basic, NodeBuilder<>& outpu
     if(nonbasic == basic) continue;
 
     const Rational& a_ij = entry.getCoefficient();
-    TNode bound = TNode::null();
 
     int sgn = a_ij.sgn();
     Assert(sgn != 0);
+    Constraint bound = NullConstraint;
     if(upperBound){
       if(sgn < 0){
-        bound = d_partialModel.getLowerConstraint(nonbasic);
+        bound = d_partialModel.getLowerBoundConstraint(nonbasic);
+        //d_partialModel.explainLowerBound(nonbasic, output);
+        //bound = d_partialModel.explainLowerBound(nonbasic);
       }else{
         Assert(sgn > 0);
-        bound = d_partialModel.getUpperConstraint(nonbasic);
+        bound = d_partialModel.getUpperBoundConstraint(nonbasic);
+        //d_partialModel.explainUpperBound(nonbasic, output);
+        //bound = d_partialModel.explainUpperBound(nonbasic);
       }
     }else{
       if(sgn < 0){
-        bound =  d_partialModel.getUpperConstraint(nonbasic);
+        bound = d_partialModel.getUpperBoundConstraint(nonbasic);
+        //d_partialModel.explainUpperBound(nonbasic, output);
+        //bound =  d_partialModel.explainUpperBound(nonbasic);
       }else{
         Assert(sgn > 0);
-        bound =  d_partialModel.getLowerConstraint(nonbasic);
+        bound = d_partialModel.getLowerBoundConstraint(nonbasic);
+        //d_partialModel.explainLowerBound(nonbasic, output);
+        //bound =  d_partialModel.explainLowerBound(nonbasic);
       }
     }
-    Assert(!bound.isNull());
-    Debug("arith::explainNonbasics") << "\t" << nonbasic << " " << sgn << " " << bound
-                                     << endl;
-    output << bound;
+    Assert(bound != NullConstraint);
+    Debug("arith::explainNonbasics") << "explainNonbasics" << bound << " for " << c << endl;
+    bounds.push_back(bound);
+    //Assert(!bound.isNull());
+    // Debug("arith::explainNonbasics") << "\t" << nonbasic << " " << sgn << " " << bound
+    //                                  << endl;
+    // output << bound;
   }
+  c->propagate(bounds);
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << basic << ") done" << endl;
 }

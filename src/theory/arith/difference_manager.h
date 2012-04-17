@@ -6,20 +6,52 @@
 #define __CVC4__THEORY__ARITH__DIFFERENCE_MANAGER_H
 
 #include "theory/arith/arithvar.h"
+#include "theory/arith/constraint_forward.h"
 #include "theory/uf/equality_engine.h"
 #include "context/cdo.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "context/cdtrail_queue.h"
 #include "util/stats.h"
-#include "theory/arith/arith_prop_manager.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
+/**
+ * This implements a CDMaybe.
+ * This has either been set in the context or it has not.
+ * T must have a default constructor and support assignment.
+ */
+template <class T>
+class CDMaybe {
+private:
+  typedef std::pair<bool, T> BoolTPair;
+  context::CDO<BoolTPair> d_data;
+
+public:
+  CDMaybe(context::Context* c) : d_data(c, std::make_pair(false, T()))
+  {}
+
+  bool isSet() const {
+    return d_data.get().first;
+  }
+
+  void set(const T& d){
+    Assert(!isSet());
+    d_data.set(std::make_pair(true, d));
+  }
+
+  const T& get() const{
+    Assert(isSet());
+    return d_data.get().second;
+  }
+};
+
 class DifferenceManager {
 private:
+  CDMaybe<Node> d_conflict;
+
   struct Difference {
     bool isSlack;
     TNode x;
@@ -40,8 +72,7 @@ private:
     bool notify(TNode propagation) {
       Debug("arith::differences") << "DifferenceNotifyClass::notify(" << propagation << ")" << std::endl;
       // Just forward to dm
-      d_dm.propagate(propagation);
-      return true;
+      return d_dm.propagate(propagation);
     }
 
     void notify(TNode t1, TNode t2) {
@@ -63,13 +94,69 @@ private:
 
   /** Stores the queue of assertions. This keeps the Node backing the reasons */
   context::CDTrailQueue<LiteralsQueueElem> d_literalsQueue;
-  PropManager& d_queue;
+  //PropManager& d_queue;
 
+  /** Store the propagations. */
+  context::CDTrailQueue<Node> d_propagatations;
+
+  /* This maps the node a theory engine will request on an explain call to
+   * to its corresponding PropUnit.
+   * This is node is potentially both the propagation or Rewriter::rewrite(propagation).
+   */
+  typedef context::CDHashMap<Node, size_t, NodeHashFunction> ExplainMap;
+  ExplainMap d_explanationMap;
+
+  ConstraintDatabase& d_constraintDatabase;
+  TNodeCallBack& d_setupLiteral;
+
+public:
+
+  bool inConflict() const{
+    return d_conflict.isSet();
+  };
+
+  Node conflict() const{
+    Assert(inConflict());
+    return d_conflict.get();
+  }
+
+  bool hasMorePropagations() const {
+    return !d_propagatations.empty();
+  }
+
+  const Node getNextPropagation() {
+    Assert(hasMorePropagations());
+    Node prop = d_propagatations.front();
+    d_propagatations.dequeue();
+    return prop;
+  }
+
+  bool canExplain(TNode n) const {
+    return d_explanationMap.find(n) != d_explanationMap.end();
+  }
+
+private:
+  Node externalToInternal(TNode n) const{
+    Assert(canExplain(n));
+    size_t pos = (*(d_explanationMap.find(n))).second;
+    return d_propagatations[pos];
+  }
+
+  void pushBack(TNode n){
+    d_explanationMap.insert(n, d_propagatations.size());
+    d_propagatations.enqueue(n);
+  }
+
+  void pushBack(TNode n, TNode r){
+    d_explanationMap.insert(r, d_propagatations.size());
+    d_explanationMap.insert(n, d_propagatations.size());
+    d_propagatations.enqueue(n);
+  }
 
   DifferenceNotifyClass d_notify;
   theory::uf::EqualityEngine<DifferenceNotifyClass> d_ee;
 
-  void propagate(TNode x);
+  bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
   Node d_false;
@@ -96,11 +183,16 @@ private:
   void enableSharedTerms();
   void dequeueLiterals();
 
+  void enqueueIntoNB(const std::set<TNode> all, NodeBuilder<>& nb);
+
+  Node explainInternal(TNode internal);
+
 public:
 
-  DifferenceManager(context::Context*, PropManager&);
+  DifferenceManager(context::Context* satContext, ConstraintDatabase&, TNodeCallBack&);
 
   Node explain(TNode literal);
+  void explain(TNode lit, NodeBuilder<>& out);
 
   void addDifference(ArithVar s, Node x, Node y);
 
@@ -112,13 +204,14 @@ public:
     }
   }
 
-  void differenceIsZero(ArithVar s, TNode reason){
-    assertLiteral(true, s, reason);
-  }
+  /** Assert an equality. */
+  void differenceIsZero(Constraint eq);
 
-  void differenceCannotBeZero(ArithVar s, TNode reason){
-    assertLiteral(false, s, reason);
-  }
+  /** Assert a conjunction from lb and ub. */
+  void differenceIsZero(Constraint lb, Constraint ub);
+
+  /** Assert that the value cannot be zero. */
+  void differenceCannotBeZero(Constraint c);
 
   void addSharedTerm(Node x);
 };/* class DifferenceManager */

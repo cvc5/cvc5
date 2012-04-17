@@ -173,6 +173,14 @@ public:
     return sgn() == 0;
   }
 
+  bool isOne() const {
+    return mpq_cmp_si(d_value.get_mpq_t(), 1, 1) == 0;
+  }
+
+  bool isNegativeOne() const {
+    return mpq_cmp_si(d_value.get_mpq_t(), -1, 1) == 0;
+  }
+
   Rational abs() const {
     if(sgn() < 0){
       return -(*this);

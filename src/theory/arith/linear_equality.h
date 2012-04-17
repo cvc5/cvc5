@@ -36,6 +36,7 @@
 #include "theory/arith/arithvar.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau.h"
+#include "theory/arith/constraint.h"
 
 #include "util/stats.h"
 
@@ -101,14 +102,16 @@ private:
    * of the basic variable basic, using the non-basic variables in the row.
    */
   template <bool upperBound>
-  void explainNonbasics(ArithVar basic, NodeBuilder<>& output);
+  void propagateNonbasics(ArithVar basic, Constraint c);
 
 public:
-  void explainNonbasicsLowerBound(ArithVar basic, NodeBuilder<>& output){
-    explainNonbasics<false>(basic, output);
+  void propagateNonbasicsLowerBound(ArithVar basic, Constraint c){
+    Assert(c->isLowerBound());
+    propagateNonbasics<false>(basic, c);
   }
-  void explainNonbasicsUpperBound(ArithVar basic, NodeBuilder<>& output){
-    explainNonbasics<true>(basic, output);
+  void propagateNonbasicsUpperBound(ArithVar basic, Constraint c){
+    Assert(c->isUpperBound());
+    propagateNonbasics<true>(basic, c);
   }
 
   /**

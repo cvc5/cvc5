@@ -261,7 +261,7 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
   Assert(isRelationOperator(n[0].getKind()));
 
   TNode c = n[0];
-  Kind k = simplifiedKind(c);
+  Kind k = oldSimplifiedKind(c);
   TNode t = n[1];
   TNode e = n[2];
   TNode cleft = (c.getKind() == NOT) ? c[0][0] : c[0];

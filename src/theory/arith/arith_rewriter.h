@@ -66,7 +66,6 @@ private:
 
   static RewriteResponse preRewriteAtom(TNode t);
   static RewriteResponse postRewriteAtom(TNode t);
-  static RewriteResponse postRewriteAtomConstantRHS(TNode t);
 
   static bool isAtom(TNode n);
 

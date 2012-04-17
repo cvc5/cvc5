@@ -76,6 +76,22 @@ DioSolver::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_cutTimer);
 }
 
+bool DioSolver::queueConditions(TrailIndex t){
+  /* debugPrintTrail(t); */
+  Debug("queueConditions") << !inConflict() << std::endl;
+  Debug("queueConditions") << gcdIsOne(t) << std::endl;
+  Debug("queueConditions") << !debugAnySubstitionApplies(t) << std::endl;
+  Debug("queueConditions") << !triviallySat(t) << std::endl;
+  Debug("queueConditions") << !triviallyUnsat(t) << std::endl;
+
+  return
+    !inConflict() &&
+    gcdIsOne(t) &&
+    !debugAnySubstitionApplies(t) &&
+    !triviallySat(t) &&
+    !triviallyUnsat(t);
+}
+
 size_t DioSolver::allocateVariableInPool() {
   Assert(d_lastUsedVariable <= d_variablePool.size());
   if(d_lastUsedVariable == d_variablePool.size()){
@@ -125,9 +141,10 @@ bool DioSolver::acceptableOriginalNodes(Node n){
   }else if(k == kind::AND){
     Node ub = n[0];
     Node lb = n[1];
-    Kind kub = simplifiedKind(ub);
-    Kind klb = simplifiedKind(lb);
-    return (kub == kind::LEQ || kub==kind::LT) && (klb == kind::GEQ || klb == kind::GT);
+    Kind kub = Comparison::comparisonKind(ub);
+    Kind klb = Comparison::comparisonKind(lb);
+    Debug("nf::tmp") << n << endl;
+    return (kub == kind::GEQ || kub==kind::LT) && (klb == kind::GEQ || klb == kind::LT);
   }else{
     return false;
   }
@@ -135,11 +152,11 @@ bool DioSolver::acceptableOriginalNodes(Node n){
 
 void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   Assert(!debugEqualityInInputEquations(reason));
-  Assert(eq.isIntegral());
+  Assert(eq.debugIsIntegral());
   Assert(eq.getNode().getKind() == kind::EQUAL);
   Assert(acceptableOriginalNodes(reason));
 
-  SumPair sp = SumPair::comparisonToSumPair(eq);
+  SumPair sp = eq.toSumPair();
   uint32_t length = sp.maxLength();
   if(length > d_maxInputCoefficientLength){
     d_maxInputCoefficientLength = length;
@@ -573,7 +590,6 @@ DioSolver::TrailIndex DioSolver::applyAllSubstitutionsToIndex(DioSolver::TrailIn
 
 bool DioSolver::debugSubstitutionApplies(DioSolver::SubIndex si, DioSolver::TrailIndex ti){
   Variable var = d_subs[si].d_eliminated;
-  TrailIndex subIndex = d_subs[si].d_constraint;
 
   const SumPair& curr = d_trail[ti].d_eq;
   Polynomial vsum = curr.getPolynomial();

@@ -276,6 +276,18 @@ public:
     return mpz_sgn(d_value.get_mpz_t());
   }
 
+  bool isZero() const {
+    return sgn() == 0;
+  }
+
+  bool isOne() const {
+    return mpz_cmp_si(d_value.get_mpz_t(), 1) == 0;
+  }
+
+  bool isNegativeOne() const {
+    return mpz_cmp_si(d_value.get_mpz_t(), -1) == 0;
+  }
+
   /**
    * Raise this Integer to the power <code>exp</code>.
    *

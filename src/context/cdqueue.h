@@ -151,6 +151,16 @@ public:
     return ParentType::d_list[ParentType::d_size - 1];
   }
 
+  typedef typename ParentType::const_iterator const_iterator;
+
+  const_iterator begin() const {
+    return ParentType::begin() + d_iter;
+  }
+
+  const_iterator end() const {
+    return ParentType::end();
+  }
+
 };/* class CDQueue<> */
 
 }/* CVC4::context namespace */

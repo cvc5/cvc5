@@ -322,43 +322,27 @@ public:
 class CDArithVarSet {
 private:
 
-  class RemoveIntWrapper{
-  private:
-    ArithVar d_var;
-    ArithVarCallBack& d_onDestruction;
-
-  public:
-    RemoveIntWrapper(ArithVar v, ArithVarCallBack& onDestruction):
-      d_var(v), d_onDestruction(onDestruction)
-    {}
-
-    ~RemoveIntWrapper(){
-      d_onDestruction.callback(d_var);
-    }
-  };
-
-  std::vector<bool> d_set;
-  context::CDList<RemoveIntWrapper> d_list;
-
-  class OnDestruction : public ArithVarCallBack {
+  class RemoveIntCleanup {
   private:
     std::vector<bool>& d_set;
   public:
-    OnDestruction(std::vector<bool>& set):
-      d_set(set)
+    RemoveIntCleanup(std::vector<bool>& set)
+      : d_set(set)
     {}
 
-    void callback(ArithVar x){
-      Assert(x < d_set.size());
+    void operator()(ArithVar* p){
+      ArithVar x = *p;
+      Assert(d_set[x]);
       d_set[x] = false;
     }
   };
 
-  OnDestruction d_callback;
+  std::vector<bool> d_set;
+  context::CDList<ArithVar, RemoveIntCleanup> d_list;
 
 public:
-  CDArithVarSet(context::Context* c) :
-    d_list(c), d_callback(d_set)
+  CDArithVarSet(context::Context* c)
+    : d_set(), d_list(c, true, RemoveIntCleanup(d_set))
   { }
 
   /** This cannot be const as garbage collection is done lazily. */
@@ -375,7 +359,7 @@ public:
     if(x >= d_set.size()){
       d_set.resize(x+1, false);
     }
-    d_list.push_back(RemoveIntWrapper(x, d_callback));
+    d_list.push_back(x);
     d_set[x] = true;
   }
 };

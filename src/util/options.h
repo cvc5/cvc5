@@ -156,7 +156,7 @@ struct CVC4_PUBLIC Options {
 
   /** Whether we produce proofs. */
   bool proof;
-  
+
   /** Whether we support SmtEngine::getAssignment() for this run. */
   bool produceAssignments;
 
@@ -195,7 +195,7 @@ struct CVC4_PUBLIC Options {
 
   /** Variable activity decay factor for Minisat */
   double satVarDecay;
-  
+
   /** Clause activity decay factor for Minisat */
   double satClauseDecay;
 
@@ -238,6 +238,12 @@ struct CVC4_PUBLIC Options {
    */
   bool dioSolver;
 
+  /**
+   * Whether to split (= x y) into (and (<= x y) (>= x y)) in
+   * arithmetic preprocessing.
+   */
+  bool arithRewriteEq;
+
   /** The output channel to receive notfication events for new lemmas */
   LemmaOutputChannel* lemmaOutputChannel;
   LemmaInputChannel* lemmaInputChannel;
@@ -251,7 +257,7 @@ struct CVC4_PUBLIC Options {
   /** Thread ID, for internal use in case of multi-threaded run */
   int thread_id;
 
-  /** 
+  /**
    * In multi-threaded setting print output of each thread at the
    * end of run, separated by a divider ("----").
    **/
