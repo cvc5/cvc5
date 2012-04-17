@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
- ** Minor contributors (to current version): cconway
+ ** Minor contributors (to current version): cconway, kshitij
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -50,6 +50,7 @@ typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class NodeHashFunction;
 
+class DecisionEngine;
 class TheoryEngine;
 
 class StatisticsRegistry;
@@ -109,6 +110,8 @@ class CVC4_PUBLIC SmtEngine {
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
   /** The decision engine */
+  DecisionEngine* d_decisionEngine;
+  /** The theory engine */
   TheoryEngine* d_theoryEngine;
   /** The propositional engine */
   prop::PropEngine* d_propEngine;

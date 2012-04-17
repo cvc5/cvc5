@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan
- ** Minor contributors (to current version): barrett, taking, cconway
+ ** Minor contributors (to current version): barrett, taking, cconway, kshitij
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -22,6 +22,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 
+#include "decision/decision_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/Assert.h"
@@ -61,9 +62,10 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, Context* context) :
+PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* context) :
   d_inCheckSat(false),
   d_theoryEngine(te),
+  d_decisionEngine(de),
   d_context(context),
   d_satSolver(NULL),
   d_cnfStream(NULL),
@@ -77,7 +79,10 @@ PropEngine::PropEngine(TheoryEngine* te, Context* context) :
   theory::TheoryRegistrar* registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, registrar, Options::current()->threads > 1);
 
-  d_satSolver->initialize(d_context, new TheoryProxy(this, d_theoryEngine, d_context, d_cnfStream));
+  d_satSolver->initialize(d_context, new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream));
+
+  d_decisionEngine->setSatSolver(d_satSolver);
+  d_decisionEngine->setCnfStream(d_cnfStream);
 }
 
 PropEngine::~PropEngine() {

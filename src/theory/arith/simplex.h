@@ -27,13 +27,13 @@
  ** we do not maintain that the queue of variables needs to be only basic variables or only variables that satisfy their bounds.
  **
  ** The simplex procedure roughly follows Alberto's thesis. (citation?)
- ** There is one round of selecting using a hueristic pivoting rule. (See PreferenceFunction Documentation for the available options.)
+ ** There is one round of selecting using a heuristic pivoting rule. (See PreferenceFunction Documentation for the available options.)
  ** The non-basic variable is the one that appears in the fewest pivots. (Bruno says that Leonardo invented this first.)
  ** After this, Bland's pivot rule is invoked.
  **
  ** During this proccess, we periodically inspect the queue of variables to
  ** 1) remove now extraneous extries,
- ** 2) detect conflicts that are "waiting" on the queue but may not be detected by the current queue hueristics, and
+ ** 2) detect conflicts that are "waiting" on the queue but may not be detected by the current queue heuristics, and
  ** 3) detect multiple conflicts.
  **
  ** Conflicts are greedily slackened to use the weakest bounds that still produce the conflict.
@@ -152,7 +152,7 @@ private:
    * minRowCount is a PreferenceFunction for selecting the variable with the smaller
    * row count in the tableau.
    *
-   * This is a hueristic rule and should not be used
+   * This is a heuristic rule and should not be used
    * during the VarOrder stage of findModel.
    */
   static ArithVar minColLength(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);
@@ -163,7 +163,7 @@ private:
    * If both have bounds or both do not have bounds,
    * the rule falls back to minRowCount(...).
    *
-   * This is a hueristic rule and should not be used
+   * This is a heuristic rule and should not be used
    * during the VarOrder stage of findModel.
    */
   static ArithVar minBoundAndRowCount(const SimplexDecisionProcedure& simp, ArithVar x, ArithVar y);

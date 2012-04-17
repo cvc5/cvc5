@@ -26,6 +26,9 @@
 
 #include "cvc4_private.h"
 
+#include <string>
+#include <sstream>
+
 namespace CVC4 {
 namespace prop {
 

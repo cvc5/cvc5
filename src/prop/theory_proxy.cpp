@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: dejan, taking, mdeters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): kshitij
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -24,6 +24,8 @@
 #include "theory/theory_engine.h"
 #include "theory/rewriter.h"
 #include "expr/expr_stream.h"
+#include "decision/decision_engine.h"
+
 
 namespace CVC4 {
 namespace prop {
@@ -73,7 +75,14 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
 
 SatLiteral TheoryProxy::getNextDecisionRequest() {
   TNode n = d_theoryEngine->getNextDecisionRequest();
-  return n.isNull() ? undefSatLiteral : d_cnfStream->getLiteral(n);
+  if(not n.isNull())
+    return d_cnfStream->getLiteral(n);
+  
+  // If theory doesn't give us a deicsion ask the decision engine. It
+  // may return in undefSatLiteral in which case the sat solver figure
+  // it out something
+  Assert(d_decisionEngine != NULL);
+  return d_decisionEngine->getNext();
 }
 
 bool TheoryProxy::theoryNeedCheck() const {

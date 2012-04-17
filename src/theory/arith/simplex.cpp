@@ -254,9 +254,9 @@ bool SimplexDecisionProcedure::findModel(){
     foundConflict = findConflictOnTheQueue(BeforeDiffSearch);
   }
   if(!foundConflict){
-    uint32_t numHueristicPivots = d_numVariables + 1;
-    uint32_t pivotsRemaining = numHueristicPivots;
-    uint32_t pivotsPerCheck = (numHueristicPivots/NUM_CHECKS) + (NUM_CHECKS-1);
+    uint32_t numHeuristicPivots = d_numVariables + 1;
+    uint32_t pivotsRemaining = numHeuristicPivots;
+    uint32_t pivotsPerCheck = (numHeuristicPivots/NUM_CHECKS) + (NUM_CHECKS-1);
     while(!d_queue.empty() &&
           !foundConflict &&
           pivotsRemaining > 0){

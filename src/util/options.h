@@ -126,6 +126,23 @@ struct CVC4_PUBLIC Options {
   /** Whether the user set the nonclausal simplification mode. */
   bool simplificationModeSetByUser;
 
+  /** Enumeration of decision strategies */
+  typedef enum {
+    /**
+     * Decision engine doesn't do anything. Use sat solver's internal
+     * heuristics
+     */
+    DECISION_STRATEGY_INTERNAL,
+    /**
+     * Use the justification heuristic
+     */
+    DECISION_STRATEGY_JUSTIFICATION
+  } DecisionMode;
+  /** When/whether to use any decision strategies */
+  DecisionMode decisionMode;
+  /** Whether the user set the decision strategy */
+  bool decisionModeSetByUser;
+
   /** Whether to perform the static learning pass. */
   bool doStaticLearning;
 

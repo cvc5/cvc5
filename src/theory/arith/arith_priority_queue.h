@@ -119,7 +119,7 @@ private:
   /**
    * Priority Queue of the basic variables that may be inconsistent.
    * Variables are ordered according to which violates its bound the most.
-   * This is a hueristic and makes no guarentees to terminate!
+   * This is a heuristic and makes no guarentees to terminate!
    * This heuristic comes from Alberto Griggio's thesis.
    */
   DifferenceArray d_diffQueue;

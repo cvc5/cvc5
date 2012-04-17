@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: taking, dejan
- ** Minor contributors (to current version): cconway, barrett
+ ** Minor contributors (to current version): cconway, barrett, kshitij
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -31,6 +31,7 @@
 
 namespace CVC4 {
 
+class DecisionEngine;
 class TheoryEngine;
 
 namespace prop {
@@ -127,6 +128,9 @@ class PropEngine {
   /** The theory engine we will be using */
   TheoryEngine *d_theoryEngine;
 
+  /** The decision engine we will be using */
+  DecisionEngine *d_decisionEngine;
+
   /** The context */
   context::Context* d_context;
 
@@ -153,7 +157,7 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*, context::Context*);
+  PropEngine(TheoryEngine*, DecisionEngine*, context::Context*);
 
   /**
    * Destructor.
