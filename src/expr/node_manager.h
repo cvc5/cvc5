@@ -1383,9 +1383,16 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
   nvStack.d_kind = kind::metakind::ConstantMap<T>::kind;
   nvStack.d_rc = 0;
   nvStack.d_nchildren = 1;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+
   nvStack.d_children[0] =
     const_cast<expr::NodeValue*>(reinterpret_cast<const expr::NodeValue*>(&val));
   expr::NodeValue* nv = poolLookup(&nvStack);
+
+#pragma GCC diagnostic pop
+
 
   if(nv != NULL) {
     return NodeClass(nv);
