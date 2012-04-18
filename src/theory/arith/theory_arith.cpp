@@ -997,8 +997,8 @@ Node TheoryArith::assertionCases(TNode assertion){
       if(Debug.isOn("whytheoryenginewhy")){
         debugPrintFacts();
       }
-      cout << "Theory engine is sending me both a literal and its negation?"
-           << "BOOOOOOOOOOOOOOOOOOOOOO!!!!"<< endl;
+      Warning() << "arith: Theory engine is sending me both a literal and its negation?"
+                << "BOOOOOOOOOOOOOOOOOOOOOO!!!!"<< endl;
     }
     Debug("arith::eq") << constraint << endl;
     Debug("arith::eq") << negation << endl;
