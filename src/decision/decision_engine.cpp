@@ -26,7 +26,11 @@ using namespace std;
 
 namespace CVC4 {
 
-DecisionEngine::DecisionEngine() : d_needSimplifiedPreITEAssertions() {
+DecisionEngine::DecisionEngine() :
+  d_needSimplifiedPreITEAssertions(),
+  d_cnfStream(NULL),
+  d_satSolver(NULL)
+{
   const Options* options = Options::current();
   Trace("decision") << "Creating decision engine" << std::endl;
   if(options->decisionMode == Options::DECISION_STRATEGY_INTERNAL) { }
