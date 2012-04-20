@@ -67,22 +67,24 @@ void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
 void ArrayInfo::addIndex(const Node a, const TNode i) {
   Assert(a.getType().isArray());
   Assert(!i.getType().isArray()); // temporary for flat arrays
+
   Trace("arrays-ind")<<"Arrays::addIndex "<<a<<"["<<i<<"]\n";
-  List<TNode>* temp_indices;
+  CTNodeList* temp_indices;
   Info* temp_info;
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_indices = new List<TNode>(bck);
-    temp_indices->append(i);
+    temp_indices = new(true) CTNodeList(ct);
+    temp_indices->push_back(i);
 
     temp_info = new Info(ct, bck);
     temp_info->indices = temp_indices;
-
     info_map[a] = temp_info;
   } else {
     temp_indices = (*it).second->indices;
-    temp_indices->append(i);
+    if (! inList(temp_indices, i)) {
+      temp_indices->push_back(i);
+    }
   }
   if(Trace.isOn("arrays-ind")) {
     printList((*(info_map.find(a))).second->indices);
@@ -153,6 +155,19 @@ void ArrayInfo::setNonLinear(const TNode a) {
   
 }
 
+void ArrayInfo::setRIntro1Applied(const TNode a) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->rIntro1Applied = true;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->rIntro1Applied = true;
+  }
+  
+}
 
 /**
  * Returns the information associated with TNode a
@@ -171,16 +186,25 @@ const bool ArrayInfo::isNonLinear(const TNode a) const
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
   if(it!= info_map.end())
-      return (*it).second->isNonLinear;
+    return (*it).second->isNonLinear;
   return false;
 }
 
-List<TNode>* ArrayInfo::getIndices(const TNode a) const{
+const bool ArrayInfo::rIntro1Applied(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end())
+    return (*it).second->rIntro1Applied;
+  return false;
+}
+
+const CTNodeList* ArrayInfo::getIndices(const TNode a) const{
   CNodeInfoMap::const_iterator it = info_map.find(a);
   if(it!= info_map.end()) {
     return (*it).second->indices;
   }
-  return emptyListI;
+  return emptyList;
 }
 
 const CTNodeList* ArrayInfo::getStores(const TNode a) const{
@@ -221,16 +245,16 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
       if(Trace.isOn("arrays-mergei"))
         (*itb).second->print();
 
-      List<TNode>* lista_i = (*ita).second->indices;
+      CTNodeList* lista_i = (*ita).second->indices;
       CTNodeList* lista_st = (*ita).second->stores;
       CTNodeList* lista_inst = (*ita).second->in_stores;
 
 
-      List<TNode>* listb_i = (*itb).second->indices;
+      CTNodeList* listb_i = (*itb).second->indices;
       CTNodeList* listb_st = (*itb).second->stores;
       CTNodeList* listb_inst = (*itb).second->in_stores;
 
-      lista_i->concat(listb_i);
+      mergeLists(lista_i, listb_i);
       mergeLists(lista_st, listb_st);
       mergeLists(lista_inst, listb_inst);
 
@@ -269,13 +293,13 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
       Trace("arrays-mergei")<<" adding second element's info \n";
       (*itb).second->print();
 
-      List<TNode>* listb_i = (*itb).second->indices;
+      CTNodeList* listb_i = (*itb).second->indices;
       CTNodeList* listb_st = (*itb).second->stores;
       CTNodeList* listb_inst = (*itb).second->in_stores;
 
       Info* temp_info = new Info(ct, bck);
 
-      (temp_info->indices)->concat(listb_i);
+      mergeLists(temp_info->indices, listb_i);
       mergeLists(temp_info->stores, listb_st);
       mergeLists(temp_info->in_stores, listb_inst);
       info_map[a] = temp_info;

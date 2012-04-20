@@ -83,12 +83,13 @@ bool inList(const CTNodeList* l, const TNode el);
 class Info {
 public:
   context::CDO<bool> isNonLinear;
-  List<TNode>* indices;
+  context::CDO<bool> rIntro1Applied;
+  CTNodeList* indices;
   CTNodeList* stores;
   CTNodeList* in_stores;
 
-  Info(context::Context* c, Backtracker<TNode>* bck) : isNonLinear(c, false) {
-    indices = new List<TNode>(bck);
+  Info(context::Context* c, Backtracker<TNode>* bck) : isNonLinear(c, false), rIntro1Applied(c, false) {
+    indices = new(true)CTNodeList(c);
     stores = new(true)CTNodeList(c);
     in_stores = new(true)CTNodeList(c);
 
@@ -97,6 +98,7 @@ public:
   ~Info() {
     //FIXME!
     //indices->deleteSelf();
+    indices->deleteSelf();
     stores->deleteSelf();
     in_stores->deleteSelf();
   }
@@ -105,7 +107,7 @@ public:
    * prints the information
    */
   void print() const {
-    Assert(indices != NULL && stores!= NULL); // && equals != NULL);
+    Assert(indices != NULL && stores!= NULL && in_stores != NULL);
     Trace("arrays-info")<<"  indices   ";
     printList(indices);
     Trace("arrays-info")<<"  stores ";
@@ -134,8 +136,6 @@ private:
   CNodeInfoMap info_map;
 
   CTNodeList* emptyList;
-  List<TNode>* emptyListI;
-
 
   /* == STATISTICS == */
 
@@ -191,7 +191,6 @@ public:
       d_maxList("theory::arrays::maxList",0),
       d_tableSize("theory::arrays::infoTableSize", info_map) {
     emptyList = new(true) CTNodeList(ct);
-    emptyListI = new List<TNode>(bck);
     emptyInfo = new Info(ct, bck);
     StatisticsRegistry::registerStat(&d_mergeInfoTimer);
     StatisticsRegistry::registerStat(&d_avgIndexListLength);
@@ -231,6 +230,7 @@ public:
   void addInStore(const TNode a, const TNode st);
 
   void setNonLinear(const TNode a);
+  void setRIntro1Applied(const TNode a);
 
   /**
    * Returns the information associated with TNode a
@@ -240,7 +240,9 @@ public:
 
   const bool isNonLinear(const TNode a) const;
 
-  List<TNode>* getIndices(const TNode a) const;
+  const bool rIntro1Applied(const TNode a) const;
+
+  const CTNodeList* getIndices(const TNode a) const;
 
   const CTNodeList* getStores(const TNode a) const;
 

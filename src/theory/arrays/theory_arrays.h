@@ -304,6 +304,7 @@ class TheoryArrays : public Theory {
 
   Node mkAnd(std::vector<TNode>& conjunctions);
   void setNonLinear(TNode a);
+  void checkRIntro1(TNode a, TNode b);
   void mergeArrays(TNode a, TNode b);
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
