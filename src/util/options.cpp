@@ -172,6 +172,7 @@ Additional CVC4 options:\n\
    --print-expr-types     print types with variables when printing exprs\n\
    --lazy-definition-expansion expand define-funs/LAMBDAs lazily\n\
    --simplification=MODE  choose simplification mode, see --simplification=help\n\
+   --decision=MODE        choose decision mode, see --decision=help\n\
    --no-static-learning   turn off static learning (e.g. diamond-breaking)\n\
    --replay=file          replay decisions from file\n\
    --replay-log=file      log decisions and propagations to file\n\
@@ -223,6 +224,16 @@ incremental\n\
 \n\
 none\n\
 + do not perform nonclausal simplification\n\
+";
+
+static const string decisionHelp = "\
+Decision modes currently supported by the --decision option:\n\
+\n\
+internal (default)\n\
++ Use the internal decision hueristics of the SAT solver\n\
+\n\
+justification\n\
++ An ATGP-inspired justification heuristic\n\
 ";
 
 static const string dumpHelp = "\
@@ -338,6 +349,7 @@ enum OptionValue {
   UF_THEORY,
   LAZY_DEFINITION_EXPANSION,
   SIMPLIFICATION_MODE,
+  DECISION_MODE,
   NO_STATIC_LEARNING,
   INTERACTIVE,
   NO_INTERACTIVE,
@@ -426,6 +438,7 @@ static struct option cmdlineOptions[] = {
   { "uf"         , required_argument, NULL, UF_THEORY   },
   { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
   { "simplification", required_argument, NULL, SIMPLIFICATION_MODE },
+  { "decision", required_argument, NULL, DECISION_MODE },
   { "no-static-learning", no_argument, NULL, NO_STATIC_LEARNING },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
@@ -693,6 +706,22 @@ throw(OptionException) {
       } else {
         throw OptionException(string("unknown option for --simplification: `") +
                               optarg + "'.  Try --simplification help.");
+      }
+      break;
+
+    case DECISION_MODE:
+      if(!strcmp(optarg, "internal")) {
+        decisionMode = DECISION_STRATEGY_INTERNAL;
+        decisionModeSetByUser = true;
+      } else if(!strcmp(optarg, "justification")) {
+        decisionMode = DECISION_STRATEGY_JUSTIFICATION;
+        decisionModeSetByUser = true;
+      } else if(!strcmp(optarg, "help")) {
+        puts(decisionHelp.c_str());
+        exit(1);
+      } else {
+        throw OptionException(string("unknown option for --decision: `") +
+                              optarg + "'.  Try --decision help.");
       }
       break;
 

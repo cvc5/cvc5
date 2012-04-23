@@ -85,7 +85,7 @@ public:
 
   void enqueueTheoryLiteral(const SatLiteral& l);
 
-  SatLiteral getNextDecisionRequest();
+  SatLiteral getNextDecisionRequest(bool& stopSearch);
 
   bool theoryNeedCheck() const;
 
@@ -111,6 +111,8 @@ public:
   void logDecision(SatLiteral lit);
 
   void checkTime();
+
+  bool isDecisionEngineDone();
 
 };/* class SatSolver */
 

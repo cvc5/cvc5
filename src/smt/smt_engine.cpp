@@ -244,13 +244,15 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_private(new smt::SmtEnginePrivate(*this)),
   d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
   d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
-  d_staticLearningTime("smt::SmtEngine::staticLearningTime") {
+  d_staticLearningTime("smt::SmtEngine::staticLearningTime"),
+  d_statResultSource("smt::resultSource", "unknown") {
 
   NodeManagerScope nms(d_nodeManager);
 
   StatisticsRegistry::registerStat(&d_definitionExpansionTime);
   StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
   StatisticsRegistry::registerStat(&d_staticLearningTime);
+  StatisticsRegistry::registerStat(&d_statResultSource);
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -264,7 +266,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
     d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
   CVC4_FOR_EACH_THEORY;
 
-  d_decisionEngine = new DecisionEngine();
+  d_decisionEngine = new DecisionEngine(d_context);
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
   // d_decisionEngine->setPropEngine(d_propEngine);
@@ -339,12 +341,15 @@ SmtEngine::~SmtEngine() throw() {
     StatisticsRegistry::unregisterStat(&d_definitionExpansionTime);
     StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
     StatisticsRegistry::unregisterStat(&d_staticLearningTime);
+    StatisticsRegistry::unregisterStat(&d_statResultSource);
+
 
     delete d_private;
     delete d_userContext;
 
     delete d_theoryEngine;
     delete d_propEngine;
+    //delete d_decisionEngine;
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
@@ -967,6 +972,7 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check(): running check" << endl;
   Result result = d_propEngine->checkSat(millis, resource);
+  d_statResultSource.setData("satSolver");
 
   // PropEngine::checkSat() returns the actual amount used in these
   // variables.
@@ -975,6 +981,14 @@ Result SmtEngine::check() {
 
   Trace("limit") << "SmtEngine::check(): cumulative millis " << d_cumulativeTimeUsed
                  << ", conflicts " << d_cumulativeResourceUsed << endl;
+
+  if(result.isUnknown() and d_decisionEngine != NULL) {
+    Result deResult = d_decisionEngine->getResult();
+    if(not deResult.isUnknown()) {
+      d_statResultSource.setData("decisionEngine");
+      result = deResult;
+    }
+  }
 
   return result;
 }

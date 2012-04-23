@@ -73,7 +73,7 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   d_theoryEngine->assertFact(literalNode);
 }
 
-SatLiteral TheoryProxy::getNextDecisionRequest() {
+SatLiteral TheoryProxy::getNextDecisionRequest(bool &stopSearch) {
   TNode n = d_theoryEngine->getNextDecisionRequest();
   if(not n.isNull())
     return d_cnfStream->getLiteral(n);
@@ -82,7 +82,12 @@ SatLiteral TheoryProxy::getNextDecisionRequest() {
   // may return in undefSatLiteral in which case the sat solver figure
   // it out something
   Assert(d_decisionEngine != NULL);
-  return d_decisionEngine->getNext();
+  Assert(stopSearch != true);
+  SatLiteral ret = d_decisionEngine->getNext(stopSearch);
+  if(stopSearch) {
+    Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
+  }
+  return ret;
 }
 
 bool TheoryProxy::theoryNeedCheck() const {
@@ -176,6 +181,10 @@ void TheoryProxy::logDecision(SatLiteral lit) {
 
 void TheoryProxy::checkTime() {
   d_propEngine->checkTime();
+}
+
+bool TheoryProxy::isDecisionEngineDone() {
+  return d_decisionEngine->isDone();
 }
 
 }/* CVC4::prop namespace */

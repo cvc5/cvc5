@@ -112,6 +112,13 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
     Dump("lemmas") << AssertCommand(BoolExpr(node.toExpr()));
   }
 
+  /* Tell decision engine */
+  if(negated) {
+    NodeBuilder<> nb(kind::NOT);
+    nb << node;
+    d_decisionEngine->addAssertion(nb.constructNode());
+  }
+
   //TODO This comment is now false
   // Assert as removable
   d_cnfStream->convertAndAssert(node, removable, negated);

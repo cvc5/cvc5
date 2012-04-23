@@ -223,6 +223,9 @@ class CVC4_PUBLIC SmtEngine {
   TimerStat d_nonclausalSimplificationTime;
   /** time spent in static learning */
   TimerStat d_staticLearningTime;
+  /** how the SMT engine got the answer -- SAT solver or DE */
+  BackedStat<std::string> d_statResultSource;
+
 
 public:
 

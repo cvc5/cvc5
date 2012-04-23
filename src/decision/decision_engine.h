@@ -45,15 +45,21 @@ class DecisionEngine {
   // PropEngine* d_propEngine;
   CnfStream* d_cnfStream;
   DPLLSatSolverInterface* d_satSolver;
+
+  SatValue d_result;
+
+  context::Context* d_satContext;
 public:
   // Necessary functions
 
   /** Constructor, enables decision stragies based on options */
-  DecisionEngine();
+  DecisionEngine(context::Context *c);
 
   /** Destructor, currently does nothing */
   ~DecisionEngine() {
     Trace("decision") << "Destroying decision engine" << std::endl;
+    for(unsigned i = 0; i < d_enabledStrategies.size(); ++i)
+      delete d_enabledStrategies[i];
   }
   
   // void setPropEngine(PropEngine* pe) {
@@ -81,13 +87,40 @@ public:
   // Interface for External World to use our services
 
   /** Gets the next decision based on strategies that are enabled */
-  SatLiteral getNext() {
+  SatLiteral getNext(bool &stopSearch) {
     SatLiteral ret = undefSatLiteral;
-    for(unsigned i = 0; i < d_enabledStrategies.size() 
-          and ret == undefSatLiteral; ++i) {
-      ret = d_enabledStrategies[i]->getNext();
+    for(unsigned i = 0; 
+        i < d_enabledStrategies.size() 
+          and ret == undefSatLiteral
+          and stopSearch == false; ++i) {
+      ret = d_enabledStrategies[i]->getNext(stopSearch);
     }
     return ret;
+  }
+
+  /** Is the DecisionEngine in a state where it has solved everything? */
+  bool isDone() {
+    Trace("decision") << "DecisionEngine::isDone() returning "
+		      << (d_result != SAT_VALUE_UNKNOWN)
+		      << (d_result != SAT_VALUE_UNKNOWN ? "true" : "false")
+		      << std::endl;
+    return (d_result != SAT_VALUE_UNKNOWN);
+  }
+
+  /** */
+  Result getResult() {
+    switch(d_result) {
+    case SAT_VALUE_TRUE: return Result(Result::SAT);
+    case SAT_VALUE_FALSE: return Result(Result::UNSAT);
+    case SAT_VALUE_UNKNOWN: return Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    default: Assert(false);
+    }
+    return Result();
+  }
+
+  /** */
+  void setResult(SatValue val) {
+    d_result = val;
   }
 
   /**
@@ -109,6 +142,7 @@ public:
   }
   void informSimplifiedPreITEAssertions(const vector<Node> &assertions);
 
+  void addAssertion(Node n);
 
   // Interface for Strategies to use stuff stored in Decision Engine
   // (which was possibly requested by them on initialization)

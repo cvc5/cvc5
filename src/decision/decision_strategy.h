@@ -25,19 +25,23 @@ namespace CVC4 {
 
 class DecisionEngine;
 
+namespace context {
+class Context;
+}
+
 namespace decision {
 
 class DecisionStrategy {
 protected:
    DecisionEngine* d_decisionEngine;
 public:
-  DecisionStrategy(DecisionEngine* de) :
+  DecisionStrategy(DecisionEngine* de, context::Context *c) :
     d_decisionEngine(de) {
   }
 
   virtual ~DecisionStrategy() { }
 
-  virtual prop::SatLiteral getNext() = 0;
+  virtual prop::SatLiteral getNext(bool&) = 0;
   
   virtual bool needSimplifiedPreITEAssertions() { return false; }
   

@@ -370,8 +370,9 @@ Lit Solver::pickBranchLit()
     }
 #endif /* CVC4_REPLAY */
 
-    // Theory requests
-    nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionRequest());
+    // Theory/DE requests
+    bool stopSearch = false;
+    nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionRequest(stopSearch));
     while (nextLit != lit_Undef) {
       if(value(var(nextLit)) == l_Undef) {
         Debug("propagateAsDecision") << "propagateAsDecision(): now deciding on " << nextLit << std::endl;
@@ -379,7 +380,10 @@ Lit Solver::pickBranchLit()
       } else {
         Debug("propagateAsDecision") << "propagateAsDecision(): would decide on " << nextLit << " but it already has an assignment" << std::endl;
       }
-      nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionRequest());
+      nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionRequest(stopSearch));
+    }
+    if(stopSearch) {
+      return lit_Undef;
     }
 
     Var next = var_Undef;
@@ -1020,15 +1024,23 @@ lbool Solver::search(int nof_conflicts)
 
 	    // If this was a final check, we are satisfiable
             if (check_type == CHECK_FINAL) {
+	      bool decisionEngineDone = proxy->isDecisionEngineDone();
               // Unless a lemma has added more stuff to the queues
-              if (!order_heap.empty() || qhead < trail.size()) {
+              if (!decisionEngineDone  &&
+		  (!order_heap.empty() || qhead < trail.size()) ) {
                 check_type = CHECK_WITH_THEORY;
                 continue;
-              } else if (recheck) {
+              } else if (!decisionEngineDone && recheck) {
                 // There some additional stuff added, so we go for another full-check
                 continue;
               } else {
                 // Yes, we're truly satisfiable
+		if(decisionEngineDone) {
+		  // but we might know that only because of decision engine
+		  Trace("decision") << decisionEngineDone << " decision engine stopping us" << std::endl;
+		  interrupt();
+		  return l_Undef;
+		}
                 return l_True;
               }
             }

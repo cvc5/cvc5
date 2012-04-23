@@ -94,7 +94,8 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
 
   // Create the solver
   d_minisat = new Minisat::SimpSolver(theoryProxy, d_context,
-                                      Options::current()->incrementalSolving);
+                                      Options::current()->incrementalSolving || 
+                                      Options::current()->decisionMode == Options::DECISION_STRATEGY_JUSTIFICATION );
   // Setup the verbosity
   d_minisat->verbosity = (Options::current()->verbosity > 0) ? 1 : -1;
 
