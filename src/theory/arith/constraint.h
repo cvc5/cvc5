@@ -77,7 +77,7 @@
 #include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/delta_rational.h"
 
-#include "theory/arith/difference_manager.h"
+#include "theory/arith/congruence_manager.h"
 
 #include "theory/arith/constraint_forward.h"
 
@@ -746,7 +746,7 @@ private:
     return d_av2nodeMap;
   }
 
-  DifferenceManager& d_differenceManager;
+  ArithCongruenceManager& d_congruenceManager;
 
   //Constraint allocateConstraintForLiteral(ArithVar v, Node literal);
 
@@ -760,7 +760,7 @@ public:
   ConstraintDatabase( context::Context* satContext,
                       context::Context* userContext,
                       const ArithVarNodeMap& av2nodeMap,
-                      DifferenceManager& dm);
+                      ArithCongruenceManager& dm);
 
   ~ConstraintDatabase();
 

@@ -444,14 +444,13 @@ Constraint ConstraintValue::makeNegation(ArithVar v, ConstraintType t, const Del
   }
 }
 
-ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Context* userContext, const ArithVarNodeMap& av2nodeMap,
-                                       DifferenceManager& dm)
+ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Context* userContext, const ArithVarNodeMap& av2nodeMap, ArithCongruenceManager& cm)
   : d_varDatabases(),
     d_toPropagate(satContext),
     d_proofs(satContext, false),
     d_watches(new Watches(satContext, userContext)),
     d_av2nodeMap(av2nodeMap),
-    d_differenceManager(dm),
+    d_congruenceManager(cm),
     d_satContext(satContext),
     d_satAllocationLevel(d_satContext->getLevel())
 {
@@ -997,12 +996,12 @@ Constraint ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t,
 }
 Node ConstraintDatabase::eeExplain(const ConstraintValue* const c) const{
   Assert(c->hasLiteral());
-  return d_differenceManager.explain(c->getLiteral());
+  return d_congruenceManager.explain(c->getLiteral());
 }
 
 void ConstraintDatabase::eeExplain(const ConstraintValue* const c, NodeBuilder<>& nb) const{
   Assert(c->hasLiteral());
-  d_differenceManager.explain(c->getLiteral(), nb);
+  d_congruenceManager.explain(c->getLiteral(), nb);
 }
 
 bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {

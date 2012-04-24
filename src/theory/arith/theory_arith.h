@@ -38,7 +38,7 @@
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/dio_solver.h"
-#include "theory/arith/difference_manager.h"
+#include "theory/arith/congruence_manager.h"
 
 #include "theory/arith/constraint.h"
 
@@ -241,14 +241,8 @@ private:
    */
   Tableau d_smallTableauCopy;
 
-  /**
-   * The atom database keeps track of the atoms that have been preregistered.
-   * Used to add unate propagations.
-   */
-  //ArithAtomDatabase d_atomDatabase;
-
   /** This keeps track of difference equalities. Mostly for sharing. */
-  DifferenceManager d_differenceManager;
+  ArithCongruenceManager d_congruenceManager;
 
   /** This implements the Simplex decision procedure. */
   SimplexDecisionProcedure d_simplex;

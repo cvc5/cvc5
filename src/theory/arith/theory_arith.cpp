@@ -72,9 +72,9 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_tableauResetPeriod(10),
   d_conflicts(c),
   d_conflictCallBack(d_conflicts),
-  d_differenceManager(c, d_constraintDatabase, d_setupLiteralCallback),
+  d_congruenceManager(c, d_constraintDatabase, d_setupLiteralCallback, d_arithvarNodeMap),
   d_simplex(d_linEq, d_conflictCallBack),
-  d_constraintDatabase(c, u, d_arithvarNodeMap, d_differenceManager),
+  d_constraintDatabase(c, u, d_arithvarNodeMap, d_congruenceManager),
   d_basicVarModelUpdateCallBack(d_simplex),
   d_DELTA_ZERO(0),
   d_statistics()
@@ -151,7 +151,7 @@ TheoryArith::Statistics::~Statistics(){
 }
 
 void TheoryArith::zeroDifferenceDetected(ArithVar x){
-  Assert(d_differenceManager.isDifferenceSlack(x));
+  Assert(d_congruenceManager.isWatchedVariable(x));
   Assert(d_partialModel.upperBoundIsZero(x));
   Assert(d_partialModel.lowerBoundIsZero(x));
 
@@ -159,11 +159,11 @@ void TheoryArith::zeroDifferenceDetected(ArithVar x){
   Constraint ub = d_partialModel.getUpperBoundConstraint(x);
 
   if(lb->isEquality()){
-    d_differenceManager.differenceIsZero(lb);
+    d_congruenceManager.watchedVariableIsZero(lb);
   }else if(ub->isEquality()){
-    d_differenceManager.differenceIsZero(ub);
+    d_congruenceManager.watchedVariableIsZero(ub);
   }else{
-    d_differenceManager.differenceIsZero(lb, ub);
+    d_congruenceManager.watchedVariableIsZero(lb, ub);
   }
 }
 
@@ -195,6 +195,14 @@ Node TheoryArith::AssertLower(Constraint constraint){
     if(isInteger(x_i)){
       d_constantIntegerVariables.push_back(x_i);
     }
+    Constraint ub = d_partialModel.getUpperBoundConstraint(x_i);
+
+    if(!d_congruenceManager.isWatchedVariable(x_i) || c_i.sgn() != 0){
+      // if it is not a watched variable report it
+      // if it is is a watched variable and c_i == 0,
+      // let zeroDifferenceDetected(x_i) catch this
+      d_congruenceManager.equalsConstant(constraint, ub);
+    }
 
     const ValueCollection& vc = constraint->getValueCollection();
     if(vc.hasDisequality()){
@@ -202,7 +210,7 @@ Node TheoryArith::AssertLower(Constraint constraint){
       const Constraint eq = vc.getEquality();
       const Constraint diseq = vc.getDisequality();
       if(diseq->isTrue()){
-        const Constraint ub = vc.getUpperBound();
+        //const Constraint ub = vc.getUpperBound();
         Node conflict = ConstraintValue::explainConflict(diseq, ub, constraint);
 
         ++(d_statistics.d_statDisequalityConflicts);
@@ -217,10 +225,10 @@ Node TheoryArith::AssertLower(Constraint constraint){
 
   d_partialModel.setLowerBoundConstraint(constraint);
 
-  if(d_differenceManager.isDifferenceSlack(x_i)){
+  if(d_congruenceManager.isWatchedVariable(x_i)){
     int sgn = c_i.sgn();
     if(sgn > 0){
-      d_differenceManager.differenceCannotBeZero(constraint);
+      d_congruenceManager.watchedVariableCannotBeZero(constraint);
     }else if(sgn == 0 && d_partialModel.upperBoundIsZero(x_i)){
       zeroDifferenceDetected(x_i);
     }
@@ -273,6 +281,13 @@ Node TheoryArith::AssertUpper(Constraint constraint){
     if(isInteger(x_i)){
       d_constantIntegerVariables.push_back(x_i);
     }
+    Constraint lb = d_partialModel.getLowerBoundConstraint(x_i);
+    if(!d_congruenceManager.isWatchedVariable(x_i) || c_i.sgn() != 0){
+      // if it is not a watched variable report it
+      // if it is is a watched variable and c_i == 0,
+      // let zeroDifferenceDetected(x_i) catch this
+      d_congruenceManager.equalsConstant(lb, constraint);
+    }
 
     const ValueCollection& vc = constraint->getValueCollection();
     if(vc.hasDisequality()){
@@ -280,7 +295,6 @@ Node TheoryArith::AssertUpper(Constraint constraint){
       const Constraint diseq = vc.getDisequality();
       const Constraint eq = vc.getEquality();
       if(diseq->isTrue()){
-        const Constraint lb = vc.getLowerBound();
         Node conflict = ConstraintValue::explainConflict(diseq, lb, constraint);
         Debug("eq") << " assert upper conflict " << conflict << endl;
         return conflict;
@@ -294,10 +308,10 @@ Node TheoryArith::AssertUpper(Constraint constraint){
 
   d_partialModel.setUpperBoundConstraint(constraint);
 
-  if(d_differenceManager.isDifferenceSlack(x_i)){
+  if(d_congruenceManager.isWatchedVariable(x_i)){
     int sgn = c_i.sgn();
      if(sgn < 0){
-       d_differenceManager.differenceCannotBeZero(constraint);
+       d_congruenceManager.watchedVariableCannotBeZero(constraint);
      }else if(sgn == 0 && d_partialModel.lowerBoundIsZero(x_i)){
        zeroDifferenceDetected(x_i);
      }
@@ -370,15 +384,17 @@ Node TheoryArith::AssertEquality(Constraint constraint){
   d_partialModel.setUpperBoundConstraint(constraint);
   d_partialModel.setLowerBoundConstraint(constraint);
 
-  if(d_differenceManager.isDifferenceSlack(x_i)){
+  if(d_congruenceManager.isWatchedVariable(x_i)){
     int sgn = c_i.sgn();
     if(sgn == 0){
       zeroDifferenceDetected(x_i);
     }else{
-      d_differenceManager.differenceCannotBeZero(constraint);
+      d_congruenceManager.watchedVariableCannotBeZero(constraint);
+      d_congruenceManager.equalsConstant(constraint);
     }
+  }else{
+    d_congruenceManager.equalsConstant(constraint);
   }
-
 
   d_updatedBounds.softAdd(x_i);
 
@@ -406,10 +422,10 @@ Node TheoryArith::AssertDisequality(Constraint constraint){
   //Should be fine in integers
   Assert(!isInteger(x_i) || c_i.isIntegral());
 
-  if(d_differenceManager.isDifferenceSlack(x_i)){
+  if(d_congruenceManager.isWatchedVariable(x_i)){
     int sgn = c_i.sgn();
     if(sgn == 0){
-      d_differenceManager.differenceCannotBeZero(constraint);
+      d_congruenceManager.watchedVariableCannotBeZero(constraint);
     }
   }
 
@@ -444,7 +460,7 @@ Node TheoryArith::AssertDisequality(Constraint constraint){
 
 
   if(c_i == d_partialModel.getAssignment(x_i)){
-    Debug("eq") << "lemma now!" << endl;
+    Debug("eq") << "lemma now! " << constraint << endl;
     d_out->lemma(constraint->split());
     return Node::null();
   }else if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
@@ -460,7 +476,7 @@ Node TheoryArith::AssertDisequality(Constraint constraint){
 }
 
 void TheoryArith::addSharedTerm(TNode n){
-  d_differenceManager.addSharedTerm(n);
+  d_congruenceManager.addSharedTerm(n);
   if(!n.isConst() && !isSetup(n)){
     Polynomial poly = Polynomial::parsePolynomial(n);
     Polynomial::iterator it = poly.begin();
@@ -713,7 +729,7 @@ void TheoryArith::setupPolynomial(const Polynomial& poly) {
             VarList vl0 = first.getVarList();
             VarList vl1 = second.getVarList();
             if(vl0.singleton() && vl1.singleton()){
-              d_differenceManager.addDifference(varSlack, vl0.getNode(), vl1.getNode());
+              d_congruenceManager.addWatchedPair(varSlack, vl0.getNode(), vl1.getNode());
             }
           }
         }
@@ -1137,8 +1153,8 @@ void TheoryArith::check(Effort effortLevel){
       d_out->conflict(possibleConflict);
       return;
     }
-    if(d_differenceManager.inConflict()){
-      Node c = d_differenceManager.conflict();
+    if(d_congruenceManager.inConflict()){
+      Node c = d_congruenceManager.conflict();
       d_partialModel.revertAssignmentChanges();
       Debug("arith::conflict") << "difference manager conflict   " << c << endl;
       clearUpdates();
@@ -1344,9 +1360,9 @@ Node TheoryArith::explain(TNode n) {
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
     return exp;
   }else{
-    Assert(d_differenceManager.canExplain(n));
+    Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
-    return d_differenceManager.explain(n);
+    return d_congruenceManager.explain(n);
   }
 }
 
@@ -1379,8 +1395,8 @@ void TheoryArith::propagate(Effort e) {
     }
   }
 
-  while(d_differenceManager.hasMorePropagations()){
-    TNode toProp = d_differenceManager.getNextPropagation();
+  while(d_congruenceManager.hasMorePropagations()){
+    TNode toProp = d_congruenceManager.getNextPropagation();
 
     //Currently if the flag is set this came from an equality detected by the
     //equality engine in the the difference manager.
@@ -1391,7 +1407,7 @@ void TheoryArith::propagate(Effort e) {
       Debug("arith::prop") << "propagating on non-constraint? "  << toProp << endl;
       d_out->propagate(toProp);
     }else if(constraint->negationHasProof()){
-      Node exp = d_differenceManager.explain(toProp);
+      Node exp = d_congruenceManager.explain(toProp);
       Node notNormalized = normalized.getKind() == NOT ?
         normalized[0] : normalized.notNode();
       Node lp = flattenAnd(exp.andNode(notNormalized));

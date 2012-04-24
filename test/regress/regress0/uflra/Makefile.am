@@ -13,6 +13,7 @@ MAKEFLAGS = -k
 
 # Regression tests for SMT inputs
 SMT_TESTS = \
+	constants0.smt \
 	simple.01.cvc \
 	simple.02.cvc \
 	simple.03.cvc \

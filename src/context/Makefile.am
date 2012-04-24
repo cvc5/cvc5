@@ -23,5 +23,6 @@ libcontext_la_SOURCES = \
 	cdcirclist.h \
 	cdcirclist_forward.h \
 	cdvector.h \
+	cdmaybe.h \
 	stacking_map.h \
 	stacking_vector.h
