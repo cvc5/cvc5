@@ -442,6 +442,9 @@ int runCvc4(int argc, char *argv[], Options& options) {
     delete parser;
   }
 
+  if(options.parseOnly)
+    return 0;
+
   exprMgr = NULL;               // don't want to use that variable
                                 // after this point
 
