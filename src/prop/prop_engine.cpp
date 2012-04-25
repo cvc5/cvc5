@@ -117,6 +117,8 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
     NodeBuilder<> nb(kind::NOT);
     nb << node;
     d_decisionEngine->addAssertion(nb.constructNode());
+  } else {
+    d_decisionEngine->addAssertion(node);
   }
 
   //TODO This comment is now false
