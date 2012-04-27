@@ -24,7 +24,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <zlib.h>
+//#include <zlib.h>
+#include <unistd.h>
 
 namespace Minisat {
 
@@ -35,7 +36,7 @@ static const int buffer_size = 1048576;
 
 
 class StreamBuffer {
-    gzFile        in;
+    int           in;
     unsigned char buf[buffer_size];
     int           pos;
     int           size;
@@ -43,10 +44,10 @@ class StreamBuffer {
     void assureLookahead() {
         if (pos >= size) {
             pos  = 0;
-            size = gzread(in, buf, sizeof(buf)); } }
+            size = read(in, buf, sizeof(buf)); } }
 
 public:
-    explicit StreamBuffer(gzFile i) : in(i), pos(0), size(0) { assureLookahead(); }
+    explicit StreamBuffer(int i) : in(i), pos(0), size(0) { assureLookahead(); }
 
     int  operator *  () const { return (pos >= size) ? EOF : buf[pos]; }
     void operator ++ ()       { pos++; assureLookahead(); }
