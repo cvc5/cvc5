@@ -5,7 +5,6 @@
 #pragma once
 
 #include "theory/arith/arithvar.h"
-#include "theory/arith/arithvar_set.h"
 #include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/constraint_forward.h"
 
@@ -18,6 +17,7 @@
 #include "context/cdmaybe.h"
 
 #include "util/stats.h"
+#include "util/dense_map.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,7 +32,7 @@ private:
    * If this is 0 or cannot be 0, this can be signalled.
    * The pair of terms for the congruence is stored in watched equalities.
    */
-  PermissiveBackArithVarSet d_watchedVariables;
+  DenseSet d_watchedVariables;
   /** d_watchedVariables |-> (= x y) */
   ArithVarToNodeMap d_watchedEqualities;
 

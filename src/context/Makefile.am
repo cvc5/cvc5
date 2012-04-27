@@ -25,4 +25,5 @@ libcontext_la_SOURCES = \
 	cdvector.h \
 	cdmaybe.h \
 	stacking_map.h \
-	stacking_vector.h
+	stacking_vector.h \
+	cddense_set.h

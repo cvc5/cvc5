@@ -25,7 +25,7 @@
 
 #include "theory/arith/arithvar.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/matrix.h"
 #include "theory/arith/partial_model.h"
 
 #include "util/stats.h"
@@ -136,7 +136,7 @@ private:
    */
   ArithVarArray d_varOrderQueue;
 
-  PermissiveBackArithVarSet d_varSet;
+  DenseSet d_varSet;
 
   /**
    * Reference to the arithmetic partial model for checking if a variable

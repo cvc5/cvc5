@@ -58,10 +58,10 @@ void LinearEqualityModule::update(ArithVar x_i, const DeltaRational& v){
   //Assert(matchingSets(d_tableau, x_i));
   Tableau::ColIterator basicIter = d_tableau.colIterator(x_i);
   for(; !basicIter.atEnd(); ++basicIter){
-    const TableauEntry& entry = *basicIter;
+    const Tableau::Entry& entry = *basicIter;
     Assert(entry.getColVar() == x_i);
 
-    ArithVar x_j = entry.getRowVar();
+    ArithVar x_j = d_tableau.rowIndexToBasic(entry.getRowIndex());
     //ReducedRowVector& row_j = d_tableau.lookup(x_j);
 
     //const Rational& a_ji = row_j.lookup(x_i);
@@ -76,7 +76,6 @@ void LinearEqualityModule::update(ArithVar x_i, const DeltaRational& v){
 
   d_partialModel.setAssignment(x_i, v);
 
-  Assert(d_tableau.getNumRows() >= d_tableau.getRowLength(x_i));
   //double difference = ((double)d_tableau.getNumRows()) - ((double) d_tableau.getRowLength(x_i));
 
   //(d_statistics.d_avgNumRowsNotContainingOnUpdate).addEntry(difference);
@@ -90,7 +89,8 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRatio
 
   if(Debug.isOn("arith::simplex:row")){ debugPivot(x_i, x_j); }
 
-  const TableauEntry& entry_ij =  d_tableau.findEntry(x_i, x_j);
+  RowIndex ridx = d_tableau.basicToRowIndex(x_i);
+  const Tableau::Entry& entry_ij =  d_tableau.findEntry(ridx, x_j);
   Assert(!entry_ij.blank());
 
 
@@ -111,10 +111,11 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRatio
 
   //Assert(matchingSets(d_tableau, x_j));
   for(Tableau::ColIterator iter = d_tableau.colIterator(x_j); !iter.atEnd(); ++iter){
-    const TableauEntry& entry = *iter;
+    const Tableau::Entry& entry = *iter;
     Assert(entry.getColVar() == x_j);
-    ArithVar x_k = entry.getRowVar();
-    if(x_k != x_i ){
+    RowIndex currRow = entry.getRowIndex();
+    if(ridx != currRow ){
+      ArithVar x_k = d_tableau.rowIndexToBasic(currRow);
       const Rational& a_kj = entry.getCoefficient();
       DeltaRational nextAssignment = d_partialModel.getAssignment(x_k) + (theta * a_kj);
       d_partialModel.setAssignment(x_k, nextAssignment);
@@ -126,15 +127,12 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRatio
   // Pivots
   ++(d_statistics.d_statPivots);
 
-  Assert(d_tableau.getNumRows() >= d_tableau.getRowLength(x_j));
-  //double difference = ((double)d_tableau.getNumRows()) - ((double) d_tableau.getRowLength(x_j));
-  //(d_statistics.d_avgNumRowsNotContainingOnPivot).addEntry(difference);
   d_tableau.pivot(x_i, x_j);
 
   d_basicVariableUpdates(x_j);
 
-  if(Debug.isOn("tableau")){
-    d_tableau.printTableau();
+  if(Debug.isOn("matrix")){
+    d_tableau.printMatrix();
   }
 }
 
@@ -142,8 +140,8 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRatio
 void LinearEqualityModule::debugPivot(ArithVar x_i, ArithVar x_j){
   Debug("arith::pivot") << "debugPivot("<< x_i  <<"|->"<< x_j << ")" << endl;
 
-  for(Tableau::RowIterator iter = d_tableau.rowIterator(x_i); !iter.atEnd(); ++iter){
-    const TableauEntry& entry = *iter;
+  for(Tableau::RowIterator iter = d_tableau.basicRowIterator(x_i); !iter.atEnd(); ++iter){
+    const Tableau::Entry& entry = *iter;
 
     ArithVar var = entry.getColVar();
     const Rational& coeff = entry.getCoefficient();
@@ -168,15 +166,15 @@ void LinearEqualityModule::debugPivot(ArithVar x_i, ArithVar x_j){
  *   }
  */
 void LinearEqualityModule::debugCheckTableau(){
-  ArithVarSet::const_iterator basicIter = d_tableau.beginBasic();
-  ArithVarSet::const_iterator endIter = d_tableau.endBasic();
+  Tableau::BasicIterator basicIter = d_tableau.beginBasic(),
+    endIter = d_tableau.endBasic();
   for(; basicIter != endIter; ++basicIter){
     ArithVar basic = *basicIter;
     DeltaRational sum;
     Debug("paranoid:check_tableau") << "starting row" << basic << endl;
-    Tableau::RowIterator nonbasicIter = d_tableau.rowIterator(basic);
+    Tableau::RowIterator nonbasicIter = d_tableau.basicRowIterator(basic);
     for(; !nonbasicIter.atEnd(); ++nonbasicIter){
-      const TableauEntry& entry = *nonbasicIter;
+      const Tableau::Entry& entry = *nonbasicIter;
       ArithVar nonbasic = entry.getColVar();
       if(basic == nonbasic) continue;
 
@@ -195,8 +193,8 @@ void LinearEqualityModule::debugCheckTableau(){
 
 DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound){
   DeltaRational sum(0,0);
-  for(Tableau::RowIterator i = d_tableau.rowIterator(basic); !i.atEnd(); ++i){
-    const TableauEntry& entry = (*i);
+  for(Tableau::RowIterator i = d_tableau.basicRowIterator(basic); !i.atEnd(); ++i){
+    const Tableau::Entry& entry = (*i);
     ArithVar nonbasic = entry.getColVar();
     if(nonbasic == basic) continue;
     const Rational& coeff =  entry.getCoefficient();
@@ -220,8 +218,8 @@ DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe){
   Assert(d_tableau.isBasic(x));
   DeltaRational sum(0);
 
-  for(Tableau::RowIterator i = d_tableau.rowIterator(x); !i.atEnd(); ++i){
-    const TableauEntry& entry = (*i);
+  for(Tableau::RowIterator i = d_tableau.basicRowIterator(x); !i.atEnd(); ++i){
+    const Tableau::Entry& entry = (*i);
     ArithVar nonbasic = entry.getColVar();
     if(nonbasic == x) continue;
     const Rational& coeff = entry.getCoefficient();
@@ -233,8 +231,8 @@ DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe){
 }
 
 bool LinearEqualityModule::hasBounds(ArithVar basic, bool upperBound){
-  for(Tableau::RowIterator iter = d_tableau.rowIterator(basic); !iter.atEnd(); ++iter){
-    const TableauEntry& entry = *iter;
+  for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd(); ++iter){
+    const Tableau::Entry& entry = *iter;
 
     ArithVar var = entry.getColVar();
     if(var == basic) continue;
@@ -267,9 +265,9 @@ void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
 
   vector<Constraint> bounds;
 
-  Tableau::RowIterator iter = d_tableau.rowIterator(basic);
+  Tableau::RowIterator iter = d_tableau.basicRowIterator(basic);
   for(; !iter.atEnd(); ++iter){
-    const TableauEntry& entry = *iter;
+    const Tableau::Entry& entry = *iter;
     ArithVar nonbasic = entry.getColVar();
     if(nonbasic == basic) continue;
 

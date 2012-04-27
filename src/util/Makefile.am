@@ -52,6 +52,7 @@ libutil_la_SOURCES = \
 	language.h \
 	lemma_input_channel.h \
 	lemma_output_channel.h \
+	dense_map.h \
 	channel.h \
 	language.cpp \
 	ntuple.h \
@@ -73,7 +74,8 @@ libutil_la_SOURCES = \
 	ite_removal.cpp \
 	pseudoboolean.h \
 	pseudoboolean.cpp \
-	node_visitor.h
+	node_visitor.h \
+	index.h
 
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la

@@ -52,14 +52,14 @@
 
 #include "theory/arith/arithvar.h"
 #include "theory/arith/arith_priority_queue.h"
-#include "theory/arith/arithvar_set.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/tableau.h"
+#include "theory/arith/matrix.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/linear_equality.h"
 
 #include "context/cdlist.h"
 
+#include "util/dense_map.h"
 #include "util/options.h"
 #include "util/stats.h"
 
@@ -98,7 +98,7 @@ private:
   NodeCallBack& d_conflictChannel;
 
   /** Maps a variable to how many times they have been used as a pivot in the simplex search. */
-  ArithVarMultiset d_pivotsInRound;
+  DenseMultiset d_pivotsInRound;
 
   /** Stores to the DeltaRational constant 0. */
   DeltaRational d_DELTA_ZERO;
