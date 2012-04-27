@@ -35,15 +35,18 @@ std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newL
   logicMap["QF_LIA"] = QF_LIA;
   logicMap["QF_LRA"] = QF_LRA;
   logicMap["QF_NIA"] = QF_NIA;
+  logicMap["QF_NRA"] = QF_NRA;
   logicMap["QF_RDL"] = QF_RDL;
   logicMap["QF_SAT"] = QF_SAT;
   logicMap["QF_UF"] = QF_UF;
   logicMap["QF_UFIDL"] = QF_UFIDL;
+  logicMap["QF_UFBV"] = QF_UFBV;
   logicMap["QF_UFLRA"] = QF_UFLRA;
   logicMap["QF_UFLIA"] = QF_UFLIA;
   logicMap["QF_UFLIRA"] = QF_UFLIRA;
   logicMap["QF_UFNIA"] = QF_UFNIA;
   logicMap["QF_UFNIRA"] = QF_UFNIRA;
+  logicMap["QF_UFNRA"] = QF_UFNRA;
   logicMap["QF_ABV"] = QF_ABV;
   logicMap["QF_AUFBV"] = QF_AUFBV;
   logicMap["QF_UFNIRA"] = QF_UFNIRA;
@@ -154,8 +157,9 @@ void Smt::setLogic(const std::string& name) {
     addTheory(THEORY_INTS);
     break;
 
-  case QF_LRA:
   case QF_RDL:
+  case QF_LRA:
+  case QF_NRA:
     addTheory(THEORY_REALS);
     break;
 
@@ -196,6 +200,11 @@ void Smt::setLogic(const std::string& name) {
     addTheory(THEORY_BITVECTORS);
     break;
 
+  case QF_UFBV:
+    addUf();
+    addTheory(THEORY_BITVECTORS);
+    break;
+
   case QF_AUFBV:
     addUf();
     addTheory(THEORY_ARRAYS_EX);
@@ -219,6 +228,7 @@ void Smt::setLogic(const std::string& name) {
   case AUFLIRA:
   case AUFNIRA:
   case LRA:
+  case UFLRA:
   case UFNIA:
     Unhandled(name);
   }
