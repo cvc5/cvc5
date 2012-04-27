@@ -279,6 +279,11 @@ class TheoryEngine {
   void conflict(TNode conflict, theory::TheoryId theoryId);
 
   /**
+   * Called by shared terms database to notify of a conflict.
+   */
+  void sharedConflict(TNode conflict);
+
+  /**
    * Debugging flag to ensure that shutdown() is called before the
    * destructor.
    */
@@ -353,7 +358,13 @@ class TheoryEngine {
 
   void propagateSharedLiteral(TNode literal, TNode original, theory::TheoryId theory)
   {
-    d_propagatedSharedLiterals.push_back(SharedLiteral(literal, original, theory));
+    if (literal.getKind() == kind::CONST_BOOLEAN) {
+      Assert(!literal.getConst<bool>());
+      sharedConflict(original);
+    }
+    else {
+      d_propagatedSharedLiterals.push_back(SharedLiteral(literal, original, theory));
+    }
   }
 
   /**

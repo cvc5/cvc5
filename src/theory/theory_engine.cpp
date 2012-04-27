@@ -936,3 +936,20 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     lemma(conflict, true, false);
   }
 }
+
+
+//Conflict from shared terms database
+void TheoryEngine::sharedConflict(TNode conflict) {
+  // Mark that we are in conflict
+  d_inConflict = true;
+
+  if(Dump.isOn("t-conflicts")) {
+    Dump("t-conflicts") << CommentCommand("theory conflict: expect unsat")
+                        << CheckSatCommand(conflict.toExpr());
+  }
+
+  Node fullConflict = explain(ExplainTask(d_sharedTerms.explain(conflict), SHARED_DATABASE_EXPLANATION));
+  Assert(properConflict(fullConflict));
+  Debug("theory") << "TheoryEngine::sharedConflict(" << conflict << "): " << fullConflict << std::endl;
+  lemma(fullConflict, true, false);
+}

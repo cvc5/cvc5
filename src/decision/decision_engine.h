@@ -46,9 +46,9 @@ class DecisionEngine {
   CnfStream* d_cnfStream;
   DPLLSatSolverInterface* d_satSolver;
 
+  context::Context* d_satContext;
   SatValue d_result;
 
-  context::Context* d_satContext;
 public:
   // Necessary functions
 

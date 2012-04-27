@@ -637,19 +637,21 @@ void TheoryArrays::computeCareGraph()
 
         EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
         switch (eqStatusDomain) {
-          case EQUALITY_FALSE_AND_PROPAGATED:
-          case EQUALITY_FALSE:
-            continue;
-            break;
           case EQUALITY_TRUE_AND_PROPAGATED:
-          case EQUALITY_TRUE:
             // Should have been propagated to us
             Assert(false);
+            break;
+          case EQUALITY_FALSE_AND_PROPAGATED:
+            // TODO: eventually this should be an Assert(false), but for now, disequalities are not propagated
             continue;
             break;
+          case EQUALITY_FALSE:
+          case EQUALITY_TRUE:
+            // Missed propagation - need to add the pair so that theory engine can force propagation
+            Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
+            break;
           case EQUALITY_FALSE_IN_MODEL:
-            Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): false in model, skipping" << std::endl;
-            continue;
+            Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): false in model" << std::endl;
             break;
           default:
             break;

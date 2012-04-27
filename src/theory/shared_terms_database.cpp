@@ -204,11 +204,9 @@ void SharedTermsDatabase::mergeSharedTerms(TNode a, TNode b)
     // Normalize the equality
     Node equality = left.eqNode(right);
     Node normalized = Rewriter::rewriteEquality(currentTheory, equality);
-    if (normalized.getKind() != kind::CONST_BOOLEAN) {
+    if (normalized.getKind() != kind::CONST_BOOLEAN || !normalized.getConst<bool>()) {
       // Notify client
       d_sharedNotify.notify(normalized, equality, currentTheory);
-    } else {
-      Assert(equality.getConst<bool>());
     }
   }
 
@@ -253,6 +251,7 @@ void SharedTermsDatabase::processSharedLiteral(TNode literal, TNode reason)
   if (negated) {
     Assert(!d_equalityEngine.areDisequal(atom[0], atom[1]));
     d_equalityEngine.addDisequality(atom[0], atom[1], reason);
+    //    !!! need to send this out
   }
   else {
     Assert(!d_equalityEngine.areEqual(atom[0], atom[1]));
