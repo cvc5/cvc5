@@ -1,4 +1,4 @@
-(set-logic QF_LIA)
+(set-logic QF_UFLIA)
 (set-info :status unsat)
 
 ;; don't use a datatypes for currently focusing in uf

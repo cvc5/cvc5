@@ -231,6 +231,7 @@ class TheoryEngineWhite : public CxxTest::TestSuite {
   NodeManagerScope* d_scope;
   FakeOutputChannel *d_nullChannel;
   TheoryEngine* d_theoryEngine;
+  LogicInfo* d_logicInfo;
 
 public:
 
@@ -244,7 +245,8 @@ public:
     d_nullChannel = new FakeOutputChannel();
 
     // create the TheoryEngine
-    d_theoryEngine = new TheoryEngine(d_ctxt, d_uctxt);
+    d_logicInfo = new LogicInfo();
+    d_theoryEngine = new TheoryEngine(d_ctxt, d_uctxt, *d_logicInfo);
 
     d_theoryEngine->addTheory< FakeTheory<THEORY_BUILTIN> >(THEORY_BUILTIN);
     d_theoryEngine->addTheory< FakeTheory<THEORY_BOOL> >(THEORY_BOOL);
@@ -259,6 +261,7 @@ public:
   void tearDown() {
     d_theoryEngine->shutdown();
     delete d_theoryEngine;
+    delete d_logicInfo;
 
     delete d_nullChannel;
 

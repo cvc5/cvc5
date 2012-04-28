@@ -110,6 +110,9 @@ class CnfStreamBlack : public CxxTest::TestSuite {
   /** The SAT solver proxy */
   FakeSatSolver* d_satSolver;
 
+  /** The logic info */
+  LogicInfo* d_logicInfo;
+
   /** The theory engine */
   TheoryEngine* d_theoryEngine;
 
@@ -134,7 +137,8 @@ class CnfStreamBlack : public CxxTest::TestSuite {
     d_nodeManager = new NodeManager(d_context, NULL);
     NodeManagerScope nms(d_nodeManager);
     d_satSolver = new FakeSatSolver();
-    d_theoryEngine = new TheoryEngine(d_context, d_userContext);
+    d_logicInfo = new LogicInfo();
+    d_theoryEngine = new TheoryEngine(d_context, d_userContext, *d_logicInfo);
     d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>(theory::THEORY_BUILTIN);
     d_theoryEngine->addTheory<theory::booleans::TheoryBool>(theory::THEORY_BOOL);
     d_theoryEngine->addTheory<theory::arith::TheoryArith>(theory::THEORY_ARITH);
@@ -146,6 +150,7 @@ class CnfStreamBlack : public CxxTest::TestSuite {
     delete d_cnfStream;
     d_theoryEngine->shutdown();
     delete d_theoryEngine;
+    delete d_logicInfo;
     delete d_satSolver;
     delete d_nodeManager;
     delete d_userContext;

@@ -93,7 +93,6 @@ void PreRegisterVisitor::start(TNode node) {
 }
 
 bool PreRegisterVisitor::done(TNode node) {
-  d_engine->markActive(d_theories);
   return d_multipleTheories;
 }
 

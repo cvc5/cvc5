@@ -90,13 +90,13 @@ class TheoryEngine {
   theory::Theory* d_theoryTable[theory::THEORY_LAST];
 
   /**
-   * A bitmap of theories that are "active" for the current run.  We
-   * mark a theory active when we first see a term or type belonging to
-   * it.  This is important because we can optimize for single-theory
-   * runs (no sharing), can reduce the cost of walking the DAG on
-   * registration, etc.
+   * A collection of theories that are "active" for the current run.
+   * This set is provided by the user (as a logic string, say, in SMT-LIBv2
+   * format input), or else by default it's all-inclusive.  This is important
+   * because we can optimize for single-theory runs (no sharing), can reduce
+   * the cost of walking the DAG on registration, etc.
    */
-  context::CDO<theory::Theory::Set> d_activeTheories;
+  const LogicInfo& d_logicInfo;
 
   // NotifyClass: template helper class for Shared Terms Database
   class NotifyClass :public SharedTermsDatabase::SharedTermsNotifyClass {
@@ -309,13 +309,6 @@ class TheoryEngine {
     d_propEngine->spendResource();
   }
 
-  /**
-   * Is the theory active.
-   */
-  bool isActive(theory::TheoryId theory) {
-    return theory::Theory::setContains(theory, d_activeTheories);
-  }
-
   struct SharedLiteral {
     /** The node/theory pair for the assertion */
     /** THEORY_LAST indicates this is a SAT literal and should be sent to the SAT solver */
@@ -469,7 +462,7 @@ class TheoryEngine {
 public:
 
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext);
+  TheoryEngine(context::Context* context, context::UserContext* userContext, const LogicInfo& logic);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -483,6 +476,7 @@ public:
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] = new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId], theory::Valuation(this));
+    d_theoryTable[theoryId]->d_logicInfo = &d_logicInfo;
   }
 
   /**
@@ -490,13 +484,6 @@ public:
    * should go in here.
    */
   void setLogic(std::string logic);
-
-  /**
-   * Mark a theory active if it's not already.
-   */
-  void markActive(theory::Theory::Set theories) {
-    d_activeTheories = theory::Theory::setUnion(d_activeTheories, theories);
-  }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);

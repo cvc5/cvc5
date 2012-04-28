@@ -124,6 +124,8 @@ namespace theory {
 
 enum TheoryId {
 ${theory_enum}
+  THEORY_QUANTIFIERS,
+  THEORY_REWRITERULES,
   THEORY_LAST
 };
 

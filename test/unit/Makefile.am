@@ -1,5 +1,6 @@
 # All unit tests
 UNIT_TESTS = \
+	theory/logic_info_white \
 	theory/theory_engine_white \
 	theory/theory_black \
 	theory/theory_arith_white \

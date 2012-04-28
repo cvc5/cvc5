@@ -27,6 +27,7 @@
 #include "theory/valuation.h"
 #include "theory/substitutions.h"
 #include "theory/output_channel.h"
+#include "theory/logic_info.h"
 #include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
@@ -137,6 +138,11 @@ private:
    * The user context for the Theory.
    */
   context::UserContext* d_userContext;
+
+  /**
+   * Information about the logic we're operating within.
+   */
+  const LogicInfo* d_logicInfo;
 
   /**
    * The assertFact() queue.
@@ -255,6 +261,10 @@ protected:
     }
         
     return fact;
+  }
+
+  const LogicInfo& getLogicInfo() const {
+    return *d_logicInfo;
   }
 
   /**

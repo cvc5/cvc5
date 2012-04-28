@@ -37,6 +37,7 @@
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/stats.h"
+#include "theory/logic_info.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -131,7 +132,12 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * The logic we're in.
    */
-  std::string d_logic;
+  LogicInfo d_logic;
+
+  /**
+   * Whether the logic has been set yet.
+   */
+  bool d_logicIsSet;
 
   /**
    * Whether or not we have added any assertions/declarations/definitions
@@ -212,7 +218,7 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Internally handle the setting of a logic.
    */
-  void setLogicInternal(const std::string& logic) throw();
+  void setLogicInternal(const LogicInfo& logic) throw();
 
   friend class ::CVC4::smt::SmtEnginePrivate;
 
@@ -225,7 +231,6 @@ class CVC4_PUBLIC SmtEngine {
   TimerStat d_staticLearningTime;
   /** how the SMT engine got the answer -- SAT solver or DE */
   BackedStat<std::string> d_statResultSource;
-
 
 public:
 
@@ -243,6 +248,11 @@ public:
    * Set the logic of the script.
    */
   void setLogic(const std::string& logic) throw(ModalException);
+
+  /**
+   * Set the logic of the script.
+   */
+  void setLogic(const LogicInfo& logic) throw(ModalException);
 
   /**
    * Set information about the script executing.
