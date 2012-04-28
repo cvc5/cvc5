@@ -862,25 +862,20 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 
 AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
-# look for boost library, but don't make it a fatal error if not found
-cvc4_has_threads=maybe
+# require boost library
+BOOST_REQUIRE()
+
+# look for boost threading library
 AC_ARG_WITH([portfolio],
     AS_HELP_STRING([--with-portfolio], [build the multithreaded portfolio version of CVC4 (pcvc4)]))
-if test $cvc4_has_threads = maybe; then
-  cvc4_save_LDFLAGS="$LDFLAGS"
-  if test "$enable_static_binary" = yes; then
-    LDFLAGS="-static $LDFLAGS"
-  fi
-  BOOST_REQUIRE([], [cvc4_has_threads=no])
-  if test $cvc4_has_threads = no; then
-    AC_MSG_WARN([disabling multithreaded support])
-  else
-    cvc4_has_threads=yes
-    BOOST_THREADS([], [AC_MSG_WARN([disabling multithreaded support])
-                       cvc4_has_threads=no])
-  fi
-  LDFLAGS="$cvc4_save_LDFLAGS"
+cvc4_save_LDFLAGS="$LDFLAGS"
+if test "$enable_static_binary" = yes; then
+  LDFLAGS="-static $LDFLAGS"
 fi
+cvc4_has_threads=yes
+BOOST_THREADS([], [AC_MSG_WARN([disabling multithreaded support])
+                   cvc4_has_threads=no])
+LDFLAGS="$cvc4_save_LDFLAGS"
 if test $cvc4_has_threads = no; then
   if test x$with_portfolio = xyes; then
     AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
