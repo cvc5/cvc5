@@ -122,6 +122,10 @@ class SmtEnginePrivate {
   /** Assertions to push to sat */
   vector<Node> d_assertionsToCheck;
 
+  /** Map from skolem variables to index in d_assertionsToCheck containing
+   * corresponding introduced Boolean ite */
+  IteSkolemMap d_iteSkolemMap;
+
   /** The top level substitutions */
   theory::SubstitutionMap d_topLevelSubstitutions;
 
@@ -696,8 +700,8 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHas
 void SmtEnginePrivate::removeITEs() {
   Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
 
-  // Remove all of the ITE occurances and normalize
-  RemoveITE::run(d_assertionsToCheck);
+  // Remove all of the ITE occurrences and normalize
+  RemoveITE::run(d_assertionsToCheck, d_iteSkolemMap);
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
     d_assertionsToCheck[i] = theory::Rewriter::rewrite(d_assertionsToCheck[i]);
   }
@@ -1051,13 +1055,20 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
 
-  d_smt.d_propEngine->processAssertionsStart();
+  // Call the theory preprocessors
+  d_smt.d_theoryEngine->preprocessStart();
+  for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+    d_assertionsToCheck[i] = d_smt.d_theoryEngine->preprocess(d_assertionsToCheck[i]);
+  }
+
+  // TODO: send formulas and iteSkolemMap to decision engine
 
   // Push the formula to SAT
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
     d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
   }
   d_assertionsToCheck.clear();
+  d_iteSkolemMap.clear();
 }
 
 void SmtEnginePrivate::addFormula(TNode n)

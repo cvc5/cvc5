@@ -50,7 +50,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_possiblePropagations(),
   d_hasPropagated(context),
   d_inConflict(context, false),
-  d_sharedTermsExist(context, false),
+  d_sharedTermsExist(logicInfo.isSharingEnabled()),
   d_hasShutDown(false),
   d_incomplete(context, false),
   d_sharedLiteralsIn(context),
@@ -94,8 +94,6 @@ void TheoryEngine::preRegister(TNode preprocessed) {
   if (multipleTheories) {
     // Collect the shared terms if there are multipe theories
     NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, preprocessed);
-    // Mark the multiple theories flag
-    d_sharedTermsExist = true;
   }
 }
 
@@ -627,7 +625,6 @@ void TheoryEngine::assertFact(TNode node)
   TNode atom = negated ? node[0] : node;
   Theory* theory = theoryOf(atom);
 
-  //TODO: there is probably a bug here if shared terms start to exist after some asseritons have been processed
   if (d_sharedTermsExist) {
 
     // If any shared terms, notify the theories

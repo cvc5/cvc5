@@ -30,13 +30,15 @@ namespace CVC4 {
 struct IteRewriteAttrTag {};
 typedef expr::Attribute<IteRewriteAttrTag, Node> IteRewriteAttr;
 
-void RemoveITE::run(std::vector<Node>& output) {
+void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
+{
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
-    output[i] = run(output[i], output);
+    output[i] = run(output[i], output, iteSkolemMap);
   }
 }
 
-Node RemoveITE::run(TNode node, std::vector<Node>& output) {
+Node RemoveITE::run(TNode node, std::vector<Node>& output,
+                    IteSkolemMap& iteSkolemMap) {
   // Current node
   Debug("ite") << "removeITEs(" << node << ")" << endl;
 
@@ -67,7 +69,9 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output) {
       nodeManager->setAttribute(node, IteRewriteAttr(), skolem);
 
       // Remove ITEs from the new assertion, rewrite it and push it to the output
-      output.push_back(run(newAssertion, output));
+      newAssertion = run(newAssertion, output, iteSkolemMap);
+      iteSkolemMap[skolem] = output.size();
+      output.push_back(newAssertion);
 
       // The representation is now the skolem
       return skolem;
@@ -82,7 +86,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output) {
   }
   // Remove the ITEs from the children
   for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output);
+    Node newChild = run(*it, output, iteSkolemMap);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }
