@@ -257,11 +257,6 @@ class TheoryEngine {
   context::CDO<bool> d_inConflict;
 
   /**
-   * Does the context contain terms shared among multiple theories.
-   */
-  bool d_sharedTermsExist;
-
-  /**
    * Explain the equality literals and push all the explaining literals
    * into the builder. All the non-equality literals are pushed to the
    * builder.

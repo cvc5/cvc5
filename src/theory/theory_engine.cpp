@@ -50,7 +50,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_possiblePropagations(),
   d_hasPropagated(context),
   d_inConflict(context, false),
-  d_sharedTermsExist(logicInfo.isSharingEnabled()),
   d_hasShutDown(false),
   d_incomplete(context, false),
   d_sharedLiteralsIn(context),
@@ -149,7 +148,7 @@ void TheoryEngine::check(Theory::Effort effort) {
                 Debug("theory::assertions") << (*it).assertion << endl;
             }
 
-            if (d_sharedTermsExist) {
+            if (d_logicInfo.isSharingEnabled()) {
               Debug("theory::assertions") << "Shared terms of " << theory->getId() << ": " << std::endl;
               context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
               for (unsigned i = 0; it != it_end; ++ it, ++i) {
@@ -188,7 +187,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
 
       // If in full check and no lemmas added, run the combination
-      if (Theory::fullEffort(effort) && d_sharedTermsExist) {
+      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled()) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << std::endl;
         combineTheories();
@@ -625,7 +624,7 @@ void TheoryEngine::assertFact(TNode node)
   TNode atom = negated ? node[0] : node;
   Theory* theory = theoryOf(atom);
 
-  if (d_sharedTermsExist) {
+  if (d_logicInfo.isSharingEnabled()) {
 
     // If any shared terms, notify the theories
     if (d_sharedTerms.hasSharedTerms(atom)) {
@@ -696,7 +695,7 @@ void TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   TNode atom = negated ? literal[0] : literal;
   bool value;
 
-  if (!d_sharedTermsExist || atom.getKind() != kind::EQUAL ||
+  if (!d_logicInfo.isSharingEnabled() || atom.getKind() != kind::EQUAL ||
       !d_sharedTerms.isShared(atom[0]) || !d_sharedTerms.isShared(atom[1])) {
     // If not an equality or if an equality between terms that are not both shared,
     // it must be a SAT literal so we enqueue it
@@ -775,7 +774,7 @@ Node TheoryEngine::getExplanation(TNode node) {
 
   AssertedLiteralsOutMap::iterator find;
   // "find" will have a value when sharedAssertion is true
-  if (d_sharedTermsExist && atom.getKind() == kind::EQUAL) {
+  if (d_logicInfo.isSharingEnabled() && atom.getKind() == kind::EQUAL) {
     find = d_assertedLiteralsOut.find(NodeTheoryPair(node, theory::THEORY_LAST));
     sharedLiteral = (find != d_assertedLiteralsOut.end());
   }
@@ -788,7 +787,7 @@ Node TheoryEngine::getExplanation(TNode node) {
     explanation = theory->explain(node);
 
     // Explain any shared equalities that might be in the explanation
-    if (d_sharedTermsExist) {
+    if (d_logicInfo.isSharingEnabled()) {
       explanation = explain(ExplainTask(explanation, THEORY_EXPLANATION, theory->getId()));
     }
   }
@@ -921,7 +920,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
                         << CheckSatCommand(conflict.toExpr());
   }
 
-  if (d_sharedTermsExist) {
+  if (d_logicInfo.isSharingEnabled()) {
     // In the multiple-theories case, we need to reconstruct the conflict
     Node fullConflict = explain(ExplainTask(conflict, THEORY_EXPLANATION, theoryId));
     Assert(properConflict(fullConflict));
