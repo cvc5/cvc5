@@ -325,7 +325,7 @@ Constraint ConstraintValue::getCeiling() {
 
   DeltaRational ceiling(getValue().ceiling());
 
-#warning "Optimize via the iterator"
+  // TODO: "Optimize via the iterator"
   return d_database->getConstraint(getVariable(), getType(), ceiling);
 }
 
@@ -334,7 +334,7 @@ Constraint ConstraintValue::getFloor() {
 
   DeltaRational floor(Rational(getValue().floor()));
 
-#warning "Optimize via the iterator"
+  // TODO: "Optimize via the iterator"
   return d_database->getConstraint(getVariable(), getType(), floor);
 }
 

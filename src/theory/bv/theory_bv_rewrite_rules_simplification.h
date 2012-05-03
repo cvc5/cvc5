@@ -308,15 +308,17 @@ Node RewriteRule<XorOne>::apply(Node node) {
   for(unsigned i = 0; i < node.getNumChildren(); ++i) {
     if (node[i] == ones) {
       // make sure only ones occurs only once
-      Assert(!found_ones);
-      found_ones = true;
+      found_ones = !found_ones;
     } else {
       children.push_back(node[i]); 
     }
   }
 
-  children[0] = utils::mkNode(kind::BITVECTOR_NOT, children[0]);
-  return utils::mkSortedNode(kind::BITVECTOR_XOR, children); 
+  Node result = utils::mkNode(kind::BITVECTOR_XOR, children);
+  if (found_ones) {
+    result = utils::mkNode(kind::BITVECTOR_NOT, result);
+  }
+  return result;
 }
 
 
@@ -344,16 +346,11 @@ template<> inline
 Node RewriteRule<XorZero>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<XorZero>(" << node << ")" << std::endl;
   std::vector<Node> children;
-  bool found_zero = false;
   Node zero = utils::mkConst(utils::getSize(node), 0);
     
   // XorSimplify should have been called before
   for(unsigned i = 0; i < node.getNumChildren(); ++i) {
-    if (node[i] == zero) {
-      // make sure zero occurs only once
-      Assert(!found_zero);
-      found_zero = true;
-    } else {
+    if (node[i] != zero) {
       children.push_back(node[i]); 
     }
   }

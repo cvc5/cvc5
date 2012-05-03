@@ -29,8 +29,8 @@ namespace builtin {
 
 class TheoryBuiltin : public Theory {
 public:
-  TheoryBuiltin(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
-    Theory(THEORY_BUILTIN, c, u, out, valuation) {}
+  TheoryBuiltin(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+    Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo) {}
   Node getValue(TNode n);
   std::string identify() const { return std::string("TheoryBuiltin"); }
 };/* class TheoryBuiltin */

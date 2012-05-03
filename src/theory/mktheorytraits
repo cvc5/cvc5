@@ -139,20 +139,21 @@ struct TheoryTraits<${theory_id}> {
 "
 
   # warnings about theory content and properties
-  dir="$(dirname "$kf")/../../"
-  if [ -e "$dir/$theory_header" ]; then
-    for function in check propagate staticLearning notifyRestart presolve postsolve; do
-      if eval "\$theory_has_$function"; then
-        grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' ||
-          echo "$kf: warning: $theory_class has property \"$function\" in its kinds file but doesn't appear to declare the function" >&2
-      else
-        grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' &&
-          echo "$kf: warning: $theory_class does not have property \"$function\" in its kinds file but appears to declare the function" >&2
-      fi
-    done
-  else
-    echo "$me: warning: theory header \"$theory_header\" does not exist or is unreadable" >&2
-  fi
+  # TODO: fix, not corresponding to staticLearning anymore
+  # dir="$(dirname "$kf")/../../"
+  # if [ -e "$dir/$theory_header" ]; then
+  #   for function in check propagate staticLearning notifyRestart presolve postsolve; do
+  #      if eval "\$theory_has_$function"; then
+  #        grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' ||
+  #          echo "$kf: warning: $theory_class has property \"$function\" in its kinds file but doesn't appear to declare the function" >&2
+  #      else
+  #        grep '\<'"$function"' *\((\|;\)' "$dir/$theory_header" | grep -vq '^ */\(/\|\*\)' &&
+  #          echo "$kf: warning: $theory_class does not have property \"$function\" in its kinds file but appears to declare the function" >&2
+  #      fi
+  #    done
+  # else
+  #   echo "$me: warning: theory header \"$theory_header\" does not exist or is unreadable" >&2
+  # fi
 
   theory_has_check="false"
   theory_has_propagate="false"

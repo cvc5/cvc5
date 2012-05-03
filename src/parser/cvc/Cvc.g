@@ -1199,7 +1199,7 @@ formula[CVC4::Expr& f]
       { f = addNots(EXPR_MANAGER, n, f);
         expressions.push_back(f);
       }
-      i=morecomparisons[expressions,operators]?
+      morecomparisons[expressions,operators]?
       { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
     )
   ;
@@ -1219,7 +1219,7 @@ morecomparisons[std::vector<CVC4::Expr>& expressions,
       { f = addNots(EXPR_MANAGER, n, f);
         expressions.push_back(f);
       }
-      inner=morecomparisons[expressions,operators]?
+      morecomparisons[expressions,operators]?
     )
   ;
 
@@ -1462,7 +1462,7 @@ recordStore[CVC4::Expr& f]
       if(record.getName() != "__cvc4_record") {
         PARSER_STATE->parseError("record-update applied to non-record");
       }
-      const DatatypeConstructorArg* updateArg;
+      const DatatypeConstructorArg* updateArg = 0;
       try {
         updateArg = &record[0][id];
       } catch(IllegalArgumentException& e) {

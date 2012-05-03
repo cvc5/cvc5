@@ -122,7 +122,7 @@ class TheoryArrays : public Theory {
 
   public:
 
-  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
+  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArrays();
 
   std::string identify() const { return std::string("TheoryArrays"); }
@@ -244,13 +244,13 @@ class TheoryArrays : public Theory {
     NotifyClass(TheoryArrays& arrays): d_arrays(arrays) {}
 
     bool notify(TNode propagation) {
-      Debug("arrays") << spaces(d_arrays.getContext()->getLevel()) << "NotifyClass::notify(" << propagation << ")" << std::endl;
+      Debug("arrays") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::notify(" << propagation << ")" << std::endl;
       // Just forward to arrays
       return d_arrays.propagate(propagation);
     }
 
     void notify(TNode t1, TNode t2) {
-      Debug("arrays") << spaces(d_arrays.getContext()->getLevel()) << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("arrays") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
       if (t1.getType().isArray()) {
         d_arrays.mergeArrays(t1, t2);
         if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {

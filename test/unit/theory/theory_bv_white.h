@@ -71,7 +71,7 @@ public:
     Context* ctx = new Context();
     Bitblaster* bb = new Bitblaster(ctx); 
     
-    NodeManager* nm = NodeManager::currentNM();
+    // NodeManager* nm = NodeManager::currentNM();
     // TODO: update this
     // Node a = nm->mkVar("a", nm->mkBitVectorType(4));
     // Node b = nm->mkVar("b", nm->mkBitVectorType(4));

@@ -101,8 +101,8 @@ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation) :
-    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation) {
+  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo) {
   }
 
   void registerTerm(TNode n) {
@@ -149,6 +149,7 @@ class TheoryBlack : public CxxTest::TestSuite {
   UserContext* d_uctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
+  LogicInfo* d_logicInfo;
 
   TestOutputChannel d_outputChannel;
 
@@ -164,7 +165,9 @@ public:
     d_uctxt = new UserContext();
     d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL));
+    d_logicInfo = new LogicInfo();
+
+    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
@@ -174,6 +177,7 @@ public:
     atom1 = Node::null();
     atom0 = Node::null();
     delete d_dummy;
+    delete d_logicInfo;
     delete d_scope;
     delete d_nm;
     delete d_uctxt;

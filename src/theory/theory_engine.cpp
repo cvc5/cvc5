@@ -47,7 +47,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_notify(*this),
   d_sharedTerms(d_notify, context),
   d_ppCache(),
-  d_possiblePropagations(),
+  d_possiblePropagations(context),
   d_hasPropagated(context),
   d_inConflict(context, false),
   d_hasShutDown(false),
@@ -87,7 +87,6 @@ void TheoryEngine::preRegister(TNode preprocessed) {
   if(Dump.isOn("missed-t-propagations")) {
     d_possiblePropagations.push_back(preprocessed);
   }
-
   // Pre-register the terms in the atom
   bool multipleTheories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
   if (multipleTheories) {
@@ -315,13 +314,16 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   CVC4_FOR_EACH_THEORY;
 
   if(Dump.isOn("missed-t-propagations")) {
-    for(vector<TNode>::iterator i = d_possiblePropagations.begin();
-        i != d_possiblePropagations.end();
-        ++i) {
-      if(d_hasPropagated.find(*i) == d_hasPropagated.end()) {
+    for(unsigned i = 0; i < d_possiblePropagations.size(); ++ i) {
+      Node atom = d_possiblePropagations[i];
+      bool value;
+      if (d_propEngine->hasValue(atom, value)) continue;
+      // Doesn't have a value, check it (and the negation)
+      if(d_hasPropagated.find(atom) == d_hasPropagated.end()) {
         Dump("missed-t-propagations")
           << CommentCommand("Completeness check for T-propagations; expect invalid")
-          << QueryCommand((*i).toExpr());
+          << QueryCommand(atom.toExpr())
+          << QueryCommand(atom.notNode().toExpr());
       }
     }
   }
@@ -366,17 +368,30 @@ bool TheoryEngine::properPropagation(TNode lit) const {
 }
 
 bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
-  Assert(!node.isNull() && !expl.isNull());
-#warning implement TheoryEngine::properExplanation()
+  // Explanation must be either a conjunction of true literals that have true SAT values already
+  // or a singled literal that has a true SAT value already.
+  if (expl.getKind() == kind::AND) {
+    for (unsigned i = 0; i < expl.getNumChildren(); ++ i) {
+      bool value;
+      if (!d_propEngine->hasValue(expl[i], value) || !value) {
+        return false;
+      }
+    }
+  } else {
+    bool value;
+    return d_propEngine->hasValue(expl, value) && value;
+  }
   return true;
 }
 
 Node TheoryEngine::getValue(TNode node) {
   kind::MetaKind metakind = node.getMetaKind();
+
   // special case: prop engine handles boolean vars
   if(metakind == kind::metakind::VARIABLE && node.getType().isBoolean()) {
     return d_propEngine->getValue(node);
   }
+
   // special case: value of a constant == itself
   if(metakind == kind::metakind::CONSTANT) {
     return node;
@@ -388,11 +403,6 @@ Node TheoryEngine::getValue(TNode node) {
 }/* TheoryEngine::getValue(TNode node) */
 
 bool TheoryEngine::presolve() {
-  // NOTE that we don't look at d_theoryIsActive[] here.  First of
-  // all, we haven't done any pre-registration yet, so we don't know
-  // which theories are active.  Second, let's give each theory a shot
-  // at doing something with the input formula, even if it wouldn't
-  // otherwise be active.
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -417,8 +427,6 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
-  // NOTE that we don't look at d_theoryIsActive[] here (for symmetry
-  // with presolve()).
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -454,11 +462,6 @@ void TheoryEngine::notifyRestart() {
 }
 
 void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
-  // NOTE that we don't look at d_theoryIsActive[] here.  First of
-  // all, we haven't done any pre-registration yet, so we don't know
-  // which theories are active.  Second, let's give each theory a shot
-  // at doing something with the input formula, even if it wouldn't
-  // otherwise be active.
 
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -810,7 +813,10 @@ Node TheoryEngine::explain(ExplainTask toExplain)
   std::deque<ExplainTask> explainQueue;
   // TODO: benchmark whether this helps
   std::hash_set<ExplainTask, ExplainTaskHashFunction> explained;
+
+#ifdef CVC4_ASSERTIONS
   bool value;
+#endif
 
   // No need to explain "true"
   explained.insert(ExplainTask(NodeManager::currentNM()->mkConst<bool>(true), SHARED_DATABASE_EXPLANATION));

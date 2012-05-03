@@ -384,18 +384,15 @@ Node RewriteRule<NegMult>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<NegMult>(" << node << ")" << std::endl;
   TNode mult = node[0];
   std::vector<Node> children;
-  bool has_const = false; 
+  BitVector bv(utils::getSize(node), (unsigned)1);
   for(unsigned i = 0; i < mult.getNumChildren(); ++i) {
     if(mult[i].getKind() == kind::CONST_BITVECTOR) {
-      Assert(has_const == false);
-      has_const = true; 
-      BitVector bv = mult[i].getConst<BitVector>();
-      children.push_back(utils::mkConst(-bv)); 
+      bv = bv * mult[i].getConst<BitVector>();
     } else {
       children.push_back(mult[i]); 
     }
   }
-  Assert (has_const); 
+  children.push_back(utils::mkConst(-bv));
   return utils::mkSortedNode(kind::BITVECTOR_MULT, children);
 }
 

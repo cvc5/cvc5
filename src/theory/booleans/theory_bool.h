@@ -30,8 +30,8 @@ namespace booleans {
 
 class TheoryBool : public Theory {
 public:
-  TheoryBool(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
-    Theory(THEORY_BOOL, c, u, out, valuation) {
+  TheoryBool(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+    Theory(THEORY_BOOL, c, u, out, valuation, logicInfo) {
   }
 
   Node getValue(TNode n);

@@ -53,8 +53,8 @@ namespace arith {
 const uint32_t RESET_START = 2;
 
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation) :
-  Theory(THEORY_ARITH, c, u, out, valuation),
+TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_ARITH, c, u, out, valuation, logicInfo),
   d_hasDoneWorkSinceCut(false),
   d_learner(d_pbSubstitutions),
   d_setupLiteralCallback(this),
@@ -904,7 +904,7 @@ Comparison TheoryArith::mkIntegerEqualityFromAssignment(ArithVar v){
 }
 
 Node TheoryArith::dioCutting(){
-  context::Context::ScopedPush speculativePush(getContext());
+  context::Context::ScopedPush speculativePush(getSatContext());
   //DO NOT TOUCH THE OUTPUTSTREAM
 
   //TODO: Improve this
@@ -1043,7 +1043,7 @@ Node TheoryArith::assertionCases(TNode assertion){
   //Assert(constraint->getValue() == determineRightConstant(assertion, simpleKind));
   Assert(!constraint->hasLiteral() || constraint->getLiteral() == assertion);
 
-  Debug("arith::assertions")  << "arith assertion @" << getContext()->getLevel()
+  Debug("arith::assertions")  << "arith assertion @" << getSatContext()->getLevel()
                               <<"(" << assertion
                               << " \\-> "
     //<< determineLeftVariable(assertion, simpleKind)
@@ -1352,7 +1352,7 @@ void TheoryArith::debugPrintModel(){
 
 Node TheoryArith::explain(TNode n) {
 
-  Debug("arith::explain") << "explain @" << getContext()->getLevel() << ": " << n << endl;
+  Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
   Constraint c = d_constraintDatabase.lookup(n);
   if(c != NullConstraint){
@@ -1387,7 +1387,7 @@ void TheoryArith::propagate(Effort e) {
     }else if(!c->assertedToTheTheory()){
 
       Node literal = c->getLiteral();
-      Debug("arith::prop") << "propagating @" << getContext()->getLevel() << " " << literal << endl;
+      Debug("arith::prop") << "propagating @" << getSatContext()->getLevel() << " " << literal << endl;
 
       d_out->propagate(literal);
     }else{
@@ -1578,9 +1578,6 @@ Node TheoryArith::getValue(TNode n) {
   }
 }
 
-void TheoryArith::notifyEq(TNode lhs, TNode rhs) {
-}
-
 void TheoryArith::notifyRestart(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_restartTimer);
 
@@ -1674,7 +1671,7 @@ bool TheoryArith::propagateCandidateBound(ArithVar basic, bool upperBound){
   if((upperBound && d_partialModel.strictlyLessThanUpperBound(basic, bound)) ||
      (!upperBound && d_partialModel.strictlyGreaterThanLowerBound(basic, bound))){
 
-#warning "Policy point"
+    // TODO: "Policy point"
     //We are only going to recreate the functionality for now.
     //In the future this can be improved to generate a temporary constraint
     //if none exists.

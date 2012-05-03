@@ -259,7 +259,7 @@ private:
   DeltaRational getDeltaValue(TNode n);
 
 public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
+  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   virtual ~TheoryArith();
 
   /**
@@ -270,8 +270,6 @@ public:
   void check(Effort e);
   void propagate(Effort e);
   Node explain(TNode n);
-
-  void notifyEq(TNode lhs, TNode rhs);
 
   Node getValue(TNode n);
 

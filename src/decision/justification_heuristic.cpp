@@ -92,10 +92,17 @@ bool JustificationHeuristic::findSplitterRec(Node node, SatValue desiredVal, Sat
   if (checkJustified(node)) return false;
 
   SatValue litVal = tryGetSatValue(node);
+
+#ifdef CVC4_ASSERTIONS
   bool litPresent = false;
+#endif
+
   if(d_decisionEngine->hasSatLiteral(node) ) {
     SatLiteral lit = d_decisionEngine->getSatLiteral(node);
+
+#ifdef CVC4_ASSERTIONS
     litPresent = true;
+#endif
 
     SatVariable v = lit.getSatVariable();
     // if (lit.isFalse() || lit.isTrue()) return false;
@@ -106,7 +113,6 @@ bool JustificationHeuristic::findSplitterRec(Node node, SatValue desiredVal, Sat
   } else {
     Trace("decision") << "no sat literal for this node" << std::endl;
   }
-
 
   /* You'd better know what you want */
   Assert(desiredVal != SAT_VALUE_UNKNOWN, "expected known value");

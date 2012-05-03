@@ -504,7 +504,7 @@ SumPair DioSolver::processEquationsForCut(){
 
 
 SumPair DioSolver::purifyIndex(TrailIndex i){
-#warning "This uses the substition trail to reverse the substitions from the sum term. Using the proof term should be more efficient."
+  // TODO: "This uses the substition trail to reverse the substitions from the sum term. Using the proof term should be more efficient."
 
   SumPair curr = d_trail[i].d_eq;
 
@@ -612,7 +612,10 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
 
   Debug("arith::dio") << "before solveIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
+#ifdef CVC4_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
+#endif
+
   Assert(p.isIntegral());
 
   Assert(p.selectAbsMinimum() == d_trail[i].d_minimalMonomial);
@@ -644,7 +647,10 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "before decomposeIndex("<<i<<":"<<si.getNode()<< ")" << endl;
 
+#ifdef CVC4_ASSERTIONS
   const Polynomial& p = si.getPolynomial();
+#endif
+
   Assert(p.isIntegral());
 
   Assert(p.selectAbsMinimum() == d_trail[i].d_minimalMonomial);

@@ -53,8 +53,8 @@ Node TheoryDatatypes::getConstructorForSelector( Node sel )
 }
 
 
-TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation) :
-  Theory(THEORY_DATATYPES, c, u, out, valuation),
+TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
   d_currAsserts(c),
   d_currEqualities(c),
   d_selectors(c),
@@ -81,13 +81,6 @@ TheoryDatatypes::~TheoryDatatypes() {
 void TheoryDatatypes::addSharedTerm(TNode t) {
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
                      << t << endl;
-}
-
-
-void TheoryDatatypes::notifyEq(TNode lhs, TNode rhs) {
-  Debug("datatypes") << "TheoryDatatypes::notifyEq(): "
-                     << lhs << " = " << rhs << endl;
-
 }
 
 void TheoryDatatypes::notifyCongruent(TNode lhs, TNode rhs) {
@@ -740,8 +733,8 @@ void TheoryDatatypes::merge(TNode a, TNode b) {
     EqListsN::iterator sel_b_i = d_selector_eq.find( b );
     EqListN* sel_b;
     if( sel_b_i == d_selector_eq.end() ) {
-      sel_b = new(getContext()->getCMM()) EqListN(true, getContext(), false,
-                                          ContextMemoryAllocator<Node>(getContext()->getCMM()));
+      sel_b = new(getSatContext()->getCMM()) EqListN(true, getSatContext(), false,
+                                          ContextMemoryAllocator<Node>(getSatContext()->getCMM()));
       d_selector_eq.insertDataFromContextMemory(b, sel_b);
     } else {
       sel_b = (*sel_b_i).second;
@@ -862,8 +855,8 @@ void TheoryDatatypes::addTermToLabels( Node t ) {
       //add to labels
       EqLists::iterator lbl_i = d_labels.find(t);
       if(lbl_i == d_labels.end()) {
-        EqList* lbl = new(getContext()->getCMM()) EqList(true, getContext(), false,
-                                                ContextMemoryAllocator<TNode>(getContext()->getCMM()));
+        EqList* lbl = new(getSatContext()->getCMM()) EqList(true, getSatContext(), false,
+                                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()));
         //if there is only one constructor, then it must be
         const Datatype& dt = ((DatatypeType)(t.getType()).toType()).getDatatype();
         if( dt.getNumConstructors()==1 ){
@@ -881,8 +874,8 @@ void TheoryDatatypes::addTermToLabels( Node t ) {
 void TheoryDatatypes::initializeEqClass( Node t ) {
   EqListsN::iterator eqc_i = d_equivalence_class.find( t );
   if( eqc_i == d_equivalence_class.end() ) {
-    EqListN* eqc = new(getContext()->getCMM()) EqListN(true, getContext(), false,
-                                          ContextMemoryAllocator<Node>(getContext()->getCMM()));
+    EqListN* eqc = new(getSatContext()->getCMM()) EqListN(true, getSatContext(), false,
+                                          ContextMemoryAllocator<Node>(getSatContext()->getCMM()));
     eqc->push_back( t );
     d_equivalence_class.insertDataFromContextMemory(t, eqc);
   }
@@ -913,8 +906,8 @@ void TheoryDatatypes::collectTerms( Node n, bool recurse ) {
       EqListsN::iterator sel_i = d_selector_eq.find( tmp );
       EqListN* sel;
       if( sel_i == d_selector_eq.end() ) {
-        sel = new(getContext()->getCMM()) EqListN(true, getContext(), false,
-                                          ContextMemoryAllocator<Node>(getContext()->getCMM()));
+        sel = new(getSatContext()->getCMM()) EqListN(true, getSatContext(), false,
+                                          ContextMemoryAllocator<Node>(getSatContext()->getCMM()));
         d_selector_eq.insertDataFromContextMemory(tmp, sel);
       } else {
         sel = (*sel_i).second;
@@ -934,8 +927,8 @@ void TheoryDatatypes::appendToDiseqList(TNode of, TNode eq) {
   EqLists::iterator deq_i = d_disequalities.find(of);
   EqList* deq;
   if(deq_i == d_disequalities.end()) {
-    deq = new(getContext()->getCMM()) EqList(true, getContext(), false,
-                                             ContextMemoryAllocator<TNode>(getContext()->getCMM()));
+    deq = new(getSatContext()->getCMM()) EqList(true, getSatContext(), false,
+                                             ContextMemoryAllocator<TNode>(getSatContext()->getCMM()));
     d_disequalities.insertDataFromContextMemory(of, deq);
   } else {
     deq = (*deq_i).second;

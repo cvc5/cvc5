@@ -21,18 +21,18 @@ using namespace theory;
 
 std::string PreRegisterVisitor::toString() const {
   std::stringstream ss;
-  TNodeVisitedMap::const_iterator it = d_visited.begin();
+  TNodeToTheorySetMap::const_iterator it = d_visited.begin();
   for (; it != d_visited.end(); ++ it) {
     ss << (*it).first << ": " << Theory::setToString((*it).second) << std::endl;
   }
   return ss.str();
 }
 
-bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) const {
+bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ") => ";
 
-  TNodeVisitedMap::iterator find = d_visited.find(current);
+  TNodeToTheorySetMap::iterator find = d_visited.find(current);
 
   // If node is not visited at all, just return false
   if (find == d_visited.end()) {
@@ -40,23 +40,31 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) const {
     return false;
   }
 
-  Theory::Set theories = (*find).second;
+  Theory::Set theories;
 
   TheoryId currentTheoryId = Theory::theoryOf(current);
   TheoryId parentTheoryId  = Theory::theoryOf(parent);
 
+  // Remember the theories interested in this term
+  d_theories[parent] = theories = Theory::setInsert(currentTheoryId, d_theories[parent]);
+  // Check if there are multiple of those
+  d_multipleTheories = d_multipleTheories || Theory::setRemove(parentTheoryId, theories);
+
+  theories = (*find).second;
   if (Theory::setContains(currentTheoryId, theories)) {
     // The current theory has already visited it, so now it depends on the parent
     Debug("register::internal") << (Theory::setContains(parentTheoryId, theories) ? "2:true" : "2:false") << std::endl;
     return Theory::setContains(parentTheoryId, theories);
   } else {
     // If the current theory is not registered, it still needs to be visited
-    Debug("register::internal") << "2:false" << std::endl;
+    Debug("register::internal") << "3:false" << std::endl;
     return false;
   }
 }
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
+
+  Theory::Set theories;
 
   Debug("register") << "PreRegisterVisitor::visit(" << current << "," << parent << ")" << std::endl;
   Debug("register::internal") << toString() << std::endl;
@@ -65,20 +73,21 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   TheoryId currentTheoryId = Theory::theoryOf(current);
   TheoryId parentTheoryId  = Theory::theoryOf(parent);
 
-  Theory::Set theories = d_visited[current];
+  // Remember the theories interested in this term
+  d_theories[parent] = theories = Theory::setInsert(currentTheoryId, d_theories[parent]);
+  // If there are theories other than the parent itself, we are in multi-theory case
+  d_multipleTheories = d_multipleTheories || Theory::setRemove(parentTheoryId, theories);
+
+  theories = d_visited[current];
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(theories) << std::endl;
   if (!Theory::setContains(currentTheoryId, theories)) {
-    d_multipleTheories = d_multipleTheories || (theories != 0);
     d_visited[current] = theories = Theory::setInsert(currentTheoryId, theories);
     d_engine->theoryOf(currentTheoryId)->preRegisterTerm(current);
-    d_theories = Theory::setInsert(currentTheoryId, d_theories);
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << currentTheoryId << std::endl;
   }
   if (!Theory::setContains(parentTheoryId, theories)) {
-    d_multipleTheories = d_multipleTheories || (theories != 0);
     d_visited[current] = theories = Theory::setInsert(parentTheoryId, theories);
     d_engine->theoryOf(parentTheoryId)->preRegisterTerm(current);
-    d_theories = Theory::setInsert(parentTheoryId, d_theories);
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
   }
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): now registered with " << Theory::setToString(theories) << std::endl;
@@ -88,7 +97,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
 }
 
 void PreRegisterVisitor::start(TNode node) {
-  d_theories = 0;
   d_multipleTheories = false;
 }
 

@@ -69,7 +69,7 @@ private:
 
 public:
 
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
+  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryBV(); 
 
   void preRegisterTerm(TNode n);
@@ -86,6 +86,7 @@ public:
 
   //Node preprocessTerm(TNode term);
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions); 
+
 private:
   
   class Statistics {
@@ -107,13 +108,13 @@ private:
     NotifyClass(TheoryBV& uf): d_bv(uf) {}
 
     bool notify(TNode propagation) {
-      Debug("bitvector") << spaces(d_bv.getContext()->getLevel()) << "NotifyClass::notify(" << propagation << ")" << std::endl;
+      Debug("bitvector") << spaces(d_bv.getSatContext()->getLevel()) << "NotifyClass::notify(" << propagation << ")" << std::endl;
       // Just forward to bv
       return d_bv.propagate(propagation);
     }
 
     void notify(TNode t1, TNode t2) {
-      Debug("arrays") << spaces(d_bv.getContext()->getLevel()) << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("arrays") << spaces(d_bv.getSatContext()->getLevel()) << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
       // Propagate equality between shared terms
       Node equality = Rewriter::rewriteEquality(theory::THEORY_UF, t1.eqNode(t2));
       d_bv.propagate(t1.eqNode(t2));
