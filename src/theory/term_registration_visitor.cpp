@@ -67,7 +67,9 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   Theory::Set theories;
 
   Debug("register") << "PreRegisterVisitor::visit(" << current << "," << parent << ")" << std::endl;
-  Debug("register::internal") << toString() << std::endl;
+  if (Debug.isOn("register::internal")) {
+    Debug("register::internal") << toString() << std::endl;
+  }
 
   // Get the theories of the terms
   TheoryId currentTheoryId = Theory::theoryOf(current);
