@@ -131,7 +131,8 @@ bool Configuration::isBuiltWithTlsSupport() {
 
 unsigned Configuration::getNumDebugTags() {
 #if CVC4_DEBUG
-  return sizeof(Debug_tags) / sizeof(Debug_tags[0]);
+  /* -1 because a NULL pointer is inserted as the last value */
+  return sizeof(Debug_tags) / sizeof(Debug_tags[0]) - 1;
 #else /* CVC4_DEBUG */
   return 0;
 #endif /* CVC4_DEBUG */
@@ -148,7 +149,8 @@ char const* const* Configuration::getDebugTags() {
 
 unsigned Configuration::getNumTraceTags() {
 #if CVC4_TRACING
-  return sizeof(Trace_tags) / sizeof(Trace_tags[0]);
+  /* -1 because a NULL pointer is inserted as the last value */
+  return sizeof(Trace_tags) / sizeof(Trace_tags[0]) - 1;
 #else /* CVC4_TRACING */
   return 0;
 #endif /* CVC4_TRACING */
