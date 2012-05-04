@@ -538,10 +538,24 @@ throw(OptionException) {
       break;
 
     case 't':
+      if(Configuration::isTracingBuild()) {
+        if(!Configuration::isTraceTag(optarg))
+          throw OptionException(string("trace tag ") + optarg +
+                                string(" not available"));
+      } else {
+        throw OptionException("trace tags not available in non-tracing build");
+      }
       Trace.on(optarg);
       break;
 
     case 'd':
+      if(Configuration::isDebugBuild()) {
+        if(!Configuration::isDebugTag(optarg))
+          throw OptionException(string("debug tag ") + optarg +
+                                string(" not available"));
+      } else {
+        throw OptionException("debug tags not available in non-debug build");
+      }
       Debug.on(optarg);
       Trace.on(optarg);
       break;

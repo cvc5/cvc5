@@ -89,11 +89,19 @@ public:
 
   static bool isBuiltWithTlsSupport();
 
+  /* Return the number of debug tags */
   static unsigned getNumDebugTags();
+  /* Return a sorted array of the debug tags name */
   static char const* const* getDebugTags();
+  /* Test if the given argument is a known debug tag name */
+  static bool isDebugTag(char const *);
 
+  /* Return the number of trace tags */
   static unsigned getNumTraceTags();
+  /* Return a sorted array of the trace tags name */
   static char const* const* getTraceTags();
+  /* Test if the given argument is a known trace tag name */
+  static bool isTraceTag(char const *);
 
   static bool isSubversionBuild();
   static const char* getSubversionBranchName();
