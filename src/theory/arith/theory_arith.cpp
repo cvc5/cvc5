@@ -526,6 +526,20 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   Debug("simplify") << "TheoryArith::solve(" << in << ")" << endl;
 
+//TODO: Handle this better
+// FAIL: preprocess_10.cvc (exit: 1)
+// =================================
+
+// running /home/taking/ws/cvc4/branches/arithmetic/infer-bounds/builds/x86_64-unknown-linux-gnu/debug-staticbinary/src/main/cvc4 --lang=cvc4 --segv-nospin preprocess_10.cvc [from working dir /home/taking/ws/cvc4/branches/arithmetic/infer-bounds/builds/x86_64-unknown-linux-gnu/debug-staticbinary/../../../test/regress/regress0/preprocess]
+// run_regression: error: differences between expected and actual output on stdout
+// --- /tmp/cvc4_expect_stdout.20298.5Ga5123F4L    2012-04-30 12:27:16.136684359 -0400
+// +++ /tmp/cvc4_stdout.20298.oZwTuIYuF3   2012-04-30 12:27:16.176685543 -0400
+// @@ -1 +1,3 @@
+// +TheoryArith::solve(): substitution x |-> IF b THEN 10 ELSE -10 ENDIF
+// +minVar is integral 0right 0
+//  sat
+
+
   // Solve equalities
   Rational minConstant = 0;
   Node minMonomial;
@@ -540,62 +554,33 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
     if (m.getVarList().singleton()){
       VarList vl = m.getVarList();
       Node var = vl.getNode();
-      if (var.getKind() == kind::VARIABLE && !vl.isIntegral()) {
-        minVar = var;
+      if (var.getKind() == kind::VARIABLE){
+        // if vl.isIntegral then m.getConstant().isOne()
+        if(!vl.isIntegral() || m.getConstant().isOne()){
+          minVar = var;
+        }
       }
     }
-
-    //Assert(in[1].getKind() == kind::CONST_RATIONAL);
-    // Find the variable with the smallest coefficient
-    //Polynomial p = Polynomial::parsePolynomial(in[0]);
-
-    // Polynomial::iterator it = p.begin(), it_end = p.end();
-    // for (; it != it_end; ++ it) {
-    //   Monomial m = *it;
-    //   // Skip the constant
-    //   if (m.isConstant()) continue;
-    //   // This is a ''variable''
-    //   nVars ++;
-    //   // Skip the non-linear stuff
-    //   if (!m.getVarList().singleton()) continue;
-    //   // Get the minimal one
-    //   Rational constant = m.getConstant().getValue();
-    //   Rational absSconstant = constant > 0 ? constant : -constant;
-    //   if (minVar.isNull() || absSconstant < minConstant) {
-    //     Node var = m.getVarList().getNode();
-    //     if (var.getKind() == kind::VARIABLE) {
-    //       minVar = var;
-    //       minMonomial = m.getNode();
-    //       minConstant = constant;
-    //     }
-    //   }
-    //}
 
     // Solve for variable
     if (!minVar.isNull()) {
       Polynomial right = cmp.getRight();
-      Node eliminateVar = right.getNode();
+      Node elim = right.getNode();
       // ax + p = c -> (ax + p) -ax - c = -ax
-      // Node eliminateVar = NodeManager::currentNM()->mkNode(kind::MINUS, in[0], minMonomial);
-      // if (in[1].getConst<Rational>() != 0) {
-      //   eliminateVar = NodeManager::currentNM()->mkNode(kind::MINUS, eliminateVar, in[1]);
-      // }
-      // // x = (p - ax - c) * -1/a
-      // eliminateVar = NodeManager::currentNM()->mkNode(kind::MULT, eliminateVar, mkRationalNode(- minConstant.inverse()));
-      // // Add the substitution if not recursive
-      Node rewritten = eliminateVar;
-      Assert(rewritten == Rewriter::rewrite(eliminateVar));
-      if (!rewritten.hasSubterm(minVar)) {
-        Node elim = Rewriter::rewrite(eliminateVar);
-        if (!minVar.getType().isInteger() || elim.getType().isInteger()) {
-          // cannot eliminate integers here unless we know the resulting
-          // substitution is integral
-          Debug("simplify") << "TheoryArith::solve(): substitution " << minVar << " |-> " << elim << endl;
-          outSubstitutions.addSubstitution(minVar, elim);
-          return PP_ASSERT_STATUS_SOLVED;
-        } else {
-          Debug("simplify") << "TheoryArith::solve(): can't substitute b/c it's integer: " << minVar << ":" << minVar.getType() << " |-> " << elim << ":" << elim.getType() << endl;
-        }
+      // x = (p - ax - c) * -1/a
+      // Add the substitution if not recursive
+      Assert(elim == Rewriter::rewrite(elim));
+      Assert(!elim.hasSubterm(minVar));
+
+      if (!minVar.getType().isInteger() || right.isIntegral()) {
+        // cannot eliminate integers here unless we know the resulting
+        // substitution is integral
+        Debug("simplify") << "TheoryArith::solve(): substitution " << minVar << " |-> " << elim << endl;
+
+        outSubstitutions.addSubstitution(minVar, elim);
+        return PP_ASSERT_STATUS_SOLVED;
+      } else {
+        Debug("simplify") << "TheoryArith::solve(): can't substitute b/c it's integer: " << minVar << ":" << minVar.getType() << " |-> " << elim << ":" << elim.getType() << endl;
       }
     }
   }
@@ -1659,6 +1644,11 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
     return EQUALITY_FALSE_IN_MODEL;
   }
 
+}
+
+bool TheoryArith::rowImplication(ArithVar v, bool upperBound, const DeltaRational& r){
+  Unimplemented();
+  return false;
 }
 
 bool TheoryArith::propagateCandidateBound(ArithVar basic, bool upperBound){

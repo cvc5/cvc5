@@ -60,6 +60,7 @@ namespace arith {
  */
 class TheoryArith : public Theory {
 private:
+  bool rowImplication(ArithVar v, bool upperBound, const DeltaRational& r);
 
   /**
    * This counter is false if nothing has been done since the last cut.

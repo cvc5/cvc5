@@ -257,7 +257,7 @@ void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
   Assert(d_tableau.isBasic(basic));
   Assert(c->getVariable() == basic);
   Assert(!c->assertedToTheTheory());
-  Assert(c->canBePropagated());
+  //Assert(c->canBePropagated());
   Assert(!c->hasProof());
 
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
@@ -279,35 +279,23 @@ void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
     if(upperBound){
       if(sgn < 0){
         bound = d_partialModel.getLowerBoundConstraint(nonbasic);
-        //d_partialModel.explainLowerBound(nonbasic, output);
-        //bound = d_partialModel.explainLowerBound(nonbasic);
       }else{
         Assert(sgn > 0);
         bound = d_partialModel.getUpperBoundConstraint(nonbasic);
-        //d_partialModel.explainUpperBound(nonbasic, output);
-        //bound = d_partialModel.explainUpperBound(nonbasic);
       }
     }else{
       if(sgn < 0){
         bound = d_partialModel.getUpperBoundConstraint(nonbasic);
-        //d_partialModel.explainUpperBound(nonbasic, output);
-        //bound =  d_partialModel.explainUpperBound(nonbasic);
       }else{
         Assert(sgn > 0);
         bound = d_partialModel.getLowerBoundConstraint(nonbasic);
-        //d_partialModel.explainLowerBound(nonbasic, output);
-        //bound =  d_partialModel.explainLowerBound(nonbasic);
       }
     }
     Assert(bound != NullConstraint);
     Debug("arith::explainNonbasics") << "explainNonbasics" << bound << " for " << c << endl;
     bounds.push_back(bound);
-    //Assert(!bound.isNull());
-    // Debug("arith::explainNonbasics") << "\t" << nonbasic << " " << sgn << " " << bound
-    //                                  << endl;
-    // output << bound;
   }
-  c->propagate(bounds);
+  c->impliedBy(bounds);
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << basic << ") done" << endl;
 }

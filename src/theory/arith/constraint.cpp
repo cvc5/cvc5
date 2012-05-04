@@ -26,7 +26,7 @@ ConstraintType constraintTypeOfComparison(const Comparison& cmp){
       if(l.leadingCoefficientIsPositive()){ // (< x c)
         return UpperBound;
       }else{
-        return LowerBound; // (< (-x) c) 
+        return LowerBound; // (< (-x) c)
       }
     }
   case GT:
@@ -482,7 +482,8 @@ Constraint ConstraintDatabase::getConstraint(ArithVar v, ConstraintType t, const
     }else{
       pair<SortedConstraintMapIterator, bool> negInsertAttempt;
       negInsertAttempt = scm.insert(make_pair(negC->getValue(), ValueCollection()));
-      Assert(negInsertAttempt.second);
+      Assert(negInsertAttempt.second
+             || ! negInsertAttempt.first->second.hasConstraintOfType(negC->getType()));
       negPos = negInsertAttempt.first;
     }
 
