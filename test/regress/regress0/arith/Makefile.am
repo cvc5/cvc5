@@ -19,7 +19,8 @@ TESTS =	\
 	delta-minimized-row-vector-bug.smt \
 	fuzz_3-eq.smt \
 	leq.01.smt \
-	miplibtrick.smt
+	miplibtrick.smt \
+	problem__003.smt2
 
 EXTRA_DIST = $(TESTS)
 

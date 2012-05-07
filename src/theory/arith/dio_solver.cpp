@@ -375,6 +375,7 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
 
     //For the rest of the equations keep reducing until the coefficient is one
     for(; iter != end; ++iter){
+      Debug("arith::dio") << "next round : " << currentCoeff << " " << currentGcd << endl;
       TrailIndex inQueue = *iter;
       Constant iqc = d_trail[inQueue].d_eq.getPolynomial().getCoefficient(vl);
       if(!iqc.isZero()){
@@ -385,9 +386,9 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
         // g = a*s + b*t
         Integer::extendedGcd(g, s, t, currentCoeff, inQueueCoeff);
 
-        Debug("arith::dio") << "extendedReduction" << endl;
+        Debug("arith::dio") << "extendedReduction : " << endl;
         Debug("arith::dio") << g << " = " << s <<"*"<< currentCoeff << " + " << t <<"*"<< inQueueCoeff << endl;
-        
+
         Assert(g <= currentGcd);
         if(g < currentGcd){
           if(s.sgn() == 0){
@@ -395,10 +396,10 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
             Assert(inQueueCoeff.divides(currentGcd));
             current = *iter;
             currentCoeff = inQueueCoeff;
-            currentGcd = inQueueCoeff;
+            currentGcd = inQueueCoeff.abs();
           }else{
+
             Debug("arith::dio") << "extendedReduction combine" << endl;
-          
             TrailIndex next = combineEqAtIndexes(current, s, inQueue, t);
 
             Assert(d_trail[next].d_eq.getPolynomial().getCoefficient(vl).getValue().getNumerator() == g);
