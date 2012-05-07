@@ -570,9 +570,11 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
       // x = (p - ax - c) * -1/a
       // Add the substitution if not recursive
       Assert(elim == Rewriter::rewrite(elim));
-      Assert(!elim.hasSubterm(minVar));
 
-      if (!minVar.getType().isInteger() || right.isIntegral()) {
+      if(elim.hasSubterm(minVar)){
+        Debug("simplify") << "TheoryArith::solve(): can't substitute due to recursive pattern with sharing: " << minVar << ":" << elim << endl;
+      }else if (!minVar.getType().isInteger() || right.isIntegral()) {
+        Assert(!elim.hasSubterm(minVar));
         // cannot eliminate integers here unless we know the resulting
         // substitution is integral
         Debug("simplify") << "TheoryArith::solve(): substitution " << minVar << " |-> " << elim << endl;

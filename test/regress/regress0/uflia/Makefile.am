@@ -14,7 +14,8 @@ MAKEFLAGS = -k
 # Regression tests for SMT inputs
 SMT_TESTS = \
 	xs-09-16-3-4-1-5.smt \
-	error0.smt2
+	error0.smt2 \
+	simple_cyclic2.smt2
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = 
