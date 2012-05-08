@@ -308,7 +308,9 @@ protected:
       // Check and perform theory reasoning
       CHECK_WITH_THEORY,
       // The SAT abstraction of the problem is satisfiable, perform a full theory check
-      CHECK_FINAL
+      CHECK_FINAL,
+      // Perform a full theory check even if not done with everything
+      CHECK_FINAL_FAKE
     };
 
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is
@@ -336,6 +338,7 @@ protected:
     void     newDecisionLevel ();                                                      // Begins a new decision level.
     void     uncheckedEnqueue (Lit p, CRef from = CRef_Undef);                         // Enqueue a literal. Assumes value of literal is undefined.
     bool     enqueue          (Lit p, CRef from = CRef_Undef);                         // Test if fact 'p' contradicts current state, enqueue otherwise.
+    bool     theoryConflict;                                                           // Was the last conflict a theory conflict
     CRef     propagate        (TheoryCheckType type);                                  // Perform Boolean and Theory. Returns possibly conflicting clause.
     CRef     propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
     void     propagateTheory  ();                                                      // Perform Theory propagation.

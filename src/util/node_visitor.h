@@ -31,6 +31,23 @@ namespace CVC4 {
 template<typename Visitor>
 class NodeVisitor {
 
+  /** For re-entry checking */
+  static bool d_inRun;
+
+  class GuardReentry {
+    bool& d_guard;
+  public:
+    GuardReentry(bool& guard)
+    : d_guard(guard) {
+      Assert(!d_guard);
+      d_guard = true;
+    }
+    ~GuardReentry() {
+      Assert(d_guard);
+      d_guard = false;
+    }
+  };
+
 public:
 
   /**
@@ -51,6 +68,8 @@ public:
    * Performs the traversal.
    */
   static typename Visitor::return_type run(Visitor& visitor, TNode node) {
+
+    GuardReentry guard(d_inRun);
 
     // Notify of a start
     visitor.start(node);
@@ -90,6 +109,9 @@ public:
   }
 
 };
+
+template <typename Visitor>
+bool NodeVisitor<Visitor>::d_inRun = false;
 
 }
 

@@ -119,7 +119,11 @@ Options::Options() :
   threadArgv(),
   thread_id(-1),
   separateOutput(false),
-  sharingFilterByLength(-1)
+  sharingFilterByLength(-1),
+  bitvector_eager_bitblast(false),
+  bitvector_share_lemmas(false),
+  bitvector_eager_fullcheck(false),
+  sat_refine_conflicts(false)
 {
 }
 
@@ -187,10 +191,14 @@ Additional CVC4 options:\n\
    --enable-symmetry-breaker turns on UF symmetry breaker (Deharbe et al., CADE 2011) [on by default only for QF_UF]\n\
    --disable-symmetry-breaker turns off UF symmetry breaker\n\
    --disable-dio-solver   turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)\n\
-   --disable-arith-rewrite-equalities   turns off the preprocessing rewrite turning equalities into a conjunction of inequalities.\n \
+   --disable-arith-rewrite-equalities   turns off the preprocessing rewrite turning equalities into a conjunction of inequalities.\n\
    --threads=N            sets the number of solver threads\n\
    --threadN=string       configures thread N (0..#threads-1)\n\
    --filter-lemma-length=N don't share lemmas strictly longer than N\n\
+   --bitblast-eager       eagerly bitblast the bitvectors to the main SAT solver\n\
+   --bitblast-share-lemmas share lemmas from the bitblsting solver with the main solver\n\
+   --bitblast-eager-fullcheck check the bitblasting eagerly\n\
+   --refine-conflicts     refine theory conflict clauses\n\
 ";
 
 
@@ -381,7 +389,11 @@ enum OptionValue {
   TIME_LIMIT,
   TIME_LIMIT_PER,
   RESOURCE_LIMIT,
-  RESOURCE_LIMIT_PER
+  RESOURCE_LIMIT_PER,
+  BITVECTOR_EAGER_BITBLAST,
+  BITVECTOR_SHARE_LEMMAS,
+  BITVECTOR_EAGER_FULLCHECK,
+  SAT_REFINE_CONFLICTS
 };/* enum OptionValue */
 
 /**
@@ -473,6 +485,10 @@ static struct option cmdlineOptions[] = {
   { "tlimit-per" , required_argument, NULL, TIME_LIMIT_PER },
   { "rlimit"     , required_argument, NULL, RESOURCE_LIMIT       },
   { "rlimit-per" , required_argument, NULL, RESOURCE_LIMIT_PER   },
+  { "bitblast-eager", no_argument, NULL, BITVECTOR_EAGER_BITBLAST },
+  { "bitblast-share-lemmas", no_argument, NULL, BITVECTOR_SHARE_LEMMAS },
+  { "bitblast-eager-fullcheck", no_argument, NULL, BITVECTOR_EAGER_FULLCHECK },
+  { "refine-conflicts", no_argument, NULL, SAT_REFINE_CONFLICTS },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -894,7 +910,26 @@ throw(OptionException) {
         perCallResourceLimit = (unsigned long) i;
         break;
       }
-
+    case BITVECTOR_EAGER_BITBLAST:
+      {
+        bitvector_eager_bitblast = true;
+        break;
+      }
+    case BITVECTOR_EAGER_FULLCHECK:
+      {
+        bitvector_eager_fullcheck = true;
+        break;
+      }
+    case BITVECTOR_SHARE_LEMMAS:
+      {
+        bitvector_share_lemmas = true;
+        break;
+      }
+    case SAT_REFINE_CONFLICTS:
+      {
+        sat_refine_conflicts = true;
+        break;
+      }
     case RANDOM_SEED:
       satRandomSeed = atof(optarg);
       break;

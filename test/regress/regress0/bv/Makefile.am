@@ -14,7 +14,21 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 
 # Regression tests for SMT inputs
-SMT_TESTS =
+SMT_TESTS = \
+	fuzz01.smt \
+	fuzz02.smt \
+	fuzz03.smt \
+	fuzz04.smt \
+	fuzz05.smt \
+	fuzz06.smt \
+	fuzz07.smt \
+	fuzz08.smt \
+	fuzz09.smt \
+	fuzz10.smt \
+	fuzz11.smt \
+	fuzz12.smt \
+	fuzz13.smt \
+	fuzz14.smt
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS =

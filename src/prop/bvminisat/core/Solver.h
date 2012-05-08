@@ -34,16 +34,44 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace BVMinisat {
 
+/** Interface for minisat callbacks */
+class Notify {
+
+public:
+
+  virtual ~Notify() {}
+
+  /**
+   * If the notify returns false, the solver will break out of whatever it's currently doing
+   * with an "unknown" answer.
+   */
+  virtual bool notify(Lit lit) = 0;
+
+  /**
+   * Notify about a new learnt clause with marked literals only.
+   */
+  virtual void notify(vec<Lit>& learnt) = 0;
+
+};
+
 //=================================================================================================
 // Solver -- the main class:
-
 class Solver {
+
+    /** To notify */
+    Notify* notify;
+
+    /** Cvc4 context */
+    CVC4::context::Context* c;
+
 public:
 
     // Constructor/Destructor:
     //
     Solver(CVC4::context::Context* c);
     virtual ~Solver();
+
+    void setNotify(Notify* toNotify) { notify = toNotify; }
 
     // Problem specification:
     //
@@ -153,14 +181,14 @@ public:
       marker[var] = 1;
     }
 
-    __gnu_cxx::hash_set<Var> assumptions_vars; // all the variables that appear in the current assumptions
-    vec<Lit> atom_propagations;         // the atom literals implied by the last call to solve with assumptions
-    vec<int> atom_propagations_lim;     // for backtracking
-
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
     void setOnlyBCP (bool val) { only_bcp = val;}
-    void explainPropagation(Lit l, std::vector<Lit>& explanation);
+    void explain(Lit l, std::vector<Lit>& explanation);
+
 protected:
+
+    // has a clause been added
+    bool                clause_added;
 
     // Helper structures:
     //
@@ -248,9 +276,6 @@ protected:
       UIP_LAST
     };
 
-    CVC4::context::CDHashMap<Lit, std::vector<Lit>, LitHashFunction> d_explanations;
-
-    void     storeExplanation (Lit p);                                                 // make sure that the explanation of p is cached
     void     analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip = UIP_FIRST);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
     bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()')
@@ -346,7 +371,7 @@ inline bool     Solver::addClause       (Lit p)                 { add_tmp.clear(
 inline bool     Solver::addClause       (Lit p, Lit q)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && reason(var(c[0])) != CRef_Undef && ca.lea(reason(var(c[0]))) == &c; }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); atom_propagations_lim.push(atom_propagations.size()); }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
@@ -381,10 +406,10 @@ inline bool     Solver::withinBudget() const {
 // FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
 // pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or
 // all calls to solve must return an 'lbool'. I'm not yet sure which I prefer.
-inline bool     Solver::solve         ()                    { budgetOff(); assumptions.clear(); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.clear(); assumptions.push(p); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); return solve_() == l_True; }
-inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.clear(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_() == l_True; }
+inline bool     Solver::solve         ()                    { budgetOff(); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p)               { budgetOff(); assumptions.push(p); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p, Lit q)        { budgetOff(); assumptions.push(p); assumptions.push(q); return solve_() == l_True; }
+inline bool     Solver::solve         (Lit p, Lit q, Lit r) { budgetOff(); assumptions.push(p); assumptions.push(q); assumptions.push(r); return solve_() == l_True; }
 inline bool     Solver::solve         (const vec<Lit>& assumps){ budgetOff(); assumps.copyTo(assumptions); return solve_() == l_True; }
 inline lbool    Solver::solveLimited  (const vec<Lit>& assumps){ assumps.copyTo(assumptions); return solve_(); }
 inline bool     Solver::okay          ()      const   { return ok; }

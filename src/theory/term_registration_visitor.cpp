@@ -103,6 +103,10 @@ void PreRegisterVisitor::start(TNode node) {
 }
 
 bool PreRegisterVisitor::done(TNode node) {
+// <<<<<<< .working
+//   d_engine->markActive(d_theories[node]);
+// =======
+// >>>>>>> .merge-right.r3396
   return d_multipleTheories;
 }
 

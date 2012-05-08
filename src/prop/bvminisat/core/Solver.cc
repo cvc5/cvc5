@@ -24,8 +24,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "core/Solver.h"
 #include <vector>
 #include <iostream>
+
 #include "util/output.h"
 #include "util/utility.h"
+#include "util/options.h"
 
 using namespace BVMinisat;
 
@@ -51,14 +53,14 @@ static const char* _cat = "CORE";
 
 static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
 static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
-static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
+static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0.0, DoubleRange(0, true, 1, true));
 static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
-static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 0, IntRange(0, 0));
+static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 0, IntRange(0, 2));
 static IntOption     opt_phase_saving      (_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
 static BoolOption    opt_rnd_init_act      (_cat, "rnd-init",    "Randomize the initial activity", false);
 static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby restart sequence", true);
 static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 100, IntRange(1, INT32_MAX));
-static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 2, DoubleRange(1, false, HUGE_VAL, false));
+static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 1.5, DoubleRange(1, false, HUGE_VAL, false));
 static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
 
 
@@ -70,7 +72,8 @@ Solver::Solver(CVC4::context::Context* c) :
 
     // Parameters (user settable):
     //
-    verbosity        (0)
+    c(c)
+  , verbosity        (0)
   , var_decay        (opt_var_decay)
   , clause_decay     (opt_clause_decay)
   , random_var_freq  (opt_random_var_freq)
@@ -86,7 +89,7 @@ Solver::Solver(CVC4::context::Context* c) :
 
     // Parameters (the rest):
     //
-  , learntsize_factor((double)1/(double)3), learntsize_inc(1.1)
+  , learntsize_factor((double)1/(double)3), learntsize_inc(1.5)
 
     // Parameters (experimental):
     //
@@ -115,7 +118,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-  , d_explanations(c)
+  , clause_added(false)
 {}
 
 
@@ -153,9 +156,9 @@ Var Solver::newVar(bool sign, bool dvar)
 
 bool Solver::addClause_(vec<Lit>& ps)
 {
-  if (decisionLevel() > 0) {
-    cancelUntil(0);
-  }
+    if (decisionLevel() > 0) {
+      cancelUntil(0);
+    }
     
     if (!ok) return false;
 
@@ -168,6 +171,8 @@ bool Solver::addClause_(vec<Lit>& ps)
         else if (value(ps[i]) != l_False && ps[i] != p)
             ps[j++] = p = ps[i];
     ps.shrink(i - j);
+
+    clause_added = true;
 
     if (ps.size() == 0)
         return ok = false;
@@ -182,7 +187,6 @@ bool Solver::addClause_(vec<Lit>& ps)
 
     return true;
 }
-
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
@@ -241,11 +245,6 @@ void Solver::cancelUntil(int level) {
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
-    }
-
-    if (level < atom_propagations_lim.size()) {
-      atom_propagations.shrink(atom_propagations.size() - atom_propagations_lim[level]);
-      atom_propagations_lim.shrink(atom_propagations_lim.size() - level);
     }
 }
 
@@ -379,12 +378,24 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     out_learnt.shrink(i - j);
     tot_literals += out_learnt.size();
 
+    bool clause_all_marker = true;
+    for (int i = 0; i < out_learnt.size(); ++ i) {
+      if (marker[var(out_learnt[i])] == 0) {
+        clause_all_marker = false;
+        break;
+      }
+    }
+
     // Find correct backtrack level:
     //
-    if (out_learnt.size() == 1)
-        out_btlevel = 0;
+    if (out_learnt.size() == 1) {
+      out_btlevel = 0;
+    }
     else{
         int max_i = 1;
+        if (marker[var(out_learnt[0])] == 0) {
+          clause_all_marker = false;
+        }
         // Find the first literal assigned at the next-highest level:
         for (int i = 2; i < out_learnt.size(); i++)
             if (level(var(out_learnt[i])) > level(var(out_learnt[max_i])))
@@ -394,6 +405,10 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         out_learnt[max_i] = out_learnt[1];
         out_learnt[1]     = p;
         out_btlevel       = level(var(p));
+    }
+
+    if (out_learnt.size() > 0 && clause_all_marker && CVC4::Options::current()->bitvector_share_lemmas) {
+      notify->notify(out_learnt);
     }
 
     for (int j = 0; j < analyze_toclear.size(); j++) seen[var(analyze_toclear[j])] = 0;    // ('seen[]' is now cleared)
@@ -452,17 +467,16 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
     for (int i = trail.size()-1; i >= trail_lim[0]; i--){
         Var x = var(trail[i]);
-        if (seen[x]){
-            if (reason(x) == CRef_Undef){
-              if (marker[x] == 2) {
-                assert(level(x) > 0);
-                out_conflict.push(~trail[i]);
-              }
-            }else{
-                Clause& c = ca[reason(x)];
-                for (int j = 1; j < c.size(); j++)
-                    if (level(var(c[j])) > 0)
-                        seen[var(c[j])] = 1;
+        if (seen[x]) {
+            if (reason(x) == CRef_Undef) {
+              assert(marker[x] == 2);
+              assert(level(x) > 0);
+              out_conflict.push(~trail[i]);
+            } else {
+              Clause& c = ca[reason(x)];
+              for (int j = 1; j < c.size(); j++)
+                if (level(var(c[j])) > 0)
+                  seen[var(c[j])] = 1;
             }
             seen[x] = 0;
         }
@@ -478,31 +492,44 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = mkVarData(from, decisionLevel());
     trail.push_(p);
-    if (only_bcp && marker[var(p)] == 1 && from != CRef_Undef) {
-      atom_propagations.push(p);
+    if (decisionLevel() <= assumptions.size() && marker[var(p)] == 1) {
+      if (notify) {
+        notify->notify(p);
+      }
     }
 }
 
 void Solver::popAssumption() {
-  marker[var(assumptions.last())] = 1;
-  assumptions.pop();
-  conflict.clear();
-  cancelUntil(assumptions.size());
+    assumptions.pop();
+    conflict.clear();
+    cancelUntil(assumptions.size());
 }
 
 lbool Solver::assertAssumption(Lit p, bool propagate) {
 
   assert(marker[var(p)] == 1);
 
-  // add to the assumptions
-  assumptions.push(p);
+  if (decisionLevel() > assumptions.size()) {
+    cancelUntil(assumptions.size());
+  }
+
   conflict.clear();
+
+  // add to the assumptions
+  if (c->getLevel() > 0) {
+    assumptions.push(p);
+  } else {
+    if (!addClause(p)) {
+      conflict.push(~p);
+      return l_False;
+    }
+  }
 
   // run the propagation
   if (propagate) {
     only_bcp = true;
     ccmin_mode = 0; 
-    lbool result = search(-1, UIP_FIRST);
+    lbool result = search(-1);
     return result; 
   } else {
     return l_True;
@@ -702,10 +729,11 @@ lbool Solver::search(int nof_conflicts, UIP uip)
 
             learnt_clause.clear();
             analyze(confl, learnt_clause, backtrack_level, uip);
-            cancelUntil(backtrack_level);
 
             Lit p = learnt_clause[0];
             bool assumption = marker[var(p)] == 2;
+
+            cancelUntil(backtrack_level);
 
             if (learnt_clause.size() == 1){
                 uncheckedEnqueue(p);
@@ -741,10 +769,10 @@ lbool Solver::search(int nof_conflicts, UIP uip)
 
         }else{
             // NO CONFLICT
-            if (nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()){
+            if (decisionLevel() > assumptions.size() && nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()){
                 // Reached bound on number of conflicts:
                 progress_estimate = progressEstimate();
-                cancelUntil(0);
+                cancelUntil(assumptions.size());
                 return l_Undef; }
 
             // Simplify the set of problem clauses:
@@ -890,31 +918,27 @@ lbool Solver::solve_()
 // Bitvector propagations
 // 
 
-void Solver::storeExplanation(Lit p) {
-}
+void Solver::explain(Lit p, std::vector<Lit>& explanation) {
 
-void Solver::explainPropagation(Lit p, std::vector<Lit>& explanation) {
   vec<Lit> queue;
   queue.push(p);
 
   __gnu_cxx::hash_set<Var> visited;
   visited.insert(var(p));
+  
   while(queue.size() > 0) {
     Lit l = queue.last();
     assert(value(l) == l_True);
     queue.pop();
     if (reason(var(l)) == CRef_Undef) {
-      if (marker[var(l)] == 2) {
-        explanation.push_back(l);
-        visited.insert(var(l));
-      }
+      if (level(var(l)) == 0) continue;
+      Assert(marker[var(l)] == 2);
+      explanation.push_back(l);
+      visited.insert(var(l));
     } else {
       Clause& c = ca[reason(var(l))];
       for (int i = 1; i < c.size(); ++i) {
-        if (var(c[i]) >= vardata.size()) {
-          std::cerr << "BOOM" << std::endl;
-        }
-        if (visited.count(var(c[i])) == 0) {
+        if (level(var(c[i])) > 0 && visited.count(var(c[i])) == 0) {
           queue.push(~c[i]);
           visited.insert(var(c[i]));
         }

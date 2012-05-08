@@ -53,23 +53,23 @@ public:
 
 
   void setUp() {
-    d_ctxt = new Context();
-    d_nm = new NodeManager(d_ctxt, NULL);
-    d_scope = new NodeManagerScope(d_nm);
+    // d_ctxt = new Context();
+    // d_nm = new NodeManager(d_ctxt, NULL);
+    // d_scope = new NodeManagerScope(d_nm);
 
   }
 
   void tearDown() {
-    delete d_scope;
-    delete d_nm;
-    delete d_ctxt;
+    // delete d_scope;
+    // delete d_nm;
+    // delete d_ctxt;
   }
 
  
   void testBitblasterCore() {
     // ClauseManager tests 
-    Context* ctx = new Context();
-    Bitblaster* bb = new Bitblaster(ctx); 
+    // Context* ctx = new Context();
+    // Bitblaster* bb = new Bitblaster(ctx); 
     
     // NodeManager* nm = NodeManager::currentNM();
     // TODO: update this
@@ -110,7 +110,7 @@ public:
     // res = bb->solve();
     // TS_ASSERT(res == false); 
     
-    delete bb;    
+    //delete bb;    
     
   }
 

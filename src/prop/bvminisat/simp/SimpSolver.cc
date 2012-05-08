@@ -32,7 +32,7 @@ static const char* _cat = "SIMP";
 
 static BoolOption   opt_use_asymm        (_cat, "asymm",        "Shrink clauses by asymmetric branching.", false);
 static BoolOption   opt_use_rcheck       (_cat, "rcheck",       "Check if a clause is already implied. (costly)", false);
-static BoolOption   opt_use_elim         (_cat, "elim",         "Perform variable elimination.", true);
+static BoolOption   opt_use_elim         (_cat, "elim",         "Perform variable elimination.", false);
 static IntOption    opt_grow             (_cat, "grow",         "Allow a variable elimination step to grow by a number of clauses.", 0);
 static IntOption    opt_clause_lim       (_cat, "cl-lim",       "Variables are not eliminated if it produces a resolvent with a length above this limit. -1 means no limit", 20,   IntRange(-1, INT32_MAX));
 static IntOption    opt_subsumption_lim  (_cat, "sub-lim",      "Do not check if subsumption against a clause larger than this. -1 means no limit.", 1000, IntRange(-1, INT32_MAX));
@@ -100,20 +100,14 @@ Var SimpSolver::newVar(bool sign, bool dvar, bool freeze) {
 
 lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 {
-    vec<Lit> atom_propagations_backup;
-    atom_propagations.moveTo(atom_propagations_backup);
-    vec<int> atom_propagations_lim_backup;
-    atom_propagations_lim.moveTo(atom_propagations_lim_backup);
-
     only_bcp = false;
-    cancelUntil(0);
   
     vec<Var> extra_frozen;
     lbool    result = l_True;
 
     do_simp &= use_simplification;
 
-    if (do_simp){
+    if (do_simp) {
         // Assumptions must be temporarily frozen to run variable elimination:
         for (int i = 0; i < assumptions.size(); i++){
             Var v = var(assumptions[i]);
@@ -127,16 +121,17 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
                 extra_frozen.push(v);
             } }
 
-        result = lbool(eliminate(turn_off_simp));
+        if (do_simp && clause_added) {
+          cancelUntil(0);
+          result = lbool(eliminate(turn_off_simp));
+          clause_added = false;
+        }
     }
 
     if (result == l_True)
         result = Solver::solve_();
     else if (verbosity >= 1)
         printf("===============================================================================\n");
-
-    atom_propagations_backup.moveTo(atom_propagations);
-    atom_propagations_lim_backup.moveTo(atom_propagations_lim);
 
     if (do_simp)
         // Unfreeze the assumptions that were frozen:

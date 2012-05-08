@@ -25,6 +25,7 @@ using namespace prop;
 BVMinisatSatSolver::BVMinisatSatSolver(context::Context* mainSatContext)
 : context::ContextNotifyObj(mainSatContext, false),
   d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
+  d_minisatNotify(0),
   d_solveCount(0),
   d_assertionsCount(0),
   d_assertionsRealCount(mainSatContext, 0),
@@ -36,6 +37,12 @@ BVMinisatSatSolver::BVMinisatSatSolver(context::Context* mainSatContext)
 
 BVMinisatSatSolver::~BVMinisatSatSolver() throw(AssertionException) {
   delete d_minisat;
+  delete d_minisatNotify;
+}
+
+void BVMinisatSatSolver::setNotify(Notify* notify) {
+  d_minisatNotify = new MinisatNotify(notify);
+  d_minisat->setNotify(d_minisatNotify);
 }
 
 void BVMinisatSatSolver::addClause(SatClause& clause, bool removable) {
@@ -52,16 +59,9 @@ void BVMinisatSatSolver::addMarkerLiteral(SatLiteral lit) {
   d_minisat->addMarkerLiteral(BVMinisat::var(toMinisatLit(lit)));
 }
 
-bool BVMinisatSatSolver::getPropagations(std::vector<SatLiteral>& propagations) {
-  for (; d_lastPropagation < d_minisat->atom_propagations.size(); d_lastPropagation = d_lastPropagation + 1) {
-    propagations.push_back(toSatLiteral(d_minisat->atom_propagations[d_lastPropagation]));
-  }
-  return propagations.size() > 0; 
-}
-
-void BVMinisatSatSolver::explainPropagation(SatLiteral lit, std::vector<SatLiteral>& explanation) {
+void BVMinisatSatSolver::explain(SatLiteral lit, std::vector<SatLiteral>& explanation) {
   std::vector<BVMinisat::Lit> minisat_explanation;
-  d_minisat->explainPropagation(toMinisatLit(lit), minisat_explanation);
+  d_minisat->explain(toMinisatLit(lit), minisat_explanation);
   for (unsigned i = 0; i < minisat_explanation.size(); ++i) {
     explanation.push_back(toSatLiteral(minisat_explanation[i])); 
   }

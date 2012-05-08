@@ -326,7 +326,10 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
     ++ it;
   }
 
-  Assert(expandedNodes.size() > 0);
+  if (expandedNodes.size() == 0) {
+    return mkTrue();
+  }
+
   if (expandedNodes.size() == 1) {
     return *expandedNodes.begin();
   }

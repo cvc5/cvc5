@@ -45,6 +45,7 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 
 void Theory::addSharedTermInternal(TNode n) {
   Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
+  Debug("theory::assertions") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
   d_sharedTerms.push_back(n);
   addSharedTerm(n);
 }

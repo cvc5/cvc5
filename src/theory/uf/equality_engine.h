@@ -613,6 +613,13 @@ public:
   }
 
   /**
+   * Returns true if this kind is used for congruence closure.
+   */
+  bool isFunctionKind(Kind fun) {
+    return d_congruenceKinds.tst(fun);
+  }
+
+  /**
    * Adds a function application term to the database.
    */
 

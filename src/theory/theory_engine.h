@@ -499,6 +499,16 @@ private:
    */
   Node ppTheoryRewrite(TNode term);
 
+  /**
+   * Queue of nodes for pre-registration.
+   */
+  std::queue<TNode> d_preregisterQueue;
+
+  /**
+   * Boolean flag denoting we are in pre-registration.
+   */
+  bool d_inPreregister;
+
 public:
 
   /**
