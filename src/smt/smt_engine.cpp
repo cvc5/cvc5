@@ -272,9 +272,10 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
     d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
   CVC4_FOR_EACH_THEORY;
 
-  d_decisionEngine = new DecisionEngine(d_context);
+  d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
+  d_theoryEngine->setDecisionEngine(d_decisionEngine);
   // d_decisionEngine->setPropEngine(d_propEngine);
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
@@ -1034,14 +1035,16 @@ void SmtEnginePrivate::processAssertions() {
   // Simplify the assertions
   simplifyAssertions();
 
-  if(d_smt.d_decisionEngine->needSimplifiedPreITEAssertions()) {
-    d_smt.d_decisionEngine->informSimplifiedPreITEAssertions(d_assertionsToCheck);
-  }
+  // any assertions beyond realAssertionsEnd _must_ be introduced by
+  // removeITEs().
+  int realAssertionsEnd = d_assertionsToCheck.size();
 
-  // Remove ITEs
-  removeITEs();                 // This may need to be in a try-catch
-                                // block. make regress is passing, so
-                                // skipping for now --K
+  // Remove ITEs, updating d_iteSkolemMap
+  removeITEs();
+
+  // begin: INVARIANT to maintain: no reordering of assertions or
+  // introducing new ones
+  int iteRewriteAssertionsEnd = d_assertionsToCheck.size();
 
   Trace("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
@@ -1061,7 +1064,13 @@ void SmtEnginePrivate::processAssertions() {
     d_assertionsToCheck[i] = d_smt.d_theoryEngine->preprocess(d_assertionsToCheck[i]);
   }
 
-  // TODO: send formulas and iteSkolemMap to decision engine
+  // Push the formula to decision engine
+  Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
+  d_smt.d_decisionEngine->addAssertions
+    (d_assertionsToCheck, realAssertionsEnd, d_iteSkolemMap);
+
+  // end: INVARIANT to maintain: no reordering of assertions or
+  // introducing new ones
 
   // Push the formula to SAT
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {

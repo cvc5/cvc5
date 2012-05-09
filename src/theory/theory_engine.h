@@ -25,6 +25,7 @@
 #include <vector>
 #include <utility>
 
+#include "decision/decision_engine.h"
 #include "expr/node.h"
 #include "expr/command.h"
 #include "prop/prop_engine.h"
@@ -76,6 +77,9 @@ class TheoryEngine {
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
+
+  /** Access to decision engine */
+  DecisionEngine* d_decisionEngine;
 
   /** Our context */
   context::Context* d_context;
@@ -430,26 +434,42 @@ class TheoryEngine {
       Options::current()->lemmaOutputChannel->notifyNewLemma(node.toExpr());
     }
 
-    // Remove the ITEs and assert to prop engine
+    // Remove the ITEs
     std::vector<Node> additionalLemmas;
     IteSkolemMap iteSkolemMap;
     additionalLemmas.push_back(node);
     RemoveITE::run(additionalLemmas, iteSkolemMap);
     additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
+
+    // assert to prop engine
     d_propEngine->assertLemma(additionalLemmas[0], negated, removable);
     for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
       additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
       d_propEngine->assertLemma(additionalLemmas[i], false, removable);
     }
 
+    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
+    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
+    if(negated) {
+      // Can't we just get rid of passing around this 'negated' stuff?
+      // Is it that hard for the propEngine to figure that out itself?
+      // (I like the use of triple negation <evil laugh>.) --K
+      additionalLemmas[0] = additionalLemmas[0].notNode();
+      negated = false;
+    }
+    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
+    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
+
+    // assert to decision engine
+    if(!removable)
+      d_decisionEngine->addAssertions(additionalLemmas, 1, iteSkolemMap);
+
     // Mark that we added some lemmas
     d_lemmasAdded = true;
 
     // Lemma analysis isn't online yet; this lemma may only live for this
     // user level.
-    Node finalForm =
-      negated ? additionalLemmas[0].notNode() : additionalLemmas[0];
-    return theory::LemmaStatus(finalForm, d_userContext->getLevel());
+    return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
   }
 
   /** Time spent in theory combination */
@@ -483,6 +503,11 @@ public:
   inline void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
+  }
+
+  inline void setDecisionEngine(DecisionEngine* decisionEngine) {
+    Assert(d_decisionEngine == NULL);
+    d_decisionEngine = decisionEngine;
   }
 
   /**

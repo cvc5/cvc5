@@ -33,16 +33,20 @@ class RemoveITE {
 public:
 
   /**
-   * Removes the ITE nodes by introducing skolem variables. All additional assertions are pushed into assertions.
-   * iteSkolemMap contains a map from introduced skolem variables to the index in assertions containing the new
-   * Boolean ite created in conjunction with that skolem variable.
+   * Removes the ITE nodes by introducing skolem variables. All
+   * additional assertions are pushed into assertions. iteSkolemMap
+   * contains a map from introduced skolem variables to the index in
+   * assertions containing the new Boolean ite created in conjunction
+   * with that skolem variable.
    */
   static void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap);
 
   /**
-   * Removes the ITE from the node by introducing skolem variables. All additional assertions are pushed into assertions.
-   * iteSkolemMap contains a map from introduced skolem variables to the index in assertions containing the new
-   * Boolean ite created in conjunction with that skolem variable.
+   * Removes the ITE from the node by introducing skolem
+   * variables. All additional assertions are pushed into
+   * assertions. iteSkolemMap contains a map from introduced skolem
+   * variables to the index in assertions containing the new Boolean
+   * ite created in conjunction with that skolem variable.
    */
   static Node run(TNode node, std::vector<Node>& additionalAssertions,
                   IteSkolemMap& iteSkolemMap);

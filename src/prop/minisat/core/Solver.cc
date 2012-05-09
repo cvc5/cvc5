@@ -1099,6 +1099,8 @@ lbool Solver::search(int nof_conflicts)
 
                 if (next == lit_Undef) {
                     // We need to do a full theory check to confirm
+                  Debug("minisat::search") << "Doing a full theoy check..."
+                                           << std::endl;
                     check_type = CHECK_FINAL;
                     continue;
                 }
