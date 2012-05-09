@@ -42,7 +42,7 @@ class CVC4_PUBLIC SExpr {
     SEXPR_RATIONAL,
     SEXPR_NOT_ATOM
   } d_sexprType;
-  friend std::ostream &operator<<(std::ostream&, SexprTypes);
+  friend std::ostream& operator<<(std::ostream&, SexprTypes);
 
   /** The value of an atomic integer-valued S-expression. */
   CVC4::Integer d_integerValue;
@@ -135,25 +135,25 @@ public:
 
 };/* class SExpr */
 
-inline std::ostream &operator<<(std::ostream& out, SExpr::SexprTypes type){
- switch(type){
- case SExpr::SEXPR_STRING:
-   out << "SEXPR_STRING";
-   break;
- case SExpr::SEXPR_INTEGER:
-   out << "SEXPR_INTEGER";
-   break;
- case SExpr::SEXPR_RATIONAL:
-   out << "SEXPR_RATIONAL";
-   break;
- case SExpr::SEXPR_NOT_ATOM:
-   out << "SEXPR_NOT_ATOM";
-   break;
- default:
-   Unimplemented();
-   break;
- }
- return out;
+inline std::ostream& operator<<(std::ostream& out, SExpr::SexprTypes type) {
+  switch(type) {
+  case SExpr::SEXPR_STRING:
+    out << "SEXPR_STRING";
+    break;
+  case SExpr::SEXPR_INTEGER:
+    out << "SEXPR_INTEGER";
+    break;
+  case SExpr::SEXPR_RATIONAL:
+    out << "SEXPR_RATIONAL";
+    break;
+  case SExpr::SEXPR_NOT_ATOM:
+    out << "SEXPR_NOT_ATOM";
+    break;
+  default:
+    Unimplemented();
+    break;
+  }
+  return out;
 }
 
 inline bool SExpr::isAtom() const {
