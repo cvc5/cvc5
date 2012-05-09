@@ -153,15 +153,17 @@ int strcmpptr(const char **s1, const char **s2){
   return strcmp(*s1,*s2);
 }
 
-bool Configuration::isDebugTag(char const *){
+bool Configuration::isDebugTag(char const *tag){
 #if CVC4_DEBUG
   unsigned ntags = getNumDebugTags();
   char const* const* tags = getDebugTags();
-  return (bsearch(&optarg, tags, ntags, sizeof(char *),
-                  (int(*)(const void*,const void*))strcmpptr) != NULL);
-#else /* CVC4_DEBUG */
+  for (unsigned i = 0; i < ntags; ++ i) {
+    if (strcmp(tag, tags[i]) == 0) {
+      return true;
+    }
+  }
+#endif * CVC4_DEBUG */
   return false;
-#endif /* CVC4_DEBUG */
 }
 
 unsigned Configuration::getNumTraceTags() {
@@ -182,15 +184,17 @@ char const* const* Configuration::getTraceTags() {
 #endif /* CVC4_TRACING */
 }
 
-bool Configuration::isTraceTag(char const *){
+bool Configuration::isTraceTag(char const * tag){
 #if CVC4_TRACING
   unsigned ntags = getNumTraceTags();
   char const* const* tags = getTraceTags();
-  return (bsearch(&optarg, tags, ntags, sizeof(char *),
-                  (int(*)(const void*,const void*))strcmpptr) != NULL);
-#else /* CVC4_TRACING */
-  return false;
+  for (unsigned i = 0; i < ntags; ++ i) {
+    if (strcmp(tag, tags[i]) == 0) {
+      return true;
+    }
+  }
 #endif /* CVC4_TRACING */
+  return false;
 }
 
 bool Configuration::isSubversionBuild() {
