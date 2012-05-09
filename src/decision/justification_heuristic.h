@@ -161,9 +161,9 @@ public:
   }
 
   /* Compute justified */
-  bool computeJustified() {
+  /*bool computeJustified() {
     
-  }
+  }*/
 private:
   SatLiteral findSplitter(TNode node, SatValue desiredVal)
   {
