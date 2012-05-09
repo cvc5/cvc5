@@ -65,6 +65,13 @@ protected:
 
   /** The current assertion level (user) */
   int assertionLevel; 
+
+  /** Variable representing true */
+  Var varTrue;
+
+  /** Variable representing false */
+  Var varFalse;
+
 public:
   /** Returns the current user assertion level */
   int getAssertionLevel() const { return assertionLevel; }
@@ -108,6 +115,8 @@ public:
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false); // Add a new variable with parameters specifying variable mode.
+    Var     trueVar() const { return varTrue; }
+    Var     falseVar() const { return varFalse; }
 
     // Less than for literals in a lemma
     struct lemma_lt {

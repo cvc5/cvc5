@@ -79,16 +79,16 @@ private:
   template <class T>
   class DataClearer : context::ContextNotifyObj {
     T& d_data;
+  protected:
+    void contextNotifyPop() {
+      Trace("circuit-prop") << "CircuitPropagator::DataClearer: clearing data "
+                            << "(size was " << d_data.size() << ")" << std::endl;
+      d_data.clear();
+    }
   public:
     DataClearer(context::Context* context, T& data) :
       context::ContextNotifyObj(context),
       d_data(data) {
-    }
-
-    void notify() {
-      Trace("circuit-prop") << "CircuitPropagator::DataClearer: clearing data "
-                            << "(size was " << d_data.size() << ")" << std::endl;
-      d_data.clear();
     }
   };/* class DataClearer<T> */
 

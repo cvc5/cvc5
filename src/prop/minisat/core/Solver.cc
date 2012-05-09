@@ -126,6 +126,14 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
   , asynch_interrupt   (false)
 {
   PROOF(ProofManager::initSatProof(this);)
+
+  // Create the constant variables
+  varTrue = newVar(true, false, false);
+  varFalse = newVar(false, false, false);
+
+  // Assert the constants
+  uncheckedEnqueue(mkLit(varTrue, false));
+  uncheckedEnqueue(mkLit(varFalse, true));
 }
 
 
@@ -190,16 +198,26 @@ CRef Solver::reason(Var x) {
 
     // Compute the assertion level for this clause
     int explLevel = 0;
-    for (int i = 0; i < explanation.size(); ++ i) {
+    int i, j;
+    for (i = 0, j = 0; i < explanation.size(); ++ i) {
       int varLevel = intro_level(var(explanation[i]));
       if (varLevel > explLevel) {
         explLevel = varLevel;
       }
       Assert(value(explanation[i]) != l_Undef);
       Assert(i == 0 || trail_index(var(explanation[0])) > trail_index(var(explanation[i])));
+      // ignore zero level literals
+      if (i == 0 || level(var(explanation[i])) > 0) {
+        explanation[j++] = explanation[i];
+      }
+    }
+    explanation.shrink(i - j);
+    if (j == 1) {
+      // Add not TRUE to the clause
+      explanation.push(mkLit(varTrue, true));
     }
 
-    // Construct the reason (level 0)
+    // Construct the reason
     CRef real_reason = ca.alloc(explLevel, explanation, true);
     vardata[x] = mkVarData(real_reason, level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);

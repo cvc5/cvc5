@@ -61,8 +61,6 @@ private:
   
   /** Bitblaster */
   Bitblaster* d_bitblaster; 
-  Node d_true;
-  Node d_false;
     
   /** Context dependent set of atoms we already propagated */
   context::CDHashSet<TNode, TNodeHashFunction> d_alreadyPropagatedSet;
@@ -99,22 +97,44 @@ private:
   
   // Added by Clark
   // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
-  class NotifyClass {
+  class NotifyClass : public eq::EqualityEngineNotify {
+
     TheoryBV& d_bv;
+
   public:
+
     NotifyClass(TheoryBV& uf): d_bv(uf) {}
 
-    bool notify(TNode propagation) {
-      Debug("bitvector") << spaces(d_bv.getSatContext()->getLevel()) << "NotifyClass::notify(" << propagation << ")" << std::endl;
-      // Just forward to bv
-      return d_bv.storePropagation(propagation, SUB_EQUALITY);
+    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+      Debug("bitvector") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
+      if (value) {
+        return d_bv.storePropagation(equality, SUB_EQUALITY);
+      } else {
+        return d_bv.storePropagation(equality.notNode(), SUB_EQUALITY);
+      }
     }
 
-    void notify(TNode t1, TNode t2) {
-      Debug("arrays") << spaces(d_bv.getSatContext()->getLevel()) << "NotifyClass::notify(" << t1 << ", " << t2 << ")" << std::endl;
-      // Propagate equality between shared terms
-      Node equality = Rewriter::rewriteEquality(theory::THEORY_UF, t1.eqNode(t2));
-      d_bv.storePropagation(t1.eqNode(t2), SUB_EQUALITY);
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+      Debug("bitvector") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" )<< ")" << std::endl;
+      if (value) {
+        return d_bv.storePropagation(predicate, SUB_EQUALITY);
+      } else {
+       return d_bv.storePropagation(predicate, SUB_EQUALITY);
+      }
+    }
+
+    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+      Debug("bitvector") << "NotifyClass::eqNotifyTriggerTermMerge(" << t1 << ", " << t2 << std::endl;
+      if (value) {
+        return d_bv.storePropagation(t1.eqNode(t2), SUB_EQUALITY);
+      } else {
+        return d_bv.storePropagation(t1.eqNode(t2).notNode(), SUB_EQUALITY);
+      }
+    }
+
+    bool eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+      Debug("bitvector") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
+      return d_bv.storePropagation(t1.eqNode(t2), SUB_EQUALITY);
     }
   };
 
@@ -122,7 +142,7 @@ private:
   NotifyClass d_notify;
 
   /** Equaltity engine */
-  uf::EqualityEngine<NotifyClass> d_equalityEngine;
+  eq::EqualityEngine d_equalityEngine;
 
   // Are we in conflict?
   context::CDO<bool> d_conflict;

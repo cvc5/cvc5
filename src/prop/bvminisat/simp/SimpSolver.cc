@@ -63,11 +63,25 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , bwdsub_assigns     (0)
   , n_touched          (0)
 {
-  CVC4::StatisticsRegistry::registerStat(&total_eliminate_time); 
+    CVC4::StatisticsRegistry::registerStat(&total_eliminate_time);
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(dummy);
     remove_satisfied      = false;
+
+    // add the initialization for all the internal variables
+    for (int i = frozen.size(); i < vardata.size(); ++ i) {
+      frozen    .push(1);
+      eliminated.push(0);
+      if (use_simplification){
+          n_occ     .push(0);
+          n_occ     .push(0);
+          occurs    .init(i);
+          touched   .push(0);
+          elim_heap .insert(i);
+      }
+    }
+
 }
 
 

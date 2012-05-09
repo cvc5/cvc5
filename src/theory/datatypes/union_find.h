@@ -84,13 +84,13 @@ public:
    */
   inline void setCanon(TNode n, TNode newParent);
 
+protected:
 
-public:
   /**
    * Called by the Context when a pop occurs.  Cancels everything to the
-   * current context level.  Overrides ContextNotifyObj::notify().
+   * current context level.  Overrides ContextNotifyObj::contextNotifyPop().
    */
-  void notify();
+  void contextNotifyPop();
 
 };/* class UnionFind<> */
 

@@ -16,7 +16,6 @@
  **/
 
 #include "theory/shared_terms_database.h"
-#include "theory/uf/equality_engine_impl.h"
 
 using namespace CVC4;
 using namespace theory;
@@ -36,14 +35,7 @@ SharedTermsDatabase::SharedTermsDatabase(SharedTermsNotifyClass& notify, context
     d_equalityEngine(d_EENotify, context, "SharedTermsDatabase")
 {
   StatisticsRegistry::registerStat(&d_statSharedTerms);
-  NodeManager* nm = NodeManager::currentNM();
-  d_true = nm->mkConst<bool>(true);
-  d_false = nm->mkConst<bool>(false);
-  d_equalityEngine.addTerm(d_true);
-  d_equalityEngine.addTerm(d_false);
-  d_equalityEngine.addTriggerEquality(d_true, d_false, d_false);
 }
-
 
 SharedTermsDatabase::~SharedTermsDatabase() throw(AssertionException)
 {
@@ -53,9 +45,9 @@ SharedTermsDatabase::~SharedTermsDatabase() throw(AssertionException)
   }
 }
 
-
 void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, Theory::Set theories) {
   Debug("register") << "SharedTermsDatabase::addSharedTerm(" << atom << ", " << term << ", " << Theory::setToString(theories) << ")" << std::endl; 
+
   std::pair<TNode, TNode> search_pair(atom, term);
   SharedTermsTheoriesMap::iterator find = d_termsToTheories.find(search_pair);
   if (find == d_termsToTheories.end()) {
@@ -243,22 +235,20 @@ bool SharedTermsDatabase::areDisequal(TNode a, TNode b) {
   return d_equalityEngine.areDisequal(a,b);
 }
 
-
 void SharedTermsDatabase::processSharedLiteral(TNode literal, TNode reason)
 {
   bool negated = literal.getKind() == kind::NOT;
   TNode atom = negated ? literal[0] : literal;
   if (negated) {
     Assert(!d_equalityEngine.areDisequal(atom[0], atom[1]));
-    d_equalityEngine.addDisequality(atom[0], atom[1], reason);
+    d_equalityEngine.assertEquality(atom, false, reason);
     //    !!! need to send this out
   }
   else {
     Assert(!d_equalityEngine.areEqual(atom[0], atom[1]));
-    d_equalityEngine.addEquality(atom[0], atom[1], reason);
+    d_equalityEngine.assertEquality(atom, true, reason);
   }
 }
-
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {
   Assert(conjunctions.size() > 0);
@@ -286,31 +276,12 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 Node SharedTermsDatabase::explain(TNode literal)
 {
   std::vector<TNode> assumptions;
-  explain(literal, assumptions);
-  return mkAnd(assumptions);
-}
-
-
-void SharedTermsDatabase::explain(TNode literal, std::vector<TNode>& assumptions) {
-  TNode lhs, rhs;
-  switch (literal.getKind()) {
-    case kind::EQUAL:
-      lhs = literal[0];
-      rhs = literal[1];
-      break;
-    case kind::NOT:
-      if (literal[0].getKind() == kind::EQUAL) {
-        // Disequalities
-        d_equalityEngine.explainDisequality(literal[0][0], literal[0][1], assumptions);
-        return;
-      }
-    case kind::CONST_BOOLEAN:
-      // we get to explain true = false, since we set false to be the trigger of this
-      lhs = d_true;
-      rhs = d_false;
-      break;
-    default:
-      Unreachable();
+  if (literal.getKind() == kind::NOT) {
+    Assert(literal[0].getKind() == kind::EQUAL);
+    d_equalityEngine.explainEquality(literal[0][0], literal[0][1], false, assumptions);
+  } else {
+    Assert(literal.getKind() == kind::EQUAL);
+    d_equalityEngine.explainEquality(literal[0], literal[1], true, assumptions);
   }
-  d_equalityEngine.explainEquality(lhs, rhs, assumptions);
+  return mkAnd(assumptions);
 }

@@ -73,16 +73,16 @@ private:
   /** Helper class to invalidate cache on user pop */
   class CacheInvalidator : public context::ContextNotifyObj {
     bool& d_cacheInvalidated;
-
+  protected:
+    void contextNotifyPop() {
+      d_cacheInvalidated = true;
+    }
   public:
     CacheInvalidator(context::Context* context, bool& cacheInvalidated) :
       context::ContextNotifyObj(context),
       d_cacheInvalidated(cacheInvalidated) {
     }
 
-    void notify() {
-      d_cacheInvalidated = true;
-    }
   };/* class SubstitutionMap::CacheInvalidator */
 
   /**

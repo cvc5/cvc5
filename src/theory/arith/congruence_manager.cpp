@@ -1,5 +1,4 @@
 #include "theory/arith/congruence_manager.h"
-#include "theory/uf/equality_engine_impl.h"
 
 #include "theory/arith/constraint.h"
 #include "theory/arith/arith_utilities.h"
@@ -17,8 +16,7 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
     d_constraintDatabase(cd),
     d_setupLiteral(setup),
     d_av2Node(av2Node),
-    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager"),
-    d_false(mkBoolNode(false))
+    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager")
 {}
 
 ArithCongruenceManager::Statistics::Statistics():
@@ -113,7 +111,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     }else{
       ++(d_statistics.d_conflicts);
 
-      Node conf = explainInternal(x);
+      Node conf = flattenAnd(explainInternal(x));
       d_conflict.set(conf);
       Debug("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
       return false;
@@ -181,20 +179,11 @@ bool ArithCongruenceManager::propagate(TNode x){
 }
 
 void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumptions) {
-  TNode lhs, rhs;
-  switch (literal.getKind()) {
-  case kind::EQUAL:
-    lhs = literal[0];
-    rhs = literal[1];
-    break;
-  case kind::NOT:
-    lhs = literal[0];
-    rhs = d_false;
-    break;
-  default:
-    Unreachable();
+  if (literal.getKind() != kind::NOT) {
+    d_ee.explainEquality(literal[0], literal[1], true, assumptions);
+  } else {
+    d_ee.explainEquality(literal[0][0], literal[0][1], false, assumptions);
   }
-  d_ee.explainEquality(lhs, rhs, assumptions);
 }
 
 void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<>& nb){
@@ -258,13 +247,10 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   TNode eq = d_watchedEqualities[s];
   Assert(eq.getKind() == kind::EQUAL);
 
-  TNode x = eq[0];
-  TNode y = eq[1];
-
   if(isEquality){
-    d_ee.addEquality(x, y, reason);
+    d_ee.assertEquality(eq, true, reason);
   }else{
-    d_ee.addDisequality(x, y, reason);
+    d_ee.assertEquality(eq, false, reason);
   }
 }
 
@@ -286,7 +272,7 @@ void ArithCongruenceManager::equalsConstant(Constraint c){
   Node reason = c->explainForConflict();
   d_keepAlive.push_back(reason);
 
-  d_ee.addEquality(xAsNode, asRational, reason);
+  d_ee.assertEquality(eq, true, reason);
 }
 
 void ArithCongruenceManager::equalsConstant(Constraint lb, Constraint ub){
@@ -310,7 +296,7 @@ void ArithCongruenceManager::equalsConstant(Constraint lb, Constraint ub){
   d_keepAlive.push_back(reason);
 
 
-  d_ee.addEquality(xAsNode, asRational, reason);
+  d_ee.assertEquality(eq, true, reason);
 }
 
 void ArithCongruenceManager::addSharedTerm(Node x){

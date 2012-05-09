@@ -121,7 +121,6 @@ SatVariable MinisatSatSolver::newVar(bool theoryAtom) {
   return d_minisat->newVar(true, true, theoryAtom);
 }
 
-
 SatValue MinisatSatSolver::solve(unsigned long& resource) {
   Trace("limit") << "SatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
   if(resource == 0) {

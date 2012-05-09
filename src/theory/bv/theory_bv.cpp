@@ -21,7 +21,6 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/valuation.h"
 #include "theory/bv/bv_sat.h"
-#include "theory/uf/equality_engine_impl.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -52,18 +51,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_toBitBlast(c),
     d_propagatedBy(c)
   {
-    d_true = utils::mkTrue();
-    d_false = utils::mkFalse();
-
     if (d_useEqualityEngine) {
-      d_equalityEngine.addTerm(d_true);
-      d_equalityEngine.addTerm(d_false);
-      d_equalityEngine.addTriggerEquality(d_true, d_false, d_false);
-
-      // add disequality between 0 and 1 bits
-      d_equalityEngine.addDisequality(utils::mkConst(BitVector((unsigned)1, (unsigned)0)),
-                                      utils::mkConst(BitVector((unsigned)1, (unsigned)1)),
-                                      d_true);
 
       // The kinds we are treating as function application in congruence
       d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT);
@@ -137,11 +125,8 @@ void TheoryBV::preRegisterTerm(TNode node) {
   if (d_useEqualityEngine) {
     switch (node.getKind()) {
       case kind::EQUAL:
-        // Add the terms
-        d_equalityEngine.addTerm(node);
         // Add the trigger for equality
-        d_equalityEngine.addTriggerEquality(node[0], node[1], node);
-        d_equalityEngine.addTriggerDisequality(node[0], node[1], node.notNode());
+        d_equalityEngine.addTriggerEquality(node);
         break;
       default:
         d_equalityEngine.addTerm(node);
@@ -185,15 +170,15 @@ void TheoryBV::check(Effort e)
       if (predicate.getKind() == kind::EQUAL) {
         if (negated) {
           // dis-equality
-          d_equalityEngine.addDisequality(predicate[0], predicate[1], fact);
+          d_equalityEngine.assertEquality(predicate, false, fact);
         } else {
           // equality
-          d_equalityEngine.addEquality(predicate[0], predicate[1], fact);
+          d_equalityEngine.assertEquality(predicate, true, fact);
         }
       } else {
         // Adding predicate if the congruence over it is turned on
         if (d_equalityEngine.isFunctionKind(predicate.getKind())) {
-          d_equalityEngine.addPredicate(predicate, !negated, fact);
+          d_equalityEngine.assertPredicate(predicate, !negated, fact);
         }
       }
     }
@@ -279,16 +264,16 @@ void TheoryBV::propagate(Effort e) {
       bool satValue;
       if (!d_valuation.hasSatValue(normalized, satValue) || satValue) {
         // check if we already propagated the negation
-        Node neg_literal = literal.getKind() == kind::NOT ? (Node)literal[0] : mkNot(literal); 
-        if (d_alreadyPropagatedSet.find(neg_literal) != d_alreadyPropagatedSet.end()) {
+        Node negLiteral = literal.getKind() == kind::NOT ? (Node)literal[0] : mkNot(literal);
+        if (d_alreadyPropagatedSet.find(negLiteral) != d_alreadyPropagatedSet.end()) {
           Debug("bitvector") << spaces(getSatContext()->getLevel()) << "TheoryBV::propagate(): in conflict " << literal << " and its negation both propagated \n"; 
           // we are in conflict
           std::vector<TNode> assumptions;
           explain(literal, assumptions);
-          explain(neg_literal, assumptions);
+          explain(negLiteral, assumptions);
           d_conflictNode = mkAnd(assumptions); 
           d_conflict = true;
-          return; 
+          return;
         }
         
         BVDebug("bitvector") << spaces(getSatContext()->getLevel()) << "TheoryBV::propagate(): " << literal << std::endl;
@@ -299,10 +284,8 @@ void TheoryBV::propagate(Effort e) {
         
         Node negatedLiteral;
         std::vector<TNode> assumptions;
-        if (normalized != d_false) {
         negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
         assumptions.push_back(negatedLiteral);
-        }
         explain(literal, assumptions);
         d_conflictNode = mkAnd(assumptions);
         d_conflict = true;
@@ -352,8 +335,6 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
   // If propagated already, just skip
   PropagatedMap::const_iterator find = d_propagatedBy.find(literal);
   if (find != d_propagatedBy.end()) {
-    //unsigned theories = (*find).second | (unsigned) subtheory;
-    //d_propagatedBy[literal] = theories;
     return true;
   } else {
     d_propagatedBy[literal] = subtheory;
@@ -362,56 +343,37 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
   // See if the literal has been asserted already
   bool satValue = false;
   bool hasSatValue = d_valuation.hasSatValue(literal, satValue);
-  // If asserted, we might be in conflict
 
+  // If asserted, we might be in conflict
   if (hasSatValue && !satValue) {
-      Debug("bitvector-prop") << spaces(getSatContext()->getLevel()) << "TheoryBV::storePropagation(" << literal << ") => conflict" << std::endl;
-      std::vector<TNode> assumptions;
-      Node negatedLiteral = literal.getKind() == kind::NOT ? (Node) literal[0] : literal.notNode();
-      assumptions.push_back(negatedLiteral);
-      explain(literal, assumptions);
-      d_conflictNode = mkAnd(assumptions);
-      d_conflict = true;
-      return false;
+    Debug("bitvector-prop") << spaces(getSatContext()->getLevel()) << "TheoryBV::storePropagation(" << literal << ") => conflict" << std::endl;
+    std::vector<TNode> assumptions;
+    Node negatedLiteral = literal.getKind() == kind::NOT ? (Node) literal[0] : literal.notNode();
+    assumptions.push_back(negatedLiteral);
+    explain(literal, assumptions);
+    d_conflictNode = mkAnd(assumptions);
+    d_conflict = true;
+    return false;
   }
 
   // Nothing, just enqueue it for propagation and mark it as asserted already
   Debug("bitvector-prop") << spaces(getSatContext()->getLevel()) << "TheoryBV::storePropagation(" << literal << ") => enqueuing for propagation" << std::endl;
   d_literalsToPropagate.push_back(literal);
 
+  // No conflict
   return true;
 }/* TheoryBV::propagate(TNode) */
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
-
   if (propagatedBy(literal, SUB_EQUALITY)) {
-    TNode lhs, rhs;
-    switch (literal.getKind()) {
-      case kind::EQUAL:
-        lhs = literal[0];
-        rhs = literal[1];
-        break;
-      case kind::NOT:
-        if (literal[0].getKind() == kind::EQUAL) {
-          // Disequalities
-          d_equalityEngine.explainDisequality(literal[0][0], literal[0][1], assumptions);
-          return;
-        } else {
-          // Predicates
-          lhs = literal[0];
-          rhs = d_false;
-          break;
-        }
-      case kind::CONST_BOOLEAN:
-        // we get to explain true = false, since we set false to be the trigger of this
-        lhs = d_true;
-        rhs = d_false;
-        break;
-      default:
-        Unreachable();
+    bool polarity = literal.getKind() != kind::NOT;
+    TNode atom = polarity ? literal : literal[0];
+    if (atom.getKind() == kind::EQUAL) {
+      d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    } else {
+      d_equalityEngine.explainPredicate(atom, polarity, assumptions);
     }
-    d_equalityEngine.explainEquality(lhs, rhs, assumptions);
   } else {
     Assert(propagatedBy(literal, SUB_BITBLASTER));
     d_bitblaster->explain(literal, assumptions); 
@@ -430,7 +392,9 @@ Node TheoryBV::explain(TNode node) {
     return utils::mkTrue(); 
   }
   // return the explanation
-  return mkAnd(assumptions);
+  Node explanation = mkAnd(assumptions);
+  Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
+  return explanation;
 }
 
 

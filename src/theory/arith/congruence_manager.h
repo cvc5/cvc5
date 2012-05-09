@@ -37,24 +37,43 @@ private:
   ArithVarToNodeMap d_watchedEqualities;
 
 
-  class ArithCongruenceNotify {
+  class ArithCongruenceNotify : public eq::EqualityEngineNotify {
   private:
     ArithCongruenceManager& d_acm;
   public:
     ArithCongruenceNotify(ArithCongruenceManager& acm): d_acm(acm) {}
 
-    bool notify(TNode propagation) {
-      Debug("arith::congruences") << "ArithCongruenceNotify::notify(" << propagation << ")" << std::endl;
-      // Just forward to dm
-      return d_acm.propagate(propagation);
+    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+      Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
+      if (value) {
+        return d_acm.propagate(equality);
+      } else {
+        return d_acm.propagate(equality.notNode());
+      }
     }
 
-    void notify(TNode t1, TNode t2) {
-      Debug("arith::congruences") << "ArithCongruenceNotify::notify(" << t1 << ", " << t2 << ")" << std::endl;
-      Node equality = t1.eqNode(t2);
-      d_acm.propagate(equality);
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+      Unreachable();
     }
-  };
+
+    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+      Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
+      if (value) {
+        return d_acm.propagate(t1.eqNode(t2));
+      } else {
+        return d_acm.propagate(t1.eqNode(t2).notNode());
+      }
+    }
+
+    bool eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+      Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
+      if (t1.getKind() == kind::CONST_BOOLEAN) {
+        return d_acm.propagate(t1.iffNode(t2));
+      } else {
+        return d_acm.propagate(t1.eqNode(t2));
+      }
+    }
+   };
   ArithCongruenceNotify d_notify;
 
   context::CDList<Node> d_keepAlive;
@@ -75,8 +94,7 @@ private:
 
   const ArithVarNodeMap& d_av2Node;
 
-  theory::uf::EqualityEngine<ArithCongruenceNotify> d_ee;
-  Node d_false;
+  eq::EqualityEngine d_ee;
 
 public:
 

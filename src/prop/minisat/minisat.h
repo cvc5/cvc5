@@ -56,6 +56,8 @@ public:
   void addClause(SatClause& clause, bool removable);
 
   SatVariable newVar(bool theoryAtom = false);
+  SatVariable trueVar() { return d_minisat->trueVar(); }
+  SatVariable falseVar() { return d_minisat->falseVar(); }
 
   SatValue solve();
   SatValue solve(long unsigned int&);

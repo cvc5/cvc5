@@ -31,7 +31,7 @@ namespace theory {
 namespace datatypes {
 
 template <class NodeType, class NodeHash>
-void UnionFind<NodeType, NodeHash>::notify() {
+void UnionFind<NodeType, NodeHash>::contextNotifyPop() {
   Trace("datatypesuf") << "datatypesUF cancelling : " << d_offset << " < " << d_trace.size() << " ?" << endl;
   while(d_offset < d_trace.size()) {
     pair<TNode, TNode> p = d_trace.back();
@@ -50,9 +50,9 @@ void UnionFind<NodeType, NodeHash>::notify() {
 // The following declarations allow us to put functions in the .cpp file
 // instead of the header, since we know which instantiations are needed.
 
-template void UnionFind<Node, NodeHashFunction>::notify();
+template void UnionFind<Node, NodeHashFunction>::contextNotifyPop();
 
-template void UnionFind<TNode, TNodeHashFunction>::notify();
+template void UnionFind<TNode, TNodeHashFunction>::contextNotifyPop();
 
 }/* CVC4::theory::datatypes namespace */
 }/* CVC4::theory namespace */

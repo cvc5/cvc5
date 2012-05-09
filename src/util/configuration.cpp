@@ -162,7 +162,7 @@ bool Configuration::isDebugTag(char const *tag){
       return true;
     }
   }
-#endif * CVC4_DEBUG */
+#endif /* CVC4_DEBUG */
   return false;
 }
 

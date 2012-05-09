@@ -80,7 +80,7 @@ void Context::pop() {
   while(pCNO != NULL) {
     // pre-store the "next" pointer in case pCNO deletes itself on notify()
     ContextNotifyObj* next = pCNO->d_pCNOnext;
-    pCNO->notify();
+    pCNO->contextNotifyPop();
     pCNO = next;
   }
 
@@ -101,7 +101,7 @@ void Context::pop() {
   while(pCNO != NULL) {
     // pre-store the "next" pointer in case pCNO deletes itself on notify()
     ContextNotifyObj* next = pCNO->d_pCNOnext;
-    pCNO->notify();
+    pCNO->contextNotifyPop();
     pCNO = next;
   }
 

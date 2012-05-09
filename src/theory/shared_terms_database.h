@@ -28,16 +28,13 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
 
 public:
 
-  /** A conainer for a list of shared terms */
+  /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
-  /** The iterator to go rhough the shared terms list */
+
+  /** The iterator to go through the shared terms list */
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
 private:
-
-  Node d_true;
-
-  Node d_false;
 
   /** The context */
   context::Context* d_context;
@@ -45,8 +42,9 @@ private:
   /** Some statistics */
   IntStat d_statSharedTerms;
 
-  // Needs to be a map from Nodes as after a backtrack they might not exist 
+  // Needs to be a map from Nodes as after a backtrack they might not exist
   typedef std::hash_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
+
   /** A map from atoms to a list of shared terms */
   SharedTermsMap d_atomsToTerms;
   
@@ -57,14 +55,17 @@ private:
   context::CDO<unsigned> d_addedSharedTermsSize;
   
   typedef context::CDHashMap<std::pair<Node, TNode>, theory::Theory::Set, TNodePairHashFunction> SharedTermsTheoriesMap;
+
   /** A map from atoms and subterms to the theories that use it */
   SharedTermsTheoriesMap d_termsToTheories;
 
   typedef context::CDHashMap<TNode, theory::Theory::Set, TNodeHashFunction> AlreadyNotifiedMap;
+
   /** Map from term to theories that have already been notified about the shared term */
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
 public:
+
   /** Class for notifications about new shared term equalities */
   class SharedTermsNotifyClass {
     public:
@@ -74,6 +75,7 @@ public:
   };
 
 private:
+
   // Instance of class to send shared term notifications to
   SharedTermsNotifyClass& d_sharedNotify;
 
@@ -101,30 +103,43 @@ private:
   void backtrack();
 
   // EENotifyClass: template helper class for d_equalityEngine - handles call-backs
-  class EENotifyClass {
+  class EENotifyClass : public theory::eq::EqualityEngineNotify {
     SharedTermsDatabase& d_sharedTerms;
   public:
     EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
-    bool notify(TNode propagation) { return true; }    // Not used
-    void notify(TNode t1, TNode t2) {
-      d_sharedTerms.mergeSharedTerms(t1, t2);
+    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+      Unreachable();
+      return true;
+    }
+
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+      Unreachable();
+      return true;
+    }
+
+    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+      if (value) {
+        d_sharedTerms.mergeSharedTerms(t1, t2);
+      }
+      return true;
+    }
+
+    bool eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+      return true;
     }
   };
 
   /** The notify class for d_equalityEngine */
   EENotifyClass d_EENotify;
 
-  /** Equaltity engine */
-  theory::uf::EqualityEngine<EENotifyClass> d_equalityEngine;
+  /** Equality engine */
+  theory::eq::EqualityEngine d_equalityEngine;
 
   /** Attach a new notify list to an equivalence class representative */
   NotifyList* getNewNotifyList();
 
   /** Method called by equalityEngine when a becomes equal to b */
   void mergeSharedTerms(TNode a, TNode b);
-
-  /** Internal explanation method */
-  void explain(TNode literal, std::vector<TNode>& assumptions);
 
 public:
 
@@ -179,10 +194,12 @@ public:
 
   Node explain(TNode literal);
 
+protected:
+
   /**
    * This method gets called on backtracks from the context manager.
    */
-  void notify() {
+  void contextNotifyPop() {
     backtrack();
   }
 };

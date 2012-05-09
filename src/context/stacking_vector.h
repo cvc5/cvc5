@@ -82,7 +82,7 @@ public:
    * Called by the Context when a pop occurs.  Cancels everything to the
    * current context level.  Overrides ContextNotifyObj::notify().
    */
-  void notify();
+  void contextNotifyPop();
 
 };/* class StackingVector<> */
 
@@ -99,7 +99,7 @@ void StackingVector<T>::set(size_t n, const T& newValue) {
 }
 
 template <class T>
-void StackingVector<T>::notify() {
+void StackingVector<T>::contextNotifyPop() {
   Trace("sv") << "SV cancelling : " << d_offset << " < " << d_trace.size() << " ?" << std::endl;
   while(d_offset < d_trace.size()) {
     std::pair<size_t, T> p = d_trace.back();

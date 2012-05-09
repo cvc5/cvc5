@@ -59,6 +59,14 @@ public:
     return d_nextVar++;
   }
 
+  SatVariable trueVar() {
+    return d_nextVar++;
+  }
+
+  SatVariable falseVar() {
+    return d_nextVar++;
+  }
+
   void addClause(SatClause& c, bool lemma) {
     d_addClauseCalled = true;
   }

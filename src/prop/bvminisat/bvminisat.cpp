@@ -73,7 +73,7 @@ SatValue BVMinisatSatSolver::assertAssumption(SatLiteral lit, bool propagate) {
   return toSatLiteralValue(d_minisat->assertAssumption(toMinisatLit(lit), propagate));
 }
 
-void BVMinisatSatSolver::notify() {
+void BVMinisatSatSolver::contextNotifyPop() {
   while (d_assertionsCount > d_assertionsRealCount) {
     popAssumption();
     d_assertionsCount --;

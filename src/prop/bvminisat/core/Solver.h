@@ -64,6 +64,12 @@ class Solver {
     /** Cvc4 context */
     CVC4::context::Context* c;
 
+    /** True constant */
+    Var varTrue;
+
+    /** False constant */
+    Var varFalse;
+
 public:
 
     // Constructor/Destructor:
@@ -76,6 +82,9 @@ public:
     // Problem specification:
     //
     Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable mode.
+    Var     trueVar() const { return varTrue; }
+    Var     falseVar() const { return varFalse; }
+
 
     bool    addClause (const vec<Lit>& ps);                     // Add a clause to the solver. 
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.

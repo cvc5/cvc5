@@ -96,6 +96,14 @@ class StackingMap : context::ContextNotifyObj {
   /** Our current offset in the d_trace stack (context-dependent). */
   context::CDO<size_t> d_offset;
 
+protected:
+
+  /**
+   * Called by the Context when a pop occurs.  Cancels everything to the
+   * current context level.  Overrides ContextNotifyObj::contextNotifyPop().
+   */
+  void contextNotifyPop();
+
 public:
   typedef typename MapType::const_iterator const_iterator;
 
@@ -128,12 +136,6 @@ public:
    */
   void set(ArgType n, const ValueType& newValue);
 
-  /**
-   * Called by the Context when a pop occurs.  Cancels everything to the
-   * current context level.  Overrides ContextNotifyObj::notify().
-   */
-  void notify();
-
 };/* class StackingMap<> */
 
 template <class KeyType, class ValueType, class KeyHash>
@@ -146,7 +148,7 @@ void StackingMap<KeyType, ValueType, KeyHash>::set(ArgType n, const ValueType& n
 }
 
 template <class KeyType, class ValueType, class KeyHash>
-void StackingMap<KeyType, ValueType, KeyHash>::notify() {
+void StackingMap<KeyType, ValueType, KeyHash>::contextNotifyPop() {
   Trace("sm") << "SM cancelling : " << d_offset << " < " << d_trace.size() << " ?" << std::endl;
   while(d_offset < d_trace.size()) {
     std::pair<ArgType, ValueType> p = d_trace.back();

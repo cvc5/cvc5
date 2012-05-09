@@ -124,6 +124,50 @@ void TheoryEngine::preRegister(TNode preprocessed) {
   // }
 }
 
+void TheoryEngine::printAssertions(const char* tag) {
+  if (Debug.isOn(tag)) {
+    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
+      Theory* theory = d_theoryTable[theoryId];
+      if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+        Debug(tag) << "--------------------------------------------" << std::endl;
+        Debug(tag) << "Assertions of " << theory->getId() << ": " << std::endl;
+        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
+        for (unsigned i = 0; it != it_end; ++ it, ++i) {
+            if ((*it).isPreregistered) {
+              Debug(tag) << "[" << i << "]: ";
+            } else {
+              Debug(tag) << "(" << i << "): ";
+            }
+            Debug(tag) << (*it).assertion << endl;
+        }
+
+        if (d_logicInfo.isSharingEnabled()) {
+          Debug(tag) << "Shared terms of " << theory->getId() << ": " << std::endl;
+          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
+          for (unsigned i = 0; it != it_end; ++ it, ++i) {
+              Debug(tag) << "[" << i << "]: " << (*it) << endl;
+          }
+        }
+      }
+    }
+
+  }
+}
+
+template<typename T, bool doAssert>
+class scoped_vector_clear {
+  vector<T>& d_v;
+public:
+  scoped_vector_clear(vector<T>& v)
+  : d_v(v) {
+    Assert(!doAssert || d_v.empty());
+  }
+  ~scoped_vector_clear() {
+    d_v.clear();
+  }
+
+};
+
 /**
  * Check all (currently-active) theories for conflicts.
  * @param effort the effort level to use
@@ -143,11 +187,11 @@ void TheoryEngine::check(Theory::Effort effort) {
        } \
     }
 
+  // make sure d_propagatedSharedLiterals is cleared on exit
+  scoped_vector_clear<SharedLiteral, true> clear_shared_literals(d_propagatedSharedLiterals);
+
   // Do the checking
   try {
-
-    // Clear any leftover propagated shared literals
-    d_propagatedSharedLiterals.clear();
 
     // Mark the output channel unused (if this is FULL_EFFORT, and nothing
     // is done by the theories, no additional check will be needed)
@@ -159,32 +203,10 @@ void TheoryEngine::check(Theory::Effort effort) {
     while (true) {
 
       Debug("theory") << "TheoryEngine::check(" << effort << "): running check" << std::endl;
+      Assert(d_propagatedSharedLiterals.empty());
 
       if (Debug.isOn("theory::assertions")) {
-        for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-          Theory* theory = d_theoryTable[theoryId];
-          if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-            Debug("theory::assertions") << "--------------------------------------------" << std::endl;
-            Debug("theory::assertions") << "Assertions of " << theory->getId() << ": " << std::endl;
-            context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-            for (unsigned i = 0; it != it_end; ++ it, ++i) {
-                if ((*it).isPreregistered) {
-                  Debug("theory::assertions") << "[" << i << "]: ";
-                } else {
-                  Debug("theory::assertions") << "(" << i << "): ";
-                }
-                Debug("theory::assertions") << (*it).assertion << endl;
-            }
-
-            if (d_logicInfo.isSharingEnabled()) {
-              Debug("theory::assertions") << "Shared terms of " << theory->getId() << ": " << std::endl;
-              context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
-              for (unsigned i = 0; it != it_end; ++ it, ++i) {
-                  Debug("theory::assertions") << "[" << i << "]: " << (*it) << endl;
-              }
-            }
-          }
-        }
+        printAssertions("theory::assertions");
       }
 
       // Do the checking
@@ -232,9 +254,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
     }
 
-    // Clear any leftover propagated shared literals
-    d_propagatedSharedLiterals.clear();
-
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << std::endl;
 
   } catch(const theory::Interrupted&) {
@@ -243,6 +262,9 @@ void TheoryEngine::check(Theory::Effort effort) {
 }
 
 void TheoryEngine::outputSharedLiterals() {
+
+  scoped_vector_clear<SharedLiteral, false> clear_shared_literals(d_propagatedSharedLiterals);
+
   // Assert all the shared literals
   for (unsigned i = 0; i < d_propagatedSharedLiterals.size(); ++ i) {
     const SharedLiteral& eq = d_propagatedSharedLiterals[i];
@@ -258,8 +280,6 @@ void TheoryEngine::outputSharedLiterals() {
       }
     }
   }
-  // Clear the equalities
-  d_propagatedSharedLiterals.clear();
 }
 
 
@@ -269,7 +289,9 @@ void TheoryEngine::combineTheories() {
 
   TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
 
+  // Care graph we'll be building
   CareGraph careGraph;
+
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
@@ -278,6 +300,7 @@ void TheoryEngine::combineTheories() {
      reinterpret_cast<theory::TheoryTraits<THEORY>::theory_class*>(theoryOf(THEORY))->getCareGraph(careGraph); \
   }
 
+  // Call on each parametric theory to give us its care graph
   CVC4_FOR_EACH_THEORY;
 
   // Now add splitters for the ones we are interested in
@@ -832,6 +855,8 @@ Node TheoryEngine::getExplanation(TNode node) {
       << QueryCommand(explanation.impNode(node).toExpr());
   }
   Assert(properExplanation(node, explanation));
+
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << std::endl;
 
   return explanation;
 }

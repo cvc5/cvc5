@@ -54,6 +54,10 @@ private:
   context::CDO<unsigned> d_assertionsRealCount;
   context::CDO<unsigned> d_lastPropagation;
 
+protected:
+
+  void contextNotifyPop();
+
 public:
 
   BVMinisatSatSolver() :
@@ -70,10 +74,12 @@ public:
 
   SatVariable newVar(bool theoryAtom = false);
 
+  SatVariable trueVar() { return d_minisat->trueVar(); }
+  SatVariable falseVar() { return d_minisat->falseVar(); }
+
   void markUnremovable(SatLiteral lit);
 
   void interrupt();
-  void notify(); 
   
   SatValue solve();
   SatValue solve(long unsigned int&);

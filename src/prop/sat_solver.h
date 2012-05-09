@@ -46,6 +46,12 @@ public:
   /** Create a new boolean variable in the solver. */
   virtual SatVariable newVar(bool theoryAtom = false) = 0;
  
+  /** Create a new (or return an existing) boolean variable representing the constant true */
+  virtual SatVariable trueVar() = 0;
+
+  /** Create a new (or return an existing) boolean variable representing the constant false */
+  virtual SatVariable falseVar() = 0;
+
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve() = 0;
 

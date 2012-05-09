@@ -18,13 +18,11 @@
  **/
 
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/equality_engine_impl.h"
 
 using namespace std;
-
-namespace CVC4 {
-namespace theory {
-namespace uf {
+using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::uf;
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
 TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
@@ -40,12 +38,6 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
   d_equalityEngine.addFunctionKind(kind::EQUAL);
 
-  // The boolean constants
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
-  d_equalityEngine.addTerm(d_true);
-  d_equalityEngine.addTerm(d_false);
-  d_equalityEngine.addTriggerEquality(d_true, d_false, d_false);
 }/* TheoryUF::TheoryUF() */
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {
@@ -91,23 +83,12 @@ void TheoryUF::check(Effort level) {
     }
 
     // Do the work
-    switch (fact.getKind()) {
-    case kind::EQUAL:
-      d_equalityEngine.addEquality(fact[0], fact[1], fact);
-      break;
-    case kind::APPLY_UF:
-      d_equalityEngine.addPredicate(fact, true, fact);
-      break;
-    case kind::NOT:
-      if (fact[0].getKind() == kind::APPLY_UF) {
-        d_equalityEngine.addPredicate(fact[0], false, fact);
-      } else {
-        // Assert the dis-equality
-        d_equalityEngine.addDisequality(fact[0][0], fact[0][1], fact);
-      }
-      break;
-    default:
-      Unreachable();
+    bool polarity = fact.getKind() != kind::NOT;
+    TNode atom = polarity ? fact : fact[0];
+    if (atom.getKind() == kind::EQUAL) {
+      d_equalityEngine.assertEquality(atom, polarity, fact);
+    } else {
+      d_equalityEngine.assertPredicate(atom, polarity, fact);
     }
   }
 
@@ -139,10 +120,8 @@ void TheoryUF::propagate(Effort level) {
         Debug("uf") << "TheoryUF::propagate(): in conflict, normalized = " << normalized << std::endl;
         Node negatedLiteral;
         std::vector<TNode> assumptions;
-        if (normalized != d_false) {
-          negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-          assumptions.push_back(negatedLiteral);
-        }
+        negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
+        assumptions.push_back(negatedLiteral);
         explain(literal, assumptions);
         d_conflictNode = mkAnd(assumptions);
         d_conflict = true;
@@ -157,21 +136,17 @@ void TheoryUF::preRegisterTerm(TNode node) {
 
   switch (node.getKind()) {
   case kind::EQUAL:
-    // Add the terms
-    d_equalityEngine.addTerm(node[0]);
-    d_equalityEngine.addTerm(node[1]);
     // Add the trigger for equality
-    d_equalityEngine.addTriggerEquality(node[0], node[1], node);
-    d_equalityEngine.addTriggerDisequality(node[0], node[1], node.notNode());
+    d_equalityEngine.addTriggerEquality(node);
     break;
   case kind::APPLY_UF:
-    // Function applications/predicates
-    d_equalityEngine.addTerm(node);
     // Maybe it's a predicate
     if (node.getType().isBoolean()) {
       // Get triggered for both equal and dis-equal
-      d_equalityEngine.addTriggerEquality(node, d_true, node);
-      d_equalityEngine.addTriggerEquality(node, d_false, node.notNode());
+      d_equalityEngine.addTriggerPredicate(node);
+    } else {
+      // Function applications/predicates
+      d_equalityEngine.addTerm(node);
     }
     // Remember the function and predicate terms
     d_functionsTerms.push_back(node);
@@ -194,26 +169,20 @@ bool TheoryUF::propagate(TNode literal) {
 
   // See if the literal has been asserted already
   Node normalized = Rewriter::rewrite(literal);
-  bool satValue = false;
-  bool isAsserted = normalized == d_false || d_valuation.hasSatValue(normalized, satValue);
 
-  // If asserted, we're done or in conflict
-  if (isAsserted) {
-    if (!satValue) {
+  // If asserted and is false, we're done or in conflict
+  // Note that even trivial equalities have a SAT value (i.e. 1 = 2 -> false)
+  bool satValue = false;
+  if (d_valuation.hasSatValue(normalized, satValue) && !satValue) {
       Debug("uf") << "TheoryUF::propagate(" << literal << ", normalized = " << normalized << ") => conflict" << std::endl;
       std::vector<TNode> assumptions;
       Node negatedLiteral;
-      if (normalized != d_false) {
-        negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-        assumptions.push_back(negatedLiteral);
-      }
+      negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
+      assumptions.push_back(negatedLiteral);
       explain(literal, assumptions);
       d_conflictNode = mkAnd(assumptions);
       d_conflict = true;
       return false;
-    }
-    // Propagate even if already known in SAT - could be a new equation between shared terms
-    // (terms that weren't shared when the literal was asserted!)
   }
 
   // Nothing, just enqueue it for propagation and mark it as asserted already
@@ -224,36 +193,14 @@ bool TheoryUF::propagate(TNode literal) {
 }/* TheoryUF::propagate(TNode) */
 
 void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
-  TNode lhs, rhs;
-  switch (literal.getKind()) {
-    case kind::EQUAL:
-      lhs = literal[0];
-      rhs = literal[1];
-      break;
-    case kind::APPLY_UF:
-      lhs = literal;
-      rhs = d_true;
-      break;
-    case kind::NOT:
-      if (literal[0].getKind() == kind::EQUAL) {
-        // Disequalities
-        d_equalityEngine.explainDisequality(literal[0][0], literal[0][1], assumptions);
-        return;
-      } else {
-        // Predicates
-        lhs = literal[0];
-        rhs = d_false;
-        break;
-      }
-    case kind::CONST_BOOLEAN:
-      // we get to explain true = false, since we set false to be the trigger of this
-      lhs = d_true;
-      rhs = d_false;
-      break;
-    default:
-      Unreachable();
+  // Do the work
+  bool polarity = literal.getKind() != kind::NOT;
+  TNode atom = polarity ? literal : literal[0];
+  if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+  } else {
+    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
   }
-  d_equalityEngine.explainEquality(lhs, rhs, assumptions);
 }
 
 Node TheoryUF::explain(TNode literal) {
@@ -508,7 +455,3 @@ void TheoryUF::computeCareGraph() {
     }
   }
 }/* TheoryUF::computeCareGraph() */
-
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */

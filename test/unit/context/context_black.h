@@ -37,7 +37,7 @@ struct MyContextNotifyObj : public ContextNotifyObj {
     nCalls(0) {
   }
 
-  void notify() {
+  void contextNotifyPop() {
     ++nCalls;
   }
 };
