@@ -559,18 +559,21 @@ throw(OptionException) {
           throw OptionException(string("trace tag ") + optarg +
                                 string(" not available"));
       } else {
-        throw OptionException("trace tags not available in non-tracing build");
+        throw OptionException("trace tags not available in non-tracing builds");
       }
       Trace.on(optarg);
       break;
 
     case 'd':
-      if(Configuration::isDebugBuild()) {
-        if(!Configuration::isDebugTag(optarg))
+      if(Configuration::isDebugBuild() && Configuration::isTracingBuild()) {
+        if(!Configuration::isDebugTag(optarg)) {
           throw OptionException(string("debug tag ") + optarg +
                                 string(" not available"));
+        }
+      } else if(! Configuration::isDebugBuild()) {
+        throw OptionException("debug tags not available in non-debug builds");
       } else {
-        throw OptionException("debug tags not available in non-debug build");
+        throw OptionException("debug tags not available in non-tracing builds");
       }
       Debug.on(optarg);
       Trace.on(optarg);
@@ -993,7 +996,7 @@ throw(OptionException) {
       break;
 
     case SHOW_DEBUG_TAGS:
-      if(Configuration::isDebugBuild()) {
+      if(Configuration::isDebugBuild() && Configuration::isTracingBuild()) {
         printf("available tags:");
         unsigned ntags = Configuration::getNumDebugTags();
         char const* const* tags = Configuration::getDebugTags();
@@ -1001,8 +1004,10 @@ throw(OptionException) {
           printf(" %s", tags[i]);
         }
         printf("\n");
+      } else if(! Configuration::isDebugBuild()) {
+        throw OptionException("debug tags not available in non-debug builds");
       } else {
-        throw OptionException("debug tags not available in non-debug build");
+        throw OptionException("debug tags not available in non-tracing builds");
       }
       exit(0);
       break;
@@ -1017,7 +1022,7 @@ throw(OptionException) {
         }
         printf("\n");
       } else {
-        throw OptionException("trace tags not available in non-tracing build");
+        throw OptionException("trace tags not available in non-tracing builds");
       }
       exit(0);
       break;

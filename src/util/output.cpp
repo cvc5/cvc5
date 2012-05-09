@@ -45,7 +45,7 @@ DumpOutC DumpOutChannel CVC4_PUBLIC (&DumpOutC::dump_cout);
 
 #ifndef CVC4_MUZZLE
 
-#  ifdef CVC4_DEBUG
+#  if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 
 int DebugC::printf(const char* tag, const char* fmt, ...) {
   if(d_tags.find(string(tag)) == d_tags.end()) {
@@ -77,7 +77,7 @@ int DebugC::printf(std::string tag, const char* fmt, ...) {
   return retval;
 }
 
-#  endif /* CVC4_DEBUG */
+#  endif /* CVC4_DEBUG && CVC4_TRACING */
 
 int WarningC::printf(const char* fmt, ...) {
   // chop off output after 1024 bytes

@@ -430,13 +430,13 @@ inline int DumpOutC::printf(std::string tag, const char* fmt, ...) { return 0; }
 
 #else /* CVC4_MUZZLE */
 
-#  ifdef CVC4_DEBUG
+#  if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 #    define Debug ::CVC4::DebugChannel
-#  else /* CVC4_DEBUG */
+#  else /* CVC4_DEBUG && CVC4_TRACING */
 #    define Debug ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DebugChannel
 inline int DebugC::printf(const char* tag, const char* fmt, ...) { return 0; }
 inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
-#  endif /* CVC4_DEBUG */
+#  endif /* CVC4_DEBUG && CVC4_TRACING */
 #  define Warning (! ::CVC4::WarningChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
 #  define WarningOnce (! ::CVC4::WarningChannel.isOn() || ! ::CVC4::WarningChannel.warnOnce(__FILE__,__LINE__)) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
 #  define Message (! ::CVC4::MessageChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::MessageChannel
@@ -472,7 +472,7 @@ public:
   inline operator bool() { return true; }
 };/* __cvc4_true */
 
-#ifdef CVC4_DEBUG
+#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 
 class CVC4_PUBLIC ScopedDebug {
   std::string d_tag;
@@ -509,7 +509,7 @@ public:
   }
 };/* class ScopedDebug */
 
-#else /* CVC4_DEBUG */
+#else /* CVC4_DEBUG && CVC4_TRACING */
 
 class CVC4_PUBLIC ScopedDebug {
 public:
@@ -517,7 +517,7 @@ public:
   ScopedDebug(const char* tag, bool newSetting = true) {}
 };/* class ScopedDebug */
 
-#endif /* CVC4_DEBUG */
+#endif /* CVC4_DEBUG && CVC4_TRACING */
 
 #ifdef CVC4_TRACING
 
@@ -579,13 +579,13 @@ public:
   inline ~IndentedScope();
 };/* class IndentedScope */
 
-#ifdef CVC4_DEBUG
+#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 inline IndentedScope::IndentedScope(CVC4ostream out) : d_out(out) { d_out << push; }
 inline IndentedScope::~IndentedScope() { d_out << pop; }
-#else /* CVC4_DEBUG */
+#else /* CVC4_DEBUG && CVC4_TRACING */
 inline IndentedScope::IndentedScope(CVC4ostream out) {}
 inline IndentedScope::~IndentedScope() {}
-#endif /* CVC4_DEBUG */
+#endif /* CVC4_DEBUG && CVC4_TRACING */
 
 }/* CVC4 namespace */
 

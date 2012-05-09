@@ -88,6 +88,7 @@ BUILT_SOURCES = \
 	integer.h \
 	tls.h
 if CVC4_DEBUG
+if CVC4_TRACING
 # listing Debug_tags too ensures that make doesn't auto-remove it
 # after building (if it does, we don't get the "cached" effect with
 # the .tmp files below, and we have to re-compile and re-link each
@@ -95,6 +96,7 @@ if CVC4_DEBUG
 BUILT_SOURCES += \
 	Debug_tags.h \
 	Debug_tags
+endif
 endif
 if CVC4_TRACING
 # listing Trace_tags too ensures that make doesn't auto-remove it

@@ -27,9 +27,9 @@
 #include "util/configuration_private.h"
 #include "cvc4autoconfig.h"
 
-#ifdef CVC4_DEBUG
+#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 #  include "util/Debug_tags.h"
-#endif /* CVC4_DEBUG */
+#endif /* CVC4_DEBUG && CVC4_TRACING */
 
 #ifdef CVC4_TRACING
 #  include "util/Trace_tags.h"
@@ -132,21 +132,21 @@ bool Configuration::isBuiltWithTlsSupport() {
 }
 
 unsigned Configuration::getNumDebugTags() {
-#if CVC4_DEBUG
+#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
   /* -1 because a NULL pointer is inserted as the last value */
-  return sizeof(Debug_tags) / sizeof(Debug_tags[0]) - 1;
-#else /* CVC4_DEBUG */
+  return (sizeof(Debug_tags) / sizeof(Debug_tags[0])) - 1;
+#else /* CVC4_DEBUG && CVC4_TRACING */
   return 0;
-#endif /* CVC4_DEBUG */
+#endif /* CVC4_DEBUG && CVC4_TRACING */
 }
 
 char const* const* Configuration::getDebugTags() {
-#if CVC4_DEBUG
+#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
   return Debug_tags;
-#else /* CVC4_DEBUG */
+#else /* CVC4_DEBUG && CVC4_TRACING */
   static char const* no_tags[] = { NULL };
   return no_tags;
-#endif /* CVC4_DEBUG */
+#endif /* CVC4_DEBUG && CVC4_TRACING */
 }
 
 int strcmpptr(const char **s1, const char **s2){
@@ -154,7 +154,7 @@ int strcmpptr(const char **s1, const char **s2){
 }
 
 bool Configuration::isDebugTag(char const *tag){
-#if CVC4_DEBUG
+#if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
   unsigned ntags = getNumDebugTags();
   char const* const* tags = getDebugTags();
   for (unsigned i = 0; i < ntags; ++ i) {
@@ -162,7 +162,7 @@ bool Configuration::isDebugTag(char const *tag){
       return true;
     }
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC4_DEBUG && CVC4_TRACING */
   return false;
 }
 
