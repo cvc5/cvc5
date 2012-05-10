@@ -119,7 +119,7 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
   d_applications[funId] = FunctionApplicationPair(funOriginal, funNormalized);
 
   // Add the lookup data, if it's not already there
-  typename ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
+  ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
   if (find == d_applicationLookup.end()) {
     // When we backtrack, if the lookup is not there anymore, we'll add it again
     Debug("equality") << "EqualityEngine::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): no lookup, setting up" << std::endl;
@@ -362,7 +362,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       EqualityNodeId aNormalized = getEqualityNode(fun.a).getFind();
       EqualityNodeId bNormalized = getEqualityNode(fun.b).getFind();
       FunctionApplication funNormalized(aNormalized, bNormalized);
-      typename ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
+      ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
       if (find != d_applicationLookup.end()) {
         // Applications fun and the funNormalized can be merged due to congruence
         if (getEqualityNode(funId).getFind() != getEqualityNode(find->second).getFind()) {
