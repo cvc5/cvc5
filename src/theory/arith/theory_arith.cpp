@@ -476,6 +476,7 @@ Node TheoryArith::AssertDisequality(Constraint constraint){
 }
 
 void TheoryArith::addSharedTerm(TNode n){
+  Debug("arith::addSharedTerm") << "addSharedTerm: " << n << endl;
   d_congruenceManager.addSharedTerm(n);
   if(!n.isConst() && !isSetup(n)){
     Polynomial poly = Polynomial::parsePolynomial(n);
@@ -1484,10 +1485,15 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
 
 
   default:
-  {
-    ArithVar var = d_arithvarNodeMap.asArithVar(n);
-    return d_partialModel.getAssignment(var);
-  }
+    {
+      if(isSetup(n)){
+	ArithVar var = d_arithvarNodeMap.asArithVar(n);
+	return d_partialModel.getAssignment(var);
+      }else{
+	Warning() << "you did not setup this up!: " << n << endl;
+	return DeltaRational();
+      }
+    }
   }
 }
 
