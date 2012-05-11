@@ -430,6 +430,12 @@ void SmtEngine::setLogicInternal(const LogicInfo& logic) throw() {
     Trace("smt") << "setting ite simplification to " << iteSimp << std::endl;
     NodeManager::currentNM()->getOptions()->doITESimp = iteSimp;
   }
+  // Turn on ite simplification only for pure arithmetic
+  if(! Options::current()->arithRewriteEqSetByUser) {
+    bool arithRewriteEq = logic.isPure(theory::THEORY_ARITH) && !logic.isQuantified();
+    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
+    NodeManager::currentNM()->getOptions()->arithRewriteEq = arithRewriteEq;
+  }
 
 }
 

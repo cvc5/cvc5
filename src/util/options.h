@@ -269,6 +269,11 @@ struct CVC4_PUBLIC Options {
    */
   bool arithRewriteEq;
 
+  /**
+   * Whether the flag was set by the user
+   */
+  bool arithRewriteEqSetByUser;
+
   /** The output channel to receive notfication events for new lemmas */
   LemmaOutputChannel* lemmaOutputChannel;
   LemmaInputChannel* lemmaInputChannel;

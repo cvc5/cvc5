@@ -114,7 +114,8 @@ Options::Options() :
   ufSymmetryBreaker(false),
   ufSymmetryBreakerSetByUser(false),
   dioSolver(true),
-  arithRewriteEq(true),
+  arithRewriteEq(false),
+  arithRewriteEqSetByUser(false),
   lemmaOutputChannel(NULL),
   lemmaInputChannel(NULL),
   threads(2),// default should be 1 probably, but say 2 for now
@@ -386,7 +387,8 @@ enum OptionValue {
   ARITHMETIC_PIVOT_THRESHOLD,
   ARITHMETIC_PROP_MAX_LENGTH,
   ARITHMETIC_DIO_SOLVER,
-  ARITHMETIC_REWRITE_EQUALITIES,
+  ENABLE_ARITHMETIC_REWRITE_EQUALITIES,
+  DISABLE_ARITHMETIC_REWRITE_EQUALITIES,
   ENABLE_SYMMETRY_BREAKER,
   DISABLE_SYMMETRY_BREAKER,
   PARALLEL_THREADS,
@@ -483,7 +485,8 @@ static struct option cmdlineOptions[] = {
   { "print-winner", no_argument     , NULL, PRINT_WINNER  },
   { "disable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
   { "disable-dio-solver", no_argument, NULL, ARITHMETIC_DIO_SOLVER },
-  { "disable-arith-rewrite-equalities", no_argument, NULL, ARITHMETIC_REWRITE_EQUALITIES },
+  { "enable-arith-rewrite-equalities", no_argument, NULL, ENABLE_ARITHMETIC_REWRITE_EQUALITIES },
+  { "disable-arith-rewrite-equalities", no_argument, NULL, DISABLE_ARITHMETIC_REWRITE_EQUALITIES },
   { "enable-symmetry-breaker", no_argument, NULL, ENABLE_SYMMETRY_BREAKER },
   { "disable-symmetry-breaker", no_argument, NULL, DISABLE_SYMMETRY_BREAKER },
   { "threads", required_argument, NULL, PARALLEL_THREADS },
@@ -882,8 +885,14 @@ throw(OptionException) {
       dioSolver = false;
       break;
 
-    case ARITHMETIC_REWRITE_EQUALITIES:
+    case ENABLE_ARITHMETIC_REWRITE_EQUALITIES:
+      arithRewriteEq = true;
+      arithRewriteEqSetByUser = true;
+      break;
+
+    case DISABLE_ARITHMETIC_REWRITE_EQUALITIES:
       arithRewriteEq = false;
+      arithRewriteEqSetByUser = true;
       break;
 
     case ENABLE_SYMMETRY_BREAKER:
