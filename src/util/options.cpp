@@ -83,6 +83,8 @@ Options::Options() :
   decisionMode(DECISION_STRATEGY_INTERNAL),
   decisionModeSetByUser(false),
   doStaticLearning(true),
+  doITESimp(false),
+  doITESimpSetByUser(false),
   interactive(false),
   interactiveSetByUser(false),
   perCallResourceLimit(0),
@@ -178,6 +180,8 @@ Additional CVC4 options:\n\
    --simplification=MODE  choose simplification mode, see --simplification=help\n\
    --decision=MODE        choose decision mode, see --decision=help\n\
    --no-static-learning   turn off static learning (e.g. diamond-breaking)\n\
+   --ite-simp             turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
+   --no-ite-simp          turn off ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
    --replay=file          replay decisions from file\n\
    --replay-log=file      log decisions and propagations to file\n\
    --pivot-rule=RULE      change the pivot rule (see --pivot-rule help)\n\
@@ -359,6 +363,8 @@ enum OptionValue {
   SIMPLIFICATION_MODE,
   DECISION_MODE,
   NO_STATIC_LEARNING,
+  ITE_SIMP,
+  NO_ITE_SIMP,
   INTERACTIVE,
   NO_INTERACTIVE,
   PRODUCE_ASSIGNMENTS,
@@ -452,6 +458,8 @@ static struct option cmdlineOptions[] = {
   { "simplification", required_argument, NULL, SIMPLIFICATION_MODE },
   { "decision", required_argument, NULL, DECISION_MODE },
   { "no-static-learning", no_argument, NULL, NO_STATIC_LEARNING },
+  { "ite-simp", no_argument, NULL, ITE_SIMP },
+  { "no-ite-simp", no_argument, NULL, NO_ITE_SIMP },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, 'm' },
@@ -760,6 +768,16 @@ throw(OptionException) {
 
     case NO_STATIC_LEARNING:
       doStaticLearning = false;
+      break;
+
+    case ITE_SIMP:
+      doITESimp = true;
+      doITESimpSetByUser = true;
+      break;
+
+    case NO_ITE_SIMP:
+      doITESimp = false;
+      doITESimpSetByUser = true;
       break;
 
     case INTERACTIVE:

@@ -41,7 +41,7 @@
 #include "util/stats.h"
 #include "util/hash.h"
 #include "util/cache.h"
-#include "util/ite_removal.h"
+#include "theory/ite_simplifier.h"
 
 namespace CVC4 {
 
@@ -123,6 +123,7 @@ class TheoryEngine {
   SharedTermsDatabase d_sharedTerms;
 
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::hash_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   /**
   * Cache for theory-preprocessing of assertions
@@ -477,6 +478,9 @@ class TheoryEngine {
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
 
+  Node d_true;
+  Node d_false;
+
 public:
 
   /** Constructs a theory engine */
@@ -732,6 +736,12 @@ private:
 
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
+
+  /** For preprocessing pass simplifying ITEs */
+  ITESimplifier d_iteSimplifier;
+
+public:
+  Node ppSimpITE(TNode assertion);
 
 };/* class TheoryEngine */
 

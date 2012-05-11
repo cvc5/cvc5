@@ -29,7 +29,9 @@ libtheory_la_SOURCES = \
 	shared_terms_database.h \
 	shared_terms_database.cpp \
 	term_registration_visitor.h \
-	term_registration_visitor.cpp
+	term_registration_visitor.cpp \
+	ite_simplifier.h \
+	ite_simplifier.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

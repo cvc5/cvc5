@@ -1129,7 +1129,9 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   if (d_propagateLemmas) {
     if (d_equalityEngine.areDisequal(i,j)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
-      Node reason = nm->mkNode(kind::OR, aj.eqNode(bj), i.eqNode(j));
+      Node aj_eq_bj = aj.eqNode(bj);
+      Node i_eq_j = i.eqNode(j);
+      Node reason = nm->mkNode(kind::OR, aj_eq_bj, i_eq_j);
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTerm(aj);
@@ -1137,15 +1139,17 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTerm(bj);
       }
-      d_equalityEngine.assertEquality(aj.eqNode(bj), true, reason);
+      d_equalityEngine.assertEquality(aj_eq_bj, true, reason);
       ++d_numProp;
       return;
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node reason = nm->mkNode(kind::OR, i.eqNode(j), aj.eqNode(bj));
+      Node aj_eq_bj = aj.eqNode(bj);
+      Node i_eq_j = i.eqNode(j);
+      Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
-      d_equalityEngine.assertEquality(i.eqNode(j), true, reason);
+      d_equalityEngine.assertEquality(i_eq_j, true, reason);
       ++d_numProp;
       return;
     }
@@ -1168,9 +1172,25 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   // TODO: maybe add triggers here
 
   if (d_eagerLemmas || bothExist) {
-    Node eq1 = nm->mkNode(kind::EQUAL, aj, bj);
-    Node eq2 = nm->mkNode(kind::EQUAL, i, j);
-    Node lemma = nm->mkNode(kind::OR, eq2, eq1);
+
+    Assert(aj == Rewriter::rewrite(aj));
+    Assert(bj == Rewriter::rewrite(bj));
+
+    // construct lemma
+    Node eq1 = aj.eqNode(bj);
+    Node eq1_r = Rewriter::rewrite(eq1);
+    if (eq1_r == d_true) {
+      d_equalityEngine.assertEquality(eq1, true, d_true);
+      return;
+    }
+
+    Node eq2 = i.eqNode(j);
+    Node eq2_r = Rewriter::rewrite(eq2);
+    if (eq2 == d_true) {
+      d_equalityEngine.assertEquality(eq2, true, d_true);
+      return;
+    }
+    Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
     d_RowAlreadyAdded.insert(lem);
     d_out->lemma(lemma);
@@ -1211,10 +1231,37 @@ void TheoryArrays::dischargeLemmas()
       continue;
     }
 
+    Node aj2 = Rewriter::rewrite(aj);
+    if (aj != aj2) {
+      d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
+    }
+    Node bj2 = Rewriter::rewrite(bj);
+    if (bj != bj2) {
+      d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
+    }
+    if (aj2 == bj2) {
+      d_RowQueue.push(l);
+      continue;
+    }
+
     // construct lemma
-    Node eq1 = nm->mkNode(kind::EQUAL, aj, bj);
-    Node eq2 = nm->mkNode(kind::EQUAL, i, j);
-    Node lem = nm->mkNode(kind::OR, eq2, eq1);
+    Node eq1 = aj2.eqNode(bj2);
+    Node eq1_r = Rewriter::rewrite(eq1);
+    if (eq1_r == d_true) {
+      d_equalityEngine.assertEquality(eq1, true, d_true);
+      d_RowQueue.push(l);
+      continue;
+    }
+
+    Node eq2 = i.eqNode(j);
+    Node eq2_r = Rewriter::rewrite(eq2);
+    if (eq2_r == d_true) {
+      d_equalityEngine.assertEquality(eq2, true, d_true);
+      d_RowQueue.push(l);
+      continue;
+    }
+    
+    Node lem = nm->mkNode(kind::OR, eq2_r, eq1_r);
 
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lem<<"\n";
     d_RowAlreadyAdded.insert(l);

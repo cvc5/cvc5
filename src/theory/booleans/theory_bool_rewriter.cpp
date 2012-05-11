@@ -153,15 +153,36 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     // non-Boolean-valued ITEs should have been removed in place of
     // a variable
     // rewrite simple cases of ITE
-    if(n[0] == tt) {
-      // ITE true x y
+    if (n[0].isConst()) {
+      if (n[0] == tt) {
+        // ITE true x y
+        return RewriteResponse(REWRITE_AGAIN, n[1]);
+      } else {
+        Assert(n[0] == ff);
+        // ITE false x y
+        return RewriteResponse(REWRITE_AGAIN, n[2]);
+      }
+    } else if (n[1].isConst()) {
+      if (n[1] == tt && n[2] == ff) {
+        return RewriteResponse(REWRITE_AGAIN, n[0]);
+      }
+      else if (n[1] == ff && n[2] == tt) {
+        return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+      }
+    }
+    if (n[1] == n[2]) {
       return RewriteResponse(REWRITE_AGAIN, n[1]);
-    } else if(n[0] == ff) {
-      // ITE false x y
-      return RewriteResponse(REWRITE_AGAIN, n[2]);
-    } else if(n[1] == n[2]) {
-      // ITE c x x
-      return RewriteResponse(REWRITE_AGAIN, n[1]);
+    // Curiously, this rewrite affects several benchmarks dramatically, including copy_array and some simple_startup - disable for now
+    // } else if (n[0].getKind() == kind::NOT) {
+    //   return RewriteResponse(REWRITE_AGAIN, n[0][0].iteNode(n[2], n[1]));
+    } else if (n[0] == n[1]) {
+      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(tt, n[2]));
+    } else if (n[0] == n[2]) {
+      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(n[1], ff));
+    } else if (n[1].getKind() == kind::NOT && n[1][0] == n[0]) {
+      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(ff, n[2]));
+    } else if (n[2].getKind() == kind::NOT && n[2][0] == n[0]) {
+      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(n[1], tt));
     }
     break;
   }

@@ -146,6 +146,9 @@ struct CVC4_PUBLIC Options {
   /** Whether to perform the static learning pass. */
   bool doStaticLearning;
 
+  /** Whether to do the ite-simplification pass */
+  bool doITESimp;
+
   /** Whether we're in interactive mode or not */
   bool interactive;
 
@@ -248,6 +251,11 @@ struct CVC4_PUBLIC Options {
    * breaker be enabled or disabled.
    */
   bool ufSymmetryBreakerSetByUser;
+
+  /**
+   * Whether the user explicitly requested ite simplification
+   */
+  bool doITESimpSetByUser;
 
   /**
    * Whether to do the linear diophantine equation solver
