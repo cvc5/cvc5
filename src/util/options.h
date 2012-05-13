@@ -149,6 +149,11 @@ struct CVC4_PUBLIC Options {
   /** Whether to do the ite-simplification pass */
   bool doITESimp;
 
+  /**
+   * Whether the user explicitly requested ite simplification
+   */
+  bool doITESimpSetByUser;
+
   /** Whether we're in interactive mode or not */
   bool interactive;
 
@@ -253,11 +258,6 @@ struct CVC4_PUBLIC Options {
   bool ufSymmetryBreakerSetByUser;
 
   /**
-   * Whether the user explicitly requested ite simplification
-   */
-  bool doITESimpSetByUser;
-
-  /**
    * Whether to do the linear diophantine equation solver
    * in Arith as described by Griggio JSAT 2012 (on by default).
    */
@@ -297,13 +297,13 @@ struct CVC4_PUBLIC Options {
   int sharingFilterByLength;
 
   /** Bitblast eagerly to the main sat solver */
-  bool bitvector_eager_bitblast;
+  bool bitvectorEagerBitblast;
 
   /** Fullcheck at each check */
-  bool bitvector_eager_fullcheck;
+  bool bitvectorEagerFullcheck;
 
   /** Bitblast eagerly to the main sat solver */
-  bool bitvector_share_lemmas;
+  bool bitvectorShareLemmas;
 
   /** Refine conflicts by doing another full check after a conflict */
   bool sat_refine_conflicts;

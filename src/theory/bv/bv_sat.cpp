@@ -100,7 +100,7 @@ void Bitblaster::bbAtom(TNode node) {
   // do boolean simplifications if possible
   Node rewritten = Rewriter::rewrite(atom_definition);
 
-  if (!Options::current()->bitvector_eager_bitblast) {
+  if (!Options::current()->bitvectorEagerBitblast) {
     d_cnfStream->convertAndAssert(rewritten, true, false);
     d_bitblastedAtoms.insert(node);
   } else {
@@ -164,7 +164,7 @@ Node Bitblaster::bbOptimize(TNode node) {
 /// Public methods
 
 void Bitblaster::addAtom(TNode atom) {
-  if (!Options::current()->bitvector_eager_bitblast) {
+  if (!Options::current()->bitvectorEagerBitblast) {
     d_cnfStream->ensureLiteral(atom);
     SatLiteral lit = d_cnfStream->getLiteral(atom);
     d_satSolver->addMarkerLiteral(lit);

@@ -102,6 +102,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , dec_vars(0), clauses_literals(0), learnts_literals(0), max_literals(0), tot_literals(0)
 
   , only_bcp(false)
+  , clause_added(false)
   , ok                 (true)
   , cla_inc            (1)
   , var_inc            (1)
@@ -118,7 +119,6 @@ Solver::Solver(CVC4::context::Context* c) :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-  , clause_added(false)
 {
   // Create the constant variables
   varTrue = newVar(true, false);
@@ -415,7 +415,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         out_btlevel       = level(var(p));
     }
 
-    if (out_learnt.size() > 0 && clause_all_marker && CVC4::Options::current()->bitvector_share_lemmas) {
+    if (out_learnt.size() > 0 && clause_all_marker && CVC4::Options::current()->bitvectorShareLemmas) {
       notify->notify(out_learnt);
     }
 

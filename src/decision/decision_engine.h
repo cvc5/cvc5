@@ -160,7 +160,7 @@ public:
    * removal. Hence, iteSkolemMap maps into only these.
    */
   void addAssertions(const vector<Node> &assertions,
-                     int assertionsEnd,
+                     unsigned assertionsEnd,
                      IteSkolemMap iteSkolemMap);
 
   /* add a single assertion */

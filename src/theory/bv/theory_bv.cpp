@@ -41,8 +41,8 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_assertions(c),
     d_bitblaster(new Bitblaster(c, this) ),
     d_alreadyPropagatedSet(c),
-    d_statistics(),
     d_sharedTermsSet(c),
+    d_statistics(),
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
     d_conflict(c, false),
@@ -109,7 +109,7 @@ TheoryBV::Statistics::~Statistics() {
 void TheoryBV::preRegisterTerm(TNode node) {
   BVDebug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
-  if (Options::current()->bitvector_eager_bitblast) {
+  if (Options::current()->bitvectorEagerBitblast) {
     // don't use the equality engine in the eager bit-blasting
     return;
   }
@@ -140,7 +140,7 @@ void TheoryBV::check(Effort e)
 {
   BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
 
-  if (Options::current()->bitvector_eager_bitblast) {
+  if (Options::current()->bitvectorEagerBitblast) {
     while (!done()) {
       Assertion assertion = get();
       TNode fact = assertion.assertion;
@@ -207,7 +207,7 @@ void TheoryBV::check(Effort e)
     return;
   }
 
-  if (e == EFFORT_FULL || Options::current()->bitvector_eager_fullcheck) {
+  if (e == EFFORT_FULL || Options::current()->bitvectorEagerFullcheck) {
     Assert(done() && !d_conflict);
     BVDebug("bitvector") << "TheoryBV::check " << e << "\n";
     bool ok = d_bitblaster->solve();
@@ -401,7 +401,7 @@ Node TheoryBV::explain(TNode node) {
 void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << spaces(getSatContext()->getLevel()) << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t); 
-  if (!Options::current()->bitvector_eager_bitblast && d_useEqualityEngine) {
+  if (!Options::current()->bitvectorEagerBitblast && d_useEqualityEngine) {
     d_equalityEngine.addTriggerTerm(t);
   }
 }
@@ -409,7 +409,7 @@ void TheoryBV::addSharedTerm(TNode t) {
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  if (Options::current()->bitvector_eager_bitblast) {
+  if (Options::current()->bitvectorEagerBitblast) {
     return EQUALITY_UNKNOWN;
   }
 

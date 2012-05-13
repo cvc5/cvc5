@@ -70,7 +70,7 @@ void DecisionEngine::addAssertions(const vector<Node> &assertions)
 
 void DecisionEngine::addAssertions
   (const vector<Node> &assertions,
-   int assertionsEnd,
+   unsigned assertionsEnd,
    IteSkolemMap iteSkolemMap) 
 {
   // new assertions, reset whatever result we knew

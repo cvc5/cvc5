@@ -1102,7 +1102,7 @@ void SmtEnginePrivate::processAssertions() {
 
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
-  int iteRewriteAssertionsEnd = d_assertionsToCheck.size();
+  unsigned iteRewriteAssertionsEnd = d_assertionsToCheck.size();
 
   Trace("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
