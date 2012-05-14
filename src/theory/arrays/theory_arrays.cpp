@@ -59,6 +59,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   //  d_ppCache(u),  
   d_literalsToPropagate(c),
   d_literalsToPropagateIndex(c, 0),
+  d_isPreRegistered(c),
   d_mayEqualEqualityEngine(c, "theory::arrays::TheoryArraysMayEqual"),
   d_notify(*this),
   d_equalityEngine(d_notify, c, "theory::arrays::TheoryArrays"),
@@ -370,15 +371,18 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions) {
 void TheoryArrays::preRegisterTerm(TNode node)
 {
   Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
-
   switch (node.getKind()) {
   case kind::EQUAL:
     // Add the trigger for equality
     d_equalityEngine.addTriggerEquality(node);
     break;
   case kind::SELECT: {
+    // Invariant: array terms should be preregistered before being added to the equality engine
+    if (d_equalityEngine.hasTerm(node)) {
+      Assert(d_isPreRegistered.find(node) != d_isPreRegistered.end());
+      return;
+    }
     // Reads
-    d_equalityEngine.addTerm(node);
     TNode store = d_equalityEngine.getRepresentative(node[0]);
 
     // Apply RIntro1 rule to any stores equal to store if not done already
@@ -392,7 +396,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
         Assert(s.getKind()==kind::STORE);
         Node ni = nm->mkNode(kind::SELECT, s, s[1]);
         if (ni != node) {
-          Assert(!d_equalityEngine.hasTerm(ni));
           preRegisterTerm(ni);
         }
         d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
@@ -400,6 +403,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
       }
     }
 
+    d_equalityEngine.addTerm(node);
     // Maybe it's a predicate
     // TODO: remove this or keep it if we allow Boolean elements in arrays.
     if (node.getType().isBoolean()) {
@@ -408,11 +412,14 @@ void TheoryArrays::preRegisterTerm(TNode node)
     }
 
     d_infoMap.addIndex(node[0], node[1]);
-    checkRowForIndex(node[1], store);
     d_reads.push_back(node);
+    Assert((d_isPreRegistered.insert(node), true));
+    checkRowForIndex(node[1], store);
     break;
   }
   case kind::STORE: {
+    // Invariant: array terms should be preregistered before being added to the equality engine
+    Assert(!d_equalityEngine.hasTerm(node));
     d_equalityEngine.addTriggerTerm(node);
 
     TNode a = node[0];
@@ -440,12 +447,15 @@ void TheoryArrays::preRegisterTerm(TNode node)
     // Variables etc
     if (node.getType().isArray()) {
       d_equalityEngine.addTriggerTerm(node);
+      Assert(d_equalityEngine.getSize(node) == 1);
     }
     else {
       d_equalityEngine.addTerm(node);
     }
     break;
   }
+  // Invariant: preregistered terms are exactly the terms in the equality engine
+  Assert(d_equalityEngine.hasTerm(node));
 }
 
 
@@ -898,7 +908,6 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     NodeManager* nm = NodeManager::currentNM();
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
-    Assert(!d_equalityEngine.hasTerm(ni));
     preRegisterTerm(ni);
     d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
   }
@@ -1173,24 +1182,54 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   if (d_eagerLemmas || bothExist) {
 
-    Assert(aj == Rewriter::rewrite(aj));
-    Assert(bj == Rewriter::rewrite(bj));
+    // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
+    Node aj2 = Rewriter::rewrite(aj);
+    if (aj != aj2) {
+      if (!ajExists) {
+        preRegisterTerm(aj);
+      }
+      if (!d_equalityEngine.hasTerm(aj2)) {
+        preRegisterTerm(aj2);
+      }
+      d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
+    }
+    Node bj2 = Rewriter::rewrite(bj);
+    if (bj != bj2) {
+      if (!bjExists) {
+        preRegisterTerm(bj);
+      }
+      if (!d_equalityEngine.hasTerm(bj2)) {
+        preRegisterTerm(bj2);
+      }
+      d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
+    }
+    if (aj2 == bj2) {
+      return;
+    }
 
     // construct lemma
-    Node eq1 = aj.eqNode(bj);
+    Node eq1 = aj2.eqNode(bj2);
     Node eq1_r = Rewriter::rewrite(eq1);
     if (eq1_r == d_true) {
+      if (!d_equalityEngine.hasTerm(aj2)) {
+        preRegisterTerm(aj2);
+      }
+      if (!d_equalityEngine.hasTerm(bj2)) {
+        preRegisterTerm(bj2);
+      }
       d_equalityEngine.assertEquality(eq1, true, d_true);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
-    if (eq2 == d_true) {
+    if (eq2_r == d_true) {
       d_equalityEngine.assertEquality(eq2, true, d_true);
       return;
     }
+
     Node lemma = nm->mkNode(kind::OR, eq2_r, eq1_r);
+
     Trace("arrays-lem")<<"Arrays::addRowLemma adding "<<lemma<<"\n";
     d_RowAlreadyAdded.insert(lem);
     d_out->lemma(lemma);
@@ -1221,22 +1260,37 @@ void TheoryArrays::dischargeLemmas()
     NodeManager* nm = NodeManager::currentNM();
     Node aj = nm->mkNode(kind::SELECT, a, j);
     Node bj = nm->mkNode(kind::SELECT, b, j);
+    bool ajExists = d_equalityEngine.hasTerm(aj);
+    bool bjExists = d_equalityEngine.hasTerm(bj);
 
     // Check for redundant lemma
     // TODO: more checks possible (i.e. check d_RowAlreadyAdded in context)
     if (d_equalityEngine.areEqual(i,j) ||
         d_equalityEngine.areEqual(a,b) ||
-        (d_equalityEngine.hasTerm(aj) && d_equalityEngine.hasTerm(bj) && d_equalityEngine.areEqual(aj,bj))) {
+        (ajExists && bjExists && d_equalityEngine.areEqual(aj,bj))) {
       d_RowQueue.push(l);
       continue;
     }
 
+    // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
+      if (!ajExists) {
+        preRegisterTerm(aj);
+      }
+      if (!d_equalityEngine.hasTerm(aj2)) {
+        preRegisterTerm(aj2);
+      }
       d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
+      if (!bjExists) {
+        preRegisterTerm(bj);
+      }
+      if (!d_equalityEngine.hasTerm(bj2)) {
+        preRegisterTerm(bj2);
+      }
       d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
     }
     if (aj2 == bj2) {
@@ -1248,6 +1302,12 @@ void TheoryArrays::dischargeLemmas()
     Node eq1 = aj2.eqNode(bj2);
     Node eq1_r = Rewriter::rewrite(eq1);
     if (eq1_r == d_true) {
+      if (!d_equalityEngine.hasTerm(aj2)) {
+        preRegisterTerm(aj2);
+      }
+      if (!d_equalityEngine.hasTerm(bj2)) {
+        preRegisterTerm(bj2);
+      }
       d_equalityEngine.assertEquality(eq1, true, d_true);
       d_RowQueue.push(l);
       continue;

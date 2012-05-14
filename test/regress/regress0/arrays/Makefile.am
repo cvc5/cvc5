@@ -27,6 +27,7 @@ TESTS =	\
 	incorrect9.smt \
 	incorrect10.smt \
 	incorrect11.smt \
+	swap_t1_np_nf_ai_00005_007.cvc.smt \
 	x2.smt \
 	x3.smt
 

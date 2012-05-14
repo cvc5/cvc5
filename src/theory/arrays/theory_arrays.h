@@ -165,6 +165,9 @@ class TheoryArrays : public Theory {
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
+  /** For debugging only- checks invariants about when things are preregistered*/
+  context::CDHashSet<Node, NodeHashFunction > d_isPreRegistered;
+
   public:
 
   void preRegisterTerm(TNode n);
