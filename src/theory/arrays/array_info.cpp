@@ -176,8 +176,9 @@ void ArrayInfo::setRIntro1Applied(const TNode a) {
 const Info* ArrayInfo::getInfo(const TNode a) const{
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end())
+  if(it!= info_map.end()) {
       return (*it).second;
+  }
   return emptyInfo;
 }
 
@@ -185,8 +186,9 @@ const bool ArrayInfo::isNonLinear(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end())
+  if(it!= info_map.end()) {
     return (*it).second->isNonLinear;
+  }
   return false;
 }
 
@@ -194,8 +196,9 @@ const bool ArrayInfo::rIntro1Applied(const TNode a) const
 {
   CNodeInfoMap::const_iterator it = info_map.find(a);
 
-  if(it!= info_map.end())
+  if(it!= info_map.end()) {
     return (*it).second->rIntro1Applied;
+  }
   return false;
 }
 

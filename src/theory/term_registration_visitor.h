@@ -26,7 +26,15 @@ namespace CVC4 {
 class TheoryEngine;
 
 /**
- * Visitor that calls the apropriate theory to preregister the term.
+ * Visitor that calls the appropriate theory to pre-register the term. The visitor also keeps track
+ * of the sets of theories that are involved in the terms, so that it can say if there are multiple
+ * theories involved.
+ *
+ * A sub-term has been visited if the theories of both the parent and the term itself have already
+ * visited this term.
+ *
+ * Computation of the set of theories in the original term are computed in the alreadyVisited method
+ * so as no to skip any theories.
  */
 class PreRegisterVisitor {
 
@@ -41,9 +49,9 @@ class PreRegisterVisitor {
   TNodeToTheorySetMap d_visited;
 
   /**
-   * Map from terms to the theories that have have a sub-term in it.
+   * A set of all theories in the term
    */
-  TNodeToTheorySetMap d_theories;
+  theory::Theory::Set d_theories;
 
   /**
    * Is true if the term we're traversing involves multiple theories.
@@ -63,7 +71,7 @@ public:
   PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
   : d_engine(engine)
   , d_visited(context)
-  , d_theories(context)
+  , d_theories(0)
   , d_multipleTheories(false)
   {}
 
