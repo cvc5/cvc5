@@ -619,7 +619,7 @@ public:
 
   /** Add the theory to the set. If no set specified, just returns a singleton set */
   static inline Set setRemove(TheoryId theory, Set set = 0) {
-    return set ^ (1 << theory);
+    return setDifference(set, setInsert(theory));
   }
 
   /** Check if the set contains the theory */
@@ -656,13 +656,15 @@ public:
     return ss.str();
   }
 
+  typedef context::CDList<Assertion>::const_iterator assertions_iterator;
+
   /**
    * Provides access to the facts queue, primarily intended for theory
    * debugging purposes.
    *
    * @return the iterator to the beginning of the fact queue
    */
-  context::CDList<Assertion>::const_iterator facts_begin() const {
+  assertions_iterator facts_begin() const {
     return d_facts.begin();
   }
 
@@ -672,9 +674,11 @@ public:
    *
    * @return the iterator to the end of the fact queue
    */
-  context::CDList<Assertion>::const_iterator facts_end() const {
+  assertions_iterator facts_end() const {
     return d_facts.end();
   }
+
+  typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
    * Provides access to the shared terms, primarily intended for theory
@@ -682,7 +686,7 @@ public:
    *
    * @return the iterator to the beginning of the shared terms list
    */
-  context::CDList<TNode>::const_iterator shared_terms_begin() const {
+  shared_terms_iterator shared_terms_begin() const {
     return d_sharedTerms.begin();
   }
 
@@ -692,7 +696,7 @@ public:
    *
    * @return the iterator to the end of the shared terms list
    */
-  context::CDList<TNode>::const_iterator shared_terms_end() const {
+  shared_terms_iterator shared_terms_end() const {
     return d_sharedTerms.end();
   }
 
