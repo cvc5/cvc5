@@ -577,7 +577,7 @@ throw(OptionException) {
 
     case 'd':
       if(Configuration::isDebugBuild() && Configuration::isTracingBuild()) {
-        if(!Configuration::isDebugTag(optarg)) {
+        if(!Configuration::isDebugTag(optarg) && !Configuration::isTraceTag(optarg)) {
           throw OptionException(string("debug tag ") + optarg +
                                 string(" not available"));
         }
