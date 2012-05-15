@@ -179,36 +179,30 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
 
   bool useType = current != parent && currentTheoryId != parentTheoryId;
 
-  unsigned newTheoriesCount = 0;
   Theory::Set visitedTheories = d_visited[current];
   Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(currentTheoryId, visitedTheories);
-    newTheoriesCount ++;
     Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): adding " << currentTheoryId << std::endl;
   }
   if (!Theory::setContains(parentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(parentTheoryId, visitedTheories);
-    newTheoriesCount ++;
     Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
   }
   if (useType) {
     TheoryId typeTheoryId = Theory::theoryOf(current.getType());
     if (!Theory::setContains(typeTheoryId, visitedTheories)) {
       visitedTheories = Theory::setInsert(typeTheoryId, visitedTheories);
-      newTheoriesCount ++;
       Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): adding " << typeTheoryId << std::endl;
     }
   }
   Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): now registered with " << Theory::setToString(visitedTheories) << std::endl;
 
   // Record the new theories that we visited
-  if (newTheoriesCount > 0) {
-    d_visited[current] = visitedTheories;
-  }
+  d_visited[current] = visitedTheories;
 
   // If there is more than two theories and a new one has been added notify the shared terms database
-  if (newTheoriesCount > 1) {
+  if (Theory::setDifference(visitedTheories, Theory::setInsert(currentTheoryId))) {
     d_sharedTerms.addSharedTerm(d_atom, current, visitedTheories);
   }
 
