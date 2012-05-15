@@ -1004,10 +1004,10 @@ Type ValidityChecker::intType() {
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
   bool noLowerBound = l.getType().isString() && l.getConst<string>() == "_NEGINF";
   bool noUpperBound = r.getType().isString() && r.getConst<string>() == "_POSINF";
-  CheckArgument(noLowerBound || l.getKind() == CVC4::kind::CONST_INTEGER, l);
-  CheckArgument(noUpperBound || r.getKind() == CVC4::kind::CONST_INTEGER, r);
-  CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Integer>());
-  CVC4::SubrangeBound br = noUpperBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(r.getConst<Integer>());
+  CheckArgument(noLowerBound || (l.getKind() == CVC4::kind::CONST_RATIONAL && l.getConst<Rational>().isIntegral()), l);
+  CheckArgument(noUpperBound || (r.getKind() == CVC4::kind::CONST_RATIONAL && r.getConst<Rational>().isIntegral()), r);
+  CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Rational>().getNumerator());
+  CVC4::SubrangeBound br = noUpperBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(r.getConst<Rational>().getNumerator());
   return d_em->mkSubrangeType(CVC4::SubrangeBounds(bl, br));
 }
 

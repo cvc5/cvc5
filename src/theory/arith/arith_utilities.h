@@ -41,46 +41,8 @@ inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);
 }
 
-inline Node mkIntegerNode(const Integer& z){
-  return NodeManager::currentNM()->mkConst<Integer>(z);
-}
-
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
-}
-
-
-
-inline Rational coerceToRational(TNode constant){
-  switch(constant.getKind()){
-  case kind::CONST_INTEGER:
-    {
-      Rational q(constant.getConst<Integer>());
-      return q;
-    }
-  case kind::CONST_RATIONAL:
-    return constant.getConst<Rational>();
-  default:
-    Unreachable();
-  }
-  Rational unreachable(0,0);
-  return unreachable;
-}
-
-inline Node coerceToRationalNode(TNode constant){
-  switch(constant.getKind()){
-  case kind::CONST_INTEGER:
-    {
-      Rational q(constant.getConst<Integer>());
-      Node n = mkRationalNode(q);
-      return n;
-    }
-  case kind::CONST_RATIONAL:
-    return constant;
-  default:
-    Unreachable();
-  }
-  return Node::null();
 }
 
 

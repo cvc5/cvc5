@@ -168,13 +168,6 @@ public:
     TS_ASSERT_EQUALS(ff.getConst<bool>(),false);
   }
 
-
-  void testMkConstInt() {
-    Integer i("3");
-    Node n = d_nodeManager->mkConst(i);
-    TS_ASSERT_EQUALS(n.getConst<Integer>(),i);
-  }
-
   void testMkConstRat() {
     Rational r("3/2");
     Node n = d_nodeManager->mkConst(r);

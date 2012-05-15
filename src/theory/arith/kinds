@@ -31,7 +31,7 @@ sort REAL_TYPE \
 sort INTEGER_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(Integer(0))" \
+        "NodeManager::currentNM()->mkConst(Rational(0))" \
         "expr/node_manager.h" \
     "Integer type"
 sort PSEUDOBOOLEAN_TYPE \
@@ -59,11 +59,7 @@ constant CONST_RATIONAL \
     ::CVC4::RationalHashStrategy \
     "util/rational.h" \
     "a multiple-precision rational constant"
-constant CONST_INTEGER \
-    ::CVC4::Integer \
-    ::CVC4::IntegerHashStrategy \
-    "util/integer.h" \
-    "a multiple-precision integer constant"
+
 constant CONST_PSEUDOBOOLEAN \
     ::CVC4::Pseudoboolean \
     ::CVC4::PseudobooleanHashStrategy \
@@ -83,7 +79,6 @@ typerule DIVISION ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule POW ::CVC4::theory::arith::ArithOperatorTypeRule
 
 typerule CONST_RATIONAL ::CVC4::theory::arith::ArithConstantTypeRule
-typerule CONST_INTEGER ::CVC4::theory::arith::ArithConstantTypeRule
 
 typerule LT ::CVC4::theory::arith::ArithPredicateTypeRule
 typerule LEQ ::CVC4::theory::arith::ArithPredicateTypeRule

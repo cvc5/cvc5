@@ -73,7 +73,7 @@ public:
     Node x = d_nm->mkVar("x", d_nm->integerType());
     Node y = d_nm->mkVar("y", d_nm->integerType());
     Node x_plus_y = d_nm->mkNode(PLUS, x, y);
-    Node two = d_nm->mkConst(Integer(2));
+    Node two = d_nm->mkConst(Rational(2));
     Node x_times_2 = d_nm->mkNode(MULT, x, two);
 
     Node n = d_nm->mkNode(PLUS, x_times_2, x_plus_y, y);

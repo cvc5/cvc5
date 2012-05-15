@@ -40,9 +40,9 @@ bool ArithRewriter::isAtom(TNode n) {
 
 RewriteResponse ArithRewriter::rewriteConstant(TNode t){
   Assert(t.getMetaKind() == kind::metakind::CONSTANT);
-  Node val = coerceToRationalNode(t);
+  Assert(t.getKind() == kind::CONST_RATIONAL);
 
-  return RewriteResponse(REWRITE_DONE, val);
+  return RewriteResponse(REWRITE_DONE, t);
 }
 
 RewriteResponse ArithRewriter::rewriteVariable(TNode t){
@@ -91,27 +91,23 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   }else if(t.getKind() == kind::UMINUS){
     return rewriteUMinus(t, true);
   }else if(t.getKind() == kind::DIVISION){
-    if(t[0].getKind()== kind::CONST_RATIONAL){
-      return rewriteDivByConstant(t, true);
-    }else{
-      return RewriteResponse(REWRITE_DONE, t);
-    }
+    return RewriteResponse(REWRITE_DONE, t); // wait until t[1] is rewritten
   }else if(t.getKind() == kind::PLUS){
     return preRewritePlus(t);
   }else if(t.getKind() == kind::MULT){
     return preRewriteMult(t);
   }else if(t.getKind() == kind::INTS_DIVISION){
-    Integer intOne(1);
-    if(t[1].getKind()== kind::CONST_INTEGER && t[1].getConst<Integer>() == intOne){
+    Rational intOne(1);
+    if(t[1].getKind()== kind::CONST_RATIONAL && t[1].getConst<Rational>() == intOne){
       return RewriteResponse(REWRITE_AGAIN, t[0]);
     }else{
       return RewriteResponse(REWRITE_DONE, t);
     }
   }else if(t.getKind() == kind::INTS_MODULUS){
-    Integer intOne(1);
-    if(t[1].getKind()== kind::CONST_INTEGER && t[1].getConst<Integer>() == intOne){
-      Integer intZero(0);
-      return RewriteResponse(REWRITE_AGAIN, mkIntegerNode(intZero));
+    Rational intOne(1);
+    if(t[1].getKind()== kind::CONST_RATIONAL && t[1].getConst<Rational>() == intOne){
+      Rational intZero(0);
+      return RewriteResponse(REWRITE_AGAIN, mkRationalNode(intZero));
     }else{
       return RewriteResponse(REWRITE_DONE, t);
     }
@@ -147,22 +143,12 @@ RewriteResponse ArithRewriter::preRewriteMult(TNode t){
   Assert(t.getKind()== kind::MULT);
 
   // Rewrite multiplications with a 0 argument and to 0
-  Integer intZero;
-
   Rational qZero(0);
 
   for(TNode::iterator i = t.begin(); i != t.end(); ++i) {
     if((*i).getKind() == kind::CONST_RATIONAL) {
       if((*i).getConst<Rational>() == qZero) {
         return RewriteResponse(REWRITE_DONE, mkRationalNode(qZero));
-      }
-    } else if((*i).getKind() == kind::CONST_INTEGER) {
-      if((*i).getConst<Integer>() == intZero) {
-        if(t.getType().isInteger()) {
-          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(intZero));
-        } else {
-          return RewriteResponse(REWRITE_DONE, mkRationalNode(qZero));
-        }
       }
     }
   }

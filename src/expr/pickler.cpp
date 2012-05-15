@@ -207,17 +207,11 @@ void PicklerPrivate::toCaseConstant(TNode n) {
     d_current << mkConstantHeader(k, 1);
     d_current << mkBlockBody(n.getConst<bool>());
     break;
-  case kind::CONST_INTEGER:
   case kind::CONST_RATIONAL: {
     std::string asString;
-    if(k == kind::CONST_INTEGER) {
-      const Integer& i = n.getConst<Integer>();
-      asString = i.toString(16);
-    } else {
-      Assert(k == kind::CONST_RATIONAL);
-      const Rational& q = n.getConst<Rational>();
-      asString = q.toString(16);
-    }
+    Assert(k == kind::CONST_RATIONAL);
+    const Rational& q = n.getConst<Rational>();
+    asString = q.toString(16);
     toCaseString(k, asString);
     break;
   }
@@ -357,16 +351,10 @@ Node PicklerPrivate::fromCaseConstant(Kind k, uint32_t constblocks) {
     bool b= val.d_body.d_data;
     return d_nm->mkConst<bool>(b);
   }
-  case kind::CONST_INTEGER:
   case kind::CONST_RATIONAL: {
     std::string s = fromCaseString(constblocks);
-    if(k == kind::CONST_INTEGER) {
-      Integer i(s, 16);
-      return d_nm->mkConst<Integer>(i);
-    } else {
-      Rational q(s, 16);
-      return d_nm->mkConst<Rational>(q);
-    }
+    Rational q(s, 16);
+    return d_nm->mkConst<Rational>(q);
   }
   case kind::BITVECTOR_EXTRACT_OP: {
     Block high = d_current.dequeue();

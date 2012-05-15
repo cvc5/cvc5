@@ -232,7 +232,6 @@ public:
 
   // TODO: check if it's a theory leaf also
   static bool isMember(Node n) {
-    if (n.getKind() == kind::CONST_INTEGER) return false;
     if (n.getKind() == kind::CONST_RATIONAL) return false;
     if (isRelationOperator(n.getKind())) return false;
     return Theory::isLeafOf(n, theory::THEORY_ARITH);
@@ -283,7 +282,8 @@ public:
   bool isNormalForm() { return isMember(getNode()); }
 
   static Constant mkConstant(Node n) {
-    return Constant(coerceToRationalNode(n));
+    Assert(n.getKind() == kind::CONST_RATIONAL);
+    return Constant(n);
   }
 
   static Constant mkConstant(const Rational& rat) {

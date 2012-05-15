@@ -1165,7 +1165,7 @@ parameterization[CVC4::parser::DeclarationCheck check,
 
 bound returns [CVC4::parser::cvc::mySubrangeBound bound]
   : UNDERSCORE { $bound = SubrangeBound(); }
-  | k=integer { $bound = SubrangeBound(k); }
+  | k=integer { $bound = SubrangeBound(k.getNumerator()); }
 ;
 
 typeLetDecl[CVC4::parser::DeclarationCheck check]
@@ -1991,7 +1991,7 @@ numeral returns [unsigned k = 0]
 /**
  * Similar to numeral but for arbitrary-precision, signed integer.
  */
-integer returns [CVC4::Integer k = 0]
+integer returns [CVC4::Rational k = 0]
   : INTEGER_LITERAL
     { $k = AntlrInput::tokenToInteger($INTEGER_LITERAL); }
   | MINUS_TOK INTEGER_LITERAL

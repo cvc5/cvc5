@@ -66,8 +66,8 @@ public:
       d_apply_fun_bool = new Expr(d_em->mkExpr(APPLY_UF, *fun_op, *a_bool));
       null = new Expr;
 
-      i1 = new Expr(d_em->mkConst(Integer("0")));
-      i2 = new Expr(d_em->mkConst(Integer(23)));
+      i1 = new Expr(d_em->mkConst(Rational("0")));
+      i2 = new Expr(d_em->mkConst(Rational(23)));
       r1 = new Expr(d_em->mkConst(Rational(1, 5)));
       r2 = new Expr(d_em->mkConst(Rational("0")));
     } catch(Exception e) {
@@ -218,8 +218,8 @@ public:
     TS_ASSERT(d_apply_fun_bool->getKind() == APPLY_UF);
     TS_ASSERT(null->getKind() == NULL_EXPR);
 
-    TS_ASSERT(i1->getKind() == CONST_INTEGER);
-    TS_ASSERT(i2->getKind() == CONST_INTEGER);
+    TS_ASSERT(i1->getKind() == CONST_RATIONAL);
+    TS_ASSERT(i2->getKind() == CONST_RATIONAL);
     TS_ASSERT(r1->getKind() == CONST_RATIONAL);
     TS_ASSERT(r2->getKind() == CONST_RATIONAL);
   }
@@ -292,8 +292,8 @@ public:
     TS_ASSERT(d_apply_fun_bool->toString() == "(APPLY_UF f a)");
     TS_ASSERT(null->toString() == "null");
 
-    TS_ASSERT(i1->toString() == "(CONST_INTEGER 0)");
-    TS_ASSERT(i2->toString() == "(CONST_INTEGER 23)");
+    TS_ASSERT(i1->toString() == "(CONST_RATIONAL 0)");
+    TS_ASSERT(i2->toString() == "(CONST_RATIONAL 23)");
     TS_ASSERT(r1->toString() == "(CONST_RATIONAL 1/5)");
     TS_ASSERT(r2->toString() == "(CONST_RATIONAL 0)");
   }
@@ -324,8 +324,8 @@ public:
     TS_ASSERT(sd.str() == "(APPLY_UF f a)");
     TS_ASSERT(snull.str() == "null");
 
-    TS_ASSERT(si1.str() == "(CONST_INTEGER 0)");
-    TS_ASSERT(si2.str() == "(CONST_INTEGER 23)");
+    TS_ASSERT(si1.str() == "(CONST_RATIONAL 0)");
+    TS_ASSERT(si2.str() == "(CONST_RATIONAL 23)");
     TS_ASSERT(sr1.str() == "(CONST_RATIONAL 1/5)");
     TS_ASSERT(sr2.str() == "(CONST_RATIONAL 0)");
   }
@@ -362,14 +362,14 @@ public:
     TS_ASSERT_THROWS(b_bool->getConst<Kind>(), IllegalArgumentException);
     TS_ASSERT_THROWS(c_bool_and->getConst<Kind>(), IllegalArgumentException);
     TS_ASSERT(and_op->getConst<Kind>() == AND);
-    TS_ASSERT_THROWS(and_op->getConst<Integer>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(and_op->getConst<Rational>(), IllegalArgumentException);
     TS_ASSERT(plus_op->getConst<Kind>() == PLUS);
     TS_ASSERT_THROWS(plus_op->getConst<Rational>(), IllegalArgumentException);
     TS_ASSERT_THROWS(d_apply_fun_bool->getConst<Kind>(), IllegalArgumentException);
     TS_ASSERT_THROWS(null->getConst<Kind>(), IllegalArgumentException);
 
-    TS_ASSERT(i1->getConst<Integer>() == 0);
-    TS_ASSERT(i2->getConst<Integer>() == 23);
+    TS_ASSERT(i1->getConst<Rational>() == 0);
+    TS_ASSERT(i2->getConst<Rational>() == 23);
     TS_ASSERT(r1->getConst<Rational>() == Rational(1, 5));
     TS_ASSERT(r2->getConst<Rational>() == Rational("0"));
 

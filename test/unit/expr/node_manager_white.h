@@ -50,8 +50,8 @@ public:
     delete d_ctxt;
   }
 
-  void testMkConstInt() {
-    Integer i("3");
+  void testMkConstRational() {
+    Rational i("3");
     Node n = d_nm->mkConst(i);
     Node m = d_nm->mkConst(i);
     TS_ASSERT_EQUALS(n.getId(), m.getId());

@@ -171,7 +171,7 @@ public:
   static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
 
   /** Retrieve an Integer from the text of a token */
-  static Integer tokenToInteger( pANTLR3_COMMON_TOKEN token );
+  static Rational tokenToInteger( pANTLR3_COMMON_TOKEN token );
 
   /** Retrieve a Rational from the text of a token */
   static Rational tokenToRational(pANTLR3_COMMON_TOKEN token);
@@ -263,8 +263,8 @@ inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
   return result;
 }
 
-inline Integer AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
-  return Integer( tokenText(token) );
+inline Rational AntlrInput::tokenToInteger(pANTLR3_COMMON_TOKEN token) {
+  return Rational( tokenText(token) );
 }
 
 inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {

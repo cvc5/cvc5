@@ -152,10 +152,9 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
     }
     break;
   case CONST_RATIONAL:
-  case CONST_INTEGER:
     // Mark constants as minmax
-    d_minMap[n] = coerceToRational(n);
-    d_maxMap[n] = coerceToRational(n);
+    d_minMap[n] = n.getConst<Rational>();
+    d_maxMap[n] = n.getConst<Rational>();
     break;
   case OR: {
     // Look for things like "x = 0 OR x = 1" (that are defTrue) and
@@ -193,46 +192,6 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
       break;
     }
 
-    Integer k1, k2;
-    if(c1.getType().getConst<TypeConstant>() == INTEGER_TYPE) {
-      k1 = c1.getConst<Integer>();
-    } else {
-      Rational r = c1.getConst<Rational>();
-      if(r.getDenominator() == 1) {
-        k1 = r.getNumerator();
-      } else {
-        break;
-      }
-    }
-    if(c2.getType().getConst<TypeConstant>() == INTEGER_TYPE) {
-      k2 = c2.getConst<Integer>();
-    } else {
-      Rational r = c2.getConst<Rational>();
-      if(r.getDenominator() == 1) {
-        k2 = r.getNumerator();
-      } else {
-        break;
-      }
-    }
-    if(k1 > k2) {
-      swap(k1, k2);
-    }
-    if(k1 + 1 == k2) {
-      Debug("arith::static") << "==> found " << n << endl
-                             << "    which indicates " << var << " \\in { "
-                             << k1 << " , " << k2 << " }" << endl;
-      c1 = NodeManager::currentNM()->mkConst(k1);
-      c2 = NodeManager::currentNM()->mkConst(k2);
-      Node lhs = NodeBuilder<2>(kind::GEQ) << var << c1;
-      Node rhs = NodeBuilder<2>(kind::LEQ) << var << c2;
-      Node l = lhs && rhs;
-      Debug("arith::static") << "    learned: " << l << endl;
-      learned << l;
-      if(k1 == 0) {
-        Assert(k2 == 1);
-        replaceWithPseudoboolean(var);
-      }
-    }
     break;
   }
   default: // Do nothing
@@ -466,7 +425,7 @@ void ArithStaticLearner::addBound(TNode n) {
   NodeToMinMaxMap::iterator minFind = d_minMap.find(n[0]);
   NodeToMinMaxMap::iterator maxFind = d_maxMap.find(n[0]);
 
-  Rational constant = coerceToRational(n[1]);
+  Rational constant = n[1].getConst<Rational>();
   DeltaRational bound = constant;
 
   switch(Kind k = n.getKind()) {

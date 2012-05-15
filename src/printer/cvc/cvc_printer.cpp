@@ -94,16 +94,11 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::CONST_RATIONAL: {
       const Rational& rat = n.getConst<Rational>();
-      if(rat.getDenominator() == 1) {
+      if(rat.isIntegral()) {
         out << rat.getNumerator();
       } else {
         out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
       }
-      break;
-    }
-    case kind::CONST_INTEGER: {
-      const Integer& num = n.getConst<Integer>();
-      out << num;
       break;
     }
     case kind::CONST_PSEUDOBOOLEAN: {
