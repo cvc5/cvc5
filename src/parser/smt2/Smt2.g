@@ -263,8 +263,7 @@ command returns [CVC4::Command* cmd = NULL]
       $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
   | /* value query */
-    ( GET_VALUE_TOK |
-      EVAL_TOK
+    ( GET_VALUE_TOK
       { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode doesn't recognize \"eval\".  Maybe you want (get-value...)?");
         }
@@ -365,38 +364,14 @@ extendedCommand[CVC4::Command*& cmd]
   std::vector<std::string> names;
   std::vector<Type> sorts;
 }
-    /* Z3's extended SMT-LIBv2 set of commands syntax */
+    /* Extended SMT-LIBv2 set of commands syntax, not permitted in
+     * --smtlib2 compliance mode. */
   : DECLARE_DATATYPES_TOK
     { /* open a scope to keep the UnresolvedTypes contained */
       PARSER_STATE->pushScope(); }
     LPAREN_TOK ( LPAREN_TOK datatypeDef[dts] RPAREN_TOK )+ RPAREN_TOK
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
-
-  | DECLARE_SORTS_TOK
-  | DECLARE_FUNS_TOK
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] nonemptySortList[sorts] RPAREN_TOK )+
-    RPAREN_TOK
-  | DECLARE_PREDS_TOK
-    LPAREN_TOK
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] sortList[sorts] RPAREN_TOK )+
-    RPAREN_TOK
-  | DEFINE_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] term[e]
-  | DEFINE_SORTS_TOK
-    LPAREN_TOK
-    ( LPAREN_TOK ( symbol[name,CHECK_UNDECLARED,SYM_SORT] LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK |
-                   symbol[name,CHECK_UNDECLARED,SYM_SORT] symbol[name,CHECK_NONE,SYM_SORT] ) RPAREN_TOK RPAREN_TOK )+
-    RPAREN_TOK
-  | DECLARE_CONST_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] sortSymbol[t,CHECK_DECLARED]
-
-  | SIMPLIFY_TOK term[e]
-    { cmd = new SimplifyCommand(e); }
-  | ECHO_TOK
-    ( simpleSymbolicExpr[sexpr]
-      { Message() << sexpr << std::endl; }
-    | { Message() << std::endl; } )
-    { cmd = new EmptyCommand; }
   ;
 
 simpleSymbolicExpr[CVC4::SExpr& sexpr]
@@ -943,15 +918,6 @@ POP_TOK : 'pop';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
-DECLARE_SORTS_TOK : 'declare-sorts';
-DECLARE_FUNS_TOK : 'declare-funs';
-DECLARE_PREDS_TOK : 'declare-preds';
-DEFINE_TOK : 'define';
-DEFINE_SORTS_TOK : 'define-sorts';
-DECLARE_CONST_TOK : 'declare-const';
-SIMPLIFY_TOK : 'simplify';
-EVAL_TOK : 'eval';
-ECHO_TOK : 'echo';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';
