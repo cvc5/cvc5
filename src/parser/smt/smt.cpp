@@ -98,7 +98,15 @@ void Smt::addTheory(Theory theory) {
     seq->addCommand(new DeclareTypeCommand("Element", 0, elementType));
     preemptCommand(seq);
 
-    defineType("Array", getExprManager()->mkArrayType(indexType,elementType));
+    defineType("Array", getExprManager()->mkArrayType(indexType, elementType));
+
+    addOperator(kind::SELECT);
+    addOperator(kind::STORE);
+    break;
+  }
+
+  case THEORY_INT_ARRAYS_EX: {
+    defineType("Array", getExprManager()->mkArrayType(getExprManager()->integerType(), getExprManager()->integerType()));
 
     addOperator(kind::SELECT);
     addOperator(kind::STORE);
@@ -212,7 +220,7 @@ void Smt::setLogic(const std::string& name) {
     break;
 
   case QF_AUFLIA:
-    addTheory(THEORY_ARRAYS_EX);
+    addTheory(THEORY_INT_ARRAYS_EX);
     addUf();
     addTheory(THEORY_INTS);
     break;
