@@ -205,9 +205,10 @@ void TheoryBV::check(Effort e)
 
   // bit-blasting atoms on queue
 
-  for (unsigned i = 0; i < d_bitblastQueue.size(); ++i) {
-    d_bitblaster->bbAtom(d_bitblastQueue[i]);
-    // would be nice to clear the bitblastQueue?
+  while (!d_bitblastQueue.empty()) {
+    TNode node = d_bitblastQueue.front();
+    d_bitblaster->bbAtom(node);
+    d_bitblastQueue.pop(); 
   }
   
   // bit-blaster propagation 

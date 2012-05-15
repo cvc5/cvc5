@@ -56,7 +56,7 @@ private:
   /** Bitblaster */
   Bitblaster* d_bitblaster; 
 
-  context::CDList<TNode> d_bitblastQueue; 
+  context::CDQueue<TNode> d_bitblastQueue; 
   
   /** Context dependent set of atoms we already propagated */
   context::CDHashSet<TNode, TNodeHashFunction> d_alreadyPropagatedSet;
