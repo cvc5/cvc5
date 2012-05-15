@@ -20,7 +20,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/valuation.h"
-#include "theory/bv/bv_sat.h"
+#include "theory/bv/bitblaster.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

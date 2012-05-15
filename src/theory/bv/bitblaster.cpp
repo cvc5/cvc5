@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_sat.cpp
+/*! \file bitblaster.cpp
  ** \verbatim
  ** Original author: lianah
  ** Major contributors: none
@@ -17,7 +17,7 @@
  ** 
  **/
 
-#include "bv_sat.h"
+#include "bitblaster.h"
 #include "theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "prop/cnf_stream.h"

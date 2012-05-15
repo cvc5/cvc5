@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_sat.h
+/*! \file bitblaster.h
  ** \verbatim
  ** Original author: lianah
  ** Major contributors: none
@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BV__SAT_H
-#define __CVC4__BV__SAT_H
+#ifndef __CVC4__BITBLASTER_H
+#define __CVC4__BITBLASTER_H
 
 
 #include "expr/node.h"
@@ -155,4 +155,4 @@ private:
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__BV__SAT_H */
+#endif /* __CVC4__BITBLASTER_H */

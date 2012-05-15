@@ -21,7 +21,7 @@
 #include <cxxtest/TestSuite.h>
 
 #include "theory/theory.h"
-#include "theory/bv/bv_sat.h"
+#include "theory/bv/bitblaster.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"

@@ -17,7 +17,7 @@
  **/
 
 #include "bitblast_strategies.h"
-#include "bv_sat.h"
+#include "bitblaster.h"
 #include "prop/sat_solver.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 

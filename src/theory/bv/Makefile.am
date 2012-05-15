@@ -9,8 +9,8 @@ noinst_LTLIBRARIES = libbv.la
 
 libbv_la_SOURCES = \
 	theory_bv_utils.h \
-	bv_sat.h \
-	bv_sat.cpp \
+	bitblaster.h \
+	bitblaster.cpp \
 	bitblast_strategies.h \
 	bitblast_strategies.cpp \
 	theory_bv.h \
