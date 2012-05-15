@@ -689,6 +689,10 @@ void TheoryEngine::assertFact(TNode node)
         }
         d_sharedTerms.markNotified(term, theories);
       }
+      if (d_propagatedSharedLiterals.size() > 0) {
+        Debug("theory") << "TheoryEngine::assertFact: distributing shared literals from new shared terms" << std::endl;
+        outputSharedLiterals();
+      }
     }
 
     if (atom.getKind() == kind::EQUAL &&
@@ -704,7 +708,7 @@ void TheoryEngine::assertFact(TNode node)
       d_sharedLiteralsIn[node] = THEORY_LAST;
       d_sharedTerms.processSharedLiteral(node, node);
       if (d_propagatedSharedLiterals.size() > 0) {
-        Debug("theory") << "TheoryEngine::assertFact: distributing shared literals" << std::endl;
+        Debug("theory") << "TheoryEngine::assertFact: distributing shared literals from new assertion" << std::endl;
         outputSharedLiterals();
       }
       // TODO: have processSharedLiteral propagate disequalities?

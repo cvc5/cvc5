@@ -17,6 +17,7 @@
 
 #include "theory/shared_terms_database.h"
 
+using namespace std;
 using namespace CVC4;
 using namespace theory;
 
@@ -140,6 +141,7 @@ SharedTermsDatabase::NotifyList* SharedTermsDatabase::getNewNotifyList()
 void SharedTermsDatabase::mergeSharedTerms(TNode a, TNode b)
 {
   // Note: a is the new representative
+  Debug("shared-terms-database") << "SharedTermsDatabase::mergeSharedTerms(" << a << "," << b << ")" << endl;
 
   NotifyList* pnlLeft = NULL;
   NotifyList* pnlRight = NULL;
@@ -169,7 +171,7 @@ void SharedTermsDatabase::mergeSharedTerms(TNode a, TNode b)
       right = b;
     }
     else if (pnlRight != NULL &&
-             ((nit = pnlRight->end()) != pnlRight->end())) {
+             ((nit = pnlRight->find(currentTheory)) != pnlRight->end())) {
       right = (*nit).second;
     }
     else {
@@ -193,36 +195,99 @@ void SharedTermsDatabase::mergeSharedTerms(TNode a, TNode b)
 
     // TODO: add propagation of disequalities?
 
-    // Normalize the equality
-    Node equality = left.eqNode(right);
-    Node normalized = Rewriter::rewriteEquality(currentTheory, equality);
-    if (normalized.getKind() != kind::CONST_BOOLEAN || !normalized.getConst<bool>()) {
-      // Notify client
-      d_sharedNotify.notify(normalized, equality, currentTheory);
-    }
+    assertEq(left.eqNode(right), currentTheory);
   }
 
 }
   
 
+void SharedTermsDatabase::assertEq(TNode equality, TheoryId theory)
+{
+  Debug("shared-terms-database") << "SharedTermsDatabase::assertEq(" << equality << ") to theory " << theory << endl;
+  Node normalized = Rewriter::rewriteEquality(theory, equality);
+  if (normalized.getKind() != kind::CONST_BOOLEAN || !normalized.getConst<bool>()) {
+    // Notify client
+    d_sharedNotify.notify(normalized, equality, theory);
+  }
+}
+
+
+// term was just part of an assertion that makes it shared for theories
+// Let's mark that the set theories has now been notified
+// In addition, we make sure the equivalence class containing term knows a
+// representative for each theory in theories.
+// Finally, if the EC already knows a rep for a theory that was just notified, we
+// have to tell the theory that these two terms are equal.
 void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
-  Theory::Set alreadyNotified = d_alreadyNotifiedMap[term];
+
+  // Find out if there are any new theories that were notified about this term
+  Theory::Set alreadyNotified = 0;
+  AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
+  if (theoriesFind != d_alreadyNotifiedMap.end()) {
+    alreadyNotified = (*theoriesFind).second;
+  }
   Theory::Set newlyNotified = Theory::setDifference(theories, alreadyNotified);
-  if (newlyNotified != 0) {
-    TNode rep = d_equalityEngine.getRepresentative(term);
-    if (rep != term) {
-      TermToNotifyList::iterator it = d_termToNotifyList.find(rep);
-      Assert(it != d_termToNotifyList.end());
-      NotifyList* pnl = (*it).second;
-      for (TheoryId theory = THEORY_FIRST; theory != THEORY_LAST; ++ theory) {
-        if (Theory::setContains(theory, newlyNotified) &&
-            pnl->find(theory) == pnl->end()) {
-          (*pnl)[theory] = term;
+
+  // If no new theories were notified, we are done
+  if (newlyNotified == 0) {
+    return;
+  }
+
+  Debug("shared-terms-database") << "SharedTermsDatabase::markNotified(" << term << ")" << endl;
+
+  // First update the set of notified theories for this term
+  d_alreadyNotifiedMap[term] = Theory::setUnion(newlyNotified, alreadyNotified);
+
+  // Now get the representative of the equivalence class and find out which theories it represents
+  TNode rep = d_equalityEngine.getRepresentative(term);
+  if (rep != term) {
+    alreadyNotified = 0;
+    theoriesFind = d_alreadyNotifiedMap.find(rep);
+    if (theoriesFind != d_alreadyNotifiedMap.end()) {
+      alreadyNotified = (*theoriesFind).second;
+    }
+  }
+
+  // For each theory that is newly notified
+  for (TheoryId theory = THEORY_FIRST; theory != THEORY_LAST; ++ theory) {
+    if (Theory::setContains(theory, newlyNotified)) {
+
+      Debug("shared-terms-database") << "SharedTermsDatabase::markNotified: processing theory " << theory << endl;
+
+      if (Theory::setContains(theory, alreadyNotified)) {
+        // rep represents this theory already, need to assert that term = rep
+        Assert(rep != term);
+        assertEq(rep.eqNode(term), theory);
+      }
+      else {
+        // Get the list of terms representing theories for this EC
+        TermToNotifyList::iterator it = d_termToNotifyList.find(rep);
+        if (it == d_termToNotifyList.end()) {
+          // No need to do anything - no list associated with this EC
+          Assert(term == rep);
+        }
+        else {
+          NotifyList* pnl = (*it).second;
+          Assert(pnl != NULL);
+
+          // Check if this theory is already represented
+          NotifyList::iterator nit = pnl->find(theory);
+          if (nit != pnl->end()) {
+            // Already have a representative for this theory, assert term equal to it
+            assertEq((*nit).second.eqNode(term), theory);
+          }
+          else {
+            // if term == rep, no need to do anything, as term will represent the theory via alreadyNotifiedMap
+            if (term != rep) {
+              // No term in this EC represents this theory, so add term as a new representative
+              Debug("shared-terms-database") << "SharedTermsDatabase::markNotified: adding " << term << " to representative " << rep << " for theory " << theory << endl;
+              (*pnl)[theory] = term;
+            }
+          }
         }
       }
     }
   }
-  d_alreadyNotifiedMap[term] = Theory::setUnion(newlyNotified, alreadyNotified);
 }
 
 

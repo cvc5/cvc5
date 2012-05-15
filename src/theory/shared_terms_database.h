@@ -177,6 +177,9 @@ public:
    */
   theory::Theory::Set getNotifiedTheories(TNode term) const;
 
+  // Notify theory about a new equality between shared terms
+  void assertEq(TNode equality, theory::TheoryId theory);
+
   /**
    * Mark that the given theories have been notified of the given shared term.
    */
