@@ -101,6 +101,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0), conflicts(0)
   , dec_vars(0), clauses_literals(0), learnts_literals(0), max_literals(0), tot_literals(0)
 
+  , need_to_propagate(false)
   , only_bcp(false)
   , clause_added(false)
   , ok                 (true)
@@ -187,13 +188,12 @@ bool Solver::addClause_(vec<Lit>& ps)
     else if (ps.size() == 1){
         uncheckedEnqueue(ps[0]);
         return ok = (propagate() == CRef_Undef);
-    }else{
+    } else {
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
         attachClause(cr);
     }
-
-    return true;
+    return ok; 
 }
 
 void Solver::attachClause(CRef cr) {
@@ -514,8 +514,8 @@ void Solver::popAssumption() {
 }
 
 lbool Solver::assertAssumption(Lit p, bool propagate) {
-
-  assert(marker[var(p)] == 1);
+  
+  // assert(marker[var(p)] == 1);
 
   if (decisionLevel() > assumptions.size()) {
     cancelUntil(assumptions.size());
@@ -759,7 +759,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               analyzeFinal(p, conflict);
               return l_False;
             }
-
+            
             varDecayActivity();
             claDecayActivity();
 
@@ -927,7 +927,6 @@ lbool Solver::solve_()
 // 
 
 void Solver::explain(Lit p, std::vector<Lit>& explanation) {
-
   vec<Lit> queue;
   queue.push(p);
 
