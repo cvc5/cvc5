@@ -102,6 +102,19 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   return false;
 }
 
+bool TypeNode::isComparableTo(TypeNode t) const {
+  if(*this == t) {
+    return true;
+  }
+  if(isSubtypeOf(NodeManager::currentNM()->realType())) {
+    return t.isSubtypeOf(NodeManager::currentNM()->realType());
+  }
+  if(isPredicateSubtype()) {
+    return t.isComparableTo(getSubtypeBaseType());
+  }
+  return false;
+}
+
 Node TypeNode::getSubtypePredicate() const {
   Assert(isPredicateSubtype());
   return Node::fromExpr(getConst<Predicate>());

@@ -450,6 +450,12 @@ public:
   /** Is this type a subtype of the given type? */
   bool isSubtypeOf(TypeNode t) const;
 
+  /**
+   * Is this type comparable to the given type (i.e., do they share
+   * a common ancestor in the subtype tree)?
+   */
+  bool isComparableTo(TypeNode t) const;
+
   /** Is this the Boolean type? */
   bool isBoolean() const;
 
