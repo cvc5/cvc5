@@ -199,6 +199,7 @@ CRef Solver::reason(Var x) {
     // Compute the assertion level for this clause
     int explLevel = 0;
     int i, j;
+    Lit prev = lit_Undef;
     for (i = 0, j = 0; i < explanation.size(); ++ i) {
       int varLevel = intro_level(var(explanation[i]));
       if (varLevel > explLevel) {
@@ -207,8 +208,8 @@ CRef Solver::reason(Var x) {
       Assert(value(explanation[i]) != l_Undef);
       Assert(i == 0 || trail_index(var(explanation[0])) > trail_index(var(explanation[i])));
       // ignore zero level literals
-      if (i == 0 || level(var(explanation[i])) > 0) {
-        explanation[j++] = explanation[i];
+      if (i == 0 || (level(var(explanation[i])) > 0 && explanation[i] != prev)) {
+        prev = explanation[j++] = explanation[i];
       }
     }
     explanation.shrink(i - j);
