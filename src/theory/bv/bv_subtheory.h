@@ -68,9 +68,7 @@ public:
 
 /**
  * BitblastSolver
- *
  */
-
 class BitblastSolver : public SubtheorySolver {
 
   /** Bitblaster */
@@ -86,14 +84,13 @@ public:
   void  preRegister(TNode node);
   bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
 };
 
 
 /**
  * EqualitySolver
- *
  */
-
 class EqualitySolver : public SubtheorySolver {
 
   // NotifyClass: handles call-back from congruence closure module
@@ -107,7 +104,7 @@ class EqualitySolver : public SubtheorySolver {
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value); 
     bool eqNotifyConstantTermMerge(TNode t1, TNode t2);
-  };
+};
 
 
   /** The notify class for d_equalityEngine */
@@ -138,11 +135,6 @@ public:
     return EQUALITY_UNKNOWN; 
   }
 }; 
-
-
-// class CoreSolver : public SubtheorySolver {
-  
-// }; 
 
 
 }

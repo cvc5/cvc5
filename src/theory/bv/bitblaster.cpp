@@ -110,31 +110,19 @@ void Bitblaster::bbAtom(TNode node) {
 
 
 void Bitblaster::bbTerm(TNode node, Bits& bits) {
+
   if (hasBBTerm(node)) {
     getBBTerm(node, bits);
     return;
   }
+
   BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   ++d_statistics.d_numTerms;
 
-  Node optimized = bbOptimize(node); 
-
-  // if we already bitblasted the optimized version 
-  if(hasBBTerm(optimized)) {
-    getBBTerm(optimized, bits);
-    // cache it as the same for this node
-    cacheTermDef(node, bits);
-    return; 
-  }
+  d_termBBStrategies[node.getKind()] (node, bits,this);
   
-  d_termBBStrategies[optimized.getKind()] (optimized, bits,this);
-  
-  Assert (bits.size() == utils::getSize(node) &&
-          bits.size() == utils::getSize(optimized));
+  Assert (bits.size() == utils::getSize(node));
 
-  if(optimized != node) {
-    cacheTermDef(optimized, bits);
-  }
   cacheTermDef(node, bits); 
 }
 
@@ -306,7 +294,7 @@ void Bitblaster::initTermBBStrategies() {
 
 }
  
-bool Bitblaster::hasBBAtom(TNode atom) {
+bool Bitblaster::hasBBAtom(TNode atom) const {
   return d_bitblastedAtoms.find(atom) != d_bitblastedAtoms.end();
 }
 
@@ -315,15 +303,14 @@ void Bitblaster::cacheTermDef(TNode term, Bits def) {
   d_termCache[term] = def; 
 }
 
-bool Bitblaster::hasBBTerm(TNode node) {
+bool Bitblaster::hasBBTerm(TNode node) const {
   return d_termCache.find(node) != d_termCache.end(); 
 }
 
-void Bitblaster::getBBTerm(TNode node, Bits& bits) {
-  
+void Bitblaster::getBBTerm(TNode node, Bits& bits) const {
   Assert (hasBBTerm(node)); 
   // copy?
-  bits = d_termCache[node]; 
+  bits = d_termCache.find(node)->second;
 }
 
 Bitblaster::Statistics::Statistics() :
@@ -366,6 +353,43 @@ void Bitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 };
 
+EqualityStatus Bitblaster::getEqualityStatus(TNode a, TNode b) {
+
+  // We don't want to bit-blast every possibly expensive term for the sake of equality checking
+  if (hasBBTerm(a) && hasBBTerm(b)) {
+
+  Bits a_bits, b_bits;
+  getBBTerm(a, a_bits);
+  getBBTerm(b, b_bits);
+  EqualityStatus status = EQUALITY_TRUE_IN_MODEL;
+  for (unsigned i = 0; i < a_bits.size(); ++ i) {
+    if (d_cnfStream->hasLiteral(a_bits[i]) && d_cnfStream->hasLiteral(b_bits[i])) {
+      SatLiteral a_lit = d_cnfStream->getLiteral(a_bits[i]);
+      SatValue a_lit_value = d_satSolver->value(a_lit);
+      if (a_lit_value != SAT_VALUE_UNKNOWN) {
+        SatLiteral b_lit = d_cnfStream->getLiteral(b_bits[i]);
+        SatValue b_lit_value = d_satSolver->value(b_lit);
+        if (b_lit_value != SAT_VALUE_UNKNOWN) {
+          if (a_lit_value != b_lit_value) {
+            return EQUALITY_FALSE_IN_MODEL;
+          }
+        } else {
+          status = EQUALITY_UNKNOWN;
+        }
+      } {
+        status = EQUALITY_UNKNOWN;
+      }
+    } else {
+      status = EQUALITY_UNKNOWN;
+    }
+  }
+
+  return status;
+
+  } else {
+    return EQUALITY_UNKNOWN;
+  }
+}
 
 } /*bv namespace */
 } /* theory namespace */

@@ -296,6 +296,11 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
     return EQUALITY_UNKNOWN;
   }
 
-  return d_equalitySolver.getEqualityStatus(a, b); 
+  EqualityStatus status = d_equalitySolver.getEqualityStatus(a, b);
+  if (status == EQUALITY_UNKNOWN) {
+    status = d_bitblastSolver.getEqualityStatus(a, b);
+  }
+
+  return status;
 }
 

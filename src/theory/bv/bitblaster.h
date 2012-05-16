@@ -33,6 +33,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 
+#include "theory/theory.h"
 #include "theory_bv_utils.h"
 #include "util/stats.h"
 #include "bitblast_strategies.h"
@@ -99,10 +100,10 @@ class Bitblaster {
 
   /// helper methods
   public:
-  bool          hasBBAtom(TNode node);    
+  bool          hasBBAtom(TNode node) const;
   private:
-  bool          hasBBTerm(TNode node); 
-  void          getBBTerm(TNode node, Bits& bits);
+  bool          hasBBTerm(TNode node) const;
+  void          getBBTerm(TNode node, Bits& bits) const;
 
   /// function tables for the various bitblasting strategies indexed by node kind
   TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
@@ -131,6 +132,8 @@ public:
   bool solve(bool quick_solve = false);
   void getConflict(std::vector<TNode>& conflict); 
   void explain(TNode atom, std::vector<TNode>& explanation);
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
 private:
 
