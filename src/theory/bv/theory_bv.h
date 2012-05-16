@@ -27,40 +27,24 @@
 #include "context/cdhashset.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/stats.h"
-#include "theory/uf/equality_engine.h"
 #include "context/cdqueue.h"
-
-namespace BVMinisat {
-class SimpSolver; 
-}
-
+#include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-/// forward declarations 
-class Bitblaster;
-
 class TheoryBV : public Theory {
-
-
-private:
 
   /** The context we are using */
   context::Context* d_context;
 
-  /** The asserted stuff */
-  context::CDList<TNode> d_assertions;
-  
-  /** Bitblaster */
-  Bitblaster* d_bitblaster; 
-
-  context::CDQueue<TNode> d_bitblastQueue; 
-  
   /** Context dependent set of atoms we already propagated */
   context::CDHashSet<TNode, TNodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<TNode, TNodeHashFunction> d_sharedTermsSet;
+
+  BitblastSolver d_bitblastSolver;
+  EqualitySolver d_equalitySolver;
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
@@ -70,6 +54,8 @@ public:
 
   void check(Effort e);
 
+  void propagate(Effort e);
+  
   Node explain(TNode n);
 
   Node getValue(TNode n);
@@ -91,58 +77,6 @@ private:
   
   Statistics d_statistics;
   
-  // Added by Clark
-  // NotifyClass: template helper class for d_equalityEngine - handles call-back from congruence closure module
-  class NotifyClass : public eq::EqualityEngineNotify {
-
-    TheoryBV& d_bv;
-
-  public:
-
-    NotifyClass(TheoryBV& uf): d_bv(uf) {}
-
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
-      Debug("bitvector") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_bv.storePropagation(equality, SUB_EQUALITY);
-      } else {
-        return d_bv.storePropagation(equality.notNode(), SUB_EQUALITY);
-      }
-    }
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
-      Debug("bitvector") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_bv.storePropagation(predicate, SUB_EQUALITY);
-      } else {
-        return d_bv.storePropagation(predicate.notNode(), SUB_EQUALITY);
-      }
-    }
-
-    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
-      Debug("bitvector") << "NotifyClass::eqNotifyTriggerTermMerge(" << t1 << ", " << t2 << std::endl;
-      if (value) {
-        return d_bv.storePropagation(t1.eqNode(t2), SUB_EQUALITY);
-      } else {
-        return d_bv.storePropagation(t1.eqNode(t2).notNode(), SUB_EQUALITY);
-      }
-    }
-
-    bool eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-      Debug("bitvector") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
-      if (Theory::theoryOf(t1) == THEORY_BOOL) {
-        return d_bv.storePropagation(t1.iffNode(t2), SUB_EQUALITY);
-      }
-      return d_bv.storePropagation(t1.eqNode(t2), SUB_EQUALITY);
-    }
-  };
-
-  /** The notify class for d_equalityEngine */
-  NotifyClass d_notify;
-
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-
   // Are we in conflict?
   context::CDO<bool> d_conflict;
 
@@ -155,11 +89,9 @@ private:
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
-  context::CDQueue<Node> d_toBitBlast;
-
   enum SubTheory {
     SUB_EQUALITY = 1,
-    SUB_BITBLASTER = 2
+    SUB_BITBLAST = 2
   };
 
   /**
@@ -187,17 +119,22 @@ private:
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
-  friend class Bitblaster;
-
   inline std::string indent()
   {
     std::string indentStr(getSatContext()->getLevel(), ' ');
     return indentStr;
   }
-  
-public:
 
-  void propagate(Effort e);
+  void setConflict(Node conflict) {
+    d_conflict = true; 
+    d_conflictNode = conflict; 
+  }
+
+  bool inConflict() { return d_conflict == true; }
+  
+  friend class Bitblaster;
+  friend class BitblastSolver;
+  friend class EqualitySolver; 
   
 };/* class TheoryBV */
 

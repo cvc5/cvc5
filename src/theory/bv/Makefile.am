@@ -11,6 +11,8 @@ libbv_la_SOURCES = \
 	theory_bv_utils.h \
 	bitblaster.h \
 	bitblaster.cpp \
+	bv_subtheory.h \
+	bv_subtheory.cpp \
 	bitblast_strategies.h \
 	bitblast_strategies.cpp \
 	theory_bv.h \
