@@ -30,7 +30,7 @@ std::string PreRegisterVisitor::toString() const {
 
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
-  Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ") => ";
+  Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
 
   TheoryId currentTheoryId = Theory::theoryOf(current);
@@ -134,7 +134,7 @@ std::string SharedTermsVisitor::toString() const {
 
 bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
-  Debug("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ") => ";
+  Debug("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
   TNodeVisitedMap::const_iterator find = d_visited.find(current);
 

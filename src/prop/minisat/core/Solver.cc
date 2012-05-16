@@ -655,16 +655,8 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     Debug("minisat") << "unchecked enqueue of " << p << " (" << trail_index(var(p)) << ") trail size is " << trail.size() << " cap is " << trail.capacity() << std::endl;
     assert(value(p) == l_Undef);
     assigns[var(p)] = lbool(!sign(p));
-    if(trail_index(var(p)) != -1) {
-      // This var is already represented in the trail, presumably from
-      // an earlier incarnation as a unit clause (it has been
-      // unregistered and renewed since then)
-      vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail_index(var(p)));
-      trail[trail_index(var(p))] = p;
-    } else {
-      vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail.size());
-      trail.push_(p);
-    }
+    vardata[var(p)] = mkVarData(from, decisionLevel(), intro_level(var(p)), trail.size());
+    trail.push_(p);
     if (theory[var(p)]) {
       // Enqueue to the theory
       proxy->enqueueTheoryLiteral(MinisatSatSolver::toSatLiteral(p));
@@ -680,8 +672,8 @@ CRef Solver::propagate(TheoryCheckType type)
 
     ScopedBool scoped_bool(minisat_busy, true);
 
-    // If we are not in the quick mode add the lemmas that were left behind
-    if (type != CHECK_WITHOUTH_THEORY && lemmas.size() > 0) {
+    // Add lemmas that we're left behind
+    if (lemmas.size() > 0) {
       confl = updateLemmas();
       if (confl != CRef_Undef) {
         return confl;
@@ -707,7 +699,7 @@ CRef Solver::propagate(TheoryCheckType type)
 
     // Keep running until we have checked everything, we
     // have no conflict and no new literals have been asserted
-      do {
+    do {
         // Propagate on the clauses
         confl = propagateBool();
 
@@ -725,8 +717,26 @@ CRef Solver::propagate(TheoryCheckType type)
             if (lemmas.size() > 0) {
                 confl = updateLemmas();
             }
+        } else {
+          // Even though in conflict, we still need to discharge the lemmas
+          if (lemmas.size() > 0) {
+            // Remember the trail size
+            int oldLevel = decisionLevel();
+            // Update the lemmas
+            CRef lemmaConflict = updateLemmas();
+            // If we get a conflict, we prefer it since it's earlier in the trail
+            if (lemmaConflict != CRef_Undef) {
+              // Lemma conflict takes precedence, since it's earlier in the trail
+              confl = lemmaConflict;
+            } else {
+              // Otherwise, the Boolean conflict is canceled in the case we popped the trail
+              if (oldLevel > decisionLevel()) {
+                confl = CRef_Undef;
+              }
+            }
+          }
         }
-      } while (confl == CRef_Undef && qhead < trail.size());
+    } while (confl == CRef_Undef && qhead < trail.size());
 
     return confl;
 }
@@ -749,10 +759,14 @@ void Solver::propagateTheory() {
     if (value(p) == l_Undef) {
       uncheckedEnqueue(p, CRef_Lazy);
     } else {
-      // but we check that this is the case and that they agree
-      Debug("minisat") << "trail_index(var(p)) == " << trail_index(var(p)) << std::endl;
-      Assert(trail_index(var(p)) >= oldTrailSize);
-      Assert(value(p) == l_True, "a literal was theory-propagated, and so was its negation");
+      if (value(p) == l_False) {
+        Debug("minisat") << "Conflict in theory propagation" << std::endl;
+        SatClause explanation_cl;
+        proxy->explainPropagation(MinisatSatSolver::toSatLiteral(p), explanation_cl);
+        vec<Lit> explanation;
+        MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
+        addClause(explanation, true);
+      }
     }
   }
 }
@@ -999,12 +1013,12 @@ lbool Solver::search(int nof_conflicts)
 
         if (confl != CRef_Undef) {
 
-          conflicts++; conflictC++;
+            conflicts++; conflictC++;
 
-          if (decisionLevel() == 0) {
-            PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
-            return l_False;
-          }
+            if (decisionLevel() == 0) {
+                PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
+                return l_False;
+            }
 
             // Analyze the conflict
             learnt_clause.clear();
@@ -1017,7 +1031,7 @@ lbool Solver::search(int nof_conflicts)
 
                 PROOF( ProofManager::getSatProof()->endResChain(learnt_clause[0]); )
 
-             } else {
+            } else {
                 CRef cr = ca.alloc(max_level, learnt_clause, true);
                 clauses_removable.push(cr);
                 attachClause(cr);

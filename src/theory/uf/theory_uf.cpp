@@ -112,21 +112,7 @@ void TheoryUF::propagate(Effort level) {
     for (; d_literalsToPropagateIndex < d_literalsToPropagate.size(); d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
       TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
       Debug("uf") << "TheoryUF::propagate(): propagating " << literal << std::endl;
-      bool satValue;
-      Node normalized = Rewriter::rewrite(literal);
-      if (!d_valuation.hasSatValue(normalized, satValue) || satValue) {
-        d_out->propagate(literal);
-      } else {
-        Debug("uf") << "TheoryUF::propagate(): in conflict, normalized = " << normalized << std::endl;
-        Node negatedLiteral;
-        std::vector<TNode> assumptions;
-        negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-        assumptions.push_back(negatedLiteral);
-        explain(literal, assumptions);
-        d_conflictNode = mkAnd(assumptions);
-        d_conflict = true;
-        break;
-      }
+      d_out->propagate(literal);
     }
   }
 }/* TheoryUF::propagate(Effort) */
