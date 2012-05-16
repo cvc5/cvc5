@@ -29,6 +29,7 @@
 //#include "vc_cmd.h"
 //#include "theory_bitvector.h"
 //#include "fdstream.h"
+#include <string.h>
 #include <assert.h>
 
 
@@ -2042,20 +2043,20 @@ extern "C" Expr vc_bvWriteToMemoryArray(VC vc,
   DebugAssert(numOfBytes > 0,
 	      "numOfBytes must be greater than 0");
 
-  int newBitsPerElem = numOfBytes*8;
+  //int newBitsPerElem = numOfBytes*8;
   if(numOfBytes == 1)
     return vc_writeExpr(vc, array, byteIndex, element);
   else {
     int count = 1;
-    int hi = newBitsPerElem - 1;
-    int low = newBitsPerElem - 8;
+    //int hi = newBitsPerElem - 1;
+    //int low = newBitsPerElem - 8;
     int low_elem = 0;
     int hi_elem = low_elem + 7;
     Expr c = vc_bvExtract(vc, element, hi_elem, low_elem);
     Expr newarray = vc_writeExpr(vc, array, byteIndex, c);
     while(--numOfBytes > 0) {
-      hi = low-1;
-      low = low-8;
+      //hi = low-1;
+      //low = low-8;
 
       low_elem = low_elem + 8;
       hi_elem = low_elem + 7;
@@ -2825,11 +2826,7 @@ extern "C" int vc_getKindInt(VC vc,char* kind_name)
 extern "C" int vc_getInt(Expr e){
   try{
     CVC3::Expr ex = fromExpr(e);
-    if(ex.getKind() == CVC4::kind::CONST_INTEGER) {
-      return int(ex.getConst<CVC3::Integer>().getLong());
-    } else {
-      return int(ex.getConst<CVC3::Rational>().getNumerator().getLong());
-    }
+    return int(ex.getConst<CVC3::Rational>().getNumerator().getLong());
   } catch (CVC3::Exception ex){
     signal_error("vc_getInt",error_int,ex);
     return error_int;
