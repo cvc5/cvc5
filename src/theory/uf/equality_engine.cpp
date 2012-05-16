@@ -76,6 +76,7 @@ EqualityEngine::EqualityEngine(context::Context* context, std::string name)
 , d_equalityTriggersCount(context, 0)
 , d_individualTriggersSize(context, 0)
 , d_constantRepresentativesSize(context, 0)
+, d_constantsSize(context, 0)
 , d_stats(name)
 {
   init();
@@ -92,6 +93,7 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
 , d_equalityTriggersCount(context, 0)
 , d_individualTriggersSize(context, 0)
 , d_constantRepresentativesSize(context, 0)
+, d_constantsSize(context, 0)
 , d_stats(name)
 {
   init();
@@ -170,6 +172,24 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   d_nodesCount = d_nodesCount + 1;
 
   Debug("equality") << "EqualityEngine::newNode(" << node << ") => " << newId << std::endl;
+
+  // If the node is a constant, assert all the dis-eqalities
+  if (node.isConst() && node.getKind() != kind::CONST_BOOLEAN) {
+
+    TypeNode nodeType = node.getType();
+    for (unsigned i = 0; i < d_constants.size(); ++ i) {
+      TNode constant = d_constants[i];
+      if (constant.getType().isComparableTo(nodeType)) {
+        Debug("equality::constants") << "adding const dis-equality " << node << " != " << constant << std::endl;
+        assertEquality(node.eqNode(constant), false, d_true);
+      }
+    }
+
+    d_constants.push_back(node);
+    d_constantsSize = d_constantsSize + 1;
+
+    propagate();
+  }
 
   return newId;
 }
@@ -340,7 +360,6 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
     currentId = currentNode.getNext();
 
   } while (currentId != class2Id);
-
 
   // Update class2 table lookup and information
   Debug("equality") << "EqualityEngine::merge(" << class1.getFind() << "," << class2.getFind() << "): updating lookups of " << class2Id << std::endl;
@@ -553,6 +572,8 @@ void EqualityEngine::backtrack() {
     d_equalityGraph.resize(d_nodesCount);
     d_equalityNodes.resize(d_nodesCount);
   }
+
+  d_constants.resize(d_constantsSize);
 }
 
 void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, MergeReasonType type, TNode reason) {
