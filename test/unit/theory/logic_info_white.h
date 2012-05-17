@@ -37,6 +37,7 @@ public:
     TS_ASSERT( !info.isQuantified() );
 
     info.setLogicString("AUFLIA");
+    TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
@@ -50,6 +51,7 @@ public:
     TS_ASSERT( !info.areRealsUsed() );
 
     info.setLogicString("AUFLIRA");
+    TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
@@ -63,6 +65,7 @@ public:
     TS_ASSERT( info.areRealsUsed() );
 
     info.setLogicString("AUFNIRA");
+    TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
@@ -76,6 +79,7 @@ public:
     TS_ASSERT( info.areRealsUsed() );
 
     info.setLogicString("LRA");
+    TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
@@ -90,6 +94,7 @@ public:
     TS_ASSERT( info.areRealsUsed() );
 
     info.setLogicString("QF_ABV");
+    TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
@@ -228,6 +233,7 @@ public:
     TS_ASSERT( info.areRealsUsed() );
 
     info.setLogicString("QF_UF");
+    TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );

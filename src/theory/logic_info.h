@@ -110,10 +110,11 @@ public:
    * use "isPure(theory) && !isQuantified()".
    */
   bool isPure(theory::TheoryId theory) const {
-    // the third conjuct is really just to rule out the misleading case where you ask
-    // isPure(THEORY_BOOL) and get true even in e.g. QF_LIA
+    // the third and fourth conjucts are really just to rule out the misleading
+    // case where you ask isPure(THEORY_BOOL) and get true even in e.g. QF_LIA
     return isTheoryEnabled(theory) && !isSharingEnabled() &&
-      ( !isTrueTheory(theory) || d_sharingTheories == 1 );
+      ( !isTrueTheory(theory) || d_sharingTheories == 1 ) &&
+      ( isTrueTheory(theory) || d_sharingTheories == 0 );
   }
 
   // these are for arithmetic
