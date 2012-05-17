@@ -24,6 +24,7 @@
 #include "context/context.h"
 #include "util/stats.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "expr/command.h"
 #include <sstream>
 
 namespace CVC4 {
@@ -345,6 +346,23 @@ public:
       Assert(checkApplies || applies(node));
       //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
+      if (result != node) {
+        if(Dump.isOn("bv-rewrites")) {
+          std::ostringstream os;
+          os << "RewriteRule <"<<rule<<">; expect unsat";
+
+          Node condition;
+          if (result.getType().isBoolean()) {
+            condition = node.iffNode(result).notNode();
+          } else {
+            condition = node.eqNode(result).notNode();
+          }
+
+          Dump("bv-rewrites")
+            << CommentCommand(os.str())
+            << CheckSatCommand(condition.toExpr());
+        }
+      }
       BVDebug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
       return result;
     } else {

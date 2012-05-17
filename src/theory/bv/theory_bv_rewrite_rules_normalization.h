@@ -46,10 +46,12 @@ Node RewriteRule<ExtractBitwise>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<ExtractBitwise>(" << node << ")" << std::endl;
   unsigned high = utils::getExtractHigh(node);
   unsigned low = utils::getExtractLow(node);
-  Node a = utils::mkExtract(node[0][0], high, low);
-  Node b = utils::mkExtract(node[0][1], high, low);
+  std::vector<Node> children; 
+  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
+    children.push_back(utils::mkExtract(node[0][i], high, low)); 
+  }
   Kind kind = node[0].getKind(); 
-  return utils::mkNode(kind, a, b);
+  return utils::mkSortedNode(kind, children);
 }
 
 /**
@@ -92,11 +94,12 @@ Node RewriteRule<ExtractArith>::apply(Node node) {
   unsigned low = utils::getExtractLow(node);
   Assert (low == 0); 
   unsigned high = utils::getExtractHigh(node);
-  Node a = utils::mkExtract(node[0][0], high, low);
-  Node b = utils::mkExtract(node[0][1], high, low);
-  
+  std::vector<Node> children;
+  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
+    children.push_back(utils::mkExtract(node[0][i], high, low)); 
+  }
   Kind kind = node[0].getKind(); 
-  return utils::mkNode(kind, a, b); 
+  return utils::mkNode(kind, children); 
   
 }
 
@@ -119,13 +122,14 @@ Node RewriteRule<ExtractArith2>::apply(Node node) {
   BVDebug("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")" << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
-  Node a = utils::mkExtract(node[0][0], high, 0);
-  Node b = utils::mkExtract(node[0][1], high, 0);
-  
+  std::vector<Node> children;
+  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
+    children.push_back(utils::mkExtract(node[0][i], high, 0)); 
+  }
   Kind kind = node[0].getKind(); 
-  Node a_op_b = utils::mkNode(kind, a, b); 
+  Node op_children = utils::mkSortedNode(kind, children); 
   
-  return utils::mkExtract(a_op_b, high, low); 
+  return utils::mkExtract(op_children, high, low); 
 }
 
 template<> inline

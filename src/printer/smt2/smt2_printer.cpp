@@ -85,11 +85,15 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
-      out << "#b";
       unsigned n = bv.getSize();
-      while(n-- > 0) {
-        out << (x.testBit(n) ? '1' : '0');
-      }
+      out << "(_ ";
+      out << "bv" << x <<" " << n; 
+      out << ")"; 
+      // //out << "#b";
+
+      // while(n-- > 0) {
+      //   out << (x.testBit(n) ? '1' : '0');
+      // }
       break;
     }
     case kind::CONST_BOOLEAN:
