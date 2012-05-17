@@ -35,6 +35,11 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+  while (!d_queue.empty()) {
+    TNode assertion = d_queue.front();
+    d_queue.pop();
+    d_theoryEngine->assertFact(assertion);
+  }
   d_theoryEngine->check(effort);
 }
 
@@ -70,7 +75,7 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
-  d_theoryEngine->assertFact(literalNode);
+  d_queue.push(literalNode);
 }
 
 SatLiteral TheoryProxy::getNextDecisionRequest(bool &stopSearch) {

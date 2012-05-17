@@ -29,6 +29,8 @@
 #include "util/options.h"
 #include "util/stats.h"
 
+#include "context/cdqueue.h"
+
 #include "prop/sat_solver.h"
 
 namespace CVC4 {
@@ -60,6 +62,9 @@ class TheoryProxy {
 
   /** Context we will be using to synchronzie the sat solver */
   context::Context* d_context;
+
+  /** Queue of asserted facts */
+  context::CDQueue<TNode> d_queue;
 
   /**
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
@@ -127,7 +132,8 @@ inline TheoryProxy::TheoryProxy(PropEngine* propEngine,
   d_cnfStream(cnfStream),
   d_decisionEngine(decisionEngine),
   d_theoryEngine(theoryEngine),
-  d_context(context)
+  d_context(context),
+  d_queue(context)
 {}
 
 }/* CVC4::prop namespace */
