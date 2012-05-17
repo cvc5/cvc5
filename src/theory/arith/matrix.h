@@ -410,7 +410,11 @@ public:
 protected:
 
   void addEntry(RowIndex row, ArithVar col, const T& coeff){
+    Debug("tableau") << "addEntry(" << row << "," << col <<"," << coeff << ")" << std::endl;
+
     Assert(coeff != 0);
+    Assert(row < d_rows.size());
+    Assert(col < d_columns.size());
 
     EntryID newId = d_entries.newEntry();
     Entry& newEntry = d_entries.get(newId);
@@ -418,7 +422,6 @@ protected:
 
     Assert(newEntry.getCoefficient() != 0);
 
-    Debug("tableau") << "addEntry(" << row << "," << col <<"," << coeff << ")" << std::endl;
 
     ++d_entriesInUse;
 
@@ -444,7 +447,7 @@ protected:
     entry.markBlank();
 
     d_entries.freeEntry(id);
-}
+  }
 
 public:
 
@@ -495,6 +498,7 @@ public:
     for(; varsIter != varsEnd; ++coeffIter, ++varsIter){
       const Rational& coeff = *coeffIter;
       ArithVar var_i = *varsIter;
+      Assert(var_i < getNumColumns());
       addEntry(ridx, var_i, coeff);
     }
 

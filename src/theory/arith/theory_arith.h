@@ -215,7 +215,7 @@ private:
    * If d >= s_TABLEAU_RESET_DENSITY * d_initialDensity, the tableau
    * is set to d_initialTableau.
    */
-  bool d_rowHasBeenAdded;
+  bool d_tableauSizeHasBeenModified;
   double d_tableauResetDensity;
   uint32_t d_tableauResetPeriod;
   static const uint32_t s_TABLEAU_RESET_INCREMENT = 5;

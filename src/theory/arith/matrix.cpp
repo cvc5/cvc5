@@ -391,6 +391,8 @@ void Tableau::addRow(ArithVar basic,
                      const std::vector<Rational>& coefficients,
                      const std::vector<ArithVar>& variables)
 {
+  Assert(basic < getNumColumns());
+
   Assert(coefficients.size() == variables.size() );
   Assert(!isBasic(basic));
 

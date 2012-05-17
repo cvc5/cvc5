@@ -67,7 +67,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_diosolver(c),
   d_pbSubstitutions(u),
   d_restartsCounter(0),
-  d_rowHasBeenAdded(false),
+  d_tableauSizeHasBeenModified(false),
   d_tableauResetDensity(1.6),
   d_tableauResetPeriod(10),
   d_conflicts(c),
@@ -695,7 +695,7 @@ void TheoryArith::setupPolynomial(const Polynomial& poly) {
   }
 
   if(polyNode.getKind() == PLUS){
-    d_rowHasBeenAdded = true;
+    d_tableauSizeHasBeenModified = true;
 
     vector<ArithVar> variables;
     vector<Rational> coefficients;
@@ -800,6 +800,7 @@ ArithVar TheoryArith::requestArithVar(TNode x, bool slack){
   d_arithvarNodeMap.setArithVar(x,varX);
 
   d_tableau.increaseSize();
+  d_tableauSizeHasBeenModified = true;
 
   d_constraintDatabase.addVariable(varX);
 
@@ -1568,23 +1569,17 @@ void TheoryArith::notifyRestart(){
 
   ++d_restartsCounter;
 
-  static const bool debugResetPolicy = false;
-
   uint32_t currSize = d_tableau.size();
   uint32_t copySize = d_smallTableauCopy.size();
 
-  if(debugResetPolicy){
-    cout << "curr " << currSize << " copy " << copySize << endl;
-  }
-  if(d_rowHasBeenAdded){
-    if(debugResetPolicy){
-      cout << "row has been added must copy " << d_restartsCounter << endl;
-    }
-    d_smallTableauCopy = d_tableau;
-    d_rowHasBeenAdded = false;
-  }
+  Debug("arith::reset") << "curr " << currSize << " copy " << copySize << endl;
+  Debug("arith::reset") << "tableauSizeHasBeenModified " << d_tableauSizeHasBeenModified << endl;
 
-  if(!d_rowHasBeenAdded && d_restartsCounter >= RESET_START){
+  if(d_tableauSizeHasBeenModified){
+    Debug("arith::reset") << "row has been added must copy " << d_restartsCounter << endl;
+    d_smallTableauCopy = d_tableau;
+    d_tableauSizeHasBeenModified = false;
+  }else if( d_restartsCounter >= RESET_START){
     if(copySize >= currSize * 1.1 ){
       ++d_statistics.d_smallerSetToCurr;
       d_smallTableauCopy = d_tableau;
