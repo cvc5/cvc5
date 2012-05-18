@@ -50,14 +50,16 @@ class IteTypeRule {
   public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
-    TypeNode iteType = n[1].getType(check);
+    TypeNode thenType = n[1].getType(check);
+    TypeNode elseType = n[2].getType(check);
+    TypeNode iteType = TypeNode::leastCommonTypeNode(thenType, elseType);
     if( check ) {
       TypeNode booleanType = nodeManager->booleanType();
       if (n[0].getType(check) != booleanType) {
         throw TypeCheckingExceptionPrivate(n, "condition of ITE is not Boolean");
       }
-      if (iteType != n[2].getType(check)) {
-        throw TypeCheckingExceptionPrivate(n, "both branches of the ITE must be of the same type");
+      if (iteType.isNull()) {
+        throw TypeCheckingExceptionPrivate(n, "both branches of the ITE must be a subtype of a common type.");
       }
     }
     return iteType;

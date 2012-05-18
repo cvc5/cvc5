@@ -573,9 +573,6 @@ public:
   /** Get the (singleton) type for reals. */
   inline TypeNode realType();
 
-  /** Get the (singleton) type for pseudobooleans. */
-  inline TypeNode pseudobooleanType();
-
   /** Get the (singleton) type for strings. */
   inline TypeNode stringType();
 

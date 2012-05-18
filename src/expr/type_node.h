@@ -159,9 +159,7 @@ public:
    * @return true if expressions are equal, false otherwise
    */
   bool operator==(const TypeNode& typeNode) const {
-    return
-      d_nv == typeNode.d_nv ||
-      (typeNode.isReal() && this->isReal());
+    return d_nv == typeNode.d_nv;
   }
 
   /**
@@ -595,7 +593,23 @@ public:
   /** Is this a kind type (i.e., the type of a type)? */
   bool isKind() const;
 
+
+  /**
+   * Returns the leastUpperBound in the extended type lattice of the two types.
+   * If this is \top, i.e. there is no inhabited type that contains both,
+   * a TypeNode such that isNull() is true is returned.
+   *
+   * For more information see: http://church.cims.nyu.edu/wiki/Cvc4_Type_Lattice
+   */
+  static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
+
 private:
+
+  /**
+   * Returns the leastUpperBound in the extended type lattice of two
+   * predicate subtypes.
+   */
+  static TypeNode leastCommonPredicateSubtype(TypeNode t0, TypeNode t1);
 
   /**
    * Indents the given stream a given amount of spaces.
@@ -940,7 +954,12 @@ inline unsigned TypeNode::getBitVectorSize() const {
 
 inline const SubrangeBounds& TypeNode::getSubrangeBounds() const {
   Assert(isSubrange());
-  return getConst<SubrangeBounds>();
+  if(getKind() == kind::SUBRANGE_TYPE){
+    return getConst<SubrangeBounds>();
+  }else{
+    Assert(isPredicateSubtype());
+    return getSubtypeBaseType().getSubrangeBounds();
+  }
 }
 
 #ifdef CVC4_DEBUG

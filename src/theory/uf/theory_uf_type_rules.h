@@ -42,13 +42,15 @@ public:
       TNode::iterator argument_it_end = n.end();
       TypeNode::iterator argument_type_it = fType.begin();
       for(; argument_it != argument_it_end; ++argument_it, ++argument_type_it) {
-        if((*argument_it).getType() != *argument_type_it) {
+        TypeNode currentArgument = (*argument_it).getType();
+        TypeNode currentArgumentType = *argument_type_it;
+        if(!currentArgument.isSubtypeOf(currentArgumentType)) {
           std::stringstream ss;
           ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
-             << "argument types do not match the function type:\n"
+             << "argument types is not a subtype of the function's argument type:\n"
              << "argument:  " << *argument_it << "\n"
              << "has type:  " << (*argument_it).getType() << "\n"
-             << "not equal: " << *argument_type_it;
+             << "not subtype: " << *argument_type_it;
           throw TypeCheckingExceptionPrivate(n, ss.str());
         }
       }

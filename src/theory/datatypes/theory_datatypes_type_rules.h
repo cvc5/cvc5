@@ -71,7 +71,8 @@ struct DatatypeConstructorTypeRule {
         for(; child_it != child_it_end; ++child_it, ++tchild_it) {
           TypeNode childType = (*child_it).getType(check);
           Debug("typecheck-idt") << "typecheck cons arg: " << childType << " " << (*tchild_it) << std::endl;
-          if(childType != *tchild_it) {
+          TypeNode argumentType = *tchild_it;
+          if(!childType.isSubtypeOf(argumentType)) {
             throw TypeCheckingExceptionPrivate(n, "bad type for constructor argument");
           }
         }

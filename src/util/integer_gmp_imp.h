@@ -400,10 +400,20 @@ public:
   }
 
   static void extendedGcd(Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b){
+    //see the documentation for:
     //mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, mpz_t a, mpz_t b);
     mpz_gcdext (g.d_value.get_mpz_t(), s.d_value.get_mpz_t(), t.d_value.get_mpz_t(), a.d_value.get_mpz_t(), b.d_value.get_mpz_t());
   }
 
+  /** Returns a reference to the minimum of two integers. */
+  static const Integer& min(const Integer& a, const Integer& b){
+    return (a <=b ) ? a : b;
+  }
+
+  /** Returns a reference to the maximum of two integers. */
+  static const Integer& max(const Integer& a, const Integer& b){
+    return (a >= b ) ? a : b;
+  }
 
   friend class CVC4::Rational;
 };/* class Integer */

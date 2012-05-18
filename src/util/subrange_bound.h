@@ -57,7 +57,7 @@ public:
   }
 
   /** Get the finite SubrangeBound, failing an assertion if infinite. */
-  Integer getBound() const throw(IllegalArgumentException) {
+  const Integer& getBound() const throw(IllegalArgumentException) {
     CheckArgument(!d_nobound, this, "SubrangeBound is infinite");
     return d_bound;
   }
@@ -130,6 +130,23 @@ public:
       ( hasBound() && b.hasBound() && getBound() <= b.getBound() );
   }
 
+
+  static SubrangeBound min(const SubrangeBound& a, const SubrangeBound& b){
+    if(a.hasBound() && b.hasBound()){
+      return SubrangeBound(Integer::min(a.getBound(), b.getBound()));
+    }else{
+      return SubrangeBound();
+    }
+  }
+
+ static SubrangeBound max(const SubrangeBound& a, const SubrangeBound& b){
+    if(a.hasBound() && b.hasBound()){
+      return SubrangeBound(Integer::max(a.getBound(), b.getBound()));
+    }else{
+      return SubrangeBound();
+    }
+ }
+
 };/* class SubrangeBound */
 
 class CVC4_PUBLIC SubrangeBounds {
@@ -190,6 +207,25 @@ public:
    */
   bool operator>=(const SubrangeBounds& bounds) const {
     return lower <= bounds.lower && upper >= bounds.upper;
+  }
+
+  /**
+   * Returns true if the join of two subranges is not (- infinity, + infinity).
+   */
+  static bool joinIsBounded(const SubrangeBounds& a, const SubrangeBounds& b){
+    return (a.lower.hasBound() && b.lower.hasBound()) ||
+      (a.upper.hasBound() && b.upper.hasBound());
+  }
+
+  /**
+   * Returns the join of two subranges, a and b.
+   * precondition: joinIsBounded(a,b) is true
+   */
+  static SubrangeBounds join(const SubrangeBounds& a, const SubrangeBounds& b){
+    Assert(joinIsBounded(a,b));
+    SubrangeBound newLower = SubrangeBound::min(a.lower, b.lower);
+    SubrangeBound newUpper = SubrangeBound::max(a.upper, b.upper);
+    return SubrangeBounds(newLower, newUpper);
   }
 
 };/* class SubrangeBounds */
