@@ -78,13 +78,11 @@ private:
 
   void postProcess(NodeBuilder<>& learned);
 
-  void replaceWithPseudoboolean(TNode var);
   void iteMinMax(TNode n, NodeBuilder<>& learned);
   void iteConstant(TNode n, NodeBuilder<>& learned);
 
   void miplibTrick(TNode var, std::set<Rational>& values, NodeBuilder<>& learned);
 
-  void checkBoundsForPseudobooleanReplacement(TNode n);
 
   /** These fields are designed to be accessable to ArithStaticLearner methods. */
   class Statistics {

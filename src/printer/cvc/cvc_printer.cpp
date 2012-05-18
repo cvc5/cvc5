@@ -101,11 +101,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       }
       break;
     }
-    case kind::CONST_PSEUDOBOOLEAN: {
-      const Pseudoboolean& num = n.getConst<Pseudoboolean>();
-      out << num;
-      break;
-    }
     case kind::SUBRANGE_TYPE:
       out << '[' << n.getConst<SubrangeBounds>() << ']';
       break;
@@ -122,9 +117,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
         break;
       case BOOLEAN_TYPE:
         out << "BOOLEAN";
-        break;
-      case PSEUDOBOOLEAN_TYPE:
-        out << "PSEUDOBOOLEAN";
         break;
       case KIND_TYPE:
         out << "TYPE";

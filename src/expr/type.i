@@ -17,7 +17,6 @@
 %rename(toBooleanType) CVC4::Type::operator BooleanType() const;
 %rename(toIntegerType) CVC4::Type::operator IntegerType() const;
 %rename(toRealType) CVC4::Type::operator RealType() const;
-%rename(toPseudobooleanType) CVC4::Type::operator PseudobooleanType() const;
 %rename(toStringType) CVC4::Type::operator StringType() const;
 %rename(toBitVectorType) CVC4::Type::operator BitVectorType() const;
 %rename(toFunctionType) CVC4::Type::operator FunctionType() const;

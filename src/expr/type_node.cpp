@@ -77,10 +77,6 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   }
   if(getKind() == kind::TYPE_CONSTANT) {
     switch(getConst<TypeConstant>()) {
-    case PSEUDOBOOLEAN_TYPE:
-      return t.getKind() == kind::TYPE_CONSTANT &&
-        ( t.getConst<TypeConstant>() == BOOLEAN_TYPE ||
-          t.getConst<TypeConstant>() == INTEGER_TYPE );
     case INTEGER_TYPE:
       return t.getKind() == kind::TYPE_CONSTANT && t.getConst<TypeConstant>() == REAL_TYPE;
     default:

@@ -199,21 +199,6 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
   }
 }
 
-void ArithStaticLearner::replaceWithPseudoboolean(TNode var) {
-  AssertArgument(var.getMetaKind() == kind::metakind::VARIABLE, var);
-  // [MGD 10/21/2011] disable pseudobooleans for now (as discussed in today's meeting)
-  /*
-  TypeNode pbType = NodeManager::currentNM()->pseudobooleanType();
-  Node pbVar = NodeManager::currentNM()->mkVar(string("PB[") + var.toString() + ']', pbType);
-  d_pbSubstitutions.addSubstitution(var, pbVar);
-
-  if(Debug.isOn("pb")) {
-    Expr::printtypes::Scope pts(Debug("pb"), true);
-    Debug("pb") << "will replace " << var << " with " << pbVar << endl;
-  }
-  */
-}
-
 void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
   Assert(n.getKind() == kind::ITE);
   Assert(n[0].getKind() != EQUAL);
@@ -399,27 +384,6 @@ void ArithStaticLearner::miplibTrick(TNode var, set<Rational>& values, NodeBuild
   }
 }
 
-void ArithStaticLearner::checkBoundsForPseudobooleanReplacement(TNode n) {
-  NodeToMinMaxMap::iterator minFind = d_minMap.find(n);
-  NodeToMinMaxMap::iterator maxFind = d_maxMap.find(n);
-
-  if( n.getType().isInteger() &&
-      minFind != d_minMap.end() &&
-      maxFind != d_maxMap.end() &&
-      ( ( (*minFind).second.getNoninfinitesimalPart() == 1 &&
-          (*minFind).second.getInfinitesimalPart() == 0 ) ||
-        ( (*minFind).second.getNoninfinitesimalPart() == 0 &&
-          (*minFind).second.getInfinitesimalPart() > 0 ) ) &&
-      ( ( (*maxFind).second.getNoninfinitesimalPart() == 1 &&
-          (*maxFind).second.getInfinitesimalPart() == 0 ) ||
-        ( (*maxFind).second.getNoninfinitesimalPart() == 2 &&
-          (*maxFind).second.getInfinitesimalPart() < 0 ) ) ) {
-    // eligible for pseudoboolean replacement
-    Debug("pb") << "eligible for pseudoboolean replacement: " << n << endl;
-    replaceWithPseudoboolean(n);
-  }
-}
-
 void ArithStaticLearner::addBound(TNode n) {
 
   NodeToMinMaxMap::iterator minFind = d_minMap.find(n[0]);
@@ -436,7 +400,6 @@ void ArithStaticLearner::addBound(TNode n) {
     if (maxFind == d_maxMap.end() || maxFind->second > bound) {
       d_maxMap[n[0]] = bound;
       Debug("arith::static") << "adding bound " << n << endl;
-      checkBoundsForPseudobooleanReplacement(n[0]);
     }
     break;
   case kind::GT:
@@ -446,7 +409,6 @@ void ArithStaticLearner::addBound(TNode n) {
     if (minFind == d_minMap.end() || minFind->second < bound) {
       d_minMap[n[0]] = bound;
       Debug("arith::static") << "adding bound " << n << endl;
-      checkBoundsForPseudobooleanReplacement(n[0]);
     }
     break;
   default:

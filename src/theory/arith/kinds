@@ -34,12 +34,6 @@ sort INTEGER_TYPE \
         "NodeManager::currentNM()->mkConst(Rational(0))" \
         "expr/node_manager.h" \
     "Integer type"
-sort PSEUDOBOOLEAN_TYPE \
-    2 \
-    well-founded \
-        "NodeManager::currentNM()->mkConst(Pseudoboolean(0))" \
-        "expr/node_manager.h" \
-    "Pseudoboolean type"
 
 constant SUBRANGE_TYPE \
     ::CVC4::SubrangeBounds \
@@ -59,12 +53,6 @@ constant CONST_RATIONAL \
     ::CVC4::RationalHashStrategy \
     "util/rational.h" \
     "a multiple-precision rational constant"
-
-constant CONST_PSEUDOBOOLEAN \
-    ::CVC4::Pseudoboolean \
-    ::CVC4::PseudobooleanHashStrategy \
-    "util/pseudoboolean.h" \
-    "a pseudoboolean constant"
 
 operator LT 2 "less than, x < y"
 operator LEQ 2 "less than or equal, x <= y"

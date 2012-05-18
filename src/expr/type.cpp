@@ -224,19 +224,6 @@ Type::operator RealType() const throw(AssertionException) {
   return RealType(*this);
 }
 
-/** Is this the pseudoboolean type? */
-bool Type::isPseudoboolean() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isPseudoboolean();
-}
-
-/** Cast to a pseudoboolean type */
-Type::operator PseudobooleanType() const throw(AssertionException) {
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isNull() || isPseudoboolean());
-  return PseudobooleanType(*this);
-}
-
 /** Is this the string type? */
 bool Type::isString() const {
   NodeManagerScope nms(d_nodeManager);
@@ -507,11 +494,6 @@ IntegerType::IntegerType(const Type& t) throw(AssertionException) :
 RealType::RealType(const Type& t) throw(AssertionException) :
   Type(t) {
   Assert(isNull() || isReal());
-}
-
-PseudobooleanType::PseudobooleanType(const Type& t) throw(AssertionException) :
-  Type(t) {
-  Assert(isNull() || isPseudoboolean());
 }
 
 StringType::StringType(const Type& t) throw(AssertionException) :

@@ -465,9 +465,6 @@ public:
   /** Is this the Real type? */
   bool isReal() const;
 
-  /** Is this the Pseudoboolean type? */
-  bool isPseudoboolean() const;
-
   /** Is this the String type? */
   bool isString() const;
 
@@ -792,7 +789,6 @@ inline void TypeNode::printAst(std::ostream& out, int indent) const {
 inline bool TypeNode::isBoolean() const {
   return
     ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE ) ||
-      isPseudoboolean() ||
     ( isPredicateSubtype() && getSubtypeBaseType().isBoolean() );
 }
 
@@ -800,7 +796,6 @@ inline bool TypeNode::isInteger() const {
   return
     ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE ) ||
     isSubrange() ||
-    isPseudoboolean() ||
     ( isPredicateSubtype() && getSubtypeBaseType().isInteger() );
 }
 
@@ -811,20 +806,13 @@ inline bool TypeNode::isReal() const {
     ( isPredicateSubtype() && getSubtypeBaseType().isReal() );
 }
 
-inline bool TypeNode::isPseudoboolean() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == PSEUDOBOOLEAN_TYPE ) ||
-    ( isPredicateSubtype() && getSubtypeBaseType().isPseudoboolean() );
-}
-
 inline bool TypeNode::isString() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == STRING_TYPE;
 }
 
 inline bool TypeNode::isArray() const {
-  return getKind() == kind::ARRAY_TYPE ||
-    ( isPredicateSubtype() && getSubtypeBaseType().isPseudoboolean() );
+  return getKind() == kind::ARRAY_TYPE;
 }
 
 inline TypeNode TypeNode::getArrayIndexType() const {

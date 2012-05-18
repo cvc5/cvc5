@@ -234,7 +234,7 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
   Assert(!isTranslated(node), "atom already mapped!");
   // boolean variables are not theory literals
-  bool theoryLiteral = node.getKind() != kind::VARIABLE && !node.getType().isPseudoboolean();
+  bool theoryLiteral = node.getKind() != kind::VARIABLE;
   SatLiteral lit = newLiteral(node, theoryLiteral);
 
   if(node.getKind() == kind::CONST_BOOLEAN) {

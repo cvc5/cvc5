@@ -72,8 +72,6 @@ libutil_la_SOURCES = \
 	boolean_simplification.cpp \
 	ite_removal.h \
 	ite_removal.cpp \
-	pseudoboolean.h \
-	pseudoboolean.cpp \
 	node_visitor.h \
 	index.h
 
@@ -171,7 +169,6 @@ EXTRA_DIST = \
 	options.i \
 	ascription_type.i \
 	rational.i \
-	pseudoboolean.i \
 	hash.i
 
 MOSTLYCLEANFILES = \
