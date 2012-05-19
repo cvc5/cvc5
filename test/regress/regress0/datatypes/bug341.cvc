@@ -1,0 +1,6 @@
+% EXPECT: invalid
+% EXIT: 10
+
+f : [0..2] ->  INT;
+
+QUERY( f(0) = 0 );
