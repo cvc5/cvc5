@@ -64,7 +64,8 @@ public:
         }
       }
     }
-    return (isInteger ? integerType : realType);
+    bool isDivision = n.getKind() == kind::DIVISION;
+    return (isInteger && !isDivision ? integerType : realType);
   }
 };/* class ArithOperatorTypeRule */
 

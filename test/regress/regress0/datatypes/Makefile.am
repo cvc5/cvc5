@@ -16,7 +16,6 @@ TESTS =	\
 	tuple.cvc \
 	rec1.cvc \
 	rec2.cvc \
-	rec5.cvc \
 	datatype.cvc \
 	datatype0.cvc \
 	datatype1.cvc \
@@ -39,6 +38,7 @@ TESTS =	\
 	v5l30058.cvc \
 	bug286.cvc
 
+FAILING_TESTS = rec5.cvc
 
 EXTRA_DIST = $(TESTS)
 

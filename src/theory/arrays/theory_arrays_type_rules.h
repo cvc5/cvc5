@@ -35,7 +35,7 @@ struct ArraySelectTypeRule {
         throw TypeCheckingExceptionPrivate(n, "array select operating on non-array");
       }
       TypeNode indexType = n[1].getType(check);
-      if(arrayType.getArrayIndexType() != indexType) {
+      if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
         throw TypeCheckingExceptionPrivate(n, "array select not indexed with correct type for array");
       }
     }
@@ -54,10 +54,12 @@ struct ArrayStoreTypeRule {
       }
       TypeNode indexType = n[1].getType(check);
       TypeNode valueType = n[2].getType(check);
-      if(arrayType.getArrayIndexType() != indexType) {
+      if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
         throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
       }
-      if(arrayType.getArrayConstituentType() != valueType) {
+      if(!valueType.isSubtypeOf(arrayType.getArrayConstituentType())){
+	Debug("array-types") << "array type: "<< arrayType.getArrayConstituentType() << std::endl;
+	Debug("array-types") << "value types: " << valueType << std::endl;
         throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");
       }
     }
@@ -79,11 +81,11 @@ struct ArrayTableFunTypeRule {
         throw TypeCheckingExceptionPrivate(n, "array table fun arg 1 is non-array");
       }
       TypeNode indexType = n[2].getType(check);
-      if(arrayType.getArrayIndexType() != indexType) {
+      if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
         throw TypeCheckingExceptionPrivate(n, "array table fun arg 2 does not match type of array");
       }
       indexType = n[3].getType(check);
-      if(arrayType.getArrayIndexType() != indexType) {
+      if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
         throw TypeCheckingExceptionPrivate(n, "array table fun arg 3 does not match type of array");
       }
     }
