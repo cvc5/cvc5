@@ -62,7 +62,14 @@ void EqualityEngine::init() {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
   addTerm(d_true);
   addTerm(d_false);
+
+  d_triggerDatabaseAllocatedSize = 100000;
+  d_triggerDatabase = (char*) malloc(d_triggerDatabaseAllocatedSize);
 } 
+
+EqualityEngine::~EqualityEngine() throw(AssertionException) {
+  free(d_triggerDatabase);
+}
 
 
 EqualityEngine::EqualityEngine(context::Context* context, std::string name) 
@@ -74,10 +81,11 @@ EqualityEngine::EqualityEngine(context::Context* context, std::string name)
 , d_nodesCount(context, 0)
 , d_assertedEqualitiesCount(context, 0)
 , d_equalityTriggersCount(context, 0)
-, d_individualTriggersSize(context, 0)
 , d_constantRepresentativesSize(context, 0)
 , d_constantsSize(context, 0)
 , d_stats(name)
+, d_triggerDatabaseSize(context, 0)
+, d_triggerTermSetUpdatesSize(context, 0)
 {
   init();
 }
@@ -91,10 +99,11 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
 , d_nodesCount(context, 0)
 , d_assertedEqualitiesCount(context, 0)
 , d_equalityTriggersCount(context, 0)
-, d_individualTriggersSize(context, 0)
 , d_constantRepresentativesSize(context, 0)
 , d_constantsSize(context, 0)
 , d_stats(name)
+, d_triggerDatabaseSize(context, 0)
+, d_triggerTermSetUpdatesSize(context, 0)
 {
   init();
 }
@@ -162,7 +171,7 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   // Add it to the equality graph
   d_equalityGraph.push_back(+null_edge);
   // Mark the no-individual trigger
-  d_nodeIndividualTrigger.push_back(+null_id);
+  d_nodeIndividualTrigger.push_back(+null_set_id);
   // Mark non-constant by default
   d_constantRepresentative.push_back(node.isConst() ? newId : +null_id);
   // Add the equality node to the nodes
@@ -423,22 +432,67 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   }
 
   // Notify the trigger term merges
-  EqualityNodeId class2triggerId = d_nodeIndividualTrigger[class2Id];
-  if (class2triggerId != +null_id) {
-    EqualityNodeId class1triggerId = d_nodeIndividualTrigger[class1Id];
-    if (class1triggerId == +null_id) {
-      // If class1 is not an individual trigger, but class2 is, mark it
-      d_nodeIndividualTrigger[class1Id] = class2triggerId;
+  TriggerTermSetRef class2triggerRef = d_nodeIndividualTrigger[class2Id];
+  if (class2triggerRef != +null_set_id) {
+    TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
+    if (class1triggerRef == +null_set_id) {
+      // If class1 doesn't have individual triggers, but class2 does, mark it
+      d_nodeIndividualTrigger[class1Id] = class2triggerRef;
       // Add it to the list for backtracking
-      d_individualTriggers.push_back(class1Id);
-      d_individualTriggersSize = d_individualTriggersSize + 1;  
+      d_triggerTermSetUpdates.push_back(TriggerSetUpdate(class1Id, +null_set_id));
+      d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
     } else {
-      // Notify when done
-      if (d_performNotify) {
-        if (!d_notify.eqNotifyTriggerTermEquality(d_nodes[class1triggerId], d_nodes[class2triggerId], true)) {
-          return false;
+      // Get the triggers
+      TriggerTermSet& class1triggers = getTriggerTermSet(class1triggerRef);
+      TriggerTermSet& class2triggers = getTriggerTermSet(class2triggerRef);
+      
+      // Initialize the merged set
+      d_newSetTags = Theory::setUnion(class1triggers.tags, class2triggers.tags);
+      d_newSetTriggersSize = 0;
+      
+      int i1 = 0;
+      int i2 = 0;
+      Theory::Set tags1 = class1triggers.tags;
+      Theory::Set tags2 = class2triggers.tags;
+      TheoryId tag1 = Theory::setPop(tags1);
+      TheoryId tag2 = Theory::setPop(tags2);
+      
+      // Comparing the THEORY_LAST is OK because all other theories are
+      // smaller, and will therefore be preferred
+      while (tag1 != THEORY_LAST || tag2 != THEORY_LAST) 
+      {
+        if (tag1 < tag2) {
+          // copy tag1 
+          d_newSetTriggers[d_newSetTriggersSize++] = class1triggers.triggers[i1++];
+          tag1 = Theory::setPop(tags1);
+        } else if (tag1 > tag2) {
+          // copy tag2
+          d_newSetTriggers[d_newSetTriggersSize++] = class2triggers.triggers[i2++];
+          tag2 = Theory::setPop(tags2);
+        } else {
+          // copy tag1 
+          EqualityNodeId tag1id = d_newSetTriggers[d_newSetTriggersSize++] = class1triggers.triggers[i1++];
+          // since they are both tagged notify of merge
+          if (d_performNotify) {
+            EqualityNodeId tag2id = class2triggers.triggers[i2++];
+            if (!d_notify.eqNotifyTriggerTermEquality(tag1, d_nodes[tag1id], d_nodes[tag2id], true)) {
+              return false;
+            }
+          }
+          // Next tags
+          tag1 = Theory::setPop(tags1);
+          tag2 = Theory::setPop(tags2);
         }
-      }
+      }   
+      
+      // Add the new trigger set, if different from previous one
+      if (class1triggers.tags != class2triggers.tags) {
+        // Add it to the list for backtracking
+        d_triggerTermSetUpdates.push_back(TriggerSetUpdate(class1Id, class1triggerRef));
+        d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
+        // Mark the the new set as a trigger 
+        d_nodeIndividualTrigger[class1Id] = newTriggerTermSet();
+      }  
     }	
   }
 
@@ -513,12 +567,13 @@ void EqualityEngine::backtrack() {
     d_equalityEdges.resize(2 * d_assertedEqualitiesCount);
   }
 
-  if (d_individualTriggers.size() > d_individualTriggersSize) {
+  if (d_triggerTermSetUpdates.size() > d_triggerTermSetUpdatesSize) {
     // Unset the individual triggers
-    for (int i = d_individualTriggers.size() - 1, i_end = d_individualTriggersSize; i >= i_end; -- i) {
-      d_nodeIndividualTrigger[d_individualTriggers[i]] = +null_id;
+    for (int i = d_triggerTermSetUpdates.size() - 1, i_end = d_triggerTermSetUpdatesSize; i >= i_end; -- i) {
+      const TriggerSetUpdate& update = d_triggerTermSetUpdates[i];
+      d_nodeIndividualTrigger[update.classId] = update.oldValue;
     }
-    d_individualTriggers.resize(d_individualTriggersSize);
+    d_triggerTermSetUpdates.resize(d_triggerTermSetUpdatesSize);
   }
   
   if (d_constantRepresentatives.size() > d_constantRepresentativesSize) {
@@ -935,9 +990,10 @@ size_t EqualityEngine::getSize(TNode t)
   return getEqualityNode(getEqualityNode(t).getFind()).getSize();
 }
 
-void EqualityEngine::addTriggerTerm(TNode t)
+void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
 {
-  Debug("equality::internal") << "EqualityEngine::addTriggerTerm(" << t << ")" << std::endl;
+  Debug("equality::internal") << "EqualityEngine::addTriggerTerm(" << t << ", " << tag << ")" << std::endl;
+  Assert(tag != THEORY_LAST);
 
   // Add the term if it's not already there
   addTerm(t);
@@ -947,31 +1003,67 @@ void EqualityEngine::addTriggerTerm(TNode t)
   EqualityNode& eqNode = getEqualityNode(eqNodeId);
   EqualityNodeId classId = eqNode.getFind();
 
-  if (d_nodeIndividualTrigger[classId] != +null_id) {  
-    // No need to keep it, just propagate the existing individual triggers
+  // Possibly existing set of triggers
+  TriggerTermSetRef triggerSetRef = d_nodeIndividualTrigger[classId];
+  if (triggerSetRef != +null_set_id && getTriggerTermSet(triggerSetRef).hasTrigger(tag)) {
+    // If the term already is in the equivalence class that a tagged representative, just notify
     if (d_performNotify) {
-      d_notify.eqNotifyTriggerTermEquality(t, d_nodes[d_nodeIndividualTrigger[classId]], true);
+      EqualityNodeId triggerId = getTriggerTermSet(triggerSetRef).getTrigger(tag);
+      d_notify.eqNotifyTriggerTermEquality(tag, t, d_nodes[triggerId], true);
     }
   } else {
+
+    // Setup the data for the new set
+    if (triggerSetRef != null_set_id) {
+      // Get the existing set
+      TriggerTermSet& triggerSet = getTriggerTermSet(triggerSetRef);
+      // Initialize the new set for copy/insert
+      d_newSetTags = Theory::setInsert(tag, triggerSet.tags);
+      d_newSetTriggersSize = 0;
+      // Copy into to new one, and insert the new tag/id      
+      unsigned i = 0;
+      Theory::Set tags = d_newSetTags;
+      TheoryId current; 
+      while ((current = Theory::setPop(tags)) != THEORY_LAST) {
+        // Remove from the tags
+        tags = Theory::setRemove(current, tags);
+        // Insert the id into the triggers
+        d_newSetTriggers[d_newSetTriggersSize++] = 
+          current == tag ? eqNodeId : triggerSet.triggers[i++];
+      }
+    } else {
+      // Setup a singleton 
+      d_newSetTags = Theory::setInsert(tag);
+      d_newSetTriggers[0] = eqNodeId;
+      d_newSetTriggersSize = 1;
+    }
+
     // Add it to the list for backtracking
-    d_individualTriggers.push_back(classId);
-    d_individualTriggersSize = d_individualTriggersSize + 1; 
-    // Mark the class id as a trigger
-    d_nodeIndividualTrigger[classId] = eqNodeId;
+    d_triggerTermSetUpdates.push_back(TriggerSetUpdate(classId, triggerSetRef));
+    d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
+    // Mark the the new set as a trigger 
+    d_nodeIndividualTrigger[classId] = newTriggerTermSet();
   }
 }
 
-bool EqualityEngine::isTriggerTerm(TNode t) const {
+bool EqualityEngine::isTriggerTerm(TNode t, TheoryId tag) const {
   if (!hasTerm(t)) return false;
   EqualityNodeId classId = getEqualityNode(t).getFind();
-  return d_nodeIndividualTrigger[classId] != +null_id;
+  TriggerTermSetRef triggerSetRef = d_nodeIndividualTrigger[classId];
+  return triggerSetRef != +null_set_id && getTriggerTermSet(triggerSetRef).hasTrigger(tag);
 }
 
 
-TNode EqualityEngine::getTriggerTermRepresentative(TNode t) const {
-  Assert(isTriggerTerm(t));
+TNode EqualityEngine::getTriggerTermRepresentative(TNode t, TheoryId tag) const {
+  Assert(isTriggerTerm(t, tag));
   EqualityNodeId classId = getEqualityNode(t).getFind();
-  return d_nodes[d_nodeIndividualTrigger[classId]];
+  const TriggerTermSet& triggerSet = getTriggerTermSet(d_nodeIndividualTrigger[classId]);
+  unsigned i = 0;
+  Theory::Set tags = triggerSet.tags;
+  while (Theory::setPop(tags) != tag) {
+    ++ i;
+  }
+  return d_nodes[triggerSet.triggers[i]];
 }
 
 void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId) {
@@ -1009,6 +1101,31 @@ void EqualityEngine::getUseListTerms(TNode t, std::set<TNode>& output) {
     } while (currentId != classId);
   }
 }
+
+EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet() {
+  // Size of the required set
+  size_t size = sizeof(TriggerTermSet) + d_newSetTriggersSize*sizeof(EqualityNodeId);
+  // Align the size
+  size = (size + 7) & ~((size_t)7);
+  // Reallocate if necessary
+  if (d_triggerDatabaseSize + size > d_triggerDatabaseAllocatedSize) {
+    d_triggerDatabaseAllocatedSize *= 2;
+    d_triggerDatabase = (char*) realloc(d_triggerDatabase, d_triggerDatabaseAllocatedSize);
+  }
+  // New reference
+  TriggerTermSetRef newTriggerSetRef = d_triggerDatabaseSize;
+  // Update the size
+  d_triggerDatabaseSize = d_triggerDatabaseSize + size;
+  // Copy the information
+  TriggerTermSet& newSet = getTriggerTermSet(newTriggerSetRef);
+  newSet.tags = d_newSetTags;
+  for (unsigned i = 0; i < d_newSetTriggersSize; ++i) {
+    newSet.triggers[i] = d_newSetTriggers[i];
+  }
+  // Return the new reference
+  return newTriggerSetRef;
+}
+
 
 } // Namespace uf
 } // Namespace theory

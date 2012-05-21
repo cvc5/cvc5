@@ -32,6 +32,7 @@
 #include "util/output.h"
 #include "util/stats.h"
 #include "theory/rewriter.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -244,11 +245,12 @@ public:
   /**
    * Notifies about the merge of two trigger terms.
    *
+   * @param tag the theory that both triggers were tagged with
    * @param t1 a term marked as trigger
    * @param t2 a term marked as trigger
    * @param value true if equal, false if dis-equal
    */
-  virtual bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) = 0;
+  virtual bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) = 0;
 
   /**
    * Notifies about the merge of two constant terms.
@@ -267,7 +269,7 @@ class EqualityEngineNotifyNone : public EqualityEngineNotify {
 public:
   bool eqNotifyTriggerEquality(TNode equality, bool value) { return true; }
   bool eqNotifyTriggerPredicate(TNode predicate, bool value) { return true; }
-  bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) { return true; }
+  bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) { return true; }
   bool eqNotifyConstantTermMerge(TNode t1, TNode t2) { return true; }
 };
 
@@ -557,21 +559,6 @@ private:
   std::vector<TriggerId> d_nodeTriggers;
 
   /**
-   * List of terms that are marked as individual triggers.
-   */
-  std::vector<EqualityNodeId> d_individualTriggers;
-
-  /**
-   * Size of the individual triggers list.
-   */
-  context::CDO<unsigned> d_individualTriggersSize;
-
-  /** 
-   * Map from ids to the individual trigger id representative. 
-   */
-  std::vector<EqualityNodeId> d_nodeIndividualTrigger;
-
-  /**
    * Map from ids to the id of the constant that is the representative.
    */
   std::vector<EqualityNodeId> d_constantRepresentative;
@@ -666,6 +653,81 @@ private:
    */
   void init();
 
+  /** Set of trigger terms */
+  struct TriggerTermSet {
+    /** Set of theories in this set */
+    Theory::Set tags;
+    /** The trigger terms */
+    EqualityNodeId triggers[0];
+    /** Returns the theory tags */
+    Theory::Set hasTrigger(TheoryId tag) const { return Theory::setContains(tag, tags); }
+    /** Returns a trigger by tag */
+    EqualityNodeId getTrigger(TheoryId tag) const {
+      return triggers[Theory::setIndex(tag, tags)];
+    }
+  };
+
+  /** Internal tags for creating a new set */
+  Theory::Set d_newSetTags;
+  
+  /** Internal triggers for creating a new set */
+  EqualityNodeId d_newSetTriggers[THEORY_LAST];
+  
+  /** Size of the internal triggers array */
+  unsigned d_newSetTriggersSize; 
+
+  /** The information about trigger terms is stored in this easily maintained memory. */
+  char* d_triggerDatabase;
+
+  /** Allocated size of the trigger term database */
+  size_t d_triggerDatabaseAllocatedSize ;
+
+  /** Reference for the trigger terms set */
+  typedef size_t TriggerTermSetRef;
+
+  /** Null reference */
+  static const TriggerTermSetRef null_set_id = (size_t)(-1);
+
+  /** Create new trigger term set based on the internally set information */
+  TriggerTermSetRef newTriggerTermSet();
+
+  /** Get the trigger set give a reference */
+  TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) {
+    Assert(ref < d_triggerDatabaseSize);
+    return *(reinterpret_cast<TriggerTermSet*>(d_triggerDatabase + ref));
+  }
+
+  /** Get the trigger set give a reference */
+  const TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) const {
+    Assert(ref < d_triggerDatabaseSize);
+    return *(reinterpret_cast<const TriggerTermSet*>(d_triggerDatabase + ref));
+  }
+
+  /** Used part of the trigger term database */
+  context::CDO<size_t> d_triggerDatabaseSize;
+
+  struct TriggerSetUpdate {
+    EqualityNodeId classId;
+    TriggerTermSetRef oldValue;
+    TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id) 
+    : classId(classId), oldValue(oldValue) {}
+  };
+
+  /**
+   * List of trigger updates for backtracking.
+   */
+  std::vector<TriggerSetUpdate> d_triggerTermSetUpdates;
+
+  /**
+   * Size of the individual triggers list.
+   */
+  context::CDO<unsigned> d_triggerTermSetUpdatesSize;
+
+  /**
+   * Map from ids to the individual trigger set representatives.
+   */
+  std::vector<TriggerTermSetRef> d_nodeIndividualTrigger;
+
 public:
 
   /**
@@ -681,7 +743,7 @@ public:
   /**
    * Just a destructor.
    */
-  virtual ~EqualityEngine() throw(AssertionException) {}
+  virtual ~EqualityEngine() throw(AssertionException);
 
   /**
    * Adds a term to the term database.
@@ -764,25 +826,29 @@ public:
   void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions);
 
   /**
-   * Add term to the trigger terms. The notify class will get notified 
-   * when two trigger terms become equal or dis-equal. The notification
-   * will not happen on all the terms, but only on the ones that are 
-   * represent the class.
+   * Add term to the set of trigger terms with a corresponding tag. The notify class will get
+   * notified when two trigger terms with the same tag become equal or dis-equal. The notification
+   * will not happen on all the terms, but only on the ones that are represent the class. Note that
+   * a term can be added more than once with different tags, and each tag apperance will merit
+   * it's own notification.
+   *
+   * @param t the trigger term
+   * @param tag tag for this trigger (do NOT use THEORY_LAST)
    */
-  void addTriggerTerm(TNode t);
+  void addTriggerTerm(TNode t, TheoryId theoryTag);
 
   /**
    * Returns true if t is a trigger term or in the same equivalence 
    * class as some other trigger term.
    */
-  bool isTriggerTerm(TNode t) const;
+  bool isTriggerTerm(TNode t, TheoryId theoryTag) const;
 
   /**
    * Returns the representative trigger term of the given term.
    *
    * @param t the term to check where isTriggerTerm(t) should be true
    */
-  TNode getTriggerTermRepresentative(TNode t) const;
+  TNode getTriggerTermRepresentative(TNode t, TheoryId theoryTag) const;
 
   /**
    * Adds a notify trigger for equality. When equality becomes true eqNotifyTriggerEquality

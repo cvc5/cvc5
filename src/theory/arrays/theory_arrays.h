@@ -241,7 +241,7 @@ class TheoryArrays : public Theory {
       Unreachable();
     }
 
-    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
       Debug("arrays") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
         if (t1.getType().isArray()) {

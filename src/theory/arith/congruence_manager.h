@@ -56,7 +56,7 @@ private:
       Unreachable();
     }
 
-    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
       Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         return d_acm.propagate(t1.eqNode(t2));

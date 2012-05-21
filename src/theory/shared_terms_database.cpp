@@ -58,7 +58,7 @@ void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, Theory::Set theo
     d_addedSharedTermsSize = d_addedSharedTermsSize + 1;
     d_termsToTheories[search_pair] = theories;
     if (!d_equalityEngine.hasTerm(term)) {
-      d_equalityEngine.addTriggerTerm(term);
+      d_equalityEngine.addTriggerTerm(term, THEORY_UF);
     }
   } else {
     Assert(theories != (*find).second);

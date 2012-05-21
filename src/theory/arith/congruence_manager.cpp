@@ -300,7 +300,7 @@ void ArithCongruenceManager::equalsConstant(Constraint lb, Constraint ub){
 }
 
 void ArithCongruenceManager::addSharedTerm(Node x){
-  d_ee.addTriggerTerm(x);
+  d_ee.addTriggerTerm(x, THEORY_ARITH);
 }
 
 }/* CVC4::theory::arith namespace */

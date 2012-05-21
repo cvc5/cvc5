@@ -345,7 +345,7 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
 
 void TheoryUF::addSharedTerm(TNode t) {
   Debug("uf::sharing") << "TheoryUF::addSharedTerm(" << t << ")" << std::endl;
-  d_equalityEngine.addTriggerTerm(t);
+  d_equalityEngine.addTriggerTerm(t, THEORY_UF);
 }
 
 void TheoryUF::computeCareGraph() {
@@ -405,14 +405,14 @@ void TheoryUF::computeCareGraph() {
             continue;
           }
 
-          if (!d_equalityEngine.isTriggerTerm(x) || !d_equalityEngine.isTriggerTerm(y)) {
+          if (!d_equalityEngine.isTriggerTerm(x, THEORY_UF) || !d_equalityEngine.isTriggerTerm(y, THEORY_UF)) {
             // Not connected to shared terms, we don't care
             continue;
           }
 
           // Get representative trigger terms
-          TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x);
-          TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y);
+          TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_UF);
+          TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_UF);
 
           EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
           switch (eqStatusDomain) {

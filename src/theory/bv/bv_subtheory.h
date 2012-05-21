@@ -102,7 +102,7 @@ class EqualitySolver : public SubtheorySolver {
     NotifyClass(TheoryBV* bv): d_bv(bv) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value);
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
-    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value); 
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     bool eqNotifyConstantTermMerge(TNode t1, TNode t2);
 };
 
@@ -121,7 +121,7 @@ public:
   bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   void  addSharedTerm(TNode t) {
-    d_equalityEngine.addTriggerTerm(t);
+    d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }
   EqualityStatus getEqualityStatus(TNode a, TNode b) {
     if (d_equalityEngine.areEqual(a, b)) {

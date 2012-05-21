@@ -420,7 +420,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
   case kind::STORE: {
     // Invariant: array terms should be preregistered before being added to the equality engine
     Assert(!d_equalityEngine.hasTerm(node));
-    d_equalityEngine.addTriggerTerm(node);
+    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
 
     TNode a = node[0];
     //    TNode i = node[1];
@@ -446,7 +446,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
   default:
     // Variables etc
     if (node.getType().isArray()) {
-      d_equalityEngine.addTriggerTerm(node);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
       Assert(d_equalityEngine.getSize(node) == 1);
     }
     else {
@@ -504,7 +504,7 @@ Node TheoryArrays::explain(TNode literal)
 
 void TheoryArrays::addSharedTerm(TNode t) {
   Debug("arrays::sharing") << spaces(getSatContext()->getLevel()) << "TheoryArrays::addSharedTerm(" << t << ")" << std::endl;
-  d_equalityEngine.addTriggerTerm(t);
+  d_equalityEngine.addTriggerTerm(t, THEORY_ARRAY);
   if (t.getType().isArray()) {
     d_sharedArrays.insert(t,true);
   }
@@ -583,7 +583,7 @@ void TheoryArrays::computeCareGraph()
         TNode x = r1[1];
         TNode y = r2[1];
 
-        if (!d_equalityEngine.isTriggerTerm(x) || !d_equalityEngine.isTriggerTerm(y)) {
+        if (!d_equalityEngine.isTriggerTerm(x, THEORY_ARRAY) || !d_equalityEngine.isTriggerTerm(y, THEORY_ARRAY)) {
           Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): not connected to shared terms, skipping" << std::endl;
           continue;
         }
@@ -596,8 +596,8 @@ void TheoryArrays::computeCareGraph()
         }
 
         // Get representative trigger terms
-        TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x);
-        TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y);
+        TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
+        TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_ARRAY);
 
         EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
         switch (eqStatusDomain) {

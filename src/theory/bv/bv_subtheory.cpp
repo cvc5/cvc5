@@ -233,7 +233,7 @@ bool EqualitySolver::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool
   }
 }
 
-bool EqualitySolver::NotifyClass::eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+bool EqualitySolver::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
   Debug("bitvector::equality") << "NotifyClass::eqNotifyTriggerTermMerge(" << t1 << ", " << t2 << std::endl;
   if (value) {
     return d_bv->storePropagation(t1.eqNode(t2), TheoryBV::SUB_EQUALITY);

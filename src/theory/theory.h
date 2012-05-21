@@ -38,6 +38,8 @@
 #include <string>
 #include <iostream>
 
+#include <strings.h>
+
 namespace CVC4 {
 
 class TheoryEngine;
@@ -611,6 +613,34 @@ public:
 
   /** A set of all theories */
   static const Set AllTheories = (1 << theory::THEORY_LAST) - 1;
+
+  /** Pops a first theory off the set */
+  static inline TheoryId setPop(Set& set) {
+    uint32_t i = ffs(set); // Find First Set (bit)
+    if (i == 0) { return THEORY_LAST; }
+    TheoryId id = (TheoryId)(i-1);
+    set = setRemove(id, set);
+    return id;
+  }
+
+  /** Returns the size of a set of theories */
+  static inline size_t setSize(Set set) {
+    size_t count = 0;
+    while (setPop(set) != THEORY_LAST) {
+      ++ count;
+    }
+    return count;
+  }
+
+  /** Returns the index size of a set of theories */
+  static inline size_t setIndex(TheoryId id, Set set) {
+    Assert (setContains(id, set));
+    size_t count = 0;
+    while (setPop(set) != id) {
+      ++ count;
+    }
+    return count;
+  }
 
   /** Add the theory to the set. If no set specified, just returns a singleton set */
   static inline Set setInsert(TheoryId theory, Set set = 0) {

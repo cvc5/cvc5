@@ -117,7 +117,7 @@ private:
       return true;
     }
 
-    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(theory::TheoryId tag, TNode t1, TNode t2, bool value) {
       if (value) {
         d_sharedTerms.mergeSharedTerms(t1, t2);
       }

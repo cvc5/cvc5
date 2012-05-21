@@ -63,8 +63,8 @@ public:
       }
     }
 
-    bool eqNotifyTriggerTermEquality(TNode t1, TNode t2, bool value) {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << t1 << ", " << t2 << std::endl;
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+      Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << std::endl;
       if (value) {
         return d_uf.propagate(t1.eqNode(t2));
       } else {
