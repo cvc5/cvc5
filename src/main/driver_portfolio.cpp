@@ -700,7 +700,6 @@ Result doSmt(SmtEngine &smt, Command *cmd, Options &options) {
     *pOptions->out << "unknown" << endl;
     cerr << "CVC4 Error:" << endl << e << endl;
     printUsage(*pOptions);
-    return Result::SAT_UNKNOWN;
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
     *pOptions->out << "unknown" << endl;
@@ -709,23 +708,8 @@ Result doSmt(SmtEngine &smt, Command *cmd, Options &options) {
     if(pOptions->statistics) {
       pStatistics->flushInformation(*pOptions->err);
     }
-    return Result::SAT_UNKNOWN;
-  } catch(bad_alloc) {
-#ifdef CVC4_COMPETITION_MODE
-    *pOptions->out << "unknown" << endl;
-#endif
-    *pOptions->err << "CVC4 ran out of memory." << endl;
-    if(pOptions->statistics) {
-      pStatistics->flushInformation(*pOptions->err);
-    }
-    return Result::SAT_UNKNOWN;
-  } catch(...) {
-#ifdef CVC4_COMPETITION_MODE
-    *pOptions->out << "unknown" << endl;
-#endif
-    *pOptions->err << "CVC4 threw an exception of unknown type." << endl;
-    return Result::SAT_UNKNOWN;
   }
+  return Result::SAT_UNKNOWN;
 }
 
 template<typename T>
