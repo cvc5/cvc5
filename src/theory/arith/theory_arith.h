@@ -160,11 +160,26 @@ private:
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
   /**
-   * List of all of the inequalities asserted in the current context.
+   * List of all of the disequalities asserted in the current context that are not known
+   * to be satisfied.
    */
-  //context::CDHashSet<Node, NodeHashFunction> d_diseq;
   context::CDQueue<Constraint> d_diseqQueue;
 
+  /**
+   * Constraints that have yet to be processed by proagation work list.
+   * All of the elements have type of LowerBound, UpperBound, or
+   * Equality.
+   *
+   * This is empty at the beginning of every check call.
+   *
+   * If head()->getType() == LowerBound or UpperBound,
+   * then d_cPL[1] is the previous constraint in d_partialModel for the
+   * corresponding bound.
+   * If head()->getType() == Equality,
+   * then d_cPL[1] is the previous lowerBound in d_partialModel,
+   * and d_cPL[2] is the previous upperBound in d_partialModel.
+   */
+  std::deque<Constraint> d_currentPropagationList;
 
   /**
    * Manages information about the assignment and upper and lower bounds on
@@ -380,7 +395,9 @@ private:
   DenseSet d_candidateBasics;
 
   bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
-  void clearUpdates(){ d_updatedBounds.purge(); }
+  void clearUpdates();
+
+  void revertOutOfConflict();
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);
@@ -444,6 +461,8 @@ private:
     TimerStat d_staticLearningTimer;
 
     TimerStat d_presolveTime;
+
+    TimerStat d_newPropTime;
 
     IntStat d_externalBranchAndBounds;
 

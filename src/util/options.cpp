@@ -101,21 +101,22 @@ Options::Options() :
   replayFilename(""),
   replayStream(NULL),
   replayLog(NULL),
-  arithPropagation(true),
   satRandomFreq(0.0),
   satRandomSeed(91648253),// Minisat's default value
   satVarDecay(0.95),
   satClauseDecay(0.999),
   satRestartFirst(25),
   satRestartInc(3.0),
-  pivotRule(MINIMUM),
+  arithUnateLemmaMode(ALL_PRESOLVE_LEMMAS),
+  arithPropagationMode(BOTH_PROP),
+  arithPivotRule(MINIMUM),
   arithPivotThreshold(16),
   arithPropagateMaxLength(16),
-  ufSymmetryBreaker(false),
-  ufSymmetryBreakerSetByUser(false),
-  dioSolver(true),
+  arithDioSolver(true),
   arithRewriteEq(false),
   arithRewriteEqSetByUser(false),
+  ufSymmetryBreaker(false),
+  ufSymmetryBreakerSetByUser(false),
   lemmaOutputChannel(NULL),
   lemmaInputChannel(NULL),
   threads(2),// default should be 1 probably, but say 2 for now
@@ -134,8 +135,10 @@ static const string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:\n\
    --version | -V         identify this CVC4 binary\n\
    --help | -h            full command line reference\n\
-   --lang | -L            force input language (default is `auto'; see --lang help)\n\
-   --output-lang          force output language (default is `auto'; see --lang help)\n\
+   --lang | -L            force input language\n\
+                          (default is `auto'; see --lang help)\n\
+   --output-lang          force output language\n\
+                          (default is `auto'; see --lang help)\n\
    --verbose | -v         increase verbosity (may be repeated)\n\
    --quiet | -q           decrease verbosity (may be repeated)\n\
    --stats                give statistics on exit\n\
@@ -165,7 +168,8 @@ Additional CVC4 options:\n\
    --mmap                 memory map file input\n\
    --segv-nospin          don't spin on segfault waiting for gdb\n\
    --lazy-type-checking   type check expressions only when necessary (default)\n\
-   --eager-type-checking  type check expressions immediately on creation (debug builds only)\n\
+   --eager-type-checking  type check expressions immediately on creation\n\
+                          (debug builds only)\n\
    --no-type-checking     never type check expressions\n\
    --no-checking          disable ALL semantic checks, including type checks\n\
    --no-theory-registration disable theory reg (not safe for some theories)\n\
@@ -185,18 +189,35 @@ Additional CVC4 options:\n\
    --no-ite-simp          turn off ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
    --replay=file          replay decisions from file\n\
    --replay-log=file      log decisions and propagations to file\n\
-   --pivot-rule=RULE      change the pivot rule (see --pivot-rule help)\n\
-   --pivot-threshold=N   sets the number of heuristic pivots per variable per simplex instance\n\
-   --prop-row-length=N    sets the maximum row length to be used in propagation\n\
-   --random-freq=P        sets the frequency of random decisions in the sat solver(P=0.0 by default)\n\
+  SAT:\n\
+   --random-freq=P        frequency of random decisions in the sat solver\n\
+                          (P=0.0 by default)\n\
    --random-seed=S        sets the random seed for the sat solver\n\
-   --restart-int-base=I   sets the base restart interval for the sat solver (I=25 by default)\n\
-   --restart-int-inc=F    sets the restart interval increase factor for the sat solver (F=3.0 by default)\n\
-   --disable-arithmetic-propagation turns on arithmetic propagation\n\
-   --enable-symmetry-breaker turns on UF symmetry breaker (Deharbe et al., CADE 2011) [on by default only for QF_UF]\n\
+   --restart-int-base=I   sets the base restart interval for the sat solver\n\
+                          (I=25 by default)\n\
+   --restart-int-inc=F    restart interval increase factor for the sat solver\n\
+                          (F=3.0 by default)\n\
+  ARITHMETIC:\n\
+   --arith-presolve-lemmas=MODE  determines which lemmas to add before solving\n\
+                          (default is 'all', see --arith-presolve-lemmas=help)\n\
+   --arith-prop=MODE      turns on arithmetic propagation\n\
+                          (default is 'old', see --arith-prop=help)\n\
+   --pivot-rule=RULE      change the pivot rule for the basic variable\n\
+                          (default is 'min', see --pivot-rule help)\n\
+   --pivot-threshold=N    sets the number of pivots using --pivot-rule\n\
+                          per basic variable per simplex instance before\n\
+                          using variable order\n\
+   --prop-row-length=N    sets the maximum row length to be used in propagation\n\
+   --disable-dio-solver   turns off Linear Diophantine Equation solver \n\
+                          (Griggio, JSAT 2012)\n\
+   --enable-arith-rewrite-equalities   turns on the preprocessing rewrite\n\
+                          turning equalities into a conjunction of inequalities.\n \
+   --disable-arith-rewrite-equalities   turns off the preprocessing rewrite\n\
+                          turning equalities into a conjunction of inequalities.\n \
+ UF:\n\
+   --enable-symmetry-breaker turns on UF symmetry breaker (Deharbe et al.,\n\
+                          CADE 2011) [on by default only for QF_UF]\n\
    --disable-symmetry-breaker turns off UF symmetry breaker\n\
-   --disable-dio-solver   turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)\n\
-   --disable-arith-rewrite-equalities   turns off the preprocessing rewrite turning equalities into a conjunction of inequalities.\n\
    --threads=N            sets the number of solver threads\n\
    --threadN=string       configures thread N (0..#threads-1)\n\
    --filter-lemma-length=N don't share lemmas strictly longer than N\n\
@@ -315,6 +336,44 @@ pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
 to a file.\n\
 ";
 
+static const string arithPresolveLemmasHelp = "\
+Presolve lemmas are generated before SAT search begins using the relationship\n\
+of constant terms and polynomials.\n\
+Modes currently supported by the --arith-presolve-lemmas option:\n\
++ none \n\
++ ineqs \n\
+  Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d.\n\
++ eqs \n\
+  Outputs lemmas of the general forms\n\
+  (= p c) implies (<= p d) for c < d, or\n\
+  (= p c) implies (not (= p d)) for c != d.\n\
++ all \n\
+  A combination of inequalities and equalities.\n\
+";
+
+static const string propagationModeHelp = "\
+This decides on kind of propagation arithmetic attempts to do during the search.\n\
++ none\n\
++ unate\n\
+ use constraints to do unate propagation\n\
++ bi (Bounds Inference)\n\
+  infers bounds on basic variables using the upper and lower bounds of the\n\
+  non-basic variables in the tableau.\n\
++both\n\
+";
+
+static const string pivotRulesHelp = "\
+This decides on the rule used by simplex during hueristic rounds\n\
+for deciding the next basic variable to select.\n\
+Pivot rules available:\n\
++min\n\
+  The minimum abs() value of the variable's violation of its bound. (default)\n\
++min-break-ties\n\
+  The minimum violation with ties broken by variable order (total)\n\
++max\n\
+  The maximum violation the bound\n\
+";
+
 string Options::getDescription() const {
   return optionsDescription;
 }
@@ -341,7 +400,8 @@ void Options::printLanguageHelp(std::ostream& out) {
  * any collision.
  */
 enum OptionValue {
-  SMTCOMP = 256, /* avoid clashing with char options */
+  OPTION_VALUE_BEGIN = 256, /* avoid clashing with char options */
+  SMTCOMP, 
   STATS,
   SEGV_NOSPIN,
   OUTPUT_LANGUAGE,
@@ -377,13 +437,14 @@ enum OptionValue {
   EAGER_TYPE_CHECKING,
   REPLAY,
   REPLAY_LOG,
-  PIVOT_RULE,
   PRINT_WINNER,
   RANDOM_FREQUENCY,
   RANDOM_SEED,
   SAT_RESTART_FIRST,
   SAT_RESTART_INC,
-  ARITHMETIC_PROPAGATION,
+  ARITHMETIC_UNATE_LEMMA_MODE,
+  ARITHMETIC_PROPAGATION_MODE,
+  ARITHMETIC_PIVOT_RULE,
   ARITHMETIC_PIVOT_THRESHOLD,
   ARITHMETIC_PROP_MAX_LENGTH,
   ARITHMETIC_DIO_SOLVER,
@@ -401,7 +462,8 @@ enum OptionValue {
   BITVECTOR_EAGER_BITBLAST,
   BITVECTOR_SHARE_LEMMAS,
   BITVECTOR_EAGER_FULLCHECK,
-  SAT_REFINE_CONFLICTS
+  SAT_REFINE_CONFLICTS,
+  OPTION_VALUE_END
 };/* enum OptionValue */
 
 /**
@@ -475,15 +537,16 @@ static struct option cmdlineOptions[] = {
   { "incremental", no_argument      , NULL, 'i' },
   { "replay"     , required_argument, NULL, REPLAY      },
   { "replay-log" , required_argument, NULL, REPLAY_LOG  },
-  { "pivot-rule" , required_argument, NULL, PIVOT_RULE  },
-  { "pivot-threshold" , required_argument, NULL, ARITHMETIC_PIVOT_THRESHOLD  },
-  { "prop-row-length" , required_argument, NULL, ARITHMETIC_PROP_MAX_LENGTH  },
   { "random-freq" , required_argument, NULL, RANDOM_FREQUENCY  },
   { "random-seed" , required_argument, NULL, RANDOM_SEED  },
   { "restart-int-base", required_argument, NULL, SAT_RESTART_FIRST },
   { "restart-int-inc", required_argument, NULL, SAT_RESTART_INC },
   { "print-winner", no_argument     , NULL, PRINT_WINNER  },
-  { "disable-arithmetic-propagation", no_argument, NULL, ARITHMETIC_PROPAGATION },
+  { "unate-lemmas", required_argument, NULL, ARITHMETIC_UNATE_LEMMA_MODE },
+  { "arith-prop", required_argument, NULL, ARITHMETIC_PROPAGATION_MODE },
+  { "pivot-rule" , required_argument, NULL, ARITHMETIC_PIVOT_RULE  },
+  { "pivot-threshold" , required_argument, NULL, ARITHMETIC_PIVOT_THRESHOLD  },
+  { "prop-row-length" , required_argument, NULL, ARITHMETIC_PROP_MAX_LENGTH  },
   { "disable-dio-solver", no_argument, NULL, ARITHMETIC_DIO_SOLVER },
   { "enable-arith-rewrite-equalities", no_argument, NULL, ENABLE_ARITHMETIC_REWRITE_EQUALITIES },
   { "disable-arith-rewrite-equalities", no_argument, NULL, DISABLE_ARITHMETIC_REWRITE_EQUALITIES },
@@ -878,24 +941,6 @@ throw(OptionException) {
 #endif /* CVC4_REPLAY */
       break;
 
-    case ARITHMETIC_PROPAGATION:
-      arithPropagation = false;
-      break;
-
-    case ARITHMETIC_DIO_SOLVER:
-      dioSolver = false;
-      break;
-
-    case ENABLE_ARITHMETIC_REWRITE_EQUALITIES:
-      arithRewriteEq = true;
-      arithRewriteEqSetByUser = true;
-      break;
-
-    case DISABLE_ARITHMETIC_REWRITE_EQUALITIES:
-      arithRewriteEq = false;
-      arithRewriteEqSetByUser = true;
-      break;
-
     case ENABLE_SYMMETRY_BREAKER:
       ufSymmetryBreaker = true;
       ufSymmetryBreakerSetByUser = true;
@@ -993,21 +1038,62 @@ throw(OptionException) {
       }
       break;
 
-    case PIVOT_RULE:
-      if(!strcmp(optarg, "min")) {
-        pivotRule = MINIMUM;
+    case ARITHMETIC_UNATE_LEMMA_MODE:
+      if(!strcmp(optarg, "all")) {
+        arithUnateLemmaMode = ALL_PRESOLVE_LEMMAS;
         break;
-      } else if(!strcmp(optarg, "min-break-ties")) {
-        pivotRule = BREAK_TIES;
+      } else if(!strcmp(optarg, "none")) {
+        arithUnateLemmaMode = NO_PRESOLVE_LEMMAS;
         break;
-      } else if(!strcmp(optarg, "max")) {
-        pivotRule = MAXIMUM;
+      } else if(!strcmp(optarg, "ineqs")) {
+        arithUnateLemmaMode = INEQUALITY_PRESOLVE_LEMMAS;
+        break;
+      } else if(!strcmp(optarg, "eqs")) {
+        arithUnateLemmaMode = EQUALITY_PRESOLVE_LEMMAS;
         break;
       } else if(!strcmp(optarg, "help")) {
-        printf("Pivot rules available:\n");
-        printf("min\n");
-        printf("min-break-ties\n");
-        printf("max\n");
+        puts(arithPresolveLemmasHelp.c_str());
+        exit(1);
+      } else {
+        throw OptionException(string("unknown option for --arith-presolve-lemmas: `") +
+                              optarg + "'.  Try --arith-presolve-lemmas=help.");
+      }
+      break;
+
+    case ARITHMETIC_PROPAGATION_MODE:
+      if(!strcmp(optarg, "none")) {
+        arithPropagationMode = NO_PROP;
+        break;
+      } else if(!strcmp(optarg, "unate")) {
+        arithPropagationMode = UNATE_PROP;
+        break;
+      } else if(!strcmp(optarg, "bi")) {
+        arithPropagationMode = BOUND_INFERENCE_PROP;
+        break;
+      } else if(!strcmp(optarg, "both")) {
+        arithPropagationMode = BOTH_PROP;
+        break;
+      } else if(!strcmp(optarg, "help")) {
+        puts(propagationModeHelp.c_str());
+        exit(1);
+      } else {
+        throw OptionException(string("unknown option for --arith-prop: `") +
+                              optarg + "'.  Try --arith-prop help.");
+      }
+      break;
+
+    case ARITHMETIC_PIVOT_RULE:
+      if(!strcmp(optarg, "min")) {
+        arithPivotRule = MINIMUM;
+        break;
+      } else if(!strcmp(optarg, "min-break-ties")) {
+        arithPivotRule = BREAK_TIES;
+        break;
+      } else if(!strcmp(optarg, "max")) {
+        arithPivotRule = MAXIMUM;
+        break;
+      } else if(!strcmp(optarg, "help")) {
+        puts(pivotRulesHelp.c_str());
         exit(1);
       } else {
         throw OptionException(string("unknown option for --pivot-rule: `") +
@@ -1021,6 +1107,20 @@ throw(OptionException) {
 
     case ARITHMETIC_PROP_MAX_LENGTH:
       arithPropagateMaxLength = atoi(optarg);
+      break;
+
+    case ARITHMETIC_DIO_SOLVER:
+      arithDioSolver = false;
+      break;
+
+    case ENABLE_ARITHMETIC_REWRITE_EQUALITIES:
+      arithRewriteEq = true;
+      arithRewriteEqSetByUser = true;
+      break;
+
+    case DISABLE_ARITHMETIC_REWRITE_EQUALITIES:
+      arithRewriteEq = false;
+      arithRewriteEqSetByUser = true;
       break;
 
     case SHOW_DEBUG_TAGS:
@@ -1121,7 +1221,8 @@ throw(OptionException) {
 
     case ':':
       // This can be a long or short option, and the way to get at the name of it is different.
-      if(optopt == 0) { // was a long option
+      if(optopt == 0 ||  // was a long option
+         (optopt >= OPTION_VALUE_BEGIN && optopt <= OPTION_VALUE_END)) { // OptionValue option
         throw OptionException(string("option `") + argv[optind - 1] + "' missing its required argument");
       } else { // was a short option
         throw OptionException(string("option `-") + char(optopt) + "' missing its required argument");

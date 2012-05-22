@@ -171,16 +171,20 @@ public:
     Node gt0Orlt1  = NodeBuilder<2>(OR) << gt0 << lt1;
     Node geq0OrLeq1  = NodeBuilder<2>(OR) << geq1 << leq1;
 
-    cout << d_outputChannel.getIthNode(0) << endl;
-    cout << d_outputChannel.getIthNode(1) << endl;
+    cout << d_outputChannel.getIthNode(0) << endl << endl;
+    cout << d_outputChannel.getIthNode(1) << endl << endl;
+    cout << d_outputChannel.getIthNode(2) << endl << endl;
 
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
+    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 3u);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), gt0Orlt1);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), geq0OrLeq1);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), PROPAGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), leq1);
   }
 
 
@@ -210,14 +214,22 @@ public:
 
     cout << d_outputChannel.getIthNode(0) << endl;
     cout << d_outputChannel.getIthNode(1) << endl;
+    cout << d_outputChannel.getIthNode(2) << endl;
+    cout << d_outputChannel.getIthNode(3) << endl;
 
-    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 2u);
+    TS_ASSERT_EQUALS(d_outputChannel.getNumCalls(), 4u);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(0), LEMMA);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(0), gt0Orlt1);
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), geq0OrLeq1);
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(2), PROPAGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(2), lt1 );
+
+    TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(3), PROPAGATE);
+    TS_ASSERT_EQUALS(d_outputChannel.getIthNode(3), leq1);
   }
 
   void testTPLeq1() {

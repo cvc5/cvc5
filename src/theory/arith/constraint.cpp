@@ -66,7 +66,11 @@ ConstraintValue::ConstraintValue(ArithVar x,  ConstraintType t, const DeltaRatio
 
 
 std::ostream& operator<<(std::ostream& o, const Constraint c){
-  return o << *c;
+  if(c == NullConstraint){
+    return o << "NullConstraint";
+  }else{
+    return o << *c;
+  }
 }
 
 std::ostream& operator<<(std::ostream& o, const ConstraintType t){
@@ -528,6 +532,19 @@ ConstraintDatabase::~ConstraintDatabase(){
   }
 
   Assert(d_nodetoConstraintMap.empty());
+}
+
+ConstraintDatabase::Statistics::Statistics():
+  d_unatePropagateCalls("theory::arith::cd::unatePropagateCalls", 0),
+  d_unatePropagateImplications("theory::arith::cd::unatePropagateImplications", 0)
+{
+  StatisticsRegistry::registerStat(&d_unatePropagateCalls);
+  StatisticsRegistry::registerStat(&d_unatePropagateImplications);
+
+}
+ConstraintDatabase::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_unatePropagateCalls);
+  StatisticsRegistry::unregisterStat(&d_unatePropagateImplications);
 }
 
 void ConstraintDatabase::addVariable(ArithVar v){
@@ -1050,29 +1067,15 @@ void mutuallyExclusive(std::vector<Node>& out, Constraint a, Constraint b){
   out.push_back(orderOr);
 }
 
-void ConstraintDatabase::outputAllUnateLemmas(std::vector<Node>& out, ArithVar v) const{
+void ConstraintDatabase::outputUnateInequalityLemmas(std::vector<Node>& out, ArithVar v) const{
   SortedConstraintMap& scm = getVariableSCM(v);
-
-  SortedConstraintMapConstIterator outer;
+  SortedConstraintMapConstIterator scm_iter = scm.begin();
   SortedConstraintMapConstIterator scm_end = scm.end();
-
-  vector<Constraint> equalities;
-  for(outer = scm.begin(); outer != scm_end; ++outer){
-    const ValueCollection& vc = outer->second;
-    if(vc.hasEquality()){
-      Constraint eq = vc.getEquality();
-      if(eq->hasLiteral()){
-        equalities.push_back(eq);
-      }
-    }
-  }
-
   Constraint prev = NullConstraint;
   //get transitive unates
   //Only lower bounds or upperbounds should be done.
-  for(outer = scm.begin(); outer != scm_end; ++outer){
-    const ValueCollection& vc = outer->second;
-
+  for(; scm_iter != scm_end; ++scm_iter){
+    const ValueCollection& vc = scm_iter->second;
     if(vc.hasUpperBound()){
       Constraint ub = vc.getUpperBound();
       if(ub->hasLiteral()){
@@ -1083,6 +1086,26 @@ void ConstraintDatabase::outputAllUnateLemmas(std::vector<Node>& out, ArithVar v
       }
     }
   }
+}
+
+void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& out, ArithVar v) const{
+
+  vector<Constraint> equalities;
+
+  SortedConstraintMap& scm = getVariableSCM(v);
+  SortedConstraintMapConstIterator scm_iter = scm.begin();
+  SortedConstraintMapConstIterator scm_end = scm.end();
+
+  for(; scm_iter != scm_end; ++scm_iter){
+    const ValueCollection& vc = scm_iter->second;
+    if(vc.hasEquality()){
+      Constraint eq = vc.getEquality();
+      if(eq->hasLiteral()){
+        equalities.push_back(eq);
+      }
+    }
+  }
+
   vector<Constraint>::const_iterator i, j, eq_end = equalities.end();
   for(i = equalities.begin(); i != eq_end; ++i){
     Constraint at_i = *i;
@@ -1116,14 +1139,190 @@ void ConstraintDatabase::outputAllUnateLemmas(std::vector<Node>& out, ArithVar v
       implies(out, eq, ub);
     }
   }
-  }
+}
 
-void ConstraintDatabase::outputAllUnateLemmas(std::vector<Node>& lemmas) const{
+void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& lemmas) const{
   for(ArithVar v = 0, N = d_varDatabases.size(); v < N; ++v){
-    outputAllUnateLemmas(lemmas, v);
+    outputUnateEqualityLemmas(lemmas, v);
   }
 }
 
+void ConstraintDatabase::outputUnateInequalityLemmas(std::vector<Node>& lemmas) const{
+  for(ArithVar v = 0, N = d_varDatabases.size(); v < N; ++v){
+    outputUnateInequalityLemmas(lemmas, v);
+  }
+}
+
+void ConstraintDatabase::unatePropLowerBound(Constraint curr, Constraint prev){
+  Debug("arith::unate") << "unatePropLowerBound " << curr << " " << prev << endl;
+  Assert(curr != prev);
+  Assert(curr != NullConstraint);
+  bool hasPrev = ! (prev == NullConstraint);
+  Assert(!hasPrev || curr->getValue() > prev->getValue());
+
+  ++d_statistics.d_unatePropagateCalls;
+
+  const SortedConstraintMap& scm = curr->constraintSet();
+  const SortedConstraintMapConstIterator scm_begin = scm.begin();
+  SortedConstraintMapConstIterator scm_i = curr->d_variablePosition;
+
+  //Ignore the first ValueCollection
+  // NOPE: (>= p c) then (= p c) NOPE
+  // NOPE: (>= p c) then (not (= p c)) NOPE
+
+  while(scm_i != scm_begin){
+    --scm_i; // move the iterator back
+
+    const ValueCollection& vc = scm_i->second;
+
+    //If it has the previous element, do nothing and stop!
+    if(hasPrev &&
+       vc.hasConstraintOfType(prev->getType())
+       && vc.getConstraintOfType(prev->getType()) == prev){
+      break;
+    }
+
+    //Don't worry about implying the negation of upperbound.
+    //These should all be handled by propagating the LowerBounds!
+    if(vc.hasLowerBound()){
+      Constraint lb = vc.getLowerBound();
+      if(!lb->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unatePropLowerBound " << curr << " implies " << lb << endl;
+        lb->impliedBy(curr);
+      }
+    }
+    if(vc.hasDisequality()){
+      Constraint dis = vc.getDisequality();
+      if(!dis->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unatePropLowerBound " << curr << " implies " << dis << endl;
+        dis->impliedBy(curr);
+      }
+    }
+  }
+}
+
+void ConstraintDatabase::unatePropUpperBound(Constraint curr, Constraint prev){
+  Debug("arith::unate") << "unatePropUpperBound " << curr << " " << prev << endl;
+  Assert(curr != prev);
+  Assert(curr != NullConstraint);
+  bool hasPrev = ! (prev == NullConstraint);
+  Assert(!hasPrev || curr->getValue() < prev->getValue());
+
+  ++d_statistics.d_unatePropagateCalls;
+
+  const SortedConstraintMap& scm = curr->constraintSet();
+  const SortedConstraintMapConstIterator scm_end = scm.end();
+  SortedConstraintMapConstIterator scm_i = curr->d_variablePosition;
+  ++scm_i;
+  for(; scm_i != scm_end; ++scm_i){
+    const ValueCollection& vc = scm_i->second;
+
+    //If it has the previous element, do nothing and stop!
+    if(hasPrev &&
+       vc.hasConstraintOfType(prev->getType()) &&
+       vc.getConstraintOfType(prev->getType()) == prev){
+      break;
+    }
+    //Don't worry about implying the negation of upperbound.
+    //These should all be handled by propagating the UpperBounds!
+    if(vc.hasUpperBound()){
+      Constraint ub = vc.getUpperBound();
+      if(!ub->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unatePropUpperBound " << curr << " implies " << ub << endl;
+        ub->impliedBy(curr);
+      }
+    }
+    if(vc.hasDisequality()){
+      Constraint dis = vc.getDisequality();
+      if(!dis->isTrue()){
+        Debug("arith::unate") << "unatePropUpperBound " << curr << " implies " << dis << endl;
+        ++d_statistics.d_unatePropagateImplications;
+        dis->impliedBy(curr);
+      }
+    }
+  }
+}
+
+void ConstraintDatabase::unatePropEquality(Constraint curr, Constraint prevLB, Constraint prevUB){
+  Debug("arith::unate") << "unatePropEquality " << curr << " " << prevLB << " " << prevUB << endl;
+  Assert(curr != prevLB);
+  Assert(curr != prevUB);
+  Assert(curr != NullConstraint);
+  bool hasPrevLB = ! (prevLB == NullConstraint);
+  bool hasPrevUB = ! (prevUB == NullConstraint);
+  Assert(!hasPrevLB || curr->getValue() >= prevLB->getValue());
+  Assert(!hasPrevUB || curr->getValue() <= prevUB->getValue());
+
+  ++d_statistics.d_unatePropagateCalls;
+
+  const SortedConstraintMap& scm = curr->constraintSet();
+  SortedConstraintMapConstIterator scm_curr = curr->d_variablePosition;
+  SortedConstraintMapConstIterator scm_last = hasPrevUB ? prevUB->d_variablePosition : scm.end();
+  SortedConstraintMapConstIterator scm_i;
+  if(hasPrevLB){
+    scm_i = prevLB->d_variablePosition;
+    if(scm_i != scm_curr){ // If this does not move this past scm_curr, move it one forward
+      ++scm_i;
+    }
+  }else{
+    scm_i = scm.begin();
+  }
+
+  for(; scm_i != scm_curr; ++scm_i){
+    // between the previous LB and the curr
+    const ValueCollection& vc = scm_i->second;
+
+    //Don't worry about implying the negation of upperbound.
+    //These should all be handled by propagating the LowerBounds!
+    if(vc.hasLowerBound()){
+      Constraint lb = vc.getLowerBound();
+      if(!lb->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unatePropUpperBound " << curr << " implies " << lb << endl;
+        lb->impliedBy(curr);
+      }
+    }
+    if(vc.hasDisequality()){
+      Constraint dis = vc.getDisequality();
+      if(!dis->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unatePropUpperBound " << curr << " implies " << dis << endl;
+        dis->impliedBy(curr);
+      }
+    }
+  }
+  Assert(scm_i == scm_curr);
+  if(!hasPrevUB || scm_i != scm_last){
+    ++scm_i;
+  } // hasPrevUB implies scm_i != scm_last
+
+  for(; scm_i != scm_last; ++scm_i){
+    // between the curr and the previous UB imply the upperbounds and disequalities.
+    const ValueCollection& vc = scm_i->second;
+
+    //Don't worry about implying the negation of upperbound.
+    //These should all be handled by propagating the UpperBounds!
+    if(vc.hasUpperBound()){
+      Constraint ub = vc.getUpperBound();
+      if(!ub->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unateProp " << curr << " implies " << ub << endl;
+        ub->impliedBy(curr);
+      }
+    }
+    if(vc.hasDisequality()){
+      Constraint dis = vc.getDisequality();
+      if(!dis->isTrue()){
+        ++d_statistics.d_unatePropagateImplications;
+        Debug("arith::unate") << "unateProp " << curr << " implies " << dis << endl;
+        dis->impliedBy(curr);
+      }
+    }
+  }
+}
 
 }/* arith namespace */
 }/* theory namespace */

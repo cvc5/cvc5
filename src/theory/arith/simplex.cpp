@@ -44,7 +44,7 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, 
   d_pivotsInRound(),
   d_DELTA_ZERO(0,0)
 {
-  switch(Options::ArithPivotRule rule = Options::current()->pivotRule) {
+  switch(Options::ArithPivotRule rule = Options::current()->arithPivotRule) {
   case Options::MINIMUM:
     d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
     break;
