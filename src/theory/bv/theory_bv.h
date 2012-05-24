@@ -29,6 +29,8 @@
 #include "util/stats.h"
 #include "context/cdqueue.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/bv_subtheory_eq.h"
+#include "theory/bv/bv_subtheory_bitblast.h"
 
 namespace CVC4 {
 namespace theory {

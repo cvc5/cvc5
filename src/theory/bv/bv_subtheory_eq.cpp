@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file bv_subtheory.cpp
+/*! \file bv_subtheory_eq.cpp
  ** \verbatim
  ** Original author: lianah
- ** Major contributors: 
+ ** Major contributors: dejan
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -11,112 +11,21 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Algebraic solver.
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** Algebraic solver.
  **/
 
-#include "theory/bv/bv_subtheory.h"
+#include "theory/bv/bv_subtheory_eq.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/bitblaster.h"
-
-
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::context;
 
 using namespace std;
+using namespace CVC4;
+using namespace CVC4::context;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
-
-
-BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
-  : SubtheorySolver(c, bv), 
-    d_bitblaster(new Bitblaster(c, bv)),
-    d_bitblastQueue(c)
-{}
-
-BitblastSolver::~BitblastSolver() {
-  delete d_bitblaster; 
-}
-
-void BitblastSolver::preRegister(TNode node) {
-  if ((node.getKind() == kind::EQUAL ||
-       node.getKind() == kind::BITVECTOR_ULT ||
-       node.getKind() == kind::BITVECTOR_ULE ||
-       node.getKind() == kind::BITVECTOR_SLT ||
-       node.getKind() == kind::BITVECTOR_SLE) &&
-      !d_bitblaster->hasBBAtom(node)) {
-    d_bitblastQueue.push_back(node); 
-  }
-}
-
-void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
-  d_bitblaster->explain(literal, assumptions); 
-}
-
-bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
-  BVDebug("bitvector::bitblaster") << "BitblastSolver::addAssertions (" << e << ")" << std::endl;
-
-  //// Eager bit-blasting
-  if (Options::current()->bitvectorEagerBitblast) {
-    for (unsigned i = 0; i < assertions.size(); ++i) {
-      TNode atom = assertions[i].getKind() == kind::NOT ? assertions[i][0] : assertions[i];
-      if (atom.getKind() != kind::BITVECTOR_BITOF) {
-        d_bitblaster->bbAtom(atom);
-      }
-    }
-    return true; 
-  }
-
-  //// Lazy bit-blasting
-    
-  // bit-blast enqueued nodes
-  while (!d_bitblastQueue.empty()) {
-    TNode atom = d_bitblastQueue.front();
-    d_bitblaster->bbAtom(atom);
-    d_bitblastQueue.pop(); 
-  }
-
-  // propagation
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    TNode fact = assertions[i];
-    if (!d_bv->inConflict() && !d_bv->propagatedBy(fact, TheoryBV::SUB_BITBLAST)) {
-      // Some atoms have not been bit-blasted yet
-      d_bitblaster->bbAtom(fact);
-      // Assert to sat
-      bool ok = d_bitblaster->assertToSat(fact, d_useSatPropagation);
-      if (!ok) {
-        std::vector<TNode> conflictAtoms;
-        d_bitblaster->getConflict(conflictAtoms);
-        d_bv->setConflict(mkConjunction(conflictAtoms)); 
-        return false; 
-      }
-    }
-  }
-
-  // solving
-  if (e == Theory::EFFORT_FULL || Options::current()->bitvectorEagerFullcheck) {
-    Assert(!d_bv->inConflict());
-    BVDebug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n"; 
-    bool ok = d_bitblaster->solve();
-    if (!ok) {
-      std::vector<TNode> conflictAtoms;
-      d_bitblaster->getConflict(conflictAtoms);
-      Node conflict = mkConjunction(conflictAtoms);
-      d_bv->setConflict(conflict); 
-      return false; 
-    }
-  }
-
-  return true; 
-}
-
-EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
-  return d_bitblaster->getEqualityStatus(a, b);
-}
 
 EqualitySolver::EqualitySolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
@@ -180,12 +89,12 @@ void EqualitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 bool EqualitySolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
-  BVDebug("bitvector::equality") << "EqualitySolver::addAssertions \n"; 
+  BVDebug("bitvector::equality") << "EqualitySolver::addAssertions \n";
   Assert (!d_bv->inConflict());
-  
+
   for (unsigned i = 0; i < assertions.size(); ++i) {
     TNode fact = assertions[i];
-    
+
     // Notify the equality engine
     if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, TheoryBV::TheoryBV::SUB_EQUALITY) ) {
       bool negated = fact.getKind() == kind::NOT;
@@ -206,13 +115,13 @@ bool EqualitySolver::addAssertions(const std::vector<TNode>& assertions, Theory:
       }
     }
 
-    // checking for a conflict 
+    // checking for a conflict
     if (d_bv->inConflict()) {
       return false;
     }
   }
-  
-  return true; 
+
+  return true;
 }
 
 bool EqualitySolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value) {

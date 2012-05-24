@@ -35,7 +35,6 @@ const bool d_useSatPropagation = true;
 
 // forward declaration 
 class TheoryBV; 
-class Bitblaster;
 
 /**
  * Abstract base class for bit-vector subtheory solvers
@@ -64,78 +63,6 @@ public:
   virtual void  preRegister(TNode node) {}
 
 }; 
-
-
-/**
- * BitblastSolver
- */
-class BitblastSolver : public SubtheorySolver {
-
-  /** Bitblaster */
-  Bitblaster* d_bitblaster; 
-
-  /** Nodes that still need to be bit-blasted */
-  context::CDQueue<TNode> d_bitblastQueue; 
-
-public:
-  BitblastSolver(context::Context* c, TheoryBV* bv);
-  ~BitblastSolver(); 
-
-  void  preRegister(TNode node);
-  bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
-  void  explain(TNode literal, std::vector<TNode>& assumptions);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-};
-
-
-/**
- * EqualitySolver
- */
-class EqualitySolver : public SubtheorySolver {
-
-  // NotifyClass: handles call-back from congruence closure module
-
-  class NotifyClass : public eq::EqualityEngineNotify {
-    TheoryBV* d_bv;
-
-  public:
-    NotifyClass(TheoryBV* bv): d_bv(bv) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value);
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
-    bool eqNotifyConstantTermMerge(TNode t1, TNode t2);
-};
-
-
-  /** The notify class for d_equalityEngine */
-  NotifyClass d_notify;
-
-  /** Equality engine */
-  eq::EqualityEngine d_equalityEngine;
-  
-public:
-
-  EqualitySolver(context::Context* c, TheoryBV* bv);
-
-  void  preRegister(TNode node);
-  bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
-  void  explain(TNode literal, std::vector<TNode>& assumptions);
-  void  addSharedTerm(TNode t) {
-    d_equalityEngine.addTriggerTerm(t, THEORY_BV);
-  }
-  EqualityStatus getEqualityStatus(TNode a, TNode b) {
-    if (d_equalityEngine.areEqual(a, b)) {
-      // The terms are implied to be equal
-      return EQUALITY_TRUE;
-    }
-    if (d_equalityEngine.areDisequal(a, b)) {
-      // The terms are implied to be dis-equal
-      return EQUALITY_FALSE;
-    }
-    return EQUALITY_UNKNOWN; 
-  }
-}; 
-
 
 }
 }

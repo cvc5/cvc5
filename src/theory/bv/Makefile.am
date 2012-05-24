@@ -12,7 +12,10 @@ libbv_la_SOURCES = \
 	bitblaster.h \
 	bitblaster.cpp \
 	bv_subtheory.h \
-	bv_subtheory.cpp \
+ 	bv_subtheory_eq.h \
+	bv_subtheory_eq.cpp \
+	bv_subtheory_bitblast.h \
+	bv_subtheory_bitblast.cpp \
 	bitblast_strategies.h \
 	bitblast_strategies.cpp \
 	theory_bv.h \
