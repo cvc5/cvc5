@@ -41,6 +41,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            const LogicInfo& logicInfo)
 : d_propEngine(NULL),
+  d_decisionEngine(NULL),
   d_context(context),
   d_userContext(userContext),
   d_logicInfo(logicInfo),
