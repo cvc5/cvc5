@@ -403,7 +403,12 @@ void TheoryArrays::preRegisterTerm(TNode node)
       }
     }
 
-    d_equalityEngine.addTerm(node);
+    if (node.getType().isArray()) {
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+    }
+    else {
+      d_equalityEngine.addTerm(node);
+    }
     // Maybe it's a predicate
     // TODO: remove this or keep it if we allow Boolean elements in arrays.
     if (node.getType().isBoolean()) {
