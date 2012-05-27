@@ -414,17 +414,6 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         trigger.classId = class1Id;
         // If they became the same, call the trigger
         if (otherTrigger.classId == class1Id) {
-          const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[currentTrigger];
-          if (triggerInfo.trigger.getKind() == kind::EQUAL && !triggerInfo.polarity) {
-            TNode equality = triggerInfo.trigger;
-            EqualityNodeId original = getNodeId(equality);
-            d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
-            if (!storePropagatedDisequality(equality[0], equality[1], 1)) {
-              // Go to the next trigger
-              currentTrigger = trigger.nextTrigger;
-              continue;
-            }
-          }
           // Id of the real trigger is half the internal one
           triggersFired.push_back(currentTrigger);
         }
@@ -492,6 +481,25 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
     
   // Now merge the lists
   class1.merge<true>(class2);
+
+  // Go through the triggers and store the dis-equalities
+  unsigned i = 0, j = 0;
+  for (; i < triggersFired.size();) {
+    const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[triggersFired[i]];
+    if (triggerInfo.trigger.getKind() == kind::EQUAL && !triggerInfo.polarity) {
+      TNode equality = triggerInfo.trigger;
+      EqualityNodeId original = getNodeId(equality);
+      d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
+      if (!storePropagatedDisequality(equality[0], equality[1], 1)) {
+        // Already notified, go to the next trigger
+        ++ i;
+        continue;
+      }
+    }
+    // Copy
+    triggersFired[j++] = triggersFired[i++];
+  }
+  triggersFired.resize(j);
   
   // Notify the trigger term merges
   TriggerTermSetRef class2triggerRef = d_nodeIndividualTrigger[class2Id];
