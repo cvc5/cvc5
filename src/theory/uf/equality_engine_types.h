@@ -98,6 +98,16 @@ struct MergeCandidate {
     t1Id(x), t2Id(y), type(type), reason(reason) {}
 };
 
+/**
+ * Just an index into the reasons array, and the number of merges to consume.
+ */
+struct DisequalityReasonRef {
+  DefaultSizeType mergesStart;
+  DefaultSizeType mergesEnd;
+  DisequalityReasonRef(DefaultSizeType mergesStart = 0, DefaultSizeType mergesEnd = 0)
+  : mergesStart(mergesStart), mergesEnd(mergesEnd) {}
+};
+
 /** 
  * We mantaint uselist where a node appears in, and this is the node
  * of such a list. 
@@ -135,6 +145,15 @@ public:
   }
 };
 
+/** Main types of uselists */
+enum UseListType {
+  /** Use list of functions where the term appears in */
+  USE_LIST_FUNCTIONS,
+  /** Use list of asserted disequalities */
+  USE_LIST_DISEQUALITIES
+};
+
+
 /**
  * Main class for representing nodes in the equivalence class. The 
  * nodes are a circular list, with the representative carrying the
@@ -159,23 +178,28 @@ private:
   /** The use list of this node */
   UseListNodeId d_useList;
 
+  /** The list of asserted disequalities that this node appears in */
+  UseListNodeId d_diseqList;
+
 public:
 
   /**
    * Creates a new node, which is in a list of it's own.
    */
   EqualityNode(EqualityNodeId nodeId = null_id)
-  : d_size(1), 
-    d_findId(nodeId), 
-    d_nextId(nodeId), 
-    d_useList(null_uselist_id)
+  : d_size(1)
+  , d_findId(nodeId) 
+  , d_nextId(nodeId)
+  , d_useList(null_uselist_id)
+  , d_diseqList(null_uselist_id)
   {}
 
   /**
-   * Returns the function uselist.
+   * Returns the requested uselist.
    */
+  template<UseListType type>
   UseListNodeId getUseList() const {
-    return d_useList;
+    return type == USE_LIST_FUNCTIONS ? d_useList : d_diseqList;
   }
 
   /**
@@ -220,21 +244,35 @@ public:
    * Note that this node is used in a function application funId, or
    * a negatively asserted equality (dis-equality) with funId. 
    */
-  template<typename memory_class>
+  template<UseListType type, typename memory_class>
   void usedIn(EqualityNodeId funId, memory_class& memory) {
+    UseListNodeId& useList = type == USE_LIST_FUNCTIONS ? d_useList : d_diseqList;
     UseListNodeId newUseId = memory.size();
-    memory.push_back(UseListNode(funId, d_useList));
-    d_useList = newUseId;
+    memory.push_back(UseListNode(funId, useList));
+    useList = newUseId;
   }
 
   /**
    * For backtracking: remove the first element from the uselist and pop the memory.
    */
-  template<typename memory_class>
+  template<UseListType type, typename memory_class>
   void removeTopFromUseList(memory_class& memory) {
-    Assert ((int)d_useList == (int)memory.size() - 1);
-    d_useList = memory.back().getNext();
+    UseListNodeId& useList = type == USE_LIST_FUNCTIONS ? d_useList : d_diseqList;
+    Assert ((int) useList == (int)memory.size() - 1);
+    useList = memory.back().getNext();
     memory.pop_back();
+  }
+};
+
+/** A pair of ids */
+typedef std::pair<EqualityNodeId, EqualityNodeId> EqualityPair;
+
+struct EqualityPairHashFunction {
+  size_t operator () (const EqualityPair& pair) const {
+    size_t hash = 0;
+    hash = 0x9e3779b9 + pair.first;
+    hash ^= 0x9e3779b9 + pair.second + (hash << 6) + (hash >> 2);
+    return hash;
   }
 };
 
@@ -265,6 +303,35 @@ struct FunctionApplicationHashFunction {
     return hash;
   }
 };
+
+/**
+ * At time of addition a function application can already normalize to something, so
+ * we keep both the original, and the normalized version.
+ */
+struct FunctionApplicationPair {
+  FunctionApplication original;
+  FunctionApplication normalized;
+  FunctionApplicationPair() {}
+  FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
+  : original(original), normalized(normalized) {}
+  bool isNull() const {
+    return !original.isApplication();
+  }
+};
+
+/**
+ * Information about the added triggers.
+ */
+struct TriggerInfo {
+  /** The trigger itself */
+  Node trigger;
+  /** Polarity of the trigger */
+  bool polarity;
+  TriggerInfo() {}
+  TriggerInfo(Node trigger, bool polarity)
+  : trigger(trigger), polarity(polarity) {}
+  };
+
 
 } // namespace eq
 } // namespace theory

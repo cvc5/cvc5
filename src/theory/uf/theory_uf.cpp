@@ -332,7 +332,7 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
   }
 
   // Check for disequality
-  if (d_equalityEngine.areDisequal(a, b)) {
+  if (d_equalityEngine.areDisequal(a, b, false)) {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
@@ -388,16 +388,14 @@ void TheoryUF::computeCareGraph() {
 
           Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking arguments " << x << " and " << y << std::endl;
 
-          EqualityStatus eqStatusUf = getEqualityStatus(x, y);
-
-          if (eqStatusUf == EQUALITY_FALSE) {
+          if (d_equalityEngine.areDisequal(x, y, false)) {
             // Mark that there is a dis-equal pair and break
             somePairIsDisequal = true;
             Debug("uf::sharing") << "TheoryUf::computeCareGraph(): disequal, disregarding all" << std::endl;
             break;
           }
 
-          if (eqStatusUf == EQUALITY_TRUE) {
+          if (d_equalityEngine.areEqual(x, y)) {
             // We don't need this one
             Debug("uf::sharing") << "TheoryUf::computeCareGraph(): equal" << std::endl;
             continue;

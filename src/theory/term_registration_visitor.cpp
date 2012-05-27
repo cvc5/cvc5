@@ -32,7 +32,6 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
-
   TheoryId currentTheoryId = Theory::theoryOf(current);
   TheoryId parentTheoryId = Theory::theoryOf(parent);
 

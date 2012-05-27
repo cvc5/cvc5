@@ -64,7 +64,7 @@ public:
       // The terms are implied to be equal
       return EQUALITY_TRUE;
     }
-    if (d_equalityEngine.areDisequal(a, b)) {
+    if (d_equalityEngine.areDisequal(a, b, false)) {
       // The terms are implied to be dis-equal
       return EQUALITY_FALSE;
     }

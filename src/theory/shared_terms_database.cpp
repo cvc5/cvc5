@@ -297,7 +297,7 @@ bool SharedTermsDatabase::areEqual(TNode a, TNode b) {
 
 
 bool SharedTermsDatabase::areDisequal(TNode a, TNode b) {
-  return d_equalityEngine.areDisequal(a,b);
+  return d_equalityEngine.areDisequal(a,b,false);
 }
 
 void SharedTermsDatabase::processSharedLiteral(TNode literal, TNode reason)
@@ -305,7 +305,7 @@ void SharedTermsDatabase::processSharedLiteral(TNode literal, TNode reason)
   bool negated = literal.getKind() == kind::NOT;
   TNode atom = negated ? literal[0] : literal;
   if (negated) {
-    Assert(!d_equalityEngine.areDisequal(atom[0], atom[1]));
+    Assert(!d_equalityEngine.areDisequal(atom[0], atom[1],false));
     d_equalityEngine.assertEquality(atom, false, reason);
     //    !!! need to send this out
   }

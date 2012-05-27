@@ -187,20 +187,6 @@ private:
   /** A context-dependents count of nodes */
   context::CDO<DefaultSizeType> d_nodesCount;
 
-  /**
-   * At time of addition a function application can already normalize to something, so
-   * we keep both the original, and the normalized version.
-   */
-  struct FunctionApplicationPair {
-    FunctionApplication original;
-    FunctionApplication normalized;
-    FunctionApplicationPair() {}
-    FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
-    : original(original), normalized(normalized) {}
-    bool isNull() const {
-      return !original.isApplication();
-    }
-  };
   /** Map from ids to the applications */
   std::vector<FunctionApplicationPair> d_applications;
 
@@ -335,16 +321,6 @@ private:
    * updating triggers we always know where the other one is (^1).
    */
   std::vector<Trigger> d_equalityTriggers;
-
-  struct TriggerInfo {
-    /** The trigger itself */
-    Node trigger;
-    /** Polarity of the trigger */
-    bool polarity;
-    TriggerInfo() {}
-    TriggerInfo(Node trigger, bool polarity)
-    : trigger(trigger), polarity(polarity) {}
-  };
 
   /**
    * Vector of original equalities of the triggers.
@@ -515,6 +491,31 @@ private:
    */
   std::vector<TriggerTermSetRef> d_nodeIndividualTrigger;
 
+  typedef std::hash_map<EqualityPair, DisequalityReasonRef, EqualityPairHashFunction> DisequalityReasonsMap;
+
+  /**
+   * A map from pairs of disequal terms, to the reason why we deduced they are disequal.
+   */
+  DisequalityReasonsMap d_disequalityReasonsMap;
+
+  /**
+   * A list of all the disequalities we deduced.
+   */
+  std::vector<EqualityPair> d_deducedDisequalities;
+
+  /**
+   * Context dependent size of the deduced disequalities
+   */
+  context::CDO<size_t> d_deducedDisequalitiesSize;
+
+  /**
+   * For each disequality deduced, we add the pairs of equivalences needed to explain it.
+   */
+  std::vector<EqualityPair> d_deducedDisequalityReasons;
+
+
+  bool storePropagatedDisequality(TNode lhs, TNode rhs, unsigned reasonsCount) const;
+
 public:
 
   /**
@@ -594,23 +595,18 @@ public:
   void getUseListTerms(TNode t, std::set<TNode>& output);
 
   /**
-   * Returns true if the two nodes are in the same equivalence class.
-   */
-  bool areEqual(TNode t1, TNode t2) const;
-
-  /**
    * Get an explanation of the equality t1 = t2 begin true of false. 
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
    */
-  void explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& assertions);
+  void explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& assertions) const;
 
   /**
    * Get an explanation of the predicate being true or false. 
    * Returns the reasons (added when asserting) that imply imply it
    * in the assertions vector.
    */
-  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions);
+  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions) const;
 
   /**
    * Add term to the set of trigger terms with a corresponding tag. The notify class will get
@@ -652,20 +648,25 @@ public:
   void addTriggerPredicate(TNode predicate);
 
   /**
-   * Check whether the two terms are equal.
+   * Returns true if the two are currently in the database and equal.
    */
-  bool areEqual(TNode t1, TNode t2);
+  bool areEqual(TNode t1, TNode t2) const;
 
   /**
    * Check whether the two term are dis-equal.
    */
-  bool areDisequal(TNode t1, TNode t2);
+  bool areDisequal(TNode t1, TNode t2, bool ensureProof) const;
 
   /**
    * Return the number of nodes in the equivalence class containing t
    * Adds t if not already there.
    */
   size_t getSize(TNode t);
+
+  /**
+   * Returns true if the engine is in a consistents state.
+   */
+  bool consistent() const { return !d_done; }
 
 };
 
