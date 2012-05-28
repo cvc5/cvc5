@@ -39,7 +39,7 @@ Bits* rewriteBits(const Bits& bits) {
   return newbits;
 }
 
-Node rewrite(Node node) {
+Node rewrite(TNode node) {
   return Rewriter::rewrite(node); 
 }
 

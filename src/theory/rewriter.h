@@ -96,7 +96,7 @@ public:
    * Rewrites the node using theoryOf() to determine which rewriter to
    * use on the node.
    */
-  static Node rewrite(Node node);
+  static Node rewrite(TNode node);
 
   /**
    * Rewrite an equality between two terms that are already in normal form, so

@@ -168,7 +168,7 @@ inline Node mkBitOf(TNode node, unsigned index) {
 }
 
 
-inline Node mkConcat(Node node, unsigned repeat) {
+inline Node mkConcat(TNode node, unsigned repeat) {
   Assert (repeat); 
   if(repeat == 1) {
     return node; 

@@ -49,7 +49,7 @@ struct RewriteStackElement {
   /**
    * Construct a fresh stack element.
    */
-  RewriteStackElement(Node node, TheoryId theoryId) :
+  RewriteStackElement(TNode node, TheoryId theoryId) :
     node(node),
     original(node),
     theoryId(theoryId),
@@ -58,7 +58,7 @@ struct RewriteStackElement {
   }
 };
 
-Node Rewriter::rewrite(Node node) {
+Node Rewriter::rewrite(TNode node) {
   return rewriteTo(theory::Theory::theoryOf(node), node);
 }
 

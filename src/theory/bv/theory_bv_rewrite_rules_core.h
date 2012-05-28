@@ -29,12 +29,12 @@ namespace theory {
 namespace bv {
 
 template<> inline
-bool RewriteRule<ConcatFlatten>::applies(Node node) {
+bool RewriteRule<ConcatFlatten>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_CONCAT);
 }
 
 template<> inline
-Node RewriteRule<ConcatFlatten>::apply(Node node) {
+Node RewriteRule<ConcatFlatten>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<ConcatFlatten>(" << node << ")" << std::endl;
   NodeBuilder<> result(kind::BITVECTOR_CONCAT);
   std::vector<Node> processing_stack;
@@ -55,12 +55,12 @@ Node RewriteRule<ConcatFlatten>::apply(Node node) {
 }
 
 template<> inline
-bool RewriteRule<ConcatExtractMerge>::applies(Node node) {
+bool RewriteRule<ConcatExtractMerge>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_CONCAT);
 }
 
 template<> inline
-Node RewriteRule<ConcatExtractMerge>::apply(Node node) {
+Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
 
   BVDebug("bv-rewrite") << "RewriteRule<ConcatExtractMerge>(" << node << ")" << std::endl;
 
@@ -116,12 +116,12 @@ Node RewriteRule<ConcatExtractMerge>::apply(Node node) {
 }
 
 template<> inline
-bool RewriteRule<ConcatConstantMerge>::applies(Node node) {
+bool RewriteRule<ConcatConstantMerge>::applies(TNode node) {
   return node.getKind() == kind::BITVECTOR_CONCAT;
 }
 
 template<> inline
-Node RewriteRule<ConcatConstantMerge>::apply(Node node) {
+Node RewriteRule<ConcatConstantMerge>::apply(TNode node) {
 
   BVDebug("bv-rewrite") << "RewriteRule<ConcatConstantMerge>(" << node << ")" << std::endl;
 
@@ -158,7 +158,7 @@ Node RewriteRule<ConcatConstantMerge>::apply(Node node) {
 }
 
 template<> inline
-bool RewriteRule<ExtractWhole>::applies(Node node) {
+bool RewriteRule<ExtractWhole>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   unsigned length = utils::getSize(node[0]);
   unsigned extractHigh = utils::getExtractHigh(node);
@@ -169,20 +169,20 @@ bool RewriteRule<ExtractWhole>::applies(Node node) {
 }
 
 template<> inline
-Node RewriteRule<ExtractWhole>::apply(Node node) {
+Node RewriteRule<ExtractWhole>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<ExtractWhole>(" << node << ")" << std::endl;
   return node[0];
 }
 
 template<> inline
-bool RewriteRule<ExtractConstant>::applies(Node node) {
+bool RewriteRule<ExtractConstant>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
   return true;
 }
 
 template<> inline
-Node RewriteRule<ExtractConstant>::apply(Node node) {
+Node RewriteRule<ExtractConstant>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<ExtractConstant>(" << node << ")" << std::endl;
   Node child = node[0];
   BitVector childValue = child.getConst<BitVector>();
@@ -190,7 +190,7 @@ Node RewriteRule<ExtractConstant>::apply(Node node) {
 }
 
 template<> inline
-bool RewriteRule<ExtractConcat>::applies(Node node) {
+bool RewriteRule<ExtractConcat>::applies(TNode node) {
   //BVDebug("bv-rewrite") << "RewriteRule<ExtractConcat>(" << node << ")" << std::endl;
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::BITVECTOR_CONCAT) return false;
@@ -198,7 +198,7 @@ bool RewriteRule<ExtractConcat>::applies(Node node) {
 }
 
 template<> inline
-Node RewriteRule<ExtractConcat>::apply(Node node) {
+Node RewriteRule<ExtractConcat>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<ExtractConcat>(" << node << ")" << std::endl;
   int extract_high = utils::getExtractHigh(node);
   int extract_low = utils::getExtractLow(node);
@@ -224,14 +224,14 @@ Node RewriteRule<ExtractConcat>::apply(Node node) {
 }
 
 template<> inline
-bool RewriteRule<ExtractExtract>::applies(Node node) {
+bool RewriteRule<ExtractExtract>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_EXTRACT) return false;
   if (node[0].getKind() != kind::BITVECTOR_EXTRACT) return false;
   return true;
 }
 
 template<> inline
-Node RewriteRule<ExtractExtract>::apply(Node node) {
+Node RewriteRule<ExtractExtract>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<ExtractExtract>(" << node << ")" << std::endl;
 
   // x[i:j][k:l] ~>  x[k+j:l+j]
@@ -245,7 +245,7 @@ Node RewriteRule<ExtractExtract>::apply(Node node) {
 }
 
 template<> inline
-bool RewriteRule<FailEq>::applies(Node node) {
+bool RewriteRule<FailEq>::applies(TNode node) {
   //BVDebug("bv-rewrite") << "RewriteRule<FailEq>(" << node << ")" << std::endl;
   if (node.getKind() != kind::EQUAL) return false;
   if (node[0].getKind() != kind::CONST_BITVECTOR) return false;
@@ -254,29 +254,29 @@ bool RewriteRule<FailEq>::applies(Node node) {
 }
 
 template<> inline
-Node RewriteRule<FailEq>::apply(Node node) {
+Node RewriteRule<FailEq>::apply(TNode node) {
   return utils::mkFalse();
 }
 
 template<> inline
-bool RewriteRule<SimplifyEq>::applies(Node node) {
+bool RewriteRule<SimplifyEq>::applies(TNode node) {
   if (node.getKind() != kind::EQUAL) return false;
   return node[0] == node[1];
 }
 
 template<> inline
-Node RewriteRule<SimplifyEq>::apply(Node node) {
+Node RewriteRule<SimplifyEq>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<SimplifyEq>(" << node << ")" << std::endl;
   return utils::mkTrue();
 }
 
 template<> inline
-bool RewriteRule<ReflexivityEq>::applies(Node node) {
+bool RewriteRule<ReflexivityEq>::applies(TNode node) {
   return (node.getKind() == kind::EQUAL && node[0] < node[1]);
 }
 
 template<> inline
-Node RewriteRule<ReflexivityEq>::apply(Node node) {
+Node RewriteRule<ReflexivityEq>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<ReflexivityEq>(" << node << ")" << std::endl;
   return node[1].eqNode(node[0]);
 }

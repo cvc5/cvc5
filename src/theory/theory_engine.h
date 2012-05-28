@@ -51,7 +51,7 @@ namespace CVC4 {
 struct NodeTheoryPair {
   Node node;
   theory::TheoryId theory;
-  NodeTheoryPair(Node node, theory::TheoryId theory)
+  NodeTheoryPair(TNode node, theory::TheoryId theory)
   : node(node), theory(theory) {}
   NodeTheoryPair()
   : theory(theory::THEORY_LAST) {}

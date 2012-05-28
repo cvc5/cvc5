@@ -141,6 +141,7 @@ class TheoryArrays : public Theory {
 
   Node preprocessTerm(TNode term);
   Node recursivePreprocessTerm(TNode term);
+  bool ppDisequal(TNode a, TNode b);
 
   public:
 

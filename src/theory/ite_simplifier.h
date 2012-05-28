@@ -64,8 +64,7 @@ class ITESimplifier {
 
   NodeMap d_simpConstCache;
   Node simpConstants(TNode simpContext, TNode iteNode, TNode simpVar);
-  Node d_simpVarInt;
-  Node d_simpVarReal;
+  std::hash_map<TypeNode, Node, TypeNode::HashFunction> d_simpVars;
   Node getSimpVar(TypeNode t);
   Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
 

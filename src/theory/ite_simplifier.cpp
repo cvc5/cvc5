@@ -144,19 +144,16 @@ Node ITESimplifier::simpConstants(TNode simpContext, TNode iteNode, TNode simpVa
 
 Node ITESimplifier::getSimpVar(TypeNode t)
 {
-  if (t.isInteger()) {
-    if (d_simpVarInt.isNull()) {
-      d_simpVarInt = NodeManager::currentNM()->mkVar(t);
-    }
-    return d_simpVarInt;
+  std::hash_map<TypeNode, Node, TypeNode::HashFunction>::iterator it;
+  it = d_simpVars.find(t);
+  if (it != d_simpVars.end()) {
+    return (*it).second;
   }
-  if (t.isReal()) {
-    if (d_simpVarReal.isNull()) {
-      d_simpVarReal = NodeManager::currentNM()->mkVar(t);
-    }
-    return d_simpVarReal;
+  else {
+    Node var = NodeManager::currentNM()->mkVar(t);
+    d_simpVars[t] = var;
+    return var;
   }
-  return Node();
 }
 
 

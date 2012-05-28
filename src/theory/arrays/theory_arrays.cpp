@@ -123,6 +123,13 @@ TheoryArrays::~TheoryArrays() {
 /////////////////////////////////////////////////////////////////////////////
 
 
+bool TheoryArrays::ppDisequal(TNode a, TNode b) {
+  bool termsExist = d_ppEqualityEngine.hasTerm(a) && d_ppEqualityEngine.hasTerm(b);
+  Assert(!termsExist || !a.isConst() || !b.isConst() || a == b || d_ppEqualityEngine.areDisequal(a, b, false));
+  return ((termsExist && d_ppEqualityEngine.areDisequal(a, b, false)) ||
+          Rewriter::rewrite(a.eqNode(b)) == d_false);
+}
+
 Node TheoryArrays::ppRewrite(TNode term) {
   if (!d_preprocess) return term;
   d_ppEqualityEngine.addTerm(term);
@@ -130,9 +137,7 @@ Node TheoryArrays::ppRewrite(TNode term) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
-      if (term[0].getKind() == kind::STORE &&
-          (d_ppEqualityEngine.areDisequal(term[0][1], term[1], false) ||
-           (term[0][1].isConst() && term[1].isConst() && term[0][1] != term[1]))) {
+      if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
         return NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
       }
       break;
@@ -140,10 +145,7 @@ Node TheoryArrays::ppRewrite(TNode term) {
     case kind::STORE: {
       // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
       //    IF i != j and j comes before i in the ordering
-      if (term[0].getKind() == kind::STORE &&
-          (term[1] < term[0][1]) &&
-          (d_ppEqualityEngine.areDisequal(term[1], term[0][1], false) ||
-           (term[0][1].isConst() && term[1].isConst() && term[0][1] != term[1]))) {
+      if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
         Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
         Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
         return outer;
@@ -206,13 +208,11 @@ Node TheoryArrays::ppRewrite(TNode term) {
                 NodeBuilder<> hyp(kind::AND);
                 for (j = leftWrites - 1; j > i; --j) {
                   index_j = write_j[1];
-                  if (d_ppEqualityEngine.areDisequal(index_i, index_j, false) ||
-                      (index_i.isConst() && index_j.isConst() && index_i != index_j)) {
-                    continue;
+                  if (!ppDisequal(index_i, index_j)) {
+                    Node hyp2(index_i.getType() == nm->booleanType()? 
+                              index_i.iffNode(index_j) : index_i.eqNode(index_j));
+                    hyp << hyp2.notNode();
                   }
-                  Node hyp2(index_i.getType() == nm->booleanType()? 
-                            index_i.iffNode(index_j) : index_i.eqNode(index_j));
-                  hyp << hyp2.notNode();
                   write_j = write_j[0];
                 }
 
@@ -722,7 +722,7 @@ void TheoryArrays::check(Effort e) {
           d_equalityEngine.assertEquality(fact[0], false, fact);
 
           // Apply ArrDiseq Rule if diseq is between arrays
-          if(fact[0][0].getType().isArray()) {
+          if(fact[0][0].getType().isArray() && !d_conflict) {
             NodeManager* nm = NodeManager::currentNM();
             TypeNode indexType = fact[0][0].getType()[0];
             TNode k;
@@ -766,7 +766,7 @@ void TheoryArrays::check(Effort e) {
     // Otherwise we propagate
     propagate(e);
 
-    if(!d_eagerLemmas && fullEffort(e)) {
+    if(!d_eagerLemmas && fullEffort(e) && !d_conflict) {
       // generate the lemmas on the worklist
       Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
       dischargeLemmas();
@@ -916,6 +916,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
         e1 = e1[0];
       }
       Assert(d_equalityEngine.hasTerm(e1));
+      Assert(d_equalityEngine.hasTerm(b));
       if (d_equalityEngine.areEqual(e1, b)) {
         apply = true;
       }
@@ -1283,8 +1284,8 @@ void TheoryArrays::dischargeLemmas()
 
     // Check for redundant lemma
     // TODO: more checks possible (i.e. check d_RowAlreadyAdded in context)
-    if (d_equalityEngine.areEqual(i,j) ||
-        d_equalityEngine.areEqual(a,b) ||
+    if (!d_equalityEngine.hasTerm(i) || !d_equalityEngine.hasTerm(j) || d_equalityEngine.areEqual(i,j) ||
+        !d_equalityEngine.hasTerm(a) || !d_equalityEngine.hasTerm(b) || d_equalityEngine.areEqual(a,b) ||
         (ajExists && bjExists && d_equalityEngine.areEqual(aj,bj))) {
       d_RowQueue.push(l);
       continue;

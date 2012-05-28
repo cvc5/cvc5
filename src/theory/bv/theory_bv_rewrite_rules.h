@@ -150,6 +150,8 @@ enum RewriteRuleId {
   PlusCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
+  SolveEq,
+  BitwiseEq,
   AndSimplify,
   OrSimplify,
   XorSimplify,
@@ -264,6 +266,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
+  case SolveEq : out << "SolveEq"; return out;
+  case BitwiseEq : out << "BitwiseEq"; return out;
   case NegMult : out << "NegMult"; return out;
   case NegSub : out << "NegSub"; return out;
   case AndSimplify : out << "AndSimplify"; return out;
@@ -314,7 +318,7 @@ class RewriteRule {
   // static RuleStatistics* s_statistics;
 
   /** Actually apply the rewrite rule */
-  static inline Node apply(Node node) {
+  static inline Node apply(TNode node) {
     Unreachable();
   }
 
@@ -335,12 +339,12 @@ public:
     
   }
 
-  static inline bool applies(Node node) {
+  static inline bool applies(TNode node) {
     Unreachable();
   }
 
   template<bool checkApplies>
-  static inline Node run(Node node) {
+  static inline Node run(TNode node) {
     if (!checkApplies || applies(node)) {
       BVDebug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
@@ -488,15 +492,17 @@ struct AllRewriteRules {
   RewriteRule<OrSimplify> rule109;
   RewriteRule<NegPlus> rule110;
   RewriteRule<BBPlusNeg> rule111;
+  RewriteRule<SolveEq> rule112;
+  RewriteRule<BitwiseEq> rule113;
 };
 
 template<> inline
-bool RewriteRule<EmptyRule>::applies(Node node) {
+bool RewriteRule<EmptyRule>::applies(TNode node) {
   return false;
 }
 
 template<> inline
-Node RewriteRule<EmptyRule>::apply(Node node) {
+Node RewriteRule<EmptyRule>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<EmptyRule> for " << node.getKind() <<"\n"; 
   Unreachable();
   return node;
@@ -505,7 +511,7 @@ Node RewriteRule<EmptyRule>::apply(Node node) {
 template<Kind kind, RewriteRuleId rule>
 struct ApplyRuleToChildren {
 
-  static Node apply(Node node) {
+  static Node apply(TNode node) {
     if (node.getKind() != kind) {
       return RewriteRule<rule>::template run<true>(node);
     }
@@ -516,13 +522,13 @@ struct ApplyRuleToChildren {
     return result;
   }
 
-  static bool applies(Node node) {
+  static bool applies(TNode node) {
     if (node.getKind() == kind) return true;
     return RewriteRule<rule>::applies(node);
   }
 
   template <bool checkApplies>
-  static Node run(Node node) {
+  static Node run(TNode node) {
     if (!checkApplies || applies(node)) {
       return apply(node);
     } else {
@@ -554,7 +560,7 @@ template <
   typename R20 = RewriteRule<EmptyRule>
   >
 struct LinearRewriteStrategy {
-  static Node apply(Node node) {
+  static Node apply(TNode node) {
     Node current = node;
     if (R1::applies(current)) current  = R1::template run<false>(current);
     if (R2::applies(current)) current  = R2::template run<false>(current);
@@ -603,7 +609,7 @@ template <
   typename R20 = RewriteRule<EmptyRule>
   >
 struct FixpointRewriteStrategy {
-  static Node apply(Node node) {
+  static Node apply(TNode node) {
     Node previous = node; 
     Node current = node;
     do {
