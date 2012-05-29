@@ -500,12 +500,6 @@ public:
     d_theoryTable[theoryId] = new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId], theory::Valuation(this), d_logicInfo);
   }
 
-  /**
-   * Sets the logic (SMT-LIB format).  All theory specific setup/hacks
-   * should go in here.
-   */
-  void setLogic(std::string logic);
-
   inline void setPropEngine(prop::PropEngine* propEngine) {
     Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
