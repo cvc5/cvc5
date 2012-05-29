@@ -525,9 +525,9 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool preregister) {
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<FailEq>,
         RewriteRule<SimplifyEq>,
-        RewriteRule<ReflexivityEq>
+        RewriteRule<ReflexivityEq>,
         //        ,RewriteRule<BitwiseEq>,
-        //        RewriteRule<SolveEq>
+        RewriteRule<SolveEq>
         >::apply(node);
     return RewriteResponse(REWRITE_DONE, resultNode); 
   }
