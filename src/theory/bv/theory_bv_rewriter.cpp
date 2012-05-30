@@ -516,17 +516,20 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool preregister) {
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<FailEq>,
         RewriteRule<SimplifyEq>,
-        RewriteRule<ReflexivityEq>
+        RewriteRule<ReflexivityEq>,
+        RewriteRule<BitwiseEq>
         >::apply(node);
     return RewriteResponse(REWRITE_DONE, resultNode); 
   }
-
+  else if(RewriteRule<BitwiseEq>::applies(node)) {
+    Node resultNode = RewriteRule<BitwiseEq>::run<false>(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  }
   else {
     Node resultNode = LinearRewriteStrategy
       < RewriteRule<FailEq>,
         RewriteRule<SimplifyEq>,
         RewriteRule<ReflexivityEq>,
-        //        ,RewriteRule<BitwiseEq>,
         RewriteRule<SolveEq>
         >::apply(node);
     return RewriteResponse(REWRITE_DONE, resultNode); 

@@ -424,13 +424,22 @@ void SmtEngine::setLogicInternal(const LogicInfo& logic) throw() {
   } else {
     theory::Theory::setUninterpretedSortOwner(theory::THEORY_UF);
   }
-  // Turn on ite simplification only for QF_LIA
+  // Turn on ite simplification for QF_LIA and QF_AUFBV
   if(! Options::current()->doITESimpSetByUser) {
-    bool iteSimp = logic.isPure(theory::THEORY_ARITH) && logic.isLinear() && !logic.isDifferenceLogic() && !logic.isQuantified() && !logic.areRealsUsed();
+    bool iteSimp = !logic.isQuantified() &&
+      ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear() && !logic.isDifferenceLogic() &&  !logic.areRealsUsed()) ||
+       (logic.isTheoryEnabled(theory::THEORY_ARRAY) && logic.isTheoryEnabled(theory::THEORY_UF) && logic.isTheoryEnabled(theory::THEORY_BV)));
     Trace("smt") << "setting ite simplification to " << iteSimp << std::endl;
     NodeManager::currentNM()->getOptions()->doITESimp = iteSimp;
   }
-  // Turn on ite simplification only for pure arithmetic
+  // Turn on multiple-pass non-clausal simplification for QF_AUFBV
+  if(! Options::current()->repeatSimpSetByUser) {
+    bool repeatSimp = !logic.isQuantified() &&
+      (logic.isTheoryEnabled(theory::THEORY_ARRAY) && logic.isTheoryEnabled(theory::THEORY_UF) && logic.isTheoryEnabled(theory::THEORY_BV));
+    Trace("smt") << "setting repeat simplification to " << repeatSimp << std::endl;
+    NodeManager::currentNM()->getOptions()->repeatSimp = repeatSimp;
+  }
+  // Turn on arith rewrite equalities only for pure arithmetic
   if(! Options::current()->arithRewriteEqSetByUser) {
     bool arithRewriteEq = logic.isPure(theory::THEORY_ARITH) && !logic.isQuantified();
     Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
@@ -867,6 +876,14 @@ void SmtEnginePrivate::nonClausalSimplify() {
     d_nonClausalLearnedLiterals.resize(j);
   }
 
+  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i])));
+    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                      << "non-clausal preprocessed: "
+                      << d_assertionsToCheck.back() << endl;
+  }
+  d_assertionsToPreprocess.clear();
+
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
     d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_nonClausalLearnedLiterals[i])));
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
@@ -875,13 +892,6 @@ void SmtEnginePrivate::nonClausalSimplify() {
   }
   d_nonClausalLearnedLiterals.clear();
 
-  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-    d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i])));
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "non-clausal preprocessed: "
-                      << d_assertionsToCheck.back() << endl;
-  }
-  d_assertionsToPreprocess.clear();
 }
 
 void SmtEnginePrivate::simpITE()
@@ -982,6 +992,11 @@ void SmtEnginePrivate::simplifyAssertions()
     if(Options::current()->doITESimp) {
       // ite simplification
       simpITE();
+    }
+
+    if(Options::current()->repeatSimp) {
+      d_assertionsToCheck.swap(d_assertionsToPreprocess);
+      nonClausalSimplify();
     }
 
     if(Options::current()->doStaticLearning) {
@@ -1100,6 +1115,12 @@ void SmtEnginePrivate::processAssertions() {
     // skipping for now --K
   }
 
+  if(Options::current()->repeatSimp) {
+    d_assertionsToCheck.swap(d_assertionsToPreprocess);
+    simplifyAssertions();
+    removeITEs();
+  }
+
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 #ifdef CVC4_ASSERTIONS
@@ -1112,6 +1133,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if(Dump.isOn("assertions")) {
     // Push the simplified assertions to the dump output stream
+    cout << "###Finished second removeITEs";
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
       Dump("assertions")
         << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr()));

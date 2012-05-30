@@ -154,6 +154,14 @@ struct CVC4_PUBLIC Options {
    */
   bool doITESimpSetByUser;
 
+  /** Whether to do multiple rounds of nonclausal simplification */
+  bool repeatSimp;
+
+  /**
+   * Whether the user explicitly requested multiple rounds of nonclausal simplification
+   */
+  bool repeatSimpSetByUser;
+
   /** Whether we're in interactive mode or not */
   bool interactive;
 

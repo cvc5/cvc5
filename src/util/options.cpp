@@ -85,6 +85,8 @@ Options::Options() :
   doStaticLearning(true),
   doITESimp(false),
   doITESimpSetByUser(false),
+  repeatSimp(false),
+  repeatSimpSetByUser(false),
   interactive(false),
   interactiveSetByUser(false),
   perCallResourceLimit(0),
@@ -187,6 +189,8 @@ Additional CVC4 options:\n\
    --no-static-learning   turn off static learning (e.g. diamond-breaking)\n\
    --ite-simp             turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
    --no-ite-simp          turn off ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
+   --repeat-simp          make multiple passes with nonclausal simplifier\n\
+   --no-repeat-simp       do not make multiple passes with nonclausal simplifier\n\
    --replay=file          replay decisions from file\n\
    --replay-log=file      log decisions and propagations to file\n\
   SAT:\n\
@@ -426,6 +430,8 @@ enum OptionValue {
   NO_STATIC_LEARNING,
   ITE_SIMP,
   NO_ITE_SIMP,
+  REPEAT_SIMP,
+  NO_REPEAT_SIMP,
   INTERACTIVE,
   NO_INTERACTIVE,
   PRODUCE_ASSIGNMENTS,
@@ -524,6 +530,8 @@ static struct option cmdlineOptions[] = {
   { "no-static-learning", no_argument, NULL, NO_STATIC_LEARNING },
   { "ite-simp", no_argument, NULL, ITE_SIMP },
   { "no-ite-simp", no_argument, NULL, NO_ITE_SIMP },
+  { "repeat-simp", no_argument, NULL, REPEAT_SIMP },
+  { "no-repeat-simp", no_argument, NULL, NO_REPEAT_SIMP },
   { "interactive", no_argument      , NULL, INTERACTIVE },
   { "no-interactive", no_argument   , NULL, NO_INTERACTIVE },
   { "produce-models", no_argument   , NULL, 'm' },
@@ -845,6 +853,16 @@ throw(OptionException) {
     case NO_ITE_SIMP:
       doITESimp = false;
       doITESimpSetByUser = true;
+      break;
+
+    case REPEAT_SIMP:
+      repeatSimp = true;
+      repeatSimpSetByUser = true;
+      break;
+
+    case NO_REPEAT_SIMP:
+      repeatSimp = false;
+      repeatSimpSetByUser = true;
       break;
 
     case INTERACTIVE:
