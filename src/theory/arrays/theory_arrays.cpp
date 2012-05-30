@@ -68,7 +68,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_infoMap(c, &d_backtracker),
   d_mergeQueue(c),
   d_mergeInProgress(false),
-  d_RowQueue(u),
+  d_RowQueue(c),
   d_RowAlreadyAdded(u),
   d_sharedArrays(c),
   d_sharedTerms(c, false),
@@ -1287,7 +1287,6 @@ void TheoryArrays::dischargeLemmas()
     if (!d_equalityEngine.hasTerm(i) || !d_equalityEngine.hasTerm(j) || d_equalityEngine.areEqual(i,j) ||
         !d_equalityEngine.hasTerm(a) || !d_equalityEngine.hasTerm(b) || d_equalityEngine.areEqual(a,b) ||
         (ajExists && bjExists && d_equalityEngine.areEqual(aj,bj))) {
-      d_RowQueue.push(l);
       continue;
     }
 
@@ -1313,7 +1312,6 @@ void TheoryArrays::dischargeLemmas()
       d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
     }
     if (aj2 == bj2) {
-      d_RowQueue.push(l);
       continue;
     }
 
@@ -1328,7 +1326,6 @@ void TheoryArrays::dischargeLemmas()
         preRegisterTerm(bj2);
       }
       d_equalityEngine.assertEquality(eq1, true, d_true);
-      d_RowQueue.push(l);
       continue;
     }
 
@@ -1336,7 +1333,6 @@ void TheoryArrays::dischargeLemmas()
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
       d_equalityEngine.assertEquality(eq2, true, d_true);
-      d_RowQueue.push(l);
       continue;
     }
     
