@@ -148,12 +148,13 @@ void TheoryBV::propagate(Effort e) {
     Node normalized = Rewriter::rewrite(literal);
 
     TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;  
-    // check if it's a shared equality in the current context
-    if (atom.getKind() != kind::EQUAL || d_valuation.isSatLiteral(normalized) ||
-        (d_sharedTermsSet.find(atom[0]) != d_sharedTermsSet.end() &&
-         d_sharedTermsSet.find(atom[1]) != d_sharedTermsSet.end())) {
-    
-      bool satValue;
+    bool isSharedLiteral = (atom.getKind() == kind::EQUAL &&
+                            (d_sharedTermsSet.find(atom[0]) != d_sharedTermsSet.end() &&
+                             d_sharedTermsSet.find(atom[1]) != d_sharedTermsSet.end()));
+
+    // Check if this is a SAT literal
+    if (d_valuation.isSatLiteral(normalized)) {
+      bool satValue = false;
       if (!d_valuation.hasSatValue(normalized, satValue) || satValue) {
         // check if we already propagated the negation
         Node negLiteral = literal.getKind() == kind::NOT ? (Node)literal[0] : mkNot(literal);
@@ -166,11 +167,16 @@ void TheoryBV::propagate(Effort e) {
           setConflict(mkAnd(assumptions)); 
           return;
         }
-        
-        BVDebug("bitvector") << indent() << "TheoryBV::propagate(): " << literal << std::endl;
-        d_out->propagate(literal);
-        d_alreadyPropagatedSet.insert(literal); 
+        // If it's not a shared literal and hasn't already been set to true, we propagate the normalized version
+        // shared literals are handled below
+        if (!isSharedLiteral && !satValue) {
+          BVDebug("bitvector") << indent() << "TheoryBV::propagate(): " << normalized << std::endl;
+          d_out->propagate(normalized);
+          d_alreadyPropagatedSet.insert(normalized); 
+          return;
+        }
       } else {
+        // 
         Debug("bitvector") << indent() << "TheoryBV::propagate(): in conflict, normalized = " << normalized << std::endl;
         Node negatedLiteral;
         std::vector<TNode> assumptions;
@@ -181,8 +187,15 @@ void TheoryBV::propagate(Effort e) {
         return;
       }
     }
+    // Either it was not a SAT literal or it was but it is also shared - in that case we have to propagate the original literal (not the normalized one)
+    if (isSharedLiteral) {
+      BVDebug("bitvector") << indent() << "TheoryBV::propagate(): " << literal << std::endl;
+      d_out->propagate(literal);
+      d_alreadyPropagatedSet.insert(literal); 
+    }
   }
 }
+
 
 Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   switch(in.getKind()) {

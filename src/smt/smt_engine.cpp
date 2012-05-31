@@ -293,6 +293,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
   // d_decisionEngine->setPropEngine(d_propEngine);
 
+  d_context->push();
+
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
 
   // [MGD 10/20/2011] keep around in incremental mode, due to a
@@ -348,6 +350,8 @@ SmtEngine::~SmtEngine() throw() {
     }
 
     shutdown();
+
+    d_context->pop();
 
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
