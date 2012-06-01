@@ -293,6 +293,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
   // d_decisionEngine->setPropEngine(d_propEngine);
 
+  // global push/pop around everything, to ensure proper destruction
+  // of context-dependent data structures
+  d_userContext->push();
   d_context->push();
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
@@ -345,13 +348,16 @@ SmtEngine::~SmtEngine() throw() {
   NodeManagerScope nms(d_nodeManager);
 
   try {
-    while(Options::current()->incrementalSolving && d_userContext->getLevel() > 0) {
+    while(Options::current()->incrementalSolving && d_userContext->getLevel() > 1) {
       internalPop();
     }
 
     shutdown();
 
+    // global push/pop around everything, to ensure proper destruction
+    // of context-dependent data structures
     d_context->pop();
+    d_userContext->pop();
 
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
