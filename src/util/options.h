@@ -154,6 +154,14 @@ struct CVC4_PUBLIC Options {
    */
   bool doITESimpSetByUser;
 
+  /** Whether to do the unconstrained simplification pass */
+  bool unconstrainedSimp;
+
+  /**
+   * Whether the user explicitly requested unconstrained simplification
+   */
+  bool unconstrainedSimpSetByUser;
+
   /** Whether to do multiple rounds of nonclausal simplification */
   bool repeatSimp;
 

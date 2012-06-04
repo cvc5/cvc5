@@ -68,10 +68,6 @@ public:
 
 private:
 
-  /** Back edges from nodes to where they are used */
-  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
-  BackEdgesMap d_backEdges;
-
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
 
@@ -110,6 +106,15 @@ private:
    * Similar data clearer for learned literals.
    */
   DataClearer< std::vector<Node> > d_learnedLiteralClearer;
+
+  /** Back edges from nodes to where they are used */
+  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
+  BackEdgesMap d_backEdges;
+
+  /**
+   * Similar data clearer for back edges.
+   */
+  DataClearer<BackEdgesMap> d_backEdgesClearer;
 
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
@@ -231,12 +236,13 @@ public:
    */
   CircuitPropagator(context::Context* context, std::vector<Node>& outLearnedLiterals,
                     bool enableForward = true, bool enableBackward = true) :
-    d_backEdges(),
     d_propagationQueue(),
     d_propagationQueueClearer(context, d_propagationQueue),
     d_conflict(context, false),
     d_learnedLiterals(outLearnedLiterals),
     d_learnedLiteralClearer(context, outLearnedLiterals),
+    d_backEdges(),
+    d_backEdgesClearer(context, d_backEdges),
     d_seen(context),
     d_state(context),
     d_forwardPropagation(enableForward),

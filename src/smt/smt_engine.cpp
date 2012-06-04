@@ -159,6 +159,9 @@ class SmtEnginePrivate {
   // Simplify ITE structure
   void simpITE();
 
+  // Simplify based on unconstrained values
+  void unconstrainedSimp();
+
   /**
    * Any variable in a assertion that is declared as a subtype type
    * (predicate subtype or integer subrange type) must be constrained
@@ -255,6 +258,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
   d_staticLearningTime("smt::SmtEngine::staticLearningTime"),
   d_simpITETime("smt::SmtEngine::simpITETime"),
+  d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
   d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
   d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
   d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
@@ -268,6 +272,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
   StatisticsRegistry::registerStat(&d_staticLearningTime);
   StatisticsRegistry::registerStat(&d_simpITETime);
+  StatisticsRegistry::registerStat(&d_unconstrainedSimpTime);
   StatisticsRegistry::registerStat(&d_iteRemovalTime);
   StatisticsRegistry::registerStat(&d_theoryPreprocessTime);
   StatisticsRegistry::registerStat(&d_cnfConversionTime);
@@ -373,6 +378,7 @@ SmtEngine::~SmtEngine() throw() {
     StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
     StatisticsRegistry::unregisterStat(&d_staticLearningTime);
     StatisticsRegistry::unregisterStat(&d_simpITETime);
+    StatisticsRegistry::unregisterStat(&d_unconstrainedSimpTime);
     StatisticsRegistry::unregisterStat(&d_iteRemovalTime);
     StatisticsRegistry::unregisterStat(&d_theoryPreprocessTime);
     StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
@@ -448,6 +454,13 @@ void SmtEngine::setLogicInternal(const LogicInfo& logic) throw() {
       (logic.isTheoryEnabled(theory::THEORY_ARRAY) && logic.isTheoryEnabled(theory::THEORY_UF) && logic.isTheoryEnabled(theory::THEORY_BV));
     Trace("smt") << "setting repeat simplification to " << repeatSimp << std::endl;
     NodeManager::currentNM()->getOptions()->repeatSimp = repeatSimp;
+  }
+  // Turn on unconstrained simplification for all but QF_SAT as long as we are not in incremental solving mode
+  if(! Options::current()->unconstrainedSimpSetByUser || Options::current()->incrementalSolving) {
+    bool qf_sat = logic.isPure(theory::THEORY_BOOL) && !logic.isQuantified();
+    bool uncSimp = false && !qf_sat && !Options::current()->incrementalSolving;
+    Trace("smt") << "setting unconstrained simplification to " << uncSimp << std::endl;
+    NodeManager::currentNM()->getOptions()->unconstrainedSimp = uncSimp;
   }
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! Options::current()->arithRewriteEqSetByUser) {
@@ -886,16 +899,24 @@ void SmtEnginePrivate::nonClausalSimplify() {
     d_nonClausalLearnedLiterals.resize(j);
   }
 
+  hash_set<TNode, TNodeHashFunction> s;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-    d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i])));
+    Node assertion = theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
+    s.insert(assertion);
+    d_assertionsToCheck.push_back(assertion);
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "non-clausal preprocessed: "
-                      << d_assertionsToCheck.back() << endl;
+                      << assertion << endl;
   }
   d_assertionsToPreprocess.clear();
 
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
-    d_assertionsToCheck.push_back(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_nonClausalLearnedLiterals[i])));
+    Node learned = theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_nonClausalLearnedLiterals[i]));
+    if (s.find(learned) != s.end()) {
+      continue;
+    }
+    s.insert(learned);
+    d_assertionsToCheck.push_back(learned);
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "non-clausal learned : "
                       << d_assertionsToCheck.back() << endl;
@@ -915,6 +936,16 @@ void SmtEnginePrivate::simpITE()
     d_assertionsToCheck[i] = d_smt.d_theoryEngine->ppSimpITE(d_assertionsToCheck[i]);
   }
 }
+
+
+void SmtEnginePrivate::unconstrainedSimp()
+{
+  TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_unconstrainedSimpTime);
+
+  Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
+  d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertionsToCheck);
+}
+
 
 void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertions)
   throw(AssertionException) {
@@ -993,7 +1024,10 @@ void SmtEnginePrivate::simplifyAssertions()
       // Perform non-clausal simplification
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
                         << "performing non-clausal simplification" << endl;
+      // Abuse the user context to make sure circuit propagator gets backtracked
+      d_smt.d_userContext->push();
       nonClausalSimplify();
+      d_smt.d_userContext->pop();
     } else {
       Assert(d_assertionsToCheck.empty());
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
@@ -1004,9 +1038,16 @@ void SmtEnginePrivate::simplifyAssertions()
       simpITE();
     }
 
+    if(Options::current()->unconstrainedSimp) {
+      unconstrainedSimp();
+    }
+
     if(Options::current()->repeatSimp) {
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
+      // Abuse the user context to make sure circuit propagator gets backtracked
+      d_smt.d_userContext->push();
       nonClausalSimplify();
+      d_smt.d_userContext->pop();
     }
 
     if(Options::current()->doStaticLearning) {

@@ -451,6 +451,15 @@ public:
   }
 
   /**
+   * Returns true if this node represents a constant
+   * @return true if const
+   */
+  inline bool isVar() const {
+    assertTNodeNotExpired();
+    return getMetaKind() == kind::metakind::VARIABLE;
+  }
+
+  /**
    * Returns the unique id of this node
    * @return the ud
    */

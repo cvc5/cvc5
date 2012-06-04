@@ -405,6 +405,9 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
       updateCoefMap(left[i], size, leftMap, leftConst);
     }
   }
+  else if (left.getKind() == kind::BITVECTOR_NOT && left[0] == right) {
+    return utils::mkFalse();
+  }
   else {
     updateCoefMap(left, size, leftMap, leftConst);
   }
@@ -414,6 +417,9 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
     for(unsigned i= 0; i < right.getNumChildren(); ++i) {
       updateCoefMap(right[i], size, rightMap, rightConst);
     }
+  }
+  else if (right.getKind() == kind::BITVECTOR_NOT && right[0] == left) {
+    return utils::mkFalse();
   }
   else {
     updateCoefMap(right, size, rightMap, rightConst);

@@ -71,6 +71,10 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) 
       }
       // Mark the substitution and continue
       Node result = builder;
+      find = substitutionCache.find(result);
+      if (find != substitutionCache.end()) {
+        result = find->second;
+      }
       Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << std::endl;
       substitutionCache[current] = result;
       toVisit.pop_back();
@@ -114,12 +118,15 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache) {
     d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
   }
 
-  // Put the new substitution in
-  d_substitutions[x] = t;
+  // Put the new substitution in, but apply existing substitutions to rhs first
+  d_substitutions[x] = apply(t);
 
   // Also invalidate the cache
   if (invalidateCache) {
     d_cacheInvalidated = true;
+  }
+  else {
+    d_substitutionCache[x] = d_substitutions[x];
   }
 }
 

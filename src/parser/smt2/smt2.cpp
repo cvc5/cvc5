@@ -166,6 +166,20 @@ void Smt2::setLogic(const std::string& name) {
     addTheory(THEORY_BITVECTORS);
     break;
 
+  case Smt::QF_AUFBVLIA:
+    addOperator(kind::APPLY_UF);
+    addTheory(THEORY_ARRAYS);
+    addTheory(THEORY_BITVECTORS);
+    addTheory(THEORY_INTS);
+    break;
+
+  case Smt::QF_AUFBVLRA:
+    addOperator(kind::APPLY_UF);
+    addTheory(THEORY_ARRAYS);
+    addTheory(THEORY_BITVECTORS);
+    addTheory(THEORY_REALS);
+    break;
+
   case Smt::QF_AUFLIA:
     addTheory(THEORY_ARRAYS);
     addOperator(kind::APPLY_UF);

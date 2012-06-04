@@ -31,7 +31,9 @@ libtheory_la_SOURCES = \
 	term_registration_visitor.h \
 	term_registration_visitor.cpp \
 	ite_simplifier.h \
-	ite_simplifier.cpp
+	ite_simplifier.cpp \
+	unconstrained_simplifier.h \
+	unconstrained_simplifier.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

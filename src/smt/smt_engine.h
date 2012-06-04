@@ -231,6 +231,8 @@ class CVC4_PUBLIC SmtEngine {
   TimerStat d_staticLearningTime;
   /** time spent in simplifying ITEs */
   TimerStat d_simpITETime;
+  /** time spent in simplifying ITEs */
+  TimerStat d_unconstrainedSimpTime;
   /** time spent removing ITEs */
   TimerStat d_iteRemovalTime;
   /** time spent in theory preprocessing */

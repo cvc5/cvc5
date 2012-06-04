@@ -62,7 +62,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
   d_inPreregister(false),
   d_preRegistrationVisitor(this, context),
-  d_sharedTermsVisitor(d_sharedTerms)
+  d_sharedTermsVisitor(d_sharedTerms),
+  d_unconstrainedSimp(context, logicInfo)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     d_theoryTable[theoryId] = NULL;
@@ -1010,4 +1011,10 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
   result = d_iteSimplifier.simplifyWithCare(result);
   result = Rewriter::rewrite(result);
   return result;
+}
+
+
+void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
+{
+  d_unconstrainedSimp.processAssertions(assertions);
 }

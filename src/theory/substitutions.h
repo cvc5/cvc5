@@ -107,6 +107,12 @@ public:
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
 
   /**
+   * Returns true iff x is in the substitution map
+   */
+  bool hasSubstitution(TNode x)
+    { return d_substitutions.find(x) != d_substitutions.end(); }
+
+  /**
    * Apply the substitutions to the node.
    */
   Node apply(TNode t);
