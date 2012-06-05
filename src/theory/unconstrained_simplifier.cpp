@@ -99,21 +99,6 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 }
 
 
-void UnconstrainedSimplifier::removeExpr(TNode expr)
-{
-  ++d_numUnconstrainedElim;
-  // TNodeCountMap::iterator find = d_visited.find(expr);
-  // Assert(find != d_visited.end());
-  // find->second = find->second - 1;
-  // if (find->second == 0) {
-  //   for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
-  //     TNode childNode = *child_it;
-  //     toVisit.push_back(unc_preprocess_stack_element(childNode, current));
-  //   !!!
-  // }
-}
-
-
 void UnconstrainedSimplifier::processUnconstrained()
 {
   TNodeSet::iterator it = d_unconstrained.begin(), iend = d_unconstrained.end();
@@ -147,7 +132,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if ((uCond && uThen) || (uCond && uElse) || (uThen && uElse)) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (uThen) {
                 if (parent[1] != current) {
                   if (parent[1].isVar()) {
@@ -191,7 +176,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
             }
             if (test == NodeManager::currentNM()->mkConst<bool>(false)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }
@@ -219,7 +204,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         {
           if (d_unconstrained.find(parent) == d_unconstrained.end() &&
               !d_substitutions.hasSubstitution(parent)) {
-            removeExpr(parent);
+            ++d_numUnconstrainedElim;
             Assert(parent[0] != parent[1] &&
                    (parent[0] == current || parent[1] == current));
             if (currentSub.isNull()) {
@@ -239,7 +224,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_NOT:
         case kind::BITVECTOR_NEG:
         case kind::UMINUS:
-          removeExpr(parent);
+          ++d_numUnconstrainedElim;
           Assert(parent[0] == current);
           if (currentSub.isNull()) {
             currentSub = current;
@@ -249,7 +234,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Unary operators that propagate unconstrainedness and return a different type
         case kind::BITVECTOR_EXTRACT:
-          removeExpr(parent);
+          ++d_numUnconstrainedElim;
           Assert(parent[0] == current);
           if (currentSub.isNull()) {
             currentSub = current;
@@ -277,7 +262,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (allUnconstrained) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }
@@ -316,7 +301,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (allUnconstrained && allDifferent) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }
@@ -349,7 +334,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (allUnconstrained && allDifferent) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }
@@ -378,7 +363,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_SUB:
           if (d_unconstrained.find(parent) == d_unconstrained.end() &&
               !d_substitutions.hasSubstitution(parent)) {
-            removeExpr(parent);
+            ++d_numUnconstrainedElim;
             if (currentSub.isNull()) {
               currentSub = current;
             }
@@ -410,7 +395,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                   break;
                 }
               }
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }
@@ -446,7 +431,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                 break;
               }
             }
-            removeExpr(parent);
+            ++d_numUnconstrainedElim;
             if (currentSub.isNull()) {
               currentSub = current;
             }
@@ -468,7 +453,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (d_unconstrained.find(other) != d_unconstrained.end()) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }
@@ -489,7 +474,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (Rewriter::rewrite(test) != nm->mkConst<bool>(true)) {
               break;
             }
-            removeExpr(parent);
+            ++d_numUnconstrainedElim;
             if (currentSub.isNull()) {
               currentSub = current;
             }
@@ -505,7 +490,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           }
           if (d_unconstrained.find(parent) == d_unconstrained.end() &&
               !d_substitutions.hasSubstitution(parent)) {
-            removeExpr(parent);
+            ++d_numUnconstrainedElim;
             if (currentSub.isNull()) {
               currentSub = current;
             }
@@ -522,7 +507,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // Array select - if array is unconstrained, so is result
         case kind::SELECT:
           if (parent[0] == current) {
-            removeExpr(parent);
+            ++d_numUnconstrainedElim;
             Assert(current.getType().isArray());
             if (currentSub.isNull()) {
               currentSub = current;
@@ -540,7 +525,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                 d_unconstrained.find(parent[0]) != d_unconstrained.end()))) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (parent[0] != current) {
                 Assert(d_substitutions.hasSubstitution(parent[0]));
                 currentSub = d_substitutions.apply(parent[0]);
@@ -595,7 +580,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (d_unconstrained.find(other) != d_unconstrained.end()) {
             if (d_unconstrained.find(parent) == d_unconstrained.end() &&
                 !d_substitutions.hasSubstitution(parent)) {
-              removeExpr(parent);
+              ++d_numUnconstrainedElim;
               if (currentSub.isNull()) {
                 currentSub = current;
               }

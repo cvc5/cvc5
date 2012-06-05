@@ -52,7 +52,6 @@ class UnconstrainedSimplifier {
   void visitAll(TNode assertion);
   Node newUnconstrainedVar(TypeNode t, TNode var);
   void processUnconstrained();
-  void removeExpr(TNode node);
 
 public:
   UnconstrainedSimplifier(context::Context* context, const LogicInfo& logicInfo);
