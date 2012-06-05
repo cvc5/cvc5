@@ -103,25 +103,27 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) 
   return substitutionCache[t];
 }
 
-void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache) {
+void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache, bool backSub, bool forwardSub) {
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << std::endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
-  // Temporary substitution cache
-  NodeCache tempCache;
-  tempCache[x] = t;
+  if (backSub) {
+    // Temporary substitution cache
+    NodeCache tempCache;
+    tempCache[x] = t;
 
-  // Put in the new substitutions into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
-  for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
+    // Put in the new substitutions into the old ones
+    NodeMap::iterator it = d_substitutions.begin();
+    NodeMap::iterator it_end = d_substitutions.end();
+    for(; it != it_end; ++ it) {
+      d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
+    }
   }
 
-  // Put the new substitution in, but apply existing substitutions to rhs first
-  d_substitutions[x] = apply(t);
+  // Put the new substitution in
+  d_substitutions[x] = forwardSub ? apply(t) : Node(t);
 
-  // Also invalidate the cache
+  // Also invalidate the cache if necessary
   if (invalidateCache) {
     d_cacheInvalidated = true;
   }

@@ -102,9 +102,17 @@ public:
   }
 
   /**
-   * Adds a substitution from x to t
+   * Adds a substitution from x to t.  Typically you also want to apply this
+   * substitution to the existing set (backSub), but you do not need to
+   * apply the existing set to the new substitution (forwardSub).  However,
+   * the method allows you to do either.  Probably you should not do both,
+   * as it will be very difficult to maintain the invariant that no
+   * left-hand side appears on any right-hand side.
    */
-  void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
+  void addSubstitution(TNode x, TNode t,
+                       bool invalidateCache = true,
+                       bool backSub = true,
+                       bool forwardSub = false);
 
   /**
    * Returns true iff x is in the substitution map
