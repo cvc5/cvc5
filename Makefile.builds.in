@@ -200,7 +200,7 @@ regress%: all
 	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 
 dist:
-	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
+	(cd $(CURRENT_BUILD) && $(MAKE) $@)
 	$(install_sh) \
 		$(CURRENT_BUILD)/$(distdir).tar.gz \
 		"`pwd`"

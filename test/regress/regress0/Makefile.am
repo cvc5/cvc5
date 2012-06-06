@@ -1,4 +1,5 @@
 SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes lemmas push-pop preprocess
+DIST_SUBDIRS = $(SUBDIRS) unconstrained
 
 BINARY = cvc4
 if PROOF_REGRESSIONS

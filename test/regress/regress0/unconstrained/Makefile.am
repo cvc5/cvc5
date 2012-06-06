@@ -59,6 +59,8 @@ TESTS =	\
 	uf2.smt2 \
 	xor.smt2
 
+EXTRA_DIST = $(TESTS)
+
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
 #TESTS += \

@@ -203,7 +203,7 @@ if test -n "${enable_replay+set}"; then
 fi
 AC_MSG_RESULT([$with_build])
 
-AM_INIT_AUTOMAKE([1.11 no-define parallel-tests color-tests])
+AM_INIT_AUTOMAKE([1.11 no-define tar-pax parallel-tests color-tests])
 AC_CONFIG_HEADERS([cvc4autoconfig.h])
 
 # Initialize libtool's configuration options.

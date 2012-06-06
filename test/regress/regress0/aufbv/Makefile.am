@@ -5,6 +5,8 @@ else
 TESTS_ENVIRONMENT = @srcdir@/../../run_regression $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)
 endif
 
+MAKEFLAGS = -k
+
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="

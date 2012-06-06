@@ -45,7 +45,7 @@ subdirs_to_check = \
 	regress/regress0/push-pop \
 	regress/regress0/precedence \
 	regress/regress0/preprocess \
-	regress/regress0/subtypes \
+	regress/regress0/unconstrained \
 	regress/regress1 \
 	regress/regress2 \
 	regress/regress3

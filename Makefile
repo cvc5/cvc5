@@ -13,7 +13,7 @@ all .DEFAULT:
 		echo cd $(builddir); \
 		cd $(builddir); \
 		echo $(MAKE) $@; \
-		$(MAKE) $@; \
+		$(MAKE) $@ || exit 1; \
 	else \
 		echo; \
 		echo 'Run configure first, or type "make" in a configured build directory.'; \
@@ -25,7 +25,7 @@ distclean maintainerclean:
 		echo cd $(builddir); \
 		cd $(builddir); \
 		echo $(MAKE) $@; \
-		$(MAKE) $@; \
+		$(MAKE) $@ || exit 1; \
 	fi
 	test -z "$(builddir)" || rm -fr "$(builddir)"
 	rm -f config.reconfig
