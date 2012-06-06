@@ -62,7 +62,6 @@ TESTS =	\
 	uf2.smt2 \
 	xor.smt2
 
-# bvbool3 takes too long for regress0
 EXTRA_DIST = $(TESTS)
 
 #if CVC4_BUILD_PROFILE_COMPETITION
