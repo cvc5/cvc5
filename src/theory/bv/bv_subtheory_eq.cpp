@@ -134,7 +134,7 @@ bool EqualitySolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool v
 }
 
 bool EqualitySolver::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool value) {
-  BVDebug("bitvector::equality") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" )<< ")" << std::endl;
+  BVDebug("bitvector::equality") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" ) << ")" << std::endl;
   if (value) {
     return d_bv->storePropagation(predicate, TheoryBV::SUB_EQUALITY);
   } else {
@@ -143,7 +143,7 @@ bool EqualitySolver::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool
 }
 
 bool EqualitySolver::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
-  Debug("bitvector::equality") << "NotifyClass::eqNotifyTriggerTermMerge(" << t1 << ", " << t2 << std::endl;
+  Debug("bitvector::equality") << "NotifyClass::eqNotifyTriggerTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
   if (value) {
     return d_bv->storePropagation(t1.eqNode(t2), TheoryBV::SUB_EQUALITY);
   } else {
@@ -152,7 +152,7 @@ bool EqualitySolver::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNod
 }
 
 bool EqualitySolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-  Debug("bitvector::equality") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
+  Debug("bitvector::equality") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
   if (Theory::theoryOf(t1) == THEORY_BOOL) {
     return d_bv->storePropagation(t1.iffNode(t2), TheoryBV::SUB_EQUALITY);
   }

@@ -51,7 +51,7 @@ class FakeOutputChannel : public OutputChannel {
   void conflict(TNode n) throw(AssertionException) {
     Unimplemented();
   }
-  void propagate(TNode n) throw(AssertionException) {
+  bool propagate(TNode n) throw(AssertionException) {
     Unimplemented();
   }
   void propagateAsDecision(TNode n) throw(AssertionException) {

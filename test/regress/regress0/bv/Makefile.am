@@ -28,7 +28,8 @@ SMT_TESTS = \
 	fuzz11.smt \
 	fuzz12.smt \
 	fuzz13.smt \
-	fuzz14.smt
+	fuzz14.smt \
+	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS =

@@ -345,6 +345,13 @@ private:
   std::vector<bool> d_isConstant;
 
   /**
+   * Returns true if it's a constant
+   */
+  bool isConstant(EqualityNodeId id) const {
+    return d_isConstant[getEqualityNode(id).getFind()];
+  }
+
+  /**
    * Map from ids to wheather they are Boolean.
    */
   std::vector<bool> d_isBoolean;

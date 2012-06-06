@@ -103,8 +103,9 @@ public:
    * Propagate a theory literal.
    *
    * @param n - a theory consequence at the current decision level
+   * @return false if an immediate conflict was encountered
    */
-  virtual void propagate(TNode n) throw(AssertionException) = 0;
+  virtual bool propagate(TNode n) throw(AssertionException) = 0;
 
   /**
    * Request that the core make a decision on this atom.  The decision

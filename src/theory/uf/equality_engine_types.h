@@ -94,8 +94,9 @@ struct MergeCandidate {
   EqualityNodeId t1Id, t2Id;
   MergeReasonType type;
   TNode reason;
-  MergeCandidate(EqualityNodeId x, EqualityNodeId y, MergeReasonType type, TNode reason):
-    t1Id(x), t2Id(y), type(type), reason(reason) {}
+  MergeCandidate(EqualityNodeId x, EqualityNodeId y, MergeReasonType type, TNode reason)
+  : t1Id(x), t2Id(y), type(type), reason(reason) 
+  {}
 };
 
 /**
@@ -145,15 +146,6 @@ public:
   }
 };
 
-/** Main types of uselists */
-enum UseListType {
-  /** Use list of functions where the term appears in */
-  USE_LIST_FUNCTIONS,
-  /** Use list of asserted disequalities */
-  USE_LIST_DISEQUALITIES
-};
-
-
 /**
  * Main class for representing nodes in the equivalence class. The 
  * nodes are a circular list, with the representative carrying the
@@ -178,9 +170,6 @@ private:
   /** The use list of this node */
   UseListNodeId d_useList;
 
-  /** The list of asserted disequalities that this node appears in */
-  UseListNodeId d_diseqList;
-
 public:
 
   /**
@@ -191,15 +180,13 @@ public:
   , d_findId(nodeId) 
   , d_nextId(nodeId)
   , d_useList(null_uselist_id)
-  , d_diseqList(null_uselist_id)
   {}
 
   /**
    * Returns the requested uselist.
    */
-  template<UseListType type>
   UseListNodeId getUseList() const {
-    return type == USE_LIST_FUNCTIONS ? d_useList : d_diseqList;
+    return d_useList;
   }
 
   /**
@@ -244,22 +231,20 @@ public:
    * Note that this node is used in a function application funId, or
    * a negatively asserted equality (dis-equality) with funId. 
    */
-  template<UseListType type, typename memory_class>
+  template<typename memory_class>
   void usedIn(EqualityNodeId funId, memory_class& memory) {
-    UseListNodeId& useList = type == USE_LIST_FUNCTIONS ? d_useList : d_diseqList;
     UseListNodeId newUseId = memory.size();
-    memory.push_back(UseListNode(funId, useList));
-    useList = newUseId;
+    memory.push_back(UseListNode(funId, d_useList));
+    d_useList = newUseId;
   }
 
   /**
    * For backtracking: remove the first element from the uselist and pop the memory.
    */
-  template<UseListType type, typename memory_class>
+  template<typename memory_class>
   void removeTopFromUseList(memory_class& memory) {
-    UseListNodeId& useList = type == USE_LIST_FUNCTIONS ? d_useList : d_diseqList;
-    Assert ((int) useList == (int)memory.size() - 1);
-    useList = memory.back().getNext();
+    Assert ((int) d_useList == (int)memory.size() - 1);
+    d_useList = memory.back().getNext();
     memory.pop_back();
   }
 };
@@ -288,7 +273,7 @@ struct FunctionApplication {
   FunctionApplication(bool isEquality = false, EqualityNodeId a = null_id, EqualityNodeId b = null_id)
   : isEquality(isEquality), a(a), b(b) {}
   bool operator == (const FunctionApplication& other) const {
-    return a == other.a && b == other.b;
+    return isEquality == other.isEquality && a == other.a && b == other.b;
   }
   bool isApplication() const {
     return a != null_id && b != null_id;

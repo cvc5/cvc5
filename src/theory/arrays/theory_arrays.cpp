@@ -319,33 +319,12 @@ bool TheoryArrays::propagate(TNode literal)
     return false;
   }
 
-  // See if the literal has been asserted already
-  Node normalized = Rewriter::rewrite(literal);
-  bool satValue = false;
-  bool isAsserted = normalized == d_false || d_valuation.hasSatValue(normalized, satValue);
-
-  // If asserted, we're done or in conflict
-  if (isAsserted) {
-    if (!satValue) {
-      Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal << ", normalized = " << normalized << ") => conflict" << std::endl;
-      std::vector<TNode> assumptions;
-      Node negatedLiteral;
-      negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-      assumptions.push_back(negatedLiteral);
-      explain(literal, assumptions);
-      d_conflictNode = mkAnd(assumptions);
-      d_conflict = true;
-      return false;
-    }
-    // Propagate even if already known in SAT - could be a new equation between shared terms
-    // (terms that weren't shared when the literal was asserted!)
+  // Propagate away
+  bool ok = d_out->propagate(literal);
+  if (!ok) {
+    d_conflict = true;
   }
-
-  // Nothing, just enqueue it for propagation and mark it as asserted already
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal << ") => enqueuing for propagation" << std::endl;
-  d_literalsToPropagate.push_back(literal);
-
-  return true;
+  return ok;
 }/* TheoryArrays::propagate(TNode) */
 
 
@@ -479,29 +458,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
 
 void TheoryArrays::propagate(Effort e)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate()" << std::endl;
-  if (!d_conflict) {
-    for (; d_literalsToPropagateIndex < d_literalsToPropagate.size(); d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
-      TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
-      Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(): propagating " << literal << std::endl;
-      bool satValue;
-      Node normalized = Rewriter::rewrite(literal);
-      if (!d_valuation.hasSatValue(normalized, satValue) || satValue) {
-        d_out->propagate(literal);
-      } else {
-        Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(): in conflict, normalized = " << normalized << std::endl;
-        Node negatedLiteral;
-        std::vector<TNode> assumptions;
-        negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-        assumptions.push_back(negatedLiteral);
-        explain(literal, assumptions);
-        d_conflictNode = mkAnd(assumptions);
-        d_conflict = true;
-        break;
-      }
-    }
-  }
-
+  // direct propagation now
 }
 
 
@@ -634,6 +591,7 @@ void TheoryArrays::computeCareGraph()
             break;
           case EQUALITY_FALSE_IN_MODEL:
             Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): false in model" << std::endl;
+            continue;
             break;
           default:
             break;
@@ -700,11 +658,21 @@ void TheoryArrays::check(Effort e) {
 
     Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): processing " << fact << std::endl;
 
-    // If the assertion doesn't have a literal, it's a shared equality
-    Assert(assertion.isPreregistered ||
-           ((fact.getKind() == kind::EQUAL && d_equalityEngine.hasTerm(fact[0]) && d_equalityEngine.hasTerm(fact[1])) ||
-            (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL &&
-             d_equalityEngine.hasTerm(fact[0][0]) && d_equalityEngine.hasTerm(fact[0][1]))));
+    bool polarity = fact.getKind() != kind::NOT;
+    TNode atom = polarity ? fact : fact[0];
+
+    if (!assertion.isPreregistered) {
+      if (atom.getKind() == kind::EQUAL) {
+        if (!d_equalityEngine.hasTerm(atom[0])) {
+          Assert(atom[0].isConst());
+          d_equalityEngine.addTerm(atom[0]);
+        }
+        if (!d_equalityEngine.hasTerm(atom[1])) {
+          Assert(atom[1].isConst());
+          d_equalityEngine.addTerm(atom[1]);
+        }
+      }
+    }
 
     // Do the work
     switch (fact.getKind()) {
@@ -758,19 +726,10 @@ void TheoryArrays::check(Effort e) {
   }
 
   // If in conflict, output the conflict
-  if (d_conflict) {
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): conflict " << d_conflictNode << std::endl;
-    d_out->conflict(d_conflictNode);
-  }
-  else {
-    // Otherwise we propagate
-    propagate(e);
-
-    if(!d_eagerLemmas && fullEffort(e) && !d_conflict) {
-      // generate the lemmas on the worklist
-      Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
-      dischargeLemmas();
-    }
+  if(!d_eagerLemmas && fullEffort(e) && !d_conflict) {
+    // generate the lemmas on the worklist
+    Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
+    dischargeLemmas();
   }
 
   Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
@@ -1138,6 +1097,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   TNode b = lem.second;
   TNode i = lem.third;
   TNode j = lem.fourth;
+
   Assert(a.getType().isArray() && b.getType().isArray());
   if (d_equalityEngine.areEqual(a,b) ||
       d_equalityEngine.areEqual(i,j)) {
@@ -1343,6 +1303,16 @@ void TheoryArrays::dischargeLemmas()
     d_out->lemma(lem);
     ++d_numRow;
   }
+}
+
+void TheoryArrays::conflict(TNode a, TNode b) {
+  if (Theory::theoryOf(a) == theory::THEORY_BOOL) {
+    d_conflictNode = explain(a.iffNode(b));
+  } else {
+    d_conflictNode = explain(a.eqNode(b));
+  }
+  d_out->conflict(d_conflictNode);
+  d_conflict = true;
 }
 
 

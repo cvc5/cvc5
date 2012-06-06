@@ -699,7 +699,8 @@ throw(OptionException) {
         } else if(!strcmp(optarg, "t-conflicts") ||
                   !strcmp(optarg, "t-lemmas") ||
                   !strcmp(optarg, "t-explanations") ||
-                  !strcmp(optarg, "bv-rewrites")) {
+                  !strcmp(optarg, "bv-rewrites") ||
+                  !strcmp(optarg, "theory::fullcheck")) {
           // These are "non-state-dumping" modes.  If state (SAT decisions,
           // propagations, etc.) is dumped, it will interfere with the validity
           // of these generated queries.

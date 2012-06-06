@@ -70,16 +70,6 @@ void TheoryUF::check(Effort level) {
 
     Debug("uf") << "TheoryUF::check(): processing " << fact << std::endl;
 
-    // If the assertion doesn't have a literal, it's a shared equality, so we set it up
-    if (!assertion.isPreregistered) {
-      Debug("uf") << "TheoryUF::check(): shared equality, setting up " << fact << std::endl;
-      if (fact.getKind() == kind::NOT) {
-        preRegisterTerm(fact[0]);
-      } else {
-        preRegisterTerm(fact);
-      }
-    }
-
     // Do the work
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
@@ -90,30 +80,7 @@ void TheoryUF::check(Effort level) {
     }
   }
 
-  // If in conflict, output the conflict
-  if (d_conflict) {
-    Debug("uf") << "TheoryUF::check(): conflict " << d_conflictNode << std::endl;
-    d_out->conflict(d_conflictNode);
-  }
-
-  // Otherwise we propagate in order to detect a weird conflict like
-  // p, x = y
-  // p -> f(x) != f(y) -- f(x) = f(y) gets added to the propagation list at preregistration time
-  // but when f(x) != f(y) is deduced by the sat solver, so it's asserted, and we don't detect the conflict
-  // until we go through the propagation list
-  propagate(level);
 }/* TheoryUF::check() */
-
-void TheoryUF::propagate(Effort level) {
-  Debug("uf") << "TheoryUF::propagate()" << std::endl;
-  if (!d_conflict) {
-    for (; d_literalsToPropagateIndex < d_literalsToPropagate.size(); d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
-      TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
-      Debug("uf") << "TheoryUF::propagate(): propagating " << literal << std::endl;
-      d_out->propagate(literal);
-    }
-  }
-}/* TheoryUF::propagate(Effort) */
 
 void TheoryUF::preRegisterTerm(TNode node) {
   Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
@@ -143,37 +110,18 @@ void TheoryUF::preRegisterTerm(TNode node) {
 }/* TheoryUF::preRegisterTerm() */
 
 bool TheoryUF::propagate(TNode literal) {
-  Debug("uf") << "TheoryUF::propagate(" << literal  << ")" << std::endl;
-
+  Debug("uf::propagate") << "TheoryUF::propagate(" << literal  << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("uf") << "TheoryUF::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("uf::propagate") << "TheoryUF::propagate(" << literal << "): already in conflict" << std::endl;
     return false;
   }
-
-  // See if the literal has been asserted already
-  Node normalized = Rewriter::rewrite(literal);
-
-  // If asserted and is false, we're done or in conflict
-  // Note that even trivial equalities have a SAT value (i.e. 1 = 2 -> false)
-  bool satValue = false;
-  if (d_valuation.hasSatValue(normalized, satValue) && !satValue) {
-      Debug("uf") << "TheoryUF::propagate(" << literal << ", normalized = " << normalized << ") => conflict" << std::endl;
-      std::vector<TNode> assumptions;
-      Node negatedLiteral;
-      negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-      assumptions.push_back(negatedLiteral);
-      explain(literal, assumptions);
-      d_conflictNode = mkAnd(assumptions);
-      d_conflict = true;
-      return false;
+  // Propagate out
+  bool ok = d_out->propagate(literal);
+  if (!ok) {
+    d_conflict = true;
   }
-
-  // Nothing, just enqueue it for propagation and mark it as asserted already
-  Debug("uf") << "TheoryUF::propagate(" << literal << ") => enqueuing for propagation" << std::endl;
-  d_literalsToPropagate.push_back(literal);
-
-  return true;
+  return ok;
 }/* TheoryUF::propagate(TNode) */
 
 void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
@@ -437,3 +385,13 @@ void TheoryUF::computeCareGraph() {
     }
   }
 }/* TheoryUF::computeCareGraph() */
+
+void TheoryUF::conflict(TNode a, TNode b) {
+  if (Theory::theoryOf(a) == theory::THEORY_BOOL) {
+    d_conflictNode = explain(a.iffNode(b));
+  } else {
+    d_conflictNode = explain(a.eqNode(b));
+  }
+  d_out->conflict(d_conflictNode);
+  d_conflict = true;
+}

@@ -130,6 +130,7 @@ ${theory_enum}
 };
 
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
+const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
 inline TheoryId& operator ++ (TheoryId& id) {
   return id = static_cast<TheoryId>(((int)id) + 1);

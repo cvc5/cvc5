@@ -46,16 +46,19 @@
 
 namespace CVC4 {
 
-// In terms of abstraction, this is below (and provides services to)
-// PropEngine.
-
+/**
+ * A pair of a theory and a node. This is used to mark the flow of 
+ * propagations between theories.
+ */ 
 struct NodeTheoryPair {
   Node node;
   theory::TheoryId theory;
-  NodeTheoryPair(TNode node, theory::TheoryId theory)
-  : node(node), theory(theory) {}
+  size_t timestamp;
+  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp)
+  : node(node), theory(theory), timestamp(timestamp) {}
   NodeTheoryPair()
   : theory(theory::THEORY_LAST) {}
+  // Comparison doesn't take into account the timestamp  
   bool operator == (const NodeTheoryPair& pair) const {
     return node == pair.node && theory == pair.theory;
   }
@@ -63,6 +66,7 @@ struct NodeTheoryPair {
 
 struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
+  // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
     return hashFunction(pair.node)*0x9e3779b9 + pair.theory;
   }
@@ -75,6 +79,9 @@ struct NodeTheoryPairHashFunction {
  * CVC4.
  */
 class TheoryEngine {
+  
+  /** Shared terms database can use the internals notify the theories */
+  friend class SharedTermsDatabase;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
@@ -102,21 +109,6 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
-
-  // NotifyClass: template helper class for Shared Terms Database
-  class NotifyClass :public SharedTermsDatabase::SharedTermsNotifyClass {
-    TheoryEngine& d_theoryEngine;
-  public:
-    NotifyClass(TheoryEngine& engine): d_theoryEngine(engine) {}
-    ~NotifyClass() {}
-
-    void notify(TNode literal, TNode original, theory::TheoryId theory) {
-      d_theoryEngine.propagateSharedLiteral(literal, original, theory);
-    }
-  };
-
-  // Instance of NotifyClass
-  NotifyClass d_notify;
 
   /**
    * The database of shared terms.
@@ -221,11 +213,11 @@ class TheoryEngine {
       d_engine->conflict(conflictNode, d_theory);
     }
 
-    void propagate(TNode literal) throw(AssertionException) {
+    bool propagate(TNode literal) throw(AssertionException) {
       Trace("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagate(" << literal << ")" << std::endl;
       ++ d_statistics.propagations;
       d_engine->d_outputChannelUsed = true;
-      d_engine->propagate(literal, d_theory);
+      return d_engine->propagate(literal, d_theory);
     }
 
     void propagateAsDecision(TNode literal) throw(AssertionException) {
@@ -263,26 +255,9 @@ class TheoryEngine {
   context::CDO<bool> d_inConflict;
 
   /**
-   * Explain the equality literals and push all the explaining literals
-   * into the builder. All the non-equality literals are pushed to the
-   * builder.
-   */
-  void explainEqualities(theory::TheoryId theoryId, TNode literals, NodeBuilder<>& builder);
-
-  /**
-   * Same as above, but just for single equalities.
-   */
-  void explainEquality(theory::TheoryId theoryId, TNode eqLiteral, NodeBuilder<>& builder);
-
-  /**
    * Called by the theories to notify of a conflict.
    */
   void conflict(TNode conflict, theory::TheoryId theoryId);
-
-  /**
-   * Called by shared terms database to notify of a conflict.
-   */
-  void sharedConflict(TNode conflict);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -310,63 +285,16 @@ class TheoryEngine {
     d_propEngine->spendResource();
   }
 
-  struct SharedLiteral {
-    /**
-     * The node/theory pair for the assertion. THEORY_LAST indicates this is a SAT
-     * literal and should be sent to the SAT solver
-     */
-    NodeTheoryPair toAssert;
-    /** This is the node that we will use to explain it */
-    Node toExplain;
-
-    SharedLiteral(TNode assertion, TNode original, theory::TheoryId receivingTheory)
-    : toAssert(assertion, receivingTheory),
-      toExplain(original)
-    { }
-  };
+  /**
+   * Mapping of propagations from recievers to senders.
+   */
+  typedef context::CDHashMap<NodeTheoryPair, NodeTheoryPair, NodeTheoryPairHashFunction> PropagationMap;
+  PropagationMap d_propagationMap;
 
   /**
-   * Map from nodes to theories.
+   * Timestamp of propagations
    */
-  typedef context::CDHashMap<Node, theory::TheoryId, NodeHashFunction> SharedLiteralsInMap;
-
-  /**
-   * All shared literals asserted to theory engine.
-   * Maps from literal to the theory that sent the literal (THEORY_LAST means sent from SAT).
-   */
-  SharedLiteralsInMap d_sharedLiteralsIn;
-
-  /**
-   * Map from literals asserted by theory engine to literal that can explain
-   */
-  typedef context::CDHashMap<NodeTheoryPair, Node, NodeTheoryPairHashFunction> AssertedLiteralsOutMap;
-
-  /**
-   * All literals asserted to theories from theory engine.
-   * Maps from literal/theory pair to literal that can explain this assertion.
-   */
-  AssertedLiteralsOutMap d_assertedLiteralsOut;
-
-  /**
-   * Shared literals queud up to be asserted to the individual theories.
-   */
-  std::vector<SharedLiteral> d_propagatedSharedLiterals;
-
-  void propagateSharedLiteral(TNode literal, TNode original, theory::TheoryId theory)
-  {
-    if (literal.getKind() == kind::CONST_BOOLEAN) {
-      Assert(!literal.getConst<bool>());
-      sharedConflict(original);
-    }
-    else {
-      d_propagatedSharedLiterals.push_back(SharedLiteral(literal, original, theory));
-    }
-  }
-
-  /**
-   * Assert the shared literals that are queued up to the theories.
-   */
-  void outputSharedLiterals();
+  context::CDO<size_t> d_propagationMapTimestamp;
 
   /**
    * Literals that are propagated by the theory. Note that these are TNodes.
@@ -395,8 +323,9 @@ class TheoryEngine {
 
   /**
    * Called by the output channel to propagate literals and facts
+   * @return false if immediate conflict
    */
-  void propagate(TNode literal, theory::TheoryId theory);
+  bool propagate(TNode literal, theory::TheoryId theory);
 
   /**
    * Internal method to call the propagation routines and collect the
@@ -427,55 +356,8 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    */
-  theory::LemmaStatus lemma(TNode node, bool negated, bool removable) {
-    if(Dump.isOn("t-lemmas")) {
-      Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
-                       << QueryCommand(node.toExpr());
-    }
-
-    // Share with other portfolio threads
-    if(Options::current()->lemmaOutputChannel != NULL) {
-      Options::current()->lemmaOutputChannel->notifyNewLemma(node.toExpr());
-    }
-
-    // Remove the ITEs
-    std::vector<Node> additionalLemmas;
-    IteSkolemMap iteSkolemMap;
-    additionalLemmas.push_back(node);
-    RemoveITE::run(additionalLemmas, iteSkolemMap);
-    additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
-
-    // assert to prop engine
-    d_propEngine->assertLemma(additionalLemmas[0], negated, removable);
-    for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
-      additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-      d_propEngine->assertLemma(additionalLemmas[i], false, removable);
-    }
-
-    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-    if(negated) {
-      // Can't we just get rid of passing around this 'negated' stuff?
-      // Is it that hard for the propEngine to figure that out itself?
-      // (I like the use of triple negation <evil laugh>.) --K
-      additionalLemmas[0] = additionalLemmas[0].notNode();
-      negated = false;
-    }
-    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-    // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-
-    // assert to decision engine
-    if(!removable)
-      d_decisionEngine->addAssertions(additionalLemmas, 1, iteSkolemMap);
-
-    // Mark that we added some lemmas
-    d_lemmasAdded = true;
-
-    // Lemma analysis isn't online yet; this lemma may only live for this
-    // user level.
-    return theory::LemmaStatus(additionalLemmas[0], d_userContext->getLevel());
-  }
-
+  theory::LemmaStatus lemma(TNode node, bool negated, bool removable);
+  
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
 
@@ -534,6 +416,45 @@ private:
    * Boolean flag denoting we are in pre-registration.
    */
   bool d_inPreregister;
+
+  /**
+   * Did the theories get any new facts since the last time we called
+   * check()
+   */
+  context::CDO<bool> d_factsAsserted;
+
+  /**
+   * Assert the formula to the given theory.
+   * @param assertion the assertion to send (not necesserily normalized)
+   * @param original the assertion as it was sent in from the propagating theory
+   * @param toTheoryId the theory to assert to
+   * @param fromTheoryId the theory that sent it
+   */
+  void assertToTheory(TNode assertion, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
+
+  /**
+   * Marks a theory propagation from a theory to a theory where a 
+   * theory could be the THEORY_SAT_SOLVER for literals coming from
+   * or being propagated to the SAT solver. If the receiving theory
+   * already recieved the literal, the method returns false, otherwise
+   * it returns true.
+   * 
+   * @param assertion the normalized assertion being sent
+   * @param originalAssertion the actual assertion that was sent
+   * @param toTheoryId the theory that is on the receiving end
+   * @param fromTheoryId the theory that sent the assertino
+   * @return true if a new assertion, false if theory already got it
+   */
+  bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
+
+  /**
+   * Computes the explanation by travarsing the propagation graph and
+   * asking relevant theories to explain the propagations. Initially 
+   * the explanation vector should contain only the element (node, theory)
+   * where the node is the one to be explained, and the theory is the
+   * theory that sent the literal.
+   */
+  void getExplanation(std::vector<NodeTheoryPair>& explanationVector);
 
 public:
 
@@ -657,40 +578,14 @@ public:
   bool properPropagation(TNode lit) const;
   bool properExplanation(TNode node, TNode expl) const;
 
-  enum ExplainTaskKind {
-    // Literal sent out from the theory engine
-    SHARED_LITERAL_OUT,
-    // Explanation produced by a theory
-    THEORY_EXPLANATION,
-    // Explanation produced by the shared terms database
-    SHARED_DATABASE_EXPLANATION
-  };
-
-  struct ExplainTask {
-    Node node;
-    ExplainTaskKind kind;
-    theory::TheoryId theory;
-    ExplainTask(Node n, ExplainTaskKind k, theory::TheoryId tid = theory::THEORY_LAST) :
-      node(n), kind(k), theory(tid) {}
-    bool operator == (const ExplainTask& other) const {
-      return node == other.node && kind == other.kind && theory == other.theory;
-    }
-  };
-
-  struct ExplainTaskHashFunction {
-    size_t operator () (const ExplainTask& task) const {
-      size_t hash = 0;
-      hash = 0x9e3779b9 + NodeHashFunction().operator()(task.node);
-      hash ^= 0x9e3779b9 + task.kind + (hash << 6) + (hash >> 2);
-      hash ^= 0x9e3779b9 + task.theory + (hash << 6) + (hash >> 2);
-      return hash;
-    }
-  };
-
+  /**
+   * Returns an explanation of the node propagated to the SAT solver.
+   */
   Node getExplanation(TNode node);
 
-  Node explain(ExplainTask toExplain);
-
+  /**
+   * Returns the value of the given node.
+   */
   Node getValue(TNode node);
 
   /**
@@ -732,6 +627,9 @@ private:
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
 
+  /** Dump the assertions to the dump */
+  void dumpAssertions(const char* tag);
+
   /** For preprocessing pass simplifying ITEs */
   ITESimplifier d_iteSimplifier;
 
@@ -739,6 +637,7 @@ private:
   UnconstrainedSimplifier d_unconstrainedSimp;
 
 public:
+
   Node ppSimpITE(TNode assertion);
   void ppUnconstrainedSimp(std::vector<Node>& assertions);
 

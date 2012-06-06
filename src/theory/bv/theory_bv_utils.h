@@ -72,11 +72,26 @@ inline Node mkVar(unsigned size) {
 }
 
 inline Node mkAnd(std::vector<TNode>& children) {
-  if (children.size() > 1) {
-    return NodeManager::currentNM()->mkNode(kind::AND, children);
-  } else {
-    return children[0];
+  std::set<TNode> distinctChildren;
+  distinctChildren.insert(children.begin(), children.end());
+  
+  if (children.size() == 0) {
+    return mkTrue();
   }
+  
+  if (children.size() == 1) {
+    return *children.begin();
+  }
+  
+  NodeBuilder<> conjunction(kind::AND);
+  std::set<TNode>::const_iterator it = distinctChildren.begin();
+  std::set<TNode>::const_iterator it_end = distinctChildren.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
 }
 
 inline Node mkSortedNode(Kind kind, std::vector<Node>& children) {

@@ -141,58 +141,9 @@ void TheoryBV::propagate(Effort e) {
   }
 
   // go through stored propagations
-  for (; d_literalsToPropagateIndex < d_literalsToPropagate.size();
-       d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1)
-  {
+  for (; d_literalsToPropagateIndex < d_literalsToPropagate.size(); d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
     TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
-    Node normalized = Rewriter::rewrite(literal);
-
-    TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;  
-    bool isSharedLiteral = (atom.getKind() == kind::EQUAL &&
-                            (d_sharedTermsSet.find(atom[0]) != d_sharedTermsSet.end() &&
-                             d_sharedTermsSet.find(atom[1]) != d_sharedTermsSet.end()));
-
-    // Check if this is a SAT literal
-    if (d_valuation.isSatLiteral(normalized)) {
-      bool satValue = false;
-      if (!d_valuation.hasSatValue(normalized, satValue) || satValue) {
-        // check if we already propagated the negation
-        Node negLiteral = literal.getKind() == kind::NOT ? (Node)literal[0] : mkNot(literal);
-        if (d_alreadyPropagatedSet.find(negLiteral) != d_alreadyPropagatedSet.end()) {
-          Debug("bitvector") << indent() << "TheoryBV::propagate(): in conflict " << literal << " and its negation both propagated \n"; 
-          // we are in conflict
-          std::vector<TNode> assumptions;
-          explain(literal, assumptions);
-          explain(negLiteral, assumptions);
-          setConflict(mkAnd(assumptions)); 
-          return;
-        }
-        // If it's not a shared literal and hasn't already been set to true, we propagate the normalized version
-        // shared literals are handled below
-        if (!isSharedLiteral && !satValue) {
-          BVDebug("bitvector") << indent() << "TheoryBV::propagate(): " << normalized << std::endl;
-          d_out->propagate(normalized);
-          d_alreadyPropagatedSet.insert(normalized); 
-          return;
-        }
-      } else {
-        // 
-        Debug("bitvector") << indent() << "TheoryBV::propagate(): in conflict, normalized = " << normalized << std::endl;
-        Node negatedLiteral;
-        std::vector<TNode> assumptions;
-        negatedLiteral = normalized.getKind() == kind::NOT ? (Node) normalized[0] : normalized.notNode();
-        assumptions.push_back(negatedLiteral);
-        explain(literal, assumptions);
-        setConflict(mkAnd(assumptions));
-        return;
-      }
-    }
-    // Either it was not a SAT literal or it was but it is also shared - in that case we have to propagate the original literal (not the normalized one)
-    if (isSharedLiteral) {
-      BVDebug("bitvector") << indent() << "TheoryBV::propagate(): " << literal << std::endl;
-      d_out->propagate(literal);
-      d_alreadyPropagatedSet.insert(literal); 
-    }
+    d_out->propagate(literal);
   }
 }
 
@@ -269,16 +220,18 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
   // Ask the appropriate subtheory for the explanation 
   if (propagatedBy(literal, SUB_EQUALITY)) {
+    BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << "): EQUALITY" << std::endl;
     d_equalitySolver.explain(literal, assumptions); 
   } else {
     Assert(propagatedBy(literal, SUB_BITBLAST));
+    BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << ") : BITBLASTER" << std::endl;    
     d_bitblastSolver.explain(literal, assumptions); 
   }
 }
 
 
 Node TheoryBV::explain(TNode node) {
-  BVDebug("bitvector") << "TheoryBV::explain(" << node << ")" << std::endl;
+  BVDebug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation

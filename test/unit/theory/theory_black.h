@@ -57,9 +57,10 @@ public:
     push(CONFLICT, n);
   }
 
-  void propagate(TNode n)
+  bool propagate(TNode n)
     throw(AssertionException) {
     push(PROPAGATE, n);
+    return true;
   }
 
   void propagateAsDecision(TNode n)
