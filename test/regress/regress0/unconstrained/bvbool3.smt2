@@ -7,6 +7,7 @@
 (declare-fun x2 () (_ BitVec 10))
 (declare-fun x3 () (_ BitVec 10))
 (declare-fun x4 () (_ BitVec 10))
+(declare-fun x5 () (_ BitVec 10))
 (declare-fun p1 () Bool)
 (declare-fun p2 () Bool)
 (declare-fun p3 () Bool)
@@ -20,7 +21,7 @@
   (=
    (a2
     (ite 
-     (=> (or p1 p1) (and (= (bvnor (bvnand (bvor x1 x1) (bvand x0 x0)) x3) ((_ extract 9 0) v3)) p1))
+     (=> (or (= x2 x4) (= x2 x5)) (and (= (bvnor (bvnand (bvor x1 x1) (bvand x0 x0)) x3) ((_ extract 9 0) v3)) p2))
      v2
      6)
     )

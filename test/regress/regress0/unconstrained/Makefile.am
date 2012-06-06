@@ -20,6 +20,7 @@ TESTS =	\
 	arith7.smt2 \
 	arith.smt2 \
 	array1.smt2 \
+	bvbool3.smt2 \
 	bvbool2.smt2 \
 	bvbool.smt2 \
 	bvcmp.smt2 \
@@ -62,8 +63,7 @@ TESTS =	\
 	xor.smt2
 
 # bvbool3 takes too long for regress0
-EXTRA_DIST = $(TESTS) \
-	bvbool3.smt2
+EXTRA_DIST = $(TESTS)
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
