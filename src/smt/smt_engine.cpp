@@ -1042,7 +1042,7 @@ void SmtEnginePrivate::simplifyAssertions()
       unconstrainedSimp();
     }
 
-    if(Options::current()->repeatSimp) {
+    if(Options::current()->repeatSimp && Options::current()->simplificationMode != Options::SIMPLIFICATION_MODE_NONE) {
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
       // Abuse the user context to make sure circuit propagator gets backtracked
       d_smt.d_userContext->push();
