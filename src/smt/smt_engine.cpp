@@ -1184,7 +1184,6 @@ void SmtEnginePrivate::processAssertions() {
 
   if(Dump.isOn("assertions")) {
     // Push the simplified assertions to the dump output stream
-    cout << "###Finished second removeITEs";
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
       Dump("assertions")
         << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr()));
