@@ -536,6 +536,7 @@ void TheoryEngine::shutdown() {
   }
 
   theory::Rewriter::shutdown();
+  d_ppCache.clear();
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
