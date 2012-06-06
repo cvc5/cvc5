@@ -168,7 +168,7 @@ Node SubstitutionMap::apply(TNode t) {
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << std::endl;
 
-  Assert(check(result, d_substitutions));
+//  Assert(check(result, d_substitutions));
 
   return result;
 }
