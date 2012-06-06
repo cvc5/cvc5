@@ -112,7 +112,7 @@ void UnconstrainedSimplifier::processUnconstrained()
   bool isSigned;
   bool strict;
   vector<TNode> delayQueueLeft;
-  vector<TNode> delayQueueRight;
+  vector<Node> delayQueueRight;
 
   TNode current = workList.back();
   workList.pop_back();
@@ -527,8 +527,13 @@ void UnconstrainedSimplifier::processUnconstrained()
                 !d_substitutions.hasSubstitution(parent)) {
               ++d_numUnconstrainedElim;
               if (parent[0] != current) {
-                Assert(d_substitutions.hasSubstitution(parent[0]));
-                currentSub = d_substitutions.apply(parent[0]);
+                if (parent[0].isVar()) {
+                  currentSub = parent[0];
+                }
+                else {
+                  Assert(d_substitutions.hasSubstitution(parent[0]));
+                  currentSub = d_substitutions.apply(parent[0]);
+                }
               }
               else if (currentSub.isNull()) {
                 currentSub = current;
