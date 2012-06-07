@@ -190,6 +190,44 @@ void TheoryEngine::dumpAssertions(const char* tag) {
           Dump(tag) << AssertCommand(assertionExpr);
         }
         Dump(tag) << CheckSatCommand();
+
+        // Check for any missed propagations of shared terms
+        if (d_logicInfo.isSharingEnabled()) {
+          Dump(tag) << CommentCommand("Shared term equalities");
+          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
+          for (; it != it_end; ++ it) {
+            TNode t1 = (*it);
+            context::CDList<TNode>::const_iterator it2 = it;
+            for (++ it2; it2 != it_end; ++ it2) {
+              TNode t2 = (*it2);
+              if (t1.getType() == t2.getType()) {
+                Node equality = t1.eqNode(t2);
+                if (d_sharedTerms.isKnown(equality)) {
+                  continue;
+                }
+                Node disequality = equality.notNode();
+                if (d_sharedTerms.isKnown(disequality)) {
+                  continue;
+                }
+
+                // Check equality 
+                Dump(tag) << PushCommand();
+                BoolExpr eqExpr(equality.toExpr());
+                Dump(tag) << AssertCommand(eqExpr);
+                Dump(tag) << CheckSatCommand();              
+                Dump(tag) << PopCommand();
+
+                // Check disequality 
+                Dump(tag) << PushCommand();
+                BoolExpr diseqExpr(disequality.toExpr());
+                Dump(tag) << AssertCommand(diseqExpr);
+                Dump(tag) << CheckSatCommand();              
+                Dump(tag) << PopCommand();                
+              }
+            }
+          }
+        }
+        
         Dump(tag) << PopCommand();
       }
     }
@@ -316,6 +354,8 @@ void TheoryEngine::combineTheories() {
   // Call on each parametric theory to give us its care graph
   CVC4_FOR_EACH_THEORY;
 
+  Debug("sharing") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << std::endl;
+
   // Now add splitters for the ones we are interested in
   CareGraph::const_iterator care_it = careGraph.begin();
   CareGraph::const_iterator care_it_end = careGraph.end();
@@ -328,7 +368,7 @@ void TheoryEngine::combineTheories() {
     Assert(!d_sharedTerms.areDisequal(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
 
     // The equality in question
-    Node equality = carePair.a.eqNode(carePair.b);
+    Node equality = Rewriter::rewriteEquality(carePair.theory, carePair.a.eqNode(carePair.b));
 
     // Normalize the equality
     Node normalizedEquality = Rewriter::rewrite(equality);
@@ -349,6 +389,8 @@ void TheoryEngine::combineTheories() {
           // Mark that we have more information
           d_factsAsserted = true;
           continue;
+        } else {
+          Unreachable();
         }
       }
     }

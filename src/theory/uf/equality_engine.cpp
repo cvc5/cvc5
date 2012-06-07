@@ -351,14 +351,16 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
     // If both have constant representatives, we don't notify anyone
     EqualityNodeId a = getNodeId(eq[0]);
     EqualityNodeId b = getNodeId(eq[1]);
-    if (isConstant(a) && isConstant(b)) {
+    EqualityNodeId aClassId = getEqualityNode(a).getFind();
+    EqualityNodeId bClassId = getEqualityNode(b).getFind();
+    if (d_isConstant[aClassId] && d_isConstant[bClassId]) {
       return;
     }    
     
     // If we are adding a disequality, notify of the shared term representatives
     EqualityNodeId eqId = getNodeId(eq);
-    TriggerTermSetRef aTriggerRef = d_nodeIndividualTrigger[a];
-    TriggerTermSetRef bTriggerRef = d_nodeIndividualTrigger[b];
+    TriggerTermSetRef aTriggerRef = d_nodeIndividualTrigger[aClassId];
+    TriggerTermSetRef bTriggerRef = d_nodeIndividualTrigger[bClassId];
     if (aTriggerRef != +null_set_id && bTriggerRef != +null_set_id) {
       // The sets of trigger terms
       TriggerTermSet& aTriggerTerms = getTriggerTermSet(aTriggerRef);
@@ -419,8 +421,31 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   EqualityNodeId class2Id = class2.getFind();
 
   // Check for constant merges
-  bool isConstant = d_isConstant[class1Id];
-  Assert(isConstant || !d_isConstant[class2Id]);
+  bool class1isConstant = d_isConstant[class1Id];
+  bool class2isConstant = d_isConstant[class2Id];
+  Assert(class1isConstant || !class2isConstant, "Should always merge into constants");
+
+  // Trigger set of class 1
+  TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
+  Theory::Set class1Tags = class1triggerRef == null_set_id ? 0 : getTriggerTermSet(class1triggerRef).tags;
+  // Trigger set of class 2
+  TriggerTermSetRef class2triggerRef = d_nodeIndividualTrigger[class2Id];
+  Theory::Set class2Tags = class2triggerRef == null_set_id ? 0 : getTriggerTermSet(class2triggerRef).tags;
+
+  // Disequalities coming from class2
+  TaggedEqualitiesSet class2disequalitiesToNotify;
+  // Disequalities coming from class1
+  TaggedEqualitiesSet class1disequalitiesToNotify;
+
+  // Individual tags
+  Theory::Set class1OnlyTags = Theory::setDifference(class1Tags, class2Tags); 
+  Theory::Set class2OnlyTags = Theory::setDifference(class2Tags, class1Tags); 
+
+  // Only get disequalities if they are not both constant
+  if (!class1isConstant || !class2isConstant) {
+    getDisequalities(!class1isConstant, class2Id, class1OnlyTags, class2disequalitiesToNotify);
+    getDisequalities(!class2isConstant, class1Id, class2OnlyTags, class1disequalitiesToNotify);
+  }
 
   // Update class2 representative information
   Debug("equality") << "EqualityEngine::merge(" << class1.getFind() << "," << class2.getFind() << "): updating class " << class2Id << std::endl;
@@ -519,7 +544,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // Notify of the constants merge
   bool constantMerge = false;
-  if (isConstant && d_isConstant[class2Id]) {
+  if (class1isConstant && d_isConstant[class2Id]) {
     constantMerge = true;
     if (d_performNotify) {
       if (!d_notify.eqNotifyConstantTermMerge(d_nodes[class1Id], d_nodes[class2Id])) {
@@ -547,10 +572,16 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   }
   triggersFired.resize(j);
   
+  // Go through the trigger term disequalities and propagate
+  if (!propagateTriggerTermDisequalities(class1OnlyTags, class1triggerRef, class2disequalitiesToNotify)) {
+    return false;
+  }
+  if (!propagateTriggerTermDisequalities(class2OnlyTags, class2triggerRef, class1disequalitiesToNotify)) {
+    return false;
+  }
+
   // Notify the trigger term merges
-  TriggerTermSetRef class2triggerRef = d_nodeIndividualTrigger[class2Id];
   if (class2triggerRef != +null_set_id) {
-    TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
     if (class1triggerRef == +null_set_id) {
       // If class1 doesn't have individual triggers, but class2 does, mark it
       d_nodeIndividualTrigger[class1Id] = class2triggerRef;
@@ -1293,61 +1324,9 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
     // Check for disequalities by going through the equivalence class looking for equalities in the
     // uselists that have been asserted to false. All the representatives appearing on the other
     // side of such disequalities, that have the tag on, are put in a set.
-    std::set<EqualityNodeId> disequalSet;
-    EqualityNodeId currentId = classId;
-    do {
-      // Current node
-      EqualityNode& currentNode = getEqualityNode(currentId);
-      // Go through the uselist and look for disequalities
-      UseListNodeId currentUseId = currentNode.getUseList();
-      while (!d_done && currentUseId != null_uselist_id) {
-        // Get the normalized equality
-        UseListNode& useNode = d_useListNodes[currentUseId];
-        EqualityNodeId funId = useNode.getApplicationId();
-        const FunctionApplication& fun = d_applications[useNode.getApplicationId()].original;
-        // Check for asserted disequalities
-        if (fun.isEquality && getEqualityNode(funId).getFind() == getEqualityNode(d_false).getFind()) {
-          // Get the other equality member
-          EqualityNodeId toCompare = fun.b;
-          if (toCompare == currentId) {
-            toCompare = fun.a;
-          }
-          // Representative of the other member
-          EqualityNodeId toCompareRep = getEqualityNode(toCompare).getFind();
-          Assert(toCompareRep != classId);
-          // Get the trigger set
-          TriggerTermSetRef toCompareTriggerSetRef = d_nodeIndividualTrigger[toCompareRep];
-          // Only notify if we're not both constants
-          if ((!d_isConstant[classId] || !d_isConstant[toCompareRep]) && toCompareTriggerSetRef != null_set_id) {
-            TriggerTermSet& toCompareTriggerSet = getTriggerTermSet(toCompareTriggerSetRef);
-            if (Theory::setContains(tag, toCompareTriggerSet.tags)) {
-              // Get the tag representative
-              EqualityNodeId tagRep = toCompareTriggerSet.getTrigger(tag);
-              // Propagate the disequality if not already done
-              if (!disequalSet.count(tagRep) && d_performNotify) {
-                // Mark as propagated
-                disequalSet.insert(tagRep);
-                // Store the propagation
-                d_deducedDisequalityReasons.push_back(EqualityPair(eqNodeId, currentId));
-                d_deducedDisequalityReasons.push_back(EqualityPair(toCompare, tagRep));
-                d_deducedDisequalityReasons.push_back(EqualityPair(funId, d_falseId));
-                storePropagatedDisequality(t, d_nodes[tagRep], 3);
-                // We don't check if it's been propagated already, as we need one per tag
-                if (d_performNotify) {
-                  if (!d_notify.eqNotifyTriggerTermEquality(tag, t, d_nodes[tagRep], false)) {
-                    d_done = true;
-                  }
-                }
-              }
-            }
-          }
-        }
-        // Go to the next one in the use list
-        currentUseId = useNode.getNext();
-      }
-      // Next in equivalence class
-      currentId = currentNode.getNext();
-    } while (!d_done && currentId != classId);
+    TaggedEqualitiesSet disequalitiesToNotify;
+    Theory::Set tags = Theory::setInsert(tag);
+    getDisequalities(!d_isConstant[classId], classId, tags, disequalitiesToNotify);
 
     // Setup the data for the new set
     if (triggerSetRef != null_set_id) {
@@ -1378,7 +1357,10 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
     d_triggerTermSetUpdates.push_back(TriggerSetUpdate(classId, triggerSetRef));
     d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
     // Mark the the new set as a trigger 
-    d_nodeIndividualTrigger[classId] = newTriggerTermSet();
+    d_nodeIndividualTrigger[classId] = triggerSetRef = newTriggerTermSet();
+
+    // Propagate trigger term disequalities we remembered
+    propagateTriggerTermDisequalities(tags, triggerSetRef, disequalitiesToNotify);
   }
 }
 
@@ -1497,6 +1479,117 @@ bool EqualityEngine::storePropagatedDisequality(TNode lhs, TNode rhs, unsigned r
   }
 }
 
+void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classId, Theory::Set inputTags, TaggedEqualitiesSet& out) {
+  // Must be empty on input
+  Assert(out.size() == 0);
+  // The class we are looking for, shouldn't have any of the tags we are looking for already set
+  Assert(d_nodeIndividualTrigger[classId] == null_set_id || Theory::setIntersection(getTriggerTermSet(d_nodeIndividualTrigger[classId]).tags, inputTags) == 0);
+
+  if (inputTags == 0) {
+    return;
+  }
+
+  // Set of already (through disequalities) visited equivalence classes
+  std::set<EqualityNodeId> alreadyVisited;
+
+  // Go through the equivalence class
+  EqualityNodeId currentId = classId;
+  do {
+    // Current node in the equivalence class
+    EqualityNode& currentNode = getEqualityNode(currentId);
+
+    // Go through the uselist and look for disequalities
+    UseListNodeId currentUseId = currentNode.getUseList();
+    while (currentUseId != null_uselist_id) {
+      UseListNode& useListNode = d_useListNodes[currentUseId];
+      EqualityNodeId funId = useListNode.getApplicationId();
+      const FunctionApplication& fun = d_applications[useListNode.getApplicationId()].original;
+      // If it's an equality asserted to false, we do the work
+      if (fun.isEquality && getEqualityNode(funId).getFind() == getEqualityNode(d_false).getFind()) {
+        // Get the other equality member
+        bool lhs = false;
+        EqualityNodeId toCompare = fun.b;
+        if (toCompare == currentId) {
+          toCompare = fun.a;
+          lhs = true;
+        }
+        // Representative of the other member
+        EqualityNodeId toCompareRep = getEqualityNode(toCompare).getFind();
+        Assert(toCompareRep != classId, "Otherwise we are in conflict");
+        // Check if we already have this one
+        if (alreadyVisited.count(toCompareRep) == 0) {
+          // Mark as visited
+          alreadyVisited.insert(toCompareRep);
+          // Get the trigger set
+          TriggerTermSetRef toCompareTriggerSetRef = d_nodeIndividualTrigger[toCompareRep];
+          // We only care if we're not both constants and there are trigger terms in the other class
+          if ((allowConstants || !d_isConstant[toCompareRep]) && toCompareTriggerSetRef != null_set_id) {
+            // Tags of the other gey
+            TriggerTermSet& toCompareTriggerSet = getTriggerTermSet(toCompareTriggerSetRef);
+            // We only care if there are things in inputTags that is also in toCompareTags
+            Theory::Set commonTags = Theory::setIntersection(inputTags, toCompareTriggerSet.tags);
+            if (commonTags) {
+              out.push_back(TaggedEquality(funId, toCompareTriggerSetRef, lhs));
+            }
+          }
+        }
+      }
+      // Go to the next one in the use list
+      currentUseId = useListNode.getNext();
+    }
+    // Next in equivalence class
+    currentId = currentNode.getNext();
+  } while (!d_done && currentId != classId);
+
+}
+
+bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify) {
+  
+  // No tags, no food
+  if (!tags) {
+    return !d_done;
+  }
+
+  Assert(triggerSetRef != null_set_id);
+
+  // This is the class trigger set
+  const TriggerTermSet& triggerSet = getTriggerTermSet(triggerSetRef); 
+  // Go throught the disequalities and notify
+  TaggedEqualitiesSet::const_iterator it = disequalitiesToNotify.begin();
+  TaggedEqualitiesSet::const_iterator it_end = disequalitiesToNotify.end();
+  for (; !d_done && it != it_end; ++ it) {
+    // The information about the equality that is asserted to false
+    const TaggedEquality& disequalityInfo = *it;
+    const TriggerTermSet& disequalityTriggerSet = getTriggerTermSet(disequalityInfo.triggerSetRef); 
+    Theory::Set commonTags = Theory::setIntersection(disequalityTriggerSet.tags, tags);
+    Assert(commonTags);
+    // This is the actual function
+    const FunctionApplication& fun = d_applications[disequalityInfo.equalityId].original;
+    // Figure out who we are comparing to in the original equality
+    EqualityNodeId toCompare = disequalityInfo.lhs ? fun.a : fun.b;
+    EqualityNodeId myCompare = disequalityInfo.lhs ? fun.b : fun.a;
+    // Go through the tags, and add the disequalities
+    TheoryId currentTag;
+    while (!d_done && ((currentTag = Theory::setPop(commonTags)) != THEORY_LAST)) {
+      // Get the tag representative
+      EqualityNodeId tagRep = disequalityTriggerSet.getTrigger(currentTag);
+      EqualityNodeId myRep = triggerSet.getTrigger(currentTag);
+      // Store the propagation
+      d_deducedDisequalityReasons.push_back(EqualityPair(myCompare, myRep));
+      d_deducedDisequalityReasons.push_back(EqualityPair(toCompare, tagRep));
+      d_deducedDisequalityReasons.push_back(EqualityPair(disequalityInfo.equalityId, d_falseId));
+      storePropagatedDisequality(d_nodes[myRep], d_nodes[tagRep], 3);
+      // We don't check if it's been propagated already, as we need one per tag
+      if (d_performNotify) {
+        if (!d_notify.eqNotifyTriggerTermEquality(currentTag, d_nodes[myRep], d_nodes[tagRep], false)) {
+          d_done = true;
+        }
+      }
+    }
+  }
+  
+  return !d_done;
+}
 
 } // Namespace uf
 } // Namespace theory

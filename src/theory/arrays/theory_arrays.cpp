@@ -581,8 +581,8 @@ void TheoryArrays::computeCareGraph()
             Assert(false);
             break;
           case EQUALITY_FALSE_AND_PROPAGATED:
-            // TODO: eventually this should be an Assert(false), but for now, disequalities are not propagated
-            continue;
+            // Should have been propagated to us
+            Assert(false);
             break;
           case EQUALITY_FALSE:
           case EQUALITY_TRUE:
@@ -591,7 +591,6 @@ void TheoryArrays::computeCareGraph()
             break;
           case EQUALITY_FALSE_IN_MODEL:
             Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): false in model" << std::endl;
-            continue;
             break;
           default:
             break;

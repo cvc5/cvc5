@@ -520,8 +520,48 @@ private:
    */
   std::vector<EqualityPair> d_deducedDisequalityReasons;
 
-
+  /**
+   * Stores a propagated disequality for explanation purpooses and remembers the reasons.
+   */
   bool storePropagatedDisequality(TNode lhs, TNode rhs, unsigned reasonsCount) const;
+  
+  /**
+   * An equality tagged with a set of tags.
+   */
+  struct TaggedEquality {
+    /** Id of the equality */
+    EqualityNodeId equalityId;
+    /** TriggerSet reference for the class of one of the sides */
+    TriggerTermSetRef triggerSetRef;  
+    /** Is trigger equivalent to the lhs (rhs otherwise) */
+    bool lhs;
+    
+    TaggedEquality(EqualityNodeId equalityId = null_id, TriggerTermSetRef triggerSetRef = null_set_id, bool lhs = true)
+    : equalityId(equalityId), triggerSetRef(triggerSetRef), lhs(lhs) {}
+  };
+
+  /** A map from equivalence class id's to tagged equalities */
+  typedef std::vector<TaggedEquality> TaggedEqualitiesSet;
+
+  /**
+   * Returns a set of equalities that have been asserted false where one side of the equality
+   * belongs to the given equivalence class. The equalities are restricted to the ones where
+   * one side of the equality is in the tags set, but the other one isn't. Each returned
+   * dis-equality is associated with the tags that are the subset of the input tags, such that
+   * exactly one side of the equality is not in the set yet.
+   *
+   * @param classId the equivalence class to search
+   * @param inputTags the tags to filter the equalities
+   * @param out the output equalities, as described above
+   */
+  void getDisequalities(bool allowConstants, EqualityNodeId classId, Theory::Set inputTags, TaggedEqualitiesSet& out);
+
+  /**
+   * Propagates the remembered disequalities with given tags the original triggers for those tags,
+   * and the set of disequalities produced by above. 
+   */
+  bool propagateTriggerTermDisequalities(Theory::Set tags, 
+    TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify);
 
 public:
 
