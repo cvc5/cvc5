@@ -563,6 +563,9 @@ private:
   bool propagateTriggerTermDisequalities(Theory::Set tags, 
     TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify);
 
+  /** Name of the equality engine */
+  std::string d_name;
+
 public:
 
   /**
