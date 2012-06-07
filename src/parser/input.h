@@ -167,6 +167,11 @@ protected:
     throw (ParserException, TypeCheckingException, AssertionException) = 0;
 
   /**
+   * Issue a warning to the user, with source file, line, and column info.
+   */
+  virtual void warning(const std::string& msg) = 0;
+
+  /**
    * Throws a <code>ParserException</code> with the given message.
    */
   virtual void parseError(const std::string& msg)

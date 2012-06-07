@@ -146,6 +146,7 @@ class CnfStreamBlack : public CxxTest::TestSuite {
     NodeManagerScope nms(d_nodeManager);
     d_satSolver = new FakeSatSolver();
     d_logicInfo = new LogicInfo();
+    d_logicInfo->lock();
     d_theoryEngine = new TheoryEngine(d_context, d_userContext, *d_logicInfo);
     d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>(theory::THEORY_BUILTIN);
     d_theoryEngine->addTheory<theory::booleans::TheoryBool>(theory::THEORY_BOOL);
@@ -200,9 +201,15 @@ public:
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
+  void testTrue() {
+    NodeManagerScope nms(d_nodeManager);
+    d_cnfStream->convertAndAssert( d_nodeManager->mkConst(true), false, false );
+    TS_ASSERT( d_satSolver->addClauseCalled() );
+  }
+
   void testFalse() {
     NodeManagerScope nms(d_nodeManager);
-    d_cnfStream->convertAndAssert(  d_nodeManager->mkConst(false), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkConst(false), false, false );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -252,12 +259,6 @@ public:
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
     d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::OR, a, b, c), false, false );
-    TS_ASSERT( d_satSolver->addClauseCalled() );
-  }
-
-  void testTrue() {
-    NodeManagerScope nms(d_nodeManager);
-    d_cnfStream->convertAndAssert(  d_nodeManager->mkConst(true), false, false );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 

@@ -270,6 +270,10 @@ void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
   }
 }
 
+void AntlrInput::warning(const std::string& message) {
+  Warning() << getInputStream()->getName() << ':' << d_lexer->getLine(d_lexer) << '.' << d_lexer->getCharPositionInLine(d_lexer) << ": " << message << endl;
+}
+
 void AntlrInput::parseError(const std::string& message)
   throw (ParserException, AssertionException) {
   Debug("parser") << "Throwing exception: "

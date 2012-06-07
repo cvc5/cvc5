@@ -37,7 +37,9 @@ LogicInfo::LogicInfo() :
   d_sharingTheories(0),
   d_integers(true),
   d_reals(true),
-  d_linear(false) {
+  d_linear(false),
+  d_differenceLogic(false),
+  d_locked(false) {
 
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
     d_theories[id] = false;// ensure it's cleared
@@ -51,11 +53,16 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
   d_sharingTheories(0),
   d_integers(false),
   d_reals(false),
-  d_linear(false) {
+  d_linear(false),
+  d_differenceLogic(false),
+  d_locked(false) {
+
   setLogicString(logicString);
+  lock();
 }
 
 std::string LogicInfo::getLogicString() const {
+  Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
   if(d_logicString == "") {
     size_t seen = 0; // make sure we support all the active theories
 
@@ -108,6 +115,7 @@ std::string LogicInfo::getLogicString() const {
 }
 
 void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentException) {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
     d_theories[id] = false;// ensure it's cleared
   }
@@ -124,6 +132,16 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   if(!strcmp(p, "QF_SAT") || *p == '\0') {
     // propositional logic only; we're done.
     p += 6;
+  } else if(!strcmp(p, "QF_ALL_SUPPORTED")) {
+    // the "all theories included" logic, no quantifiers
+    enableEverything();
+    disableQuantifiers();
+    p += 16;
+  } else if(!strcmp(p, "ALL_SUPPORTED")) {
+    // the "all theories included" logic, with quantifiers
+    enableEverything();
+    enableQuantifiers();
+    p += 13;
   } else {
     if(!strncmp(p, "QF_", 3)) {
       disableQuantifiers();
@@ -211,7 +229,18 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   d_logicString = logicString;
 }
 
+void LogicInfo::enableEverything() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  *this = LogicInfo();
+}
+
+void LogicInfo::disableEverything() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  *this = LogicInfo("");
+}
+
 void LogicInfo::enableTheory(theory::TheoryId theory) {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   if(!d_theories[theory]) {
     if(isTrueTheory(theory)) {
       ++d_sharingTheories;
@@ -222,6 +251,7 @@ void LogicInfo::enableTheory(theory::TheoryId theory) {
 }
 
 void LogicInfo::disableTheory(theory::TheoryId theory) {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   if(d_theories[theory]) {
     if(isTrueTheory(theory)) {
       Assert(d_sharingTheories > 0);
@@ -237,12 +267,14 @@ void LogicInfo::disableTheory(theory::TheoryId theory) {
 }
 
 void LogicInfo::enableIntegers() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_integers = true;
 }
 
 void LogicInfo::disableIntegers() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_integers = false;
   if(!d_reals) {
@@ -251,12 +283,14 @@ void LogicInfo::disableIntegers() {
 }
 
 void LogicInfo::enableReals() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_reals = true;
 }
 
 void LogicInfo::disableReals() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_reals = false;
   if(!d_integers) {
@@ -265,21 +299,34 @@ void LogicInfo::disableReals() {
 }
 
 void LogicInfo::arithOnlyDifference() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = true;
 }
 
 void LogicInfo::arithOnlyLinear() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = false;
 }
 
 void LogicInfo::arithNonLinear() {
+  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = false;
   d_differenceLogic = false;
+}
+
+LogicInfo LogicInfo::getUnlockedCopy() const {
+  if(d_locked) {
+    LogicInfo info = *this;
+    info.d_locked = false;
+    return info;
+  } else {
+    return *this;
+  }
 }
 
 }/* CVC4 namespace */

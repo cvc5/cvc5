@@ -135,9 +135,12 @@ class CVC4_PUBLIC SmtEngine {
   LogicInfo d_logic;
 
   /**
-   * Whether the logic has been set yet.
+   * Whether or not this SmtEngine has been fully initialized (that is,
+   * the ).  This post-construction initialization is automatically
+   * triggered by the use of the SmtEngine; e.g. when setLogic() is
+   * called, or the first assertion is made, etc.
    */
-  bool d_logicIsSet;
+  bool d_fullyInited;
 
   /**
    * Whether or not we have added any assertions/declarations/definitions
@@ -185,6 +188,14 @@ class CVC4_PUBLIC SmtEngine {
   smt::SmtEnginePrivate* d_private;
 
   /**
+   * This is something of an "init" procedure, but is idempotent; call
+   * as often as you like.  Should be called whenever the final options
+   * and logic for the problem are set (at least, those options that are
+   * not permitted to change after assertions and queries are made).
+   */
+  void finalOptionsAreSet();
+
+  /**
    * This is called by the destructor, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues
@@ -216,9 +227,10 @@ class CVC4_PUBLIC SmtEngine {
   void internalPop();
 
   /**
-   * Internally handle the setting of a logic.
+   * Internally handle the setting of a logic.  This function should always
+   * be called when d_logic is updated.
    */
-  void setLogicInternal(const LogicInfo& logic) throw();
+  void setLogicInternal() throw(AssertionException);
 
   friend class ::CVC4::smt::SmtEnginePrivate;
 

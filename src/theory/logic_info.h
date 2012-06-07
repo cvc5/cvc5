@@ -54,6 +54,8 @@ class LogicInfo {
   bool d_linear; /**< linear-only arithmetic in this logic? */
   bool d_differenceLogic; /**< difference-only arithmetic in this logic? */
 
+  bool d_locked; /**< is this LogicInfo instance locked (and thus immutable)? */
+
   /**
    * Returns true iff this is a "true" theory (one that must be worried
    * about for sharing
@@ -95,12 +97,19 @@ public:
   std::string getLogicString() const;
 
   /** Is sharing enabled for this logic? */
-  bool isSharingEnabled() const { return d_sharingTheories > 1; }
+  bool isSharingEnabled() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_sharingTheories > 1;
+  }
   /** Is the given theory module active in this logic? */
-  bool isTheoryEnabled(theory::TheoryId theory) const { return d_theories[theory]; }
+  bool isTheoryEnabled(theory::TheoryId theory) const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_theories[theory];
+  }
 
   /** Is this a quantified logic? */
   bool isQuantified() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
     return isTheoryEnabled(theory::THEORY_QUANTIFIERS) || isTheoryEnabled(theory::THEORY_REWRITERULES);
   }
 
@@ -110,6 +119,7 @@ public:
    * use "isPure(theory) && !isQuantified()".
    */
   bool isPure(theory::TheoryId theory) const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
     // the third and fourth conjucts are really just to rule out the misleading
     // case where you ask isPure(THEORY_BOOL) and get true even in e.g. QF_LIA
     return isTheoryEnabled(theory) && !isSharingEnabled() &&
@@ -120,13 +130,25 @@ public:
   // these are for arithmetic
 
   /** Are integers in this logic? */
-  bool areIntegersUsed() const { return d_integers; }
+  bool areIntegersUsed() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_integers;
+  }
   /** Are reals in this logic? */
-  bool areRealsUsed() const { return d_reals; }
+  bool areRealsUsed() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_reals;
+  }
   /** Does this logic only linear arithmetic? */
-  bool isLinear() const { return d_linear || d_differenceLogic; }
+  bool isLinear() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_linear || d_differenceLogic;
+  }
   /** Does this logic only permit difference reasoning? (implies linear) */
-  bool isDifferenceLogic() const { return d_differenceLogic; }
+  bool isDifferenceLogic() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_differenceLogic;
+  }
 
   // MUTATORS
 
@@ -136,6 +158,18 @@ public:
    * interpreted.
    */
   void setLogicString(std::string logicString) throw(IllegalArgumentException);
+
+  /**
+   * Enable all functionality.  All theories, plus quantifiers, will be
+   * enabled.
+   */
+  void enableEverything();
+
+  /**
+   * Disable all functionality.  The result will be a LogicInfo with
+   * the BUILTIN and BOOLEAN theories enabled only ("QF_SAT").
+   */
+  void disableEverything();
 
   /**
    * Enable the given theory module.
@@ -180,6 +214,15 @@ public:
   void arithOnlyLinear();
   /** Permit nonlinear arithmetic in this logic. */
   void arithNonLinear();
+
+  // LOCKING FUNCTIONALITY
+
+  /** Lock this LogicInfo, disabling further mutation and allowing queries */
+  void lock() { d_locked = true; }
+  /** Check whether this LogicInfo is locked, disallowing further mutation */
+  bool isLocked() const { return d_locked; }
+  /** Get a copy of this LogicInfo that is identical, but unlocked */
+  LogicInfo getUnlockedCopy() const;
 
 };/* class LogicInfo */
 

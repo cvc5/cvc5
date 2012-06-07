@@ -197,6 +197,11 @@ protected:
   pANTLR3_COMMON_TOKEN_STREAM getTokenStream();
 
   /**
+   * Issue a non-fatal warning to the user with file, line, and column info.
+   */
+  void warning(const std::string& msg);
+
+  /**
    * Throws a <code>ParserException</code> with the given message.
    */
   void parseError(const std::string& msg)

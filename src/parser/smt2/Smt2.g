@@ -191,6 +191,7 @@ command returns [CVC4::Command* cmd = NULL]
     DECLARE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL
     { Debug("parser") << "declare sort: '" << name
                       << "' arity=" << n << std::endl;
+      PARSER_STATE->checkThatLogicIsSet();
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
         Type type = PARSER_STATE->mkSort(name);
@@ -204,6 +205,7 @@ command returns [CVC4::Command* cmd = NULL]
     DEFINE_SORT_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT]
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
     {
+      PARSER_STATE->checkThatLogicIsSet();
       PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
@@ -224,6 +226,7 @@ command returns [CVC4::Command* cmd = NULL]
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
+      PARSER_STATE->checkThatLogicIsSet();
       if( sorts.size() > 0 ) {
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
@@ -235,6 +238,7 @@ command returns [CVC4::Command* cmd = NULL]
     sortSymbol[t,CHECK_DECLARED]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define fun: '" << name << "'" << std::endl;
+      PARSER_STATE->checkThatLogicIsSet();
       if( sortedVarNames.size() > 0 ) {
         std::vector<CVC4::Type> sorts;
         sorts.reserve(sortedVarNames.size());
@@ -263,13 +267,9 @@ command returns [CVC4::Command* cmd = NULL]
       $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
   | /* value query */
-    ( GET_VALUE_TOK
-      { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError("Strict compliance mode doesn't recognize \"eval\".  Maybe you want (get-value...)?");
-        }
-      } )
-    LPAREN_TOK termList[terms,expr] RPAREN_TOK
-    { if(terms.size() == 1) {
+    GET_VALUE_TOK LPAREN_TOK termList[terms,expr] RPAREN_TOK
+    { PARSER_STATE->checkThatLogicIsSet();
+      if(terms.size() == 1) {
         $cmd = new GetValueCommand(terms[0]);
       } else {
         CommandSequence* seq = new CommandSequence();
@@ -284,24 +284,31 @@ command returns [CVC4::Command* cmd = NULL]
     }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK
-    { cmd = new GetAssignmentCommand; }
+    { PARSER_STATE->checkThatLogicIsSet();
+      cmd = new GetAssignmentCommand; }
   | /* assertion */
     ASSERT_TOK term[expr]
-    { cmd = new AssertCommand(expr); }
+    { PARSER_STATE->checkThatLogicIsSet();
+      cmd = new AssertCommand(expr); }
   | /* checksat */
     CHECKSAT_TOK
-    { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
+    { PARSER_STATE->checkThatLogicIsSet();
+      cmd = new CheckSatCommand(MK_CONST(bool(true))); }
   | /* get-assertions */
     GET_ASSERTIONS_TOK
-    { cmd = new GetAssertionsCommand; }
+    { PARSER_STATE->checkThatLogicIsSet();
+      cmd = new GetAssertionsCommand; }
   | /* get-proof */
     GET_PROOF_TOK
-    { cmd = new GetProofCommand; }
+    { PARSER_STATE->checkThatLogicIsSet();
+      cmd = new GetProofCommand; }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK
-    { UNSUPPORTED("unsat cores not yet supported"); }
+    { PARSER_STATE->checkThatLogicIsSet();
+      UNSUPPORTED("unsat cores not yet supported"); }
   | /* push */
     PUSH_TOK
+    { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
         if(n == 0) {
@@ -323,6 +330,7 @@ command returns [CVC4::Command* cmd = NULL]
         }
       } )
   | POP_TOK
+    { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
         if(n == 0) {
@@ -348,7 +356,8 @@ command returns [CVC4::Command* cmd = NULL]
 
     /* CVC4-extended SMT-LIBv2 commands */
   | extendedCommand[cmd]
-    { if(PARSER_STATE->strictModeEnabled()) {
+    { PARSER_STATE->checkThatLogicIsSet();
+      if(PARSER_STATE->strictModeEnabled()) {
         PARSER_STATE->parseError("Extended commands are not permitted while operating in strict compliance mode.");
       }
     }

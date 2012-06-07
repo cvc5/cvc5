@@ -72,6 +72,8 @@ public:
 
   void setOption(const std::string& flag, const SExpr& sexpr);
 
+  void checkThatLogicIsSet();
+
 private:
 
   void addArithmeticOperators();

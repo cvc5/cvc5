@@ -457,6 +457,11 @@ public:
   /** Parse and return the next expression. */
   Expr nextExpression() throw(ParserException);
 
+  /** Issue a warning to the user. */
+  inline void warning(const std::string& msg) {
+    d_input->warning(msg);
+  }
+
   /** Raise a parse error with the given message. */
   inline void parseError(const std::string& msg) throw(ParserException) {
     d_input->parseError(msg);
