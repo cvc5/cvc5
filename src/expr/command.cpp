@@ -139,6 +139,35 @@ Command* EmptyCommand::clone() const {
   return new EmptyCommand(d_name);
 }
 
+/* class EchoCommand */
+
+EchoCommand::EchoCommand(std::string output) throw() :
+  d_output(output) {
+}
+
+std::string EchoCommand::getOutput() const throw() {
+  return d_output;
+}
+
+void EchoCommand::invoke(SmtEngine* smtEngine) throw() {
+  /* we don't have an output stream here, nothing to do */
+  d_commandStatus = CommandSuccess::instance();
+}
+
+void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
+  out << d_output << std::endl;
+  d_commandStatus = CommandSuccess::instance();
+  printResult(out);
+}
+
+Command* EchoCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  return new EchoCommand(d_output);
+}
+
+Command* EchoCommand::clone() const {
+  return new EchoCommand(d_output);
+}
+
 /* class AssertCommand */
 
 AssertCommand::AssertCommand(const BoolExpr& e) throw() :

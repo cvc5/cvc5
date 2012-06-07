@@ -372,6 +372,14 @@ extendedCommand[CVC4::Command*& cmd]
     LPAREN_TOK ( LPAREN_TOK datatypeDef[dts] RPAREN_TOK )+ RPAREN_TOK
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+  | ECHO_TOK
+    ( simpleSymbolicExpr[sexpr]
+      { std::stringstream ss;
+        ss << sexpr;
+        cmd = new EchoCommand(ss.str());
+      }
+    | { cmd = new EchoCommand(); }
+    )
   ;
 
 simpleSymbolicExpr[CVC4::SExpr& sexpr]
@@ -918,6 +926,7 @@ POP_TOK : 'pop';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
+ECHO_TOK : 'echo';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';

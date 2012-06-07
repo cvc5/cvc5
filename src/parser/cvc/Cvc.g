@@ -706,8 +706,11 @@ mainCommand[CVC4::Command*& cmd]
 
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
-      { Message() << sexpr << std::endl; }
-    | { Message() << std::endl; }
+      { std::stringstream ss;
+        ss << sexpr;
+        cmd = new EchoCommand(ss.str());
+      }
+    | { cmd = new EchoCommand(); }
     )
 
   | EXIT_TOK

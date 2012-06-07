@@ -423,7 +423,8 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetOptionCommand>(out, c) ||
      tryToStream<DatatypeDeclarationCommand>(out, c) ||
      tryToStream<CommentCommand>(out, c) ||
-     tryToStream<EmptyCommand>(out, c)) {
+     tryToStream<EmptyCommand>(out, c) ||
+     tryToStream<EchoCommand>(out, c)) {
     return;
   }
 
@@ -659,6 +660,10 @@ static void toStream(std::ostream& out, const CommentCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const EmptyCommand* c) throw() {
+}
+
+static void toStream(std::ostream& out, const EchoCommand* c) throw() {
+  out << "(echo \"" << c->getOutput() << "\")";
 }
 
 template <class T>

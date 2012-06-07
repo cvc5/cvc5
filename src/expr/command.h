@@ -264,6 +264,19 @@ public:
   Command* clone() const;
 };/* class EmptyCommand */
 
+class CVC4_PUBLIC EchoCommand : public Command {
+protected:
+  std::string d_output;
+public:
+  EchoCommand(std::string output = "") throw();
+  ~EchoCommand() throw() {}
+  std::string getOutput() const throw();
+  void invoke(SmtEngine* smtEngine) throw();
+  void invoke(SmtEngine* smtEngine, std::ostream& out) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+};/* class EchoCommand */
+
 class CVC4_PUBLIC AssertCommand : public Command {
 protected:
   BoolExpr d_expr;
