@@ -92,8 +92,8 @@ bool ITESimplifier::leavesAreConst(TNode e, TheoryId tid)
 
 Node ITESimplifier::simpConstants(TNode simpContext, TNode iteNode, TNode simpVar)
 {
-  NodeMap::iterator it;
-  it = d_simpConstCache.find(iteNode);
+  NodePairMap::iterator it;
+  it = d_simpConstCache.find(pair<Node, Node>(simpContext,iteNode));
   if (it != d_simpConstCache.end()) {
     return (*it).second;
   }
@@ -112,30 +112,28 @@ Node ITESimplifier::simpConstants(TNode simpContext, TNode iteNode, TNode simpVa
     // Mark the substitution and continue
     Node result = builder;
     result = Rewriter::rewrite(result);
-    d_simpConstCache[iteNode] = result;
+    d_simpConstCache[pair<Node, Node>(simpContext, iteNode)] = result;
     return result;
   }
 
   if (!containsTermITE(iteNode)) {
     Node n = Rewriter::rewrite(simpContext.substitute(simpVar, iteNode));
-    d_simpConstCache[iteNode] = n;
+    d_simpConstCache[pair<Node, Node>(simpContext, iteNode)] = n;
     return n;
   }
 
   Node iteNode2;
   Node simpVar2;
-  d_simpConstCache.clear();
+  d_simpContextCache.clear();
   Node simpContext2 = createSimpContext(iteNode, iteNode2, simpVar2);
   if (!simpContext2.isNull()) {
     Assert(!iteNode2.isNull());
     simpContext2 = simpContext.substitute(simpVar, simpContext2);
-    d_simpConstCache.clear();
     Node n = simpConstants(simpContext2, iteNode2, simpVar2);
     if (n.isNull()) {
       return n;
     }
-    d_simpConstCache.clear();
-    d_simpConstCache[iteNode] = n;
+    d_simpConstCache[pair<Node, Node>(simpContext, iteNode)] = n;
     return n;
   }
   return Node();
@@ -160,13 +158,13 @@ Node ITESimplifier::getSimpVar(TypeNode t)
 Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
 {
   NodeMap::iterator it;
-  it = d_simpConstCache.find(c);
-  if (it != d_simpConstCache.end()) {
+  it = d_simpContextCache.find(c);
+  if (it != d_simpContextCache.end()) {
     return (*it).second;
   }
 
   if (!containsTermITE(c)) {
-    d_simpConstCache[c] = c;
+    d_simpContextCache[c] = c;
     return c;
   }
 
@@ -180,7 +178,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
     if (simpVar.isNull()) {
       return Node();
     }
-    d_simpConstCache[c] = simpVar;
+    d_simpContextCache[c] = simpVar;
     iteNode = c;
     return simpVar;
   }
@@ -199,7 +197,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
   }
   // Mark the substitution and continue
   Node result = builder;
-  d_simpConstCache[c] = result;
+  d_simpContextCache[c] = result;
   return result;
 }
 
@@ -209,14 +207,13 @@ Node ITESimplifier::simpITEAtom(TNode atom)
   if (leavesAreConst(atom)) {
     Node iteNode;
     Node simpVar;
-    d_simpConstCache.clear();
+    d_simpContextCache.clear();
     Node simpContext = createSimpContext(atom, iteNode, simpVar);
     if (!simpContext.isNull()) {
       if (iteNode.isNull()) {
         Assert(leavesAreConst(simpContext) && !containsTermITE(simpContext));
         return Rewriter::rewrite(simpContext);
       }
-      d_simpConstCache.clear();
       Node n = simpConstants(simpContext, iteNode, simpVar);
       if (!n.isNull()) {
         return n;

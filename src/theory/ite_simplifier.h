@@ -62,10 +62,25 @@ class ITESimplifier {
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::hash_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
-  NodeMap d_simpConstCache;
+  typedef std::pair<Node, Node> NodePair;
+  struct NodePairHashFunction {
+    size_t operator () (const NodePair& pair) const {
+      size_t hash = 0;
+      hash = 0x9e3779b9 + NodeHashFunction().operator()(pair.first);
+      hash ^= 0x9e3779b9 + NodeHashFunction().operator()(pair.second) + (hash << 6) + (hash >> 2);
+      return hash;
+    }
+  };
+
+  typedef std::hash_map<NodePair, Node, NodePairHashFunction> NodePairMap;
+
+
+  NodePairMap d_simpConstCache;
   Node simpConstants(TNode simpContext, TNode iteNode, TNode simpVar);
   std::hash_map<TypeNode, Node, TypeNode::HashFunction> d_simpVars;
   Node getSimpVar(TypeNode t);
+
+  NodeMap d_simpContextCache;
   Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
 
   Node simpITEAtom(TNode atom);
