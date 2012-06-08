@@ -218,8 +218,8 @@ Additional CVC4 options:\n\
    --restart-int-inc=F    restart interval increase factor for the sat solver\n\
                           (F=3.0 by default)\n\
   ARITHMETIC:\n\
-   --arith-presolve-lemmas=MODE  determines which lemmas to add before solving\n\
-                          (default is 'all', see --arith-presolve-lemmas=help)\n\
+   ---unate-lemmas=MODE   determines which lemmas to add before solving\n\
+                          (default is 'all', see --unate-lemmas=help)\n\
    --arith-prop=MODE      turns on arithmetic propagation\n\
                           (default is 'old', see --arith-prop=help)\n\
    --pivot-rule=RULE      change the pivot rule for the basic variable\n\
@@ -372,10 +372,10 @@ pipe to perform on-line checking.  The --dump-to option can be used to dump\n\
 to a file.\n\
 ";
 
-static const string arithPresolveLemmasHelp = "\
+static const string arithUnateLemmasHelp = "\
 Presolve lemmas are generated before SAT search begins using the relationship\n\
 of constant terms and polynomials.\n\
-Modes currently supported by the --arith-presolve-lemmas option:\n\
+Modes currently supported by the --unate-lemmas option:\n\
 + none \n\
 + ineqs \n\
   Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d.\n\
@@ -1156,11 +1156,11 @@ throw(OptionException) {
         arithUnateLemmaMode = EQUALITY_PRESOLVE_LEMMAS;
         break;
       } else if(!strcmp(optarg, "help")) {
-        puts(arithPresolveLemmasHelp.c_str());
+        puts(arithUnateLemmasHelp.c_str());
         exit(1);
       } else {
-        throw OptionException(string("unknown option for --arith-presolve-lemmas: `") +
-                              optarg + "'.  Try --arith-presolve-lemmas=help.");
+        throw OptionException(string("unknown option for --unate-lemmas: `") +
+                              optarg + "'.  Try --unate-lemmas=help.");
       }
       break;
 
