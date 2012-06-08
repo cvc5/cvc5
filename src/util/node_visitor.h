@@ -32,7 +32,7 @@ template<typename Visitor>
 class NodeVisitor {
 
   /** For re-entry checking */
-  static bool d_inRun;
+  static CVC4_THREADLOCAL(bool) d_inRun;
 
   class GuardReentry {
     bool& d_guard;
@@ -111,7 +111,7 @@ public:
 };
 
 template <typename Visitor>
-bool NodeVisitor<Visitor>::d_inRun = false;
+CVC4_THREADLOCAL(bool) NodeVisitor<Visitor>::d_inRun = false;
 
 }
 
