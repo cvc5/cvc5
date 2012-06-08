@@ -1100,7 +1100,7 @@ std::ostream& operator<<(std::ostream& out,
     return out << "unknown";
 
   default:
-    return out << "SetBenchmarkStatusCommand::[UNKNOWNSTATUS!]";
+    return out << "BenchmarkStatus::[UNKNOWNSTATUS!]";
   }
 }
 

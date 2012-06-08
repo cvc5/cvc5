@@ -55,6 +55,12 @@ public:
     VALIDITY_UNKNOWN = 2
   };
 
+  enum Type {
+    TYPE_SAT,
+    TYPE_VALIDITY,
+    TYPE_NONE
+  };
+
   enum UnknownExplanation {
     REQUIRES_FULL_CHECK,
     INCOMPLETE,
@@ -71,10 +77,8 @@ public:
 private:
   enum Sat d_sat;
   enum Validity d_validity;
-  enum { TYPE_SAT, TYPE_VALIDITY, TYPE_NONE } d_which;
+  enum Type d_which;
   enum UnknownExplanation d_unknownExplanation;
-
-  friend std::ostream& CVC4::operator<<(std::ostream& out, const Result& r);
 
 public:
   Result() :
@@ -125,6 +129,9 @@ public:
   }
   bool isUnknown() const {
     return isSat() == SAT_UNKNOWN && isValid() == VALIDITY_UNKNOWN;
+  }
+  Type getType() const {
+    return d_which;
   }
   bool isNull() const {
     return d_which == TYPE_NONE;

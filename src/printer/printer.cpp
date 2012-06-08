@@ -48,7 +48,40 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   default:
     Unhandled(lang);
   }
-
 }/* Printer::makePrinter() */
+
+void Printer::toStream(std::ostream& out, const Result& r) const throw() {
+  if(r.getType() == Result::TYPE_SAT) {
+    switch(r.isSat()) {
+    case Result::UNSAT:
+      out << "unsat";
+      break;
+    case Result::SAT:
+      out << "sat";
+      break;
+    case Result::SAT_UNKNOWN:
+      out << "unknown";
+      if(r.whyUnknown() != Result::UNKNOWN_REASON) {
+        out << " (" << r.whyUnknown() << ")";
+      }
+      break;
+    }
+  } else {
+    switch(r.isValid()) {
+    case Result::INVALID:
+      out << "invalid";
+      break;
+    case Result::VALID:
+      out << "valid";
+      break;
+    case Result::VALIDITY_UNKNOWN:
+      out << "unknown";
+      if(r.whyUnknown() != Result::UNKNOWN_REASON) {
+        out << " (" << r.whyUnknown() << ")";
+      }
+      break;
+    }
+  }
+}/* Printer::toStream() */
 
 }/* CVC4 namespace */

@@ -23,6 +23,7 @@
 
 #include "util/result.h"
 #include "util/Assert.h"
+#include "printer/printer.h"
 
 using namespace std;
 
@@ -190,38 +191,7 @@ ostream& operator<<(ostream& out,
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  if(r.d_which == Result::TYPE_SAT) {
-    switch(r.d_sat) {
-    case Result::UNSAT:
-      out << "unsat";
-      break;
-    case Result::SAT:
-      out << "sat";
-      break;
-    case Result::SAT_UNKNOWN:
-      out << "unknown";
-      if(r.whyUnknown() != Result::UNKNOWN_REASON) {
-        out << " (" << r.whyUnknown() << ")";
-      }
-      break;
-    }
-  } else {
-    switch(r.d_validity) {
-    case Result::INVALID:
-      out << "invalid";
-      break;
-    case Result::VALID:
-      out << "valid";
-      break;
-    case Result::VALIDITY_UNKNOWN:
-      out << "unknown";
-      if(r.whyUnknown() != Result::UNKNOWN_REASON) {
-        out << " (" << r.whyUnknown() << ")";
-      }
-      break;
-    }
-  }
-
+  Printer::getPrinter(Node::setlanguage::getLanguage(out))->toStream(out, r);
   return out;
 }/* operator<<(ostream&, const Result&) */
 
