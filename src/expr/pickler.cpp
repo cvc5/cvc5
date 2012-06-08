@@ -233,6 +233,12 @@ void PicklerPrivate::toCaseConstant(TNode n) {
     toCaseString(k, asString);
     break;
   }
+  case  kind::BITVECTOR_SIGN_EXTEND_OP: {
+    BitVectorSignExtend bvse = n.getConst<BitVectorSignExtend>();
+    d_current << mkConstantHeader(k, 1);
+    d_current << mkBlockBody(bvse.signExtendAmount);
+    break;
+  }
   default:
     Unhandled(k);
   }
@@ -370,6 +376,11 @@ Node PicklerPrivate::fromCaseConstant(Kind k, uint32_t constblocks) {
     Integer value(fromCaseString(constblocks - 2));
     BitVector bv(size, value);
     return d_nm->mkConst(bv);
+  }
+  case  kind::BITVECTOR_SIGN_EXTEND_OP: {
+    Block signExtendAmount = d_current.dequeue();
+    BitVectorSignExtend bvse(signExtendAmount.d_body.d_data);
+    return d_nm->mkConst<BitVectorSignExtend>(bvse);
   }
   default:
     Unhandled(k);
