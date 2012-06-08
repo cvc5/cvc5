@@ -395,6 +395,7 @@ Lit Solver::pickBranchLit()
     while (nextLit != lit_Undef) {
       if(value(var(nextLit)) == l_Undef) {
         Debug("propagateAsDecision") << "propagateAsDecision(): now deciding on " << nextLit << std::endl;
+        decisions++;
         return nextLit;
       } else {
         Debug("propagateAsDecision") << "propagateAsDecision(): would decide on " << nextLit << " but it already has an assignment" << std::endl;
@@ -414,14 +415,35 @@ Lit Solver::pickBranchLit()
             rnd_decisions++; }
 
     // Activity based decision:
-    while (next == var_Undef || value(next) != l_Undef || !decision[next])
+    while (next == var_Undef || value(next) != l_Undef || !decision[next]) {
         if (order_heap.empty()){
             next = var_Undef;
             break;
-        }else
+        }else {
             next = order_heap.removeMin();
+        }
 
-    return next == var_Undef ? lit_Undef : mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
+        if(!decision[next]) continue;
+        // Check with decision engine about relevancy
+        if(proxy->isDecisionRelevant(MinisatSatSolver::toSatVariable(next)) == false ) {
+          next = var_Undef;
+        }
+    }
+
+    if(next == var_Undef) {
+      return lit_Undef;
+    } else {
+      decisions++;
+      // Check with decision engine if it can tell polarity
+      lbool dec_pol = MinisatSatSolver::toMinisatlbool
+        (proxy->getDecisionPolarity(MinisatSatSolver::toSatVariable(next)));
+      if(dec_pol != l_Undef) {
+        Assert(dec_pol == l_True || dec_pol == l_False);
+        return mkLit(next, (dec_pol == l_True) );
+      }
+      // If it can't use internal heuristic to do that
+      return mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
+    }
 }
 
 
@@ -1127,7 +1149,6 @@ lbool Solver::search(int nof_conflicts)
 
             if (next == lit_Undef) {
                 // New variable decision:
-                decisions++;
                 next = pickBranchLit();
 
                 if (next == lit_Undef) {

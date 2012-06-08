@@ -1039,6 +1039,9 @@ void SmtEnginePrivate::simplifyAssertions()
           expandDefinitions(d_assertionsToPreprocess[i], cache);
       }
     }
+    
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
     if(Options::current()->simplificationMode != Options::SIMPLIFICATION_MODE_NONE) {
       // Perform non-clausal simplification
@@ -1053,6 +1056,9 @@ void SmtEnginePrivate::simplifyAssertions()
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
     }
 
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
     if(Options::current()->doITESimp) {
       // ite simplification
       simpITE();
@@ -1063,12 +1069,17 @@ void SmtEnginePrivate::simplifyAssertions()
     }
 
     if(Options::current()->repeatSimp && Options::current()->simplificationMode != Options::SIMPLIFICATION_MODE_NONE) {
+      Trace("simplify") << "SmtEnginePrivate::simplify(): "
+                        << " doing repeated simplification" << std::endl;
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
       // Abuse the user context to make sure circuit propagator gets backtracked
       d_smt.d_userContext->push();
       nonClausalSimplify();
       d_smt.d_userContext->pop();
     }
+
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
     if(Options::current()->doStaticLearning) {
       // Perform static learning
@@ -1180,14 +1191,10 @@ void SmtEnginePrivate::processAssertions() {
 
   {
     TimerStat::CodeTimer codeTimer(d_smt.d_iteRemovalTime);
-    // Remove ITEs
-    d_smt.d_numAssertionsPre += d_assertionsToCheck.size();
     // Remove ITEs, updating d_iteSkolemMap
+    d_smt.d_numAssertionsPre += d_assertionsToCheck.size();
     removeITEs();
     d_smt.d_numAssertionsPost += d_assertionsToCheck.size();
-    // This may need to be in a try-catch
-    // block. make regress is passing, so
-    // skipping for now --K
   }
 
   if(Options::current()->repeatSimp) {

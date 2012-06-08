@@ -63,6 +63,17 @@ public:
                              IteSkolemMap iteSkolemMap) = 0;
 };
 
+class RelevancyStrategy : public ITEDecisionStrategy {
+public:
+  RelevancyStrategy(DecisionEngine* de, context::Context *c) :
+    ITEDecisionStrategy(de, c) {
+  }
+
+  virtual bool isRelevant(TNode n) = 0;
+  virtual prop::SatValue getPolarity(TNode n) = 0;
+};
+
+
 }/* decision namespace */
 }/* CVC4 namespace */
 

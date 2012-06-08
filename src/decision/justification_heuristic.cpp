@@ -68,12 +68,6 @@ CVC3 code <---->  this code
 
 // Local helper functions for just this file
 
-SatValue invertValue(SatValue v)
-{
-  if(v == SAT_VALUE_UNKNOWN) return SAT_VALUE_UNKNOWN;
-  else if(v == SAT_VALUE_TRUE) return SAT_VALUE_FALSE;
-  else return SAT_VALUE_TRUE;
-}
 
 
 // JustificationHeuristic stuff

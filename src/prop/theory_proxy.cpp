@@ -188,8 +188,16 @@ void TheoryProxy::checkTime() {
   d_propEngine->checkTime();
 }
 
+bool TheoryProxy::isDecisionRelevant(SatVariable var) {
+  return d_decisionEngine->isRelevant(var);
+}
+
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone();
+}
+
+SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
+  return d_decisionEngine->getPolarity(var);
 }
 
 }/* CVC4::prop namespace */

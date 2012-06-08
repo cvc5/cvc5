@@ -136,12 +136,27 @@ struct CVC4_PUBLIC Options {
     /**
      * Use the justification heuristic
      */
-    DECISION_STRATEGY_JUSTIFICATION
+    DECISION_STRATEGY_JUSTIFICATION,
+    DECISION_STRATEGY_RELEVANCY
   } DecisionMode;
   /** When/whether to use any decision strategies */
   DecisionMode decisionMode;
   /** Whether the user set the decision strategy */
   bool decisionModeSetByUser;
+  /** 
+   * Extra settings for decision stuff, varies by strategy enabled
+   * - With DECISION_STRATEGY_RELEVANCY
+   *   > Least significant bit: true if one should only decide on leaves
+   */
+
+  /** DecisionOption along */
+  struct DecisionOptions {
+    bool relevancyLeaves;
+    unsigned short maxRelTimeAsPermille;  /* permille = part per thousand */
+    bool computeRelevancy;    /* if false, do justification stuff using relevancy.h */
+    bool mustRelevancy;       /* use the must be relevant */
+  };
+  DecisionOptions decisionOptions;
 
   /** Whether to perform the static learning pass. */
   bool doStaticLearning;

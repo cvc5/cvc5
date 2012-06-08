@@ -18,6 +18,7 @@
 
 #include "decision/decision_engine.h"
 #include "decision/justification_heuristic.h"
+#include "decision/relevancy.h"
 
 #include "expr/node.h"
 #include "util/options.h"
@@ -30,6 +31,7 @@ namespace CVC4 {
                                  context::Context *uc) :
   d_enabledStrategies(),
   d_needIteSkolemMap(),
+  d_relevancyStrategy(NULL),
   d_assertions(),
   d_cnfStream(NULL),
   d_satSolver(NULL),
@@ -49,12 +51,48 @@ namespace CVC4 {
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
   }
+  if(options->decisionMode == Options::DECISION_STRATEGY_RELEVANCY) {
+    RelevancyStrategy* ds = 
+      new decision::Relevancy(this, d_satContext, options->decisionOptions);
+    enableStrategy(ds);
+    d_needIteSkolemMap.push_back(ds);
+    d_relevancyStrategy = ds;
+  }
 }
 
 void DecisionEngine::enableStrategy(DecisionStrategy* ds)
 {
   d_enabledStrategies.push_back(ds);
 }
+
+
+bool DecisionEngine::isRelevant(SatVariable var)
+{
+  Debug("decision") << "isRelevant(" << var <<")" << std::endl;
+  if(d_relevancyStrategy != NULL) {
+    //Assert(d_cnfStream->hasNode(var));
+    return d_relevancyStrategy->isRelevant( d_cnfStream->getNode(SatLiteral(var)) );
+  } else {
+    return true;
+  }
+}
+
+SatValue DecisionEngine::getPolarity(SatVariable var)
+{
+  Debug("decision") << "getPolariry(" << var <<")" << std::endl;
+  if(d_relevancyStrategy != NULL) {
+    Assert(isRelevant(var));
+    return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
+  } else {
+    return SAT_VALUE_UNKNOWN;
+  }
+}
+
+
+
+
+
+
 
 
 void DecisionEngine::addAssertions(const vector<Node> &assertions)
@@ -68,10 +106,9 @@ void DecisionEngine::addAssertions(const vector<Node> &assertions)
   //   d_assertions.push_back(assertions[i]); 
 }
 
-void DecisionEngine::addAssertions
-  (const vector<Node> &assertions,
-   unsigned assertionsEnd,
-   IteSkolemMap iteSkolemMap) 
+void DecisionEngine::addAssertions(const vector<Node> &assertions,
+                                   unsigned assertionsEnd,
+                                   IteSkolemMap iteSkolemMap)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;

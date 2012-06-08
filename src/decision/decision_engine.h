@@ -40,6 +40,7 @@ class DecisionEngine {
 
   vector <DecisionStrategy* > d_enabledStrategies;
   vector <ITEDecisionStrategy* > d_needIteSkolemMap;
+  RelevancyStrategy* d_relevancyStrategy;
 
   vector <Node> d_assertions;
 
@@ -106,6 +107,15 @@ public:
     }
     return ret;
   }
+
+  /** Is a sat variable relevant */
+  bool isRelevant(SatVariable var);
+
+  /**
+   * Try to get tell SAT solver what polarity to try for a
+   * decision. Return SAT_VALUE_UNKNOWN if it can't help 
+   */
+  SatValue getPolarity(SatVariable var);
 
   /** Is the DecisionEngine in a state where it has solved everything? */
   bool isDone() {

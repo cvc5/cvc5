@@ -58,6 +58,14 @@ CVC4_THREADLOCAL(const Options*) Options::s_current = NULL;
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
 #endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
 
+/** default decision options */
+const Options::DecisionOptions defaultDecOpt = {
+  false,                        // relevancyLeaves
+  1000,                         // maxRelTimeAsPermille
+  true,                         // computeRelevancy
+  false,                        // mustRelevancy
+};
+
 Options::Options() :
   binary_name(),
   statistics(false),
@@ -82,6 +90,7 @@ Options::Options() :
   simplificationModeSetByUser(false),
   decisionMode(DECISION_STRATEGY_INTERNAL),
   decisionModeSetByUser(false),
+  decisionOptions(DecisionOptions(defaultDecOpt)),
   doStaticLearning(true),
   doITESimp(false),
   doITESimpSetByUser(false),
@@ -134,6 +143,7 @@ Options::Options() :
   sat_refine_conflicts(false)
 {
 }
+
 
 static const string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:\n\
@@ -188,6 +198,8 @@ Additional CVC4 options:\n\
    --lazy-definition-expansion expand define-funs/LAMBDAs lazily\n\
    --simplification=MODE  choose simplification mode, see --simplification=help\n\
    --decision=MODE        choose decision mode, see --decision=help\n\
+   --decision-budget=N    impose a budget for relevancy hueristic which increases linearly with\n\
+                          each decision. N between 0 and 1000. (default: 1000, no budget)\n\
    --no-static-learning   turn off static learning (e.g. diamond-breaking)\n\
    --ite-simp             turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
    --no-ite-simp          turn off ite simplification (Kim (and Somenzi) et al., SAT 2009)\n\
@@ -276,6 +288,22 @@ internal (default)\n\
 \n\
 justification\n\
 + An ATGP-inspired justification heuristic\n\
+\n\
+relevancy\n\
++ Under development may-relevancy\n\
+\n\
+relevancy-leaves\n\
++ May-relevancy, but decide only on leaves\n\
+\n\
+Developer modes:\n\
+\n\
+justification-rel\n\
++ Use the relevancy code to do the justification stuff\n\
++ (This should do exact same thing as justification)\n\
+\n\
+justification-must\n\
++ Start deciding on literals close to root instead of those\n\
++ near leaves (don't expect it to work well) [Unimplemented]\n\
 ";
 
 static const string dumpHelp = "\
@@ -431,6 +459,7 @@ enum OptionValue {
   LAZY_DEFINITION_EXPANSION,
   SIMPLIFICATION_MODE,
   DECISION_MODE,
+  DECISION_BUDGET,
   NO_STATIC_LEARNING,
   ITE_SIMP,
   NO_ITE_SIMP,
@@ -533,6 +562,7 @@ static struct option cmdlineOptions[] = {
   { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
   { "simplification", required_argument, NULL, SIMPLIFICATION_MODE },
   { "decision", required_argument, NULL, DECISION_MODE },
+  { "decision-budget", required_argument, NULL, DECISION_BUDGET },
   { "no-static-learning", no_argument, NULL, NO_STATIC_LEARNING },
   { "ite-simp", no_argument, NULL, ITE_SIMP },
   { "no-ite-simp", no_argument, NULL, NO_ITE_SIMP },
@@ -841,6 +871,28 @@ throw(OptionException) {
       } else if(!strcmp(optarg, "justification")) {
         decisionMode = DECISION_STRATEGY_JUSTIFICATION;
         decisionModeSetByUser = true;
+      } else if(!strcmp(optarg, "relevancy")) {
+        decisionMode = DECISION_STRATEGY_RELEVANCY;
+        decisionModeSetByUser = true;
+        decisionOptions.relevancyLeaves = false;
+      } else if(!strcmp(optarg, "relevancy-leaves")) {
+        decisionMode = DECISION_STRATEGY_RELEVANCY;
+        decisionModeSetByUser = true;
+        decisionOptions.relevancyLeaves = true;
+      } else if(!strcmp(optarg, "justification-rel")) {
+        decisionMode = DECISION_STRATEGY_RELEVANCY;
+        decisionModeSetByUser = true;
+        // relevancyLeaves : irrelevant
+        // maxRelTimeAsPermille : irrelevant
+        decisionOptions.computeRelevancy = false;
+        decisionOptions.mustRelevancy = false;
+      } else if(!strcmp(optarg, "justification-must")) {
+        decisionMode = DECISION_STRATEGY_RELEVANCY;
+        decisionModeSetByUser = true;
+        // relevancyLeaves : irrelevant
+        // maxRelTimeAsPermille : irrelevant
+        decisionOptions.computeRelevancy = false;
+        decisionOptions.mustRelevancy = true;
       } else if(!strcmp(optarg, "help")) {
         puts(decisionHelp.c_str());
         exit(1);
@@ -848,6 +900,21 @@ throw(OptionException) {
         throw OptionException(string("unknown option for --decision: `") +
                               optarg + "'.  Try --decision help.");
       }
+      break;
+
+    case DECISION_BUDGET: {
+      int i = atoi(optarg);
+      if(i < 0 || i > 1000) {
+        throw OptionException(string("invalid value for --decision-budget: `") +
+                              optarg + "'. Must be between 0 and 1000.");
+      }
+      if(i == 0) {
+        Warning() << "Decision budget is 0. Consider using internal decision hueristic and "
+                  << std::endl << " removing this option." << std::endl;
+                  
+      }
+      decisionOptions.maxRelTimeAsPermille = (unsigned short)i;
+    }
       break;
 
     case NO_STATIC_LEARNING:

@@ -120,6 +120,7 @@ bool CnfStream::hasLiteral(TNode n) const {
 }
 
 void TseitinCnfStream::ensureLiteral(TNode n) {
+  Debug("cnf") << "ensureLiteral(" << n << ")" << endl;
   if(hasLiteral(n)) {
     // Already a literal!
     // newLiteral() may be necessary to renew a previously-extant literal

@@ -77,7 +77,11 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* context) :
   d_satSolver = SatSolverFactory::createDPLLMinisat(); 
 
   theory::TheoryRegistrar* registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, registrar, Options::current()->threads > 1);
+  d_cnfStream = new CVC4::prop::TseitinCnfStream
+    (d_satSolver, registrar, 
+     // fullLitToNode Map = 
+     Options::current()->threads > 1 || 
+     Options::current()->decisionMode == Options::DECISION_STRATEGY_RELEVANCY);
 
   d_satSolver->initialize(d_context, new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream));
 

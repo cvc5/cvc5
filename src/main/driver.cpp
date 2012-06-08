@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: cconway
- ** Minor contributors (to current version): barrett, dejan, taking
+ ** Minor contributors (to current version): barrett, dejan, taking, kshitij
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011, 2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -81,6 +81,10 @@ void printUsage(Options& options, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& options) {
+
+  // Timer statistic
+  TimerStat s_totalTime("totalTime");
+  s_totalTime.start();
 
   // For the signal handlers' benefit
   pOptions = &options;
@@ -161,6 +165,10 @@ int runCvc4(int argc, char* argv[], Options& options) {
   // Auto-detect input language by filename extension
   const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
 
+  // Timer statistic
+  RegisterStatistic statTotalTime(exprMgr, &s_totalTime);
+
+  // Filename statistics
   ReferenceStat< const char* > s_statFilename("filename", filename);
   RegisterStatistic statFilenameReg(exprMgr, &s_statFilename);
 
@@ -307,6 +315,8 @@ int runCvc4(int argc, char* argv[], Options& options) {
 
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
   RegisterStatistic statSatResultReg(exprMgr, &s_statSatResult);
+
+  s_totalTime.stop();
 
   if(options.statistics) {
     pStatistics->flushInformation(*options.err);

@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: taking
  ** Major contributors: mdeters, dejan
- ** Minor contributors (to current version): barrett, cconway
+ ** Minor contributors (to current version): barrett, cconway, kshitij
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
@@ -40,6 +40,15 @@ enum SatValue {
   SAT_VALUE_TRUE,
   SAT_VALUE_FALSE
 };
+
+/** Helper function for inverting a SatValue */
+inline SatValue invertValue(SatValue v)
+{
+  if(v == SAT_VALUE_UNKNOWN) return SAT_VALUE_UNKNOWN;
+  else if(v == SAT_VALUE_TRUE) return SAT_VALUE_FALSE;
+  else return SAT_VALUE_TRUE;
+}
+
 
 /**
  * A variable of the SAT solver.
