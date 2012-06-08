@@ -69,7 +69,7 @@ public:
    */
   static typename Visitor::return_type run(Visitor& visitor, TNode node) {
 
-    GuardReentry guard(d_inRun);
+    GuardReentry guard(bool(d_inRun));
 
     // Notify of a start
     visitor.start(node);
