@@ -23,6 +23,7 @@
 #include "expr/command.h"
 #include "printer/dagification_visitor.h"
 #include "util/node_visitor.h"
+#include "theory/substitutions.h"
 
 #include <iostream>
 #include <vector>

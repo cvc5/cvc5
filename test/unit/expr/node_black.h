@@ -596,6 +596,49 @@ public:
     TS_ASSERT(sstr.str() == "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
   }
 
+  void testDagifier() {
+    TypeNode intType = d_nodeManager->integerType();
+    TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
+
+    Node x = d_nodeManager->mkVar("x", intType);
+    Node y = d_nodeManager->mkVar("y", intType);
+    Node f = d_nodeManager->mkVar("f", fnType);
+    Node g = d_nodeManager->mkVar("g", fnType);
+    Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
+    Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
+    Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
+    Node gy = d_nodeManager->mkNode(APPLY_UF, g, y);
+    Node fgx = d_nodeManager->mkNode(APPLY_UF, f, gx);
+    Node ffx = d_nodeManager->mkNode(APPLY_UF, f, fx);
+    Node fffx = d_nodeManager->mkNode(APPLY_UF, f, ffx);
+    Node fffx_eq_x = d_nodeManager->mkNode(EQUAL, fffx, x);
+    Node fffx_eq_y = d_nodeManager->mkNode(EQUAL, fffx, y);
+    Node fx_eq_gx = d_nodeManager->mkNode(EQUAL, fx, gx);
+    Node x_eq_y = d_nodeManager->mkNode(EQUAL, x, y);
+    Node fgx_eq_gy = d_nodeManager->mkNode(EQUAL, fgx, gy);
+
+    Node n = d_nodeManager->mkNode(OR, fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy);
+
+    stringstream sstr;
+    sstr << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4);
+    sstr << Node::dag(false) << n; // never dagify
+    TS_ASSERT(sstr.str() == "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
+
+    sstr.str(string());
+    sstr << Node::dag(true) << n; // always dagify
+    TS_ASSERT(sstr.str() == "LET _let_0 = f(x), _let_1 = g(x), _let_2 = f(f(_let_0)) IN (_let_2 = x) OR (_let_2 = y) OR (_let_0 = _let_1) OR (x = y) OR (f(_let_1) = g(y))");
+
+    sstr.str(string());
+    sstr << Node::dag(2) << n; // dagify subexprs occurring > 2 times
+    TS_ASSERT(sstr.str() == "LET _let_0 = f(x) IN (f(f(_let_0)) = x) OR (f(f(_let_0)) = y) OR (_let_0 = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
+
+    Warning() << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2) << n << std::endl;
+    sstr.str(string());
+    sstr << Node::dag(3) << n; // dagify subexprs occurring > 3 times
+    TS_ASSERT(sstr.str() == "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
+    Warning() << Node::setdepth(-1) << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2) << n << std::endl;
+  }
+
 //  This Test is designed to fail in a way that will cause a segfault,
 //  so it is commented out.
 //  This is for demonstrating what a certain type of user error looks like.

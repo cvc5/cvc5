@@ -21,6 +21,7 @@
 #include "util/language.h" // for LANG_AST
 #include "expr/node_manager.h" // for VarNameAttr
 #include "expr/command.h"
+#include "theory/substitutions.h"
 
 #include <iostream>
 #include <vector>

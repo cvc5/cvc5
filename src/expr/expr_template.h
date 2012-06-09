@@ -815,10 +815,10 @@ public:
 
   /**
    * Construct a ExprDag with the given setting (letify only common
-   * subexpressions that appear more than 'dag' times).  dag==0 means
+   * subexpressions that appear more than 'dag' times).  dag <= 0 means
    * don't dagify.
    */
-  ExprDag(size_t dag) : d_dag(dag) {}
+  explicit ExprDag(int dag) : d_dag(dag < 0 ? 0 : dag) {}
 
   inline void applyDag(std::ostream& out) {
     // (offset by one to detect whether default has been set yet)
@@ -942,7 +942,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 938 "${template}"
+#line 946 "${template}"
 
 namespace expr {
 

@@ -26,6 +26,7 @@
 #include "util/boolean_simplification.h"
 #include "printer/dagification_visitor.h"
 #include "util/node_visitor.h"
+#include "theory/substitutions.h"
 
 using namespace std;
 

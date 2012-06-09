@@ -10,6 +10,10 @@
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
+ **
+ ** \brief A dagifier for CVC4 expressions
+ **
+ ** A dagifier for CVC4 expressions.
  **/
 
 #include "cvc4_private.h"
@@ -17,160 +21,155 @@
 #ifndef __CVC4__PRINTER__DAGIFICATION_VISITOR_H
 #define __CVC4__PRINTER__DAGIFICATION_VISITOR_H
 
-#include "context/context.h"
-#include "theory/substitutions.h"
 #include "expr/node.h"
 #include "util/hash.h"
 
 #include <vector>
 #include <string>
-#include <sstream>
 
 namespace CVC4 {
+
+namespace context {
+  class Context;
+}/* CVC4::context namespace */
+
+namespace theory {
+  class SubstitutionMap;
+}/* CVC4::theory namespace */
+
 namespace printer {
 
+/**
+ * This is a visitor class (intended to be used with CVC4's NodeVisitor)
+ * that visits an expression looking for common subexpressions that appear
+ * more than N times, where N is a configurable threshold.  Afterward,
+ * let bindings can be extracted from this visitor and applied to the
+ * expression.
+ *
+ * This dagifier never introduces let bindings for variables, constants,
+ * unary-minus exprs over variables or constants, or NOT exprs over
+ * variables or constants.  This dagifier never introduces let bindings
+ * for types.
+ */
 class DagificationVisitor {
 
-  unsigned d_threshold;
-  std::string d_letVarPrefix;
+  /**
+   * The threshold for dagification.  Subexprs occurring more than this
+   * number of times are dagified.
+   */
+  const unsigned d_threshold;
+
+  /**
+   * The prefix for introduced let bindings.
+   */
+  const std::string d_letVarPrefix;
+
+  /**
+   * A map of subexprs to their occurrence count.
+   */
   std::hash_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
+
+  /**
+   * The top-most node we are visiting.
+   */
   TNode d_top;
+
+  /**
+   * This class doesn't operate in a context-dependent fashion, but
+   * SubstitutionMap does, so we need a context.
+   */
   context::Context* d_context;
+
+  /**
+   * A map of subexprs to their newly-introduced let bindings.
+   */
   theory::SubstitutionMap* d_substitutions;
+
+  /**
+   * The current count of let bindings.  Used to build unique names
+   * for the bindings.
+   */
   unsigned d_letVar;
+
+  /**
+   * Keep track of whether we are done yet (for assertions---this visitor
+   * can only be used one time).
+   */
   bool d_done;
+
+  /**
+   * If a subexpr occurs uniquely in one parent expr, this map points to
+   * it.  An expr not occurring as a key in this map means we haven't
+   * seen it yet (and its occurrence count should be zero).  If an expr
+   * points to the null expr in this map, it means we've seen more than
+   * one parent, so the subexpr doesn't have a unique parent.
+   *
+   * This information is kept because if a subexpr occurs more than the
+   * threshold, it is normally subject to dagification.  But if it occurs
+   * only in one unique parent expression, and the parent meets the
+   * threshold too, then the parent will be dagified and there's no point
+   * in independently dagifying the child.  (If it is beyond the threshold
+   * and occurs in more than one parent, we'll independently dagify.)
+   */
   std::hash_map<TNode, TNode, TNodeHashFunction> d_uniqueParent;
+
+  /**
+   * A list of all nodes that meet the occurrence threshold and therefore
+   * *may* be subject to dagification, except for the unique-parent rule
+   * mentioned above.
+   */
   std::vector<TNode> d_substNodes;
 
 public:
 
+  /** Our visitor doesn't return anything. */
   typedef void return_type;
 
-  DagificationVisitor(unsigned threshold, std::string letVarPrefix = "_let_") :
-    d_threshold(threshold),
-    d_letVarPrefix(letVarPrefix),
-    d_nodeCount(),
-    d_top(),
-    d_context(new context::Context()),
-    d_substitutions(new theory::SubstitutionMap(d_context)),
-    d_letVar(0),
-    d_done(false),
-    d_uniqueParent(),
-    d_substNodes() {
-
-    // 0 doesn't make sense
-    CheckArgument(threshold > 0, threshold);
-  }
-
-  ~DagificationVisitor() {
-    delete d_substitutions;
-    delete d_context;
-  }
+  /**
+   * Construct a dagification visitor with the given threshold and let
+   * binding prefix.
+   *
+   * @param threshold the threshold to apply for dagification (must be > 0)
+   * @param letVarPrefix prefix for let bindings (by default, "_let_")
+   */
+  DagificationVisitor(unsigned threshold, std::string letVarPrefix = "_let_");
 
   /**
-   * Returns true if current has already been dagified.
+   * Simple destructor, clean up memory.
    */
-  bool alreadyVisited(TNode current, TNode parent) {
-    // don't visit variables, constants, or those exprs that we've
-    // already seen more than the threshold: if we've increased
-    // the count beyond the threshold already, we've done the same
-    // for all subexpressions, so it isn't useful to traverse and
-    // increment again (they'll be dagified anyway).
-    return current.getMetaKind() == kind::metakind::VARIABLE ||
-           current.getMetaKind() == kind::metakind::CONSTANT ||
-           ( ( current.getKind() == kind::NOT ||
-               current.getKind() == kind::UMINUS ) &&
-             ( current[0].getMetaKind() == kind::metakind::VARIABLE ||
-               current[0].getMetaKind() == kind::metakind::CONSTANT ) ) ||
-           current.getKind() == kind::SORT_TYPE ||
-           d_nodeCount[current] > d_threshold;
-  }
+  ~DagificationVisitor();
 
   /**
-   * Dagify the "current" expression.
+   * Returns true if "current" has already been visited a sufficient
+   * number of times to make it a candidate for dagification, or if
+   * it cannot ever be subject to dagification.
    */
-  void visit(TNode current, TNode parent) {
-    if(d_uniqueParent.find(current) != d_uniqueParent.end()) {
-      TNode& uniqueParent = d_uniqueParent[current];
+  bool alreadyVisited(TNode current, TNode parent);
 
-      if(!uniqueParent.isNull() && uniqueParent != parent) {
-        // there is not a unique parent for this expr
-        uniqueParent = TNode::null();
-      }
-
-      unsigned count = ++d_nodeCount[current];
-
-      if(count > d_threshold) {
-        d_substNodes.push_back(current);
-      }
-    } else {
-      Assert(d_nodeCount[current] == 0);
-      d_nodeCount[current] = 1;
-      d_uniqueParent[current] = parent;
-    }
-  }
+  /**
+   * Visit the expr "current", it might be a candidate for a let binder.
+   */
+  void visit(TNode current, TNode parent);
 
   /**
    * Marks the node as the starting literal.
    */
-  void start(TNode node) {
-    Assert(!d_done, "DagificationVisitor cannot be re-used");
-    d_top = node;
-  }
+  void start(TNode node);
 
   /**
-   * Called when we're done with all visitation.
+   * Called when we're done with all visitation.  Does postprocessing.
    */
-  void done(TNode node) {
-    Assert(!d_done);
-
-    d_done = true;
-
-    // letify subexprs before parents (cascading LETs)
-    std::sort(d_substNodes.begin(), d_substNodes.end());
-
-    for(std::vector<TNode>::iterator i = d_substNodes.begin();
-        i != d_substNodes.end();
-        ++i) {
-      Assert(d_nodeCount[*i] > d_threshold);
-      TNode parent = d_uniqueParent[*i];
-      if(!parent.isNull() && d_nodeCount[parent] > d_threshold) {
-        // no need to letify this expr, because it only occurs in
-        // a single super-expression, and that one will be letified
-        continue;
-      }
-
-      std::stringstream ss;
-      ss << d_letVarPrefix << d_letVar++;
-      Node letvar = NodeManager::currentNM()->mkVar(ss.str(), (*i).getType());
-
-      Node n = d_substitutions->apply(*i);
-      // the three last arguments to addSubstitution are:
-      // invalidateCache -- the rhs of our substitution is a letvar,
-      //   we're not going to use it on lhs so no cache problem
-      // backSub - no need for SubstitutionMap to do internal substitution,
-      //   we did our own above
-      // forwardSub - ditto
-      Assert(! d_substitutions->hasSubstitution(n));
-      d_substitutions->addSubstitution(n, letvar);
-    }
-  }
+  void done(TNode node);
 
   /**
    * Get the let substitutions.
    */
-  const theory::SubstitutionMap& getLets() {
-    Assert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
-    return *d_substitutions;
-  }
+  const theory::SubstitutionMap& getLets();
 
   /**
    * Return the let-substituted expression.
    */
-  Node getDagifiedBody() {
-    Assert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
-    return d_substitutions->apply(d_top);
-  }
+  Node getDagifiedBody();
 
 };/* class DagificationVisitor */
 

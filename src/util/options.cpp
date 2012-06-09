@@ -842,13 +842,13 @@ throw(OptionException) {
         if(dag < 0) {
           throw OptionException("--default-dag-thresh requires a nonnegative argument.");
         }
-        Debug.getStream() << Expr::dag(size_t(dag));
-        Trace.getStream() << Expr::dag(size_t(dag));
-        Notice.getStream() << Expr::dag(size_t(dag));
-        Chat.getStream() << Expr::dag(size_t(dag));
-        Message.getStream() << Expr::dag(size_t(dag));
-        Warning.getStream() << Expr::dag(size_t(dag));
-        Dump.getStream() << Expr::dag(size_t(dag));
+        Debug.getStream() << Expr::dag(dag);
+        Trace.getStream() << Expr::dag(dag);
+        Notice.getStream() << Expr::dag(dag);
+        Chat.getStream() << Expr::dag(dag);
+        Message.getStream() << Expr::dag(dag);
+        Warning.getStream() << Expr::dag(dag);
+        Dump.getStream() << Expr::dag(dag);
       }
       break;
 
