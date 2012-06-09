@@ -9,6 +9,7 @@
 
 %ignore CVC4::expr::operator<<(std::ostream&, ExprSetDepth);
 %ignore CVC4::expr::operator<<(std::ostream&, ExprPrintTypes);
+%ignore CVC4::expr::operator<<(std::ostream&, ExprDag);
 %ignore CVC4::expr::operator<<(std::ostream&, ExprSetLanguage);
 
 %rename(assign) CVC4::Expr::operator=(const Expr&);

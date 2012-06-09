@@ -6,6 +6,7 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 noinst_LTLIBRARIES = libprinter.la
 
 libprinter_la_SOURCES = \
+	dagification_visitor.h \
 	printer.h \
 	printer.cpp \
 	ast/ast_printer.h \

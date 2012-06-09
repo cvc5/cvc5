@@ -53,11 +53,11 @@ public:
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n,
-                        int toDepth, bool types) const throw() = 0;
+                        int toDepth, bool types, size_t dag) const throw() = 0;
 
   /** Write a Command out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Command* c,
-                        int toDepth, bool types) const throw() = 0;
+                        int toDepth, bool types, size_t dag) const throw() = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const throw() = 0;

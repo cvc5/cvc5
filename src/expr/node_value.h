@@ -267,7 +267,7 @@ public:
   }
 
   std::string toString() const;
-  void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+  void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                 OutputLanguage = language::output::LANG_AST) const;
 
   static inline unsigned kindToDKind(Kind k) {
@@ -487,6 +487,7 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   nv.toStream(out,
               Node::setdepth::getDepth(out),
               Node::printtypes::getPrintTypes(out),
+              Node::dag::getDag(out),
               Node::setlanguage::getLanguage(out));
   return out;
 }
@@ -501,11 +502,20 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
   Warning() << Node::setdepth(-1)
+            << Node::printtypes(false)
+            << Node::dag(true)
             << Node::setlanguage(language::output::LANG_AST)
             << *nv << std::endl;
   Warning().flush();
 }
-
+static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
+  Warning() << Node::setdepth(-1)
+            << Node::printtypes(false)
+            << Node::dag(false)
+            << Node::setlanguage(language::output::LANG_AST)
+            << *nv << std::endl;
+  Warning().flush();
+}
 static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {
   nv->printAst(Warning(), 0);
   Warning().flush();

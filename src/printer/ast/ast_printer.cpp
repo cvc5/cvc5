@@ -21,6 +21,8 @@
 #include "util/language.h" // for LANG_AST
 #include "expr/node_manager.h" // for VarNameAttr
 #include "expr/command.h"
+#include "printer/dagification_visitor.h"
+#include "util/node_visitor.h"
 
 #include <iostream>
 #include <vector>
@@ -32,6 +34,40 @@ using namespace std;
 namespace CVC4 {
 namespace printer {
 namespace ast {
+
+void AstPrinter::toStream(std::ostream& out, TNode n,
+                          int toDepth, bool types, size_t dag) const throw() {
+  if(dag != 0) {
+    DagificationVisitor dv(dag);
+    NodeVisitor<DagificationVisitor> visitor;
+    visitor.run(dv, n);
+    const theory::SubstitutionMap& lets = dv.getLets();
+    if(!lets.empty()) {
+      out << "(LET ";
+      bool first = true;
+      for(theory::SubstitutionMap::const_iterator i = lets.begin();
+          i != lets.end();
+          ++i) {
+        if(! first) {
+          out << ", ";
+        } else {
+          first = false;
+        }
+        toStream(out, (*i).second, toDepth, types, false);
+        out << " := ";
+        toStream(out, (*i).first, toDepth, types, false);
+      }
+      out << " IN ";
+    }
+    Node body = dv.getDagifiedBody();
+    toStream(out, body, toDepth, types);
+    if(!lets.empty()) {
+      out << ')';
+    }
+  } else {
+    toStream(out, n, toDepth, types);
+  }
+}
 
 void AstPrinter::toStream(std::ostream& out, TNode n,
                           int toDepth, bool types) const throw() {
@@ -57,7 +93,7 @@ void AstPrinter::toStream(std::ostream& out, TNode n,
     if(types) {
       // print the whole type, but not *its* type
       out << ":";
-      n.getType().toStream(out, -1, false, language::output::LANG_AST);
+      n.getType().toStream(out, -1, false, 0, language::output::LANG_AST);
     }
 
     return;
@@ -73,8 +109,7 @@ void AstPrinter::toStream(std::ostream& out, TNode n,
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       out << ' ';
       if(toDepth != 0) {
-        n.getOperator().toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-                                 types, language::output::LANG_AST);
+        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
       } else {
         out << "(...)";
       }
@@ -87,8 +122,7 @@ void AstPrinter::toStream(std::ostream& out, TNode n,
         out << ' ';
       }
       if(toDepth != 0) {
-        (*i).toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-                      types, language::output::LANG_AST);
+        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types);
       } else {
         out << "(...)";
       }
@@ -101,9 +135,10 @@ template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw();
 
 void AstPrinter::toStream(std::ostream& out, const Command* c,
-                          int toDepth, bool types) const throw() {
+                          int toDepth, bool types, size_t dag) const throw() {
   expr::ExprSetDepth::Scope sdScope(out, toDepth);
   expr::ExprPrintTypes::Scope ptScope(out, types);
+  expr::ExprDag::Scope dagScope(out, dag);
 
   if(tryToStream<EmptyCommand>(out, c) ||
      tryToStream<AssertCommand>(out, c) ||

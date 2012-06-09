@@ -36,8 +36,37 @@ namespace CVC4 {
 namespace printer {
 namespace cvc {
 
-void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, bool bracket) const throw()
-{
+void CvcPrinter::toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw() {
+  if(dag != 0) {
+    DagificationVisitor dv(dag);
+    NodeVisitor<DagificationVisitor> visitor;
+    visitor.run(dv, n);
+    const theory::SubstitutionMap& lets = dv.getLets();
+    if(!lets.empty()) {
+      out << "LET ";
+      bool first = true;
+      for(theory::SubstitutionMap::const_iterator i = lets.begin();
+          i != lets.end();
+          ++i) {
+        if(! first) {
+          out << ", ";
+        } else {
+          first = false;
+        }
+        toStream(out, (*i).second, toDepth, types, false);
+        out << " = ";
+        toStream(out, (*i).first, toDepth, types, false);
+      }
+      out << " IN ";
+    }
+    Node body = dv.getDagifiedBody();
+    toStream(out, body, toDepth, types, false);
+  } else {
+    toStream(out, n, toDepth, types, false);
+  }
+}
+
+void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, bool bracket) const throw() {
   if (depth == 0) {
     out << "(...)";
   } else {
@@ -568,9 +597,10 @@ template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw();
 
 void CvcPrinter::toStream(std::ostream& out, const Command* c,
-                           int toDepth, bool types) const throw() {
+                           int toDepth, bool types, size_t dag) const throw() {
   expr::ExprSetDepth::Scope sdScope(out, toDepth);
   expr::ExprPrintTypes::Scope ptScope(out, types);
+  expr::ExprDag::Scope dagScope(out, dag);
 
   if(tryToStream<AssertCommand>(out, c) ||
      tryToStream<PushCommand>(out, c) ||

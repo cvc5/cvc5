@@ -194,6 +194,8 @@ Additional CVC4 options:\n\
    --show-trace-tags      show all avalable tags for tracing\n\
    --show-sat-solvers     show all available SAT solvers\n\
    --default-expr-depth=N print exprs to depth N (0 == default, -1 == no limit)\n\
+   --default-dag-thresh=N dagify common subexprs appearing > N times\n\
+                          (1 == default, 0 == don't dagify)\n\
    --print-expr-types     print types with variables when printing exprs\n\
    --lazy-definition-expansion expand define-funs/LAMBDAs lazily\n\
    --simplification=MODE  choose simplification mode, see --simplification=help\n\
@@ -454,6 +456,7 @@ enum OptionValue {
   SHOW_CONFIG,
   STRICT_PARSING,
   DEFAULT_EXPR_DEPTH,
+  DEFAULT_DAG_THRESH,
   PRINT_EXPR_TYPES,
   UF_THEORY,
   LAZY_DEFINITION_EXPANSION,
@@ -557,6 +560,7 @@ static struct option cmdlineOptions[] = {
   { "mmap"       , no_argument      , NULL, USE_MMAP    },
   { "strict-parsing", no_argument   , NULL, STRICT_PARSING },
   { "default-expr-depth", required_argument, NULL, DEFAULT_EXPR_DEPTH },
+  { "default-dag-thresh", required_argument, NULL, DEFAULT_DAG_THRESH },
   { "print-expr-types", no_argument , NULL, PRINT_EXPR_TYPES },
   { "uf"         , required_argument, NULL, UF_THEORY   },
   { "lazy-definition-expansion", no_argument, NULL, LAZY_DEFINITION_EXPANSION },
@@ -829,6 +833,22 @@ throw(OptionException) {
         Chat.getStream() << Expr::setdepth(depth);
         Message.getStream() << Expr::setdepth(depth);
         Warning.getStream() << Expr::setdepth(depth);
+      }
+      break;
+
+    case DEFAULT_DAG_THRESH:
+      {
+        int dag = atoi(optarg);
+        if(dag < 0) {
+          throw OptionException("--default-dag-thresh requires a nonnegative argument.");
+        }
+        Debug.getStream() << Expr::dag(size_t(dag));
+        Trace.getStream() << Expr::dag(size_t(dag));
+        Notice.getStream() << Expr::dag(size_t(dag));
+        Chat.getStream() << Expr::dag(size_t(dag));
+        Message.getStream() << Expr::dag(size_t(dag));
+        Warning.getStream() << Expr::dag(size_t(dag));
+        Dump.getStream() << Expr::dag(size_t(dag));
       }
       break;
 

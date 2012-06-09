@@ -45,6 +45,7 @@ namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
 const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
+const int ExprDag::s_iosIndex = std::ios_base::xalloc();
 const int ExprSetLanguage::s_iosIndex = std::ios_base::xalloc();
 
 }/* CVC4::expr namespace */
@@ -416,10 +417,10 @@ bool Expr::isConst() const {
   return d_node->isConst();
 }
 
-void Expr::toStream(std::ostream& out, int depth, bool types,
+void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
                     OutputLanguage language) const {
   ExprManagerScope ems(*this);
-  d_node->toStream(out, depth, types, language);
+  d_node->toStream(out, depth, types, dag, language);
 }
 
 Node Expr::getNode() const throw() {

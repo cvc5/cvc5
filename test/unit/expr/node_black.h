@@ -547,11 +547,12 @@ public:
     Node o = NodeBuilder<>() << n << n << kind::XOR;
 
     stringstream sstr;
+    sstr << Node::dag(false);
     n.toStream(sstr);
     TS_ASSERT(sstr.str() == "(AND w (OR x y) z)");
 
     sstr.str(string());
-    o.toStream(sstr);
+    o.toStream(sstr, -1, false, 0);
     TS_ASSERT(sstr.str() == "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
     sstr.str(string());

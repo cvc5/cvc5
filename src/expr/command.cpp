@@ -43,6 +43,7 @@ std::ostream& operator<<(std::ostream& out, const Command& c) throw() {
   c.toStream(out,
              Node::setdepth::getDepth(out),
              Node::printtypes::getPrintTypes(out),
+             Node::dag::getDag(out),
              Node::setlanguage::getLanguage(out));
   return out;
 }
@@ -101,9 +102,9 @@ std::string Command::toString() const throw() {
   return ss.str();
 }
 
-void Command::toStream(std::ostream& out, int toDepth, bool types,
+void Command::toStream(std::ostream& out, int toDepth, bool types, size_t dag,
                        OutputLanguage language) const throw() {
-  Printer::getPrinter(language)->toStream(out, this, toDepth, types);
+  Printer::getPrinter(language)->toStream(out, this, toDepth, types, dag);
 }
 
 void CommandStatus::toStream(std::ostream& out, OutputLanguage language) const throw() {

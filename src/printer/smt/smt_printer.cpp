@@ -34,13 +34,13 @@ namespace printer {
 namespace smt {
 
 void SmtPrinter::toStream(std::ostream& out, TNode n,
-                          int toDepth, bool types) const throw() {
-  n.toStream(out, toDepth, types, language::output::LANG_SMTLIB_V2);
+                          int toDepth, bool types, size_t dag) const throw() {
+  n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2);
 }/* SmtPrinter::toStream() */
 
 void SmtPrinter::toStream(std::ostream& out, const Command* c,
-                          int toDepth, bool types) const throw() {
-  c->toStream(out, toDepth, types, language::output::LANG_SMTLIB_V2);
+                          int toDepth, bool types, size_t dag) const throw() {
+  c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2);
 }/* SmtPrinter::toStream() */
 
 void SmtPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw() {

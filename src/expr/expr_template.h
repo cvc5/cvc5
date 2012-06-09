@@ -79,6 +79,7 @@ namespace smt {
 namespace expr {
   class CVC4_PUBLIC ExprSetDepth;
   class CVC4_PUBLIC ExprPrintTypes;
+  class CVC4_PUBLIC ExprDag;
   class CVC4_PUBLIC ExprSetLanguage;
 
   NodeTemplate<true> exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
@@ -400,7 +401,7 @@ public:
    * debugging expressions)
    * @param language the language in which to output
    */
-  void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+  void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                 OutputLanguage language = language::output::LANG_AST) const;
 
   /**
@@ -491,6 +492,11 @@ public:
    * gives "(OR a b (AND c (NOT d)))"
    */
   typedef expr::ExprPrintTypes printtypes;
+
+  /**
+   * IOStream manipulator to print expressions as a DAG (or not).
+   */
+  typedef expr::ExprDag dag;
 
   /**
    * IOStream manipulator to set the output language for Exprs.
@@ -722,13 +728,13 @@ public:
  */
 class CVC4_PUBLIC ExprPrintTypes {
   /**
-   * The allocated index in ios_base for our depth setting.
+   * The allocated index in ios_base for our setting.
    */
   static const int s_iosIndex;
 
   /**
-   * The default depth to print, for ostreams that haven't yet had a
-   * setdepth() applied to them.
+   * The default printtypes setting, for ostreams that haven't yet had a
+   * printtypes() applied to them.
    */
   static const int s_defaultPrintTypes = false;
 
@@ -780,6 +786,85 @@ public:
   };/* class ExprPrintTypes::Scope */
 
 };/* class ExprPrintTypes */
+
+/**
+ * IOStream manipulator to print expressions as a dag (or not).
+ */
+class CVC4_PUBLIC ExprDag {
+  /**
+   * The allocated index in ios_base for our setting.
+   */
+  static const int s_iosIndex;
+
+  /**
+   * The default setting, for ostreams that haven't yet had a
+   * dag() applied to them.
+   */
+  static const size_t s_defaultDag = 1;
+
+  /**
+   * When this manipulator is used, the setting is stored here.
+   */
+  size_t d_dag;
+
+public:
+  /**
+   * Construct a ExprDag with the given setting (dagification on or off).
+   */
+  explicit ExprDag(bool dag) : d_dag(dag ? 1 : 0) {}
+
+  /**
+   * Construct a ExprDag with the given setting (letify only common
+   * subexpressions that appear more than 'dag' times).  dag==0 means
+   * don't dagify.
+   */
+  ExprDag(size_t dag) : d_dag(dag) {}
+
+  inline void applyDag(std::ostream& out) {
+    // (offset by one to detect whether default has been set yet)
+    out.iword(s_iosIndex) = static_cast<long>(d_dag) + 1;
+  }
+
+  static inline size_t getDag(std::ostream& out) {
+    long& l = out.iword(s_iosIndex);
+    if(l == 0) {
+      // set the default dag setting on this ostream
+      // (offset by one to detect whether default has been set yet)
+      l = s_defaultDag + 1;
+    }
+    return static_cast<size_t>(l - 1);
+  }
+
+  static inline void setDag(std::ostream& out, size_t dag) {
+    // (offset by one to detect whether default has been set yet)
+    out.iword(s_iosIndex) = static_cast<long>(dag) + 1;
+  }
+
+  /**
+   * Set the dag state on the output stream for the current
+   * stack scope.  This makes sure the old state is reset on the
+   * stream after normal OR exceptional exit from the scope, using the
+   * RAII C++ idiom.
+   */
+  class Scope {
+    std::ostream& d_out;
+    size_t d_oldDag;
+
+  public:
+
+    inline Scope(std::ostream& out, size_t dag) :
+      d_out(out),
+      d_oldDag(ExprDag::getDag(out)) {
+      ExprDag::setDag(out, dag);
+    }
+
+    inline ~Scope() {
+      ExprDag::setDag(d_out, d_oldDag);
+    }
+
+  };/* class ExprDag::Scope */
+
+};/* class ExprDag */
 
 /**
  * IOStream manipulator to set the output language for Exprs.
@@ -857,13 +942,13 @@ public:
 
 ${getConst_instantiations}
 
-#line 861 "${template}"
+#line 938 "${template}"
 
 namespace expr {
 
 /**
- * Sets the default print-types setting when pretty-printing an Expr
- * to an ostream.  Use like this:
+ * Sets the default depth when pretty-printing a Expr to an ostream.
+ * Use like this:
  *
  *   // let out be an ostream, e an Expr
  *   out << Expr::setdepth(n) << e << endl;
@@ -876,16 +961,30 @@ inline std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
 }
 
 /**
- * Sets the default depth when pretty-printing a Expr to an ostream.
- * Use like this:
+ * Sets the default print-types setting when pretty-printing an Expr
+ * to an ostream.  Use like this:
  *
  *   // let out be an ostream, e an Expr
- *   out << Expr::setprinttypes(true) << e << endl;
+ *   out << Expr::printtypes(true) << e << endl;
  *
  * The setting stays permanently (until set again) with the stream.
  */
 inline std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
   pt.applyPrintTypes(out);
+  return out;
+}
+
+/**
+ * Sets the default dag setting when pretty-printing a Expr to an ostream.
+ * Use like this:
+ *
+ *   // let out be an ostream, e an Expr
+ *   out << Expr::dag(true) << e << endl;
+ *
+ * The setting stays permanently (until set again) with the stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, ExprDag d) {
+  d.applyDag(out);
   return out;
 }
 

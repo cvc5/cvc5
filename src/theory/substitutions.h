@@ -148,10 +148,14 @@ public:
     return d_substitutions.end();
   }
 
+  bool empty() const {
+    return d_substitutions.empty();
+  }
+
   // NOTE [MGD]: removed clear() and swap() from the interface
   // when this data structure became context-dependent
   // because they weren't used---and it's not clear how they
-  // should // best interact with cache invalidation on context
+  // should best interact with cache invalidation on context
   // pops.
 
   /**
@@ -159,7 +163,7 @@ public:
    */
   void print(std::ostream& out) const;
 
-};
+};/* class SubstitutionMap */
 
 inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subst) {
   subst.print(out);

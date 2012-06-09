@@ -24,6 +24,8 @@
 #include <typeinfo>
 
 #include "util/boolean_simplification.h"
+#include "printer/dagification_visitor.h"
+#include "util/node_visitor.h"
 
 using namespace std;
 
@@ -34,6 +36,42 @@ namespace smt2 {
 static string smtKindString(Kind k) throw();
 
 static void printBvParameterizedOp(std::ostream& out, TNode n) throw();
+
+void Smt2Printer::toStream(std::ostream& out, TNode n,
+                           int toDepth, bool types, size_t dag) const throw() {
+  if(dag != 0) {
+    DagificationVisitor dv(dag);
+    NodeVisitor<DagificationVisitor> visitor;
+    visitor.run(dv, n);
+    const theory::SubstitutionMap& lets = dv.getLets();
+    if(!lets.empty()) {
+      out << "(let (";
+      bool first = true;
+      for(theory::SubstitutionMap::const_iterator i = lets.begin();
+          i != lets.end();
+          ++i) {
+        if(!first) {
+          out << ' ';
+        } else {
+          first = false;
+        }
+        out << '(';
+        toStream(out, (*i).second, toDepth, types);
+        out << ' ';
+        toStream(out, (*i).first, toDepth, types);
+        out << ')';
+      }
+      out << ") ";
+    }
+    Node body = dv.getDagifiedBody();
+    toStream(out, body, toDepth, types);
+    if(!lets.empty()) {
+      out << ')';
+    }
+  } else {
+    toStream(out, n, toDepth, types);
+  }
+}
 
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types) const throw() {
@@ -59,7 +97,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     if(types) {
       // print the whole type, but not *its* type
       out << ":";
-      n.getType().toStream(out, -1, false, language::output::LANG_SMTLIB_V2);
+      n.getType().toStream(out, -1, false, 0, language::output::LANG_SMTLIB_V2);
     }
 
     return;
@@ -251,8 +289,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED &&
      stillNeedToPrintParams) {
     if(toDepth != 0) {
-      n.getOperator().toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-                               types, language::output::LANG_SMTLIB_V2);
+      toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
     } else {
       out << "(...)";
     }
@@ -264,8 +301,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
         iend = n.end();
       i != iend; ) {
     if(toDepth != 0) {
-      (*i).toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-                    types, language::output::LANG_SMTLIB_V2);
+      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types);
     } else {
       out << "(...)";
     }
@@ -273,7 +309,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << ' ';
     }
   }
-  if(n.getNumChildren() != 0) out << ')';
+  if(n.getNumChildren() != 0) {
+    out << ')';
+  }
 }/* Smt2Printer::toStream(TNode) */
 
 static string smtKindString(Kind k) throw() {
@@ -395,9 +433,10 @@ template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw();
 
 void Smt2Printer::toStream(std::ostream& out, const Command* c,
-                           int toDepth, bool types) const throw() {
+                           int toDepth, bool types, size_t dag) const throw() {
   expr::ExprSetDepth::Scope sdScope(out, toDepth);
   expr::ExprPrintTypes::Scope ptScope(out, types);
+  expr::ExprDag::Scope dagScope(out, dag);
 
   if(tryToStream<AssertCommand>(out, c) ||
      tryToStream<PushCommand>(out, c) ||

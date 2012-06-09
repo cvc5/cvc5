@@ -389,9 +389,9 @@ public:
    * (might break language compliance, but good for debugging expressions)
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+  inline void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                        OutputLanguage language = language::output::LANG_AST) const {
-    d_nv->toStream(out, toDepth, types, language);
+    d_nv->toStream(out, toDepth, types, dag, language);
   }
 
   /**
@@ -636,6 +636,7 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   n.toStream(out,
              Node::setdepth::getDepth(out),
              Node::printtypes::getPrintTypes(out),
+             Node::dag::getDag(out),
              Node::setlanguage::getLanguage(out));
   return out;
 }
@@ -980,6 +981,16 @@ inline const SubrangeBounds& TypeNode::getSubrangeBounds() const {
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
   Warning() << Node::setdepth(-1)
+            << Node::printtypes(false)
+            << Node::dag(true)
+            << Node::setlanguage(language::output::LANG_AST)
+            << n << std::endl;
+  Warning().flush();
+}
+static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
+  Warning() << Node::setdepth(-1)
+            << Node::printtypes(false)
+            << Node::dag(false)
             << Node::setlanguage(language::output::LANG_AST)
             << n << std::endl;
   Warning().flush();

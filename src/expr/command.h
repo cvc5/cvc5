@@ -205,7 +205,7 @@ public:
   virtual void invoke(SmtEngine* smtEngine) throw() = 0;
   virtual void invoke(SmtEngine* smtEngine, std::ostream& out) throw();
 
-  virtual void toStream(std::ostream& out, int toDepth = -1, bool types = false,
+  virtual void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                         OutputLanguage language = language::output::LANG_AST) const throw();
 
   std::string toString() const throw();
