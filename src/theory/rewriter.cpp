@@ -160,15 +160,20 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         // Do the post-rewrite
         RewriteResponse response = Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
         // We continue with the response we got
-        rewriteStackTop.node = response.node;
-        TheoryId newTheoryId = Theory::theoryOf(rewriteStackTop.node);
+        TheoryId newTheoryId = Theory::theoryOf(response.node);
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
           // In the post rewrite if we've changed theories, we must do a full rewrite
-          rewriteStackTop.node = rewriteTo(newTheoryId, rewriteStackTop.node);
+          rewriteStackTop.node = rewriteTo(newTheoryId, response.node);
           break;
         } else if (response.status == REWRITE_DONE) {
+#ifdef CVC4_ASSERTIONS
+	  RewriteResponse r2 = Rewriter::callPostRewrite(newTheoryId, response.node);
+	  Assert(r2.node == response.node);
+#endif
+	  rewriteStackTop.node = response.node;
           break;
         }
+	rewriteStackTop.node = response.node;
       }
       // We're done with the post rewrite, so we add to the cache
       Rewriter::setPostRewriteCache((TheoryId) rewriteStackTop.originalTheoryId, rewriteStackTop.original, rewriteStackTop.node);

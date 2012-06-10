@@ -107,7 +107,7 @@ RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool preregister){
       RewriteRule<UleZero>,
       RewriteRule<UleSelf>
       >::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSle(TNode node, bool preregister){
