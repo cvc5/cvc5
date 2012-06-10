@@ -444,6 +444,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                                 << conflict[i] << endl;
         return false;
       }
+      if (conflict[i] != Rewriter::rewrite(conflict[i])) {
+        Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
+                                << conflict[i] << " vs " << Rewriter::rewrite(conflict[i]) << endl;
+        return false;
+      }
     }
   } else {
     if (! getPropEngine()->hasValue(conflict, value)) {
@@ -454,6 +459,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
     if(! value) {
       Debug("properConflict") << "Bad conflict is due to false atom: "
                               << conflict << endl;
+      return false;
+    }
+    if (conflict != Rewriter::rewrite(conflict)) {
+      Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
+                              << conflict << " vs " << Rewriter::rewrite(conflict) << endl;
       return false;
     }
   }
@@ -1094,6 +1104,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     getExplanation(explanationVector);
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << std::endl;
+    Assert(properConflict(fullConflict));
     lemma(fullConflict, true, false);
   } else {
     // When only one theory, the conflict should need no processing
