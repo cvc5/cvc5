@@ -429,8 +429,8 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
 
   // If both constants are nonzero, combine on right, otherwise leave them where they are
   if (rightConst != zero) {
-    leftConst = zero;
     rightConst = rightConst - leftConst;
+    leftConst = zero;
     if (rightConst != zero) {
       childrenRight.push_back(utils::mkConst(rightConst));
     }
