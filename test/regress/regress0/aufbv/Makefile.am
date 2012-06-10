@@ -13,6 +13,7 @@ MAKEFLAGS = -k
 TESTS =	\
 	bug00.smt \
 	bug338.smt2 \
+	bug347.smt \
 	try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smt \
 	diseqprop.01.smt \
 	wchains010ue.delta01.smt \

@@ -32,14 +32,14 @@ class EqualitySolver : public SubtheorySolver {
   // NotifyClass: handles call-back from congruence closure module
 
   class NotifyClass : public eq::EqualityEngineNotify {
-    TheoryBV* d_bv;
+    EqualitySolver& d_solver;
 
   public:
-    NotifyClass(TheoryBV* bv): d_bv(bv) {}
+    NotifyClass(EqualitySolver& solver): d_solver(solver) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value);
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
-    bool eqNotifyConstantTermMerge(TNode t1, TNode t2);
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
 };
 
 
@@ -48,6 +48,12 @@ class EqualitySolver : public SubtheorySolver {
 
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
+
+  /** Store a propagation to the bv solver */
+  bool storePropagation(TNode literal);
+  
+  /** Store a conflict from merging two constants */
+  void conflict(TNode a, TNode b);
 
 public:
 

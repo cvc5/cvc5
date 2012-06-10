@@ -266,10 +266,9 @@ class TheoryArrays : public Theory {
       return true;
     }
 
-    bool eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
-      return false;
     }
   };
 

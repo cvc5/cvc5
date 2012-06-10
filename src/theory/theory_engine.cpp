@@ -763,13 +763,17 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
       d_factsAsserted = true;      
     } else {
       Assert(toTheoryId == THEORY_SAT_SOLVER);
-      // Enqueue for propagation to the SAT solver
-      d_propagatedLiterals.push_back(assertion);
       // Check for propositional conflict
       bool value;
-      if (d_propEngine->hasValue(assertion, value) && !value) {
-        d_inConflict = true;
-      }
+      if (d_propEngine->hasValue(assertion, value)) {
+        if (!value) {
+          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict" << std::endl;
+          d_inConflict = true;
+        } else {
+          return;
+        }
+      } 
+      d_propagatedLiterals.push_back(assertion);
     }
     return;
   }
@@ -994,7 +998,7 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
 
 Node TheoryEngine::getExplanation(TNode node) {
-  Debug("theory") << "TheoryEngine::getExplanation(" << node << ")" << std::endl;
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current proagation index = " << d_propagationMapTimestamp << std::endl;
 
   bool polarity = node.getKind() != kind::NOT;
   TNode atom = polarity ? node : node[0];
@@ -1165,8 +1169,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     } else {
       explanation = theoryOf(toExplain.theory)->explain(toExplain.node);
     }
-    Assert(explanation != toExplain.node, "wansn't sent to you, so why are you explaining it trivially");
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << std::endl;
+    Assert(explanation != toExplain.node, "wansn't sent to you, so why are you explaining it trivially");
     // Mark the explanation
     NodeTheoryPair newExplain(explanation, toExplain.theory, toExplain.timestamp);
     explanationVector.push_back(newExplain);

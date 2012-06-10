@@ -92,9 +92,8 @@ private:
       return d_sharedTerms.propagateSharedEquality(tag, t1, t2, value);
     }
 
-    bool eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
       d_sharedTerms.conflict(t1, t2, true);
-      return false;
     }
   };
 
