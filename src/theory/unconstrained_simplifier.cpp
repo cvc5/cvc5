@@ -665,8 +665,10 @@ void UnconstrainedSimplifier::processUnconstrained()
   // back-substitution and cache-invalidation.  So we do these last.
   while (!delayQueueLeft.empty()) {
     left = delayQueueLeft.back();
-    right = d_substitutions.apply(delayQueueRight.back());
-    d_substitutions.addSubstitution(delayQueueLeft.back(), right, true, true, false);
+    if (!d_substitutions.hasSubstitution(left)) {
+      right = d_substitutions.apply(delayQueueRight.back());
+      d_substitutions.addSubstitution(delayQueueLeft.back(), right, true, true, false);
+    }
     delayQueueLeft.pop_back();
     delayQueueRight.pop_back();
   }
