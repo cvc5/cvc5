@@ -64,6 +64,16 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
 }
 
 void DagificationVisitor::visit(TNode current, TNode parent) {
+
+#ifdef CVC4_TRACING
+#  ifdef CVC4_DEBUG
+  // turn off dagification for Debug stream while we're doing this work
+  Node::dag::Scope scopeDebug(Debug.getStream(), false);
+#  endif /* CVC4_DEBUG */
+  // turn off dagification for Trace stream while we're doing this work
+  Node::dag::Scope scopeTrace(Trace.getStream(), false);
+#endif /* CVC4_TRACING */
+
   if(d_uniqueParent.find(current) != d_uniqueParent.end()) {
     // we've seen this expr before
 
@@ -99,6 +109,15 @@ void DagificationVisitor::done(TNode node) {
 
   d_done = true;
 
+#ifdef CVC4_TRACING
+#  ifdef CVC4_DEBUG
+  // turn off dagification for Debug stream while we're doing this work
+  Node::dag::Scope scopeDebug(Debug.getStream(), false);
+#  endif /* CVC4_DEBUG */
+  // turn off dagification for Trace stream while we're doing this work
+  Node::dag::Scope scopeTrace(Trace.getStream(), false);
+#endif /* CVC4_TRACING */
+
   // letify subexprs before parents (cascading LETs)
   std::sort(d_substNodes.begin(), d_substNodes.end());
 
@@ -132,6 +151,16 @@ const theory::SubstitutionMap& DagificationVisitor::getLets() {
 
 Node DagificationVisitor::getDagifiedBody() {
   AlwaysAssert(d_done, "DagificationVisitor must be used as a visitor before getting the dagified version out!");
+
+#ifdef CVC4_TRACING
+#  ifdef CVC4_DEBUG
+  // turn off dagification for Debug stream while we're doing this work
+  Node::dag::Scope scopeDebug(Debug.getStream(), false);
+#  endif /* CVC4_DEBUG */
+  // turn off dagification for Trace stream while we're doing this work
+  Node::dag::Scope scopeTrace(Trace.getStream(), false);
+#endif /* CVC4_TRACING */
+
   return d_substitutions->apply(d_top);
 }
 
