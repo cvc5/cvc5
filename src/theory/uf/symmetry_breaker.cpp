@@ -443,6 +443,16 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
 
   Assert(p.size() > 1);
 
+  // check that the types match
+  Permutation::iterator permIt = p.begin();
+  TypeNode type = (*permIt++).getType();
+  do {
+    if(type != (*permIt++).getType()) {
+      Debug("ufsymm") << "UFSYMM types don't match, aborting.." << endl;
+      return false;
+    }
+  } while(permIt != p.end());
+
   // check P_swap
   vector<Node> subs;
   vector<Node> repls;

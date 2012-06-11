@@ -65,6 +65,7 @@ public:
     QF_UFNIRA, // nonstandard
     QF_UFNRA,
     UFLRA,
+    UFNIRA, // nonstandard
     UFNIA,
     QF_ALL_SUPPORTED, // nonstandard
     ALL_SUPPORTED // nonstandard
@@ -75,7 +76,7 @@ public:
     THEORY_ARRAYS_EX,
     THEORY_BITVECTORS,
     THEORY_BITVECTORS_32,
-    THEORY_BITVECTORS_ARRAYS_EX,
+    THEORY_BITVECTOR_ARRAYS_EX,
     THEORY_EMPTY,
     THEORY_INTS,
     THEORY_INT_ARRAYS,
@@ -83,6 +84,7 @@ public:
     THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX,
     THEORY_REALS,
     THEORY_REALS_INTS,
+    THEORY_QUANTIFIERS
   };
 
 private:

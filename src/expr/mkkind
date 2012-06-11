@@ -2,7 +2,7 @@
 #
 # mkkind
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010-2011  The CVC4 Project
+# Copyright (c) 2010-2012  The CVC4 Project
 #
 # The purpose of this script is to create kind.h (and also
 # type_properties.h) from a template and a list of theory kinds.
@@ -14,7 +14,7 @@
 # Output is to standard out.
 #
 
-copyright=2010-2011
+copyright=2010-2012
 
 filename=`basename "$1" | sed 's,_template,,'`
 
@@ -103,6 +103,12 @@ function theory {
 "
   theory_descriptions="${theory_descriptions}  case ${theory_id}: out << \"${theory_id}\"; break;
 "
+}
+
+function instantiator {
+  # instantiator class header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
 }
 
 function properties {

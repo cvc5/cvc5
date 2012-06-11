@@ -32,6 +32,9 @@
 #include "util/node_visitor.h"
 #include "util/ite_removal.h"
 
+#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/theory_quantifiers.h"
+
 using namespace std;
 
 using namespace CVC4;
@@ -46,6 +49,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_userContext(userContext),
   d_logicInfo(logicInfo),
   d_sharedTerms(this, context),
+  d_quantEngine(NULL),
   d_ppCache(),
   d_possiblePropagations(context),
   d_hasPropagated(context),
@@ -69,6 +73,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
+
+  // initialize the quantifiers engine
+  d_quantEngine = new QuantifiersEngine(context, this);
+
   Rewriter::init();
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -84,6 +92,8 @@ TheoryEngine::~TheoryEngine() {
       delete d_theoryOut[theoryId];
     }
   }
+
+  delete d_quantEngine;
 
   StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
 }
@@ -317,6 +327,22 @@ void TheoryEngine::check(Theory::Effort effort) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << std::endl;
         combineTheories();
+      }
+    }
+
+    // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
+    if( effort == Theory::EFFORT_FULL &&
+        d_logicInfo.isQuantified() &&
+        ! d_inConflict &&
+        ! d_lemmasAdded ) {
+      ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->performCheck(Theory::EFFORT_LAST_CALL);
+      // if we have given up, then possibly flip decision
+      if(Options::current()->flipDecision) {
+        if(d_incomplete && !d_inConflict && !d_lemmasAdded) {
+          if( ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->flipDecision() ) {
+            d_incomplete = false;
+          }
+        }
       }
     }
 
@@ -596,7 +622,7 @@ void TheoryEngine::shutdown() {
   // Shutdown all the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_theoryTable[theoryId]) {
-      theoryOf(static_cast<TheoryId>(theoryId))->shutdown();
+      theoryOf(theoryId)->shutdown();
     }
   }
 
@@ -624,15 +650,21 @@ Node TheoryEngine::ppTheoryRewrite(TNode term)
     return theoryOf(term)->ppRewrite(term);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-  NodeBuilder<> newNode(term.getKind());
-  if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    newNode << term.getOperator();
+
+  Node newTerm;
+  if (theoryOf(term)->ppDontRewriteSubterm(term)) {
+    newTerm = term;
+  } else {
+    NodeBuilder<> newNode(term.getKind());
+    if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      newNode << term.getOperator();
+    }
+    unsigned i;
+    for (i = 0; i < nc; ++i) {
+      newNode << ppTheoryRewrite(term[i]);
+    }
+    newTerm = Rewriter::rewrite(Node(newNode));
   }
-  unsigned i;
-  for (i = 0; i < nc; ++i) {
-    newNode << ppTheoryRewrite(term[i]);
-  }
-  Node newTerm = Rewriter::rewrite(Node(newNode));
   Node newTerm2 = theoryOf(newTerm)->ppRewrite(newTerm);
   if (newTerm != newTerm2) {
     newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));

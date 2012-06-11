@@ -15,6 +15,8 @@ libarrays_la_SOURCES = \
 	array_info.h \
 	array_info.cpp \
 	static_fact_manager.h \
-	static_fact_manager.cpp
+	static_fact_manager.cpp \
+	theory_arrays_instantiator.h \
+	theory_arrays_instantiator.cpp
 
 EXTRA_DIST = kinds

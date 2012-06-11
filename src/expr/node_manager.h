@@ -362,6 +362,9 @@ public:
   /** Create a skolem constant with the given type. */
   Node mkSkolem(const TypeNode& type);
 
+  /** Create a instantiation constant with the given type. */
+  Node mkInstConstant(const TypeNode& type);
+
   /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.
@@ -578,6 +581,15 @@ public:
 
   /** Get the (singleton) type for sorts. */
   inline TypeNode kindType();
+
+  /** Get the bound var list type. */
+  inline TypeNode boundVarListType();
+
+  /** Get the instantiation pattern type. */
+  inline TypeNode instPatternType();
+
+  /** Get the instantiation pattern type. */
+  inline TypeNode instPatternListType();
 
   /**
    * Get the (singleton) type for builtin operators (that is, the type
@@ -895,6 +907,21 @@ inline TypeNode NodeManager::stringType() {
 /** Get the (singleton) type for sorts. */
 inline TypeNode NodeManager::kindType() {
   return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
+}
+
+/** Get the bound var list type. */
+inline TypeNode NodeManager::boundVarListType(){
+  return TypeNode(mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE));
+}
+
+/** Get the instantiation pattern type. */
+inline TypeNode NodeManager::instPatternType(){
+  return TypeNode(mkTypeConst<TypeConstant>(INST_PATTERN_TYPE));
+}
+
+/** Get the instantiation pattern type. */
+inline TypeNode NodeManager::instPatternListType(){
+  return TypeNode(mkTypeConst<TypeConstant>(INST_PATTERN_LIST_TYPE));
 }
 
 /** Get the (singleton) type for builtin operators. */
@@ -1363,6 +1390,13 @@ inline Node NodeManager::mkSkolem(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::SKOLEM);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
+  return n;
+}
+
+inline Node NodeManager::mkInstConstant(const TypeNode& type) {
+  Node n = NodeBuilder<0>(this, kind::INST_CONSTANT);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
 

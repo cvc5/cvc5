@@ -54,7 +54,7 @@ class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
   friend class CVC4::prop::TheoryProxy;
-  friend class CVC4::SatProof; 
+  friend class CVC4::SatProof;
 protected:
 
   /** The pointer to the proxy that provides interfaces to the SMT engine */
@@ -64,7 +64,7 @@ protected:
   CVC4::context::Context* context;
 
   /** The current assertion level (user) */
-  int assertionLevel; 
+  int assertionLevel;
 
   /** Variable representing true */
   Var varTrue;
@@ -77,7 +77,7 @@ public:
   int getAssertionLevel() const { return assertionLevel; }
 protected:
   /** Do we allow incremental solving */
-  bool enable_incremental;  
+  bool enable_incremental;
 
   /** Literals propagated by lemmas */
   vec< vec<Lit> > lemmas;
@@ -89,7 +89,7 @@ protected:
   bool recheck;
 
   /** Shrink 'cs' to contain only clauses below given level */
-  void removeClausesAboveLevel(vec<CRef>& cs, int level); 
+  void removeClausesAboveLevel(vec<CRef>& cs, int level);
 
   /** True if we are currently solving. */
   bool minisat_busy;
@@ -182,11 +182,13 @@ public:
     void    toDimacs     (const char* file, Lit p);
     void    toDimacs     (const char* file, Lit p, Lit q);
     void    toDimacs     (const char* file, Lit p, Lit q, Lit r);
-    
+
     // Variable mode:
-    // 
+    //
     void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
+    void    freezePolarity (Var v, bool b); // Declare which polarity the decision heuristic MUST ALWAYS use for a variable. Requires mode 'polarity_user'.
     void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
+    bool    flipDecision   ();              // Backtrack and flip most recent decision
 
     // Read state:
     //
@@ -199,6 +201,7 @@ public:
     int     nLearnts   ()      const;       // The current number of learnt clauses.
     int     nVars      ()      const;       // The current number of variables.
     int     nFreeVars  ()      const;
+    bool    isDecision (Var x) const;       // is the given var a decision?
 
     // Debugging SMT explanations
     //
@@ -290,8 +293,9 @@ protected:
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
                         watches;            // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     vec<lbool>          assigns;            // The current assignments.
-    vec<char>           polarity;           // The preferred polarity of each variable.
+    vec<char>           polarity;           // The preferred polarity of each variable (bit 0) and whether it's locked (bit 1).
     vec<char>           decision;           // Declares if a variable is eligible for selection in the decision heuristic.
+    vec<int>            flipped;            // Which trail_lim decisions have been flipped in this context.
     vec<Lit>            trail;              // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;          // Separator indices for different decision levels in 'trail'.
     vec<Lit>            trail_user;         // Stack of assignments to UNdo on user pop.
@@ -423,6 +427,8 @@ inline bool Solver::isPropagated(Var x) const { return vardata[x].reason != CRef
 
 inline bool Solver::isPropagatedBy(Var x, const Clause& c) const { return vardata[x].reason != CRef_Undef && vardata[x].reason != CRef_Lazy && ca.lea(vardata[var(c[0])].reason) == &c; }
 
+inline bool Solver::isDecision(Var x) const { Debug("minisat") << "var " << x << " is a decision iff " << (vardata[x].reason == CRef_Undef) << " && " << level(x) << " > 0" << std::endl; return vardata[x].reason == CRef_Undef && level(x) > 0; }
+
 inline int  Solver::level (Var x) const { return vardata[x].level; }
 
 inline int  Solver::intro_level(Var x) const { return vardata[x].intro_level; }
@@ -466,7 +472,7 @@ inline bool     Solver::addClause       (Lit p, bool removable)                 
 inline bool     Solver::addClause       (Lit p, Lit q, bool removable)          { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); return addClause_(add_tmp, removable); }
 inline bool     Solver::addClause       (Lit p, Lit q, Lit r, bool removable)   { add_tmp.clear(); add_tmp.push(p); add_tmp.push(q); add_tmp.push(r); return addClause_(add_tmp, removable); }
 inline bool     Solver::locked          (const Clause& c) const { return value(c[0]) == l_True && isPropagatedBy(var(c[0]), c); }
-inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); context->push(); if(Dump.isOn("state")) { Dump("state") << CVC4::PushCommand(); } }
+inline void     Solver::newDecisionLevel()                      { trail_lim.push(trail.size()); flipped.push(false); context->push(); if(Dump.isOn("state")) { Dump("state") << CVC4::PushCommand(); } }
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
@@ -481,14 +487,16 @@ inline int      Solver::nVars         ()      const   { return vardata.size(); }
 inline int      Solver::nFreeVars     ()      const   { return (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
 inline bool     Solver::properExplanation(Lit l, Lit expl) const { return value(l) == l_True && value(expl) == l_True && trail_index(var(expl)) < trail_index(var(l)); }
 inline void     Solver::setPolarity   (Var v, bool b) { polarity[v] = b; }
-inline void     Solver::setDecisionVar(Var v, bool b) 
-{ 
-    if      ( b && !decision[v]) dec_vars++;
-    else if (!b &&  decision[v]) dec_vars--;
+inline void     Solver::freezePolarity(Var v, bool b) { polarity[v] = int(b) | 0x2; }
+inline void     Solver::setDecisionVar(Var v, bool b)
+{
+    if      ( b && !decision[v] ) dec_vars++;
+    else if (!b &&  decision[v] ) dec_vars--;
 
     decision[v] = b;
     insertVarOrder(v);
 }
+
 inline void     Solver::setConfBudget(int64_t x){ conflict_budget    = conflicts    + x; }
 inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagations + x; }
 inline void     Solver::interrupt(){ asynch_interrupt = true; }

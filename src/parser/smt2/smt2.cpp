@@ -86,6 +86,9 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_BITVECTORS:
     break;
 
+  case THEORY_QUANTIFIERS:
+    break;
+
   default:
     Unhandled(theory);
   }
@@ -195,6 +198,7 @@ void Smt2::setLogic(const std::string& name) {
     break;
 
   case Smt::ALL_SUPPORTED:
+    addTheory(THEORY_QUANTIFIERS);
     /* fall through */
   case Smt::QF_ALL_SUPPORTED:
     addTheory(THEORY_ARRAYS);
@@ -208,11 +212,25 @@ void Smt2::setLogic(const std::string& name) {
   case Smt::AUFLIRA:
   case Smt::AUFNIRA:
   case Smt::LRA:
-  case Smt::UFLRA:
   case Smt::UFNIA:
-    Unhandled(name);
+  case Smt::UFNIRA:
+  case Smt::UFLRA:
+    if(d_logic != Smt::AUFLIA && d_logic != Smt::UFNIA) {
+      addTheory(THEORY_REALS);
+    }
+    if(d_logic != Smt::LRA) {
+      addOperator(kind::APPLY_UF);
+      if(d_logic != Smt::UFLRA) {
+        addTheory(THEORY_INTS);
+        if(d_logic != Smt::UFNIA && d_logic != Smt::UFNIRA) {
+          addTheory(THEORY_ARRAYS);
+        }
+      }
+    }
+    addTheory(THEORY_QUANTIFIERS);
+    break;
   }
-}
+}/* Smt2::setLogic() */
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???

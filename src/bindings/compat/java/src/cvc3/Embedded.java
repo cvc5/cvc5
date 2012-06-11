@@ -12,8 +12,6 @@ public abstract class Embedded {
 
     // load jni c++ library
     static {
-        System.loadLibrary("cvc4");
-        System.loadLibrary("cvc4parser");
         System.loadLibrary("cvc4bindings_java_compat");
 
 	/*

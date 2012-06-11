@@ -23,6 +23,7 @@
 #include <map>
 #include "theory/rewriter.h"
 #include "expr/command.h"
+#include "theory/arrays/theory_arrays_instantiator.h"
 
 using namespace std;
 
@@ -45,8 +46,8 @@ const bool d_solveWrite2 = false;
 const bool d_useNonLinearOpt = true;
 const bool d_eagerIndexSplitting = true;
 
-TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo),
+TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
+  Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo, qe),
   d_numRow("theory::arrays::number of Row lemmas", 0),
   d_numExt("theory::arrays::number of Ext lemmas", 0),
   d_numProp("theory::arrays::number of propagations", 0),
@@ -218,7 +219,7 @@ Node TheoryArrays::ppRewrite(TNode term) {
                 }
 
                 Node r1 = nm->mkNode(kind::SELECT, e1, index_i);
-                conc = (r1.getType() == nm->booleanType())? 
+                conc = (r1.getType() == nm->booleanType())?
                   r1.iffNode(write_i[2]) : r1.eqNode(write_i[2]);
                 if (hyp.getNumChildren() != 0) {
                   if (hyp.getNumChildren() == 1) {
@@ -582,7 +583,6 @@ void TheoryArrays::computeCareGraph()
         // Get representative trigger terms
         TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
         TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_ARRAY);
-
         EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
         switch (eqStatusDomain) {
           case EQUALITY_TRUE_AND_PROPAGATED:
@@ -604,6 +604,7 @@ void TheoryArrays::computeCareGraph()
           default:
             break;
         }
+
 
         // Otherwise, add this pair
         Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): adding to care-graph" << std::endl;

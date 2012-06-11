@@ -351,7 +351,7 @@ void Solver::cancelUntil(int level) {
             if(intro_level(x) != -1) {// might be unregistered
               assigns [x] = l_Undef;
               vardata[x].trail_index = -1;
-              if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
+              if ((phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last()) && (polarity[x] & 0x2) == 0)
                 polarity[x] = sign(trail[c]);
               insertVarOrder(x);
             }
@@ -359,6 +359,7 @@ void Solver::cancelUntil(int level) {
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
+        flipped.shrink(flipped.size() - level);
 
         // Register variables that have not been registered yet
         int currentLevel = decisionLevel();
@@ -442,7 +443,7 @@ Lit Solver::pickBranchLit()
         return mkLit(next, (dec_pol == l_True) );
       }
       // If it can't use internal heuristic to do that
-      return mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
+      return mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
     }
 }
 
@@ -1461,7 +1462,7 @@ void Solver::pop()
     Debug("minisat") << "== unassigning " << l << std::endl;
     Var      x  = var(l);
     assigns [x] = l_Undef;
-    if (phase_saving >= 1)
+    if (phase_saving >= 1 && (polarity[x] & 0x2) == 0)
       polarity[x] = sign(l);
     insertVarOrder(x);
     trail_user.pop();
@@ -1489,7 +1490,45 @@ void Solver::renewVar(Lit lit, int level) {
   Var v = var(lit);
   vardata[v].intro_level = (level == -1 ? getAssertionLevel() : level);
   setDecisionVar(v, true);
+  // explicitly not resetting polarity phase-locking here
 }
+
+bool Solver::flipDecision() {
+  Debug("flipdec") << "FLIP: decision level is " << decisionLevel() << std::endl;
+  if(decisionLevel() == 0) {
+    Debug("flipdec") << "FLIP: no decisions, returning false" << std::endl;
+    return false;
+  }
+
+  // find the level to cancel until
+  int level = trail_lim.size() - 1;
+  Debug("flipdec") << "FLIP: looking at level " << level << " dec is " << trail[trail_lim[level]] << " flippable?" << ((polarity[var(trail[trail_lim[level]])] & 0x2) == 0 ? 1 : 0) << " flipped?" << flipped[level] << std::endl;
+  while(level > 0 && (flipped[level] || /* phase-locked */ (polarity[var(trail[trail_lim[level]])] & 0x2) != 0)) {
+    --level;
+    Debug("flipdec") << "FLIP: looking at level " << level << " dec is " << trail[trail_lim[level]] << " flippable?" << ((polarity[var(trail[trail_lim[level]])] & 0x2) == 0 ? 2 : 0) << " flipped?" << flipped[level] << std::endl;
+  }
+  if(level < 0) {
+    Lit l = trail[trail_lim[0]];
+    Debug("flipdec") << "FLIP: canceling everything, flipping root decision " << l << std::endl;
+    cancelUntil(0);
+    newDecisionLevel();
+    Debug("flipdec") << "FLIP: enqueuing " << ~l << std::endl;
+    uncheckedEnqueue(~l);
+    flipped[0] = true;
+    Debug("flipdec") << "FLIP: returning false" << std::endl;
+    return false;
+  }
+  Lit l = trail[trail_lim[level]];
+  Debug("flipdec") << "FLIP: canceling to level " << level << ", flipping decision " << l << std::endl;
+  cancelUntil(level);
+  newDecisionLevel();
+  Debug("flipdec") << "FLIP: enqueuing " << ~l << std::endl;
+  uncheckedEnqueue(~l);
+  flipped[level] = true;
+  Debug("flipdec") << "FLIP: returning true" << std::endl;
+  return true;
+}
+
 
 CRef Solver::updateLemmas() {
 

@@ -36,7 +36,15 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
+class UfTermDb;
+class InstantiatorTheoryUf;
+class StrongSolverTheoryUf;
+
 class TheoryUF : public Theory {
+
+  friend class InstantiatorTheoryUf;
+  friend class StrongSolverTheoryUf;
+
 public:
 
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -76,12 +84,42 @@ public:
       Debug("uf") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.conflict(t1, t2);
     }
-  };
+
+    void eqNotifyNewClass(TNode t) {
+      Debug("uf") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
+      d_uf.eqNotifyNewClass(t);
+    }
+
+    void eqNotifyPreMerge(TNode t1, TNode t2) {
+      Debug("uf") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
+      d_uf.eqNotifyPreMerge(t1, t2);
+    }
+
+    void eqNotifyPostMerge(TNode t1, TNode t2) {
+      Debug("uf") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
+      d_uf.eqNotifyPostMerge(t1, t2);
+    }
+
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+      Debug("uf") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
+      d_uf.eqNotifyDisequal(t1, t2, reason);
+    }
+
+  };/* class TheoryUF::NotifyClass */
+
+  /** A callback class for ppRewrite().  See registerPpRewrite(), below. */
+  class PpRewrite {
+  public:
+    virtual Node ppRewrite(TNode node) = 0;
+  };/* class TheoryUF::PpRewrite */
 
 private:
 
   /** The notify class */
   NotifyClass d_notify;
+
+  /** The associated theory strong solver (or NULL if none) */
+  StrongSolverTheoryUf* d_thss;
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
@@ -118,10 +156,37 @@ private:
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
 
+  /** called when a new equivalance class is created */
+  void eqNotifyNewClass(TNode t);
+
+  /** called when two equivalance classes will merge */
+  void eqNotifyPreMerge(TNode t1, TNode t2);
+
+  /** called when two equivalance classes have merged */
+  void eqNotifyPostMerge(TNode t1, TNode t2);
+
+  /** called when two equivalence classes are made disequal */
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+
+  /** a registry type for keeping Node-specific callbacks for ppRewrite() */
+  typedef std::hash_map<Node, PpRewrite*, NodeHashFunction> RegisterPpRewrites;
+
+  /** a collection of callbacks to issue while doing a ppRewrite() */
+  RegisterPpRewrites d_registeredPpRewrites;
+
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+
+  ~TheoryUF() {
+    // destruct all ppRewrite() callbacks
+    for(RegisterPpRewrites::iterator i = d_registeredPpRewrites.begin();
+        i != d_registeredPpRewrites.end();
+        ++i) {
+      delete i->second;
+    }
+  }
 
   void check(Effort);
   void preRegisterTerm(TNode term);
@@ -133,12 +198,30 @@ public:
   void addSharedTerm(TNode n);
   void computeCareGraph();
 
-  void propagate(Effort effort) {}
+  void propagate(Effort effort);
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   std::string identify() const {
     return "THEORY_UF";
+  }
+
+  eq::EqualityEngine* getEqualityEngine() {
+    return &d_equalityEngine;
+  }
+
+  StrongSolverTheoryUf* getStrongSolver() {
+    return d_thss;
+  }
+
+  Node ppRewrite(TNode node);
+
+  /**
+   * Register a ppRewrite() callback on "op."  TheoryUF owns
+   * the callback, and will delete it when it is destructed.
+   */
+  void registerPpRewrite(TNode op, PpRewrite* callback) {
+    d_registeredPpRewrites.insert(std::make_pair(op, callback));
   }
 
 };/* class TheoryUF */

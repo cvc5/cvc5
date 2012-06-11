@@ -49,8 +49,8 @@ class TheoryBV : public Theory {
   EqualitySolver d_equalitySolver;
 public:
 
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
-  ~TheoryBV(); 
+  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  ~TheoryBV();
 
   void preRegisterTerm(TNode n);
 
@@ -64,21 +64,21 @@ public:
 
   std::string identify() const { return std::string("TheoryBV"); }
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions); 
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
 private:
-  
+
   class Statistics {
   public:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;
-    TimerStat   d_solveTimer;  
+    TimerStat   d_solveTimer;
     Statistics();
-    ~Statistics(); 
-  }; 
-  
+    ~Statistics();
+  };
+
   Statistics d_statistics;
-  
+
   // Are we in conflict?
   context::CDO<bool> d_conflict;
 
@@ -133,7 +133,7 @@ private:
   }
 
   bool inConflict() { return d_conflict == true; }
-  
+
   friend class Bitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver; 

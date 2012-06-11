@@ -211,6 +211,11 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 
   Debug("equality") << d_name << "::eq::newNode(" << node << ") => " << newId << std::endl;
 
+  // notify e.g. the UF theory strong solver
+  if (d_performNotify) {
+    d_notify.eqNotifyNewClass(node);
+  }
+
   return newId;
 }
 
@@ -346,7 +351,12 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
     if (hasTerm(eq[0]) && hasTerm(eq[1]) && areDisequal(eq[0], eq[1], false)) {
       return;
     }
-    
+
+    // notify the theory
+    if (d_performNotify) {
+      d_notify.eqNotifyDisequal(eq[0], eq[1], reason);
+    }
+
     Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
 
     assertEqualityInternal(eq, d_false, reason);
@@ -436,6 +446,21 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   EqualityNodeId class1Id = class1.getFind();
   EqualityNodeId class2Id = class2.getFind();
+
+  Node n1 = d_nodes[class1Id];
+  Node n2 = d_nodes[class2Id];
+  EqualityNode cc1 = getEqualityNode(n1);
+  EqualityNode cc2 = getEqualityNode(n2);
+  bool doNotify = false;
+  // notify the theory
+  // the second part of this check is needed due to the internal implementation of this class.
+  // It ensures that we are merging terms and not operators.
+  if (d_performNotify && class1Id==cc1.getFind() && class2Id==cc2.getFind()) {
+    doNotify = true;
+  }
+  if (doNotify) {
+    d_notify.eqNotifyPreMerge(n1, n2);
+  }
 
   // Check for constant merges
   bool class1isConstant = d_isConstant[class1Id];
@@ -559,7 +584,12 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
     
   // Now merge the lists
   class1.merge<true>(class2);
-  
+
+  // notify the theory
+  if (doNotify) {
+    d_notify.eqNotifyPostMerge(n1, n2);
+  }
+
   // Go through the trigger term disequalities and propagate
   if (!propagateTriggerTermDisequalities(class1OnlyTags, class1triggerRef, class2disequalitiesToNotify)) {
     return false;

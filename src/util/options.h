@@ -310,6 +310,126 @@ struct CVC4_PUBLIC Options {
    */
   bool ufSymmetryBreakerSetByUser;
 
+  /**
+   * Whether to mini-scope quantifiers.
+   * For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
+   * ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
+   */
+  bool miniscopeQuant;
+
+  /**
+   * Whether to mini-scope quantifiers based on formulas with no free variables.
+   * For example, forall x. ( P( x ) V Q ) will be rewritten to
+   * ( forall x. P( x ) ) V Q
+   */
+  bool miniscopeQuantFreeVar;
+
+  /**
+   * Whether to prenex (nested universal) quantifiers
+   */
+  bool prenexQuant;
+
+  /**
+   * Whether to variable-eliminate quantifiers.
+   * For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
+   *   forall y. P( c, y )
+   */
+  bool varElimQuant;
+
+  /**
+   * Whether to CNF quantifier bodies
+   */
+  bool cnfQuant;
+
+  /**
+   * Whether to pre-skolemize quantifier bodies.
+   * For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
+   *   forall x. P( x ) => f( S( x ) ) = x
+   */
+  bool preSkolemQuant;
+
+  /**
+   * Whether to use smart triggers
+   */
+  bool smartTriggers;
+
+  /**
+   * Whether to consider terms in the bodies of quantifiers for matching
+   */
+  bool registerQuantBodyTerms;
+
+  /** Enumeration of inst_when modes (when to instantiate). */
+  typedef enum {
+    /** Apply instantiation round before full effort (possibly at standard effort) */
+    INST_WHEN_PRE_FULL,
+    /** Apply instantiation round at full effort or above  */
+    INST_WHEN_FULL,
+    /** Apply instantiation round at full effort half the time, and last call always */
+    INST_WHEN_FULL_LAST_CALL,
+    /** Apply instantiation round at last call only */
+    INST_WHEN_LAST_CALL,
+  } InstWhenMode;
+  /** When to perform instantiation round. */
+  InstWhenMode instWhenMode;
+
+  /**
+   * Whether to eagerly instantiate quantifiers
+   */
+  bool eagerInstQuant;
+
+  /**
+   * Whether to use finite model find heuristic
+   */
+  bool finiteModelFind;
+
+  /**
+   * Whether to use region-based SAT for finite model finding
+   */
+  bool fmfRegionSat;
+
+  /**
+   * Whether to use model-based exhaustive instantiation for finite model finding
+   */
+  bool fmfModelBasedInst;
+
+  /**
+   * Whether to use efficient E-matching
+   */
+  bool efficientEMatching;
+
+  /** Enumeration of literal matching modes. */
+  typedef enum {
+    /** Do not consider polarity of patterns */
+    LITERAL_MATCH_NONE,
+    /** Consider polarity of boolean predicates only */
+    LITERAL_MATCH_PREDICATE,
+    /** Consider polarity of boolean predicates, as well as equalities */
+    LITERAL_MATCH_EQUALITY,
+  } LiteralMatchMode;
+
+  /** Which literal matching mode to use. */
+  LiteralMatchMode literalMatchMode;
+
+  /**
+   * Whether to do counterexample-based quantifier instantiation
+   */
+  bool cbqi;
+
+  /**
+   * Whether the user explicitly requested that counterexample-based
+   * quantifier instantiation be enabled or disabled.
+   */
+  bool cbqiSetByUser;
+
+  /**
+   * Whether to use user patterns for pattern-based instantiation
+   */
+  bool userPatternsQuant;
+
+  /**
+   * Whether to use flip decision (useful when cbqi=true)
+   */
+  bool flipDecision;
 
   /** The output channel to receive notfication events for new lemmas */
   LemmaOutputChannel* lemmaOutputChannel;

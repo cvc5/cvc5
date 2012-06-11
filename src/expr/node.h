@@ -159,6 +159,14 @@ namespace kind {
   }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
 
+// for hash_maps, hash_sets..
+struct NodeHashFunction {
+  inline size_t operator()(Node node) const;
+};/* struct NodeHashFunction */
+struct TNodeHashFunction {
+  inline size_t operator()(TNode node) const;
+};/* struct TNodeHashFunction */
+
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
  * maintained in the NodeValue if ref_count is true.
@@ -166,17 +174,6 @@ namespace kind {
  */
 template <bool ref_count>
 class NodeTemplate {
-
-  // for hash_maps, hash_sets..
-  template <bool ref_count1>
-  struct HashFunction {
-    size_t operator()(CVC4::NodeTemplate<ref_count1> node) const {
-      return (size_t) node.getId();
-    }
-  };/* struct HashFunction */
-
-  typedef HashFunction<false> TNodeHashFunction;
-
   /**
    * The NodeValue has access to the private constructors, so that the
    * iterators can can create new nodes.
@@ -233,7 +230,7 @@ class NodeTemplate {
       Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
     }
   }
-
+public:
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
@@ -904,19 +901,12 @@ inline std::ostream& operator<<(std::ostream& out, TNode n) {
 
 namespace CVC4 {
 
-// for hash_maps, hash_sets..
-struct NodeHashFunction {
-  size_t operator()(CVC4::Node node) const {
-    return (size_t) node.getId();
-  }
-};/* struct NodeHashFunction */
-
-// for hash_maps, hash_sets..
-struct TNodeHashFunction {
-  size_t operator()(CVC4::TNode node) const {
-    return (size_t) node.getId();
-  }
-};/* struct TNodeHashFunction */
+inline size_t NodeHashFunction::operator()(Node node) const {
+  return node.getId();
+}
+inline size_t TNodeHashFunction::operator()(TNode node) const {
+  return node.getId();
+}
 
 struct TNodePairHashFunction {
   size_t operator()(const std::pair<CVC4::TNode, CVC4::TNode>& pair ) const {

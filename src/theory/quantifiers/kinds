@@ -1,0 +1,48 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_QUANTIFIERS ::CVC4::theory::quantifiers::TheoryQuantifiers "theory/quantifiers/theory_quantifiers.h"
+typechecker "theory/quantifiers/theory_quantifiers_type_rules.h"
+instantiator ::CVC4::theory::quantifiers::InstantiatorTheoryQuantifiers "theory/quantifiers/theory_quantifiers_instantiator.h"
+
+properties check propagate presolve
+
+rewriter ::CVC4::theory::quantifiers::QuantifiersRewriter "theory/quantifiers/quantifiers_rewriter.h"
+
+operator FORALL 2:3 "universally quantified formula"
+
+operator EXISTS 2:3 "existentially quantified formula"
+
+variable INST_CONSTANT "instantiation constant"
+
+sort BOUND_VAR_LIST_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "Bound Var type"
+
+operator BOUND_VAR_LIST 1: "bound variables"
+
+sort INST_PATTERN_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "Instantiation pattern type"
+
+operator INST_PATTERN 1: "instantiation pattern"
+
+sort INST_PATTERN_LIST_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "Instantiation pattern list type"
+
+operator INST_PATTERN_LIST 1: "instantiation pattern list"
+
+typerule FORALL ::CVC4::theory::quantifiers::QuantifierForallTypeRule 
+typerule EXISTS ::CVC4::theory::quantifiers::QuantifierExistsTypeRule 
+typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeRule 
+typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
+typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
+
+endtheory

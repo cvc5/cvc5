@@ -100,5 +100,9 @@ Node Valuation::ensureLiteral(TNode n) {
   return preprocessed;
 }
 
+bool Valuation::isDecision(Node lit) const {
+  return d_engine->getPropEngine()->isDecision(lit);
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

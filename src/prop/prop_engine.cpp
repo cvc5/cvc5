@@ -126,6 +126,24 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
   d_cnfStream->convertAndAssert(node, removable, negated);
 }
 
+void PropEngine::requirePhase(TNode n, bool phase) {
+  Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << endl;
+
+  Assert(n.getType().isBoolean());
+  SatLiteral lit = d_cnfStream->getLiteral(n);
+  d_satSolver->requirePhase(phase ? lit : ~lit);
+}
+
+bool PropEngine::flipDecision() {
+  Debug("prop") << "flipDecision()" << endl;
+  return d_satSolver->flipDecision();
+}
+
+bool PropEngine::isDecision(Node lit) const {
+  Assert(isTranslatedSatLiteral(lit));
+  return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::TranslationCache& transCache =
     d_cnfStream->getTranslationCache();

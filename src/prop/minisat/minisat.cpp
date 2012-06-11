@@ -178,6 +178,22 @@ bool MinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const 
   return true;
 }
 
+void MinisatSatSolver::requirePhase(SatLiteral lit) { 
+  Assert(!d_minisat->rnd_pol);
+  Debug("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
+  SatVariable v = lit.getSatVariable();
+  d_minisat->freezePolarity(v, lit.isNegated());
+}
+
+bool MinisatSatSolver::flipDecision() { 
+  Debug("minisat") << "flipDecision()" << std::endl;
+  return d_minisat->flipDecision();
+}
+
+bool MinisatSatSolver::isDecision(SatVariable decn) const { 
+  return d_minisat->isDecision( decn ); 
+}
+
 /** Incremental interface */
 
 unsigned MinisatSatSolver::getAssertionLevel() const {

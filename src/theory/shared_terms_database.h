@@ -2,7 +2,7 @@
 /*! \file node_visitor.h
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: 
+ ** Major contributors:
  ** Minor contributors (to current version):
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
@@ -40,7 +40,7 @@ private:
 
   /** The context */
   context::Context* d_context;
-  
+
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -49,13 +49,13 @@ private:
 
   /** A map from atoms to a list of shared terms */
   SharedTermsMap d_atomsToTerms;
-  
+
   /** Each time we add a shared term, we add it's parent to this list */
   std::vector<TNode> d_addedSharedTerms;
-  
+
   /** Context-dependent size of the d_addedSharedTerms list */
   context::CDO<unsigned> d_addedSharedTermsSize;
-  
+
   /** A map from atoms and subterms to the theories that use it */
   typedef context::CDHashMap<std::pair<Node, TNode>, theory::Theory::Set, TNodePairHashFunction> SharedTermsTheoriesMap;
   SharedTermsTheoriesMap d_termsToTheories;
@@ -95,6 +95,11 @@ private:
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
       d_sharedTerms.conflict(t1, t2, true);
     }
+
+    void eqNotifyNewClass(TNode t) { }
+    void eqNotifyPreMerge(TNode t1, TNode t2) { }
+    void eqNotifyPostMerge(TNode t1, TNode t2) { }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
   };
 
   /** The notify class for d_equalityEngine */
@@ -147,7 +152,7 @@ public:
 
   SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context);
   ~SharedTermsDatabase() throw(AssertionException);
-  
+
   /**
    * Asserts the equality to the shared terms database,
    */
@@ -185,12 +190,12 @@ public:
   bool hasSharedTerms(TNode atom) const;
 
   /**
-   * Iterator pointing to the first shared term belonging to the given atom. 
+   * Iterator pointing to the first shared term belonging to the given atom.
    */
   shared_terms_iterator begin(TNode atom) const;
 
   /**
-   * Iterator pointing to the end of the list of shared terms belonging to the given atom. 
+   * Iterator pointing to the end of the list of shared terms belonging to the given atom.
    */
   shared_terms_iterator end(TNode atom) const;
 

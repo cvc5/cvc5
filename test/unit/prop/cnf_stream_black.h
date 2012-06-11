@@ -83,6 +83,10 @@ public:
     return 0;
   }
 
+  bool isDecision(Node) const {
+    return false;
+  }
+
   void unregisterVar(SatLiteral lit) {
   }
 

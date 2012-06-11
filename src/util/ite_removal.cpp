@@ -79,23 +79,30 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   }
 
   // If not an ITE, go deep
-  vector<Node> newChildren;
-  bool somethingChanged = false;
-  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    newChildren.push_back(node.getOperator());
-  }
-  // Remove the ITEs from the children
-  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, iteSkolemMap);
-    somethingChanged |= (newChild != *it);
-    newChildren.push_back(newChild);
-  }
+  if( node.getKind() != kind::FORALL &&
+      node.getKind() != kind::EXISTS &&
+      node.getKind() != kind::REWRITE_RULE ) {
+    vector<Node> newChildren;
+    bool somethingChanged = false;
+    if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      newChildren.push_back(node.getOperator());
+    }
+    // Remove the ITEs from the children
+    for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
+      Node newChild = run(*it, output, iteSkolemMap);
+      somethingChanged |= (newChild != *it);
+      newChildren.push_back(newChild);
+    }
 
-  // If changes, we rewrite
-  if(somethingChanged) {
-    cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
-    nodeManager->setAttribute(node, IteRewriteAttr(), cachedRewrite);
-    return cachedRewrite;
+    // If changes, we rewrite
+    if(somethingChanged) {
+      cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
+      nodeManager->setAttribute(node, IteRewriteAttr(), cachedRewrite);
+      return cachedRewrite;
+    } else {
+      nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
+      return node;
+    }
   } else {
     nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
     return node;

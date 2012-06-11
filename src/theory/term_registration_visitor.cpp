@@ -2,10 +2,10 @@
 /*! \file term_registration_visitor.h
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: 
- ** Minor contributors (to current version):
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -31,6 +31,14 @@ std::string PreRegisterVisitor::toString() const {
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
+
+  if( ( parent.getKind() == kind::FORALL ||
+        parent.getKind() == kind::EXISTS ||
+        parent.getKind() == kind::REWRITE_RULE ) &&
+      current != parent ) {
+    Debug("register::internal") << "quantifier:true" << std::endl;
+    return true;
+  }
 
   TheoryId currentTheoryId = Theory::theoryOf(current);
   TheoryId parentTheoryId = Theory::theoryOf(parent);
@@ -89,13 +97,21 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(currentTheoryId, visitedTheories);
     d_visited[current] = visitedTheories;
-    d_engine->theoryOf(currentTheoryId)->preRegisterTerm(current);
+    Theory* th = d_engine->theoryOf(currentTheoryId);
+    th->preRegisterTerm(current);
+    if(th->getInstantiator() != NULL) {
+      th->getInstantiator()->preRegisterTerm(current);
+    }
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << currentTheoryId << std::endl;
   }
   if (!Theory::setContains(parentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(parentTheoryId, visitedTheories);
     d_visited[current] = visitedTheories;
-    d_engine->theoryOf(parentTheoryId)->preRegisterTerm(current);
+    Theory* th = d_engine->theoryOf(parentTheoryId);
+    th->preRegisterTerm(current);
+    if(th->getInstantiator() != NULL) {
+      th->getInstantiator()->preRegisterTerm(current);
+    }
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
   }
   if (useType) {
@@ -103,7 +119,11 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     if (!Theory::setContains(typeTheoryId, visitedTheories)) {
       visitedTheories = Theory::setInsert(typeTheoryId, visitedTheories);
       d_visited[current] = visitedTheories;
-      d_engine->theoryOf(typeTheoryId)->preRegisterTerm(current);
+      Theory* th = d_engine->theoryOf(typeTheoryId);
+      th->preRegisterTerm(current);
+      if(th->getInstantiator() != NULL) {
+        th->getInstantiator()->preRegisterTerm(current);
+      }
       Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
     }
   }
@@ -135,6 +155,13 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   Debug("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
+  if( ( parent.getKind() == kind::FORALL ||
+        parent.getKind() == kind::EXISTS ||
+        parent.getKind() == kind::REWRITE_RULE) &&
+      current != parent ) {
+    Debug("register::internal") << "quantifier:true" << std::endl;
+    return true;
+  }
   TNodeVisitedMap::const_iterator find = d_visited.find(current);
 
   // If node is not visited at all, just return false

@@ -2,7 +2,7 @@
 #
 # mktheorytraits
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010-2011  The CVC4 Project
+# Copyright (c) 2010-2012  The CVC4 Project
 #
 # The purpose of this script is to create theory_traits.h from a template
 # and a list of theory kinds.
@@ -14,7 +14,7 @@
 # Output is to standard out.
 #
 
-copyright=2010-2011
+copyright=2010-2012
 
 cat <<EOF
 /*********************                                                        */
@@ -54,6 +54,9 @@ theory_parametric="false"
 
 rewriter_class=
 rewriter_header=
+
+instantiator_class=void
+instantiator_header=
 
 theory_id=
 theory_class=
@@ -123,6 +126,7 @@ template<>
 struct TheoryTraits<${theory_id}> {
     typedef ${theory_class} theory_class;
     typedef ${rewriter_class} rewriter_class;
+    typedef ${instantiator_class} instantiator_class;
 
     static const bool isStableInfinite = ${theory_stable_infinite};
     static const bool isFinite = ${theory_finite};
@@ -186,6 +190,18 @@ function typerule {
   # typerule OPERATOR typechecking-class
   lineno=${BASH_LINENO[0]}
   check_theory_seen
+}
+
+function instantiator {
+  # instantiator class header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+
+  instantiator_class="$1"
+  instantiator_header="$2"
+
+  theory_includes="${theory_includes}#include \"$2\"
+"
 }
 
 function properties {

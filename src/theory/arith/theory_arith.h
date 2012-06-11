@@ -53,12 +53,15 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+class InstantiatorTheoryArith;
+
 /**
  * Implementation of QF_LRA.
  * Based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
+  friend class InstantiatorTheoryArith;
 private:
   bool rowImplication(ArithVar v, bool upperBound, const DeltaRational& r);
 
@@ -269,7 +272,7 @@ private:
   DeltaRational getDeltaValue(TNode n);
 
 public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   virtual ~TheoryArith();
 
   /**

@@ -22,6 +22,7 @@
 #include "expr/kind.h"
 #include "util/datatype.h"
 #include "util/Assert.h"
+#include "theory/datatypes/theory_datatypes_instantiator.h"
 
 #include <map>
 
@@ -53,8 +54,8 @@ Node TheoryDatatypes::getConstructorForSelector( Node sel )
 }
 
 
-TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
+TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
+  Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, qe),
   d_currAsserts(c),
   d_currEqualities(c),
   d_selectors(c),
@@ -71,7 +72,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_disequalities(c),
   d_em(c),
   d_cce(&d_cc){
-
 }
 
 
@@ -114,7 +114,7 @@ void TheoryDatatypes::check(Effort e) {
     Node assertion = get();
     if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") || Debug.isOn("datatypes-cycles")
         || Debug.isOn("datatypes-debug-pf") || Debug.isOn("datatypes-conflict") ) {
-      cout << "*** TheoryDatatypes::check(): " << assertion << endl;
+      Notice() << "*** TheoryDatatypes::check(): " << assertion << endl;
       d_currAsserts.push_back( assertion );
     }
 
@@ -211,7 +211,7 @@ void TheoryDatatypes::check(Effort e) {
       Node conflict = d_em.getConflict();
       if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ||
           Debug.isOn("datatypes-cycles") || Debug.isOn("datatypes-conflict") ){
-        cout << "Conflict constructed : " << conflict << endl;
+        Notice() << "Conflict constructed : " << conflict << endl;
       }
       if( conflict.getKind()!=kind::AND ){
         conflict = NodeManager::currentNM()->mkNode(kind::AND, conflict, conflict);
@@ -283,7 +283,7 @@ void TheoryDatatypes::check(Effort e) {
     }
   }
   if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
-    cout << "TheoryDatatypes::check(): done" << endl;
+    Notice() << "TheoryDatatypes::check(): done" << endl;
   }
 }
 

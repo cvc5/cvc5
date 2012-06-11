@@ -194,6 +194,37 @@ public:
   void assertLemma(TNode node, bool negated, bool removable);
 
   /**
+   * If ever n is decided upon, it must be in the given phase.  This
+   * occurs *globally*, i.e., even if the literal is untranslated by
+   * user pop and retranslated, it keeps this phase.  The associated
+   * variable will _always_ be phase-locked.
+   *
+   * @param n the node in question; must have an associated SAT literal
+   * @param phase the phase to use
+   */
+  void requirePhase(TNode n, bool phase);
+
+  /**
+   * Backtracks to and flips the most recent unflipped decision, and
+   * returns TRUE.  If the decision stack is nonempty but all
+   * decisions have been flipped already, the state is backtracked to
+   * the root decision, which is re-flipped to the original phase (and
+   * FALSE is returned).  If the decision stack is empty, the state is
+   * unchanged and FALSE is returned.
+   *
+   * @return true if a decision was flipped as requested; false if the
+   * root decision was reflipped, or if no decisions are on the stack.
+   */
+  bool flipDecision();
+
+  /**
+   * Return whether the given literal is a SAT decision.  Either phase
+   * is permitted; that is, if "lit" is a SAT decision, this function
+   * returns true for both lit and the negation of lit.
+   */
+  bool isDecision(Node lit) const;
+
+  /**
    * Checks the current context for satisfiability.
    *
    * @param millis the time limit for this call in milliseconds

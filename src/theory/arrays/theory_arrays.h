@@ -39,32 +39,32 @@ namespace arrays {
  * Overview of decision procedure:
  *
  * Preliminary notation:
- *   Stores(a)  = {t | a ~ t and t = store( _ _ _ )} 
+ *   Stores(a)  = {t | a ~ t and t = store( _ _ _ )}
  *   InStores(a) = {t | t = store (b _ _) and a ~ b }
  *   Indices(a) = {i | there exists a term b[i] such that a ~ b or store(b i v)}
  *   ~ represents the equivalence relation based on the asserted equalities in the
  *   current context.
- * 
+ *
  * The rules implemented are the following:
  *             store(b i v)
  *     Row1 -------------------
  *          store(b i v)[i] = v
- * 
+ *
  *           store(b i v)  a'[j]
  *     Row ---------------------- [ a' ~ store(b i v) or a' ~ b ]
  *           i = j OR a[j] = b[j]
- * 
+ *
  *          a  b same kind arrays
  *     Ext ------------------------ [ a!= b in current context, k new var]
  *           a = b OR a[k] != b[k]p
- * 
- * 
+ *
+ *
  *  The Row1 one rule is implemented implicitly as follows:
  *     - for each store(b i v) term add the following equality to the congruence
  *       closure store(b i v)[i] = v
  *     - if one of the literals in a conflict is of the form store(b i v)[i] = v
  *       remove it from the conflict
- * 
+ *
  *  Because new store terms are not created, we need to check if we need to
  *  instantiate a new Row axiom in the following cases:
  *     1. the congruence relation changes (i.e. two terms get merged)
@@ -77,7 +77,7 @@ namespace arrays {
  *         - this is implemented in the checkRowForIndex method which is called
  *           when preregistering a term of the form a[i].
  *         - as a consequence lemmas are instantiated even before full effort check
- * 
+ *
  *  The Ext axiom is instantiated when a disequality is asserted during full effort
  *  check. Ext lemmas are stored in a cache to prevent instantiating essentially
  *  the same lemma multiple times.
@@ -122,7 +122,7 @@ class TheoryArrays : public Theory {
 
   public:
 
-  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryArrays();
 
   std::string identify() const { return std::string("TheoryArrays"); }
@@ -132,6 +132,16 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
+
+  // PPNotifyClass: dummy template class for d_ppEqualityEngine - notifications not used
+  class PPNotifyClass {
+  public:
+    bool notify(TNode propagation) { return true; }
+    void notify(TNode t1, TNode t2) { }
+  };
+
+  /** The notify class for d_ppEqualityEngine */
+  PPNotifyClass d_ppNotify;
 
   /** Equaltity engine */
   eq::EqualityEngine d_ppEqualityEngine;
@@ -180,6 +190,15 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
+
+  class MayEqualNotifyClass {
+  public:
+    bool notify(TNode propagation) { return true; }
+    void notify(TNode t1, TNode t2) { }
+  };
+
+  /** The notify class for d_mayEqualEqualityEngine */
+  MayEqualNotifyClass d_mayEqualNotify;
 
   /** Equaltity engine for determining if two arrays might be equal */
   eq::EqualityEngine d_mayEqualEqualityEngine;
@@ -270,6 +289,11 @@ class TheoryArrays : public Theory {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
     }
+
+    void eqNotifyNewClass(TNode t) { }
+    void eqNotifyPreMerge(TNode t1, TNode t2) { }
+    void eqNotifyPostMerge(TNode t1, TNode t2) { }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
   };
 
   /** The notify class for d_equalityEngine */

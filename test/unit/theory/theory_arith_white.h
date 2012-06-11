@@ -22,6 +22,7 @@
 
 #include "theory/theory.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/quantifiers_engine.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
@@ -51,6 +52,7 @@ class TheoryArithWhite : public CxxTest::TestSuite {
   LogicInfo d_logicInfo;
   Theory::Effort d_level;
 
+  QuantifiersEngine* d_quantifiersEngine;
   TheoryArith* d_arith;
 
   TypeNode* d_booleanType;
@@ -99,7 +101,9 @@ public:
     d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
     d_outputChannel.clear();
-    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), d_logicInfo);
+    d_logicInfo.lock();
+    d_quantifiersEngine = new QuantifiersEngine(d_ctxt, NULL);
+    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), d_logicInfo, d_quantifiersEngine);
 
     preregistered = new std::set<Node>();
 
@@ -115,6 +119,7 @@ public:
     delete preregistered;
 
     delete d_arith;
+    delete d_quantifiersEngine;
     d_outputChannel.clear();
     delete d_scope;
     delete d_nm;

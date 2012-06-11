@@ -41,6 +41,7 @@ public:
     THEORY_INTS,
     THEORY_REALS,
     THEORY_REALS_INTS,
+    THEORY_QUANTIFIERS,
   };
 
 private:

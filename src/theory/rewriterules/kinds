@@ -1,0 +1,37 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_REWRITERULES ::CVC4::theory::rewriterules::TheoryRewriteRules "theory/rewriterules/theory_rewriterules.h"
+typechecker "theory/rewriterules/theory_rewriterules_type_rules.h"
+rewriter ::CVC4::theory::rewriterules::TheoryRewriterulesRewriter "theory/rewriterules/theory_rewriterules_rewriter.h"
+
+properties check
+
+# Theory content goes here.
+
+# constants...
+
+# types...
+sort RRHB_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "head and body of the rule type"
+
+# operators...
+
+# variables, guards, RR_REWRITE/REDUCTION_RULE/DEDUCTION_RULE
+operator REWRITE_RULE 3 "generale rewrite rule"
+#HEAD/BODY/TRIGGER
+operator RR_REWRITE 2:3 "actual rewrite rule"
+operator RR_REDUCTION 2:3 "actual reduction rule"
+operator RR_DEDUCTION 2:3 "actual deduction rule"
+
+typerule REWRITE_RULE ::CVC4::theory::rewriterules::RewriteRuleTypeRule
+typerule RR_REWRITE   ::CVC4::theory::rewriterules::RRRewriteTypeRule
+typerule RR_REDUCTION ::CVC4::theory::rewriterules::RRRedDedTypeRule
+typerule RR_DEDUCTION ::CVC4::theory::rewriterules::RRRedDedTypeRule
+
+endtheory

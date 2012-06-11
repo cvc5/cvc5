@@ -84,6 +84,12 @@ public:
 
   void renewVar(SatLiteral lit, int level = -1);
 
+  void requirePhase(SatLiteral lit);
+
+  bool flipDecision();
+
+  bool isDecision(SatVariable decn) const;
+
   class Statistics {
   private:
     ReferenceStat<uint64_t> d_statStarts, d_statDecisions;

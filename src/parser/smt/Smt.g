@@ -244,6 +244,19 @@ annotatedFormula[CVC4::Expr& expr]
       }
     }
 
+  | /* A quantifier */
+    LPAREN_TOK
+    ( FORALL_TOK { kind = kind::FORALL; } | EXISTS_TOK { kind = kind::EXISTS; } )
+    { PARSER_STATE->pushScope(); }
+    ( LPAREN_TOK let_identifier[name,CHECK_NONE] t=sortSymbol RPAREN_TOK
+      { args.push_back(PARSER_STATE->mkVar(name, t)); }
+    )+
+    annotatedFormula[expr] RPAREN_TOK
+    { args.push_back(expr);
+      expr = MK_EXPR(kind, args);
+      PARSER_STATE->popScope();
+    }
+
   | /* A non-built-in function application */
 
     // Semantic predicate not necessary if parenthesized subexpressions

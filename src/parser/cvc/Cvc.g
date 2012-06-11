@@ -1066,13 +1066,13 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
          PARSER_STATE->isDeclared(id, SYM_SORT)) {
         Debug("parser-param") << "param: getSort " << id << " " << types.size() << " " << PARSER_STATE->getArity( id )
                               << " " << PARSER_STATE->isDeclared(id, SYM_SORT) << std::endl;
-        if( types.size()>0 ){
+        if(types.size() > 0) {
           t = PARSER_STATE->getSort(id, types);
         }else{
           t = PARSER_STATE->getSort(id);
         }
       } else {
-        if( types.empty() ){
+        if(types.empty()) {
           t = PARSER_STATE->mkUnresolvedType(id);
           Debug("parser-param") << "param: make unres type " << id << std::endl;
         }else{
@@ -1236,22 +1236,36 @@ prefixFormula[CVC4::Expr& f]
   std::vector<std::string> ids;
   std::vector<Expr> terms;
   std::vector<Type> types;
+  std::vector<Expr> bvs;
   Type t;
+  Kind k;
+  Expr ipl;
 }
     /* quantifiers */
-  : FORALL_TOK { PARSER_STATE->pushScope(); } LPAREN
-    boundVarDecl[ids,t] (COMMA boundVarDecl[ids,t])* RPAREN
-    COLON instantiationPatterns? formula[f]
-    { PARSER_STATE->popScope();
-      UNSUPPORTED("quantifiers not supported yet");
-      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
+  : ( FORALL_TOK { k = kind::FORALL; } | EXISTS_TOK { k = kind::EXISTS; } )
+    { PARSER_STATE->pushScope(); } LPAREN
+    boundVarDecl[ids,t]
+    { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
+        bvs.push_back(PARSER_STATE->mkVar(*i, t));
+      }
+      ids.clear();
     }
-  | EXISTS_TOK { PARSER_STATE->pushScope(); } LPAREN
-    boundVarDecl[ids,t] (COMMA boundVarDecl[ids,t])* RPAREN
-    COLON instantiationPatterns? formula[f]
+    ( COMMA boundVarDecl[ids,t]
+      {
+        for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
+          bvs.push_back(PARSER_STATE->mkVar(*i, t));
+        }
+        ids.clear();
+      }
+    )* RPAREN {
+      terms.push_back( EXPR_MANAGER->mkExpr( kind::BOUND_VAR_LIST, bvs ) ); }
+    COLON instantiationPatterns[ipl]? formula[f]
     { PARSER_STATE->popScope();
-      UNSUPPORTED("quantifiers not supported yet");
-      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->booleanType());
+      terms.push_back(f);
+      if(! ipl.isNull()) {
+        terms.push_back(ipl);
+      }
+      f = MK_EXPR(k, terms);
     }
 
    /* lets: letDecl defines the variables and functionss, we just
@@ -1283,11 +1297,20 @@ prefixFormula[CVC4::Expr& f]
     }
   ;
 
-instantiationPatterns
+instantiationPatterns[ CVC4::Expr& expr ]
 @init {
+  std::vector<Expr> args;
   Expr f;
+  std::vector<Expr> patterns;
 }
-  : ( PATTERN_TOK LPAREN formula[f] (COMMA formula[f])* RPAREN COLON )+
+  : ( PATTERN_TOK LPAREN formula[f] { args.push_back( f ); } (COMMA formula[f] { args.push_back( f ); } )* RPAREN COLON
+      { patterns.push_back( EXPR_MANAGER->mkExpr( kind::INST_PATTERN, args ) );
+        args.clear();
+      } )+
+    { if(! patterns.empty()) {
+       expr = EXPR_MANAGER->mkExpr( kind::INST_PATTERN_LIST, patterns );
+       }
+    }
   ;
 
 /**
@@ -1417,7 +1440,7 @@ tupleStore[CVC4::Expr& f]
   Expr f2;
 }
   : k=numeral ASSIGN_TOK uminusTerm[f2]
-    { 
+    {
       Type t = f.getType();
       if(! t.isDatatype()) {
         PARSER_STATE->parseError("tuple-update applied to non-tuple");
@@ -1456,7 +1479,7 @@ recordStore[CVC4::Expr& f]
   Expr f2;
 }
   : identifier[id,CHECK_NONE,SYM_VARIABLE] ASSIGN_TOK uminusTerm[f2]
-    { 
+    {
       Type t = f.getType();
       if(! t.isDatatype()) {
         PARSER_STATE->parseError("record-update applied to non-record");

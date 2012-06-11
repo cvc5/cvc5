@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -252,6 +252,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     // UF
     case kind::APPLY_UF:
       toStream(op, n.getOperator(), depth, types, false);
+      break;
+    case kind::CARDINALITY_CONSTRAINT:
+      out << "CARDINALITY_CONSTRAINT";
       break;
 
     case kind::FUNCTION_TYPE:
@@ -548,6 +551,44 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << ", " << n.getOperator().getConst<BitVectorRotateRight>() << ')';
       return;
       break;
+
+    // Quantifiers
+    case kind::FORALL:
+      out << "(FORALL";
+      toStream(out, n[0], depth, types, false);
+      out << " : ";
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      // TODO: user patterns?
+      return;
+    case kind::EXISTS:
+      out << "(EXISTS";
+      toStream(out, n[0], depth, types, false);
+      out << " : ";
+      toStream(out, n[1], depth, types, false);
+      out << ')';
+      // TODO: user patterns?
+      break;
+    case kind::INST_CONSTANT:
+      out << "INST_CONSTANT";
+      break;
+    case kind::BOUND_VAR_LIST:
+      out << '(';
+      for(size_t i = 0; i < n.getNumChildren(); ++i) {
+        if(i > 0) {
+          out << ", ";
+        }
+        toStream(out, n[i], -1, true, false); // ascribe types
+      }
+      out << ')';
+      return;
+    case kind::INST_PATTERN:
+      out << "INST_PATTERN";
+      break;
+    case kind::INST_PATTERN_LIST:
+      out << "INST_PATTERN_LIST";
+      break;
+
     default:
       Warning() << "Kind printing not implemented for the case of " << n.getKind() << endl;
       break;
@@ -662,12 +703,12 @@ static void toStream(std::ostream& out, const SExpr& sexpr) throw() {
   } else if(sexpr.isString()) {
     string s = sexpr.getValue();
     // escape backslash and quote
-    for(string::iterator i = s.begin(); i != s.end(); ++i) {
-      if(*i == '"') {
-        s.replace(i, i + 1, "\\\"");
+    for(size_t i = 0; i < s.size(); ++i) {
+      if(s[i] == '"') {
+        s.replace(i, 1, "\\\"");
         ++i;
-      } else if(*i == '\\') {
-        s.replace(i, i + 1, "\\\\");
+      } else if(s[i] == '\\') {
+        s.replace(i, 1, "\\\\");
         ++i;
       }
     }

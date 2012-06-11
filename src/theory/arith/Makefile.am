@@ -36,7 +36,9 @@ libarith_la_SOURCES = \
 	theory_arith.h \
 	theory_arith.cpp \
 	dio_solver.h \
-	dio_solver.cpp
+	dio_solver.cpp \
+	theory_arith_instantiator.h \
+	theory_arith_instantiator.cpp
 
 EXTRA_DIST = \
 	kinds

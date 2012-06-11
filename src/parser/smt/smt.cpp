@@ -29,6 +29,10 @@ namespace parser {
 
 std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newLogicMap() {
   std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> logicMap;
+  logicMap["AUFLIA"] = AUFLIA;
+  logicMap["AUFLIRA"] = AUFLIRA;
+  logicMap["AUFNIRA"] = AUFNIRA;
+  logicMap["LRA"] = LRA;
   logicMap["QF_AX"] = QF_AX;
   logicMap["QF_BV"] = QF_BV;
   logicMap["QF_IDL"] = QF_IDL;
@@ -54,6 +58,9 @@ std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newL
   logicMap["QF_UFNIRA"] = QF_UFNIRA;
   logicMap["QF_AUFLIA"] = QF_AUFLIA;
   logicMap["QF_AUFLIRA"] = QF_AUFLIRA;
+  logicMap["UFNIA"] = UFNIA;
+  logicMap["UFNIRA"] = UFNIRA;
+  logicMap["UFLRA"] = UFLRA;
   logicMap["QF_ALL_SUPPORTED"] = QF_ALL_SUPPORTED;
   logicMap["ALL_SUPPORTED"] = ALL_SUPPORTED;
   return logicMap;
@@ -109,6 +116,22 @@ void Smt::addTheory(Theory theory) {
     break;
   }
 
+  case THEORY_BITVECTOR_ARRAYS_EX: {
+    Unimplemented("Cannot yet handle SMT-LIBv1 bitvector arrays (i.e., the BitVector_ArraysEx theory)");
+    //addOperator(kind::SELECT);
+    //addOperator(kind::STORE);
+    break;
+  }
+
+  case THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX: {
+    defineType("Array1", getExprManager()->mkArrayType(getSort("Int"), getSort("Real")));
+    defineType("Array2", getExprManager()->mkArrayType(getSort("Int"), getSort("Array1")));
+    addOperator(kind::SELECT);
+    addOperator(kind::STORE);
+    break;
+  }
+
+  case THEORY_INT_ARRAYS:
   case THEORY_INT_ARRAYS_EX: {
     defineType("Array", getExprManager()->mkArrayType(getExprManager()->integerType(), getExprManager()->integerType()));
 
@@ -138,6 +161,9 @@ void Smt::addTheory(Theory theory) {
     break;
 
   case THEORY_BITVECTORS:
+    break;
+
+  case THEORY_QUANTIFIERS:
     break;
 
   default:
@@ -244,13 +270,14 @@ void Smt::setLogic(const std::string& name) {
     break;
 
   case QF_AUFLIRA:
-    addTheory(THEORY_ARRAYS_EX);
+    addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
     addUf();
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     break;
 
   case ALL_SUPPORTED:
+    addTheory(THEORY_QUANTIFIERS);
     /* fall through */
   case QF_ALL_SUPPORTED:
     addTheory(THEORY_ARRAYS_EX);
@@ -261,14 +288,41 @@ void Smt::setLogic(const std::string& name) {
     break;
 
   case AUFLIA:
+    addUf();
+    addTheory(THEORY_INTS);
+    addTheory(THEORY_INT_ARRAYS_EX);
+    addTheory(THEORY_QUANTIFIERS);
+    break;
+
   case AUFLIRA:
   case AUFNIRA:
+    addUf();
+    addTheory(THEORY_INTS);
+    addTheory(THEORY_REALS);
+    addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
+    addTheory(THEORY_QUANTIFIERS);
+    break;
+
   case LRA:
-  case UFLRA:
   case UFNIA:
-    Unhandled(name);
+    addUf();
+    addTheory(THEORY_INTS);
+    addTheory(THEORY_QUANTIFIERS);
+    break;
+  case UFNIRA:
+    addUf();
+    addTheory(THEORY_INTS);
+    addTheory(THEORY_REALS);
+    addTheory(THEORY_QUANTIFIERS);
+    break;
+
+  case UFLRA:
+    addUf();
+    addTheory(THEORY_REALS);
+    addTheory(THEORY_QUANTIFIERS);
+    break;
   }
-}
+}/* Smt::setLogic() */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

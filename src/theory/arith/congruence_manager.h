@@ -73,7 +73,12 @@ private:
         d_acm.propagate(t1.eqNode(t2));
       }
     }
-   };
+
+    void eqNotifyNewClass(TNode t) { }
+    void eqNotifyPreMerge(TNode t1, TNode t2) { }
+    void eqNotifyPostMerge(TNode t1, TNode t2) { }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+  };
   ArithCongruenceNotify d_notify;
 
   context::CDList<Node> d_keepAlive;

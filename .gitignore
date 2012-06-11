@@ -20,7 +20,7 @@ gmon.out
 stamp-generated
 generated/
 *~
-#*#
+\#*\#
 *.gcov
 /lcov/
 .cvc4_config

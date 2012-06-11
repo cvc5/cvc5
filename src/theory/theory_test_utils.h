@@ -94,6 +94,13 @@ public:
     return LemmaStatus(Node::null(), 0);
   }
 
+  void requirePhase(TNode, bool) throw(Interrupted, AssertionException) {
+  }
+
+  bool flipDecision() throw(Interrupted, AssertionException) {
+    return true;
+  }
+
   void setIncomplete() throw(AssertionException) {}
 
   void clear() {

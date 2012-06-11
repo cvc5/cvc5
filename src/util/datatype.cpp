@@ -438,7 +438,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
   d_tester = em->mkVar(d_name.substr(d_name.find('\0') + 1), em->mkTesterType(self));
   d_name.resize(d_name.find('\0'));
   d_constructor = em->mkVar(d_name, em->mkConstructorType(*this, self));
-  //associate constructor with all selectors
+  // associate constructor with all selectors
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
     (*i).d_constructor = d_constructor;
   }

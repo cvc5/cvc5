@@ -136,7 +136,10 @@ using namespace CVC4::parser;
  * @return the parsed expression, or the Null Expr if we've reached the end of the input
  */
 parseExpr returns [CVC4::parser::smt2::myExpr expr]
-  : term[expr]
+@declarations {
+  Expr expr2;
+}
+  : term[expr, expr2]
   | EOF
   ;
 
@@ -156,7 +159,7 @@ command returns [CVC4::Command* cmd = NULL]
 @declarations {
   std::string name;
   std::vector<std::string> names;
-  Expr expr;
+  Expr expr, expr2;
   Type t;
   std::vector<Expr> terms;
   std::vector<Type> sorts;
@@ -258,7 +261,7 @@ command returns [CVC4::Command* cmd = NULL]
         terms.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
       }
     }
-    term[expr]
+    term[expr, expr2]
     { PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
@@ -287,7 +290,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetAssignmentCommand; }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    term[expr]
+    term[expr, expr2]
     { cmd = new AssertCommand(expr); }
   | /* checksat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -359,7 +362,7 @@ extendedCommand[CVC4::Command*& cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   Type t;
-  Expr e;
+  Expr e, e2;
   SExpr sexpr;
   std::string name;
   std::vector<std::string> names;
@@ -420,7 +423,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
  * Matches a term.
  * @return the expression representing the formula
  */
-term[CVC4::Expr& expr]
+term[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind;
@@ -428,6 +431,11 @@ term[CVC4::Expr& expr]
   std::string name;
   std::vector<Expr> args;
   SExpr sexpr;
+  std::vector< std::pair<std::string, Type> > sortedVarNames;
+  Expr f, f2;
+  std::string attr;
+  Expr attexpr;
+  std::vector<Expr> attexprs;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -456,10 +464,45 @@ term[CVC4::Expr& expr]
         expr = MK_EXPR(kind, args);
       }
     }
-
+  | LPAREN_TOK quantOp[kind]
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope();
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        args.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+      }
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+      args.clear();
+      args.push_back(bvl);
+    }
+    term[f, f2] RPAREN_TOK
+    {
+      PARSER_STATE->popScope();
+      switch(f.getKind()) {
+      case CVC4::kind::RR_REWRITE:
+      case CVC4::kind::RR_REDUCTION:
+      case CVC4::kind::RR_DEDUCTION:
+        if(kind == CVC4::kind::EXISTS) {
+          PARSER_STATE->parseError("Use Exists instead of Forall for a rewrite rule.");
+        }
+        args.push_back(f2); // guards
+        args.push_back(f); // rule
+        expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
+        break;
+      default:
+        args.push_back(f);
+        if(! f2.isNull()){
+          args.push_back(f2);
+        }
+        expr = MK_EXPR(kind, args);
+      }
+    }
   | /* A non-built-in function application */
     LPAREN_TOK
-    functionName[name,CHECK_DECLARED]
+    functionName[name, CHECK_DECLARED]
     { PARSER_STATE->checkFunctionLike(name);
       const bool isDefinedFunction =
         PARSER_STATE->isDefinedFunction(name);
@@ -469,13 +512,13 @@ term[CVC4::Expr& expr]
       } else {
         expr = PARSER_STATE->getVariable(name);
         Type t = expr.getType();
-        if( t.isConstructor() ){
+        if(t.isConstructor()) {
           kind = CVC4::kind::APPLY_CONSTRUCTOR;
-        }else if( t.isSelector() ){
+        } else if(t.isSelector()) {
           kind = CVC4::kind::APPLY_SELECTOR;
-        }else if( t.isTester() ){
+        } else if(t.isTester()) {
           kind = CVC4::kind::APPLY_TESTER;
-        }else{
+        } else {
           kind = CVC4::kind::APPLY_UF;
         }
       }
@@ -494,10 +537,10 @@ term[CVC4::Expr& expr]
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
     { PARSER_STATE->pushScope(); }
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] term[expr] RPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] term[expr, f2] RPAREN_TOK
       { PARSER_STATE->defineVar(name,expr); } )+
     RPAREN_TOK
-    term[expr]
+    term[expr, f2]
     RPAREN_TOK
     { PARSER_STATE->popScope(); }
 
@@ -519,26 +562,45 @@ term[CVC4::Expr& expr]
     }
 
     /* attributed expressions */
-  | LPAREN_TOK ATTRIBUTE_TOK term[expr] KEYWORD symbolicExpr[sexpr] RPAREN_TOK
-    { std::string attr = AntlrInput::tokenText($KEYWORD);
-      if(attr == ":named") {
-        name = sexpr.getValue();
-        // FIXME ensure expr is a closed subterm
-        // check that sexpr is a fresh function symbol
-        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
-        // define it
-        Expr func = PARSER_STATE->mkFunction(name, expr.getType());
-        // bind name to expr with define-fun
-        Command* c =
-          new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
-        PARSER_STATE->preemptCommand(c);
-      } else {
-        std::stringstream ss;
-        ss << "Attribute `" << attr << "' not supported";
-        PARSER_STATE->parseError(ss.str());
+  | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
+    ( attribute[expr, attexpr,attr]
+      { if(! attexpr.isNull()) {
+          attexprs.push_back(attexpr);
+        }
+      }
+    )+ RPAREN_TOK
+    {
+      if(attr == ":rewrite-rule") {
+        Expr guard;
+        Expr body;
+        if(expr[1].getKind() == kind::IMPLIES ||
+           expr[1].getKind() == kind::IFF ||
+           expr[1].getKind() == kind::EQUAL) {
+          guard = expr[0];
+          body = expr[1];
+        } else {
+          guard = MK_CONST(bool(true));
+          body = expr;
+        }
+        expr2 = guard;
+        args.push_back(body[0]);
+        args.push_back(body[1]);
+        if(!f2.isNull()) {
+          args.push_back(f2);
+        }
+
+        if     ( body.getKind()==kind::IMPLIES )    kind = kind::RR_DEDUCTION;
+        else if( body.getKind()==kind::IFF )        kind = kind::RR_REDUCTION;
+        else if( body.getKind()==kind::EQUAL )      kind = kind::RR_REWRITE;
+        else PARSER_STATE->parseError("Error parsing rewrite rule.");
+
+        expr = MK_EXPR( kind, args );
+      } else if(! attexprs.empty()) {
+        if(attexprs[0].getKind() == kind::INST_PATTERN) {
+          expr2 = MK_EXPR(kind::INST_PATTERN_LIST, attexprs);
+        }
       }
     }
-
     /* constants */
   | INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
@@ -567,6 +629,46 @@ term[CVC4::Expr& expr]
       expr = MK_CONST( BitVector(binString, 2) ); }
 
     // NOTE: Theory constants go here
+  ;
+
+/**
+ * Read attribute
+ */
+attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
+@init {
+  SExpr sexpr;
+  Expr patexpr;
+  std::vector<Expr> patexprs;
+  Expr e2;
+}
+: KEYWORD
+  { attr = AntlrInput::tokenText($KEYWORD); }
+  symbolicExpr[sexpr]
+  { if(attr == ":named") {
+      std::string name = sexpr.getValue();
+      // FIXME ensure expr is a closed subterm
+      // check that sexpr is a fresh function symbol
+      PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+      // define it
+      Expr func = PARSER_STATE->mkFunction(name, expr.getType());
+      // bind name to expr with define-fun
+      Command* c =
+        new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
+      PARSER_STATE->preemptCommand(c);
+    } else {
+      std::stringstream ss;
+      ss << "Attribute `" << attr << "' not supported";
+      PARSER_STATE->parseError(ss.str());
+    }
+  }
+  | ATTRIBUTE_PATTERN_TOK LPAREN_TOK ( term[patexpr, e2] { patexprs.push_back( patexpr ); }  )+ RPAREN_TOK
+    {
+      attr = std::string(":pattern");
+      retExpr = MK_EXPR(kind::INST_PATTERN, patexprs);
+    }
+  | ATTRIBUTE_REWRITE_RULE {
+    attr = std::string(":rewrite-rule");
+  }
   ;
 
 /**
@@ -613,7 +715,10 @@ badIndexedFunctionName
 /* NOTE: We pass an Expr in here just to avoid allocating a fresh Expr every
  * time through this rule. */
 termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
-  : ( term[expr] { formulas.push_back(expr); } )+
+@declarations {
+  Expr expr2;
+}
+  : ( term[expr, expr2] { formulas.push_back(expr); } )+
   ;
 
 /**
@@ -693,6 +798,14 @@ builtinOp[CVC4::Kind& kind]
   // NOTE: Theory operators go here
   ;
 
+quantOp[CVC4::Kind& kind]
+@init {
+  Debug("parser") << "quant: " << AntlrInput::tokenText(LT(1)) << std::endl;
+}
+  : EXISTS_TOK      { $kind = CVC4::kind::EXISTS; }
+  | FORALL_TOK    { $kind = CVC4::kind::FORALL; }
+  ;
+
 /**
  * Matches a (possibly undeclared) function symbol (returning the string)
  * @param check what kind of check to do with the symbol
@@ -760,12 +873,12 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
   std::vector<uint64_t> numerals;
 }
   : sortName[name,CHECK_NONE]
-  	{ 
-  	  if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT) ){ 
-  	    t = PARSER_STATE->getSort(name);                                          
-  	  }else{                                                                    
-  	    t = PARSER_STATE->mkUnresolvedType(name);                                 
-  	  }                                          
+  	{
+  	  if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT) ){
+  	    t = PARSER_STATE->getSort(name);
+  	  }else{
+  	    t = PARSER_STATE->mkUnresolvedType(name);
+  	  }
   	}
   | LPAREN_TOK INDEX_TOK symbol[name,CHECK_NONE,SYM_SORT] nonemptyNumeralList[numerals] RPAREN_TOK
     {
@@ -928,6 +1041,10 @@ POP_TOK : 'pop';
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
 ECHO_TOK : 'echo';
+
+// attributes
+ATTRIBUTE_PATTERN_TOK : ':pattern';
+ATTRIBUTE_REWRITE_RULE : ':rewrite-rule';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';

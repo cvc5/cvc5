@@ -33,8 +33,8 @@ using namespace CVC4::theory::bv::utils;
 
 
 
-TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
-  : Theory(THEORY_BV, c, u, out, valuation, logicInfo),
+TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe)
+  : Theory(THEORY_BV, c, u, out, valuation, logicInfo, qe),
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),

@@ -74,6 +74,16 @@ public:
     return LemmaStatus(Node::null(), 0);
   }
 
+  void requirePhase(TNode, bool)
+    throw(Interrupted, AssertionException) {
+    Unreachable();
+  }
+
+  bool flipDecision()
+    throw(Interrupted, AssertionException) {
+    Unreachable();
+  }
+
   void setIncomplete()
     throw(AssertionException) {
     Unreachable();
@@ -102,8 +112,8 @@ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo) {
+  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
+    Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, qe) {
   }
 
   void registerTerm(TNode n) {
@@ -167,8 +177,8 @@ public:
     d_nm = new NodeManager(d_ctxt, NULL);
     d_scope = new NodeManagerScope(d_nm);
     d_logicInfo = new LogicInfo();
-
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_logicInfo->lock();
+    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo, NULL);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
