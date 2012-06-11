@@ -207,6 +207,7 @@ Node TheoryArith::AssertLower(Constraint constraint){
   }else if(cmpToUB == 0){
     if(isInteger(x_i)){
       d_constantIntegerVariables.push_back(x_i);
+      Debug("dio::push") << x_i << endl;
     }
     Constraint ub = d_partialModel.getUpperBoundConstraint(x_i);
 
@@ -296,6 +297,7 @@ Node TheoryArith::AssertUpper(Constraint constraint){
   }else if(cmpToLB == 0){ // \lowerBound(x_i) == \upperbound(x_i)
     if(isInteger(x_i)){
       d_constantIntegerVariables.push_back(x_i);
+      Debug("dio::push") << x_i << endl;
     }
     Constraint lb = d_partialModel.getLowerBoundConstraint(x_i);
     if(!d_congruenceManager.isWatchedVariable(x_i) || c_i.sgn() != 0){
@@ -396,6 +398,7 @@ Node TheoryArith::AssertEquality(Constraint constraint){
 
   if(isInteger(x_i)){
     d_constantIntegerVariables.push_back(x_i);
+    Debug("dio::push") << x_i << endl;
   }
 
   // Don't bother to check whether x_i != c_i is in d_diseq
@@ -928,6 +931,7 @@ Node TheoryArith::dioCutting(){
           // If the bounds are equal this is already in the dioSolver
           //Add v = dr as a speculation.
           Comparison eq = mkIntegerEqualityFromAssignment(v);
+          Debug("dio::push") <<v << " " <<  eq.getNode() << endl;
           Assert(!eq.isBoolean());
           d_diosolver.pushInputConstraint(eq, eq.getNode());
           // It does not matter what the explanation of eq is.
@@ -994,6 +998,7 @@ Node TheoryArith::callDioSolver(){
       Assert(orig.getKind() != EQUAL);
       return orig;
     }else{
+      Debug("dio::push") << v << " " << eq.getNode() << endl;
       d_diosolver.pushInputConstraint(eq, orig);
     }
   }

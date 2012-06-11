@@ -495,11 +495,14 @@ Polynomial Comparison::normalizedVariablePart() const {
       Polynomial right = getRight();
       if(right.isConstant()){
         return left;
-      }else if(right.containsConstant()){
-        Polynomial noConstant = right.getTail();
-        return left - noConstant;
       }else{
-        return left - right;
+        Polynomial noConstant = right.containsConstant() ? right.getTail() : right;
+        Polynomial diff = left - noConstant;
+        if(diff.leadingCoefficientIsPositive()){
+          return diff;
+        }else{
+          return -diff;
+        }
       }
     }
   default:
