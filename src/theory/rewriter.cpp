@@ -163,6 +163,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         TheoryId newTheoryId = Theory::theoryOf(response.node);
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
           // In the post rewrite if we've changed theories, we must do a full rewrite
+          Assert(response.node != rewriteStackTop.node);
           rewriteStackTop.node = rewriteTo(newTheoryId, response.node);
           break;
         } else if (response.status == REWRITE_DONE) {
@@ -173,7 +174,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 	  rewriteStackTop.node = response.node;
           break;
         }
-        // Check for trivial rewrite loop of size 2
+        // Check for trivial rewrite loops of size 1 or 2
+        Assert(response.node != rewriteStackTop.node);
         Assert(Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, response.node).node != rewriteStackTop.node);
 	rewriteStackTop.node = response.node;
       }

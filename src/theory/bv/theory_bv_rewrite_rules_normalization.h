@@ -300,10 +300,10 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
     TNode current = node[i];
     if (current.getKind() == kind::CONST_BITVECTOR) {
       BitVector value = current.getConst<BitVector>();
-      if(value == BitVector(size, (unsigned) 0)) {
+      constant = constant * value;
+      if(constant == BitVector(size, (unsigned) 0)) {
         return utils::mkConst(size, 0); 
       }
-      constant = constant * current.getConst<BitVector>();
     } else {
       children.push_back(current); 
     }
@@ -543,8 +543,8 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
     newRight = utils::mkSortedNode(kind::BITVECTOR_PLUS, childrenRight);
   }
 
-  Assert(newLeft == Rewriter::rewrite(newLeft));
-  Assert(newRight == Rewriter::rewrite(newRight));
+  //  Assert(newLeft == Rewriter::rewrite(newLeft));
+  //  Assert(newRight == Rewriter::rewrite(newRight));
 
   if (newLeft == newRight) {
     Assert (newLeft == utils::mkConst(size, (unsigned)0));
