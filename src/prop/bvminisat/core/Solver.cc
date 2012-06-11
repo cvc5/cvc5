@@ -31,19 +31,26 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 using namespace BVMinisat;
 
-// purely debugging functions
-void printDebug2 (BVMinisat::Lit l) {
-  std::cout<< (sign(l) ? "-" : "") << var(l) + 1 << std::endl;
+namespace CVC4 {
+
+#define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
+
+std::ostream& operator << (std::ostream& out, const BVMinisat::Lit& l) {
+  out << (sign(l) ? "-" : "") << var(l) + 1;
+  return out;
 }
 
-void printDebug2 (BVMinisat::Clause& c) {
+std::ostream& operator << (std::ostream& out, const BVMinisat::Clause& c) {
   for (int i = 0; i < c.size(); i++) {
-    std::cout << (sign(c[i]) ? "-" : "") << var(c[i]) + 1 << " "; 
+    if (i > 0) {
+      out << " ";
+    }
+    out << c[i];
   }
-  std::cout << std::endl;
+  return out;
 }
 
-
+}
 
 //=================================================================================================
 // Options:
@@ -243,7 +250,8 @@ bool Solver::satisfied(const Clause& c) const {
 //
 void Solver::cancelUntil(int level) {
     if (decisionLevel() > level){
-        for (int c = trail.size()-1; c >= trail_lim[level]; c--){
+      Debug("bvminisat::explain") << OUTPUT_TAG << " backtracking to " << level << std::endl;
+      for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
             if (marker[x] == 2) marker[x] = 1;
@@ -502,6 +510,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     trail.push_(p);
     if (decisionLevel() <= assumptions.size() && marker[var(p)] == 1) {
       if (notify) {
+        Debug("bvminisat::explain") << OUTPUT_TAG << "propagating " << p << std::endl;
         notify->notify(p);
       }
     }
@@ -757,6 +766,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             if (assumption) {
               assert(decisionLevel() < assumptions.size());
               analyzeFinal(p, conflict);
+              Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
             
@@ -779,17 +789,24 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             // NO CONFLICT
             if (decisionLevel() > assumptions.size() && nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()){
                 // Reached bound on number of conflicts:
+                Debug("bvminisat::search") << OUTPUT_TAG << " restarting " << std::endl;
                 progress_estimate = progressEstimate();
                 cancelUntil(assumptions.size());
                 return l_Undef; }
 
             // Simplify the set of problem clauses:
-            if (decisionLevel() == 0 && !simplify())
+            if (decisionLevel() == 0 && !simplify()) {
+                Debug("bvminisat::search") << OUTPUT_TAG << " base level conflict, we're unsat" << std::endl;
                 return l_False;
+            }
 
-            if (learnts.size()-nAssigns() >= max_learnts)
+            // We can't erase clauses if there is unprocessed assumptions, there might be some
+            // propagationg we need to redu
+            if (decisionLevel() >= assumptions.size() && learnts.size()-nAssigns() >= max_learnts) {
                 // Reduce the set of learnt clauses:
+                Debug("bvminisat::search") << OUTPUT_TAG << " cleaning up database" << std::endl;
                 reduceDB();
+            }
 
             Lit next = lit_Undef;
             while (decisionLevel() < assumptions.size()){
@@ -800,6 +817,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     newDecisionLevel();
                 }else if (value(p) == l_False){
                     analyzeFinal(~p, conflict);
+                    Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
                 }else{
                     marker[var(p)] = 2;
@@ -811,6 +829,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             if (next == lit_Undef){
 
                 if (only_bcp) {
+                  Debug("bvminisat::search") << OUTPUT_TAG << " only bcp, skipping rest of the problem" << std::endl;
                   return l_True;
                 }
 
@@ -818,9 +837,11 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 decisions++;
                 next = pickBranchLit();
 
-                if (next == lit_Undef)
+                if (next == lit_Undef) {
+                    Debug("bvminisat::search") << OUTPUT_TAG << " satisfiable" << std::endl;
                     // Model found:
                     return l_True;
+                }
             }
 
             // Increase decision level and enqueue 'next'
@@ -930,11 +951,16 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   vec<Lit> queue;
   queue.push(p);
 
-  __gnu_cxx::hash_set<Var> visited;
+  Debug("bvminisat::explain") << OUTPUT_TAG << "starting explain of " << p << std::endl;
+
+      __gnu_cxx::hash_set<Var> visited;
   visited.insert(var(p));
   
   while(queue.size() > 0) {
     Lit l = queue.last();
+
+    Debug("bvminisat::explain") << OUTPUT_TAG << "processing " << l << std::endl;
+
     assert(value(l) == l_True);
     queue.pop();
     if (reason(var(l)) == CRef_Undef) {

@@ -6,7 +6,7 @@
 :extrafuns ((v3 BitVec[4]))
 :extrafuns ((v4 BitVec[4]))
 :extrafuns ((v5 BitVec[4]))
-:status unknown
+:status unsat
 :formula
 (flet ($n1 true)
 (let (?n2 (extract[0:0] v2))

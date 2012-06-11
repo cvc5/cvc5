@@ -30,6 +30,27 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+enum SubTheory {
+  SUB_EQUALITY = 1,
+  SUB_BITBLAST = 2
+};
+
+inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
+  switch (subtheory) {
+  case SUB_BITBLAST:
+    out << "BITBLASTER";
+    break;
+  case SUB_EQUALITY:
+    out << "EQUALITY";
+    break;
+  default:
+    Unreachable();
+    break;
+  }
+  return out;
+}
+
+
 const bool d_useEqualityEngine = true;
 const bool d_useSatPropagation = true;
 

@@ -10,7 +10,7 @@
 :extrafuns ((v0 BitVec[15]))
 :extrafuns ((v14 BitVec[14]))
 :extrafuns ((v19 BitVec[10]))
-:status unknown
+:status unsat
 :formula
 (let (?n1 (sign_extend[2] v11))
 (let (?n2 (sign_extend[6] ?n1))

@@ -6,7 +6,7 @@
 :extrafuns ((v3 BitVec[11]))
 :extrafuns ((v8 BitVec[9]))
 :extrafuns ((v4 BitVec[14]))
-:status unknown
+:status sat
 :formula
 (let (?n1 bv0[1])
 (let (?n2 bv1[16])

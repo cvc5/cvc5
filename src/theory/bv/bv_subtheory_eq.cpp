@@ -96,7 +96,7 @@ bool EqualitySolver::addAssertions(const std::vector<TNode>& assertions, Theory:
     TNode fact = assertions[i];
 
     // Notify the equality engine
-    if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, TheoryBV::TheoryBV::SUB_EQUALITY) ) {
+    if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_EQUALITY) ) {
       bool negated = fact.getKind() == kind::NOT;
       TNode predicate = negated ? fact[0] : fact;
       if (predicate.getKind() == kind::EQUAL) {
@@ -156,7 +156,7 @@ void EqualitySolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) 
 }
 
 bool EqualitySolver::storePropagation(TNode literal) {
-  return d_bv->storePropagation(literal, TheoryBV::SUB_EQUALITY);
+  return d_bv->storePropagation(literal, SUB_EQUALITY);
 }
   
 void EqualitySolver::conflict(TNode a, TNode b) {

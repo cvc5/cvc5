@@ -3,7 +3,7 @@
 :extrafuns ((v1 BitVec[4]))
 :extrafuns ((v0 BitVec[4]))
 :extrafuns ((v2 BitVec[4]))
-:status unknown
+:status sat
 :formula
 (flet ($n1 true)
 (flet ($n2 false)

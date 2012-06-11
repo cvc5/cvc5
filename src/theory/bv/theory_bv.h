@@ -91,11 +91,6 @@ private:
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
-  enum SubTheory {
-    SUB_EQUALITY = 1,
-    SUB_BITBLAST = 2
-  };
-
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
    * properly.
@@ -127,12 +122,16 @@ private:
     return indentStr;
   }
 
-  void setConflict(Node conflict) {
+  void setConflict(Node conflict = Node::null()) {
     d_conflict = true; 
-    d_conflictNode = conflict; 
+    d_conflictNode = conflict;
   }
 
-  bool inConflict() { return d_conflict == true; }
+  bool inConflict() {
+    return d_conflict;
+  }
+
+  void sendConflict();
 
   friend class Bitblaster;
   friend class BitblastSolver;
@@ -142,6 +141,7 @@ private:
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__BV__THEORY_BV_H */

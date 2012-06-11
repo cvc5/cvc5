@@ -9,7 +9,7 @@
 :extrafuns ((v5 BitVec[4]))
 :extrafuns ((v3 BitVec[4]))
 :extrafuns ((v7 BitVec[4]))
-:status unknown
+:status unsat
 :formula
 (flet ($n1 true)
 (let (?n2 (bvcomp v3 v2))
