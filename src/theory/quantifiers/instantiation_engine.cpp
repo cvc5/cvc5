@@ -155,7 +155,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   }
 }
 
-int ierCounter = 0;
+static int ierCounter = 0;
 
 void InstantiationEngine::check( Theory::Effort e ){
   if( e==Theory::EFFORT_FULL ){
