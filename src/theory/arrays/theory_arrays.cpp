@@ -71,6 +71,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_RowQueue(c),
   d_RowAlreadyAdded(u),
   d_sharedArrays(c),
+  d_sharedOther(c),
   d_sharedTerms(c, false),
   d_reads(c),
   d_permRef(c)
@@ -481,9 +482,12 @@ void TheoryArrays::addSharedTerm(TNode t) {
   Debug("arrays::sharing") << spaces(getSatContext()->getLevel()) << "TheoryArrays::addSharedTerm(" << t << ")" << std::endl;
   d_equalityEngine.addTriggerTerm(t, THEORY_ARRAY);
   if (t.getType().isArray()) {
-    d_sharedArrays.insert(t,true);
+    d_sharedArrays.insert(t);
   }
   else {
+#ifdef CVC4_ASSERTIONS
+    d_sharedOther.insert(t);
+#endif
     d_sharedTerms = true;
   }
 }
@@ -507,18 +511,18 @@ EqualityStatus TheoryArrays::getEqualityStatus(TNode a, TNode b) {
 void TheoryArrays::computeCareGraph()
 {
   if (d_sharedArrays.size() > 0) {
-    context::CDHashMap<TNode, bool, TNodeHashFunction>::iterator it1 = d_sharedArrays.begin(), it2, iend = d_sharedArrays.end();
+    context::CDHashSet<TNode, TNodeHashFunction>::iterator it1 = d_sharedArrays.begin(), it2, iend = d_sharedArrays.end();
     for (; it1 != iend; ++it1) {
       for (it2 = it1, ++it2; it2 != iend; ++it2) {
-        if ((*it1).first.getType() != (*it2).first.getType()) {
+        if ((*it1).getType() != (*it2).getType()) {
           continue;
         }
-        EqualityStatus eqStatusArr = getEqualityStatus((*it1).first, (*it2).first);
+        EqualityStatus eqStatusArr = getEqualityStatus((*it1), (*it2));
         if (eqStatusArr != EQUALITY_UNKNOWN) {
           continue;
         }
-        Assert(d_valuation.getEqualityStatus((*it1).first, (*it2).first) == EQUALITY_UNKNOWN);
-        addCarePair((*it1).first, (*it2).first);
+        Assert(d_valuation.getEqualityStatus((*it1), (*it2)) == EQUALITY_UNKNOWN);
+        addCarePair((*it1), (*it2));
         ++d_numSharedArrayVarSplits;
         return;
       }
@@ -532,6 +536,11 @@ void TheoryArrays::computeCareGraph()
     unsigned size = d_reads.size();
     for (unsigned i = 0; i < size; ++ i) {
       TNode r1 = d_reads[i];
+
+      // Make sure shared terms were identified correctly
+      Assert(theoryOf(r1[0]) == THEORY_ARRAY || isShared(r1[0]));
+      Assert(theoryOf(r1[1]) == THEORY_ARRAY ||
+             d_sharedOther.find(r1[1]) != d_sharedOther.end());
 
       for (unsigned j = i + 1; j < size; ++ j) {
         TNode r2 = d_reads[j];
@@ -707,13 +716,10 @@ void TheoryArrays::check(Effort e) {
 
             Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
             Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
-            if (!d_equalityEngine.hasTerm(ak)) {
-              preRegisterTerm(ak);
-            }
-            if (!d_equalityEngine.hasTerm(bk)) {
-              preRegisterTerm(bk);
-            }
-            d_equalityEngine.assertEquality(ak.eqNode(bk), false, fact);
+            Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
+            Assert(eq.getKind() == kind::EQUAL);
+            d_equalityEngine.assertEquality(eq, false, fact);
+            propagate(eq.notNode());
             Trace("arrays-lem")<<"Arrays::addExtLemma "<< ak << " /= " << bk <<"\n";
             ++d_numExt;
           }

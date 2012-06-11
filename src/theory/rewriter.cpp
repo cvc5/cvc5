@@ -173,6 +173,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 	  rewriteStackTop.node = response.node;
           break;
         }
+        // Check for trivial rewrite loop of size 2
+        Assert(Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, response.node).node != rewriteStackTop.node);
 	rewriteStackTop.node = response.node;
       }
       // We're done with the post rewrite, so we add to the cache

@@ -305,7 +305,8 @@ class TheoryArrays : public Theory {
   context::CDQueue<RowLemmaType> d_RowQueue;
   context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;
 
-  context::CDHashMap<TNode, bool, TNodeHashFunction> d_sharedArrays;
+  context::CDHashSet<TNode, TNodeHashFunction> d_sharedArrays;
+  context::CDHashSet<TNode, TNodeHashFunction> d_sharedOther;
   context::CDO<bool> d_sharedTerms;
   context::CDList<TNode> d_reads;
   std::hash_map<TNode, Node, TNodeHashFunction> d_diseqCache;
