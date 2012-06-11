@@ -997,7 +997,7 @@ void TheoryEngine::propagateAsDecision(TNode literal, theory::TheoryId theory) {
 }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
-  Assert(a.getType() == b.getType());
+  Assert(a.getType().isComparableTo(b.getType()));
   if (d_sharedTerms.isShared(a) && d_sharedTerms.isShared(b)) {
     if (d_sharedTerms.areEqual(a,b)) {
       return EQUALITY_TRUE_AND_PROPAGATED;
