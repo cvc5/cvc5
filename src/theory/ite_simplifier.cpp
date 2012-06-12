@@ -369,10 +369,10 @@ Node ITESimplifier::substitute(TNode e, TNodeMap& substTable, TNodeMap& cache)
   }
 
   Node result = builder;
-  it = substTable.find(result);
-  if (it != iend) {
-    result = substitute(it->second, substTable, cache);
-  }
+  // it = substTable.find(result);
+  // if (it != iend) {
+  //   result = substitute(it->second, substTable, cache);
+  // }
   cache[e] = result;
   return result;
 }
