@@ -21,6 +21,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/valuation.h"
 #include "theory/bv/bitblaster.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -186,6 +187,16 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
     break;
   }
   return PP_ASSERT_STATUS_UNSOLVED;
+}
+
+
+Node TheoryBV::ppRewrite(TNode t)
+{
+  if (RewriteRule<BitwiseEq>::applies(t)) {
+    Node result = RewriteRule<BitwiseEq>::run<false>(t);
+    return Rewriter::rewrite(result);
+  }
+  return t;
 }
 
 
