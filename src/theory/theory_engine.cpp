@@ -1137,11 +1137,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << std::endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, true, false);
+    lemma(fullConflict, true, true);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, true, false);
+    lemma(conflict, true, true);
   }
 }
 
