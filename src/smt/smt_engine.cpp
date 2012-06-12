@@ -868,6 +868,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
       learnedLiteralNew = constantPropagations.apply(learnedLiteral);
       if (learnedLiteralNew == learnedLiteral) {
         break;
+      }
       ++d_smt.d_numConstantProps;
       learnedLiteral = theory::Rewriter::rewrite(learnedLiteralNew);
     }
@@ -968,15 +969,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
         d_lastSubstitutionPos = pos;
         ++pos;
       }
-      newLeft = constantPropagations.apply((*pos).first);
-      if (newLeft != (*pos).first) {
-        newLeft = Rewriter::rewrite(newLeft);
-        Assert(newLeft == (*pos).second ||
-               (constantPropagations.hasSubstitution(newLeft) && constantPropagations.apply(newLeft) == (*pos).second));
-      }
-      Assert(constantPropagations.apply((*pos).second) == (*pos).second);
     }
-
 #ifdef CVC4_ASSERTIONS
     // Check data structure invariants:
     // 1. for each lhs of d_topLevelSubstitutions, does not appear anywhere in rhs of d_topLevelSubstitutions or anywhere in constantPropagations
