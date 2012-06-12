@@ -282,7 +282,7 @@ return expr->arity();
 
 DEFINITION: Java_cvc3_Expr_jniGetKid
 jobject c Expr expr n int i
-return embed_copy<Expr>(env, &((*expr)[ji]));
+return embed_copy<Expr>(env, (*expr)[ji]);
 
 DEFINITION: Java_cvc3_Expr_jniGetKids
 jobjectArray c Expr expr
