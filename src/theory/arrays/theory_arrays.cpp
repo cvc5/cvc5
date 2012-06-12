@@ -539,9 +539,9 @@ void TheoryArrays::computeCareGraph()
       TNode r1 = d_reads[i];
 
       // Make sure shared terms were identified correctly
-      Assert(theoryOf(r1[0]) == THEORY_ARRAY || isShared(r1[0]));
-      Assert(theoryOf(r1[1]) == THEORY_ARRAY ||
-             d_sharedOther.find(r1[1]) != d_sharedOther.end());
+      // Assert(theoryOf(r1[0]) == THEORY_ARRAY || isShared(r1[0]));
+      // Assert(theoryOf(r1[1]) == THEORY_ARRAY ||
+      //        d_sharedOther.find(r1[1]) != d_sharedOther.end());
 
       for (unsigned j = i + 1; j < size; ++ j) {
         TNode r2 = d_reads[j];
