@@ -3,7 +3,7 @@
 :extrafuns ((v0 BitVec[12]))
 :extrafuns ((v1 BitVec[11]))
 :extrafuns ((a3 Array[1:6]))
-:status unknown
+:status sat
 :formula
 (let (?n1 bv0[6])
 (let (?n2 bv0[1])

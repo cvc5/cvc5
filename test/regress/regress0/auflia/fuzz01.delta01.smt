@@ -8,7 +8,7 @@
 :extrafuns ((v1 Int))
 :extrapreds ((p0 Int))
 :extrafuns ((f0 Int Int Int Int))
-:status unknown
+:status sat
 :formula
 (let (?n1 0)
 (flet ($n2 (> ?n1 v0))

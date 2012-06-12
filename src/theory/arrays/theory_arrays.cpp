@@ -719,9 +719,9 @@ void TheoryArrays::check(Effort e) {
             Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
             Node eq = d_valuation.ensureLiteral(ak.eqNode(bk));
             Assert(eq.getKind() == kind::EQUAL);
-            d_equalityEngine.assertEquality(eq, false, fact);
-            propagate(eq.notNode());
-            Trace("arrays-lem")<<"Arrays::addExtLemma "<< ak << " /= " << bk <<"\n";
+            Node lemma = fact[0].orNode(eq.notNode());
+            Trace("arrays-lem")<<"Arrays::addExtLemma " << lemma <<"\n";
+            d_out->lemma(lemma);
             ++d_numExt;
           }
         }

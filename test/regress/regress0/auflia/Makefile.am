@@ -10,7 +10,8 @@ endif
 # put it below in "TESTS +="
 TESTS =	\
         bug330.smt2 \
-	bug336.smt2 
+	bug336.smt2 \
+	fuzz01.delta01.smt
 
 EXTRA_DIST = $(TESTS)
 

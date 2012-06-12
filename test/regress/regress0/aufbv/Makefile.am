@@ -18,7 +18,16 @@ TESTS =	\
 	diseqprop.01.smt \
 	wchains010ue.delta01.smt \
 	wchains010ue.delta02.smt \
-	dubreva005ue.delta01.smt
+	dubreva005ue.delta01.smt \
+	fuzz00.smt \
+	fuzz01.delta01.smt \
+	fuzz01.smt \
+	fuzz02.delta01.smt \
+	fuzz02.smt \  
+	fuzz03.delta01.smt \
+	fuzz03.smt \
+	fuzz04.delta01.smt \
+	fuzz04.smt
 
 EXTRA_DIST = $(TESTS)
 

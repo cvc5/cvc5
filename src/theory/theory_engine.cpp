@@ -951,7 +951,7 @@ void TheoryEngine::assertFact(TNode literal)
 
 bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
 
-  Debug("theory") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << std::endl;
+  Debug("theory::propagate") << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << std::endl;
 
   d_propEngine->checkTime();
 
