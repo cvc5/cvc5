@@ -440,45 +440,51 @@ void UnconstrainedSimplifier::processUnconstrained()
           break;
         }
 
-        // Bitvector MULT - other term must be odd
-        case kind::BITVECTOR_MULT: {
-          TNode other;
-          if (parent[0] == current) {
-            other = parent[1];
-          }
-          else {
-            Assert(parent[1] == current);
-            other = parent[0];
-          }
-          if (d_unconstrained.find(other) != d_unconstrained.end()) {
-            if (d_unconstrained.find(parent) == d_unconstrained.end() &&
-                !d_substitutions.hasSubstitution(parent)) {
-              ++d_numUnconstrainedElim;
-              if (currentSub.isNull()) {
-                currentSub = current;
+        // Bitvector MULT - current must only appear once in the children:
+        // all other children must be unconstrained or odd
+        case kind::BITVECTOR_MULT:
+        {
+          bool found = false;
+          bool done = false;
+          for(TNode::iterator child_it = parent.begin(); child_it != parent.end(); ++child_it) {
+            if ((*child_it) == current) {
+              if (found) {
+                done = true;
+                break;
               }
-              current = parent;
+              found = true;
+              continue;
+            }
+            else if (d_unconstrained.find(*child_it) != d_unconstrained.end()) {
+              continue;
             }
             else {
-              currentSub = Node();
+              NodeManager* nm = NodeManager::currentNM();
+              Node extractOp = nm->mkConst<BitVectorExtract>(BitVectorExtract(0,0));
+              vector<Node> children;
+              children.push_back(*child_it);
+              Node test = nm->mkNode(extractOp, children);
+              BitVector one(1,unsigned(1));
+              test = test.eqNode(nm->mkConst<BitVector>(one));
+              if (Rewriter::rewrite(test) != nm->mkConst<bool>(true)) {
+                done = true;
+                break;
+              }
             }
           }
-          else {
-            NodeManager* nm = NodeManager::currentNM();
-            Node extractOp = nm->mkConst<BitVectorExtract>(BitVectorExtract(0,0));
-            vector<Node> children;
-            children.push_back(other);
-            Node test = nm->mkNode(extractOp, children);
-            BitVector one(1,unsigned(1));
-            test = test.eqNode(nm->mkConst<BitVector>(one));
-            if (Rewriter::rewrite(test) != nm->mkConst<bool>(true)) {
-              break;
-            }
+          if (done) {
+            break;
+          }
+          if (d_unconstrained.find(parent) == d_unconstrained.end() &&
+              !d_substitutions.hasSubstitution(parent)) {
             ++d_numUnconstrainedElim;
             if (currentSub.isNull()) {
               currentSub = current;
             }
             current = parent;
+          }
+          else {
+            currentSub = Node();
           }
           break;
         }
