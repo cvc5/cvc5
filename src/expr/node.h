@@ -230,7 +230,9 @@ class NodeTemplate {
       Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
     }
   }
+
 public:
+
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
@@ -254,8 +256,6 @@ public:
   template <class Iterator>
   Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd,
                   std::hash_map<TNode, TNode, TNodeHashFunction>& cache) const;
-
-public:
 
   /** Default constructor, makes a null expression. */
   NodeTemplate() : d_nv(&expr::NodeValue::s_null) { }

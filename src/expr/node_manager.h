@@ -910,17 +910,17 @@ inline TypeNode NodeManager::kindType() {
 }
 
 /** Get the bound var list type. */
-inline TypeNode NodeManager::boundVarListType(){
+inline TypeNode NodeManager::boundVarListType() {
   return TypeNode(mkTypeConst<TypeConstant>(BOUND_VAR_LIST_TYPE));
 }
 
 /** Get the instantiation pattern type. */
-inline TypeNode NodeManager::instPatternType(){
+inline TypeNode NodeManager::instPatternType() {
   return TypeNode(mkTypeConst<TypeConstant>(INST_PATTERN_TYPE));
 }
 
 /** Get the instantiation pattern type. */
-inline TypeNode NodeManager::instPatternListType(){
+inline TypeNode NodeManager::instPatternListType() {
   return TypeNode(mkTypeConst<TypeConstant>(INST_PATTERN_LIST_TYPE));
 }
 

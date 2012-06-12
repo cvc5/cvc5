@@ -190,7 +190,7 @@ public:
    */
   void storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId);
 
-//private:
+private:
 
   /** The context we are using */
   context::Context* d_context;
