@@ -248,6 +248,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_problemExtended(false),
   d_queryMade(false),
   d_needPostsolve(false),
+  d_earlyTheoryPP(true),
   d_timeBudgetCumulative(0),
   d_timeBudgetPerCall(0),
   d_resourceBudgetCumulative(0),
@@ -488,6 +489,10 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     bool arithRewriteEq = d_logic.isPure(theory::THEORY_ARITH) && !d_logic.isQuantified();
     Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
     NodeManager::currentNM()->getOptions()->arithRewriteEq = arithRewriteEq;
+  }
+  // Turn off early theory preprocessing if arithRewriteEq is on
+  if (NodeManager::currentNM()->getOptions()->arithRewriteEq) {
+    d_earlyTheoryPP = false;
   }
 }
 
@@ -1149,19 +1154,6 @@ void SmtEnginePrivate::simplifyAssertions()
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
-    if(!Options::current()->lazyDefinitionExpansion) {
-      Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
-      TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
-      hash_map<TNode, Node, TNodeHashFunction> cache;
-      for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-        d_assertionsToPreprocess[i] =
-          expandDefinitions(d_assertionsToPreprocess[i], cache);
-      }
-    }
-    
-    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
-    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
-
     if(Options::current()->simplificationMode != Options::SIMPLIFICATION_MODE_NONE) {
       // Perform non-clausal simplification
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
@@ -1178,11 +1170,22 @@ void SmtEnginePrivate::simplifyAssertions()
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+    // Theory preprocessing
+    if (d_smt.d_earlyTheoryPP) {
+      TimerStat::CodeTimer codeTimer(d_smt.d_theoryPreprocessTime);
+      // Call the theory preprocessors
+      d_smt.d_theoryEngine->preprocessStart();
+      for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+        d_assertionsToCheck[i] = d_smt.d_theoryEngine->preprocess(d_assertionsToCheck[i]);
+      }
+    }
+
+    // ITE simplification
     if(Options::current()->doITESimp) {
-      // ite simplification
       simpITE();
     }
 
+    // Unconstrained simplification
     if(Options::current()->unconstrainedSimp) {
       unconstrainedSimp();
     }
@@ -1195,16 +1198,6 @@ void SmtEnginePrivate::simplifyAssertions()
       d_smt.d_userContext->push();
       nonClausalSimplify();
       d_smt.d_userContext->pop();
-    }
-
-    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
-    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
-
-    if(Options::current()->doStaticLearning) {
-      // Perform static learning
-      Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                        << "performing static learning" << endl;
-      staticLearning();
     }
 
   } catch(TypeCheckingExceptionPrivate& tcep) {
@@ -1292,8 +1285,24 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-  // Simplify the assertions
+  if(!Options::current()->lazyDefinitionExpansion) {
+    Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
+    TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
+    hash_map<TNode, Node, TNodeHashFunction> cache;
+    for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+      d_assertionsToPreprocess[i] =
+        expandDefinitions(d_assertionsToPreprocess[i], cache);
+    }
+  }
+    
   simplifyAssertions();
+
+  if(Options::current()->doStaticLearning) {
+    // Perform static learning
+    Trace("simplify") << "SmtEnginePrivate::simplify(): "
+                      << "performing static learning" << endl;
+    staticLearning();
+  }
 
   // any assertions beyond realAssertionsEnd _must_ be introduced by
   // removeITEs().
@@ -1313,6 +1322,9 @@ void SmtEnginePrivate::processAssertions() {
     removeITEs();
   }
 
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 #ifdef CVC4_ASSERTIONS
@@ -1323,20 +1335,20 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-  if(Dump.isOn("assertions")) {
-    // Push the simplified assertions to the dump output stream
-    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-      Dump("assertions")
-        << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr()));
-    }
-  }
-
   {
     TimerStat::CodeTimer codeTimer(d_smt.d_theoryPreprocessTime);
     // Call the theory preprocessors
     d_smt.d_theoryEngine->preprocessStart();
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
       d_assertionsToCheck[i] = d_smt.d_theoryEngine->preprocess(d_assertionsToCheck[i]);
+    }
+  }
+
+  if(Dump.isOn("assertions")) {
+    // Push the simplified assertions to the dump output stream
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+      Dump("assertions")
+        << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr()));
     }
   }
 
