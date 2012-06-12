@@ -175,11 +175,6 @@ bool Smt::logicIsSet() {
   return d_logicSet;
 }
 
-inline void Smt::addUf() {
-  addTheory(Smt::THEORY_EMPTY);
-  addOperator(kind::APPLY_UF);
-}
-
 void Smt::setLogic(const std::string& name) {
   d_logicSet = true;
   d_logic = toLogic(name);
@@ -209,24 +204,25 @@ void Smt::setLogic(const std::string& name) {
   case QF_UFLIA:
   case QF_UFNIA:// nonstandard logic
     addTheory(THEORY_INTS);
-    addUf();
+    addOperator(kind::APPLY_UF);
     break;
 
   case QF_UFLRA:
   case QF_UFNRA:
     addTheory(THEORY_REALS);
-    addUf();
+    addOperator(kind::APPLY_UF);
     break;
 
   case QF_UFLIRA:// nonstandard logic
   case QF_UFNIRA:// nonstandard logic
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
-    addUf();
+    addOperator(kind::APPLY_UF);
     break;
 
   case QF_UF:
-    addUf();
+    addTheory(THEORY_EMPTY);
+    addOperator(kind::APPLY_UF);
     break;
 
   case QF_BV:
@@ -239,25 +235,25 @@ void Smt::setLogic(const std::string& name) {
     break;
 
   case QF_UFBV:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_BITVECTORS);
     break;
 
   case QF_AUFBV:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
     break;
 
   case QF_AUFBVLIA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
     addTheory(THEORY_INTS);
     break;
 
   case QF_AUFBVLRA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
     addTheory(THEORY_REALS);
@@ -265,13 +261,13 @@ void Smt::setLogic(const std::string& name) {
 
   case QF_AUFLIA:
     addTheory(THEORY_INT_ARRAYS_EX);
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     break;
 
   case QF_AUFLIRA:
     addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     break;
@@ -281,14 +277,14 @@ void Smt::setLogic(const std::string& name) {
     /* fall through */
   case QF_ALL_SUPPORTED:
     addTheory(THEORY_ARRAYS_EX);
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     addTheory(THEORY_BITVECTORS);
     break;
 
   case AUFLIA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_INT_ARRAYS_EX);
     addTheory(THEORY_QUANTIFIERS);
@@ -296,7 +292,7 @@ void Smt::setLogic(const std::string& name) {
 
   case AUFLIRA:
   case AUFNIRA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
@@ -304,20 +300,24 @@ void Smt::setLogic(const std::string& name) {
     break;
 
   case LRA:
+    addTheory(THEORY_REALS);
+    addTheory(THEORY_QUANTIFIERS);
+    break;
+
   case UFNIA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_QUANTIFIERS);
     break;
   case UFNIRA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     addTheory(THEORY_QUANTIFIERS);
     break;
 
   case UFLRA:
-    addUf();
+    addOperator(kind::APPLY_UF);
     addTheory(THEORY_REALS);
     addTheory(THEORY_QUANTIFIERS);
     break;

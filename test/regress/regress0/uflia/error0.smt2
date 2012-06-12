@@ -3,7 +3,7 @@
 (declare-sort U 0)
 (set-info :source "Currently this example asserts both a literal and its negation to a theory.")
 (set-info :status unsat)
-(set-info :category industrial)
+(set-info :category "industrial")
 (set-info :difficulty 0)
 (declare-fun arg0 () Int)
 (declare-fun arg1 () Int)

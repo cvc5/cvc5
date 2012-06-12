@@ -116,7 +116,6 @@ public:
 private:
 
   void addArithmeticOperators();
-  void addUf();
   static std::hash_map<const std::string, Logic, CVC4::StringHashFunction> newLogicMap();
 };/* class Smt */
 
