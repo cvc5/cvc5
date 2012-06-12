@@ -17,6 +17,7 @@
  **/
 
 #include "theory/substitutions.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 
@@ -103,21 +104,127 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) 
   return substitutionCache[t];
 }
 
+
+void SubstitutionMap::simplifyRHS(const SubstitutionMap& subMap)
+{
+  // Put the new substitutions into the old ones
+  NodeMap::iterator it = d_substitutions.begin();
+  NodeMap::iterator it_end = d_substitutions.end();
+  for(; it != it_end; ++ it) {
+    d_substitutions[(*it).first] = subMap.apply((*it).second);
+  }  
+}
+
+
+void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
+  // Temporary substitution cache
+  NodeCache tempCache;
+  tempCache[x] = t;
+
+  // Put the new substitution into the old ones
+  NodeMap::iterator it = d_substitutions.begin();
+  NodeMap::iterator it_end = d_substitutions.end();
+  for(; it != it_end; ++ it) {
+    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
+  }  
+}
+
+
+/* We use subMap to simplify the left-hand sides of the current substitution map.  If rewrite is true,
+ * we also apply the rewriter to the result.
+ * We want to maintain the invariant that all lhs are distinct from each other and from all rhs.
+ * If for some l -> r, l reduces to l', we try to add a new rule l' -> r.  There are two cases
+ * where this fails
+ *   (i) if l' is equal to some ll (in a rule ll -> rr), then if r != rr we add (r,rr) to the equation list
+ *   (i) if l' is equalto some rr (in a rule ll -> rr), then if r != rr we add (r,rr) to the equation list
+ */
+void SubstitutionMap::simplifyLHS(const SubstitutionMap& subMap, vector<pair<Node, Node> >& equalities, bool rewrite)
+{
+  Assert(d_worklist.empty());
+  // First, apply subMap to every LHS in d_substitutions
+  NodeMap::iterator it = d_substitutions.begin();
+  NodeMap::iterator it_end = d_substitutions.end();
+  Node newLeft;
+  for(; it != it_end; ++ it) {
+    newLeft = subMap.apply((*it).first);
+    if (newLeft != (*it).first) {
+      if (rewrite) {
+        newLeft = Rewriter::rewrite(newLeft);
+      }
+      d_worklist.push_back(pair<Node,Node>(newLeft, (*it).second));
+    }
+  }
+  processWorklist(equalities, rewrite);
+  Assert(d_worklist.empty());
+}
+
+
+void SubstitutionMap::simplifyLHS(TNode lhs, TNode rhs, vector<pair<Node,Node> >& equalities, bool rewrite)
+{
+  Assert(d_worklist.empty());
+  d_worklist.push_back(pair<Node,Node>(lhs,rhs));
+  processWorklist(equalities, rewrite);                       
+  Assert(d_worklist.empty());
+}
+
+
+void SubstitutionMap::processWorklist(vector<pair<Node, Node> >& equalities, bool rewrite)
+{
+  // Add each new rewrite rule, taking care not to invalidate invariants and looking
+  // for any new rewrite rules we can learn
+  Node newLeft, newRight;
+  while (!d_worklist.empty()) {
+    newLeft = d_worklist.back().first;
+    newRight = d_worklist.back().second;
+    d_worklist.pop_back();
+
+    NodeCache tempCache;
+    tempCache[newLeft] = newRight;
+
+    Node newLeft2;
+    unsigned size = d_worklist.size();
+    bool addThisRewrite = true;
+    NodeMap::iterator it = d_substitutions.begin();
+    NodeMap::iterator it_end = d_substitutions.end();
+
+    for(; it != it_end; ++ it) {
+
+      // Check for invariant violation.  If new rewrite is redundant, do nothing
+      // Otherwise, add an equality to the output equalities
+      // In either case undo any work done by this rewrite
+      if (newLeft == (*it).first || newLeft == (*it).second) {
+        if ((*it).second != newRight) {
+          equalities.push_back(pair<Node,Node>((*it).second, newRight));
+        }
+        while (d_worklist.size() > size) {
+          d_worklist.pop_back();
+        }
+        addThisRewrite = false;
+        break;
+      }
+
+      newLeft2 = internalSubstitute((*it).first, tempCache);
+      if (newLeft2 != (*it).first) {
+        if (rewrite) {
+          newLeft2 = Rewriter::rewrite(newLeft2);
+        }
+        d_worklist.push_back(pair<Node,Node>(newLeft2, (*it).second));
+      }
+    }
+    if (addThisRewrite) {
+      d_substitutions[newLeft] = newRight;
+      d_cacheInvalidated = true;
+    }
+  }
+}
+
+
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache, bool backSub, bool forwardSub) {
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << std::endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
   if (backSub) {
-    // Temporary substitution cache
-    NodeCache tempCache;
-    tempCache[x] = t;
-
-    // Put in the new substitutions into the old ones
-    NodeMap::iterator it = d_substitutions.begin();
-    NodeMap::iterator it_end = d_substitutions.end();
-    for(; it != it_end; ++ it) {
-      d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
-    }
+    simplifyRHS(x, t);
   }
 
   // Put the new substitution in
@@ -179,6 +286,10 @@ void SubstitutionMap::print(ostream& out) const {
   for (; it != it_end; ++ it) {
     out << (*it).first << " -> " << (*it).second << endl;
   }
+}
+
+void SubstitutionMap::debugPrint() const {
+  print(std::cout);
 }
 
 }/* CVC4::theory namespace */
