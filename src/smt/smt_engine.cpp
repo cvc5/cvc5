@@ -266,8 +266,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
   d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
   d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
-  d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
-  d_statResultSource("smt::resultSource", "unknown") {
+  d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0) {
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -282,7 +281,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   StatisticsRegistry::registerStat(&d_cnfConversionTime);
   StatisticsRegistry::registerStat(&d_numAssertionsPre);
   StatisticsRegistry::registerStat(&d_numAssertionsPost);
-  StatisticsRegistry::registerStat(&d_statResultSource);
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -402,7 +400,6 @@ SmtEngine::~SmtEngine() throw() {
     StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
     StatisticsRegistry::unregisterStat(&d_numAssertionsPre);
     StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
-    StatisticsRegistry::unregisterStat(&d_statResultSource);
 
     delete d_private;
     delete d_userContext;
@@ -1257,7 +1254,6 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check(): running check" << endl;
   Result result = d_propEngine->checkSat(millis, resource);
-  d_statResultSource.setData("satSolver");
 
   // PropEngine::checkSat() returns the actual amount used in these
   // variables.
@@ -1266,14 +1262,6 @@ Result SmtEngine::check() {
 
   Trace("limit") << "SmtEngine::check(): cumulative millis " << d_cumulativeTimeUsed
                  << ", conflicts " << d_cumulativeResourceUsed << endl;
-
-  if(result.isUnknown() and d_decisionEngine != NULL) {
-    Result deResult = d_decisionEngine->getResult();
-    if(not deResult.isUnknown()) {
-      d_statResultSource.setData("decisionEngine");
-      result = deResult;
-    }
-  }
 
   return result;
 }

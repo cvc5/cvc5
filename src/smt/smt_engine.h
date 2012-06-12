@@ -258,9 +258,6 @@ class CVC4_PUBLIC SmtEngine {
   /** Num of assertions after ite removal */
   IntStat d_numAssertionsPost;
 
-  /** how the SMT engine got the answer -- SAT solver or DE */
-  BackedStat<std::string> d_statResultSource;
-
 public:
 
   /**

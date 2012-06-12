@@ -1100,12 +1100,6 @@ lbool Solver::search(int nof_conflicts)
                 continue;
               } else {
                 // Yes, we're truly satisfiable
-		if(decisionEngineDone) {
-		  // but we might know that only because of decision engine
-		  Trace("decision") << decisionEngineDone << " decision engine stopping us" << std::endl;
-		  interrupt();
-		  return l_Undef;
-		}
                 return l_True;
               }
             } else if (check_type == CHECK_FINAL_FAKE) {
