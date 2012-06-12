@@ -863,6 +863,7 @@ throw(OptionException) {
 
     case DUMP_TO: {
 #ifdef CVC4_DUMPING
+      size_t dagSetting = expr::ExprDag::getDag(Dump.getStream());
       if(optarg == NULL || *optarg == '\0') {
         throw OptionException(string("Bad file name for --dump-to"));
       } else if(!strcmp(optarg, "-")) {
@@ -874,6 +875,7 @@ throw(OptionException) {
         }
         Dump.setStream(*dumpTo);
       }
+      expr::ExprDag::setDag(Dump.getStream(), dagSetting);
 #else /* CVC4_DUMPING */
       throw OptionException("The dumping feature was disabled in this build of CVC4.");
 #endif /* CVC4_DUMPING */
