@@ -26,7 +26,9 @@ SMT_TESTS = \
 	pb_real_10_0100_10_19.smt \
 	pb_real_10_0200_10_22.smt \
 	pb_real_10_0200_10_26.smt \
-	pb_real_10_0200_10_29.smt 
+	pb_real_10_0200_10_29.smt \
+	incorrect2.smt \
+	incorrect1.smt
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS =

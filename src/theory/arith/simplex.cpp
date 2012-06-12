@@ -493,7 +493,9 @@ Node SimplexDecisionProcedure::weakenConflict(bool aboveUpper, ArithVar basicVar
     const Rational& coeff = entry.getCoefficient();
     bool weakening = false;
     Constraint c = weakestExplanation(aboveUpper, surplus, v, coeff, weakening, basicVar);
-    Debug("weak") << "weak : " << weakening << " " << c->assertedToTheTheory()
+    Debug("weak") << "weak : " << weakening << " "
+                  << c->assertedToTheTheory() << " "
+                  << d_partialModel.getAssignment(v) << " "
                   << c << endl
                   << c->explainForConflict() << endl;
     anyWeakenings = anyWeakenings || weakening;

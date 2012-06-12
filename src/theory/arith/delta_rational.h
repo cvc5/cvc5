@@ -93,6 +93,10 @@ public:
     return *(this) + (a * negOne);
   }
 
+  DeltaRational operator-() const{
+    return DeltaRational(-c, -k);
+  }
+
   DeltaRational operator/(const Rational& a) const{
     CVC4::Rational tmpC = c/a;
     CVC4::Rational tmpK = k/a;
