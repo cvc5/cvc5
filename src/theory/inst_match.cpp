@@ -167,7 +167,7 @@ void InstMatch::computeTermVec( const std::vector< Node >& vars, std::vector< No
 
 /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
 void InstMatchTrie::addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, int index, ImtIndexOrder* imtio ){
-  if( long(index)<f[0].getNumChildren() && ( !imtio || long(index)<imtio->d_order.size() ) ){
+  if( long(index)<long(f[0].getNumChildren()) && ( !imtio || long(index)<long(imtio->d_order.size()) ) ){
     int i_index = imtio ? imtio->d_order[index] : index;
     Node n = m.d_map[ qe->getInstantiationConstant( f, i_index ) ];
     d_data[n].addInstMatch2( qe, f, m, index+1, imtio );
@@ -176,7 +176,7 @@ void InstMatchTrie::addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, 
 
 /** exists match */
 bool InstMatchTrie::existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, int index, ImtIndexOrder* imtio ){
-  if( long(index)==f[0].getNumChildren() || ( imtio && long(index)==imtio->d_order.size() ) ){
+  if( long(index)==long(f[0].getNumChildren()) || ( imtio && long(index)==long(imtio->d_order.size()) ) ){
     return true;
   }else{
     int i_index = imtio ? imtio->d_order[index] : index;
