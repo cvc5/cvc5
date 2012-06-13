@@ -1139,6 +1139,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Assert(properConflict(fullConflict));
     lemma(fullConflict, true, true);
   } else {
+    Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "):" << std::endl;
+
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     lemma(conflict, true, true);
