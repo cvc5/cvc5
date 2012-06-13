@@ -319,13 +319,14 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool preregister) {
 }
 
 RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool preregister) {
-  Node resultNode = node;
-
-  resultNode = LinearRewriteStrategy
+  if (preregister) {
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+  Node resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, 
       RewriteRule<PlusCombineLikeTerms>
       // RewriteRule<PlusLiftConcat> 
-      >::apply(resultNode);
+      >::apply(node);
   if (resultNode == node) {
     return RewriteResponse(REWRITE_DONE, resultNode);
   } else {

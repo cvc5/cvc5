@@ -134,11 +134,20 @@ Node RewriteRule<ExtractArith2>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<FlattenAssocCommut>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_PLUS ||
-          node.getKind() == kind::BITVECTOR_MULT ||
-          node.getKind() == kind::BITVECTOR_OR ||
-          node.getKind() == kind::BITVECTOR_XOR ||
-          node.getKind() == kind::BITVECTOR_AND);
+  Kind kind = node.getKind();
+  if (kind != kind::BITVECTOR_PLUS &&
+      kind != kind::BITVECTOR_MULT &&
+      kind != kind::BITVECTOR_OR &&
+      kind != kind::BITVECTOR_XOR &&
+      kind != kind::BITVECTOR_AND)
+    return false;
+  TNode::iterator child_it = node.begin();
+  for(; child_it != node.end(); ++child_it) {
+    if ((*child_it).getKind() == kind) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
@@ -329,9 +338,12 @@ bool RewriteRule<MultSimplify>::applies(TNode node) {
       return true;
     }
   }
-  if ((*child_it).isConst() &&
-      (*child_it).getConst<BitVector>() == BitVector(utils::getSize(node), (unsigned) 0)) {
-    return true;
+  if ((*child_it).isConst()) {
+    BitVector bv = (*child_it).getConst<BitVector>();
+    if (bv == BitVector(utils::getSize(node), (unsigned) 0) ||
+        bv == BitVector(utils::getSize(node), (unsigned) 1)) {
+      return true;
+    }
   }
   return false;
 }
