@@ -1,7 +1,7 @@
 (benchmark fuzzsmt
 :logic QF_AUFBV
 :extrafuns ((a2 Array[12:9]))
-:status sast
+:status sat
 :formula
 (let (?n1 bv0[13])
 (let (?n2 (bvsdiv ?n1 ?n1))
