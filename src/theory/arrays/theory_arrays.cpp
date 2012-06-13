@@ -359,6 +359,9 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions) {
  */
 void TheoryArrays::preRegisterTerm(TNode node)
 {
+  if (d_conflict) {
+    return;
+  }
   Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::preRegisterTerm(" << node << ")" << std::endl;
   switch (node.getKind()) {
   case kind::EQUAL:
