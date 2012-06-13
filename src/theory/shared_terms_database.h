@@ -213,7 +213,7 @@ public:
    * Returns true if the term is currently registered as shared with some theory.
    */
   bool isShared(TNode term) const {
-    return term.isConst() || d_alreadyNotifiedMap.find(term) != d_alreadyNotifiedMap.end();
+    return d_alreadyNotifiedMap.find(term) != d_alreadyNotifiedMap.end();
   }
 
   /**

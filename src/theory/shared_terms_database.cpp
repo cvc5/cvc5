@@ -174,7 +174,7 @@ void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
 
 bool SharedTermsDatabase::areEqual(TNode a, TNode b) const {
   return d_equalityEngine.areEqual(a,b);
-}
+} 
 
 bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
   return d_equalityEngine.areDisequal(a,b,false);
