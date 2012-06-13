@@ -273,7 +273,12 @@ private:
    * Sat Context Dependent.
    * This is initially AssertionOrderSentinel.
    */
-  AssertionOrder d_assertionOrder;
+  AssertionOrder _d_assertionOrder;
+  /**
+   * This is guarenteed to be on the fact queue.
+   * For example if x + y = x + 1 is on the fact queue, then use this 
+   */
+  TNode d_witness;
 
   /**
    * This points at the proof for the constraint in the current context.
@@ -347,7 +352,8 @@ private:
     inline void operator()(Constraint* p){
       Constraint constraint = *p;
       Assert(constraint->assertedToTheTheory());
-      constraint->d_assertionOrder = AssertionOrderSentinel;
+      constraint->_d_assertionOrder = AssertionOrderSentinel;
+      constraint->d_witness = TNode::null();
       Assert(!constraint->assertedToTheTheory());
     }
   };
@@ -439,15 +445,20 @@ public:
   }
 
   bool assertedToTheTheory() const {
-    return d_assertionOrder < AssertionOrderSentinel;
+    Assert((_d_assertionOrder < AssertionOrderSentinel) != d_witness.isNull());
+    return _d_assertionOrder < AssertionOrderSentinel;
+  }
+  TNode getWitness() const {
+    Assert(assertedToTheTheory());
+    return d_witness;
   }
 
   bool assertedBefore(AssertionOrder time) const {
-    return d_assertionOrder < time;
+    return _d_assertionOrder < time;
   }
 
 
-  void setAssertedToTheTheory();
+  void setAssertedToTheTheory(TNode witness);
 
 
   bool hasLiteral() const {
@@ -518,7 +529,7 @@ public:
   Node explainForPropagation() const {
     Assert(hasProof());
     Assert(!isSelfExplaining());
-    return explainBefore(d_assertionOrder);
+    return explainBefore(_d_assertionOrder);
   }
 
 private:
@@ -733,9 +744,10 @@ private:
     d_watches->d_canBePropagatedWatches.push_back(c);
   }
 
-  void pushAssertionOrderWatch(Constraint c){
+  void pushAssertionOrderWatch(Constraint c, TNode witness){
     Assert(!c->assertedToTheTheory());
-    c->d_assertionOrder = d_watches->d_assertionOrderWatches.size();
+    c->_d_assertionOrder = d_watches->d_assertionOrderWatches.size();
+    c->d_witness = witness;
     d_watches->d_assertionOrderWatches.push_back(c);
   }
 

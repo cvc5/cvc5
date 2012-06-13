@@ -1132,7 +1132,7 @@ Constraint TheoryArith::constraintFromFactQueue(){
     return NullConstraint;
   }else{
     Debug("arith::constraint") << "arith constraint " << constraint << std::endl;
-    constraint->setAssertedToTheTheory();
+    constraint->setAssertedToTheTheory(assertion);
 
     if(!constraint->hasProof()){
       Debug("arith::constraint") << "marking as constraint as self explaining " << endl;
@@ -1661,8 +1661,7 @@ void TheoryArith::propagate(Effort e) {
 
       d_out->propagate(literal);
     }else{
-      Node literal = c->getLiteral();
-      Debug("arith::prop") << "already asserted to the theory " << literal << endl;
+      Debug("arith::prop") << "already asserted to the theory " <<  c->getLiteral() << endl;
     }
   }
 

@@ -56,7 +56,8 @@ ConstraintValue::ConstraintValue(ArithVar x,  ConstraintType t, const DeltaRatio
     d_literal(Node::null()),
     d_negation(NullConstraint),
     d_canBePropagated(false),
-    d_assertionOrder(AssertionOrderSentinel),
+    _d_assertionOrder(AssertionOrderSentinel),
+    d_witness(TNode::null()),
     d_proof(ProofIdSentinel),
     d_split(false),
     d_variablePosition()
@@ -347,11 +348,11 @@ void ConstraintValue::setCanBePropagated() {
   d_database->pushCanBePropagatedWatch(this);
 }
 
-void ConstraintValue::setAssertedToTheTheory() {
+void ConstraintValue::setAssertedToTheTheory(TNode witness) {
   Assert(hasLiteral());
   Assert(!assertedToTheTheory());
   Assert(!d_negation->assertedToTheTheory());
-  d_database->pushAssertionOrderWatch(this);
+  d_database->pushAssertionOrderWatch(this, witness);
 }
 
 bool ConstraintValue::isSelfExplaining() const {
@@ -853,7 +854,7 @@ void ConstraintValue::explainBefore(NodeBuilder<>& nb, AssertionOrder order) con
   Assert(!isSelfExplaining() || assertedToTheTheory());
 
   if(assertedBefore(order)){
-    nb << getLiteral();
+    nb << getWitness();
   }else if(hasEqualityEngineProof()){
     d_database->eeExplain(this, nb);
   }else{
@@ -870,7 +871,7 @@ Node ConstraintValue::explainBefore(AssertionOrder order) const{
   Assert(hasProof());
   Assert(!isSelfExplaining() || assertedBefore(order));
   if(assertedBefore(order)){
-    return getLiteral();
+    return getWitness();
   }else if(hasEqualityEngineProof()){
     return d_database->eeExplain(this);
   }else{
