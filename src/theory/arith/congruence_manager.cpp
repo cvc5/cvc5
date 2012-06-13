@@ -7,8 +7,9 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, TNodeCallBack& setup, const ArithVarNodeMap& av2Node)
-  : d_conflict(c),
+ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, TNodeCallBack& setup, const ArithVarNodeMap& av2Node, NodeCallBack& raiseConflict)
+  : d_inConflict(c),
+    d_raiseConflict(raiseConflict),
     d_notify(*this),
     d_keepAlive(c),
     d_propagatations(c),
@@ -112,7 +113,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       ++(d_statistics.d_conflicts);
 
       Node conf = flattenAnd(explainInternal(x));
-      d_conflict.set(conf);
+      raiseConflict(conf);
       Debug("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
       return false;
     }
@@ -141,7 +142,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     Node final = flattenAnd(conf);
 
     ++(d_statistics.d_conflicts);
-    d_conflict.set(final);
+    raiseConflict(final);
     Debug("arith::congruenceManager") << "congruenceManager found a conflict " << final << std::endl;
     return false;
   }

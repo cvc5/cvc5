@@ -762,6 +762,8 @@ private:
   const context::Context * const d_satContext;
   const int d_satAllocationLevel;
 
+  NodeCallBack& d_raiseConflict;
+
   friend class ConstraintValue;
 
 public:
@@ -769,12 +771,13 @@ public:
   ConstraintDatabase( context::Context* satContext,
                       context::Context* userContext,
                       const ArithVarNodeMap& av2nodeMap,
-                      ArithCongruenceManager& dm);
+                      ArithCongruenceManager& dm,
+                      NodeCallBack& conflictCallBack);
 
   ~ConstraintDatabase();
 
+  /** Adds a literal to the database. */
   Constraint addLiteral(TNode lit);
-  //Constraint addAtom(TNode atom);
 
   /**
    * If hasLiteral() is true, returns the constraint.
@@ -852,6 +855,8 @@ public:
   void unatePropEquality(Constraint curr, Constraint prevLB, Constraint prevUB);
 
 private:
+  void raiseUnateConflict(Constraint ant, Constraint cons);
+
   class Statistics {
   public:
     IntStat d_unatePropagateCalls;

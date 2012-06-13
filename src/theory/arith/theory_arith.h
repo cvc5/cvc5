@@ -184,6 +184,8 @@ private:
    */
   std::deque<Constraint> d_currentPropagationList;
 
+  context::CDQueue<Constraint> d_learnedBounds;
+
   /**
    * Manages information about the assignment and upper and lower bounds on
    * variables.
@@ -245,8 +247,17 @@ private:
     void operator()(Node n){
       d_list.push_back(n);
     }
-  };
-  PushCallBack d_conflictCallBack;
+  } d_raiseConflict;
+
+  /** Returns true iff a conflict has been raised. */
+  inline bool inConflict() const {
+    return !d_conflicts.empty();
+  }
+  /**
+   * Outputs the contents of d_conflicts onto d_out.
+   * Must be inConflict().
+   */
+  void outputConflicts();
 
 
   /**
@@ -386,10 +397,10 @@ private:
    * a node describing this conflict is returned.
    * If this new bound is not in conflict, Node::null() is returned.
    */
-  Node AssertLower(Constraint constraint);
-  Node AssertUpper(Constraint constraint);
-  Node AssertEquality(Constraint constraint);
-  Node AssertDisequality(Constraint constraint);
+  bool AssertLower(Constraint constraint);
+  bool AssertUpper(Constraint constraint);
+  bool AssertEquality(Constraint constraint);
+  bool AssertDisequality(Constraint constraint);
 
   /** Tracks the bounds that were updated in the current round. */
   DenseSet d_updatedBounds;
@@ -423,7 +434,8 @@ private:
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
    */
-  Node assertionCases(TNode assertion);
+  Constraint constraintFromFactQueue();
+  bool assertionCases(Constraint c);
 
   /**
    * Returns the basic variable with the shorted row containg a non-basic variable.

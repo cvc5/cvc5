@@ -25,7 +25,8 @@ namespace arith {
 
 class ArithCongruenceManager {
 private:
-  context::CDMaybe<Node> d_conflict;
+  context::CDRaised d_inConflict;
+  NodeCallBack& d_raiseConflict;
 
   /**
    * The set of ArithVars equivalent to a pair of terms.
@@ -101,16 +102,17 @@ private:
 
   eq::EqualityEngine d_ee;
 
+  void raiseConflict(Node conflict){
+    Assert(!inConflict());
+    Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
+    d_inConflict.raise();
+    d_raiseConflict(conflict);
+  }
 public:
 
   bool inConflict() const{
-    return d_conflict.isSet();
+    return d_inConflict.isRaised();
   };
-
-  Node conflict() const{
-    Assert(inConflict());
-    return d_conflict.get();
-  }
 
   bool hasMorePropagations() const {
     return !d_propagatations.empty();
@@ -182,7 +184,7 @@ private:
 
 public:
 
-  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, TNodeCallBack&, const ArithVarNodeMap&);
+  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, TNodeCallBack& setLiteral, const ArithVarNodeMap&, NodeCallBack& raiseConflict);
 
   Node explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);
