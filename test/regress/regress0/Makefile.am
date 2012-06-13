@@ -94,7 +94,6 @@ BUG_TESTS = \
 	bug168.smt \
 	bug187.smt2 \
 	bug220.smt2 \
-	bug233.cvc \
 	bug239.smt \
 	bug288.smt \
 	bug288b.smt \
