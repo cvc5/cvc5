@@ -84,7 +84,7 @@ public:
 
   static RewriteResponse preRewrite(TNode node);
 
-  static inline Node rewriteEquality(TNode node) {
+  static Node rewriteEquality(TNode node) {
     Debug("bitvector") << "TheoryBV::rewriteEquality(" << node << ")" << std::endl;
     return postRewrite(node).node;
   }

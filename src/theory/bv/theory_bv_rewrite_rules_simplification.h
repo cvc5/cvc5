@@ -657,51 +657,6 @@ Node RewriteRule<NotUle>::apply(TNode node) {
 }
 
 /**
- * MultOne 
- *
- * (a * 1) ==> a
- */
-
-template<> inline
-bool RewriteRule<MultOne>::applies(TNode node) {
-  unsigned size = utils::getSize(node); 
-  return (node.getKind() == kind::BITVECTOR_MULT &&
-          (node[0] == utils::mkConst(size, 1) ||
-           node[1] == utils::mkConst(size, 1)));
-}
-
-template<> inline
-Node RewriteRule<MultOne>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<MultOne>(" << node << ")" << std::endl;
-  unsigned size = utils::getSize(node); 
-  if (node[0] == utils::mkConst(size, 1)) {
-    return node[1];
-  }
-  Assert(node[1] == utils::mkConst(size, 1));
-  return node[0]; 
-}
-
-/**
- * MultZero 
- *
- * (a * 0) ==> 0
- */
-
-template<> inline
-bool RewriteRule<MultZero>::applies(TNode node) {
-  unsigned size = utils::getSize(node); 
-  return (node.getKind() == kind::BITVECTOR_MULT &&
-          (node[0] == utils::mkConst(size, 0) ||
-           node[1] == utils::mkConst(size, 0)));
-}
-
-template<> inline
-Node RewriteRule<MultZero>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<MultZero>(" << node << ")" << std::endl;
-  return utils::mkConst(utils::getSize(node), 0); 
-}
-
-/**
  * MultPow2
  *
  * (a * 2^k) ==> a[n-k-1:0] 0_k
@@ -736,36 +691,11 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
     }
   }
 
-  Node a = utils::mkSortedNode(kind::BITVECTOR_MULT, children); 
+  Node a = utils::mkNode(kind::BITVECTOR_MULT, children); 
 
   Node extract = utils::mkExtract(a, utils::getSize(node) - exponent - 1, 0);
   Node zeros = utils::mkConst(exponent, 0);
   return utils::mkConcat(extract, zeros); 
-}
-
-/**
- * PlusZero
- *   
- * (a + 0) ==> a
- */
-
-template<> inline
-bool RewriteRule<PlusZero>::applies(TNode node) {
-  Node zero = utils::mkConst(utils::getSize(node), 0); 
-  return (node.getKind() == kind::BITVECTOR_PLUS &&
-          (node[0] == zero ||
-           node[1] == zero));
-}
-
-template<> inline
-Node RewriteRule<PlusZero>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<PlusZero>(" << node << ")" << std::endl;
-  Node zero = utils::mkConst(utils::getSize(node), 0);
-  if (node[0] == zero) {
-    return node[1];
-  }
-  
-  return node[0]; 
 }
 
 /**
@@ -966,7 +896,7 @@ Node RewriteRule<BBPlusNeg>::apply(TNode node) {
   Assert(neg_count!= 0); 
   children.push_back(utils::mkConst(utils::getSize(node), neg_count)); 
 
-  return utils::mkSortedNode(kind::BITVECTOR_PLUS, children); 
+  return utils::mkNode(kind::BITVECTOR_PLUS, children); 
 }
 
 // /**

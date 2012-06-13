@@ -65,7 +65,7 @@ public:
   std::string identify() const { return std::string("TheoryBV"); }
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+  Node ppRewrite(TNode t);
 
 private:
 

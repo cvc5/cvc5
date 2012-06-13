@@ -135,10 +135,11 @@ bool RewriteRule<EvalMult>::applies(TNode node) {
 template<> inline
 Node RewriteRule<EvalMult>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<EvalMult>(" << node << ")" << std::endl;
-  BitVector a = node[0].getConst<BitVector>();
-  BitVector b = node[1].getConst<BitVector>();
-  BitVector res = a * b;
-  
+  TNode::iterator child_it = node.begin();
+  BitVector res = (*child_it).getConst<BitVector>();
+  for(++child_it; child_it != node.end(); ++child_it) {
+    res = res * (*child_it).getConst<BitVector>();
+  }
   return utils::mkConst(res);
 }
 
@@ -151,10 +152,11 @@ bool RewriteRule<EvalPlus>::applies(TNode node) {
 template<> inline
 Node RewriteRule<EvalPlus>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<EvalPlus>(" << node << ")" << std::endl;
-  BitVector a = node[0].getConst<BitVector>();
-  BitVector b = node[1].getConst<BitVector>();
-  BitVector res = a + b;
-  
+  TNode::iterator child_it = node.begin();
+  BitVector res = (*child_it).getConst<BitVector>();
+  for(++child_it; child_it != node.end(); ++child_it) {
+    res = res + (*child_it).getConst<BitVector>();
+  }
   return utils::mkConst(res);
 }
 

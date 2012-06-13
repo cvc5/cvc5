@@ -118,12 +118,7 @@ enum RewriteRuleId {
   UleMax,
   NotUlt,
   NotUle,
-  MultOne,
-  MultZero,
   MultPow2,
-  PlusZero,
-  PlusSelf,
-  PlusNegSelf,
   NegIdemp,
   UdivPow2,
   UdivOne,
@@ -242,12 +237,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case OrOne :       out << "OrOne";        return out;
   case XorOne :       out << "XorOne";        return out;
   case XorZero :       out << "XorZero";        return out;
-  case MultOne :       out << "MultOne";        return out;
-  case MultZero :       out << "MultZero";        return out;
   case MultPow2 :            out << "MultPow2";             return out;
-  case PlusZero :            out << "PlusZero";             return out;
-  case PlusSelf :            out << "PlusSelf";             return out;
-  case PlusNegSelf :            out << "PlusNegSelf";             return out;
   case NegIdemp :            out << "NegIdemp";             return out;
   case UdivPow2 :            out << "UdivPow2";             return out;
   case UdivOne :            out << "UdivOne";             return out;
@@ -465,12 +455,7 @@ struct AllRewriteRules {
   RewriteRule<SubEliminate> rule82; 
   RewriteRule<XorOne> rule83;
   RewriteRule<XorZero> rule84;
-  RewriteRule<MultOne> rule85;
-  RewriteRule<MultZero> rule86;
   RewriteRule<MultPow2> rule87;
-  RewriteRule<PlusZero> rule88;
-  RewriteRule<PlusSelf> rule89;
-  RewriteRule<PlusNegSelf> rule90;
   RewriteRule<NegIdemp> rule91;
   RewriteRule<UdivPow2> rule92;
   RewriteRule<UdivOne> rule93;

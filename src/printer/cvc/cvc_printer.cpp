@@ -483,18 +483,33 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << "@";
       opType = INFIX;
       break;
-    case kind::BITVECTOR_PLUS:
+    case kind::BITVECTOR_PLUS: {
       //This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
-      out << "BVPLUS(";
       Assert(n.getType().isBitVector());
+      unsigned numc = n.getNumChildren()-2;
+      unsigned child = 0;
+      while (child < numc) {
+        out << "BVPLUS(";
+        out << BitVectorType(n.getType().toType()).getSize();
+        out << ',';
+        toStream(out, n[child], depth, types, false);
+        out << ',';
+        ++child;
+      }
+      out << "BVPLUS(";
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[0], depth, types, false);
-      out << ',';
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[child], depth, types, false);
+      out << ',';        
+      toStream(out, n[child+1], depth, types, false);
+      while (child > 0) {
+        out << ')';
+        --child;
+      }
       out << ')';
       return;
       break;
+    }
     case kind::BITVECTOR_SUB:
       out << "BVSUB(";
       Assert(n.getType().isBitVector());
@@ -506,17 +521,32 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << ')';
       return;
       break;
-    case kind::BITVECTOR_MULT:
-      out << "BVMULT(";
+    case kind::BITVECTOR_MULT: {
       Assert(n.getType().isBitVector());
+      unsigned numc = n.getNumChildren()-2;
+      unsigned child = 0;
+      while (child < numc) {
+        out << "BVMULT(";
+        out << BitVectorType(n.getType().toType()).getSize();
+        out << ',';
+        toStream(out, n[child], depth, types, false);
+        out << ',';
+        ++child;
+        }
+      out << "BVMULT(";
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
-      toStream(out, n[0], depth, types, false);
-      out << ',';
-      toStream(out, n[1], depth, types, false);
+      toStream(out, n[child], depth, types, false);
+      out << ',';        
+      toStream(out, n[child+1], depth, types, false);
+      while (child > 0) {
+        out << ')';
+        --child;
+      }
       out << ')';
       return;
       break;
+    }
     case kind::BITVECTOR_EXTRACT:
       op << n.getOperator().getConst<BitVectorExtract>();
       opType = POSTFIX;

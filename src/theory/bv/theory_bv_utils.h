@@ -95,12 +95,10 @@ inline Node mkAnd(std::vector<TNode>& children) {
 }
 
 inline Node mkSortedNode(Kind kind, std::vector<Node>& children) {
-  Assert (kind == kind::BITVECTOR_PLUS ||
-          kind == kind::BITVECTOR_MULT ||
-          kind == kind::BITVECTOR_AND ||
+  Assert (kind == kind::BITVECTOR_AND ||
           kind == kind::BITVECTOR_OR ||
           kind == kind::BITVECTOR_XOR);
-
+  Assert(children.size() > 0);
   if (children.size() == 1) {
     return children[0]; 
   }
@@ -126,9 +124,7 @@ inline Node mkNode(Kind kind, TNode child1, TNode child2) {
 
 
 inline Node mkSortedNode(Kind kind, TNode child1, TNode child2) {
-  Assert (kind == kind::BITVECTOR_PLUS ||
-          kind == kind::BITVECTOR_MULT ||
-          kind == kind::BITVECTOR_AND ||
+  Assert (kind == kind::BITVECTOR_AND ||
           kind == kind::BITVECTOR_OR ||
           kind == kind::BITVECTOR_XOR);
   
