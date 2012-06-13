@@ -18,12 +18,12 @@ TESTS =	\
 	quant-Arrays_Q1-noinfer.smt2 \
 	uflia-error0.smt2 \
 	uflia-xs-09-16-3-4-1-5.smt \
+	uflia-xs-09-16-3-4-1-5.delta03.smt \
 	bug347.smt
 
 # Incorrect answers:
-#	aufbv-fuzz01.smt \
 #	quant-symmetric_unsat_7.smt2 \
-#	uflia-xs-09-16-3-4-1-5.delta03.smt \
+#	aufbv-fuzz01.smt \
 #
 
 EXTRA_DIST = $(TESTS)
