@@ -37,7 +37,7 @@ namespace CVC4 {
   d_satSolver(NULL),
   d_satContext(sc),
   d_userContext(uc),
-  d_result(SAT_VALUE_UNKNOWN)
+  d_result(sc, SAT_VALUE_UNKNOWN)
 {
   const Options* options = Options::current();
   Trace("decision") << "Creating decision engine" << std::endl;

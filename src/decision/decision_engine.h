@@ -50,10 +50,12 @@ class DecisionEngine {
 
   context::Context* d_satContext;
   context::Context* d_userContext;
-  SatValue d_result;
+
+  // Does decision engine know the answer?
+  context::CDO<SatValue> d_result;
 
   // Disable creating decision engine without required parameters
-  DecisionEngine() {}
+  DecisionEngine() : d_result(NULL) {}
 public:
   // Necessary functions
 
@@ -128,7 +130,7 @@ public:
 
   /** */
   Result getResult() {
-    switch(d_result) {
+    switch(d_result.get()) {
     case SAT_VALUE_TRUE: return Result(Result::SAT);
     case SAT_VALUE_FALSE: return Result(Result::UNSAT);
     case SAT_VALUE_UNKNOWN: return Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
