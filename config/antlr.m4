@@ -25,6 +25,14 @@ AC_DEFUN([AC_PROG_ANTLR], [
 [No usable antlr3 script found. Make sure that the parser code has
 been generated already. To obtain ANTLR see <http://www.antlr.org/>.]
     )
+    ANTLR_VERSION=
+  else
+    ANTLR_VERSION="`$ANTLR -version 2>&1 | sed 's,.*\<Version  *\([[0-9.]]*\).*,\1,'`"
+    case "$ANTLR_VERSION" in
+      3.2|3.2.*) ANTLR_VERSION=3.2 ;;
+      3.4|3.4.*) ANTLR_VERSION=3.4 ;;
+      *) AC_MSG_WARN([unknown version of antlr: $ANTLR_VERSION]);;
+    esac
   fi
 ])
 
@@ -94,6 +102,9 @@ AC_DEFUN([AC_LIB_ANTLR],[
     ])],
     [
       AC_MSG_RESULT([found it (must be antlr3 3.2 or similar)])
+      if test -n "$ANTLR_VERSION" -a "$ANTLR_VERSION" != 3.2; then
+        AC_MSG_WARN([your antlr parser generator is version $ANTLR_VERSION, which doesn't match the library!])
+      fi
       CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_ANTLR3_OLD_INPUT_STREAM"
     ],
         [
@@ -111,6 +122,9 @@ AC_DEFUN([AC_LIB_ANTLR],[
             ])],
             [
               AC_MSG_RESULT([found it (must be antlr3 3.4 or similar)])
+              if test -n "$ANTLR_VERSION" -a "$ANTLR_VERSION" != 3.4; then
+                AC_MSG_WARN([your antlr parser generator is version $ANTLR_VERSION, which doesn't match the library!])
+              fi
             ],
                 [
                   AC_MSG_ERROR([cannot figure out how to create an antlr3 input stream, bailing..])

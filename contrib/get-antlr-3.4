@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+set -e
+
+cd "$(dirname "$0")/.."
+
+if ! [ -e src/parser/cvc/Cvc.g ]; then
+  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
+  echo "but apparently:" >&2
+  echo >&2
+  echo "  $(pwd)" >&2
+  echo >&2
+  echo "is not a CVC4 source tree ?!" >&2
+  exit 1
+fi
+
+set -x
+mkdir -p antlr-3.4/share/java
+mkdir -p antlr-3.4/bin
+mkdir -p antlr-3.4/src
+cd antlr-3.4
+wget -c -O share/java/antlr-3.4-complete.jar http://antlr.org/download/antlr-3.4-complete.jar
+wget -c -O src/libantlr3c-3.4.tar.gz http://antlr.org/download/C/libantlr3c-3.4.tar.gz
+tee bin/antlr3 <<EOF
+#!/bin/sh
+export CLASSPATH=/usr/share/java/stringtemplate.jar:`pwd`/share/java/antlr-3.4-complete.jar:\$CLASSPATH
+exec java org.antlr.Tool "\$@"
+EOF
+chmod a+x bin/antlr3
+cd src
+tar xfzv libantlr3c-3.4.tar.gz
+cd libantlr3c-3.4
+./configure --enable-64bit --prefix=`pwd`/../..
+cp Makefile Makefile.orig
+sed 's,^CFLAGS = .*,\0 -fexceptions,' Makefile.orig > Makefile
+make
+make install
+set +x
+cd ../../..
+
+echo
+echo Invalidating generated parsers..
+touch src/parser/*/*.g
+
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure --with-antlr-dir=`pwd`/antlr-3.4 ANTLR=`pwd`/antlr-3.4/bin/antlr3

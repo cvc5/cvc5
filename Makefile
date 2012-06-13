@@ -43,6 +43,12 @@ examples: all
 
 YEAR := $(shell date +%Y)
 submission:
+	@if [ -n "`ls src/parser/*/generated`" ]; then \
+	  echo 'ERROR:' >&2; \
+	  echo 'ERROR: Please make maintainer-clean first.' >&2; \
+	  echo 'ERROR:' >&2; \
+	  exit 1; \
+        fi
 	if [ ! -e configure ]; then ./autogen.sh; fi
 	./configure competition --disable-shared --enable-static-binary --with-cln --with-portfolio
 	$(MAKE)
@@ -64,7 +70,14 @@ submission:
 	  echo 'exec ./pcvc4 -L smt2 --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/run
 	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/run
 	tar cf cvc4-parallel-smtcomp-$(YEAR).tar cvc4-parallel-smtcomp-$(YEAR)
-	# application track
+	# application track is a separate build
+	make maintainer-clean
+	if [ ! -e configure ]; then ./autogen.sh; fi
+	./configure competition --disable-shared --enable-static-binary --with-cln CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK
+	$(MAKE)
+	strip builds/bin/cvc4
+	$(MAKE) regress1
+	# package the application track tarball
 	mkdir -p cvc4-application-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
 	( echo '#!/bin/sh'; \

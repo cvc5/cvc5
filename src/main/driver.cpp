@@ -115,7 +115,7 @@ int runCvc4(int argc, char* argv[], Options& options) {
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC4_COMPETITION_MODE
   *options.out << unitbuf;
-#endif
+#endif /* CVC4_COMPETITION_MODE */
 
   // We only accept one input file
   if(argc > firstArgIndex + 1) {
@@ -268,7 +268,11 @@ int runCvc4(int argc, char* argv[], Options& options) {
     ParserBuilder parserBuilder(&exprMgr, filename, options);
 
     if( inputFromStdin ) {
+#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+      parserBuilder.withStreamInput(cin);
+#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
       parserBuilder.withLineBufferedStreamInput(cin);
+#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
     }
 
     Parser *parser = parserBuilder.build();
@@ -311,7 +315,7 @@ int runCvc4(int argc, char* argv[], Options& options) {
   // exit, don't return
   // (don't want destructors to run)
   exit(returnValue);
-#endif
+#endif /* CVC4_COMPETITION_MODE */
 
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
   RegisterStatistic statSatResultReg(exprMgr, &s_statSatResult);

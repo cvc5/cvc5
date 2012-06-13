@@ -10,6 +10,7 @@ EXTRA_DIST = \
 	new-theory \
 	configure-in-place \
 	depgraph \
+	get-antlr-3.4 \
 	theoryskel/kinds \
 	theoryskel/Makefile \
 	theoryskel/Makefile.am \
