@@ -122,8 +122,14 @@ Options::Options() :
   satRestartInc(3.0),
   arithUnateLemmaMode(ALL_PRESOLVE_LEMMAS),
   arithPropagationMode(BOTH_PROP),
-  arithPivotRule(MINIMUM),
-  arithPivotThreshold(16),
+  arithHeuristicPivots(0),
+  arithHeuristicPivotsSetByUser(false),
+  arithStandardCheckVarOrderPivots(-1),
+  arithStandardCheckVarOrderPivotsSetByUser(false),
+  arithHeuristicPivotRule(MINIMUM),
+  arithSimplexCheckPeriod(200),
+  arithPivotThreshold(2),
+  arithPivotThresholdSetByUser(false),
   arithPropagateMaxLength(16),
   arithDioSolver(true),
   arithRewriteEq(false),
@@ -239,12 +245,17 @@ Additional CVC4 options:\n\
    --restart-int-inc=F    restart interval increase factor for the sat solver\n\
                           (F=3.0 by default)\n\
   ARITHMETIC:\n\
-   ---unate-lemmas=MODE   determines which lemmas to add before solving\n\
+   --unate-lemmas=MODE   determines which lemmas to add before solving\n\
                           (default is 'all', see --unate-lemmas=help)\n\
    --arith-prop=MODE      turns on arithmetic propagation\n\
                           (default is 'old', see --arith-prop=help)\n\
-   --pivot-rule=RULE      change the pivot rule for the basic variable\n\
-                          (default is 'min', see --pivot-rule help)\n\
+   --heuristic-pivot-rule=RULE change the pivot rule for the basic variable\n\
+                          (default is 'min', see --heuristic-pivot-rule help)\n\
+   --heuristic-pivots=N   the number of times to apply the heuristic pivot rule.\n\
+                          If N < 0, this defaults to the number of variables\n\
+                          If this is unset, this is tuned by the logic selection.\n\
+   --simplex-check-period=N The number of pivots to do in simplex before rechecking for\n\
+                          a conflict on all variables.\n\
    --pivot-threshold=N    sets the number of pivots using --pivot-rule\n\
                           per basic variable per simplex instance before\n\
                           using variable order\n\
@@ -528,7 +539,10 @@ enum OptionValue {
   SAT_RESTART_INC,
   ARITHMETIC_UNATE_LEMMA_MODE,
   ARITHMETIC_PROPAGATION_MODE,
+  ARITHMETIC_HEURISTIC_PIVOTS,
+  ARITHMETIC_VAR_ORDER_PIVOTS,
   ARITHMETIC_PIVOT_RULE,
+  ARITHMETIC_CHECK_PERIOD,
   ARITHMETIC_PIVOT_THRESHOLD,
   ARITHMETIC_PROP_MAX_LENGTH,
   ARITHMETIC_DIO_SOLVER,
@@ -653,7 +667,10 @@ static struct option cmdlineOptions[] = {
   { "print-winner", no_argument     , NULL, PRINT_WINNER  },
   { "unate-lemmas", required_argument, NULL, ARITHMETIC_UNATE_LEMMA_MODE },
   { "arith-prop", required_argument, NULL, ARITHMETIC_PROPAGATION_MODE },
-  { "pivot-rule" , required_argument, NULL, ARITHMETIC_PIVOT_RULE  },
+  { "heuristic-pivots", required_argument, NULL, ARITHMETIC_HEURISTIC_PIVOTS },
+  { "heuristic-pivot-rule" , required_argument, NULL, ARITHMETIC_PIVOT_RULE  },
+  { "standard-effort-variable-order-pivots", required_argument, NULL, ARITHMETIC_VAR_ORDER_PIVOTS },
+  { "simplex-check-period" , required_argument, NULL, ARITHMETIC_CHECK_PERIOD  },
   { "pivot-threshold" , required_argument, NULL, ARITHMETIC_PIVOT_THRESHOLD  },
   { "prop-row-length" , required_argument, NULL, ARITHMETIC_PROP_MAX_LENGTH  },
   { "disable-dio-solver", no_argument, NULL, ARITHMETIC_DIO_SOLVER },
@@ -1370,27 +1387,42 @@ throw(OptionException) {
       }
       break;
 
+    case ARITHMETIC_HEURISTIC_PIVOTS:
+      arithHeuristicPivots = atoi(optarg);
+      arithHeuristicPivotsSetByUser = true;
+      break;
+
+    case ARITHMETIC_VAR_ORDER_PIVOTS:
+      arithStandardCheckVarOrderPivots = atoi(optarg);
+      arithStandardCheckVarOrderPivotsSetByUser = true;
+      break;
+
     case ARITHMETIC_PIVOT_RULE:
       if(!strcmp(optarg, "min")) {
-        arithPivotRule = MINIMUM;
+        arithHeuristicPivotRule = MINIMUM;
         break;
       } else if(!strcmp(optarg, "min-break-ties")) {
-        arithPivotRule = BREAK_TIES;
+        arithHeuristicPivotRule = BREAK_TIES;
         break;
       } else if(!strcmp(optarg, "max")) {
-        arithPivotRule = MAXIMUM;
+        arithHeuristicPivotRule = MAXIMUM;
         break;
       } else if(!strcmp(optarg, "help")) {
         puts(pivotRulesHelp.c_str());
         exit(1);
       } else {
-        throw OptionException(string("unknown option for --pivot-rule: `") +
-                              optarg + "'.  Try --pivot-rule help.");
+        throw OptionException(string("unknown option for --heuristic-pivot-rule: `") +
+                              optarg + "'.  Try --heuristic-pivot-rule help.");
       }
+      break;
+
+    case ARITHMETIC_CHECK_PERIOD:
+      arithSimplexCheckPeriod = atoi(optarg);
       break;
 
     case ARITHMETIC_PIVOT_THRESHOLD:
       arithPivotThreshold = atoi(optarg);
+      arithPivotThresholdSetByUser = true;
       break;
 
     case ARITHMETIC_PROP_MAX_LENGTH:
@@ -1601,7 +1633,7 @@ void Options::setInputLanguage(const char* str) throw(OptionException) {
   languageHelp = true;
 }
 
-std::ostream& operator<<(std::ostream& out, Options::ArithPivotRule rule) {
+std::ostream& operator<<(std::ostream& out, Options::ArithHeuristicPivotRule rule) {
   switch(rule) {
   case Options::MINIMUM:
     out << "MINIMUM";

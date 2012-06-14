@@ -854,6 +854,15 @@ public:
     return getHead().isConstant();
   }
 
+  uint32_t size() const{
+    if(singleton()){
+      return 1;
+    }else{
+      Assert(getNode().getKind() == kind::PLUS);
+      return getNode().getNumChildren();
+    }
+  }
+
   Monomial getHead() const {
     return *(begin());
   }

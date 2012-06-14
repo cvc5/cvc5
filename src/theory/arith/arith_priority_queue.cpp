@@ -240,10 +240,41 @@ void ArithPriorityQueue::transitionToVariableOrderMode() {
 
 void ArithPriorityQueue::transitionToCollectionMode() {
   Assert(inDifferenceMode() || inVariableOrderMode());
-  Assert(d_diffQueue.empty());
   Assert(d_candidates.empty());
+
+  if(inDifferenceMode()){
+    Assert(d_varSet.empty());
+    Assert(d_varOrderQueue.empty());
+    Assert(inDifferenceMode());
+
+    DifferenceArray::const_iterator i = d_diffQueue.begin(), end = d_diffQueue.end();
+    for(; i != end; ++i){
+      ArithVar var = (*i).variable();
+      if(basicAndInconsistent(var) && !d_varSet.isMember(var)){
+        d_candidates.push_back(var);
+        d_varSet.add(var);
+      }
+    }
+    d_diffQueue.clear();
+  }else{
+    Assert(d_diffQueue.empty());
+    Assert(inVariableOrderMode());
+
+    d_varSet.purge();
+
+    ArithVarArray::const_iterator i = d_varOrderQueue.begin(), end = d_varOrderQueue.end();
+    for(; i != end; ++i){
+      ArithVar var = *i;
+      if(basicAndInconsistent(var)){
+        d_candidates.push_back(var);
+        d_varSet.add(var); // cannot have duplicates.
+      }
+    }
+    d_varOrderQueue.clear();
+  }
+
+  Assert(d_diffQueue.empty());
   Assert(d_varOrderQueue.empty());
-  Assert(d_varSet.empty());
 
   Debug("arith::priorityqueue") << "transitionToCollectionMode()" << endl;
 

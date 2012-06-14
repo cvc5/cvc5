@@ -266,15 +266,41 @@ struct CVC4_PUBLIC Options {
   typedef enum { NO_PROP, UNATE_PROP, BOUND_INFERENCE_PROP, BOTH_PROP} ArithPropagationMode;
   ArithPropagationMode arithPropagationMode;
 
-  /** The pivot rule for arithmetic */
-  typedef enum { MINIMUM, BREAK_TIES, MAXIMUM } ArithPivotRule;
-  ArithPivotRule arithPivotRule;
+  /**
+   * The maximum number of difference pivots to do per invokation of simplex.
+   * If this is negative, the number of pivots done is the number of variables.
+   * If this is not set by the user, different logics are free to chose different
+   * defaults.
+   */
+  int16_t arithHeuristicPivots;
+  bool arithHeuristicPivotsSetByUser;
 
   /**
-   * The number of pivots before Bland's pivot rule is used on a basic
-   * variable in arithmetic.
+   * The maximum number of variable order pivots to do per invokation of simplex.
+   * If this is negative, the number of pivots done is unlimited.
+   * If this is not set by the user, different logics are free to chose different
+   * defaults.
+   */
+  int16_t arithStandardCheckVarOrderPivots;
+  bool arithStandardCheckVarOrderPivotsSetByUser;
+
+  /** The heuristic pivot rule for arithmetic. */
+  typedef enum { MINIMUM, BREAK_TIES, MAXIMUM } ArithHeuristicPivotRule;
+  ArithHeuristicPivotRule arithHeuristicPivotRule;
+
+  /**
+   * The number of pivots before simplex rechecks every basic variable for a conflict.
+   */
+  uint16_t arithSimplexCheckPeriod;
+
+  /**
+   * This is the pivots per basic variable that can be done using heuristic choices
+   * before variable order must be used.
+   * If this is not set by the user, different logics are free to chose different
+   * defaults.
    */
   uint16_t arithPivotThreshold;
+  bool arithPivotThresholdSetByUser;
 
   /**
    * The maximum row length that arithmetic will use for propagation.
@@ -529,7 +555,7 @@ inline std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, Options::ArithPivotRule rule) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, Options::ArithHeuristicPivotRule rule) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

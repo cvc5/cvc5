@@ -62,6 +62,7 @@
 #include "util/dense_map.h"
 #include "util/options.h"
 #include "util/stats.h"
+#include "util/result.h"
 
 #include <queue>
 
@@ -130,7 +131,7 @@ public:
    *
    * Corresponds to the "check()" procedure in [Cav06].
    */
-  bool findModel();
+  Result::Sat findModel(bool exactResult);
 
 private:
 
@@ -217,6 +218,11 @@ private:
 
 public:
   void increaseMax() {d_numVariables++;}
+
+
+  void clearQueue() {
+    d_queue.clear();
+  }
 
 private:
 

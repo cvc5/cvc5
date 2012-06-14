@@ -136,6 +136,11 @@ private:
    */
   ArithVarArray d_varOrderQueue;
 
+  /**
+   * A superset of the basic variables that may be inconsistent.
+   * This is empty during DiffOrderMode, and otherwise it is the same set as candidates
+   * or varOrderQueue.
+   */
   DenseSet d_varSet;
 
   /**
