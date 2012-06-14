@@ -255,9 +255,7 @@ public:
         // we are becuase of not getting information about literals
         // created using newLiteral command... need to figure how to
         // handle that
-        Warning() << "isRelevant: WARNING: didn't find node when we should had" << std::endl;
-        // Warning() doesn't work for some reason
-        cout << "isRelevant: WARNING: didn't find node when we should had" << std::endl;
+        Message() << "isRelevant: WARNING: didn't find node when we should had" << std::endl;
       }      
     }
 

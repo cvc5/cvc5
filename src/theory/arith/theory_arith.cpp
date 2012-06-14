@@ -96,7 +96,7 @@ TheoryArith::Statistics::Statistics():
   d_simplifyTimer("theory::arith::simplifyTimer"),
   d_staticLearningTimer("theory::arith::staticLearningTimer"),
   d_presolveTime("theory::arith::presolveTime"),
-  d_newPropTime("::newPropTimer"),
+  d_newPropTime("theory::arith::newPropTimer"),
   d_externalBranchAndBounds("theory::arith::externalBranchAndBounds",0),
   d_initialTableauSize("theory::arith::initialTableauSize", 0),
   d_currSetToSmaller("theory::arith::currSetToSmaller", 0),
