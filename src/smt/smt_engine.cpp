@@ -1004,7 +1004,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
           Assert(!t.isConst());
           Assert(constantPropagations.apply(t) == t);
           Assert(d_topLevelSubstitutions.apply(t) == t);
-          constantPropagations.addSubstitution(t, c, true, false, false);
+          constantPropagations.addSubstitution(t, c);
           // vector<pair<Node,Node> > equations;a
           // constantPropagations.simplifyLHS(t, c, equations, true);
           // if (!equations.empty()) {

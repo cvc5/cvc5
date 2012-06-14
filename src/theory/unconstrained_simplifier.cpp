@@ -653,7 +653,7 @@ void UnconstrainedSimplifier::processUnconstrained()
     }
     if (!currentSub.isNull()) {
       Assert(currentSub.isVar());
-      d_substitutions.addSubstitution(current, currentSub, false, false, false);
+      d_substitutions.addSubstitution(current, currentSub, false);
     }
     if (workList.empty()) {
       break;
@@ -673,7 +673,7 @@ void UnconstrainedSimplifier::processUnconstrained()
     left = delayQueueLeft.back();
     if (!d_substitutions.hasSubstitution(left)) {
       right = d_substitutions.apply(delayQueueRight.back());
-      d_substitutions.addSubstitution(delayQueueLeft.back(), right, true, true, false);
+      d_substitutions.addSubstitution(delayQueueLeft.back(), right);
     }
     delayQueueLeft.pop_back();
     delayQueueRight.pop_back();

@@ -31,12 +31,12 @@ struct substitution_stack_element {
   : node(node), children_added(false) {}
 };
 
-Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) {
+
+Node SubstitutionMap::internalSubstitute(TNode t) {
 
   Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << std::endl;
 
-  // If nothing to substitute just return the node
-  if (substitutionCache.empty()) {
+  if (d_substitutions.empty()) {
     return t;
   }
 
@@ -53,8 +53,19 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) 
     Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << std::endl;
 
     // If node already in the cache we're done, pop from the stack
-    NodeCache::iterator find = substitutionCache.find(current);
-    if (find != substitutionCache.end()) {
+    NodeCache::iterator find = d_substitutionCache.find(current);
+    if (find != d_substitutionCache.end()) {
+      toVisit.pop_back();
+      continue;
+    }
+
+    NodeMap::iterator find2 = d_substitutions.find(current);
+    if (find2 != d_substitutions.end()) {
+      Node rhs = (*find2).second;
+      Assert(rhs != current);
+      internalSubstitute(rhs);
+      d_substitutions[current] = d_substitutionCache[rhs];
+      d_substitutionCache[current] = d_substitutionCache[rhs];
       toVisit.pop_back();
       continue;
     }
@@ -67,17 +78,30 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) 
         builder << current.getOperator();
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
-        Assert(substitutionCache.find(current[i]) != substitutionCache.end());
-        builder << Node(substitutionCache[current[i]]);
+        Assert(d_substitutionCache.find(current[i]) != d_substitutionCache.end());
+        builder << Node(d_substitutionCache[current[i]]);
       }
       // Mark the substitution and continue
       Node result = builder;
-      find = substitutionCache.find(result);
-      if (find != substitutionCache.end()) {
-        result = find->second;
+      if (result != current) {
+        find = d_substitutionCache.find(result);
+        if (find != d_substitutionCache.end()) {
+          result = find->second;
+        }
+        else {
+          find2 = d_substitutions.find(result);
+          if (find2 != d_substitutions.end()) {
+            Node rhs = (*find2).second;
+            Assert(rhs != result);
+            internalSubstitute(rhs);
+            d_substitutions[result] = d_substitutionCache[rhs];
+            d_substitutionCache[result] = d_substitutionCache[rhs];
+            result = d_substitutionCache[rhs];
+          }
+        }
       }
       Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << std::endl;
-      substitutionCache[current] = result;
+      d_substitutionCache[current] = result;
       toVisit.pop_back();
     } else {
       // Mark that we have added the children if any
@@ -86,25 +110,26 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& substitutionCache) 
         // We need to add the children
         for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
           TNode childNode = *child_it;
-          NodeCache::iterator childFind = substitutionCache.find(childNode);
-          if (childFind == substitutionCache.end()) {
+          NodeCache::iterator childFind = d_substitutionCache.find(childNode);
+          if (childFind == d_substitutionCache.end()) {
             toVisit.push_back(childNode);
           }
         }
       } else {
         // No children, so we're done
         Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << std::endl;
-        substitutionCache[current] = current;
+        d_substitutionCache[current] = current;
         toVisit.pop_back();
       }
     }
   }
 
   // Return the substituted version
-  return substitutionCache[t];
+  return d_substitutionCache[t];
 }
 
 
+  /*
 void SubstitutionMap::simplifyRHS(const SubstitutionMap& subMap)
 {
   // Put the new substitutions into the old ones
@@ -122,13 +147,18 @@ void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
   tempCache[x] = t;
 
   // Put the new substitution into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
+  NodeMap::iterator it = d_substitutionsOld.begin();
+  NodeMap::iterator it_end = d_substitutionsOld.end();
   for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
+    d_substitutionsOld[(*it).first] = internalSubstituteOld((*it).second, tempCache);
   }  
+  // it = d_substitutionsLazy.begin();
+  // it_end = d_substitutionsLazy.end();
+  // for(; it != it_end; ++ it) {
+  //   d_substitutionsLazy[(*it).first] = internalSubstitute((*it).second, tempCache);
+  // }  
 }
-
+*/
 
 /* We use subMap to simplify the left-hand sides of the current substitution map.  If rewrite is true,
  * we also apply the rewriter to the result.
@@ -138,6 +168,7 @@ void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
  *   (i) if l' is equal to some ll (in a rule ll -> rr), then if r != rr we add (r,rr) to the equation list
  *   (i) if l' is equalto some rr (in a rule ll -> rr), then if r != rr we add (r,rr) to the equation list
  */
+/*
 void SubstitutionMap::simplifyLHS(const SubstitutionMap& subMap, vector<pair<Node, Node> >& equalities, bool rewrite)
 {
   Assert(d_worklist.empty());
@@ -203,7 +234,7 @@ void SubstitutionMap::processWorklist(vector<pair<Node, Node> >& equalities, boo
         break;
       }
 
-      newLeft2 = internalSubstitute((*it).first, tempCache);
+      newLeft2 = internalSubstituteOld((*it).first, tempCache);
       if (newLeft2 != (*it).first) {
         if (rewrite) {
           newLeft2 = Rewriter::rewrite(newLeft2);
@@ -217,18 +248,14 @@ void SubstitutionMap::processWorklist(vector<pair<Node, Node> >& equalities, boo
     }
   }
 }
+*/
 
-
-void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache, bool backSub, bool forwardSub) {
+void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
+{
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << std::endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
-  if (backSub) {
-    simplifyRHS(x, t);
-  }
-
-  // Put the new substitution in
-  d_substitutions[x] = forwardSub ? apply(t) : Node(t);
+  d_substitutions[x] = t;
 
   // Also invalidate the cache if necessary
   if (invalidateCache) {
@@ -261,21 +288,16 @@ Node SubstitutionMap::apply(TNode t) {
 
   // Setup the cache
   if (d_cacheInvalidated) {
-    SubstitutionMap::NodeMap::const_iterator it = d_substitutions.begin();
-    SubstitutionMap::NodeMap::const_iterator it_end = d_substitutions.end();
     d_substitutionCache.clear();
-    for (; it != it_end; ++ it) {
-      d_substitutionCache[(*it).first] = (*it).second;
-    }
     d_cacheInvalidated = false;
     Debug("substitution") << "-- reset the cache" << std::endl;
   }
 
   // Perform the substitution
-  Node result = internalSubstitute(t, d_substitutionCache);
+  Node result = internalSubstitute(t);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << std::endl;
 
-//  Assert(check(result, d_substitutions));
+  //  Assert(check(result, d_substitutions));
 
   return result;
 }

@@ -68,7 +68,7 @@ private:
   bool d_cacheInvalidated;
 
   /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeCache& substitutionCache);
+  Node internalSubstitute(TNode t);
 
   /** Helper class to invalidate cache on user pop */
   class CacheInvalidator : public context::ContextNotifyObj {
@@ -92,8 +92,8 @@ private:
   CacheInvalidator d_cacheInvalidator;
 
   // Helper list and method for simplifyLHS methods
-  std::vector<std::pair<Node, Node> > d_worklist;
-  void processWorklist(std::vector<std::pair<Node, Node> >& equalities, bool rewrite);
+  // std::vector<std::pair<Node, Node> > d_worklist;
+  // void processWorklist(std::vector<std::pair<Node, Node> >& equalities, bool rewrite);
 
 public:
 
@@ -106,17 +106,10 @@ public:
   }
 
   /**
-   * Adds a substitution from x to t.  Typically you also want to apply this
-   * substitution to the existing set (backSub), but you do not need to
-   * apply the existing set to the new substitution (forwardSub).  However,
-   * the method allows you to do either.  Probably you should not do both,
-   * as it will be very difficult to maintain the invariant that no
-   * left-hand side appears on any right-hand side.
+   * Adds a substitution from x to t.
    */
   void addSubstitution(TNode x, TNode t,
-                       bool invalidateCache = true,
-                       bool backSub = true,
-                       bool forwardSub = false);
+                       bool invalidateCache = true);
 
   /**
    * Returns true iff x is in the substitution map
@@ -162,6 +155,7 @@ public:
   // should best interact with cache invalidation on context
   // pops.
 
+  /*
   // Simplify right-hand sides of current map using the given substitutions
   void simplifyRHS(const SubstitutionMap& subMap);
 
@@ -177,6 +171,7 @@ public:
   void simplifyLHS(TNode lhs, TNode rhs,
                    std::vector<std::pair<Node,Node> >& equalities,
                    bool rewrite = true);
+  */
 
   /**
    * Print to the output stream
