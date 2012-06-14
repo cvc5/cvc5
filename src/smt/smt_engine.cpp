@@ -1387,8 +1387,11 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if(Options::current()->repeatSimp) {
+    unsigned preReSimp = d_assertionsToCheck.size();
     d_assertionsToCheck.swap(d_assertionsToPreprocess);
     simplifyAssertions();
+    Assert(preReSimp == d_assertionsToCheck.size(),
+           "Can't add assertions here");
     removeITEs();
   }
 

@@ -28,8 +28,9 @@ TESTS =	\
 	error20.delta01.smt \
 	error122.smt \
 	error122.delta01.smt
-
 # Incorrect answers:
+#	error3.smt \
+#	error3.delta01.smt
 #
 
 EXTRA_DIST = $(TESTS)
