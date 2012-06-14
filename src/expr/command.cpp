@@ -467,6 +467,7 @@ Type DeclareFunctionCommand::getType() const throw() {
 
 void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
   Dump("declarations") << *this;
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareFunctionCommand::exportTo(ExprManager* exprManager,
@@ -497,6 +498,7 @@ Type DeclareTypeCommand::getType() const throw() {
 
 void DeclareTypeCommand::invoke(SmtEngine* smtEngine) throw() {
   Dump("declarations") << *this;
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareTypeCommand::exportTo(ExprManager* exprManager,

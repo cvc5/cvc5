@@ -301,6 +301,9 @@ int runCvc4(int argc, char *argv[], Options& options) {
                      << Expr::printtypes(false);
   }
 
+  // important even for muzzled builds (to get result output right)
+  *options.out << Expr::setlanguage(options.outputLanguage);
+
   vector<Options> threadOptions;
   for(int i = 0; i < numThreads; ++i) {
     threadOptions.push_back(options);

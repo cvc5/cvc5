@@ -59,7 +59,7 @@ submission:
 	mkdir -p cvc4-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./cvc4 -L smt2 --no-interactive' ) > cvc4-smtcomp-$(YEAR)/run
+	  echo 'exec ./cvc4 -L smt2 --no-checking --no-interactive' ) > cvc4-smtcomp-$(YEAR)/run
 	chmod 755 cvc4-smtcomp-$(YEAR)/run
 	tar cf cvc4-smtcomp-$(YEAR).tar cvc4-smtcomp-$(YEAR)
 	# application track is a separate build too :-(
@@ -74,7 +74,7 @@ submission:
 	mkdir -p cvc4-application-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./cvc4 -L smt2 --no-interactive --incremental' ) > cvc4-application-smtcomp-$(YEAR)/run
+	  echo 'exec ./cvc4 -L smt2 --no-checking --no-interactive --incremental' ) > cvc4-application-smtcomp-$(YEAR)/run
 	chmod 755 cvc4-application-smtcomp-$(YEAR)/run
 	tar cf cvc4-application-smtcomp-$(YEAR).tar cvc4-application-smtcomp-$(YEAR)
 	# parallel track can't be built with -cln, so it's a separate build
@@ -90,6 +90,6 @@ submission:
 	mkdir -p cvc4-parallel-smtcomp-$(YEAR)
 	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/pcvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/run
+	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/run
 	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/run
 	tar cf cvc4-parallel-smtcomp-$(YEAR).tar cvc4-parallel-smtcomp-$(YEAR)

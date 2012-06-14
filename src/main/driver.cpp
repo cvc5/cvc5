@@ -242,6 +242,9 @@ int runCvc4(int argc, char* argv[], Options& options) {
     *options.replayLog << Expr::setlanguage(options.outputLanguage) << Expr::setdepth(-1);
   }
 
+  // important even for muzzled builds (to get result output right)
+  *options.out << Expr::setlanguage(options.outputLanguage);
+
   // Parse and execute commands until we are done
   Command* cmd;
   bool status = true;
@@ -281,6 +284,10 @@ int runCvc4(int argc, char* argv[], Options& options) {
       replayParser->useDeclarationsFrom(parser);
     }
     while((cmd = parser->nextCommand())) {
+      if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
+        delete cmd;
+        break;
+      }
       status = doCommand(smt, cmd, options) && status;
       delete cmd;
     }

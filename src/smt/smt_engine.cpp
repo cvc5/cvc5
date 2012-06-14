@@ -650,6 +650,9 @@ SExpr SmtEngine::getInfo(const std::string& key) const
 
 void SmtEngine::setOption(const std::string& key, const SExpr& value)
   throw(BadOptionException, ModalException) {
+
+  NodeManagerScope nms(d_nodeManager);
+
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << SetOptionCommand(key, value);
@@ -657,7 +660,9 @@ void SmtEngine::setOption(const std::string& key, const SExpr& value)
 
   if(key == ":print-success") {
     if(value.isAtom() && value.getValue() == "false") {
-      // fine; don't need to do anything
+      *Options::current()->out << Command::printsuccess(false);
+    } else if(value.isAtom() && value.getValue() == "true") {
+      *Options::current()->out << Command::printsuccess(true);
     } else {
       throw BadOptionException();
     }
@@ -696,12 +701,19 @@ void SmtEngine::setOption(const std::string& key, const SExpr& value)
 
 SExpr SmtEngine::getOption(const std::string& key) const
   throw(BadOptionException) {
+
+  NodeManagerScope nms(d_nodeManager);
+
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetOptionCommand(key);
   }
   if(key == ":print-success") {
-    return SExpr("true");
+    if(Command::printsuccess::getPrintSuccess(*Options::current()->out)) {
+      return SExpr("true");
+    } else {
+      return SExpr("false");
+    }
   } else if(key == ":expand-definitions") {
     throw BadOptionException();
   } else if(key == ":interactive-mode") {
