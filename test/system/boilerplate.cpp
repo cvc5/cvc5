@@ -31,8 +31,7 @@ int main() {
   ExprManager em;
   Options opts;
   SmtEngine smt(&em);
-  BoolExpr F = em.mkConst(true);
-  Result r = smt.query(F);
+  Result r = smt.query(em.mkConst(true));
 
   return r == Result::VALID ? 0 : 1;
 }
