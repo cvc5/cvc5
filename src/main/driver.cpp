@@ -326,7 +326,7 @@ int runCvc4(int argc, char* argv[], Options& options) {
     pStatistics->flushInformation(*options.err);
   }
 
-  return returnValue;
+  exit(returnValue);
 }
 
 /** Executes a command. Deletes the command after execution. */

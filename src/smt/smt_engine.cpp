@@ -283,24 +283,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   StatisticsRegistry::registerStat(&d_numAssertionsPre);
   StatisticsRegistry::registerStat(&d_numAssertionsPost);
 
-  // We have mutual dependency here, so we add the prop engine to the theory
-  // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext, const_cast<const LogicInfo&>(d_logic));
-
-  // Add the theories
-#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
-#undef CVC4_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
-  CVC4_FOR_EACH_THEORY;
-
-  d_decisionEngine = new DecisionEngine(d_context, d_userContext);
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
-  d_theoryEngine->setPropEngine(d_propEngine);
-  d_theoryEngine->setDecisionEngine(d_decisionEngine);
-  // d_decisionEngine->setPropEngine(d_propEngine);
-
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
   d_userContext->push();
@@ -333,10 +315,33 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   }
 }
 
+void SmtEngine::finishInit() {
+  // We have mutual dependency here, so we add the prop engine to the theory
+  // engine later (it is non-essential there)
+  d_theoryEngine = new TheoryEngine(d_context, d_userContext, const_cast<const LogicInfo&>(d_logic));
+
+  // Add the theories
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+    d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
+  CVC4_FOR_EACH_THEORY;
+
+  d_decisionEngine = new DecisionEngine(d_context, d_userContext);
+  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
+  d_theoryEngine->setPropEngine(d_propEngine);
+  d_theoryEngine->setDecisionEngine(d_decisionEngine);
+  // d_decisionEngine->setPropEngine(d_propEngine);
+}
+
 void SmtEngine::finalOptionsAreSet() {
   if(d_fullyInited) {
     return;
   }
+
+  finishInit();                 // finish initalization, creating prop
+                                // engine etc.
 
   AlwaysAssert( d_propEngine->getAssertionLevel() == 0,
                 "The PropEngine has pushed but the SmtEngine "
@@ -344,6 +349,8 @@ void SmtEngine::finalOptionsAreSet() {
 
   d_fullyInited = true;
   d_logic.lock();
+
+  d_decisionEngine->init();
 
   d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(true));
   d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(false).notNode());
@@ -360,9 +367,9 @@ void SmtEngine::shutdown() {
     d_needPostsolve = false;
   }
 
-  d_propEngine->shutdown();
-  d_theoryEngine->shutdown();
-  d_decisionEngine->shutdown();
+  if(d_propEngine != NULL) d_propEngine->shutdown();
+  if(d_theoryEngine != NULL) d_theoryEngine->shutdown();
+  if(d_decisionEngine != NULL) d_decisionEngine->shutdown();
 }
 
 SmtEngine::~SmtEngine() throw() {
@@ -524,6 +531,25 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
   if (NodeManager::currentNM()->getOptions()->arithRewriteEq) {
     d_earlyTheoryPP = false;
   }
+  // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
+  if(! Options::current()->repeatSimpSetByUser) {
+    Options::DecisionMode decMode = 
+      //QF_BV
+      ( !d_logic.isQuantified() &&
+        d_logic.isPure(theory::THEORY_BV)
+        ) ||
+      //QF_AUFBV
+      (!d_logic.isQuantified() &&
+       d_logic.isTheoryEnabled(theory::THEORY_ARRAY) &&
+       d_logic.isTheoryEnabled(theory::THEORY_UF) &&
+       d_logic.isTheoryEnabled(theory::THEORY_BV)
+       )
+      ? Options::DECISION_STRATEGY_JUSTIFICATION
+      : Options::DECISION_STRATEGY_INTERNAL;
+    Trace("smt") << "setting decision mode to " << decMode << std::endl;
+    NodeManager::currentNM()->getOptions()->decisionMode = decMode;
+  }
+ 
 }
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
