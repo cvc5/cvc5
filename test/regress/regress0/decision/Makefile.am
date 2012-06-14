@@ -22,6 +22,7 @@ TESTS =	\
 	uflia-error0.smt2 \
 	uflia-xs-09-16-3-4-1-5.smt \
 	uflia-xs-09-16-3-4-1-5.delta03.smt \
+	aufbv-fuzz01.smt \	
 	bug347.smt
 
 # Incorrect answers:
