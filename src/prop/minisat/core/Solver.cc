@@ -1095,7 +1095,7 @@ lbool Solver::search(int nof_conflicts)
 		  (!order_heap.empty() || qhead < trail.size()) ) {
                 check_type = CHECK_WITH_THEORY;
                 continue;
-              } else if (!decisionEngineDone && recheck) {
+              } else if (recheck) {
                 // There some additional stuff added, so we go for another full-check
                 continue;
               } else {

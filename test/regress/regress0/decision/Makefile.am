@@ -16,6 +16,8 @@ TESTS =	\
 	bitvec0.delta01.smt \
 	bitvec5.smt \
 	quant-Arrays_Q1-noinfer.smt2 \
+	quant-ex1.smt2 \
+	quant-ex1.disable_miniscope.smt2 \
 	quant-symmetric_unsat_7.smt2 \
 	uflia-error0.smt2 \
 	uflia-xs-09-16-3-4-1-5.smt \
@@ -24,7 +26,6 @@ TESTS =	\
 
 # Incorrect answers:
 #	aufbv-fuzz01.smt \
-#	quant-ex1.smt2 \
 #
 
 EXTRA_DIST = $(TESTS)

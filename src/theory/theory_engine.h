@@ -265,6 +265,7 @@ class TheoryEngine {
     }
 
     void setIncomplete() throw(AssertionException) {
+      Trace("theory") << "TheoryEngine::setIncomplete()" << std::endl;
       d_engine->setIncomplete(d_theory);
     }
 

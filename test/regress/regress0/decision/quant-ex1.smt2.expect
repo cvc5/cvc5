@@ -1,3 +1,3 @@
-% COMMAND-LINE: --decision=justificationo
-% EXPECT: unknown (INCOMPLETE)
-% EXIT: 0
+% COMMAND-LINE: --decision=justification
+% EXPECT: sat
+% EXIT: 10
