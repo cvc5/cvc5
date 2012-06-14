@@ -283,6 +283,18 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   StatisticsRegistry::registerStat(&d_numAssertionsPre);
   StatisticsRegistry::registerStat(&d_numAssertionsPost);
 
+  // We have mutual dependency here, so we add the prop engine to the theory
+  // engine later (it is non-essential there)
+  d_theoryEngine = new TheoryEngine(d_context, d_userContext, const_cast<const LogicInfo&>(d_logic));
+
+  // Add the theories
+#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
+#undef CVC4_FOR_EACH_THEORY_STATEMENT
+#endif
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
+    d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
+  CVC4_FOR_EACH_THEORY;
+
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
   d_userContext->push();
@@ -316,18 +328,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
 }
 
 void SmtEngine::finishInit() {
-  // We have mutual dependency here, so we add the prop engine to the theory
-  // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext, const_cast<const LogicInfo&>(d_logic));
-
-  // Add the theories
-#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
-#undef CVC4_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
-  CVC4_FOR_EACH_THEORY;
-
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
   d_theoryEngine->setPropEngine(d_propEngine);
