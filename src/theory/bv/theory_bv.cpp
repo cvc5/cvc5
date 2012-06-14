@@ -225,27 +225,20 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
     d_propagatedBy[literal] = subtheory;
   }
 
-  // See if the literal has been asserted already
-  bool satValue = false;
-  bool hasSatValue = d_valuation.hasSatValue(literal, satValue);
-
-  // If asserted, we might be in conflict
-  if (hasSatValue && !satValue) {
-    Debug("bitvector::propagate") << indent() << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ") => conflict" << std::endl;
-    std::vector<TNode> assumptions;
-    Node negatedLiteral = literal.getKind() == kind::NOT ? (Node) literal[0] : literal.notNode();
-    assumptions.push_back(negatedLiteral);
-    explain(literal, assumptions);
-    setConflict(mkAnd(assumptions)); 
-    return false;
+  // Propagate differs depending on the subtheory
+  // * bitblaster needs to be left alone until it's done, otherwise it doesn't know how to explain
+  // * equality engine can propagate eagerly
+  bool ok = true;
+  if (subtheory == SUB_EQUALITY) {
+    d_out->propagate(literal);
+    if (!ok) {
+      setConflict();
+    }
+  } else {
+    d_literalsToPropagate.push_back(literal);
   }
+  return ok;
 
-  // Nothing, just enqueue it for propagation and mark it as asserted already
-  Debug("bitvector::propagate") << indent() << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ") => enqueuing for propagation" << std::endl;
-  d_literalsToPropagate.push_back(literal);
-
-  // No conflict
-  return true;
 }/* TheoryBV::propagate(TNode) */
 
 

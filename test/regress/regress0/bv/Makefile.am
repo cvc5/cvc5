@@ -34,6 +34,7 @@ SMT_TESTS = \
 	fuzz17.delta01.smt \
 	fuzz18.delta01.smt \
 	fuzz18.delta02.smt \
+	fuzz18.delta03.smt \
 	fuzz18.smt \
 	fuzz19.delta01.smt \
 	fuzz19.smt \
