@@ -271,16 +271,14 @@ class TheoryArrays : public Theory {
           }
         }
         // Propagate equality between shared terms
-        Node equality = Rewriter::rewriteEquality(theory::THEORY_UF, t1.eqNode(t2));
-        return d_arrays.propagate(equality);
+        return d_arrays.propagate(t1.eqNode(t2));
       } else {
         if (t1.getType().isArray()) {
           if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {
             return true;
           }
         }
-        Node equality = Rewriter::rewriteEquality(theory::THEORY_UF, t1.eqNode(t2));
-        return d_arrays.propagate(equality.notNode());
+        return d_arrays.propagate(t1.eqNode(t2).notNode());
       }
       return true;
     }

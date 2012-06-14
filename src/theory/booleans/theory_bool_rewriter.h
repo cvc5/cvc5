@@ -37,11 +37,6 @@ public:
     return preRewrite(node);
   }
 
-  static Node rewriteEquality(TNode node) {
-    Unreachable();
-    return node;
-  }
-
   static void init() {}
   static void shutdown() {}
 

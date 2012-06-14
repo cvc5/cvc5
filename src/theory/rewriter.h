@@ -99,12 +99,6 @@ public:
   static Node rewrite(TNode node);
 
   /**
-   * Rewrite an equality between two terms that are already in normal form, so
-   * that the equality is in theory-normal form.
-   */
-  static Node rewriteEquality(theory::TheoryId theoryId, TNode node);
-
-  /**
    * Should be called before the rewriter gets used for the first time.
    */
   static void init();
@@ -113,6 +107,8 @@ public:
    * Should be called to clean up any state.
    */
   static void shutdown();
+
+
 };/* class Rewriter */
 
 }/* CVC4::theory namespace */

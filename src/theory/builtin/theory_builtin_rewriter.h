@@ -48,11 +48,6 @@ public:
     }
   }
 
-  static inline Node rewriteEquality(TNode equality) {
-    Unreachable();
-    return equality;
-  }
-
   static inline void init() {}
   static inline void shutdown() {}
 

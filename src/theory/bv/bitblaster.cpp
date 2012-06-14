@@ -94,17 +94,15 @@ void Bitblaster::bbAtom(TNode node) {
   BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   ++d_statistics.d_numAtoms;
   // the bitblasted definition of the atom
-  Node atom_bb = d_atomBBStrategies[node.getKind()](node, this);
+  Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
   // asserting that the atom is true iff the definition holds
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
-  // do boolean simplifications if possible
-  Node rewritten = Rewriter::rewrite(atom_definition);
 
   if (!Options::current()->bitvectorEagerBitblast) {
-    d_cnfStream->convertAndAssert(rewritten, true, false);
+    d_cnfStream->convertAndAssert(atom_definition, true, false);
     d_bitblastedAtoms.insert(node);
   } else {
-    d_bvOutput->lemma(rewritten, false);
+    d_bvOutput->lemma(atom_definition, false);
   }
 }
 

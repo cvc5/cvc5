@@ -65,9 +65,6 @@ private:
 public:
   static RewriteResponse preRewrite(TNode in);
   static RewriteResponse postRewrite(TNode in);
-  static Node rewriteEquality(TNode equality) {
-    return postRewrite(equality).node;
-  }
   static inline void init() {}
   static inline void shutdown() {}
 private:

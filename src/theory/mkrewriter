@@ -47,8 +47,6 @@ post_rewrite_calls=
 post_rewrite_get_cache=
 post_rewrite_set_cache=
 
-rewrite_equality_calls=
-
 seen_theory=false
 seen_theory_builtin=false
 
@@ -138,9 +136,6 @@ function rewriter {
   post_rewrite_get_cache="${post_rewrite_get_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::getPostRewriteCache(node);
 "
   post_rewrite_set_cache="${post_rewrite_set_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::setPostRewriteCache(node, cache);
-"
-
-  rewrite_equality_calls="${rewrite_equality_calls}    case ${theory_id}: return ${class}::rewriteEquality(node);
 "
 
   lineno=${BASH_LINENO[0]}
@@ -235,7 +230,6 @@ for var in \
     rewriter_includes \
     pre_rewrite_calls \
     post_rewrite_calls \
-    rewrite_equality_calls \
     pre_rewrite_get_cache \
     post_rewrite_get_cache \
     pre_rewrite_set_cache \

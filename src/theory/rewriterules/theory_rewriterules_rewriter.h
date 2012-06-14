@@ -57,14 +57,6 @@ public:
   }
 
   /**
-   * Rewrite an equality, in case special handling is required.
-   */
-  static Node rewriteEquality(TNode equality) {
-    // often this will suffice
-    return postRewrite(equality).node;
-  }
-
-  /**
    * Initialize the rewriter.
    */
   static inline void init() {

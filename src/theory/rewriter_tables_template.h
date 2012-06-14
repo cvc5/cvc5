@@ -45,14 +45,6 @@ ${post_rewrite_calls}
   }
 }
 
-Node Rewriter::callRewriteEquality(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${rewrite_equality_calls}
-  default:
-    Unreachable();
-  }
-}
-
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
   switch(theoryId) {
 ${pre_rewrite_get_cache}

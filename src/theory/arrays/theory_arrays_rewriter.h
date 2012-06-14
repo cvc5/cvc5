@@ -109,10 +109,6 @@ public:
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  static Node rewriteEquality(TNode node) {
-    return postRewrite(node).node;
-  }
-
   static inline void init() {}
   static inline void shutdown() {}
 

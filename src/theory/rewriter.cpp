@@ -64,15 +64,6 @@ Node Rewriter::rewrite(TNode node) {
   return rewriteTo(theory::Theory::theoryOf(node), node);
 }
 
-Node Rewriter::rewriteEquality(theory::TheoryId theoryId, TNode node) {
-  Assert(node.getKind() == kind::EQUAL);
-  Trace("rewriter") << "Rewriter::rewriteEquality(" << theoryId << "," << node << ")"<< std::endl;
-  Node result = Rewriter::callRewriteEquality(theoryId, node);
-  Trace("rewriter") << "Rewriter::rewriteEquality(" << theoryId << "," << node << ") => " << result << std::endl;
-  Assert(result.getKind() == kind::EQUAL || result.isConst());
-  return result;
-}
-
 Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
 #ifdef CVC4_ASSERTIONS
