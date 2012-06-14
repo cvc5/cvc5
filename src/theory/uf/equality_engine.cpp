@@ -147,9 +147,9 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
     Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): no lookup, setting up" << std::endl;
     // Mark the normalization to the lookup
     storeApplicationLookup(funNormalized, funId);
-    // If an equality, we do some extra reasoning 
-    if (isEquality && d_isConstant[t1ClassId] && d_isConstant[t2ClassId]) {
-      if (t1ClassId != t2ClassId) {
+    // If an equality over constants we merge to false 
+    if (isEquality) {
+      if (d_isConstant[t1ClassId] && d_isConstant[t2ClassId] && t1ClassId != t2ClassId) {
         Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): got constants" << std::endl;
         Assert(d_nodes[funId].getKind() == kind::EQUAL);
         enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
@@ -160,6 +160,9 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
           EqualityNodeId symmFunId = getNodeId(symmetricEq);
           enqueue(MergeCandidate(symmFunId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));              
         }
+      }
+      if (t1ClassId == t2ClassId) {
+        enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));
       }
     }
   } else {
@@ -343,9 +346,6 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
     // Add equality between terms
     assertEqualityInternal(eq[0], eq[1], reason);
     propagate();
-    // Add eq = true for dis-equality propagation
-    assertEqualityInternal(eq, d_true, reason);
-    propagate();    
   } else {
     // If two terms are already dis-equal, don't assert anything
     if (hasTerm(eq[0]) && hasTerm(eq[1]) && areDisequal(eq[0], eq[1], false)) {
@@ -360,8 +360,6 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
     Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
 
     assertEqualityInternal(eq, d_false, reason);
-    propagate();    
-    assertEqualityInternal(eq[1].eqNode(eq[0]), d_false, reason);
     propagate();    
   
     if (d_done) {
@@ -557,8 +555,11 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         } else {
           // There is no representative, so we can add one, we remove this when backtracking
           storeApplicationLookup(funNormalized, funId);
+          // Note: both checks below we don't need to do in the above case as the normalized lookup
+          //       has already been checked for this
           // Now, if we're constant and it's an equality, check if the other guy is also a constant
-          if (funNormalized.isEquality) {
+          if (fun.isEquality) {
+            // If the equation normalizes to two constants, it's disequal
             if (d_isConstant[aNormalized] && d_isConstant[bNormalized] && aNormalized != bNormalized) {
               Assert(d_nodes[funId].getKind() == kind::EQUAL);
               enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
@@ -570,9 +571,14 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
                 enqueue(MergeCandidate(symmFunId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));              
               }
             }
-          }          
+            // If the function normalizes to a = a, we merge it with true, we check that its not
+            // already there so as not to enqueue multiple times when several things get merged
+            if (aNormalized == bNormalized && getEqualityNode(funId).getFind() != d_trueId) {
+              enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));                            
+            } 
+          }
         }
-   
+                  
         // Go to the next one in the use list
         currentUseId = useNode.getNext();
       }
@@ -953,6 +959,20 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Debug("equality") << d_name << "::eq::getExplanation(): adding: " << d_equalityEdges[currentEdge].getReason() << std::endl;
               equalities.push_back(d_equalityEdges[currentEdge].getReason());
               break;
+            case MERGED_THROUGH_REFLEXIVITY: {
+              // f(x1, x2) == f(y1, y2) because x1 = y1 and x2 = y2
+              Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
+              EqualityNodeId eqId = currentNode == d_trueId ? edgeNode : currentNode;
+              const FunctionApplication& eq = d_applications[eqId].original;
+              Assert(eq.isEquality, "Must be an equality");
+              
+              // Explain why a = b constant
+              Debug("equality") << push;
+              getExplanation(eq.a, eq.b, equalities);
+              Debug("equality") << pop;
+              
+              break;              
+            }
             case MERGED_THROUGH_CONSTANTS: {
               // (a = b) == false because a and b are different constants
               Debug("equality") << d_name << "::eq::getExplanation(): due to constants, going deeper" << std::endl;

@@ -65,6 +65,8 @@ enum MergeReasonType {
   MERGED_THROUGH_CONGRUENCE,
   /** Terms were merged due to application of pure equality */
   MERGED_THROUGH_EQUALITY,
+  /** Equality was merged to true, due to both sides of equality being in the same class */
+  MERGED_THROUGH_REFLEXIVITY,
   /** Equality was merged to false, due to both sides of equality being a constant */
   MERGED_THROUGH_CONSTANTS,
 };
@@ -76,6 +78,9 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
     break;
   case MERGED_THROUGH_EQUALITY:
     out << "pure equality";
+    break;
+  case MERGED_THROUGH_REFLEXIVITY:
+    out << "reflexivity";
     break;
   case MERGED_THROUGH_CONSTANTS:
     out << "constants disequal";
