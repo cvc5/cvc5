@@ -329,10 +329,13 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
 
 void SmtEngine::finishInit() {
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
+  d_decisionEngine->init();   // enable appropriate strategies
+
   d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
+
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
-  // d_decisionEngine->setPropEngine(d_propEngine);
+
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -349,8 +352,6 @@ void SmtEngine::finalOptionsAreSet() {
 
   d_fullyInited = true;
   d_logic.lock();
-
-  d_decisionEngine->init();
 
   d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(true));
   d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(false).notNode());
@@ -532,7 +533,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     d_earlyTheoryPP = false;
   }
   // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
-  if(! Options::current()->repeatSimpSetByUser) {
+  if(!Options::current()->decisionModeSetByUser) {
     Options::DecisionMode decMode = 
       //QF_BV
       ( !d_logic.isQuantified() &&
