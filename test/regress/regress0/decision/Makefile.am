@@ -24,6 +24,7 @@ TESTS =	\
 
 # Incorrect answers:
 #	aufbv-fuzz01.smt \
+#	quant-ex1.smt2 \
 #
 
 EXTRA_DIST = $(TESTS)
