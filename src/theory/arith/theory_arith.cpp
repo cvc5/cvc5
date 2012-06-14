@@ -1723,9 +1723,16 @@ Node TheoryArith::explain(TNode n) {
     return exp;
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
-    Node exp = c->explainForPropagation();
-    Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-    return exp;
+    if(!c->isSelfExplaining()){
+      Node exp = c->explainForPropagation();
+      Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
+      return exp;
+    }else{
+      Debug("arith::explain") << "this is a strange mismatch" << n << endl;
+      Assert(d_congruenceManager.canExplain(n));
+      Debug("arith::explain") << "this is a strange mismatch" << n << endl;
+      return d_congruenceManager.explain(n);
+    }
   }else{
     Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
