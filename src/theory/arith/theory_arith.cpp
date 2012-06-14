@@ -678,7 +678,7 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
       Assert(elim == Rewriter::rewrite(elim));
 
 
-      static const int MAX_SUB_SIZE = 20;
+      static const unsigned MAX_SUB_SIZE = 20;
       if(false && right.size() > MAX_SUB_SIZE){
         Debug("simplify") << "TheoryArith::solve(): did not substitute due to the right hand side containing too many terms: " << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
@@ -1384,7 +1384,13 @@ void TheoryArith::check(Effort effortLevel){
   Debug("effortlevel") << "TheoryArith::check " << effortLevel << std::endl;
   Debug("arith") << "TheoryArith::check begun " << effortLevel << std::endl;
 
+  if(Debug.isOn("arith::consistency")){
+    Assert(unenqueuedVariablesAreConsistent());
+  }
+
   bool newFacts = !done();
+  //If previous == SAT, then reverts on conflicts are safe
+  //Otherwise, they are not and must be committed.
   Result::Sat previous = d_qflraStatus;
   if(newFacts){
     d_qflraStatus = Result::SAT_UNKNOWN;
@@ -1397,28 +1403,36 @@ void TheoryArith::check(Effort effortLevel){
       bool res = assertionCases(curr);
       Assert(!res || inConflict());
     }
-    if(inConflict()){
-      revertOutOfConflict();
-      outputConflicts();
-      d_qflraStatus = Result::UNSAT;
-      return;
+    if(inConflict()){ break; }
+  }
+  if(!inConflict()){
+    while(!d_learnedBounds.empty()){
+      // we may attempt some constraints twice.  this is okay!
+      Constraint curr = d_learnedBounds.front();
+      d_learnedBounds.pop();
+      Debug("arith::learned") << curr << endl;
+
+      bool res = assertionCases(curr);
+      Assert(!res || inConflict());
+
+      if(inConflict()){ break; }
     }
   }
-  while(!d_learnedBounds.empty()){
-    // we may attempt some constraints twice.  this is okay!
-    Constraint curr = d_learnedBounds.front();
-    d_learnedBounds.pop();
-    Debug("arith::learned") << curr << endl;
 
-    bool res = assertionCases(curr);
-    Assert(!res || inConflict());
-
-    if(inConflict()){
-      d_qflraStatus = Result::UNSAT;
+  if(inConflict()){
+    d_qflraStatus = Result::UNSAT;
+    if(previous == Result::SAT){
+      ++d_statistics.d_revertsOnConflicts;
       revertOutOfConflict();
-      outputConflicts();
-      return;
+      d_simplex.clearQueue();
+    }else{
+      ++d_statistics.d_commitsOnConflicts;
+
+      d_partialModel.commitAssignmentChanges();
+      revertOutOfConflict();
     }
+    outputConflicts();
+    return;
   }
 
 
@@ -1427,8 +1441,6 @@ void TheoryArith::check(Effort effortLevel){
   }
 
   bool emmittedConflictOrSplit = false;
-
-
   Assert(d_conflicts.empty());
 
   d_qflraStatus = d_simplex.findModel(fullEffort(effortLevel));
@@ -1439,6 +1451,9 @@ void TheoryArith::check(Effort effortLevel){
     }
     d_partialModel.commitAssignmentChanges();
     d_unknownsInARow = 0;
+    if(Debug.isOn("arith::consistency")){
+      Assert(entireStateIsConsistent());
+    }
     break;
   case Result::SAT_UNKNOWN:
     ++d_unknownsInARow;
@@ -1451,7 +1466,6 @@ void TheoryArith::check(Effort effortLevel){
     d_unknownsInARow = 0;
     if(previous == Result::SAT){
       ++d_statistics.d_revertsOnConflicts;
-
       revertOutOfConflict();
       d_simplex.clearQueue();
     }else{
@@ -1515,8 +1529,9 @@ void TheoryArith::check(Effort effortLevel){
     if(inConflict()){
       Debug("arith::unate") << "unate conflict" << endl;
       revertOutOfConflict();
+      d_qflraStatus = Result::UNSAT;
       outputConflicts();
-      return;
+      emmittedConflictOrSplit = true;
     }
   }else{
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
@@ -1720,15 +1735,15 @@ void TheoryArith::propagate(Effort e) {
 
   while(d_constraintDatabase.hasMorePropagations()){
     Constraint c = d_constraintDatabase.nextPropagation();
+    Debug("arith::prop") << "next prop" << getSatContext()->getLevel() << ": " << c << endl;
 
     if(c->negationHasProof()){
-      Node conflict = ConstraintValue::explainConflict(c, c->getNegation());
-      Message() << "tears " << conflict << endl;
-      Debug("arith::prop") << "propagate conflict" << conflict << endl;
-      d_out->conflict(conflict);
-      return;
-    }else if(!c->assertedToTheTheory()){
+      Debug("arith::prop") << "negation has proof " << c->getNegation() << endl
+                           << c->getNegation()->explainForConflict() << endl;
+    }
+    Assert(!c->negationHasProof(), "A constraint has been propagated on the constraint propagation queue, but the negation has been set to true.  Contact Tim now!");
 
+    if(!c->assertedToTheTheory()){
       Node literal = c->getLiteral();
       Debug("arith::prop") << "propagating @" << getSatContext()->getLevel() << " " << literal << endl;
 
@@ -1845,6 +1860,8 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
 Node TheoryArith::getValue(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
 
+  Assert(d_qflraStatus == Result::SAT);
+
   switch(n.getKind()) {
   case kind::VARIABLE: {
     ArithVar var = d_arithvarNodeMap.asArithVar(n);
@@ -1946,15 +1963,40 @@ void TheoryArith::notifyRestart(){
 
 bool TheoryArith::entireStateIsConsistent(){
   typedef std::vector<Node>::const_iterator VarIter;
+  bool result = true;
   for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
     ArithVar var = d_arithvarNodeMap.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
-      Warning() << "Assignment is not consistent for " << var << *i << endl;
-      return false;
+      Warning() << "Assignment is not consistent for " << var << *i;
+      if(d_tableau.isBasic(var)){
+        Warning() << " (basic)";
+      }
+      Warning() << endl;
+      result = false;
     }
   }
-  return true;
+  return result;
+}
+
+bool TheoryArith::unenqueuedVariablesAreConsistent(){
+  typedef std::vector<Node>::const_iterator VarIter;
+  bool result = true;
+  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
+    ArithVar var = d_arithvarNodeMap.asArithVar(*i);
+    if(!d_partialModel.assignmentIsConsistent(var) &&
+       !d_simplex.debugIsInCollectionQueue(var)){
+
+      d_partialModel.printModel(var);
+      Warning() << "Unenqueued var is not consistent for " << var << *i;
+      if(d_tableau.isBasic(var)){
+        Warning() << " (basic)";
+      }
+      Warning() << endl;
+      result = false;
+    }
+  }
+  return result;
 }
 
 void TheoryArith::presolve(){
@@ -2066,11 +2108,16 @@ bool TheoryArith::propagateCandidateBound(ArithVar basic, bool upperBound){
       bool hasProof = bestImplied->hasProof();
 
       Debug("arith::prop") << "arith::prop" << basic
-        //<< " " << assertedValuation
                            << " " << assertedToTheTheory
                            << " " << canBePropagated
                            << " " << hasProof
                            << endl;
+
+      if(bestImplied->negationHasProof()){
+        Warning() << "the negation of " <<  bestImplied << " : " << endl
+                  << "has proof " << bestImplied->getNegation() << endl
+                  << bestImplied->getNegation()->explainForConflict() << endl;
+      }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
         if(upperBound){

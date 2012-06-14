@@ -224,6 +224,12 @@ public:
     d_queue.clear();
   }
 
+
+  bool debugIsInCollectionQueue(ArithVar var) const{
+    Assert(d_queue.inCollectionMode());
+    return d_queue.collectionModeContains(var);
+  }
+
 private:
 
   /** Reports a conflict to on the output channel. */

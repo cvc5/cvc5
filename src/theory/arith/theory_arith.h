@@ -460,6 +460,7 @@ private:
    * Returns true iff every variable is consistent in the partial model.
    */
   bool entireStateIsConsistent();
+  bool unenqueuedVariablesAreConsistent();
 
   bool isImpliedUpperBound(ArithVar var, Node exp);
   bool isImpliedLowerBound(ArithVar var, Node exp);

@@ -241,6 +241,7 @@ bool SimplexDecisionProcedure::findConflictOnTheQueue(SearchPeriod type) {
 
 Result::Sat SimplexDecisionProcedure::findModel(bool exactResult){
   Assert(d_conflictVariable == ARITHVAR_SENTINEL);
+  Assert(d_queue.inCollectionMode());
 
   if(d_queue.empty()){
     return Result::SAT;
@@ -352,6 +353,10 @@ Result::Sat SimplexDecisionProcedure::findModel(bool exactResult){
 
 
   d_pivotsInRound.purge();
+  // ensure that the conflict variable is still in the queue.
+  if(d_conflictVariable != ARITHVAR_SENTINEL){
+    d_queue.enqueueIfInconsistent(d_conflictVariable);
+  }
   d_conflictVariable = ARITHVAR_SENTINEL;
 
   d_queue.transitionToCollectionMode();

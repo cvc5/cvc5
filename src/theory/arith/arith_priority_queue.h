@@ -217,6 +217,11 @@ public:
   void clear();
 
 
+  bool collectionModeContains(ArithVar v) const {
+    Assert(inCollectionMode());
+    return d_varSet.isMember(v);
+  }
+
   class const_iterator {
   private:
     Mode d_mode;
