@@ -692,7 +692,7 @@ void UnconstrainedSimplifier::processAssertions(vector<Node>& assertions)
 
   if (!d_unconstrained.empty()) {
     processUnconstrained();
-    //    d_substitutions.print(std::cout);
+    //    d_substitutions.print(Message.getStream());
     for (it = assertions.begin(); it != iend; ++it) {
       (*it) = d_substitutions.apply(*it);
     }

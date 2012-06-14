@@ -128,7 +128,7 @@ std::ostream& operator<<(std::ostream& o, const ValueCollection& vc){
 }
 
 void ConstraintValue::debugPrint() const {
-  cout << *this << endl;
+  Message() << *this << endl;
 }
 
 void ValueCollection::push_into(std::vector<Constraint>& vec) const {

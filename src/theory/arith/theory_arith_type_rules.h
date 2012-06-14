@@ -76,7 +76,7 @@ public:
     if( check ) {
       TypeNode lhsType = n[0].getType(check);
       if (!lhsType.isReal()) {
-        std::cout << lhsType << " : " << n[0] << std::endl;
+        Message() << lhsType << " : " << n[0] << std::endl;
         throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic term on the left-hand-side");
       }
       TypeNode rhsType = n[1].getType(check);

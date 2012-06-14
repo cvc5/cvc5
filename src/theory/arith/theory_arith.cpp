@@ -1723,7 +1723,7 @@ void TheoryArith::propagate(Effort e) {
 
     if(c->negationHasProof()){
       Node conflict = ConstraintValue::explainConflict(c, c->getNegation());
-      cout << "tears " << conflict << endl;
+      Message() << "tears " << conflict << endl;
       Debug("arith::prop") << "propagate conflict" << conflict << endl;
       d_out->conflict(conflict);
       return;
@@ -1950,7 +1950,7 @@ bool TheoryArith::entireStateIsConsistent(){
     ArithVar var = d_arithvarNodeMap.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
-      cerr << "Assignment is not consistent for " << var << *i << endl;
+      Warning() << "Assignment is not consistent for " << var << *i << endl;
       return false;
     }
   }

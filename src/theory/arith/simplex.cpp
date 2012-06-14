@@ -287,11 +287,11 @@ Result::Sat SimplexDecisionProcedure::findModel(bool exactResult){
 
     if(verbose && numDifferencePivots > 0){
       if(result ==  Result::UNSAT){
-        cout << "diff order found unsat" << endl;
+        Message() << "diff order found unsat" << endl;
       }else if(d_queue.empty()){
-        cout << "diff order found model" << endl;
+        Message() << "diff order found model" << endl;
       }else{
-        cout << "diff order missed" << endl;
+        Message() << "diff order missed" << endl;
       }
     }
   }
@@ -316,11 +316,11 @@ Result::Sat SimplexDecisionProcedure::findModel(bool exactResult){
       }
       if(verbose){
         if(result ==  Result::UNSAT){
-          cout << "bland found unsat" << endl;
+          Message() << "bland found unsat" << endl;
         }else if(d_queue.empty()){
-          cout << "bland found model" << endl;
+          Message() << "bland found model" << endl;
         }else{
-          cout << "bland order missed" << endl;
+          Message() << "bland order missed" << endl;
         }
       }
     }else{
@@ -335,11 +335,11 @@ Result::Sat SimplexDecisionProcedure::findModel(bool exactResult){
 
       if(verbose){
         if(result ==  Result::UNSAT){
-          cout << "restricted var order found unsat" << endl;
+          Message() << "restricted var order found unsat" << endl;
         }else if(d_queue.empty()){
-          cout << "restricted var order found model" << endl;
+          Message() << "restricted var order found model" << endl;
         }else{
-          cout << "restricted var order missed" << endl;
+          Message() << "restricted var order missed" << endl;
         }
       }
     }

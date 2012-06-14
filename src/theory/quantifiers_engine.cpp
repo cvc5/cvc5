@@ -114,7 +114,7 @@ void TermDb::addTerm( Node n, std::vector< Node >& added, bool withinQuant ){
               for( int i=0; i<(int)d_ith->d_op_triggers[op].size(); i++ ){
                 addedLemmas += d_ith->d_op_triggers[op][i]->addTerm( n );
               }
-              //std::cout << "Terms, added lemmas: " << addedLemmas << std::endl;
+              //Message() << "Terms, added lemmas: " << addedLemmas << std::endl;
               d_quantEngine->flushLemmas( &d_quantEngine->getTheoryEngine()->getTheory( THEORY_QUANTIFIERS )->getOutputChannel() );
             }
           }
