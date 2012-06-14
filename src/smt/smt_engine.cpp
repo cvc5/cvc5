@@ -455,11 +455,12 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf << std::endl;
     NodeManager::currentNM()->getOptions()->ufSymmetryBreaker = qf_uf;
   }
-  // by default, nonclausal simplification is off for QF_SAT
+  // by default, nonclausal simplification is off for QF_SAT and for quantifiers
   if(! Options::current()->simplificationModeSetByUser) {
     bool qf_sat = d_logic.isPure(theory::THEORY_BOOL) && !d_logic.isQuantified();
-    Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat) << std::endl;
-    NodeManager::currentNM()->getOptions()->simplificationMode = (qf_sat ? Options::SIMPLIFICATION_MODE_NONE : Options::SIMPLIFICATION_MODE_BATCH);
+    bool quantifiers = d_logic.isQuantified();
+    Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat && !quantifiers) << std::endl;
+    NodeManager::currentNM()->getOptions()->simplificationMode = (qf_sat || quantifiers ? Options::SIMPLIFICATION_MODE_NONE : Options::SIMPLIFICATION_MODE_BATCH);
   }
 
   // If in arrays, set the UF handler to arrays
