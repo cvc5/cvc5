@@ -1237,6 +1237,7 @@ void SmtEnginePrivate::simplifyAssertions()
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
     }
 
+    Debug("smt") << "POST nonClasualSimplify" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1250,15 +1251,27 @@ void SmtEnginePrivate::simplifyAssertions()
       }
     }
 
+    Debug("smt") << "POST theoryPP" << std::endl;
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
     // ITE simplification
     if(Options::current()->doITESimp) {
       simpITE();
     }
 
+    Debug("smt") << "POST iteSimp" << std::endl;
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
     // Unconstrained simplification
     if(Options::current()->unconstrainedSimp) {
       unconstrainedSimp();
     }
+
+    Debug("smt") << "POST unconstraintedSimp" << std::endl;
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
     if(Options::current()->repeatSimp && Options::current()->simplificationMode != Options::SIMPLIFICATION_MODE_NONE) {
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
@@ -1269,6 +1282,10 @@ void SmtEnginePrivate::simplifyAssertions()
       nonClausalSimplify();
       d_smt.d_userContext->pop();
     }
+
+    Debug("smt") << "POST repeatSimp" << std::endl;
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   } catch(TypeCheckingExceptionPrivate& tcep) {
     // Calls to this function should have already weeded out any
@@ -1343,6 +1360,9 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+  // any assertions added beyond realAssertionsEnd must NOT affect the equisatisfiability
+  int realAssertionsEnd = d_assertionsToPreprocess.size();
+
   // Any variables of subtype types need to be constrained properly.
   // Careful, here: constrainSubtypes() adds to the back of
   // d_assertionsToPreprocess, but we don't need to reprocess those.
@@ -1374,10 +1394,6 @@ void SmtEnginePrivate::processAssertions() {
     staticLearning();
   }
 
-  // any assertions beyond realAssertionsEnd _must_ be introduced by
-  // removeITEs().
-  int realAssertionsEnd = d_assertionsToCheck.size();
-
   {
     TimerStat::CodeTimer codeTimer(d_smt.d_iteRemovalTime);
     // Remove ITEs, updating d_iteSkolemMap
@@ -1387,11 +1403,8 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if(Options::current()->repeatSimp) {
-    unsigned preReSimp = d_assertionsToCheck.size();
     d_assertionsToCheck.swap(d_assertionsToPreprocess);
     simplifyAssertions();
-    Assert(preReSimp == d_assertionsToCheck.size(),
-           "Can't add assertions here");
     removeITEs();
   }
 

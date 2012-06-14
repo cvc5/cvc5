@@ -153,9 +153,9 @@ public:
     // Save mapping between ite skolems and ite assertions
     for(IteSkolemMap::iterator i = iteSkolemMap.begin();
         i != iteSkolemMap.end(); ++i) {
-      Assert(i->second >= assertionsEnd && i->second < assertions.size());
       Debug("jh-ite") << " jh-ite: " << (i->first) << " maps to "
                       << assertions[(i->second)] << std::endl;
+      Assert(i->second >= assertionsEnd && i->second < assertions.size());
       d_iteAssertions[i->first] = assertions[i->second];
     }
   }
