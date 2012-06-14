@@ -152,6 +152,15 @@ private:
     ++(d_statistics.d_propagations);
   }
 
+  void pushBack(TNode n, TNode r, TNode w){
+    d_explanationMap.insert(w, d_propagatations.size());
+    d_explanationMap.insert(r, d_propagatations.size());
+    d_explanationMap.insert(n, d_propagatations.size());
+    d_propagatations.enqueue(n);
+
+    ++(d_statistics.d_propagations);
+  }
+
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 

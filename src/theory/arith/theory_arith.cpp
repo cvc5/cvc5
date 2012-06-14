@@ -60,6 +60,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_hasDoneWorkSinceCut(false),
   d_learner(d_pbSubstitutions),
   d_setupLiteralCallback(this),
+  d_assertionsThatDoNotMatchTheirLiterals(c),
   d_nextIntegerCheckVar(0),
   d_constantIntegerVariables(c),
   d_diseqQueue(c, false),
@@ -1116,6 +1117,12 @@ Constraint TheoryArith::constraintFromFactQueue(){
     }
     Node reAssertion = isDistinct ? reEq.notNode() : reEq;
     constraint = d_constraintDatabase.lookup(reAssertion);
+
+    if(assertion != reAssertion){
+      Debug("arith::nf") << "getting non-nf assertion " << assertion << " |-> " <<  reAssertion << endl;
+      Assert(constraint != NullConstraint);
+      d_assertionsThatDoNotMatchTheirLiterals[assertion] = constraint;
+    }
   }
 
   // Kind simpleKind = Comparison::comparisonKind(assertion);
@@ -1713,6 +1720,11 @@ Node TheoryArith::explain(TNode n) {
     Assert(!c->isSelfExplaining());
     Node exp = c->explainForPropagation();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
+    return exp;
+  }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
+    c = d_assertionsThatDoNotMatchTheirLiterals[n];
+    Node exp = c->explainForPropagation();
+    Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
     return exp;
   }else{
     Assert(d_congruenceManager.canExplain(n));

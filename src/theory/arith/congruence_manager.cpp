@@ -160,7 +160,11 @@ bool ArithCongruenceManager::propagate(TNode x){
   // 11* : drop the constraint, do not propagate x or c
 
   if(!c->hasProof() && x != rewritten){
-    pushBack(x, rewritten);
+    if(c->assertedToTheTheory()){
+      pushBack(x, rewritten, c->getWitness());
+    }else{
+      pushBack(x, rewritten);
+    }
 
     c->setEqualityEngineProof();
     if(c->canBePropagated() && !c->assertedToTheTheory()){
@@ -169,10 +173,18 @@ bool ArithCongruenceManager::propagate(TNode x){
       c->propagate();
     }
   }else if(!c->hasProof() && x == rewritten){
-    pushBack(x, rewritten);
+    if(c->assertedToTheTheory()){
+      pushBack(x, c->getWitness());
+    }else{
+      pushBack(x);
+    }
     c->setEqualityEngineProof();
   }else if(c->hasProof() && x != rewritten){
-    pushBack(x, rewritten);
+    if(c->assertedToTheTheory()){
+      pushBack(x, rewritten, c->getWitness());
+    }else{
+      pushBack(x, rewritten);
+    }
   }else{
     Assert(c->hasProof() && x == rewritten);
   }
