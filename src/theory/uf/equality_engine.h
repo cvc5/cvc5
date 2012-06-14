@@ -22,6 +22,7 @@
 #pragma once
 
 #include <queue>
+#include <deque>
 #include <vector>
 #include <ext/hash_map>
 
@@ -415,10 +416,10 @@ private:
   EqualityNodeId newNode(TNode t);
 
   /** Propagation queue */
-  std::queue<MergeCandidate> d_propagationQueue;
+  std::deque<MergeCandidate> d_propagationQueue;
 
   /** Enqueue to the propagation queue */
-  void enqueue(const MergeCandidate& candidate);
+  void enqueue(const MergeCandidate& candidate, bool back = true);
 
   /** Do the propagation */
   void propagate();

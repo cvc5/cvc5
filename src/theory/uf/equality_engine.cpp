@@ -119,9 +119,13 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
   init();
 }
 
-void EqualityEngine::enqueue(const MergeCandidate& candidate) {
+void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
   Debug("equality") << d_name << "::eq::enqueue(" << d_nodes[candidate.t1Id] << ", " << d_nodes[candidate.t2Id] << ", " << candidate.type << ")" << std::endl;
-  d_propagationQueue.push(candidate);
+  if (back) {
+    d_propagationQueue.push_back(candidate);
+  } else {
+    d_propagationQueue.push_front(candidate);
+  }
 }
 
 EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, bool isEquality) {
@@ -152,17 +156,17 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
       if (d_isConstant[t1ClassId] && d_isConstant[t2ClassId] && t1ClassId != t2ClassId) {
         Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): got constants" << std::endl;
         Assert(d_nodes[funId].getKind() == kind::EQUAL);
-        enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
+        enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()), false);
         // Also enqueue the symmetric one
         TNode eq = d_nodes[funId];
         Node symmetricEq = eq[1].eqNode(eq[0]);
         if (hasTerm(symmetricEq)) {
           EqualityNodeId symmFunId = getNodeId(symmetricEq);
-          enqueue(MergeCandidate(symmFunId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));              
+          enqueue(MergeCandidate(symmFunId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()), false);              
         }
       }
       if (t1ClassId == t2ClassId) {
-        enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));
+        enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()), false);
       }
     }
   } else {
@@ -562,19 +566,19 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
             // If the equation normalizes to two constants, it's disequal
             if (d_isConstant[aNormalized] && d_isConstant[bNormalized] && aNormalized != bNormalized) {
               Assert(d_nodes[funId].getKind() == kind::EQUAL);
-              enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
+              enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()), false);
               // Also enqueue the symmetric one
               TNode eq = d_nodes[funId];
               Node symmetricEq = eq[1].eqNode(eq[0]);
               if (hasTerm(symmetricEq)) {
                 EqualityNodeId symmFunId = getNodeId(symmetricEq);
-                enqueue(MergeCandidate(symmFunId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));              
+                enqueue(MergeCandidate(symmFunId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()), false);              
               }
             }
             // If the function normalizes to a = a, we merge it with true, we check that its not
             // already there so as not to enqueue multiple times when several things get merged
             if (aNormalized == bNormalized && getEqualityNode(funId).getFind() != d_trueId) {
-              enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));                            
+              enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()), false);                            
             } 
           }
         }
@@ -712,7 +716,7 @@ void EqualityEngine::backtrack() {
 
     // Clear the propagation queue
     while (!d_propagationQueue.empty()) {
-      d_propagationQueue.pop();
+      d_propagationQueue.pop_front();
     }
 
     Debug("equality") << d_name << "::eq::backtrack(): nodes" << std::endl;
@@ -1146,7 +1150,7 @@ void EqualityEngine::propagate() {
 
     // The current merge candidate
     const MergeCandidate current = d_propagationQueue.front();
-    d_propagationQueue.pop();
+    d_propagationQueue.pop_front();
 
     if (d_done) {
       // If we're done, just empty the queue
