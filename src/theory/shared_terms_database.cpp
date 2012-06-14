@@ -173,11 +173,25 @@ void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
 }
 
 bool SharedTermsDatabase::areEqual(TNode a, TNode b) const {
-  return d_equalityEngine.areEqual(a,b);
+  if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
+    return d_equalityEngine.areEqual(a,b);
+  } else {
+    Assert(d_equalityEngine.hasTerm(a) || a.isConst());
+    Assert(d_equalityEngine.hasTerm(b) || b.isConst());
+    // since one (or both) of them is a constant, and the other is in the equality engine, they are not same
+    return false;
+  }
 } 
 
 bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
-  return d_equalityEngine.areDisequal(a,b,false);
+  if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
+    return d_equalityEngine.areDisequal(a,b,false);
+  } else {
+    Assert(d_equalityEngine.hasTerm(a) || a.isConst());
+    Assert(d_equalityEngine.hasTerm(b) || b.isConst());
+    // one (or both) are in the equality engine
+    return false;
+  }
 }
 
 void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode reason)
