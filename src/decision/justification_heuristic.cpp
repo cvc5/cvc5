@@ -133,6 +133,13 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     node = node[0];
   }
 
+  if(Debug.isOn("decision")) {
+    if(checkJustified(node))
+      Debug("decision") << "  justified, returning" << std::endl; 
+    if(d_visited.find(node) != d_visited.end())
+      Debug("decision") << "  visited, returning" << std::endl;       
+  }
+
   /* Base case */
   if (checkJustified(node) || d_visited.find(node) != d_visited.end())
     return false;
@@ -183,10 +190,18 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     Debug("jh-ite") << " ite size = " << l.size() << std::endl;
     d_visited.insert(node);
     for(unsigned i = 0; i < l.size(); ++i) {
-      Assert(l[i].getKind() == kind::ITE, "Expected ITE");
       Debug("jh-ite") << " i = " << i 
                       << " l[i] = " << l[i] << std::endl;
       if (checkJustified(l[i])) continue;
+
+      // Assert(l[i].getKind() == kind::ITE, "Expected ITE");
+      if(l[i].getKind() != kind::ITE) {
+        //this might happen because of repeatSimp
+        Debug("jh-ite") << " not an ite, must have got repeatSimp-ed"
+                        << std::endl;
+        findSplitterRec(l[i], SAT_VALUE_TRUE, litDecision);
+        continue;
+      }
 
       SatValue desiredVal = SAT_VALUE_TRUE; //NOTE: Reusing variable
 #ifdef CVC4_ASSERTIONS
@@ -206,6 +221,16 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
         if(findSplitterRec(l[i][0], ifDesiredVal, litDecision)) {
           return true;
         }
+
+        // Handle special case when if node itself is visited. Decide
+        // on it.
+        if(d_visited.find(l[i][0]) != d_visited.end()) {
+          Assert(d_decisionEngine->hasSatLiteral(l[i][0]));
+          SatVariable v = d_decisionEngine->getSatLiteral(l[i][0]).getSatVariable();
+          *litDecision = SatLiteral(v, ifDesiredVal != SAT_VALUE_TRUE );
+          return true;
+        }
+
         Assert(false, "No controlling input found (1)");
       } else {
 
