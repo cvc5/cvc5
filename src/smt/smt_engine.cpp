@@ -1052,7 +1052,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
     SubstitutionMap::iterator pos = d_topLevelSubstitutions.begin();
     for (; pos != d_topLevelSubstitutions.end(); ++pos) {
       Assert((*pos).first.isVar());
-      Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
+      //      Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
     }
     for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
       Assert((*pos).second.isConst());
