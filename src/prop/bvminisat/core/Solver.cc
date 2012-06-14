@@ -522,6 +522,12 @@ void Solver::popAssumption() {
     cancelUntil(assumptions.size());
 }
 
+lbool Solver::propagateAssumptions() {
+  only_bcp = true;
+  ccmin_mode = 0;
+  return search(-1);
+}
+
 lbool Solver::assertAssumption(Lit p, bool propagate) {
   
   // assert(marker[var(p)] == 1);
@@ -953,7 +959,7 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
 
   Debug("bvminisat::explain") << OUTPUT_TAG << "starting explain of " << p << std::endl;
 
-      __gnu_cxx::hash_set<Var> visited;
+   __gnu_cxx::hash_set<Var> visited;
   visited.insert(var(p));
   
   while(queue.size() > 0) {

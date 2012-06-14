@@ -93,6 +93,17 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
     }
   }
 
+  // We need to ensure we are fully propagated, so propagate now
+  if (d_useSatPropagation) {
+    bool ok = d_bitblaster->propagate();
+    if (!ok) {
+      std::vector<TNode> conflictAtoms;
+      d_bitblaster->getConflict(conflictAtoms);
+      d_bv->setConflict(mkConjunction(conflictAtoms));
+      return false;
+    }
+  }
+
   // solving
   if (e == Theory::EFFORT_FULL || Options::current()->bitvectorEagerFullcheck) {
     Assert(!d_bv->inConflict());

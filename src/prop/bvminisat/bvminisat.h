@@ -72,6 +72,8 @@ public:
 
   void addClause(SatClause& clause, bool removable);
 
+  SatValue propagate();
+
   SatVariable newVar(bool theoryAtom = false);
 
   SatVariable trueVar() { return d_minisat->trueVar(); }

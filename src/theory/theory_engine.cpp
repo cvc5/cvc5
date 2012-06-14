@@ -1131,6 +1131,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
 
 void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 
+  Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << std::endl;
+
   // Mark that we are in conflict
   d_inConflict = true;
 
@@ -1152,7 +1154,6 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     lemma(fullConflict, true, true);
   } else {
     // When only one theory, the conflict should need no processing
-    Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << ")" << std::endl;
     Assert(properConflict(conflict));
     lemma(conflict, true, true);
   }

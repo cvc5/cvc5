@@ -55,6 +55,10 @@ void BVMinisatSatSolver::addClause(SatClause& clause, bool removable) {
   d_minisat->addClause(minisat_clause);
 }
 
+SatValue BVMinisatSatSolver::propagate() {
+  return toSatLiteralValue(d_minisat->propagateAssumptions());
+}
+
 void BVMinisatSatSolver::addMarkerLiteral(SatLiteral lit) {
   d_minisat->addMarkerLiteral(BVMinisat::var(toMinisatLit(lit)));
 }

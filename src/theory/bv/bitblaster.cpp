@@ -173,6 +173,10 @@ void Bitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
  * 
  */
  
+bool Bitblaster::propagate() {
+  return d_satSolver->propagate() == prop::SAT_VALUE_TRUE;
+}
+
 bool Bitblaster::assertToSat(TNode lit, bool propagate) {
   // strip the not
   TNode atom; 
