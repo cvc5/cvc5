@@ -145,8 +145,10 @@ class SmtEnginePrivate {
   /**
    * Runs the nonclausal solver and tries to solve all the assigned
    * theory literals.
+   *
+   * Returns false if the formula simplifies to "false"
    */
-  void nonClausalSimplify();
+  bool nonClausalSimplify();
 
   /**
    * Performs static learning on the assertions.
@@ -176,8 +178,10 @@ class SmtEnginePrivate {
    * Perform non-clausal simplification of a Node.  This involves
    * Theory implementations, but does NOT involve the SAT solver in
    * any way.
+   *
+   * Returns false if the formula simplifies to "false"
    */
-  void simplifyAssertions() throw(NoSuchFunctionException, AssertionException);
+  bool simplifyAssertions() throw(NoSuchFunctionException, AssertionException);
 
 public:
 
@@ -890,7 +894,9 @@ void SmtEnginePrivate::staticLearning() {
   }
 }
 
-void SmtEnginePrivate::nonClausalSimplify() {
+
+// returns false if it learns a conflict
+bool SmtEnginePrivate::nonClausalSimplify() {
   d_smt.finalOptionsAreSet();
 
   TimerStat::CodeTimer nonclausalTimer(d_smt.d_nonclausalSimplificationTime);
@@ -923,7 +929,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
                       << "conflict in non-clausal propagation" << endl;
     d_assertionsToPreprocess.clear();
     d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
-    return;
+    return false;
   }
 
   // No, conflict, go through the literals and solve them
@@ -956,7 +962,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
                           << d_nonClausalLearnedLiterals[i] << endl;
         d_assertionsToPreprocess.clear();
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
-        return;
+        return false;
       }
     }
     // Solve it with the corresponding theory
@@ -987,7 +993,7 @@ void SmtEnginePrivate::nonClausalSimplify() {
                           << learnedLiteral << endl;
         d_assertionsToPreprocess.clear();
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
-        return;
+        return false;
       default:
         if (d_doConstantProp && learnedLiteral.getKind() == kind::EQUAL && (learnedLiteral[0].isConst() || learnedLiteral[1].isConst())) {
           // constant propagation
@@ -1136,6 +1142,8 @@ void SmtEnginePrivate::nonClausalSimplify() {
                       << "non-clausal constant propagation : "
                       << d_assertionsToCheck.back() << endl;
   }
+
+  return true;
 }
 
 
@@ -1218,7 +1226,8 @@ void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertion
   } while(! worklist.empty());
 }
 
-void SmtEnginePrivate::simplifyAssertions()
+// returns false if simpflication led to "false"
+bool SmtEnginePrivate::simplifyAssertions()
   throw(NoSuchFunctionException, AssertionException) {
   try {
 
@@ -1230,8 +1239,9 @@ void SmtEnginePrivate::simplifyAssertions()
                         << "performing non-clausal simplification" << endl;
       // Abuse the user context to make sure circuit propagator gets backtracked
       d_smt.d_userContext->push();
-      nonClausalSimplify();
+      bool noConflict = nonClausalSimplify();
       d_smt.d_userContext->pop();
+      if(!noConflict) return false;
     } else {
       Assert(d_assertionsToCheck.empty());
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
@@ -1279,8 +1289,9 @@ void SmtEnginePrivate::simplifyAssertions()
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
       // Abuse the user context to make sure circuit propagator gets backtracked
       d_smt.d_userContext->push();
-      nonClausalSimplify();
+      bool noConflict = nonClausalSimplify();
       d_smt.d_userContext->pop();
+      if(!noConflict) return false;
     }
 
     Debug("smt") << "POST repeatSimp" << std::endl;
@@ -1299,6 +1310,7 @@ void SmtEnginePrivate::simplifyAssertions()
        << tcep;
     InternalError(ss.str().c_str());
   }
+  return true;
 }
 
 Result SmtEngine::check() {
@@ -1385,7 +1397,7 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
     
-  simplifyAssertions();
+  bool noConflict = simplifyAssertions();
 
   if(Options::current()->doStaticLearning) {
     // Perform static learning
@@ -1404,7 +1416,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if(Options::current()->repeatSimp) {
     d_assertionsToCheck.swap(d_assertionsToPreprocess);
-    simplifyAssertions();
+    noConflict &= simplifyAssertions();
     removeITEs();
   }
 
@@ -1440,8 +1452,10 @@ void SmtEnginePrivate::processAssertions() {
 
   // Push the formula to decision engine
   Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
-  d_smt.d_decisionEngine->addAssertions
-    (d_assertionsToCheck, realAssertionsEnd, d_iteSkolemMap);
+  if(noConflict) {
+    d_smt.d_decisionEngine->addAssertions
+      (d_assertionsToCheck, realAssertionsEnd, d_iteSkolemMap);
+  }
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones

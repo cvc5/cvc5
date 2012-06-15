@@ -2,7 +2,7 @@
 :logic QF_AUFBV
 :extrafuns ((v1 BitVec[3]))
 :extrafuns ((a2 Array[13:3]))
-:status unknown
+:status unsat
 :formula
 (let (?n1 bv0[3])
 (flet ($n2 (bvsgt v1 v1))

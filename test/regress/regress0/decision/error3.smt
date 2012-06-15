@@ -1,6 +1,6 @@
 (benchmark fuzzsmt
 :logic QF_AUFBV
-:status unknown
+:status unsat
 :extrafuns ((v0 BitVec[15]))
 :extrafuns ((v1 BitVec[3]))
 :extrafuns ((a2 Array[13:3]))
