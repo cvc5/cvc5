@@ -615,7 +615,8 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<BitwiseEq>::applies(TNode node) {
-  if (node.getKind() != kind::EQUAL) {
+  if (node.getKind() != kind::EQUAL ||
+      utils::getSize(node[0]) != 1) {
     return false;
   }
   TNode term;
@@ -635,15 +636,11 @@ bool RewriteRule<BitwiseEq>::applies(TNode node) {
     case kind::BITVECTOR_AND:
     case kind::BITVECTOR_OR:
       //operator BITVECTOR_XOR 2: "bitwise xor"
+    case kind::BITVECTOR_NOT:
     case kind::BITVECTOR_NAND:
     case kind::BITVECTOR_NOR:
       //operator BITVECTOR_XNOR 2 "bitwise xnor"
     case kind::BITVECTOR_COMP:
-      if (utils::getSize(node[0]) != 1) {
-        return false;
-      }
-      break;
-    case kind::BITVECTOR_NOT:
     case kind::BITVECTOR_NEG:
       return true;
       break;
@@ -681,7 +678,7 @@ Node RewriteRule<BitwiseEq>::apply(TNode node) {
     term = node[0];
   }
 
-  bool eqOne = (c == BitVector(utils::getSize(node[0]),(unsigned)1));
+  bool eqOne = (c == BitVector(1,(unsigned)1));
 
   switch (term.getKind()) {
     case kind::BITVECTOR_AND:
@@ -727,7 +724,7 @@ Node RewriteRule<BitwiseEq>::apply(TNode node) {
         return term[0].eqNode(term[1]).notNode();
       }
     case kind::BITVECTOR_NEG:
-      return term[0].eqNode(utils::mkConst(-c));
+      return term[0].eqNode(utils::mkConst(c));
     default:
       break;
   }
