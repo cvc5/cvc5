@@ -141,8 +141,23 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
   }
 
   /* Base case */
-  if (checkJustified(node) || d_visited.find(node) != d_visited.end())
+  if (checkJustified(node))
     return false;
+  if(d_visited.find(node) != d_visited.end()) {
+
+    if(tryGetSatValue(node) != SAT_VALUE_UNKNOWN) {
+      setJustified(node);
+      return false;
+    } else {
+      Assert(d_decisionEngine->hasSatLiteral(node));
+      SatVariable v = d_decisionEngine->getSatLiteral(node).getSatVariable();
+      *litDecision = SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
+      Trace("decision") << "decision " << *litDecision << std::endl;
+      Trace("decision") << "Found something to split. Glad to be able to serve you." << std::endl;
+      return true;
+    }
+
+  }
 
 #if defined CVC4_ASSERTIONS || defined CVC4_TRACING
   // We don't always have a sat literal, so remember that. Will need
