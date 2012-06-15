@@ -116,6 +116,9 @@ class SmtEnginePrivate {
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
 
+  /** Size of assertions array when preprocessing starts */
+  unsigned d_realAssertionsEnd;
+
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
 
@@ -188,7 +191,7 @@ public:
   SmtEnginePrivate(SmtEngine& smt) :
     d_smt(smt),
     d_nonClausalLearnedLiterals(),
-    d_propagator(smt.d_userContext, d_nonClausalLearnedLiterals, true, true),
+    d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_topLevelSubstitutions(smt.d_userContext),
     d_lastSubstitutionPos(smt.d_userContext, d_topLevelSubstitutions.end()) {
   }
@@ -903,15 +906,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
 
-  // Apply the substitutions we already have, and normalize
-  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                    << "applying substitutions" << endl;
-  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-    Trace("simplify") << "applying to " << d_assertionsToPreprocess[i] << endl;
-    d_assertionsToPreprocess[i] =
-      theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
-    Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
-  }
+  d_propagator.initialize();
 
   // Assert all the assertions to the propagator
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
@@ -929,6 +924,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
                       << "conflict in non-clausal propagation" << endl;
     d_assertionsToPreprocess.clear();
     d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
+    d_propagator.finish();
     return false;
   }
 
@@ -962,6 +958,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
                           << d_nonClausalLearnedLiterals[i] << endl;
         d_assertionsToPreprocess.clear();
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
+        d_propagator.finish();
         return false;
       }
     }
@@ -993,6 +990,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
                           << learnedLiteral << endl;
         d_assertionsToPreprocess.clear();
         d_assertionsToCheck.push_back(NodeManager::currentNM()->mkConst<bool>(false));
+        d_propagator.finish();
         return false;
       default:
         if (d_doConstantProp && learnedLiteral.getKind() == kind::EQUAL && (learnedLiteral[0].isConst() || learnedLiteral[1].isConst())) {
@@ -1105,6 +1103,9 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
   d_assertionsToPreprocess.clear();
 
+  NodeBuilder<> learnedBuilder(kind::AND);
+  learnedBuilder << d_assertionsToCheck[d_realAssertionsEnd-1];
+
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
     Node learned = d_nonClausalLearnedLiterals[i];
     Node learnedNew = d_topLevelSubstitutions.apply(learned);
@@ -1123,10 +1124,10 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       continue;
     }
     s.insert(learned);
-    d_assertionsToCheck.push_back(learned);
+    learnedBuilder << learned;
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "non-clausal learned : "
-                      << d_assertionsToCheck.back() << endl;
+                      << learned << endl;
   }
   d_nonClausalLearnedLiterals.clear();
 
@@ -1137,12 +1138,17 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       continue;
     }
     s.insert(cProp);
-    d_assertionsToCheck.push_back(cProp);
+    learnedBuilder << cProp;
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "non-clausal constant propagation : "
-                      << d_assertionsToCheck.back() << endl;
+                      << cProp << endl;
   }
 
+  if(learnedBuilder.getNumChildren() > 1) {
+    d_assertionsToCheck[d_realAssertionsEnd-1] = Rewriter::rewrite(Node(learnedBuilder));
+  }
+
+  d_propagator.finish();
   return true;
 }
 
@@ -1237,10 +1243,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       // Perform non-clausal simplification
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
                         << "performing non-clausal simplification" << endl;
-      // Abuse the user context to make sure circuit propagator gets backtracked
-      d_smt.d_userContext->push();
       bool noConflict = nonClausalSimplify();
-      d_smt.d_userContext->pop();
       if(!noConflict) return false;
     } else {
       Assert(d_assertionsToCheck.empty());
@@ -1287,10 +1290,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
                         << " doing repeated simplification" << std::endl;
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
-      // Abuse the user context to make sure circuit propagator gets backtracked
-      d_smt.d_userContext->push();
       bool noConflict = nonClausalSimplify();
-      d_smt.d_userContext->pop();
       if(!noConflict) return false;
     }
 
@@ -1373,7 +1373,10 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   // any assertions added beyond realAssertionsEnd must NOT affect the equisatisfiability
-  int realAssertionsEnd = d_assertionsToPreprocess.size();
+  d_realAssertionsEnd = d_assertionsToPreprocess.size();
+  if (d_realAssertionsEnd == 0) {
+    return;
+  }
 
   // Any variables of subtype types need to be constrained properly.
   // Careful, here: constrainSubtypes() adds to the back of
@@ -1397,6 +1400,16 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
     
+  // Apply the substitutions we already have, and normalize
+  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                    << "applying substitutions" << endl;
+  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    Trace("simplify") << "applying to " << d_assertionsToPreprocess[i] << endl;
+    d_assertionsToPreprocess[i] =
+      theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
+    Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
+  }
+
   bool noConflict = simplifyAssertions();
 
   if(Options::current()->doStaticLearning) {
@@ -1414,20 +1427,39 @@ void SmtEnginePrivate::processAssertions() {
     d_smt.d_numAssertionsPost += d_assertionsToCheck.size();
   }
 
-  if(Options::current()->repeatSimp) {
-    d_assertionsToCheck.swap(d_assertionsToPreprocess);
-    noConflict &= simplifyAssertions();
-    removeITEs();
-  }
-
-  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
-  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
-
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 #ifdef CVC4_ASSERTIONS
   unsigned iteRewriteAssertionsEnd = d_assertionsToCheck.size();
 #endif
+
+  if(Options::current()->repeatSimp) {
+    d_assertionsToCheck.swap(d_assertionsToPreprocess);
+    noConflict &= simplifyAssertions();
+    if (noConflict) {
+      // Some skolem variables may have been solved for - which is a good thing -
+      // but it means we have to move those ITE's back to the main set of assertions
+      IteSkolemMap::iterator it = d_iteSkolemMap.begin();
+      IteSkolemMap::iterator iend = d_iteSkolemMap.end();
+      NodeBuilder<> builder(kind::AND);
+      builder << d_assertionsToCheck[d_realAssertionsEnd-1];
+      for (; it != iend; ++it) {
+        if (d_topLevelSubstitutions.hasSubstitution((*it).first)) {
+          builder << d_assertionsToCheck[(*it).second];
+          d_assertionsToCheck[(*it).second] = NodeManager::currentNM()->mkConst<bool>(true);
+        }
+      }
+      if(builder.getNumChildren() > 1) {
+        d_assertionsToCheck[d_realAssertionsEnd-1] = Rewriter::rewrite(Node(builder));
+      }
+      // TODO: remove this - need to double-check it's not needed
+      removeITEs();
+      Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
+    }
+  }
+
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   Trace("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
@@ -1451,10 +1483,10 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // Push the formula to decision engine
-  Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
   if(noConflict) {
+    Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
     d_smt.d_decisionEngine->addAssertions
-      (d_assertionsToCheck, realAssertionsEnd, d_iteSkolemMap);
+      (d_assertionsToCheck, d_realAssertionsEnd, d_iteSkolemMap);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or

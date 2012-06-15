@@ -68,6 +68,8 @@ public:
 
 private:
 
+  context::Context d_context;
+
   /** The propagation queue */
   std::vector<TNode> d_propagationQueue;
 
@@ -234,20 +236,28 @@ public:
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(context::Context* context, std::vector<Node>& outLearnedLiterals,
+  CircuitPropagator(std::vector<Node>& outLearnedLiterals,
                     bool enableForward = true, bool enableBackward = true) :
+    d_context(),
     d_propagationQueue(),
-    d_propagationQueueClearer(context, d_propagationQueue),
-    d_conflict(context, false),
+    d_propagationQueueClearer(&d_context, d_propagationQueue),
+    d_conflict(&d_context, false),
     d_learnedLiterals(outLearnedLiterals),
-    d_learnedLiteralClearer(context, outLearnedLiterals),
+    d_learnedLiteralClearer(&d_context, outLearnedLiterals),
     d_backEdges(),
-    d_backEdgesClearer(context, d_backEdges),
-    d_seen(context),
-    d_state(context),
+    d_backEdgesClearer(&d_context, d_backEdges),
+    d_seen(&d_context),
+    d_state(&d_context),
     d_forwardPropagation(enableForward),
     d_backwardPropagation(enableBackward) {
   }
+
+  // Use custom context to ensure propagator is reset after use
+  void initialize()
+  { d_context.push(); }
+
+  void finish()
+  { d_context.pop(); }
 
   /** Assert for propagation */
   void assert(TNode assertion);
