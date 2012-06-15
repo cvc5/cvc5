@@ -103,7 +103,7 @@ template<bool modEq>
 bool InstMatchTrie2<modEq>::addInstMatch( InstMatch& m ) {
  mapIter begin = m.d_map.begin();
  mapIter end = m.d_map.end();
- InstMatchTrie2<modEq>::Tree * e = &d_data;
+ typename InstMatchTrie2<modEq>::Tree * e = &d_data;
  mapIter diverge = begin;
  if( !existsInstMatch(e, begin, end, e, diverge ) ){
    Assert(!diverge->second.isNull());

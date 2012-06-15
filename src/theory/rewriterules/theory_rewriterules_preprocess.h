@@ -20,8 +20,8 @@
 #define __CVC4__REWRITERULES_H
 
 #include <vector>
-#include <hash_set>
-#include <hash_map>
+#include <ext/hash_set>
+#include <ext/hash_map>
 #include "expr/expr.h"
 #include "expr/node.h"
 #include "theory/rewriterules/theory_rewriterules_params.h"
