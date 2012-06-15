@@ -694,7 +694,7 @@ void UnconstrainedSimplifier::processAssertions(vector<Node>& assertions)
     processUnconstrained();
     //    d_substitutions.print(Message.getStream());
     for (it = assertions.begin(); it != iend; ++it) {
-      (*it) = d_substitutions.apply(*it);
+      (*it) = Rewriter::rewrite(d_substitutions.apply(*it));
     }
   }
 

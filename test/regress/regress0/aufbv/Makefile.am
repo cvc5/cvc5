@@ -34,7 +34,8 @@ TESTS =	\
 	fuzz06.smt \
 	fuzz07.smt \
 	fuzz08.smt \
-	fuzz09.smt 
+	fuzz09.smt \
+	fuzz10.smt
 
 # failing
 #	fuzz01.smt \

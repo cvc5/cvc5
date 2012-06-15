@@ -130,7 +130,7 @@ class SmtEnginePrivate {
   IteSkolemMap d_iteSkolemMap;
 
   /** The top level substitutions */
-  theory::SubstitutionMap d_topLevelSubstitutions;
+  SubstitutionMap d_topLevelSubstitutions;
 
   /**
    * The last substitution that the SAT layer was told about.
@@ -141,7 +141,7 @@ class SmtEnginePrivate {
    * that was pushed out to SAT.
    * If d_lastSubstitutionPos == d_topLevelSubstitutions.end(),
    * then nothing has been pushed out yet. */
-  context::CDO<theory::SubstitutionMap::iterator> d_lastSubstitutionPos;
+  context::CDO<SubstitutionMap::iterator> d_lastSubstitutionPos;
 
   static const bool d_doConstantProp = true;
 
@@ -299,7 +299,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    d_theoryEngine->addTheory<theory::TheoryTraits<THEORY>::theory_class>(THEORY);
+    d_theoryEngine->addTheory<TheoryTraits<THEORY>::theory_class>(THEORY);
   CVC4_FOR_EACH_THEORY;
 
   // global push/pop around everything, to ensure proper destruction
@@ -458,57 +458,57 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
 
   // by default, symmetry breaker is on only for QF_UF
   if(! Options::current()->ufSymmetryBreakerSetByUser) {
-    bool qf_uf = d_logic.isPure(theory::THEORY_UF) && !d_logic.isQuantified();
+    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf << std::endl;
     NodeManager::currentNM()->getOptions()->ufSymmetryBreaker = qf_uf;
   }
   // by default, nonclausal simplification is off for QF_SAT and for quantifiers
   if(! Options::current()->simplificationModeSetByUser) {
-    bool qf_sat = d_logic.isPure(theory::THEORY_BOOL) && !d_logic.isQuantified();
+    bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     bool quantifiers = d_logic.isQuantified();
     Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat && !quantifiers) << std::endl;
     NodeManager::currentNM()->getOptions()->simplificationMode = (qf_sat || quantifiers ? Options::SIMPLIFICATION_MODE_NONE : Options::SIMPLIFICATION_MODE_BATCH);
   }
 
   // If in arrays, set the UF handler to arrays
-  if(d_logic.isPure(theory::THEORY_ARRAY) && !d_logic.isQuantified()) {
-    theory::Theory::setUninterpretedSortOwner(theory::THEORY_ARRAY);
+  if(d_logic.isPure(THEORY_ARRAY) && !d_logic.isQuantified()) {
+    Theory::setUninterpretedSortOwner(THEORY_ARRAY);
   } else {
-    theory::Theory::setUninterpretedSortOwner(theory::THEORY_UF);
+    Theory::setUninterpretedSortOwner(THEORY_UF);
   }
   // Turn on ite simplification for QF_LIA and QF_AUFBV
   if(! Options::current()->doITESimpSetByUser) {
     bool iteSimp = !d_logic.isQuantified() &&
-      ((d_logic.isPure(theory::THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areRealsUsed()) ||
-       (d_logic.isTheoryEnabled(theory::THEORY_ARRAY) && d_logic.isTheoryEnabled(theory::THEORY_UF) && d_logic.isTheoryEnabled(theory::THEORY_BV)));
+      ((d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areRealsUsed()) ||
+       (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_UF) && d_logic.isTheoryEnabled(THEORY_BV)));
     Trace("smt") << "setting ite simplification to " << iteSimp << std::endl;
     NodeManager::currentNM()->getOptions()->doITESimp = iteSimp;
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! Options::current()->repeatSimpSetByUser) {
     bool repeatSimp = !d_logic.isQuantified() &&
-      (d_logic.isTheoryEnabled(theory::THEORY_ARRAY) && d_logic.isTheoryEnabled(theory::THEORY_UF) && d_logic.isTheoryEnabled(theory::THEORY_BV));
+      (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_UF) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting repeat simplification to " << repeatSimp << std::endl;
     NodeManager::currentNM()->getOptions()->repeatSimp = repeatSimp;
   }
   // Turn on unconstrained simplification for QF_AUFBV
   if(! Options::current()->unconstrainedSimpSetByUser || Options::current()->incrementalSolving) {
-    //    bool qf_sat = d_logic.isPure(theory::THEORY_BOOL) && !d_logic.isQuantified();
+    //    bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     //    bool uncSimp = false && !qf_sat && !Options::current()->incrementalSolving;
     bool uncSimp = !Options::current()->incrementalSolving && !d_logic.isQuantified() &&
-      (d_logic.isTheoryEnabled(theory::THEORY_ARRAY) && d_logic.isTheoryEnabled(theory::THEORY_BV));
+      (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting unconstrained simplification to " << uncSimp << std::endl;
     NodeManager::currentNM()->getOptions()->unconstrainedSimp = uncSimp;
   }
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! Options::current()->arithRewriteEqSetByUser) {
-    bool arithRewriteEq = d_logic.isPure(theory::THEORY_ARITH) && !d_logic.isQuantified();
+    bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified();
     Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
     NodeManager::currentNM()->getOptions()->arithRewriteEq = arithRewriteEq;
   }
   if(!  Options::current()->arithHeuristicPivotsSetByUser){
     int16_t heuristicPivots = 5;
-    if(d_logic.isPure(theory::THEORY_ARITH) && !d_logic.isQuantified()){
+    if(d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified()){
       if(d_logic.isDifferenceLogic()){
         heuristicPivots = -1;
       }else if(!d_logic.areIntegersUsed()){
@@ -520,7 +520,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
   }
   if(! Options::current()->arithPivotThresholdSetByUser){
     uint16_t pivotThreshold = 2;
-    if(d_logic.isPure(theory::THEORY_ARITH) && !d_logic.isQuantified()){
+    if(d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified()){
       if(d_logic.isDifferenceLogic()){
         pivotThreshold = 16;
       }
@@ -530,7 +530,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
   }
   if(! Options::current()->arithStandardCheckVarOrderPivotsSetByUser){
     int16_t varOrderPivots = -1;
-    if(d_logic.isPure(theory::THEORY_ARITH) && !d_logic.isQuantified()){
+    if(d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified()){
       varOrderPivots = 200;
     }
     Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << std::endl;
@@ -545,13 +545,13 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     Options::DecisionMode decMode = 
       //QF_BV
       ( !d_logic.isQuantified() &&
-        d_logic.isPure(theory::THEORY_BV)
+        d_logic.isPure(THEORY_BV)
         ) ||
       //QF_AUFBV
       (!d_logic.isQuantified() &&
-       d_logic.isTheoryEnabled(theory::THEORY_ARRAY) &&
-       d_logic.isTheoryEnabled(theory::THEORY_UF) &&
-       d_logic.isTheoryEnabled(theory::THEORY_BV)
+       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+       d_logic.isTheoryEnabled(THEORY_UF) &&
+       d_logic.isTheoryEnabled(THEORY_BV)
        )
       ? Options::DECISION_STRATEGY_JUSTIFICATION
       : Options::DECISION_STRATEGY_INTERNAL;
@@ -872,7 +872,7 @@ void SmtEnginePrivate::removeITEs() {
   // Remove all of the ITE occurrences and normalize
   RemoveITE::run(d_assertionsToCheck, d_iteSkolemMap);
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-    d_assertionsToCheck[i] = theory::Rewriter::rewrite(d_assertionsToCheck[i]);
+    d_assertionsToCheck[i] = Rewriter::rewrite(d_assertionsToCheck[i]);
   }
   
 }
@@ -912,6 +912,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "asserting to propagator" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    Assert(Rewriter::rewrite(d_assertionsToPreprocess[i]) == d_assertionsToPreprocess[i]);
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): asserting " << d_assertionsToPreprocess[i] << endl;
     d_propagator.assert(d_assertionsToPreprocess[i]);
   }
@@ -929,14 +930,15 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
 
   // No, conflict, go through the literals and solve them
-  theory::SubstitutionMap constantPropagations(d_smt.d_context);
+  SubstitutionMap constantPropagations(d_smt.d_context);
   unsigned j = 0;
   for(unsigned i = 0, i_end = d_nonClausalLearnedLiterals.size(); i < i_end; ++ i) {
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = d_nonClausalLearnedLiterals[i];
+    Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Node learnedLiteralNew = d_topLevelSubstitutions.apply(learnedLiteral);
     if (learnedLiteral != learnedLiteralNew) {
-      learnedLiteral = theory::Rewriter::rewrite(learnedLiteralNew);
+      learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
     for (;;) {
       learnedLiteralNew = constantPropagations.apply(learnedLiteral);
@@ -944,7 +946,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         break;
       }
       ++d_smt.d_numConstantProps;
-      learnedLiteral = theory::Rewriter::rewrite(learnedLiteralNew);
+      learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
     // It might just simplify to a constant
     if (learnedLiteral.isConst()) {
@@ -973,7 +975,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         // The literal should rewrite to true
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                           << "solved " << learnedLiteral << endl;
-        Assert(theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(learnedLiteral)).isConst());
+        Assert(Rewriter::rewrite(d_topLevelSubstitutions.apply(learnedLiteral)).isConst());
         //        vector<pair<Node, Node> > equations;
         //        constantPropagations.simplifyLHS(d_topLevelSubstitutions, equations, true);
         //        if (equations.empty()) {
@@ -1026,26 +1028,6 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         break;
     }
 
-    if( Options::current()->incrementalSolving ||
-        Options::current()->simplificationMode == Options::SIMPLIFICATION_MODE_INCREMENTAL ) {
-      // Tell PropEngine about new substitutions
-      SubstitutionMap::iterator pos = d_lastSubstitutionPos;
-      if(pos == d_topLevelSubstitutions.end()) {
-        pos = d_topLevelSubstitutions.begin();
-      } else {
-        ++pos;
-      }
-
-      while(pos != d_topLevelSubstitutions.end()) {
-        // Push out this substitution
-        TNode lhs = (*pos).first, rhs = (*pos).second;
-        Node n = NodeManager::currentNM()->mkNode(lhs.getType().isBoolean() ? kind::IFF : kind::EQUAL, lhs, rhs);
-        d_assertionsToCheck.push_back(n);
-        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): will notify SAT layer of substitution: " << n << endl;
-        d_lastSubstitutionPos = pos;
-        ++pos;
-      }
-    }
 #ifdef CVC4_ASSERTIONS
     // Check data structure invariants:
     // 1. for each lhs of d_topLevelSubstitutions, does not appear anywhere in rhs of d_topLevelSubstitutions or anywhere in constantPropagations
@@ -1085,15 +1067,16 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     Node assertion = d_assertionsToPreprocess[i];
     Node assertionNew = d_topLevelSubstitutions.apply(assertion);
     if (assertion != assertionNew) {
-      assertion = theory::Rewriter::rewrite(assertionNew);
+      assertion = Rewriter::rewrite(assertionNew);
     }
+    Assert(Rewriter::rewrite(assertion) == assertion);
     for (;;) {
       assertionNew = constantPropagations.apply(assertion);
       if (assertionNew == assertion) {
         break;
       }
       ++d_smt.d_numConstantProps;
-      assertion = theory::Rewriter::rewrite(assertionNew);
+      assertion = Rewriter::rewrite(assertionNew);
     }
     s.insert(assertion);
     d_assertionsToCheck.push_back(assertion);
@@ -1104,21 +1087,44 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   d_assertionsToPreprocess.clear();
 
   NodeBuilder<> learnedBuilder(kind::AND);
+  Assert(d_realAssertionsEnd <= d_assertionsToCheck.size());
   learnedBuilder << d_assertionsToCheck[d_realAssertionsEnd-1];
+
+  if( Options::current()->incrementalSolving ||
+      Options::current()->simplificationMode == Options::SIMPLIFICATION_MODE_INCREMENTAL ) {
+    // Keep substitutions
+    SubstitutionMap::iterator pos = d_lastSubstitutionPos;
+    if(pos == d_topLevelSubstitutions.end()) {
+      pos = d_topLevelSubstitutions.begin();
+    } else {
+      ++pos;
+    }
+
+    while(pos != d_topLevelSubstitutions.end()) {
+      // Push out this substitution
+      TNode lhs = (*pos).first, rhs = (*pos).second;
+      Node n = NodeManager::currentNM()->mkNode(lhs.getType().isBoolean() ? kind::IFF : kind::EQUAL, lhs, rhs);
+      learnedBuilder << n;
+      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): will notify SAT layer of substitution: " << n << endl;
+      d_lastSubstitutionPos = pos;
+      ++pos;
+    }
+  }
 
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
     Node learned = d_nonClausalLearnedLiterals[i];
     Node learnedNew = d_topLevelSubstitutions.apply(learned);
     if (learned != learnedNew) {
-      learned = theory::Rewriter::rewrite(learnedNew);
+      learned = Rewriter::rewrite(learnedNew);
     }
+    Assert(Rewriter::rewrite(learned) == learned);
     for (;;) {
       learnedNew = constantPropagations.apply(learned);
       if (learnedNew == learned) {
         break;
       }
       ++d_smt.d_numConstantProps;
-      learned = theory::Rewriter::rewrite(learnedNew);
+      learned = Rewriter::rewrite(learnedNew);
     }
     if (s.find(learned) != s.end()) {
       continue;
@@ -1260,7 +1266,9 @@ bool SmtEnginePrivate::simplifyAssertions()
       // Call the theory preprocessors
       d_smt.d_theoryEngine->preprocessStart();
       for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+        Assert(Rewriter::rewrite(d_assertionsToCheck[i]) == d_assertionsToCheck[i]);
         d_assertionsToCheck[i] = d_smt.d_theoryEngine->preprocess(d_assertionsToCheck[i]);
+        Assert(Rewriter::rewrite(d_assertionsToCheck[i]) == d_assertionsToCheck[i]);
       }
     }
 
@@ -1406,7 +1414,7 @@ void SmtEnginePrivate::processAssertions() {
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     Trace("simplify") << "applying to " << d_assertionsToPreprocess[i] << endl;
     d_assertionsToPreprocess[i] =
-      theory::Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
+      Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
     Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
   }
 
@@ -1510,7 +1518,7 @@ void SmtEnginePrivate::addFormula(TNode n)
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
 
   // Add the normalized formula to the queue
-  d_assertionsToPreprocess.push_back(theory::Rewriter::rewrite(n));
+  d_assertionsToPreprocess.push_back(Rewriter::rewrite(n));
 
   // If the mode of processing is incremental prepreocess and assert immediately
   if (Options::current()->simplificationMode == Options::SIMPLIFICATION_MODE_INCREMENTAL) {
@@ -1714,7 +1722,7 @@ Expr SmtEngine::getValue(const Expr& e)
   Node n = d_private->applySubstitutions(e.getNode());
 
   // Normalize for the theories
-  n = theory::Rewriter::rewrite(n);
+  n = Rewriter::rewrite(n);
 
   Trace("smt") << "--- getting value of " << n << endl;
   Node resultNode = d_theoryEngine->getValue(n);
@@ -1787,7 +1795,7 @@ SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
     Assert((*i).getType() == boolType);
 
     // Normalize
-    Node n = theory::Rewriter::rewrite(*i);
+    Node n = Rewriter::rewrite(*i);
 
     Trace("smt") << "--- getting value of " << n << endl;
     Node resultNode = d_theoryEngine->getValue(n);

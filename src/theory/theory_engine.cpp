@@ -719,6 +719,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL) {
       d_ppCache[current] = ppTheoryRewrite(current);
+      Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
     }
 
@@ -735,6 +736,9 @@ Node TheoryEngine::preprocess(TNode assertion) {
       }
       // Mark the substitution and continue
       Node result = builder;
+      if (result != current) {
+        result = Rewriter::rewrite(result);
+      }
       Debug("theory::internal") << "TheoryEngine::preprocess(" << assertion << "): setting " << current << " -> " << result << endl;
       d_ppCache[current] = result;
       toVisit.pop_back();
