@@ -43,10 +43,10 @@ if echo "$version" | grep '[^a-zA-Z0-9_.+(){}^%#-]' &>/dev/null; then
   exit 1
 fi
 
-vs=($(echo "$version" | sed 's,^\([0-9]*\)\.\([0-9]*\)\(\.\([0-9]*\)\)\?\(.*\),\1 \2 \4 \5,'))
+eval "declare -a vs=($(echo "$version" | sed 's,^\([0-9]*\)\.\([0-9]*\)\(\.\([0-9]*\)\)\?\(.*\),[0]=\1 [1]=\2 [2]=\4 [3]=\5,'))"
 major=${vs[0]}
-minor=${vs[1]}
-release=${vs[2]-0}
+minor=${vs[1]}; if [ -z "$minor" ]; then minor=0; fi
+release=${vs[2]}; if [ -z "$release" ]; then release=0; fi
 extra=${vs[3]}
 echo
 echo "Major  : $major"
@@ -149,14 +149,14 @@ echo "Building and checking distribution \`cvc4-$version'..."
 if ! $SHELL -c '\
 	version="'$version'"; \
 	set -ex; \
-	./autogen.sh; \
+	./autogen.sh || echo "autoconf failed; does library_versions have something to match $version?"; \
 	mkdir "release-$version"; \
 	cd "release-$version"; \
-	../configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-cudd --with-readline; \
+	../configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-gmp --without-cudd --with-readline --with-portfolio; \
 	make dist "$@"; \
 	tar xf "cvc4-$version.tar.gz"; \
 	cd "cvc4-$version"; \
-	./configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-cudd --with-readline; \
+	./configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-gmp --without-cudd --with-readline --with-portfolio; \
 	make check "$@"; \
 	make distcheck "$@"; \
 '; then
@@ -192,9 +192,14 @@ cp -p "release-$version/cvc4-$version.tar.gz" .
 gpg -b --armor "cvc4-$version.tar.gz"
 
 echo
-echo "Signing binary..."
+echo "Signing cvc4 binary..."
 cp -p "release-$version/src/main/cvc4" "cvc4-$version"
 gpg -b --armor "cvc4-$version"
+
+echo
+echo "Signing pcvc4 binary..."
+cp -p "release-$version/src/main/pcvc4" "pcvc4-$version"
+gpg -b --armor "pcvc4-$version"
 
 echo
 echo "About to run: svn commit -m \"Cutting release $version.\""
