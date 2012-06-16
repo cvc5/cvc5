@@ -1104,7 +1104,8 @@ Constraint TheoryArith::constraintFromFactQueue(){
     Assert(!isSetup(eq));
     Node reEq = Rewriter::rewrite(eq);
     if(reEq.getKind() == CONST_BOOLEAN){
-      if(reEq.getConst<bool>() != isDistinct){
+      if(reEq.getConst<bool>() == isDistinct){
+        // if is (not true), or false
         Assert((reEq.getConst<bool>() && isDistinct) ||
                (!reEq.getConst<bool>() && !isDistinct));
         d_raiseConflict(assertion);

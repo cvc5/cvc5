@@ -542,7 +542,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
   }
   // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
   if(!Options::current()->decisionModeSetByUser) {
-    Options::DecisionMode decMode = 
+    Options::DecisionMode decMode =
       //QF_BV
       ( !d_logic.isQuantified() &&
         d_logic.isPure(THEORY_BV)
@@ -558,7 +558,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     NodeManager::currentNM()->getOptions()->decisionMode = decMode;
   }
- 
+
 }
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
