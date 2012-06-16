@@ -96,16 +96,18 @@ SatValue JustificationHeuristic::tryGetSatValue(Node n)
 
 void JustificationHeuristic::computeITEs(TNode n, IteList &l)
 {
-  Debug("jh-ite") << " computeITEs( " << n << ", &l)\n";
+  Trace("jh-ite") << " computeITEs( " << n << ", &l)\n";
   for(unsigned i=0; i<n.getNumChildren(); ++i) {
     SkolemMap::iterator it2 = d_iteAssertions.find(n[i]);
-    if(it2 != d_iteAssertions.end())
-      l.push_back(it2->second);
+    if(it2 != d_iteAssertions.end()) {
+      l.push_back(make_pair(n[i], it2->second));
+      Assert(n[i].getNumChildren() == 0);
+    }
     computeITEs(n[i], l);
   }
 }
 
-const IteList& JustificationHeuristic::getITEs(TNode n)
+const JustificationHeuristic::IteList& JustificationHeuristic::getITEs(TNode n)
 {
   IteCache::iterator it = d_iteCache.find(n);
   if(it != d_iteCache.end()) {
@@ -113,7 +115,7 @@ const IteList& JustificationHeuristic::getITEs(TNode n)
   } else {
     // Compute the list of ITEs
     // TODO: optimize by avoiding multiple lookup for d_iteCache[n]
-    d_iteCache[n] = vector<TNode>();
+    d_iteCache[n] = IteList();
     computeITEs(n, d_iteCache[n]);
     return d_iteCache[n];
   }
@@ -123,7 +125,7 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
                                              SatValue desiredVal,
                                              SatLiteral* litDecision)
 {
-  Trace("decision") 
+  Trace("jh-findSplitterRec") 
     << "findSplitterRec(" << node << ", " 
     << desiredVal << ", .. )" << std::endl; 
 
@@ -136,36 +138,20 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
   if(Debug.isOn("decision")) {
     if(checkJustified(node))
       Debug("decision") << "  justified, returning" << std::endl; 
-    if(d_visited.find(node) != d_visited.end())
-      Debug("decision") << "  visited, returning" << std::endl;       
   }
 
   /* Base case */
-  if (checkJustified(node))
+  if (checkJustified(node)) {
     return false;
-  if(d_visited.find(node) != d_visited.end()) {
-
-    if(tryGetSatValue(node) != SAT_VALUE_UNKNOWN) {
-      setJustified(node);
-      return false;
-    } else {
-      Assert(d_decisionEngine->hasSatLiteral(node));
-      SatVariable v = d_decisionEngine->getSatLiteral(node).getSatVariable();
-      *litDecision = SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
-      Trace("decision") << "decision " << *litDecision << std::endl;
-      Trace("decision") << "Found something to split. Glad to be able to serve you." << std::endl;
-      return true;
-    }
-
   }
 
-#if defined CVC4_ASSERTIONS || defined CVC4_TRACING
+#if defined CVC4_ASSERTIONS || defined CVC4_DEBUG
   // We don't always have a sat literal, so remember that. Will need
   // it for some assertions we make.
   bool litPresent = d_decisionEngine->hasSatLiteral(node);
-  if(Trace.isOn("decision")) {
+  if(Debug.isOn("decision")) {
     if(!litPresent) {
-      Trace("decision") << "no sat literal for this node" << std::endl;
+      Debug("decision") << "no sat literal for this node" << std::endl;
     }
   }
   //Assert(litPresent); -- fails
@@ -186,10 +172,10 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
   theory::TheoryId tId = theory::kindToTheoryId(k);
 
   /* Some debugging stuff */
-  Trace("jh-findSplitterRec") << "kind = " << k << std::endl;
-  Trace("jh-findSplitterRec") << "theoryId = " << tId << std::endl;
-  Trace("jh-findSplitterRec") << "node = " << node << std::endl;
-  Trace("jh-findSplitterRec") << "litVal = " << litVal << std::endl;
+  Debug("jh-findSplitterRec") << "kind = " << k << std::endl;
+  Debug("jh-findSplitterRec") << "theoryId = " << tId << std::endl;
+  Debug("jh-findSplitterRec") << "node = " << node << std::endl;
+  Debug("jh-findSplitterRec") << "litVal = " << litVal << std::endl;
 
   /**
    * If not in theory of booleans, and not a "boolean" EQUAL (IFF),
@@ -202,73 +188,20 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     // if node has embedded ites -- which currently happens iff it got
     // replaced during ite removal -- then try to resolve that first
     const IteList& l = getITEs(node);
-    Debug("jh-ite") << " ite size = " << l.size() << std::endl;
-    d_visited.insert(node);
-    for(unsigned i = 0; i < l.size(); ++i) {
-      Debug("jh-ite") << " i = " << i 
-                      << " l[i] = " << l[i] << std::endl;
-      if (checkJustified(l[i])) continue;
-
-      // Assert(l[i].getKind() == kind::ITE, "Expected ITE");
-      if(l[i].getKind() != kind::ITE) {
-        //this might happen because of repeatSimp
-        Debug("jh-ite") << " not an ite, must have got repeatSimp-ed"
-                        << std::endl;
-        findSplitterRec(l[i], SAT_VALUE_TRUE, litDecision);
-        continue;
-      }
-
-      SatValue desiredVal = SAT_VALUE_TRUE; //NOTE: Reusing variable
-#ifdef CVC4_ASSERTIONS
-      bool litPresent = d_decisionEngine->hasSatLiteral(l[i]);
-#endif
-
-      // Handle the ITE to catch the case when a variable is its own
-      // fanin
-      SatValue ifVal = tryGetSatValue(l[i][0]);
-      if (ifVal == SAT_VALUE_UNKNOWN) {
-        // are we better off trying false? if not, try true
-        SatValue ifDesiredVal = 
-          (tryGetSatValue(l[i][2]) == desiredVal ||
-           tryGetSatValue(l[i][1]) == invertValue(desiredVal))
-          ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
-
-        if(findSplitterRec(l[i][0], ifDesiredVal, litDecision)) {
+    Trace("jh-ite") << " ite size = " << l.size() << std::endl;
+    /*d_visited.insert(node);*/
+    for(IteList::const_iterator i = l.begin(); i != l.end(); ++i) {
+      if(d_visited.find(i->first) == d_visited.end()) {
+        d_visited.insert(i->first);
+        Debug("jh-ite") << "jh-ite: adding visited " << i->first << std::endl;
+        if(findSplitterRec(i->second, SAT_VALUE_TRUE, litDecision))
           return true;
-        }
-
-        // Handle special case when if node itself is visited. Decide
-        // on it.
-        if(d_visited.find(l[i][0]) != d_visited.end()) {
-          Assert(d_decisionEngine->hasSatLiteral(l[i][0]));
-          SatVariable v = d_decisionEngine->getSatLiteral(l[i][0]).getSatVariable();
-          *litDecision = SatLiteral(v, ifDesiredVal != SAT_VALUE_TRUE );
-          return true;
-        }
-
-        Assert(false, "No controlling input found (1)");
+        Debug("jh-ite") << "jh-ite: removing visited " << i->first << std::endl;
+        d_visited.erase(i->first);
       } else {
-
-        // Try to justify 'if'
-        if (findSplitterRec(l[i][0], ifVal, litDecision)) {
-          return true;
-        }
-
-        // If that was successful, we need to go into only one of 'then'
-        // or 'else'
-        int ch = (ifVal == SAT_VALUE_TRUE) ? 1 : 2;
-        int chVal = tryGetSatValue(l[i][ch]);
-        if( d_visited.find(l[i]) == d_visited.end()
-            && (chVal == SAT_VALUE_UNKNOWN || chVal == desiredVal)
-            && findSplitterRec(l[i][ch], desiredVal, litDecision) ) {
-          return true;
-        }
+        Debug("jh-ite") << "jh-ite: already visited " << i->first << std::endl;
       }
-      Assert(litPresent == false || litVal == desiredVal,
-             "Output should be justified");
-      setJustified(l[i]);
     }
-    d_visited.erase(node);
 
     if(litVal != SAT_VALUE_UNKNOWN) {
       setJustified(node);

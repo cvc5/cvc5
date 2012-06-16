@@ -19,6 +19,8 @@
 #include <vector>
 #include <list>
 
+#include "decision/decision_engine.h"
+
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"

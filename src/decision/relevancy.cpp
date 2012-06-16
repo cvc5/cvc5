@@ -68,7 +68,7 @@ void Relevancy::computeITEs(TNode n, IteList &l)
   }
 }
 
-const IteList& Relevancy::getITEs(TNode n)
+const Relevancy::IteList& Relevancy::getITEs(TNode n)
 {
   IteCache::iterator it = d_iteCache.find(n);
   if(it != d_iteCache.end()) {

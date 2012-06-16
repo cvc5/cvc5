@@ -34,8 +34,6 @@ namespace CVC4 {
 
 namespace decision {
 
-typedef std::vector<TNode> IteList;
-
 class GiveUpException : public Exception {
 public:
   GiveUpException() : 
@@ -44,11 +42,13 @@ public:
 };/* class GiveUpException */
 
 class JustificationHeuristic : public ITEDecisionStrategy {
+  typedef std::vector<pair<TNode,TNode> > IteList;
   typedef hash_map<TNode,IteList,TNodeHashFunction> IteCache;
   typedef hash_map<TNode,TNode,TNodeHashFunction> SkolemMap;
 
   // being 'justified' is monotonic with respect to decisions
-  context::CDHashSet<TNode,TNodeHashFunction> d_justified;
+  typedef context::CDHashSet<TNode,TNodeHashFunction> JustifiedSet;
+  JustifiedSet d_justified;
   context::CDO<unsigned>  d_prvsIndex;
 
   IntStat d_helfulness;
@@ -99,8 +99,19 @@ public:
 
     d_visited.clear();
 
+    if(Trace.isOn("justified")) {
+      for(JustifiedSet::iterator i = d_justified.begin();
+          i != d_justified.end(); ++i) {
+        TNode n = *i;
+        SatLiteral l = d_decisionEngine->hasSatLiteral(n) ?
+          d_decisionEngine->getSatLiteral(n) : -1;
+        SatValue v = tryGetSatValue(n);
+        Trace("justified") <<"{ "<<l<<"}" << n <<": "<<v << std::endl;
+      }
+    }
+
     for(unsigned i = d_prvsIndex; i < d_assertions.size(); ++i) {
-      Trace("decision") << d_assertions[i] << std::endl;
+      Debug("decision") << d_assertions[i] << std::endl;
 
       // Sanity check: if it was false, aren't we inconsistent?
       Assert( tryGetSatValue(d_assertions[i]) != SAT_VALUE_FALSE);
@@ -153,7 +164,7 @@ public:
     // Save mapping between ite skolems and ite assertions
     for(IteSkolemMap::iterator i = iteSkolemMap.begin();
         i != iteSkolemMap.end(); ++i) {
-      Debug("jh-ite") << " jh-ite: " << (i->first) << " maps to "
+      Trace("jh-ite") << " jh-ite: " << (i->first) << " maps to "
                       << assertions[(i->second)] << std::endl;
       Assert(i->second >= assertionsEnd && i->second < assertions.size());
       d_iteAssertions[i->first] = assertions[i->second];
@@ -175,7 +186,7 @@ private:
       return prop::undefSatLiteral;
     }
     if(ret == true) {
-      Trace("decision") << "Yippee!!" << std::endl;
+      Debug("decision") << "Yippee!!" << std::endl;
       //d_prvsIndex = i;
       ++d_helfulness;
       return litDecision;
@@ -199,7 +210,7 @@ private:
   SatValue tryGetSatValue(Node n);
 
   /* Get list of all term-ITEs for the atomic formula v */
-  const IteList& getITEs(TNode n);
+  const JustificationHeuristic::IteList& getITEs(TNode n);
 
   /* Compute all term-ITEs in a node recursively */
   void computeITEs(TNode n, IteList &l);

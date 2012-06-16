@@ -1267,7 +1267,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
     }
 
-    Debug("smt") << "POST nonClasualSimplify" << std::endl;
+    Trace("smt") << "POST nonClasualSimplify" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1283,7 +1283,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    Debug("smt") << "POST theoryPP" << std::endl;
+    Trace("smt") << "POST theoryPP" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1292,7 +1292,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       simpITE();
     }
 
-    Debug("smt") << "POST iteSimp" << std::endl;
+    Trace("smt") << "POST iteSimp" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1301,7 +1301,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       unconstrainedSimp();
     }
 
-    Debug("smt") << "POST unconstraintedSimp" << std::endl;
+    Trace("smt") << "POST unconstraintedSimp" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1313,7 +1313,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       if(!noConflict) return false;
     }
 
-    Debug("smt") << "POST repeatSimp" << std::endl;
+    Trace("smt") << "POST repeatSimp" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1480,7 +1480,7 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-  Trace("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
+  Debug("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
