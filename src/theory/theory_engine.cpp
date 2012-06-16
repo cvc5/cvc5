@@ -904,7 +904,7 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
   // Try and assert (note that we assert the non-normalized one)
   if (markPropagation(normalizedAssertion, assertion, toTheoryId, fromTheoryId)) {
     // Check if has been pre-registered with the theory
-    bool preregistered = d_propEngine->isSatLiteral(normalizedAssertion) && Theory::theoryOf(normalizedAssertion) == toTheoryId;
+    bool preregistered = d_propEngine->isSatLiteral(normalizedAssertion) && Theory::theoryOf(normalizedAtom) == toTheoryId;
     // Assert away
     theoryOf(toTheoryId)->assertFact(normalizedAssertion, preregistered);
     d_factsAsserted = true;

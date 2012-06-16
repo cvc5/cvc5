@@ -30,6 +30,7 @@
 #include "util/lemma_output_channel.h"
 #include "util/lemma_input_channel.h"
 #include "util/tls.h"
+#include "theory/theoryof_mode.h"
 
 #include <vector>
 
@@ -490,6 +491,12 @@ struct CVC4_PUBLIC Options {
 
   /** Refine conflicts by doing another full check after a conflict */
   bool sat_refine_conflicts;
+
+  /** Was theoryOf mode set by user */
+  bool theoryOfModeSetByUser;
+
+  /** Which theoryOf mode are we using */
+  theory::TheoryOfMode theoryOfMode;
 
   Options();
 

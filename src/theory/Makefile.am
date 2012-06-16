@@ -18,6 +18,7 @@ libtheory_la_SOURCES = \
 	theory_test_utils.h \
 	theory.h \
 	theory.cpp \
+	theoryof_mode.h \
 	theory_registrar.h \
 	rewriter.h \
 	rewriter_attributes.h \

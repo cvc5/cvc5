@@ -31,6 +31,9 @@ namespace theory {
 /** Default value for the uninterpreted sorts is the UF theory */
 TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
 
+/** By default, we use the type based theoryOf */
+TheoryOfMode Theory::s_theoryOfMode = THEORY_OF_TYPE_BASED;
+
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
   case Theory::EFFORT_STANDARD:
@@ -54,6 +57,78 @@ Theory::~Theory() {
   }
 
   StatisticsRegistry::unregisterStat(&d_computeCareGraphTime);
+}
+
+TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
+
+  Trace("theory::internal") << "theoryOf(" << node << ")" << std::endl;
+
+  switch(mode) {
+  case THEORY_OF_TYPE_BASED:
+    // Constants, variables, 0-ary constructors
+    if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
+      return theoryOf(node.getType());
+    }
+    // Equality is owned by the theory that owns the domain
+    if (node.getKind() == kind::EQUAL) {
+      return theoryOf(node[0].getType());
+    }
+    // Regular nodes are owned by the kind
+    return kindToTheoryId(node.getKind());
+    break;
+  case THEORY_OF_TERM_BASED:
+    // Variables
+    if (node.getMetaKind() == kind::metakind::VARIABLE) {      
+      if (theoryOf(node.getType()) != theory::THEORY_BOOL) {      
+        // We treat the varibables as uninterpreted
+        return s_uninterpretedSortOwner;
+      } else {
+        // Except for the Boolean ones, which we just ignore anyhow
+        return theory::THEORY_BOOL;
+      }
+    }    
+    // Constants
+    if (node.getMetaKind() == kind::metakind::CONSTANT) {
+      // Constants go to the theory of the type 
+      return theoryOf(node.getType());
+    }    
+    // Equality 
+    if (node.getKind() == kind::EQUAL) {
+      // If one of them is an ITE, it's irelevant, since they will get replaced out anyhow
+      if (node[0].getKind() == kind::ITE) {
+        return theoryOf(node[0].getType());
+      }
+      if (node[1].getKind() == kind::ITE) {
+        return theoryOf(node[1].getType());
+      }  
+      // If both sides belong to the same theory the choice is easy
+      TheoryId T1 = theoryOf(node[0]);
+      TheoryId T2 = theoryOf(node[1]);
+      if (T1 == T2) {
+        return T1;
+      }
+      TheoryId T3 = theoryOf(node[0].getType());
+      // This is a case of 
+      // * x*y = f(z) -> UF
+      // * x = c      -> UF
+      // * f(x) = read(a, y) -> either UF or ARRAY
+      // at least one of the theories has to be parametric, i.e. theory of the type is different
+      // from the theory of the term     
+      if (T1 == T3) {
+        return T2;
+      }
+      if (T2 == T3) {
+        return T1;
+      }
+      // If both are parametric, we take the smaller one (arbitraty)
+      return T1 < T2 ? T1 : T2;
+    }      
+    // Regular nodes are owned by the kind
+    return kindToTheoryId(node.getKind());  
+    break;    
+  default:
+    Unreachable();
+  }   
 }
 
 void Theory::addSharedTermInternal(TNode n) {

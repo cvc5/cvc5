@@ -456,6 +456,17 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
 
   d_logic.lock();
 
+  // Set the options for the theoryOf
+  if(!Options::current()->theoryOfModeSetByUser) {
+    if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV) && !d_logic.isQuantified()) {
+      Theory::setTheoryOfMode(theory::THEORY_OF_TERM_BASED);
+    } else {
+      Theory::setTheoryOfMode(theory::THEORY_OF_TYPE_BASED);
+    }
+  } else {
+    Theory::setTheoryOfMode(Options::current()->theoryOfMode);
+  }
+
   // by default, symmetry breaker is on only for QF_UF
   if(! Options::current()->ufSymmetryBreakerSetByUser) {
     bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified();
@@ -471,7 +482,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
   }
 
   // If in arrays, set the UF handler to arrays
-  if(d_logic.isPure(THEORY_ARRAY) && !d_logic.isQuantified()) {
+  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && !d_logic.isQuantified()) {
     Theory::setUninterpretedSortOwner(THEORY_ARRAY);
   } else {
     Theory::setUninterpretedSortOwner(THEORY_UF);

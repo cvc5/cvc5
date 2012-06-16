@@ -1315,7 +1315,7 @@ void TheoryArrays::dischargeLemmas()
 }
 
 void TheoryArrays::conflict(TNode a, TNode b) {
-  if (Theory::theoryOf(a) == theory::THEORY_BOOL) {
+  if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b));
   } else {
     d_conflictNode = explain(a.eqNode(b));

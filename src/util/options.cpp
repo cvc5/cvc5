@@ -165,7 +165,9 @@ Options::Options() :
   bitvectorEagerBitblast(false),
   bitvectorEagerFullcheck(false),
   bitvectorShareLemmas(false),
-  sat_refine_conflicts(false)
+  sat_refine_conflicts(false),
+  theoryOfModeSetByUser(false),
+  theoryOfMode(theory::THEORY_OF_TYPE_BASED)
 {
 }
 
@@ -236,6 +238,7 @@ Additional CVC4 options:\n\
    --no-repeat-simp       do not make multiple passes with nonclausal simplifier\n\
    --replay=file          replay decisions from file\n\
    --replay-log=file      log decisions and propagations to file\n\
+   --theoryof-mode=mode   mode for theoryof\n\
   SAT:\n\
    --random-freq=P        frequency of random decisions in the sat solver\n\
                           (P=0.0 by default)\n\
@@ -331,6 +334,16 @@ incremental\n\
 \n\
 none\n\
 + do not perform nonclausal simplification\n\
+";
+
+static const string theoryofHelp = "\
+TheoryOf modes currently supported by the --theoryof-mode option:\n\
+\n\
+type (default) \n\
++ type variables, constants and equalities by type\n\
+\n\
+term \n\
++ type variables as uninterpreted, equalities by the parametric theory\n\
 ";
 
 static const string decisionHelp = "\
@@ -580,6 +593,7 @@ enum OptionValue {
   BITVECTOR_SHARE_LEMMAS,
   BITVECTOR_EAGER_FULLCHECK,
   SAT_REFINE_CONFLICTS,
+  THEORYOF_MODE,
   OPTION_VALUE_END
 };/* enum OptionValue */
 
@@ -708,6 +722,7 @@ static struct option cmdlineOptions[] = {
   { "bitblast-share-lemmas", no_argument, NULL, BITVECTOR_SHARE_LEMMAS },
   { "bitblast-eager-fullcheck", no_argument, NULL, BITVECTOR_EAGER_FULLCHECK },
   { "refine-conflicts", no_argument, NULL, SAT_REFINE_CONFLICTS },
+  { "theoryof-mode", required_argument, NULL, THEORYOF_MODE },
   { NULL         , no_argument      , NULL, '\0'        }
 };/* if you add things to the above, please remember to update usage.h! */
 
@@ -981,6 +996,21 @@ throw(OptionException) {
       }
       break;
 
+    case THEORYOF_MODE:
+      if (!strcmp(optarg, "type")) {
+        theoryOfModeSetByUser = true;
+        theoryOfMode = theory::THEORY_OF_TYPE_BASED;
+      } else if (!strcmp(optarg, "term")) {
+        theoryOfModeSetByUser = true;
+        theoryOfMode = theory::THEORY_OF_TERM_BASED;
+      } else if (!strcmp(optarg, "help")) {
+        puts(theoryofHelp.c_str());
+        exit(1);
+      } else {
+        throw OptionException(string("unknown option for --theoryof-mode: `") +
+                              optarg + "'.  Try --theoryof-mode help.");
+      }
+      break;
     case DECISION_MODE:
       if(!strcmp(optarg, "internal")) {
         decisionMode = DECISION_STRATEGY_INTERNAL;

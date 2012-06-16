@@ -28,6 +28,7 @@
 #include "theory/substitutions.h"
 #include "theory/output_channel.h"
 #include "theory/logic_info.h"
+#include "theory/theoryof_mode.h"
 #include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
@@ -122,6 +123,7 @@ typedef std::set<CarePair> CareGraph;
  * all calls to them.)
  */
 class Theory {
+
 private:
 
   friend class ::CVC4::TheoryEngine;
@@ -291,6 +293,9 @@ protected:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
+  /** Mode of the theoryOf operation */
+  static TheoryOfMode s_theoryOfMode;
+
 public:
 
   /**
@@ -314,29 +319,35 @@ public:
     return id;
   }
 
+  /**
+   * Returns the ID of the theory responsible for the given node.
+   */
+  static TheoryId theoryOf(TheoryOfMode mode, TNode node);
 
   /**
    * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
-    Trace("theory::internal") << "theoryOf(" << node << ")" << std::endl;
-    // Constants, variables, 0-ary constructors
-    if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
-      return theoryOf(node.getType());
-    }
-    // Equality is owned by the theory that owns the domain
-    if (node.getKind() == kind::EQUAL) {
-      return theoryOf(node[0].getType());
-    }
-    // Regular nodes are owned by the kind
-    return kindToTheoryId(node.getKind());
+    return theoryOf(s_theoryOfMode, node);
   }
-
+  
+  /** Set the theoryOf mode */
+  static void setTheoryOfMode(TheoryOfMode mode) {
+    s_theoryOfMode = mode;
+  }
+  
   /**
    * Set the owner of the uninterpreted sort.
    */
   static void setUninterpretedSortOwner(TheoryId theory) {
     s_uninterpretedSortOwner = theory;
+  }
+
+  /**
+   * Set the owner of the uninterpreted sort.
+   */
+  static TheoryId getUninterpretedSortOwner() {
+    return s_uninterpretedSortOwner;
   }
 
   /**
