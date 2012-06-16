@@ -894,13 +894,17 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
     }
   }
 
-  // Normalize to lhs < rhs
+  // Normalize to lhs < rhs if not a sat literal
   Assert(atom.getKind() == kind::EQUAL);
   Assert(atom[0] != atom[1]);
+  
   Node normalizedAtom = atom;
-  if (atom[0] > atom[1]) {
-    normalizedAtom = atom[1].eqNode(atom[0]);
-  }
+  if (!d_propEngine->isSatLiteral(normalizedAtom)) {
+    Node reverse = atom[1].eqNode(atom[0]);
+    if (d_propEngine->isSatLiteral(reverse) || atom[0] > atom[1]) {
+      normalizedAtom = reverse;
+    }  
+  } 
   Node normalizedAssertion = polarity ? normalizedAtom : normalizedAtom.notNode();
 
   // Try and assert (note that we assert the non-normalized one)
