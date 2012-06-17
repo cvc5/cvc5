@@ -37,6 +37,7 @@ TESTS =	\
 
 # removed because it now reports unknown
 #	symmetric_unsat_7.smt2 \
+#
 
 
 # removed because they take more than 20s
