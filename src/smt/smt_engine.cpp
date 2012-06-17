@@ -458,7 +458,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
 
   // Set the options for the theoryOf
   if(!Options::current()->theoryOfModeSetByUser) {
-    if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV) && !d_logic.isQuantified()) {
+    if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV)) {
       Theory::setTheoryOfMode(theory::THEORY_OF_TERM_BASED);
     } else {
       Theory::setTheoryOfMode(theory::THEORY_OF_TYPE_BASED);
