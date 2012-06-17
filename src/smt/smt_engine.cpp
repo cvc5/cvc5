@@ -552,6 +552,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     d_earlyTheoryPP = false;
   }
   // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
+  // and also use it in stop-only mode for QF_AUFLIA
   if(!Options::current()->decisionModeSetByUser) {
     Options::DecisionMode decMode =
       //QF_BV
@@ -563,13 +564,33 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
        d_logic.isTheoryEnabled(THEORY_UF) &&
        d_logic.isTheoryEnabled(THEORY_BV)
+       ) ||
+      //QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
+      (!d_logic.isQuantified() &&
+       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+       d_logic.isTheoryEnabled(THEORY_UF) &&
+       d_logic.isTheoryEnabled(THEORY_ARITH)
        )
       ? Options::DECISION_STRATEGY_JUSTIFICATION
       : Options::DECISION_STRATEGY_INTERNAL;
+
+    bool stoponly =
+      // QF_AUFLIA
+      (!d_logic.isQuantified() &&
+       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+       d_logic.isTheoryEnabled(THEORY_UF) &&
+       d_logic.isTheoryEnabled(THEORY_ARITH)
+       )
+      ? true : false;
+
+    // Turn on justification-stoponly for QF_AUFLIA
+    if(!Options::current()->decisionModeSetByUser)
+
+
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     NodeManager::currentNM()->getOptions()->decisionMode = decMode;
+    NodeManager::currentNM()->getOptions()->decisionOptions.stopOnly = stoponly;
   }
-
 }
 
 void SmtEngine::setInfo(const std::string& key, const SExpr& value)
