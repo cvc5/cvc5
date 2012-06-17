@@ -64,6 +64,7 @@ const Options::DecisionOptions defaultDecOpt = {
   1000,                         // maxRelTimeAsPermille
   true,                         // computeRelevancy
   false,                        // mustRelevancy
+  false,                        // stopOnly
 };
 
 Options::Options() :
@@ -354,6 +355,9 @@ internal (default)\n\
 \n\
 justification\n\
 + An ATGP-inspired justification heuristic\n\
+\n\
+justification-stoponly\n\
++ Use the justification heuristic only to stop early, not for decisions\n\
 \n\
 relevancy\n\
 + Under development may-relevancy\n\
@@ -1012,12 +1016,17 @@ throw(OptionException) {
       }
       break;
     case DECISION_MODE:
+      decisionOptions = defaultDecOpt;  // reset all options
       if(!strcmp(optarg, "internal")) {
         decisionMode = DECISION_STRATEGY_INTERNAL;
         decisionModeSetByUser = true;
       } else if(!strcmp(optarg, "justification")) {
         decisionMode = DECISION_STRATEGY_JUSTIFICATION;
         decisionModeSetByUser = true;
+      } else if(!strcmp(optarg, "justification-stoponly")) {
+        decisionMode = DECISION_STRATEGY_JUSTIFICATION;
+        decisionModeSetByUser = true;
+        decisionOptions.stopOnly = true;
       } else if(!strcmp(optarg, "relevancy")) {
         decisionMode = DECISION_STRATEGY_RELEVANCY;
         decisionModeSetByUser = true;

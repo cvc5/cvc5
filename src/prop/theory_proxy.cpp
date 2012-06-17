@@ -92,7 +92,7 @@ SatLiteral TheoryProxy::getNextDecisionRequest(bool &stopSearch) {
   if(stopSearch) {
     Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
   }
-  return ret;
+  return Options::current()->decisionOptions.stopOnly ? undefSatLiteral : ret;
 }
 
 bool TheoryProxy::theoryNeedCheck() const {

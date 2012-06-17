@@ -156,6 +156,7 @@ struct CVC4_PUBLIC Options {
     unsigned short maxRelTimeAsPermille;  /* permille = part per thousand */
     bool computeRelevancy;    /* if false, do justification stuff using relevancy.h */
     bool mustRelevancy;       /* use the must be relevant */
+    bool stopOnly;            /* only use decision stuff to stop early, not to decide */
   };
   DecisionOptions decisionOptions;
 
