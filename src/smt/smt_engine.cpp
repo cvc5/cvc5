@@ -1446,12 +1446,6 @@ void SmtEnginePrivate::processAssertions() {
     d_smt.d_numAssertionsPost += d_assertionsToCheck.size();
   }
 
-  // begin: INVARIANT to maintain: no reordering of assertions or
-  // introducing new ones
-#ifdef CVC4_ASSERTIONS
-  unsigned iteRewriteAssertionsEnd = d_assertionsToCheck.size();
-#endif
-
   if(Options::current()->repeatSimp) {
     d_assertionsToCheck.swap(d_assertionsToPreprocess);
     noConflict &= simplifyAssertions();
@@ -1471,11 +1465,19 @@ void SmtEnginePrivate::processAssertions() {
       if(builder.getNumChildren() > 1) {
         d_assertionsToCheck[d_realAssertionsEnd-1] = Rewriter::rewrite(Node(builder));
       }
-      // TODO: remove this - need to double-check it's not needed
+      // For some reason this is needed for some benchmarks, such as
+      // http://church.cims.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
+      // Figure it out later
       removeITEs();
-      Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
+      //      Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
     }
   }
+
+  // begin: INVARIANT to maintain: no reordering of assertions or
+  // introducing new ones
+#ifdef CVC4_ASSERTIONS
+  unsigned iteRewriteAssertionsEnd = d_assertionsToCheck.size();
+#endif
 
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
