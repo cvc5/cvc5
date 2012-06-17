@@ -412,7 +412,8 @@ void TheoryArrays::preRegisterTerm(TNode node)
       d_equalityEngine.addTriggerPredicate(node);
     }
 
-    d_infoMap.addIndex(node[0], node[1]);
+    Assert(d_equalityEngine.getRepresentative(store) == store);
+    d_infoMap.addIndex(store, node[1]);
     d_reads.push_back(node);
     Assert((d_isPreRegistered.insert(node), true));
     checkRowForIndex(node[1], store);
@@ -423,7 +424,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
     Assert(!d_equalityEngine.hasTerm(node));
     d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
 
-    TNode a = node[0];
+    TNode a = d_equalityEngine.getRepresentative(node[0]);
     //    TNode i = node[1];
     //    TNode v = node[2];
 
@@ -799,23 +800,23 @@ void TheoryArrays::setNonLinear(TNode a)
   const CTNodeList* st_a = d_infoMap.getStores(a);
   const CTNodeList* inst_a = d_infoMap.getInStores(a);
 
-  CTNodeList::const_iterator it = st_a->begin();
+  size_t it = 0;
 
   // Propagate non-linearity down chain of stores
-  for(; it!= st_a->end(); ++it) {
-    TNode store = *it;
+  for( ; it < st_a->size(); ++it) {
+    TNode store = (*st_a)[it];
     Assert(store.getKind()==kind::STORE);
     setNonLinear(store[0]);
   }
 
   // Instantiate ROW lemmas that were ignored before
-  CTNodeList::const_iterator it2 = i_a->begin();
+  size_t it2 = 0;
   RowLemmaType lem;
-  for(; it2 != i_a->end(); ++it2 ) {
-    TNode i = *it2;
-    it = inst_a->begin();
-    for ( ; it !=inst_a->end(); ++it) {
-      TNode store = *it;
+  for(; it2 < i_a->size(); ++it2) {
+    TNode i = (*i_a)[it2];
+    it = 0;
+    for ( ; it < inst_a->size(); ++it) {
+      TNode store = (*inst_a)[it];
       Assert(store.getKind() == kind::STORE);
       TNode j = store[1];
       TNode c = store[0];
@@ -989,11 +990,10 @@ void TheoryArrays::checkStore(TNode a) {
 
   if (!d_useNonLinearOpt || d_infoMap.isNonLinear(brep)) {
     const CTNodeList* js = d_infoMap.getIndices(brep);
-    CTNodeList::const_iterator it = js->begin();
-
+    size_t it = 0;
     RowLemmaType lem;
-    for(; it!= js->end(); ++it) {
-      TNode j = *it;
+    for(; it < js->size(); ++it) {
+      TNode j = (*js)[it];
       if (i == j) continue;
       lem = make_quad(a,b,i,j);
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkStore ("<<a<<", "<<b<<", "<<i<<", "<<j<<")\n";
@@ -1016,11 +1016,11 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
 
   const CTNodeList* stores = d_infoMap.getStores(a);
   const CTNodeList* instores = d_infoMap.getInStores(a);
-  CTNodeList::const_iterator it = stores->begin();
+  size_t it = 0;
   RowLemmaType lem;
 
-  for(; it!= stores->end(); ++it) {
-    TNode store = *it;
+  for(; it < stores->size(); ++it) {
+    TNode store = (*stores)[it];
     Assert(store.getKind()==kind::STORE);
     TNode j = store[1];
     if (i == j) continue;
@@ -1030,9 +1030,9 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   }
 
   if (!d_useNonLinearOpt || d_infoMap.isNonLinear(a)) {
-    it = instores->begin();
-    for(; it!= instores->end(); ++it) {
-      TNode instore = *it;
+    it = 0;
+    for(; it < instores->size(); ++it) {
+      TNode instore = (*instores)[it];
       Assert(instore.getKind()==kind::STORE);
       TNode j = instore[1];
       if (i == j) continue;
@@ -1059,16 +1059,16 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   const CTNodeList* st_b = d_infoMap.getStores(b);
   const CTNodeList* inst_b = d_infoMap.getInStores(b);
 
-  CTNodeList::const_iterator it = i_a->begin();
-  CTNodeList::const_iterator its;
+  size_t it = 0;
+  size_t its;
 
   RowLemmaType lem;
 
-  for( ; it != i_a->end(); ++it ) {
-    TNode i = *it;
-    its = st_b->begin();
-    for ( ; its != st_b->end(); ++its) {
-      TNode store = *its;
+  for( ; it < i_a->size(); ++it) {
+    TNode i = (*i_a)[it];
+    its = 0;
+    for ( ; its < st_b->size(); ++its) {
+      TNode store = (*st_b)[its];
       Assert(store.getKind() == kind::STORE);
       TNode j = store[1];
       TNode c = store[0];
@@ -1079,11 +1079,11 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   }
 
   if (!d_useNonLinearOpt || d_infoMap.isNonLinear(b)) {
-    for(it = i_a->begin() ; it != i_a->end(); ++it ) {
-      TNode i = *it;
-      its = inst_b->begin();
-      for ( ; its !=inst_b->end(); ++its) {
-        TNode store = *its;
+    for(it = 0 ; it < i_a->size(); ++it ) {
+      TNode i = (*i_a)[it];
+      its = 0;
+      for ( ; its < inst_b->size(); ++its) {
+        TNode store = (*inst_b)[its];
         Assert(store.getKind() == kind::STORE);
         TNode j = store[1];
         TNode c = store[0];

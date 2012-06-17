@@ -30,14 +30,11 @@ TESTS =	\
 	error122.delta01.smt \
 	error3.smt \
 	error3.delta01.smt \
-	pp-regfile.delta01.smt
+	pp-regfile.delta01.smt \
+	pp-regfile.delta02.smt
 
-# Incorrect answers:
-#	pp-regfile.delta02.smt
-# Incorrect, and may take too long when fixed (currently don't):
+# Correct, but takes too long:
 #	pp-regfile.smt \
-#
-# Correct, but take too long:
 #
 
 EXTRA_DIST = $(TESTS)
