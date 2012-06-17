@@ -1658,7 +1658,11 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
         }
         // Representative of the other member
         EqualityNodeId toCompareRep = getEqualityNode(toCompare).getFind();
-        Assert(toCompareRep != classId, "Otherwise we are in conflict");
+        if (toCompareRep == classId) {
+          // We're in conflict, so we will send it out from merge
+          out.clear();
+          return;
+        }
         // Check if we already have this one
         if (alreadyVisited.count(toCompareRep) == 0) {
           // Mark as visited
