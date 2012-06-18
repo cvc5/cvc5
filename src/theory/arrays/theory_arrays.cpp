@@ -770,7 +770,9 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions)
     all.insert(t);
   }
 
-  Assert(all.size() > 0);
+  if (all.size() == 0) {
+    return d_true;
+  }
   if (all.size() == 1) {
     // All the same, or just one
     return *(all.begin());
