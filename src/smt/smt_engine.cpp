@@ -573,7 +573,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
        ) ||
       // QF_LRA
       (not d_logic.isQuantified() &&
-       d_logic.isPure(THEORY_ARITH)
+       d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
        ) ||
       // Quantifiers
       d_logic.isQuantified()
@@ -589,7 +589,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
        ) ||
       // QF_LRA
       (not d_logic.isQuantified() &&
-       d_logic.isPure(THEORY_ARITH)
+       d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
        ) ||
       // Quantifiers
       d_logic.isQuantified()
