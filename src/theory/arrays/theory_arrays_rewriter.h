@@ -39,53 +39,18 @@ public:
         TNode store = node[0];
         if (store.getKind() == kind::STORE) {
           // select(store(a,i,v),j)
-          TNode index = node[1];
-          bool val;
-          if (index == store[1]) {
-            val = true;
-          }
-          else if (index.isConst() && store[1].isConst()) {
-            val = false;
-          }
-          else {
-            Node eqRewritten = Rewriter::rewrite(store[1].eqNode(index));
-            if (eqRewritten.getKind() != kind::CONST_BOOLEAN) {
-              break;
+          Node eqRewritten = Rewriter::rewrite(store[1].eqNode(node[1]));
+          if (eqRewritten.getKind() == kind::CONST_BOOLEAN) {
+            bool value = eqRewritten.getConst<bool>();
+            if (value) {
+              // select(store(a,i,v),i) = v
+              return RewriteResponse(REWRITE_DONE, store[2]);
             }
-            val = eqRewritten.getConst<bool>();
-          }
-          if (val) {
-            // select(store(a,i,v),i) = v
-            Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << store[2] << std::endl;
-            return RewriteResponse(REWRITE_DONE, store[2]);
-          }
-          else {
-            // select(store(a,i,v),j) = select(a,j) if i /= j
-            store = store[0];
-            Node n;
-            while (store.getKind() == kind::STORE) {
-              if (index == store[1]) {
-                val = true;
-              }
-              else if (index.isConst() && store[1].isConst()) {
-                val = false;
-              }
-              else {
-                n = Rewriter::rewrite(store[1].eqNode(index));
-                if (n.getKind() != kind::CONST_BOOLEAN) {
-                  break;
-                }
-                val = n.getConst<bool>();
-              }
-              if (val) {
-                Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << store[2] << std::endl;
-                return RewriteResponse(REWRITE_DONE, store[2]);
-              }
-              store = store[0];
+            else {
+              // select(store(a,i,v),j) = select(a,j) if i /= j
+              Node newNode = NodeManager::currentNM()->mkNode(kind::SELECT, store[0], node[1]);
+              return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
             }
-            n = NodeManager::currentNM()->mkNode(kind::SELECT, store, index);
-            Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
-            return RewriteResponse(REWRITE_DONE, n);
           }
         }
         break;
@@ -101,67 +66,22 @@ public:
         }
         if (store.getKind() == kind::STORE) {
           // store(store(a,i,v),j,w)
-          TNode index = node[1];
-          bool val;
-          if (index == store[1]) {
-            val = true;
-          }
-          else if (index.isConst() && store[1].isConst()) {
-            val = false;
-          }
-          else {
-            Node eqRewritten = Rewriter::rewrite(store[1].eqNode(index));
-            if (eqRewritten.getKind() != kind::CONST_BOOLEAN) {
-              return RewriteResponse(REWRITE_DONE, node);
+          Node eqRewritten = Rewriter::rewrite(store[1].eqNode(node[1]));
+          if (eqRewritten.getKind() == kind::CONST_BOOLEAN) {
+            bool val = eqRewritten.getConst<bool>();
+            NodeManager* nm = NodeManager::currentNM();
+            if (val) {
+              // store(store(a,i,v),i,w) = store(a,i,w)
+              Node newNode = nm->mkNode(kind::STORE, store[0], store[1], value);
+              return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
             }
-            val = eqRewritten.getConst<bool>();
-          }
-          NodeManager* nm = NodeManager::currentNM();
-          if (val) {
-            // store(store(a,i,v),i,w) = store(a,i,w)
-            return RewriteResponse(REWRITE_DONE, nm->mkNode(kind::STORE, store[0], index, value));
-          }
-          else if (index < store[1]) {
-            // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
-            //    IF i != j and j comes before i in the ordering
-            std::vector<TNode> indices;
-            std::vector<TNode> elements;
-            indices.push_back(store[1]);
-            elements.push_back(store[2]);
-            store = store[0];
-            Node n;
-            while (store.getKind() == kind::STORE) {
-              if (index == store[1]) {
-                val = true;
-              }
-              else if (index.isConst() && store[1].isConst()) {
-                val = false;
-              }
-              else {
-                n = Rewriter::rewrite(store[1].eqNode(index));
-                if (n.getKind() != kind::CONST_BOOLEAN) {
-                  break;
-                }
-                val = n.getConst<bool>();
-              }
-              if (val) {
-                store = store[0];
-                break;
-              }
-              else if (!(index < store[1])) {
-                break;
-              }
-              indices.push_back(store[1]);
-              elements.push_back(store[2]);
-              store = store[0];
+            else if (node[1] < store[1]) {
+              // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
+              //    IF i != j and j comes before i in the ordering
+              Node newNode = nm->mkNode(kind::STORE, store[0], node[1], value);
+              newNode = nm->mkNode(kind::STORE, newNode, store[1], store[2]);
+              return RewriteResponse(REWRITE_AGAIN_FULL, newNode);
             }
-            n = nm->mkNode(kind::STORE, store, index, value);
-            while (!indices.empty()) {
-              n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
-              indices.pop_back();
-              elements.pop_back();
-            }
-            return RewriteResponse(REWRITE_DONE, n);
           }
         }
         break;
@@ -185,169 +105,7 @@ public:
   }
 
   static inline RewriteResponse preRewrite(TNode node) {
-    Trace("arrays-prerewrite") << "Arrays::preRewrite start " << node << std::endl;
-    switch (node.getKind()) {
-      case kind::SELECT: {
-        TNode store = node[0];
-        if (store.getKind() == kind::STORE) {
-          // select(store(a,i,v),j)
-          TNode index = node[1];
-          bool val;
-          if (index == store[1]) {
-            val = true;
-          }
-          else if (index.isConst() && store[1].isConst()) {
-            val = false;
-          }
-          else {
-            Node eqRewritten = Rewriter::rewrite(store[1].eqNode(index));
-            if (eqRewritten.getKind() != kind::CONST_BOOLEAN) {
-              break;
-            }
-            val = eqRewritten.getConst<bool>();
-          }
-          if (val) {
-            // select(store(a,i,v),i) = v
-            return RewriteResponse(REWRITE_DONE, store[2]);
-          }
-          else {
-            // select(store(a,i,v),j) = select(a,j) if i /= j
-            store = store[0];
-            Node n;
-            while (store.getKind() == kind::STORE) {
-              if (index == store[1]) {
-                val = true;
-              }
-              else if (index.isConst() && store[1].isConst()) {
-                val = false;
-              }
-              else {
-                n = Rewriter::rewrite(store[1].eqNode(index));
-                if (n.getKind() != kind::CONST_BOOLEAN) {
-                  break;
-                }
-                val = n.getConst<bool>();
-              }
-              if (val) {
-                return RewriteResponse(REWRITE_DONE, store[2]);
-              }
-              store = store[0];
-            }
-            n = NodeManager::currentNM()->mkNode(kind::SELECT, store, index);
-            return RewriteResponse(REWRITE_DONE, n);
-          }
-        }
-        break;
-      }
-      case kind::STORE: {
-        TNode store = node[0];
-        TNode value = node[2];
-        // store(a,i,select(a,i)) = a
-        if (value.getKind() == kind::SELECT &&
-            value[0] == store &&
-            value[1] == node[1]) {
-          return RewriteResponse(REWRITE_DONE, store);
-        }
-        if (store.getKind() == kind::STORE) {
-          // store(store(a,i,v),j,w)
-          TNode index = node[1];
-          bool val;
-          if (index == store[1]) {
-            val = true;
-          }
-          else if (index.isConst() && store[1].isConst()) {
-            val = false;
-          }
-          else {
-            Node eqRewritten = Rewriter::rewrite(store[1].eqNode(index));
-            if (eqRewritten.getKind() != kind::CONST_BOOLEAN) {
-              return RewriteResponse(REWRITE_DONE, node);
-            }
-            val = eqRewritten.getConst<bool>();
-          }
-          NodeManager* nm = NodeManager::currentNM();
-          if (val) {
-            // store(store(a,i,v),i,w) = store(a,i,w)
-            return RewriteResponse(REWRITE_DONE, nm->mkNode(kind::STORE, store[0], index, value));
-          }
-          else if (index.isConst() && store[1].isConst()) {
-            std::map<TNode, TNode> elements;
-            elements[index] = value;
-            elements[store[1]] = store[2];
-            store = store[0];
-            Node n;
-            while (store.getKind() == kind::STORE) {
-              if (!store[1].isConst()) {
-                break;
-              }
-              if (elements.find(store[1]) != elements.end()) {
-                elements[store[1]] = store[2];
-              }
-              store = store[0];
-            }
-            std::map<TNode, TNode>::iterator it = elements.begin();
-            std::map<TNode, TNode>::iterator iend = elements.end();
-            for (; it != iend; ++it) {
-              n = nm->mkNode(kind::STORE, store, (*it).first, (*it).second);
-            }
-            return RewriteResponse(REWRITE_DONE, n);
-          }
-          else if (index < store[1]) {
-            // store(store(a,i,v),j,w) = store(store(a,j,w),i,v)
-            //    IF i != j and j comes before i in the ordering
-            std::vector<TNode> indices;
-            std::vector<TNode> elements;
-            indices.push_back(store[1]);
-            elements.push_back(store[2]);
-            store = store[0];
-            Node n;
-            while (store.getKind() == kind::STORE) {
-              if (index == store[1]) {
-                val = true;
-              }
-              else if (index.isConst() && store[1].isConst()) {
-                val = false;
-              }
-              else {
-                n = Rewriter::rewrite(store[1].eqNode(index));
-                if (n.getKind() != kind::CONST_BOOLEAN) {
-                  break;
-                }
-                val = n.getConst<bool>();
-              }
-              if (val) {
-                store = store[0];
-                break;
-              }
-              else if (!(index < store[1])) {
-                break;
-              }
-              indices.push_back(store[1]);
-              elements.push_back(store[2]);
-              store = store[0];
-            }
-            n = nm->mkNode(kind::STORE, store, index, value);
-            while (!indices.empty()) {
-              n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
-              indices.pop_back();
-              elements.pop_back();
-            }
-            return RewriteResponse(REWRITE_DONE, n);
-          }
-        }
-        break;
-      }
-      case kind::EQUAL:
-      case kind::IFF: {
-        if(node[0] == node[1]) {
-          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
-        }
-        break;
-      }
-      default:
-        break;
-    }
-
+    Trace("arrays-prerewrite") << "Arrays::preRewrite " << node << std::endl;
     return RewriteResponse(REWRITE_DONE, node);
   }
 
