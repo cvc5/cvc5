@@ -25,8 +25,8 @@ function finishwith {
 case "$logic" in
 
 QF_LRA)
-  # 1 minute with default decision heuristic
-  trywith --tlimit-per=60000
+  # 3 minutes with default decision heuristic
+  trywith --tlimit-per=180000
   # switch to internal decision heuristic
   finishwith --decision=internal
   ;;
