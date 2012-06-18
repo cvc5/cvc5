@@ -26,7 +26,7 @@ case "$logic" in
 
 QF_LRA)
   # 10 minutes with default decision heuristic
-  trywith --tlimit-per=600000
+  trywith --tlimit-per=300000
   # switch to internal decision heuristic
   finishwith --decision=internal
   ;;
