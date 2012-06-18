@@ -3,7 +3,7 @@
 cat >bench-$$.smt2
 trap 'rm bench-$$.smt2' EXIT
 
-logic=$(expr "$(head -n 1 bench-$$.smt2)" : '^ *(set-logic  *\([A-Z_]*\) *) *$')
+logic=$(expr "$(head -n 1 bench-$$.smt2)" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 
 # use: trywith [params..]
 # to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
