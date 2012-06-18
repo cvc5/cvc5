@@ -1172,7 +1172,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
   Node result = d_iteSimplifier.simpITE(assertion);
-  result = d_iteSimplifier.simplifyWithCare(result);
+  result = d_iteSimplifier.simplifyWithCare(Rewriter::rewrite(result));
   result = Rewriter::rewrite(result);
   return result;
 }

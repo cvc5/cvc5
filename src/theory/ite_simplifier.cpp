@@ -447,10 +447,7 @@ Node ITESimplifier::simplifyWithCare(TNode e)
         if (done) break;
 
         Assert(v.getNumChildren() > 1);
-        cs2 = getNewSet();
-        cs2.getCareSet() = css;
-        cs2.getCareSet().insert(v[1]);
-        updateQueue(queue, v[0], cs2);
+        updateQueue(queue, v[0], cs);
         cs2 = getNewSet();
         cs2.getCareSet() = css;
         cs2.getCareSet().insert(v[0]);
@@ -473,10 +470,7 @@ Node ITESimplifier::simplifyWithCare(TNode e)
         if (done) break;
 
         Assert(v.getNumChildren() > 1);
-        cs2 = getNewSet();
-        cs2.getCareSet() = css;
-        cs2.getCareSet().insert(v[1].negate());
-        updateQueue(queue, v[0], cs2);
+        updateQueue(queue, v[0], cs);
         cs2 = getNewSet();
         cs2.getCareSet() = css;
         cs2.getCareSet().insert(v[0].negate());
