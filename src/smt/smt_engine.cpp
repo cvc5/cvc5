@@ -552,40 +552,48 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     d_earlyTheoryPP = false;
   }
   // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
-  // and also use it in stop-only mode for QF_AUFLIA
+  // and also use it in stop-only mode for QF_AUFLIA, QF_LRA and Quantifiers
   if(!Options::current()->decisionModeSetByUser) {
     Options::DecisionMode decMode =
       //QF_BV
-      ( !d_logic.isQuantified() &&
+      (not d_logic.isQuantified() &&
         d_logic.isPure(THEORY_BV)
         ) ||
       //QF_AUFBV
-      (!d_logic.isQuantified() &&
+      (not d_logic.isQuantified() &&
        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
        d_logic.isTheoryEnabled(THEORY_UF) &&
        d_logic.isTheoryEnabled(THEORY_BV)
        ) ||
       //QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
-      (!d_logic.isQuantified() &&
+      (not d_logic.isQuantified() &&
        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
        d_logic.isTheoryEnabled(THEORY_UF) &&
        d_logic.isTheoryEnabled(THEORY_ARITH)
-       )
+       ) ||
+      // QF_LRA
+      (not d_logic.isQuantified() &&
+       d_logic.isPure(THEORY_ARITH)
+       ) ||
+      // Quantifiers
+      d_logic.isQuantified()
       ? Options::DECISION_STRATEGY_JUSTIFICATION
       : Options::DECISION_STRATEGY_INTERNAL;
 
     bool stoponly =
       // QF_AUFLIA
-      (!d_logic.isQuantified() &&
+      (not d_logic.isQuantified() &&
        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
        d_logic.isTheoryEnabled(THEORY_UF) &&
        d_logic.isTheoryEnabled(THEORY_ARITH)
-       )
+       ) ||
+      // QF_LRA
+      (not d_logic.isQuantified() &&
+       d_logic.isPure(THEORY_ARITH)
+       ) ||
+      // Quantifiers
+      d_logic.isQuantified()
       ? true : false;
-
-    // Turn on justification-stoponly for QF_AUFLIA
-    if(!Options::current()->decisionModeSetByUser)
-
 
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     NodeManager::currentNM()->getOptions()->decisionMode = decMode;
