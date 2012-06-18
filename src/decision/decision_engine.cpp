@@ -48,8 +48,14 @@ void DecisionEngine::init()
   Assert(d_engineState == 0);
   d_engineState = 1;
 
+  Trace("decision-init") << "DecisionEngine::init()" << std::endl;
   const Options* options = Options::current();
   if(options->incrementalSolving) return;
+
+  Trace("decision-init") << " * options->decisionMode: " 
+                         << options->decisionMode << std:: endl;
+  Trace("decision-init") << " * options->decisionOptions.stopOnly: "
+                         << ((options->decisionOptions).stopOnly) << std::endl;
 
   if(options->decisionMode == Options::DECISION_STRATEGY_INTERNAL) { }
   if(options->decisionMode == Options::DECISION_STRATEGY_JUSTIFICATION) {
