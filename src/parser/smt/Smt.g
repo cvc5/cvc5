@@ -225,6 +225,7 @@ annotatedFormula[CVC4::Expr& expr]
   Kind kind;
   std::string name;
   std::vector<Expr> args; /* = getExprVector(); */
+  std::vector<Expr> args2;
   Expr op; /* Operator expression FIXME: move away kill it */
 }
   : /* a built-in operator application */
@@ -255,8 +256,9 @@ annotatedFormula[CVC4::Expr& expr]
       { args.push_back(PARSER_STATE->mkVar(name, t)); }
     )+
     annotatedFormula[expr] RPAREN_TOK
-    { args.push_back(expr);
-      expr = MK_EXPR(kind, args);
+    { args2.push_back( MK_EXPR( kind::BOUND_VAR_LIST, args ) );
+      args2.push_back(expr);
+      expr = MK_EXPR(kind, args2);
       PARSER_STATE->popScope();
     }
 
