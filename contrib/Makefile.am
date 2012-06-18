@@ -11,6 +11,7 @@ EXTRA_DIST = \
 	configure-in-place \
 	depgraph \
 	get-antlr-3.4 \
+	run-script-smtcomp2012 \
 	theoryskel/kinds \
 	theoryskel/Makefile \
 	theoryskel/Makefile.am \
