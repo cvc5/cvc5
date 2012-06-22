@@ -72,6 +72,10 @@ static const char* const smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
 
+static const char* const tptp_commands[] = {
+#include "main/tptp_tokens.h"
+};/* tptp_commands */
+
 static const char* const* commandsBegin;
 static const char* const* commandsEnd;
 
@@ -110,6 +114,10 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
       commandsBegin = smt2_commands;
       commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+    case output::LANG_TPTP:
+      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
+      commandsBegin = tptp_commands;
+      commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
       break;
     default: Unhandled(lang);
     }

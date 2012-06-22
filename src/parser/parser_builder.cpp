@@ -23,6 +23,7 @@
 #include "parser/parser.h"
 #include "smt/smt.h"
 #include "smt2/smt2.h"
+#include "tptp/tptp.h"
 
 #include "expr/expr_manager.h"
 #include "util/options.h"
@@ -90,6 +91,9 @@ Parser* ParserBuilder::build()
     break;
   case language::input::LANG_SMTLIB_V2:
     parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
+    break;
+  case language::input::LANG_TPTP:
+    parser = new Tptp(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
   default:
     parser = new Parser(d_exprManager, input, d_strictMode, d_parseOnly);

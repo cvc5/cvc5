@@ -34,6 +34,7 @@
 #include "parser/cvc/cvc_input.h"
 #include "parser/smt/smt_input.h"
 #include "parser/smt2/smt2_input.h"
+#include "parser/tptp/tptp_input.h"
 #include "util/output.h"
 #include "util/Assert.h"
 
@@ -199,6 +200,10 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
 
   case LANG_SMTLIB_V2:
     input = new Smt2Input(inputStream);
+    break;
+
+  case LANG_TPTP:
+    input = new TptpInput(inputStream);
     break;
 
   default:

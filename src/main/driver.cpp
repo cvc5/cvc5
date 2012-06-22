@@ -182,6 +182,9 @@ int runCvc4(int argc, char* argv[], Options& options) {
         options.inputLanguage = language::input::LANG_SMTLIB_V2;
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
         options.inputLanguage = language::input::LANG_SMTLIB;
+      } else if((len >= 2 && !strcmp(".p", filename + len - 2))
+                || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
+        options.inputLanguage = language::input::LANG_TPTP;
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
         options.inputLanguage = language::input::LANG_CVC4;

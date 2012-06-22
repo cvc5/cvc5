@@ -312,12 +312,14 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   pl | cvc4      CVC4 presentation language\n\
   smt | smtlib   SMT-LIB format 1.2\n\
   smt2 | smtlib2 SMT-LIB format 2.0\n\
+  tptp           TPTP format (cnf and fof)\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto           match the output language to the input language\n\
   pl | cvc4      CVC4 presentation language\n\
   smt | smtlib   SMT-LIB format 1.2\n\
   smt2 | smtlib2 SMT-LIB format 2.0\n\
+  tptp           TPTP format\n\
   ast            internal format (simple syntax-tree language)\n\
 ";
 
@@ -1633,6 +1635,9 @@ void Options::setOutputLanguage(const char* str) throw(OptionException) {
   } else if(!strcmp(str, "smtlib2") || !strcmp(str, "smt2")) {
     outputLanguage = language::output::LANG_SMTLIB_V2;
     return;
+  } else if(!strcmp(str, "tptp")) {
+    outputLanguage = language::output::LANG_TPTP;
+    return;
   } else if(!strcmp(str, "ast")) {
     outputLanguage = language::output::LANG_AST;
     return;
@@ -1658,6 +1663,9 @@ void Options::setInputLanguage(const char* str) throw(OptionException) {
     return;
   } else if(!strcmp(str, "smtlib2") || !strcmp(str, "smt2")) {
     inputLanguage = language::input::LANG_SMTLIB_V2;
+    return;
+  } else if(!strcmp(str, "tptp")) {
+    inputLanguage = language::input::LANG_TPTP;
     return;
   } else if(!strcmp(str, "auto")) {
     inputLanguage = language::input::LANG_AUTO;

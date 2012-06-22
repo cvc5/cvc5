@@ -13,7 +13,7 @@
 prog=`basename "$0"`
 
 if [ $# -lt 2 -o $# -gt 3 ]; then
-  echo "usage: $prog [ --proof | --dump ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 ]" >&2
+  echo "usage: $prog [ --proof | --dump ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]" >&2
   exit 1
 fi
 
@@ -149,8 +149,24 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
     error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
   fi
   command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
+elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
+  proof_command=PROOFS-NOT-SUPPORTED-IN-SMTLIB-V1;
+  lang=tptp
+  expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
+  expected_output=$(grep '^% EXPECT: ' "$benchmark")
+  expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
+  if [ -z "$expected_output" -a -z "$expected_error" ]; then
+    error "cannot determine expected output of \`$benchmark': " \
+          "please use \`% EXPECT:' and/or \`% EXPECT-ERROR:' gestures"
+  fi
+  expected_output=$(echo "$expected_output" | perl -pe 's,^% EXPECT: ,,;s,\r,,')
+  expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
+  if [ -z "$expected_exit_status" ]; then
+    error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+  fi
+  command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
 else
-  error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2"
+  error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2 or *.p"
 fi
 
 command_line="${command_line:+$command_line }--lang=$lang"
