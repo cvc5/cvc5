@@ -141,18 +141,20 @@ bool Parser::isPredicate(const std::string& name) {
 }
 
 Expr
-Parser::mkVar(const std::string& name, const Type& type) {
+Parser::mkVar(const std::string& name, const Type& type,
+              bool levelZero) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type);
-  defineVar(name, expr);
+  defineVar(name, expr, levelZero);
   return expr;
 }
 
 Expr
-Parser::mkFunction(const std::string& name, const Type& type) {
+Parser::mkFunction(const std::string& name, const Type& type,
+                            bool levelZero) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type);
-  defineFunction(name, expr);
+  defineFunction(name, expr, levelZero);
   return expr;
 }
 
@@ -165,23 +167,26 @@ Parser::mkAnonymousFunction(const std::string& prefix, const Type& type) {
 
 std::vector<Expr>
 Parser::mkVars(const std::vector<std::string> names,
-               const Type& type) {
+               const Type& type,
+               bool levelZero) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkVar(names[i], type));
+    vars.push_back(mkVar(names[i], type, levelZero));
   }
   return vars;
 }
 
 void
-Parser::defineVar(const std::string& name, const Expr& val) {
-  d_declScope->bind(name, val);
+Parser::defineVar(const std::string& name, const Expr& val,
+                       bool levelZero) {
+  d_declScope->bind(name, val, levelZero);
   Assert( isDeclared(name) );
 }
 
 void
-Parser::defineFunction(const std::string& name, const Expr& val) {
-  d_declScope->bindDefinedFunction(name, val);
+Parser::defineFunction(const std::string& name, const Expr& val,
+                       bool levelZero) {
+  d_declScope->bindDefinedFunction(name, val, levelZero);
   Assert( isDeclared(name) );
 }
 

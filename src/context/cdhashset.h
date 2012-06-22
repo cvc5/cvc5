@@ -68,6 +68,10 @@ public:
     return super::insert(v, v);
   }
 
+  void insertAtContextLevelZero(const V& v) {
+    return super::insertAtContextLevelZero(v, v);
+  }
+
   bool contains(const V& v) {
     return find(v) != end();
   }

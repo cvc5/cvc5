@@ -72,12 +72,14 @@ public:
    * <code>name</code> is already bound to an expression in the current
    * level, then the binding is replaced. If <code>name</code> is bound
    * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped.
+   * until the current scope is popped. If levelZero is true the name
+   * shouldn't be already bound.
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
+   * @param levelZero set if the binding must be done at level 0
    */
-  void bind(const std::string& name, Expr obj) throw(AssertionException);
+  void bind(const std::string& name, Expr obj, bool levelZero = false) throw(AssertionException);
 
   /**
    * Bind a function body to a name in the current scope.  If
@@ -89,8 +91,9 @@ public:
    *
    * @param name an identifier
    * @param obj the expression to bind to <code>name</code>
+   * @param levelZero set if the binding must be done at level 0
    */
-  void bindDefinedFunction(const std::string& name, Expr obj) throw(AssertionException);
+  void bindDefinedFunction(const std::string& name, Expr obj, bool levelZero = false) throw(AssertionException);
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -101,8 +104,9 @@ public:
    *
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
+   * @param levelZero set if the binding must be done at level 0
    */
-  void bindType(const std::string& name, Type t) throw();
+  void bindType(const std::string& name, Type t, bool levelZero = false) throw();
 
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
@@ -117,7 +121,7 @@ public:
    */
   void bindType(const std::string& name,
                 const std::vector<Type>& params,
-                Type t) throw();
+                Type t, bool levelZero = false) throw();
 
   /**
    * Check whether a name is bound to an expression with either bind()

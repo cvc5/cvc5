@@ -337,16 +337,19 @@ public:
   Type getType(const std::string& var_name, SymbolType type = SYM_VARIABLE);
 
   /** Create a new CVC4 variable expression of the given type. */
-  Expr mkVar(const std::string& name, const Type& type);
+  Expr mkVar(const std::string& name, const Type& type,
+             bool levelZero = false);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
    */
   std::vector<Expr>
-  mkVars(const std::vector<std::string> names, const Type& type);
+    mkVars(const std::vector<std::string> names, const Type& type,
+           bool levelZero = false);
 
   /** Create a new CVC4 function expression of the given type. */
-  Expr mkFunction(const std::string& name, const Type& type);
+  Expr mkFunction(const std::string& name, const Type& type,
+                  bool levelZero = false);
 
   /**
    * Create a new CVC4 function expression of the given type,
@@ -356,10 +359,12 @@ public:
   Expr mkAnonymousFunction(const std::string& prefix, const Type& type);
 
   /** Create a new variable definition (e.g., from a let binding). */
-  void defineVar(const std::string& name, const Expr& val);
+  void defineVar(const std::string& name, const Expr& val,
+                       bool levelZero = false);
 
   /** Create a new function definition (e.g., from a define-fun). */
-  void defineFunction(const std::string& name, const Expr& val);
+  void defineFunction(const std::string& name, const Expr& val,
+                      bool levelZero = false);
 
   /** Create a new type definition. */
   void defineType(const std::string& name, const Type& type);
@@ -432,7 +437,8 @@ public:
   /**
    * Preempt the next returned command with other ones; used to
    * support the :named attribute in SMT-LIBv2, which implicitly
-   * inserts a new command before the current one.
+   * inserts a new command before the current one. Also used in TPTP
+   * because function and predicate symbols are implicitly declared.
    */
   void preemptCommand(Command* cmd);
 

@@ -49,17 +49,25 @@ DeclarationScope::~DeclarationScope() {
   delete d_context;
 }
 
-void DeclarationScope::bind(const std::string& name, Expr obj) throw(AssertionException) {
+void DeclarationScope::bind(const std::string& name, Expr obj,
+                            bool levelZero) throw(AssertionException) {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  d_exprMap->insert(name, obj);
+  if(levelZero) d_exprMap->insertAtContextLevelZero(name, obj);
+  else d_exprMap->insert(name, obj);
 }
 
-void DeclarationScope::bindDefinedFunction(const std::string& name, Expr obj) throw(AssertionException) {
+void DeclarationScope::bindDefinedFunction(const std::string& name, Expr obj,
+                            bool levelZero) throw(AssertionException) {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
-  d_exprMap->insert(name, obj);
-  d_functions->insert(obj);
+  if(levelZero){
+    d_exprMap->insertAtContextLevelZero(name, obj);
+    d_functions->insertAtContextLevelZero(obj);
+  } else {
+    d_exprMap->insert(name, obj);
+    d_functions->insert(obj);
+  }
 }
 
 bool DeclarationScope::isBound(const std::string& name) const throw() {
@@ -80,13 +88,19 @@ Expr DeclarationScope::lookup(const std::string& name) const throw(AssertionExce
   return (*d_exprMap->find(name)).second;
 }
 
-void DeclarationScope::bindType(const std::string& name, Type t) throw() {
-  d_typeMap->insert(name, make_pair(vector<Type>(), t));
+void DeclarationScope::bindType(const std::string& name, Type t,
+                                bool levelZero) throw() {
+  if(levelZero){
+    d_typeMap->insertAtContextLevelZero(name, make_pair(vector<Type>(), t));
+  }else{
+    d_typeMap->insert(name, make_pair(vector<Type>(), t));
+  }
 }
 
 void DeclarationScope::bindType(const std::string& name,
                                 const std::vector<Type>& params,
-                                Type t) throw() {
+                                Type t,
+                                bool levelZero) throw() {
   if(Debug.isOn("sort")) {
     Debug("sort") << "bindType(" << name << ", [";
     if(params.size() > 0) {
@@ -96,7 +110,11 @@ void DeclarationScope::bindType(const std::string& name,
     }
     Debug("sort") << "], " << t << ")" << endl;
   }
-  d_typeMap->insert(name, make_pair(params, t));
+  if(levelZero){
+    d_typeMap->insertAtContextLevelZero(name, make_pair(params, t));
+  } else {
+    d_typeMap->insert(name, make_pair(params, t));
+  }
 }
 
 bool DeclarationScope::isBoundType(const std::string& name) const throw() {
