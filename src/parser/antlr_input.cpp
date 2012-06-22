@@ -312,7 +312,7 @@ void AntlrInput::setAntlr3Lexer(pANTLR3_LEXER pLexer) {
   // Override default lexer error reporting
   d_lexer->rec->reportError = &lexerError;
   // Override default nextToken function, just to prevent exceptions escaping.
-  d_lexer->rec->state->tokSource->nextToken = &nextTokenStr;
+  d_lexer->rec->state->tokSource->nextToken = &nextToken;
 }
 
 void AntlrInput::setParser(Parser& parser) {

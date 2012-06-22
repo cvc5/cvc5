@@ -130,8 +130,12 @@ class AntlrInput : public Input {
   static void lexerError(pANTLR3_BASE_RECOGNIZER recognizer);
 
   /** Returns the next available lexer token from the current input stream. */
+  /* - auxillary function */
   static pANTLR3_COMMON_TOKEN
   nextTokenStr (pANTLR3_TOKEN_SOURCE toksource);
+  /* - main function */
+  static pANTLR3_COMMON_TOKEN
+  nextToken (pANTLR3_TOKEN_SOURCE toksource);
 
   /* Since we own d_tokenStream and it needs to be freed, we need to prevent
    * copy construction and assignment.
@@ -181,6 +185,9 @@ public:
 
   /** Retrieve the remaining text in this input. */
   std::string getUnparsedText();
+
+  /** Get the ANTLR3 lexer for this input. */
+  pANTLR3_LEXER getAntlr3Lexer(){ return d_lexer; };
 
 protected:
   /** Create an input. This input takes ownership of the given input stream,

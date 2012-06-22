@@ -146,6 +146,11 @@ public:
   /** Get the language that this Input is reading. */
   virtual InputLanguage getLanguage() const throw() = 0;
 
+  /** Retrieve the name of the input stream */
+  const std::string getInputStreamName(){
+    return getInputStream()->getName();
+  }
+
 protected:
 
   /** Create an input.

@@ -372,5 +372,66 @@ AntlrInput::nextTokenStr (pANTLR3_TOKEN_SOURCE toksource)
   }
 }
 
+/* *** CVC4 NOTE ***
+ * This is copied, totaly unmodified, from antlr3lexer.c
+ * in order to use nextTokenStr previously defined.
+ *
+ */
+pANTLR3_COMMON_TOKEN
+AntlrInput::nextToken	    (pANTLR3_TOKEN_SOURCE toksource)
+{
+	pANTLR3_COMMON_TOKEN tok;
+
+	// Find the next token in the current stream
+	//
+	tok = nextTokenStr(toksource);
+
+	// If we got to the EOF token then switch to the previous
+	// input stream if there were any and just return the
+	// EOF if there are none. We must check the next token
+	// in any outstanding input stream we pop into the active
+	// role to see if it was sitting at EOF after PUSHing the
+	// stream we just consumed, otherwise we will return EOF
+	// on the reinstalled input stream, when in actual fact
+	// there might be more input streams to POP before the
+	// real EOF of the whole logical inptu stream. Hence we
+	// use a while loop here until we find somethign in the stream
+	// that isn't EOF or we reach the actual end of the last input
+	// stream on the stack.
+	//
+	while	(tok->type == ANTLR3_TOKEN_EOF)
+	{
+		pANTLR3_LEXER   lexer;
+
+		lexer   = (pANTLR3_LEXER)(toksource->super);
+
+		if  (lexer->rec->state->streams != NULL && lexer->rec->state->streams->size(lexer->rec->state->streams) > 0)
+		{
+			// We have another input stream in the stack so we
+			// need to revert to it, then resume the loop to check
+			// it wasn't sitting at EOF itself.
+			//
+			lexer->popCharStream(lexer);
+			tok = nextTokenStr(toksource);
+		}
+		else
+		{
+			// There were no more streams on the input stack
+			// so this EOF is the 'real' logical EOF for
+			// the input stream. So we just exit the loop and 
+			// return the EOF we have found.
+			//
+			break;
+		}
+		
+	}
+
+	// return whatever token we have, which may be EOF
+	//
+	return  tok;
+}
+
+
+
 } // namespace parser
 } // namespace CVC4
