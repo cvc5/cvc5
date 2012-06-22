@@ -244,7 +244,9 @@ inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {
 inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
                                                size_t index,
                                                size_t n) {
+
   ANTLR3_MARKER start = token->getStartIndex(token);
+  // Its the last character of the token (not the one just after)
   ANTLR3_MARKER end = token->getStopIndex(token);
   Assert( start < end );
   if( index > (size_t) end - start ) {
@@ -253,7 +255,7 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
     throw std::invalid_argument(ss.str());
   }
   start += index;
-  if( n==0 || n >= (size_t) end - start ) {
+  if( n==0 || n > (size_t) end - start ) {
     return std::string( (const char *)start, end-start+1 );
   } else {
     return std::string( (const char *)start, n );
