@@ -213,6 +213,9 @@ Node DioSolver::proveIndex(TrailIndex i){
     Node input = proofVariableToReason(v);
     Assert(acceptableOriginalNodes(input));
     if(input.getKind() == kind::AND){
+      if(input.getNumChildren() != 2){
+        Warning() << "Fix this bug!" << std::endl;
+      }
       nb << input[0] << input[1];
     }else{
       nb << input;
