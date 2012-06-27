@@ -1521,7 +1521,7 @@ void TheoryArith::check(Effort effortLevel){
       d_partialModel.commitAssignmentChanges();
       revertOutOfConflict();
 
-      if(Debug.isOn("arith::consistency")){
+      if(Debug.isOn("arith::consistency::comitonconflict")){
         entireStateIsConsistent("commit on conflict");
       }
     }
@@ -2083,7 +2083,7 @@ bool TheoryArith::unenqueuedVariablesAreConsistent(){
         }
         Warning() << endl;
         result = false;
-      } else {
+      } else if(Debug.isOn("arith::consistency::initial")){
         d_partialModel.printModel(var);
         Warning() << "Initial var is not consistent for " << var << *i;
         if(d_tableau.isBasic(var)){
