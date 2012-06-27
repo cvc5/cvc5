@@ -230,6 +230,18 @@ public:
     return d_queue.collectionModeContains(var);
   }
 
+  void reduceQueue(){
+    d_queue.reduce();
+  }
+
+  ArithPriorityQueue::const_iterator queueBegin() const{
+    return d_queue.begin();
+  }
+
+  ArithPriorityQueue::const_iterator queueEnd() const{
+    return d_queue.end();
+  }
+
 private:
 
   /** Reports a conflict to on the output channel. */
