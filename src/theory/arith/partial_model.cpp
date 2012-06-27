@@ -269,6 +269,7 @@ void ArithPartialModel::printModel(ArithVar x){
     Debug("model") << getUpperBound(x) << " ";
     Debug("model") << getUpperBoundConstraint(x) << " ";
   }
+  Debug("model") << endl;
 }
 
 void ArithPartialModel::deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u){
