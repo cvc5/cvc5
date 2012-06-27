@@ -853,6 +853,14 @@ public:
     return d_basic2RowIndex.isKey(v);
   }
 
+  void debugPrintIsBasic(ArithVar v) const {
+    if(isBasic(v)){
+      Warning() << v << " is basic." << std::endl;
+    }else{
+      Warning() << v << " is non-basic." << std::endl;
+    }
+  }
+
   BasicIterator beginBasic() const {
     return d_basic2RowIndex.begin();
   }
