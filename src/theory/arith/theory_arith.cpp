@@ -302,6 +302,12 @@ bool TheoryArith::AssertLower(Constraint constraint){
 
   d_updatedBounds.softAdd(x_i);
 
+  if(Debug.isOn("model")) {
+    Debug("model") << "before" << endl;
+    d_partialModel.printModel(x_i);
+    d_tableau.debugPrintIsBasic(x_i);
+  }
+
   if(!d_tableau.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) < c_i){
       d_linEq.update(x_i, c_i);
@@ -310,7 +316,11 @@ bool TheoryArith::AssertLower(Constraint constraint){
     d_simplex.updateBasic(x_i);
   }
 
-  if(Debug.isOn("model")) { d_partialModel.printModel(x_i); }
+  if(Debug.isOn("model")) {
+    Debug("model") << "after" << endl;
+    d_partialModel.printModel(x_i);
+    d_tableau.debugPrintIsBasic(x_i);
+ }
 
   return false; //sat
 }
@@ -412,6 +422,12 @@ bool TheoryArith::AssertUpper(Constraint constraint){
 
   d_updatedBounds.softAdd(x_i);
 
+  if(Debug.isOn("model")) {
+    Debug("model") << "before" << endl;
+    d_partialModel.printModel(x_i);
+    d_tableau.debugPrintIsBasic(x_i);
+  }
+
   if(!d_tableau.isBasic(x_i)){
     if(d_partialModel.getAssignment(x_i) > c_i){
       d_linEq.update(x_i, c_i);
@@ -420,7 +436,11 @@ bool TheoryArith::AssertUpper(Constraint constraint){
     d_simplex.updateBasic(x_i);
   }
 
-  if(Debug.isOn("model")) { d_partialModel.printModel(x_i); }
+  if(Debug.isOn("model")) {
+    Debug("model") << "after" << endl;
+    d_partialModel.printModel(x_i);
+    d_tableau.debugPrintIsBasic(x_i);
+  }
 
   return false; //sat
 }
@@ -497,6 +517,12 @@ bool TheoryArith::AssertEquality(Constraint constraint){
 
   d_updatedBounds.softAdd(x_i);
 
+  if(Debug.isOn("model")) {
+    Debug("model") << "before" << endl;
+    d_partialModel.printModel(x_i);
+    d_tableau.debugPrintIsBasic(x_i);
+  }
+
   if(!d_tableau.isBasic(x_i)){
     if(!(d_partialModel.getAssignment(x_i) == c_i)){
       d_linEq.update(x_i, c_i);
@@ -504,6 +530,13 @@ bool TheoryArith::AssertEquality(Constraint constraint){
   }else{
     d_simplex.updateBasic(x_i);
   }
+
+  if(Debug.isOn("model")) {
+    Debug("model") << "after" << endl;
+    d_partialModel.printModel(x_i);
+    d_tableau.debugPrintIsBasic(x_i);
+  }
+
   return false;
 }
 
@@ -1431,11 +1464,12 @@ void TheoryArith::check(Effort effortLevel){
     d_qflraStatus = Result::UNSAT;
     if(previous == Result::SAT){
       ++d_statistics.d_revertsOnConflicts;
+      Debug("arith::bt") << "clearing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
       revertOutOfConflict();
       d_simplex.clearQueue();
     }else{
       ++d_statistics.d_commitsOnConflicts;
-
+      Debug("arith::bt") << "committing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
       d_partialModel.commitAssignmentChanges();
       revertOutOfConflict();
     }
@@ -1457,16 +1491,19 @@ void TheoryArith::check(Effort effortLevel){
     if(newFacts){
       ++d_statistics.d_nontrivialSatChecks;
     }
+
+    Debug("arith::bt") << "committing sap inConflit"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
     d_partialModel.commitAssignmentChanges();
     d_unknownsInARow = 0;
     if(Debug.isOn("arith::consistency")){
-      Assert(entireStateIsConsistent());
+      Assert(entireStateIsConsistent("sat comit"));
     }
     break;
   case Result::SAT_UNKNOWN:
     ++d_unknownsInARow;
     ++(d_statistics.d_unknownChecks);
     Assert(!fullEffort(effortLevel));
+    Debug("arith::bt") << "committing unknown"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
     d_partialModel.commitAssignmentChanges();
     d_statistics.d_maxUnknownsInARow.maxAssign(d_unknownsInARow);
     break;
@@ -1474,13 +1511,19 @@ void TheoryArith::check(Effort effortLevel){
     d_unknownsInARow = 0;
     if(previous == Result::SAT){
       ++d_statistics.d_revertsOnConflicts;
+      Debug("arith::bt") << "clearing on conflict" << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
       revertOutOfConflict();
       d_simplex.clearQueue();
     }else{
       ++d_statistics.d_commitsOnConflicts;
 
+      Debug("arith::bt") << "committing on conflict" << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
       d_partialModel.commitAssignmentChanges();
       revertOutOfConflict();
+
+      if(Debug.isOn("arith::consistency")){
+        entireStateIsConsistent("commit on conflict");
+      }
     }
     outputConflicts();
     emmittedConflictOrSplit = true;
@@ -1540,6 +1583,8 @@ void TheoryArith::check(Effort effortLevel){
       d_qflraStatus = Result::UNSAT;
       outputConflicts();
       emmittedConflictOrSplit = true;
+      Debug("arith::bt") << "committing on unate conflict" << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
+
     }
   }else{
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
@@ -1953,6 +1998,21 @@ Node TheoryArith::getValue(TNode n) {
   }
 }
 
+bool TheoryArith::safeToReset() const {
+  Assert(!d_tableauSizeHasBeenModified);
+
+  ArithPriorityQueue::const_iterator conf_iter = d_simplex.queueBegin();
+  ArithPriorityQueue::const_iterator conf_end = d_simplex.queueEnd();
+  for(; conf_iter != conf_end; ++conf_iter){
+    ArithVar basic = *conf_iter;
+    if(!d_smallTableauCopy.isBasic(basic)){
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void TheoryArith::notifyRestart(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_restartTimer);
 
@@ -1963,6 +2023,7 @@ void TheoryArith::notifyRestart(){
   uint32_t currSize = d_tableau.size();
   uint32_t copySize = d_smallTableauCopy.size();
 
+  Debug("arith::reset") << "resetting" << d_restartsCounter << endl;
   Debug("arith::reset") << "curr " << currSize << " copy " << copySize << endl;
   Debug("arith::reset") << "tableauSizeHasBeenModified " << d_tableauSizeHasBeenModified << endl;
 
@@ -1972,23 +2033,31 @@ void TheoryArith::notifyRestart(){
     d_tableauSizeHasBeenModified = false;
   }else if( d_restartsCounter >= RESET_START){
     if(copySize >= currSize * 1.1 ){
+      Debug("arith::reset") << "size has shrunk " << d_restartsCounter << endl;
       ++d_statistics.d_smallerSetToCurr;
       d_smallTableauCopy = d_tableau;
     }else if(d_tableauResetDensity * copySize <=  currSize){
-      ++d_statistics.d_currSetToSmaller;
-      d_tableau = d_smallTableauCopy;
+      d_simplex.reduceQueue();
+      if(safeToReset()){
+	Debug("arith::reset") << "resetting " << d_restartsCounter << endl;
+	++d_statistics.d_currSetToSmaller;
+	d_tableau = d_smallTableauCopy;
+      }else{
+	Debug("arith::reset") << "not safe to reset at the moment " << d_restartsCounter << endl;
+      }
     }
   }
+  Assert(unenqueuedVariablesAreConsistent());
 }
 
-bool TheoryArith::entireStateIsConsistent(){
+bool TheoryArith::entireStateIsConsistent(const string& s){
   typedef std::vector<Node>::const_iterator VarIter;
   bool result = true;
   for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
     ArithVar var = d_arithvarNodeMap.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
-      Warning() << "Assignment is not consistent for " << var << *i;
+      Warning() << s << ":" << "Assignment is not consistent for " << var << *i;
       if(d_tableau.isBasic(var)){
         Warning() << " (basic)";
       }
@@ -2004,17 +2073,25 @@ bool TheoryArith::unenqueuedVariablesAreConsistent(){
   bool result = true;
   for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
     ArithVar var = d_arithvarNodeMap.asArithVar(*i);
-    if(!d_partialModel.assignmentIsConsistent(var) &&
-       !d_simplex.debugIsInCollectionQueue(var)){
+    if(!d_partialModel.assignmentIsConsistent(var)){
+      if(!d_simplex.debugIsInCollectionQueue(var)){
 
-      d_partialModel.printModel(var);
-      Warning() << "Unenqueued var is not consistent for " << var << *i;
-      if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        d_partialModel.printModel(var);
+        Warning() << "Unenqueued var is not consistent for " << var << *i;
+        if(d_tableau.isBasic(var)){
+          Warning() << " (basic)";
+        }
+        Warning() << endl;
+        result = false;
+      } else {
+        d_partialModel.printModel(var);
+        Warning() << "Initial var is not consistent for " << var << *i;
+        if(d_tableau.isBasic(var)){
+          Warning() << " (basic)";
+        }
+        Warning() << endl;
       }
-      Warning() << endl;
-      result = false;
-    }
+     }
   }
   return result;
 }

@@ -277,10 +277,22 @@ private:
 
 
   /**
-   * A copy of the tableau immediately after removing variables
-   * without bounds in presolve().
+   * A copy of the tableau.
+   * This is equivalent  to the original tableau if d_tableauSizeHasBeenModified
+   * is false.
+   * The set of basic and non-basic variables may differ from d_tableau.
    */
   Tableau d_smallTableauCopy;
+
+  /**
+   * Returns true if all of the basic variables in the simplex queue of
+   * basic variables that violate their bounds in the current tableau
+   * are basic in d_smallTableauCopy.
+   *
+   * d_tableauSizeHasBeenModified must be false when calling this.
+   * Simplex's priority queue must be in collection mode.
+   */
+  bool safeToReset() const;
 
   /** This keeps track of difference equalities. Mostly for sharing. */
   ArithCongruenceManager d_congruenceManager;
@@ -463,7 +475,7 @@ private:
    * Debugging only routine!
    * Returns true iff every variable is consistent in the partial model.
    */
-  bool entireStateIsConsistent();
+  bool entireStateIsConsistent(const std::string& locationHint);
   bool unenqueuedVariablesAreConsistent();
 
   bool isImpliedUpperBound(ArithVar var, Node exp);
