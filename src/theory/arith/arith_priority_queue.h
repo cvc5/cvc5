@@ -217,6 +217,13 @@ public:
   void clear();
 
 
+  /**
+   * Reduces the queue to only contain the subset that is still basic
+   * and inconsistent.
+   *Currently, O(n log n) for an easy obviously correct implementation in all modes..
+   */
+  void reduce();
+
   bool collectionModeContains(ArithVar v) const {
     Assert(inCollectionMode());
     return d_varSet.isMember(v);

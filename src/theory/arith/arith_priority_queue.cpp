@@ -326,3 +326,23 @@ std::ostream& CVC4::theory::arith::operator<<(std::ostream& out, ArithPriorityQu
 
   return out;
 }
+
+void  ArithPriorityQueue::reduce(){
+  vector<ArithVar> contents;
+
+  if(inCollectionMode()){
+    contents = d_candidates;
+  } else {
+    ArithVar res = ARITHVAR_SENTINEL;
+    while((res = dequeueInconsistentBasicVariable()) != ARITHVAR_SENTINEL){
+      contents.push_back(res);
+    }
+  }
+  clear();
+  for(vector<ArithVar>::const_iterator iter = contents.begin(), end = contents.end(); iter != end; ++iter){
+    ArithVar curr = *iter;
+    if(d_tableau.isBasic(curr)){
+      enqueueIfInconsistent(curr);
+    }
+  }
+}
