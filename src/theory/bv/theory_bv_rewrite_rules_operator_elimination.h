@@ -221,7 +221,8 @@ Node RewriteRule<RotateRightEliminate>::apply(TNode node) {
 
 template<>
 bool RewriteRule<NandEliminate>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_NAND);
+  return (node.getKind() == kind::BITVECTOR_NAND &&
+          node.getNumChildren() == 2);
 }
 
 template<>
@@ -236,7 +237,8 @@ Node RewriteRule<NandEliminate>::apply(TNode node) {
 
 template<>
 bool RewriteRule<NorEliminate>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_NOR);
+  return (node.getKind() == kind::BITVECTOR_NOR &&
+          node.getNumChildren() == 2);
 }
 
 template<>
@@ -251,7 +253,8 @@ Node RewriteRule<NorEliminate>::apply(TNode node) {
 
 template<>
 bool RewriteRule<XnorEliminate>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_XNOR);
+  return (node.getKind() == kind::BITVECTOR_XNOR &&
+          node.getNumChildren() == 2);
 }
 
 template<>

@@ -152,13 +152,16 @@ Node RewriteRule<AshrByConst>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<BitwiseIdemp>::applies(TNode node) {
+  Unreachable();
   return ((node.getKind() == kind::BITVECTOR_AND ||
            node.getKind() == kind::BITVECTOR_OR) &&
+          node.getNumChildren() == 2 &&
           node[0] == node[1]);
 }
 
 template<> inline
 Node RewriteRule<BitwiseIdemp>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<BitwiseIdemp>(" << node << ")" << std::endl;
   return node[0]; 
 }
@@ -171,14 +174,17 @@ Node RewriteRule<BitwiseIdemp>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<AndZero>::applies(TNode node) {
+  Unreachable();
   unsigned size = utils::getSize(node); 
   return (node.getKind() == kind::BITVECTOR_AND  &&
+          node.getNumChildren() == 2 &&
           (node[0] == utils::mkConst(size, 0) ||
            node[1] == utils::mkConst(size, 0)));
 }
 
 template<> inline
 Node RewriteRule<AndZero>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<AndZero>(" << node << ")" << std::endl;
   return utils::mkConst(utils::getSize(node), 0); 
 }
@@ -191,15 +197,18 @@ Node RewriteRule<AndZero>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<AndOne>::applies(TNode node) {
+  Unreachable();
   unsigned size = utils::getSize(node);
   Node ones = utils::mkOnes(size); 
   return (node.getKind() == kind::BITVECTOR_AND  &&
+          node.getNumChildren() == 2 &&
           (node[0] == ones ||
            node[1] == ones));
 }
 
 template<> inline
 Node RewriteRule<AndOne>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<AndOne>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node);
   
@@ -219,14 +228,17 @@ Node RewriteRule<AndOne>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<OrZero>::applies(TNode node) {
+  Unreachable();
   unsigned size = utils::getSize(node); 
   return (node.getKind() == kind::BITVECTOR_OR  &&
+          node.getNumChildren() == 2 &&
           (node[0] == utils::mkConst(size, 0) ||
            node[1] == utils::mkConst(size, 0)));
 }
 
 template<> inline
 Node RewriteRule<OrZero>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<OrZero>(" << node << ")" << std::endl;
   
   unsigned size = utils::getSize(node); 
@@ -246,15 +258,18 @@ Node RewriteRule<OrZero>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<OrOne>::applies(TNode node) {
+  Unreachable();
   unsigned size = utils::getSize(node);
   Node ones = utils::mkOnes(size); 
   return (node.getKind() == kind::BITVECTOR_OR  &&
+          node.getNumChildren() == 2 &&
           (node[0] == ones ||
            node[1] == ones));
 }
 
 template<> inline
 Node RewriteRule<OrOne>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<OrOne>(" << node << ")" << std::endl;
   return utils::mkOnes(utils::getSize(node)); 
 }
@@ -268,12 +283,15 @@ Node RewriteRule<OrOne>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<XorDuplicate>::applies(TNode node) {
+  Unreachable();
   return (node.getKind() == kind::BITVECTOR_XOR &&
+          node.getNumChildren() == 2 &&
           node[0] == node[1]);
 }
 
 template<> inline
 Node RewriteRule<XorDuplicate>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<XorDuplicate>(" << node << ")" << std::endl;
   return utils::mkConst(BitVector(utils::getSize(node), Integer(0))); 
 }
@@ -367,13 +385,16 @@ Node RewriteRule<XorZero>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<BitwiseNotAnd>::applies(TNode node) {
+  Unreachable();
   return (node.getKind() == kind::BITVECTOR_AND &&
+          node.getNumChildren() == 2 &&
           ((node[0].getKind() == kind::BITVECTOR_NOT && node[0][0] == node[1]) ||
            (node[1].getKind() == kind::BITVECTOR_NOT && node[1][0] == node[0]))); 
 }
 
 template<> inline
 Node RewriteRule<BitwiseNotAnd>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<BitwiseNegAnd>(" << node << ")" << std::endl;
   return utils::mkConst(BitVector(utils::getSize(node), Integer(0))); 
 }
@@ -386,13 +407,16 @@ Node RewriteRule<BitwiseNotAnd>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<BitwiseNotOr>::applies(TNode node) {
+  Unreachable();
   return (node.getKind() == kind::BITVECTOR_OR &&
+          node.getNumChildren() == 2 &&
           ((node[0].getKind() == kind::BITVECTOR_NOT && node[0][0] == node[1]) ||
            (node[1].getKind() == kind::BITVECTOR_NOT && node[1][0] == node[0]))); 
 }
 
 template<> inline
 Node RewriteRule<BitwiseNotOr>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<BitwiseNotOr>(" << node << ")" << std::endl;
   uint32_t size = utils::getSize(node);
   Integer ones = Integer(1).multiplyByPow2(size) - 1; 
@@ -407,13 +431,16 @@ Node RewriteRule<BitwiseNotOr>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<XorNot>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_XOR &&
+  Unreachable();
+  if (node.getKind() == kind::BITVECTOR_XOR &&
+      node.getNumChildren() == 2 &&
           node[0].getKind() == kind::BITVECTOR_NOT &&
           node[1].getKind() == kind::BITVECTOR_NOT); 
 }
 
 template<> inline
 Node RewriteRule<XorNot>::apply(TNode node) {
+  Unreachable();
   BVDebug("bv-rewrite") << "RewriteRule<XorNot>(" << node << ")" << std::endl;
   Node a = node[0][0];
   Node b = node[1][0]; 
@@ -434,11 +461,14 @@ bool RewriteRule<NotXor>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NotXor>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<XorNot>(" << node << ")" << std::endl;
-  Node a = node[0][0];
-  Node b = node[0][1];
-  Node nota = utils::mkNode(kind::BITVECTOR_NOT, a); 
-  return utils::mkSortedNode(kind::BITVECTOR_XOR, nota, b); 
+  BVDebug("bv-rewrite") << "RewriteRule<NotXor>(" << node << ")" << std::endl;
+  std::vector<Node> children;
+  TNode::iterator child_it = node[0].begin();
+  children.push_back(utils::mkNode(kind::BITVECTOR_NOT, *child_it));
+  for(++child_it; child_it != node[0].end(); ++child_it) {
+    children.push_back(*child_it);
+  }
+  return utils::mkSortedNode(kind::BITVECTOR_XOR, children);
 }
 
 /**

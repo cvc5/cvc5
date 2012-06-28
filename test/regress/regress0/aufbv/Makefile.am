@@ -22,9 +22,10 @@ TESTS =	\
 	wchains010ue.delta02.smt \
 	dubreva005ue.delta01.smt \
 	fuzz00.smt \
+	fuzz01.smt \
 	fuzz01.delta01.smt \
 	fuzz02.delta01.smt \
-	fuzz02.smt \  
+	fuzz02.smt \
 	fuzz03.delta01.smt \
 	fuzz03.smt \
 	fuzz04.delta01.smt \
@@ -37,11 +38,9 @@ TESTS =	\
 	fuzz08.smt \
 	fuzz09.smt \
 	fuzz10.smt \
-	fifo32bc06k08.delta01.smt
+	fifo32bc06k08.delta01.smt \
+	rewrite_bug.smt
 
-# failing
-#	fuzz01.smt \
-#
 
 EXTRA_DIST = $(TESTS)
 

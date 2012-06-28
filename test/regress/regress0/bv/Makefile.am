@@ -81,7 +81,8 @@ SMT_TESTS = \
 	fuzz40.delta01.smt \
 	fuzz40.smt \
 	fuzz41.smt \
-	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt
+	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt \
+	smtcompbug.smt
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS =
