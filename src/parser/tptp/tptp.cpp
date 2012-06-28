@@ -22,6 +22,10 @@
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_input.h"
 
+// ANTLR defines these, which is really bad!
+#undef true
+#undef false
+
 namespace CVC4 {
 namespace parser {
 
