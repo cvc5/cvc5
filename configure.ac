@@ -873,16 +873,29 @@ if test "$enable_static_binary" = yes; then
   LDFLAGS="-static $LDFLAGS"
 fi
 cvc4_has_threads=yes
-BOOST_THREADS([], [AC_MSG_WARN([disabling multithreaded support])
+AC_ARG_ENABLE([thread-support],
+    AS_HELP_STRING([--disable-thread-support], [do not support multithreaded-capable library]))
+echo "enable_thread_support: $enable_thread_support"
+if test "$enable_thread_support" = no; then
+  cvc4_has_threads=no
+  if test "$with_portfolio" = yes; then
+    AC_MSG_ERROR([user gave both --with-portfolio and --disable-thread-support, which are contradictory])
+  fi
+else
+  BOOST_THREADS([], [AC_MSG_WARN([disabling multithreaded support])
                    cvc4_has_threads=no])
+fi
 LDFLAGS="$cvc4_save_LDFLAGS"
 if test $cvc4_has_threads = no; then
-  if test x$with_portfolio = xyes; then
+  if test "$enable_thread_support" = yes; then
+    AC_MSG_ERROR([user gave --enable-thread-support but could not build with threads; maybe boost threading library is missing?])
+  fi
+  if test "$with_portfolio" = yes; then
     AC_MSG_ERROR([user gave --with-portfolio but could not build with threads; maybe boost threading library is missing?])
   fi
   with_portfolio=no
 fi
-if test x$with_portfolio != xyes; then
+if test "$with_portfolio" != yes; then
   with_portfolio=no
 fi
 AM_CONDITIONAL([CVC4_BUILD_PCVC4], [test "$with_portfolio" = yes])
@@ -1010,7 +1023,7 @@ AC_DEFINE_UNQUOTED(CVC4_RELEASE, ${CVC4_RELEASE}, [Release component of the vers
 AC_DEFINE_UNQUOTED(CVC4_EXTRAVERSION, ["${CVC4_EXTRAVERSION}"], [Extraversion component of the version of CVC4.])
 AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full release string for CVC4.])
 
-CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$CVC4CPPFLAGS"
+CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }${BOOST_CPPFLAGS:+$BOOST_CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
 CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
