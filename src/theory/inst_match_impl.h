@@ -43,7 +43,7 @@ void InstMatchTrie2<modEq>::addSubTree( Tree * root, mapIter current, mapIter en
 
   Assert(root->e.find(current->second) == root->e.end());
   Tree * root2 = new Tree(currLevel);
-  root->e.insert(make_pair(current->second, root2));
+  root->e.insert(std::make_pair(current->second, root2));
   addSubTree(root2, ++current, end, currLevel );
 }
 
@@ -111,7 +111,7 @@ bool InstMatchTrie2<modEq>::addInstMatch( InstMatch& m ) {
    addSubTree( e, diverge, end, currLevel );
    if(e->level != currLevel)
      //If same level that e, will be removed at the same time than e
-     d_mods.push_back(make_pair(e,diverge->second));
+     d_mods.push_back(std::make_pair(e,diverge->second));
    return true;
  }else{
    return false;
