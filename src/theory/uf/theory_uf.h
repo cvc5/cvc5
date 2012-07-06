@@ -111,6 +111,7 @@ public:
   class PpRewrite {
   public:
     virtual Node ppRewrite(TNode node) = 0;
+    virtual ~PpRewrite() {}
   };/* class TheoryUF::PpRewrite */
 
 private:
