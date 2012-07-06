@@ -23,6 +23,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/resource.h>
+#include <unistd.h>
 
 #include "util/Assert.h"
 #include "util/exception.h"
