@@ -2284,6 +2284,6 @@ void TheoryArith::propagateCandidates(){
   }
 }
 
-}; /* namesapce arith */
-}; /* namespace theory */
-}; /* namespace CVC4 */
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

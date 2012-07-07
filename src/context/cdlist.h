@@ -442,8 +442,8 @@ class CDList <T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
    *
    * Explanation:
    * If ContextMemoryAllocator is used and d_list grows at a deeper context level
-   * the reallocated will be reallocated in a context memory regaion that can be
-   * detroyed on pop. To support this, a full copy of d_list would have to be made.
+   * the reallocated will be reallocated in a context memory region that can be
+   * destroyed on pop. To support this, a full copy of d_list would have to be made.
    * As this is unacceptable for performance in other situations, we do not do
    * this.
    */

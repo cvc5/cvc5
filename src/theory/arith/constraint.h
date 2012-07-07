@@ -243,7 +243,7 @@ private:
    *
    * This is not context dependent, but may be set once.
    *
-   * This must be set if the constraint canbePropgated().
+   * This must be set if the constraint canBePropagated().
    * This must be set if the constraint assertedToTheTheory().
    * Otherwise, this may be null().
    */
@@ -290,7 +290,7 @@ private:
 
   /**
    * True if the equality has been split.
-   * Only meaningful if ContraintType == Equality.
+   * Only meaningful if ConstraintType == Equality.
    *
    * User Context Dependent.
    * This is initially false.
@@ -490,7 +490,7 @@ public:
   /**
    * Returns a explanation of the constraint that is appropriate for conflicts.
    *
-   * This is not appropraite for propagation!
+   * This is not appropriate for propagation!
    *
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
@@ -507,7 +507,7 @@ public:
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    *
-   * This is not appropraite for propagation!
+   * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
   void explainForConflict(NodeBuilder<>& nb) const{
@@ -587,7 +587,7 @@ public:
   void propagate(const std::vector<Constraint>& b);
   /**
    * The only restriction is that this is not known be true.
-   * This propgates if there is a node.
+   * This propagates if there is a node.
    */
   void impliedBy(Constraint a);
   void impliedBy(Constraint a, Constraint b);
@@ -829,7 +829,7 @@ public:
    * If no such constraint exists, NullConstraint is returned.
    *
    * t must be either UpperBound or LowerBound.
-   * The returned value v is dominatated:
+   * The returned value v is dominated:
    *  If t is UpperBound, r <= v
    *  If t is LowerBound, r >= v
    */

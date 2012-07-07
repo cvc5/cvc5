@@ -327,7 +327,7 @@ private:
   /**
    * Transforms the node into CNF recursively.
    * @param node the formula to transform
-   * @param negated wheather the literal is negated
+   * @param negated whether the literal is negated
    * @return the literal representing the root of the formula
    */
   SatLiteral toCNF(TNode node, bool negated = false);

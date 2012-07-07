@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Driver for (sequential) CVC4 executable
+ ** \brief Driver for (sequential) CVC4 executable (cvc4)
  **
- ** Driver for (sequential) CVC4 executable.
+ ** Driver for (sequential) CVC4 executable (cvc4).
  **/
 
 #include <cstdlib>

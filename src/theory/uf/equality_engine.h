@@ -142,7 +142,7 @@ public:
 
 
 /**
- * Class for keeping an incremental congurence closure over a set of terms. It provides
+ * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
 class EqualityEngine : public context::ContextNotifyObj {
@@ -226,7 +226,7 @@ private:
   /** Number of application lookups, for backtracking.  */
   context::CDO<DefaultSizeType> d_applicationLookupsCount;
 
-  /** Map from ids to the nodes (these need to be nodes as we pick-up the opreators) */
+  /** Map from ids to the nodes (these need to be nodes as we pick up the operators) */
   std::vector<Node> d_nodes;
 
   /** A context-dependents count of nodes */
@@ -301,7 +301,7 @@ private:
 
   /**
    * All the equality edges (twice as many as the number of asserted equalities. If an equality
-   * t1 = t2 is asserted, the edges added are -> t2, -> t1 (in this order). Hance, having the index
+   * t1 = t2 is asserted, the edges added are -> t2, -> t1 (in this order). Hence, having the index
    * of one of the edges you can reconstruct the original equality.
    */
   std::vector<EqualityEdge> d_equalityEdges;
@@ -384,7 +384,7 @@ private:
   std::vector<TriggerId> d_nodeTriggers;
 
   /**
-   * Map from ids to wheather they are constants (constants are always 
+   * Map from ids to whether they are constants (constants are always 
    * representatives of their class.
    */
   std::vector<bool> d_isConstant;
@@ -397,7 +397,7 @@ private:
   }
 
   /**
-   * Map from ids to wheather they are Boolean.
+   * Map from ids to whether they are Boolean.
    */
   std::vector<bool> d_isBoolean;
 
@@ -587,7 +587,7 @@ private:
   bool hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId) const;
 
   /**
-   * Stores a propagated disequality for explanation purpooses and remembers the reasons. The
+   * Stores a propagated disequality for explanation purposes and remembers the reasons. The
    * reasons should be pushed on the reasons vector.
    */
   void storePropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId);
@@ -680,7 +680,7 @@ public:
 
   /**
    * Adds a predicate p with given polarity. The predicate asserted
-   * should be in the coungruence closure kinds (otherwise it's 
+   * should be in the congruence closure kinds (otherwise it's 
    * useless.
    *
    * @param p the (non-negated) predicate
@@ -781,7 +781,7 @@ public:
   size_t getSize(TNode t);
 
   /**
-   * Returns true if the engine is in a consistents state.
+   * Returns true if the engine is in a consistent state.
    */
   bool consistent() const { return !d_done; }
 

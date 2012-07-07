@@ -269,7 +269,7 @@ struct CVC4_PUBLIC Options {
   ArithPropagationMode arithPropagationMode;
 
   /**
-   * The maximum number of difference pivots to do per invokation of simplex.
+   * The maximum number of difference pivots to do per invocation of simplex.
    * If this is negative, the number of pivots done is the number of variables.
    * If this is not set by the user, different logics are free to chose different
    * defaults.
@@ -278,7 +278,7 @@ struct CVC4_PUBLIC Options {
   bool arithHeuristicPivotsSetByUser;
 
   /**
-   * The maximum number of variable order pivots to do per invokation of simplex.
+   * The maximum number of variable order pivots to do per invocation of simplex.
    * If this is negative, the number of pivots done is unlimited.
    * If this is not set by the user, different logics are free to chose different
    * defaults.

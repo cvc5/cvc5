@@ -16,7 +16,7 @@
  ** This is an abstraction of a Map from an unsigned integer to elements of type T.
  ** This class is designed to provide constant time insertion, deletion, element_of,
  ** and fast iteration. This is done by storing backing vectors of size greater than
- ** the maximum key.  This datastructure is appropraite for heavy use datastructures
+ ** the maximum key.  This datastructure is appropriate for heavy use datastructures
  ** where the Keys are a dense set of integers.
  **
  ** T must support T(), and operator=().

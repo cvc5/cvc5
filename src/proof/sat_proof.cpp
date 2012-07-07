@@ -111,7 +111,7 @@ bool resolve(const Lit v, LitSet& clause1, LitSet& clause2, bool s) {
   } else {
     // literal appears negative in the first clause
     if( !clause1.count(~var) || !clause2.count(var)) {
-      Debug("proof:sat") << "proof:resolve: Mising literal ";
+      Debug("proof:sat") << "proof:resolve: Missing literal ";
       printLit(var);
       Debug("proof:sat") << endl; 
       return false; 

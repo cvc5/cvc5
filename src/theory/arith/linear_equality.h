@@ -63,7 +63,7 @@ private:
 public:
 
   /**
-   * Initailizes a LinearEqualityModule with a partial model, a tableau,
+   * Initializes a LinearEqualityModule with a partial model, a tableau,
    * and a callback function for when basic variables update their values.
    */
   LinearEqualityModule(ArithPartialModel& pm, Tableau& t, ArithVarCallBack& f):
@@ -145,7 +145,7 @@ public:
 
 
 private:
-  /** These fields are designed to be accessable to TheoryArith methods. */
+  /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
     IntStat d_statPivots, d_statUpdates;

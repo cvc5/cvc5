@@ -1,4 +1,21 @@
-
+/*********************                                                        */
+/*! \file congruence_manager.h
+ ** \verbatim
+ ** Original author: taking
+ ** Major contributors: dejan
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
 
 #include "cvc4_private.h"
 
@@ -179,7 +196,7 @@ private:
    */
   //void assertLiteral(bool eq, ArithVar s, TNode reason);
 
-  /** This sends a shared term to the uninterpretted equality engine. */
+  /** This sends a shared term to the uninterpreted equality engine. */
   //void addAssertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
   void assertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
 
@@ -241,10 +258,8 @@ private:
     ~Statistics();
   } d_statistics;
 
-};/* class CongruenceManager */
+};/* class ArithCongruenceManager */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-
-

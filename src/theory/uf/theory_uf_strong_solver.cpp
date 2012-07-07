@@ -752,8 +752,8 @@ bool StrongSolverTheoryUf::ConflictFind::disambiguateTerms( OutputChannel* out )
                 }
                 Assert( children.size()>1 );
                 Node lem = NodeManager::currentNM()->mkNode( OR, children );
-                Debug( "uf-ss-lemma" ) << "*** Diambiguate lemma : " << lem << std::endl;
-                //Notice() << "*** Diambiguate lemma : " << lem << std::endl;
+                Debug( "uf-ss-lemma" ) << "*** Disambiguate lemma : " << lem << std::endl;
+                //Notice() << "*** Disambiguate lemma : " << lem << std::endl;
                 out->lemma( lem );
                 d_term_amb[ eq ] = false;
                 lemmaAdded = true;

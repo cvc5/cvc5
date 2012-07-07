@@ -378,7 +378,7 @@ public:
    */
   unsigned isPow2() const {
     if (d_value <= 0) return 0;
-    // check that the number of ones in the binary represenation is 1
+    // check that the number of ones in the binary representation is 1
     if (mpz_popcount(d_value.get_mpz_t()) == 1) {
       // return the index of the first one plus 1
       return mpz_scan1(d_value.get_mpz_t(), 0) + 1;

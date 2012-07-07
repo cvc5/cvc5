@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file sat_solver_factory.h
+/*! \file sat_solver_factory.cpp
  ** \verbatim
- ** Original author: lianah
- ** Major contributors:
- ** Minor contributors (to current version):
+ ** Original author: dejan
+ ** Major contributors: taking
+ ** Minor contributors (to current version): lianah
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing

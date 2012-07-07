@@ -145,7 +145,7 @@ void List<T>::append (const T& d) {
     new(head)ListNode<T> (d, head->next);
     //head->data = d;
     head->empty = false;
-    //Assert(tail == head); FIXME: do I need this because this list might be empty but appende to another one
+    //Assert(tail == head); FIXME: do I need this because this list might be empty but append to another one
     uninitialized = false;
 
   } else {

@@ -84,7 +84,7 @@ private:
   void miplibTrick(TNode var, std::set<Rational>& values, NodeBuilder<>& learned);
 
 
-  /** These fields are designed to be accessable to ArithStaticLearner methods. */
+  /** These fields are designed to be accessible to ArithStaticLearner methods. */
   class Statistics {
   public:
     IntStat d_iteMinMaxApplications;

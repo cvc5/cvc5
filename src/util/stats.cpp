@@ -46,8 +46,7 @@ void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat() */
 
-void StatisticsRegistry::registerStat_(Stat* s) throw(AssertionException)
-{
+void StatisticsRegistry::registerStat_(Stat* s) throw(AssertionException) {
 #ifdef CVC4_STATISTICS_ON
   AlwaysAssert(d_registeredStats.find(s) == d_registeredStats.end());
   d_registeredStats.insert(s);

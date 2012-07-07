@@ -12,7 +12,7 @@ namespace $dir {
 class Theory$camel : public Theory {
 public:
 
-  /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
+  /** Constructs a new instance of Theory$camel w.r.t. the provided context.*/
   Theory$camel(context::Context* c,
                context::UserContext* u,
                OutputChannel& out,

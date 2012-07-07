@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file cnf_stream.h
+/*! \file sat_solver_types.h
  ** \verbatim
- ** Original author: taking
- ** Major contributors: mdeters, dejan
- ** Minor contributors (to current version): barrett, cconway, kshitij
+ ** Original author: dejan
+ ** Major contributors: none
+ ** Minor contributors (to current version): kshitij
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing

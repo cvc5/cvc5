@@ -259,10 +259,8 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
-}; /* namesapce arith */
-}; /* namespace theory */
-}; /* namespace CVC4 */
-
-
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__ARITH__ARITH_UTILITIES_H */

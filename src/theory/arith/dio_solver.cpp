@@ -279,7 +279,7 @@ void DioSolver::enqueueInputConstraints(){
 
 /*TODO Currently linear in the size of the Queue
  *It is not clear if am O(log n) strategy would be better.
- *Right before this in the algorithm is a substition which could potentially
+ *Right before this in the algorithm is a substitution which could potentially
  *effect the key values of everything in the queue.
  */
 void DioSolver::moveMinimumByAbsToQueueFront(){
@@ -508,7 +508,7 @@ SumPair DioSolver::processEquationsForCut(){
 
 
 SumPair DioSolver::purifyIndex(TrailIndex i){
-  // TODO: "This uses the substition trail to reverse the substitions from the sum term. Using the proof term should be more efficient."
+  // TODO: "This uses the substitution trail to reverse the substitutions from the sum term. Using the proof term should be more efficient."
 
   SumPair curr = d_trail[i].d_eq;
 

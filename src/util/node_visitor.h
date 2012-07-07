@@ -5,15 +5,15 @@
  ** Major contributors: dejan
  ** Minor contributors (to current version):
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009, 2010, 2011, 2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A simple visitor for nodes.
+ ** \brief A simple visitor for nodes
  **
- ** The theory engine.
+ ** A simple visitor for nodes.
  **/
 
 #pragma once
@@ -26,7 +26,8 @@
 namespace CVC4 {
 
 /**
- * Traverses the nodes topologically and call the visitor when all the children have been visited.
+ * Traverses the nodes reverse-topologically (children before parents),
+ * calling the visitor in order.
  */
 template<typename Visitor>
 class NodeVisitor {
@@ -34,6 +35,9 @@ class NodeVisitor {
   /** For re-entry checking */
   static CVC4_THREADLOCAL(bool) s_inRun;
 
+  /**
+   * Guard against NodeVisitor<> being re-entrant.
+   */
   class GuardReentry {
     bool& d_guard;
   public:
@@ -46,7 +50,7 @@ class NodeVisitor {
       Assert(d_guard);
       d_guard = false;
     }
-  };
+  };/* class NodeVisitor<>::GuardReentry */
 
 public:
 
@@ -74,7 +78,7 @@ public:
     // Notify of a start
     visitor.start(node);
 
-    // Do a topological sort of the subexpressions
+    // Do a reverse-topological sort of the subexpressions
     std::vector<stack_element> toVisit;
     toVisit.push_back(stack_element(node, node));
     while (!toVisit.empty()) {
@@ -108,10 +112,9 @@ public:
     return visitor.done(node);
   }
 
-};
+};/* class NodeVisitor<> */
 
 template <typename Visitor>
 CVC4_THREADLOCAL(bool) NodeVisitor<Visitor>::s_inRun = false;
 
-}
-
+}/* CVC4 namespace */

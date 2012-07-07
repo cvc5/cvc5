@@ -1,0 +1,52 @@
+#!/usr/bin/perl -0777
+
+my $debug = 0;
+
+$_ = <>;
+my $comments = "";
+my $code = "";
+
+# ignore strings and comments appearing in preprocessor directives
+s/^#.*//mg;
+
+for(;;) {
+  s,^([^"/]+),,;
+  $code .= "$1\n";
+
+  if(m,^([^"]*)"",) {
+    s,^([^"]*)"",,s;
+    $code .= "$1\n";
+    next;
+  }
+  if(m,^([^"]*)"([^"]*)",) {
+    s,^([^"]*)"(([^\\"]*?([^\\"]|(\\.)))+)",,s;
+    print STDERR "quote: $2\n" if $debug;
+    $code .= "$1\n";
+    $comments .= "$2\n";
+    next;
+  }
+  if(m,/\*.*?\*/,) {
+    s,/\*(.*?)\*/,,s;
+    print STDERR "c-style comment: $1\n" if $debug;
+    $comments .= "$1\n";
+    print STDERR "REMAINDER:\n===========================\n$_\n=========================\n" if $debug;
+    next;
+  }
+  if(m,//,) {
+    s,//([^\n]*),,s;
+    print STDERR "c++-style comment: $1\n" if $debug;
+    $comments .= "$1\n";
+    print STDERR "REMAINDER:\n===========================\n$_\n=========================\n" if $debug;
+    next;
+  }
+  last;
+}
+
+$code .= "$_\n";
+$code =~ s,\W+,\n,g;
+$code =~ s,^,@,gm;
+print "$code\n";
+
+$comments =~ s,^,^,gm;
+print "$comments\n";
+

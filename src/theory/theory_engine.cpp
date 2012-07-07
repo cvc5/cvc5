@@ -1062,7 +1062,7 @@ static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
 
 Node TheoryEngine::getExplanation(TNode node) {
-  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current proagation index = " << d_propagationMapTimestamp << std::endl;
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << std::endl;
 
   bool polarity = node.getKind() != kind::NOT;
   TNode atom = polarity ? node : node[0];
@@ -1237,7 +1237,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       explanation = theoryOf(toExplain.theory)->explain(toExplain.node);
     }
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << std::endl;
-    Assert(explanation != toExplain.node, "wansn't sent to you, so why are you explaining it trivially");
+    Assert(explanation != toExplain.node, "wasn't sent to you, so why are you explaining it trivially");
     // Mark the explanation
     NodeTheoryPair newExplain(explanation, toExplain.theory, toExplain.timestamp);
     explanationVector.push_back(newExplain);

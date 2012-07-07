@@ -85,7 +85,7 @@ class Rewriter {
   static RewriteResponse callPostRewrite(theory::TheoryId theoryId, TNode node);
 
   /**
-   * Calls the equality-rewruter for the given theory.
+   * Calls the equality-rewriter for the given theory.
    */
   static Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
 

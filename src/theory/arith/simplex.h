@@ -271,7 +271,7 @@ private:
 
 
 
-  /** These fields are designed to be accessable to TheoryArith methods. */
+  /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
     IntStat d_statUpdateConflicts;

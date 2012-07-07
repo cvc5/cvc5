@@ -35,7 +35,7 @@ namespace CVC4 {
 namespace prop {
 
 /**
- * Interface for SAT solver constructors. Solvers should declare an instantiatiation of the
+ * Interface for SAT solver constructors. Solvers should declare an instantiation of the
  * SatSolverConstructor interface below.
  */
 class SatSolverConstructorInterface {
@@ -59,7 +59,7 @@ class SatSolverRegistry {
 
   /**
    * Register a SAT solver with the registry. The Constructor type should be a subclass
-   * of the SatSolverConstrutor.
+   * of the SatSolverConstructor.
    */
   template <typename Constructor>
   size_t registerSolver(const char* id) {

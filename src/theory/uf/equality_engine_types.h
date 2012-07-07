@@ -115,7 +115,7 @@ struct DisequalityReasonRef {
 };
 
 /** 
- * We mantaint uselist where a node appears in, and this is the node
+ * We maintain uselist where a node appears in, and this is the node
  * of such a list. 
  */
 class UseListNode {
@@ -155,7 +155,7 @@ public:
  * Main class for representing nodes in the equivalence class. The 
  * nodes are a circular list, with the representative carrying the
  * size. Each individual node carries with itself the uselist of
- * functino applications it appears in and the list of asserted 
+ * function applications it appears in and the list of asserted 
  * disequalities it belongs to. In order to get these lists one must
  * traverse the entire class and pick up all the individual lists. 
  */

@@ -569,7 +569,7 @@ public:
     Assert(getKind() == kind::UNDEFINED_KIND || d_nv->d_id == 0,
            "can't redefine the Kind of a NodeBuilder");
     Assert(d_nv->d_id == 0,
-           "interal inconsistency with NodeBuilder: d_id != 0");
+           "internal inconsistency with NodeBuilder: d_id != 0");
     AssertArgument(k != kind::UNDEFINED_KIND &&
                    k != kind::NULL_EXPR &&
                    k < kind::LAST_KIND,

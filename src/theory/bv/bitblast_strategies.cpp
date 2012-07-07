@@ -516,7 +516,7 @@ void DefaultMultBB (TNode node, Bits& res, Bitblaster* bb) {
 }
 
 void DefaultPlusBB (TNode node, Bits& res, Bitblaster* bb) {
-  BVDebug("bitvector-bb") << "theory::bv::DefaulPlusBB bitblasting " << node << "\n";
+  BVDebug("bitvector-bb") << "theory::bv::DefaultPlusBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_PLUS &&
          res.size() == 0);
 
@@ -537,7 +537,7 @@ void DefaultPlusBB (TNode node, Bits& res, Bitblaster* bb) {
 
 
 void DefaultSubBB (TNode node, Bits& bits, Bitblaster* bb) {
-  BVDebug("bitvector-bb") << "theory::bv::DefautSubBB bitblasting " << node << "\n";
+  BVDebug("bitvector-bb") << "theory::bv::DefaultSubBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_SUB &&
          node.getNumChildren() == 2 &&
          bits.size() == 0);
@@ -555,7 +555,7 @@ void DefaultSubBB (TNode node, Bits& bits, Bitblaster* bb) {
 }
 
 void DefaultNegBB (TNode node, Bits& bits, Bitblaster* bb) {
-  BVDebug("bitvector-bb") << "theory::bv::DefautNegBB bitblasting " << node << "\n";
+  BVDebug("bitvector-bb") << "theory::bv::DefaultNegBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_NEG);
   
   Bits a;
@@ -633,7 +633,7 @@ void uDivModRec(const Bits& a, const Bits& b, Bits& q, Bits& r, unsigned rec_wid
 }
 
 void DefaultUdivBB (TNode node, Bits& q, Bitblaster* bb) {
-  BVDebug("bitvector-bb") << "theory::bv::DefautUdivBB bitblasting " << node << "\n";
+  BVDebug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_UDIV &&  q.size() == 0);
 
   Bits a, b;
@@ -649,7 +649,7 @@ void DefaultUdivBB (TNode node, Bits& q, Bitblaster* bb) {
 }
 
 void DefaultUremBB (TNode node, Bits& rem, Bitblaster* bb) {
-  BVDebug("bitvector-bb") << "theory::bv::DefautUremBB bitblasting " << node << "\n";
+  BVDebug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_UREM &&  rem.size() == 0);
 
   Bits a, b;

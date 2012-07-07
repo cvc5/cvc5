@@ -661,10 +661,10 @@ public:
   /** Make a new (anonymous) sort of arity 0. */
   inline TypeNode mkSort();
 
-  /** Make a new sort with the given name and arity. */
+  /** Make a new sort with the given name of arity 0. */
   inline TypeNode mkSort(const std::string& name);
 
-  /** Make a new sort with the given name and arity. */
+  /** Make a new sort by parameterizing the given sort constructor. */
   inline TypeNode mkSort(TypeNode constructor,
                          const std::vector<TypeNode>& children);
 

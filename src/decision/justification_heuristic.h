@@ -37,7 +37,7 @@ namespace decision {
 class GiveUpException : public Exception {
 public:
   GiveUpException() : 
-    Exception("justification hueristic: giving up") {
+    Exception("justification heuristic: giving up") {
   }
 };/* class GiveUpException */
 
@@ -196,7 +196,7 @@ private:
   }
   
   /** 
-   * Do all the hardwork. 
+   * Do all the hard work. 
    * @param findFirst returns
    */ 
   bool findSplitterRec(TNode node, SatValue value, SatLiteral* litDecision);

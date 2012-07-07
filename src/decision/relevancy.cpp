@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file relevancy.h
+/*! \file relevancy.cpp
  ** \verbatim
  ** Original author: kshitij
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2012  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -143,7 +143,7 @@ bool Relevancy::findSplitterRec(TNode node,
 
   /* Good luck, hope you can get what you want */
   Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN, 
-         "invariant voilated");
+         "invariant violated");
 
   /* What type of node is this */
   Kind k = node.getKind();	

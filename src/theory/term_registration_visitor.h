@@ -1,15 +1,18 @@
 /*********************                                                        */
-/*! \file node_visitor.h
+/*! \file term_registration_visitor.h
  ** \verbatim
  ** Original author: dejan
- ** Major contributors: 
- ** Minor contributors (to current version):
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
  **/
 
 #include "cvc4_private.h"
@@ -109,7 +112,7 @@ class SharedTermsVisitor {
   SharedTermsDatabase& d_sharedTerms;
 
   /**
-   * Cache from proprocessing of atoms.
+   * Cache from preprocessing of atoms.
    */
   typedef std::hash_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
   TNodeVisitedMap d_visited;

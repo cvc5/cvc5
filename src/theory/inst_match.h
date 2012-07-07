@@ -277,7 +277,7 @@ public:
   virtual void reset( Node eqc, QuantifiersEngine* qe ) = 0;
   /** get the next match.  must call reset( eqc ) before this function. */
   virtual bool getNextMatch( InstMatch& m, QuantifiersEngine* qe ) = 0;
-  /** return true if whatever Node is subsituted for the variables the
+  /** return true if whatever Node is substituted for the variables the
       given Node can't match the pattern */
   virtual bool nonunifiable( TNode t, const std::vector<Node> & vars) = 0;
   /** add instantiations directly */
@@ -323,7 +323,7 @@ private:
   bool getMatchArithmetic( Node t, InstMatch& m, QuantifiersEngine* qe );
 public:
   /** get the match against ground term or formula t.
-      d_match_mattern and t should have the same shape.
+      d_match_pattern and t should have the same shape.
       only valid for use where !d_match_pattern.isNull().
   */
   bool getMatch( Node t, InstMatch& m, QuantifiersEngine* qe );
@@ -346,7 +346,7 @@ public:
   void reset( Node eqc, QuantifiersEngine* qe );
   /** get the next match.  must call reset( eqc ) before this function. */
   bool getNextMatch( InstMatch& m, QuantifiersEngine* qe );
-  /** return true if whatever Node is subsituted for the variables the
+  /** return true if whatever Node is substituted for the variables the
       given Node can't match the pattern */
   bool nonunifiable( TNode t, const std::vector<Node> & vars);
   /** add instantiations */
@@ -371,9 +371,9 @@ private:
                                std::vector< IndexedTrie >& unique_var_tries,
                                int uvtIndex, InstMatchTrie* tr = NULL, int trieIndex = 0 );
 private:
-  /** var contains (variable indicies) for each pattern node */
+  /** var contains (variable indices) for each pattern node */
   std::map< Node, std::vector< int > > d_var_contains;
-  /** variable indicies contained to pattern nodes */
+  /** variable indices contained to pattern nodes */
   std::map< int, std::vector< Node > > d_var_to_node;
   /** quantifier to use */
   Node d_f;
@@ -396,7 +396,7 @@ public:
   void reset( Node eqc, QuantifiersEngine* qe );
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */
   bool getNextMatch( InstMatch& m, QuantifiersEngine* qe ) { return false; }
-  /** return true if whatever Node is subsituted for the variables the
+  /** return true if whatever Node is substituted for the variables the
       given Node can't match the pattern */
   bool nonunifiable( TNode t, const std::vector<Node> & vars) { return true; }
   /** add instantiations */
@@ -428,7 +428,7 @@ public:
   void reset( Node eqc, QuantifiersEngine* qe ) {}
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */
   bool getNextMatch( InstMatch& m, QuantifiersEngine* qe ) { return false; }
-  /** return true if whatever Node is subsituted for the variables the
+  /** return true if whatever Node is substituted for the variables the
       given Node can't match the pattern */
   bool nonunifiable( TNode t, const std::vector<Node> & vars) { return true; }
   /** add instantiations */

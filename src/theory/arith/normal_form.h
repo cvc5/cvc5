@@ -977,7 +977,7 @@ public:
    */
   static Node computeQR(const Polynomial& p, const Integer& z);
 
-  /** Returns the coefficient assiociated with the VarList in the polynomial. */
+  /** Returns the coefficient associated with the VarList in the polynomial. */
   Constant getCoefficient(const VarList& vl) const;
 
   uint32_t maxLength() const{
@@ -1041,7 +1041,7 @@ public:
  * is known to implicitly be equal to 0.
  *
  * SumPairs do not have unique representations due to the potential for p = 0.
- * This makes them inappropraite for normal forms.
+ * This makes them inappropriate for normal forms.
  */
 class SumPair : public NodeWrapper {
 private:

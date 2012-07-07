@@ -88,7 +88,7 @@ public:
       d_cmm->pop();
     }
 
-    // Try poping out of scope
+    // Try popping out of scope
     d_cmm->pop();
   }
 

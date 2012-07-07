@@ -51,7 +51,7 @@ ${includes}
     if (d_exprStatisticsVars[type] == NULL) { \
       stringstream statName; \
       if (type == LAST_TYPE) { \
-        statName << "expr::ExprManager::VARIABLE:Parametrized type"; \
+        statName << "expr::ExprManager::VARIABLE:Parameterized type"; \
       } else { \
         statName << "expr::ExprManager::VARIABLE:" << type; \
       } \

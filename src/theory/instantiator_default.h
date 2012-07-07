@@ -40,7 +40,7 @@ public:
   void assertNode( Node assertion );
   /** identify */
   std::string identify() const { return std::string("InstantiatorDefault"); }
-};/* class Instantiatior */
+};/* class InstantiatorDefault */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

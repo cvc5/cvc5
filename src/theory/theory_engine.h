@@ -503,7 +503,7 @@ public:
   void preprocessStart();
 
   /**
-   * Runs theory specific preprocesssing on the non-Boolean parts of
+   * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */

@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file bv_subtheory_eq_bitblast.cpp
+/*! \file bv_subtheory_bitblast.cpp
  ** \verbatim
- ** Original author: lianah
- ** Major contributors: dejan
+ ** Original author: dejan
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing

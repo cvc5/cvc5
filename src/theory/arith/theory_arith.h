@@ -372,7 +372,7 @@ private:
   /**
    * Splits the disequalities in d_diseq that are violated using lemmas on demand.
    * returns true if any lemmas were issued.
-   * returns false if all disequalities are satisified in the current model.
+   * returns false if all disequalities are satisfied in the current model.
    */
   bool splitDisequalities();
 
@@ -433,7 +433,7 @@ private:
   /** Tracks the bounds that were updated in the current round. */
   DenseSet d_updatedBounds;
 
-  /** Tracks the basic variables where propagatation might be possible. */
+  /** Tracks the basic variables where propagation might be possible. */
   DenseSet d_candidateBasics;
 
   bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
@@ -466,7 +466,7 @@ private:
   bool assertionCases(Constraint c);
 
   /**
-   * Returns the basic variable with the shorted row containg a non-basic variable.
+   * Returns the basic variable with the shorted row containing a non-basic variable.
    * If no such row exists, return ARITHVAR_SENTINEL.
    */
   ArithVar findShortestBasicRow(ArithVar variable);
@@ -493,7 +493,7 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel();
 
-  /** These fields are designed to be accessable to TheoryArith methods. */
+  /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
     IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;

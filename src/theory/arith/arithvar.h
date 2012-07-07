@@ -62,8 +62,8 @@ public:
   virtual void operator()(Node n) = 0;
 };
 
-}; /* namesapce arith */
-}; /* namespace theory */
-}; /* namespace CVC4 */
+}/* CVC4::theory::arith namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__ARITH__ARITHVAR_H */
