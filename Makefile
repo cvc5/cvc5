@@ -34,8 +34,9 @@ distclean maintainerclean:
 .PHONY: test
 test: check
 
-.PHONY: doc
+.PHONY: doc doc-internals
 doc: doc-builds
+doc-internals: doc-internals-builds
 
 .PHONY: examples
 examples: all

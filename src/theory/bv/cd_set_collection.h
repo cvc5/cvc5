@@ -72,8 +72,10 @@ class BacktrackableSetCollection {
     while (d_nodesInserted < d_memory.size()) {
       const tree_entry_type& node = d_memory.back();
 
-      BVDebug("cd_set_collection") << "BacktrackableSetCollection::backtrack(): removing " << node.getValue()
-                                 << " from " << internalToString(getRoot(d_memory.size()-1)) << std::endl;
+      if(Debug.isOn("cd_set_collection")) {
+        BVDebug("cd_set_collection") << "BacktrackableSetCollection::backtrack(): removing " << node.getValue()
+                                     << " from " << internalToString(getRoot(d_memory.size()-1)) << std::endl;
+      }
 
       if (node.hasParent()) {
         if (node.isLeft()) {
@@ -278,7 +280,9 @@ public:
 
     // Find the biggest node smaleer than value (it must exist)
     while (set != null) {
-      BVDebug("set_collection") << "BacktrackableSetCollection::getPrev(" << toString(set) << "," << value << ")" << std::endl;
+      if(Debug.isOn("set_collection")) {
+        BVDebug("set_collection") << "BacktrackableSetCollection::getPrev(" << toString(set) << "," << value << ")" << std::endl;
+      }
       const tree_entry_type& node = d_memory[set];
       if (node.getValue() >= value) {
         // If the node is bigger than the value, we need a smaller one
@@ -305,7 +309,9 @@ public:
 
     // Find the smallest node bigger than value (it must exist)
     while (set != null) {
-      BVDebug("set_collection") << "BacktrackableSetCollection::getNext(" << toString(set) << "," << value << ")" << std::endl;
+      if(Debug.isOn("set_collection")) {
+        BVDebug("set_collection") << "BacktrackableSetCollection::getNext(" << toString(set) << "," << value << ")" << std::endl;
+      }
       const tree_entry_type& node = d_memory[set];
       if (node.getValue() <= value) {
         // If the node is smaller than the value, we need a bigger one
@@ -372,7 +378,9 @@ public:
     backtrack();
     Assert(isValid(set));
 
-    BVDebug("set_collection") << "BacktrackableSetCollection::getElements(" << toString(set) << "," << lowerBound << "," << upperBound << ")" << std::endl;
+    if(Debug.isOn("set_collection")) {
+      BVDebug("set_collection") << "BacktrackableSetCollection::getElements(" << toString(set) << "," << lowerBound << "," << upperBound << ")" << std::endl;
+    }
 
     // Empty set no elements
     if (set == null) {

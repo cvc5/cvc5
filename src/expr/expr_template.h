@@ -36,12 +36,13 @@ ${includes}
 #include "util/exception.h"
 #include "util/language.h"
 #include "util/hash.h"
+#include "util/options.h"
 
 // This is a hack, but an important one: if there's an error, the
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 45 "${template}"
+#line 46 "${template}"
 
 namespace CVC4 {
 
@@ -682,7 +683,12 @@ public:
     long& l = out.iword(s_iosIndex);
     if(l == 0) {
       // set the default print depth on this ostream
-      l = s_defaultPrintDepth;
+      if(Options::current() != NULL) {
+        l = Options::current()->defaultExprDepth;
+      }
+      if(l == 0) {
+        l = s_defaultPrintDepth;
+      }
     }
     return l;
   }
@@ -877,9 +883,10 @@ class CVC4_PUBLIC ExprSetLanguage {
 
   /**
    * The default language to use, for ostreams that haven't yet had a
-   * setlanguage() applied to them.
+   * setlanguage() applied to them and where the current Options
+   * information isn't available.
    */
-  static const int s_defaultLanguage = language::output::LANG_AST;
+  static const int s_defaultOutputLanguage = language::output::LANG_AST;
 
   /**
    * When this manipulator is used, the setting is stored here.
@@ -902,7 +909,15 @@ public:
     if(l == 0) {
       // set the default language on this ostream
       // (offset by one to detect whether default has been set yet)
-      l = s_defaultLanguage + 1;
+      if(Options::current() != NULL) {
+        l = Options::current()->outputLanguage + 1;
+      }
+      if(l <= 0 || l > language::output::LANG_MAX) {
+        // if called from outside the library, we may not have options
+        // available to us at this point (or perhaps the output language
+        // is not set in Options).  Default to something reasonable.
+        l = s_defaultOutputLanguage + 1;
+      }
     }
     return OutputLanguage(l - 1);
   }
@@ -942,7 +957,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 946 "${template}"
+#line 961 "${template}"
 
 namespace expr {
 

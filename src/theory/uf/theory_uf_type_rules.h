@@ -46,8 +46,7 @@ public:
         TypeNode currentArgumentType = *argument_type_it;
         if(!currentArgument.isSubtypeOf(currentArgumentType)) {
           std::stringstream ss;
-          ss << Expr::setlanguage(Options::current()->outputLanguage)
-             << "argument type is not a subtype of the function's argument type:\n"
+          ss << "argument type is not a subtype of the function's argument type:\n"
              << "argument:  " << *argument_it << "\n"
              << "has type:  " << (*argument_it).getType() << "\n"
              << "not subtype: " << *argument_type_it;

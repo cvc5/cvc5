@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "util/options.h"
+#include "util/lemma_output_channel.h"
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"

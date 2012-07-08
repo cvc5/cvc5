@@ -87,6 +87,7 @@ Options::Options() :
   strictParsing(false),
   lazyDefinitionExpansion(false),
   printWinner(false),
+  defaultExprDepth(0),
   simplificationMode(SIMPLIFICATION_MODE_BATCH),
   simplificationModeSetByUser(false),
   decisionMode(DECISION_STRATEGY_INTERNAL),
@@ -951,6 +952,7 @@ throw(OptionException) {
         Chat.getStream() << Expr::setdepth(depth);
         Message.getStream() << Expr::setdepth(depth);
         Warning.getStream() << Expr::setdepth(depth);
+        defaultExprDepth = depth;
       }
       break;
 

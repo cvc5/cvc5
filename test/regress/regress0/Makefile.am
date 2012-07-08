@@ -43,7 +43,8 @@ SMT2_TESTS = \
 	simple-lra.smt2 \
 	simple-rdl.smt2 \
 	simple-uf.smt2 \
-	simplification_bug4.smt2
+	simplification_bug4.smt2 \
+	parallel-let.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
@@ -115,7 +116,10 @@ BUG_TESTS = \
 	buggy-ite.smt2 \
 	bug303.smt2 \
 	bug310.cvc \
-	bug339.smt2
+	bug322.cvc \
+	bug322b.cvc \
+	bug339.smt2 \
+	bug365.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 

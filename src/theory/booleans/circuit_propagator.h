@@ -260,7 +260,7 @@ public:
   { d_context.pop(); }
 
   /** Assert for propagation */
-  void assert(TNode assertion);
+  void assertTrue(TNode assertion);
 
   /**
    * Propagate through the asserted circuit propagator. New information discovered by the propagator

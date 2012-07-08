@@ -153,24 +153,8 @@ int runCvc4(int argc, char* argv[], Options& options) {
     }
   }
 
-  // Create the expression manager
-  ExprManager exprMgr(options);
-
-  // Create the SmtEngine
-  SmtEngine smt(&exprMgr);
-
-  // signal handlers need access
-  pStatistics = smt.getStatisticsRegistry();
-
   // Auto-detect input language by filename extension
   const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
-
-  // Timer statistic
-  RegisterStatistic statTotalTime(exprMgr, &s_totalTime);
-
-  // Filename statistics
-  ReferenceStat< const char* > s_statFilename("filename", filename);
-  RegisterStatistic statFilenameReg(exprMgr, &s_statFilename);
 
   if(options.inputLanguage == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
@@ -228,6 +212,15 @@ int runCvc4(int argc, char* argv[], Options& options) {
                      << Expr::printtypes(false);
   }
 
+  // important even for muzzled builds (to get result output right)
+  *options.out << Expr::setlanguage(options.outputLanguage);
+
+  // Create the expression manager
+  ExprManager exprMgr(options);
+
+  // Create the SmtEngine
+  SmtEngine smt(&exprMgr);
+
   Parser* replayParser = NULL;
   if( options.replayFilename != "" ) {
     ParserBuilder replayParserBuilder(&exprMgr, options.replayFilename, options);
@@ -245,8 +238,15 @@ int runCvc4(int argc, char* argv[], Options& options) {
     *options.replayLog << Expr::setlanguage(options.outputLanguage) << Expr::setdepth(-1);
   }
 
-  // important even for muzzled builds (to get result output right)
-  *options.out << Expr::setlanguage(options.outputLanguage);
+  // signal handlers need access
+  pStatistics = smt.getStatisticsRegistry();
+
+  // Timer statistic
+  RegisterStatistic statTotalTime(exprMgr, &s_totalTime);
+
+  // Filename statistics
+  ReferenceStat< const char* > s_statFilename("filename", filename);
+  RegisterStatistic statFilenameReg(exprMgr, &s_statFilename);
 
   // Parse and execute commands until we are done
   Command* cmd;

@@ -336,8 +336,7 @@ TypeNode NodeManager::mkPredicateSubtype(Expr lambda)
   if(! tn.isPredicateLike() ||
      tn.getArgTypes().size() != 1) {
     std::stringstream ss;
-    ss << Expr::setlanguage(Options::current()->outputLanguage)
-       << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
+    ss << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
     throw TypeCheckingExceptionPrivate(lambdan, ss.str());
   }
 
@@ -357,8 +356,7 @@ TypeNode NodeManager::mkPredicateSubtype(Expr lambda, Expr witness)
   if(! tn.isPredicateLike() ||
      tn.getArgTypes().size() != 1) {
     std::stringstream ss;
-    ss << Expr::setlanguage(Options::current()->outputLanguage)
-       << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
+    ss << "expected a predicate of one argument to define predicate subtype, but got type `" << tn << "'";
     throw TypeCheckingExceptionPrivate(lambdan, ss.str());
   }
 

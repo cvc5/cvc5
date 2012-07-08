@@ -345,8 +345,10 @@ void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
     bits.push_back(utils::mkBitOf(node, i));
   }
 
-  BVDebug("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
-  BVDebug("bitvector-bb") << "                           with bits  " << toString(bits); 
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
+    BVDebug("bitvector-bb") << "                           with bits  " << toString(bits); 
+  }
 }
 
 void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {
@@ -363,7 +365,9 @@ void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {
       bits.push_back(utils::mkTrue()); 
     }
   }
-  BVDebug("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
+  }
 }
 
 
@@ -391,7 +395,9 @@ void DefaultConcatBB (TNode node, Bits& bits, Bitblaster* bb) {
     }
   }
   Assert (bits.size() == utils::getSize(node)); 
-  BVDebug("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
+  }
 }
 
 void DefaultAndBB (TNode node, Bits& bits, Bitblaster* bb) {
@@ -512,7 +518,9 @@ void DefaultMultBB (TNode node, Bits& res, Bitblaster* bb) {
     shiftAddMultiplier(res, current, newres);
     res = newres;
   }
-  BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  }
 }
 
 void DefaultPlusBB (TNode node, Bits& res, Bitblaster* bb) {
@@ -709,7 +717,9 @@ void DefaultShlBB (TNode node, Bits& res, Bitblaster* bb) {
       }
     }
   }
-  BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  }
 }
 
 void DefaultLshrBB (TNode node, Bits& res, Bitblaster* bb) {
@@ -740,7 +750,9 @@ void DefaultLshrBB (TNode node, Bits& res, Bitblaster* bb) {
       }
     }
   }
-  BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  }
 }
 
 void DefaultAshrBB (TNode node, Bits& res, Bitblaster* bb) {
@@ -773,8 +785,9 @@ void DefaultAshrBB (TNode node, Bits& res, Bitblaster* bb) {
       }
     }
   }
-  BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
-
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  }
 }
 
 void DefaultExtractBB (TNode node, Bits& bits, Bitblaster* bb) {
@@ -791,9 +804,10 @@ void DefaultExtractBB (TNode node, Bits& bits, Bitblaster* bb) {
   }
   Assert (bits.size() == high - low + 1);   
 
-  BVDebug("bitvector-bb") << "theory::bv::DefaultExtractBB bitblasting " << node << "\n";
-  BVDebug("bitvector-bb") << "                               with bits " << toString(bits); 
-       
+  if(Debug.isOn("bitvector-bb")) {
+    BVDebug("bitvector-bb") << "theory::bv::DefaultExtractBB bitblasting " << node << "\n";
+    BVDebug("bitvector-bb") << "                               with bits " << toString(bits); 
+  }
 }
 
 

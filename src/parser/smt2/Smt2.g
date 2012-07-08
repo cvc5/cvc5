@@ -115,7 +115,11 @@ namespace CVC4 {
 #include "util/integer.h"
 #include "util/output.h"
 #include "util/rational.h"
+#include "util/hash.h"
 #include <vector>
+#include <set>
+#include <string>
+#include <sstream>
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -439,6 +443,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::string attr;
   Expr attexpr;
   std::vector<Expr> attexprs;
+  std::hash_set<std::string, StringHashFunction> names;
+  std::vector< std::pair<std::string, Expr> > binders;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -540,8 +546,22 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
     { PARSER_STATE->pushScope(); }
-    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE] term[expr, f2] RPAREN_TOK
-      { PARSER_STATE->defineVar(name,expr); } )+
+    ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] term[expr, f2] RPAREN_TOK
+      // this is a parallel let, so we have to save up all the contributions
+      // of the let and define them only later on
+      { if(names.count(name) == 1) {
+          std::stringstream ss;
+          ss << "warning: symbol `" << name << "' bound multiple times by let; the last binding will be used, shadowing earlier ones";
+          PARSER_STATE->warning(ss.str());
+        } else {
+          names.insert(name);
+        }
+        binders.push_back(std::make_pair(name, expr)); } )+
+    { // now implement these bindings
+      for(std::vector< std::pair<std::string, Expr> >::iterator i = binders.begin(); i != binders.end(); ++i) {
+        PARSER_STATE->defineVar((*i).first, (*i).second);
+      }
+    }
     RPAREN_TOK
     term[expr, f2]
     RPAREN_TOK

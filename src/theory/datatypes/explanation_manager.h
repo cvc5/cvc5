@@ -104,7 +104,7 @@ class Explainer
 {
 public:
   /** assert that n is true */
-  virtual void assert( Node n ) = 0;
+  virtual void assertTrue( Node n ) = 0;
   /** get the explanation for n.  
       This should call pm->setExplanation( n1, jn1, r1 ) ... pm->setExplanation( nk, jnk, rk )
         for some set of Nodes n1...nk.
@@ -115,7 +115,7 @@ public:
           jni is the (at least informal) justification for ni.
       - Return value should be a (possibly empty) conjunction of nodes n'1...n'k, where each n'i occurs 
           (as a conjunct) in jn1...jnk, but not in n1...nk.  
-          For each of these literals n'i, assert( n'i ) was called.
+          For each of these literals n'i, assertTrue( n'i ) was called.
       - either pm->setExplanation( n, ... ) is called, or n is the return value.
   */
   virtual Node explain( Node n, ProofManager* pm ) = 0;
@@ -134,7 +134,7 @@ public:
    }
   ~CongruenceClosureExplainer(){}
   /** assert that n is true */
-  void assert( Node n ){
+  void assertTrue( Node n ){
     Assert( n.getKind() == kind::EQUAL || n.getKind() == kind::IFF );
     d_cc->addEquality( n );
   }
@@ -170,7 +170,7 @@ public:
   ~ExplanationManager(){}
 
   /** assert that n is true (n is an input) */
-  void assert( Node n ) { 
+  void assertTrue( Node n ) { 
     //TODO: this can be optimized: 
     //  if the previous explanation for n was empty (n is a tautology), 
     //  then we should not claim it to be an input.

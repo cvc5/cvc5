@@ -1441,7 +1441,7 @@ void TheoryArith::check(Effort effortLevel){
   while(!done()){
     Constraint curr = constraintFromFactQueue();
     if(curr != NullConstraint){
-      bool res = assertionCases(curr);
+      bool res CVC4_UNUSED = assertionCases(curr);
       Assert(!res || inConflict());
     }
     if(inConflict()){ break; }
@@ -1453,7 +1453,7 @@ void TheoryArith::check(Effort effortLevel){
       d_learnedBounds.pop();
       Debug("arith::learned") << curr << endl;
 
-      bool res = assertionCases(curr);
+      bool res CVC4_UNUSED = assertionCases(curr);
       Assert(!res || inConflict());
 
       if(inConflict()){ break; }

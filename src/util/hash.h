@@ -26,6 +26,7 @@
 namespace __gnu_cxx {}
 
 #include <ext/hash_map>
+#include <ext/hash_set>
 
 namespace __gnu_cxx {
 

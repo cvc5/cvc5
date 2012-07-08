@@ -802,17 +802,32 @@ void SmtEngine::defineFunction(Expr func,
   Type formulaType = formula.getType(Options::current()->typeChecking);
 
   Type funcType = func.getType();
-  Type rangeType = funcType.isFunction() ?
-    FunctionType(funcType).getRangeType() : funcType;
-  if(formulaType != rangeType) {
-    stringstream ss;
-    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
-       << "Defined function's declared type does not match that of body\n"
-       << "The function  : " << func << "\n"
-       << "Its range type: " << rangeType << "\n"
-       << "The body      : " << formula << "\n"
-       << "Body type     : " << formulaType;
-    throw TypeCheckingException(func, ss.str());
+  // We distinguish here between definitions of constants and functions,
+  // because the type checking for them is subtly different.  Perhaps we
+  // should instead have SmtEngine::defineFunction() and
+  // SmtEngine::defineConstant() for better clarity, although then that
+  // doesn't match the SMT-LIBv2 standard...
+  if(formals.size() > 0) {
+    Type rangeType = FunctionType(funcType).getRangeType();
+    if(formulaType != rangeType) {
+      stringstream ss;
+      ss << "Type of defined function does not match its declaration\n"
+         << "The function  : " << func << "\n"
+         << "Declared type : " << rangeType << "\n"
+         << "The body      : " << formula << "\n"
+         << "Body type     : " << formulaType;
+      throw TypeCheckingException(func, ss.str());
+    }
+  } else {
+    if(formulaType != funcType) {
+      stringstream ss;
+      ss << "Declared type of defined constant does not match its definition\n"
+         << "The constant   : " << func << "\n"
+         << "Declared type  : " << funcType << "\n"
+         << "The definition : " << formula << "\n"
+         << "Definition type: " << formulaType;
+      throw TypeCheckingException(func, ss.str());
+    }
   }
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -954,7 +969,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     Assert(Rewriter::rewrite(d_assertionsToPreprocess[i]) == d_assertionsToPreprocess[i]);
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): asserting " << d_assertionsToPreprocess[i] << endl;
-    d_propagator.assert(d_assertionsToPreprocess[i]);
+    d_propagator.assertTrue(d_assertionsToPreprocess[i]);
   }
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
@@ -1353,8 +1368,7 @@ bool SmtEnginePrivate::simplifyAssertions()
     // well-typed, and we don't want the C++ runtime to abort our
     // process without any error notice.
     stringstream ss;
-    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
-       << "A bad expression was produced.  Original exception follows:\n"
+    ss << "A bad expression was produced.  Original exception follows:\n"
        << tcep;
     InternalError(ss.str().c_str());
   }
@@ -1573,8 +1587,7 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) {
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
     stringstream ss;
-    ss << Expr::setlanguage(language::toOutputLanguage(Options::current()->inputLanguage))
-       << "Expected " << boolType << "\n"
+    ss << "Expected " << boolType << "\n"
        << "The assertion : " << e << "\n"
        << "Its type      : " << type;
     throw TypeCheckingException(e, ss.str());

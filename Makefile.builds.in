@@ -22,6 +22,8 @@ include current
 @SET_MAKE@
 
 # Set up some basic autoconf make vars
+srcdir = @srcdir@
+builddir = @builddir@
 install_sh = @install_sh@
 mkinstalldirs = $(install_sh) -d
 exec_prefix = @exec_prefix@
@@ -213,7 +215,9 @@ TAGS tags:
 
 .PHONY: doc-builds doc-prereq
 doc-builds: doc-prereq
-	+(cd $(CURRENT_BUILD) && $(MAKE) doxygen-doc)
+	+(cd $(CURRENT_BUILD) && $(MAKE) doxygen-doc CVC4_DOXYGEN_INPUT="`builddir="$(builddir)" srcdir="$(srcdir)" "$(srcdir)/doc/find_public_interface.sh"`")
+doc-internals-builds: doc-prereq
+	+(cd $(CURRENT_BUILD) && $(MAKE) doxygen-doc CVC4_DOXYGEN_INPUT="$(srcdir)/src src")
 doc-prereq:
 	+(cd $(CURRENT_BUILD) && for dir in `find . -name Makefile | xargs grep -l BUILT_SOURCES`; do (cd `dirname "$$dir"`; (cat Makefile; echo 'doc-prereq: $$(BUILT_SOURCES)') | $(MAKE) -f- doc-prereq); done)
 
