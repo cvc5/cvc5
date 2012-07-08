@@ -551,7 +551,7 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption ){
     n = computeCNF( n, args, defs, false );
     ipl = Node::null();
   }
-  if( f[1]==n && args.size()==long(f[0].getNumChildren()) ){
+  if( f[1]==n && args.size()==f[0].getNumChildren() ){
     return f;
   }else{
     if( args.empty() ){
