@@ -875,7 +875,6 @@ fi
 cvc4_has_threads=yes
 AC_ARG_ENABLE([thread-support],
     AS_HELP_STRING([--disable-thread-support], [do not support multithreaded-capable library]))
-echo "enable_thread_support: $enable_thread_support"
 if test "$enable_thread_support" = no; then
   cvc4_has_threads=no
   if test "$with_portfolio" = yes; then
