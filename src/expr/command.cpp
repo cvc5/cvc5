@@ -809,7 +809,9 @@ void GetAssertionsCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
     stringstream ss;
     const vector<Expr> v = smtEngine->getAssertions();
+    ss << "(\n";
     copy( v.begin(), v.end(), ostream_iterator<Expr>(ss, "\n") );
+    ss << ")\n";
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
@@ -944,8 +946,11 @@ std::string GetInfoCommand::getFlag() const throw() {
 
 void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
+    vector<SExpr> v;
+    v.push_back(SExpr(d_flag));
+    v.push_back(smtEngine->getInfo(d_flag));
     stringstream ss;
-    ss << smtEngine->getInfo(d_flag);
+    ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(BadOptionException&) {
