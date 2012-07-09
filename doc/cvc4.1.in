@@ -3,9 +3,15 @@
 .\"
 .TH CVC4 1 "@MAN_DATE@" "CVC4 release @VERSION@" "User Manuals"
 .SH NAME
-cvc4 \- an automated theorem prover
+cvc4, pcvc4 \- an automated theorem prover
 .SH SYNOPSIS
 .B cvc4 [
+.I options
+.B ] [
+.I file
+.B ]
+.P
+.B pcvc4 [
 .I options
 .B ] [
 .I file
@@ -14,6 +20,9 @@ cvc4 \- an automated theorem prover
 .B cvc4
 is an automated theorem prover for first-order formulas with respect
 to background theories of interest.
+.B pcvc4
+is CVC4's "portfolio" variant, which is capable of running multiple
+CVC4 instances in parallel, configured differently.
 
 With
 .I file

@@ -111,10 +111,15 @@ EXTRA_DIST = \
 	doc/libcvc4compat.3.in
 man_MANS = \
 	doc/cvc4.1 \
+	doc/pcvc4.1 \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
 	doc/libcvc4parser.3 \
 	doc/libcvc4compat.3
+
+doc/pcvc4.1:
+	rm -f doc/pcvc4.1
+	$(LN_S) cvc4.1 doc/pcvc4.1
 
 dist-hook:
 	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"
