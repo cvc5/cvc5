@@ -45,6 +45,8 @@
 #include "util/dump.h"
 #include "util/result.h"
 #include "util/stats.h"
+#include "util/lemma_input_channel.h"
+#include "util/lemma_output_channel.h"
 
 #include "expr/pickler.h"
 #include "util/channel.h"
