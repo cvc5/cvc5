@@ -292,7 +292,7 @@ struct RationalHashStrategy {
   }
 };/* struct RationalHashStrategy */
 
-std::ostream& operator<<(std::ostream& os, const Rational& n);
+CVC4_PUBLIC std::ostream& operator<<(std::ostream& os, const Rational& n);
 
 }/* CVC4 namespace */
 
