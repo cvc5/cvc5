@@ -1196,7 +1196,7 @@ fragment NUMERAL
  * Matches a decimal constant from the input.
  */
 DECIMAL_LITERAL
-  : NUMERAL '.' DIGIT*
+  : NUMERAL '.' DIGIT+
   ;
 
 /**
