@@ -1,3 +1,5 @@
+SUBDIRS = nra-translate .
+
 AM_CPPFLAGS = \
 	-I@srcdir@/../src/include -I@srcdir@/../src -I@builddir@/../src $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall
