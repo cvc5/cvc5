@@ -470,8 +470,8 @@ functionDeclaration[CVC4::Command*& smt_command]
       } else {
         t = EXPR_MANAGER->mkFunctionType(sorts);
       }
-      PARSER_STATE->mkVar(name, t);
-      smt_command = new DeclareFunctionCommand(name, t);
+      Expr func = PARSER_STATE->mkVar(name, t);
+      smt_command = new DeclareFunctionCommand(name, func, t);
     }
   ;
 
@@ -490,8 +490,8 @@ predicateDeclaration[CVC4::Command*& smt_command]
       } else {
         t = EXPR_MANAGER->mkPredicateType(p_sorts);
       }
-      PARSER_STATE->mkVar(name, t);
-      smt_command = new DeclareFunctionCommand(name, t);
+      Expr func = PARSER_STATE->mkVar(name, t);
+      smt_command = new DeclareFunctionCommand(name, func, t);
     }
   ;
 

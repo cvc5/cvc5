@@ -103,7 +103,7 @@ public:
       std::string s = ss.str();
       CVC4dumpstream(getStream(), d_commands)
         << CommentCommand(s + " is " + comment)
-        << DeclareFunctionCommand(s, e.getType());
+        << DeclareFunctionCommand(s, e, e.getType());
     }
   }
 

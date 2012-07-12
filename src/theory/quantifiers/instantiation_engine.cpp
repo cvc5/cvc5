@@ -18,6 +18,8 @@
 
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/first_order_model.h"
 
 using namespace std;
 using namespace CVC4;
@@ -26,15 +28,9 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-//#define IE_PRINT_PROCESS_TIMES
+InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
+QuantifiersModule( qe ), d_setIncomplete( setIncomplete ){
 
-InstantiationEngine::InstantiationEngine( TheoryQuantifiers* th ) :
-d_th( th ){
-
-}
-
-QuantifiersEngine* InstantiationEngine::getQuantifiersEngine(){
-  return d_th->getQuantifiersEngine();
 }
 
 bool InstantiationEngine::hasAddedCbqiLemma( Node f ) {
@@ -46,25 +42,25 @@ void InstantiationEngine::addCbqiLemma( Node f ){
   //code for counterexample-based quantifier instantiation
   Debug("cbqi") << "Do cbqi for " << f << std::endl;
   //make the counterexample body
-  //Node ceBody = f[1].substitute( getQuantifiersEngine()->d_vars[f].begin(), getQuantifiersEngine()->d_vars[f].end(),
-  //                              getQuantifiersEngine()->d_inst_constants[f].begin(),
-  //                              getQuantifiersEngine()->d_inst_constants[f].end() );
+  //Node ceBody = f[1].substitute( d_quantEngine->d_vars[f].begin(), d_quantEngine->d_vars[f].end(),
+  //                              d_quantEngine->d_inst_constants[f].begin(),
+  //                              d_quantEngine->d_inst_constants[f].end() );
   //get the counterexample literal
-  Node ceBody = getQuantifiersEngine()->getCounterexampleBody( f );
-  Node ceLit = d_th->getValuation().ensureLiteral( ceBody.notNode() );
+  Node ceBody = d_quantEngine->getTermDatabase()->getCounterexampleBody( f );
+  Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
   d_ce_lit[ f ] = ceLit;
-  getQuantifiersEngine()->setInstantiationConstantAttr( ceLit, f );
+  d_quantEngine->getTermDatabase()->setInstantiationConstantAttr( ceLit, f );
   // set attributes, mark all literals in the body of n as dependent on cel
   //registerLiterals( ceLit, f );
   //require any decision on cel to be phase=true
-  d_th->getOutputChannel().requirePhase( ceLit, true );
+  d_quantEngine->getOutputChannel().requirePhase( ceLit, true );
   Debug("cbqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
   //add counterexample lemma
   NodeBuilder<> nb(kind::OR);
   nb << f << ceLit;
   Node lem = nb;
   Debug("cbqi-debug") << "Counterexample lemma : " << lem << std::endl;
-  d_th->getOutputChannel().lemma( lem );
+  d_quantEngine->getOutputChannel().lemma( lem );
 }
 
 bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
@@ -72,8 +68,8 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   if( Options::current()->cbqi ){
     //check if any cbqi lemma has not been added yet
     bool addedLemma = false;
-    for( int i=0; i<(int)getQuantifiersEngine()->getNumAssertedQuantifiers(); i++ ){
-      Node f = getQuantifiersEngine()->getAssertedQuantifier( i );
+    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( doCbqi( f ) && !hasAddedCbqiLemma( f ) ){
         //add cbqi lemma
         addCbqiLemma( f );
@@ -87,14 +83,9 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   //if not, proceed to instantiation round
   Debug("inst-engine") << "IE: Instantiation Round." << std::endl;
   Debug("inst-engine-ctrl") << "IE: Instantiation Round." << std::endl;
-  //reset instantiators
+  //reset the quantifiers engine
   Debug("inst-engine-ctrl") << "Reset IE" << std::endl;
-  for( int i=0; i<theory::THEORY_LAST; i++ ){
-    if( getQuantifiersEngine()->getInstantiator( i ) ){
-      getQuantifiersEngine()->getInstantiator( i )->resetInstantiationRound( effort );
-    }
-  }
-  getQuantifiersEngine()->getTermDatabase()->reset( effort );
+  d_quantEngine->resetInstantiationRound( effort );
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -104,20 +95,19 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     Debug("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
     d_inst_round_status = InstStrategy::STATUS_SAT;
     //instantiate each quantifier
-    for( int q=0; q<getQuantifiersEngine()->getNumAssertedQuantifiers(); q++ ){
-      Node f = getQuantifiersEngine()->getAssertedQuantifier( q );
+    for( int q=0; q<d_quantEngine->getModel()->getNumAssertedQuantifiers(); q++ ){
+      Node f = d_quantEngine->getModel()->getAssertedQuantifier( q );
       Debug("inst-engine-debug") << "IE: Instantiate " << f << "..." << std::endl;
       //if this quantifier is active
-      if( getQuantifiersEngine()->getActive( f ) ){
-        //int e_use = getQuantifiersEngine()->getRelevance( f )==-1 ? e - 1 : e;
+      if( d_quantEngine->getActive( f ) ){
+        //int e_use = d_quantEngine->getRelevance( f )==-1 ? e - 1 : e;
         int e_use = e;
         if( e_use>=0 ){
           //use each theory instantiator to instantiate f
           for( int i=0; i<theory::THEORY_LAST; i++ ){
-            if( getQuantifiersEngine()->getInstantiator( i ) ){
-              Debug("inst-engine-debug") << "Do " << getQuantifiersEngine()->getInstantiator( i )->identify() << " " << e_use << std::endl;
-              int limitInst = 0;
-              int quantStatus = getQuantifiersEngine()->getInstantiator( i )->doInstantiation( f, effort, e_use, limitInst );
+            if( d_quantEngine->getInstantiator( i ) ){
+              Debug("inst-engine-debug") << "Do " << d_quantEngine->getInstantiator( i )->identify() << " " << e_use << std::endl;
+              int quantStatus = d_quantEngine->getInstantiator( i )->doInstantiation( f, effort, e_use );
               Debug("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
               InstStrategy::updateStatus( d_inst_round_status, quantStatus );
             }
@@ -126,31 +116,31 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       }
     }
     //do not consider another level if already added lemma at this level
-    if( getQuantifiersEngine()->hasAddedLemma() ){
+    if( d_quantEngine->hasAddedLemma() ){
       d_inst_round_status = InstStrategy::STATUS_UNKNOWN;
     }
     e++;
   }
   Debug("inst-engine") << "All instantiators finished, # added lemmas = ";
-  Debug("inst-engine") << (int)getQuantifiersEngine()->d_lemmas_waiting.size() << std::endl;
+  Debug("inst-engine") << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
   //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
-  if( !getQuantifiersEngine()->hasAddedLemma() ){
+  if( !d_quantEngine->hasAddedLemma() ){
     Debug("inst-engine-stuck") << "No instantiations produced at this state: " << std::endl;
     for( int i=0; i<theory::THEORY_LAST; i++ ){
-      if( getQuantifiersEngine()->getInstantiator( i ) ){
-        getQuantifiersEngine()->getInstantiator( i )->debugPrint("inst-engine-stuck");
+      if( d_quantEngine->getInstantiator( i ) ){
+        d_quantEngine->getInstantiator( i )->debugPrint("inst-engine-stuck");
         Debug("inst-engine-stuck") << std::endl;
       }
     }
     Debug("inst-engine-ctrl") << "---Fail." << std::endl;
     return false;
   }else{
-    Debug("inst-engine-ctrl") << "---Done. " << (int)getQuantifiersEngine()->d_lemmas_waiting.size() << std::endl;
-#ifdef IE_PRINT_PROCESS_TIMES
-    Notice() << "lemmas = " << (int)getQuantifiersEngine()->d_lemmas_waiting.size() << std::endl;
-#endif
+    Debug("inst-engine-ctrl") << "---Done. " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
+    if( Options::current()->printInstEngine ){
+      Message() << "Added lemmas = " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
+    }
     //flush lemmas to output channel
-    getQuantifiersEngine()->flushLemmas( &d_th->getOutputChannel() );
+    d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
     return true;
   }
 }
@@ -174,42 +164,43 @@ void InstantiationEngine::check( Theory::Effort e ){
   }
   if( performCheck ){
     Debug("inst-engine") << "IE: Check " << e << " " << ierCounter << std::endl;
-#ifdef IE_PRINT_PROCESS_TIMES
-    double clSet = double(clock())/double(CLOCKS_PER_SEC);
-    Notice() << "Run instantiation round " << e << " " << ierCounter << std::endl;
-#endif
+    double clSet = 0;
+    if( Options::current()->printInstEngine ){
+      clSet = double(clock())/double(CLOCKS_PER_SEC);
+      Message() << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
+    }
     bool quantActive = false;
     //for each quantifier currently asserted,
     // such that the counterexample literal is not in positive in d_counterexample_asserts
    // for( BoolMap::iterator i = d_forall_asserts.begin(); i != d_forall_asserts.end(); i++ ) {
     //  if( (*i).second ) {
-    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size" 
-                         << getQuantifiersEngine()->getNumAssertedQuantifiers() << std::endl;
-    for( int i=0; i<(int)getQuantifiersEngine()->getNumAssertedQuantifiers(); i++ ){
-      Node n = getQuantifiersEngine()->getAssertedQuantifier( i );
+    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size"
+                         << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
+    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
       if( Options::current()->cbqi && hasAddedCbqiLemma( n ) ){
         Node cel = d_ce_lit[ n ];
         bool active, value;
         bool ceValue = false;
-        if( d_th->getValuation().hasSatValue( cel, value ) ){
+        if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
           active = value;
           ceValue = true;
         }else{
           active = true;
         }
-        getQuantifiersEngine()->setActive( n, active );
+        d_quantEngine->setActive( n, active );
         if( active ){
           Debug("quantifiers") << "  Active : " << n;
           quantActive = true;
         }else{
           Debug("quantifiers") << "  NOT active : " << n;
-          if( d_th->getValuation().isDecision( cel ) ){
+          if( d_quantEngine->getValuation().isDecision( cel ) ){
             Debug("quant-req-phase") << "Bad decision : " << cel << std::endl;
           }
           //note that the counterexample literal must not be a decision
-          Assert( !d_th->getValuation().isDecision( cel ) );
+          Assert( !d_quantEngine->getValuation().isDecision( cel ) );
         }
-        if( d_th->getValuation().hasSatValue( n, value ) ){
+        if( d_quantEngine->getValuation().hasSatValue( n, value ) ){
           Debug("quantifiers") << ", value = " << value;
         }
         if( ceValue ){
@@ -217,18 +208,18 @@ void InstantiationEngine::check( Theory::Effort e ){
         }
         Debug("quantifiers") << std::endl;
       }else{
-        getQuantifiersEngine()->setActive( n, true );
+        d_quantEngine->setActive( n, true );
         quantActive = true;
         Debug("quantifiers") << "  Active : " << n << ", no ce assigned." << std::endl;
       }
       Debug("quantifiers-relevance")  << "Quantifier : " << n << std::endl;
-      Debug("quantifiers-relevance")  << "   Relevance : " << getQuantifiersEngine()->getRelevance( n ) << std::endl;
-      Debug("quantifiers") << "   Relevance : " << getQuantifiersEngine()->getRelevance( n ) << std::endl;
+      Debug("quantifiers-relevance")  << "   Relevance : " << d_quantEngine->getRelevance( n ) << std::endl;
+      Debug("quantifiers") << "   Relevance : " << d_quantEngine->getRelevance( n ) << std::endl;
     }
     //}
     if( quantActive ){
       bool addedLemmas = doInstantiationRound( e );
-      //Debug("quantifiers-dec") << "Do instantiation, level = " << d_th->getValuation().getDecisionLevel() << std::endl;
+      //Debug("quantifiers-dec") << "Do instantiation, level = " << d_quantEngine->getValuation().getDecisionLevel() << std::endl;
       //for( int i=1; i<=(int)d_valuation.getDecisionLevel(); i++ ){
       //  Debug("quantifiers-dec") << "   " << d_valuation.getDecision( i ) << std::endl;
       //}
@@ -237,9 +228,12 @@ void InstantiationEngine::check( Theory::Effort e ){
           if( d_inst_round_status==InstStrategy::STATUS_SAT ){
             Debug("inst-engine") << "No instantiation given, returning SAT..." << std::endl;
             debugSat( SAT_INST_STRATEGY );
-          }else{
+          }else if( d_setIncomplete ){
             Debug("inst-engine") << "No instantiation given, returning unknown..." << std::endl;
-            d_th->getOutputChannel().setIncomplete();
+            d_quantEngine->getOutputChannel().setIncomplete();
+          }else{
+            Assert( Options::current()->finiteModelFind );
+            Debug("inst-engine") << "No instantiation given, defer to another engine..." << std::endl;
           }
         }
       }
@@ -250,30 +244,30 @@ void InstantiationEngine::check( Theory::Effort e ){
         }
       }
     }
-#ifdef IE_PRINT_PROCESS_TIMES
-    double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-    Notice() << "Done Run instantiation round " << (clSet2-clSet) << std::endl;
-#endif
+    if( Options::current()->printInstEngine ){
+      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+      Message() << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
+    }
   }
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){
   //Notice() << "do cbqi " << f << " ? " << std::endl;
-  Node ceBody = getQuantifiersEngine()->getCounterexampleBody( f );
+  Node ceBody = d_quantEngine->getTermDatabase()->getCounterexampleBody( f );
   if( !doCbqi( f ) ){
-    getQuantifiersEngine()->addTermToDatabase( ceBody, true );
+    d_quantEngine->addTermToDatabase( ceBody, true );
     //need to tell which instantiators will be responsible
     //by default, just chose the UF instantiator
-    getQuantifiersEngine()->getInstantiator( theory::THEORY_UF )->setHasConstraintsFrom( f );
+    d_quantEngine->getInstantiator( theory::THEORY_UF )->setHasConstraintsFrom( f );
   }
 
   //take into account user patterns
   if( f.getNumChildren()==3 ){
-    Node subsPat = getQuantifiersEngine()->getSubstitutedNode( f[2], f );
+    Node subsPat = d_quantEngine->getTermDatabase()->getSubstitutedNode( f[2], f );
     //add patterns
     for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
       //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
-      ((uf::InstantiatorTheoryUf*)getQuantifiersEngine()->getInstantiator( theory::THEORY_UF ))->addUserPattern( f, subsPat[i] );
+      ((uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( theory::THEORY_UF ))->addUserPattern( f, subsPat[i] );
     }
   }
 }
@@ -337,11 +331,11 @@ bool InstantiationEngine::doCbqi( Node f ){
 //      registerLiterals( n[i], f );
 //    }
 //    if( !d_ce_lit[ f ].isNull() ){
-//      if( getQuantifiersEngine()->d_te->getPropEngine()->isSatLiteral( n ) && n.getKind()!=NOT ){
+//      if( d_quantEngine->d_te->getPropEngine()->isSatLiteral( n ) && n.getKind()!=NOT ){
 //        if( n!=d_ce_lit[ f ] && n.notNode()!=d_ce_lit[ f ] ){
 //          Debug("quant-dep-dec") << "Make " << n << " dependent on ";
 //          Debug("quant-dep-dec") << d_ce_lit[ f ] << std::endl;
-//          d_th->getOutputChannel().dependentDecision( d_ce_lit[ f ], n );
+//          d_quantEngine->getOutputChannel().dependentDecision( d_ce_lit[ f ], n );
 //        }
 //      }
 //    }
@@ -351,19 +345,19 @@ bool InstantiationEngine::doCbqi( Node f ){
 void InstantiationEngine::debugSat( int reason ){
   if( reason==SAT_CBQI ){
     //Debug("quantifiers-sat") << "Decisions:" << std::endl;
-    //for( int i=1; i<=(int)d_th->getValuation().getDecisionLevel(); i++ ){
-    //  Debug("quantifiers-sat") << "   " << i << ": " << d_th->getValuation().getDecision( i ) << std::endl;
+    //for( int i=1; i<=(int)d_quantEngine->getValuation().getDecisionLevel(); i++ ){
+    //  Debug("quantifiers-sat") << "   " << i << ": " << d_quantEngine->getValuation().getDecision( i ) << std::endl;
     //}
     //for( BoolMap::iterator i = d_forall_asserts.begin(); i != d_forall_asserts.end(); i++ ) {
     //  if( (*i).second ) {
-    for( int i=0; i<(int)getQuantifiersEngine()->getNumAssertedQuantifiers(); i++ ){
-      Node f = getQuantifiersEngine()->getAssertedQuantifier( i );
+    for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+      Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
       Node cel = d_ce_lit[ f ];
       Assert( !cel.isNull() );
       bool value;
-      if( d_th->getValuation().hasSatValue( cel, value ) ){
+      if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
         if( !value ){
-          AlwaysAssert(! d_th->getValuation().isDecision( cel ),
+          AlwaysAssert(! d_quantEngine->getValuation().isDecision( cel ),
                        "bad decision on counterexample literal");
         }
       }
@@ -386,9 +380,9 @@ void InstantiationEngine::propagate( Theory::Effort level ){
   //propagate as decision all counterexample literals that are not asserted
   for( std::map< Node, Node >::iterator it = d_ce_lit.begin(); it != d_ce_lit.end(); ++it ){
     bool value;
-    if( !d_th->getValuation().hasSatValue( it->second, value ) ){
+    if( !d_quantEngine->getValuation().hasSatValue( it->second, value ) ){
       //if not already set, propagate as decision
-      d_th->getOutputChannel().propagateAsDecision( it->second );
+      d_quantEngine->getOutputChannel().propagateAsDecision( it->second );
       Debug("cbqi-prop-as-dec") << "CBQI: propagate as decision " << it->second << std::endl;
     }
   }

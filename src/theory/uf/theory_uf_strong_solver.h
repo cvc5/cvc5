@@ -29,10 +29,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-struct ModelBasisAttributeId {};
-typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-
 namespace uf {
 
 class TheoryUF;
@@ -43,6 +39,7 @@ protected:
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDList<bool> BoolList;
+  typedef context::CDList<bool> IntList;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
 public:
   /** information for incremental conflict/clique finding for a particular sort */
@@ -74,7 +71,8 @@ public:
         DiseqList d_external;
       public:
         /** constructor */
-        RegionNodeInfo( context::Context* c ) : d_internal( c ), d_external( c ), d_valid( c, true ){
+        RegionNodeInfo( context::Context* c ) :
+          d_internal( c ), d_external( c ), d_valid( c, true ){
           d_disequalities[0] = &d_internal;
           d_disequalities[1] = &d_external;
         }
@@ -103,6 +101,9 @@ public:
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
       context::CDO< unsigned > d_total_diseq_internal;
+    private:
+      /** set rep */
+      void setRep( Node n, bool valid );
     public:
       //constructor
       Region( ConflictFind* cf, context::Context* c ) : d_cf( cf ), d_testClique( c ), d_testCliqueSize( c, 0 ),
@@ -115,37 +116,40 @@ public:
       //whether region is valid
       context::CDO< bool > d_valid;
     public:
-      //get num reps
-      int getNumReps() { return d_reps_size; }
-      // has representative
-      bool hasRep( Node n ) { return d_nodes.find( n )!=d_nodes.end() && d_nodes[n]->d_valid; }
+      /** add rep */
+      void addRep( Node n );
       //take node from region
       void takeNode( Region* r, Node n );
       //merge with other region
       void combine( Region* r );
-      /** set rep */
-      void setRep( Node n, bool valid );
       /** merge */
       void setEqual( Node a, Node b );
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
+    public:
+      //get num reps
+      int getNumReps() { return d_reps_size; }
+      //get test clique size
+      int getTestCliqueSize() { return d_testCliqueSize; }
+      // has representative
+      bool hasRep( Node n ) { return d_nodes.find( n )!=d_nodes.end() && d_nodes[n]->d_valid; }
       // is disequal
       bool isDisequal( Node n1, Node n2, int type );
-    public:
       /** get must merge */
       bool getMustCombine( int cardinality );
-      /** check for cliques */
-      bool check( Theory::Effort level, int cardinality, std::vector< Node >& clique );
       /** has splits */
       bool hasSplits() { return d_splitsSize>0; }
-      /** add split */
-      void addSplit( OutputChannel* out );
       /** get representatives */
       void getRepresentatives( std::vector< Node >& reps );
-      /** minimize */
-      bool minimize( OutputChannel* out );
       /** get external disequalities */
       void getNumExternalDisequalities( std::map< Node, int >& num_ext_disequalities );
+    public:
+      /** check for cliques */
+      bool check( Theory::Effort level, int cardinality, std::vector< Node >& clique );
+      /** add split */
+      void addSplit( OutputChannel* out );
+      /** minimize */
+      bool minimize( OutputChannel* out );
       //print debug
       void debugPrint( const char* c, bool incClique = false );
     };
@@ -167,22 +171,25 @@ public:
     /** whether two terms are ambiguous (indexed by equalities) */
     NodeBoolMap d_term_amb;
   private:
-    /** merge regions */
-    void combineRegions( int ai, int bi );
-    /** move node n to region ri */
-    void moveNode( Node n, int ri );
     /** get number of disequalities from node n to region ri */
     int getNumDisequalitiesToRegion( Node n, int ri );
     /** get number of disequalities from Region r to other regions */
     void getDisequalitiesToRegions( int ri, std::map< int, int >& regions_diseq );
-    /** check if we need to combine region ri */
-    bool checkRegion( int ri, bool rec = true );
     /** explain clique */
     void explainClique( std::vector< Node >& clique, OutputChannel* out );
     /** is valid */
     bool isValid( int ri ) { return ri>=0 && ri<(int)d_regions_index && d_regions[ ri ]->d_valid; }
     /** check ambiguous terms */
     bool disambiguateTerms( OutputChannel* out );
+  private:
+    /** check if we need to combine region ri */
+    void checkRegion( int ri, bool rec = true );
+    /** force combine region */
+    int forceCombineRegion( int ri, bool useDensity = true );
+    /** merge regions */
+    int combineRegions( int ai, int bi );
+    /** move node n to region ri */
+    void moveNode( Node n, int ri );
   private:
     /** cardinality operating with */
     context::CDO< int > d_cardinality;
@@ -226,7 +233,7 @@ public:
     /** get representatives */
     void getRepresentatives( std::vector< Node >& reps );
     /** get model basis term */
-    Node getCardinalityTerm() { return d_cardinality_lemma_term; }
+    //Node getCardinalityTerm() { return d_cardinality_lemma_term; }
     /** minimize */
     bool minimize( OutputChannel* out );
     /** get cardinality lemma */
@@ -293,7 +300,7 @@ public:
   /** get representatives */
   void getRepresentatives( TypeNode t, std::vector< Node >& reps );
   /** get cardinality term */
-  Node getCardinalityTerm( TypeNode t );
+  //Node getCardinalityTerm( TypeNode t );
   /** minimize */
   bool minimize();
 

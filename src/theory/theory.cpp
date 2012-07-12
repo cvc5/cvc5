@@ -78,21 +78,21 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
     break;
   case THEORY_OF_TERM_BASED:
     // Variables
-    if (node.getMetaKind() == kind::metakind::VARIABLE) {      
-      if (theoryOf(node.getType()) != theory::THEORY_BOOL) {      
+    if (node.getMetaKind() == kind::metakind::VARIABLE) {
+      if (theoryOf(node.getType()) != theory::THEORY_BOOL) {
         // We treat the varibables as uninterpreted
         return s_uninterpretedSortOwner;
       } else {
         // Except for the Boolean ones, which we just ignore anyhow
         return theory::THEORY_BOOL;
       }
-    }    
+    }
     // Constants
     if (node.getMetaKind() == kind::metakind::CONSTANT) {
-      // Constants go to the theory of the type 
+      // Constants go to the theory of the type
       return theoryOf(node.getType());
-    }    
-    // Equality 
+    }
+    // Equality
     if (node.getKind() == kind::EQUAL) {
       // If one of them is an ITE, it's irelevant, since they will get replaced out anyhow
       if (node[0].getKind() == kind::ITE) {
@@ -100,7 +100,7 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
       }
       if (node[1].getKind() == kind::ITE) {
         return theoryOf(node[1].getType());
-      }  
+      }
       // If both sides belong to the same theory the choice is easy
       TheoryId T1 = theoryOf(node[0]);
       TheoryId T2 = theoryOf(node[1]);
@@ -108,12 +108,12 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
         return T1;
       }
       TheoryId T3 = theoryOf(node[0].getType());
-      // This is a case of 
+      // This is a case of
       // * x*y = f(z) -> UF
       // * x = c      -> UF
       // * f(x) = read(a, y) -> either UF or ARRAY
       // at least one of the theories has to be parametric, i.e. theory of the type is different
-      // from the theory of the term     
+      // from the theory of the term
       if (T1 == T3) {
         return T2;
       }
@@ -122,13 +122,13 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
       }
       // If both are parametric, we take the smaller one (arbitraty)
       return T1 < T2 ? T1 : T2;
-    }      
+    }
     // Regular nodes are owned by the kind
-    return kindToTheoryId(node.getKind());  
-    break;    
+    return kindToTheoryId(node.getKind());
+    break;
   default:
     Unreachable();
-  }   
+  }
 }
 
 void Theory::addSharedTermInternal(TNode n) {
@@ -194,31 +194,21 @@ void Instantiator::resetInstantiationRound(Theory::Effort effort) {
   processResetInstantiationRound(effort);
 }
 
-int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e, int limitInst) {
+int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
   if(hasConstraintsFrom(f)) {
-    int origLemmas = d_quantEngine->getNumLemmasWaiting();
-    int status = process(f, effort, e, limitInst);
-    if(limitInst <= 0 || (d_quantEngine->getNumLemmasWaiting()-origLemmas) < limitInst) {
-      if(d_instStrategies.empty()) {
-        Debug("inst-engine-inst") << "There are no instantiation strategies allocated." << endl;
-      } else {
-        for(int i = 0; i < (int) d_instStrategies.size(); ++i) {
-          if(isActiveStrategy(d_instStrategies[i])) {
-            Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " process " << effort << endl;
-            //call the instantiation strategy's process method
-            int s_limitInst = limitInst > 0 ? limitInst - (d_quantEngine->getNumLemmasWaiting() - origLemmas) : 0;
-            int s_status = d_instStrategies[i]->doInstantiation(f, effort, e, s_limitInst);
-            Debug("inst-engine-inst") << "  -> status is " << s_status << endl;
-            if(limitInst > 0 && (d_quantEngine->getNumLemmasWaiting() - origLemmas) >= limitInst) {
-              Assert( (d_quantEngine->getNumLemmasWaiting() - origLemmas) == limitInst );
-              i = (int) d_instStrategies.size();
-              status = InstStrategy::STATUS_UNKNOWN;
-            } else {
-              InstStrategy::updateStatus(status, s_status);
-            }
-          } else {
-            Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " is not active." << endl;
-          }
+    int status = process(f, effort, e );
+    if(d_instStrategies.empty()) {
+      Debug("inst-engine-inst") << "There are no instantiation strategies allocated." << endl;
+    } else {
+      for(int i = 0; i < (int) d_instStrategies.size(); ++i) {
+        if(isActiveStrategy(d_instStrategies[i])) {
+          Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " process " << effort << endl;
+          //call the instantiation strategy's process method
+          int s_status = d_instStrategies[i]->doInstantiation( f, effort, e );
+          Debug("inst-engine-inst") << "  -> status is " << s_status << endl;
+          InstStrategy::updateStatus(status, s_status);
+        } else {
+          Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " is not active." << endl;
         }
       }
     }

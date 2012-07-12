@@ -18,7 +18,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/equality_engine.h"
-//#include "theory/uf/inst_strategy_model_find.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4;
@@ -32,7 +32,7 @@ EqClassInfo::EqClassInfo( context::Context* c ) : d_funs( c ), d_pfuns( c ), d_d
 }
 
 //set member
-void EqClassInfo::setMember( Node n, TermDb* db ){
+void EqClassInfo::setMember( Node n, quantifiers::TermDb* db ){
   if( n.getKind()==APPLY_UF ){
     d_funs[n.getOperator()] = true;
   }
@@ -65,15 +65,7 @@ void EqClassInfo::merge( EqClassInfo* eci ){
 InstantiatorTheoryUf::InstantiatorTheoryUf(context::Context* c, CVC4::theory::QuantifiersEngine* qe, Theory* th) :
 Instantiator( c, qe, th )
 {
-  qe->setEqualityQuery( new EqualityQueryInstantiatorTheoryUf( this ) );
-
-  if( Options::current()->finiteModelFind ){
-    //if( Options::current()->cbqi ){
-    //  addInstStrategy( new InstStrategyCheckCESolved( this, qe ) );
-    //}
-    //addInstStrategy( new InstStrategyFiniteModelFind( c, this, ((TheoryUF*)th)->getStrongSolver(), qe ) );
-    qe->getTermDatabase()->setMatchingActive( false );
-  }else{
+  if( !Options::current()->finiteModelFind || Options::current()->fmfInstEngine ){
     if( Options::current()->cbqi ){
       addInstStrategy( new InstStrategyCheckCESolved( this, qe ) );
     }
@@ -88,7 +80,9 @@ Instantiator( c, qe, th )
     i_ag->setGenerateAdditional( true );
     addInstStrategy( i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
-    addInstStrategy( new InstStrategyFreeVariable( this, qe ) );
+    if( !Options::current()->finiteModelFind ){
+      addInstStrategy( new InstStrategyFreeVariable( this, qe ) );
+    }
     //d_isup->setPriorityOver( i_ag );
     //d_isup->setPriorityOver( i_agm );
     //i_ag->setPriorityOver( i_agm );
@@ -125,7 +119,7 @@ void InstantiatorTheoryUf::processResetInstantiationRound( Theory::Effort effort
   d_ground_reps.clear();
 }
 
-int InstantiatorTheoryUf::process( Node f, Theory::Effort effort, int e, int instLimit ){
+int InstantiatorTheoryUf::process( Node f, Theory::Effort effort, int e ){
   Debug("quant-uf") << "UF: Try to solve (" << e << ") for " << f << "... " << std::endl;
   return InstStrategy::STATUS_SAT;
 }
@@ -405,7 +399,7 @@ bool InstantiatorTheoryUf::collectParentsTermsIps( Node n, Node f, int arg, std:
       eqc_iter++;
     }
   }else{
-    TermDb* db = d_quantEngine->getTermDatabase();
+    quantifiers::TermDb* db = d_quantEngine->getTermDatabase();
     //see if parent f exists from argument arg
     if( db->d_parents.find( n )!=db->d_parents.end() ){
       if( db->d_parents[n].find( f )!=db->d_parents[n].end() ){
@@ -481,7 +475,7 @@ void InstantiatorTheoryUf::registerCandidateGenerator( CandidateGenerator* cg, N
 
   //take all terms from the uf term db and add to candidate generator
   Node op = pat.getOperator();
-  TermDb* db = d_quantEngine->getTermDatabase();
+  quantifiers::TermDb* db = d_quantEngine->getTermDatabase();
   for( int i=0; i<(int)db->d_op_map[op].size(); i++ ){
     cg->addCandidate( db->d_op_map[op][i] );
   }

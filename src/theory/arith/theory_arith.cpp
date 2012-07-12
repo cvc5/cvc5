@@ -40,6 +40,7 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/normal_form.h"
+#include "theory/model.h"
 
 #include <stdint.h>
 
@@ -1464,12 +1465,12 @@ void TheoryArith::check(Effort effortLevel){
     d_qflraStatus = Result::UNSAT;
     if(previous == Result::SAT){
       ++d_statistics.d_revertsOnConflicts;
-      Debug("arith::bt") << "clearing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
+      Debug("arith::bt") << "clearing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
       revertOutOfConflict();
       d_simplex.clearQueue();
     }else{
       ++d_statistics.d_commitsOnConflicts;
-      Debug("arith::bt") << "committing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
+      Debug("arith::bt") << "committing here " << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
       d_partialModel.commitAssignmentChanges();
       revertOutOfConflict();
     }
@@ -1492,7 +1493,7 @@ void TheoryArith::check(Effort effortLevel){
       ++d_statistics.d_nontrivialSatChecks;
     }
 
-    Debug("arith::bt") << "committing sap inConflit"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
+    Debug("arith::bt") << "committing sap inConflit"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
     d_partialModel.commitAssignmentChanges();
     d_unknownsInARow = 0;
     if(Debug.isOn("arith::consistency")){
@@ -1503,7 +1504,7 @@ void TheoryArith::check(Effort effortLevel){
     ++d_unknownsInARow;
     ++(d_statistics.d_unknownChecks);
     Assert(!fullEffort(effortLevel));
-    Debug("arith::bt") << "committing unknown"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl; 
+    Debug("arith::bt") << "committing unknown"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
     d_partialModel.commitAssignmentChanges();
     d_statistics.d_maxUnknownsInARow.maxAssign(d_unknownsInARow);
     break;
@@ -1922,80 +1923,8 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
   }
 }
 
-Node TheoryArith::getValue(TNode n) {
-  NodeManager* nodeManager = NodeManager::currentNM();
+void TheoryArith::collectModelInfo( TheoryModel* m ){
 
-  Assert(d_qflraStatus == Result::SAT);
-
-  switch(n.getKind()) {
-  case kind::VARIABLE: {
-    ArithVar var = d_arithvarNodeMap.asArithVar(n);
-
-    DeltaRational drat = d_partialModel.getAssignment(var);
-    const Rational& delta = d_partialModel.getDelta();
-    Debug("getValue") << n << " " << drat << " " << delta << endl;
-    return nodeManager->
-      mkConst( drat.getNoninfinitesimalPart() +
-               drat.getInfinitesimalPart() * delta );
-  }
-
-  case kind::EQUAL: // 2 args
-    return nodeManager->
-      mkConst( d_valuation.getValue(n[0]) == d_valuation.getValue(n[1]) );
-
-  case kind::PLUS: { // 2+ args
-    Rational value(0);
-    for(TNode::iterator i = n.begin(),
-            iend = n.end();
-          i != iend;
-          ++i) {
-      value += d_valuation.getValue(*i).getConst<Rational>();
-    }
-    return nodeManager->mkConst(value);
-  }
-
-  case kind::MULT: { // 2+ args
-    Rational value(1);
-    for(TNode::iterator i = n.begin(),
-            iend = n.end();
-          i != iend;
-          ++i) {
-      value *= d_valuation.getValue(*i).getConst<Rational>();
-    }
-    return nodeManager->mkConst(value);
-  }
-
-  case kind::MINUS: // 2 args
-    // should have been rewritten
-    Unreachable();
-
-  case kind::UMINUS: // 1 arg
-    // should have been rewritten
-    Unreachable();
-
-  case kind::DIVISION: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() /
-                                 d_valuation.getValue(n[1]).getConst<Rational>() );
-
-  case kind::LT: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() <
-                                 d_valuation.getValue(n[1]).getConst<Rational>() );
-
-  case kind::LEQ: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() <=
-                                 d_valuation.getValue(n[1]).getConst<Rational>() );
-
-  case kind::GT: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() >
-                                 d_valuation.getValue(n[1]).getConst<Rational>() );
-
-  case kind::GEQ: // 2 args
-    return nodeManager->mkConst( d_valuation.getValue(n[0]).getConst<Rational>() >=
-                                 d_valuation.getValue(n[1]).getConst<Rational>() );
-
-  default:
-    Unhandled(n.getKind());
-  }
 }
 
 bool TheoryArith::safeToReset() const {

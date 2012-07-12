@@ -281,7 +281,7 @@ public:
       given Node can't match the pattern */
   virtual bool nonunifiable( TNode t, const std::vector<Node> & vars) = 0;
   /** add instantiations directly */
-  virtual int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe, int instLimit = 0, bool addSplits = false ) = 0;
+  virtual int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe ) = 0;
   /** add ground term t, called when t is added to term db */
   virtual int addTerm( Node f, Node t, QuantifiersEngine* qe ) = 0;
 };/* class IMGenerator */
@@ -350,7 +350,7 @@ public:
       given Node can't match the pattern */
   bool nonunifiable( TNode t, const std::vector<Node> & vars);
   /** add instantiations */
-  int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe, int instLimit = 0, bool addSplits = false );
+  int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t */
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 };/* class InstMatchGenerator */
@@ -358,18 +358,18 @@ public:
 /** smart multi-trigger implementation */
 class InstMatchGeneratorMulti : public IMGenerator {
 private:
-  void processNewMatch( QuantifiersEngine* qe, InstMatch& m, int fromChildIndex, int& addedLemmas );
-private:
   /** indexed trie */
   typedef std::pair< std::pair< int, int >, InstMatchTrie* > IndexedTrie;
-  /** collect instantiations */
-  void collectInstantiations( QuantifiersEngine* qe, InstMatch& m, int& addedLemmas, InstMatchTrie* tr,
-                              std::vector< IndexedTrie >& unique_var_tries,
-                              int trieIndex, int childIndex, int endChildIndex, bool modEq );
-  /** collect instantiations 2 */
-  void collectInstantiations2( QuantifiersEngine* qe, InstMatch& m, int& addedLemmas,
-                               std::vector< IndexedTrie >& unique_var_tries,
-                               int uvtIndex, InstMatchTrie* tr = NULL, int trieIndex = 0 );
+  /** process new match */
+  void processNewMatch( QuantifiersEngine* qe, InstMatch& m, int fromChildIndex, int& addedLemmas );
+  /** process new instantiations */
+  void processNewInstantiations( QuantifiersEngine* qe, InstMatch& m, int& addedLemmas, InstMatchTrie* tr,
+                                 std::vector< IndexedTrie >& unique_var_tries,
+                                 int trieIndex, int childIndex, int endChildIndex, bool modEq );
+  /** process new instantiations 2 */
+  void processNewInstantiations2( QuantifiersEngine* qe, InstMatch& m, int& addedLemmas,
+                                  std::vector< IndexedTrie >& unique_var_tries,
+                                  int uvtIndex, InstMatchTrie* tr = NULL, int trieIndex = 0 );
 private:
   /** var contains (variable indices) for each pattern node */
   std::map< Node, std::vector< int > > d_var_contains;
@@ -400,12 +400,14 @@ public:
       given Node can't match the pattern */
   bool nonunifiable( TNode t, const std::vector<Node> & vars) { return true; }
   /** add instantiations */
-  int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe, int instLimit = 0, bool addSplits = false );
+  int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t */
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 };/* class InstMatchGeneratorMulti */
 
-class TermArgTrie;
+namespace quantifiers{
+  class TermArgTrie;
+}
 
 /** smart (single)-trigger implementation */
 class InstMatchGeneratorSimple : public IMGenerator {
@@ -415,8 +417,7 @@ private:
   /** match term */
   Node d_match_pattern;
   /** add instantiations */
-  void addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas,
-                          int argIndex, TermArgTrie* tat, int instLimit, bool addSplits );
+  void addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat );
 public:
   /** constructors */
   InstMatchGeneratorSimple( Node f, Node pat ) : d_f( f ), d_match_pattern( pat ){}
@@ -432,7 +433,7 @@ public:
       given Node can't match the pattern */
   bool nonunifiable( TNode t, const std::vector<Node> & vars) { return true; }
   /** add instantiations */
-  int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe, int instLimit = 0, bool addSplits = false );
+  int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t, possibly add instantiations */
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 };/* class InstMatchGeneratorSimple */

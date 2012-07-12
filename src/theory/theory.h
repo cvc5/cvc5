@@ -50,6 +50,7 @@ namespace theory {
 class Instantiator;
 class InstStrategy;
 class QuantifiersEngine;
+class TheoryModel;
 
 /**
  * Information about an assertion for the theories.
@@ -330,12 +331,12 @@ public:
   static inline TheoryId theoryOf(TNode node) {
     return theoryOf(s_theoryOfMode, node);
   }
-  
+
   /** Set the theoryOf mode */
   static void setTheoryOfMode(TheoryOfMode mode) {
     s_theoryOfMode = mode;
   }
-  
+
   /**
    * Set the owner of the uninterpreted sort.
    */
@@ -545,40 +546,13 @@ public:
   }
 
   /**
-   * Return the value of a node (typically used after a ).  If the
-   * theory supports model generation but has no value for this node,
-   * it should return Node::null().  If the theory doesn't support
-   * model generation at all, or usually would but doesn't in its
-   * current state, it should throw an exception saying so.
-   *
-   * The TheoryEngine is passed in so that you can recursively request
-   * values for the Node's children.  This is important because the
-   * TheoryEngine takes care of simple cases (metakind CONSTANT,
-   * Boolean-valued VARIABLES, ...) and can dispatch to other theories
-   * if that's necessary.  Only call your own getValue() recursively
-   * if you *know* that you are responsible handle the Node you're
-   * asking for; other theories can use your types, so be careful
-   * here!  To be safe, it's best to delegate back to the
-   * TheoryEngine (by way of the Valuation proxy object, which avoids
-   * direct dependence on TheoryEngine).
-   *
-   * Usually, you need to handle at least the two cases of EQUAL and
-   * VARIABLE---EQUAL in case a value of yours is on the LHS of an
-   * EQUAL, and VARIABLE for variables of your types.  You also need
-   * to support any operators that can survive your rewriter.  You
-   * don't need to handle constants, as they are handled by the
-   * TheoryEngine.
-   *
-   * There are some gotchas here.  The user may be requesting the
-   * value of an expression that wasn't part of the satisfiable
-   * assertion, or has been declared since.  If you don't have a value
-   * and suspect this situation is the case, return Node::null()
-   * rather than throwing an exception.
+   * Get all relevant information in this theory regarding the current
+   * model.  This should be called after a call to check( FULL_EFFORT )
+   * for all theories with no conflicts and no lemmas added.
    */
-  virtual Node getValue(TNode n) {
-    Unimplemented("Theory %s doesn't support Theory::getValue interface",
+  virtual void collectModelInfo( TheoryModel* m ){
+    Unimplemented("Theory %s doesn't support Theory::getModel interface",
                   identify().c_str());
-    return Node::null();
   }
 
   /**
@@ -824,7 +798,7 @@ protected:
   /** reset instantiation round */
   virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
   /** process quantifier */
-  virtual int process( Node f, Theory::Effort effort, int e, int limitInst = 0 ) = 0;
+  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
 public:
   /** set has constraints from quantifier f */
   void setHasConstraintsFrom( Node f );
@@ -844,16 +818,22 @@ public:
   virtual void preRegisterTerm( Node t ) { }
   /** assertNode function, assertion was asserted to theory */
   virtual void assertNode( Node assertion ){}
-  /** reset instantiation round */
-  void resetInstantiationRound( Theory::Effort effort );
-  /** do instantiation method*/
-  int doInstantiation( Node f, Theory::Effort effort, int e, int limitInst = 0 );
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
   /** print debug information */
   virtual void debugPrint( const char* c ) {}
-  /** get status */
-  //int getStatus() { return d_status; }
+public:
+  /** reset instantiation round */
+  void resetInstantiationRound( Theory::Effort effort );
+  /** do instantiation method*/
+  int doInstantiation( Node f, Theory::Effort effort, int e );
+public:
+  /** general queries about equality */
+  virtual bool hasTerm( Node a ) { return false; }
+  virtual bool areEqual( Node a, Node b ) { return false; }
+  virtual bool areDisequal( Node a, Node b ) { return false; }
+  virtual Node getRepresentative( Node a ) { return a; }
+  virtual Node getInternalRepresentative( Node a ) { return getRepresentative( a ); }
 };/* class Instantiator */
 
 inline Assertion Theory::get() {

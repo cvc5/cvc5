@@ -32,7 +32,7 @@ protected:
   /** reset instantiation round */
   void processResetInstantiationRound(Theory::Effort effort);
   /** process quantifier */
-  int process(Node f, Theory::Effort effort, int e, int limitInst = 0);
+  int process( Node f, Theory::Effort effort, int e );
 public:
   InstantiatorDefault(context::Context* c, QuantifiersEngine* ie, Theory* th);
   ~InstantiatorDefault() { }

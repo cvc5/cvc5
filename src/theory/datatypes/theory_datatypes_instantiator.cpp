@@ -17,6 +17,7 @@
 #include "theory/datatypes/theory_datatypes_instantiator.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4;
@@ -47,15 +48,15 @@ void InstantiatorTheoryDatatypes::processResetInstantiationRound( Theory::Effort
 }
 
 
-int InstantiatorTheoryDatatypes::process( Node f, Theory::Effort effort, int e, int limitInst ){
+int InstantiatorTheoryDatatypes::process( Node f, Theory::Effort effort, int e ){
   Debug("quant-datatypes") << "Datatypes: Try to solve (" << e << ") for " << f << "... " << std::endl;
   if( Options::current()->cbqi ){
     if( e<2 ){
       return InstStrategy::STATUS_UNFINISHED;
     }else if( e==2 ){
       InstMatch m;
-      for( int j = 0; j<(int)d_quantEngine->getNumInstantiationConstants( f ); j++ ){
-        Node i = d_quantEngine->getInstantiationConstant( f, j );
+      for( int j = 0; j<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
+        Node i = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
         if( i.getType().isDatatype() ){
           Node n = getValueFor( i );
           Debug("quant-datatypes-debug") << "Value for " << i << " is " << n << std::endl;
@@ -142,10 +143,6 @@ Node InstantiatorTheoryDatatypes::getValueFor( Node n ){
   }
 }
 
-Node InstantiatorTheoryDatatypes::getRepresentative( Node n ){
-  return ((TheoryDatatypes*)d_th)->find( n );
-}
-
 InstantiatorTheoryDatatypes::Statistics::Statistics():
   d_instantiations("InstantiatorTheoryDatatypes::Instantiations_Total", 0)
 {
@@ -156,3 +153,18 @@ InstantiatorTheoryDatatypes::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations);
 }
 
+bool InstantiatorTheoryDatatypes::hasTerm( Node a ){
+  return ((TheoryDatatypes*)d_th)->hasTerm( a );
+}
+
+bool InstantiatorTheoryDatatypes::areEqual( Node a, Node b ){
+  return ((TheoryDatatypes*)d_th)->areEqual( a, b );
+}
+
+bool InstantiatorTheoryDatatypes::areDisequal( Node a, Node b ){
+  return ((TheoryDatatypes*)d_th)->areDisequal( a, b );
+}
+
+Node InstantiatorTheoryDatatypes::getRepresentative( Node a ){
+  return ((TheoryDatatypes*)d_th)->getRepresentative( a );
+}

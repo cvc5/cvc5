@@ -51,6 +51,35 @@ void InstantiatorTheoryArrays::processResetInstantiationRound( Theory::Effort ef
 
 }
 
-int InstantiatorTheoryArrays::process( Node f, Theory::Effort effort, int e, int limitInst ){
+int InstantiatorTheoryArrays::process( Node f, Theory::Effort effort, int e ){
   return InstStrategy::STATUS_SAT;
 }
+
+bool InstantiatorTheoryArrays::hasTerm( Node a ){
+  return ((TheoryArrays*)d_th)->getEqualityEngine()->hasTerm( a );
+}
+
+bool InstantiatorTheoryArrays::areEqual( Node a, Node b ){
+  if( hasTerm( a ) && hasTerm( b ) ){
+    return ((TheoryArrays*)d_th)->getEqualityEngine()->areEqual( a, b );
+  }else{
+    return a==b;
+  }
+}
+
+bool InstantiatorTheoryArrays::areDisequal( Node a, Node b ){
+  if( hasTerm( a ) && hasTerm( b ) ){
+    return ((TheoryArrays*)d_th)->getEqualityEngine()->areDisequal( a, b, false );
+  }else{
+    return false;
+  }
+}
+
+Node InstantiatorTheoryArrays::getRepresentative( Node a ){
+  if( hasTerm( a ) ){
+    return ((TheoryArrays*)d_th)->getEqualityEngine()->getRepresentative( a );
+  }else{
+    return a;
+  }
+}
+

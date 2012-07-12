@@ -29,6 +29,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/proof.h"
+#include "util/model.h"
 #include "smt/bad_option_exception.h"
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
@@ -386,6 +387,25 @@ public:
   SExpr getAssignment() throw(ModalException, AssertionException);
 
   /**
+   * Add to Model Type.  This is used for recording which types should be reported
+   * during a get-model call.
+   */
+  void addToModelType( Type& t );
+
+  /**
+   * Add to Model Function.  This is used for recording which functions should be reported
+   * during a get-model call.
+   */
+  void addToModelFunction( Expr& e );
+
+  /**
+   * Get the model (only if immediately preceded by a SAT
+   * or INVALID query).  Only permitted if CVC4 was built with model
+   * support and produce-models is on.
+   */
+  Model* getModel() throw(ModalException, AssertionException);
+
+  /**
    * Get the last proof (only if immediately preceded by an UNSAT
    * or VALID query).  Only permitted if CVC4 was built with proof
    * support and produce-proofs is on.
@@ -519,6 +539,11 @@ public:
   Result getStatusOfLastCommand() const {
     return d_status;
   }
+
+  /**
+   * print model function (need this?)
+   */
+  void printModel( std::ostream& out, Model* m );
 
 };/* class SmtEngine */
 

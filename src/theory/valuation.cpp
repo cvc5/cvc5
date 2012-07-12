@@ -55,11 +55,6 @@ bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2) {
  }
 }
 
-
-Node Valuation::getValue(TNode n) const {
-  return d_engine->getValue(n);
-}
-
 bool Valuation::isSatLiteral(TNode n) const {
   return d_engine->getPropEngine()->isSatLiteral(n);
 }

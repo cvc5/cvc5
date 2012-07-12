@@ -42,7 +42,7 @@ private:
   /**  reset instantiation */
   void processResetInstantiationRound( Theory::Effort effort );
   /** process at effort */
-  int process( Node f, Theory::Effort effort, int e, int limitInst );
+  int process( Node f, Theory::Effort effort, int e );
 
   class Statistics {
   public:

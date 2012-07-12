@@ -70,11 +70,11 @@ public:
       //Conversion from rational to unsorted
       t = em->mkFunctionType(em->realType(), d_unsorted);
       d_rtu_op = em->mkVar("$$rtu",t);
-      preemptCommand(new DeclareFunctionCommand("$$rtu", t));
+      preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
       //Conversion from unsorted to rational
       t = em->mkFunctionType(d_unsorted, em->realType());
       d_utr_op = em->mkVar("$$utr",t);
-      preemptCommand(new DeclareFunctionCommand("$$utur", t));
+      preemptCommand(new DeclareFunctionCommand("$$utur", d_utr_op, t));
     }
     // Add the inverse in order to show that over the elements that
     // appear in the problem there is a bijection between unsorted and
@@ -98,11 +98,11 @@ public:
       //Conversion from string to unsorted
       t = em->mkFunctionType(em->stringType(), d_unsorted);
       d_stu_op = em->mkVar("$$stu",t);
-      preemptCommand(new DeclareFunctionCommand("$$stu", t));
+      preemptCommand(new DeclareFunctionCommand("$$stu", d_stu_op, t));
       //Conversion from unsorted to string
       t = em->mkFunctionType(d_unsorted, em->stringType());
       d_uts_op = em->mkVar("$$uts",t);
-      preemptCommand(new DeclareFunctionCommand("$$uts", t));
+      preemptCommand(new DeclareFunctionCommand("$$uts", d_uts_op, t));
     }
     // Add the inverse in order to show that over the elements that
     // appear in the problem there is a bijection between unsorted and
@@ -185,7 +185,7 @@ inline void Tptp::makeApplication(Expr & expr, std::string & name,
     } else {
       Type t = term ? d_unsorted : getExprManager()->booleanType();
       expr = mkVar(name,t,true); //levelZero
-      preemptCommand(new DeclareFunctionCommand(name, t));
+      preemptCommand(new DeclareFunctionCommand(name, expr, t));
     }
   } else { // Its an application
     if(isDeclared(name)){ //already appeared
@@ -195,7 +195,7 @@ inline void Tptp::makeApplication(Expr & expr, std::string & name,
       Type t = term ? d_unsorted : getExprManager()->booleanType();
       t = getExprManager()->mkFunctionType(sorts, t);
       expr = mkVar(name,t,true); //levelZero
-      preemptCommand(new DeclareFunctionCommand(name, t));
+      preemptCommand(new DeclareFunctionCommand(name, expr, t));
     }
     expr = getExprManager()->mkExpr(kind::APPLY_UF, expr, args);
   }

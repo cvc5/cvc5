@@ -147,7 +147,7 @@ struct CVC4_PUBLIC Options {
   DecisionMode decisionMode;
   /** Whether the user set the decision strategy */
   bool decisionModeSetByUser;
-  /** 
+  /**
    * Extra settings for decision stuff, varies by strategy enabled
    * - With DECISION_STRATEGY_RELEVANCY
    *   > Least significant bit: true if one should only decide on leaves
@@ -414,14 +414,45 @@ struct CVC4_PUBLIC Options {
   bool finiteModelFind;
 
   /**
-   * Whether to use region-based SAT for finite model finding
+   * Whether to use eager splitting on demand for finite model finding
    */
-  bool fmfRegionSat;
+  bool ufssEagerSplits;
+
+  /**
+   * Whether to use region-based approach for finite model finding
+   */
+  bool ufssRegions;
+
+  /**
+   * Whether to use coloring-based methods for determining whether a model of
+   * currently cardinality exists.
+   */
+  bool ufssColoringSat;
 
   /**
    * Whether to use model-based exhaustive instantiation for finite model finding
    */
   bool fmfModelBasedInst;
+
+  /**
+   * Whether to use Inst-Gen techniques for finite model finding
+   */
+  bool fmfInstGen;
+
+  /*
+   * Whether to only add only instantiation per quantifier per round for finite model finding
+   */
+  bool fmfOneInstPerRound;
+
+  /*
+   * Whether to use instantiation engine in conjunction with finite model finding
+   */
+  bool fmfInstEngine;
+
+  /*
+   * Whether to compute relevant domains, in the manner of Complete Instantiation for Quantified Formulas [Ge, deMoura 09]
+   */
+  bool fmfRelevantDomain;
 
   /**
    * Whether to use efficient E-matching
@@ -461,6 +492,12 @@ struct CVC4_PUBLIC Options {
    * Whether to use flip decision (useful when cbqi=true)
    */
   bool flipDecision;
+
+  /**
+   * print details for instantiation/model engine
+   */
+  bool printInstEngine;
+  bool printModelEngine;
 
   /** The output channel to receive notfication events for new lemmas */
   LemmaOutputChannel* lemmaOutputChannel;

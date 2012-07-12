@@ -29,14 +29,13 @@ namespace quantifiers {
 class InstantiationEngine : public QuantifiersModule
 {
 private:
-  TheoryQuantifiers* d_th;
-  QuantifiersEngine* getQuantifiersEngine();
-private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** status of instantiation round (one of InstStrategy::STATUS_*) */
   int d_inst_round_status;
   /** map from universal quantifiers to their counterexample literals */
   std::map< Node, Node > d_ce_lit;
+  /** whether the instantiation engine should set incomplete if it cannot answer SAT */
+  bool d_setIncomplete;
 private:
   bool hasAddedCbqiLemma( Node f );
   void addCbqiLemma( Node f );
@@ -59,7 +58,7 @@ private:
   /** debug sat */
   void debugSat( int reason );
 public:
-  InstantiationEngine( TheoryQuantifiers* th );
+  InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete = true );
   ~InstantiationEngine(){}
 
   void check( Theory::Effort e );

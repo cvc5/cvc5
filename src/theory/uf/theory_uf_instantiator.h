@@ -31,7 +31,9 @@
 namespace CVC4 {
 namespace theory {
 
-class TermDb;
+namespace quantifiers{
+  class TermDb;
+}
 
 namespace uf {
 
@@ -56,7 +58,7 @@ public:
   EqClassInfo( context::Context* c );
   ~EqClassInfo(){}
   //set member
-  void setMember( Node n, TermDb* db );
+  void setMember( Node n, quantifiers::TermDb* db );
   //has function "funs"
   bool hasFunction( Node op );
   //has parent "pfuns"
@@ -67,7 +69,7 @@ public:
 
 class InstantiatorTheoryUf : public Instantiator{
   friend class ::CVC4::theory::InstMatchGenerator;
-  friend class ::CVC4::theory::TermDb;
+  friend class ::CVC4::theory::quantifiers::TermDb;
 protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> IntMap;
@@ -95,7 +97,7 @@ private:
   /** reset instantiation */
   void processResetInstantiationRound( Theory::Effort effort );
   /** calculate matches for quantifier f at effort */
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
 public:
   /** statistics class */
   class Statistics {

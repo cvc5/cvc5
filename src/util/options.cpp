@@ -149,14 +149,22 @@ Options::Options() :
   instWhenMode(INST_WHEN_FULL_LAST_CALL),
   eagerInstQuant(false),
   finiteModelFind(false),
-  fmfRegionSat(false),
+  ufssEagerSplits(false),
+  ufssRegions(true),
+  ufssColoringSat(false),
   fmfModelBasedInst(true),
+  fmfInstGen(true),
+  fmfOneInstPerRound(false),
+  fmfInstEngine(false),
+  fmfRelevantDomain(false),
   efficientEMatching(false),
   literalMatchMode(LITERAL_MATCH_NONE),
   cbqi(false),
   cbqiSetByUser(false),
   userPatternsQuant(true),
   flipDecision(false),
+  printInstEngine(false),
+  printModelEngine(false),
   lemmaOutputChannel(NULL),
   lemmaInputChannel(NULL),
   threads(2),// default should be 1 probably, but say 2 for now
@@ -275,6 +283,7 @@ Additional CVC4 options:\n\
    --enable-symmetry-breaker turns on UF symmetry breaker (Deharbe et al.,\n\
                           CADE 2011) [on by default only for QF_UF]\n\
    --disable-symmetry-breaker turns off UF symmetry breaker\n\
+ QUANTIFIERS:\n\
    --disable-miniscope-quant     disable miniscope quantifiers\n\
    --disable-miniscope-quant-fv  disable miniscope quantifiers for ground subformulas\n\
    --disable-prenex-quant disable prenexing of quantified formulas\n\
@@ -282,18 +291,26 @@ Additional CVC4 options:\n\
    --cnf-quant            apply CNF conversion to quantified formulas\n\
    --pre-skolem-quant     apply skolemization eagerly to bodies of quantified formulas\n\
    --disable-smart-triggers   disable smart triggers\n\
-   --register-quant-body-terms  consider terms within bodies of quantified formulas for matching\n\
+   --register-quant-body-terms  consider ground terms within bodies of quantified formulas for matching\n\
    --inst-when=MODE       when to apply instantiation\n\
    --eager-inst-quant     apply quantifier instantiation eagerly\n\
-   --finite-model-find    use finite model finding heuristic for quantifier instantiation\n\
-   --use-fmf-region-sat   use region-based SAT heuristic for finite model finding\n\
-   --disable-fmf-model-inst  disable model-based instantiation for finite model finding\n\
    --efficient-e-matching use efficient E-matching\n\
    --literal-matching=MODE  choose literal matching mode\n\
    --enable-cbqi          turns on counterexample-based quantifier instantiation [off by default]\n\
    --disable-cbqi         turns off counterexample-based quantifier instantiation\n\
    --ignore-user-patterns ignore user-provided patterns for quantifier instantiation\n\
    --enable-flip-decision turns on flip decision heuristic\n\
+ FINITE_MODEL_FINDING:\n\
+   --finite-model-find      use finite model finding heuristic for quantifier instantiation\n\
+   --disable-uf-ss-regions  disable region-based method for discovering cliques and splits in uf strong solver\n\
+   --uf-ss-eager-split      add splits eagerly for uf strong solver\n\
+   --uf-ss-coloring-sat     use coloring-based SAT heuristic for uf strong solver\n\
+   --disable-fmf-mbqi       disable model-based quantifier instantiation for finite model finding\n\
+   --disable-fmf-inst-gen   disable Inst-Gen instantiation techniques for finite model finding\n\
+   --fmf-one-inst-per-round  only add one instantiation per quantifier per round for fmf\n\
+   --fmf-inst-engine        use instantiation engine in conjunction with finite model finding\n\
+   --fmf-relevant-domain    use relevant domain computation, similar to complete instantiation (Ge, deMoura 09)\n\
+ OTHER:\n\
    --disable-dio-solver   turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)\n\
    --disable-arith-rewrite-equalities   turns off the preprocessing rewrite turning equalities into a conjunction of inequalities.\n\
    --threads=N            sets the number of solver threads\n\
@@ -377,6 +394,36 @@ justification-rel\n\
 justification-must\n\
 + Start deciding on literals close to root instead of those\n\
 + near leaves (don't expect it to work well) [Unimplemented]\n\
+";
+
+static const string instWhenHelp = "\
+Modes currently supported by the --inst-when option:\n\
+\n\
+full\n\
++ Run instantiation round at full effort, before theory combination.\n\
+\n\
+full-last-call (default)\n\
++ Alternate running instantiation rounds at full effort and last\n\
+  call.  In other words, interleave instantiation and theory combination.\n\
+\n\
+last-call\n\
++ Run instantiation at last call effort, after theory combination.\n\
+\n\
+";
+
+static const string literalMatchHelp = "\
+Literal match modes currently supported by the --literal-match option:\n\
+\n\
+none (default)\n\
++ Do not use literal matching.\n\
+\n\
+predicate\n\
++ Consider the phase requirements of predicate literals when applying heuristic\n\
+  quantifier instantiation.  For example, the trigger P( x ) in the quantified \n\
+  formula forall( x ). ( P( x ) V ~Q( x ) ) will only be matched with ground\n\
+  terms P( t ) where P( t ) is in the equivalence class of false, and likewise\n\
+  Q( x ) with Q( s ) where Q( s ) is in the equivalence class of true.\n\
+\n\
 ";
 
 static const string dumpHelp = "\
@@ -581,14 +628,22 @@ enum OptionValue {
   INST_WHEN,
   EAGER_INST_QUANT,
   FINITE_MODEL_FIND,
-  FMF_REGION_SAT,
+  DISABLE_UF_SS_REGIONS,
+  UF_SS_EAGER_SPLIT,
+  UF_SS_COLORING_SAT,
   DISABLE_FMF_MODEL_BASED_INST,
+  DISABLE_FMF_INST_GEN,
+  FMF_ONE_INST_PER_ROUND,
+  FMF_INST_ENGINE,
+  FMF_RELEVANT_DOMAIN,
   EFFICIENT_E_MATCHING,
   LITERAL_MATCHING,
   ENABLE_CBQI,
   DISABLE_CBQI,
   IGNORE_USER_PATTERNS,
   ENABLE_FLIP_DECISION,
+  PRINT_MODEL_ENGINE,
+  PRINT_INST_ENGINE,
   PARALLEL_THREADS,
   PARALLEL_SEPARATE_OUTPUT,
   PORTFOLIO_FILTER_LENGTH,
@@ -710,14 +765,22 @@ static struct option cmdlineOptions[] = {
   { "inst-when", required_argument, NULL, INST_WHEN },
   { "eager-inst-quant", no_argument, NULL, EAGER_INST_QUANT },
   { "finite-model-find", no_argument, NULL, FINITE_MODEL_FIND },
-  { "use-fmf-region-sat", no_argument, NULL, FMF_REGION_SAT },
-  { "disable-fmf-model-inst", no_argument, NULL, DISABLE_FMF_MODEL_BASED_INST },
+  { "disable-uf-ss-regions", no_argument, NULL, DISABLE_UF_SS_REGIONS },
+  { "uf-ss-eager-split", no_argument, NULL, UF_SS_EAGER_SPLIT },
+  { "uf-ss-coloring-sat", no_argument, NULL, UF_SS_COLORING_SAT },
+  { "disable-fmf-mbqi", no_argument, NULL, DISABLE_FMF_MODEL_BASED_INST },
+  { "disable-fmf-inst-gen", no_argument, NULL, DISABLE_FMF_INST_GEN },
+  { "fmf-one-inst-per-round", no_argument, NULL, FMF_ONE_INST_PER_ROUND },
+  { "fmf-inst-engine", no_argument, NULL, FMF_INST_ENGINE },
+  { "fmf-relevant-domain", no_argument, NULL, FMF_RELEVANT_DOMAIN },
   { "efficient-e-matching", no_argument, NULL, EFFICIENT_E_MATCHING },
   { "literal-matching", required_argument, NULL, LITERAL_MATCHING },
   { "enable-cbqi", no_argument, NULL, ENABLE_CBQI },
   { "disable-cbqi", no_argument, NULL, DISABLE_CBQI },
   { "ignore-user-patterns", no_argument, NULL, IGNORE_USER_PATTERNS },
   { "enable-flip-decision", no_argument, NULL, ENABLE_FLIP_DECISION },
+  { "print-m-e", no_argument, NULL, PRINT_MODEL_ENGINE },
+  { "print-i-e", no_argument, NULL, PRINT_INST_ENGINE },
   { "threads", required_argument, NULL, PARALLEL_THREADS },
   { "separate-output", no_argument, NULL, PARALLEL_SEPARATE_OUTPUT },
   { "filter-lemma-length", required_argument, NULL, PORTFOLIO_FILTER_LENGTH },
@@ -1071,7 +1134,7 @@ throw(OptionException) {
       if(i == 0) {
         Warning() << "Decision budget is 0. Consider using internal decision heuristic and "
                   << std::endl << " removing this option." << std::endl;
-                  
+
       }
       decisionOptions.maxRelTimeAsPermille = (unsigned short)i;
     }
@@ -1247,7 +1310,7 @@ throw(OptionException) {
       } else if(!strcmp(optarg, "last-call")) {
         instWhenMode = INST_WHEN_LAST_CALL;
       } else if(!strcmp(optarg, "help")) {
-        //puts(instWhenHelp.c_str());
+        puts(instWhenHelp.c_str());
         exit(1);
       } else {
         throw OptionException(string("unknown option for --inst-when: `") +
@@ -1260,11 +1323,29 @@ throw(OptionException) {
     case FINITE_MODEL_FIND:
       finiteModelFind = true;
       break;
-    case FMF_REGION_SAT:
-      fmfRegionSat = true;
+    case DISABLE_UF_SS_REGIONS:
+      ufssRegions = false;
+      break;
+    case UF_SS_EAGER_SPLIT:
+      ufssEagerSplits = true;
+      break;
+    case UF_SS_COLORING_SAT:
+      ufssColoringSat = true;
       break;
     case DISABLE_FMF_MODEL_BASED_INST:
       fmfModelBasedInst = false;
+      break;
+    case DISABLE_FMF_INST_GEN:
+      fmfInstGen = false;
+      break;
+    case FMF_ONE_INST_PER_ROUND:
+      fmfOneInstPerRound = true;
+      break;
+    case FMF_INST_ENGINE:
+      fmfInstEngine = true;
+      break;
+    case FMF_RELEVANT_DOMAIN:
+      fmfRelevantDomain = true;
       break;
     case EFFICIENT_E_MATCHING:
       efficientEMatching = true;
@@ -1277,7 +1358,7 @@ throw(OptionException) {
       } else if(!strcmp(optarg, "equality")) {
         literalMatchMode = LITERAL_MATCH_EQUALITY;
       } else if(!strcmp(optarg, "help")) {
-        //puts(literalMatchHelp.c_str());
+        puts(literalMatchHelp.c_str());
         exit(1);
       } else {
         throw OptionException(string("unknown option for --literal-matching: `") +
@@ -1297,6 +1378,12 @@ throw(OptionException) {
       break;
     case ENABLE_FLIP_DECISION:
       flipDecision = true;
+      break;
+    case PRINT_MODEL_ENGINE:
+      printModelEngine = true;
+      break;
+    case PRINT_INST_ENGINE:
+      printInstEngine = true;
       break;
     case TIME_LIMIT:
       {

@@ -41,7 +41,7 @@ private:
   Node d_negOne;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
 public:
   InstStrategySimplex( InstantiatorTheoryArith* th, QuantifiersEngine* ie );
   ~InstStrategySimplex(){}
@@ -56,7 +56,7 @@ public:
 //  /** trigger for instantiation rows */
 //  std::map< ArithVar, Trigger* > d_tableaux_ce_term_trigger;
 //public:
-//  InstStrategySimplexUfMatch( InstantiatorTheoryArith* th, QuantifiersEngine* ie ) : 
+//  InstStrategySimplexUfMatch( InstantiatorTheoryArith* th, QuantifiersEngine* ie ) :
 //      InstStrategy( ie ), d_th( th ){}
 //  ~InstStrategySimplexUfMatch(){}
 //  void resetInstantiationRound();
@@ -102,7 +102,7 @@ private:
   /**  reset instantiation */
   void processResetInstantiationRound( Theory::Effort effort );
   /** process at effort */
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
   /** add term to row */
   void addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder<>& t );
   /** get delta for node */

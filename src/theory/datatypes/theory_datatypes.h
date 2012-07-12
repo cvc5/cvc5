@@ -142,6 +142,8 @@ private:
    */
   CongruenceClosureExplainer<CongruenceChannel, CONGRUENCE_OPERATORS_2 (kind::APPLY_CONSTRUCTOR, kind::APPLY_SELECTOR)> d_cce;
 
+  //temporary
+  std::vector< Node > d_preRegTerms;
 public:
   TheoryDatatypes(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryDatatypes();
@@ -150,7 +152,7 @@ public:
 
   void addSharedTerm(TNode t);
   void check(Effort e);
-  Node getValue(TNode n);
+  void collectModelInfo( TheoryModel* m );
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
 
@@ -180,6 +182,12 @@ private:
   bool searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        NodeBuilder<>& explanation );
+public:
+  //equality queries
+  bool hasTerm( Node a );
+  bool areEqual( Node a, Node b );
+  bool areDisequal( Node a, Node b );
+  Node getRepresentative( Node a );
 };/* class TheoryDatatypes */
 
 inline bool TheoryDatatypes::hasConflict() {

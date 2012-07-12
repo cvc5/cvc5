@@ -66,7 +66,7 @@ protected:
   /** reset instantiation */
   virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
   /** process method */
-  virtual int process( Node f, Theory::Effort effort, int e, int limitInst = 0 ) = 0;
+  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
 public:
   InstStrategy( QuantifiersEngine* ie ) : d_quantEngine( ie ){}
   virtual ~InstStrategy(){}
@@ -74,7 +74,7 @@ public:
   /** reset instantiation */
   void resetInstantiationRound( Theory::Effort effort );
   /** do instantiation round method */
-  int doInstantiation( Node f, Theory::Effort effort, int e, int limitInst = 0 );
+  int doInstantiation( Node f, Theory::Effort effort, int e );
   /** update status */
   static void updateStatus( int& currStatus, int addStatus ){
     if( addStatus==STATUS_UNFINISHED ){
@@ -99,9 +99,13 @@ public:
 };/* class InstStrategy */
 
 class QuantifiersModule {
+protected:
+  QuantifiersEngine* d_quantEngine;
 public:
-  QuantifiersModule(){}
+  QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   ~QuantifiersModule(){}
+  //get quantifiers engine
+  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
   /* Call during check registerQuantifier has already been called */
   virtual void check( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
@@ -111,59 +115,17 @@ public:
   virtual Node explain(TNode n) = 0;
 };/* class QuantifiersModule */
 
-class TermArgTrie {
-private:
-  bool addTerm2( QuantifiersEngine* qe, Node n, int argIndex );
-public:
-  /** the data */
-  std::map< Node, TermArgTrie > d_data;
-public:
-  bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
-};/* class TermArgTrie */
-
-class TermDb {
-private:
-  /** reference to the quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
-  /** calculated no match terms */
-  bool d_matching_active;
-  /** terms processed */
-  std::map< Node, bool > d_processed;
-public:
-  TermDb( QuantifiersEngine* qe ) : d_quantEngine( qe ), d_matching_active( true ){}
-  ~TermDb(){}
-  /** map from APPLY_UF operators to ground terms for that operator */
-  std::map< Node, std::vector< Node > > d_op_map;
-  /** map from APPLY_UF functions to trie */
-  std::map< Node, TermArgTrie > d_func_map_trie;
-  /** map from APPLY_UF predicates to trie */
-  std::map< Node, TermArgTrie > d_pred_map_trie[2];
-  /** map from type nodes to terms of that type */
-  std::map< TypeNode, std::vector< Node > > d_type_map;
-  /** add a term to the database */
-  void addTerm( Node n, std::vector< Node >& added, bool withinQuant = false );
-  /** reset (calculate which terms are active) */
-  void reset( Theory::Effort effort );
-  /** set active */
-  void setMatchingActive( bool a ) { d_matching_active = a; }
-  /** get active */
-  bool getMatchingActive() { return d_matching_active; }
-public:
-  /** parent structure (for efficient E-matching):
-      n -> op -> index -> L
-      map from node "n" to a list of nodes "L", where each node n' in L
-        has operator "op", and n'["index"] = n.
-      for example, d_parents[n][f][1] = { f( t1, n ), f( t2, n ), ... }
-  */
-  std::map< Node, std::map< Node, std::map< int, std::vector< Node > > > > d_parents;
-};/* class TermDb */
-
 namespace quantifiers {
   class InstantiationEngine;
+  class ModelEngine;
+  class TermDb;
+  class FirstOrderModel;
 }/* CVC4::theory::quantifiers */
+
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
+  friend class quantifiers::ModelEngine;
   friend class InstMatch;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -171,41 +133,35 @@ private:
   TheoryEngine* d_te;
   /** vector of modules for quantifiers */
   std::vector< QuantifiersModule* > d_modules;
+  /** instantiation engine */
+  quantifiers::InstantiationEngine* d_inst_engine;
+  /** model engine */
+  quantifiers::ModelEngine* d_model_engine;
   /** equality query class */
   EqualityQuery* d_eq_query;
 
-  /** list of all quantifiers */
+  /** list of all quantifiers (pre-rewrite) */
   std::vector< Node > d_quants;
-  /** list of quantifiers asserted in the current context */
-  context::CDList<Node> d_forall_asserts;
-  /** map from universal quantifiers to the list of variables */
-  std::map< Node, std::vector< Node > > d_vars;
-  /** map from universal quantifiers to the list of skolem constants */
-  std::map< Node, std::vector< Node > > d_skolem_constants;
-  /** map from universal quantifiers to their skolemized body */
-  std::map< Node, Node > d_skolem_body;
-  /** map from universal quantifiers to their bound body */
-  std::map< Node, Node > d_bound_body;
-  /** instantiation constants to universal quantifiers */
-  std::map< Node, Node > d_inst_constants_map;
-  /** map from universal quantifiers to their counterexample body */
-  std::map< Node, Node > d_counterexample_body;
-  /** map from universal quantifiers to the list of instantiation constants */
-  std::map< Node, std::vector< Node > > d_inst_constants;
+  /** list of all quantifiers (post-rewrite) */
+  std::vector< Node > d_r_quants;
   /** map from quantifiers to whether they are active */
   BoolMap d_active;
   /** lemmas produced */
   std::map< Node, bool > d_lemmas_produced;
   /** lemmas waiting */
   std::vector< Node > d_lemmas_waiting;
+  /** has added lemma this round */
+  bool d_hasAddedLemma;
   /** inst matches produced for each quantifier */
   std::map< Node, InstMatchTrie > d_inst_match_trie;
-  /** free variable for instantiation constant type */
-  std::map< TypeNode, Node > d_free_vars;
   /** owner of quantifiers */
   std::map< Node, Theory* > d_owner;
   /** term database */
-  TermDb* d_term_db;
+  quantifiers::TermDb* d_term_db;
+  /** extended model object */
+  quantifiers::FirstOrderModel* d_model;
+  /** has the model been set? */
+  bool d_model_set;
   /** universal quantifiers that have been rewritten */
   std::map< Node, std::vector< Node > > d_quant_rewritten;
   /** map from rewritten universal quantifiers to the quantifier they are the consequence of */
@@ -223,12 +179,6 @@ private:
 private:
   /** helper functions compute phase requirements */
   static void computePhaseReqs2( Node n, bool polarity, std::map< Node, int >& phaseReqs );
-  /** set instantiation level attr */
-  void setInstantiationLevelAttr( Node n, uint64_t level );
-  /** set instantiation constant attr */
-  void setInstantiationConstantAttr( Node n, Node f );
-  /** make instantiation constants for */
-  void makeInstantiationConstantsFor( Node f );
 
   KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
 
@@ -241,11 +191,17 @@ public:
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query object */
   EqualityQuery* getEqualityQuery() { return d_eq_query; }
-  /** set equality query object */
-  void setEqualityQuery( EqualityQuery* eq ) { d_eq_query = eq; }
+  /** get instantiation engine */
+  quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
+  /** get model engine */
+  quantifiers::ModelEngine* getModelEngine() { return d_model_engine; }
+  /** get default sat context for quantifiers engine */
+  context::Context* getSatContext();
+  /** get default output channel for the quantifiers engine */
+  OutputChannel& getOutputChannel();
+  /** get default valuation for the quantifiers engine */
+  Valuation& getValuation();
 public:
-  /** add module */
-  void addModule( QuantifiersModule* qm ) { d_modules.push_back( qm ); }
   /** check at level */
   void check( Theory::Effort e );
   /** register (non-rewritten) quantifier */
@@ -256,19 +212,24 @@ public:
   void assertNode( Node f );
   /** propagate */
   void propagate( Theory::Effort level );
+  /** reset instantiation round */
+  void resetInstantiationRound( Theory::Effort level );
+
+  //create inst variable
+  std::vector<Node> createInstVariable( std::vector<Node> & vars );
 public:
   /** add lemma lem */
   bool addLemma( Node lem );
   /** instantiate f with arguments terms */
   bool addInstantiation( Node f, std::vector< Node >& terms );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m, bool addSplits = false );
+  bool addInstantiation( Node f, InstMatch& m );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
   bool addSplitEquality( Node n1, Node n2, bool reqPhase = false, bool reqPhasePol = true );
   /** has added lemma */
-  bool hasAddedLemma() { return !d_lemmas_waiting.empty(); }
+  bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** flush lemmas */
   void flushLemmas( OutputChannel* out );
   /** get number of waiting lemmas */
@@ -278,24 +239,6 @@ public:
   int getNumQuantifiers() { return (int)d_quants.size(); }
   /** get quantifier */
   Node getQuantifier( int i ) { return d_quants[i]; }
-  /** get number of asserted quantifiers */
-  int getNumAssertedQuantifiers() { return (int)d_forall_asserts.size(); }
-  /** get asserted quantifier */
-  Node getAssertedQuantifier( int i ) { return d_forall_asserts[i]; }
-  /** get instantiation constants */
-  void getInstantiationConstantsFor( Node f, std::vector< Node >& ics ) {
-    ics.insert( ics.begin(), d_inst_constants[f].begin(), d_inst_constants[f].end() );
-  }
-  /** get the i^th instantiation constant of f */
-  Node getInstantiationConstant( Node f, int i ) { return d_inst_constants[f][i]; }
-  /** get number of instantiation constants for f */
-  int getNumInstantiationConstants( Node f ) { return (int)d_inst_constants[f].size(); }
-  std::vector<Node> createInstVariable( std::vector<Node> & vars );
-public:
-  /** get the ce body f[e/x] */
-  Node getCounterexampleBody( Node f );
-  /** get the skolemized body f[e/x] */
-  Node getSkolemizedBody( Node f );
   /** set active */
   void setActive( Node n, bool val ) { d_active[n] = val; }
   /** get active */
@@ -317,26 +260,6 @@ public:
   /** compute phase requirements */
   void generatePhaseReqs( Node f, Node n );
 public:
-  /** returns node n with bound vars of f replaced by instantiation constants of f
-      node n : is the futur pattern
-      node f : is the quantifier containing which bind the variable
-      return a pattern where the variable are replaced by variable for
-      instantiation.
-   */
-  Node getSubstitutedNode( Node n, Node f );
-  /** same as before but node f is just linked to the new pattern by the
-      applied attribute
-      vars the bind variable
-      nvars the same variable but with an attribute
-  */
-  Node convertNodeToPattern( Node n, Node f,
-                             const std::vector<Node> & vars,
-                             const std::vector<Node> & nvars);
-  /** get free variable for instantiation constant */
-  Node getFreeVariableForInstConstant( Node n );
-  /** get bound variable for variable */
-  Node getBoundVariableForVariable( Node n );
-public:
   /** has owner */
   bool hasOwner( Node f ) { return d_owner.find( f )!=d_owner.end(); }
   /** get owner */
@@ -344,8 +267,10 @@ public:
   /** set owner */
   void setOwner( Node f, Theory* t ) { d_owner[f] = t; }
 public:
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() { return d_model; }
   /** get term database */
-  TermDb* getTermDatabase() { return d_term_db; }
+  quantifiers::TermDb* getTermDatabase() { return d_term_db; }
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false );
 private:
@@ -380,7 +305,34 @@ public:
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;
+public:
+  /** options */
+  bool d_optInstCheckDuplicate;
+  bool d_optInstMakeRepresentative;
+  bool d_optInstAddSplits;
+  bool d_optMatchIgnoreModelBasis;
+  bool d_optInstLimitActive;
+  int d_optInstLimit;
 };/* class QuantifiersEngine */
+
+
+
+/** equality query object using theory engine */
+class EqualityQueryQuantifiersEngine : public EqualityQuery
+{
+private:
+  /** pointer to theory engine */
+  QuantifiersEngine* d_qe;
+public:
+  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ){}
+  ~EqualityQueryQuantifiersEngine(){}
+  /** general queries about equality */
+  bool hasTerm( Node a );
+  Node getRepresentative( Node a );
+  bool areEqual( Node a, Node b );
+  bool areDisequal( Node a, Node b );
+  Node getInternalRepresentative( Node a );
+}; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

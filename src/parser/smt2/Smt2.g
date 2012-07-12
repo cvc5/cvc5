@@ -240,8 +240,8 @@ command returns [CVC4::Command* cmd = NULL]
       if( sorts.size() > 0 ) {
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
-      PARSER_STATE->mkVar(name, t);
-      $cmd = new DeclareFunctionCommand(name, t); }
+      Expr func = PARSER_STATE->mkVar(name, t);
+      $cmd = new DeclareFunctionCommand(name, func, t); }
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -383,6 +383,9 @@ extendedCommand[CVC4::Command*& cmd]
     LPAREN_TOK ( LPAREN_TOK datatypeDef[dts] RPAREN_TOK )+ RPAREN_TOK
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+  | /* get model */
+    GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd = new GetModelCommand; }      
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
       { std::stringstream ss;
@@ -1063,6 +1066,7 @@ POP_TOK : 'pop';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
+GET_MODEL_TOK : 'get-model';
 ECHO_TOK : 'echo';
 
 // attributes

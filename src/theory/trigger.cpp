@@ -144,8 +144,8 @@ int Trigger::addTerm( Node t ){
   return d_mg->addTerm( d_f, t, d_quantEngine );
 }
 
-int Trigger::addInstantiations( InstMatch& baseMatch, int instLimit, bool addSplits ){
-  int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine, instLimit, addSplits );
+int Trigger::addInstantiations( InstMatch& baseMatch ){
+  int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine );
   if( addedLemmas>0 ){
     Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
     for( int i=0; i<(int)d_nodes.size(); i++ ){

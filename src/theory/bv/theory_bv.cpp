@@ -57,13 +57,13 @@ TheoryBV::Statistics::Statistics():
 {
   StatisticsRegistry::registerStat(&d_avgConflictSize);
   StatisticsRegistry::registerStat(&d_solveSubstitutions);
-  StatisticsRegistry::registerStat(&d_solveTimer); 
+  StatisticsRegistry::registerStat(&d_solveTimer);
 }
 
 TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_avgConflictSize);
   StatisticsRegistry::unregisterStat(&d_solveSubstitutions);
-  StatisticsRegistry::unregisterStat(&d_solveTimer); 
+  StatisticsRegistry::unregisterStat(&d_solveTimer);
 }
 
 void TheoryBV::preRegisterTerm(TNode node) {
@@ -75,7 +75,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
   }
 
   d_bitblastSolver.preRegister(node);
-  d_equalitySolver.preRegister(node); 
+  d_equalitySolver.preRegister(node);
 }
 
 void TheoryBV::sendConflict() {
@@ -94,53 +94,39 @@ void TheoryBV::check(Effort e)
 {
   BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
 
-  // if we are already in conflict just return the conflict 
+  // if we are already in conflict just return the conflict
   if (inConflict()) {
     sendConflict();
     return;
   }
-  
+
   // getting the new assertions
-  std::vector<TNode> new_assertions; 
+  std::vector<TNode> new_assertions;
   while (!done()) {
     Assertion assertion = get();
     TNode fact = assertion.assertion;
     new_assertions.push_back(fact);
-    BVDebug("bitvector-assertions") << "TheoryBV::check assertion " << fact << "\n"; 
+    BVDebug("bitvector-assertions") << "TheoryBV::check assertion " << fact << "\n";
   }
 
   if (!inConflict()) {
     // sending assertions to the equality solver first
     d_equalitySolver.addAssertions(new_assertions, e);
   }
-  
+
   if (!inConflict()) {
     // sending assertions to the bitblast solver
     d_bitblastSolver.addAssertions(new_assertions, e);
   }
-  
+
   if (inConflict()) {
     sendConflict();
   }
 }
 
+void TheoryBV::collectModelInfo( TheoryModel* m ){
 
-Node TheoryBV::getValue(TNode n) {
-  //NodeManager* nodeManager = NodeManager::currentNM();
-
-  switch(n.getKind()) {
-
-  case kind::VARIABLE:
-    Unhandled(kind::VARIABLE);
-
-  case kind::EQUAL: // 2 args
-    Unhandled(kind::VARIABLE);
-
-  default:
-    Unhandled(n.getKind());
-  }
 }
-
 
 void TheoryBV::propagate(Effort e) {
   BVDebug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
@@ -166,14 +152,14 @@ void TheoryBV::propagate(Effort e) {
 Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   switch(in.getKind()) {
   case kind::EQUAL:
-    
+
     if (in[0].getMetaKind() == kind::metakind::VARIABLE && !in[1].hasSubterm(in[0])) {
-      ++(d_statistics.d_solveSubstitutions); 
+      ++(d_statistics.d_solveSubstitutions);
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
     if (in[1].getMetaKind() == kind::metakind::VARIABLE && !in[0].hasSubterm(in[1])) {
-      ++(d_statistics.d_solveSubstitutions); 
+      ++(d_statistics.d_solveSubstitutions);
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;
     }
@@ -243,14 +229,14 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
-  // Ask the appropriate subtheory for the explanation 
+  // Ask the appropriate subtheory for the explanation
   if (propagatedBy(literal, SUB_EQUALITY)) {
     BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << "): EQUALITY" << std::endl;
-    d_equalitySolver.explain(literal, assumptions); 
+    d_equalitySolver.explain(literal, assumptions);
   } else {
     Assert(propagatedBy(literal, SUB_BITBLAST));
-    BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << ") : BITBLASTER" << std::endl;    
-    d_bitblastSolver.explain(literal, assumptions); 
+    BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << ") : BITBLASTER" << std::endl;
+    d_bitblastSolver.explain(literal, assumptions);
   }
 }
 
@@ -263,7 +249,7 @@ Node TheoryBV::explain(TNode node) {
   explain(node, assumptions);
   // this means that it is something true at level 0
   if (assumptions.size() == 0) {
-    return utils::mkTrue(); 
+    return utils::mkTrue();
   }
   // return the explanation
   Node explanation = mkAnd(assumptions);
@@ -274,9 +260,9 @@ Node TheoryBV::explain(TNode node) {
 
 void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
-  d_sharedTermsSet.insert(t); 
+  d_sharedTermsSet.insert(t);
   if (!Options::current()->bitvectorEagerBitblast && d_useEqualityEngine) {
-    d_equalitySolver.addSharedTerm(t); 
+    d_equalitySolver.addSharedTerm(t);
   }
 }
 

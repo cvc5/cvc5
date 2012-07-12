@@ -20,6 +20,7 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/theory_uf_strong_solver.h"
+#include "theory/model.h"
 
 using namespace std;
 using namespace CVC4;
@@ -171,6 +172,10 @@ Node TheoryUF::explain(TNode literal) {
   std::vector<TNode> assumptions;
   explain(literal, assumptions);
   return mkAnd(assumptions);
+}
+
+void TheoryUF::collectModelInfo( TheoryModel* m ){
+  m->assertEqualityEngine( &d_equalityEngine );
 }
 
 void TheoryUF::presolve() {

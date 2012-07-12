@@ -97,7 +97,7 @@ public:
 public:
   /** add all available instantiations exhaustively, in any equivalence class
       if limitInst>0, limitInst is the max # of instantiations to try */
-  int addInstantiations( InstMatch& baseMatch, int instLimit = 0, bool addSplits = false );
+  int addInstantiations( InstMatch& baseMatch );
   /** mkTrigger method
      ie     : quantifier engine;
      f      : forall something ....

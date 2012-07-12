@@ -143,12 +143,11 @@ public:
   void explain(TNode n) {}
 
   /**
-   * Get a theory value.
+   * Get model
    *
-   * Overloads Node getValue(TNode n); from theory.h.
    * See theory/theory.h for more information about this method.
    */
-  Node getValue(TNode n) {
+  void collectModelInfo( TheoryModel* m ){
     Unimplemented("TheoryUFTim doesn't support model generation");
   }
 

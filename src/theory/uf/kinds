@@ -17,7 +17,49 @@ parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"
 typerule APPLY_UF ::CVC4::theory::uf::UfTypeRule
 
 operator CARDINALITY_CONSTRAINT 2 "cardinality constraint"
-
 typerule CARDINALITY_CONSTRAINT ::CVC4::theory::uf::CardinalityConstraintTypeRule
+
+#
+# For compact function models
+# There are three cases for FUNCTION_MODEL nodes:
+# (1) The node has two children, the first being of kind FUNCTION_CASE_SPLIT.  The second child specifies a default value.
+# (2) The node has one child of kind FUNCTION_CASE_SPLIT.
+# (3) The node has one child, it's default value.
+# 
+# Semantics of FUNCTION_MODEL kind-ed nodes.  The value of n applied to arguments args is
+#
+# getValueFM( n, args, 0 ), where:
+# 
+# Node getValueFM( n, args, argIndex )
+# if n.getKind()!=FUNCTION_MODEL
+#   return n;
+# else if (1)
+#   val = getValueFCS( n[0], args, argIndex );
+#   if !val.isNull()
+#     return val;
+#   else 
+#     return getValueFM( n[1], args, argIndex+1 );
+# else if (2)
+#   return getValueFCS( n[0], args, argIndex );
+# else if (3)
+#   return getValueFM( n[0], args, argIndex+1 );
+# 
+# Node getValueFCS( n, args, argIndex ) :
+#   //n.getKind()==FUNCTION_CASE_SPLIT
+#   //n[j].getKind()==FUNCTION_CASE for all 0<=j<n.getNumChildren()
+#   if( args[argIndex]=n[i][0] for some i)  
+#     return getValueFM( n[i][1], args, argIndex+1 );
+#   else
+#     return null;
+#
+
+operator FUNCTION_MODEL 1:2 "function model"
+typerule FUNCTION_MODEL ::CVC4::theory::uf::FunctionModelTypeRule
+
+operator FUNCTION_CASE_SPLIT 1: "function case split"
+typerule FUNCTION_CASE_SPLIT ::CVC4::theory::uf::FunctionCaseSplitTypeRule
+
+operator FUNCTION_CASE 2 "function case"
+typerule FUNCTION_CASE ::CVC4::theory::uf::FunctionCaseTypeRule
 
 endtheory

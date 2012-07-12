@@ -219,7 +219,7 @@ class TheoryArrays : public Theory {
   private:
   public:
 
-  Node getValue(TNode n);
+  void collectModelInfo( TheoryModel* m );
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS
@@ -345,6 +345,12 @@ class TheoryArrays : public Theory {
   void checkRowLemmas(TNode a, TNode b);
   void queueRowLemma(RowLemmaType lem);
   void dischargeLemmas();
+
+  public:
+
+  eq::EqualityEngine* getEqualityEngine() {
+    return &d_equalityEngine;
+  }
 
 };/* class TheoryArrays */
 

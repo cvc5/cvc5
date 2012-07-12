@@ -73,7 +73,9 @@ libutil_la_SOURCES = \
 	ite_removal.h \
 	ite_removal.cpp \
 	node_visitor.h \
-	index.h
+	index.h \
+	model.h \
+	model.cpp
 
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la

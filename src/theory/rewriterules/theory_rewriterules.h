@@ -30,6 +30,7 @@
 #include "theory/inst_match_impl.h"
 #include "util/stats.h"
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
+#include "theory/model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -182,6 +183,7 @@ private:
       inside check */
   typedef std::vector< RuleInst* > QRuleInsts;
   QRuleInsts d_ruleinsts_to_add;
+
  public:
   /** true and false for predicate */
   Node d_true;
@@ -199,6 +201,7 @@ private:
   /** Usual function for theories */
   void check(Theory::Effort e);
   Node explain(TNode n);
+  void collectModelInfo( TheoryModel* m );
   void notifyEq(TNode lhs, TNode rhs);
   std::string identify() const {
     return "THEORY_REWRITERULES";

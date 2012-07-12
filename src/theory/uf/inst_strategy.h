@@ -45,9 +45,9 @@ private:
   void calcSolved( Node f );
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
 public:
-  InstStrategyCheckCESolved( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) : 
+  InstStrategyCheckCESolved( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) :
       InstStrategy( ie ), d_th( th ){}
   ~InstStrategyCheckCESolved(){}
   /** identify */
@@ -64,9 +64,9 @@ private:
   std::map< Node, int > d_counter;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
 public:
-  InstStrategyUserPatterns( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) : 
+  InstStrategyUserPatterns( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) :
       InstStrategy( ie ), d_th( th ){}
   ~InstStrategyUserPatterns(){}
 public:
@@ -109,11 +109,11 @@ private:
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
   /** generate triggers */
   void generateTriggers( Node f );
 public:
-  InstStrategyAutoGenTriggers( InstantiatorTheoryUf* th, QuantifiersEngine* ie, int tstrt, int rstrt, int rgfr = -1 ) : 
+  InstStrategyAutoGenTriggers( InstantiatorTheoryUf* th, QuantifiersEngine* ie, int tstrt, int rstrt, int rgfr = -1 ) :
       InstStrategy( ie ), d_th( th ), d_tr_strategy( tstrt ), d_rlv_strategy( rstrt ), d_generate_additional( false ){
     setRegenerateFrequency( rgfr );
   }
@@ -144,9 +144,9 @@ private:
   InstantiatorTheoryUf* d_th;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
 public:
-  InstStrategyAddFailSplits( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) : 
+  InstStrategyAddFailSplits( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) :
       InstStrategy( ie ), d_th( th ){}
   ~InstStrategyAddFailSplits(){}
   /** identify */
@@ -163,9 +163,9 @@ private:
   std::map< Node, bool > d_guessed;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e, int instLimit );
+  int process( Node f, Theory::Effort effort, int e );
 public:
-  InstStrategyFreeVariable( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) : 
+  InstStrategyFreeVariable( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) :
       InstStrategy( ie ), d_th( th ){}
   ~InstStrategyFreeVariable(){}
   /** identify */

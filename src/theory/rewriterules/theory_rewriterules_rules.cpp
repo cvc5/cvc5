@@ -22,6 +22,8 @@
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
 #include "theory/rewriterules/theory_rewriterules.h"
 
+#include "theory/quantifiers/term_database.h"
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -72,7 +74,7 @@ inline void addPattern(TheoryRewriteRules & re,
                        TNode r){
   if (tri.getKind() == kind::NOT && tri[0].getKind() == kind::APPLY_UF)
     tri = tri[0];
-  pattern.push_back(re.getQuantifiersEngine()->
+  pattern.push_back(re.getQuantifiersEngine()->getTermDatabase()->
                     convertNodeToPattern(tri,r,vars,inst_constants));
 }
 
