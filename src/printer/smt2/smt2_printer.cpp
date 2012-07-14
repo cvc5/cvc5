@@ -46,28 +46,24 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     visitor.run(dv, n);
     const theory::SubstitutionMap& lets = dv.getLets();
     if(!lets.empty()) {
-      out << "(let (";
-      bool first = true;
-      for(theory::SubstitutionMap::const_iterator i = lets.begin();
-          i != lets.end();
-          ++i) {
-        if(!first) {
-          out << ' ';
-        } else {
-          first = false;
-        }
-        out << '(';
+      theory::SubstitutionMap::const_iterator i = lets.begin();
+      theory::SubstitutionMap::const_iterator i_end = lets.end();
+      for(; i != i_end; ++ i) {
+        out << "(let ((";
         toStream(out, (*i).second, toDepth, types);
         out << ' ';
         toStream(out, (*i).first, toDepth, types);
-        out << ')';
+        out << ")) ";
       }
-      out << ") ";
     }
     Node body = dv.getDagifiedBody();
     toStream(out, body, toDepth, types);
     if(!lets.empty()) {
-      out << ')';
+      theory::SubstitutionMap::const_iterator i = lets.begin();
+      theory::SubstitutionMap::const_iterator i_end = lets.end();
+      for(; i != i_end; ++ i) {
+        out << ")";
+      }
     }
   } else {
     toStream(out, n, toDepth, types);
