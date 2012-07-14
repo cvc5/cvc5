@@ -945,7 +945,7 @@ public:
     {
       d_context->push();
 
-      int* x = (int*) d_context->getCMM()->newData(sizeof(int));
+      int* x CVC4_UNUSED = (int*) d_context->getCMM()->newData(sizeof(int));
 
       list1 = new(d_context->getCMM()) CDList<myint>(true, d_context);
       list2 = new(d_context->getCMM()) CDList<myint>(true, d_context);
