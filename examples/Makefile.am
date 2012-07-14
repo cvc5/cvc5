@@ -1,4 +1,4 @@
-SUBDIRS = nra-translate .
+SUBDIRS = nra-translate hashsmt .
 
 AM_CPPFLAGS = \
 	-I@srcdir@/../src/include -I@srcdir@/../src -I@builddir@/../src $(ANTLR_INCLUDES)
