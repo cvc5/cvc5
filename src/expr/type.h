@@ -91,7 +91,6 @@ class CVC4_PUBLIC Type {
   friend class ExprManager;
   friend class NodeManager;
   friend class TypeNode;
-  friend struct TypeHashStrategy;
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Type& t);
   friend TypeNode expr::exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* nm, ExprManagerMapCollection& vmap);
 

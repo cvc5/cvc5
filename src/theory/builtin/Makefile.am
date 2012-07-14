@@ -7,6 +7,7 @@ noinst_LTLIBRARIES = libbuiltin.la
 
 libbuiltin_la_SOURCES = \
 	theory_builtin_type_rules.h \
+	type_enumerator.h \
 	theory_builtin_rewriter.h \
 	theory_builtin_rewriter.cpp \
 	theory_builtin.h \

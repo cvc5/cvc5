@@ -16,9 +16,11 @@
 
 copyright=2010-2012
 
+filename=`basename "$1" | sed 's,_template,,'`
+
 cat <<EOF
 /*********************                                                        */
-/** theory_traits.h
+/** $filename
  **
  ** Copyright $copyright  The AcSys Group, New York University, and as below.
  **
@@ -40,6 +42,9 @@ theory_includes=
 theory_for_each_macro="#define CVC4_FOR_EACH_THEORY \\
 "
 
+type_enumerator_includes=
+mk_type_enumerator_cases=
+
 theory_has_check="false"
 theory_has_propagate="false"
 theory_has_staticLearning="false"
@@ -60,6 +65,9 @@ instantiator_header=
 
 theory_id=
 theory_class=
+
+type_constants=
+type_kinds=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -177,7 +185,39 @@ struct TheoryTraits<${theory_id}> {
   theory_id=
   theory_class=
 
+  type_constants=
+  type_kinds=
+
   lineno=${BASH_LINENO[0]}
+}
+
+function enumerator {
+  # enumerator KIND enumerator-class header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+  type_enumerator_includes="${type_enumerator_includes}
+#line $lineno \"$kf\"
+#include \"$3\""
+  if expr "$type_constants" : '.* '"$1"' ' &>/dev/null; then
+    mk_type_enumerator_type_constant_cases="${mk_type_enumerator_type_constant_cases}
+#line $lineno \"$kf\"
+    case $1:
+#line $lineno \"$kf\"
+      return new $2(type);
+"
+  elif expr "$type_kinds" : '.* '"$1"' ' &>/dev/null; then
+    mk_type_enumerator_cases="${mk_type_enumerator_cases}
+#line $lineno \"$kf\"
+  case kind::$1:
+#line $lineno \"$kf\"
+    return new $2(type);
+"
+  else
+    echo "$kf:$lineno: error: don't know anything about $1; enumerator must appear after definition" >&2
+    echo "type_constants: $type_constants" >&2
+    echo "type_kinds    : $type_kinds" >&2
+    exit 1
+  fi
 }
 
 function typechecker {
@@ -285,6 +325,7 @@ function register_sort {
   comment=$3
   type_constant_to_theory_id="${type_constant_to_theory_id}   case $id: return $theory_id; break;
 "
+  type_constants="${type_constants} $1 "
 }
 
 function register_kind {
@@ -293,6 +334,7 @@ function register_kind {
   comment=$3
   kind_to_theory_id="${kind_to_theory_id}   case kind::$r: return $theory_id; break;
 "
+  type_kinds="${type_kinds} $1 "
 }
 
 function check_theory_seen {
@@ -342,6 +384,9 @@ for var in \
     theory_for_each_macro \
     theory_includes \
     template \
+    type_enumerator_includes \
+    mk_type_enumerator_type_constant_cases \
+    mk_type_enumerator_cases \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done

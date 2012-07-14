@@ -55,6 +55,10 @@ well-founded DATATYPE_TYPE \
     "%TYPE%.getConst<Datatype>().mkGroundTerm(%TYPE%.toType())" \
     "util/datatype.h"
 
+enumerator DATATYPE_TYPE \
+    "::CVC4::theory::datatypes::DatatypesEnumerator" \
+    "theory/datatypes/type_enumerator.h"
+
 operator PARAMETRIC_DATATYPE 1: "parametric datatype"
 cardinality PARAMETRIC_DATATYPE \
     "DatatypeType(%TYPE%.toType()).getDatatype().getCardinality()" \

@@ -6,6 +6,7 @@ UNIT_TESTS = \
 	theory/theory_arith_white \
 	theory/union_find_black \
 	theory/theory_bv_white \
+	theory/type_enumerator_white \
 	expr/expr_public \
 	expr/expr_manager_public \
 	expr/node_white \

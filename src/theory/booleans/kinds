@@ -24,6 +24,10 @@ constant CONST_BOOLEAN \
     "util/bool.h" \
     "truth and falsity"
 
+enumerator BOOLEAN_TYPE \
+    "::CVC4::theory::booleans::BooleanEnumerator" \
+    "theory/booleans/type_enumerator.h"
+
 operator NOT 1 "logical not"
 operator AND 2: "logical and"
 operator IFF 2 "logical equivalence"

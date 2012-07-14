@@ -265,6 +265,15 @@ well-founded SORT_TYPE \
     "::CVC4::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
     "::CVC4::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
 
+constant UNINTERPRETED_CONSTANT \
+    ::CVC4::UninterpretedConstant \
+    ::CVC4::UninterpretedConstantHashStrategy \
+    "util/uninterpreted_constant.h" \
+    "The kind of nodes representing uninterpreted constants"
+enumerator SORT_TYPE \
+    ::CVC4::theory::builtin::UninterpretedSortEnumerator \
+    "theory/builtin/type_enumerator.h"
+
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
 # not stored that way.  If you ask for the operator of (EQUAL a b),

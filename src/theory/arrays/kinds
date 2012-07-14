@@ -19,6 +19,10 @@ cardinality ARRAY_TYPE \
     "theory/arrays/theory_arrays_type_rules.h"
 well-founded ARRAY_TYPE false
 
+enumerator ARRAY_TYPE \
+    "::CVC4::theory::arrays::ArrayEnumerator" \
+    "theory/arrays/type_enumerator.h"
+
 # select a i  is  a[i]
 operator SELECT 2 "array select"
 

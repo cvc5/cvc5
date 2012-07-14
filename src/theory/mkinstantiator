@@ -125,6 +125,12 @@ function endtheory {
 "
 }
 
+function enumerator {
+  # enumerator KIND enumerator-class header
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
 function typechecker {
   # typechecker header
   lineno=${BASH_LINENO[0]}

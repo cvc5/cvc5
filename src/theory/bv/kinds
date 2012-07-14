@@ -27,6 +27,10 @@ constant CONST_BITVECTOR \
     "util/bitvector.h" \
     "a fixed-width bit-vector constant"
 
+enumerator BITVECTOR_TYPE \
+    "::CVC4::theory::bv::BitVectorEnumerator" \
+    "theory/bv/type_enumerator.h"
+
 operator BITVECTOR_CONCAT 2: "bit-vector concatenation"
 operator BITVECTOR_AND 2: "bitwise and"
 operator BITVECTOR_OR 2: "bitwise or"

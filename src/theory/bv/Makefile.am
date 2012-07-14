@@ -9,6 +9,7 @@ noinst_LTLIBRARIES = libbv.la
 
 libbv_la_SOURCES = \
 	theory_bv_utils.h \
+	type_enumerator.h \
 	bitblaster.h \
 	bitblaster.cpp \
 	bv_subtheory.h \

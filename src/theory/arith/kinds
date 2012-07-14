@@ -55,6 +55,13 @@ constant CONST_RATIONAL \
     "util/rational.h" \
     "a multiple-precision rational constant"
 
+enumerator REAL_TYPE \
+    "::CVC4::theory::arith::RationalEnumerator" \
+    "theory/arith/type_enumerator.h"
+enumerator INTEGER_TYPE \
+    "::CVC4::theory::arith::IntegerEnumerator" \
+    "theory/arith/type_enumerator.h"
+
 operator LT 2 "less than, x < y"
 operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
