@@ -15,7 +15,3 @@ sha1smt_SOURCES = \
 	sha1.hpp
 sha1smt_LDADD = \
 	@builddir@/../../src/libcvc4.la
-
-EXTRA_DIST = \
-	linkedin.small
-	
