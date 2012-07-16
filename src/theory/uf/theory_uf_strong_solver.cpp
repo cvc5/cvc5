@@ -1062,6 +1062,8 @@ Node StrongSolverTheoryUf::ConflictFind::getCardinalityLemma(){
 StrongSolverTheoryUf::StrongSolverTheoryUf(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
 d_out( &out ),
 d_th( th ),
+d_conf_find(),
+d_conf_types(),
 d_conf_find_init( c )
 {
 
