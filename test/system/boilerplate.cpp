@@ -30,7 +30,6 @@ using namespace std;
 int main() {
   ExprManager em;
   Options opts;
-  cout << "foo: " << opts.threadArgv.size() << endl;
   SmtEngine smt(&em);
   Result r = smt.query(em.mkConst(true));
 
