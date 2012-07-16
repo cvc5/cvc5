@@ -20,7 +20,10 @@
 #include "util/stats.h"
 #include "expr/node_manager.h"
 #include "expr/expr_manager_scope.h"
+#include "expr/expr_manager.h"
 #include "lib/clock_gettime.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_engine.h"
 
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
@@ -34,12 +37,12 @@ std::string Stat::s_delim(",");
 std::string StatisticsRegistry::s_regDelim("::");
 
 StatisticsRegistry* StatisticsRegistry::current() {
-  return NodeManager::currentNM()->getStatisticsRegistry();
+  return smt::currentSmtEngine()->getStatisticsRegistry();
 }
 
 void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
 #ifdef CVC4_STATISTICS_ON
-  StatSet& registeredStats = NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats;
+  StatSet& registeredStats = current()->d_registeredStats;
   AlwaysAssert(registeredStats.find(s) == registeredStats.end(),
                "Statistic `%s' was already registered with this registry.", s->getName().c_str());
   registeredStats.insert(s);
@@ -55,7 +58,7 @@ void StatisticsRegistry::registerStat_(Stat* s) throw(AssertionException) {
 
 void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException) {
 #ifdef CVC4_STATISTICS_ON
-  StatSet& registeredStats = NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats;
+  StatSet& registeredStats = current()->d_registeredStats;
   AlwaysAssert(registeredStats.find(s) != registeredStats.end(),
                "Statistic `%s' was not registered with this registry.", s->getName().c_str());
   registeredStats.erase(s);
@@ -91,11 +94,11 @@ void StatisticsRegistry::flushStat(std::ostream &out) const {;
 }
 
 StatisticsRegistry::const_iterator StatisticsRegistry::begin() {
-  return NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats.begin();
+  return current()->d_registeredStats.begin();
 }/* StatisticsRegistry::begin() */
 
 StatisticsRegistry::const_iterator StatisticsRegistry::end() {
-  return NodeManager::currentNM()->getStatisticsRegistry()->d_registeredStats.end();
+  return current()->d_registeredStats.end();
 }/* StatisticsRegistry::end() */
 
 void TimerStat::start() {
@@ -117,9 +120,14 @@ void TimerStat::stop() {
 }/* TimerStat::stop() */
 
 RegisterStatistic::RegisterStatistic(ExprManager& em, Stat* stat) :
-  d_reg(NULL),
+  d_reg(em.getStatisticsRegistry()),
   d_stat(stat) {
-  ExprManagerScope ems(em);
-  d_reg = StatisticsRegistry::current();
   d_reg->registerStat_(d_stat);
 }
+
+RegisterStatistic::RegisterStatistic(SmtEngine& smt, Stat* stat) :
+  d_reg(smt.getStatisticsRegistry()),
+  d_stat(stat) {
+  d_reg->registerStat_(d_stat);
+}
+

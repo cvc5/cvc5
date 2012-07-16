@@ -240,6 +240,7 @@ int runCvc4(int argc, char* argv[], Options& options) {
 
   // signal handlers need access
   pStatistics = smt.getStatisticsRegistry();
+  pStatistics->registerStat_(exprMgr.getStatisticsRegistry());
 
   // Timer statistic
   RegisterStatistic statTotalTime(exprMgr, &s_totalTime);

@@ -1,21 +1,19 @@
 /*********************                                                        */
-/*! \file boilerplate.cpp
+/*! \file two_smt_engines.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A simple start-up/tear-down test for CVC4.
+ ** \brief A simple test of multiple SmtEngines
  **
- ** This simple test just makes sure that the public interface is
- ** minimally functional.  It is useful as a template to use for other
- ** system tests.
+ ** A simple test of multiple SmtEngines.
  **/
 
 #include <iostream>
@@ -30,8 +28,8 @@ using namespace std;
 int main() {
   ExprManager em;
   Options opts;
-  cout << "foo: " << opts.threadArgv.size() << endl;
   SmtEngine smt(&em);
+  SmtEngine smt2(&em);
   Result r = smt.query(em.mkConst(true));
 
   return r == Result::VALID ? 0 : 1;

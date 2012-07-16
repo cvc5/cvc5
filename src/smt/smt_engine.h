@@ -76,6 +76,7 @@ namespace smt {
   class DefinedFunction;
 
   class SmtEnginePrivate;
+  class SmtScope;
 }/* CVC4::smt namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -248,6 +249,9 @@ class CVC4_PUBLIC SmtEngine {
   void setLogicInternal() throw(AssertionException);
 
   friend class ::CVC4::smt::SmtEnginePrivate;
+  friend class ::CVC4::smt::SmtScope;
+
+  StatisticsRegistry* d_statisticsRegistry;
 
   // === STATISTICS ===
   /** time spent in definition-expansion */

@@ -43,6 +43,7 @@ namespace CVC4 {
 #endif
 
 class ExprManager;
+class SmtEngine;
 
 class CVC4_PUBLIC Stat;
 
@@ -802,6 +803,8 @@ public:
   }
 
   RegisterStatistic(ExprManager& em, Stat* stat);
+
+  RegisterStatistic(SmtEngine& smt, Stat* stat);
 
   ~RegisterStatistic() {
     d_reg->unregisterStat_(d_stat);

@@ -21,12 +21,15 @@
 #include <cxxtest/TestSuite.h>
 
 #include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers_engine.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
 #include "util/rational.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 #include "theory/theory_test_utils.h"
 
@@ -38,6 +41,7 @@ using namespace CVC4::theory::arith;
 using namespace CVC4::expr;
 using namespace CVC4::context;
 using namespace CVC4::kind;
+using namespace CVC4::smt;
 
 using namespace std;
 
@@ -45,14 +49,15 @@ class TheoryArithWhite : public CxxTest::TestSuite {
 
   Context* d_ctxt;
   UserContext* d_uctxt;
+  ExprManager* d_em;
   NodeManager* d_nm;
-  NodeManagerScope* d_scope;
+  SmtScope* d_scope;
+  SmtEngine* d_smt;
 
   TestOutputChannel d_outputChannel;
   LogicInfo d_logicInfo;
   Theory::Effort d_level;
 
-  QuantifiersEngine* d_quantifiersEngine;
   TheoryArith* d_arith;
 
   TypeNode* d_booleanType;
@@ -96,14 +101,22 @@ public:
   }
 
   void setUp() {
-    d_ctxt = new Context();
-    d_uctxt = new UserContext();
-    d_nm = new NodeManager(d_ctxt, NULL);
-    d_scope = new NodeManagerScope(d_nm);
+    d_em = new ExprManager();
+    d_nm = NodeManager::fromExprManager(d_em);
+    d_smt = new SmtEngine(d_em);
+    d_ctxt = d_smt->d_context;
+    d_uctxt = d_smt->d_userContext;
+    d_scope = new SmtScope(d_smt);
     d_outputChannel.clear();
     d_logicInfo.lock();
-    d_quantifiersEngine = new QuantifiersEngine(d_ctxt, NULL);
-    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), d_logicInfo, d_quantifiersEngine);
+
+    // guard against duplicate statistics assertion errors
+    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH];
+    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH];
+    d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH] = NULL;
+    d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH] = NULL;
+
+    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), d_logicInfo, d_smt->d_theoryEngine->d_quantEngine);
 
     preregistered = new std::set<Node>();
 
@@ -119,12 +132,10 @@ public:
     delete preregistered;
 
     delete d_arith;
-    delete d_quantifiersEngine;
     d_outputChannel.clear();
     delete d_scope;
-    delete d_nm;
-    delete d_uctxt;
-    delete d_ctxt;
+    delete d_smt;
+    delete d_em;
   }
 
   void testAssert() {

@@ -27,6 +27,7 @@
 #include "expr/type.h"
 #include "expr/expr.h"
 #include "util/subrange_bound.h"
+#include "util/stats.h"
 
 ${includes}
 
@@ -34,7 +35,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 38 "${template}"
+#line 39 "${template}"
 
 namespace CVC4 {
 
@@ -64,7 +65,7 @@ private:
   NodeManager* d_nodeManager;
 
   /** Counts of expressions and variables created of a given kind */
-  IntStat* d_exprStatisticsVars[LAST_TYPE + 1];
+  IntStat* d_exprStatisticsVars[LAST_TYPE];
   IntStat* d_exprStatistics[kind::LAST_KIND];
 
   /**
@@ -449,6 +450,9 @@ public:
   // variables are special, because duplicates are permitted
   Expr mkVar(const std::string& name, Type type);
   Expr mkVar(Type type);
+
+  /** Get a reference to the statistics registry for this ExprManager */
+  StatisticsRegistry* getStatisticsRegistry() const throw();
 
   /** Export an expr to a different ExprManager */
   //static Expr exportExpr(const Expr& e, ExprManager* em);

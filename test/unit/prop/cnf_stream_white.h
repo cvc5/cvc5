@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cnf_stream_black.h
+/*! \file cnf_stream_white.h
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
@@ -22,7 +22,6 @@
 
 #include "util/Assert.h"
 
-
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
@@ -30,6 +29,7 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -42,6 +42,8 @@
 using namespace CVC4;
 using namespace CVC4::context;
 using namespace CVC4::prop;
+using namespace CVC4::smt;
+using namespace CVC4::theory;
 using namespace std;
 
 /* This fake class relies on the face that a MiniSat variable is just an int. */
@@ -118,18 +120,12 @@ public:
 
 };/* class FakeSatSolver */
 
-class CnfStreamBlack : public CxxTest::TestSuite {
+class CnfStreamWhite : public CxxTest::TestSuite {
   /** The SAT solver proxy */
   FakeSatSolver* d_satSolver;
 
-  /** The logic info */
-  LogicInfo* d_logicInfo;
-
   /** The theory engine */
   TheoryEngine* d_theoryEngine;
-
-  /** The output channel */
-  theory::OutputChannel* d_outputChannel;
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
@@ -143,31 +139,32 @@ class CnfStreamBlack : public CxxTest::TestSuite {
   /** The node manager */
   NodeManager* d_nodeManager;
 
+  ExprManager* d_exprManager;
+  SmtScope* d_scope;
+  SmtEngine* d_smt;
+
   void setUp() {
-    d_context = new Context();
-    d_userContext = new UserContext();
-    d_nodeManager = new NodeManager(d_context, NULL);
-    NodeManagerScope nms(d_nodeManager);
+    d_exprManager = new ExprManager();
+    d_smt = new SmtEngine(d_exprManager);
+    d_smt->d_logic.lock();
+    d_nodeManager = NodeManager::fromExprManager(d_exprManager);
+    d_scope = new SmtScope(d_smt);
+
+    d_context = d_smt->d_context;
+    d_userContext = d_smt->d_userContext;
+
+    d_theoryEngine = d_smt->d_theoryEngine;
+
     d_satSolver = new FakeSatSolver();
-    d_logicInfo = new LogicInfo();
-    d_logicInfo->lock();
-    d_theoryEngine = new TheoryEngine(d_context, d_userContext, *d_logicInfo);
-    d_theoryEngine->addTheory<theory::builtin::TheoryBuiltin>(theory::THEORY_BUILTIN);
-    d_theoryEngine->addTheory<theory::booleans::TheoryBool>(theory::THEORY_BOOL);
-    d_theoryEngine->addTheory<theory::arith::TheoryArith>(theory::THEORY_ARITH);
     d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, new theory::TheoryRegistrar(d_theoryEngine));
   }
 
   void tearDown() {
-    NodeManagerScope nms(d_nodeManager);
     delete d_cnfStream;
-    d_theoryEngine->shutdown();
-    delete d_theoryEngine;
-    delete d_logicInfo;
     delete d_satSolver;
-    delete d_nodeManager;
-    delete d_userContext;
-    delete d_context;
+    delete d_scope;
+    delete d_smt;
+    delete d_exprManager;
   }
 
 public:
@@ -291,8 +288,7 @@ public:
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node a_and_b = d_nodeManager->mkNode(kind::AND, a, b);
     d_cnfStream->ensureLiteral(a_and_b);
-    // Clauses are necessary to "literal-ize" a_and_b; this perhaps
-    // doesn't belong in a black-box test though...
+    // Clauses are necessary to "literal-ize" a_and_b
     TS_ASSERT( d_satSolver->addClauseCalled() );
     TS_ASSERT( d_cnfStream->hasLiteral(a_and_b) );
   }

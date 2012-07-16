@@ -277,7 +277,7 @@ public:
   }
 
   /** Get this node manager's statistics registry */
-  StatisticsRegistry* getStatisticsRegistry() const {
+  StatisticsRegistry* getStatisticsRegistry() const throw() {
     return d_statisticsRegistry;
   }
 
@@ -802,7 +802,7 @@ public:
     Debug("current") << "node manager scope: "
                      << "returning to " << NodeManager::s_current << "\n";
   }
-};
+};/* class NodeManagerScope */
 
 
 template <class AttrKind>

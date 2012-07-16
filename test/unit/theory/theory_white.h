@@ -19,9 +19,12 @@
 #include <cxxtest/TestSuite.h>
 
 #include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 #include <vector>
 
@@ -29,6 +32,7 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::expr;
 using namespace CVC4::context;
+using namespace CVC4::smt;
 
 using namespace std;
 
@@ -159,7 +163,9 @@ class TheoryBlack : public CxxTest::TestSuite {
   Context* d_ctxt;
   UserContext* d_uctxt;
   NodeManager* d_nm;
-  NodeManagerScope* d_scope;
+  ExprManager* d_em;
+  SmtScope* d_scope;
+  SmtEngine* d_smt;
   LogicInfo* d_logicInfo;
 
   TestOutputChannel d_outputChannel;
@@ -172,12 +178,21 @@ class TheoryBlack : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_ctxt = new Context();
-    d_uctxt = new UserContext();
-    d_nm = new NodeManager(d_ctxt, NULL);
-    d_scope = new NodeManagerScope(d_nm);
+    d_em = new ExprManager();
+    d_nm = NodeManager::fromExprManager(d_em);
+    d_smt = new SmtEngine(d_em);
+    d_ctxt = d_smt->d_context;
+    d_uctxt = d_smt->d_userContext;
+    d_scope = new SmtScope(d_smt);
     d_logicInfo = new LogicInfo();
     d_logicInfo->lock();
+
+    // guard against duplicate statistics assertion errors
+    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
+    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
+    d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
+    d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
+
     d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo, NULL);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
@@ -190,9 +205,8 @@ public:
     delete d_dummy;
     delete d_logicInfo;
     delete d_scope;
-    delete d_nm;
-    delete d_uctxt;
-    delete d_ctxt;
+    delete d_smt;
+    delete d_em;
   }
 
   void testEffort(){

@@ -2,7 +2,8 @@ TESTS_ENVIRONMENT =
 TEST_EXTENSIONS = .class
 CPLUSPLUS_TESTS = \
 	boilerplate \
-	ouroborous
+	ouroborous \
+	two_smt_engines
 #	cvc3_main
 
 TESTS = $(CPLUSPLUS_TESTS)
