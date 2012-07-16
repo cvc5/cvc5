@@ -36,7 +36,26 @@ TESTS =	\
 #	pp-regfile.smt \
 #
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	aufbv-fuzz01.smt.expect \
+	pp-regfile.delta01.smt.expect \
+	uflia-error0.smt2.expect \
+	bitvec0.delta01.smt.expect \
+	pp-regfile.delta02.smt.expect \
+	uflia-xs-09-16-3-4-1-5.delta03.smt.expect \
+	bitvec0.smt.expect \
+	pp-regfile.smt.expect \
+	uflia-xs-09-16-3-4-1-5.smt.expect \
+	bitvec5.smt.expect \
+	quant-Arrays_Q1-noinfer.smt2.expect \
+	wchains010ue.delta02.smt.expect \
+	bug347.smt.expect \
+	quant-ex1.disable_miniscope.smt2.expect \
+	wchains010ue.smt.expect \
+	just_sat.expect \
+	quant-ex1.smt2.expect \
+	just_unsat.expect \
+	quant-symmetric_unsat_7.smt2.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

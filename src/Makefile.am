@@ -146,3 +146,31 @@ uninstall-local:
 	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
 	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"
+
+# clean up the .fix files
+mostlyclean-local:
+	(echo include/cvc4.h; \
+	 echo include/cvc4_public.h; \
+	 echo include/cvc4parser_public.h; \
+	 find * -name '*.h.fix' | \
+		xargs grep -l '^# *include  *<cvc4/cvc4.*_public\.h>' | \
+		sed 's,\.fix$$,,'; \
+	(cd "$(srcdir)" && find * -name '*.h' | \
+		xargs grep -l '^# *include  *"cvc4.*_public\.h"')) | \
+	while read f; do \
+		if expr "$$f" : ".*_\(template\|private\|test_utils\)\.h$$" &>/dev/null; then \
+			continue; \
+		fi; \
+		d="$$(echo "$$f" | sed 's,^include/,,')"; \
+		if [ -e "$$f" ]; then \
+			path="$$f"; \
+			fixpath="$$f.fix"; \
+		else \
+			path="$(srcdir)/$$f"; \
+			fixpath="$(builddir)/$$f.fix"; \
+			$(MKDIR_P) "`dirname "$$fixpath"`"; \
+		fi; \
+		echo rm -f "$$fixpath"; \
+		rm -f "$$fixpath"; \
+	done
+

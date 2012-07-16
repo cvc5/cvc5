@@ -43,6 +43,8 @@ EXTRA_DIST = \
 	$(CPLUSPLUS_TESTS:%=%.cpp) \
 	$(TEST_DEPS_DIST)
 
+MOSTLYCLEANFILES = $(TESTS)
+
 if STATIC_BINARY
 system_LINK = $(CXXLINK) -all-static
 else

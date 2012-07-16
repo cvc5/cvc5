@@ -126,3 +126,11 @@ dist-hook:
 
 distclean-local:
 	test -z "$(DX_DOCDIR)" || rm -fr "$(DX_DOCDIR)"
+
+# these have .in versions
+DISTCLEANFILES = \
+	doc/cvc4.1 \
+	doc/cvc4.5 \
+	doc/libcvc4.3 \
+	doc/libcvc4compat.3 \
+	doc/libcvc4parser.3

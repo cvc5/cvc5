@@ -105,7 +105,25 @@ EXTRA_DIST = \
 	$(UNIT_TESTS:%=%.h) \
 	$(TEST_DEPS_DIST)
 
-MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp)
+MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp) $(UNIT_TESTS:%=%.lo)
+
+# the tests automake infrastructure doesn't clean up .o files :-(
+# handle both .libs and _libs variants
+mostlyclean-local:
+	@for f in $(UNIT_TESTS); do \
+		dir="$$(dirname "$$f")"; fil="$$(basename "$$f")"; \
+		for junk in	"$$dir/.libs/$$fil.o" \
+				"$$dir/_libs/$$fil.o" \
+				"$$dir/.libs/lt-$$fil" \
+				"$$dir/_libs/lt-$$fil" \
+				"$$dir/.libs/$$fil" \
+				"$$dir/_libs/$$fil"; do \
+			if test -e "$$junk"; then \
+				echo "rm -f \"$$junk\""; \
+				rm -f "$$junk"; \
+			fi; \
+		done; \
+	done
 
 @mk_include@ @srcdir@/Makefile.tests
 
