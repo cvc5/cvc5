@@ -362,7 +362,7 @@ public:
     TS_ASSERT(unnamed.hasAttribute(TestFlag5()));
 
     // test two-arg version of hasAttribute()
-    bool bb;
+    bool bb CVC4_UNUSED;
     Debug("boolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(a.getAttribute(TestFlag1(), bb));
     TS_ASSERT(! bb);
