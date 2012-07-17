@@ -52,6 +52,7 @@ void Smt2::addTheory(Theory theory) {
     defineVar("true", getExprManager()->mkConst(true));
     defineVar("false", getExprManager()->mkConst(false));
     addOperator(kind::AND);
+    addOperator(kind::DISTINCT);
     addOperator(kind::EQUAL);
     addOperator(kind::IFF);
     addOperator(kind::IMPLIES);
