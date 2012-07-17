@@ -709,6 +709,10 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
 
 }/* CvcPrinter::toStream(Command*) */
 
+static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
+  Printer::getPrinter(language::output::LANG_CVC4)->toStream(out, sexpr);
+}
+
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s) throw();
 
@@ -724,29 +728,6 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
       << typeid(*s).name() << endl;
 
 }/* CvcPrinter::toStream(CommandStatus*) */
-
-static void toStream(std::ostream& out, const SExpr& sexpr) throw() {
-  if(sexpr.isInteger()) {
-    out << sexpr.getIntegerValue();
-  } else if(sexpr.isRational()) {
-    out << sexpr.getRationalValue();
-  } else if(sexpr.isString()) {
-    string s = sexpr.getValue();
-    // escape backslash and quote
-    for(size_t i = 0; i < s.size(); ++i) {
-      if(s[i] == '"') {
-        s.replace(i, 1, "\\\"");
-        ++i;
-      } else if(s[i] == '\\') {
-        s.replace(i, 1, "\\\\");
-        ++i;
-      }
-    }
-    out << "\"" << s << "\"";
-  } else {
-    out << sexpr;
-  }
-}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "ASSERT " << c->getExpr() << ";";

@@ -22,6 +22,7 @@
 #define __CVC4__PRINTER__PRINTER_H
 
 #include "util/language.h"
+#include "util/sexpr.h"
 #include "expr/node.h"
 #include "expr/command.h"
 
@@ -61,6 +62,9 @@ public:
 
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const throw() = 0;
+
+  /** Write an SExpr out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const SExpr& sexpr) const throw();
 
   /**
    * Write a Result out to a stream with this Printer.

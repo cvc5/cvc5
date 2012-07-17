@@ -34,6 +34,7 @@ public:
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
+  void toStream(std::ostream& out, const SExpr& sexpr) const throw();
 };/* class SmtPrinter */
 
 }/* CVC4::printer::smt namespace */

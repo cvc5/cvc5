@@ -309,7 +309,7 @@ public:
    * Query information about the SMT environment.
    */
   SExpr getInfo(const std::string& key) const
-    throw(BadOptionException);
+    throw(BadOptionException, ModalException);
 
   /**
    * Set an aspect of the current SMT execution environment.
@@ -534,6 +534,13 @@ public:
    * throws a ModalException.
    */
   unsigned long getTimeRemaining() const throw(ModalException);
+
+  /**
+   * Permit access to the underlying ExprManager.
+   */
+  ExprManager* getExprManager() const {
+    return d_exprManager;
+  }
 
   /**
    * Permit access to the underlying StatisticsRegistry.

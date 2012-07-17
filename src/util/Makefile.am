@@ -46,6 +46,7 @@ libutil_la_SOURCES = \
 	matcher.h \
 	gmp_util.h \
 	sexpr.h \
+	sexpr.cpp \
 	stats.h \
 	stats.cpp \
 	dynamic_array.h \

@@ -47,6 +47,10 @@ void SmtPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
   s->toStream(out, language::output::LANG_SMTLIB_V2);
 }/* SmtPrinter::toStream() */
 
+void SmtPrinter::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
+  Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
+}/* SmtPrinter::toStream() */
+
 }/* CVC4::printer::smt namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */

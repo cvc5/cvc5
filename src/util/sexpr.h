@@ -5,15 +5,15 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Simple representation of SMT S-expressions.
+ ** \brief Simple representation of S-expressions
  **
- ** Simple representation of SMT S-expressions.
+ ** Simple representation of S-expressions.
  **/
 
 #include "cvc4_public.h"
@@ -36,13 +36,14 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC SExpr {
 
-  enum SexprTypes {
+  enum SExprTypes {
     SEXPR_STRING,
+    SEXPR_KEYWORD,
     SEXPR_INTEGER,
     SEXPR_RATIONAL,
     SEXPR_NOT_ATOM
   } d_sexprType;
-  friend std::ostream& operator<<(std::ostream&, SexprTypes);
+  friend std::ostream& operator<<(std::ostream&, SExprTypes);
 
   /** The value of an atomic integer-valued S-expression. */
   CVC4::Integer d_integerValue;
@@ -57,6 +58,13 @@ class CVC4_PUBLIC SExpr {
   std::vector<SExpr> d_children;
 
 public:
+
+  class Keyword : protected std::string {
+  public:
+    Keyword(const std::string& s) : std::string(s) {}
+    const std::string& getString() const { return *this; }
+  };/* class Keyword */
+
   SExpr() :
     d_sexprType(SEXPR_STRING),
     d_integerValue(0),
@@ -89,6 +97,14 @@ public:
     d_children() {
   }
 
+  SExpr(const Keyword& value) :
+    d_sexprType(SEXPR_KEYWORD),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value.getString()),
+    d_children() {
+  }
+
   SExpr(const std::vector<SExpr> children) :
     d_sexprType(SEXPR_NOT_ATOM),
     d_integerValue(0),
@@ -108,6 +124,9 @@ public:
 
   /** Is this S-expression a string? */
   bool isString() const;
+
+  /** Is this S-expression a string? */
+  bool isKeyword() const;
 
   /**
    * Get the string value of this S-expression. This will cause an
@@ -131,30 +150,11 @@ public:
    * Get the children of this S-expression. This will cause an error
    * if this S-expression is not a list.
    */
-  const std::vector<SExpr> getChildren() const;
+  const std::vector<SExpr>& getChildren() const;
 
 };/* class SExpr */
 
-inline std::ostream& operator<<(std::ostream& out, SExpr::SexprTypes type) {
-  switch(type) {
-  case SExpr::SEXPR_STRING:
-    out << "SEXPR_STRING";
-    break;
-  case SExpr::SEXPR_INTEGER:
-    out << "SEXPR_INTEGER";
-    break;
-  case SExpr::SEXPR_RATIONAL:
-    out << "SEXPR_RATIONAL";
-    break;
-  case SExpr::SEXPR_NOT_ATOM:
-    out << "SEXPR_NOT_ATOM";
-    break;
-  default:
-    Unimplemented();
-    break;
-  }
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, SExpr::SExprTypes type) CVC4_PUBLIC;
 
 inline bool SExpr::isAtom() const {
   return d_sexprType != SEXPR_NOT_ATOM;
@@ -172,6 +172,10 @@ inline bool SExpr::isString() const {
   return d_sexprType == SEXPR_STRING;
 }
 
+inline bool SExpr::isKeyword() const {
+  return d_sexprType == SEXPR_KEYWORD;
+}
+
 inline const std::string SExpr::getValue() const {
   AlwaysAssert( isAtom() );
   switch(d_sexprType) {
@@ -180,6 +184,7 @@ inline const std::string SExpr::getValue() const {
   case SEXPR_RATIONAL:
     return d_rationalValue.toString();
   case SEXPR_STRING:
+  case SEXPR_KEYWORD:
     return d_stringValue;
   default:
     Unhandled(d_sexprType);
@@ -197,32 +202,12 @@ inline const CVC4::Rational& SExpr::getRationalValue() const {
   return d_rationalValue;
 }
 
-inline const std::vector<SExpr> SExpr::getChildren() const {
+inline const std::vector<SExpr>& SExpr::getChildren() const {
   AlwaysAssert( !isAtom() );
   return d_children;
 }
 
-inline std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) {
-  if( sexpr.isAtom() ) {
-    out << sexpr.getValue();
-  } else {
-    std::vector<SExpr> children = sexpr.getChildren();
-    out << "(";
-    bool first = true;
-    for( std::vector<SExpr>::iterator it = children.begin();
-         it != children.end();
-         ++it ) {
-      if( first ) {
-        first = false;
-      } else {
-        out << " ";
-      }
-        out << *it;
-    }
-    out << ")";
-  }
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

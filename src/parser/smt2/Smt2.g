@@ -174,9 +174,8 @@ command returns [CVC4::Command* cmd = NULL]
   SExpr sexpr;
 }
   : /* set the logic */
-    SET_LOGIC_TOK SYMBOL
-    { name = AntlrInput::tokenText($SYMBOL);
-      Debug("parser") << "set logic: '" << name << "'" << std::endl;
+    SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
+    { Debug("parser") << "set logic: '" << name << "'" << std::endl;
       if( PARSER_STATE->logicIsSet() ) {
         PARSER_STATE->parseError("Only one set-logic is allowed.");
       }
@@ -407,8 +406,8 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | str[s]
     { sexpr = SExpr(s); }
-  | SYMBOL
-    { sexpr = SExpr(AntlrInput::tokenText($SYMBOL)); }
+  | symbol[s,CHECK_NONE,SYM_SORT]
+    { sexpr = SExpr(s); }
   | builtinOp[k]
     { std::stringstream ss;
       ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2) << EXPR_MANAGER->mkConst(k);
@@ -636,7 +635,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); }
 
-  | LPAREN_TOK INDEX_TOK bvLit=SYMBOL size=INTEGER_LITERAL RPAREN_TOK
+  | LPAREN_TOK INDEX_TOK bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL RPAREN_TOK
     { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
         expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
       } else {
@@ -759,8 +758,8 @@ str[std::string& s]
   ;
 
 /**
-* Matches a builtin operator symbol and sets kind to its associated Expr kind.
-*/
+ * Matches a builtin operator symbol and sets kind to its associated Expr kind.
+ */
 builtinOp[CVC4::Kind& kind]
 @init {
   Debug("parser") << "builtin: " << AntlrInput::tokenText(LT(1)) << std::endl;
@@ -952,12 +951,16 @@ symbolList[std::vector<std::string>& names,
 symbol[std::string& id,
        CVC4::parser::DeclarationCheck check,
        CVC4::parser::SymbolType type]
-  : SYMBOL
-    { id = AntlrInput::tokenText($SYMBOL);
-      Debug("parser") << "symbol: " << id
-                      << " check? " << check
-                      << " type? " << type << std::endl;
-      PARSER_STATE->checkDeclaration(id, check, type); }
+  : SIMPLE_SYMBOL
+    { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
+      PARSER_STATE->checkDeclaration(id, check, type);
+    }
+  | QUOTED_SYMBOL
+    { id = AntlrInput::tokenText($QUOTED_SYMBOL);
+      /* strip off the quotes */
+      id = id.substr(1, id.size() - 2);
+      PARSER_STATE->checkDeclaration(id, check, type);
+    }
   ;
 
 /**
@@ -1133,13 +1136,14 @@ BVSGT_TOK : 'bvsgt';
 BVSGE_TOK : 'bvsge';
 
 /**
- * Matches a symbol from the input. A symbol is a "simple" symbol or a
- * sequence of printable ASCII characters that starts and ends with | and
- * does not otherwise contain |.
+ * A sequence of printable ASCII characters (except backslash) that starts
+ * and ends with | and does not otherwise contain |.
+ *
+ * You shouldn't generally use this in parser rules, as the |quoting|
+ * will be part of the token text.  Use the symbol[] parser rule instead.
  */
-SYMBOL
-  : SIMPLE_SYMBOL
-  | '|' ~('|')+ '|'
+QUOTED_SYMBOL
+  : '|' ~('|' | '\\')* '|'
   ;
 
 /**
@@ -1147,17 +1151,18 @@ SYMBOL
  * with a colon.
  */
 KEYWORD
-  : ':' SIMPLE_SYMBOL
+  : ':' (ALPHA | DIGIT | SYMBOL_CHAR)+
   ;
 
-/** Matches a "simple" symbol: a non-empty sequence of letters, digits and
+/**
+ * Matches a "simple" symbol: a non-empty sequence of letters, digits and
  * the characters + - / * = % ? ! . $ ~ & ^ < > @ that does not start with a
- * digit, and is not the special reserved symbol '_'.
+ * digit, and is not the special reserved symbols '!' or '_'.
  */
-fragment SIMPLE_SYMBOL
+SIMPLE_SYMBOL
   : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)+
   | ALPHA
-  | SYMBOL_CHAR_NOUNDERSCORE
+  | SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE
   ;
 
 /**
@@ -1219,8 +1224,11 @@ BINARY_LITERAL
 
 
 /**
- * Matches a double quoted string literal. Escaping is supported, and
+ * Matches a double quoted string literal.  Escaping is supported, and
  * escape character '\' has to be escaped.
+ *
+ * You shouldn't generally use this in parser rules, as the quotes
+ * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
   : '"' (ESCAPE | ~('"'|'\\'))* '"'
@@ -1250,18 +1258,22 @@ fragment DIGIT : '0'..'9';
 fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 
 /**
- * Matches the characters that may appear in a "symbol" (i.e., an identifier)
+ * Matches the characters that may appear as a one-character "symbol"
+ * (which excludes _ and !, which are reserved words in SMT-LIBv2).
  */
-fragment SYMBOL_CHAR_NOUNDERSCORE
-  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '!' | '.' | '$' | '~'
+fragment SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE
+  : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '.' | '$' | '~'
   | '&' | '^' | '<' | '>' | '@'
   ;
 
+/**
+ * Matches the characters that may appear in a "symbol" (i.e., an identifier)
+ */
 fragment SYMBOL_CHAR
-  : SYMBOL_CHAR_NOUNDERSCORE | '_'
+  : SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE | '_' | '!'
   ;
 
 /**
  * Matches an allowed escaped character.
  */
-fragment ESCAPE : '\\' ('"' | '\\' | 'n' | 't' | 'r');
+fragment ESCAPE : '\\' ('"' | '\\');

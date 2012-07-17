@@ -27,6 +27,7 @@
 #include "printer/dagification_visitor.h"
 #include "util/node_visitor.h"
 #include "theory/substitutions.h"
+#include "util/language.h"
 
 using namespace std;
 
@@ -503,27 +504,8 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 }/* Smt2Printer::toStream(Command*) */
 
-static void toStream(std::ostream& out, const SExpr& sexpr) throw() {
-  if(sexpr.isInteger()) {
-    out << sexpr.getIntegerValue();
-  } else if(sexpr.isRational()) {
-    out << sexpr.getRationalValue();
-  } else if(sexpr.isString()) {
-    string s = sexpr.getValue();
-    // escape backslash and quote
-    for(size_t i = 0; i < s.length(); ++i) {
-      if(s[i] == '"') {
-        s.replace(i, 1, "\\\"");
-        ++i;
-      } else if(s[i] == '\\') {
-        s.replace(i, 1, "\\\\");
-        ++i;
-      }
-    }
-    out << "\"" << s << "\"";
-  } else {
-    out << sexpr;
-  }
+static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
+  Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
 }
 
 template <class T>
@@ -679,23 +661,23 @@ static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) throw
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {
-  out << "(set-info " << c->getFlag() << " ";
+  out << "(set-info :" << c->getFlag() << " ";
   toStream(out, c->getSExpr());
   out << ")";
 }
 
 static void toStream(std::ostream& out, const GetInfoCommand* c) throw() {
-  out << "(get-info " << c->getFlag() << ")";
+  out << "(get-info :" << c->getFlag() << ")";
 }
 
 static void toStream(std::ostream& out, const SetOptionCommand* c) throw() {
-  out << "(set-option " << c->getFlag() << " ";
+  out << "(set-option :" << c->getFlag() << " ";
   toStream(out, c->getSExpr());
   out << ")";
 }
 
 static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {
-  out << "(get-option " << c->getFlag() << ")";
+  out << "(get-option :" << c->getFlag() << ")";
 }
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) throw() {
