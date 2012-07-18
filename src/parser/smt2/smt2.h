@@ -24,6 +24,8 @@
 #include "parser/parser.h"
 #include "parser/smt/smt.h"
 
+#include <sstream>
+
 namespace CVC4 {
 
 class SExpr;
@@ -75,9 +77,20 @@ public:
 
   void checkThatLogicIsSet();
 
+  void checkUserSymbol(const std::string& name) {
+    if( strictModeEnabled() &&
+        name.length() > 0 &&
+        ( name[0] == '.' || name[0] == '@' ) ) {
+      std::stringstream ss;
+      ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIBv2";
+      parseError(ss.str());
+    }
+  }
+
 private:
 
   void addArithmeticOperators();
+
 };/* class Smt2 */
 
 }/* CVC4::parser namespace */

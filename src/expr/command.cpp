@@ -990,11 +990,11 @@ std::string GetInfoCommand::getFlag() const throw() {
 
 void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    vector<SExpr> v;
-    v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
-    v.push_back(smtEngine->getInfo(d_flag));
+    SExpr response = smtEngine->getInfo(d_flag);
     stringstream ss;
-    ss << SExpr(v);
+    ss << SExpr(SExpr::Keyword(d_flag))
+       << ' '
+       << response;
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(BadOptionException&) {

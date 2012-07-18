@@ -198,7 +198,9 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetOptionCommand(AntlrInput::tokenText($KEYWORD)); }
   | /* sort declaration */
     DECLARE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL
+    symbol[name,CHECK_UNDECLARED,SYM_SORT]
+    { PARSER_STATE->checkUserSymbol(name); }
+    n=INTEGER_LITERAL
     { Debug("parser") << "declare sort: '" << name
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
@@ -213,6 +215,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* sort definition */
     DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
+    { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
     {
       PARSER_STATE->pushScope();
@@ -233,6 +236,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
@@ -244,6 +248,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     { /* add variables to parser state before parsing term */
