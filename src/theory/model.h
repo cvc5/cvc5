@@ -98,7 +98,7 @@ public:
   /** get existing domain value, with possible exclusions */
   Node getDomainValue( TypeNode tn, std::vector< Node >& exclude );
   /** get new domain value */
-  Node getNewDomainValue( TypeNode tn, bool mkConst = false );
+  Node getNewDomainValue( TypeNode tn );
 public:
   /** assert equality */
   void assertEquality( Node a, Node b, bool polarity );

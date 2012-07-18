@@ -201,7 +201,7 @@ Node TheoryModel::getDomainValue( TypeNode tn, std::vector< Node >& exclude ){
 }
 
 //FIXME: use the theory enumerator to generate constants here
-Node TheoryModel::getNewDomainValue( TypeNode tn, bool mkConst ){
+Node TheoryModel::getNewDomainValue( TypeNode tn ){
   if( tn==NodeManager::currentNM()->booleanType() ){
     if( d_ra.d_type_reps[tn].empty() ){
       return d_false;
@@ -352,7 +352,7 @@ Node DefaultModel::getInterpretedValue( TNode n ){
       return n2;
     }else{
       //otherwise, choose new value
-      n2 = getNewDomainValue( type, true );
+      n2 = getNewDomainValue( type );
       if( !n2.isNull() ){
         return n2;
       }else{
@@ -422,7 +422,7 @@ void TheoryEngineModelBuilder::processBuildModel( TheoryModel* tm ){
     if( tm->d_reps.find( n )!=tm->d_reps.end() ){
       TypeNode tn = n.getType();
       //add new constant to equivalence class
-      Node rep = tm->getNewDomainValue( tn, true );
+      Node rep = tm->getNewDomainValue( tn );
       if( !rep.isNull() ){
         tm->assertEquality( n, rep, true );
       }else{
