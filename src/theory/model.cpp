@@ -331,7 +331,6 @@ DefaultModel::DefaultModel( context::Context* c, std::string name ) : TheoryMode
 }
 
 Node DefaultModel::getInterpretedValue( TNode n ){
-  Assert( !d_equalityEngine.hasTerm( n ) );
   TypeNode type = n.getType();
   if( type.isFunction() || type.isPredicate() ){
     //DO_THIS?
