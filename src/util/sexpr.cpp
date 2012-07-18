@@ -26,30 +26,6 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, SExpr::SExprTypes type) {
-  switch(type) {
-  case SExpr::SEXPR_STRING:
-    out << "SEXPR_STRING";
-    break;
-  case SExpr::SEXPR_KEYWORD:
-    out << "SEXPR_KEYWORD";
-    break;
-  case SExpr::SEXPR_INTEGER:
-    out << "SEXPR_INTEGER";
-    break;
-  case SExpr::SEXPR_RATIONAL:
-    out << "SEXPR_RATIONAL";
-    break;
-  case SExpr::SEXPR_NOT_ATOM:
-    out << "SEXPR_NOT_ATOM";
-    break;
-  default:
-    Unimplemented();
-    break;
-  }
-  return out;
-}
-
 std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) {
   Printer::getPrinter(Expr::setlanguage::getLanguage(out))->toStream(out, sexpr);
   return out;

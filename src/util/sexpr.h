@@ -43,7 +43,6 @@ class CVC4_PUBLIC SExpr {
     SEXPR_RATIONAL,
     SEXPR_NOT_ATOM
   } d_sexprType;
-  friend std::ostream& operator<<(std::ostream&, SExprTypes);
 
   /** The value of an atomic integer-valued S-expression. */
   CVC4::Integer d_integerValue;
@@ -153,8 +152,6 @@ public:
   const std::vector<SExpr>& getChildren() const;
 
 };/* class SExpr */
-
-std::ostream& operator<<(std::ostream& out, SExpr::SExprTypes type) CVC4_PUBLIC;
 
 inline bool SExpr::isAtom() const {
   return d_sexprType != SEXPR_NOT_ATOM;
