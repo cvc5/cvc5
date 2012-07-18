@@ -17,7 +17,7 @@ import edu.nyu.acsys.CVC4.ParserBuilder;
 public class CVC4JavaTest {
   public static void main(String[] args) {
     try {
-      System.loadLibrary("cvc4bindings_java");
+      System.loadLibrary("CVC4");
 
       //CVC4.getDebugChannel().on("current");
 

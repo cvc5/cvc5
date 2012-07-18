@@ -12,7 +12,7 @@ if CVC4_LANGUAGE_BINDING_JAVA
 TESTS += CVC4JavaTest.class
 endif
 
-CLASS_LOG_COMPILER = @srcdir@/run_java_test $(JAVA) -classpath .:@abs_top_builddir@/src/bindings/cvc4.jar -Djava.library.path=$(abs_top_builddir)/src/bindings/.libs:$(abs_top_builddir)/src/.libs
+CLASS_LOG_COMPILER = @srcdir@/run_java_test $(JAVA) -classpath .:@abs_top_builddir@/src/bindings/CVC4.jar -Djava.library.path=$(abs_top_builddir)/src/bindings/java/.libs:$(abs_top_builddir)/src/.libs
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
@@ -74,8 +74,8 @@ $(filter-out %.class,$(TESTS)): %: %.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $<
 cvc3_main: cvc3_george.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $+
-CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/cvc4.jar @abs_top_builddir@/src/bindings/libcvc4bindings_java.la
-	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/cvc4.jar -d $(builddir) $<
+CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/CVC4.jar @abs_top_builddir@/src/bindings/java/CVC4.la
+	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/CVC4.jar -d $(builddir) $<
 
 # for silent automake rules
 AM_V_JAVAC = $(am__v_JAVAC_$(V))
