@@ -149,7 +149,58 @@ public:
     TS_ASSERT_THROWS(*++te, NoMoreValuesException);
   }
 
-  void NOtestDatatypesInfinite() {
+  void testDatatypesInfinite1() {
+    Datatype colors("Colors");
+    colors.addConstructor(DatatypeConstructor("red"));
+    colors.addConstructor(DatatypeConstructor("orange"));
+    colors.addConstructor(DatatypeConstructor("yellow"));
+    colors.addConstructor(DatatypeConstructor("green"));
+    colors.addConstructor(DatatypeConstructor("blue"));
+    colors.addConstructor(DatatypeConstructor("violet"));
+    TypeNode colorsType = TypeNode::fromType(d_em->mkDatatypeType(colors));
+    Datatype listColors("ListColors");
+    DatatypeConstructor consC("cons");
+    consC.addArg("car", colorsType.toType());
+    consC.addArg("cdr", DatatypeSelfType());
+    listColors.addConstructor(consC);
+    listColors.addConstructor(DatatypeConstructor("nil"));
+    TypeNode listColorsType = TypeNode::fromType(d_em->mkDatatypeType(listColors));
+    TypeEnumerator te(listColorsType);
+    Node cons = Node::fromExpr(DatatypeType(listColorsType.toType()).getDatatype().getConstructor("cons"));
+    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(listColorsType.toType()).getDatatype().getConstructor("nil"));
+    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("red"));
+    TS_ASSERT_EQUALS(*te, nil);
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil))));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)))));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil))))));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil)))))));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red,
+                            d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil))))))));
+  }
+
+  void NOtestDatatypesInfinite2() {
     TypeNode datatype;
     TypeEnumerator te(datatype);
     TS_FAIL("unimplemented");
