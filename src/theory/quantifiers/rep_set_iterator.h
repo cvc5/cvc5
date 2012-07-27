@@ -85,7 +85,7 @@ private:
 private: //for Theory UF:
   //map from terms to the models used to calculate their value
   std::map< Node, bool > d_eval_uf_use_default;
-  std::map< Node, uf::UfModelTreeOrdered > d_eval_uf_model;
+  std::map< Node, uf::UfModelTree > d_eval_uf_model;
   void makeEvalUfModel( Node n );
   //index ordering to use for each term
   std::map< Node, std::vector< int > > d_eval_term_index_order;
@@ -103,13 +103,13 @@ public:
   virtual ~RepSetEvaluator(){}
   /** evaluate functions */
   int evaluate( Node n, int& depIndex );
-  int evaluateEquality( Node n1, Node n2, int& depIndex );
   Node evaluateTerm( Node n, int& depIndex );
 public:
   //statistics
   int d_eval_formulas;
-  int d_eval_eqs;
   int d_eval_uf_terms;
+  int d_eval_lits;
+  int d_eval_lits_unknown;
 };
 
 

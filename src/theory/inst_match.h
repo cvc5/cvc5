@@ -19,16 +19,14 @@
 #ifndef __CVC4__INST_MATCH_H
 #define __CVC4__INST_MATCH_H
 
-#include "theory/theory.h"
 #include "util/hash.h"
 
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
 
-#include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
 #include "context/cdlist.h"
+#include "theory/candidate_generator.h"
 
 //#define USE_EFFICIENT_E_MATCHING
 
@@ -76,48 +74,6 @@ namespace uf{
 
 namespace inst {
 
-class CandidateGenerator
-{
-public:
-  CandidateGenerator(){}
-  ~CandidateGenerator(){}
-
-  /** Get candidates functions.  These set up a context to get all match candidates.
-      cg->reset( eqc );
-      do{
-        Node cand = cg->getNextCandidate();
-        //.......
-      }while( !cand.isNull() );
-
-      eqc is the equivalence class you are searching in
-  */
-  virtual void reset( Node eqc ) = 0;
-  virtual Node getNextCandidate() = 0;
-  /** add candidate to list of nodes returned by this generator */
-  virtual void addCandidate( Node n ) {}
-  /** call this at the beginning of each instantiation round */
-  virtual void resetInstantiationRound() = 0;
-public:
-  /** legal candidate */
-  static bool isLegalCandidate( Node n );
-};/* class CandidateGenerator */
-
-/** candidate generator queue (for manual candidate generation) */
-class CandidateGeneratorQueue : public CandidateGenerator {
-private:
-  std::vector< Node > d_candidates;
-  int d_candidate_index;
-public:
-  CandidateGeneratorQueue() : d_candidate_index( 0 ){}
-  ~CandidateGeneratorQueue(){}
-
-  void addCandidate( Node n );
-
-  void resetInstantiationRound(){}
-  void reset( Node eqc );
-  Node getNextCandidate();
-};/* class CandidateGeneratorQueue */
-
 class EqualityQuery {
 public:
   EqualityQuery(){}
@@ -135,6 +91,10 @@ public:
       not contain instantiation constants, if such a term exists.
    */
   virtual Node getInternalRepresentative( Node a ) = 0;
+  /** get the equality engine associated with this query */
+  virtual eq::EqualityEngine* getEngine() = 0;
+  /** get the equivalence class of a */
+  virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
 };/* class EqualityQuery */
 
 /** basic class defining an instantiation */

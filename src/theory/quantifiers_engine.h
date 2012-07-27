@@ -342,6 +342,8 @@ public:
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
   Node getInternalRepresentative( Node a );
+  eq::EqualityEngine* getEngine();
+  void getEquivalenceClass( Node a, std::vector< Node >& eqc );
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */

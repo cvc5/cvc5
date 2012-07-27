@@ -18,7 +18,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
-#include "theory/uf/theory_uf_candidate_generator.h"
+#include "theory/candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 
 using namespace std;
@@ -284,7 +284,8 @@ bool Trigger::isUsableTrigger( Node n, Node f ){
 }
 
 bool Trigger::isAtomicTrigger( Node n ){
-  return n.getKind()==APPLY_UF || n.getKind()==SELECT || n.getKind()==STORE;
+  return n.getKind()==APPLY_UF || n.getKind()==SELECT || n.getKind()==STORE ||
+         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR || n.getKind()==APPLY_TESTER;
 }
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){

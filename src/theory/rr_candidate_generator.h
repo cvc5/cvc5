@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file theory_uf_candidate_generator.h
+/*! \file rr_candidate_generator.h
  ** \verbatim
  ** Original author: ajreynol
- ** Major contributors: none
+ ** Major contributors: bobot
  ** Minor contributors (to current version): mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Theory uf candidate generator
+ ** \brief rr candidate generator
  **/
 
 #include "cvc4_private.h"
@@ -21,7 +21,6 @@
 
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/rr_inst_match.h"
 
 using namespace CVC4::theory::quantifiers;
@@ -102,7 +101,7 @@ public:
 } /* namespace rrinst */
 } /* namespace eq */
 
-namespace uf {
+namespace uf{
 namespace rrinst {
 
 typedef CVC4::theory::rrinst::CandidateGenerator CandidateGenerator;
@@ -164,96 +163,46 @@ public:
 };
 
 } /* namespace rrinst */
+} /* namespace uf */
 
-namespace inst{
-typedef CVC4::theory::inst::CandidateGenerator CandidateGenerator;
+class GenericCandidateGeneratorClasses: public rrinst::CandidateGenerator{
 
-//Old CandidateGenerator
+  /** The candidate generators */
+  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
+  /** The current theory which candidategenerator is used */
+  TheoryId d_can_gen_id;
 
-class CandidateGeneratorTheoryUfDisequal;
-
-class CandidateGeneratorTheoryUf : public CandidateGenerator
-{
-  friend class CandidateGeneratorTheoryUfDisequal;
-private:
-  //operator you are looking for
-  Node d_op;
-  //instantiator pointer
-  InstantiatorTheoryUf* d_ith;
-  //the equality class iterator
-  eq::EqClassIterator d_eqc;
-  int d_term_iter;
-  int d_term_iter_limit;
-private:
-  Node d_retNode;
 public:
-  CandidateGeneratorTheoryUf( InstantiatorTheoryUf* ith, Node op );
-  ~CandidateGeneratorTheoryUf(){}
+  GenericCandidateGeneratorClasses(QuantifiersEngine * qe);
+  ~GenericCandidateGeneratorClasses();
 
   void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
+  void reset(TNode eqc);
+  TNode getNextCandidate();
+  void lookForNextTheory();
 };
 
-//class CandidateGeneratorTheoryUfDisequal : public CandidateGenerator
-//{
-//private:
-//  //equivalence class 
-//  Node d_eq_class;
-//  //equivalence class info
-//  EqClassInfo* d_eci;
-//  //equivalence class iterator
-//  EqClassInfo::BoolMap::const_iterator d_eqci_iter;
-//  //instantiator pointer
-//  InstantiatorTheoryUf* d_ith;
-//public:
-//  CandidateGeneratorTheoryUfDisequal( InstantiatorTheoryUf* ith, Node eqc );
-//  ~CandidateGeneratorTheoryUfDisequal(){}
-//
-//  void resetInstantiationRound();
-//  void reset( Node eqc );   //should be what you want to be disequal from
-//  Node getNextCandidate();
-//};
+class GenericCandidateGeneratorClass: public rrinst::CandidateGenerator{
 
-class CandidateGeneratorTheoryUfLitEq : public CandidateGenerator
-{
-private:
-  //the equality classes iterator
-  eq::EqClassesIterator d_eq;
-  //equality you are trying to match equalities for
-  Node d_match_pattern;
-  //einstantiator pointer
-  InstantiatorTheoryUf* d_ith;
+  /** The candidate generators */
+  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
+  /** The current theory which candidategenerator is used */
+  TheoryId d_can_gen_id;
+  /** current node to look for equivalence class */
+  Node d_node;
+  /** QuantifierEngine */
+  QuantifiersEngine* d_qe;
+
 public:
-  CandidateGeneratorTheoryUfLitEq( InstantiatorTheoryUf* ith, Node mpat );
-  ~CandidateGeneratorTheoryUfLitEq(){}
-
+  GenericCandidateGeneratorClass(QuantifiersEngine * qe);
+  ~GenericCandidateGeneratorClass();
   void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
+
+  void reset(TNode eqc);
+  TNode getNextCandidate();
+  void lookForNextTheory();
 };
 
-class CandidateGeneratorTheoryUfLitDeq : public CandidateGenerator
-{
-private:
-  //the equality class iterator for false
-  eq::EqClassIterator d_eqc_false;
-  //equality you are trying to match disequalities for
-  Node d_match_pattern;
-  //einstantiator pointer
-  InstantiatorTheoryUf* d_ith;
-public:
-  CandidateGeneratorTheoryUfLitDeq( InstantiatorTheoryUf* ith, Node mpat );
-  ~CandidateGeneratorTheoryUfLitDeq(){}
-
-  void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
-};
-
-
-}/* CVC4::theory::uf::inst namespace */
-}/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 

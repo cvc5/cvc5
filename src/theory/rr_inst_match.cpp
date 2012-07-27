@@ -15,16 +15,16 @@
  **/
 
 #include "theory/inst_match.h"
-#include "theory/rr_inst_match.h"
-#include "theory/rr_trigger.h"
-#include "theory/rr_inst_match_impl.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
-#include "theory/uf/theory_uf_candidate_generator.h"
-#include "theory/datatypes/theory_datatypes_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/arrays/theory_arrays.h"
+#include "theory/datatypes/theory_datatypes.h"
+#include "theory/rr_inst_match.h"
+#include "theory/rr_trigger.h"
+#include "theory/rr_inst_match_impl.h"
+#include "theory/rr_candidate_generator.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -437,8 +437,7 @@ class OpMatcher: public Matcher{
     AuxMatcher2 am2(am3,LegalOpTest(pat.getOperator()));
     /** Iter on the equivalence class of the given term */
     uf::TheoryUF* uf = static_cast<uf::TheoryUF *>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF ));
-    eq::EqualityEngine* ee =
-      static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
+    eq::EqualityEngine* ee = static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
     CandidateGeneratorTheoryEeClass cdtUfEq(ee);
     /* Create a matcher from the candidate generator */
     AuxMatcher1 am1(cdtUfEq,am2);
@@ -474,7 +473,7 @@ class DatatypesMatcher: public Matcher{
   /* The matcher */
   typedef ApplyMatcher AuxMatcher3;
   typedef TestMatcher< AuxMatcher3, LegalOpTest > AuxMatcher2;
-  typedef CandidateGeneratorMatcher< datatypes::rrinst::CandidateGeneratorTheoryClass, AuxMatcher2> AuxMatcher1;
+  typedef CandidateGeneratorMatcher< CandidateGeneratorTheoryEeClass, AuxMatcher2> AuxMatcher1;
   AuxMatcher1 d_cgm;
   static inline AuxMatcher1 createCgm(Node pat, QuantifiersEngine* qe){
     Assert( pat.getKind() == kind::APPLY_CONSTRUCTOR,
@@ -485,7 +484,8 @@ class DatatypesMatcher: public Matcher{
     AuxMatcher2 am2(am3,LegalOpTest(pat.getOperator()));
     /** Iter on the equivalence class of the given term */
     datatypes::TheoryDatatypes* dt = static_cast<datatypes::TheoryDatatypes *>(qe->getTheoryEngine()->getTheory( theory::THEORY_DATATYPES ));
-    datatypes::rrinst::CandidateGeneratorTheoryClass cdtDtEq(dt);
+    eq::EqualityEngine* ee = static_cast<eq::EqualityEngine*>(dt->getEqualityEngine());
+    CandidateGeneratorTheoryEeClass cdtDtEq(ee);
     /* Create a matcher from the candidate generator */
     AuxMatcher1 am1(cdtDtEq,am2);
     return am1;

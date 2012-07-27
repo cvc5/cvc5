@@ -60,16 +60,23 @@ class TheoryModel : public Model
 {
   friend class TheoryEngineModelBuilder;
 protected:
-  /** add term */
+  /** add term function
+    *   This should be called on all terms that exist in the model.
+    *   addTerm( n ) will do any model-specific processing necessary for n,
+    *   such as contraining the interpretation of uninterpretted functions.
+    */
   virtual void addTerm( Node n ) {}
 private:
-  /** definitions */
+  /** List of definitions that the user has given
+    *  This is necessary for supporting the get-model command.
+    */
   std::vector< Node > d_define_funcs;
   std::vector< TypeNode > d_define_types;
   std::vector< int > d_defines;
 protected:
-  /** to stream functions */
+  /** print the value of the function n to stream */
   virtual void toStreamFunction( Node n, std::ostream& out );
+  /** print the value of the type tn to stream */
   virtual void toStreamType( TypeNode tn, std::ostream& out );
 public:
   TheoryModel( context::Context* c, std::string name );
@@ -78,83 +85,102 @@ public:
   eq::EqualityEngine d_equalityEngine;
   /** map of representatives of equality engine to used representatives in representative set */
   std::map< Node, Node > d_reps;
-  /** representative alphabet */
-  RepSet d_ra;
-  //true/false nodes
+  /** stores set of representatives for each type */
+  RepSet d_rep_set;
+  /** true/false nodes */
   Node d_true;
   Node d_false;
 public:
-  /** add defined function */
+  /** reset the model */
+  virtual void reset();
+  /** get interpreted value
+    *  This function is called when the value of the node cannot be determined by the theory rewriter
+    *  This should function should return a representative in d_reps
+    */
+  virtual Node getInterpretedValue( TNode n ) = 0;
+public:
+  /** add defined function (for get-model) */
   void addDefineFunction( Node n );
-  /** add defined type */
+  /** add defined type (for get-model) */
   void addDefineType( TypeNode tn );
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.
    */
   Node getValue( TNode n );
-  /** get interpreted value, should be a representative in d_reps */
-  virtual Node getInterpretedValue( TNode n ) = 0;
-  /** get existing domain value, with possible exclusions */
+  /** get existing domain value, with possible exclusions
+    *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
+    */
   Node getDomainValue( TypeNode tn, std::vector< Node >& exclude );
-  /** get new domain value */
+  /** get new domain value
+    *   This function returns a constant term of type tn that is not in d_rep_set.d_type_reps[tn]
+    *   If it cannot find such a node, it returns null.
+    */
   Node getNewDomainValue( TypeNode tn );
 public:
-  /** assert equality */
+  /** assert equality holds in the model */
   void assertEquality( Node a, Node b, bool polarity );
-  /** assert predicate */
+  /** assert predicate holds in the model */
   void assertPredicate( Node a, bool polarity );
-  /** assert equality engine */
+  /** assert all equalities/predicates in equality engine hold in the model */
   void assertEqualityEngine( eq::EqualityEngine* ee );
 public:
-  //queries about equality
+  /** general queries */
   bool hasTerm( Node a );
   Node getRepresentative( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
 public:
-  /** print representative function */
+  /** print representative debug function */
   void printRepresentativeDebug( const char* c, Node r );
+  /** print representative function */
   void printRepresentative( std::ostream& out, Node r );
   /** to stream function */
   void toStream( std::ostream& out );
 };
 
-//default model class: extends model arbitrarily
+/** Default model class
+  *   The getInterpretedValue function will choose an existing value arbitrarily.
+  *   If none are found, then it will create a new value.
+  */
 class DefaultModel : public TheoryModel
 {
+protected:
+  /** whether function models are enabled */
+  bool d_enableFuncModels;
+  /** add term */
+  void addTerm( Node n );
 public:
-  DefaultModel( context::Context* c, std::string name );
+  DefaultModel( context::Context* c, std::string name, bool enableFuncModels );
   virtual ~DefaultModel(){}
+  //necessary information for function models
+  std::map< Node, std::vector< Node > > d_uf_terms;
+  std::map< Node, Node > d_uf_models;
 public:
+  void reset();
   Node getInterpretedValue( TNode n );
 };
 
-//incomplete model class: does not extend model
-class IncompleteModel : public TheoryModel
-{
-public:
-  IncompleteModel( context::Context* c, std::string name ) : TheoryModel( c, name ){}
-  virtual ~IncompleteModel(){}
-public:
-  Node getInterpretedValue( TNode n ) { return Node::null(); }
-};
-
-
+/** TheoryEngineModelBuilder class
+  *    This model builder will consult all theories in a theory engine for
+  *    collectModelInfo( ... ) when building a model.
+  */
 class TheoryEngineModelBuilder : public ModelBuilder
 {
 protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;
-  /** choose representative */
-  virtual Node chooseRepresentative( TheoryModel* tm, Node eqc );
-  /** representatives that are current not set */
-  virtual void processBuildModel( TheoryModel* tm );
+  /** choose representative for unresolved equivalence class */
+  void initializeType( TypeNode tn, std::map< TypeNode, bool >& unresolved_types );
+  /** process build model */
+  virtual void processBuildModel( TheoryModel* m ){}
+  /** choose representative for unconstrained equivalence class */
+  virtual Node chooseRepresentative( TheoryModel* m, Node eqc );
 public:
   TheoryEngineModelBuilder( TheoryEngine* te );
   virtual ~TheoryEngineModelBuilder(){}
-  /**
-   *  Build model function.
+  /** Build model function.
+   *    Should be called only on TheoryModels m
    */
   void buildModel( Model* m );
 };

@@ -45,7 +45,7 @@ using namespace CVC4::theory::inst;
    }
  }
 
-void addTermEfficient( Node n, std::set< Node >& added){
+void TermDb::addTermEfficient( Node n, std::set< Node >& added){
   static AvailableInTermDb aitdi;
   if (Trigger::isAtomicTrigger( n ) && !n.getAttribute(aitdi)){
     //Already processed but new in this branch
@@ -60,70 +60,69 @@ void addTermEfficient( Node n, std::set< Node >& added){
 
 
 void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
-   //don't add terms in quantifier bodies
+  //don't add terms in quantifier bodies
   if( withinQuant && !Options::current()->registerQuantBodyTerms ){
     return;
   }
-     if( d_processed.find( n )==d_processed.end() ){
+  if( d_processed.find( n )==d_processed.end() ){
     ++(d_quantEngine->d_statistics.d_term_in_termdb);
     d_processed.insert(n);
+    d_type_map[ n.getType() ].push_back( n );
     n.setAttribute(AvailableInTermDb(),true);
-       //if this is an atomic trigger, consider adding it
+    //if this is an atomic trigger, consider adding it
     //Call the children?
-    if( Trigger::isAtomicTrigger( n ) || n.getKind() == kind::APPLY_CONSTRUCTOR ){
-         if( !n.hasAttribute(InstConstantAttribute()) ){
-           Debug("term-db") << "register trigger term " << n << std::endl;
+    if( Trigger::isAtomicTrigger( n ) ){
+      if( !n.hasAttribute(InstConstantAttribute()) ){
+        Debug("term-db") << "register trigger term " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
-           Node op = n.getOperator();
-           d_op_map[op].push_back( n );
-           d_type_map[ n.getType() ].push_back( n );
+        Node op = n.getOperator();
+        d_op_map[op].push_back( n );
         added.insert( n );
 
-           uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
-           for( int i=0; i<(int)n.getNumChildren(); i++ ){
-             addTerm( n[i], added, withinQuant );
-             if( Options::current()->efficientEMatching ){
-               if( d_parents[n[i]][op].empty() ){
-                 //must add parent to equivalence class info
-                 Node nir = d_ith->getRepresentative( n[i] );
-                 uf::EqClassInfo* eci_nir = d_ith->getEquivalenceClassInfo( nir );
-                 if( eci_nir ){
-                   eci_nir->d_pfuns[ op ] = true;
-                 }
-               }
-               //add to parent structure
-               if( std::find( d_parents[n[i]][op][i].begin(), d_parents[n[i]][op][i].end(), n )==d_parents[n[i]][op][i].end() ){
-                 d_parents[n[i]][op][i].push_back( n );
+        uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          addTerm( n[i], added, withinQuant );
+          if( Options::current()->efficientEMatching ){
+            if( d_parents[n[i]][op].empty() ){
+              //must add parent to equivalence class info
+              Node nir = d_ith->getRepresentative( n[i] );
+              uf::EqClassInfo* eci_nir = d_ith->getEquivalenceClassInfo( nir );
+              if( eci_nir ){
+                eci_nir->d_pfuns[ op ] = true;
+              }
+            }
+            //add to parent structure
+            if( std::find( d_parents[n[i]][op][i].begin(), d_parents[n[i]][op][i].end(), n )==d_parents[n[i]][op][i].end() ){
+              d_parents[n[i]][op][i].push_back( n );
               Assert(!getParents(n[i],op,i).empty());
-             }
-           }
-           if( Options::current()->eagerInstQuant ){
-             if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
-               int addedLemmas = 0;
-               for( int i=0; i<(int)d_ith->d_op_triggers[op].size(); i++ ){
-                 addedLemmas += d_ith->d_op_triggers[op][i]->addTerm( n );
-               }
-               //Message() << "Terms, added lemmas: " << addedLemmas << std::endl;
-               d_quantEngine->flushLemmas( &d_quantEngine->getTheoryEngine()->getTheory( THEORY_QUANTIFIERS )->getOutputChannel() );
-             }
-           }
-         }
-       }
+            }
+          }
+          if( Options::current()->eagerInstQuant ){
+            if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
+              int addedLemmas = 0;
+              for( int i=0; i<(int)d_ith->d_op_triggers[op].size(); i++ ){
+                addedLemmas += d_ith->d_op_triggers[op][i]->addTerm( n );
+              }
+              //Message() << "Terms, added lemmas: " << addedLemmas << std::endl;
+              d_quantEngine->flushLemmas( &d_quantEngine->getTheoryEngine()->getTheory( THEORY_QUANTIFIERS )->getOutputChannel() );
+            }
+          }
+        }
+      }
     }else{
-       for( int i=0; i<(int)n.getNumChildren(); i++ ){
-         addTerm( n[i], added, withinQuant );
-       }
-     }
+      for( int i=0; i<(int)n.getNumChildren(); i++ ){
+        addTerm( n[i], added, withinQuant );
+      }
+    }
   }else{
-     if( Options::current()->efficientEMatching &&
-         !n.hasAttribute(InstConstantAttribute())){
-       //Efficient e-matching must be notified
-       //The term in triggers are not important here
-       Debug("term-db") << "New in this branch term " << n << std::endl;
-       addTermEfficient(n,added);
-   }
- }
-};
+    if( Options::current()->efficientEMatching && !n.hasAttribute(InstConstantAttribute())){
+      //Efficient e-matching must be notified
+      //The term in triggers are not important here
+      Debug("term-db") << "New in this branch term " << n << std::endl;
+      addTermEfficient(n,added);
+    }
+  }
+}
 
  void TermDb::reset( Theory::Effort effort ){
    int nonCongruentCount = 0;
@@ -158,7 +157,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    for( int i=0; i<2; i++ ){
      Node n = NodeManager::currentNM()->mkConst( i==1 );
      eq::EqClassIterator eqc( d_quantEngine->getEqualityQuery()->getRepresentative( n ),
-                               ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->getTheory( THEORY_UF ))->getEqualityEngine() );
+                              d_quantEngine->getEqualityQuery()->getEngine() );
      while( !eqc.isFinished() ){
        Node en = (*eqc);
        if( en.getKind()==APPLY_UF && !en.hasAttribute(InstConstantAttribute()) ){
@@ -194,12 +193,18 @@ void TermDb::registerModelBasis( Node n, Node gn ){
 
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
-    std::stringstream ss;
-    ss << Expr::setlanguage(Options::current()->outputLanguage);
-    ss << "e_" << tn;
-    d_model_basis_term[tn] = NodeManager::currentNM()->mkVar( ss.str(), tn );
+    Node mbt;
+    if( d_type_map[ tn ].empty() ){
+      std::stringstream ss;
+      ss << Expr::setlanguage(Options::current()->outputLanguage);
+      ss << "e_" << tn;
+      mbt = NodeManager::currentNM()->mkVar( ss.str(), tn );
+    }else{
+      mbt = d_type_map[ tn ][ 0 ];
+    }
     ModelBasisAttribute mba;
-    d_model_basis_term[tn].setAttribute(mba,true);
+    mbt.setAttribute(mba,true);
+    d_model_basis_term[tn] = mbt;
   }
   return d_model_basis_term[tn];
 }

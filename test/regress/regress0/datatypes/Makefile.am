@@ -36,7 +36,8 @@ TESTS =	\
 	v2l40025.cvc \
 	v3l60006.cvc \
 	v5l30058.cvc \
-	bug286.cvc
+	bug286.cvc \
+	wrong-sel-simp.cvc
 
 FAILING_TESTS = rec5.cvc
 

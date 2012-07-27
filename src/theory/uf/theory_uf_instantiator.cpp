@@ -17,7 +17,7 @@
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_candidate_generator.h"
+#include "theory/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -160,15 +160,19 @@ bool InstantiatorTheoryUf::hasTerm( Node a ){
 }
 
 bool InstantiatorTheoryUf::areEqual( Node a, Node b ){
-  if( hasTerm( a ) && hasTerm( b ) ){
+  if( a==b ){
+    return true;
+  }else if( hasTerm( a ) && hasTerm( b ) ){
     return ((TheoryUF*)d_th)->d_equalityEngine.areEqual( a, b );
   }else{
-    return a==b;
+    return false;
   }
 }
 
 bool InstantiatorTheoryUf::areDisequal( Node a, Node b ){
-  if( hasTerm( a ) && hasTerm( b ) ){
+  if( a==b ){
+    return false;
+  }else if( hasTerm( a ) && hasTerm( b ) ){
     return ((TheoryUF*)d_th)->d_equalityEngine.areDisequal( a, b, false );
   }else{
     return false;
@@ -195,7 +199,7 @@ Node InstantiatorTheoryUf::getInternalRepresentative( Node a ){
         return rep;
       }else{
         //otherwise, must search eq class
-        eq::EqClassIterator eqc_iter( rep, &((TheoryUF*)d_th)->d_equalityEngine );
+        eq::EqClassIterator eqc_iter( rep, getEqualityEngine() );
         rep = Node::null();
         while( !eqc_iter.isFinished() ){
           if( !(*eqc_iter).hasAttribute(InstConstantAttribute()) ){
@@ -209,6 +213,23 @@ Node InstantiatorTheoryUf::getInternalRepresentative( Node a ){
     }
   }
   return d_ground_reps[a];
+}
+
+eq::EqualityEngine* InstantiatorTheoryUf::getEqualityEngine(){
+  return &((TheoryUF*)d_th)->d_equalityEngine;
+}
+
+void InstantiatorTheoryUf::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
+  if( hasTerm( a ) ){
+    a = getEqualityEngine()->getRepresentative( a );
+    eq::EqClassIterator eqc_iter( a, getEqualityEngine() );
+    while( !eqc_iter.isFinished() ){
+      if( std::find( eqc.begin(), eqc.end(), *eqc_iter )==eqc.end() ){
+        eqc.push_back( *eqc_iter );
+      }
+      eqc_iter++;
+    }
+  }
 }
 
 InstantiatorTheoryUf::Statistics::Statistics():
@@ -527,7 +548,7 @@ void InstantiatorTheoryUf::collectTermsIps( Ips& ips, SetNode& terms, int index 
 
 bool InstantiatorTheoryUf::collectParentsTermsIps( Node n, Node f, int arg, SetNode & terms, bool addRep, bool modEq ){ //modEq default true
   bool addedTerm = false;
-  
+
   if( modEq && ((TheoryUF*)d_th)->d_equalityEngine.hasTerm( n )){
     Assert( getRepresentative( n )==n );
     //collect modulo equality
@@ -731,7 +752,7 @@ void InstantiatorTheoryUf::registerEfficientHandler( EfficientHandler& handler,
     d_pat_cand_gens[pats[i]].first->addPcDispatcher(&handler,i);
     d_pat_cand_gens[pats[i]].second->addPpDispatcher(&handler,i,i);
     d_cand_gens[op].addNewTermDispatcher(&handler,i);
-    
+
     combineMultiPpIpsMap(pp_ips_map,multi_pp_ips_map,handler,i,pats);
 
     pp_ips_map.clear();

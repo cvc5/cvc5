@@ -45,12 +45,16 @@ libtheory_la_SOURCES = \
 	rr_inst_match.cpp \
 	rr_trigger.h \
 	rr_trigger.cpp \
+	rr_candidate_generator.h \
+	rr_candidate_generator.cpp \
 	inst_match.h \
 	inst_match.cpp \
 	trigger.h \
 	trigger.cpp \
 	model.h \
-	model.cpp 
+	model.cpp \
+	candidate_generator.h \
+	candidate_generator.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

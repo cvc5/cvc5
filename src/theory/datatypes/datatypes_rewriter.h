@@ -74,7 +74,8 @@ public:
                                    << "Rewrite trivial selector " << in
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
-      } else {
+      }
+        /*
         Node gt = in.getType().mkGroundTerm();
         TypeNode gtt = gt.getType();
         //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
@@ -87,7 +88,7 @@ public:
                                    << " to distinguished ground term "
                                    << in.getType().mkGroundTerm() << std::endl;
         return RewriteResponse(REWRITE_DONE,gt );
-      }
+        */
     }
 
     if(in.getKind() == kind::EQUAL && in[0] == in[1]) {

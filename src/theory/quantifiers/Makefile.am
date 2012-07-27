@@ -24,6 +24,8 @@ libquantifiers_la_SOURCES = \
 	term_database.h \
 	term_database.cpp \
 	first_order_model.h \
-	first_order_model.cpp
+	first_order_model.cpp \
+	model_builder.h \
+	model_builder.cpp
 
 EXTRA_DIST = kinds

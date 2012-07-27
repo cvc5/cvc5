@@ -22,7 +22,7 @@
 #include "theory/rr_inst_match.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/uf/theory_uf_candidate_generator.h"
+#include "theory/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {

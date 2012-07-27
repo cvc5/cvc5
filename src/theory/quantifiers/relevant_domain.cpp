@@ -37,16 +37,16 @@ void RelevantDomain::compute(){
     d_quant_inst_domain[f].resize( f[0].getNumChildren() );
   }
   //add ground terms to domain (rule 1 of complete instantiation essentially uf fragment)
-  for( std::map< Node, uf::UfModel >::iterator it = d_model->d_uf_model.begin();
-       it != d_model->d_uf_model.end(); ++it ){
+  for( std::map< Node, uf::UfModelTree >::iterator it = d_model->d_uf_model_tree.begin();
+       it != d_model->d_uf_model_tree.end(); ++it ){
     Node op = it->first;
-    for( int i=0; i<(int)it->second.d_ground_asserts.size(); i++ ){
-      Node n = it->second.d_ground_asserts[i];
+    for( size_t i=0; i<d_model->d_uf_terms[op].size(); i++ ){
+      Node n = d_model->d_uf_terms[op][i];
       //add arguments to domain
       for( int j=0; j<(int)n.getNumChildren(); j++ ){
-        if( d_model->d_ra.hasType( n[j].getType() ) ){
+        if( d_model->d_rep_set.hasType( n[j].getType() ) ){
           Node ra = d_model->getRepresentative( n[j] );
-          int raIndex = d_model->d_ra.getIndexFor( ra );
+          int raIndex = d_model->d_rep_set.getIndexFor( ra );
           Assert( raIndex!=-1 );
           if( std::find( d_active_domain[op][j].begin(), d_active_domain[op][j].end(), raIndex )==d_active_domain[op][j].end() ){
             d_active_domain[op][j].push_back( raIndex );
@@ -54,8 +54,8 @@ void RelevantDomain::compute(){
         }
       }
       //add to range
-      Node r = it->second.d_ground_asserts_reps[i];
-      int raIndex = d_model->d_ra.getIndexFor( r );
+      Node r = d_model->getRepresentative( n );
+      int raIndex = d_model->d_rep_set.getIndexFor( r );
       Assert( raIndex!=-1 );
       if( std::find( d_active_range[op].begin(), d_active_range[op].end(), raIndex )==d_active_range[op].end() ){
         d_active_range[op].push_back( raIndex );
@@ -104,10 +104,10 @@ bool RelevantDomain::computeRelevantInstantiationDomain( Node n, Node parent, in
     if( !domainSet ){
       //otherwise, we must consider the entire domain
       TypeNode tn = n.getType();
-      if( d_model->d_ra.hasType( tn ) ){
-        if( rd[vi].size()!=d_model->d_ra.d_type_reps[tn].size() ){
+      if( d_model->d_rep_set.hasType( tn ) ){
+        if( rd[vi].size()!=d_model->d_rep_set.d_type_reps[tn].size() ){
           rd[vi].clear();
-          for( size_t i=0; i<d_model->d_ra.d_type_reps[tn].size(); i++ ){
+          for( size_t i=0; i<d_model->d_rep_set.d_type_reps[tn].size(); i++ ){
             rd[vi].push_back( i );
             domainChanged = true;
           }
@@ -166,7 +166,7 @@ bool RelevantDomain::extendFunctionDomains( Node n, RepDomain& range ){
       }
     }else{
       Node r = d_model->getRepresentative( n );
-      range.push_back( d_model->d_ra.getIndexFor( r ) );
+      range.push_back( d_model->d_rep_set.getIndexFor( r ) );
     }
     return domainChanged;
   }

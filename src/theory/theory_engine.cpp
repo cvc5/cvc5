@@ -86,7 +86,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_quantEngine = new QuantifiersEngine(context, this);
 
   //build model information if applicable
-  d_curr_model = new theory::DefaultModel( context, "DefaultModel" );
+  d_curr_model = new theory::DefaultModel( context, "DefaultModel", false );
   d_curr_model_builder = new theory::TheoryEngineModelBuilder( this );
 
   Rewriter::init();
@@ -409,8 +409,8 @@ void TheoryEngine::combineTheories() {
 
     Assert(d_sharedTerms.isShared(carePair.a) || carePair.a.isConst());
     Assert(d_sharedTerms.isShared(carePair.b) || carePair.b.isConst());
-    Assert(!d_sharedTerms.areEqual(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
-    Assert(!d_sharedTerms.areDisequal(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
+    //AJR-temp Assert(!d_sharedTerms.areEqual(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
+    //AJR-temp Assert(!d_sharedTerms.areDisequal(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
 
     // The equality in question
     Node equality = carePair.a < carePair.b ?

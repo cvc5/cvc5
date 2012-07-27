@@ -15,10 +15,10 @@
  **/
 
 #include "theory/datatypes/theory_datatypes_instantiator.h"
-#include "theory/datatypes/theory_datatypes_candidate_generator.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rr_candidate_generator.h"
 
 using namespace std;
 using namespace CVC4;
@@ -55,6 +55,7 @@ int InstantiatorTheoryDatatypes::process( Node f, Theory::Effort effort, int e )
     if( e<2 ){
       return InstStrategy::STATUS_UNFINISHED;
     }else if( e==2 ){
+      /*
       InstMatch m;
       for( int j = 0; j<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
         Node i = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
@@ -65,12 +66,15 @@ int InstantiatorTheoryDatatypes::process( Node f, Theory::Effort effort, int e )
         }
       }
       d_quantEngine->addInstantiation( f, m );
+      */
     }
   }
   return InstStrategy::STATUS_UNKNOWN;
 }
 
 Node InstantiatorTheoryDatatypes::getValueFor( Node n ){
+  return n;
+  /*  FIXME
   //simply get the ground value for n in the current model, if it exists,
   //  or return an arbitrary ground term otherwise
   Debug("quant-datatypes-debug")  << "get value for " << n << std::endl;
@@ -142,6 +146,7 @@ Node InstantiatorTheoryDatatypes::getValueFor( Node n ){
       }
     }
   }
+  */
 }
 
 InstantiatorTheoryDatatypes::Statistics::Statistics():
@@ -155,22 +160,57 @@ InstantiatorTheoryDatatypes::Statistics::~Statistics(){
 }
 
 bool InstantiatorTheoryDatatypes::hasTerm( Node a ){
-  return ((TheoryDatatypes*)d_th)->hasTerm( a );
+  return ((TheoryDatatypes*)d_th)->getEqualityEngine()->hasTerm( a );
 }
 
 bool InstantiatorTheoryDatatypes::areEqual( Node a, Node b ){
-  return ((TheoryDatatypes*)d_th)->areEqual( a, b );
+  if( a==b ){
+    return true;
+  }else if( hasTerm( a ) && hasTerm( b ) ){
+    return ((TheoryDatatypes*)d_th)->getEqualityEngine()->areEqual( a, b );
+  }else{
+    return false;
+  }
 }
 
 bool InstantiatorTheoryDatatypes::areDisequal( Node a, Node b ){
-  return ((TheoryDatatypes*)d_th)->areDisequal( a, b );
+  if( a==b ){
+    return false;
+  }else if( hasTerm( a ) && hasTerm( b ) ){
+    return ((TheoryDatatypes*)d_th)->getEqualityEngine()->areDisequal( a, b, false );
+  }else{
+    return false;
+  }
 }
 
 Node InstantiatorTheoryDatatypes::getRepresentative( Node a ){
-  return ((TheoryDatatypes*)d_th)->getRepresentative( a );
+  if( hasTerm( a ) ){
+    return ((TheoryDatatypes*)d_th)->getEqualityEngine()->getRepresentative( a );
+  }else{
+    return a;
+  }
+}
+
+eq::EqualityEngine* InstantiatorTheoryDatatypes::getEqualityEngine(){
+  return &((TheoryDatatypes*)d_th)->d_equalityEngine;
+}
+
+void InstantiatorTheoryDatatypes::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
+  if( hasTerm( a ) ){
+    a = getEqualityEngine()->getRepresentative( a );
+    eq::EqClassIterator eqc_iter( a, getEqualityEngine() );
+    while( !eqc_iter.isFinished() ){
+      if( std::find( eqc.begin(), eqc.end(), *eqc_iter )==eqc.end() ){
+        eqc.push_back( *eqc_iter );
+      }
+      eqc_iter++;
+    }
+  }
 }
 
 CVC4::theory::rrinst::CandidateGenerator* InstantiatorTheoryDatatypes::getRRCanGenClass(){
-  TheoryDatatypes* th = static_cast<TheoryDatatypes *>(getTheory());
-  return new datatypes::rrinst::CandidateGeneratorTheoryClass(th);
+  datatypes::TheoryDatatypes* dt = static_cast<datatypes::TheoryDatatypes*>(getTheory());
+  eq::EqualityEngine* ee =
+    static_cast<eq::EqualityEngine*>(dt->getEqualityEngine());
+  return new eq::rrinst::CandidateGeneratorTheoryEeClass(ee);
 }

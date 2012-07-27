@@ -21,6 +21,7 @@
 
 #include "theory/model.h"
 #include "theory/uf/theory_uf_model.h"
+#include "theory/arrays/theory_arrays_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,6 +44,8 @@ class FirstOrderModel : public DefaultModel
 private:
   //pointer to term database
   TermDb* d_term_db;
+  //add term function
+  void addTerm( Node n );
   //for initialize model
   void initializeModelForTerm( Node n );
   /** to stream functions */
@@ -50,10 +53,12 @@ private:
   void toStreamType( TypeNode tn, std::ostream& out );
 public: //for Theory UF:
   //models for each UF operator
-  std::map< Node, uf::UfModel > d_uf_model;
+  std::map< Node, uf::UfModelTree > d_uf_model_tree;
+  //model generators
+  std::map< Node, uf::UfModelTreeGenerator > d_uf_model_gen;
 public: //for Theory Arrays:
   //default value for each non-store array
-  std::map< Node, Node > d_array_model;
+  std::map< Node, arrays::ArrayModel > d_array_model;
 public: //for Theory Quantifiers:
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
@@ -64,11 +69,13 @@ public: //for Theory Quantifiers:
 public:
   FirstOrderModel( QuantifiersEngine* qe, context::Context* c, std::string name );
   virtual ~FirstOrderModel(){}
-  // initialize the model
-  void initialize();
+  // reset the model
+  void reset();
   /** get interpreted value */
   Node getInterpretedValue( TNode n );
 public:
+  // initialize the model
+  void initialize();
   /** get term database */
   TermDb* getTermDatabase();
   /** to stream function */

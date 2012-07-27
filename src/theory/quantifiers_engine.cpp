@@ -26,6 +26,7 @@
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rr_candidate_generator.h"
 
 using namespace std;
 using namespace CVC4;
@@ -720,6 +721,30 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
   return d_qe->getInstantiator( THEORY_UF )->getInternalRepresentative( a );
 }
 
+eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
+  return ((uf::TheoryUF*)d_qe->getTheoryEngine()->getTheory( THEORY_UF ))->getEqualityEngine();
+}
+
+void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
+  eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
+  if( ee->hasTerm( a ) ){
+    Node rep = ee->getRepresentative( a );
+    eq::EqClassIterator eqc_iter( rep, ee );
+    while( !eqc_iter.isFinished() ){
+      eqc.push_back( *eqc_iter );
+      eqc_iter++;
+    }
+  }
+  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
+    if( d_qe->getInstantiator( i ) ){
+      d_qe->getInstantiator( i )->getEquivalenceClass( a, eqc );
+    }
+  }
+  if( eqc.empty() ){
+    eqc.push_back( a );
+  }
+}
+
 inst::EqualityQuery* QuantifiersEngine::getEqualityQuery(TypeNode t) {
   /** Should use skeleton (in order to have the type and the kind
       or any needed other information) instead of only the type */
@@ -743,171 +768,6 @@ inst::EqualityQuery* QuantifiersEngine::getEqualityQuery(TypeNode t) {
   //Currently we use the generic EqualityQuery
   return getEqualityQuery();
 }
-
-
-// // Just iterate amoung the equivalence class of the given node
-// // node::Null() *can't* be given to reset
-// class CandidateGeneratorClassGeneric : public CandidateGenerator{
-// private:
-//   //instantiator pointer
-//   EqualityEngine* d_ee;
-//   //the equality class iterator
-//   eq::EqClassIterator d_eqc;
-//   /* For the case where the given term doesn't exists in uf */
-//   Node d_retNode;
-// public:
-//   CandidateGeneratorTheoryEeClass( EqualityEngine* ee): d_ee( ee ){}
-//   ~CandidateGeneratorTheoryEeClass(){}
-//   void resetInstantiationRound(){};
-//   void reset( TNode eqc ){
-//     Assert(!eqc.isNull());
-//     if( d_ee->hasTerm( eqc ) ){
-//       /* eqc is in uf  */
-//       eqc = d_ee->getRepresentative( eqc );
-//       d_eqc = eq::EqClassIterator( eqc, d_ee );
-//       d_retNode = Node::null();
-//     }else{
-//       /* If eqc if not a term known by uf, it is the only one in its
-//          equivalence class. So we will return only it */
-//       d_retNode = eqc;
-//       d_eqc = eq::EqClassIterator();
-//     }
-//   }; //* the argument is not used
-//   TNode getNextCandidate(){
-//     if(d_retNode.isNull()){
-//       if( !d_eqc.isFinished() ) return (*(d_eqc++));
-//       else return Node::null();
-//     }else{
-//       /* the case where eqc not in uf */
-//       Node ret = d_retNode;
-//       d_retNode = Node::null(); /* d_eqc.isFinished() must be true */
-//       return ret;
-//     }
-//   };
-// };
-
-
-class GenericCandidateGeneratorClasses: public rrinst::CandidateGenerator{
-
-  /** The candidate generators */
-  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
-  /** The current theory which candidategenerator is used */
-  TheoryId d_can_gen_id;
-
-public:
-  GenericCandidateGeneratorClasses(QuantifiersEngine * qe){
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      if(qe->getInstantiator(i) != NULL)
-        d_can_gen[i] = qe->getInstantiator(i)->getRRCanGenClasses();
-      else d_can_gen[i] = NULL;
-    };
-  }
-
-  ~GenericCandidateGeneratorClasses(){
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      delete(d_can_gen[i]);
-    };
-  }
-
-  void resetInstantiationRound(){
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      if(d_can_gen[i] != NULL) d_can_gen[i]->resetInstantiationRound();
-    };
-    d_can_gen_id=THEORY_FIRST;
-  }
-
-  void reset(TNode eqc){
-    Assert(eqc.isNull());
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      if(d_can_gen[i] != NULL) d_can_gen[i]->reset(eqc);
-    };
-    d_can_gen_id=THEORY_FIRST;
-    lookForNextTheory();
-  }
-
-  TNode getNextCandidate(){
-    Assert(THEORY_FIRST <= d_can_gen_id && d_can_gen_id <= THEORY_LAST);
-    /** No more */
-    if(d_can_gen_id == THEORY_LAST) return TNode::null();
-    /** Try with this theory */
-    TNode cand = d_can_gen[d_can_gen_id]->getNextCandidate();
-    if( !cand.isNull() ) return cand;
-    lookForNextTheory();
-    return getNextCandidate();
-  }
-
-  void lookForNextTheory(){
-    do{ /* look for the next available generator */
-      ++d_can_gen_id;
-    } while( d_can_gen_id < THEORY_LAST && d_can_gen[d_can_gen_id] == NULL);
-  }
-
-};
-
-class GenericCandidateGeneratorClass: public rrinst::CandidateGenerator{
-
-  /** The candidate generators */
-  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
-  /** The current theory which candidategenerator is used */
-  TheoryId d_can_gen_id;
-  /** current node to look for equivalence class */
-  Node d_node;
-  /** QuantifierEngine */
-  QuantifiersEngine* d_qe;
-
-public:
-  GenericCandidateGeneratorClass(QuantifiersEngine * qe): d_qe(qe) {
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      if(d_qe->getInstantiator(i) != NULL)
-        d_can_gen[i] = d_qe->getInstantiator(i)->getRRCanGenClass();
-      else d_can_gen[i] = NULL;
-    };
-  }
-
-  ~GenericCandidateGeneratorClass(){
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      delete(d_can_gen[i]);
-    };
-  }
-
-  void resetInstantiationRound(){
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      if(d_can_gen[i] != NULL) d_can_gen[i]->resetInstantiationRound();
-    };
-    d_can_gen_id=THEORY_FIRST;
-  }
-
-  void reset(TNode eqc){
-    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-      if(d_can_gen[i] != NULL) d_can_gen[i]->reset(eqc);
-    };
-    d_can_gen_id=THEORY_FIRST;
-    d_node = eqc;
-    lookForNextTheory();
-  }
-
-  TNode getNextCandidate(){
-    Assert(THEORY_FIRST <= d_can_gen_id && d_can_gen_id <= THEORY_LAST);
-    /** No more */
-    if(d_can_gen_id == THEORY_LAST) return TNode::null();
-    /** Try with this theory */
-    TNode cand = d_can_gen[d_can_gen_id]->getNextCandidate();
-    if( !cand.isNull() ) return cand;
-    lookForNextTheory();
-    return getNextCandidate();
-  }
-
-  void lookForNextTheory(){
-    do{ /* look for the next available generator, where the element is */
-      ++d_can_gen_id;
-    } while(
-            d_can_gen_id < THEORY_LAST &&
-            (d_can_gen[d_can_gen_id] == NULL ||
-             !d_qe->getInstantiator( d_can_gen_id )->hasTerm( d_node ))
-            );
-  }
-
-};
 
 
 rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses() {

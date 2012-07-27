@@ -61,6 +61,8 @@ public:
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
   Node getRepresentative( Node a );
+  eq::EqualityEngine* getEqualityEngine();
+  void getEquivalenceClass( Node a, std::vector< Node >& eqc );
     /** general creators of candidate generators */
   CVC4::theory::rrinst::CandidateGenerator* getRRCanGenClass();
 };/* class InstantiatiorTheoryDatatypes  */

@@ -68,6 +68,9 @@ public:
   void setMatchingActive( bool a ) { d_matching_active = a; }
   /** get active */
   bool getMatchingActive() { return d_matching_active; }
+private:
+  /** for efficient e-matching */
+  void addTermEfficient( Node n, std::set< Node >& added);
 public:
   /** parent structure (for efficient E-matching):
       n -> op -> index -> L

@@ -18,7 +18,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
-#include "theory/uf/theory_uf_candidate_generator.h"
+#include "theory/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 
 using namespace std;
