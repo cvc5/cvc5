@@ -4,7 +4,6 @@ UNIT_TESTS = \
 	theory/theory_engine_white \
 	theory/theory_white \
 	theory/theory_arith_white \
-	theory/union_find_black \
 	theory/theory_bv_white \
 	theory/type_enumerator_white \
 	expr/expr_public \
@@ -41,7 +40,6 @@ UNIT_TESTS = \
 	util/bitvector_black \
 	util/datatype_black \
 	util/configuration_black \
-	util/congruence_closure_white \
 	util/output_black \
 	util/exception_black \
 	util/integer_black \

@@ -22,17 +22,15 @@
 #define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include "theory/theory.h"
-#include "util/congruence_closure.h"
 #include "util/datatype.h"
-#include "theory/datatypes/union_find.h"
 #include "util/hash.h"
 #include "util/trans_closure.h"
-#include "theory/datatypes/explanation_manager.h"
 #include "theory/uf/equality_engine.h"
 
 #include <ext/hash_set>
 #include <iostream>
 #include <map>
+#include "context/cdchunk_list.h"
 
 namespace CVC4 {
 namespace theory {

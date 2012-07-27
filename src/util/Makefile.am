@@ -23,7 +23,6 @@ libutil_la_SOURCES = \
 	backtrackable.h \
 	Makefile.am \
 	Makefile.in \
-	congruence_closure.h \
 	debug.h \
 	exception.h \
 	hash.h \
