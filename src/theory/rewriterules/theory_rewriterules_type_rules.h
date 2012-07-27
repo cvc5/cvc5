@@ -45,16 +45,16 @@ public:
     Assert(n.getKind() == kind::REWRITE_RULE && n.getNumChildren()==3 );
     if( check ){
       if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
-        throw TypeCheckingExceptionPrivate(n,
+        throw TypeCheckingExceptionPrivate(n[0],
                      "first argument of rewrite rule is not bound var list");
       }
       if( n[ 1 ].getType(check)!=nodeManager->booleanType() ){
-        throw TypeCheckingExceptionPrivate(n,
+        throw TypeCheckingExceptionPrivate(n[1],
                      "guard of rewrite rule is not an actual guard");
       }
       if( n[2].getType(check) !=
           TypeNode(nodeManager->mkTypeConst<TypeConstant>(RRHB_TYPE))){
-        throw TypeCheckingExceptionPrivate(n,
+        throw TypeCheckingExceptionPrivate(n[2],
                      "not a correct rewrite rule");
       }
     }

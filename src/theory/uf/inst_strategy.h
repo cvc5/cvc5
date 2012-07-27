@@ -20,6 +20,7 @@
 #define __CVC4__INST_STRATEGY_H
 
 #include "theory/quantifiers_engine.h"
+#include "theory/trigger.h"
 
 #include "context/context.h"
 #include "context/context_mm.h"
@@ -59,7 +60,7 @@ private:
   /** InstantiatorTheoryUf class */
   InstantiatorTheoryUf* d_th;
   /** explicitly provided patterns */
-  std::map< Node, std::vector< Trigger* > > d_user_gen;
+  std::map< Node, std::vector< inst::Trigger* > > d_user_gen;
   /** counter for quantifiers */
   std::map< Node, int > d_counter;
   /** process functions */
@@ -75,7 +76,7 @@ public:
   /** get num patterns */
   int getNumUserGenerators( Node f ) { return (int)d_user_gen[f].size(); }
   /** get user pattern */
-  Trigger* getUserGenerator( Node f, int i ) { return d_user_gen[f][ i ]; }
+  inst::Trigger* getUserGenerator( Node f, int i ) { return d_user_gen[f][ i ]; }
   /** identify */
   std::string identify() const { return std::string("UserPatterns"); }
 };/* class InstStrategyUserPatterns */
@@ -99,7 +100,7 @@ private:
   /** generate additional triggers */
   bool d_generate_additional;
   /** triggers for each quantifier */
-  std::map< Node, std::map< Trigger*, bool > > d_auto_gen_trigger;
+  std::map< Node, std::map< inst::Trigger*, bool > > d_auto_gen_trigger;
   std::map< Node, int > d_counter;
   /** single, multi triggers for each quantifier */
   std::map< Node, std::vector< Node > > d_patTerms[2];
@@ -120,7 +121,7 @@ public:
   ~InstStrategyAutoGenTriggers(){}
 public:
   /** get auto-generated trigger */
-  Trigger* getAutoGenTrigger( Node f );
+  inst::Trigger* getAutoGenTrigger( Node f );
   /** identify */
   std::string identify() const { return std::string("AutoGenTriggers"); }
   /** set regenerate frequency, if fr<0, turn off regenerate */

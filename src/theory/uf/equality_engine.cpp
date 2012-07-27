@@ -65,6 +65,10 @@ void EqualityEngine::init() {
   d_triggerDatabaseAllocatedSize = 100000;
   d_triggerDatabase = (char*) malloc(d_triggerDatabaseAllocatedSize);
 
+  //We can't notify during the initialization because it notifies
+  // QuantifiersEngine.AddTermToDatabase that try to access to the uf
+  // instantiator that currently doesn't exist.
+  ScopedBool sb(d_performNotify, false);
   addTerm(d_true);
   addTerm(d_false);
 

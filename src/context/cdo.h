@@ -59,7 +59,7 @@ protected:
    * using the ContextMemoryManager.
    */
   virtual ContextObj* save(ContextMemoryManager* pCMM) {
-    Debug("context") << "save cdo " << this << " (value " << get() << ")";
+    Debug("context") << "save cdo " << this;
     ContextObj* p = new(pCMM) CDO<T>(*this);
     Debug("context") << " to " << p << std::endl;
     return p;
@@ -70,7 +70,7 @@ protected:
    * saved data back from the saved copy using operator= for T.
    */
   virtual void restore(ContextObj* pContextObj) {
-    //Debug("context") << "restore cdo " << this << " from " << get();
+    //Debug("context") << "restore cdo " << this;
     d_data = ((CDO<T>*) pContextObj)->d_data;
     //Debug("context") << " to " << get() << std::endl;
   }

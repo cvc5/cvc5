@@ -282,7 +282,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::FORALL: out << "forall "; break;
   case kind::EXISTS: out << "exists "; break;
   case kind::BOUND_VAR_LIST:
-    out << '(';
+    // the left parenthesis is already printed (before the switch)
     for(TNode::iterator i = n.begin(),
           iend = n.end();
         i != iend; ) {
@@ -290,8 +290,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       (*i).toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
                     types, language::output::LANG_SMTLIB_V2);
       out << ' ';
-      (*i).getType().toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-                              false, language::output::LANG_SMTLIB_V2);
+      out << (*i).getType();
+      // The following code do stange things
+      // (*i).getType().toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
+      //                         false, language::output::LANG_SMTLIB_V2);
       out << ')';
       if(++i != iend) {
         out << ' ';

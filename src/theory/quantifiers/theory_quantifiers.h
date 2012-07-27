@@ -30,10 +30,11 @@
 #include <map>
 
 namespace CVC4 {
+class TheoryEngine;
+
 namespace theory {
 namespace quantifiers {
 
-class TheoryEngine;
 class ModelEngine;
 class InstantiationEngine;
 

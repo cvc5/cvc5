@@ -21,7 +21,8 @@
 
 #include "theory/theory.h"
 #include "util/hash.h"
-#include "theory/trigger.h"
+#include "theory/inst_match.h"
+#include "theory/rr_inst_match.h"
 
 #include "util/stats.h"
 
@@ -32,16 +33,6 @@
 namespace CVC4 {
 
 class TheoryEngine;
-
-// attribute for "contains instantiation constants from"
-struct InstConstantAttributeId {};
-typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
-
-struct InstLevelAttributeId {};
-typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
-
-struct InstVarNumAttributeId {};
-typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
 namespace theory {
 
@@ -126,7 +117,7 @@ namespace quantifiers {
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::ModelEngine;
-  friend class InstMatch;
+  friend class inst::InstMatch;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** reference to theory engine object */
@@ -139,7 +130,7 @@ private:
   quantifiers::ModelEngine* d_model_engine;
   /** equality query class */
   EqualityQuery* d_eq_query;
-
+public:
   /** list of all quantifiers (pre-rewrite) */
   std::vector< Node > d_quants;
   /** list of all quantifiers (post-rewrite) */
@@ -153,7 +144,7 @@ private:
   /** has added lemma this round */
   bool d_hasAddedLemma;
   /** inst matches produced for each quantifier */
-  std::map< Node, InstMatchTrie > d_inst_match_trie;
+  std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   /** owner of quantifiers */
   std::map< Node, Theory* > d_owner;
   /** term database */
@@ -184,13 +175,24 @@ private:
 
 public:
   QuantifiersEngine(context::Context* c, TheoryEngine* te);
-  ~QuantifiersEngine(){}
+  ~QuantifiersEngine();
   /** get instantiator for id */
-  Instantiator* getInstantiator( int id );
+  Instantiator* getInstantiator( theory::TheoryId id );
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
-  /** get equality query object */
-  EqualityQuery* getEqualityQuery() { return d_eq_query; }
+  /** get equality query object for the given type. The default is the
+      generic one */
+  inst::EqualityQuery* getEqualityQuery(TypeNode t);
+  inst::EqualityQuery* getEqualityQuery() {
+    return d_eq_query;
+  }
+  /** get equality query object for the given type. The default is the
+      one of UF */
+  rrinst::CandidateGenerator* getRRCanGenClasses(TypeNode t);
+  rrinst::CandidateGenerator* getRRCanGenClass(TypeNode t);
+  /* generic candidate generator */
+  rrinst::CandidateGenerator* getRRCanGenClasses();
+  rrinst::CandidateGenerator* getRRCanGenClass();
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */
@@ -301,6 +303,14 @@ public:
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
     IntStat d_multi_trigger_instantiations;
+    IntStat d_term_in_termdb;
+    IntStat d_num_mono_candidates;
+    IntStat d_num_mono_candidates_new_term;
+    IntStat d_num_multi_candidates;
+    IntStat d_mono_candidates_cache_hit;
+    IntStat d_mono_candidates_cache_miss;
+    IntStat d_multi_candidates_cache_hit;
+    IntStat d_multi_candidates_cache_miss;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */

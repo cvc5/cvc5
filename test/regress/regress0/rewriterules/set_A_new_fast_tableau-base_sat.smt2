@@ -8,76 +8,103 @@
 
 (declare-fun in (elt set) Bool)
 
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; inter
 
 (declare-fun inter (set set)  set)
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (in ?s (inter ?t1 ?t2)) (and (in ?s ?t1) (in ?s ?t2))) :rewrite-rule)))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set)) ()
+                  ((in ?s (inter ?t1 ?t2))) (and (in ?s ?t1) (in ?s ?t2)) ())
 
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (not (in ?s ?t1)) (not (in ?s (inter ?t1 ?t2)))) :pattern ((inter ?t1 ?t2)) ) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s ?t1))) (not (in ?s (inter ?t1 ?t2))) (((inter ?t1 ?t2))) )
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (not (in ?s ?t2)) (not (in ?s (inter ?t1 ?t2)))) :pattern ((inter ?t1 ?t2)) ) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s ?t2))) (not (in ?s (inter ?t1 ?t2))) (((inter ?t1 ?t2))) )
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (and (not (in ?s (inter ?t1 ?t2)))  (in ?s ?t1)) (not (in ?s ?t2))) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s (inter ?t1 ?t2))) (in ?s ?t1)) (not (in ?s ?t2)) () )
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (and (not (in ?s (inter ?t1 ?t2)))  (in ?s ?t2)) (not (in ?s ?t1))) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s (inter ?t1 ?t2))) (in ?s ?t2)) (not (in ?s ?t1)) ())
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (and (in ?s ?t1)  (in ?s ?t2)) (in ?s (inter ?t1 ?t2))) :pattern ((inter ?t1 ?t2)) ) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s ?t1) (in ?s ?t2)) (in ?s (inter ?t1 ?t2)) (((inter ?t1 ?t2))) )
 
 ;;;;;;;;;;;;;;;;;
 ;; union
 
 (declare-fun union (set set)  set)
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (not (in ?s (union ?t1 ?t2))) (and (not (in ?s ?t1)) (not (in ?s ?t2)))) :rewrite-rule)))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s (union ?t1 ?t2)))) (and (not (in ?s ?t1)) (not (in ?s ?t2))) ())
 
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s ?t1)) (in ?s (union ?t1 ?t2)) (((union ?t1 ?t2))))
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (in ?s ?t1) (in ?s (union ?t1 ?t2))) :pattern ((union ?t1 ?t2)) ) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s ?t2)) (in ?s (union ?t1 ?t2)) (((union ?t1 ?t2))))
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (in ?s ?t2) (in ?s (union ?t1 ?t2))) :pattern ((union ?t1 ?t2)) ) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s (union ?t1 ?t2)) (not (in ?s ?t1))) (in ?s ?t2) ())
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (and (in ?s (union ?t1 ?t2))  (not (in ?s ?t1))) (in ?s ?t2)) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s (union ?t1 ?t2)) (not (in ?s ?t2))) (in ?s ?t1) ())
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (and (in ?s (union ?t1 ?t2))  (not (in ?s ?t2))) (in ?s ?t1)) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s ?t1)) (not (in ?s ?t2))) (not (in ?s (union ?t1 ?t2))) (((union ?t1 ?t2))))
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (and (not (in ?s ?t1))  (not (in ?s ?t2))) (not (in ?s (union ?t1 ?t2)))) :pattern ((union ?t1 ?t2)) ) :rewrite-rule) ))
+;;;;;;;;;;;;;;;;;;;;
+;; diff
+
+(declare-fun diff (set set)  set)
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s (diff ?t1 ?t2))) (and (in ?s ?t1) (not (in ?s ?t2))) ())
+
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s ?t1))) (not (in ?s (diff ?t1 ?t2))) (((diff ?t1 ?t2))) )
+
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s ?t2)) (not (in ?s (diff ?t1 ?t2))) (((diff ?t1 ?t2))))
+
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s (diff ?t1 ?t2))) (in ?s ?t1)) (in ?s ?t2) ())
+
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((not (in ?s (diff ?t1 ?t2))) (not (in ?s ?t2))) (not (in ?s ?t1)) ())
+
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s ?t1) (not (in ?s ?t2))) (in ?s (diff ?t1 ?t2)) (((diff ?t1 ?t2))) )
 
 ;;;;;;;;;;;;;;;;
 ;;sing
 
 (declare-fun sing (elt)  set)
-(assert (forall ((?s elt))
-                (! (! (=> true (in ?s (sing ?s))) :pattern ((sing ?s)) ) :rewrite-rule) ))
+(assert-propagation ((?s elt))
+                  () () (in ?s (sing ?s)) (((sing ?s))) )
 
-(assert (forall ((?s elt) (?t1 elt))
-                (! (=> true (=> (in ?s (sing ?t1)) (= ?s ?t1))) :rewrite-rule) ))
+(assert-propagation ((?s elt) (?t1 elt))
+                  () ((in ?s (sing ?t1))) (= ?s ?t1) ())
 
-(assert (forall ((?s elt) (?t1 elt))
-                (! (=> (not (in ?s (sing ?t1))) (not (= ?s ?t1))) :rewrite-rule) ))
-
-
+(assert-propagation ((?s elt) (?t1 elt))
+                  () ((not (in ?s (sing ?t1)))) (not (= ?s ?t1)) ())
 
 ;;;;;;;;;;;;;;;;;;;
-;; fullfiling
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (=> (in ?s (union ?t1 ?t2)) (or (in ?s ?t1) (not (in ?s ?t1)))) :rewrite-rule)))
+;; fullfiling runned at Full effort
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s (union ?t1 ?t2))) (or (in ?s ?t1) (not (in ?s ?t1))) ())
 
-(assert (forall ((?s elt) (?t1 set) (?t2 set))
-                (! (! (=> (in ?s ?t1) (or (in ?s ?t2) (not (in ?s ?t2)))) :pattern ((inter ?t1 ?t2))) :rewrite-rule)))
+(assert-propagation ((?s elt) (?t1 set) (?t2 set))
+                  () ((in ?s ?t1)) (or (in ?s ?t2) (not (in ?s ?t2))) (((inter ?t1 ?t2))))
 
-;; (assert (forall ((?t1 set) (?t2 set)) (! (=> (not (= ?t1 ?t2)) (exists ((?e elt)) (or (and (in ?e ?t1) (not (in ?e ?t2))) (and (not (in ?e ?t1)) (in ?e ?t2))))) )))
+(assert-propagation ((?t1 set) (?t2 set))
+                  () ((not (= ?t1 ?t2))) (exists ((?e elt)) (or (and (in ?e ?t1) (not (in ?e ?t2))) (and (not (in ?e ?t1)) (in ?e ?t2)))) ())
+
+;;;;;;;;;;;;;;;;;;;
+;; shortcut
+(declare-fun subset (set set) Bool)
+(assert-reduction ((?t1 set) (?t2 set))
+                () ((subset ?t1 ?t2)) (= (union ?t1 ?t2) ?t2) ())
 
 (declare-fun e () elt)
 (declare-fun t1 () set)

@@ -44,14 +44,40 @@ typedef expr::Attribute< NoMatchAttributeId,
                          true // context dependent
                        > NoMatchAttribute;
 
-class QuantifiersEngine;
+// attribute for "contains instantiation constants from"
+struct InstConstantAttributeId {};
+typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 
-namespace uf {
+struct InstLevelAttributeId {};
+typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+
+struct InstVarNumAttributeId {};
+typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
+
+// Attribute that tell if a node have been asserted in this branch
+struct AvailableInTermDbId {};
+/** use the special for boolean flag */
+typedef expr::Attribute<AvailableInTermDbId,
+                        bool,
+                        expr::attr::NullCleanupStrategy,
+                        true  // context dependent
+                        > AvailableInTermDb;
+
+
+class QuantifiersEngine;
+namespace quantifiers{
+  class TermArgTrie;
+}
+
+namespace uf{
   class InstantiatorTheoryUf;
   class TheoryUF;
 }/* CVC4::theory::uf namespace */
 
-class CandidateGenerator {
+namespace inst {
+
+class CandidateGenerator
+{
 public:
   CandidateGenerator(){}
   ~CandidateGenerator(){}
@@ -95,7 +121,7 @@ public:
 class EqualityQuery {
 public:
   EqualityQuery(){}
-  ~EqualityQuery(){}
+  virtual ~EqualityQuery(){};
   /** contains term */
   virtual bool hasTerm( Node a ) = 0;
   /** get the representative of the equivalence class of a */
@@ -113,12 +139,16 @@ public:
 
 /** basic class defining an instantiation */
 class InstMatch {
+  /* map from variable to ground terms */
+  std::map< Node, Node > d_map;
 public:
   InstMatch();
   InstMatch( InstMatch* m );
 
   /** set the match of v to m */
-  bool setMatch( EqualityQuery* q, Node v, Node m );
+  bool setMatch( EqualityQuery* q, TNode v, TNode m );
+  /* This version tell if the variable has been set */
+  bool setMatch( EqualityQuery* q, TNode v, TNode m, bool & set);
   /** fill all unfilled values with m */
   bool add( InstMatch& m );
   /** if compatible, fill all unfilled values with m and return true
@@ -140,10 +170,30 @@ public:
   void computeTermVec( const std::vector< Node >& vars, std::vector< Node >& match );
   /** clear */
   void clear(){ d_map.clear(); }
+  /** erase */
+  template<class Iterator>
+  void erase(Iterator begin, Iterator end){
+    for(Iterator i = begin; i != end; ++i){
+      d_map.erase(*i);
+    };
+  }
+  void erase(Node node){ d_map.erase(node); }
   /** is_empty */
   bool empty(){ return d_map.empty(); }
-  /* map from variable to ground terms */
-  std::map< Node, Node > d_map;
+  /** set */
+  void set(TNode var, TNode n){
+    //std::cout << "var.getType() " << var.getType() << "n.getType() " << n.getType() << std::endl ;
+    Assert( !var.isNull() );
+    Assert( n.isNull() ||// For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
+            var.getType() == n.getType() );
+    d_map[var] = n;
+  }
+  Node get(TNode var){ return d_map[var]; }
+  size_t size(){ return d_map.size(); }
+  /* iterator */
+  std::map< Node, Node >::iterator begin(){ return d_map.begin(); };
+  std::map< Node, Node >::iterator end(){ return d_map.end(); };
+  std::map< Node, Node >::iterator find(Node var){ return d_map.find(var); };
   /* Node used for matching the trigger only for mono-trigger (just for
      efficiency because I need only that) */
   Node d_matched;
@@ -206,67 +256,6 @@ public:
     return d_imt.addInstMatch( qe, f, m, modEq, d_imtio );
   }
 };/* class InstMatchTrieOrdered */
-
-template<bool modEq = false>
-class InstMatchTrie2 {
-private:
-
-  class Tree {
-  public:
-    typedef std::hash_map< Node, Tree *, NodeHashFunction > MLevel;
-    MLevel e;
-    const size_t level; //context level of creation
-    Tree() CVC4_UNDEFINED;
-    const Tree & operator =(const Tree & t) CVC4_UNDEFINED;
-    Tree(size_t l): level(l) {};
-    ~Tree(){
-      for(typename MLevel::iterator i = e.begin(); i!=e.end(); ++i)
-        delete(i->second);
-    };
-  };/* class InstMatchTrie2::Tree */
-
-
-  typedef std::pair<Tree *, TNode> Mod;
-
-  class CleanUp {
-  public:
-    inline void operator()(Mod * m){
-      typename Tree::MLevel::iterator i = m->first->e.find(m->second);
-      Assert (i != m->first->e.end()); //should not have been already removed
-      m->first->e.erase(i);
-    }
-  };/* class InstMatchTrie2::CleanUp */
-
-  EqualityQuery* d_eQ;
-  eq::EqualityEngine* d_eE;
-
-  /* before for the order of destruction */
-  Tree d_data;
-
-  context::Context* d_context;
-  context::CDList<Mod, CleanUp, std::allocator<Mod> > d_mods;
-
-  typedef std::map<Node, Node>::const_iterator mapIter;
-
-  /** add the substitution given by the iterator*/
-  void addSubTree( Tree* root, mapIter current, mapIter end, size_t currLevel);
-  /** test if it exists match, modulo uf-equations if modEq is true if
-   *  return false the deepest point of divergence is put in [e] and
-   *  [diverge].
-   */
-  bool existsInstMatch( Tree* root,
-                        mapIter & current, mapIter& end,
-                        Tree*& e, mapIter& diverge) const;
-
-public:
-  InstMatchTrie2(context::Context* c,  QuantifiersEngine* q);
-  InstMatchTrie2(const InstMatchTrie2&) CVC4_UNDEFINED;
-  const InstMatchTrie2& operator=(const InstMatchTrie2 & e) CVC4_UNDEFINED;
-  /** add match m in the trie,
-      modEq specify to take into account equalities,
-      return true if it was never seen */
-  bool addInstMatch( InstMatch& m);
-};/* class InstMatchTrie2 */
 
 /** base class for producing InstMatch objects */
 class IMGenerator {
@@ -405,10 +394,6 @@ public:
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 };/* class InstMatchGeneratorMulti */
 
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 /** smart (single)-trigger implementation */
 class InstMatchGeneratorSimple : public IMGenerator {
 private:
@@ -437,6 +422,11 @@ public:
   /** add ground term t, possibly add instantiations */
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 };/* class InstMatchGeneratorSimple */
+
+}/* CVC4::theory::inst namespace */
+
+typedef CVC4::theory::inst::InstMatch InstMatch;
+typedef CVC4::theory::inst::EqualityQuery EqualityQuery;
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

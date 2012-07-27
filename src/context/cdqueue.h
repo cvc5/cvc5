@@ -63,7 +63,7 @@ protected:
    *  We assume that the base class do the job inside their copy constructor.
    */
   ContextObj* save(ContextMemoryManager* pCMM) {
-    ContextObj* data = new(pCMM) CDQueue<T>(*this);
+    ContextObj* data = new(pCMM) CDQueue<T, CleanUp, Allocator>(*this);
     // We save the d_size in d_lastsave and we should never destruct below this
     // indices before the corresponding restore.
     d_lastsave = ParentType::d_size;
@@ -83,7 +83,7 @@ protected:
    * the list pointer and the allocated size are not changed.
    */
   void restore(ContextObj* data) {
-    CDQueue<T>* qdata = static_cast<CDQueue<T>*>(data);
+    CDQueue<T, CleanUp, Allocator>* qdata = static_cast<CDQueue<T, CleanUp, Allocator>*>(data);
     d_iter = qdata->d_iter;
     d_lastsave = qdata->d_lastsave;
     ParentType::restore(data);

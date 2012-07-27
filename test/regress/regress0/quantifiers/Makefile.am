@@ -50,8 +50,6 @@ TESTS =	\
 #		javafe.ast.StmtVec.009.smt2 \
 #		javafe.ast.WhileStmt.447.smt2 \
 #		javafe.tc.CheckCompilationUnit.001.smt2 \
-#		AdditiveMethods_AdditiveMethods..ctor.smt2 \
-#		AdditiveMethods_OwnedResults.Mz.smt2 \
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
 #
 

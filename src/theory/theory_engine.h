@@ -450,6 +450,13 @@ public:
   }
 
   /**
+   * Get a pointer to the underlying user context.
+   */
+  inline context::Context* getUserContext() const {
+    return d_userContext;
+  }
+
+  /**
    * Get a pointer to the underlying quantifiers engine.
    */
   theory::QuantifiersEngine* getQuantifiersEngine() const {
@@ -677,8 +684,8 @@ public:
   }
 
   /** Get the theory for id */
-  theory::Theory* getTheory(int id) {
-    return d_theoryTable[id];
+  theory::Theory* getTheory(theory::TheoryId theoryId) {
+    return d_theoryTable[theoryId];
   }
 
   /**

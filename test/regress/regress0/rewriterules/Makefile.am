@@ -1,4 +1,8 @@
 BINARY = cvc4
+
+CVC4_REGRESSION_ARGS ?= --efficient-e-matching
+export CVC4_REGRESSION_ARGS
+
 if PROOF_REGRESSIONS
 TESTS_ENVIRONMENT = LFSC="$(LFSC) $(LFSCARGS)" @srcdir@/../../run_regression $(RUN_REGRESSION_ARGS) --proof @top_builddir@/src/main/$(BINARY)
 else
@@ -13,7 +17,8 @@ MAKEFLAGS = -k
 TESTS =	\
 	length_trick.smt2 length_trick2.smt2 length_gen_020.smt2 \
 	datatypes.smt2 datatypes_sat.smt2 set_A_new_fast_tableau-base.smt2 \
-	set_A_new_fast_tableau-base_sat.smt2
+	set_A_new_fast_tableau-base_sat.smt2 relation.smt2 simulate_rewritting.smt2 \
+	reachability_back_to_the_future.smt2 native_arrays.smt2 reachability_bbttf_eT_arrays.smt2
 
 EXTRA_DIST = $(TESTS)
 

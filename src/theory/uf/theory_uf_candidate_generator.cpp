@@ -26,6 +26,11 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 
+namespace CVC4{
+namespace theory{
+namespace uf{
+namespace inst{
+
 CandidateGeneratorTheoryUf::CandidateGeneratorTheoryUf( InstantiatorTheoryUf* ith, Node op ) :
   d_op( op ), d_ith( ith ), d_term_iter( -2 ){
   Assert( !d_op.isNull() );
@@ -45,6 +50,7 @@ void CandidateGeneratorTheoryUf::reset( Node eqc ){
       d_retNode = Node::null();
     }else{
       d_retNode = eqc;
+
     }
     d_term_iter = -1;
   }
@@ -168,4 +174,9 @@ Node CandidateGeneratorTheoryUfLitDeq::getNextCandidate(){
     }
   }
   return Node::null();
+}
+
+}
+}
+}
 }

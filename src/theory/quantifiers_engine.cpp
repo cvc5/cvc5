@@ -32,6 +32,7 @@ using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
+using namespace CVC4::theory::inst;
 
 //#define COMPUTE_RELEVANCE
 //#define REWRITE_ASSERTED_QUANTIFIERS
@@ -93,7 +94,11 @@ d_active( c ){
   d_optInstLimit = 0;
 }
 
-Instantiator* QuantifiersEngine::getInstantiator( int id ){
+QuantifiersEngine::~QuantifiersEngine(){
+  delete(d_term_db);
+}
+
+Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){
   return d_te->getTheory( id )->getInstantiator();
 }
 
@@ -212,7 +217,7 @@ void QuantifiersEngine::registerQuantifier( Node f ){
 
 void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
   for(std::vector<Node>::iterator p = pattern.begin(); p != pattern.end(); ++p){
-    std::vector< Node > added;
+    std::set< Node > added;
     getTermDatabase()->addTerm(*p,added);
   }
 }
@@ -236,7 +241,7 @@ void QuantifiersEngine::propagate( Theory::Effort level ){
 }
 
 void QuantifiersEngine::resetInstantiationRound( Theory::Effort level ){
-  for( int i=0; i<theory::THEORY_LAST; i++ ){
+  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
     if( getInstantiator( i ) ){
       getInstantiator( i )->resetInstantiationRound( level );
     }
@@ -245,13 +250,19 @@ void QuantifiersEngine::resetInstantiationRound( Theory::Effort level ){
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
-  std::vector< Node > added;
-  getTermDatabase()->addTerm( n, added, withinQuant );
-#ifdef COMPUTE_RELEVANCE
-  for( int i=0; i<(int)added.size(); i++ ){
-    if( !withinQuant ){
-      setRelevance( added[i].getOperator(), 0 );
+    std::set< Node > added;
+    getTermDatabase()->addTerm( n, added, withinQuant );
+    if( Options::current()->efficientEMatching ){
+      uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)getInstantiator( THEORY_UF );
+      d_ith->newTerms(added);
     }
+#ifdef COMPUTE_RELEVANCE
+    //added contains also the Node that just have been asserted in this branch
+    for( std::set< Node >::iterator i=added.begin(), end=added.end();
+         i!=end; i++ ){
+      if( !withinQuant ){
+        setRelevance( i->getOperator(), 0 );
+      }
   }
 #endif
 
@@ -530,7 +541,15 @@ QuantifiersEngine::Statistics::Statistics():
   d_triggers("QuantifiersEngine::Triggers", 0),
   d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
   d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0)
+  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
+  d_term_in_termdb("QuantifiersEngine::Term_in_TermDb", 0),
+  d_num_mono_candidates("QuantifiersEngine::NumMonoCandidates", 0),
+  d_num_mono_candidates_new_term("QuantifiersEngine::NumMonoCandidatesNewTerm", 0),
+  d_num_multi_candidates("QuantifiersEngine::NumMultiCandidates", 0),
+  d_mono_candidates_cache_hit("QuantifiersEngine::MonoCandidatesCacheHit", 0),
+  d_mono_candidates_cache_miss("QuantifiersEngine::MonoCandidatesCacheMiss", 0),
+  d_multi_candidates_cache_hit("QuantifiersEngine::MultiCandidatesCacheHit", 0),
+  d_multi_candidates_cache_miss("QuantifiersEngine::MultiCandidatesCacheMiss", 0)
 {
   StatisticsRegistry::registerStat(&d_num_quant);
   StatisticsRegistry::registerStat(&d_instantiation_rounds);
@@ -548,6 +567,14 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_simple_triggers);
   StatisticsRegistry::registerStat(&d_multi_triggers);
   StatisticsRegistry::registerStat(&d_multi_trigger_instantiations);
+  StatisticsRegistry::registerStat(&d_term_in_termdb);
+  StatisticsRegistry::registerStat(&d_num_mono_candidates);
+  StatisticsRegistry::registerStat(&d_num_mono_candidates_new_term);
+  StatisticsRegistry::registerStat(&d_num_multi_candidates);
+  StatisticsRegistry::registerStat(&d_mono_candidates_cache_hit);
+  StatisticsRegistry::registerStat(&d_mono_candidates_cache_miss);
+  StatisticsRegistry::registerStat(&d_multi_candidates_cache_hit);
+  StatisticsRegistry::registerStat(&d_multi_candidates_cache_miss);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -567,6 +594,14 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_simple_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_trigger_instantiations);
+  StatisticsRegistry::unregisterStat(&d_term_in_termdb);
+  StatisticsRegistry::unregisterStat(&d_num_mono_candidates);
+  StatisticsRegistry::unregisterStat(&d_num_mono_candidates_new_term);
+  StatisticsRegistry::unregisterStat(&d_num_multi_candidates);
+  StatisticsRegistry::unregisterStat(&d_mono_candidates_cache_hit);
+  StatisticsRegistry::unregisterStat(&d_mono_candidates_cache_miss);
+  StatisticsRegistry::unregisterStat(&d_multi_candidates_cache_hit);
+  StatisticsRegistry::unregisterStat(&d_multi_candidates_cache_miss);
 }
 
 /** compute symbols */
@@ -608,7 +643,7 @@ bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){
   if( ee->hasTerm( a ) ){
     return true;
   }
-  for( int i=0; i<theory::THEORY_LAST; i++ ){
+  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
     if( d_qe->getInstantiator( i ) ){
       if( d_qe->getInstantiator( i )->hasTerm( a ) ){
         return true;
@@ -623,7 +658,7 @@ Node EqualityQueryQuantifiersEngine::getRepresentative( Node a ){
   if( ee->hasTerm( a ) ){
     return ee->getRepresentative( a );
   }
-  for( int i=0; i<theory::THEORY_LAST; i++ ){
+  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
     if( d_qe->getInstantiator( i ) ){
       if( d_qe->getInstantiator( i )->hasTerm( a ) ){
         return d_qe->getInstantiator( i )->getRepresentative( a );
@@ -643,7 +678,7 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
         return true;
       }
     }
-    for( int i=0; i<theory::THEORY_LAST; i++ ){
+    for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
       if( d_qe->getInstantiator( i ) ){
         if( d_qe->getInstantiator( i )->areEqual( a, b ) ){
           return true;
@@ -662,7 +697,7 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
       return true;
     }
   }
-  for( int i=0; i<theory::THEORY_LAST; i++ ){
+  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
     if( d_qe->getInstantiator( i ) ){
       if( d_qe->getInstantiator( i )->areDisequal( a, b ) ){
         return true;
@@ -674,7 +709,7 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
 }
 
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
-  //for( int i=0; i<theory::THEORY_LAST; i++ ){
+  //for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
   //  if( d_qe->getInstantiator( i ) ){
   //    if( d_qe->getInstantiator( i )->hasTerm( a ) ){
   //      return d_qe->getInstantiator( i )->getInternalRepresentative( a );
@@ -683,4 +718,218 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
   //}
   //return a;
   return d_qe->getInstantiator( THEORY_UF )->getInternalRepresentative( a );
+}
+
+inst::EqualityQuery* QuantifiersEngine::getEqualityQuery(TypeNode t) {
+  /** Should use skeleton (in order to have the type and the kind
+      or any needed other information) instead of only the type */
+
+  // TheoryId id = Theory::theoryOf(t);
+  // inst::EqualityQuery* eq = d_eq_query_arr[id];
+  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
+  // else return eq;
+
+  /** hack because the generic one is too slow */
+  // TheoryId id = Theory::theoryOf(t);
+  // if( true || id == theory::THEORY_UF){
+  //   uf::InstantiatorTheoryUf* ith = static_cast<uf::InstantiatorTheoryUf*>( getInstantiator( theory::THEORY_UF ));
+  //   return new uf::EqualityQueryInstantiatorTheoryUf(ith);
+  // }
+  // inst::EqualityQuery* eq = d_eq_query_arr[id];
+  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
+  // else return eq;
+
+
+  //Currently we use the generic EqualityQuery
+  return getEqualityQuery();
+}
+
+
+// // Just iterate amoung the equivalence class of the given node
+// // node::Null() *can't* be given to reset
+// class CandidateGeneratorClassGeneric : public CandidateGenerator{
+// private:
+//   //instantiator pointer
+//   EqualityEngine* d_ee;
+//   //the equality class iterator
+//   eq::EqClassIterator d_eqc;
+//   /* For the case where the given term doesn't exists in uf */
+//   Node d_retNode;
+// public:
+//   CandidateGeneratorTheoryEeClass( EqualityEngine* ee): d_ee( ee ){}
+//   ~CandidateGeneratorTheoryEeClass(){}
+//   void resetInstantiationRound(){};
+//   void reset( TNode eqc ){
+//     Assert(!eqc.isNull());
+//     if( d_ee->hasTerm( eqc ) ){
+//       /* eqc is in uf  */
+//       eqc = d_ee->getRepresentative( eqc );
+//       d_eqc = eq::EqClassIterator( eqc, d_ee );
+//       d_retNode = Node::null();
+//     }else{
+//       /* If eqc if not a term known by uf, it is the only one in its
+//          equivalence class. So we will return only it */
+//       d_retNode = eqc;
+//       d_eqc = eq::EqClassIterator();
+//     }
+//   }; //* the argument is not used
+//   TNode getNextCandidate(){
+//     if(d_retNode.isNull()){
+//       if( !d_eqc.isFinished() ) return (*(d_eqc++));
+//       else return Node::null();
+//     }else{
+//       /* the case where eqc not in uf */
+//       Node ret = d_retNode;
+//       d_retNode = Node::null(); /* d_eqc.isFinished() must be true */
+//       return ret;
+//     }
+//   };
+// };
+
+
+class GenericCandidateGeneratorClasses: public rrinst::CandidateGenerator{
+
+  /** The candidate generators */
+  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
+  /** The current theory which candidategenerator is used */
+  TheoryId d_can_gen_id;
+
+public:
+  GenericCandidateGeneratorClasses(QuantifiersEngine * qe){
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      if(qe->getInstantiator(i) != NULL)
+        d_can_gen[i] = qe->getInstantiator(i)->getRRCanGenClasses();
+      else d_can_gen[i] = NULL;
+    };
+  }
+
+  ~GenericCandidateGeneratorClasses(){
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      delete(d_can_gen[i]);
+    };
+  }
+
+  void resetInstantiationRound(){
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      if(d_can_gen[i] != NULL) d_can_gen[i]->resetInstantiationRound();
+    };
+    d_can_gen_id=THEORY_FIRST;
+  }
+
+  void reset(TNode eqc){
+    Assert(eqc.isNull());
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      if(d_can_gen[i] != NULL) d_can_gen[i]->reset(eqc);
+    };
+    d_can_gen_id=THEORY_FIRST;
+    lookForNextTheory();
+  }
+
+  TNode getNextCandidate(){
+    Assert(THEORY_FIRST <= d_can_gen_id && d_can_gen_id <= THEORY_LAST);
+    /** No more */
+    if(d_can_gen_id == THEORY_LAST) return TNode::null();
+    /** Try with this theory */
+    TNode cand = d_can_gen[d_can_gen_id]->getNextCandidate();
+    if( !cand.isNull() ) return cand;
+    lookForNextTheory();
+    return getNextCandidate();
+  }
+
+  void lookForNextTheory(){
+    do{ /* look for the next available generator */
+      ++d_can_gen_id;
+    } while( d_can_gen_id < THEORY_LAST && d_can_gen[d_can_gen_id] == NULL);
+  }
+
+};
+
+class GenericCandidateGeneratorClass: public rrinst::CandidateGenerator{
+
+  /** The candidate generators */
+  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
+  /** The current theory which candidategenerator is used */
+  TheoryId d_can_gen_id;
+  /** current node to look for equivalence class */
+  Node d_node;
+  /** QuantifierEngine */
+  QuantifiersEngine* d_qe;
+
+public:
+  GenericCandidateGeneratorClass(QuantifiersEngine * qe): d_qe(qe) {
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      if(d_qe->getInstantiator(i) != NULL)
+        d_can_gen[i] = d_qe->getInstantiator(i)->getRRCanGenClass();
+      else d_can_gen[i] = NULL;
+    };
+  }
+
+  ~GenericCandidateGeneratorClass(){
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      delete(d_can_gen[i]);
+    };
+  }
+
+  void resetInstantiationRound(){
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      if(d_can_gen[i] != NULL) d_can_gen[i]->resetInstantiationRound();
+    };
+    d_can_gen_id=THEORY_FIRST;
+  }
+
+  void reset(TNode eqc){
+    for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
+      if(d_can_gen[i] != NULL) d_can_gen[i]->reset(eqc);
+    };
+    d_can_gen_id=THEORY_FIRST;
+    d_node = eqc;
+    lookForNextTheory();
+  }
+
+  TNode getNextCandidate(){
+    Assert(THEORY_FIRST <= d_can_gen_id && d_can_gen_id <= THEORY_LAST);
+    /** No more */
+    if(d_can_gen_id == THEORY_LAST) return TNode::null();
+    /** Try with this theory */
+    TNode cand = d_can_gen[d_can_gen_id]->getNextCandidate();
+    if( !cand.isNull() ) return cand;
+    lookForNextTheory();
+    return getNextCandidate();
+  }
+
+  void lookForNextTheory(){
+    do{ /* look for the next available generator, where the element is */
+      ++d_can_gen_id;
+    } while(
+            d_can_gen_id < THEORY_LAST &&
+            (d_can_gen[d_can_gen_id] == NULL ||
+             !d_qe->getInstantiator( d_can_gen_id )->hasTerm( d_node ))
+            );
+  }
+
+};
+
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses() {
+  return new GenericCandidateGeneratorClasses(this);
+}
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass() {
+  return new GenericCandidateGeneratorClass(this);
+}
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses(TypeNode t) {
+  // TheoryId id = Theory::theoryOf(t);
+  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClasses();
+  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClasses();
+  // else return eq;
+  return getRRCanGenClasses();
+}
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass(TypeNode t) {
+  // TheoryId id = Theory::theoryOf(t);
+  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClass();
+  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClass();
+  // else return eq;
+  return getRRCanGenClass();
 }

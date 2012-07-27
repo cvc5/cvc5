@@ -21,6 +21,7 @@
 #define __CVC4__INSTANTIATOR_THEORY_ARRAYS_H
 
 #include "theory/quantifiers_engine.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -48,6 +49,9 @@ public:
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
   Node getRepresentative( Node a );
+  /** general creators of candidate generators */
+  rrinst::CandidateGenerator* getRRCanGenClasses();
+  rrinst::CandidateGenerator* getRRCanGenClass();
 };/* class Instantiatior */
 
 }

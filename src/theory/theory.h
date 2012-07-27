@@ -52,6 +52,10 @@ class InstStrategy;
 class QuantifiersEngine;
 class TheoryModel;
 
+namespace rrinst{
+class CandidateGenerator;
+}
+
 /**
  * Information about an assertion for the theories.
  */
@@ -834,6 +838,12 @@ public:
   virtual bool areDisequal( Node a, Node b ) { return false; }
   virtual Node getRepresentative( Node a ) { return a; }
   virtual Node getInternalRepresentative( Node a ) { return getRepresentative( a ); }
+public:
+  /** A Creator of CandidateGenerator for classes (one element in each
+      equivalence class) and class (every element of one equivalence
+      class) */
+  virtual rrinst::CandidateGenerator* getRRCanGenClasses(){ return NULL; };
+  virtual rrinst::CandidateGenerator* getRRCanGenClass(){ return NULL; };
 };/* class Instantiator */
 
 inline Assertion Theory::get() {

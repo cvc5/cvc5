@@ -794,7 +794,7 @@ class EqClassesIterator {
 
 public:
 
-  EqClassesIterator() { }
+  EqClassesIterator(): d_ee(NULL), d_it(0){ }
   EqClassesIterator(eq::EqualityEngine* ee) : d_ee(ee) {
     d_it = 0;
     if ( d_it < d_ee->d_nodesCount &&
@@ -840,7 +840,7 @@ class EqClassIterator {
 
 public:
 
-  EqClassIterator() { }
+  EqClassIterator(): d_ee(NULL){ }
   EqClassIterator(Node eqc, eq::EqualityEngine* ee) : d_ee(ee) {
     Assert( d_ee->getRepresentative(eqc) == eqc );
     d_rep = eqc;

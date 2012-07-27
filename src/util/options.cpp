@@ -161,6 +161,7 @@ Options::Options() :
   literalMatchMode(LITERAL_MATCH_NONE),
   cbqi(false),
   cbqiSetByUser(false),
+  rewriteRulesAsAxioms(false),
   userPatternsQuant(true),
   flipDecision(false),
   printInstEngine(false),
@@ -294,12 +295,14 @@ Additional CVC4 options:\n\
    --register-quant-body-terms  consider ground terms within bodies of quantified formulas for matching\n\
    --inst-when=MODE       when to apply instantiation\n\
    --eager-inst-quant     apply quantifier instantiation eagerly\n\
-   --efficient-e-matching use efficient E-matching\n\
    --literal-matching=MODE  choose literal matching mode\n\
    --enable-cbqi          turns on counterexample-based quantifier instantiation [off by default]\n\
    --disable-cbqi         turns off counterexample-based quantifier instantiation\n\
    --ignore-user-patterns ignore user-provided patterns for quantifier instantiation\n\
    --enable-flip-decision turns on flip decision heuristic\n\
+ REWRITERULES:\n\
+   --efficient-e-matching use efficient E-matching (only for rewrite rules)\n\
+   --rewrite-rules-as-axioms convert rewrite rules into usual axioms (for debugging only)\n\
  FINITE_MODEL_FINDING:\n\
    --finite-model-find      use finite model finding heuristic for quantifier instantiation\n\
    --disable-uf-ss-regions  disable region-based method for discovering cliques and splits in uf strong solver\n\
@@ -642,6 +645,7 @@ enum OptionValue {
   DISABLE_CBQI,
   IGNORE_USER_PATTERNS,
   ENABLE_FLIP_DECISION,
+  REWRITE_RULES_AS_AXIOMS,
   PRINT_MODEL_ENGINE,
   PRINT_INST_ENGINE,
   PARALLEL_THREADS,
@@ -779,6 +783,7 @@ static struct option cmdlineOptions[] = {
   { "disable-cbqi", no_argument, NULL, DISABLE_CBQI },
   { "ignore-user-patterns", no_argument, NULL, IGNORE_USER_PATTERNS },
   { "enable-flip-decision", no_argument, NULL, ENABLE_FLIP_DECISION },
+  { "rewrite-rules-as-axioms", no_argument, NULL, REWRITE_RULES_AS_AXIOMS },
   { "print-m-e", no_argument, NULL, PRINT_MODEL_ENGINE },
   { "print-i-e", no_argument, NULL, PRINT_INST_ENGINE },
   { "threads", required_argument, NULL, PARALLEL_THREADS },
@@ -1378,6 +1383,9 @@ throw(OptionException) {
       break;
     case ENABLE_FLIP_DECISION:
       flipDecision = true;
+      break;
+    case REWRITE_RULES_AS_AXIOMS:
+      rewriteRulesAsAxioms = true;
       break;
     case PRINT_MODEL_ENGINE:
       printModelEngine = true;

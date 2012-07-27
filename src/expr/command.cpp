@@ -1137,6 +1137,219 @@ Command* DatatypeDeclarationCommand::clone() const {
   return new DatatypeDeclarationCommand(d_datatypes);
 }
 
+/* class RewriteRuleCommand */
+
+RewriteRuleCommand::RewriteRuleCommand(const VExpr & vars,
+                                       const std::vector< Expr> & guards,
+                                       const Expr & head, const Expr & body,
+                                       Triggers triggers) throw() :
+  d_vars(vars), d_guards(guards), d_head(head), d_body(body), d_triggers(triggers) {
+}
+
+RewriteRuleCommand::RewriteRuleCommand(const VExpr & vars,
+                                       const Expr & head, const Expr & body) throw() :
+  d_vars(vars), d_head(head), d_body(body) {
+}
+
+const RewriteRuleCommand::VExpr & RewriteRuleCommand::getVars() const throw(){
+  return d_vars;
+};
+const RewriteRuleCommand::VExpr & RewriteRuleCommand::getGuards() const throw(){
+  return d_guards;
+};
+const Expr & RewriteRuleCommand::getHead() const throw(){
+  return d_head;
+};
+const Expr & RewriteRuleCommand::getBody() const throw(){
+  return d_body;
+};
+const RewriteRuleCommand::Triggers & RewriteRuleCommand::getTriggers() const throw(){
+  return d_triggers;
+};
+
+
+void RewriteRuleCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    ExprManager* em = smtEngine->getExprManager();
+    /** build vars list */
+    Expr vars = em->mkExpr(kind::BOUND_VAR_LIST, d_vars);
+    /** build guards list */
+    Expr guards;
+    if(d_guards.size() == 0) guards = em->mkConst<bool>(true);
+    else if(d_guards.size() == 1) guards = d_guards[0];
+    else guards = em->mkExpr(kind::AND,d_guards);
+    /** build expression */
+    Expr expr;
+    if( d_triggers.empty() ){
+      expr = em->mkExpr(kind::RR_REWRITE,vars,guards,d_head,d_body);
+    } else {
+      /** build triggers list */
+      std::vector<Expr> vtriggers;
+      vtriggers.reserve(d_triggers.size());
+      for(Triggers::const_iterator i = d_triggers.begin(),
+            end = d_triggers.end(); i != end; ++i){
+        vtriggers.push_back(em->mkExpr(kind::INST_PATTERN,*i));
+      }
+      Expr triggers = em->mkExpr(kind::INST_PATTERN_LIST,vtriggers);
+      expr = em->mkExpr(kind::RR_REWRITE,vars,guards,d_head,d_body,triggers);
+    }
+    smtEngine->assertFormula(expr);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* RewriteRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  /** Convert variables */
+  VExpr vars; vars.reserve(d_vars.size());
+  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
+      i == end; ++i){
+    vars.push_back(i->exportTo(exprManager, variableMap));
+  };
+  /** Convert guards */
+  VExpr guards; guards.reserve(d_guards.size());
+  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
+      i == end; ++i){
+    guards.push_back(i->exportTo(exprManager, variableMap));
+  };
+  /** Convert triggers */
+  Triggers triggers; triggers.resize(d_triggers.size());
+  for(size_t i = 0, end = d_triggers.size();
+      i < end; ++i){
+    triggers[i].reserve(d_triggers[i].size());
+    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
+        j == jend; ++i){
+      triggers[i].push_back(j->exportTo(exprManager, variableMap));
+    };
+  };
+  /** Convert head and body */
+  Expr head = d_head.exportTo(exprManager, variableMap);
+  Expr body = d_body.exportTo(exprManager, variableMap);
+  /** Create the converted rules */
+  return new RewriteRuleCommand(vars,guards,head,body,triggers);
+}
+
+Command* RewriteRuleCommand::clone() const {
+  return new RewriteRuleCommand(d_vars,d_guards,d_head,d_body,d_triggers);
+}
+
+/* class PropagateRuleCommand */
+
+PropagateRuleCommand::PropagateRuleCommand(const VExpr & vars,
+                                           const VExpr & guards,
+                                           const VExpr & heads,
+                                           const Expr & body,
+                                           const Triggers triggers,
+                                           bool deduction
+                                           ) throw() :
+  d_vars(vars), d_guards(guards), d_heads(heads), d_body(body), d_triggers(triggers), d_deduction(deduction) {
+}
+
+PropagateRuleCommand::PropagateRuleCommand(const VExpr & vars,
+                                           const VExpr & heads,
+                                           const Expr & body,
+                                           bool deduction
+                                           ) throw() :
+  d_vars(vars), d_heads(heads), d_body(body), d_deduction(deduction) {
+}
+
+const PropagateRuleCommand::VExpr & PropagateRuleCommand::getVars() const throw(){
+  return d_vars;
+};
+const PropagateRuleCommand::VExpr & PropagateRuleCommand::getGuards() const throw(){
+  return d_guards;
+};
+const PropagateRuleCommand::VExpr & PropagateRuleCommand::getHeads() const throw(){
+  return d_heads;
+};
+const Expr & PropagateRuleCommand::getBody() const throw(){
+  return d_body;
+};
+const PropagateRuleCommand::Triggers & PropagateRuleCommand::getTriggers() const throw(){
+  return d_triggers;
+};
+bool PropagateRuleCommand::isDeduction() const throw(){
+  return d_deduction;
+};
+
+
+void PropagateRuleCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    ExprManager* em = smtEngine->getExprManager();
+    /** build vars list */
+    Expr vars = em->mkExpr(kind::BOUND_VAR_LIST, d_vars);
+    /** build guards list */
+    Expr guards;
+    if(d_guards.size() == 0) guards = em->mkConst<bool>(true);
+    else if(d_guards.size() == 1) guards = d_guards[0];
+    else guards = em->mkExpr(kind::AND,d_guards);
+    /** build heads list */
+    Expr heads;
+    if(d_heads.size() == 1) heads = d_heads[0];
+    else heads = em->mkExpr(kind::AND,d_heads);
+    /** build expression */
+    Expr expr;
+    if( d_triggers.empty() ){
+      expr = em->mkExpr(kind::RR_REWRITE,vars,guards,heads,d_body);
+    } else {
+      /** build triggers list */
+      std::vector<Expr> vtriggers;
+      vtriggers.reserve(d_triggers.size());
+      for(Triggers::const_iterator i = d_triggers.begin(),
+            end = d_triggers.end(); i != end; ++i){
+        vtriggers.push_back(em->mkExpr(kind::INST_PATTERN,*i));
+      }
+      Expr triggers = em->mkExpr(kind::INST_PATTERN_LIST,vtriggers);
+      expr = em->mkExpr(kind::RR_REWRITE,vars,guards,heads,d_body,triggers);
+    }
+    smtEngine->assertFormula(expr);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* PropagateRuleCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  /** Convert variables */
+  VExpr vars; vars.reserve(d_vars.size());
+  for(VExpr::iterator i = d_vars.begin(), end = d_vars.end();
+      i == end; ++i){
+    vars.push_back(i->exportTo(exprManager, variableMap));
+  };
+  /** Convert guards */
+  VExpr guards; guards.reserve(d_guards.size());
+  for(VExpr::iterator i = d_guards.begin(), end = d_guards.end();
+      i == end; ++i){
+    guards.push_back(i->exportTo(exprManager, variableMap));
+  };
+  /** Convert heads */
+  VExpr heads; heads.reserve(d_heads.size());
+  for(VExpr::iterator i = d_heads.begin(), end = d_heads.end();
+      i == end; ++i){
+    heads.push_back(i->exportTo(exprManager, variableMap));
+  };
+  /** Convert triggers */
+  Triggers triggers; triggers.resize(d_triggers.size());
+  for(size_t i = 0, end = d_triggers.size();
+      i < end; ++i){
+    triggers[i].reserve(d_triggers[i].size());
+    for(VExpr::iterator j = d_triggers[i].begin(), jend = d_triggers[i].end();
+        j == jend; ++i){
+      triggers[i].push_back(j->exportTo(exprManager, variableMap));
+    };
+  };
+  /** Convert head and body */
+  Expr body = d_body.exportTo(exprManager, variableMap);
+  /** Create the converted rules */
+  return new PropagateRuleCommand(vars,guards,heads,body,triggers);
+}
+
+Command* PropagateRuleCommand::clone() const {
+  return new PropagateRuleCommand(d_vars,d_guards,d_heads,d_body,d_triggers);
+}
+
+
 /* output stream insertion operator for benchmark statuses */
 std::ostream& operator<<(std::ostream& out,
                          BenchmarkStatus status) throw() {

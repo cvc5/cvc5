@@ -39,6 +39,7 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::inst;
 
 ModelEngineBuilder::ModelEngineBuilder( QuantifiersEngine* qe ) :
 TheoryEngineModelBuilder( qe->getTheoryEngine() ),
@@ -503,7 +504,7 @@ int ModelEngine::initializeQuantifier( Node f ){
       ics.push_back( ic );
       terms.push_back( t );
       //calculate the basis match for f
-      d_builder.d_quant_basis_match[f].d_map[ ic ] = t;
+      d_builder.d_quant_basis_match[f].set( ic, t);
     }
     ++(d_statistics.d_num_quants_init);
     //register model basis body

@@ -104,7 +104,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         int e_use = e;
         if( e_use>=0 ){
           //use each theory instantiator to instantiate f
-          for( int i=0; i<theory::THEORY_LAST; i++ ){
+          for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
             if( d_quantEngine->getInstantiator( i ) ){
               Debug("inst-engine-debug") << "Do " << d_quantEngine->getInstantiator( i )->identify() << " " << e_use << std::endl;
               int quantStatus = d_quantEngine->getInstantiator( i )->doInstantiation( f, effort, e_use );
@@ -126,7 +126,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
   if( !d_quantEngine->hasAddedLemma() ){
     Debug("inst-engine-stuck") << "No instantiations produced at this state: " << std::endl;
-    for( int i=0; i<theory::THEORY_LAST; i++ ){
+    for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
       if( d_quantEngine->getInstantiator( i ) ){
         d_quantEngine->getInstantiator( i )->debugPrint("inst-engine-stuck");
         Debug("inst-engine-stuck") << std::endl;

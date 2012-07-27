@@ -892,6 +892,25 @@ inline std::ostream& operator<<(std::ostream& out, TNode n) {
   return out;
 }
 
+/**
+ * Serializes a vector of node to the given stream.
+ *
+ * @param out the output stream to use
+ * @param ns the vector of nodes to output to the stream
+ * @return the stream
+ */
+template<bool ref_count>
+inline std::ostream& operator<<(std::ostream& out,
+                                const std::vector< NodeTemplate<ref_count> > & ns) {
+  for(typename std::vector< NodeTemplate<ref_count> >::const_iterator
+        i=ns.begin(), end=ns.end();
+      i != end; ++i){
+    out << *i;
+  }
+  return out;
+}
+
+
 }/* CVC4 namespace */
 
 #include <ext/hash_map>

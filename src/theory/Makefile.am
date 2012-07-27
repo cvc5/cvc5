@@ -40,8 +40,12 @@ libtheory_la_SOURCES = \
 	quantifiers_engine.cpp \
 	instantiator_default.h \
 	instantiator_default.cpp \
+	rr_inst_match.h \
+	rr_inst_match_impl.h \
+	rr_inst_match.cpp \
+	rr_trigger.h \
+	rr_trigger.cpp \
 	inst_match.h \
-	inst_match_impl.h \
 	inst_match.cpp \
 	trigger.h \
 	trigger.cpp \

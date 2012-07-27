@@ -46,7 +46,7 @@ int InstantiatorDefault::process( Node f, Theory::Effort effort, int e ){
       if( d_quantEngine->getTheoryEngine()->theoryOf( i )==getTheory() ){    //if it belongs to this theory
         Node val = d_th->getValue( i );
         Debug("quant-default") << "Default Instantiate for " << d_th->getId() << ", setting " << i << " = " << val << std::endl;
-        m.d_map[ i ] = val;
+        m.set( i, val);
       }
     }
     d_quantEngine->addInstantiation( f, m );

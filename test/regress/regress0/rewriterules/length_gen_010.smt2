@@ -16,14 +16,16 @@
 
 (assert (= (length nil) 0))
 
-(assert (forall ((?e Int) (?l list)) (! (= (length (cons ?e ?l)) (+ 1 (length ?l))) :rewrite-rule)))
+;; (assert (forall ((?e Int) (?l list)) (! (= (length (cons ?e ?l)) (+ 1 (length ?l))) :rewrite-rule)))
+
+(assert-rewrite ((?e Int) (?l list)) () (length (cons ?e ?l)) (+ 1 (length ?l)) ())
 
 (declare-fun gen_cons (Int list) list)
 
-(assert (forall ((?n Int) (?l list)) (! (=> (= ?n 0) (= (gen_cons ?n ?l) ?l)) :rewrite-rule)))
+(assert-rewrite ((?n Int) (?l list)) (= ?n 0) (gen_cons ?n ?l) (?l) ())
 
-(assert (forall ((?n Int) (?l list)) (! (=> (> ?n 0) (= (gen_cons ?n ?l)
-        (gen_cons (- ?n 1) (cons 1 ?l)))) :rewrite-rule)))
+(assert-rewrite ((?n Int) (?l list)) (> ?n 0) (gen_cons ?n ?l)
+              (gen_cons (- ?n 1) (cons 1 ?l)) ())
 
 (declare-fun n () Int)
 

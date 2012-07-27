@@ -26,6 +26,7 @@ using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
+using namespace CVC4::theory::inst;
 
 //#define NESTED_PATTERN_SELECTION
 

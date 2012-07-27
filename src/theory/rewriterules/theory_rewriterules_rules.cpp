@@ -21,6 +21,7 @@
 #include "theory/rewriterules/theory_rewriterules_params.h"
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
 #include "theory/rewriterules/theory_rewriterules.h"
+#include "util/options.h"
 
 #include "theory/quantifiers/term_database.h"
 
@@ -30,11 +31,45 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::rewriterules;
+using namespace CVC4::theory::rrinst;
 
 
 namespace CVC4 {
 namespace theory {
 namespace rewriterules {
+
+// TODO replace by a real dictionnary
+// We should create a real substitution? slower more precise
+// We don't do that often
+bool nonunifiable( TNode t0, TNode pattern, const std::vector<Node> & vars){
+  typedef std::vector<std::pair<TNode,TNode> > tstack;
+  tstack stack(1,std::make_pair(t0,pattern)); // t * pat
+
+  while(!stack.empty()){
+    const std::pair<TNode,TNode> p = stack.back(); stack.pop_back();
+    const TNode & t = p.first;
+    const TNode & pat = p.second;
+
+    // t or pat is a variable currently we consider that can match anything
+    if( find(vars.begin(),vars.end(),t) != vars.end() ) continue;
+    if( pat.getKind() == INST_CONSTANT ) continue;
+
+    // t and pat are nonunifiable
+    if( !Trigger::isAtomicTrigger( t ) || !Trigger::isAtomicTrigger( pat ) ) {
+      if(t == pat) continue;
+      else return true;
+    };
+    if( t.getOperator() != pat.getOperator() ) return true;
+
+    //put the children on the stack
+    for( size_t i=0; i < pat.getNumChildren(); i++ ){
+      stack.push_back(std::make_pair(t[i],pat[i]));
+    };
+  }
+  // The heuristic can't find non-unifiability
+  return false;
+}
+
 
 void TheoryRewriteRules::computeMatchBody ( const RewriteRule * rule,
                                             size_t start){
@@ -50,9 +85,9 @@ void TheoryRewriteRules::computeMatchBody ( const RewriteRule * rule,
     if( t.getKind() == APPLY_UF ){
       for(size_t rid = start, end = d_rules.size(); rid < end; ++rid) {
         RewriteRule * r = d_rules[rid];
-        if(r->d_split) continue;
-        Trigger & tr = const_cast<Trigger &> (r->trigger_for_body_match);
-        if(!tr.nonunifiable(t, rule->free_vars)){
+        if(r->d_split || r->trigger_for_body_match == NULL) continue;
+        //the split rules are not computed and the one with multi-pattern
+        if( !nonunifiable(t, r->trigger_for_body_match->d_pattern, rule->free_vars)){
           rule->body_match.push_back(std::make_pair(t,r));
         }
       }
@@ -74,7 +109,10 @@ inline void addPattern(TheoryRewriteRules & re,
                        TNode r){
   if (tri.getKind() == kind::NOT && tri[0].getKind() == kind::APPLY_UF)
     tri = tri[0];
-  pattern.push_back(re.getQuantifiersEngine()->getTermDatabase()->
+  pattern.push_back(
+                    Options::current()->rewriteRulesAsAxioms?
+                    static_cast<Node>(tri):
+                    re.getQuantifiersEngine()->getTermDatabase()->
                     convertNodeToPattern(tri,r,vars,inst_constants));
 }
 
@@ -106,6 +144,7 @@ bool checkPatternVars(const std::vector<Node> & pattern,
 void TheoryRewriteRules::addRewriteRule(const Node r)
 {
   Assert(r.getKind() == kind::REWRITE_RULE);
+  Kind rrkind = r[2].getKind();
   /*   Replace variables by Inst_* variable and tag the terms that
        contain them */
   std::vector<Node> vars;
@@ -125,16 +164,20 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
                                    when fired */
   /* shortcut */
   TNode head = r[2][0];
-  switch(r[2].getKind()){
+  TypeNode booleanType = NodeManager::currentNM()->booleanType();
+  switch(rrkind){
   case kind::RR_REWRITE:
     /* Equality */
     to_remove.push_back(head);
     addPattern(*this,head,pattern,vars,inst_constants,r);
-    body = head.eqNode(body);
+    if(head.getType(false) == booleanType) body = head.iffNode(body);
+    else body = head.eqNode(body);
     break;
   case kind::RR_REDUCTION:
     /** Add head to remove */
-    to_remove.push_back(head);
+      for(Node::iterator i = head.begin(); i != head.end(); ++i) {
+        to_remove.push_back(*i);
+      };
   case kind::RR_DEDUCTION:
     /** Add head to guards and pattern */
     switch(head.getKind()){
@@ -171,32 +214,65 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
   };
   /* Add the other triggers */
   if( r[2].getNumChildren() >= 3 )
-    for(Node::iterator i = r[2][2].begin(); i != r[2][2].end(); ++i) {
+    for(Node::iterator i = r[2][2][0].begin(); i != r[2][2][0].end(); ++i) {
       // todo test during typing that its a good term (no not, atom, or term...)
-      addPattern(*this,(*i)[0],pattern,vars,inst_constants,r);
+      addPattern(*this,*i,pattern,vars,inst_constants,r);
     };
   // Assert(pattern.size() == 1, "currently only single pattern are supported");
+
+
+
+
+  //If we convert to usual axioms
+  if(Options::current()->rewriteRulesAsAxioms){
+    NodeBuilder<> forallB(kind::FORALL);
+    forallB << r[0];
+    NodeBuilder<> guardsB(kind::AND);
+    guardsB.append(guards);
+    forallB << normalizeConjunction(guardsB).impNode(body);
+    NodeBuilder<> patternB(kind::INST_PATTERN);
+    patternB.append(pattern);
+    NodeBuilder<> patternListB(kind::INST_PATTERN_LIST);
+    patternListB << static_cast<Node>(patternB);
+    forallB << static_cast<Node>(patternListB);
+    getOutputChannel().lemma((Node) forallB);
+    return;
+  }
+
+  //turn all to propagate
+  // if(true){
+  //   NodeBuilder<> guardsB(kind::AND);
+  //   guardsB.append(guards);
+  //   body = normalizeConjunction(guardsB).impNode(body);
+  //   guards.clear();
+  //   rrkind = kind::RR_DEDUCTION;
+  // }
+
+
   //Every variable must be seen in the pattern
   if (!checkPatternVars(pattern,inst_constants)){
-    Warning() << "The rule" << r <<
+    Warning() << Node::setdepth(-1) << "The rule" << r <<
       " has been removed since it doesn't contain every variables."
               << std::endl;
     return;
   }
 
+
   //Add to direct rewrite rule
   bool directrr = false;
   if(direct_rewrite &&
-     ((guards.size() == 0 && r[2].getKind() == kind::RR_REWRITE) ||
-      (guards.size() == 1 && r[2].getKind() == kind::RR_REDUCTION))
+     guards.size() == 0 && rrkind == kind::RR_REWRITE
      && pattern.size() == 1){
     directrr = addRewritePattern(pattern[0],new_terms, inst_constants, vars);
   }
 
+
   // final construction
   Trigger trigger = createTrigger(r,pattern);
-  Trigger trigger2 = createTrigger(r,pattern); //Hack
-  RewriteRule * rr = new RewriteRule(*this, trigger, trigger2,
+  ApplyMatcher * applymatcher =
+    pattern.size() == 1 && pattern[0].getKind() == kind::APPLY_UF?
+    new ApplyMatcher(pattern[0],getQuantifiersEngine()) : NULL;
+  RewriteRule * rr = new RewriteRule(*this, trigger, applymatcher,
                                      guards, body, new_terms,
                                      vars, inst_constants, to_remove,
                                      directrr);
@@ -209,7 +285,7 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
       computeMatchBody(d_rules[rid],
                        d_rules.size() - 1);
 
-  Debug("rewriterules") << "created rewriterule"<< (rr->d_split?"(split)":"") << ":(" << d_rules.size() - 1 << ")"
+  Debug("rewriterules::new") << "created rewriterule"<< (rr->d_split?"(split)":"") << ":(" << d_rules.size() - 1 << ")"
                         << *rr << std::endl;
 
 }
@@ -227,7 +303,7 @@ bool willDecide(TNode node, bool positive = true){
   case XOR:
     return true;
   case IMPLIES:
-    return false;
+    return true;
   case ITE:
     return true;
   case NOT:
@@ -237,45 +313,50 @@ bool willDecide(TNode node, bool positive = true){
   }
 }
 
-
+static size_t id_next = 0;
 RewriteRule::RewriteRule(TheoryRewriteRules & re,
-                         Trigger & tr, Trigger & tr2,
+                         Trigger & tr, ApplyMatcher * applymatcher,
                          std::vector<Node> & g, Node b, TNode nt,
                          std::vector<Node> & fv,std::vector<Node> & iv,
                          std::vector<Node> & to_r, bool drr) :
-  d_split(willDecide(b)),
+  id(++id_next), d_split(willDecide(b)),
   trigger(tr), body(b), new_terms(nt), free_vars(), inst_vars(),
-  body_match(re.getSatContext()),trigger_for_body_match(tr2),
+  body_match(re.getSatContext()),trigger_for_body_match(applymatcher),
   d_cache(re.getSatContext(),re.getQuantifiersEngine()), directrr(drr){
   free_vars.swap(fv); inst_vars.swap(iv); guards.swap(g); to_remove.swap(to_r);
 };
 
 
 bool RewriteRule::inCache(TheoryRewriteRules & re, InstMatch & im)const{
-  return !d_cache.addInstMatch(im);
+  bool res = !d_cache.addInstMatch(im);
+  Debug("rewriterules::matching") << "rewriterules::cache " << im
+                                  << (res ? " HIT" : " MISS") << std::endl;
+  return res;
 };
 
 /** A rewrite rule */
 void RewriteRule::toStream(std::ostream& out) const{
+  out << "[" << id << "] ";
   for(std::vector<Node>::const_iterator
         iter = guards.begin(); iter != guards.end(); ++iter){
     out << *iter;
   };
   out << "=>" << body << std::endl;
-  out << "[";
+  out << "{";
   for(BodyMatch::const_iterator
         iter = body_match.begin(); iter != body_match.end(); ++iter){
-    out << (*iter).first << "(" << (*iter).second << ")" << ",";
+    out << (*iter).first << "[" << (*iter).second->id << "]" << ",";
   };
-  out << "]" << (directrr?"*":"") << std::endl;
+  out << "}" << (directrr?"*":"") << std::endl;
 }
 
 RewriteRule::~RewriteRule(){
-  Debug("rewriterule-stats") << *this
+  Debug("rewriterule::stats") << *this
                              << "  (" << nb_matched
                              << ","   << nb_applied
                              << ","   << nb_propagated
                              << ")" << std::endl;
+  delete(trigger_for_body_match);
 }
 
 bool TheoryRewriteRules::addRewritePattern(TNode pattern, TNode body,

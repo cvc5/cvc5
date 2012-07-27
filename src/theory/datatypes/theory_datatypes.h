@@ -38,9 +38,17 @@ namespace theory {
 namespace datatypes {
 
 class InstantiatorTheoryDatatypes;
+class EqualityQueryTheory;
+
+namespace rrinst{
+  class CandidateGeneratorTheoryClass;
+}
 
 class TheoryDatatypes : public Theory {
   friend class InstantiatorTheoryDatatypes;
+  friend class EqualityQueryTheory;
+  friend class rrinst::CandidateGeneratorTheoryClass;
+
 private:
   typedef context::CDChunkList<TNode> EqList;
   typedef context::CDHashMap<Node, EqList*, NodeHashFunction> EqLists;

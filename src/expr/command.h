@@ -599,6 +599,69 @@ public:
   Command* clone() const;
 };/* class DatatypeDeclarationCommand */
 
+class CVC4_PUBLIC RewriteRuleCommand : public Command {
+protected:
+  typedef std::vector< Expr > VExpr;
+  VExpr d_vars;
+  VExpr d_guards;
+  Expr d_head;
+  Expr d_body;
+  typedef std::vector< std::vector< Expr > > Triggers;
+  Triggers d_triggers;
+public:
+  RewriteRuleCommand(const VExpr & vars,
+                     const std::vector< Expr> & guards,
+                     const Expr & head, const Expr & body,
+                     Triggers d_triggers
+                     ) throw();
+  RewriteRuleCommand(const VExpr & vars,
+                     const Expr & head, const Expr & body) throw();
+  ~RewriteRuleCommand() throw() {}
+  const VExpr & getVars() const throw();
+  const VExpr & getGuards() const throw();
+  const Expr & getHead() const throw();
+  const Expr & getBody() const throw();
+  const Triggers & getTriggers() const throw();
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+};/* class RewriteRuleCommand */
+
+class CVC4_PUBLIC PropagateRuleCommand : public Command {
+protected:
+  typedef std::vector< Expr > VExpr;
+  VExpr d_vars;
+  VExpr d_guards;
+  VExpr d_heads;
+  Expr d_body;
+  typedef std::vector< std::vector< Expr > > Triggers;
+  Triggers d_triggers;
+  bool d_deduction;
+public:
+  PropagateRuleCommand(const VExpr & vars,
+                         const VExpr & guards,
+                         const VExpr & heads,
+                         const Expr & body,
+                         Triggers d_triggers,
+                         /* true if we want a deduction rule */
+                         bool d_deduction = false
+                         ) throw();
+  PropagateRuleCommand(const VExpr & vars,
+                       const VExpr & heads, const Expr & body,
+                       bool d_deduction = false) throw();
+  ~PropagateRuleCommand() throw() {}
+  const VExpr & getVars() const throw();
+  const VExpr & getGuards() const throw();
+  const VExpr & getHeads() const throw();
+  const Expr & getBody() const throw();
+  const Triggers & getTriggers() const throw();
+  bool isDeduction() const throw();
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+};/* class PropagateRuleCommand */
+
+
 class CVC4_PUBLIC QuitCommand : public Command {
 public:
   QuitCommand() throw();

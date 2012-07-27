@@ -398,6 +398,126 @@ extendedCommand[CVC4::Command*& cmd]
       }
     | { cmd = new EchoCommand(); }
     )
+  | rewriterulesCommand[cmd]
+  ;
+
+rewriterulesCommand[CVC4::Command*& cmd]
+@declarations {
+  std::vector<std::pair<std::string, Type> > sortedVarNames;
+  std::vector<Expr> args, guards, heads, triggers;
+  Expr head, body, expr, expr2, bvl;
+  Kind kind;
+}
+  : /* rewrite rules */
+    REWRITE_RULE_TOK
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    {
+      kind = CVC4::kind::RR_REWRITE;
+      PARSER_STATE->pushScope();
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        args.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+      }
+      bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+    }
+    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
+    term[head, expr2] term[body, expr2]
+    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
+    {
+      args.clear();
+      args.push_back(head);
+      args.push_back(body);
+      /* triggers */
+      if( !triggers.empty() ){
+        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, triggers);
+        args.push_back(expr2);
+      };
+      expr = MK_EXPR(kind, args);
+      args.clear();
+      args.push_back(bvl);
+      /* guards */
+      switch( guards.size() ){
+      case 0:
+        args.push_back(MK_CONST(bool(true))); break;
+      case 1:
+        args.push_back(guards[0]); break;
+      default:
+        expr2 = MK_EXPR(kind::AND, guards);
+        args.push_back(expr2); break;
+      };
+      args.push_back(expr);
+      expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
+      cmd = new AssertCommand(expr); }
+    /* propagation rule */
+  | rewritePropaKind[kind]
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope();
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        args.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+      }
+      bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+    }
+    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
+    LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
+    term[body, expr2]
+    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
+    {
+      args.clear();
+      /* heads */
+      switch( heads.size() ){
+      case 0:
+        args.push_back(MK_CONST(bool(true))); break;
+      case 1:
+        args.push_back(heads[0]); break;
+      default:
+        expr2 = MK_EXPR(kind::AND, heads);
+        args.push_back(expr2); break;
+      };
+      args.push_back(body);
+      /* triggers */
+      if( !triggers.empty() ){
+        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, triggers);
+        args.push_back(expr2);
+      };
+      expr = MK_EXPR(kind, args);
+      args.clear();
+      args.push_back(bvl);
+      /* guards */
+      switch( guards.size() ){
+      case 0:
+        args.push_back(MK_CONST(bool(true))); break;
+      case 1:
+        args.push_back(guards[0]); break;
+      default:
+        expr2 = MK_EXPR(kind::AND, guards);
+        args.push_back(expr2); break;
+      };
+      args.push_back(expr);
+      expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
+      cmd = new AssertCommand(expr); }
+  ;
+
+rewritePropaKind[CVC4::Kind& kind]
+  :
+  REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
+  | PROPAGATION_RULE_TOK  { $kind = CVC4::kind::RR_DEDUCTION; }
+  ;
+
+pattern[CVC4::Expr& expr]
+@declarations {
+  std::vector<Expr> patexpr;
+}
+  : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
+    {
+      expr = MK_EXPR(kind::INST_PATTERN, patexpr);
+      //std::cout << "parsed pattern expr " << retExpr << std::endl;
+    }
   ;
 
 simpleSymbolicExpr[CVC4::SExpr& sexpr]
@@ -1076,6 +1196,9 @@ POP_TOK : 'pop';
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
 GET_MODEL_TOK : 'get-model';
 ECHO_TOK : 'echo';
+REWRITE_RULE_TOK : 'assert-rewrite';
+REDUCTION_RULE_TOK : 'assert-reduction';
+PROPAGATION_RULE_TOK : 'assert-propagation';
 
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';
