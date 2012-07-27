@@ -272,9 +272,6 @@ void InstMatchGenerator::initializePattern( Node pat, QuantifiersEngine* qe ){
 
   Debug("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is " << d_match_pattern << std::endl;
 
-  //get the equality engine
-  Theory* th_uf = qe->getTheoryEngine()->getTheory( theory::THEORY_UF );
-  uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)th_uf->getInstantiator();
   //create candidate generator
   if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==IFF ){
     Assert( d_matchPolicy==MATCH_GEN_DEFAULT );

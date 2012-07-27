@@ -958,7 +958,7 @@ Matcher* mkMatcher( Node pat, QuantifiersEngine* qe ){
         arithmetic pattern */
     std::map< Node, Node > d_arith_coeffs;
     if( !Trigger::getPatternArithmetic( pat.getAttribute(InstConstantAttribute()), pat, d_arith_coeffs ) ){
-      std::cout << "(?) Unknown matching pattern is " << pat << std::endl;
+      Message() << "(?) Unknown matching pattern is " << pat << std::endl;
       Unimplemented("pattern not implemented");
       return new DumbMatcher();
     }else{
@@ -1010,7 +1010,7 @@ PatMatcher* mkPattern( Node pat, QuantifiersEngine* qe ){
     std::map< Node, Node > d_arith_coeffs;
     if( !Trigger::getPatternArithmetic( pat.getAttribute(InstConstantAttribute()), pat, d_arith_coeffs ) ){
       Debug("inst-match-gen") << "(?) Unknown matching pattern is " << pat << std::endl;
-      std::cout << "(?) Unknown matching pattern is " << pat << std::endl;
+      Message() << "(?) Unknown matching pattern is " << pat << std::endl;
       return new DumbPatMatcher();
     }else{
       Debug("matching-arith") << "Generated arithmetic pattern for " << pat << ": " << std::endl;
