@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__QUANTIFIERS_MODEL_BUILDER_H
-#define __CVC4__QUANTIFIERS_MODEL_BUILDER_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#define __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "theory/quantifiers_engine.h"
 #include "theory/model.h"
@@ -82,10 +82,10 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
-};
+};/* class ModelEngineBuilder */
 
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

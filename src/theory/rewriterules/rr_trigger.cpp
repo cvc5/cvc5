@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file trigger.cpp
+/*! \file rr_trigger.cpp
  ** \verbatim
  ** Original author: ajreynol
- ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): bobot
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -14,20 +14,19 @@
  ** \brief Implementation of trigger class
  **/
 
-#include "theory/trigger.h"
+#include "theory/rewriterules/rr_trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
-#include "theory/candidate_generator.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
-using namespace CVC4::theory::inst;
+using namespace CVC4::theory::rrinst;
 
 //#define NESTED_PATTERN_SELECTION
 
@@ -58,31 +57,18 @@ void Trigger::TrTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
 }
 
 /** trigger static members */
-std::map< TNode, std::vector< TNode > > Trigger::d_var_contains;
+std::map< Node, std::vector< Node > > Trigger::d_var_contains;
+int Trigger::trCount = 0;
 Trigger::TrTrie Trigger::d_tr_trie;
 
 /** trigger class constructor */
 Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool smartTriggers ) :
 d_quantEngine( qe ), d_f( f ){
+  trCount++;
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
-  if( smartTriggers ){
-    if( d_nodes.size()==1 ){
-      if( isSimpleTrigger( d_nodes[0] ) ){
-        d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
-      }else{
-        d_mg = new InstMatchGenerator( d_nodes[0], qe, matchOption );
-      }
-    }else{
-      d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, matchOption );
-    }
-  }else{
-    d_mg = new InstMatchGenerator( d_nodes, qe, matchOption );
-  }
-  Debug("trigger") << "Trigger for " << f << ": " << std::endl;
-  for( int i=0; i<(int)d_nodes.size(); i++ ){
-    Debug("trigger") << "   " << d_nodes[i] << std::endl;
-  }
-  Debug("trigger") << std::endl;
+  Debug("trigger") << "Trigger for " << f << ": " << d_nodes << std::endl;
+  if(matchOption == MATCH_GEN_DEFAULT) d_mg = mkPatterns( d_nodes, qe );
+  else d_mg = mkPatternsEfficient( d_nodes, qe );
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
       ++(qe->d_statistics.d_triggers);
@@ -91,17 +77,9 @@ d_quantEngine( qe ), d_f( f ){
     }
   }else{
     Debug("multi-trigger") << "Multi-trigger " << (*this) << std::endl;
-    //Notice() << "Multi-trigger for " << f << " : " << std::endl;
-    //Notice() << "   " << (*this) << std::endl;
+    //std::cout << "Multi-trigger for " << f << " : " << std::endl;
+    //std::cout << "   " << (*this) << std::endl;
     ++(qe->d_statistics.d_multi_triggers);
-  }
-  //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
-  if( options::eagerInstQuant() ){
-    Theory* th_uf = qe->getTheoryEngine()->getTheory( theory::THEORY_UF );
-    uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)th_uf->getInstantiator();
-    for( int i=0; i<(int)d_nodes.size(); i++ ){
-      ith->registerTrigger( this, d_nodes[i].getOperator() );
-    }
   }
 }
 void Trigger::computeVarContains( Node n ) {
@@ -127,27 +105,23 @@ void Trigger::resetInstantiationRound(){
   d_mg->resetInstantiationRound( d_quantEngine );
 }
 
-void Trigger::reset( Node eqc ){
-  d_mg->reset( eqc, d_quantEngine );
-}
 
-bool Trigger::getNextMatch( InstMatch& m ){
-  bool retVal = d_mg->getNextMatch( m, d_quantEngine );
+bool Trigger::getNextMatch(){
+  bool retVal = d_mg->getNextMatch( d_quantEngine );
   //m.makeInternal( d_quantEngine->getEqualityQuery() );
   return retVal;
 }
 
-bool Trigger::getMatch( Node t, InstMatch& m ){
-  //FIXME: this assumes d_mg is an inst match generator
-  return ((InstMatchGenerator*)d_mg)->getMatch( t, m, d_quantEngine );
-}
+// bool Trigger::getMatch( Node t, InstMatch& m ){
+//   //FIXME: this assumes d_mg is an inst match generator
+//   return ((InstMatchGenerator*)d_mg)->getMatch( t, m, d_quantEngine );
+// }
 
-int Trigger::addTerm( Node t ){
-  return d_mg->addTerm( d_f, t, d_quantEngine );
-}
 
 int Trigger::addInstantiations( InstMatch& baseMatch ){
-  int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine );
+  int addedLemmas = d_mg->addInstantiations( baseMatch,
+                                             d_nodes[0].getAttribute(InstConstantAttribute()),
+                                             d_quantEngine);
   if( addedLemmas>0 ){
     Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
     for( int i=0; i<(int)d_nodes.size(); i++ ){
@@ -229,7 +203,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     //  trNew++;
     //}
     //if( (trNew+trOld)%100==0 ){
-    //  Notice() << "Trigger new old = " << trNew << " " << trOld << std::endl;
+    //  std::cout << "Trigger new old = " << trNew << " " << trOld << std::endl;
     //}
   }else{
     Trigger* t = d_tr_trie.getTrigger( trNodes );
@@ -279,15 +253,6 @@ bool Trigger::isUsable( Node n, Node f ){
   }
 }
 
-bool Trigger::isUsableTrigger( Node n, Node f ){
-  //return n.getAttribute(InstConstantAttribute())==f && n.getKind()==APPLY_UF;
-  return n.getAttribute(InstConstantAttribute())==f && isAtomicTrigger( n ) && isUsable( n, f );
-}
-
-bool Trigger::isAtomicTrigger( Node n ){
-  return n.getKind()==APPLY_UF || n.getKind()==SELECT || n.getKind()==STORE ||
-         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR || n.getKind()==APPLY_TESTER;
-}
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
@@ -479,16 +444,16 @@ bool Trigger::isVariableSubsume( Node n1, Node n2 ){
   if( n1==n2 ){
     return true;
   }else{
-    //Notice() << "is variable subsume ? " << n1 << " " << n2 << std::endl;
+    //std::cout << "is variable subsume ? " << n1 << " " << n2 << std::endl;
     computeVarContains( n1 );
     computeVarContains( n2 );
     for( int i=0; i<(int)d_var_contains[n2].size(); i++ ){
       if( std::find( d_var_contains[n1].begin(), d_var_contains[n1].end(), d_var_contains[n2][i] )==d_var_contains[n1].end() ){
-        //Notice() << "no" << std::endl;
+        //std::cout << "no" << std::endl;
         return false;
       }
     }
-    //Notice() << "yes" << std::endl;
+    //std::cout << "yes" << std::endl;
     return true;
   }
 }

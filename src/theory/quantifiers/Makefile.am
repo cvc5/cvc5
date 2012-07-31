@@ -15,6 +15,14 @@ libquantifiers_la_SOURCES = \
 	theory_quantifiers_instantiator.cpp \
 	instantiation_engine.h \
 	instantiation_engine.cpp \
+	trigger.h \
+	trigger.cpp \
+	candidate_generator.h \
+	candidate_generator.cpp \
+	instantiator_default.h \
+	instantiator_default.cpp \
+	inst_match.h \
+	inst_match.cpp \
 	model_engine.h \
 	model_engine.cpp \
 	inst_when_mode.cpp \

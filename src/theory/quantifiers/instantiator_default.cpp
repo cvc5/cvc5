@@ -14,7 +14,7 @@
  ** \brief Implementation of instantiator_default class
  **/
 
-#include "theory/instantiator_default.h"
+#include "theory/quantifiers/instantiator_default.h"
 #include "theory/theory_engine.h"
 
 using namespace std;

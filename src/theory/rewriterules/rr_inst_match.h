@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__RR_INST_MATCH_H
-#define __CVC4__RR_INST_MATCH_H
+#ifndef __CVC4__THEORY__REWRITERULES__RR_INST_MATCH_H
+#define __CVC4__THEORY__REWRITERULES__RR_INST_MATCH_H
 
 #include "theory/theory.h"
 #include "util/hash.h"
@@ -31,7 +31,7 @@
 #include "theory/uf/theory_uf.h"
 #include "context/cdlist.h"
 
-#include "theory/inst_match.h"
+#include "theory/quantifiers/inst_match.h"
 #include "expr/node_manager.h"
 #include "expr/node_builder.h"
 
@@ -263,4 +263,4 @@ class InstMatchGenerator;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__RR_INST_MATCH_H */
+#endif /* __CVC4__THEORY__REWRITERULES__RR_INST_MATCH_H */

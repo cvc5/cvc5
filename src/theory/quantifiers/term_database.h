@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__QUANTIFIERS_TERM_DATABASE_H
-#define __CVC4__QUANTIFIERS_TERM_DATABASE_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include "theory/theory.h"
 
@@ -149,8 +149,8 @@ public:
   Node getFreeVariableForInstConstant( Node n );
 };/* class TermDb */
 
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

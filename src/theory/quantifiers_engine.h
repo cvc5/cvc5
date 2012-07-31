@@ -21,8 +21,8 @@
 
 #include "theory/theory.h"
 #include "util/hash.h"
-#include "theory/inst_match.h"
-#include "theory/rr_inst_match.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/rewriterules/rr_inst_match.h"
 
 #include "util/stats.h"
 

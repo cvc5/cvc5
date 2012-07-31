@@ -80,10 +80,10 @@ public:
   TermDb* getTermDatabase();
   /** to stream function */
   void toStream( std::ostream& out );
-};
+};/* class FirstOrderModel */
 
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__FIRST_ORDER_MODEL_H */

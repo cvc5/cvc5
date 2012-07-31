@@ -27,7 +27,7 @@
 
 #include "util/stats.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/trigger.h"
+#include "theory/quantifiers/trigger.h"
 #include "util/ntuple.h"
 #include "context/cdqueue.h"
 

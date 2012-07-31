@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_MATCH_H
-#define __CVC4__INST_MATCH_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
+#define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
 #include "util/hash.h"
 
@@ -26,7 +26,7 @@
 #include <map>
 
 #include "context/cdlist.h"
-#include "theory/candidate_generator.h"
+#include "theory/quantifiers/candidate_generator.h"
 
 //#define USE_EFFICIENT_E_MATCHING
 
@@ -391,4 +391,4 @@ typedef CVC4::theory::inst::EqualityQuery EqualityQuery;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__INST_MATCH_H */
+#endif /* __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */

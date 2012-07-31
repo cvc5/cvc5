@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__REP_SET_ITERATOR_H
-#define __CVC4__REP_SET_ITERATOR_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__REP_SET_ITERATOR_H
+#define __CVC4__THEORY__QUANTIFIERS__REP_SET_ITERATOR_H
 
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -110,11 +110,10 @@ public:
   int d_eval_uf_terms;
   int d_eval_lits;
   int d_eval_lits_unknown;
-};
+};/* class RepSetEvaluator */
 
-
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif

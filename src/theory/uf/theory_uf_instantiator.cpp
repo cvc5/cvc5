@@ -17,7 +17,7 @@
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/rr_candidate_generator.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/rewriterules/options.h"

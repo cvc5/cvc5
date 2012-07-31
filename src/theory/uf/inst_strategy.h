@@ -20,7 +20,7 @@
 #define __CVC4__INST_STRATEGY_H
 
 #include "theory/quantifiers_engine.h"
-#include "theory/trigger.h"
+#include "theory/quantifiers/trigger.h"
 
 #include "context/context.h"
 #include "context/context_mm.h"

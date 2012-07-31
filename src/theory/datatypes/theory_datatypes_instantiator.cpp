@@ -19,7 +19,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/rr_candidate_generator.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 
 using namespace std;
 using namespace CVC4;

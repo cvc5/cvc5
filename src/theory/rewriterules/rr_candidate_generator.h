@@ -16,12 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_UF_CANDIDATE_GENERATOR_H
-#define __CVC4__THEORY_UF_CANDIDATE_GENERATOR_H
+#ifndef __CVC4__THEORY__REWRITERULES__RR_CANDIDATE_GENERATOR_H
+#define __CVC4__THEORY__REWRITERULES__RR_CANDIDATE_GENERATOR_H
 
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/rr_inst_match.h"
+#include "theory/rewriterules/rr_inst_match.h"
 
 using namespace CVC4::theory::quantifiers;
 
@@ -206,4 +206,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_UF_INSTANTIATOR_H */
+#endif /* __CVC4__THEORY__REWRITERULES__RR_CANDIDATE_GENERATOR_H */

@@ -14,10 +14,10 @@
  ** \brief Implementation of inst match class
  **/
 
-#include "theory/inst_match.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/candidate_generator.h"
+#include "theory/quantifiers/candidate_generator.h"
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/quantifiers/options.h"

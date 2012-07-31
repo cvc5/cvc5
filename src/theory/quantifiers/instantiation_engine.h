@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INSTANTIATION_ENGINE_H
-#define __CVC4__INSTANTIATION_ENGINE_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H
+#define __CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H
 
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
@@ -69,10 +69,10 @@ public:
 public:
   /** get the corresponding counterexample literal for quantified formula node n */
   Node getCounterexampleLiteralFor( Node f ) { return d_ce_lit.find( f )==d_ce_lit.end() ? Node::null() : d_ce_lit[ f ]; }
-};
+};/* class InstantiationEngine */
 
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */

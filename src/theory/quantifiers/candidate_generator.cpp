@@ -14,11 +14,11 @@
  ** \brief Implementation of theory uf candidate generator class
  **/
 
-#include "theory/candidate_generator.h"
+#include "theory/quantifiers/candidate_generator.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/inst_match.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;

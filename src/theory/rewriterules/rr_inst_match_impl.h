@@ -16,13 +16,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__RR_INST_MATCH_IMPL_H
-#define __CVC4__RR_INST_MATCH_IMPL_H
+#ifndef __CVC4__THEORY__REWRITERULES__RR_INST_MATCH_IMPL_H
+#define __CVC4__THEORY__REWRITERULES__RR_INST_MATCH_IMPL_H
 
-#include "theory/rr_inst_match.h"
+#include "theory/rewriterules/rr_inst_match.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/rr_candidate_generator.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -125,4 +125,4 @@ addInstMatch( InstMatch& m, InstMatchTrie2Gen<modEq>::Tree* e ) {
 
 }/* CVC4 namespace */
 
-#endif /*  __CVC4__RR_INST_MATCH_IMPL_H */
+#endif /*  __CVC4__THEORY__REWRITERULES__RR_INST_MATCH_IMPL_H */

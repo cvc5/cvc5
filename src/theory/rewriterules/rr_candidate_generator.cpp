@@ -14,7 +14,7 @@
  ** \brief Implementation of rr candidate generator class
  **/
 
-#include "theory/rr_candidate_generator.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/term_database.h"

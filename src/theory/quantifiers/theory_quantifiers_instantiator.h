@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INSTANTIATOR_QUANTIFIERS_H
-#define __CVC4__INSTANTIATOR_QUANTIFIERS_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_INSTANTIATOR_H
+#define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_INSTANTIATOR_H
 
 #include "theory/quantifiers_engine.h"
 
@@ -51,10 +51,10 @@ private:
     ~Statistics();
   };
   Statistics d_statistics;
-};/* class InstantiatiorTheoryArith  */
+};/* class InstantiatiorTheoryQuantifiers */
 
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_INSTANTIATOR_H */

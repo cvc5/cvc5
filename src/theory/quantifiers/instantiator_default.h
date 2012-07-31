@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INSTANTIATOR_DEFAULT_H
-#define __CVC4__INSTANTIATOR_DEFAULT_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__INSTANTIATOR_DEFAULT_H
+#define __CVC4__THEORY__QUANTIFIERS__INSTANTIATOR_DEFAULT_H
 
 #include <string>
 #include "theory/quantifiers_engine.h"
@@ -45,4 +45,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__INSTANTIATOR_DEFAULT_H */
+#endif /* __CVC4__THEORY__QUANTIFIERS__INSTANTIATOR_DEFAULT_H */

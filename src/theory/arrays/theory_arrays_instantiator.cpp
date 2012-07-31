@@ -18,7 +18,7 @@
 #include "theory/arrays/theory_arrays_instantiator.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/quantifiers/options.h"
-#include "theory/rr_candidate_generator.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 
 using namespace std;
 using namespace CVC4;

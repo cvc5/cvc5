@@ -38,23 +38,8 @@ libtheory_la_SOURCES = \
 	unconstrained_simplifier.cpp \
 	quantifiers_engine.h \
 	quantifiers_engine.cpp \
-	instantiator_default.h \
-	instantiator_default.cpp \
-	rr_inst_match.h \
-	rr_inst_match_impl.h \
-	rr_inst_match.cpp \
-	rr_trigger.h \
-	rr_trigger.cpp \
-	rr_candidate_generator.h \
-	rr_candidate_generator.cpp \
-	inst_match.h \
-	inst_match.cpp \
-	trigger.h \
-	trigger.cpp \
 	model.h \
-	model.cpp \
-	candidate_generator.h \
-	candidate_generator.cpp
+	model.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

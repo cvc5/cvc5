@@ -14,17 +14,17 @@
  ** \brief Implementation of inst match class
  **/
 
-#include "theory/inst_match.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/rr_inst_match.h"
-#include "theory/rr_trigger.h"
-#include "theory/rr_inst_match_impl.h"
-#include "theory/rr_candidate_generator.h"
+#include "theory/rewriterules/rr_inst_match.h"
+#include "theory/rewriterules/rr_trigger.h"
+#include "theory/rewriterules/rr_inst_match_impl.h"
+#include "theory/rewriterules/rr_candidate_generator.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
