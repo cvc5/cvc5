@@ -20,6 +20,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/bitblaster.h"
+#include "theory/bv/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -57,7 +58,7 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
   BVDebug("bitvector::bitblaster") << "BitblastSolver::addAssertions (" << e << ")" << std::endl;
 
   //// Eager bit-blasting
-  if (Options::current()->bitvectorEagerBitblast) {
+  if (options::bitvectorEagerBitblast()) {
     for (unsigned i = 0; i < assertions.size(); ++i) {
       TNode atom = assertions[i].getKind() == kind::NOT ? assertions[i][0] : assertions[i];
       if (atom.getKind() != kind::BITVECTOR_BITOF) {
@@ -105,7 +106,7 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
   }
 
   // solving
-  if (e == Theory::EFFORT_FULL || Options::current()->bitvectorEagerFullcheck) {
+  if (e == Theory::EFFORT_FULL || options::bitvectorEagerFullcheck()) {
     Assert(!d_bv->inConflict());
     BVDebug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
     bool ok = d_bitblaster->solve();

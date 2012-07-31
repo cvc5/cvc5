@@ -21,7 +21,10 @@
 #include "decision/relevancy.h"
 
 #include "expr/node.h"
-#include "util/options.h"
+#include "decision/options.h"
+#include "decision/decision_mode.h"
+
+#include "smt/options.h"
 
 using namespace std;
 
@@ -49,24 +52,23 @@ void DecisionEngine::init()
   d_engineState = 1;
 
   Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  const Options* options = Options::current();
-  if(options->incrementalSolving) return;
+  if(options::incrementalSolving()) return;
 
   Trace("decision-init") << " * options->decisionMode: " 
-                         << options->decisionMode << std:: endl;
-  Trace("decision-init") << " * options->decisionOptions.stopOnly: "
-                         << ((options->decisionOptions).stopOnly) << std::endl;
+                         << options::decisionMode() << std:: endl;
+  Trace("decision-init") << " * options->decisionStopOnly: "
+                         << options::decisionStopOnly() << std::endl;
 
-  if(options->decisionMode == Options::DECISION_STRATEGY_INTERNAL) { }
-  if(options->decisionMode == Options::DECISION_STRATEGY_JUSTIFICATION) {
+  if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
+  if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
     ITEDecisionStrategy* ds = 
       new decision::JustificationHeuristic(this, d_satContext);
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
   }
-  if(options->decisionMode == Options::DECISION_STRATEGY_RELEVANCY) {
+  if(options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY) {
     RelevancyStrategy* ds = 
-      new decision::Relevancy(this, d_satContext, options->decisionOptions);
+      new decision::Relevancy(this, d_satContext);
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
     d_relevancyStrategy = ds;

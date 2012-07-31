@@ -23,7 +23,7 @@
 
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
 #include "theory/rewriter.h"
-#include "util/options.h"
+#include "theory/rewriterules/options.h"
 
 
 using namespace std;
@@ -292,13 +292,13 @@ Trigger TheoryRewriteRules::createTrigger( TNode n, std::vector<Node> & pattern 
   //  Debug("rewriterules") << "createTrigger:";
   getQuantifiersEngine()->registerPattern(pattern);
   return *Trigger::mkTrigger(getQuantifiersEngine(),n,pattern,
-                             Options::current()->efficientEMatching?
+                             options::efficientEMatching()?
                              Trigger::MATCH_GEN_EFFICIENT_E_MATCH :
                              Trigger::MATCH_GEN_DEFAULT,
                              true,
                              Trigger::TR_MAKE_NEW,
                              false);
-  //                             Options::current()->smartMultiTriggers);
+  //                             options::smartMultiTriggers());
 };
 
 bool TheoryRewriteRules::notifyIfKnown(const GList * const ltested,

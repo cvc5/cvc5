@@ -104,7 +104,7 @@ EXTRA_DIST = \
 	config/build-type \
 	config/mkbuilddir \
 	config/doxygen.cfg \
-	doc/cvc4.1.in \
+	doc/cvc4.1_template.in \
 	doc/cvc4.5.in \
 	doc/libcvc4.3.in \
 	doc/libcvc4parser.3.in \

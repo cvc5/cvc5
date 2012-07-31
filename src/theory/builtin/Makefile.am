@@ -13,4 +13,5 @@ libbuiltin_la_SOURCES = \
 	theory_builtin.h \
 	theory_builtin.cpp
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds

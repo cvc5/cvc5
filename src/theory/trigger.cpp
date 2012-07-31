@@ -20,6 +20,7 @@
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/candidate_generator.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -95,7 +96,7 @@ d_quantEngine( qe ), d_f( f ){
     ++(qe->d_statistics.d_multi_triggers);
   }
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
-  if( Options::current()->eagerInstQuant ){
+  if( options::eagerInstQuant() ){
     Theory* th_uf = qe->getTheoryEngine()->getTheory( theory::THEORY_UF );
     uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)th_uf->getInstantiator();
     for( int i=0; i<(int)d_nodes.size(); i++ ){

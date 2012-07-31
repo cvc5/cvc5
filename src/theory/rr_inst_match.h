@@ -35,6 +35,9 @@
 #include "expr/node_manager.h"
 #include "expr/node_builder.h"
 
+#include "theory/quantifiers/options.h"
+#include "theory/rewriterules/options.h"
+
 //#define USE_EFFICIENT_E_MATCHING
 
 namespace CVC4 {
@@ -65,8 +68,8 @@ public:
   /** legal candidate */
   static inline bool isLegalCandidate( TNode n ){
     return !n.getAttribute(NoMatchAttribute()) &&
-      ( !Options::current()->cbqi || !n.hasAttribute(InstConstantAttribute())) &&
-      ( !Options::current()->efficientEMatching || n.hasAttribute(AvailableInTermDb()) );
+      ( !options::cbqi() || !n.hasAttribute(InstConstantAttribute())) &&
+      ( !options::efficientEMatching() || n.hasAttribute(AvailableInTermDb()) );
 }
 
 };

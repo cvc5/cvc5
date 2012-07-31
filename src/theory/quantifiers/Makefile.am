@@ -17,6 +17,10 @@ libquantifiers_la_SOURCES = \
 	instantiation_engine.cpp \
 	model_engine.h \
 	model_engine.cpp \
+	inst_when_mode.cpp \
+	inst_when_mode.h \
+	literal_match_mode.cpp \
+	literal_match_mode.h \
 	relevant_domain.h \
 	relevant_domain.cpp \
 	rep_set_iterator.h \
@@ -28,4 +32,6 @@ libquantifiers_la_SOURCES = \
 	model_builder.h \
 	model_builder.cpp
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds \
+	options_handlers.h

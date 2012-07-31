@@ -15,14 +15,14 @@ ANTLR_OPTS =
 noinst_LTLIBRARIES = libparsersmt2.la
 
 ANTLR_TOKEN_STUFF = \
-	@srcdir@/generated/Smt2.tokens
+	generated/Smt2.tokens
 ANTLR_LEXER_STUFF = \
-	@srcdir@/generated/Smt2Lexer.h \
-	@srcdir@/generated/Smt2Lexer.c \
+	generated/Smt2Lexer.h \
+	generated/Smt2Lexer.c \
 	$(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
-	@srcdir@/generated/Smt2Parser.h \
-	@srcdir@/generated/Smt2Parser.c
+	generated/Smt2Parser.h \
+	generated/Smt2Parser.c
 ANTLR_STUFF = \
 	$(ANTLR_LEXER_STUFF) \
 	$(ANTLR_PARSER_STUFF)
@@ -35,27 +35,25 @@ libparsersmt2_la_SOURCES = \
 	smt2_input.cpp \
 	$(ANTLR_STUFF)
 
-BUILT_SOURCES = $(ANTLR_STUFF) @srcdir@/stamp-generated
-
-EXTRA_DIST = @srcdir@/stamp-generated
+BUILT_SOURCES = $(ANTLR_STUFF) stamp-generated
 
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
-	-$(AM_V_at)rmdir @srcdir@/generated
-	-$(AM_V_at)rm -f @srcdir@/stamp-generated
+	-$(AM_V_at)rmdir generated
+	-$(AM_V_at)rm -f stamp-generated
 
-@srcdir@/stamp-generated:
-	$(AM_V_at)mkdir -p @srcdir@/generated
-	$(AM_V_at)touch @srcdir@/stamp-generated
+stamp-generated:
+	$(AM_V_at)mkdir -p generated
+	$(AM_V_at)touch stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-@srcdir@/generated/Smt2Lexer.h: Smt2.g @srcdir@/stamp-generated
+generated/Smt2Lexer.h: Smt2.g stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
 	@if test -z "$(ANTLR)"; then echo "ERROR: antlr parser generator cannot be found, cannot generate the parser" >&2; exit 1; fi
-	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "@srcdir@/generated" "@srcdir@/Smt2.g"
+	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "generated" "@srcdir@/Smt2.g"
 
 # These don't actually depend on SmtLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-@srcdir@/generated/Smt2Lexer.c @srcdir@/generated/Smt2Parser.h @srcdir@/generated/Smt2Parser.c $(ANTLR_TOKEN_STUFF): @srcdir@/generated/Smt2Lexer.h
+generated/Smt2Lexer.c generated/Smt2Parser.h generated/Smt2Parser.c $(ANTLR_TOKEN_STUFF): generated/Smt2Lexer.h

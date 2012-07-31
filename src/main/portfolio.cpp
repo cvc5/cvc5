@@ -25,7 +25,7 @@
 
 #include "smt/smt_engine.h"
 #include "util/result.h"
-#include "util/options.h"
+#include "options/options.h"
 
 using namespace boost;
 

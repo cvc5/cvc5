@@ -33,7 +33,7 @@
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/language.h"
 
 #include <string.h>
@@ -85,8 +85,8 @@ static set<string> s_declarations;
 
 InteractiveShell::InteractiveShell(ExprManager& exprManager,
                                    const Options& options) :
-  d_in(*options.in),
-  d_out(*options.out),
+  d_in(*options[options::in]),
+  d_out(*options[options::out]),
   d_options(options),
   d_quit(false) {
   ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
@@ -99,7 +99,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
     ::rl_completion_entry_function = commandGenerator;
     ::using_history();
 
-    switch(OutputLanguage lang = toOutputLanguage(d_options.inputLanguage)) {
+    switch(OutputLanguage lang = toOutputLanguage(d_options[options::inputLanguage])) {
     case output::LANG_CVC4:
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
       commandsBegin = cvc_commands;
@@ -174,7 +174,7 @@ Command* InteractiveShell::readCommand() {
   /* Prompt the user for input. */
   if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-    lineBuf = ::readline(d_options.verbosity >= 0 ? "CVC4> " : "");
+    lineBuf = ::readline(d_options[options::verbosity] >= 0 ? "CVC4> " : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -182,7 +182,7 @@ Command* InteractiveShell::readCommand() {
     free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
   } else {
-    if(d_options.verbosity >= 0) {
+    if(d_options[options::verbosity] >= 0) {
       d_out << "CVC4> " << flush;
     }
 
@@ -239,7 +239,7 @@ Command* InteractiveShell::readCommand() {
       input[n] = '\n';
       if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-        lineBuf = ::readline(d_options.verbosity >= 0 ? "... > " : "");
+        lineBuf = ::readline(d_options[options::verbosity] >= 0 ? "... > " : "");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -247,7 +247,7 @@ Command* InteractiveShell::readCommand() {
         free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
       } else {
-        if(d_options.verbosity >= 0) {
+        if(d_options[options::verbosity] >= 0) {
           d_out << "... > " << flush;
         }
 
@@ -262,7 +262,7 @@ Command* InteractiveShell::readCommand() {
     }
   }
 
-  d_parser->setInput(Input::newStringInput(d_options.inputLanguage, input, INPUT_FILENAME));
+  d_parser->setInput(Input::newStringInput(d_options[options::inputLanguage], input, INPUT_FILENAME));
 
   /* There may be more than one command in the input. Build up a
      sequence. */

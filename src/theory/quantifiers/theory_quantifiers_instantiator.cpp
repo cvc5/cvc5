@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/theory_quantifiers_instantiator.h"
 #include "theory/quantifiers/theory_quantifiers.h"
+#include "theory/quantifiers/options.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -32,7 +33,7 @@ Instantiator( c, ie, th ){
 
 void InstantiatorTheoryQuantifiers::assertNode( Node assertion ){
   Debug("quant-quant-assert") << "InstantiatorTheoryQuantifiers::check: " << assertion << std::endl;
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       Debug("quant-quant-assert") << "   -> has constraints from " << assertion.getAttribute(InstConstantAttribute()) << std::endl;
       setHasConstraintsFrom( assertion.getAttribute(InstConstantAttribute()) );

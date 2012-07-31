@@ -74,6 +74,7 @@ libtheory_la_LIBADD = \
 	@builddir@/rewriterules/librewriterules.la
 
 EXTRA_DIST = \
+	options_handlers.h \
 	rewriter_tables_template.h \
 	instantiator_tables_template.cpp \
 	theory_traits_template.h \

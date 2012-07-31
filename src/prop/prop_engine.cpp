@@ -23,10 +23,12 @@
 #include "prop/sat_solver_factory.h"
 
 #include "decision/decision_engine.h"
+#include "decision/options.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/Assert.h"
-#include "util/options.h"
+#include "options/options.h"
+#include "smt/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "expr/expr.h"
@@ -80,8 +82,8 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* context) :
   d_cnfStream = new CVC4::prop::TseitinCnfStream
     (d_satSolver, registrar, 
      // fullLitToNode Map = 
-     Options::current()->threads > 1 || 
-     Options::current()->decisionMode == Options::DECISION_STRATEGY_RELEVANCY);
+     options::threads() > 1 || 
+     options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY);
 
   d_satSolver->initialize(d_context, new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream));
 
@@ -165,7 +167,7 @@ Result PropEngine::checkSat(unsigned long& millis, unsigned long& resource) {
   // TODO This currently ignores conflicts (a dangerous practice).
   d_theoryEngine->presolve();
 
-  if(Options::current()->preprocessOnly) {
+  if(options::preprocessOnly()) {
     millis = resource = 0;
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }

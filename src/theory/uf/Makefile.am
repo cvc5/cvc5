@@ -24,4 +24,6 @@ libuf_la_SOURCES = \
 	theory_uf_model.h \
 	theory_uf_model.cpp 
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds \
+	options_handlers.h

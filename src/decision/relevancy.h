@@ -35,12 +35,12 @@
 
 #include "decision_engine.h"
 #include "decision_strategy.h"
+#include "decision/options.h"
 
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
-#include "util/options.h"
 
 namespace CVC4 {
 
@@ -109,9 +109,6 @@ class Relevancy : public RelevancyStrategy {
   bool d_multipleBacktrace;
   //bool d_computeRelevancy;     // are we in a mode where we compute relevancy?
 
-  /** Only leaves can be relevant */
-  Options::DecisionOptions d_opt;        // may be we shouldn't be caching them?
-
   static const double secondsPerDecision = 0.001;
   static const double secondsPerExpense = 1e-7;
   static const double EPS = 1e-9;
@@ -121,7 +118,7 @@ class Relevancy : public RelevancyStrategy {
   /** current decision for the recursive call */
   SatLiteral* d_curDecision;
 public:
-  Relevancy(CVC4::DecisionEngine* de, context::Context *c, const Options::DecisionOptions &decOpt):
+  Relevancy(CVC4::DecisionEngine* de, context::Context *c):
     RelevancyStrategy(de, c),
     d_justified(c),
     d_prvsIndex(c, 0),
@@ -132,10 +129,9 @@ public:
     d_expense("decision::rel::expense", 0),
     d_timestat("decision::rel::time"),
     d_relevancy(c),
-    d_multipleBacktrace(decOpt.computeRelevancy),
+    d_multipleBacktrace(options::decisionComputeRelevancy()),
     //    d_computeRelevancy(decOpt.computeRelevancy),
-    d_opt(decOpt),
-    d_maxTimeAsPercentageOfTotalTime(decOpt.maxRelTimeAsPermille*1.0/10.0),
+    d_maxTimeAsPercentageOfTotalTime(options::decisionMaxRelTimeAsPermille()*1.0/10.0),
     d_curDecision(NULL)
   {
     Warning() << "There are known bugs in this Relevancy code which we know"
@@ -149,11 +145,11 @@ public:
     StatisticsRegistry::registerStat(&d_expense);
     StatisticsRegistry::registerStat(&d_timestat);
     Trace("decision") << "relevancy enabled with" << std::endl;
-    Trace("decision") << "  * computeRelevancy: " << (d_opt.computeRelevancy ? "on" : "off")
+    Trace("decision") << "  * computeRelevancy: " << (options::decisionComputeRelevancy() ? "on" : "off")
                       << std::endl;
-    Trace("decision") << "  * relevancyLeaves: " << (d_opt.relevancyLeaves ? "on" : "off")
+    Trace("decision") << "  * relevancyLeaves: " << (options::decisionRelevancyLeaves() ? "on" : "off")
                       << std::endl;
-    Trace("decision") << "  * mustRelevancy [unimplemented]: " << (d_opt.mustRelevancy ? "on" : "off")
+    Trace("decision") << "  * mustRelevancy [unimplemented]: " << (options::decisionMustRelevancy() ? "on" : "off")
                       << std::endl;
   }
   ~Relevancy() {
@@ -189,13 +185,13 @@ public:
       SatValue desiredVal = SAT_VALUE_TRUE;
       SatLiteral litDecision = findSplitter(d_assertions[i], desiredVal);
 
-      if(!d_opt.computeRelevancy && litDecision != undefSatLiteral) {
+      if(!options::decisionComputeRelevancy() && litDecision != undefSatLiteral) {
         d_prvsIndex = i;
         return litDecision;
       }
     }
 
-    if(d_opt.computeRelevancy) return undefSatLiteral;
+    if(options::decisionComputeRelevancy()) return undefSatLiteral;
 
     Trace("decision") << "jh: Nothing to split on " << std::endl;
 
@@ -244,7 +240,7 @@ public:
     for(unsigned i = 0; i < assertionsEnd; ++i) {
       d_assertions.push_back(assertions[i]);
       d_visited.clear();
-      if(d_opt.computeRelevancy) increaseMaxRelevancy(assertions[i]);
+      if(options::decisionComputeRelevancy()) increaseMaxRelevancy(assertions[i]);
       d_visited.clear();
     }
 
@@ -267,7 +263,7 @@ public:
       return true;
     }
     
-    if(d_opt.relevancyLeaves && !isAtomicFormula(n)) {
+    if(options::decisionRelevancyLeaves() && !isAtomicFormula(n)) {
       Trace("decision") << "no [not a leaf]" << std::endl;
       return false;
     }

@@ -202,7 +202,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
 
   // If it's a theory literal, need to store it for back queries
   if ( theoryLiteral || d_fullLitToNodeMap ||
-       ( CVC4_USE_REPLAY && Options::current()->replayLog != NULL ) ||
+       ( CVC4_USE_REPLAY && options::replayLog() != NULL ) ||
        (Dump.isOn("clauses")) ) {
     d_nodeCache[lit] = node;
     d_nodeCache[~lit] = node.notNode();

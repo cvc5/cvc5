@@ -19,6 +19,8 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/rr_candidate_generator.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/options.h"
+#include "theory/rewriterules/options.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace std;
@@ -91,11 +93,11 @@ inline void outputEqClassInfo( const char* c, const EqClassInfo* eci){
 InstantiatorTheoryUf::InstantiatorTheoryUf(context::Context* c, CVC4::theory::QuantifiersEngine* qe, Theory* th) :
 Instantiator( c, qe, th )
 {
-  if( !Options::current()->finiteModelFind || Options::current()->fmfInstEngine ){
-    if( Options::current()->cbqi ){
+  if( !options::finiteModelFind() || options::fmfInstEngine() ){
+    if( options::cbqi() ){
       addInstStrategy( new InstStrategyCheckCESolved( this, qe ) );
     }
-    if( Options::current()->userPatternsQuant ){
+    if( options::userPatternsQuant() ){
       d_isup = new InstStrategyUserPatterns( this, qe );
       addInstStrategy( d_isup );
     }else{
@@ -106,7 +108,7 @@ Instantiator( c, qe, th )
     i_ag->setGenerateAdditional( true );
     addInstStrategy( i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
-    if( !Options::current()->finiteModelFind ){
+    if( !options::finiteModelFind() ){
       addInstStrategy( new InstStrategyFreeVariable( this, qe ) );
     }
     //d_isup->setPriorityOver( i_ag );
@@ -124,7 +126,7 @@ void InstantiatorTheoryUf::assertNode( Node assertion )
   Debug("quant-uf-assert") << "InstantiatorTheoryUf::check: " << assertion << std::endl;
   //preRegisterTerm( assertion );
   d_quantEngine->addTermToDatabase( assertion );
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       setHasConstraintsFrom( assertion.getAttribute(InstConstantAttribute()) );
     }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
@@ -337,7 +339,7 @@ void InstantiatorTheoryUf::newTerms(SetNode& s){
 
 /** merge */
 void InstantiatorTheoryUf::merge( TNode a, TNode b ){
-  if( Options::current()->efficientEMatching ){
+  if( options::efficientEMatching() ){
     //merge eqc_ops of b into a
     EqClassInfo* eci_a = getOrCreateEquivalenceClassInfo( a );
     EqClassInfo* eci_b = getOrCreateEquivalenceClassInfo( b );

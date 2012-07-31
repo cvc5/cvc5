@@ -93,9 +93,17 @@ void StatisticsRegistry::flushStat(std::ostream &out) const {;
 #endif /* CVC4_STATISTICS_ON */
 }
 
+StatisticsRegistry::const_iterator StatisticsRegistry::begin_() const {
+  return d_registeredStats.begin();
+}/* StatisticsRegistry::begin() */
+
 StatisticsRegistry::const_iterator StatisticsRegistry::begin() {
   return current()->d_registeredStats.begin();
 }/* StatisticsRegistry::begin() */
+
+StatisticsRegistry::const_iterator StatisticsRegistry::end_() const {
+  return d_registeredStats.end();
+}/* StatisticsRegistry::end() */
 
 StatisticsRegistry::const_iterator StatisticsRegistry::end() {
   return current()->d_registeredStats.end();

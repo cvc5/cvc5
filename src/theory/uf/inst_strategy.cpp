@@ -20,6 +20,7 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace std;
@@ -144,9 +145,9 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
     //extend to literal matching
     d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
-    int matchOption = Options::current()->efficientEMatching ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
+    int matchOption = options::efficientEMatching() ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
     d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, nodes, matchOption, true, Trigger::TR_MAKE_NEW,
-                                                 Options::current()->smartTriggers ) );
+                                                 options::smartTriggers() ) );
   }
 }
 
@@ -298,11 +299,11 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       //}
     }
     //now, generate the trigger...
-    int matchOption = Options::current()->efficientEMatching ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
+    int matchOption = options::efficientEMatching() ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
     Trigger* tr = NULL;
     if( d_is_single_trigger[ patTerms[0] ] ){
       tr = Trigger::mkTrigger( d_quantEngine, f, patTerms[0], matchOption, false, Trigger::TR_RETURN_NULL,
-                               Options::current()->smartTriggers );
+                               options::smartTriggers() );
       d_single_trigger_gen[ patTerms[0] ] = true;
     }else{
       //if we are re-generating triggers, shuffle based on some method
@@ -316,7 +317,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       //will possibly want to get an old trigger
       tr = Trigger::mkTrigger( d_quantEngine, f, patTerms, matchOption, false, Trigger::TR_GET_OLD,
-                               Options::current()->smartTriggers );
+                               options::smartTriggers() );
     }
     if( tr ){
       if( tr->isMultiTrigger() ){
@@ -347,7 +348,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
             if( d_quantEngine->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
               d_single_trigger_gen[ patTerms[index] ] = true;
               Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL,
-                                                 Options::current()->smartTriggers );
+                                                 options::smartTriggers() );
               if( tr2 ){
                 //Notice() << "Add additional trigger " << patTerms[index] << std::endl;
                 tr2->resetInstantiationRound();

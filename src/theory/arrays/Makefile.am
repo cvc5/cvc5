@@ -22,4 +22,5 @@ libarrays_la_SOURCES = \
 	theory_arrays_model.h \
 	theory_arrays_model.cpp
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds

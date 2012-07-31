@@ -25,7 +25,7 @@
 
 #include "smt/smt_engine.h"
 #include "expr/command.h"
-#include "util/options.h"
+#include "options/options.h"
 
 namespace CVC4 {
 

@@ -19,6 +19,7 @@
 
 
 #include "theory/arith/simplex.h"
+#include "theory/arith/options.h"
 
 using namespace std;
 
@@ -41,14 +42,14 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, 
   d_pivotsInRound(),
   d_DELTA_ZERO(0,0)
 {
-  switch(Options::ArithHeuristicPivotRule rule = Options::current()->arithHeuristicPivotRule) {
-  case Options::MINIMUM:
+  switch(ArithHeuristicPivotRule rule = options::arithHeuristicPivotRule()) {
+  case MINIMUM:
     d_queue.setPivotRule(ArithPriorityQueue::MINIMUM);
     break;
-  case Options::BREAK_TIES:
+  case BREAK_TIES:
     d_queue.setPivotRule(ArithPriorityQueue::BREAK_TIES);
     break;
-  case Options::MAXIMUM:
+  case MAXIMUM:
     d_queue.setPivotRule(ArithPriorityQueue::MAXIMUM);
     break;
   default:
@@ -262,13 +263,13 @@ Result::Sat SimplexDecisionProcedure::findModel(bool exactResult){
     }
   }
   static const bool verbose = false;
-  exactResult |= Options::current()->arithStandardCheckVarOrderPivots < 0;
-  const uint32_t inexactResultsVarOrderPivots = exactResult ? 0 : Options::current()->arithStandardCheckVarOrderPivots;
+  exactResult |= options::arithStandardCheckVarOrderPivots() < 0;
+  const uint32_t inexactResultsVarOrderPivots = exactResult ? 0 : options::arithStandardCheckVarOrderPivots();
 
-  uint32_t checkPeriod = Options::current()->arithSimplexCheckPeriod;
+  uint32_t checkPeriod = options::arithSimplexCheckPeriod();
   if(result == Result::SAT_UNKNOWN){
-    uint32_t numDifferencePivots = Options::current()->arithHeuristicPivots < 0 ?
-      d_numVariables + 1 : Options::current()->arithHeuristicPivots;
+    uint32_t numDifferencePivots = options::arithHeuristicPivots() < 0 ?
+      d_numVariables + 1 : options::arithHeuristicPivots();
     // The signed to unsigned conversion is safe.
     uint32_t pivotsRemaining = numDifferencePivots;
     while(!d_queue.empty() &&
@@ -421,7 +422,7 @@ bool SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
 
     --remainingIterations;
 
-    bool useVarOrderPivot = d_pivotsInRound.count(x_i) >=  Options::current()->arithPivotThreshold;
+    bool useVarOrderPivot = d_pivotsInRound.count(x_i) >=  options::arithPivotThreshold();
     if(!useVarOrderPivot){
       d_pivotsInRound.add(x_i);
     }
@@ -429,7 +430,7 @@ bool SimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingItera
 
     Debug("playground") << "pivots in rounds: " <<  d_pivotsInRound.count(x_i)
                         << " use " << useVarOrderPivot
-                        << " threshold " << Options::current()->arithPivotThreshold
+                        << " threshold " << options::arithPivotThreshold()
                         << endl;
 
     PreferenceFunction pf = useVarOrderPivot ? minVarOrder : minBoundAndRowCount;

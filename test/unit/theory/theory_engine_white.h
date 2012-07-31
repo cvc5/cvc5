@@ -38,7 +38,7 @@
 #include "smt/smt_engine_scope.h"
 #include "util/rational.h"
 #include "util/integer.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/Assert.h"
 
 using namespace CVC4;

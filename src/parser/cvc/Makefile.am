@@ -15,14 +15,14 @@ ANTLR_OPTS =
 noinst_LTLIBRARIES = libparsercvc.la
 
 ANTLR_TOKEN_STUFF = \
-	@srcdir@/generated/Cvc.tokens
+	generated/Cvc.tokens
 ANTLR_LEXER_STUFF = \
-    @srcdir@/generated/CvcLexer.h \
-    @srcdir@/generated/CvcLexer.c \
+    generated/CvcLexer.h \
+    generated/CvcLexer.c \
     $(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
-    @srcdir@/generated/CvcParser.h \
-    @srcdir@/generated/CvcParser.c
+    generated/CvcParser.h \
+    generated/CvcParser.c
 ANTLR_STUFF = \
     $(ANTLR_LEXER_STUFF) \
     $(ANTLR_PARSER_STUFF)
@@ -33,29 +33,27 @@ libparsercvc_la_SOURCES = \
     cvc_input.cpp \
     $(ANTLR_STUFF)
 
-BUILT_SOURCES = $(ANTLR_STUFF) @srcdir@/stamp-generated
+BUILT_SOURCES = $(ANTLR_STUFF) stamp-generated
 
-EXTRA_DIST = \
-	@srcdir@/stamp-generated \
-	README
+EXTRA_DIST = README
 
 MAINTAINERCLEANFILES = $(ANTLR_STUFF)
 maintainer-clean-local:
-	-$(AM_V_at)rmdir @srcdir@/generated
-	-$(AM_V_at)rm -f @srcdir@/stamp-generated
+	-$(AM_V_at)rmdir generated
+	-$(AM_V_at)rm -f stamp-generated
 
-@srcdir@/stamp-generated:
-	$(AM_V_at)mkdir -p @srcdir@/generated
-	$(AM_V_at)touch @srcdir@/stamp-generated
+stamp-generated:
+	$(AM_V_at)mkdir -p generated
+	$(AM_V_at)touch stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-@srcdir@/generated/CvcLexer.h: Cvc.g @srcdir@/stamp-generated
+generated/CvcLexer.h: Cvc.g stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
 	@if test -z "$(ANTLR)"; then echo "ERROR: antlr parser generator cannot be found, cannot generate the parser" >&2; exit 1; fi
-	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "@srcdir@/generated" "@srcdir@/Cvc.g"
+	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "generated" "@srcdir@/Cvc.g"
 
 # These don't actually depend on CvcLexer.h, but if we're doing parallel
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-@srcdir@/generated/CvcLexer.c @srcdir@/generated/CvcParser.h @srcdir@/generated/CvcParser.c $(ANTLR_TOKEN_STUFF): @srcdir@/generated/CvcLexer.h
+generated/CvcLexer.c generated/CvcParser.h generated/CvcParser.c $(ANTLR_TOKEN_STUFF): generated/CvcLexer.h

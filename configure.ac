@@ -203,7 +203,7 @@ if test -n "${enable_replay+set}"; then
 fi
 AC_MSG_RESULT([$with_build])
 
-AM_INIT_AUTOMAKE([1.11 no-define tar-pax parallel-tests color-tests])
+AM_INIT_AUTOMAKE([1.11 no-define tar-pax parallel-tests color-tests subdir-objects])
 AC_CONFIG_HEADERS([cvc4autoconfig.h])
 
 # Initialize libtool's configuration options.
@@ -849,7 +849,7 @@ AC_LIB_ANTLR
 # supported by the build host).
 CVC4_CHECK_BINDINGS([c java])dnl csharp perl php python ruby tcl ocaml])
 
-# Checks for header files.
+# Checks for header files and their contents.
 AC_CHECK_HEADERS([getopt.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -1062,6 +1062,7 @@ fi
 AC_SUBST(CVC4_USE_CLN_IMP)
 AC_SUBST(CVC4_USE_GMP_IMP)
 
+# month/year for man pages
 MAN_DATE=`date '+%B %Y'`
 AC_SUBST(MAN_DATE)
 
@@ -1085,7 +1086,7 @@ CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/tls.h])
 
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])

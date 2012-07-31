@@ -42,6 +42,8 @@
 #include "theory/arith/normal_form.h"
 #include "theory/model.h"
 
+#include "theory/arith/options.h"
+
 #include <stdint.h>
 
 using namespace std;
@@ -651,7 +653,7 @@ Node TheoryArith::ppRewrite(TNode atom) {
                                << a << endl;
   }
 
-  if (a.getKind() == kind::EQUAL  && Options::current()->arithRewriteEq) {
+  if (a.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
     Node leq = NodeBuilder<2>(kind::LEQ) << a[0] << a[1];
     Node geq = NodeBuilder<2>(kind::GEQ) << a[0] << a[1];
     Node rewritten = Rewriter::rewrite(leq.andNode(geq));
@@ -1536,8 +1538,8 @@ void TheoryArith::check(Effort effortLevel){
 
   // This should be fine if sat or unknown
   if(!emmittedConflictOrSplit &&
-     (Options::current()->arithPropagationMode == Options::UNATE_PROP ||
-      Options::current()->arithPropagationMode == Options::BOTH_PROP)){
+     (options::arithPropagationMode() == UNATE_PROP ||
+      options::arithPropagationMode() == BOTH_PROP)){
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
@@ -1600,7 +1602,7 @@ void TheoryArith::check(Effort effortLevel){
 
   if(!emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()){
     Node possibleConflict = Node::null();
-    if(!emmittedConflictOrSplit && Options::current()->arithDioSolver){
+    if(!emmittedConflictOrSplit && options::arithDioSolver()){
       possibleConflict = callDioSolver();
       if(possibleConflict != Node::null()){
         revertOutOfConflict();
@@ -1610,7 +1612,7 @@ void TheoryArith::check(Effort effortLevel){
       }
     }
 
-    if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut && Options::current()->arithDioSolver){
+    if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut && options::arithDioSolver()){
       Node possibleLemma = dioCutting();
       if(!possibleLemma.isNull()){
         Debug("arith") << "dio cut   " << possibleLemma << endl;
@@ -1791,8 +1793,8 @@ Node TheoryArith::explain(TNode n) {
 void TheoryArith::propagate(Effort e) {
   // This uses model values for safety. Disable for now.
   if(d_qflraStatus == Result::SAT &&
-     (Options::current()->arithPropagationMode == Options::BOUND_INFERENCE_PROP ||
-      Options::current()->arithPropagationMode == Options::BOTH_PROP)
+     (options::arithPropagationMode() == BOUND_INFERENCE_PROP ||
+      options::arithPropagationMode() == BOTH_PROP)
      && hasAnyUpdates()){
     propagateCandidates();
   }else{
@@ -2039,21 +2041,21 @@ void TheoryArith::presolve(){
   }
 
   vector<Node> lemmas;
-  switch(Options::current()->arithUnateLemmaMode){
-  case Options::NO_PRESOLVE_LEMMAS:
+  switch(options::arithUnateLemmaMode()){
+  case NO_PRESOLVE_LEMMAS:
     break;
-  case Options::INEQUALITY_PRESOLVE_LEMMAS:
+  case INEQUALITY_PRESOLVE_LEMMAS:
     d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
     break;
-  case Options::EQUALITY_PRESOLVE_LEMMAS:
+  case EQUALITY_PRESOLVE_LEMMAS:
     d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
     break;
-  case Options::ALL_PRESOLVE_LEMMAS:
+  case ALL_PRESOLVE_LEMMAS:
     d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
     d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
     break;
   default:
-    Unhandled(Options::current()->arithUnateLemmaMode);
+    Unhandled(options::arithUnateLemmaMode());
   }
 
   vector<Node>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
@@ -2063,7 +2065,7 @@ void TheoryArith::presolve(){
     d_out->lemma(lem);
   }
 
-  // if(Options::current()->arithUnateLemmaMode == Options::ALL_UNATE){
+  // if(options::arithUnateLemmaMode() == Options::ALL_UNATE){
   //   vector<Node> lemmas;
   //   d_constraintDatabase.outputAllUnateLemmas(lemmas);
   //   vector<Node>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
@@ -2187,7 +2189,7 @@ void TheoryArith::propagateCandidates(){
   for(; i != end; ++i){
     ArithVar var = *i;
     if(d_tableau.isBasic(var) &&
-       d_tableau.getRowLength(d_tableau.basicToRowIndex(var)) <= Options::current()->arithPropagateMaxLength){
+       d_tableau.getRowLength(d_tableau.basicToRowIndex(var)) <= options::arithPropagateMaxLength()){
       d_candidateBasics.softAdd(var);
     }else{
       Tableau::ColIterator basicIter = d_tableau.colIterator(var);
@@ -2197,7 +2199,7 @@ void TheoryArith::propagateCandidates(){
         ArithVar rowVar = d_tableau.rowIndexToBasic(ridx);
         Assert(entry.getColVar() == var);
         Assert(d_tableau.isBasic(rowVar));
-        if(d_tableau.getRowLength(ridx) <= Options::current()->arithPropagateMaxLength){
+        if(d_tableau.getRowLength(ridx) <= options::arithPropagateMaxLength()){
           d_candidateBasics.softAdd(rowVar);
         }
       }

@@ -27,7 +27,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "util/output.h"
 #include "util/utility.h"
-#include "util/options.h"
+
+#include "theory/bv/options.h"
 
 using namespace BVMinisat;
 
@@ -423,7 +424,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         out_btlevel       = level(var(p));
     }
 
-    if (out_learnt.size() > 0 && clause_all_marker && CVC4::Options::current()->bitvectorShareLemmas) {
+    if (out_learnt.size() > 0 && clause_all_marker && CVC4::options::bitvectorShareLemmas()) {
       notify->notify(out_learnt);
     }
 

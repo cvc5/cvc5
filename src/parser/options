@@ -1,0 +1,17 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module PARSER "parser/options.h" Parser
+
+common-option strictParsing --strict-parsing bool
+ be less tolerant of non-conforming inputs
+
+option memoryMap --mmap bool
+ memory map file input
+
+option semanticChecks /--no-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--no-type-checking
+ disable ALL semantic checks, including type checks
+
+endmodule

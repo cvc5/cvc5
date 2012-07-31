@@ -15,4 +15,5 @@ libbooleans_la_SOURCES = \
 	circuit_propagator.h \
 	circuit_propagator.cpp
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds

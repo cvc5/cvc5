@@ -21,6 +21,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/valuation.h"
 #include "theory/bv/bitblaster.h"
+#include "theory/bv/options.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 
 using namespace CVC4;
@@ -69,7 +70,7 @@ TheoryBV::Statistics::~Statistics() {
 void TheoryBV::preRegisterTerm(TNode node) {
   BVDebug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
-  if (Options::current()->bitvectorEagerBitblast) {
+  if (options::bitvectorEagerBitblast()) {
     // don't use the equality engine in the eager bit-blasting
     return;
   }
@@ -261,7 +262,7 @@ Node TheoryBV::explain(TNode node) {
 void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
-  if (!Options::current()->bitvectorEagerBitblast && d_useEqualityEngine) {
+  if (!options::bitvectorEagerBitblast() && d_useEqualityEngine) {
     d_equalitySolver.addSharedTerm(t);
   }
 }
@@ -269,7 +270,7 @@ void TheoryBV::addSharedTerm(TNode t) {
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  if (Options::current()->bitvectorEagerBitblast) {
+  if (options::bitvectorEagerBitblast()) {
     return EQUALITY_UNKNOWN;
   }
 

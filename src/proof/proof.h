@@ -19,12 +19,12 @@
 #ifndef __CVC4__PROOF__PROOF_H
 #define __CVC4__PROOF__PROOF_H
 
-#include "util/options.h"
+#include "options/options.h"
 
 #ifdef CVC4_PROOF
-#  define PROOF(x) if(Options::current()->proof) { x; }
-#  define NULLPROOF(x) (Options::current()->proof)? x : NULL
-#  define PROOF_ON() Options::current()->proof
+#  define PROOF(x) if(options::proof()) { x; }
+#  define NULLPROOF(x) (options::proof())? x : NULL
+#  define PROOF_ON() options::proof()
 #else /* CVC4_PROOF */
 #  define PROOF(x)
 #  define NULLPROOF(x) NULL

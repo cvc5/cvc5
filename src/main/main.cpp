@@ -34,7 +34,8 @@
 #include "expr/command.h"
 #include "util/Assert.h"
 #include "util/configuration.h"
-#include "util/options.h"
+#include "main/options.h"
+#include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "util/stats.h"
@@ -51,22 +52,22 @@ using namespace CVC4::main;
  * Put everything in runCvc4().
  */
 int main(int argc, char* argv[]) {
-  Options options;
+  Options opts;
   try {
-    return runCvc4(argc, argv, options);
+    return runCvc4(argc, argv, opts);
   } catch(OptionException& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *options.out << "unknown" << endl;
+    *opts[options::out] << "unknown" << endl;
 #endif
     cerr << "CVC4 Error:" << endl << e << endl;
-    printUsage(options);
+    printUsage(opts);
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *options.out << "unknown" << endl;
+    *opts[options::out] << "unknown" << endl;
 #endif
-    *options.err << "CVC4 Error:" << endl << e << endl;
-    if(options.statistics && pStatistics != NULL) {
-      pStatistics->flushInformation(*options.err);
+    *opts[options::err] << "CVC4 Error:" << endl << e << endl;
+    if(opts[options::statistics] && pStatistics != NULL) {
+      pStatistics->flushInformation(*opts[options::err]);
     }
   }
   exit(1);

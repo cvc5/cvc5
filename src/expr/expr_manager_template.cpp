@@ -20,7 +20,7 @@
 #include "expr/expr_manager.h"
 #include "expr/variable_type_map.h"
 #include "context/context.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/stats.h"
 
 #include <map>
@@ -126,7 +126,7 @@ ExprManager::~ExprManager() throw() {
   }
 }
 
-const Options* ExprManager::getOptions() const {
+const Options& ExprManager::getOptions() const {
   return d_nodeManager->getOptions();
 }
 

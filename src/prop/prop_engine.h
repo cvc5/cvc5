@@ -24,7 +24,7 @@
 #define __CVC4__PROP_ENGINE_H
 
 #include "expr/node.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/result.h"
 #include "smt/modal_exception.h"
 #include <sys/time.h>

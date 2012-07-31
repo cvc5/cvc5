@@ -21,6 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/minisat/simp/SimpSolver.h"
 #include "prop/minisat/utils/System.h"
+#include "prop/options.h"
 #include "proof/proof.h"
 using namespace Minisat;
 using namespace CVC4;
@@ -52,7 +53,7 @@ SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* c
   , simp_garbage_frac  (opt_simp_garbage_frac)
   , use_asymm          (opt_use_asymm)
   , use_rcheck         (opt_use_rcheck)
-  , use_elim           (!enableIncremental)
+  , use_elim           (options::minisatUseElim() && !enableIncremental)
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)
@@ -63,6 +64,12 @@ SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* c
   , bwdsub_assigns     (0)
   , n_touched          (0)
 {
+    if(options::minisatUseElim() &&
+       options::minisatUseElim.wasSetByUser() &&
+       enableIncremental) {
+        WarningOnce() << "Incremental mode incompatible with --minisat-elimination" << std::endl;
+    }
+
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(0, dummy);

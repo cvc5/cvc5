@@ -21,6 +21,7 @@
 #include <string>
 
 #include "util/language.h"
+#include "options/options.h"
 
 namespace CVC4 {
 

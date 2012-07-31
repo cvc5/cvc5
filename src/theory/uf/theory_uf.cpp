@@ -18,6 +18,8 @@
  **/
 
 #include "theory/uf/theory_uf.h"
+#include "theory/uf/options.h"
+#include "theory/quantifiers/options.h"
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/model.h"
@@ -33,7 +35,7 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
   d_notify(*this),
   /* The strong theory solver can be notified by EqualityEngine::init(),
    * so make sure it's initialized first. */
-  d_thss(Options::current()->finiteModelFind ? new StrongSolverTheoryUf(c, u, out, this) : NULL),
+  d_thss(options::finiteModelFind() ? new StrongSolverTheoryUf(c, u, out, this) : NULL),
   d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
   d_conflict(c, false),
   d_literalsToPropagate(c),
@@ -179,7 +181,7 @@ void TheoryUF::presolve() {
   // TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
   Debug("uf") << "uf: begin presolve()" << endl;
-  if(Options::current()->ufSymmetryBreaker) {
+  if(options::ufSymmetryBreaker()) {
     vector<Node> newClauses;
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
@@ -299,7 +301,7 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
     }
   }
 
-  if(Options::current()->ufSymmetryBreaker) {
+  if(options::ufSymmetryBreaker()) {
     d_symb.assertFormula(n);
   }
 }/* TheoryUF::ppStaticLearn() */

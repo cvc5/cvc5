@@ -18,6 +18,7 @@
 
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
 
@@ -65,7 +66,7 @@ void InstantiationEngine::addCbqiLemma( Node f ){
 
 bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   //if counterexample-based quantifier instantiation is active
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     //check if any cbqi lemma has not been added yet
     bool addedLemma = false;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
@@ -136,9 +137,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
     return false;
   }else{
     Debug("inst-engine-ctrl") << "---Done. " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
-    if( Options::current()->printInstEngine ){
-      Message() << "Added lemmas = " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
-    }
+    Trace("inst-engine") << "Added lemmas = " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
     //flush lemmas to output channel
     d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
     return true;
@@ -153,11 +152,11 @@ void InstantiationEngine::check( Theory::Effort e ){
   }
   //determine if we should perform check, based on instWhenMode
   bool performCheck = false;
-  if( Options::current()->instWhenMode==Options::INST_WHEN_FULL ){
+  if( options::instWhenMode()==INST_WHEN_FULL ){
     performCheck = ( e >= Theory::EFFORT_FULL );
-  }else if( Options::current()->instWhenMode==Options::INST_WHEN_FULL_LAST_CALL ){
+  }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
     performCheck = ( ( e==Theory::EFFORT_FULL  && ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( Options::current()->instWhenMode==Options::INST_WHEN_LAST_CALL ){
+  }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{
     performCheck = true;
@@ -165,9 +164,9 @@ void InstantiationEngine::check( Theory::Effort e ){
   if( performCheck ){
     Debug("inst-engine") << "IE: Check " << e << " " << ierCounter << std::endl;
     double clSet = 0;
-    if( Options::current()->printInstEngine ){
+    if( Trace.isOn("inst-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
-      Message() << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
+      Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
     }
     bool quantActive = false;
     //for each quantifier currently asserted,
@@ -178,7 +177,7 @@ void InstantiationEngine::check( Theory::Effort e ){
                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
-      if( Options::current()->cbqi && hasAddedCbqiLemma( n ) ){
+      if( options::cbqi() && hasAddedCbqiLemma( n ) ){
         Node cel = d_ce_lit[ n ];
         bool active, value;
         bool ceValue = false;
@@ -232,21 +231,21 @@ void InstantiationEngine::check( Theory::Effort e ){
             Debug("inst-engine") << "No instantiation given, returning unknown..." << std::endl;
             d_quantEngine->getOutputChannel().setIncomplete();
           }else{
-            Assert( Options::current()->finiteModelFind );
+            Assert( options::finiteModelFind() );
             Debug("inst-engine") << "No instantiation given, defer to another engine..." << std::endl;
           }
         }
       }
     }else{
       if( e==Theory::EFFORT_LAST_CALL ){
-        if( Options::current()->cbqi ){
+        if( options::cbqi() ){
           debugSat( SAT_CBQI );
         }
       }
     }
-    if( Options::current()->printInstEngine ){
+    if( Trace.isOn("inst-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Message() << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
+      Trace("inst-engine") << "Finished instantiation engine, time = " << (clSet2-clSet) << std::endl;
     }
   }
 }
@@ -302,9 +301,9 @@ bool InstantiationEngine::hasNonArithmeticVariable( Node f ){
 }
 
 bool InstantiationEngine::doCbqi( Node f ){
-  if( Options::current()->cbqiSetByUser ){
-    return Options::current()->cbqi;
-  }else if( Options::current()->cbqi ){
+  if( options::cbqi.wasSetByUser() ){
+    return options::cbqi();
+  }else if( options::cbqi() ){
     //if quantifier has a non-arithmetic variable, then do not use cbqi
     //if quantifier has an APPLY_UF term, then do not use cbqi
     return !hasNonArithmeticVariable( f ) && !hasApplyUf( f[1] );

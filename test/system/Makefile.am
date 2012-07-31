@@ -3,7 +3,8 @@ TEST_EXTENSIONS = .class
 CPLUSPLUS_TESTS = \
 	boilerplate \
 	ouroborous \
-	two_smt_engines
+	two_smt_engines \
+	smt2_compliance
 #	cvc3_main
 
 TESTS = $(CPLUSPLUS_TESTS)

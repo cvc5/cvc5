@@ -22,6 +22,7 @@
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -72,14 +73,14 @@ d_active( c ){
   d_model = new quantifiers::FirstOrderModel( this, c, "FirstOrderModel" );
 
   //add quantifiers modules
-  if( !Options::current()->finiteModelFind || Options::current()->fmfInstEngine ){
+  if( !options::finiteModelFind() || options::fmfInstEngine() ){
     //the instantiation must set incomplete flag unless finite model finding is turned on
-    d_inst_engine = new quantifiers::InstantiationEngine( this, !Options::current()->finiteModelFind );
+    d_inst_engine = new quantifiers::InstantiationEngine( this, !options::finiteModelFind() );
     d_modules.push_back(  d_inst_engine );
   }else{
     d_inst_engine = NULL;
   }
-  if( Options::current()->finiteModelFind ){
+  if( options::finiteModelFind() ){
     d_model_engine = new quantifiers::ModelEngine( this );
     d_modules.push_back( d_model_engine );
   }else{
@@ -130,7 +131,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   //build the model if not done so already
   //  this happens if no quantifiers are currently asserted and no model-building module is enabled
-  if( Options::current()->produceModels && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model_set ){
+  if( options::produceModels() && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model_set ){
     d_te->getModelBuilder()->buildModel( d_model );
   }
 }
@@ -209,7 +210,7 @@ void QuantifiersEngine::registerQuantifier( Node f ){
       Node ceBody = d_term_db->getCounterexampleBody( quants[q] );
       generatePhaseReqs( quants[q], ceBody );
       //also register it with the strong solver
-      if( Options::current()->finiteModelFind ){
+      if( options::finiteModelFind() ){
         ((uf::TheoryUF*)d_te->getTheory( THEORY_UF ))->getStrongSolver()->registerQuantifier( quants[q] );
       }
     }
@@ -253,7 +254,7 @@ void QuantifiersEngine::resetInstantiationRound( Theory::Effort level ){
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
     std::set< Node > added;
     getTermDatabase()->addTerm( n, added, withinQuant );
-    if( Options::current()->efficientEMatching ){
+    if( options::efficientEMatching() ){
       uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)getInstantiator( THEORY_UF );
       d_ith->newTerms(added);
     }
@@ -423,7 +424,7 @@ void QuantifiersEngine::flushLemmas( OutputChannel* out ){
 }
 
 void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
-  if( Options::current()->literalMatchMode!=Options::LITERAL_MATCH_NONE ){
+  if( options::literalMatchMode()!=quantifiers::LITERAL_MATCH_NONE ){
     bool printed = false;
     // doing literal-based matching (consider polarity of literals)
     for( int i=0; i<(int)nodes.size(); i++ ){

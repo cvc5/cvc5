@@ -34,7 +34,7 @@ void Relevancy::setJustified(TNode n)
 {
   Debug("decision") << " marking [" << n.getId() << "]"<< n << "as justified" << std::endl;
   d_justified.insert(n);
-  if(d_opt.computeRelevancy) {
+  if(options::decisionComputeRelevancy()) {
     d_relevancy[n] = d_maxRelevancy[n];
     updateRelevancy(n);
   }
@@ -117,7 +117,7 @@ bool Relevancy::findSplitterRec(TNode node,
   if(d_polarityCache.find(node) == d_polarityCache.end()) {
     d_polarityCache[node] = desiredVal;
   } else {
-    Assert(d_multipleBacktrace || d_opt.computeRelevancy);
+    Assert(d_multipleBacktrace || options::decisionComputeRelevancy());
     return true;
   }
 
@@ -289,7 +289,7 @@ bool Relevancy::handleOrFalse(TNode node, SatValue desiredVal) {
   bool ret = false;
   for(int i = 0; i < n; ++i) {
     if (findSplitterRec(node[i], desiredVal)) {
-      if(!d_opt.computeRelevancy) 
+      if(!options::decisionComputeRelevancy()) 
         return true;
       else
         ret = true;

@@ -17,6 +17,7 @@
 #include "theory/theory_engine.h"
 #include "theory/arrays/theory_arrays_instantiator.h"
 #include "theory/arrays/theory_arrays.h"
+#include "theory/quantifiers/options.h"
 #include "theory/rr_candidate_generator.h"
 
 using namespace std;
@@ -38,7 +39,7 @@ void InstantiatorTheoryArrays::preRegisterTerm( Node t ){
 void InstantiatorTheoryArrays::assertNode( Node assertion ){
   Debug("quant-arrays-assert") << "InstantiatorTheoryArrays::assertNode: " << assertion << std::endl;
   d_quantEngine->addTermToDatabase( assertion );
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       setHasConstraintsFrom( assertion.getAttribute(InstConstantAttribute()) );
     }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){

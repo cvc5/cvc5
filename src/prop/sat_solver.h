@@ -23,7 +23,6 @@
 
 #include <string>
 #include <stdint.h>
-#include "util/options.h"
 #include "util/stats.h"
 #include "context/cdlist.h"
 #include "prop/sat_solver_types.h"

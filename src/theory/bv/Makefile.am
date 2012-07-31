@@ -32,4 +32,5 @@ libbv_la_SOURCES = \
 	theory_bv_rewriter.cpp \
 	cd_set_collection.h 
 
-EXTRA_DIST = kinds
+EXTRA_DIST = \
+	kinds

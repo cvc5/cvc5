@@ -54,10 +54,10 @@ void FirstOrderModel::initialize(){
     initializeModelForTerm( f[1] );
   }
   //for debugging
-  if( Options::current()->printModelEngine ){
+  if( Trace.isOn("model-engine") ){
     for( std::map< TypeNode, std::vector< Node > >::iterator it = d_rep_set.d_type_reps.begin(); it != d_rep_set.d_type_reps.end(); ++it ){
       if( it->first.isSort() ){
-        Message() << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
+        Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
       }
     }
   }

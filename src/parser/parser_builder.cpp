@@ -26,7 +26,7 @@
 #include "tptp/tptp.h"
 
 #include "expr/expr_manager.h"
-#include "util/options.h"
+#include "parser/options.h"
 
 namespace CVC4 {
 namespace parser {
@@ -146,11 +146,11 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
 
 ParserBuilder& ParserBuilder::withOptions(const Options& options) {
   return
-    withInputLanguage(options.inputLanguage)
-      .withMmap(options.memoryMap)
-      .withChecks(options.semanticChecks)
-      .withStrictMode(options.strictParsing)
-      .withParseOnly(options.parseOnly);
+    withInputLanguage(options[options::inputLanguage])
+      .withMmap(options[options::memoryMap])
+      .withChecks(options[options::semanticChecks])
+      .withStrictMode(options[options::strictParsing])
+      .withParseOnly(options[options::parseOnly]);
   }
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {

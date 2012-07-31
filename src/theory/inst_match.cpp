@@ -20,6 +20,7 @@
 #include "theory/candidate_generator.h"
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -106,7 +107,7 @@ void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
 }
 
 void InstMatch::makeInternal( QuantifiersEngine* qe ){
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
       if( it->second.hasAttribute(InstConstantAttribute()) ){
         d_map[ it->first ] = qe->getEqualityQuery()->getInternalRepresentative( it->second );
@@ -121,7 +122,7 @@ void InstMatch::makeInternal( QuantifiersEngine* qe ){
 void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
   for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
     d_map[ it->first ] = qe->getEqualityQuery()->getInternalRepresentative( it->second );
-    if( Options::current()->cbqi && it->second.hasAttribute(InstConstantAttribute()) ){
+    if( options::cbqi() && it->second.hasAttribute(InstConstantAttribute()) ){
       d_map[ it->first ] = qe->getTermDatabase()->getFreeVariableForInstConstant( it->first );
     }
   }
@@ -591,7 +592,7 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
 }
 
 int InstMatchGenerator::addTerm( Node f, Node t, QuantifiersEngine* qe ){
-  Assert( Options::current()->eagerInstQuant );
+  Assert( options::eagerInstQuant() );
   if( !d_match_pattern.isNull() ){
     InstMatch m;
     if( getMatch( t, m, qe ) ){
@@ -808,7 +809,7 @@ void InstMatchGeneratorMulti::processNewInstantiations2( QuantifiersEngine* qe, 
 }
 
 int InstMatchGeneratorMulti::addTerm( Node f, Node t, QuantifiersEngine* qe ){
-  Assert( Options::current()->eagerInstQuant );
+  Assert( options::eagerInstQuant() );
   int addedLemmas = 0;
   for( int i=0; i<(int)d_children.size(); i++ ){
     if( ((InstMatchGenerator*)d_children[i])->d_match_pattern.getOperator()==t.getOperator() ){
@@ -866,7 +867,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
 }
 
 int InstMatchGeneratorSimple::addTerm( Node f, Node t, QuantifiersEngine* qe ){
-  Assert( Options::current()->eagerInstQuant );
+  Assert( options::eagerInstQuant() );
   InstMatch m;
   for( int i=0; i<(int)t.getNumChildren(); i++ ){
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){

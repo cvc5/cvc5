@@ -15,6 +15,7 @@
  **/
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -690,14 +691,14 @@ Node QuantifiersRewriter::rewriteQuant( Node n, bool isNested, bool duringRewrit
 }
 
 bool QuantifiersRewriter::doMiniscopingNoFreeVar(){
-  return Options::current()->miniscopeQuantFreeVar;
+  return options::miniscopeQuantFreeVar();
 }
 
 bool QuantifiersRewriter::doMiniscopingAnd(){
-  if( Options::current()->miniscopeQuant ){
+  if( options::miniscopeQuant() ){
     return true;
   }else{
-    if( Options::current()->cbqi ){
+    if( options::cbqi() ){
       return true;
     }else{
       return false;
@@ -709,13 +710,13 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption,
   if( computeOption==COMPUTE_NNF ){
     return false;//TODO: compute NNF (current bad idea since arithmetic rewrites equalities)
   }else if( computeOption==COMPUTE_PRE_SKOLEM ){
-    return Options::current()->preSkolemQuant && !duringRewrite;
+    return options::preSkolemQuant() && !duringRewrite;
   }else if( computeOption==COMPUTE_PRENEX ){
-    return Options::current()->prenexQuant;
+    return options::prenexQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
-    return Options::current()->varElimQuant;
+    return options::varElimQuant();
   }else if( computeOption==COMPUTE_CNF ){
-    return Options::current()->cnfQuant && !duringRewrite;// || Options::current()->finiteModelFind;
+    return options::cnfQuant() && !duringRewrite;// || options::finiteModelFind();
   }else{
     return false;
   }

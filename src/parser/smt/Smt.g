@@ -565,7 +565,7 @@ annotation[CVC4::Command*& smt_command]
         value.erase(value.begin(), std::find_if(value.begin(), value.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
         value.erase(value.end() - 1);
         value.erase(std::find_if(value.rbegin(), value.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), value.end());
-        smt_command = new SetInfoCommand(key, value); }
+        smt_command = new SetInfoCommand(key.c_str() + 1, value); }
     )?
     { if(smt_command == NULL) {
         smt_command = new EmptyCommand(std::string("annotation: ") + key);

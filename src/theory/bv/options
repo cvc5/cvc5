@@ -1,0 +1,17 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module BV "theory/bv/options.h" Bitvector theory
+
+option bitvectorEagerBitblast --bitblast-eager bool
+ eagerly bitblast the bitvectors to the main SAT solver
+
+option bitvectorShareLemmas --bitblast-share-lemmas bool
+ share lemmas from the bitblasting solver with the main solver
+
+option bitvectorEagerFullcheck --bitblast-eager-fullcheck bool
+ check the bitblasting eagerly
+
+endmodule

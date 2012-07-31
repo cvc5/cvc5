@@ -62,7 +62,8 @@ private:
 
 public:
 
-  /** Creates a rational from a decimal string (e.g., <code>"1.5"</code>).
+  /**
+   * Creates a rational from a decimal string (e.g., <code>"1.5"</code>).
    *
    * @param dec a string encoding a decimal number in the format
    * <code>[0-9]*\.[0-9]*</code>
@@ -153,6 +154,15 @@ public:
    */
   Integer getDenominator() const {
     return Integer(d_value.get_den());
+  }
+
+  /**
+   * Get a double representation of this Rational, which is
+   * approximate: truncation may occur, overflow may result in
+   * infinity, and underflow may result in zero.
+   */
+  double getDouble() const {
+    return d_value.get_d();
   }
 
   Rational inverse() const {

@@ -24,7 +24,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/lemma_output_channel.h"
 
 #include "theory/theory.h"
@@ -38,6 +38,7 @@
 #include "theory/model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 
@@ -349,7 +350,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       if( d_logicInfo.isQuantified() ){
         ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->performCheck(Theory::EFFORT_LAST_CALL);
         // if we have given up, then possibly flip decision
-        if(Options::current()->flipDecision) {
+        if(options::flipDecision()) {
           if(d_incomplete && !d_inConflict && !d_lemmasAdded) {
             if( ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->flipDecision() ) {
               d_incomplete = false;
@@ -357,7 +358,7 @@ void TheoryEngine::check(Theory::Effort effort) {
           }
         }
         //if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
-      }else if( Options::current()->produceModels ){
+      }else if( options::produceModels() ){
         //must build model at this point
         d_curr_model_builder->buildModel( d_curr_model );
       }
@@ -1114,8 +1115,8 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   }
 
   // Share with other portfolio threads
-  if(Options::current()->lemmaOutputChannel != NULL) {
-    Options::current()->lemmaOutputChannel->notifyNewLemma(node.toExpr());
+  if(options::lemmaOutputChannel() != NULL) {
+    options::lemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
   // Remove the ITEs

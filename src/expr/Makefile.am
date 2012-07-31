@@ -56,6 +56,7 @@ EXTRA_DIST = \
 	expr_template.h \
 	expr_template.cpp \
 	type_checker_template.cpp \
+	options_handlers.h \
 	mkkind \
 	mkmetakind \
 	mkexpr \
@@ -154,3 +155,6 @@ type_checker.cpp: type_checker_template.cpp mkexpr @top_builddir@/src/theory/.su
 		$< \
 		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
+
+.PHONY: builts
+builts: $(BUILT_SOURCES)

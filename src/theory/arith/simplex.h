@@ -60,7 +60,7 @@
 #include "context/cdlist.h"
 
 #include "util/dense_map.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/stats.h"
 #include "util/result.h"
 

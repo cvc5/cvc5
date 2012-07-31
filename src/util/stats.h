@@ -558,11 +558,25 @@ public:
    * Get an iterator to the beginning of the range of the set of active
    * (registered) statistics.
    */
+  const_iterator begin_() const;
+
+  /**
+   * Get an iterator to the beginning of the range of the set of active
+   * (registered) statistics.  This version uses the "current"
+   * statistics registry.
+   */
   static const_iterator begin();
 
   /**
    * Get an iterator to the end of the range of the set of active
    * (registered) statistics.
+   */
+  const_iterator end_() const;
+
+  /**
+   * Get an iterator to the end of the range of the set of active
+   * (registered) statistics.  This version uses the "current"
+   * statistics registry.
    */
   static const_iterator end();
 

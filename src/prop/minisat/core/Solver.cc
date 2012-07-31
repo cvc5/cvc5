@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "prop/theory_proxy.h"
 #include "prop/minisat/minisat.h"
+#include "prop/options.h"
 #include "util/output.h"
 #include "expr/command.h"
 #include "proof/proof_manager.h"
@@ -1079,7 +1080,7 @@ lbool Solver::search(int nof_conflicts)
                            (int)max_learnts, nLearnts(), (double)learnts_literals/nLearnts(), progressEstimate()*100);
             }
 
-            if (theoryConflict && Options::current()->sat_refine_conflicts) {
+            if (theoryConflict && options::sat_refine_conflicts()) {
               check_type = CHECK_FINAL_FAKE;
             } else {
               check_type = CHECK_WITH_THEORY;

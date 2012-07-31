@@ -13,7 +13,7 @@
 
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "util/options.h"
+#include "options/options.h"
 
 namespace hashsmt {
 

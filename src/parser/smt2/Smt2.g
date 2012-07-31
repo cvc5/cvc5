@@ -183,19 +183,19 @@ command returns [CVC4::Command* cmd = NULL]
       $cmd = new SetBenchmarkLogicCommand(name); }
   | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      PARSER_STATE->setInfo(name,sexpr);
-      cmd = new SetInfoCommand(name,sexpr); }
+      PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
+      cmd = new SetInfoCommand(name.c_str() + 1, sexpr); }
   | /* get-info */
     GET_INFO_TOK KEYWORD
-    { cmd = new GetInfoCommand(AntlrInput::tokenText($KEYWORD)); }
+    { cmd = new GetInfoCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
   | /* set-option */
     SET_OPTION_TOK KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      PARSER_STATE->setOption(name,sexpr);
-      cmd = new SetOptionCommand(name,sexpr); }
+      PARSER_STATE->setOption(name.c_str() + 1, sexpr);
+      cmd = new SetOptionCommand(name.c_str() + 1, sexpr); }
   | /* get-option */
     GET_OPTION_TOK KEYWORD
-    { cmd = new GetOptionCommand(AntlrInput::tokenText($KEYWORD)); }
+    { cmd = new GetOptionCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
   | /* sort declaration */
     DECLARE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]

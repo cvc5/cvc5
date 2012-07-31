@@ -902,7 +902,7 @@ void SetBenchmarkStatusCommand::invoke(SmtEngine* smtEngine) throw() {
     stringstream ss;
     ss << d_status;
     SExpr status = ss.str();
-    smtEngine->setInfo(":status", status);
+    smtEngine->setInfo("status", status);
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -1074,7 +1074,13 @@ std::string GetOptionCommand::getFlag() const throw() {
 
 void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    d_result = smtEngine->getOption(d_flag).getValue();
+    vector<SExpr> v;
+    v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
+    v.push_back(smtEngine->getOption(d_flag));
+    stringstream ss;
+    
+    ss << SExpr(v);
+    d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(BadOptionException&) {
     d_commandStatus = new CommandUnsupported();

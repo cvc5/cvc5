@@ -36,7 +36,7 @@ ${includes}
 #include "util/exception.h"
 #include "util/language.h"
 #include "util/hash.h"
-#include "util/options.h"
+#include "expr/options.h"
 
 // This is a hack, but an important one: if there's an error, the
 // compiler directs the user to the template file instead of the
@@ -683,8 +683,8 @@ public:
     long& l = out.iword(s_iosIndex);
     if(l == 0) {
       // set the default print depth on this ostream
-      if(Options::current() != NULL) {
-        l = Options::current()->defaultExprDepth;
+      if(&Options::current() != NULL) {
+        l = options::defaultExprDepth();
       }
       if(l == 0) {
         l = s_defaultPrintDepth;
@@ -909,8 +909,8 @@ public:
     if(l == 0) {
       // set the default language on this ostream
       // (offset by one to detect whether default has been set yet)
-      if(Options::current() != NULL) {
-        l = Options::current()->outputLanguage + 1;
+      if(&Options::current() != NULL) {
+        l = options::outputLanguage() + 1;
       }
       if(l <= 0 || l > language::output::LANG_MAX) {
         // if called from outside the library, we may not have options

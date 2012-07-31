@@ -27,7 +27,7 @@
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
 #include "expr/command.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/output.h"
 #include "util/language.h"
 
@@ -184,7 +184,7 @@ protected:
 
   void setUp() {
     d_exprManager = new ExprManager;
-    d_options.parseOnly = true;
+    d_options.set(options::parseOnly, true);
   }
 
   void tearDown() {

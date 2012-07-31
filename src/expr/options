@@ -1,0 +1,25 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module EXPR "expr/options.h" Expression package
+
+option defaultExprDepth --default-expr-depth=N int :predicate CVC4::expr::setDefaultExprDepth :predicate-include "expr/options_handlers.h"
+ print exprs to depth N (0 == default, -1 == no limit)
+option - --default-dag-thresh=N argument :handler CVC4::expr::setDefaultDagThresh :handler-include "expr/options_handlers.h"
+ dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)
+option - --print-expr-types void :handler CVC4::expr::setPrintExprTypes :handler-include "expr/options_handlers.h"
+ print types with variables when printing exprs
+
+option earlyTypeChecking --eager-type-checking/--lazy-type-checking bool :default USE_EARLY_TYPE_CHECKING_BY_DEFAULT
+ type check expressions immediately on creation (debug builds only)
+/type check expressions only when necessary (default)
+
+# --no-type-checking will override any --early-type-checking or --lazy-type-checking option
+# --lazy-type-checking is linked because earlyTypeChecking should be set false too
+option typeChecking /--no-type-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--lazy-type-checking
+ never type check expressions
+
+endmodule
+

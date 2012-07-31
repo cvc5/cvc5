@@ -18,3 +18,5 @@ libprinter_la_SOURCES = \
 	smt2/smt2_printer.cpp \
 	cvc/cvc_printer.h \
 	cvc/cvc_printer.cpp
+
+EXTRA_DIST =

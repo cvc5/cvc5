@@ -21,6 +21,7 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/uf/theory_uf_instantiator.h"
+#include "theory/quantifiers/options.h"
 #include "theory/arrays/theory_arrays_model.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
@@ -64,9 +65,9 @@ void ModelEngine::check( Theory::Effort e ){
     if( addedLemmas==0 ){
       //quantifiers are initialized, we begin an instantiation round
       double clSet = 0;
-      if( Options::current()->printModelEngine ){
+      if( Trace.isOn("model-engine") ){
         clSet = double(clock())/double(CLOCKS_PER_SEC);
-        Message() << "---Model Engine Round---" << std::endl;
+        Trace("model-engine") << "---Model Engine Round---" << std::endl;
       }
       Debug("fmf-model-debug") << "---Begin Instantiation Round---" << std::endl;
       ++(d_statistics.d_inst_rounds);
@@ -108,11 +109,11 @@ void ModelEngine::check( Theory::Effort e ){
         }
         Debug("fmf-model-debug") << "---> Added lemmas = " << addedLemmas << " / " << d_triedLemmas << " / ";
         Debug("fmf-model-debug") << d_testLemmas << " / " << d_relevantLemmas << " / " << d_totalLemmas << std::endl;
-        if( Options::current()->printModelEngine ){
-          Message() << "Added Lemmas = " << addedLemmas << " / " << d_triedLemmas << " / ";
-          Message() << d_testLemmas << " / " << d_relevantLemmas << " / " << d_totalLemmas << std::endl;
+        if( Trace.isOn("model-engine") ){
+          Trace("model-engine") << "Added Lemmas = " << addedLemmas << " / " << d_triedLemmas << " / ";
+          Trace("model-engine") << d_testLemmas << " / " << d_relevantLemmas << " / " << d_totalLemmas << std::endl;
           double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-          Message() << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
+          Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
         }
 #ifdef ME_PRINT_WARNINGS
         if( addedLemmas>10000 ){
@@ -145,11 +146,11 @@ void ModelEngine::assertNode( Node f ){
 }
 
 bool ModelEngine::optOneInstPerQuantRound(){
-  return Options::current()->fmfOneInstPerRound;
+  return options::fmfOneInstPerRound();
 }
 
 bool ModelEngine::optUseRelevantDomain(){
-  return Options::current()->fmfRelevantDomain;
+  return options::fmfRelevantDomain();
 }
 
 bool ModelEngine::optOneQuantPerRound(){

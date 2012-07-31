@@ -16,3 +16,4 @@ libproof_la_SOURCES = \
 	proof_manager.h \
 	proof_manager.cpp
 
+EXTRA_DIST =

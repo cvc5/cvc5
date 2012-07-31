@@ -42,7 +42,7 @@ namespace CVC4 {
 class Expr;
 class SmtEngine;
 class NodeManager;
-struct Options;
+class Options;
 class IntStat;
 class ExprManagerMapCollection;
 
@@ -124,7 +124,7 @@ public:
   ~ExprManager() throw();
 
   /** Get this node manager's options */
-  const Options* getOptions() const;
+  const Options& getOptions() const;
 
   /** Get the type for booleans */
   BooleanType booleanType() const;

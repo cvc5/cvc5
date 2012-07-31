@@ -34,7 +34,7 @@
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
 #include "util/hash.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/stats.h"
@@ -302,25 +302,25 @@ public:
   /**
    * Set information about the script executing.
    */
-  void setInfo(const std::string& key, const SExpr& value)
+  void setInfo(const std::string& key, const CVC4::SExpr& value)
     throw(BadOptionException, ModalException);
 
   /**
    * Query information about the SMT environment.
    */
-  SExpr getInfo(const std::string& key) const
+  CVC4::SExpr getInfo(const std::string& key) const
     throw(BadOptionException, ModalException);
 
   /**
    * Set an aspect of the current SMT execution environment.
    */
-  void setOption(const std::string& key, const SExpr& value)
+  void setOption(const std::string& key, const CVC4::SExpr& value)
     throw(BadOptionException, ModalException);
 
   /**
    * Get an aspect of the current SMT execution environment.
    */
-  SExpr getOption(const std::string& key) const
+  CVC4::SExpr getOption(const std::string& key) const
     throw(BadOptionException);
 
   /**
@@ -388,7 +388,7 @@ public:
    * INVALID query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */
-  SExpr getAssignment() throw(ModalException, AssertionException);
+  CVC4::SExpr getAssignment() throw(ModalException, AssertionException);
 
   /**
    * Add to Model Type.  This is used for recording which types should be reported
@@ -549,6 +549,17 @@ public:
 
   Result getStatusOfLastCommand() const {
     return d_status;
+  }
+
+  /**
+   * Used as a predicate for options preprocessor.
+   */
+  static void beforeSearch(std::string option, bool value, SmtEngine* smt) {
+    if(smt->d_queryMade || smt->d_problemExtended) {
+      std::stringstream ss;
+      ss << "cannot change option `" << option << "' after assertions have been made";
+      throw OptionException(ss.str());
+    }
   }
 
   /**

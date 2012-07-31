@@ -19,7 +19,7 @@
 #include <exception>
 #include <string>
 
-#include "util/options.h"
+#include "options/options.h"
 #include "util/exception.h"
 #include "util/stats.h"
 #include "util/tls.h"

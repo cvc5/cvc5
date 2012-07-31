@@ -6,7 +6,7 @@
 #include <map>
 
 
-#include "util/options.h"
+#include "options/options.h"
 #include "expr/expr.h"
 #include "expr/command.h"
 #include "parser/parser.h"
@@ -15,6 +15,7 @@
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
+using namespace CVC4::options;
 
 void translate_to_mathematica(
         string input,
@@ -31,7 +32,7 @@ int main(int argc, char* argv[])
 
   // Create the expression manager
   Options options;
-  options.inputLanguage = language::input::LANG_SMTLIB_V2;
+  options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
   ExprManager exprManager(options);
   
   // Create the parser

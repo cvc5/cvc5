@@ -26,7 +26,7 @@
 #include "main/interactive_shell.h"
 #include "parser/parser_builder.h"
 #include "util/language.h"
-#include "util/options.h"
+#include "options/options.h"
 
 using namespace CVC4;
 using namespace std;
@@ -59,9 +59,9 @@ private:
     d_exprManager = new ExprManager;
     d_sin = new stringstream;
     d_sout = new stringstream;
-    d_options.in = d_sin;
-    d_options.out = d_sout;
-    d_options.inputLanguage = language::input::LANG_CVC4;
+    d_options.set(options::in, d_sin);
+    d_options.set(options::out, d_sout);
+    d_options.set(options::inputLanguage, language::input::LANG_CVC4);
   }
 
   void tearDown() {

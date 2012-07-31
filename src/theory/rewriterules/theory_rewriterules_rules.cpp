@@ -21,7 +21,7 @@
 #include "theory/rewriterules/theory_rewriterules_params.h"
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
 #include "theory/rewriterules/theory_rewriterules.h"
-#include "util/options.h"
+#include "theory/rewriterules/options.h"
 
 #include "theory/quantifiers/term_database.h"
 
@@ -110,7 +110,7 @@ inline void addPattern(TheoryRewriteRules & re,
   if (tri.getKind() == kind::NOT && tri[0].getKind() == kind::APPLY_UF)
     tri = tri[0];
   pattern.push_back(
-                    Options::current()->rewriteRulesAsAxioms?
+                    options::rewriteRulesAsAxioms()?
                     static_cast<Node>(tri):
                     re.getQuantifiersEngine()->getTermDatabase()->
                     convertNodeToPattern(tri,r,vars,inst_constants));
@@ -224,7 +224,7 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
 
 
   //If we convert to usual axioms
-  if(Options::current()->rewriteRulesAsAxioms){
+  if(options::rewriteRulesAsAxioms()){
     NodeBuilder<> forallB(kind::FORALL);
     forallB << r[0];
     NodeBuilder<> guardsB(kind::AND);

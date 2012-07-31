@@ -28,11 +28,11 @@
 #include "cvc4autoconfig.h"
 
 #if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
-#  include "util/Debug_tags.h"
+#  include "options/Debug_tags.h"
 #endif /* CVC4_DEBUG && CVC4_TRACING */
 
 #ifdef CVC4_TRACING
-#  include "util/Trace_tags.h"
+#  include "options/Trace_tags.h"
 #endif /* CVC4_TRACING */
 
 using namespace std;

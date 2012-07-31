@@ -25,6 +25,7 @@
 #include "prop/sat_solver_factory.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/bv/options.h"
 
 using namespace std;
 
@@ -98,7 +99,7 @@ void Bitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
 
-  if (!Options::current()->bitvectorEagerBitblast) {
+  if (!options::bitvectorEagerBitblast()) {
     d_cnfStream->convertAndAssert(atom_definition, true, false);
     d_bitblastedAtoms.insert(node);
   } else {
@@ -150,7 +151,7 @@ Node Bitblaster::bbOptimize(TNode node) {
 /// Public methods
 
 void Bitblaster::addAtom(TNode atom) {
-  if (!Options::current()->bitvectorEagerBitblast) {
+  if (!options::bitvectorEagerBitblast()) {
     d_cnfStream->ensureLiteral(atom);
     SatLiteral lit = d_cnfStream->getLiteral(atom);
     d_satSolver->addMarkerLiteral(lit);

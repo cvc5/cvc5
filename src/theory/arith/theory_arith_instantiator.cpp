@@ -17,6 +17,7 @@
 #include "theory/arith/theory_arith_instantiator.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace std;
@@ -179,7 +180,7 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
 
 InstantiatorTheoryArith::InstantiatorTheoryArith(context::Context* c, QuantifiersEngine* ie, Theory* th) :
 Instantiator( c, ie, th ){
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     addInstStrategy( new InstStrategySimplex( this, d_quantEngine ) );
   }
 }
@@ -191,7 +192,7 @@ void InstantiatorTheoryArith::preRegisterTerm( Node t ){
 void InstantiatorTheoryArith::assertNode( Node assertion ){
   Debug("quant-arith-assert") << "InstantiatorTheoryArith::check: " << assertion << std::endl;
   d_quantEngine->addTermToDatabase( assertion );
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       setHasConstraintsFrom( assertion.getAttribute(InstConstantAttribute()) );
     }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
@@ -201,7 +202,7 @@ void InstantiatorTheoryArith::assertNode( Node assertion ){
 }
 
 void InstantiatorTheoryArith::processResetInstantiationRound( Theory::Effort effort ){
-  if( Options::current()->cbqi ){
+  if( options::cbqi() ){
     Debug("quant-arith") << "Setting up simplex for instantiator... " << std::endl;
     d_instRows.clear();
     d_tableaux_term.clear();

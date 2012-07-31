@@ -61,7 +61,7 @@ void TermDb::addTermEfficient( Node n, std::set< Node >& added){
 
 void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
   //don't add terms in quantifier bodies
-  if( withinQuant && !Options::current()->registerQuantBodyTerms ){
+  if( withinQuant && !options::registerQuantBodyTerms() ){
     return;
   }
   if( d_processed.find( n )==d_processed.end() ){
@@ -82,7 +82,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           addTerm( n[i], added, withinQuant );
-          if( Options::current()->efficientEMatching ){
+          if( options::efficientEMatching() ){
             if( d_parents[n[i]][op].empty() ){
               //must add parent to equivalence class info
               Node nir = d_ith->getRepresentative( n[i] );
@@ -97,7 +97,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
               Assert(!getParents(n[i],op,i).empty());
             }
           }
-          if( Options::current()->eagerInstQuant ){
+          if( options::eagerInstQuant() ){
             if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
               int addedLemmas = 0;
               for( int i=0; i<(int)d_ith->d_op_triggers[op].size(); i++ ){
@@ -115,7 +115,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
       }
     }
   }else{
-    if( Options::current()->efficientEMatching && !n.hasAttribute(InstConstantAttribute())){
+    if( options::efficientEMatching() && !n.hasAttribute(InstConstantAttribute())){
       //Efficient e-matching must be notified
       //The term in triggers are not important here
       Debug("term-db") << "New in this branch term " << n << std::endl;
@@ -196,7 +196,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
     Node mbt;
     if( d_type_map[ tn ].empty() ){
       std::stringstream ss;
-      ss << Expr::setlanguage(Options::current()->outputLanguage);
+      ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;
       mbt = NodeManager::currentNM()->mkVar( ss.str(), tn );
     }else{

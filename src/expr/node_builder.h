@@ -742,7 +742,7 @@ public:
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "util/options.h"
+#include "expr/options.h"
 
 namespace CVC4 {
 
@@ -1301,7 +1301,7 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
     throw(TypeCheckingExceptionPrivate, AssertionException) {
   /* force an immediate type check, if early type checking is
      enabled and the current node isn't a variable or constant */
-  if( d_nm->getOptions()->earlyTypeChecking ) {
+  if( d_nm->getOptions()[options::earlyTypeChecking] ) {
     kind::MetaKind mk = n.getMetaKind();
     if( mk != kind::metakind::VARIABLE
         && mk != kind::metakind::CONSTANT ) {

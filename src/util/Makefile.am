@@ -28,8 +28,6 @@ libutil_la_SOURCES = \
 	hash.h \
 	bool.h \
 	proof.h \
-	options.h \
-	options.cpp \
 	output.cpp \
 	output.h \
 	result.h \
@@ -170,18 +168,9 @@ EXTRA_DIST = \
 	exception.i \
 	language.i \
 	array.i \
-	options.i \
 	ascription_type.i \
 	rational.i \
 	hash.i
-
-MOSTLYCLEANFILES = \
-	Debug_tags \
-	Trace_tags \
-	Debug_tags.tmp \
-	Trace_tags.tmp \
-	Debug_tags.h \
-	Trace_tags.h
 
 DISTCLEANFILES = \
 	integer.h.tmp \
@@ -190,3 +179,4 @@ DISTCLEANFILES = \
 	integer.h \
 	rational.h \
 	tls.h
+

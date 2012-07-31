@@ -29,7 +29,7 @@
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "util/output.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/Assert.h"
 #include "parser/cvc/cvc_input.h"
 #include "parser/smt/smt_input.h"

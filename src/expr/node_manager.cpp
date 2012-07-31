@@ -21,7 +21,7 @@
 #include "expr/node_manager.h"
 
 #include "util/Assert.h"
-#include "util/options.h"
+#include "options/options.h"
 #include "util/stats.h"
 #include "util/tls.h"
 
@@ -82,7 +82,7 @@ struct NVReclaim {
 
 NodeManager::NodeManager(context::Context* ctxt,
                          ExprManager* exprManager) :
-  d_options(),
+  d_options(new Options()),
   d_statisticsRegistry(new StatisticsRegistry()),
   next_id(0),
   d_attrManager(ctxt),
@@ -92,11 +92,10 @@ NodeManager::NodeManager(context::Context* ctxt,
   init();
 }
 
-
 NodeManager::NodeManager(context::Context* ctxt,
                          ExprManager* exprManager,
                          const Options& options) :
-  d_options(options),
+  d_options(new Options(options)),
   d_statisticsRegistry(new StatisticsRegistry()),
   next_id(0),
   d_attrManager(ctxt),
@@ -154,6 +153,7 @@ NodeManager::~NodeManager() {
   }
 
   delete d_statisticsRegistry;
+  delete d_options;
 }
 
 void NodeManager::reclaimZombies() {
@@ -253,7 +253,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << "getting type for " << n << std::endl;
 
-  if(needsCheck && !d_options.earlyTypeChecking) {
+  if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
        which should only affect us when we're type checking lazily. */

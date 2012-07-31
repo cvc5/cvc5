@@ -25,6 +25,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/language.h"
+#include "options/options.h"
 #include "printer/printer.h"
 #include <sstream>
 
@@ -37,11 +38,12 @@ NodeValue NodeValue::s_null(0);
 
 string NodeValue::toString() const {
   stringstream ss;
-  OutputLanguage outputLanguage = (this == &s_null) ? language::output::LANG_AST : Options::current()->outputLanguage;
+
+  OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AST : options::outputLanguage();
   toStream(ss, -1, false,
-           outputLanguage == language::output::LANG_AUTO ?
+           outlang == language::output::LANG_AUTO ?
              language::output::LANG_AST :
-             outputLanguage);
+             outlang);
   return ss.str();
 }
 

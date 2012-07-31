@@ -19,6 +19,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 
 //#define USE_SMART_SPLITS
@@ -194,7 +195,7 @@ struct sortExternalDegree {
 };
 
 bool StrongSolverTheoryUf::ConflictFind::Region::getMustCombine( int cardinality ){
-  if( Options::current()->ufssRegions && d_total_diseq_external>=long(cardinality) ){
+  if( options::ufssRegions() && d_total_diseq_external>=long(cardinality) ){
     //The number of external disequalities is greater than or equal to cardinality.
     //Thus, a clique of size cardinality+1 may exist between nodes in d_regions[i] and other regions
     //Check if this is actually the case:  must have n nodes with outgoing degree (cardinality+1-n) for some n>0
@@ -243,7 +244,7 @@ bool StrongSolverTheoryUf::ConflictFind::Region::check( Theory::Effort level, in
         }
       }
       return true;
-    }else if( Options::current()->ufssRegions || Options::current()->ufssEagerSplits || level==Theory::EFFORT_FULL ){
+    }else if( options::ufssRegions() || options::ufssEagerSplits() || level==Theory::EFFORT_FULL ){
       //build test clique, up to size cardinality+1
       if( d_testCliqueSize<=long(cardinality) ){
         std::vector< Node > newClique;
@@ -584,7 +585,7 @@ void StrongSolverTheoryUf::ConflictFind::explainClique( std::vector< Node >& cli
 /** new node */
 void StrongSolverTheoryUf::ConflictFind::newEqClass( Node n ){
   if( d_regions_map.find( n )==d_regions_map.end() ){
-    if( !Options::current()->ufssRegions ){
+    if( !options::ufssRegions() ){
       //if not using regions, always add new equivalence classes to region index = 0
       d_regions_index = 0;
     }
@@ -594,7 +595,7 @@ void StrongSolverTheoryUf::ConflictFind::newEqClass( Node n ){
     if( d_regions_index<d_regions.size() ){
       d_regions[ d_regions_index ]->debugPrint("uf-ss-debug",true);
       d_regions[ d_regions_index ]->d_valid = true;
-      Assert( !Options::current()->ufssRegions || d_regions[ d_regions_index ]->getNumReps()==0 );
+      Assert( !options::ufssRegions() || d_regions[ d_regions_index ]->getNumReps()==0 );
     }else{
       d_regions.push_back( new Region( this, d_th->getSatContext() ) );
     }
@@ -882,7 +883,7 @@ void StrongSolverTheoryUf::ConflictFind::check( Theory::Effort level, OutputChan
       }
       bool addedLemma = false;
       //do splitting on demand
-      if( level==Theory::EFFORT_FULL || Options::current()->ufssEagerSplits ){
+      if( level==Theory::EFFORT_FULL || options::ufssEagerSplits() ){
         Debug("uf-ss-debug") << "Add splits?" << std::endl;
         //see if we have any recommended splits from large regions
         for( int i=0; i<(int)d_regions_index; i++ ){
@@ -902,7 +903,7 @@ void StrongSolverTheoryUf::ConflictFind::check( Theory::Effort level, OutputChan
       if( level==Theory::EFFORT_FULL ){
         if( !addedLemma ){
           Debug("uf-ss") << "No splits added." << std::endl;
-          if( Options::current()->ufssColoringSat ){
+          if( options::ufssColoringSat() ){
             //otherwise, try to disambiguate individual terms
             if( !disambiguateTerms( out ) ){
               //no disequalities can be propagated
@@ -1000,7 +1001,7 @@ void StrongSolverTheoryUf::ConflictFind::setCardinality( int c, OutputChannel* o
 }
 
 void StrongSolverTheoryUf::ConflictFind::getRepresentatives( std::vector< Node >& reps ){
-  if( !Options::current()->ufssColoringSat ){
+  if( !options::ufssColoringSat() ){
     bool foundRegion = false;
     for( int i=0; i<(int)d_regions_index; i++ ){
       //should not have multiple regions at this point
@@ -1045,7 +1046,7 @@ Node StrongSolverTheoryUf::ConflictFind::getCardinalityLemma(){
   if( d_cardinality_lemma.find( d_cardinality )==d_cardinality_lemma.end() ){
     if( d_cardinality_lemma_term.isNull() ){
       std::stringstream ss;
-      ss << Expr::setlanguage(Options::current()->outputLanguage);
+      ss << Expr::setlanguage(options::outputLanguage());
       ss << "t_" << d_type;
       d_cardinality_lemma_term = NodeManager::currentNM()->mkVar( ss.str(), d_type );
     }

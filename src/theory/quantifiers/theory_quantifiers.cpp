@@ -27,6 +27,7 @@
 #include <map>
 #include <time.h>
 #include "theory/quantifiers/theory_quantifiers_instantiator.h"
+#include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 
 using namespace std;

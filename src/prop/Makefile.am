@@ -22,5 +22,8 @@ libprop_la_SOURCES = \
 	sat_solver_registry.h \
 	sat_solver_registry.cpp
 
+EXTRA_DIST = \
+	options_handlers.h
+
 SUBDIRS = minisat bvminisat
 

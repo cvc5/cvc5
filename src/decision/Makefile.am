@@ -6,6 +6,8 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 noinst_LTLIBRARIES = libdecision.la
 
 libdecision_la_SOURCES = \
+	decision_mode.h \
+	decision_mode.cpp \
 	decision_engine.h \
 	decision_engine.cpp \
 	decision_strategy.h \
@@ -13,3 +15,6 @@ libdecision_la_SOURCES = \
 	justification_heuristic.cpp \
 	relevancy.h \
 	relevancy.cpp
+
+EXTRA_DIST = \
+	options_handlers.h

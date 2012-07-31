@@ -44,7 +44,7 @@ while [ $# -gt 0 ]; do
 
   # enough dotdots to get us back to the top-level directory
   # (e.g. "src/foo" yields "../.." here), used for $(topdir) in Makefile
-  topdir=`echo "$srcdir" | sed 's,[^/]\+,..,g'`
+  topdir=`echo "$srcdir" | sed 's,[^/][^/]*,..,g'`
   # one less, used for the include path in Makefile.am
   topsrcdir=`echo "$topdir" | sed 's,\.\./,,'`
 
@@ -64,7 +64,7 @@ EOF
     echo "$progname: warning: not replacing extant \`$srcdir/Makefile.am'." >&2
   else
     echo "generating \`$srcdir/Makefile.am'..."
-    clibbase=`expr "$srcdir" : '.*/\([^/]\+\)$'`
+    clibbase=`expr "$srcdir" : '.*/\([^/][^/]*\)$'`
     if expr "$srcdir" : src/parser >/dev/null; then
       definitions="	-D__BUILDING_CVC4PARSERLIB \\
 "

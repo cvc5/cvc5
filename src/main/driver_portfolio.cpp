@@ -40,7 +40,11 @@
 #include "expr/command.h"
 #include "util/Assert.h"
 #include "util/configuration.h"
-#include "util/options.h"
+#include "options/options.h"
+#include "main/options.h"
+#include "smt/options.h"
+#include "prop/options.h"
+#include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/result.h"
@@ -78,7 +82,7 @@ static bool doCommand(SmtEngine&, Command*, Options&);
 Result doSmt(SmtEngine &smt, Command *cmd, Options &options);
 
 template<typename T>
-void sharingManager(int numThreads,
+void sharingManager(unsigned numThreads,
                     SharedChannel<T>* channelsOut[],
                     SharedChannel<T>* channelsIn[],
                     SmtEngine* smts[]);
@@ -122,23 +126,25 @@ public:
   {}
 
   void notifyNewLemma(Expr lemma) {
-    if(Debug.isOn("disable-lemma-sharing")) return;
-    const Options *options = Options::current();
-    if(options->sharingFilterByLength >= 0) { // 0 would mean no-sharing effectively
-      if( int(lemma.getNumChildren()) > options->sharingFilterByLength)
+    if(Debug.isOn("disable-lemma-sharing")) {
+      return;
+    }
+    if(options::sharingFilterByLength() >= 0) { // 0 would mean no-sharing effectively
+      if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
         return;
+      }
     }
     ++cnt;
-    Trace("sharing") << d_tag << ": " << lemma << std::endl;
+    Trace("sharing") << d_tag << ": " << lemma << endl;
     expr::pickle::Pickle pkl;
-    try{
+    try {
       d_pickler.toPickle(lemma, pkl);
       d_sharedChannel->push(pkl);
-      if(Trace.isOn("showSharing") and options->thread_id == 0) {
-        *(Options::current()->out) << "thread #0: notifyNewLemma: " << lemma << endl;
+      if(Trace.isOn("showSharing") && options::thread_id() == 0) {
+        *options::out() << "thread #0: notifyNewLemma: " << lemma << endl;
       }
-    }catch(expr::pickle::PicklingException& p){
-      Trace("sharing::blocked") << lemma << std::endl;
+    } catch(expr::pickle::PicklingException& p){
+      Trace("sharing::blocked") << lemma << endl;
     }
   }
 
@@ -172,8 +178,8 @@ public:
     expr::pickle::Pickle pkl = d_sharedChannel->pop();
 
     Expr e = d_pickler.fromPickle(pkl);
-    if(Trace.isOn("showSharing") and Options::current()->thread_id == 0) {
-      *(Options::current()->out) << "thread #0: getNewLemma: " << e << endl;
+    if(Trace.isOn("showSharing") && options::thread_id() == 0) {
+      *options::out() << "thread #0: getNewLemma: " << e << endl;
     }
     return e;
   }
@@ -182,7 +188,7 @@ public:
 
 
 
-int runCvc4(int argc, char *argv[], Options& options) {
+int runCvc4(int argc, char *argv[], Options& opts) {
 
 #ifdef CVC4_CLN_IMP
   Warning() << "WARNING:" << endl
@@ -211,7 +217,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
   s_beforePortfolioTime.start();
 
   // For the signal handlers' benefit
-  pOptions = &options;
+  pOptions = &opts;
 
   // Initialize the signal handlers
   cvc4_init();
@@ -222,36 +228,36 @@ int runCvc4(int argc, char *argv[], Options& options) {
   /****************************** Options Processing ************************/
 
   // Parse the options
-  int firstArgIndex = options.parseOptions(argc, argv);
+  int firstArgIndex = opts.parseOptions(argc, argv);
 
-  progName = options.binary_name.c_str();
+  progName = opts[options::binary_name].c_str();
 
-  if( options.help ) {
-    printUsage(options, true);
+  if( opts[options::help] ) {
+    printUsage(opts, true);
     exit(1);
-  } else if( options.languageHelp ) {
-    Options::printLanguageHelp(*options.out);
+  } else if( opts[options::languageHelp] ) {
+    Options::printLanguageHelp(*opts[options::out]);
     exit(1);
-  } else if( options.version ) {
-    *options.out << Configuration::about().c_str() << flush;
+  } else if( opts[options::version] ) {
+    *opts[options::out] << Configuration::about().c_str() << flush;
     exit(0);
   }
 
-  int numThreads = options.threads;
+  unsigned numThreads = opts[options::threads];
 
-  if(options.threadArgv.size() > size_t(numThreads)) {
+  if(opts[options::threadArgv].size() > size_t(numThreads)) {
     stringstream ss;
-    ss << "--thread" << (options.threadArgv.size() - 1)
+    ss << "--thread" << (opts[options::threadArgv].size() - 1)
        << " configuration string seen but this portfolio will only contain "
        << numThreads << " thread(s)!";
     throw OptionException(ss.str());
   }
 
-  segvNoSpin = options.segvNoSpin;
+  segvNoSpin = opts[options::segvNoSpin];
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC4_COMPETITION_MODE
-  *options.out << unitbuf;
+  *opts[options::out] << unitbuf;
 #endif /* CVC4_COMPETITION_MODE */
 
   // We only accept one input file
@@ -264,29 +270,29 @@ int runCvc4(int argc, char *argv[], Options& options) {
     firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if(!options.interactiveSetByUser) {
-    options.interactive = inputFromStdin && isatty(fileno(stdin));
+  if(!opts.wasSetByUser(options::interactive)) {
+    opts.set(options::interactive, inputFromStdin && isatty(fileno(stdin)));
   }
 
   // Auto-detect input language by filename extension
   const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
 
-  if(options.inputLanguage == language::input::LANG_AUTO) {
+  if(opts[options::inputLanguage] == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      options.inputLanguage = language::input::LANG_CVC4;
+      opts.set(options::inputLanguage, language::input::LANG_CVC4);
     } else {
       unsigned len = strlen(filename);
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        options.inputLanguage = language::input::LANG_SMTLIB_V2;
+        opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2);
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        options.inputLanguage = language::input::LANG_SMTLIB;
+        opts.set(options::inputLanguage, language::input::LANG_SMTLIB);
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
-        options.inputLanguage = language::input::LANG_TPTP;
+        opts.set(options::inputLanguage, language::input::LANG_TPTP);
       } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
                 || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        options.inputLanguage = language::input::LANG_CVC4;
+        opts.set(options::inputLanguage, language::input::LANG_CVC4);
       }
     }
   }
@@ -301,54 +307,55 @@ int runCvc4(int argc, char *argv[], Options& options) {
     Warning.setStream(CVC4::null_os);
     Dump.setStream(CVC4::null_os);
   } else {
-    if(options.verbosity < 2) {
+    if(opts[options::verbosity] < 2) {
       Chat.setStream(CVC4::null_os);
     }
-    if(options.verbosity < 1) {
+    if(opts[options::verbosity] < 1) {
       Notice.setStream(CVC4::null_os);
     }
-    if(options.verbosity < 0) {
+    if(opts[options::verbosity] < 0) {
       Message.setStream(CVC4::null_os);
       Warning.setStream(CVC4::null_os);
     }
 
-    OutputLanguage language = language::toOutputLanguage(options.inputLanguage);
+    OutputLanguage language = language::toOutputLanguage(opts[options::inputLanguage]);
     Debug.getStream() << Expr::setlanguage(language);
     Trace.getStream() << Expr::setlanguage(language);
     Notice.getStream() << Expr::setlanguage(language);
     Chat.getStream() << Expr::setlanguage(language);
     Message.getStream() << Expr::setlanguage(language);
     Warning.getStream() << Expr::setlanguage(language);
-    Dump.getStream() << Expr::setlanguage(options.outputLanguage)
+    Dump.getStream() << Expr::setlanguage(language)
                      << Expr::setdepth(-1)
                      << Expr::printtypes(false);
   }
 
   // important even for muzzled builds (to get result output right)
-  *options.out << Expr::setlanguage(options.outputLanguage);
+  *opts[options::out] << Expr::setlanguage(opts[options::outputLanguage]);
 
   vector<Options> threadOptions;
-  for(int i = 0; i < numThreads; ++i) {
-    threadOptions.push_back(options);
-    Options& opts = threadOptions.back();
+  for(unsigned i = 0; i < numThreads; ++i) {
+    threadOptions.push_back(opts);
+    Options& tOpts = threadOptions.back();
 
     // Set thread identifier
-    opts.thread_id = i;
+    tOpts.set(options::thread_id, i);
 
     // If the random-seed is negative, pick a random seed randomly
-    if(options.satRandomSeed < 0)
-      opts.satRandomSeed = (double)rand();
+    if(opts[options::satRandomSeed] < 0) {
+      tOpts.set(options::satRandomSeed, (double)rand());
+    }
 
-    if(i < (int)options.threadArgv.size() && !options.threadArgv[i].empty()) {
+    if(i < opts[options::threadArgv].size() && !opts[options::threadArgv][i].empty()) {
       // separate out the thread's individual configuration string
       stringstream optidss;
       optidss << "--thread" << i;
       string optid = optidss.str();
       int targc = 1;
-      char* tbuf = strdup(options.threadArgv[i].c_str());
+      char* tbuf = strdup(opts[options::threadArgv][i].c_str());
       char* p = tbuf;
       // string length is certainly an upper bound on size needed
-      char** targv = new char*[options.threadArgv[i].size()];
+      char** targv = new char*[opts[options::threadArgv][i].size()];
       char** vp = targv;
       *vp++ = strdup(optid.c_str());
       p = strtok(p, " ");
@@ -360,7 +367,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
       *vp++ = NULL;
       if(targc > 1) { // this is necessary in case you do e.g. --thread0="  "
         try {
-          opts.parseOptions(targc, targv);
+          tOpts.parseOptions(targc, targv);
         } catch(OptionException& e) {
           stringstream ss;
           ss << optid << ": " << e.getMessage();
@@ -372,7 +379,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
              << "' in thread configuration " << optid << " !";
           throw OptionException(ss.str());
         }
-        if(opts.threads != numThreads || opts.threadArgv != options.threadArgv) {
+        if(tOpts[options::threads] != numThreads || tOpts[options::threadArgv] != opts[options::threadArgv]) {
           stringstream ss;
           ss << "not allowed to set thread options in " << optid << " !";
           throw OptionException(ss.str());
@@ -387,16 +394,16 @@ int runCvc4(int argc, char *argv[], Options& options) {
   // Some more options related stuff
 
   /* Use satRandomSeed for generating random numbers, in particular satRandomSeed-s */
-  srand((unsigned int)(-options.satRandomSeed));
+  srand((unsigned int)(-opts[options::satRandomSeed]));
 
   assert(numThreads >= 1);      //do we need this?
 
   /* Output to string stream  */
   vector<stringstream*> ss_out(numThreads);
-  if(options.verbosity == 0 or options.separateOutput) {
-    for(int i = 0;i <numThreads; ++i) {
+  if(opts[options::verbosity] == 0 || opts[options::separateOutput]) {
+    for(unsigned i = 0; i < numThreads; ++i) {
       ss_out[i] = new stringstream;
-      threadOptions[i].out = ss_out[i];
+      threadOptions[i].set(options::out, ss_out[i]);
     }
   }
 
@@ -431,8 +438,8 @@ int runCvc4(int argc, char *argv[], Options& options) {
   Command* cmd;
   // bool status = true;           // Doesn't seem to be use right now: commenting it out
   CommandSequence* seq = new CommandSequence();
-  if( options.interactive ) {
-    InteractiveShell shell(*exprMgr, options);
+  if( opts[options::interactive] ) {
+    InteractiveShell shell(*exprMgr, opts);
     Message() << Configuration::getPackageName()
               << " " << Configuration::getVersionString();
     if(Configuration::isSubversionBuild()) {
@@ -452,7 +459,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
   } else {
     ParserBuilder parserBuilder =
       ParserBuilder(exprMgr, filename).
-        withOptions(options);
+        withOptions(opts);
 
     if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -465,15 +472,16 @@ int runCvc4(int argc, char *argv[], Options& options) {
     Parser *parser = parserBuilder.build();
     while((cmd = parser->nextCommand())) {
       seq->addCommand(cmd);
-      // doCommand(smt, cmd, options);
+      // doCommand(smt, cmd, opts);
       // delete cmd;
     }
     // Remove the parser
     delete parser;
   }
 
-  if(options.parseOnly)
+  if(opts[options::parseOnly]) {
     return 0;
+  }
 
   exprMgr = NULL;               // don't want to use that variable
                                 // after this point
@@ -482,7 +490,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
   ExprManagerMapCollection* vmaps[numThreads]; // vmaps[0] is generally empty
   Command *seqs[numThreads];
   seqs[0] = seq;   seq = NULL;
-  for(int i = 1; i < numThreads; ++i) {
+  for(unsigned i = 1; i < numThreads; ++i) {
     vmaps[i] = new ExprManagerMapCollection();
     exprMgrs[i] = new ExprManager(threadOptions[i]);
     seqs[i] = seqs[0]->exportTo(exprMgrs[i], *(vmaps[i]) );
@@ -515,14 +523,16 @@ int runCvc4(int argc, char *argv[], Options& options) {
 
   // Create the SmtEngine(s)
   SmtEngine *smts[numThreads];
-  for(int i = 0; i < numThreads; ++i) {
+  for(unsigned i = 0; i < numThreads; ++i) {
     smts[i] = new SmtEngine(exprMgrs[i]);
 
     // Register the statistics registry of the thread
-    string tag = "thread #" + boost::lexical_cast<string>(threadOptions[i].thread_id);
-    smts[i]->getStatisticsRegistry()->setName(tag);
-    theStatisticsRegistry.registerStat_( smts[i]->getStatisticsRegistry() );
+    string emTag = "ExprManager thread #" + boost::lexical_cast<string>(threadOptions[i][options::thread_id]);
+    string smtTag = "SmtEngine thread #" + boost::lexical_cast<string>(threadOptions[i][options::thread_id]);
+    exprMgrs[i]->getStatisticsRegistry()->setName(emTag);
+    smts[i]->getStatisticsRegistry()->setName(smtTag);
     theStatisticsRegistry.registerStat_( exprMgrs[i]->getStatisticsRegistry() );
+    theStatisticsRegistry.registerStat_( smts[i]->getStatisticsRegistry() );
   }
 
   /************************* Lemma sharing init ************************/
@@ -532,12 +542,12 @@ int runCvc4(int argc, char *argv[], Options& options) {
 
   if(numThreads == 1) {
     // Disable sharing
-    threadOptions[0].sharingFilterByLength = 0;
+    threadOptions[0].set(options::sharingFilterByLength, 0);
   } else {
     // Setup sharing channels
     const unsigned int sharingChannelSize = 1000000;
 
-    for(int i = 0; i<numThreads; ++i){
+    for(unsigned i = 0; i < numThreads; ++i){
       if(Debug.isOn("channel-empty")) {
         channelsOut[i] = new EmptySharedChannel<channelFormat>(sharingChannelSize);
         channelsIn[i] = new EmptySharedChannel<channelFormat>(sharingChannelSize);
@@ -548,14 +558,14 @@ int runCvc4(int argc, char *argv[], Options& options) {
     }
 
     /* Lemma output channel */
-    for(int i = 0; i<numThreads; ++i) {
-      string tag = "thread #" + boost::lexical_cast<string>(threadOptions[i].thread_id);
-      threadOptions[i].lemmaOutputChannel =
+    for(unsigned i = 0; i < numThreads; ++i) {
+      string tag = "thread #" + boost::lexical_cast<string>(threadOptions[i][options::thread_id]);
+      threadOptions[i].set(options::lemmaOutputChannel,
         new PortfolioLemmaOutputChannel(tag, channelsOut[i], exprMgrs[i],
-                                        vmaps[i]->d_from, vmaps[i]->d_to);
-      threadOptions[i].lemmaInputChannel =
+                                        vmaps[i]->d_from, vmaps[i]->d_to));
+      threadOptions[i].set(options::lemmaInputChannel,
         new PortfolioLemmaInputChannel(tag, channelsIn[i], exprMgrs[i],
-                                       vmaps[i]->d_from, vmaps[i]->d_to);
+                                       vmaps[i]->d_from, vmaps[i]->d_to));
     }
   }
 
@@ -564,7 +574,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
   /* Portfolio */
   boost::function<Result()> fns[numThreads];
 
-  for(int i = 0; i < numThreads; ++i) {
+  for(unsigned i = 0; i < numThreads; ++i) {
     fns[i] = boost::bind(doSmt, boost::ref(*smts[i]), seqs[i], boost::ref(threadOptions[i]));
   }
 
@@ -580,7 +590,7 @@ int runCvc4(int argc, char *argv[], Options& options) {
 
   /************************* Post printing answer ***********************/
 
-  if(options.printWinner){
+  if(opts[options::printWinner]){
     cout << "The winner is #" << winner << endl;
   }
 
@@ -606,29 +616,29 @@ int runCvc4(int argc, char *argv[], Options& options) {
   // Stop timers, enough work done
   s_totalTime.stop();
 
-  if(options.statistics) {
-    pStatistics->flushInformation(*options.err);
+  if(opts[options::statistics]) {
+    pStatistics->flushInformation(*opts[options::err]);
   }
 
-  if(options.separateOutput) {
-    for(int i = 0; i < numThreads; ++i) {
-      *options.out << "--- Output from thread #" << i << " ---" << endl;
-      *options.out << ss_out[i]->str();
+  if(opts[options::separateOutput]) {
+    for(unsigned i = 0; i < numThreads; ++i) {
+      *opts[options::out] << "--- Output from thread #" << i << " ---" << endl;
+      *opts[options::out] << ss_out[i]->str();
     }
   }
 
-  /*if(options.statistics) {
+  /*if(opts[options::statistics]) {
     double totalTime = double(s_totalTime.getData().tv_sec) +
         double(s_totalTime.getData().tv_nsec)/1000000000.0;
     cout.precision(6);
-    *options.err << "real time: " << totalTime << "s\n";
-    int th0_lemcnt = (*static_cast<PortfolioLemmaOutputChannel*>(options.lemmaOutputChannel)).cnt;
+    *opts[options::err] << "real time: " << totalTime << "s\n";
+    int th0_lemcnt = (*static_cast<PortfolioLemmaOutputChannel*>(opts[options::lemmaOutputChannel])).cnt;
     int th1_lemcnt = (*static_cast<PortfolioLemmaOutputChannel*>(threadOptions[1].lemmaOutputChannel)).cnt;
-    *options.err << "lemmas shared by thread #0: " << th0_lemcnt << endl;
-    *options.err << "lemmas shared by thread #1: " << th1_lemcnt << endl;
-    *options.err << "sharing rate: " << double(th0_lemcnt+th1_lemcnt)/(totalTime)
+    *opts[options::err] << "lemmas shared by thread #0: " << th0_lemcnt << endl;
+    *opts[options::err] << "lemmas shared by thread #1: " << th1_lemcnt << endl;
+    *opts[options::err] << "sharing rate: " << double(th0_lemcnt+th1_lemcnt)/(totalTime)
                  << " lem/sec" << endl;
-    *options.err << "winner: #" << (winner == 0 ? 0 : 1) << endl;
+    *opts[options::err] << "winner: #" << (winner == 0 ? 0 : 1) << endl;
   }*/
 
   // destruction is causing segfaults, let us just exit
@@ -663,23 +673,23 @@ namespace CVC4 {
   }
 }
 
-void printUsage(Options& options, bool full) {
+void printUsage(Options& opts, bool full) {
   stringstream ss;
-  ss << "usage: " << options.binary_name << " [options] [input-file]" << endl
+  ss << "usage: " << opts[options::binary_name] << " [options] [input-file]" << endl
       << endl
       << "Without an input file, or with `-', CVC4 reads from standard input." << endl
       << endl
       << "CVC4 options:" << endl;
   if(full) {
-    Options::printUsage( ss.str(), *options.out );
+    Options::printUsage( ss.str(), *opts[options::out] );
   } else {
-    Options::printShortUsage( ss.str(), *options.out );
+    Options::printShortUsage( ss.str(), *opts[options::out] );
   }
 }
 
 /** Executes a command. Deletes the command after execution. */
-static bool doCommand(SmtEngine& smt, Command* cmd, Options& options) {
-  if( options.parseOnly ) {
+static bool doCommand(SmtEngine& smt, Command* cmd, Options& opts) {
+  if( opts[options::parseOnly] ) {
     return true;
   }
 
@@ -691,15 +701,15 @@ static bool doCommand(SmtEngine& smt, Command* cmd, Options& options) {
     for(CommandSequence::iterator subcmd = seq->begin();
         subcmd != seq->end();
         ++subcmd) {
-      status = doCommand(smt, *subcmd, options) && status;
+      status = doCommand(smt, *subcmd, opts) && status;
     }
   } else {
-    if(options.verbosity > 0) {
-      *options.out << "Invoking: " << *cmd << endl;
+    if(opts[options::verbosity] > 0) {
+      *opts[options::out] << "Invoking: " << *cmd << endl;
     }
 
-    if(options.verbosity >= 0) {
-      cmd->invoke(&smt, *options.out);
+    if(opts[options::verbosity] >= 0) {
+      cmd->invoke(&smt, *opts[options::out]);
     } else {
       cmd->invoke(&smt);
     }
@@ -712,48 +722,48 @@ static bool doCommand(SmtEngine& smt, Command* cmd, Options& options) {
 /**** End of code shared with driver.cpp ****/
 
 /** Create the SMT engine and execute the commands */
-Result doSmt(SmtEngine &smt, Command *cmd, Options &options) {
+Result doSmt(SmtEngine &smt, Command *cmd, Options &opts) {
 
   try {
     // For the signal handlers' benefit
-    pOptions = &options;
+    pOptions = &opts;
 
     // Execute the commands
-    bool status = doCommand(smt, cmd, options);
+    bool status = doCommand(smt, cmd, opts);
 
-    // if(options.statistics) {
-    //   smt.getStatisticsRegistry()->flushInformation(*options.err);
-    //   *options.err << "Statistics printing of my thread complete " << endl;
+    // if(opts[options::statistics]) {
+    //   smt.getStatisticsRegistry()->flushInformation(*opts[options::err]);
+    //   *opts[options::err] << "Statistics printing of my thread complete " << endl;
     // }
 
     return status ? smt.getStatusOfLastCommand() : Result::SAT_UNKNOWN;
   } catch(OptionException& e) {
-    *pOptions->out << "unknown" << endl;
+    *(*pOptions)[options::out] << "unknown" << endl;
     cerr << "CVC4 Error:" << endl << e << endl;
     printUsage(*pOptions);
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *pOptions->out << "unknown" << endl;
+    *(*pOptions)[options::out] << "unknown" << endl;
 #endif
-    *pOptions->err << "CVC4 Error:" << endl << e << endl;
-    if(pOptions->statistics) {
-      pStatistics->flushInformation(*pOptions->err);
+    *(*pOptions)[options::err] << "CVC4 Error:" << endl << e << endl;
+    if((*pOptions)[options::statistics]) {
+      pStatistics->flushInformation(*(*pOptions)[options::err]);
     }
   }
   return Result::SAT_UNKNOWN;
 }
 
 template<typename T>
-void sharingManager(int numThreads,
+void sharingManager(unsigned numThreads,
                     SharedChannel<T> *channelsOut[], // out and in with respect
                     SharedChannel<T> *channelsIn[],
                     SmtEngine *smts[])  // to smt engines
 {
-  Trace("sharing") << "sharing: thread started " << std::endl;
+  Trace("sharing") << "sharing: thread started " << endl;
   vector <int> cnt(numThreads); // Debug("sharing")
 
   vector< queue<T> > queues;
-  for(int i = 0; i < numThreads; ++i){
+  for(unsigned i = 0; i < numThreads; ++i){
     queues.push_back(queue<T>());
   }
 
@@ -768,7 +778,7 @@ void sharingManager(int numThreads,
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(sharingBroadcastInterval));
 
-    for(int t = 0; t < numThreads; ++t) {
+    for(unsigned t = 0; t < numThreads; ++t) {
 
       if(channelsOut[t]->empty()) continue;      /* No activity on this channel */
 
@@ -784,22 +794,22 @@ void sharingManager(int numThreads,
                          << ". Chunk " << cnt[t] << std :: endl;
       }
 
-      for(int u = 0; u < numThreads; ++u) {
+      for(unsigned u = 0; u < numThreads; ++u) {
         if(u != t){
-          Trace("sharing") << "sharing: adding to queue " << u << std::endl;
+          Trace("sharing") << "sharing: adding to queue " << u << endl;
           queues[u].push(data);
         }
       }/* end of inner for: broadcast activity */
 
     } /* end of outer for: look for activity */
 
-    for(int t = 0; t < numThreads; ++t){
+    for(unsigned t = 0; t < numThreads; ++t){
       /* Alert if channel full, so that we increase sharingChannelSize
          or decrease sharingBroadcastInterval */
       Assert(not channelsIn[t]->full());
 
       while(!queues[t].empty() && !channelsIn[t]->full()){
-        Trace("sharing") << "sharing: pushing on channel " << t << std::endl;
+        Trace("sharing") << "sharing: pushing on channel " << t << endl;
         T data = queues[t].front();
         channelsIn[t]->push(data);
         queues[t].pop();
@@ -807,17 +817,17 @@ void sharingManager(int numThreads,
     }
   } /* end of infinite while */
 
-  Trace("interrupt") << "sharing thread interrupted, interrupting all smtEngines" << std::endl;
+  Trace("interrupt") << "sharing thread interrupted, interrupting all smtEngines" << endl;
 
-  for(int t = 0; t < numThreads; ++t) {
-    Trace("interrupt") << "Interrupting thread #" << t << std::endl;
+  for(unsigned t = 0; t < numThreads; ++t) {
+    Trace("interrupt") << "Interrupting thread #" << t << endl;
     try{
       smts[t]->interrupt();
     }catch(ModalException &e){
       // It's fine, the thread is probably not there.
-      Trace("interrupt") << "Could not interrupt thread #" << t << std::endl;
+      Trace("interrupt") << "Could not interrupt thread #" << t << endl;
     }
   }
 
-  Trace("sharing") << "sharing: Interrupted, exiting." << std::endl;
+  Trace("sharing") << "sharing: Interrupted, exiting." << endl;
 }

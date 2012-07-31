@@ -92,7 +92,7 @@ using namespace CVC4;
 %include "util/stats.i"
 %include "util/exception.i"
 %include "util/language.i"
-%include "util/options.i"
+%include "options/options.i"
 %include "util/cardinality.i"
 %include "util/bool.i"
 %include "util/sexpr.i"
