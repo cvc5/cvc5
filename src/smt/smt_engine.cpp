@@ -345,7 +345,6 @@ void SmtEngine::finishInit() {
 
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);
-
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -353,8 +352,8 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
-  finishInit();                 // finish initalization, creating prop
-                                // engine etc.
+  // finish initalization, creat the prop engine, etc.
+  finishInit();
 
   AlwaysAssert( d_propEngine->getAssertionLevel() == 0,
                 "The PropEngine has pushed but the SmtEngine "
@@ -1992,6 +1991,9 @@ void SmtEngine::internalPop() {
 }
 
 void SmtEngine::interrupt() throw(ModalException) {
+  if(!d_fullyInited) {
+    return;
+  }
   d_propEngine->interrupt();
 }
 

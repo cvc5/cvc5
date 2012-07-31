@@ -30,7 +30,9 @@ static TheoryId theoryOf(TNode node) {
   return Theory::theoryOf(THEORY_OF_TYPE_BASED, node);
 }
 
-std::hash_set<Node, NodeHashFunction> d_rewriteStack;
+#ifdef CVC4_ASSERTIONS
+static CVC4_THREADLOCAL(std::hash_set<Node, NodeHashFunction>*) s_rewriteStack = NULL;
+#endif /* CVC4_ASSERTIONS */
 
 /**
  * TheoryEngine::rewrite() keeps a stack of things that are being pre-
@@ -72,6 +74,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
 #ifdef CVC4_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL;
+
+  if(s_rewriteStack == NULL) {
+    s_rewriteStack = new std::hash_set<Node, NodeHashFunction>();
+  }
 #endif
 
   Trace("rewriter") << "Rewriter::rewriteTo(" << theoryId << "," << node << ")"<< std::endl;
@@ -171,12 +177,12 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           Assert(response.node != rewriteStackTop.node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
 #ifdef CVC4_ASSERTIONS
-          Assert(d_rewriteStack.find(response.node) == d_rewriteStack.end());
-          d_rewriteStack.insert(response.node);
+          Assert(s_rewriteStack->find(response.node) == s_rewriteStack->end());
+          s_rewriteStack->insert(response.node);
 #endif
           rewriteStackTop.node = rewriteTo(newTheoryId, response.node);
 #ifdef CVC4_ASSERTIONS
-          d_rewriteStack.erase(response.node);
+          s_rewriteStack->erase(response.node);
 #endif
           break;
         } else if (response.status == REWRITE_DONE) {
