@@ -1,9 +1,9 @@
 /*********************                                                        */
-/*! \file inst_match_impl.h
+/*! \file rr_inst_match_impl.h
  ** \verbatim
  ** Original author: bobot
  ** Major contributors: none
- ** Minor contributors (to current version): taking, mdeters
+ ** Minor contributors (to current version): ajreynol, mdeters
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
