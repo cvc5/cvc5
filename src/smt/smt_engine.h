@@ -554,11 +554,14 @@ public:
   /**
    * Used as a predicate for options preprocessor.
    */
-  static void beforeSearch(std::string option, bool value, SmtEngine* smt) {
-    if(smt != NULL && (smt->d_queryMade || smt->d_problemExtended)) {
+  static void beforeSearch(std::string option, bool value, SmtEngine* smt) throw(ModalException) {
+    // FIXME: should be the following test...
+    // if(smt != NULL && (smt->d_queryMade || smt->d_problemExtended)) {
+    // ...but addToModelType() etc. make a stronger assumption:
+    if(smt != NULL && smt->d_fullyInited) {
       std::stringstream ss;
       ss << "cannot change option `" << option << "' after assertions have been made";
-      throw OptionException(ss.str());
+      throw ModalException(ss.str());
     }
   }
 

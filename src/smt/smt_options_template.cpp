@@ -47,13 +47,11 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
     Dump("benchmark") << SetOptionCommand(key, value);
   }
 
-  stringstream ss;
-  ss << value;
-  string optarg = ss.str();
+  string optarg = value.getValue();
 
   ${smt_setoption_handlers}
 
-#line 57 "${template}"
+#line 55 "${template}"
 
   throw BadOptionException();
 }
@@ -70,7 +68,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   ${smt_getoption_handlers}
 
-#line 74 "${template}"
+#line 72 "${template}"
 
   throw BadOptionException();
 }
