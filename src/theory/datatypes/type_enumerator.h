@@ -143,6 +143,10 @@ public:
     return *this;
   }
 
+  bool isFinished() throw() {
+    return d_ctor >= d_datatype.getNumConstructors();
+  }
+
 };/* DatatypesEnumerator */
 
 }/* CVC4::theory::datatypes namespace */

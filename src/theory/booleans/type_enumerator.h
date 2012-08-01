@@ -62,6 +62,10 @@ public:
     return *this;
   }
 
+  bool isFinished() throw() {
+    return d_value == DONE;
+  }
+
 };/* class BooleanEnumerator */
 
 }/* CVC4::theory::booleans namespace */

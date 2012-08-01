@@ -72,6 +72,10 @@ public:
     return *this;
   }
 
+  bool isFinished() throw() {
+    return false;
+  }
+
 };/* class RationalEnumerator */
 
 class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
@@ -98,6 +102,10 @@ public:
       d_int = -d_int;
     }
     return *this;
+  }
+
+  bool isFinished() throw() {
+    return false;
   }
 
 };/* class IntegerEnumerator */

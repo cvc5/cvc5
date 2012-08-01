@@ -50,6 +50,10 @@ public:
     return *this;
   }
 
+  bool isFinished() throw() {
+    Unimplemented();
+  }
+
 };/* class ArrayEnumerator */
 
 }/* CVC4::theory::arrays namespace */

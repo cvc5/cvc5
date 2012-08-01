@@ -47,12 +47,19 @@ public:
 
   virtual ~TypeEnumeratorInterface() {}
 
+  /** Is this enumerator out of constants to enumerate? */
+  virtual bool isFinished() throw() = 0;
+
+  /** Get the current constant of this type (throws if no such constant exists) */
   virtual Node operator*() throw(NoMoreValuesException) = 0;
 
+  /** Increment the pointer to the next available constant */
   virtual TypeEnumeratorInterface& operator++() throw() = 0;
 
+  /** Clone this enumerator */
   virtual TypeEnumeratorInterface* clone() const = 0;
 
+  /** Get the type from which we're enumerating constants */
   TypeNode getType() const throw() { return d_type; }
 
 };/* class TypeEnumeratorInterface */
@@ -92,6 +99,7 @@ public:
 
   ~TypeEnumerator() { delete d_te; }
 
+  bool isFinished() throw() { return d_te->isFinished(); }
   Node operator*() throw(NoMoreValuesException) { return **d_te; }
   TypeEnumerator& operator++() throw() { ++*d_te; return *this; }
   TypeEnumerator operator++(int) throw() { TypeEnumerator te = *this; ++*d_te; return te; }

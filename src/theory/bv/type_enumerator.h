@@ -55,6 +55,10 @@ public:
     return *this;
   }
 
+  bool isFinished() throw() {
+    return d_bits != d_bits.modByPow2(d_size);
+  }
+
 };/* BitVectorEnumerator */
 
 }/* CVC4::theory::bv namespace */

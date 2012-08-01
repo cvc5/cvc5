@@ -51,6 +51,10 @@ public:
     return *this;
   }
 
+  bool isFinished() throw() {
+    return false;
+  }
+
 };/* class UninterpretedSortEnumerator */
 
 }/* CVC4::theory::builtin namespace */
