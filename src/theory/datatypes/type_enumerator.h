@@ -62,7 +62,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 public:
 
   DatatypesEnumerator(TypeNode type) throw() :
-    TypeEnumeratorBase(type),
+    TypeEnumeratorBase<DatatypesEnumerator>(type),
     d_datatype(DatatypeType(type.toType()).getDatatype()),
     d_ctor(0),
     d_zeroCtor(0),

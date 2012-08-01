@@ -33,10 +33,11 @@
 #include "util/configuration.h"
 #include "util/exception.h"
 #include "util/language.h"
+#include "util/tls.h"
 
 ${include_all_option_headers}
 
-#line 40 "${template}"
+#line 41 "${template}"
 
 #include "util/output.h"
 #include "options/options_holder.h"
@@ -45,7 +46,7 @@ ${include_all_option_headers}
 
 ${option_handler_includes}
 
-#line 49 "${template}"
+#line 50 "${template}"
 
 using namespace CVC4;
 using namespace CVC4::options;
@@ -182,7 +183,7 @@ void runBoolPredicates(T, std::string option, bool b, SmtEngine* smt) {
 
 ${all_custom_handlers}
 
-#line 186 "${template}"
+#line 187 "${template}"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
@@ -212,18 +213,18 @@ options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
-#line 216 "${template}"
+#line 217 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:${common_documentation}";
 
-#line 221 "${template}"
+#line 222 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:${remaining_documentation}";
 
-#line 227 "${template}"
+#line 228 "${template}"
 
 static const std::string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
@@ -287,7 +288,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 291 "${template}"
+#line 292 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -320,10 +321,10 @@ namespace options {
 
 /** Set a given Options* as "current" just for a particular scope. */
 class OptionsGuard {
-  Options** d_field;
+  CVC4_THREADLOCAL_TYPE(Options*)* d_field;
   Options* d_old;
 public:
-  OptionsGuard(Options** field, Options* opts) :
+  OptionsGuard(CVC4_THREADLOCAL_TYPE(Options*)* field, Options* opts) :
     d_field(field),
     d_old(*field) {
     *field = opts;
@@ -414,7 +415,7 @@ int Options::parseOptions(int argc, char* main_argv[]) throw(OptionException) {
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 418 "${template}"
+#line 419 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the

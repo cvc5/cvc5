@@ -38,7 +38,7 @@ class BitVectorEnumerator : public TypeEnumeratorBase<BitVectorEnumerator> {
 public:
 
   BitVectorEnumerator(TypeNode type) throw(AssertionException) :
-    TypeEnumeratorBase(type),
+    TypeEnumeratorBase<BitVectorEnumerator>(type),
     d_size(type.getBitVectorSize()),
     d_bits(0) {
   }

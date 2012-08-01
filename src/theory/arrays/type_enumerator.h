@@ -36,7 +36,7 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
 public:
 
   ArrayEnumerator(TypeNode type) throw(AssertionException) :
-    TypeEnumeratorBase(type),
+    TypeEnumeratorBase<ArrayEnumerator>(type),
     d_index(TypeEnumerator(type.getArrayIndexType())),
     d_constituent(TypeEnumerator(type.getArrayConstituentType())) {
   }
