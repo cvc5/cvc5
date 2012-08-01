@@ -178,5 +178,10 @@ DISTCLEANFILES = \
 	tls.h.tmp \
 	integer.h \
 	rational.h \
-	tls.h
-
+	tls.h \
+	Debug_tags.tmp \
+	Debug_tags.h \
+	Debug_tags \
+	Trace_tags.tmp \
+	Trace_tags.h \
+	Trace_tags

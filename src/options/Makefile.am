@@ -118,13 +118,13 @@ options_holder.h options.cpp ../smt/smt_options.cpp base_options.cpp base_option
 options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILES:%=../%)
 	$(AM_V_at)chmod +x @srcdir@/mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions \
-		@srcdir@/options_holder_template.h @srcdir@/options_holder.h \
-		@srcdir@/options_template.cpp @srcdir@/options.cpp \
-		@srcdir@/../smt/smt_options_template.cpp @srcdir@/../smt/smt_options.cpp \
+		@srcdir@/options_holder_template.h @builddir@/options_holder.h \
+		@srcdir@/options_template.cpp @builddir@/options.cpp \
+		@srcdir@/../smt/smt_options_template.cpp @builddir@/../smt/smt_options.cpp \
 		@top_builddir@/doc/cvc4.1_template @top_builddir@/doc/cvc4.1 \
 		-t \
 		@srcdir@/base_options_template.h @srcdir@/base_options_template.cpp \
-		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/../$(o)" "$(dir $(srcdir)/../$(o))") \
+		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/../$(o)" "$(dir $(builddir)/../$(o))") \
 	)
 	touch "$@"
 

@@ -130,6 +130,7 @@ distclean-local:
 # these have .in versions
 DISTCLEANFILES = \
 	doc/cvc4.1 \
+	doc/cvc4.1_template \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
 	doc/libcvc4compat.3 \

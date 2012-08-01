@@ -17,28 +17,28 @@ noinst_LTLIBRARIES = libparsercvc.la
 ANTLR_TOKEN_STUFF = \
 	generated/Cvc.tokens
 ANTLR_LEXER_STUFF = \
-    generated/CvcLexer.h \
-    generated/CvcLexer.c \
-    $(ANTLR_TOKEN_STUFF)
+	generated/CvcLexer.h \
+	generated/CvcLexer.c \
+	$(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
-    generated/CvcParser.h \
-    generated/CvcParser.c
+	generated/CvcParser.h \
+	generated/CvcParser.c
 ANTLR_STUFF = \
-    $(ANTLR_LEXER_STUFF) \
-    $(ANTLR_PARSER_STUFF)
+	$(ANTLR_LEXER_STUFF) \
+	$(ANTLR_PARSER_STUFF)
 
 libparsercvc_la_SOURCES = \
-    Cvc.g \
-    cvc_input.h \
-    cvc_input.cpp \
-    $(ANTLR_STUFF)
+	Cvc.g \
+	cvc_input.h \
+	cvc_input.cpp \
+	$(ANTLR_STUFF)
 
 BUILT_SOURCES = $(ANTLR_STUFF) stamp-generated
 
 EXTRA_DIST = README
 
-MAINTAINERCLEANFILES = $(ANTLR_STUFF)
-maintainer-clean-local:
+DISTCLEANFILES = $(ANTLR_STUFF)
+distclean-local:
 	-$(AM_V_at)rmdir generated
 	-$(AM_V_at)rm -f stamp-generated
 

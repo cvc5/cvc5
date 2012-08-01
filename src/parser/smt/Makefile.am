@@ -37,8 +37,8 @@ libparsersmt_la_SOURCES = \
 
 BUILT_SOURCES = $(ANTLR_STUFF) stamp-generated
 
-MAINTAINERCLEANFILES = $(ANTLR_STUFF)
-maintainer-clean-local:
+DISTCLEANFILES = $(ANTLR_STUFF)
+distclean-local:
 	-$(AM_V_at)rmdir generated
 	-$(AM_V_at)rm -f stamp-generated
 

@@ -104,6 +104,7 @@ EXTRA_DIST = \
 	$(TEST_DEPS_DIST)
 
 MOSTLYCLEANFILES = $(UNIT_TESTS) $(UNIT_TESTS:%=%.cpp) $(UNIT_TESTS:%=%.lo)
+DISTCLEANFILES = $(UNIT_TESTS:%=.deps/%.Plo)
 
 # the tests automake infrastructure doesn't clean up .o files :-(
 # handle both .libs and _libs variants
