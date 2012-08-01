@@ -555,7 +555,7 @@ public:
    * Used as a predicate for options preprocessor.
    */
   static void beforeSearch(std::string option, bool value, SmtEngine* smt) {
-    if(smt->d_queryMade || smt->d_problemExtended) {
+    if(smt != NULL && (smt->d_queryMade || smt->d_problemExtended)) {
       std::stringstream ss;
       ss << "cannot change option `" << option << "' after assertions have been made";
       throw OptionException(ss.str());
