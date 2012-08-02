@@ -31,7 +31,7 @@ class CVC4_PUBLIC UninterpretedConstant {
 
 public:
 
-  UninterpretedConstant(Type type, Integer index) throw() :
+  UninterpretedConstant(Type type, Integer index) throw(IllegalArgumentException) :
     d_type(type),
     d_index(index) {
     CheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());

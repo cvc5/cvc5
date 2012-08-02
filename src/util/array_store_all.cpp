@@ -1,0 +1,32 @@
+/*********************                                                        */
+/*! \file array_store_all.cpp
+ ** \verbatim
+ ** Original author: mdeters
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
+ ** Courant Institute of Mathematical Sciences
+ ** New York University
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief Representation of a constant array (an array in which the
+ ** element is the same for all indices)
+ **
+ ** Representation of a constant array (an array in which the element is
+ ** the same for all indices).
+ **/
+
+#include "util/array_store_all.h"
+#include <iostream>
+
+using namespace std;
+
+namespace CVC4 {
+
+std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
+  return out << "__array_store_all__(" << asa.getType() << ", " << asa.getExpr() << ')';
+}
+
+}/* CVC4 namespace */

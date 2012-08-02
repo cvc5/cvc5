@@ -74,6 +74,8 @@ libutil_la_SOURCES = \
 	index.h \
 	uninterpreted_constant.h \
 	uninterpreted_constant.cpp \
+	array_store_all.h \
+	array_store_all.cpp \
 	model.h \
 	model.cpp
 
